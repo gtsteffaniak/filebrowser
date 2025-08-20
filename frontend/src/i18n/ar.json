@@ -46,7 +46,9 @@
     "retry": "إعادة المحاولة",
     "pauseAll": "إيقاف الكل مؤقتاً",
     "resumeAll": "استئناف الكل",
-    "clearCompleted": "اكتمل المسح"
+    "clearCompleted": "اكتمل المسح",
+    "showMore": "اعرض المزيد",
+    "showLess": "اعرض أقل"
   },
   "download": {
     "downloadFile": "Download File",
@@ -63,8 +65,6 @@
     "body": "الصفحة",
     "clear": "مسح",
     "closePreview": "إغلاق العرض",
-    "files": "الملفات",
-    "folders": "المجلدات",
     "home": "الصفحة الاولى",
     "lastModified": "آخر تعديل",
     "loading": "جاري التحميل...",
@@ -122,17 +122,13 @@
   "login": {
     "createAnAccount": "Create an account",
     "loginInstead": "Already have an account",
-    "password": "كلمة المرور",
     "passwordConfirm": "Password Confirmation",
     "passwordsDontMatch": "Passwords don't match",
-    "signup": "Signup",
     "submit": "تسجيل دخول",
-    "username": "إسم المستخدم",
     "usernameTaken": "Username already taken",
     "wrongCredentials": "بيانات دخول خاطئة",
     "or": "أو"
   },
-  "permanent": "دائم",
   "prompts": {
     "copy": "نسخ",
     "copyMessage": "رجاء حدد المكان لنسخ ملفاتك فيه:",
@@ -144,7 +140,7 @@
     "downloadMessage": "حدد إمتداد الملف المراد تحميله.",
     "error": "لقد حدث خطأ ما",
     "fileInfo": "معلومات الملف",
-    "lastModified": "آخر تعديل",
+    "lastModified": "آخر تعديل{suffix}",
     "move": "نقل",
     "moveMessage": "إختر مكان جديد للملفات أو المجلدات المراد نقلها:",
     "newArchetype": "إنشاء منشور من المنشور الأصلي. الملف سيتم انشاءه في مجلد المحتويات.",
@@ -152,8 +148,8 @@
     "newDirMessage": "رجاء أدخل اسم المجلد الجديد.",
     "newFile": "ملف جديد",
     "newFileMessage": "رجاء ادخل اسم الملف الجديد.",
-    "numberDirs": "عدد المجلدات",
-    "numberFiles": "عدد الملفات",
+    "numberDirs": "عدد المجلدات{suffix}",
+    "numberFiles": "عدد الملفات{suffix}",
     "rename": "إعادة تسمية",
     "renameMessage": "إدراج اسم جديد لـ",
     "replace": "إستبدال",
@@ -176,7 +172,19 @@
     "conflictsDetected": "التعارضات المكتشفة",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "الاسم المقدم غير صالح: لا يمكن أن يحتوي على \"/\" أو \"\\\""
+    "invalidName": "الاسم المقدم غير صالح: لا يمكن أن يحتوي على \"/\" أو \"\\\"",
+    "source": "Source{suffix}",
+    "downloadsLimit": "حد عدد التنزيلات",
+    "maxBandwidth": "أقصى نطاق ترددي للتنزيل (كيلو بايت/ثانية)",
+    "shareTheme": "سمة المشاركة",
+    "shareThemeColor": "مشاركة لون السمة (قيمة CSS)",
+    "shareTitle": "مشاركة العنوان",
+    "shareDescription": "وصف المشاركة",
+    "shareLogo": "مشاركة عنوان URL الشعار",
+    "shareBanner": "مشاركة عنوان URL للشعار",
+    "shareFavicon": "مشاركة عنوان URL المفضل",
+    "optionalPasswordHelp": "إذا تم تعيينها، يجب على المستخدمين إدخال كلمة المرور هذه لعرض المحتوى المشترك.",
+    "viewMode": "وضع العرض"
   },
   "search": {
     "images": "الصور",
@@ -321,7 +329,32 @@
     "abortUpload": "هل أنت متأكدة من أنك تريدين الإجهاض؟"
   },
   "share": {
-    "notice": "ملاحظة: يمكن لأي شخص لديه حق الوصول إلى الرابط (وكلمة مرور اختيارية) الوصول إلى الملفات المشتركة. لا يوجد شرط لتسجيل الدخول."
+    "notice": "ملاحظة: عندما يتم إنشاء مشاركة، تصبح أكثر انكشافًا للجمهور ولها قواعد مختلفة للوصول إليها. إذا لم يتم تهيئة مشاركتك بشكل آمن، فيمكن لأي شخص الوصول إليها.",
+    "disableAnonymousDescription": "عند التمكين، يمكن للمستخدمين الذين تمت مصادقتهم فقط الوصول إلى المشاركة. يجب أن يكون لدى المستخدم حق الوصول إلى مصدر المشاركة.",
+    "disableThumbnailsDescription": "عند التمكين، لن تظهر الصور المصغرة للمعاينة في المشاركة.",
+    "enableAllowedUsernamesDescription": "عند التمكين، يمكن للمستخدمين المحددين فقط الوصول إلى المشاركة. يجب أن يكون لدى المستخدم حق الوصول إلى مصدر المشاركة.",
+    "downloadsLimitDescription": "الحد الأقصى لعدد المرات التي يمكن فيها تنزيل أي ملف/مجلد من المشاركة. اتركه فارغاً لعدد غير محدود.",
+    "maxBandwidthDescription": "الحد الأقصى لعرض النطاق الترددي للتنزيل بالكيلو بايت في الثانية. اتركه فارغاً إذا كان غير محدود.",
+    "shareThemeDescription": "السمة التي يجب استخدامها لرابط المشاركة.",
+    "disableAnonymous": "تعطيل الوصول المجهول",
+    "disableThumbnails": "تعطيل الصور المصغرة",
+    "enableAllowedUsernames": "المشاركة لمستخدمين معينين فقط",
+    "allowedUsernamesPlaceholder": "أدخل أسماء المستخدمين، مفصولة بفاصلة",
+    "keepAfterExpiration": "لا تحذف المشاركة بعد انتهاء صلاحيتها",
+    "keepAfterExpirationDescription": "لن يتم حذف المشاركة بعد انتهاء صلاحيتها. هذا مفيد إذا كنت ترغب في تمديد انتهاء صلاحية المشاركة أو تعديلها بعد انتهاء صلاحيتها.",
+    "saveDisabled": "يتعذر حفظ التغييرات على الملفات المشتركة.",
+    "shareDurationDescription": "المدة قبل انتهاء صلاحية السهم. اتركها فارغة للحصة الدائمة.",
+    "passwordDescription": "كلمة المرور الاختيارية مطلوبة للوصول إلى هذه المشاركة، بما في ذلك المستخدمون الذين تمت مصادقتهم.",
+    "allowedUsernamesListDescription": "أسماء المستخدمين المفصولة بفواصل الذين يمكنهم الوصول إلى المشاركة (عند التمكين).",
+    "shareThemeColorDescription": "قيمة لون CSS المطبقة على سمة المشاركة (على سبيل المثال، أحمر، #0ea5e9، rgb(14,165,233)).",
+    "shareTitleDescription": "عنوان الصفحة المخصص الذي يظهر في صفحة المشاركة.",
+    "shareDescriptionHelp": "وصف قصير يظهر على صفحة المشاركة (يمكن استخدامه في العلامات الوصفية).",
+    "shareLogoDescription": "عنوان URL لصورة الشعار أو المسار الذي يمكن للعميل الوصول إليه - يتم قبول إما المسار المطلق أو مسار الفهرس: على سبيل المثال 'https://domain.com/logo.png' أو '/path/to/logo.png'",
+    "shareBannerDescription": "عنوان URL لصورة الشعار أو المسار الذي يمكن للعميل الوصول إليه - يتم قبول إما المسار المطلق أو مسار الفهرس: على سبيل المثال 'https://domain.com/banner.png' أو '/path/to/banner.png'",
+    "shareFaviconDescription": "عنوان URL أو المسار الذي يمكن للعميل الوصول إليه من قبل العميل - يتم قبول إما المسار المطلق أو مسار الفهرس: على سبيل المثال 'https://domain.com/favicon.png' أو '/path/to/favicon.png'",
+    "hideNavButtons": "إخفاء أزرار التنقل",
+    "hideNavButtonsDescription": "قم بإخفاء أزرار التنقل على شريط التنقل في المشاركة لإضفاء مظهر بسيط.",
+    "viewModeDescription": "التخطيط الافتراضي للصفحة المشتركة."
   },
   "api": {
     "title": "مفاتيح واجهة برمجة التطبيقات (API):",
@@ -350,8 +383,6 @@
   "index": {
     "status": "الحالة",
     "assessment": "التقييم",
-    "files": "الملفات",
-    "folders": "المجلدات",
     "lastScanned": "آخر مسح ضوئي",
     "quickScan": "ثواني المسح السريع",
     "fullScan": "كامل ثواني المسح الضوئي",
@@ -374,6 +405,39 @@
     "verificationFailed": "فشل التحقق",
     "verificationSucceed": "نجاح التحقق",
     "generationFailed": "فشل التوليد"
+  },
+  "general": {
+    "name": "الاسم",
+    "path": "المسار",
+    "user": "المستخدم",
+    "group": "المجموعة",
+    "signup": "اشتراك",
+    "password": "كلمة المرور",
+    "username": "اسم المستخدم",
+    "files": "الملفات",
+    "folders": "المجلدات",
+    "exit": "الخروج",
+    "permanent": "دائم",
+    "hash": "تجزئة"
+  },
+  "access": {
+    "rules": "قواعد الوصول",
+    "deny": "الرفض",
+    "deniedUsers": "المستخدمون المرفوضون",
+    "deniedGroups": "المجموعات المرفوضة",
+    "allowedUsers": "المستخدمون المسموح لهم",
+    "allowedGroups": "المجموعات المسموح بها",
+    "allow": "السماح",
+    "allowDeny": "السماح/الرفض",
+    "userGroup": "المستخدم/المجموعة",
+    "enterName": "أدخل اسم المستخدم أو المجموعة",
+    "deleted": "تم حذف قاعدة الوصول",
+    "added": "تمت إضافة قاعدة الوصول!",
+    "name": "الاسم",
+    "accessManagement": "إدارة الوصول",
+    "totalDenied": "مرفوض",
+    "totalAllowed": "المسموح به",
+    "all": "رفض الكل"
   },
   "fileLoading": {
     "title": "التحميلات والتنزيلات",
@@ -429,7 +493,9 @@
     "disableOfficeEditorDescription": "قائمة مفصولة بمسافات لامتدادات الملفات لتعطيل محرر وعارض OnlyOffice لها. (على سبيل المثال، \".txt .html .pdf\").",
     "disableOfficeEditor": "تعطيل عارض المكتب لامتدادات ملفات معينة",
     "defaultThemeDescription": "افتراضي - السمة الافتراضية",
-    "customTheme": "اختر المظهر الخاص بك"
+    "customTheme": "اختر المظهر الخاص بك",
+    "showSelectMultiple": "إظهار تحديد متعدد في قائمة السياق على سطح المكتب",
+    "showSelectMultipleDescription": "بشكل افتراضي، لا تحتوي قائمة سياق سطح المكتب على خيار \"تحديد متعدد\" مثل الهاتف المحمول. يظهر هذا الخيار دائمًا في قائمة السياق."
   },
   "colors": {
     "red": "أحمر",
@@ -438,5 +504,13 @@
     "yellow": "أصفر",
     "violet": "البنفسجي",
     "orange": "برتقالي"
+  },
+  "editor": {
+    "uninitialized": "فشل في تهيئة المحرر. يرجى إعادة التحميل.",
+    "saveFailed": "فشل حفظ الملف. يرجى المحاولة مرة أخرى.",
+    "saveAborted": "تم إجهاض الحفظ. اسم الملف غير مطابق للملف النشط.",
+    "saveDisabled": "حفظ الملفات المشتركة غير مدعوم.",
+    "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
+    "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
   }
 }

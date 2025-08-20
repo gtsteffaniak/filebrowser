@@ -1,7 +1,45 @@
 <template>
   <div>
-    <breadcrumbs v-if="showBreadCrumbs" />
-    <errors v-if="error" :errorCode="error.status" />
+    <!-- Share Info Component -->
+    <ShareInfo
+      v-if="showShareInfo"
+      class="share-info-component"
+      :hash="share?.hash"
+      :token="share?.token"
+      :subPath="share?.subPath"
+    />
+
+    <breadcrumbs v-if="showBreadCrumbs" :base="isShare ? `/share/${shareHash}` : undefined" />
+    <!-- Share password prompt -->
+    <div v-if="isShare && error && error.status === 401" class="card floating" id="password">
+      <div v-if="attemptedPasswordLogin" class="share__wrong__password">
+        {{ $t("login.wrongCredentials") }}
+      </div>
+      <div class="card-title">
+        <h2>{{ $t("general.password") }}</h2>
+      </div>
+      <div class="card-content form-flex-group">
+        <input
+          class="input share-password"
+          v-focus
+          type="password"
+          :placeholder="$t('general.password')"
+          v-model="sharePassword"
+          @keyup.enter="fetchData"
+        />
+      </div>
+      <div class="card-action">
+        <button
+          class="button button--flat"
+          @click="fetchData"
+          :aria-label="$t('buttons.submit')"
+          :title="$t('buttons.submit')"
+        >
+          {{ $t("buttons.submit") }}
+        </button>
+      </div>
+    </div>
+    <errors v-else-if="error" :errorCode="error.status" />
     <component v-else-if="currentViewLoaded" :is="currentView"></component>
     <div v-else>
       <h2 class="message delayed">
@@ -18,7 +56,8 @@
 </template>
 
 <script>
-import { filesApi } from "@/api";
+import { filesApi, publicApi } from "@/api";
+import { notify } from "@/notify";
 import Breadcrumbs from "@/components/Breadcrumbs.vue";
 import Errors from "@/views/Errors.vue";
 import Preview from "@/views/files/Preview.vue";
@@ -30,11 +69,11 @@ import DocViewer from "./files/DocViewer.vue";
 import MarkdownViewer from "./files/MarkdownViewer.vue";
 import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
-import { notify } from "@/notify";
 import router from "@/router";
 import { baseURL } from "@/utils/constants";
 import PopupPreview from "@/components/files/PopupPreview.vue";
 import { extractSourceFromPath } from "@/utils/url";
+import ShareInfo from "@/components/files/ShareInfo.vue";
 
 export default {
   name: "files",
@@ -49,6 +88,7 @@ export default {
     OnlyOfficeEditor,
     MarkdownViewer,
     PopupPreview,
+    ShareInfo,
   },
   data() {
     return {
@@ -57,9 +97,24 @@ export default {
       lastPath: "",
       lastHash: "",
       popupSource: "",
+      // Share-specific data
+      sharePassword: "",
+      attemptedPasswordLogin: false,
+      shareHash: null,
+      shareSubPath: "",
+      shareToken: "",
     };
   },
   computed: {
+    share() {
+      return state.share;
+    },
+    showShareInfo() {
+      return this.isShare && state.share.hash && state.isMobile && state.req.path == "/";
+    },
+    isShare() {
+      return getters.isShare();
+    },
     popupEnabled() {
       return state.user.preview.popup;
     },
@@ -70,7 +125,7 @@ export default {
       return getters.currentView();
     },
     currentViewLoaded() {
-      return getters.currentView() !== null;
+      return getters.currentView() != "";
     },
     reload() {
       return state.reload;
@@ -122,15 +177,106 @@ export default {
       if (state.deletedItem) {
         return
       }
+
+      if (!state.user.sorting) {
+        mutations.updateListingSortConfig({
+          field: "name",
+          asc: true,
+        });
+      }
+      // Set loading and reset error
+      mutations.setLoading(this.isShare ? "share" : "files", true);
+      this.error = null;
+      mutations.setReload(false);
+
+      try {
+        if (this.isShare) {
+          await this.fetchShareData();
+        } else {
+          await this.fetchFilesData();
+        }
+      } catch (e) {
+        notify.showError(e.message);
+        this.error = e;
+        mutations.replaceRequest({});
+        if (e.status === 404) {
+          router.push({ name: "notFound" });
+        } else if (e.status === 403) {
+          router.push({ name: "forbidden" });
+        } else if (e.status === 401 && this.isShare) {
+          // Handle share password requirement
+          this.attemptedPasswordLogin = this.sharePassword !== "";
+        } else {
+          router.push({ name: "error" });
+        }
+      } finally {
+        mutations.setLoading(this.isShare ? "share" : "files", false);
+      }
+
+      setTimeout(() => {
+        this.scrollToHash();
+      }, 25);
+      this.lastPath = state.route.path;
+    },
+
+    async fetchShareData() {
+      // Parse share route
+      let urlPath = getters.routePath('public/share')
+      let parts = urlPath.split("/");
+      this.shareHash = parts[1]
+      this.shareSubPath = "/" + parts.slice(2).join("/");
+
+      // Handle password
+      if (this.sharePassword === "") {
+        this.sharePassword = localStorage.getItem("sharepass:" + this.shareHash);
+      } else {
+        localStorage.setItem("sharepass:" + this.shareHash, this.sharePassword);
+      }
+      if (this.sharePassword === null) {
+        this.sharePassword = "";
+      }
+
+      mutations.resetSelected();
+      mutations.setMultiple(false);
+      mutations.closeHovers();
+
+      // Fetch share data
+      let file = await publicApi.fetchPub(this.shareSubPath, this.shareHash, this.sharePassword);
+      file.hash = this.shareHash;
+      this.shareToken = file.token;
+      // Store share data in state for use by components
+      mutations.setShareData({
+        hash: this.shareHash,
+        token: this.shareToken,
+        subPath: this.shareSubPath,
+      });
+      // If not a directory, fetch content for preview components
+      if (file.type != "directory") {
+        const content = !getters.fileViewingDisabled(file.name);
+        file = await publicApi.fetchPub(this.shareSubPath, this.shareHash, this.sharePassword, content);
+        file.hash = this.shareHash;
+        this.shareToken = file.token;
+      }
+
+      mutations.replaceRequest(file);
+      document.title = `${document.title} - ${file.name}`;
+    },
+
+    async fetchFilesData() {
       if (!getters.isLoggedIn()) {
         return;
       }
+
+      // Clear share data when accessing files
+      mutations.clearShareData();
+
       const routePath = url.removeTrailingSlash(getters.routePath(`${baseURL}files`));
       const rootRoute =
         routePath == "/files" ||
         routePath == "/files/" ||
         routePath == "" ||
         routePath == "/";
+
       // lets redirect if multiple sources and user went to /files/
       if (state.serverHasMultipleSources && rootRoute) {
         const targetPath = `/files/${state.sources.current}`;
@@ -140,18 +286,16 @@ export default {
           return;
         }
       }
+
       const result = extractSourceFromPath(getters.routePath());
       if (result.source === "") {
         notify.showError($t("index.noSources"));
         return;
       }
-      this.lastHash = "";
-      // Set loading to true and reset the error.
-      mutations.setLoading("files", true);
-      this.error = null;
-      // Reset view information using mutations
-      mutations.setReload(false);
 
+      this.lastHash = "";
+      // Reset view information using mutations
+      mutations.resetSelected();
       let data = {};
       try {
         const fetchSource = decodeURIComponent(result.source);
@@ -176,10 +320,6 @@ export default {
         mutations.replaceRequest(data);
         mutations.setLoading("files", false);
       }
-      setTimeout(() => {
-        this.scrollToHash();
-      }, 25);
-      this.lastPath = state.route.path;
     },
     keyEvent(event) {
       // F1!
@@ -187,12 +327,30 @@ export default {
         event.preventDefault();
         mutations.showHover("help"); // Use mutation
       }
+
+      // Esc! - for shares, reset selection
+      if (this.isShare && event.keyCode === 27) {
+        if (getters.selectedCount() > 0) {
+          mutations.resetSelected();
+        }
+      }
     },
   },
 };
 </script>
 
 <style>
+.share__wrong__password {
+  color: #ff4757;
+  text-align: center;
+  padding: 1em 0;
+}
+
+#password {
+  max-width: 400px;
+  margin: 2em auto;
+}
+
 .scroll-glow {
   animation: scrollGlowAnimation 1s ease-out;
 }
@@ -207,5 +365,12 @@ export default {
   100% {
     color: inherit;
   }
+}
+
+.share-password {
+  width: 100%;
+}
+.share-info-component {
+  margin-top: 0.5em;
 }
 </style>

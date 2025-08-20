@@ -10,7 +10,7 @@
       ref="contextMenu"
       v-if="showContext"
       :style="centered ? {} : { top: posY + 'px', left: posX + 'px' }"
-      class="button no-select"
+      class="button no-select fb-shadow"
       :class="{ 'dark-mode': isDarkMode, 'centered': centered }"
       :key="showCreate ? 'create-mode' : 'normal-mode'"
     >
@@ -101,6 +101,12 @@
         :label="$t('buttons.delete')"
         show="delete"
       />
+      <action
+        v-if="showAccess"
+        icon="lock"
+        :label="$t('access.rules')"
+        @action="showAccessHover"
+      />
     </div>
   </transition>
   <transition
@@ -117,7 +123,7 @@
         top: '3em',
         right: '1em',
       }"
-      class="button no-select"
+      class="button no-select fb-shadow"
       :class="{ 'dark-mode': isDarkMode }"
     >
       <action v-if="showGoToRaw" icon="open_in_new" :label="$t('buttons.openFile')" @action="goToRaw()" />
@@ -137,7 +143,7 @@ import { onlyOfficeUrl } from "@/utils/constants.js";
 import buttons from "@/utils/buttons";
 import { notify } from "@/notify";
 import { eventBus } from "@/store/eventBus";
-import { filesApi } from "@/api";
+import { filesApi, publicApi } from "@/api";
 export default {
   name: "ContextMenu",
   components: {
@@ -163,7 +169,7 @@ export default {
       if (this.isMultiple || this.isSearchActive) {
         return false;
       }
-      if (state.user.showSelectMultiple) {
+      if (state.user?.showSelectMultiple) {
         return true;
       }
       if (getters.isMobile()) {
@@ -171,18 +177,28 @@ export default {
       }
       return false
     },
-    noItems() {
-      return !this.showEdit && !this.showSave && !this.showDelete;
+    hasOverflowItems() {
+      return this.showEdit || this.showDelete || this.showSave || this.showGoToRaw;
     },
     showGoToRaw() {
-      return getters.currentView() == "preview" || 
-        getters.currentView() == "markdownViewer"
+      const cv = getters.currentView();
+      return cv == "preview" || cv == "markdownViewer" || cv == "editor";
     },
     showEdit() {
-      return getters.currentView() == "markdownViewer" && state.user.permissions.modify;
+      const cv = getters.currentView();
+      if (getters.isShare()) {
+        // TODO: add support for editing shared files
+        return false;
+      }
+      return cv == "markdownViewer" && state.user?.permissions?.modify;
     },
     showDelete() {
-      return state.user.permissions.modify && this.isPreview;
+      const cv = getters.currentView();
+      if (getters.isShare()) {
+        // TODO: add support for deleting shared files
+        return false;
+      }
+      return state.user?.permissions?.modify && (cv == "preview" || cv == "onlyOfficeEditor" || cv == "markdownViewer" || cv == "epubViewer" || cv == "docViewer" || cv == "editor");
     },
     isPreview() {
       const cv = getters.currentView();
@@ -191,21 +207,29 @@ export default {
         cv == "onlyOfficeEditor" ||
         cv == "markdownViewer" ||
         cv == "epubViewer" ||
-        cv == "docViewer"
+        cv == "docViewer" ||
+        cv == "editor"
       );
     },
     showSave() {
-      return getters.currentView() == "editor" && state.user.permissions.modify;
+      if (getters.isShare()) {
+        // TODO: add support for saving shared files
+        return false;
+      }
+      return getters.currentView() == "editor" && state.user?.permissions?.modify;
     },
     showOverflow() {
       return getters.currentPromptName() == "OverflowMenu";
+    },
+    showAccess() {
+      return state.user?.permissions?.admin && this.showCreate;
     },
     showShare() {
       return (
         state.user?.permissions &&
         state.user?.permissions.share &&
-        state.user.username != "publicUser" &&
-        getters.currentView() != "share" &&
+        state.user.username != "anonymous" &&
+        !getters.isShare() &&
         !this.isSearchActive
       );
     },
@@ -227,6 +251,9 @@ export default {
     centered() {
       return this.showCentered || this.isMobileDevice || !this.posX || !this.posY;
     },
+    isMobileDevice() {
+      return state.isMobile;
+    },
     isDarkMode() {
       return getters.isDarkMode();
     },
@@ -235,13 +262,19 @@ export default {
     },
     userPerms() {
       return {
-        upload: state.user.permissions?.modify && state.selected.length > 0,
-        share: state.user.permissions.share,
-        modify: state.user.permissions.modify,
+        upload: state.user?.permissions?.modify && state.selected.length > 0,
+        share: state.user?.permissions?.share,
+        modify: state.user?.permissions?.modify,
       };
     },
   },
   watch: {
+    hasOverflowItems: {
+      handler(hasItems) {
+        mutations.setContextMenuHasItems(hasItems);
+      },
+      immediate: true,
+    },
     showContext: {
       handler(newVal) {
         if (newVal) {
@@ -263,6 +296,15 @@ export default {
     }
   },
   methods: {
+    showAccessHover() {
+      mutations.showHover({
+        name: "access",
+        props: {
+          sourceName: state.sources.current,
+          path: state.req?.path || "",
+        },
+      });
+    },
     // Animation methods
     beforeEnter(el) {
       this.isAnimating = true;
@@ -352,17 +394,23 @@ export default {
       mutations.closeHovers();
     },
     startDownload() {
+      mutations.closeHovers();
       downloadFiles(state.selected);
     },
     goToRaw() {
-      const downloadUrl = filesApi.getDownloadURL(
-          state.req.source,
-          state.req.path,
-          true,
-          false
-        );
-        window.open(downloadUrl, "_blank");
+      if (getters.isShare()) {
+        window.open(publicApi.getDownloadURL(state.share, state.req.path, true), "_blank");
         mutations.closeHovers();
+        return;
+      }
+      const downloadUrl = filesApi.getDownloadURL(
+        state.req?.source || "",
+        state.req?.path || "",
+        true,
+        false
+      );
+      window.open(downloadUrl, "_blank");
+      mutations.closeHovers();
     },
     async edit() {
       window.location.hash = "#edit";
@@ -376,7 +424,7 @@ export default {
         notify.showSuccess("File Saved!");
       } catch (e) {
         buttons.done(button);
-        notify.showError("Error saving file: ", e);
+        notify.showError(`Error saving file: ${e}`);
       }
 
       mutations.closeHovers();
@@ -385,7 +433,7 @@ export default {
       mutations.showHover({
         name: "upload",
         props: {
-          filesToReplace: state.selected.map((item) => item.name),
+          filesToReplace: state.selected.map((item) => item.name || ""),
         },
       });
     },
@@ -405,7 +453,6 @@ export default {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  box-shadow: 0px 0px 15px 0px #404040;
 }
 
 #context-menu.centered {

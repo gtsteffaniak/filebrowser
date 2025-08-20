@@ -46,7 +46,9 @@
     "retry": "リトライ",
     "pauseAll": "一時停止",
     "resumeAll": "すべての履歴書",
-    "clearCompleted": "クリア完了"
+    "clearCompleted": "クリア完了",
+    "showMore": "もっと見る",
+    "showLess": "もっと見る"
   },
   "download": {
     "downloadFile": "Download File",
@@ -63,8 +65,6 @@
     "body": "本文",
     "clear": "クリアー",
     "closePreview": "プレビューを閉じる",
-    "files": "ファイル",
-    "folders": "フォルダ",
     "home": "ホーム",
     "lastModified": "最終変更",
     "loading": "ローディング...",
@@ -122,17 +122,13 @@
   "login": {
     "createAnAccount": "Create an account",
     "loginInstead": "Already have an account",
-    "password": "パスワード",
     "passwordConfirm": "Password Confirmation",
     "passwordsDontMatch": "Passwords don't match",
-    "signup": "Signup",
     "submit": "ログイン",
-    "username": "ユーザ名",
     "usernameTaken": "Username already taken",
     "wrongCredentials": "ユーザ名またはパスワードが間違っています。",
     "or": "または"
   },
-  "permanent": "永久",
   "prompts": {
     "copy": "コピー",
     "copyMessage": "コピーの目標ディレクトリを選択してください：",
@@ -144,7 +140,7 @@
     "downloadMessage": "圧縮形式を選択してください。",
     "error": "あるエラーが発生しました。",
     "fileInfo": "ファイル情報",
-    "lastModified": "最終変更",
+    "lastModified": "最終変更{suffix}",
     "move": "移動",
     "moveMessage": "移動の目標ディレクトリを選択してください：",
     "newArchetype": "ある元型に基づいて新しいポストを作成します。ファイルは  コンテンツフォルダに作成されます。",
@@ -152,8 +148,8 @@
     "newDirMessage": "新しいディレクトリの名前を入力してください。",
     "newFile": "新しいファイルを作成",
     "newFileMessage": "新しいファイルの名前を入力してください。",
-    "numberDirs": "ディレクトリ個数",
-    "numberFiles": "ファイル個数",
+    "numberDirs": "ディレクトリ個数{suffix}",
+    "numberFiles": "ファイル個数{suffix}",
     "rename": "名前を変更",
     "renameMessage": "名前を変更しようファイルは：",
     "replace": "置き換える",
@@ -176,7 +172,19 @@
     "conflictsDetected": "コンフリクト検出",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "無効な名前が指定されました：\"/\"または\"˶\"をコンテナに入れることはできません。"
+    "invalidName": "無効な名前が指定されました：\"/\"または\"˶\"をコンテナに入れることはできません。",
+    "source": "Source{suffix}",
+    "downloadsLimit": "ダウンロード数制限",
+    "maxBandwidth": "最大ダウンロード帯域幅 (kbps)",
+    "shareTheme": "シェアテーマ",
+    "shareThemeColor": "テーマカラーを共有する（CSS値）",
+    "shareTitle": "シェアタイトル",
+    "shareDescription": "説明文を共有する",
+    "shareLogo": "ロゴのURLを共有する",
+    "shareBanner": "共有バナーURL",
+    "shareFavicon": "ファビコンのURLを共有する",
+    "optionalPasswordHelp": "設定されている場合、ユーザーは共有コンテンツを見るためにこのパスワードを入力しなければならない。",
+    "viewMode": "ビューモード"
   },
   "search": {
     "images": "画像",
@@ -321,7 +329,32 @@
     "abortUpload": "本当に中絶したいのか？"
   },
   "share": {
-    "notice": "注：リンク（およびオプションのパスワード）にアクセスできる人なら、誰でも共有ファイルにアクセスできます。ログインする必要はありません。"
+    "notice": "注意：共有が作成されると、一般公開されるようになり、アクセスに関するルールが異なります。共有が安全に設定されていない場合、誰でもアクセスできる可能性があります。",
+    "disableAnonymousDescription": "有効にすると、認証されたユーザーのみが共有にアクセスできます。ユーザは共有元へのアクセス権を持っている必要があります。",
+    "disableThumbnailsDescription": "有効にすると、プレビューサムネイルは共有に表示されません。",
+    "enableAllowedUsernamesDescription": "有効にすると、指定したユーザーのみが共有にアクセスできるようになります。ユーザは、共有元へのアクセス権を持っている必要があります。",
+    "downloadsLimitDescription": "共有ファイル/フォルダの最大ダウンロード回数。無制限の場合は空のままにします。",
+    "maxBandwidthDescription": "ダウンロードの最大帯域幅をキロバイト/秒で指定します。無制限の場合は空のままにします。",
+    "shareThemeDescription": "共有リンクに使用するテーマ。",
+    "disableAnonymous": "匿名アクセスを無効にする",
+    "disableThumbnails": "サムネイルを無効にする",
+    "enableAllowedUsernames": "特定のユーザーにのみ共有する",
+    "allowedUsernamesPlaceholder": "ユーザー名をカンマ区切りで入力する。",
+    "keepAfterExpiration": "期限切れ後も共有を削除しない",
+    "keepAfterExpirationDescription": "有効期限が切れても共有は削除されません。これは、共有の有効期限を延長したい場合や、有効期限が切れた後にさらに編集したい場合に便利です。",
+    "saveDisabled": "共有ファイルに変更を保存できない。",
+    "shareDurationDescription": "シェアが失効するまでの期間。永続的な共有の場合は空白のままにします。",
+    "passwordDescription": "認証されたユーザーを含め、この共有にアクセスするために必要なオプションのパスワード。",
+    "allowedUsernamesListDescription": "共有にアクセスできるユーザ名をカンマ区切りで指定します (有効な場合)。",
+    "shareThemeColorDescription": "共有テーマに適用されるCSSカラー値（例：赤、#0ea5e9、rgb(14,165,233)）。",
+    "shareTitleDescription": "共有ページに表示されるカスタムページタイトル。",
+    "shareDescriptionHelp": "シェアページに表示される短い説明文（メタタグで使用される場合もあります）。",
+    "shareLogoDescription": "クライアントからアクセス可能なロゴ画像のURLまたはパス -- 絶対パスでもインデックスパスでも可: 'https://domain.com/logo.png'または'/path/to/logo.png'など。",
+    "shareBannerDescription": "クライアントがアクセス可能なバナー画像のURLまたはパス -- 絶対パスでもインデックスパスでもかまいません：例 'https://domain.com/banner.png' または '/path/to/banner.png'",
+    "shareFaviconDescription": "クライアントからアクセス可能なファビコンのURLまたはパス -- 絶対パスでもインデックスパスでも構いません: 'https://domain.com/favicon.png' または '/path/to/favicon.png' など。",
+    "hideNavButtons": "ナビゲーションボタンを隠す",
+    "hideNavButtonsDescription": "シェア内のナビバーにあるナビゲーションボタンを非表示にして、ミニマルな外観を作る。",
+    "viewModeDescription": "共有ページのデフォルトレイアウト。"
   },
   "api": {
     "title": "APIキー：",
@@ -350,8 +383,6 @@
   "index": {
     "status": "ステータス",
     "assessment": "評価",
-    "files": "ファイル",
-    "folders": "フォルダ",
     "lastScanned": "最終スキャン",
     "quickScan": "クイックスキャン秒数",
     "fullScan": "フルスキャン秒数",
@@ -374,6 +405,39 @@
     "verificationFailed": "検証失敗",
     "verificationSucceed": "検証の成功",
     "generationFailed": "世代が失敗"
+  },
+  "general": {
+    "name": "名称",
+    "path": "パス",
+    "user": "ユーザー",
+    "group": "グループ",
+    "signup": "会員登録",
+    "password": "パスワード",
+    "username": "ユーザー名",
+    "files": "ファイル",
+    "folders": "フォルダ",
+    "exit": "出口",
+    "permanent": "正社員",
+    "hash": "ハッシュ"
+  },
+  "access": {
+    "rules": "アクセス規則",
+    "deny": "拒否する",
+    "deniedUsers": "拒否されたユーザー",
+    "deniedGroups": "拒否されたグループ",
+    "allowedUsers": "許可されたユーザー",
+    "allowedGroups": "許可されたグループ",
+    "allow": "許可する",
+    "allowDeny": "許可／拒否",
+    "userGroup": "ユーザー/グループ",
+    "enterName": "ユーザー名またはグループ名を入力",
+    "deleted": "アクセスルールが削除された！",
+    "added": "アクセスルールが追加された！",
+    "name": "名称",
+    "accessManagement": "アクセス管理",
+    "totalDenied": "却下",
+    "totalAllowed": "可",
+    "all": "すべて拒否"
   },
   "fileLoading": {
     "title": "アップロードとダウンロード",
@@ -437,6 +501,16 @@
     "disableOfficeEditorDescription": "OnlyOfficeエディタおよびビューアを無効にするファイル拡張子のスペース区切りリスト。(例: '.txt .html .pdf')。",
     "disableOfficeEditor": "特定のファイル拡張子のオフィスビューアを無効にする",
     "defaultThemeDescription": "default - デフォルトのテーマ",
-    "customTheme": "テーマを選ぶ"
+    "customTheme": "テーマを選ぶ",
+    "showSelectMultiple": "デスクトップのコンテキストメニューに複数選択を表示する",
+    "showSelectMultipleDescription": "デフォルトでは、デスクトップのコンテキストメニューには、モバイルのような「複数選択」オプションはありません。このオプションは常にコンテキストメニューに表示されます。"
+  },
+  "editor": {
+    "uninitialized": "エディタの初期化に失敗しました。再読み込みしてください。",
+    "saveFailed": "ファイルの保存に失敗しました。もう一度お試しください。",
+    "saveAborted": "保存が中止された。ファイル名がアクティブなファイルと一致しません。",
+    "saveDisabled": "共有ファイルの保存はサポートされていません。",
+    "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
+    "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
   }
 }

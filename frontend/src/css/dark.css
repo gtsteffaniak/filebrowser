@@ -21,21 +21,21 @@
   color:white
 }
 
-#search.active.dark-mode #input {
+#search.active.dark-mode #search-input {
   border-color: white;
 }
 /* Search input */
-.dark-mode #search #input {
+.dark-mode #search #search-input {
   background: var(--surfaceSecondary);
   border-color: var(--surfaceSecondary);
 }
 
-.dark-mode #search #input input::placeholder {
+.dark-mode #search #search-input input::placeholder {
   color: var(--textSecondary);
 }
 
 /* Active Search input */
-.dark-mode #search.active #input {
+.dark-mode #search.active #search-input {
   background: var(--surfacePrimary);
   border-color: white;
 }
@@ -58,10 +58,6 @@
 /* Action */
 .dark-mode .action {
   color: var(--textPrimary) !important;
-}
-
-.dark-mode .action:hover {
-  background-color: rgba(255, 255, 255, .1);
 }
 
 /* Action counter */
@@ -107,19 +103,11 @@
   color: var(--textPrimary);
 }
 
-/* Flat button hover */
-.dark-mode .button--flat:hover {
-  background: var(--surfaceSecondary);
-}
-
 /* Dashboard navigation */
 .dark-mode .dashboard #nav ul li {
   color: var(--textSecondary);
 }
 
-.dark-mode .dashboard #nav ul li:hover {
-  background: var(--surfaceSecondary);
-}
 #search.active.dark-mode #result {
   background-color: black;
 }
@@ -133,13 +121,6 @@
 .dark-mode .card h3,
 .dark-mode .dashboard #nav,
 .dark-mode .dashboard p label {
-  color: var(--textPrimary);
-}
-
-.dark-mode .card#share input,
-.dark-mode .card#share select,
-.dark-mode .input {
-  background: var(--surfaceSecondary);
   color: var(--textPrimary);
 }
 

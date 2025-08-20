@@ -1,28 +1,29 @@
-const name = window.FileBrowser.Name;
-const disableExternal = window.FileBrowser.DisableExternal;
-const externalLinks = window.FileBrowser.ExternalLinks;
-const baseURL = window.FileBrowser.BaseURL;
-const staticURL = window.FileBrowser.StaticURL;
-const darkMode = window.FileBrowser.darkMode;
-const recaptcha = false;
-const recaptchaKey = "";
-const signup = window.FileBrowser.Signup;
-const version = window.FileBrowser.Version;
-const commitSHA = window.FileBrowser.CommitSHA;
+const name = window.filebrowser.name;
+const disableExternal = window.filebrowser.disableExternal;
+const externalLinks = window.filebrowser.externalLinks;
+const baseURL = window.filebrowser.baseURL;
+const staticURL = window.filebrowser.staticURL;
+const darkMode = window.filebrowser.darkMode;
+const recaptcha = window.filebrowser.recaptcha;
+const recaptchaKey = window.filebrowser.recaptchaKey;
+const signup = window.filebrowser.signup;
+const version = window.filebrowser.version;
+const commitSHA = window.filebrowser.commitSHA;
 const logoURL = `${staticURL}/img/logo.png`;
-const noAuth = window.FileBrowser.NoAuth;
-const loginPage = window.FileBrowser.LoginPage;
-const enableThumbs = window.FileBrowser.EnableThumbs;
-const externalUrl = window.FileBrowser.ExternalUrl
-const onlyOfficeUrl = window.FileBrowser.OnlyOfficeUrl
-const serverHasMultipleSources = window.FileBrowser.SourceCount > 1;
-const oidcAvailable = window.FileBrowser.OidcAvailable;
-const passwordAvailable = window.FileBrowser.PasswordAvailable;
-const mediaAvailable = window.FileBrowser.MediaAvailable;
-const muPdfAvailable = window.FileBrowser.MuPdfAvailable;
-const updateAvailable = window.FileBrowser.UpdateAvailable;
-const disableNavButtons = window.FileBrowser.DisableNavButtons;
-const userSelectableThemes = window.FileBrowser.UserSelectableThemes;
+const noAuth = window.filebrowser.noAuth;
+const loginPage = window.filebrowser.loginPage;
+const enableThumbs = window.filebrowser.enableThumbs;
+const externalUrl = window.filebrowser.externalUrl
+const onlyOfficeUrl = window.filebrowser.onlyOfficeUrl
+const serverHasMultipleSources = window.filebrowser.sourceCount > 1;
+const oidcAvailable = window.filebrowser.oidcAvailable;
+const passwordAvailable = window.filebrowser.passwordAvailable;
+const mediaAvailable = window.filebrowser.mediaAvailable;
+const muPdfAvailable = window.filebrowser.muPdfAvailable;
+const updateAvailable = window.filebrowser.updateAvailable;
+const disableNavButtons = window.filebrowser.disableNavButtons;
+const userSelectableThemes = window.filebrowser.userSelectableThemes;
+const shareOverrides = window.filebrowser.share;
 const origin = window.location.origin;
 
 const settings = [
@@ -32,9 +33,11 @@ const settings = [
   { id: 'api', label: 'api.title', component: 'ApiKeys', permissions: { api: true }  },
   //{ id: 'global', label: 'Global', component: 'GlobalSettings', permissions: { admin: true } },
   { id: 'users', label: 'settings.userManagement', component: 'UserManagement' },
+  { id: 'access', label: 'access.accessManagement', component: 'AccessSettings', permissions: { admin: true } },
 ];
 
 export {
+  shareOverrides,
   userSelectableThemes,
   disableNavButtons,
   updateAvailable,

@@ -4,6 +4,7 @@ import (
 	"archive/tar"
 	"archive/zip"
 	"compress/gzip"
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -13,11 +14,48 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
+	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 	"github.com/gtsteffaniak/go-logger/logger"
+	"golang.org/x/time/rate"
 )
+
+// throttledReadSeeker is a wrapper around an io.ReadSeeker that throttles the reading speed.
+type throttledReadSeeker struct {
+	rs      io.ReadSeeker
+	limiter *rate.Limiter
+	ctx     context.Context
+}
+
+// newThrottledReadSeeker creates a new throttledReadSeeker.
+func newThrottledReadSeeker(rs io.ReadSeeker, limit rate.Limit, burst int, ctx context.Context) *throttledReadSeeker {
+	return &throttledReadSeeker{
+		rs:      rs,
+		limiter: rate.NewLimiter(limit, burst),
+		ctx:     ctx,
+	}
+}
+
+func (r *throttledReadSeeker) Read(p []byte) (n int, err error) {
+	n, err = r.rs.Read(p)
+	if n > 0 {
+		if waitErr := r.limiter.WaitN(r.ctx, n); waitErr != nil {
+			// The original error (like io.EOF) is potentially more important
+			// than the context error.
+			if err == nil {
+				err = waitErr
+			}
+		}
+	}
+	return
+}
+
+func (r *throttledReadSeeker) Seek(offset int64, whence int) (int64, error) {
+	return r.rs.Seek(offset, whence)
+}
 
 func setContentDisposition(w http.ResponseWriter, r *http.Request, fileName string) {
 	if r.URL.Query().Get("inline") == "true" {
@@ -56,24 +94,32 @@ func addFile(path string, d *requestContext, tarWriter *tar.Writer, zipWriter *z
 	}
 	source := splitFile[0]
 	path = splitFile[1]
+
 	var err error
-	userScope := "/"
-	if d.user.Username != "publicUser" {
+	if d.share == nil {
+		var userScope string
 		userScope, err = settings.GetScopeFromSourceName(d.user.Scopes, source)
-		if d.share == nil && err != nil {
+		if err != nil {
 			return fmt.Errorf("source %s is not available for user %s", source, d.user.Username)
 		}
+		path = utils.JoinPathAsUnix(userScope, path)
 	}
 
 	idx := indexing.GetIndex(source)
 	if idx == nil {
 		return fmt.Errorf("source %s is not available", source)
 	}
-
-	realPath, _, err := idx.GetRealPath(userScope, path)
+	_, err = files.FileInfoFaster(iteminfo.FileOptions{
+		Access:   store.Access,
+		Username: d.user.Username,
+		Path:     path,
+		Source:   source,
+		Expand:   false,
+	})
 	if err != nil {
-		return fmt.Errorf("failed to get real path for %s: %v", path, err)
+		return err
 	}
+	realPath, _, _ := idx.GetRealPath(path)
 	info, err := os.Stat(realPath)
 	if err != nil {
 		return err
@@ -185,19 +231,20 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 	firstFilePath := splitFile[1]
 	// decode url encoded source name
 	var err error
+	var userscope string
 	fileName := filepath.Base(firstFilePath)
-	userscope := "/"
-	if d.user.Username != "publicUser" {
+	if d.share == nil {
 		userscope, err = settings.GetScopeFromSourceName(d.user.Scopes, firstFileSource)
 		if err != nil {
 			return http.StatusForbidden, err
 		}
+		firstFilePath = utils.JoinPathAsUnix(userscope, firstFilePath)
 	}
 	idx := indexing.GetIndex(firstFileSource)
 	if idx == nil {
 		return http.StatusInternalServerError, fmt.Errorf("source %s is not available", firstFileSource)
 	}
-	realPath, isDir, err := idx.GetRealPath(userscope, firstFilePath)
+	realPath, isDir, err := idx.GetRealPath(firstFilePath)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -232,7 +279,15 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 		}
 		// serve content allows for range requests.
 		// video scrubbing, etc.
-		http.ServeContent(w, r, fileName, fileInfo.ModTime(), fd)
+		var reader io.ReadSeeker = fd
+		if d.share != nil && d.share.MaxBandwidth > 0 {
+			// convert KB/s to B/s
+			limit := rate.Limit(d.share.MaxBandwidth * 1024)
+			// burst size can be the same as limit
+			burst := d.share.MaxBandwidth * 1024
+			reader = newThrottledReadSeeker(fd, limit, burst, r.Context())
+		}
+		http.ServeContent(w, r, fileName, fileInfo.ModTime(), reader)
 		return 200, nil
 	}
 
@@ -300,7 +355,15 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 	w.Header().Set("Content-Type", "application/octet-stream")
 
 	// Stream the file
-	_, err = io.Copy(w, fd)
+	var reader io.Reader = fd
+	if d.share != nil && d.share.MaxBandwidth > 0 {
+		// convert KB/s to B/s
+		limit := rate.Limit(d.share.MaxBandwidth * 1024)
+		// burst size can be the same as limit
+		burst := d.share.MaxBandwidth * 1024
+		reader = newThrottledReadSeeker(fd, limit, burst, r.Context())
+	}
+	_, err = io.Copy(w, reader)
 	os.Remove(archiveData) // Remove the file after streaming
 	if err != nil {
 		logger.Errorf("Failed to copy archive data to response: %v", err)
@@ -324,14 +387,15 @@ func computeArchiveSize(fileList []string, d *requestContext) (int64, error) {
 		if idx == nil {
 			return 0, fmt.Errorf("source %s is not available", source)
 		}
-		userScope := "/"
-		if d.user.Username != "publicUser" {
+		var userScope string
+		if d.share == nil {
 			userScope, err = settings.GetScopeFromSourceName(d.user.Scopes, source)
-			if d.share == nil && err != nil {
+			if err != nil {
 				return 0, fmt.Errorf("source %s is not available for user %s", source, d.user.Username)
 			}
+			path = utils.JoinPathAsUnix(userScope, path)
 		}
-		realPath, isDir, err := idx.GetRealPath(userScope, path)
+		realPath, isDir, err := idx.GetRealPath(path)
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}

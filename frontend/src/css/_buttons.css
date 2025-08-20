@@ -11,10 +11,6 @@
   transition: .1s ease all;
 }
 
-.button:hover {
-  background-color: var(--dark-blue);
-}
-
 .button--block {
   margin: 0 0 0.5em;
   display: block;
@@ -35,10 +31,6 @@
   box-shadow: 0 0 0;
   border: 0;
   text-transform: uppercase;
-}
-
-.button--flat:hover {
-  background: var(--moon-grey);
 }
 
 .button--flat.button--red {

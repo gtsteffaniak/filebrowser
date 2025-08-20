@@ -18,3 +18,16 @@ func get(db *storm.DB, name string, to interface{}) error {
 func Save(db *storm.DB, name string, from interface{}) error {
 	return db.Set("config", name, from)
 }
+
+func SaveAccessRules(db *storm.DB, name string, from interface{}) error {
+	return db.Set("access_rules", name, from)
+}
+
+func GetAccessRules(db *storm.DB, name string, to interface{}) error {
+	err := db.Get("access_rules", name, to)
+	if err == storm.ErrNotFound {
+		return errors.ErrNotExist
+	}
+
+	return err
+}

@@ -46,7 +46,9 @@
     "retry": "Reîncercare",
     "pauseAll": "Pauză toate",
     "resumeAll": "CV toate",
-    "clearCompleted": "Golire finalizată"
+    "clearCompleted": "Golire finalizată",
+    "showMore": "Arată mai multe",
+    "showLess": "Arată mai puțin"
   },
   "download": {
     "downloadFile": "Descarcă fișier",
@@ -63,8 +65,6 @@
     "body": "Corp",
     "clear": "Curăță",
     "closePreview": "Închide previzualizarea",
-    "files": "Fișiere",
-    "folders": "Directoare",
     "home": "Acasă",
     "lastModified": "Ultima modificare",
     "loading": "Se încarcă...",
@@ -122,17 +122,13 @@
   "login": {
     "createAnAccount": "Crează cont",
     "loginInstead": "Am deja cont",
-    "password": "Parola",
     "passwordConfirm": "Confirmă parola",
     "passwordsDontMatch": "Parolele nu se potrivesc",
-    "signup": "Înregistrare",
     "submit": "Autentificare",
-    "username": "Utilizator",
     "usernameTaken": "Utilizatorul există",
     "wrongCredentials": "Informații greșite",
     "or": "SAU"
   },
-  "permanent": "Permanent",
   "prompts": {
     "copy": "Copiază",
     "copyMessage": "Alege unde vrei să copiezi fișierele:",
@@ -144,7 +140,7 @@
     "downloadMessage": "Alege formatul în care vrei să descarci.",
     "error": "Ceva n-a funcționat cum trebuie",
     "fileInfo": "Informații fișier",
-    "lastModified": "Ultima modificare",
+    "lastModified": "Ultima modificare{suffix}",
     "move": "Mută",
     "moveMessage": "Alege destinația:",
     "newArchetype": "Crează o nouă postare pe baza unui șablon. Fișierul va fi creat in directorul conținut.",
@@ -152,8 +148,8 @@
     "newDirMessage": "Scrie numele noului director.",
     "newFile": "Fișier nou",
     "newFileMessage": "Scrie numele noului fișier.",
-    "numberDirs": "Numărul directoarelor",
-    "numberFiles": "Numărul fișierelor",
+    "numberDirs": "Numărul directoarelor{suffix}",
+    "numberFiles": "Numărul fișierelor{suffix}",
     "rename": "Redenumește",
     "renameMessage": "Redactează un nou nume pentru",
     "replace": "Înlocuiește",
@@ -176,7 +172,19 @@
     "conflictsDetected": "Conflicte detectate",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "Nume invalid furnizat: nu poate conține \"/\" sau \"\\\""
+    "invalidName": "Nume invalid furnizat: nu poate conține \"/\" sau \"\\\"",
+    "source": "Source{suffix}",
+    "downloadsLimit": "Limita numărului de descărcări",
+    "maxBandwidth": "Lățime de bandă maximă de descărcare (kbps)",
+    "shareTheme": "Temă de partajare",
+    "shareThemeColor": "Partajați culoarea temei (valoare CSS)",
+    "shareTitle": "Titlu de partajare",
+    "shareDescription": "Trimiteți descrierea",
+    "shareLogo": "Share logo URL",
+    "shareBanner": "Partajați URL-ul bannerului",
+    "shareFavicon": "Partajați URL favicon",
+    "optionalPasswordHelp": "Dacă este setată, utilizatorii trebuie să introducă această parolă pentru a vizualiza conținutul partajat.",
+    "viewMode": "Mod de vizualizare"
   },
   "search": {
     "images": "Imagini",
@@ -321,7 +329,32 @@
     "abortUpload": "Ești sigură că vrei să avortezi?"
   },
   "share": {
-    "notice": "Notă: orice persoană care are acces la link (și parola opțională) poate accesa fișierele partajate. Nu este necesar să fiți autentificat."
+    "notice": "Notă: atunci când este creată o partajare, aceasta devine mai expusă publicului și are reguli diferite de acces. Dacă partajul dvs. nu este configurat în siguranță, acesta poate fi accesat de oricine.",
+    "disableAnonymousDescription": "Atunci când este activat, numai utilizatorii autentificați pot accesa partajarea. Utilizatorul trebuie să aibă acces la sursa partajului.",
+    "disableThumbnailsDescription": "Atunci când este activat, miniaturile de previzualizare nu vor fi afișate în partajare.",
+    "enableAllowedUsernamesDescription": "Atunci când este activat, numai utilizatorii specificați pot accesa partajarea. Utilizatorul trebuie să aibă acces la sursa partajului.",
+    "downloadsLimitDescription": "Numărul maxim de ori în care poate fi descărcat orice fișier/folder din partajare. Lăsați gol pentru nelimitat.",
+    "maxBandwidthDescription": "Lățimea de bandă maximă de descărcare în kilobiți pe secundă. Lăsați gol pentru nelimitat.",
+    "shareThemeDescription": "Tema de utilizat pentru link-ul de partajare.",
+    "disableAnonymous": "Dezactivați accesul anonim",
+    "disableThumbnails": "Dezactivarea miniaturilor",
+    "enableAllowedUsernames": "Partajarea numai către anumiți utilizatori",
+    "allowedUsernamesPlaceholder": "Introduceți numele de utilizator, separate prin virgulă",
+    "keepAfterExpiration": "Nu ștergeți partajul după ce expiră",
+    "keepAfterExpirationDescription": "Partajul nu va fi șters după ce expiră. Acest lucru este util dacă doriți să prelungiți expirarea unei partaje sau să o editați în continuare după ce expiră.",
+    "saveDisabled": "Nu se pot salva modificările la fișierele partajate.",
+    "shareDurationDescription": "Durata înainte ca partajul să expire. Lăsați în alb pentru o partajare permanentă.",
+    "passwordDescription": "Parola opțională necesară pentru a accesa această partajare, inclusiv utilizatorii autentificați.",
+    "allowedUsernamesListDescription": "Nume de utilizator separate prin virgulă care pot accesa partajarea (atunci când este activată).",
+    "shareThemeColorDescription": "Valoarea culorii CSS aplicată temei acțiunii (de exemplu, roșu, #0ea5e9, rgb(14,165,233)).",
+    "shareTitleDescription": "Titlu de pagină personalizat afișat pe pagina de partajare.",
+    "shareDescriptionHelp": "Scurtă descriere afișată pe pagina de partajare (poate fi utilizată în metaetichete).",
+    "shareLogoDescription": "URL-ul imaginii logo-ului sau calea accesibilă de către client - sunt acceptate fie calea abosolută, fie calea index: de exemplu \"https://domain.com/logo.png\" sau \"/path/to/logo.png",
+    "shareBannerDescription": "URL-ul imaginii bannerului sau calea accesibilă de către client - sunt acceptate fie calea abosolută, fie calea index: de exemplu \"https://domain.com/banner.png\" sau \"/path/to/banner.png",
+    "shareFaviconDescription": "Favicon URL sau cale accesibilă de către client - sunt acceptate fie calea abosolută, fie calea index: de exemplu \"https://domain.com/favicon.png\" sau \"/path/to/favicon.png",
+    "hideNavButtons": "Ascundeți butoanele de navigare",
+    "hideNavButtonsDescription": "Ascundeți butoanele de navigare de pe bara de navigare din share pentru a crea un aspect minimalist.",
+    "viewModeDescription": "Layout implicit pentru pagina partajată."
   },
   "api": {
     "title": "Chei API:",
@@ -350,8 +383,6 @@
   "index": {
     "status": "Statut",
     "assessment": "Evaluare",
-    "files": "Fișiere",
-    "folders": "Dosare",
     "lastScanned": "Ultima scanare",
     "quickScan": "Scanare rapidă secunde",
     "fullScan": "Scanare completă secunde",
@@ -374,6 +405,39 @@
     "verificationFailed": "Verificarea a eșuat",
     "verificationSucceed": "Verificarea reușită",
     "generationFailed": "Generație eșuată"
+  },
+  "general": {
+    "name": "Nume și prenume",
+    "path": "Calea",
+    "user": "Utilizator",
+    "group": "Grup",
+    "signup": "Înscriere",
+    "password": "Parolă",
+    "username": "Nume utilizator",
+    "files": "Fișiere",
+    "folders": "Dosare",
+    "exit": "Ieșire",
+    "permanent": "Permanent",
+    "hash": "Hash"
+  },
+  "access": {
+    "rules": "Reguli de acces",
+    "deny": "Neagă",
+    "deniedUsers": "Utilizatori respinși",
+    "deniedGroups": "Grupuri refuzate",
+    "allowedUsers": "Utilizatori autorizați",
+    "allowedGroups": "Grupuri permise",
+    "allow": "Permiteți",
+    "allowDeny": "Permiteți/Negați",
+    "userGroup": "Utilizator/grup",
+    "enterName": "Introduceți numele utilizatorului sau al grupului",
+    "deleted": "Regula de acces ștearsă!",
+    "added": "Regula de acces adăugată!",
+    "name": "Nume și prenume",
+    "accessManagement": "Gestionarea accesului",
+    "totalDenied": "Refuzat",
+    "totalAllowed": "Permise",
+    "all": "Refuzați toate"
   },
   "fileLoading": {
     "title": "Încărcări și descărcări",
@@ -437,6 +501,16 @@
     "disableOfficeEditorDescription": "O listă de extensii de fișiere separate prin spațiu pentru care se dezactivează editorul și vizualizatorul OnlyOffice. (de exemplu, \".txt .html .pdf\").",
     "disableOfficeEditor": "Dezactivați vizualizatorul office pentru anumite extensii de fișiere",
     "defaultThemeDescription": "default - Tema implicită",
-    "customTheme": "Alege-ți tema"
+    "customTheme": "Alege-ți tema",
+    "showSelectMultiple": "Afișarea selecției multiple în meniul contextual de pe desktop",
+    "showSelectMultipleDescription": "În mod implicit, meniul contextual de pe desktop nu are opțiunea \"select multiple\", ca pe mobil. Această opțiune se afișează întotdeauna în meniul contextual."
+  },
+  "editor": {
+    "uninitialized": "Nu s-a reușit inițializarea editorului. Vă rugăm să reîncărcați.",
+    "saveFailed": "Nu ați reușit să salvați fișierul. Vă rugăm să încercați din nou.",
+    "saveAborted": "Salvare întreruptă. Numele fișierului nu corespunde fișierului activ.",
+    "saveDisabled": "Salvarea fișierelor partajate nu este acceptată.",
+    "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
+    "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
   }
 }

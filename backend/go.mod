@@ -4,7 +4,7 @@ go 1.24.2
 
 require (
 	github.com/asdine/storm/v3 v3.2.1
-	github.com/coreos/go-oidc/v3 v3.14.1
+	github.com/coreos/go-oidc/v3 v3.15.0
 	github.com/dsoprea/go-exif/v3 v3.0.1
 	github.com/gen2brain/go-fitz v1.24.15
 	github.com/go-playground/validator/v10 v10.27.0
@@ -18,12 +18,13 @@ require (
 	github.com/spf13/afero v1.14.0
 	github.com/stretchr/testify v1.10.0
 	github.com/swaggo/http-swagger v1.3.4
-	github.com/swaggo/swag v1.16.5
-	golang.org/x/crypto v0.40.0
-	golang.org/x/image v0.29.0
-	golang.org/x/mod v0.26.0
+	github.com/swaggo/swag v1.16.6
+	golang.org/x/crypto v0.41.0
+	golang.org/x/image v0.30.0
+	golang.org/x/mod v0.27.0
 	golang.org/x/oauth2 v0.30.0
-	golang.org/x/sys v0.34.0
+	golang.org/x/sys v0.35.0
+	golang.org/x/time v0.11.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -54,7 +55,7 @@ require (
 	github.com/bkielbasa/cyclop v1.2.3 // indirect
 	github.com/blizzy78/varnamelen v0.8.0 // indirect
 	github.com/bombsimon/wsl/v4 v4.7.0 // indirect
-	github.com/boombuler/barcode v1.0.2 // indirect
+	github.com/boombuler/barcode v1.1.0 // indirect
 	github.com/breml/bidichk v0.3.3 // indirect
 	github.com/breml/errchkjson v0.4.1 // indirect
 	github.com/butuzov/ireturn v0.4.0 // indirect
@@ -90,8 +91,8 @@ require (
 	github.com/ghostiam/protogetter v0.3.15 // indirect
 	github.com/go-critic/go-critic v0.13.0 // indirect
 	github.com/go-errors/errors v1.5.1 // indirect
-	github.com/go-jose/go-jose/v4 v4.1.1 // indirect
-	github.com/go-openapi/jsonpointer v0.21.1 // indirect
+	github.com/go-jose/go-jose/v4 v4.1.2 // indirect
+	github.com/go-openapi/jsonpointer v0.21.2 // indirect
 	github.com/go-openapi/jsonreference v0.21.0 // indirect
 	github.com/go-openapi/spec v0.21.0 // indirect
 	github.com/go-openapi/swag v0.23.1 // indirect
@@ -108,7 +109,7 @@ require (
 	github.com/go-xmlfmt/xmlfmt v1.1.3 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/gofrs/flock v0.12.1 // indirect
-	github.com/golang/geo v0.0.0-20250707181242-c5087ca84cf4 // indirect
+	github.com/golang/geo v0.0.0-20250812090027-44f18bf34695 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/golangci/dupl v0.0.0-20250308024227-f665c8d69b32 // indirect
 	github.com/golangci/go-printf-func-name v0.1.0 // indirect
@@ -135,7 +136,7 @@ require (
 	github.com/jjti/go-spancheck v0.6.4 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/julz/importas v0.2.0 // indirect
-	github.com/jupiterrider/ffi v0.5.0 // indirect
+	github.com/jupiterrider/ffi v0.5.1 // indirect
 	github.com/karamaru-alpha/copyloopvar v1.2.1 // indirect
 	github.com/kisielk/errcheck v1.9.0 // indirect
 	github.com/kkHAIKE/contextcheck v1.1.6 // indirect
@@ -235,10 +236,10 @@ require (
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.24.0 // indirect
 	golang.org/x/exp/typeparams v0.0.0-20250210185358-939b2ce775ac // indirect
-	golang.org/x/net v0.42.0 // indirect
+	golang.org/x/net v0.43.0 // indirect
 	golang.org/x/sync v0.16.0 // indirect
-	golang.org/x/text v0.27.0 // indirect
-	golang.org/x/tools v0.35.0 // indirect
+	golang.org/x/text v0.28.0 // indirect
+	golang.org/x/tools v0.36.0 // indirect
 	golang.org/x/tools/go/expect v0.1.1-deprecated // indirect
 	golang.org/x/tools/go/packages/packagestest v0.1.1-deprecated // indirect
 	google.golang.org/protobuf v1.36.6 // indirect

@@ -12,6 +12,13 @@ definitions:
       name:
         type: string
     type: object
+  http.GroupListResponse:
+    properties:
+      groups:
+        items:
+          type: string
+        type: array
+    type: object
   http.HttpResponse:
     properties:
       message:
@@ -638,15 +645,50 @@ definitions:
     type: object
   share.Link:
     properties:
+      allowUpload:
+        description: AllowEdit           bool   `json:"allowEdit,omitempty"`
+        type: boolean
+      allowedUsernames:
+        items:
+          type: string
+        type: array
+      banner:
+        type: string
+      description:
+        type: string
+      disableAnonymous:
+        type: boolean
+      disableFileViewer:
+        type: boolean
+      disableThumbnails:
+        type: boolean
+      downloadsLimit:
+        type: integer
       expire:
         type: integer
+      favicon:
+        type: string
       hash:
         type: string
+      hideNavButtons:
+        type: boolean
+      keepAfterExpiration:
+        type: boolean
+      maxBandwidth:
+        type: integer
       password_hash:
         type: string
       path:
         type: string
+      quickDownload:
+        type: boolean
+      shareTheme:
+        type: string
       source:
+        type: string
+      themeColor:
+        type: string
+      title:
         type: string
       token:
         description: |-
@@ -656,6 +698,8 @@ definitions:
         type: string
       userID:
         type: integer
+      viewMode:
+        type: string
     type: object
   users.AuthToken:
     properties:
@@ -862,6 +906,263 @@ definitions:
 info:
   contact: {}
 paths:
+  /api/access:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a user or group from an allow or deny list for a sourcePath
+        and indexPath.
+      parameters:
+      - description: Source path prefix (e.g. mnt/storage)
+        in: query
+        name: source
+        required: true
+        type: string
+      - description: Index path (e.g. /secret)
+        in: query
+        name: path
+        required: true
+        type: string
+      - description: Rule type (allow or deny)
+        in: query
+        name: ruleType
+        required: true
+        type: string
+      - description: Rule category (user or group)
+        in: query
+        name: ruleCategory
+        required: true
+        type: string
+      - description: Username or groupname to remove
+        in: query
+        name: value
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Rule entry deleted
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete access rule entry
+      tags:
+      - Access
+    get:
+      consumes:
+      - application/json
+      description: Lists access rules. Can be filtered by source, path, user, or group.
+        Can also be grouped by user or group.
+      parameters:
+      - description: Source name (e.g. 'default')
+        in: query
+        name: source
+        type: string
+      - description: Index path (e.g. /secret)
+        in: query
+        name: path
+        type: string
+      - description: Username to filter rules for
+        in: query
+        name: user
+        type: string
+      - description: Group name to filter rules for
+        in: query
+        name: group
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Varies based on query. Can be access.FrontendAccessRule, []access.PrincipalRule,
+            map[string][]access.PrincipalRule, or map[string]access.FrontendAccessRule
+          schema:
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List access rules
+      tags:
+      - Access
+    post:
+      consumes:
+      - application/json
+      description: Add or update an access rule for a sourcePath and indexPath.
+      parameters:
+      - description: Source path prefix (e.g. mnt/storage)
+        in: query
+        name: source
+        required: true
+        type: string
+      - description: Index path (e.g. /secret)
+        in: query
+        name: path
+        required: true
+        type: string
+      - description: 'Rule details: allow (true/false), ruleCategory (user/group),
+          value (username or groupname)'
+        in: body
+        name: body
+        required: true
+        schema:
+          properties:
+            allow:
+              type: boolean
+            ruleCategory:
+              type: string
+            value:
+              type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Rule added or updated
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Add or update access rule
+      tags:
+      - Access
+  /api/access/group:
+    delete:
+      consumes:
+      - application/json
+      description: Removes a user from a group.
+      parameters:
+      - description: Group name
+        in: query
+        name: group
+        required: true
+        type: string
+      - description: User name
+        in: query
+        name: user
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User removed from group successfully
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Remove a user from a group
+      tags:
+      - Access
+    post:
+      consumes:
+      - application/json
+      description: Adds a user to a group.
+      parameters:
+      - description: Group name
+        in: query
+        name: group
+        required: true
+        type: string
+      - description: User name
+        in: query
+        name: user
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User added to group successfully
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Add a user to a group
+      tags:
+      - Access
+  /api/access/groups:
+    get:
+      consumes:
+      - application/json
+      description: Returns a list of all groups or the groups for a specific user.
+      parameters:
+      - description: User name
+        in: query
+        name: user
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Object containing a list of groups
+          schema:
+            $ref: '#/definitions/http.GroupListResponse'
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get all groups or groups for a user
+      tags:
+      - Access
   /api/auth/logout:
     post:
       description: Returns a logout URL for the frontend to redirect to.

@@ -1,6 +1,5 @@
 import * as i18n from "@/i18n";
 import { state } from "./state.js";
-import { getters } from "./getters.js";
 import { emitStateChanged } from './eventBus'; // Import the function from eventBus.js
 import { usersApi } from "@/api";
 import { notify } from "@/notify";
@@ -8,20 +7,26 @@ import { sortedItems } from "@/utils/sort.js";
 import { serverHasMultipleSources } from "@/utils/constants.js";
 
 export const mutations = {
+  setContextMenuHasItems: (value) => {
+    if (value == state.contextMenuHasItems) {
+      return;
+    }
+    state.contextMenuHasItems = value;
+    emitStateChanged();
+  },
   setDeletedItem: (value) => {
+    if (value == state.deletedItem) {
+      return;
+    }
     state.deletedItem = value;
     emitStateChanged();
   },
   setSeenUpdate: (value) => {
+    if (value == state.seenUpdate) {
+      return;
+    }
     state.seenUpdate = value
     localStorage.setItem("seenUpdate", value);
-    emitStateChanged();
-  },
-  setMultiButtonState: (value) => {
-    if (state.multiButtonLastState != value) {
-      state.multiButtonLastState = state.multiButtonState;
-    }
-    state.multiButtonState = value;
     emitStateChanged();
   },
   toggleOverflowMenu: () => {
@@ -39,10 +44,16 @@ export const mutations = {
     emitStateChanged();
   },
   updateListing: (value) => {
+    if (value == state.listing) {
+      return;
+    }
     state.listing = value;
     emitStateChanged();
   },
   setCurrentSource: (value) => {
+    if (value == state.sources.current) {
+      return;
+    }
     state.sources.current = value;
     emitStateChanged();
   },
@@ -107,11 +118,17 @@ export const mutations = {
     emitStateChanged();
   },
   setGallerySize: (value) => {
+    if (value == state.user.gallerySize) {
+      return;
+    }
     state.user.gallerySize = value
     emitStateChanged();
     usersApi.update(state.user, ['gallerySize']);
   },
   setActiveSettingsView: (value) => {
+    if (value == state.activeSettingsView) {
+      return;
+    }
     state.activeSettingsView = value;
     // Update the hash in the URL without reloading or changing history state
     window.history.replaceState(null, "", "#" + value);
@@ -143,18 +160,14 @@ export const mutations = {
   },
   toggleSidebar() {
     state.showSidebar = !state.showSidebar;
-    if (state.showSidebar) {
-      state.multiButtonState = "back";
-    } else {
-      state.multiButtonState = "menu";
-    }
     emitStateChanged();
   },
   closeSidebar() {
-    if (state.showSidebar) {
-      state.showSidebar = false;
-      emitStateChanged();
+    if (!state.showSidebar) {
+      return;
     }
+    state.showSidebar = false;
+    emitStateChanged();
   },
   setUpload(value) {
     state.upload = value;
@@ -165,9 +178,6 @@ export const mutations = {
     emitStateChanged();
   },
   closeHovers: () => {
-    const previousState = state.multiButtonLastState;
-    state.multiButtonLastState = state.multiButtonState;
-    state.multiButtonState = previousState;
     state.prompts = [];
     if (!state.stickySidebar) {
       state.showSidebar = false;
@@ -177,9 +187,6 @@ export const mutations = {
   closeTopHover: () => {
     state.prompts.pop();
     if (state.prompts.length === 0) {
-      const previousState = state.multiButtonLastState;
-      state.multiButtonLastState = state.multiButtonState;
-      state.multiButtonState = previousState;
       if (!state.stickySidebar) {
         state.showSidebar = false;
       }
@@ -213,6 +220,9 @@ export const mutations = {
     emitStateChanged();
   },
   setReload: (value) => {
+    if (value == state.reload) {
+      return;
+    }
     state.reload = value;
     emitStateChanged();
   },
@@ -224,7 +234,7 @@ export const mutations = {
         emitStateChanged();
         return;
       }
-      if (value.username != "publicUser") {
+      if (value.username != "anonymous") {
         mutations.setSources(value);
       }
       // Ensure locale exists and is valid
@@ -242,14 +252,35 @@ export const mutations = {
     emitStateChanged();
   },
   setJWT: (value) => {
+    if (value == state.jwt) {
+      return;
+    }
     state.jwt = value;
     emitStateChanged();
   },
+  setShareData: (shareData) => {
+    state.share = { ...state.share, ...shareData };
+    emitStateChanged();
+  },
+  clearShareData: () => {
+    state.share = {
+      hash: null,
+      token: "",
+      subPath: "",
+    };
+    emitStateChanged();
+  },
   setSession: (value) => {
+    if (value == state.sessionId) {
+      return;
+    }
     state.sessionId = value;
     emitStateChanged();
   },
   setMultiple: (value) => {
+    if (value == state.multiple) {
+      return;
+    }
     state.multiple = value;
     if (value == true) {
       notify.showMultipleSelection()
@@ -287,7 +318,6 @@ export const mutations = {
     if (!state.user) {
       state.user = {};
     }
-
     // Store previous state for comparison
     const previousUser = { ...state.user };
 
@@ -300,14 +330,6 @@ export const mutations = {
       i18n.default.locale = state.user.locale;
       localStorage.setItem("userLocale", state.user.locale);
     }
-
-    // Update localStorage if stickySidebar exists
-    if (state.user.stickySidebar && getters.currentView() == "listingView") {
-      state.multiButtonState = "menu";
-    } else if (state.showSidebar) {
-      state.multiButtonState = "back";
-    }
-
     // Update users if there's any change in state.user
     if (JSON.stringify(state.user) !== JSON.stringify(previousUser)) {
       // Only update the properties that were actually provided in the input
@@ -333,7 +355,6 @@ export const mutations = {
         usersApi.update(value, updatedProperties);
       }
     }
-
     // Emit state change event
     emitStateChanged();
   },
@@ -349,11 +370,8 @@ export const mutations = {
     }
     let sortby = "name"
     let asc = true
-    if (state.user.username && state.user?.username != "publicUser") {
-      sortby = state.user.sorting.by;
-      asc = state.user.sorting.asc;
-    }
-
+    sortby = state.user.sorting.by;
+    asc = state.user.sorting.asc;
     // Separate directories and files
     const dirs = value.items.filter((item) => item.type === 'directory');
     const files = value.items.filter((item) => item.type !== 'directory');
@@ -376,6 +394,9 @@ export const mutations = {
     emitStateChanged();
   },
   updateListingSortConfig: ({ field, asc }) => {
+    if (!state.user.sorting) {
+      state.user.sorting = {};
+    }
     state.user.sorting.by = field;
     state.user.sorting.asc = asc;
     emitStateChanged();
@@ -400,6 +421,9 @@ export const mutations = {
     emitStateChanged();
   },
   setSearch: (value) => {
+    if (value == state.isSearchActive) {
+      return;
+    }
     state.isSearchActive = value;
     emitStateChanged();
   },
@@ -411,10 +435,16 @@ export const mutations = {
     emitStateChanged();
   },
   hideTooltip() {
+    if (!state.tooltip.show) {
+      return;
+    }
     state.tooltip.show = false;
     emitStateChanged();
   },
   setMaxConcurrentUpload: (value) => {
+    if (!state.user.fileLoading) {
+      state.user.fileLoading = {};
+    }
     state.user.fileLoading.maxConcurrentUpload = value;
     emitStateChanged();
   },

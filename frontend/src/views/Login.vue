@@ -11,20 +11,20 @@
         <div v-if="error !== ''" class="wrong-login card">{{ error }}</div>
         <input
           autofocus
-          class="input input--block"
+          class="input"
           type="text"
           autocapitalize="off"
           v-model="username"
-          :placeholder="$t('login.username')"
+          :placeholder="$t('general.username')"
         />
         <input
-          class="input input--block"
+          class="input"
           type="password"
           v-model="password"
-          :placeholder="$t('login.password')"
+          :placeholder="$t('general.password')"
         />
         <input
-          class="input input--block"
+          class="input"
           v-if="createMode"
           type="password"
           v-model="passwordConfirm"
@@ -35,7 +35,7 @@
         <input
           class="button button--block"
           type="submit"
-          :value="createMode ? $t('login.signup') : $t('login.submit')"
+          :value="createMode ? $t('general.signup') : $t('login.submit')"
         />
         <p @click="toggleMode" v-if="signup">
           {{ createMode ? $t("login.loginInstead") : $t("login.createAnAccount") }}
@@ -201,7 +201,11 @@ export default {
 };
 </script>
 
-<style>
+<style >
+.password-entry .input {
+  margin-bottom: 0.5em;
+}
+
 .login-card {
   padding: 1em;
 }

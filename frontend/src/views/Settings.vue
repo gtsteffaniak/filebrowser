@@ -1,22 +1,17 @@
 <template>
-  <div class="dashboard" style="padding-bottom: 30vh">
+  <div class="dashboard">
     <div v-if="isRootSettings && !userPage" class="settings-views">
-      <div
-        v-for="setting in settings"
-        :key="setting.id + '-main'"
-        :id="setting.id + '-main'"
-        @click="handleClick($event, setting.id + '-main')"
-      >
-        <!-- Dynamically render the component based on the setting -->
-        <component v-if="shouldShow(setting)" :is="setting.component"></component>
-      </div>
+      <component
+        v-if="activeSetting"
+        :is="activeSetting.component"
+        :id="activeSetting.id + '-main'"
+      />
     </div>
     <div v-else class="settings-views">
       <div class="active">
         <UserSettings />
       </div>
     </div>
-
     <div v-if="loading">
       <h2 class="message delayed">
         <div class="spinner">
@@ -37,19 +32,21 @@ import GlobalSettings from "@/views/settings/Global.vue";
 import ProfileSettings from "@/views/settings/Profile.vue";
 import SharesSettings from "@/views/settings/Shares.vue";
 import UserManagement from "@/views/settings/Users.vue";
-import UserSettings from "@/views/settings/User.vue";
+import AccessSettings from "@/views/settings/Access.vue";
+import UserSettings from "@/views/settings/Users.vue";
 import FileLoading from "@/views/settings/FileLoading.vue";
 import ApiKeys from "@/views/settings/Api.vue";
 export default {
   name: "settings",
   components: {
     UserManagement,
-    UserSettings,
     GlobalSettings,
     ProfileSettings,
     SharesSettings,
     ApiKeys,
+    AccessSettings,
     FileLoading,
+    UserSettings,
   },
   data() {
     return {
@@ -72,6 +69,17 @@ export default {
     currentHash() {
       return getters.currentHash();
     },
+    activeSetting() {
+      // Find the setting that matches the current activeSettingsView
+      let active = this.settings.find(
+        (setting) => `${setting.id}-main` === state.activeSettingsView && this.shouldShow(setting)
+      );
+      // Fallback: first allowed setting
+      if (!active) {
+        active = this.settings.find((setting) => this.shouldShow(setting));
+      }
+      return active;
+    },
   },
   mounted() {
     mutations.closeHovers();
@@ -82,46 +90,11 @@ export default {
       const perm = setting?.permissions || {};
       return Object.keys(perm).every((key) => state.user.permissions[key]);
     },
-    setView(view) {
-      if (state.activeSettingsView === view) return;
-      mutations.setActiveSettingsView(view);
-    },
-    handleClick(event, view) {
-      // Allow propagation if the click is on a link or a child element with default behavior
-      const target = event.target.closest("a, router-link");
-      if (target) return; // Let the browser/router handle the navigation
-      this.setView(view); // Call the setView method for other clicks
-    },
   },
 };
 </script>
 
 <style>
-
-.form-group {
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-}
-
-.form-button {
-  border-top-left-radius: 0 !important;
-  border-bottom-left-radius: 0 !important;
-  height: auto !important
-}
-
-.invalid-form {
-  border-color: red !important;
-}
-
-.flat-right {
-  border-top-right-radius: 0 !important;
-  border-bottom-right-radius: 0 !important;
-}
-.flat-left {
-  border-top-left-radius: 0 !important;
-  border-bottom-left-radius: 0 !important;
-}
 
 .dashboard {
   display: flex;
@@ -135,6 +108,12 @@ export default {
   width: 100%;
 }
 
+.settings-views .card-title {
+  background: var(--surfacePrimary);
+  padding: 0.5em;
+  border-radius: 1em;
+  color: white;
+}
 
 .settings-views .card {
   border-style: solid;
@@ -149,4 +128,7 @@ export default {
 .settings-items > .item:hover {
   background-color: var(--surfaceSecondary);
 }
+
+
+
 </style>

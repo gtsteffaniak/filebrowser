@@ -46,7 +46,9 @@
     "retry": "Opakování",
     "pauseAll": "Pozastavení všech",
     "resumeAll": "Obnovit vše",
-    "clearCompleted": "Vymazání dokončeno"
+    "clearCompleted": "Vymazání dokončeno",
+    "showMore": "Zobrazit více",
+    "showLess": "Zobrazit méně"
   },
   "download": {
     "downloadFile": "Stáhnout soubor",
@@ -66,8 +68,6 @@
     "body": "Tělo",
     "clear": "Vymazat",
     "closePreview": "Zavřít náhled",
-    "files": "Soubory",
-    "folders": "Složky",
     "home": "Domů",
     "lastModified": "Poslední změna",
     "loading": "Načítání...",
@@ -125,19 +125,40 @@
   "login": {
     "createAnAccount": "Vytvořit účet",
     "loginInstead": "Už máte účet",
-    "password": "Heslo",
     "passwordConfirm": "Potvrzení hesla",
     "passwordsDontMatch": "Hesla se neshodují",
-    "signup": "Registrovat se",
     "submit": "Přihlásit se",
-    "username": "Uživatelské jméno",
     "usernameTaken": "Uživatelské jméno je již obsazeno",
     "wrongCredentials": "Nesprávné přihlašovací údaje",
     "or": "NEBO"
   },
-  "permanent": "Trvalé",
   "share": {
-    "notice": "Poznámka: Každý, kdo má přístup k odkazu (a volitelnému heslu), může zobrazit sdílené soubory. Není nutné být přihlášen."
+    "notice": "Poznámka: po vytvoření sdílené složky je tato složka více vystavena veřejnosti a platí pro ni jiná pravidla přístupu. Pokud není sdílená složka bezpečně nakonfigurována, může k ní mít přístup kdokoli.",
+    "disableAnonymousDescription": "Je-li tato možnost povolena, mohou ke sdílené složce přistupovat pouze ověření uživatelé. Uživatel musí mít přístup ke zdroji sdílené složky.",
+    "disableThumbnailsDescription": "Pokud je tato možnost povolena, náhledy se ve sdílené složce nezobrazují.",
+    "enableAllowedUsernamesDescription": "Pokud je tato možnost povolena, mohou ke sdílené složce přistupovat pouze zadaní uživatelé. Uživatel musí mít přístup ke zdroji sdílené složky.",
+    "downloadsLimitDescription": "Maximální počet stažení libovolného souboru/složky ze sdílené složky. Nechte prázdné pro neomezený počet.",
+    "maxBandwidthDescription": "Maximální šířka pásma pro stahování v kilobajtech za sekundu. Nechte prázdné pro neomezené.",
+    "shareThemeDescription": "Motiv, který se použije pro odkaz na sdílení.",
+    "disableAnonymous": "Zakázat anonymní přístup",
+    "disableThumbnails": "Zakázat miniatury",
+    "enableAllowedUsernames": "Sdílet pouze s určitými uživateli",
+    "allowedUsernamesPlaceholder": "Zadejte uživatelská jména oddělená čárkou.",
+    "keepAfterExpiration": "Neodstraňujte sdílenou složku po vypršení její platnosti",
+    "keepAfterExpirationDescription": "Po vypršení platnosti nebude sdílená složka odstraněna. To je užitečné, pokud chcete prodloužit platnost sdílené složky nebo ji po vypršení platnosti dále upravovat.",
+    "saveDisabled": "Nelze uložit změny ve sdílených souborech.",
+    "shareDurationDescription": "Doba trvání před vypršením platnosti akcie. V případě trvalé akcie ponechte prázdné.",
+    "passwordDescription": "Volitelné heslo vyžadované pro přístup k této sdílené složce, včetně ověřených uživatelů.",
+    "allowedUsernamesListDescription": "Uživatelská jména oddělená čárkou, která mohou přistupovat ke sdílené složce (je-li povolena).",
+    "shareThemeColorDescription": "Hodnota barvy CSS použitá na motiv sdílené položky (např. červená, #0ea5e9, rgb(14,165,233)).",
+    "shareTitleDescription": "Vlastní název stránky zobrazený na stránce sdílení.",
+    "shareDescriptionHelp": "Krátký popis zobrazený na stránce sdílení (lze použít v metaznačkách).",
+    "shareLogoDescription": "Adresa URL nebo cesta k obrázku loga přístupná klientovi - akceptována je buď absolutní, nebo indexová cesta: např. \"https://domain.com/logo.png\" nebo \"/path/to/logo.png\".",
+    "shareBannerDescription": "Adresa URL nebo cesta k obrázku banneru přístupná klientovi - akceptována je buď absolutní, nebo indexová cesta: např. \"https://domain.com/banner.png\" nebo \"/path/to/banner.png\".",
+    "shareFaviconDescription": "Adresa URL nebo cesta k faviconě přístupná klientovi -- akceptována je buď absolutní, nebo indexová cesta: např. \"https://domain.com/favicon.png\" nebo \"/path/to/favicon.png\".",
+    "hideNavButtons": "Skrytí navigačních tlačítek",
+    "hideNavButtonsDescription": "Skryjte navigační tlačítka na panelu navigace ve sdíleném okně, abyste vytvořili minimalistický vzhled.",
+    "viewModeDescription": "Výchozí rozložení sdílené stránky."
   },
   "prompts": {
     "copy": "Kopírovat",
@@ -162,8 +183,8 @@
     "newDirMessage": "Zadejte název nové složky.",
     "newFile": "Nový soubor",
     "newFileMessage": "Zadejte název nového souboru.",
-    "numberDirs": "Počet složek",
-    "numberFiles": "Počet souborů",
+    "numberDirs": "Počet složek{suffix}",
+    "numberFiles": "Počet souborů{suffix}",
     "rename": "Přejmenovat",
     "renameMessage": "Zadejte nový název pro",
     "replace": "Nahradit",
@@ -182,7 +203,19 @@
     "conflictsDetected": "Zjištěné konflikty",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "Nesprávný zadaný název: nelze použít kontejner \"/\" nebo \"\\\"."
+    "invalidName": "Nesprávný zadaný název: nelze použít kontejner \"/\" nebo \"\\\".",
+    "source": "Source{suffix}",
+    "downloadsLimit": "Limit počtu stažení",
+    "maxBandwidth": "Maximální šířka pásma stahování (kbps)",
+    "shareTheme": "Sdílet téma",
+    "shareThemeColor": "Sdílet barvu motivu (hodnota CSS)",
+    "shareTitle": "Sdílet název",
+    "shareDescription": "Sdílet popis",
+    "shareLogo": "Sdílet adresu URL loga",
+    "shareBanner": "Sdílet adresu URL banneru",
+    "shareFavicon": "Sdílet adresu URL favicon",
+    "optionalPasswordHelp": "Pokud je nastaveno, musí uživatelé toto heslo zadat, aby mohli sdílený obsah zobrazit.",
+    "viewMode": "Režim zobrazení"
   },
   "search": {
     "images": "Obrázky",
@@ -246,7 +279,9 @@
     "disableOfficeEditorDescription": "Seznam přípon souborů oddělených mezerou, pro které se má vypnout editor a prohlížeč OnlyOffice. (např. '.txt .html .pdf').",
     "disableOfficeEditor": "Zakázat editor a prohlížeč Office pro určité přípony souborů a vrátit se k výchozímu prohlížeči/editoru, velmi užitečné pro soubory pdf a txt.",
     "defaultThemeDescription": "default - Výchozí téma",
-    "customTheme": "Vyberte si téma"
+    "customTheme": "Vyberte si téma",
+    "showSelectMultiple": "Zobrazení výběru více položek v kontextové nabídce na ploše",
+    "showSelectMultipleDescription": "Ve výchozím nastavení nemá kontextová nabídka na ploše možnost \"vybrat více\" jako v mobilním telefonu. Tato možnost se v kontextové nabídce zobrazuje vždy."
   },
   "settings": {
     "enterPassword": "Zadejte heslo",
@@ -399,8 +434,6 @@
   "index": {
     "status": "Stav",
     "assessment": "Vyhodnocení",
-    "files": "Soubory",
-    "folders": "Složky",
     "lastScanned": "Poslední skenování",
     "quickScan": "Rychlý sken (s)",
     "fullScan": "Plný sken (s)",
@@ -438,5 +471,46 @@
     "yellow": "žlutá",
     "violet": "fialová",
     "orange": "oranžová"
+  },
+  "general": {
+    "name": "Název",
+    "path": "Cesta",
+    "user": "Uživatel",
+    "group": "Skupina",
+    "signup": "Registrace",
+    "password": "Heslo",
+    "username": "Uživatelské jméno",
+    "files": "Soubory",
+    "folders": "Složky",
+    "exit": "Exit",
+    "permanent": "Permanentní",
+    "hash": "Hash"
+  },
+  "access": {
+    "rules": "Pravidla přístupu",
+    "deny": "Odmítnout",
+    "deniedUsers": "Odmítnutí uživatelé",
+    "deniedGroups": "Odmítnuté skupiny",
+    "allowedUsers": "Povolení uživatelé",
+    "allowedGroups": "Povolené skupiny",
+    "totalDenied": "Odmítnuto",
+    "totalAllowed": "Povolené",
+    "allow": "Povolit",
+    "allowDeny": "Povolit/odmítnout",
+    "userGroup": "Uživatel/skupina",
+    "enterName": "Zadejte jméno uživatele nebo skupiny",
+    "deleted": "Přístupové pravidlo odstraněno!",
+    "added": "Přidáno pravidlo přístupu!",
+    "name": "Název",
+    "accessManagement": "Správa přístupu",
+    "all": "Odmítnout vše"
+  },
+  "editor": {
+    "uninitialized": "Nepodařilo se inicializovat editor. Prosím, načtěte jej znovu.",
+    "saveFailed": "Soubor se nepodařilo uložit. Zkuste to prosím znovu.",
+    "saveAborted": "Uložení přerušeno. Název souboru neodpovídá aktivnímu souboru.",
+    "saveDisabled": "Ukládání sdílených souborů není podporováno.",
+    "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
+    "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
   }
 }

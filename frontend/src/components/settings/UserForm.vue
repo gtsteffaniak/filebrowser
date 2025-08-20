@@ -8,22 +8,24 @@
   </h2>
   <div v-if="user.loginMethod == 'password' && passwordAvailable && !isNew">
     <label for="password">{{ $t("settings.password") }}</label>
-    <div class="form-group">
+    <div class="form-flex-group">
       <input
-        class="input input--block form-form"
-        :class="{ 'invalid-form': invalidPassword }"
+        class="input form-form"
+        :class="{ 'form-invalid': invalidPassword }"
         aria-label="Password1"
         type="password"
+        autocomplete="new-password"
         :placeholder="$t('settings.enterPassword')"
         v-model="passwordRef"
       />
     </div>
-    <div class="form-group">
+    <div class="form-flex-group">
       <input
-        class="input input--block form-form"
-        :class="{ 'flat-right': !isNew, 'invalid-form': invalidPassword }"
+        class="input form-form"
+        :class="{ 'flat-right': !isNew, 'form-invalid': invalidPassword }"
         aria-label="Password2"
         type="password"
+        autocomplete="new-password"
         :placeholder="$t('settings.enterPasswordAgain')"
         v-model="user.password"
         id="password"
@@ -31,7 +33,7 @@
       <button
         v-if="!isNew"
         type="button"
-        class="button form-button"
+        class="button form-button flat-left"
         @click="submitUpdatePassword"
       >
         {{ $t("buttons.update") }}
@@ -53,7 +55,7 @@
     <p v-if="isNew">
       <label for="username">{{ $t("settings.username") }}</label>
       <input
-        class="input input--block"
+        class="input"
         type="text"
         v-model="user.username"
         id="username"
@@ -63,30 +65,31 @@
 
     <div v-if="user.loginMethod == 'password' && passwordAvailable && isNew">
       <label for="password">{{ $t("settings.password") }}</label>
-      <div class="form-group">
+      <div class="form-flex-group">
         <input
-          class="input input--block form-form"
-          :class="{ 'invalid-form': invalidPassword }"
+          class="input form-form"
+          :class="{ 'form-invalid': invalidPassword }"
           aria-label="Password1"
           type="password"
           :placeholder="$t('settings.enterPassword')"
           v-model="passwordRef"
         />
       </div>
-      <div class="form-group">
+      <div class="form-flex-group">
         <input
-          class="input input--block form-form"
-          :class="{ 'flat-right': !isNew, 'invalid-form': invalidPassword }"
+          class="input form-form"
+          :class="{ 'flat-right': !isNew, 'form-invalid': invalidPassword }"
           type="password"
           :placeholder="$t('settings.enterPasswordAgain')"
           aria-label="Password2"
           v-model="user.password"
+          autocomplete="new-password"
           id="password"
         />
         <button
           v-if="!isNew"
           type="button"
-          class="button form-button"
+          class="button form-button flat-left"
           @click="submitUpdatePassword"
         >
           {{ $t("buttons.update") }}
@@ -111,7 +114,7 @@
       <label for="scopes">{{ $t("settings.scopes") }}</label>
       <div
         class="scope-list"
-        :class="{ 'invalid-form': duplicateSources.includes(source.name) }"
+        :class="{ 'form-invalid': duplicateSources.includes(source.name) }"
         v-for="(source, index) in selectedSources"
         :key="index"
       >
@@ -158,7 +161,7 @@
     <p v-if="stateUser.username !== user.username">
       <label for="locale">{{ $t("settings.language") }}</label>
       <languages
-        class="input input--block"
+        class="input"
         id="locale"
         v-model:locale="user.locale"
         @input="emitUpdate"
@@ -166,7 +169,7 @@
     </p>
     <div v-if="stateUser.permissions.admin">
       <label for="loginMethod">{{ $t("settings.loginMethodDescription") }}</label>
-      <select v-model="user.loginMethod" class="input input--block" id="loginMethod">
+      <select v-model="user.loginMethod" class="input" id="loginMethod">
         <option value="password">Password</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
         <option value="oidc">OIDC</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
         <option value="proxy">Proxy</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->

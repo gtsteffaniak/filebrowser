@@ -92,7 +92,7 @@
         </div>
         <div v-if="numDirs > 0">
           <div class="header-items">
-            <h2>{{ $t("files.folders") }}</h2>
+            <h2>{{ $t("general.folders") }}</h2>
           </div>
         </div>
         <div
@@ -112,11 +112,13 @@
             v-bind:size="item.size"
             v-bind:path="item.path"
             v-bind:reducedOpacity="item.hidden || isDragging"
+            v-bind:hash="isShare ? state.share.hash : undefined"
+            :readOnly="isShare ? true : undefined"
           />
         </div>
         <div v-if="numFiles > 0">
           <div class="header-items">
-            <h2>{{ $t("files.files") }}</h2>
+            <h2>{{ $t("general.files") }}</h2>
           </div>
         </div>
         <div v-if="numFiles > 0" class="file-items" :class="{ lastGroup: numFiles > 0 }">
@@ -132,6 +134,7 @@
             v-bind:size="item.size"
             v-bind:path="item.path"
             v-bind:reducedOpacity="item.hidden || isDragging"
+            v-bind:hash="isShare ? state.share.hash : undefined"
           />
         </div>
 
@@ -158,6 +161,7 @@
 <script>
 import downloadFiles from "@/utils/download";
 import { filesApi } from "@/api";
+import { notify } from "@/notify";
 import { router } from "@/router";
 import * as upload from "@/utils/upload";
 import throttle from "@/utils/throttle";
@@ -165,6 +169,7 @@ import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
 
 import Item from "@/components/files/ListingItem.vue";
+
 export default {
   name: "listingView",
   components: {
@@ -225,6 +230,12 @@ export default {
     },
   },
   computed: {
+    isShare() {
+      return getters.isShare();
+    },
+    state() {
+      return state;
+    },
     isDragging() {
       return this.dragCounter > 0;
     },
@@ -577,18 +588,18 @@ export default {
       }
     },
     keyEvent(event) {
-      if (state.isSearchActive || getters.currentView() != "listingView" || getters.currentPromptName() != null) {
+      if (state.isSearchActive || getters.currentView() != "listingView" || getters.currentPromptName()) {
         return;
       }
       const { key, ctrlKey, metaKey, which } = event;
       // Check if the key is alphanumeric
       const isAlphanumeric = /^[a-z0-9]$/i.test(key);
       const modifierKeys = ctrlKey || metaKey;
-      if (isAlphanumeric && !modifierKeys && getters.currentPromptName() == null) {
+      if (isAlphanumeric && !modifierKeys && getters.currentPromptName()) {
         this.alphanumericKeyPress(key); // Call the alphanumeric key press function
         return;
       }
-      if (!modifierKeys && getters.currentPromptName() != null) {
+      if (!modifierKeys && getters.currentPromptName()) {
         return;
       }
       // Handle the space bar key
@@ -601,7 +612,7 @@ export default {
           mutations.setSearch(true);
         }
       }
-      if (getters.currentPromptName() != null) {
+      if (getters.currentPromptName()) {
         return;
       }
       let currentPath = state.route.path.replace(/\/+$/, ""); // Remove trailing slashes
@@ -623,7 +634,7 @@ export default {
           break;
 
         case "Backspace":
-          if (getters.CurrentPromptName !== null) {
+          if (getters.currentPromptName()) {
             return;
           }
           // go back
@@ -771,6 +782,13 @@ export default {
         return;
       }
       mutations.setLoading("listing", true);
+      if (getters.isShare()) {
+        // Shared files don't support move/copy operations
+        mutations.setLoading("listing", false);
+        notify.showError("Move/copy operations are not supported for shared files.");
+        return;
+      }
+
       let action = async (overwrite, rename) => {
         await filesApi.moveCopy(items, "copy", overwrite, rename);
         mutations.setLoading("listing", false);
@@ -779,7 +797,6 @@ export default {
       if (this.clipboard.key === "x") {
         action = async (overwrite, rename) => {
           await filesApi.moveCopy(items, "move", overwrite, rename);
-
           this.clipboard = {};
           mutations.setLoading("listing", false);
         };
@@ -901,7 +918,7 @@ export default {
       // if control or shift is pressed, do not clear the selection
       if (this.ctrKeyPressed || event.shiftKey) return;
       const sameAsBefore = state.selected == this.lastSelected;
-      if (sameAsBefore && !state.multiple && getters.currentPromptName() == null) {
+      if (sameAsBefore && !state.multiple && getters.currentPromptName()) {
         mutations.resetSelected();
       }
       this.lastSelected = state.selected;

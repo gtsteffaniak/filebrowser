@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -29,29 +30,25 @@ import (
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/shares [get]
 func shareListHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	var (
-		s   []*share.Link
-		err error
-	)
+	var err error
+	var shares []*share.Link
 	if d.user.Permissions.Admin {
-		s, err = store.Share.All()
+		shares, err = store.Share.All()
 	} else {
-		s, err = store.Share.FindByUserID(d.user.ID)
-	}
-	if err == errors.ErrNotExist {
-		return renderJSON(w, r, []*share.Link{})
-	}
-	if err != nil {
-		return http.StatusInternalServerError, err
+		shares, err = store.Share.FindByUserID(d.user.ID)
 	}
 
-	sort.Slice(s, func(i, j int) bool {
-		if s[i].UserID != s[j].UserID {
-			return s[i].UserID < s[j].UserID
+	if err != nil && err != errors.ErrNotExist {
+		return http.StatusInternalServerError, err
+	}
+	shares = utils.NonNilSlice(shares)
+	sort.Slice(shares, func(i, j int) bool {
+		if shares[i].UserID != shares[j].UserID {
+			return shares[i].UserID < shares[j].UserID
 		}
-		return s[i].Expire < s[j].Expire
+		return shares[i].Expire < shares[j].Expire
 	})
-	return renderJSON(w, r, s)
+	return renderJSON(w, r, shares)
 }
 
 // shareGetsHandler retrieves share links for a specific resource path.
@@ -83,10 +80,13 @@ func shareGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) 
 	}
 	scopePath := utils.JoinPathAsUnix(userscope, path)
 	s, err := store.Share.Gets(scopePath, sourcePath.Path, d.user.ID)
-	if err == errors.ErrNotExist {
+	if err == errors.ErrNotExist || len(s) == 0 {
 		return renderJSON(w, r, []*share.Link{})
 	}
-
+	// Overwrite the Source field with the source name from the query for each link
+	for _, link := range s {
+		link.Source = source
+	}
 	if err != nil {
 		return http.StatusInternalServerError, fmt.Errorf("error getting share info from server")
 	}
@@ -133,17 +133,21 @@ func shareDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 // @Router /api/shares [post]
 func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	var s *share.Link
+	var err error
 	var body share.CreateBody
 	if r.Body != nil {
-		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		if err = json.NewDecoder(r.Body).Decode(&body); err != nil {
 			return http.StatusBadRequest, fmt.Errorf("failed to decode body: %w", err)
 		}
 		defer r.Body.Close()
 	}
 
-	secure_hash, err := generateShortUUID()
-	if err != nil {
-		return http.StatusInternalServerError, err
+	// check if body.Hash is a valid hash
+	if body.Hash != "" {
+		s, err = store.Share.GetByHash(body.Hash)
+		if err != nil {
+			return http.StatusBadRequest, fmt.Errorf("invalid hash provided")
+		}
 	}
 
 	var expire int64 = 0
@@ -184,6 +188,23 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		token = base64.URLEncoding.EncodeToString(tokenBuffer)
 		stringHash = string(hash)
 	}
+	if s != nil {
+		s.Expire = expire
+		s.PasswordHash = stringHash
+		s.Token = token
+		s.CommonShare = body.CommonShare
+		if err = store.Share.Save(s); err != nil {
+			return http.StatusInternalServerError, err
+		}
+		return renderJSON(w, r, s)
+	}
+
+	// create a new share link
+	secure_hash, err := generateShortUUID()
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
 	encodedPath := r.URL.Query().Get("path")
 	// Decode the URL-encoded path
 	path, err := url.QueryUnescape(encodedPath)
@@ -191,7 +212,21 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}
 	sourceName := r.URL.Query().Get("source")
-	source := config.Server.NameToSource[sourceName]
+	source, ok := config.Server.NameToSource[sourceName]
+	if !ok {
+		// try to find source by path
+		for _, s := range config.Server.Sources {
+			if s.Path == sourceName {
+				source = s
+				ok = true
+				break
+			}
+		}
+	}
+	if !ok {
+		return http.StatusForbidden, fmt.Errorf("source with name not found")
+	}
+
 	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, source.Name)
 	if err != nil {
 		return http.StatusForbidden, err
@@ -199,18 +234,24 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	scopePath := utils.JoinPathAsUnix(userscope, path)
 	s = &share.Link{
 		Path:         scopePath,
-		Hash:         secure_hash,
 		Source:       source.Path, // path instead to persist accoss name change
 		Expire:       expire,
 		UserID:       d.user.ID,
+		Hash:         secure_hash,
 		PasswordHash: stringHash,
 		Token:        token,
+		CommonShare:  body.CommonShare,
 	}
 
 	if err := store.Share.Save(s); err != nil {
 		return http.StatusInternalServerError, err
 	}
 
+	// Overwrite the Source field with the source name from the query for each link
+	s.Source = sourceName
+	if body.Hash != "" {
+		return renderJSON(w, r, s)
+	}
 	return renderJSON(w, r, s)
 }
 
@@ -240,4 +281,15 @@ func generateShortUUID() (string, error) {
 
 	// Trim the length to 22 characters for a shorter ID
 	return uuid[:22], nil
+}
+
+func redirectToShare(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	// Remove the base URL and "/share/" prefix to get the full path after share
+	sharePath := strings.TrimPrefix(r.URL.Path, config.Server.BaseURL+"share/")
+	newURL := config.Server.BaseURL + "public/share/" + sharePath
+	if r.URL.RawQuery != "" {
+		newURL += "?" + r.URL.RawQuery
+	}
+	http.Redirect(w, r, newURL, http.StatusMovedPermanently)
+	return http.StatusMovedPermanently, nil
 }

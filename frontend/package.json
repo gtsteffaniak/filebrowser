@@ -44,7 +44,7 @@
   "devDependencies": {
     "@intlify/eslint-plugin-vue-i18n": "^3.2.0",
     "@intlify/unplugin-vue-i18n": "^4.0.0",
-    "@playwright/test": "^1.49.1",
+    "@playwright/test": "^1.54.1",
     "@types/node": "^24.1.0",
     "@vitejs/plugin-vue": "^5.0.4",
     "@vue/eslint-config-typescript": "^13.0.0",

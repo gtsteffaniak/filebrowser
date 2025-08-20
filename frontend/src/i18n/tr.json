@@ -46,7 +46,9 @@
     "retry": "Yeniden Dene",
     "pauseAll": "Tümünü duraklat",
     "resumeAll": "Tümünü devam ettir",
-    "clearCompleted": "Temizleme tamamlandı"
+    "clearCompleted": "Temizleme tamamlandı",
+    "showMore": "Daha fazla göster",
+    "showLess": "Daha az göster"
   },
   "download": {
     "downloadFile": "Dosyayı indir",
@@ -63,8 +65,6 @@
     "body": "Sayfa",
     "clear": "Temizle",
     "closePreview": "Önizlemeyi kapat",
-    "files": "Dosyalar",
-    "folders": "Klasörler",
     "home": "Ana dizin",
     "lastModified": "Son güncellenme",
     "loading": "Yükleniyor...",
@@ -122,17 +122,13 @@
   "login": {
     "createAnAccount": "Bir hesap oluşturun",
     "loginInstead": "Zaten hesabınız var mı",
-    "password": "Şifre",
     "passwordConfirm": "Şifre tekrarı",
     "passwordsDontMatch": "Şifreler uyuşmuyor",
-    "signup": "Üye Ol",
     "submit": "Giriş",
-    "username": "Kullanıcı adı",
     "usernameTaken": "Kullanıcı adı mevcut",
     "wrongCredentials": "Yanlış hesap bilgileri",
     "or": "VEYA"
   },
-  "permanent": "Kalıcı",
   "prompts": {
     "copy": "Kopyala",
     "copyMessage": "Dosyalarınızı kopyalayacağınız yeri seçin:",
@@ -145,7 +141,7 @@
     "downloadMessage": "İndirmek istediğiniz formatı seçin.",
     "error": "Bir şeyler yanlış gitti",
     "fileInfo": "Dosya bilgisi",
-    "lastModified": "Son güncellenme",
+    "lastModified": "Son güncellenme{suffix}",
     "move": "Taşı",
     "moveMessage": "Dosya(lar)ınız/klasör(ler)iniz için yeni ana dizin seçin:",
     "newArchetype": "Bir prototip temelinde yeni bir gönderi oluşturun. Dosyanız içerik klasöründe oluşturulacaktır.",
@@ -153,8 +149,8 @@
     "newDirMessage": "Yeni dizinin adını yazın.",
     "newFile": "Yeni dosya",
     "newFileMessage": "Yeni dosyanın adını yazın.",
-    "numberDirs": "Dizin sayısı",
-    "numberFiles": "Dosya sayısı",
+    "numberDirs": "Dizin sayısı{suffix}",
+    "numberFiles": "Dosya sayısı{suffix}",
     "rename": "Yeniden adlandır",
     "renameMessage": "için yeni bir ad girin",
     "replace": "Değiştir",
@@ -176,7 +172,19 @@
     "conflictsDetected": "Tespit edilen çatışmalar",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "Geçersiz ad sağlandı: \"/\" veya \"\\\" kapsayıcı olamaz"
+    "invalidName": "Geçersiz ad sağlandı: \"/\" veya \"\\\" kapsayıcı olamaz",
+    "source": "Source{suffix}",
+    "downloadsLimit": "İndirme sayısı sınırı",
+    "maxBandwidth": "Maksimum indirme bant genişliği (kbps)",
+    "shareTheme": "Temayı paylaş",
+    "shareThemeColor": "Tema rengini paylaş (CSS değeri)",
+    "shareTitle": "Başlığı paylaş",
+    "shareDescription": "Açıklama paylaş",
+    "shareLogo": "Logo URL'sini paylaş",
+    "shareBanner": "Banner URL'sini paylaş",
+    "shareFavicon": "Favicon URL'sini paylaş",
+    "optionalPasswordHelp": "Ayarlanırsa, kullanıcılar paylaşılan içeriği görüntülemek için bu parolayı girmelidir.",
+    "viewMode": "Görünüm modu"
   },
   "search": {
     "images": "Görseller",
@@ -321,7 +329,32 @@
     "abortUpload": "Aldırmak istediğine emin misin?"
   },
   "share": {
-    "notice": "Not: Bağlantıya (ve isteğe bağlı şifreye) erişimi olan herkes paylaşılan dosyalara erişebilir. Oturum açma zorunluluğu yoktur."
+    "notice": "Not: Bir paylaşım oluşturulduğunda, herkese daha açık hale gelir ve erişim için farklı kurallara sahip olur. Paylaşımınız güvenli bir şekilde yapılandırılmamışsa, herkes tarafından erişilebilir.",
+    "disableAnonymousDescription": "Etkinleştirildiğinde, paylaşıma yalnızca kimliği doğrulanmış kullanıcılar erişebilir. Kullanıcının paylaşımın kaynağına erişimi olmalıdır.",
+    "disableThumbnailsDescription": "Etkinleştirildiğinde, önizleme küçük resimleri paylaşımda gösterilmeyecektir.",
+    "enableAllowedUsernamesDescription": "Etkinleştirildiğinde, paylaşıma yalnızca belirtilen kullanıcılar erişebilir. Kullanıcının paylaşımın kaynağına erişimi olmalıdır.",
+    "downloadsLimitDescription": "Paylaşımdaki herhangi bir dosya/klasörün en fazla kaç kez indirilebileceği. Sınırsız için boş bırakın.",
+    "maxBandwidthDescription": "Saniye başına kilobayt cinsinden maksimum indirme bant genişliği. Sınırsız için boş bırakın.",
+    "shareThemeDescription": "Paylaşım bağlantısı için kullanılacak tema.",
+    "disableAnonymous": "Anonim erişimi devre dışı bırakın",
+    "disableThumbnails": "Küçük Resimleri Devre Dışı Bırak",
+    "enableAllowedUsernames": "Yalnızca belirli kullanıcılarla paylaşın",
+    "allowedUsernamesPlaceholder": "Kullanıcı adlarını virgülle ayırarak girin",
+    "keepAfterExpiration": "Süresi dolduktan sonra paylaşımı silme",
+    "keepAfterExpirationDescription": "Paylaşım, süresi dolduktan sonra silinmeyecektir. Bu, bir paylaşımın süresini uzatmak veya süresi dolduktan sonra daha fazla düzenlemek istiyorsanız kullanışlıdır.",
+    "saveDisabled": "Paylaşılan dosyalardaki değişiklikler kaydedilemiyor.",
+    "shareDurationDescription": "Paylaşımın sona ermesinden önceki süre. Kalıcı bir paylaşım için boş bırakın.",
+    "passwordDescription": "Kimliği doğrulanmış kullanıcılar da dahil olmak üzere bu paylaşıma erişmek için gereken isteğe bağlı parola.",
+    "allowedUsernamesListDescription": "Paylaşıma erişebilen virgülle ayrılmış kullanıcı adları (etkinleştirildiğinde).",
+    "shareThemeColorDescription": "Paylaşımın temasına uygulanan CSS renk değeri (örneğin, kırmızı, #0ea5e9, rgb(14,165,233)).",
+    "shareTitleDescription": "Paylaşım sayfasında gösterilen özel sayfa başlığı.",
+    "shareDescriptionHelp": "Paylaşım sayfasında gösterilen kısa açıklama (meta etiketlerde kullanılabilir).",
+    "shareLogoDescription": "İstemci tarafından erişilebilen logo resmi URL'si veya yolu -- mutlak veya dizin yolu kabul edilir: örneğin 'https://domain.com/logo.png' veya '/path/to/logo.png'",
+    "shareBannerDescription": "Banner resmi URL'si veya istemci tarafından erişilebilen yol -- mutlak veya dizin yolu kabul edilir: örneğin 'https://domain.com/banner.png' veya '/path/to/banner.png'",
+    "shareFaviconDescription": "Favicon URL'si veya istemci tarafından erişilebilen yol -- mutlak veya dizin yolu kabul edilir: örneğin 'https://domain.com/favicon.png' veya '/path/to/favicon.png'",
+    "hideNavButtons": "Gezinme düğmelerini gizle",
+    "hideNavButtonsDescription": "Minimalist bir görünüm oluşturmak için paylaşımdaki gezinme çubuğundaki gezinme düğmelerini gizleyin.",
+    "viewModeDescription": "Paylaşılan sayfa için varsayılan düzen."
   },
   "api": {
     "title": "API Anahtarları:",
@@ -350,8 +383,6 @@
   "index": {
     "status": "Durum",
     "assessment": "Değerlendirme",
-    "files": "Dosyalar",
-    "folders": "Klasörler",
     "lastScanned": "Son Taranan",
     "quickScan": "Hızlı Tarama Saniyeleri",
     "fullScan": "Tam Tarama Saniyeleri",
@@ -374,6 +405,39 @@
     "verificationFailed": "Doğrulama Başarısız",
     "verificationSucceed": "Doğrulama Başarılı",
     "generationFailed": "Nesil Başarısız"
+  },
+  "general": {
+    "name": "İsim",
+    "path": "Yol",
+    "user": "Kullanıcı",
+    "group": "Grup",
+    "signup": "Kaydolun",
+    "password": "Şifre",
+    "username": "Kullanıcı Adı",
+    "files": "Dosyalar",
+    "folders": "Klasörler",
+    "exit": "Çıkış",
+    "permanent": "Daimi",
+    "hash": "Hash"
+  },
+  "access": {
+    "rules": "Erişim kuralları",
+    "deny": "Reddet",
+    "deniedUsers": "Reddedilen Kullanıcılar",
+    "deniedGroups": "Reddedilen Gruplar",
+    "allowedUsers": "İzin Verilen Kullanıcılar",
+    "allowedGroups": "İzin Verilen Gruplar",
+    "allow": "İzin ver",
+    "allowDeny": "İzin Ver / Reddet",
+    "userGroup": "Kullanıcı/Grup",
+    "enterName": "Kullanıcı veya grup adını girin",
+    "deleted": "Erişim kuralı silindi!",
+    "added": "Erişim kuralı eklendi!",
+    "name": "İsim",
+    "accessManagement": "Erişim Yönetimi",
+    "totalDenied": "Reddedildi",
+    "totalAllowed": "İzin verildi",
+    "all": "Tümünü Reddet"
   },
   "fileLoading": {
     "title": "Yüklemeler & İndirmeler",
@@ -437,6 +501,16 @@
     "disableOfficeEditorDescription": "OnlyOffice düzenleyicisini ve görüntüleyicisini devre dışı bırakmak için dosya uzantılarının boşluk bırakılarak ayrılmış bir listesi. (örneğin, '.txt .html .pdf').",
     "disableOfficeEditor": "Belirli dosya uzantıları için ofis görüntüleyiciyi devre dışı bırakma",
     "defaultThemeDescription": "default - Varsayılan tema",
-    "customTheme": "Temanızı seçin"
+    "customTheme": "Temanızı seçin",
+    "showSelectMultiple": "Masaüstündeki bağlam menüsünde çoklu seçmeyi göster",
+    "showSelectMultipleDescription": "Varsayılan olarak, masaüstü içerik menüsünde mobil cihazlardaki gibi \"çoklu seç\" seçeneği yoktur. Bu seçenek her zaman içerik menüsünde gösterilir."
+  },
+  "editor": {
+    "uninitialized": "Düzenleyici başlatılamadı. Lütfen yeniden yükleyin.",
+    "saveFailed": "Dosya kaydedilemedi. Lütfen tekrar deneyin.",
+    "saveAborted": "Kaydetme işlemi iptal edildi. Dosya adı etkin dosyayla eşleşmiyor.",
+    "saveDisabled": "Paylaşılan dosyaların kaydedilmesi desteklenmez.",
+    "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
+    "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
   }
 }

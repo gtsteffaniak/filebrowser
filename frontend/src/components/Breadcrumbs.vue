@@ -67,7 +67,7 @@ export default {
       return state.req.hasUpdate;
     },
     addPadding() {
-      return getters.isStickySidebar() || getters.currentView() == "share";
+      return getters.isStickySidebar() || getters.isShare();
     },
     isCardView() {
       return getters.isCardView();
@@ -112,9 +112,10 @@ export default {
   },
   methods: {
     updatePaths() {
-      if (getters.currentView() == "share") {
+      if (getters.isShare()) {
         this.base = getters.sharePathBase();
         this.path = getters.routePath(this.base);
+
       } else {
         this.path = encodedPath(state.req.path);
         this.base = "/";

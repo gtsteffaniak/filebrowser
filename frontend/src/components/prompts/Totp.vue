@@ -1,45 +1,30 @@
 <template>
-  <div class="card floating create-api__prompt__card" id="create-api">
-    <div class="card-title">
-      <h2>{{ $t("otp.name") }}</h2>
+  <div class="card-title">
+    <h2>{{ $t("otp.name") }}</h2>
+  </div>
+  <div v-if="error !== ''" class="wrong-login card">{{ error }}</div>
+  <div v-if="succeeded">{{ $t("otp.verificationSucceed") }}</div>
+  <div v-if="!succeeded" class="card-content">
+    <p v-if="generate">{{ $t("otp.generate") }}</p>
+    <div v-if="generate" class="share__box__element share__box__center">
+      <p aria-label="otp-url">{{ this.url }}</p>
+      <qrcode-vue class="qrcode" :value="this.url" size="200" level="M"></qrcode-vue>
     </div>
-    <div v-if="error !== ''" class="wrong-login card">{{ error }}</div>
-    <div v-if="succeeded" >{{ $t("otp.verificationSucceed") }}</div>
-    <div v-if="!succeeded" class="card-content">
-      <p v-if="generate">{{ $t("otp.generate") }}</p>
-      <div v-if="generate" class="share__box__element share__box__center">
-        <p aria-label="otp-url">{{ this.url }}</p>
-        <qrcode-vue class="qrcode" :value="this.url" size="200" level="M"></qrcode-vue>
-      </div>
-      <p>{{ $t("otp.verifyInstructions") }}</p>
-      <input
-        v-focus
-        class="input input--block"
-        type="text"
-        v-model="code"
-        @keyup.enter="verifyCode"
-        :placeholder="$t('otp.codeInputPlaceholder')"
-      />
-    </div>
+    <p>{{ $t("otp.verifyInstructions") }}</p>
+    <input v-focus class="input" type="text" v-model="code" @keyup.enter="verifyCode"
+      :placeholder="$t('otp.codeInputPlaceholder')" />
+  </div>
 
-    <div class="card-action">
-      <button
-        @click="closeHovers"
-        class="button button--flat button--grey"
-        :aria-label="succeeded ? $t('buttons.close') : $t('buttons.cancel')"
-        :title="succeeded ? $t('buttons.close') : $t('buttons.cancel')"
-      >
-        {{ succeeded ? $t('buttons.close') : $t('buttons.cancel') }}
-      </button>
-      <button
-        v-if="!succeeded"
-        class="button button--flat button--blue"
-        @click="verifyCode"
-        :title="$t('buttons.verify')"
-      >
-        {{ $t("buttons.verify") }}
-      </button>
-    </div>
+  <div class="card-action">
+    <button @click="closeHovers" class="button button--flat button--grey"
+      :aria-label="succeeded ? $t('buttons.close') : $t('buttons.cancel')"
+      :title="succeeded ? $t('buttons.close') : $t('buttons.cancel')">
+      {{ succeeded ? $t('buttons.close') : $t('buttons.cancel') }}
+    </button>
+    <button v-if="!succeeded" class="button button--flat button--blue" @click="verifyCode"
+      :title="$t('buttons.verify')">
+      {{ $t("buttons.verify") }}
+    </button>
   </div>
 </template>
 

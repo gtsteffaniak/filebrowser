@@ -1,7 +1,6 @@
 FROM gtstef/playwright-base
 
 COPY [ "./_docker/src/oidc/frontend/", "./" ]
-COPY [ "./frontend/tests-playwright/", "./tests-playwright" ]
 COPY [ "./frontend/tests/", "./tests" ]
 
 WORKDIR /app/backend/

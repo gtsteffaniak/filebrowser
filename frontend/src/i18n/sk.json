@@ -46,7 +46,9 @@
     "retry": "Opakovanie",
     "pauseAll": "Pozastavenie všetkých",
     "resumeAll": "Obnoviť všetko",
-    "clearCompleted": "Vyčistiť dokončené"
+    "clearCompleted": "Vyčistiť dokončené",
+    "showMore": "Zobraziť viac",
+    "showLess": "Zobraziť menej"
   },
   "download": {
     "downloadFile": "Stiahnuť súbor",
@@ -63,8 +65,6 @@
     "body": "Telo",
     "clear": "Zrušiť výber",
     "closePreview": "Zavrieť náhľad",
-    "files": "Súbory",
-    "folders": "Priečinky",
     "home": "Domov",
     "lastModified": "Posledná zmena",
     "loading": "Načítanie...",
@@ -122,17 +122,13 @@
   "login": {
     "createAnAccount": "Vytvoriť účet",
     "loginInstead": "Už mám účet",
-    "password": "Heslo",
     "passwordConfirm": "Potvrdenie hesla",
     "passwordsDontMatch": "Heslá nesúhlasia",
-    "signup": "Registrovať",
     "submit": "Prihlásiť",
-    "username": "Používateľské meno",
     "usernameTaken": "Meno je už obsadené",
     "wrongCredentials": "Nesprávne prihlasovacie údaje",
     "or": "ALEBO"
   },
-  "permanent": "Trvalé",
   "prompts": {
     "copy": "Kopírovať",
     "copyMessage": "Zvoľte miesto, kde chcete kopírovať súbory:",
@@ -145,7 +141,7 @@
     "downloadMessage": "Vyberte formát, ktorý chcete stiahnuť.",
     "error": "Niečo sa pokazilo",
     "fileInfo": "Informácie o súbore",
-    "lastModified": "Dátum zmeny",
+    "lastModified": "Dátum zmeny{suffix}",
     "move": "Presunúť",
     "moveMessage": "Zvoľte nový domov pre vaše súbory/priečinky:",
     "newArchetype": "Vytvorí nový príspevok z archetypu. Nový súbor sa vytvorí v priečinku s obsahom.",
@@ -153,8 +149,8 @@
     "newDirMessage": "Napíšte názov nového priečinka.",
     "newFile": "Nový súbor",
     "newFileMessage": "Napíšte názov nového súboru.",
-    "numberDirs": "Počet priečinkov",
-    "numberFiles": "Počet súborov",
+    "numberDirs": "Počet priečinkov{suffix}",
+    "numberFiles": "Počet súborov{suffix}",
     "rename": "Premenovať",
     "renameMessage": "Zadajte nový názov pre",
     "replace": "Nahradiť",
@@ -176,7 +172,19 @@
     "conflictsDetected": "Zistené konflikty",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "Zadaný neplatný názov: nemôže byť kontajner \"/\" alebo \"\\\""
+    "invalidName": "Zadaný neplatný názov: nemôže byť kontajner \"/\" alebo \"\\\"",
+    "source": "Source{suffix}",
+    "downloadsLimit": "Limit počtu stiahnutí",
+    "maxBandwidth": "Maximálna šírka pásma sťahovania (kbps)",
+    "shareTheme": "Zdieľať tému",
+    "shareThemeColor": "Zdieľanie farby témy (hodnota CSS)",
+    "shareTitle": "Zdieľať názov",
+    "shareDescription": "Zdieľať popis",
+    "shareLogo": "Zdieľanie adresy URL loga",
+    "shareBanner": "Zdieľanie adresy URL banneru",
+    "shareFavicon": "Zdieľanie adresy URL favicon",
+    "optionalPasswordHelp": "Ak je nastavené, používatelia musia zadať toto heslo, aby si mohli prezerať zdieľaný obsah.",
+    "viewMode": "Režim zobrazenia"
   },
   "search": {
     "images": "Obrázky",
@@ -321,7 +329,32 @@
     "abortUpload": "Ste si istí, že chcete prerušiť tehotenstvo?"
   },
   "share": {
-    "notice": "Poznámka: prístup k zdieľaným súborom má každý, kto má prístup k odkazu (a voliteľnému heslu). Nie je potrebné byť prihlásený."
+    "notice": "Poznámka: po vytvorení zdieľanej zložky sa táto stáva verejne prístupnou a platia pre ňu iné pravidlá prístupu. Ak vaša zdieľaná zložka nie je bezpečne nakonfigurovaná, môže k nej mať prístup ktokoľvek.",
+    "disableAnonymousDescription": "Ak je táto možnosť povolená, prístup k zdieľanej zložke majú len overení používatelia. Používateľ musí mať prístup k zdroju zdieľanej zložky.",
+    "disableThumbnailsDescription": "Ak je táto funkcia zapnutá, miniatúry náhľadov sa v zdieľanej zložke nezobrazia.",
+    "enableAllowedUsernamesDescription": "Ak je táto možnosť povolená, prístup k zdieľanej zložke majú len zadaní používatelia. Používateľ musí mať prístup k zdroju zdieľanej zložky.",
+    "downloadsLimitDescription": "Maximálny počet stiahnutí akéhokoľvek súboru/priečinka zo zdieľanej zložky. Pre neobmedzený počet nechajte prázdne.",
+    "maxBandwidthDescription": "Maximálna šírka pásma sťahovania v kilobajtoch za sekundu. Nechajte prázdne pre neobmedzené.",
+    "shareThemeDescription": "Téma, ktorá sa má použiť pre odkaz na zdieľanie.",
+    "disableAnonymous": "Zakázanie anonymného prístupu",
+    "disableThumbnails": "Zakázanie miniatúr",
+    "enableAllowedUsernames": "Zdieľať len s určitými používateľmi",
+    "allowedUsernamesPlaceholder": "Zadajte používateľské mená oddelené čiarkami",
+    "keepAfterExpiration": "Neodstraňujte podiel po uplynutí jeho platnosti",
+    "keepAfterExpirationDescription": "Akcia sa po uplynutí jej platnosti neodstráni. To je užitočné, ak chcete predĺžiť platnosť zdieľanej zložky alebo ju ďalej upravovať po uplynutí jej platnosti.",
+    "saveDisabled": "Nie je možné uložiť zmeny do zdieľaných súborov.",
+    "shareDurationDescription": "Trvanie pred uplynutím platnosti akcie. Pre trvalú akciu nechajte prázdne.",
+    "passwordDescription": "Voliteľné heslo potrebné na prístup k tejto zdieľanej zložke vrátane overených používateľov.",
+    "allowedUsernamesListDescription": "Používateľské mená oddelené čiarkami, ktoré môžu pristupovať k zdieľanej zložke (ak je to povolené).",
+    "shareThemeColorDescription": "Hodnota farby CSS použitá na tému akcie (napr. červená, #0ea5e9, rgb(14,165,233)).",
+    "shareTitleDescription": "Vlastný názov stránky zobrazený na stránke zdieľania.",
+    "shareDescriptionHelp": "Krátky popis zobrazený na stránke zdieľania (môže sa použiť v meta značkách).",
+    "shareLogoDescription": "Adresa URL alebo cesta k obrázku loga prístupná klientovi - akceptuje sa buď absolútna, alebo indexová cesta: napr. \"https://domain.com/logo.png\" alebo \"/path/to/logo.png\".",
+    "shareBannerDescription": "Adresa URL alebo cesta k obrázku banneru prístupná klientovi - akceptuje sa buď absolútna, alebo indexová cesta: napr. \"https://domain.com/banner.png\" alebo \"/path/to/banner.png\".",
+    "shareFaviconDescription": "Adresa URL alebo cesta k ikone Favicon, ktorá je prístupná klientovi -- akceptuje sa buď absolútna, alebo indexová cesta: napr. \"https://domain.com/favicon.png\" alebo \"/path/to/favicon.png\".",
+    "hideNavButtons": "Skrytie navigačných tlačidiel",
+    "hideNavButtonsDescription": "Skryte navigačné tlačidlá na paneli navigácie v zdieľaní, aby ste vytvorili minimalistický vzhľad.",
+    "viewModeDescription": "Predvolené rozloženie zdieľanej stránky."
   },
   "api": {
     "title": "Kľúče API:",
@@ -350,8 +383,6 @@
   "index": {
     "status": "Stav",
     "assessment": "Hodnotenie",
-    "files": "Súbory",
-    "folders": "Priečinky",
     "lastScanned": "Posledné skenovanie",
     "quickScan": "Sekundy rýchleho skenovania",
     "fullScan": "Sekundy úplného skenovania",
@@ -374,6 +405,39 @@
     "verificationFailed": "Overenie sa nepodarilo",
     "verificationSucceed": "Overovanie Úspech",
     "generationFailed": "Generácia zlyhala"
+  },
+  "general": {
+    "name": "Názov",
+    "path": "Cesta",
+    "user": "Používateľ",
+    "group": "Skupina",
+    "signup": "Registrácia",
+    "password": "Heslo",
+    "username": "Používateľské meno",
+    "files": "Súbory",
+    "folders": "Priečinky",
+    "exit": "Exit",
+    "permanent": "Trvalé",
+    "hash": "Hash"
+  },
+  "access": {
+    "rules": "Pravidlá prístupu",
+    "deny": "Odmietnuť",
+    "deniedUsers": "Odmietnutí používatelia",
+    "deniedGroups": "Odmietnuté skupiny",
+    "allowedUsers": "Povolení používatelia",
+    "allowedGroups": "Povolené skupiny",
+    "allow": "Povoľte",
+    "allowDeny": "Povoliť/odmietnuť",
+    "userGroup": "Používateľ/skupina",
+    "enterName": "Zadajte meno používateľa alebo skupiny",
+    "deleted": "Prístupové pravidlo odstránené!",
+    "added": "Pridané pravidlo prístupu!",
+    "name": "Názov",
+    "accessManagement": "Správa prístupu",
+    "totalDenied": "Odmietnuté",
+    "totalAllowed": "Povolené",
+    "all": "Odmietnuť všetko"
   },
   "fileLoading": {
     "title": "Nahrávanie a sťahovanie",
@@ -437,6 +501,16 @@
     "disableOfficeEditorDescription": "Medzerou oddelený zoznam prípon súborov, pre ktoré sa má vypnúť editor a prehliadač OnlyOffice. (napr. \".txt .html .pdf\").",
     "disableOfficeEditor": "Zakázanie prehliadača Office pre určité prípony súborov",
     "defaultThemeDescription": "default - Predvolená téma",
-    "customTheme": "Vyberte si tému"
+    "customTheme": "Vyberte si tému",
+    "showSelectMultiple": "Zobrazenie výberu viacerých v kontextovom menu na ploche",
+    "showSelectMultipleDescription": "V predvolenom nastavení kontextová ponuka na ploche nemá možnosť \"vybrať viacero\" ako v mobilných zariadeniach. Táto možnosť sa v kontextovej ponuke zobrazuje vždy."
+  },
+  "editor": {
+    "uninitialized": "Nepodarilo sa inicializovať editor. Prosím, načítajte ho znova.",
+    "saveFailed": "Nepodarilo sa uložiť súbor. Skúste to prosím znova.",
+    "saveAborted": "Uloženie prerušené. Názov súboru sa nezhoduje s aktívnym súborom.",
+    "saveDisabled": "Ukladanie zdieľaných súborov nie je podporované.",
+    "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
+    "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
   }
 }

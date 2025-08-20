@@ -16,8 +16,8 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import ePub, { type Book, type Rendition } from "epubjs";
-import { state,mutations } from "@/store"; // Assuming your store setup
-import { filesApi } from "@/api"; // Assuming your api setup
+import { state, mutations, getters } from "@/store"; // Assuming your store setup
+import { filesApi, publicApi } from "@/api"; // Assuming your api setup
 import { removeLastDir } from "@/utils/url"; // Assuming your utils setup
 
 export default defineComponent({
@@ -41,12 +41,18 @@ export default defineComponent({
     });
     try {
       // 1. Fetch the download URL for the EPUB file
-      const epubUrl = await filesApi.getDownloadURL(
-        state.req.source,
-        state.req.path,
-        false,
-        false
-      );
+      const epubUrl = getters.isShare() 
+        ? publicApi.getDownloadURL({
+            path: state.share.subPath,
+            hash: state.share.hash,
+            token: state.share.token,
+          }, [state.req.path])
+        : await filesApi.getDownloadURL(
+            state.req.source,
+            state.req.path,
+            false,
+            false
+          );
 
       // 2. Initialize the EPUB book
       this.book = ePub(epubUrl);

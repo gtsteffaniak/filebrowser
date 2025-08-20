@@ -1,5 +1,5 @@
 .dashboard {
-  margin: 1em 0;
+  margin: 1em;
 }
 
 .dashboard .row {
@@ -161,7 +161,7 @@ table tr>*:last-child {
 .card {
   position: relative;
   margin: 0 0 1rem 0;
-  background-color: #fff;
+  background-color: var(--background);
   border-radius: 2px;
   box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2);
   overflow: auto;
@@ -173,13 +173,10 @@ table tr>*:last-child {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  -webkit-box-shadow: 0px 2em 50px 10px rgba(0, 0, 0, 0.3);
-  box-shadow: 0px 2em 50px 10px rgba(0, 0, 0, 0.3);
-  z-index: 99999;
+  z-index: 5;
   max-width: 40em;
   width: 90%;
   max-height: 95%;
-  z-index: 99999;
   animation: .1s show forwards;
 }
 
@@ -191,32 +188,35 @@ table tr>*:last-child {
   margin-bottom: 0;
 }
 
-.card .card-title {
+.card-title {
   text-align: center;
 }
 
-.card .card-title>*:first-child {
+ .card-title>*:first-child {
   margin-right: auto;
 }
 
-body.rtl .card .card-title>*:first-child {
+body.rtl .card-title>*:first-child {
   margin-right: 0;
   text-align: right;
 }
 
-.card>div {
+.card>div,
+.card>form>div {
   padding: 1em 1em;
 }
 
-.card>div:first-child {
+.card>div:first-child,
+.card>form>div:first-child {
   padding-top: 1.5em;
 }
 
-.card>div:last-child {
+.card>div:last-child,
+.card>form>div:last-child {
   padding-bottom: 1.5em;
 }
 
-.card .card-title * {
+.card-title * {
   margin: 0;
 }
 
@@ -229,20 +229,18 @@ body.rtl .card .card-title>*:first-child {
   overflow: auto;
 }
 
+.card-content h3 {
+  text-align: center;
+}
+
 .card h2 {
   font-weight: 500;
 }
 
 .card h3 {
-  color: rgba(0, 0, 0, 0.53);
   font-size: 1em;
   font-weight: 500;
   margin: 2em 0 1em;
-}
-
-.card-content table {
-  margin: 0 -1em;
-  width: calc(100% + 2em);
 }
 
 .card code {
@@ -251,77 +249,6 @@ body.rtl .card .card-title>*:first-child {
 
 .card#download {
   max-width: 15em;
-}
-
-.card#share ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.card#share ul li {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.card#share ul li a {
-  color: var(--primaryColor);
-  cursor: pointer;
-  margin-right: auto;
-}
-
-.card#share ul li .action i {
-  font-size: 1em;
-}
-
-.card#share ul li input,
-.card#share ul li select {
-  padding: .2em;
-  margin-right: .5em;
-  border: 1px solid #dadada;
-}
-
-.card#share .action.copy-clipboard::after {
-  content: 'Copied!';
-  position: absolute;
-  left: -25%;
-  width: 150%;
-  font-size: .6em;
-  text-align: center;
-  background: #44a6f5;
-  color: #fff;
-  padding: .5em .2em;
-  border-radius: .4em;
-  top: -2em;
-  transition: .1s ease opacity;
-  opacity: 0;
-}
-
-.overlay {
-  background-color: rgba(0, 0, 0, 0.5);
-  position: fixed;
-  height: 100%;
-  width: 100%;
-  z-index: 4;
-  top: 0;
-  animation: .3s show ease-in;
-}
-
-.card#share .action.copy-clipboard.active::after {
-  opacity: 1;
-}
-
-.card#share .input-group {
-  display: flex;
-}
-
-.card#share .input-group * {
-  border: none;
-}
-
-.card#share .input-group input {
-  flex: 1;
 }
 
 .file-list {
@@ -484,4 +411,14 @@ body.rtl .card .card-title>*:first-child {
 body.rtl .credits {
   text-align: right;
   direction: ltr;
+}
+
+.overlay {
+  background-color: rgba(0, 0, 0, 0.5);
+  position: fixed;
+  height: 100%;
+  width: 100%;
+  z-index: 4;
+  top: 0;
+  animation: .3s show ease-in;
 }

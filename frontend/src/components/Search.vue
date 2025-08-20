@@ -5,7 +5,7 @@
     @click="clearContext"
   >
     <!-- Search input section -->
-    <div id="input" @click="open">
+    <div id="search-input" @click="open">
       <!-- Close button visible when search is active -->
       <button
         v-if="active"
@@ -34,7 +34,7 @@
     </div>
 
     <!-- Search results for desktop -->
-    <div v-show="active" id="results" ref="result">
+    <div v-show="active" id="results" class="fb-shadow" ref="result">
       <div class="inputWrapper" style="display: flex">
         <select
           v-if="multipleSources"
@@ -551,16 +551,18 @@ export default {
   border-left: 1px solid gray;
   border-right: 1px solid gray;
   word-wrap: break-word;
+  height: -webkit-fill-available;
 }
 
 .searchContext.input {
   background-color: var(--primaryColor) !important;
-  border-radius: 0em;
+  border-radius: 0em !important;
   color: white;
   border: unset;
   width: 25%;
   min-width: 7em;
   max-width: 15em;
+  height: -webkit-fill-available;
 }
 
 #results > #result-list {
@@ -589,7 +591,6 @@ export default {
   border-top-right-radius: 0px;
   -webkit-transform: translateX(-50%);
   transform: translateX(-50%);
-  -webkit-box-shadow: 0px 2em 50px 10px rgba(0, 0, 0, 0.3);
   box-shadow: 0px 2em 50px 10px rgba(0, 0, 0, 0.3);
   background-color: lightgray;
   max-height: 80vh;
@@ -633,7 +634,7 @@ export default {
   transform: translateX(-50%);
 }
 
-#search #input {
+#search-input {
   background-color: rgba(100, 100, 100, 0.2);
   display: flex;
   height: 100%;
@@ -675,10 +676,6 @@ export default {
 }
 
 .search-entry.active {
-  background-color: var(--surfacePrimary);
-}
-
-.search-entry:hover {
   background-color: var(--surfacePrimary);
 }
 
@@ -749,7 +746,7 @@ body.rtl #search #result ul > * {
   display: block;
 }
 
-#search.active #input {
+#search.active #search-input {
   background-color: var(--background);
   border-color: black;
   border-style: solid;

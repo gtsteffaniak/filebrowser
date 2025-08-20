@@ -11,10 +11,10 @@ import (
 
 	"github.com/goccy/go-yaml"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
-	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/common/version"
 	"github.com/gtsteffaniak/filebrowser/backend/database/storage"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
@@ -258,7 +258,7 @@ func createConfig(configpath string) {
 		if err == nil {
 			var isDir bool
 			// Resolve symlinks and get the real path
-			realPath, isDir, _ = utils.ResolveSymlinks(absolutePath)
+			realPath, isDir, _ = iteminfo.ResolveSymlinks(absolutePath)
 			if realPath != "" && isDir {
 				break // Valid path found, exit loop
 			}

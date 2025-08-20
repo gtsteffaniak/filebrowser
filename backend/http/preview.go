@@ -60,10 +60,12 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		return http.StatusForbidden, err
 	}
 	fileInfo, err := files.FileInfoFaster(iteminfo.FileOptions{
-		Path:   utils.JoinPathAsUnix(userscope, path),
-		Modify: d.user.Permissions.Modify,
-		Source: source,
-		Expand: true,
+		Access:   store.Access,
+		Username: d.user.Username,
+		Path:     utils.JoinPathAsUnix(userscope, path),
+		Modify:   d.user.Permissions.Modify,
+		Source:   source,
+		Expand:   true,
 	})
 	if err != nil {
 		return errToStatus(err), err

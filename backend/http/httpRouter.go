@@ -13,7 +13,7 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/version"
-	"github.com/gtsteffaniak/filebrowser/backend/database/storage"
+	"github.com/gtsteffaniak/filebrowser/backend/database/storage/bolt"
 	"github.com/gtsteffaniak/go-logger/logger"
 	// http-swagger middleware
 )
@@ -37,13 +37,12 @@ func (d dirFS) Open(name string) (fs.File, error) {
 }
 
 var (
-	store  *storage.Storage
-	config *settings.Settings
-	//fileCache diskcache.Interface
+	store   *bolt.BoltStore
+	config  *settings.Settings
 	assetFs fs.FS
 )
 
-func StartHttp(ctx context.Context, storage *storage.Storage, shutdownComplete chan struct{}) {
+func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete chan struct{}) {
 	store = storage
 	config = &settings.Config
 	var err error
@@ -65,6 +64,8 @@ func StartHttp(ctx context.Context, storage *storage.Storage, shutdownComplete c
 	router := http.NewServeMux()
 	// API group routing
 	api := http.NewServeMux()
+	// Public group routing (new structure)
+	publicRoutes := http.NewServeMux()
 
 	// User routes
 	api.HandleFunc("GET /users", withUser(userGetHandler))
@@ -98,19 +99,25 @@ func StartHttp(ctx context.Context, storage *storage.Storage, shutdownComplete c
 		api.HandleFunc("GET /inspectIndex", inspectIndex)
 		api.HandleFunc("GET /mockData", mockData)
 	}
-
-	// Share routes
-	api.HandleFunc("GET /shares", withPermShare(shareListHandler))
-	api.HandleFunc("GET /share", withPermShare(shareGetHandler))
-	api.HandleFunc("POST /share", withPermShare(sharePostHandler))
-	api.HandleFunc("DELETE /share", withPermShare(shareDeleteHandler))
-
-	// Public routes
-	api.HandleFunc("GET /public/publicUser", withoutUser(publicUserGetHandler))
-	api.HandleFunc("GET /public/dl", withHashFile(publicRawHandler))
-	api.HandleFunc("GET /public/share", withHashFile(publicShareHandler))
-	api.HandleFunc("GET /public/preview", withHashFile(publicPreviewHandler))
-
+	// Access routes
+	api.HandleFunc("GET /access", withAdmin(accessGetHandler))
+	api.HandleFunc("POST /access", withAdmin(accessPostHandler))
+	api.HandleFunc("DELETE /access", withAdmin(accessDeleteHandler))
+	api.HandleFunc("GET /access/groups", withAdmin(groupGetHandler))
+	api.HandleFunc("POST /access/group", withAdmin(groupPostHandler))
+	api.HandleFunc("DELETE /access/group", withAdmin(groupDeleteHandler))
+	// Create API sub-router for public API endpoints
+	publicAPI := http.NewServeMux()
+	// NEW PUBLIC ROUTES - All publicly accessible endpoints
+	// Share management routes (require permission but are publicly accessible)
+	publicRoutes.HandleFunc("GET /shares", withPermShare(shareListHandler))
+	publicRoutes.HandleFunc("GET /share", withPermShare(shareGetHandler))
+	publicRoutes.HandleFunc("POST /share", withPermShare(sharePostHandler))
+	publicRoutes.HandleFunc("DELETE /share", withPermShare(shareDeleteHandler))
+	// Public API routes (hash-based authentication)
+	publicAPI.HandleFunc("GET /raw", withHashFile(publicRawHandler))
+	publicAPI.HandleFunc("GET /preview", withHashFile(publicPreviewHandler))
+	publicAPI.HandleFunc("GET /shared", withHashFile(publicShareHandler))
 	// Settings routes
 	api.HandleFunc("GET /settings", withAdmin(settingsGetHandler))
 
@@ -119,17 +126,84 @@ func StartHttp(ctx context.Context, storage *storage.Storage, shutdownComplete c
 		d.ctx = ctx // Pass the parent context to ensure proper shutdown
 		return sseHandler(w, r, d)
 	}))
-
 	// Job routes
 	api.HandleFunc("GET /jobs/{action}/{target}", withUser(getJobsHandler))
 
 	api.HandleFunc("GET /onlyoffice/config", withUser(onlyofficeClientConfigGetHandler))
+	publicAPI.HandleFunc("GET /onlyoffice/config", withHashFile(onlyofficeClientConfigGetHandler))
 	api.HandleFunc("POST /onlyoffice/callback", withUser(onlyofficeCallbackHandler))
+	publicAPI.HandleFunc("POST /onlyoffice/callback", withHashFile(onlyofficeCallbackHandler))
 	api.HandleFunc("GET /onlyoffice/getToken", withUser(onlyofficeGetTokenHandler))
+	publicAPI.HandleFunc("GET /onlyoffice/getToken", withHashFile(onlyofficeGetTokenHandler))
 
 	api.HandleFunc("GET /search", withUser(searchHandler))
+
+	// Share routes (DEPRECATED - maintain for backwards compatibility)
+	// These will redirect to the new /public/shares endpoints
+	api.HandleFunc("GET /shares", func(w http.ResponseWriter, r *http.Request) {
+		newURL := config.Server.BaseURL + "public/shares"
+		if r.URL.RawQuery != "" {
+			newURL += "?" + r.URL.RawQuery
+		}
+		http.Redirect(w, r, newURL, http.StatusMovedPermanently)
+	})
+	api.HandleFunc("GET /share", func(w http.ResponseWriter, r *http.Request) {
+		newURL := config.Server.BaseURL + "public/share"
+		if r.URL.RawQuery != "" {
+			newURL += "?" + r.URL.RawQuery
+		}
+		http.Redirect(w, r, newURL, http.StatusMovedPermanently)
+	})
+	api.HandleFunc("POST /share", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, config.Server.BaseURL+"public/share", http.StatusPermanentRedirect)
+	})
+	api.HandleFunc("DELETE /share", func(w http.ResponseWriter, r *http.Request) {
+		newURL := config.Server.BaseURL + "public/share"
+		if r.URL.RawQuery != "" {
+			newURL += "?" + r.URL.RawQuery
+		}
+		http.Redirect(w, r, newURL, http.StatusPermanentRedirect)
+	})
+
+	api.HandleFunc("GET /public/raw", func(w http.ResponseWriter, r *http.Request) {
+		newURL := config.Server.BaseURL + "public/api/raw"
+		if r.URL.RawQuery != "" {
+			newURL += "?" + r.URL.RawQuery
+		}
+		http.Redirect(w, r, newURL, http.StatusMovedPermanently)
+	})
+	api.HandleFunc("GET /public/share", func(w http.ResponseWriter, r *http.Request) {
+		newURL := config.Server.BaseURL + "public/api/shared"
+		if r.URL.RawQuery != "" {
+			newURL += "?" + r.URL.RawQuery
+		}
+		http.Redirect(w, r, newURL, http.StatusMovedPermanently)
+	})
+	api.HandleFunc("GET /public/preview", func(w http.ResponseWriter, r *http.Request) {
+		newURL := config.Server.BaseURL + "public/api/preview"
+		if r.URL.RawQuery != "" {
+			newURL += "?" + r.URL.RawQuery
+		}
+		http.Redirect(w, r, newURL, http.StatusMovedPermanently)
+	})
+
+	// Mount the public API sub-router
+	publicRoutes.Handle("/api/", http.StripPrefix("/api", publicAPI))
+
+	// Mount the route groups
 	apiPath := config.Server.BaseURL + "api"
+	publicPath := config.Server.BaseURL + "public"
 	router.Handle(apiPath+"/", http.StripPrefix(apiPath, api))
+	router.Handle(publicPath+"/", http.StripPrefix(publicPath, publicRoutes))
+
+	// Frontend share route redirect (DEPRECATED - maintain for backwards compatibility)
+	router.HandleFunc(fmt.Sprintf("GET %vshare/", config.Server.BaseURL), withOrWithoutUser(redirectToShare))
+
+	// New frontend share route handler - handle share page and any subpaths
+	publicRoutes.HandleFunc("GET /share/", withOrWithoutUser(indexHandler))
+
+	// Public static assets (needed for shared pages to load CSS/JS/images)
+	publicRoutes.HandleFunc("GET /static/", staticFilesHandler)
 
 	// Static and index file handlers
 	router.HandleFunc(fmt.Sprintf("GET %vstatic/", config.Server.BaseURL), staticFilesHandler)

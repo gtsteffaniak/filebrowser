@@ -25,4 +25,7 @@ export default {
 canvas.notification-spinner {
   color: #fff;
 }
+#popup-notification {
+  z-index: 6;
+}
 </style>

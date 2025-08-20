@@ -46,7 +46,9 @@
     "retry": "Opnieuw proberen",
     "pauseAll": "Alles onderbreken",
     "resumeAll": "Alles hervatten",
-    "clearCompleted": "Gereed"
+    "clearCompleted": "Gereed",
+    "showMore": "Meer tonen",
+    "showLess": "Minder tonen"
   },
   "download": {
     "downloadFile": "Bestand downloaden",
@@ -63,8 +65,6 @@
     "body": "Body",
     "clear": "Wissen",
     "closePreview": "Voorvertoon sluiten",
-    "files": "Bestanden",
-    "folders": "Mappen",
     "home": "Home",
     "lastModified": "Laatst bewerkt",
     "loading": "Laden...",
@@ -122,17 +122,13 @@
   "login": {
     "createAnAccount": "Account aanmaken",
     "loginInstead": "Heeft al een account",
-    "password": "Wachtwoord",
     "passwordConfirm": "Wachtwoordbevestiging ",
     "passwordsDontMatch": "Wachtwoorden komen niet overeen",
-    "signup": "Registeren",
     "submit": "Log in",
-    "username": "Gebruikersnaam",
     "usernameTaken": "Gebruikersnaam reeds in gebruik",
     "wrongCredentials": "Verkeerde inloggegevens",
     "or": "OF"
   },
-  "permanent": "Permanent",
   "prompts": {
     "copy": "Kopiëren",
     "copyMessage": "Kies een locatie om uw bestanden te kopiëren: ",
@@ -144,7 +140,7 @@
     "downloadMessage": "Kies het vermat dat u wilt downloaden. ",
     "error": "Er ging iets fout",
     "fileInfo": "Bestandinformatie",
-    "lastModified": "Laatst Bewerkt",
+    "lastModified": "Laatst Bewerkt{suffix}",
     "move": "Verplaatsen",
     "moveMessage": "Kies een nieuwe locatie voor je bestand(en)/map(pen)",
     "newArchetype": "Maak een nieuw bericht op basis van een archetype. Uw bestand wordt aangemaakt in de inhoudsmap.",
@@ -152,8 +148,8 @@
     "newDirMessage": "Schrijf de naam van de nieuwe map",
     "newFile": "Nieuw bestand",
     "newFileMessage": "Schrijf de naam van het nieuwe bestand",
-    "numberDirs": "Aantal mappen",
-    "numberFiles": "Aantal bestanden",
+    "numberDirs": "Aantal mappen{suffix}",
+    "numberFiles": "Aantal bestanden{suffix}",
     "rename": "Hernoemen",
     "renameMessage": "Voer een nieuwe naam in voor",
     "replace": "Vervangen",
@@ -176,7 +172,19 @@
     "conflictsDetected": "Gedetecteerde conflicten",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "Ongeldige naam opgegeven: kan geen \"/\" of \"˜\" bevatten."
+    "invalidName": "Ongeldige naam opgegeven: kan geen \"/\" of \"˜\" bevatten.",
+    "source": "Source{suffix}",
+    "downloadsLimit": "Limiet aantal downloads",
+    "maxBandwidth": "Max. downloadbandbreedte (kbps)",
+    "shareTheme": "Thema delen",
+    "shareThemeColor": "Thema kleur delen (CSS waarde)",
+    "shareTitle": "Titel delen",
+    "shareDescription": "Beschrijving delen",
+    "shareLogo": "URL met logo delen",
+    "shareBanner": "URL banner delen",
+    "shareFavicon": "favicon URL delen",
+    "optionalPasswordHelp": "Indien ingesteld, moeten gebruikers dit wachtwoord invoeren om de gedeelde inhoud te bekijken.",
+    "viewMode": "Weergavemodus"
   },
   "search": {
     "images": "Afbeeldingen",
@@ -321,7 +329,32 @@
     "abortUpload": "Weet je zeker dat je wilt aborteren?"
   },
   "share": {
-    "notice": "Opmerking: iedereen die toegang heeft tot de link (en optioneel wachtwoord) kan de gedeelde bestanden openen. Je hoeft niet ingelogd te zijn."
+    "notice": "Opmerking: wanneer een share wordt aangemaakt, wordt deze meer blootgesteld aan het publiek en gelden er andere toegangsregels. Als je share niet veilig is geconfigureerd, kan iedereen er toegang tot krijgen.",
+    "disableAnonymousDescription": "Indien ingeschakeld, hebben alleen geauthenticeerde gebruikers toegang tot de share. De gebruiker moet toegang hebben tot de bron van de share.",
+    "disableThumbnailsDescription": "Als deze optie is ingeschakeld, worden er geen voorbeeldminiaturen weergegeven in de share.",
+    "enableAllowedUsernamesDescription": "Indien ingeschakeld, hebben alleen de opgegeven gebruikers toegang tot de share. De gebruiker moet toegang hebben tot de bron van de share.",
+    "downloadsLimitDescription": "Het maximum aantal keren dat een bestand/map van de share kan worden gedownload. Laat leeg voor onbeperkt.",
+    "maxBandwidthDescription": "De maximale downloadbandbreedte in kilobytes per seconde. Leeg laten voor onbeperkt.",
+    "shareThemeDescription": "Het thema dat moet worden gebruikt voor de link delen.",
+    "disableAnonymous": "Anonieme toegang uitschakelen",
+    "disableThumbnails": "Miniaturen uitschakelen",
+    "enableAllowedUsernames": "Alleen delen met bepaalde gebruikers",
+    "allowedUsernamesPlaceholder": "Voer gebruikersnamen in, door komma's gescheiden",
+    "keepAfterExpiration": "Share niet verwijderen nadat deze is verlopen",
+    "keepAfterExpirationDescription": "Het aandeel wordt niet verwijderd nadat het verlopen is. Dit is handig als je de vervaldatum van een share wilt verlengen of het verder wilt bewerken nadat het verlopen is.",
+    "saveDisabled": "Kan wijzigingen in gedeelde bestanden niet opslaan.",
+    "shareDurationDescription": "Duur voordat het aandeel verloopt. Laat leeg voor een permanent aandeel.",
+    "passwordDescription": "Optioneel wachtwoord dat vereist is om toegang te krijgen tot deze share, inclusief geauthenticeerde gebruikers.",
+    "allowedUsernamesListDescription": "Door komma's gescheiden gebruikersnamen die toegang hebben tot de share (indien ingeschakeld).",
+    "shareThemeColorDescription": "CSS kleurwaarde toegepast op het thema van het aandeel (bijv. rood, #0ea5e9, rgb(14,165,233)).",
+    "shareTitleDescription": "Aangepaste paginatitel die wordt weergegeven op de deelpagina.",
+    "shareDescriptionHelp": "Korte beschrijving die wordt weergegeven op de share-pagina (kan worden gebruikt in metatags).",
+    "shareLogoDescription": "URL van logoafbeelding of pad dat toegankelijk is voor de client -- zowel abosolute als index path worden geaccepteerd: bijv. 'https://domain.com/logo.png' of '/path/to/logo.png'.",
+    "shareBannerDescription": "URL van bannerafbeelding of pad dat toegankelijk is voor de client -- zowel abosolute als indexpath worden geaccepteerd: bijv. 'https://domain.com/banner.png' of '/path/to/banner.png'.",
+    "shareFaviconDescription": "Favicon URL of pad toegankelijk door de client -- zowel abosolute als index path worden geaccepteerd: bijv. 'https://domain.com/favicon.png' of '/path/to/favicon.png'.",
+    "hideNavButtons": "Navigatieknoppen verbergen",
+    "hideNavButtonsDescription": "Verberg de navigatieknoppen op de navigatiebalk in de share om een minimalistische look te creëren.",
+    "viewModeDescription": "Standaard lay-out voor de gedeelde pagina."
   },
   "api": {
     "title": "API-sleutels",
@@ -350,8 +383,6 @@
   "index": {
     "status": "Status",
     "assessment": "Beoordeling",
-    "files": "Bestanden",
-    "folders": "Mappen",
     "lastScanned": "Laatst gescand",
     "quickScan": "Snelle scan Seconden",
     "fullScan": "Seconden voor volledig scannen",
@@ -437,6 +468,49 @@
     "disableOfficeEditorDescription": "Een door spaties gescheiden lijst met bestandsextensies waarvoor de OnlyOffice editor en viewer uitgeschakeld moeten worden. (bijv. '.txt .html .pdf').",
     "disableOfficeEditor": "Office Viewer uitschakelen voor bepaalde bestandsextensies",
     "defaultThemeDescription": "standaard - Het standaardthema",
-    "customTheme": "Kies je thema"
+    "customTheme": "Kies je thema",
+    "showSelectMultiple": "Meerdere selecteren tonen in contextmenu op bureaublad",
+    "showSelectMultipleDescription": "Standaard heeft het contextmenu op de desktop geen optie \"meerdere selecteren\" zoals mobiel. Deze optie wordt altijd weergegeven in het contextmenu."
+  },
+  "general": {
+    "name": "Naam",
+    "path": "Pad",
+    "user": "Gebruiker",
+    "group": "Groep",
+    "signup": "Aanmelden",
+    "password": "Wachtwoord",
+    "username": "Gebruikersnaam",
+    "files": "Bestanden",
+    "folders": "Mappen",
+    "exit": "Ga naar",
+    "permanent": "Permanent",
+    "hash": "Hash"
+  },
+  "access": {
+    "rules": "Toegangsregels",
+    "deny": "Weigeren",
+    "deniedUsers": "Geweigerde gebruikers",
+    "deniedGroups": "Geweigerde groepen",
+    "allowedUsers": "Toegestane gebruikers",
+    "allowedGroups": "Toegestane groepen",
+    "totalDenied": "Geweigerd",
+    "totalAllowed": "Toegestaan",
+    "allow": "Sta  toe.",
+    "allowDeny": "Toestaan/weigeren",
+    "userGroup": "Gebruiker/Groep",
+    "enterName": "Voer de naam van de gebruiker of groep in",
+    "deleted": "Toegangsregel verwijderd!",
+    "added": "Toegangsregel toegevoegd!",
+    "name": "Naam",
+    "accessManagement": "Toegangsbeheer",
+    "all": "Alles weigeren"
+  },
+  "editor": {
+    "uninitialized": "Het is niet gelukt de editor te initialiseren. Gelieve opnieuw te laden.",
+    "saveFailed": "Het is niet gelukt om het bestand op te slaan. Probeer het opnieuw.",
+    "saveAborted": "Opslaan afgebroken. De bestandsnaam komt niet overeen met het actieve bestand.",
+    "saveDisabled": "Het opslaan van gedeelde bestanden wordt niet ondersteund.",
+    "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
+    "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
   }
 }

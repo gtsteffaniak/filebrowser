@@ -2,7 +2,6 @@ import { RouteLocation, createRouter, createWebHistory } from "vue-router";
 import Login from "@/views/Login.vue";
 import Layout from "@/views/Layout.vue";
 import Files from "@/views/Files.vue";
-import Share from "@/views/Share.vue";
 import Settings from "@/views/Settings.vue";
 import Errors from "@/views/Errors.vue";
 import { baseURL, name, oidcAvailable, passwordAvailable } from "@/utils/constants";
@@ -15,7 +14,8 @@ import i18n from "@/i18n";
 const titles = {
   Login: "sidebar.login",
   Share: "buttons.share",
-  Files: "files.files",
+  PublicShare: "buttons.share",
+  Files: "general.files",
   Settings: "sidebar.settings",
   ProfileSettings: "settings.profileSettings",
   Shares: "settings.shareManagement",
@@ -40,7 +40,21 @@ const routes = [
       {
         path: ":path*",
         name: "Share",
-        component: Share,
+        component: Files,
+      },
+    ],
+  },
+  {
+    path: "/public/share",
+    component: Layout,
+    meta: {
+      optionalAuth: true,
+    },
+    children: [
+      {
+        path: ":path*",
+        name: "PublicShare",
+        component: Files,
       },
     ],
   },
@@ -136,16 +150,23 @@ router.beforeResolve(async (to, from, next) => {
   document.title = name + " - " + title;
   mutations.setRoute(to);
 
-  if (to.matched.some((record) => record.meta.requiresAuth)) {
-    if (!state?.user?.username) {
+  if (
+    to.matched.some((record) => record.meta.requiresAuth) ||
+    to.matched.some((record) => record.meta.optionalAuth)
+  ) {
+    if (state?.user?.username) {
+      // do nothing, user is already set
+    } else {
       try {
         await validateLogin();
       } catch (error) {
-        console.error("Error validating login:",error);
+        mutations.setCurrentUser(getters.anonymous());
       }
     }
 
-    if (!getters.isLoggedIn()) {
+    if (getters.isLoggedIn() || to.matched.some((record) => record.meta.optionalAuth)) {
+      // do nothing
+    } else {
       if (passwordAvailable) {
         next({ path: "/login", query: { redirect: to.fullPath } });
         return;
@@ -157,7 +178,6 @@ router.beforeResolve(async (to, from, next) => {
         return;
       }
     }
-
 
     if (to.matched.some((record) => record.meta.requiresAdmin)) {
       if (!getters.isAdmin()) {

@@ -8,10 +8,9 @@ export const state = reactive({
     x: 0,
     y: 0,
   },
+  contextMenuHasItems: false,
   deletedItem: false,
   previousHash: "",
-  multiButtonState: "menu",
-  multiButtonLastState: "menu",
   showOverflowMenu: false,
   sessionId: "",
   isSafari: /^((?!chrome|android).)*safari/i.test(navigator.userAgent),
@@ -25,6 +24,11 @@ export const state = reactive({
   realtimeActive: undefined,
   realtimeDownCount: 0,
   popupPreviewSource: "",
+  share: {
+    hash: null,
+    token: "",
+    subPath: "",
+  },
   sources: {
     current: "",
     count: 1,
