@@ -74,6 +74,8 @@ body.rtl #listingView {
   vertical-align: bottom;
 }
 
+
+
 .message {
   text-align: center;
   font-size: 2em;
@@ -124,6 +126,7 @@ body.rtl #listingView {
   justify-content: center;
   padding: 0;
 }
+
 #listingView.gallery .item .gallery-div {
   display: contents;
 }
@@ -162,6 +165,7 @@ body.rtl #listingView {
 
 #listingView.gallery .item img {
   width: 100%;
+  max-width: 100%;
   height: 100%;
   border-radius: 0.5em;
 }
