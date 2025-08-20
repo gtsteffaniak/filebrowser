@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.8.1-beta
+
+ **BugFixes**:
+ - fixed styling issues https://github.com/gtsteffaniak/filebrowser/issues/1086 https://github.com/gtsteffaniak/filebrowser/issues/1081 https://github.com/gtsteffaniak/filebrowser/issues/1082
+
 ## v0.8.0-beta
 
   This is a major release, new features and changes could introduce breaking behavior. Here are the known potentially breaking changes:
