@@ -122,7 +122,7 @@
           <li
             v-for="(s, k) in results"
             :key="k"
-            class="search-entry"
+            class="search-entry clickable"
             :class="{ active: activeStates[k] }"
             :aria-label="baseName(s.path)"
           >

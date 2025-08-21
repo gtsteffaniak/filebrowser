@@ -52,7 +52,7 @@ export default {
       return getters.multibuttonState();
     },
     stickSidebar() {
-      return state.stickSidebar;
+      return state.user?.stickySidebar;
     },
     currentView() {
       return getters.currentView();
@@ -81,15 +81,47 @@ export default {
     },
     actionMultiIcon() {
       if (this.show) {
-        mutations.showHover(this.show);
+        this.showHoverWithProps();
       }
       this.$emit("action");
     },
     action() {
       if (this.show) {
-        mutations.showHover(this.show);
+        this.showHoverWithProps();
       }
       this.$emit("action");
+    },
+    showHoverWithProps() {
+      if (this.show === "share") {
+        // Pass the selected item as props for the share prompt
+        const selectedItem = this.getSelectedItemForShare();
+        if (selectedItem) {
+          mutations.showHover({
+            name: "share",
+            props: {
+              item: selectedItem
+            }
+          });
+        } else {
+          mutations.showHover(this.show);
+        }
+      } else {
+        mutations.showHover(this.show);
+      }
+    },
+    getSelectedItemForShare() {
+      // Handle search active case
+      if (state.isSearchActive && state.selected.length > 0) {
+        return state.selected[0];
+      }
+      
+      // Handle listing case with single selection
+      if (getters.selectedCount() === 1) {
+        return getters.getFirstSelected();
+      }
+      
+      // For current directory sharing (no selection), let Share.vue handle it with fallback logic
+      return null;
     },
   },
 };

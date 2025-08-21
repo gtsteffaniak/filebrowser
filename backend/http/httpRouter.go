@@ -111,6 +111,7 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	// NEW PUBLIC ROUTES - All publicly accessible endpoints
 	// Share management routes (require permission but are publicly accessible)
 	publicRoutes.HandleFunc("GET /shares", withPermShare(shareListHandler))
+	publicRoutes.HandleFunc("GET /share/direct", withPermShare(shareDirectDownloadHandler))
 	publicRoutes.HandleFunc("GET /share", withPermShare(shareGetHandler))
 	publicRoutes.HandleFunc("POST /share", withPermShare(sharePostHandler))
 	publicRoutes.HandleFunc("DELETE /share", withPermShare(shareDeleteHandler))

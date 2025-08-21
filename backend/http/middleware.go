@@ -82,7 +82,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		// Get file information with options
 		file, err := FileInfoFasterFunc(iteminfo.FileOptions{
 			Path:    utils.JoinPathAsUnix(link.Path, path),
-			Source:  source.Name,
+			Source:  source.Path,
 			Modify:  false,
 			Expand:  true,
 			Content: r.URL.Query().Get("content") == "true",

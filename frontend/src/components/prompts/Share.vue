@@ -80,8 +80,8 @@
         <!--
         <ToggleSwitch class="item" v-model="allowEdit" :name="'Allow modifications'" />
         <ToggleSwitch class="item" v-model="allowUpload" :name="'Allow uploading'" />
-        <ToggleSwitch class="item" v-model="disablingFileViewer" :name="'Disable File Viewer'" />
         -->
+        <ToggleSwitch class="item" v-model="disablingFileViewer" :name="'Disable File Viewer'" />
         <ToggleSwitch
           class="item"
           v-model="quickDownload"
@@ -257,29 +257,6 @@ import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import { userSelectableThemes } from "@/utils/constants";
 //import ViewMode from "@/components/settings/ViewMode.vue";
 
-/**
- * @typedef {import('@/api/public').Share} Share
- */
-
-/**
- * @typedef {object} FilebrowserFile
- * @property {string} name
- * @property {string} path
- * @property {string} source
- * @property {boolean} isDir
- * @property {string} type
- */
-
-/**
- * @typedef {object} FilebrowserRequest
- * @property {FilebrowserFile[]} items
- * @property {number} numDirs
- * @property {number} numFiles
- * @property {{by: string, asc: boolean}} sorting
- * @property {string} path
- * @property {string} source
- */
-
 export default {
   name: "share",
   components: {
@@ -295,6 +272,15 @@ export default {
       type: Object,
       default: () => ({}),
     },
+    item: {
+      type: Object,
+      default: () => ({
+        path: "",
+        source: "",
+        isDir: false,
+        type: "",
+      }),
+    },
   },
   data() {
     return {
@@ -304,8 +290,6 @@ export default {
       links: [],
       /** @type {Clipboard | null} */
       clip: null,
-      subpath: "",
-      source: "",
       password: "",
       listing: true,
       allowEdit: false,
@@ -399,35 +383,18 @@ export default {
           this.favicon = this.link.favicon || "";
           this.quickDownload = this.link.quickDownload || false;
           this.disableNavButtons = this.link.hideNavButtons || false;
-          this.viewMode = this.link.viewMode || "normal";
+          //this.viewMode = this.link.viewMode || "normal";
         }
       },
     },
   },
   async beforeMount() {
     if (this.isEditMode) {
-      this.subpath = this.link.path;
-      this.source = this.link.source;
       return;
     }
-    let path = this.req.path;
-    this.source = this.req.source;
-    if (state.isSearchActive) {
-      const file = /** @type {FilebrowserFile} */ (this.selected[0]);
-      path = file.path;
-      this.source = file.source;
-    } else if (this.selectedCount === 1) {
-      const index = /** @type {number} */ (this.selected[0]);
-      const selected = this.req.items[index];
-      path = selected.path;
-      this.source = selected.source;
-    }
-    // double encode # to fix issue with # in path
-    // replace all # with %23
-    this.subpath = path.replace(/#/g, "%23");
     try {
       // get last element of the path
-      const links = await publicApi.get(this.subpath, this.source);
+      const links = await publicApi.get(this.item.path, this.item.source);
       this.links = links;
     } catch (err) {
       notify.showError(err);
@@ -503,16 +470,15 @@ export default {
       try {
         let isPermanent = !this.time || this.time === "0";
         const payload = {
-          path: this.subpath,
-          sourceName: this.source,
-          source: this.source,
+          path: this.item.path,
+          source: this.item.source,
           password: this.password,
           expires: isPermanent ? "" : this.time.toString(),
           unit: this.unit,
           disableAnonymous: this.disableAnonymous,
           allowUpload: this.allowUpload,
-          maxBandwidth: this.maxBandwidth,
-          downloadsLimit: this.downloadsLimit,
+          maxBandwidth: this.maxBandwidth ? parseInt(this.maxBandwidth) : 0,
+          downloadsLimit: this.downloadsLimit ? parseInt(this.downloadsLimit) : 0,
           shareTheme: this.shareTheme,
           disablingFileViewer: this.disablingFileViewer,
           disableThumbnails: this.disableThumbnails,
@@ -531,29 +497,7 @@ export default {
           payload.hash = this.link.hash;
         }
 
-        const res = await publicApi.create(payload.path, payload.source, {
-          password: payload.password,
-          expires: payload.expires,
-          unit: payload.unit,
-          disableAnonymous: payload.disableAnonymous,
-          allowUpload: payload.allowUpload,
-          maxBandwidth: Number(payload.maxBandwidth) || 0,
-          downloadsLimit: Number(payload.downloadsLimit) || 0,
-          shareTheme: payload.shareTheme,
-          disableFileViewer: payload.disablingFileViewer,
-          disableThumbnails: payload.disableThumbnails,
-          allowedUsernames: payload.allowedUsernames,
-          hash: payload.hash,
-          keepAfterExpiration: payload.keepAfterExpiration,
-          themeColor: payload.themeColor,
-          banner: payload.banner,
-          title: payload.title,
-          description: payload.description,
-          favicon: payload.favicon,
-          quickDownload: payload.quickDownload,
-          hideNavButtons: payload.hideNavButtons,
-          //viewMode: this.viewMode,
-        });
+        const res = await publicApi.create(payload);
 
         if (!this.isEditMode) {
           this.links.push(res);
@@ -601,21 +545,17 @@ export default {
       return publicApi.getShareURL(share);
     },
     hasDownloadLink() {
-      if (state.isSearchActive) {
-        const file = /** @type {FilebrowserFile} */ (this.selected[0]);
-        return file.type !== "directory";
-      }
-      const index = /** @type {number} */ (this.selected[0]);
-      return this.selected.length === 1 && !this.req.items[index].isDir;
+      // Check if we have a single selected item that can be downloaded
+      return !this.item?.isDir;
     },
     /**
      * @param {Share} share
      */
     buildDownloadLink(share) {
-      share.source = this.source;
-      share.path = "/";
-      const index = /** @type {number} */ (this.selected[0]);
-      return publicApi.getDownloadURL(share, [this.req.items[index].name]);
+      if (share.downloadURL) {
+        return share.downloadURL;
+      }
+      return publicApi.getDownloadURL(share, [this.item.name]);
     },
     sort() {
       this.links = this.links.sort((a, b) => {

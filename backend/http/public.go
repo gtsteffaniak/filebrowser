@@ -19,7 +19,7 @@ import (
 // @Tags Resources
 // @Accept json
 // @Produce json
-// @Param files query string true "a list of files in the following format 'filename' and separated by '||' with additional items in the list. (required)"
+// @Param files query string false "if specified, only the files in the list will be downloaded. eg. files=/file1||/folder/file2"
 // @Param inline query bool false "If true, sets 'Content-Disposition' to 'inline'. Otherwise, defaults to 'attachment'."
 // @Param algo query string false "Compression algorithm for archiving multiple files or directories. Options: 'zip' and 'tar.gz'. Default is 'zip'."
 // @Success 200 {file} file "Raw file or directory content, or archive for multiple files"
@@ -37,11 +37,8 @@ func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		d.share.Downloads++
 		d.share.Mu.Unlock()
 	}
-
 	encodedFiles := r.URL.Query().Get("files")
-	if encodedFiles == "" {
-		return http.StatusBadRequest, fmt.Errorf("no file list provided, eg files=/path1")
-	}
+
 	// Decode the URL-encoded path
 	f, err := url.QueryUnescape(encodedFiles)
 	if err != nil {
