@@ -67,7 +67,6 @@ type Storage struct {
 	Groups   GroupMap       // key: group name, value: set of usernames - in-memory authoritative state
 	DB       *storm.DB      // Optional: DB for persistence
 	Users    *users.Storage // Reference to users storage
-	autoSave bool           // Whether to auto-save on changes (default: false for in-memory only)
 }
 
 // SaveToDB persists all rules to the DB if DB is set.
@@ -88,15 +87,7 @@ func (s *Storage) SaveToDB() error {
 // Flush persists the current in-memory state to the backing store.
 // Call during graceful shutdown to ensure DB matches memory.
 func (s *Storage) Flush() error {
-	return s.conditionalSave()
-}
-
-// conditionalSave saves to DB only if autoSave is enabled.
-func (s *Storage) conditionalSave() error {
-	if s.autoSave {
-		return s.conditionalSave()
-	}
-	return nil
+	return s.SaveToDB()
 }
 
 // LoadFromDB loads all rules from the DB if DB is set.
@@ -139,7 +130,6 @@ func NewStorage(db *storm.DB, usersStore *users.Storage) *Storage {
 		Groups:   make(GroupMap),
 		DB:       db,
 		Users:    usersStore,
-		autoSave: false, // In-memory only by default, call SaveToDB() or Flush() explicitly
 	}
 	return s
 }
@@ -178,7 +168,7 @@ func (s *Storage) DenyUser(sourcePath, indexPath, username string) error {
 	}
 	rule.Deny.Users[username] = struct{}{}
 	s.incrementSourceVersion(sourcePath)
-	return s.conditionalSave()
+	return s.SaveToDB()
 }
 
 // AllowUser adds a user to the allow list for a given source and index path.
@@ -197,7 +187,7 @@ func (s *Storage) AllowUser(sourcePath, indexPath, username string) error {
 	}
 	rule.Allow.Users[username] = struct{}{}
 	s.incrementSourceVersion(sourcePath)
-	return s.conditionalSave()
+	return s.SaveToDB()
 }
 
 // DenyGroup adds a group to the deny list for a given source and index path.
@@ -214,7 +204,7 @@ func (s *Storage) DenyGroup(sourcePath, indexPath, groupname string) error {
 	}
 	rule.Deny.Groups[groupname] = struct{}{}
 	s.incrementSourceVersion(sourcePath)
-	return s.conditionalSave()
+	return s.SaveToDB()
 }
 
 // AllowGroup adds a group to the allow list for a given source and index path.
@@ -231,7 +221,7 @@ func (s *Storage) AllowGroup(sourcePath, indexPath, groupname string) error {
 	}
 	rule.Allow.Groups[groupname] = struct{}{}
 	s.incrementSourceVersion(sourcePath)
-	return s.conditionalSave()
+	return s.SaveToDB()
 }
 
 // DenyAll sets a rule to deny all access for a given source and index path.
@@ -244,7 +234,7 @@ func (s *Storage) DenyAll(sourcePath, indexPath string) error {
 	}
 	rule.DenyAll = true
 	s.incrementSourceVersion(sourcePath)
-	return s.conditionalSave()
+	return s.SaveToDB()
 }
 
 // Permitted checks if a username is permitted for a given sourcePath and indexPath, recursively checking parent directories.
@@ -434,7 +424,7 @@ func (s *Storage) AddUserToGroup(group, username string) error {
 		return nil
 	}
 	s.Groups[group][username] = struct{}{}
-	return s.conditionalSave()
+	return s.SaveToDB()
 }
 
 // GetAllGroups returns all group names.
@@ -498,7 +488,7 @@ func (s *Storage) SyncUserGroups(username string, newGroups []string) error {
 		}
 	}
 	if changed {
-		return s.conditionalSave()
+		return s.SaveToDB()
 	}
 	return nil
 }
@@ -518,7 +508,7 @@ func (s *Storage) RemoveUserFromGroup(group, username string) error {
 	if len(s.Groups[group]) == 0 {
 		delete(s.Groups, group)
 	}
-	return s.conditionalSave()
+	return s.SaveToDB()
 }
 
 // RemoveAllowUser removes a user from the allow list for a given source and index path.
@@ -704,7 +694,7 @@ func (s *Storage) RemoveAllRulesForUser(username string) error {
 		accessCache.Set(accessChangedKey+sp, false)
 	}
 	if changed {
-		return s.conditionalSave()
+		return s.SaveToDB()
 	}
 	return nil
 }
@@ -740,7 +730,7 @@ func (s *Storage) RemoveAllRulesForGroup(groupname string) error {
 		accessCache.Set(accessChangedKey+sp, false)
 	}
 	if changed {
-		return s.conditionalSave()
+		return s.SaveToDB()
 	}
 	return nil
 }
