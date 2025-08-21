@@ -35,7 +35,7 @@ type CreateBody struct {
 type Link struct {
 	CommonShare
 	Mu           sync.Mutex `json:"-"`
-	Downloads    int        // no annotation to be persistent
+	Downloads    int        `json:"downloads"`
 	Hash         string     `json:"hash" storm:"id,index"`
 	Path         string     `json:"path" storm:"index"`
 	Source       string     `json:"source" storm:"index"`
