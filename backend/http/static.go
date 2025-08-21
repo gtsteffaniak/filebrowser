@@ -45,37 +45,80 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		}
 	}
 
+	staticURL := config.Server.BaseURL + "static"
 	data := map[string]interface{}{
-		"CustomCSS":         config.Frontend.Styling.CustomCSS,
+		"title":             config.Frontend.Name,
+		"customCSS":         config.Frontend.Styling.CustomCSS,
 		"userSelectedTheme": userSelectedTheme,
-		"LightBackground":   config.Frontend.Styling.LightBackground,
-		"DarkBackground":    config.Frontend.Styling.DarkBackground,
-		"StaticURL":         config.Server.BaseURL + "static",
-		"BaseURL":           config.Server.BaseURL,
+		"lightBackground":   config.Frontend.Styling.LightBackground,
+		"darkBackground":    config.Frontend.Styling.DarkBackground,
+		"staticURL":         staticURL,
+		"baseURL":           config.Server.BaseURL,
+		"favicon":           staticURL + "/img/icons/favicon-256x256.png",
+		"color":             "var(--primaryColor)",
+		"winIcon":           staticURL + "/img/icons/mstile-144x144.png",
+		"appIcon":           staticURL + "/img/icons/android-chrome-256x256.png",
+		"description":       "FileBrowser Quantum is a file manager for the web which can be used to manage files on your server",
+	}
+	shareOverrides := map[string]interface{}{
+		"banner":            "",
+		"title":             "",
+		"quickDownload":     false,
+		"description":       "",
+		"themeColor":        "",
+		"disableThumbnails": false,
+		"viewMode":          "list",
+		"disableFileViewer": false,
+	}
+	disableNavButtons := settings.Config.Frontend.DisableNavButtons
+	if d.share != nil {
+		disableNavButtons = disableNavButtons || d.share.HideNavButtons
+		shareOverrides["viewMode"] = d.share.ViewMode
+		shareOverrides["banner"] = d.share.Banner
+		shareOverrides["title"] = d.share.Title
+		shareOverrides["description"] = d.share.Description
+		shareOverrides["themeColor"] = d.share.ThemeColor
+		shareOverrides["quickDownload"] = d.share.QuickDownload
+		shareOverrides["disableThumbnails"] = d.share.DisableThumbnails
+		shareOverrides["disableFileViewer"] = d.share.DisablingFileViewer
+		if d.share.Favicon != "" {
+			if strings.HasPrefix(d.share.Favicon, "http") {
+				data["favicon"] = d.share.Favicon
+			} else {
+				data["favicon"] = staticURL + "/" + d.share.Favicon
+			}
+		}
+		if d.share.Description != "" {
+			data["description"] = d.share.Description
+		}
+		if d.share.Title != "" {
+			data["title"] = d.share.Title
+		}
 	}
 	// variables consumed by frontend as json
 	data["globalVars"] = map[string]interface{}{
-		"Name":                 config.Frontend.Name,
-		"DisableExternal":      config.Frontend.DisableDefaultLinks,
+		"name":                 config.Frontend.Name,
+		"disableExternal":      config.Frontend.DisableDefaultLinks,
 		"darkMode":             settings.Config.UserDefaults.DarkMode,
-		"BaseURL":              config.Server.BaseURL,
-		"Version":              version.Version,
-		"CommitSHA":            version.CommitSHA,
-		"Signup":               settings.Config.Auth.Methods.PasswordAuth.Signup,
-		"NoAuth":               config.Auth.Methods.NoAuth,
-		"LoginPage":            auther.LoginPage(),
-		"EnableThumbs":         !config.Server.DisablePreviews,
-		"ExternalLinks":        config.Frontend.ExternalLinks,
-		"ExternalUrl":          strings.TrimSuffix(config.Server.ExternalUrl, "/"),
-		"OnlyOfficeUrl":        settings.Config.Integrations.OnlyOffice.Url,
-		"SourceCount":          len(config.Server.SourceMap),
-		"OidcAvailable":        config.Auth.Methods.OidcAuth.Enabled,
-		"PasswordAvailable":    config.Auth.Methods.PasswordAuth.Enabled,
-		"MediaAvailable":       config.Integrations.Media.FfmpegPath != "",
-		"MuPdfAvailable":       config.Server.MuPdfAvailable,
-		"UpdateAvailable":      utils.GetUpdateAvailableUrl(),
-		"DisableNavButtons":    settings.Config.Frontend.DisableNavButtons,
-		"UserSelectableThemes": config.Frontend.Styling.CustomThemeOptions,
+		"baseURL":              config.Server.BaseURL,
+		"version":              version.Version,
+		"commitSHA":            version.CommitSHA,
+		"signup":               settings.Config.Auth.Methods.PasswordAuth.Signup,
+		"noAuth":               config.Auth.Methods.NoAuth,
+		"loginPage":            auther.LoginPage(),
+		"enableThumbs":         !config.Server.DisablePreviews,
+		"externalLinks":        config.Frontend.ExternalLinks,
+		"externalUrl":          strings.TrimSuffix(config.Server.ExternalUrl, "/"),
+		"onlyOfficeUrl":        settings.Config.Integrations.OnlyOffice.Url,
+		"sourceCount":          len(config.Server.SourceMap),
+		"oidcAvailable":        config.Auth.Methods.OidcAuth.Enabled,
+		"passwordAvailable":    config.Auth.Methods.PasswordAuth.Enabled,
+		"mediaAvailable":       config.Integrations.Media.FfmpegPath != "",
+		"muPdfAvailable":       config.Server.MuPdfAvailable,
+		"updateAvailable":      utils.GetUpdateAvailableUrl(),
+		"disableNavButtons":    disableNavButtons,
+		"userSelectableThemes": config.Frontend.Styling.CustomThemeOptions,
+		"share":                shareOverrides,
 	}
 	jsonVars, err := json.Marshal(data["globalVars"])
 	if err != nil {

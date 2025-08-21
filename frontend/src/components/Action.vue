@@ -49,14 +49,14 @@ export default {
       return state.req;
     },
     multistate() {
-      if (!state.multiButtonState && getters.currentView() == "settings") {
-        return "close";
-      }
-      return state.multiButtonState;
+      return getters.multibuttonState();
     },
     stickSidebar() {
       return state.stickSidebar;
     },
+    currentView() {
+      return getters.currentView();
+    }
   },
   mounted() {
     this.reEvalAction();
@@ -77,18 +77,6 @@ export default {
       const currentView = getters.currentView();
       if (currentView == "settings") {
         mutations.setActiveSettingsView(getters.currentHash());
-        mutations.setMultiButtonState("close");
-      } else if (
-        currentView == "editor" ||
-        currentView == "preview" ||
-        currentView == "onlyOfficeEditor" ||
-        currentView == "markdownViewer" ||
-        currentView == "epubViewer" ||
-        currentView == "docViewer"
-      ) {
-        mutations.setMultiButtonState("close");
-      } else {
-        mutations.setMultiButtonState("menu");
       }
     },
     actionMultiIcon() {

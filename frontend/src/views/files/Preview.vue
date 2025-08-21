@@ -56,7 +56,7 @@
   </div>
 </template>
 <script>
-import { filesApi } from "@/api";
+import { filesApi, publicApi } from "@/api";
 import { url } from "@/utils";
 import { getApiPath, doubleEncode } from "@/utils/url";
 import { fetchURL } from "@/api/utils";
@@ -129,10 +129,21 @@ export default {
     },
     raw() {
       if (this.pdfConvertable) {
+        if (getters.isShare()) {
+          const previewPath = url.removeTrailingSlash(state.req.path) + "/" + this.name;
+          return publicApi.getPreviewURL(previewPath,"original");
+        }
         return (
-          filesApi.getPreviewURL(state.req.source, state.req.path, state.req.modified) +
-          "&size=original"
+          filesApi.getPreviewURL(state.req.source, state.req.path, state.req.modified) + "&size=original"
         );
+      }
+      if (getters.isShare()) {
+        return publicApi.getDownloadURL({
+          path: state.share.subPath,
+          hash: state.share.hash,
+          token: state.share.token,
+          inline: true,
+        }, [state.req.path]);
       }
       return filesApi.getDownloadURL(state.req.source, state.req.path, true);
     },
@@ -146,10 +157,14 @@ export default {
       return this.nextLink !== "";
     },
     downloadUrl() {
+      if (getters.isShare()) {
+        return publicApi.getDownloadURL({
+          path: state.share.subPath,
+          hash: state.share.hash,
+          token: state.share.token,
+        }, [state.req.path]);
+      }
       return filesApi.getDownloadURL(state.req.source, state.req.path);
-    },
-    showMore() {
-      return getters.currentPromptName() === "more";
     },
     getSubtitles() {
       return this.subtitles();
@@ -227,10 +242,18 @@ export default {
         let vttURL = "";
         
         if (subtitleTrack.isFile) {
-          // Handle external subtitle files
-          const ext = getFileExtension(subtitleTrack.name);
-          const path = url.removeLastDir(state.req.path) + "/" + subtitleTrack.name;
-          const resp = await filesApi.fetchFiles(state.req.source, path, true);
+          const ext = getFileExtension(subtitleFile);
+          const path = url.removeLastDir(state.req.path) + "/" + subtitleFile;
+
+          let resp;
+          if (getters.isShare()) {
+            // Use public API for shared files
+            resp = await publicApi.fetchPub(path, state.share.hash, "", true);
+          } else {
+            // Use regular files API for authenticated users
+            resp = await filesApi.fetchFiles(state.req.source, path, true);
+          }
+          let vttContent = resp.content;
           vttContent = convertToVTT(ext, resp.content);
         } else {
           // Handle embedded subtitles - call subtitles API directly
@@ -248,7 +271,6 @@ export default {
             continue; // Skip this subtitle track
           }
         }
-        
         // Create a virtual file (Blob) and get a URL for it
         const blob = new Blob([vttContent], { type: "text/vtt" });
         vttURL = URL.createObjectURL(blob);
@@ -269,7 +291,7 @@ export default {
       this.$router.replace({ path: this.nextLink });
     },
     async keyEvent(event) {
-      if (getters.currentPromptName() != null) {
+      if (getters.currentPromptName()) {
         return;
       }
 
@@ -315,7 +337,14 @@ export default {
       }
       const directoryPath = url.removeLastDir(state.req.path);
       if (!this.listing) {
-        const res = await filesApi.fetchFiles(state.req.source, directoryPath);
+        let res;
+        if (getters.isShare()) {
+          // Use public API for shared files
+          res = await publicApi.fetchPub(directoryPath, state.share.hash);
+        } else {
+          // Use regular files API for authenticated users
+          res = await filesApi.fetchFiles(state.req.source, directoryPath);
+        }
         this.listing = res.items;
       }
       this.name = state.req.name;
@@ -348,12 +377,19 @@ export default {
       }
     },
     prefetchUrl(item) {
+      if (getters.isShare()) {
+        return this.fullSize
+          ? publicApi.getDownloadURL({
+              path: item.path,
+              hash: state.share.hash,
+              token: state.share.token,
+              inline: true,
+            }, [item.path])
+          : publicApi.getPreviewURL(state.share.hash, item.path);
+      }
       return this.fullSize
         ? filesApi.getDownloadURL(state.req.source, item.path, true)
         : filesApi.getPreviewURL(state.req.source, item.path, item.modified);
-    },
-    openMore() {
-      this.currentPrompt = "more";
     },
     resetPrompts() {
       this.currentPrompt = null;

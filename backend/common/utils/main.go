@@ -6,14 +6,12 @@ import (
 	"encoding/hex"
 	"fmt"
 	math "math/rand"
-	"os"
 	"path/filepath"
 	"reflect"
 	"runtime"
 	"strings"
 	"time"
 
-	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
@@ -117,30 +115,9 @@ func JoinPathAsUnix(parts ...string) string {
 	return joinedPath
 }
 
-// ResolveSymlinks resolves symlinks in the given path and returns
-// the final resolved path, whether it's a directory (considering bundle logic), and any error.
-func ResolveSymlinks(path string) (string, bool, error) {
-	for {
-		// Get the file info using os.Lstat to handle symlinks
-		info, err := os.Lstat(path)
-		if err != nil {
-			return path, false, fmt.Errorf("could not stat path: %s, %v", path, err)
-		}
-
-		// Check if the path is a symlink
-		if info.Mode()&os.ModeSymlink != 0 {
-			// Read the symlink target
-			target, err := os.Readlink(path)
-			if err != nil {
-				return path, false, fmt.Errorf("could not read symlink: %s, %v", path, err)
-			}
-
-			// Resolve the symlink's target relative to its directory
-			path = filepath.Join(filepath.Dir(path), target)
-		} else {
-			// Not a symlink, check with bundle-aware directory logic
-			isDir := iteminfo.IsDirectory(info)
-			return path, isDir, nil
-		}
+func NonNilSlice[T any](in []T) []T {
+	if in == nil {
+		return []T{}
 	}
+	return in
 }

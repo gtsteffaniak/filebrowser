@@ -6,7 +6,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"runtime"
+	"slices"
 	"strings"
 	"time"
 
@@ -14,6 +16,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/auth"
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
+	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
@@ -21,12 +24,12 @@ import (
 )
 
 type requestContext struct {
-	user     *users.User
-	fileInfo iteminfo.ExtendedFileInfo
-	path     string
-	token    string
-	share    *share.Link
-	ctx      context.Context
+	user         *users.User
+	fileInfo     iteminfo.ExtendedFileInfo
+	token        string
+	share        *share.Link
+	ctx          context.Context
+	MaxBandwidth int
 }
 
 type HttpResponse struct {
@@ -42,15 +45,26 @@ type handleFunc func(w http.ResponseWriter, r *http.Request, data *requestContex
 
 // Middleware to handle file requests by hash and pass it to the handler
 func withHashFileHelper(fn handleFunc) handleFunc {
-	return func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
-		path := r.URL.Query().Get("path")
+	return withOrWithoutUserHelper(func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
 		hash := r.URL.Query().Get("hash")
-		// Retrieve the user (using the public user by default)
-		data.user = &users.PublicUser
+		encodedPath := r.URL.Query().Get("path")
+		// Decode the URL-encoded path
+		path, err := url.QueryUnescape(encodedPath)
+		if err != nil {
+			return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
+		}
 		// Get the file link by hash
 		link, err := store.Share.GetByHash(hash)
 		if err != nil {
-			return http.StatusNotFound, fmt.Errorf("share not found")
+			return http.StatusNotFound, fmt.Errorf("share hash not found")
+		}
+		if link.DisableAnonymous && data.user.Username == "anonymous" {
+			return http.StatusForbidden, fmt.Errorf("share is not available to anonymous users")
+		}
+		if len(link.AllowedUsernames) > 0 {
+			if !slices.Contains(link.AllowedUsernames, data.user.Username) {
+				return http.StatusForbidden, fmt.Errorf("share is not available to this user")
+			}
 		}
 		data.share = link
 		// Authenticate the share request if needed
@@ -61,32 +75,29 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 				return status, fmt.Errorf("could not authenticate share request")
 			}
 		}
-		data.path = strings.TrimSuffix(link.Path, "/") + "/" + strings.TrimPrefix(path, "/")
-		if path == "" || path == "/" {
-			data.path = link.Path
-		}
-
 		source, ok := config.Server.SourceMap[link.Source]
 		if !ok {
 			return http.StatusNotFound, fmt.Errorf("source not found")
 		}
 		// Get file information with options
 		file, err := FileInfoFasterFunc(iteminfo.FileOptions{
-			Path:   data.path,
-			Source: source.Name,
-			Modify: false,
-			Expand: true,
+			Path:    utils.JoinPathAsUnix(link.Path, path),
+			Source:  source.Name,
+			Modify:  false,
+			Expand:  true,
+			Content: r.URL.Query().Get("content") == "true",
 		})
 		file.Token = link.Token
 		if err != nil {
-			logger.Errorf("error fetching file info for share. hash=%v path=%v error=%v", hash, data.path, err)
+			logger.Errorf("error fetching file info for share. hash=%v path=%v error=%v", hash, path, err)
 			return errToStatus(err), fmt.Errorf("error fetching share from server")
 		}
+		file.Path = "/" + strings.TrimPrefix(strings.TrimPrefix(file.Path, link.Path), "/")
 		// Set the file info in the `data` object
 		data.fileInfo = file
 		// Call the next handler with the data
 		return fn(w, r, data)
-	}
+	})
 }
 
 // Middleware to ensure the user is an admin
@@ -100,23 +111,61 @@ func withAdminHelper(fn handleFunc) handleFunc {
 	})
 }
 
-// if withUserHelper fails, try without user
+// withOrWithoutUserHelper is a middleware that tries to authenticate a user.
+// If authentication is successful, the user is added to the request context.
+// If authentication fails, the request continues without a user.
 func withOrWithoutUserHelper(fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
-		// Try to authenticate user first
-		status, err := withUserHelper(fn)(w, r, data)
-		// If user authentication succeeded, return the result
-		if err == nil {
-			return status, nil
+		var link *share.Link
+		hash := r.URL.Query().Get("hash")
+		if hash != "" {
+			// Get the file link by hash
+			link, _ = store.Share.GetByHash(hash)
+		} else {
+			prefix := config.Server.BaseURL + "public/share/"
+			reconstructed := config.Server.BaseURL + "public" + r.URL.Path
+			if strings.HasPrefix(reconstructed, prefix) {
+				remaining := strings.TrimPrefix(reconstructed, prefix)
+				if remaining != "" {
+					if idx := strings.IndexByte(remaining, '/'); idx >= 0 {
+						remaining = remaining[:idx]
+					}
+					if remaining != "" {
+						var err error
+						link, err = store.Share.GetByHash(remaining)
+						if err != nil {
+							logger.Debugf("error getting share by hash: %v", err)
+						}
+					}
+				}
+			}
 		}
 
-		// If user authentication failed, call the handler without user context
-		// Clear any user data that might have been partially set
-		data.user = nil
-		data.token = ""
-
-		// Call the handler function without user context
-		return fn(w, r, data)
+		// Try to authenticate user first
+		status, err := withUserHelper(nil)(w, r, data)
+		if err == nil && status < 400 {
+			if link != nil {
+				data.share = link
+				if data.user != nil {
+					data.user.CustomTheme = link.ShareTheme
+				}
+			}
+			return fn(w, r, data)
+		}
+		// Only fall back to anonymous if authentication actually failed
+		if status == http.StatusUnauthorized || status == http.StatusForbidden {
+			data.user = &users.AnonymousUser
+			// If user authentication failed, call the handler without user context
+			// Clear any user data that might have been partially set
+			data.token = ""
+			if link != nil {
+				data.share = link
+				data.user.CustomTheme = link.ShareTheme
+			}
+			// Call the handler function without user context
+			return fn(w, r, data)
+		}
+		return status, fmt.Errorf("could not authenticate share request")
 	}
 }
 
@@ -178,6 +227,9 @@ func withUserHelper(fn handleFunc) handleFunc {
 				logger.Errorf("no auth: %v", err)
 				return http.StatusInternalServerError, err
 			}
+			if fn == nil {
+				return http.StatusOK, nil
+			}
 			return fn(w, r, data)
 		}
 		proxyUser := r.Header.Get(config.Auth.Methods.ProxyAuth.Header)
@@ -188,6 +240,9 @@ func withUserHelper(fn handleFunc) handleFunc {
 			}
 			data.user = user
 			setUserInResponseWriter(w, data.user)
+			if fn == nil {
+				return http.StatusOK, nil
+			}
 			return fn(w, r, data)
 		}
 		keyFunc := func(token *jwt.Token) (interface{}, error) {
@@ -219,10 +274,14 @@ func withUserHelper(fn handleFunc) handleFunc {
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}
-
 		setUserInResponseWriter(w, data.user)
-
-		// Call the handler function, passing in the context
+		if data.user.Username == "" {
+			return http.StatusForbidden, errors.ErrUnauthorized
+		}
+		// Call the handler function, passing in the context (or return OK if no handler)
+		if fn == nil {
+			return http.StatusOK, nil
+		}
 		return fn(w, r, data)
 	}
 }

@@ -33,6 +33,9 @@ func FileInfoFaster(opts iteminfo.FileOptions) (iteminfo.ExtendedFileInfo, error
 	if index == nil {
 		return response, fmt.Errorf("could not get index: %v ", opts.Source)
 	}
+	if opts.Access != nil && !opts.Access.Permitted(index.Path, opts.Path, opts.Username) {
+		return response, errors.ErrPermissionDenied
+	}
 	realPath, isDir, err := index.GetRealPath(opts.Path)
 	if err != nil {
 		return response, err
@@ -47,7 +50,7 @@ func FileInfoFaster(opts iteminfo.FileOptions) (iteminfo.ExtendedFileInfo, error
 			if err != nil {
 				return response, err
 			}
-		} else {
+		} else if err == errors.ErrNotIndexed {
 			return response, fmt.Errorf("could not refresh file info: %v", err)
 		}
 	} else {
@@ -328,7 +331,6 @@ func getContent(realPath string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
 	// Handle empty file (original logic - returns specific string)
 	if len(content) == 0 {
 		return "empty-file-x6OlSil", nil

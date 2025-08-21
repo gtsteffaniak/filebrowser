@@ -46,7 +46,9 @@
     "retry": "重试",
     "pauseAll": "全部暂停",
     "resumeAll": "全部简历",
-    "clearCompleted": "清除完毕"
+    "clearCompleted": "清除完毕",
+    "showMore": "显示更多",
+    "showLess": "显示更少"
   },
   "download": {
     "downloadFile": "下载文件",
@@ -63,8 +65,6 @@
     "body": "内容",
     "clear": "清空",
     "closePreview": "关闭预览",
-    "files": "文件",
-    "folders": "文件夹",
     "home": "主页",
     "lastModified": "最后修改",
     "loading": "加载中...",
@@ -122,17 +122,13 @@
   "login": {
     "createAnAccount": "创建用户",
     "loginInstead": "已有用户登录",
-    "password": "密码",
     "passwordConfirm": "确认密码",
     "passwordsDontMatch": "密码不一致",
-    "signup": "注册",
     "submit": "登录",
-    "username": "用户名",
     "usernameTaken": "用户名已经被使用",
     "wrongCredentials": "用户名或密码错误",
     "or": "或"
   },
-  "permanent": "永久",
   "prompts": {
     "copy": "复制",
     "copyMessage": "请选择欲复制至的目录：",
@@ -145,7 +141,7 @@
     "downloadMessage": "请选择要下载的压缩格式。",
     "error": "出了一点问题...",
     "fileInfo": "文件信息",
-    "lastModified": "最后修改",
+    "lastModified": "最后修改{suffix}",
     "move": "移动",
     "moveMessage": "请选择欲移动至的目录：",
     "newArchetype": "创建一个基于原型的新帖子。您的文件将会创建在内容文件夹中。",
@@ -153,8 +149,8 @@
     "newDirMessage": "请输入新目录的名称。",
     "newFile": "新建文件",
     "newFileMessage": "请输入新文件的名称。",
-    "numberDirs": "目录数",
-    "numberFiles": "文件数",
+    "numberDirs": "目录数{suffix}",
+    "numberFiles": "文件数{suffix}",
     "rename": "重命名",
     "renameMessage": "请输入新名称，旧名称为：",
     "replace": "替换",
@@ -176,7 +172,19 @@
     "conflictsDetected": "检测到冲突",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "提供的名称无效：不能包含\"/\"或\"\\\"。"
+    "invalidName": "提供的名称无效：不能包含\"/\"或\"\\\"。",
+    "source": "Source{suffix}",
+    "downloadsLimit": "下载次数限制",
+    "maxBandwidth": "最大下载带宽（千字节/秒）",
+    "shareTheme": "分享主题",
+    "shareThemeColor": "共享主题颜色（CSS 值）",
+    "shareTitle": "分享标题",
+    "shareDescription": "分享说明",
+    "shareLogo": "共享徽标 URL",
+    "shareBanner": "共享横幅 URL",
+    "shareFavicon": "共享图标 URL",
+    "optionalPasswordHelp": "如果设置了该密码，用户必须输入该密码才能查看共享内容。",
+    "viewMode": "查看模式"
   },
   "search": {
     "images": "图像",
@@ -321,7 +329,32 @@
     "abortUpload": "你确定要流产吗？"
   },
   "share": {
-    "notice": "注意：任何可以访问链接（和可选密码）的人都可以访问共享文件。无需登录。"
+    "notice": "注意：创建共享后，它将更多地向公众开放，并有不同的访问规则。如果未对共享进行安全配置，任何人都可以访问它。",
+    "disableAnonymousDescription": "启用后，只有经过身份验证的用户才能访问共享。用户必须有访问共享源的权限。",
+    "disableThumbnailsDescription": "启用后，共享中将不显示预览缩略图。",
+    "enableAllowedUsernamesDescription": "启用后，只有指定的用户才能访问共享。用户必须有访问共享源的权限。",
+    "downloadsLimitDescription": "共享中任何文件/文件夹的最大下载次数。留空表示无限制。",
+    "maxBandwidthDescription": "最大下载带宽（千字节/秒）。留空表示无限制。",
+    "shareThemeDescription": "用于共享链接的主题。",
+    "disableAnonymous": "禁用匿名访问",
+    "disableThumbnails": "禁用缩略图",
+    "enableAllowedUsernames": "只分享给特定用户",
+    "allowedUsernamesPlaceholder": "输入以逗号分隔的用户名",
+    "keepAfterExpiration": "过期后不删除共享",
+    "keepAfterExpirationDescription": "过期后不会删除共享。如果您想延长共享的有效期或在过期后进一步编辑共享，这一点非常有用。",
+    "saveDisabled": "无法保存对共享文件的更改。",
+    "shareDurationDescription": "共享到期前的持续时间。如果是永久共享，则留空。",
+    "passwordDescription": "访问此共享（包括已通过身份验证的用户）所需的可选密码。",
+    "allowedUsernamesListDescription": "以逗号分隔的可访问共享的用户名（启用时）。",
+    "shareThemeColorDescription": "应用于共享主题的 CSS 颜色值（例如，红色，#0ea5e9，rgb(14,165,233)）。",
+    "shareTitleDescription": "共享页面上显示的自定义页面标题。",
+    "shareDescriptionHelp": "共享页面上显示的简短描述（可在元标签中使用）。",
+    "shareLogoDescription": "客户端可访问的徽标图像 URL 或路径--接受绝对路径或索引路径：例如 \"https://domain.com/logo.png \"或\"/path/to/logo.png\"。",
+    "shareBannerDescription": "客户端可访问的横幅图片 URL 或路径--接受绝对路径或索引路径：例如 \"https://domain.com/banner.png \"或\"/path/to/banner.png\"。",
+    "shareFaviconDescription": "客户端可访问的 Favicon URL 或路径--接受绝对路径或索引路径：例如 \"https://domain.com/favicon.png \"或\"/path/to/favicon.png\"。",
+    "hideNavButtons": "隐藏导航按钮",
+    "hideNavButtonsDescription": "隐藏共享导航栏上的导航按钮，打造简约外观。",
+    "viewModeDescription": "共享页面的默认布局。"
   },
   "api": {
     "title": "应用程序接口密钥",
@@ -350,8 +383,6 @@
   "index": {
     "status": "现状",
     "assessment": "评估",
-    "files": "文件",
-    "folders": "文件夹",
     "lastScanned": "上次扫描",
     "quickScan": "快速扫描秒数",
     "fullScan": "完整扫描秒数",
@@ -437,6 +468,49 @@
     "disableOfficeEditorDescription": "用空格分隔的文件扩展名列表，用于禁用 OnlyOffice 编辑器和查看器。(例如，\".txt .html .pdf\"）。",
     "disableOfficeEditor": "禁用某些文件扩展名的 Office 查看器",
     "defaultThemeDescription": "default - 默认主题",
-    "customTheme": "选择主题"
+    "customTheme": "选择主题",
+    "showSelectMultiple": "在桌面右键菜单中显示多个选择",
+    "showSelectMultipleDescription": "默认情况下，桌面右键菜单不像手机那样有 \"选择多个 \"选项。该选项始终显示在右键菜单中。"
+  },
+  "general": {
+    "name": "名称",
+    "path": "路径",
+    "user": "用户",
+    "group": "组别",
+    "signup": "注册",
+    "password": "密码",
+    "username": "用户名",
+    "files": "文件",
+    "folders": "文件夹",
+    "exit": "退出",
+    "permanent": "永久性",
+    "hash": "散列"
+  },
+  "access": {
+    "rules": "访问规则",
+    "deny": "拒绝",
+    "deniedUsers": "被拒绝的用户",
+    "deniedGroups": "被拒群体",
+    "allowedUsers": "允许用户",
+    "allowedGroups": "允许组别",
+    "totalDenied": "拒绝",
+    "totalAllowed": "允许",
+    "allow": "允许",
+    "allowDeny": "允许/拒绝",
+    "userGroup": "用户/组",
+    "enterName": "输入用户或组名称",
+    "deleted": "访问规则已删除！",
+    "added": "已添加访问规则！",
+    "name": "名称",
+    "accessManagement": "访问管理",
+    "all": "全部拒绝"
+  },
+  "editor": {
+    "uninitialized": "编辑器初始化失败。请重新加载。",
+    "saveFailed": "保存文件失败。请重试。",
+    "saveAborted": "保存失败。文件名与活动文件不匹配。",
+    "saveDisabled": "不支持保存共享文件。",
+    "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
+    "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
   }
 }

@@ -46,7 +46,9 @@
     "retry": "Réessayer",
     "pauseAll": "Pause tous",
     "resumeAll": "Curriculum vitae",
-    "clearCompleted": "Effacement terminé"
+    "clearCompleted": "Effacement terminé",
+    "showMore": "Afficher plus",
+    "showLess": "Montrer moins"
   },
   "download": {
     "downloadFile": "Télécharger le fichier",
@@ -63,8 +65,6 @@
     "body": "Corps",
     "clear": "Fermer",
     "closePreview": "Fermer la prévisualisation",
-    "files": "Fichiers",
-    "folders": "Dossiers",
     "home": "Accueil",
     "lastModified": "Dernière modification",
     "loading": "Chargement...",
@@ -122,17 +122,13 @@
   "login": {
     "createAnAccount": "Créer un compte",
     "loginInstead": "Vous avez déjà un compte",
-    "password": "Mot de passe",
     "passwordConfirm": "Confirmation de mot de passe",
     "passwordsDontMatch": "Les mots de passe ne concordent pas",
-    "signup": "S'inscrire",
     "submit": "Se connecter",
-    "username": "Utilisateur",
     "usernameTaken": "Le nom d'utilisateur est déjà pris",
     "wrongCredentials": "Identifiants incorrects !",
     "or": "OU"
   },
-  "permanent": "Permanent",
   "prompts": {
     "copy": "Copier",
     "copyMessage": "Choisissez l'emplacement où copier la sélection :",
@@ -145,7 +141,7 @@
     "downloadMessage": "Choisissez le format de téléchargement :",
     "error": "Quelque chose s'est mal passé",
     "fileInfo": "Informations",
-    "lastModified": "Dernière modification",
+    "lastModified": "Dernière modification{suffix}",
     "move": "Déplacer",
     "moveMessage": "Choisissez l'emplacement où déplacer la sélection :",
     "newArchetype": "Créer un nouveau post basé sur un archétype. Votre fichier sera créé dans le dossier de contenu.",
@@ -153,8 +149,8 @@
     "newDirMessage": "Nom du nouveau dossier :",
     "newFile": "Nouveau fichier",
     "newFileMessage": "Nom du nouveau fichier :",
-    "numberDirs": "Nombre de dossiers",
-    "numberFiles": "Nombre de fichiers",
+    "numberDirs": "Nombre de dossiers{suffix}",
+    "numberFiles": "Nombre de fichiers{suffix}",
     "rename": "Renommer",
     "renameMessage": "Nouveau nom pour",
     "replace": "Remplacer",
@@ -176,7 +172,19 @@
     "conflictsDetected": "Conflits détectés",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "Nom invalide fourni : ne peut contenir \"/\" ou \"\\\"."
+    "invalidName": "Nom invalide fourni : ne peut contenir \"/\" ou \"\\\".",
+    "source": "Source{suffix}",
+    "downloadsLimit": "Limite du nombre de téléchargements",
+    "maxBandwidth": "Largeur de bande maximale de téléchargement (kbps)",
+    "shareTheme": "Thème de partage",
+    "shareThemeColor": "Partager la couleur du thème (valeur CSS)",
+    "shareTitle": "Titre de partage",
+    "shareDescription": "Partager la description",
+    "shareLogo": "Partager l'URL du logo",
+    "shareBanner": "Partager l'URL de la bannière",
+    "shareFavicon": "Partager l'URL de la favicon",
+    "optionalPasswordHelp": "S'il est défini, les utilisateurs doivent saisir ce mot de passe pour consulter le contenu partagé.",
+    "viewMode": "Mode d'affichage"
   },
   "search": {
     "images": "Images",
@@ -321,7 +329,32 @@
     "abortUpload": "Êtes-vous sûre de vouloir annuler ?"
   },
   "share": {
-    "notice": "Remarque : toute personne ayant accès au lien (et au mot de passe facultatif) peut accéder aux fichiers partagés. Il n'est pas nécessaire d'être connecté."
+    "notice": "Remarque : lorsqu'un partage est créé, il est davantage exposé au public et les règles d'accès sont différentes. Si votre partage n'est pas configuré de manière sécurisée, n'importe qui peut y accéder.",
+    "disableAnonymousDescription": "Lorsque cette option est activée, seuls les utilisateurs authentifiés peuvent accéder au partage. L'utilisateur doit avoir accès à la source du partage.",
+    "disableThumbnailsDescription": "Lorsque cette option est activée, les vignettes de prévisualisation ne sont pas affichées dans le partage.",
+    "enableAllowedUsernamesDescription": "Lorsque cette option est activée, seuls les utilisateurs spécifiés peuvent accéder au partage. L'utilisateur doit avoir accès à la source du partage.",
+    "downloadsLimitDescription": "Nombre maximum de fois qu'un fichier/dossier du partage peut être téléchargé. Laisser vide pour un nombre illimité.",
+    "maxBandwidthDescription": "Largeur de bande maximale de téléchargement en kilo-octets par seconde. Laissez vide pour un débit illimité.",
+    "shareThemeDescription": "Le thème à utiliser pour le lien de partage.",
+    "disableAnonymous": "Désactiver l'accès anonyme",
+    "disableThumbnails": "Désactiver les vignettes",
+    "enableAllowedUsernames": "Ne partager qu'avec certains utilisateurs",
+    "allowedUsernamesPlaceholder": "Saisir les noms d'utilisateur, séparés par des virgules",
+    "keepAfterExpiration": "Ne pas supprimer le partage après son expiration",
+    "keepAfterExpirationDescription": "Le partage ne sera pas supprimé après son expiration. Ceci est utile si vous souhaitez prolonger l'expiration d'un partage ou le modifier après son expiration.",
+    "saveDisabled": "Impossible d'enregistrer les modifications apportées aux fichiers partagés.",
+    "shareDurationDescription": "Durée avant l'expiration du partage. Laisser vide pour un partage permanent.",
+    "passwordDescription": "Mot de passe facultatif requis pour accéder à ce partage, y compris pour les utilisateurs authentifiés.",
+    "allowedUsernamesListDescription": "Noms d'utilisateurs séparés par des virgules qui peuvent accéder au partage (lorsque cette fonction est activée).",
+    "shareThemeColorDescription": "Valeur de la couleur CSS appliquée au thème du partage (par exemple, rouge, #0ea5e9, rgb(14,165,233)).",
+    "shareTitleDescription": "Titre de page personnalisé affiché sur la page de partage.",
+    "shareDescriptionHelp": "Courte description affichée sur la page de partage (peut être utilisée dans les balises méta).",
+    "shareLogoDescription": "URL de l'image du logo ou chemin d'accès accessible par le client - les chemins d'accès absolus ou indexés sont acceptés : par exemple \"https://domain.com/logo.png\" ou \"/path/to/logo.png\".",
+    "shareBannerDescription": "URL de l'image de la bannière ou chemin d'accès accessible par le client - les chemins d'accès absolus ou indexés sont acceptés : par exemple \"https://domain.com/banner.png\" ou \"/path/to/banner.png\".",
+    "shareFaviconDescription": "URL du favicon ou chemin d'accès accessible par le client -- les chemins d'accès absolus ou indexés sont acceptés : par exemple \"https://domain.com/favicon.png\" ou \"/path/to/favicon.png\".",
+    "hideNavButtons": "Masquer les boutons de navigation",
+    "hideNavButtonsDescription": "Masquez les boutons de navigation de la barre de navigation dans le partage pour créer une apparence minimaliste.",
+    "viewModeDescription": "Mise en page par défaut de la page partagée."
   },
   "api": {
     "title": "Clés API :",
@@ -350,8 +383,6 @@
   "index": {
     "status": "Statut",
     "assessment": "Évaluation",
-    "files": "Fichiers",
-    "folders": "Dossiers",
     "lastScanned": "Dernier balayage",
     "quickScan": "secondes pour un balayage rapide",
     "fullScan": "secondes pour un balayage complet",
@@ -374,6 +405,39 @@
     "verificationFailed": "Échec de la vérification",
     "verificationSucceed": "Vérification réussie",
     "generationFailed": "Génération échouée"
+  },
+  "general": {
+    "name": "Nom",
+    "path": "Trajectoire",
+    "user": "Utilisateur",
+    "group": "Groupe",
+    "signup": "S'inscrire",
+    "password": "Mot de passe",
+    "username": "Nom d'utilisateur",
+    "files": "Dossiers",
+    "folders": "Dossiers",
+    "exit": "Sortie",
+    "permanent": "Permanent",
+    "hash": "Hachures"
+  },
+  "access": {
+    "rules": "Règles d'accès",
+    "deny": "Refuser",
+    "deniedUsers": "Utilisateurs refusés",
+    "deniedGroups": "Groupes refusés",
+    "allowedUsers": "Utilisateurs autorisés",
+    "allowedGroups": "Groupes autorisés",
+    "allow": "Autoriser",
+    "allowDeny": "Autoriser/refuser",
+    "userGroup": "Utilisateur/Groupe",
+    "enterName": "Saisir le nom de l'utilisateur ou du groupe",
+    "deleted": "Règle d'accès supprimée !",
+    "added": "Règle d'accès ajoutée !",
+    "name": "Nom",
+    "accessManagement": "Gestion de l'accès",
+    "totalDenied": "Refusé",
+    "totalAllowed": "Autorisé",
+    "all": "Refuser tout"
   },
   "fileLoading": {
     "title": "Chargements et téléchargements",
@@ -437,6 +501,16 @@
     "disableOfficeEditorDescription": "Une liste d'extensions de fichiers séparées par des espaces pour lesquelles l'éditeur et la visionneuse OnlyOffice doivent être désactivés. (par exemple, '.txt .html .pdf').",
     "disableOfficeEditor": "Désactiver la visionneuse d'office pour certaines extensions de fichiers",
     "defaultThemeDescription": "default - Le thème par défaut",
-    "customTheme": "Choisissez votre thème"
+    "customTheme": "Choisissez votre thème",
+    "showSelectMultiple": "Afficher la sélection multiple dans le menu contextuel sur le bureau",
+    "showSelectMultipleDescription": "Par défaut, le menu contextuel de l'ordinateur de bureau n'a pas l'option \"sélectionner plusieurs\" comme celui de l'ordinateur mobile. Cette option apparaît toujours dans le menu contextuel."
+  },
+  "editor": {
+    "uninitialized": "Échec de l'initialisation de l'éditeur. Veuillez recharger.",
+    "saveFailed": "Échec de l'enregistrement du fichier. Veuillez réessayer.",
+    "saveAborted": "Sauvegarde interrompue. Le nom du fichier ne correspond pas au fichier actif.",
+    "saveDisabled": "L'enregistrement de fichiers partagés n'est pas possible.",
+    "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
+    "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
   }
 }

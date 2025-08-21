@@ -42,6 +42,7 @@ import { filesApi } from "@/api";
 import { state, getters, mutations } from "@/store";
 import { events } from "@/notify";
 import { generateRandomCode } from "@/utils/auth";
+import { shareOverrides } from "@/utils/constants";
 
 export default {
   name: "layout",
@@ -64,7 +65,9 @@ export default {
   },
   mounted() {
     window.addEventListener("resize", this.updateIsMobile);
-    if (state.user.themeColor) {
+    if (shareOverrides.themeColor != "") {
+      document.documentElement.style.setProperty("--primaryColor", shareOverrides.themeColor);
+    } else if (state.user.themeColor) {
       document.documentElement.style.setProperty("--primaryColor", state.user.themeColor);
     }
     if (!state.sessionId) {
@@ -144,7 +147,7 @@ export default {
         if (state.user.permissions.realtime) {
           events.startSSE();
         }
-        const maxUploads = state.user.fileLoading.maxConcurrentUpload;
+        const maxUploads = state.user.fileLoading?.maxConcurrentUpload || 0;
         if (maxUploads > 10 || maxUploads < 1) {
           mutations.setMaxConcurrentUpload(1);
         }

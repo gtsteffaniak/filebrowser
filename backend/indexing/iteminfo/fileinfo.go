@@ -3,6 +3,8 @@ package iteminfo
 import (
 	"path/filepath"
 	"time"
+
+	"github.com/gtsteffaniak/filebrowser/backend/database/access"
 )
 
 type ItemInfo struct {
@@ -37,6 +39,8 @@ type ExtendedFileInfo struct {
 
 // FileOptions are the options when getting a file info.
 type FileOptions struct {
+	Access     *access.Storage
+	Username   string // username for access control
 	Path       string // realpath
 	Source     string
 	IsDir      bool

@@ -101,7 +101,8 @@ export default {
       if (!this.isValNumeric) return 100;
       if (this.max <= 0) return 0;
       var pct = (this.val / this.max) * 100;
-      return Math.max(0, Math.min(pct.toFixed(2), 100));
+      var finalPct = Math.max(0, Math.min(pct.toFixed(2), 100));
+      return finalPct < 7 ? 0 : finalPct;
     },
     displayed_text() {
       if (!this.isValNumeric) return this.val;

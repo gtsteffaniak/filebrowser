@@ -86,11 +86,13 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	}
 	scopePath := utils.JoinPathAsUnix(userscope, path)
 	fileInfo, err := files.FileInfoFaster(iteminfo.FileOptions{
-		Path:    scopePath,
-		Modify:  d.user.Permissions.Modify,
-		Source:  source,
-		Expand:  true,
-		Content: r.URL.Query().Get("content") == "true",
+		Access:   store.Access,
+		Username: d.user.Username,
+		Path:     scopePath,
+		Modify:   d.user.Permissions.Modify,
+		Source:   source,
+		Expand:   true,
+		Content:  r.URL.Query().Get("content") == "true",
 	})
 	if err != nil {
 		return errToStatus(err), err
@@ -158,10 +160,12 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 		return http.StatusForbidden, err
 	}
 	fileInfo, err := files.FileInfoFaster(iteminfo.FileOptions{
-		Path:   utils.JoinPathAsUnix(userscope, path),
-		Source: source,
-		Modify: d.user.Permissions.Modify,
-		Expand: false,
+		Access:   store.Access,
+		Username: d.user.Username,
+		Path:     utils.JoinPathAsUnix(userscope, path),
+		Source:   source,
+		Modify:   d.user.Permissions.Modify,
+		Expand:   false,
 	})
 	if err != nil {
 		return errToStatus(err), err
@@ -218,10 +222,12 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		return http.StatusForbidden, err
 	}
 	fileOpts := iteminfo.FileOptions{
-		Path:   utils.JoinPathAsUnix(userscope, path),
-		Source: source,
-		Modify: d.user.Permissions.Modify,
-		Expand: false,
+		Access:   store.Access,
+		Username: d.user.Username,
+		Path:     utils.JoinPathAsUnix(userscope, path),
+		Source:   source,
+		Modify:   d.user.Permissions.Modify,
+		Expand:   false,
 	}
 	idx := indexing.GetIndex(source)
 	if idx == nil {
@@ -383,10 +389,12 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		return http.StatusForbidden, err
 	}
 	fileOpts := iteminfo.FileOptions{
-		Path:   utils.JoinPathAsUnix(userscope, path),
-		Source: source,
-		Modify: d.user.Permissions.Modify,
-		Expand: false,
+		Access:   store.Access,
+		Username: d.user.Username,
+		Path:     utils.JoinPathAsUnix(userscope, path),
+		Source:   source,
+		Modify:   d.user.Permissions.Modify,
+		Expand:   false,
 	}
 	err = files.WriteFile(fileOpts, r.Body)
 	return errToStatus(err), err
@@ -544,6 +552,8 @@ func patchAction(ctx context.Context, params patchActionParams) error {
 		idx := indexing.GetIndex(params.srcIndex)
 		srcPath := idx.MakeIndexPath(params.src)
 		fileInfo, err := files.FileInfoFaster(iteminfo.FileOptions{
+			Access:     store.Access,
+			Username:   params.d.user.Username,
 			Path:       srcPath,
 			Source:     params.srcIndex,
 			IsDir:      params.isSrcDir,
@@ -587,6 +597,6 @@ func mockData(w http.ResponseWriter, r *http.Request) {
 	if err != nil || err2 != nil {
 		return
 	}
-	mockDir := utils.CreateMockData(NumDirs, numFiles)
+	mockDir := indexing.CreateMockData(NumDirs, numFiles)
 	renderJSON(w, r, mockDir) // nolint:errcheck
 }

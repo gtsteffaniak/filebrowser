@@ -21,10 +21,6 @@ func validateUserInfo() {
 	for _, user := range usersList {
 		changePass := false
 		updateUser := false
-		if user.Username == "publicUser" {
-			settings.ApplyUserDefaults(user)
-			updateUser = true
-		}
 		if updateUserScopes(user) {
 			updateUser = true
 		}

@@ -1,5 +1,5 @@
 import { baseURL } from "@/utils/constants.js";
-import { state } from "@/store";
+import { state, mutations } from "@/store";
 import { router } from "@/router";
 
 export function removeLastDir(url) {
@@ -150,13 +150,14 @@ export function encodedPath(path) {
 
 // assume non-encoded input path and source
 export function goToItem(source, path, previousHash, shareHash) {
+  mutations.replaceRequest({})
   if (previousHash) {
     location.hash = previousHash;
   }
   let newPath = encodedPath(path);
   let fullPath;
   if (shareHash) {
-    fullPath = `/share/${shareHash}${newPath}`;
+    fullPath = `/public/share/${shareHash}${newPath}`;
     router.push({ path: fullPath });
     return;
   }
@@ -165,10 +166,10 @@ export function goToItem(source, path, previousHash, shareHash) {
   } else {
     fullPath = `/files${newPath}`;
   }
-
   router.push({ path: fullPath });
   return
 }
+
 export function doubleEncode(str) {
   return encodeURIComponent(encodeURIComponent(str));
 }

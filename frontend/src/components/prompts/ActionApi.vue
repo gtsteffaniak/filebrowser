@@ -1,5 +1,4 @@
 <template>
-  <div class="card floating">
     <div class="card-title">
       <h2>{{ $t('api.title') }}:</h2> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
     </div>
@@ -47,7 +46,6 @@
         {{ $t('buttons.delete') }}
       </button>
     </div>
-  </div>
 </template>
 
 <script>
@@ -92,21 +90,3 @@ export default {
   },
 };
 </script>
-
-<style>
-/* Basic styling for the prompt */
-.card.floating {
-  padding: 20px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-.card-content {
-  margin-bottom: 16px;
-}
-.card-action {
-  display: flex;
-  justify-content: flex-end;
-}
-.card-action .button {
-  margin-left: 8px;
-}
-</style>

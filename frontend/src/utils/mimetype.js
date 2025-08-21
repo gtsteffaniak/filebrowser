@@ -1,5 +1,12 @@
 
 export function getTypeInfo(mimeType) {
+    if (!mimeType) {
+        return {
+            classes: "material-icons",
+            materialIcon: "file",
+            simpleType: "file",
+        };
+    }
     if (mimeType === "directory" || mimeType === "application/vnd.google-apps.folder") {
         return {
             classes: "primary-icons material-icons",

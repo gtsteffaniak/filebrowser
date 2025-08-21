@@ -4,6 +4,385 @@
         "contact": {}
     },
     "paths": {
+        "/api/access": {
+            "get": {
+                "description": "Lists access rules. Can be filtered by source, path, user, or group. Can also be grouped by user or group.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Access"
+                ],
+                "summary": "List access rules",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Source name (e.g. 'default')",
+                        "name": "source",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Index path (e.g. /secret)",
+                        "name": "path",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Username to filter rules for",
+                        "name": "user",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Group name to filter rules for",
+                        "name": "group",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Varies based on query. Can be access.FrontendAccessRule, []access.PrincipalRule, map[string][]access.PrincipalRule, or map[string]access.FrontendAccessRule",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Add or update an access rule for a sourcePath and indexPath.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Access"
+                ],
+                "summary": "Add or update access rule",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Source path prefix (e.g. mnt/storage)",
+                        "name": "source",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Index path (e.g. /secret)",
+                        "name": "path",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "description": "Rule details: allow (true/false), ruleCategory (user/group), value (username or groupname)",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "allow": {
+                                    "type": "boolean"
+                                },
+                                "ruleCategory": {
+                                    "type": "string"
+                                },
+                                "value": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Rule added or updated",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete a user or group from an allow or deny list for a sourcePath and indexPath.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Access"
+                ],
+                "summary": "Delete access rule entry",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Source path prefix (e.g. mnt/storage)",
+                        "name": "source",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Index path (e.g. /secret)",
+                        "name": "path",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Rule type (allow or deny)",
+                        "name": "ruleType",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Rule category (user or group)",
+                        "name": "ruleCategory",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Username or groupname to remove",
+                        "name": "value",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Rule entry deleted",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/access/group": {
+            "post": {
+                "description": "Adds a user to a group.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Access"
+                ],
+                "summary": "Add a user to a group",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Group name",
+                        "name": "group",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "User name",
+                        "name": "user",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User added to group successfully"
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Removes a user from a group.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Access"
+                ],
+                "summary": "Remove a user from a group",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Group name",
+                        "name": "group",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "User name",
+                        "name": "user",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User removed from group successfully"
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/access/groups": {
+            "get": {
+                "description": "Returns a list of all groups or the groups for a specific user.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Access"
+                ],
+                "summary": "Get all groups or groups for a user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User name",
+                        "name": "user",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Object containing a list of groups",
+                        "schema": {
+                            "$ref": "#/definitions/http.GroupListResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/auth/logout": {
             "post": {
                 "description": "Returns a logout URL for the frontend to redirect to.",
@@ -1831,6 +2210,17 @@
                 }
             }
         },
+        "http.GroupListResponse": {
+            "type": "object",
+            "properties": {
+                "groups": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "http.HttpResponse": {
             "type": "object",
             "properties": {
@@ -2675,11 +3065,51 @@
         "share.Link": {
             "type": "object",
             "properties": {
+                "allowUpload": {
+                    "description": "AllowEdit           bool   `json:\"allowEdit,omitempty\"`",
+                    "type": "boolean"
+                },
+                "allowedUsernames": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "banner": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "disableAnonymous": {
+                    "type": "boolean"
+                },
+                "disableFileViewer": {
+                    "type": "boolean"
+                },
+                "disableThumbnails": {
+                    "type": "boolean"
+                },
+                "downloadsLimit": {
+                    "type": "integer"
+                },
                 "expire": {
                     "type": "integer"
                 },
+                "favicon": {
+                    "type": "string"
+                },
                 "hash": {
                     "type": "string"
+                },
+                "hideNavButtons": {
+                    "type": "boolean"
+                },
+                "keepAfterExpiration": {
+                    "type": "boolean"
+                },
+                "maxBandwidth": {
+                    "type": "integer"
                 },
                 "password_hash": {
                     "type": "string"
@@ -2687,7 +3117,19 @@
                 "path": {
                     "type": "string"
                 },
+                "quickDownload": {
+                    "type": "boolean"
+                },
+                "shareTheme": {
+                    "type": "string"
+                },
                 "source": {
+                    "type": "string"
+                },
+                "themeColor": {
+                    "type": "string"
+                },
+                "title": {
                     "type": "string"
                 },
                 "token": {
@@ -2696,6 +3138,9 @@
                 },
                 "userID": {
                     "type": "integer"
+                },
+                "viewMode": {
+                    "type": "string"
                 }
             }
         },

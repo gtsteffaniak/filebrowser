@@ -114,10 +114,6 @@ button {
   border-right: none;
 }
 
-button:hover {
-  background: #e0e0e0;
-}
-
 button:disabled {
   cursor: not-allowed !important;
 }

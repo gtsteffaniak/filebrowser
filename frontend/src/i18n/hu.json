@@ -46,7 +46,9 @@
     "retry": "Retry",
     "pauseAll": "Szünet minden",
     "resumeAll": "Folytassa az összes",
-    "clearCompleted": "Tiszta befejezve"
+    "clearCompleted": "Tiszta befejezve",
+    "showMore": "Többet mutasson",
+    "showLess": "Kevesebb mutatása"
   },
   "download": {
     "downloadFile": "Fájl letöltése",
@@ -63,8 +65,6 @@
     "body": "Törzs",
     "clear": "Törlése",
     "closePreview": "Előnézet bezárása",
-    "files": "Fájlok",
-    "folders": "Mappák",
     "home": "Kezdőlap",
     "lastModified": "Utoljára módosítva",
     "loading": "Betöltés…",
@@ -122,17 +122,13 @@
   "login": {
     "createAnAccount": "Fiók létrehozása",
     "loginInstead": "Már van fiókom",
-    "password": "Jelszó",
     "passwordConfirm": "Jelszó megerősítése",
     "passwordsDontMatch": "A jelszavak nem egyeznek",
-    "signup": "Regisztráció",
     "submit": "Belépés",
-    "username": "Felhasználói név",
     "usernameTaken": "A felhasználói név már foglalt",
     "wrongCredentials": "Hibás hitelesítő adatok",
     "or": "VAGY"
   },
-  "permanent": "Állandó",
   "prompts": {
     "copy": "Másolása",
     "copyMessage": "Válassza ki a másolás célját:",
@@ -145,7 +141,7 @@
     "downloadMessage": "Válassza ki a letöltés formátumát.",
     "error": "Valami rosszul sült el",
     "fileInfo": "Fájlinformáció",
-    "lastModified": "Utolsó módosítás",
+    "lastModified": "Utolsó módosítás{suffix}",
     "move": "Mozgatás",
     "moveMessage": "Válasszon új helyet a fájl(ok)nak/mappá(k)nak:",
     "newArchetype": "Új bejegyzést hoz létre egy archetípus alapján. A fájl a tartalom mappában jön létre.",
@@ -153,8 +149,8 @@
     "newDirMessage": "Adja meg az új mappa nevét.",
     "newFile": "Új fájl",
     "newFileMessage": "Adja meg az új fájl nevét.",
-    "numberDirs": "Mappák száma",
-    "numberFiles": "Fájlok száma",
+    "numberDirs": "Mappák száma{suffix}",
+    "numberFiles": "Fájlok száma{suffix}",
     "rename": "Átnevezés",
     "renameMessage": "Adja meg az új nevét:",
     "replace": "Csere",
@@ -176,7 +172,19 @@
     "conflictsDetected": "Feltárt konfliktusok",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "Érvénytelen név: nem lehet \"/\" vagy \"\\\" konténer"
+    "invalidName": "Érvénytelen név: nem lehet \"/\" vagy \"\\\" konténer",
+    "source": "Source{suffix}",
+    "downloadsLimit": "Letöltések száma limit",
+    "maxBandwidth": "Maximális letöltési sávszélesség (kbps)",
+    "shareTheme": "Megosztás témája",
+    "shareThemeColor": "Téma színének megosztása (CSS érték)",
+    "shareTitle": "Cím megosztása",
+    "shareDescription": "Megosztás leírása",
+    "shareLogo": "Logó megosztása URL",
+    "shareBanner": "Banner URL megosztása",
+    "shareFavicon": "Favicon URL megosztása",
+    "optionalPasswordHelp": "Ha be van állítva, a felhasználóknak ezt a jelszót kell megadniuk a megosztott tartalom megtekintéséhez.",
+    "viewMode": "Nézet mód"
   },
   "search": {
     "images": "Képek",
@@ -321,7 +329,32 @@
     "abortUpload": "Biztos, hogy meg akarja szakítani?"
   },
   "share": {
-    "notice": "Megjegyzés: bárki, aki hozzáfér a linkhez (és opcionális jelszóval), hozzáférhet a megosztott fájlokhoz. Nem szükséges bejelentkezni."
+    "notice": "Megjegyzés: amikor egy megosztás létrejön, akkor az jobban ki van téve a nyilvánosságnak, és más hozzáférési szabályok vonatkoznak rá. Ha a megosztás nincs biztonságosan konfigurálva, bárki hozzáférhet hozzá.",
+    "disableAnonymousDescription": "Ha engedélyezve van, csak a hitelesített felhasználók férhetnek hozzá a megosztáshoz. A felhasználónak hozzáféréssel kell rendelkeznie a megosztás forrásához.",
+    "disableThumbnailsDescription": "Ha engedélyezve van, az előnézeti miniatűrök nem jelennek meg a megosztásban.",
+    "enableAllowedUsernamesDescription": "Ha engedélyezve van, csak a megadott felhasználók férhetnek hozzá a megosztáshoz. A felhasználónak hozzáféréssel kell rendelkeznie a megosztás forrásához.",
+    "downloadsLimitDescription": "A megosztáson lévő fájlok/mappák maximálisan letölthető száma. Ha üresen hagyja, akkor korlátlan.",
+    "maxBandwidthDescription": "A maximális letöltési sávszélesség másodpercenkénti kilobájtban. Ha korlátlan, hagyja üresen.",
+    "shareThemeDescription": "A megosztási linkhez használandó téma.",
+    "disableAnonymous": "Névtelen hozzáférés letiltása",
+    "disableThumbnails": "Miniatűrök letiltása",
+    "enableAllowedUsernames": "Csak bizonyos felhasználókkal való megosztás",
+    "allowedUsernamesPlaceholder": "Adja meg a felhasználóneveket, vesszővel elválasztva",
+    "keepAfterExpiration": "Ne törölje a megosztást a lejárat után",
+    "keepAfterExpirationDescription": "A megosztás nem törlődik a lejárta után. Ez akkor hasznos, ha meg szeretné hosszabbítani egy megosztás lejáratát, vagy tovább szeretné szerkeszteni azt a lejárat után.",
+    "saveDisabled": "A megosztott fájlok módosításait nem lehet elmenteni.",
+    "shareDurationDescription": "A részvény lejárta előtti időtartam. Állandó megosztás esetén hagyja üresen.",
+    "passwordDescription": "A megosztás eléréséhez szükséges opcionális jelszó, beleértve a hitelesített felhasználókat is.",
+    "allowedUsernamesListDescription": "vesszővel elválasztott felhasználónevek, amelyek hozzáférhetnek a megosztáshoz (ha engedélyezve van).",
+    "shareThemeColorDescription": "A megosztás témájára alkalmazott CSS színérték (pl. piros, #0ea5e9, rgb(14,165,233)).",
+    "shareTitleDescription": "A megosztási oldalon megjelenő egyéni oldalcím.",
+    "shareDescriptionHelp": "A megosztási oldalon megjelenő rövid leírás (a meta címkékben is használható).",
+    "shareLogoDescription": "A logó kép URL címe vagy az ügyfél által elérhető elérési útvonal -- abszolút vagy index útvonal is elfogadható: pl. 'https://domain.com/logo.png' vagy '/path/to/logo.png'.",
+    "shareBannerDescription": "A banner kép URL címe vagy az ügyfél által elérhető elérési útvonal -- abszolút vagy index útvonal is elfogadható: pl. 'https://domain.com/banner.png' vagy '/path/to/banner.png'.",
+    "shareFaviconDescription": "A favicon URL címe vagy az ügyfél által elérhető elérési útvonal -- abszolút vagy index útvonal is elfogadható: pl. 'https://domain.com/favicon.png' vagy '/path/to/favicon.png'.",
+    "hideNavButtons": "Navigációs gombok elrejtése",
+    "hideNavButtonsDescription": "Rejtse el a navigációs gombokat a megosztás navigációs sávján a minimalista megjelenés érdekében.",
+    "viewModeDescription": "A megosztott oldal alapértelmezett elrendezése."
   },
   "api": {
     "title": "API-kulcsok:",
@@ -350,8 +383,6 @@
   "index": {
     "status": "Állapot",
     "assessment": "Értékelés",
-    "files": "Fájlok",
-    "folders": "Mappák",
     "lastScanned": "Utoljára beolvasott",
     "quickScan": "Gyors beolvasás másodpercek",
     "fullScan": "Teljes letapogatás másodpercek",
@@ -374,6 +405,39 @@
     "verificationFailed": "Ellenőrzés sikertelen",
     "verificationSucceed": "Ellenőrzés Succeed",
     "generationFailed": "Nemzedék sikertelen"
+  },
+  "general": {
+    "name": "Név",
+    "path": "Útvonal",
+    "user": "Felhasználó",
+    "group": "Csoport",
+    "signup": "Regisztráció",
+    "password": "Jelszó",
+    "username": "Felhasználónév",
+    "files": "Fájlok",
+    "folders": "Mappák",
+    "exit": "Kilépés",
+    "permanent": "Állandó",
+    "hash": "Hash"
+  },
+  "access": {
+    "rules": "Hozzáférési szabályok",
+    "deny": "Deny",
+    "deniedUsers": "Megtagadott felhasználók",
+    "deniedGroups": "Megtagadott csoportok",
+    "allowedUsers": "Engedélyezett felhasználók",
+    "allowedGroups": "Engedélyezett csoportok",
+    "allow": "Engedélyezze a",
+    "allowDeny": "Engedélyezés/Tiltás",
+    "userGroup": "Felhasználó/csoport",
+    "enterName": "Adja meg a felhasználó vagy csoport nevét",
+    "deleted": "Hozzáférési szabály törölve!",
+    "added": "Hozzáférési szabály hozzáadva!",
+    "name": "Név",
+    "accessManagement": "Hozzáférés-kezelés",
+    "totalDenied": "Elutasítva",
+    "totalAllowed": "Engedélyezett",
+    "all": "Mindent megtagadni"
   },
   "fileLoading": {
     "title": "Feltöltések és letöltések",
@@ -437,6 +501,16 @@
     "disableOfficeEditorDescription": "Az OnlyOffice szerkesztő és megjelenítő letiltandó fájlkiterjesztések szóközzel elválasztott listája. (pl. \".txt .html .pdf\").",
     "disableOfficeEditor": "Bizonyos fájlkiterjesztéseknél letilthatja az Office Viewer-t",
     "defaultThemeDescription": "default - Az alapértelmezett téma",
-    "customTheme": "Válasszon témát"
+    "customTheme": "Válasszon témát",
+    "showSelectMultiple": "Többszörös kijelölés megjelenítése az asztali kontextusmenüben",
+    "showSelectMultipleDescription": "Alapértelmezés szerint az asztali kontextusmenü nem rendelkezik a \"többszörös kiválasztás\" opcióval, mint a mobilon. Ez az opció mindig megjelenik a kontextusmenüben."
+  },
+  "editor": {
+    "uninitialized": "Nem sikerült inicializálni a szerkesztőt. Kérjük, töltse újra.",
+    "saveFailed": "A fájl mentése sikertelen. Kérjük, próbálja újra.",
+    "saveAborted": "A mentés megszakadt. A fájl neve nem egyezik az aktív fájléval.",
+    "saveDisabled": "A megosztott fájlok mentése nem támogatott.",
+    "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
+    "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
   }
 }

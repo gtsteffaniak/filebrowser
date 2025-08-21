@@ -73,6 +73,8 @@ jobs:
             dockerfile: ./_docker/Dockerfile.playwright-noauth
           - name: oidc
             dockerfile: ./_docker/Dockerfile.playwright-oidc
+          - name: sharing
+            dockerfile: ./_docker/Dockerfile.playwright-sharing
     steps:
       - name: Checkout
         uses: actions/checkout@v4

@@ -46,7 +46,9 @@
     "retry": "Försök igen",
     "pauseAll": "Pausa alla",
     "resumeAll": "Återuppta alla",
-    "clearCompleted": "Klart avslutat"
+    "clearCompleted": "Klart avslutat",
+    "showMore": "Visa mer",
+    "showLess": "Visa mindre"
   },
   "download": {
     "downloadFile": "Ladda ner fil",
@@ -63,8 +65,6 @@
     "body": "Huvud",
     "clear": "Rensa",
     "closePreview": "Stäng förhands granskningen",
-    "files": "Filer",
-    "folders": "Mappar",
     "home": "Hem",
     "lastModified": "Senast ändrad",
     "loading": "Laddar.....",
@@ -122,17 +122,13 @@
   "login": {
     "createAnAccount": "Skapa ett konto",
     "loginInstead": "Du har redan ett konto",
-    "password": "Lösenord",
     "passwordConfirm": "Bekräfta lösenord",
     "passwordsDontMatch": "Lösenord matchar inte",
-    "signup": "Registrera",
     "submit": "Logga in",
-    "username": "Användarnamn",
     "usernameTaken": "Användarnamn upptaget",
     "wrongCredentials": "Fel inloggning",
     "or": "ELLER"
   },
-  "permanent": "Permanent",
   "prompts": {
     "copy": "Kopiera",
     "copyMessage": "Välj var dina filer skall sparas:",
@@ -144,7 +140,7 @@
     "downloadMessage": "Välj format på det du vill lada ner.",
     "error": "Något gick fel",
     "fileInfo": "Fil information",
-    "lastModified": "Senast ändrad",
+    "lastModified": "Senast ändrad{suffix}",
     "move": "Flytta",
     "moveMessage": "Välj ny plats för din fil (er)/mapp (ar):",
     "newArchetype": "Skapa ett nytt inlägg baserat på en arketyp. Din fil kommer att skapas på innehållsmapp.",
@@ -152,8 +148,8 @@
     "newDirMessage": "Ange namn på din nya mapp.",
     "newFile": "Ny fil",
     "newFileMessage": "Ange namn på din nya fil.",
-    "numberDirs": "Antal kataloger",
-    "numberFiles": "Antal filer",
+    "numberDirs": "Antal kataloger{suffix}",
+    "numberFiles": "Antal filer{suffix}",
     "rename": "Ändra namn",
     "renameMessage": "Infoga ett nytt namn för",
     "replace": "Ersätt",
@@ -176,7 +172,19 @@
     "conflictsDetected": "Konflikter upptäckta",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "Ogiltigt namn anges: kan inte innehålla \"/\" eller \"\\\""
+    "invalidName": "Ogiltigt namn anges: kan inte innehålla \"/\" eller \"\\\"",
+    "source": "Source{suffix}",
+    "downloadsLimit": "Begränsning av antal nedladdningar",
+    "maxBandwidth": "Max bandbredd för nedladdning (kbps)",
+    "shareTheme": "Dela tema",
+    "shareThemeColor": "Dela temafärg (CSS-värde)",
+    "shareTitle": "Aktietitel",
+    "shareDescription": "Dela beskrivning",
+    "shareLogo": "Dela logotypens URL",
+    "shareBanner": "Dela bannerns URL",
+    "shareFavicon": "Dela URL för favicon",
+    "optionalPasswordHelp": "Om det är inställt måste användarna ange lösenordet för att visa det delade innehållet.",
+    "viewMode": "Visa läge"
   },
   "search": {
     "images": "Bilder",
@@ -321,7 +329,32 @@
     "abortUpload": "Är du säker på att du vill göra abort?"
   },
   "share": {
-    "notice": "Observera: alla som har tillgång till länken (och valfritt lösenord) kan komma åt de delade filerna. Det finns inget krav på att vara inloggad."
+    "notice": "Observera: När en andel skapas blir den mer exponerad för allmänheten och har andra regler för åtkomst. Om din andel inte är säkert konfigurerad kan vem som helst komma åt den.",
+    "disableAnonymousDescription": "När den är aktiverad kan endast autentiserade användare få åtkomst till delningen. Användaren måste ha tillgång till källan till delningen.",
+    "disableThumbnailsDescription": "När den är aktiverad visas inte förhandsgranskningens miniatyrer i delningen.",
+    "enableAllowedUsernamesDescription": "När funktionen är aktiverad kan endast de angivna användarna få åtkomst till delningen. Användaren måste ha tillgång till källan till delningen.",
+    "downloadsLimitDescription": "Det maximala antalet gånger som en fil/mapp från delningen kan laddas ner. Lämna tomt för obegränsat.",
+    "maxBandwidthDescription": "Den maximala bandbredden för nedladdning i kilobyte per sekund. Lämna tomt för obegränsat.",
+    "shareThemeDescription": "Det tema som ska användas för delningslänken.",
+    "disableAnonymous": "Inaktivera anonym åtkomst",
+    "disableThumbnails": "Inaktivera miniatyrbilder",
+    "enableAllowedUsernames": "Dela endast till vissa användare",
+    "allowedUsernamesPlaceholder": "Ange användarnamn, kommaseparerade",
+    "keepAfterExpiration": "Ta inte bort aktien efter att den har löpt ut",
+    "keepAfterExpirationDescription": "Aktien kommer inte att raderas efter att den har löpt ut. Detta är användbart om du vill förlänga giltighetstiden för en andel eller redigera den ytterligare efter att den har löpt ut.",
+    "saveDisabled": "Det går inte att spara ändringar i delade filer.",
+    "shareDurationDescription": "Varaktighet innan aktien upphör att gälla. Lämna tomt för en permanent delning.",
+    "passwordDescription": "Valfritt lösenord som krävs för att komma åt denna andel, inklusive autentiserade användare.",
+    "allowedUsernamesListDescription": "Kommaseparerade användarnamn som har åtkomst till aktien (om aktiverat).",
+    "shareThemeColorDescription": "CSS-färgvärde som tillämpas på aktiens tema (t.ex. röd, #0ea5e9, rgb(14,165,233)).",
+    "shareTitleDescription": "Anpassad sidtitel som visas på delningssidan.",
+    "shareDescriptionHelp": "Kort beskrivning som visas på aktiesidan (kan användas i metataggar).",
+    "shareLogoDescription": "URL eller sökväg för logotypbild som är tillgänglig för klienten - antingen abosolute- eller indexsökväg accepteras: t.ex. \"https://domain.com/logo.png\" eller \"/path/to/logo.png",
+    "shareBannerDescription": "URL eller sökväg för bannerbilden som är tillgänglig för klienten - antingen abosolute eller index path accepteras: t.ex. \"https://domain.com/banner.png\" eller \"/path/to/banner.png",
+    "shareFaviconDescription": "URL eller sökväg till Favicon som är tillgänglig för klienten - antingen abosolute eller indexsökväg accepteras: t.ex. \"https://domain.com/favicon.png\" eller \"/path/to/favicon.png",
+    "hideNavButtons": "Dölj navigeringsknappar",
+    "hideNavButtonsDescription": "Dölj navigeringsknapparna i navigeringsfältet i aktien för att skapa ett minimalistiskt utseende.",
+    "viewModeDescription": "Standardlayout för den delade sidan."
   },
   "api": {
     "title": "API-nycklar",
@@ -350,8 +383,6 @@
   "index": {
     "status": "Status",
     "assessment": "Bedömning",
-    "files": "Filer",
-    "folders": "Mappar",
     "lastScanned": "Senast skannad",
     "quickScan": "Snabbsökning Sekunder",
     "fullScan": "Fullständig skanning Sekunder",
@@ -437,6 +468,49 @@
     "disableOfficeEditorDescription": "En mellanslagsseparerad lista över filtillägg som OnlyOffice redigerare och visare ska inaktiveras för. (t.ex. '.txt .html .pdf').",
     "disableOfficeEditor": "Avaktivera Office Viewer för vissa filtillägg",
     "defaultThemeDescription": "default - Standardtema",
-    "customTheme": "Välj ditt tema"
+    "customTheme": "Välj ditt tema",
+    "showSelectMultiple": "Visa markera flera i snabbmenyn på skrivbordet",
+    "showSelectMultipleDescription": "Som standard har snabbmenyn på skrivbordet inte alternativet \"välj flera\" som på mobilen. Det här alternativet visas alltid i snabbmenyn."
+  },
+  "general": {
+    "name": "Namn",
+    "path": "Väg",
+    "user": "Användare",
+    "group": "Grupp",
+    "signup": "Registrera dig",
+    "password": "Lösenord",
+    "username": "Användarnamn",
+    "files": "Filer",
+    "folders": "Mappar",
+    "exit": "Avsluta",
+    "permanent": "Permanent",
+    "hash": "Hash"
+  },
+  "access": {
+    "rules": "Regler för åtkomst",
+    "deny": "Förneka",
+    "deniedUsers": "Nekade användare",
+    "deniedGroups": "Nekade grupper",
+    "allowedUsers": "Tillåtna användare",
+    "allowedGroups": "Tillåtna grupper",
+    "totalDenied": "Avslås",
+    "totalAllowed": "Tillåtet",
+    "allow": "Tillåt",
+    "allowDeny": "Tillåt/avslå",
+    "userGroup": "Användare/Grupp",
+    "enterName": "Ange användar- eller gruppnamn",
+    "deleted": "Åtkomstregel raderad!",
+    "added": "Tillträdesregel tillagd!",
+    "name": "Namn",
+    "accessManagement": "Hantering av åtkomst",
+    "all": "Avvisa alla"
+  },
+  "editor": {
+    "uninitialized": "Redigeraren kunde inte initieras. Vänligen ladda om.",
+    "saveFailed": "Misslyckades med att spara filen. Vänligen försök igen.",
+    "saveAborted": "Spara avbröts. Filnamnet stämmer inte överens med den aktiva filen.",
+    "saveDisabled": "Sparande av delade filer stöds inte.",
+    "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
+    "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
   }
 }

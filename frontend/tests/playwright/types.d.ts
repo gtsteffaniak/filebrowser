@@ -1,0 +1,1 @@
+declare module 'oauth2-mock-server';

@@ -46,7 +46,9 @@
     "retry": "다시 시도",
     "pauseAll": "모두 일시 중지",
     "resumeAll": "모두 다시 시작",
-    "clearCompleted": "완료 지우기"
+    "clearCompleted": "완료 지우기",
+    "showMore": "자세히 보기",
+    "showLess": "덜 보기"
   },
   "download": {
     "downloadFile": "파일 다운로드",
@@ -63,8 +65,6 @@
     "body": "본문",
     "clear": "지우기",
     "closePreview": "미리보기 닫기",
-    "files": "파일",
-    "folders": "폴더",
     "home": "홈",
     "lastModified": "최종 수정",
     "loading": "로딩중...",
@@ -122,17 +122,13 @@
   "login": {
     "createAnAccount": "계정 생성",
     "loginInstead": "이미 계정이 있습니다",
-    "password": "비밀번호",
     "passwordConfirm": "비밀번호 확인",
     "passwordsDontMatch": "비밀번호가 일치하지 않습니다",
-    "signup": "가입하기",
     "submit": "로그인",
-    "username": "사용자 이름",
     "usernameTaken": "사용자 이름이 존재합니다",
     "wrongCredentials": "사용자 이름 또는 비밀번호를 확인하십시오",
     "or": "또는"
   },
-  "permanent": "영구",
   "prompts": {
     "copy": "복사",
     "copyMessage": "복사할 디렉토리:",
@@ -144,7 +140,7 @@
     "downloadMessage": "다운로드 포맷 설정.",
     "error": "에러 발생!",
     "fileInfo": "파일 정보",
-    "lastModified": "최종 수정",
+    "lastModified": "최종 수정{suffix}",
     "move": "이동",
     "moveMessage": "이동할 화일 또는 디렉토리를 선택하세요:",
     "newArchetype": "원형을 유지하는 포스트를 생성합니다. 파일은 컨텐트 폴더에 생성됩니다.",
@@ -152,8 +148,8 @@
     "newDirMessage": "새 디렉토리 이름을 입력해주세요.",
     "newFile": "새 파일",
     "newFileMessage": "새 파일 이름을 입력해주세요.",
-    "numberDirs": "디렉토리 수",
-    "numberFiles": "파일 수",
+    "numberDirs": "디렉토리 수{suffix}",
+    "numberFiles": "파일 수{suffix}",
     "rename": "이름 변경",
     "renameMessage": "새로운 이름을 입력하세요.",
     "replace": "대체하기",
@@ -176,7 +172,19 @@
     "conflictsDetected": "충돌 감지",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "제공된 이름이 잘못되었습니다: \"/\" 또는 \"\\\"를 포함할 수 없습니다."
+    "invalidName": "제공된 이름이 잘못되었습니다: \"/\" 또는 \"\\\"를 포함할 수 없습니다.",
+    "source": "Source{suffix}",
+    "downloadsLimit": "다운로드 횟수 제한",
+    "maxBandwidth": "최대 다운로드 대역폭(kbps)",
+    "shareTheme": "테마 공유",
+    "shareThemeColor": "테마 색상 공유(CSS 값)",
+    "shareTitle": "제목 공유",
+    "shareDescription": "설명 공유",
+    "shareLogo": "로고 URL 공유",
+    "shareBanner": "배너 URL 공유",
+    "shareFavicon": "파비콘 URL 공유",
+    "optionalPasswordHelp": "이 비밀번호를 설정하면 사용자가 공유 콘텐츠를 보려면 이 비밀번호를 입력해야 합니다.",
+    "viewMode": "보기 모드"
   },
   "search": {
     "images": "이미지",
@@ -321,7 +329,32 @@
     "abortUpload": "취소하시겠습니까?"
   },
   "share": {
-    "notice": "참고: 링크(및 선택 사항인 비밀번호)에 액세스할 수 있는 사람은 누구나 공유 파일에 액세스할 수 있습니다. 로그인할 필요는 없습니다."
+    "notice": "참고: 공유가 생성되면 공개에 더 많이 노출되고 액세스 규칙이 달라집니다. 공유를 안전하게 구성하지 않으면 누구나 액세스할 수 있습니다.",
+    "disableAnonymousDescription": "이 옵션을 활성화하면 인증된 사용자만 공유에 액세스할 수 있습니다. 사용자는 공유 소스에 대한 액세스 권한이 있어야 합니다.",
+    "disableThumbnailsDescription": "활성화하면 미리보기 미리보기 이미지가 공유에 표시되지 않습니다.",
+    "enableAllowedUsernamesDescription": "이 옵션을 활성화하면 지정된 사용자만 공유에 액세스할 수 있습니다. 해당 사용자는 공유 소스에 대한 액세스 권한이 있어야 합니다.",
+    "downloadsLimitDescription": "공유에서 파일/폴더를 다운로드할 수 있는 최대 횟수입니다. 무제한으로 사용하려면 비워 두세요.",
+    "maxBandwidthDescription": "최대 다운로드 대역폭(초당 킬로바이트)입니다. 무제한을 원하시면 비워 두세요.",
+    "shareThemeDescription": "공유 링크에 사용할 테마입니다.",
+    "disableAnonymous": "익명 액세스 비활성화",
+    "disableThumbnails": "썸네일 비활성화",
+    "enableAllowedUsernames": "특정 사용자에게만 공유",
+    "allowedUsernamesPlaceholder": "쉼표로 구분된 사용자 이름 입력",
+    "keepAfterExpiration": "공유가 만료된 후 삭제하지 마세요.",
+    "keepAfterExpirationDescription": "공유는 만료된 후에도 삭제되지 않습니다. 이 기능은 공유의 만료 기간을 연장하거나 만료된 후 추가로 수정하려는 경우에 유용합니다.",
+    "saveDisabled": "공유 파일에 변경 사항을 저장할 수 없습니다.",
+    "shareDurationDescription": "공유가 만료되기 전까지의 기간입니다. 영구 공유를 원하시면 비워 두세요.",
+    "passwordDescription": "인증된 사용자를 포함하여 이 공유에 액세스하는 데 필요한 비밀번호(선택 사항)입니다.",
+    "allowedUsernamesListDescription": "공유에 액세스할 수 있는 쉼표로 구분된 사용자 이름(활성화된 경우).",
+    "shareThemeColorDescription": "공유의 테마에 적용된 CSS 색상 값(예: 빨간색, #0ea5e9, rgb(14,165,233)).",
+    "shareTitleDescription": "공유 페이지에 표시되는 사용자 지정 페이지 제목.",
+    "shareDescriptionHelp": "공유 페이지에 표시되는 간단한 설명(메타 태그에 사용할 수 있음).",
+    "shareLogoDescription": "로고 이미지 URL 또는 클라이언트가 액세스할 수 있는 경로 - 절대 경로 또는 인덱스 경로 모두 허용됩니다(예: 'https://domain.com/logo.png' 또는 '/path/to/logo.png').",
+    "shareBannerDescription": "클라이언트가 액세스할 수 있는 배너 이미지 URL 또는 경로 - 절대 경로 또는 인덱스 경로(예: 'https://domain.com/banner.png' 또는 '/path/to/banner.png')가 허용됩니다.",
+    "shareFaviconDescription": "클라이언트가 액세스할 수 있는 파비콘 URL 또는 경로 - 절대 경로 또는 인덱스 경로(예: 'https://domain.com/favicon.png' 또는 '/path/to/favicon.png')가 허용됩니다.",
+    "hideNavButtons": "탐색 버튼 숨기기",
+    "hideNavButtonsDescription": "공유의 탐색 모음에서 탐색 버튼을 숨겨 미니멀한 디자인을 만듭니다.",
+    "viewModeDescription": "공유 페이지의 기본 레이아웃입니다."
   },
   "api": {
     "title": "API 키:",
@@ -350,8 +383,6 @@
   "index": {
     "status": "상태",
     "assessment": "평가",
-    "files": "파일",
-    "folders": "폴더",
     "lastScanned": "마지막 스캔",
     "quickScan": "빠른 스캔 초",
     "fullScan": "전체 스캔 시간(초)",
@@ -374,6 +405,39 @@
     "verificationFailed": "인증 실패",
     "verificationSucceed": "인증 성공",
     "generationFailed": "세대 실패"
+  },
+  "general": {
+    "name": "이름",
+    "path": "경로",
+    "user": "사용자",
+    "group": "그룹",
+    "signup": "가입하기",
+    "password": "비밀번호",
+    "username": "사용자 이름",
+    "files": "파일",
+    "folders": "폴더",
+    "exit": "종료",
+    "permanent": "영구",
+    "hash": "해시"
+  },
+  "access": {
+    "rules": "액세스 규칙",
+    "deny": "거부",
+    "deniedUsers": "거부된 사용자",
+    "deniedGroups": "거부된 그룹",
+    "allowedUsers": "허용된 사용자",
+    "allowedGroups": "허용된 그룹",
+    "allow": "허용",
+    "allowDeny": "허용/거부",
+    "userGroup": "사용자/그룹",
+    "enterName": "사용자 또는 그룹 이름 입력",
+    "deleted": "액세스 규칙이 삭제되었습니다!",
+    "added": "액세스 규칙이 추가되었습니다!",
+    "name": "이름",
+    "accessManagement": "액세스 관리",
+    "totalDenied": "거부됨",
+    "totalAllowed": "허용됨",
+    "all": "모두 거부"
   },
   "fileLoading": {
     "title": "업로드 및 다운로드",
@@ -437,6 +501,16 @@
     "disableOfficeEditorDescription": "OnlyOffice 편집기 및 뷰어를 비활성화할 파일 확장명을 공백으로 구분한 목록입니다. (예: '.txt .html .pdf').",
     "disableOfficeEditor": "특정 파일 확장자에 대해 Office 뷰어 사용 안 함",
     "defaultThemeDescription": "default - 기본 테마",
-    "customTheme": "테마 선택"
+    "customTheme": "테마 선택",
+    "showSelectMultiple": "데스크톱의 컨텍스트 메뉴에서 여러 개 선택 표시",
+    "showSelectMultipleDescription": "기본적으로 데스크톱 컨텍스트 메뉴에는 모바일처럼 '여러 개 선택' 옵션이 없습니다. 이 옵션은 항상 컨텍스트 메뉴에 표시됩니다."
+  },
+  "editor": {
+    "uninitialized": "편집기를 초기화하지 못했습니다. 다시 로드하세요.",
+    "saveFailed": "파일을 저장하지 못했습니다. 다시 시도하세요.",
+    "saveAborted": "저장이 중단되었습니다. 파일 이름이 활성 파일과 일치하지 않습니다.",
+    "saveDisabled": "공유 파일 저장은 지원되지 않습니다.",
+    "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
+    "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
   }
 }

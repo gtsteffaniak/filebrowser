@@ -1,4 +1,4 @@
-import { removePrefix, buildItemUrl } from '@/utils/url.js'
+import { removePrefix, buildItemUrl, removeLeadingSlash } from '@/utils/url.js'
 import { getFileExtension } from '@/utils/files.js'
 import { state, mutations } from '@/store'
 import { noAuth } from '@/utils/constants.js'
@@ -40,7 +40,10 @@ export const getters = {
   isMobile: () => state.isMobile,
   isLoading: () => Object.keys(state.loading).length > 0,
   isSettings: () => getters.currentView() === 'settings',
-  isShare: () => getters.currentView() === 'share',
+  isShare: () => {
+    const pathname = getters.routePath()
+    return pathname.startsWith(`/public/share`)
+  },
   isDarkMode: () => {
     if (state.user == null) {
       return true
@@ -64,7 +67,7 @@ export const getters = {
     if (
       state.user !== null &&
       state.user?.username != '' &&
-      state.user?.username != 'publicUser'
+      state.user?.username != 'anonymous'
     ) {
       return true
     }
@@ -135,7 +138,10 @@ export const getters = {
     return { dirs, files }
   },
   isSidebarVisible: () => {
-    const currentView = getters.currentView()
+    const cv = getters.currentView()
+    if (cv == 'onlyOfficeEditor') {
+      return false
+    }
     const previewViews = [
       'preview',
       'markdownViewer',
@@ -144,22 +150,15 @@ export const getters = {
       'onlyOfficeEditor',
       'editor'
     ]
-    let visible =
-      (state.showSidebar || getters.isStickySidebar()) &&
-      state.user.username != 'publicUser'
-    if (currentView == 'settings') {
-      visible = !getters.isMobile()
+
+    let visible = (state.showSidebar || getters.isStickySidebar())
+    if (getters.isShare() && !state.isMobile) {
+      visible = true
     }
-    if (currentView == 'share') {
+    if (getters.currentPromptName() && !getters.isStickySidebar()) {
       visible = false
     }
-    if (
-      typeof getters.currentPromptName() === 'string' &&
-      !getters.isStickySidebar()
-    ) {
-      visible = false
-    }
-    if (previewViews.includes(currentView) && !state.user.preview?.disableHideSidebar) {
+    if (previewViews.includes(cv) && !state.user.preview?.disableHideSidebar) {
       visible = false
     }
     return visible
@@ -170,7 +169,10 @@ export const getters = {
     if (currentView == 'settings') {
       sticky = true
     }
-    if (currentView == null && !getters.isLoading() && getters.isShare()) {
+    if (currentView == '' && !getters.isLoading()) {
+      sticky = true
+    }
+    if (getters.isShare()) {
       sticky = true
     }
     if (getters.isMobile()) {
@@ -191,21 +193,28 @@ export const getters = {
   routePath: (trimModifier = '') => {
     return removePrefix(state.route.path, trimModifier)
   },
-  sharePathBase: () => {
-    let urlPath = getters.routePath('share')
-    // Step 1: Split the path by '/'
+  shareHash: () => {
+    let urlPath = getters.routePath('public/share')
     let parts = urlPath.split('/')
-    // Step 2: Assign hash to the second part (index 2) and join the rest for subPath
-    return '/share/' + parts[1] + '/'
+    return parts[1]
+  },
+  sharePathBase: () => {
+    return '/public/share/' + getters.shareHash() + '/'
+  },
+  getSharePath: (subPath = "") => {
+    let urlPath = getters.routePath('public/share')
+    let path =  "/" + removeLeadingSlash(urlPath.split(state.share.hash)[1])
+    if (subPath != "") {
+      path += "/" + removeLeadingSlash(subPath)
+    }
+    return path
   },
   currentView: () => {
-    let listingView = null
+    let listingView = ''
     const pathname = getters.routePath()
     if (pathname.startsWith(`/settings`)) {
       listingView = 'settings'
-    } else if (pathname.startsWith(`/share`)) {
-      listingView = 'share'
-    } else if (pathname.startsWith(`/files`)) {
+    } else {
       if (state.req.type !== undefined) {
         const ext = "." + state.req.name.split(".").pop().toLowerCase(); // Ensure lowercase and dot
         if (state.user.disableViewingExt?.includes(ext)) {
@@ -285,12 +294,12 @@ export const getters = {
   currentPromptName: () => {
     // Ensure state.prompts is an array
     if (!Array.isArray(state.prompts) || state.prompts.length === 0) {
-      return null
+      return ""
     }
     // Check if the name property is a string
     const lastPrompt = state.prompts[state.prompts.length - 1]
     if (typeof lastPrompt?.name !== 'string') {
-      return null
+      return ""
     }
     return lastPrompt.name
   },
@@ -347,5 +356,78 @@ export const getters = {
       }
     }
     return false
-  }
-}
+  },
+  anonymous: () => {
+    return {
+      id: 0,
+      username: "anonymous",
+      locale: i18n.detectLocale(),
+      sorting: {
+        by: "name",
+        asc: true
+      },
+      viewMode: "normal",
+      singleClick: true,
+      quickDownload: false,
+      gallerySize: 5,
+      permissions: {
+        share: false,
+        modify: false,
+        api: false,
+        admin: false,
+        realtime: false
+      },
+      preview: {
+        video: true,
+        image: true,
+        popup: true,
+        highQuality: false
+      },
+      disableSettings: true,
+      disableQuickToggles: false,
+      disableSearchOptions: false,
+      deleteWithoutConfirming: false,
+      stickySidebar: true,
+      darkMode: true,
+      dateFormat: false,
+      disableViewingExt: "",
+      disableOfficePreviewExt: "",
+      disablePreviewExt: "",
+      fileLoading: {
+        maxConcurrent: 1,
+        chunkSizeMb: 15,
+      }
+    }
+  },
+  multibuttonState: () => {
+    const cv = getters.currentView()
+    const isSidebarVisible = getters.isSidebarVisible()
+    if (isSidebarVisible) {
+      if (cv == "settings") {
+        if (state.isMobile) {
+          return "back";
+        }
+        return "close";
+      }
+      if (cv == "listingView") {
+        if (state.user.stickySidebar) {
+          return "menu";
+        }
+        return "back";
+      }
+      return "close";
+    }
+    if (cv == "settings") {
+      if (state.isMobile) {
+        return "menu";
+      }
+    }
+    if (cv == "listingView") {
+      return "menu";
+    }
+    if (cv == "listingView") {
+      return "menu";
+    }
+    return "close";
+  },
+};

@@ -176,7 +176,7 @@ export async function update(user, which = ['all']) {
   const excludeKeys = ['id', 'name']
   // Filter out the keys from "which"
   which = which.filter(item => !excludeKeys.includes(item))
-  if (user.username === 'publicUser') {
+  if (user.username === 'anonymous') {
     return
   }
   const apiPath = getApiPath('api/users', { id: user.id })

@@ -7,27 +7,16 @@ import (
 	"strings"
 
 	storm "github.com/asdine/storm/v3"
-	"github.com/gtsteffaniak/filebrowser/backend/auth"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
-	"github.com/gtsteffaniak/filebrowser/backend/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/database/storage/bolt"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
-// Storage is a storage powered by a Backend which makes the necessary
-// verifications when fetching and saving data to ensure consistency.
-type Storage struct {
-	Users    *users.Storage
-	Share    *share.Storage
-	Auth     *auth.Storage
-	Settings *settings.Storage
-}
+var userStore *users.Storage
 
-var store *Storage
-
-func InitializeDb(path string) (*Storage, bool, error) {
+func InitializeDb(path string) (*bolt.BoltStore, bool, error) {
 	exists, err := dbExists(path)
 	if err != nil {
 		panic(err)
@@ -39,19 +28,17 @@ func InitializeDb(path string) (*Storage, bool, error) {
 		}
 		logger.Fatalf("could not open database: %v", err)
 	}
-	authStore, userStore, shareStore, settingsStore, err := bolt.NewStorage(db)
+	store, err := bolt.NewStorage(db)
 	if err != nil {
 		return nil, exists, err
 	}
+	// Load access rules from DB on startup
+	// ignoring errors because
+	_ = store.Access.LoadFromDB()
+	userStore = store.Users
 	err = bolt.Save(db, "version", 2)
 	if err != nil {
 		return nil, exists, err
-	}
-	store = &Storage{
-		Auth:     authStore,
-		Users:    userStore,
-		Share:    shareStore,
-		Settings: settingsStore,
 	}
 	if !exists {
 		quickSetup(store)
@@ -80,7 +67,7 @@ func dbExists(path string) (bool, error) {
 	return false, err
 }
 
-func quickSetup(store *Storage) {
+func quickSetup(store *bolt.BoltStore) {
 	settings.Config.Auth.Key = utils.GenerateKey()
 	err := store.Settings.Save(&settings.Config)
 	utils.CheckErr("store.Settings.Save", err)
@@ -132,7 +119,7 @@ func CreateUser(userInfo users.User) error {
 	}
 	logger.Debugf("Creating user: %v %v", userInfo.Username, userInfo.Scopes)
 	// create new home directories
-	err := store.Users.Save(newUser, true, false)
+	err := userStore.Save(newUser, true, false)
 	if err != nil {
 		return err
 	}

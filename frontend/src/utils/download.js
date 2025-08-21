@@ -11,14 +11,9 @@ export default function downloadFiles(items) {
     // map the index to state.req.items
     items = items.map(i => state.req.items[i]);
   }
-  const currentView = getters.currentView();
-
-  if (currentView === "share") {
-    let urlPath = getters.routePath("share");
-    let parts = urlPath.split("/");
-    const hash = parts[1];
+  if (getters.isShare()) {
     // Perform download without opening a new window
-    startDownload(null, items, hash);
+    startDownload(null, items, state.share.hash);
     return;
   }
 

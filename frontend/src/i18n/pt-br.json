@@ -46,7 +46,9 @@
     "retry": "Repetir",
     "pauseAll": "Pausar tudo",
     "resumeAll": "Retomar tudo",
-    "clearCompleted": "Limpar concluído"
+    "clearCompleted": "Limpar concluído",
+    "showMore": "Mostrar mais",
+    "showLess": "Mostrar menos"
   },
   "download": {
     "downloadFile": "Baixar arquivo",
@@ -63,8 +65,6 @@
     "body": "Corpo",
     "clear": "Limpar",
     "closePreview": "Fechar pré-visualização",
-    "files": "Arquivos",
-    "folders": "Pastas",
     "home": "Início",
     "lastModified": "Última modificação",
     "loading": "Carregando. Aguarde, por favor.",
@@ -122,17 +122,13 @@
   "login": {
     "createAnAccount": "Criar uma conta",
     "loginInstead": "Já possui uma conta",
-    "password": "Senha",
     "passwordConfirm": "Confirmação de senha",
     "passwordsDontMatch": "As senhas não coincidem",
-    "signup": "Cadastrar",
     "submit": "Login",
-    "username": "Nome do usuário",
     "usernameTaken": "Nome de usuário já existe",
     "wrongCredentials": "Ops! Dados incorretos.",
     "or": "OU"
   },
-  "permanent": "Permanente",
   "prompts": {
     "copy": "Copiar",
     "copyMessage": "Escolha um lugar para copiar os arquivos:",
@@ -145,7 +141,7 @@
     "downloadMessage": "Escolha o formato do arquivo.",
     "error": "Algo de errado ocorreu",
     "fileInfo": "Informação do arquivo",
-    "lastModified": "Última modificação",
+    "lastModified": "Última modificação{suffix}",
     "move": "Mover",
     "moveMessage": "Escolha uma nova pasta para os seus arquivos:",
     "newArchetype": "Criar um novo post baseado num \"archetype\". O seu arquivo será criado na pasta \"content\".",
@@ -153,8 +149,8 @@
     "newDirMessage": "Escreva o nome da nova pasta.",
     "newFile": "Novo arquivo",
     "newFileMessage": "Escreva o nome do novo arquivo.",
-    "numberDirs": "Número de pastas",
-    "numberFiles": "Número de arquivos",
+    "numberDirs": "Número de pastas{suffix}",
+    "numberFiles": "Número de arquivos{suffix}",
     "rename": "Renomear",
     "renameMessage": "Insira um novo nome para",
     "replace": "Substituir",
@@ -176,7 +172,19 @@
     "conflictsDetected": "Conflitos detectados",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "Nome inválido fornecido: não pode conter \"/\" ou \"\\\""
+    "invalidName": "Nome inválido fornecido: não pode conter \"/\" ou \"\\\"",
+    "source": "Source{suffix}",
+    "downloadsLimit": "Limite de número de downloads",
+    "maxBandwidth": "Largura de banda máxima de download (kbps)",
+    "shareTheme": "Compartilhar tema",
+    "shareThemeColor": "Compartilhar a cor do tema (valor CSS)",
+    "shareTitle": "Compartilhar título",
+    "shareDescription": "Compartilhar descrição",
+    "shareLogo": "Compartilhar URL do logotipo",
+    "shareBanner": "Compartilhar URL do banner",
+    "shareFavicon": "Compartilhar URL do favicon",
+    "optionalPasswordHelp": "Se definida, os usuários deverão digitar essa senha para visualizar o conteúdo compartilhado.",
+    "viewMode": "Modo de exibição"
   },
   "search": {
     "images": "Imagens",
@@ -321,7 +329,32 @@
     "abortUpload": "Tem certeza de que quer abortar?"
   },
   "share": {
-    "notice": "Observação: qualquer pessoa que tenha acesso ao link (e à senha opcional) pode acessar os arquivos compartilhados. Não é necessário estar conectado."
+    "notice": "Observação: quando um compartilhamento é criado, ele fica mais exposto ao público e tem regras de acesso diferentes. Se o seu compartilhamento não estiver configurado de forma segura, ele poderá ser acessado por qualquer pessoa.",
+    "disableAnonymousDescription": "Quando ativado, somente usuários autenticados podem acessar o compartilhamento. O usuário deve ter acesso à origem do compartilhamento.",
+    "disableThumbnailsDescription": "Quando ativada, as miniaturas de visualização não serão mostradas no compartilhamento.",
+    "enableAllowedUsernamesDescription": "Quando ativado, somente os usuários especificados podem acessar o compartilhamento. O usuário deve ter acesso à origem do compartilhamento.",
+    "downloadsLimitDescription": "O número máximo de vezes que qualquer arquivo/pasta do compartilhamento pode ser baixado. Deixe em branco para ilimitado.",
+    "maxBandwidthDescription": "A largura de banda máxima de download em kilobytes por segundo. Deixe em branco para ilimitado.",
+    "shareThemeDescription": "O tema a ser usado para o link de compartilhamento.",
+    "disableAnonymous": "Desativar o acesso anônimo",
+    "disableThumbnails": "Desativar miniaturas",
+    "enableAllowedUsernames": "Compartilhar apenas com determinados usuários",
+    "allowedUsernamesPlaceholder": "Digite os nomes de usuário, separados por vírgula",
+    "keepAfterExpiration": "Não exclua o compartilhamento após sua expiração",
+    "keepAfterExpirationDescription": "O compartilhamento não será excluído após a expiração. Isso é útil se você quiser estender a expiração de um compartilhamento ou editá-lo depois que ele expirar.",
+    "saveDisabled": "Não é possível salvar alterações em arquivos compartilhados.",
+    "shareDurationDescription": "Duração antes da expiração do compartilhamento. Deixe em branco para um compartilhamento permanente.",
+    "passwordDescription": "Senha opcional necessária para acessar esse compartilhamento, incluindo usuários autenticados.",
+    "allowedUsernamesListDescription": "Nomes de usuário separados por vírgulas que podem acessar o compartilhamento (quando ativado).",
+    "shareThemeColorDescription": "Valor de cor CSS aplicado ao tema do compartilhamento (por exemplo, vermelho, #0ea5e9, rgb(14,165,233)).",
+    "shareTitleDescription": "Título de página personalizado mostrado na página de compartilhamento.",
+    "shareDescriptionHelp": "Descrição curta exibida na página de compartilhamento (pode ser usada em meta tags).",
+    "shareLogoDescription": "URL ou caminho da imagem do logotipo acessível pelo cliente - são aceitos caminhos abosolutos ou de índice: por exemplo, \"https://domain.com/logo.png\" ou \"/path/to/logo.png\".",
+    "shareBannerDescription": "URL ou caminho da imagem do banner acessível pelo cliente - são aceitos caminhos abosolutos ou de índice: por exemplo, 'https://domain.com/banner.png' ou '/path/to/banner.png'",
+    "shareFaviconDescription": "URL ou caminho do Favicon acessível pelo cliente - são aceitos caminhos abosolutos ou de índice: por exemplo, \"https://domain.com/favicon.png\" ou \"/path/to/favicon.png\".",
+    "hideNavButtons": "Ocultar botões de navegação",
+    "hideNavButtonsDescription": "Oculte os botões de navegação na barra de navegação do compartilhamento para criar uma aparência minimalista.",
+    "viewModeDescription": "Layout padrão para a página compartilhada."
   },
   "api": {
     "title": "Chaves de API:",
@@ -350,8 +383,6 @@
   "index": {
     "status": "Status",
     "assessment": "Avaliação",
-    "files": "Arquivos",
-    "folders": "Pastas",
     "lastScanned": "Última varredura",
     "quickScan": "Segundos de varredura rápida",
     "fullScan": "Segundos de varredura completa",
@@ -374,6 +405,39 @@
     "verificationFailed": "Falha na verificação",
     "verificationSucceed": "Verificação de sucesso",
     "generationFailed": "Falha na geração"
+  },
+  "general": {
+    "name": "Nome",
+    "path": "Caminho",
+    "user": "Usuário",
+    "group": "Grupo",
+    "signup": "Registrar-se",
+    "password": "Senha",
+    "username": "Nome de usuário",
+    "files": "Arquivos",
+    "folders": "Pastas",
+    "exit": "Sair",
+    "permanent": "Permanente",
+    "hash": "Hash"
+  },
+  "access": {
+    "rules": "Regras de acesso",
+    "deny": "Negar",
+    "deniedUsers": "Usuários negados",
+    "deniedGroups": "Grupos negados",
+    "allowedUsers": "Usuários permitidos",
+    "allowedGroups": "Grupos permitidos",
+    "allow": "Permitir",
+    "allowDeny": "Permitir/Negar",
+    "userGroup": "Usuário/Grupo",
+    "enterName": "Digite o nome do usuário ou do grupo",
+    "deleted": "Regra de acesso excluída!",
+    "added": "Regra de acesso adicionada!",
+    "name": "Nome",
+    "accessManagement": "Gerenciamento de acesso",
+    "totalDenied": "Negado",
+    "totalAllowed": "Permitido",
+    "all": "Negar tudo"
   },
   "fileLoading": {
     "title": "Uploads e downloads",
@@ -437,6 +501,16 @@
     "disableOfficeEditorDescription": "Uma lista de extensões de arquivo separada por espaços para desativar o editor e o visualizador do OnlyOffice. (por exemplo, '.txt .html .pdf').",
     "disableOfficeEditor": "Desativar o visualizador do Office para determinadas extensões de arquivo",
     "defaultThemeDescription": "default - O tema padrão",
-    "customTheme": "Escolha seu tema"
+    "customTheme": "Escolha seu tema",
+    "showSelectMultiple": "Mostrar seleção múltipla no menu de contexto na área de trabalho",
+    "showSelectMultipleDescription": "Por padrão, o menu de contexto do desktop não tem a opção \"selecionar vários\" como no celular. Essa opção sempre a mostra no menu de contexto."
+  },
+  "editor": {
+    "uninitialized": "Falha ao inicializar o editor. Favor recarregar.",
+    "saveFailed": "Falha ao salvar o arquivo. Tente novamente.",
+    "saveAborted": "Salvamento abortado. O nome do arquivo não corresponde ao arquivo ativo.",
+    "saveDisabled": "Não há suporte para o salvamento de arquivos compartilhados.",
+    "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
+    "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
   }
 }

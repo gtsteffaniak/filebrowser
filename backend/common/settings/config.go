@@ -63,44 +63,21 @@ func setupFrontend() {
 	Config.Frontend.Styling.DarkBackground = FallbackColor(Config.Frontend.Styling.DarkBackground, "#141D24")
 	Config.Frontend.Styling.CustomCSS = readCustomCSS(Config.Frontend.Styling.CustomCSS)
 	Config.Frontend.Styling.CustomThemeOptions = map[string]CustomTheme{}
+	Config.Frontend.Styling.CustomThemes = map[string]CustomTheme{}
 	for name, theme := range Config.Frontend.Styling.CustomThemes {
-		thisTheme := CustomTheme{
-			Description: theme.Description,
-			CSS:         theme.CSS, // Copy the CSS file path from the original theme
-		}
-		Config.Frontend.Styling.CustomThemeOptions[name] = thisTheme
-		thisTheme.CSS = readCustomCSS(theme.CSS) // Now read the CSS file content and replace the path
-		Config.Frontend.Styling.CustomThemes[name] = thisTheme
+		addCustomTheme(name, theme.Description, theme.CSS)
 	}
 	noThemes := len(Config.Frontend.Styling.CustomThemes) == 0
 	if noThemes {
-		Config.Frontend.Styling.CustomThemes = map[string]CustomTheme{
-			"default": {
-				Description: "The default theme",
-				CSS:         "",
-			},
-			"alternative": {
-				Description: "Reduce rounded corners",
-				CSS:         "reduce-rounded-corners.css",
-			},
+		addCustomTheme("default", "The default theme", "")
+		// check if file exists
+		if _, err := os.Stat("reduce-rounded-corners.css"); err == nil {
+			addCustomTheme("alternative", "Reduce rounded corners", "reduce-rounded-corners.css")
 		}
 	}
 	_, ok := Config.Frontend.Styling.CustomThemes["default"]
 	if !ok {
-		theme := CustomTheme{
-			Description: "The default theme",
-			CSS:         "",
-		}
-		if noThemes {
-			// If there are no themes at all, initialize the map with just default
-			Config.Frontend.Styling.CustomThemes = map[string]CustomTheme{
-				"default": theme,
-			}
-		} else {
-			// If there are themes but no default, add default to existing themes
-			Config.Frontend.Styling.CustomThemes["default"] = theme
-		}
-		Config.Frontend.Styling.CustomThemeOptions["default"] = theme
+		addCustomTheme("default", "The default theme", "")
 	}
 }
 
@@ -183,11 +160,15 @@ func setupUrls() {
 		Config.Server.BaseURL = "/" + baseurl + "/"
 	}
 	if Config.Server.BaseURL != "/" {
-		Config.Server.InternalUrl = strings.TrimSuffix(Config.Server.InternalUrl, Config.Server.BaseURL)
-		Config.Server.ExternalUrl = strings.TrimSuffix(Config.Server.ExternalUrl, Config.Server.BaseURL)
+		if Config.Server.ExternalUrl != "" {
+			Config.Server.ExternalUrl = strings.TrimSuffix(Config.Server.ExternalUrl, "/") + "/"
+			Config.Server.ExternalUrl = strings.TrimSuffix(Config.Server.ExternalUrl, Config.Server.BaseURL)
+		}
+		if Config.Server.InternalUrl != "" {
+			Config.Server.InternalUrl = strings.TrimSuffix(Config.Server.InternalUrl, "/") + "/"
+			Config.Server.InternalUrl = strings.TrimSuffix(Config.Server.InternalUrl, Config.Server.BaseURL)
+		}
 	}
-	Config.Server.InternalUrl = strings.Trim(Config.Server.InternalUrl, "/")
-	Config.Server.ExternalUrl = strings.Trim(Config.Server.ExternalUrl, "/")
 	Config.Integrations.OnlyOffice.Url = strings.Trim(Config.Integrations.OnlyOffice.Url, "/")
 	Config.Integrations.OnlyOffice.InternalUrl = strings.Trim(Config.Integrations.OnlyOffice.InternalUrl, "/")
 }
@@ -538,24 +519,4 @@ func modifyExcludeInclude(config *Source) {
 	normalize(config.Config.Include.RootFolders, true)
 	normalize(config.Config.Include.RootFiles, true)
 	normalize(config.Config.NeverWatchPaths, true)
-}
-
-func readCustomCSS(path string) string {
-	if path == "" {
-		return ""
-	}
-	content, err := os.ReadFile(path)
-	if err != nil {
-		// Only log if the file exists but cannot be read (e.g., permission error)
-		if !os.IsNotExist(err) {
-			logger.Warningf("Could not read custom CSS file %s: %v", path, err)
-			return ""
-		}
-	}
-	if len(content) > 128*1024 {
-		logger.Warningf("Custom CSS file %s is too large (%d bytes), ignoring", path, len(content))
-		return ""
-	}
-	logger.Infof("Loaded custom CSS from: %s (%d bytes)", path, len(content))
-	return string(content)
 }

@@ -17,8 +17,8 @@ async function globalSetup() {
   await page.locator('button[aria-label="Share"]').click();
   await expect(page.locator('div[aria-label="share-path"]')).toHaveText('Path: /myfolder');
   await page.locator('button[aria-label="Share-Confirm"]').click();
-  await expect(page.locator("#share .card-content table tbody tr:not(:has(th))")).toHaveCount(1);
-  const shareHash = await page.locator("#share .card-content table tbody tr:not(:has(th)) td").first().textContent();
+  await expect(page.locator("div[aria-label='share-prompt'] .card-content table tbody tr:not(:has(th))")).toHaveCount(1);
+  const shareHash = await page.locator("div[aria-label='share-prompt'] .card-content table tbody tr:not(:has(th)) td").first().textContent();
   if (!shareHash) {
     throw new Error("Failed to retrieve shareHash");
   }
@@ -36,8 +36,8 @@ async function globalSetup() {
   await page.locator('button[aria-label="Share"]').click();
   await expect(page.locator('div[aria-label="share-path"]')).toHaveText('Path: /1file1.txt');
   await page.locator('button[aria-label="Share-Confirm"]').click();
-  await expect(page.locator("#share .card-content table tbody tr:not(:has(th))")).toHaveCount(1);
-  const shareHashFile = await page.locator("#share .card-content table tbody tr:not(:has(th)) td").first().textContent();
+  await expect(page.locator("div[aria-label='share-prompt'] .card-content table tbody tr:not(:has(th))")).toHaveCount(1);
+  const shareHashFile = await page.locator("div[aria-label='share-prompt'] .card-content table tbody tr:not(:has(th)) td").first().textContent();
   if (!shareHashFile) {
     throw new Error("Failed to retrieve shareHash");
   }

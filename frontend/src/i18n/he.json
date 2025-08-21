@@ -46,7 +46,9 @@
     "retry": "נסה שוב",
     "pauseAll": "השהה הכל",
     "resumeAll": "המשך הכל",
-    "clearCompleted": "השלם"
+    "clearCompleted": "השלם",
+    "showMore": "הצג עוד",
+    "showLess": "הצג פחות"
   },
   "download": {
     "downloadFile": "הורד קובץ",
@@ -63,8 +65,6 @@
     "body": "גוף",
     "clear": "נקה",
     "closePreview": "סגירת תצוגה מקדימה",
-    "files": "קבצים",
-    "folders": "תקיות",
     "home": "ראשי",
     "lastModified": "שונה לאחרונה",
     "loading": "טוען...",
@@ -122,17 +122,13 @@
   "login": {
     "createAnAccount": "צור חשבון",
     "loginInstead": "חשבון קיים",
-    "password": "סיסמא",
     "passwordConfirm": "אימות סיסמא",
     "passwordsDontMatch": "סיסמאות אינן תואמות",
-    "signup": "הרשמה",
     "submit": "התחברות",
-    "username": "שם משתמש",
     "usernameTaken": "שם משתמש כבר קיים",
     "wrongCredentials": "פרטי התחברות שגויים",
     "or": "או"
   },
-  "permanent": "קבוע",
   "prompts": {
     "copy": "העתק",
     "copyMessage": "בחר לאן להעתיק את הקבצים:",
@@ -145,7 +141,7 @@
     "downloadMessage": "בחר את הפורמט שברצונך להוריד",
     "error": "משהו השתבש",
     "fileInfo": "מידע על הקובץ",
-    "lastModified": "שונה לאחרונה",
+    "lastModified": "שונה לאחרונה{suffix}",
     "move": "העבר",
     "moveMessage": "בחר מיקום חדש לקובץ / תקייה:",
     "newArchetype": "צור פוסט חדש. הקובץ יווצר בתקיית התוכן",
@@ -153,8 +149,8 @@
     "newDirMessage": "כתוב את שם התקייה החדשה",
     "newFile": "קובץ חדש",
     "newFileMessage": "כתוב את שם הקובץ החדש",
-    "numberDirs": "מספר התקיות",
-    "numberFiles": "מספר הקבצים",
+    "numberDirs": "מספר התקיות{suffix}",
+    "numberFiles": "מספר הקבצים{suffix}",
     "rename": "שנה שם",
     "renameMessage": "הכנס שם חדש עבור",
     "replace": "החלף",
@@ -176,7 +172,19 @@
     "conflictsDetected": "סכסוכים שזוהו",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "שם לא חוקי: לא ניתן להכיל \"/\" או \"\\\""
+    "invalidName": "שם לא חוקי: לא ניתן להכיל \"/\" או \"\\\"",
+    "source": "Source{suffix}",
+    "downloadsLimit": "הגבלת מספר ההורדות",
+    "maxBandwidth": "רוחב פס הורדה מרבי (kbps)",
+    "shareTheme": "שתף נושא",
+    "shareThemeColor": "שתף צבע נושא (ערך CSS)",
+    "shareTitle": "שתף כותרת",
+    "shareDescription": "שתף תיאור",
+    "shareLogo": "שתף כתובת URL של הלוגו",
+    "shareBanner": "שתף כתובת URL של באנר",
+    "shareFavicon": "שתף כתובת URL של סמל המועדפים",
+    "optionalPasswordHelp": "אם אפשרות זו מוגדרת, על המשתמשים להזין סיסמה זו כדי להציג את התוכן המשותף.",
+    "viewMode": "מצב תצוגה"
   },
   "search": {
     "images": "תמונות",
@@ -321,7 +329,32 @@
     "abortUpload": "האם אתה בטוח שברצונך לבטל?"
   },
   "share": {
-    "notice": "הערה: כל מי שיש לו גישה לקישור (ולסיסמה האופציונלית) יכול לגשת לקבצים המשותפים. אין צורך להיות מחובר."
+    "notice": "הערה: כאשר נוצר שיתוף, הוא הופך לחשוף יותר לציבור וחל עליו כללים שונים לגבי גישה. אם השיתוף שלך אינו מוגדר בצורה מאובטחת, כל אחד יכול לגשת אליו.",
+    "disableAnonymousDescription": "כאשר אפשרות זו מופעלת, רק משתמשים מאומתים יכולים לגשת לשיתוף. על המשתמש להיות בעל גישה למקור השיתוף.",
+    "disableThumbnailsDescription": "כאשר אפשרות זו מופעלת, תמונות ממוזערות לא יוצגו בשיתוף.",
+    "enableAllowedUsernamesDescription": "כאשר אפשרות זו מופעלת, רק המשתמשים שצוינו יכולים לגשת לשיתוף. על המשתמש להיות בעל גישה למקור השיתוף.",
+    "downloadsLimitDescription": "המספר המרבי של פעמים שניתן להוריד כל קובץ/תיקיה מהשיתוף. השאר ריק ללא הגבלה.",
+    "maxBandwidthDescription": "רוחב הפס המרבי להורדה בקילובייטים לשנייה. השאר ריק ללא הגבלה.",
+    "shareThemeDescription": "הנושא שיש להשתמש בו לקישור השיתוף.",
+    "disableAnonymous": "השבת גישה אנונימית",
+    "disableThumbnails": "השבת תמונות ממוזערות",
+    "enableAllowedUsernames": "שתף רק עם משתמשים מסוימים",
+    "allowedUsernamesPlaceholder": "הזן שמות משתמש, מופרדים בפסיקים",
+    "keepAfterExpiration": "אל תמחק את השיתוף לאחר שתוקפו יפוג",
+    "keepAfterExpirationDescription": "השיתוף לא יימחק לאחר שתוקפו יפוג. אפשרות זו שימושית אם ברצונך להאריך את תוקף השיתוף או לערוך אותו לאחר שתוקפו יפוג.",
+    "saveDisabled": "לא ניתן לשמור שינויים בקבצים משותפים.",
+    "shareDurationDescription": "משך הזמן עד לפקיעת תוקף השיתוף. השאר ריק לשיתוף קבוע.",
+    "passwordDescription": "סיסמה אופציונלית נדרשת כדי לגשת לשיתוף זה, כולל משתמשים מאומתים.",
+    "allowedUsernamesListDescription": "שמות משתמשים המופרדים בפסיקים שיכולים לגשת לשיתוף (כאשר האפשרות מופעלת).",
+    "shareThemeColorDescription": "ערך צבע CSS המוחל על ערכת הנושא של השיתוף (לדוגמה, אדום, #0ea5e9, rgb(14,165,233)).",
+    "shareTitleDescription": "כותרת דף מותאמת אישית המוצגת בדף השיתוף.",
+    "shareDescriptionHelp": "תיאור קצר המופיע בדף השיתוף (יכול לשמש בתגי מטא).",
+    "shareLogoDescription": "כתובת URL או נתיב של תמונת הלוגו הנגישים ללקוח - ניתן להשתמש בכתובת מוחלטת או בנתיב אינדקס: לדוגמה, 'https://domain.com/logo.png' או '/path/to/logo.png'",
+    "shareBannerDescription": "כתובת URL או נתיב של תמונת הבאנר הנגישים ללקוח - ניתן להשתמש בכתובת מוחלטת או בנתיב אינדקס: לדוגמה, 'https://domain.com/banner.png' או '/path/to/banner.png'",
+    "shareFaviconDescription": "כתובת URL או נתיב של סמל favicon הנגיש ללקוח - ניתן להשתמש בכתובת מוחלטת או בנתיב אינדקס: לדוגמה, 'https://domain.com/favicon.png' או '/path/to/favicon.png'",
+    "hideNavButtons": "הסתר כפתורי ניווט",
+    "hideNavButtonsDescription": "הסתר את כפתורי הניווט בסרגל הניווט בשיתוף כדי ליצור מראה מינימליסטי.",
+    "viewModeDescription": "פריסת ברירת המחדל עבור הדף המשותף."
   },
   "api": {
     "title": "מפתחות API",
@@ -350,8 +383,6 @@
   "index": {
     "status": "סטטוס",
     "assessment": "הערכה",
-    "files": "קבצים",
-    "folders": "תיקיות",
     "lastScanned": "נסרק לאחרונה",
     "quickScan": "סריקה מהירה בשניות",
     "fullScan": "שניות סריקה מלאה",
@@ -374,6 +405,39 @@
     "verificationFailed": "האימות נכשל",
     "verificationSucceed": "האימות הצליח",
     "generationFailed": "דור שנכשל"
+  },
+  "general": {
+    "name": "שם",
+    "path": "נתיב",
+    "user": "משתמש",
+    "group": "קבוצה",
+    "signup": "הרשמה",
+    "password": "סיסמה",
+    "username": "שם משתמש",
+    "files": "קבצים",
+    "folders": "תיקיות",
+    "exit": "יציאה",
+    "permanent": "קבוע",
+    "hash": "חשיש"
+  },
+  "access": {
+    "rules": "כללי גישה",
+    "deny": "לדחות",
+    "deniedUsers": "משתמשים שנדחו",
+    "deniedGroups": "קבוצות שנדחו",
+    "allowedUsers": "משתמשים מורשים",
+    "allowedGroups": "קבוצות מורשות",
+    "allow": "אפשר",
+    "allowDeny": "אפשר/דחה",
+    "userGroup": "משתמש/קבוצה",
+    "enterName": "הזן שם משתמש או שם קבוצה",
+    "deleted": "כלל הגישה נמחק!",
+    "added": "כלל גישה נוסף!",
+    "name": "שם",
+    "accessManagement": "ניהול גישה",
+    "totalDenied": "נדחה",
+    "totalAllowed": "מותר",
+    "all": "דחה הכל"
   },
   "fileLoading": {
     "title": "העלאות והורדות",
@@ -437,6 +501,16 @@
     "disableOfficeEditorDescription": "רשימה מופרדת ברווחים של סיומות קבצים עבורן יש להשבית את עורך ומציג OnlyOffice. (לדוגמה, '.txt .html .pdf').",
     "disableOfficeEditor": "השבת תצוגת Office עבור סיומות קבצים מסוימות",
     "defaultThemeDescription": "ברירת מחדל - ערכת הנושא המוגדרת כברירת מחדל",
-    "customTheme": "בחר את הנושא שלך"
+    "customTheme": "בחר את הנושא שלך",
+    "showSelectMultiple": "הצג בחירה מרובה בתפריט ההקשר בשולחן העבודה",
+    "showSelectMultipleDescription": "כברירת מחדל, בתפריט ההקשר של שולחן העבודה אין אפשרות \"בחר מספר פריטים\" כמו במכשירים ניידים. אפשרות זו תמיד מוצגת בתפריט ההקשר."
+  },
+  "editor": {
+    "uninitialized": "לא ניתן לאתחל את העורך. אנא טען מחדש.",
+    "saveFailed": "לא ניתן לשמור את הקובץ. אנא נסה שוב.",
+    "saveAborted": "שמירה בוטלה. שם הקובץ אינו תואם לקובץ הפעיל.",
+    "saveDisabled": "שמירת קבצים משותפים אינה נתמכת.",
+    "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
+    "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
   }
 }

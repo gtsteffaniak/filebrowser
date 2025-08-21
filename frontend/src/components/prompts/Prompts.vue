@@ -1,7 +1,6 @@
 <template>
-  <div>
+   <div class="card floating fb-shadow" v-if="showOverlay" :aria-label="promptLabel">
     <component
-      v-if="showOverlay"
       :ref="currentPromptName"
       :is="currentPromptName"
       v-bind="currentPromptProps"
@@ -27,13 +26,16 @@ import DeleteUser from "./DeleteUser.vue";
 import CreateApi from "./CreateApi.vue";
 import ActionApi from "./ActionApi.vue";
 import Sidebar from "../sidebar/Sidebar.vue";
+import UserEdit from "./UserEdit.vue";
 import buttons from "@/utils/buttons";
 import Totp from "./Totp.vue";
+import Access from "./Access.vue";
 import { state, getters, mutations } from "@/store"; // Import your custom store
 
 export default {
   name: "prompts",
   components: {
+    UserEdit,
     Info,
     Delete,
     Rename,
@@ -53,6 +55,7 @@ export default {
     DeleteUser,
     CreateApi,
     ActionApi,
+    Access,
   },
   data() {
     return {
@@ -95,14 +98,14 @@ export default {
     });
   },
   computed: {
+    promptLabel() {
+      return getters.currentPromptName() + "-prompt";
+    },
     currentPromptName() {
-      if (getters.currentPromptName() == null) {
-        return "";
-      }
       return getters.currentPromptName();
     },
     currentPrompt() {
-      if (getters.currentPrompt() == null) {
+      if (!getters.currentPrompt()) {
         return {
           props: {},
         };
@@ -125,7 +128,7 @@ export default {
       return state.plugins;
     },
     showOverlay() {
-      return getters.currentPromptName() !== "more";
+      return getters.currentPromptName() !== "" && getters.currentPromptName() !== "ContextMenu" && getters.currentPromptName() !== "OverflowMenu";
     },
   },
   methods: {},
