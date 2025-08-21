@@ -518,6 +518,10 @@ definitions:
       disableIndexing:
         description: disable the indexing of this source
         type: boolean
+      disabled:
+        description: disable the source, this is useful so you don't need to remove
+          it from the config file
+        type: boolean
       exclude:
         allOf:
         - $ref: '#/definitions/settings.ExcludeIndexFilter'
@@ -539,6 +543,10 @@ definitions:
         items:
           type: string
         type: array
+      private:
+        description: designate as source as private -- currently just means no sharing
+          permitted.
+        type: boolean
     type: object
   settings.StylingConfig:
     properties:

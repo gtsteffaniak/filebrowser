@@ -98,6 +98,9 @@ func setupSources(generate bool) {
 		logger.Fatal("There are no `server.sources` configured. If you have `server.root` configured, please update the config and add at least one `server.sources` with a `path` configured.")
 	} else {
 		for k, source := range Config.Server.Sources {
+			if source.Config.Disabled {
+				continue
+			}
 			realPath := getRealPath(source.Path)
 			name := filepath.Base(realPath)
 			if name == "\\" {

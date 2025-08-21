@@ -77,6 +77,8 @@ type Source struct {
 }
 
 type SourceConfig struct {
+	Private          bool               `json:"private"`                 // designate as source as private -- currently just means no sharing permitted.
+	Disabled         bool               `json:"disabled"`                // disable the source, this is useful so you don't need to remove it from the config file
 	IndexingInterval uint32             `json:"indexingIntervalMinutes"` // optional manual overide interval in seconds to re-index the source
 	DisableIndexing  bool               `json:"disableIndexing"`         // disable the indexing of this source
 	MaxWatchers      int                `json:"maxWatchers"`             // number of concurrent watchers to use for this source, currently not supported

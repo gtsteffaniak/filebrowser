@@ -73,7 +73,7 @@ func FileInfoFaster(opts iteminfo.FileOptions) (iteminfo.ExtendedFileInfo, error
 	}
 	response.FileInfo = *info
 	response.RealPath = realPath
-	response.Source = opts.Source
+	response.Source = index.Name
 	if settings.Config.Integrations.OnlyOffice.Secret != "" && info.Type != "directory" && iteminfo.IsOnlyOffice(info.Name) {
 		response.OnlyOfficeId = generateOfficeId(realPath)
 	}

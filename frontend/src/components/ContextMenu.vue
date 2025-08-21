@@ -69,7 +69,7 @@
         v-if="selectedCount <= 1 && showShare"
         icon="share"
         :label="$t('buttons.share')"
-        show="share"
+        @action="showShareHover"
       />
       <action
         v-if="!showCreate && selectedCount == 1 && userPerms.modify && !isSearchActive"
@@ -374,6 +374,14 @@ export default {
     },
     showHover(value) {
       return mutations.showHover(value);
+    },
+    showShareHover() {
+      mutations.showHover({
+        name: "share",
+        props: {
+          item: getters.selectedCount() == 1 ? getters.getFirstSelected() : state.req
+        },
+      });
     },
     setPositions() {
       const contextProps = getters.currentPrompt().props;

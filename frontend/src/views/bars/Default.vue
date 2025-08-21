@@ -19,12 +19,14 @@
       :disabled="isDisabled"
     />
     <action
+      class="overflow-menu-button"
       v-else-if="!isListingView && !showQuickSave"
       :icon="iconName"
       :disabled="noItems"
       @click="toggleOverflow"
     />
     <action
+      class="save-button"
       v-else-if="showQuickSave"
       id="save-button"
       icon="save"

@@ -199,15 +199,19 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		return renderJSON(w, r, s)
 	}
 
+	source, ok := config.Server.NameToSource[body.Source]
+	if !ok {
+		return http.StatusForbidden, fmt.Errorf("source with name not found: %s", body.Source)
+	}
+
+	if source.Config.Private {
+		return http.StatusForbidden, fmt.Errorf("the target source is private, sharing is not permitted")
+	}
+
 	// create a new share link
 	secure_hash, err := generateShortUUID()
 	if err != nil {
 		return http.StatusInternalServerError, err
-	}
-
-	source, ok := config.Server.NameToSource[body.Source]
-	if !ok {
-		return http.StatusForbidden, fmt.Errorf("source with name not found: %s", body.Source)
 	}
 	// validate source path exists
 	idx := indexing.GetIndex(source.Name)

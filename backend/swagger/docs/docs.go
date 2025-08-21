@@ -2989,6 +2989,10 @@ const docTemplate = `{
                     "description": "disable the indexing of this source",
                     "type": "boolean"
                 },
+                "disabled": {
+                    "description": "disable the source, this is useful so you don't need to remove it from the config file",
+                    "type": "boolean"
+                },
                 "exclude": {
                     "description": "exclude files and folders from indexing, if include is not set",
                     "allOf": [
@@ -3019,6 +3023,10 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                },
+                "private": {
+                    "description": "designate as source as private -- currently just means no sharing permitted.",
+                    "type": "boolean"
                 }
             }
         },
