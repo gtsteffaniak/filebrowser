@@ -292,15 +292,15 @@ func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string, 
 			if config.Auth.Methods.OidcAuth.AdminGroup == "" {
 				isAdmin = config.UserDefaults.Permissions.Admin
 			}
-			newUser := users.User{
-				LoginMethod: users.LoginMethodOidc,
-				Username:    username,
-				Permissions: settings.Config.UserDefaults.Permissions,
-			}
+			user = &users.User{}
+			settings.ApplyUserDefaults(user)
+			user.Username = username
+			user.LoginMethod = users.LoginMethodOidc
+			user.Permissions = settings.Config.UserDefaults.Permissions
 			if isAdmin {
-				newUser.Permissions.Admin = true
+				user.Permissions.Admin = true
 			}
-			err = storage.CreateUser(newUser)
+			err = storage.CreateUser(*user)
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}
@@ -330,6 +330,7 @@ func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string, 
 		logger.Warningf("failed to sync oidc user %s groups: %v", username, err)
 	}
 	// Generate a signed token for the user
+	logger.Debugf("Creating token for user: %s (ID: %v)", user.Username, user.ID)
 	signed, err2 := makeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), time.Hour*time.Duration(config.Auth.TokenExpirationHours), user.Permissions)
 	if err2 != nil {
 		// Handle potential errors during token generation
@@ -338,6 +339,7 @@ func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string, 
 		}
 		return http.StatusInternalServerError, fmt.Errorf("failed to generate authentication token for user %s: %v", username, err)
 	}
+	logger.Debugf("Token created successfully, BelongsTo: %v", signed.BelongsTo)
 
 	// Set the authentication token as an HTTP cookie
 	cookie := &http.Cookie{
