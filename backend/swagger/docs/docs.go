@@ -3101,6 +3101,9 @@ const docTemplate = `{
                 "disableThumbnails": {
                     "type": "boolean"
                 },
+                "downloads": {
+                    "type": "integer"
+                },
                 "downloadsLimit": {
                     "type": "integer"
                 },

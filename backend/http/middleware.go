@@ -165,7 +165,7 @@ func withOrWithoutUserHelper(fn handleFunc) handleFunc {
 			// Call the handler function without user context
 			return fn(w, r, data)
 		}
-		return status, fmt.Errorf("could not authenticate share request")
+		return status, fmt.Errorf("could not authenticate request")
 	}
 }
 
@@ -267,11 +267,10 @@ func withUserHelper(fn handleFunc) handleFunc {
 		// Check if the token is about to expire and send a header to renew it
 		if tk.Expires < time.Now().Add(time.Hour).Unix() {
 			w.Header().Add("X-Renew-Token", "true")
-		}
-
-		// Retrieve the user from the store and store it in the context
+		} // Retrieve the user from the store and store it in the context
 		data.user, err = store.Users.Get(tk.BelongsTo)
 		if err != nil {
+			logger.Errorf("Failed to get user with ID %v: %v", tk.BelongsTo, err)
 			return http.StatusInternalServerError, err
 		}
 		setUserInResponseWriter(w, data.user)

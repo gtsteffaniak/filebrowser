@@ -29,16 +29,18 @@ import (
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /public/dl [get]
 func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	if d.share.Downloads > d.share.DownloadsLimit {
+	if d.share.DownloadsLimit > 0 && d.share.Downloads >= d.share.DownloadsLimit {
 		return http.StatusForbidden, fmt.Errorf("share downloads limit reached")
 	}
-	d.share.Mu.Lock()
-	d.share.Downloads++
-	d.share.Mu.Unlock()
+	if d.share.DownloadsLimit > 0 {
+		d.share.Mu.Lock()
+		d.share.Downloads++
+		d.share.Mu.Unlock()
+	}
 
 	encodedFiles := r.URL.Query().Get("files")
 	if encodedFiles == "" {
-		return http.StatusBadRequest, fmt.Errorf("no file list provided, should be in the format '/path1||/path2||/path3'")
+		return http.StatusBadRequest, fmt.Errorf("no file list provided, eg files=/path1")
 	}
 	// Decode the URL-encoded path
 	f, err := url.QueryUnescape(encodedFiles)

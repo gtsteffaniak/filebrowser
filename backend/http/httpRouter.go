@@ -279,6 +279,20 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	<-ctx.Done()
 	logger.Info("Shutting down HTTP server...")
 
+	// Persist in-memory state before shutting down the HTTP server
+	if store != nil {
+		if store.Share != nil {
+			if err := store.Share.Flush(); err != nil {
+				logger.Errorf("Failed to flush share storage: %v", err)
+			}
+		}
+		if store.Access != nil {
+			if err := store.Access.Flush(); err != nil {
+				logger.Errorf("Failed to flush access storage: %v", err)
+			}
+		}
+	}
+
 	// Graceful shutdown with a timeout - 30 seconds, in case downloads are happening
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()

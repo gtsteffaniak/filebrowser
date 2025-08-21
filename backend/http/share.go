@@ -246,12 +246,6 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	if err := store.Share.Save(s); err != nil {
 		return http.StatusInternalServerError, err
 	}
-
-	// Overwrite the Source field with the source name from the query for each link
-	s.Source = sourceName
-	if body.Hash != "" {
-		return renderJSON(w, r, s)
-	}
 	return renderJSON(w, r, s)
 }
 
