@@ -143,7 +143,6 @@ func withOrWithoutUserHelper(fn handleFunc) handleFunc {
 
 		// Try to authenticate user first
 		status, err := withUserHelper(nil)(w, r, data)
-		fmt.Println("withOrWithoutUserHelper", status, err)
 		if err == nil && status < 400 {
 			if link != nil {
 				data.share = link

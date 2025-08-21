@@ -18,6 +18,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/share"
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 // shareListHandler returns a list of all share links.
@@ -196,7 +197,25 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		if err = store.Share.Save(s); err != nil {
 			return http.StatusInternalServerError, err
 		}
-		return renderJSON(w, r, s)
+		// Create a copy for the response with the source name instead of path
+		responseShare := &share.Link{
+			CommonShare:  s.CommonShare,
+			Hash:         s.Hash,
+			Path:         s.Path,
+			Source:       s.Source,
+			UserID:       s.UserID,
+			Expire:       s.Expire,
+			PasswordHash: s.PasswordHash,
+			Token:        s.Token,
+		}
+		// Find the source name from the path for the response
+		for name, source := range config.Server.NameToSource {
+			if source.Path == s.Source {
+				responseShare.Source = name
+				break
+			}
+		}
+		return renderJSON(w, r, responseShare)
 	}
 
 	// create a new share link
@@ -244,15 +263,25 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	}
 
 	if err := store.Share.Save(s); err != nil {
+		logger.Errorf("Failed to save share: %v", err)
 		return http.StatusInternalServerError, err
 	}
 
-	// Overwrite the Source field with the source name from the query for each link
-	s.Source = sourceName
-	if body.Hash != "" {
-		return renderJSON(w, r, s)
+	// Create a copy for the response with the source name instead of path
+	responseShare := &share.Link{
+		CommonShare:  s.CommonShare,
+		Hash:         s.Hash,
+		Path:         s.Path,
+		Source:       sourceName,
+		UserID:       s.UserID,
+		Expire:       s.Expire,
+		PasswordHash: s.PasswordHash,
+		Token:        s.Token,
 	}
-	return renderJSON(w, r, s)
+	if body.Hash != "" {
+		return renderJSON(w, r, responseShare)
+	}
+	return renderJSON(w, r, responseShare)
 }
 
 func getSharePasswordHash(body share.CreateBody) (data []byte, statuscode int, err error) {
