@@ -18,7 +18,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/share"
-	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 // shareListHandler returns a list of all share links.
@@ -245,7 +244,6 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	}
 
 	if err := store.Share.Save(s); err != nil {
-		logger.Errorf("Failed to save share: %v", err)
 		return http.StatusInternalServerError, err
 	}
 	return renderJSON(w, r, s)
