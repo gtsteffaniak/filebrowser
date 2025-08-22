@@ -132,14 +132,11 @@ export async function remove(hash) {
 
 // Create a new share
 /**
- * @param {string} path
- * @param {string} source
  * @param {Record<string, any>} bodyObj
  * @returns {Promise<Share>}
  */
-export async function create(path, source, bodyObj = {}) {
-  const params = { path: encodeURIComponent(path), source: encodeURIComponent(source) };
-  const apiPath = getApiPath("public/share", params);
+export async function create(bodyObj = {}) {
+  const apiPath = getApiPath("public/share");
   return fetchJSON(apiPath, {
     method: "POST",
     body: JSON.stringify(bodyObj || {}),

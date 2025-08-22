@@ -19,12 +19,14 @@
       :disabled="isDisabled"
     />
     <action
+      class="overflow-menu-button"
       v-else-if="!isListingView && !showQuickSave"
       :icon="iconName"
       :disabled="noItems"
       @click="toggleOverflow"
     />
     <action
+      class="save-button"
       v-else-if="showQuickSave"
       id="save-button"
       icon="save"
@@ -113,7 +115,7 @@ export default {
       return state.isSearchActive || getters.currentPromptName() != "";
     },
     isDisabledMultiAction() {
-      return this.isDisabled || (getters.isStickySidebar() && getters.multibuttonState() === "menu");
+      return this.isDisabled || (getters.isStickySidebar() && getters.multibuttonState() === "menu") || (getters.isShare() && shareOverrides.disableSidebar);
     },
     showSwitchView() {
       return getters.currentView() === "listingView";

@@ -22,6 +22,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 	"github.com/gtsteffaniak/go-logger/logger"
@@ -73,7 +74,7 @@ func FileInfoFaster(opts iteminfo.FileOptions) (iteminfo.ExtendedFileInfo, error
 	}
 	response.FileInfo = *info
 	response.RealPath = realPath
-	response.Source = opts.Source
+	response.Source = index.Name
 	if settings.Config.Integrations.OnlyOffice.Secret != "" && info.Type != "directory" && iteminfo.IsOnlyOffice(info.Name) {
 		response.OnlyOfficeId = generateOfficeId(realPath)
 	}
@@ -188,7 +189,7 @@ func validateMoveDestination(src, dst string, isSrcDir bool) error {
 	return nil
 }
 
-func MoveResource(isSrcDir, isDestDir bool, sourceIndex, destIndex, realsrc, realdst string) error {
+func MoveResource(isSrcDir, isDestDir bool, sourceIndex, destIndex, realsrc, realdst string, s *share.Storage) error {
 	// Validate the move operation before executing
 	if err := validateMoveDestination(realsrc, realdst, isSrcDir); err != nil {
 		return err
@@ -198,8 +199,21 @@ func MoveResource(isSrcDir, isDestDir bool, sourceIndex, destIndex, realsrc, rea
 	if err != nil {
 		return err
 	}
-	go RefreshIndex(sourceIndex, realsrc, isSrcDir)  //nolint:errcheck
-	go RefreshIndex(sourceIndex, realdst, isDestDir) //nolint:errcheck
+	go RefreshIndex(sourceIndex, realsrc, isSrcDir) //nolint:errcheck
+	go RefreshIndex(destIndex, realdst, isDestDir)  //nolint:errcheck
+
+	// update shares
+	idx := indexing.GetIndex(sourceIndex)
+	if idx == nil {
+		return fmt.Errorf("could not get index: %v ", sourceIndex)
+	}
+	idx2 := indexing.GetIndex(destIndex)
+	if idx2 == nil {
+		return fmt.Errorf("could not get index: %v ", destIndex)
+	}
+
+	// Use backend source paths to match how shares are stored
+	go s.UpdateShares(idx.Path, idx.MakeIndexPath(realsrc), idx2.Path, idx2.MakeIndexPath(realdst)) //nolint:errcheck
 	return nil
 }
 
@@ -213,8 +227,9 @@ func CopyResource(isSrcDir, isDestDir bool, sourceIndex, destIndex, realsrc, rea
 	if err != nil {
 		return err
 	}
-	go RefreshIndex(sourceIndex, realsrc, isSrcDir)  //nolint:errcheck
-	go RefreshIndex(sourceIndex, realdst, isDestDir) //nolint:errcheck
+	go RefreshIndex(sourceIndex, realsrc, isSrcDir) //nolint:errcheck
+	go RefreshIndex(destIndex, realdst, isDestDir)  //nolint:errcheck
+	// update shares
 	return nil
 }
 

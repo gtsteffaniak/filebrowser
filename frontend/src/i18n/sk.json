@@ -297,7 +297,8 @@
     "shareSettings": "Zdieľať nastavenia",
     "adminOptions": "Možnosti používateľa správcu",
     "shareDuration": "Platnosť končí na",
-    "searchOptions": "Možnosti vyhľadávania"
+    "searchOptions": "Možnosti vyhľadávania",
+    "downloads": "Na stiahnutie"
   },
   "sidebar": {
     "help": "Pomoc",
@@ -354,7 +355,13 @@
     "shareFaviconDescription": "Adresa URL alebo cesta k ikone Favicon, ktorá je prístupná klientovi -- akceptuje sa buď absolútna, alebo indexová cesta: napr. \"https://domain.com/favicon.png\" alebo \"/path/to/favicon.png\".",
     "hideNavButtons": "Skrytie navigačných tlačidiel",
     "hideNavButtonsDescription": "Skryte navigačné tlačidlá na paneli navigácie v zdieľaní, aby ste vytvorili minimalistický vzhľad.",
-    "viewModeDescription": "Predvolené rozloženie zdieľanej stránky."
+    "viewModeDescription": "Predvolené rozloženie zdieľanej stránky.",
+    "titleDefault": "Shared files - {title}",
+    "descriptionDefault": "Bola vám odoslaná akcia na zobrazenie alebo stiahnutie.",
+    "disableShareCard": "Zakázanie zdieľanej karty",
+    "disableShareCardDescription": "Zakážte kartu zdieľania na zdieľanej stránke v bočnom paneli alebo v hornej časti stránky na mobilnom zariadení.",
+    "disableSidebar": "Zakázanie bočného panela",
+    "disableSidebarDescription": "Zakážte bočný panel na zdieľanej stránke."
   },
   "api": {
     "title": "Kľúče API:",

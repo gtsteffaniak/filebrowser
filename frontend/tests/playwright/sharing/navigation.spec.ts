@@ -1,6 +1,6 @@
 import { test, expect } from "../test-setup";
 
-test("share folderbreadcrumbs navigation checks", async ({ page, checkForErrors, context }) => {
+test("share folder breadcrumbs navigation checks", async ({ page, checkForErrors, context }) => {
     await page.goto("/files/playwright%20+%20files/share");
     await page.waitForSelector('#breadcrumbs');
     let spanChildrenCount = await page.locator('#breadcrumbs > ul > li.item').count();

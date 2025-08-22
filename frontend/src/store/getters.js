@@ -152,9 +152,6 @@ export const getters = {
     ]
 
     let visible = (state.showSidebar || getters.isStickySidebar())
-    if (getters.isShare() && !state.isMobile) {
-      visible = true
-    }
     if (getters.currentPromptName() && !getters.isStickySidebar()) {
       visible = false
     }
@@ -170,9 +167,6 @@ export const getters = {
       sticky = true
     }
     if (currentView == '' && !getters.isLoading()) {
-      sticky = true
-    }
-    if (getters.isShare()) {
       sticky = true
     }
     if (getters.isMobile()) {

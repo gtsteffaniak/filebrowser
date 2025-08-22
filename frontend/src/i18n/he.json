@@ -297,7 +297,8 @@
     "api": "מפתחות API",
     "adminOptions": "אפשרויות משתמש מנהל",
     "shareDuration": "תוקף",
-    "searchOptions": "אפשרויות חיפוש"
+    "searchOptions": "אפשרויות חיפוש",
+    "downloads": "הורדות"
   },
   "sidebar": {
     "help": "עזרה",
@@ -354,7 +355,13 @@
     "shareFaviconDescription": "כתובת URL או נתיב של סמל favicon הנגיש ללקוח - ניתן להשתמש בכתובת מוחלטת או בנתיב אינדקס: לדוגמה, 'https://domain.com/favicon.png' או '/path/to/favicon.png'",
     "hideNavButtons": "הסתר כפתורי ניווט",
     "hideNavButtonsDescription": "הסתר את כפתורי הניווט בסרגל הניווט בשיתוף כדי ליצור מראה מינימליסטי.",
-    "viewModeDescription": "פריסת ברירת המחדל עבור הדף המשותף."
+    "viewModeDescription": "פריסת ברירת המחדל עבור הדף המשותף.",
+    "titleDefault": "Shared files - {title}",
+    "descriptionDefault": "נשלחה אליך קובץ לשיתוף או להורדה.",
+    "disableShareCard": "השבת כרטיס שיתוף",
+    "disableShareCardDescription": "השבת את כרטיס השיתוף בדף המשותף בסרגל הצד או בחלק העליון של הדף במכשירים ניידים.",
+    "disableSidebar": "השבת סרגל צד",
+    "disableSidebarDescription": "השבת את סרגל הצד בדף המשותף."
   },
   "api": {
     "title": "מפתחות API",

@@ -297,7 +297,8 @@
     "shareSettings": "共有設定",
     "adminOptions": "管理者ユーザーオプション",
     "shareDuration": "期限切れ",
-    "searchOptions": "検索オプション"
+    "searchOptions": "検索オプション",
+    "downloads": "ダウンロード"
   },
   "sidebar": {
     "help": "ヘルプ",
@@ -354,7 +355,13 @@
     "shareFaviconDescription": "クライアントからアクセス可能なファビコンのURLまたはパス -- 絶対パスでもインデックスパスでも構いません: 'https://domain.com/favicon.png' または '/path/to/favicon.png' など。",
     "hideNavButtons": "ナビゲーションボタンを隠す",
     "hideNavButtonsDescription": "シェア内のナビバーにあるナビゲーションボタンを非表示にして、ミニマルな外観を作る。",
-    "viewModeDescription": "共有ページのデフォルトレイアウト。"
+    "viewModeDescription": "共有ページのデフォルトレイアウト。",
+    "titleDefault": "Shared files - {title}",
+    "descriptionDefault": "シェアが送信されましたので、閲覧またはダウンロードしてください。",
+    "disableShareCard": "シェアカードを無効にする",
+    "disableShareCardDescription": "サイドバーの共有ページ、またはモバイルのページ上部にある共有カードを無効にする。",
+    "disableSidebar": "サイドバーを無効にする",
+    "disableSidebarDescription": "共有ページのサイドバーを無効にする。"
   },
   "api": {
     "title": "APIキー：",

@@ -297,7 +297,8 @@
     "shareDeleted": "Partilhar eliminado!",
     "adminOptions": "Opções do utilizador administrador",
     "shareDuration": "Expirações",
-    "searchOptions": "Opções de pesquisa"
+    "searchOptions": "Opções de pesquisa",
+    "downloads": "Transferências"
   },
   "sidebar": {
     "help": "Ajuda",
@@ -354,7 +355,13 @@
     "shareFaviconDescription": "URL ou caminho do Favicon acessível pelo cliente - são aceites caminhos abosolutos ou de índice: por exemplo, \"https://domain.com/favicon.png\" ou \"/path/to/favicon.png",
     "hideNavButtons": "Ocultar botões de navegação",
     "hideNavButtonsDescription": "Oculte os botões de navegação na barra de navegação na partilha para criar um aspeto minimalista.",
-    "viewModeDescription": "Esquema predefinido para a página partilhada."
+    "viewModeDescription": "Esquema predefinido para a página partilhada.",
+    "titleDefault": "Shared files - {title}",
+    "descriptionDefault": "Foi-lhe enviada uma ação para visualizar ou descarregar.",
+    "disableShareCard": "Desativar o cartão de partilha",
+    "disableShareCardDescription": "Desativar o cartão de partilha na página partilhada na barra lateral ou na parte superior da página no telemóvel.",
+    "disableSidebar": "Desativar a barra lateral",
+    "disableSidebarDescription": "Desativar a barra lateral na página partilhada."
   },
   "api": {
     "title": "Chaves da API",

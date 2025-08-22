@@ -21,14 +21,19 @@ type CommonShare struct {
 	QuickDownload       bool     `json:"quickDownload,omitempty"`
 	HideNavButtons      bool     `json:"hideNavButtons,omitempty"`
 	ViewMode            string   `json:"viewMode,omitempty"`
+	Source              string   `json:"source,omitempty"` // backend source is path to maintain between name changes
+	Path                string   `json:"path,omitempty"`
+	DownloadURL         string   `json:"downloadURL,omitempty"`
+	DisableShareCard    bool     `json:"disableShareCard,omitempty"`
+	DisableSidebar      bool     `json:"disableSidebar,omitempty"`
+	Username            string   `json:"username,omitempty"`
 }
 type CreateBody struct {
 	CommonShare
-	Hash       string `json:"hash,omitempty"`
-	SourceName string `json:"sourceName,omitempty"`
-	Password   string `json:"password"`
-	Expires    string `json:"expires"`
-	Unit       string `json:"unit"`
+	Hash     string `json:"hash,omitempty"`
+	Password string `json:"password"`
+	Expires  string `json:"expires"`
+	Unit     string `json:"unit"`
 }
 
 // Link is the information needed to build a shareable link.
@@ -37,8 +42,6 @@ type Link struct {
 	Mu           sync.Mutex `json:"-"`
 	Downloads    int        `json:"downloads"`
 	Hash         string     `json:"hash" storm:"id,index"`
-	Path         string     `json:"path" storm:"index"`
-	Source       string     `json:"source" storm:"index"`
 	UserID       uint       `json:"userID"`
 	Expire       int64      `json:"expire"`
 	PasswordHash string     `json:"password_hash,omitempty"`

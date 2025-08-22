@@ -297,7 +297,8 @@
     "shareSettings": "Einstellungen teilen",
     "adminOptions": "Optionen für Verwaltungsbenutzer",
     "shareDuration": "Abgelaufen",
-    "searchOptions": "Suchoptionen"
+    "searchOptions": "Suchoptionen",
+    "downloads": "Herunterladen"
   },
   "sidebar": {
     "help": "Hilfe",
@@ -354,7 +355,13 @@
     "shareFaviconDescription": "Favicon-URL oder -Pfad, auf den der Client zugreifen kann - es wird entweder ein absoluter oder ein Indexpfad akzeptiert: z. B. 'https://domain.com/favicon.png' oder '/path/to/favicon.png'.",
     "hideNavButtons": "Navigationsschaltflächen ausblenden",
     "hideNavButtonsDescription": "Blenden Sie die Navigationsschaltflächen auf der Navigationsleiste in der Freigabe aus, um ein minimalistisches Aussehen zu erzielen.",
-    "viewModeDescription": "Standardlayout für die gemeinsame Seite."
+    "viewModeDescription": "Standardlayout für die gemeinsame Seite.",
+    "titleDefault": "Shared files - {title}",
+    "descriptionDefault": "Sie haben eine Aktie zur Ansicht oder zum Download erhalten.",
+    "disableShareCard": "Freigabekarte deaktivieren",
+    "disableShareCardDescription": "Deaktivieren Sie die Freigabekarte auf der freigegebenen Seite in der Seitenleiste oder oben auf der Seite auf dem Handy.",
+    "disableSidebar": "Seitenleiste deaktivieren",
+    "disableSidebarDescription": "Deaktivieren Sie die Seitenleiste auf der gemeinsamen Seite."
   },
   "api": {
     "title": "API-Schlüssel:",

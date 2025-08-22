@@ -70,7 +70,7 @@ import MarkdownViewer from "./files/MarkdownViewer.vue";
 import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
 import router from "@/router";
-import { baseURL } from "@/utils/constants";
+import { baseURL, shareOverrides } from "@/utils/constants";
 import PopupPreview from "@/components/files/PopupPreview.vue";
 import { extractSourceFromPath } from "@/utils/url";
 import ShareInfo from "@/components/files/ShareInfo.vue";
@@ -110,7 +110,7 @@ export default {
       return state.share;
     },
     showShareInfo() {
-      return this.isShare && state.share.hash && state.isMobile && state.req.path == "/";
+      return this.isShare && state.share.hash && state.isMobile && state.req.path == "/" && !shareOverrides.disableShareCard;
     },
     isShare() {
       return getters.isShare();

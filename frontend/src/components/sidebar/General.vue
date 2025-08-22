@@ -43,6 +43,7 @@
     <div v-if="!disableQuickToggles" class="card-wrapper" @mouseleave="hideTooltip">
       <div class="quick-toggles">
         <div
+          class="clickable"
           :class="{ active: user?.singleClick }"
           @click="toggleClick"
           @mouseenter="showTooltip($event, $t('index.toggleClick'))"
@@ -51,6 +52,7 @@
           <i class="material-icons">ads_click</i>
         </div>
         <div
+          class="clickable"
           :class="{ active: user?.darkMode }"
           @click="toggleDarkMode"
           @mouseenter="showTooltip($event, $t('index.toggleDark'))"
@@ -59,6 +61,7 @@
           <i class="material-icons">dark_mode</i>
         </div>
         <div
+          class="clickable"
           :class="{ active: isStickySidebar }"
           @click="toggleSticky"
           @mouseenter="showTooltip($event, $t('index.toggleSticky'))"

@@ -1665,6 +1665,56 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "post": {
+                "description": "Creates a new share link with an optional expiration time and password protection.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Shares"
+                ],
+                "summary": "Create a share link",
+                "parameters": [
+                    {
+                        "description": "Share creation parameters",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/share.CreateBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Created share link",
+                        "schema": {
+                            "$ref": "#/definitions/share.Link"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - failed to decode body",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
             }
         },
         "/api/shares": {
@@ -1687,61 +1737,6 @@ const docTemplate = `{
                             "type": "array",
                             "items": {
                                 "$ref": "#/definitions/share.Link"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            },
-            "post": {
-                "description": "Creates a new share link with an optional expiration time and password protection.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Shares"
-                ],
-                "summary": "Create a share link",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Source Path of the files to share",
-                        "name": "path",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Source name of the files to share",
-                        "name": "source",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Created share link",
-                        "schema": {
-                            "$ref": "#/definitions/share.Link"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request - failed to decode body",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
                             }
                         }
                     },
@@ -2135,10 +2130,9 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "a list of files in the following format 'filename' and separated by '||' with additional items in the list. (required)",
+                        "description": "if specified, only the files in the list will be downloaded. eg. files=/file1||/folder/file2",
                         "name": "files",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
                     },
                     {
                         "type": "boolean",
@@ -2198,6 +2192,90 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/public/share/direct": {
+            "get": {
+                "description": "Creates a direct download link for a specific file with configurable duration, download count, and speed limits. If a share already exists with matching parameters, the existing share will be reused.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Shares"
+                ],
+                "summary": "Create direct download link",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "File path to create download link for",
+                        "name": "path",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Source name for the file",
+                        "name": "source",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Duration in minutes for link validity (default: 60)",
+                        "name": "duration",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Maximum number of downloads allowed (default: unlimited)",
+                        "name": "count",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Download speed limit in bytes per second (default: unlimited)",
+                        "name": "speed",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Direct download link created",
+                        "schema": {
+                            "$ref": "#/definitions/http.DirectDownloadResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - invalid parameters or path is not a file",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - access denied",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -2217,6 +2295,20 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "http.DirectDownloadResponse": {
+            "type": "object",
+            "properties": {
+                "hash": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "url": {
                     "type": "string"
                 }
             }
@@ -2897,6 +2989,10 @@ const docTemplate = `{
                     "description": "disable the indexing of this source",
                     "type": "boolean"
                 },
+                "disabled": {
+                    "description": "disable the source, this is useful so you don't need to remove it from the config file",
+                    "type": "boolean"
+                },
                 "exclude": {
                     "description": "exclude files and folders from indexing, if include is not set",
                     "allOf": [
@@ -2927,6 +3023,10 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                },
+                "private": {
+                    "description": "designate as source as private -- currently just means no sharing permitted.",
+                    "type": "boolean"
                 }
             }
         },
@@ -3073,6 +3173,97 @@ const docTemplate = `{
                 }
             }
         },
+        "share.CreateBody": {
+            "type": "object",
+            "properties": {
+                "allowUpload": {
+                    "description": "AllowEdit           bool   ` + "`" + `json:\"allowEdit,omitempty\"` + "`" + `",
+                    "type": "boolean"
+                },
+                "allowedUsernames": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "banner": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "disableAnonymous": {
+                    "type": "boolean"
+                },
+                "disableFileViewer": {
+                    "type": "boolean"
+                },
+                "disableShareCard": {
+                    "type": "boolean"
+                },
+                "disableSidebar": {
+                    "type": "boolean"
+                },
+                "disableThumbnails": {
+                    "type": "boolean"
+                },
+                "downloadURL": {
+                    "type": "string"
+                },
+                "downloadsLimit": {
+                    "type": "integer"
+                },
+                "expires": {
+                    "type": "string"
+                },
+                "favicon": {
+                    "type": "string"
+                },
+                "hash": {
+                    "type": "string"
+                },
+                "hideNavButtons": {
+                    "type": "boolean"
+                },
+                "keepAfterExpiration": {
+                    "type": "boolean"
+                },
+                "maxBandwidth": {
+                    "type": "integer"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "quickDownload": {
+                    "type": "boolean"
+                },
+                "shareTheme": {
+                    "type": "string"
+                },
+                "source": {
+                    "description": "backend source is path to maintain between name changes",
+                    "type": "string"
+                },
+                "themeColor": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "unit": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                },
+                "viewMode": {
+                    "type": "string"
+                }
+            }
+        },
         "share.Link": {
             "type": "object",
             "properties": {
@@ -3098,8 +3289,17 @@ const docTemplate = `{
                 "disableFileViewer": {
                     "type": "boolean"
                 },
+                "disableShareCard": {
+                    "type": "boolean"
+                },
+                "disableSidebar": {
+                    "type": "boolean"
+                },
                 "disableThumbnails": {
                     "type": "boolean"
+                },
+                "downloadURL": {
+                    "type": "string"
                 },
                 "downloads": {
                     "type": "integer"
@@ -3138,6 +3338,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "source": {
+                    "description": "backend source is path to maintain between name changes",
                     "type": "string"
                 },
                 "themeColor": {
@@ -3152,6 +3353,9 @@ const docTemplate = `{
                 },
                 "userID": {
                     "type": "integer"
+                },
+                "username": {
+                    "type": "string"
                 },
                 "viewMode": {
                     "type": "string"

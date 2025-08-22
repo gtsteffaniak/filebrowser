@@ -5,7 +5,7 @@
         <img :src="getShareBanner" />
       </div>
       <div v-if="shareOverrides.title" class="share__box__element">
-        <h2>{{ shareOverrides.title }}</h2>
+        <h3>{{ shareOverrides.title }}</h3>
       </div>
       <div v-if="shareOverrides.description" class="share__box__element">
         <p>{{ shareOverrides.description }}</p>
@@ -22,7 +22,7 @@
       </div>
 
       <div class="share__box__element share__box__center">
-        <button class="button button--flat" @click="goToLink()"> {{ $t("buttons.download") }} </button>
+        <button class="button button--flat clickable" @click="goToLink()"> {{ $t("buttons.download") }} </button>
       </div>
 
       <div v-if="req.type" class="share__box__element share__box__center">
