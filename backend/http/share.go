@@ -266,7 +266,7 @@ type DirectDownloadResponse struct {
 // @Param source query string true "Source name for the file"
 // @Param duration query string false "Duration in minutes for link validity (default: 60)"
 // @Param count query string false "Maximum number of downloads allowed (default: unlimited)"
-// @Param speed query string false "Download speed limit in bytes per second (default: unlimited)"
+// @Param speed query string false "Download speed limit in kbps (default: unlimited)"
 // @Success 201 {object} DirectDownloadResponse "Direct download link created"
 // @Failure 400 {object} map[string]string "Bad request - invalid parameters or path is not a file"
 // @Failure 403 {object} map[string]string "Forbidden - access denied"
@@ -292,7 +292,7 @@ func shareDirectDownloadHandler(w http.ResponseWriter, r *http.Request, d *reque
 	}
 
 	// Validate source exists
-	sourcePath, ok := config.Server.NameToSource[source]
+	sourceInfo, ok := config.Server.NameToSource[source]
 	if !ok {
 		return http.StatusBadRequest, fmt.Errorf("invalid source name: %s", source)
 	}
@@ -359,7 +359,7 @@ func shareDirectDownloadHandler(w http.ResponseWriter, r *http.Request, d *reque
 	scopePath := utils.JoinPathAsUnix(userscope, path)
 
 	// Check if an existing share already matches these parameters
-	existingShares, err := store.Share.Gets(scopePath, sourcePath.Path, d.user.ID)
+	existingShares, err := store.Share.Gets(scopePath, sourceInfo.Path, d.user.ID)
 	if err == nil && len(existingShares) > 0 {
 		// Look for a share that matches our parameters
 		for _, existing := range existingShares {
@@ -385,7 +385,7 @@ func shareDirectDownloadHandler(w http.ResponseWriter, r *http.Request, d *reque
 		Hash:   secureHash,
 		CommonShare: share.CommonShare{
 			Path:           scopePath,
-			Source:         source,
+			Source:         idx.Path,
 			DownloadsLimit: downloadCount,
 			MaxBandwidth:   downloadSpeed,
 			QuickDownload:  true, // Enable quick download for direct downloads
