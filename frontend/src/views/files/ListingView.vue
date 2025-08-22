@@ -918,7 +918,7 @@ export default {
       // if control or shift is pressed, do not clear the selection
       if (this.ctrKeyPressed || event.shiftKey) return;
       const sameAsBefore = state.selected == this.lastSelected;
-      if (sameAsBefore && !state.multiple && getters.currentPromptName()) {
+      if (sameAsBefore && !state.multiple && getters.currentPromptName() == "") {
         mutations.resetSelected();
       }
       this.lastSelected = state.selected;

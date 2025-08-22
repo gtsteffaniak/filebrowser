@@ -3201,6 +3201,9 @@ const docTemplate = `{
                 "disableShareCard": {
                     "type": "boolean"
                 },
+                "disableSidebar": {
+                    "type": "boolean"
+                },
                 "disableThumbnails": {
                     "type": "boolean"
                 },
@@ -3253,6 +3256,9 @@ const docTemplate = `{
                 "unit": {
                     "type": "string"
                 },
+                "username": {
+                    "type": "string"
+                },
                 "viewMode": {
                     "type": "string"
                 }
@@ -3284,6 +3290,9 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "disableShareCard": {
+                    "type": "boolean"
+                },
+                "disableSidebar": {
                     "type": "boolean"
                 },
                 "disableThumbnails": {
@@ -3344,6 +3353,9 @@ const docTemplate = `{
                 },
                 "userID": {
                     "type": "integer"
+                },
+                "username": {
+                    "type": "string"
                 },
                 "viewMode": {
                     "type": "string"

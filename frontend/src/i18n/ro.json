@@ -297,7 +297,8 @@
     "shareSettings": "Setări de partajare",
     "adminOptions": "Opțiuni utilizator administrator",
     "shareDuration": "Expiră",
-    "searchOptions": "Opțiuni de căutare"
+    "searchOptions": "Opțiuni de căutare",
+    "downloads": "Descărcări"
   },
   "sidebar": {
     "help": "Ajutor",
@@ -354,7 +355,13 @@
     "shareFaviconDescription": "Favicon URL sau cale accesibilă de către client - sunt acceptate fie calea abosolută, fie calea index: de exemplu \"https://domain.com/favicon.png\" sau \"/path/to/favicon.png",
     "hideNavButtons": "Ascundeți butoanele de navigare",
     "hideNavButtonsDescription": "Ascundeți butoanele de navigare de pe bara de navigare din share pentru a crea un aspect minimalist.",
-    "viewModeDescription": "Layout implicit pentru pagina partajată."
+    "viewModeDescription": "Layout implicit pentru pagina partajată.",
+    "titleDefault": "Shared files - {title}",
+    "descriptionDefault": "V-a fost trimisă o acțiune pentru a o vizualiza sau descărca.",
+    "disableShareCard": "Dezactivați cardul de partajare",
+    "disableShareCardDescription": "Dezactivați cardul de partajare pe pagina partajată în bara laterală sau în partea de sus a paginii pe mobil.",
+    "disableSidebar": "Dezactivați bara laterală",
+    "disableSidebarDescription": "Dezactivați bara laterală de pe pagina partajată."
   },
   "api": {
     "title": "Chei API:",

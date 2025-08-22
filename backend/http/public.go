@@ -33,6 +33,7 @@ func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		return http.StatusForbidden, fmt.Errorf("share downloads limit reached")
 	}
 	if d.share.DownloadsLimit > 0 {
+		fmt.Println("downloads increased", d.share.Downloads, d.share.DownloadsLimit)
 		d.share.Mu.Lock()
 		d.share.Downloads++
 		d.share.Mu.Unlock()

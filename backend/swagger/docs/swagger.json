@@ -3190,6 +3190,9 @@
                 "disableShareCard": {
                     "type": "boolean"
                 },
+                "disableSidebar": {
+                    "type": "boolean"
+                },
                 "disableThumbnails": {
                     "type": "boolean"
                 },
@@ -3242,6 +3245,9 @@
                 "unit": {
                     "type": "string"
                 },
+                "username": {
+                    "type": "string"
+                },
                 "viewMode": {
                     "type": "string"
                 }
@@ -3273,6 +3279,9 @@
                     "type": "boolean"
                 },
                 "disableShareCard": {
+                    "type": "boolean"
+                },
+                "disableSidebar": {
                     "type": "boolean"
                 },
                 "disableThumbnails": {
@@ -3333,6 +3342,9 @@
                 },
                 "userID": {
                     "type": "integer"
+                },
+                "username": {
+                    "type": "string"
                 },
                 "viewMode": {
                     "type": "string"

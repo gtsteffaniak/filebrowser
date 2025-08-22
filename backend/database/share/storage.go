@@ -7,6 +7,7 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/database/crud"
+	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
@@ -57,14 +58,27 @@ type Storage struct {
 	back       StorageBackend
 	shareCache map[string]*Link
 	mu         sync.RWMutex
+	users      *users.Storage
 }
 
 // NewStorage creates a share links storage from a backend.
-func NewStorage(back StorageBackend) *Storage {
+func NewStorage(back StorageBackend, usersStore *users.Storage) *Storage {
 	return &Storage{
 		Generic:    crud.NewStorage[Link](&crudBackend{back: back}),
 		back:       back,
 		shareCache: make(map[string]*Link),
+		users:      usersStore,
+	}
+}
+
+// setUsername populates the Link.Username from the users store using UserID, if available.
+func (s *Storage) setUsername(l *Link) {
+	if l == nil || s.users == nil {
+		return
+	}
+	user, err := s.users.Get(l.UserID)
+	if err == nil && user != nil {
+		l.Username = user.Username
 	}
 }
 
@@ -78,10 +92,18 @@ func (s *Storage) All() ([]*Link, error) {
 	if err != nil {
 		return nil, err
 	}
-	// warm cache
-	s.mu.Lock()
+	// warm cache: avoid DB calls under lock
 	for _, l := range filtered {
-		if l != nil {
+		s.setUsername(l)
+	}
+	s.mu.Lock()
+	for i, l := range filtered {
+		if l == nil {
+			continue
+		}
+		if existing, ok := s.shareCache[l.Hash]; ok && existing != nil {
+			filtered[i] = existing
+		} else {
 			s.shareCache[l.Hash] = l
 		}
 	}
@@ -99,9 +121,18 @@ func (s *Storage) FindByUserID(id uint) ([]*Link, error) {
 	if err != nil {
 		return nil, err
 	}
-	s.mu.Lock()
+	// inject username outside lock
 	for _, l := range filtered {
-		if l != nil {
+		s.setUsername(l)
+	}
+	s.mu.Lock()
+	for i, l := range filtered {
+		if l == nil {
+			continue
+		}
+		if existing, ok := s.shareCache[l.Hash]; ok && existing != nil {
+			filtered[i] = existing
+		} else {
 			s.shareCache[l.Hash] = l
 		}
 	}
@@ -135,6 +166,7 @@ func (s *Storage) GetByHash(hash string) (*Link, error) {
 		return nil, errors.ErrNotExist
 	}
 	s.mu.Lock()
+	s.setUsername(link)
 	s.shareCache[hash] = link
 	s.mu.Unlock()
 	return link, nil
@@ -145,6 +177,7 @@ func (s *Storage) GetPermanent(path, source string, id uint) (*Link, error) {
 	l, err := s.back.GetPermanent(path, source, id)
 	if err == nil && l != nil {
 		s.mu.Lock()
+		s.setUsername(l)
 		s.shareCache[l.Hash] = l
 		s.mu.Unlock()
 	}
@@ -161,9 +194,17 @@ func (s *Storage) Gets(sourcePath, source string, id uint) ([]*Link, error) {
 	if err != nil {
 		return nil, err
 	}
-	s.mu.Lock()
 	for _, l := range filtered {
-		if l != nil {
+		s.setUsername(l)
+	}
+	s.mu.Lock()
+	for i, l := range filtered {
+		if l == nil {
+			continue
+		}
+		if existing, ok := s.shareCache[l.Hash]; ok && existing != nil {
+			filtered[i] = existing
+		} else {
 			s.shareCache[l.Hash] = l
 		}
 	}
@@ -181,9 +222,17 @@ func (s *Storage) GetBySourcePath(path, source string) ([]*Link, error) {
 	if err != nil {
 		return nil, err
 	}
-	s.mu.Lock()
 	for _, l := range filtered {
-		if l != nil {
+		s.setUsername(l)
+	}
+	s.mu.Lock()
+	for i, l := range filtered {
+		if l == nil {
+			continue
+		}
+		if existing, ok := s.shareCache[l.Hash]; ok && existing != nil {
+			filtered[i] = existing
+		} else {
 			s.shareCache[l.Hash] = l
 		}
 	}
@@ -219,7 +268,13 @@ func (s *Storage) UpdateShares(oldSource, oldPath, newSource, newPath string) (i
 			return updated, err
 		}
 		s.mu.Lock()
-		s.shareCache[l.Hash] = l
+		if existing, ok := s.shareCache[l.Hash]; ok && existing != nil {
+			// update existing cached pointer fields
+			existing.Source = l.Source
+			existing.Path = l.Path
+		} else {
+			s.shareCache[l.Hash] = l
+		}
 		s.mu.Unlock()
 		logger.Info("share updated", "hash", l.Hash, "fromPath", oldFullPath, "toPath", l.Path)
 		updated++

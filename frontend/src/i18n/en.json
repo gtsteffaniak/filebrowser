@@ -162,7 +162,9 @@
     "titleDefault": "Shared files - {title}",
     "descriptionDefault": "A share has been sent to you to view or download.",
     "disableShareCard": "Disable share card",
-    "disableShareCardDescription": "Disable the share card on the shared page in the sidebar or at the top of the page on mobile."
+    "disableShareCardDescription": "Disable the share card on the shared page in the sidebar or at the top of the page on mobile.",
+    "disableSidebar": "Disable sidebar",
+    "disableSidebarDescription": "Disable the sidebar on the shared page."
   },
   "prompts": {
     "downloadsLimit": "Number of downloads limit",
@@ -365,6 +367,7 @@
     "scope": "Scope",
     "settingsUpdated": "Settings updated!",
     "shareDuration": "Expires",
+    "downloads": "Downloads",
     "shareManagement": "Share Management",
     "shareDeleted": "Share deleted!",
     "singleClick": "Use single clicks to open files and directories",

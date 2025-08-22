@@ -11,7 +11,8 @@
           <th>{{ $t("general.hash") }}</th>
           <th>{{ $t("settings.path") }}</th>
           <th>{{ $t("settings.shareDuration") }}</th>
-          <th v-if="user.permissions.admin">{{ $t("settings.username") }}</th>
+          <th>{{ $t("settings.downloads") }}</th>
+          <th>{{ $t("settings.username") }}</th>
           <th></th>
           <th></th>
           <th></th>
@@ -27,7 +28,11 @@
             <template v-if="link.expire !== 0">{{ humanTime(link.expire) }}</template>
             <template v-else>{{ $t("permanent") }}</template>
           </td>
-          <td v-if="user.permissions.admin">{{ link.username }}</td>
+          <td>
+            <template v-if="link.downloadsLimit && link.downloadsLimit > 0">{{ link.downloads }} / {{ link.downloadsLimit }}</template>
+            <template v-else>{{ link.downloads }}</template>
+          </td>
+          <td>{{ link.username }}</td>
           <td class="small">
             <button class="action" @click="editLink(link)" :aria-label="$t('buttons.edit')"
               :title="$t('buttons.edit')">
@@ -151,3 +156,9 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+tr > td {
+  text-align: center;
+}
+</style>

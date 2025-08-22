@@ -679,6 +679,8 @@ definitions:
         type: boolean
       disableShareCard:
         type: boolean
+      disableSidebar:
+        type: boolean
       disableThumbnails:
         type: boolean
       downloadURL:
@@ -714,6 +716,8 @@ definitions:
         type: string
       unit:
         type: string
+      username:
+        type: string
       viewMode:
         type: string
     type: object
@@ -735,6 +739,8 @@ definitions:
       disableFileViewer:
         type: boolean
       disableShareCard:
+        type: boolean
+      disableSidebar:
         type: boolean
       disableThumbnails:
         type: boolean
@@ -779,6 +785,8 @@ definitions:
         type: string
       userID:
         type: integer
+      username:
+        type: string
       viewMode:
         type: string
     type: object

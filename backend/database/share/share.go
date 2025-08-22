@@ -25,6 +25,8 @@ type CommonShare struct {
 	Path                string   `json:"path,omitempty"`
 	DownloadURL         string   `json:"downloadURL,omitempty"`
 	DisableShareCard    bool     `json:"disableShareCard,omitempty"`
+	DisableSidebar      bool     `json:"disableSidebar,omitempty"`
+	Username            string   `json:"username,omitempty"`
 }
 type CreateBody struct {
 	CommonShare

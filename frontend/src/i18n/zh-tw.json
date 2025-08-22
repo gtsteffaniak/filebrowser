@@ -297,7 +297,8 @@
     "api": "API 金鑰",
     "shareDuration": "到期",
     "shareDeleted": "分享已刪除！",
-    "adminOptions": "管理員使用者選項"
+    "adminOptions": "管理員使用者選項",
+    "downloads": "下載"
   },
   "sidebar": {
     "help": "幫助",
@@ -354,7 +355,13 @@
     "shareFaviconDescription": "用戶端可存取的 Favicon URL 或路徑 - 接受絕對路徑或索引路徑：例如「https://domain.com/favicon.png」或「/path/to/favicon.png",
     "hideNavButtons": "隱藏導覽按鈕",
     "hideNavButtonsDescription": "隱藏分享中導覽列上的導覽按鈕，以創造簡約的外觀。",
-    "viewModeDescription": "共用頁面的預設版面。"
+    "viewModeDescription": "共用頁面的預設版面。",
+    "titleDefault": "Shared files - {title}",
+    "descriptionDefault": "已向您發送一份共用檔案，供您檢視或下載。",
+    "disableShareCard": "停用分享卡",
+    "disableShareCardDescription": "停用分享頁面側邊欄或行動版頁面頂端的分享卡。",
+    "disableSidebar": "停用側邊欄",
+    "disableSidebarDescription": "停用共用頁面上的側邊欄。"
   },
   "api": {
     "title": "API 金鑰",

@@ -50,12 +50,7 @@ export default {
       try {
         event.preventDefault();
         if (this.name === "") return;
-        await filesApi.post(
-          state.req.source,
-          state.req.path + "/" + this.name,
-          "",
-          true
-        );
+        await filesApi.post(state.req.source,state.req.path + "/" + this.name, "", true );
         goToItem(
           state.req.source,
           state.req.path + "/" + encodeURIComponent(this.name)

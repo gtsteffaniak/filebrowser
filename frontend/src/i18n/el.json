@@ -300,7 +300,8 @@
     "shareSettings": "Ρυθμίσεις κοινής χρήσης",
     "adminOptions": "Επιλογές χρήστη διαχειριστή",
     "shareDuration": "Λήγει",
-    "searchOptions": "Επιλογές αναζήτησης"
+    "searchOptions": "Επιλογές αναζήτησης",
+    "downloads": "Λήψεις"
   },
   "sidebar": {
     "help": "Βοήθεια",
@@ -354,7 +355,13 @@
     "shareFaviconDescription": "Διεύθυνση URL ή διαδρομή Favicon προσβάσιμη από τον πελάτη -- γίνονται δεκτές είτε η απόλυτη διαδρομή είτε η διαδρομή ευρετηρίου: π.χ. 'https://domain.com/favicon.png' ή '/path/to/favicon.png'.",
     "hideNavButtons": "Απόκρυψη κουμπιών πλοήγησης",
     "hideNavButtonsDescription": "Κρύψτε τα κουμπιά πλοήγησης στη γραμμή πλοήγησης στο μερίδιο για να δημιουργήσετε μια μινιμαλιστική εμφάνιση.",
-    "viewModeDescription": "Προεπιλεγμένη διάταξη για την κοινή σελίδα."
+    "viewModeDescription": "Προεπιλεγμένη διάταξη για την κοινή σελίδα.",
+    "titleDefault": "Shared files - {title}",
+    "descriptionDefault": "Σας έχει αποσταλεί ένα share για να το δείτε ή να το κατεβάσετε.",
+    "disableShareCard": "Απενεργοποίηση κάρτας κοινής χρήσης",
+    "disableShareCardDescription": "Απενεργοποιήστε την κάρτα κοινής χρήσης στην κοινόχρηστη σελίδα στην πλαϊνή μπάρα ή στην κορυφή της σελίδας στο κινητό.",
+    "disableSidebar": "Απενεργοποίηση πλευρικής μπάρας",
+    "disableSidebarDescription": "Απενεργοποιήστε την πλαϊνή μπάρα στην κοινή σελίδα."
   },
   "api": {
     "title": "Κλειδιά API:",

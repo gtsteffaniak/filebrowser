@@ -136,6 +136,7 @@
           <ToggleSwitch class="item" v-model="disableThumbnails" :name="$t('share.disableThumbnails')" :description="$t('share.disableThumbnailsDescription')" />
           <ToggleSwitch class="item" v-model="disableNavButtons" :name="$t('share.hideNavButtons')" :description="$t('share.hideNavButtonsDescription')" />
           <ToggleSwitch class="item" v-model="disableShareCard" :name="$t('share.disableShareCard')" :description="$t('share.disableShareCardDescription')" />
+          <ToggleSwitch class="item" v-model="disableSidebar" :name="$t('share.disableSidebar')" :description="$t('share.disableSidebarDescription')" />
         </div>
 
         <p>
@@ -312,6 +313,7 @@ export default {
       quickDownload: false,
       disableNavButtons: false,
       disableShareCard: false,
+      disableSidebar: false,
       //viewMode: "normal",
     };
   },
@@ -385,6 +387,7 @@ export default {
           this.quickDownload = this.link.quickDownload || false;
           this.disableNavButtons = this.link.hideNavButtons || false;
           this.disableShareCard = this.link.disableShareCard || false;
+          this.disableSidebar = this.link.disableSidebar || false;
           //this.viewMode = this.link.viewMode || "normal";
         }
       },

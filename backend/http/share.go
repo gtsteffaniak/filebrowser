@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -38,17 +37,10 @@ func shareListHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	} else {
 		shares, err = store.Share.FindByUserID(d.user.ID)
 	}
-
 	if err != nil && err != errors.ErrNotExist {
 		return http.StatusInternalServerError, err
 	}
 	shares = utils.NonNilSlice(shares)
-	sort.Slice(shares, func(i, j int) bool {
-		if shares[i].UserID != shares[j].UserID {
-			return shares[i].UserID < shares[j].UserID
-		}
-		return shares[i].Expire < shares[j].Expire
-	})
 	return renderJSON(w, r, shares)
 }
 
@@ -192,6 +184,11 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		s.Expire = expire
 		s.PasswordHash = stringHash
 		s.Token = token
+		// Preserve immutable fields for updates. Path and Source should not change on edits.
+		// If the request attempts to provide empty values (or any values) for these,
+		// keep the existing ones from the stored share.
+		body.CommonShare.Path = s.CommonShare.Path
+		body.CommonShare.Source = s.CommonShare.Source
 		s.CommonShare = body.CommonShare
 		if err = store.Share.Save(s); err != nil {
 			return http.StatusInternalServerError, err

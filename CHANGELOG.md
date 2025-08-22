@@ -9,13 +9,14 @@ All notable changes to this project will be documented in this file. For commit 
  - added `source.config.disabled` option to disable a source without removing it from config file.
  - added `source.config.private` option to designate as private -- currently just means no sharing permitted.
  - hide share card in share
+ - download count for a share shows up on share management
 
  **BugFixes**:
  - fixed styling issues https://github.com/gtsteffaniak/filebrowser/issues/1086 https://github.com/gtsteffaniak/filebrowser/issues/1081 https://github.com/gtsteffaniak/filebrowser/issues/1082
  - fix download limit issue https://github.com/gtsteffaniak/filebrowser/issues/1085
  - fixed oidc user defaults for new user https://github.com/gtsteffaniak/filebrowser/issues/1071
  - shares get updated when files moved in ui https://github.com/gtsteffaniak/filebrowser/issues/760
- - file creation in share doesn't respect share path
+ - click listing behavior doesn't clear (introduced in 0.8.0)
 
 ## v0.8.0-beta
 

@@ -2,6 +2,7 @@
   <div class="share-sidebar">
     <div class="share-sidebar__content">
       <ShareInfo
+        v-if="!disableShareCard"
         :hash="hash"
         :token="token"
         :sub-path="subPath"
@@ -12,6 +13,7 @@
 
 <script>
 import ShareInfo from "@/components/files/ShareInfo.vue";
+import { shareOverrides } from "@/utils/constants";
 
 export default {
   name: "SidebarShare",
@@ -30,6 +32,11 @@ export default {
     subPath: {
       type: String,
       default: "/",
+    },
+  },
+  computed: {
+    disableShareCard() {
+      return shareOverrides.disableShareCard;
     },
   },
 };
