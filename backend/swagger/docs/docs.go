@@ -2235,7 +2235,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Download speed limit in bytes per second (default: unlimited)",
+                        "description": "Download speed limit in kbps (default: unlimited)",
                         "name": "speed",
                         "in": "query"
                     }
