@@ -449,7 +449,6 @@
     "toggleClick": "Toggle Single Click",
     "toggleDark": "Toggle Dark Mode",
     "toggleSticky": "Toggle Sticky Mode",
-    "of": "of",
     "used": "used",
     "noSources": "No sources available for this user. Either add a source for this user or configure a source with defaultEnabled: true"
   },
@@ -476,7 +475,8 @@
     "folders": "Folders",
     "exit": "Exit",
     "permanent": "Permanent",
-    "hash": "Hash"
+    "hash": "Hash",
+    "of": "of"
   },
   "access": {
     "all": "Deny All",

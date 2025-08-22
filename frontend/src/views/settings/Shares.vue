@@ -29,7 +29,7 @@
             <template v-else>{{ $t("permanent") }}</template>
           </td>
           <td>
-            <template v-if="link.downloadsLimit && link.downloadsLimit > 0">{{ link.downloads }} / {{ link.downloadsLimit }}</template>
+            <template v-if="link.downloadsLimit && link.downloadsLimit > 0">{{ link.downloads }} / {{ link.downloadsLimit }}</template> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
             <template v-else>{{ link.downloads }}</template>
           </td>
           <td>{{ link.username }}</td>

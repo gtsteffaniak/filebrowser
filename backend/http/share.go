@@ -187,8 +187,8 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		// Preserve immutable fields for updates. Path and Source should not change on edits.
 		// If the request attempts to provide empty values (or any values) for these,
 		// keep the existing ones from the stored share.
-		body.CommonShare.Path = s.CommonShare.Path
-		body.CommonShare.Source = s.CommonShare.Source
+		body.Path = s.Path
+		body.Source = s.Source
 		s.CommonShare = body.CommonShare
 		if err = store.Share.Save(s); err != nil {
 			return http.StatusInternalServerError, err

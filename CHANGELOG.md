@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file. For commit 
 ## v0.8.1-beta
 
  **New Features**:
- - api for generate download link https://github.com/gtsteffaniak/filebrowser/issues/1007
+ - api for generate download link (see swagger) https://github.com/gtsteffaniak/filebrowser/issues/1007
  - added `source.config.disabled` option to disable a source without removing it from config file.
  - added `source.config.private` option to designate as private -- currently just means no sharing permitted.
  - hide share card in share
