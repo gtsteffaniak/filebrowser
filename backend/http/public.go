@@ -32,11 +32,9 @@ func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	if d.share.DownloadsLimit > 0 && d.share.Downloads >= d.share.DownloadsLimit {
 		return http.StatusForbidden, fmt.Errorf("share downloads limit reached")
 	}
-	if d.share.DownloadsLimit > 0 {
-		d.share.Mu.Lock()
-		d.share.Downloads++
-		d.share.Mu.Unlock()
-	}
+	d.share.Mu.Lock()
+	d.share.Downloads++
+	d.share.Mu.Unlock()
 	encodedFiles := r.URL.Query().Get("files")
 
 	// Decode the URL-encoded path
