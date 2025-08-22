@@ -52,6 +52,16 @@ func (s shareBackend) GetPermanent(path, source string, id uint) (*share.Link, e
 	return &v, nil
 }
 
+// GetBySourcePath returns all shares that exactly match Path and Source across users.
+func (s shareBackend) GetBySourcePath(path, source string) ([]*share.Link, error) {
+	var v []*share.Link
+	err := s.db.Select(q.Eq("Path", path), q.Eq("Source", source)).Find(&v)
+	if err == storm.ErrNotFound {
+		return nil, errors.ErrNotExist
+	}
+	return v, err
+}
+
 func (s shareBackend) Gets(path, sourcePath string, id uint) ([]*share.Link, error) {
 	var v []*share.Link
 	_ = s.db.Select(q.Eq("Path", path), q.Eq("Source", sourcePath), q.Eq("UserID", id)).Find(&v)
@@ -60,7 +70,7 @@ func (s shareBackend) Gets(path, sourcePath string, id uint) ([]*share.Link, err
 	// through and filter out expired share
 	for i := range v {
 		if v[i].Expire < time.Now().Unix() && v[i].Expire != 0 {
-			err = s.Delete(v[i].PasswordHash)
+			err = s.Delete(v[i].Hash)
 			if err != nil {
 				logger.Errorf("expired share could not be deleted: %v", err.Error())
 			}

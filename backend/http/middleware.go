@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/url"
 	"runtime"
 	"slices"
 	"strings"
@@ -47,12 +46,7 @@ type handleFunc func(w http.ResponseWriter, r *http.Request, data *requestContex
 func withHashFileHelper(fn handleFunc) handleFunc {
 	return withOrWithoutUserHelper(func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
 		hash := r.URL.Query().Get("hash")
-		encodedPath := r.URL.Query().Get("path")
-		// Decode the URL-encoded path
-		path, err := url.QueryUnescape(encodedPath)
-		if err != nil {
-			return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
-		}
+		path := r.URL.Query().Get("path")
 		// Get the file link by hash
 		link, err := store.Share.GetByHash(hash)
 		if err != nil {
@@ -79,10 +73,13 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		if !ok {
 			return http.StatusNotFound, fmt.Errorf("source not found")
 		}
+		if source.Config.Private {
+			return http.StatusForbidden, fmt.Errorf("the target source is private")
+		}
 		// Get file information with options
 		file, err := FileInfoFasterFunc(iteminfo.FileOptions{
 			Path:    utils.JoinPathAsUnix(link.Path, path),
-			Source:  source.Name,
+			Source:  link.Source,
 			Modify:  false,
 			Expand:  true,
 			Content: r.URL.Query().Get("content") == "true",
@@ -165,7 +162,7 @@ func withOrWithoutUserHelper(fn handleFunc) handleFunc {
 			// Call the handler function without user context
 			return fn(w, r, data)
 		}
-		return status, fmt.Errorf("could not authenticate share request")
+		return status, fmt.Errorf("could not authenticate request")
 	}
 }
 
@@ -267,11 +264,10 @@ func withUserHelper(fn handleFunc) handleFunc {
 		// Check if the token is about to expire and send a header to renew it
 		if tk.Expires < time.Now().Add(time.Hour).Unix() {
 			w.Header().Add("X-Renew-Token", "true")
-		}
-
-		// Retrieve the user from the store and store it in the context
+		} // Retrieve the user from the store and store it in the context
 		data.user, err = store.Users.Get(tk.BelongsTo)
 		if err != nil {
+			logger.Errorf("Failed to get user with ID %v: %v", tk.BelongsTo, err)
 			return http.StatusInternalServerError, err
 		}
 		setUserInResponseWriter(w, data.user)

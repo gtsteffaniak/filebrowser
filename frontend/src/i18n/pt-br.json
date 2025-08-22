@@ -297,7 +297,8 @@
     "shareSettings": "Compartilhar configurações",
     "adminOptions": "Opções do usuário administrador",
     "shareDuration": "Expirações",
-    "searchOptions": "Opções de pesquisa"
+    "searchOptions": "Opções de pesquisa",
+    "downloads": "Downloads"
   },
   "sidebar": {
     "help": "Ajuda",
@@ -354,7 +355,13 @@
     "shareFaviconDescription": "URL ou caminho do Favicon acessível pelo cliente - são aceitos caminhos abosolutos ou de índice: por exemplo, \"https://domain.com/favicon.png\" ou \"/path/to/favicon.png\".",
     "hideNavButtons": "Ocultar botões de navegação",
     "hideNavButtonsDescription": "Oculte os botões de navegação na barra de navegação do compartilhamento para criar uma aparência minimalista.",
-    "viewModeDescription": "Layout padrão para a página compartilhada."
+    "viewModeDescription": "Layout padrão para a página compartilhada.",
+    "titleDefault": "Shared files - {title}",
+    "descriptionDefault": "Um compartilhamento foi enviado a você para visualização ou download.",
+    "disableShareCard": "Desativar cartão compartilhado",
+    "disableShareCardDescription": "Desative o cartão de compartilhamento na página compartilhada na barra lateral ou na parte superior da página no celular.",
+    "disableSidebar": "Desativar a barra lateral",
+    "disableSidebarDescription": "Desative a barra lateral na página compartilhada."
   },
   "api": {
     "title": "Chaves de API:",
@@ -391,7 +398,6 @@
     "toggleClick": "Alternar clique único",
     "toggleDark": "Alternar o modo escuro",
     "toggleSticky": "Alternar o modo de aderência",
-    "of": "de",
     "used": "usado",
     "noSources": "Não há fontes disponíveis para esse usuário. Adicione uma fonte para esse usuário ou configure uma fonte com defaultEnabled: true"
   },
@@ -418,7 +424,8 @@
     "folders": "Pastas",
     "exit": "Sair",
     "permanent": "Permanente",
-    "hash": "Hash"
+    "hash": "Hash",
+    "of": "de"
   },
   "access": {
     "rules": "Regras de acesso",

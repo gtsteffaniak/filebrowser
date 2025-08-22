@@ -63,8 +63,8 @@ type GroupMap map[string]StringSet
 // Storage manages access rules and group membership.
 type Storage struct {
 	mux      sync.RWMutex
-	AllRules SourceRuleMap  // AllRules[sourcePath][indexPath]
-	Groups   GroupMap       // key: group name, value: set of usernames
+	AllRules SourceRuleMap  // AllRules[sourcePath][indexPath] - in-memory authoritative state
+	Groups   GroupMap       // key: group name, value: set of usernames - in-memory authoritative state
 	DB       *storm.DB      // Optional: DB for persistence
 	Users    *users.Storage // Reference to users storage
 }
@@ -82,6 +82,12 @@ func (s *Storage) SaveToDB() error {
 		return err
 	}
 	return s.DB.Set(accessRulesBucket, accessRulesKey, data)
+}
+
+// Flush persists the current in-memory state to the backing store.
+// Call during graceful shutdown to ensure DB matches memory.
+func (s *Storage) Flush() error {
+	return s.SaveToDB()
 }
 
 // LoadFromDB loads all rules from the DB if DB is set.

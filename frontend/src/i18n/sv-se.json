@@ -297,7 +297,8 @@
     "shareDeleted": "Dela borttaget!",
     "adminOptions": "Alternativ för administratörsanvändare",
     "shareDuration": "Upphör att gälla",
-    "searchOptions": "Sökalternativ"
+    "searchOptions": "Sökalternativ",
+    "downloads": "Nedladdningar"
   },
   "sidebar": {
     "help": "Hjälp",
@@ -354,7 +355,13 @@
     "shareFaviconDescription": "URL eller sökväg till Favicon som är tillgänglig för klienten - antingen abosolute eller indexsökväg accepteras: t.ex. \"https://domain.com/favicon.png\" eller \"/path/to/favicon.png",
     "hideNavButtons": "Dölj navigeringsknappar",
     "hideNavButtonsDescription": "Dölj navigeringsknapparna i navigeringsfältet i aktien för att skapa ett minimalistiskt utseende.",
-    "viewModeDescription": "Standardlayout för den delade sidan."
+    "viewModeDescription": "Standardlayout för den delade sidan.",
+    "titleDefault": "Shared files - {title}",
+    "descriptionDefault": "En aktie har skickats till dig för visning eller nedladdning.",
+    "disableShareCard": "Inaktivera aktiekort",
+    "disableShareCardDescription": "Inaktivera delningskortet på den delade sidan i sidofältet eller högst upp på sidan på mobilen.",
+    "disableSidebar": "Inaktivera sidofält",
+    "disableSidebarDescription": "Inaktivera sidofältet på den delade sidan."
   },
   "api": {
     "title": "API-nycklar",
@@ -391,7 +398,6 @@
     "toggleClick": "Toggle Enkelklick",
     "toggleDark": "Växla till mörkt läge",
     "toggleSticky": "Växla klisterläge",
-    "of": "av",
     "used": "används",
     "noSources": "Inga källor tillgängliga för den här användaren. Lägg antingen till en källa för den här användaren eller konfigurera en källa med defaultEnabled: true"
   },
@@ -484,7 +490,8 @@
     "folders": "Mappar",
     "exit": "Avsluta",
     "permanent": "Permanent",
-    "hash": "Hash"
+    "hash": "Hash",
+    "of": "av"
   },
   "access": {
     "rules": "Regler för åtkomst",

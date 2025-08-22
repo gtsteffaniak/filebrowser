@@ -297,7 +297,8 @@
     "shareSettings": "Condividi le impostazioni",
     "adminOptions": "Opzioni dell'utente amministratore",
     "shareDuration": "Scadenza",
-    "searchOptions": "Opzioni di ricerca"
+    "searchOptions": "Opzioni di ricerca",
+    "downloads": "Scaricamento"
   },
   "sidebar": {
     "help": "Aiuto",
@@ -354,7 +355,13 @@
     "shareFaviconDescription": "URL o percorso della favicon accessibile dal client -- sono accettati sia il percorso assoluto che quello indice: ad esempio 'https://domain.com/favicon.png' o '/path/to/favicon.png'.",
     "hideNavButtons": "Nascondere i pulsanti di navigazione",
     "hideNavButtonsDescription": "Nascondere i pulsanti di navigazione sulla navbar nella condivisione per creare un look minimalista.",
-    "viewModeDescription": "Layout predefinito per la pagina condivisa."
+    "viewModeDescription": "Layout predefinito per la pagina condivisa.",
+    "titleDefault": "Shared files - {title}",
+    "descriptionDefault": "È stata inviata una condivisione da visualizzare o scaricare.",
+    "disableShareCard": "Disattivare la scheda di condivisione",
+    "disableShareCardDescription": "Disattivare la scheda di condivisione sulla pagina condivisa nella barra laterale o nella parte superiore della pagina su mobile.",
+    "disableSidebar": "Disattivare la barra laterale",
+    "disableSidebarDescription": "Disattivare la barra laterale della pagina condivisa."
   },
   "api": {
     "title": "Chiavi API:",
@@ -391,7 +398,6 @@
     "toggleClick": "Alterna il clic singolo",
     "toggleDark": "Alterna la modalità scura",
     "toggleSticky": "Alterna la modalità appiccicosa",
-    "of": "di",
     "used": "usato",
     "noSources": "Non ci sono fonti disponibili per questo utente. Aggiungere una fonte per questo utente o configurare una fonte con defaultEnabled: true."
   },
@@ -418,7 +424,8 @@
     "folders": "Cartelle",
     "exit": "Uscita",
     "permanent": "Permanente",
-    "hash": "Hash"
+    "hash": "Hash",
+    "of": "di"
   },
   "access": {
     "rules": "Regole di accesso",

@@ -297,7 +297,8 @@
     "api": "API 密钥",
     "adminOptions": "管理员用户选项",
     "shareDuration": "到期",
-    "searchOptions": "搜索选项"
+    "searchOptions": "搜索选项",
+    "downloads": "下载"
   },
   "sidebar": {
     "help": "帮助",
@@ -354,7 +355,13 @@
     "shareFaviconDescription": "客户端可访问的 Favicon URL 或路径--接受绝对路径或索引路径：例如 \"https://domain.com/favicon.png \"或\"/path/to/favicon.png\"。",
     "hideNavButtons": "隐藏导航按钮",
     "hideNavButtonsDescription": "隐藏共享导航栏上的导航按钮，打造简约外观。",
-    "viewModeDescription": "共享页面的默认布局。"
+    "viewModeDescription": "共享页面的默认布局。",
+    "titleDefault": "Shared files - {title}",
+    "descriptionDefault": "您已收到一份共享文件，供您查看或下载。",
+    "disableShareCard": "禁用共享卡",
+    "disableShareCardDescription": "禁用共享页面侧边栏或手机页面顶部的共享卡。",
+    "disableSidebar": "禁用侧边栏",
+    "disableSidebarDescription": "禁用共享页面上的边栏。"
   },
   "api": {
     "title": "应用程序接口密钥",
@@ -391,7 +398,6 @@
     "toggleClick": "单击切换",
     "toggleDark": "切换黑暗模式",
     "toggleSticky": "切换粘贴模式",
-    "of": "的",
     "used": "中古",
     "noSources": "该用户没有可用的信息源。要么为该用户添加一个信息源，要么配置一个默认为 true 的信息源。"
   },
@@ -484,7 +490,8 @@
     "folders": "文件夹",
     "exit": "退出",
     "permanent": "永久性",
-    "hash": "散列"
+    "hash": "散列",
+    "of": "的"
   },
   "access": {
     "rules": "访问规则",

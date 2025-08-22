@@ -21,7 +21,9 @@ server:
     - path: "/relative/or/absolute/path"  # file system path. (Can be relative)  validate:required
       name: "backend"                     # display name
       config:
-        indexingIntervalMinutes: 0        # optional manual overide interval in seconds to re-index the source
+        private: false                    # designate as source as private -- currently just means no sharing permitted.
+        disabled: false                   # disable the source, this is useful so you don't need to remove it from the config file
+        indexingIntervalMinutes: 0        # optional manual overide interval in minutes to re-index the source
         disableIndexing: false            # disable the indexing of this source
         maxWatchers: 0                    # number of concurrent watchers to use for this source, currently not supported
         neverWatchPaths: []

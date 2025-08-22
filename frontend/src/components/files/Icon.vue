@@ -19,7 +19,7 @@
     />
   </span>
   <span v-else>
-    <i :class="[classes, { active: active }]" class="icon"> {{ materialIcon }} </i>
+    <i :class="[classes, { active: active, clickable: clickable }]" class="icon"> {{ materialIcon }} </i>
   </span>
 </template>
 
@@ -55,6 +55,10 @@ export default {
     thumbnailUrl: {
       type: String,
       default: "",
+    },
+    clickable: {
+      type: Boolean,
+      default: false,
     },
   },
   data() {

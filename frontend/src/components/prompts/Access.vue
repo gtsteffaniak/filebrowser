@@ -16,7 +16,7 @@
     </div>
     <div v-else>
       <p>{{ $t("prompts.source", { suffix: ":" }) }} {{ currentSource }}</p>
-      <div aria-label="access-path" class="searchContext" @click="startPathEdit" style="cursor: pointer;">
+      <div aria-label="access-path" class="searchContext clickable" @click="startPathEdit">
         {{ $t("search.path") }} {{ currentPath }}
       </div>
       <!-- Add Form -->

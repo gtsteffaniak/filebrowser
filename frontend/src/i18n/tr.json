@@ -297,7 +297,8 @@
     "shareSettings": "Paylaşım Ayarları",
     "adminOptions": "Yönetici kullanıcı seçenekleri",
     "shareDuration": "Sona erdi",
-    "searchOptions": "Arama seçenekleri"
+    "searchOptions": "Arama seçenekleri",
+    "downloads": "İndirmeler"
   },
   "sidebar": {
     "help": "Yardım",
@@ -354,7 +355,13 @@
     "shareFaviconDescription": "Favicon URL'si veya istemci tarafından erişilebilen yol -- mutlak veya dizin yolu kabul edilir: örneğin 'https://domain.com/favicon.png' veya '/path/to/favicon.png'",
     "hideNavButtons": "Gezinme düğmelerini gizle",
     "hideNavButtonsDescription": "Minimalist bir görünüm oluşturmak için paylaşımdaki gezinme çubuğundaki gezinme düğmelerini gizleyin.",
-    "viewModeDescription": "Paylaşılan sayfa için varsayılan düzen."
+    "viewModeDescription": "Paylaşılan sayfa için varsayılan düzen.",
+    "titleDefault": "Shared files - {title}",
+    "descriptionDefault": "Görüntülemeniz veya indirmeniz için size bir paylaşım gönderildi.",
+    "disableShareCard": "Paylaşım kartını devre dışı bırak",
+    "disableShareCardDescription": "Kenar çubuğunda paylaşılan sayfadaki veya mobil cihazlarda sayfanın üst kısmındaki paylaşım kartını devre dışı bırakın.",
+    "disableSidebar": "Kenar çubuğunu devre dışı bırak",
+    "disableSidebarDescription": "Paylaşılan sayfadaki kenar çubuğunu devre dışı bırakın."
   },
   "api": {
     "title": "API Anahtarları:",
@@ -391,7 +398,6 @@
     "toggleClick": "Tek Tıklamayı Değiştir",
     "toggleDark": "Karanlık Modu Aç / Kapat",
     "toggleSticky": "Yapışkan Modunu Değiştir",
-    "of": ".",
     "used": "kullanılmış",
     "noSources": "Bu kullanıcı için kullanılabilir kaynak yok. Ya bu kullanıcı için bir kaynak ekleyin ya da defaultEnabled: true ile bir kaynak yapılandırın"
   },
@@ -418,7 +424,8 @@
     "folders": "Klasörler",
     "exit": "Çıkış",
     "permanent": "Daimi",
-    "hash": "Hash"
+    "hash": "Hash",
+    "of": "."
   },
   "access": {
     "rules": "Erişim kuralları",

@@ -70,7 +70,7 @@ import MarkdownViewer from "./files/MarkdownViewer.vue";
 import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
 import router from "@/router";
-import { baseURL } from "@/utils/constants";
+import { baseURL, shareOverrides } from "@/utils/constants";
 import PopupPreview from "@/components/files/PopupPreview.vue";
 import { extractSourceFromPath } from "@/utils/url";
 import ShareInfo from "@/components/files/ShareInfo.vue";
@@ -110,7 +110,7 @@ export default {
       return state.share;
     },
     showShareInfo() {
-      return this.isShare && state.share.hash && state.isMobile && state.req.path == "/";
+      return this.isShare && state.share.hash && state.isMobile && state.req.path == "/" && !shareOverrides.disableShareCard;
     },
     isShare() {
       return getters.isShare();
@@ -157,7 +157,15 @@ export default {
       if (window.location.hash === this.lastHash) return;
       this.lastHash = window.location.hash;
       if (window.location.hash) {
-        const id = url.base64Encode(window.location.hash.slice(1));
+        const rawHash = window.location.hash.slice(1);
+        let decodedName = rawHash;
+        try {
+          decodedName = decodeURIComponent(rawHash);
+        } catch (e) {
+          // If the hash contains malformed escape sequences, fall back to raw
+          decodedName = rawHash;
+        }
+        const id = url.base64Encode(encodeURIComponent(decodedName));
         const element = document.getElementById(id);
         if (element) {
           element.scrollIntoView({

@@ -1,10 +1,8 @@
 <template>
   <a
     :href="getUrl()"
+    class="item listing-item clickable no-select"
     :class="{
-      item: true,
-      'no-select': true,
-      'listing-item': true,
       activebutton: isSelected,
       hiddenFile: isHiddenNotSelected && this && !this.isDraggedOver,
       'half-selected': isDraggedOver,
@@ -62,6 +60,7 @@
       role="button"
       aria-label="Download"
       tabindex="0"
+      :clickable=true
     />
   </a>
 </template>

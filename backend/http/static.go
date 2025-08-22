@@ -61,6 +61,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"description":       "FileBrowser Quantum is a file manager for the web which can be used to manage files on your server",
 	}
 	shareOverrides := map[string]interface{}{
+		"isShare":           false,
 		"banner":            "",
 		"title":             "",
 		"quickDownload":     false,
@@ -69,6 +70,8 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"disableThumbnails": false,
 		"viewMode":          "list",
 		"disableFileViewer": false,
+		"disableShareCard":  false,
+		"disableSidebar":    false,
 	}
 	disableNavButtons := settings.Config.Frontend.DisableNavButtons
 	if d.share != nil {
@@ -81,6 +84,9 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		shareOverrides["quickDownload"] = d.share.QuickDownload
 		shareOverrides["disableThumbnails"] = d.share.DisableThumbnails
 		shareOverrides["disableFileViewer"] = d.share.DisablingFileViewer
+		shareOverrides["disableShareCard"] = d.share.DisableShareCard
+		shareOverrides["disableSidebar"] = d.share.DisableSidebar
+		shareOverrides["isShare"] = true
 		if d.share.Favicon != "" {
 			if strings.HasPrefix(d.share.Favicon, "http") {
 				data["favicon"] = d.share.Favicon

@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.8.1-beta
+
+ **New Features**:
+ - api for generate download link (see swagger) https://github.com/gtsteffaniak/filebrowser/issues/1007
+ - added `source.config.disabled` option to disable a source without removing it from config file.
+ - added `source.config.private` option to designate as private -- currently just means no sharing permitted.
+ - hide share card in share
+ - download count for a share shows up on share management
+
+ **Notes**:
+ - updated description for indexingIntervalMinutes https://github.com/gtsteffaniak/filebrowser/issues/1067
+
+ **BugFixes**:
+ - fixed styling issues https://github.com/gtsteffaniak/filebrowser/issues/1086 https://github.com/gtsteffaniak/filebrowser/issues/1081 https://github.com/gtsteffaniak/filebrowser/issues/1082 https://github.com/gtsteffaniak/filebrowser/issues/1098
+ - fix download limit issue https://github.com/gtsteffaniak/filebrowser/issues/1085
+ - fixed oidc user defaults for new user https://github.com/gtsteffaniak/filebrowser/issues/1071
+ - shares get updated when files moved in ui https://github.com/gtsteffaniak/filebrowser/issues/760
+ - click listing behavior doesn't clear (introduced in 0.8.0) https://github.com/gtsteffaniak/filebrowser/issues/1101
+ - show download count and limit in share list in settings https://github.com/gtsteffaniak/filebrowser/issues/1103
+ - fix windows alt+arrow movement issue https://github.com/gtsteffaniak/filebrowser/issues/1094
+ - nav memory issue for filenames with brackets https://github.com/gtsteffaniak/filebrowser/issues/1092
+ - files with "+"" in name issue https://github.com/gtsteffaniak/filebrowser/issues/1089
+ - fixed editor bug in share view https://github.com/gtsteffaniak/filebrowser/issues/1084
+ - other share related issues https://github.com/gtsteffaniak/filebrowser/issues/1087 https://github.com/gtsteffaniak/filebrowser/issues/1064
+
+
 ## v0.8.0-beta
 
   This is a major release, new features and changes could introduce breaking behavior. Here are the known potentially breaking changes:

@@ -158,7 +158,13 @@
     "shareFaviconDescription": "Adresa URL nebo cesta k faviconě přístupná klientovi -- akceptována je buď absolutní, nebo indexová cesta: např. \"https://domain.com/favicon.png\" nebo \"/path/to/favicon.png\".",
     "hideNavButtons": "Skrytí navigačních tlačítek",
     "hideNavButtonsDescription": "Skryjte navigační tlačítka na panelu navigace ve sdíleném okně, abyste vytvořili minimalistický vzhled.",
-    "viewModeDescription": "Výchozí rozložení sdílené stránky."
+    "viewModeDescription": "Výchozí rozložení sdílené stránky.",
+    "titleDefault": "Shared files - {title}",
+    "descriptionDefault": "Byl vám zaslán podíl, který si můžete prohlédnout nebo stáhnout.",
+    "disableShareCard": "Zakázat sdílenou kartu",
+    "disableShareCardDescription": "Zakázat kartu sdílení na sdílené stránce v postranním panelu nebo v horní části stránky na mobilním telefonu.",
+    "disableSidebar": "Zakázat postranní panel",
+    "disableSidebarDescription": "Zakázat postranní panel na sdílené stránce."
   },
   "prompts": {
     "copy": "Kopírovat",
@@ -379,7 +385,8 @@
     "userUpdated": "Uživatel aktualizován!",
     "username": "Uživatelské jméno",
     "users": "Uživatelé",
-    "adminOptions": "Možnosti administrátora"
+    "adminOptions": "Možnosti administrátora",
+    "downloads": "Ke stažení na"
   },
   "sidebar": {
     "help": "Nápověda",
@@ -442,7 +449,6 @@
     "toggleClick": "Přepnout jedno kliknutí",
     "toggleDark": "Přepnout tmavý režim",
     "toggleSticky": "Přepnout sticky režim",
-    "of": "z",
     "used": "použito",
     "noSources": "Pro tohoto uživatele nejsou dostupné žádné zdroje. Přidejte zdroj pro uživatele nebo nastavte zdroj s defaultEnabled: true"
   },
@@ -484,7 +490,8 @@
     "folders": "Složky",
     "exit": "Exit",
     "permanent": "Permanentní",
-    "hash": "Hash"
+    "hash": "Hash",
+    "of": "z"
   },
   "access": {
     "rules": "Pravidla přístupu",
