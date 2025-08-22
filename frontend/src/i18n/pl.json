@@ -398,7 +398,6 @@
     "toggleClick": "Przełączanie jednym kliknięciem",
     "toggleDark": "Przełączanie trybu ciemnego",
     "toggleSticky": "Przełączanie trybu samoprzylepnego",
-    "of": "z",
     "used": "używany",
     "noSources": "Brak dostępnych źródeł dla tego użytkownika. Dodaj źródło dla tego użytkownika lub skonfiguruj źródło z defaultEnabled: true."
   },
@@ -425,7 +424,8 @@
     "folders": "Foldery",
     "exit": "Wyjście",
     "permanent": "Na stałe",
-    "hash": "Hash"
+    "hash": "Hash",
+    "of": "z"
   },
   "access": {
     "rules": "Zasady dostępu",

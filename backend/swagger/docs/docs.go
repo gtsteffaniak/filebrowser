@@ -3010,7 +3010,7 @@ const docTemplate = `{
                     ]
                 },
                 "indexingIntervalMinutes": {
-                    "description": "optional manual overide interval in seconds to re-index the source",
+                    "description": "optional manual overide interval in minutes to re-index the source",
                     "type": "integer"
                 },
                 "maxWatchers": {

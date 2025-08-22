@@ -1,7 +1,7 @@
 import { removePrefix, buildItemUrl, removeLeadingSlash } from '@/utils/url.js'
 import { getFileExtension } from '@/utils/files.js'
 import { state, mutations } from '@/store'
-import { noAuth } from '@/utils/constants.js'
+import { noAuth, shareOverrides } from '@/utils/constants.js'
 import { getTypeInfo } from '@/utils/mimetype'
 import { fromNow } from '@/utils/moment'
 import * as i18n from '@/i18n'
@@ -41,8 +41,7 @@ export const getters = {
   isLoading: () => Object.keys(state.loading).length > 0,
   isSettings: () => getters.currentView() === 'settings',
   isShare: () => {
-    const pathname = getters.routePath()
-    return pathname.startsWith(`/public/share`)
+    return shareOverrides.isShare
   },
   isDarkMode: () => {
     if (state.user == null) {
@@ -138,6 +137,9 @@ export const getters = {
     return { dirs, files }
   },
   isSidebarVisible: () => {
+    if (shareOverrides.disableSidebar) {
+      return false
+    }
     const cv = getters.currentView()
     if (cv == 'onlyOfficeEditor') {
       return false
@@ -342,6 +344,9 @@ export const getters = {
     return false
   },
   officeViewingDisabled: filename => {
+    if (shareOverrides.isShare) {
+      return true
+    }
     const ext = ' ' + getFileExtension(filename)
     if (state.user.disableOfficePreviewExt) {
       const disabledExts = ' ' + state.user.disableOfficePreviewExt.toLowerCase()

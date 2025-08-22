@@ -398,7 +398,6 @@
     "toggleClick": "Abrir con un solo clic",
     "toggleDark": "Activar modo oscuro",
     "toggleSticky": "Barra lateral visible",
-    "of": "de",
     "used": "usado",
     "noSources": "No hay fuentes disponibles. Añada una o active defaultEnabled: true."
   },
@@ -425,7 +424,8 @@
     "folders": "Carpetas",
     "exit": "Salida",
     "permanent": "Permanente",
-    "hash": "Hash"
+    "hash": "Hash",
+    "of": "de"
   },
   "access": {
     "rules": "Normas de acceso",

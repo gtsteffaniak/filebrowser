@@ -398,7 +398,6 @@
     "toggleClick": "Activation du mode simple clic",
     "toggleDark": "Mode sombre/clair",
     "toggleSticky": "Activer/Désactiver le mode persistent",
-    "of": "de",
     "used": "utilisé",
     "noSources": "Aucune source n'est disponible pour cet utilisateur. Ajoutez une source pour cet utilisateur ou configurez une source avec defaultEnabled : true"
   },
@@ -425,7 +424,8 @@
     "folders": "Dossiers",
     "exit": "Sortie",
     "permanent": "Permanent",
-    "hash": "Hachures"
+    "hash": "Hachures",
+    "of": "de"
   },
   "access": {
     "rules": "Règles d'accès",

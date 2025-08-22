@@ -40,7 +40,6 @@ export function showPopup(type, message, autoclose = true) {
           : JSON.stringify(message)
 
     let apiMessage
-    console.log('message', message)
     // check if message starts with "Error: "
     if (normalizedMessage.startsWith('Error: ')) {
       const errorMessage = normalizedMessage.replace(/^Error:\s*/, '')

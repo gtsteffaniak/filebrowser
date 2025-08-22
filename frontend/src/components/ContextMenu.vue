@@ -393,7 +393,7 @@ export default {
     },
     initializeCreateState() {
       // Only set initial showCreate state, don't override user choices
-      if (state.selected.length > 0) {
+      if (state.selected.length > 0 || getters.isShare()) {
         this.showCreate = false;
       } else {
         this.showCreate = true;

@@ -449,7 +449,6 @@
     "toggleClick": "Přepnout jedno kliknutí",
     "toggleDark": "Přepnout tmavý režim",
     "toggleSticky": "Přepnout sticky režim",
-    "of": "z",
     "used": "použito",
     "noSources": "Pro tohoto uživatele nejsou dostupné žádné zdroje. Přidejte zdroj pro uživatele nebo nastavte zdroj s defaultEnabled: true"
   },
@@ -491,7 +490,8 @@
     "folders": "Složky",
     "exit": "Exit",
     "permanent": "Permanentní",
-    "hash": "Hash"
+    "hash": "Hash",
+    "of": "z"
   },
   "access": {
     "rules": "Pravidla přístupu",

@@ -2,7 +2,7 @@
   <div id="previewer" @mousemove="toggleNavigation" @touchstart="toggleNavigation">
     <div class="preview" v-if="!isDeleted">
       <ExtendedImage v-if="previewType == 'image' || pdfConvertable" :src="raw" 
-        @navigate-previous="prev" 
+        @navigate-previous="prev"
         @navigate-next="next">
       </ExtendedImage>
       <audio v-else-if="previewType == 'audio'" ref="player" :src="raw" controls :autoplay="autoPlay"
@@ -128,7 +128,7 @@ export default {
     raw() {
       if (this.pdfConvertable) {
         if (getters.isShare()) {
-          const previewPath = url.removeTrailingSlash(state.req.path) + "/" + this.name;
+          const previewPath = url.removeTrailingSlash(state.req.path);
           return publicApi.getPreviewURL(previewPath,"original");
         }
         return (
