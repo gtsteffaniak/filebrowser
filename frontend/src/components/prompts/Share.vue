@@ -75,8 +75,7 @@
         </i>
       </p>
       <input class="input" type="password" autocomplete="new-password" v-model.trim="password" />
-
-      <div class="settings-items">
+      <div class="settings-items" style="margin-top: 0.5em;">
         <!--
         <ToggleSwitch class="item" v-model="allowEdit" :name="'Allow modifications'" />
         <ToggleSwitch class="item" v-model="allowUpload" :name="'Allow uploading'" />

@@ -75,7 +75,7 @@
         v-if="!showCreate && selectedCount == 1 && userPerms.modify && !isSearchActive"
         icon="mode_edit"
         :label="$t('buttons.rename')"
-        show="rename"
+        @action="showRenameHover"
       />
       <action
         v-if="!showCreate && selectedCount > 0 && userPerms.modify"
@@ -94,12 +94,6 @@
         icon="file_upload"
         :label="$t('buttons.upload')"
         @action="showUpload"
-      />
-      <action
-        v-if="!showCreate && selectedCount > 0 && userPerms.modify"
-        icon="delete"
-        :label="$t('buttons.delete')"
-        show="delete"
       />
       <action
         v-if="showAccess"
@@ -378,6 +372,14 @@ export default {
     showShareHover() {
       mutations.showHover({
         name: "share",
+        props: {
+          item: getters.selectedCount() == 1 ? getters.getFirstSelected() : state.req
+        },
+      });
+    },
+    showRenameHover() {
+      mutations.showHover({
+        name: "rename",
         props: {
           item: getters.selectedCount() == 1 ? getters.getFirstSelected() : state.req
         },

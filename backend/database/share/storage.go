@@ -1,11 +1,13 @@
 package share
 
 import (
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/database/crud"
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 // StorageBackend is the interface to implement for a share storage.
@@ -14,6 +16,7 @@ type StorageBackend interface {
 	FindByUserID(id uint) ([]*Link, error)
 	GetByHash(hash string) (*Link, error)
 	GetPermanent(path, source string, id uint) (*Link, error)
+	GetBySourcePath(path, source string) ([]*Link, error)
 	Gets(path, source string, id uint) ([]*Link, error)
 	Save(s *Link) error
 	Delete(hash string) error
@@ -166,6 +169,65 @@ func (s *Storage) Gets(sourcePath, source string, id uint) ([]*Link, error) {
 	}
 	s.mu.Unlock()
 	return filtered, nil
+}
+
+// GetBySourcePath wraps StorageBackend.GetBySourcePath and handles expiry.
+func (s *Storage) GetBySourcePath(path, source string) ([]*Link, error) {
+	links, err := s.back.GetBySourcePath(path, source)
+	if err != nil {
+		return nil, err
+	}
+	filtered, err := s.filterExpired(links)
+	if err != nil {
+		return nil, err
+	}
+	s.mu.Lock()
+	for _, l := range filtered {
+		if l != nil {
+			s.shareCache[l.Hash] = l
+		}
+	}
+	s.mu.Unlock()
+	return filtered, nil
+}
+
+// UpdateShares updates all shares that exactly match oldSource and oldPath
+// to point to newSource and newPath. Returns the number of updated shares.
+func (s *Storage) UpdateShares(oldSource, oldPath, newSource, newPath string) (int, error) {
+	links, err := s.back.All()
+	if err != nil && err != errors.ErrNotExist {
+		logger.Error("failed to list shares", "error", err)
+		return 0, err
+	}
+	updated := 0
+	for _, l := range links {
+		if l == nil {
+			continue
+		}
+		if l.Source != oldSource {
+			continue
+		}
+		pos := strings.Index(l.Path, oldPath)
+		if pos < 0 {
+			continue
+		}
+		oldFullPath := l.Path
+		l.Source = newSource
+		l.Path = oldFullPath[:pos] + newPath + oldFullPath[pos+len(oldPath):]
+		if err := s.back.Save(l); err != nil {
+			logger.Error("failed to save updated share", "hash", l.Hash, "error", err)
+			return updated, err
+		}
+		s.mu.Lock()
+		s.shareCache[l.Hash] = l
+		s.mu.Unlock()
+		logger.Info("share updated", "hash", l.Hash, "fromPath", oldFullPath, "toPath", l.Path)
+		updated++
+	}
+	if updated == 0 {
+		logger.Warning("no matching shares to update for provided source/path")
+	}
+	return updated, nil
 }
 
 // Save wraps StorageBackend.Save

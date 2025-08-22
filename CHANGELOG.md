@@ -13,8 +13,8 @@ All notable changes to this project will be documented in this file. For commit 
  - fixed styling issues https://github.com/gtsteffaniak/filebrowser/issues/1086 https://github.com/gtsteffaniak/filebrowser/issues/1081 https://github.com/gtsteffaniak/filebrowser/issues/1082
  - fix download limit issue https://github.com/gtsteffaniak/filebrowser/issues/1085
  - fixed oidc user defaults for new user https://github.com/gtsteffaniak/filebrowser/issues/1071
- #- shares get updated when files moved in ui https://github.com/gtsteffaniak/filebrowser/issues/760
- - file creation in share doesn't respect share path 
+ - shares get updated when files moved in ui https://github.com/gtsteffaniak/filebrowser/issues/760
+ - file creation in share doesn't respect share path
 
 ## v0.8.0-beta
 
