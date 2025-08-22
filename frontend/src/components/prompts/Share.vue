@@ -504,6 +504,7 @@ export default {
           quickDownload: this.quickDownload,
           hideNavButtons: this.disableNavButtons,
           disableShareCard: this.disableShareCard,
+          disableSidebar: this.disableSidebar,
         };
         if (this.isEditMode) {
           payload.hash = this.link.hash;

@@ -531,7 +531,7 @@ definitions:
         - $ref: '#/definitions/settings.IncludeIndexFilter'
         description: include files and folders from indexing, if exclude is not set
       indexingIntervalMinutes:
-        description: optional manual overide interval in seconds to re-index the source
+        description: optional manual overide interval in minutes to re-index the source
         type: integer
       maxWatchers:
         description: number of concurrent watchers to use for this source, currently

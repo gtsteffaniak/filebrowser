@@ -11,12 +11,22 @@ All notable changes to this project will be documented in this file. For commit 
  - hide share card in share
  - download count for a share shows up on share management
 
+ **Notes**:
+ - updated description for indexingIntervalMinutes https://github.com/gtsteffaniak/filebrowser/issues/1067
+
  **BugFixes**:
- - fixed styling issues https://github.com/gtsteffaniak/filebrowser/issues/1086 https://github.com/gtsteffaniak/filebrowser/issues/1081 https://github.com/gtsteffaniak/filebrowser/issues/1082
+ - fixed styling issues https://github.com/gtsteffaniak/filebrowser/issues/1086 https://github.com/gtsteffaniak/filebrowser/issues/1081 https://github.com/gtsteffaniak/filebrowser/issues/1082 https://github.com/gtsteffaniak/filebrowser/issues/1098
  - fix download limit issue https://github.com/gtsteffaniak/filebrowser/issues/1085
  - fixed oidc user defaults for new user https://github.com/gtsteffaniak/filebrowser/issues/1071
  - shares get updated when files moved in ui https://github.com/gtsteffaniak/filebrowser/issues/760
- - click listing behavior doesn't clear (introduced in 0.8.0)
+ - click listing behavior doesn't clear (introduced in 0.8.0) https://github.com/gtsteffaniak/filebrowser/issues/1101
+ - show download count and limit in share list in settings https://github.com/gtsteffaniak/filebrowser/issues/1103
+ - fix windows alt+arrow movement issue https://github.com/gtsteffaniak/filebrowser/issues/1094
+ - nav memory issue for filenames with brackets https://github.com/gtsteffaniak/filebrowser/issues/1092
+ - files with "+"" in name issue https://github.com/gtsteffaniak/filebrowser/issues/1089
+ - fixed editor bug in share view https://github.com/gtsteffaniak/filebrowser/issues/1084
+ - other share related issues https://github.com/gtsteffaniak/filebrowser/issues/1087 https://github.com/gtsteffaniak/filebrowser/issues/1064
+
 
 ## v0.8.0-beta
 

@@ -398,7 +398,6 @@
     "toggleClick": "Schakelen Enkele klik",
     "toggleDark": "Donkere modus inschakelen",
     "toggleSticky": "Kleefmodus schakelen",
-    "of": "van",
     "used": "tweedehands",
     "noSources": "Geen bronnen beschikbaar voor deze gebruiker. Voeg een bron toe voor deze gebruiker of configureer een bron met defaultEnabled: true"
   },
@@ -491,7 +490,8 @@
     "folders": "Mappen",
     "exit": "Ga naar",
     "permanent": "Permanent",
-    "hash": "Hash"
+    "hash": "Hash",
+    "of": "van"
   },
   "access": {
     "rules": "Toegangsregels",

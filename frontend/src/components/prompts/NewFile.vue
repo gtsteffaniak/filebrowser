@@ -51,10 +51,7 @@ export default {
         event.preventDefault();
         if (this.name === "") return;
         await filesApi.post(state.req.source,state.req.path + "/" + this.name, "", true );
-        goToItem(
-          state.req.source,
-          state.req.path + "/" + encodeURIComponent(this.name)
-        );
+        goToItem(state.req.source, state.req.path + "/" + this.name);
       } catch (error) {
         notify.showError(error);
       }

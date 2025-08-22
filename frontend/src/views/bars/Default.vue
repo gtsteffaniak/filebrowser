@@ -115,7 +115,8 @@ export default {
       return state.isSearchActive || getters.currentPromptName() != "";
     },
     isDisabledMultiAction() {
-      return this.isDisabled || (getters.isStickySidebar() && getters.multibuttonState() === "menu") || (getters.isShare() && shareOverrides.disableSidebar);
+      const shareDisabled = shareOverrides.disableSidebar && getters.multibuttonState() === "menu";
+      return this.isDisabled || (getters.isStickySidebar() && getters.multibuttonState() === "menu") || shareDisabled;
     },
     showSwitchView() {
       return getters.currentView() === "listingView";

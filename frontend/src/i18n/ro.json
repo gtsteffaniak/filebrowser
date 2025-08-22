@@ -398,7 +398,6 @@
     "toggleClick": "Comutare clic unic",
     "toggleDark": "Comutarea modului întunecat",
     "toggleSticky": "Schimbarea modului lipicios",
-    "of": "de",
     "used": "utilizate",
     "noSources": "Nu există surse disponibile pentru acest utilizator. Adăugați o sursă pentru acest utilizator sau configurați o sursă cu defaultEnabled: true"
   },
@@ -425,7 +424,8 @@
     "folders": "Dosare",
     "exit": "Ieșire",
     "permanent": "Permanent",
-    "hash": "Hash"
+    "hash": "Hash",
+    "of": "de"
   },
   "access": {
     "rules": "Reguli de acces",

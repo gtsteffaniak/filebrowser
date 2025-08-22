@@ -398,7 +398,6 @@
     "toggleClick": "Toggle Enkelklick",
     "toggleDark": "Växla till mörkt läge",
     "toggleSticky": "Växla klisterläge",
-    "of": "av",
     "used": "används",
     "noSources": "Inga källor tillgängliga för den här användaren. Lägg antingen till en källa för den här användaren eller konfigurera en källa med defaultEnabled: true"
   },
@@ -491,7 +490,8 @@
     "folders": "Mappar",
     "exit": "Avsluta",
     "permanent": "Permanent",
-    "hash": "Hash"
+    "hash": "Hash",
+    "of": "av"
   },
   "access": {
     "rules": "Regler för åtkomst",

@@ -398,7 +398,6 @@
     "toggleClick": "单击切换",
     "toggleDark": "切换黑暗模式",
     "toggleSticky": "切换粘贴模式",
-    "of": "的",
     "used": "中古",
     "noSources": "该用户没有可用的信息源。要么为该用户添加一个信息源，要么配置一个默认为 true 的信息源。"
   },
@@ -491,7 +490,8 @@
     "folders": "文件夹",
     "exit": "退出",
     "permanent": "永久性",
-    "hash": "散列"
+    "hash": "散列",
+    "of": "的"
   },
   "access": {
     "rules": "访问规则",

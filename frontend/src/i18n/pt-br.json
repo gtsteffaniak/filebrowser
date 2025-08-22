@@ -398,7 +398,6 @@
     "toggleClick": "Alternar clique único",
     "toggleDark": "Alternar o modo escuro",
     "toggleSticky": "Alternar o modo de aderência",
-    "of": "de",
     "used": "usado",
     "noSources": "Não há fontes disponíveis para esse usuário. Adicione uma fonte para esse usuário ou configure uma fonte com defaultEnabled: true"
   },
@@ -425,7 +424,8 @@
     "folders": "Pastas",
     "exit": "Sair",
     "permanent": "Permanente",
-    "hash": "Hash"
+    "hash": "Hash",
+    "of": "de"
   },
   "access": {
     "rules": "Regras de acesso",

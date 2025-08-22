@@ -398,7 +398,6 @@
     "toggleClick": "Einzelklick umschalten",
     "toggleDark": "Dunkelmodus umschalten",
     "toggleSticky": "Sticky-Modus umschalten",
-    "of": "von",
     "used": "belegt",
     "noSources": "Für diesen Benutzer sind keine Quellen verfügbar. Entweder eine Quelle für diesen Benutzer hinzufügen oder eine Quelle mit defaultEnabled: true konfigurieren"
   },
@@ -425,7 +424,8 @@
     "folders": "Ordner",
     "exit": "Ausfahrt",
     "permanent": "Dauerhaft",
-    "hash": "Hash"
+    "hash": "Hash",
+    "of": "von"
   },
   "access": {
     "rules": "Zugangsregeln",

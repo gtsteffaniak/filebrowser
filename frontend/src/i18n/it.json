@@ -398,7 +398,6 @@
     "toggleClick": "Alterna il clic singolo",
     "toggleDark": "Alterna la modalità scura",
     "toggleSticky": "Alterna la modalità appiccicosa",
-    "of": "di",
     "used": "usato",
     "noSources": "Non ci sono fonti disponibili per questo utente. Aggiungere una fonte per questo utente o configurare una fonte con defaultEnabled: true."
   },
@@ -425,7 +424,8 @@
     "folders": "Cartelle",
     "exit": "Uscita",
     "permanent": "Permanente",
-    "hash": "Hash"
+    "hash": "Hash",
+    "of": "di"
   },
   "access": {
     "rules": "Regole di accesso",

@@ -398,7 +398,6 @@
     "toggleClick": "클릭 한 번으로 토글",
     "toggleDark": "다크 모드 전환",
     "toggleSticky": "고정 모드 토글",
-    "of": "의",
     "used": "사용됨",
     "noSources": "이 사용자에 대해 사용할 수 있는 소스가 없습니다. 이 사용자에 대한 소스를 추가하거나 defaultEnabled: true로 소스를 구성하세요."
   },
@@ -425,7 +424,8 @@
     "folders": "폴더",
     "exit": "종료",
     "permanent": "영구",
-    "hash": "해시"
+    "hash": "해시",
+    "of": "의"
   },
   "access": {
     "rules": "액세스 규칙",

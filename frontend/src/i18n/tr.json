@@ -398,7 +398,6 @@
     "toggleClick": "Tek Tıklamayı Değiştir",
     "toggleDark": "Karanlık Modu Aç / Kapat",
     "toggleSticky": "Yapışkan Modunu Değiştir",
-    "of": ".",
     "used": "kullanılmış",
     "noSources": "Bu kullanıcı için kullanılabilir kaynak yok. Ya bu kullanıcı için bir kaynak ekleyin ya da defaultEnabled: true ile bir kaynak yapılandırın"
   },
@@ -425,7 +424,8 @@
     "folders": "Klasörler",
     "exit": "Çıkış",
     "permanent": "Daimi",
-    "hash": "Hash"
+    "hash": "Hash",
+    "of": "."
   },
   "access": {
     "rules": "Erişim kuralları",

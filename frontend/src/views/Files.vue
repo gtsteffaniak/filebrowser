@@ -157,7 +157,15 @@ export default {
       if (window.location.hash === this.lastHash) return;
       this.lastHash = window.location.hash;
       if (window.location.hash) {
-        const id = url.base64Encode(window.location.hash.slice(1));
+        const rawHash = window.location.hash.slice(1);
+        let decodedName = rawHash;
+        try {
+          decodedName = decodeURIComponent(rawHash);
+        } catch (e) {
+          // If the hash contains malformed escape sequences, fall back to raw
+          decodedName = rawHash;
+        }
+        const id = url.base64Encode(encodeURIComponent(decodedName));
         const element = document.getElementById(id);
         if (element) {
           element.scrollIntoView({

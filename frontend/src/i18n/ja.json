@@ -398,7 +398,6 @@
     "toggleClick": "トグル・シングルクリック",
     "toggleDark": "ダークモードの切り替え",
     "toggleSticky": "スティッキーモードの切り替え",
-    "of": "の",
     "used": "中古",
     "noSources": "このユーザが使用できるソースはありません。このユーザのソースを追加するか、defaultEnabled: true でソースを構成します。"
   },
@@ -425,7 +424,8 @@
     "folders": "フォルダ",
     "exit": "出口",
     "permanent": "正社員",
-    "hash": "ハッシュ"
+    "hash": "ハッシュ",
+    "of": "の"
   },
   "access": {
     "rules": "アクセス規則",

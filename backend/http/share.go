@@ -190,6 +190,7 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		body.Path = s.Path
 		body.Source = s.Source
 		s.CommonShare = body.CommonShare
+
 		if err = store.Share.Save(s); err != nil {
 			return http.StatusInternalServerError, err
 		}
