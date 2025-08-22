@@ -3187,6 +3187,9 @@
                 "disableFileViewer": {
                     "type": "boolean"
                 },
+                "disableShareCard": {
+                    "type": "boolean"
+                },
                 "disableThumbnails": {
                     "type": "boolean"
                 },
@@ -3267,6 +3270,9 @@
                     "type": "boolean"
                 },
                 "disableFileViewer": {
+                    "type": "boolean"
+                },
+                "disableShareCard": {
                     "type": "boolean"
                 },
                 "disableThumbnails": {

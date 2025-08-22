@@ -24,6 +24,7 @@ type CommonShare struct {
 	Source              string   `json:"source,omitempty"` // backend source is path to maintain between name changes
 	Path                string   `json:"path,omitempty"`
 	DownloadURL         string   `json:"downloadURL,omitempty"`
+	DisableShareCard    bool     `json:"disableShareCard,omitempty"`
 }
 type CreateBody struct {
 	CommonShare

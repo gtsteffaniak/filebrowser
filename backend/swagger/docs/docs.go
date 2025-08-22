@@ -3198,6 +3198,9 @@ const docTemplate = `{
                 "disableFileViewer": {
                     "type": "boolean"
                 },
+                "disableShareCard": {
+                    "type": "boolean"
+                },
                 "disableThumbnails": {
                     "type": "boolean"
                 },
@@ -3278,6 +3281,9 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "disableFileViewer": {
+                    "type": "boolean"
+                },
+                "disableShareCard": {
                     "type": "boolean"
                 },
                 "disableThumbnails": {

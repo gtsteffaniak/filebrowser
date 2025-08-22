@@ -69,6 +69,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"disableThumbnails": false,
 		"viewMode":          "list",
 		"disableFileViewer": false,
+		"disableShareCard":  false,
 	}
 	disableNavButtons := settings.Config.Frontend.DisableNavButtons
 	if d.share != nil {
@@ -81,6 +82,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		shareOverrides["quickDownload"] = d.share.QuickDownload
 		shareOverrides["disableThumbnails"] = d.share.DisableThumbnails
 		shareOverrides["disableFileViewer"] = d.share.DisablingFileViewer
+		shareOverrides["disableShareCard"] = d.share.DisableShareCard
 		if d.share.Favicon != "" {
 			if strings.HasPrefix(d.share.Favicon, "http") {
 				data["favicon"] = d.share.Favicon

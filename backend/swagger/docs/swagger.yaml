@@ -677,6 +677,8 @@ definitions:
         type: boolean
       disableFileViewer:
         type: boolean
+      disableShareCard:
+        type: boolean
       disableThumbnails:
         type: boolean
       downloadURL:
@@ -731,6 +733,8 @@ definitions:
       disableAnonymous:
         type: boolean
       disableFileViewer:
+        type: boolean
+      disableShareCard:
         type: boolean
       disableThumbnails:
         type: boolean

@@ -135,6 +135,7 @@
           <ToggleSwitch class="item" v-model="keepAfterExpiration" :name="$t('share.keepAfterExpiration')" :description="$t('share.keepAfterExpirationDescription')" />
           <ToggleSwitch class="item" v-model="disableThumbnails" :name="$t('share.disableThumbnails')" :description="$t('share.disableThumbnailsDescription')" />
           <ToggleSwitch class="item" v-model="disableNavButtons" :name="$t('share.hideNavButtons')" :description="$t('share.hideNavButtonsDescription')" />
+          <ToggleSwitch class="item" v-model="disableShareCard" :name="$t('share.disableShareCard')" :description="$t('share.disableShareCardDescription')" />
         </div>
 
         <p>
@@ -310,6 +311,7 @@ export default {
       showAdvanced: false,
       quickDownload: false,
       disableNavButtons: false,
+      disableShareCard: false,
       //viewMode: "normal",
     };
   },
@@ -382,6 +384,7 @@ export default {
           this.favicon = this.link.favicon || "";
           this.quickDownload = this.link.quickDownload || false;
           this.disableNavButtons = this.link.hideNavButtons || false;
+          this.disableShareCard = this.link.disableShareCard || false;
           //this.viewMode = this.link.viewMode || "normal";
         }
       },
@@ -467,6 +470,12 @@ export default {
     },
     async submit() {
       try {
+        if (!this.description) {
+          this.description = this.$t("share.descriptionDefault");
+        }
+        if (!this.title) {
+          this.title = this.$t("share.titleDefault", { title: this.item.name || "share" });
+        }
         let isPermanent = !this.time || this.time === "0";
         const payload = {
           path: this.item.path,
@@ -491,6 +500,7 @@ export default {
           favicon: this.favicon,
           quickDownload: this.quickDownload,
           hideNavButtons: this.disableNavButtons,
+          disableShareCard: this.disableShareCard,
         };
         if (this.isEditMode) {
           payload.hash = this.link.hash;
