@@ -46,6 +46,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 	}
 
 	staticURL := config.Server.BaseURL + "static"
+	publicStaticURL := config.Server.BaseURL + "public/static"
 	data := map[string]interface{}{
 		"title":             config.Frontend.Name,
 		"customCSS":         config.Frontend.Styling.CustomCSS,
@@ -91,7 +92,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 			if strings.HasPrefix(d.share.Favicon, "http") {
 				data["favicon"] = d.share.Favicon
 			} else {
-				data["favicon"] = staticURL + "/" + d.share.Favicon
+				data["favicon"] = publicStaticURL + "/" + d.share.Favicon
 			}
 		}
 		if d.share.Description != "" {
@@ -100,6 +101,13 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		if d.share.Title != "" {
 			data["title"] = d.share.Title
 		}
+
+		// base url could be different for routes behind proxy
+		data["staticURL"] = publicStaticURL
+		data["favicon"] = publicStaticURL + "/img/icons/favicon-256x256.png"
+		data["winIcon"] = publicStaticURL + "/img/icons/mstile-144x144.png"
+		data["appIcon"] = publicStaticURL + "/img/icons/android-chrome-256x256.png"
+		fmt.Println("favicon", data["staticURL"])
 	}
 	// variables consumed by frontend as json
 	data["globalVars"] = map[string]interface{}{
@@ -143,10 +151,9 @@ func staticFilesHandler(w http.ResponseWriter, r *http.Request) {
 	const maxAge = 86400 // 1 day
 	w.Header().Set("Cache-Control", fmt.Sprintf("public, max-age=%v", maxAge))
 	w.Header().Set("Content-Security-Policy", `default-src 'self'; style-src 'unsafe-inline';`)
-	// Remove "/static/" from the request path
-	adjustedPath := strings.TrimPrefix(r.URL.Path, fmt.Sprintf("%vstatic/", config.Server.BaseURL))
-	adjustedCompressed := adjustedPath + ".gz"
-	if strings.HasSuffix(adjustedPath, ".js") {
+
+	adjustedCompressed := r.URL.Path + ".gz"
+	if strings.HasSuffix(r.URL.Path, ".js") {
 		w.Header().Set("Content-Type", "application/javascript; charset=utf-8") // Set the correct MIME type for JavaScript files
 	}
 	// Check if the gzipped version of the file exists
@@ -159,7 +166,7 @@ func staticFilesHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		// Otherwise, serve the regular file
-		http.StripPrefix(fmt.Sprintf("%vstatic/", config.Server.BaseURL), http.FileServer(http.FS(assetFs))).ServeHTTP(w, r)
+		http.FileServer(http.FS(assetFs)).ServeHTTP(w, r)
 	}
 }
 

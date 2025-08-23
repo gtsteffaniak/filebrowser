@@ -185,7 +185,7 @@ func GenerateYaml() {
 	setupAuth(true)
 	setupSources(true)
 	setupUrls()
-	setupFrontend()
+	setupFrontend(true)
 	input := "common/settings/settings.go" // "path to Go source file or directory containing structs"
 	output := "generated.yaml"             // "output YAML file"
 

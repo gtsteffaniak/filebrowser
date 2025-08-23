@@ -292,11 +292,11 @@ func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string, 
 			if config.Auth.Methods.OidcAuth.AdminGroup == "" {
 				isAdmin = config.UserDefaults.Permissions.Admin
 			}
-			user = &users.User{}
+			user = &users.User{
+				Username:    username,
+				LoginMethod: users.LoginMethodOidc,
+			}
 			settings.ApplyUserDefaults(user)
-			user.Username = username
-			user.LoginMethod = users.LoginMethodOidc
-			user.Permissions = settings.Config.UserDefaults.Permissions
 			if isAdmin {
 				user.Permissions.Admin = true
 			}

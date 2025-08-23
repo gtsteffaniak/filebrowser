@@ -104,7 +104,7 @@ body.rtl #listingView {
 #listingView.compact .item:hover,
 #listingView.list .item:hover {
   width: 98% !important;
-  margin-left: 0.5em !important;
+  margin-left: 1% !important;
   padding-left: 0.5em !important;
 }
 

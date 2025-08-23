@@ -93,6 +93,12 @@ export function getApiPath(path, params = {}) {
   return path;
 }
 
+// get path with parameters
+// relative path so it can be used behind proxy
+export function getPublicApiPath(path, params = {}) {
+  return getApiPath(`/public/api/${path}`, params);
+}
+
 export function removeTrailingSlash(str) {
   if (str.endsWith('/')) {
     return str.slice(0, -1);
