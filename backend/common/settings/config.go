@@ -72,10 +72,12 @@ func setupFrontend(generate bool) {
 		addCustomTheme("default", "The default theme", "")
 		// check if file exists
 		if _, err := os.Stat("reduce-rounded-corners.css"); err == nil {
+			addCustomTheme("alternative", "Reduce rounded corners", "reduce-rounded-corners.css")
 			if generate {
-				addCustomTheme("alternative", "Reduce rounded corners", "")
-			} else {
-				addCustomTheme("alternative", "Reduce rounded corners", "reduce-rounded-corners.css")
+				Config.Frontend.Styling.CustomThemes["alternative"] = CustomTheme{
+					Description: "Reduce rounded corners",
+					CSS:         "reduce-rounded-corners.css",
+				}
 			}
 		}
 	}

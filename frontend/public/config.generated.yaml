@@ -99,7 +99,7 @@ frontend:
     customThemes:                         # A list of custom css files that each user can select to override the default styling. if "default" is key name then it will be the default option.
       alternative:
         description: Reduce rounded corners
-        css: ""
+        css: reduce-rounded-corners.css
       default:
         description: The default theme
         css: ""
