@@ -10,7 +10,7 @@ import { defineConfig, devices } from "@playwright/test";
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
-  //globalSetup: "./global-setup",
+  globalSetup: "./tests/playwright/proxy-setup.ts",
   timeout: 3000,
   testDir: "./tests/playwright/proxy",
   /* Run tests in files in parallel */
@@ -25,8 +25,8 @@ export default defineConfig({
   reporter: "line",
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
-    actionTimeout: 3000,
-    //storageState: "loginAuth.json",
+    actionTimeout: 5000,
+    storageState: "loginAuth.json",
     /* Base URL to use in actions like `await page.goto('/')`. */
     baseURL: "http://127.0.0.1",
 

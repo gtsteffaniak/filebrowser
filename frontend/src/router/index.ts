@@ -45,7 +45,7 @@ const routes = [
     ],
   },
   {
-    path: "/public/share",
+    path: "/public",
     component: Layout,
     meta: {
       optionalAuth: true,

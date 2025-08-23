@@ -118,7 +118,8 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	// Public API routes (hash-based authentication)
 	publicAPI.HandleFunc("GET /raw", withHashFile(publicRawHandler))
 	publicAPI.HandleFunc("GET /preview", withHashFile(publicPreviewHandler))
-	publicAPI.HandleFunc("GET /shared", withHashFile(publicShareHandler))
+	publicAPI.HandleFunc("GET /resources", withHashFile(publicShareHandler))
+	publicAPI.HandleFunc("GET /users", withUser(userGetHandler))
 	// Settings routes
 	api.HandleFunc("GET /settings", withAdmin(settingsGetHandler))
 
@@ -203,11 +204,11 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	// New frontend share route handler - handle share page and any subpaths
 	publicRoutes.HandleFunc("GET /share/", withOrWithoutUser(indexHandler))
 
-	// Public static assets (needed for shared pages to load CSS/JS/images)
-	publicRoutes.HandleFunc("GET /static/", staticFilesHandler)
-
 	// Static and index file handlers
-	router.HandleFunc(fmt.Sprintf("GET %vstatic/", config.Server.BaseURL), staticFilesHandler)
+	staticPrefix := config.Server.BaseURL + "static/"
+	router.Handle(staticPrefix, http.StripPrefix(staticPrefix, http.HandlerFunc(staticFilesHandler)))
+	publicRoutes.Handle("GET /static/", http.StripPrefix("/static/", http.HandlerFunc(staticFilesHandler)))
+
 	router.HandleFunc(config.Server.BaseURL, withOrWithoutUser(indexHandler))
 	router.HandleFunc(fmt.Sprintf("GET %vhealth", config.Server.BaseURL), healthHandler)
 	router.Handle(fmt.Sprintf("%vswagger/", config.Server.BaseURL), withUser(swaggerHandler))

@@ -44,10 +44,10 @@ func Initialize(configFile string) {
 	setupAuth(false)
 	setupSources(false)
 	setupUrls()
-	setupFrontend()
+	setupFrontend(false)
 }
 
-func setupFrontend() {
+func setupFrontend(generate bool) {
 	if !Config.Frontend.DisableDefaultLinks {
 		Config.Frontend.ExternalLinks = append(Config.Frontend.ExternalLinks, ExternalLink{
 			Text:  fmt.Sprintf("(%v)", version.Version),
@@ -72,7 +72,11 @@ func setupFrontend() {
 		addCustomTheme("default", "The default theme", "")
 		// check if file exists
 		if _, err := os.Stat("reduce-rounded-corners.css"); err == nil {
-			addCustomTheme("alternative", "Reduce rounded corners", "reduce-rounded-corners.css")
+			if generate {
+				addCustomTheme("alternative", "Reduce rounded corners", "")
+			} else {
+				addCustomTheme("alternative", "Reduce rounded corners", "reduce-rounded-corners.css")
+			}
 		}
 	}
 	_, ok := Config.Frontend.Styling.CustomThemes["default"]
