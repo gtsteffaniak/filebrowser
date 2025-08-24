@@ -6,7 +6,7 @@
       <p v-else>
         {{ $t("prompts.deleteMessageMultiple", { count: selectedCount }) }}
       </p>
-      <div style="display: grid" aria-label="delete-path" class="searchContext">
+      <div style="display: grid" aria-label="delete-path" class="searchContext button">
         <span v-for="(item, index) in nav" :key="index"> {{ item }} </span>
       </div>
     </div>

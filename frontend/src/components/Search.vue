@@ -35,10 +35,10 @@
 
     <!-- Search results for desktop -->
     <div v-show="active" id="results" class="fb-shadow" ref="result">
-      <div class="sizeInputWrapper" style="display: flex">
+      <div class="inputWrapper" style="display: flex">
         <select
           v-if="multipleSources"
-          class="searchContext input"
+          class="searchContext button input"
           aria-label="search-path"
           v-model="selectedSource"
           :value="selectedSource"
@@ -554,7 +554,6 @@ export default {
   border-left: 1px solid gray;
   border-right: 1px solid gray;
   word-wrap: break-word;
-  height: -webkit-fill-available;
 }
 
 .searchContext.input {
@@ -565,7 +564,6 @@ export default {
   width: 25%;
   min-width: 7em;
   max-width: 15em;
-  height: -webkit-fill-available;
 }
 
 #results > #result-list {
