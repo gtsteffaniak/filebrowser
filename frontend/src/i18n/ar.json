@@ -48,7 +48,8 @@
     "resumeAll": "استئناف الكل",
     "clearCompleted": "اكتمل المسح",
     "showMore": "اعرض المزيد",
-    "showLess": "اعرض أقل"
+    "showLess": "اعرض أقل",
+    "openParentFolder": "فتح المجلد الأصل"
   },
   "download": {
     "downloadFile": "Download File",
@@ -59,7 +60,8 @@
     "forbidden": "You don't have permissions to access this.",
     "internal": "لقد حدث خطأ ما.",
     "notFound": "لا يمكن الوصول لهذا المحتوى.",
-    "connection": "لا يمكن الوصول إلى الخادم"
+    "connection": "لا يمكن الوصول إلى الخادم",
+    "shareNotFound": "حصة غير صالحة أو منتهية الصلاحية."
   },
   "files": {
     "body": "الصفحة",
@@ -444,7 +446,9 @@
     "accessManagement": "إدارة الوصول",
     "totalDenied": "مرفوض",
     "totalAllowed": "المسموح به",
-    "all": "رفض الكل"
+    "all": "رفض الكل",
+    "defaultBehavior": "Default action{suffix}",
+    "defaultBehaviorDescription": "يوضح هذا ما يحدث عندما يحاول المستخدم الوصول إلى مسار لا توجد فيه قواعد وصول محددة. تعني \"السماح\" أنه يمكن للمستخدمين الوصول بشكل افتراضي، وتعني \"الرفض\" أنه يتم حظر المستخدمين بشكل افتراضي ما لم يُسمح لهم صراحةً."
   },
   "fileLoading": {
     "title": "التحميلات والتنزيلات",

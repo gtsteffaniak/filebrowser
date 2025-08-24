@@ -48,7 +48,8 @@
     "resumeAll": "Alles hervatten",
     "clearCompleted": "Gereed",
     "showMore": "Meer tonen",
-    "showLess": "Minder tonen"
+    "showLess": "Minder tonen",
+    "openParentFolder": "Bovenliggende map openen"
   },
   "download": {
     "downloadFile": "Bestand downloaden",
@@ -59,7 +60,8 @@
     "forbidden": "U hebt geen rechten om hier toegang toe te krijgen.",
     "internal": "Er ging iets mis.",
     "notFound": "Deze locatie kan niet worden bereikt.",
-    "connection": "De server kan niet worden bereikt."
+    "connection": "De server kan niet worden bereikt.",
+    "shareNotFound": "Ongeldig of verlopen aandeel."
   },
   "files": {
     "body": "Body",
@@ -510,7 +512,9 @@
     "added": "Toegangsregel toegevoegd!",
     "name": "Naam",
     "accessManagement": "Toegangsbeheer",
-    "all": "Alles weigeren"
+    "all": "Alles weigeren",
+    "defaultBehavior": "Default action{suffix}",
+    "defaultBehaviorDescription": "Dit laat zien wat er gebeurt als een gebruiker toegang probeert te krijgen tot een pad waarvoor geen specifieke toegangsregels bestaan. Toestaan' betekent dat gebruikers standaard toegang hebben, 'Weigeren' betekent dat gebruikers standaard worden geblokkeerd tenzij ze expliciet toestemming krijgen."
   },
   "editor": {
     "uninitialized": "Het is niet gelukt de editor te initialiseren. Gelieve opnieuw te laden.",

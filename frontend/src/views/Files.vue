@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- Share Info Component -->
-    <ShareInfo
+    <ShareInfoCard
       v-if="showShareInfo"
       class="share-info-component"
       :hash="share?.hash"
@@ -41,10 +41,10 @@ import MarkdownViewer from "./files/MarkdownViewer.vue";
 import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
 import router from "@/router";
-import { baseURL, shareOverrides } from "@/utils/constants";
+import { baseURL, shareInfo } from "@/utils/constants";
 import PopupPreview from "@/components/files/PopupPreview.vue";
 import { extractSourceFromPath } from "@/utils/url";
-import ShareInfo from "@/components/files/ShareInfo.vue";
+import ShareInfoCard from "@/components/files/ShareInfoCard.vue";
 
 export default {
   name: "files",
@@ -59,7 +59,7 @@ export default {
     OnlyOfficeEditor,
     MarkdownViewer,
     PopupPreview,
-    ShareInfo,
+    ShareInfoCard,
   },
   data() {
     return {
@@ -81,7 +81,7 @@ export default {
       return state.share;
     },
     showShareInfo() {
-      return this.isShare && state.share.hash && state.isMobile && state.req.path == "/" && !shareOverrides.disableShareCard;
+      return this.isShare && state.share.hash && state.isMobile && state.req.path == "/" && !shareInfo.disableShareCard;
     },
     isShare() {
       return getters.isShare();
@@ -116,6 +116,13 @@ export default {
   mounted() {
     window.addEventListener("hashchange", this.scrollToHash);
     window.addEventListener("keydown", this.keyEvent);
+    if (getters.isInvalidShare()) {
+      // show message that share is invalid and don't do anything else
+      this.error = {
+        status: "share404",
+        message: "errors.shareNotFound",
+      };
+    }
   },
   beforeUnmount() {
     window.removeEventListener("keydown", this.keyEvent);
@@ -153,7 +160,7 @@ export default {
       }
     },
     async fetchData() {
-      if (state.deletedItem) {
+      if (state.deletedItem || getters.isInvalidShare()) {
         return
       }
 

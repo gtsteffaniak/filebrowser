@@ -23,7 +23,7 @@ const muPdfAvailable = window.filebrowser.muPdfAvailable;
 const updateAvailable = window.filebrowser.updateAvailable;
 const disableNavButtons = window.filebrowser.disableNavButtons;
 const userSelectableThemes = window.filebrowser.userSelectableThemes;
-const shareOverrides = window.filebrowser.share;
+const shareInfo = window.filebrowser.share;
 const origin = window.location.origin;
 
 const settings = [
@@ -37,7 +37,7 @@ const settings = [
 ];
 
 export {
-  shareOverrides,
+  shareInfo,
   userSelectableThemes,
   disableNavButtons,
   updateAvailable,

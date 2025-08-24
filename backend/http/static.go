@@ -45,6 +45,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		}
 	}
 
+	defaultThemeColor := "#455a64"
 	staticURL := config.Server.BaseURL + "static"
 	publicStaticURL := config.Server.BaseURL + "public/static"
 	data := map[string]interface{}{
@@ -56,50 +57,60 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"staticURL":         staticURL,
 		"baseURL":           config.Server.BaseURL,
 		"favicon":           staticURL + "/img/icons/favicon-256x256.png",
-		"color":             "var(--primaryColor)",
+		"color":             defaultThemeColor,
 		"winIcon":           staticURL + "/img/icons/mstile-144x144.png",
 		"appIcon":           staticURL + "/img/icons/android-chrome-256x256.png",
 		"description":       "FileBrowser Quantum is a file manager for the web which can be used to manage files on your server",
 	}
-	shareOverrides := map[string]interface{}{
-		"isShare":           false,
-		"banner":            "",
-		"title":             "",
-		"quickDownload":     false,
-		"description":       "",
-		"themeColor":        "",
-		"disableThumbnails": false,
-		"viewMode":          "list",
-		"disableFileViewer": false,
-		"disableShareCard":  false,
-		"disableSidebar":    false,
+	shareProps := map[string]interface{}{
+		"isShare":             false,
+		"isValid":             false,
+		"banner":              "",
+		"title":               "",
+		"quickDownload":       false,
+		"description":         "",
+		"themeColor":          "",
+		"disableThumbnails":   false,
+		"viewMode":            "list",
+		"disableFileViewer":   false,
+		"disableShareCard":    false,
+		"disableSidebar":      false,
+		"isPasswordProtected": false,
+		"hash":                "",
 	}
 	disableNavButtons := settings.Config.Frontend.DisableNavButtons
 	if d.share != nil {
-		disableNavButtons = disableNavButtons || d.share.HideNavButtons
-		shareOverrides["viewMode"] = d.share.ViewMode
-		shareOverrides["banner"] = d.share.Banner
-		shareOverrides["title"] = d.share.Title
-		shareOverrides["description"] = d.share.Description
-		shareOverrides["themeColor"] = d.share.ThemeColor
-		shareOverrides["quickDownload"] = d.share.QuickDownload
-		shareOverrides["disableThumbnails"] = d.share.DisableThumbnails
-		shareOverrides["disableFileViewer"] = d.share.DisablingFileViewer
-		shareOverrides["disableShareCard"] = d.share.DisableShareCard
-		shareOverrides["disableSidebar"] = d.share.DisableSidebar
-		shareOverrides["isShare"] = true
-		if d.share.Favicon != "" {
-			if strings.HasPrefix(d.share.Favicon, "http") {
-				data["favicon"] = d.share.Favicon
-			} else {
-				data["favicon"] = publicStaticURL + "/" + d.share.Favicon
+		shareProps["isShare"] = true
+		shareProps["isValid"] = d.shareValid
+		shareProps["hash"] = d.share.Hash
+
+		if d.shareValid {
+			disableNavButtons = disableNavButtons || d.share.HideNavButtons
+			shareProps["viewMode"] = d.share.ViewMode
+			shareProps["banner"] = d.share.Banner
+			shareProps["title"] = d.share.Title
+			shareProps["description"] = d.share.Description
+			shareProps["themeColor"] = d.share.ThemeColor
+			shareProps["quickDownload"] = d.share.QuickDownload
+			shareProps["disableThumbnails"] = d.share.DisableThumbnails
+			shareProps["disableFileViewer"] = d.share.DisableFileViewer
+			shareProps["disableShareCard"] = d.share.DisableShareCard
+			shareProps["disableSidebar"] = d.share.DisableSidebar
+			shareProps["isPasswordProtected"] = d.share.PasswordHash != ""
+			shareProps["downloadURL"] = getDownloadURL(r, d.share.Hash)
+			if d.share.Favicon != "" {
+				if strings.HasPrefix(d.share.Favicon, "http") {
+					data["favicon"] = d.share.Favicon
+				} else {
+					data["favicon"] = publicStaticURL + "/" + d.share.Favicon
+				}
 			}
-		}
-		if d.share.Description != "" {
-			data["description"] = d.share.Description
-		}
-		if d.share.Title != "" {
-			data["title"] = d.share.Title
+			if d.share.Description != "" {
+				data["description"] = d.share.Description
+			}
+			if d.share.Title != "" {
+				data["title"] = d.share.Title
+			}
 		}
 
 		// base url could be different for routes behind proxy
@@ -107,7 +118,6 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		data["favicon"] = publicStaticURL + "/img/icons/favicon-256x256.png"
 		data["winIcon"] = publicStaticURL + "/img/icons/mstile-144x144.png"
 		data["appIcon"] = publicStaticURL + "/img/icons/android-chrome-256x256.png"
-		fmt.Println("favicon", data["staticURL"])
 	}
 	// variables consumed by frontend as json
 	data["globalVars"] = map[string]interface{}{
@@ -132,7 +142,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"updateAvailable":      utils.GetUpdateAvailableUrl(),
 		"disableNavButtons":    disableNavButtons,
 		"userSelectableThemes": config.Frontend.Styling.CustomThemeOptions,
-		"share":                shareOverrides,
+		"share":                shareProps,
 	}
 	jsonVars, err := json.Marshal(data["globalVars"])
 	if err != nil {

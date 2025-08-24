@@ -48,7 +48,8 @@
     "resumeAll": "Obnovit vše",
     "clearCompleted": "Vymazání dokončeno",
     "showMore": "Zobrazit více",
-    "showLess": "Zobrazit méně"
+    "showLess": "Zobrazit méně",
+    "openParentFolder": "Otevření nadřazené složky"
   },
   "download": {
     "downloadFile": "Stáhnout soubor",
@@ -62,7 +63,8 @@
     "forbidden": "Nemáte oprávnění k přístupu.",
     "internal": "Něco se opravdu pokazilo.",
     "notFound": "Tuto položku nelze najít.",
-    "connection": "Nelze se připojit k serveru."
+    "connection": "Nelze se připojit k serveru.",
+    "shareNotFound": "Neplatná nebo prošlá akcie."
   },
   "files": {
     "body": "Tělo",
@@ -510,7 +512,9 @@
     "added": "Přidáno pravidlo přístupu!",
     "name": "Název",
     "accessManagement": "Správa přístupu",
-    "all": "Odmítnout vše"
+    "all": "Odmítnout vše",
+    "defaultBehavior": "Default action{suffix}",
+    "defaultBehaviorDescription": "To ukazuje, co se stane, když se uživatel pokusí získat přístup k cestě, kde neexistují žádná specifická pravidla přístupu. \"Povolit\" znamená, že uživatelé mají ve výchozím nastavení přístup, \"Odmítnout\" znamená, že uživatelé jsou ve výchozím nastavení blokováni, pokud není výslovně povoleno."
   },
   "editor": {
     "uninitialized": "Nepodařilo se inicializovat editor. Prosím, načtěte jej znovu.",

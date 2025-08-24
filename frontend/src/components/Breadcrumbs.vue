@@ -18,7 +18,7 @@
         </router-link>
       </li>
     </ul>
-    <div v-if="isCardView" class="gallery-size card">
+    <div v-if="showGallerySize" class="gallery-size card">
       {{ $t("files.size") }}<span class="sr-only">:</span>  <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
       <input
         v-model="gallerySize"
@@ -69,8 +69,8 @@ export default {
     addPadding() {
       return getters.isStickySidebar() || getters.isShare();
     },
-    isCardView() {
-      return getters.isCardView();
+    showGallerySize() {
+      return getters.isCardView() && state.req?.items?.length > 0;
     },
     items() {
       const req = state.req;

@@ -48,7 +48,8 @@
     "resumeAll": "所有履歷",
     "clearCompleted": "清除完成",
     "showMore": "顯示更多",
-    "showLess": "顯示更少"
+    "showLess": "顯示更少",
+    "openParentFolder": "開啟父資料夾"
   },
   "download": {
     "downloadFile": "下載檔案",
@@ -59,7 +60,8 @@
     "forbidden": "您無權訪問。",
     "internal": "伺服器出了點問題。",
     "notFound": "找不到檔案。",
-    "connection": "伺服器無法連線。"
+    "connection": "伺服器無法連線。",
+    "shareNotFound": "無效或過期的共享。"
   },
   "files": {
     "body": "内容",
@@ -510,7 +512,9 @@
     "added": "已新增存取規則！",
     "name": "名稱",
     "accessManagement": "存取管理",
-    "all": "全部拒絕"
+    "all": "全部拒絕",
+    "defaultBehavior": "Default action{suffix}",
+    "defaultBehaviorDescription": "這顯示使用者嘗試存取沒有特定存取規則的路徑時會發生的情況。允許」表示使用者預設可以存取，「拒絕」表示使用者預設會被阻擋，除非明確允許。"
   },
   "editor": {
     "uninitialized": "編輯器初始化失敗。請重新載入。",

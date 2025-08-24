@@ -22,9 +22,58 @@ export function setupErrorTracking(page: Page) {
   const failedResponses: { url: string; status: number }[] = [];
 
   // Track console errors
-  page.on("console", (message) => {
+  page.on("console", async (message) => {
     if (message.type() === "error") {
-      consoleErrors.push(message.text());
+      const errorText = message.text();
+      const args = message.args();
+      
+      // Try to extract more detailed error information
+      let detailedError = errorText;
+      
+      if (args.length > 0) {
+        try {
+          // Get the first argument which usually contains the error object
+          const firstArg = await args[0].jsonValue().catch(() => null);
+          
+          if (firstArg && typeof firstArg === 'object') {
+            if (firstArg.stack) {
+              // If we have a stack trace, use it
+              detailedError = firstArg.stack;
+            } else if (firstArg.message) {
+              // Otherwise use the message if available
+              detailedError = `${firstArg.name || 'Error'}: ${firstArg.message}`;
+            }
+          }
+        } catch (e) {
+          // If we can't extract detailed info, try to get string representation of args
+          try {
+            const argsText = await Promise.all(
+              args.map(async (arg) => {
+                try {
+                  return await arg.evaluate((obj) => {
+                    if (obj && typeof obj === 'object' && obj.stack) {
+                      return obj.stack;
+                    }
+                    return String(obj);
+                  });
+                } catch {
+                  return '[Unable to serialize]';
+                }
+              })
+            );
+            
+            const combinedArgs = argsText.join(' ');
+            if (combinedArgs.trim() && combinedArgs !== errorText) {
+              detailedError = combinedArgs;
+            }
+          } catch {
+            // Fallback to original text
+            detailedError = errorText;
+          }
+        }
+      }
+      
+      consoleErrors.push(detailedError);
     }
   });
 
@@ -41,11 +90,21 @@ export function setupErrorTracking(page: Page) {
   return {
     checkForErrors: (expectedConsoleErrors = 0, expectedApiErrors = 0) => {
       if (consoleErrors.length !== expectedConsoleErrors) {
-        console.error("Unexpected Console Errors:", consoleErrors);
+        console.error(`\n=== Unexpected Console Errors (Expected: ${expectedConsoleErrors}, Got: ${consoleErrors.length}) ===`);
+        consoleErrors.forEach((error, index) => {
+          console.error(`\nError ${index + 1}:`);
+          console.error(error);
+          console.error('---');
+        });
+        console.error('=== End Console Errors ===\n');
       }
 
       if (failedResponses.length !== expectedApiErrors) {
-        console.error("Unexpected Failed API Calls:", failedResponses);
+        console.error(`\n=== Unexpected Failed API Calls (Expected: ${expectedApiErrors}, Got: ${failedResponses.length}) ===`);
+        failedResponses.forEach((response, index) => {
+          console.error(`\nFailed Request ${index + 1}: ${response.status} - ${response.url}`);
+        });
+        console.error('=== End Failed API Calls ===\n');
       }
 
       expect(consoleErrors).toHaveLength(expectedConsoleErrors);

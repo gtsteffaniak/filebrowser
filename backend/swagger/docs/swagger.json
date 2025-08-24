@@ -3249,9 +3249,6 @@
                 "unit": {
                     "type": "string"
                 },
-                "username": {
-                    "type": "string"
-                },
                 "viewMode": {
                     "type": "string"
                 }
@@ -3346,9 +3343,6 @@
                 },
                 "userID": {
                     "type": "integer"
-                },
-                "username": {
-                    "type": "string"
                 },
                 "viewMode": {
                     "type": "string"
