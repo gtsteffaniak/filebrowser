@@ -427,4 +427,10 @@ export const getters = {
     }
     return "close";
   },
+  isInvalidShare: () => {
+    return shareInfo.isShare && !shareInfo.isValid;
+  },
+  isValidShare: () => {
+    return shareInfo.isShare && shareInfo.isValid;
+  },
 };

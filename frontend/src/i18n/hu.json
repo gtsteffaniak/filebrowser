@@ -48,7 +48,8 @@
     "resumeAll": "Folytassa az összes",
     "clearCompleted": "Tiszta befejezve",
     "showMore": "Többet mutasson",
-    "showLess": "Kevesebb mutatása"
+    "showLess": "Kevesebb mutatása",
+    "openParentFolder": "Szülői mappa megnyitása"
   },
   "download": {
     "downloadFile": "Fájl letöltése",
@@ -59,7 +60,8 @@
     "forbidden": "Nincs jogosultsága a hozzáféréshez.",
     "internal": "Valami nagyon elromlott.",
     "notFound": "Ez a hely nem érhető el.",
-    "connection": "A kiszolgáló nem érhető el."
+    "connection": "A kiszolgáló nem érhető el.",
+    "shareNotFound": "Érvénytelen vagy lejárt részvény."
   },
   "files": {
     "body": "Törzs",
@@ -444,7 +446,9 @@
     "accessManagement": "Hozzáférés-kezelés",
     "totalDenied": "Elutasítva",
     "totalAllowed": "Engedélyezett",
-    "all": "Mindent megtagadni"
+    "all": "Mindent megtagadni",
+    "defaultBehavior": "Default action{suffix}",
+    "defaultBehaviorDescription": "Ez azt mutatja, hogy mi történik, ha egy felhasználó megpróbál hozzáférni egy olyan elérési útvonalhoz, ahol nincsenek speciális hozzáférési szabályok. Az 'Allow' azt jelenti, hogy a felhasználók alapértelmezés szerint hozzáférhetnek, a 'Deny' azt jelenti, hogy a felhasználók alapértelmezés szerint blokkolva vannak, kivéve, ha kifejezetten engedélyezik."
   },
   "fileLoading": {
     "title": "Feltöltések és letöltések",

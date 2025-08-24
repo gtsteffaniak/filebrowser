@@ -48,7 +48,8 @@
     "resumeAll": "Alle zusammenfassen",
     "clearCompleted": "Abgeschlossene löschen",
     "showMore": "Mehr anzeigen",
-    "showLess": "Weniger anzeigen"
+    "showLess": "Weniger anzeigen",
+    "openParentFolder": "Übergeordneten Ordner öffnen"
   },
   "download": {
     "downloadFile": "Datei herunterladen",
@@ -59,7 +60,8 @@
     "forbidden": "Sie haben keine Berechtigung dies abzurufen.",
     "internal": "Etwas ist schief gelaufen.",
     "notFound": "Dieser Ort kann nicht angezeigt werden.",
-    "connection": "Der Server ist nicht erreichbar."
+    "connection": "Der Server ist nicht erreichbar.",
+    "shareNotFound": "Ungültige oder abgelaufene Aktie."
   },
   "files": {
     "body": "Body",
@@ -444,7 +446,9 @@
     "accessManagement": "Zugangsverwaltung",
     "totalDenied": "Verweigert",
     "totalAllowed": "Erlaubt",
-    "all": "Alle ablehnen"
+    "all": "Alle ablehnen",
+    "defaultBehavior": "Default action{suffix}",
+    "defaultBehaviorDescription": "Dies zeigt, was passiert, wenn ein Benutzer versucht, auf einen Pfad zuzugreifen, für den keine spezifischen Zugriffsregeln bestehen. Zulassen\" bedeutet, dass Benutzer standardmäßig Zugang haben, \"Verweigern\" bedeutet, dass Benutzer standardmäßig blockiert werden, wenn sie nicht ausdrücklich zugelassen sind."
   },
   "fileLoading": {
     "title": "Uploads & Downloads",

@@ -48,7 +48,8 @@
     "resumeAll": "Curriculum vitae",
     "clearCompleted": "Effacement terminé",
     "showMore": "Afficher plus",
-    "showLess": "Montrer moins"
+    "showLess": "Montrer moins",
+    "openParentFolder": "Ouvrir le dossier parent"
   },
   "download": {
     "downloadFile": "Télécharger le fichier",
@@ -59,7 +60,8 @@
     "forbidden": "Vous n'avez pas la permission d'accéder à cela.",
     "internal": "Aïe ! Quelque chose s'est mal passé.",
     "notFound": "Impossible d'accéder à cet emplacement.",
-    "connection": "Le serveur n'est pas accessible."
+    "connection": "Le serveur n'est pas accessible.",
+    "shareNotFound": "Action non valide ou expirée."
   },
   "files": {
     "body": "Corps",
@@ -444,7 +446,9 @@
     "accessManagement": "Gestion de l'accès",
     "totalDenied": "Refusé",
     "totalAllowed": "Autorisé",
-    "all": "Refuser tout"
+    "all": "Refuser tout",
+    "defaultBehavior": "Default action{suffix}",
+    "defaultBehaviorDescription": "Ceci montre ce qui se passe lorsqu'un utilisateur tente d'accéder à un chemin pour lequel il n'existe pas de règles d'accès spécifiques. La mention \"Autoriser\" signifie que les utilisateurs peuvent accéder par défaut, la mention \"Refuser\" signifie que les utilisateurs sont bloqués par défaut, à moins qu'ils n'y soient explicitement autorisés."
   },
   "fileLoading": {
     "title": "Chargements et téléchargements",

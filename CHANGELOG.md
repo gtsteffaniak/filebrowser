@@ -7,12 +7,15 @@ All notable changes to this project will be documented in this file. For commit 
  **New Features**:
  - added `source.config.denyByDefault` configuration to enable a deny-by-default access rule. A source enabled with this will deny access unless an "allow" rule was specifically created. (Similar to creating a root-level denyAll rule)
  - allow oidc user source access and permission based on username and groups is fulfilled by denyByDefault source with access rules https://github.com/gtsteffaniak/filebrowser/issues/824
+ - "open parent folder" in context menu and search results https://github.com/gtsteffaniak/filebrowser/issues/1121
+ - added friendly "share not found" page.
 
  **Notes**:
  - 8.0 ffmpeg version bundled with docker
  - go 1.25 upgrade with green tea GC enabled
  - totp secrets accept non-secure strings, only throwing warning 
  - adjusted download limit so it also counts viewing text "content" of files (like in editor). You can also "disable file viewing" to stop the editor from showing. lower quality file image previews are not counted as downloads.
+ - updated invalid share message to be more clear https://github.com/gtsteffaniak/filebrowser/issues/1120
 
  **BugFixes**:
  - fixed /public/static routes issue

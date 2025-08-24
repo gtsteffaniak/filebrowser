@@ -48,7 +48,8 @@
     "resumeAll": "Resume all",
     "clearCompleted": "Czyszczenie zakończone",
     "showMore": "Pokaż więcej",
-    "showLess": "Pokaż mniej"
+    "showLess": "Pokaż mniej",
+    "openParentFolder": "Otwórz folder nadrzędny"
   },
   "download": {
     "downloadFile": "Pobierz plik",
@@ -59,7 +60,8 @@
     "forbidden": "Nie posiadasz uprawnień potrzebnych, by uzyskać do tego dostęp.",
     "internal": "Pojawił się poważny problem.",
     "notFound": "Ten adres nie jest poprawny.",
-    "connection": "Nie można uzyskać dostępu do serwera."
+    "connection": "Nie można uzyskać dostępu do serwera.",
+    "shareNotFound": "Nieprawidłowy lub wygasły udział."
   },
   "files": {
     "body": "Body",
@@ -444,7 +446,9 @@
     "accessManagement": "Zarządzanie dostępem",
     "totalDenied": "Odmowa",
     "totalAllowed": "Dozwolone",
-    "all": "Odmów wszystkim"
+    "all": "Odmów wszystkim",
+    "defaultBehavior": "Default action{suffix}",
+    "defaultBehaviorDescription": "To pokazuje, co się dzieje, gdy użytkownik próbuje uzyskać dostęp do ścieżki, dla której nie istnieją określone reguły dostępu. \"Zezwól\" oznacza, że użytkownicy mogą uzyskać dostęp domyślnie, \"Odmów\" oznacza, że użytkownicy są domyślnie blokowani, chyba że wyraźnie na to zezwolono."
   },
   "fileLoading": {
     "title": "Przesyłanie i pobieranie",

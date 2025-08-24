@@ -21,6 +21,10 @@ const errors = {
     icon: "gps_off",
     message: "errors.notFound",
   },
+  "share404": {
+    icon: "gps_off",
+    message: "errors.shareNotFound",
+  },
   500: {
     icon: "error_outline",
     message: "errors.internal",

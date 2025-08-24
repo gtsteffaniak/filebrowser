@@ -27,6 +27,7 @@ type requestContext struct {
 	fileInfo     iteminfo.ExtendedFileInfo
 	token        string
 	share        *share.Link
+	shareValid   bool
 	ctx          context.Context
 	MaxBandwidth int
 }
@@ -50,6 +51,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		// Get the file link by hash
 		link, err := store.Share.GetByHash(hash)
 		if err != nil {
+			data.share = &share.Link{}
 			return http.StatusNotFound, fmt.Errorf("share hash not found")
 		}
 		if link.DisableAnonymous && data.user.Username == "anonymous" {
@@ -123,9 +125,14 @@ func withAdminHelper(fn handleFunc) handleFunc {
 func withOrWithoutUserHelper(fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
 		var link *share.Link
+		var isShareRequest bool
+		var shareHash string
+
 		hash := r.URL.Query().Get("hash")
 		if hash != "" {
 			// Get the file link by hash
+			isShareRequest = true
+			shareHash = hash
 			link, _ = store.Share.GetByHash(hash)
 		} else {
 			prefix := config.Server.BaseURL + "public/share/"
@@ -137,6 +144,8 @@ func withOrWithoutUserHelper(fn handleFunc) handleFunc {
 						remaining = remaining[:idx]
 					}
 					if remaining != "" {
+						isShareRequest = true
+						shareHash = remaining
 						var err error
 						link, err = store.Share.GetByHash(remaining)
 						if err != nil {
@@ -147,13 +156,24 @@ func withOrWithoutUserHelper(fn handleFunc) handleFunc {
 			}
 		}
 
+		// If this is a share request, always create a share context (even if invalid)
+		if isShareRequest {
+			if link != nil {
+				data.share = link
+				data.shareValid = true
+			} else {
+				// Create an empty share with just the hash for invalid shares
+				data.share = &share.Link{Hash: shareHash}
+				data.shareValid = false
+			}
+		}
+
 		// Try to authenticate user first
 		status, err := withUserHelper(nil)(w, r, data)
 		if err == nil && status < 400 {
-			if link != nil {
-				data.share = link
+			if data.share != nil && data.shareValid {
 				if data.user != nil {
-					data.user.CustomTheme = link.ShareTheme
+					data.user.CustomTheme = data.share.ShareTheme
 				}
 			}
 			return fn(w, r, data)
@@ -164,9 +184,8 @@ func withOrWithoutUserHelper(fn handleFunc) handleFunc {
 			// If user authentication failed, call the handler without user context
 			// Clear any user data that might have been partially set
 			data.token = ""
-			if link != nil {
-				data.share = link
-				data.user.CustomTheme = link.ShareTheme
+			if data.share != nil && data.shareValid {
+				data.user.CustomTheme = data.share.ShareTheme
 			}
 			// Call the handler function without user context
 			return fn(w, r, data)

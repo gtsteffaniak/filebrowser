@@ -1,7 +1,7 @@
 <template>
   <div class="share-sidebar">
     <div class="share-sidebar__content">
-      <ShareInfo
+      <ShareInfoCard
         v-if="!disableShareCard"
         :hash="hash"
         :token="token"
@@ -12,13 +12,13 @@
 </template>
 
 <script>
-import ShareInfo from "@/components/files/ShareInfo.vue";
+import ShareInfoCard from "@/components/files/ShareInfoCard.vue";
 import { shareInfo } from "@/utils/constants";
 
 export default {
   name: "SidebarShare",
   components: {
-    ShareInfo,
+    ShareInfoCard,
   },
   props: {
     hash: {

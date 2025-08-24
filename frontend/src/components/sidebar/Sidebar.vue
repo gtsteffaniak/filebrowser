@@ -9,7 +9,7 @@
     </div>
     <SidebarSettings v-if="isSettings"></SidebarSettings>
     <SidebarGeneral v-if="!isSettings"></SidebarGeneral>
-    <SidebarShare v-if="isShare"></SidebarShare>
+    <SidebarShare v-if="isValidShare"></SidebarShare>
 
     <div class="buffer"></div>
     <div v-if="!isSettings" class="credits">
@@ -48,7 +48,7 @@ export default {
     mutations.setSeenUpdate(localStorage.getItem("seenUpdate"));
   },
   computed: {
-    isShare: () => getters.isShare(),
+    isValidShare: () => getters.isValidShare(),
     releaseUrl: () => updateAvailable,
     isDarkMode: () => getters.isDarkMode(),
     isLoggedIn: () => getters.isLoggedIn(),

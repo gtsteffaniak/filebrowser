@@ -4,7 +4,6 @@ import { router } from "@/router";
 import { shareInfo } from "@/utils/constants.js";
 
 export function removeLastDir(url) {
-  console.log("split this", url);
   var arr = url.split("/");
   if (arr.pop() === "") {
     arr.pop();
@@ -165,7 +164,6 @@ export function goToItem(source, path, previousHash) {
   }
   let newPath = encodedPath(path);
   let fullPath;
-  console.log("ShareInfo", shareInfo);
   if (shareInfo.isShare) {
     fullPath = `/public/share/${shareInfo.hash}${newPath}`;
     router.push({ path: fullPath });

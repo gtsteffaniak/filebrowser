@@ -48,7 +48,8 @@
     "resumeAll": "すべての履歴書",
     "clearCompleted": "クリア完了",
     "showMore": "もっと見る",
-    "showLess": "もっと見る"
+    "showLess": "もっと見る",
+    "openParentFolder": "親フォルダを開く"
   },
   "download": {
     "downloadFile": "Download File",
@@ -59,7 +60,8 @@
     "forbidden": "You don't have permissions to access this.",
     "internal": "内部エラーが発生しました。",
     "notFound": "リソースが見つからなりませんでした。",
-    "connection": "サーバーにアクセスできません。"
+    "connection": "サーバーにアクセスできません。",
+    "shareNotFound": "無効または期限切れの共有。"
   },
   "files": {
     "body": "本文",
@@ -444,7 +446,9 @@
     "accessManagement": "アクセス管理",
     "totalDenied": "却下",
     "totalAllowed": "可",
-    "all": "すべて拒否"
+    "all": "すべて拒否",
+    "defaultBehavior": "Default action{suffix}",
+    "defaultBehaviorDescription": "これは、特定のアクセスルールが存在しないパスにユーザがアクセスしようとしたときに何が起こるかを示している。Allow」はユーザーがデフォルトでアクセスできることを意味し、「Deny」は明示的に許可されない限り、ユーザーがデフォルトでブロックされることを意味する。"
   },
   "fileLoading": {
     "title": "アップロードとダウンロード",

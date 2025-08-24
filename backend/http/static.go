@@ -64,6 +64,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 	}
 	shareProps := map[string]interface{}{
 		"isShare":             false,
+		"isValid":             false,
 		"banner":              "",
 		"title":               "",
 		"quickDownload":       false,
@@ -79,33 +80,37 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 	}
 	disableNavButtons := settings.Config.Frontend.DisableNavButtons
 	if d.share != nil {
-		disableNavButtons = disableNavButtons || d.share.HideNavButtons
-		shareProps["viewMode"] = d.share.ViewMode
-		shareProps["banner"] = d.share.Banner
-		shareProps["title"] = d.share.Title
-		shareProps["description"] = d.share.Description
-		shareProps["themeColor"] = d.share.ThemeColor
-		shareProps["quickDownload"] = d.share.QuickDownload
-		shareProps["disableThumbnails"] = d.share.DisableThumbnails
-		shareProps["disableFileViewer"] = d.share.DisableFileViewer
-		shareProps["disableShareCard"] = d.share.DisableShareCard
-		shareProps["disableSidebar"] = d.share.DisableSidebar
 		shareProps["isShare"] = true
+		shareProps["isValid"] = d.shareValid
 		shareProps["hash"] = d.share.Hash
-		shareProps["isPasswordProtected"] = d.share.PasswordHash != ""
-		shareProps["downloadURL"] = getDownloadURL(r, d.share.Hash)
-		if d.share.Favicon != "" {
-			if strings.HasPrefix(d.share.Favicon, "http") {
-				data["favicon"] = d.share.Favicon
-			} else {
-				data["favicon"] = publicStaticURL + "/" + d.share.Favicon
+
+		if d.shareValid {
+			disableNavButtons = disableNavButtons || d.share.HideNavButtons
+			shareProps["viewMode"] = d.share.ViewMode
+			shareProps["banner"] = d.share.Banner
+			shareProps["title"] = d.share.Title
+			shareProps["description"] = d.share.Description
+			shareProps["themeColor"] = d.share.ThemeColor
+			shareProps["quickDownload"] = d.share.QuickDownload
+			shareProps["disableThumbnails"] = d.share.DisableThumbnails
+			shareProps["disableFileViewer"] = d.share.DisableFileViewer
+			shareProps["disableShareCard"] = d.share.DisableShareCard
+			shareProps["disableSidebar"] = d.share.DisableSidebar
+			shareProps["isPasswordProtected"] = d.share.PasswordHash != ""
+			shareProps["downloadURL"] = getDownloadURL(r, d.share.Hash)
+			if d.share.Favicon != "" {
+				if strings.HasPrefix(d.share.Favicon, "http") {
+					data["favicon"] = d.share.Favicon
+				} else {
+					data["favicon"] = publicStaticURL + "/" + d.share.Favicon
+				}
 			}
-		}
-		if d.share.Description != "" {
-			data["description"] = d.share.Description
-		}
-		if d.share.Title != "" {
-			data["title"] = d.share.Title
+			if d.share.Description != "" {
+				data["description"] = d.share.Description
+			}
+			if d.share.Title != "" {
+				data["title"] = d.share.Title
+			}
 		}
 
 		// base url could be different for routes behind proxy

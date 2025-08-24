@@ -48,7 +48,8 @@
     "resumeAll": "Reanudar todo",
     "clearCompleted": "Limpiar lista",
     "showMore": "Ver más",
-    "showLess": "Mostrar menos"
+    "showLess": "Mostrar menos",
+    "openParentFolder": "Abrir carpeta principal"
   },
   "download": {
     "downloadFile": "Descargar archivo",
@@ -59,7 +60,8 @@
     "forbidden": "No tienes permisos para acceder.",
     "internal": "Error interno :(",
     "notFound": "No se encontró el directorio",
-    "connection": "No se puede conectar al servidor."
+    "connection": "No se puede conectar al servidor.",
+    "shareNotFound": "Acción no válida o caducada."
   },
   "files": {
     "body": "Contenido",
@@ -444,7 +446,9 @@
     "accessManagement": "Gestión de accesos",
     "totalDenied": "Denegado",
     "totalAllowed": "Permitido",
-    "all": "Denegar todo"
+    "all": "Denegar todo",
+    "defaultBehavior": "Default action{suffix}",
+    "defaultBehaviorDescription": "Muestra lo que ocurre cuando un usuario intenta acceder a una ruta en la que no existen reglas de acceso específicas. Permitir\" significa que los usuarios pueden acceder por defecto, \"Denegar\" significa que los usuarios están bloqueados por defecto a menos que se les permita explícitamente."
   },
   "fileLoading": {
     "title": "Carga de archivos",

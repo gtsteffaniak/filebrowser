@@ -24,6 +24,7 @@ const titles = {
   User: "settings.user",
   Forbidden: "errors.forbidden",
   NotFound: "errors.notFound",
+  ShareNotFound: "errors.shareNotFound",
   InternalServerError: "errors.internal",
 };
 
