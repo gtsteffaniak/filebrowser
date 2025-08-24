@@ -70,7 +70,7 @@ export default {
       return getters.isStickySidebar() || getters.isShare();
     },
     showGallerySize() {
-      return getters.isCardView() && state.req.items.length > 0;
+      return getters.isCardView() && state.req?.items?.length > 0;
     },
     items() {
       const req = state.req;

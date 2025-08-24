@@ -116,7 +116,7 @@ export default {
   mounted() {
     window.addEventListener("hashchange", this.scrollToHash);
     window.addEventListener("keydown", this.keyEvent);
-    if (shareInfo.isShare && !shareInfo.isValid) {
+    if (getters.isInvalidShare()) {
       // show message that share is invalid and don't do anything else
       this.error = {
         status: "share404",
@@ -160,7 +160,7 @@ export default {
       }
     },
     async fetchData() {
-      if (state.deletedItem || (shareInfo.isShare && !shareInfo.isValid)) {
+      if (state.deletedItem || getters.isInvalidShare()) {
         return
       }
 

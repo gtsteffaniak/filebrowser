@@ -173,10 +173,10 @@ func addFile(path string, d *requestContext, tarWriter *tar.Writer, zipWriter *z
 			}
 			return addSingleFile(filePath, relPath, zipWriter, tarWriter)
 		})
+	} else {
+		// For a single file, use the base name as the archive path
+		return addSingleFile(realPath, baseName, zipWriter, tarWriter)
 	}
-
-	// For a single file, use the base name as the archive path
-	return addSingleFile(realPath, baseName, zipWriter, tarWriter)
 }
 
 func addSingleFile(realPath, archivePath string, zipWriter *zip.Writer, tarWriter *tar.Writer) error {
