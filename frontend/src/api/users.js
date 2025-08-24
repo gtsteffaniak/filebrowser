@@ -2,7 +2,7 @@ import { fetchURL, fetchJSON } from '@/api/utils'
 import { getApiPath, getPublicApiPath } from '@/utils/url.js'
 import { notify } from '@/notify' // Import notify for error handling
 import { setNewToken } from '@/utils/auth.js' // Import setNewToken for token management
-import { shareOverrides } from '@/utils/constants'
+import { shareInfo } from '@/utils/constants'
 
 export async function getAllUsers() {
   try {
@@ -93,10 +93,9 @@ export async function login(username, password, recaptcha, otp) {
 export async function get(id) {
   try {
     let apiPath = getApiPath('api/users', { id: id })
-    if (shareOverrides.isShare) {
+    if (shareInfo.isShare) {
       apiPath = getPublicApiPath('users', { id: id })
     }
-    console.log(apiPath,shareOverrides.isShare);
     return await fetchJSON(apiPath)
   } catch (err) {
     notify.showError(err.message || `Failed to fetch user with ID: ${id}`)

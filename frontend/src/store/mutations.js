@@ -427,6 +427,12 @@ export const mutations = {
     state.isSearchActive = value;
     emitStateChanged();
   },
+  resetAll: () => {
+    state.isSearchActive = false;
+    state.selected = [];
+    state.req = {};
+    emitStateChanged();
+  },
   showTooltip(value) {
     state.tooltip.content = value.content;
     state.tooltip.x = value.x;

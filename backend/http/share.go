@@ -17,8 +17,34 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/share"
+	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 )
+
+// ShareResponse represents a share with computed username field and download URL
+type ShareResponse struct {
+	*share.Link
+	Username    string `json:"username,omitempty"`
+	DownloadURL string `json:"downloadURL,omitempty"`
+}
+
+// convertToShareResponse converts shares to response format with usernames
+func convertToShareResponse(r *http.Request, shares []*share.Link) ([]*ShareResponse, error) {
+	responses := make([]*ShareResponse, len(shares))
+	for i, s := range shares {
+		user, err := store.Users.Get(s.UserID)
+		username := ""
+		if err == nil {
+			username = user.Username
+		}
+		responses[i] = &ShareResponse{
+			Link:        s,
+			Username:    username,
+			DownloadURL: getDownloadURL(r, s.Hash),
+		}
+	}
+	return responses, nil
+}
 
 // shareListHandler returns a list of all share links.
 // @Summary List share links
@@ -41,7 +67,11 @@ func shareListHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		return http.StatusInternalServerError, err
 	}
 	shares = utils.NonNilSlice(shares)
-	return renderJSON(w, r, shares)
+	sharesWithUsernames, err := convertToShareResponse(r, shares)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	return renderJSON(w, r, sharesWithUsernames)
 }
 
 // shareGetsHandler retrieves share links for a specific resource path.
@@ -74,16 +104,17 @@ func shareGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) 
 	scopePath := utils.JoinPathAsUnix(userscope, path)
 	s, err := store.Share.Gets(scopePath, sourceInfo.Path, d.user.ID)
 	if err == errors.ErrNotExist || len(s) == 0 {
-		return renderJSON(w, r, []*share.Link{})
+		return renderJSON(w, r, []*ShareResponse{})
 	}
-	// Overwrite the Source field with the source name from the query for each link
-	for _, link := range s {
-		link.DownloadURL = getDownloadURL(r, link.Hash)
-	}
+	// DownloadURL will be set in convertToShareResponse
 	if err != nil {
 		return http.StatusInternalServerError, fmt.Errorf("error getting share info from server")
 	}
-	return renderJSON(w, r, s)
+	sharesWithUsernames, err := convertToShareResponse(r, s)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	return renderJSON(w, r, sharesWithUsernames)
 }
 
 // shareDeleteHandler deletes a specific share link by its hash.
@@ -190,11 +221,21 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		body.Path = s.Path
 		body.Source = s.Source
 		s.CommonShare = body.CommonShare
-
 		if err = store.Share.Save(s); err != nil {
 			return http.StatusInternalServerError, err
 		}
-		return renderJSON(w, r, s)
+		// Convert to ShareResponse format with username
+		var user *users.User
+		user, err = store.Users.Get(s.UserID)
+		username := ""
+		if err == nil {
+			username = user.Username
+		}
+		response := &ShareResponse{
+			Link:     s,
+			Username: username,
+		}
+		return renderJSON(w, r, response)
 	}
 
 	source, ok := config.Server.NameToSource[body.Source]
@@ -243,10 +284,21 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		CommonShare:  body.CommonShare,
 	}
 
-	if err := store.Share.Save(s); err != nil {
+	if err = store.Share.Save(s); err != nil {
 		return http.StatusInternalServerError, err
 	}
-	return renderJSON(w, r, s)
+	// Convert to ShareResponse format with username
+	var user *users.User
+	user, err = store.Users.Get(s.UserID)
+	username := ""
+	if err == nil {
+		username = user.Username
+	}
+	response := &ShareResponse{
+		Link:     s,
+		Username: username,
+	}
+	return renderJSON(w, r, response)
 }
 
 // DirectDownloadResponse represents the response for direct download endpoint
@@ -410,9 +462,26 @@ func shareDirectDownloadHandler(w http.ResponseWriter, r *http.Request, d *reque
 func getDownloadURL(r *http.Request, hash string) string {
 	var downloadURL string
 	if config.Server.ExternalUrl != "" {
-		downloadURL = fmt.Sprintf("%spublic/api/raw?hash=%s", config.Server.ExternalUrl, hash)
+		downloadURL = fmt.Sprintf("%s%spublic/api/raw?hash=%s", config.Server.ExternalUrl, config.Server.BaseURL, hash)
 	} else {
-		downloadURL = fmt.Sprintf("%s://%s%spublic/api/raw?hash=%s", getScheme(r), r.Host, config.Server.BaseURL, hash)
+		// Prefer X-Forwarded-Host for proxy support
+		var host string
+		var scheme string
+
+		if forwardedHost := r.Header.Get("X-Forwarded-Host"); forwardedHost != "" {
+			host = forwardedHost
+			// Use X-Forwarded-Proto if available, otherwise default to https for proxied requests
+			if forwardedProto := r.Header.Get("X-Forwarded-Proto"); forwardedProto != "" {
+				scheme = forwardedProto
+			} else {
+				scheme = "https"
+			}
+		} else {
+			// Fallback to simple approach
+			host = r.Host
+			scheme = getScheme(r)
+		}
+		downloadURL = fmt.Sprintf("%s://%s%spublic/api/raw?hash=%s", scheme, host, config.Server.BaseURL, hash)
 	}
 	return downloadURL
 }

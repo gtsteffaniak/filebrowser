@@ -77,17 +77,26 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 			return http.StatusForbidden, fmt.Errorf("the target source is private")
 		}
 		// Get file information with options
+		getContent := r.URL.Query().Get("content") == "true"
+		if link.DisableFileViewer {
+			getContent = false
+		}
 		file, err := FileInfoFasterFunc(iteminfo.FileOptions{
 			Path:    utils.JoinPathAsUnix(link.Path, path),
 			Source:  link.Source,
 			Modify:  false,
 			Expand:  true,
-			Content: r.URL.Query().Get("content") == "true",
+			Content: getContent,
 		})
 		file.Token = link.Token
 		if err != nil {
 			logger.Errorf("error fetching file info for share. hash=%v path=%v error=%v", hash, path, err)
 			return errToStatus(err), fmt.Errorf("error fetching share from server")
+		}
+		if getContent {
+			link.Mu.Lock()
+			link.Downloads++
+			link.Mu.Unlock()
 		}
 		file.Path = "/" + strings.TrimPrefix(strings.TrimPrefix(file.Path, link.Path), "/")
 		// Set the file info in the `data` object

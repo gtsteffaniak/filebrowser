@@ -48,7 +48,8 @@
     "resumeAll": "Resume all",
     "clearCompleted": "Clear completed",
     "showMore": "Show more",
-    "showLess": "Show less"
+    "showLess": "Show less",
+    "openParentFolder": "Open parent folder"
   },
   "download": {
     "downloadFile": "Download File",

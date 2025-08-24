@@ -75,7 +75,7 @@ import * as upload from "@/utils/upload";
 import { state, getters, mutations } from "@/store"; // Import your custom store
 import { url } from "@/utils";
 import Icon from "@/components/files/Icon.vue";
-import { baseURL, serverHasMultipleSources, shareOverrides } from "@/utils/constants";
+import { baseURL, serverHasMultipleSources, shareInfo } from "@/utils/constants";
 
 export default {
   name: "item",
@@ -115,7 +115,7 @@ export default {
       // @ts-ignore
       if (getters.isShare()) {
         // @ts-ignore
-        return shareOverrides.quickDownload && !this.isDir;
+        return shareInfo.quickDownload && !this.isDir;
       }
       // @ts-ignore
       return state.user?.quickDownload && !this.galleryView && !this.isDir;

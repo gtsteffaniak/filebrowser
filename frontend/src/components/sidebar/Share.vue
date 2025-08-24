@@ -13,7 +13,7 @@
 
 <script>
 import ShareInfo from "@/components/files/ShareInfo.vue";
-import { shareOverrides } from "@/utils/constants";
+import { shareInfo } from "@/utils/constants";
 
 export default {
   name: "SidebarShare",
@@ -36,7 +36,7 @@ export default {
   },
   computed: {
     disableShareCard() {
-      return shareOverrides.disableShareCard;
+      return shareInfo.disableShareCard;
     },
   },
 };

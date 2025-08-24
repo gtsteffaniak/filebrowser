@@ -81,14 +81,68 @@ export default {
       return active;
     },
   },
+  watch: {
+    // Watch for route hash changes
+    "$route.hash"() {
+      this.initializeActiveSettingFromHash();
+    }
+  },
   mounted() {
     mutations.closeHovers();
     mutations.setSearch(false);
+    this.initializeActiveSettingFromHash();
+    
+    // Listen for hash changes (browser navigation)
+    window.addEventListener('hashchange', this.handleHashChange);
+  },
+  beforeUnmount() {
+    // Clean up event listener
+    window.removeEventListener('hashchange', this.handleHashChange);
   },
   methods: {
+    /**
+     * @param {any} setting
+     */
     shouldShow(setting) {
       const perm = setting?.permissions || {};
-      return Object.keys(perm).every((key) => state.user.permissions[key]);
+      const userPermissions = /** @type {Record<string, boolean>} */ (state.user.permissions || {});
+      return Object.keys(perm).every((key) => userPermissions[key]);
+    },
+    handleHashChange() {
+      // Handle browser back/forward navigation
+      this.initializeActiveSettingFromHash();
+    },
+    initializeActiveSettingFromHash() {
+      // Get the current hash from the URL
+      const hash = window.location.hash.replace('#', '');
+      
+      if (hash) {
+        // Check if the hash corresponds to a valid setting
+        const validSetting = this.settings.find(
+          (setting) => `${setting.id}-main` === hash && this.shouldShow(setting)
+        );
+        
+        if (validSetting) {
+          // Set the active settings view to the hash value
+          mutations.setActiveSettingsView(hash);
+          return;
+        }
+      }
+      
+      // Default to profile-main if no hash or invalid hash
+      const defaultSetting = this.settings.find(
+        (setting) => setting.id === 'profile' && this.shouldShow(setting)
+      );
+      
+      if (defaultSetting) {
+        mutations.setActiveSettingsView('profile-main');
+      } else {
+        // Fallback to first allowed setting if profile is not available
+        const firstAllowed = this.settings.find((setting) => this.shouldShow(setting));
+        if (firstAllowed) {
+          mutations.setActiveSettingsView(`${firstAllowed.id}-main`);
+        }
+      }
     },
   },
 };

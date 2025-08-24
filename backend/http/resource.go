@@ -85,6 +85,10 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		return http.StatusForbidden, err
 	}
 	scopePath := utils.JoinPathAsUnix(userscope, path)
+	getContent := r.URL.Query().Get("content") == "true"
+	if d.share != nil && d.share.DisableFileViewer {
+		getContent = false
+	}
 	fileInfo, err := files.FileInfoFaster(iteminfo.FileOptions{
 		Access:   store.Access,
 		Username: d.user.Username,
@@ -92,7 +96,7 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		Modify:   d.user.Permissions.Modify,
 		Source:   source,
 		Expand:   true,
-		Content:  r.URL.Query().Get("content") == "true",
+		Content:  getContent,
 	})
 	if err != nil {
 		return errToStatus(err), err

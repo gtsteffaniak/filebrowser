@@ -1,19 +1,19 @@
 <template>
   <div id="previewer" @mousemove="toggleNavigation" @touchstart="toggleNavigation">
     <div class="preview" v-if="!isDeleted">
-      <ExtendedImage v-if="previewType == 'image' || pdfConvertable" :src="raw" 
+      <ExtendedImage v-if="previewType == 'image' || pdfConvertable && !disableFileViewer" :src="raw" 
         @navigate-previous="prev"
         @navigate-next="next">
       </ExtendedImage>
-      <audio v-else-if="previewType == 'audio'" ref="player" :src="raw" controls :autoplay="autoPlay"
+      <audio v-else-if="previewType == 'audio' && !disableFileViewer" ref="player" :src="raw" controls :autoplay="autoPlay"
         @play="autoPlay = true"></audio>
-      <video v-else-if="previewType == 'video'" ref="player" :src="raw" controls :autoplay="autoPlay"
+      <video v-else-if="previewType == 'video' && !disableFileViewer" ref="player" :src="raw" controls :autoplay="autoPlay"
         @play="autoPlay = true">
         <track kind="captions" v-for="(sub, index) in subtitlesList" :key="index" :src="sub.src"
           :label="'Subtitle ' + sub.name" :default="index === 0" />
       </video>
 
-      <div v-else-if="previewType == 'pdf'" class="pdf-wrapper">
+      <div v-else-if="previewType == 'pdf' && !disableFileViewer" class="pdf-wrapper">
         <iframe class="pdf" :src="raw"></iframe>
         <a v-if="isMobileSafari" :href="raw" target="_blank" class="button button--flat floating-btn">
           <div>
@@ -65,6 +65,7 @@ import { getFileExtension } from "@/utils/files";
 import { convertToVTT } from "@/utils/subtitles";
 import { getTypeInfo } from "@/utils/mimetype";
 import { muPdfAvailable } from "@/utils/constants";
+import { shareInfo } from "@/utils/constants";
 export default {
   name: "preview",
   components: {
@@ -140,8 +141,7 @@ export default {
           path: state.share.subPath,
           hash: state.share.hash,
           token: state.share.token,
-          inline: true,
-        }, [state.req.path]);
+        }, [state.req.path], true);
       }
       return filesApi.getDownloadURL(state.req.source, state.req.path, true);
     },
@@ -172,6 +172,9 @@ export default {
     },
     deletedItem() {
       return state.deletedItem;
+    },
+    disableFileViewer() {
+      return shareInfo.disableFileViewer;
     },
   },
   watch: {
@@ -315,7 +318,7 @@ export default {
         });
       }
       const directoryPath = url.removeLastDir(state.req.path);
-      if (!this.listing) {
+      if (!this.listing || this.listing == "undefined") {
         let res;
         if (getters.isShare()) {
           // Use public API for shared files
@@ -324,7 +327,9 @@ export default {
           // Use regular files API for authenticated users
           res = await filesApi.fetchFiles(state.req.source, directoryPath);
         }
-        this.listing = res.items;
+      }
+      if (!this.listing) {
+        this.listing = [state.req]
       }
       this.name = state.req.name;
       this.previousLink = "";

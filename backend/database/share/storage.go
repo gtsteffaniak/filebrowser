@@ -71,17 +71,6 @@ func NewStorage(back StorageBackend, usersStore *users.Storage) *Storage {
 	}
 }
 
-// setUsername populates the Link.Username from the users store using UserID, if available.
-func (s *Storage) setUsername(l *Link) {
-	if l == nil || s.users == nil {
-		return
-	}
-	user, err := s.users.Get(l.UserID)
-	if err == nil && user != nil {
-		l.Username = user.Username
-	}
-}
-
 // All wraps StorageBackend.All and handles expiry.
 func (s *Storage) All() ([]*Link, error) {
 	links, err := s.back.All()
@@ -92,10 +81,7 @@ func (s *Storage) All() ([]*Link, error) {
 	if err != nil {
 		return nil, err
 	}
-	// warm cache: avoid DB calls under lock
-	for _, l := range filtered {
-		s.setUsername(l)
-	}
+
 	s.mu.Lock()
 	for i, l := range filtered {
 		if l == nil {
@@ -121,10 +107,7 @@ func (s *Storage) FindByUserID(id uint) ([]*Link, error) {
 	if err != nil {
 		return nil, err
 	}
-	// inject username outside lock
-	for _, l := range filtered {
-		s.setUsername(l)
-	}
+
 	s.mu.Lock()
 	for i, l := range filtered {
 		if l == nil {
@@ -166,7 +149,7 @@ func (s *Storage) GetByHash(hash string) (*Link, error) {
 		return nil, errors.ErrNotExist
 	}
 	s.mu.Lock()
-	s.setUsername(link)
+
 	s.shareCache[hash] = link
 	s.mu.Unlock()
 	return link, nil
@@ -177,7 +160,7 @@ func (s *Storage) GetPermanent(path, source string, id uint) (*Link, error) {
 	l, err := s.back.GetPermanent(path, source, id)
 	if err == nil && l != nil {
 		s.mu.Lock()
-		s.setUsername(l)
+
 		s.shareCache[l.Hash] = l
 		s.mu.Unlock()
 	}
@@ -193,9 +176,6 @@ func (s *Storage) Gets(sourcePath, source string, id uint) ([]*Link, error) {
 	filtered, err := s.filterExpired(links)
 	if err != nil {
 		return nil, err
-	}
-	for _, l := range filtered {
-		s.setUsername(l)
 	}
 	s.mu.Lock()
 	for i, l := range filtered {
@@ -221,9 +201,6 @@ func (s *Storage) GetBySourcePath(path, source string) ([]*Link, error) {
 	filtered, err := s.filterExpired(links)
 	if err != nil {
 		return nil, err
-	}
-	for _, l := range filtered {
-		s.setUsername(l)
 	}
 	s.mu.Lock()
 	for i, l := range filtered {

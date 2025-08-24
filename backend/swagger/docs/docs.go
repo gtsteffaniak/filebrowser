@@ -3260,9 +3260,6 @@ const docTemplate = `{
                 "unit": {
                     "type": "string"
                 },
-                "username": {
-                    "type": "string"
-                },
                 "viewMode": {
                     "type": "string"
                 }
@@ -3357,9 +3354,6 @@ const docTemplate = `{
                 },
                 "userID": {
                     "type": "integer"
-                },
-                "username": {
-                    "type": "string"
                 },
                 "viewMode": {
                     "type": "string"

@@ -719,8 +719,6 @@ definitions:
         type: string
       unit:
         type: string
-      username:
-        type: string
       viewMode:
         type: string
     type: object
@@ -788,8 +786,6 @@ definitions:
         type: string
       userID:
         type: integer
-      username:
-        type: string
       viewMode:
         type: string
     type: object
