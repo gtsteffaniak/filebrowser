@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file. For commit 
  **Notes**:
  - 8.0 ffmpeg version bundled with docker
  - go 1.25 upgrade with green tea GC enabled
+ - totp secrets accept non-secure strings, only throwing warning 
 
  **BugFixes**:
  - fixed /public/static routes issue
