@@ -521,7 +521,6 @@ export default {
     },
     addSelected(event, s) {
       const pathParts = url.removeTrailingSlash(s.path).split("/");
-      console.log(pathParts, this.getContext);
       let path = this.getContext + url.removeTrailingSlash(s.path);
       const modifiedItem = {
         name: pathParts.pop(),
