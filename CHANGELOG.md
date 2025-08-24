@@ -22,7 +22,7 @@ All notable changes to this project will be documented in this file. For commit 
  - shares redirect to login - https://github.com/gtsteffaniak/filebrowser/issues/1109
  - some static assets not available to anonymous user - https://github.com/gtsteffaniak/filebrowser/issues/1102
  - more safari style issues https://github.com/gtsteffaniak/filebrowser/issues/1110
- - fix public share download issue https://github.com/gtsteffaniak/filebrowser/issues/1118 https://github.com/gtsteffaniak/filebrowser/issues/1089
+ - fix public share download issues https://github.com/gtsteffaniak/filebrowser/issues/1118 https://github.com/gtsteffaniak/filebrowser/issues/1089
  - fixed disable file viewer setting and enforced on backend
 
 ## v0.8.1-beta

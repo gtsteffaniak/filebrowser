@@ -45,8 +45,25 @@ func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 
 	fileList := []string{}
 	for _, file := range strings.Split(f, "||") {
-		filePath := utils.JoinPathAsUnix(d.share.Path, file)
-		fileList = append(fileList, d.fileInfo.Source+"::"+filePath)
+		// Check if file already contains source prefix (source::path format)
+		if strings.Contains(file, "::") {
+			splitFile := strings.SplitN(file, "::", 2)
+			if len(splitFile) == 2 {
+				source := splitFile[0]
+				path := splitFile[1]
+				// Join the share path with the requested path
+				filePath := utils.JoinPathAsUnix(d.share.Path, path)
+				fileList = append(fileList, source+"::"+filePath)
+			} else {
+				// Fallback: treat as plain path
+				filePath := utils.JoinPathAsUnix(d.share.Path, file)
+				fileList = append(fileList, d.fileInfo.Source+"::"+filePath)
+			}
+		} else {
+			// Plain path without source prefix
+			filePath := utils.JoinPathAsUnix(d.share.Path, file)
+			fileList = append(fileList, d.fileInfo.Source+"::"+filePath)
+		}
 	}
 
 	var status int
