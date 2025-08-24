@@ -14,7 +14,7 @@
     </div>
 
     <div>Source: {{ sourcePath.source }} </div> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-    <div aria-label="filelist-path" class="searchContext clickable">{{$t('search.path')}} {{ sourcePath.path }}</div>
+    <div aria-label="filelist-path" class="searchContext button clickable">{{$t('search.path')}} {{ sourcePath.path }}</div>
     <ul class="file-list">
       <li
         @click="itemClick"

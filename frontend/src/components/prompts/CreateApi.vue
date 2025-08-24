@@ -11,7 +11,7 @@
 
     <!-- Duration Input -->
     <p>{{ $t('api.tokenDuration') }}</p>
-    <div class="inputWrapper">
+    <div class="sizeInputWrapper">
       <input class="sizeInput roundedInputLeft input" v-model.number="duration" type="number" min="1"
         :placeholder="$t('api.durationNumberPlaceholder')" />
       <select v-model="unit" class="roundedInputRight input">
@@ -97,3 +97,8 @@ export default {
   },
 };
 </script>
+<style scoped>
+.sizeInputWrapper {
+  display: flex !important;
+}
+</style>

@@ -38,7 +38,7 @@
       <div class="inputWrapper" style="display: flex">
         <select
           v-if="multipleSources"
-          class="searchContext input"
+          class="searchContext button input"
           aria-label="search-path"
           v-model="selectedSource"
           :value="selectedSource"
@@ -538,7 +538,10 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
+.sizeInputWrapper {
+  border: 1px solid #ccc;
+}
 .main-input {
   width: 100%;
 }
@@ -551,7 +554,6 @@ export default {
   border-left: 1px solid gray;
   border-right: 1px solid gray;
   word-wrap: break-word;
-  height: -webkit-fill-available;
 }
 
 .searchContext.input {
@@ -562,7 +564,6 @@ export default {
   width: 25%;
   min-width: 7em;
   max-width: 15em;
-  height: -webkit-fill-available;
 }
 
 #results > #result-list {

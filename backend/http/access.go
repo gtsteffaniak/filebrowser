@@ -23,7 +23,7 @@ type GroupListResponse struct {
 // @Param path query string false "Index path (e.g. /secret)"
 // @Param user query string false "Username to filter rules for"
 // @Param group query string false "Group name to filter rules for"
-// @Success 200 {object} object "Varies based on query. Can be access.FrontendAccessRule, []access.PrincipalRule, map[string][]access.PrincipalRule, or map[string]access.FrontendAccessRule"
+// @Success 200 {object} object "Varies based on query. Can be access.FrontendAccessRule (when source and path specified), []access.PrincipalRule, map[string][]access.PrincipalRule, or map[string]access.FrontendAccessRule"
 // @Failure 400 {object} map[string]string "Bad request"
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/access [get]
