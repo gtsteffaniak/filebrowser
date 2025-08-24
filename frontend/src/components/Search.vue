@@ -538,7 +538,10 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
+.sizeInputWrapper {
+  border: 1px solid #ccc;
+}
 .main-input {
   width: 100%;
 }

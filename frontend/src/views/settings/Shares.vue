@@ -158,7 +158,8 @@ export default {
 </script>
 
 <style scoped>
-tr > td {
+tr > td,
+tr > th {
   text-align: center;
 }
 </style>
