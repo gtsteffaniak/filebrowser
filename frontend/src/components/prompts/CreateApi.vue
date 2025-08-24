@@ -97,3 +97,8 @@ export default {
   },
 };
 </script>
+<style scoped>
+.sizeInputWrapper {
+  display: flex !important;
+}
+</style>
