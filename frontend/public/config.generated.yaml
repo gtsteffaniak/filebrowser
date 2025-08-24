@@ -21,6 +21,7 @@ server:
     - path: "/relative/or/absolute/path"  # file system path. (Can be relative)  validate:required
       name: "backend"                     # display name
       config:
+        denyByDefault: false              # deny access unless an "allow" access rule was specifically created.
         private: false                    # designate as source as private -- currently just means no sharing permitted.
         disabled: false                   # disable the source, this is useful so you don't need to remove it from the config file
         indexingIntervalMinutes: 0        # optional manual overide interval in minutes to re-index the source

@@ -6,11 +6,14 @@ All notable changes to this project will be documented in this file. For commit 
 
 Includes new 8.0 ffmpeg version bundled with docker and go 1.25 upgrade with new GC flag enabled. I found this new garbage collector reduced memory usage by an astounding 38% on my personal deployment. Indexing performance also appears 25% faster. I have opened [this poll](https://github.com/gtsteffaniak/filebrowser/discussions/1113) to get your feedback on the change.
 
+ **New Features**:
+ - added `source.config.denyByDefault` configuration to enable a deny-by-default access rule. A source enabled with this will deny access unless an "allow" rule was specifically created. (Similar to creating a root-level denyAll rule)
+
  **Notes**:
  - updated description for indexingIntervalMinutes https://github.com/gtsteffaniak/filebrowser/issues/1067
 
  **BugFixes**:
- - fixed routes issue
+ - fixed /public/static routes issue
  - shares redirect to login - https://github.com/gtsteffaniak/filebrowser/issues/1109
  - some static assets not available to anonymous user - https://github.com/gtsteffaniak/filebrowser/issues/1102
 

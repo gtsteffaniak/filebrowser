@@ -35,7 +35,7 @@
 
     <!-- Search results for desktop -->
     <div v-show="active" id="results" class="fb-shadow" ref="result">
-      <div class="inputWrapper" style="display: flex">
+      <div class="sizeInputWrapper" style="display: flex">
         <select
           v-if="multipleSources"
           class="searchContext input"
