@@ -56,7 +56,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Varies based on query. Can be access.FrontendAccessRule, []access.PrincipalRule, map[string][]access.PrincipalRule, or map[string]access.FrontendAccessRule",
+                        "description": "Varies based on query. Can be access.FrontendAccessRule (when source and path specified), []access.PrincipalRule, map[string][]access.PrincipalRule, or map[string]access.FrontendAccessRule",
                         "schema": {
                             "type": "object"
                         }
@@ -2985,6 +2985,10 @@ const docTemplate = `{
                     "description": "default \"/\" should match folders under path",
                     "type": "string"
                 },
+                "denyByDefault": {
+                    "description": "deny access unless an \"allow\" access rule was specifically created.",
+                    "type": "boolean"
+                },
                 "disableIndexing": {
                     "description": "disable the indexing of this source",
                     "type": "boolean"
@@ -3256,9 +3260,6 @@ const docTemplate = `{
                 "unit": {
                     "type": "string"
                 },
-                "username": {
-                    "type": "string"
-                },
                 "viewMode": {
                     "type": "string"
                 }
@@ -3353,9 +3354,6 @@ const docTemplate = `{
                 },
                 "userID": {
                     "type": "integer"
-                },
-                "username": {
-                    "type": "string"
                 },
                 "viewMode": {
                     "type": "string"

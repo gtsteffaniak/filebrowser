@@ -3,7 +3,7 @@
     <h2>{{ $t("buttons.share") }}</h2>
   </div>
   <div class="card-content">
-    <div aria-label="share-path" class="searchContext"> {{ $t('search.path') }} {{ item.path }}</div>
+    <div aria-label="share-path" class="searchContext button"> {{ $t('search.path') }} {{ item.path }}</div>
     <p> {{ $t('share.notice') }} </p>
 
     <div v-if="listing">
@@ -80,7 +80,7 @@
         <ToggleSwitch class="item" v-model="allowEdit" :name="'Allow modifications'" />
         <ToggleSwitch class="item" v-model="allowUpload" :name="'Allow uploading'" />
         -->
-        <ToggleSwitch class="item" v-model="disablingFileViewer" :name="'Disable File Viewer'" />
+        <ToggleSwitch class="item" v-model="disableFileViewer" :name="'Disable File Viewer'" />
         <ToggleSwitch
           class="item"
           v-model="quickDownload"
@@ -253,9 +253,10 @@ import { state, getters, mutations } from "@/store";
 import { publicApi } from "@/api";
 import Clipboard from "clipboard";
 import { fromNow } from "@/utils/moment";
-import { buildItemUrl } from "@/utils/url";
+import { buildItemUrl, fixDownloadURL } from "@/utils/url";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
-import { userSelectableThemes } from "@/utils/constants";
+import { userSelectableThemes, externalUrl } from "@/utils/constants";
+import { eventBus } from "@/store/eventBus";
 //import ViewMode from "@/components/settings/ViewMode.vue";
 
 export default {
@@ -299,7 +300,7 @@ export default {
       disableAnonymous: false,
       allowUpload: false,
       maxBandwidth: "",
-      disablingFileViewer: false,
+      disableFileViewer: false,
       disableThumbnails: false,
       enableAllowedUsernames: false,
       allowedUsernames: "",
@@ -376,6 +377,7 @@ export default {
           this.shareTheme = this.link.shareTheme || "default";
           this.disableAnonymous = this.link.disableAnonymous || false;
           this.disableThumbnails = this.link.disableThumbnails || false;
+          this.disableFileViewer = this.link.disableFileViewer || false;
           this.enableAllowedUsernames = Array.isArray(this.link.allowedUsernames) && this.link.allowedUsernames.length > 0;
           this.allowedUsernames = this.enableAllowedUsernames ? this.link.allowedUsernames.join(", ") : "";
           this.keepAfterExpiration = this.link.keepAfterExpiration || false;
@@ -491,7 +493,7 @@ export default {
           maxBandwidth: this.maxBandwidth ? parseInt(this.maxBandwidth) : 0,
           downloadsLimit: this.downloadsLimit ? parseInt(this.downloadsLimit) : 0,
           shareTheme: this.shareTheme,
-          disablingFileViewer: this.disablingFileViewer,
+          disableFileViewer: this.disableFileViewer,
           disableThumbnails: this.disableThumbnails,
           allowedUsernames: this.enableAllowedUsernames ? this.allowedUsernames.split(',').map(u => u.trim()) : [],
           keepAfterExpiration: this.keepAfterExpiration,
@@ -516,8 +518,9 @@ export default {
           this.links.push(res);
           this.sort();
         } else {
-          // reload page to see changes
-          window.location.reload();
+          // emit event to reload shares in settings view
+          eventBus.emit('sharesChanged');
+          mutations.closeHovers();
         }
 
         this.time = "";
@@ -538,6 +541,8 @@ export default {
       try {
         await publicApi.remove(link.hash);
         this.links = this.links.filter((item) => item.hash !== link.hash);
+        // emit event to reload shares in settings view
+        eventBus.emit('sharesChanged');
         if (this.links.length === 0) {
           this.listing = false;
         }
@@ -565,8 +570,8 @@ export default {
      * @param {Share} share
      */
     buildDownloadLink(share) {
-      if (share.downloadURL) {
-        return share.downloadURL;
+      if (share.downloadURL && externalUrl == "") {
+        return this.fixDownloadURL(share.downloadURL);
       }
       return publicApi.getDownloadURL(share, [this.item.name]);
     },
@@ -584,6 +589,9 @@ export default {
       }
 
       this.listing = !this.listing;
+    },
+    fixDownloadURL(downloadUrl) {
+      return fixDownloadURL(downloadUrl);
     },
   },
 };

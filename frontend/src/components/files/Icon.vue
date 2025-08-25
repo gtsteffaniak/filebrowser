@@ -32,7 +32,7 @@ import {
 } from "@/utils/constants";
 import { getTypeInfo } from "@/utils/mimetype";
 import { mutations, state } from "@/store";
-import { shareOverrides } from "@/utils/constants";
+import { shareInfo } from "@/utils/constants";
 
 // NEW: Define placeholder and error image URLs for easy configuration
 const PLACEHOLDER_URL = baseURL + "static/img/placeholder.png"; // A generic loading placeholder
@@ -76,7 +76,7 @@ export default {
   },
   computed: {
     hasPreviewImage() {
-      if (shareOverrides.disableThumbnails) {
+      if (shareInfo.disableThumbnails) {
         return false;
       }
       return this.isPreviewImg && this.imageState !== 'error' && !this.disablePreviewExt && !this.officeFileDisabled

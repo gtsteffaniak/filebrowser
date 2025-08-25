@@ -48,7 +48,8 @@
     "resumeAll": "Riprendete tutti",
     "clearCompleted": "Completato il lavoro di pulizia",
     "showMore": "Mostra di più",
-    "showLess": "Mostra meno"
+    "showLess": "Mostra meno",
+    "openParentFolder": "Aprire la cartella madre"
   },
   "download": {
     "downloadFile": "Scarica file",
@@ -59,7 +60,8 @@
     "forbidden": "Non hai i permessi per accedere a questo file.",
     "internal": "Qualcosa è andato veramente male.",
     "notFound": "Questo percorso non può essere raggiunto.",
-    "connection": "Il server non è raggiungibile."
+    "connection": "Il server non è raggiungibile.",
+    "shareNotFound": "Azione non valida o scaduta."
   },
   "files": {
     "body": "Contenuto",
@@ -444,7 +446,9 @@
     "accessManagement": "Gestione degli accessi",
     "totalDenied": "Negato",
     "totalAllowed": "Consentito",
-    "all": "Rifiuta tutto"
+    "all": "Rifiuta tutto",
+    "defaultBehavior": "Default action{suffix}",
+    "defaultBehaviorDescription": "Questo mostra cosa succede quando un utente cerca di accedere a un percorso per il quale non esistono regole di accesso specifiche. 'Consenti' significa che gli utenti possono accedere per impostazione predefinita, 'Rifiuta' significa che gli utenti sono bloccati per impostazione predefinita, a meno che non siano esplicitamente autorizzati."
   },
   "fileLoading": {
     "title": "Caricamenti e download",

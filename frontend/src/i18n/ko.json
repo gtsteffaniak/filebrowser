@@ -48,7 +48,8 @@
     "resumeAll": "모두 다시 시작",
     "clearCompleted": "완료 지우기",
     "showMore": "자세히 보기",
-    "showLess": "덜 보기"
+    "showLess": "덜 보기",
+    "openParentFolder": "상위 폴더 열기"
   },
   "download": {
     "downloadFile": "파일 다운로드",
@@ -59,7 +60,8 @@
     "forbidden": "접근 권한이 없습니다.",
     "internal": "오류가 발생하였습니다.",
     "notFound": "해당 경로를 찾을 수 없습니다.",
-    "connection": "서버에 연결할 수 없습니다."
+    "connection": "서버에 연결할 수 없습니다.",
+    "shareNotFound": "유효하지 않거나 만료된 공유입니다."
   },
   "files": {
     "body": "본문",
@@ -444,7 +446,9 @@
     "accessManagement": "액세스 관리",
     "totalDenied": "거부됨",
     "totalAllowed": "허용됨",
-    "all": "모두 거부"
+    "all": "모두 거부",
+    "defaultBehavior": "Default action{suffix}",
+    "defaultBehaviorDescription": "사용자가 특정 액세스 규칙이 없는 경로에 액세스하려고 할 때 어떤 일이 발생하는지 보여줍니다. '허용'은 사용자가 기본적으로 액세스할 수 있음을 의미하며, '거부'는 명시적으로 허용되지 않는 한 기본적으로 차단됨을 의미합니다."
   },
   "fileLoading": {
     "title": "업로드 및 다운로드",

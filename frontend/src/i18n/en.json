@@ -48,7 +48,8 @@
     "resumeAll": "Resume all",
     "clearCompleted": "Clear completed",
     "showMore": "Show more",
-    "showLess": "Show less"
+    "showLess": "Show less",
+    "openParentFolder": "Open parent folder"
   },
   "download": {
     "downloadFile": "Download File",
@@ -62,7 +63,8 @@
     "forbidden": "You don't have permissions to access this.",
     "internal": "Something really went wrong.",
     "notFound": "This location can't be reached.",
-    "connection": "The server can't be reached."
+    "connection": "The server can't be reached.",
+    "shareNotFound": "Invalid or expired share."
   },
   "files": {
     "body": "Body",
@@ -495,7 +497,9 @@
     "deleted": "Access rule deleted!",
     "added": "Access rule added!",
     "name": "Name",
-    "accessManagement": "Access Management"
+    "accessManagement": "Access Management",
+    "defaultBehavior": "Default action{suffix}",
+    "defaultBehaviorDescription": "This shows what happens when a user tries to access a path where no specific access rules exist. 'Allow' means users can access by default, 'Deny' means users are blocked by default unless explicitly allowed."
   },
   "fileLoading": {
     "title": "Uploads & Downloads",

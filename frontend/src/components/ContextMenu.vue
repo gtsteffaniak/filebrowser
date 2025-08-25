@@ -74,6 +74,12 @@
         show="copy"
       />
       <action
+        v-if="!showCreate && selectedCount == 1 && isSearchActive"
+        icon="folder"
+        :label="$t('buttons.openParentFolder')"
+        @action="openParentFolder"  
+      />
+      <action
         v-if="!showCreate && selectedCount > 0 && userPerms.modify"
         icon="forward"
         :label="$t('buttons.moveFile')"
@@ -117,6 +123,7 @@
       :class="{ 'dark-mode': isDarkMode }"
     >
       <action v-if="showGoToRaw" icon="open_in_new" :label="$t('buttons.openFile')" @action="goToRaw()" />
+      <action v-if="shouldShowParentFolder()" icon="folder" :label="$t('buttons.openParentFolder')" @action="openParentFolder" />
       <action v-if="isPreview" icon="file_download" :label="$t('buttons.download')" @action="startDownload" />
       <action v-if="showEdit" icon="edit" :label="$t('buttons.edit')" @action="edit()" />
       <action v-if="showSave" icon="save" :label="$t('buttons.save')" @action="save()" />
@@ -134,6 +141,7 @@ import buttons from "@/utils/buttons";
 import { notify } from "@/notify";
 import { eventBus } from "@/store/eventBus";
 import { filesApi, publicApi } from "@/api";
+import { url } from "@/utils";
 export default {
   name: "ContextMenu",
   components: {
@@ -258,8 +266,19 @@ export default {
         modify: state.user?.permissions?.modify,
       };
     },
+    currentPrompt() {
+      return getters.currentPrompt();
+    },
   },
   watch: {
+    currentPrompt: {
+      handler(prompt) {
+        if (prompt && prompt.name === "ContextMenu") {
+          this.setPositions();
+        }
+      },
+      deep: true,
+    },
     hasOverflowItems: {
       handler(hasItems) {
         mutations.setContextMenuHasItems(hasItems);
@@ -287,6 +306,9 @@ export default {
     }
   },
   methods: {
+    shouldShowParentFolder() {
+      return this.isPreview && state.req.path != "/";
+    },
     showAccessHover() {
       mutations.showHover({
         name: "access",
@@ -405,7 +427,8 @@ export default {
     },
     startDownload() {
       mutations.closeHovers();
-      downloadFiles(state.selected);
+      const items = state.selected.length > 0 ? state.selected : [state.req];
+      downloadFiles(items);
     },
     goToRaw() {
       if (getters.isShare()) {
@@ -446,6 +469,14 @@ export default {
           filesToReplace: state.selected.map((item) => item.name || ""),
         },
       });
+    },
+    openParentFolder() {
+      const item = state.selected.length > 0 ? state.selected[0] : state.req;
+      let parentPath = url.removeLastDir(item.path);
+      if (parentPath == "") {
+        parentPath = "/";
+      }
+      url.goToItem(state.req.source, parentPath);
     },
   },
 };

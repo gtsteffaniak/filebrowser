@@ -48,7 +48,8 @@
     "resumeAll": "Återuppta alla",
     "clearCompleted": "Klart avslutat",
     "showMore": "Visa mer",
-    "showLess": "Visa mindre"
+    "showLess": "Visa mindre",
+    "openParentFolder": "Öppna överordnad mapp"
   },
   "download": {
     "downloadFile": "Ladda ner fil",
@@ -59,7 +60,8 @@
     "forbidden": "Du saknar rättigheter till detta",
     "internal": "Något gick fel",
     "notFound": "Det går inte att nå den här platsen.",
-    "connection": "Det går inte att nå servern."
+    "connection": "Det går inte att nå servern.",
+    "shareNotFound": "Ogiltig eller utgången andel."
   },
   "files": {
     "body": "Huvud",
@@ -510,7 +512,9 @@
     "added": "Tillträdesregel tillagd!",
     "name": "Namn",
     "accessManagement": "Hantering av åtkomst",
-    "all": "Avvisa alla"
+    "all": "Avvisa alla",
+    "defaultBehavior": "Default action{suffix}",
+    "defaultBehaviorDescription": "Detta visar vad som händer när en användare försöker komma åt en sökväg där det inte finns några specifika åtkomstregler. \"Allow\" innebär att användare kan komma åt som standard, \"Deny\" innebär att användare blockeras som standard om de inte uttryckligen tillåts."
   },
   "editor": {
     "uninitialized": "Redigeraren kunde inte initieras. Vänligen ladda om.",

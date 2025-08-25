@@ -76,11 +76,12 @@ func setupProxyUser(r *http.Request, data *requestContext, proxyUser string) (*u
 			return nil, err
 		}
 		if config.Auth.Methods.ProxyAuth.CreateUser {
-			err = storage.CreateUser(users.User{
+			user := users.User{
 				LoginMethod: users.LoginMethodProxy,
 				Username:    proxyUser,
-				Permissions: settings.Config.UserDefaults.Permissions,
-			})
+			}
+			settings.ApplyUserDefaults(&user)
+			err = storage.CreateUser(user)
 			if err != nil {
 				return nil, err
 			}

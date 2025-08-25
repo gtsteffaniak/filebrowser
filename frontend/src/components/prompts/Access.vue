@@ -16,11 +16,24 @@
     </div>
     <div v-else>
       <p>{{ $t("prompts.source", { suffix: ":" }) }} {{ currentSource }}</p>
-      <div aria-label="access-path" class="searchContext clickable" @click="startPathEdit">
+      <div aria-label="access-path" class="searchContext clickable button" @click="startPathEdit">
         {{ $t("search.path") }} {{ currentPath }}
       </div>
+      <!-- Default behavior banner -->
+      <div class="card item">
+        <div class="card-content banner-content">
+          <i class="material-icons">{{ sourceDenyDefault ? 'block' : 'check_circle' }}</i>  <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          {{ $t("access.defaultBehavior", { suffix: ":" }) }} {{ sourceDenyDefault ? $t("access.deny") : $t("access.allow")
+          }}
+          <i class="no-select material-symbols-outlined tooltip-info-icon"
+            @mouseenter="showTooltip($event, $t('access.defaultBehaviorDescription'))" @mouseleave="hideTooltip">
+            help
+          </i>
+        </div>
+
+      </div>
       <!-- Add Form -->
-      <div class="form-flex-group" >
+      <div class="form-flex-group">
         <select class="input flat-right form-compact" v-model="addType">
           <option value="user">{{ $t("general.user") }}</option>
           <option value="group">{{ $t("general.group") }}</option>
@@ -30,7 +43,8 @@
           <option value="deny">{{ $t("access.deny") }}</option>
           <option value="allow">{{ $t("access.allow") }}</option>
         </select>
-        <input v-if="addType !== 'all'" class="input flat-right flat-left form-grow form-compact" v-model="addName" :placeholder="$t('access.enterName')" list="group-suggestions" />
+        <input v-if="addType !== 'all'" class="input flat-right flat-left form-grow form-compact" v-model="addName"
+          :placeholder="$t('access.enterName')" list="group-suggestions" />
         <datalist id="group-suggestions">
           <option v-for="group in groups" :key="group" :value="group"></option>
         </datalist>
@@ -48,7 +62,8 @@
           </tr>
           <tr v-for="entry in entries" :key="entry.type + '-' + entry.name">
             <td>{{ entry.allow ? $t("access.allow") : $t("access.deny") }}</td>
-            <td>{{ entry.type === 'user' ? $t("general.user") : (entry.type === 'group' ? $t("general.group") : $t('access.all')) }}</td>
+            <td>{{ entry.type === 'user' ? $t("general.user") : (entry.type === 'group' ? $t("general.group") :
+              $t('access.all')) }}</td>
             <td>{{ entry.name }}</td>
             <td>
               <button @click="deleteAccess(entry)" class="action" :aria-label="$t('buttons.delete')"
@@ -62,11 +77,11 @@
     </div>
   </div>
   <div class="card-action">
-      <button v-if="!isEditingPath" @click="closeHovers" class="button button--flat button--grey" :aria-label="$t('buttons.close')"
-        :title="$t('buttons.close')">
-        {{ $t("buttons.close") }}
-      </button>
-    </div>
+    <button v-if="!isEditingPath" @click="closeHovers" class="button button--flat button--grey"
+      :aria-label="$t('buttons.close')" :title="$t('buttons.close')">
+      {{ $t("buttons.close") }}
+    </button>
+  </div>
 </template>
 
 <script>
@@ -90,6 +105,7 @@ export default {
       currentSource: this.sourceName,
       tempSource: this.sourceName,
       rule: { denyAll: false, deny: { users: [], groups: [] }, allow: { users: [], groups: [] } },
+      sourceDenyDefault: false,
       addType: "user",
       addListType: "deny",
       addName: "",
@@ -171,10 +187,14 @@ export default {
     },
     async fetchRule() {
       try {
-        this.rule = await accessApi.get(this.currentSource, this.currentPath);
+        const response = await accessApi.get(this.currentSource, this.currentPath);
+        // Handle new API response structure - now sourceDenyDefault is part of the rule
+        this.rule = response;
+        this.sourceDenyDefault = response.sourceDenyDefault || false;
       } catch (e) {
         notify.showError(e);
         this.rule = { denyAll: false, deny: { users: [], groups: [] }, allow: { users: [], groups: [] } };
+        this.sourceDenyDefault = false;
       }
     },
     /**
@@ -225,6 +245,16 @@ export default {
       } else {
         this.$emit('close');
       }
+    },
+    showTooltip(event, text) {
+      mutations.showTooltip({
+        content: text,
+        x: event.clientX,
+        y: event.clientY,
+      });
+    },
+    hideTooltip() {
+      mutations.hideTooltip();
     }
   }
 };
@@ -233,5 +263,17 @@ export default {
 <style scoped>
 .form-flex-group {
   margin-top: 1em;
+}
+
+.banner-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0.25em !important;
+  gap: 0.5em;
+}
+
+.searchContext {
+  margin-bottom: 1em;
 }
 </style>

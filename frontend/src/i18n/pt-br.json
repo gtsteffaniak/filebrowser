@@ -48,7 +48,8 @@
     "resumeAll": "Retomar tudo",
     "clearCompleted": "Limpar concluído",
     "showMore": "Mostrar mais",
-    "showLess": "Mostrar menos"
+    "showLess": "Mostrar menos",
+    "openParentFolder": "Abrir a pasta principal"
   },
   "download": {
     "downloadFile": "Baixar arquivo",
@@ -59,7 +60,8 @@
     "forbidden": "Você não tem permissões para acessar isto.",
     "internal": "Ops! Algum erro ocorreu.",
     "notFound": "Ops! Nada foi encontrado.",
-    "connection": "O servidor não pode ser alcançado."
+    "connection": "O servidor não pode ser alcançado.",
+    "shareNotFound": "Compartilhamento inválido ou expirado."
   },
   "files": {
     "body": "Corpo",
@@ -444,7 +446,9 @@
     "accessManagement": "Gerenciamento de acesso",
     "totalDenied": "Negado",
     "totalAllowed": "Permitido",
-    "all": "Negar tudo"
+    "all": "Negar tudo",
+    "defaultBehavior": "Default action{suffix}",
+    "defaultBehaviorDescription": "Isso mostra o que acontece quando um usuário tenta acessar um caminho em que não existem regras de acesso específicas. \"Permitir\" significa que os usuários podem acessar por padrão, \"Negar\" significa que os usuários são bloqueados por padrão, a menos que sejam explicitamente permitidos."
   },
   "fileLoading": {
     "title": "Uploads e downloads",

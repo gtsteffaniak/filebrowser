@@ -179,13 +179,13 @@ input.sizeInput:disabled {
   border-radius: 1em;
   margin: .5em;
   display: -ms-flexbox;
-  display: flex;
+  display: flex !important;
+  align-items: center;
   background-color: #f5f5f5;
   padding: .25em;
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
-  border: 1px solid #ccc;
   justify-content: center;
 }
 
@@ -199,6 +199,7 @@ input.sizeInput:disabled {
   backdrop-filter: invert(.1);
   height: 2em;
   width: 5em;
+
 }
 
 .roundedInputLeft {
@@ -206,10 +207,10 @@ input.sizeInput:disabled {
   border-top-right-radius: 0;
   width: auto;
   background-color: var(--surfaceSecondary);
+  min-width: 50%;
 }
 
 .roundedInputRight {
-  padding: 1em;
   border-radius: 1em;
   border-bottom-left-radius: 0;
   border-top-left-radius: 0;

@@ -48,7 +48,8 @@
     "resumeAll": "Tümünü devam ettir",
     "clearCompleted": "Temizleme tamamlandı",
     "showMore": "Daha fazla göster",
-    "showLess": "Daha az göster"
+    "showLess": "Daha az göster",
+    "openParentFolder": "Üst klasörü açın"
   },
   "download": {
     "downloadFile": "Dosyayı indir",
@@ -59,7 +60,8 @@
     "forbidden": "Buna erişim izniniz yok.",
     "internal": "Bir şeyler ters gitti.",
     "notFound": "Bu konuma ulaşılamıyor.",
-    "connection": "Sunucuya ulaşılamıyor."
+    "connection": "Sunucuya ulaşılamıyor.",
+    "shareNotFound": "Geçersiz veya süresi dolmuş paylaşım."
   },
   "files": {
     "body": "Sayfa",
@@ -444,7 +446,9 @@
     "accessManagement": "Erişim Yönetimi",
     "totalDenied": "Reddedildi",
     "totalAllowed": "İzin verildi",
-    "all": "Tümünü Reddet"
+    "all": "Tümünü Reddet",
+    "defaultBehavior": "Default action{suffix}",
+    "defaultBehaviorDescription": "Bu, bir kullanıcı belirli erişim kurallarının bulunmadığı bir yola erişmeye çalıştığında ne olacağını gösterir. 'Allow' kullanıcıların varsayılan olarak erişebileceği anlamına gelir, 'Deny' ise açıkça izin verilmediği sürece kullanıcıların varsayılan olarak engellendiği anlamına gelir."
   },
   "fileLoading": {
     "title": "Yüklemeler & İndirmeler",

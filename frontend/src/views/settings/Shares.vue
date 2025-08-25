@@ -16,6 +16,7 @@
           <th></th>
           <th></th>
           <th></th>
+          <th></th>
         </tr>
       </thead>
       <tbody class="settings-items">
@@ -51,6 +52,12 @@
               <i class="material-icons">content_paste</i>
             </button>
           </td>
+          <td class="small">
+            <button class="action copy-clipboard" :data-clipboard-text="fixDownloadURL(link.downloadURL)" v-if="link.downloadURL"
+              :aria-label="$t('buttons.copyDownloadLinkToClipboard')" :title="$t('buttons.copyDownloadLinkToClipboard')">
+              <i class="material-icons">content_paste_go</i>
+            </button>
+          </td>
         </tr>
       </tbody>
     </table>
@@ -67,7 +74,9 @@ import { publicApi } from "@/api";
 import { state, mutations, getters } from "@/store";
 import Clipboard from "clipboard";
 import Errors from "@/views/Errors.vue";
-import { fromNow } from '@/utils/moment'
+import { fromNow } from '@/utils/moment';
+import { eventBus } from "@/store/eventBus";
+import { fixDownloadURL } from "@/utils/url";
 
 export default {
   name: "shares",
@@ -76,35 +85,31 @@ export default {
   },
   data: function () {
     return {
+      /** @type {any} */
       error: null,
+      /** @type {any[]} */
       links: [],
+      /** @type {any} */
       clip: null,
     };
   },
   async created() {
-    mutations.setLoading("shares", true);
-    try {
-      let links = await publicApi.list();
-      if (links.length === 0) {
-        this.links = [];
-        return;
-      }
-      this.links = links;
-    } catch (e) {
-      this.error = e;
-      notify.showError(e);
-    } finally {
-      mutations.setLoading("shares", false);
-    }
+    await this.reloadShares();
   },
   mounted() {
     this.clip = new Clipboard(".copy-clipboard");
     this.clip.on("success", () => {
       notify.showSuccess(this.$t("success.linkCopied"));
     });
+    
+    // Listen for share changes
+    eventBus.on('sharesChanged', this.reloadShares);
   },
   beforeUnmount() {
     this.clip.destroy();
+    
+    // Clean up event listener
+    eventBus.removeEventListener('sharesChanged', this.reloadShares);
   },
   computed: {
     settings() {
@@ -121,6 +126,26 @@ export default {
     },
   },
   methods: {
+    async reloadShares() {
+      mutations.setLoading("shares", true);
+      try {
+        let links = await publicApi.list();
+        if (links.length === 0) {
+          this.links = [];
+          return;
+        }
+        this.links = links;
+        this.error = null; // Clear any previous errors
+      } catch (e) {
+        this.error = e;
+        notify.showError(e);
+      } finally {
+        mutations.setLoading("shares", false);
+      }
+    },
+    /**
+     * @param {any} link
+     */
     editLink(link) {
       mutations.showHover({
         name: "share",
@@ -130,6 +155,10 @@ export default {
         },
       });
     },
+    /**
+     * @param {any} event
+     * @param {any} link
+     */
     deleteLink: async function (event, link) {
       mutations.showHover({
         name: "share-delete",
@@ -147,18 +176,28 @@ export default {
         },
       });
     },
+    /**
+     * @param {any} time
+     */
     humanTime(time) {
       return fromNow(time);
     },
+    /**
+     * @param {any} share
+     */
     buildLink(share) {
       return publicApi.getShareURL(share);
+    },
+    fixDownloadURL(downloadUrl) {
+      return fixDownloadURL(downloadUrl);
     },
   },
 };
 </script>
 
 <style scoped>
-tr > td {
+tr > td,
+tr > th {
   text-align: center;
 }
 </style>

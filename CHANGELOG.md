@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.8.2-beta
+
+ **New Features**:
+ - added `source.config.denyByDefault` configuration to enable a deny-by-default access rule. A source enabled with this will deny access unless an "allow" rule was specifically created. (Similar to creating a root-level denyAll rule)
+ - allow oidc user source access and permission based on username and groups is fulfilled by denyByDefault source with access rules https://github.com/gtsteffaniak/filebrowser/issues/824
+ - "open parent folder" in context menu and search results https://github.com/gtsteffaniak/filebrowser/issues/1121
+ - added friendly "share not found" page.
+
+ **Notes**:
+ - 8.0 ffmpeg version bundled with docker
+ - go 1.25 upgrade with green tea GC enabled
+ - totp secrets accept non-secure strings, only throwing warning 
+ - adjusted download limit so it also counts viewing text "content" of files (like in editor). You can also "disable file viewing" to stop the editor from showing. lower quality file image previews are not counted as downloads.
+ - updated invalid share message to be more clear https://github.com/gtsteffaniak/filebrowser/issues/1120
+
+ **BugFixes**:
+ - fixed /public/static routes issue
+ - shares redirect to login - https://github.com/gtsteffaniak/filebrowser/issues/1109
+ - some static assets not available to anonymous user - https://github.com/gtsteffaniak/filebrowser/issues/1102
+ - more safari style issues https://github.com/gtsteffaniak/filebrowser/issues/1110
+ - fix public share download issues https://github.com/gtsteffaniak/filebrowser/issues/1118 https://github.com/gtsteffaniak/filebrowser/issues/1089
+ - fixed disable file viewer setting and enforced on backend
+
 ## v0.8.1-beta
 
  **New Features**:

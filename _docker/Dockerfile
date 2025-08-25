@@ -1,4 +1,4 @@
-FROM gtstef/ffmpeg:7.1.1-decode AS ffmpeg
+FROM gtstef/ffmpeg:8.0-decode AS ffmpeg
 FROM golang:alpine AS base
 ARG VERSION
 ARG REVISION
@@ -6,6 +6,7 @@ WORKDIR /app
 COPY ./backend ./
 RUN apk update && apk add --no-cache gcc musl-dev upx
 ENV CGO_ENABLED=1
+ENV GOEXPERIMENT=greenteagc
 RUN go build -tags mupdf,musl -ldflags="-w -s \
   -X 'github.com/gtsteffaniak/filebrowser/backend/common/version.Version=${VERSION}' \
   -X 'github.com/gtsteffaniak/filebrowser/backend/common/version.CommitSHA=${REVISION}'" \

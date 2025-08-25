@@ -5,7 +5,7 @@ import "sync"
 type CommonShare struct {
 	//AllowEdit           bool   `json:"allowEdit,omitempty"`
 	AllowUpload         bool     `json:"allowUpload,omitempty"`
-	DisablingFileViewer bool     `json:"disableFileViewer,omitempty"`
+	DisableFileViewer   bool     `json:"disableFileViewer,omitempty"`
 	DownloadsLimit      int      `json:"downloadsLimit,omitempty"`
 	ShareTheme          string   `json:"shareTheme,omitempty"`
 	DisableAnonymous    bool     `json:"disableAnonymous,omitempty"`
@@ -26,7 +26,6 @@ type CommonShare struct {
 	Path                string   `json:"path,omitempty"`
 	DownloadURL         string   `json:"downloadURL,omitempty"`
 	DisableShareCard    bool     `json:"disableShareCard,omitempty"`
-	Username            string   `json:"username,omitempty"`
 }
 type CreateBody struct {
 	CommonShare

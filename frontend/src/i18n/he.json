@@ -48,7 +48,8 @@
     "resumeAll": "המשך הכל",
     "clearCompleted": "השלם",
     "showMore": "הצג עוד",
-    "showLess": "הצג פחות"
+    "showLess": "הצג פחות",
+    "openParentFolder": "פתח את התיקייה הראשית"
   },
   "download": {
     "downloadFile": "הורד קובץ",
@@ -59,7 +60,8 @@
     "forbidden": "אין לך הרשאות גישה",
     "internal": "משהו השתבש",
     "notFound": "לא ניתן להגיע למיקום זה",
-    "connection": "לא ניתן להגיע לשרת"
+    "connection": "לא ניתן להגיע לשרת",
+    "shareNotFound": "שיתוף לא חוקי או פג תוקף."
   },
   "files": {
     "body": "גוף",
@@ -444,7 +446,9 @@
     "accessManagement": "ניהול גישה",
     "totalDenied": "נדחה",
     "totalAllowed": "מותר",
-    "all": "דחה הכל"
+    "all": "דחה הכל",
+    "defaultBehavior": "Default action{suffix}",
+    "defaultBehaviorDescription": "זה מראה מה קורה כאשר משתמש מנסה לגשת לנתיב שבו אין כללי גישה ספציפיים. 'אפשר' פירושו שמשתמשים יכולים לגשת כברירת מחדל, 'דחה' פירושו שמשתמשים נחסמים כברירת מחדל, אלא אם כן הותר להם במפורש."
   },
   "fileLoading": {
     "title": "העלאות והורדות",

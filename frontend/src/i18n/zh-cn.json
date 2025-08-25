@@ -48,7 +48,8 @@
     "resumeAll": "全部简历",
     "clearCompleted": "清除完毕",
     "showMore": "显示更多",
-    "showLess": "显示更少"
+    "showLess": "显示更少",
+    "openParentFolder": "打开父文件夹"
   },
   "download": {
     "downloadFile": "下载文件",
@@ -59,7 +60,8 @@
     "forbidden": "你无权限访问",
     "internal": "服务器出了点问题。",
     "notFound": "找不到文件。",
-    "connection": "无法连接到服务器。"
+    "connection": "无法连接到服务器。",
+    "shareNotFound": "无效或过期共享。"
   },
   "files": {
     "body": "内容",
@@ -510,7 +512,9 @@
     "added": "已添加访问规则！",
     "name": "名称",
     "accessManagement": "访问管理",
-    "all": "全部拒绝"
+    "all": "全部拒绝",
+    "defaultBehavior": "Default action{suffix}",
+    "defaultBehaviorDescription": "这显示了当用户试图访问没有特定访问规则的路径时会发生什么。允许 \"表示默认情况下用户可以访问，\"拒绝 \"表示除非明确允许，否则默认情况下用户将被阻止。"
   },
   "editor": {
     "uninitialized": "编辑器初始化失败。请重新加载。",

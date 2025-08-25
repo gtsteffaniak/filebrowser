@@ -1,7 +1,7 @@
 import { removePrefix, buildItemUrl, removeLeadingSlash } from '@/utils/url.js'
 import { getFileExtension } from '@/utils/files.js'
 import { state, mutations } from '@/store'
-import { noAuth, shareOverrides } from '@/utils/constants.js'
+import { noAuth, shareInfo } from '@/utils/constants.js'
 import { getTypeInfo } from '@/utils/mimetype'
 import { fromNow } from '@/utils/moment'
 import * as i18n from '@/i18n'
@@ -36,12 +36,12 @@ export const getters = {
   isCardView: () =>
     (state.user.viewMode == 'gallery' || state.user.viewMode == 'normal') &&
     getters.currentView() == 'listingView',
-  currentHash: () => state.route.hash.replace('#', ''),
+  currentHash: () => shareInfo.hash,
   isMobile: () => state.isMobile,
   isLoading: () => Object.keys(state.loading).length > 0,
   isSettings: () => getters.currentView() === 'settings',
   isShare: () => {
-    return shareOverrides.isShare
+    return shareInfo.isShare
   },
   isDarkMode: () => {
     if (state.user == null) {
@@ -137,7 +137,7 @@ export const getters = {
     return { dirs, files }
   },
   isSidebarVisible: () => {
-    if (shareOverrides.disableSidebar) {
+    if (shareInfo.disableSidebar) {
       return false
     }
     const cv = getters.currentView()
@@ -190,16 +190,14 @@ export const getters = {
     return removePrefix(state.route.path, trimModifier)
   },
   shareHash: () => {
-    let urlPath = getters.routePath('public/share')
-    let parts = urlPath.split('/')
-    return parts[1]
+    return shareInfo.hash
   },
   sharePathBase: () => {
-    return '/public/share/' + getters.shareHash() + '/'
+    return '/public/share/' + shareInfo.hash + '/'
   },
   getSharePath: (subPath = "") => {
     let urlPath = getters.routePath('public/share')
-    let path =  "/" + removeLeadingSlash(urlPath.split(state.share.hash)[1])
+    let path =  "/" + removeLeadingSlash(urlPath.split(shareInfo.hash)[1])
     if (subPath != "") {
       path += "/" + removeLeadingSlash(subPath)
     }
@@ -344,7 +342,7 @@ export const getters = {
     return false
   },
   officeViewingDisabled: filename => {
-    if (shareOverrides.isShare) {
+    if (shareInfo.isShare) {
       return true
     }
     const ext = ' ' + getFileExtension(filename)
@@ -428,5 +426,11 @@ export const getters = {
       return "menu";
     }
     return "close";
+  },
+  isInvalidShare: () => {
+    return shareInfo.isShare && !shareInfo.isValid;
+  },
+  isValidShare: () => {
+    return shareInfo.isShare && shareInfo.isValid;
   },
 };

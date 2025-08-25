@@ -38,7 +38,7 @@
       <div class="inputWrapper" style="display: flex">
         <select
           v-if="multipleSources"
-          class="searchContext input"
+          class="searchContext button input"
           aria-label="search-path"
           v-model="selectedSource"
           :value="selectedSource"
@@ -306,13 +306,15 @@ export default {
       return this.showHelp;
     },
     activeStates() {
-      // Create a Set of combined `name` and `type` keys for efficient lookup
-      const selectedSet = new Set(
-        state.selected.map((item) => `${item.name}:${item.type}`)
-      );
-      const result = this.results.map((s) => selectedSet.has(`${s.name}:${s.type}`));
-      // Build a map of active states for the `results` array
-      return result;
+      const selectedItems = state.selected ? [].concat(state.selected) : [];
+
+      if (selectedItems.length === 0) {
+        // Return an array of all false if nothing is selected
+        return new Array(this.results.length).fill(false);
+      }
+
+      const selectedPaths = new Set(selectedItems.map((item) => item.path));
+      return this.results.map((result) => selectedPaths.has(result.path));
     },
     sourceInfo() {
       return state.sources.info;
@@ -519,17 +521,13 @@ export default {
     },
     addSelected(event, s) {
       const pathParts = url.removeTrailingSlash(s.path).split("/");
-      let path = this.getContext + s.path;
-      if (this.getContext === "/") {
-        path = s.path;
-      }
+      let path = this.getContext + url.removeTrailingSlash(s.path);
       const modifiedItem = {
         name: pathParts.pop(),
         path: path,
         size: s.size,
         type: s.type,
         source: this.selectedSource || state.sources.current,
-        fullPath: path,
       };
       mutations.resetSelected();
       mutations.addSelected(modifiedItem);
@@ -538,7 +536,10 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
+.sizeInputWrapper {
+  border: 1px solid #ccc;
+}
 .main-input {
   width: 100%;
 }
@@ -551,7 +552,6 @@ export default {
   border-left: 1px solid gray;
   border-right: 1px solid gray;
   word-wrap: break-word;
-  height: -webkit-fill-available;
 }
 
 .searchContext.input {
@@ -562,7 +562,16 @@ export default {
   width: 25%;
   min-width: 7em;
   max-width: 15em;
-  height: -webkit-fill-available;
+}
+
+.searchContext.input option {
+  background: grey;
+  color: white;
+}
+
+.searchContext.input option:hover {
+  background: var(--primaryColor);
+  color: white;
 }
 
 #results > #result-list {
@@ -670,9 +679,8 @@ export default {
   /* IE and Edge */
 }
 
-.search-entry {
-  cursor: pointer;
-  border-radius: 0.25em;
+.search-entry:hover {
+  background-color: var(--alt-background);
 }
 
 .search-entry.active {

@@ -48,7 +48,8 @@
     "resumeAll": "Retomar tudo",
     "clearCompleted": "Limpar concluído",
     "showMore": "Mostrar mais",
-    "showLess": "Mostrar menos"
+    "showLess": "Mostrar menos",
+    "openParentFolder": "Abrir a pasta principal"
   },
   "download": {
     "downloadFile": "Descarregar ficheiro",
@@ -59,7 +60,8 @@
     "forbidden": "Não tem permissões para aceder a isto",
     "internal": "Algo correu bastante mal.",
     "notFound": "Esta localização não é alcançável.",
-    "connection": "O servidor não pode ser contactado."
+    "connection": "O servidor não pode ser contactado.",
+    "shareNotFound": "Ação inválida ou expirada."
   },
   "files": {
     "body": "Corpo",
@@ -510,7 +512,9 @@
     "added": "Regra de acesso adicionada!",
     "name": "Nome",
     "accessManagement": "Gestão do acesso",
-    "all": "Recusar tudo"
+    "all": "Recusar tudo",
+    "defaultBehavior": "Default action{suffix}",
+    "defaultBehaviorDescription": "Isto mostra o que acontece quando um utilizador tenta aceder a um caminho onde não existem regras de acesso específicas. \"Permitir\" significa que os utilizadores podem aceder por predefinição, \"Negar\" significa que os utilizadores são bloqueados por predefinição, a menos que sejam explicitamente autorizados."
   },
   "editor": {
     "uninitialized": "Falha ao inicializar o editor. Por favor, recarregue.",

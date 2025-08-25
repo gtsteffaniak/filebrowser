@@ -48,7 +48,8 @@
     "resumeAll": "Obnoviť všetko",
     "clearCompleted": "Vyčistiť dokončené",
     "showMore": "Zobraziť viac",
-    "showLess": "Zobraziť menej"
+    "showLess": "Zobraziť menej",
+    "openParentFolder": "Otvorenie nadradeného priečinka"
   },
   "download": {
     "downloadFile": "Stiahnuť súbor",
@@ -59,7 +60,8 @@
     "forbidden": "You don't have permissions to access this.",
     "internal": "Something really went wrong.",
     "notFound": "This location can't be reached.",
-    "connection": "The server can't be reached."
+    "connection": "The server can't be reached.",
+    "shareNotFound": "Neplatná alebo neplatná akcia."
   },
   "files": {
     "body": "Telo",
@@ -444,7 +446,9 @@
     "accessManagement": "Správa prístupu",
     "totalDenied": "Odmietnuté",
     "totalAllowed": "Povolené",
-    "all": "Odmietnuť všetko"
+    "all": "Odmietnuť všetko",
+    "defaultBehavior": "Default action{suffix}",
+    "defaultBehaviorDescription": "Toto ukazuje, čo sa stane, keď sa používateľ pokúsi získať prístup k ceste, kde neexistujú žiadne špecifické pravidlá prístupu. \"Allow\" (Povoliť) znamená, že používatelia majú predvolený prístup, \"Deny\" (Odmietnuť) znamená, že používatelia sú predvolene blokovaní, pokiaľ to nie je výslovne povolené."
   },
   "fileLoading": {
     "title": "Nahrávanie a sťahovanie",
