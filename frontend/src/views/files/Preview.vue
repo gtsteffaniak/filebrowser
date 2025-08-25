@@ -58,6 +58,8 @@
 <script>
 import { filesApi, publicApi } from "@/api";
 import { url } from "@/utils";
+import { getApiPath, doubleEncode } from "@/utils/url";
+import { fetchURL } from "@/api/utils";
 import throttle from "@/utils/throttle";
 import ExtendedImage from "@/components/files/ExtendedImage.vue";
 import { state, getters, mutations } from "@/store";
@@ -238,27 +240,46 @@ export default {
         return [];
       }
       let subs = [];
-      for (const subtitleFile of state.req.subtitles) {
-        const ext = getFileExtension(subtitleFile);
-        const path = url.removeLastDir(state.req.path) + "/" + subtitleFile;
+      for (const subtitleTrack of state.req.subtitles) {
+        let vttContent = "";
+        let vttURL = "";
+        
+        if (subtitleTrack.isFile) {
+          const ext = getFileExtension(subtitleFile);
+          const path = url.removeLastDir(state.req.path) + "/" + subtitleFile;
 
-        let resp;
-        if (getters.isShare()) {
-          // Use public API for shared files
-          resp = await publicApi.fetchPub(path, state.share.hash, "", true);
+          let resp;
+          if (getters.isShare()) {
+            // Use public API for shared files
+            resp = await publicApi.fetchPub(path, state.share.hash, "", true);
+          } else {
+            // Use regular files API for authenticated users
+            resp = await filesApi.fetchFiles(state.req.source, path, true);
+          }
+          let vttContent = resp.content;
+          vttContent = convertToVTT(ext, resp.content);
         } else {
-          // Use regular files API for authenticated users
-          resp = await filesApi.fetchFiles(state.req.source, path, true);
+          // Handle embedded subtitles - call subtitles API directly
+          try {
+            const params = {
+              path: doubleEncode(state.req.path),
+              source: doubleEncode(state.req.source),
+              index: subtitleTrack.index
+            };
+            const apiPath = getApiPath('api/subtitles', params);
+            const res = await fetchURL(apiPath);
+            vttContent = await res.text(); // Get raw VTT content
+          } catch (err) {
+            console.warn("Failed to fetch embedded subtitle:", err);
+            continue; // Skip this subtitle track
+          }
         }
-
-        let vttContent = resp.content;
-        // Convert SRT to VTT (assuming srt2vtt() does this)
-        vttContent = convertToVTT(ext, resp.content);
         // Create a virtual file (Blob) and get a URL for it
         const blob = new Blob([vttContent], { type: "text/vtt" });
-        const vttURL = URL.createObjectURL(blob);
+        vttURL = URL.createObjectURL(blob);
+        
         subs.push({
-          name: ext,
+          name: subtitleTrack.name,
           src: vttURL,
         });
       }
