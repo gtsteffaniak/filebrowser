@@ -80,7 +80,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		}
 		// Get file information with options
 		getContent := r.URL.Query().Get("content") == "true"
-		if link.DisableFileViewer {
+		if link.DisableFileViewer || link.Downloads >= link.DownloadsLimit {
 			getContent = false
 		}
 		file, err := FileInfoFasterFunc(iteminfo.FileOptions{
@@ -95,7 +95,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 			logger.Errorf("error fetching file info for share. hash=%v path=%v error=%v", hash, path, err)
 			return errToStatus(err), fmt.Errorf("error fetching share from server")
 		}
-		if getContent {
+		if getContent && file.Content != "" {
 			link.Mu.Lock()
 			link.Downloads++
 			link.Mu.Unlock()
