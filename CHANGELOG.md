@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.8.3-beta
+
+ **BugFixes**:
+ - fixed search bar style bug in mobile #1147
+
 ## v0.8.2-beta
 
  **New Features**:
