@@ -17,10 +17,19 @@ var templateRenderer *TemplateRenderer
 
 type TemplateRenderer struct {
 	templates *template.Template
+	devMode   bool
 }
 
 // Render renders a template document with headers and data
 func (t *TemplateRenderer) Render(w http.ResponseWriter, name string, data interface{}) error {
+	// If in dev mode, reload templates on every render.
+	if t.devMode {
+		var err error
+		t.templates, err = t.templates.ParseFS(assetFs, "public/index.html")
+		if err != nil {
+			return fmt.Errorf("error reloading template: %w", err)
+		}
+	}
 	// Set headers
 	w.Header().Set("Cache-Control", "no-cache, private, max-age=0")
 	w.Header().Set("Pragma", "no-cache")

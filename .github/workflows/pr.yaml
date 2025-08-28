@@ -39,7 +39,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: dist
-          path: frontend/dist
+          path: backend/http/dist
   build_backend:
     name: Build backend
     runs-on: ubuntu-latest

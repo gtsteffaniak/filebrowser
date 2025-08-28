@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"embed"
+	"encoding/json"
 	"fmt"
 	"io/fs"
 	"net/http"
@@ -22,9 +23,6 @@ import (
 //
 //go:embed embed/*
 var assets embed.FS
-
-// Boolean flag to determine whether to use the embedded FS or not
-var embeddedFS = os.Getenv("FILEBROWSER_NO_EMBEDED") != "true"
 
 // Custom dirFS to handle both embedded and non-embedded file systems
 type dirFS struct {
@@ -45,7 +43,18 @@ var (
 func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete chan struct{}) {
 	store = storage
 	config = &settings.Config
-	var err error
+
+	// Dev mode enables development features like template hot-reloading
+	devMode := os.Getenv("FILEBROWSER_DEVMODE") == "true"
+	_, err := os.Stat("http/dist")
+	// In dev mode, always use filesystem assets. Otherwise, check if http/dist exists
+	var embeddedFS bool
+	if devMode {
+		embeddedFS = false
+	} else {
+		embeddedFS = os.IsNotExist(err)
+	}
+
 	// --- START: ADD THIS DECRYPTION LOGIC ---
 	if embeddedFS {
 		// Embedded mode: Serve files from the embedded assets
@@ -57,8 +66,20 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 		assetFs = dirFS{Dir: http.Dir("http/dist")}
 	}
 
+	// In development mode, we want to reload the templates on each request.
+	// In production (embedded), we parse them once.
+	templates := template.New("").Funcs(template.FuncMap{
+		"marshal": func(v interface{}) (string, error) {
+			a, err := json.Marshal(v)
+			return string(a), err
+		},
+	})
+	if !devMode {
+		templates = template.Must(templates.ParseFS(assetFs, "public/index.html"))
+	}
 	templateRenderer = &TemplateRenderer{
-		templates: template.Must(template.ParseFS(assetFs, "public/index.html")),
+		templates: templates,
+		devMode:   devMode,
 	}
 
 	router := http.NewServeMux()
