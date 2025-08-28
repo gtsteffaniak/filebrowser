@@ -24,7 +24,6 @@ FROM alpine:latest
 COPY --from=ffmpeg [ "/ffmpeg", "/ffprobe", "/usr/local/bin/" ]
 ENV FILEBROWSER_FFMPEG_PATH="/usr/local/bin/"
 ENV FILEBROWSER_DATABASE="/home/filebrowser/data/database.db"
-ENV FILEBROWSER_NO_EMBEDED="true"
 ENV PATH="$PATH:/home/filebrowser"
 RUN apk --no-cache add ca-certificates mailcap tzdata
 RUN adduser -D -s /bin/true -u 1000 filebrowser

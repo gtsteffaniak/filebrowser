@@ -4,7 +4,7 @@ Thank you for your interest in contributing to FileBrowser Quantum! This guide w
 
 ## Prerequisites
 
-- **Go 1.24+** (see `backend/go.mod`)
+- **Go 1.25+** (see `backend/go.mod`)
 - **Node.js 18.0.0+** with npm 7.0.0+ (see `frontend/package.json`)
 - **Docker** (optional, for containerized development)
 - **Git**
@@ -31,8 +31,8 @@ cd filebrowser
 # 2. Initial setup - installs dependencies and creates test config
 make setup
 
-# 3. Run in development mode
-make run
+# 3. Run in development mode with hot-reloading
+make dev
 ```
 
 `make setup` installs all dependencies and creates a test configuration file.
@@ -52,14 +52,14 @@ make run
 - **Framework**: Vue 3 + Vite + TypeScript
 - **State**: Custom store in `frontend/src/store/`
 - **API Client**: Axios-based in `frontend/src/api/`
-- **i18n**: 25+ languages with English as master
+- **i18n**: 25+ languages with English as main
 - **Components**: Feature-based organization
 
 ## Development Commands
 
 ### Essential Commands
 ```bash
-make run          # Start development server
+make dev          # Start development server with hot-reloading
 make test         # Run all tests
 make lint         # Check code quality
 make check-all    # Lint + tests
@@ -70,12 +70,12 @@ make build          # Build Docker image
 ```
 
 ### Frontend Development
+
+Note: consider using make commands above instead.
 ```bash
 cd frontend
-npm run dev       # Dev server with hot reload
 npm run lint:fix  # Auto-fix linting issues
-npm run typecheck # TypeScript validation
-npm run i18n:sync # Sync translations
+npm run i18n:sync # Sync translations changes
 ```
 
 ## Testing
@@ -128,12 +128,11 @@ make build-backend   # Build Go binary with embedded assets
 
 ### Docker
 ```bash
-make build       # Full image with ffmpeg (~200MB)
-make run-proxy   # Docker Compose with nginx proxy
+make build       # Full image with ffmpeg and muPDF
 ```
 
 ### Configuration
-- **Test Config**: `backend/test_config.yaml` Auto-generated after running `make setup` 
+- **Test Config**: `backend/test_config.yaml` Auto-generated after running `make setup`
 
 ## Contributing
 
@@ -141,7 +140,7 @@ make run-proxy   # Docker Compose with nginx proxy
 
 1. Fork and create a feature branch
 2. Make your changes following the code standards
-3. Run `make run` to build and run with your changes
+3. Run `make dev` to build and run with your changes. Supports hot-reloading frontend and backend changes.
 4. When ready, run `make check-all` to verify tests and linting
 5. Submit PR with a clear description
 
@@ -173,16 +172,6 @@ cd frontend && rm -rf node_modules && npm install
 
 # Backend
 cd backend && go mod tidy && go clean -modcache
-```
-
-**Debugging:**
-```bash
-# Backend with debug logs
-cd backend
-FILEBROWSER_NO_EMBEDDED=true go run -tags mupdf . -c test_config.yaml --log-level debug
-
-# API documentation
-# Visit /swagger endpoint when running
 ```
 
 **Authentication Issues:**

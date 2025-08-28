@@ -225,8 +225,14 @@ func setupLogging() {
 		}
 	}
 	for _, logConfig := range Config.Server.Logging {
+		// Enable debug logging automatically in dev mode
+		levels := logConfig.Levels
+		if os.Getenv("FILEBROWSER_DEVMODE") == "true" {
+			levels = "info|warning|error|debug"
+		}
+
 		logConfig := logger.JsonConfig{
-			Levels:    logConfig.Levels,
+			Levels:    levels,
 			ApiLevels: logConfig.ApiLevels,
 			Output:    logConfig.Output,
 			Utc:       logConfig.Utc,
