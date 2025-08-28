@@ -24,10 +24,6 @@ import (
 //go:embed embed/*
 var assets embed.FS
 
-// In dev mode, we read from the disk. Otherwise, we use the embedded FS.
-var devMode = os.Getenv("FILEBROWSER_DEVMODE") == "true"
-var embeddedFS = !devMode
-
 // Custom dirFS to handle both embedded and non-embedded file systems
 type dirFS struct {
 	http.Dir
@@ -47,7 +43,14 @@ var (
 func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete chan struct{}) {
 	store = storage
 	config = &settings.Config
-	var err error
+
+	// Check if http/dist directory exists to determine whether to use filesystem or embedded assets
+	_, err := os.Stat("http/dist")
+	embeddedFS := os.IsNotExist(err)
+
+	// Dev mode enables development features like template hot-reloading
+	devMode := os.Getenv("FILEBROWSER_DEVMODE") == "true"
+
 	// --- START: ADD THIS DECRYPTION LOGIC ---
 	if embeddedFS {
 		// Embedded mode: Serve files from the embedded assets
