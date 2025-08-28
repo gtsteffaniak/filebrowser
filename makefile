@@ -23,7 +23,7 @@ build-backend:
 
 # New dev target with hot-reloading for frontend and backend
 dev:
-	@echo "NOTE: This requires 'air' to be installed. Run 'make setup' if you haven't already."
+	@echo "NOTE: Run 'make setup' if you haven't already."
 	@echo "Generating swagger docs..."
 	cd backend && go tool swag init --output swagger/docs && \
 	if [ "$(shell uname)" = "Darwin" ]; then \
