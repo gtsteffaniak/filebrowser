@@ -9,6 +9,7 @@
 @import "./dashboard.css";
 @import "./login.css";
 @import './mobile.css';
+@import "./media-player.css";
 
 .link {
   color: var(--blue);
