@@ -25,7 +25,7 @@ build-backend:
 dev:
 	@echo "NOTE: This requires 'air' to be installed. Run 'make setup' if you haven't already."
 	@echo "Generating swagger docs..."
-	cd backend && swag init --output swagger/docs && \
+	cd backend && go tool swag init --output swagger/docs && \
 	if [ "$(shell uname)" = "Darwin" ]; then \
 		sed -i '' '/func init/,+3d' ./swagger/docs/docs.go; \
 	else \
@@ -38,7 +38,7 @@ dev:
 	@echo "Starting dev servers... Press Ctrl+C to stop."
 	@trap 'echo "Stopping servers..."; kill -TERM 0' INT TERM
 	cd frontend && npm run watch & \
-	cd backend && air & \
+	cd backend && go tool air & \
 	wait
 
 run: build-frontend
