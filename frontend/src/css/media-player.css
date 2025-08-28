@@ -1,0 +1,169 @@
+/* /frontend/src/css/plyr-custom.css */
+
+.plyr {
+    --plyr-color-main: var(--primaryColor);
+    --plyr-video-background: rgba(0, 0, 0, 1);
+    --plyr-focus-visible-color: var(--primaryColor);
+    --plyr-audio-control-color: #ffffff;
+    --plyr-menu-background: rgba(0, 0, 0, 0.7);
+    --plyr-menu-color: #ffffff;
+    --plyr-menu-border-shadow-color: rgba(0, 0, 0, 0.5);
+    --plyr-menu-radius: 12px;
+    --plyr-menu-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    --plyr-control-radius: 12px;
+    --plyr-control-icon-size: 16px;
+    --plyr-control-spacing: 8px;
+    --plyr-control-padding: 6px;
+    --plyr-tooltip-background: rgba(0, 0, 0, 0.8);
+    --plyr-tooltip-color: #ffffff;
+    --plyr-audio-controls-background: transparent;
+    --plyr-video-controls-background: linear-gradient(
+        transparent,
+        rgba(0, 0, 0, 0.7)
+    );
+    border-radius: 12px;
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+}
+
+/* Single column layout for controls */
+.plyr .plyr__controls {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    padding: 10px;
+}
+
+/* Progress bar container - full width */
+.plyr .plyr__progress__container {
+    flex: 100%;
+    margin: 0;
+}
+
+/* Button controls container - full width */
+.plyr .plyr__controls__items {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: nowrap;
+}
+
+/* Dark mode styles */
+#previewer.dark-mode .plyr {
+    --plyr-video-controls-background: linear-gradient(
+        transparent,
+        rgba(0, 0, 0, 0.8)
+    );
+    --plyr-audio-controls-background: rgba(30, 30, 30, 0.8);
+    --plyr-audio-control-color: #ffffff;
+    --plyr-menu-color: #fff;
+    --plyr-menu-background: rgba(40, 40, 40, 0.9);
+    --plyr-tooltip-background: rgba(40, 40, 40, 0.9);
+    --plyr-tooltip-color: black;
+}
+
+/* Button styling */
+.plyr .plyr__control {
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.plyr .plyr__control:hover {
+    background: var(--primaryColor);
+    transform: scale(1.05);
+}
+
+/* Ensure video fills container with rounded corners */
+.plyr video {
+    border-radius: 12px;
+    width: 100%;
+    height: 100%;
+}
+
+/* Style for audio player specifically */
+.plyr.plyr--audio {
+    background: rgba(0, 0, 99, 0.9);
+    border-radius: 16px;
+    padding: 15px;
+    max-width: 650px;
+    max-height: 300px;
+    margin: auto auto;
+}
+
+#previewer.dark-mode .plyr.plyr--audio {
+    background: rgba(30, 30, 30, 0.9);
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .plyr .plyr__controls {
+        padding: 8px;
+        gap: 6px;
+    }
+
+    .plyr .plyr__controls__items {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 5px;
+    }
+
+    .plyr .plyr__control {
+        margin: 0 2px;
+    }
+}
+
+/* Loop toast */
+.loop-toast {
+    position: fixed;
+    bottom: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 15px 25px;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.loop-toast.visible {
+    opacity: 1;
+}
+
+.loop-icon {
+    width: 24px;
+    height: 24px;
+    fill: white;
+}
+
+.status-indicator {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-left: 10px;
+}
+
+.status-on {
+    background: #4caf50;
+}
+
+.status-off {
+    background: #f44336;
+}
+
+/* Dark mode adjustments */
+#previewer.dark-mode .loop-toast {
+    background: rgba(255, 255, 255, 0.9);
+    color: black;
+}
+
+#previewer.dark-mode .loop-icon {
+    fill: black;
+}
