@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"embed"
+	"encoding/json"
 	"fmt"
 	"io/fs"
 	"net/http"
@@ -23,8 +24,9 @@ import (
 //go:embed embed/*
 var assets embed.FS
 
-// Boolean flag to determine whether to use the embedded FS or not
-var embeddedFS = os.Getenv("FILEBROWSER_NO_EMBEDED") != "true"
+// In dev mode, we read from the disk. Otherwise, we use the embedded FS.
+var devMode = os.Getenv("FILEBROWSER_DEVMODE") == "true"
+var embeddedFS = !devMode
 
 // Custom dirFS to handle both embedded and non-embedded file systems
 type dirFS struct {
@@ -57,8 +59,20 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 		assetFs = dirFS{Dir: http.Dir("http/dist")}
 	}
 
+	// In development mode, we want to reload the templates on each request.
+	// In production (embedded), we parse them once.
+	templates := template.New("").Funcs(template.FuncMap{
+		"marshal": func(v interface{}) (string, error) {
+			a, err := json.Marshal(v)
+			return string(a), err
+		},
+	})
+	if !devMode {
+		templates = template.Must(templates.ParseFS(assetFs, "public/index.html"))
+	}
 	templateRenderer = &TemplateRenderer{
-		templates: template.Must(template.ParseFS(assetFs, "public/index.html")),
+		templates: templates,
+		devMode:   devMode,
 	}
 
 	router := http.NewServeMux()
