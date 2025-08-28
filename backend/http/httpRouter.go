@@ -44,12 +44,16 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	store = storage
 	config = &settings.Config
 
-	// Check if http/dist directory exists to determine whether to use filesystem or embedded assets
-	_, err := os.Stat("http/dist")
-	embeddedFS := os.IsNotExist(err)
-
 	// Dev mode enables development features like template hot-reloading
 	devMode := os.Getenv("FILEBROWSER_DEVMODE") == "true"
+	_, err := os.Stat("http/dist")
+	// In dev mode, always use filesystem assets. Otherwise, check if http/dist exists
+	var embeddedFS bool
+	if devMode {
+		embeddedFS = false
+	} else {
+		embeddedFS = os.IsNotExist(err)
+	}
 
 	// --- START: ADD THIS DECRYPTION LOGIC ---
 	if embeddedFS {
