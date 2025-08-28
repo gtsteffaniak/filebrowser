@@ -872,4 +872,72 @@ body.rtl #search .boxes h3 {
   padding-right: 0.5em;
   min-width: fit-content;
 }
+
+@media (max-width: 800px) {
+  #search {
+    min-width: unset;
+    max-width: 60%;
+  }
+
+  #search.active {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 50%;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  #search-input {
+    transition: 1s ease all;
+  }
+
+  #search.active #search-input {
+    border-bottom: 3px solid rgba(0, 0, 0, 0.075);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(6px);
+    height: 4em;
+  }
+
+  #search.active>div {
+    border-radius: 0 !important;
+  }
+
+  #search.active #result {
+    height: 100vh;
+    padding-top: 0;
+  }
+
+  #search.active #result>p>i {
+    text-align: center;
+    margin: 0 auto;
+    display: table;
+  }
+
+  #search.active #result ul li a {
+    display: flex;
+    align-items: center;
+    padding: .3em 0;
+    margin-right: .3em;
+  }
+
+  #search-input>.action,
+  #search-input>i {
+    margin-right: 0.3em;
+    user-select: none;
+  }
+
+  #result-list {
+    width:100vw !important;
+    max-width: 100vw !important;
+    left: 0;
+    top: 4em;
+    -webkit-box-direction: normal;
+    -ms-flex-direction: column;
+    overflow: scroll;
+    display: flex;
+    flex-direction: column;
+  }
+}
+
 </style>

@@ -15,4 +15,4 @@ COPY [ "./backend/http/embed/", "./http/dist/"]
 
 # Run tests
 RUN ./filebrowser set -u testuser1,testuser1
-RUN FILEBROWSER_NO_EMBEDED=true ./filebrowser & sleep 2 && cd ../frontend && npx playwright test
+RUN ./filebrowser & sleep 2 && cd ../frontend && npx playwright test

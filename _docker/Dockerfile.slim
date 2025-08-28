@@ -19,7 +19,6 @@ COPY  ./frontend/ ./
 RUN npm run build-docker
 
 FROM alpine:latest
-ENV FILEBROWSER_NO_EMBEDED="true"
 ENV FILEBROWSER_DATABASE="/home/filebrowser/data/database.db"
 ENV PATH="$PATH:/home/filebrowser"
 RUN apk --no-cache add ca-certificates mailcap tzdata
