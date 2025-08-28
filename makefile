@@ -21,14 +21,9 @@ build:
 build-backend:
 	cd backend && go build -o filebrowser --ldflags="-w -s -X 'github.com/gtsteffaniak/filebrowser/backend/version.CommitSHA=testingCommit' -X 'github.com/gtsteffaniak/filebrowser/backend/version.Version=testing'"
 
-.PHONY: dev install-dev-tools
-install-dev-tools:
-	go install github.com/air-verse/air@latest
-	go install github.com/swaggo/swag/cmd/swag@latest
-
 # New dev target with hot-reloading for frontend and backend
-dev: install-dev-tools
-	@echo "NOTE: This requires 'air' to be installed. Run 'make install-dev-tools' if you haven't already."
+dev:
+	@echo "NOTE: This requires 'air' to be installed. Run 'make setup' if you haven't already."
 	@echo "Generating swagger docs..."
 	cd backend && swag init --output swagger/docs && \
 	if [ "$(shell uname)" = "Darwin" ]; then \
