@@ -514,7 +514,9 @@
     "defaultThemeDescription": "default - Das Standardthema",
     "customTheme": "Wählen Sie Ihr Thema",
     "showSelectMultiple": "Mehrfachauswahl im Kontextmenü auf dem Desktop anzeigen",
-    "showSelectMultipleDescription": "Standardmäßig verfügt das Desktop-Kontextmenü nicht über die Option \"Mehrere auswählen\" wie bei mobilen Geräten. Diese Option wird immer im Kontextmenü angezeigt."
+    "showSelectMultipleDescription": "Standardmäßig verfügt das Desktop-Kontextmenü nicht über die Option \"Mehrere auswählen\" wie bei mobilen Geräten. Diese Option wird immer im Kontextmenü angezeigt.",
+    "defaultMediaPlayer": "Verwenden Sie den Standard-Medienplayer des Browsers",
+    "defaultMediaPlayerDescription": "Verwenden Sie für Video- und Audiodateien den Standard-Media-Player des Browsers und nicht den html5-Media-Player."
   },
   "editor": {
     "uninitialized": "Der Editor konnte nicht initialisiert werden. Bitte neu laden.",
@@ -523,5 +525,9 @@
     "saveDisabled": "Das Speichern von gemeinsam genutzten Dateien wird nicht unterstützt.",
     "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
     "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
+  },
+  "player": {
+    "LoopEnabled": "Schleife Aktiviert",
+    "LoopDisabled": "Schleife Deaktiviert"
   }
 }

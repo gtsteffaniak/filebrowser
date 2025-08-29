@@ -514,7 +514,9 @@
     "defaultThemeDescription": "default - Tema implicită",
     "customTheme": "Alege-ți tema",
     "showSelectMultiple": "Afișarea selecției multiple în meniul contextual de pe desktop",
-    "showSelectMultipleDescription": "În mod implicit, meniul contextual de pe desktop nu are opțiunea \"select multiple\", ca pe mobil. Această opțiune se afișează întotdeauna în meniul contextual."
+    "showSelectMultipleDescription": "În mod implicit, meniul contextual de pe desktop nu are opțiunea \"select multiple\", ca pe mobil. Această opțiune se afișează întotdeauna în meniul contextual.",
+    "defaultMediaPlayer": "Utilizați playerul media implicit al browserului",
+    "defaultMediaPlayerDescription": "Utilizați playerul media implicit al browserului pentru fișierele video și audio, mai degrabă decât playerul media html5."
   },
   "editor": {
     "uninitialized": "Nu s-a reușit inițializarea editorului. Vă rugăm să reîncărcați.",
@@ -523,5 +525,9 @@
     "saveDisabled": "Salvarea fișierelor partajate nu este acceptată.",
     "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
     "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
+  },
+  "player": {
+    "LoopEnabled": "Bucla activată",
+    "LoopDisabled": "Bucla dezactivată"
   }
 }

@@ -478,7 +478,9 @@
     "defaultThemeDescription": "default - O tema predefinido",
     "customTheme": "Escolha o seu tema",
     "showSelectMultiple": "Mostrar seleção múltipla no menu de contexto no ambiente de trabalho",
-    "showSelectMultipleDescription": "Por predefinição, o menu de contexto do ambiente de trabalho não tem a opção \"selecionar vários\" como no telemóvel. Esta opção mostra-a sempre no menu de contexto."
+    "showSelectMultipleDescription": "Por predefinição, o menu de contexto do ambiente de trabalho não tem a opção \"selecionar vários\" como no telemóvel. Esta opção mostra-a sempre no menu de contexto.",
+    "defaultMediaPlayer": "Utilizar o leitor multimédia predefinido do navegador",
+    "defaultMediaPlayerDescription": "Utilize o leitor multimédia predefinido do navegador para ficheiros de vídeo e áudio em vez do leitor multimédia html5."
   },
   "general": {
     "name": "Nome",
@@ -523,5 +525,9 @@
     "saveDisabled": "A gravação de ficheiros partilhados não é suportada.",
     "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
     "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
+  },
+  "player": {
+    "LoopEnabled": "Loop ativado",
+    "LoopDisabled": "Loop desativado"
   }
 }

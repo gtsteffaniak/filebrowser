@@ -506,7 +506,9 @@
     "defaultThemeDescription": "افتراضي - السمة الافتراضية",
     "customTheme": "اختر المظهر الخاص بك",
     "showSelectMultiple": "إظهار تحديد متعدد في قائمة السياق على سطح المكتب",
-    "showSelectMultipleDescription": "بشكل افتراضي، لا تحتوي قائمة سياق سطح المكتب على خيار \"تحديد متعدد\" مثل الهاتف المحمول. يظهر هذا الخيار دائمًا في قائمة السياق."
+    "showSelectMultipleDescription": "بشكل افتراضي، لا تحتوي قائمة سياق سطح المكتب على خيار \"تحديد متعدد\" مثل الهاتف المحمول. يظهر هذا الخيار دائمًا في قائمة السياق.",
+    "defaultMediaPlayer": "استخدم مشغل الوسائط الافتراضي للمتصفح",
+    "defaultMediaPlayerDescription": "استخدم مشغل الوسائط الافتراضي للمتصفح لملفات الفيديو والصوت بدلاً من مشغل وسائط html5."
   },
   "colors": {
     "red": "أحمر",
@@ -523,5 +525,9 @@
     "saveDisabled": "حفظ الملفات المشتركة غير مدعوم.",
     "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
     "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
+  },
+  "player": {
+    "LoopEnabled": "تم تمكين الحلقة",
+    "LoopDisabled": "حلقة معطلة"
   }
 }

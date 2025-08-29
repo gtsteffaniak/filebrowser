@@ -514,7 +514,9 @@
     "defaultThemeDescription": "default - Το προεπιλεγμένο θέμα",
     "customTheme": "Επιλέξτε το θέμα σας",
     "showSelectMultiple": "Εμφάνιση πολλαπλών επιλογών στο μενού περιβάλλοντος στην επιφάνεια εργασίας",
-    "showSelectMultipleDescription": "Από προεπιλογή, το μενού περιβάλλοντος της επιφάνειας εργασίας δεν διαθέτει την επιλογή \"επιλογή πολλαπλών\" όπως το κινητό. Αυτή η επιλογή εμφανίζεται πάντα στο μενού περιβάλλοντος."
+    "showSelectMultipleDescription": "Από προεπιλογή, το μενού περιβάλλοντος της επιφάνειας εργασίας δεν διαθέτει την επιλογή \"επιλογή πολλαπλών\" όπως το κινητό. Αυτή η επιλογή εμφανίζεται πάντα στο μενού περιβάλλοντος.",
+    "defaultMediaPlayer": "Χρήση του προεπιλεγμένου προγράμματος αναπαραγωγής πολυμέσων του προγράμματος περιήγησης",
+    "defaultMediaPlayerDescription": "Χρησιμοποιήστε το προεπιλεγμένο πρόγραμμα αναπαραγωγής πολυμέσων του προγράμματος περιήγησης για αρχεία βίντεο και ήχου αντί για το πρόγραμμα αναπαραγωγής πολυμέσων html5."
   },
   "editor": {
     "uninitialized": "Απέτυχε η αρχικοποίηση του συντάκτη. Παρακαλούμε επαναφορτώστε.",
@@ -523,5 +525,9 @@
     "saveDisabled": "Δεν υποστηρίζεται η αποθήκευση κοινόχρηστων αρχείων.",
     "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
     "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
+  },
+  "player": {
+    "LoopEnabled": "Ενεργοποίηση βρόχου",
+    "LoopDisabled": "Βρόχος απενεργοποιημένος"
   }
 }

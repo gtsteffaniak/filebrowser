@@ -132,6 +132,7 @@ userDefaults:
     office: false
     popup: false
     autoplayMedia: false
+    defaultMediaPlayer: false
   permissions:
     api: false
     admin: false

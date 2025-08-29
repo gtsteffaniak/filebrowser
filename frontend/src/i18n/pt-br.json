@@ -514,7 +514,9 @@
     "defaultThemeDescription": "default - O tema padrão",
     "customTheme": "Escolha seu tema",
     "showSelectMultiple": "Mostrar seleção múltipla no menu de contexto na área de trabalho",
-    "showSelectMultipleDescription": "Por padrão, o menu de contexto do desktop não tem a opção \"selecionar vários\" como no celular. Essa opção sempre a mostra no menu de contexto."
+    "showSelectMultipleDescription": "Por padrão, o menu de contexto do desktop não tem a opção \"selecionar vários\" como no celular. Essa opção sempre a mostra no menu de contexto.",
+    "defaultMediaPlayer": "Use o reprodutor de mídia padrão do navegador",
+    "defaultMediaPlayerDescription": "Use o reprodutor de mídia padrão do navegador para arquivos de vídeo e áudio em vez do reprodutor de mídia html5."
   },
   "editor": {
     "uninitialized": "Falha ao inicializar o editor. Favor recarregar.",
@@ -523,5 +525,9 @@
     "saveDisabled": "Não há suporte para o salvamento de arquivos compartilhados.",
     "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
     "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
+  },
+  "player": {
+    "LoopEnabled": "Loop ativado",
+    "LoopDisabled": "Loop desativado"
   }
 }

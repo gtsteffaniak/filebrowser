@@ -514,7 +514,9 @@
     "defaultThemeDescription": "default - domyślny motyw",
     "customTheme": "Wybierz motyw",
     "showSelectMultiple": "Wyświetlanie wyboru wielokrotnego w menu kontekstowym na pulpicie",
-    "showSelectMultipleDescription": "Domyślnie menu kontekstowe pulpitu nie ma opcji \"wybierz wiele\", tak jak w przypadku urządzeń mobilnych. Opcja ta jest zawsze widoczna w menu kontekstowym."
+    "showSelectMultipleDescription": "Domyślnie menu kontekstowe pulpitu nie ma opcji \"wybierz wiele\", tak jak w przypadku urządzeń mobilnych. Opcja ta jest zawsze widoczna w menu kontekstowym.",
+    "defaultMediaPlayer": "Użyj domyślnego odtwarzacza multimediów przeglądarki",
+    "defaultMediaPlayerDescription": "Do odtwarzania plików wideo i audio należy używać domyślnego odtwarzacza multimediów przeglądarki, a nie odtwarzacza multimediów html5."
   },
   "editor": {
     "uninitialized": "Nie udało się zainicjować edytora. Przeładuj ponownie.",
@@ -523,5 +525,9 @@
     "saveDisabled": "Zapisywanie udostępnionych plików nie jest obsługiwane.",
     "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
     "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
+  },
+  "player": {
+    "LoopEnabled": "Włączona pętla",
+    "LoopDisabled": "Pętla wyłączona"
   }
 }

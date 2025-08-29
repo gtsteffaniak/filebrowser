@@ -406,6 +406,7 @@ button.action {
 .quick-toggles .active {
   background-color: var(--primaryColor) !important;
   border-radius: 10em;
+  color: white;
 }
 
 .inner-card {

@@ -478,7 +478,9 @@
     "defaultThemeDescription": "standaard - Het standaardthema",
     "customTheme": "Kies je thema",
     "showSelectMultiple": "Meerdere selecteren tonen in contextmenu op bureaublad",
-    "showSelectMultipleDescription": "Standaard heeft het contextmenu op de desktop geen optie \"meerdere selecteren\" zoals mobiel. Deze optie wordt altijd weergegeven in het contextmenu."
+    "showSelectMultipleDescription": "Standaard heeft het contextmenu op de desktop geen optie \"meerdere selecteren\" zoals mobiel. Deze optie wordt altijd weergegeven in het contextmenu.",
+    "defaultMediaPlayer": "Gebruik de standaard mediaspeler van de browser",
+    "defaultMediaPlayerDescription": "Gebruik de standaard mediaspeler van de browser voor video- en audiobestanden in plaats van de html5 mediaspeler."
   },
   "general": {
     "name": "Naam",
@@ -523,5 +525,9 @@
     "saveDisabled": "Het opslaan van gedeelde bestanden wordt niet ondersteund.",
     "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
     "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
+  },
+  "player": {
+    "LoopEnabled": "Lus ingeschakeld",
+    "LoopDisabled": "Lus uitgeschakeld"
   }
 }

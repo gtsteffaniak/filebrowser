@@ -3515,6 +3515,10 @@ const docTemplate = `{
                     "description": "autoplay media files in preview",
                     "type": "boolean"
                 },
+                "defaultMediaPlayer": {
+                    "description": "disable html5 media player and use the default media player",
+                    "type": "boolean"
+                },
                 "disableHideSidebar": {
                     "description": "disable the hide sidebar preview for previews and editors",
                     "type": "boolean"

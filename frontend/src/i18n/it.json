@@ -514,7 +514,9 @@
     "defaultThemeDescription": "default - Il tema predefinito",
     "customTheme": "Scegliete il vostro tema",
     "showSelectMultiple": "Mostra selezione multipla nel menu contestuale sul desktop",
-    "showSelectMultipleDescription": "Per impostazione predefinita, il menu contestuale del desktop non dispone dell'opzione \"seleziona più\" come quello del cellulare. Questa opzione viene sempre visualizzata nel menu contestuale."
+    "showSelectMultipleDescription": "Per impostazione predefinita, il menu contestuale del desktop non dispone dell'opzione \"seleziona più\" come quello del cellulare. Questa opzione viene sempre visualizzata nel menu contestuale.",
+    "defaultMediaPlayer": "Utilizzare il lettore multimediale predefinito del browser",
+    "defaultMediaPlayerDescription": "Utilizzate il lettore multimediale predefinito del browser per i file video e audio piuttosto che il lettore multimediale html5."
   },
   "editor": {
     "uninitialized": "Impossibile inizializzare l'editor. Ricaricare.",
@@ -523,5 +525,9 @@
     "saveDisabled": "Il salvataggio di file condivisi non è supportato.",
     "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
     "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
+  },
+  "player": {
+    "LoopEnabled": "Loop abilitato",
+    "LoopDisabled": "Loop disabilitato"
   }
 }

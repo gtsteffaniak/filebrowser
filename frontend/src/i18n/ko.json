@@ -514,7 +514,9 @@
     "defaultThemeDescription": "default - 기본 테마",
     "customTheme": "테마 선택",
     "showSelectMultiple": "데스크톱의 컨텍스트 메뉴에서 여러 개 선택 표시",
-    "showSelectMultipleDescription": "기본적으로 데스크톱 컨텍스트 메뉴에는 모바일처럼 '여러 개 선택' 옵션이 없습니다. 이 옵션은 항상 컨텍스트 메뉴에 표시됩니다."
+    "showSelectMultipleDescription": "기본적으로 데스크톱 컨텍스트 메뉴에는 모바일처럼 '여러 개 선택' 옵션이 없습니다. 이 옵션은 항상 컨텍스트 메뉴에 표시됩니다.",
+    "defaultMediaPlayer": "브라우저의 기본 미디어 플레이어 사용",
+    "defaultMediaPlayerDescription": "비디오 및 오디오 파일에는 HTML5 미디어 플레이어 대신 브라우저의 기본 미디어 플레이어를 사용하세요."
   },
   "editor": {
     "uninitialized": "편집기를 초기화하지 못했습니다. 다시 로드하세요.",
@@ -523,5 +525,9 @@
     "saveDisabled": "공유 파일 저장은 지원되지 않습니다.",
     "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
     "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
+  },
+  "player": {
+    "LoopEnabled": "루프 사용",
+    "LoopDisabled": "루프 비활성화"
   }
 }
