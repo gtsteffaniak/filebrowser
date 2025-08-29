@@ -1,13 +1,12 @@
-import { createApp } from 'vue';
-import router from './router'; // Adjust the path as per your setup
-import App from './App.vue'; // Adjust the path as per your setup
-import { state } from '@/store'; // Adjust the path as per your setup
+import { createApp } from "vue";
+import router from "./router"; // Adjust the path as per your setup
+import App from "./App.vue"; // Adjust the path as per your setup
+import { state } from "@/store"; // Adjust the path as per your setup
 import i18n from "@/i18n";
 import VueLazyload from "vue-lazyload";
 import VuePlyr from "@skjnldsv/vue-plyr"; // Custom media player
-import "@skjnldsv/vue-plyr/dist/vue-plyr.css";
 
-import './css/styles.css';
+import "./css/styles.css";
 
 const app = createApp(App);
 
@@ -18,7 +17,7 @@ app.use(router);
 app.use(VuePlyr);
 
 // Provide state to the entire application
-app.provide('state', state);
+app.provide("state", state);
 
 // provide v-focus for components
 app.directive("focus", {
