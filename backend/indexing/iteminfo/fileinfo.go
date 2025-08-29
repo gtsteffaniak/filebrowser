@@ -29,7 +29,7 @@ type FileInfo struct {
 type ExtendedFileInfo struct {
 	FileInfo
 	Content      string            `json:"content,omitempty"`      // text content of a file, if requested
-	Subtitles    []string          `json:"subtitles,omitempty"`    // subtitles for video files
+	Subtitles    []SubtitleTrack   `json:"subtitles,omitempty"`    // subtitles for video files
 	Checksums    map[string]string `json:"checksums,omitempty"`    // checksums for the file
 	Token        string            `json:"token,omitempty"`        // token for the file -- used for sharing
 	OnlyOfficeId string            `json:"onlyOfficeId,omitempty"` // id for onlyoffice files

@@ -116,6 +116,7 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	api.HandleFunc("PATCH /resources", withUser(resourcePatchHandler))
 	api.HandleFunc("GET /raw", withUser(rawHandler))
 	api.HandleFunc("GET /preview", withUser(previewHandler))
+	api.HandleFunc("GET /subtitles", withUser(subtitlesHandler))
 	if version.Version == "testing" || version.Version == "untracked" {
 		api.HandleFunc("GET /inspectIndex", inspectIndex)
 		api.HandleFunc("GET /mockData", mockData)
