@@ -12,7 +12,6 @@ All notable changes to this project will be documented in this file. For commit 
  - access management: specific folders/files with access are shown instead permission denied for parent folder
 
  **BugFixes**:
- - fixed search bar style bug in mobile #1147
  - access management: delay showing rule changes in the list fixed.
 
 ## v0.8.3-beta
