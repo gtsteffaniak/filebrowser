@@ -6,10 +6,7 @@
     >
         <div class="preview" v-if="!isDeleted">
             <ExtendedImage
-                v-if="
-                    previewType == 'image' ||
-                    (pdfConvertable && !disableFileViewer)
-                "
+                v-if="previewType == 'image' || pdfConvertable"
                 :src="raw"
                 @navigate-previous="prev"
                 @navigate-next="next"
@@ -18,7 +15,7 @@
 
             <!-- Audio with plyr -->
             <vue-plyr
-                v-else-if="previewType == 'audio' && !disableFileViewer"
+                v-else-if="previewType == 'audio'"
                 ref="audioPlayer"
                 :options="plyrOptions"
             >
@@ -31,10 +28,9 @@
 
             <!-- Video with plyr -->
             <vue-plyr
-                v-else-if="previewType == 'video' && !disableFileViewer"
+                v-else-if="previewType == 'video'"
                 ref="videoPlayer"
                 :options="plyrOptions"
-                @touchstart="handleVideoTouchStart"
             >
                 <video :src="raw" :autoplay="autoPlay" @play="autoPlay = true">
                     <track
@@ -48,10 +44,7 @@
                 </video>
             </vue-plyr>
 
-            <div
-                v-else-if="previewType == 'pdf' && !disableFileViewer"
-                class="pdf-wrapper"
-            >
+            <div v-else-if="previewType == 'pdf'" class="pdf-wrapper">
                 <iframe class="pdf" :src="raw"></iframe>
                 <a
                     v-if="isMobileSafari"
@@ -106,8 +99,8 @@
             </svg>
             <span>{{
                 loopEnabled
-                    ? $t("player.loopEnabled")
-                    : $t("player.loopDisabled")
+                    ? $t("player.LoopEnabled")
+                    : $t("player.LoopDisabled")
             }}</span>
             <span
                 :class="[
@@ -152,14 +145,11 @@ import { convertToVTT } from "@/utils/subtitles";
 import { getTypeInfo } from "@/utils/mimetype";
 import { muPdfAvailable } from "@/utils/constants";
 import { shareInfo } from "@/utils/constants";
-import VuePlyr from "@skjnldsv/vue-plyr";
-import "@skjnldsv/vue-plyr/dist/vue-plyr.css";
 
 export default {
     name: "preview",
     components: {
         ExtendedImage,
-        VuePlyr,
     },
     data() {
         return {
@@ -177,7 +167,7 @@ export default {
             subtitlesList: [],
             isDeleted: false,
             tapTimeout: null,
-            loopEnabled: false, // Toast when press "L" on media player
+            loopEnabled: false, // The toast on the media player
             toastVisible: false,
             toastTimeout: null,
             // Plyr options
