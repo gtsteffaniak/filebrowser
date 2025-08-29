@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@onlyoffice/document-editor-vue": "^1.4.0",
+    "@skjnldsv/vue-plyr": "^7.5.0",
     "ace-builds": "^1.24.2",
     "axios": "^1.7.9",
     "clipboard": "^2.0.4",
