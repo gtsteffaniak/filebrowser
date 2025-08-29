@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **New Features**:
  - added embeded video subtitle support. @maxbin123 #1072 #1157
+ - added new default media player (can be disabled in user profile settings) @Kurami32 #1160
 
  **Notes**:
  - access management: specific folders/files with access are shown instead permission denied for parent folder
