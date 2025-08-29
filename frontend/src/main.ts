@@ -15,6 +15,7 @@ const app = createApp(App);
 app.use(VueLazyload);
 app.use(i18n);
 app.use(router);
+app.use(VuePlyr);
 
 // Provide state to the entire application
 app.provide('state', state);
