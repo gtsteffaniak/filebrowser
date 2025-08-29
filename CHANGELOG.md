@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.8.4-beta
+
+ **New Features**:
+ - added embeded video subtitle support. @maxbin123 #1072 #1157
+
+ **Notes**:
+ - access management: specific folders/files with access are shown instead permission denied for parent folder
+
+ **BugFixes**:
+ - fixed search bar style bug in mobile #1147
+ - access management delay showing rule changes in the list fixed.
+
 ## v0.8.3-beta
 
  **BugFixes**:
@@ -18,7 +30,7 @@ All notable changes to this project will be documented in this file. For commit 
  **Notes**:
  - 8.0 ffmpeg version bundled with docker
  - go 1.25 upgrade with green tea GC enabled
- - totp secrets accept non-secure strings, only throwing warning 
+ - totp secrets accept non-secure strings, only throwing warning
  - adjusted download limit so it also counts viewing text "content" of files (like in editor). You can also "disable file viewing" to stop the editor from showing. lower quality file image previews are not counted as downloads.
  - updated invalid share message to be more clear https://github.com/gtsteffaniak/filebrowser/issues/1120
 
