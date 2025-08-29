@@ -1554,6 +1554,61 @@ paths:
       summary: User login
       tags:
       - Auth
+  /api/media/subtitles:
+    get:
+      consumes:
+      - application/json
+      description: Extracts embedded subtitle content from video files by stream index
+        and returns raw WebVTT content
+      parameters:
+      - description: Index path to the video file
+        in: query
+        name: path
+        required: true
+        type: string
+      - description: Source name for the desired source
+        in: query
+        name: source
+        required: true
+        type: string
+      - description: Stream index for embedded subtitle extraction, defaults to 0
+        in: query
+        name: index
+        type: integer
+      produces:
+      - text/vtt
+      responses:
+        "200":
+          description: Raw WebVTT subtitle content
+          schema:
+            type: string
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Resource not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Extract embedded subtitles
+      tags:
+      - Subtitles
   /api/preview:
     get:
       consumes:

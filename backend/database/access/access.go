@@ -176,6 +176,7 @@ func (s *Storage) DenyUser(sourcePath, indexPath, username string) error {
 	}
 	rule.Deny.Users[username] = struct{}{}
 	s.incrementSourceVersion(sourcePath)
+	accessCache.Set(accessChangedKey+sourcePath, false)
 	return s.SaveToDB()
 }
 
@@ -195,6 +196,7 @@ func (s *Storage) AllowUser(sourcePath, indexPath, username string) error {
 	}
 	rule.Allow.Users[username] = struct{}{}
 	s.incrementSourceVersion(sourcePath)
+	accessCache.Set(accessChangedKey+sourcePath, false)
 	return s.SaveToDB()
 }
 
@@ -212,6 +214,7 @@ func (s *Storage) DenyGroup(sourcePath, indexPath, groupname string) error {
 	}
 	rule.Deny.Groups[groupname] = struct{}{}
 	s.incrementSourceVersion(sourcePath)
+	accessCache.Set(accessChangedKey+sourcePath, false)
 	return s.SaveToDB()
 }
 
@@ -229,6 +232,7 @@ func (s *Storage) AllowGroup(sourcePath, indexPath, groupname string) error {
 	}
 	rule.Allow.Groups[groupname] = struct{}{}
 	s.incrementSourceVersion(sourcePath)
+	accessCache.Set(accessChangedKey+sourcePath, false)
 	return s.SaveToDB()
 }
 
@@ -242,6 +246,7 @@ func (s *Storage) DenyAll(sourcePath, indexPath string) error {
 	}
 	rule.DenyAll = true
 	s.incrementSourceVersion(sourcePath)
+	accessCache.Set(accessChangedKey+sourcePath, false)
 	return s.SaveToDB()
 }
 
