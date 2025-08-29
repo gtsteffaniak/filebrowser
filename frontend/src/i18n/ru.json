@@ -514,7 +514,9 @@
     "defaultThemeDescription": "default - Тема по умолчанию",
     "customTheme": "Выберите тему",
     "showSelectMultiple": "Отображение выбора нескольких в контекстном меню на рабочем столе",
-    "showSelectMultipleDescription": "По умолчанию в контекстном меню рабочего стола нет опции \"выбрать несколько\", как в мобильном. Эта опция всегда отображается в контекстном меню."
+    "showSelectMultipleDescription": "По умолчанию в контекстном меню рабочего стола нет опции \"выбрать несколько\", как в мобильном. Эта опция всегда отображается в контекстном меню.",
+    "defaultMediaPlayer": "Используйте медиаплеер браузера по умолчанию",
+    "defaultMediaPlayerDescription": "Для воспроизведения видео- и аудиофайлов используйте медиаплеер браузера по умолчанию, а не медиаплеер html5."
   },
   "editor": {
     "uninitialized": "Не удалось инициализировать редактор. Пожалуйста, перезагрузитесь.",
@@ -523,5 +525,9 @@
     "saveDisabled": "Сохранение общих файлов не поддерживается.",
     "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
     "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
+  },
+  "player": {
+    "LoopEnabled": "Петля включена",
+    "LoopDisabled": "Петля отключена"
   }
 }

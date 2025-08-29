@@ -452,7 +452,9 @@
     "defaultThemeDescription": "default - 預設主題",
     "customTheme": "選擇您的主題",
     "showSelectMultiple": "在桌面的上下文功能表中顯示多重選擇",
-    "showSelectMultipleDescription": "預設情況下，桌上型電腦的上下文功能表不像行動裝置一樣有「選取多個」選項。此選項總是在上下文功能表中顯示。"
+    "showSelectMultipleDescription": "預設情況下，桌上型電腦的上下文功能表不像行動裝置一樣有「選取多個」選項。此選項總是在上下文功能表中顯示。",
+    "defaultMediaPlayer": "使用瀏覽器的預設媒體播放器",
+    "defaultMediaPlayerDescription": "使用瀏覽器的預設媒體播放器來播放視訊和音訊檔案，而不是使用 html5 媒體播放器。"
   },
   "otp": {
     "name": "雙因素驗證",
@@ -523,5 +525,9 @@
     "saveDisabled": "不支援儲存共用檔案。",
     "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
     "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
+  },
+  "player": {
+    "LoopEnabled": "啟用循環",
+    "LoopDisabled": "迴路停用"
   }
 }

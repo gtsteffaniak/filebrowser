@@ -241,6 +241,8 @@
     "helpText2": "The index: Search utilizes the index which automatically gets updated on the configured interval (default: 5 minutes). Searching when the program has just started may result in incomplete results."
   },
   "profileSettings": {
+    "defaultMediaPlayer": "Use browser's default media player",
+    "defaultMediaPlayerDescription": "Use the browser's default media player for video and audio files rather than the html5 media player.",
     "showSelectMultiple": "Show select multiple in context menu on desktop",
     "showSelectMultipleDescription": "By default, desktop context menu does not have \"select multiple\" option like mobile. This option always shows it in the context menu.",
     "customTheme": "Choose your theme",

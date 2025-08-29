@@ -49,6 +49,7 @@ type Preview struct {
 	Office             bool `json:"office"`             // show preview image for office files
 	PopUp              bool `json:"popup"`              // show larger popup preview when hovering
 	AutoplayMedia      bool `json:"autoplayMedia"`      // autoplay media files in preview
+	DefaultMediaPlayer bool `json:"defaultMediaPlayer"` // disable html5 media player and use the default media player
 }
 
 // User describes a user.

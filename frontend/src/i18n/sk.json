@@ -514,7 +514,9 @@
     "defaultThemeDescription": "default - Predvolená téma",
     "customTheme": "Vyberte si tému",
     "showSelectMultiple": "Zobrazenie výberu viacerých v kontextovom menu na ploche",
-    "showSelectMultipleDescription": "V predvolenom nastavení kontextová ponuka na ploche nemá možnosť \"vybrať viacero\" ako v mobilných zariadeniach. Táto možnosť sa v kontextovej ponuke zobrazuje vždy."
+    "showSelectMultipleDescription": "V predvolenom nastavení kontextová ponuka na ploche nemá možnosť \"vybrať viacero\" ako v mobilných zariadeniach. Táto možnosť sa v kontextovej ponuke zobrazuje vždy.",
+    "defaultMediaPlayer": "Použitie predvoleného prehrávača médií v prehliadači",
+    "defaultMediaPlayerDescription": "Pre video a audio súbory použite predvolený prehrávač médií prehliadača a nie prehrávač médií html5."
   },
   "editor": {
     "uninitialized": "Nepodarilo sa inicializovať editor. Prosím, načítajte ho znova.",
@@ -523,5 +525,9 @@
     "saveDisabled": "Ukladanie zdieľaných súborov nie je podporované.",
     "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
     "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
+  },
+  "player": {
+    "LoopEnabled": "Povolená slučka",
+    "LoopDisabled": "Vypnutá slučka"
   }
 }

@@ -514,7 +514,9 @@
     "defaultThemeDescription": "default - Varsayılan tema",
     "customTheme": "Temanızı seçin",
     "showSelectMultiple": "Masaüstündeki bağlam menüsünde çoklu seçmeyi göster",
-    "showSelectMultipleDescription": "Varsayılan olarak, masaüstü içerik menüsünde mobil cihazlardaki gibi \"çoklu seç\" seçeneği yoktur. Bu seçenek her zaman içerik menüsünde gösterilir."
+    "showSelectMultipleDescription": "Varsayılan olarak, masaüstü içerik menüsünde mobil cihazlardaki gibi \"çoklu seç\" seçeneği yoktur. Bu seçenek her zaman içerik menüsünde gösterilir.",
+    "defaultMediaPlayer": "Tarayıcının varsayılan medya oynatıcısını kullanma",
+    "defaultMediaPlayerDescription": "Video ve ses dosyaları için html5 medya oynatıcı yerine tarayıcının varsayılan medya oynatıcısını kullanın."
   },
   "editor": {
     "uninitialized": "Düzenleyici başlatılamadı. Lütfen yeniden yükleyin.",
@@ -523,5 +525,9 @@
     "saveDisabled": "Paylaşılan dosyaların kaydedilmesi desteklenmez.",
     "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
     "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
+  },
+  "player": {
+    "LoopEnabled": "Döngü Etkin",
+    "LoopDisabled": "Döngü Devre Dışı"
   }
 }

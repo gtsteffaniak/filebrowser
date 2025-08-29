@@ -17,10 +17,8 @@
     --plyr-tooltip-background: rgba(0, 0, 0, 0.8);
     --plyr-tooltip-color: #ffffff;
     --plyr-audio-controls-background: transparent;
-    --plyr-video-controls-background: linear-gradient(
-        transparent,
-        rgba(0, 0, 0, 0.7)
-    );
+    --plyr-video-controls-background: linear-gradient(transparent,
+            rgba(0, 0, 0, 0.7));
     border-radius: 12px;
     overflow: visible;
 }
@@ -60,6 +58,10 @@
 .plyr .plyr__control {
     transition: all 0.2s ease;
     flex-shrink: 0;
+    display: flex;
+    min-width: 2em;
+    justify-content: center;
+    align-items: center;
 }
 
 .plyr .plyr__control:hover {
@@ -86,6 +88,29 @@
     bottom: 40px;
     left: 50%;
     transform: translateX(-50%);
+}
+
+.plyr--full-ui.plyr--video .plyr__control--overlaid {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.plyr__control--overlaid {
+    /* background: #00b2ff; */
+    background: var(--plyr-video-control-background-hover, var(--plyr-color-main, var(--plyr-color-main, #00b2ff)));
+    border: 0;
+    display: none;
+    position: fixed;
+    transition: .3s;
+    z-index: 2;
+    height: 4em;
+    transform: none;
+    padding: unset;
+    left: unset;
+    right: unset;
+    bottom: unset;
+    width: 4em !important;
 }
 
 /* Mobile */

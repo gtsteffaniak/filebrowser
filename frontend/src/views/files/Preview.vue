@@ -15,7 +15,7 @@
 
             <!-- Audio with plyr -->
             <vue-plyr
-                v-else-if="previewType == 'audio'"
+                v-else-if="previewType == 'audio' && !useDefaultMediaPlayer"
                 ref="audioPlayer"
                 :options="plyrOptions"
             >
@@ -28,7 +28,7 @@
 
             <!-- Video with plyr -->
             <vue-plyr
-                v-else-if="previewType == 'video'"
+                v-else-if="previewType == 'video' && !useDefaultMediaPlayer"
                 ref="videoPlayer"
                 :options="plyrOptions"
             >
@@ -43,6 +43,35 @@
                     />
                 </video>
             </vue-plyr>
+
+            <!-- Default HTML5 Audio -->
+            <audio
+                v-else-if="previewType == 'audio' && useDefaultMediaPlayer"
+                ref="defaultAudioPlayer"
+                :src="raw"
+                controls
+                :autoplay="autoPlay"
+                @play="autoPlay = true"
+            ></audio>
+
+            <!-- Default HTML5 Video -->
+            <video
+                v-else-if="previewType == 'video' && useDefaultMediaPlayer"
+                ref="defaultVideoPlayer"
+                :src="raw"
+                controls
+                :autoplay="autoPlay"
+                @play="autoPlay = true"
+            >
+                <track
+                    kind="captions"
+                    v-for="(sub, index) in subtitlesList"
+                    :key="index"
+                    :src="sub.src"
+                    :label="'Subtitle ' + sub.name"
+                    :default="index === 0"
+                />
+            </video>
 
             <div v-else-if="previewType == 'pdf'" class="pdf-wrapper">
                 <iframe class="pdf" :src="raw"></iframe>
@@ -209,6 +238,9 @@ export default {
         autoPlay() {
             return state.user.preview.autoplayMedia;
         },
+        useDefaultMediaPlayer() {
+            return state.user.preview.defaultMediaPlayer === true;
+        },
         isMobileSafari() {
             const userAgent = window.navigator.userAgent;
             const isIOS =
@@ -370,43 +402,33 @@ export default {
     },
     methods: {
         async subtitles() {
-            if (!state.req.subtitles || state.req.subtitles.length === 0) {
+            if (!state.req?.subtitles?.length) {
                 return [];
             }
             let subs = [];
-            for (const subtitleFile of state.req.subtitles) {
-                const ext = getFileExtension(subtitleFile);
-                const path =
-                    url.removeLastDir(state.req.path) + "/" + subtitleFile;
-
-                let resp;
-                if (getters.isShare()) {
-                    // Use public API for shared files
-                    resp = await publicApi.fetchPub(
-                        path,
-                        state.share.hash,
-                        "",
-                        true,
-                    );
-                } else {
-                    // Use regular files API for authenticated users
-                    resp = await filesApi.fetchFiles(
-                        state.req.source,
-                        path,
-                        true,
-                    );
+            for (const subtitleTrack of state.req.subtitles) {
+                // All subtitle content is now pre-loaded when content=true
+                // Simply use the content that's already available
+                if (!subtitleTrack.content || subtitleTrack.content.length === 0) {
+                    console.warn("Subtitle track has no content:", subtitleTrack.name);
+                    continue;
                 }
-
-                let vttContent = resp.content;
-                // Convert SRT to VTT (assuming srt2vtt() does this)
-                vttContent = convertToVTT(ext, resp.content);
-                // Create a virtual file (Blob) and get a URL for it
-                const blob = new Blob([vttContent], { type: "text/vtt" });
-                const vttURL = URL.createObjectURL(blob);
-                subs.push({
-                    name: ext,
-                    src: vttURL,
-                });
+                let vttContent = subtitleTrack.content;
+                if (!subtitleTrack.content.startsWith('WEBVTT')) {
+                    const ext = getFileExtension(subtitleTrack.name);
+                    vttContent = convertToVTT(ext, subtitleTrack.content);
+                }
+                if (vttContent.startsWith('WEBVTT')) {
+                    // Create a virtual file (Blob) and get a URL for it
+                    const blob = new Blob([vttContent], { type: "text/vtt" });
+                    const vttURL = URL.createObjectURL(blob);
+                    subs.push({
+                        name: subtitleTrack.name,
+                        src: vttURL,
+                    });
+                } else {
+                    console.warn("Skipping subtitle track because it has no WEBVTT header:", subtitleTrack.name);
+                }
             }
             return subs;
         },
@@ -457,18 +479,31 @@ export default {
             }
         },
         toggleLoop() {
-            // Get the appropriate player reference
-            let playerRef =
-                this.previewType === "video"
-                    ? this.$refs.videoPlayer
-                    : this.$refs.audioPlayer;
+            if (this.useDefaultMediaPlayer) {
+                // Handle default HTML5 players
+                let playerRef =
+                    this.previewType === "video"
+                        ? this.$refs.defaultVideoPlayer
+                        : this.$refs.defaultAudioPlayer;
 
-            if (playerRef && playerRef.player) {
-                // Toggle loop mode
-                this.loopEnabled = !this.loopEnabled;
-                playerRef.player.loop = this.loopEnabled;
+                if (playerRef) {
+                    this.loopEnabled = !this.loopEnabled;
+                    playerRef.loop = this.loopEnabled;
+                    this.showToast();
+                }
+            } else {
+                // Handle vue-plyr players
+                let playerRef =
+                    this.previewType === "video"
+                        ? this.$refs.videoPlayer
+                        : this.$refs.audioPlayer;
 
-                this.showToast();
+                if (playerRef && playerRef.player) {
+                    // Toggle loop mode
+                    this.loopEnabled = !this.loopEnabled;
+                    playerRef.player.loop = this.loopEnabled;
+                    this.showToast();
+                }
             }
         },
         showToast() {
@@ -487,19 +522,39 @@ export default {
                 (this.previewType === "video" || this.previewType === "audio")
             ) {
                 this.$nextTick(() => {
-                    let playerRef =
-                        this.previewType === "video"
-                            ? this.$refs.videoPlayer
-                            : this.$refs.audioPlayer;
+                    if (this.useDefaultMediaPlayer) {
+                        // Handle default HTML5 players
+                        let playerRef =
+                            this.previewType === "video"
+                                ? this.$refs.defaultVideoPlayer
+                                : this.$refs.defaultAudioPlayer;
 
-                    if (playerRef && playerRef.player) {
-                        const playPromise = playerRef.player.play();
-                        if (playPromise !== undefined) {
-                            playPromise.catch((error) => {
-                                console.log("autoplay failed", error);
-                                playerRef.player.muted = true;
-                                playerRef.player.play();
-                            });
+                        if (playerRef) {
+                            const playPromise = playerRef.play();
+                            if (playPromise !== undefined) {
+                                playPromise.catch((error) => {
+                                    console.log("autoplay failed", error);
+                                    playerRef.muted = true;
+                                    playerRef.play();
+                                });
+                            }
+                        }
+                    } else {
+                        // Handle vue-plyr players
+                        let playerRef =
+                            this.previewType === "video"
+                                ? this.$refs.videoPlayer
+                                : this.$refs.audioPlayer;
+
+                        if (playerRef && playerRef.player) {
+                            const playPromise = playerRef.player.play();
+                            if (playPromise !== undefined) {
+                                playPromise.catch((error) => {
+                                    console.log("autoplay failed", error);
+                                    playerRef.player.muted = true;
+                                    playerRef.player.play();
+                                });
+                            }
                         }
                     }
                 });
@@ -520,6 +575,7 @@ export default {
                         directoryPath,
                     );
                 }
+                this.listing = res.items
             }
             if (!this.listing) {
                 this.listing = [state.req];
