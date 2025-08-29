@@ -1,3 +1,5 @@
+@import url("@skjnldsv/vue-plyr/dist/vue-plyr.css");
+
 .plyr {
     --plyr-color-main: var(--primaryColor);
     --plyr-video-background: rgba(0, 0, 0, 1);
