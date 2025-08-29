@@ -523,5 +523,9 @@
     "saveDisabled":"Saving shared files is not supported.",
     "saveAbortedMessage":"Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
     "syncFailed":"failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
+  },
+  "player": {
+    "LoopEnabled": "Loop Enabled",
+    "LoopDisabled": "Loop Disabled"
   }
 }
