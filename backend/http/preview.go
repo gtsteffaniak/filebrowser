@@ -70,7 +70,7 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	if err != nil {
 		return errToStatus(err), err
 	}
-	d.fileInfo = fileInfo
+	d.fileInfo = *fileInfo
 	return previewHelperFunc(w, r, d)
 }
 

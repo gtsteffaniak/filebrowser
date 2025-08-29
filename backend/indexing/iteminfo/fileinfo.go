@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/database/access"
+	"github.com/gtsteffaniak/filebrowser/backend/ffmpeg"
 )
 
 type ItemInfo struct {
@@ -28,13 +29,13 @@ type FileInfo struct {
 // extra calculated fields can be added here
 type ExtendedFileInfo struct {
 	FileInfo
-	Content      string            `json:"content,omitempty"`      // text content of a file, if requested
-	Subtitles    []SubtitleTrack   `json:"subtitles,omitempty"`    // subtitles for video files
-	Checksums    map[string]string `json:"checksums,omitempty"`    // checksums for the file
-	Token        string            `json:"token,omitempty"`        // token for the file -- used for sharing
-	OnlyOfficeId string            `json:"onlyOfficeId,omitempty"` // id for onlyoffice files
-	Source       string            `json:"source"`                 // associated index source for the file
-	RealPath     string            `json:"-"`
+	Content      string                 `json:"content,omitempty"`      // text content of a file, if requested
+	Subtitles    []ffmpeg.SubtitleTrack `json:"subtitles,omitempty"`    // subtitles for video files
+	Checksums    map[string]string      `json:"checksums,omitempty"`    // checksums for the file
+	Token        string                 `json:"token,omitempty"`        // token for the file -- used for sharing
+	OnlyOfficeId string                 `json:"onlyOfficeId,omitempty"` // id for onlyoffice files
+	Source       string                 `json:"source"`                 // associated index source for the file
+	RealPath     string                 `json:"-"`
 }
 
 // FileOptions are the options when getting a file info.
