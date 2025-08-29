@@ -1,8 +1,6 @@
 package iteminfo
 
 import (
-	"encoding/json"
-	"os/exec"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -15,21 +13,21 @@ import (
 )
 
 type SubtitleTrack struct {
-	Name     string `json:"name"`                // filename for external, or descriptive name for embedded
-	Language string `json:"language,omitempty"`  // language code
-	Title    string `json:"title,omitempty"`     // title/description
-	Index    *int   `json:"index,omitempty"`     // stream index for embedded subtitles (nil for external)
-	Codec    string `json:"codec,omitempty"`     // codec name for embedded subtitles
-	IsFile   bool   `json:"isFile"`              // true for external files, false for embedded
+	Name     string `json:"name"`               // filename for external, or descriptive name for embedded
+	Language string `json:"language,omitempty"` // language code
+	Title    string `json:"title,omitempty"`    // title/description
+	Index    *int   `json:"index,omitempty"`    // stream index for embedded subtitles (nil for external)
+	Codec    string `json:"codec,omitempty"`    // codec name for embedded subtitles
+	IsFile   bool   `json:"isFile"`             // true for external files, false for embedded
 }
 
 type FFProbeOutput struct {
 	Streams []struct {
-		Index         int               `json:"index"`
-		CodecType     string           `json:"codec_type"`
-		CodecName     string           `json:"codec_name"`
-		Tags          map[string]string `json:"tags,omitempty"`
-		Disposition   map[string]int    `json:"disposition,omitempty"`
+		Index       int               `json:"index"`
+		CodecType   string            `json:"codec_type"`
+		CodecName   string            `json:"codec_name"`
+		Tags        map[string]string `json:"tags,omitempty"`
+		Disposition map[string]int    `json:"disposition,omitempty"`
 	} `json:"streams"`
 }
 

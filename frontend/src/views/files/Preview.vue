@@ -4,15 +4,15 @@
       <ExtendedImage v-if="previewType == 'image' || pdfConvertable" :src="raw" @navigate-previous="prev"
         @navigate-next="next">
       </ExtendedImage>
-      <audio v-else-if="previewType == 'audio' && !disableFileViewer" ref="player" :src="raw" controls :autoplay="autoPlay"
+      <audio v-else-if="previewType == 'audio'" ref="player" :src="raw" controls :autoplay="autoPlay"
         @play="autoPlay = true"></audio>
-      <video v-else-if="previewType == 'video' && !disableFileViewer" ref="player" :src="raw" controls :autoplay="autoPlay"
+      <video v-else-if="previewType == 'video'" ref="player" :src="raw" controls :autoplay="autoPlay"
         @play="autoPlay = true">
         <track kind="captions" v-for="(sub, index) in subtitlesList" :key="index" :src="sub.src"
           :label="'Subtitle ' + sub.name" :default="index === 0" />
       </video>
 
-      <div v-else-if="previewType == 'pdf' && !disableFileViewer" class="pdf-wrapper">
+      <div v-else-if="previewType == 'pdf'" class="pdf-wrapper">
         <iframe class="pdf" :src="raw"></iframe>
         <a v-if="isMobileSafari" :href="raw" target="_blank" class="button button--flat floating-btn">
           <div>
@@ -57,8 +57,6 @@
 <script>
 import { filesApi, publicApi } from "@/api";
 import { url } from "@/utils";
-import { getApiPath, doubleEncode } from "@/utils/url";
-import { fetchURL } from "@/api/utils";
 import throttle from "@/utils/throttle";
 import ExtendedImage from "@/components/files/ExtendedImage.vue";
 import { state, getters, mutations } from "@/store";
@@ -66,7 +64,6 @@ import { getFileExtension } from "@/utils/files";
 import { convertToVTT } from "@/utils/subtitles";
 import { getTypeInfo } from "@/utils/mimetype";
 import { muPdfAvailable } from "@/utils/constants";
-import { shareInfo } from "@/utils/constants";
 export default {
   name: "preview",
   components: {
@@ -130,7 +127,7 @@ export default {
     raw() {
       if (this.pdfConvertable) {
         if (getters.isShare()) {
-          const previewPath = url.removeTrailingSlash(state.req.path);
+          const previewPath = url.removeTrailingSlash(state.req.path) + "/" + this.name;
           return publicApi.getPreviewURL(previewPath,"original");
         }
         return (
@@ -142,7 +139,8 @@ export default {
           path: state.share.subPath,
           hash: state.share.hash,
           token: state.share.token,
-        }, [state.req.path], true);
+          inline: true,
+        }, [state.req.path]);
       }
       return filesApi.getDownloadURL(state.req.source, state.req.path, true);
     },
@@ -173,9 +171,6 @@ export default {
     },
     deletedItem() {
       return state.deletedItem;
-    },
-    disableFileViewer() {
-      return shareInfo.disableFileViewer;
     },
   },
   watch: {
@@ -240,7 +235,6 @@ export default {
       }
       let subs = [];
       for (const subtitleTrack of state.req.subtitles) {
-
         // All subtitle content is now pre-loaded when content=true
         // Simply use the content that's already available
         if (!subtitleTrack.content || subtitleTrack.content.length === 0) {
@@ -320,7 +314,7 @@ export default {
         });
       }
       const directoryPath = url.removeLastDir(state.req.path);
-      if (!this.listing || this.listing == "undefined") {
+      if (!this.listing) {
         let res;
         if (getters.isShare()) {
           // Use public API for shared files
@@ -329,9 +323,7 @@ export default {
           // Use regular files API for authenticated users
           res = await filesApi.fetchFiles(state.req.source, directoryPath);
         }
-      }
-      if (!this.listing) {
-        this.listing = [state.req]
+        this.listing = res.items;
       }
       this.name = state.req.name;
       this.previousLink = "";
