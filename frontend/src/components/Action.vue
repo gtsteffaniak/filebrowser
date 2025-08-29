@@ -52,7 +52,7 @@ export default {
       return getters.multibuttonState();
     },
     stickSidebar() {
-      return state.stickSidebar;
+      return state.user?.stickySidebar;
     },
     currentView() {
       return getters.currentView();

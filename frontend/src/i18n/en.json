@@ -48,7 +48,8 @@
     "resumeAll": "Resume all",
     "clearCompleted": "Clear completed",
     "showMore": "Show more",
-    "showLess": "Show less"
+    "showLess": "Show less",
+    "openParentFolder": "Open parent folder"
   },
   "download": {
     "downloadFile": "Download File",
@@ -62,7 +63,8 @@
     "forbidden": "You don't have permissions to access this.",
     "internal": "Something really went wrong.",
     "notFound": "This location can't be reached.",
-    "connection": "The server can't be reached."
+    "connection": "The server can't be reached.",
+    "shareNotFound": "Invalid or expired share."
   },
   "files": {
     "body": "Body",
@@ -158,7 +160,13 @@
     "shareFaviconDescription": "Favicon URL or path accessible by the client -- either abosolute or index path are accepted: eg 'https://domain.com/favicon.png' or '/path/to/favicon.png'",
     "hideNavButtons": "Hide navigation buttons",
     "hideNavButtonsDescription": "Hide the navigation buttons on the navbar in the share to create a minimalistic look.",
-    "viewModeDescription": "Default layout for the shared page."
+    "viewModeDescription": "Default layout for the shared page.",
+    "titleDefault": "Shared files - {title}",
+    "descriptionDefault": "A share has been sent to you to view or download.",
+    "disableShareCard": "Disable share card",
+    "disableShareCardDescription": "Disable the share card on the shared page in the sidebar or at the top of the page on mobile.",
+    "disableSidebar": "Disable sidebar",
+    "disableSidebarDescription": "Disable the sidebar on the shared page."
   },
   "prompts": {
     "downloadsLimit": "Number of downloads limit",
@@ -361,6 +369,7 @@
     "scope": "Scope",
     "settingsUpdated": "Settings updated!",
     "shareDuration": "Expires",
+    "downloads": "Downloads",
     "shareManagement": "Share Management",
     "shareDeleted": "Share deleted!",
     "singleClick": "Use single clicks to open files and directories",
@@ -442,7 +451,6 @@
     "toggleClick": "Toggle Single Click",
     "toggleDark": "Toggle Dark Mode",
     "toggleSticky": "Toggle Sticky Mode",
-    "of": "of",
     "used": "used",
     "noSources": "No sources available for this user. Either add a source for this user or configure a source with defaultEnabled: true"
   },
@@ -469,7 +477,8 @@
     "folders": "Folders",
     "exit": "Exit",
     "permanent": "Permanent",
-    "hash": "Hash"
+    "hash": "Hash",
+    "of": "of"
   },
   "access": {
     "all": "Deny All",
@@ -488,7 +497,9 @@
     "deleted": "Access rule deleted!",
     "added": "Access rule added!",
     "name": "Name",
-    "accessManagement": "Access Management"
+    "accessManagement": "Access Management",
+    "defaultBehavior": "Default action{suffix}",
+    "defaultBehaviorDescription": "This shows what happens when a user tries to access a path where no specific access rules exist. 'Allow' means users can access by default, 'Deny' means users are blocked by default unless explicitly allowed."
   },
   "fileLoading": {
     "title": "Uploads & Downloads",

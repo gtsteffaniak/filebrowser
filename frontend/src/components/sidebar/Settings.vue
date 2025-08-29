@@ -54,7 +54,7 @@ export default {
 <style>
 .active-settings {
   background: var(--primaryColor) !important;
-  color: var(--item-selected) !important;
+  color: white !important;
 }
 
 .settings-card {

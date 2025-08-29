@@ -48,7 +48,8 @@
     "resumeAll": "所有履歷",
     "clearCompleted": "清除完成",
     "showMore": "顯示更多",
-    "showLess": "顯示更少"
+    "showLess": "顯示更少",
+    "openParentFolder": "開啟父資料夾"
   },
   "download": {
     "downloadFile": "下載檔案",
@@ -59,7 +60,8 @@
     "forbidden": "您無權訪問。",
     "internal": "伺服器出了點問題。",
     "notFound": "找不到檔案。",
-    "connection": "伺服器無法連線。"
+    "connection": "伺服器無法連線。",
+    "shareNotFound": "無效或過期的共享。"
   },
   "files": {
     "body": "内容",
@@ -297,7 +299,8 @@
     "api": "API 金鑰",
     "shareDuration": "到期",
     "shareDeleted": "分享已刪除！",
-    "adminOptions": "管理員使用者選項"
+    "adminOptions": "管理員使用者選項",
+    "downloads": "下載"
   },
   "sidebar": {
     "help": "幫助",
@@ -354,7 +357,13 @@
     "shareFaviconDescription": "用戶端可存取的 Favicon URL 或路徑 - 接受絕對路徑或索引路徑：例如「https://domain.com/favicon.png」或「/path/to/favicon.png",
     "hideNavButtons": "隱藏導覽按鈕",
     "hideNavButtonsDescription": "隱藏分享中導覽列上的導覽按鈕，以創造簡約的外觀。",
-    "viewModeDescription": "共用頁面的預設版面。"
+    "viewModeDescription": "共用頁面的預設版面。",
+    "titleDefault": "Shared files - {title}",
+    "descriptionDefault": "已向您發送一份共用檔案，供您檢視或下載。",
+    "disableShareCard": "停用分享卡",
+    "disableShareCardDescription": "停用分享頁面側邊欄或行動版頁面頂端的分享卡。",
+    "disableSidebar": "停用側邊欄",
+    "disableSidebarDescription": "停用共用頁面上的側邊欄。"
   },
   "api": {
     "title": "API 金鑰",
@@ -391,7 +400,6 @@
     "toggleClick": "切換單擊",
     "toggleDark": "切換黑暗模式",
     "toggleSticky": "切換黏貼模式",
-    "of": "的",
     "used": "中古",
     "noSources": "此使用者沒有可用的來源。請為此使用者新增來源，或設定預設啟用：true 的來源。"
   },
@@ -484,7 +492,8 @@
     "folders": "資料夾",
     "exit": "離開",
     "permanent": "長期",
-    "hash": "散列"
+    "hash": "散列",
+    "of": "的"
   },
   "access": {
     "rules": "存取規則",
@@ -503,7 +512,9 @@
     "added": "已新增存取規則！",
     "name": "名稱",
     "accessManagement": "存取管理",
-    "all": "全部拒絕"
+    "all": "全部拒絕",
+    "defaultBehavior": "Default action{suffix}",
+    "defaultBehaviorDescription": "這顯示使用者嘗試存取沒有特定存取規則的路徑時會發生的情況。允許」表示使用者預設可以存取，「拒絕」表示使用者預設會被阻擋，除非明確允許。"
   },
   "editor": {
     "uninitialized": "編輯器初始化失敗。請重新載入。",

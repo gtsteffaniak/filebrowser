@@ -48,7 +48,8 @@
     "resumeAll": "Curriculum vitae",
     "clearCompleted": "Effacement terminé",
     "showMore": "Afficher plus",
-    "showLess": "Montrer moins"
+    "showLess": "Montrer moins",
+    "openParentFolder": "Ouvrir le dossier parent"
   },
   "download": {
     "downloadFile": "Télécharger le fichier",
@@ -59,7 +60,8 @@
     "forbidden": "Vous n'avez pas la permission d'accéder à cela.",
     "internal": "Aïe ! Quelque chose s'est mal passé.",
     "notFound": "Impossible d'accéder à cet emplacement.",
-    "connection": "Le serveur n'est pas accessible."
+    "connection": "Le serveur n'est pas accessible.",
+    "shareNotFound": "Action non valide ou expirée."
   },
   "files": {
     "body": "Corps",
@@ -297,7 +299,8 @@
     "shareSettings": "Paramètres des partages",
     "adminOptions": "Options de l'utilisateur administrateur",
     "shareDuration": "Expiration",
-    "searchOptions": "Options de recherche"
+    "searchOptions": "Options de recherche",
+    "downloads": "Téléchargements"
   },
   "sidebar": {
     "help": "Aide",
@@ -354,7 +357,13 @@
     "shareFaviconDescription": "URL du favicon ou chemin d'accès accessible par le client -- les chemins d'accès absolus ou indexés sont acceptés : par exemple \"https://domain.com/favicon.png\" ou \"/path/to/favicon.png\".",
     "hideNavButtons": "Masquer les boutons de navigation",
     "hideNavButtonsDescription": "Masquez les boutons de navigation de la barre de navigation dans le partage pour créer une apparence minimaliste.",
-    "viewModeDescription": "Mise en page par défaut de la page partagée."
+    "viewModeDescription": "Mise en page par défaut de la page partagée.",
+    "titleDefault": "Shared files - {title}",
+    "descriptionDefault": "Une action vous a été envoyée pour que vous la consultiez ou la téléchargiez.",
+    "disableShareCard": "Désactiver la carte de partage",
+    "disableShareCardDescription": "Désactiver la carte de partage sur la page partagée dans la barre latérale ou en haut de la page sur mobile.",
+    "disableSidebar": "Désactiver la barre latérale",
+    "disableSidebarDescription": "Désactiver la barre latérale sur la page partagée."
   },
   "api": {
     "title": "Clés API :",
@@ -391,7 +400,6 @@
     "toggleClick": "Activation du mode simple clic",
     "toggleDark": "Mode sombre/clair",
     "toggleSticky": "Activer/Désactiver le mode persistent",
-    "of": "de",
     "used": "utilisé",
     "noSources": "Aucune source n'est disponible pour cet utilisateur. Ajoutez une source pour cet utilisateur ou configurez une source avec defaultEnabled : true"
   },
@@ -418,7 +426,8 @@
     "folders": "Dossiers",
     "exit": "Sortie",
     "permanent": "Permanent",
-    "hash": "Hachures"
+    "hash": "Hachures",
+    "of": "de"
   },
   "access": {
     "rules": "Règles d'accès",
@@ -437,7 +446,9 @@
     "accessManagement": "Gestion de l'accès",
     "totalDenied": "Refusé",
     "totalAllowed": "Autorisé",
-    "all": "Refuser tout"
+    "all": "Refuser tout",
+    "defaultBehavior": "Default action{suffix}",
+    "defaultBehaviorDescription": "Ceci montre ce qui se passe lorsqu'un utilisateur tente d'accéder à un chemin pour lequel il n'existe pas de règles d'accès spécifiques. La mention \"Autoriser\" signifie que les utilisateurs peuvent accéder par défaut, la mention \"Refuser\" signifie que les utilisateurs sont bloqués par défaut, à moins qu'ils n'y soient explicitement autorisés."
   },
   "fileLoading": {
     "title": "Chargements et téléchargements",

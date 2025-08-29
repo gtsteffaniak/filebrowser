@@ -48,7 +48,8 @@
     "resumeAll": "Alles hervatten",
     "clearCompleted": "Gereed",
     "showMore": "Meer tonen",
-    "showLess": "Minder tonen"
+    "showLess": "Minder tonen",
+    "openParentFolder": "Bovenliggende map openen"
   },
   "download": {
     "downloadFile": "Bestand downloaden",
@@ -59,7 +60,8 @@
     "forbidden": "U hebt geen rechten om hier toegang toe te krijgen.",
     "internal": "Er ging iets mis.",
     "notFound": "Deze locatie kan niet worden bereikt.",
-    "connection": "De server kan niet worden bereikt."
+    "connection": "De server kan niet worden bereikt.",
+    "shareNotFound": "Ongeldig of verlopen aandeel."
   },
   "files": {
     "body": "Body",
@@ -297,7 +299,8 @@
     "shareDeleted": "Deel verwijderd!",
     "adminOptions": "Opties voor beheerders",
     "shareDuration": "Verloopt op",
-    "searchOptions": "Zoekopties"
+    "searchOptions": "Zoekopties",
+    "downloads": "Downloads"
   },
   "sidebar": {
     "help": "Help",
@@ -354,7 +357,13 @@
     "shareFaviconDescription": "Favicon URL of pad toegankelijk door de client -- zowel abosolute als index path worden geaccepteerd: bijv. 'https://domain.com/favicon.png' of '/path/to/favicon.png'.",
     "hideNavButtons": "Navigatieknoppen verbergen",
     "hideNavButtonsDescription": "Verberg de navigatieknoppen op de navigatiebalk in de share om een minimalistische look te creëren.",
-    "viewModeDescription": "Standaard lay-out voor de gedeelde pagina."
+    "viewModeDescription": "Standaard lay-out voor de gedeelde pagina.",
+    "titleDefault": "Shared files - {title}",
+    "descriptionDefault": "Er is een share naar je verzonden om te bekijken of te downloaden.",
+    "disableShareCard": "Aandelenkaart uitschakelen",
+    "disableShareCardDescription": "Schakel de deelkaart uit op de gedeelde pagina in de zijbalk of bovenaan de pagina op mobiel.",
+    "disableSidebar": "Zijbalk uitschakelen",
+    "disableSidebarDescription": "Schakel de zijbalk op de gedeelde pagina uit."
   },
   "api": {
     "title": "API-sleutels",
@@ -391,7 +400,6 @@
     "toggleClick": "Schakelen Enkele klik",
     "toggleDark": "Donkere modus inschakelen",
     "toggleSticky": "Kleefmodus schakelen",
-    "of": "van",
     "used": "tweedehands",
     "noSources": "Geen bronnen beschikbaar voor deze gebruiker. Voeg een bron toe voor deze gebruiker of configureer een bron met defaultEnabled: true"
   },
@@ -484,7 +492,8 @@
     "folders": "Mappen",
     "exit": "Ga naar",
     "permanent": "Permanent",
-    "hash": "Hash"
+    "hash": "Hash",
+    "of": "van"
   },
   "access": {
     "rules": "Toegangsregels",
@@ -503,7 +512,9 @@
     "added": "Toegangsregel toegevoegd!",
     "name": "Naam",
     "accessManagement": "Toegangsbeheer",
-    "all": "Alles weigeren"
+    "all": "Alles weigeren",
+    "defaultBehavior": "Default action{suffix}",
+    "defaultBehaviorDescription": "Dit laat zien wat er gebeurt als een gebruiker toegang probeert te krijgen tot een pad waarvoor geen specifieke toegangsregels bestaan. Toestaan' betekent dat gebruikers standaard toegang hebben, 'Weigeren' betekent dat gebruikers standaard worden geblokkeerd tenzij ze expliciet toestemming krijgen."
   },
   "editor": {
     "uninitialized": "Het is niet gelukt de editor te initialiseren. Gelieve opnieuw te laden.",

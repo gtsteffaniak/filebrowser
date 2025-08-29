@@ -48,7 +48,8 @@
     "resumeAll": "Återuppta alla",
     "clearCompleted": "Klart avslutat",
     "showMore": "Visa mer",
-    "showLess": "Visa mindre"
+    "showLess": "Visa mindre",
+    "openParentFolder": "Öppna överordnad mapp"
   },
   "download": {
     "downloadFile": "Ladda ner fil",
@@ -59,7 +60,8 @@
     "forbidden": "Du saknar rättigheter till detta",
     "internal": "Något gick fel",
     "notFound": "Det går inte att nå den här platsen.",
-    "connection": "Det går inte att nå servern."
+    "connection": "Det går inte att nå servern.",
+    "shareNotFound": "Ogiltig eller utgången andel."
   },
   "files": {
     "body": "Huvud",
@@ -297,7 +299,8 @@
     "shareDeleted": "Dela borttaget!",
     "adminOptions": "Alternativ för administratörsanvändare",
     "shareDuration": "Upphör att gälla",
-    "searchOptions": "Sökalternativ"
+    "searchOptions": "Sökalternativ",
+    "downloads": "Nedladdningar"
   },
   "sidebar": {
     "help": "Hjälp",
@@ -354,7 +357,13 @@
     "shareFaviconDescription": "URL eller sökväg till Favicon som är tillgänglig för klienten - antingen abosolute eller indexsökväg accepteras: t.ex. \"https://domain.com/favicon.png\" eller \"/path/to/favicon.png",
     "hideNavButtons": "Dölj navigeringsknappar",
     "hideNavButtonsDescription": "Dölj navigeringsknapparna i navigeringsfältet i aktien för att skapa ett minimalistiskt utseende.",
-    "viewModeDescription": "Standardlayout för den delade sidan."
+    "viewModeDescription": "Standardlayout för den delade sidan.",
+    "titleDefault": "Shared files - {title}",
+    "descriptionDefault": "En aktie har skickats till dig för visning eller nedladdning.",
+    "disableShareCard": "Inaktivera aktiekort",
+    "disableShareCardDescription": "Inaktivera delningskortet på den delade sidan i sidofältet eller högst upp på sidan på mobilen.",
+    "disableSidebar": "Inaktivera sidofält",
+    "disableSidebarDescription": "Inaktivera sidofältet på den delade sidan."
   },
   "api": {
     "title": "API-nycklar",
@@ -391,7 +400,6 @@
     "toggleClick": "Toggle Enkelklick",
     "toggleDark": "Växla till mörkt läge",
     "toggleSticky": "Växla klisterläge",
-    "of": "av",
     "used": "används",
     "noSources": "Inga källor tillgängliga för den här användaren. Lägg antingen till en källa för den här användaren eller konfigurera en källa med defaultEnabled: true"
   },
@@ -484,7 +492,8 @@
     "folders": "Mappar",
     "exit": "Avsluta",
     "permanent": "Permanent",
-    "hash": "Hash"
+    "hash": "Hash",
+    "of": "av"
   },
   "access": {
     "rules": "Regler för åtkomst",
@@ -503,7 +512,9 @@
     "added": "Tillträdesregel tillagd!",
     "name": "Namn",
     "accessManagement": "Hantering av åtkomst",
-    "all": "Avvisa alla"
+    "all": "Avvisa alla",
+    "defaultBehavior": "Default action{suffix}",
+    "defaultBehaviorDescription": "Detta visar vad som händer när en användare försöker komma åt en sökväg där det inte finns några specifika åtkomstregler. \"Allow\" innebär att användare kan komma åt som standard, \"Deny\" innebär att användare blockeras som standard om de inte uttryckligen tillåts."
   },
   "editor": {
     "uninitialized": "Redigeraren kunde inte initieras. Vänligen ladda om.",

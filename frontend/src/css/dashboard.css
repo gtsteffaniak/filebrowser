@@ -224,7 +224,7 @@ body.rtl .card-title>*:first-child {
   text-align: right;
 }
 
-.card .card-content.full {
+.card-content.full {
   padding-bottom: 0;
   overflow: auto;
 }
@@ -240,7 +240,7 @@ body.rtl .card-title>*:first-child {
 .card h3 {
   font-size: 1em;
   font-weight: 500;
-  margin: 2em 0 1em;
+  margin: 1em 0 1em;
 }
 
 .card code {

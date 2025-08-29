@@ -10,4 +10,4 @@ COPY ["./backend/filebrowser", "./"]
 COPY [ "./backend/http/embed/", "./http/dist/"]
 # Run tests
 WORKDIR /app/frontend
-RUN node mock-oidc-server.js & sleep 2 && cd ../backend/ && FILEBROWSER_NO_EMBEDED=true ./filebrowser & sleep 2 && cd ../frontend && npx playwright test
+RUN node mock-oidc-server.js & sleep 2 && cd ../backend/ && ./filebrowser & sleep 2 && cd ../frontend && npx playwright test

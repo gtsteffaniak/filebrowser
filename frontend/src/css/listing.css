@@ -102,9 +102,10 @@ body.rtl #listingView {
 }
 
 #listingView.compact .item:hover,
-#listingView.list .item:hover {
+#listingView.list .item:hover,
+.search-entry:hover {
   width: 98% !important;
-  margin-left: 0.5em !important;
+  margin-left: 1% !important;
   padding-left: 0.5em !important;
 }
 
@@ -125,6 +126,7 @@ body.rtl #listingView {
   overflow: hidden;
   justify-content: center;
   padding: 0;
+  position: relative;
 }
 
 #listingView.gallery .item .gallery-div {
@@ -140,8 +142,10 @@ body.rtl #listingView {
 #listingView.gallery .item .text {
   text-shadow: 0 0 2px white;
   pointer-events: none;
-  font-weight: bold;
-  margin-top: -1em;
+  font-weight: 700;
+  position: absolute;
+  z-index: 1;
+  transform: translateY(6em);
 }
 
 #listingView.gallery .item .text .name {
@@ -162,6 +166,10 @@ body.rtl #listingView {
   display: flex;
 }
 
+#listingView.list .item img,
+#listingView.compact .item img {
+  min-width: unset;
+}
 
 #listingView.gallery .item img {
   width: 100%;

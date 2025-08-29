@@ -7,6 +7,7 @@
       <button
         v-for="(btn, index) in buttons"
         :key="index"
+        class="clickable"
         :class="{ active: activeButton === index }"
         @click="setActiveButton(index, btn.value)"
       >

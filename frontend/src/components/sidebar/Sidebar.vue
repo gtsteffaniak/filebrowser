@@ -9,7 +9,7 @@
     </div>
     <SidebarSettings v-if="isSettings"></SidebarSettings>
     <SidebarGeneral v-if="!isSettings"></SidebarGeneral>
-    <SidebarShare v-if="isShare"></SidebarShare>
+    <SidebarShare v-if="isValidShare"></SidebarShare>
 
     <div class="buffer"></div>
     <div v-if="!isSettings" class="credits">
@@ -48,7 +48,7 @@ export default {
     mutations.setSeenUpdate(localStorage.getItem("seenUpdate"));
   },
   computed: {
-    isShare: () => getters.isShare(),
+    isValidShare: () => getters.isValidShare(),
     releaseUrl: () => updateAvailable,
     isDarkMode: () => getters.isDarkMode(),
     isLoggedIn: () => getters.isLoggedIn(),
@@ -170,14 +170,6 @@ body.rtl .action {
 
 .buffer {
   flex-grow: 1;
-}
-
-.clickable {
-  cursor: pointer;
-}
-
-.clickable:hover {
-  box-shadow: 0 2px 2px #00000024, 0 1px 5px #0000001f, 0 3px 1px -2px #0003;
 }
 
 .release-banner {

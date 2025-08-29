@@ -48,7 +48,8 @@
     "resumeAll": "すべての履歴書",
     "clearCompleted": "クリア完了",
     "showMore": "もっと見る",
-    "showLess": "もっと見る"
+    "showLess": "もっと見る",
+    "openParentFolder": "親フォルダを開く"
   },
   "download": {
     "downloadFile": "Download File",
@@ -59,7 +60,8 @@
     "forbidden": "You don't have permissions to access this.",
     "internal": "内部エラーが発生しました。",
     "notFound": "リソースが見つからなりませんでした。",
-    "connection": "サーバーにアクセスできません。"
+    "connection": "サーバーにアクセスできません。",
+    "shareNotFound": "無効または期限切れの共有。"
   },
   "files": {
     "body": "本文",
@@ -297,7 +299,8 @@
     "shareSettings": "共有設定",
     "adminOptions": "管理者ユーザーオプション",
     "shareDuration": "期限切れ",
-    "searchOptions": "検索オプション"
+    "searchOptions": "検索オプション",
+    "downloads": "ダウンロード"
   },
   "sidebar": {
     "help": "ヘルプ",
@@ -354,7 +357,13 @@
     "shareFaviconDescription": "クライアントからアクセス可能なファビコンのURLまたはパス -- 絶対パスでもインデックスパスでも構いません: 'https://domain.com/favicon.png' または '/path/to/favicon.png' など。",
     "hideNavButtons": "ナビゲーションボタンを隠す",
     "hideNavButtonsDescription": "シェア内のナビバーにあるナビゲーションボタンを非表示にして、ミニマルな外観を作る。",
-    "viewModeDescription": "共有ページのデフォルトレイアウト。"
+    "viewModeDescription": "共有ページのデフォルトレイアウト。",
+    "titleDefault": "Shared files - {title}",
+    "descriptionDefault": "シェアが送信されましたので、閲覧またはダウンロードしてください。",
+    "disableShareCard": "シェアカードを無効にする",
+    "disableShareCardDescription": "サイドバーの共有ページ、またはモバイルのページ上部にある共有カードを無効にする。",
+    "disableSidebar": "サイドバーを無効にする",
+    "disableSidebarDescription": "共有ページのサイドバーを無効にする。"
   },
   "api": {
     "title": "APIキー：",
@@ -391,7 +400,6 @@
     "toggleClick": "トグル・シングルクリック",
     "toggleDark": "ダークモードの切り替え",
     "toggleSticky": "スティッキーモードの切り替え",
-    "of": "の",
     "used": "中古",
     "noSources": "このユーザが使用できるソースはありません。このユーザのソースを追加するか、defaultEnabled: true でソースを構成します。"
   },
@@ -418,7 +426,8 @@
     "folders": "フォルダ",
     "exit": "出口",
     "permanent": "正社員",
-    "hash": "ハッシュ"
+    "hash": "ハッシュ",
+    "of": "の"
   },
   "access": {
     "rules": "アクセス規則",
@@ -437,7 +446,9 @@
     "accessManagement": "アクセス管理",
     "totalDenied": "却下",
     "totalAllowed": "可",
-    "all": "すべて拒否"
+    "all": "すべて拒否",
+    "defaultBehavior": "Default action{suffix}",
+    "defaultBehaviorDescription": "これは、特定のアクセスルールが存在しないパスにユーザがアクセスしようとしたときに何が起こるかを示している。Allow」はユーザーがデフォルトでアクセスできることを意味し、「Deny」は明示的に許可されない限り、ユーザーがデフォルトでブロックされることを意味する。"
   },
   "fileLoading": {
     "title": "アップロードとダウンロード",

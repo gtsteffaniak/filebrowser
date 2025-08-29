@@ -1,9 +1,10 @@
 import { fetchURL, fetchJSON } from '@/api/utils'
-import { getApiPath } from '@/utils/url.js'
+import { getApiPath, getPublicApiPath } from '@/utils/url.js'
 import { notify } from '@/notify' // Import notify for error handling
 import { setNewToken } from '@/utils/auth.js' // Import setNewToken for token management
+import { shareInfo } from '@/utils/constants'
 
-export async function getAllUsers () {
+export async function getAllUsers() {
   try {
     const apiPath = getApiPath('api/users')
     return await fetchJSON(apiPath)
@@ -13,7 +14,7 @@ export async function getAllUsers () {
   }
 }
 
-export async function generateOTP (username, password) {
+export async function generateOTP(username, password) {
   const params = { username }
   try {
     let apiPath = getApiPath('api/auth/otp/generate', params)
@@ -30,7 +31,7 @@ export async function generateOTP (username, password) {
   }
 }
 
-export async function verifyOtp (username, password, otp) {
+export async function verifyOtp(username, password, otp) {
   const params = { username }
   try {
     let apiPath = getApiPath('api/auth/otp/verify', params)
@@ -91,7 +92,10 @@ export async function login(username, password, recaptcha, otp) {
 }
 export async function get(id) {
   try {
-    const apiPath = getApiPath('api/users', { id: id })
+    let apiPath = getApiPath('api/users', { id: id })
+    if (shareInfo.isShare) {
+      apiPath = getPublicApiPath('users', { id: id })
+    }
     return await fetchJSON(apiPath)
   } catch (err) {
     notify.showError(err.message || `Failed to fetch user with ID: ${id}`)
@@ -148,7 +152,7 @@ export function deleteApiKey (params) {
   }
 }
 
-export async function create (user) {
+export async function create(user) {
   try {
     const apiPath = getApiPath('api/users')
     const res = await fetchURL(apiPath, {
@@ -190,7 +194,7 @@ export async function update(user, which = ['all']) {
   })
 }
 
-export async function remove (id) {
+export async function remove(id) {
   try {
     const apiPath = getApiPath('api/users', { id: id })
     await fetchURL(apiPath, {

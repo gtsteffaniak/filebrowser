@@ -1,6 +1,6 @@
 import { fetchURL, fetchJSON, adjustedData } from "./utils";
 import { notify } from "@/notify";
-import { getApiPath } from "@/utils/url.js";
+import { getApiPath, getPublicApiPath } from "@/utils/url.js";
 import { externalUrl } from "@/utils/constants";
 import { state } from "@/store";
 
@@ -23,7 +23,7 @@ export async function fetchPub(path, hash, password = "", content = false) {
     ...(content && { content: 'true' }),
     ...(state.share.token && { token: state.share.token })
   }
-  const apiPath = getApiPath("public/api/shared", params);
+  const apiPath = getPublicApiPath("resources", params);
   const response = await fetch(apiPath, {
     headers: {
       "X-SHARE-PASSWORD": password ? encodeURIComponent(password) : "",
@@ -63,7 +63,7 @@ export function getDownloadURL(share, files, inline=false) {
     token: share.token,
     ...(inline && { inline: 'true' })
   }
-  const apiPath = getApiPath("public/api/raw", params);
+  const apiPath = getPublicApiPath("raw", params);
   return window.origin + apiPath
 }
 
@@ -81,7 +81,7 @@ export function getPreviewURL(path,size="small") {
       inline: 'true',
       ...(state.share.token && { token: state.share.token })
     }
-    const apiPath = getApiPath('public/api/preview', params)
+    const apiPath = getPublicApiPath('preview', params)
     return window.origin + apiPath
   } catch (/** @type {any} */ err) {
     notify.showError(err.message || 'Error getting preview URL')
@@ -132,14 +132,11 @@ export async function remove(hash) {
 
 // Create a new share
 /**
- * @param {string} path
- * @param {string} source
  * @param {Record<string, any>} bodyObj
  * @returns {Promise<Share>}
  */
-export async function create(path, source, bodyObj = {}) {
-  const params = { path: encodeURIComponent(path), source: encodeURIComponent(source) };
-  const apiPath = getApiPath("public/share", params);
+export async function create(bodyObj = {}) {
+  const apiPath = getApiPath("public/share");
   return fetchJSON(apiPath, {
     method: "POST",
     body: JSON.stringify(bodyObj || {}),

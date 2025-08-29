@@ -48,7 +48,8 @@
     "resumeAll": "Alle zusammenfassen",
     "clearCompleted": "Abgeschlossene löschen",
     "showMore": "Mehr anzeigen",
-    "showLess": "Weniger anzeigen"
+    "showLess": "Weniger anzeigen",
+    "openParentFolder": "Übergeordneten Ordner öffnen"
   },
   "download": {
     "downloadFile": "Datei herunterladen",
@@ -59,7 +60,8 @@
     "forbidden": "Sie haben keine Berechtigung dies abzurufen.",
     "internal": "Etwas ist schief gelaufen.",
     "notFound": "Dieser Ort kann nicht angezeigt werden.",
-    "connection": "Der Server ist nicht erreichbar."
+    "connection": "Der Server ist nicht erreichbar.",
+    "shareNotFound": "Ungültige oder abgelaufene Aktie."
   },
   "files": {
     "body": "Body",
@@ -297,7 +299,8 @@
     "shareSettings": "Einstellungen teilen",
     "adminOptions": "Optionen für Verwaltungsbenutzer",
     "shareDuration": "Abgelaufen",
-    "searchOptions": "Suchoptionen"
+    "searchOptions": "Suchoptionen",
+    "downloads": "Herunterladen"
   },
   "sidebar": {
     "help": "Hilfe",
@@ -354,7 +357,13 @@
     "shareFaviconDescription": "Favicon-URL oder -Pfad, auf den der Client zugreifen kann - es wird entweder ein absoluter oder ein Indexpfad akzeptiert: z. B. 'https://domain.com/favicon.png' oder '/path/to/favicon.png'.",
     "hideNavButtons": "Navigationsschaltflächen ausblenden",
     "hideNavButtonsDescription": "Blenden Sie die Navigationsschaltflächen auf der Navigationsleiste in der Freigabe aus, um ein minimalistisches Aussehen zu erzielen.",
-    "viewModeDescription": "Standardlayout für die gemeinsame Seite."
+    "viewModeDescription": "Standardlayout für die gemeinsame Seite.",
+    "titleDefault": "Shared files - {title}",
+    "descriptionDefault": "Sie haben eine Aktie zur Ansicht oder zum Download erhalten.",
+    "disableShareCard": "Freigabekarte deaktivieren",
+    "disableShareCardDescription": "Deaktivieren Sie die Freigabekarte auf der freigegebenen Seite in der Seitenleiste oder oben auf der Seite auf dem Handy.",
+    "disableSidebar": "Seitenleiste deaktivieren",
+    "disableSidebarDescription": "Deaktivieren Sie die Seitenleiste auf der gemeinsamen Seite."
   },
   "api": {
     "title": "API-Schlüssel:",
@@ -391,7 +400,6 @@
     "toggleClick": "Einzelklick umschalten",
     "toggleDark": "Dunkelmodus umschalten",
     "toggleSticky": "Sticky-Modus umschalten",
-    "of": "von",
     "used": "belegt",
     "noSources": "Für diesen Benutzer sind keine Quellen verfügbar. Entweder eine Quelle für diesen Benutzer hinzufügen oder eine Quelle mit defaultEnabled: true konfigurieren"
   },
@@ -418,7 +426,8 @@
     "folders": "Ordner",
     "exit": "Ausfahrt",
     "permanent": "Dauerhaft",
-    "hash": "Hash"
+    "hash": "Hash",
+    "of": "von"
   },
   "access": {
     "rules": "Zugangsregeln",
@@ -437,7 +446,9 @@
     "accessManagement": "Zugangsverwaltung",
     "totalDenied": "Verweigert",
     "totalAllowed": "Erlaubt",
-    "all": "Alle ablehnen"
+    "all": "Alle ablehnen",
+    "defaultBehavior": "Default action{suffix}",
+    "defaultBehaviorDescription": "Dies zeigt, was passiert, wenn ein Benutzer versucht, auf einen Pfad zuzugreifen, für den keine spezifischen Zugriffsregeln bestehen. Zulassen\" bedeutet, dass Benutzer standardmäßig Zugang haben, \"Verweigern\" bedeutet, dass Benutzer standardmäßig blockiert werden, wenn sie nicht ausdrücklich zugelassen sind."
   },
   "fileLoading": {
     "title": "Uploads & Downloads",

@@ -3,7 +3,7 @@
     <h2>{{ $t("buttons.share") }}</h2>
   </div>
   <div class="card-content">
-    <div aria-label="share-path" class="searchContext"> {{ $t('search.path') }} {{ subpath }}</div>
+    <div aria-label="share-path" class="searchContext button"> {{ $t('search.path') }} {{ item.path }}</div>
     <p> {{ $t('share.notice') }} </p>
 
     <div v-if="listing">
@@ -75,13 +75,12 @@
         </i>
       </p>
       <input class="input" type="password" autocomplete="new-password" v-model.trim="password" />
-
-      <div class="settings-items">
+      <div class="settings-items" style="margin-top: 0.5em;">
         <!--
         <ToggleSwitch class="item" v-model="allowEdit" :name="'Allow modifications'" />
         <ToggleSwitch class="item" v-model="allowUpload" :name="'Allow uploading'" />
-        <ToggleSwitch class="item" v-model="disablingFileViewer" :name="'Disable File Viewer'" />
         -->
+        <ToggleSwitch class="item" v-model="disableFileViewer" :name="'Disable File Viewer'" />
         <ToggleSwitch
           class="item"
           v-model="quickDownload"
@@ -136,6 +135,8 @@
           <ToggleSwitch class="item" v-model="keepAfterExpiration" :name="$t('share.keepAfterExpiration')" :description="$t('share.keepAfterExpirationDescription')" />
           <ToggleSwitch class="item" v-model="disableThumbnails" :name="$t('share.disableThumbnails')" :description="$t('share.disableThumbnailsDescription')" />
           <ToggleSwitch class="item" v-model="disableNavButtons" :name="$t('share.hideNavButtons')" :description="$t('share.hideNavButtonsDescription')" />
+          <ToggleSwitch class="item" v-model="disableShareCard" :name="$t('share.disableShareCard')" :description="$t('share.disableShareCardDescription')" />
+          <ToggleSwitch class="item" v-model="disableSidebar" :name="$t('share.disableSidebar')" :description="$t('share.disableSidebarDescription')" />
         </div>
 
         <p>
@@ -252,33 +253,11 @@ import { state, getters, mutations } from "@/store";
 import { publicApi } from "@/api";
 import Clipboard from "clipboard";
 import { fromNow } from "@/utils/moment";
-import { buildItemUrl } from "@/utils/url";
+import { buildItemUrl, fixDownloadURL } from "@/utils/url";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
-import { userSelectableThemes } from "@/utils/constants";
+import { userSelectableThemes, externalUrl } from "@/utils/constants";
+import { eventBus } from "@/store/eventBus";
 //import ViewMode from "@/components/settings/ViewMode.vue";
-
-/**
- * @typedef {import('@/api/public').Share} Share
- */
-
-/**
- * @typedef {object} FilebrowserFile
- * @property {string} name
- * @property {string} path
- * @property {string} source
- * @property {boolean} isDir
- * @property {string} type
- */
-
-/**
- * @typedef {object} FilebrowserRequest
- * @property {FilebrowserFile[]} items
- * @property {number} numDirs
- * @property {number} numFiles
- * @property {{by: string, asc: boolean}} sorting
- * @property {string} path
- * @property {string} source
- */
 
 export default {
   name: "share",
@@ -295,6 +274,15 @@ export default {
       type: Object,
       default: () => ({}),
     },
+    item: {
+      type: Object,
+      default: () => ({
+        path: "",
+        source: "",
+        isDir: false,
+        type: "",
+      }),
+    },
   },
   data() {
     return {
@@ -304,8 +292,6 @@ export default {
       links: [],
       /** @type {Clipboard | null} */
       clip: null,
-      subpath: "",
-      source: "",
       password: "",
       listing: true,
       allowEdit: false,
@@ -314,7 +300,7 @@ export default {
       disableAnonymous: false,
       allowUpload: false,
       maxBandwidth: "",
-      disablingFileViewer: false,
+      disableFileViewer: false,
       disableThumbnails: false,
       enableAllowedUsernames: false,
       allowedUsernames: "",
@@ -327,6 +313,8 @@ export default {
       showAdvanced: false,
       quickDownload: false,
       disableNavButtons: false,
+      disableShareCard: false,
+      disableSidebar: false,
       //viewMode: "normal",
     };
   },
@@ -389,6 +377,7 @@ export default {
           this.shareTheme = this.link.shareTheme || "default";
           this.disableAnonymous = this.link.disableAnonymous || false;
           this.disableThumbnails = this.link.disableThumbnails || false;
+          this.disableFileViewer = this.link.disableFileViewer || false;
           this.enableAllowedUsernames = Array.isArray(this.link.allowedUsernames) && this.link.allowedUsernames.length > 0;
           this.allowedUsernames = this.enableAllowedUsernames ? this.link.allowedUsernames.join(", ") : "";
           this.keepAfterExpiration = this.link.keepAfterExpiration || false;
@@ -399,35 +388,20 @@ export default {
           this.favicon = this.link.favicon || "";
           this.quickDownload = this.link.quickDownload || false;
           this.disableNavButtons = this.link.hideNavButtons || false;
-          this.viewMode = this.link.viewMode || "normal";
+          this.disableShareCard = this.link.disableShareCard || false;
+          this.disableSidebar = this.link.disableSidebar || false;
+          //this.viewMode = this.link.viewMode || "normal";
         }
       },
     },
   },
   async beforeMount() {
     if (this.isEditMode) {
-      this.subpath = this.link.path;
-      this.source = this.link.source;
       return;
     }
-    let path = this.req.path;
-    this.source = this.req.source;
-    if (state.isSearchActive) {
-      const file = /** @type {FilebrowserFile} */ (this.selected[0]);
-      path = file.path;
-      this.source = file.source;
-    } else if (this.selectedCount === 1) {
-      const index = /** @type {number} */ (this.selected[0]);
-      const selected = this.req.items[index];
-      path = selected.path;
-      this.source = selected.source;
-    }
-    // double encode # to fix issue with # in path
-    // replace all # with %23
-    this.subpath = path.replace(/#/g, "%23");
     try {
       // get last element of the path
-      const links = await publicApi.get(this.subpath, this.source);
+      const links = await publicApi.get(this.item.path, this.item.source);
       this.links = links;
     } catch (err) {
       notify.showError(err);
@@ -501,20 +475,25 @@ export default {
     },
     async submit() {
       try {
+        if (!this.description) {
+          this.description = this.$t("share.descriptionDefault");
+        }
+        if (!this.title) {
+          this.title = this.$t("share.titleDefault", { title: this.item.name || "share" });
+        }
         let isPermanent = !this.time || this.time === "0";
         const payload = {
-          path: this.subpath,
-          sourceName: this.source,
-          source: this.source,
+          path: this.item.path,
+          source: this.item.source,
           password: this.password,
           expires: isPermanent ? "" : this.time.toString(),
           unit: this.unit,
           disableAnonymous: this.disableAnonymous,
           allowUpload: this.allowUpload,
-          maxBandwidth: this.maxBandwidth,
-          downloadsLimit: this.downloadsLimit,
+          maxBandwidth: this.maxBandwidth ? parseInt(this.maxBandwidth) : 0,
+          downloadsLimit: this.downloadsLimit ? parseInt(this.downloadsLimit) : 0,
           shareTheme: this.shareTheme,
-          disablingFileViewer: this.disablingFileViewer,
+          disableFileViewer: this.disableFileViewer,
           disableThumbnails: this.disableThumbnails,
           allowedUsernames: this.enableAllowedUsernames ? this.allowedUsernames.split(',').map(u => u.trim()) : [],
           keepAfterExpiration: this.keepAfterExpiration,
@@ -526,41 +505,22 @@ export default {
           favicon: this.favicon,
           quickDownload: this.quickDownload,
           hideNavButtons: this.disableNavButtons,
+          disableShareCard: this.disableShareCard,
+          disableSidebar: this.disableSidebar,
         };
         if (this.isEditMode) {
           payload.hash = this.link.hash;
         }
 
-        const res = await publicApi.create(payload.path, payload.source, {
-          password: payload.password,
-          expires: payload.expires,
-          unit: payload.unit,
-          disableAnonymous: payload.disableAnonymous,
-          allowUpload: payload.allowUpload,
-          maxBandwidth: Number(payload.maxBandwidth) || 0,
-          downloadsLimit: Number(payload.downloadsLimit) || 0,
-          shareTheme: payload.shareTheme,
-          disableFileViewer: payload.disablingFileViewer,
-          disableThumbnails: payload.disableThumbnails,
-          allowedUsernames: payload.allowedUsernames,
-          hash: payload.hash,
-          keepAfterExpiration: payload.keepAfterExpiration,
-          themeColor: payload.themeColor,
-          banner: payload.banner,
-          title: payload.title,
-          description: payload.description,
-          favicon: payload.favicon,
-          quickDownload: payload.quickDownload,
-          hideNavButtons: payload.hideNavButtons,
-          //viewMode: this.viewMode,
-        });
+        const res = await publicApi.create(payload);
 
         if (!this.isEditMode) {
           this.links.push(res);
           this.sort();
         } else {
-          // reload page to see changes
-          window.location.reload();
+          // emit event to reload shares in settings view
+          eventBus.emit('sharesChanged');
+          mutations.closeHovers();
         }
 
         this.time = "";
@@ -581,6 +541,8 @@ export default {
       try {
         await publicApi.remove(link.hash);
         this.links = this.links.filter((item) => item.hash !== link.hash);
+        // emit event to reload shares in settings view
+        eventBus.emit('sharesChanged');
         if (this.links.length === 0) {
           this.listing = false;
         }
@@ -601,21 +563,17 @@ export default {
       return publicApi.getShareURL(share);
     },
     hasDownloadLink() {
-      if (state.isSearchActive) {
-        const file = /** @type {FilebrowserFile} */ (this.selected[0]);
-        return file.type !== "directory";
-      }
-      const index = /** @type {number} */ (this.selected[0]);
-      return this.selected.length === 1 && !this.req.items[index].isDir;
+      // Check if we have a single selected item that can be downloaded
+      return !this.item?.isDir;
     },
     /**
      * @param {Share} share
      */
     buildDownloadLink(share) {
-      share.source = this.source;
-      share.path = "/";
-      const index = /** @type {number} */ (this.selected[0]);
-      return publicApi.getDownloadURL(share, [this.req.items[index].name]);
+      if (share.downloadURL && externalUrl == "") {
+        return this.fixDownloadURL(share.downloadURL);
+      }
+      return publicApi.getDownloadURL(share, [this.item.name]);
     },
     sort() {
       this.links = this.links.sort((a, b) => {
@@ -631,6 +589,9 @@ export default {
       }
 
       this.listing = !this.listing;
+    },
+    fixDownloadURL(downloadUrl) {
+      return fixDownloadURL(downloadUrl);
     },
   },
 };

@@ -21,7 +21,10 @@ server:
     - path: "/relative/or/absolute/path"  # file system path. (Can be relative)  validate:required
       name: "backend"                     # display name
       config:
-        indexingIntervalMinutes: 0        # optional manual overide interval in seconds to re-index the source
+        denyByDefault: false              # deny access unless an "allow" access rule was specifically created.
+        private: false                    # designate as source as private -- currently just means no sharing permitted.
+        disabled: false                   # disable the source, this is useful so you don't need to remove it from the config file
+        indexingIntervalMinutes: 0        # optional manual overide interval in minutes to re-index the source
         disableIndexing: false            # disable the indexing of this source
         maxWatchers: 0                    # number of concurrent watchers to use for this source, currently not supported
         neverWatchPaths: []
@@ -97,58 +100,7 @@ frontend:
     customThemes:                         # A list of custom css files that each user can select to override the default styling. if "default" is key name then it will be the default option.
       alternative:
         description: Reduce rounded corners
-        css: |-
-          .card,
-                                          #listingView.gallery .item,
-                                          #listingView.normal .item,
-          .button,
-          button,
-          .button-action,
-          .input,
-          input,
-                                          #listingView.gallery .item img,
-                                          #listingView .item img,
-          .sizeInputWrapper,
-          .sizeInput,
-                                          #search-input,
-          .floating-tooltip,
-          .settings-items>.item,
-          .button-group {
-              border-radius: 0.25em !important;
-          }
-
-                                          #listingView.compact .header {
-              border-bottom-left-radius: 0 !important;
-              border-bottom-right-radius: 0 !important;
-          }
-
-                                          #listingView.list .item:last-child,
-                                          #results {
-              border-bottom-left-radius: 0.25em !important;
-              border-bottom-right-radius: 0.25em !important;
-          }
-
-                                          #listingView.list .item:first-child {
-              border-top-left-radius: 0.25em !important;
-              border-top-right-radius: 0.25em !important;
-          }
-
-                                          #breadcrumbs ul li:last-child a {
-              border-top-right-radius: 0.25em !important;
-              border-bottom-right-radius: 0.25em !important;
-          }
-                                          #breadcrumbs ul li:first-child a {
-              border-top-left-radius: 0.25em !important;
-              border-bottom-left-radius: 0.25em !important;
-          }
-
-          .button-group button {
-              border-radius: 0 !important;
-          }
-
-          .icon {
-              border-radius: 0.1em !important;
-          }
+        css: reduce-rounded-corners.css
       default:
         description: The default theme
         css: ""

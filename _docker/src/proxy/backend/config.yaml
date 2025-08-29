@@ -1,6 +1,6 @@
 server:
   port: 8080
-  baseURL:  "/"
+  baseURL:  "/subpath"
   logging:
     - levels: "info|error|debug"
   sources:
@@ -32,5 +32,5 @@ userDefaults:
   permissions:
     admin: false
     modify: true
-    share: false
+    share: true
     api: false

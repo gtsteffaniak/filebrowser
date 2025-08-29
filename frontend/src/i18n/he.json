@@ -48,7 +48,8 @@
     "resumeAll": "המשך הכל",
     "clearCompleted": "השלם",
     "showMore": "הצג עוד",
-    "showLess": "הצג פחות"
+    "showLess": "הצג פחות",
+    "openParentFolder": "פתח את התיקייה הראשית"
   },
   "download": {
     "downloadFile": "הורד קובץ",
@@ -59,7 +60,8 @@
     "forbidden": "אין לך הרשאות גישה",
     "internal": "משהו השתבש",
     "notFound": "לא ניתן להגיע למיקום זה",
-    "connection": "לא ניתן להגיע לשרת"
+    "connection": "לא ניתן להגיע לשרת",
+    "shareNotFound": "שיתוף לא חוקי או פג תוקף."
   },
   "files": {
     "body": "גוף",
@@ -297,7 +299,8 @@
     "api": "מפתחות API",
     "adminOptions": "אפשרויות משתמש מנהל",
     "shareDuration": "תוקף",
-    "searchOptions": "אפשרויות חיפוש"
+    "searchOptions": "אפשרויות חיפוש",
+    "downloads": "הורדות"
   },
   "sidebar": {
     "help": "עזרה",
@@ -354,7 +357,13 @@
     "shareFaviconDescription": "כתובת URL או נתיב של סמל favicon הנגיש ללקוח - ניתן להשתמש בכתובת מוחלטת או בנתיב אינדקס: לדוגמה, 'https://domain.com/favicon.png' או '/path/to/favicon.png'",
     "hideNavButtons": "הסתר כפתורי ניווט",
     "hideNavButtonsDescription": "הסתר את כפתורי הניווט בסרגל הניווט בשיתוף כדי ליצור מראה מינימליסטי.",
-    "viewModeDescription": "פריסת ברירת המחדל עבור הדף המשותף."
+    "viewModeDescription": "פריסת ברירת המחדל עבור הדף המשותף.",
+    "titleDefault": "Shared files - {title}",
+    "descriptionDefault": "נשלחה אליך קובץ לשיתוף או להורדה.",
+    "disableShareCard": "השבת כרטיס שיתוף",
+    "disableShareCardDescription": "השבת את כרטיס השיתוף בדף המשותף בסרגל הצד או בחלק העליון של הדף במכשירים ניידים.",
+    "disableSidebar": "השבת סרגל צד",
+    "disableSidebarDescription": "השבת את סרגל הצד בדף המשותף."
   },
   "api": {
     "title": "מפתחות API",
@@ -391,7 +400,6 @@
     "toggleClick": "החלף לחיצה אחת",
     "toggleDark": "הפעל מצב כהה",
     "toggleSticky": "הפעל/כבה מצב דביק",
-    "of": "של",
     "used": "משומש",
     "noSources": "אין מקורות זמינים עבור משתמש זה. הוסף מקור עבור משתמש זה או הגדר מקור עם defaultEnabled: true"
   },
@@ -418,7 +426,8 @@
     "folders": "תיקיות",
     "exit": "יציאה",
     "permanent": "קבוע",
-    "hash": "חשיש"
+    "hash": "חשיש",
+    "of": "של"
   },
   "access": {
     "rules": "כללי גישה",
@@ -437,7 +446,9 @@
     "accessManagement": "ניהול גישה",
     "totalDenied": "נדחה",
     "totalAllowed": "מותר",
-    "all": "דחה הכל"
+    "all": "דחה הכל",
+    "defaultBehavior": "Default action{suffix}",
+    "defaultBehaviorDescription": "זה מראה מה קורה כאשר משתמש מנסה לגשת לנתיב שבו אין כללי גישה ספציפיים. 'אפשר' פירושו שמשתמשים יכולים לגשת כברירת מחדל, 'דחה' פירושו שמשתמשים נחסמים כברירת מחדל, אלא אם כן הותר להם במפורש."
   },
   "fileLoading": {
     "title": "העלאות והורדות",

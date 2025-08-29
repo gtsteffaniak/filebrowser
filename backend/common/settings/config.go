@@ -44,10 +44,10 @@ func Initialize(configFile string) {
 	setupAuth(false)
 	setupSources(false)
 	setupUrls()
-	setupFrontend()
+	setupFrontend(false)
 }
 
-func setupFrontend() {
+func setupFrontend(generate bool) {
 	if !Config.Frontend.DisableDefaultLinks {
 		Config.Frontend.ExternalLinks = append(Config.Frontend.ExternalLinks, ExternalLink{
 			Text:  fmt.Sprintf("(%v)", version.Version),
@@ -73,6 +73,12 @@ func setupFrontend() {
 		// check if file exists
 		if _, err := os.Stat("reduce-rounded-corners.css"); err == nil {
 			addCustomTheme("alternative", "Reduce rounded corners", "reduce-rounded-corners.css")
+			if generate {
+				Config.Frontend.Styling.CustomThemes["alternative"] = CustomTheme{
+					Description: "Reduce rounded corners",
+					CSS:         "reduce-rounded-corners.css",
+				}
+			}
 		}
 	}
 	_, ok := Config.Frontend.Styling.CustomThemes["default"]
@@ -98,6 +104,9 @@ func setupSources(generate bool) {
 		logger.Fatal("There are no `server.sources` configured. If you have `server.root` configured, please update the config and add at least one `server.sources` with a `path` configured.")
 	} else {
 		for k, source := range Config.Server.Sources {
+			if source.Config.Disabled {
+				continue
+			}
 			realPath := getRealPath(source.Path)
 			name := filepath.Base(realPath)
 			if name == "\\" {
@@ -216,8 +225,14 @@ func setupLogging() {
 		}
 	}
 	for _, logConfig := range Config.Server.Logging {
+		// Enable debug logging automatically in dev mode
+		levels := logConfig.Levels
+		if os.Getenv("FILEBROWSER_DEVMODE") == "true" {
+			levels = "info|warning|error|debug"
+		}
+
 		logConfig := logger.JsonConfig{
-			Levels:    logConfig.Levels,
+			Levels:    levels,
 			ApiLevels: logConfig.ApiLevels,
 			Output:    logConfig.Output,
 			Utc:       logConfig.Utc,

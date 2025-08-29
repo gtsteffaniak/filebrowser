@@ -48,7 +48,8 @@
     "resumeAll": "Folytassa az összes",
     "clearCompleted": "Tiszta befejezve",
     "showMore": "Többet mutasson",
-    "showLess": "Kevesebb mutatása"
+    "showLess": "Kevesebb mutatása",
+    "openParentFolder": "Szülői mappa megnyitása"
   },
   "download": {
     "downloadFile": "Fájl letöltése",
@@ -59,7 +60,8 @@
     "forbidden": "Nincs jogosultsága a hozzáféréshez.",
     "internal": "Valami nagyon elromlott.",
     "notFound": "Ez a hely nem érhető el.",
-    "connection": "A kiszolgáló nem érhető el."
+    "connection": "A kiszolgáló nem érhető el.",
+    "shareNotFound": "Érvénytelen vagy lejárt részvény."
   },
   "files": {
     "body": "Törzs",
@@ -297,7 +299,8 @@
     "shareSettings": "Beállítások megosztása",
     "adminOptions": "Admin felhasználói beállítások",
     "shareDuration": "Lejárat:",
-    "searchOptions": "Keresési lehetőségek"
+    "searchOptions": "Keresési lehetőségek",
+    "downloads": "Letöltések"
   },
   "sidebar": {
     "help": "Súgó",
@@ -354,7 +357,13 @@
     "shareFaviconDescription": "A favicon URL címe vagy az ügyfél által elérhető elérési útvonal -- abszolút vagy index útvonal is elfogadható: pl. 'https://domain.com/favicon.png' vagy '/path/to/favicon.png'.",
     "hideNavButtons": "Navigációs gombok elrejtése",
     "hideNavButtonsDescription": "Rejtse el a navigációs gombokat a megosztás navigációs sávján a minimalista megjelenés érdekében.",
-    "viewModeDescription": "A megosztott oldal alapértelmezett elrendezése."
+    "viewModeDescription": "A megosztott oldal alapértelmezett elrendezése.",
+    "titleDefault": "Shared files - {title}",
+    "descriptionDefault": "Megosztást küldtünk Önnek megtekintésre vagy letöltésre.",
+    "disableShareCard": "Megosztási kártya letiltása",
+    "disableShareCardDescription": "Kapcsolja ki a megosztási kártyát a megosztott oldalon az oldalsávban vagy mobilon az oldal tetején.",
+    "disableSidebar": "Oldalsáv kikapcsolása",
+    "disableSidebarDescription": "Kapcsolja ki az oldalsávot a megosztott oldalon."
   },
   "api": {
     "title": "API-kulcsok:",
@@ -391,7 +400,6 @@
     "toggleClick": "Egyetlen kattintás kapcsolása",
     "toggleDark": "Sötét üzemmód átkapcsolása",
     "toggleSticky": "Ragadós mód átkapcsolása",
-    "of": "a",
     "used": "használt",
     "noSources": "Ehhez a felhasználóhoz nem állnak rendelkezésre források. Vagy adjon hozzá egy forrást ehhez a felhasználóhoz, vagy konfiguráljon egy forrást a defaultEnabled: true beállítással."
   },
@@ -418,7 +426,8 @@
     "folders": "Mappák",
     "exit": "Kilépés",
     "permanent": "Állandó",
-    "hash": "Hash"
+    "hash": "Hash",
+    "of": "a"
   },
   "access": {
     "rules": "Hozzáférési szabályok",
@@ -437,7 +446,9 @@
     "accessManagement": "Hozzáférés-kezelés",
     "totalDenied": "Elutasítva",
     "totalAllowed": "Engedélyezett",
-    "all": "Mindent megtagadni"
+    "all": "Mindent megtagadni",
+    "defaultBehavior": "Default action{suffix}",
+    "defaultBehaviorDescription": "Ez azt mutatja, hogy mi történik, ha egy felhasználó megpróbál hozzáférni egy olyan elérési útvonalhoz, ahol nincsenek speciális hozzáférési szabályok. Az 'Allow' azt jelenti, hogy a felhasználók alapértelmezés szerint hozzáférhetnek, a 'Deny' azt jelenti, hogy a felhasználók alapértelmezés szerint blokkolva vannak, kivéve, ha kifejezetten engedélyezik."
   },
   "fileLoading": {
     "title": "Feltöltések és letöltések",

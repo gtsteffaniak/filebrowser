@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"embed"
+	"encoding/json"
 	"fmt"
 	"io/fs"
 	"net/http"
@@ -22,9 +23,6 @@ import (
 //
 //go:embed embed/*
 var assets embed.FS
-
-// Boolean flag to determine whether to use the embedded FS or not
-var embeddedFS = os.Getenv("FILEBROWSER_NO_EMBEDED") != "true"
 
 // Custom dirFS to handle both embedded and non-embedded file systems
 type dirFS struct {
@@ -45,7 +43,18 @@ var (
 func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete chan struct{}) {
 	store = storage
 	config = &settings.Config
-	var err error
+
+	// Dev mode enables development features like template hot-reloading
+	devMode := os.Getenv("FILEBROWSER_DEVMODE") == "true"
+	_, err := os.Stat("http/dist")
+	// In dev mode, always use filesystem assets. Otherwise, check if http/dist exists
+	var embeddedFS bool
+	if devMode {
+		embeddedFS = false
+	} else {
+		embeddedFS = os.IsNotExist(err)
+	}
+
 	// --- START: ADD THIS DECRYPTION LOGIC ---
 	if embeddedFS {
 		// Embedded mode: Serve files from the embedded assets
@@ -57,8 +66,20 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 		assetFs = dirFS{Dir: http.Dir("http/dist")}
 	}
 
+	// In development mode, we want to reload the templates on each request.
+	// In production (embedded), we parse them once.
+	templates := template.New("").Funcs(template.FuncMap{
+		"marshal": func(v interface{}) (string, error) {
+			a, err := json.Marshal(v)
+			return string(a), err
+		},
+	})
+	if !devMode {
+		templates = template.Must(templates.ParseFS(assetFs, "public/index.html"))
+	}
 	templateRenderer = &TemplateRenderer{
-		templates: template.Must(template.ParseFS(assetFs, "public/index.html")),
+		templates: templates,
+		devMode:   devMode,
 	}
 
 	router := http.NewServeMux()
@@ -112,13 +133,15 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	// NEW PUBLIC ROUTES - All publicly accessible endpoints
 	// Share management routes (require permission but are publicly accessible)
 	publicRoutes.HandleFunc("GET /shares", withPermShare(shareListHandler))
+	publicRoutes.HandleFunc("GET /share/direct", withPermShare(shareDirectDownloadHandler))
 	publicRoutes.HandleFunc("GET /share", withPermShare(shareGetHandler))
 	publicRoutes.HandleFunc("POST /share", withPermShare(sharePostHandler))
 	publicRoutes.HandleFunc("DELETE /share", withPermShare(shareDeleteHandler))
 	// Public API routes (hash-based authentication)
 	publicAPI.HandleFunc("GET /raw", withHashFile(publicRawHandler))
 	publicAPI.HandleFunc("GET /preview", withHashFile(publicPreviewHandler))
-	publicAPI.HandleFunc("GET /shared", withHashFile(publicShareHandler))
+	publicAPI.HandleFunc("GET /resources", withHashFile(publicShareHandler))
+	publicAPI.HandleFunc("GET /users", withUser(userGetHandler))
 	// Settings routes
 	api.HandleFunc("GET /settings", withAdmin(settingsGetHandler))
 
@@ -203,11 +226,11 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	// New frontend share route handler - handle share page and any subpaths
 	publicRoutes.HandleFunc("GET /share/", withOrWithoutUser(indexHandler))
 
-	// Public static assets (needed for shared pages to load CSS/JS/images)
-	publicRoutes.HandleFunc("GET /static/", staticFilesHandler)
-
 	// Static and index file handlers
-	router.HandleFunc(fmt.Sprintf("GET %vstatic/", config.Server.BaseURL), staticFilesHandler)
+	staticPrefix := config.Server.BaseURL + "static/"
+	router.Handle(staticPrefix, http.StripPrefix(staticPrefix, http.HandlerFunc(staticFilesHandler)))
+	publicRoutes.Handle("GET /static/", http.StripPrefix("/static/", http.HandlerFunc(staticFilesHandler)))
+
 	router.HandleFunc(config.Server.BaseURL, withOrWithoutUser(indexHandler))
 	router.HandleFunc(fmt.Sprintf("GET %vhealth", config.Server.BaseURL), healthHandler)
 	router.Handle(fmt.Sprintf("%vswagger/", config.Server.BaseURL), withUser(swaggerHandler))
@@ -279,6 +302,20 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	// Wait for context cancellation to shut down the server
 	<-ctx.Done()
 	logger.Info("Shutting down HTTP server...")
+
+	// Persist in-memory state before shutting down the HTTP server
+	if store != nil {
+		if store.Share != nil {
+			if err := store.Share.Flush(); err != nil {
+				logger.Errorf("Failed to flush share storage: %v", err)
+			}
+		}
+		if store.Access != nil {
+			if err := store.Access.Flush(); err != nil {
+				logger.Errorf("Failed to flush access storage: %v", err)
+			}
+		}
+	}
 
 	// Graceful shutdown with a timeout - 30 seconds, in case downloads are happening
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)

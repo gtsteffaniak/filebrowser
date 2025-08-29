@@ -104,6 +104,7 @@ func addFile(path string, d *requestContext, tarWriter *tar.Writer, zipWriter *z
 		}
 		path = utils.JoinPathAsUnix(userScope, path)
 	}
+	// For shares, the path is already correctly resolved by publicRawHandler
 
 	idx := indexing.GetIndex(source)
 	if idx == nil {
@@ -173,15 +174,20 @@ func addFile(path string, d *requestContext, tarWriter *tar.Writer, zipWriter *z
 			}
 			return addSingleFile(filePath, relPath, zipWriter, tarWriter)
 		})
+	} else {
+		// For a single file, use the base name as the archive path
+		return addSingleFile(realPath, baseName, zipWriter, tarWriter)
 	}
-
-	// For a single file, use the base name as the archive path
-	return addSingleFile(realPath, baseName, zipWriter, tarWriter)
 }
 
 func addSingleFile(realPath, archivePath string, zipWriter *zip.Writer, tarWriter *tar.Writer) error {
 	file, err := os.Open(realPath)
 	if err != nil {
+		// If we get "is a directory" error, this is likely a symlink to a directory
+		// that wasn't properly detected. Skip it gracefully.
+		if strings.Contains(err.Error(), "is a directory") {
+			return nil
+		}
 		return err
 	}
 	defer file.Close()
@@ -189,6 +195,11 @@ func addSingleFile(realPath, archivePath string, zipWriter *zip.Writer, tarWrite
 	info, err := file.Stat()
 	if err != nil {
 		return err
+	}
+
+	// Double-check if this is actually a directory (in case of symlinks)
+	if info.IsDir() {
+		return nil
 	}
 
 	if tarWriter != nil {
@@ -240,6 +251,7 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 		}
 		firstFilePath = utils.JoinPathAsUnix(userscope, firstFilePath)
 	}
+	// For shares, the path is already correctly resolved by publicRawHandler
 	idx := indexing.GetIndex(firstFileSource)
 	if idx == nil {
 		return http.StatusInternalServerError, fmt.Errorf("source %s is not available", firstFileSource)
@@ -395,6 +407,7 @@ func computeArchiveSize(fileList []string, d *requestContext) (int64, error) {
 			}
 			path = utils.JoinPathAsUnix(userScope, path)
 		}
+		// For shares, the path is already correctly resolved by publicRawHandler
 		realPath, isDir, err := idx.GetRealPath(path)
 		if err != nil {
 			return http.StatusInternalServerError, err

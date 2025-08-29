@@ -11,6 +11,7 @@ server:
     - path: "."
       name: "docker"
       config:
+        private: true
         defaultEnabled: true
 frontend:
   name: "Graham's Filebrowser"

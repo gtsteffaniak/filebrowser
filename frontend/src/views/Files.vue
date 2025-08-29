@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- Share Info Component -->
-    <ShareInfo
+    <ShareInfoCard
       v-if="showShareInfo"
       class="share-info-component"
       :hash="share?.hash"
@@ -10,36 +10,7 @@
     />
 
     <breadcrumbs v-if="showBreadCrumbs" :base="isShare ? `/share/${shareHash}` : undefined" />
-    <!-- Share password prompt -->
-    <div v-if="isShare && error && error.status === 401" class="card floating" id="password">
-      <div v-if="attemptedPasswordLogin" class="share__wrong__password">
-        {{ $t("login.wrongCredentials") }}
-      </div>
-      <div class="card-title">
-        <h2>{{ $t("general.password") }}</h2>
-      </div>
-      <div class="card-content form-flex-group">
-        <input
-          class="input share-password"
-          v-focus
-          type="password"
-          :placeholder="$t('general.password')"
-          v-model="sharePassword"
-          @keyup.enter="fetchData"
-        />
-      </div>
-      <div class="card-action">
-        <button
-          class="button button--flat"
-          @click="fetchData"
-          :aria-label="$t('buttons.submit')"
-          :title="$t('buttons.submit')"
-        >
-          {{ $t("buttons.submit") }}
-        </button>
-      </div>
-    </div>
-    <errors v-else-if="error" :errorCode="error.status" />
+    <errors v-if="error && !(isShare && error.status === 401)" :errorCode="error.status" />
     <component v-else-if="currentViewLoaded" :is="currentView"></component>
     <div v-else>
       <h2 class="message delayed">
@@ -70,10 +41,10 @@ import MarkdownViewer from "./files/MarkdownViewer.vue";
 import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
 import router from "@/router";
-import { baseURL } from "@/utils/constants";
+import { baseURL, shareInfo } from "@/utils/constants";
 import PopupPreview from "@/components/files/PopupPreview.vue";
 import { extractSourceFromPath } from "@/utils/url";
-import ShareInfo from "@/components/files/ShareInfo.vue";
+import ShareInfoCard from "@/components/files/ShareInfoCard.vue";
 
 export default {
   name: "files",
@@ -88,7 +59,7 @@ export default {
     OnlyOfficeEditor,
     MarkdownViewer,
     PopupPreview,
-    ShareInfo,
+    ShareInfoCard,
   },
   data() {
     return {
@@ -110,7 +81,7 @@ export default {
       return state.share;
     },
     showShareInfo() {
-      return this.isShare && state.share.hash && state.isMobile && state.req.path == "/";
+      return this.isShare && state.share.hash && state.isMobile && state.req.path == "/" && !shareInfo.disableShareCard;
     },
     isShare() {
       return getters.isShare();
@@ -145,6 +116,13 @@ export default {
   mounted() {
     window.addEventListener("hashchange", this.scrollToHash);
     window.addEventListener("keydown", this.keyEvent);
+    if (getters.isInvalidShare()) {
+      // show message that share is invalid and don't do anything else
+      this.error = {
+        status: "share404",
+        message: "errors.shareNotFound",
+      };
+    }
   },
   beforeUnmount() {
     window.removeEventListener("keydown", this.keyEvent);
@@ -157,7 +135,15 @@ export default {
       if (window.location.hash === this.lastHash) return;
       this.lastHash = window.location.hash;
       if (window.location.hash) {
-        const id = url.base64Encode(window.location.hash.slice(1));
+        const rawHash = window.location.hash.slice(1);
+        let decodedName = rawHash;
+        try {
+          decodedName = decodeURIComponent(rawHash);
+        } catch (e) {
+          // If the hash contains malformed escape sequences, fall back to raw
+          decodedName = rawHash;
+        }
+        const id = url.base64Encode(encodeURIComponent(decodedName));
         const element = document.getElementById(id);
         if (element) {
           element.scrollIntoView({
@@ -174,7 +160,7 @@ export default {
       }
     },
     async fetchData() {
-      if (state.deletedItem) {
+      if (state.deletedItem || getters.isInvalidShare()) {
         return
       }
 
@@ -206,6 +192,7 @@ export default {
         } else if (e.status === 401 && this.isShare) {
           // Handle share password requirement
           this.attemptedPasswordLogin = this.sharePassword !== "";
+          this.showPasswordPrompt();
         } else {
           router.push({ name: "error" });
         }
@@ -321,6 +308,19 @@ export default {
         mutations.setLoading("files", false);
       }
     },
+    showPasswordPrompt() {
+      mutations.showHover({
+        name: "password",
+        props: {
+          submitCallback: (password) => {
+            this.sharePassword = password;
+            this.fetchData();
+          },
+          showWrongCredentials: this.attemptedPasswordLogin,
+          initialPassword: this.sharePassword,
+        },
+      });
+    },
     keyEvent(event) {
       // F1!
       if (event.keyCode === 112) {
@@ -340,17 +340,6 @@ export default {
 </script>
 
 <style>
-.share__wrong__password {
-  color: #ff4757;
-  text-align: center;
-  padding: 1em 0;
-}
-
-#password {
-  max-width: 400px;
-  margin: 2em auto;
-}
-
 .scroll-glow {
   animation: scrollGlowAnimation 1s ease-out;
 }
@@ -367,9 +356,6 @@ export default {
   }
 }
 
-.share-password {
-  width: 100%;
-}
 .share-info-component {
   margin-top: 0.5em;
 }

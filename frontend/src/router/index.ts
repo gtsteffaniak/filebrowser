@@ -24,6 +24,7 @@ const titles = {
   User: "settings.user",
   Forbidden: "errors.forbidden",
   NotFound: "errors.notFound",
+  ShareNotFound: "errors.shareNotFound",
   InternalServerError: "errors.internal",
 };
 
@@ -45,7 +46,7 @@ const routes = [
     ],
   },
   {
-    path: "/public/share",
+    path: "/public",
     component: Layout,
     meta: {
       optionalAuth: true,
@@ -137,7 +138,7 @@ const router = createRouter({
 
 // Helper function to check if a route resolves to itself
 function isSameRoute(to: RouteLocation, from: RouteLocation) {
-  return to.path === from.path && to.hash === from.hash;
+  return to.path === from.path;
 }
 
 router.beforeResolve(async (to, from, next) => {

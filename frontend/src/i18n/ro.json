@@ -48,7 +48,8 @@
     "resumeAll": "CV toate",
     "clearCompleted": "Golire finalizată",
     "showMore": "Arată mai multe",
-    "showLess": "Arată mai puțin"
+    "showLess": "Arată mai puțin",
+    "openParentFolder": "Deschideți folderul părinte"
   },
   "download": {
     "downloadFile": "Descarcă fișier",
@@ -59,7 +60,8 @@
     "forbidden": "Nu ai permisiuni sa accesezi asta.",
     "internal": "Ceva nu a funcționat corect.",
     "notFound": "Aceasta locație nu poate fi accesată.",
-    "connection": "Serverul nu poate fi accesat."
+    "connection": "Serverul nu poate fi accesat.",
+    "shareNotFound": "Acțiune invalidă sau expirată."
   },
   "files": {
     "body": "Corp",
@@ -297,7 +299,8 @@
     "shareSettings": "Setări de partajare",
     "adminOptions": "Opțiuni utilizator administrator",
     "shareDuration": "Expiră",
-    "searchOptions": "Opțiuni de căutare"
+    "searchOptions": "Opțiuni de căutare",
+    "downloads": "Descărcări"
   },
   "sidebar": {
     "help": "Ajutor",
@@ -354,7 +357,13 @@
     "shareFaviconDescription": "Favicon URL sau cale accesibilă de către client - sunt acceptate fie calea abosolută, fie calea index: de exemplu \"https://domain.com/favicon.png\" sau \"/path/to/favicon.png",
     "hideNavButtons": "Ascundeți butoanele de navigare",
     "hideNavButtonsDescription": "Ascundeți butoanele de navigare de pe bara de navigare din share pentru a crea un aspect minimalist.",
-    "viewModeDescription": "Layout implicit pentru pagina partajată."
+    "viewModeDescription": "Layout implicit pentru pagina partajată.",
+    "titleDefault": "Shared files - {title}",
+    "descriptionDefault": "V-a fost trimisă o acțiune pentru a o vizualiza sau descărca.",
+    "disableShareCard": "Dezactivați cardul de partajare",
+    "disableShareCardDescription": "Dezactivați cardul de partajare pe pagina partajată în bara laterală sau în partea de sus a paginii pe mobil.",
+    "disableSidebar": "Dezactivați bara laterală",
+    "disableSidebarDescription": "Dezactivați bara laterală de pe pagina partajată."
   },
   "api": {
     "title": "Chei API:",
@@ -391,7 +400,6 @@
     "toggleClick": "Comutare clic unic",
     "toggleDark": "Comutarea modului întunecat",
     "toggleSticky": "Schimbarea modului lipicios",
-    "of": "de",
     "used": "utilizate",
     "noSources": "Nu există surse disponibile pentru acest utilizator. Adăugați o sursă pentru acest utilizator sau configurați o sursă cu defaultEnabled: true"
   },
@@ -418,7 +426,8 @@
     "folders": "Dosare",
     "exit": "Ieșire",
     "permanent": "Permanent",
-    "hash": "Hash"
+    "hash": "Hash",
+    "of": "de"
   },
   "access": {
     "rules": "Reguli de acces",
@@ -437,7 +446,9 @@
     "accessManagement": "Gestionarea accesului",
     "totalDenied": "Refuzat",
     "totalAllowed": "Permise",
-    "all": "Refuzați toate"
+    "all": "Refuzați toate",
+    "defaultBehavior": "Default action{suffix}",
+    "defaultBehaviorDescription": "Aceasta arată ce se întâmplă atunci când un utilizator încearcă să acceseze o cale unde nu există reguli specifice de acces. \"Allow\" înseamnă că utilizatorii pot accesa în mod implicit, \"Deny\" înseamnă că utilizatorii sunt blocați în mod implicit dacă nu li se permite în mod explicit."
   },
   "fileLoading": {
     "title": "Încărcări și descărcări",

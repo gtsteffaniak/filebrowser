@@ -1,6 +1,7 @@
 import { baseURL } from "@/utils/constants.js";
 import { state, mutations } from "@/store";
 import { router } from "@/router";
+import { shareInfo } from "@/utils/constants.js";
 
 export function removeLastDir(url) {
   var arr = url.split("/");
@@ -48,6 +49,7 @@ export default {
   removePrefix,
   getApiPath,
   extractSourceFromPath,
+  fixDownloadURL,
 };
 
 export function removePrefix(path, prefix = "") {
@@ -91,6 +93,12 @@ export function getApiPath(path, params = {}) {
     path = path.slice(0, -1);
   }
   return path;
+}
+
+// get path with parameters
+// relative path so it can be used behind proxy
+export function getPublicApiPath(path, params = {}) {
+  return getApiPath(`/public/api/${path}`, params);
 }
 
 export function removeTrailingSlash(str) {
@@ -149,15 +157,15 @@ export function encodedPath(path) {
 }
 
 // assume non-encoded input path and source
-export function goToItem(source, path, previousHash, shareHash) {
-  mutations.replaceRequest({})
+export function goToItem(source, path, previousHash) {
+  mutations.resetAll()
   if (previousHash) {
     location.hash = previousHash;
   }
   let newPath = encodedPath(path);
   let fullPath;
-  if (shareHash) {
-    fullPath = `/public/share/${shareHash}${newPath}`;
+  if (shareInfo.isShare) {
+    fullPath = `/public/share/${shareInfo.hash}${newPath}`;
     router.push({ path: fullPath });
     return;
   }
@@ -172,4 +180,29 @@ export function goToItem(source, path, previousHash, shareHash) {
 
 export function doubleEncode(str) {
   return encodeURIComponent(encodeURIComponent(str));
+}
+
+/**
+ * Fixes download URLs by replacing everything before /public/api 
+ * with the current window.location.origin + baseURL
+ * @param {string} downloadUrl - The original download URL from backend
+ * @returns {string} - The corrected URL using current client origin
+ */
+export function fixDownloadURL(downloadUrl) {
+  if (!downloadUrl) {
+    return downloadUrl;
+  }
+  // Find the position of /public/api in the URL
+  const publicApiIndex = downloadUrl.indexOf('/public/api');
+  if (publicApiIndex === -1) {
+    // If /public/api is not found, return the original URL
+    return downloadUrl;
+  }
+  
+  // Extract the part from /public/api onwards
+  const publicApiPath = downloadUrl.substring(publicApiIndex);
+  
+  // Build the corrected URL using current client origin and baseURL
+  const correctedBaseURL = removeTrailingSlash(baseURL);
+  return `${window.location.origin}${correctedBaseURL}${publicApiPath}`;
 }

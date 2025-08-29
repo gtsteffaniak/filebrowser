@@ -591,7 +591,10 @@ export default {
       if (state.isSearchActive || getters.currentView() != "listingView" || getters.currentPromptName()) {
         return;
       }
-      const { key, ctrlKey, metaKey, which } = event;
+      const { key, ctrlKey, metaKey, altKey, which } = event;
+      if (altKey) {
+        return;
+      }
       // Check if the key is alphanumeric
       const isAlphanumeric = /^[a-z0-9]$/i.test(key);
       const modifierKeys = ctrlKey || metaKey;
@@ -615,7 +618,7 @@ export default {
       if (getters.currentPromptName()) {
         return;
       }
-      let currentPath = state.route.path.replace(/\/+$/, ""); // Remove trailing slashes
+      let currentPath = url.removeTrailingSlash(state.route.path);
       let newPath = currentPath.substring(0, currentPath.lastIndexOf("/"));
 
       if (modifierKeys) {
@@ -659,6 +662,10 @@ export default {
         case "ArrowDown":
         case "ArrowLeft":
         case "ArrowRight":
+          // Allow native browser navigation when Alt is held
+          if (event.altKey) {
+            return;
+          }
           event.preventDefault();
           this.navigateKeboardArrows(key);
           break;
@@ -918,7 +925,7 @@ export default {
       // if control or shift is pressed, do not clear the selection
       if (this.ctrKeyPressed || event.shiftKey) return;
       const sameAsBefore = state.selected == this.lastSelected;
-      if (sameAsBefore && !state.multiple && getters.currentPromptName()) {
+      if (sameAsBefore && !state.multiple && getters.currentPromptName() == "") {
         mutations.resetSelected();
       }
       this.lastSelected = state.selected;

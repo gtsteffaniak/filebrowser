@@ -77,7 +77,10 @@ type Source struct {
 }
 
 type SourceConfig struct {
-	IndexingInterval uint32             `json:"indexingIntervalMinutes"` // optional manual overide interval in seconds to re-index the source
+	DenyByDefault    bool               `json:"denyByDefault"`           // deny access unless an "allow" access rule was specifically created.
+	Private          bool               `json:"private"`                 // designate as source as private -- currently just means no sharing permitted.
+	Disabled         bool               `json:"disabled"`                // disable the source, this is useful so you don't need to remove it from the config file
+	IndexingInterval uint32             `json:"indexingIntervalMinutes"` // optional manual overide interval in minutes to re-index the source
 	DisableIndexing  bool               `json:"disableIndexing"`         // disable the indexing of this source
 	MaxWatchers      int                `json:"maxWatchers"`             // number of concurrent watchers to use for this source, currently not supported
 	NeverWatchPaths  []string           `json:"neverWatchPaths"`         // paths that get initially once. Useful for folders that rarely change contents (without source path prefix)

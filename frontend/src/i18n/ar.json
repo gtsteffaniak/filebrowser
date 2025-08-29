@@ -48,7 +48,8 @@
     "resumeAll": "استئناف الكل",
     "clearCompleted": "اكتمل المسح",
     "showMore": "اعرض المزيد",
-    "showLess": "اعرض أقل"
+    "showLess": "اعرض أقل",
+    "openParentFolder": "فتح المجلد الأصل"
   },
   "download": {
     "downloadFile": "Download File",
@@ -59,7 +60,8 @@
     "forbidden": "You don't have permissions to access this.",
     "internal": "لقد حدث خطأ ما.",
     "notFound": "لا يمكن الوصول لهذا المحتوى.",
-    "connection": "لا يمكن الوصول إلى الخادم"
+    "connection": "لا يمكن الوصول إلى الخادم",
+    "shareNotFound": "حصة غير صالحة أو منتهية الصلاحية."
   },
   "files": {
     "body": "الصفحة",
@@ -297,7 +299,8 @@
     "shareSettings": "مشاركة الإعدادات",
     "adminOptions": "خيارات المستخدم المسؤول",
     "shareDuration": "تنتهي صلاحيتها",
-    "searchOptions": "خيارات البحث"
+    "searchOptions": "خيارات البحث",
+    "downloads": "التنزيلات"
   },
   "sidebar": {
     "help": "مساعدة",
@@ -354,7 +357,13 @@
     "shareFaviconDescription": "عنوان URL أو المسار الذي يمكن للعميل الوصول إليه من قبل العميل - يتم قبول إما المسار المطلق أو مسار الفهرس: على سبيل المثال 'https://domain.com/favicon.png' أو '/path/to/favicon.png'",
     "hideNavButtons": "إخفاء أزرار التنقل",
     "hideNavButtonsDescription": "قم بإخفاء أزرار التنقل على شريط التنقل في المشاركة لإضفاء مظهر بسيط.",
-    "viewModeDescription": "التخطيط الافتراضي للصفحة المشتركة."
+    "viewModeDescription": "التخطيط الافتراضي للصفحة المشتركة.",
+    "titleDefault": "Shared files - {title}",
+    "descriptionDefault": "تم إرسال مشاركة إليك لعرضها أو تنزيلها.",
+    "disableShareCard": "تعطيل بطاقة المشاركة المعطلة",
+    "disableShareCardDescription": "قم بتعطيل بطاقة المشاركة على الصفحة المشتركة في الشريط الجانبي أو في أعلى الصفحة على الهاتف المحمول.",
+    "disableSidebar": "تعطيل الشريط الجانبي",
+    "disableSidebarDescription": "تعطيل الشريط الجانبي في الصفحة المشتركة."
   },
   "api": {
     "title": "مفاتيح واجهة برمجة التطبيقات (API):",
@@ -391,7 +400,6 @@
     "toggleClick": "تبديل نقرة واحدة",
     "toggleDark": "تبديل الوضع الداكن",
     "toggleSticky": "تبديل الوضع اللاصق",
-    "of": "من",
     "used": "مستعمل",
     "noSources": "لا توجد مصادر متاحة لهذا المستخدم. إما أن تقوم بإضافة مصدر لهذا المستخدم أو تكوين مصدر مع defaultEnabled: true"
   },
@@ -418,7 +426,8 @@
     "folders": "المجلدات",
     "exit": "الخروج",
     "permanent": "دائم",
-    "hash": "تجزئة"
+    "hash": "تجزئة",
+    "of": "من"
   },
   "access": {
     "rules": "قواعد الوصول",
@@ -437,7 +446,9 @@
     "accessManagement": "إدارة الوصول",
     "totalDenied": "مرفوض",
     "totalAllowed": "المسموح به",
-    "all": "رفض الكل"
+    "all": "رفض الكل",
+    "defaultBehavior": "Default action{suffix}",
+    "defaultBehaviorDescription": "يوضح هذا ما يحدث عندما يحاول المستخدم الوصول إلى مسار لا توجد فيه قواعد وصول محددة. تعني \"السماح\" أنه يمكن للمستخدمين الوصول بشكل افتراضي، وتعني \"الرفض\" أنه يتم حظر المستخدمين بشكل افتراضي ما لم يُسمح لهم صراحةً."
   },
   "fileLoading": {
     "title": "التحميلات والتنزيلات",

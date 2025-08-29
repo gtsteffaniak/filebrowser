@@ -1,6 +1,8 @@
 package iteminfo
 
 import (
+	"encoding/json"
+	"os/exec"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -12,13 +14,31 @@ import (
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
+type SubtitleTrack struct {
+	Name     string `json:"name"`                // filename for external, or descriptive name for embedded
+	Language string `json:"language,omitempty"`  // language code
+	Title    string `json:"title,omitempty"`     // title/description
+	Index    *int   `json:"index,omitempty"`     // stream index for embedded subtitles (nil for external)
+	Codec    string `json:"codec,omitempty"`     // codec name for embedded subtitles
+	IsFile   bool   `json:"isFile"`              // true for external files, false for embedded
+}
+
+type FFProbeOutput struct {
+	Streams []struct {
+		Index         int               `json:"index"`
+		CodecType     string           `json:"codec_type"`
+		CodecName     string           `json:"codec_name"`
+		Tags          map[string]string `json:"tags,omitempty"`
+		Disposition   map[string]int    `json:"disposition,omitempty"`
+	} `json:"streams"`
+}
+
 // detects subtitles for video files.
 func (i *ExtendedFileInfo) DetectSubtitles(parentInfo *FileInfo) {
 	if !strings.HasPrefix(i.Type, "video") {
 		logger.Debug("subtitles are not supported for this file : " + i.Name)
 		return
 	}
-
 	// Use unified subtitle detection that finds both embedded and external
 	parentDir := filepath.Dir(i.RealPath)
 	i.Subtitles = ffmpeg.DetectAllSubtitles(i.RealPath, parentDir, i.ModTime)

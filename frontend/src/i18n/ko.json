@@ -48,7 +48,8 @@
     "resumeAll": "모두 다시 시작",
     "clearCompleted": "완료 지우기",
     "showMore": "자세히 보기",
-    "showLess": "덜 보기"
+    "showLess": "덜 보기",
+    "openParentFolder": "상위 폴더 열기"
   },
   "download": {
     "downloadFile": "파일 다운로드",
@@ -59,7 +60,8 @@
     "forbidden": "접근 권한이 없습니다.",
     "internal": "오류가 발생하였습니다.",
     "notFound": "해당 경로를 찾을 수 없습니다.",
-    "connection": "서버에 연결할 수 없습니다."
+    "connection": "서버에 연결할 수 없습니다.",
+    "shareNotFound": "유효하지 않거나 만료된 공유입니다."
   },
   "files": {
     "body": "본문",
@@ -297,7 +299,8 @@
     "shareSettings": "공유 설정",
     "adminOptions": "관리자 사용자 옵션",
     "shareDuration": "만료",
-    "searchOptions": "검색 옵션"
+    "searchOptions": "검색 옵션",
+    "downloads": "다운로드"
   },
   "sidebar": {
     "help": "도움말",
@@ -354,7 +357,13 @@
     "shareFaviconDescription": "클라이언트가 액세스할 수 있는 파비콘 URL 또는 경로 - 절대 경로 또는 인덱스 경로(예: 'https://domain.com/favicon.png' 또는 '/path/to/favicon.png')가 허용됩니다.",
     "hideNavButtons": "탐색 버튼 숨기기",
     "hideNavButtonsDescription": "공유의 탐색 모음에서 탐색 버튼을 숨겨 미니멀한 디자인을 만듭니다.",
-    "viewModeDescription": "공유 페이지의 기본 레이아웃입니다."
+    "viewModeDescription": "공유 페이지의 기본 레이아웃입니다.",
+    "titleDefault": "Shared files - {title}",
+    "descriptionDefault": "보거나 다운로드할 수 있는 공유물이 전송되었습니다.",
+    "disableShareCard": "공유 카드 비활성화",
+    "disableShareCardDescription": "사이드바의 공유 페이지 또는 모바일의 페이지 상단에서 공유 카드를 비활성화합니다.",
+    "disableSidebar": "사이드바 비활성화",
+    "disableSidebarDescription": "공유 페이지에서 사이드바를 비활성화합니다."
   },
   "api": {
     "title": "API 키:",
@@ -391,7 +400,6 @@
     "toggleClick": "클릭 한 번으로 토글",
     "toggleDark": "다크 모드 전환",
     "toggleSticky": "고정 모드 토글",
-    "of": "의",
     "used": "사용됨",
     "noSources": "이 사용자에 대해 사용할 수 있는 소스가 없습니다. 이 사용자에 대한 소스를 추가하거나 defaultEnabled: true로 소스를 구성하세요."
   },
@@ -418,7 +426,8 @@
     "folders": "폴더",
     "exit": "종료",
     "permanent": "영구",
-    "hash": "해시"
+    "hash": "해시",
+    "of": "의"
   },
   "access": {
     "rules": "액세스 규칙",
@@ -437,7 +446,9 @@
     "accessManagement": "액세스 관리",
     "totalDenied": "거부됨",
     "totalAllowed": "허용됨",
-    "all": "모두 거부"
+    "all": "모두 거부",
+    "defaultBehavior": "Default action{suffix}",
+    "defaultBehaviorDescription": "사용자가 특정 액세스 규칙이 없는 경로에 액세스하려고 할 때 어떤 일이 발생하는지 보여줍니다. '허용'은 사용자가 기본적으로 액세스할 수 있음을 의미하며, '거부'는 명시적으로 허용되지 않는 한 기본적으로 차단됨을 의미합니다."
   },
   "fileLoading": {
     "title": "업로드 및 다운로드",

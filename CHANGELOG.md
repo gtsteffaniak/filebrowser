@@ -2,6 +2,60 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.8.3-beta
+
+ **BugFixes**:
+ - fixed search bar style bug in mobile #1147
+
+## v0.8.2-beta
+
+ **New Features**:
+ - added `source.config.denyByDefault` configuration to enable a deny-by-default access rule. A source enabled with this will deny access unless an "allow" rule was specifically created. (Similar to creating a root-level denyAll rule)
+ - allow oidc user source access and permission based on username and groups is fulfilled by denyByDefault source with access rules https://github.com/gtsteffaniak/filebrowser/issues/824
+ - "open parent folder" in context menu and search results https://github.com/gtsteffaniak/filebrowser/issues/1121
+ - added friendly "share not found" page.
+
+ **Notes**:
+ - 8.0 ffmpeg version bundled with docker
+ - go 1.25 upgrade with green tea GC enabled
+ - totp secrets accept non-secure strings, only throwing warning 
+ - adjusted download limit so it also counts viewing text "content" of files (like in editor). You can also "disable file viewing" to stop the editor from showing. lower quality file image previews are not counted as downloads.
+ - updated invalid share message to be more clear https://github.com/gtsteffaniak/filebrowser/issues/1120
+
+ **BugFixes**:
+ - fixed /public/static routes issue
+ - shares redirect to login - https://github.com/gtsteffaniak/filebrowser/issues/1109
+ - some static assets not available to anonymous user - https://github.com/gtsteffaniak/filebrowser/issues/1102
+ - more safari style issues https://github.com/gtsteffaniak/filebrowser/issues/1110
+ - fix public share download issues https://github.com/gtsteffaniak/filebrowser/issues/1118 https://github.com/gtsteffaniak/filebrowser/issues/1089
+ - fixed disable file viewer setting and enforced on backend
+
+## v0.8.1-beta
+
+ **New Features**:
+ - api for generate download link (see swagger) https://github.com/gtsteffaniak/filebrowser/issues/1007
+ - added `source.config.disabled` option to disable a source without removing it from config file.
+ - added `source.config.private` option to designate as private -- currently just means no sharing permitted.
+ - hide share card in share
+ - download count for a share shows up on share management
+
+ **Notes**:
+ - updated description for indexingIntervalMinutes https://github.com/gtsteffaniak/filebrowser/issues/1067
+
+ **BugFixes**:
+ - fixed styling issues https://github.com/gtsteffaniak/filebrowser/issues/1086 https://github.com/gtsteffaniak/filebrowser/issues/1081 https://github.com/gtsteffaniak/filebrowser/issues/1082 https://github.com/gtsteffaniak/filebrowser/issues/1098
+ - fix download limit issue https://github.com/gtsteffaniak/filebrowser/issues/1085
+ - fixed oidc user defaults for new user https://github.com/gtsteffaniak/filebrowser/issues/1071
+ - shares get updated when files moved in ui https://github.com/gtsteffaniak/filebrowser/issues/760
+ - click listing behavior doesn't clear (introduced in 0.8.0) https://github.com/gtsteffaniak/filebrowser/issues/1101
+ - show download count and limit in share list in settings https://github.com/gtsteffaniak/filebrowser/issues/1103
+ - fix windows alt+arrow movement issue https://github.com/gtsteffaniak/filebrowser/issues/1094
+ - nav memory issue for filenames with brackets https://github.com/gtsteffaniak/filebrowser/issues/1092
+ - files with "+"" in name issue https://github.com/gtsteffaniak/filebrowser/issues/1089
+ - fixed editor bug in share view https://github.com/gtsteffaniak/filebrowser/issues/1084
+ - other share related issues https://github.com/gtsteffaniak/filebrowser/issues/1087 https://github.com/gtsteffaniak/filebrowser/issues/1064
+
+
 ## v0.8.0-beta
 
   This is a major release, new features and changes could introduce breaking behavior. Here are the known potentially breaking changes:

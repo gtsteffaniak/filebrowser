@@ -64,9 +64,15 @@ export default {
   methods: {
     setupEditor(attempt = 1) {
       try {
-      this.filename = decodeURIComponent(this.$route.path.split("/").pop());
+      this.filename = decodeURIComponent(this.$route.path.split("/").pop() || "");
       // Safety Check 1: Use the component's 'filename' data property for comparison
-      if (state.req.name !== this.filename) {
+
+      // no need to do safety check for direct link
+      if (getters.shareHash() == this.filename) {
+        this.filename = "";
+      }
+
+      if (this.filename && state.req.name !== this.filename) {
         if (attempt < 5) {
           console.warn(
             `[Attempt ${attempt}/5] State filename ("${state.req.name}") does not match route filename ("${this.filename}"). Retrying in 500ms...`

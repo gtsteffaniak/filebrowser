@@ -17,47 +17,37 @@
       <div v-if="selectedCount > 0" class="button selected-count-header">
         <span>{{ selectedCount }} {{ $t("prompts.selected") }} </span>
       </div>
-
       <action
-        v-if="!showCreate && !isSearchActive && userPerms.modify"
+        v-if="!showCreate && !isSearchActive && userPerms.modify && !isShare"
         icon="add"
         :label="$t('buttons.new')"
         @action="startShowCreate"
       />
-
       <action
         v-if="showCreate && !isSearchActive && userPerms.modify"
         icon="create_new_folder"
         :label="$t('sidebar.newFolder')"
         @action="showHover('newDir')"
       />
-
       <action
         v-if="showCreate && userPerms.modify && !isSearchActive"
         icon="note_add"
         :label="$t('sidebar.newFile')"
         @action="showHover('newFile')"
       />
-
       <action
         v-if="showCreate && userPerms.modify && !isSearchActive"
         icon="file_upload"
         :label="$t('buttons.upload')"
         @action="uploadFunc"
       />
-
       <action
         v-if="!showCreate && selectedCount == 1"
         icon="info"
         :label="$t('buttons.info')"
         show="info"
       />
-      <action
-        v-if="showSelectMultiple"
-        icon="check_circle"
-        :label="$t('buttons.selectMultiple')"
-        @action="toggleMultipleSelection"
-      />
+
       <action
         v-if="(!showCreate && selectedCount > 0)"
         icon="file_download"
@@ -69,13 +59,13 @@
         v-if="selectedCount <= 1 && showShare"
         icon="share"
         :label="$t('buttons.share')"
-        show="share"
+        @action="showShareHover"
       />
       <action
         v-if="!showCreate && selectedCount == 1 && userPerms.modify && !isSearchActive"
         icon="mode_edit"
         :label="$t('buttons.rename')"
-        show="rename"
+        @action="showRenameHover"
       />
       <action
         v-if="!showCreate && selectedCount > 0 && userPerms.modify"
@@ -84,19 +74,19 @@
         show="copy"
       />
       <action
+        v-if="!showCreate && selectedCount == 1 && isSearchActive"
+        icon="folder"
+        :label="$t('buttons.openParentFolder')"
+        @action="openParentFolder"  
+      />
+      <action
         v-if="!showCreate && selectedCount > 0 && userPerms.modify"
         icon="forward"
         :label="$t('buttons.moveFile')"
         show="move"
       />
       <action
-        v-if="!showCreate && selectedCount > 0 && userPerms.modify"
-        icon="file_upload"
-        :label="$t('buttons.upload')"
-        @action="showUpload"
-      />
-      <action
-        v-if="!showCreate && selectedCount > 0 && userPerms.modify"
+        v-if="showDelete"
         icon="delete"
         :label="$t('buttons.delete')"
         show="delete"
@@ -106,6 +96,12 @@
         icon="lock"
         :label="$t('access.rules')"
         @action="showAccessHover"
+      />
+      <action
+        v-if="showSelectMultiple"
+        icon="check_circle"
+        :label="$t('buttons.selectMultiple')"
+        @action="toggleMultipleSelection"
       />
     </div>
   </transition>
@@ -127,6 +123,7 @@
       :class="{ 'dark-mode': isDarkMode }"
     >
       <action v-if="showGoToRaw" icon="open_in_new" :label="$t('buttons.openFile')" @action="goToRaw()" />
+      <action v-if="shouldShowParentFolder()" icon="folder" :label="$t('buttons.openParentFolder')" @action="openParentFolder" />
       <action v-if="isPreview" icon="file_download" :label="$t('buttons.download')" @action="startDownload" />
       <action v-if="showEdit" icon="edit" :label="$t('buttons.edit')" @action="edit()" />
       <action v-if="showSave" icon="save" :label="$t('buttons.save')" @action="save()" />
@@ -144,6 +141,7 @@ import buttons from "@/utils/buttons";
 import { notify } from "@/notify";
 import { eventBus } from "@/store/eventBus";
 import { filesApi, publicApi } from "@/api";
+import { url } from "@/utils";
 export default {
   name: "ContextMenu",
   components: {
@@ -165,6 +163,9 @@ export default {
     },
   },
   computed: {
+    isShare() {
+      return getters.isShare();
+    },
     showSelectMultiple() {
       if (this.isMultiple || this.isSearchActive) {
         return false;
@@ -194,11 +195,12 @@ export default {
     },
     showDelete() {
       const cv = getters.currentView();
-      if (getters.isShare()) {
+      if (getters.isShare() || !state.user?.permissions?.modify) {
         // TODO: add support for deleting shared files
         return false;
       }
-      return state.user?.permissions?.modify && (cv == "preview" || cv == "onlyOfficeEditor" || cv == "markdownViewer" || cv == "epubViewer" || cv == "docViewer" || cv == "editor");
+      const showDelete = cv != "settings" && !this.showCreate && this.selectedCount > 0 && !this.isSearchActive;
+      return showDelete;
     },
     isPreview() {
       const cv = getters.currentView();
@@ -225,13 +227,10 @@ export default {
       return state.user?.permissions?.admin && this.showCreate;
     },
     showShare() {
-      return (
-        state.user?.permissions &&
-        state.user?.permissions.share &&
-        state.user.username != "anonymous" &&
-        !getters.isShare() &&
-        !this.isSearchActive
-      );
+      if (getters.isShare()) {
+        return false;
+      }
+      return state.user?.permissions?.share;
     },
     showContext() {
       return getters.currentPromptName() == "ContextMenu";
@@ -267,8 +266,19 @@ export default {
         modify: state.user?.permissions?.modify,
       };
     },
+    currentPrompt() {
+      return getters.currentPrompt();
+    },
   },
   watch: {
+    currentPrompt: {
+      handler(prompt) {
+        if (prompt && prompt.name === "ContextMenu") {
+          this.setPositions();
+        }
+      },
+      deep: true,
+    },
     hasOverflowItems: {
       handler(hasItems) {
         mutations.setContextMenuHasItems(hasItems);
@@ -296,6 +306,9 @@ export default {
     }
   },
   methods: {
+    shouldShowParentFolder() {
+      return this.isPreview && state.req.path != "/";
+    },
     showAccessHover() {
       mutations.showHover({
         name: "access",
@@ -368,6 +381,9 @@ export default {
       }, 300);
     },
     startShowCreate() {
+      if (getters.isShare()) {
+        return;
+      }
       this.showCreate = true;
     },
     uploadFunc() {
@@ -376,6 +392,22 @@ export default {
     showHover(value) {
       return mutations.showHover(value);
     },
+    showShareHover() {
+      mutations.showHover({
+        name: "share",
+        props: {
+          item: getters.selectedCount() == 1 ? getters.getFirstSelected() : state.req
+        },
+      });
+    },
+    showRenameHover() {
+      mutations.showHover({
+        name: "rename",
+        props: {
+          item: getters.selectedCount() == 1 ? getters.getFirstSelected() : state.req
+        },
+      });
+    },
     setPositions() {
       const contextProps = getters.currentPrompt().props;
       this.posX = contextProps.posX;
@@ -383,7 +415,7 @@ export default {
     },
     initializeCreateState() {
       // Only set initial showCreate state, don't override user choices
-      if (state.selected.length > 0) {
+      if (state.selected.length > 0 || getters.isShare()) {
         this.showCreate = false;
       } else {
         this.showCreate = true;
@@ -395,7 +427,8 @@ export default {
     },
     startDownload() {
       mutations.closeHovers();
-      downloadFiles(state.selected);
+      const items = state.selected.length > 0 ? state.selected : [state.req];
+      downloadFiles(items);
     },
     goToRaw() {
       if (getters.isShare()) {
@@ -436,6 +469,14 @@ export default {
           filesToReplace: state.selected.map((item) => item.name || ""),
         },
       });
+    },
+    openParentFolder() {
+      const item = state.selected.length > 0 ? state.selected[0] : state.req;
+      let parentPath = url.removeLastDir(item.path);
+      if (parentPath == "") {
+        parentPath = "/";
+      }
+      url.goToItem(state.req.source, parentPath);
     },
   },
 };

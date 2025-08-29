@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -18,7 +17,34 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/share"
+	"github.com/gtsteffaniak/filebrowser/backend/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 )
+
+// ShareResponse represents a share with computed username field and download URL
+type ShareResponse struct {
+	*share.Link
+	Username    string `json:"username,omitempty"`
+	DownloadURL string `json:"downloadURL,omitempty"`
+}
+
+// convertToShareResponse converts shares to response format with usernames
+func convertToShareResponse(r *http.Request, shares []*share.Link) ([]*ShareResponse, error) {
+	responses := make([]*ShareResponse, len(shares))
+	for i, s := range shares {
+		user, err := store.Users.Get(s.UserID)
+		username := ""
+		if err == nil {
+			username = user.Username
+		}
+		responses[i] = &ShareResponse{
+			Link:        s,
+			Username:    username,
+			DownloadURL: getDownloadURL(r, s.Hash),
+		}
+	}
+	return responses, nil
+}
 
 // shareListHandler returns a list of all share links.
 // @Summary List share links
@@ -37,18 +63,15 @@ func shareListHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	} else {
 		shares, err = store.Share.FindByUserID(d.user.ID)
 	}
-
 	if err != nil && err != errors.ErrNotExist {
 		return http.StatusInternalServerError, err
 	}
 	shares = utils.NonNilSlice(shares)
-	sort.Slice(shares, func(i, j int) bool {
-		if shares[i].UserID != shares[j].UserID {
-			return shares[i].UserID < shares[j].UserID
-		}
-		return shares[i].Expire < shares[j].Expire
-	})
-	return renderJSON(w, r, shares)
+	sharesWithUsernames, err := convertToShareResponse(r, shares)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	return renderJSON(w, r, sharesWithUsernames)
 }
 
 // shareGetsHandler retrieves share links for a specific resource path.
@@ -64,33 +87,34 @@ func shareListHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 // @Router /api/share [get]
 func shareGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	encodedPath := r.URL.Query().Get("path")
-	source := r.URL.Query().Get("source")
+	sourceName := r.URL.Query().Get("source")
 	// Decode the URL-encoded path
 	path, err := url.QueryUnescape(encodedPath)
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}
-	sourcePath, ok := config.Server.NameToSource[source]
+	sourceInfo, ok := config.Server.NameToSource[sourceName] // backend source is path
 	if !ok {
-		return http.StatusBadRequest, fmt.Errorf("invalid source name: %s", source)
+		return http.StatusBadRequest, fmt.Errorf("invalid source name: %s", sourceName)
 	}
-	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, source)
+	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, sourceName)
 	if err != nil {
 		return http.StatusForbidden, err
 	}
 	scopePath := utils.JoinPathAsUnix(userscope, path)
-	s, err := store.Share.Gets(scopePath, sourcePath.Path, d.user.ID)
+	s, err := store.Share.Gets(scopePath, sourceInfo.Path, d.user.ID)
 	if err == errors.ErrNotExist || len(s) == 0 {
-		return renderJSON(w, r, []*share.Link{})
+		return renderJSON(w, r, []*ShareResponse{})
 	}
-	// Overwrite the Source field with the source name from the query for each link
-	for _, link := range s {
-		link.Source = source
-	}
+	// DownloadURL will be set in convertToShareResponse
 	if err != nil {
 		return http.StatusInternalServerError, fmt.Errorf("error getting share info from server")
 	}
-	return renderJSON(w, r, s)
+	sharesWithUsernames, err := convertToShareResponse(r, s)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	return renderJSON(w, r, sharesWithUsernames)
 }
 
 // shareDeleteHandler deletes a specific share link by its hash.
@@ -125,12 +149,11 @@ func shareDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 // @Tags Shares
 // @Accept json
 // @Produce json
-// @Param path query string true "Source Path of the files to share"
-// @Param source query string true "Source name of the files to share"
+// @Param body body share.CreateBody true "Share creation parameters"
 // @Success 200 {object} share.Link "Created share link"
 // @Failure 400 {object} map[string]string "Bad request - failed to decode body"
 // @Failure 500 {object} map[string]string "Internal server error"
-// @Router /api/shares [post]
+// @Router /api/share [post]
 func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	var s *share.Link
 	var err error
@@ -192,11 +215,36 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		s.Expire = expire
 		s.PasswordHash = stringHash
 		s.Token = token
+		// Preserve immutable fields for updates. Path and Source should not change on edits.
+		// If the request attempts to provide empty values (or any values) for these,
+		// keep the existing ones from the stored share.
+		body.Path = s.Path
+		body.Source = s.Source
 		s.CommonShare = body.CommonShare
 		if err = store.Share.Save(s); err != nil {
 			return http.StatusInternalServerError, err
 		}
-		return renderJSON(w, r, s)
+		// Convert to ShareResponse format with username
+		var user *users.User
+		user, err = store.Users.Get(s.UserID)
+		username := ""
+		if err == nil {
+			username = user.Username
+		}
+		response := &ShareResponse{
+			Link:     s,
+			Username: username,
+		}
+		return renderJSON(w, r, response)
+	}
+
+	source, ok := config.Server.NameToSource[body.Source]
+	if !ok {
+		return http.StatusForbidden, fmt.Errorf("source with name not found: %s", body.Source)
+	}
+
+	if source.Config.Private {
+		return http.StatusForbidden, fmt.Errorf("the target source is private, sharing is not permitted")
 	}
 
 	// create a new share link
@@ -204,37 +252,30 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
+	// validate source path exists
+	idx := indexing.GetIndex(source.Name)
+	if idx == nil {
+		return http.StatusForbidden, fmt.Errorf("source with name not found: %s", body.Source)
+	}
 
-	encodedPath := r.URL.Query().Get("path")
-	// Decode the URL-encoded path
-	path, err := url.QueryUnescape(encodedPath)
-	if err != nil {
-		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
-	}
-	sourceName := r.URL.Query().Get("source")
-	source, ok := config.Server.NameToSource[sourceName]
-	if !ok {
-		// try to find source by path
-		for _, s := range config.Server.Sources {
-			if s.Path == sourceName {
-				source = s
-				ok = true
-				break
-			}
+	// validate path exists as file or folder
+	_, exists := idx.GetReducedMetadata(body.Path, true) // true to check if it exists
+	if !exists {
+		// could be a file instead
+		_, exists := idx.GetReducedMetadata(utils.GetParentDirectoryPath(body.Path), true)
+		if !exists {
+			return http.StatusForbidden, fmt.Errorf("path not found: %s", body.Path)
 		}
-	}
-	if !ok {
-		return http.StatusForbidden, fmt.Errorf("source with name not found")
 	}
 
 	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, source.Name)
 	if err != nil {
 		return http.StatusForbidden, err
 	}
-	scopePath := utils.JoinPathAsUnix(userscope, path)
+	scopePath := utils.JoinPathAsUnix(userscope, body.Path)
+	body.Path = scopePath
+	body.Source = source.Path // backend source is path
 	s = &share.Link{
-		Path:         scopePath,
-		Source:       source.Path, // path instead to persist accoss name change
 		Expire:       expire,
 		UserID:       d.user.ID,
 		Hash:         secure_hash,
@@ -243,16 +284,206 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		CommonShare:  body.CommonShare,
 	}
 
-	if err := store.Share.Save(s); err != nil {
+	if err = store.Share.Save(s); err != nil {
+		return http.StatusInternalServerError, err
+	}
+	// Convert to ShareResponse format with username
+	var user *users.User
+	user, err = store.Users.Get(s.UserID)
+	username := ""
+	if err == nil {
+		username = user.Username
+	}
+	response := &ShareResponse{
+		Link:     s,
+		Username: username,
+	}
+	return renderJSON(w, r, response)
+}
+
+// DirectDownloadResponse represents the response for direct download endpoint
+type DirectDownloadResponse struct {
+	Status      string `json:"status"`
+	Hash        string `json:"hash"`
+	DownloadURL string `json:"url"`
+}
+
+// shareDirectDownloadHandler creates a direct download link for files only.
+// @Summary Create direct download link
+// @Description Creates a direct download link for a specific file with configurable duration, download count, and speed limits. If a share already exists with matching parameters, the existing share will be reused.
+// @Tags Shares
+// @Accept json
+// @Produce json
+// @Param path query string true "File path to create download link for"
+// @Param source query string true "Source name for the file"
+// @Param duration query string false "Duration in minutes for link validity (default: 60)"
+// @Param count query string false "Maximum number of downloads allowed (default: unlimited)"
+// @Param speed query string false "Download speed limit in kbps (default: unlimited)"
+// @Success 201 {object} DirectDownloadResponse "Direct download link created"
+// @Failure 400 {object} map[string]string "Bad request - invalid parameters or path is not a file"
+// @Failure 403 {object} map[string]string "Forbidden - access denied"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /public/share/direct [get]
+func shareDirectDownloadHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	// Extract query parameters
+	encodedPath := r.URL.Query().Get("path")
+	source := r.URL.Query().Get("source")
+	duration := r.URL.Query().Get("duration")
+	downloadCountStr := r.URL.Query().Get("count")
+	downloadSpeedStr := r.URL.Query().Get("speed")
+
+	// Validate required parameters
+	if encodedPath == "" || source == "" {
+		return http.StatusBadRequest, fmt.Errorf("path and source are required")
+	}
+
+	// Decode the URL-encoded path
+	path, err := url.QueryUnescape(encodedPath)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
+	}
+
+	// Validate source exists
+	sourceInfo, ok := config.Server.NameToSource[source]
+	if !ok {
+		return http.StatusBadRequest, fmt.Errorf("invalid source name: %s", source)
+	}
+
+	// Get user scope for this source
+	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, source)
+	if err != nil {
+		return http.StatusForbidden, err
+	}
+
+	// Validate the path exists and is a file (not a folder)
+	idx := indexing.GetIndex(source)
+	if idx == nil {
+		return http.StatusForbidden, fmt.Errorf("source with name not found: %s", source)
+	}
+
+	metadata, exists := idx.GetReducedMetadata(path, false)
+	if !exists {
+		return http.StatusBadRequest, fmt.Errorf("path is either not a file or not found: %s", path)
+	}
+
+	// Check if it's a file (not a directory)
+	if metadata.Type == "directory" {
+		return http.StatusBadRequest, fmt.Errorf("path must be a file, not a directory: %s", path)
+	}
+
+	// Set default duration to 60 minutes if not provided
+	if duration == "" {
+		duration = "60"
+	}
+
+	// Parse download count
+	var downloadCount int
+	if downloadCountStr != "" {
+		downloadCount, err = strconv.Atoi(downloadCountStr)
+		if err != nil {
+			return http.StatusBadRequest, fmt.Errorf("invalid downloadCount: %v", err)
+		}
+	}
+
+	// Parse download speed (in bytes per second)
+	var downloadSpeed int
+	if downloadSpeedStr != "" {
+		downloadSpeed, err = strconv.Atoi(downloadSpeedStr)
+		if err != nil {
+			return http.StatusBadRequest, fmt.Errorf("invalid downloadSpeed: %v", err)
+		}
+	}
+
+	// Calculate expiration time
+	durationNum, err := strconv.Atoi(duration)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid duration: %v", err)
+	}
+	expire := time.Now().Add(time.Minute * time.Duration(durationNum)).Unix()
+
+	// Generate secure hash for the share
+	secureHash, err := generateShortUUID()
+	if err != nil {
 		return http.StatusInternalServerError, err
 	}
 
-	// Overwrite the Source field with the source name from the query for each link
-	s.Source = sourceName
-	if body.Hash != "" {
-		return renderJSON(w, r, s)
+	// Create the scope path
+	scopePath := utils.JoinPathAsUnix(userscope, path)
+
+	// Check if an existing share already matches these parameters
+	existingShares, err := store.Share.Gets(scopePath, sourceInfo.Path, d.user.ID)
+	if err == nil && len(existingShares) > 0 {
+		// Look for a share that matches our parameters
+		for _, existing := range existingShares {
+			if existing.DownloadsLimit == downloadCount &&
+				existing.MaxBandwidth == downloadSpeed &&
+				existing.QuickDownload &&
+				(existing.Expire == 0 || existing.Expire >= expire) { // Existing expires later or never
+
+				response := DirectDownloadResponse{
+					Status:      "201",
+					Hash:        existing.Hash,
+					DownloadURL: getDownloadURL(r, existing.Hash),
+				}
+				return renderJSON(w, r, response)
+			}
+		}
 	}
-	return renderJSON(w, r, s)
+
+	// No matching existing share found, create a new one
+	shareLink := &share.Link{
+		Expire: expire,
+		UserID: d.user.ID,
+		Hash:   secureHash,
+		CommonShare: share.CommonShare{
+			Path:           scopePath,
+			Source:         idx.Path,
+			DownloadsLimit: downloadCount,
+			MaxBandwidth:   downloadSpeed,
+			QuickDownload:  true, // Enable quick download for direct downloads
+		},
+	}
+
+	// Save the share
+	if err := store.Share.Save(shareLink); err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	// Return response
+	response := DirectDownloadResponse{
+		Status:      "200",
+		Hash:        secureHash,
+		DownloadURL: getDownloadURL(r, secureHash),
+	}
+
+	return renderJSON(w, r, response)
+}
+
+func getDownloadURL(r *http.Request, hash string) string {
+	var downloadURL string
+	if config.Server.ExternalUrl != "" {
+		downloadURL = fmt.Sprintf("%s%spublic/api/raw?hash=%s", config.Server.ExternalUrl, config.Server.BaseURL, hash)
+	} else {
+		// Prefer X-Forwarded-Host for proxy support
+		var host string
+		var scheme string
+
+		if forwardedHost := r.Header.Get("X-Forwarded-Host"); forwardedHost != "" {
+			host = forwardedHost
+			// Use X-Forwarded-Proto if available, otherwise default to https for proxied requests
+			if forwardedProto := r.Header.Get("X-Forwarded-Proto"); forwardedProto != "" {
+				scheme = forwardedProto
+			} else {
+				scheme = "https"
+			}
+		} else {
+			// Fallback to simple approach
+			host = r.Host
+			scheme = getScheme(r)
+		}
+		downloadURL = fmt.Sprintf("%s://%s%spublic/api/raw?hash=%s", scheme, host, config.Server.BaseURL, hash)
+	}
+	return downloadURL
 }
 
 func getSharePasswordHash(body share.CreateBody) (data []byte, statuscode int, err error) {

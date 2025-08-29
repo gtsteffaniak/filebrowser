@@ -48,7 +48,8 @@
     "resumeAll": "Resume all",
     "clearCompleted": "Czyszczenie zakończone",
     "showMore": "Pokaż więcej",
-    "showLess": "Pokaż mniej"
+    "showLess": "Pokaż mniej",
+    "openParentFolder": "Otwórz folder nadrzędny"
   },
   "download": {
     "downloadFile": "Pobierz plik",
@@ -59,7 +60,8 @@
     "forbidden": "Nie posiadasz uprawnień potrzebnych, by uzyskać do tego dostęp.",
     "internal": "Pojawił się poważny problem.",
     "notFound": "Ten adres nie jest poprawny.",
-    "connection": "Nie można uzyskać dostępu do serwera."
+    "connection": "Nie można uzyskać dostępu do serwera.",
+    "shareNotFound": "Nieprawidłowy lub wygasły udział."
   },
   "files": {
     "body": "Body",
@@ -297,7 +299,8 @@
     "shareSettings": "Ustawienia udostępniania",
     "adminOptions": "Opcje użytkownika administratora",
     "shareDuration": "Wygasa",
-    "searchOptions": "Opcje wyszukiwania"
+    "searchOptions": "Opcje wyszukiwania",
+    "downloads": "Pliki do pobrania"
   },
   "sidebar": {
     "help": "Pomoc",
@@ -354,7 +357,13 @@
     "shareFaviconDescription": "Adres URL Favicon lub ścieżka dostępna dla klienta - akceptowana jest ścieżka bezwzględna lub indeksowa: np. \"https://domain.com/favicon.png\" lub \"/path/to/favicon.png\".",
     "hideNavButtons": "Ukryj przyciski nawigacyjne",
     "hideNavButtonsDescription": "Ukryj przyciski nawigacyjne na pasku nawigacyjnym w folderze udostępnionym, aby uzyskać minimalistyczny wygląd.",
-    "viewModeDescription": "Domyślny układ strony udostępnionej."
+    "viewModeDescription": "Domyślny układ strony udostępnionej.",
+    "titleDefault": "Shared files - {title}",
+    "descriptionDefault": "Udział został wysłany do wyświetlenia lub pobrania.",
+    "disableShareCard": "Wyłączanie karty udostępniania",
+    "disableShareCardDescription": "Wyłącz kartę udostępniania na udostępnianej stronie na pasku bocznym lub u góry strony na urządzeniach mobilnych.",
+    "disableSidebar": "Wyłącz pasek boczny",
+    "disableSidebarDescription": "Wyłącz pasek boczny na udostępnionej stronie."
   },
   "api": {
     "title": "Klucze API:",
@@ -391,7 +400,6 @@
     "toggleClick": "Przełączanie jednym kliknięciem",
     "toggleDark": "Przełączanie trybu ciemnego",
     "toggleSticky": "Przełączanie trybu samoprzylepnego",
-    "of": "z",
     "used": "używany",
     "noSources": "Brak dostępnych źródeł dla tego użytkownika. Dodaj źródło dla tego użytkownika lub skonfiguruj źródło z defaultEnabled: true."
   },
@@ -418,7 +426,8 @@
     "folders": "Foldery",
     "exit": "Wyjście",
     "permanent": "Na stałe",
-    "hash": "Hash"
+    "hash": "Hash",
+    "of": "z"
   },
   "access": {
     "rules": "Zasady dostępu",
@@ -437,7 +446,9 @@
     "accessManagement": "Zarządzanie dostępem",
     "totalDenied": "Odmowa",
     "totalAllowed": "Dozwolone",
-    "all": "Odmów wszystkim"
+    "all": "Odmów wszystkim",
+    "defaultBehavior": "Default action{suffix}",
+    "defaultBehaviorDescription": "To pokazuje, co się dzieje, gdy użytkownik próbuje uzyskać dostęp do ścieżki, dla której nie istnieją określone reguły dostępu. \"Zezwól\" oznacza, że użytkownicy mogą uzyskać dostęp domyślnie, \"Odmów\" oznacza, że użytkownicy są domyślnie blokowani, chyba że wyraźnie na to zezwolono."
   },
   "fileLoading": {
     "title": "Przesyłanie i pobieranie",

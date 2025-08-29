@@ -19,12 +19,14 @@
       :disabled="isDisabled"
     />
     <action
+      class="overflow-menu-button"
       v-else-if="!isListingView && !showQuickSave"
       :icon="iconName"
       :disabled="noItems"
       @click="toggleOverflow"
     />
     <action
+      class="save-button"
       v-else-if="showQuickSave"
       id="save-button"
       icon="save"
@@ -42,7 +44,7 @@ import { eventBus } from "@/store/eventBus";
 import { getters, state, mutations } from "@/store";
 import Action from "@/components/Action.vue";
 import Search from "@/components/Search.vue";
-import { disableNavButtons, shareOverrides } from "@/utils/constants";
+import { disableNavButtons, shareInfo } from "@/utils/constants";
 
 export default {
   name: "UnifiedHeader",
@@ -57,8 +59,8 @@ export default {
   },
   computed: {
     getTopTitle() {
-      if (getters.isShare() && shareOverrides.title) {
-        return shareOverrides.title;
+      if (getters.isShare() && shareInfo.title) {
+        return shareInfo.title;
       }
       return state.req.name;
     },
@@ -113,7 +115,8 @@ export default {
       return state.isSearchActive || getters.currentPromptName() != "";
     },
     isDisabledMultiAction() {
-      return this.isDisabled || (getters.isStickySidebar() && getters.multibuttonState() === "menu");
+      const shareDisabled = shareInfo.disableSidebar && getters.multibuttonState() === "menu";
+      return this.isDisabled || (getters.isStickySidebar() && getters.multibuttonState() === "menu") || shareDisabled;
     },
     showSwitchView() {
       return getters.currentView() === "listingView";

@@ -19,7 +19,7 @@ import (
 // @Tags Resources
 // @Accept json
 // @Produce json
-// @Param files query string true "a list of files in the following format 'filename' and separated by '||' with additional items in the list. (required)"
+// @Param files query string false "if specified, only the files in the list will be downloaded. eg. files=/file1||/folder/file2"
 // @Param inline query bool false "If true, sets 'Content-Disposition' to 'inline'. Otherwise, defaults to 'attachment'."
 // @Param algo query string false "Compression algorithm for archiving multiple files or directories. Options: 'zip' and 'tar.gz'. Default is 'zip'."
 // @Success 200 {file} file "Raw file or directory content, or archive for multiple files"
@@ -29,17 +29,14 @@ import (
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /public/dl [get]
 func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	if d.share.Downloads > d.share.DownloadsLimit {
+	if d.share.DownloadsLimit > 0 && d.share.Downloads >= d.share.DownloadsLimit {
 		return http.StatusForbidden, fmt.Errorf("share downloads limit reached")
 	}
 	d.share.Mu.Lock()
 	d.share.Downloads++
 	d.share.Mu.Unlock()
-
 	encodedFiles := r.URL.Query().Get("files")
-	if encodedFiles == "" {
-		return http.StatusBadRequest, fmt.Errorf("no file list provided, should be in the format '/path1||/path2||/path3'")
-	}
+
 	// Decode the URL-encoded path
 	f, err := url.QueryUnescape(encodedFiles)
 	if err != nil {
@@ -48,8 +45,25 @@ func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 
 	fileList := []string{}
 	for _, file := range strings.Split(f, "||") {
-		filePath := utils.JoinPathAsUnix(d.share.Path, file)
-		fileList = append(fileList, d.fileInfo.Source+"::"+filePath)
+		// Check if file already contains source prefix (source::path format)
+		if strings.Contains(file, "::") {
+			splitFile := strings.SplitN(file, "::", 2)
+			if len(splitFile) == 2 {
+				source := splitFile[0]
+				path := splitFile[1]
+				// Join the share path with the requested path
+				filePath := utils.JoinPathAsUnix(d.share.Path, path)
+				fileList = append(fileList, source+"::"+filePath)
+			} else {
+				// Fallback: treat as plain path
+				filePath := utils.JoinPathAsUnix(d.share.Path, file)
+				fileList = append(fileList, d.fileInfo.Source+"::"+filePath)
+			}
+		} else {
+			// Plain path without source prefix
+			filePath := utils.JoinPathAsUnix(d.share.Path, file)
+			fileList = append(fileList, d.fileInfo.Source+"::"+filePath)
+		}
 	}
 
 	var status int

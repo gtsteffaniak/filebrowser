@@ -1,6 +1,7 @@
 import { state } from "@/store";
 import { renew, logout } from "@/utils/auth";
 import { notify } from "@/notify";
+import { shareInfo } from "@/utils/constants";
 
 export async function fetchURL(url, opts, auth = true) {
   opts = opts || {};
@@ -34,7 +35,7 @@ export async function fetchURL(url, opts, auth = true) {
     let error = new Error(await res.text());
     error.status = res.status;
 
-    if (auth && res.status == 401) {
+    if (auth && res.status == 401 && !shareInfo.isShare) {
       logout();
     }
 

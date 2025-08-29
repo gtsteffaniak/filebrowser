@@ -48,7 +48,8 @@
     "resumeAll": "Reanudar todo",
     "clearCompleted": "Limpiar lista",
     "showMore": "Ver más",
-    "showLess": "Mostrar menos"
+    "showLess": "Mostrar menos",
+    "openParentFolder": "Abrir carpeta principal"
   },
   "download": {
     "downloadFile": "Descargar archivo",
@@ -59,7 +60,8 @@
     "forbidden": "No tienes permisos para acceder.",
     "internal": "Error interno :(",
     "notFound": "No se encontró el directorio",
-    "connection": "No se puede conectar al servidor."
+    "connection": "No se puede conectar al servidor.",
+    "shareNotFound": "Acción no válida o caducada."
   },
   "files": {
     "body": "Contenido",
@@ -297,7 +299,8 @@
     "shareSettings": "Compartidos",
     "adminOptions": "Opciones de administrador",
     "shareDuration": "Expira en",
-    "searchOptions": "Opciones de búsqueda"
+    "searchOptions": "Opciones de búsqueda",
+    "downloads": "Descargas"
   },
   "sidebar": {
     "help": "Ayuda",
@@ -354,7 +357,13 @@
     "shareFaviconDescription": "URL del favicon o ruta accesible por el cliente -- se aceptan rutas abosolutas o de índice: por ejemplo 'https://domain.com/favicon.png' o '/ruta/a/favicon.png'.",
     "hideNavButtons": "Ocultar botones de navegación",
     "hideNavButtonsDescription": "Oculte los botones de navegación de la barra de navegación en la acción para crear un aspecto minimalista.",
-    "viewModeDescription": "Diseño por defecto de la página compartida."
+    "viewModeDescription": "Diseño por defecto de la página compartida.",
+    "titleDefault": "Shared files - {title}",
+    "descriptionDefault": "Se le ha enviado una acción para que la vea o descargue.",
+    "disableShareCard": "Desactivar tarjeta compartida",
+    "disableShareCardDescription": "Desactivar la tarjeta de compartir en la página compartida en la barra lateral o en la parte superior de la página en móvil.",
+    "disableSidebar": "Desactivar la barra lateral",
+    "disableSidebarDescription": "Desactivar la barra lateral en la página compartida."
   },
   "api": {
     "title": "Crear API:",
@@ -391,7 +400,6 @@
     "toggleClick": "Abrir con un solo clic",
     "toggleDark": "Activar modo oscuro",
     "toggleSticky": "Barra lateral visible",
-    "of": "de",
     "used": "usado",
     "noSources": "No hay fuentes disponibles. Añada una o active defaultEnabled: true."
   },
@@ -418,7 +426,8 @@
     "folders": "Carpetas",
     "exit": "Salida",
     "permanent": "Permanente",
-    "hash": "Hash"
+    "hash": "Hash",
+    "of": "de"
   },
   "access": {
     "rules": "Normas de acceso",
@@ -437,7 +446,9 @@
     "accessManagement": "Gestión de accesos",
     "totalDenied": "Denegado",
     "totalAllowed": "Permitido",
-    "all": "Denegar todo"
+    "all": "Denegar todo",
+    "defaultBehavior": "Default action{suffix}",
+    "defaultBehaviorDescription": "Muestra lo que ocurre cuando un usuario intenta acceder a una ruta en la que no existen reglas de acceso específicas. Permitir\" significa que los usuarios pueden acceder por defecto, \"Denegar\" significa que los usuarios están bloqueados por defecto a menos que se les permita explícitamente."
   },
   "fileLoading": {
     "title": "Carga de archivos",

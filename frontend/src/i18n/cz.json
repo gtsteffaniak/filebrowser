@@ -48,7 +48,8 @@
     "resumeAll": "Obnovit vše",
     "clearCompleted": "Vymazání dokončeno",
     "showMore": "Zobrazit více",
-    "showLess": "Zobrazit méně"
+    "showLess": "Zobrazit méně",
+    "openParentFolder": "Otevření nadřazené složky"
   },
   "download": {
     "downloadFile": "Stáhnout soubor",
@@ -62,7 +63,8 @@
     "forbidden": "Nemáte oprávnění k přístupu.",
     "internal": "Něco se opravdu pokazilo.",
     "notFound": "Tuto položku nelze najít.",
-    "connection": "Nelze se připojit k serveru."
+    "connection": "Nelze se připojit k serveru.",
+    "shareNotFound": "Neplatná nebo prošlá akcie."
   },
   "files": {
     "body": "Tělo",
@@ -158,7 +160,13 @@
     "shareFaviconDescription": "Adresa URL nebo cesta k faviconě přístupná klientovi -- akceptována je buď absolutní, nebo indexová cesta: např. \"https://domain.com/favicon.png\" nebo \"/path/to/favicon.png\".",
     "hideNavButtons": "Skrytí navigačních tlačítek",
     "hideNavButtonsDescription": "Skryjte navigační tlačítka na panelu navigace ve sdíleném okně, abyste vytvořili minimalistický vzhled.",
-    "viewModeDescription": "Výchozí rozložení sdílené stránky."
+    "viewModeDescription": "Výchozí rozložení sdílené stránky.",
+    "titleDefault": "Shared files - {title}",
+    "descriptionDefault": "Byl vám zaslán podíl, který si můžete prohlédnout nebo stáhnout.",
+    "disableShareCard": "Zakázat sdílenou kartu",
+    "disableShareCardDescription": "Zakázat kartu sdílení na sdílené stránce v postranním panelu nebo v horní části stránky na mobilním telefonu.",
+    "disableSidebar": "Zakázat postranní panel",
+    "disableSidebarDescription": "Zakázat postranní panel na sdílené stránce."
   },
   "prompts": {
     "copy": "Kopírovat",
@@ -379,7 +387,8 @@
     "userUpdated": "Uživatel aktualizován!",
     "username": "Uživatelské jméno",
     "users": "Uživatelé",
-    "adminOptions": "Možnosti administrátora"
+    "adminOptions": "Možnosti administrátora",
+    "downloads": "Ke stažení na"
   },
   "sidebar": {
     "help": "Nápověda",
@@ -442,7 +451,6 @@
     "toggleClick": "Přepnout jedno kliknutí",
     "toggleDark": "Přepnout tmavý režim",
     "toggleSticky": "Přepnout sticky režim",
-    "of": "z",
     "used": "použito",
     "noSources": "Pro tohoto uživatele nejsou dostupné žádné zdroje. Přidejte zdroj pro uživatele nebo nastavte zdroj s defaultEnabled: true"
   },
@@ -484,7 +492,8 @@
     "folders": "Složky",
     "exit": "Exit",
     "permanent": "Permanentní",
-    "hash": "Hash"
+    "hash": "Hash",
+    "of": "z"
   },
   "access": {
     "rules": "Pravidla přístupu",
@@ -503,7 +512,9 @@
     "added": "Přidáno pravidlo přístupu!",
     "name": "Název",
     "accessManagement": "Správa přístupu",
-    "all": "Odmítnout vše"
+    "all": "Odmítnout vše",
+    "defaultBehavior": "Default action{suffix}",
+    "defaultBehaviorDescription": "To ukazuje, co se stane, když se uživatel pokusí získat přístup k cestě, kde neexistují žádná specifická pravidla přístupu. \"Povolit\" znamená, že uživatelé mají ve výchozím nastavení přístup, \"Odmítnout\" znamená, že uživatelé jsou ve výchozím nastavení blokováni, pokud není výslovně povoleno."
   },
   "editor": {
     "uninitialized": "Nepodařilo se inicializovat editor. Prosím, načtěte jej znovu.",

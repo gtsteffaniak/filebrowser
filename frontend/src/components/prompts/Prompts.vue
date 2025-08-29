@@ -30,6 +30,7 @@ import UserEdit from "./UserEdit.vue";
 import buttons from "@/utils/buttons";
 import Totp from "./Totp.vue";
 import Access from "./Access.vue";
+import Password from "./Password.vue";
 import { state, getters, mutations } from "@/store"; // Import your custom store
 
 export default {
@@ -56,6 +57,7 @@ export default {
     CreateApi,
     ActionApi,
     Access,
+    Password,
   },
   data() {
     return {

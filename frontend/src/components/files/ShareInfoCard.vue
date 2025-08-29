@@ -1,16 +1,16 @@
 <template>
   <div class="share card">
     <div class="share__box">
-      <div v-if="shareOverrides.banner" class="banner">
+      <div v-if="shareInfo.banner" class="banner">
         <img :src="getShareBanner" />
       </div>
-      <div v-if="shareOverrides.title" class="share__box__element">
-        <h2>{{ shareOverrides.title }}</h2>
+      <div v-if="shareInfo.title" class="share__box__element">
+        <h3>{{ shareInfo.title }}</h3>
       </div>
-      <div v-if="shareOverrides.description" class="share__box__element">
-        <p>{{ shareOverrides.description }}</p>
+      <div v-if="shareInfo.description" class="share__box__element">
+        <p>{{ shareInfo.description }}</p>
       </div>
-      <hr v-if="shareOverrides.banner || shareOverrides.title || shareOverrides.description" />
+      <hr v-if="shareInfo.banner || shareInfo.title || shareInfo.description" />
       <div class="share__box__element">
         <strong>{{ $t("prompts.displayName") }}</strong> {{ req.name }}
       </div>
@@ -22,7 +22,7 @@
       </div>
 
       <div class="share__box__element share__box__center">
-        <button class="button button--flat" @click="goToLink()"> {{ $t("buttons.download") }} </button>
+        <button class="button button--flat clickable" @click="goToLink()"> {{ $t("buttons.download") }} </button>
       </div>
 
       <div v-if="req.type" class="share__box__element share__box__center">
@@ -38,7 +38,7 @@ import { state, getters } from "@/store";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { getTypeInfo } from "@/utils/mimetype";
 import QrcodeVue from "qrcode.vue";
-import { shareOverrides } from "@/utils/constants";
+import { shareInfo } from "@/utils/constants";
 
 export default {
   name: "ShareInfo",
@@ -61,13 +61,13 @@ export default {
   },
   computed: {
     getShareBanner() {
-      if (this.shareOverrides.banner.startsWith("http")) {
-        return this.shareOverrides.banner;
+      if (this.shareInfo.banner.startsWith("http")) {
+        return this.shareInfo.banner;
       }
-      return publicApi.getDownloadURL(state.share, [this.shareOverrides.banner]);
+      return publicApi.getDownloadURL(state.share, [this.shareInfo.banner]);
     },
-    shareOverrides() {
-      return shareOverrides;
+    shareInfo() {
+      return shareInfo;
     },
     req() {
       return state.req;

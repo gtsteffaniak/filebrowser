@@ -4,6 +4,7 @@ ARG REVISION
 WORKDIR /app
 COPY ./backend ./
 RUN apk update && apk add upx
+ENV GOEXPERIMENT=greenteagc
 RUN go build -ldflags="-w -s \
   -X 'github.com/gtsteffaniak/filebrowser/backend/common/version.Version=${VERSION}' \
   -X 'github.com/gtsteffaniak/filebrowser/backend/common/version.CommitSHA=${REVISION}'" \
@@ -18,7 +19,6 @@ COPY  ./frontend/ ./
 RUN npm run build-docker
 
 FROM alpine:latest
-ENV FILEBROWSER_NO_EMBEDED="true"
 ENV FILEBROWSER_DATABASE="/home/filebrowser/data/database.db"
 ENV PATH="$PATH:/home/filebrowser"
 RUN apk --no-cache add ca-certificates mailcap tzdata

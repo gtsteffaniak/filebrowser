@@ -48,7 +48,8 @@
     "resumeAll": "Retomar tudo",
     "clearCompleted": "Limpar concluído",
     "showMore": "Mostrar mais",
-    "showLess": "Mostrar menos"
+    "showLess": "Mostrar menos",
+    "openParentFolder": "Abrir a pasta principal"
   },
   "download": {
     "downloadFile": "Descarregar ficheiro",
@@ -59,7 +60,8 @@
     "forbidden": "Não tem permissões para aceder a isto",
     "internal": "Algo correu bastante mal.",
     "notFound": "Esta localização não é alcançável.",
-    "connection": "O servidor não pode ser contactado."
+    "connection": "O servidor não pode ser contactado.",
+    "shareNotFound": "Ação inválida ou expirada."
   },
   "files": {
     "body": "Corpo",
@@ -297,7 +299,8 @@
     "shareDeleted": "Partilhar eliminado!",
     "adminOptions": "Opções do utilizador administrador",
     "shareDuration": "Expirações",
-    "searchOptions": "Opções de pesquisa"
+    "searchOptions": "Opções de pesquisa",
+    "downloads": "Transferências"
   },
   "sidebar": {
     "help": "Ajuda",
@@ -354,7 +357,13 @@
     "shareFaviconDescription": "URL ou caminho do Favicon acessível pelo cliente - são aceites caminhos abosolutos ou de índice: por exemplo, \"https://domain.com/favicon.png\" ou \"/path/to/favicon.png",
     "hideNavButtons": "Ocultar botões de navegação",
     "hideNavButtonsDescription": "Oculte os botões de navegação na barra de navegação na partilha para criar um aspeto minimalista.",
-    "viewModeDescription": "Esquema predefinido para a página partilhada."
+    "viewModeDescription": "Esquema predefinido para a página partilhada.",
+    "titleDefault": "Shared files - {title}",
+    "descriptionDefault": "Foi-lhe enviada uma ação para visualizar ou descarregar.",
+    "disableShareCard": "Desativar o cartão de partilha",
+    "disableShareCardDescription": "Desativar o cartão de partilha na página partilhada na barra lateral ou na parte superior da página no telemóvel.",
+    "disableSidebar": "Desativar a barra lateral",
+    "disableSidebarDescription": "Desativar a barra lateral na página partilhada."
   },
   "api": {
     "title": "Chaves da API",
@@ -391,7 +400,6 @@
     "toggleClick": "Alternar clique único",
     "toggleDark": "Alternar o modo escuro",
     "toggleSticky": "Alternar o modo de aderência",
-    "of": "de",
     "used": "utilizado",
     "noSources": "Não existem fontes disponíveis para este utilizador. Adicione uma fonte para este utilizador ou configure uma fonte com defaultEnabled: true"
   },
@@ -484,7 +492,8 @@
     "folders": "Pastas",
     "exit": "Sair",
     "permanent": "Permanente",
-    "hash": "Haxixe"
+    "hash": "Haxixe",
+    "of": "de"
   },
   "access": {
     "rules": "Regras de acesso",
@@ -503,7 +512,9 @@
     "added": "Regra de acesso adicionada!",
     "name": "Nome",
     "accessManagement": "Gestão do acesso",
-    "all": "Recusar tudo"
+    "all": "Recusar tudo",
+    "defaultBehavior": "Default action{suffix}",
+    "defaultBehaviorDescription": "Isto mostra o que acontece quando um utilizador tenta aceder a um caminho onde não existem regras de acesso específicas. \"Permitir\" significa que os utilizadores podem aceder por predefinição, \"Negar\" significa que os utilizadores são bloqueados por predefinição, a menos que sejam explicitamente autorizados."
   },
   "editor": {
     "uninitialized": "Falha ao inicializar o editor. Por favor, recarregue.",

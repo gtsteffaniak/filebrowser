@@ -48,7 +48,8 @@
     "resumeAll": "Tümünü devam ettir",
     "clearCompleted": "Temizleme tamamlandı",
     "showMore": "Daha fazla göster",
-    "showLess": "Daha az göster"
+    "showLess": "Daha az göster",
+    "openParentFolder": "Üst klasörü açın"
   },
   "download": {
     "downloadFile": "Dosyayı indir",
@@ -59,7 +60,8 @@
     "forbidden": "Buna erişim izniniz yok.",
     "internal": "Bir şeyler ters gitti.",
     "notFound": "Bu konuma ulaşılamıyor.",
-    "connection": "Sunucuya ulaşılamıyor."
+    "connection": "Sunucuya ulaşılamıyor.",
+    "shareNotFound": "Geçersiz veya süresi dolmuş paylaşım."
   },
   "files": {
     "body": "Sayfa",
@@ -297,7 +299,8 @@
     "shareSettings": "Paylaşım Ayarları",
     "adminOptions": "Yönetici kullanıcı seçenekleri",
     "shareDuration": "Sona erdi",
-    "searchOptions": "Arama seçenekleri"
+    "searchOptions": "Arama seçenekleri",
+    "downloads": "İndirmeler"
   },
   "sidebar": {
     "help": "Yardım",
@@ -354,7 +357,13 @@
     "shareFaviconDescription": "Favicon URL'si veya istemci tarafından erişilebilen yol -- mutlak veya dizin yolu kabul edilir: örneğin 'https://domain.com/favicon.png' veya '/path/to/favicon.png'",
     "hideNavButtons": "Gezinme düğmelerini gizle",
     "hideNavButtonsDescription": "Minimalist bir görünüm oluşturmak için paylaşımdaki gezinme çubuğundaki gezinme düğmelerini gizleyin.",
-    "viewModeDescription": "Paylaşılan sayfa için varsayılan düzen."
+    "viewModeDescription": "Paylaşılan sayfa için varsayılan düzen.",
+    "titleDefault": "Shared files - {title}",
+    "descriptionDefault": "Görüntülemeniz veya indirmeniz için size bir paylaşım gönderildi.",
+    "disableShareCard": "Paylaşım kartını devre dışı bırak",
+    "disableShareCardDescription": "Kenar çubuğunda paylaşılan sayfadaki veya mobil cihazlarda sayfanın üst kısmındaki paylaşım kartını devre dışı bırakın.",
+    "disableSidebar": "Kenar çubuğunu devre dışı bırak",
+    "disableSidebarDescription": "Paylaşılan sayfadaki kenar çubuğunu devre dışı bırakın."
   },
   "api": {
     "title": "API Anahtarları:",
@@ -391,7 +400,6 @@
     "toggleClick": "Tek Tıklamayı Değiştir",
     "toggleDark": "Karanlık Modu Aç / Kapat",
     "toggleSticky": "Yapışkan Modunu Değiştir",
-    "of": ".",
     "used": "kullanılmış",
     "noSources": "Bu kullanıcı için kullanılabilir kaynak yok. Ya bu kullanıcı için bir kaynak ekleyin ya da defaultEnabled: true ile bir kaynak yapılandırın"
   },
@@ -418,7 +426,8 @@
     "folders": "Klasörler",
     "exit": "Çıkış",
     "permanent": "Daimi",
-    "hash": "Hash"
+    "hash": "Hash",
+    "of": "."
   },
   "access": {
     "rules": "Erişim kuralları",
@@ -437,7 +446,9 @@
     "accessManagement": "Erişim Yönetimi",
     "totalDenied": "Reddedildi",
     "totalAllowed": "İzin verildi",
-    "all": "Tümünü Reddet"
+    "all": "Tümünü Reddet",
+    "defaultBehavior": "Default action{suffix}",
+    "defaultBehaviorDescription": "Bu, bir kullanıcı belirli erişim kurallarının bulunmadığı bir yola erişmeye çalıştığında ne olacağını gösterir. 'Allow' kullanıcıların varsayılan olarak erişebileceği anlamına gelir, 'Deny' ise açıkça izin verilmediği sürece kullanıcıların varsayılan olarak engellendiği anlamına gelir."
   },
   "fileLoading": {
     "title": "Yüklemeler & İndirmeler",

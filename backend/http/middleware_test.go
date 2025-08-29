@@ -150,8 +150,10 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 		{
 			name: "Public share, no auth required",
 			share: &share.Link{
-				Hash:   "public_hash",
-				Source: "/srv",
+				Hash: "public_hash",
+				CommonShare: share.CommonShare{
+					Source: "/srv",
+				},
 			},
 			expectedStatusCode: 0, // zero means 200 on helpers
 		},
@@ -162,7 +164,9 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 				UserID:       1,
 				PasswordHash: passwordBcrypt,
 				Token:        "some_random_token",
-				Source:       "/srv",
+				CommonShare: share.CommonShare{
+					Source: "/srv",
+				},
 			},
 			extraHeaders: map[string]string{
 				"X-SHARE-PASSWORD": "password",
@@ -186,7 +190,9 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 				UserID:       1,
 				PasswordHash: passwordBcrypt,
 				Token:        "123",
-				Source:       "/srv",
+				CommonShare: share.CommonShare{
+					Source: "/srv",
+				},
 			},
 			token:              "123",
 			expectedStatusCode: 0, // zero means 200 on helpers

@@ -38,7 +38,7 @@
       <div class="inputWrapper" style="display: flex">
         <select
           v-if="multipleSources"
-          class="searchContext input"
+          class="searchContext button input"
           aria-label="search-path"
           v-model="selectedSource"
           :value="selectedSource"
@@ -122,7 +122,7 @@
           <li
             v-for="(s, k) in results"
             :key="k"
-            class="search-entry"
+            class="search-entry clickable"
             :class="{ active: activeStates[k] }"
             :aria-label="baseName(s.path)"
           >
@@ -306,13 +306,15 @@ export default {
       return this.showHelp;
     },
     activeStates() {
-      // Create a Set of combined `name` and `type` keys for efficient lookup
-      const selectedSet = new Set(
-        state.selected.map((item) => `${item.name}:${item.type}`)
-      );
-      const result = this.results.map((s) => selectedSet.has(`${s.name}:${s.type}`));
-      // Build a map of active states for the `results` array
-      return result;
+      const selectedItems = state.selected ? [].concat(state.selected) : [];
+
+      if (selectedItems.length === 0) {
+        // Return an array of all false if nothing is selected
+        return new Array(this.results.length).fill(false);
+      }
+
+      const selectedPaths = new Set(selectedItems.map((item) => item.path));
+      return this.results.map((result) => selectedPaths.has(result.path));
     },
     sourceInfo() {
       return state.sources.info;
@@ -519,17 +521,13 @@ export default {
     },
     addSelected(event, s) {
       const pathParts = url.removeTrailingSlash(s.path).split("/");
-      let path = this.getContext + s.path;
-      if (this.getContext === "/") {
-        path = s.path;
-      }
+      let path = this.getContext + url.removeTrailingSlash(s.path);
       const modifiedItem = {
         name: pathParts.pop(),
         path: path,
         size: s.size,
         type: s.type,
         source: this.selectedSource || state.sources.current,
-        fullPath: path,
       };
       mutations.resetSelected();
       mutations.addSelected(modifiedItem);
@@ -538,7 +536,10 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
+.sizeInputWrapper {
+  border: 1px solid #ccc;
+}
 .main-input {
   width: 100%;
 }
@@ -551,7 +552,6 @@ export default {
   border-left: 1px solid gray;
   border-right: 1px solid gray;
   word-wrap: break-word;
-  height: -webkit-fill-available;
 }
 
 .searchContext.input {
@@ -562,7 +562,16 @@ export default {
   width: 25%;
   min-width: 7em;
   max-width: 15em;
-  height: -webkit-fill-available;
+}
+
+.searchContext.input option {
+  background: grey;
+  color: white;
+}
+
+.searchContext.input option:hover {
+  background: var(--primaryColor);
+  color: white;
 }
 
 #results > #result-list {
@@ -670,9 +679,8 @@ export default {
   /* IE and Edge */
 }
 
-.search-entry {
-  cursor: pointer;
-  border-radius: 0.25em;
+.search-entry:hover {
+  background-color: var(--alt-background);
 }
 
 .search-entry.active {
@@ -864,4 +872,72 @@ body.rtl #search .boxes h3 {
   padding-right: 0.5em;
   min-width: fit-content;
 }
+
+@media (max-width: 800px) {
+  #search {
+    min-width: unset;
+    max-width: 60%;
+  }
+
+  #search.active {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 50%;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  #search-input {
+    transition: 1s ease all;
+  }
+
+  #search.active #search-input {
+    border-bottom: 3px solid rgba(0, 0, 0, 0.075);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(6px);
+    height: 4em;
+  }
+
+  #search.active>div {
+    border-radius: 0 !important;
+  }
+
+  #search.active #result {
+    height: 100vh;
+    padding-top: 0;
+  }
+
+  #search.active #result>p>i {
+    text-align: center;
+    margin: 0 auto;
+    display: table;
+  }
+
+  #search.active #result ul li a {
+    display: flex;
+    align-items: center;
+    padding: .3em 0;
+    margin-right: .3em;
+  }
+
+  #search-input>.action,
+  #search-input>i {
+    margin-right: 0.3em;
+    user-select: none;
+  }
+
+  #result-list {
+    width:100vw !important;
+    max-width: 100vw !important;
+    left: 0;
+    top: 4em;
+    -webkit-box-direction: normal;
+    -ms-flex-direction: column;
+    overflow: scroll;
+    display: flex;
+    flex-direction: column;
+  }
+}
+
 </style>

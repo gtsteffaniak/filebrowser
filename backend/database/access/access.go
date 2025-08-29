@@ -11,6 +11,7 @@ import (
 
 	"github.com/asdine/storm/v3"
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
+	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/go-cache/cache"
@@ -52,9 +53,10 @@ type FrontendRuleSet struct {
 }
 
 type FrontendAccessRule struct {
-	DenyAll bool            `json:"denyAll,omitempty"`
-	Deny    FrontendRuleSet `json:"deny"`
-	Allow   FrontendRuleSet `json:"allow"`
+	DenyAll           bool            `json:"denyAll,omitempty"`
+	Deny              FrontendRuleSet `json:"deny"`
+	Allow             FrontendRuleSet `json:"allow"`
+	SourceDenyDefault bool            `json:"sourceDenyDefault"`
 }
 
 // GroupMap maps group names to a set of usernames.
@@ -63,8 +65,8 @@ type GroupMap map[string]StringSet
 // Storage manages access rules and group membership.
 type Storage struct {
 	mux      sync.RWMutex
-	AllRules SourceRuleMap  // AllRules[sourcePath][indexPath]
-	Groups   GroupMap       // key: group name, value: set of usernames
+	AllRules SourceRuleMap  // AllRules[sourcePath][indexPath] - in-memory authoritative state
+	Groups   GroupMap       // key: group name, value: set of usernames - in-memory authoritative state
 	DB       *storm.DB      // Optional: DB for persistence
 	Users    *users.Storage // Reference to users storage
 }
@@ -82,6 +84,12 @@ func (s *Storage) SaveToDB() error {
 		return err
 	}
 	return s.DB.Set(accessRulesBucket, accessRulesKey, data)
+}
+
+// Flush persists the current in-memory state to the backing store.
+// Call during graceful shutdown to ensure DB matches memory.
+func (s *Storage) Flush() error {
+	return s.SaveToDB()
 }
 
 // LoadFromDB loads all rules from the DB if DB is set.
@@ -126,6 +134,12 @@ func NewStorage(db *storm.DB, usersStore *users.Storage) *Storage {
 		Users:    usersStore,
 	}
 	return s
+}
+
+// ClearCache clears the access cache (useful for testing)
+func ClearCache() {
+	// Recreate the cache to clear it
+	accessCache = cache.NewCache(1 * time.Minute)
 }
 
 // getOrCreateRuleNL ensures a rule exists for the given source and index path.
@@ -233,6 +247,7 @@ func (s *Storage) DenyAll(sourcePath, indexPath string) error {
 
 // Permitted checks if a username is permitted for a given sourcePath and indexPath, recursively checking parent directories.
 func (s *Storage) Permitted(sourcePath, indexPath, username string) bool {
+
 	// Get current version for the sourcePath
 	versionKey := "version:" + sourcePath
 	version := 0
@@ -263,6 +278,19 @@ func (s *Storage) computePermitted(sourcePath, indexPath, username string) bool 
 			break
 		}
 	}
+
+	// No rules found anywhere in the path hierarchy
+	// Check if the source has DenyByDefault configured (acts like a root-level denyAll rule)
+	sourceInfo, ok := settings.Config.Server.SourceMap[sourcePath]
+	if !ok {
+		logger.Errorf("source %s not found in config during access check", sourcePath)
+		return false
+	}
+
+	if sourceInfo.Config.DenyByDefault {
+		return false
+	}
+
 	return true
 }
 
@@ -279,16 +307,13 @@ func (s *Storage) permittedAtExactPath(sourcePath, indexPath, username string) (
 	if !ok {
 		return true, false
 	}
-	return s.permittedRule(rule, username), true
+	return s.permittedRule(rule, username, sourcePath), true
 }
 
 // permittedRule contains the old Permitted logic, but operates on a rule and username only.
-func (s *Storage) permittedRule(rule *AccessRule, username string) bool {
-	// Check user deny
+func (s *Storage) permittedRule(rule *AccessRule, username string, sourcePath string) bool {
+	// Check user deny first - this always takes precedence
 	if _, found := rule.Deny.Users[username]; found {
-		return false
-	}
-	if rule.DenyAll {
 		return false
 	}
 	// Check group deny
@@ -297,10 +322,12 @@ func (s *Storage) permittedRule(rule *AccessRule, username string) bool {
 			return false
 		}
 	}
-	// If any allow is present, user must be in at least one
+
+	// Check allow rules - these can override DenyAll
 	hasUserAllow := len(rule.Allow.Users) > 0
 	hasGroupAllow := len(rule.Allow.Groups) > 0
 	if hasUserAllow || hasGroupAllow {
+		// If user is in any allow list, permit them (overrides DenyAll)
 		if hasUserAllow {
 			if _, found := rule.Allow.Users[username]; found {
 				return true
@@ -313,18 +340,30 @@ func (s *Storage) permittedRule(rule *AccessRule, username string) bool {
 				}
 			}
 		}
-	} else {
-		return true
-	}
-	// Fallback to deny rules
-	if _, found := rule.Deny.Users[username]; found {
-		return false
-	}
-	for group := range rule.Deny.Groups {
-		if s.isUserInGroup(username, group) {
+
+		// User is not in any allow list
+		// Check DenyByDefault to determine behavior
+		sourceInfo, ok := settings.Config.Server.SourceMap[sourcePath]
+		if ok && sourceInfo.Config.DenyByDefault {
+			// DenyByDefault=true: allow lists are exclusive, deny users not on the list
 			return false
+		} else {
+			// DenyByDefault=false: allow lists are additive, allow users not on the list
+			return true
 		}
 	}
+
+	// Check DenyAll - only applies if no allow rules exist
+	if rule.DenyAll {
+		return false
+	}
+
+	// No specific rules apply - check source DenyByDefault setting
+	sourceInfo, ok := settings.Config.Server.SourceMap[sourcePath]
+	if ok && sourceInfo.Config.DenyByDefault {
+		return false
+	}
+
 	return true
 }
 
@@ -344,7 +383,16 @@ func (s *Storage) isUserInGroup(username, group string) bool {
 func (s *Storage) GetFrontendRules(sourcePath, indexPath string) (FrontendAccessRule, bool) {
 	s.mux.RLock()
 	defer s.mux.RUnlock()
+
+	// Get source configuration
+	sourceDenyDefault := false
+	sourceInfo, sourceExists := settings.Config.Server.SourceMap[sourcePath]
+	if sourceExists {
+		sourceDenyDefault = sourceInfo.Config.DenyByDefault
+	}
+
 	frontendRules := FrontendAccessRule{
+		SourceDenyDefault: sourceDenyDefault,
 		Deny: FrontendRuleSet{
 			Users:  make([]string, 0),
 			Groups: make([]string, 0),
@@ -382,6 +430,14 @@ func (s *Storage) GetAllRules(sourcePath string) (map[string]FrontendAccessRule,
 
 	s.mux.RLock()
 	defer s.mux.RUnlock()
+
+	// Get source configuration
+	sourceDenyDefault := false
+	sourceInfo, sourceExists := settings.Config.Server.SourceMap[sourcePath]
+	if sourceExists {
+		sourceDenyDefault = sourceInfo.Config.DenyByDefault
+	}
+
 	// Return a copy to avoid external mutation
 	frontendRules := make(map[string]FrontendAccessRule, len(s.AllRules))
 	rules, ok := s.AllRules[sourcePath]
@@ -391,7 +447,8 @@ func (s *Storage) GetAllRules(sourcePath string) (map[string]FrontendAccessRule,
 	for indexPath, rule := range rules {
 		// Convert AccessRule to FrontendAccessRule
 		frontendRules[indexPath] = FrontendAccessRule{
-			DenyAll: rule.DenyAll,
+			DenyAll:           rule.DenyAll,
+			SourceDenyDefault: sourceDenyDefault,
 			Deny: FrontendRuleSet{
 				Users:  utils.NonNilSlice(slices.Collect(maps.Keys(rule.Deny.Users))),
 				Groups: utils.NonNilSlice(slices.Collect(maps.Keys(rule.Deny.Groups))),
@@ -733,6 +790,14 @@ func (s *Storage) RemoveAllRulesForGroup(groupname string) error {
 func (s *Storage) GetRulesForUser(sourcePath, username string) map[string]FrontendAccessRule {
 	s.mux.RLock()
 	defer s.mux.RUnlock()
+
+	// Get source configuration
+	sourceDenyDefault := false
+	sourceInfo, sourceExists := settings.Config.Server.SourceMap[sourcePath]
+	if sourceExists {
+		sourceDenyDefault = sourceInfo.Config.DenyByDefault
+	}
+
 	userRules := make(map[string]FrontendAccessRule)
 	rulesBySource, ok := s.AllRules[sourcePath]
 	if !ok {
@@ -750,7 +815,8 @@ func (s *Storage) GetRulesForUser(sourcePath, username string) map[string]Fronte
 		}
 		if userHasRule {
 			userRules[indexPath] = FrontendAccessRule{
-				DenyAll: rule.DenyAll,
+				DenyAll:           rule.DenyAll,
+				SourceDenyDefault: sourceDenyDefault,
 				Deny: FrontendRuleSet{
 					Users:  utils.NonNilSlice(slices.Collect(maps.Keys(rule.Deny.Users))),
 					Groups: utils.NonNilSlice(slices.Collect(maps.Keys(rule.Deny.Groups))),
@@ -769,6 +835,14 @@ func (s *Storage) GetRulesForUser(sourcePath, username string) map[string]Fronte
 func (s *Storage) GetRulesForGroup(sourcePath, groupname string) map[string]FrontendAccessRule {
 	s.mux.RLock()
 	defer s.mux.RUnlock()
+
+	// Get source configuration
+	sourceDenyDefault := false
+	sourceInfo, sourceExists := settings.Config.Server.SourceMap[sourcePath]
+	if sourceExists {
+		sourceDenyDefault = sourceInfo.Config.DenyByDefault
+	}
+
 	groupRules := make(map[string]FrontendAccessRule)
 	rulesBySource, ok := s.AllRules[sourcePath]
 	if !ok {
@@ -786,7 +860,8 @@ func (s *Storage) GetRulesForGroup(sourcePath, groupname string) map[string]Fron
 		}
 		if groupHasRule {
 			groupRules[indexPath] = FrontendAccessRule{
-				DenyAll: rule.DenyAll,
+				DenyAll:           rule.DenyAll,
+				SourceDenyDefault: sourceDenyDefault,
 				Deny: FrontendRuleSet{
 					Users:  utils.NonNilSlice(slices.Collect(maps.Keys(rule.Deny.Users))),
 					Groups: utils.NonNilSlice(slices.Collect(maps.Keys(rule.Deny.Groups))),
@@ -805,6 +880,14 @@ func (s *Storage) GetRulesForGroup(sourcePath, groupname string) map[string]Fron
 func (s *Storage) GetAllRulesByUsers(sourcePath string) map[string]map[string]FrontendAccessRule {
 	s.mux.RLock()
 	defer s.mux.RUnlock()
+
+	// Get source configuration
+	sourceDenyDefault := false
+	sourceInfo, sourceExists := settings.Config.Server.SourceMap[sourcePath]
+	if sourceExists {
+		sourceDenyDefault = sourceInfo.Config.DenyByDefault
+	}
+
 	allUserRules := make(map[string]map[string]FrontendAccessRule)
 	rulesBySource, ok := s.AllRules[sourcePath]
 	if !ok {
@@ -817,7 +900,8 @@ func (s *Storage) GetAllRulesByUsers(sourcePath string) map[string]map[string]Fr
 			continue
 		}
 		frontendRule := FrontendAccessRule{
-			DenyAll: rule.DenyAll,
+			DenyAll:           rule.DenyAll,
+			SourceDenyDefault: sourceDenyDefault,
 			Deny: FrontendRuleSet{
 				Users:  utils.NonNilSlice(slices.Collect(maps.Keys(rule.Deny.Users))),
 				Groups: utils.NonNilSlice(slices.Collect(maps.Keys(rule.Deny.Groups))),
@@ -847,6 +931,14 @@ func (s *Storage) GetAllRulesByUsers(sourcePath string) map[string]map[string]Fr
 func (s *Storage) GetAllRulesByGroups(sourcePath string) map[string]map[string]FrontendAccessRule {
 	s.mux.RLock()
 	defer s.mux.RUnlock()
+
+	// Get source configuration
+	sourceDenyDefault := false
+	sourceInfo, sourceExists := settings.Config.Server.SourceMap[sourcePath]
+	if sourceExists {
+		sourceDenyDefault = sourceInfo.Config.DenyByDefault
+	}
+
 	allGroupRules := make(map[string]map[string]FrontendAccessRule)
 	rulesBySource, ok := s.AllRules[sourcePath]
 	if !ok {
@@ -859,7 +951,8 @@ func (s *Storage) GetAllRulesByGroups(sourcePath string) map[string]map[string]F
 			continue
 		}
 		frontendRule := FrontendAccessRule{
-			DenyAll: rule.DenyAll,
+			DenyAll:           rule.DenyAll,
+			SourceDenyDefault: sourceDenyDefault,
 			Deny: FrontendRuleSet{
 				Users:  utils.NonNilSlice(slices.Collect(maps.Keys(rule.Deny.Users))),
 				Groups: utils.NonNilSlice(slices.Collect(maps.Keys(rule.Deny.Groups))),

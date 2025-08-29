@@ -43,14 +43,17 @@
     <div v-if="!disableQuickToggles" class="card-wrapper" @mouseleave="hideTooltip">
       <div class="quick-toggles">
         <div
+          class="clickable"
           :class="{ active: user?.singleClick }"
           @click="toggleClick"
           @mouseenter="showTooltip($event, $t('index.toggleClick'))"
           @mouseleave="hideTooltip"
+          v-if="!isInvalidShare"
         >
           <i class="material-icons">ads_click</i>
         </div>
         <div
+          class="clickable"
           :class="{ active: user?.darkMode }"
           @click="toggleDarkMode"
           @mouseenter="showTooltip($event, $t('index.toggleDark'))"
@@ -59,6 +62,7 @@
           <i class="material-icons">dark_mode</i>
         </div>
         <div
+          class="clickable"
           :class="{ active: isStickySidebar }"
           @click="toggleSticky"
           @mouseenter="showTooltip($event, $t('index.toggleSticky'))"
@@ -136,7 +140,7 @@
 
 <script>
 import * as auth from "@/utils/auth";
-import { signup, disableExternal, noAuth, loginPage } from "@/utils/constants";
+import { signup, disableExternal, noAuth, loginPage, shareInfo } from "@/utils/constants";
 import ProgressBar from "@/components/ProgressBar.vue";
 import { state, getters, mutations } from "@/store"; // Import your custom store
 import { getHumanReadableFilesize } from "@/utils/filesizes.js";
@@ -153,11 +157,12 @@ export default {
   computed: {
     disableQuickToggles: () => state.user.disableQuickToggles,
     hasSourceInfo: () => state.sources.hasSourceInfo,
-    hideSidebarFileActions: () => state.user.hideSidebarFileActions,
+    hideSidebarFileActions: () => state.user.hideSidebarFileActions || getters.isInvalidShare(),
     settingsAllowed: () => !state.user.disableSettings,
     isSettings: () => getters.isSettings(),
     isStickySidebar: () => getters.isStickySidebar(),
     isMobile: () => getters.isMobile(),
+    isInvalidShare: () => getters.isInvalidShare(),
     isListingView: () => getters.currentView() == "listingView",
     user: () => (state.user),
     isDarkMode: () => getters.isDarkMode(),

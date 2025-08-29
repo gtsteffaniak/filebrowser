@@ -19,7 +19,7 @@
     />
   </span>
   <span v-else>
-    <i :class="[classes, { active: active }]" class="icon"> {{ materialIcon }} </i>
+    <i :class="[classes, { active: active, clickable: clickable }]" class="icon"> {{ materialIcon }} </i>
   </span>
 </template>
 
@@ -32,7 +32,7 @@ import {
 } from "@/utils/constants";
 import { getTypeInfo } from "@/utils/mimetype";
 import { mutations, state } from "@/store";
-import { shareOverrides } from "@/utils/constants";
+import { shareInfo } from "@/utils/constants";
 
 // NEW: Define placeholder and error image URLs for easy configuration
 const PLACEHOLDER_URL = baseURL + "static/img/placeholder.png"; // A generic loading placeholder
@@ -56,6 +56,10 @@ export default {
       type: String,
       default: "",
     },
+    clickable: {
+      type: Boolean,
+      default: false,
+    },
   },
   data() {
     return {
@@ -72,7 +76,7 @@ export default {
   },
   computed: {
     hasPreviewImage() {
-      if (shareOverrides.disableThumbnails) {
+      if (shareInfo.disableThumbnails) {
         return false;
       }
       return this.isPreviewImg && this.imageState !== 'error' && !this.disablePreviewExt && !this.officeFileDisabled
