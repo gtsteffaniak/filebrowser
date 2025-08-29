@@ -34,12 +34,10 @@ func FileInfoFaster(opts iteminfo.FileOptions) (*iteminfo.ExtendedFileInfo, erro
 	if index == nil {
 		return response, fmt.Errorf("could not get index: %v ", opts.Source)
 	}
-	if opts.Access != nil && !opts.Access.Permitted(index.Path, opts.Path, opts.Username) {
-		return response, errors.ErrPermissionDenied
-	}
+
 	realPath, isDir, err := index.GetRealPath(opts.Path)
 	if err != nil {
-		return response, err
+		return response, fmt.Errorf("could not get real path for requested path: %v", opts.Path)
 	}
 	opts.IsDir = isDir
 	var info *iteminfo.FileInfo
@@ -63,6 +61,33 @@ func FileInfoFaster(opts iteminfo.FileOptions) (*iteminfo.ExtendedFileInfo, erro
 	response.FileInfo = *info
 	response.RealPath = realPath
 	response.Source = opts.Source
+
+	if opts.Access != nil && !opts.Access.Permitted(index.Path, opts.Path, opts.Username) {
+		// check if any subpath is permitted
+		// keep track of permitted paths and only show them at the end
+		subFolders := info.Folders
+		subFiles := info.Files
+		response.Folders = make([]iteminfo.ItemInfo, 0)
+		response.Files = make([]iteminfo.ItemInfo, 0)
+		hasPermittedPaths := false
+		for _, subFolder := range subFolders {
+			indexPath := info.Path + subFolder.Name
+			if opts.Access.Permitted(index.Path, indexPath, opts.Username) {
+				hasPermittedPaths = true
+				response.Folders = append(response.Folders, subFolder)
+			}
+		}
+		for _, subFile := range subFiles {
+			indexPath := info.Path + subFile.Name
+			if opts.Access.Permitted(index.Path, indexPath, opts.Username) {
+				hasPermittedPaths = true
+				response.Files = append(response.Files, subFile)
+			}
+		}
+		if !hasPermittedPaths {
+			return response, errors.ErrPermissionDenied
+		}
+	}
 	if opts.Content {
 		processContent(response, index)
 	}
