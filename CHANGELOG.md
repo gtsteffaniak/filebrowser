@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **BugFixes**:
  - access management: delay showing rule changes in the list fixed.
+ - Color names are not localized #1159
 
 ## v0.8.3-beta
 

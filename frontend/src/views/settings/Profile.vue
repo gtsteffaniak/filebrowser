@@ -291,17 +291,19 @@ export default {
       formDisablePreviews: "", // holds temporary input before saving
       formDisabledViewing: "", // holds temporary input before saving
       formDisableOfficePreview: "", // holds temporary input before saving
-      colorChoices: [
+    };
+  },
+  computed: {
+    colorChoices() {
+      return [
         { label: this.$t("colors.blue"), value: "var(--blue)" },
         { label: this.$t("colors.red"), value: "var(--red)" },
         { label: this.$t("colors.green"), value: "var(--icon-green)" },
         { label: this.$t("colors.violet"), value: "var(--icon-violet)" },
         { label: this.$t("colors.yellow"), value: "var(--icon-yellow)" },
         { label: this.$t("colors.orange"), value: "var(--icon-orange)" },
-      ],
-    };
-  },
-  computed: {
+      ];
+    },
     availableThemes() {
       return userSelectableThemes || {};
     },
