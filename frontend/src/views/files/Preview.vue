@@ -1,8 +1,7 @@
 <template>
   <div id="previewer" @mousemove="toggleNavigation" @touchstart="toggleNavigation">
     <div class="preview" v-if="!isDeleted">
-      <ExtendedImage v-if="previewType == 'image' || pdfConvertable" :src="raw" 
-        @navigate-previous="prev" 
+      <ExtendedImage v-if="previewType == 'image' || pdfConvertable" :src="raw" @navigate-previous="prev"
         @navigate-next="next">
       </ExtendedImage>
       <audio v-else-if="previewType == 'audio'" ref="player" :src="raw" controls :autoplay="autoPlay"
@@ -58,8 +57,6 @@
 <script>
 import { filesApi, publicApi } from "@/api";
 import { url } from "@/utils";
-import { getApiPath, doubleEncode } from "@/utils/url";
-import { fetchURL } from "@/api/utils";
 import throttle from "@/utils/throttle";
 import ExtendedImage from "@/components/files/ExtendedImage.vue";
 import { state, getters, mutations } from "@/store";
@@ -232,53 +229,34 @@ export default {
     window.removeEventListener("keydown", this.keyEvent);
   },
   methods: {
-    async subtitles() {
-      if (!state.req.subtitles || state.req.subtitles.length === 0) {
+        async subtitles() {
+      if (!state.req?.subtitles?.length) {
         return [];
       }
       let subs = [];
       for (const subtitleTrack of state.req.subtitles) {
-        let vttContent = "";
-        let vttURL = "";
-        
-        if (subtitleTrack.isFile) {
-          const ext = getFileExtension(subtitleFile);
-          const path = url.removeLastDir(state.req.path) + "/" + subtitleFile;
-
-          let resp;
-          if (getters.isShare()) {
-            // Use public API for shared files
-            resp = await publicApi.fetchPub(path, state.share.hash, "", true);
-          } else {
-            // Use regular files API for authenticated users
-            resp = await filesApi.fetchFiles(state.req.source, path, true);
-          }
-          let vttContent = resp.content;
-          vttContent = convertToVTT(ext, resp.content);
-        } else {
-          // Handle embedded subtitles - call subtitles API directly
-          try {
-            const params = {
-              path: doubleEncode(state.req.path),
-              source: doubleEncode(state.req.source),
-              index: subtitleTrack.index
-            };
-            const apiPath = getApiPath('api/subtitles', params);
-            const res = await fetchURL(apiPath);
-            vttContent = await res.text(); // Get raw VTT content
-          } catch (err) {
-            console.warn("Failed to fetch embedded subtitle:", err);
-            continue; // Skip this subtitle track
-          }
+        // All subtitle content is now pre-loaded when content=true
+        // Simply use the content that's already available
+        if (!subtitleTrack.content || subtitleTrack.content.length === 0) {
+          console.warn("Subtitle track has no content:", subtitleTrack.name);
+          continue;
         }
-        // Create a virtual file (Blob) and get a URL for it
-        const blob = new Blob([vttContent], { type: "text/vtt" });
-        vttURL = URL.createObjectURL(blob);
-        
-        subs.push({
-          name: subtitleTrack.name,
-          src: vttURL,
-        });
+        let vttContent = subtitleTrack.content;
+        if (!subtitleTrack.content.startsWith('WEBVTT')) {
+          const ext = getFileExtension(subtitleTrack.name);
+          vttContent = convertToVTT(ext, subtitleTrack.content);
+        }
+        if (vttContent.startsWith('WEBVTT')) {
+          // Create a virtual file (Blob) and get a URL for it
+          const blob = new Blob([vttContent], { type: "text/vtt" });
+          const vttURL = URL.createObjectURL(blob);
+          subs.push({
+            name: subtitleTrack.name,
+            src: vttURL,
+          });
+        } else {
+          console.warn("Skipping subtitle track because it has no WEBVTT header:", subtitleTrack.name);
+        }
       }
       return subs;
     },

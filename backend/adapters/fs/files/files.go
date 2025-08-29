@@ -27,8 +27,8 @@ import (
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
-func FileInfoFaster(opts iteminfo.FileOptions) (iteminfo.ExtendedFileInfo, error) {
-	response := iteminfo.ExtendedFileInfo{}
+func FileInfoFaster(opts iteminfo.FileOptions) (*iteminfo.ExtendedFileInfo, error) {
+	response := &iteminfo.ExtendedFileInfo{}
 	index := indexing.GetIndex(opts.Source)
 	if index == nil {
 		return response, fmt.Errorf("could not get index: %v ", opts.Source)
@@ -59,31 +59,42 @@ func FileInfoFaster(opts iteminfo.FileOptions) (iteminfo.ExtendedFileInfo, error
 			return response, fmt.Errorf("could not get metadata for path: %v", opts.Path)
 		}
 	}
-	if opts.Content {
-		if info.Size < 20*1024*1024 { // 20 megabytes in bytes
-			content, err := getContent(realPath)
-			if err != nil {
-				logger.Debugf("could not get content for file: "+info.Path, info.Name, err)
-				return response, err
-			}
-			response.Content = content
-		} else {
-			logger.Debug("skipping large text file contents (20MB limit): "+info.Path, info.Name)
-		}
-	}
 	response.FileInfo = *info
 	response.RealPath = realPath
 	response.Source = opts.Source
+	if opts.Content {
+		processContent(response, index)
+	}
 	if settings.Config.Integrations.OnlyOffice.Secret != "" && info.Type != "directory" && iteminfo.IsOnlyOffice(info.Name) {
 		response.OnlyOfficeId = generateOfficeId(realPath)
 	}
-	if strings.HasPrefix(info.Type, "video") {
-		parentInfo, exists := index.GetReducedMetadata(filepath.Dir(info.Path), true)
-		if exists {
-			response.DetectSubtitles(parentInfo)
-		}
-	}
+
 	return response, nil
+}
+
+func processContent(info *iteminfo.ExtendedFileInfo, idx *indexing.Index) {
+	isVideo := strings.HasPrefix(info.Type, "video")
+	if isVideo {
+		parentInfo, exists := idx.GetReducedMetadata(filepath.Dir(info.Path), true)
+		if exists {
+			info.DetectSubtitles(parentInfo)
+			err := info.LoadSubtitleContent()
+			if err != nil {
+				logger.Debug("failed to load subtitle content: " + err.Error())
+			}
+		}
+		return
+	}
+	if info.Size < 20*1024*1024 { // 20 megabytes in bytes
+		content, err := getContent(info.Path)
+		if err != nil {
+			logger.Debugf("could not get content for file: "+info.Path, info.Name, err)
+			return
+		}
+		info.Content = content
+	} else {
+		logger.Debug("skipping large text file contents (20MB limit): "+info.Path, info.Name)
+	}
 }
 
 func generateOfficeId(realPath string) string {

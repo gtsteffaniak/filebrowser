@@ -172,7 +172,7 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 	}
 
 	// delete thumbnails
-	preview.DelThumbs(r.Context(), fileInfo)
+	preview.DelThumbs(r.Context(), *fileInfo)
 
 	err = files.DeleteFiles(source, fileInfo.RealPath, filepath.Dir(fileInfo.RealPath))
 	if err != nil {
@@ -265,7 +265,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		}
 		// On the first chunk, check for conflicts or handle override
 		if offset == 0 {
-			var fileInfo iteminfo.ExtendedFileInfo
+			var fileInfo *iteminfo.ExtendedFileInfo
 			fileInfo, err = files.FileInfoFaster(fileOpts)
 			if err == nil { // File exists
 				if r.URL.Query().Get("override") != "true" {
@@ -274,7 +274,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 					return http.StatusConflict, nil
 				}
 				// If overriding, delete existing thumbnails
-				preview.DelThumbs(r.Context(), fileInfo)
+				preview.DelThumbs(r.Context(), *fileInfo)
 			}
 		}
 
@@ -337,7 +337,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 			return http.StatusConflict, nil
 		}
 
-		preview.DelThumbs(r.Context(), fileInfo)
+		preview.DelThumbs(r.Context(), *fileInfo)
 	}
 	err = files.WriteFile(fileOpts, r.Body)
 	if err != nil {
@@ -567,7 +567,7 @@ func patchAction(ctx context.Context, params patchActionParams) error {
 		}
 
 		// delete thumbnails
-		preview.DelThumbs(ctx, fileInfo)
+		preview.DelThumbs(ctx, *fileInfo)
 		return files.MoveResource(params.isSrcDir, params.isDstDir, params.srcIndex, params.dstIndex, params.src, params.dst)
 	default:
 		return fmt.Errorf("unsupported action %s: %w", params.action, errors.ErrInvalidRequestParams)

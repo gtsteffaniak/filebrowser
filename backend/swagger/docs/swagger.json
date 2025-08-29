@@ -843,6 +843,87 @@
                 }
             }
         },
+        "/api/media/subtitles": {
+            "get": {
+                "description": "Extracts embedded subtitle content from video files by stream index and returns raw WebVTT content",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "text/vtt"
+                ],
+                "tags": [
+                    "Subtitles"
+                ],
+                "summary": "Extract embedded subtitles",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Index path to the video file",
+                        "name": "path",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Source name for the desired source",
+                        "name": "source",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Stream index for embedded subtitle extraction, defaults to 0",
+                        "name": "index",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Raw WebVTT subtitle content",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Resource not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/preview": {
             "get": {
                 "description": "Returns a preview image based on the requested path and size.",

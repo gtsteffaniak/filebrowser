@@ -94,7 +94,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		}
 		file.Path = "/" + strings.TrimPrefix(strings.TrimPrefix(file.Path, link.Path), "/")
 		// Set the file info in the `data` object
-		data.fileInfo = file
+		data.fileInfo = *file
 		// Call the next handler with the data
 		return fn(w, r, data)
 	})
