@@ -478,7 +478,9 @@
     "defaultThemeDescription": "default - тема за замовчуванням",
     "customTheme": "Виберіть свою тему",
     "showSelectMultiple": "Показувати вибране кілька в контекстному меню на робочому столі",
-    "showSelectMultipleDescription": "За замовчуванням, контекстне меню десктопа не має опції \"вибрати декілька\", як у мобільному. Ця опція завжди відображається у контекстному меню."
+    "showSelectMultipleDescription": "За замовчуванням, контекстне меню десктопа не має опції \"вибрати декілька\", як у мобільному. Ця опція завжди відображається у контекстному меню.",
+    "defaultMediaPlayer": "Використовуйте медіаплеєр за замовчуванням у браузері",
+    "defaultMediaPlayerDescription": "Використовуйте медіаплеєр браузера за замовчуванням для відео- та аудіофайлів, а не медіаплеєр html5."
   },
   "general": {
     "name": "Ім'я",
@@ -523,5 +525,9 @@
     "saveDisabled": "Збереження спільних файлів не підтримується.",
     "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
     "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
+  },
+  "player": {
+    "LoopEnabled": "Цикл увімкнено",
+    "LoopDisabled": "Цикл вимкнено"
   }
 }

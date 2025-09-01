@@ -514,7 +514,9 @@
     "defaultThemeDescription": "default - デフォルトのテーマ",
     "customTheme": "テーマを選ぶ",
     "showSelectMultiple": "デスクトップのコンテキストメニューに複数選択を表示する",
-    "showSelectMultipleDescription": "デフォルトでは、デスクトップのコンテキストメニューには、モバイルのような「複数選択」オプションはありません。このオプションは常にコンテキストメニューに表示されます。"
+    "showSelectMultipleDescription": "デフォルトでは、デスクトップのコンテキストメニューには、モバイルのような「複数選択」オプションはありません。このオプションは常にコンテキストメニューに表示されます。",
+    "defaultMediaPlayer": "ブラウザーのデフォルトのメディアプレーヤーを使用する",
+    "defaultMediaPlayerDescription": "動画や音声ファイルには、html5メディアプレーヤーではなく、ブラウザーのデフォルトのメディアプレーヤーを使用してください。"
   },
   "editor": {
     "uninitialized": "エディタの初期化に失敗しました。再読み込みしてください。",
@@ -523,5 +525,9 @@
     "saveDisabled": "共有ファイルの保存はサポートされていません。",
     "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
     "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
+  },
+  "player": {
+    "LoopEnabled": "ループ有効",
+    "LoopDisabled": "ループ無効"
   }
 }

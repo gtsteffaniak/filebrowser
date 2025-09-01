@@ -514,7 +514,9 @@
     "disableSearchOptionsDescription": "Desactivar las opciones de búsqueda que aparecen en la barra lateral.",
     "hideSidebarFileActions": "Ocultar el botón de acciones de archivo en la barra lateral",
     "deleteWithoutConfirming": "Eliminar archivos sin mensaje de confirmación",
-    "deleteWithoutConfirmingDescription": "Eliminar archivos sin mensaje de confirmación. Esto sólo funcionará si el archivo es un archivo multimedia."
+    "deleteWithoutConfirmingDescription": "Eliminar archivos sin mensaje de confirmación. Esto sólo funcionará si el archivo es un archivo multimedia.",
+    "defaultMediaPlayer": "Utilizar el reproductor multimedia predeterminado del navegador",
+    "defaultMediaPlayerDescription": "Utilice el reproductor multimedia predeterminado del navegador para los archivos de vídeo y audio en lugar del reproductor multimedia html5."
   },
   "editor": {
     "uninitialized": "Error al iniciar el editor, vuelva a intentarlo",

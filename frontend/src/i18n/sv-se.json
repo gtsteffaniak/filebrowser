@@ -478,7 +478,9 @@
     "defaultThemeDescription": "default - Standardtema",
     "customTheme": "Välj ditt tema",
     "showSelectMultiple": "Visa markera flera i snabbmenyn på skrivbordet",
-    "showSelectMultipleDescription": "Som standard har snabbmenyn på skrivbordet inte alternativet \"välj flera\" som på mobilen. Det här alternativet visas alltid i snabbmenyn."
+    "showSelectMultipleDescription": "Som standard har snabbmenyn på skrivbordet inte alternativet \"välj flera\" som på mobilen. Det här alternativet visas alltid i snabbmenyn.",
+    "defaultMediaPlayer": "Använd webbläsarens standardmediaspelare",
+    "defaultMediaPlayerDescription": "Använd webbläsarens standardmediaspelare för video- och ljudfiler i stället för html5-mediaspelaren."
   },
   "general": {
     "name": "Namn",
@@ -523,5 +525,9 @@
     "saveDisabled": "Sparande av delade filer stöds inte.",
     "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
     "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
+  },
+  "player": {
+    "LoopEnabled": "Slinga aktiverad",
+    "LoopDisabled": "Slinga avaktiverad"
   }
 }

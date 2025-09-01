@@ -514,7 +514,9 @@
     "defaultThemeDescription": "ברירת מחדל - ערכת הנושא המוגדרת כברירת מחדל",
     "customTheme": "בחר את הנושא שלך",
     "showSelectMultiple": "הצג בחירה מרובה בתפריט ההקשר בשולחן העבודה",
-    "showSelectMultipleDescription": "כברירת מחדל, בתפריט ההקשר של שולחן העבודה אין אפשרות \"בחר מספר פריטים\" כמו במכשירים ניידים. אפשרות זו תמיד מוצגת בתפריט ההקשר."
+    "showSelectMultipleDescription": "כברירת מחדל, בתפריט ההקשר של שולחן העבודה אין אפשרות \"בחר מספר פריטים\" כמו במכשירים ניידים. אפשרות זו תמיד מוצגת בתפריט ההקשר.",
+    "defaultMediaPlayer": "השתמש בנגן המדיה המוגדר כברירת מחדל בדפדפן",
+    "defaultMediaPlayerDescription": "השתמש בנגן המדיה המוגדר כברירת מחדל בדפדפן עבור קבצי וידאו ואודיו, במקום בנגן המדיה html5."
   },
   "editor": {
     "uninitialized": "לא ניתן לאתחל את העורך. אנא טען מחדש.",
@@ -523,5 +525,9 @@
     "saveDisabled": "שמירת קבצים משותפים אינה נתמכת.",
     "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
     "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
+  },
+  "player": {
+    "LoopEnabled": "לולאה מופעלת",
+    "LoopDisabled": "לולאה מושבתת"
   }
 }

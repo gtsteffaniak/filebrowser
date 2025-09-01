@@ -514,7 +514,9 @@
     "defaultThemeDescription": "default - Le thème par défaut",
     "customTheme": "Choisissez votre thème",
     "showSelectMultiple": "Afficher la sélection multiple dans le menu contextuel sur le bureau",
-    "showSelectMultipleDescription": "Par défaut, le menu contextuel de l'ordinateur de bureau n'a pas l'option \"sélectionner plusieurs\" comme celui de l'ordinateur mobile. Cette option apparaît toujours dans le menu contextuel."
+    "showSelectMultipleDescription": "Par défaut, le menu contextuel de l'ordinateur de bureau n'a pas l'option \"sélectionner plusieurs\" comme celui de l'ordinateur mobile. Cette option apparaît toujours dans le menu contextuel.",
+    "defaultMediaPlayer": "Utiliser le lecteur multimédia par défaut du navigateur",
+    "defaultMediaPlayerDescription": "Utilisez le lecteur multimédia par défaut du navigateur pour les fichiers vidéo et audio plutôt que le lecteur multimédia html5."
   },
   "editor": {
     "uninitialized": "Échec de l'initialisation de l'éditeur. Veuillez recharger.",
@@ -523,5 +525,9 @@
     "saveDisabled": "L'enregistrement de fichiers partagés n'est pas possible.",
     "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
     "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
+  },
+  "player": {
+    "LoopEnabled": "Boucle activée",
+    "LoopDisabled": "Boucle désactivée"
   }
 }
