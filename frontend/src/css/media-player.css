@@ -77,10 +77,12 @@
     /* background: #00b2ff; */
     background: var(
         --plyr-video-control-background-hover,
-        var(--plyr-color-main, var(--plyr-color-main))
+        var(--plyr-color-main, var(--plyr-color-main, #00b2ff))
     );
     border: 0;
-    display: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     position: fixed;
     transition: 0.3s;
     z-index: 2;
@@ -465,7 +467,6 @@
     gap: 10px;
     z-index: 10000;
     pointer-events: none;
-    user-select: none;
     opacity: 0;
     transition: opacity 0.3s ease;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
