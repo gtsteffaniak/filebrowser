@@ -14,7 +14,7 @@ All notable changes to this project will be documented in this file. For commit 
  - altered the context menu style and behavior.
 
  **BugFixes**:
- - access management: delay showing rule changes in the list fixed.
+ - access management: delay showing rule changes in the list fixed. #1131
  - Color names are not localized #1159
 
 ## v0.8.3-beta
