@@ -14,17 +14,61 @@
             </ExtendedImage>
 
             <!-- Audio with plyr -->
-            <vue-plyr
+            <div
                 v-else-if="previewType == 'audio'"
-                ref="audioPlayer"
-                :options="plyrOptions"
+                class="audio-player-container"
             >
-                <audio
-                    :src="raw"
-                    :autoplay="autoPlay"
-                    @play="autoPlay = true"
-                ></audio>
-            </vue-plyr>
+                <!-- Album art -->
+                <div class="album-art-container" v-if="albumArtUrl">
+                    <img
+                        :src="albumArtUrl"
+                        :alt="audioMetadata.album || 'Album art'"
+                        class="album-art"
+                    />
+                </div>
+
+                <!-- Metadata info -->
+                <div class="metadata-info" v-if="audioMetadata && albumArtUrl">
+                    <div class="audio-title">
+                        {{ audioMetadata.title || state.req.name }}
+                    </div>
+                    <div class="audio-artist" v-if="audioMetadata.artist">
+                        {{ audioMetadata.artist }}
+                    </div>
+                    <div class="audio-album" v-if="audioMetadata.album">
+                        {{ audioMetadata.album }}
+                    </div>
+                    <div class="audio-year" v-if="audioMetadata.album">
+                        {{ audioMetadata.year }}
+                    </div>
+                </div>
+
+                <div class="audio-controls-container">
+                    <vue-plyr ref="audioPlayer" :options="plyrOptions">
+                        <audio
+                            :src="raw"
+                            :autoplay="autoPlay"
+                            @play="autoPlay = true"
+                        ></audio>
+                    </vue-plyr>
+
+                    <!-- Fallback if the audio has no album art -->
+                    <div
+                        class="audio-info"
+                        v-if="!albumArtUrl && audioMetadata"
+                    >
+                        <div class="audio-title">
+                            {{ audioMetadata.title || state.req.name }}
+                        </div>
+                        <div class="audio-artist" v-if="audioMetadata.artist">
+                            {{ audioMetadata.artist }}
+                        </div>
+                        <div class="audio-album" v-if="audioMetadata.album">
+                            {{ audioMetadata.album }}
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <!-- Video with plyr -->
             <vue-plyr
@@ -94,7 +138,7 @@
         <div :class="['loop-toast', toastVisible ? 'visible' : '']">
             <svg class="loop-icon" viewBox="0 0 24 24">
                 <path
-                    d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46A7.93 7.93 0 0020 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74A7.93 7.93 0 004 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"
+                    d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46A7.93 7.93 0 0020 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01-.25-1.97-.7-2.8L5.24 7.74A7.93 7.93 0 004 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"
                 />
             </svg>
             <span>{{
@@ -134,6 +178,7 @@
         <link rel="prefetch" :href="nextRaw" />
     </div>
 </template>
+
 <script>
 import { filesApi, publicApi } from "@/api";
 import { url } from "@/utils";
@@ -145,6 +190,7 @@ import { convertToVTT } from "@/utils/subtitles";
 import { getTypeInfo } from "@/utils/mimetype";
 import { muPdfAvailable } from "@/utils/constants";
 import { shareInfo } from "@/utils/constants";
+import jsmediatags from "jsmediatags/dist/jsmediatags.min.js";
 
 export default {
     name: "preview",
@@ -167,10 +213,11 @@ export default {
             subtitlesList: [],
             isDeleted: false,
             tapTimeout: null,
-            loopEnabled: false, // The toast on the media player
+            loopEnabled: false,
             toastVisible: false,
             toastTimeout: null,
-            // Plyr options
+            audioMetadata: null, // Null by default, will be loaded from the file.
+            albumArtUrl: null,
             plyrOptions: {
                 controls: [
                     "play-large",
@@ -198,7 +245,7 @@ export default {
                 keyboard: { focused: true, global: true },
                 tooltips: { controls: true, seek: true },
                 loop: { active: true },
-                autoplay: false, // The users will manage this from their profile settings
+                autoplay: false,
                 clickToPlay: true,
                 resetOnEnd: true,
                 toggleInvert: false,
@@ -343,6 +390,13 @@ export default {
                 type: state.req.type,
                 source: state.req.source,
             });
+
+            if (this.previewType === "audio") {
+                this.loadAudioMetadata();
+            } else {
+                this.audioMetadata = null;
+                this.albumArtUrl = null;
+            }
         },
     },
     async mounted() {
@@ -361,6 +415,10 @@ export default {
             type: state.req.type,
             source: state.req.source,
         });
+
+        if (this.previewType === "audio") {
+            this.loadAudioMetadata();
+        }
     },
     beforeUnmount() {
         window.removeEventListener("keydown", this.keyEvent);
@@ -445,7 +503,6 @@ export default {
                     break;
                 case "l":
                 case "L":
-                    // Toggle loop mode with 'L' key
                     if (
                         this.previewType === "video" ||
                         this.previewType === "audio"
@@ -457,17 +514,14 @@ export default {
             }
         },
         toggleLoop() {
-            // Get the appropriate player reference
             let playerRef =
                 this.previewType === "video"
                     ? this.$refs.videoPlayer
                     : this.$refs.audioPlayer;
 
             if (playerRef && playerRef.player) {
-                // Toggle loop mode
                 this.loopEnabled = !this.loopEnabled;
                 playerRef.player.loop = this.loopEnabled;
-
                 this.showToast();
             }
         },
@@ -565,7 +619,6 @@ export default {
                 return;
             }
         },
-
         prefetchUrl(item) {
             if (getters.isShare()) {
                 return this.fullSize
@@ -615,10 +668,70 @@ export default {
             const items = [state.req];
             downloadFiles(items);
         },
+        // Load metadata from the audio
+        async loadAudioMetadata() {
+            if (this.previewType !== "audio") {
+                this.audioMetadata = null;
+                this.albumArtUrl = null;
+                return;
+            }
+
+            try {
+                const audioUrl = this.raw;
+
+                new jsmediatags.Reader(audioUrl)
+                    .setTagsToRead([
+                        "title",
+                        "artist",
+                        "album",
+                        "year",
+                        "picture",
+                    ])
+                    .read({
+                        onSuccess: (tag) => {
+                            this.audioMetadata = {
+                                title: tag.tags.title,
+                                artist: tag.tags.artist,
+                                album: tag.tags.album,
+                                year: tag.tags.year,
+                            };
+
+                            if (tag.tags.picture) {
+                                const base64String = this.arrayBufferToBase64(
+                                    tag.tags.picture.data,
+                                );
+                                this.albumArtUrl = `data:${tag.tags.picture.format};base64,${base64String}`;
+                            } else {
+                                this.albumArtUrl = null;
+                            }
+                        },
+                        onError: (error) => {
+                            console.error(
+                                "Failed to read audio metadata:",
+                                error,
+                            );
+                            this.audioMetadata = null;
+                            this.albumArtUrl = null;
+                        },
+                    });
+            } catch (error) {
+                console.error("Error loading audio metadata:", error);
+                this.audioMetadata = null;
+                this.albumArtUrl = null;
+            }
+        },
+        arrayBufferToBase64(buffer) {
+            let binary = "";
+            const bytes = new Uint8Array(buffer);
+            const len = bytes.byteLength;
+            for (let i = 0; i < len; i++) {
+                binary += String.fromCharCode(bytes[i]);
+            }
+            return window.btoa(binary);
+        },
     },
 };
 </script>
-
 <style scoped>
 .pdf-wrapper {
     position: relative;
