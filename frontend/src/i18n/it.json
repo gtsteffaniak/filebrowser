@@ -49,7 +49,8 @@
     "clearCompleted": "Completato il lavoro di pulizia",
     "showMore": "Mostra di più",
     "showLess": "Mostra meno",
-    "openParentFolder": "Aprire la cartella madre"
+    "openParentFolder": "Aprire la cartella madre",
+    "selectedCount": "Numero di elementi selezionati per eseguire un'azione"
   },
   "download": {
     "downloadFile": "Scarica file",
@@ -515,8 +516,8 @@
     "customTheme": "Scegliete il vostro tema",
     "showSelectMultiple": "Mostra selezione multipla nel menu contestuale sul desktop",
     "showSelectMultipleDescription": "Per impostazione predefinita, il menu contestuale del desktop non dispone dell'opzione \"seleziona più\" come quello del cellulare. Questa opzione viene sempre visualizzata nel menu contestuale.",
-    "defaultMediaPlayer": "Utilizzare il lettore multimediale predefinito del browser",
-    "defaultMediaPlayerDescription": "Utilizzate il lettore multimediale predefinito del browser per i file video e audio piuttosto che il lettore multimediale html5."
+    "defaultMediaPlayer": "Utilizzare il lettore multimediale nativo del browser",
+    "defaultMediaPlayerDescription": "Utilizzate il lettore multimediale nativo del vostro browser per i file video e audio piuttosto che il lettore multimediale \"vue-plyr\" incluso in FileBrowser."
   },
   "editor": {
     "uninitialized": "Impossibile inizializzare l'editor. Ricaricare.",

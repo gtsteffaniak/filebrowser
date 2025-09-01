@@ -49,7 +49,8 @@
     "clearCompleted": "השלם",
     "showMore": "הצג עוד",
     "showLess": "הצג פחות",
-    "openParentFolder": "פתח את התיקייה הראשית"
+    "openParentFolder": "פתח את התיקייה הראשית",
+    "selectedCount": "מספר הפריטים שנבחרו לביצוע פעולה"
   },
   "download": {
     "downloadFile": "הורד קובץ",
@@ -515,8 +516,8 @@
     "customTheme": "בחר את הנושא שלך",
     "showSelectMultiple": "הצג בחירה מרובה בתפריט ההקשר בשולחן העבודה",
     "showSelectMultipleDescription": "כברירת מחדל, בתפריט ההקשר של שולחן העבודה אין אפשרות \"בחר מספר פריטים\" כמו במכשירים ניידים. אפשרות זו תמיד מוצגת בתפריט ההקשר.",
-    "defaultMediaPlayer": "השתמש בנגן המדיה המוגדר כברירת מחדל בדפדפן",
-    "defaultMediaPlayerDescription": "השתמש בנגן המדיה המוגדר כברירת מחדל בדפדפן עבור קבצי וידאו ואודיו, במקום בנגן המדיה html5."
+    "defaultMediaPlayer": "השתמש בנגן המדיה המובנה בדפדפן שלך",
+    "defaultMediaPlayerDescription": "השתמש בנגן המדיה המובנה בדפדפן שלך עבור קבצי וידאו ואודיו, במקום בנגן המדיה 'vue-plyr' הכלול ב-FileBrowser."
   },
   "editor": {
     "uninitialized": "לא ניתן לאתחל את העורך. אנא טען מחדש.",

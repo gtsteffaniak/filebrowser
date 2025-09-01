@@ -49,7 +49,8 @@
     "clearCompleted": "Vymazání dokončeno",
     "showMore": "Zobrazit více",
     "showLess": "Zobrazit méně",
-    "openParentFolder": "Otevření nadřazené složky"
+    "openParentFolder": "Otevření nadřazené složky",
+    "selectedCount": "Počet položek vybraných k provedení akce"
   },
   "download": {
     "downloadFile": "Stáhnout soubor",
@@ -290,8 +291,8 @@
     "customTheme": "Vyberte si téma",
     "showSelectMultiple": "Zobrazení výběru více položek v kontextové nabídce na ploše",
     "showSelectMultipleDescription": "Ve výchozím nastavení nemá kontextová nabídka na ploše možnost \"vybrat více\" jako v mobilním telefonu. Tato možnost se v kontextové nabídce zobrazuje vždy.",
-    "defaultMediaPlayer": "Použití výchozího přehrávače médií v prohlížeči",
-    "defaultMediaPlayerDescription": "Pro video a zvukové soubory používejte výchozí přehrávač médií prohlížeče, nikoli přehrávač médií html5."
+    "defaultMediaPlayer": "Použití nativního přehrávače médií v prohlížeči",
+    "defaultMediaPlayerDescription": "Pro video a zvukové soubory používejte nativní přehrávač médií prohlížeče, nikoli přehrávač médií vue-plyr, který je součástí aplikace FileBrowser."
   },
   "settings": {
     "enterPassword": "Zadejte heslo",

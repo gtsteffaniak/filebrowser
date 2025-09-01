@@ -49,7 +49,8 @@
     "clearCompleted": "Klart avslutat",
     "showMore": "Visa mer",
     "showLess": "Visa mindre",
-    "openParentFolder": "Öppna överordnad mapp"
+    "openParentFolder": "Öppna överordnad mapp",
+    "selectedCount": "Antal objekt som valts för att utföra en åtgärd"
   },
   "download": {
     "downloadFile": "Ladda ner fil",
@@ -479,8 +480,8 @@
     "customTheme": "Välj ditt tema",
     "showSelectMultiple": "Visa markera flera i snabbmenyn på skrivbordet",
     "showSelectMultipleDescription": "Som standard har snabbmenyn på skrivbordet inte alternativet \"välj flera\" som på mobilen. Det här alternativet visas alltid i snabbmenyn.",
-    "defaultMediaPlayer": "Använd webbläsarens standardmediaspelare",
-    "defaultMediaPlayerDescription": "Använd webbläsarens standardmediaspelare för video- och ljudfiler i stället för html5-mediaspelaren."
+    "defaultMediaPlayer": "Använd den inbyggda mediaspelaren i din webbläsare",
+    "defaultMediaPlayerDescription": "Använd webbläsarens inbyggda mediaspelare för video- och ljudfiler i stället för FileBrowsers medföljande \"vue-plyr\"-mediaspelare."
   },
   "general": {
     "name": "Namn",

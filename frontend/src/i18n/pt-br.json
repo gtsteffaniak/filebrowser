@@ -49,7 +49,8 @@
     "clearCompleted": "Limpar concluído",
     "showMore": "Mostrar mais",
     "showLess": "Mostrar menos",
-    "openParentFolder": "Abrir a pasta principal"
+    "openParentFolder": "Abrir a pasta principal",
+    "selectedCount": "Número de itens selecionados para executar uma ação"
   },
   "download": {
     "downloadFile": "Baixar arquivo",
@@ -515,8 +516,8 @@
     "customTheme": "Escolha seu tema",
     "showSelectMultiple": "Mostrar seleção múltipla no menu de contexto na área de trabalho",
     "showSelectMultipleDescription": "Por padrão, o menu de contexto do desktop não tem a opção \"selecionar vários\" como no celular. Essa opção sempre a mostra no menu de contexto.",
-    "defaultMediaPlayer": "Use o reprodutor de mídia padrão do navegador",
-    "defaultMediaPlayerDescription": "Use o reprodutor de mídia padrão do navegador para arquivos de vídeo e áudio em vez do reprodutor de mídia html5."
+    "defaultMediaPlayer": "Use o reprodutor de mídia nativo do seu navegador",
+    "defaultMediaPlayerDescription": "Use o reprodutor de mídia nativo do seu navegador para arquivos de vídeo e áudio em vez do reprodutor de mídia 'vue-plyr' incluído no FileBrowser."
   },
   "editor": {
     "uninitialized": "Falha ao inicializar o editor. Favor recarregar.",

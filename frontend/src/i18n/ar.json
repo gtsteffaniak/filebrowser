@@ -49,7 +49,8 @@
     "clearCompleted": "اكتمل المسح",
     "showMore": "اعرض المزيد",
     "showLess": "اعرض أقل",
-    "openParentFolder": "فتح المجلد الأصل"
+    "openParentFolder": "فتح المجلد الأصل",
+    "selectedCount": "عدد العناصر المحددة لتنفيذ إجراء ما"
   },
   "download": {
     "downloadFile": "Download File",
@@ -507,8 +508,8 @@
     "customTheme": "اختر المظهر الخاص بك",
     "showSelectMultiple": "إظهار تحديد متعدد في قائمة السياق على سطح المكتب",
     "showSelectMultipleDescription": "بشكل افتراضي، لا تحتوي قائمة سياق سطح المكتب على خيار \"تحديد متعدد\" مثل الهاتف المحمول. يظهر هذا الخيار دائمًا في قائمة السياق.",
-    "defaultMediaPlayer": "استخدم مشغل الوسائط الافتراضي للمتصفح",
-    "defaultMediaPlayerDescription": "استخدم مشغل الوسائط الافتراضي للمتصفح لملفات الفيديو والصوت بدلاً من مشغل وسائط html5."
+    "defaultMediaPlayer": "استخدم مشغل الوسائط الأصلي في متصفحك",
+    "defaultMediaPlayerDescription": "استخدم مشغل الوسائط الأصلي في متصفحك لملفات الفيديو والصوت بدلاً من مشغل الوسائط \"vue-plyr\" المضمن في متصفح FileBrowser."
   },
   "colors": {
     "red": "أحمر",
