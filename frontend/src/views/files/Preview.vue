@@ -18,13 +18,20 @@
                 v-else-if="previewType == 'audio'"
                 class="audio-player-container"
             >
-                <!-- Album art -->
-                <div class="album-art-container" v-if="albumArtUrl">
+                <!-- Album art with a generic icon if no image/metadata -->
+                <div
+                    class="album-art-container"
+                    :class="{ 'no-artwork': !albumArtUrl }"
+                >
                     <img
+                        v-if="albumArtUrl"
                         :src="albumArtUrl"
                         :alt="audioMetadata.album || 'Album art'"
                         class="album-art"
                     />
+                    <div v-else class="album-art-fallback">
+                        <i class="material-icons">music_note</i>
+                    </div>
                 </div>
 
                 <!-- Metadata info -->
@@ -51,22 +58,6 @@
                             @play="autoPlay = true"
                         ></audio>
                     </vue-plyr>
-
-                    <!-- Fallback if the audio has no album art -->
-                    <div
-                        class="audio-info"
-                        v-if="!albumArtUrl && audioMetadata"
-                    >
-                        <div class="audio-title">
-                            {{ audioMetadata.title || state.req.name }}
-                        </div>
-                        <div class="audio-artist" v-if="audioMetadata.artist">
-                            {{ audioMetadata.artist }}
-                        </div>
-                        <div class="audio-album" v-if="audioMetadata.album">
-                            {{ audioMetadata.album }}
-                        </div>
-                    </div>
                 </div>
             </div>
 
