@@ -213,11 +213,12 @@ export default {
             subtitlesList: [],
             isDeleted: false,
             tapTimeout: null,
-            loopEnabled: false,
+            loopEnabled: false, // The toast on the media player
             toastVisible: false,
             toastTimeout: null,
-            audioMetadata: null, // Null by default, will be loaded from the file.
+            audioMetadata: null, // Null by default, will be loaded from the audio file.
             albumArtUrl: null,
+            // Plyr options
             plyrOptions: {
                 controls: [
                     "play-large",
@@ -245,7 +246,7 @@ export default {
                 keyboard: { focused: true, global: true },
                 tooltips: { controls: true, seek: true },
                 loop: { active: true },
-                autoplay: false,
+                autoplay: false, // The users will manage this from their profile settings
                 clickToPlay: true,
                 resetOnEnd: true,
                 toggleInvert: false,
@@ -501,6 +502,7 @@ export default {
                 case "Backspace":
                     this.close();
                     break;
+                // Toggle loop mode with 'L' key
                 case "l":
                 case "L":
                     if (
@@ -514,12 +516,14 @@ export default {
             }
         },
         toggleLoop() {
+            // Get the appropriate player reference
             let playerRef =
                 this.previewType === "video"
                     ? this.$refs.videoPlayer
                     : this.$refs.audioPlayer;
 
             if (playerRef && playerRef.player) {
+                // Toggle loop mode
                 this.loopEnabled = !this.loopEnabled;
                 playerRef.player.loop = this.loopEnabled;
                 this.showToast();
