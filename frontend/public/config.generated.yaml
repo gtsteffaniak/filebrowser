@@ -104,6 +104,8 @@ frontend:
       default:
         description: The default theme
         css: ""
+  favicon: ""                             # path to a favicon to use for the frontend
+  description: "FileBrowser Quantum is a file manager for the web which can be used to manage files on your server" # description that shows up in html head meta description
 userDefaults:
   editorQuickSave: false                  # show quick save button in editor
   hideSidebarFileActions: false           # hide the file actions in the sidebar
@@ -119,8 +121,8 @@ userDefaults:
   gallerySize: 3                          # 0-9 - the size of the gallery thumbnails
   themeColor: "var(--blue)"               # theme color to use: eg. #ff0000, or var(--red), var(--purple), etc
   quickDownload: false                    # show icon to download in one click
-  disablePreviewExt: ""                   # comma separated list of file extensions to disable preview for
-  disableViewingExt: ""                   # comma separated list of file extensions to disable viewing for
+  disablePreviewExt: ""                   # space separated list of file extensions to disable preview for
+  disableViewingExt: ""                   # space separated list of file extensions to disable viewing for
   lockPassword: false                     # disable the user from changing their password
   disableSettings: false                  # disable the user from viewing the settings page
   preview:

@@ -59,6 +59,11 @@ func setupFrontend(generate bool) {
 			Url:  "https://github.com/gtsteffaniak/filebrowser/wiki",
 		})
 	}
+	if Config.Frontend.Description != "" {
+		Config.Frontend.Description = Config.Frontend.Description
+	} else {
+		Config.Frontend.Description = "FileBrowser Quantum is a file manager for the web which can be used to manage files on your server"
+	}
 	Config.Frontend.Styling.LightBackground = FallbackColor(Config.Frontend.Styling.LightBackground, "#f5f5f5")
 	Config.Frontend.Styling.DarkBackground = FallbackColor(Config.Frontend.Styling.DarkBackground, "#141D24")
 	Config.Frontend.Styling.CustomCSS = readCustomCSS(Config.Frontend.Styling.CustomCSS)
@@ -85,6 +90,9 @@ func setupFrontend(generate bool) {
 	if !ok {
 		addCustomTheme("default", "The default theme", "")
 	}
+
+	// Load custom favicon if configured
+	loadCustomFavicon()
 }
 
 func getRealPath(path string) string {
@@ -509,6 +517,54 @@ func GetSources(u *users.User) []string {
 		}
 	}
 	return sources
+}
+
+func loadCustomFavicon() {
+	// Check if a custom favicon path is configured
+	if Config.Frontend.Favicon == "" {
+		logger.Debug("No custom favicon configured, using default")
+		return
+	}
+
+	// Get absolute path for the favicon
+	faviconPath, err := filepath.Abs(Config.Frontend.Favicon)
+	if err != nil {
+		logger.Warningf("Could not resolve favicon path '%v': %v", Config.Frontend.Favicon, err)
+		Config.Frontend.Favicon = "" // Unset invalid path
+		return
+	}
+
+	// Check if the favicon file exists and get info
+	stat, err := os.Stat(faviconPath)
+	if err != nil {
+		logger.Warningf("Could not access custom favicon file '%v': %v", faviconPath, err)
+		Config.Frontend.Favicon = "" // Unset invalid path
+		return
+	}
+
+	// Check file size (limit to 1MB for security)
+	const maxFaviconSize = 1024 * 1024 // 1MB
+	if stat.Size() > maxFaviconSize {
+		logger.Warningf("Favicon file '%v' is too large (%d bytes), maximum allowed is %d bytes", faviconPath, stat.Size(), maxFaviconSize)
+		Config.Frontend.Favicon = "" // Unset invalid path
+		return
+	}
+
+	// Validate file format based on extension
+	ext := strings.ToLower(filepath.Ext(faviconPath))
+	switch ext {
+	case ".ico", ".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp":
+		// Valid favicon formats
+	default:
+		logger.Warningf("Unsupported favicon format '%v', supported formats: .ico, .png, .jpg, .gif, .svg, .webp", ext)
+		Config.Frontend.Favicon = "" // Unset invalid path
+		return
+	}
+
+	// Update to absolute path and mark as valid
+	Config.Frontend.Favicon = faviconPath
+
+	logger.Infof("Successfully validated custom favicon at '%v' (%d bytes, %s)", faviconPath, stat.Size(), ext)
 }
 
 func modifyExcludeInclude(config *Source) {

@@ -39,9 +39,10 @@ type Server struct {
 	CacheDir                     string      `json:"cacheDir"`       // path to the cache directory, used for thumbnails and other cached files
 	MaxArchiveSizeGB             int64       `json:"maxArchiveSize"` // max pre-archive combined size of files/folder that are allowed to be archived (in GB)
 	// not exposed to config
-	SourceMap      map[string]Source `json:"-" validate:"omitempty"` // uses realpath as key
-	NameToSource   map[string]Source `json:"-" validate:"omitempty"` // uses name as key
-	MuPdfAvailable bool              `json:"-"`                      // used internally if compiled with mupdf support
+	SourceMap          map[string]Source `json:"-" validate:"omitempty"` // uses realpath as key
+	NameToSource       map[string]Source `json:"-" validate:"omitempty"` // uses name as key
+	MuPdfAvailable     bool              `json:"-"`                      // used internally if compiled with mupdf support
+	DisableUpdateCheck bool              `json:"-"`                      // disable update check
 }
 
 type Integrations struct {
@@ -114,14 +115,17 @@ type Frontend struct {
 	ExternalLinks         []ExternalLink `json:"externalLinks"`
 	DisableNavButtons     bool           `json:"disableNavButtons"` // disable the nav buttons in the sidebar
 	Styling               StylingConfig  `json:"styling"`
+	Favicon               string         `json:"favicon"`     // path to a favicon to use for the frontend
+	Description           string         `json:"description"` // description that shows up in html head meta description
 }
 
 type StylingConfig struct {
-	CustomCSS          string                 `json:"customCSS"`       // if a valid path to a css file is provided, it will be applied for all users. (eg. "reduce-rounded-corners.css")
-	LightBackground    string                 `json:"lightBackground"` // specify a valid CSS color property value to use as the background color in light mode
-	DarkBackground     string                 `json:"darkBackground"`  // Specify a valid CSS color property value to use as the background color in dark mode
-	CustomThemes       map[string]CustomTheme `json:"customThemes"`    // A list of custom css files that each user can select to override the default styling. if "default" is key name then it will be the default option.
-	CustomThemeOptions map[string]CustomTheme `json:"-"`               // not exposed
+	CustomCSS       string                 `json:"customCSS"`       // if a valid path to a css file is provided, it will be applied for all users. (eg. "reduce-rounded-corners.css")
+	LightBackground string                 `json:"lightBackground"` // specify a valid CSS color property value to use as the background color in light mode
+	DarkBackground  string                 `json:"darkBackground"`  // Specify a valid CSS color property value to use as the background color in dark mode
+	CustomThemes    map[string]CustomTheme `json:"customThemes"`    // A list of custom css files that each user can select to override the default styling. if "default" is key name then it will be the default option.
+	// In-memory (not exposed to config)
+	CustomThemeOptions map[string]CustomTheme `json:"-"` // not exposed
 }
 
 type CustomTheme struct {
@@ -152,8 +156,8 @@ type UserDefaults struct {
 	GallerySize                int                 `json:"gallerySize"`               // 0-9 - the size of the gallery thumbnails
 	ThemeColor                 string              `json:"themeColor"`                // theme color to use: eg. #ff0000, or var(--red), var(--purple), etc
 	QuickDownload              bool                `json:"quickDownload"`             // show icon to download in one click
-	DisablePreviewExt          string              `json:"disablePreviewExt"`         // comma separated list of file extensions to disable preview for
-	DisableViewingExt          string              `json:"disableViewingExt"`         // comma separated list of file extensions to disable viewing for
+	DisablePreviewExt          string              `json:"disablePreviewExt"`         // space separated list of file extensions to disable preview for
+	DisableViewingExt          string              `json:"disableViewingExt"`         // space separated list of file extensions to disable viewing for
 	LockPassword               bool                `json:"lockPassword"`              // disable the user from changing their password
 	DisableSettings            bool                `json:"disableSettings,omitempty"` // disable the user from viewing the settings page
 	Preview                    users.Preview       `json:"preview"`

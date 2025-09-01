@@ -2683,6 +2683,10 @@ const docTemplate = `{
         "settings.Frontend": {
             "type": "object",
             "properties": {
+                "description": {
+                    "description": "description that shows up in html head meta description",
+                    "type": "string"
+                },
                 "disableDefaultLinks": {
                     "description": "disable default links in the sidebar",
                     "type": "boolean"
@@ -2700,6 +2704,10 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/settings.ExternalLink"
                     }
+                },
+                "favicon": {
+                    "description": "path to a favicon to use for the frontend",
+                    "type": "string"
                 },
                 "name": {
                     "description": "display name",
@@ -3167,7 +3175,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "disablePreviewExt": {
-                    "description": "comma separated list of file extensions to disable preview for",
+                    "description": "space separated list of file extensions to disable preview for",
                     "type": "string"
                 },
                 "disableQuickToggles": {
@@ -3187,7 +3195,7 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "disableViewingExt": {
-                    "description": "comma separated list of file extensions to disable viewing for",
+                    "description": "space separated list of file extensions to disable viewing for",
                     "type": "string"
                 },
                 "editorQuickSave": {
@@ -3605,7 +3613,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "disablePreviewExt": {
-                    "description": "comma separated list of file extensions to disable preview for",
+                    "description": "space separated list of file extensions to disable preview for",
                     "type": "string"
                 },
                 "disableQuickToggles": {
@@ -3624,7 +3632,7 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "disableViewingExt": {
-                    "description": "comma separated list of file extensions to disable viewing for",
+                    "description": "space separated list of file extensions to disable viewing for",
                     "type": "string"
                 },
                 "editorQuickSave": {

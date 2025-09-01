@@ -54,12 +54,14 @@ func StartFilebrowser() {
 	if !keepGoing {
 		return
 	}
-	info, _ := utils.CheckForUpdates()
-	if info.LatestVersion != "" {
-		logger.Infof("A new version is available: %s (current: %s)", info.LatestVersion, info.CurrentVersion)
-		logger.Infof("Release notes: %s", info.ReleaseNotes)
+	if !settings.Config.Server.DisableUpdateCheck {
+		info, _ := utils.CheckForUpdates()
+		if info.LatestVersion != "" {
+			logger.Infof("A new version is available: %s (current: %s)", info.LatestVersion, info.CurrentVersion)
+			logger.Infof("Release notes: %s", info.ReleaseNotes)
+		}
+		go utils.StartCheckForUpdates()
 	}
-	go utils.StartCheckForUpdates()
 
 	// Create context and channels for graceful shutdown
 	ctx, cancel := context.WithCancel(context.Background())

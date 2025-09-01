@@ -229,6 +229,9 @@ definitions:
     type: object
   settings.Frontend:
     properties:
+      description:
+        description: description that shows up in html head meta description
+        type: string
       disableDefaultLinks:
         description: disable default links in the sidebar
         type: boolean
@@ -242,6 +245,9 @@ definitions:
         items:
           $ref: '#/definitions/settings.ExternalLink'
         type: array
+      favicon:
+        description: path to a favicon to use for the frontend
+        type: string
       name:
         description: display name
         type: string
@@ -595,7 +601,7 @@ definitions:
         description: list of file extensions to disable onlyoffice editor for
         type: string
       disablePreviewExt:
-        description: comma separated list of file extensions to disable preview for
+        description: space separated list of file extensions to disable preview for
         type: string
       disableQuickToggles:
         description: disable the quick toggles in the sidebar
@@ -610,7 +616,7 @@ definitions:
         description: disable update notifications banner for admin users
         type: boolean
       disableViewingExt:
-        description: comma separated list of file extensions to disable viewing for
+        description: space separated list of file extensions to disable viewing for
         type: string
       editorQuickSave:
         description: show quick save button in editor
@@ -904,7 +910,7 @@ definitions:
         description: deprecated
         type: string
       disablePreviewExt:
-        description: comma separated list of file extensions to disable preview for
+        description: space separated list of file extensions to disable preview for
         type: string
       disableQuickToggles:
         description: disable the quick toggles in the sidebar
@@ -918,7 +924,7 @@ definitions:
         description: disable update notifications
         type: boolean
       disableViewingExt:
-        description: comma separated list of file extensions to disable viewing for
+        description: space separated list of file extensions to disable viewing for
         type: string
       editorQuickSave:
         description: show quick save button in editor

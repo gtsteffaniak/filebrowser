@@ -100,8 +100,8 @@ type NonAdminEditable struct {
 	FileLoading                FileLoading `json:"fileLoading"`                // upload and download settings
 	DisableOfficePreviewExt    string      `json:"disableOfficePreviewExt"`    // deprecated
 	DisableOnlyOfficeExt       string      `json:"disableOnlyOfficeExt"`       // deprecated
-	DisablePreviewExt          string      `json:"disablePreviewExt"`          // comma separated list of file extensions to disable preview for
-	DisableViewingExt          string      `json:"disableViewingExt"`          // comma separated list of file extensions to disable viewing for
+	DisablePreviewExt          string      `json:"disablePreviewExt"`          // space separated list of file extensions to disable preview for
+	DisableViewingExt          string      `json:"disableViewingExt"`          // space separated list of file extensions to disable viewing for
 	CustomTheme                string      `json:"customTheme"`                // Name of theme to use chosen from custom themes config.
 	ShowSelectMultiple         bool        `json:"showSelectMultiple"`         // show select multiple files on desktop
 }

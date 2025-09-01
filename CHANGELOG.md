@@ -7,11 +7,15 @@ All notable changes to this project will be documented in this file. For commit 
  **New Features**:
  - added embeded video subtitle support. @maxbin123 #1072 #1157
  - added new default media player (can be disabled in user profile settings) @Kurami32 #1160
+ - Option to disable update check #1134
+ - added `frontend.favicon` and `frontend.description` for html overrides
 
  **Notes**:
  - access management: specific folders/files with access are shown instead permission denied for parent folder
  - navigation no longer appends last location hash which should fix some unwanted navation behavior #1070
  - altered the context menu style and behavior.
+ - documentation update: comma or Space separated extensions #1138
+
 
  **BugFixes**:
  - access management: delay showing rule changes in the list fixed. #1131
