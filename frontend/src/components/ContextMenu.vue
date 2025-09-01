@@ -23,8 +23,7 @@
           <i v-if="!showCreate" class="material-icons">add</i>
           <i v-if="showCreate" class="material-icons">arrow_back</i>
         </div>
-        <div @mouseenter="showTooltip($event, $t('buttons.selectedCount'))" @mouseleave="hideTooltip">
-          v-if="selectedCount > 0" class="button selected-count-header">
+        <div v-if="selectedCount > 0" @mouseleave="hideTooltip" @mouseenter="showTooltip($event, $t('buttons.selectedCount'))" class="button selected-count-header">
           <span>{{ selectedCount }}</span>
         </div>
       </div>
@@ -312,6 +311,9 @@ export default {
     }
   },
   methods: {
+    hideTooltip() {
+      mutations.hideTooltip();
+    },
     showTooltip(event, text) {
       mutations.showTooltip({
         content: text,
