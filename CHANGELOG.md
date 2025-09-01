@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Notes**:
  - access management: specific folders/files with access are shown instead permission denied for parent folder
+ - navigation no longer appends last location hash which should fix some unwanted navation behavior #1070
 
  **BugFixes**:
  - access management: delay showing rule changes in the list fixed.

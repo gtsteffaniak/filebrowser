@@ -17,12 +17,14 @@
       <div class="context-menu-header">
         <div
           class="action button clickable"
-          v-if="!showCreate && !isSearchActive && userPerms.modify && !isShare"
-          @onclick="startShowCreate"
+          v-if="!isSearchActive && userPerms.modify && !isShare"
+          @click="toggleShowCreate"
         >
-          <i class="material-icons">add</i>
+          <i v-if="!showCreate" class="material-icons">add</i>
+          <i v-if="showCreate" class="material-icons">arrow_back</i>
         </div>
-        <div v-if="selectedCount > 0" class="button selected-count-header">
+        <div @mouseenter="showTooltip($event, $t('buttons.selectedCount'))" @mouseleave="hideTooltip">
+          v-if="selectedCount > 0" class="button selected-count-header">
           <span>{{ selectedCount }}</span>
         </div>
       </div>
@@ -310,6 +312,16 @@ export default {
     }
   },
   methods: {
+    showTooltip(event, text) {
+      mutations.showTooltip({
+        content: text,
+        x: event.clientX,
+        y: event.clientY,
+      });
+    },
+    toggleShowCreate() {
+      this.showCreate = !this.showCreate;
+    },
     shouldShowParentFolder() {
       return this.isPreview && state.req.path != "/";
     },
@@ -385,6 +397,7 @@ export default {
       }, 300);
     },
     startShowCreate() {
+      console.log("startShowCreate");
       if (getters.isShare()) {
         return;
       }
