@@ -9,7 +9,6 @@
 @import "./dashboard.css";
 @import "./login.css";
 @import "./mobile.css";
-@import "./media-player.css";
 
 .link {
     color: var(--blue);
@@ -351,6 +350,7 @@ body.rtl .card.floating .card-content .file-list {
 }
 
 .clickable:hover,
+.plyr .plyr__control:hover,
 button:hover,
 .action:hover,
 .listing-item.drag-hover {
@@ -403,4 +403,9 @@ button:hover,
 
 .form-dropdown {
     width: unset !important;
+}
+
+.divider {
+    border-color: var(--divider);
+    width: 90%;
 }

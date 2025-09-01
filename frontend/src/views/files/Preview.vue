@@ -675,7 +675,20 @@ export default {
 };
 </script>
 
-<style scoped>
+<style>
+@import url("@skjnldsv/vue-plyr/dist/vue-plyr.css");
+.clickable:hover,
+.plyr .plyr__control:hover,
+button:hover,
+.action:hover,
+.listing-item.drag-hover {
+    box-shadow:
+        inset 0 -3em 3em rgba(217, 217, 217, 0.211),
+        0 0 0 2px var(--alt-background) !important;
+    /* Adjust shadow values as needed */
+    transform: scale(1.02);
+    /* Slightly enlarges the element */
+}
 .pdf-wrapper {
     position: relative;
     width: 100%;
@@ -695,5 +708,221 @@ export default {
 
 .pdf-wrapper .floating-btn:hover {
     background: rgba(0, 0, 0, 0.7);
+}
+
+.plyr {
+    --plyr-color-main: var(--primaryColor);
+    --plyr-video-background: rgba(0, 0, 0, 1);
+    --plyr-focus-visible-color: var(--primaryColor);
+    --plyr-audio-control-color: #ffffff;
+    --plyr-menu-background: rgba(0, 0, 0, 0.7);
+    --plyr-menu-color: #ffffff;
+    --plyr-menu-border-shadow-color: rgba(0, 0, 0, 0.5);
+    --plyr-menu-radius: 12px;
+    --plyr-menu-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    --plyr-control-radius: 12px;
+    --plyr-control-icon-size: 16px;
+    --plyr-control-spacing: 8px;
+    --plyr-control-padding: 6px;
+    --plyr-tooltip-background: rgba(0, 0, 0, 0.8);
+    --plyr-tooltip-color: #ffffff;
+    --plyr-audio-controls-background: transparent;
+    --plyr-video-controls-background: linear-gradient(transparent,
+            rgba(0, 0, 0, 0.7));
+    border-radius: 12px;
+    overflow: visible;
+}
+
+.plyr.plyr--video {
+    width: 100%;
+    height: 100%;
+}
+
+.plyr.plyr--video .plyr__control[data-plyr="captions"],
+.plyr.plyr--video .plyr__control[data-plyr="pip"] {
+    display: block !important;
+}
+
+.plyr .plyr__controls {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+}
+
+/* Progress bar with full width */
+.plyr .plyr__progress__container {
+    flex: 100%;
+    margin: 0;
+}
+
+/* Buttons */
+.plyr .plyr__controls__items {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: nowrap;
+}
+
+/* Button styling */
+.plyr .plyr__control {
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+    display: flex;
+    min-width: 2em;
+    justify-content: center;
+    align-items: center;
+}
+
+.plyr video {
+    border-radius: 12px;
+    width: 100%;
+    height: 100%;
+}
+
+/* Style for audio player */
+.plyr.plyr--audio {
+    background: rgba(40, 40, 55, 1);
+    border-radius: 16px;
+    padding: 15px;
+    max-width: 800px;
+    width: 90%;
+    max-height: 300px;
+    margin: auto auto;
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.plyr--full-ui.plyr--video .plyr__control--overlaid {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.plyr__control--overlaid {
+    /* background: #00b2ff; */
+    background: var(--plyr-video-control-background-hover, var(--plyr-color-main, var(--plyr-color-main, #00b2ff)));
+    border: 0;
+    display: none;
+    position: fixed;
+    transition: .3s;
+    z-index: 2;
+    height: 4em;
+    transform: none;
+    padding: unset;
+    left: unset;
+    right: unset;
+    bottom: unset;
+    width: 4em !important;
+    border-radius: 5em !important
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .plyr.plyr--audio {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        max-width: 100%;
+        max-height: 70px;
+        border-radius: 5px;
+        padding: 10px 15px;
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+        margin: 0;
+        transform: none;
+    }
+
+    /* Made the buttons more "big" */
+    .plyr--audio .plyr__control {
+        min-width: 44px;
+        min-height: 44px;
+    }
+
+    .plyr--audio .plyr__progress__container {
+        margin: 10px 0;
+    }
+
+    .plyr--audio .plyr__controls {
+        padding: 0;
+        gap: 5px;
+    }
+
+    .plyr--audio .plyr__controls__items {
+        justify-content: center;
+        gap: 15px;
+    }
+
+    .plyr--audio .plyr__control--play {
+        transform: scale(1.2);
+    }
+
+    /* Hide some items on audio player*/
+    .plyr--audio .plyr__control[data-plyr="settings"],
+    .plyr--audio .plyr__control[data-plyr="pip"],
+    .plyr--audio .plyr__volume {
+        display: none;
+    }
+
+    /* Hide some items on video player*/
+    .plyr--video .plyr__control[data-plyr="pip"],
+    .plyr--video .plyr__volume {
+        display: none;
+    }
+
+    /* Time playing */
+    .plyr--audio .plyr__time {
+        font-size: 14px;
+        margin: 0 5px;
+    }
+}
+
+/* Loop toast */
+.loop-toast {
+    position: fixed;
+    bottom: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 15px 25px;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 10000;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.loop-toast.visible {
+    opacity: 1;
+}
+
+.loop-icon {
+    width: 24px;
+    height: 24px;
+    fill: white;
+}
+
+.status-indicator {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-left: 10px;
+}
+
+.status-on {
+    background: #4caf50;
+}
+
+.status-off {
+    background: #f44336;
 }
 </style>

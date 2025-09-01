@@ -49,7 +49,8 @@
     "clearCompleted": "Temizleme tamamlandı",
     "showMore": "Daha fazla göster",
     "showLess": "Daha az göster",
-    "openParentFolder": "Üst klasörü açın"
+    "openParentFolder": "Üst klasörü açın",
+    "selectedCount": "Bir eylemi gerçekleştirmek için seçilen öğe sayısı"
   },
   "download": {
     "downloadFile": "Dosyayı indir",
@@ -515,8 +516,8 @@
     "customTheme": "Temanızı seçin",
     "showSelectMultiple": "Masaüstündeki bağlam menüsünde çoklu seçmeyi göster",
     "showSelectMultipleDescription": "Varsayılan olarak, masaüstü içerik menüsünde mobil cihazlardaki gibi \"çoklu seç\" seçeneği yoktur. Bu seçenek her zaman içerik menüsünde gösterilir.",
-    "defaultMediaPlayer": "Tarayıcının varsayılan medya oynatıcısını kullanma",
-    "defaultMediaPlayerDescription": "Video ve ses dosyaları için html5 medya oynatıcı yerine tarayıcının varsayılan medya oynatıcısını kullanın."
+    "defaultMediaPlayer": "Tarayıcınızın yerel medya oynatıcısını kullanın",
+    "defaultMediaPlayerDescription": "Video ve ses dosyaları için FileBrowser'ın dahil ettiği 'vue-plyr' medya oynatıcısı yerine tarayıcınızın yerel medya oynatıcısını kullanın."
   },
   "editor": {
     "uninitialized": "Düzenleyici başlatılamadı. Lütfen yeniden yükleyin.",

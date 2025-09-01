@@ -49,7 +49,8 @@
     "clearCompleted": "Abgeschlossene löschen",
     "showMore": "Mehr anzeigen",
     "showLess": "Weniger anzeigen",
-    "openParentFolder": "Übergeordneten Ordner öffnen"
+    "openParentFolder": "Übergeordneten Ordner öffnen",
+    "selectedCount": "Anzahl der zur Durchführung einer Aktion ausgewählten Elemente"
   },
   "download": {
     "downloadFile": "Datei herunterladen",
@@ -515,8 +516,8 @@
     "customTheme": "Wählen Sie Ihr Thema",
     "showSelectMultiple": "Mehrfachauswahl im Kontextmenü auf dem Desktop anzeigen",
     "showSelectMultipleDescription": "Standardmäßig verfügt das Desktop-Kontextmenü nicht über die Option \"Mehrere auswählen\" wie bei mobilen Geräten. Diese Option wird immer im Kontextmenü angezeigt.",
-    "defaultMediaPlayer": "Verwenden Sie den Standard-Medienplayer des Browsers",
-    "defaultMediaPlayerDescription": "Verwenden Sie für Video- und Audiodateien den Standard-Media-Player des Browsers und nicht den html5-Media-Player."
+    "defaultMediaPlayer": "Verwenden Sie den nativen Media Player Ihres Browsers",
+    "defaultMediaPlayerDescription": "Verwenden Sie für Video- und Audiodateien den nativen Mediaplayer Ihres Browsers und nicht den in FileBrowser enthaltenen 'vue-plyr' Mediaplayer."
   },
   "editor": {
     "uninitialized": "Der Editor konnte nicht initialisiert werden. Bitte neu laden.",

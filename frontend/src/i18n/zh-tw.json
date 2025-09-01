@@ -49,7 +49,8 @@
     "clearCompleted": "清除完成",
     "showMore": "顯示更多",
     "showLess": "顯示更少",
-    "openParentFolder": "開啟父資料夾"
+    "openParentFolder": "開啟父資料夾",
+    "selectedCount": "選取執行動作的項目數量"
   },
   "download": {
     "downloadFile": "下載檔案",
@@ -453,8 +454,8 @@
     "customTheme": "選擇您的主題",
     "showSelectMultiple": "在桌面的上下文功能表中顯示多重選擇",
     "showSelectMultipleDescription": "預設情況下，桌上型電腦的上下文功能表不像行動裝置一樣有「選取多個」選項。此選項總是在上下文功能表中顯示。",
-    "defaultMediaPlayer": "使用瀏覽器的預設媒體播放器",
-    "defaultMediaPlayerDescription": "使用瀏覽器的預設媒體播放器來播放視訊和音訊檔案，而不是使用 html5 媒體播放器。"
+    "defaultMediaPlayer": "使用瀏覽器的本機媒體播放器",
+    "defaultMediaPlayerDescription": "使用瀏覽器的本機媒體播放器來播放視訊和音訊檔案，而非 FileBrowser 隨附的「vue-plyr」媒體播放器。"
   },
   "otp": {
     "name": "雙因素驗證",

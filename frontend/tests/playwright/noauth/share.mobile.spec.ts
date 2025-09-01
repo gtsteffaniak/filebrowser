@@ -23,7 +23,7 @@ test("share download multiple files", async ({ page, checkForErrors, context }) 
   await page.locator('a[aria-label="gray-sample.jpg"]').click({ button: "right" });
 
   await page.locator('.selected-count-header').waitFor({ state: 'visible' });
-  await expect(page.locator('.selected-count-header')).toHaveText('3 selected');
+  await expect(page.locator('.selected-count-header')).toHaveText('3');
 
   await page.locator('button[aria-label="Download"]').waitFor({ state: 'visible' });
   await page.locator('button[aria-label="Download"]').click();

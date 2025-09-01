@@ -49,7 +49,8 @@
     "clearCompleted": "Czyszczenie zakończone",
     "showMore": "Pokaż więcej",
     "showLess": "Pokaż mniej",
-    "openParentFolder": "Otwórz folder nadrzędny"
+    "openParentFolder": "Otwórz folder nadrzędny",
+    "selectedCount": "Liczba elementów wybranych do wykonania akcji"
   },
   "download": {
     "downloadFile": "Pobierz plik",
@@ -515,8 +516,8 @@
     "customTheme": "Wybierz motyw",
     "showSelectMultiple": "Wyświetlanie wyboru wielokrotnego w menu kontekstowym na pulpicie",
     "showSelectMultipleDescription": "Domyślnie menu kontekstowe pulpitu nie ma opcji \"wybierz wiele\", tak jak w przypadku urządzeń mobilnych. Opcja ta jest zawsze widoczna w menu kontekstowym.",
-    "defaultMediaPlayer": "Użyj domyślnego odtwarzacza multimediów przeglądarki",
-    "defaultMediaPlayerDescription": "Do odtwarzania plików wideo i audio należy używać domyślnego odtwarzacza multimediów przeglądarki, a nie odtwarzacza multimediów html5."
+    "defaultMediaPlayer": "Użyj natywnego odtwarzacza multimediów w przeglądarce",
+    "defaultMediaPlayerDescription": "Do odtwarzania plików wideo i audio należy używać natywnego odtwarzacza multimediów przeglądarki, a nie dołączonego do FileBrowser odtwarzacza multimediów \"vue-plyr\"."
   },
   "editor": {
     "uninitialized": "Nie udało się zainicjować edytora. Przeładuj ponownie.",

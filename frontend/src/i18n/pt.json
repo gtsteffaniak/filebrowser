@@ -49,7 +49,8 @@
     "clearCompleted": "Limpar concluído",
     "showMore": "Mostrar mais",
     "showLess": "Mostrar menos",
-    "openParentFolder": "Abrir a pasta principal"
+    "openParentFolder": "Abrir a pasta principal",
+    "selectedCount": "Número de itens selecionados para executar uma ação"
   },
   "download": {
     "downloadFile": "Descarregar ficheiro",
@@ -479,8 +480,8 @@
     "customTheme": "Escolha o seu tema",
     "showSelectMultiple": "Mostrar seleção múltipla no menu de contexto no ambiente de trabalho",
     "showSelectMultipleDescription": "Por predefinição, o menu de contexto do ambiente de trabalho não tem a opção \"selecionar vários\" como no telemóvel. Esta opção mostra-a sempre no menu de contexto.",
-    "defaultMediaPlayer": "Utilizar o leitor multimédia predefinido do navegador",
-    "defaultMediaPlayerDescription": "Utilize o leitor multimédia predefinido do navegador para ficheiros de vídeo e áudio em vez do leitor multimédia html5."
+    "defaultMediaPlayer": "Utilize o leitor multimédia nativo do seu navegador",
+    "defaultMediaPlayerDescription": "Utilize o leitor multimédia nativo do seu navegador para ficheiros de vídeo e áudio em vez do leitor multimédia 'vue-plyr' incluído no FileBrowser."
   },
   "general": {
     "name": "Nome",

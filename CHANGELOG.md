@@ -10,9 +10,11 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Notes**:
  - access management: specific folders/files with access are shown instead permission denied for parent folder
+ - navigation no longer appends last location hash which should fix some unwanted navation behavior #1070
+ - altered the context menu style and behavior.
 
  **BugFixes**:
- - access management: delay showing rule changes in the list fixed.
+ - access management: delay showing rule changes in the list fixed. #1131
  - Color names are not localized #1159
 
 ## v0.8.3-beta

@@ -14,15 +14,20 @@
       :class="{ 'dark-mode': isDarkMode, 'centered': centered }"
       :key="showCreate ? 'create-mode' : 'normal-mode'"
     >
-      <div v-if="selectedCount > 0" class="button selected-count-header">
-        <span>{{ selectedCount }} {{ $t("prompts.selected") }} </span>
+      <div class="context-menu-header">
+        <div
+          class="action button clickable"
+          v-if="!isSearchActive && userPerms.modify && !isShare"
+          @click="toggleShowCreate"
+        >
+          <i v-if="!showCreate" class="material-icons">add</i>
+          <i v-if="showCreate" class="material-icons">arrow_back</i>
+        </div>
+        <div v-if="selectedCount > 0" @mouseleave="hideTooltip" @mouseenter="showTooltip($event, $t('buttons.selectedCount'))" class="button selected-count-header">
+          <span>{{ selectedCount }}</span>
+        </div>
       </div>
-      <action
-        v-if="!showCreate && !isSearchActive && userPerms.modify && !isShare"
-        icon="add"
-        :label="$t('buttons.new')"
-        @action="startShowCreate"
-      />
+      <hr class="divider">
       <action
         v-if="showCreate && !isSearchActive && userPerms.modify"
         icon="create_new_folder"
@@ -306,6 +311,19 @@ export default {
     }
   },
   methods: {
+    hideTooltip() {
+      mutations.hideTooltip();
+    },
+    showTooltip(event, text) {
+      mutations.showTooltip({
+        content: text,
+        x: event.clientX,
+        y: event.clientY,
+      });
+    },
+    toggleShowCreate() {
+      this.showCreate = !this.showCreate;
+    },
     shouldShowParentFolder() {
       return this.isPreview && state.req.path != "/";
     },
@@ -381,6 +399,7 @@ export default {
       }, 300);
     },
     startShowCreate() {
+      console.log("startShowCreate");
       if (getters.isShare()) {
         return;
       }
@@ -537,5 +556,11 @@ export default {
 .expand-leave-to {
   height: 0 !important;
   opacity: 0;
+}
+
+.context-menu-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 </style>

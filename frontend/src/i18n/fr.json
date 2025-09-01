@@ -49,7 +49,8 @@
     "clearCompleted": "Effacement terminé",
     "showMore": "Afficher plus",
     "showLess": "Montrer moins",
-    "openParentFolder": "Ouvrir le dossier parent"
+    "openParentFolder": "Ouvrir le dossier parent",
+    "selectedCount": "Nombre d'éléments sélectionnés pour effectuer une action"
   },
   "download": {
     "downloadFile": "Télécharger le fichier",
@@ -515,8 +516,8 @@
     "customTheme": "Choisissez votre thème",
     "showSelectMultiple": "Afficher la sélection multiple dans le menu contextuel sur le bureau",
     "showSelectMultipleDescription": "Par défaut, le menu contextuel de l'ordinateur de bureau n'a pas l'option \"sélectionner plusieurs\" comme celui de l'ordinateur mobile. Cette option apparaît toujours dans le menu contextuel.",
-    "defaultMediaPlayer": "Utiliser le lecteur multimédia par défaut du navigateur",
-    "defaultMediaPlayerDescription": "Utilisez le lecteur multimédia par défaut du navigateur pour les fichiers vidéo et audio plutôt que le lecteur multimédia html5."
+    "defaultMediaPlayer": "Utilisez le lecteur multimédia natif de votre navigateur",
+    "defaultMediaPlayerDescription": "Utilisez le lecteur multimédia natif de votre navigateur pour les fichiers vidéo et audio plutôt que le lecteur multimédia \"vue-plyr\" inclus dans FileBrowser."
   },
   "editor": {
     "uninitialized": "Échec de l'initialisation de l'éditeur. Veuillez recharger.",

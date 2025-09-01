@@ -49,7 +49,8 @@
     "clearCompleted": "Limpiar lista",
     "showMore": "Ver más",
     "showLess": "Mostrar menos",
-    "openParentFolder": "Abrir carpeta principal"
+    "openParentFolder": "Abrir carpeta principal",
+    "selectedCount": "Número de elementos seleccionados para realizar una acción"
   },
   "download": {
     "downloadFile": "Descargar archivo",
@@ -515,8 +516,8 @@
     "hideSidebarFileActions": "Ocultar el botón de acciones de archivo en la barra lateral",
     "deleteWithoutConfirming": "Eliminar archivos sin mensaje de confirmación",
     "deleteWithoutConfirmingDescription": "Eliminar archivos sin mensaje de confirmación. Esto sólo funcionará si el archivo es un archivo multimedia.",
-    "defaultMediaPlayer": "Utilizar el reproductor multimedia predeterminado del navegador",
-    "defaultMediaPlayerDescription": "Utilice el reproductor multimedia predeterminado del navegador para los archivos de vídeo y audio en lugar del reproductor multimedia html5."
+    "defaultMediaPlayer": "Utiliza el reproductor multimedia nativo de tu navegador",
+    "defaultMediaPlayerDescription": "Utiliza el reproductor multimedia nativo de tu navegador para los archivos de vídeo y audio en lugar del reproductor multimedia 'vue-plyr' incluido en FileBrowser."
   },
   "editor": {
     "uninitialized": "Error al inicializar el editor. Por favor, vuelva a cargar.",

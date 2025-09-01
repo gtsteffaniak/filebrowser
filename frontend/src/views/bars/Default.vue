@@ -45,6 +45,7 @@ import { getters, state, mutations } from "@/store";
 import Action from "@/components/Action.vue";
 import Search from "@/components/Search.vue";
 import { disableNavButtons, shareInfo } from "@/utils/constants";
+import { url } from "@/utils";
 
 export default {
   name: "UnifiedHeader",
@@ -169,10 +170,15 @@ export default {
       } else {
         mutations.closeHovers();
         if (listingView === "settings") {
+          if (state.previousHistoryItem.name) {
+            url.goToItem(state.previousHistoryItem.source, state.previousHistoryItem.path, {});
+            return;
+          }
           router.push({ path: "/files" });
           return;
         }
         mutations.replaceRequest({});
+
         router.go(-1);
       }
     },

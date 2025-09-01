@@ -49,7 +49,8 @@
     "clearCompleted": "Vyčistiť dokončené",
     "showMore": "Zobraziť viac",
     "showLess": "Zobraziť menej",
-    "openParentFolder": "Otvorenie nadradeného priečinka"
+    "openParentFolder": "Otvorenie nadradeného priečinka",
+    "selectedCount": "Počet položiek vybraných na vykonanie akcie"
   },
   "download": {
     "downloadFile": "Stiahnuť súbor",
@@ -515,8 +516,8 @@
     "customTheme": "Vyberte si tému",
     "showSelectMultiple": "Zobrazenie výberu viacerých v kontextovom menu na ploche",
     "showSelectMultipleDescription": "V predvolenom nastavení kontextová ponuka na ploche nemá možnosť \"vybrať viacero\" ako v mobilných zariadeniach. Táto možnosť sa v kontextovej ponuke zobrazuje vždy.",
-    "defaultMediaPlayer": "Použitie predvoleného prehrávača médií v prehliadači",
-    "defaultMediaPlayerDescription": "Pre video a audio súbory použite predvolený prehrávač médií prehliadača a nie prehrávač médií html5."
+    "defaultMediaPlayer": "Používanie natívneho prehrávača médií prehliadača",
+    "defaultMediaPlayerDescription": "Na prehrávanie video a zvukových súborov použite natívny prehrávač médií prehliadača, a nie mediálny prehrávač vue-plyr, ktorý je súčasťou aplikácie FileBrowser."
   },
   "editor": {
     "uninitialized": "Nepodarilo sa inicializovať editor. Prosím, načítajte ho znova.",

@@ -49,7 +49,8 @@
     "clearCompleted": "Golire finalizată",
     "showMore": "Arată mai multe",
     "showLess": "Arată mai puțin",
-    "openParentFolder": "Deschideți folderul părinte"
+    "openParentFolder": "Deschideți folderul părinte",
+    "selectedCount": "Numărul de elemente selectate pentru a efectua o acțiune"
   },
   "download": {
     "downloadFile": "Descarcă fișier",
@@ -515,8 +516,8 @@
     "customTheme": "Alege-ți tema",
     "showSelectMultiple": "Afișarea selecției multiple în meniul contextual de pe desktop",
     "showSelectMultipleDescription": "În mod implicit, meniul contextual de pe desktop nu are opțiunea \"select multiple\", ca pe mobil. Această opțiune se afișează întotdeauna în meniul contextual.",
-    "defaultMediaPlayer": "Utilizați playerul media implicit al browserului",
-    "defaultMediaPlayerDescription": "Utilizați playerul media implicit al browserului pentru fișierele video și audio, mai degrabă decât playerul media html5."
+    "defaultMediaPlayer": "Utilizați playerul media nativ al browserului dvs.",
+    "defaultMediaPlayerDescription": "Utilizați playerul media nativ al browserului dvs. pentru fișierele video și audio mai degrabă decât playerul media \"vue-plyr\" inclus în FileBrowser."
   },
   "editor": {
     "uninitialized": "Nu s-a reușit inițializarea editorului. Vă rugăm să reîncărcați.",

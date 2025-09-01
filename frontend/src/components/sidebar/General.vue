@@ -3,7 +3,7 @@
     <div class="card-wrapper user-card">
       <div
         v-if="settingsAllowed && user.username !== 'anonymous'"
-        @click="navigateTo('/settings#profile-main')"
+        @click="navigateTo('/settings','#profile-main')"
         class="inner-card"
       >
         <button
@@ -218,17 +218,13 @@ export default {
       }
       mutations.updateCurrentUser({ stickySidebar: !state.user.stickySidebar });
     },
-    navigateTo(path) {
-      const hashIndex = path.indexOf("#");
-      if (hashIndex !== -1) {
-        // Extract the hash
-        const hash = path.substring(hashIndex);
-        // Remove the hash from the path
-        const cleanPath = path.substring(0, hashIndex);
-        this.$router.push({ path: cleanPath, hash: hash }, () => {});
-      } else {
-        this.$router.push({ path: path }, () => {});
-      }
+    navigateTo(path,hash) {
+      mutations.setPreviousHistoryItem({
+        name: state.req.name,
+        source: state.req.source,
+        path: state.req.path,
+      });
+      this.$router.push({ path: path, hash: hash });
       mutations.closeHovers();
     },
     navigateToLogin() {

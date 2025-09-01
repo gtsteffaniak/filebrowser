@@ -49,7 +49,8 @@
     "clearCompleted": "清除完毕",
     "showMore": "显示更多",
     "showLess": "显示更少",
-    "openParentFolder": "打开父文件夹"
+    "openParentFolder": "打开父文件夹",
+    "selectedCount": "选择执行操作的项目数"
   },
   "download": {
     "downloadFile": "下载文件",
@@ -479,8 +480,8 @@
     "customTheme": "选择主题",
     "showSelectMultiple": "在桌面右键菜单中显示多个选择",
     "showSelectMultipleDescription": "默认情况下，桌面右键菜单不像手机那样有 \"选择多个 \"选项。该选项始终显示在右键菜单中。",
-    "defaultMediaPlayer": "使用浏览器的默认媒体播放器",
-    "defaultMediaPlayerDescription": "使用浏览器的默认媒体播放器播放视频和音频文件，而不是 html5 媒体播放器。"
+    "defaultMediaPlayer": "使用浏览器的本地媒体播放器",
+    "defaultMediaPlayerDescription": "使用浏览器的本地媒体播放器播放视频和音频文件，而不是 FileBrowser 附带的 \"vue-plyr \"媒体播放器。"
   },
   "general": {
     "name": "名称",

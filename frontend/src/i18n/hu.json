@@ -49,7 +49,8 @@
     "clearCompleted": "Tiszta befejezve",
     "showMore": "Többet mutasson",
     "showLess": "Kevesebb mutatása",
-    "openParentFolder": "Szülői mappa megnyitása"
+    "openParentFolder": "Szülői mappa megnyitása",
+    "selectedCount": "A művelet végrehajtásához kiválasztott elemek száma"
   },
   "download": {
     "downloadFile": "Fájl letöltése",
@@ -515,8 +516,8 @@
     "customTheme": "Válasszon témát",
     "showSelectMultiple": "Többszörös kijelölés megjelenítése az asztali kontextusmenüben",
     "showSelectMultipleDescription": "Alapértelmezés szerint az asztali kontextusmenü nem rendelkezik a \"többszörös kiválasztás\" opcióval, mint a mobilon. Ez az opció mindig megjelenik a kontextusmenüben.",
-    "defaultMediaPlayer": "A böngésző alapértelmezett médialejátszójának használata",
-    "defaultMediaPlayerDescription": "Használja a böngésző alapértelmezett médialejátszóját a videó- és hangfájlokhoz a html5 médialejátszó helyett."
+    "defaultMediaPlayer": "Használja a böngésző natív médialejátszóját",
+    "defaultMediaPlayerDescription": "Használja a böngésző natív médialejátszóját a videó- és hangfájlokhoz, nem pedig a FileBrowser mellékelt \"vue-plyr\" médialejátszóját."
   },
   "editor": {
     "uninitialized": "Nem sikerült inicializálni a szerkesztőt. Kérjük, töltse újra.",
