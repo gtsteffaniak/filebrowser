@@ -7,6 +7,13 @@ import { sortedItems } from "@/utils/sort.js";
 import { serverHasMultipleSources } from "@/utils/constants.js";
 
 export const mutations = {
+  setPreviousHistoryItem: (value) => {
+    if (value == state.previousHistoryItem) {
+      return;
+    }
+    state.previousHistoryItem = value;
+    emitStateChanged();
+  },
   setContextMenuHasItems: (value) => {
     if (value == state.contextMenuHasItems) {
       return;

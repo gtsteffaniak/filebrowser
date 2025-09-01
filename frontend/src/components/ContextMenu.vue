@@ -14,15 +14,19 @@
       :class="{ 'dark-mode': isDarkMode, 'centered': centered }"
       :key="showCreate ? 'create-mode' : 'normal-mode'"
     >
-      <div v-if="selectedCount > 0" class="button selected-count-header">
-        <span>{{ selectedCount }} {{ $t("prompts.selected") }} </span>
+      <div class="context-menu-header">
+        <div
+          class="action button clickable"
+          v-if="!showCreate && !isSearchActive && userPerms.modify && !isShare"
+          @onclick="startShowCreate"
+        >
+          <i class="material-icons">add</i>
+        </div>
+        <div v-if="selectedCount > 0" class="button selected-count-header">
+          <span>{{ selectedCount }}</span>
+        </div>
       </div>
-      <action
-        v-if="!showCreate && !isSearchActive && userPerms.modify && !isShare"
-        icon="add"
-        :label="$t('buttons.new')"
-        @action="startShowCreate"
-      />
+      <hr class="divider">
       <action
         v-if="showCreate && !isSearchActive && userPerms.modify"
         icon="create_new_folder"
@@ -537,5 +541,11 @@ export default {
 .expand-leave-to {
   height: 0 !important;
   opacity: 0;
+}
+
+.context-menu-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 </style>

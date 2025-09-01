@@ -465,19 +465,16 @@ export default {
       ) {
         mutations.resetSelected();
       }
-      // @ts-ignore
       mutations.addSelected(this.index);
       mutations.setLastSelectedIndex(this.index);
     },
     open() {
-      if (this.hash) {
-        const shareHash = this.hash;
-        url.goToItem(this.source, this.path, "", shareHash);
-        return;
-      }
-      // @ts-ignore
-      const previousHash = state.req.items[this.index].name;
-      url.goToItem(this.source, this.path, previousHash);
+      const previousHistoryItem = {
+        name: state.req.items[this.index].name,
+        source: state.req.source,
+        path: state.req.path,
+      };
+      url.goToItem(this.source, this.path, previousHistoryItem);
     },
   },
 };
