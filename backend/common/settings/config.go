@@ -59,9 +59,7 @@ func setupFrontend(generate bool) {
 			Url:  "https://github.com/gtsteffaniak/filebrowser/wiki",
 		})
 	}
-	if Config.Frontend.Description != "" {
-		Config.Frontend.Description = Config.Frontend.Description
-	} else {
+	if Config.Frontend.Description == "" {
 		Config.Frontend.Description = "FileBrowser Quantum is a file manager for the web which can be used to manage files on your server"
 	}
 	Config.Frontend.Styling.LightBackground = FallbackColor(Config.Frontend.Styling.LightBackground, "#f5f5f5")
