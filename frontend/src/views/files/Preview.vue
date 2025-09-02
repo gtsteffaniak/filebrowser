@@ -1006,6 +1006,8 @@ button:hover,
     padding: 20px;
     width: 100%;
     box-sizing: border-box;
+    height: 100%;
+    justify-content: center;
 }
 
 .album-art-container {
