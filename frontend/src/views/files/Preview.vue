@@ -14,17 +14,52 @@
             </ExtendedImage>
 
             <!-- Audio with plyr -->
-            <vue-plyr
+            <div
                 v-else-if="previewType == 'audio' && !useDefaultMediaPlayer"
-                ref="audioPlayer"
-                :options="plyrOptions"
+                class="audio-player-container"
             >
-                <audio
-                    :src="raw"
-                    :autoplay="autoPlay"
-                    @play="autoPlay = true"
-                ></audio>
-            </vue-plyr>
+                <!-- Album art with a generic icon if no image/metadata -->
+                <div
+                    class="album-art-container"
+                    :class="{ 'no-artwork': !albumArtUrl }"
+                >
+                    <img
+                        v-if="albumArtUrl"
+                        :src="albumArtUrl"
+                        :alt="audioMetadata.album || 'Album art'"
+                        class="album-art"
+                    />
+                    <div v-else class="album-art-fallback">
+                        <i class="material-icons">music_note</i>
+                    </div>
+                </div>
+
+                <!-- Metadata info -->
+                <div class="metadata-info" v-if="audioMetadata && albumArtUrl">
+                    <div class="audio-title">
+                        {{ audioMetadata.title || state.req.name }}
+                    </div>
+                    <div class="audio-artist" v-if="audioMetadata.artist">
+                        {{ audioMetadata.artist }}
+                    </div>
+                    <div class="audio-album" v-if="audioMetadata.album">
+                        {{ audioMetadata.album }}
+                    </div>
+                    <div class="audio-year" v-if="audioMetadata.album">
+                        {{ audioMetadata.year }}
+                    </div>
+                </div>
+
+                <div class="audio-controls-container">
+                    <vue-plyr ref="audioPlayer" :options="plyrOptions">
+                        <audio
+                            :src="raw"
+                            :autoplay="autoPlay"
+                            @play="autoPlay = true"
+                        ></audio>
+                    </vue-plyr>
+                </div>
+            </div>
 
             <!-- Video with plyr -->
             <vue-plyr
@@ -199,6 +234,8 @@ export default {
             loopEnabled: false, // The toast on the media player
             toastVisible: false,
             toastTimeout: null,
+            audioMetadata: null, // Null by default, will be loaded from the audio file.
+            albumArtUrl: null,
             // Plyr options
             plyrOptions: {
                 controls: [
@@ -409,16 +446,22 @@ export default {
             for (const subtitleTrack of state.req.subtitles) {
                 // All subtitle content is now pre-loaded when content=true
                 // Simply use the content that's already available
-                if (!subtitleTrack.content || subtitleTrack.content.length === 0) {
-                    console.warn("Subtitle track has no content:", subtitleTrack.name);
+                if (
+                    !subtitleTrack.content ||
+                    subtitleTrack.content.length === 0
+                ) {
+                    console.warn(
+                        "Subtitle track has no content:",
+                        subtitleTrack.name,
+                    );
                     continue;
                 }
                 let vttContent = subtitleTrack.content;
-                if (!subtitleTrack.content.startsWith('WEBVTT')) {
+                if (!subtitleTrack.content.startsWith("WEBVTT")) {
                     const ext = getFileExtension(subtitleTrack.name);
                     vttContent = convertToVTT(ext, subtitleTrack.content);
                 }
-                if (vttContent.startsWith('WEBVTT')) {
+                if (vttContent.startsWith("WEBVTT")) {
                     // Create a virtual file (Blob) and get a URL for it
                     const blob = new Blob([vttContent], { type: "text/vtt" });
                     const vttURL = URL.createObjectURL(blob);
@@ -427,7 +470,10 @@ export default {
                         src: vttURL,
                     });
                 } else {
-                    console.warn("Skipping subtitle track because it has no WEBVTT header:", subtitleTrack.name);
+                    console.warn(
+                        "Skipping subtitle track because it has no WEBVTT header:",
+                        subtitleTrack.name,
+                    );
                 }
             }
             return subs;
@@ -575,7 +621,7 @@ export default {
                         directoryPath,
                     );
                 }
-                this.listing = res.items
+                this.listing = res.items;
             }
             if (!this.listing) {
                 this.listing = [state.req];
@@ -671,12 +717,55 @@ export default {
             const items = [state.req];
             downloadFiles(items);
         },
+        // Load metadata from the audio
+        /*async loadAudioMetadata() {
+            if (this.previewType !== "audio") {
+                this.audioMetadata = null;
+                this.albumArtUrl = null;
+               return;
+            }
+
+            try {
+                const audioUrl = this.raw;
+
+                new jsmediatags.Reader(audioUrl)
+                    .setTagsToRead([
+                        "title",
+                        "artist",
+                        "album",
+                        "year",
+                        "picture",
+                    ])
+                .read({
+                        onSuccess: (tag) => {
+                            this.audioMetadata = {
+                                title: tag.tags.title,
+                                artist: tag.tags.artist,
+                                album: tag.tags.album,
+                                year: tag.tags.year,
+                            };
+                        },
+                      /*  onError: (error) => {
+                            console.error(
+                                "Failed to read audio metadata:",
+                                error,
+                            );
+                            this.audioMetadata = null;
+                            this.albumArtUrl = null;
+                        },
+                    });
+            } catch (error) {
+                console.error("Error loading audio metadata:", error);
+                this.audioMetadata = null;
+                this.albumArtUrl = null;
+            }
+            },*/
     },
 };
 </script>
 
 <style>
-@import url("@skjnldsv/vue-plyr/dist/vue-plyr.css");
+@import url("plyr/dist/plyr.css");
 .clickable:hover,
 .plyr .plyr__control:hover,
 button:hover,
@@ -710,6 +799,10 @@ button:hover,
     background: rgba(0, 0, 0, 0.7);
 }
 
+/**********************************
+*** STYLES FOR THE MEDIA PLAYER ***
+**********************************/
+
 .plyr {
     --plyr-color-main: var(--primaryColor);
     --plyr-video-background: rgba(0, 0, 0, 1);
@@ -727,35 +820,21 @@ button:hover,
     --plyr-tooltip-background: rgba(0, 0, 0, 0.8);
     --plyr-tooltip-color: #ffffff;
     --plyr-audio-controls-background: transparent;
-    --plyr-video-controls-background: linear-gradient(transparent,
-            rgba(0, 0, 0, 0.7));
+    --plyr-video-controls-background: linear-gradient(
+        transparent,
+        rgba(0, 0, 0, 0.7)
+    );
     border-radius: 12px;
     overflow: visible;
 }
 
-.plyr.plyr--video {
-    width: 100%;
-    height: 100%;
-}
-
-.plyr.plyr--video .plyr__control[data-plyr="captions"],
-.plyr.plyr--video .plyr__control[data-plyr="pip"] {
-    display: block !important;
-}
-
+/* Position/space of the buttons */
 .plyr .plyr__controls {
     display: flex;
     flex-direction: row;
     gap: 8px;
 }
 
-/* Progress bar with full width */
-.plyr .plyr__progress__container {
-    flex: 100%;
-    margin: 0;
-}
-
-/* Buttons */
 .plyr .plyr__controls__items {
     display: flex;
     justify-content: space-between;
@@ -763,7 +842,7 @@ button:hover,
     flex-wrap: nowrap;
 }
 
-/* Button styling */
+/* Transitions (e.g. how much time take to hide the player UI) */
 .plyr .plyr__control {
     transition: all 0.2s ease;
     flex-shrink: 0;
@@ -773,27 +852,13 @@ button:hover,
     align-items: center;
 }
 
-.plyr video {
-    border-radius: 12px;
-    width: 100%;
-    height: 100%;
+/* Progress bar with full width (audio and video) */
+.plyr .plyr__progress__container {
+    flex: 100%;
+    margin: 0;
 }
 
-/* Style for audio player */
-.plyr.plyr--audio {
-    background: rgba(40, 40, 55, 1);
-    border-radius: 16px;
-    padding: 15px;
-    max-width: 800px;
-    width: 90%;
-    max-height: 300px;
-    margin: auto auto;
-    position: absolute;
-    bottom: 40px;
-    left: 50%;
-    transform: translateX(-50%);
-}
-
+/* Big play button when pause/start the video */
 .plyr--full-ui.plyr--video .plyr__control--overlaid {
     display: flex;
     justify-content: center;
@@ -802,11 +867,11 @@ button:hover,
 
 .plyr__control--overlaid {
     /* background: #00b2ff; */
-    background: var(--plyr-video-control-background-hover, var(--plyr-color-main, var(--plyr-color-main, #00b2ff)));
+    background: var(--plyr-video-control-background-hover, var(--primaryColor));
     border: 0;
     display: none;
     position: fixed;
-    transition: .3s;
+    transition: 0.3s;
     z-index: 2;
     height: 4em;
     transform: none;
@@ -815,10 +880,60 @@ button:hover,
     right: unset;
     bottom: unset;
     width: 4em !important;
-    border-radius: 5em !important
+    border-radius: 5em !important;
 }
 
-/* Mobile */
+/************
+*** VIDEO ***
+************/
+
+/* Video settings (like rounded corners to the video itself) */
+.plyr video {
+    border-radius: 12px;
+    width: 100%;
+    height: 100%;
+}
+
+/* Video container size */
+.plyr.plyr--video {
+    width: 100%;
+    height: 100%;
+}
+
+/* Force visibility of the buttons */
+.plyr.plyr--video .plyr__control[data-plyr="captions"],
+.plyr.plyr--video .plyr__control[data-plyr="pip"] {
+    display: block !important;
+}
+
+/************
+*** AUDIO ***
+************/
+
+/* Style for audio player */
+.plyr.plyr--audio {
+    background: rgba(40, 40, 55, 1);
+    border-radius: 16px;
+    padding: 15px;
+    max-width: flex;
+    width: 75%;
+    max-height: 300px;
+    margin: auto auto;
+    position: absolute;
+    bottom: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+/* Hide some unnesary buttons on the audio player */
+.plyr--audio .plyr__control--overlaid,
+.plyr--audio .plyr__control[data-plyr="captions"],
+.plyr--audio .plyr__control[data-plyr="fullscreen"],
+.plyr--audio .plyr__control[data-plyr="pip"] {
+    display: none !important;
+}
+
+/* Style for audio player on mobile */
 @media (max-width: 768px) {
     .plyr.plyr--audio {
         position: fixed;
@@ -835,7 +950,7 @@ button:hover,
         transform: none;
     }
 
-    /* Made the buttons more "big" */
+    /* Buttons container more "big" for easy touch */
     .plyr--audio .plyr__control {
         min-width: 44px;
         min-height: 44px;
@@ -852,22 +967,20 @@ button:hover,
 
     .plyr--audio .plyr__controls__items {
         justify-content: center;
-        gap: 15px;
+        gap: 12px;
     }
 
+    /* Play button a bit more big */
     .plyr--audio .plyr__control--play {
         transform: scale(1.2);
     }
 
-    /* Hide some items on audio player*/
-    .plyr--audio .plyr__control[data-plyr="settings"],
-    .plyr--audio .plyr__control[data-plyr="pip"],
+    /* Hide volume buttons for made more space */
     .plyr--audio .plyr__volume {
         display: none;
     }
 
     /* Hide some items on video player*/
-    .plyr--video .plyr__control[data-plyr="pip"],
     .plyr--video .plyr__volume {
         display: none;
     }
@@ -879,7 +992,259 @@ button:hover,
     }
 }
 
-/* Loop toast */
+/*****************************
+*** ALBUM ART AND METADATA ***
+*****************************/
+
+.audio-player-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.album-art-container {
+    width: min(350px, 80vw);
+    height: min(350px, 80vw);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+    margin-top: 30px;
+    bottom: 0;
+}
+
+.album-art {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.album-art-fallback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    border-radius: 18px;
+    background: linear-gradient(
+        115deg,
+        var(--primaryColor),
+        rgba(2, 0, 36, 0.9)
+    );
+    filter: brightness(0.85);
+}
+
+.album-art-fallback i.material-icons {
+    font-size: 5rem;
+    color: white;
+    opacity: 0.8;
+    user-select: none;
+}
+
+.album-art-container.no-artwork {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.audio-metadata {
+    text-align: center;
+    color: var(--text-color);
+    margin-top: 15px;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 8px;
+    width: 100%;
+    max-width: min(350px, 80vw);
+    box-sizing: border-box;
+}
+
+.audio-title {
+    font-size: clamp(1.2rem, 4vw, 1.5rem);
+    font-weight: bold;
+    margin-bottom: 8px;
+    word-break: break-word;
+}
+
+.audio-artist,
+.audio-album,
+.audio-year {
+    font-size: clamp(1rem, 3vw, 1.1rem);
+    opacity: 0.8;
+    margin-bottom: 5px;
+    word-break: break-word;
+}
+
+.audio-controls-container {
+    width: 100%;
+    margin-top: 15px;
+}
+
+/* Mobile */
+@media (max-width: 480px) and (orientation: portrait) {
+    .audio-player-container {
+        padding: 10px 15px 20px;
+        gap: 20px;
+        justify-content: center;
+        min-height: 70vh;
+        display: flex;
+    }
+
+    .album-art-container {
+        width: min(280px, 75vw);
+        height: min(280px, 75vw);
+        margin-top: 50px;
+    }
+
+    .album-art-fallback i.material-icons {
+        font-size: 4rem;
+    }
+
+    .audio-metadata {
+        max-width: min(300px, 85vw);
+        margin-top: 5px;
+        padding: 12px 15px;
+        background: rgba(0, 0, 0, 0.08);
+    }
+
+    .audio-title {
+        font-size: 1.4rem;
+        margin-bottom: 6px;
+    }
+
+    .audio-artist {
+        font-size: 1.1rem;
+        font-weight: 500;
+        margin-bottom: 4px;
+    }
+
+    .audio-album {
+        font-size: 1rem;
+    }
+
+    .audio-controls-container {
+        width: 100%;
+        margin-top: 20px;
+        position: relative;
+    }
+}
+
+/* For medium screens (like tablets) */
+@media (max-width: 1024px) and (min-width: 769px) {
+    .album-art-container {
+        width: min(300px, 60vw);
+        height: min(300px, 60vw);
+    }
+
+    .audio-metadata {
+        max-width: min(300px, 60vw);
+    }
+}
+
+/* For small tablets and phones with big screen */
+@media (max-width: 768px) {
+    .audio-player-container {
+        padding: 15px;
+        gap: 15px;
+    }
+
+    .album-art-container {
+        width: min(280px, 70vw);
+        height: min(280px, 70vw);
+        margin-top: 10px;
+    }
+
+    .audio-metadata {
+        max-width: min(280px, 70vw);
+        margin-top: 10px;
+        padding: 12px;
+    }
+
+    .audio-controls-container {
+        margin-top: 10px;
+    }
+}
+
+/* For small phones */
+@media (max-width: 480px) and (orientation: landscape) {
+    .audio-player-container {
+        padding: 10px;
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+    .album-art-container {
+        width: min(220px, 65vw);
+        height: min(220px, 65vw);
+        margin-top: 10px;
+    }
+
+    .audio-metadata {
+        max-width: min(220px, 65vw);
+        margin-top: 8px;
+        padding: 10px;
+    }
+
+    .audio-title {
+        font-size: clamp(1.1rem, 5vw, 1.3rem);
+    }
+
+    .audio-artist,
+    .audio-album {
+        font-size: clamp(0.9rem, 4vw, 1rem);
+    }
+}
+
+/* For small screens in landscape orientation (Like a phone) */
+@media (max-height: 500px) and (orientation: landscape) {
+    .audio-player-container {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .album-art-container {
+        width: min(150px, 30vh);
+        height: min(150px, 30vh);
+        margin-right: 10px;
+        margin-top: 10px;
+    }
+
+    .audio-metadata {
+        max-width: calc(100% - 180px);
+        text-align: left;
+        margin-top: 0;
+        flex: 1;
+    }
+
+    .audio-controls-container {
+        width: 100%;
+        margin-top: 10px;
+        order: 3;
+    }
+}
+
+/* For ultra-wide screens. This need test, I'm not sure if will work correctly */
+@media (min-width: 1600px) {
+    .album-art-container {
+        width: min(400px, 25vw);
+        height: min(400px, 25vw);
+    }
+
+    .audio-metadata {
+        max-width: min(400px, 25vw);
+    }
+}
+
+/*****************
+*** LOOP TOAST ***
+*****************/
+
 .loop-toast {
     position: fixed;
     bottom: 50px;
