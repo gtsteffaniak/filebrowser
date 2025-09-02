@@ -85,15 +85,15 @@
     "click": "selecteer bestand of map",
     "ctrl": {
       "click": "selecteer meerdere bestanden of mappen",
-      "f": "opent zoeken",
-      "s": "sla een bestand op of download de map waar u bent"
+      "d": "geselecteerde items downloaden"
     },
     "del": "verwijder geselecteerde items",
-    "doubleClick": "open een bestand of map",
     "esc": "Wis selectie en/of sluit de prompt",
-    "f1": "deze informatie",
     "f2": "bestand herbenoemen",
-    "help": "Help"
+    "help": "Help",
+    "f1": "help prompt tonen",
+    "description": "Je kunt de basisnavigatieopties hieronder bekijken. Ga voor aanvullende informatie naar",
+    "wiki": "FileBrowser Quantum Wiki"
   },
   "languages": {
     "he": "עברית",
@@ -154,7 +154,6 @@
     "numberDirs": "Aantal mappen{suffix}",
     "numberFiles": "Aantal bestanden{suffix}",
     "rename": "Hernoemen",
-    "renameMessage": "Voer een nieuwe naam in voor",
     "replace": "Vervangen",
     "replaceMessage": "Een van de bestanden die u probeert te uploaden, geeft conflicten i.v.m. de naamgeving. Wilt u de bestaande bestanden vervangen?\n",
     "schedule": "Plannen",
@@ -175,7 +174,6 @@
     "conflictsDetected": "Gedetecteerde conflicten",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "Ongeldige naam opgegeven: kan geen \"/\" of \"˜\" bevatten.",
     "source": "Source{suffix}",
     "downloadsLimit": "Limiet aantal downloads",
     "maxBandwidth": "Max. downloadbandbreedte (kbps)",
@@ -187,7 +185,10 @@
     "shareBanner": "URL banner delen",
     "shareFavicon": "favicon URL delen",
     "optionalPasswordHelp": "Indien ingesteld, moeten gebruikers dit wachtwoord invoeren om de gedeelde inhoud te bekijken.",
-    "viewMode": "Weergavemodus"
+    "viewMode": "Weergavemodus",
+    "renameMessageConflict": "An item named \"{filename}\" already exists!",
+    "renameMessage": "Voer een nieuwe naam in:",
+    "renameMessageInvalid": "Een bestand kan geen \"/\" of \"\\\" bevatten."
   },
   "search": {
     "images": "Afbeeldingen",

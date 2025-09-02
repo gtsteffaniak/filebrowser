@@ -88,15 +88,15 @@
     "click": "επιλέξτε αρχείο ή φάκελο",
     "ctrl": {
       "click": "επιλογή πολλαπλών αρχείων ή φακέλων",
-      "f": "ανοίγει την αναζήτηση",
-      "s": "αποθηκεύει ένα αρχείο ή εκκινεί λήψη του φακέλου στον οποίο βρίσκεστε"
+      "d": "λήψη επιλεγμένων στοιχείων"
     },
     "del": "διαγραφή επιλεγμένων στοιχείων",
-    "doubleClick": "ανοίγει ένα αρχείο ή φάκελο",
     "esc": "καθαρίζει την επιλογή ή/και κλείνει το παράθυρο",
-    "f1": "αυτή η πληροφορία",
     "f2": "μετονομασία αρχείου",
-    "help": "Βοήθεια"
+    "help": "Βοήθεια",
+    "f1": "Εμφάνιση προτροπής βοήθειας",
+    "description": "Μπορείτε να δείτε τις βασικές επιλογές πλοήγησης παρακάτω. Για πρόσθετες πληροφορίες, επισκεφθείτε τη διεύθυνση",
+    "wiki": "FileBrowser Quantum Wiki"
   },
   "languages": {
     "he": "עברית",
@@ -158,7 +158,6 @@
     "numberDirs": "Αριθμός φακέλων{suffix}",
     "numberFiles": "Αριθμός αρχείων{suffix}",
     "rename": "Μετονομασία",
-    "renameMessage": "Εισαγάγετε ένα νέο όνομα για το",
     "replace": "Αντικατάσταση",
     "replaceMessage": "Ένα από τα αρχεία που προσπαθείτε να μεταφορτώσετε δημιουργεί σύγκρουση με υπάρχον αρχείο λόγω του ονόματός του. Θέλετε να συνεχίσετε τη μεταφόρτωση ή να αντικαταστήσετε το υπάρχον;\n",
     "schedule": "Προγραμματισμός",
@@ -178,7 +177,6 @@
     "conflictsDetected": "Ανιχνεύονται συγκρούσεις",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "Μη έγκυρο όνομα: δεν μπορεί να γίνει container \"/\" ή \"\\\"",
     "source": "Source{suffix}",
     "downloadsLimit": "Όριο αριθμού λήψεων",
     "maxBandwidth": "Μέγιστο εύρος ζώνης λήψης (kbps)",
@@ -190,7 +188,10 @@
     "shareBanner": "Μοιραστείτε το URL του banner",
     "shareFavicon": "Μοιραστείτε το URL favicon",
     "optionalPasswordHelp": "Εάν οριστεί, οι χρήστες πρέπει να εισάγουν αυτόν τον κωδικό πρόσβασης για να προβάλουν το κοινόχρηστο περιεχόμενο.",
-    "viewMode": "Λειτουργία προβολής"
+    "viewMode": "Λειτουργία προβολής",
+    "renameMessageConflict": "An item named \"{filename}\" already exists!",
+    "renameMessage": "Εισάγετε ένα νέο όνομα:",
+    "renameMessageInvalid": "Ένα αρχείο δεν μπορεί να περιέχει \"/\" ή \"\\\""
   },
   "search": {
     "images": "Εικόνες",

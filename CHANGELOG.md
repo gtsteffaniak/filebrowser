@@ -15,11 +15,14 @@ All notable changes to this project will be documented in this file. For commit 
  - navigation no longer appends last location hash which should fix some unwanted navation behavior #1070
  - altered the context menu style and behavior.
  - documentation update: comma or Space separated extensions #1138
-
+ - Files and folders can be created with "/" or "\" on the name #1126
 
  **BugFixes**:
  - access management: delay showing rule changes in the list fixed. #1131
  - Color names are not localized #1159
+ #- rename issues #1170 #1171
+ #- some shortcuts not working #1056
+
 
 ## v0.8.3-beta
 

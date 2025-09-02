@@ -85,15 +85,15 @@
     "click": "Wähle Datei oder Ordner",
     "ctrl": {
       "click": "Markiere mehrere Dateien oder Ordner",
-      "f": "Öffnet eine neue Suche",
-      "s": "Speichert eine Datei oder einen Ordner am akutellen Ort"
+      "d": "ausgewählte Artikel herunterladen"
     },
     "del": "Löscht die ausgewählten Elemente",
-    "doubleClick": "Öffnet eine Datei oder einen Ordner",
     "esc": "Auswahl zurücksetzen und/oder Dialog schließen",
-    "f1": "Diese Informationsseite",
     "f2": "Datei umbenennen",
-    "help": "Hilfe"
+    "help": "Hilfe",
+    "f1": "Hilfeprompt anzeigen",
+    "description": "Nachstehend finden Sie die grundlegenden Navigationsoptionen. Für zusätzliche Informationen besuchen Sie bitte",
+    "wiki": "FileBrowser Quantum Wiki"
   },
   "languages": {
     "he": "עברית",
@@ -155,7 +155,6 @@
     "numberDirs": "Anzahl der Ordner{suffix}",
     "numberFiles": "Anzahl der Dateien{suffix}",
     "rename": "Umbenennen",
-    "renameMessage": "Geben Sie einen Namen ein für",
     "replace": "Ersetzen",
     "replaceMessage": "Eine der Datei mit dem gleichen Namen, wie die Sie hochladen wollen, existiert bereits. Soll die vorhandene Datei übersprungen oder ersetzt werden?\n",
     "schedule": "Zeitplan",
@@ -175,7 +174,6 @@
     "conflictsDetected": "Erkannte Widersprüche",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "Ungültiger Name angegeben: kann nicht Container \"/\" oder \"\\\"",
     "source": "Source{suffix}",
     "downloadsLimit": "Limit für die Anzahl der Downloads",
     "maxBandwidth": "Maximale Download-Bandbreite (kbps)",
@@ -187,7 +185,10 @@
     "shareBanner": "Banner-URL freigeben",
     "shareFavicon": "Favicon-URL freigeben",
     "optionalPasswordHelp": "Falls festgelegt, müssen die Benutzer dieses Kennwort eingeben, um die freigegebenen Inhalte anzuzeigen.",
-    "viewMode": "Ansichtsmodus"
+    "viewMode": "Ansichtsmodus",
+    "renameMessageConflict": "An item named \"{filename}\" already exists!",
+    "renameMessage": "Geben Sie einen neuen Namen ein:",
+    "renameMessageInvalid": "Eine Datei kann nicht den Container \"/\" oder \"\\\" enthalten."
   },
   "search": {
     "images": "Bilder",

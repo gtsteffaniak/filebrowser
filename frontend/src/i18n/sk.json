@@ -85,15 +85,15 @@
     "click": "vyberie súbor alebo priečinok",
     "ctrl": {
       "click": "vyberie viac súborov alebo priečinkov",
-      "f": "otvorí vyhľadávanie",
-      "s": "uloží súbor alebo stiahne priečinok tam kde ste"
+      "d": "stiahnuť vybrané položky"
     },
     "del": "odstráni vybraté položky",
-    "doubleClick": "otvorí súbor alebo priečinok",
     "esc": "zruší výber a/alebo zavrie okno",
-    "f1": "tieto informácie",
     "f2": "premenuje súbor",
-    "help": "Pomoc"
+    "help": "Pomoc",
+    "f1": "zobraziť výzvu na pomoc",
+    "description": "Základné možnosti navigácie si môžete pozrieť nižšie. Ďalšie informácie nájdete na stránke",
+    "wiki": "FileBrowser Quantum Wiki"
   },
   "languages": {
     "he": "עברית",
@@ -155,7 +155,6 @@
     "numberDirs": "Počet priečinkov{suffix}",
     "numberFiles": "Počet súborov{suffix}",
     "rename": "Premenovať",
-    "renameMessage": "Zadajte nový názov pre",
     "replace": "Nahradiť",
     "replaceMessage": "Niektorý nahrávaný súbor je v konflikte názvov. Chcete nahradiť existujúci súbor?\n",
     "schedule": "Naplánovať",
@@ -175,7 +174,6 @@
     "conflictsDetected": "Zistené konflikty",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "Zadaný neplatný názov: nemôže byť kontajner \"/\" alebo \"\\\"",
     "source": "Source{suffix}",
     "downloadsLimit": "Limit počtu stiahnutí",
     "maxBandwidth": "Maximálna šírka pásma sťahovania (kbps)",
@@ -187,7 +185,10 @@
     "shareBanner": "Zdieľanie adresy URL banneru",
     "shareFavicon": "Zdieľanie adresy URL favicon",
     "optionalPasswordHelp": "Ak je nastavené, používatelia musia zadať toto heslo, aby si mohli prezerať zdieľaný obsah.",
-    "viewMode": "Režim zobrazenia"
+    "viewMode": "Režim zobrazenia",
+    "renameMessageConflict": "An item named \"{filename}\" already exists!",
+    "renameMessage": "Zadajte nový názov:",
+    "renameMessageInvalid": "Súbor nemôže obsahovať \"/\" alebo \"\\\""
   },
   "search": {
     "images": "Obrázky",

@@ -85,15 +85,15 @@
     "click": "حدد الملف أو المجلد",
     "ctrl": {
       "click": "حدد أكثر من ملف او مجلد",
-      "f": "إبدأ البحث",
-      "s": "حمل الملف او المجلد في هذا المكان"
+      "d": "تنزيل عناصر مختارة"
     },
     "del": "حذف البيانات المحددة",
-    "doubleClick": "فتح المجلد او الملف",
     "esc": "مسح التحديد وإغلاق النافذة المنبثقة",
-    "f1": "هذه المعلومات",
     "f2": "إعادة تسمية الملف",
-    "help": "مساعدة"
+    "help": "مساعدة",
+    "f1": "إظهار موجه المساعدة",
+    "description": "يمكنك عرض خيارات التنقل الأساسية أدناه. للحصول على معلومات إضافية، يرجى زيارة",
+    "wiki": "ويكي متصفح الملفات الكمي"
   },
   "languages": {
     "he": "עברית",
@@ -154,7 +154,6 @@
     "numberDirs": "عدد المجلدات{suffix}",
     "numberFiles": "عدد الملفات{suffix}",
     "rename": "إعادة تسمية",
-    "renameMessage": "إدراج اسم جديد لـ",
     "replace": "إستبدال",
     "replaceMessage": "أحد الملفات التي تحاول رفعها يتعارض مع ملف موجود بنفس الإسم. هل تريد إستبدال الملف الموجود؟\n",
     "schedule": "جدولة",
@@ -175,7 +174,6 @@
     "conflictsDetected": "التعارضات المكتشفة",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "الاسم المقدم غير صالح: لا يمكن أن يحتوي على \"/\" أو \"\\\"",
     "source": "Source{suffix}",
     "downloadsLimit": "حد عدد التنزيلات",
     "maxBandwidth": "أقصى نطاق ترددي للتنزيل (كيلو بايت/ثانية)",
@@ -187,7 +185,10 @@
     "shareBanner": "مشاركة عنوان URL للشعار",
     "shareFavicon": "مشاركة عنوان URL المفضل",
     "optionalPasswordHelp": "إذا تم تعيينها، يجب على المستخدمين إدخال كلمة المرور هذه لعرض المحتوى المشترك.",
-    "viewMode": "وضع العرض"
+    "viewMode": "وضع العرض",
+    "renameMessageConflict": "An item named \"{filename}\" already exists!",
+    "renameMessage": "أدخل اسماً جديداً:",
+    "renameMessageInvalid": "لا يمكن أن يحتوي الملف على \"/\" أو \"\\\""
   },
   "search": {
     "images": "الصور",

@@ -606,7 +606,7 @@ export default {
         return;
       }
       // Handle the space bar key
-      if (key === " ") {
+      if (key === " " && !modifierKeys) {
         event.preventDefault();
         if (state.isSearchActive) {
           mutations.setSearch(false);
@@ -623,6 +623,25 @@ export default {
 
       if (modifierKeys) {
         this.ctrKeyPressed = true;
+        const charKey = String.fromCharCode(which).toLowerCase();
+
+        switch (charKey) {
+          case "c":
+          case "x":
+            this.copyCut(event, charKey);
+            break;
+          case "v":
+            this.paste(event);
+            break;
+          case "a":
+            event.preventDefault();
+            this.selectAll();
+            break;
+          case "d":
+            event.preventDefault();
+            downloadFiles(state.selected);
+            break;
+        }
         return;
       }
 
@@ -631,7 +650,7 @@ export default {
         case "Enter":
           if (this.selectedCount === 1) {
             const selected = getters.getFirstSelected();
-            const selectedUrl = url.buildItemUrl(selected.source, selected.path)
+            const selectedUrl = url.buildItemUrl(selected.source, selected.path);
             router.push({ path: selectedUrl });
           }
           break;
@@ -655,7 +674,12 @@ export default {
 
         case "F2":
           if (!state.user.permissions.modify || state.selected.length !== 1) return;
-          mutations.showHover("rename");
+          mutations.showHover({
+            name: "rename",
+            props: {
+              item: getters.getFirstSelected(),
+            },
+          });
           break;
 
         case "ArrowUp":
@@ -668,26 +692,6 @@ export default {
           }
           event.preventDefault();
           this.navigateKeboardArrows(key);
-          break;
-      }
-
-      const charKey = String.fromCharCode(which).toLowerCase();
-
-      switch (charKey) {
-        case "c":
-        case "x":
-          this.copyCut(event, charKey);
-          break;
-        case "v":
-          this.paste(event);
-          break;
-        case "a":
-          event.preventDefault();
-          this.selectAll();
-          break;
-        case "s":
-          event.preventDefault();
-          downloadFiles(state.selected);
           break;
       }
     },

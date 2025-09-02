@@ -85,15 +85,15 @@
     "click": "alege fișier sau director",
     "ctrl": {
       "click": "alege multiple fișiere sau directoare",
-      "f": "deschide căutarea",
-      "s": "salvează un fișier sau descarcă directorul în care te afli"
+      "d": "descărcați elementele selectate"
     },
     "del": "șterge elementele selectate",
-    "doubleClick": "deschide un fișier sau director",
     "esc": "elibereaza selecția și/sau închide fereastra",
-    "f1": "această informație",
     "f2": "redenumește fișierul",
-    "help": "Ajutor"
+    "help": "Ajutor",
+    "f1": "arată ajutor prompt",
+    "description": "Puteți vizualiza mai jos opțiunile de navigație de bază. Pentru informații suplimentare, vă rugăm să vizitați",
+    "wiki": "FileBrowser Quantum Wiki"
   },
   "languages": {
     "he": "עברית",
@@ -154,7 +154,6 @@
     "numberDirs": "Numărul directoarelor{suffix}",
     "numberFiles": "Numărul fișierelor{suffix}",
     "rename": "Redenumește",
-    "renameMessage": "Redactează un nou nume pentru",
     "replace": "Înlocuiește",
     "replaceMessage": "Unul din fișierele încărcate intră în conflict din cauza denumrii. Vrei să înlocuiești fișierul existent?\n",
     "schedule": "Programare",
@@ -175,7 +174,6 @@
     "conflictsDetected": "Conflicte detectate",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "Nume invalid furnizat: nu poate conține \"/\" sau \"\\\"",
     "source": "Source{suffix}",
     "downloadsLimit": "Limita numărului de descărcări",
     "maxBandwidth": "Lățime de bandă maximă de descărcare (kbps)",
@@ -187,7 +185,10 @@
     "shareBanner": "Partajați URL-ul bannerului",
     "shareFavicon": "Partajați URL favicon",
     "optionalPasswordHelp": "Dacă este setată, utilizatorii trebuie să introducă această parolă pentru a vizualiza conținutul partajat.",
-    "viewMode": "Mod de vizualizare"
+    "viewMode": "Mod de vizualizare",
+    "renameMessageConflict": "An item named \"{filename}\" already exists!",
+    "renameMessage": "Introduceți un nume nou:",
+    "renameMessageInvalid": "Un fișier nu poate conține \"/\" sau \"\\\""
   },
   "search": {
     "images": "Imagini",

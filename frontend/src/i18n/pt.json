@@ -85,15 +85,15 @@
     "click": "selecionar pasta ou ficheiro",
     "ctrl": {
       "click": "selecionar várias pastas e ficheiros",
-      "f": "pesquisar",
-      "s": "guardar um ficheiro ou descarrega a pasta em que está a navegar"
+      "d": "descarregar itens selecionados"
     },
     "del": "eliminar os ficheiros selecionados",
-    "doubleClick": "abrir pasta ou ficheiro",
     "esc": "limpar seleção e/ou fechar menu",
-    "f1": "esta informação",
     "f2": "alterar nome do ficheiro",
-    "help": "Ajuda"
+    "help": "Ajuda",
+    "f1": "mostrar prompt de ajuda",
+    "description": "Pode ver as opções básicas de navegação abaixo. Para obter informações adicionais, visite",
+    "wiki": "Wiki do FileBrowser Quantum"
   },
   "languages": {
     "he": "עברית",
@@ -154,7 +154,6 @@
     "numberDirs": "Número de pastas{suffix}",
     "numberFiles": "Número de ficheiros{suffix}",
     "rename": "Alterar nome",
-    "renameMessage": "Insira um novo nome para",
     "replace": "Substituir",
     "replaceMessage": "Já existe um ficheiro com nome igual a um dos que está a tentar enviar. Quer substituí-lo?\n",
     "schedule": "Agendar",
@@ -175,7 +174,6 @@
     "conflictsDetected": "Conflitos detectados",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "Nome inválido fornecido: não pode conter \"/\" ou \"\\\"",
     "source": "Source{suffix}",
     "downloadsLimit": "Limite do número de descarregamentos",
     "maxBandwidth": "Largura de banda máxima de descarregamento (kbps)",
@@ -187,7 +185,10 @@
     "shareBanner": "Partilhar URL do banner",
     "shareFavicon": "Partilhar URL do favicon",
     "optionalPasswordHelp": "Se estiver definida, os utilizadores têm de introduzir esta palavra-passe para ver o conteúdo partilhado.",
-    "viewMode": "Modo de visualização"
+    "viewMode": "Modo de visualização",
+    "renameMessageConflict": "An item named \"{filename}\" already exists!",
+    "renameMessage": "Introduzir um novo nome:",
+    "renameMessageInvalid": "Um ficheiro não pode conter \"/\" ou \"\\\""
   },
   "search": {
     "images": "Imagens",

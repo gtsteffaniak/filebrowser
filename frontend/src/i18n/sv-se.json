@@ -85,15 +85,15 @@
     "click": "välj fil eller mapp",
     "ctrl": {
       "click": "välj flera filer eller mappar",
-      "f": "öppnar sök",
-      "s": "Spara en fil eller ladda ner den katalog där du är"
+      "d": "ladda ner valda artiklar"
     },
     "del": "ta bort valda objekt",
-    "doubleClick": "öppna en fil eller mapp",
     "esc": "Rensa markeringen och/eller stänga prompten",
-    "f1": "denna information",
     "f2": "ändra namnet på filen",
-    "help": "Hjälp"
+    "help": "Hjälp",
+    "f1": "visa hjälp prompt",
+    "description": "Du kan se de grundläggande navigeringsalternativen nedan. För ytterligare information, vänligen besök",
+    "wiki": "FileBrowser Quantum Wiki"
   },
   "languages": {
     "he": "עברית",
@@ -154,7 +154,6 @@
     "numberDirs": "Antal kataloger{suffix}",
     "numberFiles": "Antal filer{suffix}",
     "rename": "Ändra namn",
-    "renameMessage": "Infoga ett nytt namn för",
     "replace": "Ersätt",
     "replaceMessage": "En av filerna som du försöker överföra är i konflikt på grund av dess namn. Vill du ersätta den befintliga?\n",
     "schedule": "Schema",
@@ -175,7 +174,6 @@
     "conflictsDetected": "Konflikter upptäckta",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "Ogiltigt namn anges: kan inte innehålla \"/\" eller \"\\\"",
     "source": "Source{suffix}",
     "downloadsLimit": "Begränsning av antal nedladdningar",
     "maxBandwidth": "Max bandbredd för nedladdning (kbps)",
@@ -187,7 +185,10 @@
     "shareBanner": "Dela bannerns URL",
     "shareFavicon": "Dela URL för favicon",
     "optionalPasswordHelp": "Om det är inställt måste användarna ange lösenordet för att visa det delade innehållet.",
-    "viewMode": "Visa läge"
+    "viewMode": "Visa läge",
+    "renameMessageConflict": "An item named \"{filename}\" already exists!",
+    "renameMessage": "Ange ett nytt namn:",
+    "renameMessageInvalid": "En fil kan inte innehålla \"/\" eller \"\\\""
   },
   "search": {
     "images": "Bilder",

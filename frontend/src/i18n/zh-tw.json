@@ -85,15 +85,15 @@
     "click": "選擇檔案或目錄",
     "ctrl": {
       "click": "選擇多個檔案或目錄",
-      "f": "打開搜尋列",
-      "s": "儲存檔案或下載目前資料夾"
+      "d": "下載所選項目"
     },
     "del": "刪除所選的檔案/資料夾",
-    "doubleClick": "打開檔案/資料夾",
     "esc": "清除已選項或關閉提示資訊",
-    "f1": "顯示該幫助資訊",
     "f2": "重新命名檔案/資料夾",
-    "help": "幫助"
+    "help": "幫助",
+    "f1": "顯示幫助提示",
+    "description": "您可以查看以下的基本導航選項。如需其他資訊，請造訪",
+    "wiki": "FileBrowser Quantum Wiki"
   },
   "languages": {
     "he": "עברית",
@@ -154,7 +154,6 @@
     "numberDirs": "目錄數{suffix}",
     "numberFiles": "檔案數{suffix}",
     "rename": "重新命名",
-    "renameMessage": "請輸入新名稱，舊名稱為：",
     "replace": "替換",
     "replaceMessage": "您嘗試上傳的檔案中有一個與現有檔案的名稱存在衝突。是否取代現有的同名檔案？",
     "schedule": "計畫",
@@ -175,7 +174,6 @@
     "conflictsDetected": "偵測到衝突",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "提供的名稱無效：不能包含 \"/「 或 」\\\" 的容器",
     "source": "Source{suffix}",
     "downloadsLimit": "下載次數限制",
     "maxBandwidth": "最大下載頻寬 (kbps)",
@@ -187,7 +185,10 @@
     "shareBanner": "分享橫幅網址",
     "shareFavicon": "分享圖示 URL",
     "optionalPasswordHelp": "如果設定，使用者必須輸入此密碼才能檢視共用內容。",
-    "viewMode": "檢視模式"
+    "viewMode": "檢視模式",
+    "renameMessageConflict": "An item named \"{filename}\" already exists!",
+    "renameMessage": "輸入新名稱：",
+    "renameMessageInvalid": "檔案不能包含\"/「或」\\\""
   },
   "search": {
     "images": "影像",

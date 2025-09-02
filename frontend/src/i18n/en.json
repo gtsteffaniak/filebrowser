@@ -88,15 +88,15 @@
     "click": "select file or directory",
     "ctrl": {
       "click": "select multiple files or directories",
-      "f": "opens search",
-      "s": "save a file or download the directory where you are"
+      "d": "download selected items"
     },
     "del": "delete selected items",
-    "doubleClick": "open a file or directory",
     "esc": "clear selection and/or close the prompt",
-    "f1": "this information",
     "f2": "rename file",
-    "help": "Help"
+    "f1": "show help prompt",
+    "help": "Help",
+    "description": "You can view the basic naviagation options below. For additional information, please visit",
+    "wiki": "FileBrowser Quantum Wiki"
   },
   "languages": {
     "he": "עברית",
@@ -181,7 +181,6 @@
     "shareBanner": "Share banner URL",
     "shareFavicon": "Share favicon URL",
     "source": "Source{suffix}",
-    "invalidName": "Invalid name provided: cannot container \"/\" or \"\\\"",
     "destinationSource": "Destination Source:",
     "copy": "Copy",
     "copyMessage": "Choose the place to copy your files:",
@@ -210,7 +209,9 @@
     "numberDirs": "Number of directories{suffix}",
     "numberFiles": "Number of files{suffix}",
     "rename": "Rename",
-    "renameMessage": "An item named \"{filename}\" already exists! Enter a new name:",
+    "renameMessageConflict": "An item named \"{filename}\" already exists!",
+    "renameMessage": "Enter a new name:",
+    "renameMessageInvalid": "A file can't container \"/\" or \"\\\"",
     "replace": "Replace",
     "replaceMessage": "One of the files you're trying to upload is conflicting because of its name. Do you wish to continue to upload or replace the existing one?\n",
     "schedule": "Schedule",

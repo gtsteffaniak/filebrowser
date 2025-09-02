@@ -56,7 +56,7 @@ func setupFrontend(generate bool) {
 		})
 		Config.Frontend.ExternalLinks = append(Config.Frontend.ExternalLinks, ExternalLink{
 			Text: "Help",
-			Url:  "https://github.com/gtsteffaniak/filebrowser/wiki",
+			Url:  "help prompt",
 		})
 	}
 	if Config.Frontend.Description == "" {
