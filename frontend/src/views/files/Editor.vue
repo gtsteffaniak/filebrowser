@@ -4,12 +4,6 @@
   </div>
 </template>
 
-<style>
-.ace_mobile-menu {
-  display: none !important;
-}
-</style>
-
 <script>
 import { eventBus } from "@/store/eventBus";
 import { state, getters } from "@/store";
