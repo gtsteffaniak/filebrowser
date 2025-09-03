@@ -209,6 +209,7 @@ import { convertToVTT } from "@/utils/subtitles";
 import { getTypeInfo } from "@/utils/mimetype";
 import { muPdfAvailable } from "@/utils/constants";
 import { shareInfo } from "@/utils/constants";
+import jsmediatags from "jsmediatags/dist/jsmediatags.min.js";
 
 export default {
     name: "preview",
@@ -264,6 +265,7 @@ export default {
                 keyboard: { focused: true, global: true },
                 tooltips: { controls: true, seek: true },
                 loop: { active: true },
+                blankVideo: "",
                 autoplay: false, // The users will manage this from their profile settings
                 clickToPlay: true,
                 resetOnEnd: true,
@@ -430,6 +432,9 @@ export default {
             type: state.req.type,
             source: state.req.source,
         });
+        if (this.previewType === "audio") {
+            this.loadAudioMetadata();
+        }
     },
     beforeUnmount() {
         window.removeEventListener("keydown", this.keyEvent);
@@ -718,11 +723,11 @@ export default {
             downloadFiles(items);
         },
         // Load metadata from the audio
-        /*async loadAudioMetadata() {
+        async loadAudioMetadata() {
             if (this.previewType !== "audio") {
                 this.audioMetadata = null;
                 this.albumArtUrl = null;
-               return;
+                return;
             }
 
             try {
@@ -736,7 +741,7 @@ export default {
                         "year",
                         "picture",
                     ])
-                .read({
+                    .read({
                         onSuccess: (tag) => {
                             this.audioMetadata = {
                                 title: tag.tags.title,
@@ -744,8 +749,17 @@ export default {
                                 album: tag.tags.album,
                                 year: tag.tags.year,
                             };
+
+                            if (tag.tags.picture) {
+                                const base64String = this.arrayBufferToBase64(
+                                    tag.tags.picture.data,
+                                );
+                                this.albumArtUrl = `data:${tag.tags.picture.format};base64,${base64String}`;
+                            } else {
+                                this.albumArtUrl = null;
+                            }
                         },
-                      /*  onError: (error) => {
+                        onError: (error) => {
                             console.error(
                                 "Failed to read audio metadata:",
                                 error,
@@ -759,7 +773,16 @@ export default {
                 this.audioMetadata = null;
                 this.albumArtUrl = null;
             }
-            },*/
+        },
+        arrayBufferToBase64(buffer) {
+            let binary = "";
+            const bytes = new Uint8Array(buffer);
+            const len = bytes.byteLength;
+            for (let i = 0; i < len; i++) {
+                binary += String.fromCharCode(bytes[i]);
+            }
+            return window.btoa(binary);
+        },
     },
 };
 </script>
