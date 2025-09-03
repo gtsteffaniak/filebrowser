@@ -155,3 +155,28 @@ export default {
   },
 };
 </script>
+
+<style>
+.ace_editor {
+    font-size: 14px;
+    line-height: 1.3;
+}
+/* Mobile menu */
+.ace_mobile-menu {
+    font-size: 16px !important;
+    border-radius: 12px !important;
+    padding: 10px !important;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4) !important;
+}
+.ace_mobile-menu .ace_menu-item {
+    font-size: 16px !important;
+    margin: 8px 0 !important;
+    border-radius: 8px !important;
+    text-align: center !important;
+}
+.ace_mobile-menu .ace_menu-item {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+</style>
