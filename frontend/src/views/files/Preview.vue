@@ -209,6 +209,7 @@ import { convertToVTT } from "@/utils/subtitles";
 import { getTypeInfo } from "@/utils/mimetype";
 import { muPdfAvailable } from "@/utils/constants";
 import { shareInfo } from "@/utils/constants";
+/*import jsmediatags from "jsmediatags/dist/jsmediatags.min.js";*/
 
 export default {
     name: "preview",
@@ -266,6 +267,7 @@ export default {
                 loop: { active: true },
                 autoplay: false, // The users will manage this from their profile settings
                 clickToPlay: true,
+                blankVideo: "", // Fix console warn
                 resetOnEnd: true,
                 toggleInvert: false,
             },
@@ -430,6 +432,9 @@ export default {
             type: state.req.type,
             source: state.req.source,
         });
+        /*if (this.previewType === "audio") {
+            this.loadAudioMetadata();
+        }*/
     },
     beforeUnmount() {
         window.removeEventListener("keydown", this.keyEvent);
@@ -722,7 +727,7 @@ export default {
             if (this.previewType !== "audio") {
                 this.audioMetadata = null;
                 this.albumArtUrl = null;
-               return;
+                return;
             }
 
             try {
@@ -736,7 +741,7 @@ export default {
                         "year",
                         "picture",
                     ])
-                .read({
+                    .read({
                         onSuccess: (tag) => {
                             this.audioMetadata = {
                                 title: tag.tags.title,
@@ -744,8 +749,17 @@ export default {
                                 album: tag.tags.album,
                                 year: tag.tags.year,
                             };
+
+                            if (tag.tags.picture) {
+                                const base64String = this.arrayBufferToBase64(
+                                    tag.tags.picture.data,
+                                );
+                                this.albumArtUrl = `data:${tag.tags.picture.format};base64,${base64String}`;
+                            } else {
+                                this.albumArtUrl = null;
+                            }
                         },
-                      /*  onError: (error) => {
+                        onError: (error) => {
                             console.error(
                                 "Failed to read audio metadata:",
                                 error,
@@ -759,7 +773,16 @@ export default {
                 this.audioMetadata = null;
                 this.albumArtUrl = null;
             }
-            },*/
+        },
+        arrayBufferToBase64(buffer) {
+            let binary = "";
+            const bytes = new Uint8Array(buffer);
+            const len = bytes.byteLength;
+            for (let i = 0; i < len; i++) {
+                binary += String.fromCharCode(bytes[i]);
+            }
+            return window.btoa(binary);
+        },*/
     },
 };
 </script>
@@ -948,6 +971,7 @@ button:hover,
         box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
         margin: 0;
         transform: none;
+        justify-content: center;
     }
 
     /* Buttons container more "big" for easy touch */
@@ -1006,8 +1030,6 @@ button:hover,
     padding: 20px;
     width: 100%;
     box-sizing: border-box;
-    height: 100%;
-    justify-content: center;
 }
 
 .album-art-container {
