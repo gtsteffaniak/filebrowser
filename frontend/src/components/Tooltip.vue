@@ -3,7 +3,7 @@
     ref="tooltipRef"
     v-show="tooltip.show"
     class="floating-tooltip fb-shadow"
-    :class="{ 'dark-mode': isDarkMode }"
+    :class="{ 'dark-mode': isDarkMode, 'pointer-enabled': tooltip.pointerEvents }"
     :style="tooltipStyle"
     v-html="tooltip.content"
   ></div>
@@ -29,10 +29,24 @@ export default {
       return state.user.darkMode;
     },
     tooltipStyle() {
-      return {
+      const style = {
         top: `${this.adjustedY}px`,
         left: `${this.adjustedX}px`,
       };
+
+      // Add custom width if specified
+      if (this.tooltip.width) {
+        style.maxWidth = this.tooltip.width;
+        style.width = this.tooltip.width;
+      }
+
+      // Add max height and scrolling for viewport overflow
+      if (this.tooltip.width || this.tooltip.pointerEvents) {
+        style.maxHeight = '80vh';
+        style.overflowY = 'auto';
+      }
+
+      return style;
     },
   },
   watch: {
@@ -53,6 +67,10 @@ export default {
     },
   },
   methods: {
+    /**
+     * @param {number} x - X coordinate
+     * @param {number} y - Y coordinate
+     */
     updatePosition(x, y) {
       this.$nextTick(() => {
         const tooltipEl = this.$refs.tooltipRef;
@@ -100,6 +118,16 @@ export default {
   max-width: 20em;
   white-space: normal;
   overflow-wrap: break-word;
+}
+
+.floating-tooltip.pointer-enabled {
+  pointer-events: auto;
+  cursor: auto;
+}
+
+.floating-tooltip.pointer-enabled a {
+  pointer-events: auto;
+  cursor: pointer;
 }
 .tooltip-info-icon {
   font-size: 1em !important;

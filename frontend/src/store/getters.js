@@ -342,12 +342,11 @@ export const getters = {
     return false
   },
   officeViewingDisabled: filename => {
-    if (shareInfo.isShare) {
-      return true
-    }
     const ext = ' ' + getFileExtension(filename)
-    if (state.user.disableOfficePreviewExt) {
-      const disabledExts = ' ' + state.user.disableOfficePreviewExt.toLowerCase()
+    const hasDisabled = shareInfo.disableOfficePreviewExt || state.user.disableOfficePreviewExt
+    if (hasDisabled) {
+      const disabledList = shareInfo.disableOfficePreviewExt + ' ' + state.user.disableOfficePreviewExt
+      const disabledExts = ' ' + disabledList.toLowerCase()
       if (disabledExts.includes(ext.toLowerCase())) {
         return true
       }

@@ -145,6 +145,9 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	publicAPI.HandleFunc("GET /preview", withHashFile(publicPreviewHandler))
 	publicAPI.HandleFunc("GET /resources", withHashFile(publicShareHandler))
 	publicAPI.HandleFunc("GET /users", withUser(userGetHandler))
+	publicAPI.HandleFunc("POST /onlyoffice/callback", withHashFile(onlyofficeCallbackHandler))
+	publicAPI.HandleFunc("GET /onlyoffice/config", withHashFile(onlyofficeClientConfigGetHandler))
+
 	// Settings routes
 	api.HandleFunc("GET /settings", withAdmin(settingsGetHandler))
 
@@ -157,11 +160,7 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	api.HandleFunc("GET /jobs/{action}/{target}", withUser(getJobsHandler))
 
 	api.HandleFunc("GET /onlyoffice/config", withUser(onlyofficeClientConfigGetHandler))
-	publicAPI.HandleFunc("GET /onlyoffice/config", withHashFile(onlyofficeClientConfigGetHandler))
 	api.HandleFunc("POST /onlyoffice/callback", withUser(onlyofficeCallbackHandler))
-	publicAPI.HandleFunc("POST /onlyoffice/callback", withHashFile(onlyofficeCallbackHandler))
-	api.HandleFunc("GET /onlyoffice/getToken", withUser(onlyofficeGetTokenHandler))
-	publicAPI.HandleFunc("GET /onlyoffice/getToken", withHashFile(onlyofficeGetTokenHandler))
 
 	api.HandleFunc("GET /search", withUser(searchHandler))
 	// Mount the public API sub-router

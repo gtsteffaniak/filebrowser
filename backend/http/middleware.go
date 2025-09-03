@@ -91,6 +91,8 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 			Content: getContent,
 		})
 		file.Token = link.Token
+		file.Source = ""
+		file.Hash = link.Hash
 		if err != nil {
 			logger.Errorf("error fetching file info for share. hash=%v path=%v error=%v", hash, path, err)
 			return errToStatus(err), fmt.Errorf("error fetching share from server")

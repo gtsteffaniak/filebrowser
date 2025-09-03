@@ -121,3 +121,10 @@ func NonNilSlice[T any](in []T) []T {
 	}
 	return in
 }
+
+func Ternary[T any](cond bool, vtrue, vfalse T) T {
+	if cond {
+		return vtrue
+	}
+	return vfalse
+}

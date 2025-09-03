@@ -3162,6 +3162,10 @@ const docTemplate = `{
                     "description": "when false, the date is relative, when true, the date is an exact timestamp",
                     "type": "boolean"
                 },
+                "debugOffice": {
+                    "description": "debug onlyoffice editor",
+                    "type": "boolean"
+                },
                 "deleteWithoutConfirming": {
                     "description": "delete files without confirmation",
                     "type": "boolean"
@@ -3598,6 +3602,10 @@ const docTemplate = `{
                 },
                 "dateFormat": {
                     "description": "when false, the date is relative, when true, the date is an exact timestamp",
+                    "type": "boolean"
+                },
+                "debugOffice": {
+                    "description": "debug onlyoffice editor",
                     "type": "boolean"
                 },
                 "deleteWithoutConfirming": {

@@ -104,6 +104,7 @@ type NonAdminEditable struct {
 	DisableViewingExt          string      `json:"disableViewingExt"`          // space separated list of file extensions to disable viewing for
 	CustomTheme                string      `json:"customTheme"`                // Name of theme to use chosen from custom themes config.
 	ShowSelectMultiple         bool        `json:"showSelectMultiple"`         // show select multiple files on desktop
+	DebugOffice                bool        `json:"debugOffice"`                // debug onlyoffice editor
 }
 
 type FileLoading struct {
