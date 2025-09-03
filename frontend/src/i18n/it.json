@@ -518,7 +518,9 @@
     "showSelectMultiple": "Mostra selezione multipla nel menu contestuale sul desktop",
     "showSelectMultipleDescription": "Per impostazione predefinita, il menu contestuale del desktop non dispone dell'opzione \"seleziona più\" come quello del cellulare. Questa opzione viene sempre visualizzata nel menu contestuale.",
     "defaultMediaPlayer": "Utilizzare il lettore multimediale nativo del browser",
-    "defaultMediaPlayerDescription": "Utilizzate il lettore multimediale nativo del vostro browser per i file video e audio piuttosto che il lettore multimediale \"vue-plyr\" incluso in FileBrowser."
+    "defaultMediaPlayerDescription": "Utilizzate il lettore multimediale nativo del vostro browser per i file video e audio piuttosto che il lettore multimediale \"vue-plyr\" incluso in FileBrowser.",
+    "debugOfficeEditor": "Abilita la modalità di debug di OnlyOffice",
+    "debugOfficeEditorDescription": "Mostra un popup di debug con informazioni aggiuntive nell'editor di OnlyOffice."
   },
   "editor": {
     "uninitialized": "Impossibile inizializzare l'editor. Ricaricare.",

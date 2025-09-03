@@ -518,7 +518,9 @@
     "showSelectMultiple": "데스크톱의 컨텍스트 메뉴에서 여러 개 선택 표시",
     "showSelectMultipleDescription": "기본적으로 데스크톱 컨텍스트 메뉴에는 모바일처럼 '여러 개 선택' 옵션이 없습니다. 이 옵션은 항상 컨텍스트 메뉴에 표시됩니다.",
     "defaultMediaPlayer": "브라우저의 기본 미디어 플레이어 사용",
-    "defaultMediaPlayerDescription": "비디오 및 오디오 파일은 FileBrowser에 포함된 'vue-plyr' 미디어 플레이어가 아닌 브라우저의 기본 미디어 플레이어를 사용하세요."
+    "defaultMediaPlayerDescription": "비디오 및 오디오 파일은 FileBrowser에 포함된 'vue-plyr' 미디어 플레이어가 아닌 브라우저의 기본 미디어 플레이어를 사용하세요.",
+    "debugOfficeEditor": "Office 디버그 모드만 사용",
+    "debugOfficeEditorDescription": "OnlyOffice 편집기에서 추가 정보가 포함된 디버그 팝업을 표시합니다."
   },
   "editor": {
     "uninitialized": "편집기를 초기화하지 못했습니다. 다시 로드하세요.",

@@ -518,7 +518,9 @@
     "showSelectMultiple": "デスクトップのコンテキストメニューに複数選択を表示する",
     "showSelectMultipleDescription": "デフォルトでは、デスクトップのコンテキストメニューには、モバイルのような「複数選択」オプションはありません。このオプションは常にコンテキストメニューに表示されます。",
     "defaultMediaPlayer": "ブラウザのネイティブ・メディア・プレーヤーを使う",
-    "defaultMediaPlayerDescription": "ビデオやオーディオファイルには、FileBrowserに含まれる「vue-plyr」メディアプレーヤーではなく、ブラウザのネイティブメディアプレーヤーを使用してください。"
+    "defaultMediaPlayerDescription": "ビデオやオーディオファイルには、FileBrowserに含まれる「vue-plyr」メディアプレーヤーではなく、ブラウザのネイティブメディアプレーヤーを使用してください。",
+    "debugOfficeEditor": "OnlyOfficeデバッグモードを有効にする",
+    "debugOfficeEditorDescription": "OnlyOfficeエディタに追加情報のデバッグポップアップを表示します。"
   },
   "editor": {
     "uninitialized": "エディタの初期化に失敗しました。再読み込みしてください。",

@@ -482,7 +482,9 @@
     "showSelectMultiple": "Meerdere selecteren tonen in contextmenu op bureaublad",
     "showSelectMultipleDescription": "Standaard heeft het contextmenu op de desktop geen optie \"meerdere selecteren\" zoals mobiel. Deze optie wordt altijd weergegeven in het contextmenu.",
     "defaultMediaPlayer": "Gebruik de ingebouwde mediaspeler van uw browser",
-    "defaultMediaPlayerDescription": "Gebruik de eigen mediaspeler van uw browser voor video- en audiobestanden in plaats van de meegeleverde 'vue-plyr' mediaspeler van FileBrowser."
+    "defaultMediaPlayerDescription": "Gebruik de eigen mediaspeler van uw browser voor video- en audiobestanden in plaats van de meegeleverde 'vue-plyr' mediaspeler van FileBrowser.",
+    "debugOfficeEditor": "Debugmodus OnlyOffice inschakelen",
+    "debugOfficeEditorDescription": "Een foutopsporingspop-up weergeven met aanvullende informatie in de OnlyOffice-editor."
   },
   "general": {
     "name": "Naam",

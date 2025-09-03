@@ -518,7 +518,9 @@
     "showSelectMultiple": "Többszörös kijelölés megjelenítése az asztali kontextusmenüben",
     "showSelectMultipleDescription": "Alapértelmezés szerint az asztali kontextusmenü nem rendelkezik a \"többszörös kiválasztás\" opcióval, mint a mobilon. Ez az opció mindig megjelenik a kontextusmenüben.",
     "defaultMediaPlayer": "Használja a böngésző natív médialejátszóját",
-    "defaultMediaPlayerDescription": "Használja a böngésző natív médialejátszóját a videó- és hangfájlokhoz, nem pedig a FileBrowser mellékelt \"vue-plyr\" médialejátszóját."
+    "defaultMediaPlayerDescription": "Használja a böngésző natív médialejátszóját a videó- és hangfájlokhoz, nem pedig a FileBrowser mellékelt \"vue-plyr\" médialejátszóját.",
+    "debugOfficeEditor": "OnlyOffice hibakeresési mód engedélyezése",
+    "debugOfficeEditorDescription": "További információkat tartalmazó hibakeresési felugró ablak megjelenítése az OnlyOffice szerkesztőben."
   },
   "editor": {
     "uninitialized": "Nem sikerült inicializálni a szerkesztőt. Kérjük, töltse újra.",

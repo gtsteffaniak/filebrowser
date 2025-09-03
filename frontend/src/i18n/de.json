@@ -518,7 +518,9 @@
     "showSelectMultiple": "Mehrfachauswahl im Kontextmenü auf dem Desktop anzeigen",
     "showSelectMultipleDescription": "Standardmäßig verfügt das Desktop-Kontextmenü nicht über die Option \"Mehrere auswählen\" wie bei mobilen Geräten. Diese Option wird immer im Kontextmenü angezeigt.",
     "defaultMediaPlayer": "Verwenden Sie den nativen Media Player Ihres Browsers",
-    "defaultMediaPlayerDescription": "Verwenden Sie für Video- und Audiodateien den nativen Mediaplayer Ihres Browsers und nicht den in FileBrowser enthaltenen 'vue-plyr' Mediaplayer."
+    "defaultMediaPlayerDescription": "Verwenden Sie für Video- und Audiodateien den nativen Mediaplayer Ihres Browsers und nicht den in FileBrowser enthaltenen 'vue-plyr' Mediaplayer.",
+    "debugOfficeEditor": "OnlyOffice-Debug-Modus einschalten",
+    "debugOfficeEditorDescription": "Ein Debug-Popup mit zusätzlichen Informationen im OnlyOffice-Editor anzeigen."
   },
   "editor": {
     "uninitialized": "Der Editor konnte nicht initialisiert werden. Bitte neu laden.",

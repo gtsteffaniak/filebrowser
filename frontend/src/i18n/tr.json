@@ -518,7 +518,9 @@
     "showSelectMultiple": "Masaüstündeki bağlam menüsünde çoklu seçmeyi göster",
     "showSelectMultipleDescription": "Varsayılan olarak, masaüstü içerik menüsünde mobil cihazlardaki gibi \"çoklu seç\" seçeneği yoktur. Bu seçenek her zaman içerik menüsünde gösterilir.",
     "defaultMediaPlayer": "Tarayıcınızın yerel medya oynatıcısını kullanın",
-    "defaultMediaPlayerDescription": "Video ve ses dosyaları için FileBrowser'ın dahil ettiği 'vue-plyr' medya oynatıcısı yerine tarayıcınızın yerel medya oynatıcısını kullanın."
+    "defaultMediaPlayerDescription": "Video ve ses dosyaları için FileBrowser'ın dahil ettiği 'vue-plyr' medya oynatıcısı yerine tarayıcınızın yerel medya oynatıcısını kullanın.",
+    "debugOfficeEditor": "OnlyOffice Hata Ayıklama Modunu Etkinleştir",
+    "debugOfficeEditorDescription": "OnlyOffice düzenleyicisinde ek bilgiler içeren bir hata ayıklama açılır penceresi gösterin."
   },
   "editor": {
     "uninitialized": "Düzenleyici başlatılamadı. Lütfen yeniden yükleyin.",

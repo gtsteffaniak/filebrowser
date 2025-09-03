@@ -518,7 +518,9 @@
     "deleteWithoutConfirming": "Eliminar archivos sin mensaje de confirmación",
     "deleteWithoutConfirmingDescription": "Eliminar archivos sin mensaje de confirmación. Esto sólo funcionará si el archivo es un archivo multimedia.",
     "defaultMediaPlayer": "Usar el reproductor multimedia nativo del navegador",
-    "defaultMediaPlayerDescription": "Usar el reproductor multimedia nativo de tu navegador para los archivos de vídeo y audio en lugar del reproductor multimedia incluido en FileBrowser."
+    "defaultMediaPlayerDescription": "Usar el reproductor multimedia nativo de tu navegador para los archivos de vídeo y audio en lugar del reproductor multimedia incluido en FileBrowser.",
+    "debugOfficeEditor": "Activar el modo de depuración de OnlyOffice",
+    "debugOfficeEditorDescription": "Mostrar una ventana emergente de depuración con información adicional en el editor OnlyOffice."
   },
   "editor": {
     "uninitialized": "Error al iniciar el editor, inténtelo de nuevo",

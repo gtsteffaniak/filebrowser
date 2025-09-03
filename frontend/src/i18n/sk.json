@@ -518,7 +518,9 @@
     "showSelectMultiple": "Zobrazenie výberu viacerých v kontextovom menu na ploche",
     "showSelectMultipleDescription": "V predvolenom nastavení kontextová ponuka na ploche nemá možnosť \"vybrať viacero\" ako v mobilných zariadeniach. Táto možnosť sa v kontextovej ponuke zobrazuje vždy.",
     "defaultMediaPlayer": "Používanie natívneho prehrávača médií prehliadača",
-    "defaultMediaPlayerDescription": "Na prehrávanie video a zvukových súborov použite natívny prehrávač médií prehliadača, a nie mediálny prehrávač vue-plyr, ktorý je súčasťou aplikácie FileBrowser."
+    "defaultMediaPlayerDescription": "Na prehrávanie video a zvukových súborov použite natívny prehrávač médií prehliadača, a nie mediálny prehrávač vue-plyr, ktorý je súčasťou aplikácie FileBrowser.",
+    "debugOfficeEditor": "Povolenie režimu ladenia OnlyOffice",
+    "debugOfficeEditorDescription": "Zobrazenie vyskakovacieho okna ladenia s ďalšími informáciami v editore OnlyOffice."
   },
   "editor": {
     "uninitialized": "Nepodarilo sa inicializovať editor. Prosím, načítajte ho znova.",

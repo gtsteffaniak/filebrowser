@@ -482,7 +482,9 @@
     "showSelectMultiple": "Visa markera flera i snabbmenyn på skrivbordet",
     "showSelectMultipleDescription": "Som standard har snabbmenyn på skrivbordet inte alternativet \"välj flera\" som på mobilen. Det här alternativet visas alltid i snabbmenyn.",
     "defaultMediaPlayer": "Använd den inbyggda mediaspelaren i din webbläsare",
-    "defaultMediaPlayerDescription": "Använd webbläsarens inbyggda mediaspelare för video- och ljudfiler i stället för FileBrowsers medföljande \"vue-plyr\"-mediaspelare."
+    "defaultMediaPlayerDescription": "Använd webbläsarens inbyggda mediaspelare för video- och ljudfiler i stället för FileBrowsers medföljande \"vue-plyr\"-mediaspelare.",
+    "debugOfficeEditor": "Aktivera OnlyOffice felsökningsläge",
+    "debugOfficeEditorDescription": "Visa en debug-popup med ytterligare information i OnlyOffice-redigeraren."
   },
   "general": {
     "name": "Namn",

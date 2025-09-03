@@ -482,7 +482,9 @@
     "showSelectMultiple": "在桌面右键菜单中显示多个选择",
     "showSelectMultipleDescription": "默认情况下，桌面右键菜单不像手机那样有 \"选择多个 \"选项。该选项始终显示在右键菜单中。",
     "defaultMediaPlayer": "使用浏览器的本地媒体播放器",
-    "defaultMediaPlayerDescription": "使用浏览器的本地媒体播放器播放视频和音频文件，而不是 FileBrowser 附带的 \"vue-plyr \"媒体播放器。"
+    "defaultMediaPlayerDescription": "使用浏览器的本地媒体播放器播放视频和音频文件，而不是 FileBrowser 附带的 \"vue-plyr \"媒体播放器。",
+    "debugOfficeEditor": "启用 OnlyOffice 调试模式",
+    "debugOfficeEditorDescription": "在 OnlyOffice 编辑器中显示包含附加信息的调试弹出窗口。"
   },
   "general": {
     "name": "名称",

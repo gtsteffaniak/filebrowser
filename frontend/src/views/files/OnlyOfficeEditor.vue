@@ -18,6 +18,8 @@ import { baseURL } from "@/utils/constants";
 import { removeLastDir } from "@/utils/url";
 import { filesApi } from "@/api";
 
+const wikiLink = "https://github.com/gtsteffaniak/filebrowser/wiki/Office-Support#onlyoffice-integration-troubleshooting-guide"
+const wikiLinkText = "📖 View Troubleshooting Guide"
 export default {
   name: "onlyOfficeEditor",
   components: {
@@ -96,7 +98,7 @@ export default {
 
       if (this.debugMode) {
         const errorMsg = (error && typeof error === 'object' && 'message' in error) ? error.message : String(error);
-        this.updateDebugStatus(`❌ Setup Error: ${errorMsg}<br/><a href="/ONLYOFFICE_TROUBLESHOOTING.md" target="_blank">📖 View Troubleshooting Guide</a>`);
+        this.updateDebugStatus(`❌ Setup Error: ${errorMsg}<br/><a href="${wikiLink}" target="_blank">${wikiLinkText}</a>`);
       }
       // TODO: Show user-friendly error message
     }
@@ -208,8 +210,8 @@ export default {
           <div style="margin-top: 15px; padding: 10px; background: #ffebee; border-radius: 4px; color: #c62828;">
             <strong>❌ Error Detected</strong><br/>
             OnlyOffice integration failed. Check the failed steps above.<br/>
-            <a href="/ONLYOFFICE_TROUBLESHOOTING.md" target="_blank" style="color: #1976d2;">
-              📖 View Troubleshooting Guide
+            <a href="${wikiLink}" target="_blank" style="color: #1976d2;">
+              ${wikiLinkText}
             </a>
           </div>
         `;
@@ -316,7 +318,7 @@ export default {
           errorMsg += `• Start OnlyOffice Document Server<br/>`;
           errorMsg += `• Verify ${this.onlyOfficeUrl} is accessible<br/>`;
           errorMsg += `• Check Docker containers if using Docker<br/>`;
-          errorMsg += `<br/><a href="/ONLYOFFICE_TROUBLESHOOTING.md" target="_blank" style="color: #1976d2;">📖 View Troubleshooting Guide</a>`;
+          errorMsg += `<br/><a href="${wikiLink}" target="_blank" style="color: #1976d2;">${wikiLinkText}</a>`;
 
           this.updateDebugStatus(errorMsg);
         }
@@ -375,7 +377,7 @@ export default {
           errorMsg += "• Check browser console for detailed error messages<br/>";
         }
 
-        errorMsg += `<br/><a href="/ONLYOFFICE_TROUBLESHOOTING.md" target="_blank" style="color: #1976d2;">📖 View Troubleshooting Guide</a>`;
+        errorMsg += `<br/><a href="${wikiLink}" target="_blank" style="color: #1976d2;">${wikiLinkText}</a>`;
 
         this.updateDebugStatus(errorMsg);
       }

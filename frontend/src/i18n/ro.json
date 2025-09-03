@@ -518,7 +518,9 @@
     "showSelectMultiple": "Afișarea selecției multiple în meniul contextual de pe desktop",
     "showSelectMultipleDescription": "În mod implicit, meniul contextual de pe desktop nu are opțiunea \"select multiple\", ca pe mobil. Această opțiune se afișează întotdeauna în meniul contextual.",
     "defaultMediaPlayer": "Utilizați playerul media nativ al browserului dvs.",
-    "defaultMediaPlayerDescription": "Utilizați playerul media nativ al browserului dvs. pentru fișierele video și audio mai degrabă decât playerul media \"vue-plyr\" inclus în FileBrowser."
+    "defaultMediaPlayerDescription": "Utilizați playerul media nativ al browserului dvs. pentru fișierele video și audio mai degrabă decât playerul media \"vue-plyr\" inclus în FileBrowser.",
+    "debugOfficeEditor": "Activați modul de depanare OnlyOffice",
+    "debugOfficeEditorDescription": "Afișați o fereastră pop-up de depanare cu informații suplimentare în editorul OnlyOffice."
   },
   "editor": {
     "uninitialized": "Nu s-a reușit inițializarea editorului. Vă rugăm să reîncărcați.",

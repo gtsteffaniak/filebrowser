@@ -456,7 +456,9 @@
     "showSelectMultiple": "在桌面的上下文功能表中顯示多重選擇",
     "showSelectMultipleDescription": "預設情況下，桌上型電腦的上下文功能表不像行動裝置一樣有「選取多個」選項。此選項總是在上下文功能表中顯示。",
     "defaultMediaPlayer": "使用瀏覽器的本機媒體播放器",
-    "defaultMediaPlayerDescription": "使用瀏覽器的本機媒體播放器來播放視訊和音訊檔案，而非 FileBrowser 隨附的「vue-plyr」媒體播放器。"
+    "defaultMediaPlayerDescription": "使用瀏覽器的本機媒體播放器來播放視訊和音訊檔案，而非 FileBrowser 隨附的「vue-plyr」媒體播放器。",
+    "debugOfficeEditor": "啟用 OnlyOffice 除錯模式",
+    "debugOfficeEditorDescription": "在 OnlyOffice 編輯器中顯示包含其他資訊的除錯彈出式視窗。"
   },
   "otp": {
     "name": "雙因素驗證",

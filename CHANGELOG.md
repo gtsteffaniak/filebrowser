@@ -9,6 +9,8 @@ All notable changes to this project will be documented in this file. For commit 
  - added new default media player (can be disabled in user profile settings) @Kurami32 #1160
  - Option to disable update check #1134
  - added `frontend.favicon` and `frontend.description` for html overrides
+ - onlyoffice viewing and editing is supported in shares
+ - Added only office debug view and wiki to assist with debugging issues #1068 #911 #1074
 
  **Notes**:
  - access management: specific folders/files with access are shown instead permission denied for parent folder

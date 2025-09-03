@@ -482,7 +482,9 @@
     "showSelectMultiple": "Mostrar seleção múltipla no menu de contexto no ambiente de trabalho",
     "showSelectMultipleDescription": "Por predefinição, o menu de contexto do ambiente de trabalho não tem a opção \"selecionar vários\" como no telemóvel. Esta opção mostra-a sempre no menu de contexto.",
     "defaultMediaPlayer": "Utilize o leitor multimédia nativo do seu navegador",
-    "defaultMediaPlayerDescription": "Utilize o leitor multimédia nativo do seu navegador para ficheiros de vídeo e áudio em vez do leitor multimédia 'vue-plyr' incluído no FileBrowser."
+    "defaultMediaPlayerDescription": "Utilize o leitor multimédia nativo do seu navegador para ficheiros de vídeo e áudio em vez do leitor multimédia 'vue-plyr' incluído no FileBrowser.",
+    "debugOfficeEditor": "Ativar o modo de depuração do OnlyOffice",
+    "debugOfficeEditorDescription": "Mostrar um popup de depuração com informações adicionais no editor OnlyOffice."
   },
   "general": {
     "name": "Nome",

@@ -234,6 +234,17 @@
                 {{ $t("buttons.save") }}
               </button>
             </div>
+            <div class="settings-items">
+              <br/>
+              <ToggleSwitch
+                class="item"
+                v-model="localuser.debugOffice"
+                @change="updateSettings"
+                :name="$t('profileSettings.debugOfficeEditor')"
+                :description="$t('profileSettings.debugOfficeEditorDescription')"
+              />
+            </div>
+
           </div>
           <h3>{{ $t("settings.themeColor") }}</h3>
           <ButtonGroup
@@ -417,6 +428,7 @@ export default {
           "hideSidebarFileActions",
           "editorQuickSave",
           "showSelectMultiple",
+          "debugOffice",
         ]);
         if (themeChanged) {
           window.location.reload();

@@ -510,7 +510,9 @@
     "showSelectMultiple": "إظهار تحديد متعدد في قائمة السياق على سطح المكتب",
     "showSelectMultipleDescription": "بشكل افتراضي، لا تحتوي قائمة سياق سطح المكتب على خيار \"تحديد متعدد\" مثل الهاتف المحمول. يظهر هذا الخيار دائمًا في قائمة السياق.",
     "defaultMediaPlayer": "استخدم مشغل الوسائط الأصلي في متصفحك",
-    "defaultMediaPlayerDescription": "استخدم مشغل الوسائط الأصلي في متصفحك لملفات الفيديو والصوت بدلاً من مشغل الوسائط \"vue-plyr\" المضمن في متصفح FileBrowser."
+    "defaultMediaPlayerDescription": "استخدم مشغل الوسائط الأصلي في متصفحك لملفات الفيديو والصوت بدلاً من مشغل الوسائط \"vue-plyr\" المضمن في متصفح FileBrowser.",
+    "debugOfficeEditor": "تمكين وضع التصحيح فقط",
+    "debugOfficeEditorDescription": "إظهار نافذة منبثقة للتصحيح مع معلومات إضافية في محرر OnlyOffice."
   },
   "colors": {
     "red": "أحمر",
