@@ -127,7 +127,7 @@ export default {
     async reloadShares() {
       mutations.setLoading("shares", true);
       try {
-        let links = await publicApi.list();
+        let links = await shareApi.list();
         if (links.length === 0) {
           this.links = [];
           return;

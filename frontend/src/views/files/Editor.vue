@@ -104,9 +104,11 @@ export default {
         theme: this.isDarkMode ? "ace/theme/twilight" : "ace/theme/chrome",
         readOnly: state.req.type === "textImmutable",
         wrap: false,
+        enableMobileMenu: true,
       });
 
       this.editor.container.addEventListener("contextmenu", (event) => {
+        event.preventDefault();
         event.stopPropagation();
       }, true);
 
