@@ -71,7 +71,11 @@ func sseHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int,
 				return http.StatusInternalServerError, fmt.Errorf("error sending broadcast: %v, user: %s", err, username)
 			}
 
-		case msg := <-sendChan:
+		case msg, ok := <-sendChan:
+			if !ok {
+				logger.Debugf("SSE channel closed for user: %s, SessionId: %s", username, sessionId)
+				return http.StatusOK, nil
+			}
 			if err := msgr.sendEvent(msg.EventType, msg.Message); err != nil {
 				return http.StatusInternalServerError, fmt.Errorf("error sending targeted message: %v, user: %s", err, username)
 			}
