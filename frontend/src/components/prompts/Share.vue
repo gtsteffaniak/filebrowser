@@ -250,7 +250,7 @@
 <script>
 import { notify } from "@/notify";
 import { state, getters, mutations } from "@/store";
-import { publicApi } from "@/api";
+import { publicApi, shareApi } from "@/api";
 import Clipboard from "clipboard";
 import { fromNow } from "@/utils/moment";
 import { buildItemUrl, fixDownloadURL } from "@/utils/url";
@@ -401,7 +401,7 @@ export default {
     }
     try {
       // get last element of the path
-      const links = await publicApi.get(this.item.path, this.item.source);
+      const links = await shareApi.get(this.item.path, this.item.source);
       this.links = links;
     } catch (err) {
       notify.showError(err);
@@ -512,7 +512,7 @@ export default {
           payload.hash = this.link.hash;
         }
 
-        const res = await publicApi.create(payload);
+        const res = await shareApi.create(payload);
 
         if (!this.isEditMode) {
           this.links.push(res);
@@ -539,7 +539,7 @@ export default {
     async deleteLink(event, link) {
       event.preventDefault();
       try {
-        await publicApi.remove(link.hash);
+        await shareApi.remove(link.hash);
         this.links = this.links.filter((item) => item.hash !== link.hash);
         // emit event to reload shares in settings view
         eventBus.emit('sharesChanged');

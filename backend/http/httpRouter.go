@@ -15,6 +15,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/version"
 	"github.com/gtsteffaniak/filebrowser/backend/database/storage/bolt"
+	"github.com/gtsteffaniak/filebrowser/backend/events"
 	"github.com/gtsteffaniak/go-logger/logger"
 	// http-swagger middleware
 )
@@ -128,15 +129,17 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	api.HandleFunc("GET /access/groups", withAdmin(groupGetHandler))
 	api.HandleFunc("POST /access/group", withAdmin(groupPostHandler))
 	api.HandleFunc("DELETE /access/group", withAdmin(groupDeleteHandler))
+
+	// Share management routes (require permission)
+	api.HandleFunc("GET /shares", withPermShare(shareListHandler))
+	api.HandleFunc("GET /share/direct", withPermShare(shareDirectDownloadHandler))
+	api.HandleFunc("GET /share", withPermShare(shareGetHandler))
+	api.HandleFunc("POST /share", withPermShare(sharePostHandler))
+	api.HandleFunc("DELETE /share", withPermShare(shareDeleteHandler))
+
 	// Create API sub-router for public API endpoints
 	publicAPI := http.NewServeMux()
 	// NEW PUBLIC ROUTES - All publicly accessible endpoints
-	// Share management routes (require permission but are publicly accessible)
-	publicRoutes.HandleFunc("GET /shares", withPermShare(shareListHandler))
-	publicRoutes.HandleFunc("GET /share/direct", withPermShare(shareDirectDownloadHandler))
-	publicRoutes.HandleFunc("GET /share", withPermShare(shareGetHandler))
-	publicRoutes.HandleFunc("POST /share", withPermShare(sharePostHandler))
-	publicRoutes.HandleFunc("DELETE /share", withPermShare(shareDeleteHandler))
 	// Public API routes (hash-based authentication)
 	publicAPI.HandleFunc("GET /raw", withHashFile(publicRawHandler))
 	publicAPI.HandleFunc("GET /preview", withHashFile(publicPreviewHandler))
@@ -161,56 +164,6 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	publicAPI.HandleFunc("GET /onlyoffice/getToken", withHashFile(onlyofficeGetTokenHandler))
 
 	api.HandleFunc("GET /search", withUser(searchHandler))
-
-	// Share routes (DEPRECATED - maintain for backwards compatibility)
-	// These will redirect to the new /public/shares endpoints
-	api.HandleFunc("GET /shares", func(w http.ResponseWriter, r *http.Request) {
-		newURL := config.Server.BaseURL + "public/shares"
-		if r.URL.RawQuery != "" {
-			newURL += "?" + r.URL.RawQuery
-		}
-		http.Redirect(w, r, newURL, http.StatusMovedPermanently)
-	})
-	api.HandleFunc("GET /share", func(w http.ResponseWriter, r *http.Request) {
-		newURL := config.Server.BaseURL + "public/share"
-		if r.URL.RawQuery != "" {
-			newURL += "?" + r.URL.RawQuery
-		}
-		http.Redirect(w, r, newURL, http.StatusMovedPermanently)
-	})
-	api.HandleFunc("POST /share", func(w http.ResponseWriter, r *http.Request) {
-		http.Redirect(w, r, config.Server.BaseURL+"public/share", http.StatusPermanentRedirect)
-	})
-	api.HandleFunc("DELETE /share", func(w http.ResponseWriter, r *http.Request) {
-		newURL := config.Server.BaseURL + "public/share"
-		if r.URL.RawQuery != "" {
-			newURL += "?" + r.URL.RawQuery
-		}
-		http.Redirect(w, r, newURL, http.StatusPermanentRedirect)
-	})
-
-	api.HandleFunc("GET /public/raw", func(w http.ResponseWriter, r *http.Request) {
-		newURL := config.Server.BaseURL + "public/api/raw"
-		if r.URL.RawQuery != "" {
-			newURL += "?" + r.URL.RawQuery
-		}
-		http.Redirect(w, r, newURL, http.StatusMovedPermanently)
-	})
-	api.HandleFunc("GET /public/share", func(w http.ResponseWriter, r *http.Request) {
-		newURL := config.Server.BaseURL + "public/api/shared"
-		if r.URL.RawQuery != "" {
-			newURL += "?" + r.URL.RawQuery
-		}
-		http.Redirect(w, r, newURL, http.StatusMovedPermanently)
-	})
-	api.HandleFunc("GET /public/preview", func(w http.ResponseWriter, r *http.Request) {
-		newURL := config.Server.BaseURL + "public/api/preview"
-		if r.URL.RawQuery != "" {
-			newURL += "?" + r.URL.RawQuery
-		}
-		http.Redirect(w, r, newURL, http.StatusMovedPermanently)
-	})
-
 	// Mount the public API sub-router
 	publicRoutes.Handle("/api/", http.StripPrefix("/api", publicAPI))
 
@@ -302,6 +255,9 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	// Wait for context cancellation to shut down the server
 	<-ctx.Done()
 	logger.Info("Shutting down HTTP server...")
+
+	// Close all SSE sessions
+	events.Shutdown()
 
 	// Persist in-memory state before shutting down the HTTP server
 	if store != nil {
