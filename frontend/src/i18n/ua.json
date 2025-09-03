@@ -85,15 +85,15 @@
     "click": "вибрати файл чи каталог",
     "ctrl": {
       "click": "вибрати кілька файлів чи каталогів",
-      "f": "відкрити пошук",
-      "s": "скачати файл або поточний каталог"
+      "d": "завантажити вибрані елементи"
     },
     "del": "видалити вибрані елементи",
-    "doubleClick": "відкрити файл чи каталог",
     "esc": "очистити виділення та/або закрити вікно",
-    "f1": "допомога",
     "f2": "перейменувати файл",
-    "help": "Допомога"
+    "help": "Допомога",
+    "f1": "показати запит на допомогу",
+    "description": "Нижче ви можете переглянути основні параметри навігації. Для отримання додаткової інформації, будь ласка, відвідайте",
+    "wiki": "FileBrowser Quantum Wiki"
   },
   "languages": {
     "he": "עברית",
@@ -155,7 +155,6 @@
     "numberDirs": "Кількість каталогів{suffix}",
     "numberFiles": "Кількість файлів{suffix}",
     "rename": "Перейменувати",
-    "renameMessage": "Нове ім'я",
     "replace": "Замінити",
     "replaceMessage": "Ім'я одного з файлів, що завантажуються, збігається з вже існуючим файлом. Ви бажаєте замінити існуючий?\n",
     "schedule": "Планування",
@@ -175,7 +174,6 @@
     "conflictsDetected": "Виявлені конфлікти",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "Вказано невірне ім'я: не можна використовувати символи \"/\" або \"\\\"",
     "source": "Source{suffix}",
     "downloadsLimit": "Обмеження на кількість завантажень",
     "maxBandwidth": "Максимальна швидкість завантаження (кбіт/с)",
@@ -187,7 +185,10 @@
     "shareBanner": "Поділіться URL банера",
     "shareFavicon": "Поділитися URL-адресою іконки",
     "optionalPasswordHelp": "Якщо його встановлено, користувачі повинні ввести цей пароль, щоб переглянути спільний вміст.",
-    "viewMode": "Режим перегляду"
+    "viewMode": "Режим перегляду",
+    "renameMessageConflict": "An item named \"{filename}\" already exists!",
+    "renameMessage": "Введіть нове ім'я:",
+    "renameMessageInvalid": "Файл не може містити символи \"/\" або \"\\\""
   },
   "search": {
     "images": "Зображення",

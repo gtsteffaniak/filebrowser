@@ -85,15 +85,15 @@
     "click": "dosya veya klasör seçin",
     "ctrl": {
       "click": "çoklu dosya ve klasör seçin",
-      "f": "Aramayı aç",
-      "s": "bir dosyayı kaydedin veya bulunduğunuz dizini indirin"
+      "d": "seçili öğeleri indirin"
     },
     "del": "seçilileri sil",
-    "doubleClick": "dosya veya dizini açın",
     "esc": "seçimi temizle veya kapatın",
-    "f1": "bu bilgi",
     "f2": "dosyayı yeniden adlandır",
-    "help": "Yardım"
+    "help": "Yardım",
+    "f1": "yardım istemini göster",
+    "description": "Temel navigasyon seçeneklerini aşağıda görüntüleyebilirsiniz. Ek bilgi için lütfen şu adresi ziyaret edin",
+    "wiki": "FileBrowser Quantum Wiki"
   },
   "languages": {
     "he": "עברית",
@@ -155,7 +155,6 @@
     "numberDirs": "Dizin sayısı{suffix}",
     "numberFiles": "Dosya sayısı{suffix}",
     "rename": "Yeniden adlandır",
-    "renameMessage": "için yeni bir ad girin",
     "replace": "Değiştir",
     "replaceMessage": "Yüklemeye çalıştığınız dosyalardan biri, adı nedeniyle çakışıyor. Mevcut olanı değiştirmek istiyor musunuz?\n",
     "schedule": "Planla",
@@ -175,7 +174,6 @@
     "conflictsDetected": "Tespit edilen çatışmalar",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "Geçersiz ad sağlandı: \"/\" veya \"\\\" kapsayıcı olamaz",
     "source": "Source{suffix}",
     "downloadsLimit": "İndirme sayısı sınırı",
     "maxBandwidth": "Maksimum indirme bant genişliği (kbps)",
@@ -187,7 +185,10 @@
     "shareBanner": "Banner URL'sini paylaş",
     "shareFavicon": "Favicon URL'sini paylaş",
     "optionalPasswordHelp": "Ayarlanırsa, kullanıcılar paylaşılan içeriği görüntülemek için bu parolayı girmelidir.",
-    "viewMode": "Görünüm modu"
+    "viewMode": "Görünüm modu",
+    "renameMessageConflict": "An item named \"{filename}\" already exists!",
+    "renameMessage": "Yeni bir ad girin:",
+    "renameMessageInvalid": "Bir dosya \"/\" veya \"\\\" içeremez"
   },
   "search": {
     "images": "Görseller",

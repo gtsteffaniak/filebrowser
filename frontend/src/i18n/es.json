@@ -85,15 +85,15 @@
     "click": "Selecciona un archivo o carpeta",
     "ctrl": {
       "click": "Selecciona varios archivos o carpetas (Selección multiple)",
-      "f": "Abrir panel de búsqueda",
-      "s": "Guardar archivo (solo funciona si estás en el editor)"
+      "d": "descargar artículos seleccionados"
     },
     "del": "Eliminar archivos/carpetas seleccionados",
-    "doubleClick": "Abre un archivo o carpeta",
     "esc": "Cancela la selección o cierra la ventana actual (ej: Para salir rápido cuando estas viendo una imagen o video)",
-    "f1": "Esta ventana",
     "f2": "Cambiar nombre del archivo o carpeta",
-    "help": "Ayuda"
+    "help": "Ayuda",
+    "f1": "mostrar mensaje de ayuda",
+    "description": "A continuación puede ver las opciones básicas de navegación. Para más información, visite",
+    "wiki": "Wiki de FileBrowser Quantum"
   },
   "languages": {
     "he": "עברית",
@@ -155,7 +155,6 @@
     "numberDirs": "Carpetas",
     "numberFiles": "Archivos",
     "rename": "Cambiar nombre",
-    "renameMessage": "Nuevo nombre",
     "replace": "Reemplazar",
     "replaceMessage": "Un archivo con el mismo nombre ya existe. ¿Quieres cambiar el nombre?\n",
     "schedule": "Programar",
@@ -186,8 +185,10 @@
     "conflictsDetected": "Conflictos detectados",
     "uploadSettingsChunked": "Cargas simultáneas: {maxConcurrentUpload}, velocidad de subida máxima: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Cargas simultáneas: {maxConcurrentUpload}, subida de archivos desactivada",
-    "invalidName": "Nombre inválido: no puede contener \"/\" o \"\\\".",
-    "viewMode": "Cambiar modo de visualización"
+    "viewMode": "Cambiar modo de visualización",
+    "renameMessageConflict": "An item named \"{filename}\" already exists!",
+    "renameMessage": "Introduce un nuevo nombre:",
+    "renameMessageInvalid": "Un archivo no puede contener \"/\" o \"\\\""
   },
   "search": {
     "images": "Imágenes",

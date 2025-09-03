@@ -91,7 +91,7 @@ frontend:
       url: "https://github.com/gtsteffaniak/filebrowser/releases/" # the url to link to  validate:required
     - text: "Help"                        # the text to display on the link  validate:required
       title: ""                           # the title to display on hover
-      url: "https://github.com/gtsteffaniak/filebrowser/wiki" # the url to link to  validate:required
+      url: "help prompt"                  # the url to link to  validate:required
   disableNavButtons: false                # disable the nav buttons in the sidebar
   styling:
     customCSS: ""                         # if a valid path to a css file is provided, it will be applied for all users. (eg. "reduce-rounded-corners.css")

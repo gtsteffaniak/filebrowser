@@ -85,15 +85,15 @@
     "click": "파일이나 디렉토리를 선택해주세요.",
     "ctrl": {
       "click": "여러 개의 파일이나 디렉토리를 선택해주세요.",
-      "f": "검색창 열기",
-      "s": "파일 또는 디렉토리 다운로드"
+      "d": "선택한 항목 다운로드"
     },
     "del": "선택된 파일 삭제",
-    "doubleClick": "파일 또는 디렉토리 열기",
     "esc": "선택 취소/프롬프트 닫기",
-    "f1": "정보",
     "f2": "파일 이름 변경",
-    "help": "도움말"
+    "help": "도움말",
+    "f1": "도움말 프롬프트 표시",
+    "description": "아래에서 기본 탐색 옵션을 확인할 수 있습니다. 자세한 내용은 다음을 참조하세요.",
+    "wiki": "파일브라우저 퀀텀 위키"
   },
   "languages": {
     "he": "עברית",
@@ -154,7 +154,6 @@
     "numberDirs": "디렉토리 수{suffix}",
     "numberFiles": "파일 수{suffix}",
     "rename": "이름 변경",
-    "renameMessage": "새로운 이름을 입력하세요.",
     "replace": "대체하기",
     "replaceMessage": "동일한 파일 이름이 존재합니다. 현재 파일을 덮어쓸까요?\n",
     "schedule": "일정",
@@ -175,7 +174,6 @@
     "conflictsDetected": "충돌 감지",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "제공된 이름이 잘못되었습니다: \"/\" 또는 \"\\\"를 포함할 수 없습니다.",
     "source": "Source{suffix}",
     "downloadsLimit": "다운로드 횟수 제한",
     "maxBandwidth": "최대 다운로드 대역폭(kbps)",
@@ -187,7 +185,10 @@
     "shareBanner": "배너 URL 공유",
     "shareFavicon": "파비콘 URL 공유",
     "optionalPasswordHelp": "이 비밀번호를 설정하면 사용자가 공유 콘텐츠를 보려면 이 비밀번호를 입력해야 합니다.",
-    "viewMode": "보기 모드"
+    "viewMode": "보기 모드",
+    "renameMessageConflict": "An item named \"{filename}\" already exists!",
+    "renameMessage": "새 이름을 입력합니다:",
+    "renameMessageInvalid": "파일은 \"/\" 또는 \"\\\"를 포함할 수 없습니다."
   },
   "search": {
     "images": "이미지",

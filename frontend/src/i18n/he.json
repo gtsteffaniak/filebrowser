@@ -85,15 +85,15 @@
     "click": "בחר קובץ או תקייה",
     "ctrl": {
       "click": "בחר מספר קבצים או תקיות",
-      "f": "פותח את החיפוש",
-      "s": "לשמור קובץ או להוריד את התקייה שבה אתה נמצא"
+      "d": "הורדת פריטים נבחרים"
     },
     "del": "מחק את מה שנבחר",
-    "doubleClick": "פתח קובץ או תקייה",
     "esc": "נקה את הבחירה ו/או סגור את השדה",
-    "f1": "המידע הזה",
     "f2": "שנה שם קובץ",
-    "help": "עזרה"
+    "help": "עזרה",
+    "f1": "הצג עזרה",
+    "description": "ניתן לצפות באפשרויות הניווט הבסיסיות להלן. למידע נוסף, בקרו בכתובת",
+    "wiki": "FileBrowser Quantum Wiki"
   },
   "languages": {
     "he": "עברית",
@@ -155,7 +155,6 @@
     "numberDirs": "מספר התקיות{suffix}",
     "numberFiles": "מספר הקבצים{suffix}",
     "rename": "שנה שם",
-    "renameMessage": "הכנס שם חדש עבור",
     "replace": "החלף",
     "replaceMessage": "אחד הקבצים בעל שם זהה לקובץ קיים, האם ברצונך להחליף את הקובץ הקיים בחדש? זהירות - הקובץ הישן ימחק\n",
     "schedule": "תזמון",
@@ -175,7 +174,6 @@
     "conflictsDetected": "סכסוכים שזוהו",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "שם לא חוקי: לא ניתן להכיל \"/\" או \"\\\"",
     "source": "Source{suffix}",
     "downloadsLimit": "הגבלת מספר ההורדות",
     "maxBandwidth": "רוחב פס הורדה מרבי (kbps)",
@@ -187,7 +185,10 @@
     "shareBanner": "שתף כתובת URL של באנר",
     "shareFavicon": "שתף כתובת URL של סמל המועדפים",
     "optionalPasswordHelp": "אם אפשרות זו מוגדרת, על המשתמשים להזין סיסמה זו כדי להציג את התוכן המשותף.",
-    "viewMode": "מצב תצוגה"
+    "viewMode": "מצב תצוגה",
+    "renameMessageConflict": "An item named \"{filename}\" already exists!",
+    "renameMessage": "הזן שם חדש:",
+    "renameMessageInvalid": "קובץ לא יכול להכיל את התווים \"/\" או \"\\\""
   },
   "search": {
     "images": "תמונות",

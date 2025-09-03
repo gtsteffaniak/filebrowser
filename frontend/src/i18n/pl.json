@@ -85,15 +85,15 @@
     "click": "wybierz plik lub foler",
     "ctrl": {
       "click": "wybierz wiele plików lub folderów",
-      "f": "otwórz wyszukiwarkę",
-      "s": "pobierz aktywny plik lub folder"
+      "d": "Pobierz wybrane elementy"
     },
     "del": "usuń zaznaczone",
-    "doubleClick": "otwórz plik lub folder",
     "esc": "wyczyść zaznaczenie i/lub zamknij okno z powiadomieniem",
-    "f1": "ta informacja",
     "f2": "zmień nazwę pliku",
-    "help": "Pomoc"
+    "help": "Pomoc",
+    "f1": "pokaż monit pomocy",
+    "description": "Poniżej znajdują się podstawowe opcje nawigacji. Dodatkowe informacje można znaleźć na stronie",
+    "wiki": "FileBrowser Quantum Wiki"
   },
   "languages": {
     "he": "עברית",
@@ -154,7 +154,6 @@
     "numberDirs": "Ilość katalogów{suffix}",
     "numberFiles": "Ilość plików{suffix}",
     "rename": "Zmień nazwę",
-    "renameMessage": "Podaj nową nazwę dla",
     "replace": "Zamień",
     "replaceMessage": "Jednen z plików który próbujesz wrzucić próbje nadpisać plik o tej samej nazwie. Czy chcesz nadpisać poprzedni plik?\n",
     "schedule": "Grafi",
@@ -175,7 +174,6 @@
     "conflictsDetected": "Wykryte konflikty",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "Nieprawidłowa nazwa: nie można użyć kontenera \"/\" lub \"\\\"",
     "source": "Source{suffix}",
     "downloadsLimit": "Limit liczby pobrań",
     "maxBandwidth": "Maksymalna przepustowość pobierania (kbps)",
@@ -187,7 +185,10 @@
     "shareBanner": "Udostępnij adres URL banera",
     "shareFavicon": "Udostępnij adres URL favicon",
     "optionalPasswordHelp": "Jeśli jest ustawione, użytkownicy muszą wprowadzić to hasło, aby wyświetlić udostępnioną zawartość.",
-    "viewMode": "Tryb widoku"
+    "viewMode": "Tryb widoku",
+    "renameMessageConflict": "An item named \"{filename}\" already exists!",
+    "renameMessage": "Wprowadź nową nazwę:",
+    "renameMessageInvalid": "Plik nie może być kontenerem \"/\" lub \"\\\""
   },
   "search": {
     "images": "Zdjęcia",

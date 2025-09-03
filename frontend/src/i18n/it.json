@@ -85,15 +85,15 @@
     "click": "seleziona un file o una cartella",
     "ctrl": {
       "click": "seleziona più file o cartelle",
-      "f": "apre la barra di ricerca",
-      "s": "salva un file o scarica la cartella in cui ci si trova"
+      "d": "scaricare gli articoli selezionati"
     },
     "del": "elimina gli elementi selezionati",
-    "doubleClick": "apre un file o una cartella",
     "esc": "annulla la selezione e/o chiude la finestra aperta",
-    "f1": "questo pannello",
     "f2": "rinomina un file",
-    "help": "Aiuto"
+    "help": "Aiuto",
+    "f1": "mostra la richiesta di aiuto",
+    "description": "Le opzioni di navigazione di base sono riportate di seguito. Per ulteriori informazioni, visitate il sito",
+    "wiki": "Wiki di FileBrowser Quantum"
   },
   "languages": {
     "he": "עברית",
@@ -154,7 +154,6 @@
     "numberDirs": "Numero di cartelle{suffix}",
     "numberFiles": "Numero di file{suffix}",
     "rename": "Rinomina",
-    "renameMessage": "Inserisci un nuovo nome per",
     "replace": "Sostituisci",
     "replaceMessage": "Uno dei file che stai cercando di caricare sta generando un conflitto per via del suo nome. Desideri sostituire il file già esistente?\n",
     "schedule": "Pianifica",
@@ -175,7 +174,6 @@
     "conflictsDetected": "Conflitti rilevati",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "Nome non valido: non può contenere \"/\" o \"\\\".",
     "source": "Source{suffix}",
     "downloadsLimit": "Limite del numero di download",
     "maxBandwidth": "Larghezza di banda massima per il download (kbps)",
@@ -187,7 +185,10 @@
     "shareBanner": "Condividi l'URL del banner",
     "shareFavicon": "Condividere l'URL della favicon",
     "optionalPasswordHelp": "Se impostata, gli utenti devono inserire questa password per visualizzare il contenuto condiviso.",
-    "viewMode": "Modalità di visualizzazione"
+    "viewMode": "Modalità di visualizzazione",
+    "renameMessageConflict": "An item named \"{filename}\" already exists!",
+    "renameMessage": "Inserire un nuovo nome:",
+    "renameMessageInvalid": "Un file non può contenere \"/\" o \"\\\"."
   },
   "search": {
     "images": "Immagini",

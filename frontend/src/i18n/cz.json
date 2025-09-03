@@ -88,15 +88,15 @@
     "click": "označit soubor nebo složku",
     "ctrl": {
       "click": "označit více souborů nebo složek",
-      "f": "otevře hledání",
-      "s": "uložit soubor nebo stáhnout aktuální složku"
+      "d": "stáhnout vybrané položky"
     },
     "del": "smazat označené položky",
-    "doubleClick": "otevřít soubor nebo složku",
     "esc": "zrušit označení a/nebo zavřít dialog",
-    "f1": "tato nápověda",
     "f2": "přejmenovat soubor",
-    "help": "Nápověda"
+    "help": "Nápověda",
+    "f1": "zobrazit výzvu nápovědy",
+    "description": "Základní možnosti navigace si můžete prohlédnout níže. Další informace naleznete na adrese",
+    "wiki": "FileBrowser Quantum Wiki"
   },
   "languages": {
     "he": "עברית",
@@ -195,7 +195,6 @@
     "numberDirs": "Počet složek{suffix}",
     "numberFiles": "Počet souborů{suffix}",
     "rename": "Přejmenovat",
-    "renameMessage": "Zadejte nový název pro",
     "replace": "Nahradit",
     "replaceMessage": "Jeden ze souborů, které se snažíte nahrát, má konflikt kvůli stejnému názvu. Chcete pokračovat v nahrávání nebo nahradit existující?",
     "schedule": "Naplánovat",
@@ -212,7 +211,6 @@
     "conflictsDetected": "Zjištěné konflikty",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "Nesprávný zadaný název: nelze použít kontejner \"/\" nebo \"\\\".",
     "source": "Source{suffix}",
     "downloadsLimit": "Limit počtu stažení",
     "maxBandwidth": "Maximální šířka pásma stahování (kbps)",
@@ -224,7 +222,10 @@
     "shareBanner": "Sdílet adresu URL banneru",
     "shareFavicon": "Sdílet adresu URL favicon",
     "optionalPasswordHelp": "Pokud je nastaveno, musí uživatelé toto heslo zadat, aby mohli sdílený obsah zobrazit.",
-    "viewMode": "Režim zobrazení"
+    "viewMode": "Režim zobrazení",
+    "renameMessageConflict": "An item named \"{filename}\" already exists!",
+    "renameMessage": "Zadejte nový název:",
+    "renameMessageInvalid": "Soubor nemůže obsahovat \"/\" nebo \"\\\"."
   },
   "search": {
     "images": "Obrázky",

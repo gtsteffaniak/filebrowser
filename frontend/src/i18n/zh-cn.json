@@ -85,15 +85,15 @@
     "click": "选择文件或目录",
     "ctrl": {
       "click": "选择多个文件或目录",
-      "f": "打开搜索框",
-      "s": "保存文件或下载当前文件夹"
+      "d": "下载所选项目"
     },
     "del": "删除所选的文件/文件夹",
-    "doubleClick": "打开文件/文件夹",
     "esc": "清除已选项或关闭提示信息",
-    "f1": "显示该帮助信息",
     "f2": "重命名文件/文件夹",
-    "help": "帮助"
+    "help": "帮助",
+    "f1": "显示帮助提示",
+    "description": "您可以查看下面的基本导航选项。有关其他信息，请访问",
+    "wiki": "文件浏览器量子维基"
   },
   "languages": {
     "he": "עברית",
@@ -155,7 +155,6 @@
     "numberDirs": "目录数{suffix}",
     "numberFiles": "文件数{suffix}",
     "rename": "重命名",
-    "renameMessage": "请输入新名称，旧名称为：",
     "replace": "替换",
     "replaceMessage": "您尝试上传的文件中有一个与现有文件的名称存在冲突。是否替换现有的同名文件？\n",
     "schedule": "计划",
@@ -175,7 +174,6 @@
     "conflictsDetected": "检测到冲突",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "提供的名称无效：不能包含\"/\"或\"\\\"。",
     "source": "Source{suffix}",
     "downloadsLimit": "下载次数限制",
     "maxBandwidth": "最大下载带宽（千字节/秒）",
@@ -187,7 +185,10 @@
     "shareBanner": "共享横幅 URL",
     "shareFavicon": "共享图标 URL",
     "optionalPasswordHelp": "如果设置了该密码，用户必须输入该密码才能查看共享内容。",
-    "viewMode": "查看模式"
+    "viewMode": "查看模式",
+    "renameMessageConflict": "An item named \"{filename}\" already exists!",
+    "renameMessage": "输入新名称：",
+    "renameMessageInvalid": "文件不能包含\"/\"或\"\\\"。"
   },
   "search": {
     "images": "图像",

@@ -85,15 +85,15 @@
     "click": "ファイルやディレクトリを選択",
     "ctrl": {
       "click": "複数のファイルやディレクトリを選択",
-      "f": "検索を有効にする",
-      "s": "ファイルを保存またはカレントディレクトリをダウンロード"
+      "d": "ダウンロード"
     },
     "del": "選択した項目を削除",
-    "doubleClick": "ファイルやディレクトリをオープン",
     "esc": "選択をクリアーまたはプロンプトを閉じる",
-    "f1": "このヘルプを表示",
     "f2": "ファイルの名前を変更",
-    "help": "ヘルプ"
+    "help": "ヘルプ",
+    "f1": "ヘルププロンプトを表示する",
+    "description": "基本的なナビオプションは以下からご覧いただけます。その他の情報については",
+    "wiki": "ファイルブラウザ クォンタム ウィキ"
   },
   "languages": {
     "he": "עברית",
@@ -154,7 +154,6 @@
     "numberDirs": "ディレクトリ個数{suffix}",
     "numberFiles": "ファイル個数{suffix}",
     "rename": "名前を変更",
-    "renameMessage": "名前を変更しようファイルは：",
     "replace": "置き換える",
     "replaceMessage": "アップロードするファイルの中でかち合う名前が一つあります。 既存のファイルを置き換えりませんか。\n",
     "schedule": "スケジュール",
@@ -175,7 +174,6 @@
     "conflictsDetected": "コンフリクト検出",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "無効な名前が指定されました：\"/\"または\"˶\"をコンテナに入れることはできません。",
     "source": "Source{suffix}",
     "downloadsLimit": "ダウンロード数制限",
     "maxBandwidth": "最大ダウンロード帯域幅 (kbps)",
@@ -187,7 +185,10 @@
     "shareBanner": "共有バナーURL",
     "shareFavicon": "ファビコンのURLを共有する",
     "optionalPasswordHelp": "設定されている場合、ユーザーは共有コンテンツを見るためにこのパスワードを入力しなければならない。",
-    "viewMode": "ビューモード"
+    "viewMode": "ビューモード",
+    "renameMessageConflict": "An item named \"{filename}\" already exists!",
+    "renameMessage": "新しい名前を入力する：",
+    "renameMessageInvalid": "ファイルには\"/\"や\"˶\"を入れることはできません。"
   },
   "search": {
     "images": "画像",
