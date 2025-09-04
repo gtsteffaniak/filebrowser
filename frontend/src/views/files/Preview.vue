@@ -35,7 +35,7 @@
                 </div>
 
                 <!-- Metadata info -->
-                <div class="metadata-info" v-if="audioMetadata && albumArtUrl">
+                <div class="metadata-info" v-if="audioMetadata">
                     <div class="audio-title">
                         {{ audioMetadata.title || state.req.name }}
                     </div>
@@ -237,6 +237,7 @@ export default {
             toastTimeout: null,
             audioMetadata: null, // Null by default, will be loaded from the audio file.
             albumArtUrl: null,
+            albumArt: null,
             // Plyr options
             plyrOptions: {
                 controls: [
@@ -441,6 +442,12 @@ export default {
         if (this.toastTimeout) {
             clearTimeout(this.toastTimeout);
         }
+        if (this.albumArt) {
+            try {
+                URL.revokeObjectURL(this.albumArt);
+            } catch (e) {}
+            this.albumArt = null;
+        }
     },
     methods: {
         async subtitles() {
@@ -610,6 +617,19 @@ export default {
                     }
                 });
             }
+            if (this.albumArt) {
+                try {
+                    URL.revokeObjectURL(this.albumArt);
+                } catch (e) {}
+                this.albumArt = null;
+            }
+            this.albumArtUrl = null;
+            this.audioMetadata = null;
+            this.metadataId = (this.metadataId || 0) + 1;
+
+            if (this.previewType === "audio") {
+                this.loadAudioMetadata();
+            }
             const directoryPath = url.removeLastDir(state.req.path);
             if (!this.listing || this.listing == "undefined") {
                 let res;
@@ -751,11 +771,24 @@ export default {
                             };
 
                             if (tag.tags.picture) {
-                                const base64String = this.arrayBufferToBase64(
+                                if (this.albumArt) {
+                                    URL.revokeObjectURL(this.albumArt);
+                                    this.albumArt = null;
+                                }
+
+                                const uint8 = new Uint8Array(
                                     tag.tags.picture.data,
                                 );
-                                this.albumArtUrl = `data:${tag.tags.picture.format};base64,${base64String}`;
+                                const blob = new Blob([uint8], {
+                                    type: tag.tags.picture.format,
+                                });
+                                this.albumArt = URL.createObjectURL(blob);
+                                this.albumArtUrl = this.albumArt;
                             } else {
+                                if (this.albumArt) {
+                                    URL.revokeObjectURL(this.albumArt);
+                                    this.albumArt = null;
+                                }
                                 this.albumArtUrl = null;
                             }
                         },
@@ -773,15 +806,6 @@ export default {
                 this.audioMetadata = null;
                 this.albumArtUrl = null;
             }
-        },
-        arrayBufferToBase64(buffer) {
-            let binary = "";
-            const bytes = new Uint8Array(buffer);
-            const len = bytes.byteLength;
-            for (let i = 0; i < len; i++) {
-                binary += String.fromCharCode(bytes[i]);
-            }
-            return window.btoa(binary);
         },
     },
 };
