@@ -445,7 +445,9 @@ export default {
         if (this.albumArt) {
             try {
                 URL.revokeObjectURL(this.albumArt);
-            } catch (e) {}
+            } catch (e) {
+                Error;
+            }
             this.albumArt = null;
         }
     },
@@ -620,7 +622,9 @@ export default {
             if (this.albumArt) {
                 try {
                     URL.revokeObjectURL(this.albumArt);
-                } catch (e) {}
+                } catch (e) {
+                    Error;
+                }
                 this.albumArt = null;
             }
             this.albumArtUrl = null;
