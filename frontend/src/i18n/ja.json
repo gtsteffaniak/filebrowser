@@ -365,7 +365,16 @@
     "disableShareCard": "シェアカードを無効にする",
     "disableShareCardDescription": "サイドバーの共有ページ、またはモバイルのページ上部にある共有カードを無効にする。",
     "disableSidebar": "サイドバーを無効にする",
-    "disableSidebarDescription": "共有ページのサイドバーを無効にする。"
+    "disableSidebarDescription": "共有ページのサイドバーを無効にする。",
+    "enforceDarkLightMode": "テーマモードの強制",
+    "enforceDarkLightModeDescription": "この共有に特定のテーマモード（ダークまたはライト）を強制します。",
+    "default": "モードを強制しない",
+    "dark": "暗い",
+    "light": "ライト",
+    "enableOnlyOffice": "OnlyOfficeビューアを有効にする",
+    "enableOnlyOfficeDescription": "この共有でOnlyOfficeを使用したオフィスファイルの閲覧を許可する。",
+    "enableOnlyOfficeEditing": "OnlyOffice編集を有効にする",
+    "enableOnlyOfficeEditingDescription": "この共有でOnlyOfficeを使ったオフィスファイルの編集を許可する。"
   },
   "api": {
     "title": "APIキー：",

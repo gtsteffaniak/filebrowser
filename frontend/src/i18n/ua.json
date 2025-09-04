@@ -365,7 +365,16 @@
     "disableShareCard": "Вимкнути картку спільного доступу",
     "disableShareCardDescription": "Вимкніть картку спільного доступу на сторінці, до якої надається спільний доступ, на бічній панелі або вгорі сторінки на мобільних пристроях.",
     "disableSidebar": "Вимкнути бічну панель",
-    "disableSidebarDescription": "Вимкнути бічну панель на спільній сторінці."
+    "disableSidebarDescription": "Вимкнути бічну панель на спільній сторінці.",
+    "enforceDarkLightMode": "Увімкнути режим теми",
+    "enforceDarkLightModeDescription": "Примусово встановлює певний режим теми (темний або світлий) для цього ресурсу, перекриваючи налаштування користувача.",
+    "default": "Не застосовуйте примусовий режим",
+    "dark": "Темнота.",
+    "light": "Світло",
+    "enableOnlyOffice": "Увімкнути переглядач OnlyOffice",
+    "enableOnlyOfficeDescription": "Дозволити перегляд офісних файлів за допомогою OnlyOffice у цьому ресурсі.",
+    "enableOnlyOfficeEditing": "Увімкнути редагування OnlyOffice",
+    "enableOnlyOfficeEditingDescription": "Дозволити редагування офісних файлів за допомогою OnlyOffice у цьому ресурсі."
   },
   "api": {
     "title": "Ключі API",

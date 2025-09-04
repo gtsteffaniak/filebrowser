@@ -365,7 +365,16 @@
     "disableShareCard": "Disattivare la scheda di condivisione",
     "disableShareCardDescription": "Disattivare la scheda di condivisione sulla pagina condivisa nella barra laterale o nella parte superiore della pagina su mobile.",
     "disableSidebar": "Disattivare la barra laterale",
-    "disableSidebarDescription": "Disattivare la barra laterale della pagina condivisa."
+    "disableSidebarDescription": "Disattivare la barra laterale della pagina condivisa.",
+    "enforceDarkLightMode": "Applicare la modalità a tema",
+    "enforceDarkLightModeDescription": "Forza una modalità tema specifica (scuro o chiaro) per questa condivisione, ignorando le preferenze dell'utente.",
+    "default": "Non applicare una modalità",
+    "dark": "Scuro",
+    "light": "Luce",
+    "enableOnlyOffice": "Abilitate il visualizzatore OnlyOffice",
+    "enableOnlyOfficeDescription": "Consente di visualizzare i file di Office utilizzando OnlyOffice in questa condivisione.",
+    "enableOnlyOfficeEditing": "Abilita la modifica di OnlyOffice",
+    "enableOnlyOfficeEditingDescription": "Consentire la modifica dei file di Office utilizzando OnlyOffice in questa condivisione."
   },
   "api": {
     "title": "Chiavi API:",

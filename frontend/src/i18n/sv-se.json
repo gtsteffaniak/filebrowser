@@ -365,7 +365,16 @@
     "disableShareCard": "Inaktivera aktiekort",
     "disableShareCardDescription": "Inaktivera delningskortet på den delade sidan i sidofältet eller högst upp på sidan på mobilen.",
     "disableSidebar": "Inaktivera sidofält",
-    "disableSidebarDescription": "Inaktivera sidofältet på den delade sidan."
+    "disableSidebarDescription": "Inaktivera sidofältet på den delade sidan.",
+    "enforceDarkLightMode": "Genomför temaläge",
+    "enforceDarkLightModeDescription": "Tvinga fram ett specifikt temaläge (mörkt eller ljust) för den här aktien, utan hänsyn till användarens preferenser.",
+    "default": "Inte tvinga fram ett läge",
+    "dark": "Mörk",
+    "light": "Ljus",
+    "enableOnlyOffice": "Aktivera OnlyOffice-visningsprogram",
+    "enableOnlyOfficeDescription": "Tillåt visning av kontorsfiler med OnlyOffice i denna delning.",
+    "enableOnlyOfficeEditing": "Aktivera redigering av OnlyOffice",
+    "enableOnlyOfficeEditingDescription": "Tillåt redigering av kontorsfiler med hjälp av OnlyOffice i denna andel."
   },
   "api": {
     "title": "API-nycklar",

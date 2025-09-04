@@ -365,7 +365,16 @@
     "disableShareCard": "Désactiver la carte de partage",
     "disableShareCardDescription": "Désactiver la carte de partage sur la page partagée dans la barre latérale ou en haut de la page sur mobile.",
     "disableSidebar": "Désactiver la barre latérale",
-    "disableSidebarDescription": "Désactiver la barre latérale sur la page partagée."
+    "disableSidebarDescription": "Désactiver la barre latérale sur la page partagée.",
+    "enforceDarkLightMode": "Renforcer le mode thématique",
+    "enforceDarkLightModeDescription": "Forcer un mode de thème spécifique (sombre ou clair) pour ce partage, sans tenir compte des préférences de l'utilisateur.",
+    "default": "Ne pas imposer de mode",
+    "dark": "Sombre",
+    "light": "Lumière",
+    "enableOnlyOffice": "Activer la visionneuse OnlyOffice",
+    "enableOnlyOfficeDescription": "Autoriser la visualisation de fichiers bureautiques en utilisant OnlyOffice dans ce partage.",
+    "enableOnlyOfficeEditing": "Activer l'édition OnlyOffice",
+    "enableOnlyOfficeEditingDescription": "Autoriser l'édition de fichiers bureautiques en utilisant OnlyOffice dans ce partage."
   },
   "api": {
     "title": "Clés API :",

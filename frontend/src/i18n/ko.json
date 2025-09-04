@@ -365,7 +365,16 @@
     "disableShareCard": "공유 카드 비활성화",
     "disableShareCardDescription": "사이드바의 공유 페이지 또는 모바일의 페이지 상단에서 공유 카드를 비활성화합니다.",
     "disableSidebar": "사이드바 비활성화",
-    "disableSidebarDescription": "공유 페이지에서 사이드바를 비활성화합니다."
+    "disableSidebarDescription": "공유 페이지에서 사이드바를 비활성화합니다.",
+    "enforceDarkLightMode": "테마 모드 적용",
+    "enforceDarkLightModeDescription": "이 공유에 특정 테마 모드(어둡거나 밝음)를 강제로 적용하여 사용자 기본 설정을 재정의합니다.",
+    "default": "모드 강제 적용 안 함",
+    "dark": "Dark",
+    "light": "빛",
+    "enableOnlyOffice": "Office 뷰어만 사용",
+    "enableOnlyOfficeDescription": "이 공유에서 OnlyOffice를 사용하여 Office 파일을 볼 수 있도록 허용합니다.",
+    "enableOnlyOfficeEditing": "Office 편집만 사용",
+    "enableOnlyOfficeEditingDescription": "이 공유에서 OnlyOffice를 사용하여 Office 파일을 편집할 수 있도록 허용합니다."
   },
   "api": {
     "title": "API 키:",

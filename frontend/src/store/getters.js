@@ -44,6 +44,12 @@ export const getters = {
     return shareInfo.isShare
   },
   isDarkMode: () => {
+    if (shareInfo.enforceDarkLightMode == "dark") {
+      return true
+    }
+    if (shareInfo.enforceDarkLightMode == "light") {
+      return false
+    }
     if (state.user == null) {
       return true
     }

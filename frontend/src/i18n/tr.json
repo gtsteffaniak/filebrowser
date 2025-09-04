@@ -365,7 +365,16 @@
     "disableShareCard": "Paylaşım kartını devre dışı bırak",
     "disableShareCardDescription": "Kenar çubuğunda paylaşılan sayfadaki veya mobil cihazlarda sayfanın üst kısmındaki paylaşım kartını devre dışı bırakın.",
     "disableSidebar": "Kenar çubuğunu devre dışı bırak",
-    "disableSidebarDescription": "Paylaşılan sayfadaki kenar çubuğunu devre dışı bırakın."
+    "disableSidebarDescription": "Paylaşılan sayfadaki kenar çubuğunu devre dışı bırakın.",
+    "enforceDarkLightMode": "Tema modunu zorla",
+    "enforceDarkLightModeDescription": "Kullanıcı tercihlerini geçersiz kılarak bu paylaşım için belirli bir tema modunu (koyu veya açık) zorlayın.",
+    "default": "Bir modu zorlamayın",
+    "dark": "Karanlık",
+    "light": "Işık",
+    "enableOnlyOffice": "OnlyOffice görüntüleyiciyi etkinleştirin",
+    "enableOnlyOfficeDescription": "Bu paylaşımda OnlyOffice kullanarak ofis dosyalarının görüntülenmesine izin verin.",
+    "enableOnlyOfficeEditing": "OnlyOffice düzenlemesini etkinleştirin",
+    "enableOnlyOfficeEditingDescription": "Bu paylaşımda OnlyOffice kullanarak ofis dosyalarının düzenlenmesine izin verin."
   },
   "api": {
     "title": "API Anahtarları:",

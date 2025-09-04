@@ -5,7 +5,7 @@
 <script lang="ts">
 import { marked } from "marked";
 import DOMPurify from 'dompurify';
-import { state, mutations } from "@/store";
+import { state, mutations, getters } from "@/store";
 import hljs from 'highlight.js';
 
 // --- We have removed all `marked.use()` configuration ---
@@ -205,7 +205,7 @@ export default {
       });
     },
     darkMode() {
-      this.setHighlightTheme(state.user.darkMode);
+      this.setHighlightTheme(getters.isDarkMode());
     }
   },
   computed: {
@@ -235,7 +235,7 @@ export default {
       type: state.req.type,
       source: state.req.source,
     });
-    this.setHighlightTheme(state.user.darkMode);
+    this.setHighlightTheme(getters.isDarkMode());
     // Set initial content. The `watch` will trigger the first highlight.
     const fileContent = state.req.content == "empty-file-x6OlSil" ? "" : state.req.content || "";
     this.content = fileContent;

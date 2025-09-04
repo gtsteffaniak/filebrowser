@@ -365,7 +365,16 @@
     "disableShareCard": "Megosztási kártya letiltása",
     "disableShareCardDescription": "Kapcsolja ki a megosztási kártyát a megosztott oldalon az oldalsávban vagy mobilon az oldal tetején.",
     "disableSidebar": "Oldalsáv kikapcsolása",
-    "disableSidebarDescription": "Kapcsolja ki az oldalsávot a megosztott oldalon."
+    "disableSidebarDescription": "Kapcsolja ki az oldalsávot a megosztott oldalon.",
+    "enforceDarkLightMode": "Témamód érvényesítése",
+    "enforceDarkLightModeDescription": "Egy adott témamód (sötét vagy világos) kikényszerítése a megosztás számára, felülírva a felhasználói beállításokat.",
+    "default": "Ne kényszerítsen ki üzemmódot",
+    "dark": "Sötét",
+    "light": "Fény",
+    "enableOnlyOffice": "OnlyOffice megjelenítő engedélyezése",
+    "enableOnlyOfficeDescription": "Engedélyezze az irodai fájlok megtekintését az OnlyOffice használatával ezen a megosztáson.",
+    "enableOnlyOfficeEditing": "Engedélyezze az OnlyOffice szerkesztést",
+    "enableOnlyOfficeEditingDescription": "Engedélyezze az irodai fájlok szerkesztését az OnlyOffice használatával ezen a megosztáson."
   },
   "api": {
     "title": "API-kulcsok:",

@@ -167,7 +167,16 @@
     "disableShareCard": "Zakázat sdílenou kartu",
     "disableShareCardDescription": "Zakázat kartu sdílení na sdílené stránce v postranním panelu nebo v horní části stránky na mobilním telefonu.",
     "disableSidebar": "Zakázat postranní panel",
-    "disableSidebarDescription": "Zakázat postranní panel na sdílené stránce."
+    "disableSidebarDescription": "Zakázat postranní panel na sdílené stránce.",
+    "enforceDarkLightMode": "Vynucení režimu tématu",
+    "enforceDarkLightModeDescription": "Vynucení určitého režimu motivu (tmavého nebo světlého) pro tuto sdílenou složku, který je nadřazen uživatelským preferencím.",
+    "default": "Nevynucujte režim",
+    "dark": "Dark",
+    "light": "Světlo",
+    "enableOnlyOffice": "Povolení prohlížeče OnlyOffice",
+    "enableOnlyOfficeDescription": "Povolit prohlížení kancelářských souborů pomocí OnlyOffice v této sdílené složce.",
+    "enableOnlyOfficeEditing": "Povolení úprav OnlyOffice",
+    "enableOnlyOfficeEditingDescription": "Povolit úpravy kancelářských souborů pomocí OnlyOffice v této sdílené složce."
   },
   "prompts": {
     "copy": "Kopírovat",

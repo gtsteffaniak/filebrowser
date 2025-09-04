@@ -15,6 +15,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/auth"
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
+	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
@@ -90,12 +91,15 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 			Expand:  true,
 			Content: getContent,
 		})
-		file.Token = link.Token
-		file.Source = ""
-		file.Hash = link.Hash
 		if err != nil {
 			logger.Errorf("error fetching file info for share. hash=%v path=%v error=%v", hash, path, err)
 			return errToStatus(err), fmt.Errorf("error fetching share from server")
+		}
+		file.Token = link.Token
+		file.Source = ""
+		file.Hash = link.Hash
+		if !link.EnableOnlyOffice || !link.DisableFileViewer {
+			file.OnlyOfficeId = ""
 		}
 		if getContent && file.Content != "" {
 			link.Mu.Lock()
@@ -182,7 +186,8 @@ func withOrWithoutUserHelper(fn handleFunc) handleFunc {
 		}
 		// Only fall back to anonymous if authentication actually failed
 		if status == http.StatusUnauthorized || status == http.StatusForbidden {
-			data.user = &users.AnonymousUser
+			data.user = &users.User{Username: "anonymous"}
+			settings.ApplyUserDefaults(data.user)
 			// If user authentication failed, call the handler without user context
 			// Clear any user data that might have been partially set
 			data.token = ""

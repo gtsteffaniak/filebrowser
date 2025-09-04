@@ -365,7 +365,16 @@
     "disableShareCard": "Dezactivați cardul de partajare",
     "disableShareCardDescription": "Dezactivați cardul de partajare pe pagina partajată în bara laterală sau în partea de sus a paginii pe mobil.",
     "disableSidebar": "Dezactivați bara laterală",
-    "disableSidebarDescription": "Dezactivați bara laterală de pe pagina partajată."
+    "disableSidebarDescription": "Dezactivați bara laterală de pe pagina partajată.",
+    "enforceDarkLightMode": "Impuneți modul tematic",
+    "enforceDarkLightModeDescription": "Forțează un anumit mod tematic (întunecat sau deschis) pentru această partajare, trecând peste preferințele utilizatorului.",
+    "default": "Nu impuneți un mod",
+    "dark": "Întuneric",
+    "light": "Lumină",
+    "enableOnlyOffice": "Activați vizualizatorul OnlyOffice",
+    "enableOnlyOfficeDescription": "Permiteți vizualizarea fișierelor office utilizând OnlyOffice în această partajare.",
+    "enableOnlyOfficeEditing": "Activați editarea OnlyOffice",
+    "enableOnlyOfficeEditingDescription": "Permiteți editarea fișierelor de birou utilizând OnlyOffice în această partajare."
   },
   "api": {
     "title": "Chei API:",

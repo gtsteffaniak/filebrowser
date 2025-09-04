@@ -167,7 +167,16 @@
     "disableShareCard": "Disable share card",
     "disableShareCardDescription": "Disable the share card on the shared page in the sidebar or at the top of the page on mobile.",
     "disableSidebar": "Disable sidebar",
-    "disableSidebarDescription": "Disable the sidebar on the shared page."
+    "disableSidebarDescription": "Disable the sidebar on the shared page.",
+    "enforceDarkLightMode": "Enforce theme mode",
+    "enforceDarkLightModeDescription": "Force a specific theme mode (dark or light) for this share, overriding user preferences.",
+    "default": "Do not enforce a mode",
+    "dark": "Dark",
+    "light": "Light",
+    "enableOnlyOffice": "Enable OnlyOffice viewer",
+    "enableOnlyOfficeDescription": "Allow viewing office files using OnlyOffice in this share.",
+    "enableOnlyOfficeEditing": "Enable OnlyOffice editing",
+    "enableOnlyOfficeEditingDescription": "Allow editing of office files using OnlyOffice in this share."
   },
   "prompts": {
     "downloadsLimit": "Number of downloads limit",

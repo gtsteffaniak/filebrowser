@@ -48,7 +48,8 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 		logger.Errorf("OnlyOffice callback missing required parameters: source=%s, path=%s", source, path)
 		return http.StatusBadRequest, errors.New("missing required parameters: path + source/hash are required")
 	}
-	fmt.Println(d.fileInfo.Hash)
+	themeMode := utils.Ternary(d.user.DarkMode, "dark", "light")
+
 	if d.fileInfo.Hash == "" {
 		// Build file info based on whether this is a share or regular request
 		// Regular user request - need to resolve scope
@@ -81,8 +82,24 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 		source = sourceInfo.Name
 		// path is index path, so we build from share path
 		path = utils.JoinPathAsUnix(d.share.Path, path)
+		if d.share.EnforceDarkLightMode == "dark" {
+			themeMode = "dark"
+		}
+		if d.share.EnforceDarkLightMode == "light" {
+			themeMode = "light"
+		}
+
 	}
 
+	// Determine file type and editing permissions
+	fileType := getFileExtension(d.fileInfo.Name)
+	canEdit := iteminfo.CanEditOnlyOffice(d.user.Permissions.Modify, fileType)
+	canEditMode := utils.Ternary(canEdit, "edit", "view")
+	if d.fileInfo.Hash != "" {
+		if d.share.EnableOnlyOfficeEditing {
+			canEditMode = "edit"
+		}
+	}
 	// For shares, we need to keep track of the original relative path for the callback URL
 	var callbackPath string
 	if d.fileInfo.Hash != "" {
@@ -100,10 +117,6 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 		return http.StatusNotFound, fmt.Errorf("failed to generate document ID: %v", err)
 	}
 
-	// Determine file type and editing permissions
-	fileType := getFileExtension(d.fileInfo.Name)
-	canEdit := iteminfo.CanEditOnlyOffice(d.user.Permissions.Modify, fileType)
-
 	// Build download URL that OnlyOffice server will use
 	downloadURL := buildOnlyOfficeDownloadURL(source, callbackPath, d.fileInfo.Hash, d.token)
 
@@ -118,7 +131,7 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 			"title":    d.fileInfo.Name,
 			"url":      downloadURL,
 			"permissions": map[string]interface{}{
-				"edit":     canEdit,
+				"edit":     canEditMode,
 				"download": true,
 				"print":    true,
 			},
@@ -132,10 +145,10 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 			"customization": map[string]interface{}{
 				"autosave":  true,
 				"forcesave": true,
-				"uiTheme":   utils.Ternary(d.user.DarkMode, "dark", "light"),
+				"uiTheme":   themeMode,
 			},
 			"lang": d.user.Locale,
-			"mode": utils.Ternary(canEdit, "edit", "view"),
+			"mode": canEditMode,
 		},
 	}
 

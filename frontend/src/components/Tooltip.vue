@@ -10,7 +10,7 @@
 </template>
 
 <script>
-import { state } from "@/store";
+import { state,getters } from "@/store";
 
 export default {
   name: "Tooltip",
@@ -26,7 +26,7 @@ export default {
       return state.tooltip;
     },
     isDarkMode() {
-      return state.user.darkMode;
+      return getters.isDarkMode();
     },
     tooltipStyle() {
       const style = {

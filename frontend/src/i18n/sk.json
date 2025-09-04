@@ -365,7 +365,16 @@
     "disableShareCard": "Zakázanie zdieľanej karty",
     "disableShareCardDescription": "Zakážte kartu zdieľania na zdieľanej stránke v bočnom paneli alebo v hornej časti stránky na mobilnom zariadení.",
     "disableSidebar": "Zakázanie bočného panela",
-    "disableSidebarDescription": "Zakážte bočný panel na zdieľanej stránke."
+    "disableSidebarDescription": "Zakážte bočný panel na zdieľanej stránke.",
+    "enforceDarkLightMode": "Vynútiť režim témy",
+    "enforceDarkLightModeDescription": "Vynútenie konkrétneho režimu motívu (tmavý alebo svetlý) pre túto akciu, ktorý je nadradený používateľským nastaveniam.",
+    "default": "Nevynucujte režim",
+    "dark": "Dark",
+    "light": "Svetlo",
+    "enableOnlyOffice": "Povolenie prehliadača OnlyOffice",
+    "enableOnlyOfficeDescription": "Povoľte zobrazovanie kancelárskych súborov pomocou OnlyOffice v tejto zdieľanej zložke.",
+    "enableOnlyOfficeEditing": "Povolenie úprav OnlyOffice",
+    "enableOnlyOfficeEditingDescription": "Povoľte úpravu kancelárskych súborov pomocou aplikácie OnlyOffice v tejto zdieľanej zložke."
   },
   "api": {
     "title": "Kľúče API:",

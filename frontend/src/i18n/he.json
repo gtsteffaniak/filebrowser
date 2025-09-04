@@ -365,7 +365,16 @@
     "disableShareCard": "השבת כרטיס שיתוף",
     "disableShareCardDescription": "השבת את כרטיס השיתוף בדף המשותף בסרגל הצד או בחלק העליון של הדף במכשירים ניידים.",
     "disableSidebar": "השבת סרגל צד",
-    "disableSidebarDescription": "השבת את סרגל הצד בדף המשותף."
+    "disableSidebarDescription": "השבת את סרגל הצד בדף המשותף.",
+    "enforceDarkLightMode": "אכוף מצב ערכת נושא",
+    "enforceDarkLightModeDescription": "כפה מצב ערכת נושא ספציפי (כהה או בהיר) עבור שיתוף זה, תוך עקיפת העדפות המשתמש.",
+    "default": "אל תכפה מצב",
+    "dark": "אפל",
+    "light": "אור",
+    "enableOnlyOffice": "הפעל את תוכנת הצפייה OnlyOffice",
+    "enableOnlyOfficeDescription": "אפשר צפייה בקבצי Office באמצעות OnlyOffice בשיתוף זה.",
+    "enableOnlyOfficeEditing": "אפשר עריכה ב-OnlyOffice",
+    "enableOnlyOfficeEditingDescription": "אפשר עריכת קבצי Office באמצעות OnlyOffice בשיתוף זה."
   },
   "api": {
     "title": "מפתחות API",

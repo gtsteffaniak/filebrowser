@@ -3310,6 +3310,16 @@ const docTemplate = `{
                 "downloadsLimit": {
                     "type": "integer"
                 },
+                "enableOnlyOffice": {
+                    "type": "boolean"
+                },
+                "enableOnlyOfficeEditing": {
+                    "type": "boolean"
+                },
+                "enforceDarkLightMode": {
+                    "description": "\"dark\" or \"light\"",
+                    "type": "string"
+                },
                 "expires": {
                     "type": "string"
                 },
@@ -3400,6 +3410,16 @@ const docTemplate = `{
                 },
                 "downloadsLimit": {
                     "type": "integer"
+                },
+                "enableOnlyOffice": {
+                    "type": "boolean"
+                },
+                "enableOnlyOfficeEditing": {
+                    "type": "boolean"
+                },
+                "enforceDarkLightMode": {
+                    "description": "\"dark\" or \"light\"",
+                    "type": "string"
                 },
                 "expire": {
                     "type": "integer"

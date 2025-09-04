@@ -365,7 +365,16 @@
     "disableShareCard": "Desativar o cartão de partilha",
     "disableShareCardDescription": "Desativar o cartão de partilha na página partilhada na barra lateral ou na parte superior da página no telemóvel.",
     "disableSidebar": "Desativar a barra lateral",
-    "disableSidebarDescription": "Desativar a barra lateral na página partilhada."
+    "disableSidebarDescription": "Desativar a barra lateral na página partilhada.",
+    "enforceDarkLightMode": "Aplicar o modo de tema",
+    "enforceDarkLightModeDescription": "Força um modo de tema específico (escuro ou claro) para esta partilha, substituindo as preferências do utilizador.",
+    "default": "Não impor um modo",
+    "dark": "Escuro",
+    "light": "Luz",
+    "enableOnlyOffice": "Ativar o visualizador OnlyOffice",
+    "enableOnlyOfficeDescription": "Permitir a visualização de ficheiros de escritório utilizando o OnlyOffice nesta partilha.",
+    "enableOnlyOfficeEditing": "Ativar a edição OnlyOffice",
+    "enableOnlyOfficeEditingDescription": "Permitir a edição de ficheiros do Office utilizando o OnlyOffice nesta partilha."
   },
   "api": {
     "title": "Chaves da API",

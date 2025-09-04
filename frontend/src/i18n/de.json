@@ -365,7 +365,16 @@
     "disableShareCard": "Freigabekarte deaktivieren",
     "disableShareCardDescription": "Deaktivieren Sie die Freigabekarte auf der freigegebenen Seite in der Seitenleiste oder oben auf der Seite auf dem Handy.",
     "disableSidebar": "Seitenleiste deaktivieren",
-    "disableSidebarDescription": "Deaktivieren Sie die Seitenleiste auf der gemeinsamen Seite."
+    "disableSidebarDescription": "Deaktivieren Sie die Seitenleiste auf der gemeinsamen Seite.",
+    "enforceDarkLightMode": "Themenmodus erzwingen",
+    "enforceDarkLightModeDescription": "Erzwingt einen bestimmten Themenmodus (dunkel oder hell) für diese Freigabe und setzt die Benutzereinstellungen außer Kraft.",
+    "default": "Keinen Modus erzwingen",
+    "dark": "Dunkelheit",
+    "light": "Licht",
+    "enableOnlyOffice": "OnlyOffice viewer aktivieren",
+    "enableOnlyOfficeDescription": "Erlauben Sie die Anzeige von Office-Dateien mit OnlyOffice in dieser Freigabe.",
+    "enableOnlyOfficeEditing": "OnlyOffice-Bearbeitung aktivieren",
+    "enableOnlyOfficeEditingDescription": "Erlauben Sie die Bearbeitung von Office-Dateien mit OnlyOffice in dieser Freigabe."
   },
   "api": {
     "title": "API-Schlüssel:",

@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file. For commit 
  - added `frontend.favicon` and `frontend.description` for html overrides
  - onlyoffice viewing and editing is supported in shares
  - Added only office debug view and wiki to assist with debugging issues #1068 #911 #1074
+ - Dark mode enforcement possible for shared links #1029
 
  **Notes**:
  - access management: specific folders/files with access are shown instead permission denied for parent folder

@@ -365,7 +365,16 @@
     "disableShareCard": "禁用共享卡",
     "disableShareCardDescription": "禁用共享页面侧边栏或手机页面顶部的共享卡。",
     "disableSidebar": "禁用侧边栏",
-    "disableSidebarDescription": "禁用共享页面上的边栏。"
+    "disableSidebarDescription": "禁用共享页面上的边栏。",
+    "enforceDarkLightMode": "执行主题模式",
+    "enforceDarkLightModeDescription": "为该共享强制设置特定主题模式（深色或浅色），覆盖用户偏好。",
+    "default": "不执行模式",
+    "dark": "黑暗",
+    "light": "灯光",
+    "enableOnlyOffice": "启用 OnlyOffice 查看器",
+    "enableOnlyOfficeDescription": "允许在此共享中使用 OnlyOffice 查看办公文件。",
+    "enableOnlyOfficeEditing": "启用 OnlyOffice 编辑功能",
+    "enableOnlyOfficeEditingDescription": "允许在此共享中使用 OnlyOffice 编辑办公文件。"
   },
   "api": {
     "title": "应用程序接口密钥",
