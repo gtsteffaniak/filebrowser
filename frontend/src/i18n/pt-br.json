@@ -365,7 +365,16 @@
     "disableShareCard": "Desativar cartão compartilhado",
     "disableShareCardDescription": "Desative o cartão de compartilhamento na página compartilhada na barra lateral ou na parte superior da página no celular.",
     "disableSidebar": "Desativar a barra lateral",
-    "disableSidebarDescription": "Desative a barra lateral na página compartilhada."
+    "disableSidebarDescription": "Desative a barra lateral na página compartilhada.",
+    "enforceDarkLightMode": "Aplicar o modo de tema",
+    "enforceDarkLightModeDescription": "Força um modo de tema específico (escuro ou claro) para esse compartilhamento, substituindo as preferências do usuário.",
+    "default": "Não imponha um modo",
+    "dark": "Escuro",
+    "light": "Luz",
+    "enableOnlyOffice": "Ativar o visualizador do OnlyOffice",
+    "enableOnlyOfficeDescription": "Permitir a visualização de arquivos do Office usando o OnlyOffice nesse compartilhamento.",
+    "enableOnlyOfficeEditing": "Ativar a edição do OnlyOffice",
+    "enableOnlyOfficeEditingDescription": "Permitir a edição de arquivos do Office usando o OnlyOffice nesse compartilhamento."
   },
   "api": {
     "title": "Chaves de API:",
@@ -518,7 +527,9 @@
     "showSelectMultiple": "Mostrar seleção múltipla no menu de contexto na área de trabalho",
     "showSelectMultipleDescription": "Por padrão, o menu de contexto do desktop não tem a opção \"selecionar vários\" como no celular. Essa opção sempre a mostra no menu de contexto.",
     "defaultMediaPlayer": "Use o reprodutor de mídia nativo do seu navegador",
-    "defaultMediaPlayerDescription": "Use o reprodutor de mídia nativo do seu navegador para arquivos de vídeo e áudio em vez do reprodutor de mídia 'vue-plyr' incluído no FileBrowser."
+    "defaultMediaPlayerDescription": "Use o reprodutor de mídia nativo do seu navegador para arquivos de vídeo e áudio em vez do reprodutor de mídia 'vue-plyr' incluído no FileBrowser.",
+    "debugOfficeEditor": "Ativar o modo de depuração do OnlyOffice",
+    "debugOfficeEditorDescription": "Mostrar um pop-up de depuração com informações adicionais no editor do OnlyOffice."
   },
   "editor": {
     "uninitialized": "Falha ao inicializar o editor. Favor recarregar.",

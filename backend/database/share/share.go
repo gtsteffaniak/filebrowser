@@ -4,28 +4,31 @@ import "sync"
 
 type CommonShare struct {
 	//AllowEdit           bool   `json:"allowEdit,omitempty"`
-	AllowUpload         bool     `json:"allowUpload,omitempty"`
-	DisableFileViewer   bool     `json:"disableFileViewer,omitempty"`
-	DownloadsLimit      int      `json:"downloadsLimit,omitempty"`
-	ShareTheme          string   `json:"shareTheme,omitempty"`
-	DisableAnonymous    bool     `json:"disableAnonymous,omitempty"`
-	MaxBandwidth        int      `json:"maxBandwidth,omitempty"`
-	DisableThumbnails   bool     `json:"disableThumbnails,omitempty"`
-	KeepAfterExpiration bool     `json:"keepAfterExpiration,omitempty"`
-	AllowedUsernames    []string `json:"allowedUsernames,omitempty"`
-	ThemeColor          string   `json:"themeColor,omitempty"`
-	Banner              string   `json:"banner,omitempty"`
-	Title               string   `json:"title,omitempty"`
-	Description         string   `json:"description,omitempty"`
-	Favicon             string   `json:"favicon,omitempty"`
-	QuickDownload       bool     `json:"quickDownload,omitempty"`
-	HideNavButtons      bool     `json:"hideNavButtons,omitempty"`
-	DisableSidebar      bool     `json:"disableSidebar"`
-	ViewMode            string   `json:"viewMode,omitempty"`
-	Source              string   `json:"source,omitempty"` // backend source is path to maintain between name changes
-	Path                string   `json:"path,omitempty"`
-	DownloadURL         string   `json:"downloadURL,omitempty"`
-	DisableShareCard    bool     `json:"disableShareCard,omitempty"`
+	AllowUpload             bool     `json:"allowUpload,omitempty"`
+	DisableFileViewer       bool     `json:"disableFileViewer,omitempty"`
+	DownloadsLimit          int      `json:"downloadsLimit,omitempty"`
+	ShareTheme              string   `json:"shareTheme,omitempty"`
+	DisableAnonymous        bool     `json:"disableAnonymous,omitempty"`
+	MaxBandwidth            int      `json:"maxBandwidth,omitempty"`
+	DisableThumbnails       bool     `json:"disableThumbnails,omitempty"`
+	KeepAfterExpiration     bool     `json:"keepAfterExpiration,omitempty"`
+	AllowedUsernames        []string `json:"allowedUsernames,omitempty"`
+	ThemeColor              string   `json:"themeColor,omitempty"`
+	Banner                  string   `json:"banner,omitempty"`
+	Title                   string   `json:"title,omitempty"`
+	Description             string   `json:"description,omitempty"`
+	Favicon                 string   `json:"favicon,omitempty"`
+	QuickDownload           bool     `json:"quickDownload,omitempty"`
+	HideNavButtons          bool     `json:"hideNavButtons,omitempty"`
+	DisableSidebar          bool     `json:"disableSidebar"`
+	ViewMode                string   `json:"viewMode,omitempty"`
+	Source                  string   `json:"source,omitempty"` // backend source is path to maintain between name changes
+	Path                    string   `json:"path,omitempty"`
+	DownloadURL             string   `json:"downloadURL,omitempty"`
+	DisableShareCard        bool     `json:"disableShareCard,omitempty"`
+	EnforceDarkLightMode    string   `json:"enforceDarkLightMode,omitempty"` // "dark" or "light"
+	EnableOnlyOffice        bool     `json:"enableOnlyOffice,omitempty"`
+	EnableOnlyOfficeEditing bool     `json:"enableOnlyOfficeEditing,omitempty"`
 }
 type CreateBody struct {
 	CommonShare

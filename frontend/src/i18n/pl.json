@@ -365,7 +365,16 @@
     "disableShareCard": "Wyłączanie karty udostępniania",
     "disableShareCardDescription": "Wyłącz kartę udostępniania na udostępnianej stronie na pasku bocznym lub u góry strony na urządzeniach mobilnych.",
     "disableSidebar": "Wyłącz pasek boczny",
-    "disableSidebarDescription": "Wyłącz pasek boczny na udostępnionej stronie."
+    "disableSidebarDescription": "Wyłącz pasek boczny na udostępnionej stronie.",
+    "enforceDarkLightMode": "Wymuszanie trybu motywu",
+    "enforceDarkLightModeDescription": "Wymusza określony tryb motywu (ciemny lub jasny) dla tego udziału, zastępując preferencje użytkownika.",
+    "default": "Nie wymuszaj trybu",
+    "dark": "Ciemny",
+    "light": "Światło",
+    "enableOnlyOffice": "Włącz przeglądarkę OnlyOffice",
+    "enableOnlyOfficeDescription": "Zezwalaj na wyświetlanie plików biurowych przy użyciu OnlyOffice w tym udziale.",
+    "enableOnlyOfficeEditing": "Włącz edycję OnlyOffice",
+    "enableOnlyOfficeEditingDescription": "Zezwalaj na edycję plików biurowych za pomocą OnlyOffice w tym udziale."
   },
   "api": {
     "title": "Klucze API:",
@@ -518,7 +527,9 @@
     "showSelectMultiple": "Wyświetlanie wyboru wielokrotnego w menu kontekstowym na pulpicie",
     "showSelectMultipleDescription": "Domyślnie menu kontekstowe pulpitu nie ma opcji \"wybierz wiele\", tak jak w przypadku urządzeń mobilnych. Opcja ta jest zawsze widoczna w menu kontekstowym.",
     "defaultMediaPlayer": "Użyj natywnego odtwarzacza multimediów w przeglądarce",
-    "defaultMediaPlayerDescription": "Do odtwarzania plików wideo i audio należy używać natywnego odtwarzacza multimediów przeglądarki, a nie dołączonego do FileBrowser odtwarzacza multimediów \"vue-plyr\"."
+    "defaultMediaPlayerDescription": "Do odtwarzania plików wideo i audio należy używać natywnego odtwarzacza multimediów przeglądarki, a nie dołączonego do FileBrowser odtwarzacza multimediów \"vue-plyr\".",
+    "debugOfficeEditor": "Włącz tryb debugowania OnlyOffice",
+    "debugOfficeEditorDescription": "Wyświetla wyskakujące okienko debugowania z dodatkowymi informacjami w edytorze OnlyOffice."
   },
   "editor": {
     "uninitialized": "Nie udało się zainicjować edytora. Przeładuj ponownie.",

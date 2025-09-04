@@ -409,3 +409,7 @@ button:hover,
     border-color: var(--divider);
     width: 90%;
 }
+
+.tooltip-close-button {
+    max-width: 4em !important;
+}

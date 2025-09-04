@@ -136,11 +136,9 @@ export default {
       // scroll to previous item either from location hash or from previousItemHashId state
       // prefers location hash
       const noHashChange = window.location.hash === this.lastHash
-      console.log("noHashChange", noHashChange, state.previousItemHashId);
       if (noHashChange && state.previousItemHashId === "") return;
       this.lastHash = window.location.hash;
       if (window.location.hash) {
-        console.log("scroll to hash based on location hash", window.location.hash);
         const rawHash = window.location.hash.slice(1);
         let decodedName = rawHash;
         try {
@@ -152,10 +150,8 @@ export default {
         scrollToId = url.base64Encode(encodeURIComponent(decodedName));
 
       } else if (state.previousItemHashId) {
-        console.log("scroll to hash based on previousItemHashId", state.previousItemHashId);
         scrollToId = url.base64Encode(encodeURIComponent(state.previousItemHashId));
       }
-      console.log("scrollToId", scrollToId);
       const element = document.getElementById(scrollToId);
         if (element) {
           element.scrollIntoView({

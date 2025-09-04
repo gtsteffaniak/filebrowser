@@ -57,8 +57,10 @@ export async function fetchPub(path, hash, password = "", content = false) {
  * @returns {string}
  */
 export function getDownloadURL(share, files, inline=false) {
+  // Join files array with || delimiter and then URL encode
+  const filesParam = Array.isArray(files) ? files.join('||') : files;
   const params = {
-    files: files,
+    files: encodeURIComponent(filesParam),
     hash: share.hash,
     token: share.token,
     ...(inline && { inline: 'true' })

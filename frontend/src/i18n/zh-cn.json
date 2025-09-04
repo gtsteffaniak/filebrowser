@@ -365,7 +365,16 @@
     "disableShareCard": "禁用共享卡",
     "disableShareCardDescription": "禁用共享页面侧边栏或手机页面顶部的共享卡。",
     "disableSidebar": "禁用侧边栏",
-    "disableSidebarDescription": "禁用共享页面上的边栏。"
+    "disableSidebarDescription": "禁用共享页面上的边栏。",
+    "enforceDarkLightMode": "执行主题模式",
+    "enforceDarkLightModeDescription": "为该共享强制设置特定主题模式（深色或浅色），覆盖用户偏好。",
+    "default": "不执行模式",
+    "dark": "黑暗",
+    "light": "灯光",
+    "enableOnlyOffice": "启用 OnlyOffice 查看器",
+    "enableOnlyOfficeDescription": "允许在此共享中使用 OnlyOffice 查看办公文件。",
+    "enableOnlyOfficeEditing": "启用 OnlyOffice 编辑功能",
+    "enableOnlyOfficeEditingDescription": "允许在此共享中使用 OnlyOffice 编辑办公文件。"
   },
   "api": {
     "title": "应用程序接口密钥",
@@ -482,7 +491,9 @@
     "showSelectMultiple": "在桌面右键菜单中显示多个选择",
     "showSelectMultipleDescription": "默认情况下，桌面右键菜单不像手机那样有 \"选择多个 \"选项。该选项始终显示在右键菜单中。",
     "defaultMediaPlayer": "使用浏览器的本地媒体播放器",
-    "defaultMediaPlayerDescription": "使用浏览器的本地媒体播放器播放视频和音频文件，而不是 FileBrowser 附带的 \"vue-plyr \"媒体播放器。"
+    "defaultMediaPlayerDescription": "使用浏览器的本地媒体播放器播放视频和音频文件，而不是 FileBrowser 附带的 \"vue-plyr \"媒体播放器。",
+    "debugOfficeEditor": "启用 OnlyOffice 调试模式",
+    "debugOfficeEditorDescription": "在 OnlyOffice 编辑器中显示包含附加信息的调试弹出窗口。"
   },
   "general": {
     "name": "名称",

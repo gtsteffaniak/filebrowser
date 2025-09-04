@@ -365,7 +365,16 @@
     "disableShareCard": "Вимкнути картку спільного доступу",
     "disableShareCardDescription": "Вимкніть картку спільного доступу на сторінці, до якої надається спільний доступ, на бічній панелі або вгорі сторінки на мобільних пристроях.",
     "disableSidebar": "Вимкнути бічну панель",
-    "disableSidebarDescription": "Вимкнути бічну панель на спільній сторінці."
+    "disableSidebarDescription": "Вимкнути бічну панель на спільній сторінці.",
+    "enforceDarkLightMode": "Увімкнути режим теми",
+    "enforceDarkLightModeDescription": "Примусово встановлює певний режим теми (темний або світлий) для цього ресурсу, перекриваючи налаштування користувача.",
+    "default": "Не застосовуйте примусовий режим",
+    "dark": "Темнота.",
+    "light": "Світло",
+    "enableOnlyOffice": "Увімкнути переглядач OnlyOffice",
+    "enableOnlyOfficeDescription": "Дозволити перегляд офісних файлів за допомогою OnlyOffice у цьому ресурсі.",
+    "enableOnlyOfficeEditing": "Увімкнути редагування OnlyOffice",
+    "enableOnlyOfficeEditingDescription": "Дозволити редагування офісних файлів за допомогою OnlyOffice у цьому ресурсі."
   },
   "api": {
     "title": "Ключі API",
@@ -482,7 +491,9 @@
     "showSelectMultiple": "Показувати вибране кілька в контекстному меню на робочому столі",
     "showSelectMultipleDescription": "За замовчуванням, контекстне меню десктопа не має опції \"вибрати декілька\", як у мобільному. Ця опція завжди відображається у контекстному меню.",
     "defaultMediaPlayer": "Використовуйте вбудований медіаплеєр вашого браузера",
-    "defaultMediaPlayerDescription": "Використовуйте власний медіаплеєр вашого браузера для відео- та аудіофайлів, а не медіаплеєр \"vue-plyr\", що входить до складу FileBrowser."
+    "defaultMediaPlayerDescription": "Використовуйте власний медіаплеєр вашого браузера для відео- та аудіофайлів, а не медіаплеєр \"vue-plyr\", що входить до складу FileBrowser.",
+    "debugOfficeEditor": "Увімкнути режим налагодження OnlyOffice",
+    "debugOfficeEditorDescription": "Показати налагоджувальне спливаюче вікно з додатковою інформацією в редакторі OnlyOffice."
   },
   "general": {
     "name": "Ім'я",

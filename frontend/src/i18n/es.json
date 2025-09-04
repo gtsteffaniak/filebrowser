@@ -365,7 +365,16 @@
     "disableShareCard": "Desactivar tarjeta compartida",
     "disableShareCardDescription": "Desactivar la tarjeta de compartir en la página compartida en el panel lateral o en la parte superior de la página en móvil.",
     "disableSidebar": "Desactivar el panel lateral",
-    "disableSidebarDescription": "Desactivar el panel lateral en la página compartida."
+    "disableSidebarDescription": "Desactivar el panel lateral en la página compartida.",
+    "enforceDarkLightMode": "Aplicar el modo temático",
+    "enforceDarkLightModeDescription": "Forzar un modo de tema específico (oscuro o claro) para esta acción, anulando las preferencias del usuario.",
+    "default": "No imponer un modo",
+    "dark": "Oscuro",
+    "light": "Luz",
+    "enableOnlyOffice": "Activar el visor de OnlyOffice",
+    "enableOnlyOfficeDescription": "Permitir la visualización de archivos de oficina utilizando OnlyOffice en este recurso compartido.",
+    "enableOnlyOfficeEditing": "Habilitar la edición de OnlyOffice",
+    "enableOnlyOfficeEditingDescription": "Permitir la edición de archivos de oficina utilizando OnlyOffice en este recurso compartido."
   },
   "api": {
     "title": "Claves API",
@@ -518,7 +527,9 @@
     "deleteWithoutConfirming": "Eliminar archivos sin mensaje de confirmación",
     "deleteWithoutConfirmingDescription": "Eliminar archivos sin mensaje de confirmación. Esto sólo funcionará si el archivo es un archivo multimedia.",
     "defaultMediaPlayer": "Usar el reproductor multimedia nativo del navegador",
-    "defaultMediaPlayerDescription": "Usar el reproductor multimedia nativo de tu navegador para los archivos de vídeo y audio en lugar del reproductor multimedia incluido en FileBrowser."
+    "defaultMediaPlayerDescription": "Usar el reproductor multimedia nativo de tu navegador para los archivos de vídeo y audio en lugar del reproductor multimedia incluido en FileBrowser.",
+    "debugOfficeEditor": "Activar el modo de depuración de OnlyOffice",
+    "debugOfficeEditorDescription": "Mostrar una ventana emergente de depuración con información adicional en el editor OnlyOffice."
   },
   "editor": {
     "uninitialized": "Error al iniciar el editor, inténtelo de nuevo",

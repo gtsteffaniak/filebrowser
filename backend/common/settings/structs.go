@@ -171,4 +171,5 @@ type UserDefaults struct {
 	DisableOnlyOfficeExt       string              `json:"disableOnlyOfficeExt"`       // list of file extensions to disable onlyoffice editor for
 	CustomTheme                string              `json:"customTheme"`                // Name of theme to use chosen from custom themes config.
 	ShowSelectMultiple         bool                `json:"showSelectMultiple"`         // show select multiple files on desktop
+	DebugOffice                bool                `json:"debugOffice"`                // debug onlyoffice editor
 }

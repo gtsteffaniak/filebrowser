@@ -365,7 +365,16 @@
     "disableShareCard": "공유 카드 비활성화",
     "disableShareCardDescription": "사이드바의 공유 페이지 또는 모바일의 페이지 상단에서 공유 카드를 비활성화합니다.",
     "disableSidebar": "사이드바 비활성화",
-    "disableSidebarDescription": "공유 페이지에서 사이드바를 비활성화합니다."
+    "disableSidebarDescription": "공유 페이지에서 사이드바를 비활성화합니다.",
+    "enforceDarkLightMode": "테마 모드 적용",
+    "enforceDarkLightModeDescription": "이 공유에 특정 테마 모드(어둡거나 밝음)를 강제로 적용하여 사용자 기본 설정을 재정의합니다.",
+    "default": "모드 강제 적용 안 함",
+    "dark": "Dark",
+    "light": "빛",
+    "enableOnlyOffice": "Office 뷰어만 사용",
+    "enableOnlyOfficeDescription": "이 공유에서 OnlyOffice를 사용하여 Office 파일을 볼 수 있도록 허용합니다.",
+    "enableOnlyOfficeEditing": "Office 편집만 사용",
+    "enableOnlyOfficeEditingDescription": "이 공유에서 OnlyOffice를 사용하여 Office 파일을 편집할 수 있도록 허용합니다."
   },
   "api": {
     "title": "API 키:",
@@ -518,7 +527,9 @@
     "showSelectMultiple": "데스크톱의 컨텍스트 메뉴에서 여러 개 선택 표시",
     "showSelectMultipleDescription": "기본적으로 데스크톱 컨텍스트 메뉴에는 모바일처럼 '여러 개 선택' 옵션이 없습니다. 이 옵션은 항상 컨텍스트 메뉴에 표시됩니다.",
     "defaultMediaPlayer": "브라우저의 기본 미디어 플레이어 사용",
-    "defaultMediaPlayerDescription": "비디오 및 오디오 파일은 FileBrowser에 포함된 'vue-plyr' 미디어 플레이어가 아닌 브라우저의 기본 미디어 플레이어를 사용하세요."
+    "defaultMediaPlayerDescription": "비디오 및 오디오 파일은 FileBrowser에 포함된 'vue-plyr' 미디어 플레이어가 아닌 브라우저의 기본 미디어 플레이어를 사용하세요.",
+    "debugOfficeEditor": "Office 디버그 모드만 사용",
+    "debugOfficeEditorDescription": "OnlyOffice 편집기에서 추가 정보가 포함된 디버그 팝업을 표시합니다."
   },
   "editor": {
     "uninitialized": "편집기를 초기화하지 못했습니다. 다시 로드하세요.",

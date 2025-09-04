@@ -365,7 +365,16 @@
     "disableShareCard": "Zakázanie zdieľanej karty",
     "disableShareCardDescription": "Zakážte kartu zdieľania na zdieľanej stránke v bočnom paneli alebo v hornej časti stránky na mobilnom zariadení.",
     "disableSidebar": "Zakázanie bočného panela",
-    "disableSidebarDescription": "Zakážte bočný panel na zdieľanej stránke."
+    "disableSidebarDescription": "Zakážte bočný panel na zdieľanej stránke.",
+    "enforceDarkLightMode": "Vynútiť režim témy",
+    "enforceDarkLightModeDescription": "Vynútenie konkrétneho režimu motívu (tmavý alebo svetlý) pre túto akciu, ktorý je nadradený používateľským nastaveniam.",
+    "default": "Nevynucujte režim",
+    "dark": "Dark",
+    "light": "Svetlo",
+    "enableOnlyOffice": "Povolenie prehliadača OnlyOffice",
+    "enableOnlyOfficeDescription": "Povoľte zobrazovanie kancelárskych súborov pomocou OnlyOffice v tejto zdieľanej zložke.",
+    "enableOnlyOfficeEditing": "Povolenie úprav OnlyOffice",
+    "enableOnlyOfficeEditingDescription": "Povoľte úpravu kancelárskych súborov pomocou aplikácie OnlyOffice v tejto zdieľanej zložke."
   },
   "api": {
     "title": "Kľúče API:",
@@ -518,7 +527,9 @@
     "showSelectMultiple": "Zobrazenie výberu viacerých v kontextovom menu na ploche",
     "showSelectMultipleDescription": "V predvolenom nastavení kontextová ponuka na ploche nemá možnosť \"vybrať viacero\" ako v mobilných zariadeniach. Táto možnosť sa v kontextovej ponuke zobrazuje vždy.",
     "defaultMediaPlayer": "Používanie natívneho prehrávača médií prehliadača",
-    "defaultMediaPlayerDescription": "Na prehrávanie video a zvukových súborov použite natívny prehrávač médií prehliadača, a nie mediálny prehrávač vue-plyr, ktorý je súčasťou aplikácie FileBrowser."
+    "defaultMediaPlayerDescription": "Na prehrávanie video a zvukových súborov použite natívny prehrávač médií prehliadača, a nie mediálny prehrávač vue-plyr, ktorý je súčasťou aplikácie FileBrowser.",
+    "debugOfficeEditor": "Povolenie režimu ladenia OnlyOffice",
+    "debugOfficeEditorDescription": "Zobrazenie vyskakovacieho okna ladenia s ďalšími informáciami v editore OnlyOffice."
   },
   "editor": {
     "uninitialized": "Nepodarilo sa inicializovať editor. Prosím, načítajte ho znova.",
