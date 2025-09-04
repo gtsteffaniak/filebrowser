@@ -365,7 +365,16 @@
     "disableShareCard": "Megosztási kártya letiltása",
     "disableShareCardDescription": "Kapcsolja ki a megosztási kártyát a megosztott oldalon az oldalsávban vagy mobilon az oldal tetején.",
     "disableSidebar": "Oldalsáv kikapcsolása",
-    "disableSidebarDescription": "Kapcsolja ki az oldalsávot a megosztott oldalon."
+    "disableSidebarDescription": "Kapcsolja ki az oldalsávot a megosztott oldalon.",
+    "enforceDarkLightMode": "Témamód érvényesítése",
+    "enforceDarkLightModeDescription": "Egy adott témamód (sötét vagy világos) kikényszerítése a megosztás számára, felülírva a felhasználói beállításokat.",
+    "default": "Ne kényszerítsen ki üzemmódot",
+    "dark": "Sötét",
+    "light": "Fény",
+    "enableOnlyOffice": "OnlyOffice megjelenítő engedélyezése",
+    "enableOnlyOfficeDescription": "Engedélyezze az irodai fájlok megtekintését az OnlyOffice használatával ezen a megosztáson.",
+    "enableOnlyOfficeEditing": "Engedélyezze az OnlyOffice szerkesztést",
+    "enableOnlyOfficeEditingDescription": "Engedélyezze az irodai fájlok szerkesztését az OnlyOffice használatával ezen a megosztáson."
   },
   "api": {
     "title": "API-kulcsok:",
@@ -518,7 +527,9 @@
     "showSelectMultiple": "Többszörös kijelölés megjelenítése az asztali kontextusmenüben",
     "showSelectMultipleDescription": "Alapértelmezés szerint az asztali kontextusmenü nem rendelkezik a \"többszörös kiválasztás\" opcióval, mint a mobilon. Ez az opció mindig megjelenik a kontextusmenüben.",
     "defaultMediaPlayer": "Használja a böngésző natív médialejátszóját",
-    "defaultMediaPlayerDescription": "Használja a böngésző natív médialejátszóját a videó- és hangfájlokhoz, nem pedig a FileBrowser mellékelt \"vue-plyr\" médialejátszóját."
+    "defaultMediaPlayerDescription": "Használja a böngésző natív médialejátszóját a videó- és hangfájlokhoz, nem pedig a FileBrowser mellékelt \"vue-plyr\" médialejátszóját.",
+    "debugOfficeEditor": "OnlyOffice hibakeresési mód engedélyezése",
+    "debugOfficeEditorDescription": "További információkat tartalmazó hibakeresési felugró ablak megjelenítése az OnlyOffice szerkesztőben."
   },
   "editor": {
     "uninitialized": "Nem sikerült inicializálni a szerkesztőt. Kérjük, töltse újra.",

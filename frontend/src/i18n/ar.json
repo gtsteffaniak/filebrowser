@@ -365,7 +365,16 @@
     "disableShareCard": "تعطيل بطاقة المشاركة المعطلة",
     "disableShareCardDescription": "قم بتعطيل بطاقة المشاركة على الصفحة المشتركة في الشريط الجانبي أو في أعلى الصفحة على الهاتف المحمول.",
     "disableSidebar": "تعطيل الشريط الجانبي",
-    "disableSidebarDescription": "تعطيل الشريط الجانبي في الصفحة المشتركة."
+    "disableSidebarDescription": "تعطيل الشريط الجانبي في الصفحة المشتركة.",
+    "enforceDarkLightMode": "فرض وضع السمة",
+    "enforceDarkLightModeDescription": "فرض وضع سمة معينة (داكنة أو فاتحة) لهذه المشاركة، وتجاوز تفضيلات المستخدم.",
+    "default": "لا تفرض وضعاً",
+    "dark": "داكن",
+    "light": "خفيف",
+    "enableOnlyOffice": "تمكين عارض OnlyOffice فقط",
+    "enableOnlyOfficeDescription": "السماح بعرض ملفات المكتب باستخدام OnlyOffice في هذه المشاركة.",
+    "enableOnlyOfficeEditing": "تمكين التحرير في المكتب فقط",
+    "enableOnlyOfficeEditingDescription": "السماح بتحرير الملفات المكتبية باستخدام OnlyOffice في هذه الحصة."
   },
   "api": {
     "title": "مفاتيح واجهة برمجة التطبيقات (API):",
@@ -510,7 +519,9 @@
     "showSelectMultiple": "إظهار تحديد متعدد في قائمة السياق على سطح المكتب",
     "showSelectMultipleDescription": "بشكل افتراضي، لا تحتوي قائمة سياق سطح المكتب على خيار \"تحديد متعدد\" مثل الهاتف المحمول. يظهر هذا الخيار دائمًا في قائمة السياق.",
     "defaultMediaPlayer": "استخدم مشغل الوسائط الأصلي في متصفحك",
-    "defaultMediaPlayerDescription": "استخدم مشغل الوسائط الأصلي في متصفحك لملفات الفيديو والصوت بدلاً من مشغل الوسائط \"vue-plyr\" المضمن في متصفح FileBrowser."
+    "defaultMediaPlayerDescription": "استخدم مشغل الوسائط الأصلي في متصفحك لملفات الفيديو والصوت بدلاً من مشغل الوسائط \"vue-plyr\" المضمن في متصفح FileBrowser.",
+    "debugOfficeEditor": "تمكين وضع التصحيح فقط",
+    "debugOfficeEditorDescription": "إظهار نافذة منبثقة للتصحيح مع معلومات إضافية في محرر OnlyOffice."
   },
   "colors": {
     "red": "أحمر",

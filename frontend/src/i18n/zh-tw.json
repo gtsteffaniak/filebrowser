@@ -365,7 +365,16 @@
     "disableShareCard": "停用分享卡",
     "disableShareCardDescription": "停用分享頁面側邊欄或行動版頁面頂端的分享卡。",
     "disableSidebar": "停用側邊欄",
-    "disableSidebarDescription": "停用共用頁面上的側邊欄。"
+    "disableSidebarDescription": "停用共用頁面上的側邊欄。",
+    "enforceDarkLightMode": "強制執行主題模式",
+    "enforceDarkLightModeDescription": "強制此共用的特定主題模式 (深色或淺色)，凌駕使用者偏好設定。",
+    "default": "不要強制執行模式",
+    "dark": "黑暗",
+    "light": "燈光",
+    "enableOnlyOffice": "啟用 OnlyOffice 檢視器",
+    "enableOnlyOfficeDescription": "允許在此共用中使用 OnlyOffice 檢視辦公室檔案。",
+    "enableOnlyOfficeEditing": "啟用 OnlyOffice 編輯",
+    "enableOnlyOfficeEditingDescription": "允許在此共用中使用 OnlyOffice 編輯辦公室檔案。"
   },
   "api": {
     "title": "API 金鑰",
@@ -456,7 +465,9 @@
     "showSelectMultiple": "在桌面的上下文功能表中顯示多重選擇",
     "showSelectMultipleDescription": "預設情況下，桌上型電腦的上下文功能表不像行動裝置一樣有「選取多個」選項。此選項總是在上下文功能表中顯示。",
     "defaultMediaPlayer": "使用瀏覽器的本機媒體播放器",
-    "defaultMediaPlayerDescription": "使用瀏覽器的本機媒體播放器來播放視訊和音訊檔案，而非 FileBrowser 隨附的「vue-plyr」媒體播放器。"
+    "defaultMediaPlayerDescription": "使用瀏覽器的本機媒體播放器來播放視訊和音訊檔案，而非 FileBrowser 隨附的「vue-plyr」媒體播放器。",
+    "debugOfficeEditor": "啟用 OnlyOffice 除錯模式",
+    "debugOfficeEditorDescription": "在 OnlyOffice 編輯器中顯示包含其他資訊的除錯彈出式視窗。"
   },
   "otp": {
     "name": "雙因素驗證",

@@ -365,7 +365,16 @@
     "disableShareCard": "Disattivare la scheda di condivisione",
     "disableShareCardDescription": "Disattivare la scheda di condivisione sulla pagina condivisa nella barra laterale o nella parte superiore della pagina su mobile.",
     "disableSidebar": "Disattivare la barra laterale",
-    "disableSidebarDescription": "Disattivare la barra laterale della pagina condivisa."
+    "disableSidebarDescription": "Disattivare la barra laterale della pagina condivisa.",
+    "enforceDarkLightMode": "Applicare la modalità a tema",
+    "enforceDarkLightModeDescription": "Forza una modalità tema specifica (scuro o chiaro) per questa condivisione, ignorando le preferenze dell'utente.",
+    "default": "Non applicare una modalità",
+    "dark": "Scuro",
+    "light": "Luce",
+    "enableOnlyOffice": "Abilitate il visualizzatore OnlyOffice",
+    "enableOnlyOfficeDescription": "Consente di visualizzare i file di Office utilizzando OnlyOffice in questa condivisione.",
+    "enableOnlyOfficeEditing": "Abilita la modifica di OnlyOffice",
+    "enableOnlyOfficeEditingDescription": "Consentire la modifica dei file di Office utilizzando OnlyOffice in questa condivisione."
   },
   "api": {
     "title": "Chiavi API:",
@@ -518,7 +527,9 @@
     "showSelectMultiple": "Mostra selezione multipla nel menu contestuale sul desktop",
     "showSelectMultipleDescription": "Per impostazione predefinita, il menu contestuale del desktop non dispone dell'opzione \"seleziona più\" come quello del cellulare. Questa opzione viene sempre visualizzata nel menu contestuale.",
     "defaultMediaPlayer": "Utilizzare il lettore multimediale nativo del browser",
-    "defaultMediaPlayerDescription": "Utilizzate il lettore multimediale nativo del vostro browser per i file video e audio piuttosto che il lettore multimediale \"vue-plyr\" incluso in FileBrowser."
+    "defaultMediaPlayerDescription": "Utilizzate il lettore multimediale nativo del vostro browser per i file video e audio piuttosto che il lettore multimediale \"vue-plyr\" incluso in FileBrowser.",
+    "debugOfficeEditor": "Abilita la modalità di debug di OnlyOffice",
+    "debugOfficeEditorDescription": "Mostra un popup di debug con informazioni aggiuntive nell'editor di OnlyOffice."
   },
   "editor": {
     "uninitialized": "Impossibile inizializzare l'editor. Ricaricare.",

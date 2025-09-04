@@ -275,7 +275,7 @@ export default {
       return state.user.gallerySize;
     },
     isDarkMode() {
-      return state.user?.darkMode;
+      return getters.isDarkMode();
     },
     getMultiple() {
       return state.multiple;

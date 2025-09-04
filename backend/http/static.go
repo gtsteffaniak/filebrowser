@@ -116,6 +116,9 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 			shareProps["disableSidebar"] = d.share.DisableSidebar
 			shareProps["isPasswordProtected"] = d.share.PasswordHash != ""
 			shareProps["downloadURL"] = getDownloadURL(r, d.share.Hash)
+			shareProps["enforceDarkLightMode"] = d.share.EnforceDarkLightMode
+			shareProps["enableOnlyOffice"] = d.share.EnableOnlyOffice
+			shareProps["enableOnlyOfficeEditing"] = d.share.EnableOnlyOfficeEditing
 			if d.share.Favicon != "" {
 				if strings.HasPrefix(d.share.Favicon, "http") {
 					data["favicon"] = d.share.Favicon

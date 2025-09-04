@@ -1,5 +1,5 @@
 import { fetchURL, adjustedData } from './utils'
-import { getApiPath, doubleEncode } from '@/utils/url.js'
+import { getApiPath, doubleEncode, getPublicApiPath } from '@/utils/url.js'
 import { mutations } from '@/store'
 import { notify } from '@/notify'
 import { externalUrl } from '@/utils/constants'
@@ -264,4 +264,18 @@ export async function sources() {
     notify.showError(err.message || 'Error fetching usage sources')
     throw err
   }
+}
+
+export async function GetOfficeConfig(req) {
+  const params = {
+    path: encodeURIComponent(req.path),
+    ...(req.hash && { hash: encodeURIComponent(req.hash) }),
+    ...(req.source && { source: encodeURIComponent(req.source) })
+  }
+  let apiPath = getApiPath('api/onlyoffice/config', params)
+  if (req.hash) {
+    apiPath = getPublicApiPath('onlyoffice/config', params)
+  }
+  const res = await fetchURL(apiPath)
+  return await res.json()
 }

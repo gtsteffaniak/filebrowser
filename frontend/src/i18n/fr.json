@@ -365,7 +365,16 @@
     "disableShareCard": "Désactiver la carte de partage",
     "disableShareCardDescription": "Désactiver la carte de partage sur la page partagée dans la barre latérale ou en haut de la page sur mobile.",
     "disableSidebar": "Désactiver la barre latérale",
-    "disableSidebarDescription": "Désactiver la barre latérale sur la page partagée."
+    "disableSidebarDescription": "Désactiver la barre latérale sur la page partagée.",
+    "enforceDarkLightMode": "Renforcer le mode thématique",
+    "enforceDarkLightModeDescription": "Forcer un mode de thème spécifique (sombre ou clair) pour ce partage, sans tenir compte des préférences de l'utilisateur.",
+    "default": "Ne pas imposer de mode",
+    "dark": "Sombre",
+    "light": "Lumière",
+    "enableOnlyOffice": "Activer la visionneuse OnlyOffice",
+    "enableOnlyOfficeDescription": "Autoriser la visualisation de fichiers bureautiques en utilisant OnlyOffice dans ce partage.",
+    "enableOnlyOfficeEditing": "Activer l'édition OnlyOffice",
+    "enableOnlyOfficeEditingDescription": "Autoriser l'édition de fichiers bureautiques en utilisant OnlyOffice dans ce partage."
   },
   "api": {
     "title": "Clés API :",
@@ -518,7 +527,9 @@
     "showSelectMultiple": "Afficher la sélection multiple dans le menu contextuel sur le bureau",
     "showSelectMultipleDescription": "Par défaut, le menu contextuel de l'ordinateur de bureau n'a pas l'option \"sélectionner plusieurs\" comme celui de l'ordinateur mobile. Cette option apparaît toujours dans le menu contextuel.",
     "defaultMediaPlayer": "Utilisez le lecteur multimédia natif de votre navigateur",
-    "defaultMediaPlayerDescription": "Utilisez le lecteur multimédia natif de votre navigateur pour les fichiers vidéo et audio plutôt que le lecteur multimédia \"vue-plyr\" inclus dans FileBrowser."
+    "defaultMediaPlayerDescription": "Utilisez le lecteur multimédia natif de votre navigateur pour les fichiers vidéo et audio plutôt que le lecteur multimédia \"vue-plyr\" inclus dans FileBrowser.",
+    "debugOfficeEditor": "Activer le mode de débogage d'OnlyOffice",
+    "debugOfficeEditorDescription": "Afficher une fenêtre de débogage avec des informations supplémentaires dans l'éditeur OnlyOffice."
   },
   "editor": {
     "uninitialized": "Échec de l'initialisation de l'éditeur. Veuillez recharger.",

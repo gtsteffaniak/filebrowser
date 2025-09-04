@@ -3162,6 +3162,10 @@ const docTemplate = `{
                     "description": "when false, the date is relative, when true, the date is an exact timestamp",
                     "type": "boolean"
                 },
+                "debugOffice": {
+                    "description": "debug onlyoffice editor",
+                    "type": "boolean"
+                },
                 "deleteWithoutConfirming": {
                     "description": "delete files without confirmation",
                     "type": "boolean"
@@ -3306,6 +3310,16 @@ const docTemplate = `{
                 "downloadsLimit": {
                     "type": "integer"
                 },
+                "enableOnlyOffice": {
+                    "type": "boolean"
+                },
+                "enableOnlyOfficeEditing": {
+                    "type": "boolean"
+                },
+                "enforceDarkLightMode": {
+                    "description": "\"dark\" or \"light\"",
+                    "type": "string"
+                },
                 "expires": {
                     "type": "string"
                 },
@@ -3396,6 +3410,16 @@ const docTemplate = `{
                 },
                 "downloadsLimit": {
                     "type": "integer"
+                },
+                "enableOnlyOffice": {
+                    "type": "boolean"
+                },
+                "enableOnlyOfficeEditing": {
+                    "type": "boolean"
+                },
+                "enforceDarkLightMode": {
+                    "description": "\"dark\" or \"light\"",
+                    "type": "string"
                 },
                 "expire": {
                     "type": "integer"
@@ -3598,6 +3622,10 @@ const docTemplate = `{
                 },
                 "dateFormat": {
                     "description": "when false, the date is relative, when true, the date is an exact timestamp",
+                    "type": "boolean"
+                },
+                "debugOffice": {
+                    "description": "debug onlyoffice editor",
                     "type": "boolean"
                 },
                 "deleteWithoutConfirming": {

@@ -44,6 +44,12 @@ export const getters = {
     return shareInfo.isShare
   },
   isDarkMode: () => {
+    if (shareInfo.enforceDarkLightMode == "dark") {
+      return true
+    }
+    if (shareInfo.enforceDarkLightMode == "light") {
+      return false
+    }
     if (state.user == null) {
       return true
     }
@@ -342,12 +348,11 @@ export const getters = {
     return false
   },
   officeViewingDisabled: filename => {
-    if (shareInfo.isShare) {
-      return true
-    }
     const ext = ' ' + getFileExtension(filename)
-    if (state.user.disableOfficePreviewExt) {
-      const disabledExts = ' ' + state.user.disableOfficePreviewExt.toLowerCase()
+    const hasDisabled = shareInfo.disableOfficePreviewExt || state.user.disableOfficePreviewExt
+    if (hasDisabled) {
+      const disabledList = shareInfo.disableOfficePreviewExt + ' ' + state.user.disableOfficePreviewExt
+      const disabledExts = ' ' + disabledList.toLowerCase()
       if (disabledExts.includes(ext.toLowerCase())) {
         return true
       }

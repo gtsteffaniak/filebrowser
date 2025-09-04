@@ -167,7 +167,16 @@
     "disableShareCard": "Zakázat sdílenou kartu",
     "disableShareCardDescription": "Zakázat kartu sdílení na sdílené stránce v postranním panelu nebo v horní části stránky na mobilním telefonu.",
     "disableSidebar": "Zakázat postranní panel",
-    "disableSidebarDescription": "Zakázat postranní panel na sdílené stránce."
+    "disableSidebarDescription": "Zakázat postranní panel na sdílené stránce.",
+    "enforceDarkLightMode": "Vynucení režimu tématu",
+    "enforceDarkLightModeDescription": "Vynucení určitého režimu motivu (tmavého nebo světlého) pro tuto sdílenou složku, který je nadřazen uživatelským preferencím.",
+    "default": "Nevynucujte režim",
+    "dark": "Dark",
+    "light": "Světlo",
+    "enableOnlyOffice": "Povolení prohlížeče OnlyOffice",
+    "enableOnlyOfficeDescription": "Povolit prohlížení kancelářských souborů pomocí OnlyOffice v této sdílené složce.",
+    "enableOnlyOfficeEditing": "Povolení úprav OnlyOffice",
+    "enableOnlyOfficeEditingDescription": "Povolit úpravy kancelářských souborů pomocí OnlyOffice v této sdílené složce."
   },
   "prompts": {
     "copy": "Kopírovat",
@@ -293,7 +302,9 @@
     "showSelectMultiple": "Zobrazení výběru více položek v kontextové nabídce na ploše",
     "showSelectMultipleDescription": "Ve výchozím nastavení nemá kontextová nabídka na ploše možnost \"vybrat více\" jako v mobilním telefonu. Tato možnost se v kontextové nabídce zobrazuje vždy.",
     "defaultMediaPlayer": "Použití nativního přehrávače médií v prohlížeči",
-    "defaultMediaPlayerDescription": "Pro video a zvukové soubory používejte nativní přehrávač médií prohlížeče, nikoli přehrávač médií vue-plyr, který je součástí aplikace FileBrowser."
+    "defaultMediaPlayerDescription": "Pro video a zvukové soubory používejte nativní přehrávač médií prohlížeče, nikoli přehrávač médií vue-plyr, který je součástí aplikace FileBrowser.",
+    "debugOfficeEditor": "Povolení režimu ladění OnlyOffice",
+    "debugOfficeEditorDescription": "Zobrazení vyskakovacího okna pro ladění s dalšími informacemi v editoru OnlyOffice."
   },
   "settings": {
     "enterPassword": "Zadejte heslo",

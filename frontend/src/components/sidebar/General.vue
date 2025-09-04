@@ -53,6 +53,7 @@
           <i class="material-icons">ads_click</i>
         </div>
         <div
+          v-if="darkModeTogglePossible"
           class="clickable"
           :class="{ active: user?.darkMode }"
           @click="toggleDarkMode"
@@ -140,7 +141,7 @@
 
 <script>
 import * as auth from "@/utils/auth";
-import { signup, disableExternal, noAuth, loginPage } from "@/utils/constants";
+import { signup, disableExternal, noAuth, loginPage, shareInfo } from "@/utils/constants";
 import ProgressBar from "@/components/ProgressBar.vue";
 import { state, getters, mutations } from "@/store"; // Import your custom store
 import { getHumanReadableFilesize } from "@/utils/filesizes.js";
@@ -178,6 +179,7 @@ export default {
     sourceInfo: () => state.sources.info,
     activeSource: () => state.sources.current,
     realtimeActive: () => state.realtimeActive,
+    darkModeTogglePossible: () => shareInfo.enforceDarkLightMode != "dark" && shareInfo.enforceDarkLightMode != "light",
   },
   watch: {
     route() {
