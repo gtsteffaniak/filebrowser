@@ -302,7 +302,8 @@
     "adminOptions": "Opções do utilizador administrador",
     "shareDuration": "Expirações",
     "searchOptions": "Opções de pesquisa",
-    "downloads": "Transferências"
+    "downloads": "Transferências",
+    "systemAdmin": "Sistema e administração"
   },
   "sidebar": {
     "help": "Ajuda",
@@ -493,7 +494,9 @@
     "defaultMediaPlayer": "Utilize o leitor multimédia nativo do seu navegador",
     "defaultMediaPlayerDescription": "Utilize o leitor multimédia nativo do seu navegador para ficheiros de vídeo e áudio em vez do leitor multimédia 'vue-plyr' incluído no FileBrowser.",
     "debugOfficeEditor": "Ativar o modo de depuração do OnlyOffice",
-    "debugOfficeEditorDescription": "Mostrar um popup de depuração com informações adicionais no editor OnlyOffice."
+    "debugOfficeEditorDescription": "Mostrar um popup de depuração com informações adicionais no editor OnlyOffice.",
+    "fileViewerOptions": "Opções do visualizador de ficheiros",
+    "themeAndLanguage": "Tema e linguagem"
   },
   "general": {
     "name": "Nome",

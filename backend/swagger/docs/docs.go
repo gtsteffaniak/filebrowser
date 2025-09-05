@@ -1697,6 +1697,43 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/settings/config": {
+            "get": {
+                "description": "Returns the current running configuration settings as YAML format with optional comments and filtering.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "Settings"
+                ],
+                "summary": "Get system settings as YAML",
+                "parameters": [
+                    {
+                        "type": "boolean",
+                        "description": "Show all values (true) or only non-default values (false, default)",
+                        "name": "full",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Include comments in YAML (true) or plain YAML (false, default)",
+                        "name": "comments",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "System settings in YAML format",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/api/share": {
             "get": {
                 "description": "Retrieves all share links associated with a specific resource path for the current user.",
@@ -2567,26 +2604,26 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "adminPassword": {
-                    "description": "the password of the admin user. If not set, the default is \"admin\".",
+                    "description": "secret: the password of the admin user. If not set, the default is \"admin\".",
                     "type": "string"
                 },
                 "adminUsername": {
-                    "description": "the username of the admin user. If not set, the default is \"admin\".",
+                    "description": "secret: the username of the admin user. If not set, the default is \"admin\".",
                     "type": "string"
                 },
                 "key": {
-                    "description": "the key used to sign the JWT tokens. If not set, a random key will be generated.",
+                    "description": "secret: the key used to sign the JWT tokens. If not set, a random key will be generated.",
                     "type": "string"
                 },
                 "methods": {
                     "$ref": "#/definitions/settings.LoginMethods"
                 },
                 "tokenExpirationHours": {
-                    "description": "the number of hours until the token expires. Default is 2 hours.",
+                    "description": "time in hours each web UI session token is valid for. Default is 2 hours.",
                     "type": "integer"
                 },
                 "totpSecret": {
-                    "description": "secret used to encrypt TOTP secrets",
+                    "description": "secret: secret used to encrypt TOTP secrets",
                     "type": "string"
                 }
             }
@@ -2812,11 +2849,11 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "clientId": {
-                    "description": "client id of the OIDC application",
+                    "description": "secret: client id of the OIDC application",
                     "type": "string"
                 },
                 "clientSecret": {
-                    "description": "client secret of the OIDC application",
+                    "description": "secret: client secret of the OIDC application",
                     "type": "string"
                 },
                 "createUser": {
@@ -2865,6 +2902,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "secret": {
+                    "description": "secret: authentication key for OnlyOffice integration",
                     "type": "string"
                 },
                 "url": {
@@ -2972,6 +3010,10 @@ const docTemplate = `{
                 },
                 "disableTypeDetectionByHeader": {
                     "description": "disable type detection by header, useful if filesystem is slow.",
+                    "type": "boolean"
+                },
+                "disableUpdateCheck": {
+                    "description": "disables backend update check service",
                     "type": "boolean"
                 },
                 "externalUrl": {

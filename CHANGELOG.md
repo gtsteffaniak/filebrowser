@@ -5,13 +5,18 @@ All notable changes to this project will be documented in this file. For commit 
 ## v0.8.4-beta
 
  **New Features**:
- - added embeded video subtitle support. @maxbin123 #1072 #1157
- - added new default media player (can be disabled in user profile settings) @Kurami32 #1160
- - Option to disable update check #1134
+ - New media player styles and features
+   - Custom Media Player: enhanced media player using plyr thanks @Kurami32 (see #1160)
+   - Custom Media Player: also adds support for metadata
+   - added embeded video subtitle support (for both native and custom player). @maxbin123 #1072 #1157
+   - Users can disable the customer player and opt of native in profile settings.
+ - Option to disable backend update check via `server.disableUpdateCheck` #1134
  - added `frontend.favicon` and `frontend.description` for html overrides
- - onlyoffice viewing and editing is supported in shares
+ - onlyoffice is now supported in shares. Both viewing and editing can be configured per-share.
  - Added only office debug view and wiki to assist with debugging issues #1068 #911 #1074
  - Dark mode enforcement possible for shared links #1029
+ - added `System & Admin` section to settings
+   - includes a new config viewer to see current running config (hides secrets) #838
 
  **Notes**:
  - access management: specific folders/files with access are shown instead permission denied for parent folder
@@ -20,12 +25,15 @@ All notable changes to this project will be documented in this file. For commit 
  - documentation update: comma or Space separated extensions #1138
  - Files and folders can be created with "/" or "\" on the name #1126
  - Share management should not be allowed without authentication #1163
+ - Question about customizing session timeout #1184
 
  **BugFixes**:
  - access management: delay showing rule changes in the list fixed. #1131
  - Color names are not localized #1159
  - rename issues #1170 #1171
  - some shortcuts not working #1056
+ - Can't copy/paste text on mobile #1168
+ - Can't change between images inside of the share image viewer. #1144
 
 ## v0.8.3-beta
 

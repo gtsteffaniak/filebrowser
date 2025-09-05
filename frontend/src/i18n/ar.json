@@ -302,7 +302,8 @@
     "adminOptions": "خيارات المستخدم المسؤول",
     "shareDuration": "تنتهي صلاحيتها",
     "searchOptions": "خيارات البحث",
-    "downloads": "التنزيلات"
+    "downloads": "التنزيلات",
+    "systemAdmin": "النظام والإدارة"
   },
   "sidebar": {
     "help": "مساعدة",
@@ -521,7 +522,9 @@
     "defaultMediaPlayer": "استخدم مشغل الوسائط الأصلي في متصفحك",
     "defaultMediaPlayerDescription": "استخدم مشغل الوسائط الأصلي في متصفحك لملفات الفيديو والصوت بدلاً من مشغل الوسائط \"vue-plyr\" المضمن في متصفح FileBrowser.",
     "debugOfficeEditor": "تمكين وضع التصحيح فقط",
-    "debugOfficeEditorDescription": "إظهار نافذة منبثقة للتصحيح مع معلومات إضافية في محرر OnlyOffice."
+    "debugOfficeEditorDescription": "إظهار نافذة منبثقة للتصحيح مع معلومات إضافية في محرر OnlyOffice.",
+    "fileViewerOptions": "خيارات عارض الملفات",
+    "themeAndLanguage": "الموضوع واللغة"
   },
   "colors": {
     "red": "أحمر",

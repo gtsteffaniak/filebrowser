@@ -302,7 +302,8 @@
     "adminOptions": "Opțiuni utilizator administrator",
     "shareDuration": "Expiră",
     "searchOptions": "Opțiuni de căutare",
-    "downloads": "Descărcări"
+    "downloads": "Descărcări",
+    "systemAdmin": "Sistem și administrare"
   },
   "sidebar": {
     "help": "Ajutor",
@@ -529,7 +530,9 @@
     "defaultMediaPlayer": "Utilizați playerul media nativ al browserului dvs.",
     "defaultMediaPlayerDescription": "Utilizați playerul media nativ al browserului dvs. pentru fișierele video și audio mai degrabă decât playerul media \"vue-plyr\" inclus în FileBrowser.",
     "debugOfficeEditor": "Activați modul de depanare OnlyOffice",
-    "debugOfficeEditorDescription": "Afișați o fereastră pop-up de depanare cu informații suplimentare în editorul OnlyOffice."
+    "debugOfficeEditorDescription": "Afișați o fereastră pop-up de depanare cu informații suplimentare în editorul OnlyOffice.",
+    "fileViewerOptions": "Opțiuni vizualizator de fișiere",
+    "themeAndLanguage": "Temă și limbaj"
   },
   "editor": {
     "uninitialized": "Nu s-a reușit inițializarea editorului. Vă rugăm să reîncărcați.",

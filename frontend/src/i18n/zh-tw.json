@@ -302,7 +302,8 @@
     "shareDuration": "到期",
     "shareDeleted": "分享已刪除！",
     "adminOptions": "管理員使用者選項",
-    "downloads": "下載"
+    "downloads": "下載",
+    "systemAdmin": "系統與管理"
   },
   "sidebar": {
     "help": "幫助",
@@ -467,7 +468,9 @@
     "defaultMediaPlayer": "使用瀏覽器的本機媒體播放器",
     "defaultMediaPlayerDescription": "使用瀏覽器的本機媒體播放器來播放視訊和音訊檔案，而非 FileBrowser 隨附的「vue-plyr」媒體播放器。",
     "debugOfficeEditor": "啟用 OnlyOffice 除錯模式",
-    "debugOfficeEditorDescription": "在 OnlyOffice 編輯器中顯示包含其他資訊的除錯彈出式視窗。"
+    "debugOfficeEditorDescription": "在 OnlyOffice 編輯器中顯示包含其他資訊的除錯彈出式視窗。",
+    "fileViewerOptions": "檔案檢視器選項",
+    "themeAndLanguage": "主題與語言"
   },
   "otp": {
     "name": "雙因素驗證",

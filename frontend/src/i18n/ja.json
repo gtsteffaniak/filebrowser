@@ -302,7 +302,8 @@
     "adminOptions": "管理者ユーザーオプション",
     "shareDuration": "期限切れ",
     "searchOptions": "検索オプション",
-    "downloads": "ダウンロード"
+    "downloads": "ダウンロード",
+    "systemAdmin": "システム＆管理"
   },
   "sidebar": {
     "help": "ヘルプ",
@@ -529,7 +530,9 @@
     "defaultMediaPlayer": "ブラウザのネイティブ・メディア・プレーヤーを使う",
     "defaultMediaPlayerDescription": "ビデオやオーディオファイルには、FileBrowserに含まれる「vue-plyr」メディアプレーヤーではなく、ブラウザのネイティブメディアプレーヤーを使用してください。",
     "debugOfficeEditor": "OnlyOfficeデバッグモードを有効にする",
-    "debugOfficeEditorDescription": "OnlyOfficeエディタに追加情報のデバッグポップアップを表示します。"
+    "debugOfficeEditorDescription": "OnlyOfficeエディタに追加情報のデバッグポップアップを表示します。",
+    "fileViewerOptions": "ファイル・ビューアーのオプション",
+    "themeAndLanguage": "テーマと言語"
   },
   "editor": {
     "uninitialized": "エディタの初期化に失敗しました。再読み込みしてください。",

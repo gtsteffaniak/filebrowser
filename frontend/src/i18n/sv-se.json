@@ -302,7 +302,8 @@
     "adminOptions": "Alternativ för administratörsanvändare",
     "shareDuration": "Upphör att gälla",
     "searchOptions": "Sökalternativ",
-    "downloads": "Nedladdningar"
+    "downloads": "Nedladdningar",
+    "systemAdmin": "System & Administration"
   },
   "sidebar": {
     "help": "Hjälp",
@@ -493,7 +494,9 @@
     "defaultMediaPlayer": "Använd den inbyggda mediaspelaren i din webbläsare",
     "defaultMediaPlayerDescription": "Använd webbläsarens inbyggda mediaspelare för video- och ljudfiler i stället för FileBrowsers medföljande \"vue-plyr\"-mediaspelare.",
     "debugOfficeEditor": "Aktivera OnlyOffice felsökningsläge",
-    "debugOfficeEditorDescription": "Visa en debug-popup med ytterligare information i OnlyOffice-redigeraren."
+    "debugOfficeEditorDescription": "Visa en debug-popup med ytterligare information i OnlyOffice-redigeraren.",
+    "fileViewerOptions": "Alternativ för filvisare",
+    "themeAndLanguage": "Tema & språk"
   },
   "general": {
     "name": "Namn",

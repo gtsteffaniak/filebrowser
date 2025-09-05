@@ -36,6 +36,7 @@ import AccessSettings from "@/views/settings/Access.vue";
 import UserSettings from "@/views/settings/Users.vue";
 import FileLoading from "@/views/settings/FileLoading.vue";
 import ApiKeys from "@/views/settings/Api.vue";
+import SystemAdmin from "@/views/settings/SystemAdmin.vue";
 export default {
   name: "settings",
   components: {
@@ -47,6 +48,7 @@ export default {
     AccessSettings,
     FileLoading,
     UserSettings,
+    SystemAdmin,
   },
   data() {
     return {

@@ -1,5 +1,5 @@
 import { baseURL } from "@/utils/constants.js";
-import { state, mutations } from "@/store";
+import { state, mutations, getters } from "@/store";
 import { router } from "@/router";
 import { shareInfo } from "@/utils/constants.js";
 
@@ -139,6 +139,9 @@ export function extractSourceFromPath(url) {
 }
 
 export function buildItemUrl(source, path) {
+  if (getters.isShare()) {
+    return `/public/share/${shareInfo.hash}${path}`;
+  }
   if (state.serverHasMultipleSources) {
     return `/files/${source}${path}`;
   } else {

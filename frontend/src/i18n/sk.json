@@ -302,7 +302,8 @@
     "adminOptions": "Možnosti používateľa správcu",
     "shareDuration": "Platnosť končí na",
     "searchOptions": "Možnosti vyhľadávania",
-    "downloads": "Na stiahnutie"
+    "downloads": "Na stiahnutie",
+    "systemAdmin": "Systém a administrátor"
   },
   "sidebar": {
     "help": "Pomoc",
@@ -529,7 +530,9 @@
     "defaultMediaPlayer": "Používanie natívneho prehrávača médií prehliadača",
     "defaultMediaPlayerDescription": "Na prehrávanie video a zvukových súborov použite natívny prehrávač médií prehliadača, a nie mediálny prehrávač vue-plyr, ktorý je súčasťou aplikácie FileBrowser.",
     "debugOfficeEditor": "Povolenie režimu ladenia OnlyOffice",
-    "debugOfficeEditorDescription": "Zobrazenie vyskakovacieho okna ladenia s ďalšími informáciami v editore OnlyOffice."
+    "debugOfficeEditorDescription": "Zobrazenie vyskakovacieho okna ladenia s ďalšími informáciami v editore OnlyOffice.",
+    "fileViewerOptions": "Možnosti prehliadača súborov",
+    "themeAndLanguage": "Téma a jazyk"
   },
   "editor": {
     "uninitialized": "Nepodarilo sa inicializovať editor. Prosím, načítajte ho znova.",

@@ -302,7 +302,8 @@
     "adminOptions": "Opciones de administrador",
     "shareDuration": "Expira en",
     "searchOptions": "Opciones de búsqueda",
-    "downloads": "Descargas"
+    "downloads": "Descargas",
+    "systemAdmin": "Sistema y administración"
   },
   "sidebar": {
     "help": "Ayuda",
@@ -529,7 +530,9 @@
     "defaultMediaPlayer": "Usar el reproductor multimedia nativo del navegador",
     "defaultMediaPlayerDescription": "Usar el reproductor multimedia nativo de tu navegador para los archivos de vídeo y audio en lugar del reproductor multimedia incluido en FileBrowser.",
     "debugOfficeEditor": "Activar el modo de depuración de OnlyOffice",
-    "debugOfficeEditorDescription": "Mostrar una ventana emergente de depuración con información adicional en el editor OnlyOffice."
+    "debugOfficeEditorDescription": "Mostrar una ventana emergente de depuración con información adicional en el editor OnlyOffice.",
+    "fileViewerOptions": "Opciones del visor de archivos",
+    "themeAndLanguage": "Tema y lengua"
   },
   "editor": {
     "uninitialized": "Error al iniciar el editor, inténtelo de nuevo",

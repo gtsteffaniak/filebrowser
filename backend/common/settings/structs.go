@@ -21,6 +21,7 @@ type Settings struct {
 }
 
 type Server struct {
+	DisableUpdateCheck           bool        `json:"disableUpdateCheck"`           // disables backend update check service
 	NumImageProcessors           int         `json:"numImageProcessors"`           // number of concurrent image processing jobs used to create previews, default is number of cpu cores available.
 	Socket                       string      `json:"socket"`                       // socket to listen on
 	TLSKey                       string      `json:"tlsKey"`                       // path to TLS key
@@ -39,10 +40,9 @@ type Server struct {
 	CacheDir                     string      `json:"cacheDir"`       // path to the cache directory, used for thumbnails and other cached files
 	MaxArchiveSizeGB             int64       `json:"maxArchiveSize"` // max pre-archive combined size of files/folder that are allowed to be archived (in GB)
 	// not exposed to config
-	SourceMap          map[string]Source `json:"-" validate:"omitempty"` // uses realpath as key
-	NameToSource       map[string]Source `json:"-" validate:"omitempty"` // uses name as key
-	MuPdfAvailable     bool              `json:"-"`                      // used internally if compiled with mupdf support
-	DisableUpdateCheck bool              `json:"-"`                      // disable update check
+	SourceMap      map[string]Source `json:"-" validate:"omitempty"` // uses realpath as key
+	NameToSource   map[string]Source `json:"-" validate:"omitempty"` // uses name as key
+	MuPdfAvailable bool              `json:"-"`                      // used internally if compiled with mupdf support
 }
 
 type Integrations struct {
@@ -53,9 +53,9 @@ type Integrations struct {
 // onlyoffice secret is stored in the local.json file
 // docker exec <containerID> /var/www/onlyoffice/documentserver/npm/json -f /etc/onlyoffice/documentserver/local.json 'services.CoAuthoring.secret.session.string'
 type OnlyOffice struct {
-	Url         string `json:"url" validate:"required"` // The URL to the OnlyOffice Document Server, needs to be accessible to the user.
-	InternalUrl string `json:"internalUrl"`             // An optional internal address that the filebrowser server can use to communicate with the OnlyOffice Document Server, could be useful to bypass proxy.
-	Secret      string `json:"secret" validate:"required"`
+	Url         string `json:"url" validate:"required"`    // The URL to the OnlyOffice Document Server, needs to be accessible to the user.
+	InternalUrl string `json:"internalUrl"`                // An optional internal address that the filebrowser server can use to communicate with the OnlyOffice Document Server, could be useful to bypass proxy.
+	Secret      string `json:"secret" validate:"required"` // secret: authentication key for OnlyOffice integration
 }
 
 type Media struct {
@@ -74,22 +74,22 @@ type LogConfig struct {
 type Source struct {
 	Path   string       `json:"path" validate:"required"` // file system path. (Can be relative)
 	Name   string       `json:"name"`                     // display name
-	Config SourceConfig `json:"config"`
+	Config SourceConfig `json:"config,omitempty"`
 }
 
 type SourceConfig struct {
-	DenyByDefault    bool               `json:"denyByDefault"`           // deny access unless an "allow" access rule was specifically created.
-	Private          bool               `json:"private"`                 // designate as source as private -- currently just means no sharing permitted.
-	Disabled         bool               `json:"disabled"`                // disable the source, this is useful so you don't need to remove it from the config file
-	IndexingInterval uint32             `json:"indexingIntervalMinutes"` // optional manual overide interval in minutes to re-index the source
-	DisableIndexing  bool               `json:"disableIndexing"`         // disable the indexing of this source
-	MaxWatchers      int                `json:"maxWatchers"`             // number of concurrent watchers to use for this source, currently not supported
-	NeverWatchPaths  []string           `json:"neverWatchPaths"`         // paths that get initially once. Useful for folders that rarely change contents (without source path prefix)
-	Exclude          ExcludeIndexFilter `json:"exclude"`                 // exclude files and folders from indexing, if include is not set
-	Include          IncludeIndexFilter `json:"include"`                 // include files and folders from indexing, if exclude is not set
-	DefaultUserScope string             `json:"defaultUserScope"`        // default "/" should match folders under path
-	DefaultEnabled   bool               `json:"defaultEnabled"`          // should be added as a default source for new users?
-	CreateUserDir    bool               `json:"createUserDir"`           // create a user directory for each user
+	DenyByDefault    bool               `json:"denyByDefault,omitempty"`           // deny access unless an "allow" access rule was specifically created.
+	Private          bool               `json:"private"`                           // designate as source as private -- currently just means no sharing permitted.
+	Disabled         bool               `json:"disabled,omitempty"`                // disable the source, this is useful so you don't need to remove it from the config file
+	IndexingInterval uint32             `json:"indexingIntervalMinutes,omitempty"` // optional manual overide interval in minutes to re-index the source
+	DisableIndexing  bool               `json:"disableIndexing,omitempty"`         // disable the indexing of this source
+	MaxWatchers      int                `json:"maxWatchers"`                       // number of concurrent watchers to use for this source, currently not supported
+	NeverWatchPaths  []string           `json:"neverWatchPaths"`                   // paths that get initially once. Useful for folders that rarely change contents (without source path prefix)
+	Exclude          ExcludeIndexFilter `json:"exclude"`                           // exclude files and folders from indexing, if include is not set
+	Include          IncludeIndexFilter `json:"include"`                           // include files and folders from indexing, if exclude is not set
+	DefaultUserScope string             `json:"defaultUserScope"`                  // default "/" should match folders under path
+	DefaultEnabled   bool               `json:"defaultEnabled"`                    // should be added as a default source for new users?
+	CreateUserDir    bool               `json:"createUserDir"`                     // create a user directory for each user
 }
 
 type IncludeIndexFilter struct {
@@ -121,6 +121,7 @@ type Frontend struct {
 
 type StylingConfig struct {
 	CustomCSS       string                 `json:"customCSS"`       // if a valid path to a css file is provided, it will be applied for all users. (eg. "reduce-rounded-corners.css")
+	CustomCSSRaw    string                 `json:"-"`               // The css raw content to use for the custom css.
 	LightBackground string                 `json:"lightBackground"` // specify a valid CSS color property value to use as the background color in light mode
 	DarkBackground  string                 `json:"darkBackground"`  // Specify a valid CSS color property value to use as the background color in dark mode
 	CustomThemes    map[string]CustomTheme `json:"customThemes"`    // A list of custom css files that each user can select to override the default styling. if "default" is key name then it will be the default option.
@@ -131,6 +132,7 @@ type StylingConfig struct {
 type CustomTheme struct {
 	Description string `json:"description"`   // The description of the theme to display in the UI.
 	CSS         string `json:"css,omitempty"` // The css file path and filename to use for the theme.
+	CssRaw      string `json:"-"`             // The css raw content to use for the theme.
 }
 
 type ExternalLink struct {

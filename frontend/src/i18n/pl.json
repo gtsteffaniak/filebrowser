@@ -302,7 +302,8 @@
     "adminOptions": "Opcje użytkownika administratora",
     "shareDuration": "Wygasa",
     "searchOptions": "Opcje wyszukiwania",
-    "downloads": "Pliki do pobrania"
+    "downloads": "Pliki do pobrania",
+    "systemAdmin": "System i administrator"
   },
   "sidebar": {
     "help": "Pomoc",
@@ -529,7 +530,9 @@
     "defaultMediaPlayer": "Użyj natywnego odtwarzacza multimediów w przeglądarce",
     "defaultMediaPlayerDescription": "Do odtwarzania plików wideo i audio należy używać natywnego odtwarzacza multimediów przeglądarki, a nie dołączonego do FileBrowser odtwarzacza multimediów \"vue-plyr\".",
     "debugOfficeEditor": "Włącz tryb debugowania OnlyOffice",
-    "debugOfficeEditorDescription": "Wyświetla wyskakujące okienko debugowania z dodatkowymi informacjami w edytorze OnlyOffice."
+    "debugOfficeEditorDescription": "Wyświetla wyskakujące okienko debugowania z dodatkowymi informacjami w edytorze OnlyOffice.",
+    "fileViewerOptions": "Opcje przeglądarki plików",
+    "themeAndLanguage": "Temat i język"
   },
   "editor": {
     "uninitialized": "Nie udało się zainicjować edytora. Przeładuj ponownie.",

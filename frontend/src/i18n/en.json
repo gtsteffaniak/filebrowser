@@ -304,9 +304,16 @@
     "disablePreviewExt": "Disable office file previews for certain file extensions",
     "disablePreviewExtDescription": "A space-separated list of file extensions to disable office file previews for (e.g., '.docx .pptx').",
     "disableOfficeEditorDescription": "A space-separated list of file extensions to disable the OnlyOffice editor and viewer for. (e.g., '.txt .html .pdf').",
-    "disableOfficeEditor": "Disable office viewer for certain file extensions"
+    "disableOfficeEditor": "Disable office viewer for certain file extensions",
+    "fileViewerOptions": "File Viewer Options",
+    "themeAndLanguage": "Theme & Language"
   },
   "settings": {
+    "systemAdmin": "System & Admin",
+    "configViewer": "Config Viewer",
+    "configViewerShowFull": "Show full config",
+    "configViewerShowComments": "Show comments",
+    "configViewerLoadConfig": "Load Config",
     "enterPassword": "Enter password",
     "enterPasswordAgain": "Enter the password again",
     "passwordsDoNotMatch": "Passwords do not match",

@@ -48,9 +48,9 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 	}
 	userSelectedTheme := ""
 	if d.user != nil {
-		theme, ok := config.Frontend.Styling.CustomThemes[d.user.CustomTheme]
+		theme, ok := config.Frontend.Styling.CustomThemeOptions[d.user.CustomTheme]
 		if ok {
-			userSelectedTheme = theme.CSS
+			userSelectedTheme = theme.CssRaw
 		}
 	}
 
@@ -68,7 +68,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 	}
 	data := map[string]interface{}{
 		"title":             config.Frontend.Name,
-		"customCSS":         config.Frontend.Styling.CustomCSS,
+		"customCSS":         config.Frontend.Styling.CustomCSSRaw,
 		"userSelectedTheme": userSelectedTheme,
 		"lightBackground":   config.Frontend.Styling.LightBackground,
 		"darkBackground":    config.Frontend.Styling.DarkBackground,

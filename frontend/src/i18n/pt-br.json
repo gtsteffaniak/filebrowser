@@ -302,7 +302,8 @@
     "adminOptions": "Opções do usuário administrador",
     "shareDuration": "Expirações",
     "searchOptions": "Opções de pesquisa",
-    "downloads": "Downloads"
+    "downloads": "Downloads",
+    "systemAdmin": "Sistema e administração"
   },
   "sidebar": {
     "help": "Ajuda",
@@ -529,7 +530,9 @@
     "defaultMediaPlayer": "Use o reprodutor de mídia nativo do seu navegador",
     "defaultMediaPlayerDescription": "Use o reprodutor de mídia nativo do seu navegador para arquivos de vídeo e áudio em vez do reprodutor de mídia 'vue-plyr' incluído no FileBrowser.",
     "debugOfficeEditor": "Ativar o modo de depuração do OnlyOffice",
-    "debugOfficeEditorDescription": "Mostrar um pop-up de depuração com informações adicionais no editor do OnlyOffice."
+    "debugOfficeEditorDescription": "Mostrar um pop-up de depuração com informações adicionais no editor do OnlyOffice.",
+    "fileViewerOptions": "Opções do visualizador de arquivos",
+    "themeAndLanguage": "Tema e linguagem"
   },
   "editor": {
     "uninitialized": "Falha ao inicializar o editor. Favor recarregar.",
