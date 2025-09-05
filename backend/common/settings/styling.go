@@ -74,17 +74,21 @@ func FallbackColor(val, defaultColor string) string {
 }
 
 func addCustomTheme(name, description, cssFilePath string) {
+	// Store only file path in config (for YAML export)
+	Config.Frontend.Styling.CustomThemes[name] = CustomTheme{
+		Description: description,
+		CSS:         cssFilePath, // Store file path, not content
+	}
+
+	// Load CSS content for runtime use (frontend consumption)
 	cssContent := ""
 	if cssFilePath != "" {
 		cssContent = readCustomCSS(cssFilePath)
 	}
-	Config.Frontend.Styling.CustomThemes[name] = CustomTheme{
-		Description: description,
-		CSS:         cssContent,
-	}
 	Config.Frontend.Styling.CustomThemeOptions[name] = CustomTheme{
 		Description: description,
 		CSS:         cssFilePath,
+		CssRaw:      cssContent, // Store loaded content
 	}
 }
 

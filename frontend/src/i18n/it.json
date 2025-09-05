@@ -302,7 +302,8 @@
     "adminOptions": "Opzioni dell'utente amministratore",
     "shareDuration": "Scadenza",
     "searchOptions": "Opzioni di ricerca",
-    "downloads": "Scaricamento"
+    "downloads": "Scaricamento",
+    "systemAdmin": "Sistema e amministrazione"
   },
   "sidebar": {
     "help": "Aiuto",
@@ -529,7 +530,9 @@
     "defaultMediaPlayer": "Utilizzare il lettore multimediale nativo del browser",
     "defaultMediaPlayerDescription": "Utilizzate il lettore multimediale nativo del vostro browser per i file video e audio piuttosto che il lettore multimediale \"vue-plyr\" incluso in FileBrowser.",
     "debugOfficeEditor": "Abilita la modalità di debug di OnlyOffice",
-    "debugOfficeEditorDescription": "Mostra un popup di debug con informazioni aggiuntive nell'editor di OnlyOffice."
+    "debugOfficeEditorDescription": "Mostra un popup di debug con informazioni aggiuntive nell'editor di OnlyOffice.",
+    "fileViewerOptions": "Opzioni del visualizzatore di file",
+    "themeAndLanguage": "Tema e linguaggio"
   },
   "editor": {
     "uninitialized": "Impossibile inizializzare l'editor. Ricaricare.",

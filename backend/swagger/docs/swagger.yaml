@@ -140,14 +140,16 @@ definitions:
   settings.Auth:
     properties:
       adminPassword:
-        description: the password of the admin user. If not set, the default is "admin".
+        description: 'secret: the password of the admin user. If not set, the default
+          is "admin".'
         type: string
       adminUsername:
-        description: the username of the admin user. If not set, the default is "admin".
+        description: 'secret: the username of the admin user. If not set, the default
+          is "admin".'
         type: string
       key:
-        description: the key used to sign the JWT tokens. If not set, a random key
-          will be generated.
+        description: 'secret: the key used to sign the JWT tokens. If not set, a random
+          key will be generated.'
         type: string
       methods:
         $ref: '#/definitions/settings.LoginMethods'
@@ -155,7 +157,7 @@ definitions:
         description: the number of hours until the token expires. Default is 2 hours.
         type: integer
       totpSecret:
-        description: secret used to encrypt TOTP secrets
+        description: 'secret: secret used to encrypt TOTP secrets'
         type: string
     type: object
   settings.CustomTheme:
@@ -322,10 +324,10 @@ definitions:
         description: if set, users in this group will be granted admin privileges.
         type: string
       clientId:
-        description: client id of the OIDC application
+        description: 'secret: client id of the OIDC application'
         type: string
       clientSecret:
-        description: client secret of the OIDC application
+        description: 'secret: client secret of the OIDC application'
         type: string
       createUser:
         description: create user if not exists
@@ -363,6 +365,7 @@ definitions:
           to bypass proxy.
         type: string
       secret:
+        description: 'secret: authentication key for OnlyOffice integration'
         type: string
       url:
         description: The URL to the OnlyOffice Document Server, needs to be accessible

@@ -302,7 +302,8 @@
     "adminOptions": "Opties voor beheerders",
     "shareDuration": "Verloopt op",
     "searchOptions": "Zoekopties",
-    "downloads": "Downloads"
+    "downloads": "Downloads",
+    "systemAdmin": "Systeem & Beheer"
   },
   "sidebar": {
     "help": "Help",
@@ -493,7 +494,9 @@
     "defaultMediaPlayer": "Gebruik de ingebouwde mediaspeler van uw browser",
     "defaultMediaPlayerDescription": "Gebruik de eigen mediaspeler van uw browser voor video- en audiobestanden in plaats van de meegeleverde 'vue-plyr' mediaspeler van FileBrowser.",
     "debugOfficeEditor": "Debugmodus OnlyOffice inschakelen",
-    "debugOfficeEditorDescription": "Een foutopsporingspop-up weergeven met aanvullende informatie in de OnlyOffice-editor."
+    "debugOfficeEditorDescription": "Een foutopsporingspop-up weergeven met aanvullende informatie in de OnlyOffice-editor.",
+    "fileViewerOptions": "Opties voor bestandsviewer",
+    "themeAndLanguage": "Thema & Taal"
   },
   "general": {
     "name": "Naam",

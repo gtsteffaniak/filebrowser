@@ -302,7 +302,8 @@
     "adminOptions": "Параметры пользователя администратора",
     "shareDuration": "Срок действия:",
     "searchOptions": "Параметры поиска",
-    "downloads": "Скачать"
+    "downloads": "Скачать",
+    "systemAdmin": "Система и администрирование"
   },
   "sidebar": {
     "help": "Помощь",
@@ -529,7 +530,9 @@
     "defaultMediaPlayer": "Используйте встроенный медиаплеер вашего браузера",
     "defaultMediaPlayerDescription": "Для воспроизведения видео- и аудиофайлов используйте штатный медиаплеер браузера, а не медиаплеер 'vue-plyr', входящий в комплект поставки FileBrowser.",
     "debugOfficeEditor": "Включить режим отладки OnlyOffice",
-    "debugOfficeEditorDescription": "Отображение всплывающего окна отладки с дополнительной информацией в редакторе OnlyOffice."
+    "debugOfficeEditorDescription": "Отображение всплывающего окна отладки с дополнительной информацией в редакторе OnlyOffice.",
+    "fileViewerOptions": "Параметры просмотра файлов",
+    "themeAndLanguage": "Тема и язык"
   },
   "editor": {
     "uninitialized": "Не удалось инициализировать редактор. Пожалуйста, перезагрузитесь.",

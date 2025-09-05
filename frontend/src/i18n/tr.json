@@ -302,7 +302,8 @@
     "adminOptions": "Yönetici kullanıcı seçenekleri",
     "shareDuration": "Sona erdi",
     "searchOptions": "Arama seçenekleri",
-    "downloads": "İndirmeler"
+    "downloads": "İndirmeler",
+    "systemAdmin": "Sistem ve Yönetici"
   },
   "sidebar": {
     "help": "Yardım",
@@ -529,7 +530,9 @@
     "defaultMediaPlayer": "Tarayıcınızın yerel medya oynatıcısını kullanın",
     "defaultMediaPlayerDescription": "Video ve ses dosyaları için FileBrowser'ın dahil ettiği 'vue-plyr' medya oynatıcısı yerine tarayıcınızın yerel medya oynatıcısını kullanın.",
     "debugOfficeEditor": "OnlyOffice Hata Ayıklama Modunu Etkinleştir",
-    "debugOfficeEditorDescription": "OnlyOffice düzenleyicisinde ek bilgiler içeren bir hata ayıklama açılır penceresi gösterin."
+    "debugOfficeEditorDescription": "OnlyOffice düzenleyicisinde ek bilgiler içeren bir hata ayıklama açılır penceresi gösterin.",
+    "fileViewerOptions": "Dosya Görüntüleyici Seçenekleri",
+    "themeAndLanguage": "Tema ve Dil"
   },
   "editor": {
     "uninitialized": "Düzenleyici başlatılamadı. Lütfen yeniden yükleyin.",

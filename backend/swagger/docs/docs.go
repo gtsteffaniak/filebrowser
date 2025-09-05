@@ -2604,15 +2604,15 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "adminPassword": {
-                    "description": "the password of the admin user. If not set, the default is \"admin\".",
+                    "description": "secret: the password of the admin user. If not set, the default is \"admin\".",
                     "type": "string"
                 },
                 "adminUsername": {
-                    "description": "the username of the admin user. If not set, the default is \"admin\".",
+                    "description": "secret: the username of the admin user. If not set, the default is \"admin\".",
                     "type": "string"
                 },
                 "key": {
-                    "description": "the key used to sign the JWT tokens. If not set, a random key will be generated.",
+                    "description": "secret: the key used to sign the JWT tokens. If not set, a random key will be generated.",
                     "type": "string"
                 },
                 "methods": {
@@ -2623,7 +2623,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "totpSecret": {
-                    "description": "secret used to encrypt TOTP secrets",
+                    "description": "secret: secret used to encrypt TOTP secrets",
                     "type": "string"
                 }
             }
@@ -2849,11 +2849,11 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "clientId": {
-                    "description": "client id of the OIDC application",
+                    "description": "secret: client id of the OIDC application",
                     "type": "string"
                 },
                 "clientSecret": {
-                    "description": "client secret of the OIDC application",
+                    "description": "secret: client secret of the OIDC application",
                     "type": "string"
                 },
                 "createUser": {
@@ -2902,6 +2902,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "secret": {
+                    "description": "secret: authentication key for OnlyOffice integration",
                     "type": "string"
                 },
                 "url": {

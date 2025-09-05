@@ -302,7 +302,8 @@
     "adminOptions": "Параметри користувача адміністрування",
     "shareDuration": "Закінчується",
     "searchOptions": "Параметри пошуку",
-    "downloads": "Завантаження"
+    "downloads": "Завантаження",
+    "systemAdmin": "Система та адміністрування"
   },
   "sidebar": {
     "help": "Допомога",
@@ -493,7 +494,9 @@
     "defaultMediaPlayer": "Використовуйте вбудований медіаплеєр вашого браузера",
     "defaultMediaPlayerDescription": "Використовуйте власний медіаплеєр вашого браузера для відео- та аудіофайлів, а не медіаплеєр \"vue-plyr\", що входить до складу FileBrowser.",
     "debugOfficeEditor": "Увімкнути режим налагодження OnlyOffice",
-    "debugOfficeEditorDescription": "Показати налагоджувальне спливаюче вікно з додатковою інформацією в редакторі OnlyOffice."
+    "debugOfficeEditorDescription": "Показати налагоджувальне спливаюче вікно з додатковою інформацією в редакторі OnlyOffice.",
+    "fileViewerOptions": "Параметри перегляду файлів",
+    "themeAndLanguage": "Тема та мова"
   },
   "general": {
     "name": "Ім'я",

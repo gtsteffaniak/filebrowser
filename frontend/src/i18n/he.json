@@ -302,7 +302,8 @@
     "adminOptions": "אפשרויות משתמש מנהל",
     "shareDuration": "תוקף",
     "searchOptions": "אפשרויות חיפוש",
-    "downloads": "הורדות"
+    "downloads": "הורדות",
+    "systemAdmin": "מערכת וניהול"
   },
   "sidebar": {
     "help": "עזרה",
@@ -529,7 +530,9 @@
     "defaultMediaPlayer": "השתמש בנגן המדיה המובנה בדפדפן שלך",
     "defaultMediaPlayerDescription": "השתמש בנגן המדיה המובנה בדפדפן שלך עבור קבצי וידאו ואודיו, במקום בנגן המדיה 'vue-plyr' הכלול ב-FileBrowser.",
     "debugOfficeEditor": "הפעל מצב ניפוי באגים של OnlyOffice",
-    "debugOfficeEditorDescription": "הצג חלון קופץ לאיתור באגים עם מידע נוסף בעורך OnlyOffice."
+    "debugOfficeEditorDescription": "הצג חלון קופץ לאיתור באגים עם מידע נוסף בעורך OnlyOffice.",
+    "fileViewerOptions": "אפשרויות תצוגת קבצים",
+    "themeAndLanguage": "נושא ושפה"
   },
   "editor": {
     "uninitialized": "לא ניתן לאתחל את העורך. אנא טען מחדש.",

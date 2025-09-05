@@ -52,7 +52,7 @@ type Recaptcha struct {
 // OpenID OAuth2.0
 type OidcConfig struct {
 	Enabled           bool                  `json:"enabled"`           // whether to enable OIDC authentication
-	ClientID          string                `json:"clientId"`          // client id of the OIDC application
+	ClientID          string                `json:"clientId"`          // secret: client id of the OIDC application
 	ClientSecret      string                `json:"clientSecret"`      // secret: client secret of the OIDC application
 	IssuerUrl         string                `json:"issuerUrl"`         // authorization URL of the OIDC provider
 	Scopes            string                `json:"scopes"`            // scopes to request from the OIDC provider

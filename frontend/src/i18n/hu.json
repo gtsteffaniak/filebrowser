@@ -302,7 +302,8 @@
     "adminOptions": "Admin felhasználói beállítások",
     "shareDuration": "Lejárat:",
     "searchOptions": "Keresési lehetőségek",
-    "downloads": "Letöltések"
+    "downloads": "Letöltések",
+    "systemAdmin": "Rendszer és adminisztráció"
   },
   "sidebar": {
     "help": "Súgó",
@@ -529,7 +530,9 @@
     "defaultMediaPlayer": "Használja a böngésző natív médialejátszóját",
     "defaultMediaPlayerDescription": "Használja a böngésző natív médialejátszóját a videó- és hangfájlokhoz, nem pedig a FileBrowser mellékelt \"vue-plyr\" médialejátszóját.",
     "debugOfficeEditor": "OnlyOffice hibakeresési mód engedélyezése",
-    "debugOfficeEditorDescription": "További információkat tartalmazó hibakeresési felugró ablak megjelenítése az OnlyOffice szerkesztőben."
+    "debugOfficeEditorDescription": "További információkat tartalmazó hibakeresési felugró ablak megjelenítése az OnlyOffice szerkesztőben.",
+    "fileViewerOptions": "Fájlnéző beállításai",
+    "themeAndLanguage": "Téma és nyelv"
   },
   "editor": {
     "uninitialized": "Nem sikerült inicializálni a szerkesztőt. Kérjük, töltse újra.",

@@ -67,8 +67,8 @@ auth:
       enforcedOtp: false                  # if set to true, TOTP is enforced for all password users users. Otherwise, users can choose to enable TOTP.
     oidc:                                 #  validate:omitempty
       enabled: false                      # whether to enable OIDC authentication
-      clientId: ""                        # client id of the OIDC application
-      clientSecret: ""                    # client secret of the OIDC application
+      clientId: "**hidden**"              # secret: client id of the OIDC application
+      clientSecret: "**hidden**"          # secret: client secret of the OIDC application
       issuerUrl: ""                       # authorization URL of the OIDC provider
       scopes: "openid email profile"      # scopes to request from the OIDC provider
       userIdentifier: "preferred_username" # the field value to use as the username. Default is "preferred_username", can also be "email" or "username", or "phone"
@@ -77,10 +77,10 @@ auth:
       createUser: false                   # create user if not exists
       adminGroup: ""                      # if set, users in this group will be granted admin privileges.
       groupsClaim: "groups"               # the JSON field name to read groups from. Default is "groups"
-  key: ""                                 # the key used to sign the JWT tokens. If not set, a random key will be generated.
-  adminUsername: "admin"                  # the username of the admin user. If not set, the default is "admin".
-  adminPassword: "admin"                  # the password of the admin user. If not set, the default is "admin".
-  totpSecret: ""                          # secret used to encrypt TOTP secrets
+  key: "**hidden**"                       # secret: the key used to sign the JWT tokens. If not set, a random key will be generated.
+  adminUsername: "**hidden**"             # secret: the username of the admin user. If not set, the default is "admin".
+  adminPassword: "**hidden**"             # secret: the password of the admin user. If not set, the default is "admin".
+  totpSecret: "**hidden**"                # secret: secret used to encrypt TOTP secrets
 frontend:
   name: "FileBrowser Quantum"             # display name
   disableDefaultLinks: false              # disable default links in the sidebar
@@ -98,12 +98,12 @@ frontend:
     lightBackground: "#f5f5f5"            # specify a valid CSS color property value to use as the background color in light mode
     darkBackground: "#141D24"             # Specify a valid CSS color property value to use as the background color in dark mode
     customThemes:                         # A list of custom css files that each user can select to override the default styling. if "default" is key name then it will be the default option.
-      alternative:
-        description: Reduce rounded corners
-        css: reduce-rounded-corners.css
       default:
-        description: The default theme
-        css: ""
+        description: "The default theme"  # The description of the theme to display in the UI.
+        css: ""                           # The css file path and filename to use for the theme.
+      alternative:
+        description: "Reduce rounded corners" # The description of the theme to display in the UI.
+        css: "reduce-rounded-corners.css" # The css file path and filename to use for the theme.
   favicon: ""                             # path to a favicon to use for the frontend
   description: "FileBrowser Quantum is a file manager for the web which can be used to manage files on your server" # description that shows up in html head meta description
 userDefaults:
@@ -147,7 +147,6 @@ userDefaults:
   fileLoading:                            # upload and download settings
     maxConcurrentUpload: 10
     uploadChunkSizeMb: 10
-  disableOfficePreviewExt: ""             # deprecated: use disablePreviewExt instead
   disableOnlyOfficeExt: ""                # list of file extensions to disable onlyoffice editor for
   customTheme: ""                         # Name of theme to use chosen from custom themes config.
   showSelectMultiple: false               # show select multiple files on desktop
@@ -156,6 +155,6 @@ integrations:
   office:                                 #  validate:omitempty
     url: ""                               # The URL to the OnlyOffice Document Server, needs to be accessible to the user.  validate:required
     internalUrl: ""                       # An optional internal address that the filebrowser server can use to communicate with the OnlyOffice Document Server, could be useful to bypass proxy.
-    secret: ""                            #  validate:required
+    secret: "**hidden**"                  # secret: authentication key for OnlyOffice integration  validate:required
   media:                                  #  validate:omitempty
     ffmpegPath: ""                        # path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)

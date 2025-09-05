@@ -64,7 +64,7 @@ func setupFrontend(generate bool) {
 	}
 	Config.Frontend.Styling.LightBackground = FallbackColor(Config.Frontend.Styling.LightBackground, "#f5f5f5")
 	Config.Frontend.Styling.DarkBackground = FallbackColor(Config.Frontend.Styling.DarkBackground, "#141D24")
-	Config.Frontend.Styling.CustomCSS = readCustomCSS(Config.Frontend.Styling.CustomCSS)
+	Config.Frontend.Styling.CustomCSSRaw = readCustomCSS(Config.Frontend.Styling.CustomCSS)
 	Config.Frontend.Styling.CustomThemeOptions = map[string]CustomTheme{}
 	Config.Frontend.Styling.CustomThemes = map[string]CustomTheme{}
 	for name, theme := range Config.Frontend.Styling.CustomThemes {

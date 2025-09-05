@@ -55,8 +55,8 @@ func settingsConfigHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 	showFull := fullParam == "true"
 	showComments := commentsParam == "true"
 
-	// Generate YAML using the existing generator function
-	yamlOutput, err := settings.GenerateConfigYaml(config, showComments, showFull)
+	// Generate YAML using the existing generator function (don't filter deprecated fields in API)
+	yamlOutput, err := settings.GenerateConfigYaml(config, showComments, showFull, false)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}

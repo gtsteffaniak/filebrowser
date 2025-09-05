@@ -302,7 +302,8 @@
     "adminOptions": "管理员用户选项",
     "shareDuration": "到期",
     "searchOptions": "搜索选项",
-    "downloads": "下载"
+    "downloads": "下载",
+    "systemAdmin": "系统与管理"
   },
   "sidebar": {
     "help": "帮助",
@@ -493,7 +494,9 @@
     "defaultMediaPlayer": "使用浏览器的本地媒体播放器",
     "defaultMediaPlayerDescription": "使用浏览器的本地媒体播放器播放视频和音频文件，而不是 FileBrowser 附带的 \"vue-plyr \"媒体播放器。",
     "debugOfficeEditor": "启用 OnlyOffice 调试模式",
-    "debugOfficeEditorDescription": "在 OnlyOffice 编辑器中显示包含附加信息的调试弹出窗口。"
+    "debugOfficeEditorDescription": "在 OnlyOffice 编辑器中显示包含附加信息的调试弹出窗口。",
+    "fileViewerOptions": "文件查看器选项",
+    "themeAndLanguage": "主题与语言"
   },
   "general": {
     "name": "名称",
