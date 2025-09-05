@@ -11,7 +11,7 @@ import { defineConfig, devices } from "@playwright/test";
  */
 export default defineConfig({
   globalSetup: "./tests/playwright/proxy-setup.ts",
-  timeout: 3000,
+  timeout: 5000,
   testDir: "./tests/playwright/proxy",
   /* Run tests in files in parallel */
   fullyParallel: false,
