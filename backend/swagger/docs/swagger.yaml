@@ -2161,6 +2161,31 @@ paths:
       summary: Get system settings
       tags:
       - Settings
+  /api/settings/config:
+    get:
+      consumes:
+      - application/json
+      description: Returns the current running configuration settings as YAML format
+        with optional comments and filtering.
+      parameters:
+      - description: Show all values (true) or only non-default values (false, default)
+        in: query
+        name: full
+        type: boolean
+      - description: Include comments in YAML (true) or plain YAML (false, default)
+        in: query
+        name: comments
+        type: boolean
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: System settings in YAML format
+          schema:
+            type: string
+      summary: Get system settings as YAML
+      tags:
+      - Settings
   /api/share:
     get:
       consumes:

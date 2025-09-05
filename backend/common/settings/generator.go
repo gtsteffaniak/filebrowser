@@ -6,6 +6,7 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
+	"log"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -14,19 +15,29 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// commentsMap[typeName][fieldName] = combined doc+inline comment text
-type commentsMap map[string]map[string]string
+// CommentsMap[typeName][fieldName] = combined doc+inline comment text
+type CommentsMap map[string]map[string]string
 
-// collectComments parses all Go source in the directory of srcPath and returns commentsMap.
-func collectComments(srcPath string) (commentsMap, error) {
+// SecretFieldsMap[typeName][fieldName] = true if field should be redacted
+type SecretFieldsMap map[string]map[string]bool
+
+// CollectComments parses all Go source in the directory of srcPath and returns CommentsMap.
+func CollectComments(srcPath string) (CommentsMap, error) {
+	comments, _, err := CollectCommentsAndSecrets(srcPath)
+	return comments, err
+}
+
+// CollectCommentsAndSecrets parses all Go source and returns both comments and secret field mappings
+func CollectCommentsAndSecrets(srcPath string) (CommentsMap, SecretFieldsMap, error) {
 	// parse entire package so we capture comments on all types
 	dir := filepath.Dir(srcPath)
 	fset := token.NewFileSet()
 	pkgs, err := parser.ParseDir(fset, dir, nil, parser.ParseComments)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	out := make(commentsMap)
+	comments := make(CommentsMap)
+	secrets := make(SecretFieldsMap)
 	for _, pkg := range pkgs {
 		for _, file := range pkg.Files {
 			for _, decl := range file.Decls {
@@ -43,39 +54,65 @@ func collectComments(srcPath string) (commentsMap, error) {
 					if !ok {
 						continue
 					}
-					m := make(map[string]string)
-					out[ts.Name.Name] = m
+					typeName := ts.Name.Name
+					commentMap := make(map[string]string)
+					secretMap := make(map[string]bool)
+					comments[typeName] = commentMap
+					secrets[typeName] = secretMap
+
 					for _, field := range st.Fields.List {
 						if len(field.Names) == 0 {
 							continue
 						}
 						name := field.Names[0].Name
 						var parts []string
+						var fullComment string
+
 						if field.Doc != nil {
-							parts = append(parts, strings.TrimSpace(field.Doc.Text()))
+							docText := strings.TrimSpace(field.Doc.Text())
+							parts = append(parts, docText)
+							fullComment += docText + " "
 						}
 						if field.Comment != nil {
-							parts = append(parts, strings.TrimSpace(field.Comment.Text()))
+							commentText := strings.TrimSpace(field.Comment.Text())
+							parts = append(parts, commentText)
+							fullComment += commentText
 						}
+
 						if len(parts) > 0 {
-							m[name] = strings.Join(parts, " : ")
+							commentMap[name] = strings.Join(parts, " : ")
+						}
+
+						// Check if field should be treated as secret
+						if strings.Contains(strings.ToLower(fullComment), "secret:") {
+							secretMap[name] = true
+							log.Printf("[DEBUG] Marking field %s.%s as secret", typeName, name)
 						}
 					}
 				}
 			}
 		}
 	}
-	return out, nil
+	return comments, secrets, nil
 }
 
-// buildNode constructs a yaml.Node for any Go value, injecting comments on struct fields.
-func buildNode(v reflect.Value, comm commentsMap) (*yaml.Node, error) {
+// BuildNode constructs a yaml.Node for any Go value, injecting comments on struct fields.
+func BuildNode(v reflect.Value, comm CommentsMap) (*yaml.Node, error) {
+	return buildNodeWithDefaults(v, comm, reflect.Value{}, SecretFieldsMap{})
+}
+
+// buildNodeWithDefaults constructs a yaml.Node for any Go value, skipping fields that match defaults and redacting secrets
+func buildNodeWithDefaults(v reflect.Value, comm CommentsMap, defaults reflect.Value, secrets SecretFieldsMap) (*yaml.Node, error) {
 	// Dereference pointers
 	if v.Kind() == reflect.Ptr {
 		if v.IsNil() {
 			return &yaml.Node{Kind: yaml.ScalarNode, Tag: "!!null", Value: "null"}, nil
 		}
-		return buildNode(v.Elem(), comm)
+		var defaultsElem reflect.Value
+		if defaults.IsValid() && !defaults.IsNil() {
+			defaultsElem = defaults.Elem()
+		}
+		return buildNodeWithDefaults(v.Elem(), comm, defaultsElem, secrets)
 	}
 
 	switch v.Kind() {
@@ -104,6 +141,25 @@ func buildNode(v reflect.Value, comm commentsMap) (*yaml.Node, error) {
 				continue
 			}
 
+			currentField := v.Field(i)
+
+			// If we have defaults, compare and skip if values match
+			if defaults.IsValid() && i < defaults.NumField() {
+				defaultField := defaults.Field(i)
+				currentValue := currentField.Interface()
+				defaultValue := defaultField.Interface()
+
+				isEqual := reflect.DeepEqual(currentValue, defaultValue)
+				log.Printf("[DEBUG] Field %s.%s: current=%+v, default=%+v, equal=%v",
+					typeName, sf.Name, currentValue, defaultValue, isEqual)
+
+				if isEqual {
+					log.Printf("[DEBUG] Skipping field %s.%s (matches default)", typeName, sf.Name)
+					continue // Skip this field as it matches the default
+				}
+				log.Printf("[DEBUG] Including field %s.%s (differs from default)", typeName, sf.Name)
+			}
+
 			// determine key: yaml tag > json tag > field name
 			yamlTag := sf.Tag.Get("yaml")
 			jsonTag := sf.Tag.Get("json")
@@ -118,22 +174,44 @@ func buildNode(v reflect.Value, comm commentsMap) (*yaml.Node, error) {
 
 			keyNode := &yaml.Node{Kind: yaml.ScalarNode, Value: keyName}
 
-			// attach validate and comments inline
+			// attach validate and comments inline (only when comments are enabled)
 			var parts []string
 			if cm := comm[typeName][sf.Name]; cm != "" {
 				parts = append(parts, cm)
 			}
-			if vt := sf.Tag.Get("validate"); vt != "" {
-				parts = append(parts, fmt.Sprintf(" validate:%s", vt))
+			// Only add validation tags if comments map is not empty (meaning comments are enabled)
+			if len(comm) > 0 {
+				if vt := sf.Tag.Get("validate"); vt != "" {
+					parts = append(parts, fmt.Sprintf(" validate:%s", vt))
+				}
 			}
 
 			if len(parts) > 0 {
 				keyNode.LineComment = strings.Join(parts, " ")
 			}
 
-			valNode, err := buildNode(v.Field(i), comm)
-			if err != nil {
-				return nil, err
+			// Check if this field should be redacted as a secret
+			var valNode *yaml.Node
+			var err error
+			if secrets[typeName][sf.Name] {
+				log.Printf("[DEBUG] Redacting secret field %s.%s", typeName, sf.Name)
+				valNode = &yaml.Node{
+					Kind:  yaml.ScalarNode,
+					Tag:   "!!str",
+					Value: "**hidden**",
+					Style: yaml.DoubleQuotedStyle,
+				}
+			} else {
+				// Pass through the corresponding default field for recursive comparison
+				var defaultField reflect.Value
+				if defaults.IsValid() && i < defaults.NumField() {
+					defaultField = defaults.Field(i)
+				}
+
+				valNode, err = buildNodeWithDefaults(currentField, comm, defaultField, secrets)
+				if err != nil {
+					return nil, err
+				}
 			}
 			mapNode.Content = append(mapNode.Content, keyNode, valNode)
 		}
@@ -148,7 +226,11 @@ func buildNode(v reflect.Value, comm commentsMap) (*yaml.Node, error) {
 		// placeholder for empty slice of structs
 		if v.Len() == 0 && v.Type().Elem().Kind() == reflect.Struct {
 			zero := reflect.Zero(v.Type().Elem())
-			n, err := buildNode(zero, comm)
+			var defaultElem reflect.Value
+			if defaults.IsValid() && defaults.Len() > 0 {
+				defaultElem = defaults.Index(0)
+			}
+			n, err := buildNodeWithDefaults(zero, comm, defaultElem, secrets)
 			if err != nil {
 				return nil, err
 			}
@@ -156,7 +238,11 @@ func buildNode(v reflect.Value, comm commentsMap) (*yaml.Node, error) {
 			return seq, nil
 		}
 		for i := 0; i < v.Len(); i++ {
-			n, err := buildNode(v.Index(i), comm)
+			var defaultElem reflect.Value
+			if defaults.IsValid() && i < defaults.Len() {
+				defaultElem = defaults.Index(i)
+			}
+			n, err := buildNodeWithDefaults(v.Index(i), comm, defaultElem, secrets)
 			if err != nil {
 				return nil, err
 			}
@@ -189,13 +275,13 @@ func GenerateYaml() {
 	input := "common/settings/settings.go" // "path to Go source file or directory containing structs"
 	output := "generated.yaml"             // "output YAML file"
 
-	comm, err := collectComments(input)
+	comm, err := CollectComments(input)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error parsing comments: %v\n", err)
 		os.Exit(1)
 	}
 
-	node, err := buildNode(reflect.ValueOf(Config), comm)
+	node, err := BuildNode(reflect.ValueOf(Config), comm)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error building YAML node: %v\n", err)
 		os.Exit(1)
@@ -212,13 +298,75 @@ func GenerateYaml() {
 		os.Exit(1)
 	}
 
-	aligned := alignComments(rawBuf.String())
+	aligned := AlignComments(rawBuf.String())
 
 	if err := os.WriteFile(output, []byte(aligned), 0644); err != nil {
 		fmt.Fprintf(os.Stderr, "error writing YAML: %v\n", err)
 		os.Exit(1)
 	}
 	fmt.Printf("Generated YAML with comments: %s\n", output)
+}
+
+// GenerateConfigYaml generates YAML from a given config with options for comments and filtering
+func GenerateConfigYaml(config *Settings, showComments bool, showFull bool) (string, error) {
+	var comm CommentsMap
+	var secrets SecretFieldsMap
+	var err error
+
+	if showComments {
+		// Collect comments and secrets from the settings source file
+		comm, secrets, err = CollectCommentsAndSecrets("common/settings/settings.go")
+		if err != nil {
+			return "", err
+		}
+	} else {
+		// Still need to collect secrets even if not showing comments
+		_, secrets, err = CollectCommentsAndSecrets("common/settings/settings.go")
+		if err != nil {
+			return "", err
+		}
+		// Create empty comments map
+		comm = make(CommentsMap)
+	}
+
+	var node *yaml.Node
+
+	if showFull {
+		// Show the full current config
+		node, err = buildNodeWithDefaults(reflect.ValueOf(config), comm, reflect.Value{}, secrets)
+	} else {
+		// Show only non-default values by comparing with defaults during node building
+		// Create a clean default config (no file loading, just pure defaults)
+		defaultConfig := setDefaults(true)
+		// Apply same setup as a fresh instance would have
+		defaultConfig.Server.Sources = []Source{{Path: "."}}
+
+		node, err = buildNodeWithDefaults(reflect.ValueOf(config), comm, reflect.ValueOf(&defaultConfig), secrets)
+	}
+
+	if err != nil {
+		return "", err
+	}
+
+	// Create document
+	doc := &yaml.Node{Kind: yaml.DocumentNode}
+	doc.Content = []*yaml.Node{node}
+
+	// Encode to YAML
+	var rawBuf bytes.Buffer
+	enc := yaml.NewEncoder(&rawBuf)
+	enc.SetIndent(2)
+	if err := enc.Encode(doc); err != nil {
+		return "", err
+	}
+
+	// Apply comment alignment if comments are enabled
+	yamlOutput := rawBuf.String()
+	if showComments {
+		yamlOutput = AlignComments(yamlOutput)
+	}
+
+	return yamlOutput, nil
 }
 
 // formatLine applies padding to a single line so its comment starts at a target column.
@@ -257,8 +405,8 @@ func formatLine(line string) string {
 	return line
 }
 
-// alignComments formats each line of the YAML string independently.
-func alignComments(input string) string {
+// AlignComments formats each line of the YAML string independently.
+func AlignComments(input string) string {
 	lines := strings.Split(input, "\n")
 	outputLines := make([]string, len(lines))
 

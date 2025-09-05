@@ -26,6 +26,9 @@ All notable changes to this project will be documented in this file. For commit 
  - Color names are not localized #1159
  - rename issues #1170 #1171
  - some shortcuts not working #1056
+ - Can't copy/paste text on mobile #1168
+ - Can't change between images inside of the share image viewer. #1144
+
 
 ## v0.8.3-beta
 

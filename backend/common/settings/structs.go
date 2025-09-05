@@ -53,9 +53,9 @@ type Integrations struct {
 // onlyoffice secret is stored in the local.json file
 // docker exec <containerID> /var/www/onlyoffice/documentserver/npm/json -f /etc/onlyoffice/documentserver/local.json 'services.CoAuthoring.secret.session.string'
 type OnlyOffice struct {
-	Url         string `json:"url" validate:"required"` // The URL to the OnlyOffice Document Server, needs to be accessible to the user.
-	InternalUrl string `json:"internalUrl"`             // An optional internal address that the filebrowser server can use to communicate with the OnlyOffice Document Server, could be useful to bypass proxy.
-	Secret      string `json:"secret" validate:"required"`
+	Url         string `json:"url" validate:"required"`    // The URL to the OnlyOffice Document Server, needs to be accessible to the user.
+	InternalUrl string `json:"internalUrl"`                // An optional internal address that the filebrowser server can use to communicate with the OnlyOffice Document Server, could be useful to bypass proxy.
+	Secret      string `json:"secret" validate:"required"` // secret: authentication key for OnlyOffice integration
 }
 
 type Media struct {
@@ -74,22 +74,22 @@ type LogConfig struct {
 type Source struct {
 	Path   string       `json:"path" validate:"required"` // file system path. (Can be relative)
 	Name   string       `json:"name"`                     // display name
-	Config SourceConfig `json:"config"`
+	Config SourceConfig `json:"config,omitempty"`
 }
 
 type SourceConfig struct {
-	DenyByDefault    bool               `json:"denyByDefault"`           // deny access unless an "allow" access rule was specifically created.
-	Private          bool               `json:"private"`                 // designate as source as private -- currently just means no sharing permitted.
-	Disabled         bool               `json:"disabled"`                // disable the source, this is useful so you don't need to remove it from the config file
-	IndexingInterval uint32             `json:"indexingIntervalMinutes"` // optional manual overide interval in minutes to re-index the source
-	DisableIndexing  bool               `json:"disableIndexing"`         // disable the indexing of this source
-	MaxWatchers      int                `json:"maxWatchers"`             // number of concurrent watchers to use for this source, currently not supported
-	NeverWatchPaths  []string           `json:"neverWatchPaths"`         // paths that get initially once. Useful for folders that rarely change contents (without source path prefix)
-	Exclude          ExcludeIndexFilter `json:"exclude"`                 // exclude files and folders from indexing, if include is not set
-	Include          IncludeIndexFilter `json:"include"`                 // include files and folders from indexing, if exclude is not set
-	DefaultUserScope string             `json:"defaultUserScope"`        // default "/" should match folders under path
-	DefaultEnabled   bool               `json:"defaultEnabled"`          // should be added as a default source for new users?
-	CreateUserDir    bool               `json:"createUserDir"`           // create a user directory for each user
+	DenyByDefault    bool               `json:"denyByDefault,omitempty"`           // deny access unless an "allow" access rule was specifically created.
+	Private          bool               `json:"private"`                           // designate as source as private -- currently just means no sharing permitted.
+	Disabled         bool               `json:"disabled,omitempty"`                // disable the source, this is useful so you don't need to remove it from the config file
+	IndexingInterval uint32             `json:"indexingIntervalMinutes,omitempty"` // optional manual overide interval in minutes to re-index the source
+	DisableIndexing  bool               `json:"disableIndexing,omitempty"`         // disable the indexing of this source
+	MaxWatchers      int                `json:"maxWatchers"`                       // number of concurrent watchers to use for this source, currently not supported
+	NeverWatchPaths  []string           `json:"neverWatchPaths"`                   // paths that get initially once. Useful for folders that rarely change contents (without source path prefix)
+	Exclude          ExcludeIndexFilter `json:"exclude"`                           // exclude files and folders from indexing, if include is not set
+	Include          IncludeIndexFilter `json:"include"`                           // include files and folders from indexing, if exclude is not set
+	DefaultUserScope string             `json:"defaultUserScope"`                  // default "/" should match folders under path
+	DefaultEnabled   bool               `json:"defaultEnabled"`                    // should be added as a default source for new users?
+	CreateUserDir    bool               `json:"createUserDir"`                     // create a user directory for each user
 }
 
 type IncludeIndexFilter struct {

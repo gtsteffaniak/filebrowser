@@ -635,32 +635,34 @@ export default {
                     continue;
                 }
                 for (let j = i - 1; j >= 0; j--) {
-                    let composedListing = this.listing[j];
-                    composedListing.path =
-                        directoryPath + "/" + composedListing.name;
+                    let clistItem = this.listing[j];
+                    // Skip directories - only navigate between files
+                    if (clistItem.type === 'directory') {
+                        continue;
+                    }
+                    clistItem.path =
+                        directoryPath + "/" + clistItem.name;
                     this.previousLink = url.buildItemUrl(
-                        composedListing.source,
-                        composedListing.path,
+                        clistItem.source,
+                        clistItem.path,
                     );
                     if (
-                        getTypeInfo(composedListing.type).simpleType == "image"
+                        getTypeInfo(clistItem.type).simpleType == "image"
                     ) {
-                        this.previousRaw = this.prefetchUrl(composedListing);
+                        this.previousRaw = this.prefetchUrl(clistItem);
                     }
                     break;
                 }
                 for (let j = i + 1; j < this.listing.length; j++) {
-                    let composedListing = this.listing[j];
-                    composedListing.path =
-                        directoryPath + "/" + composedListing.name;
-                    this.nextLink = url.buildItemUrl(
-                        composedListing.source,
-                        composedListing.path,
-                    );
-                    if (
-                        getTypeInfo(composedListing.type).simpleType == "image"
-                    ) {
-                        this.nextRaw = this.prefetchUrl(composedListing);
+                    let clistItem = this.listing[j];
+                    // Skip directories - only navigate between files
+                    if (clistItem.type === 'directory') {
+                        continue;
+                    }
+                    clistItem.path = directoryPath + "/" + clistItem.name;
+                    this.nextLink = url.buildItemUrl(clistItem.source,clistItem.path);
+                    if (getTypeInfo(clistItem.type).simpleType == "image") {
+                        this.nextRaw = this.prefetchUrl(clistItem);
                     }
                     break;
                 }

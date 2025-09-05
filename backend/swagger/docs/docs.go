@@ -1697,6 +1697,43 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/settings/config": {
+            "get": {
+                "description": "Returns the current running configuration settings as YAML format with optional comments and filtering.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "Settings"
+                ],
+                "summary": "Get system settings as YAML",
+                "parameters": [
+                    {
+                        "type": "boolean",
+                        "description": "Show all values (true) or only non-default values (false, default)",
+                        "name": "full",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Include comments in YAML (true) or plain YAML (false, default)",
+                        "name": "comments",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "System settings in YAML format",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/api/share": {
             "get": {
                 "description": "Retrieves all share links associated with a specific resource path for the current user.",
