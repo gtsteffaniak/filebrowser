@@ -138,3 +138,14 @@ func handleSourceUpdates() {
 		}
 	}
 }
+
+func Shutdown() {
+	userClientsMu.Lock()
+	defer userClientsMu.Unlock()
+
+	for _, clientChannels := range userClients {
+		for _, ch := range clientChannels {
+			close(ch)
+		}
+	}
+}

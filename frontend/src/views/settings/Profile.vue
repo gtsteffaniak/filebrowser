@@ -4,261 +4,155 @@
   </div>
   <div class="card-content">
     <form>
-        <div class="card-content">
-          <h3>{{ $t("profileSettings.sidebarOptions") }}</h3>
+      <div class="card-content">
+        <SettingsItem :title="$t('settings.listingOptions')" :collapsable="true"
+          :force-collapsed="isSectionCollapsed('listingOptions')" @toggle="handleSectionToggle('listingOptions')">
           <div class="settings-items">
-            <ToggleSwitch
-              class="item"
-              v-model="localuser.disableQuickToggles"
-              @change="updateSettings"
+            <ToggleSwitch class="item" v-model="localuser.deleteWithoutConfirming" @change="updateSettings"
+              :name="$t('profileSettings.deleteWithoutConfirming')"
+              :description="$t('profileSettings.deleteWithoutConfirmingDescription')" />
+            <ToggleSwitch class="item" v-model="localuser.dateFormat" @change="updateSettings"
+              :name="$t('profileSettings.setDateFormat')" />
+            <ToggleSwitch class="item" v-model="localuser.showHidden" @change="updateSettings"
+              :name="$t('profileSettings.showHiddenFiles')"
+              :description="$t('profileSettings.showHiddenFilesDescription')" />
+            <ToggleSwitch class="item" v-model="localuser.quickDownload" @change="updateSettings"
+              :name="$t('profileSettings.showQuickDownload')"
+              :description="$t('profileSettings.showQuickDownloadDescription')" />
+            <ToggleSwitch class="item" v-model="localuser.preview.image" @change="updateSettings"
+              :name="$t('profileSettings.previewImages')" :description="$t('profileSettings.previewImagesDescription')" />
+            <ToggleSwitch v-if="mediaEnabled" class="item" v-model="localuser.preview.video" @change="updateSettings"
+              :name="$t('profileSettings.previewVideos')" :description="$t('profileSettings.previewVideosDescription')" />
+            <ToggleSwitch v-if="mediaEnabled" class="item" v-model="localuser.preview.motionVideoPreview"
+              @change="updateSettings" :name="$t('profileSettings.previewMotionVideos')"
+              :description="$t('profileSettings.previewMotionVideosDescription')" />
+            <ToggleSwitch class="item" v-model="localuser.preview.highQuality" @change="updateSettings"
+              :name="$t('profileSettings.highQualityPreview')"
+              :description="$t('profileSettings.highQualityPreviewDescription')" />
+            <ToggleSwitch class="item" v-model="localuser.preview.office" @change="updateSettings"
+              :name="$t('profileSettings.previewOffice')" :description="$t('profileSettings.previewOfficeDescription')" />
+            <ToggleSwitch class="item" v-model="localuser.preview.popup" @change="updateSettings"
+              :name="$t('profileSettings.popupPreview')" :description="$t('profileSettings.popupPreviewDescription')" />
+            <ToggleSwitch class="item" v-model="localuser.showSelectMultiple" @change="updateSettings"
+              :name="$t('profileSettings.showSelectMultiple')"
+              :description="$t('profileSettings.showSelectMultipleDescription')" />
+          </div>
+        </SettingsItem>
+        <SettingsItem :title="$t('profileSettings.sidebarOptions')" :collapsable="true" :start-collapsed="true"
+          :force-collapsed="isSectionCollapsed('sidebarOptions')" @toggle="handleSectionToggle('sidebarOptions')">
+          <div class="settings-items">
+            <ToggleSwitch class="item" v-model="localuser.disableQuickToggles" @change="updateSettings"
               :name="$t('profileSettings.disableQuickToggles')"
-              :description="$t('profileSettings.disableQuickTogglesDescription')"
-            />
-            <ToggleSwitch
-              class="item"
-              v-model="localuser.preview.disableHideSidebar"
-              @change="updateSettings"
+              :description="$t('profileSettings.disableQuickTogglesDescription')" />
+            <ToggleSwitch class="item" v-model="localuser.preview.disableHideSidebar" @change="updateSettings"
               :name="$t('profileSettings.disableHideSidebar')"
-              :description="$t('profileSettings.disableHideSidebarDescription')"
-            />
-            <ToggleSwitch
-              class="item"
-              v-model="localuser.hideSidebarFileActions"
-              @change="updateSettings"
-              :name="$t('profileSettings.hideSidebarFileActions')"
-            />
-
+              :description="$t('profileSettings.disableHideSidebarDescription')" />
+            <ToggleSwitch class="item" v-model="localuser.hideSidebarFileActions" @change="updateSettings"
+              :name="$t('profileSettings.hideSidebarFileActions')" />
+          </div>
+        </SettingsItem>
+        <SettingsItem :title="$t('settings.searchOptions')" :collapsable="true" :start-collapsed="true"
+          :force-collapsed="isSectionCollapsed('searchOptions')" @toggle="handleSectionToggle('searchOptions')">
+          <div class="settings-items">
+            <ToggleSwitch class="item" v-model="localuser.disableSearchOptions" @change="updateSettings"
+              :name="$t('profileSettings.disableSearchOptions')"
+              :description="$t('profileSettings.disableSearchOptionsDescription')" />
+          </div>
+        </SettingsItem>
+        <SettingsItem :title="$t('profileSettings.fileViewerOptions')" :collapsable="true" :start-collapsed="true"
+          :force-collapsed="isSectionCollapsed('fileViewerOptions')" @toggle="handleSectionToggle('fileViewerOptions')">
+          <div class="settings-items">
+            <ToggleSwitch class="item" v-model="localuser.preview.defaultMediaPlayer" @change="updateSettings"
+              :name="$t('profileSettings.defaultMediaPlayer')"
+              :description="$t('profileSettings.defaultMediaPlayerDescription')" />
+            <ToggleSwitch class="item" v-model="localuser.preview.autoplayMedia" @change="updateSettings"
+              :name="$t('profileSettings.autoplayMedia')" :description="$t('profileSettings.autoplayMediaDescription')" />
+            <ToggleSwitch class="item" v-model="localuser.editorQuickSave" @change="updateSettings"
+              :name="$t('profileSettings.editorQuickSave')"
+              :description="$t('profileSettings.editorQuickSaveDescription')" />
+          </div>
+          <div>
+          <div class="centered-with-tooltip">
+            <h3>{{ $t("profileSettings.disableThumbnailPreviews") }}</h3>
+            <i class="no-select material-symbols-outlined tooltip-info-icon"
+              @mouseenter="showTooltip($event, $t('profileSettings.disableThumbnailPreviewsDescription'))"
+              @mouseleave="hideTooltip">
+              help
+            </i>
+          </div>
+          <div class="form-flex-group">
+            <input class="input form-form flat-right"
+              :class="{ 'form-invalid': !validateExtensions(formDisablePreviews) }" type="text"
+              placeholder="enter file extensions" id="disablePreviews" v-model="formDisablePreviews" />
+            <button type="button" class="button form-button flat-left" @click="submitDisablePreviewsChange">
+              {{ $t("buttons.save") }}
+            </button>
           </div>
         </div>
-        <div class="card-content">
-          <h3>{{ $t("settings.listingOptions") }}</h3>
+        <div>
+          <div class="centered-with-tooltip">
+            <h3>{{ $t("profileSettings.disableViewingFiles") }}</h3>
+            <i class="no-select material-symbols-outlined tooltip-info-icon"
+              @mouseenter="showTooltip($event, $t('profileSettings.disableViewingFilesDescription'))"
+              @mouseleave="hideTooltip">
+              help
+            </i>
+          </div>
+          <div class="form-flex-group">
+            <input class="input form-form flat-right"
+              :class="{ 'form-invalid': !validateExtensions(formDisabledViewing) }" type="text"
+              placeholder="enter file extensions" id="disableViewing" v-model="formDisabledViewing" />
+            <button type="button" class="button form-button flat-left" @click="submitDisabledViewingChange">
+              {{ $t("buttons.save") }}
+            </button>
+          </div>
+        </div>
+        <div v-if="onlyOfficeAvailable">
+          <div class="centered-with-tooltip">
+            <h3>{{ $t("profileSettings.disableOfficeEditor") }}</h3>
+            <i class="no-select material-symbols-outlined tooltip-info-icon"
+              @mouseenter="showTooltip($event, $t('profileSettings.disableOfficeEditorDescription'))"
+              @mouseleave="hideTooltip">
+              help
+            </i>
+          </div>
+          <div class="form-flex-group">
+            <input class="input form-form flat-right"
+              :class="{ 'form-invalid': !validateExtensions(formDisableOfficePreview) }" type="text"
+              placeholder="enter file extensions" id="disableOfficePreview" v-model="formDisableOfficePreview" />
+            <button type="button" class="button form-button flat-left" @click="submitDisableOfficePreviewChange">
+              {{ $t("buttons.save") }}
+            </button>
+          </div>
           <div class="settings-items">
-            <ToggleSwitch
-              class="item"
-              v-model="localuser.deleteWithoutConfirming"
-              @change="updateSettings"
-              :name="$t('profileSettings.deleteWithoutConfirming')"
-              :description="$t('profileSettings.deleteWithoutConfirmingDescription')"
-            />
-            <ToggleSwitch
-              class="item"
-              v-model="localuser.dateFormat"
-              @change="updateSettings"
-              :name="$t('profileSettings.setDateFormat')"
-            />
-            <ToggleSwitch
-              class="item"
-              v-model="localuser.showHidden"
-              @change="updateSettings"
-              :name="$t('profileSettings.showHiddenFiles')"
-              :description="$t('profileSettings.showHiddenFilesDescription')"
-            />
-            <ToggleSwitch
-              class="item"
-              v-model="localuser.quickDownload"
-              @change="updateSettings"
-              :name="$t('profileSettings.showQuickDownload')"
-              :description="$t('profileSettings.showQuickDownloadDescription')"
-            />
-            <ToggleSwitch
-              class="item"
-              v-model="localuser.preview.image"
-              @change="updateSettings"
-              :name="$t('profileSettings.previewImages')"
-              :description="$t('profileSettings.previewImagesDescription')"
-            />
-            <ToggleSwitch
-              v-if="mediaEnabled"
-              class="item"
-              v-model="localuser.preview.video"
-              @change="updateSettings"
-              :name="$t('profileSettings.previewVideos')"
-              :description="$t('profileSettings.previewVideosDescription')"
-            />
-            <ToggleSwitch
-              v-if="mediaEnabled"
-              class="item"
-              v-model="localuser.preview.motionVideoPreview"
-              @change="updateSettings"
-              :name="$t('profileSettings.previewMotionVideos')"
-              :description="$t('profileSettings.previewMotionVideosDescription')"
-            />
-            <ToggleSwitch
-              class="item"
-              v-model="localuser.preview.highQuality"
-              @change="updateSettings"
-              :name="$t('profileSettings.highQualityPreview')"
-              :description="$t('profileSettings.highQualityPreviewDescription')"
-            />
-            <ToggleSwitch
-              class="item"
-              v-model="localuser.preview.office"
-              @change="updateSettings"
-              :name="$t('profileSettings.previewOffice')"
-              :description="$t('profileSettings.previewOfficeDescription')"
-            />
-            <ToggleSwitch
-              class="item"
-              v-model="localuser.preview.popup"
-              @change="updateSettings"
-              :name="$t('profileSettings.popupPreview')"
-              :description="$t('profileSettings.popupPreviewDescription')"
-            />
-            <ToggleSwitch
-              class="item"
-              v-model="localuser.showSelectMultiple"
-              @change="updateSettings"
-              :name="$t('profileSettings.showSelectMultiple')"
-              :description="$t('profileSettings.showSelectMultipleDescription')"
-            />
+            <br />
+            <ToggleSwitch class="item" v-model="localuser.debugOffice" @change="updateSettings"
+              :name="$t('profileSettings.debugOfficeEditor')"
+              :description="$t('profileSettings.debugOfficeEditorDescription')" />
           </div>
-          <h3>{{ $t("profileSettings.editorViewerOptions") }}</h3>
-          <div class="settings-items">
-            <ToggleSwitch
-                class="item"
-                v-model="localuser.preview.autoplayMedia"
-                @change="updateSettings"
-                :name="$t('profileSettings.autoplayMedia')"
-                :description="$t('profileSettings.autoplayMediaDescription')"
-              />
-              <ToggleSwitch
-                class="item"
-                v-model="localuser.editorQuickSave"
-                @change="updateSettings"
-                :name="$t('profileSettings.editorQuickSave')"
-                :description="$t('profileSettings.editorQuickSaveDescription')"
-              />
+
           </div>
-          <h3>{{ $t("settings.searchOptions") }}</h3>
-          <div class="settings-items">
-            <ToggleSwitch
-              class="item"
-              v-model="localuser.disableSearchOptions"
-              @change="updateSettings"
-              :name="$t('profileSettings.disableSearchOptions')"
-              :description="$t('profileSettings.disableSearchOptionsDescription')"
-            />
-           </div>
-           <h3 v-if="user.permissions.admin">{{ $t("settings.adminOptions") }}</h3>
-          <div v-if="user.permissions.admin" class="settings-items">
-            <ToggleSwitch
-                v-if="localuser.permissions?.admin"
-                class="item"
-                v-model="localuser.disableUpdateNotifications"
-                @change="updateSettings"
-                :name="$t('profileSettings.disableUpdateNotifications')"
-                :description="$t('profileSettings.disableUpdateNotificationsDescription')"
-              />
-          </div>
-          <div>
-            <div class="centered-with-tooltip">
-              <h3>{{ $t("profileSettings.disableThumbnailPreviews") }}</h3>
-              <i class="no-select material-symbols-outlined tooltip-info-icon"
-                @mouseenter="showTooltip($event, $t('profileSettings.disableThumbnailPreviewsDescription'))" @mouseleave="hideTooltip">
-                help
-              </i>
-            </div>
-            <div class="form-flex-group">
-              <input
-                class="input form-form flat-right"
-                :class="{ 'form-invalid': !validateExtensions(formDisablePreviews) }"
-                type="text"
-                placeholder="enter file extensions"
-                id="disablePreviews"
-                v-model="formDisablePreviews"
-              />
-              <button
-                type="button"
-                class="button form-button flat-left"
-                @click="submitDisablePreviewsChange"
-              >
-                {{ $t("buttons.save") }}
-              </button>
-            </div>
-          </div>
-          <div>
-            <div class="centered-with-tooltip">
-              <h3>{{ $t("profileSettings.disableViewingFiles") }}</h3>
-              <i class="no-select material-symbols-outlined tooltip-info-icon"
-                @mouseenter="showTooltip($event, $t('profileSettings.disableViewingFilesDescription'))" @mouseleave="hideTooltip">
-                help
-              </i>
-            </div>
-            <div class="form-flex-group">
-              <input
-                class="input form-form flat-right"
-                :class="{ 'form-invalid': !validateExtensions(formDisabledViewing) }"
-                type="text"
-                placeholder="enter file extensions"
-                id="disableViewing"
-                v-model="formDisabledViewing"
-              />
-              <button
-                type="button"
-                class="button form-button flat-left"
-                @click="submitDisabledViewingChange"
-              >
-                {{ $t("buttons.save") }}
-              </button>
-            </div>
-          </div>
-          <div v-if="onlyOfficeAvailable">
-            <div class="centered-with-tooltip">
-              <h3>{{ $t("profileSettings.disableOfficeEditor") }}</h3>
-              <i class="no-select material-symbols-outlined tooltip-info-icon"
-                @mouseenter="showTooltip($event, $t('profileSettings.disableOfficeEditorDescription'))" @mouseleave="hideTooltip">
-                help
-              </i>
-            </div>
-            <div class="form-flex-group">
-              <input
-                class="input form-form flat-right"
-                :class="{ 'form-invalid': !validateExtensions(formDisableOfficePreview) }"
-                type="text"
-                placeholder="enter file extensions"
-                id="disableOfficePreview"
-                v-model="formDisableOfficePreview"
-              />
-              <button
-                type="button"
-                class="button form-button flat-left"
-                @click="submitDisableOfficePreviewChange"
-              >
-                {{ $t("buttons.save") }}
-              </button>
-            </div>
-          </div>
-          <h3>{{ $t("settings.themeColor") }}</h3>
-          <ButtonGroup
-            :buttons="colorChoices"
-            @button-clicked="setColor"
-            :initialActive="localuser.themeColor"
-          />
-          <h3 v-if="Object.keys(availableThemes).length > 0">{{ $t("profileSettings.customTheme") }}</h3>
+        </SettingsItem>
+        <SettingsItem aria-label="themeLanguage" :title="$t('profileSettings.themeAndLanguage')" :collapsable="true" :start-collapsed="true"
+          :force-collapsed="isSectionCollapsed('themeLanguage')" @toggle="handleSectionToggle('themeLanguage')">
+          <h4>{{ $t('settings.themeColor') }}</h4>
+          <ButtonGroup :buttons="colorChoices" @button-clicked="setColor" :initialActive="localuser.themeColor" />
+
+          <h4 v-if="Object.keys(availableThemes).length > 0">{{ $t('profileSettings.customTheme') }}</h4>
           <div v-if="Object.keys(availableThemes).length > 0" class="form-flex-group">
-            <select
-              class="input"
-              v-model="selectedTheme"
-              @change="updateSettings"
-            >
-              <option
-                v-for="(theme, key) in availableThemes"
-                :key="key"
-                :value="key"
-              >
-                {{ key === 'default' ? $t('profileSettings.defaultThemeDescription') : `${key} - ${theme.description}` }}
+            <select class="input" v-model="selectedTheme" @change="updateSettings">
+              <option v-for="(theme, key) in availableThemes" :key="key" :value="key">
+                {{ String(key) === 'default' ? $t('profileSettings.defaultThemeDescription') : `${key} - ${theme.description}` }}
               </option>
             </select>
           </div>
-          <h3>{{ $t("settings.language") }}</h3>
-          <Languages
-            class="input"
-            :locale="localuser.locale"
-            @update:locale="updateLocale"
-          ></Languages>
-        </div>
-      </form>
-      <br/>
+
+          <h4>{{ $t('settings.language') }}</h4>
+          <Languages class="input" :locale="localuser.locale" @update:locale="updateLocale"></Languages>
+        </SettingsItem>
+      </div>
+    </form>
+    <br />
   </div>
 </template>
 
@@ -270,6 +164,7 @@ import { usersApi } from "@/api";
 import Languages from "@/components/settings/Languages.vue";
 import ButtonGroup from "@/components/ButtonGroup.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
+import SettingsItem from "@/components/settings/SettingsItem.vue";
 
 export default {
   name: "settings",
@@ -277,6 +172,7 @@ export default {
     Languages,
     ButtonGroup,
     ToggleSwitch,
+    SettingsItem,
   },
   data() {
     return {
@@ -284,17 +180,20 @@ export default {
       formDisablePreviews: "", // holds temporary input before saving
       formDisabledViewing: "", // holds temporary input before saving
       formDisableOfficePreview: "", // holds temporary input before saving
-      colorChoices: [
+      expandedSection: 'listingOptions', // Track which section is currently expanded for accordion behavior
+    };
+  },
+  computed: {
+    colorChoices() {
+      return [
         { label: this.$t("colors.blue"), value: "var(--blue)" },
         { label: this.$t("colors.red"), value: "var(--red)" },
         { label: this.$t("colors.green"), value: "var(--icon-green)" },
         { label: this.$t("colors.violet"), value: "var(--icon-violet)" },
         { label: this.$t("colors.yellow"), value: "var(--icon-yellow)" },
         { label: this.$t("colors.orange"), value: "var(--icon-orange)" },
-      ],
-    };
-  },
-  computed: {
+      ];
+    },
     availableThemes() {
       return userSelectableThemes || {};
     },
@@ -408,6 +307,7 @@ export default {
           "hideSidebarFileActions",
           "editorQuickSave",
           "showSelectMultiple",
+          "debugOffice",
         ]);
         if (themeChanged) {
           window.location.reload();
@@ -422,12 +322,22 @@ export default {
       this.localuser.locale = updatedLocale;
       this.updateSettings();
     },
+    handleSectionToggle(sectionTitle) {
+      // Accordion logic: if clicking the same section, collapse it, otherwise expand the new one
+      if (this.expandedSection === sectionTitle) {
+        this.expandedSection = null; // Collapse current section
+      } else {
+        this.expandedSection = sectionTitle; // Expand new section
+      }
+    },
+    isSectionCollapsed(sectionTitle) {
+      return this.expandedSection !== sectionTitle;
+    },
   },
 };
 </script>
 
 <style scoped>
-
 #disablePreviews,
 #disableViewing,
 #disableOfficePreview {
@@ -439,4 +349,5 @@ export default {
   justify-content: center;
   align-items: center;
 }
+
 </style>

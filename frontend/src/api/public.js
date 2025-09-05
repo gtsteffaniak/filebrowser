@@ -1,4 +1,4 @@
-import { fetchURL, fetchJSON, adjustedData } from "./utils";
+import { adjustedData } from "./utils";
 import { notify } from "@/notify";
 import { getApiPath, getPublicApiPath } from "@/utils/url.js";
 import { externalUrl } from "@/utils/constants";
@@ -57,8 +57,10 @@ export async function fetchPub(path, hash, password = "", content = false) {
  * @returns {string}
  */
 export function getDownloadURL(share, files, inline=false) {
+  // Join files array with || delimiter and then URL encode
+  const filesParam = Array.isArray(files) ? files.join('||') : files;
   const params = {
-    files: files,
+    files: encodeURIComponent(filesParam),
     hash: share.hash,
     token: share.token,
     ...(inline && { inline: 'true' })
@@ -89,60 +91,6 @@ export function getPreviewURL(path,size="small") {
   }
 }
 
-// ============================================================================
-// SHARE MANAGEMENT API (permission-based authentication)  
-// ============================================================================
-
-// List all shares
-export async function list() {
-  const apiPath = getApiPath("public/shares");
-  return fetchJSON(apiPath);
-}
-
-// Get share information
-/**
- * @param {string} path
- * @param {string} source
- * @returns {Promise<any>}
- */
-export async function get(path, source) {
-  try {
-    const params = { path: encodeURIComponent(path), source: encodeURIComponent(source) };
-    const apiPath = getApiPath("public/share", params);
-    let data = await fetchJSON(apiPath);
-    return adjustedData(data);
-  } catch (/** @type {any} */ err) {
-    notify.showError(err.message || "Error fetching data");
-    throw err;
-  }
-}
-
-// Remove/delete a share
-/**
- * @param {string} hash
- * @returns {Promise<void>}
- */
-export async function remove(hash) {
-  const params = { hash };
-  const apiPath = getApiPath("public/share", params);
-  await fetchURL(apiPath, {
-    method: "DELETE",
-  });
-}
-
-// Create a new share
-/**
- * @param {Record<string, any>} bodyObj
- * @returns {Promise<Share>}
- */
-export async function create(bodyObj = {}) {
-  const apiPath = getApiPath("public/share");
-  return fetchJSON(apiPath, {
-    method: "POST",
-    body: JSON.stringify(bodyObj || {}),
-  });
-}
-
 // Get the shareable URL for a share
 /**
  * @param {{ hash: string }} share
@@ -155,21 +103,3 @@ export function getShareURL(share) {
   }
   return window.origin + getApiPath(`public/share/${share.hash}`);
 }
-
-/**
- * @typedef {object} Share
- * @property {string} hash
- * @property {string} path
- * @property {string} source
- * @property {number} expire
- * @property {number} downloadsLimit
- * @property {number} maxBandwidth
- * @property {string} shareTheme
- * @property {boolean} disableAnonymous
- * @property {boolean} disableThumbnails
- * @property {boolean} keepAfterExpiration
- * @property {string[]} allowedUsernames
- * @property {string} viewMode
- * @property {string} token
- * @property {boolean} inline
- */

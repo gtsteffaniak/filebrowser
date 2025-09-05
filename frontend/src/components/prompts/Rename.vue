@@ -4,11 +4,16 @@
   </div>
 
   <div class="card-content">
-    <p>{{ $t("prompts.renameMessage", { filename: oldName }) }}</p>
-    <input class="input" :class="{ 'form-invalid': !validateFileName(name) }" v-focus type="text"
-      @keyup.enter="submit" v-model.trim="name" />
-    <p v-if="!validateFileName(name) && name.length > 0" class="validation-error">
-      {{ $t("prompts.invalidName") }}
+    <p>{{ $t("prompts.renameMessage") }}</p>
+    <input class="input" :class="{ 'form-invalid': !validation.valid }" v-focus type="text" @keyup.enter="submit"
+      v-model.trim="name" />
+    <p v-if="!validation.valid && name.length > 0" class="validation-error">
+      <span v-if="validation.reason === 'conflict'">
+        {{ $t("prompts.renameMessageConflict", { filename: name }) }}
+      </span>
+      <span v-else>
+        {{ $t("prompts.renameMessageInvalid") }}
+      </span>
     </p>
   </div>
 
@@ -17,7 +22,7 @@
       :title="$t('buttons.cancel')">
       {{ $t("buttons.cancel") }}
     </button>
-    <button @click="submit" class="button button--flat" :disabled="!validateFileName(name) || name.length === 0"
+    <button @click="submit" class="button button--flat" :disabled="!validation.valid || name.length === 0"
       type="submit" :aria-label="$t('buttons.rename')" :title="$t('buttons.rename')">
       {{ $t("buttons.rename") }}
     </button>
@@ -25,7 +30,7 @@
 </template>
 <script>
 import { filesApi } from "@/api";
-import { mutations } from "@/store";
+import { mutations, state } from "@/store";
 import { notify } from "@/notify";
 
 export default {
@@ -49,6 +54,9 @@ export default {
     oldName() {
       return this.item?.name || "";
     },
+    validation() {
+      return this.validateFileName(this.name);
+    }
   },
   methods: {
     /**
@@ -56,24 +64,51 @@ export default {
      */
     validateFileName(value) {
       if (value === "") {
-        return false;
+        return { valid: true };
       }
-      // Check for forbidden characters: forward slash and backslash
-      const forbiddenChars = /[/\\]/;
-      return !forbiddenChars.test(value);
+
+      const isFolder = this.item.type === "directory";
+
+      // Check for forbidden characters in file names
+      if (!isFolder) {
+        const forbiddenChars = /[/\\]/;
+        if (forbiddenChars.test(value)) {
+          return { valid: false, reason: 'invalidChar' };
+        }
+      }
+
+      // Check if the item already exists
+      for (const item of state.req.items) {
+        if (item.name.toLowerCase() === value.toLowerCase()) {
+          if (isFolder === (item.type === "directory")) {
+            return { valid: false, reason: 'conflict' };
+          }
+        }
+      }
+
+      return { valid: true };
     },
     async submit() {
-      // Validate before submitting
-      if (!this.validateFileName(this.name) || this.name.length === 0) {
-        notify.showError(this.$t("prompts.invalidName"));
+      // remove trailing slashes
+      if (this.name.endsWith("/") || this.name.endsWith("\\")) {
+        this.name = this.name.substring(0, this.name.length - 1);
+      }
+      if (!this.validation.valid) {
         return;
       }
 
+      let newPath = this.item.path.substring(0, this.item.path.lastIndexOf("/"));
+      newPath = `${newPath}/${this.name}`;
       try {
+        if (this.name === this.item.name) {
+          mutations.closeHovers();
+          return;
+        }
+
         const items = [{
           from: this.item.path,
           fromSource: this.item.source,
-          to: this.item.path.replace(/[^/]+$/, this.name),
+          to: newPath,
           toSource: this.item.source,
         }];
 

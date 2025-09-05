@@ -2,6 +2,41 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.8.4-beta
+
+ **New Features**:
+ - New media player styles and features
+   - Custom Media Player: enhanced media player using plyr thanks @Kurami32 (see #1160)
+   - Custom Media Player: also adds support for metadata
+   - added embeded video subtitle support (for both native and custom player). @maxbin123 #1072 #1157
+   - Users can disable the customer player and opt of native in profile settings.
+ - Option to disable backend update check via `server.disableUpdateCheck` #1134
+ - added `frontend.favicon` and `frontend.description` for html overrides
+ - onlyoffice is now supported in shares. Both viewing and editing can be configured per-share.
+ - Added only office debug view and wiki to assist with debugging issues #1068 #911 #1074
+ - Dark mode enforcement possible for shared links #1029
+ - added `System & Admin` section to settings
+   - includes a new config viewer to see current running config (hides secrets) #838
+ - added `server.minSearchLength` to allow adjusting the length requirement for search #1174
+
+ **Notes**:
+ - access management: specific folders/files with access are shown instead permission denied for parent folder
+ - navigation no longer appends last location hash which should fix some unwanted navation behavior #1070
+ - altered the context menu style and behavior.
+ - documentation update: comma or Space separated extensions #1138
+ - Files and folders can be created with "/" or "\" on the name #1126
+ - Share management should not be allowed without authentication #1163
+ - Question about customizing session timeout #1184
+
+ **BugFixes**:
+ - access management: delay showing rule changes in the list fixed. #1131
+ - Color names are not localized #1159
+ - rename issues #1170 #1171
+ - some shortcuts not working #1056
+ - Can't copy/paste text on mobile #1168
+ - Can't change between images inside of the share image viewer. #1144
+ - fixed and updated translations with variables always showing english.
+
 ## v0.8.3-beta
 
  **BugFixes**:
@@ -18,7 +53,7 @@ All notable changes to this project will be documented in this file. For commit 
  **Notes**:
  - 8.0 ffmpeg version bundled with docker
  - go 1.25 upgrade with green tea GC enabled
- - totp secrets accept non-secure strings, only throwing warning 
+ - totp secrets accept non-secure strings, only throwing warning
  - adjusted download limit so it also counts viewing text "content" of files (like in editor). You can also "disable file viewing" to stop the editor from showing. lower quality file image previews are not counted as downloads.
  - updated invalid share message to be more clear https://github.com/gtsteffaniak/filebrowser/issues/1120
 

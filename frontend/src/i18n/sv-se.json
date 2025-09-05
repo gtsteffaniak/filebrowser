@@ -49,7 +49,8 @@
     "clearCompleted": "Klart avslutat",
     "showMore": "Visa mer",
     "showLess": "Visa mindre",
-    "openParentFolder": "Öppna överordnad mapp"
+    "openParentFolder": "Öppna överordnad mapp",
+    "selectedCount": "Antal objekt som valts för att utföra en åtgärd"
   },
   "download": {
     "downloadFile": "Ladda ner fil",
@@ -84,15 +85,15 @@
     "click": "välj fil eller mapp",
     "ctrl": {
       "click": "välj flera filer eller mappar",
-      "f": "öppnar sök",
-      "s": "Spara en fil eller ladda ner den katalog där du är"
+      "d": "ladda ner valda artiklar"
     },
     "del": "ta bort valda objekt",
-    "doubleClick": "öppna en fil eller mapp",
     "esc": "Rensa markeringen och/eller stänga prompten",
-    "f1": "denna information",
     "f2": "ändra namnet på filen",
-    "help": "Hjälp"
+    "help": "Hjälp",
+    "f1": "visa hjälp prompt",
+    "description": "Du kan se de grundläggande navigeringsalternativen nedan. För ytterligare information, vänligen besök",
+    "wiki": "FileBrowser Quantum Wiki"
   },
   "languages": {
     "he": "עברית",
@@ -134,7 +135,6 @@
   "prompts": {
     "copy": "Kopiera",
     "copyMessage": "Välj var dina filer skall sparas:",
-    "deleteMessageMultiple": "Är du säker på att du vill radera {count} filer(na)?",
     "deleteMessageSingle": "Är du säker på att du vill radera denna fil/mapp",
     "deleteTitle": "Ta bort filer",
     "displayName": "Visningsnamn:",
@@ -142,7 +142,6 @@
     "downloadMessage": "Välj format på det du vill lada ner.",
     "error": "Något gick fel",
     "fileInfo": "Fil information",
-    "lastModified": "Senast ändrad{suffix}",
     "move": "Flytta",
     "moveMessage": "Välj ny plats för din fil (er)/mapp (ar):",
     "newArchetype": "Skapa ett nytt inlägg baserat på en arketyp. Din fil kommer att skapas på innehållsmapp.",
@@ -150,10 +149,7 @@
     "newDirMessage": "Ange namn på din nya mapp.",
     "newFile": "Ny fil",
     "newFileMessage": "Ange namn på din nya fil.",
-    "numberDirs": "Antal kataloger{suffix}",
-    "numberFiles": "Antal filer{suffix}",
     "rename": "Ändra namn",
-    "renameMessage": "Infoga ett nytt namn för",
     "replace": "Ersätt",
     "replaceMessage": "En av filerna som du försöker överföra är i konflikt på grund av dess namn. Vill du ersätta den befintliga?\n",
     "schedule": "Schema",
@@ -161,7 +157,6 @@
     "show": "Visa",
     "size": "Storlek",
     "upload": "Ladda upp",
-    "deleteMessageShare": "Are you sure you want to delete this share: {path} ?",
     "deleteUserMessage": "Är du säker på att du vill ta bort den här användaren?",
     "selected": "utvalda",
     "filesSelected": "valda filer",
@@ -172,10 +167,6 @@
     "dragAndDrop": "Dra och släpp filer här",
     "completed": "Färdigställd",
     "conflictsDetected": "Konflikter upptäckta",
-    "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "Ogiltigt namn anges: kan inte innehålla \"/\" eller \"\\\"",
-    "source": "Source{suffix}",
     "downloadsLimit": "Begränsning av antal nedladdningar",
     "maxBandwidth": "Max bandbredd för nedladdning (kbps)",
     "shareTheme": "Dela tema",
@@ -186,22 +177,44 @@
     "shareBanner": "Dela bannerns URL",
     "shareFavicon": "Dela URL för favicon",
     "optionalPasswordHelp": "Om det är inställt måste användarna ange lösenordet för att visa det delade innehållet.",
-    "viewMode": "Visa läge"
+    "viewMode": "Visa läge",
+    "renameMessage": "Ange ett nytt namn:",
+    "renameMessageInvalid": "En fil kan inte innehålla \"/\" eller \"\\\"",
+    "source": "Källa{suffix}",
+    "deleteMessageMultiple": "Är du säker att du vill ta bort {count} fil(er)?",
+    "deleteMessageShare": "Är du säker på att du vill ta bort den här aktien: {path} ?",
+    "lastModified": "Senast ändrad{suffix}",
+    "numberDirs": "Antal kataloger{suffix}",
+    "numberFiles": "Antal filer{suffix}",
+    "renameMessageConflict": "Ett objekt med namnet \"{filename}\" finns redan!",
+    "uploadSettingsChunked": "Max samtidiga uppladdningar: {maxConcurrentUpload}, chunkstorlek: {uploadChunkSizeMb} MB",
+    "uploadSettingsNoChunk": "Max samtidiga uppladdningar: {maxConcurrentUpload}, chunked uppladdning inaktiverad"
   },
   "search": {
     "images": "Bilder",
     "music": "Musik",
     "pdf": "PDF",
-    "pressToSearch": "Tryck på enter för att söka...",
     "search": "Sök...",
-    "typeToSearch": "Skriv för att söka....",
     "types": "Typ",
     "video": "Video",
     "path": "Väg:",
     "smallerThan": "Mindre än:",
     "largerThan": "Större än:",
     "helpText1": "Sökningen sker på varje tecken du skriver (minst 3 tecken för sökbegrepp).",
-    "helpText2": "Indexet: Sökningen använder indexet som automatiskt uppdateras med det inställda intervallet (standard: 5 minuter). Om du söker när programmet precis har startat kan det leda till ofullständiga resultat."
+    "helpText2": "Indexet: Sökningen använder indexet som automatiskt uppdateras med det inställda intervallet (standard: 5 minuter). Om du söker när programmet precis har startat kan det leda till ofullständiga resultat.",
+    "noResults": "Inga resultat hittades i indexerad sökning.",
+    "onlyFolders": "Endast mappar",
+    "onlyFiles": "Endast filer",
+    "showOptions": "Visa alternativ",
+    "photos": "Bilder",
+    "audio": "Ljud",
+    "videos": "Videor",
+    "documents": "Dokument",
+    "archives": "Arkiv",
+    "number": "Antal",
+    "searchContext": "Sök kontext: {context}",
+    "notEnoughCharacters": "Inte tillräckligt med tecken för att söka (min {minSearchLength})",
+    "typeToSearch": "Börja skriva {minSearchLength} eller fler tecken för att påbörja sökningen."
   },
   "settings": {
     "admin": "Admin",
@@ -214,10 +227,8 @@
     "avoidChanges": "(lämna blankt för att undvika ändringar)",
     "branding": "Varumärke",
     "brandingDirectoryPath": "Sökväg till varumärkes katalog",
-    "brandingHelp": "Du kan skräddarsyr hur din fil hanterar instansen ser ut och känns genom att ändra dess namn, ersätter logo typen, lägga till egna stilar och även inaktivera externa länkar till GitHub.\nMer information om anpassad varumärkes profilering finns i {0}.",
     "changePassword": "Ändra lösenord",
     "commandRunner": "Kommando körare",
-    "commandRunnerHelp": "Här kan du ange kommandon som körs i de namngivna händelserna. Du måste skriva en per rad. Miljövariablerna {0} och {1} kommer att vara tillgängliga, och vara {0} i förhållande till {1}. För mer information om den här funktionen och de tillgängliga miljövariablerna, vänligen läs {2}.",
     "commandsUpdated": "Kommandon uppdaterade!",
     "createUserDir": "Auto skapa användarens hemkatalog när du lägger till nya användare",
     "customStylesheet": "Anpassad formatmall",
@@ -300,7 +311,14 @@
     "adminOptions": "Alternativ för administratörsanvändare",
     "shareDuration": "Upphör att gälla",
     "searchOptions": "Sökalternativ",
-    "downloads": "Nedladdningar"
+    "downloads": "Nedladdningar",
+    "systemAdmin": "System & Administration",
+    "configViewer": "Konfig-visare",
+    "configViewerShowFull": "Visa fullständig konfiguration",
+    "configViewerShowComments": "Visa kommentarer",
+    "configViewerLoadConfig": "Ladda konfig",
+    "brandingHelp": "Du kan anpassa hur din File Browser-instans ser ut och känns genom att ändra dess namn, byta ut logotypen, lägga till anpassade stilar och till och med inaktivera externa länkar till GitHub.\nFör mer information om anpassad branding, se {0}.",
+    "commandRunnerHelp": "Här kan du ställa in kommandon som utförs i de namngivna händelserna. Du måste skriva ett per rad. Miljövariablerna {0} och {1} kommer att vara tillgängliga, {0} i förhållande till {1}. För mer information om denna funktion och de tillgängliga miljövariablerna, läs {2}."
   },
   "sidebar": {
     "help": "Hjälp",
@@ -358,12 +376,21 @@
     "hideNavButtons": "Dölj navigeringsknappar",
     "hideNavButtonsDescription": "Dölj navigeringsknapparna i navigeringsfältet i aktien för att skapa ett minimalistiskt utseende.",
     "viewModeDescription": "Standardlayout för den delade sidan.",
-    "titleDefault": "Shared files - {title}",
     "descriptionDefault": "En aktie har skickats till dig för visning eller nedladdning.",
     "disableShareCard": "Inaktivera aktiekort",
     "disableShareCardDescription": "Inaktivera delningskortet på den delade sidan i sidofältet eller högst upp på sidan på mobilen.",
     "disableSidebar": "Inaktivera sidofält",
-    "disableSidebarDescription": "Inaktivera sidofältet på den delade sidan."
+    "disableSidebarDescription": "Inaktivera sidofältet på den delade sidan.",
+    "enforceDarkLightMode": "Genomför temaläge",
+    "enforceDarkLightModeDescription": "Tvinga fram ett specifikt temaläge (mörkt eller ljust) för den här aktien, utan hänsyn till användarens preferenser.",
+    "default": "Inte tvinga fram ett läge",
+    "dark": "Mörk",
+    "light": "Ljus",
+    "enableOnlyOffice": "Aktivera OnlyOffice-visningsprogram",
+    "enableOnlyOfficeDescription": "Tillåt visning av kontorsfiler med OnlyOffice i denna delning.",
+    "enableOnlyOfficeEditing": "Aktivera redigering av OnlyOffice",
+    "enableOnlyOfficeEditingDescription": "Tillåt redigering av kontorsfiler med hjälp av OnlyOffice i denna andel.",
+    "titleDefault": "Delade filer {title}"
   },
   "api": {
     "title": "API-nycklar",
@@ -478,7 +505,13 @@
     "defaultThemeDescription": "default - Standardtema",
     "customTheme": "Välj ditt tema",
     "showSelectMultiple": "Visa markera flera i snabbmenyn på skrivbordet",
-    "showSelectMultipleDescription": "Som standard har snabbmenyn på skrivbordet inte alternativet \"välj flera\" som på mobilen. Det här alternativet visas alltid i snabbmenyn."
+    "showSelectMultipleDescription": "Som standard har snabbmenyn på skrivbordet inte alternativet \"välj flera\" som på mobilen. Det här alternativet visas alltid i snabbmenyn.",
+    "defaultMediaPlayer": "Använd den inbyggda mediaspelaren i din webbläsare",
+    "defaultMediaPlayerDescription": "Använd webbläsarens inbyggda mediaspelare för video- och ljudfiler i stället för FileBrowsers medföljande \"vue-plyr\"-mediaspelare.",
+    "debugOfficeEditor": "Aktivera OnlyOffice felsökningsläge",
+    "debugOfficeEditorDescription": "Visa en debug-popup med ytterligare information i OnlyOffice-redigeraren.",
+    "fileViewerOptions": "Alternativ för filvisare",
+    "themeAndLanguage": "Tema & språk"
   },
   "general": {
     "name": "Namn",
@@ -513,15 +546,19 @@
     "name": "Namn",
     "accessManagement": "Hantering av åtkomst",
     "all": "Avvisa alla",
-    "defaultBehavior": "Default action{suffix}",
-    "defaultBehaviorDescription": "Detta visar vad som händer när en användare försöker komma åt en sökväg där det inte finns några specifika åtkomstregler. \"Allow\" innebär att användare kan komma åt som standard, \"Deny\" innebär att användare blockeras som standard om de inte uttryckligen tillåts."
+    "defaultBehaviorDescription": "Detta visar vad som händer när en användare försöker komma åt en sökväg där det inte finns några specifika åtkomstregler. \"Allow\" innebär att användare kan komma åt som standard, \"Deny\" innebär att användare blockeras som standard om de inte uttryckligen tillåts.",
+    "defaultBehavior": "Standardåtgärd{suffix}"
   },
   "editor": {
     "uninitialized": "Redigeraren kunde inte initieras. Vänligen ladda om.",
     "saveFailed": "Misslyckades med att spara filen. Vänligen försök igen.",
     "saveAborted": "Spara avbröts. Filnamnet stämmer inte överens med den aktiva filen.",
     "saveDisabled": "Sparande av delade filer stöds inte.",
-    "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
-    "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
+    "saveAbortedMessage": "Spara åtgärden avbröts. Programmets aktiva fil ({activeFile}) stämmer inte överens med den fil du försöker spara ({tryingToSave}).",
+    "syncFailed": "lyckades inte synkronisera tillstånd med rutten för \"{filename}\" efter 5 försök. Avbryter redigeringsinställningen för att förhindra datakorruption."
+  },
+  "player": {
+    "LoopEnabled": "Slinga aktiverad",
+    "LoopDisabled": "Slinga avaktiverad"
   }
 }

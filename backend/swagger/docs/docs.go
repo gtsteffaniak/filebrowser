@@ -854,6 +854,87 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/media/subtitles": {
+            "get": {
+                "description": "Extracts embedded subtitle content from video files by stream index and returns raw WebVTT content",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "text/vtt"
+                ],
+                "tags": [
+                    "Subtitles"
+                ],
+                "summary": "Extract embedded subtitles",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Index path to the video file",
+                        "name": "path",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Source name for the desired source",
+                        "name": "source",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Stream index for embedded subtitle extraction, defaults to 0",
+                        "name": "index",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Raw WebVTT subtitle content",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Resource not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/preview": {
             "get": {
                 "description": "Returns a preview image based on the requested path and size.",
@@ -1611,6 +1692,43 @@ const docTemplate = `{
                         "description": "System settings data",
                         "schema": {
                             "$ref": "#/definitions/settings.Settings"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/settings/config": {
+            "get": {
+                "description": "Returns the current running configuration settings as YAML format with optional comments and filtering.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "Settings"
+                ],
+                "summary": "Get system settings as YAML",
+                "parameters": [
+                    {
+                        "type": "boolean",
+                        "description": "Show all values (true) or only non-default values (false, default)",
+                        "name": "full",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Include comments in YAML (true) or plain YAML (false, default)",
+                        "name": "comments",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "System settings in YAML format",
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 }
@@ -2486,26 +2604,26 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "adminPassword": {
-                    "description": "the password of the admin user. If not set, the default is \"admin\".",
+                    "description": "secret: the password of the admin user. If not set, the default is \"admin\".",
                     "type": "string"
                 },
                 "adminUsername": {
-                    "description": "the username of the admin user. If not set, the default is \"admin\".",
+                    "description": "secret: the username of the admin user. If not set, the default is \"admin\".",
                     "type": "string"
                 },
                 "key": {
-                    "description": "the key used to sign the JWT tokens. If not set, a random key will be generated.",
+                    "description": "secret: the key used to sign the JWT tokens. If not set, a random key will be generated.",
                     "type": "string"
                 },
                 "methods": {
                     "$ref": "#/definitions/settings.LoginMethods"
                 },
                 "tokenExpirationHours": {
-                    "description": "the number of hours until the token expires. Default is 2 hours.",
+                    "description": "time in hours each web UI session token is valid for. Default is 2 hours.",
                     "type": "integer"
                 },
                 "totpSecret": {
-                    "description": "secret used to encrypt TOTP secrets",
+                    "description": "secret: secret used to encrypt TOTP secrets",
                     "type": "string"
                 }
             }
@@ -2602,6 +2720,10 @@ const docTemplate = `{
         "settings.Frontend": {
             "type": "object",
             "properties": {
+                "description": {
+                    "description": "description that shows up in html head meta description",
+                    "type": "string"
+                },
                 "disableDefaultLinks": {
                     "description": "disable default links in the sidebar",
                     "type": "boolean"
@@ -2619,6 +2741,10 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/settings.ExternalLink"
                     }
+                },
+                "favicon": {
+                    "description": "path to a favicon to use for the frontend",
+                    "type": "string"
                 },
                 "name": {
                     "description": "display name",
@@ -2723,11 +2849,11 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "clientId": {
-                    "description": "client id of the OIDC application",
+                    "description": "secret: client id of the OIDC application",
                     "type": "string"
                 },
                 "clientSecret": {
-                    "description": "client secret of the OIDC application",
+                    "description": "secret: client secret of the OIDC application",
                     "type": "string"
                 },
                 "createUser": {
@@ -2776,6 +2902,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "secret": {
+                    "description": "secret: authentication key for OnlyOffice integration",
                     "type": "string"
                 },
                 "url": {
@@ -2885,6 +3012,10 @@ const docTemplate = `{
                     "description": "disable type detection by header, useful if filesystem is slow.",
                     "type": "boolean"
                 },
+                "disableUpdateCheck": {
+                    "description": "disables backend update check service",
+                    "type": "boolean"
+                },
                 "externalUrl": {
                     "description": "used by share links if set (eg. http://mydomain.com)",
                     "type": "string"
@@ -2901,6 +3032,10 @@ const docTemplate = `{
                 },
                 "maxArchiveSize": {
                     "description": "max pre-archive combined size of files/folder that are allowed to be archived (in GB)",
+                    "type": "integer"
+                },
+                "minSearchLength": {
+                    "description": "minimum length of search query to begin searching (default: 3)",
                     "type": "integer"
                 },
                 "numImageProcessors": {
@@ -3073,6 +3208,10 @@ const docTemplate = `{
                     "description": "when false, the date is relative, when true, the date is an exact timestamp",
                     "type": "boolean"
                 },
+                "debugOffice": {
+                    "description": "debug onlyoffice editor",
+                    "type": "boolean"
+                },
                 "deleteWithoutConfirming": {
                     "description": "delete files without confirmation",
                     "type": "boolean"
@@ -3086,7 +3225,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "disablePreviewExt": {
-                    "description": "comma separated list of file extensions to disable preview for",
+                    "description": "space separated list of file extensions to disable preview for",
                     "type": "string"
                 },
                 "disableQuickToggles": {
@@ -3106,7 +3245,7 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "disableViewingExt": {
-                    "description": "comma separated list of file extensions to disable viewing for",
+                    "description": "space separated list of file extensions to disable viewing for",
                     "type": "string"
                 },
                 "editorQuickSave": {
@@ -3217,6 +3356,16 @@ const docTemplate = `{
                 "downloadsLimit": {
                     "type": "integer"
                 },
+                "enableOnlyOffice": {
+                    "type": "boolean"
+                },
+                "enableOnlyOfficeEditing": {
+                    "type": "boolean"
+                },
+                "enforceDarkLightMode": {
+                    "description": "\"dark\" or \"light\"",
+                    "type": "string"
+                },
                 "expires": {
                     "type": "string"
                 },
@@ -3307,6 +3456,16 @@ const docTemplate = `{
                 },
                 "downloadsLimit": {
                     "type": "integer"
+                },
+                "enableOnlyOffice": {
+                    "type": "boolean"
+                },
+                "enableOnlyOfficeEditing": {
+                    "type": "boolean"
+                },
+                "enforceDarkLightMode": {
+                    "description": "\"dark\" or \"light\"",
+                    "type": "string"
                 },
                 "expire": {
                     "type": "integer"
@@ -3434,6 +3593,10 @@ const docTemplate = `{
                     "description": "autoplay media files in preview",
                     "type": "boolean"
                 },
+                "defaultMediaPlayer": {
+                    "description": "disable html5 media player and use the default media player",
+                    "type": "boolean"
+                },
                 "disableHideSidebar": {
                     "description": "disable the hide sidebar preview for previews and editors",
                     "type": "boolean"
@@ -3507,6 +3670,10 @@ const docTemplate = `{
                     "description": "when false, the date is relative, when true, the date is an exact timestamp",
                     "type": "boolean"
                 },
+                "debugOffice": {
+                    "description": "debug onlyoffice editor",
+                    "type": "boolean"
+                },
                 "deleteWithoutConfirming": {
                     "description": "delete files without confirmation",
                     "type": "boolean"
@@ -3520,7 +3687,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "disablePreviewExt": {
-                    "description": "comma separated list of file extensions to disable preview for",
+                    "description": "space separated list of file extensions to disable preview for",
                     "type": "string"
                 },
                 "disableQuickToggles": {
@@ -3539,7 +3706,7 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "disableViewingExt": {
-                    "description": "comma separated list of file extensions to disable viewing for",
+                    "description": "space separated list of file extensions to disable viewing for",
                     "type": "string"
                 },
                 "editorQuickSave": {

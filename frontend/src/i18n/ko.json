@@ -49,7 +49,8 @@
     "clearCompleted": "완료 지우기",
     "showMore": "자세히 보기",
     "showLess": "덜 보기",
-    "openParentFolder": "상위 폴더 열기"
+    "openParentFolder": "상위 폴더 열기",
+    "selectedCount": "작업을 수행하기 위해 선택한 항목 수"
   },
   "download": {
     "downloadFile": "파일 다운로드",
@@ -84,15 +85,15 @@
     "click": "파일이나 디렉토리를 선택해주세요.",
     "ctrl": {
       "click": "여러 개의 파일이나 디렉토리를 선택해주세요.",
-      "f": "검색창 열기",
-      "s": "파일 또는 디렉토리 다운로드"
+      "d": "선택한 항목 다운로드"
     },
     "del": "선택된 파일 삭제",
-    "doubleClick": "파일 또는 디렉토리 열기",
     "esc": "선택 취소/프롬프트 닫기",
-    "f1": "정보",
     "f2": "파일 이름 변경",
-    "help": "도움말"
+    "help": "도움말",
+    "f1": "도움말 프롬프트 표시",
+    "description": "아래에서 기본 탐색 옵션을 확인할 수 있습니다. 자세한 내용은 다음을 참조하세요.",
+    "wiki": "파일브라우저 퀀텀 위키"
   },
   "languages": {
     "he": "עברית",
@@ -134,7 +135,6 @@
   "prompts": {
     "copy": "복사",
     "copyMessage": "복사할 디렉토리:",
-    "deleteMessageMultiple": "{count} 개의 파일을 삭제하시겠습니까?",
     "deleteMessageSingle": "파일 혹은 디렉토리를 삭제하시겠습니까?",
     "deleteTitle": "파일 삭제",
     "displayName": "게시 이름:",
@@ -142,7 +142,6 @@
     "downloadMessage": "다운로드 포맷 설정.",
     "error": "에러 발생!",
     "fileInfo": "파일 정보",
-    "lastModified": "최종 수정{suffix}",
     "move": "이동",
     "moveMessage": "이동할 화일 또는 디렉토리를 선택하세요:",
     "newArchetype": "원형을 유지하는 포스트를 생성합니다. 파일은 컨텐트 폴더에 생성됩니다.",
@@ -150,10 +149,7 @@
     "newDirMessage": "새 디렉토리 이름을 입력해주세요.",
     "newFile": "새 파일",
     "newFileMessage": "새 파일 이름을 입력해주세요.",
-    "numberDirs": "디렉토리 수{suffix}",
-    "numberFiles": "파일 수{suffix}",
     "rename": "이름 변경",
-    "renameMessage": "새로운 이름을 입력하세요.",
     "replace": "대체하기",
     "replaceMessage": "동일한 파일 이름이 존재합니다. 현재 파일을 덮어쓸까요?\n",
     "schedule": "일정",
@@ -161,7 +157,6 @@
     "show": "보기",
     "size": "크기",
     "upload": "업로드",
-    "deleteMessageShare": "Are you sure you want to delete this share: {path} ?",
     "deleteUserMessage": "이 사용자를 삭제하시겠습니까?",
     "filesSelected": "선택한 파일",
     "optionalPassword": "선택적 비밀번호",
@@ -172,10 +167,6 @@
     "dragAndDrop": "파일을 여기로 끌어다 놓기",
     "completed": "완료",
     "conflictsDetected": "충돌 감지",
-    "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "제공된 이름이 잘못되었습니다: \"/\" 또는 \"\\\"를 포함할 수 없습니다.",
-    "source": "Source{suffix}",
     "downloadsLimit": "다운로드 횟수 제한",
     "maxBandwidth": "최대 다운로드 대역폭(kbps)",
     "shareTheme": "테마 공유",
@@ -186,22 +177,44 @@
     "shareBanner": "배너 URL 공유",
     "shareFavicon": "파비콘 URL 공유",
     "optionalPasswordHelp": "이 비밀번호를 설정하면 사용자가 공유 콘텐츠를 보려면 이 비밀번호를 입력해야 합니다.",
-    "viewMode": "보기 모드"
+    "viewMode": "보기 모드",
+    "renameMessage": "새 이름을 입력합니다:",
+    "renameMessageInvalid": "파일은 \"/\" 또는 \"\\\"를 포함할 수 없습니다.",
+    "source": "출처{suffix}",
+    "deleteMessageMultiple": "{count} 파일을 정말 삭제하시겠습니까?",
+    "deleteMessageShare": "이 공유를 삭제하시겠습니까? {path} ?",
+    "lastModified": "마지막 수정{suffix}",
+    "numberDirs": "디렉터리 수{suffix}",
+    "numberFiles": "파일 수{suffix}",
+    "renameMessageConflict": "\"{filename}\"라는 이름의 항목이 이미 존재합니다!",
+    "uploadSettingsChunked": "최대 동시 업로드: {maxConcurrentUpload}, 청크 크기: {uploadChunkSizeMb} MB",
+    "uploadSettingsNoChunk": "최대 동시 업로드: {maxConcurrentUpload}, 청크 업로드 비활성화"
   },
   "search": {
     "images": "이미지",
     "music": "음악",
     "pdf": "PDF",
-    "pressToSearch": "검색하려면 엔터를 입력하세요",
     "search": "검색...",
-    "typeToSearch": "검색어 입력...",
     "types": "Types",
     "video": "비디오",
     "path": "경로:",
     "smallerThan": "보다 작습니다:",
     "largerThan": "보다 큽니다:",
     "helpText1": "검색은 입력하는 각 문자(검색어의 경우 최소 3자)에 대해 이루어집니다.",
-    "helpText2": "색인: 검색은 설정된 간격(기본값: 5분)에 따라 자동으로 업데이트되는 색인을 활용합니다. 프로그램이 막 시작되었을 때 검색하면 불완전한 결과가 나올 수 있습니다."
+    "helpText2": "색인: 검색은 설정된 간격(기본값: 5분)에 따라 자동으로 업데이트되는 색인을 활용합니다. 프로그램이 막 시작되었을 때 검색하면 불완전한 결과가 나올 수 있습니다.",
+    "noResults": "색인 검색에서 결과를 찾을 수 없습니다.",
+    "onlyFolders": "폴더만",
+    "onlyFiles": "파일만",
+    "showOptions": "옵션 표시",
+    "photos": "사진",
+    "audio": "오디오",
+    "videos": "동영상",
+    "documents": "문서",
+    "archives": "아카이브",
+    "number": "번호",
+    "searchContext": "컨텍스트 검색: {context}",
+    "notEnoughCharacters": "검색할 문자가 부족합니다(최소 {minSearchLength})",
+    "typeToSearch": "검색을 시작하려면 {minSearchLength} 을 입력하세요."
   },
   "settings": {
     "admin": "관리자",
@@ -214,10 +227,8 @@
     "avoidChanges": "(수정하지 않으면 비워두세요)",
     "branding": "브랜딩",
     "brandingDirectoryPath": "브랜드 디렉토리 경로",
-    "brandingHelp": "File Browser 인스턴스는 이름, 로고, 스타일 등을 변경할 수 있습니다. 자세한 사항은 여기{0}에서 확인하세요.",
     "changePassword": "비밀번호 변경",
     "commandRunner": "명령 실행기",
-    "commandRunnerHelp": "이벤트에 해당하는 명령을 설정하세요. 줄당 1개의 명령을 적으세요. 환경 변수{0} 와 {1}이 사용가능하며,  {0} 은 {1}에 상대 경로 입니다. 자세한 사항은 {2} 를 참조하세요.",
     "commandsUpdated": "명령 수정됨!",
     "createUserDir": "Auto create user home dir while adding new user",
     "customStylesheet": "커스텀 스타일시트",
@@ -300,7 +311,14 @@
     "adminOptions": "관리자 사용자 옵션",
     "shareDuration": "만료",
     "searchOptions": "검색 옵션",
-    "downloads": "다운로드"
+    "downloads": "다운로드",
+    "systemAdmin": "시스템 및 관리자",
+    "configViewer": "구성 뷰어",
+    "configViewerShowFull": "전체 구성 표시",
+    "configViewerShowComments": "댓글 표시",
+    "configViewerLoadConfig": "로드 구성",
+    "brandingHelp": "파일 브라우저 인스턴스의 이름을 변경하고, 로고를 바꾸고, 사용자 지정 스타일을 추가하고, GitHub에 대한 외부 링크를 비활성화하여 모양과 느낌을 사용자 지정할 수 있습니다.\n사용자 지정 브랜딩에 대한 자세한 내용은 {0} 을 참조하세요.",
+    "commandRunnerHelp": "여기에서 명명된 이벤트에서 실행되는 명령을 설정할 수 있습니다. 한 줄에 하나씩 작성해야 합니다. 환경 변수 {0} 및 {1} 을 사용할 수 있으며, {0} 은 {1} 에 상대적입니다. 이 기능 및 사용 가능한 환경 변수에 대한 자세한 내용은 {2} 을 참조하세요."
   },
   "sidebar": {
     "help": "도움말",
@@ -358,12 +376,21 @@
     "hideNavButtons": "탐색 버튼 숨기기",
     "hideNavButtonsDescription": "공유의 탐색 모음에서 탐색 버튼을 숨겨 미니멀한 디자인을 만듭니다.",
     "viewModeDescription": "공유 페이지의 기본 레이아웃입니다.",
-    "titleDefault": "Shared files - {title}",
     "descriptionDefault": "보거나 다운로드할 수 있는 공유물이 전송되었습니다.",
     "disableShareCard": "공유 카드 비활성화",
     "disableShareCardDescription": "사이드바의 공유 페이지 또는 모바일의 페이지 상단에서 공유 카드를 비활성화합니다.",
     "disableSidebar": "사이드바 비활성화",
-    "disableSidebarDescription": "공유 페이지에서 사이드바를 비활성화합니다."
+    "disableSidebarDescription": "공유 페이지에서 사이드바를 비활성화합니다.",
+    "enforceDarkLightMode": "테마 모드 적용",
+    "enforceDarkLightModeDescription": "이 공유에 특정 테마 모드(어둡거나 밝음)를 강제로 적용하여 사용자 기본 설정을 재정의합니다.",
+    "default": "모드 강제 적용 안 함",
+    "dark": "Dark",
+    "light": "빛",
+    "enableOnlyOffice": "Office 뷰어만 사용",
+    "enableOnlyOfficeDescription": "이 공유에서 OnlyOffice를 사용하여 Office 파일을 볼 수 있도록 허용합니다.",
+    "enableOnlyOfficeEditing": "Office 편집만 사용",
+    "enableOnlyOfficeEditingDescription": "이 공유에서 OnlyOffice를 사용하여 Office 파일을 편집할 수 있도록 허용합니다.",
+    "titleDefault": "공유 파일 - {title}"
   },
   "api": {
     "title": "API 키:",
@@ -447,8 +474,8 @@
     "totalDenied": "거부됨",
     "totalAllowed": "허용됨",
     "all": "모두 거부",
-    "defaultBehavior": "Default action{suffix}",
-    "defaultBehaviorDescription": "사용자가 특정 액세스 규칙이 없는 경로에 액세스하려고 할 때 어떤 일이 발생하는지 보여줍니다. '허용'은 사용자가 기본적으로 액세스할 수 있음을 의미하며, '거부'는 명시적으로 허용되지 않는 한 기본적으로 차단됨을 의미합니다."
+    "defaultBehaviorDescription": "사용자가 특정 액세스 규칙이 없는 경로에 액세스하려고 할 때 어떤 일이 발생하는지 보여줍니다. '허용'은 사용자가 기본적으로 액세스할 수 있음을 의미하며, '거부'는 명시적으로 허용되지 않는 한 기본적으로 차단됨을 의미합니다.",
+    "defaultBehavior": "기본 작업{suffix}"
   },
   "fileLoading": {
     "title": "업로드 및 다운로드",
@@ -514,14 +541,24 @@
     "defaultThemeDescription": "default - 기본 테마",
     "customTheme": "테마 선택",
     "showSelectMultiple": "데스크톱의 컨텍스트 메뉴에서 여러 개 선택 표시",
-    "showSelectMultipleDescription": "기본적으로 데스크톱 컨텍스트 메뉴에는 모바일처럼 '여러 개 선택' 옵션이 없습니다. 이 옵션은 항상 컨텍스트 메뉴에 표시됩니다."
+    "showSelectMultipleDescription": "기본적으로 데스크톱 컨텍스트 메뉴에는 모바일처럼 '여러 개 선택' 옵션이 없습니다. 이 옵션은 항상 컨텍스트 메뉴에 표시됩니다.",
+    "defaultMediaPlayer": "브라우저의 기본 미디어 플레이어 사용",
+    "defaultMediaPlayerDescription": "비디오 및 오디오 파일은 FileBrowser에 포함된 'vue-plyr' 미디어 플레이어가 아닌 브라우저의 기본 미디어 플레이어를 사용하세요.",
+    "debugOfficeEditor": "Office 디버그 모드만 사용",
+    "debugOfficeEditorDescription": "OnlyOffice 편집기에서 추가 정보가 포함된 디버그 팝업을 표시합니다.",
+    "fileViewerOptions": "파일 뷰어 옵션",
+    "themeAndLanguage": "테마 및 언어"
   },
   "editor": {
     "uninitialized": "편집기를 초기화하지 못했습니다. 다시 로드하세요.",
     "saveFailed": "파일을 저장하지 못했습니다. 다시 시도하세요.",
     "saveAborted": "저장이 중단되었습니다. 파일 이름이 활성 파일과 일치하지 않습니다.",
     "saveDisabled": "공유 파일 저장은 지원되지 않습니다.",
-    "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
-    "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
+    "saveAbortedMessage": "저장 작업이 중단되었습니다. 애플리케이션의 활성 파일({activeFile})이 저장하려는 파일({tryingToSave})과 일치하지 않습니다.",
+    "syncFailed": "5번 시도 후 \"{filename}\"의 경로와 상태를 동기화하지 못했습니다. 데이터 손상을 방지하기 위해 편집기 설정을 중단합니다."
+  },
+  "player": {
+    "LoopEnabled": "루프 사용",
+    "LoopDisabled": "루프 비활성화"
   }
 }

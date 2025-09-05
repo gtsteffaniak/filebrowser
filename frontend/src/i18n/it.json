@@ -49,7 +49,8 @@
     "clearCompleted": "Completato il lavoro di pulizia",
     "showMore": "Mostra di più",
     "showLess": "Mostra meno",
-    "openParentFolder": "Aprire la cartella madre"
+    "openParentFolder": "Aprire la cartella madre",
+    "selectedCount": "Numero di elementi selezionati per eseguire un'azione"
   },
   "download": {
     "downloadFile": "Scarica file",
@@ -84,15 +85,15 @@
     "click": "seleziona un file o una cartella",
     "ctrl": {
       "click": "seleziona più file o cartelle",
-      "f": "apre la barra di ricerca",
-      "s": "salva un file o scarica la cartella in cui ci si trova"
+      "d": "scaricare gli articoli selezionati"
     },
     "del": "elimina gli elementi selezionati",
-    "doubleClick": "apre un file o una cartella",
     "esc": "annulla la selezione e/o chiude la finestra aperta",
-    "f1": "questo pannello",
     "f2": "rinomina un file",
-    "help": "Aiuto"
+    "help": "Aiuto",
+    "f1": "mostra la richiesta di aiuto",
+    "description": "Le opzioni di navigazione di base sono riportate di seguito. Per ulteriori informazioni, visitate il sito",
+    "wiki": "Wiki di FileBrowser Quantum"
   },
   "languages": {
     "he": "עברית",
@@ -134,7 +135,6 @@
   "prompts": {
     "copy": "Copia",
     "copyMessage": "Seleziona la cartella in cui copiare i file:",
-    "deleteMessageMultiple": "Sei sicuro di voler eliminare {count} file?",
     "deleteMessageSingle": "Sei sicuro di voler eliminare questo file/cartella?",
     "deleteTitle": "Elimina",
     "displayName": "Nome visualizzato:",
@@ -142,7 +142,6 @@
     "downloadMessage": "Seleziona il formato che vuoi scaricare.",
     "error": "Qualcosa è andato per il verso storto",
     "fileInfo": "Informazioni sul file",
-    "lastModified": "Ultima modifica{suffix}",
     "move": "Sposta",
     "moveMessage": "Seleziona la nuova posizione per i tuoi file e/o cartella/e:",
     "newArchetype": "Crea un nuovo post basato su un modello. Il tuo file verrà creato nella cartella.",
@@ -150,10 +149,7 @@
     "newDirMessage": "Scrivi il nome della nuova cartella.",
     "newFile": "Nuovo file",
     "newFileMessage": "Scrivi il nome del nuovo file.",
-    "numberDirs": "Numero di cartelle{suffix}",
-    "numberFiles": "Numero di file{suffix}",
     "rename": "Rinomina",
-    "renameMessage": "Inserisci un nuovo nome per",
     "replace": "Sostituisci",
     "replaceMessage": "Uno dei file che stai cercando di caricare sta generando un conflitto per via del suo nome. Desideri sostituire il file già esistente?\n",
     "schedule": "Pianifica",
@@ -161,7 +157,6 @@
     "show": "Mostra",
     "size": "Dimensione",
     "upload": "Carica",
-    "deleteMessageShare": "Are you sure you want to delete this share: {path} ?",
     "deleteUserMessage": "Siete sicuri di voler eliminare questo utente?",
     "filesSelected": "file selezionati",
     "optionalPassword": "Password opzionale",
@@ -172,10 +167,6 @@
     "dragAndDrop": "Trascinare e rilasciare i file qui",
     "completed": "Completato",
     "conflictsDetected": "Conflitti rilevati",
-    "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "Nome non valido: non può contenere \"/\" o \"\\\".",
-    "source": "Source{suffix}",
     "downloadsLimit": "Limite del numero di download",
     "maxBandwidth": "Larghezza di banda massima per il download (kbps)",
     "shareTheme": "Tema della condivisione",
@@ -186,22 +177,44 @@
     "shareBanner": "Condividi l'URL del banner",
     "shareFavicon": "Condividere l'URL della favicon",
     "optionalPasswordHelp": "Se impostata, gli utenti devono inserire questa password per visualizzare il contenuto condiviso.",
-    "viewMode": "Modalità di visualizzazione"
+    "viewMode": "Modalità di visualizzazione",
+    "renameMessage": "Inserire un nuovo nome:",
+    "renameMessageInvalid": "Un file non può contenere \"/\" o \"\\\".",
+    "source": "Fonte{suffix}",
+    "deleteMessageMultiple": "Siete sicuri di voler eliminare i file {count}?",
+    "deleteMessageShare": "Sei sicuro di voler eliminare questa condivisione: {path} ?",
+    "lastModified": "Ultima modifica{suffix}",
+    "numberDirs": "Numero di directory{suffix}",
+    "numberFiles": "Numero di file{suffix}",
+    "renameMessageConflict": "Un elemento chiamato \"{filename}\" esiste già!",
+    "uploadSettingsChunked": "Carichi massimi contemporanei: {maxConcurrentUpload}, dimensione dei pezzi: {uploadChunkSizeMb} MB",
+    "uploadSettingsNoChunk": "Carichi massimi contemporanei: {maxConcurrentUpload}, caricamento chunked disabilitato"
   },
   "search": {
     "images": "Immagini",
     "music": "Musica",
     "pdf": "PDF",
-    "pressToSearch": "Premi Invio per cercare...",
     "search": "Cerca...",
-    "typeToSearch": "Scrivi per cercare...",
     "types": "Tipi",
     "video": "Video",
     "path": "Percorso:",
     "smallerThan": "Più piccolo di:",
     "largerThan": "Più grande di:",
     "helpText1": "La ricerca avviene per ogni carattere digitato (minimo 3 caratteri per i termini di ricerca).",
-    "helpText2": "L'indice: La ricerca utilizza l'indice che viene aggiornato automaticamente all'intervallo configurato (default: 5 minuti). La ricerca quando il programma è appena stato avviato può dare risultati incompleti."
+    "helpText2": "L'indice: La ricerca utilizza l'indice che viene aggiornato automaticamente all'intervallo configurato (default: 5 minuti). La ricerca quando il programma è appena stato avviato può dare risultati incompleti.",
+    "noResults": "Nessun risultato trovato nella ricerca indicizzata.",
+    "onlyFolders": "Solo cartelle",
+    "onlyFiles": "Solo file",
+    "showOptions": "Mostra opzioni",
+    "photos": "Foto",
+    "audio": "Audio",
+    "videos": "Video",
+    "documents": "Documenti",
+    "archives": "Archivio",
+    "number": "Numero",
+    "searchContext": "Contesto di ricerca: {context}",
+    "notEnoughCharacters": "Non ci sono abbastanza caratteri per la ricerca (min {minSearchLength})",
+    "typeToSearch": "Iniziare a digitare {minSearchLength} o più caratteri per avviare la ricerca."
   },
   "settings": {
     "admin": "Admin",
@@ -214,10 +227,8 @@
     "avoidChanges": "(lascia vuoto per evitare cambiamenti)",
     "branding": "Branding",
     "brandingDirectoryPath": "Directory del branding",
-    "brandingHelp": "Puoi personalizzare l'aspetto e il comportamento di File Browser cambiando il suo nome, logo, aggiungendo stili personalizzati e anche disabilitando link esterni verso GitHub.\nPer altre informazioni sul branding personalizzato, vai alla {0}.",
     "changePassword": "Modifica password",
     "commandRunner": "Esecutore di comandi",
-    "commandRunnerHelp": "Qui puoi impostare i comandi da eseguire negli eventi nominati. Ne devi scrivere uno per riga. Le variabili d'ambiente {0} e {1} sono disponibili, essendo {0} relativo a {1}. Per altre informazioni su questa funzionalità e sulle variabili d'ambiente utilizzabili, leggi la {2}.",
     "commandsUpdated": "Comandi aggiornati!",
     "createUserDir": "Crea automaticamente la home directory dell'utente quando lo aggiungi",
     "customStylesheet": "Foglio di stile personalizzato",
@@ -300,7 +311,14 @@
     "adminOptions": "Opzioni dell'utente amministratore",
     "shareDuration": "Scadenza",
     "searchOptions": "Opzioni di ricerca",
-    "downloads": "Scaricamento"
+    "downloads": "Scaricamento",
+    "systemAdmin": "Sistema e amministrazione",
+    "configViewer": "Visualizzatore di configurazione",
+    "configViewerShowFull": "Mostra la configurazione completa",
+    "configViewerShowComments": "Mostra i commenti",
+    "configViewerLoadConfig": "Configurazione del carico",
+    "brandingHelp": "È possibile personalizzare l'aspetto dell'istanza del File Browser cambiandone il nome, sostituendo il logo, aggiungendo stili personalizzati e persino disabilitando i collegamenti esterni a GitHub.\nPer ulteriori informazioni sul branding personalizzato, consultare il sito {0}.",
+    "commandRunnerHelp": "Qui è possibile impostare i comandi che vengono eseguiti negli eventi denominati. È necessario scriverne uno per riga. Le variabili d'ambiente {0} e {1} saranno disponibili, essendo {0} relativa a {1}. Per ulteriori informazioni su questa funzione e sulle variabili d'ambiente disponibili, leggere {2}."
   },
   "sidebar": {
     "help": "Aiuto",
@@ -358,12 +376,21 @@
     "hideNavButtons": "Nascondere i pulsanti di navigazione",
     "hideNavButtonsDescription": "Nascondere i pulsanti di navigazione sulla navbar nella condivisione per creare un look minimalista.",
     "viewModeDescription": "Layout predefinito per la pagina condivisa.",
-    "titleDefault": "Shared files - {title}",
     "descriptionDefault": "È stata inviata una condivisione da visualizzare o scaricare.",
     "disableShareCard": "Disattivare la scheda di condivisione",
     "disableShareCardDescription": "Disattivare la scheda di condivisione sulla pagina condivisa nella barra laterale o nella parte superiore della pagina su mobile.",
     "disableSidebar": "Disattivare la barra laterale",
-    "disableSidebarDescription": "Disattivare la barra laterale della pagina condivisa."
+    "disableSidebarDescription": "Disattivare la barra laterale della pagina condivisa.",
+    "enforceDarkLightMode": "Applicare la modalità a tema",
+    "enforceDarkLightModeDescription": "Forza una modalità tema specifica (scuro o chiaro) per questa condivisione, ignorando le preferenze dell'utente.",
+    "default": "Non applicare una modalità",
+    "dark": "Scuro",
+    "light": "Luce",
+    "enableOnlyOffice": "Abilitate il visualizzatore OnlyOffice",
+    "enableOnlyOfficeDescription": "Consente di visualizzare i file di Office utilizzando OnlyOffice in questa condivisione.",
+    "enableOnlyOfficeEditing": "Abilita la modifica di OnlyOffice",
+    "enableOnlyOfficeEditingDescription": "Consentire la modifica dei file di Office utilizzando OnlyOffice in questa condivisione.",
+    "titleDefault": "File condivisi - {title}"
   },
   "api": {
     "title": "Chiavi API:",
@@ -447,8 +474,8 @@
     "totalDenied": "Negato",
     "totalAllowed": "Consentito",
     "all": "Rifiuta tutto",
-    "defaultBehavior": "Default action{suffix}",
-    "defaultBehaviorDescription": "Questo mostra cosa succede quando un utente cerca di accedere a un percorso per il quale non esistono regole di accesso specifiche. 'Consenti' significa che gli utenti possono accedere per impostazione predefinita, 'Rifiuta' significa che gli utenti sono bloccati per impostazione predefinita, a meno che non siano esplicitamente autorizzati."
+    "defaultBehaviorDescription": "Questo mostra cosa succede quando un utente cerca di accedere a un percorso per il quale non esistono regole di accesso specifiche. 'Consenti' significa che gli utenti possono accedere per impostazione predefinita, 'Rifiuta' significa che gli utenti sono bloccati per impostazione predefinita, a meno che non siano esplicitamente autorizzati.",
+    "defaultBehavior": "Azione predefinita{suffix}"
   },
   "fileLoading": {
     "title": "Caricamenti e download",
@@ -514,14 +541,24 @@
     "defaultThemeDescription": "default - Il tema predefinito",
     "customTheme": "Scegliete il vostro tema",
     "showSelectMultiple": "Mostra selezione multipla nel menu contestuale sul desktop",
-    "showSelectMultipleDescription": "Per impostazione predefinita, il menu contestuale del desktop non dispone dell'opzione \"seleziona più\" come quello del cellulare. Questa opzione viene sempre visualizzata nel menu contestuale."
+    "showSelectMultipleDescription": "Per impostazione predefinita, il menu contestuale del desktop non dispone dell'opzione \"seleziona più\" come quello del cellulare. Questa opzione viene sempre visualizzata nel menu contestuale.",
+    "defaultMediaPlayer": "Utilizzare il lettore multimediale nativo del browser",
+    "defaultMediaPlayerDescription": "Utilizzate il lettore multimediale nativo del vostro browser per i file video e audio piuttosto che il lettore multimediale \"vue-plyr\" incluso in FileBrowser.",
+    "debugOfficeEditor": "Abilita la modalità di debug di OnlyOffice",
+    "debugOfficeEditorDescription": "Mostra un popup di debug con informazioni aggiuntive nell'editor di OnlyOffice.",
+    "fileViewerOptions": "Opzioni del visualizzatore di file",
+    "themeAndLanguage": "Tema e linguaggio"
   },
   "editor": {
     "uninitialized": "Impossibile inizializzare l'editor. Ricaricare.",
     "saveFailed": "Impossibile salvare il file. Riprovare.",
     "saveAborted": "Salvataggio interrotto. Il nome del file non corrisponde al file attivo.",
     "saveDisabled": "Il salvataggio di file condivisi non è supportato.",
-    "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
-    "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
+    "saveAbortedMessage": "Operazione di salvataggio interrotta. Il file attivo dell'applicazione ({activeFile}) non corrisponde al file che si sta cercando di salvare ({tryingToSave}).",
+    "syncFailed": "non è riuscito a sincronizzare lo stato con il percorso per \"{filename}\" dopo 5 tentativi. Interruzione dell'impostazione dell'editor per evitare la corruzione dei dati."
+  },
+  "player": {
+    "LoopEnabled": "Loop abilitato",
+    "LoopDisabled": "Loop disabilitato"
   }
 }

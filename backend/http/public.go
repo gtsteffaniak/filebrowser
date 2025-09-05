@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/go-logger/logger"
 
@@ -37,11 +38,18 @@ func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	d.share.Mu.Unlock()
 	encodedFiles := r.URL.Query().Get("files")
 
-	// Decode the URL-encoded path
-	f, err := url.QueryUnescape(encodedFiles)
+	// Decode the URL-encoded path - use PathUnescape to preserve + as literal character
+	f, err := url.PathUnescape(encodedFiles)
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}
+
+	// Get the actual source name from the share's source mapping
+	sourceInfo, ok := settings.Config.Server.SourceMap[d.share.Source]
+	if !ok {
+		return http.StatusInternalServerError, fmt.Errorf("source not found for share")
+	}
+	actualSourceName := sourceInfo.Name
 
 	fileList := []string{}
 	for _, file := range strings.Split(f, "||") {
@@ -57,12 +65,12 @@ func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 			} else {
 				// Fallback: treat as plain path
 				filePath := utils.JoinPathAsUnix(d.share.Path, file)
-				fileList = append(fileList, d.fileInfo.Source+"::"+filePath)
+				fileList = append(fileList, actualSourceName+"::"+filePath)
 			}
 		} else {
-			// Plain path without source prefix
+			// Plain path without source prefix - use the actual source name from share
 			filePath := utils.JoinPathAsUnix(d.share.Path, file)
-			fileList = append(fileList, d.fileInfo.Source+"::"+filePath)
+			fileList = append(fileList, actualSourceName+"::"+filePath)
 		}
 	}
 
@@ -76,8 +84,6 @@ func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 }
 
 func publicShareHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	// disable onlyoffice for public share
-	d.fileInfo.OnlyOfficeId = ""
 	return renderJSON(w, r, d.fileInfo)
 }
 

@@ -38,68 +38,100 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 	if settings.Config.Integrations.OnlyOffice.Url == "" {
 		return http.StatusInternalServerError, errors.New("only-office integration must be configured in settings")
 	}
-	encodedUrl := r.URL.Query().Get("url")
-	// Decode the URL-encoded path
-	givenUrl, err := url.QueryUnescape(encodedUrl)
-	if err != nil {
-		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
+
+	// Extract clean parameters from request
+	source := r.URL.Query().Get("source")
+	path := r.URL.Query().Get("path")
+
+	// Validate required parameters
+	if (path == "" || source == "") && d.fileInfo.Hash == "" {
+		logger.Errorf("OnlyOffice callback missing required parameters: source=%s, path=%s", source, path)
+		return http.StatusBadRequest, errors.New("missing required parameters: path + source/hash are required")
 	}
-	// get path from url
-	pathParts := strings.Split(givenUrl, "/api/raw?files=")
-	origPathParts := strings.Split(encodedUrl, "/api/raw?files=")
-	encodedPath := origPathParts[len(origPathParts)-1]
-	sourceFile := pathParts[len(pathParts)-1]
-	sourceSplit := strings.Split(sourceFile, "::")
-	if len(sourceSplit) != 2 {
-		return http.StatusBadRequest, fmt.Errorf("invalid url path %v", givenUrl)
+	themeMode := utils.Ternary(d.user.DarkMode, "dark", "light")
+
+	if d.fileInfo.Hash == "" {
+		// Build file info based on whether this is a share or regular request
+		// Regular user request - need to resolve scope
+		userScope, scopeErr := settings.GetScopeFromSourceName(d.user.Scopes, source)
+		if scopeErr != nil {
+			logger.Errorf("OnlyOffice: source %s not available for user %s: %v", source, d.user.Username, scopeErr)
+			return http.StatusForbidden, fmt.Errorf("source %s is not available", source)
+		}
+		resolvedPath := utils.JoinPathAsUnix(userScope, path)
+		logger.Debugf("OnlyOffice user request: resolved path=%s", resolvedPath)
+
+		fileInfo, err := files.FileInfoFaster(iteminfo.FileOptions{
+			Path:   resolvedPath,
+			Modify: d.user.Permissions.Modify,
+			Source: source,
+			Expand: false,
+		})
+		if err != nil {
+			logger.Errorf("OnlyOffice: failed to get file info for source=%s, path=%s: %v", source, resolvedPath, err)
+			return errToStatus(err), err
+		}
+		d.fileInfo = *fileInfo
+	} else {
+		// is a share, use the file info from the share middleware
+		sourceInfo, ok := settings.Config.Server.SourceMap[d.share.Source]
+		if !ok {
+			logger.Error("OnlyOffice: source from share not found")
+			return http.StatusInternalServerError, fmt.Errorf("source not found for share")
+		}
+		source = sourceInfo.Name
+		// path is index path, so we build from share path
+		path = utils.JoinPathAsUnix(d.share.Path, path)
+		if d.share.EnforceDarkLightMode == "dark" {
+			themeMode = "dark"
+		}
+		if d.share.EnforceDarkLightMode == "light" {
+			themeMode = "light"
+		}
+
 	}
-	source := sourceSplit[0]
-	path := sourceSplit[1]
-	urlFirst := pathParts[0]
-	if settings.Config.Server.InternalUrl != "" {
-		urlFirst = settings.Config.Server.InternalUrl + settings.Config.Server.BaseURL
-		whatToReplace := strings.Split(givenUrl, "/api/raw")[0] + "/"
-		givenUrl = strings.Replace(givenUrl, whatToReplace, urlFirst, 1)
-	}
-	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, source)
-	if err != nil {
-		return http.StatusForbidden, err
-	}
-	fileInfo, err := files.FileInfoFaster(iteminfo.FileOptions{
-		Path:   utils.JoinPathAsUnix(userscope, path),
-		Modify: d.user.Permissions.Modify,
-		Source: source,
-		Expand: false,
-	})
-	if err != nil {
-		logger.Debugf("onlyofficeClientConfigGetHandler: failed to get file info for file source %v, path %v: %v", source, path, err)
-		return errToStatus(err), err
-	}
-	id, err := getOnlyOfficeId(source, fileInfo.Path)
-	if err != nil {
-		logger.Debugf("getOnlyOfficeId failed for file source %v, path %v: %v", source, fileInfo.Path, err)
-		return http.StatusNotFound, err
-	}
-	split := strings.Split(fileInfo.Name, ".")
-	fileType := split[len(split)-1]
-	theme := "light"
-	if d.user.DarkMode {
-		theme = "dark"
-	}
+
+	// Determine file type and editing permissions
+	fileType := getFileExtension(d.fileInfo.Name)
 	canEdit := iteminfo.CanEditOnlyOffice(d.user.Permissions.Modify, fileType)
-	mode := "view"
-	if canEdit {
-		mode = "edit"
+	canEditMode := utils.Ternary(canEdit, "edit", "view")
+	if d.fileInfo.Hash != "" {
+		if d.share.EnableOnlyOfficeEditing {
+			canEditMode = "edit"
+		}
 	}
-	callbackURL := fmt.Sprintf("%v/api/onlyoffice/callback?files=%v&auth=%v", strings.TrimSuffix(urlFirst, "/"), encodedPath, d.token)
+	// For shares, we need to keep track of the original relative path for the callback URL
+	var callbackPath string
+	if d.fileInfo.Hash != "" {
+		// For shares, use the original path parameter (relative to share)
+		callbackPath = r.URL.Query().Get("path")
+	} else {
+		// For regular requests, use the processed path
+		callbackPath = path
+	}
+
+	// Generate document ID for OnlyOffice
+	documentId, err := getOnlyOfficeId(source, path)
+	if err != nil {
+		logger.Errorf("OnlyOffice: failed to generate document ID for source=%s, path=%s: %v", source, path, err)
+		return http.StatusNotFound, fmt.Errorf("failed to generate document ID: %v", err)
+	}
+
+	// Build download URL that OnlyOffice server will use
+	downloadURL := buildOnlyOfficeDownloadURL(source, callbackPath, d.fileInfo.Hash, d.token)
+
+	// Build callback URL for OnlyOffice to notify us of changes
+	callbackURL := buildOnlyOfficeCallbackURL(source, callbackPath, d.fileInfo.Hash, d.token)
+
+	// Build OnlyOffice client configuration
 	clientConfig := map[string]interface{}{
 		"document": map[string]interface{}{
 			"fileType": fileType,
-			"key":      id,
-			"title":    fileInfo.Name,
-			"url":      givenUrl + "&auth=" + d.token,
+			"key":      documentId,
+			"title":    d.fileInfo.Name,
+			"url":      downloadURL,
 			"permissions": map[string]interface{}{
-				"edit":     canEdit,
+				"edit":     canEditMode,
 				"download": true,
 				"print":    true,
 			},
@@ -113,78 +145,194 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 			"customization": map[string]interface{}{
 				"autosave":  true,
 				"forcesave": true,
-				"uiTheme":   theme,
+				"uiTheme":   themeMode,
 			},
 			"lang": d.user.Locale,
-			"mode": mode,
+			"mode": canEditMode,
 		},
 	}
+
+	// Sign configuration with JWT if secret is configured
 	if settings.Config.Integrations.OnlyOffice.Secret != "" {
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims(clientConfig))
 		signature, err := token.SignedString([]byte(settings.Config.Integrations.OnlyOffice.Secret))
 		if err != nil {
-			return http.StatusInternalServerError, fmt.Errorf("failed to sign JWT")
+			logger.Errorf("OnlyOffice: failed to sign JWT: %v", err)
+			return http.StatusInternalServerError, fmt.Errorf("failed to sign configuration")
 		}
 		clientConfig["token"] = signature
 	}
+
 	return renderJSON(w, r, clientConfig)
 }
 
+// getFileExtension extracts file extension from filename
+func getFileExtension(filename string) string {
+	parts := strings.Split(filename, ".")
+	if len(parts) < 2 {
+		return ""
+	}
+	return parts[len(parts)-1]
+}
+
+// buildOnlyOfficeDownloadURL constructs the download URL that OnlyOffice server will use to fetch the file
+func buildOnlyOfficeDownloadURL(source, path, hash, token string) string {
+	// Determine base URL (internal URL takes priority for OnlyOffice server communication)
+	baseURL := settings.Config.Server.BaseURL
+	if settings.Config.Server.InternalUrl != "" {
+		baseURL = settings.Config.Server.InternalUrl + settings.Config.Server.BaseURL
+	}
+
+	var downloadURL string
+	if hash != "" {
+		// Share download URL - don't expose source name, just use the path relative to share
+		filesParam := url.QueryEscape(path)
+		downloadURL = fmt.Sprintf("%s/public/api/raw?files=%s&hash=%s&token=%s&auth=%s",
+			strings.TrimSuffix(baseURL, "/"), filesParam, hash, token, token)
+	} else {
+		// Regular download URL - include source for non-share requests
+		filesParam := url.QueryEscape(source + "::" + path)
+		downloadURL = fmt.Sprintf("%s/api/raw?files=%s&auth=%s",
+			strings.TrimSuffix(baseURL, "/"), filesParam, token)
+	}
+
+	return downloadURL
+}
+
+// buildOnlyOfficeCallbackURL constructs the callback URL that OnlyOffice server will use to notify us of changes
+func buildOnlyOfficeCallbackURL(source, path, hash, token string) string {
+	baseURL := settings.Config.Server.BaseURL
+	if settings.Config.Server.InternalUrl != "" {
+		baseURL = settings.Config.Server.InternalUrl + settings.Config.Server.BaseURL
+	}
+
+	var callbackURL string
+	if hash != "" {
+		// Share callback URL - use public API and don't expose source, use path relative to share
+		params := url.Values{}
+		params.Set("hash", hash)
+		params.Set("path", path) // This should be the path relative to the share, not the full filesystem path
+		params.Set("auth", token)
+
+		callbackURL = fmt.Sprintf("%s/public/api/onlyoffice/callback?%s",
+			strings.TrimSuffix(baseURL, "/"), params.Encode())
+	} else {
+		// Regular callback URL - include source for non-share requests
+		params := url.Values{}
+		params.Set("source", source)
+		params.Set("path", path)
+		params.Set("auth", token)
+
+		callbackURL = fmt.Sprintf("%s/api/onlyoffice/callback?%s",
+			strings.TrimSuffix(baseURL, "/"), params.Encode())
+	}
+
+	return callbackURL
+}
+
 func onlyofficeCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	// Parse OnlyOffice callback data
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		return http.StatusInternalServerError, err
-	}
-	var data OnlyOfficeCallback
-	err = json.Unmarshal(body, &data)
-	if err != nil {
+		logger.Errorf("OnlyOffice callback: failed to read request body: %v", err)
 		return http.StatusInternalServerError, err
 	}
 
-	encodedPath := r.URL.Query().Get("files")
-	pathParts := strings.Split(encodedPath, "::")
-	if len(pathParts) < 2 {
-		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
-	}
-	source := pathParts[0]
-	// Decode the URL-encoded path
-	path, err := url.QueryUnescape(pathParts[1])
+	var data OnlyOfficeCallback
+	err = json.Unmarshal(body, &data)
 	if err != nil {
-		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
+		logger.Errorf("OnlyOffice callback: failed to parse JSON: %v", err)
+		return http.StatusInternalServerError, err
 	}
+
+	// Extract clean parameters from query string
+	source := r.URL.Query().Get("source")
+	path := r.URL.Query().Get("path")
+
+	// Validate required parameters
+	if (path == "" || source == "") && d.fileInfo.Hash == "" {
+		logger.Errorf("OnlyOffice callback missing required parameters: source=%s, path=%s", source, path)
+		return http.StatusBadRequest, errors.New("missing required parameters: path + source/hash are required")
+	}
+
+	if d.fileInfo.Hash == "" {
+		// Regular user request - need to resolve scope
+		userScope, scopeErr := settings.GetScopeFromSourceName(d.user.Scopes, source)
+		if scopeErr != nil {
+			logger.Errorf("OnlyOffice callback: source %s not available for user %s: %v", source, d.user.Username, scopeErr)
+			return http.StatusForbidden, fmt.Errorf("source %s is not available", source)
+		}
+		path = utils.JoinPathAsUnix(userScope, path)
+	} else {
+		// is a share, use the file info from the share middleware
+		sourceInfo, ok := settings.Config.Server.SourceMap[d.share.Source]
+		if !ok {
+			logger.Error("OnlyOffice: source from share not found")
+			return http.StatusInternalServerError, fmt.Errorf("source not found for share")
+		}
+		source = sourceInfo.Name
+		// path is index path, so we build from share path
+		path = utils.JoinPathAsUnix(d.share.Path, path)
+	}
+	// Handle document closure - clean up document key cache
 	if data.Status == onlyOfficeStatusDocumentClosedWithChanges ||
 		data.Status == onlyOfficeStatusDocumentClosedWithNoChanges {
-		// Refer to only-office documentation
+		// Refer to OnlyOffice documentation:
 		// - https://api.onlyoffice.com/editors/coedit
 		// - https://api.onlyoffice.com/editors/callback
 		//
 		// When the document is fully closed by all editors,
-		// then the document key should no longer be re-used.
+		// the document key should no longer be re-used.
+		logger.Debugf("OnlyOffice: document closed, cleaning up document ID for source=%s, path=%s", source, path)
 		deleteOfficeId(source, path)
 	}
 
+	// Handle document save operations
 	if data.Status == onlyOfficeStatusDocumentClosedWithChanges ||
 		data.Status == onlyOfficeStatusForceSaveWhileDocumentStillOpen {
+
+		// Verify user has modify permissions
 		if !d.user.Permissions.Modify {
+			logger.Warningf("OnlyOffice callback: user %s lacks modify permissions for source=%s, path=%s",
+				d.user.Username, source, path)
 			return http.StatusForbidden, nil
 		}
 
+		// Download the updated document from OnlyOffice server
 		doc, err := http.Get(data.URL)
 		if err != nil {
+			logger.Errorf("OnlyOffice callback: failed to download updated document: %v", err)
 			return http.StatusInternalServerError, err
 		}
 		defer doc.Body.Close()
 
+		// Resolve file path for writing (same logic as in config handler)
+		var resolvedPath string
+		if d.fileInfo.Hash == "" {
+			// Regular user request - need to resolve scope
+			userScope, scopeErr := settings.GetScopeFromSourceName(d.user.Scopes, source)
+			if scopeErr != nil {
+				logger.Errorf("OnlyOffice callback: source %s not available for user %s: %v",
+					source, d.user.Username, scopeErr)
+				return http.StatusForbidden, fmt.Errorf("source %s is not available", source)
+			}
+			resolvedPath = utils.JoinPathAsUnix(userScope, path)
+		}
+
+		// Write the updated document
 		fileOpts := iteminfo.FileOptions{
-			Path:   path,
+			Path:   resolvedPath,
 			Source: source,
 		}
 		writeErr := files.WriteFile(fileOpts, doc.Body)
 		if writeErr != nil {
+			logger.Errorf("OnlyOffice callback: failed to write updated document: %v", writeErr)
 			return http.StatusInternalServerError, writeErr
 		}
+
 	}
 
+	// Return success response to OnlyOffice server
 	resp := map[string]int{
 		"error": 0,
 	}
@@ -214,30 +362,4 @@ func deleteOfficeId(source, path string) {
 	}
 	realpath, _, _ := idx.GetRealPath(path)
 	utils.OnlyOfficeCache.Delete(realpath)
-}
-
-func onlyofficeGetTokenHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	// get config from body
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		return http.StatusInternalServerError, err
-	}
-	defer r.Body.Close()
-
-	var payload map[string]interface{}
-	// marshall to struct
-	err = json.Unmarshal(body, &payload)
-	if err != nil {
-		return http.StatusInternalServerError, err
-	}
-
-	if settings.Config.Integrations.OnlyOffice.Secret != "" {
-		token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims(payload))
-		ss, err := token.SignedString([]byte(settings.Config.Integrations.OnlyOffice.Secret))
-		if err != nil {
-			return 500, errors.New("could not generate a new jwt")
-		}
-		return renderJSON(w, r, map[string]string{"token": ss})
-	}
-	return 400, fmt.Errorf("bad request")
 }

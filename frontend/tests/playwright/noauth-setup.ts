@@ -13,7 +13,7 @@ async function globalSetup() {
   await page.locator('a[aria-label="myfolder"]').waitFor({ state: 'visible' });
   await page.locator('a[aria-label="myfolder"]').click({ button: "right" });
   await page.locator('.selected-count-header').waitFor({ state: 'visible' });
-  await expect(page.locator('.selected-count-header')).toHaveText('1 selected');
+  await expect(page.locator('.selected-count-header')).toHaveText('1');
   await page.locator('button[aria-label="Share"]').click();
   await expect(page.locator('div[aria-label="share-path"]')).toHaveText('Path: /myfolder');
   await page.locator('button[aria-label="Share-Confirm"]').click();
@@ -32,7 +32,7 @@ async function globalSetup() {
   await page.locator('a[aria-label="1file1.txt"]').waitFor({ state: 'visible' });
   await page.locator('a[aria-label="1file1.txt"]').click({ button: "right" });
   await page.locator('.selected-count-header').waitFor({ state: 'visible' });
-  await expect(page.locator('.selected-count-header')).toHaveText('1 selected');
+  await expect(page.locator('.selected-count-header')).toHaveText('1');
   await page.locator('button[aria-label="Share"]').click();
   await expect(page.locator('div[aria-label="share-path"]')).toHaveText('Path: /1file1.txt');
   await page.locator('button[aria-label="Share-Confirm"]').click();

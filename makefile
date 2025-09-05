@@ -1,5 +1,5 @@
 SHELL := /bin/bash
-
+FILEBROWSER_DEVMODE=true
 .SILENT:
 setup:
 	echo "creating ./backend/test_config.yaml for local testing..."
@@ -48,13 +48,10 @@ run: build-frontend
 	else \
 		sed -i '/func init/,+3d' ./swagger/docs/docs.go; \
 	fi && \
-	FILEBROWSER_DEVMODE=true CGO_ENABLED=1 go run --tags=mupdf \
+	CGO_ENABLED=1 go run --tags=mupdf \
 	--ldflags="-w -s -X 'github.com/gtsteffaniak/filebrowser/backend/version.CommitSHA=testingCommit' -X 'github.com/gtsteffaniak/filebrowser/backend/version.Version=testing'" . -c test_config.yaml
 
 build-frontend:
-	cd backend && rm -rf http/dist http/embed/* && \
-	FILEBROWSER_GENERATE_CONFIG=true go run . && cp generated.yaml ../frontend/public/config.generated.yaml
-	cd backend/http/ && ln -s ../../frontend/dist
 	if [ "$(OS)" = "Windows_NT" ]; then \
 		cd frontend && npm run build-windows; \
 	else \

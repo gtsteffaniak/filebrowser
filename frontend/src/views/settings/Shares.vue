@@ -70,7 +70,7 @@
 
 <script>
 import { notify } from "@/notify";
-import { publicApi } from "@/api";
+import { publicApi, shareApi } from "@/api";
 import { state, mutations, getters } from "@/store";
 import Clipboard from "clipboard";
 import Errors from "@/views/Errors.vue";
@@ -101,13 +101,11 @@ export default {
     this.clip.on("success", () => {
       notify.showSuccess(this.$t("success.linkCopied"));
     });
-    
     // Listen for share changes
     eventBus.on('sharesChanged', this.reloadShares);
   },
   beforeUnmount() {
     this.clip.destroy();
-    
     // Clean up event listener
     eventBus.removeEventListener('sharesChanged', this.reloadShares);
   },
@@ -129,7 +127,7 @@ export default {
     async reloadShares() {
       mutations.setLoading("shares", true);
       try {
-        let links = await publicApi.list();
+        let links = await shareApi.list();
         if (links.length === 0) {
           this.links = [];
           return;
@@ -167,7 +165,7 @@ export default {
           mutations.closeHovers();
 
           try {
-            publicApi.remove(link.hash);
+            shareApi.remove(link.hash);
             this.links = this.links.filter((item) => item.hash !== link.hash);
             notify.showSuccess(this.$t("settings.shareDeleted"));
           } catch (e) {

@@ -1,5 +1,5 @@
 import { baseURL } from "@/utils/constants.js";
-import { state, mutations } from "@/store";
+import { state, mutations, getters } from "@/store";
 import { router } from "@/router";
 import { shareInfo } from "@/utils/constants.js";
 
@@ -139,6 +139,9 @@ export function extractSourceFromPath(url) {
 }
 
 export function buildItemUrl(source, path) {
+  if (getters.isShare()) {
+    return `/public/share/${shareInfo.hash}${path}`;
+  }
   if (state.serverHasMultipleSources) {
     return `/files/${source}${path}`;
   } else {
@@ -157,11 +160,9 @@ export function encodedPath(path) {
 }
 
 // assume non-encoded input path and source
-export function goToItem(source, path, previousHash) {
+export function goToItem(source, path, previousHistoryItem) {
   mutations.resetAll()
-  if (previousHash) {
-    location.hash = previousHash;
-  }
+  mutations.setPreviousHistoryItem(previousHistoryItem);
   let newPath = encodedPath(path);
   let fullPath;
   if (shareInfo.isShare) {

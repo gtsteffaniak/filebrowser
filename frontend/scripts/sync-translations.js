@@ -50,9 +50,15 @@ async function translateText(text, targetLanguage, keyPath = '') {
     return text;
   }
 
-  if (/\{[^}]+\}/.test(text)) {
-    console.log(`Skipping translation for placeholder string: "${text}"`);
-    return text;
+  const hasPlaceholders = /\{[^}]+\}/.test(text);
+  let textToTranslate = text;
+  const options = {};
+
+  if (hasPlaceholders) {
+    console.log(`Found placeholder in: "${text}". Wrapping for translation.`);
+    textToTranslate = text.replace(/(\{[^}]+\})/g, '<ph>$1</ph>');
+    options.tagHandling = 'xml';
+    options.ignoreTags = ['ph'];
   }
 
   try {
@@ -60,12 +66,19 @@ async function translateText(text, targetLanguage, keyPath = '') {
 
     let deeplTargetLang = deeplLangMap[targetLanguage.toLowerCase()] || targetLanguage.toUpperCase();
 
-    const result = await translator.translateText(text, masterLanguageCode, deeplTargetLang);
+    const result = await translator.translateText(textToTranslate, masterLanguageCode, deeplTargetLang, options);
 
     // Delay to avoid rate-limiting
     await new Promise(resolve => setTimeout(resolve, 100));
 
-    return result.text;
+    let translatedText = result.text;
+
+    if (hasPlaceholders) {
+      // Unwrap the placeholders. The translator might add spaces around tags.
+      translatedText = translatedText.replace(/<ph>\s*(\{[^}]+\})\s*<\/ph>/g, '$1');
+    }
+
+    return translatedText;
 
   } catch (err) {
     console.error(`⚠️ Translation failed for "${text}" (${keyPath}):`, err?.message || err);

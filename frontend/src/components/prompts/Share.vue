@@ -89,6 +89,25 @@
         />
         <ToggleSwitch class="item" v-model="disableAnonymous" :name="$t('share.disableAnonymous')" :description="$t('share.disableAnonymousDescription')" />
         <ToggleSwitch class="item" v-model="enableAllowedUsernames" :name="$t('share.enableAllowedUsernames')" :description="$t('share.enableAllowedUsernamesDescription')" />
+
+        <ToggleSwitch v-if="onlyOfficeAvailable" class="item" v-model="enableOnlyOffice" :name="$t('share.enableOnlyOffice')" :description="$t('share.enableOnlyOfficeDescription')" />
+        <ToggleSwitch v-if="onlyOfficeAvailable" class="item" v-model="enableOnlyOfficeEditing" :name="$t('share.enableOnlyOfficeEditing')" :description="$t('share.enableOnlyOfficeEditingDescription')" />
+        <p>
+          {{ $t("share.enforceDarkLightMode") }}
+          <i
+            class="no-select material-symbols-outlined tooltip-info-icon"
+            @mouseenter="showTooltip($event, $t('share.enforceDarkLightModeDescription'))"
+            @mouseleave="hideTooltip"
+          >
+            help
+          </i>
+        </p>
+        <select class="input" v-model="enforceDarkLightMode">
+          <option value="default">{{ $t("share.default") }}</option>
+          <option value="dark">{{ $t("share.dark") }}</option>
+          <option value="light">{{ $t("share.light") }}</option>
+        </select>
+
         <div v-if="enableAllowedUsernames" class="item">
           <input class="input" type="text" v-model.trim="allowedUsernames" :placeholder="$t('share.allowedUsernamesPlaceholder')" />
         </div>
@@ -111,26 +130,7 @@
             </option>
           </select>
         </div>
-      <div class="advanced-toggle">
-        <button
-          class="button button--flat button--block"
-          @click="showAdvanced = !showAdvanced"
-          :aria-expanded="showAdvanced ? 'true' : 'false'"
-          aria-controls="advanced-settings"
-          :aria-label="showAdvanced ? $t('buttons.showLess') : $t('buttons.showMore')"
-          :title="showAdvanced ? $t('buttons.showLess') : $t('buttons.showMore')"
-        >
-          {{ showAdvanced ? $t('buttons.showLess') : $t('buttons.showMore') }}
-        </button>
-      </div>
-
-      <transition
-        name="expand"
-        @before-enter="beforeEnter"
-        @enter="enter"
-        @leave="leave"
-      >
-      <div id="advanced-settings" v-show="showAdvanced">
+      <SettingsItem :title="$t('buttons.showMore')" :collapsable="true" :start-collapsed="true">
         <div class="settings-items">
           <ToggleSwitch class="item" v-model="keepAfterExpiration" :name="$t('share.keepAfterExpiration')" :description="$t('share.keepAfterExpirationDescription')" />
           <ToggleSwitch class="item" v-model="disableThumbnails" :name="$t('share.disableThumbnails')" :description="$t('share.disableThumbnailsDescription')" />
@@ -222,8 +222,7 @@
           </i>
         </p>
         <input class="input" type="text" v-model.trim="favicon" />
-      </div>
-      </transition>
+      </SettingsItem>
     </div>
   </div>
 
@@ -250,12 +249,13 @@
 <script>
 import { notify } from "@/notify";
 import { state, getters, mutations } from "@/store";
-import { publicApi } from "@/api";
+import { publicApi, shareApi } from "@/api";
 import Clipboard from "clipboard";
 import { fromNow } from "@/utils/moment";
 import { buildItemUrl, fixDownloadURL } from "@/utils/url";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
-import { userSelectableThemes, externalUrl } from "@/utils/constants";
+import SettingsItem from "@/components/settings/SettingsItem.vue";
+import { userSelectableThemes, externalUrl, onlyOfficeUrl } from "@/utils/constants";
 import { eventBus } from "@/store/eventBus";
 //import ViewMode from "@/components/settings/ViewMode.vue";
 
@@ -263,6 +263,7 @@ export default {
   name: "share",
   components: {
     ToggleSwitch,
+    SettingsItem,
     //ViewMode,
   },
   props: {
@@ -310,15 +311,20 @@ export default {
       title: "",
       description: "",
       favicon: "",
-      showAdvanced: false,
       quickDownload: false,
       disableNavButtons: false,
       disableShareCard: false,
       disableSidebar: false,
+      enforceDarkLightMode: "default",
+      enableOnlyOffice: false,
+      enableOnlyOfficeEditing: false,
       //viewMode: "normal",
     };
   },
   computed: {
+    onlyOfficeAvailable() {
+      return onlyOfficeUrl !== "";
+    },
     availableThemes() {
       return userSelectableThemes || {};
     },
@@ -390,6 +396,9 @@ export default {
           this.disableNavButtons = this.link.hideNavButtons || false;
           this.disableShareCard = this.link.disableShareCard || false;
           this.disableSidebar = this.link.disableSidebar || false;
+          this.enforceDarkLightMode = this.link.enforceDarkLightMode || "default";
+          this.enableOnlyOffice = this.link.enableOnlyOffice || false;
+          this.enableOnlyOfficeEditing = this.link.enableOnlyOfficeEditing || false;
           //this.viewMode = this.link.viewMode || "normal";
         }
       },
@@ -401,7 +410,7 @@ export default {
     }
     try {
       // get last element of the path
-      const links = await publicApi.get(this.item.path, this.item.source);
+      const links = await shareApi.get(this.item.path, this.item.source);
       this.links = links;
     } catch (err) {
       notify.showError(err);
@@ -420,45 +429,6 @@ export default {
     });
   },
   methods: {
-    /**
-     * @param {Element} el
-     */
-    beforeEnter(el) {
-      const element = /** @type {HTMLElement} */ (el);
-      element.style.height = '0';
-      element.style.opacity = '0';
-    },
-    /**
-     * @param {Element} el
-     * @param {() => void} done
-     */
-    enter(el, done) {
-      const element = /** @type {HTMLElement} */ (el);
-      element.style.transition = '';
-      element.style.height = '0';
-      element.style.opacity = '0';
-      void element.offsetHeight;
-      element.style.transition = 'height 0.3s, opacity 0.3s';
-      element.style.height = element.scrollHeight + 'px';
-      element.style.opacity = '1';
-      setTimeout(() => {
-        element.style.height = 'auto';
-        done();
-      }, 300);
-    },
-    /**
-     * @param {Element} el
-     * @param {() => void} done
-     */
-    leave(el, done) {
-      const element = /** @type {HTMLElement} */ (el);
-      element.style.transition = 'height 0.3s, opacity 0.3s';
-      element.style.height = element.scrollHeight + 'px';
-      void element.offsetHeight;
-      element.style.height = '0';
-      element.style.opacity = '0';
-      setTimeout(done, 300);
-    },
     /**
      * @param {MouseEvent} event
      * @param {string} text
@@ -507,12 +477,15 @@ export default {
           hideNavButtons: this.disableNavButtons,
           disableShareCard: this.disableShareCard,
           disableSidebar: this.disableSidebar,
+          enforceDarkLightMode: this.enforceDarkLightMode,
+          enableOnlyOffice: this.enableOnlyOffice,
+          enableOnlyOfficeEditing: this.enableOnlyOfficeEditing,
         };
         if (this.isEditMode) {
           payload.hash = this.link.hash;
         }
 
-        const res = await publicApi.create(payload);
+        const res = await shareApi.create(payload);
 
         if (!this.isEditMode) {
           this.links.push(res);
@@ -539,7 +512,7 @@ export default {
     async deleteLink(event, link) {
       event.preventDefault();
       try {
-        await publicApi.remove(link.hash);
+        await shareApi.remove(link.hash);
         this.links = this.links.filter((item) => item.hash !== link.hash);
         // emit event to reload shares in settings view
         eventBus.emit('sharesChanged');
@@ -599,9 +572,6 @@ export default {
 
 <style scoped>
 
-.advanced-toggle {
-  margin-top: 1em;
-}
 .setting-item {
   display: flex;
   justify-content: space-between;
@@ -618,16 +588,5 @@ export default {
 /* Prevent inputs from expanding to container height during expand transition */
 .input {
   height: auto;
-}
-
-.expand-enter-active,
-.expand-leave-active {
-  transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  overflow: hidden;
-}
-.expand-enter,
-.expand-leave-to {
-  height: 0 !important;
-  opacity: 0;
 }
 </style>

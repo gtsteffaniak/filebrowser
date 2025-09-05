@@ -49,7 +49,8 @@
     "clearCompleted": "Limpar concluído",
     "showMore": "Mostrar mais",
     "showLess": "Mostrar menos",
-    "openParentFolder": "Abrir a pasta principal"
+    "openParentFolder": "Abrir a pasta principal",
+    "selectedCount": "Número de itens selecionados para executar uma ação"
   },
   "download": {
     "downloadFile": "Baixar arquivo",
@@ -84,15 +85,15 @@
     "click": "selecionar pasta ou arquivo",
     "ctrl": {
       "click": "selecionar várias pastas e arquivos",
-      "f": "pesquisar",
-      "s": "salvar um arquivo ou baixar a pasta que você está"
+      "d": "baixar itens selecionados"
     },
     "del": "apagar os arquivos selecionados",
-    "doubleClick": "abrir pasta ou arquivo",
     "esc": "limpar seleção e/ou fechar menu",
-    "f1": "esta informação",
     "f2": "renomear arquivo",
-    "help": "Ajuda"
+    "help": "Ajuda",
+    "f1": "mostrar prompt de ajuda",
+    "description": "Você pode ver as opções básicas de navegação abaixo. Para obter informações adicionais, visite",
+    "wiki": "Wiki do FileBrowser Quantum"
   },
   "languages": {
     "he": "עברית",
@@ -134,16 +135,13 @@
   "prompts": {
     "copy": "Copiar",
     "copyMessage": "Escolha um lugar para copiar os arquivos:",
-    "deleteMessageMultiple": "Deseja apagar {count} arquivo(s)?",
     "deleteMessageSingle": "Deseja apagar esta pasta/arquivo?",
-    "deleteMessageShare": "Deseja apagar este compartilhamento ({path})?",
     "deleteTitle": "Apagar arquivos",
     "displayName": "Nome:",
     "download": "Baixar arquivos",
     "downloadMessage": "Escolha o formato do arquivo.",
     "error": "Algo de errado ocorreu",
     "fileInfo": "Informação do arquivo",
-    "lastModified": "Última modificação{suffix}",
     "move": "Mover",
     "moveMessage": "Escolha uma nova pasta para os seus arquivos:",
     "newArchetype": "Criar um novo post baseado num \"archetype\". O seu arquivo será criado na pasta \"content\".",
@@ -151,10 +149,7 @@
     "newDirMessage": "Escreva o nome da nova pasta.",
     "newFile": "Novo arquivo",
     "newFileMessage": "Escreva o nome do novo arquivo.",
-    "numberDirs": "Número de pastas{suffix}",
-    "numberFiles": "Número de arquivos{suffix}",
     "rename": "Renomear",
-    "renameMessage": "Insira um novo nome para",
     "replace": "Substituir",
     "replaceMessage": "Já existe um arquivo com nome igual a um dos que está tentando enviar. Deseja substituir?\n",
     "schedule": "Agendar",
@@ -172,10 +167,6 @@
     "dragAndDrop": "Arraste e solte os arquivos aqui",
     "completed": "Concluído",
     "conflictsDetected": "Conflitos detectados",
-    "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "Nome inválido fornecido: não pode conter \"/\" ou \"\\\"",
-    "source": "Source{suffix}",
     "downloadsLimit": "Limite de número de downloads",
     "maxBandwidth": "Largura de banda máxima de download (kbps)",
     "shareTheme": "Compartilhar tema",
@@ -186,22 +177,44 @@
     "shareBanner": "Compartilhar URL do banner",
     "shareFavicon": "Compartilhar URL do favicon",
     "optionalPasswordHelp": "Se definida, os usuários deverão digitar essa senha para visualizar o conteúdo compartilhado.",
-    "viewMode": "Modo de exibição"
+    "viewMode": "Modo de exibição",
+    "renameMessage": "Digite um novo nome:",
+    "renameMessageInvalid": "Um arquivo não pode ter o contêiner \"/\" ou \"\\\"",
+    "source": "Fonte{suffix}",
+    "deleteMessageMultiple": "Tem certeza de que deseja excluir o(s) arquivo(s) {count}?",
+    "deleteMessageShare": "Tem certeza de que deseja excluir esse compartilhamento: {path} ?",
+    "lastModified": "Última modificação{suffix}",
+    "numberDirs": "Número de diretórios{suffix}",
+    "numberFiles": "Número de arquivos{suffix}",
+    "renameMessageConflict": "Já existe um item chamado \"{filename}\"!",
+    "uploadSettingsChunked": "Máximo de uploads simultâneos: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
+    "uploadSettingsNoChunk": "Máximo de uploads simultâneos: {maxConcurrentUpload}, upload em pedaços desativado"
   },
   "search": {
     "images": "Imagens",
     "music": "Músicas",
     "pdf": "PDF",
-    "pressToSearch": "Pressione Enter para pesquisar...",
     "search": "Pesquise...",
-    "typeToSearch": "Digite para pesquisar...",
     "types": "Tipos",
     "video": "Vídeos",
     "path": "Caminho:",
     "smallerThan": "Menor que:",
     "largerThan": "Maior que:",
     "helpText1": "A pesquisa ocorre em cada caractere que você digita (mínimo de 3 caracteres para termos de pesquisa).",
-    "helpText2": "O índice: A pesquisa utiliza o índice que é atualizado automaticamente no intervalo configurado (padrão: 5 minutos). A pesquisa quando o programa acaba de ser iniciado pode resultar em resultados incompletos."
+    "helpText2": "O índice: A pesquisa utiliza o índice que é atualizado automaticamente no intervalo configurado (padrão: 5 minutos). A pesquisa quando o programa acaba de ser iniciado pode resultar em resultados incompletos.",
+    "noResults": "Não foram encontrados resultados na pesquisa indexada.",
+    "onlyFolders": "Somente pastas",
+    "onlyFiles": "Somente arquivos",
+    "showOptions": "Mostrar opções",
+    "photos": "Fotos",
+    "audio": "Áudio",
+    "videos": "Vídeos",
+    "documents": "Documentos",
+    "archives": "Arquivos",
+    "number": "Número",
+    "searchContext": "Contexto da pesquisa: {context}",
+    "notEnoughCharacters": "Não há caracteres suficientes para pesquisar (mín. {minSearchLength})",
+    "typeToSearch": "Comece a digitar {minSearchLength} ou mais caracteres para iniciar a busca."
   },
   "settings": {
     "admin": "Admin",
@@ -214,10 +227,8 @@
     "avoidChanges": "(deixe em branco para manter)",
     "branding": "Customização",
     "brandingDirectoryPath": "Diretório de customização",
-    "brandingHelp": "Você pode mudar a aparência e experiência de sua instância do File Browser alterando seu nome, logotipo, adicionando estilos customizados e até desabilitando links externos para o GitHub.\nPara mais informações sobre customizações, confira {0}.",
     "changePassword": "Alterar senha",
     "commandRunner": "Execução de comandos",
-    "commandRunnerHelp": "Aqui você pode definir comandos que serão executados nos eventos descritos. Escreva um por linha. As variáveis de ambiente {0} e {1} estão disponíveis, sendo {0} relativo a {1}. Para mais informações sobre esta função e as variáveis de ambiente disponíveis, leia a {2}.",
     "commandsUpdated": "Comandos atualizados!",
     "createUserDir": "Criar diretório Home para novos usuários",
     "userHomeBasePath": "Caminho base para diretórios de usuários",
@@ -300,7 +311,14 @@
     "adminOptions": "Opções do usuário administrador",
     "shareDuration": "Expirações",
     "searchOptions": "Opções de pesquisa",
-    "downloads": "Downloads"
+    "downloads": "Downloads",
+    "systemAdmin": "Sistema e administração",
+    "configViewer": "Visualizador de configuração",
+    "configViewerShowFull": "Mostrar configuração completa",
+    "configViewerShowComments": "Mostrar comentários",
+    "configViewerLoadConfig": "Configuração de carga",
+    "brandingHelp": "Você pode personalizar a aparência da instância do Navegador de arquivos alterando seu nome, substituindo o logotipo, adicionando estilos personalizados e até mesmo desativando links externos para o GitHub.\nPara obter mais informações sobre branding personalizado, consulte {0}.",
+    "commandRunnerHelp": "Aqui você pode definir comandos que são executados nos eventos nomeados. Você deve escrever um por linha. As variáveis de ambiente {0} e {1} estarão disponíveis, sendo {0} relativo a {1}. Para obter mais informações sobre esse recurso e as variáveis de ambiente disponíveis, leia {2}."
   },
   "sidebar": {
     "help": "Ajuda",
@@ -358,12 +376,21 @@
     "hideNavButtons": "Ocultar botões de navegação",
     "hideNavButtonsDescription": "Oculte os botões de navegação na barra de navegação do compartilhamento para criar uma aparência minimalista.",
     "viewModeDescription": "Layout padrão para a página compartilhada.",
-    "titleDefault": "Shared files - {title}",
     "descriptionDefault": "Um compartilhamento foi enviado a você para visualização ou download.",
     "disableShareCard": "Desativar cartão compartilhado",
     "disableShareCardDescription": "Desative o cartão de compartilhamento na página compartilhada na barra lateral ou na parte superior da página no celular.",
     "disableSidebar": "Desativar a barra lateral",
-    "disableSidebarDescription": "Desative a barra lateral na página compartilhada."
+    "disableSidebarDescription": "Desative a barra lateral na página compartilhada.",
+    "enforceDarkLightMode": "Aplicar o modo de tema",
+    "enforceDarkLightModeDescription": "Força um modo de tema específico (escuro ou claro) para esse compartilhamento, substituindo as preferências do usuário.",
+    "default": "Não imponha um modo",
+    "dark": "Escuro",
+    "light": "Luz",
+    "enableOnlyOffice": "Ativar o visualizador do OnlyOffice",
+    "enableOnlyOfficeDescription": "Permitir a visualização de arquivos do Office usando o OnlyOffice nesse compartilhamento.",
+    "enableOnlyOfficeEditing": "Ativar a edição do OnlyOffice",
+    "enableOnlyOfficeEditingDescription": "Permitir a edição de arquivos do Office usando o OnlyOffice nesse compartilhamento.",
+    "titleDefault": "Arquivos compartilhados - {title}"
   },
   "api": {
     "title": "Chaves de API:",
@@ -447,8 +474,8 @@
     "totalDenied": "Negado",
     "totalAllowed": "Permitido",
     "all": "Negar tudo",
-    "defaultBehavior": "Default action{suffix}",
-    "defaultBehaviorDescription": "Isso mostra o que acontece quando um usuário tenta acessar um caminho em que não existem regras de acesso específicas. \"Permitir\" significa que os usuários podem acessar por padrão, \"Negar\" significa que os usuários são bloqueados por padrão, a menos que sejam explicitamente permitidos."
+    "defaultBehaviorDescription": "Isso mostra o que acontece quando um usuário tenta acessar um caminho em que não existem regras de acesso específicas. \"Permitir\" significa que os usuários podem acessar por padrão, \"Negar\" significa que os usuários são bloqueados por padrão, a menos que sejam explicitamente permitidos.",
+    "defaultBehavior": "Ação padrão{suffix}"
   },
   "fileLoading": {
     "title": "Uploads e downloads",
@@ -514,14 +541,24 @@
     "defaultThemeDescription": "default - O tema padrão",
     "customTheme": "Escolha seu tema",
     "showSelectMultiple": "Mostrar seleção múltipla no menu de contexto na área de trabalho",
-    "showSelectMultipleDescription": "Por padrão, o menu de contexto do desktop não tem a opção \"selecionar vários\" como no celular. Essa opção sempre a mostra no menu de contexto."
+    "showSelectMultipleDescription": "Por padrão, o menu de contexto do desktop não tem a opção \"selecionar vários\" como no celular. Essa opção sempre a mostra no menu de contexto.",
+    "defaultMediaPlayer": "Use o reprodutor de mídia nativo do seu navegador",
+    "defaultMediaPlayerDescription": "Use o reprodutor de mídia nativo do seu navegador para arquivos de vídeo e áudio em vez do reprodutor de mídia 'vue-plyr' incluído no FileBrowser.",
+    "debugOfficeEditor": "Ativar o modo de depuração do OnlyOffice",
+    "debugOfficeEditorDescription": "Mostrar um pop-up de depuração com informações adicionais no editor do OnlyOffice.",
+    "fileViewerOptions": "Opções do visualizador de arquivos",
+    "themeAndLanguage": "Tema e linguagem"
   },
   "editor": {
     "uninitialized": "Falha ao inicializar o editor. Favor recarregar.",
     "saveFailed": "Falha ao salvar o arquivo. Tente novamente.",
     "saveAborted": "Salvamento abortado. O nome do arquivo não corresponde ao arquivo ativo.",
     "saveDisabled": "Não há suporte para o salvamento de arquivos compartilhados.",
-    "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
-    "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
+    "saveAbortedMessage": "Operação de salvamento abortada. O arquivo ativo do aplicativo ({activeFile}) não corresponde ao arquivo que você está tentando salvar ({tryingToSave}).",
+    "syncFailed": "Falha ao sincronizar o estado com a rota para \"{filename}\" após 5 tentativas. Abortar a configuração do editor para evitar a corrupção de dados."
+  },
+  "player": {
+    "LoopEnabled": "Loop ativado",
+    "LoopDisabled": "Loop desativado"
   }
 }

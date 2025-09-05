@@ -48,28 +48,37 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 	}
 	userSelectedTheme := ""
 	if d.user != nil {
-		theme, ok := config.Frontend.Styling.CustomThemes[d.user.CustomTheme]
+		theme, ok := config.Frontend.Styling.CustomThemeOptions[d.user.CustomTheme]
 		if ok {
-			userSelectedTheme = theme.CSS
+			userSelectedTheme = theme.CssRaw
 		}
 	}
 
 	defaultThemeColor := "#455a64"
 	staticURL := config.Server.BaseURL + "static"
 	publicStaticURL := config.Server.BaseURL + "public/static"
+
+	// Use custom favicon if configured and validated, otherwise fall back to default
+	var favicon string
+	if config.Frontend.Favicon != "" {
+		favicon = staticURL + "/favicon"
+	} else {
+		// Default favicon
+		favicon = staticURL + "/img/icons/favicon-256x256.png"
+	}
 	data := map[string]interface{}{
 		"title":             config.Frontend.Name,
-		"customCSS":         config.Frontend.Styling.CustomCSS,
+		"customCSS":         config.Frontend.Styling.CustomCSSRaw,
 		"userSelectedTheme": userSelectedTheme,
 		"lightBackground":   config.Frontend.Styling.LightBackground,
 		"darkBackground":    config.Frontend.Styling.DarkBackground,
 		"staticURL":         staticURL,
 		"baseURL":           config.Server.BaseURL,
-		"favicon":           staticURL + "/img/icons/favicon-256x256.png",
+		"favicon":           favicon,
 		"color":             defaultThemeColor,
 		"winIcon":           staticURL + "/img/icons/mstile-144x144.png",
 		"appIcon":           staticURL + "/img/icons/android-chrome-256x256.png",
-		"description":       "FileBrowser Quantum is a file manager for the web which can be used to manage files on your server",
+		"description":       config.Frontend.Description,
 	}
 	shareProps := map[string]interface{}{
 		"isShare":             false,
@@ -107,6 +116,9 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 			shareProps["disableSidebar"] = d.share.DisableSidebar
 			shareProps["isPasswordProtected"] = d.share.PasswordHash != ""
 			shareProps["downloadURL"] = getDownloadURL(r, d.share.Hash)
+			shareProps["enforceDarkLightMode"] = d.share.EnforceDarkLightMode
+			shareProps["enableOnlyOffice"] = d.share.EnableOnlyOffice
+			shareProps["enableOnlyOfficeEditing"] = d.share.EnableOnlyOfficeEditing
 			if d.share.Favicon != "" {
 				if strings.HasPrefix(d.share.Favicon, "http") {
 					data["favicon"] = d.share.Favicon
@@ -124,13 +136,19 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 
 		// base url could be different for routes behind proxy
 		data["staticURL"] = publicStaticURL
-		data["favicon"] = publicStaticURL + "/img/icons/favicon-256x256.png"
+		// Use custom favicon for shares too if configured
+		if config.Frontend.Favicon != "" {
+			data["favicon"] = publicStaticURL + "/favicon"
+		} else {
+			data["favicon"] = publicStaticURL + "/img/icons/favicon-256x256.png"
+		}
 		data["winIcon"] = publicStaticURL + "/img/icons/mstile-144x144.png"
 		data["appIcon"] = publicStaticURL + "/img/icons/android-chrome-256x256.png"
 	}
 	// variables consumed by frontend as json
 	data["globalVars"] = map[string]interface{}{
 		"name":                 config.Frontend.Name,
+		"minSearchLength":      config.Server.MinSearchLength,
 		"disableExternal":      config.Frontend.DisableDefaultLinks,
 		"darkMode":             settings.Config.UserDefaults.DarkMode,
 		"baseURL":              config.Server.BaseURL,
@@ -170,6 +188,12 @@ func staticFilesHandler(w http.ResponseWriter, r *http.Request) {
 	const maxAge = 86400 // 1 day
 	w.Header().Set("Cache-Control", fmt.Sprintf("public, max-age=%v", maxAge))
 	w.Header().Set("Content-Security-Policy", `default-src 'self'; style-src 'unsafe-inline';`)
+
+	// Handle custom favicon if configured and requested
+	if r.URL.Path == "favicon" && config.Frontend.Favicon != "" {
+		http.ServeFile(w, r, config.Frontend.Favicon)
+		return
+	}
 
 	adjustedCompressed := r.URL.Path + ".gz"
 	if strings.HasSuffix(r.URL.Path, ".js") {

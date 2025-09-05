@@ -49,6 +49,7 @@ type Preview struct {
 	Office             bool `json:"office"`             // show preview image for office files
 	PopUp              bool `json:"popup"`              // show larger popup preview when hovering
 	AutoplayMedia      bool `json:"autoplayMedia"`      // autoplay media files in preview
+	DefaultMediaPlayer bool `json:"defaultMediaPlayer"` // disable html5 media player and use the default media player
 }
 
 // User describes a user.
@@ -99,19 +100,16 @@ type NonAdminEditable struct {
 	FileLoading                FileLoading `json:"fileLoading"`                // upload and download settings
 	DisableOfficePreviewExt    string      `json:"disableOfficePreviewExt"`    // deprecated
 	DisableOnlyOfficeExt       string      `json:"disableOnlyOfficeExt"`       // deprecated
-	DisablePreviewExt          string      `json:"disablePreviewExt"`          // comma separated list of file extensions to disable preview for
-	DisableViewingExt          string      `json:"disableViewingExt"`          // comma separated list of file extensions to disable viewing for
+	DisablePreviewExt          string      `json:"disablePreviewExt"`          // space separated list of file extensions to disable preview for
+	DisableViewingExt          string      `json:"disableViewingExt"`          // space separated list of file extensions to disable viewing for
 	CustomTheme                string      `json:"customTheme"`                // Name of theme to use chosen from custom themes config.
 	ShowSelectMultiple         bool        `json:"showSelectMultiple"`         // show select multiple files on desktop
+	DebugOffice                bool        `json:"debugOffice"`                // debug onlyoffice editor
 }
 
 type FileLoading struct {
 	MaxConcurrent int `json:"maxConcurrentUpload"`
 	ChunkSize     int `json:"uploadChunkSizeMb"`
-}
-
-var AnonymousUser = User{
-	Username: "anonymous", // temp user not registered
 }
 
 func CleanUsername(s string) string {

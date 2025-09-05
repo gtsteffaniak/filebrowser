@@ -49,7 +49,8 @@
     "clearCompleted": "Vyčistiť dokončené",
     "showMore": "Zobraziť viac",
     "showLess": "Zobraziť menej",
-    "openParentFolder": "Otvorenie nadradeného priečinka"
+    "openParentFolder": "Otvorenie nadradeného priečinka",
+    "selectedCount": "Počet položiek vybraných na vykonanie akcie"
   },
   "download": {
     "downloadFile": "Stiahnuť súbor",
@@ -84,15 +85,15 @@
     "click": "vyberie súbor alebo priečinok",
     "ctrl": {
       "click": "vyberie viac súborov alebo priečinkov",
-      "f": "otvorí vyhľadávanie",
-      "s": "uloží súbor alebo stiahne priečinok tam kde ste"
+      "d": "stiahnuť vybrané položky"
     },
     "del": "odstráni vybraté položky",
-    "doubleClick": "otvorí súbor alebo priečinok",
     "esc": "zruší výber a/alebo zavrie okno",
-    "f1": "tieto informácie",
     "f2": "premenuje súbor",
-    "help": "Pomoc"
+    "help": "Pomoc",
+    "f1": "zobraziť výzvu na pomoc",
+    "description": "Základné možnosti navigácie si môžete pozrieť nižšie. Ďalšie informácie nájdete na stránke",
+    "wiki": "FileBrowser Quantum Wiki"
   },
   "languages": {
     "he": "עברית",
@@ -134,16 +135,13 @@
   "prompts": {
     "copy": "Kopírovať",
     "copyMessage": "Zvoľte miesto, kde chcete kopírovať súbory:",
-    "deleteMessageMultiple": "Naozaj chcete odstrániť {count} súbor(ov)?",
     "deleteMessageSingle": "Naozaj chcete odstrániť tento súbor/priečinok?",
-    "deleteMessageShare": "Naozaj chcete odstrániť toto zdieľanie({path})?",
     "deleteTitle": "Odstránenie súborov",
     "displayName": "Zobrazený názov:",
     "download": "Stiahnuť súbory",
     "downloadMessage": "Vyberte formát, ktorý chcete stiahnuť.",
     "error": "Niečo sa pokazilo",
     "fileInfo": "Informácie o súbore",
-    "lastModified": "Dátum zmeny{suffix}",
     "move": "Presunúť",
     "moveMessage": "Zvoľte nový domov pre vaše súbory/priečinky:",
     "newArchetype": "Vytvorí nový príspevok z archetypu. Nový súbor sa vytvorí v priečinku s obsahom.",
@@ -151,10 +149,7 @@
     "newDirMessage": "Napíšte názov nového priečinka.",
     "newFile": "Nový súbor",
     "newFileMessage": "Napíšte názov nového súboru.",
-    "numberDirs": "Počet priečinkov{suffix}",
-    "numberFiles": "Počet súborov{suffix}",
     "rename": "Premenovať",
-    "renameMessage": "Zadajte nový názov pre",
     "replace": "Nahradiť",
     "replaceMessage": "Niektorý nahrávaný súbor je v konflikte názvov. Chcete nahradiť existujúci súbor?\n",
     "schedule": "Naplánovať",
@@ -172,10 +167,6 @@
     "dragAndDrop": "Presuňte sem súbory",
     "completed": "Dokončené",
     "conflictsDetected": "Zistené konflikty",
-    "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "Zadaný neplatný názov: nemôže byť kontajner \"/\" alebo \"\\\"",
-    "source": "Source{suffix}",
     "downloadsLimit": "Limit počtu stiahnutí",
     "maxBandwidth": "Maximálna šírka pásma sťahovania (kbps)",
     "shareTheme": "Zdieľať tému",
@@ -186,22 +177,44 @@
     "shareBanner": "Zdieľanie adresy URL banneru",
     "shareFavicon": "Zdieľanie adresy URL favicon",
     "optionalPasswordHelp": "Ak je nastavené, používatelia musia zadať toto heslo, aby si mohli prezerať zdieľaný obsah.",
-    "viewMode": "Režim zobrazenia"
+    "viewMode": "Režim zobrazenia",
+    "renameMessage": "Zadajte nový názov:",
+    "renameMessageInvalid": "Súbor nemôže obsahovať \"/\" alebo \"\\\"",
+    "source": "Zdroj{suffix}",
+    "deleteMessageMultiple": "Ste si istí, že chcete odstrániť súbor(y) {count}?",
+    "deleteMessageShare": "Ste si istí, že chcete odstrániť toto zdieľanie: {path} ?",
+    "lastModified": "Posledná úprava{suffix}",
+    "numberDirs": "Počet adresárov{suffix}",
+    "numberFiles": "Počet súborov{suffix}",
+    "renameMessageConflict": "Položka s názvom \"{filename}\" už existuje!",
+    "uploadSettingsChunked": "Maximálne súbežné nahrávanie: {maxConcurrentUpload}, veľkosť chunk: {uploadChunkSizeMb} MB",
+    "uploadSettingsNoChunk": "Maximálne súbežné nahrávanie: {maxConcurrentUpload}, chunked upload vypnuté"
   },
   "search": {
     "images": "Obrázky",
     "music": "Hudba",
     "pdf": "PDF",
-    "pressToSearch": "Vyhľadáte stlačením Enter...",
     "search": "Hľadať...",
-    "typeToSearch": "Vyhľadáte písaním...",
     "types": "Typy",
     "video": "Video",
     "path": "Cesta:",
     "smallerThan": "Menšie ako:",
     "largerThan": "Väčšie ako:",
     "helpText1": "Vyhľadávanie prebieha na základe každého zadaného znaku (minimálne 3 znaky pre hľadané výrazy).",
-    "helpText2": "Index: Vyhľadávanie využíva index, ktorý sa automaticky aktualizuje v nastavenom intervale (predvolené: 5 minút). Vyhľadávanie, keď sa program práve spustil, môže viesť k neúplným výsledkom."
+    "helpText2": "Index: Vyhľadávanie využíva index, ktorý sa automaticky aktualizuje v nastavenom intervale (predvolené: 5 minút). Vyhľadávanie, keď sa program práve spustil, môže viesť k neúplným výsledkom.",
+    "noResults": "V indexovanom vyhľadávaní sa nenašli žiadne výsledky.",
+    "onlyFolders": "Iba priečinky",
+    "onlyFiles": "Iba súbory",
+    "showOptions": "Zobraziť možnosti",
+    "photos": "Fotografie",
+    "audio": "Audio",
+    "videos": "Videá",
+    "documents": "Dokumenty",
+    "archives": "Archív",
+    "number": "Číslo",
+    "searchContext": "Kontext vyhľadávania: {context}",
+    "notEnoughCharacters": "Nedostatok znakov na vyhľadávanie (min. {minSearchLength})",
+    "typeToSearch": "Začnite písať {minSearchLength} alebo viac znakov, aby ste začali vyhľadávať."
   },
   "settings": {
     "admin": "Admin",
@@ -214,10 +227,8 @@
     "avoidChanges": "(nechajte prázdne, aby sa nezmenilo)",
     "branding": "Vlastný vzhľad",
     "brandingDirectoryPath": "Cesta k priečinku s vlastným vzhľadom",
-    "brandingHelp": "Môžete si prispôsobiť ako bude vyzerá váš File Browser instance zmenou jeho názvu, výmenou loga a pridaním vlastný štýlov alebo vypnutím externých odkazov na GitHub.\nViac informácií o vlastnom vzhľade nájdete na {0}.",
     "changePassword": "Zmeniť heslo",
     "commandRunner": "Spúšťač príkazov",
-    "commandRunnerHelp": "Sem môžete nastaviť príkazy, ktoré sa vykonajú pri určitých udalostiach. Musíte písať jeden na riadok. Premenné prostredia {0} a {1} sú k dispozícii, s tým že {0} relatívne k {1}. Viac informácií o tejto funkcionalite a dostupných premenných prostredia nájdete na {2}.",
     "commandsUpdated": "Príkazy upravené!",
     "createUserDir": "Automaticky vytvoriť domovský priečinok pri pridaní používateľa",
     "customStylesheet": "Vlastný Stylesheet",
@@ -300,7 +311,14 @@
     "adminOptions": "Možnosti používateľa správcu",
     "shareDuration": "Platnosť končí na",
     "searchOptions": "Možnosti vyhľadávania",
-    "downloads": "Na stiahnutie"
+    "downloads": "Na stiahnutie",
+    "systemAdmin": "Systém a administrátor",
+    "configViewer": "Prehliadač konfigurácie",
+    "configViewerShowFull": "Zobraziť úplnú konfiguráciu",
+    "configViewerShowComments": "Zobraziť komentáre",
+    "configViewerLoadConfig": "Konfigurácia načítania",
+    "brandingHelp": "Vzhľad a pôsobenie inštancie Prieskumníka súborov môžete prispôsobiť zmenou názvu, výmenou loga, pridaním vlastných štýlov a dokonca aj zakázaním externých prepojení na GitHub.\nViac informácií o používaní vlastnej značky nájdete na stránke {0}.",
+    "commandRunnerHelp": "Tu môžete nastaviť príkazy, ktoré sa vykonajú v pomenovaných udalostiach. Na každý riadok musíte napísať jeden. K dispozícii budú premenné prostredia {0} a {1}, pričom {0} bude relatívne k {1}. Viac informácií o tejto funkcii a dostupných premenných prostredia nájdete na stránke {2}."
   },
   "sidebar": {
     "help": "Pomoc",
@@ -358,12 +376,21 @@
     "hideNavButtons": "Skrytie navigačných tlačidiel",
     "hideNavButtonsDescription": "Skryte navigačné tlačidlá na paneli navigácie v zdieľaní, aby ste vytvorili minimalistický vzhľad.",
     "viewModeDescription": "Predvolené rozloženie zdieľanej stránky.",
-    "titleDefault": "Shared files - {title}",
     "descriptionDefault": "Bola vám odoslaná akcia na zobrazenie alebo stiahnutie.",
     "disableShareCard": "Zakázanie zdieľanej karty",
     "disableShareCardDescription": "Zakážte kartu zdieľania na zdieľanej stránke v bočnom paneli alebo v hornej časti stránky na mobilnom zariadení.",
     "disableSidebar": "Zakázanie bočného panela",
-    "disableSidebarDescription": "Zakážte bočný panel na zdieľanej stránke."
+    "disableSidebarDescription": "Zakážte bočný panel na zdieľanej stránke.",
+    "enforceDarkLightMode": "Vynútiť režim témy",
+    "enforceDarkLightModeDescription": "Vynútenie konkrétneho režimu motívu (tmavý alebo svetlý) pre túto akciu, ktorý je nadradený používateľským nastaveniam.",
+    "default": "Nevynucujte režim",
+    "dark": "Dark",
+    "light": "Svetlo",
+    "enableOnlyOffice": "Povolenie prehliadača OnlyOffice",
+    "enableOnlyOfficeDescription": "Povoľte zobrazovanie kancelárskych súborov pomocou OnlyOffice v tejto zdieľanej zložke.",
+    "enableOnlyOfficeEditing": "Povolenie úprav OnlyOffice",
+    "enableOnlyOfficeEditingDescription": "Povoľte úpravu kancelárskych súborov pomocou aplikácie OnlyOffice v tejto zdieľanej zložke.",
+    "titleDefault": "Zdieľané súbory - {title}"
   },
   "api": {
     "title": "Kľúče API:",
@@ -447,8 +474,8 @@
     "totalDenied": "Odmietnuté",
     "totalAllowed": "Povolené",
     "all": "Odmietnuť všetko",
-    "defaultBehavior": "Default action{suffix}",
-    "defaultBehaviorDescription": "Toto ukazuje, čo sa stane, keď sa používateľ pokúsi získať prístup k ceste, kde neexistujú žiadne špecifické pravidlá prístupu. \"Allow\" (Povoliť) znamená, že používatelia majú predvolený prístup, \"Deny\" (Odmietnuť) znamená, že používatelia sú predvolene blokovaní, pokiaľ to nie je výslovne povolené."
+    "defaultBehaviorDescription": "Toto ukazuje, čo sa stane, keď sa používateľ pokúsi získať prístup k ceste, kde neexistujú žiadne špecifické pravidlá prístupu. \"Allow\" (Povoliť) znamená, že používatelia majú predvolený prístup, \"Deny\" (Odmietnuť) znamená, že používatelia sú predvolene blokovaní, pokiaľ to nie je výslovne povolené.",
+    "defaultBehavior": "Predvolená akcia{suffix}"
   },
   "fileLoading": {
     "title": "Nahrávanie a sťahovanie",
@@ -514,14 +541,24 @@
     "defaultThemeDescription": "default - Predvolená téma",
     "customTheme": "Vyberte si tému",
     "showSelectMultiple": "Zobrazenie výberu viacerých v kontextovom menu na ploche",
-    "showSelectMultipleDescription": "V predvolenom nastavení kontextová ponuka na ploche nemá možnosť \"vybrať viacero\" ako v mobilných zariadeniach. Táto možnosť sa v kontextovej ponuke zobrazuje vždy."
+    "showSelectMultipleDescription": "V predvolenom nastavení kontextová ponuka na ploche nemá možnosť \"vybrať viacero\" ako v mobilných zariadeniach. Táto možnosť sa v kontextovej ponuke zobrazuje vždy.",
+    "defaultMediaPlayer": "Používanie natívneho prehrávača médií prehliadača",
+    "defaultMediaPlayerDescription": "Na prehrávanie video a zvukových súborov použite natívny prehrávač médií prehliadača, a nie mediálny prehrávač vue-plyr, ktorý je súčasťou aplikácie FileBrowser.",
+    "debugOfficeEditor": "Povolenie režimu ladenia OnlyOffice",
+    "debugOfficeEditorDescription": "Zobrazenie vyskakovacieho okna ladenia s ďalšími informáciami v editore OnlyOffice.",
+    "fileViewerOptions": "Možnosti prehliadača súborov",
+    "themeAndLanguage": "Téma a jazyk"
   },
   "editor": {
     "uninitialized": "Nepodarilo sa inicializovať editor. Prosím, načítajte ho znova.",
     "saveFailed": "Nepodarilo sa uložiť súbor. Skúste to prosím znova.",
     "saveAborted": "Uloženie prerušené. Názov súboru sa nezhoduje s aktívnym súborom.",
     "saveDisabled": "Ukladanie zdieľaných súborov nie je podporované.",
-    "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
-    "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
+    "saveAbortedMessage": "Operácia uloženia sa prerušila. Aktívny súbor aplikácie ({activeFile}) sa nezhoduje so súborom, ktorý sa pokúšate uložiť ({tryingToSave}).",
+    "syncFailed": "sa nepodarilo synchronizovať stav s trasou pre \"{filename}\" po 5 pokusoch. Prerušenie nastavenia editora, aby sa zabránilo poškodeniu údajov."
+  },
+  "player": {
+    "LoopEnabled": "Povolená slučka",
+    "LoopDisabled": "Vypnutá slučka"
   }
 }

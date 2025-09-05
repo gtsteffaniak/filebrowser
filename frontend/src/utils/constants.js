@@ -23,6 +23,7 @@ const muPdfAvailable = window.filebrowser.muPdfAvailable;
 const updateAvailable = window.filebrowser.updateAvailable;
 const disableNavButtons = window.filebrowser.disableNavButtons;
 const userSelectableThemes = window.filebrowser.userSelectableThemes;
+const minSearchLength = window.filebrowser.minSearchLength;
 const shareInfo = window.filebrowser.share;
 const origin = window.location.origin;
 
@@ -31,12 +32,13 @@ const settings = [
   { id: 'fileLoading', label: 'fileLoading.title', component: 'FileLoading' },
   { id: 'shares', label: 'settings.shareSettings', component: 'SharesSettings', permissions: { share: true } },
   { id: 'api', label: 'api.title', component: 'ApiKeys', permissions: { api: true }  },
-  //{ id: 'global', label: 'Global', component: 'GlobalSettings', permissions: { admin: true } },
   { id: 'users', label: 'settings.userManagement', component: 'UserManagement' },
   { id: 'access', label: 'access.accessManagement', component: 'AccessSettings', permissions: { admin: true } },
+  { id: 'systemAdmin', label: 'settings.systemAdmin', component: 'SystemAdmin', permissions: { admin: true } },
 ];
 
 export {
+  minSearchLength,
   shareInfo,
   userSelectableThemes,
   disableNavButtons,

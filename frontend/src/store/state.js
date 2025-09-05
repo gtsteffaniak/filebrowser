@@ -7,10 +7,16 @@ export const state = reactive({
     content: "",
     x: 0,
     y: 0,
+    pointerEvents: false,
+    width: null,
+  },
+  previousHistoryItem: {
+    name: "",
+    source: "",
+    path: "",
   },
   contextMenuHasItems: false,
   deletedItem: false,
-  previousHash: "",
   showOverflowMenu: false,
   sessionId: "",
   isSafari: /^((?!chrome|android).)*safari/i.test(navigator.userAgent),
@@ -55,6 +61,7 @@ export const state = reactive({
     permissions: {}, // Default to an empty object for permissions
     darkMode: true, // Default to false, assuming this is a boolean
     disableSettings: false,
+    debugOffice: false, // Debug mode for OnlyOffice integration
     profile: { // Example of additional user properties
       username: '', // Default to an empty string
       email: '', // Default to an empty string

@@ -14,7 +14,16 @@
     <div class="buffer"></div>
     <div v-if="!isSettings" class="credits">
       <span v-for="item in externalLinks" :key="item.title">
-        <a :href="item.url" target="_blank" :title="item.title">{{ item.text }}</a>
+        <a
+          v-if="item.url === 'help prompt'"
+          href="#"
+          @click.prevent="help"
+          :title="$t('sidebar.help')"
+          >{{ $t("sidebar.help") }}</a
+        >
+        <a v-else :href="item.url" target="_blank" :title="item.title">{{
+          item.text
+        }}</a>
       </span>
       <span v-if="name != ''">
         <h4 style="margin: 0">{{ name }}</h4>

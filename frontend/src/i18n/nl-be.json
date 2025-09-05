@@ -49,7 +49,8 @@
     "clearCompleted": "Gereed",
     "showMore": "Meer tonen",
     "showLess": "Minder tonen",
-    "openParentFolder": "Bovenliggende map openen"
+    "openParentFolder": "Bovenliggende map openen",
+    "selectedCount": "Aantal items geselecteerd om een actie uit te voeren"
   },
   "download": {
     "downloadFile": "Bestand downloaden",
@@ -84,15 +85,15 @@
     "click": "selecteer bestand of map",
     "ctrl": {
       "click": "selecteer meerdere bestanden of mappen",
-      "f": "opent zoeken",
-      "s": "sla een bestand op of download de map waar u bent"
+      "d": "geselecteerde items downloaden"
     },
     "del": "verwijder geselecteerde items",
-    "doubleClick": "open een bestand of map",
     "esc": "Wis selectie en/of sluit de prompt",
-    "f1": "deze informatie",
     "f2": "bestand herbenoemen",
-    "help": "Help"
+    "help": "Help",
+    "f1": "help prompt tonen",
+    "description": "Je kunt de basisnavigatieopties hieronder bekijken. Ga voor aanvullende informatie naar",
+    "wiki": "FileBrowser Quantum Wiki"
   },
   "languages": {
     "he": "עברית",
@@ -134,7 +135,6 @@
   "prompts": {
     "copy": "Kopiëren",
     "copyMessage": "Kies een locatie om uw bestanden te kopiëren: ",
-    "deleteMessageMultiple": "Weet u zeker dat u {count} bestand(en) wil verwijderen?",
     "deleteMessageSingle": "Weet u zeker dat u dit bestand/map wil verwijderen?",
     "deleteTitle": "Bestanden verwijderen",
     "displayName": "Weergavenaam: ",
@@ -142,7 +142,6 @@
     "downloadMessage": "Kies het vermat dat u wilt downloaden. ",
     "error": "Er ging iets fout",
     "fileInfo": "Bestandinformatie",
-    "lastModified": "Laatst Bewerkt{suffix}",
     "move": "Verplaatsen",
     "moveMessage": "Kies een nieuwe locatie voor je bestand(en)/map(pen)",
     "newArchetype": "Maak een nieuw bericht op basis van een archetype. Uw bestand wordt aangemaakt in de inhoudsmap.",
@@ -150,10 +149,7 @@
     "newDirMessage": "Schrijf de naam van de nieuwe map",
     "newFile": "Nieuw bestand",
     "newFileMessage": "Schrijf de naam van het nieuwe bestand",
-    "numberDirs": "Aantal mappen{suffix}",
-    "numberFiles": "Aantal bestanden{suffix}",
     "rename": "Hernoemen",
-    "renameMessage": "Voer een nieuwe naam in voor",
     "replace": "Vervangen",
     "replaceMessage": "Een van de bestanden die u probeert te uploaden, geeft conflicten i.v.m. de naamgeving. Wilt u de bestaande bestanden vervangen?\n",
     "schedule": "Plannen",
@@ -161,7 +157,6 @@
     "show": "Tonen",
     "size": "Grootte",
     "upload": "Uploaden",
-    "deleteMessageShare": "Are you sure you want to delete this share: {path} ?",
     "deleteUserMessage": "Weet je zeker dat je deze gebruiker wilt verwijderen?",
     "selected": "geselecteerd",
     "filesSelected": "geselecteerde bestanden",
@@ -172,10 +167,6 @@
     "dragAndDrop": "Sleep bestanden hier naartoe",
     "completed": "Voltooid",
     "conflictsDetected": "Gedetecteerde conflicten",
-    "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "Ongeldige naam opgegeven: kan geen \"/\" of \"˜\" bevatten.",
-    "source": "Source{suffix}",
     "downloadsLimit": "Limiet aantal downloads",
     "maxBandwidth": "Max. downloadbandbreedte (kbps)",
     "shareTheme": "Thema delen",
@@ -186,22 +177,44 @@
     "shareBanner": "URL banner delen",
     "shareFavicon": "favicon URL delen",
     "optionalPasswordHelp": "Indien ingesteld, moeten gebruikers dit wachtwoord invoeren om de gedeelde inhoud te bekijken.",
-    "viewMode": "Weergavemodus"
+    "viewMode": "Weergavemodus",
+    "renameMessage": "Voer een nieuwe naam in:",
+    "renameMessageInvalid": "Een bestand kan geen \"/\" of \"\\\" bevatten.",
+    "source": "Bron{suffix}",
+    "deleteMessageMultiple": "Weet je zeker dat je {count} bestand(en) wilt verwijderen?",
+    "deleteMessageShare": "Weet je zeker dat je deze share wilt verwijderen: {path} ?",
+    "lastModified": "Laatst gewijzigd{suffix}",
+    "numberDirs": "Aantal mappen{suffix}",
+    "numberFiles": "Aantal bestanden{suffix}",
+    "renameMessageConflict": "Een item met de naam \"{filename}\" bestaat al!",
+    "uploadSettingsChunked": "Max gelijktijdige uploads: {maxConcurrentUpload}, brokgrootte: {uploadChunkSizeMb} MB",
+    "uploadSettingsNoChunk": "Max gelijktijdige uploads: {maxConcurrentUpload}, chunked upload uitgeschakeld"
   },
   "search": {
     "images": "Afbeeldingen",
     "music": "Muziek",
     "pdf": "PDF",
-    "pressToSearch": "Druk op enter om te zoeken...",
     "search": "Zoeken...",
-    "typeToSearch": "Typ om te zoeken...",
     "types": "Types",
     "video": "Video",
     "path": "Pad:",
     "smallerThan": "Kleiner dan:",
     "largerThan": "Groter dan:",
     "helpText1": "Er wordt gezocht op elk teken dat je typt (minimaal 3 tekens voor zoektermen).",
-    "helpText2": "De index: Zoeken maakt gebruik van de index die automatisch wordt bijgewerkt op het ingestelde interval (standaard: 5 minuten). Zoeken als het programma net is gestart, kan onvolledige resultaten opleveren."
+    "helpText2": "De index: Zoeken maakt gebruik van de index die automatisch wordt bijgewerkt op het ingestelde interval (standaard: 5 minuten). Zoeken als het programma net is gestart, kan onvolledige resultaten opleveren.",
+    "noResults": "Geen resultaten gevonden in geïndexeerde zoekopdrachten.",
+    "onlyFolders": "Alleen mappen",
+    "onlyFiles": "Alleen bestanden",
+    "showOptions": "Opties weergeven",
+    "photos": "Foto's",
+    "audio": "Audio",
+    "videos": "Video's",
+    "documents": "Documenten",
+    "archives": "Archief",
+    "number": "Aantal",
+    "searchContext": "Zoek context: {context}",
+    "notEnoughCharacters": "Niet genoeg tekens om te zoeken (min {minSearchLength})",
+    "typeToSearch": "Begin met het typen van {minSearchLength} of meer tekens om te beginnen met zoeken."
   },
   "settings": {
     "admin": "Admin",
@@ -214,10 +227,8 @@
     "avoidChanges": "(laat leeg om wijzigingen te voorkomen)",
     "branding": "Branding",
     "brandingDirectoryPath": "Branding directory path",
-    "brandingHelp": "U kunt de looks en feels hoe File Browser wordt getoond wijzigen door de naam aan te passen, het logo te vervangen, een aangepast stylesheet toe te voegen en/of de externe links naar GitHub uit te schakelen.\nVoor meer informatie over custom branding, bekijk {0}.",
     "changePassword": "Wijzig Wachtwoord",
     "commandRunner": "Command runner",
-    "commandRunnerHelp": "Hier kunt u opdrachten instellen die worden uitgevoerd in de benoemde gebeurtenissen. U moet er één per regel schrijven. De omgevingsvariabelen {0} en {1} zijn beschikbaar, zijnde {0} relatief ten opzichte van {1}. Raadpleeg {2} voor meer informatie over deze functie en de beschikbare omgevingsvariabelen.",
     "commandsUpdated": "Commando's bijgewerkt!",
     "createUserDir": "Maak automatisch een thuismap aan wanneer een nieuwe gebruiker wordt aangemaakt",
     "customStylesheet": "Aangepast Stylesheet",
@@ -300,7 +311,14 @@
     "adminOptions": "Opties voor beheerders",
     "shareDuration": "Verloopt op",
     "searchOptions": "Zoekopties",
-    "downloads": "Downloads"
+    "downloads": "Downloads",
+    "systemAdmin": "Systeem & Beheer",
+    "configViewer": "Configuratiescherm",
+    "configViewerShowFull": "Volledige configuratie weergeven",
+    "configViewerShowComments": "Opmerkingen tonen",
+    "configViewerLoadConfig": "Configuratie laden",
+    "brandingHelp": "Je kunt aanpassen hoe je File Browser instance eruit ziet en aanvoelt door de naam te veranderen, het logo te vervangen, aangepaste stijlen toe te voegen en zelfs externe links naar GitHub uit te schakelen.\nVoor meer informatie over het aanpassen van je branding, kun je kijken op {0}.",
+    "commandRunnerHelp": "Hier kun je commando's instellen die worden uitgevoerd in de genoemde gebeurtenissen. Je moet er één per regel schrijven. De omgevingsvariabelen {0} en {1} zullen beschikbaar zijn, waarbij {0} relatief is ten opzichte van {1}. Lees voor meer informatie over deze functie en de beschikbare omgevingsvariabelen de {2}."
   },
   "sidebar": {
     "help": "Help",
@@ -358,12 +376,21 @@
     "hideNavButtons": "Navigatieknoppen verbergen",
     "hideNavButtonsDescription": "Verberg de navigatieknoppen op de navigatiebalk in de share om een minimalistische look te creëren.",
     "viewModeDescription": "Standaard lay-out voor de gedeelde pagina.",
-    "titleDefault": "Shared files - {title}",
     "descriptionDefault": "Er is een share naar je verzonden om te bekijken of te downloaden.",
     "disableShareCard": "Aandelenkaart uitschakelen",
     "disableShareCardDescription": "Schakel de deelkaart uit op de gedeelde pagina in de zijbalk of bovenaan de pagina op mobiel.",
     "disableSidebar": "Zijbalk uitschakelen",
-    "disableSidebarDescription": "Schakel de zijbalk op de gedeelde pagina uit."
+    "disableSidebarDescription": "Schakel de zijbalk op de gedeelde pagina uit.",
+    "enforceDarkLightMode": "Themamodus afdwingen",
+    "enforceDarkLightModeDescription": "Forceer een specifieke themamodus (donker of licht) voor deze share, waarbij gebruikersvoorkeuren worden overschreven.",
+    "default": "Een modus niet afdwingen",
+    "dark": "Donker",
+    "light": "Licht",
+    "enableOnlyOffice": "OnlyOffice viewer inschakelen",
+    "enableOnlyOfficeDescription": "Sta het bekijken van Office-bestanden toe met OnlyOffice in deze share.",
+    "enableOnlyOfficeEditing": "Bewerken met OnlyOffice inschakelen",
+    "enableOnlyOfficeEditingDescription": "Laat het bewerken van Office-bestanden met OnlyOffice toe in deze share.",
+    "titleDefault": "Gedeelde bestanden - {title}"
   },
   "api": {
     "title": "API-sleutels",
@@ -478,7 +505,13 @@
     "defaultThemeDescription": "standaard - Het standaardthema",
     "customTheme": "Kies je thema",
     "showSelectMultiple": "Meerdere selecteren tonen in contextmenu op bureaublad",
-    "showSelectMultipleDescription": "Standaard heeft het contextmenu op de desktop geen optie \"meerdere selecteren\" zoals mobiel. Deze optie wordt altijd weergegeven in het contextmenu."
+    "showSelectMultipleDescription": "Standaard heeft het contextmenu op de desktop geen optie \"meerdere selecteren\" zoals mobiel. Deze optie wordt altijd weergegeven in het contextmenu.",
+    "defaultMediaPlayer": "Gebruik de ingebouwde mediaspeler van uw browser",
+    "defaultMediaPlayerDescription": "Gebruik de eigen mediaspeler van uw browser voor video- en audiobestanden in plaats van de meegeleverde 'vue-plyr' mediaspeler van FileBrowser.",
+    "debugOfficeEditor": "Debugmodus OnlyOffice inschakelen",
+    "debugOfficeEditorDescription": "Een foutopsporingspop-up weergeven met aanvullende informatie in de OnlyOffice-editor.",
+    "fileViewerOptions": "Opties voor bestandsviewer",
+    "themeAndLanguage": "Thema & Taal"
   },
   "general": {
     "name": "Naam",
@@ -513,15 +546,19 @@
     "name": "Naam",
     "accessManagement": "Toegangsbeheer",
     "all": "Alles weigeren",
-    "defaultBehavior": "Default action{suffix}",
-    "defaultBehaviorDescription": "Dit laat zien wat er gebeurt als een gebruiker toegang probeert te krijgen tot een pad waarvoor geen specifieke toegangsregels bestaan. Toestaan' betekent dat gebruikers standaard toegang hebben, 'Weigeren' betekent dat gebruikers standaard worden geblokkeerd tenzij ze expliciet toestemming krijgen."
+    "defaultBehaviorDescription": "Dit laat zien wat er gebeurt als een gebruiker toegang probeert te krijgen tot een pad waarvoor geen specifieke toegangsregels bestaan. Toestaan' betekent dat gebruikers standaard toegang hebben, 'Weigeren' betekent dat gebruikers standaard worden geblokkeerd tenzij ze expliciet toestemming krijgen.",
+    "defaultBehavior": "Standaardactie{suffix}"
   },
   "editor": {
     "uninitialized": "Het is niet gelukt de editor te initialiseren. Gelieve opnieuw te laden.",
     "saveFailed": "Het is niet gelukt om het bestand op te slaan. Probeer het opnieuw.",
     "saveAborted": "Opslaan afgebroken. De bestandsnaam komt niet overeen met het actieve bestand.",
     "saveDisabled": "Het opslaan van gedeelde bestanden wordt niet ondersteund.",
-    "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
-    "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
+    "saveAbortedMessage": "Opslaan afgebroken. Het actieve bestand van de toepassing ({activeFile}) komt niet overeen met het bestand dat u probeert op te slaan ({tryingToSave}).",
+    "syncFailed": "Na 5 pogingen is het niet gelukt om de status te synchroniseren met de route voor \"{filename}\". Installatie van editor afgebroken om gegevensbeschadiging te voorkomen."
+  },
+  "player": {
+    "LoopEnabled": "Lus ingeschakeld",
+    "LoopDisabled": "Lus uitgeschakeld"
   }
 }

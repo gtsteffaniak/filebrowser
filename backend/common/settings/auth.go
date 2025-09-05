@@ -12,12 +12,12 @@ import (
 )
 
 type Auth struct {
-	TokenExpirationHours int          `json:"tokenExpirationHours"` // the number of hours until the token expires. Default is 2 hours.
+	TokenExpirationHours int          `json:"tokenExpirationHours"` // time in hours each web UI session token is valid for. Default is 2 hours.
 	Methods              LoginMethods `json:"methods"`
-	Key                  string       `json:"key"`           // the key used to sign the JWT tokens. If not set, a random key will be generated.
-	AdminUsername        string       `json:"adminUsername"` // the username of the admin user. If not set, the default is "admin".
-	AdminPassword        string       `json:"adminPassword"` // the password of the admin user. If not set, the default is "admin".
-	TotpSecret           string       `json:"totpSecret"`    // secret used to encrypt TOTP secrets
+	Key                  string       `json:"key"`           // secret: the key used to sign the JWT tokens. If not set, a random key will be generated.
+	AdminUsername        string       `json:"adminUsername"` // secret: the username of the admin user. If not set, the default is "admin".
+	AdminPassword        string       `json:"adminPassword"` // secret: the password of the admin user. If not set, the default is "admin".
+	TotpSecret           string       `json:"totpSecret"`    // secret: secret used to encrypt TOTP secrets
 	AuthMethods          []string     `json:"-"`
 }
 
@@ -52,8 +52,8 @@ type Recaptcha struct {
 // OpenID OAuth2.0
 type OidcConfig struct {
 	Enabled           bool                  `json:"enabled"`           // whether to enable OIDC authentication
-	ClientID          string                `json:"clientId"`          // client id of the OIDC application
-	ClientSecret      string                `json:"clientSecret"`      // client secret of the OIDC application
+	ClientID          string                `json:"clientId"`          // secret: client id of the OIDC application
+	ClientSecret      string                `json:"clientSecret"`      // secret: client secret of the OIDC application
 	IssuerUrl         string                `json:"issuerUrl"`         // authorization URL of the OIDC provider
 	Scopes            string                `json:"scopes"`            // scopes to request from the OIDC provider
 	UserIdentifier    string                `json:"userIdentifier"`    // the field value to use as the username. Default is "preferred_username", can also be "email" or "username", or "phone"

@@ -3,7 +3,7 @@
     <div class="card-wrapper user-card">
       <div
         v-if="settingsAllowed && user.username !== 'anonymous'"
-        @click="navigateTo('/settings#profile-main')"
+        @click="navigateTo('/settings','#profile-main')"
         class="inner-card"
       >
         <button
@@ -53,6 +53,7 @@
           <i class="material-icons">ads_click</i>
         </div>
         <div
+          v-if="darkModeTogglePossible"
           class="clickable"
           :class="{ active: user?.darkMode }"
           @click="toggleDarkMode"
@@ -178,6 +179,7 @@ export default {
     sourceInfo: () => state.sources.info,
     activeSource: () => state.sources.current,
     realtimeActive: () => state.realtimeActive,
+    darkModeTogglePossible: () => shareInfo.enforceDarkLightMode != "dark" && shareInfo.enforceDarkLightMode != "light",
   },
   watch: {
     route() {
@@ -218,17 +220,13 @@ export default {
       }
       mutations.updateCurrentUser({ stickySidebar: !state.user.stickySidebar });
     },
-    navigateTo(path) {
-      const hashIndex = path.indexOf("#");
-      if (hashIndex !== -1) {
-        // Extract the hash
-        const hash = path.substring(hashIndex);
-        // Remove the hash from the path
-        const cleanPath = path.substring(0, hashIndex);
-        this.$router.push({ path: cleanPath, hash: hash }, () => {});
-      } else {
-        this.$router.push({ path: path }, () => {});
-      }
+    navigateTo(path,hash) {
+      mutations.setPreviousHistoryItem({
+        name: state.req.name,
+        source: state.req.source,
+        path: state.req.path,
+      });
+      this.$router.push({ path: path, hash: hash });
       mutations.closeHovers();
     },
     navigateToLogin() {
@@ -406,6 +404,7 @@ button.action {
 .quick-toggles .active {
   background-color: var(--primaryColor) !important;
   border-radius: 10em;
+  color: white;
 }
 
 .inner-card {
