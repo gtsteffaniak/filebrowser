@@ -35,7 +35,7 @@
                 </div>
 
                 <!-- Metadata info -->
-                <div class="metadata-info" v-if="audioMetadata && albumArtUrl">
+                <div class="metadata-info" v-if="audioMetadata">
                     <div class="audio-title">
                         {{ audioMetadata.title || state.req.name }}
                     </div>
@@ -209,6 +209,7 @@ import { convertToVTT } from "@/utils/subtitles";
 import { getTypeInfo } from "@/utils/mimetype";
 import { muPdfAvailable } from "@/utils/constants";
 import { shareInfo } from "@/utils/constants";
+import jsmediatags from "jsmediatags/dist/jsmediatags.min.js";
 
 export default {
     name: "preview",
@@ -236,6 +237,7 @@ export default {
             toastTimeout: null,
             audioMetadata: null, // Null by default, will be loaded from the audio file.
             albumArtUrl: null,
+            albumArt: null,
             // Plyr options
             plyrOptions: {
                 controls: [
@@ -264,6 +266,7 @@ export default {
                 keyboard: { focused: true, global: true },
                 tooltips: { controls: true, seek: true },
                 loop: { active: true },
+                blankVideo: "",
                 autoplay: false, // The users will manage this from their profile settings
                 clickToPlay: true,
                 resetOnEnd: true,
@@ -430,11 +433,20 @@ export default {
             type: state.req.type,
             source: state.req.source,
         });
+        if (this.previewType === "audio") {
+            this.loadAudioMetadata();
+        }
     },
     beforeUnmount() {
         window.removeEventListener("keydown", this.keyEvent);
         if (this.toastTimeout) {
             clearTimeout(this.toastTimeout);
+        }
+        if (this.albumArt) {
+            try {
+                URL.revokeObjectURL(this.albumArt);
+            } catch (e) {Error;}
+            this.albumArt = null;
         }
     },
     methods: {
@@ -605,6 +617,19 @@ export default {
                     }
                 });
             }
+            if (this.albumArt) {
+                try {
+                    URL.revokeObjectURL(this.albumArt);
+                } catch (e) {Error;}
+                this.albumArt = null;
+            }
+            this.albumArtUrl = null;
+            this.audioMetadata = null;
+            this.metadataId = (this.metadataId || 0) + 1;
+
+            if (this.previewType === "audio") {
+                this.loadAudioMetadata();
+            }
             const directoryPath = url.removeLastDir(state.req.path);
             if (!this.listing || this.listing == "undefined") {
                 let res;
@@ -720,11 +745,11 @@ export default {
             downloadFiles(items);
         },
         // Load metadata from the audio
-        /*async loadAudioMetadata() {
+        async loadAudioMetadata() {
             if (this.previewType !== "audio") {
                 this.audioMetadata = null;
                 this.albumArtUrl = null;
-               return;
+                return;
             }
 
             try {
@@ -738,7 +763,7 @@ export default {
                         "year",
                         "picture",
                     ])
-                .read({
+                    .read({
                         onSuccess: (tag) => {
                             this.audioMetadata = {
                                 title: tag.tags.title,
@@ -746,8 +771,30 @@ export default {
                                 album: tag.tags.album,
                                 year: tag.tags.year,
                             };
+
+                            if (tag.tags.picture) {
+                                if (this.albumArt) {
+                                    URL.revokeObjectURL(this.albumArt);
+                                    this.albumArt = null;
+                                }
+
+                                const uint8 = new Uint8Array(
+                                    tag.tags.picture.data,
+                                );
+                                const blob = new Blob([uint8], {
+                                    type: tag.tags.picture.format,
+                                });
+                                this.albumArt = URL.createObjectURL(blob);
+                                this.albumArtUrl = this.albumArt;
+                            } else {
+                                if (this.albumArt) {
+                                    URL.revokeObjectURL(this.albumArt);
+                                    this.albumArt = null;
+                                }
+                                this.albumArtUrl = null;
+                            }
                         },
-                      /*  onError: (error) => {
+                        onError: (error) => {
                             console.error(
                                 "Failed to read audio metadata:",
                                 error,
@@ -761,7 +808,7 @@ export default {
                 this.audioMetadata = null;
                 this.albumArtUrl = null;
             }
-            },*/
+        },
     },
 };
 </script>
