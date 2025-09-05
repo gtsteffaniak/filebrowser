@@ -11,7 +11,7 @@ test("adjusting theme colors", async({ page, checkForErrors, context }) => {
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
   await page.locator('i[aria-label="settings"]').click();
   await expect(page).toHaveTitle("Graham's Filebrowser - Settings");
-  await page.locator('a[aria-label="themeLanguage"]').click();
+  await page.locator('div[aria-label="themeLanguage"]').click();
   await page.locator('button', { hasText: 'violet' }).click();
   const popup = page.locator('#popup-notification-content');
   await popup.waitFor({ state: 'visible' });
