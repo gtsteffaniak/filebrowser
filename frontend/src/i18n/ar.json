@@ -135,7 +135,6 @@
   "prompts": {
     "copy": "نسخ",
     "copyMessage": "رجاء حدد المكان لنسخ ملفاتك فيه:",
-    "deleteMessageMultiple": "هل تريد بالتأكيد حذف {count} ملف؟",
     "deleteMessageSingle": "هل تريد بالتأكيد حذف هذا الملف/المجلد؟",
     "deleteTitle": "حذف الملفات",
     "displayName": "الإسم:",
@@ -143,7 +142,6 @@
     "downloadMessage": "حدد إمتداد الملف المراد تحميله.",
     "error": "لقد حدث خطأ ما",
     "fileInfo": "معلومات الملف",
-    "lastModified": "آخر تعديل{suffix}",
     "move": "نقل",
     "moveMessage": "إختر مكان جديد للملفات أو المجلدات المراد نقلها:",
     "newArchetype": "إنشاء منشور من المنشور الأصلي. الملف سيتم انشاءه في مجلد المحتويات.",
@@ -151,8 +149,6 @@
     "newDirMessage": "رجاء أدخل اسم المجلد الجديد.",
     "newFile": "ملف جديد",
     "newFileMessage": "رجاء ادخل اسم الملف الجديد.",
-    "numberDirs": "عدد المجلدات{suffix}",
-    "numberFiles": "عدد الملفات{suffix}",
     "rename": "إعادة تسمية",
     "replace": "إستبدال",
     "replaceMessage": "أحد الملفات التي تحاول رفعها يتعارض مع ملف موجود بنفس الإسم. هل تريد إستبدال الملف الموجود؟\n",
@@ -161,7 +157,6 @@
     "show": "عرض",
     "size": "الحجم",
     "upload": "التحميل",
-    "deleteMessageShare": "Are you sure you want to delete this share: {path} ?",
     "deleteUserMessage": "هل أنت متأكد من رغبتك في حذف هذا المستخدم؟",
     "filesSelected": "الملفات المحددة",
     "optionalPassword": "كلمة مرور اختيارية",
@@ -172,9 +167,6 @@
     "dragAndDrop": "سحب الملفات وإفلاتها هنا",
     "completed": "مكتمل",
     "conflictsDetected": "التعارضات المكتشفة",
-    "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "source": "Source{suffix}",
     "downloadsLimit": "حد عدد التنزيلات",
     "maxBandwidth": "أقصى نطاق ترددي للتنزيل (كيلو بايت/ثانية)",
     "shareTheme": "سمة المشاركة",
@@ -186,17 +178,23 @@
     "shareFavicon": "مشاركة عنوان URL المفضل",
     "optionalPasswordHelp": "إذا تم تعيينها، يجب على المستخدمين إدخال كلمة المرور هذه لعرض المحتوى المشترك.",
     "viewMode": "وضع العرض",
-    "renameMessageConflict": "An item named \"{filename}\" already exists!",
     "renameMessage": "أدخل اسماً جديداً:",
-    "renameMessageInvalid": "لا يمكن أن يحتوي الملف على \"/\" أو \"\\\""
+    "renameMessageInvalid": "لا يمكن أن يحتوي الملف على \"/\" أو \"\\\"",
+    "source": "المصدر{suffix}",
+    "deleteMessageMultiple": "هل تريد بالتأكيد حذف الملف (الملفات) {count} ؟",
+    "deleteMessageShare": "هل أنت متأكد أنك تريد حذف هذه المشاركة؟ {path} ?",
+    "lastModified": "آخر تعديل{suffix}",
+    "numberDirs": "عدد الدلائل{suffix}",
+    "numberFiles": "عدد الملفات{suffix}",
+    "renameMessageConflict": "عنصر باسم \"{filename}\" موجود بالفعل!",
+    "uploadSettingsChunked": "الحد الأقصى للتحميلات المتزامنة: {maxConcurrentUpload} ، حجم القطعة: {uploadChunkSizeMb} ميغابايت",
+    "uploadSettingsNoChunk": "الحد الأقصى للتحميلات المتزامنة: {maxConcurrentUpload} ، تم تعطيل التحميل المقطّع"
   },
   "search": {
     "images": "الصور",
     "music": "الموسيقى",
     "pdf": "PDF",
-    "pressToSearch": "Press enter to search...",
     "search": "البحث...",
-    "typeToSearch": "Type to search...",
     "types": "الأنواع",
     "video": "فيديوهات",
     "path": "المسار:",
@@ -204,8 +202,19 @@
     "largerThan": "أكبر من:",
     "helpText1": "يحدث البحث على كل حرف تكتبه (3 أحرف كحد أدنى لمصطلحات البحث).",
     "helpText2": "الفهرس: يستخدم البحث الفهرس الذي يتم تحديثه تلقائيًا على الفاصل الزمني الذي تم تكوينه (افتراضيًا: 5 دقائق). قد يؤدي البحث عندما يكون البرنامج قد بدأ للتو إلى نتائج غير مكتملة.",
-    "notEnoughCharacters": "Not enough characters to search (min {minSearchLength})",
-    "noResults": "لم يتم العثور على نتائج في البحث المفهرس."
+    "noResults": "لم يتم العثور على نتائج في البحث المفهرس.",
+    "onlyFolders": "المجلدات فقط",
+    "onlyFiles": "الملفات فقط",
+    "showOptions": "عرض الخيارات",
+    "photos": "الصور",
+    "audio": "الصوت",
+    "videos": "مقاطع الفيديو",
+    "documents": "المستندات",
+    "archives": "المحفوظات",
+    "number": "العدد",
+    "searchContext": "سياق البحث: {context}",
+    "notEnoughCharacters": "أحرف غير كافية للبحث (الحد الأدنى {minSearchLength})",
+    "typeToSearch": "ابدأ الكتابة {minSearchLength} أو أكثر لبدء البحث."
   },
   "settings": {
     "admin": "Admin",
@@ -218,10 +227,8 @@
     "avoidChanges": "(أتركه فارغاً إن لم ترد تغييره)",
     "branding": "Branding",
     "brandingDirectoryPath": "Branding directory path",
-    "brandingHelp": "You can customize how your File Browser instance looks and feels by changing its name, replacing the logo, adding custom styles and even disable external links to GitHub.\nFor more information about custom branding, please check out the {0}.",
     "changePassword": "تغيير كلمة المرور",
     "commandRunner": "Command runner",
-    "commandRunnerHelp": "Here you can set commands that are executed in the named events. You must write one per line. The environment variables {0} and {1} will be available, being {0} relative to {1}. For more information about this feature and the available environment variables, please read the {2}.",
     "commandsUpdated": "تم تحديث الأوامر",
     "createUserDir": "Auto create user home dir while adding new user",
     "customStylesheet": "ستايل مخصص",
@@ -309,7 +316,9 @@
     "configViewer": "عارض التكوين",
     "configViewerShowFull": "إظهار التكوين الكامل",
     "configViewerShowComments": "إظهار التعليقات",
-    "configViewerLoadConfig": "تكوين التحميل"
+    "configViewerLoadConfig": "تكوين التحميل",
+    "brandingHelp": "يمكنك تخصيص شكل ومظهر مثيل متصفح الملفات الخاص بك عن طريق تغيير اسمه، واستبدال الشعار، وإضافة أنماط مخصصة، وحتى تعطيل الروابط الخارجية إلى GitHub.\nلمزيد من المعلومات حول العلامة التجارية المخصصة، يرجى الاطلاع على {0}.",
+    "commandRunnerHelp": "هنا يمكنك تعيين الأوامر التي يتم تنفيذها في الأحداث المسماة. يجب عليك كتابة أمر واحد لكل سطر. سيكون متغيرا البيئة {0} و {1} متاحين، حيث {0} بالنسبة إلى {1}. لمزيد من المعلومات حول هذه الميزة ومتغيرات البيئة المتاحة، يرجى قراءة {2}."
   },
   "sidebar": {
     "help": "مساعدة",
@@ -367,7 +376,6 @@
     "hideNavButtons": "إخفاء أزرار التنقل",
     "hideNavButtonsDescription": "قم بإخفاء أزرار التنقل على شريط التنقل في المشاركة لإضفاء مظهر بسيط.",
     "viewModeDescription": "التخطيط الافتراضي للصفحة المشتركة.",
-    "titleDefault": "Shared files - {title}",
     "descriptionDefault": "تم إرسال مشاركة إليك لعرضها أو تنزيلها.",
     "disableShareCard": "تعطيل بطاقة المشاركة المعطلة",
     "disableShareCardDescription": "قم بتعطيل بطاقة المشاركة على الصفحة المشتركة في الشريط الجانبي أو في أعلى الصفحة على الهاتف المحمول.",
@@ -381,7 +389,8 @@
     "enableOnlyOffice": "تمكين عارض OnlyOffice فقط",
     "enableOnlyOfficeDescription": "السماح بعرض ملفات المكتب باستخدام OnlyOffice في هذه المشاركة.",
     "enableOnlyOfficeEditing": "تمكين التحرير في المكتب فقط",
-    "enableOnlyOfficeEditingDescription": "السماح بتحرير الملفات المكتبية باستخدام OnlyOffice في هذه الحصة."
+    "enableOnlyOfficeEditingDescription": "السماح بتحرير الملفات المكتبية باستخدام OnlyOffice في هذه الحصة.",
+    "titleDefault": "الملفات المشتركة - {title}"
   },
   "api": {
     "title": "مفاتيح واجهة برمجة التطبيقات (API):",
@@ -465,8 +474,8 @@
     "totalDenied": "مرفوض",
     "totalAllowed": "المسموح به",
     "all": "رفض الكل",
-    "defaultBehavior": "Default action{suffix}",
-    "defaultBehaviorDescription": "يوضح هذا ما يحدث عندما يحاول المستخدم الوصول إلى مسار لا توجد فيه قواعد وصول محددة. تعني \"السماح\" أنه يمكن للمستخدمين الوصول بشكل افتراضي، وتعني \"الرفض\" أنه يتم حظر المستخدمين بشكل افتراضي ما لم يُسمح لهم صراحةً."
+    "defaultBehaviorDescription": "يوضح هذا ما يحدث عندما يحاول المستخدم الوصول إلى مسار لا توجد فيه قواعد وصول محددة. تعني \"السماح\" أنه يمكن للمستخدمين الوصول بشكل افتراضي، وتعني \"الرفض\" أنه يتم حظر المستخدمين بشكل افتراضي ما لم يُسمح لهم صراحةً.",
+    "defaultBehavior": "الإجراء الافتراضي{suffix}"
   },
   "fileLoading": {
     "title": "التحميلات والتنزيلات",
@@ -545,8 +554,8 @@
     "saveFailed": "فشل حفظ الملف. يرجى المحاولة مرة أخرى.",
     "saveAborted": "تم إجهاض الحفظ. اسم الملف غير مطابق للملف النشط.",
     "saveDisabled": "حفظ الملفات المشتركة غير مدعوم.",
-    "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
-    "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
+    "saveAbortedMessage": "تم إجهاض عملية الحفظ. الملف النشط للتطبيق ({activeFile}) لا يتطابق مع الملف الذي تحاول حفظه ({tryingToSave}).",
+    "syncFailed": "فشل مزامنة الحالة مع مسار \"{filename}\" بعد 5 محاولات. إجهاض إعداد المحرر لمنع تلف البيانات."
   },
   "player": {
     "LoopEnabled": "تم تمكين الحلقة",

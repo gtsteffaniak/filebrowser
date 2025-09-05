@@ -14,7 +14,7 @@
         </div>
         <div>
           <input v-model.number="localuser.fileLoading.maxConcurrentUpload" type="range" min="1" max="10"
-            placeholder="number" />
+            :placeholder="$t('search.number')" />
           <span class="range-value">{{ localuser.fileLoading.maxConcurrentUpload }}</span>
         </div>
       </div>
@@ -28,7 +28,7 @@
         </div>
         <div class="no-padding">
           <input class="sizeInput input" v-model.number="localuser.fileLoading.uploadChunkSizeMb" type="number" min="0"
-            placeholder="number" />
+            :placeholder="$t('search.number')" />
         </div>
       </div>
     </div>

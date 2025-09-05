@@ -135,7 +135,6 @@
   "prompts": {
     "copy": "コピー",
     "copyMessage": "コピーの目標ディレクトリを選択してください：",
-    "deleteMessageMultiple": "{count} つのファイルを本当に削除してよろしいですか。",
     "deleteMessageSingle": "このファイル/フォルダを本当に削除してよろしいですか。",
     "deleteTitle": "ファイルを削除",
     "displayName": "名前：",
@@ -143,7 +142,6 @@
     "downloadMessage": "圧縮形式を選択してください。",
     "error": "あるエラーが発生しました。",
     "fileInfo": "ファイル情報",
-    "lastModified": "最終変更{suffix}",
     "move": "移動",
     "moveMessage": "移動の目標ディレクトリを選択してください：",
     "newArchetype": "ある元型に基づいて新しいポストを作成します。ファイルは  コンテンツフォルダに作成されます。",
@@ -151,8 +149,6 @@
     "newDirMessage": "新しいディレクトリの名前を入力してください。",
     "newFile": "新しいファイルを作成",
     "newFileMessage": "新しいファイルの名前を入力してください。",
-    "numberDirs": "ディレクトリ個数{suffix}",
-    "numberFiles": "ファイル個数{suffix}",
     "rename": "名前を変更",
     "replace": "置き換える",
     "replaceMessage": "アップロードするファイルの中でかち合う名前が一つあります。 既存のファイルを置き換えりませんか。\n",
@@ -161,7 +157,6 @@
     "show": "表示",
     "size": "サイズ",
     "upload": "アップロード",
-    "deleteMessageShare": "Are you sure you want to delete this share: {path} ?",
     "deleteUserMessage": "本当にこのユーザーを削除しますか？",
     "filesSelected": "選択されたファイル",
     "optionalPassword": "任意のパスワード",
@@ -172,9 +167,6 @@
     "dragAndDrop": "ここにファイルをドラッグ＆ドロップする",
     "completed": "完成",
     "conflictsDetected": "コンフリクト検出",
-    "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "source": "Source{suffix}",
     "downloadsLimit": "ダウンロード数制限",
     "maxBandwidth": "最大ダウンロード帯域幅 (kbps)",
     "shareTheme": "シェアテーマ",
@@ -186,17 +178,23 @@
     "shareFavicon": "ファビコンのURLを共有する",
     "optionalPasswordHelp": "設定されている場合、ユーザーは共有コンテンツを見るためにこのパスワードを入力しなければならない。",
     "viewMode": "ビューモード",
-    "renameMessageConflict": "An item named \"{filename}\" already exists!",
     "renameMessage": "新しい名前を入力する：",
-    "renameMessageInvalid": "ファイルには\"/\"や\"˶\"を入れることはできません。"
+    "renameMessageInvalid": "ファイルには\"/\"や\"˶\"を入れることはできません。",
+    "source": "ソース{suffix}",
+    "deleteMessageMultiple": "本当に{count} ファイルを削除しますか？",
+    "deleteMessageShare": "この共有を削除してもよろしいですか？ {path} ?",
+    "lastModified": "最終更新日{suffix}",
+    "numberDirs": "ディレクトリ数{suffix}",
+    "numberFiles": "ファイル数{suffix}",
+    "renameMessageConflict": "{filename}\" という名前のアイテムがすでに存在する！",
+    "uploadSettingsChunked": "最大同時アップロード数{maxConcurrentUpload}チャンクサイズ {uploadChunkSizeMb} MB",
+    "uploadSettingsNoChunk": "最大同時アップロード数{maxConcurrentUpload}チャンクアップロード無効"
   },
   "search": {
     "images": "画像",
     "music": "音楽",
     "pdf": "PDF",
-    "pressToSearch": "Press enter to search...",
     "search": "検索...",
-    "typeToSearch": "Type to search...",
     "types": "種類",
     "video": "ビデオ",
     "path": "パス",
@@ -204,8 +202,19 @@
     "largerThan": "より大きい：",
     "helpText1": "検索は入力した文字ごとに行われます（検索語は最低3文字）。",
     "helpText2": "インデックス：検索は、設定された間隔（デフォルト：5分）で自動的に更新されるインデックスを利用します。プログラムが開始したばかりの時に検索すると、不完全な結果になることがあります。",
-    "notEnoughCharacters": "Not enough characters to search (min {minSearchLength})",
-    "noResults": "インデックス検索で結果が見つかりませんでした。"
+    "noResults": "インデックス検索で結果が見つかりませんでした。",
+    "onlyFolders": "フォルダのみ",
+    "onlyFiles": "ファイルのみ",
+    "showOptions": "オプションの表示",
+    "photos": "写真",
+    "audio": "オーディオ",
+    "videos": "ビデオ",
+    "documents": "資料",
+    "archives": "アーカイブス",
+    "number": "番号",
+    "searchContext": "検索コンテキスト：{context}",
+    "notEnoughCharacters": "検索する文字数が足りない (最小値{minSearchLength})",
+    "typeToSearch": "検索を開始するには、{minSearchLength} 以上の文字を入力します。"
   },
   "settings": {
     "admin": "管理者",
@@ -218,10 +227,8 @@
     "avoidChanges": "(変更を避けるために空白にしてください)",
     "branding": "Branding",
     "brandingDirectoryPath": "Branding directory path",
-    "brandingHelp": "You can customize how your File Browser instance looks and feels by changing its name, replacing the logo, adding custom styles and even disable external links to GitHub.\nFor more information about custom branding, please check out the {0}.",
     "changePassword": "パスワードを変更",
     "commandRunner": "Command runner",
-    "commandRunnerHelp": "Here you can set commands that are executed in the named events. You must write one per line. The environment variables {0} and {1} will be available, being {0} relative to {1}. For more information about this feature and the available environment variables, please read the {2}.",
     "commandsUpdated": "コマンドは更新されました！",
     "createUserDir": "Auto create user home dir while adding new user",
     "customStylesheet": "カスタムスタイルシ ート",
@@ -309,7 +316,9 @@
     "configViewer": "コンフィグビューア",
     "configViewerShowFull": "フルコンフィグを表示",
     "configViewerShowComments": "コメントを表示",
-    "configViewerLoadConfig": "ロードコンフィグ"
+    "configViewerLoadConfig": "ロードコンフィグ",
+    "brandingHelp": "ファイルブラウザのインスタンスの見た目や使い勝手は、名前の変更、ロゴの置き換え、カスタムスタイルの追加、GitHub への外部リンクの無効化などでカスタマイズできます。\nカスタムブランディングの詳細については、{0} をご覧ください。",
+    "commandRunnerHelp": "ここでは、指定したイベントで実行されるコマンドを設定することができる。1行に1つ書く必要がある。環境変数{0} と{1} が使用可能になり、{0} は{1} の相対変数になります。この機能と使用可能な環境変数の詳細については、{2} をお読みください。"
   },
   "sidebar": {
     "help": "ヘルプ",
@@ -367,7 +376,6 @@
     "hideNavButtons": "ナビゲーションボタンを隠す",
     "hideNavButtonsDescription": "シェア内のナビバーにあるナビゲーションボタンを非表示にして、ミニマルな外観を作る。",
     "viewModeDescription": "共有ページのデフォルトレイアウト。",
-    "titleDefault": "Shared files - {title}",
     "descriptionDefault": "シェアが送信されましたので、閲覧またはダウンロードしてください。",
     "disableShareCard": "シェアカードを無効にする",
     "disableShareCardDescription": "サイドバーの共有ページ、またはモバイルのページ上部にある共有カードを無効にする。",
@@ -381,7 +389,8 @@
     "enableOnlyOffice": "OnlyOfficeビューアを有効にする",
     "enableOnlyOfficeDescription": "この共有でOnlyOfficeを使用したオフィスファイルの閲覧を許可する。",
     "enableOnlyOfficeEditing": "OnlyOffice編集を有効にする",
-    "enableOnlyOfficeEditingDescription": "この共有でOnlyOfficeを使ったオフィスファイルの編集を許可する。"
+    "enableOnlyOfficeEditingDescription": "この共有でOnlyOfficeを使ったオフィスファイルの編集を許可する。",
+    "titleDefault": "共有ファイル{title}"
   },
   "api": {
     "title": "APIキー：",
@@ -465,8 +474,8 @@
     "totalDenied": "却下",
     "totalAllowed": "可",
     "all": "すべて拒否",
-    "defaultBehavior": "Default action{suffix}",
-    "defaultBehaviorDescription": "これは、特定のアクセスルールが存在しないパスにユーザがアクセスしようとしたときに何が起こるかを示している。Allow」はユーザーがデフォルトでアクセスできることを意味し、「Deny」は明示的に許可されない限り、ユーザーがデフォルトでブロックされることを意味する。"
+    "defaultBehaviorDescription": "これは、特定のアクセスルールが存在しないパスにユーザがアクセスしようとしたときに何が起こるかを示している。Allow」はユーザーがデフォルトでアクセスできることを意味し、「Deny」は明示的に許可されない限り、ユーザーがデフォルトでブロックされることを意味する。",
+    "defaultBehavior": "デフォルト・アクション{suffix}"
   },
   "fileLoading": {
     "title": "アップロードとダウンロード",
@@ -545,8 +554,8 @@
     "saveFailed": "ファイルの保存に失敗しました。もう一度お試しください。",
     "saveAborted": "保存が中止された。ファイル名がアクティブなファイルと一致しません。",
     "saveDisabled": "共有ファイルの保存はサポートされていません。",
-    "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
-    "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
+    "saveAbortedMessage": "保存操作が中断されました。アプリケーションのアクティブファイル（{activeFile} ）と保存しようとしているファイル（{tryingToSave} ）が一致しません。",
+    "syncFailed": "{filename}\" のルートとステートの同期に失敗しました。データの破損を防ぐためにエディタのセットアップを中止しています。"
   },
   "player": {
     "LoopEnabled": "ループ有効",

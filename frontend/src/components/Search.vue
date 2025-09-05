@@ -50,7 +50,7 @@
         </select>
 
         <!-- Formatted display of selected value -->
-        <div class="searchContext">{{ contextText }}</div>
+        <div class="searchContext">{{ $t("search.searchContext", { context: getContext }) }}</div>
       </div>
 
       <div id="result-list">
@@ -87,7 +87,7 @@
                     v-model="smallerThan"
                     type="number"
                     min="0"
-                    placeholder="number"
+                    :placeholder="$t('search.number')"
                   /><p>MB</p> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
                 </div>
                 <div class="sizeInputWrapper">
@@ -96,7 +96,7 @@
                     class="sizeInput"
                     v-model="largerThan"
                     type="number"
-                    placeholder="number"
+                    :placeholder="$t('search.number')"
                   /><p>MB</p> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
                 </div>
               </div>
@@ -169,22 +169,22 @@ export default {
     return {
       largerThan: "",
       smallerThan: "",
-      noneMessage: "Start typing " + minSearchLength + " or more characters to begin searching.",
+      noneMessage: this.$t("search.typeToSearch", { minSearchLength: minSearchLength }),
       searchTypes: "",
       isTypeSelectDisabled: false,
       showHelp: false,
       folderSelect: [
-        { label: "Only Folders", value: "type:folder" },
-        { label: "Only Files", value: "type:file" },
+        { label: this.$t("search.onlyFolders"), value: "type:folder" },
+        { label: this.$t("search.onlyFiles"), value: "type:file" },
       ],
       typeSelect: [
-        { label: "Photos", value: "type:image" },
-        { label: "Audio", value: "type:audio" },
-        { label: "Videos", value: "type:video" },
-        { label: "Documents", value: "type:doc" },
-        { label: "Archives", value: "type:archive" },
+        { label: this.$t("search.photos"), value: "type:image" },
+        { label: this.$t("search.audio"), value: "type:audio" },
+        { label: this.$t("search.videos"), value: "type:video" },
+        { label: this.$t("search.documents"), value: "type:doc" },
+        { label: this.$t("search.archives"), value: "type:archive" },
       ],
-      toggleOptionButton: [{ label: "Show Options" }],
+      toggleOptionButton: [{ label: this.$t("search.showOptions") }],
       value: "",
       ongoing: false,
       results: [],
@@ -294,9 +294,7 @@ export default {
       if (this.ongoing) {
         return "";
       }
-      return this.value === ""
-        ? this.$t("search.typeToSearch", { minSearchLength: minSearchLength })
-        : this.$t("search.pressToSearch");
+      return this.$t("search.typeToSearch", { minSearchLength: minSearchLength })
     },
     isRunning() {
       return this.ongoing;
@@ -328,9 +326,6 @@ export default {
       } else {
         return "/"; // if searching on non-current source, search the whole thing
       }
-    },
-    contextText() {
-      return `Search Context: ${this.getContext}`; // FIX: Use `this.getContext` as a property, not a function call
     },
   },
   methods: {

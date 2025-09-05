@@ -135,7 +135,6 @@
   "prompts": {
     "copy": "Copiază",
     "copyMessage": "Alege unde vrei să copiezi fișierele:",
-    "deleteMessageMultiple": "Ești sigur că vrei să ștergi aceste {count} fișier(e)?",
     "deleteMessageSingle": "Ești sigur că vrei să ștergi acest fișier/director?",
     "deleteTitle": "Șterge fișiere",
     "displayName": "Nume afișat:",
@@ -143,7 +142,6 @@
     "downloadMessage": "Alege formatul în care vrei să descarci.",
     "error": "Ceva n-a funcționat cum trebuie",
     "fileInfo": "Informații fișier",
-    "lastModified": "Ultima modificare{suffix}",
     "move": "Mută",
     "moveMessage": "Alege destinația:",
     "newArchetype": "Crează o nouă postare pe baza unui șablon. Fișierul va fi creat in directorul conținut.",
@@ -151,8 +149,6 @@
     "newDirMessage": "Scrie numele noului director.",
     "newFile": "Fișier nou",
     "newFileMessage": "Scrie numele noului fișier.",
-    "numberDirs": "Numărul directoarelor{suffix}",
-    "numberFiles": "Numărul fișierelor{suffix}",
     "rename": "Redenumește",
     "replace": "Înlocuiește",
     "replaceMessage": "Unul din fișierele încărcate intră în conflict din cauza denumrii. Vrei să înlocuiești fișierul existent?\n",
@@ -161,7 +157,6 @@
     "show": "Arată",
     "size": "Dimensiune",
     "upload": "Încărcare",
-    "deleteMessageShare": "Are you sure you want to delete this share: {path} ?",
     "deleteUserMessage": "Sunteți sigur că doriți să ștergeți acest utilizator?",
     "filesSelected": "fișiere selectate",
     "optionalPassword": "Parolă opțională",
@@ -172,9 +167,6 @@
     "dragAndDrop": "Drag and drop fișiere aici",
     "completed": "Completat",
     "conflictsDetected": "Conflicte detectate",
-    "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "source": "Source{suffix}",
     "downloadsLimit": "Limita numărului de descărcări",
     "maxBandwidth": "Lățime de bandă maximă de descărcare (kbps)",
     "shareTheme": "Temă de partajare",
@@ -186,17 +178,23 @@
     "shareFavicon": "Partajați URL favicon",
     "optionalPasswordHelp": "Dacă este setată, utilizatorii trebuie să introducă această parolă pentru a vizualiza conținutul partajat.",
     "viewMode": "Mod de vizualizare",
-    "renameMessageConflict": "An item named \"{filename}\" already exists!",
     "renameMessage": "Introduceți un nume nou:",
-    "renameMessageInvalid": "Un fișier nu poate conține \"/\" sau \"\\\""
+    "renameMessageInvalid": "Un fișier nu poate conține \"/\" sau \"\\\"",
+    "source": "Sursa{suffix}",
+    "deleteMessageMultiple": "Sunteți sigur că doriți să eliminați fișierul (fișierele) {count}?",
+    "deleteMessageShare": "Sunteți sigur că doriți să ștergeți această partajare: {path} ?",
+    "lastModified": "Ultima modificare{suffix}",
+    "numberDirs": "Număr de directoare{suffix}",
+    "numberFiles": "Număr de fișiere{suffix}",
+    "renameMessageConflict": "Un element numit \"{filename}\" există deja!",
+    "uploadSettingsChunked": "Încărcări simultane maxime: {maxConcurrentUpload}, dimensiunea bucăților: {uploadChunkSizeMb} MB",
+    "uploadSettingsNoChunk": "Încărcări simultane maxime: {maxConcurrentUpload}, încărcare fragmentată dezactivată"
   },
   "search": {
     "images": "Imagini",
     "music": "Muzică",
     "pdf": "PDF",
-    "pressToSearch": "Apasă enter pentru a căuta...",
     "search": "Caută...",
-    "typeToSearch": "Scrie pentru a căuta...",
     "types": "Tipuri",
     "video": "Video",
     "path": "Calea:",
@@ -204,8 +202,19 @@
     "largerThan": "Mai mare decât:",
     "helpText1": "Căutarea are loc pe fiecare caracter tastat (minim 3 caractere pentru termenii de căutare).",
     "helpText2": "Indexul: Căutarea utilizează indexul care se actualizează automat la intervalul configurat (implicit: 5 minute). Căutarea atunci când programul tocmai a început poate duce la rezultate incomplete.",
-    "notEnoughCharacters": "Not enough characters to search (min {minSearchLength})",
-    "noResults": "Nu s-au găsit rezultate în căutarea indexată."
+    "noResults": "Nu s-au găsit rezultate în căutarea indexată.",
+    "onlyFolders": "Numai foldere",
+    "onlyFiles": "Numai fișiere",
+    "showOptions": "Afișare opțiuni",
+    "photos": "Fotografii",
+    "audio": "Audio",
+    "videos": "Video",
+    "documents": "Documente",
+    "archives": "Arhive",
+    "number": "Număr",
+    "searchContext": "Context de căutare: {context}",
+    "notEnoughCharacters": "Nu sunt suficiente caractere pentru căutare (min {minSearchLength})",
+    "typeToSearch": "Începeți să tastați {minSearchLength} sau mai multe caractere pentru a începe căutarea."
   },
   "settings": {
     "admin": "Admin",
@@ -218,10 +227,8 @@
     "avoidChanges": "(lasă gol pentru a nu schimba)",
     "branding": "Branding",
     "brandingDirectoryPath": "Calea către directorul de branding",
-    "brandingHelp": "Poți personaliza cum arată instanța ta de File Browser modificându-i numele, înlocuindu-i logo-ul, adăugându-i stiluri personalizate si chiar dezactivând linkurile catre GitHub.\nPentru mai multe informații despre branding fă click aici",
     "changePassword": "Schimbă parola",
     "commandRunner": "Rulează comenzi",
-    "commandRunnerHelp": "Aici poti seta comenzile care sunt executate in evenimente. Trebuie să scrii una pe linie. Variabilele de mediu {0} și {1} vor fi disponile, {0} fiind relativă la {1}. Pentru mai multe informații despre acest feature si variabilele de mediu disponibile, cititi {2}.",
     "commandsUpdated": "Comenzi actualizate!",
     "createUserDir": "Auto create user home dir while adding new user",
     "customStylesheet": "CSS personalizat",
@@ -309,7 +316,9 @@
     "configViewer": "Vizualizator de configurare",
     "configViewerShowFull": "Afișați configurația completă",
     "configViewerShowComments": "Afișați comentariile",
-    "configViewerLoadConfig": "Configurare încărcare"
+    "configViewerLoadConfig": "Configurare încărcare",
+    "brandingHelp": "Puteți personaliza aspectul instanței File Browser prin schimbarea numelui, înlocuirea logo-ului, adăugarea de stiluri personalizate și chiar dezactivarea linkurilor externe către GitHub.\nPentru mai multe informații despre brandingul personalizat, consultați {0}.",
+    "commandRunnerHelp": "Aici puteți seta comenzi care sunt executate în cadrul evenimentelor numite. Trebuie să scrieți câte una pe linie. Variabilele de mediu {0} și {1} vor fi disponibile, {0} fiind relativ la {1}. Pentru mai multe informații despre această caracteristică și variabilele de mediu disponibile, vă rugăm să citiți {2}."
   },
   "sidebar": {
     "help": "Ajutor",
@@ -367,7 +376,6 @@
     "hideNavButtons": "Ascundeți butoanele de navigare",
     "hideNavButtonsDescription": "Ascundeți butoanele de navigare de pe bara de navigare din share pentru a crea un aspect minimalist.",
     "viewModeDescription": "Layout implicit pentru pagina partajată.",
-    "titleDefault": "Shared files - {title}",
     "descriptionDefault": "V-a fost trimisă o acțiune pentru a o vizualiza sau descărca.",
     "disableShareCard": "Dezactivați cardul de partajare",
     "disableShareCardDescription": "Dezactivați cardul de partajare pe pagina partajată în bara laterală sau în partea de sus a paginii pe mobil.",
@@ -381,7 +389,8 @@
     "enableOnlyOffice": "Activați vizualizatorul OnlyOffice",
     "enableOnlyOfficeDescription": "Permiteți vizualizarea fișierelor office utilizând OnlyOffice în această partajare.",
     "enableOnlyOfficeEditing": "Activați editarea OnlyOffice",
-    "enableOnlyOfficeEditingDescription": "Permiteți editarea fișierelor de birou utilizând OnlyOffice în această partajare."
+    "enableOnlyOfficeEditingDescription": "Permiteți editarea fișierelor de birou utilizând OnlyOffice în această partajare.",
+    "titleDefault": "Fișiere partajate - {title}"
   },
   "api": {
     "title": "Chei API:",
@@ -465,8 +474,8 @@
     "totalDenied": "Refuzat",
     "totalAllowed": "Permise",
     "all": "Refuzați toate",
-    "defaultBehavior": "Default action{suffix}",
-    "defaultBehaviorDescription": "Aceasta arată ce se întâmplă atunci când un utilizator încearcă să acceseze o cale unde nu există reguli specifice de acces. \"Allow\" înseamnă că utilizatorii pot accesa în mod implicit, \"Deny\" înseamnă că utilizatorii sunt blocați în mod implicit dacă nu li se permite în mod explicit."
+    "defaultBehaviorDescription": "Aceasta arată ce se întâmplă atunci când un utilizator încearcă să acceseze o cale unde nu există reguli specifice de acces. \"Allow\" înseamnă că utilizatorii pot accesa în mod implicit, \"Deny\" înseamnă că utilizatorii sunt blocați în mod implicit dacă nu li se permite în mod explicit.",
+    "defaultBehavior": "Acțiune implicită{suffix}"
   },
   "fileLoading": {
     "title": "Încărcări și descărcări",
@@ -545,8 +554,8 @@
     "saveFailed": "Nu ați reușit să salvați fișierul. Vă rugăm să încercați din nou.",
     "saveAborted": "Salvare întreruptă. Numele fișierului nu corespunde fișierului activ.",
     "saveDisabled": "Salvarea fișierelor partajate nu este acceptată.",
-    "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
-    "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
+    "saveAbortedMessage": "Operațiunea de salvare a fost întreruptă. Fișierul activ al aplicației ({activeFile}) nu corespunde cu fișierul pe care încercați să îl salvați ({tryingToSave}).",
+    "syncFailed": "nu a reușit să sincronizeze starea cu ruta pentru \"{filename}\" după 5 încercări. Întreruperea configurării editorului pentru a preveni coruperea datelor."
   },
   "player": {
     "LoopEnabled": "Bucla activată",

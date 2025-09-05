@@ -135,7 +135,6 @@
   "prompts": {
     "copy": "複製",
     "copyMessage": "請選擇欲複製至的目錄：",
-    "deleteMessageMultiple": "你確定要刪除這 {count} 個檔案嗎?",
     "deleteMessageSingle": "你確定要刪除這個檔案/資料夾嗎?",
     "deleteTitle": "刪除檔案",
     "displayName": "名稱：",
@@ -143,7 +142,6 @@
     "downloadMessage": "請選擇要下載的壓縮格式。",
     "error": "發出了一點錯誤...",
     "fileInfo": "檔案資訊",
-    "lastModified": "最後修改{suffix}",
     "move": "移動",
     "moveMessage": "請選擇欲移動至的目錄：",
     "newArchetype": "建立一個基於原型的新貼文。您的檔案將會建立在內容資料夾中。",
@@ -151,8 +149,6 @@
     "newDirMessage": "請輸入新目錄的名稱。",
     "newFile": "建立檔案",
     "newFileMessage": "請輸入新檔案的名稱。",
-    "numberDirs": "目錄數{suffix}",
-    "numberFiles": "檔案數{suffix}",
     "rename": "重新命名",
     "replace": "替換",
     "replaceMessage": "您嘗試上傳的檔案中有一個與現有檔案的名稱存在衝突。是否取代現有的同名檔案？",
@@ -161,7 +157,6 @@
     "show": "顯示",
     "size": "大小",
     "upload": "上傳",
-    "deleteMessageShare": "Are you sure you want to delete this share: {path} ?",
     "destinationSource": "目的地來源：",
     "deleteUserMessage": "您確定要刪除此使用者嗎？",
     "dragAndDrop": "將檔案拖放至此",
@@ -172,9 +167,6 @@
     "typeName": "類型：",
     "deleted": "已成功刪除！",
     "conflictsDetected": "偵測到衝突",
-    "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "source": "Source{suffix}",
     "downloadsLimit": "下載次數限制",
     "maxBandwidth": "最大下載頻寬 (kbps)",
     "shareTheme": "分享主題",
@@ -186,17 +178,23 @@
     "shareFavicon": "分享圖示 URL",
     "optionalPasswordHelp": "如果設定，使用者必須輸入此密碼才能檢視共用內容。",
     "viewMode": "檢視模式",
-    "renameMessageConflict": "An item named \"{filename}\" already exists!",
     "renameMessage": "輸入新名稱：",
-    "renameMessageInvalid": "檔案不能包含\"/「或」\\\""
+    "renameMessageInvalid": "檔案不能包含\"/「或」\\\"",
+    "source": "來源{suffix}",
+    "deleteMessageMultiple": "您確定要刪除{count} 檔案嗎？",
+    "deleteMessageShare": "您確定要刪除此共用嗎？ {path} ?",
+    "lastModified": "最後修改{suffix}",
+    "numberDirs": "目錄數量{suffix}",
+    "numberFiles": "檔案數量{suffix}",
+    "renameMessageConflict": "名為 \"{filename}\" 的項目已經存在！",
+    "uploadSettingsChunked": "最大同時上傳數量：{maxConcurrentUpload}, 分塊大小： {uploadChunkSizeMb} MB",
+    "uploadSettingsNoChunk": "最大同時上傳數量：{maxConcurrentUpload}, 已停用分塊上傳"
   },
   "search": {
     "images": "影像",
     "music": "音樂",
     "pdf": "PDF",
-    "pressToSearch": "按確認鍵搜尋...",
     "search": "搜尋...",
-    "typeToSearch": "輸入以搜尋...",
     "types": "類型",
     "video": "影片",
     "path": "路徑：",
@@ -204,8 +202,19 @@
     "largerThan": "大於：",
     "helpText1": "您輸入的每個字元都會進行搜尋（搜尋字詞最少 3 個字元）。",
     "helpText2": "索引：搜尋會使用索引，該索引會在設定的間隔 (預設值：5 分鐘) 自動更新。當程式剛開始搜尋時，可能會導致結果不完整。",
-    "notEnoughCharacters": "Not enough characters to search (min {minSearchLength})",
-    "noResults": "在索引搜尋中未找到任何結果。"
+    "noResults": "在索引搜尋中未找到任何結果。",
+    "onlyFolders": "僅文件夾",
+    "onlyFiles": "僅檔案",
+    "showOptions": "顯示選項",
+    "photos": "圖片",
+    "audio": "音訊",
+    "videos": "影片",
+    "documents": "文件",
+    "archives": "檔案",
+    "number": "數量",
+    "searchContext": "搜尋範圍：{context}",
+    "notEnoughCharacters": "搜尋字元不足 (最少{minSearchLength})",
+    "typeToSearch": "開始輸入{minSearchLength} 或更多字元以開始搜尋。"
   },
   "settings": {
     "admin": "管理員",
@@ -218,10 +227,8 @@
     "avoidChanges": "(留空以避免更改)",
     "branding": "品牌",
     "brandingDirectoryPath": "品牌資訊資料夾路徑",
-    "brandingHelp": "您可以通過改變例項名稱，更換Logo，加入自定義樣式，甚至禁用到Github的外部連結來自定義File Browser的外觀和給人的感覺。\n想獲得更多資訊，請檢視 {0} 。",
     "changePassword": "更改密碼",
     "commandRunner": "命令執行器",
-    "commandRunnerHelp": "在這裡你可以設定在下面的事件中執行的命令。每行必須寫一條命令。可以在命令中使用環境變數 {0} 和 {1}。關於此功能和可用環境變數的更多資訊，請閱讀{2}.",
     "commandsUpdated": "命令已更新！",
     "createUserDir": "在新增新使用者的同時自動建立使用者的個人目錄",
     "customStylesheet": "自定義樣式表",
@@ -309,7 +316,9 @@
     "configViewer": "組態檢視器",
     "configViewerShowFull": "顯示完整設定",
     "configViewerShowComments": "顯示評論",
-    "configViewerLoadConfig": "載入組態"
+    "configViewerLoadConfig": "載入組態",
+    "brandingHelp": "您可以透過更改名稱、更換標誌、新增自訂樣式，甚至停用 GitHub 的外部連結，自訂檔案瀏覽器實例的外觀和感覺。\n有關自訂品牌的詳細資訊，請參閱{0} 。",
+    "commandRunnerHelp": "您可以在此設定在命名事件中執行的指令。您必須每行寫一個。環境變數{0} 和{1} 將可用，是相對於{1} 的{0} 。如需更多關於此功能和可用環境變數的資訊，請閱讀{2} 。"
   },
   "sidebar": {
     "help": "幫助",
@@ -367,7 +376,6 @@
     "hideNavButtons": "隱藏導覽按鈕",
     "hideNavButtonsDescription": "隱藏分享中導覽列上的導覽按鈕，以創造簡約的外觀。",
     "viewModeDescription": "共用頁面的預設版面。",
-    "titleDefault": "Shared files - {title}",
     "descriptionDefault": "已向您發送一份共用檔案，供您檢視或下載。",
     "disableShareCard": "停用分享卡",
     "disableShareCardDescription": "停用分享頁面側邊欄或行動版頁面頂端的分享卡。",
@@ -381,7 +389,8 @@
     "enableOnlyOffice": "啟用 OnlyOffice 檢視器",
     "enableOnlyOfficeDescription": "允許在此共用中使用 OnlyOffice 檢視辦公室檔案。",
     "enableOnlyOfficeEditing": "啟用 OnlyOffice 編輯",
-    "enableOnlyOfficeEditingDescription": "允許在此共用中使用 OnlyOffice 編輯辦公室檔案。"
+    "enableOnlyOfficeEditingDescription": "允許在此共用中使用 OnlyOffice 編輯辦公室檔案。",
+    "titleDefault": "共用檔案 -{title}"
   },
   "api": {
     "title": "API 金鑰",
@@ -537,16 +546,16 @@
     "name": "名稱",
     "accessManagement": "存取管理",
     "all": "全部拒絕",
-    "defaultBehavior": "Default action{suffix}",
-    "defaultBehaviorDescription": "這顯示使用者嘗試存取沒有特定存取規則的路徑時會發生的情況。允許」表示使用者預設可以存取，「拒絕」表示使用者預設會被阻擋，除非明確允許。"
+    "defaultBehaviorDescription": "這顯示使用者嘗試存取沒有特定存取規則的路徑時會發生的情況。允許」表示使用者預設可以存取，「拒絕」表示使用者預設會被阻擋，除非明確允許。",
+    "defaultBehavior": "預設動作{suffix}"
   },
   "editor": {
     "uninitialized": "編輯器初始化失敗。請重新載入。",
     "saveFailed": "儲存檔案失敗。請重試。",
     "saveAborted": "儲存中止。檔案名稱與使用中的檔案不符。",
     "saveDisabled": "不支援儲存共用檔案。",
-    "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
-    "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
+    "saveAbortedMessage": "儲存作業中止。應用程式的作用中檔案 ({activeFile}) 與您試圖儲存的檔案 ({tryingToSave}) 不匹配。",
+    "syncFailed": "經過 5 次嘗試後，未能與 \"{filename}\" 的路由同步狀態。中止編輯器設定以防止資料損毀。"
   },
   "player": {
     "LoopEnabled": "啟用循環",

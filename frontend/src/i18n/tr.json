@@ -135,16 +135,13 @@
   "prompts": {
     "copy": "Kopyala",
     "copyMessage": "Dosyalarınızı kopyalayacağınız yeri seçin:",
-    "deleteMessageMultiple": "{count} dosyayı/dosyaları silmek istediğinizden emin misiniz?",
     "deleteMessageSingle": "Bu dosyayı/klasörü silmek istediğinizden emin misiniz?",
-    "deleteMessageShare": "Bu paylaşımı({path}) silmek istediğinizden emin misiniz?",
     "deleteTitle": "Dosyaları sil",
     "displayName": "Görünen Ad:",
     "download": "Dosyaları indirŞ",
     "downloadMessage": "İndirmek istediğiniz formatı seçin.",
     "error": "Bir şeyler yanlış gitti",
     "fileInfo": "Dosya bilgisi",
-    "lastModified": "Son güncellenme{suffix}",
     "move": "Taşı",
     "moveMessage": "Dosya(lar)ınız/klasör(ler)iniz için yeni ana dizin seçin:",
     "newArchetype": "Bir prototip temelinde yeni bir gönderi oluşturun. Dosyanız içerik klasöründe oluşturulacaktır.",
@@ -152,8 +149,6 @@
     "newDirMessage": "Yeni dizinin adını yazın.",
     "newFile": "Yeni dosya",
     "newFileMessage": "Yeni dosyanın adını yazın.",
-    "numberDirs": "Dizin sayısı{suffix}",
-    "numberFiles": "Dosya sayısı{suffix}",
     "rename": "Yeniden adlandır",
     "replace": "Değiştir",
     "replaceMessage": "Yüklemeye çalıştığınız dosyalardan biri, adı nedeniyle çakışıyor. Mevcut olanı değiştirmek istiyor musunuz?\n",
@@ -172,9 +167,6 @@
     "dragAndDrop": "Dosyaları buraya sürükleyip bırakın",
     "completed": "Tamamlandı",
     "conflictsDetected": "Tespit edilen çatışmalar",
-    "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "source": "Source{suffix}",
     "downloadsLimit": "İndirme sayısı sınırı",
     "maxBandwidth": "Maksimum indirme bant genişliği (kbps)",
     "shareTheme": "Temayı paylaş",
@@ -186,17 +178,23 @@
     "shareFavicon": "Favicon URL'sini paylaş",
     "optionalPasswordHelp": "Ayarlanırsa, kullanıcılar paylaşılan içeriği görüntülemek için bu parolayı girmelidir.",
     "viewMode": "Görünüm modu",
-    "renameMessageConflict": "An item named \"{filename}\" already exists!",
     "renameMessage": "Yeni bir ad girin:",
-    "renameMessageInvalid": "Bir dosya \"/\" veya \"\\\" içeremez"
+    "renameMessageInvalid": "Bir dosya \"/\" veya \"\\\" içeremez",
+    "source": "Kaynak{suffix}",
+    "deleteMessageMultiple": "{count} dosya(lar)ını silmek istediğinizden emin misiniz?",
+    "deleteMessageShare": "Bu paylaşımı silmek istediğinizden emin misiniz? {path} ?",
+    "lastModified": "Son Değişiklik{suffix}",
+    "numberDirs": "Dizin sayısı{suffix}",
+    "numberFiles": "Dosya sayısı{suffix}",
+    "renameMessageConflict": "\"{filename}\" adında bir öğe zaten var!",
+    "uploadSettingsChunked": "Maksimum eşzamanlı yükleme: {maxConcurrentUpload}, yığın boyutu: {uploadChunkSizeMb} MB",
+    "uploadSettingsNoChunk": "Maksimum eşzamanlı yükleme: {maxConcurrentUpload}, yığınlanmış yükleme devre dışı"
   },
   "search": {
     "images": "Görseller",
     "music": "Müzik",
     "pdf": "PDF",
-    "pressToSearch": "Aramak için enter'a basın...",
     "search": "Ara...",
-    "typeToSearch": "Aramak için yazın...",
     "types": "Türler",
     "video": "Video",
     "path": "Yol:",
@@ -204,8 +202,19 @@
     "largerThan": "Daha büyük:",
     "helpText1": "Arama, yazdığınız her karakterde gerçekleşir (arama terimleri için minimum 3 karakter).",
     "helpText2": "Dizin: Arama, yapılandırılan aralıkta (varsayılan: 5 dakika) otomatik olarak güncellenen dizini kullanır. Program yeni başladığında arama yapmak eksik sonuçlara neden olabilir.",
-    "notEnoughCharacters": "Not enough characters to search (min {minSearchLength})",
-    "noResults": "Dizinlenmiş aramada sonuç bulunamadı."
+    "noResults": "Dizinlenmiş aramada sonuç bulunamadı.",
+    "onlyFolders": "Yalnızca Klasörler",
+    "onlyFiles": "Sadece Dosyalar",
+    "showOptions": "Seçenekleri Göster",
+    "photos": "Fotoğraflar",
+    "audio": "Ses",
+    "videos": "Videolar",
+    "documents": "Belgeler",
+    "archives": "Arşivler",
+    "number": "Sayı",
+    "searchContext": "Arama Bağlamı: {context}",
+    "notEnoughCharacters": "Arama yapmak için yeterli karakter yok (min {minSearchLength})",
+    "typeToSearch": "Aramaya başlamak için {minSearchLength} veya daha fazla karakter yazmaya başlayın."
   },
   "settings": {
     "admin": "Yönetim",
@@ -218,10 +227,8 @@
     "avoidChanges": "(değişiklikleri önlemek için boş bırakın)",
     "branding": "Marka",
     "brandingDirectoryPath": "Marka dizin yolu",
-    "brandingHelp": "Adını değiştirerek, logoyu değiştirerek, özel stiller ekleyerek ve hatta GitHub'a harici bağlantıları devre dışı bırakarak FileBrowser örneğinizin görünüşünü ve hissini özelleştirebilirsiniz.\nÖzel marka bilinci oluşturma hakkında daha fazla bilgi için lütfen {0} sayfasına göz atın.",
     "changePassword": "Şifre Değiştir",
     "commandRunner": "Komut satırı",
-    "commandRunnerHelp": "Burada, adlandırılmış olaylarda yürütülen komutları ayarlayabilirsiniz. Her satıra bir tane yazmalısınız. {0} ve {1} ortam değişkenleri, {1}'ye göre {0} olacak şekilde kullanılabilir olacaktır. Bu özellik ve mevcut ortam değişkenleri hakkında daha fazla bilgi için lütfen {2}'yi okuyun.",
     "commandsUpdated": "Komutlar güncellendi!",
     "createUserDir": "Kullanıcı eklerken, kullanıcı ana dizinini otomatik oluştur",
     "customStylesheet": "Özel CSS",
@@ -309,7 +316,9 @@
     "configViewer": "Konfigürasyon Görüntüleyici",
     "configViewerShowFull": "Tam yapılandırmayı göster",
     "configViewerShowComments": "Yorumları göster",
-    "configViewerLoadConfig": "Yük Konfigürasyonu"
+    "configViewerLoadConfig": "Yük Konfigürasyonu",
+    "brandingHelp": "Adını değiştirerek, logoyu değiştirerek, özel stiller ekleyerek ve hatta GitHub'a harici bağlantıları devre dışı bırakarak Dosya Tarayıcı örneğinizin nasıl göründüğünü ve hissettirdiğini özelleştirebilirsiniz.\nÖzel markalama hakkında daha fazla bilgi için lütfen {0} adresine göz atın.",
+    "commandRunnerHelp": "Burada, adlandırılmış olaylarda yürütülecek komutları ayarlayabilirsiniz. Her satıra bir tane yazmalısınız. {0} ve {1} ortam değişkenleri kullanılabilir olacaktır, {0} ise {1} ile ilişkilidir. Bu özellik ve mevcut ortam değişkenleri hakkında daha fazla bilgi için lütfen {2} adresini okuyun."
   },
   "sidebar": {
     "help": "Yardım",
@@ -367,7 +376,6 @@
     "hideNavButtons": "Gezinme düğmelerini gizle",
     "hideNavButtonsDescription": "Minimalist bir görünüm oluşturmak için paylaşımdaki gezinme çubuğundaki gezinme düğmelerini gizleyin.",
     "viewModeDescription": "Paylaşılan sayfa için varsayılan düzen.",
-    "titleDefault": "Shared files - {title}",
     "descriptionDefault": "Görüntülemeniz veya indirmeniz için size bir paylaşım gönderildi.",
     "disableShareCard": "Paylaşım kartını devre dışı bırak",
     "disableShareCardDescription": "Kenar çubuğunda paylaşılan sayfadaki veya mobil cihazlarda sayfanın üst kısmındaki paylaşım kartını devre dışı bırakın.",
@@ -381,7 +389,8 @@
     "enableOnlyOffice": "OnlyOffice görüntüleyiciyi etkinleştirin",
     "enableOnlyOfficeDescription": "Bu paylaşımda OnlyOffice kullanarak ofis dosyalarının görüntülenmesine izin verin.",
     "enableOnlyOfficeEditing": "OnlyOffice düzenlemesini etkinleştirin",
-    "enableOnlyOfficeEditingDescription": "Bu paylaşımda OnlyOffice kullanarak ofis dosyalarının düzenlenmesine izin verin."
+    "enableOnlyOfficeEditingDescription": "Bu paylaşımda OnlyOffice kullanarak ofis dosyalarının düzenlenmesine izin verin.",
+    "titleDefault": "Paylaşılan dosyalar - {title}"
   },
   "api": {
     "title": "API Anahtarları:",
@@ -465,8 +474,8 @@
     "totalDenied": "Reddedildi",
     "totalAllowed": "İzin verildi",
     "all": "Tümünü Reddet",
-    "defaultBehavior": "Default action{suffix}",
-    "defaultBehaviorDescription": "Bu, bir kullanıcı belirli erişim kurallarının bulunmadığı bir yola erişmeye çalıştığında ne olacağını gösterir. 'Allow' kullanıcıların varsayılan olarak erişebileceği anlamına gelir, 'Deny' ise açıkça izin verilmediği sürece kullanıcıların varsayılan olarak engellendiği anlamına gelir."
+    "defaultBehaviorDescription": "Bu, bir kullanıcı belirli erişim kurallarının bulunmadığı bir yola erişmeye çalıştığında ne olacağını gösterir. 'Allow' kullanıcıların varsayılan olarak erişebileceği anlamına gelir, 'Deny' ise açıkça izin verilmediği sürece kullanıcıların varsayılan olarak engellendiği anlamına gelir.",
+    "defaultBehavior": "Varsayılan eylem{suffix}"
   },
   "fileLoading": {
     "title": "Yüklemeler & İndirmeler",
@@ -545,8 +554,8 @@
     "saveFailed": "Dosya kaydedilemedi. Lütfen tekrar deneyin.",
     "saveAborted": "Kaydetme işlemi iptal edildi. Dosya adı etkin dosyayla eşleşmiyor.",
     "saveDisabled": "Paylaşılan dosyaların kaydedilmesi desteklenmez.",
-    "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
-    "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
+    "saveAbortedMessage": "Kaydetme işlemi iptal edildi. Uygulamanın etkin dosyası ({activeFile}) kaydetmeye çalıştığınız dosyayla ({tryingToSave}) eşleşmiyor.",
+    "syncFailed": "\"{filename}\" için 5 denemeden sonra rota ile durum senkronize edilemedi. Veri bozulmasını önlemek için düzenleyici kurulumu iptal ediliyor."
   },
   "player": {
     "LoopEnabled": "Döngü Etkin",

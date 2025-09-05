@@ -135,7 +135,6 @@
   "prompts": {
     "copy": "Kopiuj",
     "copyMessage": "Wybierz lokalizację do której mają być skopiowane wybrane pliki",
-    "deleteMessageMultiple": "Czy jesteś pewien że chcesz usunąć {count} plik(ów)?",
     "deleteMessageSingle": "Czy jesteś pewien, że chcesz usunąć ten plik/folder?",
     "deleteTitle": "Usuń pliki",
     "displayName": "Wyświetlana Nazwa:",
@@ -143,7 +142,6 @@
     "downloadMessage": "Wybierz format, jaki chesz pobrać.",
     "error": "Pojawił się nieznany błąd",
     "fileInfo": "Informacje o pliku",
-    "lastModified": "Ostatnio Zmodyfikowane{suffix}",
     "move": "Przenieś",
     "moveMessage": "Wybierz nową lokalizację dla swoich plik(ów)/folder(ów):",
     "newArchetype": "Utwórz nowy wpis na bazie wybranego wzorca. Twój plik będzie utworzony w wybranym folderze.",
@@ -151,8 +149,6 @@
     "newDirMessage": "Podaj nazwę tworzonego folderu.",
     "newFile": "Nowy plik",
     "newFileMessage": "Podaj nazwętworzonego pliku.",
-    "numberDirs": "Ilość katalogów{suffix}",
-    "numberFiles": "Ilość plików{suffix}",
     "rename": "Zmień nazwę",
     "replace": "Zamień",
     "replaceMessage": "Jednen z plików który próbujesz wrzucić próbje nadpisać plik o tej samej nazwie. Czy chcesz nadpisać poprzedni plik?\n",
@@ -161,7 +157,6 @@
     "show": "Pokaż",
     "size": "Rozmiar",
     "upload": "Prześlij",
-    "deleteMessageShare": "Are you sure you want to delete this share: {path} ?",
     "deleteUserMessage": "Czy na pewno chcesz usunąć tego użytkownika?",
     "filesSelected": "wybrane pliki",
     "optionalPassword": "Hasło opcjonalne",
@@ -172,9 +167,6 @@
     "dragAndDrop": "Przeciągnij i upuść pliki tutaj",
     "completed": "Zakończono",
     "conflictsDetected": "Wykryte konflikty",
-    "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "source": "Source{suffix}",
     "downloadsLimit": "Limit liczby pobrań",
     "maxBandwidth": "Maksymalna przepustowość pobierania (kbps)",
     "shareTheme": "Udostępnij temat",
@@ -186,17 +178,23 @@
     "shareFavicon": "Udostępnij adres URL favicon",
     "optionalPasswordHelp": "Jeśli jest ustawione, użytkownicy muszą wprowadzić to hasło, aby wyświetlić udostępnioną zawartość.",
     "viewMode": "Tryb widoku",
-    "renameMessageConflict": "An item named \"{filename}\" already exists!",
     "renameMessage": "Wprowadź nową nazwę:",
-    "renameMessageInvalid": "Plik nie może być kontenerem \"/\" lub \"\\\""
+    "renameMessageInvalid": "Plik nie może być kontenerem \"/\" lub \"\\\"",
+    "source": "Źródło{suffix}",
+    "deleteMessageMultiple": "Czy na pewno chcesz usunąć plik(i) {count}?",
+    "deleteMessageShare": "Czy na pewno chcesz usunąć ten udział: {path} ?",
+    "lastModified": "Ostatnia modyfikacja{suffix}",
+    "numberDirs": "Liczba katalogów{suffix}",
+    "numberFiles": "Liczba plików{suffix}",
+    "renameMessageConflict": "Element o nazwie \"{filename}\" już istnieje!",
+    "uploadSettingsChunked": "Maks. jednoczesne przesyłanie: {maxConcurrentUpload}, rozmiar fragmentu: {uploadChunkSizeMb} MB",
+    "uploadSettingsNoChunk": "Maksymalny jednoczesny upload: {maxConcurrentUpload}, przesyłanie fragmentaryczne wyłączone"
   },
   "search": {
     "images": "Zdjęcia",
     "music": "Muzyka",
     "pdf": "PDF",
-    "pressToSearch": "Wciśnij enter, aby wyszukać...",
     "search": "Szukaj...",
-    "typeToSearch": "Zacznij pisać, aby wyszukać...",
     "types": "Typy",
     "video": "Wideo",
     "path": "Ścieżka:",
@@ -204,8 +202,19 @@
     "largerThan": "Większy niż:",
     "helpText1": "Wyszukiwanie odbywa się po każdym wpisanym znaku (minimum 3 znaki dla wyszukiwanych haseł).",
     "helpText2": "Indeks: Wyszukiwanie wykorzystuje indeks, który jest automatycznie aktualizowany w skonfigurowanych odstępach czasu (domyślnie: 5 minut). Wyszukiwanie po uruchomieniu programu może skutkować niekompletnymi wynikami.",
-    "notEnoughCharacters": "Not enough characters to search (min {minSearchLength})",
-    "noResults": "Nie znaleziono żadnych wyników w indeksowanym wyszukiwaniu."
+    "noResults": "Nie znaleziono żadnych wyników w indeksowanym wyszukiwaniu.",
+    "onlyFolders": "Tylko foldery",
+    "onlyFiles": "Tylko pliki",
+    "showOptions": "Pokaż opcje",
+    "photos": "Zdjęcia",
+    "audio": "Audio",
+    "videos": "Filmy",
+    "documents": "Dokumenty",
+    "archives": "Archiwa",
+    "number": "Liczba",
+    "searchContext": "Kontekst wyszukiwania: {context}",
+    "notEnoughCharacters": "Za mało znaków do wyszukania (min. {minSearchLength})",
+    "typeToSearch": "Zacznij wpisywać {minSearchLength} lub więcej znaków, aby rozpocząć wyszukiwanie."
   },
   "settings": {
     "admin": "Admin",
@@ -218,10 +227,8 @@
     "avoidChanges": "(pozostaw puste aby nie zosatało zmienione)",
     "branding": "Branding",
     "brandingDirectoryPath": "Folder brandingowy",
-    "brandingHelp": "Możesz dostosować wygląd i doznania użytkownika swojej instancji File Browser poprzez zmianę jej nazwy, zmianę logo, dodanie własnych stylów, a nawet wyłączyć linki zewnętrzne do GitHuba.\nW celu pozyskania większej ilości informacji nt. osobistego brandingu, zapoznaj się z {0}.",
     "changePassword": "Zmień Hasło",
     "commandRunner": "Narzędzie do wykonywania poleceń",
-    "commandRunnerHelp": "Tu możesz ustawić komendy, które będą wykonywane przy danych zdarzeniach. Musisz wpisywać po jednej na linjkę. Zmienne środowiskowe {0} i {1} będą dostępne, gdzie {0} jest względne wobec {1}. Więcej informacji o tej funkcji i dostępnych zmiennych środowiskowych znajdziesz tutaj: {2}.",
     "commandsUpdated": "Polecenie zaktualizowane!",
     "createUserDir": "Automatycznie utwórz katalog domowy użytkownika podczas dodania nowego użytkownika",
     "customStylesheet": "Własny arkusz stylów",
@@ -309,7 +316,9 @@
     "configViewer": "Przeglądarka konfiguracji",
     "configViewerShowFull": "Pokaż pełną konfigurację",
     "configViewerShowComments": "Pokaż komentarze",
-    "configViewerLoadConfig": "Konfiguracja ładowania"
+    "configViewerLoadConfig": "Konfiguracja ładowania",
+    "brandingHelp": "Możesz dostosować wygląd i sposób działania swojej instancji przeglądarki plików, zmieniając jej nazwę, zastępując logo, dodając niestandardowe style, a nawet wyłączając zewnętrzne łącza do GitHub.\nWięcej informacji na temat niestandardowego brandingu można znaleźć na stronie {0}.",
+    "commandRunnerHelp": "Tutaj można ustawić polecenia, które będą wykonywane w nazwanych zdarzeniach. Należy wpisać jedną komendę w wierszu. Dostępne będą zmienne środowiskowe {0} i {1}, przy czym {0} będzie relatywna do {1}. Więcej informacji na temat tej funkcji i dostępnych zmiennych środowiskowych można znaleźć na stronie {2}."
   },
   "sidebar": {
     "help": "Pomoc",
@@ -367,7 +376,6 @@
     "hideNavButtons": "Ukryj przyciski nawigacyjne",
     "hideNavButtonsDescription": "Ukryj przyciski nawigacyjne na pasku nawigacyjnym w folderze udostępnionym, aby uzyskać minimalistyczny wygląd.",
     "viewModeDescription": "Domyślny układ strony udostępnionej.",
-    "titleDefault": "Shared files - {title}",
     "descriptionDefault": "Udział został wysłany do wyświetlenia lub pobrania.",
     "disableShareCard": "Wyłączanie karty udostępniania",
     "disableShareCardDescription": "Wyłącz kartę udostępniania na udostępnianej stronie na pasku bocznym lub u góry strony na urządzeniach mobilnych.",
@@ -381,7 +389,8 @@
     "enableOnlyOffice": "Włącz przeglądarkę OnlyOffice",
     "enableOnlyOfficeDescription": "Zezwalaj na wyświetlanie plików biurowych przy użyciu OnlyOffice w tym udziale.",
     "enableOnlyOfficeEditing": "Włącz edycję OnlyOffice",
-    "enableOnlyOfficeEditingDescription": "Zezwalaj na edycję plików biurowych za pomocą OnlyOffice w tym udziale."
+    "enableOnlyOfficeEditingDescription": "Zezwalaj na edycję plików biurowych za pomocą OnlyOffice w tym udziale.",
+    "titleDefault": "Udostępnione pliki - {title}"
   },
   "api": {
     "title": "Klucze API:",
@@ -465,8 +474,8 @@
     "totalDenied": "Odmowa",
     "totalAllowed": "Dozwolone",
     "all": "Odmów wszystkim",
-    "defaultBehavior": "Default action{suffix}",
-    "defaultBehaviorDescription": "To pokazuje, co się dzieje, gdy użytkownik próbuje uzyskać dostęp do ścieżki, dla której nie istnieją określone reguły dostępu. \"Zezwól\" oznacza, że użytkownicy mogą uzyskać dostęp domyślnie, \"Odmów\" oznacza, że użytkownicy są domyślnie blokowani, chyba że wyraźnie na to zezwolono."
+    "defaultBehaviorDescription": "To pokazuje, co się dzieje, gdy użytkownik próbuje uzyskać dostęp do ścieżki, dla której nie istnieją określone reguły dostępu. \"Zezwól\" oznacza, że użytkownicy mogą uzyskać dostęp domyślnie, \"Odmów\" oznacza, że użytkownicy są domyślnie blokowani, chyba że wyraźnie na to zezwolono.",
+    "defaultBehavior": "Działanie domyślne{suffix}"
   },
   "fileLoading": {
     "title": "Przesyłanie i pobieranie",
@@ -545,8 +554,8 @@
     "saveFailed": "Nie udało się zapisać pliku. Spróbuj ponownie.",
     "saveAborted": "Zapisywanie przerwane. Nazwa pliku nie pasuje do aktywnego pliku.",
     "saveDisabled": "Zapisywanie udostępnionych plików nie jest obsługiwane.",
-    "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
-    "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
+    "saveAbortedMessage": "Operacja zapisywania została przerwana. Aktywny plik aplikacji ({activeFile}) nie jest zgodny z plikiem, który próbujesz zapisać ({tryingToSave}).",
+    "syncFailed": "Nie udało się zsynchronizować stanu z trasą dla \"{filename}\" po 5 próbach. Przerwano konfigurację edytora, aby zapobiec uszkodzeniu danych."
   },
   "player": {
     "LoopEnabled": "Włączona pętla",

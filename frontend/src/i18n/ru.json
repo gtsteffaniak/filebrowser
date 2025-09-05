@@ -135,16 +135,13 @@
   "prompts": {
     "copy": "Копировать",
     "copyMessage": "Копировать в:",
-    "deleteMessageMultiple": "Удалить эти файлы ({count})?",
     "deleteMessageSingle": "Удалить этот файл/каталог?",
-    "deleteMessageShare": "Удалить этот общий файл/каталог ({path})?",
     "deleteTitle": "Удалить файлы",
     "displayName": "Отображаемое имя:",
     "download": "Скачать файлы",
     "downloadMessage": "Выберите формат в котором хотите скачать.",
     "error": "Ошибка",
     "fileInfo": "Информация о файле",
-    "lastModified": "Последнее изменение{suffix}",
     "move": "Переместить",
     "moveMessage": "Переместить в:",
     "newArchetype": "Создайте новую запись на основе архетипа. Файл будет создан в каталоге.",
@@ -152,8 +149,6 @@
     "newDirMessage": "Имя нового каталога.",
     "newFile": "Новый файл",
     "newFileMessage": "Имя нового файла.",
-    "numberDirs": "Количество каталогов{suffix}",
-    "numberFiles": "Количество файлов{suffix}",
     "rename": "Переименовать",
     "replace": "Заменить",
     "replaceMessage": "Имя одного из загружаемых файлов совпадает с уже существующим файлом. Вы хотите заменить существующий?\n",
@@ -172,9 +167,6 @@
     "dragAndDrop": "Перетащите файлы сюда",
     "completed": "Завершено",
     "conflictsDetected": "Обнаруженные конфликты",
-    "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "source": "Source{suffix}",
     "downloadsLimit": "Ограничение на количество загрузок",
     "maxBandwidth": "Максимальная пропускная способность загрузки (кб/с)",
     "shareTheme": "Поделиться темой",
@@ -186,17 +178,23 @@
     "shareFavicon": "Поделиться URL-адресом favicon",
     "optionalPasswordHelp": "Если установлен, пользователи должны ввести этот пароль для просмотра общего содержимого.",
     "viewMode": "Режим просмотра",
-    "renameMessageConflict": "An item named \"{filename}\" already exists!",
     "renameMessage": "Введите новое имя:",
-    "renameMessageInvalid": "Файл не может содержать \"/\" или \"\\\"."
+    "renameMessageInvalid": "Файл не может содержать \"/\" или \"\\\".",
+    "source": "Источник{suffix}",
+    "deleteMessageMultiple": "Вы уверены, что хотите удалить файл(ы) {count}?",
+    "deleteMessageShare": "Вы уверены, что хотите удалить этот ресурс: {path} ?",
+    "lastModified": "Последнее изменение{suffix}",
+    "numberDirs": "Количество каталогов{suffix}",
+    "numberFiles": "Количество файлов{suffix}",
+    "renameMessageConflict": "Элемент с именем \"{filename}\" уже существует!",
+    "uploadSettingsChunked": "Максимальное количество одновременных загрузок: {maxConcurrentUpload}, размер чанка: {uploadChunkSizeMb} MB",
+    "uploadSettingsNoChunk": "Максимальное количество одновременных загрузок: {maxConcurrentUpload}, загрузка в куски отключена"
   },
   "search": {
     "images": "Изображения",
     "music": "Музыка",
     "pdf": "PDF",
-    "pressToSearch": "Нажмите Enter для поиска ...",
     "search": "Поиск...",
-    "typeToSearch": "Введите имя файла ...",
     "types": "Типы",
     "video": "Видео",
     "path": "Путь:",
@@ -204,8 +202,19 @@
     "largerThan": "Больше, чем:",
     "helpText1": "Поиск осуществляется по каждому введенному символу (минимум 3 символа для поисковых запросов).",
     "helpText2": "Индекс: Для поиска используется индекс, который автоматически обновляется с заданным интервалом (по умолчанию: 5 минут). Поиск, когда программа только что запущена, может привести к неполным результатам.",
-    "notEnoughCharacters": "Not enough characters to search (min {minSearchLength})",
-    "noResults": "В проиндексированном поиске результатов не найдено."
+    "noResults": "В проиндексированном поиске результатов не найдено.",
+    "onlyFolders": "Только папки",
+    "onlyFiles": "Только файлы",
+    "showOptions": "Показать параметры",
+    "photos": "Фотографии",
+    "audio": "Аудио",
+    "videos": "Видео",
+    "documents": "Документы",
+    "archives": "Архивы",
+    "number": "Номер",
+    "searchContext": "Контекст поиска: {context}",
+    "notEnoughCharacters": "Недостаточно символов для поиска (мин. {minSearchLength})",
+    "typeToSearch": "Начните вводить {minSearchLength} или более символов, чтобы начать поиск."
   },
   "settings": {
     "admin": "Админ",
@@ -218,10 +227,8 @@
     "avoidChanges": "(оставьте поле пустым, чтобы избежать изменений)",
     "branding": "Брендинг",
     "brandingDirectoryPath": "Путь к каталогу брендов",
-    "brandingHelp": "Вы можете настроить внешний вид файлового браузера, изменив его имя, заменив логотип, добавив собственные стили и даже отключив внешние ссылки на GitHub.\nДополнительную информацию о персонализированном брендинге можно найти на странице {0}.",
     "changePassword": "Изменение пароля",
     "commandRunner": "Запуск команд",
-    "commandRunnerHelp": "Здесь вы можете установить команды, которые будут выполняться в указанных событиях. Вы должны указать по одной команде в каждой строке. Переменные среды {0} и {1} будут доступны, будучи {0} относительно {1}. Дополнительные сведения об этой функции и доступных переменных среды см. В {2}.",
     "commandsUpdated": "Команды обновлены!",
     "createUserDir": "Автоматическое создание домашнего каталога пользователя при добавлении нового пользователя",
     "customStylesheet": "Свой стиль",
@@ -309,7 +316,9 @@
     "configViewer": "Программа просмотра конфигурации",
     "configViewerShowFull": "Показать полную конфигурацию",
     "configViewerShowComments": "Показать комментарии",
-    "configViewerLoadConfig": "Конфигурация нагрузки"
+    "configViewerLoadConfig": "Конфигурация нагрузки",
+    "brandingHelp": "Вы можете настроить внешний вид экземпляра File Browser, изменив его название, заменив логотип, добавив пользовательские стили и даже отключив внешние ссылки на GitHub.\nБолее подробную информацию о пользовательском брендинге можно найти на сайте {0}.",
+    "commandRunnerHelp": "Здесь вы можете задать команды, которые будут выполняться в названных событиях. Вы должны написать по одной команде в строке. Будут доступны переменные окружения {0} и {1}, причем {0} будет относиться к {1}. Для получения дополнительной информации об этой функции и доступных переменных окружения, пожалуйста, прочтите {2}."
   },
   "sidebar": {
     "help": "Помощь",
@@ -367,7 +376,6 @@
     "hideNavButtons": "Скрыть кнопки навигации",
     "hideNavButtonsDescription": "Спрячьте кнопки навигации на навигационной панели в ресурсе, чтобы создать минималистичный вид.",
     "viewModeDescription": "Макет по умолчанию для общей страницы.",
-    "titleDefault": "Shared files - {title}",
     "descriptionDefault": "Вам отправлена акция для просмотра или загрузки.",
     "disableShareCard": "Отключение карты доступа",
     "disableShareCardDescription": "Отключите карточку общего доступа на странице общего доступа в боковой панели или в верхней части страницы на мобильных устройствах.",
@@ -381,7 +389,8 @@
     "enableOnlyOffice": "Включите программу просмотра OnlyOffice",
     "enableOnlyOfficeDescription": "Разрешите просмотр офисных файлов с помощью OnlyOffice в этом ресурсе.",
     "enableOnlyOfficeEditing": "Включить редактирование OnlyOffice",
-    "enableOnlyOfficeEditingDescription": "Разрешите редактирование офисных файлов с помощью OnlyOffice в этом ресурсе."
+    "enableOnlyOfficeEditingDescription": "Разрешите редактирование офисных файлов с помощью OnlyOffice в этом ресурсе.",
+    "titleDefault": "Общие файлы - {title}"
   },
   "api": {
     "title": "Ключи API:",
@@ -465,8 +474,8 @@
     "totalDenied": "Отказано",
     "totalAllowed": "Разрешено",
     "all": "Запретить все",
-    "defaultBehavior": "Default action{suffix}",
-    "defaultBehaviorDescription": "Здесь показано, что происходит, когда пользователь пытается получить доступ к пути, для которого не существует специальных правил доступа. 'Allow' означает, что пользователи могут получить доступ по умолчанию, 'Deny' означает, что пользователи блокируются по умолчанию, если только они не разрешены явным образом."
+    "defaultBehaviorDescription": "Здесь показано, что происходит, когда пользователь пытается получить доступ к пути, для которого не существует специальных правил доступа. 'Allow' означает, что пользователи могут получить доступ по умолчанию, 'Deny' означает, что пользователи блокируются по умолчанию, если только они не разрешены явным образом.",
+    "defaultBehavior": "Действие по умолчанию{suffix}"
   },
   "fileLoading": {
     "title": "Загрузка и скачивание",
@@ -545,8 +554,8 @@
     "saveFailed": "Не удалось сохранить файл. Пожалуйста, попробуйте еще раз.",
     "saveAborted": "Сохранение прервано. Имя файла не совпадает с именем активного файла.",
     "saveDisabled": "Сохранение общих файлов не поддерживается.",
-    "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
-    "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
+    "saveAbortedMessage": "Операция сохранения прервана. Активный файл приложения ({activeFile}) не совпадает с файлом, который вы пытаетесь сохранить ({tryingToSave}).",
+    "syncFailed": "не удалось синхронизировать состояние с маршрутом для \"{filename}\" после 5 попыток. Прерываю настройку редактора, чтобы предотвратить повреждение данных."
   },
   "player": {
     "LoopEnabled": "Петля включена",

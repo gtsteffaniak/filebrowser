@@ -35,6 +35,7 @@ All notable changes to this project will be documented in this file. For commit 
  - some shortcuts not working #1056
  - Can't copy/paste text on mobile #1168
  - Can't change between images inside of the share image viewer. #1144
+ - fixed and updated translations with variables always showing english.
 
 ## v0.8.3-beta
 

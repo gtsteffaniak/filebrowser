@@ -135,16 +135,13 @@
   "prompts": {
     "copy": "Kopieren",
     "copyMessage": "Wählen Sie einen Zielort zum Kopieren:",
-    "deleteMessageMultiple": "Sind Sie sicher, dass Sie {count} Datei(en) löschen möchten?",
     "deleteMessageSingle": "Sind Sie sicher, dass Sie diesen Ordner/diese Datei löschen möchten?",
-    "deleteMessageShare": "Sind Sie sicher, dass Sie diese Freigabe löschen möchten ({path})?",
     "deleteTitle": "Dateien löschen",
     "displayName": "Anzeigename:",
     "download": "Dateien herunterladen",
     "downloadMessage": "Wählen Sie ein Format zum Herunterladen aus.",
     "error": "Etwas ist schief gelaufen",
     "fileInfo": "Dateiinformation",
-    "lastModified": "Zuletzt geändert{suffix}",
     "move": "Verschieben",
     "moveMessage": "Wählen Sie einen neuen Ort für ihre Datei(en)/Ordner:",
     "newArchetype": "Erstelle neuen Beitrag auf Basis eines Archetyps. Ihre Datei wird im Inhalteordner erstellt.",
@@ -152,8 +149,6 @@
     "newDirMessage": "Geben Sie den Namen des neuen Ordners an.",
     "newFile": "Neue Datei",
     "newFileMessage": "Geben Sie den Namen der neuen Datei an.",
-    "numberDirs": "Anzahl der Ordner{suffix}",
-    "numberFiles": "Anzahl der Dateien{suffix}",
     "rename": "Umbenennen",
     "replace": "Ersetzen",
     "replaceMessage": "Eine der Datei mit dem gleichen Namen, wie die Sie hochladen wollen, existiert bereits. Soll die vorhandene Datei übersprungen oder ersetzt werden?\n",
@@ -172,9 +167,6 @@
     "dragAndDrop": "Dateien hierher ziehen und ablegen",
     "completed": "Abgeschlossen",
     "conflictsDetected": "Erkannte Widersprüche",
-    "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "source": "Source{suffix}",
     "downloadsLimit": "Limit für die Anzahl der Downloads",
     "maxBandwidth": "Maximale Download-Bandbreite (kbps)",
     "shareTheme": "Thema teilen",
@@ -186,17 +178,23 @@
     "shareFavicon": "Favicon-URL freigeben",
     "optionalPasswordHelp": "Falls festgelegt, müssen die Benutzer dieses Kennwort eingeben, um die freigegebenen Inhalte anzuzeigen.",
     "viewMode": "Ansichtsmodus",
-    "renameMessageConflict": "An item named \"{filename}\" already exists!",
     "renameMessage": "Geben Sie einen neuen Namen ein:",
-    "renameMessageInvalid": "Eine Datei kann nicht den Container \"/\" oder \"\\\" enthalten."
+    "renameMessageInvalid": "Eine Datei kann nicht den Container \"/\" oder \"\\\" enthalten.",
+    "source": "Quelle{suffix}",
+    "deleteMessageMultiple": "Sind Sie sicher, dass Sie die Datei(en) {count} löschen möchten?",
+    "deleteMessageShare": "Sind Sie sicher, dass Sie diese Freigabe löschen möchten: {path} ?",
+    "lastModified": "Zuletzt modifiziert{suffix}",
+    "numberDirs": "Anzahl der Verzeichnisse{suffix}",
+    "numberFiles": "Anzahl der Dateien{suffix}",
+    "renameMessageConflict": "Ein Artikel mit dem Namen \"{filename}\" existiert bereits!",
+    "uploadSettingsChunked": "Max. gleichzeitige Uploads: {maxConcurrentUpload}, Chunk-Größe: {uploadChunkSizeMb} MB",
+    "uploadSettingsNoChunk": "Max. gleichzeitige Uploads: {maxConcurrentUpload}, Chunked Upload deaktiviert"
   },
   "search": {
     "images": "Bilder",
     "music": "Musik",
     "pdf": "PDF",
-    "pressToSearch": "Drücken Sie Enter, um zu suchen...",
     "search": "Suche...",
-    "typeToSearch": "Tippen, um zu suchen...",
     "types": "Typen",
     "video": "Video",
     "path": "Pfad:",
@@ -204,8 +202,19 @@
     "largerThan": "Größer als:",
     "helpText1": "Die Suche erfolgt bei jedem Zeichen, das Sie eingeben (mindestens 3 Zeichen für Suchbegriffe).",
     "helpText2": "Der Index: Die Suche verwendet den Index, der automatisch in dem konfigurierten Intervall aktualisiert wird (Standard: 5 Minuten). Eine Suche direkt nach dem Start des Programms kann zu unvollständigen Ergebnissen führen.",
-    "notEnoughCharacters": "Not enough characters to search (min {minSearchLength})",
-    "noResults": "Keine Ergebnisse in der indizierten Suche gefunden."
+    "noResults": "Keine Ergebnisse in der indizierten Suche gefunden.",
+    "onlyFolders": "Nur Ordner",
+    "onlyFiles": "Nur Dateien",
+    "showOptions": "Optionen anzeigen",
+    "photos": "Fotos",
+    "audio": "Audio",
+    "videos": "Videos",
+    "documents": "Dokumente",
+    "archives": "Archiv",
+    "number": "Nummer",
+    "searchContext": "Suche im Kontext: {context}",
+    "notEnoughCharacters": "Nicht genügend Zeichen für die Suche (min {minSearchLength})",
+    "typeToSearch": "Beginnen Sie mit der Eingabe von {minSearchLength} oder mehr Zeichen, um die Suche zu starten."
   },
   "settings": {
     "admin": "Admin",
@@ -218,10 +227,8 @@
     "avoidChanges": "(leer lassen, um Änderungen zu vermeiden)",
     "branding": "Branding",
     "brandingDirectoryPath": "Branding-Verzeichnispfad",
-    "brandingHelp": "Sie können das Erscheinungsbild Ihres FileBrowser anpassen, indem Sie den Namen ändern, das Logo austauschen oder eigene Branding definieren bzw. sogar externe Links zu GitHub deaktivieren.\nUm mehr Informationen zum Anpassen des Designs zu bekommen, gehen Sie bitte zu {0}.",
     "changePassword": "Kennwort ändern",
     "commandRunner": "Befehlseingabe",
-    "commandRunnerHelp": "Hier könne Sie Befehle eintragen, welche bei den benannten Aktionen ausgeführt werden. Sie müssen pro Zeile jeweils einen Befehl eingeben. Die Umgebungsvariablen {0} und {1} sind verfügbar, wobei {0} relativ zu {1} ist. Für mehr Informationen über diese Funktion und die verfügbaren Umgebungsvariablen lesen Sie bitte die {2}.",
     "commandsUpdated": "Befehle aktualisiert!",
     "createUserDir": "Automatisches Erstellen des Home-Verzeichnisses beim Anlegen neuer Benutzer",
     "tusUploads": "Gestückeltes Hochladen",
@@ -309,7 +316,9 @@
     "configViewer": "Config Viewer",
     "configViewerShowFull": "Vollständige Konfiguration anzeigen",
     "configViewerShowComments": "Kommentare anzeigen",
-    "configViewerLoadConfig": "Lastkonfiguration"
+    "configViewerLoadConfig": "Lastkonfiguration",
+    "brandingHelp": "Sie können das Aussehen Ihrer Dateibrowser-Instanz anpassen, indem Sie den Namen ändern, das Logo ersetzen, eigene Stile hinzufügen und sogar externe Links zu GitHub deaktivieren.\nWeitere Informationen zum benutzerdefinierten Branding finden Sie unter {0}.",
+    "commandRunnerHelp": "Hier können Sie Befehle eingeben, die bei den genannten Ereignissen ausgeführt werden. Sie müssen einen pro Zeile schreiben. Die Umgebungsvariablen {0} und {1} werden verfügbar sein, wobei {0} relativ zu {1} ist. Weitere Informationen über diese Funktion und die verfügbaren Umgebungsvariablen finden Sie unter {2}."
   },
   "sidebar": {
     "help": "Hilfe",
@@ -367,7 +376,6 @@
     "hideNavButtons": "Navigationsschaltflächen ausblenden",
     "hideNavButtonsDescription": "Blenden Sie die Navigationsschaltflächen auf der Navigationsleiste in der Freigabe aus, um ein minimalistisches Aussehen zu erzielen.",
     "viewModeDescription": "Standardlayout für die gemeinsame Seite.",
-    "titleDefault": "Shared files - {title}",
     "descriptionDefault": "Sie haben eine Aktie zur Ansicht oder zum Download erhalten.",
     "disableShareCard": "Freigabekarte deaktivieren",
     "disableShareCardDescription": "Deaktivieren Sie die Freigabekarte auf der freigegebenen Seite in der Seitenleiste oder oben auf der Seite auf dem Handy.",
@@ -381,7 +389,8 @@
     "enableOnlyOffice": "OnlyOffice viewer aktivieren",
     "enableOnlyOfficeDescription": "Erlauben Sie die Anzeige von Office-Dateien mit OnlyOffice in dieser Freigabe.",
     "enableOnlyOfficeEditing": "OnlyOffice-Bearbeitung aktivieren",
-    "enableOnlyOfficeEditingDescription": "Erlauben Sie die Bearbeitung von Office-Dateien mit OnlyOffice in dieser Freigabe."
+    "enableOnlyOfficeEditingDescription": "Erlauben Sie die Bearbeitung von Office-Dateien mit OnlyOffice in dieser Freigabe.",
+    "titleDefault": "Gemeinsame Dateien - {title}"
   },
   "api": {
     "title": "API-Schlüssel:",
@@ -465,8 +474,8 @@
     "totalDenied": "Verweigert",
     "totalAllowed": "Erlaubt",
     "all": "Alle ablehnen",
-    "defaultBehavior": "Default action{suffix}",
-    "defaultBehaviorDescription": "Dies zeigt, was passiert, wenn ein Benutzer versucht, auf einen Pfad zuzugreifen, für den keine spezifischen Zugriffsregeln bestehen. Zulassen\" bedeutet, dass Benutzer standardmäßig Zugang haben, \"Verweigern\" bedeutet, dass Benutzer standardmäßig blockiert werden, wenn sie nicht ausdrücklich zugelassen sind."
+    "defaultBehaviorDescription": "Dies zeigt, was passiert, wenn ein Benutzer versucht, auf einen Pfad zuzugreifen, für den keine spezifischen Zugriffsregeln bestehen. Zulassen\" bedeutet, dass Benutzer standardmäßig Zugang haben, \"Verweigern\" bedeutet, dass Benutzer standardmäßig blockiert werden, wenn sie nicht ausdrücklich zugelassen sind.",
+    "defaultBehavior": "Standard-Aktion{suffix}"
   },
   "fileLoading": {
     "title": "Uploads & Downloads",
@@ -545,8 +554,8 @@
     "saveFailed": "Datei konnte nicht gespeichert werden. Bitte versuchen Sie es erneut.",
     "saveAborted": "Speichern abgebrochen. Der Dateiname stimmt nicht mit der aktiven Datei überein.",
     "saveDisabled": "Das Speichern von gemeinsam genutzten Dateien wird nicht unterstützt.",
-    "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
-    "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
+    "saveAbortedMessage": "Der Speichervorgang wurde abgebrochen. Die aktive Datei der Anwendung ({activeFile}) stimmt nicht mit der Datei überein, die Sie zu speichern versuchen ({tryingToSave}).",
+    "syncFailed": "Nach 5 Versuchen ist es nicht gelungen, den Status mit der Route für \"{filename}\" zu synchronisieren. Abbruch der Editor-Einrichtung, um Datenbeschädigung zu vermeiden."
   },
   "player": {
     "LoopEnabled": "Schleife Aktiviert",
