@@ -7,6 +7,7 @@ import (
 )
 
 func TestGenerateConfigYaml_Basic(t *testing.T) {
+	reNumber := regexp.MustCompile(`^-?\d+(\.\d+)?$`)
 	// Test using the actual source directory structure
 	config := &Settings{
 		UserDefaults: UserDefaults{
@@ -88,7 +89,7 @@ func TestGenerateConfigYaml_Basic(t *testing.T) {
 						}
 
 						// Check if it's a number (should NOT be quoted)
-						if matched, _ := regexp.MatchString(`^-?\d+(\.\d+)?$`, value); matched {
+						if reNumber.MatchString(value) {
 							if strings.HasPrefix(value, "\"") {
 								t.Errorf("Numeric value should not be quoted in line: %s (value: '%s')", line, value)
 							}
@@ -181,34 +182,34 @@ func TestCollectCommentsAndSecrets_Basic(t *testing.T) {
 
 func TestGenerateYaml_StaticGeneration(t *testing.T) {
 	// Test the static generation function that's used by FILEBROWSER_GENERATE_CONFIG=true
-	
+
 	// Create a temporary config for testing
 	config := &Settings{
 		UserDefaults: UserDefaults{
-			Locale:                     "en",
-			DisableOfficePreviewExt:    ".docx .xlsx", // This should be filtered out
+			Locale:                  "en",
+			DisableOfficePreviewExt: ".docx .xlsx", // This should be filtered out
 		},
 		Auth: Auth{
 			Key: "test-secret", // This should be redacted
 		},
 	}
-	
+
 	// Test static generation with comments and deprecated filtering
 	yamlOutput, err := GenerateConfigYamlWithSource(config, true, true, true, ".")
 	if err != nil {
 		t.Fatalf("Static generation failed: %v", err)
 	}
-	
+
 	// Verify comments are included
 	if !strings.Contains(yamlOutput, "#") {
 		t.Error("Static generation should include comments")
 	}
-	
+
 	// Verify deprecated field is filtered out
 	if strings.Contains(yamlOutput, "disableOfficePreviewExt") {
 		t.Error("Static generation should filter out deprecated field disableOfficePreviewExt")
 	}
-	
+
 	// Verify secrets are redacted
 	if !strings.Contains(yamlOutput, "**hidden**") {
 		t.Error("Static generation should redact secrets")
@@ -216,7 +217,7 @@ func TestGenerateYaml_StaticGeneration(t *testing.T) {
 	if strings.Contains(yamlOutput, "test-secret") {
 		t.Error("Static generation should not contain actual secret values")
 	}
-	
+
 	// Verify it has proper structure
 	if !strings.Contains(yamlOutput, "userDefaults:") {
 		t.Error("Static generation should contain userDefaults section")
@@ -224,6 +225,6 @@ func TestGenerateYaml_StaticGeneration(t *testing.T) {
 	if !strings.Contains(yamlOutput, "auth:") {
 		t.Error("Static generation should contain auth section")
 	}
-	
+
 	t.Logf("Static generation successful with comments and proper filtering")
 }

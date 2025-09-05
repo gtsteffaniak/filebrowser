@@ -310,6 +310,10 @@
   },
   "settings": {
     "systemAdmin": "System & Admin",
+    "configViewer": "Config Viewer",
+    "configViewerShowFull": "Show full config",
+    "configViewerShowComments": "Show comments",
+    "configViewerLoadConfig": "Load Config",
     "enterPassword": "Enter password",
     "enterPasswordAgain": "Enter the password again",
     "passwordsDoNotMatch": "Passwords do not match",

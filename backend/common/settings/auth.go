@@ -12,7 +12,7 @@ import (
 )
 
 type Auth struct {
-	TokenExpirationHours int          `json:"tokenExpirationHours"` // the number of hours until the token expires. Default is 2 hours.
+	TokenExpirationHours int          `json:"tokenExpirationHours"` // time in hours each web UI session token is valid for. Default is 2 hours.
 	Methods              LoginMethods `json:"methods"`
 	Key                  string       `json:"key"`           // secret: the key used to sign the JWT tokens. If not set, a random key will be generated.
 	AdminUsername        string       `json:"adminUsername"` // secret: the username of the admin user. If not set, the default is "admin".

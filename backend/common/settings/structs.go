@@ -21,6 +21,7 @@ type Settings struct {
 }
 
 type Server struct {
+	DisableUpdateCheck           bool        `json:"disableUpdateCheck"`           // disables backend update check service
 	NumImageProcessors           int         `json:"numImageProcessors"`           // number of concurrent image processing jobs used to create previews, default is number of cpu cores available.
 	Socket                       string      `json:"socket"`                       // socket to listen on
 	TLSKey                       string      `json:"tlsKey"`                       // path to TLS key
@@ -39,10 +40,9 @@ type Server struct {
 	CacheDir                     string      `json:"cacheDir"`       // path to the cache directory, used for thumbnails and other cached files
 	MaxArchiveSizeGB             int64       `json:"maxArchiveSize"` // max pre-archive combined size of files/folder that are allowed to be archived (in GB)
 	// not exposed to config
-	SourceMap          map[string]Source `json:"-" validate:"omitempty"` // uses realpath as key
-	NameToSource       map[string]Source `json:"-" validate:"omitempty"` // uses name as key
-	MuPdfAvailable     bool              `json:"-"`                      // used internally if compiled with mupdf support
-	DisableUpdateCheck bool              `json:"-"`                      // disable update check
+	SourceMap      map[string]Source `json:"-" validate:"omitempty"` // uses realpath as key
+	NameToSource   map[string]Source `json:"-" validate:"omitempty"` // uses name as key
+	MuPdfAvailable bool              `json:"-"`                      // used internally if compiled with mupdf support
 }
 
 type Integrations struct {

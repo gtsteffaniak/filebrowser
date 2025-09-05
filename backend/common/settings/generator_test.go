@@ -44,6 +44,7 @@ func createTestSourceFile(t *testing.T, content string) (string, func()) {
 }
 
 func TestGenerateConfigYaml_StringQuoting(t *testing.T) {
+	reNumber := regexp.MustCompile(`^-?\d+(\.\d+)?$`)
 	// Create a simple test source file for this test
 	sourceContent := `package settings
 
@@ -100,7 +101,7 @@ type Auth struct {
 				}
 
 				// Check if it's a number (should NOT be quoted)
-				if matched, _ := regexp.MatchString(`^-?\d+(\.\d+)?$`, value); matched {
+				if reNumber.MatchString(value) {
 					if strings.HasPrefix(value, "\"") {
 						t.Errorf("Numeric value should not be quoted: %s (value: '%s')", line, value)
 					}
@@ -275,6 +276,7 @@ func TestGenerateConfigYaml_CommentsOnOff(t *testing.T) {
 }
 
 func TestGenerateConfigYaml_IntegrationTest(t *testing.T) {
+	reNumber := regexp.MustCompile(`^-?\d+(\.\d+)?$`)
 	// Comprehensive test with all features
 	config := &Settings{
 		UserDefaults: UserDefaults{
@@ -383,7 +385,7 @@ func TestGenerateConfigYaml_IntegrationTest(t *testing.T) {
 							value = strings.TrimSpace(value[:commentIdx])
 						}
 						// Check if it's a number (should NOT be quoted)
-						if matched, _ := regexp.MatchString(`^-?\d+(\.\d+)?$`, value); matched {
+						if reNumber.MatchString(value) {
 							if strings.HasPrefix(value, "\"") {
 								t.Errorf("Numeric value should not be quoted in line: %s (value: '%s')", line, value)
 							}

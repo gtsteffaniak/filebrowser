@@ -39,10 +39,7 @@ func CollectComments(srcPath string) (CommentsMap, error) {
 func CollectCommentsAndSecrets(srcPath string) (CommentsMap, SecretFieldsMap, DeprecatedFieldsMap, error) {
 	// parse entire package so we capture comments on all types
 	dir := srcPath
-	if !filepath.IsAbs(srcPath) {
-		// If it's a relative path, use it as is
-		dir = srcPath
-	} else {
+	if filepath.IsAbs(srcPath) {
 		// If it's an absolute path to a file, get the directory
 		dir = filepath.Dir(srcPath)
 	}

@@ -13,3 +13,11 @@ export async function update(settings) {
     body: JSON.stringify(settings),
   });
 }
+
+export function getConfig(showFull = false, showComments = false) {
+  const params = {};
+  if (showFull) params.full = "true";
+  if (showComments) params.comments = "true";
+  const path = getApiPath("api/settings/config", params);
+  return fetchURL(path);
+}

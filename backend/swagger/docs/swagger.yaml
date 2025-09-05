@@ -154,7 +154,8 @@ definitions:
       methods:
         $ref: '#/definitions/settings.LoginMethods'
       tokenExpirationHours:
-        description: the number of hours until the token expires. Default is 2 hours.
+        description: time in hours each web UI session token is valid for. Default
+          is 2 hours.
         type: integer
       totpSecret:
         description: 'secret: secret used to encrypt TOTP secrets'
@@ -448,6 +449,9 @@ definitions:
         type: boolean
       disableTypeDetectionByHeader:
         description: disable type detection by header, useful if filesystem is slow.
+        type: boolean
+      disableUpdateCheck:
+        description: disables backend update check service
         type: boolean
       externalUrl:
         description: used by share links if set (eg. http://mydomain.com)

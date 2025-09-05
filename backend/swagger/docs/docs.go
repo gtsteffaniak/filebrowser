@@ -2619,7 +2619,7 @@ const docTemplate = `{
                     "$ref": "#/definitions/settings.LoginMethods"
                 },
                 "tokenExpirationHours": {
-                    "description": "the number of hours until the token expires. Default is 2 hours.",
+                    "description": "time in hours each web UI session token is valid for. Default is 2 hours.",
                     "type": "integer"
                 },
                 "totpSecret": {
@@ -3010,6 +3010,10 @@ const docTemplate = `{
                 },
                 "disableTypeDetectionByHeader": {
                     "description": "disable type detection by header, useful if filesystem is slow.",
+                    "type": "boolean"
+                },
+                "disableUpdateCheck": {
+                    "description": "disables backend update check service",
                     "type": "boolean"
                 },
                 "externalUrl": {

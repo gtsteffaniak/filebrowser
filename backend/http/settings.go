@@ -63,7 +63,9 @@ func settingsConfigHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 
 	// Set content type and write response
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-	w.Write([]byte(yamlOutput))
+	if _, err := w.Write([]byte(yamlOutput)); err != nil {
+		return http.StatusInternalServerError, err
+	}
 
 	return http.StatusOK, nil
 }
