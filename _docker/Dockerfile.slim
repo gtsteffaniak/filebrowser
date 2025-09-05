@@ -13,7 +13,7 @@ RUN upx filebrowser
 
 FROM node:lts-slim AS nbuild
 WORKDIR /app
-RUN apt-get update && apt-get install -y --no-install-recommends git
+RUN apt-get update && apt-get install -y --no-install-recommends git ssh
 COPY ./frontend/package.json ./
 RUN npm i --maxsockets 1
 COPY  ./frontend/ ./

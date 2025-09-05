@@ -16,7 +16,7 @@ RUN upx filebrowser
 FROM node:lts-slim AS nbuild
 WORKDIR /app
 COPY ./frontend/package.json ./
-RUN apt-get update && apt-get install -y --no-install-recommends git
+RUN apt-get update && apt-get install -y --no-install-recommends git ssh
 RUN npm i --maxsockets 1
 COPY  ./frontend/ ./
 RUN npm run build-docker
