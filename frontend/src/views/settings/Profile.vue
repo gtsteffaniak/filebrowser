@@ -133,7 +133,7 @@
 
           </div>
         </SettingsItem>
-        <SettingsItem :title="$t('profileSettings.themeAndLanguage')" :collapsable="true" :start-collapsed="true"
+        <SettingsItem aria-label="themeLanguage" :title="$t('profileSettings.themeAndLanguage')" :collapsable="true" :start-collapsed="true"
           :force-collapsed="isSectionCollapsed('themeLanguage')" @toggle="handleSectionToggle('themeLanguage')">
           <h4>{{ $t('settings.themeColor') }}</h4>
           <ButtonGroup :buttons="colorChoices" @button-clicked="setColor" :initialActive="localuser.themeColor" />
