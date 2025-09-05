@@ -203,7 +203,9 @@
     "smallerThan": "Mindre än:",
     "largerThan": "Större än:",
     "helpText1": "Sökningen sker på varje tecken du skriver (minst 3 tecken för sökbegrepp).",
-    "helpText2": "Indexet: Sökningen använder indexet som automatiskt uppdateras med det inställda intervallet (standard: 5 minuter). Om du söker när programmet precis har startat kan det leda till ofullständiga resultat."
+    "helpText2": "Indexet: Sökningen använder indexet som automatiskt uppdateras med det inställda intervallet (standard: 5 minuter). Om du söker när programmet precis har startat kan det leda till ofullständiga resultat.",
+    "notEnoughCharacters": "Not enough characters to search (min {minSearchLength})",
+    "noResults": "Inga resultat hittades i indexerad sökning."
   },
   "settings": {
     "admin": "Admin",

@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Dark mode enforcement possible for shared links #1029
  - added `System & Admin` section to settings
    - includes a new config viewer to see current running config (hides secrets) #838
+ - added `server.minSearchLength` to allow adjusting the length requirement for search #1174
 
  **Notes**:
  - access management: specific folders/files with access are shown instead permission denied for parent folder

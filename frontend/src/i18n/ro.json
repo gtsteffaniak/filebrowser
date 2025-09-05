@@ -203,7 +203,9 @@
     "smallerThan": "Mai mic decât:",
     "largerThan": "Mai mare decât:",
     "helpText1": "Căutarea are loc pe fiecare caracter tastat (minim 3 caractere pentru termenii de căutare).",
-    "helpText2": "Indexul: Căutarea utilizează indexul care se actualizează automat la intervalul configurat (implicit: 5 minute). Căutarea atunci când programul tocmai a început poate duce la rezultate incomplete."
+    "helpText2": "Indexul: Căutarea utilizează indexul care se actualizează automat la intervalul configurat (implicit: 5 minute). Căutarea atunci când programul tocmai a început poate duce la rezultate incomplete.",
+    "notEnoughCharacters": "Not enough characters to search (min {minSearchLength})",
+    "noResults": "Nu s-au găsit rezultate în căutarea indexată."
   },
   "settings": {
     "admin": "Admin",

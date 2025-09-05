@@ -203,7 +203,9 @@
     "smallerThan": "Daha küçük:",
     "largerThan": "Daha büyük:",
     "helpText1": "Arama, yazdığınız her karakterde gerçekleşir (arama terimleri için minimum 3 karakter).",
-    "helpText2": "Dizin: Arama, yapılandırılan aralıkta (varsayılan: 5 dakika) otomatik olarak güncellenen dizini kullanır. Program yeni başladığında arama yapmak eksik sonuçlara neden olabilir."
+    "helpText2": "Dizin: Arama, yapılandırılan aralıkta (varsayılan: 5 dakika) otomatik olarak güncellenen dizini kullanır. Program yeni başladığında arama yapmak eksik sonuçlara neden olabilir.",
+    "notEnoughCharacters": "Not enough characters to search (min {minSearchLength})",
+    "noResults": "Dizinlenmiş aramada sonuç bulunamadı."
   },
   "settings": {
     "admin": "Yönetim",

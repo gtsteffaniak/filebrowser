@@ -203,7 +203,9 @@
     "smallerThan": "小於：",
     "largerThan": "大於：",
     "helpText1": "您輸入的每個字元都會進行搜尋（搜尋字詞最少 3 個字元）。",
-    "helpText2": "索引：搜尋會使用索引，該索引會在設定的間隔 (預設值：5 分鐘) 自動更新。當程式剛開始搜尋時，可能會導致結果不完整。"
+    "helpText2": "索引：搜尋會使用索引，該索引會在設定的間隔 (預設值：5 分鐘) 自動更新。當程式剛開始搜尋時，可能會導致結果不完整。",
+    "notEnoughCharacters": "Not enough characters to search (min {minSearchLength})",
+    "noResults": "在索引搜尋中未找到任何結果。"
   },
   "settings": {
     "admin": "管理員",

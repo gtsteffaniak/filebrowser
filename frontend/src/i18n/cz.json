@@ -249,7 +249,9 @@
     "smallerThan": "Menší než:",
     "largerThan": "Větší než:",
     "helpText1": "Vyhledávání probíhá po každém napsaném znaku (minimálně 3 znaky pro hledaný výraz).",
-    "helpText2": "Index: Vyhledávání využívá index, který se automaticky aktualizuje v nastaveném intervalu (výchozí: 5 minut). Hledání ihned po spuštění programu může vracet neúplné výsledky."
+    "helpText2": "Index: Vyhledávání využívá index, který se automaticky aktualizuje v nastaveném intervalu (výchozí: 5 minut). Hledání ihned po spuštění programu může vracet neúplné výsledky.",
+    "notEnoughCharacters": "Not enough characters to search (min {minSearchLength})",
+    "noResults": "V indexovaném vyhledávání nebyly nalezeny žádné výsledky."
   },
   "profileSettings": {
     "setDateFormat": "Nastavit formát data",

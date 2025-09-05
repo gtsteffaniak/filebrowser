@@ -3034,6 +3034,10 @@ const docTemplate = `{
                     "description": "max pre-archive combined size of files/folder that are allowed to be archived (in GB)",
                     "type": "integer"
                 },
+                "minSearchLength": {
+                    "description": "minimum length of search query to begin searching (default: 3)",
+                    "type": "integer"
+                },
                 "numImageProcessors": {
                     "description": "number of concurrent image processing jobs used to create previews, default is number of cpu cores available.",
                     "type": "integer"

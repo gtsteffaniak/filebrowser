@@ -203,7 +203,9 @@
     "smallerThan": "Menor que:",
     "largerThan": "Mayor que:",
     "helpText1": "La búsqueda se realiza por cada carácter (mínimo de 3 caracteres)",
-    "helpText2": "El índice se actualiza automáticamente (cada 5 min por defecto). Si es interrumpido pueden ocurrir errores"
+    "helpText2": "El índice se actualiza automáticamente (cada 5 min por defecto). Si es interrumpido pueden ocurrir errores",
+    "notEnoughCharacters": "Not enough characters to search (min {minSearchLength})",
+    "noResults": "No se han encontrado resultados en la búsqueda indexada."
   },
   "settings": {
     "scopes": "Establece los directorios y los permisos que el usuario puede acceder",

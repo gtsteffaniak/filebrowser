@@ -203,7 +203,9 @@
     "smallerThan": "Kleiner dan:",
     "largerThan": "Groter dan:",
     "helpText1": "Er wordt gezocht op elk teken dat je typt (minimaal 3 tekens voor zoektermen).",
-    "helpText2": "De index: Zoeken maakt gebruik van de index die automatisch wordt bijgewerkt op het ingestelde interval (standaard: 5 minuten). Zoeken als het programma net is gestart, kan onvolledige resultaten opleveren."
+    "helpText2": "De index: Zoeken maakt gebruik van de index die automatisch wordt bijgewerkt op het ingestelde interval (standaard: 5 minuten). Zoeken als het programma net is gestart, kan onvolledige resultaten opleveren.",
+    "notEnoughCharacters": "Not enough characters to search (min {minSearchLength})",
+    "noResults": "Geen resultaten gevonden in geïndexeerde zoekopdrachten."
   },
   "settings": {
     "admin": "Admin",

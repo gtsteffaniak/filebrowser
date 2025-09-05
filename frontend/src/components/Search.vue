@@ -146,9 +146,8 @@ import { search } from "@/api";
 import { getters, mutations, state } from "@/store";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { url } from "@/utils/";
-
 import Icon from "@/components/files/Icon.vue";
-import { serverHasMultipleSources, baseURL } from "@/utils/constants";
+import { serverHasMultipleSources, baseURL, minSearchLength } from "@/utils/constants";
 
 var boxes = {
   folder: { label: "folders", icon: "folder" },
@@ -170,7 +169,7 @@ export default {
     return {
       largerThan: "",
       smallerThan: "",
-      noneMessage: "Start typing 3 or more characters to begin searching.",
+      noneMessage: "Start typing " + minSearchLength + " or more characters to begin searching.",
       searchTypes: "",
       isTypeSelectDisabled: false,
       showHelp: false,
@@ -296,7 +295,7 @@ export default {
         return "";
       }
       return this.value === ""
-        ? this.$t("search.typeToSearch")
+        ? this.$t("search.typeToSearch", { minSearchLength: minSearchLength })
         : this.$t("search.pressToSearch");
     },
     isRunning() {
@@ -489,9 +488,9 @@ export default {
       if (event != undefined) {
         event.preventDefault();
       }
-      if (this.value === "" || this.value.length < 3) {
+      if (this.value === "" || this.value.length < minSearchLength) {
         this.ongoing = false;
-        this.noneMessage = "Not enough characters to search (min 3)";
+        this.noneMessage = this.$t("search.notEnoughCharacters", { minSearchLength: minSearchLength });
         return;
       }
       let searchTypesFull = this.searchTypes;
@@ -510,7 +509,7 @@ export default {
 
       this.ongoing = false;
       if (this.results.length == 0) {
-        this.noneMessage = "No results found in indexed search.";
+        this.noneMessage = this.$t("search.noResults");
       }
     },
     toggleHelp() {

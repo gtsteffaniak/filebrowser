@@ -203,7 +203,9 @@
     "smallerThan": "Mais pequeno do que:",
     "largerThan": "Maior do que:",
     "helpText1": "A pesquisa ocorre em cada caractere digitado (mínimo de 3 caracteres para termos de pesquisa).",
-    "helpText2": "O índice: A pesquisa utiliza o índice que é atualizado automaticamente no intervalo configurado (predefinição: 5 minutos). A pesquisa quando o programa acabou de ser iniciado pode resultar em resultados incompletos."
+    "helpText2": "O índice: A pesquisa utiliza o índice que é atualizado automaticamente no intervalo configurado (predefinição: 5 minutos). A pesquisa quando o programa acabou de ser iniciado pode resultar em resultados incompletos.",
+    "notEnoughCharacters": "Not enough characters to search (min {minSearchLength})",
+    "noResults": "Não foram encontrados resultados na pesquisa indexada."
   },
   "settings": {
     "admin": "Admin",

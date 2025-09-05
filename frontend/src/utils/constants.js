@@ -23,6 +23,7 @@ const muPdfAvailable = window.filebrowser.muPdfAvailable;
 const updateAvailable = window.filebrowser.updateAvailable;
 const disableNavButtons = window.filebrowser.disableNavButtons;
 const userSelectableThemes = window.filebrowser.userSelectableThemes;
+const minSearchLength = window.filebrowser.minSearchLength;
 const shareInfo = window.filebrowser.share;
 const origin = window.location.origin;
 
@@ -37,6 +38,7 @@ const settings = [
 ];
 
 export {
+  minSearchLength,
   shareInfo,
   userSelectableThemes,
   disableNavButtons,

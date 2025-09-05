@@ -48,6 +48,9 @@ func Initialize(configFile string) {
 }
 
 func setupFrontend(generate bool) {
+	if Config.Server.MinSearchLength == 0 {
+		Config.Server.MinSearchLength = 3
+	}
 	if !Config.Frontend.DisableDefaultLinks {
 		Config.Frontend.ExternalLinks = append(Config.Frontend.ExternalLinks, ExternalLink{
 			Text:  fmt.Sprintf("(%v)", version.Version),

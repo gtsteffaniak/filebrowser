@@ -203,7 +203,9 @@
     "smallerThan": "Kisebb, mint:",
     "largerThan": "Nagyobb, mint:",
     "helpText1": "A keresés minden egyes beírt karakterre történik (minimum 3 karakteres keresőkifejezés).",
-    "helpText2": "Az index: A keresés az indexet használja, amely automatikusan frissül a beállított időközönként (alapértelmezett: 5 perc). A program indulásakor végzett keresés hiányos eredményeket eredményezhet."
+    "helpText2": "Az index: A keresés az indexet használja, amely automatikusan frissül a beállított időközönként (alapértelmezett: 5 perc). A program indulásakor végzett keresés hiányos eredményeket eredményezhet.",
+    "notEnoughCharacters": "Not enough characters to search (min {minSearchLength})",
+    "noResults": "Az indexelt keresésben nem találtak találatot."
   },
   "settings": {
     "admin": "Admin",

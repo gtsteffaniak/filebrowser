@@ -21,6 +21,7 @@ type Settings struct {
 }
 
 type Server struct {
+	MinSearchLength              int         `json:"minSearchLength"`              // minimum length of search query to begin searching (default: 3)
 	DisableUpdateCheck           bool        `json:"disableUpdateCheck"`           // disables backend update check service
 	NumImageProcessors           int         `json:"numImageProcessors"`           // number of concurrent image processing jobs used to create previews, default is number of cpu cores available.
 	Socket                       string      `json:"socket"`                       // socket to listen on

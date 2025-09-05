@@ -237,12 +237,14 @@
     "conflictsDetected": "Conflicts detected"
   },
   "search": {
+    "notEnoughCharacters": "Not enough characters to search (min {minSearchLength})",
     "images": "Images",
     "music": "Music",
     "pdf": "PDF",
     "pressToSearch": "No results found in indexed search.",
     "search": "Search...",
-    "typeToSearch": "Type to search... (3 character minimum)",
+    "typeToSearch": "Type to search... ({minSearchLength} character minimum)",
+    "noResults": "No results found in indexed search.",
     "path": "Path:",
     "types": "Types",
     "video": "Video",

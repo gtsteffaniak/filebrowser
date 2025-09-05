@@ -1,4 +1,5 @@
 server:
+  minSearchLength: 3                      # minimum length of search query to begin searching (default: 3)
   disableUpdateCheck: false               # disables backend update check service
   numImageProcessors: 4                   # number of concurrent image processing jobs used to create previews, default is number of cpu cores available.
   socket: ""                              # socket to listen on

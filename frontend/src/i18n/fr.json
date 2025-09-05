@@ -203,7 +203,9 @@
     "smallerThan": "Plus petit que :",
     "largerThan": "Plus grand que :",
     "helpText1": "La recherche s'effectue sur chaque caractère saisi (3 caractères minimum pour les termes de recherche).",
-    "helpText2": "Index : La recherche utilise l'index qui est automatiquement mis à jour à l'intervalle configuré (par défaut : 5 minutes). Une recherche effectuée alors que le programme vient de démarrer peut donner des résultats incomplets."
+    "helpText2": "Index : La recherche utilise l'index qui est automatiquement mis à jour à l'intervalle configuré (par défaut : 5 minutes). Une recherche effectuée alors que le programme vient de démarrer peut donner des résultats incomplets.",
+    "notEnoughCharacters": "Not enough characters to search (min {minSearchLength})",
+    "noResults": "Aucun résultat n'a été trouvé dans la recherche indexée."
   },
   "settings": {
     "scopes": "Définir les sources autorisées et la portée de l'utilisateur au sein de celles-ci",

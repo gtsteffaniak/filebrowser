@@ -203,7 +203,9 @@
     "smallerThan": "Mniejszy niż:",
     "largerThan": "Większy niż:",
     "helpText1": "Wyszukiwanie odbywa się po każdym wpisanym znaku (minimum 3 znaki dla wyszukiwanych haseł).",
-    "helpText2": "Indeks: Wyszukiwanie wykorzystuje indeks, który jest automatycznie aktualizowany w skonfigurowanych odstępach czasu (domyślnie: 5 minut). Wyszukiwanie po uruchomieniu programu może skutkować niekompletnymi wynikami."
+    "helpText2": "Indeks: Wyszukiwanie wykorzystuje indeks, który jest automatycznie aktualizowany w skonfigurowanych odstępach czasu (domyślnie: 5 minut). Wyszukiwanie po uruchomieniu programu może skutkować niekompletnymi wynikami.",
+    "notEnoughCharacters": "Not enough characters to search (min {minSearchLength})",
+    "noResults": "Nie znaleziono żadnych wyników w indeksowanym wyszukiwaniu."
   },
   "settings": {
     "admin": "Admin",

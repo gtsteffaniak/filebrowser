@@ -64,6 +64,9 @@ func searchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}
+	if len(query) < settings.Config.Server.MinSearchLength {
+		return http.StatusBadRequest, fmt.Errorf("query is too short, minimum length is %d", settings.Config.Server.MinSearchLength)
+	}
 	searchScope := strings.TrimPrefix(unencodedScope, ".")
 	// Retrieve the User-Agent and X-Auth headers from the request
 	sessionId := r.Header.Get("SessionId")

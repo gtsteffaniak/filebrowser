@@ -203,7 +203,9 @@
     "smallerThan": "小于",
     "largerThan": "大于：",
     "helpText1": "您键入的每个字符都会进行搜索（搜索词最少 3 个字符）。",
-    "helpText2": "索引：利用索引进行搜索，索引会根据配置的时间间隔（默认为 5 分钟）自动更新。程序刚启动时进行搜索可能会导致搜索结果不完整。"
+    "helpText2": "索引：利用索引进行搜索，索引会根据配置的时间间隔（默认为 5 分钟）自动更新。程序刚启动时进行搜索可能会导致搜索结果不完整。",
+    "notEnoughCharacters": "Not enough characters to search (min {minSearchLength})",
+    "noResults": "索引搜索未找到结果。"
   },
   "settings": {
     "scopes": "定义允许的来源及其中的用户范围",

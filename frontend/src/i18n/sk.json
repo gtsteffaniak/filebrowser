@@ -203,7 +203,9 @@
     "smallerThan": "Menšie ako:",
     "largerThan": "Väčšie ako:",
     "helpText1": "Vyhľadávanie prebieha na základe každého zadaného znaku (minimálne 3 znaky pre hľadané výrazy).",
-    "helpText2": "Index: Vyhľadávanie využíva index, ktorý sa automaticky aktualizuje v nastavenom intervale (predvolené: 5 minút). Vyhľadávanie, keď sa program práve spustil, môže viesť k neúplným výsledkom."
+    "helpText2": "Index: Vyhľadávanie využíva index, ktorý sa automaticky aktualizuje v nastavenom intervale (predvolené: 5 minút). Vyhľadávanie, keď sa program práve spustil, môže viesť k neúplným výsledkom.",
+    "notEnoughCharacters": "Not enough characters to search (min {minSearchLength})",
+    "noResults": "V indexovanom vyhľadávaní sa nenašli žiadne výsledky."
   },
   "settings": {
     "admin": "Admin",
