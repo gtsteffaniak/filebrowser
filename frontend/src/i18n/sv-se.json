@@ -303,7 +303,11 @@
     "shareDuration": "Upphör att gälla",
     "searchOptions": "Sökalternativ",
     "downloads": "Nedladdningar",
-    "systemAdmin": "System & Administration"
+    "systemAdmin": "System & Administration",
+    "configViewer": "Konfig-visare",
+    "configViewerShowFull": "Visa fullständig konfiguration",
+    "configViewerShowComments": "Visa kommentarer",
+    "configViewerLoadConfig": "Ladda konfig"
   },
   "sidebar": {
     "help": "Hjälp",

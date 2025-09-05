@@ -303,7 +303,11 @@
     "shareDuration": "期限切れ",
     "searchOptions": "検索オプション",
     "downloads": "ダウンロード",
-    "systemAdmin": "システム＆管理"
+    "systemAdmin": "システム＆管理",
+    "configViewer": "コンフィグビューア",
+    "configViewerShowFull": "フルコンフィグを表示",
+    "configViewerShowComments": "コメントを表示",
+    "configViewerLoadConfig": "ロードコンフィグ"
   },
   "sidebar": {
     "help": "ヘルプ",

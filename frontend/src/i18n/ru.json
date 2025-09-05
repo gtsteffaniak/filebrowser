@@ -303,7 +303,11 @@
     "shareDuration": "Срок действия:",
     "searchOptions": "Параметры поиска",
     "downloads": "Скачать",
-    "systemAdmin": "Система и администрирование"
+    "systemAdmin": "Система и администрирование",
+    "configViewer": "Программа просмотра конфигурации",
+    "configViewerShowFull": "Показать полную конфигурацию",
+    "configViewerShowComments": "Показать комментарии",
+    "configViewerLoadConfig": "Конфигурация нагрузки"
   },
   "sidebar": {
     "help": "Помощь",

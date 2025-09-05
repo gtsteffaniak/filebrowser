@@ -303,7 +303,11 @@
     "shareDeleted": "分享已刪除！",
     "adminOptions": "管理員使用者選項",
     "downloads": "下載",
-    "systemAdmin": "系統與管理"
+    "systemAdmin": "系統與管理",
+    "configViewer": "組態檢視器",
+    "configViewerShowFull": "顯示完整設定",
+    "configViewerShowComments": "顯示評論",
+    "configViewerLoadConfig": "載入組態"
   },
   "sidebar": {
     "help": "幫助",

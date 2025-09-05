@@ -303,7 +303,11 @@
     "shareDuration": "Platnosť končí na",
     "searchOptions": "Možnosti vyhľadávania",
     "downloads": "Na stiahnutie",
-    "systemAdmin": "Systém a administrátor"
+    "systemAdmin": "Systém a administrátor",
+    "configViewer": "Prehliadač konfigurácie",
+    "configViewerShowFull": "Zobraziť úplnú konfiguráciu",
+    "configViewerShowComments": "Zobraziť komentáre",
+    "configViewerLoadConfig": "Konfigurácia načítania"
   },
   "sidebar": {
     "help": "Pomoc",

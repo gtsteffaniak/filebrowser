@@ -406,7 +406,11 @@
     "users": "Uživatelé",
     "adminOptions": "Možnosti administrátora",
     "downloads": "Ke stažení na",
-    "systemAdmin": "Systém a správce"
+    "systemAdmin": "Systém a správce",
+    "configViewer": "Prohlížeč konfigurace",
+    "configViewerShowFull": "Zobrazit úplnou konfiguraci",
+    "configViewerShowComments": "Zobrazit komentáře",
+    "configViewerLoadConfig": "Konfigurace načítání"
   },
   "sidebar": {
     "help": "Nápověda",

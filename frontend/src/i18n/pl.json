@@ -303,7 +303,11 @@
     "shareDuration": "Wygasa",
     "searchOptions": "Opcje wyszukiwania",
     "downloads": "Pliki do pobrania",
-    "systemAdmin": "System i administrator"
+    "systemAdmin": "System i administrator",
+    "configViewer": "Przeglądarka konfiguracji",
+    "configViewerShowFull": "Pokaż pełną konfigurację",
+    "configViewerShowComments": "Pokaż komentarze",
+    "configViewerLoadConfig": "Konfiguracja ładowania"
   },
   "sidebar": {
     "help": "Pomoc",

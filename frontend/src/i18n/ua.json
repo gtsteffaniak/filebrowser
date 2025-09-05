@@ -303,7 +303,11 @@
     "shareDuration": "Закінчується",
     "searchOptions": "Параметри пошуку",
     "downloads": "Завантаження",
-    "systemAdmin": "Система та адміністрування"
+    "systemAdmin": "Система та адміністрування",
+    "configViewer": "Переглядач конфігурацій",
+    "configViewerShowFull": "Показати повну конфігурацію",
+    "configViewerShowComments": "Показати коментарі",
+    "configViewerLoadConfig": "Завантажити конфігурацію"
   },
   "sidebar": {
     "help": "Допомога",

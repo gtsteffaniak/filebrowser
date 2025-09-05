@@ -303,7 +303,11 @@
     "shareDuration": "Verloopt op",
     "searchOptions": "Zoekopties",
     "downloads": "Downloads",
-    "systemAdmin": "Systeem & Beheer"
+    "systemAdmin": "Systeem & Beheer",
+    "configViewer": "Configuratiescherm",
+    "configViewerShowFull": "Volledige configuratie weergeven",
+    "configViewerShowComments": "Opmerkingen tonen",
+    "configViewerLoadConfig": "Configuratie laden"
   },
   "sidebar": {
     "help": "Help",

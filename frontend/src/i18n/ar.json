@@ -303,7 +303,11 @@
     "shareDuration": "تنتهي صلاحيتها",
     "searchOptions": "خيارات البحث",
     "downloads": "التنزيلات",
-    "systemAdmin": "النظام والإدارة"
+    "systemAdmin": "النظام والإدارة",
+    "configViewer": "عارض التكوين",
+    "configViewerShowFull": "إظهار التكوين الكامل",
+    "configViewerShowComments": "إظهار التعليقات",
+    "configViewerLoadConfig": "تكوين التحميل"
   },
   "sidebar": {
     "help": "مساعدة",

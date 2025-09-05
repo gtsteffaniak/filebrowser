@@ -303,7 +303,11 @@
     "shareDuration": "만료",
     "searchOptions": "검색 옵션",
     "downloads": "다운로드",
-    "systemAdmin": "시스템 및 관리자"
+    "systemAdmin": "시스템 및 관리자",
+    "configViewer": "구성 뷰어",
+    "configViewerShowFull": "전체 구성 표시",
+    "configViewerShowComments": "댓글 표시",
+    "configViewerLoadConfig": "로드 구성"
   },
   "sidebar": {
     "help": "도움말",

@@ -303,7 +303,11 @@
     "shareDuration": "Abgelaufen",
     "searchOptions": "Suchoptionen",
     "downloads": "Herunterladen",
-    "systemAdmin": "System & Verwaltung"
+    "systemAdmin": "System & Verwaltung",
+    "configViewer": "Config Viewer",
+    "configViewerShowFull": "Vollständige Konfiguration anzeigen",
+    "configViewerShowComments": "Kommentare anzeigen",
+    "configViewerLoadConfig": "Lastkonfiguration"
   },
   "sidebar": {
     "help": "Hilfe",

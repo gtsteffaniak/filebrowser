@@ -306,7 +306,11 @@
     "shareDuration": "Λήγει",
     "searchOptions": "Επιλογές αναζήτησης",
     "downloads": "Λήψεις",
-    "systemAdmin": "Σύστημα & Διαχείριση"
+    "systemAdmin": "Σύστημα & Διαχείριση",
+    "configViewer": "Config Viewer",
+    "configViewerShowFull": "Εμφάνιση πλήρων ρυθμίσεων",
+    "configViewerShowComments": "Εμφάνιση σχολίων",
+    "configViewerLoadConfig": "Φόρτωση Config"
   },
   "sidebar": {
     "help": "Βοήθεια",

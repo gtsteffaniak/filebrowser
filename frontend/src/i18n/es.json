@@ -303,7 +303,11 @@
     "shareDuration": "Expira en",
     "searchOptions": "Opciones de búsqueda",
     "downloads": "Descargas",
-    "systemAdmin": "Sistema y administración"
+    "systemAdmin": "Sistema y administración",
+    "configViewer": "Visor de configuración",
+    "configViewerShowFull": "Mostrar configuración completa",
+    "configViewerShowComments": "Mostrar comentarios",
+    "configViewerLoadConfig": "Configuración de carga"
   },
   "sidebar": {
     "help": "Ayuda",

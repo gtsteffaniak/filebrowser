@@ -303,7 +303,11 @@
     "shareDuration": "Expiră",
     "searchOptions": "Opțiuni de căutare",
     "downloads": "Descărcări",
-    "systemAdmin": "Sistem și administrare"
+    "systemAdmin": "Sistem și administrare",
+    "configViewer": "Vizualizator de configurare",
+    "configViewerShowFull": "Afișați configurația completă",
+    "configViewerShowComments": "Afișați comentariile",
+    "configViewerLoadConfig": "Configurare încărcare"
   },
   "sidebar": {
     "help": "Ajutor",

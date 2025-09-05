@@ -303,7 +303,11 @@
     "shareDuration": "到期",
     "searchOptions": "搜索选项",
     "downloads": "下载",
-    "systemAdmin": "系统与管理"
+    "systemAdmin": "系统与管理",
+    "configViewer": "配置查看器",
+    "configViewerShowFull": "显示完整配置",
+    "configViewerShowComments": "显示评论",
+    "configViewerLoadConfig": "加载配置"
   },
   "sidebar": {
     "help": "帮助",

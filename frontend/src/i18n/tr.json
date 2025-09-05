@@ -303,7 +303,11 @@
     "shareDuration": "Sona erdi",
     "searchOptions": "Arama seçenekleri",
     "downloads": "İndirmeler",
-    "systemAdmin": "Sistem ve Yönetici"
+    "systemAdmin": "Sistem ve Yönetici",
+    "configViewer": "Konfigürasyon Görüntüleyici",
+    "configViewerShowFull": "Tam yapılandırmayı göster",
+    "configViewerShowComments": "Yorumları göster",
+    "configViewerLoadConfig": "Yük Konfigürasyonu"
   },
   "sidebar": {
     "help": "Yardım",

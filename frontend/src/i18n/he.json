@@ -303,7 +303,11 @@
     "shareDuration": "תוקף",
     "searchOptions": "אפשרויות חיפוש",
     "downloads": "הורדות",
-    "systemAdmin": "מערכת וניהול"
+    "systemAdmin": "מערכת וניהול",
+    "configViewer": "מציג תצורה",
+    "configViewerShowFull": "הצג את התצורה המלאה",
+    "configViewerShowComments": "הצג תגובות",
+    "configViewerLoadConfig": "טען תצורה"
   },
   "sidebar": {
     "help": "עזרה",
