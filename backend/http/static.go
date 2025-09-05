@@ -148,6 +148,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 	// variables consumed by frontend as json
 	data["globalVars"] = map[string]interface{}{
 		"name":                 config.Frontend.Name,
+		"minSearchLength":      config.Server.MinSearchLength,
 		"disableExternal":      config.Frontend.DisableDefaultLinks,
 		"darkMode":             settings.Config.UserDefaults.DarkMode,
 		"baseURL":              config.Server.BaseURL,

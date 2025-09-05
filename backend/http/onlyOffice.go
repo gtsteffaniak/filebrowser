@@ -274,8 +274,6 @@ func onlyofficeCallbackHandler(w http.ResponseWriter, r *http.Request, d *reques
 		// path is index path, so we build from share path
 		path = utils.JoinPathAsUnix(d.share.Path, path)
 	}
-	fmt.Println("source", source)
-	fmt.Println("path", path)
 	// Handle document closure - clean up document key cache
 	if data.Status == onlyOfficeStatusDocumentClosedWithChanges ||
 		data.Status == onlyOfficeStatusDocumentClosedWithNoChanges {

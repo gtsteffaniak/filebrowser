@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Dark mode enforcement possible for shared links #1029
  - added `System & Admin` section to settings
    - includes a new config viewer to see current running config (hides secrets) #838
+ - added `server.minSearchLength` to allow adjusting the length requirement for search #1174
 
  **Notes**:
  - access management: specific folders/files with access are shown instead permission denied for parent folder
@@ -34,6 +35,7 @@ All notable changes to this project will be documented in this file. For commit 
  - some shortcuts not working #1056
  - Can't copy/paste text on mobile #1168
  - Can't change between images inside of the share image viewer. #1144
+ - fixed and updated translations with variables always showing english.
 
 ## v0.8.3-beta
 

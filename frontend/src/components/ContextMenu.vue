@@ -404,7 +404,6 @@ export default {
       }, 300);
     },
     startShowCreate() {
-      console.log("startShowCreate");
       if (getters.isShare()) {
         return;
       }

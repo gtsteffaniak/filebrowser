@@ -54,7 +54,7 @@ export default {
     window.closeTooltip = () => this.closeTooltip();
 
     // Initialize debug mode if enabled
-    if (!state.user.debugOffice) {
+    if (state.user.debugOffice) {
       this.debugMode = true;
       this.showDebugInfo();
     }
