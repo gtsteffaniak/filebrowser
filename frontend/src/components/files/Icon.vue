@@ -31,7 +31,7 @@ import {
   baseURL,
 } from "@/utils/constants";
 import { getTypeInfo } from "@/utils/mimetype";
-import { mutations, state } from "@/store";
+import { mutations, state, getters } from "@/store";
 import { shareInfo } from "@/utils/constants";
 
 // NEW: Define placeholder and error image URLs for easy configuration
@@ -126,10 +126,10 @@ export default {
       return this.imageTargetSrc;
     },
     showLargeIcon() {
-      return state.user.viewMode === "gallery" && state.user.preview.highQuality;
+      return getters.viewMode() === "gallery" && state.user.preview.highQuality;
     },
     showLarger() {
-      return state.user.viewMode === "gallery" || state.user.viewMode === "normal";
+      return getters.viewMode() === "gallery" || getters.viewMode() === "normal";
     },
     hasMotion() {
       return (
