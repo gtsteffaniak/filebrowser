@@ -32,9 +32,26 @@ export const getters = {
     }
     return true
   },
+  displayPreference: () => {
+    let source = state.sources.current;
+    if (getters.isShare()) {
+      source = getters.currentHash();
+    }
+    const path = state.route.path;
+    if (state.displayPreferences?.[source]?.[path]) {
+      return state.displayPreferences[source][path];
+    }
+    return null;
+  },
+  viewMode: () => {
+    return getters.displayPreference()?.viewMode || state.user.viewMode;
+  },
+  sorting: () => {
+    return getters.displayPreference()?.sorting || state.user.sorting;
+  },
   previewType: () => getTypeInfo(state.req.type).simpleType,
   isCardView: () =>
-    (state.user.viewMode == 'gallery' || state.user.viewMode == 'normal') &&
+    (getters.viewMode() == 'gallery' || getters.viewMode() == 'normal') &&
     getters.currentView() == 'listingView',
   currentHash: () => shareInfo.hash,
   isMobile: () => state.isMobile,
