@@ -1,6 +1,11 @@
 import { reactive } from 'vue';
 import { detectLocale } from "@/i18n";
 
+function loadDisplayPreferences() {
+  const history = localStorage.getItem("displayPreferences");
+  return history ? JSON.parse(history) : {};
+}
+
 export const state = reactive({
   tooltip: {
     show: false,
@@ -24,6 +29,7 @@ export const state = reactive({
   isMobile: window.innerWidth <= 800,
   isSearchActive: false,
   showSidebar: false,
+  displayPreferences: loadDisplayPreferences(),
   usages: {},
   editor: null,
   serverHasMultipleSources: false,

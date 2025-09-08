@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file. For commit 
 ## v0.8.4-beta
 
  **New Features**:
+ - Remember folder view type (and sorting) for each folder #966
+
+ **Notes**:
+ - 
+
+ **BugFixes**:
+ - 
+
+## v0.8.4-beta
+
+ **New Features**:
  - New media player styles and features
    - Custom Media Player: enhanced media player using plyr thanks @Kurami32 (see #1160)
    - Custom Media Player: also adds support for metadata

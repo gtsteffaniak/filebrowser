@@ -281,16 +281,16 @@ export default {
       return state.multiple;
     },
     nameSorted() {
-      return state.user.sorting.by === "name";
+      return getters.sorting().by === "name";
     },
     sizeSorted() {
-      return state.user.sorting.by === "size";
+      return getters.sorting().by === "size";
     },
     modifiedSorted() {
-      return state.user.sorting.by === "modified";
+      return getters.sorting().by === "modified";
     },
     ascOrdered() {
-      return state.user.sorting.asc;
+      return getters.sorting().asc;
     },
     items() {
       return getters.reqItems();
@@ -335,11 +335,11 @@ export default {
         normal: "grid_view",
         gallery: "view_list",
       };
-      return icons[state.user.viewMode];
+      return icons[getters.viewMode()];
     },
     listingViewMode() {
       this.colunmsResize();
-      return state.user.viewMode;
+      return getters.viewMode();
     },
     selectedCount() {
       return state.selected.length;
@@ -843,7 +843,7 @@ export default {
         `calc(${100 / this.numColumns}% - 1em)`
       );
 
-      if (state.user.viewMode == "gallery") {
+      if (getters.viewMode() == "gallery") {
         document.documentElement.style.setProperty(
           "--item-height",
           `calc(${this.columnWidth / 20}em)`

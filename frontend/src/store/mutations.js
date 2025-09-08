@@ -1,5 +1,6 @@
 import * as i18n from "@/i18n";
 import { state } from "./state.js";
+import { getters } from "./getters.js";
 import { emitStateChanged } from './eventBus'; // Import the function from eventBus.js
 import { usersApi } from "@/api";
 import { notify } from "@/notify";
@@ -251,6 +252,7 @@ export const mutations = {
         i18n.setLocale(value.locale);
       }
       state.user = value;
+      state.user.sorting = {};
       state.user.sorting.by = "name";
       state.user.sorting.asc = true;
     } catch (error) {
@@ -377,8 +379,9 @@ export const mutations = {
     }
     let sortby = "name"
     let asc = true
-    sortby = state.user.sorting.by;
-    asc = state.user.sorting.asc;
+    const sorting = getters.sorting();
+    sortby = sorting.by;
+    asc = sorting.asc;
     // Separate directories and files
     const dirs = value.items.filter((item) => item.type === 'directory');
     const files = value.items.filter((item) => item.type !== 'directory');
@@ -404,8 +407,7 @@ export const mutations = {
     if (!state.user.sorting) {
       state.user.sorting = {};
     }
-    state.user.sorting.by = field;
-    state.user.sorting.asc = asc;
+    mutations.updateDisplayPreferences({ sorting: { by: field, asc: asc } });
     emitStateChanged();
   },
   updateListingItems: () => {
@@ -459,6 +461,44 @@ export const mutations = {
       state.user.fileLoading = {};
     }
     state.user.fileLoading.maxConcurrentUpload = value;
+    emitStateChanged();
+  },
+  updateViewModeHistory: ({ source, path, viewMode }) => {
+    if (!source || !path) return;
+    if (!state.viewModeHistory) {
+      state.viewModeHistory = {};
+    }
+    if (!state.viewModeHistory[source]) {
+      state.viewModeHistory[source] = {};
+    }
+    state.viewModeHistory[source][path] = viewMode;
+    localStorage.setItem("viewModeHistory", JSON.stringify(state.viewModeHistory));
+    emitStateChanged();
+  },
+  updateDisplayPreferences: (payload) => {
+    let source = state.sources.current;
+    if (getters.isShare()) {
+      source = getters.currentHash();
+    }
+    const path = state.route.path;
+
+    if (!source || !path) return;
+    if (!state.displayPreferences) {
+      state.displayPreferences = {};
+    }
+    if (!state.displayPreferences[source]) {
+      state.displayPreferences[source] = {};
+    }
+    if (!state.displayPreferences[source][path]) {
+      state.displayPreferences[source][path] = {};
+    }
+
+    state.displayPreferences[source][path] = {
+      ...state.displayPreferences[source][path],
+      ...payload,
+    };
+
+    localStorage.setItem("displayPreferences", JSON.stringify(state.displayPreferences));
     emitStateChanged();
   },
 };

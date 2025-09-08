@@ -109,7 +109,7 @@ export default {
   ],
   computed: {
     galleryView() {
-      return state.user.viewMode === "gallery";
+      return getters.viewMode() === "gallery";
     },
     quickDownloadEnabled() {
       // @ts-ignore
