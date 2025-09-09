@@ -245,7 +245,7 @@ func AvailablePreview(file iteminfo.ExtendedFileInfo) bool {
 	}
 	ext := strings.ToLower(filepath.Ext(file.Name))
 	switch ext {
-	case ".jpg", ".jpeg", ".png", ".bmp", ".tiff", ".heic", ".heif":
+	case ".jpg", ".jpeg", ".png", ".bmp", ".tiff":
 		return true
 	case ".heic", ".heif":
 		return service.ffmpegPath != "" // HEIC support available when FFmpeg is available
