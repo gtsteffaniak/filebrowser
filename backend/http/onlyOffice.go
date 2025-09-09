@@ -249,7 +249,7 @@ func onlyofficeCallbackHandler(w http.ResponseWriter, r *http.Request, d *reques
 	path := r.URL.Query().Get("path")
 
 	// Validate required parameters
-	if path == "" || source == "" && d.fileInfo.Hash == "" {
+	if (path == "" || source == "") && d.fileInfo.Hash == "" {
 		logger.Errorf("OnlyOffice callback missing required parameters: source=%s, path=%s", source, path)
 		return http.StatusBadRequest, errors.New("missing required parameters: path + source/hash are required")
 	}
