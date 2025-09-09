@@ -317,7 +317,8 @@ export default {
             return getters.previewType();
         },
         raw() {
-            if (this.pdfConvertable) {
+            const showFullSizeHeic = state.req.type === "image/heic" && !state.isSafari;
+            if (this.pdfConvertable || showFullSizeHeic) {
                 if (getters.isShare()) {
                     const previewPath = url.removeTrailingSlash(state.req.path);
                     return publicApi.getPreviewURL(previewPath, "original");

@@ -19,16 +19,19 @@ const (
 	FormatTiff
 	// FormatBmp is a Format of type Bmp
 	FormatBmp
+	// FormatHeic is a Format of type Heic
+	FormatHeic
 )
 
-const _FormatName = "jpegpnggiftiffbmp"
+const _FormatName = "jpegpnggiftiffbmpheic"
 
 var _FormatMap = map[Format]string{
-	0: _FormatName[0:4],
-	1: _FormatName[4:7],
-	2: _FormatName[7:10],
-	3: _FormatName[10:14],
-	4: _FormatName[14:17],
+	0: _FormatName[0:4],   // jpeg
+	1: _FormatName[4:7],   // png
+	2: _FormatName[7:10],  // gif
+	3: _FormatName[10:14], // tiff
+	4: _FormatName[14:17], // bmp
+	5: _FormatName[17:21], // heic
 }
 
 // String implements the Stringer interface.
@@ -40,11 +43,12 @@ func (x Format) String() string {
 }
 
 var _FormatValue = map[string]Format{
-	_FormatName[0:4]:   0,
-	_FormatName[4:7]:   1,
-	_FormatName[7:10]:  2,
-	_FormatName[10:14]: 3,
-	_FormatName[14:17]: 4,
+	_FormatName[0:4]:   0, // jpeg
+	_FormatName[4:7]:   1, // png
+	_FormatName[7:10]:  2, // gif
+	_FormatName[10:14]: 3, // tiff
+	_FormatName[14:17]: 4, // bmp
+	_FormatName[17:21]: 5, // heic
 }
 
 // ParseFormat attempts to convert a string to a Format

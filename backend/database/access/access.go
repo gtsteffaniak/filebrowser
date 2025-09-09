@@ -273,32 +273,91 @@ func (s *Storage) Permitted(sourcePath, indexPath, username string) bool {
 }
 
 func (s *Storage) computePermitted(sourcePath, indexPath, username string) bool {
+	var rulesFound []*AccessRule
+
+	// Walk up the path hierarchy and collect all relevant rules
+	currentPath := indexPath
 	for {
-		permitted, found := s.permittedAtExactPath(sourcePath, indexPath, username)
+		rule, found := s.getRuleAtExactPath(sourcePath, currentPath)
 		if found {
-			return permitted
+			rulesFound = append(rulesFound, rule)
 		}
-		indexPath = utils.GetParentDirectoryPath(indexPath)
-		if indexPath == "" {
+		if currentPath == "/" || currentPath == "." || currentPath == "" {
 			break
+		}
+		currentPath = utils.GetParentDirectoryPath(currentPath)
+	}
+
+	// Now evaluate the rules, starting from the most specific (indexPath) to the least specific (root)
+	for _, rule := range rulesFound {
+		permitted, hasSpecificRule := s.evaluateRuleForUser(rule, username)
+		if hasSpecificRule {
+			return permitted
 		}
 	}
 
-	// No rules found anywhere in the path hierarchy
-	// Check if the source has DenyByDefault configured (acts like a root-level denyAll rule)
+	// No specific user or group rule found in the hierarchy.
+	// Check for any DenyAll rule in the path.
+	for _, rule := range rulesFound {
+		if rule.DenyAll {
+			return false
+		}
+	}
+
+	// No specific rules found anywhere in the path hierarchy.
+	// Fallback to the source's DenyByDefault setting.
 	sourceInfo, ok := settings.Config.Server.SourceMap[sourcePath]
 	if !ok {
 		logger.Errorf("source %s not found in config during access check", sourcePath)
 		return false
 	}
 
-	if sourceInfo.Config.DenyByDefault {
-		return false
-	}
-
-	return true
+	return !sourceInfo.Config.DenyByDefault
 }
 
+// getRuleAtExactPath is a helper to get a rule without the recursive logic.
+func (s *Storage) getRuleAtExactPath(sourcePath, indexPath string) (*AccessRule, bool) {
+	s.mux.RLock()
+	defer s.mux.RUnlock()
+	rulesBySource, ok := s.AllRules[sourcePath]
+	if !ok {
+		return nil, false
+	}
+	rule, ok := rulesBySource[indexPath]
+	return rule, ok
+}
+
+// evaluateRuleForUser evaluates a single rule for a user and returns if a specific rule was found.
+func (s *Storage) evaluateRuleForUser(rule *AccessRule, username string) (permitted bool, hasSpecificRule bool) {
+	// Check user deny first
+	if _, found := rule.Deny.Users[username]; found {
+		return false, true
+	}
+
+	// Check group deny
+	for group := range rule.Deny.Groups {
+		if s.isUserInGroup(username, group) {
+			return false, true
+		}
+	}
+
+	// Check user allow
+	if _, found := rule.Allow.Users[username]; found {
+		return true, true
+	}
+
+	// Check group allow
+	for group := range rule.Allow.Groups {
+		if s.isUserInGroup(username, group) {
+			return true, true
+		}
+	}
+
+	// No specific rule for this user in this rule set.
+	return false, false
+}
+
+/*
 // permittedAtExactPath checks if a rule exists at the given path and evaluates it if so.
 func (s *Storage) permittedAtExactPath(sourcePath, indexPath, username string) (bool, bool) {
 	s.mux.RLock()
@@ -371,6 +430,7 @@ func (s *Storage) permittedRule(rule *AccessRule, username string, sourcePath st
 
 	return true
 }
+*/
 
 // isUserInGroup checks if a username is in a group.
 func (s *Storage) isUserInGroup(username, group string) bool {
@@ -421,8 +481,6 @@ func (s *Storage) GetFrontendRules(sourcePath, indexPath string) (FrontendAccess
 	frontendRules.Deny.Groups = utils.NonNilSlice(slices.Collect(maps.Keys(rule.Deny.Groups)))
 	frontendRules.Allow.Users = utils.NonNilSlice(slices.Collect(maps.Keys(rule.Allow.Users)))
 	frontendRules.Allow.Groups = utils.NonNilSlice(slices.Collect(maps.Keys(rule.Allow.Groups)))
-
-	logger.Debugf("Returning frontend rules for source: %s and index: %s", sourcePath, indexPath)
 	return frontendRules, ok
 }
 
