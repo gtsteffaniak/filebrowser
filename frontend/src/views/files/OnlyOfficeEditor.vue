@@ -215,7 +215,6 @@ export default {
 
         // Extract domains for network flow analysis
         const downloadDomain = doc.url ? new URL(doc.url).origin : 'N/A';
-        const callbackDomain = editor && editor.callbackUrl ? new URL(editor.callbackUrl).origin : 'N/A';
 
         configDetailsHtml = `
           <div style="margin-bottom: 15px; padding: 10px; background: #e3f2fd; border-radius: 4px;">

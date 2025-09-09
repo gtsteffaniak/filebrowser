@@ -3,7 +3,7 @@ ARG VERSION
 ARG REVISION
 WORKDIR /app
 COPY ./backend ./
-RUN apk update && apk add upx libde265-dev g++
+RUN apk update && apk add upx
 ENV GOEXPERIMENT=greenteagc
 RUN go build -ldflags="-w -s \
   -X 'github.com/gtsteffaniak/filebrowser/backend/common/version.Version=${VERSION}' \

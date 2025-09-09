@@ -21,7 +21,7 @@ jobs:
         run: npm i && npm run build
         working-directory: frontend
       - name: Install OS Requirements
-        run: sudo apt update && sudo apt install -y upx build-essential musl-tools libde265-dev libheif-dev
+        run: sudo apt update && sudo apt install -y upx build-essential musl-tools
       - uses: goto-bus-stop/setup-zig@v2
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6

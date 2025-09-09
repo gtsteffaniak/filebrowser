@@ -19,9 +19,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 	"github.com/gtsteffaniak/go-logger/logger"
-
-	// heic support
-	_ "github.com/adrium/goheif"
 )
 
 var (
@@ -129,12 +126,21 @@ func GeneratePreview(file iteminfo.ExtendedFileInfo, previewSize, officeUrl stri
 			return nil, fmt.Errorf("failed to create image for office file: %w", err)
 		}
 	} else if strings.HasPrefix(file.Type, "image") {
-		if file.Type == "image/heic" {
-			// HEIC files need conversion to JPEG with proper size/quality handling
-			imageBytes, err = service.convertHEICToJPEGWithSize(file.RealPath, previewSize)
+		logger.Infof("🔍 PREVIEW DEBUG: Image file detected - Name: %s, Type: %s, Extension: %s", file.Name, file.Type, filepath.Ext(file.Name))
+
+		// Quick HEIC identification and delegation
+		if isHEICFile(file) {
+			logger.Infof("🔄 HEIC DEBUG: HEIC file detected for %s", filepath.Base(file.Name))
+
+			// HEIC files need FFmpeg conversion to JPEG with proper size/quality handling
+			imageBytes, err = service.processHEICFile(file, previewSize)
 			if err != nil {
-				return nil, fmt.Errorf("failed to convert HEIC image file: %w", err)
+				logger.Errorf("❌ HEIC DEBUG: HEIC processing failed: %v", err)
+				return nil, fmt.Errorf("failed to process HEIC image file: %w", err)
 			}
+
+			logger.Infof("✅ HEIC DEBUG: HEIC processing successful, got %d bytes", len(imageBytes))
+
 			// For HEIC files, we've already done the resize/conversion, so cache and return directly
 			cacheKey := CacheKey(file.RealPath, previewSize, file.ModTime, seekPercentage)
 			if err = service.fileCache.Store(context.Background(), cacheKey, imageBytes); err != nil {
@@ -143,6 +149,7 @@ func GeneratePreview(file iteminfo.ExtendedFileInfo, previewSize, officeUrl stri
 			return imageBytes, nil
 		} else {
 			// get image bytes from file (non-HEIC images)
+			logger.Infof("📖 PREVIEW DEBUG: Reading non-HEIC image file directly")
 			imageBytes, err = os.ReadFile(file.RealPath)
 			if err != nil {
 				return nil, fmt.Errorf("failed to read image file: %w", err)
@@ -238,8 +245,10 @@ func AvailablePreview(file iteminfo.ExtendedFileInfo) bool {
 	}
 	ext := strings.ToLower(filepath.Ext(file.Name))
 	switch ext {
-	case ".jpg", ".jpeg", ".png", ".bmp", ".tiff", ".heic", ".heif":
+	case ".jpg", ".jpeg", ".png", ".bmp", ".tiff":
 		return true
+	case ".heic", ".heif":
+		return service.ffmpegPath != "" // HEIC support available when FFmpeg is available
 	}
 	return file.OnlyOfficeId != ""
 }
@@ -284,44 +293,4 @@ func checkExecutable(providedPath, execName string) (string, error) {
 	err = cmd.Run()
 
 	return finalPath, err
-}
-
-// convertHEICToJPEGWithSize converts a HEIC file to JPEG format with proper size and quality settings
-func (s *Service) convertHEICToJPEGWithSize(filePath string, previewSize string) ([]byte, error) {
-	file, err := os.Open(filePath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to open HEIC file: %w", err)
-	}
-	defer file.Close()
-
-	// Determine target dimensions and quality based on preview size
-	var width, height int
-	var options []Option
-
-	switch previewSize {
-	case "large":
-		width, height = 640, 640
-		options = []Option{WithMode(ResizeModeFit), WithQuality(QualityHigh), WithFormat(FormatJpeg)}
-	case "small":
-		width, height = 256, 256
-		options = []Option{WithMode(ResizeModeFit), WithQuality(QualityMedium), WithFormat(FormatJpeg)}
-	case "original":
-		// For original size HEIC, use very large dimensions to preserve original size
-		// The Fit mode will maintain aspect ratio and orientation
-		width, height = 8192, 8192
-		options = []Option{WithMode(ResizeModeFit), WithQuality(QualityHigh), WithFormat(FormatJpeg)}
-	default:
-		return nil, ErrUnsupportedFormat
-	}
-
-	// Pre-allocate buffer with reasonable size for HEIC->JPEG conversion
-	output := bytes.NewBuffer(make([]byte, 0, 256*1024))
-
-	// Convert HEIC to JPEG with proper dimensions, quality, and orientation handling
-	err = s.Resize(file, width, height, output, options...)
-	if err != nil {
-		return nil, fmt.Errorf("failed to convert HEIC to JPEG: %w", err)
-	}
-
-	return output.Bytes(), nil
 }

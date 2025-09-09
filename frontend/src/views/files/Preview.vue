@@ -207,7 +207,7 @@ import { state, getters, mutations } from "@/store";
 import { getFileExtension } from "@/utils/files";
 import { convertToVTT } from "@/utils/subtitles";
 import { getTypeInfo } from "@/utils/mimetype";
-import { muPdfAvailable } from "@/utils/constants";
+import { mediaAvailable, muPdfAvailable } from "@/utils/constants";
 import { shareInfo } from "@/utils/constants";
 import jsmediatags from "jsmediatags/dist/jsmediatags.min.js";
 
@@ -317,7 +317,7 @@ export default {
             return getters.previewType();
         },
         raw() {
-            const showFullSizeHeic = state.req.type === "image/heic" && !state.isSafari;
+            const showFullSizeHeic = state.req.type === "image/heic" && !state.isSafari && mediaAvailable;
             if (this.pdfConvertable || showFullSizeHeic) {
                 if (getters.isShare()) {
                     const previewPath = url.removeTrailingSlash(state.req.path);
