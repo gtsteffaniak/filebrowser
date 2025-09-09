@@ -50,6 +50,11 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 	}
 	themeMode := utils.Ternary(d.user.DarkMode, "dark", "light")
 
+	sourceInfo, ok := settings.Config.Server.SourceMap[source]
+	if !ok {
+		logger.Error("OnlyOffice: source not found")
+		return http.StatusInternalServerError, fmt.Errorf("source not found")
+	}
 	if d.fileInfo.Hash == "" {
 		// Build file info based on whether this is a share or regular request
 		// Regular user request - need to resolve scope
@@ -58,7 +63,7 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 			logger.Errorf("OnlyOffice: source %s not available for user %s: %v", source, d.user.Username, scopeErr)
 			return http.StatusForbidden, fmt.Errorf("source %s is not available", source)
 		}
-		resolvedPath := utils.JoinPathAsUnix(userScope, path)
+		resolvedPath := utils.JoinPathAsUnix(sourceInfo.Path, userScope, path)
 		logger.Debugf("OnlyOffice user request: resolved path=%s", resolvedPath)
 
 		fileInfo, err := files.FileInfoFaster(iteminfo.FileOptions{
@@ -73,12 +78,6 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 		}
 		d.fileInfo = *fileInfo
 	} else {
-		// is a share, use the file info from the share middleware
-		sourceInfo, ok := settings.Config.Server.SourceMap[d.share.Source]
-		if !ok {
-			logger.Error("OnlyOffice: source from share not found")
-			return http.StatusInternalServerError, fmt.Errorf("source not found for share")
-		}
 		source = sourceInfo.Name
 		// path is index path, so we build from share path
 		path = utils.JoinPathAsUnix(d.share.Path, path)
