@@ -48,7 +48,7 @@ func (s *ImageService) GetImageDimensions(imagePath string) (width, height int, 
 	probeCmd.Stdout = &probeOut
 	probeCmd.Stderr = &probeErr
 
-	if err := probeCmd.Run(); err != nil {
+	if err = probeCmd.Run(); err != nil {
 		fmt.Printf("❌ IMAGE SERVICE: ffprobe failed with error: %v\n", err)
 		fmt.Printf("❌ IMAGE SERVICE: ffprobe stderr: %s\n", probeErr.String())
 		return 0, 0, fmt.Errorf("ffprobe command failed on image file '%s': %w", imagePath, err)
@@ -114,13 +114,14 @@ func (s *ImageService) ConvertHEICToJPEG(heicPath string, targetWidth, targetHei
 	var gridErr bytes.Buffer
 	gridCmd.Stdout = &gridOut
 	gridCmd.Stderr = &gridErr
-	gridCmd.Run() // Don't check error, we're just extracting info
+	_ = gridCmd.Run() // Don't check error, we're just extracting info
 
 	traceOutput := gridErr.String()
 	fmt.Printf("📊 IMAGE SERVICE: Got trace output: %d bytes\n", len(traceOutput))
 
 	// Parse grid dimensions from trace output
-	var gridCols, gridRows int = 8, 6 // Default fallback
+	var gridCols, gridRows = 8, 6 // Default fallback
+	var val int
 
 	// Look for grid_row and grid_col in trace output
 	lines := strings.Split(traceOutput, "\n")
@@ -129,7 +130,7 @@ func (s *ImageService) ConvertHEICToJPEG(heicPath string, targetWidth, targetHei
 			// Try to extract grid_row value
 			if parts := strings.Split(line, "grid_row"); len(parts) > 1 {
 				if matches := strings.Fields(parts[1]); len(matches) > 0 {
-					if val, err := strconv.Atoi(strings.Trim(matches[0], " :=")); err == nil {
+					if val, err = strconv.Atoi(strings.Trim(matches[0], " :=")); err == nil {
 						gridRows = val + 1 // HEIC grid_row is 0-based
 						fmt.Printf("📐 IMAGE SERVICE: Parsed grid_row: %d (rows: %d)\n", val, gridRows)
 					}
@@ -140,7 +141,7 @@ func (s *ImageService) ConvertHEICToJPEG(heicPath string, targetWidth, targetHei
 			// Try to extract grid_col value
 			if parts := strings.Split(line, "grid_col"); len(parts) > 1 {
 				if matches := strings.Fields(parts[1]); len(matches) > 0 {
-					if val, err := strconv.Atoi(strings.Trim(matches[0], " :=")); err == nil {
+					if val, err = strconv.Atoi(strings.Trim(matches[0], " :=")); err == nil {
 						gridCols = val + 1 // HEIC grid_col is 0-based
 						fmt.Printf("📐 IMAGE SERVICE: Parsed grid_col: %d (cols: %d)\n", val, gridCols)
 					}
@@ -177,7 +178,7 @@ func (s *ImageService) ConvertHEICToJPEG(heicPath string, targetWidth, targetHei
 
 	fmt.Printf("🚀 IMAGE SERVICE: Running tile extraction: %s %s\n", s.ffmpegPath, strings.Join(extractCmd.Args[1:], " "))
 
-	if err := extractCmd.Run(); err != nil {
+	if err = extractCmd.Run(); err != nil {
 		fmt.Printf("❌ IMAGE SERVICE: Tile extraction failed: %v\n", err)
 		fmt.Printf("❌ IMAGE SERVICE: stderr: %s\n", extractErr.String())
 		return nil, fmt.Errorf("tile extraction failed: %w", err)
@@ -202,10 +203,11 @@ func (s *ImageService) ConvertHEICToJPEG(heicPath string, targetWidth, targetHei
 
 	for i := 1; i <= len(files); i++ { // Start from 1 to skip output_0.png
 		sourceFile := filepath.Join(tempDir, fmt.Sprintf("output_%d.png", i))
-		if info, err := os.Stat(sourceFile); err == nil && info.Size() > 500 {
+		var info os.FileInfo
+		if info, err = os.Stat(sourceFile); err == nil && info.Size() > 500 {
 			// This is a valid tile, rename it to sequential format
 			targetFile := filepath.Join(tempDir, fmt.Sprintf("tile_%03d.png", tileIndex))
-			if err := os.Rename(sourceFile, targetFile); err != nil {
+			if err = os.Rename(sourceFile, targetFile); err != nil {
 				fmt.Printf("⚠️ IMAGE SERVICE: Failed to rename %s: %v\n", filepath.Base(sourceFile), err)
 				continue
 			}
@@ -267,7 +269,7 @@ func (s *ImageService) ConvertHEICToJPEG(heicPath string, targetWidth, targetHei
 
 	fmt.Printf("🚀 IMAGE SERVICE: Running tile merge: %s %s\n", s.ffmpegPath, strings.Join(mergeCmd.Args[1:], " "))
 
-	if err := mergeCmd.Run(); err != nil {
+	if err = mergeCmd.Run(); err != nil {
 		fmt.Printf("❌ IMAGE SERVICE: Tile merge failed: %v\n", err)
 		fmt.Printf("❌ IMAGE SERVICE: stderr: %s\n", mergeErr.String())
 		return nil, fmt.Errorf("tile merge failed: %w", err)
