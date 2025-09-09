@@ -1,6 +1,11 @@
 import { reactive } from 'vue';
 import { detectLocale } from "@/i18n";
 
+function loadDisplayPreferences(username) {
+  const allPreferences = JSON.parse(localStorage.getItem("displayPreferences") || "{}");
+  return allPreferences[username] || {};
+}
+
 export const state = reactive({
   tooltip: {
     show: false,

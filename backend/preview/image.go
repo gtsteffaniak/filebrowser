@@ -168,7 +168,15 @@ func (s *Service) Resize(in io.Reader, width, height int, out io.Writer, options
 		return err
 	}
 
+<<<<<<< HEAD
 	// Note: For HEIC files processed via FFmpeg, orientation is handled automatically
+=======
+	// Try to detect if this is a HEIC file and manually handle rotation
+	if format == FormatHeic {
+		// EXIF shows 'Rotate 90 CW' (value 6), but applying 270° CW (90° CCW) to correct upside-down issue
+		img = imaging.Rotate270(img) // 270° CW = 90° CCW
+	}
+>>>>>>> 586a76c5cae449e8a688e7baa23df5744877dda9
 
 	switch config.resizeMode {
 	case ResizeModeFill:
