@@ -6,13 +6,13 @@ All notable changes to this project will be documented in this file. For commit 
 
  **New Features**:
  - Remember folder view type (and sorting) for each folder #966
+ - heic is supported in preview and viewer (via conversion) when on non-safari browser #1191
 
  **Notes**:
 
  **BugFixes**:
  - Access Management: issue with access settings #1195
  - fix shutdown panic related to sse connection
- - .heic files can't be previewed nor opened #1191
 
 ## v0.8.4-beta
 

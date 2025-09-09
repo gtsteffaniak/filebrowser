@@ -281,14 +281,6 @@ export default {
     },
   },
   watch: {
-    currentPrompt: {
-      handler(prompt) {
-        if (prompt && prompt.name === "ContextMenu") {
-          this.setPositions();
-        }
-      },
-      deep: true,
-    },
     hasOverflowItems: {
       handler(hasItems) {
         mutations.setContextMenuHasItems(hasItems);
