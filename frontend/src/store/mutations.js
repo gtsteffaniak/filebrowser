@@ -242,7 +242,7 @@ export const mutations = {
         emitStateChanged();
         return;
       }
-      if (value.username != "anonymous") {
+      if (value.username !== "anonymous") {
         mutations.setSources(value);
       }
       // Ensure locale exists and is valid
@@ -255,6 +255,11 @@ export const mutations = {
       state.user.sorting = {};
       state.user.sorting.by = "name";
       state.user.sorting.asc = true;
+
+      // Load display preferences for the current user
+      const allPreferences = JSON.parse(localStorage.getItem("displayPreferences") || "{}");
+      state.displayPreferences = allPreferences[state.user.username] || {};
+
     } catch (error) {
       console.log(error);
     }
@@ -498,7 +503,13 @@ export const mutations = {
       ...payload,
     };
 
-    localStorage.setItem("displayPreferences", JSON.stringify(state.displayPreferences));
+    const allPreferences = JSON.parse(localStorage.getItem("displayPreferences") || "{}");
+    if (!allPreferences[state.user.username]) {
+      allPreferences[state.user.username] = {};
+    }
+    allPreferences[state.user.username] = state.displayPreferences;
+    localStorage.setItem("displayPreferences", JSON.stringify(allPreferences));
+
     emitStateChanged();
   },
 };
