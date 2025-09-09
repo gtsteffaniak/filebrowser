@@ -8,14 +8,10 @@ Thank you for your interest in contributing to FileBrowser Quantum! This guide w
 - **Node.js 18.0.0+** with npm 7.0.0+ (see `frontend/package.json`)
 - **Docker** (optional, for containerized development)
 - **Git**
-- **libde265**: Required for HEIF/HEIC preview generation
-  - Ubuntu/Debian: `sudo apt-get install libde265-dev libheif-dev`
-  - macOS: `brew install libde265 libheif`
-  - Windows: Download from [github.com/strukturag/libde265](https://github.com/strukturag/libde265) or use `vcpkg install libheif`
 
 ### Optional Tools
 
-- **ffmpeg**: For media features (subtitles, thumbnails)
+- **ffmpeg**: For media features (subtitles, thumbnails, heic)
   - Ubuntu/Debian: `sudo apt-get install ffmpeg`
   - macOS: `brew install ffmpeg`
   - Windows: Download from [ffmpeg.org](https://ffmpeg.org/download.html)

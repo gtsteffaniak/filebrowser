@@ -4,7 +4,7 @@ ARG VERSION
 ARG REVISION
 WORKDIR /app
 COPY ./backend ./
-RUN apk update && apk add --no-cache gcc musl-dev upx libde265-dev g++
+RUN apk update && apk add --no-cache gcc musl-dev upx
 ENV CGO_ENABLED=1
 ENV GOEXPERIMENT=greenteagc
 RUN go build -tags mupdf,musl -ldflags="-w -s \
