@@ -1,4 +1,3 @@
-//go:generate go-enum --sql --marshal --file $GOFILE
 package preview
 
 import (
@@ -8,9 +7,9 @@ import (
 	"image"
 	"io"
 
-	"github.com/kovidgoyal/imaging"
 	exif "github.com/dsoprea/go-exif/v3"
 	exifcommon "github.com/dsoprea/go-exif/v3/common"
+	"github.com/kovidgoyal/imaging"
 )
 
 // Format is an image file format.
@@ -21,6 +20,7 @@ png
 gif
 tiff
 bmp
+heic
 )
 */
 type Format int
@@ -37,6 +37,8 @@ func (x Format) toImaging() imaging.Format {
 		return imaging.TIFF
 	case FormatBmp:
 		return imaging.BMP
+	case FormatHeic:
+		return imaging.JPEG
 	default:
 		return imaging.JPEG
 	}
@@ -73,6 +75,12 @@ fill
 type ResizeMode int
 
 func (s *Service) FormatFromExtension(ext string) (Format, error) {
+	// heic is not supported by imaging, so we return FormatHeic
+	switch ext {
+	case ".heic", ".heif":
+		return FormatHeic, nil
+	}
+
 	format, err := imaging.FormatFromExtension(ext)
 	if err != nil {
 		return -1, ErrUnsupportedFormat
@@ -139,6 +147,10 @@ func (s *Service) Resize(in io.Reader, width, height int, out io.Writer, options
 		option(&config)
 	}
 
+	if format == FormatHeic {
+		config.format = FormatJpeg
+	}
+
 	if config.quality == QualityLow && format == FormatJpeg {
 		thm, newWrappedReader, errThm := getEmbeddedThumbnail(wrappedReader)
 		wrappedReader = newWrappedReader
@@ -150,16 +162,23 @@ func (s *Service) Resize(in io.Reader, width, height int, out io.Writer, options
 		}
 	}
 
-	img, err := imaging.Decode(wrappedReader, imaging.AutoOrientation(true))
+	// For HEIC files, try without AutoOrientation first since it might not work properly
+	img, err := imaging.Decode(wrappedReader)
 	if err != nil {
 		return err
+	}
+
+	// Try to detect if this is a HEIC file and manually handle rotation
+	if format == FormatHeic {
+		// EXIF shows 'Rotate 90 CW' (value 6), but applying 270° CW (90° CCW) to correct upside-down issue
+		img = imaging.Rotate270(img) // 270° CW = 90° CCW
 	}
 
 	switch config.resizeMode {
 	case ResizeModeFill:
 		img = imaging.Fill(img, width, height, imaging.Center, config.quality.resampleFilter())
 	case ResizeModeFit:
-		fallthrough
+		img = imaging.Fit(img, width, height, config.quality.resampleFilter())
 	default:
 		img = imaging.Fit(img, width, height, config.quality.resampleFilter())
 	}
@@ -174,6 +193,10 @@ func (s *Service) detectFormat(in io.Reader) (Format, io.Reader, error) {
 	_, imgFormat, err := image.DecodeConfig(r)
 	if err != nil {
 		return 0, nil, fmt.Errorf("%s: %w", err.Error(), ErrUnsupportedFormat)
+	}
+
+	if imgFormat == "heif" {
+		imgFormat = "heic"
 	}
 
 	format, err := ParseFormat(imgFormat)
