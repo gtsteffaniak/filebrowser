@@ -332,7 +332,7 @@ func createConfig(configpath string) {
 	}
 	// cleanup database if it exists
 	if _, err := os.Stat(config.Server.Database); err == nil {
-		response := askYesNoQuestion(reader, "Database specified already exists. Move databse file to backup to start fresh?", "no")
+		response := askYesNoQuestion(reader, "Database specified already exists. Move database file to backup to start fresh?", "no")
 		if !response {
 			return
 		}
