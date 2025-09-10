@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file. For commit 
  **BugFixes**:
  - Access Management: issue with access settings #1195
  - fix shutdown panic related to sse connection
+ - Custom theming not working in 0.8.4 beta #1204
 
 ## v0.8.4-beta
 

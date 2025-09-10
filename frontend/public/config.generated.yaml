@@ -101,12 +101,12 @@ frontend:
     lightBackground: "#f5f5f5"            # specify a valid CSS color property value to use as the background color in light mode
     darkBackground: "#141D24"             # Specify a valid CSS color property value to use as the background color in dark mode
     customThemes:                         # A list of custom css files that each user can select to override the default styling. if "default" is key name then it will be the default option.
-      default:
-        description: "The default theme"  # The description of the theme to display in the UI.
-        css: ""                           # The css file path and filename to use for the theme.
       alternative:
         description: "Reduce rounded corners" # The description of the theme to display in the UI.
         css: "reduce-rounded-corners.css" # The css file path and filename to use for the theme.
+      default:
+        description: "The default theme"  # The description of the theme to display in the UI.
+        css: ""                           # The css file path and filename to use for the theme.
   favicon: ""                             # path to a favicon to use for the frontend
   description: "FileBrowser Quantum is a file manager for the web which can be used to manage files on your server" # description that shows up in html head meta description
 userDefaults:

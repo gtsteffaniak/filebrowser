@@ -141,6 +141,9 @@ export default {
       if (this.thumbnailUrl == "") {
         return false;
       }
+      if (this.mimetype == "image/heic") {
+        return false;
+      }
       if (this.mimetype == "text/csv") {
         return false;
       }
