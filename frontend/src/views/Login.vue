@@ -70,6 +70,7 @@ export default {
     Prompts,
   },
   computed: {
+    globalVars: () => globalVars,
     signup: () => globalVars.signup,
     oidcAvailable: () => globalVars.oidcAvailable,
     passwordAvailable: () => globalVars.passwordAvailable,

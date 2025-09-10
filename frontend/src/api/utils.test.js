@@ -1,12 +1,50 @@
 import { describe, it, expect, vi } from 'vitest';
+
+vi.mock('@/utils/constants', () => {
+  return {
+    globalVars: {
+      baseURL: "unit-testing",
+      name: "Test App",
+      mediaAvailable: true,
+      muPdfAvailable: true,
+      onlyOfficeUrl: "",
+      recaptcha: false,
+      recaptchaKey: "",
+      darkMode: false,
+      oidcAvailable: false,
+      passwordAvailable: true,
+      externalUrl: "",
+      minSearchLength: 1,
+      disableNavButtons: false,
+      userSelectableThemes: {},
+      enableThumbs: true,
+      noAuth: false,
+      loginPage: true,
+      signup: false,
+      version: "test",
+      commitSHA: "test",
+      disableExternal: false,
+      externalLinks: [],
+      updateAvailable: "",
+    },
+    shareInfo: {
+      isShare: false,
+      disableThumbnails: false,
+      hash: "",
+      enforceDarkLightMode: "",
+      disableSidebar: false,
+      isValid: true,
+    },
+    serverHasMultipleSources: false,
+    logoURL: "test-logo.png",
+    origin: "http://localhost",
+    settings: [],
+  };
+});
+
 import { adjustedData } from './utils.js';
 
 describe('adjustedData', () => {
-  vi.doMock('@/utils/constants', () => {
-    return {
-      baseURL: "unit-testing",
-    };
-  });
   it('should append the URL and process directory data correctly', () => {
     const input = {
       type: "directory",
