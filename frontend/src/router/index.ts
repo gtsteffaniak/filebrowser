@@ -1,4 +1,4 @@
-import { RouteLocation, createRouter, createWebHistory } from "vue-router";
+import { RouteLocation, createRouter, createWebHistory, RouteRecordRaw } from "vue-router";
 import Login from "@/views/Login.vue";
 import Layout from "@/views/Layout.vue";
 import Files from "@/views/Files.vue";
@@ -28,7 +28,7 @@ const titles = {
   InternalServerError: "errors.internal",
 };
 
-const routes = [
+const routes: RouteRecordRaw[] = [
   {
     path: "/login",
     name: "Login",

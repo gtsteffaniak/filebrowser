@@ -44,6 +44,9 @@ export default {
     onlyOfficeUrl() {
       return globalVars.onlyOfficeUrl;
     },
+    globalVars() {
+      return globalVars;
+    },
   },
   async mounted() {
     this.source = state.req.source;

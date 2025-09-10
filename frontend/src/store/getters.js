@@ -44,10 +44,10 @@ export const getters = {
     return null;
   },
   viewMode: () => {
-    return getters.displayPreference()?.viewMode || state.user.viewMode;
+    return getters.displayPreference()?.viewMode || state.user.viewMode || "normal";
   },
   sorting: () => {
-    return getters.displayPreference()?.sorting || state.user.sorting;
+    return getters.displayPreference()?.sorting || state.user.sorting || { by: "name", asc: true };
   },
   previewType: () => getTypeInfo(state.req.type).simpleType,
   isCardView: () =>

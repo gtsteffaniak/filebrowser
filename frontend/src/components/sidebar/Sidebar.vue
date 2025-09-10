@@ -46,19 +46,16 @@ export default {
     SidebarSettings,
     SidebarShare,
   },
-  data() {
-    return {
-      externalLinks: () => globalVars.externalLinks,
-      name: () => globalVars.name,
-    };
-  },
+
   mounted() {
     // Ensure the sidebar is initialized correctly
     mutations.setSeenUpdate(localStorage.getItem("seenUpdate"));
   },
   computed: {
+    externalLinks: () => globalVars.externalLinks,
+    name: () => globalVars.name,
     isValidShare: () => getters.isValidShare(),
-    releaseUrl: () => globalVars.globalVars.updateAvailable,
+    releaseUrl: () => globalVars.updateAvailable,
     isDarkMode: () => getters.isDarkMode(),
     isLoggedIn: () => getters.isLoggedIn(),
     isSettings: () => getters.isSettings(),

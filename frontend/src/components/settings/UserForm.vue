@@ -247,6 +247,7 @@ export default {
       return matching;
     },
     passwordAvailable: () => globalVars.passwordAvailable,
+    globalVars: () => globalVars,
     duplicateSources() {
       const names = this.selectedSources.map((s) => s.name);
       return names.filter((name, idx) => names.indexOf(name) !== idx);

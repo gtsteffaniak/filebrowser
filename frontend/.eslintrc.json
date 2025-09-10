@@ -55,8 +55,6 @@
         "shallowOnly": true
       }
     ]
-    // no-undef is already included in
-    // @vue/eslint-config-typescript
   },
   "parserOptions": {
     "ecmaVersion": "latest",

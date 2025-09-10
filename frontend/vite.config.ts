@@ -3,6 +3,7 @@ import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import VueI18nPlugin from "@intlify/unplugin-vue-i18n/vite";
 import { compression } from "vite-plugin-compression2";
+import checker from "vite-plugin-checker";
 
 const plugins = [
   vue(),
@@ -12,6 +13,17 @@ const plugins = [
   compression({
     include: /\.(js|woff2|woff)(\?.*)?$/i,
     deleteOriginalAssets: true,
+  }),
+  checker({
+    typescript: {
+      buildMode: true,
+    },
+    vueTsc: {
+      tsconfigPath: "./tsconfig.json",
+    },
+    eslint: {
+      lintCommand: 'eslint "./src/**/*.{js,vue,ts}"',
+    },
   }),
 ];
 
