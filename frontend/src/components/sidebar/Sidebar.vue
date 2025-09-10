@@ -33,7 +33,7 @@
 </template>
 
 <script>
-import { externalLinks, name, updateAvailable } from "@/utils/constants";
+import { globalVars } from "@/utils/constants";
 import { getters, mutations, state } from "@/store"; // Import your custom store
 import SidebarGeneral from "./General.vue";
 import SidebarSettings from "./Settings.vue";
@@ -46,19 +46,16 @@ export default {
     SidebarSettings,
     SidebarShare,
   },
-  data() {
-    return {
-      externalLinks,
-      name,
-    };
-  },
+
   mounted() {
     // Ensure the sidebar is initialized correctly
     mutations.setSeenUpdate(localStorage.getItem("seenUpdate"));
   },
   computed: {
+    externalLinks: () => globalVars.externalLinks,
+    name: () => globalVars.name,
     isValidShare: () => getters.isValidShare(),
-    releaseUrl: () => updateAvailable,
+    releaseUrl: () => globalVars.updateAvailable,
     isDarkMode: () => getters.isDarkMode(),
     isLoggedIn: () => getters.isLoggedIn(),
     isSettings: () => getters.isSettings(),
@@ -66,9 +63,9 @@ export default {
     behindOverlay: () => state.isSearchActive,
     shouldShow() {
       return (
-        updateAvailable != "" &&
+        globalVars.updateAvailable != "" &&
         state.user.permissions.admin &&
-        state.seenUpdate != updateAvailable &&
+        state.seenUpdate != globalVars.updateAvailable &&
         !state.user.disableUpdateNotifications
       );
     },
@@ -79,7 +76,7 @@ export default {
       mutations.showHover("help");
     },
     setSeenUpdate() {
-      mutations.setSeenUpdate(updateAvailable);
+      mutations.setSeenUpdate(globalVars.updateAvailable);
     },
   },
 };

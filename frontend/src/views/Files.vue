@@ -41,7 +41,7 @@ import MarkdownViewer from "./files/MarkdownViewer.vue";
 import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
 import router from "@/router";
-import { baseURL, shareInfo } from "@/utils/constants";
+import { globalVars, shareInfo } from "@/utils/constants";
 import PopupPreview from "@/components/files/PopupPreview.vue";
 import { extractSourceFromPath } from "@/utils/url";
 import ShareInfoCard from "@/components/files/ShareInfoCard.vue";
@@ -264,7 +264,7 @@ export default {
       // Clear share data when accessing files
       mutations.clearShareData();
 
-      const routePath = url.removeTrailingSlash(getters.routePath(`${baseURL}files`));
+      const routePath = url.removeTrailingSlash(getters.routePath(`${globalVars.baseURL}files`));
       const rootRoute =
         routePath == "/files" ||
         routePath == "/files/" ||

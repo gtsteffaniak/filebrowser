@@ -146,7 +146,7 @@
 import downloadFiles from "@/utils/download";
 import { state, getters, mutations } from "@/store";
 import Action from "@/components/Action.vue";
-import { onlyOfficeUrl } from "@/utils/constants.js";
+import { globalVars } from "@/utils/constants.js";
 import buttons from "@/utils/buttons";
 import { notify } from "@/notify";
 import { eventBus } from "@/store/eventBus";
@@ -246,7 +246,7 @@ export default {
       return getters.currentPromptName() == "ContextMenu";
     },
     onlyofficeEnabled() {
-      return onlyOfficeUrl !== "";
+      return globalVars.onlyOfficeUrl !== "";
     },
     isSearchActive() {
       return state.isSearchActive;
@@ -281,14 +281,6 @@ export default {
     },
   },
   watch: {
-    currentPrompt: {
-      handler(prompt) {
-        if (prompt && prompt.name === "ContextMenu") {
-          this.setPositions();
-        }
-      },
-      deep: true,
-    },
     hasOverflowItems: {
       handler(hasItems) {
         mutations.setContextMenuHasItems(hasItems);

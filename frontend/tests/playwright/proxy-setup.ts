@@ -19,7 +19,6 @@ async function globalSetup() {
   await page.locator('button[aria-label="File-Actions"]').click();
   await page.locator('button[aria-label="Share"]').click();
   await page.locator('button[aria-label="Share-Confirm"]').click();
-  await page.waitForResponse(response => response.status() === 200);
   await expect(page.locator("div[aria-label='share-prompt'] .card-content table tbody tr:not(:has(th))")).toHaveCount(1);
   const shareHash = await page.locator("div[aria-label='share-prompt'] .card-content table tbody tr:not(:has(th)) td").first().textContent();
   if (!shareHash) {

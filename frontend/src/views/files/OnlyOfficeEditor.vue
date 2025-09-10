@@ -1,6 +1,6 @@
 <template>
   <!-- Conditionally render the DocumentEditor component -->
-  <DocumentEditor v-if="ready" id="docEditor" :documentServerUrl="onlyOfficeUrl" :config="clientConfig"
+  <DocumentEditor v-if="ready" id="docEditor" :documentServerUrl="globalVars.onlyOfficeUrl" :config="clientConfig"
     :onLoadComponentError="onLoadComponentError" />
   <div v-else>
     <p>{{ $t("files.loading") }}</p>
@@ -12,9 +12,8 @@
 
 <script>
 import { DocumentEditor } from "@onlyoffice/document-editor-vue";
-import { onlyOfficeUrl } from "@/utils/constants";
+import { globalVars } from "@/utils/constants";
 import { state, getters, mutations } from "@/store";
-import { baseURL } from "@/utils/constants";
 import { removeLastDir } from "@/utils/url";
 import { filesApi } from "@/api";
 
@@ -43,7 +42,10 @@ export default {
       return state.req;
     },
     onlyOfficeUrl() {
-      return onlyOfficeUrl;
+      return globalVars.onlyOfficeUrl;
+    },
+    globalVars() {
+      return globalVars;
     },
   },
   async mounted() {
@@ -168,7 +170,7 @@ export default {
             <strong>Configuration:</strong><br/>
             OnlyOffice URL: ${this.onlyOfficeUrl}<br/>
             Internal URL: ${this.getInternalUrlInfo().message}<br/>
-            Base URL: ${baseURL}<br/>
+            Base URL: ${globalVars.baseURL}<br/>
             Source: ${this.source}<br/>
             Path: ${this.path}<br/>
             Filename: ${filename}<br/>
@@ -215,7 +217,6 @@ export default {
 
         // Extract domains for network flow analysis
         const downloadDomain = doc.url ? new URL(doc.url).origin : 'N/A';
-        const callbackDomain = editor && editor.callbackUrl ? new URL(editor.callbackUrl).origin : 'N/A';
 
         configDetailsHtml = `
           <div style="margin-bottom: 15px; padding: 10px; background: #e3f2fd; border-radius: 4px;">
@@ -265,7 +266,7 @@ export default {
             <strong>Basic Configuration:</strong><br/>
             OnlyOffice URL: ${this.onlyOfficeUrl}<br/>
             Internal URL: ${internalUrlInfo.message}<br/>
-            Base URL: ${baseURL}<br/>
+            Base URL: ${globalVars.baseURL}<br/>
             Source: ${this.source}<br/>
             Path: ${this.path}<br/>
             Filename: ${filename}<br/>

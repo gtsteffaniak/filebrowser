@@ -61,6 +61,10 @@ func NewPreviewGenerator(concurrencyLimit int, ffmpegPath string, cacheDir strin
 	if err != nil {
 		logger.Error(err)
 	}
+	err = os.MkdirAll(filepath.Join(settings.Config.Server.CacheDir, "heic"), 0755)
+	if err != nil {
+		logger.Error(err)
+	}
 	ffmpegMainPath, err := CheckValidFFmpeg(ffmpegPath)
 	if err != nil && ffmpegPath != "" {
 		logger.Fatalf("the configured ffmpeg path does not contain a valid ffmpeg binary %s, err: %v", ffmpegPath, err)
@@ -70,11 +74,11 @@ func NewPreviewGenerator(concurrencyLimit int, ffmpegPath string, cacheDir strin
 		logger.Fatalf("the configured ffmpeg path is not a valid ffprobe binary %s, err: %v", ffmpegPath, err)
 	}
 	if errprobe == nil && err == nil {
-		logger.Infof("Media Enabled            : %v", errprobe == nil)
+		logger.Debugf("Media Enabled            : %v", errprobe == nil)
 		settings.Config.Integrations.Media.FfmpegPath = filepath.Base(ffmpegMainPath)
 	}
 	settings.Config.Server.MuPdfAvailable = docEnabled()
-	logger.Infof("MuPDF Enabled            : %v", settings.Config.Server.MuPdfAvailable)
+	logger.Debugf("MuPDF Enabled            : %v", settings.Config.Server.MuPdfAvailable)
 	return &Service{
 		sem:         make(chan struct{}, concurrencyLimit),
 		ffmpegPath:  ffmpegMainPath,
@@ -125,8 +129,19 @@ func GeneratePreview(file iteminfo.ExtendedFileInfo, previewSize, officeUrl stri
 		if err != nil {
 			return nil, fmt.Errorf("failed to create image for office file: %w", err)
 		}
+	} else if strings.HasPrefix(file.Type, "image/heic") {
+		// HEIC files need FFmpeg conversion to JPEG with proper size/quality handling
+		imageBytes, err = service.convertHEICToJPEGWithFFmpeg(file.RealPath, previewSize)
+		if err != nil {
+			return nil, fmt.Errorf("failed to process HEIC image file: %w", err)
+		}
+		// For HEIC files, we've already done the resize/conversion, so cache and return directly
+		cacheKey := CacheKey(file.RealPath, previewSize, file.ModTime, seekPercentage)
+		if err = service.fileCache.Store(context.Background(), cacheKey, imageBytes); err != nil {
+			logger.Errorf("failed to cache HEIC image: %v", err)
+		}
+		return imageBytes, nil
 	} else if strings.HasPrefix(file.Type, "image") {
-		// get image bytes from file
 		imageBytes, err = os.ReadFile(file.RealPath)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read image file: %w", err)
@@ -223,6 +238,8 @@ func AvailablePreview(file iteminfo.ExtendedFileInfo) bool {
 	switch ext {
 	case ".jpg", ".jpeg", ".png", ".bmp", ".tiff":
 		return true
+	case ".heic", ".heif":
+		return service.ffmpegPath != "" // HEIC support available when FFmpeg is available
 	}
 	return file.OnlyOfficeId != ""
 }

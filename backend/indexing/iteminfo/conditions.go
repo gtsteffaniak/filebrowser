@@ -267,14 +267,19 @@ func IsMatchingType(extension string, matchType string) bool {
 // DetectType detects the MIME type of a file and updates the ItemInfo struct.
 func (i *ItemInfo) DetectType(realPath string, saveContent bool) {
 	name := i.Name
-	ext := filepath.Ext(name)
+	ext := strings.ToLower(filepath.Ext(name))
 
 	// Attempt MIME detection by file extension
-	if ext == ".md" {
+	switch ext {
+	case ".md":
 		i.Type = "text/markdown"
+		return
+	case ".heic", ".heif":
+		i.Type = "image/heic"
 		return
 	}
 	i.Type = strings.Split(mime.TypeByExtension(ext), ";")[0]
+
 	if i.Type == "" {
 		i.Type = ExtendedMimeTypeCheck(ext)
 	}
@@ -285,9 +290,12 @@ func (i *ItemInfo) DetectType(realPath string, saveContent bool) {
 			i.Type = DetectTypeByHeader(realPath)
 			return
 		}
-		if i.Type == "blob" {
+		if i.Type == "blob" || i.Type == "" {
 			i.Type = DetectTypeByHeader(realPath)
 		}
+	}
+	if i.Type == "" || i.Type == "application/octet-stream" {
+		i.Type = "blob"
 	}
 }
 

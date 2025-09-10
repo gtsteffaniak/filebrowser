@@ -44,7 +44,7 @@ import { eventBus } from "@/store/eventBus";
 import { getters, state, mutations } from "@/store";
 import Action from "@/components/Action.vue";
 import Search from "@/components/Search.vue";
-import { disableNavButtons, shareInfo } from "@/utils/constants";
+import { globalVars, shareInfo } from "@/utils/constants";
 import { url } from "@/utils";
 
 export default {
@@ -72,7 +72,7 @@ export default {
       return state.user.editorQuickSave;
     },
     disableNavButtons() {
-      return disableNavButtons && !state.user.permissions.admin;
+      return globalVars.disableNavButtons && !state.user.permissions.admin;
     },
     isOnlyOffice() {
       return getters.currentView() === "onlyOfficeEditor";

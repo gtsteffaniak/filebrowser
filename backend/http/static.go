@@ -66,20 +66,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		// Default favicon
 		favicon = staticURL + "/img/icons/favicon-256x256.png"
 	}
-	data := map[string]interface{}{
-		"title":             config.Frontend.Name,
-		"customCSS":         config.Frontend.Styling.CustomCSSRaw,
-		"userSelectedTheme": userSelectedTheme,
-		"lightBackground":   config.Frontend.Styling.LightBackground,
-		"darkBackground":    config.Frontend.Styling.DarkBackground,
-		"staticURL":         staticURL,
-		"baseURL":           config.Server.BaseURL,
-		"favicon":           favicon,
-		"color":             defaultThemeColor,
-		"winIcon":           staticURL + "/img/icons/mstile-144x144.png",
-		"appIcon":           staticURL + "/img/icons/android-chrome-256x256.png",
-		"description":       config.Frontend.Description,
-	}
+	data := make(map[string]interface{})
 	shareProps := map[string]interface{}{
 		"isShare":             false,
 		"isValid":             false,
@@ -145,37 +132,60 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		data["winIcon"] = publicStaticURL + "/img/icons/mstile-144x144.png"
 		data["appIcon"] = publicStaticURL + "/img/icons/android-chrome-256x256.png"
 	}
+	data["htmlVars"] = map[string]interface{}{
+		"title":             config.Frontend.Name,
+		"customCSS":         config.Frontend.Styling.CustomCSSRaw,
+		"userSelectedTheme": userSelectedTheme,
+		"lightBackground":   config.Frontend.Styling.LightBackground,
+		"darkBackground":    config.Frontend.Styling.DarkBackground,
+		"staticURL":         staticURL,
+		"baseURL":           config.Server.BaseURL,
+		"favicon":           favicon,
+		"color":             defaultThemeColor,
+		"winIcon":           staticURL + "/img/icons/mstile-144x144.png",
+		"appIcon":           staticURL + "/img/icons/android-chrome-256x256.png",
+		"description":       config.Frontend.Description,
+	}
 	// variables consumed by frontend as json
 	data["globalVars"] = map[string]interface{}{
-		"name":                 config.Frontend.Name,
-		"minSearchLength":      config.Server.MinSearchLength,
-		"disableExternal":      config.Frontend.DisableDefaultLinks,
-		"darkMode":             settings.Config.UserDefaults.DarkMode,
-		"baseURL":              config.Server.BaseURL,
-		"version":              version.Version,
-		"commitSHA":            version.CommitSHA,
-		"signup":               settings.Config.Auth.Methods.PasswordAuth.Signup,
-		"noAuth":               config.Auth.Methods.NoAuth,
-		"loginPage":            auther.LoginPage(),
-		"enableThumbs":         !config.Server.DisablePreviews,
-		"externalLinks":        config.Frontend.ExternalLinks,
-		"externalUrl":          strings.TrimSuffix(config.Server.ExternalUrl, "/"),
-		"onlyOfficeUrl":        settings.Config.Integrations.OnlyOffice.Url,
-		"sourceCount":          len(config.Server.SourceMap),
-		"oidcAvailable":        config.Auth.Methods.OidcAuth.Enabled,
-		"passwordAvailable":    config.Auth.Methods.PasswordAuth.Enabled,
-		"mediaAvailable":       config.Integrations.Media.FfmpegPath != "",
-		"muPdfAvailable":       config.Server.MuPdfAvailable,
-		"updateAvailable":      utils.GetUpdateAvailableUrl(),
-		"disableNavButtons":    disableNavButtons,
-		"userSelectableThemes": config.Frontend.Styling.CustomThemeOptions,
-		"share":                shareProps,
+		"name":                  config.Frontend.Name,
+		"minSearchLength":       config.Server.MinSearchLength,
+		"disableExternal":       config.Frontend.DisableDefaultLinks,
+		"darkMode":              settings.Config.UserDefaults.DarkMode,
+		"baseURL":               config.Server.BaseURL,
+		"version":               version.Version,
+		"commitSHA":             version.CommitSHA,
+		"signup":                settings.Config.Auth.Methods.PasswordAuth.Signup,
+		"noAuth":                config.Auth.Methods.NoAuth,
+		"loginPage":             auther.LoginPage(),
+		"enableThumbs":          !config.Server.DisablePreviews,
+		"externalLinks":         config.Frontend.ExternalLinks,
+		"externalUrl":           strings.TrimSuffix(config.Server.ExternalUrl, "/"),
+		"onlyOfficeUrl":         settings.Config.Integrations.OnlyOffice.Url,
+		"sourceCount":           len(config.Server.SourceMap),
+		"oidcAvailable":         config.Auth.Methods.OidcAuth.Enabled,
+		"passwordAvailable":     config.Auth.Methods.PasswordAuth.Enabled,
+		"mediaAvailable":        config.Integrations.Media.FfmpegPath != "",
+		"muPdfAvailable":        config.Server.MuPdfAvailable,
+		"updateAvailable":       utils.GetUpdateAvailableUrl(),
+		"disableNavButtons":     disableNavButtons,
+		"userSelectableThemes":  config.Frontend.Styling.CustomThemeOptions,
+		"disableHeicConversion": config.Server.DisableHeicConversion,
 	}
-	jsonVars, err := json.Marshal(data["globalVars"])
+
+	// Marshal each variable to JSON strings for direct template usage
+	globalVarsJSON, err := json.Marshal(data["globalVars"])
 	if err != nil {
-		return http.StatusInternalServerError, err
+		return http.StatusInternalServerError, fmt.Errorf("error marshaling globalVars: %w", err)
 	}
-	data["globalVars"] = strings.ReplaceAll(string(jsonVars), `'`, `\'`)
+	shareVarsJSON, err := json.Marshal(shareProps)
+	if err != nil {
+		return http.StatusInternalServerError, fmt.Errorf("error marshaling shareVars: %w", err)
+	}
+
+	// Replace with JSON strings for direct template usage
+	data["globalVars"] = string(globalVarsJSON)
+	data["shareVars"] = string(shareVarsJSON)
 
 	// Render the template with global variables
 	if err := templateRenderer.Render(w, file, data); err != nil {

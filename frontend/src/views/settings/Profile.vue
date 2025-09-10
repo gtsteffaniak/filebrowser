@@ -158,7 +158,7 @@
 
 <script>
 import { notify } from "@/notify";
-import { mediaAvailable, muPdfAvailable, onlyOfficeUrl, userSelectableThemes } from "@/utils/constants.js";
+import { globalVars } from "@/utils/constants.js";
 import { state, mutations } from "@/store";
 import { usersApi } from "@/api";
 import Languages from "@/components/settings/Languages.vue";
@@ -195,19 +195,19 @@ export default {
       ];
     },
     availableThemes() {
-      return userSelectableThemes || {};
+      return globalVars.userSelectableThemes || {};
     },
     onlyOfficeAvailable() {
-      return onlyOfficeUrl !== "";
+      return globalVars.onlyOfficeUrl !== "";
     },
     user() {
       return state.user;
     },
     muPdfAvailable() {
-      return muPdfAvailable;
+      return globalVars.muPdfAvailable;
     },
     mediaEnabled() {
-      return mediaAvailable;
+      return globalVars.mediaAvailable;
     },
     settings() {
       return state.settings;

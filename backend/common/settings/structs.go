@@ -36,10 +36,11 @@ type Server struct {
 	DebugMedia                   bool        `json:"debugMedia"` // output ffmpeg stdout for media integration -- careful can produces lots of output!
 	Database                     string      `json:"database"`   // path to the database file
 	Sources                      []Source    `json:"sources" validate:"required,dive"`
-	ExternalUrl                  string      `json:"externalUrl"`    // used by share links if set (eg. http://mydomain.com)
-	InternalUrl                  string      `json:"internalUrl"`    // used by integrations if set, this is the base domain that an integration service will use to communicate with filebrowser (eg. http://localhost:8080)
-	CacheDir                     string      `json:"cacheDir"`       // path to the cache directory, used for thumbnails and other cached files
-	MaxArchiveSizeGB             int64       `json:"maxArchiveSize"` // max pre-archive combined size of files/folder that are allowed to be archived (in GB)
+	ExternalUrl                  string      `json:"externalUrl"`           // used by share links if set (eg. http://mydomain.com)
+	InternalUrl                  string      `json:"internalUrl"`           // used by integrations if set, this is the base domain that an integration service will use to communicate with filebrowser (eg. http://localhost:8080)
+	CacheDir                     string      `json:"cacheDir"`              // path to the cache directory, used for thumbnails and other cached files
+	MaxArchiveSizeGB             int64       `json:"maxArchiveSize"`        // max pre-archive combined size of files/folder that are allowed to be archived (in GB)
+	DisableHeicConversion        bool        `json:"disableHeicConversion"` // disable heic ffmpeg conversion and preview
 	// not exposed to config
 	SourceMap      map[string]Source `json:"-" validate:"omitempty"` // uses realpath as key
 	NameToSource   map[string]Source `json:"-" validate:"omitempty"` // uses name as key

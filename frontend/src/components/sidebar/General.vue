@@ -141,7 +141,7 @@
 
 <script>
 import * as auth from "@/utils/auth";
-import { signup, disableExternal, noAuth, loginPage, shareInfo } from "@/utils/constants";
+import { globalVars, shareInfo } from "@/utils/constants";
 import ProgressBar from "@/components/ProgressBar.vue";
 import { state, getters, mutations } from "@/store"; // Import your custom store
 import { getHumanReadableFilesize } from "@/utils/filesizes.js";
@@ -170,11 +170,11 @@ export default {
     showSources: () => !getters.isShare(),
     currentPrompt: () => getters.currentPrompt(),
     active: () => getters.isSidebarVisible(),
-    signup: () => signup,
-    version: () => version,
-    commitSHA: () => commitSHA,
-    disableExternal: () => disableExternal,
-    canLogout: () => !noAuth && loginPage,
+    signup: () => globalVars.signup,
+    version: () => globalVars.version,
+    commitSHA: () => globalVars.commitSHA,
+    disableExternal: () => globalVars.disableExternal,
+    canLogout: () => !globalVars.noAuth && globalVars.loginPage,
     route: () => state.route,
     sourceInfo: () => state.sources.info,
     activeSource: () => state.sources.current,

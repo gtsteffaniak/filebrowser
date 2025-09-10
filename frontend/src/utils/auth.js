@@ -1,7 +1,7 @@
 import { mutations, getters,state } from "@/store";
 import { usersApi } from "@/api";
 import { getApiPath } from "@/utils/url.js";
-import { recaptcha, loginPage, baseURL } from "@/utils/constants";
+import { globalVars } from "@/utils/constants";
 
 export async function setNewToken(token) {
   document.cookie = `auth=${token}; path=/`;
@@ -65,7 +65,7 @@ export async function logout() {
       mutations.setCurrentUser(null);
       mutations.setJWT("");
       if (!logoutUrl) {
-        logoutUrl = baseURL+"login";
+        logoutUrl = globalVars.baseURL+"login";
       }
       // Add a small delay to ensure cookie deletion completes before redirect
       setTimeout(() => {
@@ -92,11 +92,11 @@ export async function logout() {
 //}
 
 export async function initAuth() {
-  if (loginPage && !getters.isShare()) {
+  if (globalVars.loginPage && !getters.isShare()) {
     console.log("validating login");
     await validateLogin();
   }
-  if (recaptcha) {
+  if (globalVars.recaptcha) {
       await new Promise((resolve) => {
           const check = () => {
               if (typeof window.grecaptcha === "undefined") {

@@ -405,3 +405,77 @@ func TestPermitted_DenyByDefaultWithDenyAll(t *testing.T) {
 		t.Error("bob should not be permitted (DenyByDefault is true and no allow rule)")
 	}
 }
+
+func TestPermitted_DenyByDefault_AdminRootAccess(t *testing.T) {
+	// 1. Setup
+	access.ClearCache()
+	s, userStore := createTestStorage(t)
+	createTestUser(t, userStore, "admin")
+	createTestUser(t, userStore, "graham")
+	createTestUser(t, userStore, "bob")
+	err := s.LoadFromDB()
+	if err != nil && err != storm.ErrNotFound {
+		t.Errorf("unexpected error loading from DB: %v", err)
+	}
+
+	// 2. Configure source with DenyByDefault: true
+	originalSourceMap := settings.Config.Server.SourceMap
+	defer func() {
+		settings.Config.Server.SourceMap = originalSourceMap
+		access.ClearCache()
+	}()
+	settings.Config.Server.SourceMap = map[string]settings.Source{
+		"mnt/secure": {
+			Path: "mnt/secure",
+			Name: "secure",
+			Config: settings.SourceConfig{
+				DenyByDefault: true,
+			},
+		},
+	}
+
+	// 3. Set up access rules
+	if err := s.AllowUser("mnt/secure", "/", "admin"); err != nil {
+		t.Fatalf("AllowUser for admin failed: %v", err)
+	}
+	if err := s.AllowUser("mnt/secure", "/test", "graham"); err != nil {
+		t.Fatalf("AllowUser for graham failed: %v", err)
+	}
+
+	// 4. Assertions
+	// Admin checks
+	if !s.Permitted("mnt/secure", "/", "admin") {
+		t.Error("admin should be permitted for /")
+	}
+	if !s.Permitted("mnt/secure", "/test", "admin") {
+		t.Error("admin should be permitted for /test")
+	}
+	if !s.Permitted("mnt/secure", "/test/sub", "admin") {
+		t.Error("admin should be permitted for /test/sub (this is the bug)")
+	}
+
+	// Graham checks
+	if !s.Permitted("mnt/secure", "/test", "graham") {
+		t.Error("graham should be permitted for /test")
+	}
+	if !s.Permitted("mnt/secure", "/test/sub", "graham") {
+		t.Error("graham should be permitted for /test/sub")
+	}
+	if s.Permitted("mnt/secure", "/", "graham") {
+		t.Error("graham should NOT be permitted for /")
+	}
+	if s.Permitted("mnt/secure", "/anotherfolder", "graham") {
+		t.Error("graham should NOT be permitted for /anotherfolder")
+	}
+
+	// Bob checks (should have no access)
+	if s.Permitted("mnt/secure", "/", "bob") {
+		t.Error("bob should NOT be permitted for /")
+	}
+	if s.Permitted("mnt/secure", "/test", "bob") {
+		t.Error("bob should NOT be permitted for /test")
+	}
+	if s.Permitted("mnt/secure", "/test/sub", "bob") {
+		t.Error("bob should NOT be permitted for /test/sub")
+	}
+}

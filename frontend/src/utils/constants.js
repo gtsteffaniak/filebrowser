@@ -1,30 +1,7 @@
-const name = window.filebrowser.name;
-const disableExternal = window.filebrowser.disableExternal;
-const externalLinks = window.filebrowser.externalLinks;
-const baseURL = window.filebrowser.baseURL;
-const staticURL = window.filebrowser.staticURL;
-const darkMode = window.filebrowser.darkMode;
-const recaptcha = window.filebrowser.recaptcha;
-const recaptchaKey = window.filebrowser.recaptchaKey;
-const signup = window.filebrowser.signup;
-const version = window.filebrowser.version;
-const commitSHA = window.filebrowser.commitSHA;
-const logoURL = `${staticURL}/img/logo.png`;
-const noAuth = window.filebrowser.noAuth;
-const loginPage = window.filebrowser.loginPage;
-const enableThumbs = window.filebrowser.enableThumbs;
-const externalUrl = window.filebrowser.externalUrl
-const onlyOfficeUrl = window.filebrowser.onlyOfficeUrl
-const serverHasMultipleSources = window.filebrowser.sourceCount > 1;
-const oidcAvailable = window.filebrowser.oidcAvailable;
-const passwordAvailable = window.filebrowser.passwordAvailable;
-const mediaAvailable = window.filebrowser.mediaAvailable;
-const muPdfAvailable = window.filebrowser.muPdfAvailable;
-const updateAvailable = window.filebrowser.updateAvailable;
-const disableNavButtons = window.filebrowser.disableNavButtons;
-const userSelectableThemes = window.filebrowser.userSelectableThemes;
-const minSearchLength = window.filebrowser.minSearchLength;
-const shareInfo = window.filebrowser.share;
+const globalVars = window.globalVars;
+const logoURL = `${globalVars.staticURL}/img/logo.png`;
+const serverHasMultipleSources = globalVars.sourceCount > 1;
+const shareInfo = window.shareVars;
 const origin = window.location.origin;
 
 const settings = [
@@ -38,32 +15,10 @@ const settings = [
 ];
 
 export {
-  minSearchLength,
+  globalVars,
   shareInfo,
-  userSelectableThemes,
-  disableNavButtons,
-  updateAvailable,
-  muPdfAvailable,
-  mediaAvailable,
-  oidcAvailable,
-  passwordAvailable,
   serverHasMultipleSources,
-  name,
-  externalUrl,
-  disableExternal,
-  externalLinks,
-  baseURL,
   logoURL,
-  recaptcha,
-  recaptchaKey,
-  signup,
-  version,
-  commitSHA,
-  noAuth,
-  loginPage,
-  enableThumbs,
   origin,
-  darkMode,
   settings,
-  onlyOfficeUrl,
 };

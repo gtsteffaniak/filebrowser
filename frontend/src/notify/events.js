@@ -1,6 +1,6 @@
 import { mutations, state } from '@/store'
 import { notify } from '@/notify'
-import { baseURL } from '@/utils/constants'
+import { globalVars } from '@/utils/constants'
 import { filesApi } from '@/api'
 
 let eventSrc = null
@@ -47,7 +47,7 @@ function clearReconnect () {
 
 // Test the events endpoint to check for authentication before setting up EventSource
 async function testEventsEndpoint() {
-  const url = `${baseURL}api/events?sessionId=${state.sessionId}`
+  const url = `${globalVars.baseURL}api/events?sessionId=${state.sessionId}`
   try {
     const response = await fetch(url, {
       method: 'GET',
@@ -85,7 +85,7 @@ async function setupSSE () {
     }
   }
 
-  const url = `${baseURL}api/events?sessionId=${state.sessionId}`
+  const url = `${globalVars.baseURL}api/events?sessionId=${state.sessionId}`
   eventSrc = new EventSource(url)
   isManuallyClosed = false
 
