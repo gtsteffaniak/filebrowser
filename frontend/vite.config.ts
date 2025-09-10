@@ -46,7 +46,7 @@ export default defineConfig(({ command }) => {
         if (hostType === "js") {
           return { runtime: `window.__prependStaticUrl("${filename}")` };
         } else if (hostType === "html") {
-          return `{{ .staticURL }}/${filename}`;
+          return `{{ .htmlVars.staticURL }}/${filename}`;
         } else {
           return { relative: true };
         }

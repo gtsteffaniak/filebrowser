@@ -1,5 +1,5 @@
 <template>
-  <div id="login" :class="{ recaptcha: recaptcha, 'dark-mode': isDarkMode }">
+  <div id="login" :class="{ recaptcha: globalVars.recaptcha, 'dark-mode': isDarkMode }">
     <form class="card login-card" @submit="submit">
       <div class="login-brand">
         <Icon mimetype="directory" />
@@ -31,7 +31,7 @@
           :placeholder="$t('login.passwordConfirm')"
         />
 
-        <div v-if="recaptcha" id="recaptcha"></div>
+        <div v-if="globalVars.recaptcha" id="globalVars.recaptcha"></div>
         <input
           class="button button--block"
           type="submit"
@@ -61,17 +61,7 @@ import Icon from "@/components/files/Icon.vue";
 import { usersApi } from "@/api";
 import { initAuth } from "@/utils/auth";
 import { removeLeadingSlash } from "@/utils/url";
-import {
-  name,
-  logoURL,
-  recaptcha,
-  recaptchaKey,
-  signup,
-  darkMode,
-  oidcAvailable,
-  passwordAvailable,
-  baseURL,
-} from "@/utils/constants";
+import { globalVars, logoURL } from "@/utils/constants";
 
 export default {
   name: "login",
@@ -80,13 +70,13 @@ export default {
     Prompts,
   },
   computed: {
-    signup: () => signup,
-    oidcAvailable: () => oidcAvailable,
-    passwordAvailable: () => passwordAvailable,
-    name: () => name || "FileBrowser Quantum",
+    signup: () => globalVars.signup,
+    oidcAvailable: () => globalVars.oidcAvailable,
+    passwordAvailable: () => globalVars.passwordAvailable,
+    name: () => globalVars.name || "FileBrowser Quantum",
     logoURL: () => logoURL,
     isDarkMode() {
-      return darkMode;
+      return globalVars.darkMode;
     },
     loginName() {
       return name;
@@ -98,9 +88,9 @@ export default {
       error: "",
       username: "",
       password: "",
-      recaptcha: recaptcha,
+      recaptcha: globalVars.recaptcha,
       passwordConfirm: "",
-      loginURL: baseURL + "api/auth/oidc/login",
+      loginURL: globalVars.baseURL + "api/auth/oidc/login",
     };
   },
   mounted() {
@@ -109,16 +99,16 @@ export default {
     document.cookie = "auth=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/";
     let redirect = state.route.query.redirect;
     if (redirect === "" || redirect === undefined || redirect === null) {
-      redirect = baseURL + "files/";
+      redirect = globalVars.baseURL + "files/";
     } else {
       redirect = removeLeadingSlash(redirect);
-      redirect = baseURL + redirect;
+      redirect = globalVars.baseURL + redirect;
     }
     this.loginURL += `?redirect=${encodeURIComponent(redirect)}`;
-    if (!recaptcha) return;
-    window.grecaptcha.ready(function () {
-      window.grecaptcha.render("recaptcha", {
-        sitekey: recaptchaKey,
+    if (!globalVars.recaptcha) return;
+    window.gglobalVars.recaptcha.ready(function () {
+      window.gglobalVars.recaptcha.render("globalVars.recaptcha", {
+        sitekey: globalVars.globalVars.recaptchaKey,
       });
     });
   },
@@ -135,8 +125,8 @@ export default {
       }
 
       let captcha = "";
-      if (recaptcha) {
-        captcha = window.grecaptcha.getResponse();
+      if (globalVars.recaptcha) {
+        captcha = window.gglobalVars.recaptcha.getResponse();
         if (captcha === "") {
           this.error = this.$t("login.wrongCredentials");
           return;

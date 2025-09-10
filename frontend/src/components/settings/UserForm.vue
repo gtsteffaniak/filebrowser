@@ -6,7 +6,7 @@
     <i class="material-icons">sentiment_dissatisfied</i>
     <span>{{ $t("files.lonely") }}</span>
   </h2>
-  <div v-if="user.loginMethod == 'password' && passwordAvailable && !isNew">
+  <div v-if="user.loginMethod == 'password' && globalVars.passwordAvailable && !isNew">
     <label for="password">{{ $t("settings.password") }}</label>
     <div class="form-flex-group">
       <input
@@ -63,7 +63,7 @@
       />
     </p>
 
-    <div v-if="user.loginMethod == 'password' && passwordAvailable && isNew">
+    <div v-if="user.loginMethod == 'password' && globalVars.passwordAvailable && isNew">
       <label for="password">{{ $t("settings.password") }}</label>
       <div class="form-flex-group">
         <input
@@ -98,7 +98,7 @@
     </div>
 
     <div
-      v-if="user.loginMethod == 'password' && passwordAvailable"
+      v-if="user.loginMethod == 'password' && globalVars.passwordAvailable"
       class="settings-items"
     >
       <ToggleSwitch
@@ -186,7 +186,7 @@ import { mutations, state } from "@/store";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import { notify } from "@/notify";
 import { usersApi, settingsApi } from "@/api";
-import { passwordAvailable } from "@/utils/constants";
+import { globalVars } from "@/utils/constants";
 
 export default {
   name: "UserForm",
@@ -246,7 +246,7 @@ export default {
         this.user.password != this.passwordRef && this.user.password.length > 0;
       return matching;
     },
-    passwordAvailable: () => passwordAvailable,
+    passwordAvailable: () => globalVars.passwordAvailable,
     duplicateSources() {
       const names = this.selectedSources.map((s) => s.name);
       return names.filter((name, idx) => names.indexOf(name) !== idx);

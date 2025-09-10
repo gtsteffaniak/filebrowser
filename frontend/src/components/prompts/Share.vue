@@ -255,7 +255,7 @@ import { fromNow } from "@/utils/moment";
 import { buildItemUrl, fixDownloadURL } from "@/utils/url";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import SettingsItem from "@/components/settings/SettingsItem.vue";
-import { userSelectableThemes, externalUrl, onlyOfficeUrl } from "@/utils/constants";
+import { globalVars } from "@/utils/constants";
 import { eventBus } from "@/store/eventBus";
 //import ViewMode from "@/components/settings/ViewMode.vue";
 
@@ -323,10 +323,10 @@ export default {
   },
   computed: {
     onlyOfficeAvailable() {
-      return onlyOfficeUrl !== "";
+      return globalVars.onlyOfficeUrl !== "";
     },
     availableThemes() {
-      return userSelectableThemes || {};
+      return globalVars.userSelectableThemes || {};
     },
     closeHovers() {
       return mutations.closeHovers;
@@ -543,7 +543,7 @@ export default {
      * @param {Share} share
      */
     buildDownloadLink(share) {
-      if (share.downloadURL && externalUrl == "") {
+      if (share.downloadURL && globalVars.externalUrl == "") {
         return this.fixDownloadURL(share.downloadURL);
       }
       return publicApi.getDownloadURL(share, [this.item.name]);

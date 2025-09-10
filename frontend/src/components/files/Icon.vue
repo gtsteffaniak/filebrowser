@@ -24,19 +24,13 @@
 </template>
 
 <script>
-import {
-  onlyOfficeUrl,
-  mediaAvailable,
-  muPdfAvailable,
-  baseURL,
-} from "@/utils/constants";
+import { globalVars, shareInfo } from "@/utils/constants";
 import { getTypeInfo } from "@/utils/mimetype";
 import { mutations, state, getters } from "@/store";
-import { shareInfo } from "@/utils/constants";
 
 // NEW: Define placeholder and error image URLs for easy configuration
-const PLACEHOLDER_URL = baseURL + "static/img/placeholder.png"; // A generic loading placeholder
-const ERROR_URL = baseURL + "static/img/placeholder.png";
+const PLACEHOLDER_URL = globalVars.baseURL + "static/img/placeholder.png"; // A generic loading placeholder
+const ERROR_URL = globalVars.baseURL + "static/img/placeholder.png";
 
 export default {
   name: "Icon",
@@ -92,7 +86,7 @@ export default {
       return state.user?.disablePreviewExt?.includes(ext);
     },
     pdfConvertable() {
-      if (!muPdfAvailable) {
+      if (!globalVars.muPdfAvailable) {
         return false; // If muPDF is not available
       }
       const ext = "." + (this.filename.split(".").pop() || "").toLowerCase(); // Ensure lowercase and dot
@@ -135,7 +129,7 @@ export default {
       return (
         this.getIconForType().simpleType === "video" &&
         state.user.preview?.video &&
-        mediaAvailable &&
+        globalVars.mediaAvailable &&
         // @ts-ignore
         state.user.preview.motionVideoPreview
       );
@@ -160,7 +154,7 @@ export default {
       if (
         this.getIconForType().simpleType === "video" &&
         state.user.preview?.video &&
-        mediaAvailable
+        globalVars.mediaAvailable
       ) {
         return true;
       }
@@ -168,7 +162,7 @@ export default {
         this.getIconForType().simpleType === "document" &&
         // @ts-ignore
         state.user.preview?.office &&
-        onlyOfficeUrl != ""
+        globalVars.onlyOfficeUrl != ""
       ) {
         return true;
       }

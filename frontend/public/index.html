@@ -7,49 +7,50 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
   <title>{{ .title }}</title>
 
-  <link rel="icon" type="image/png" sizes="256x256" href="{{ .favicon }}">
+  <link rel="icon" type="image/png" sizes="256x256" href="{{ .htmlVars.favicon }}">
 
   <!--<link href="https://fonts.googleapis.com/css?family=Material+Icons|Material+Symbols+Outlined" rel="stylesheet">-->
 
   <!-- Add to home screen for Android and modern mobile browsers -->
   <link rel="manifest" id="manifestPlaceholder" crossorigin="use-credentials">
-  <meta name="theme-color" content="{{ .color }}">
+  <meta name="theme-color" content="{{ .htmlVars.color }}">
 
   <!-- Add to home screen for Safari on iOS/iPadOS -->
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="assets">
-  <link rel="apple-touch-icon" sizes="180x180" href="{{ .appIcon }}">
+  <link rel="apple-touch-icon" sizes="180x180" href="{{ .htmlVars.appIcon }}">
 
   <!-- Add to home screen for Windows -->
-  <meta name="msapplication-TileImage" content="{{ .winIcon }}">
-  <meta name="msapplication-TileColor" content="{{ .color }}">
+  <meta name="msapplication-TileImage" content="{{ .htmlVars.winIcon }}">
+  <meta name="msapplication-TileColor" content="{{ .htmlVars.color }}">
 
-  <meta name="description" content="{{ .description }}">
+  <meta name="description" content="{{ .htmlVars.description }}">
   <link rel="canonical" href="https://github.com/gtsteffaniak/filebrowser">
   <link rel="canonical" href="https://github.com/gtsteffaniak">
   <link rel="canonical" href="https://github.com/quantumx-apps">
 
   <!-- Inject Some Variables and generate the manifest json -->
   <script>
-    window.filebrowser = JSON.parse('{{ .globalVars }}');
+    window.globalVars = {{ .globalVars }};
+    window.shareVars = {{ .shareVars }};
     var dynamicManifest = {
-      "name": window.filebrowser.name || 'FileBrowser Quantum',
+      "name": window.globalVars.name || 'FileBrowser Quantum',
       "icons": [
         {
-          "src": window.location.origin + "{{ .staticURL }}/img/icons/android-chrome-256x256.png",
+          "src": window.location.origin + "{{ .htmlVars.staticURL }}/img/icons/android-chrome-256x256.png",
           "sizes": "512x512",
           "type": "image/png"
         },
         {
-          "src": window.location.origin + "{{ .staticURL }}/img/icons/android-chrome-192x192.png",
+          "src": window.location.origin + "{{ .htmlVars.staticURL }}/img/icons/android-chrome-192x192.png",
           "sizes": "192x192",
           "type": "image/png"
         },
       ],
-      "start_url": window.location.origin + "{{ .baseURL }}",
+      "start_url": window.location.origin + "{{ .htmlVars.baseURL }}",
       "display": "standalone",
       "background_color": "#ffffff",
-      "theme_color": "{{ .color }}"
+      "theme_color": "{{ .htmlVars.color }}"
     }
 
     const stringManifest = JSON.stringify(dynamicManifest);
@@ -61,7 +62,7 @@
   <style>
     /* Basic Styles */
     :root {
-      --background: {{ .lightBackground }};
+      --background: {{ .htmlVars.lightBackground }};
       --alt-background: #ddd;
       --surfacePrimary: gray;
       --surfaceSecondary: lightgray;
@@ -71,7 +72,7 @@
       --activeWhiteIcon: gray;
     }
     .dark-mode {
-      --background: {{ .darkBackground }};
+      --background: {{ .htmlVars.darkBackground }};
       --alt-background: #283136;
       --surfacePrimary: #20292F;
       --surfaceSecondary: #3A4147;
@@ -155,15 +156,15 @@
         transform: scale(1.0);
       }
     }
-    {{ .customCSS }}
-    {{ .userSelectedTheme }}
+    {{ .htmlVars.customCSS }}
+    {{ .htmlVars.userSelectedTheme }}
   </style>
 </head>
 
 <body>
   <div id="app"></div>
 
-  {{ if .darkMode -}}
+  {{ if .htmlVars.darkMode -}}
   <div id="loading" class="dark-mode">
     <div class="spinner">
       <div class="bounce1"></div>

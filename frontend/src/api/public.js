@@ -1,7 +1,7 @@
 import { adjustedData } from "./utils";
 import { notify } from "@/notify";
 import { getApiPath, getPublicApiPath } from "@/utils/url.js";
-import { externalUrl } from "@/utils/constants";
+import { globalVars } from "@/utils/constants";
 import { state } from "@/store";
 
 // ============================================================================
@@ -97,9 +97,9 @@ export function getPreviewURL(path,size="small") {
  * @returns {string}
  */
 export function getShareURL(share) {
-  if (externalUrl) {
+  if (globalVars.externalUrl) {
     const apiPath = getApiPath(`public/share/${share.hash}`)
-    return externalUrl + apiPath;
+    return globalVars.externalUrl + apiPath;
   }
   return window.origin + getApiPath(`public/share/${share.hash}`);
 }

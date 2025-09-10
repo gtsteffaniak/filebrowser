@@ -66,7 +66,7 @@
 </template>
 
 <script>
-import { enableThumbs } from "@/utils/constants";
+import { globalVars, serverHasMultipleSources, shareInfo } from "@/utils/constants";
 import downloadFiles from "@/utils/download";
 
 import { getHumanReadableFilesize } from "@/utils/filesizes";
@@ -75,7 +75,6 @@ import * as upload from "@/utils/upload";
 import { state, getters, mutations } from "@/store"; // Import your custom store
 import { url } from "@/utils";
 import Icon from "@/components/files/Icon.vue";
-import { baseURL, serverHasMultipleSources, shareInfo } from "@/utils/constants";
 
 export default {
   name: "item",
@@ -164,7 +163,7 @@ export default {
       return true;
     },
     thumbnailUrl() {
-      if (!enableThumbs) {
+      if (!globalVars.enableThumbs) {
         return "";
       }
       const previewPath = url.removeTrailingSlash(state.req.path) + "/" + this.name;
@@ -175,7 +174,7 @@ export default {
       return filesApi.getPreviewURL(state.req.source, previewPath, this.modified);
     },
     isThumbsEnabled() {
-      return enableThumbs;
+      return globalVars.enableThumbs;
     },
   },
   mounted() {
@@ -232,12 +231,12 @@ export default {
     },
     getUrl() {
       if (this.hash) {
-        return baseURL + "public/share/" + this.hash + "/" + url.encodedPath(this.path);
+        return globalVars.baseURL + "public/share/" + this.hash + "/" + url.encodedPath(this.path);
       }
       if (serverHasMultipleSources) {
-        return baseURL + "files/" + encodeURIComponent(this.source) + url.encodedPath(this.path);
+        return globalVars.baseURL + "files/" + encodeURIComponent(this.source) + url.encodedPath(this.path);
       }
-      return baseURL + "files" + url.encodedPath(this.path);
+      return globalVars.baseURL + "files" + url.encodedPath(this.path);
     },
     /** @param {MouseEvent} event */
     onRightClick(event) {

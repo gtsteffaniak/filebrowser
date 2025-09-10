@@ -1,7 +1,7 @@
 import { removePrefix, buildItemUrl, removeLeadingSlash } from '@/utils/url.js'
 import { getFileExtension } from '@/utils/files.js'
 import { state, mutations } from '@/store'
-import { noAuth, shareInfo } from '@/utils/constants.js'
+import { globalVars, shareInfo } from '@/utils/constants.js'
 import { getTypeInfo } from '@/utils/mimetype'
 import { fromNow } from '@/utils/moment'
 import * as i18n from '@/i18n'
@@ -83,7 +83,7 @@ export const getters = {
       }
       mutations.updateCurrentUser({ locale: savedLocale })
     }
-    if (noAuth) {
+    if (globalVars.noAuth) {
       return true
     }
     if (

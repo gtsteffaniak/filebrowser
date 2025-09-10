@@ -49,6 +49,7 @@ server:
   internalUrl: ""                         # used by integrations if set, this is the base domain that an integration service will use to communicate with filebrowser (eg. http://localhost:8080)
   cacheDir: "tmp"                         # path to the cache directory, used for thumbnails and other cached files
   maxArchiveSize: 50                      # max pre-archive combined size of files/folder that are allowed to be archived (in GB)
+  disableHeicConversion: false            # disable heic ffmpeg conversion and preview
 auth:
   tokenExpirationHours: 2                 # time in hours each web UI session token is valid for. Default is 2 hours.
   methods:
@@ -100,12 +101,12 @@ frontend:
     lightBackground: "#f5f5f5"            # specify a valid CSS color property value to use as the background color in light mode
     darkBackground: "#141D24"             # Specify a valid CSS color property value to use as the background color in dark mode
     customThemes:                         # A list of custom css files that each user can select to override the default styling. if "default" is key name then it will be the default option.
-      default:
-        description: "The default theme"  # The description of the theme to display in the UI.
-        css: ""                           # The css file path and filename to use for the theme.
       alternative:
         description: "Reduce rounded corners" # The description of the theme to display in the UI.
         css: "reduce-rounded-corners.css" # The css file path and filename to use for the theme.
+      default:
+        description: "The default theme"  # The description of the theme to display in the UI.
+        css: ""                           # The css file path and filename to use for the theme.
   favicon: ""                             # path to a favicon to use for the frontend
   description: "FileBrowser Quantum is a file manager for the web which can be used to manage files on your server" # description that shows up in html head meta description
 userDefaults:
