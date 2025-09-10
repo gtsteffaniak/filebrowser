@@ -61,6 +61,10 @@ func NewPreviewGenerator(concurrencyLimit int, ffmpegPath string, cacheDir strin
 	if err != nil {
 		logger.Error(err)
 	}
+	err = os.MkdirAll(filepath.Join(settings.Config.Server.CacheDir, "heic"), 0755)
+	if err != nil {
+		logger.Error(err)
+	}
 	ffmpegMainPath, err := CheckValidFFmpeg(ffmpegPath)
 	if err != nil && ffmpegPath != "" {
 		logger.Fatalf("the configured ffmpeg path does not contain a valid ffmpeg binary %s, err: %v", ffmpegPath, err)
@@ -125,35 +129,22 @@ func GeneratePreview(file iteminfo.ExtendedFileInfo, previewSize, officeUrl stri
 		if err != nil {
 			return nil, fmt.Errorf("failed to create image for office file: %w", err)
 		}
+	} else if strings.HasPrefix(file.Type, "image/heic") {
+		// HEIC files need FFmpeg conversion to JPEG with proper size/quality handling
+		imageBytes, err = service.convertHEICToJPEGWithFFmpeg(file.RealPath, previewSize)
+		if err != nil {
+			return nil, fmt.Errorf("failed to process HEIC image file: %w", err)
+		}
+		// For HEIC files, we've already done the resize/conversion, so cache and return directly
+		cacheKey := CacheKey(file.RealPath, previewSize, file.ModTime, seekPercentage)
+		if err = service.fileCache.Store(context.Background(), cacheKey, imageBytes); err != nil {
+			logger.Errorf("failed to cache HEIC image: %v", err)
+		}
+		return imageBytes, nil
 	} else if strings.HasPrefix(file.Type, "image") {
-		logger.Infof("🔍 PREVIEW DEBUG: Image file detected - Name: %s, Type: %s, Extension: %s", file.Name, file.Type, filepath.Ext(file.Name))
-
-		// Quick HEIC identification and delegation
-		if isHEICFile(file) {
-			logger.Infof("🔄 HEIC DEBUG: HEIC file detected for %s", filepath.Base(file.Name))
-
-			// HEIC files need FFmpeg conversion to JPEG with proper size/quality handling
-			imageBytes, err = service.processHEICFile(file, previewSize)
-			if err != nil {
-				logger.Errorf("❌ HEIC DEBUG: HEIC processing failed: %v", err)
-				return nil, fmt.Errorf("failed to process HEIC image file: %w", err)
-			}
-
-			logger.Infof("✅ HEIC DEBUG: HEIC processing successful, got %d bytes", len(imageBytes))
-
-			// For HEIC files, we've already done the resize/conversion, so cache and return directly
-			cacheKey := CacheKey(file.RealPath, previewSize, file.ModTime, seekPercentage)
-			if err = service.fileCache.Store(context.Background(), cacheKey, imageBytes); err != nil {
-				logger.Errorf("failed to cache HEIC image: %v", err)
-			}
-			return imageBytes, nil
-		} else {
-			// get image bytes from file (non-HEIC images)
-			logger.Infof("📖 PREVIEW DEBUG: Reading non-HEIC image file directly")
-			imageBytes, err = os.ReadFile(file.RealPath)
-			if err != nil {
-				return nil, fmt.Errorf("failed to read image file: %w", err)
-			}
+		imageBytes, err = os.ReadFile(file.RealPath)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read image file: %w", err)
 		}
 	} else if strings.HasPrefix(file.Type, "video") {
 		if seekPercentage == 0 {

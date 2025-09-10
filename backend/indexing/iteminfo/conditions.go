@@ -267,7 +267,7 @@ func IsMatchingType(extension string, matchType string) bool {
 // DetectType detects the MIME type of a file and updates the ItemInfo struct.
 func (i *ItemInfo) DetectType(realPath string, saveContent bool) {
 	name := i.Name
-	ext := filepath.Ext(name)
+	ext := strings.ToLower(filepath.Ext(name))
 
 	// Attempt MIME detection by file extension
 	switch ext {
