@@ -58,6 +58,7 @@ type OnlyOffice struct {
 	Url         string `json:"url" validate:"required"`    // The URL to the OnlyOffice Document Server, needs to be accessible to the user.
 	InternalUrl string `json:"internalUrl"`                // An optional internal address that the filebrowser server can use to communicate with the OnlyOffice Document Server, could be useful to bypass proxy.
 	Secret      string `json:"secret" validate:"required"` // secret: authentication key for OnlyOffice integration
+	ViewOnly    bool   `json:"viewOnly"`                   // view only mode for OnlyOffice
 }
 
 type Media struct {

@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file. For commit 
  **New Features**:
  - Remember folder view type (and sorting) for each folder #966
  - heic is supported in preview and viewer (via conversion) when on non-safari browser #1191
+ - OnlyOffice: Add option to open documents in viewer mode #1193
 
  **Notes**:
 
