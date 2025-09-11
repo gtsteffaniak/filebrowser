@@ -38,8 +38,8 @@ test("Verify basic auth is required for protected route", async ({ page }) => {
   // try to access protected route without credentials - should get 401
   const response = await page.goto("/subpath/", { waitUntil: 'networkidle' });
   expect(response?.status()).toBe(401);
-  
+
   // verify public routes still work without auth
-  const publicResponse = await page.goto("/subpath/public/static/index.html", { waitUntil: 'networkidle' });  
+  const publicResponse = await page.goto("/subpath/public/static/index.html", { waitUntil: 'networkidle' });
   expect(publicResponse?.status()).toBe(200);
 });

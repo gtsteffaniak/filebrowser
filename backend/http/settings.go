@@ -55,10 +55,21 @@ func settingsConfigHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 	showFull := fullParam == "true"
 	showComments := commentsParam == "true"
 
-	// Generate YAML using the existing generator function (don't filter deprecated fields in API)
+	// First, try to generate YAML using the existing generator function (don't filter deprecated fields in API)
 	yamlOutput, err := settings.GenerateConfigYaml(config, showComments, showFull, false)
 	if err != nil {
-		return http.StatusInternalServerError, err
+		// If the primary method fails, try to use embedded YAML as fallback
+		if showComments {
+			embeddedYaml, readErr := assets.ReadFile("embed/config.generated.yaml")
+			if readErr == nil {
+				yamlOutput, err = settings.GenerateConfigYamlWithEmbedded(config, showComments, showFull, false, string(embeddedYaml))
+			}
+		}
+
+		// If still failing, return the error
+		if err != nil {
+			return http.StatusInternalServerError, err
+		}
 	}
 
 	// Set content type and write response

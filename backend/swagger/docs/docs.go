@@ -2835,6 +2835,10 @@ const docTemplate = `{
         "settings.Media": {
             "type": "object",
             "properties": {
+                "disableHeicConversion": {
+                    "description": "disable heic ffmpeg conversion and preview",
+                    "type": "boolean"
+                },
                 "ffmpegPath": {
                     "description": "path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)",
                     "type": "string"
@@ -2908,6 +2912,10 @@ const docTemplate = `{
                 "url": {
                     "description": "The URL to the OnlyOffice Document Server, needs to be accessible to the user.",
                     "type": "string"
+                },
+                "viewOnly": {
+                    "description": "view only mode for OnlyOffice",
+                    "type": "boolean"
                 }
             }
         },
@@ -2998,10 +3006,6 @@ const docTemplate = `{
                 },
                 "debugMedia": {
                     "description": "output ffmpeg stdout for media integration -- careful can produces lots of output!",
-                    "type": "boolean"
-                },
-                "disableHeicConversion": {
-                    "description": "disable heic ffmpeg conversion and preview",
                     "type": "boolean"
                 },
                 "disablePreviewResize": {

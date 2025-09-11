@@ -6,7 +6,7 @@
     >
         <div class="preview" v-if="!isDeleted">
             <ExtendedImage
-                v-if="previewType == 'image' || pdfConvertable"
+                v-if="showImage"
                 :src="raw"
                 @navigate-previous="prev"
                 @navigate-next="next"
@@ -274,6 +274,9 @@ export default {
         };
     },
     computed: {
+        showImage() {
+            return (this.previewType == 'image' || this.pdfConvertable) && (!globalVars.disableHeicConversion && state.req.type == "image/heic");
+        },
         autoPlay() {
             return state.user.preview.autoplayMedia;
         },
@@ -316,7 +319,7 @@ export default {
             return getters.previewType();
         },
         raw() {
-            const showFullSizeHeic = state.req.type === "image/heic" && !state.isSafari && globalVars.mediaAvailable;
+            const showFullSizeHeic = state.req.type === "image/heic" && !state.isSafari && globalVars.mediaAvailable && !globalVars.disableHeicConversion;
             if (this.pdfConvertable || showFullSizeHeic) {
                 if (getters.isShare()) {
                     const previewPath = url.removeTrailingSlash(state.req.path);
