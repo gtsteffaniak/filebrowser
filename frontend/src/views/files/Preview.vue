@@ -1,15 +1,11 @@
 <template>
     <div
         id="previewer"
-        @mousemove="toggleNavigation"
-        @touchstart="toggleNavigation"
     >
         <div class="preview" v-if="!isDeleted">
             <ExtendedImage
                 v-if="showImage"
                 :src="raw"
-                @navigate-previous="prev"
-                @navigate-next="next"
             >
             </ExtendedImage>
 
@@ -174,39 +170,15 @@
             ></span>
         </div>
 
-        <button
-            @click="prev"
-            @mouseover="hoverNav = true"
-            @mouseleave="hoverNav = false"
-            :class="{ hidden: !hasPrevious || !showNav }"
-            :aria-label="$t('buttons.previous')"
-            :title="$t('buttons.previous')"
-        >
-            <i class="material-icons">chevron_left</i>
-        </button>
-        <button
-            @click="next"
-            @mouseover="hoverNav = true"
-            @mouseleave="hoverNav = false"
-            :class="{ hidden: !hasNext || !showNav }"
-            :aria-label="$t('buttons.next')"
-            :title="$t('buttons.next')"
-        >
-            <i class="material-icons">chevron_right</i>
-        </button>
-        <link rel="prefetch" :href="previousRaw" />
-        <link rel="prefetch" :href="nextRaw" />
     </div>
 </template>
 <script>
 import { filesApi, publicApi } from "@/api";
 import { url } from "@/utils";
-import throttle from "@/utils/throttle";
 import ExtendedImage from "@/components/files/ExtendedImage.vue";
 import { state, getters, mutations } from "@/store";
 import { getFileExtension } from "@/utils/files";
 import { convertToVTT } from "@/utils/subtitles";
-import { getTypeInfo } from "@/utils/mimetype";
 import { globalVars, shareInfo } from "@/utils/constants";
 // Audio metadata is now provided by the backend
 
@@ -217,16 +189,9 @@ export default {
     },
     data() {
         return {
-            previousLink: "",
-            nextLink: "",
             listing: null,
             name: "",
             fullSize: true,
-            showNav: true,
-            navTimeout: null,
-            hoverNav: false,
-            previousRaw: "",
-            nextRaw: "",
             currentPrompt: null, // Replaces Vuex getter `currentPrompt`
             subtitlesList: [],
             isDeleted: false,
@@ -353,12 +318,6 @@ export default {
         isDarkMode() {
             return getters.isDarkMode();
         },
-        hasPrevious() {
-            return this.previousLink !== "";
-        },
-        hasNext() {
-            return this.nextLink !== "";
-        },
         downloadUrl() {
             if (getters.isShare()) {
                 return publicApi.getDownloadURL(
@@ -392,14 +351,14 @@ export default {
             }
             this.isDeleted = true;
             this.listing = null; // Invalidate the listing to force a refresh
-            this.nextRaw = "";
-            this.previousRaw = "";
-            if (this.hasNext) {
-                this.next();
-            } else if (!this.hasPrevious && !this.hasNext) {
-                this.close();
+            
+            // Let the navigation component handle next/previous logic
+            if (state.navigation.nextLink) {
+                this.$router.replace({ path: state.navigation.nextLink });
+            } else if (state.navigation.previousLink) {
+                this.$router.replace({ path: state.navigation.previousLink });
             } else {
-                this.prev();
+                this.close();
             }
             mutations.setDeletedItem(false);
         },
@@ -409,7 +368,6 @@ export default {
             }
             this.isDeleted = false;
             this.updatePreview();
-            this.toggleNavigation();
             mutations.resetSelected();
             mutations.addSelected({
                 name: state.req.name,
@@ -451,6 +409,8 @@ export default {
             } catch (e) {Error;}
             this.albumArt = null;
         }
+        // Clear navigation state when leaving preview
+        mutations.clearNavigation();
     },
     methods: {
         async subtitles() {
@@ -493,14 +453,6 @@ export default {
             }
             return subs;
         },
-        prev() {
-            this.hoverNav = false;
-            this.$router.replace({ path: this.previousLink });
-        },
-        next() {
-            this.hoverNav = false;
-            this.$router.replace({ path: this.nextLink });
-        },
         async keyEvent(event) {
             if (getters.currentPromptName()) {
                 return;
@@ -509,16 +461,6 @@ export default {
             const { key } = event;
 
             switch (key) {
-                case "ArrowRight":
-                    if (this.hasNext) {
-                        this.next();
-                    }
-                    break;
-                case "ArrowLeft":
-                    if (this.hasPrevious) {
-                        this.prev();
-                    }
-                    break;
                 case "Delete":
                     mutations.showHover("delete");
                     break;
@@ -655,47 +597,19 @@ export default {
                 this.listing = [state.req];
             }
             this.name = state.req.name;
-            this.previousLink = "";
-            this.nextLink = "";
 
-            for (let i = 0; i < this.listing.length; i++) {
-                if (this.listing[i].name !== this.name) {
-                    continue;
-                }
-                for (let j = i - 1; j >= 0; j--) {
-                    let clistItem = this.listing[j];
-                    // Skip directories - only navigate between files
-                    if (clistItem.type === 'directory') {
-                        continue;
-                    }
-                    clistItem.path =
-                        directoryPath + "/" + clistItem.name;
-                    this.previousLink = url.buildItemUrl(
-                        clistItem.source,
-                        clistItem.path,
-                    );
-                    if (
-                        getTypeInfo(clistItem.type).simpleType == "image"
-                    ) {
-                        this.previousRaw = this.prefetchUrl(clistItem);
-                    }
-                    break;
-                }
-                for (let j = i + 1; j < this.listing.length; j++) {
-                    let clistItem = this.listing[j];
-                    // Skip directories - only navigate between files
-                    if (clistItem.type === 'directory') {
-                        continue;
-                    }
-                    clistItem.path = directoryPath + "/" + clistItem.name;
-                    this.nextLink = url.buildItemUrl(clistItem.source,clistItem.path);
-                    if (getTypeInfo(clistItem.type).simpleType == "image") {
-                        this.nextRaw = this.prefetchUrl(clistItem);
-                    }
-                    break;
-                }
-                return;
-            }
+            // Setup navigation using the new state management
+            console.log("🚀 Preview.vue calling setupNavigation with:", {
+                listing: this.listing?.length,
+                currentItem: state.req?.name,
+                directoryPath,
+                fullListing: this.listing?.map(item => ({ name: item.name, type: item.type }))
+            });
+            mutations.setupNavigation({
+                listing: this.listing,
+                currentItem: state.req,
+                directoryPath: directoryPath
+            });
         },
 
         prefetchUrl(item) {
@@ -726,18 +640,6 @@ export default {
         toggleSize() {
             this.fullSize = !this.fullSize;
         },
-        toggleNavigation: throttle(function () {
-            this.showNav = true;
-
-            if (this.navTimeout) {
-                clearTimeout(this.navTimeout);
-            }
-
-            this.navTimeout = setTimeout(() => {
-                this.showNav = false || this.hoverNav;
-                this.navTimeout = null;
-            }, 1500);
-        }, 100),
         close() {
             mutations.replaceRequest({}); // Reset request data
             let uri = url.removeLastDir(state.route.path) + "/";

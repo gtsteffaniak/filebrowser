@@ -14,6 +14,15 @@ const settings = [
   { id: 'systemAdmin', label: 'settings.systemAdmin', component: 'SystemAdmin', permissions: { admin: true } },
 ];
 
+const previewViews = [
+  'preview',
+  'markdownViewer',
+  'epubViewer',
+  'docViewer',
+  'onlyOfficeEditor',
+  'editor'
+];
+
 export {
   globalVars,
   shareInfo,
@@ -21,4 +30,5 @@ export {
   logoURL,
   origin,
   settings,
+  previewViews,
 };

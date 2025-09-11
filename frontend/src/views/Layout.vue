@@ -28,6 +28,7 @@
   <Notifications />
   <ContextMenu></ContextMenu>
   <Tooltip />
+  <NextPrevious />
 </template>
 
 <script>
@@ -38,6 +39,7 @@ import ContextMenu from "@/components/ContextMenu.vue";
 import Notifications from "@/components/Notifications.vue";
 import Scrollbar from "@/components/files/Scrollbar.vue";
 import Tooltip from "@/components/Tooltip.vue";
+import NextPrevious from "@/components/files/nextPrevious.vue";
 import { filesApi } from "@/api";
 import { state, getters, mutations } from "@/store";
 import { events } from "@/notify";
@@ -54,6 +56,7 @@ export default {
     Prompts,
     Scrollbar,
     Tooltip,
+    NextPrevious,
   },
   data() {
     return {
