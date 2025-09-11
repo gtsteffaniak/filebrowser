@@ -45,8 +45,7 @@ test("view config", async({ page, checkForErrors, context }) => {
   await expect(page).toHaveTitle("Graham's Filebrowser - Settings");
   await page.locator('#systemAdmin-sidebar').click();
   await page.locator('button[aria-label="loadConfig"]').click();
-  const firstLineText = await page.locator('.ace_text-layer .ace_line').first().textContent();
-  expect(firstLineText).toContain('server:');
+  await expect(page.locator('.ace_text-layer .ace_line').first()).toContainText('server:');
   // Check for console errors
   checkForErrors();
 });

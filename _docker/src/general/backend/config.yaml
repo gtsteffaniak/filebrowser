@@ -15,6 +15,11 @@ server:
 frontend:
   name: "Graham's Filebrowser"
   disableDefaultLinks: true
+  styling:
+    customThemes:
+      no-rounded:
+        description: "No rounded corners" # The description of the theme to display in the UI.
+        css: "no-rounded.css" # The css file path and filename to use for the theme.
   externalLinks:
     - text: "A playwright test"
       url: "https://playwright.dev/"

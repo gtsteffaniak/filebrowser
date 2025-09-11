@@ -22,7 +22,7 @@
         </div>
         <div>
           <button
-           @click="fetchConfig" class="button button--flat"
+           @click="fetchConfig" class="button"
            :disabled="configLoading"
            aria-label="loadConfig"
             style="margin-bottom: 1em;">

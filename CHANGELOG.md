@@ -2,14 +2,15 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
-## v0.8.4-beta
+## v0.8.5-beta
 
  **New Features**:
  - Remember folder view type (and sorting) for each folder #966
- - heic is supported in preview and viewer (via conversion) when on non-safari browser #1191
+ - heic is supported in viewer (via ffmpeg conversion) when on non-safari browser. This can be disabled via `integrations.ffmpeg.disableHeicConversion` #1191
  - OnlyOffice: Add option to open documents in viewer mode (`integrations.office.viewOnly`) #1193
 
  **Notes**:
+ - Added more tests to ensure new features work in future.
 
  **BugFixes**:
  - Access Management: issue with access settings #1195
