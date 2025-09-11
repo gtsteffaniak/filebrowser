@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Notes**:
  - Added more tests to ensure new features work in future.
+ - Replaced the previously introduced media metadata solution with a backend solution for significantly improved performance and reduced need for frontend dependancies.
 
  **BugFixes**:
  - Access Management: issue with access settings #1195
