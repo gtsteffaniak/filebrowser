@@ -21,26 +21,25 @@ type Settings struct {
 }
 
 type Server struct {
-	MinSearchLength              int         `json:"minSearchLength"`              // minimum length of search query to begin searching (default: 3)
-	DisableUpdateCheck           bool        `json:"disableUpdateCheck"`           // disables backend update check service
-	NumImageProcessors           int         `json:"numImageProcessors"`           // number of concurrent image processing jobs used to create previews, default is number of cpu cores available.
-	Socket                       string      `json:"socket"`                       // socket to listen on
-	TLSKey                       string      `json:"tlsKey"`                       // path to TLS key
-	TLSCert                      string      `json:"tlsCert"`                      // path to TLS cert
-	DisablePreviews              bool        `json:"disablePreviews"`              // disable all previews thumbnails, simple icons will be used
-	DisableResize                bool        `json:"disablePreviewResize"`         // disable resizing of previews for faster loading over slow connections
-	DisableTypeDetectionByHeader bool        `json:"disableTypeDetectionByHeader"` // disable type detection by header, useful if filesystem is slow.
-	Port                         int         `json:"port"`                         // port to listen on
-	BaseURL                      string      `json:"baseURL"`                      // base URL for the server, the subpath that the server is running on.
-	Logging                      []LogConfig `json:"logging"`
+	MinSearchLength              int         `json:"minSearchLength" yaml:"minSearchLength"` // minimum length of search query to begin searching (default: 3)
+	DisableUpdateCheck           bool        `json:"disableUpdateCheck"`                     // disables backend update check service
+	NumImageProcessors           int         `json:"numImageProcessors"`                     // number of concurrent image processing jobs used to create previews, default is number of cpu cores available.
+	Socket                       string      `json:"socket"`                                 // socket to listen on
+	TLSKey                       string      `json:"tlsKey"`                                 // path to TLS key
+	TLSCert                      string      `json:"tlsCert"`                                // path to TLS cert
+	DisablePreviews              bool        `json:"disablePreviews"`                        // disable all previews thumbnails, simple icons will be used
+	DisableResize                bool        `json:"disablePreviewResize"`                   // disable resizing of previews for faster loading over slow connections
+	DisableTypeDetectionByHeader bool        `json:"disableTypeDetectionByHeader"`           // disable type detection by header, useful if filesystem is slow.
+	Port                         int         `json:"port"`                                   // port to listen on
+	BaseURL                      string      `json:"baseURL"`                                // base URL for the server, the subpath that the server is running on.
+	Logging                      []LogConfig `json:"logging" yaml:"logging"`
 	DebugMedia                   bool        `json:"debugMedia"` // output ffmpeg stdout for media integration -- careful can produces lots of output!
 	Database                     string      `json:"database"`   // path to the database file
 	Sources                      []Source    `json:"sources" validate:"required,dive"`
-	ExternalUrl                  string      `json:"externalUrl"`           // used by share links if set (eg. http://mydomain.com)
-	InternalUrl                  string      `json:"internalUrl"`           // used by integrations if set, this is the base domain that an integration service will use to communicate with filebrowser (eg. http://localhost:8080)
-	CacheDir                     string      `json:"cacheDir"`              // path to the cache directory, used for thumbnails and other cached files
-	MaxArchiveSizeGB             int64       `json:"maxArchiveSize"`        // max pre-archive combined size of files/folder that are allowed to be archived (in GB)
-	DisableHeicConversion        bool        `json:"disableHeicConversion"` // disable heic ffmpeg conversion and preview
+	ExternalUrl                  string      `json:"externalUrl"`    // used by share links if set (eg. http://mydomain.com)
+	InternalUrl                  string      `json:"internalUrl"`    // used by integrations if set, this is the base domain that an integration service will use to communicate with filebrowser (eg. http://localhost:8080)
+	CacheDir                     string      `json:"cacheDir"`       // path to the cache directory, used for thumbnails and other cached files
+	MaxArchiveSizeGB             int64       `json:"maxArchiveSize"` // max pre-archive combined size of files/folder that are allowed to be archived (in GB)
 	// not exposed to config
 	SourceMap      map[string]Source `json:"-" validate:"omitempty"` // uses realpath as key
 	NameToSource   map[string]Source `json:"-" validate:"omitempty"` // uses name as key
@@ -62,16 +61,17 @@ type OnlyOffice struct {
 }
 
 type Media struct {
-	FfmpegPath string `json:"ffmpegPath"` // path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)
+	FfmpegPath            string `json:"ffmpegPath"`            // path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)
+	DisableHeicConversion bool   `json:"disableHeicConversion"` // disable heic ffmpeg conversion and preview
 }
 
 type LogConfig struct {
-	Levels    string `json:"levels"`    // separated list of log levels to enable. (eg. "info|warning|error|debug")
-	ApiLevels string `json:"apiLevels"` // separated list of log levels to enable for the API. (eg. "info|warning|error")
-	Output    string `json:"output"`    // output location. (eg. "stdout" or "path/to/file.log")
-	NoColors  bool   `json:"noColors"`  // disable colors in the output
-	Json      bool   `json:"json"`      // output in json format, currently not supported
-	Utc       bool   `json:"utc"`       // use UTC time in the output instead of local time
+	Levels    string `json:"levels" yaml:"levels"`       // separated list of log levels to enable. (eg. "info|warning|error|debug")
+	ApiLevels string `json:"apiLevels" yaml:"apiLevels"` // separated list of log levels to enable for the API. (eg. "info|warning|error")
+	Output    string `json:"output" yaml:"output"`       // output location. (eg. "stdout" or "path/to/file.log")
+	NoColors  bool   `json:"noColors" yaml:"noColors"`   // disable colors in the output
+	Json      bool   `json:"json" yaml:"json"`           // output in json format, currently not supported
+	Utc       bool   `json:"utc" yaml:"utc"`             // use UTC time in the output instead of local time
 }
 
 type Source struct {

@@ -140,7 +140,7 @@
 
           <h4 v-if="Object.keys(availableThemes).length > 0">{{ $t('profileSettings.customTheme') }}</h4>
           <div v-if="Object.keys(availableThemes).length > 0" class="form-flex-group">
-            <select class="input" v-model="selectedTheme" @change="updateSettings">
+            <select class="input" v-model="selectedTheme" @change="updateSettings" aria-label="themeOptions">
               <option v-for="(theme, key) in availableThemes" :key="key" :value="key">
                 {{ String(key) === 'default' ? $t('profileSettings.defaultThemeDescription') : `${key} - ${theme.description}` }}
               </option>

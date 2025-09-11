@@ -21,7 +21,10 @@
           </label>
         </div>
         <div>
-          <button @click="fetchConfig" class="button button--flat" :disabled="configLoading"
+          <button
+           @click="fetchConfig" class="button button--flat"
+           :disabled="configLoading"
+           aria-label="loadConfig"
             style="margin-bottom: 1em;">
             {{ configLoading ? $t('files.loading') : $t('settings.configViewerLoadConfig') }}
           </button>

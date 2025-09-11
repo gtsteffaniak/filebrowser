@@ -156,7 +156,7 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 				"uiTheme":   themeMode,
 			},
 			"lang": d.user.Locale,
-			"mode": utils.Ternary(settings.Config.Integrations.OnlyOffice.ViewOnly, "view", canEditMode),,
+			"mode": utils.Ternary(settings.Config.Integrations.OnlyOffice.ViewOnly, "view", canEditMode),
 		},
 	}
 
