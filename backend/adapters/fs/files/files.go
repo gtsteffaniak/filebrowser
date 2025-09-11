@@ -5,6 +5,7 @@ import (
 	"crypto/sha1"
 	"crypto/sha256"
 	"crypto/sha512"
+	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"hash"
@@ -18,6 +19,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/dhowden/tag"
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
@@ -100,6 +102,8 @@ func FileInfoFaster(opts iteminfo.FileOptions) (*iteminfo.ExtendedFileInfo, erro
 
 func processContent(info *iteminfo.ExtendedFileInfo, idx *indexing.Index) {
 	isVideo := strings.HasPrefix(info.Type, "video")
+	isAudio := strings.HasPrefix(info.Type, "audio")
+
 	if isVideo {
 		parentInfo, exists := idx.GetReducedMetadata(filepath.Dir(info.Path), true)
 		if exists {
@@ -111,6 +115,19 @@ func processContent(info *iteminfo.ExtendedFileInfo, idx *indexing.Index) {
 		}
 		return
 	}
+
+	if isAudio {
+		metadata, err := extractAudioMetadata(info.RealPath)
+		if err != nil {
+			logger.Debugf("could not extract audio metadata for file: %s, error: %v", info.RealPath, err)
+		} else {
+			info.AudioMeta = metadata
+			logger.Debugf("extracted audio metadata for: %s (title: %s, artist: %s)", info.Name, metadata.Title, metadata.Artist)
+		}
+		return
+	}
+
+	// Process text content for non-video, non-audio files
 	if info.Size < 20*1024*1024 { // 20 megabytes in bytes
 		content, err := getContent(info.RealPath)
 		if err != nil {
@@ -132,6 +149,44 @@ func generateOfficeId(realPath string) string {
 		return documentKey
 	}
 	return key
+}
+
+// extractAudioMetadata extracts metadata from an audio file using dhowden/tag
+func extractAudioMetadata(realPath string) (*iteminfo.AudioMetadata, error) {
+	file, err := os.Open(realPath)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	m, err := tag.ReadFrom(file)
+	if err != nil {
+		return nil, err
+	}
+
+	metadata := &iteminfo.AudioMetadata{
+		Title:  m.Title(),
+		Artist: m.Artist(),
+		Album:  m.Album(),
+		Year:   m.Year(),
+		Genre:  m.Genre(),
+	}
+
+	// Extract track number
+	track, _ := m.Track()
+	metadata.Track = track
+
+	// Extract album art and encode as base64
+	if picture := m.Picture(); picture != nil && picture.Data != nil {
+		// Limit album art size to prevent excessive response sizes (max 1MB)
+		if len(picture.Data) <= 1024*1024 {
+			metadata.AlbumArt = base64.StdEncoding.EncodeToString(picture.Data)
+		} else {
+			logger.Debugf("Skipping album art for %s: too large (%d bytes)", realPath, len(picture.Data))
+		}
+	}
+
+	return metadata, nil
 }
 
 // Checksum checksums a given File for a given User, using a specific

@@ -208,7 +208,7 @@ import { getFileExtension } from "@/utils/files";
 import { convertToVTT } from "@/utils/subtitles";
 import { getTypeInfo } from "@/utils/mimetype";
 import { globalVars, shareInfo } from "@/utils/constants";
-import jsmediatags from "jsmediatags/dist/jsmediatags.min.js";
+// Audio metadata is now provided by the backend
 
 export default {
     name: "preview",
@@ -747,7 +747,7 @@ export default {
             const items = [state.req];
             downloadFiles(items);
         },
-        // Load metadata from the audio
+        // Load metadata from the backend response
         async loadAudioMetadata() {
             if (this.previewType !== "audio") {
                 this.audioMetadata = null;
@@ -756,58 +756,46 @@ export default {
             }
 
             try {
-                const audioUrl = this.raw;
+                // Clean up previous album art
+                if (this.albumArt) {
+                    URL.revokeObjectURL(this.albumArt);
+                    this.albumArt = null;
+                }
 
-                new jsmediatags.Reader(audioUrl)
-                    .setTagsToRead([
-                        "title",
-                        "artist",
-                        "album",
-                        "year",
-                        "picture",
-                    ])
-                    .read({
-                        onSuccess: (tag) => {
-                            this.audioMetadata = {
-                                title: tag.tags.title,
-                                artist: tag.tags.artist,
-                                album: tag.tags.album,
-                                year: tag.tags.year,
-                            };
+                // Check if metadata is already provided by the backend
+                if (state.req.audioMeta) {
+                    this.audioMetadata = {
+                        title: state.req.audioMeta.title || null,
+                        artist: state.req.audioMeta.artist || null,
+                        album: state.req.audioMeta.album || null,
+                        year: state.req.audioMeta.year || null,
+                    };
 
-                            if (tag.tags.picture) {
-                                if (this.albumArt) {
-                                    URL.revokeObjectURL(this.albumArt);
-                                    this.albumArt = null;
-                                }
-
-                                const uint8 = new Uint8Array(
-                                    tag.tags.picture.data,
-                                );
-                                const blob = new Blob([uint8], {
-                                    type: tag.tags.picture.format,
-                                });
-                                this.albumArt = URL.createObjectURL(blob);
-                                this.albumArtUrl = this.albumArt;
-                            } else {
-                                if (this.albumArt) {
-                                    URL.revokeObjectURL(this.albumArt);
-                                    this.albumArt = null;
-                                }
-                                this.albumArtUrl = null;
+                    // Handle base64 encoded album art from backend
+                    if (state.req.audioMeta.albumArt) {
+                        try {
+                            // Decode base64 album art
+                            const byteCharacters = atob(state.req.audioMeta.albumArt);
+                            const byteNumbers = new Array(byteCharacters.length);
+                            for (let i = 0; i < byteCharacters.length; i++) {
+                                byteNumbers[i] = byteCharacters.charCodeAt(i);
                             }
-                        },
-                        onError: (error) => {
-                            console.error(
-                                "Failed to read audio metadata:",
-                                error,
-                            );
-                            this.audioMetadata = null;
+                            const byteArray = new Uint8Array(byteNumbers);
+                            const blob = new Blob([byteArray], { type: 'image/jpeg' });
+                            this.albumArt = URL.createObjectURL(blob);
+                            this.albumArtUrl = this.albumArt;
+                        } catch (error) {
+                            console.error("Failed to decode album art:", error);
                             this.albumArtUrl = null;
-                        },
-                    });
+                        }
+                    } else {
+                        this.albumArtUrl = null;
+                    }
+                } else {
+                    this.audioMetadata = null;
+                    this.albumArtUrl = null;
+                }
             } catch (error) {
-                console.error("Error loading audio metadata:", error);
                 this.audioMetadata = null;
                 this.albumArtUrl = null;
             }
@@ -1345,3 +1333,4 @@ button:hover,
     background: #f44336;
 }
 </style>
+

@@ -31,7 +31,6 @@
     "file-loader": "^6.2.0",
     "glob": "^9.3.5",
     "highlight.js": "^11.11.1",
-    "jsmediatags": "github:Kurami32/jsmediatags",
     "mammoth": "^1.9.1",
     "marked": "^15.0.6",
     "normalize.css": "^8.0.1",
