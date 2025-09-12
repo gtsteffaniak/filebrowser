@@ -188,7 +188,10 @@
     "numberFiles": "Anzahl der Dateien{suffix}",
     "renameMessageConflict": "Ein Artikel mit dem Namen \"{filename}\" existiert bereits!",
     "uploadSettingsChunked": "Max. gleichzeitige Uploads: {maxConcurrentUpload}, Chunk-Größe: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "Max. gleichzeitige Uploads: {maxConcurrentUpload}, Chunked Upload deaktiviert"
+    "uploadSettingsNoChunk": "Max. gleichzeitige Uploads: {maxConcurrentUpload}, Chunked Upload deaktiviert",
+    "quickJump": "Schnelles Springen zu anderen Dateien",
+    "moveSuccess": "Dateien erfolgreich verschoben!",
+    "copySuccess": "Dateien erfolgreich kopiert!"
   },
   "search": {
     "images": "Bilder",
@@ -482,7 +485,9 @@
     "maxConcurrentUpload": "Max. gleichzeitige Uploads",
     "maxConcurrentUploadHelp": "Die maximale Anzahl der gleichzeitigen Uploads. Höhere Werte führen in der Regel zu einer besseren Leistung, aber dies hängt von vielen Faktoren ab.",
     "uploadChunkSizeMb": "Größe des hochzuladenden Pakets in MB",
-    "uploadChunkSizeMbHelp": "Normalerweise 5 bis 50 MB, kleiner ist besser für instabile oder eingeschränkte Verbindungen. Die Einstellung 0 deaktiviert das Chunking beim Hochladen."
+    "uploadChunkSizeMbHelp": "Normalerweise 5 bis 50 MB, kleiner ist besser für instabile oder eingeschränkte Verbindungen. Die Einstellung 0 deaktiviert das Chunking beim Hochladen.",
+    "clearAll": "Clear completed sollte Fehler, Pausen und Konflikte beseitigen",
+    "clearAllDescription": "Mit der Schaltfläche Abgeschlossen löschen werden alle Uploads im abgeschlossenen Zustand gelöscht, einschließlich Fehler-, Pausen- und Konfliktstatus."
   },
   "colors": {
     "red": "rot",

@@ -188,7 +188,10 @@
     "numberFiles": "Número de arquivos{suffix}",
     "renameMessageConflict": "Já existe um item chamado \"{filename}\"!",
     "uploadSettingsChunked": "Máximo de uploads simultâneos: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "Máximo de uploads simultâneos: {maxConcurrentUpload}, upload em pedaços desativado"
+    "uploadSettingsNoChunk": "Máximo de uploads simultâneos: {maxConcurrentUpload}, upload em pedaços desativado",
+    "quickJump": "Pular rapidamente para outros arquivos",
+    "moveSuccess": "Os arquivos foram movidos com sucesso!",
+    "copySuccess": "Os arquivos foram copiados com sucesso!"
   },
   "search": {
     "images": "Imagens",
@@ -482,7 +485,9 @@
     "maxConcurrentUpload": "Máximo de uploads simultâneos",
     "maxConcurrentUploadHelp": "O número máximo de uploads simultâneos. Valores mais altos costumam ter melhor desempenho, mas isso depende de muitos fatores.",
     "uploadChunkSizeMb": "Tamanho do bloco de upload em MB",
-    "uploadChunkSizeMbHelp": "Normalmente, de 5 a 50 MB; quanto menor, melhor para conexões instáveis ou restritas. A configuração como 0 desabilitará o chunking de upload."
+    "uploadChunkSizeMbHelp": "Normalmente, de 5 a 50 MB; quanto menor, melhor para conexões instáveis ou restritas. A configuração como 0 desabilitará o chunking de upload.",
+    "clearAll": "O Clear completed deve remover erros, pausas e conflitos",
+    "clearAllDescription": "O botão limpar concluído limpará todos os uploads em um estado concluído, inclusive os estados de erro, pausa e conflito."
   },
   "colors": {
     "red": "vermelho",

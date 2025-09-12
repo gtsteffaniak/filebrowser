@@ -31,6 +31,9 @@
             :placeholder="$t('search.number')" />
         </div>
       </div>
+      <ToggleSwitch class="item" v-model="localuser.fileLoading.clearAll" @change="updateSettings"
+        :name="$t('fileLoading.clearAll')"
+        :description="$t('fileLoading.clearAllDescription')" />
     </div>
     <div class="card-action">
       <button class="button button--flat" @click="updateSettings">{{ $t("buttons.save") }}</button>
@@ -42,9 +45,13 @@
 import { notify } from "@/notify";
 import { state, mutations } from "@/store";
 import { usersApi } from "@/api";
+import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 
 export default {
   name: "fileLoading",
+  components: {
+    ToggleSwitch,
+  },
 
   data() {
     return {
@@ -76,12 +83,6 @@ export default {
     async updateSettings(event) {
       if (event !== undefined) {
         event.preventDefault();
-      }
-      if (this.localuser.themeColor != "") {
-        document.documentElement.style.setProperty(
-          "--primaryColor",
-          this.localuser.themeColor
-        );
       }
       try {
         const data = this.localuser;
@@ -138,5 +139,9 @@ export default {
 
 .no-padding {
   padding: 0 !important;
+}
+
+.item {
+  padding: 1em;
 }
 </style>

@@ -355,8 +355,14 @@ class UploadManager {
 
   clearCompleted() {
     for (let i = this.queue.length - 1; i >= 0; i--) {
-      if (this.queue[i].status === "completed") {
+      const status = this.queue[i].status;
+      if (status === "completed") {
         this.queue.splice(i, 1);
+      }
+      if (state.user.fileLoading?.clearAll) {
+        if (status === "error" || status === "conflict" || status === "paused") {
+          this.queue.splice(i, 1);
+        }
       }
     }
   }
@@ -405,8 +411,26 @@ class UploadManager {
       upload.status = "conflict";
     } else if (err.message !== "Upload aborted") {
       upload.status = "error";
+      // Store detailed error information for tooltip display
+      upload.errorDetails = this.formatErrorMessage(err);
     } else {
       console.log(`upload.js: Upload aborted for id ${upload.id}`, upload);
+    }
+  }
+
+  formatErrorMessage(err) {
+    if (err?.response) {
+      // API error with response
+      const status = err.response.status;
+      const statusText = err.response.statusText;
+      const message = err.response.data?.message || err.response.data?.error || statusText;
+      return `${status} ${statusText}: ${message}`;
+    } else if (err?.message) {
+      // Network error or other error with message
+      return err.message;
+    } else {
+      // Fallback for unknown errors
+      return "Unknown error occurred";
     }
   }
 }

@@ -188,7 +188,10 @@
     "numberFiles": "מספר הקבצים{suffix}",
     "renameMessageConflict": "פריט בשם \"{filename}\" כבר קיים!",
     "uploadSettingsChunked": "מספר העלאות מקסימלי בו-זמנית: {maxConcurrentUpload}, גודל קובץ: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "מספר העלאות מקסימלי בו-זמנית: {maxConcurrentUpload}, העלאה מקוטעת מושבתת"
+    "uploadSettingsNoChunk": "מספר העלאות מקסימלי בו-זמנית: {maxConcurrentUpload}, העלאה מקוטעת מושבתת",
+    "quickJump": "קפיצה מהירה לקבצים אחרים",
+    "moveSuccess": "הקבצים הועברו בהצלחה!",
+    "copySuccess": "הקבצים הועתקו בהצלחה!"
   },
   "search": {
     "images": "תמונות",
@@ -482,7 +485,9 @@
     "maxConcurrentUpload": "העלאות מקסימליות בו-זמנית",
     "maxConcurrentUploadHelp": "המספר המרבי של העלאות בו-זמנית. ערכים גבוהים יותר בדרך כלל מספקים ביצועים טובים יותר, אך הדבר תלוי בגורמים רבים.",
     "uploadChunkSizeMb": "גודל הקובץ להעלאה במגה-בייט",
-    "uploadChunkSizeMbHelp": "בדרך כלל 5 עד 50 MB, קטן יותר עדיף עבור חיבורים לא יציבים או מוגבלים. הגדרה ל-0 תשבית את חלוקת הקבצים להעלאה."
+    "uploadChunkSizeMbHelp": "בדרך כלל 5 עד 50 MB, קטן יותר עדיף עבור חיבורים לא יציבים או מוגבלים. הגדרה ל-0 תשבית את חלוקת הקבצים להעלאה.",
+    "clearAll": "השלמת הניקוי אמורה להסיר את השגיאה, ההשהיה והקונפליקט.",
+    "clearAllDescription": "הכפתור 'נקה את ההשלמות' ינקה את כל ההעלאות במצב 'הושלם', כולל מצבי שגיאה, השהיה וקונפליקט."
   },
   "colors": {
     "red": "אדום",

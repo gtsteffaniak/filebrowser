@@ -188,7 +188,10 @@
     "numberFiles": "Número de ficheiros{suffix}",
     "renameMessageConflict": "Já existe um item com o nome \"{filename}\"!",
     "uploadSettingsChunked": "Máximo de carregamentos simultâneos: {maxConcurrentUpload}, tamanho do pedaço: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "Máximo de carregamentos simultâneos: {maxConcurrentUpload}, carregamento em pedaços desativado"
+    "uploadSettingsNoChunk": "Máximo de carregamentos simultâneos: {maxConcurrentUpload}, carregamento em pedaços desativado",
+    "quickJump": "Saltar rapidamente para outros ficheiros",
+    "moveSuccess": "Ficheiros movidos com sucesso!",
+    "copySuccess": "Ficheiros copiados com sucesso!"
   },
   "search": {
     "images": "Imagens",
@@ -446,7 +449,9 @@
     "maxConcurrentUpload": "Máximo de carregamentos simultâneos",
     "maxConcurrentUploadHelp": "O número máximo de carregamentos simultâneos. Os valores mais elevados têm normalmente um melhor desempenho, mas isto depende de muitos factores.",
     "uploadChunkSizeMb": "Tamanho do bloco de carregamento em MB",
-    "uploadChunkSizeMbHelp": "Tipicamente, 5 a 50 MB, mas um valor mais pequeno é melhor para ligações instáveis ou restritas. Definir como 0 desactivará a fragmentação do carregamento."
+    "uploadChunkSizeMbHelp": "Tipicamente, 5 a 50 MB, mas um valor mais pequeno é melhor para ligações instáveis ou restritas. Definir como 0 desactivará a fragmentação do carregamento.",
+    "clearAll": "Limpar concluído deve eliminar erros, pausas e conflitos",
+    "clearAllDescription": "O botão Limpar concluído limpa todos os carregamentos num estado concluído, incluindo os estados de erro, pausa e conflito."
   },
   "colors": {
     "red": "vermelho",

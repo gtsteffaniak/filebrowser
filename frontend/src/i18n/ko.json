@@ -188,7 +188,10 @@
     "numberFiles": "파일 수{suffix}",
     "renameMessageConflict": "\"{filename}\"라는 이름의 항목이 이미 존재합니다!",
     "uploadSettingsChunked": "최대 동시 업로드: {maxConcurrentUpload}, 청크 크기: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "최대 동시 업로드: {maxConcurrentUpload}, 청크 업로드 비활성화"
+    "uploadSettingsNoChunk": "최대 동시 업로드: {maxConcurrentUpload}, 청크 업로드 비활성화",
+    "quickJump": "다른 파일로 빠르게 이동",
+    "moveSuccess": "파일이 성공적으로 이동했습니다!",
+    "copySuccess": "파일이 성공적으로 복사되었습니다!"
   },
   "search": {
     "images": "이미지",
@@ -482,7 +485,9 @@
     "maxConcurrentUpload": "최대 동시 업로드 수",
     "maxConcurrentUploadHelp": "최대 동시 업로드 수입니다. 일반적으로 값이 높을수록 성능이 향상되지만, 이는 여러 요인에 따라 달라집니다.",
     "uploadChunkSizeMb": "업로드 청크 크기(MB)",
-    "uploadChunkSizeMbHelp": "일반적으로 5~50MB이며, 연결이 불안정하거나 제한적인 경우에는 이보다 작을수록 좋습니다. 0으로 설정하면 업로드 청킹이 비활성화됩니다."
+    "uploadChunkSizeMbHelp": "일반적으로 5~50MB이며, 연결이 불안정하거나 제한적인 경우에는 이보다 작을수록 좋습니다. 0으로 설정하면 업로드 청킹이 비활성화됩니다.",
+    "clearAll": "완료를 지우면 오류, 일시 중지 및 충돌이 제거됩니다.",
+    "clearAllDescription": "완료 지우기 버튼은 오류, 일시 중지, 충돌 상태를 포함하여 완료된 상태의 모든 업로드를 지웁니다."
   },
   "colors": {
     "red": "빨간색",

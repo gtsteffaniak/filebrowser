@@ -188,7 +188,10 @@
     "numberFiles": "Fájlok száma{suffix}",
     "renameMessageConflict": "A \"{filename}\" nevű elem már létezik!",
     "uploadSettingsChunked": "Maximális egyidejű feltöltés: {maxConcurrentUpload}, chunk méret: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "Maximális egyidejű feltöltés: {maxConcurrentUpload}, chunked upload disabled"
+    "uploadSettingsNoChunk": "Maximális egyidejű feltöltés: {maxConcurrentUpload}, chunked upload disabled",
+    "quickJump": "Gyors ugrás más fájlokra",
+    "moveSuccess": "Fájlok sikeresen áthelyezve!",
+    "copySuccess": "A fájlok másolása sikeres volt!"
   },
   "search": {
     "images": "Képek",
@@ -482,7 +485,9 @@
     "maxConcurrentUpload": "Maximális egyidejű feltöltés",
     "maxConcurrentUploadHelp": "Az egyidejű feltöltések maximális száma. A magasabb értékek általában jobban teljesítenek, de ez sok tényezőtől függ.",
     "uploadChunkSizeMb": "Feltöltési csomag mérete MB-ban",
-    "uploadChunkSizeMbHelp": "Általában 5 és 50 MB között, instabil vagy korlátozott kapcsolatok esetén a kisebb méret jobb. A 0 értékre állítás kikapcsolja a feltöltési darabolás funkciót."
+    "uploadChunkSizeMbHelp": "Általában 5 és 50 MB között, instabil vagy korlátozott kapcsolatok esetén a kisebb méret jobb. A 0 értékre állítás kikapcsolja a feltöltési darabolás funkciót.",
+    "clearAll": "A befejezett törlésnek el kell távolítania a hibát, a szünetet és a konfliktust.",
+    "clearAllDescription": "A befejezett állapot törlése gomb az összes befejezett állapotban lévő feltöltést törli, beleértve a hiba, a szüneteltetés és a konfliktus állapotokat is."
   },
   "colors": {
     "red": "piros",

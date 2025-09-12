@@ -188,7 +188,10 @@
     "numberFiles": "Nombre de fichiers{suffix}",
     "renameMessageConflict": "Un article nommé \"{filename}\" existe déjà !",
     "uploadSettingsChunked": "Nombre maximum de téléchargements simultanés : {maxConcurrentUpload}, taille de chunk : {uploadChunkSizeMb} MO",
-    "uploadSettingsNoChunk": "Nombre maximum de téléchargements simultanés : {maxConcurrentUpload}, chunked upload désactivé"
+    "uploadSettingsNoChunk": "Nombre maximum de téléchargements simultanés : {maxConcurrentUpload}, chunked upload désactivé",
+    "quickJump": "Passer rapidement à d'autres fichiers",
+    "moveSuccess": "Les fichiers ont été déplacés avec succès !",
+    "copySuccess": "Les fichiers ont été copiés avec succès !"
   },
   "search": {
     "images": "Images",
@@ -482,7 +485,9 @@
     "maxConcurrentUpload": "Nombre maximum de téléchargements simultanés",
     "maxConcurrentUploadHelp": "Nombre maximal de téléchargements simultanés. Des valeurs plus élevées sont généralement plus performantes, mais cela dépend de nombreux facteurs.",
     "uploadChunkSizeMb": "Taille de la zone de téléchargement en Mo",
-    "uploadChunkSizeMbHelp": "Généralement de 5 à 50 Mo, une taille inférieure est préférable pour les connexions instables ou restreintes. La valeur 0 désactive le fractionnement de l'upload."
+    "uploadChunkSizeMbHelp": "Généralement de 5 à 50 Mo, une taille inférieure est préférable pour les connexions instables ou restreintes. La valeur 0 désactive le fractionnement de l'upload.",
+    "clearAll": "Clear completed devrait supprimer les erreurs, les pauses et les conflits.",
+    "clearAllDescription": "Le bouton \"Effacer les téléchargements terminés\" efface tous les téléchargements terminés, y compris les erreurs, les pauses et les conflits."
   },
   "colors": {
     "red": "rouge",

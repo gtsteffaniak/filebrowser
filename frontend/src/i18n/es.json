@@ -188,7 +188,10 @@
     "numberFiles": "Número de ficheros{suffix}",
     "renameMessageConflict": "Ya existe un elemento llamado \"{filename}\".",
     "uploadSettingsChunked": "Carga máxima simultánea: {maxConcurrentUpload} Tamaño del chunk {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "Carga máxima simultánea: {maxConcurrentUpload} Carga por trozos desactivada"
+    "uploadSettingsNoChunk": "Carga máxima simultánea: {maxConcurrentUpload} Carga por trozos desactivada",
+    "quickJump": "Saltar rápidamente a otros archivos",
+    "moveSuccess": "¡Archivos movidos con éxito!",
+    "copySuccess": "¡Archivos copiados correctamente!"
   },
   "search": {
     "images": "Imágenes",
@@ -482,7 +485,9 @@
     "maxConcurrentUpload": "Cargas máximas simultáneas",
     "maxConcurrentUploadHelp": "El número máximo de archivos a subir a la vez. Los valores más altos suelen dar mejores resultados, pero esto depende de muchos factores",
     "uploadChunkSizeMb": "Velocidad de subida (en MB)",
-    "uploadChunkSizeMbHelp": "Típicamente 5 a 50 MB, más pequeño es mejor para conexiones inestables. Si se pone a 0, se desactiva la subida de archivo en partes"
+    "uploadChunkSizeMbHelp": "Típicamente 5 a 50 MB, más pequeño es mejor para conexiones inestables. Si se pone a 0, se desactiva la subida de archivo en partes",
+    "clearAll": "El borrado completado debería eliminar el error, la pausa y el conflicto",
+    "clearAllDescription": "El botón de borrado de cargas completadas borrará todas las cargas en estado finalizado, incluidos los estados de error, pausa y conflicto."
   },
   "colors": {
     "red": "Rojo",

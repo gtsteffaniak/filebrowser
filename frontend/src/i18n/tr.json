@@ -188,7 +188,10 @@
     "numberFiles": "Dosya sayısı{suffix}",
     "renameMessageConflict": "\"{filename}\" adında bir öğe zaten var!",
     "uploadSettingsChunked": "Maksimum eşzamanlı yükleme: {maxConcurrentUpload}, yığın boyutu: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "Maksimum eşzamanlı yükleme: {maxConcurrentUpload}, yığınlanmış yükleme devre dışı"
+    "uploadSettingsNoChunk": "Maksimum eşzamanlı yükleme: {maxConcurrentUpload}, yığınlanmış yükleme devre dışı",
+    "quickJump": "Diğer dosyalara hızlıca atlayın",
+    "moveSuccess": "Dosyalar başarıyla taşındı!",
+    "copySuccess": "Dosyalar başarıyla kopyalandı!"
   },
   "search": {
     "images": "Görseller",
@@ -482,7 +485,9 @@
     "maxConcurrentUpload": "Maksimum eşzamanlı yükleme",
     "maxConcurrentUploadHelp": "Eşzamanlı yüklemelerin maksimum sayısı. Daha yüksek değerler genellikle daha iyi performans gösterir, ancak bu birçok faktöre bağlıdır.",
     "uploadChunkSizeMb": "MB cinsinden yığın boyutu yükleme",
-    "uploadChunkSizeMbHelp": "Tipik olarak 5 ila 50 MB, daha küçük kararsız veya kısıtlı bağlantılar için daha iyidir. 0 olarak ayarlandığında yükleme yığınlaması devre dışı bırakılır."
+    "uploadChunkSizeMbHelp": "Tipik olarak 5 ila 50 MB, daha küçük kararsız veya kısıtlı bağlantılar için daha iyidir. 0 olarak ayarlandığında yükleme yığınlaması devre dışı bırakılır.",
+    "clearAll": "Clear completed hata, duraklama ve çakışmayı kaldırmalıdır",
+    "clearAllDescription": "Tamamlananları temizle düğmesi hata, duraklatılmış ve çakışma durumları da dahil olmak üzere bitmiş durumdaki tüm yüklemeleri temizler."
   },
   "colors": {
     "red": "kırmızı",

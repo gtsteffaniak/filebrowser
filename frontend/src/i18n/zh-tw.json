@@ -188,7 +188,10 @@
     "numberFiles": "檔案數量{suffix}",
     "renameMessageConflict": "名為 \"{filename}\" 的項目已經存在！",
     "uploadSettingsChunked": "最大同時上傳數量：{maxConcurrentUpload}, 分塊大小： {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "最大同時上傳數量：{maxConcurrentUpload}, 已停用分塊上傳"
+    "uploadSettingsNoChunk": "最大同時上傳數量：{maxConcurrentUpload}, 已停用分塊上傳",
+    "quickJump": "快速跳到其他檔案",
+    "moveSuccess": "檔案移動成功！",
+    "copySuccess": "檔案已成功複製！"
   },
   "search": {
     "images": "影像",
@@ -503,7 +506,9 @@
     "maxConcurrentUpload": "最大同時上傳數量",
     "maxConcurrentUploadHelp": "最大同時上傳數量。較高的值通常效能較佳，但這取決於許多因素。",
     "uploadChunkSizeMb": "上傳區塊大小（以 MB 為單位",
-    "uploadChunkSizeMbHelp": "通常為 5 到 50 MB，對於不穩定或受限制的連線，越小越好。設定為 0 會停用上傳分塊。"
+    "uploadChunkSizeMbHelp": "通常為 5 到 50 MB，對於不穩定或受限制的連線，越小越好。設定為 0 會停用上傳分塊。",
+    "clearAll": "清除完成應移除錯誤、暫停和衝突",
+    "clearAllDescription": "清除完成按鈕將會清除所有處於完成狀態的上傳，包括錯誤、暫停和衝突狀態。"
   },
   "colors": {
     "red": "紅色",

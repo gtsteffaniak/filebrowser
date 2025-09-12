@@ -133,48 +133,23 @@ export default {
   },
   watch: {
     currentView(newView, oldView) {
-      console.log('[NextPrevious] currentView watcher:', {
-        from: oldView,
-        to: newView,
-        enabled: this.enabled,
-        reqName: state.req?.name
-      });
-
       this.updateNavigationEnabled();
 
       // Also trigger navigation setup if we're now in a preview view
       this.$nextTick(() => {
         if (this.enabled && state.req) {
-          console.log('[NextPrevious] currentView watcher: Triggering setupNavigationForCurrentItem');
           this.setupNavigationForCurrentItem();
-        } else {
-          console.log('[NextPrevious] currentView watcher: Not triggering setup:', {
-            enabled: this.enabled,
-            hasReq: !!state.req
-          });
         }
       });
     },
     'state.req': {
       handler(newReq, oldReq) {
-        console.log('[NextPrevious] state.req watcher triggered:', {
-          oldReqName: oldReq?.name,
-          oldReqPath: oldReq?.path,
-          newReqName: newReq?.name,
-          newReqPath: newReq?.path,
-          enabled: this.enabled,
-          timestamp: new Date().toISOString().substr(14, 9)
-        });
-
         this.updateNavigationEnabled();
         // Auto-setup navigation when request changes and we're enabled
         if (this.enabled) {
           this.$nextTick(() => {
-            console.log('[NextPrevious] state.req watcher: Triggering setupNavigationForCurrentItem');
             this.setupNavigationForCurrentItem();
           });
-        } else {
-          console.log('[NextPrevious] state.req watcher: Not triggering setup - disabled');
         }
       },
       deep: true,
@@ -188,19 +163,10 @@ export default {
       }
     },
     '$route'(to, from) {
-      console.log('[NextPrevious] $route watcher triggered:', {
-        fromPath: from.path,
-        toPath: to.path,
-        enabled: this.enabled,
-        reqName: state.req?.name,
-        timestamp: new Date().toISOString().substr(14, 9)
-      });
-
       // Give time for state.req to be updated, then setup navigation
       setTimeout(() => {
         this.$nextTick(() => {
           if (this.enabled && state.req) {
-            console.log('[NextPrevious] $route watcher: Triggering setupNavigationForCurrentItem after route change');
             this.setupNavigationForCurrentItem();
           }
         });
@@ -208,19 +174,9 @@ export default {
     },
     // Watch for when navigation links are set up
     'state.navigation.previousLink'(newLink, oldLink) {
-      console.log('[NextPrevious] previousLink changed:', {
-        from: oldLink,
-        to: newLink,
-        timestamp: new Date().toISOString().substr(14, 9)
-      });
       this.showInitialNavigation();
     },
     'state.navigation.nextLink'(newLink, oldLink) {
-      console.log('[NextPrevious] nextLink changed:', {
-        from: oldLink,
-        to: newLink,
-        timestamp: new Date().toISOString().substr(14, 9)
-      });
       this.showInitialNavigation();
     },
   },
@@ -267,96 +223,40 @@ export default {
 
     updateNavigationEnabled() {
       const shouldEnable = previewViews.includes(this.currentView);
-      console.log('[NextPrevious] updateNavigationEnabled:', {
-        currentView: this.currentView,
-        previewViews: previewViews,
-        shouldEnable: shouldEnable,
-        oldEnabled: state.navigation.enabled
-      });
-
       mutations.setNavigationEnabled(shouldEnable);
-
-      console.log('[NextPrevious] updateNavigationEnabled result:', {
-        newEnabled: state.navigation.enabled
-      });
     },
     async setupNavigationForCurrentItem() {
-      console.log('[NextPrevious] setupNavigationForCurrentItem called:', {
-        enabled: this.enabled,
-        hasReq: !!state.req,
-        reqName: state.req?.name,
-        reqPath: state.req?.path,
-        reqType: state.req?.type,
-        currentView: this.currentView,
-        currentPreviousLink: state.navigation.previousLink,
-        currentNextLink: state.navigation.nextLink
-      });
-
       if (!this.enabled || !state.req || state.req.type === 'directory') {
-        console.log('[NextPrevious] setupNavigationForCurrentItem: Early return - conditions not met');
         // Clear navigation when not applicable
         mutations.clearNavigation();
         return;
       }
 
       const directoryPath = url.removeLastDir(state.req.path);
-      console.log('[NextPrevious] Directory path calculated:', directoryPath);
       let listing = null;
 
       // Try to get listing from current request first
       if (state.req.items) {
         listing = state.req.items;
-        console.log('[NextPrevious] Using existing items from state.req:', {
-          listingLength: listing?.length,
-          listingNames: listing?.map(item => item.name)
-        });
       } else {
         // Fetch the directory listing
-        console.log('[NextPrevious] Fetching directory listing for:', directoryPath);
         try {
           let res;
           if (getters.isShare()) {
-            console.log('[NextPrevious] Using publicApi.fetchPub with hash:', state.share.hash);
             res = await publicApi.fetchPub(directoryPath, state.share.hash);
           } else {
-            console.log('[NextPrevious] Using filesApi.fetchFiles with source:', state.req.source);
             res = await filesApi.fetchFiles(state.req.source, directoryPath);
           }
           listing = res.items;
-          console.log('[NextPrevious] Successfully fetched directory listing:', {
-            listingLength: listing?.length,
-            listingNames: listing?.map(item => item.name)
-          });
         } catch (error) {
-          console.error('[NextPrevious] Failed to fetch directory listing:', error);
           listing = [state.req]; // Fallback to current item only
-          console.log('[NextPrevious] Using fallback listing (current item only)');
         }
       }
-
-      console.log('[NextPrevious] Setting up navigation with:', {
-        listingLength: listing?.length,
-        currentItemName: state.req.name,
-        currentItemPath: state.req.path,
-        directoryPath: directoryPath,
-        allFileNames: listing?.map(item => item.name)
-      });
 
       mutations.setupNavigation({
         listing: listing,
         currentItem: state.req,
         directoryPath: directoryPath
-      });
-
-      console.log('[NextPrevious] Navigation setup complete. Final state:', {
-        forCurrentFile: state.req.name,
-        forCurrentPath: state.req.path,
-        previousLink: state.navigation.previousLink,
-        nextLink: state.navigation.nextLink,
-        hasPrevious: this.hasPrevious,
-        hasNext: this.hasNext,
-        currentNavListing: state.navigation.listing?.map(item => ({ name: item.name, path: item.path })),
-        timestamp: new Date().toISOString().substr(14, 9)
       });
     },
     showInitialNavigation() {
@@ -379,82 +279,36 @@ export default {
       }
     },
     prev() {
-      console.log('[NextPrevious] prev() called:', {
-        hasPrevious: this.hasPrevious,
-        currentFile: state.req?.name,
-        currentPath: state.req?.path,
-        currentType: state.req?.type,
-        currentView: this.currentView,
-        previousLink: state.navigation.previousLink,
-        navigationEnabled: state.navigation.enabled,
-        listingLength: state.navigation.listing?.length,
-        currentListing: state.navigation.listing?.map(item => ({ name: item.name, path: item.path })),
-        timestamp: new Date().toISOString().substr(14, 9)
-      });
-
       if (this.hasPrevious) {
         this.hoverNav = false;
         this.$router.replace({ path: state.navigation.previousLink });
-      } else {
-        console.warn('[NextPrevious] prev() called but hasPrevious is false');
       }
     },
     next() {
-      console.log('[NextPrevious] next() called:', {
-        hasNext: this.hasNext,
-        currentFile: state.req?.name,
-        currentPath: state.req?.path,
-        currentType: state.req?.type,
-        currentView: this.currentView,
-        nextLink: state.navigation.nextLink,
-        navigationEnabled: state.navigation.enabled,
-        listingLength: state.navigation.listing?.length,
-        currentListing: state.navigation.listing?.map(item => ({ name: item.name, path: item.path })),
-        timestamp: new Date().toISOString().substr(14, 9)
-      });
-
       if (this.hasNext) {
         this.hoverNav = false;
         this.$router.replace({ path: state.navigation.nextLink });
-      } else {
-        console.warn('[NextPrevious] next() called but hasNext is false');
       }
     },
     keyEvent(event) {
       // Only handle navigation if enabled and no prompt is active
       if (!this.enabled || state.prompts.length > 0) {
-        console.log('[NextPrevious] keyEvent: Ignoring due to disabled or prompts:', {
-          enabled: this.enabled,
-          promptsCount: state.prompts.length
-        });
         return;
       }
 
       const { key } = event;
-      console.log('[NextPrevious] keyEvent triggered:', {
-        key: key,
-        currentFile: state.req?.name,
-        hasNext: this.hasNext,
-        hasPrevious: this.hasPrevious
-      });
 
       switch (key) {
         case "ArrowRight":
           if (this.hasNext) {
-            console.log('[NextPrevious] keyEvent: Arrow right - navigating to next');
             event.preventDefault();
             this.next();
-          } else {
-            console.log('[NextPrevious] keyEvent: Arrow right - no next available');
           }
           break;
         case "ArrowLeft":
           if (this.hasPrevious) {
-            console.log('[NextPrevious] keyEvent: Arrow left - navigating to previous');
             event.preventDefault();
             this.prev();
-          } else {
-            console.log('[NextPrevious] keyEvent: Arrow left - no previous available');
           }
           break;
       }
@@ -611,37 +465,17 @@ export default {
     },
 
     handlePrevClick() {
-      console.log('[NextPrevious] handlePrevClick called:', {
-        dragTriggered: this.dragState.triggered,
-        currentFile: state.req?.name,
-        currentPath: state.req?.path,
-        hasPrevious: this.hasPrevious,
-        previousLink: state.navigation.previousLink
-      });
-
       // Only navigate if this wasn't a drag
       if (!this.dragState.triggered) {
         this.prev();
-      } else {
-        console.log('[NextPrevious] handlePrevClick: Skipping navigation due to drag');
       }
       this.resetDragState();
     },
 
     handleNextClick() {
-      console.log('[NextPrevious] handleNextClick called:', {
-        dragTriggered: this.dragState.triggered,
-        currentFile: state.req?.name,
-        currentPath: state.req?.path,
-        hasNext: this.hasNext,
-        nextLink: state.navigation.nextLink
-      });
-
       // Only navigate if this wasn't a drag
       if (!this.dragState.triggered) {
         this.next();
-      } else {
-        console.log('[NextPrevious] handleNextClick: Skipping navigation due to drag');
       }
       this.resetDragState();
     },

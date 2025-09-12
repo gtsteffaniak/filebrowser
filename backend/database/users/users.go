@@ -108,8 +108,9 @@ type NonAdminEditable struct {
 }
 
 type FileLoading struct {
-	MaxConcurrent int `json:"maxConcurrentUpload"`
-	ChunkSize     int `json:"uploadChunkSizeMb"`
+	MaxConcurrent int  `json:"maxConcurrentUpload"`
+	ChunkSize     int  `json:"uploadChunkSizeMb"`
+	ClearAll      bool `json:"clearAll"`
 }
 
 func CleanUsername(s string) string {

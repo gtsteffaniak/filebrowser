@@ -3583,6 +3583,9 @@ const docTemplate = `{
         "users.FileLoading": {
             "type": "object",
             "properties": {
+                "clearAll": {
+                    "type": "boolean"
+                },
                 "maxConcurrentUpload": {
                     "type": "integer"
                 },

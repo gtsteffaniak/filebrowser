@@ -304,8 +304,6 @@ export default {
 
       // Use router to navigate
       this.$router.replace({ path: itemUrl });
-
-      console.log(`🔄 Navigating to: ${itemUrl}`, item);
     },
 
     closeModal() {
@@ -344,4 +342,11 @@ export default {
   padding: 0;
   margin: 0;
 }
+
+.file-list li[aria-selected=true] {
+  background: var(--primaryColor) !important;
+  color: #fff !important;
+  transition: .1s ease all;
+}
+
 </style>

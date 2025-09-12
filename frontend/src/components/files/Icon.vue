@@ -147,6 +147,9 @@ export default {
       if (this.mimetype == "text/csv") {
         return false;
       }
+      if (this.mimetype == "audio/mpeg") {
+        return true;
+      }
       // @ts-ignore
       if (this.pdfConvertable && state.user.preview?.office) {
         return true;

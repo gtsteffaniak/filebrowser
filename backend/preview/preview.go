@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/md5"
+	"encoding/base64"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -13,10 +14,10 @@ import (
 	"runtime"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/diskcache"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
@@ -97,7 +98,13 @@ func GetPreviewForFile(file iteminfo.ExtendedFileInfo, previewSize, url string, 
 	if !AvailablePreview(file) {
 		return nil, ErrUnsupportedMedia
 	}
-	cacheKey := CacheKey(file.RealPath, previewSize, file.ModTime, seekPercentage)
+	md5, err := utils.GetChecksum(file.RealPath, "md5")
+	if err != nil {
+		return nil, fmt.Errorf("failed to get checksum: %w", err)
+	}
+	file.Checksums = make(map[string]string)
+	file.Checksums["md5"] = md5
+	cacheKey := CacheKey(md5, previewSize, seekPercentage)
 	if data, found, err := service.fileCache.Load(context.Background(), cacheKey); err != nil {
 		return nil, fmt.Errorf("failed to load from cache: %w", err)
 	} else if found {
@@ -115,7 +122,7 @@ func GeneratePreview(file iteminfo.ExtendedFileInfo, previewSize, officeUrl stri
 	)
 	// Generate thumbnail image from video
 	hasher := md5.New() //nolint:gosec
-	_, _ = hasher.Write([]byte(CacheKey(file.RealPath, previewSize, file.ModTime, seekPercentage)))
+	_, _ = hasher.Write([]byte(CacheKey(file.Checksums["md5"], previewSize, seekPercentage)))
 	hash := hex.EncodeToString(hasher.Sum(nil))
 	// Generate an image from office document
 	if iteminfo.HasDocConvertableExtension(file.Name, file.Type) {
@@ -136,7 +143,7 @@ func GeneratePreview(file iteminfo.ExtendedFileInfo, previewSize, officeUrl stri
 			return nil, fmt.Errorf("failed to process HEIC image file: %w", err)
 		}
 		// For HEIC files, we've already done the resize/conversion, so cache and return directly
-		cacheKey := CacheKey(file.RealPath, previewSize, file.ModTime, seekPercentage)
+		cacheKey := CacheKey(file.Checksums["md5"], previewSize, seekPercentage)
 		if err = service.fileCache.Store(context.Background(), cacheKey, imageBytes); err != nil {
 			logger.Errorf("failed to cache HEIC image: %v", err)
 		}
@@ -156,6 +163,16 @@ func GeneratePreview(file iteminfo.ExtendedFileInfo, previewSize, officeUrl stri
 		if err != nil {
 			return nil, fmt.Errorf("failed to create image for video file: %w", err)
 		}
+	} else if strings.HasPrefix(file.Type, "audio") {
+		// Extract album artwork from audio files
+		if file.AudioMeta != nil && file.AudioMeta.AlbumArt != "" {
+			imageBytes, err = base64.StdEncoding.DecodeString(file.AudioMeta.AlbumArt)
+			if err != nil {
+				return nil, fmt.Errorf("failed to decode album artwork: %w", err)
+			}
+		} else {
+			return nil, fmt.Errorf("no album artwork available for audio file: %s", file.Name)
+		}
 	} else {
 		return nil, fmt.Errorf("unsupported media type: %s", ext)
 	}
@@ -170,13 +187,13 @@ func GeneratePreview(file iteminfo.ExtendedFileInfo, previewSize, officeUrl stri
 			return nil, fmt.Errorf("failed to resize preview image: %w", err)
 		}
 		// Cache and return
-		cacheKey := CacheKey(file.RealPath, previewSize, file.ModTime, seekPercentage)
+		cacheKey := CacheKey(file.Checksums["md5"], previewSize, seekPercentage)
 		if err := service.fileCache.Store(context.Background(), cacheKey, resizedBytes); err != nil {
 			logger.Errorf("failed to cache resized image: %v", err)
 		}
 		return resizedBytes, nil
 	} else {
-		cacheKey := CacheKey(file.RealPath, previewSize, file.ModTime, seekPercentage)
+		cacheKey := CacheKey(file.Checksums["md5"], previewSize, seekPercentage)
 		if err := service.fileCache.Store(context.Background(), cacheKey, imageBytes); err != nil {
 			logger.Errorf("failed to cache resized image: %v", err)
 		}
@@ -213,14 +230,14 @@ func (s *Service) CreatePreview(data []byte, previewSize string) ([]byte, error)
 	return output.Bytes(), nil
 }
 
-func CacheKey(realPath, previewSize string, modTime time.Time, percentage int) string {
-	return fmt.Sprintf("%x%x%x%x", realPath, modTime.Unix(), previewSize, percentage)
+func CacheKey(md5, previewSize string, percentage int) string {
+	return fmt.Sprintf("%x%x%x", md5, previewSize, percentage)
 }
 
 func DelThumbs(ctx context.Context, file iteminfo.ExtendedFileInfo) {
-	errSmall := service.fileCache.Delete(ctx, CacheKey(file.RealPath, "small", file.ModTime, 0))
+	errSmall := service.fileCache.Delete(ctx, CacheKey(file.Checksums["md5"], "small", 0))
 	if errSmall != nil {
-		errLarge := service.fileCache.Delete(ctx, CacheKey(file.RealPath, "large", file.ModTime, 0))
+		errLarge := service.fileCache.Delete(ctx, CacheKey(file.Checksums["md5"], "large", 0))
 		if errLarge != nil {
 			logger.Debugf("Could not delete thumbnail: %v", file.Name)
 		}
@@ -237,6 +254,8 @@ func AvailablePreview(file iteminfo.ExtendedFileInfo) bool {
 	ext := strings.ToLower(filepath.Ext(file.Name))
 	switch ext {
 	case ".jpg", ".jpeg", ".png", ".bmp", ".tiff":
+		return true
+	case ".mp3", ".flac", ".ogg", ".m4a", ".mp4", ".wav", ".ape", ".wv":
 		return true
 	case ".heic", ".heif":
 		return service.ffmpegPath != "" // HEIC support available when FFmpeg is available

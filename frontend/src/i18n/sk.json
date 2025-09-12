@@ -188,7 +188,10 @@
     "numberFiles": "Počet súborov{suffix}",
     "renameMessageConflict": "Položka s názvom \"{filename}\" už existuje!",
     "uploadSettingsChunked": "Maximálne súbežné nahrávanie: {maxConcurrentUpload}, veľkosť chunk: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "Maximálne súbežné nahrávanie: {maxConcurrentUpload}, chunked upload vypnuté"
+    "uploadSettingsNoChunk": "Maximálne súbežné nahrávanie: {maxConcurrentUpload}, chunked upload vypnuté",
+    "quickJump": "Rýchly prechod na iné súbory",
+    "moveSuccess": "Súbory boli úspešne presunuté!",
+    "copySuccess": "Súbory boli úspešne skopírované!"
   },
   "search": {
     "images": "Obrázky",
@@ -482,7 +485,9 @@
     "maxConcurrentUpload": "Maximálne súbežné nahrávanie",
     "maxConcurrentUploadHelp": "Maximálny počet súbežných odosielaní. Vyššie hodnoty sú zvyčajne výkonnejšie, ale závisí to od mnohých faktorov.",
     "uploadChunkSizeMb": "Veľkosť nahraného úseku v MB",
-    "uploadChunkSizeMbHelp": "Zvyčajne 5 až 50 MB, v prípade nestabilných alebo obmedzených pripojení je vhodnejšie použiť menšiu veľkosť. Nastavením na hodnotu 0 sa vypne zoskupovanie pri odosielaní."
+    "uploadChunkSizeMbHelp": "Zvyčajne 5 až 50 MB, v prípade nestabilných alebo obmedzených pripojení je vhodnejšie použiť menšiu veľkosť. Nastavením na hodnotu 0 sa vypne zoskupovanie pri odosielaní.",
+    "clearAll": "Vymazanie dokončenia by malo odstrániť chybu, pauzu a konflikt",
+    "clearAllDescription": "Tlačidlo Vymazať dokončené vymaže všetky odoslania v stave dokončenia vrátane chybových, pozastavených a konfliktných stavov."
   },
   "colors": {
     "red": "červená",

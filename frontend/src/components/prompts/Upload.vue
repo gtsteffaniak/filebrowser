@@ -48,7 +48,8 @@
                   ? $t('prompts.conflictsDetected')
                   : (file.progress / 100) * file.size
             " :unit="file.status === 'completed' || file.status === 'error' ? '' : 'bytes'" :max="file.size"
-            :status="file.status" text-position="inside" size="20">
+            :status="file.status" text-position="inside" size="20"
+            :help-text="file.status === 'error' && file.errorDetails ? file.errorDetails : ''">
           </progress-bar>
           <div v-else class="status-label">
             <span>{{ $t(`prompts.${file.status}`) }}</span>
@@ -94,7 +95,7 @@
       :aria-label="$t('buttons.resumeAll')" :title="$t('buttons.resumeAll')">
       {{ $t("buttons.resumeAll") }}
     </button>
-    <button @click="clearCompleted" class="button button--flat" :disabled="!hasCompleted"
+    <button @click="clearCompleted" class="button button--flat" :disabled="!hasClearable"
       :aria-label="$t('buttons.clearCompleted')" :title="$t('buttons.clearCompleted')">
       {{ $t("buttons.clearCompleted") }}
     </button>
@@ -184,7 +185,7 @@ export default {
         console.error("No conflicting folder found for rename");
         return;
       }
-      
+
       mutations.showHover({
         name: "rename",
         confirm: (newName) => {
@@ -205,7 +206,7 @@ export default {
 
         // Update upload manager with the new folder name
         await uploadManager.renameFolder(oldName, newName);
-        
+
         // Resolve the conflict and continue upload
         if (conflictResolver) {
           conflictResolver({ rename: newName });
@@ -255,6 +256,21 @@ export default {
     const hasCompleted = computed(() =>
       files.value.some((file) => file.status === "completed")
     );
+
+    const hasClearable = computed(() => {
+      if (state.user.fileLoading?.clearAll) {
+        // For "clear all" mode: check for completed, error, conflict, or paused uploads
+        return files.value.some((file) => 
+          file.status === "completed" || 
+          file.status === "error" || 
+          file.status === "conflict" || 
+          file.status === "paused"
+        );
+      } else {
+        // For "clear completed" mode: only check for completed uploads
+        return files.value.some((file) => file.status === "completed");
+      }
+    });
 
     const canPauseAll = computed(() =>
       files.value.some((file) => file.status === "uploading")
@@ -447,6 +463,7 @@ export default {
       close,
       clearCompleted,
       hasCompleted,
+      hasClearable,
       showConflictPrompt,
       resolveConflict,
       showRenamePrompt,

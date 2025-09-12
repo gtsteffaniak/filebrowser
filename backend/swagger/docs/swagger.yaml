@@ -867,6 +867,8 @@ definitions:
     type: object
   users.FileLoading:
     properties:
+      clearAll:
+        type: boolean
       maxConcurrentUpload:
         type: integer
       uploadChunkSizeMb:

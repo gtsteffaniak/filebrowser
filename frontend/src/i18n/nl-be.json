@@ -188,7 +188,10 @@
     "numberFiles": "Aantal bestanden{suffix}",
     "renameMessageConflict": "Een item met de naam \"{filename}\" bestaat al!",
     "uploadSettingsChunked": "Max gelijktijdige uploads: {maxConcurrentUpload}, brokgrootte: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "Max gelijktijdige uploads: {maxConcurrentUpload}, chunked upload uitgeschakeld"
+    "uploadSettingsNoChunk": "Max gelijktijdige uploads: {maxConcurrentUpload}, chunked upload uitgeschakeld",
+    "quickJump": "Snel naar andere bestanden springen",
+    "moveSuccess": "Bestanden succesvol verplaatst!",
+    "copySuccess": "Bestanden succesvol gekopieerd!"
   },
   "search": {
     "images": "Afbeeldingen",
@@ -446,7 +449,9 @@
     "maxConcurrentUpload": "Max. gelijktijdige uploads",
     "maxConcurrentUploadHelp": "Het maximum aantal gelijktijdige uploads. Hogere waarden presteren meestal beter, maar dit hangt van veel factoren af.",
     "uploadChunkSizeMb": "Upload brokgrootte in MB",
-    "uploadChunkSizeMbHelp": "Gewoonlijk 5 tot 50 MB, kleiner is beter voor onstabiele of beperkte verbindingen. Instellen op 0 schakelt chunking uit."
+    "uploadChunkSizeMbHelp": "Gewoonlijk 5 tot 50 MB, kleiner is beter voor onstabiele of beperkte verbindingen. Instellen op 0 schakelt chunking uit.",
+    "clearAll": "Wissen voltooid moet fout, pauze en conflict verwijderen",
+    "clearAllDescription": "De knop Voltooid wissen wist alle uploads in een voltooide status, inclusief fout-, gepauzeerde en conflictstatussen."
   },
   "colors": {
     "red": "rood",

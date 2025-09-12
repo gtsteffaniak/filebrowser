@@ -188,7 +188,10 @@
     "numberFiles": "文件数量{suffix}",
     "renameMessageConflict": "名为 \"{filename}\" 的项目已经存在！",
     "uploadSettingsChunked": "最大并发上传：{maxConcurrentUpload}块大小 {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "最大并发上传：{maxConcurrentUpload}已禁用分块上传"
+    "uploadSettingsNoChunk": "最大并发上传：{maxConcurrentUpload}已禁用分块上传",
+    "quickJump": "快速跳转到其他文件",
+    "moveSuccess": "文件移动成功！",
+    "copySuccess": "文件复制成功！"
   },
   "search": {
     "images": "图像",
@@ -446,7 +449,9 @@
     "maxConcurrentUpload": "最大并发上传",
     "maxConcurrentUploadHelp": "最大并发上传次数。数值越大，性能通常越好，但这取决于很多因素。",
     "uploadChunkSizeMb": "上传块大小（以 MB 为单位",
-    "uploadChunkSizeMbHelp": "通常为 5 至 50 MB，对于不稳定或受限制的连接，越小越好。设置为 0 将禁用上传分块。"
+    "uploadChunkSizeMbHelp": "通常为 5 至 50 MB，对于不稳定或受限制的连接，越小越好。设置为 0 将禁用上传分块。",
+    "clearAll": "清除完成后，应消除错误、暂停和冲突",
+    "clearAllDescription": "清除已完成按钮将清除所有处于完成状态的上传，包括错误、暂停和冲突状态。"
   },
   "colors": {
     "red": "红",
