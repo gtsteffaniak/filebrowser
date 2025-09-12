@@ -488,6 +488,13 @@ func (idx *Index) shouldSkip(isDir bool, isHidden bool, fullCombined, baseName s
 				}
 			}
 		}
+		if len(rules.FolderStartsWith) > 0 {
+			for _, start := range rules.FolderStartsWith {
+				if strings.HasPrefix(baseName, start) {
+					return true
+				}
+			}
+		}
 	} else {
 		if len(rules.FilePaths) > 0 {
 			for _, p := range rules.FilePaths {
@@ -502,6 +509,13 @@ func (idx *Index) shouldSkip(isDir bool, isHidden bool, fullCombined, baseName s
 		if len(rules.FileEndsWith) > 0 {
 			for _, end := range rules.FileEndsWith {
 				if strings.HasSuffix(baseName, end) {
+					return true
+				}
+			}
+		}
+		if len(rules.FileStartsWith) > 0 {
+			for _, start := range rules.FileStartsWith {
+				if strings.HasPrefix(baseName, start) {
 					return true
 				}
 			}

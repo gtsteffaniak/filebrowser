@@ -88,7 +88,8 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		}
 		// Get file information with options
 		getContent := r.URL.Query().Get("content") == "true"
-		if link.DisableFileViewer || link.Downloads >= link.DownloadsLimit {
+		reachedDownloadsLimit := link.Downloads >= link.DownloadsLimit && link.DownloadsLimit > 0
+		if link.DisableFileViewer || reachedDownloadsLimit {
 			getContent = false
 		}
 		logger.Debugf("getPath: %v", utils.JoinPathAsUnix(link.Path, path))
@@ -106,7 +107,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		file.Token = link.Token
 		file.Source = ""
 		file.Hash = link.Hash
-		if !link.EnableOnlyOffice || !link.DisableFileViewer {
+		if !link.EnableOnlyOffice || !link.DisableFileViewer || reachedDownloadsLimit {
 			file.OnlyOfficeId = ""
 		}
 		if getContent && file.Content != "" {

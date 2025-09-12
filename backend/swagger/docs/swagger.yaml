@@ -189,6 +189,12 @@ definitions:
         items:
           type: string
         type: array
+      fileStartsWith:
+        description: (global) exclude files that start with these prefixes. Eg. "archive-"
+          or "backup-"
+        items:
+          type: string
+        type: array
       folderEndsWith:
         description: (global) exclude folders that end with these suffixes. Eg. ".thumbnails"
           or ".git"
@@ -205,6 +211,12 @@ definitions:
         description: (filepath) list of folder names to include/exclude. Eg. "folder1"
           or "folder1/subfolder" (do not include source path, just the subpaths from
           the source path)
+        items:
+          type: string
+        type: array
+      folderStartsWith:
+        description: (global) exclude folders that start with these prefixes. Eg.
+          "archive-" or "backup-"
         items:
           type: string
         type: array
@@ -229,6 +241,14 @@ definitions:
     required:
     - text
     - url
+    type: object
+  settings.FfmpegConvert:
+    properties:
+      imagePreview:
+        additionalProperties:
+          type: boolean
+        description: supported image preview formats. default is heic
+        type: object
     type: object
   settings.Frontend:
     properties:
@@ -315,9 +335,10 @@ definitions:
     type: object
   settings.Media:
     properties:
-      enableHeicConversion:
-        description: enable automatic heic ffmpeg conversion and preview
-        type: boolean
+      convert:
+        allOf:
+        - $ref: '#/definitions/settings.FfmpegConvert'
+        description: config for ffmpeg conversion settings
       ffmpegPath:
         description: path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)
         type: string

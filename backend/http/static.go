@@ -170,7 +170,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"updateAvailable":      utils.GetUpdateAvailableUrl(),
 		"disableNavButtons":    disableNavButtons,
 		"userSelectableThemes": config.Frontend.Styling.CustomThemeOptions,
-		"enableHeicConversion": config.Integrations.Media.EnableHeicConversion,
+		"enableHeicConversion": config.Integrations.Media.Convert.ImagePreview[settings.HEICImagePreview],
 	}
 
 	// Marshal each variable to JSON strings for direct template usage
