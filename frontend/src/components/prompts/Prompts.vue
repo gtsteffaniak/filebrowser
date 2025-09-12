@@ -31,6 +31,7 @@ import buttons from "@/utils/buttons";
 import Totp from "./Totp.vue";
 import Access from "./Access.vue";
 import Password from "./Password.vue";
+import FileList from "./FileList.vue";
 import { state, getters, mutations } from "@/store"; // Import your custom store
 
 export default {
@@ -58,6 +59,7 @@ export default {
     ActionApi,
     Access,
     Password,
+    "file-list": FileList,
   },
   data() {
     return {

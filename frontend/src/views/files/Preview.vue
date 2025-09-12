@@ -351,7 +351,7 @@ export default {
             }
             this.isDeleted = true;
             this.listing = null; // Invalidate the listing to force a refresh
-            
+
             // Let the navigation component handle next/previous logic
             if (state.navigation.nextLink) {
                 this.$router.replace({ path: state.navigation.nextLink });
@@ -599,12 +599,6 @@ export default {
             this.name = state.req.name;
 
             // Setup navigation using the new state management
-            console.log("🚀 Preview.vue calling setupNavigation with:", {
-                listing: this.listing?.length,
-                currentItem: state.req?.name,
-                directoryPath,
-                fullListing: this.listing?.map(item => ({ name: item.name, type: item.type }))
-            });
             mutations.setupNavigation({
                 listing: this.listing,
                 currentItem: state.req,

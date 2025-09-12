@@ -6,6 +6,8 @@
     @mousemove="toggleNavigation"
     @touchstart="toggleNavigation"
     @click="handleClick"
+    :class="{ moveWithSidebar: moveWithSidebar }"
+
   ></div>
 
   <!-- Right edge detection zone -->
@@ -24,26 +26,45 @@
   >
     <button
       v-if="hasPrevious"
-      @click.stop="prev"
+      @click.stop="handlePrevClick"
+      @mousedown="startDrag($event, 'previous')"
+      @touchstart="startDrag($event, 'previous')"
       @mouseover="setHoverNav(true)"
       @mouseleave="setHoverNav(false)"
-      :class="['nav-button', 'nav-previous', { hidden: !showNav }]"
+      class="nav-button nav-previous"
+      :class="{
+        moveWithSidebar: moveWithSidebar,
+        hidden: !showNav,
+        disabled: !hasPrevious,
+        dragging: dragState.type === 'previous',
+        active: dragState.atFullExtent && dragState.type === 'previous',
+        'dark-mode': isDarkMode,
+    }"
+      :style="dragState.type === 'previous' ? { transform: `translateY(-50%) translate(${dragState.deltaX}px, 0)` } : {}"
       :aria-label="$t('buttons.previous')"
       :title="$t('buttons.previous')"
     >
-      <i class="material-icons">chevron_left</i>
+      <i class="material-icons">
+        {{ dragState.type === 'previous' && dragState.atFullExtent ? 'list_alt' : 'chevron_left' }} <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+      </i>
     </button>
 
     <button
       v-if="hasNext"
-      @click.stop="next"
+      @click.stop="handleNextClick"
+      @mousedown="startDrag($event, 'next')"
+      @touchstart="startDrag($event, 'next')"
       @mouseover="setHoverNav(true)"
       @mouseleave="setHoverNav(false)"
-      :class="['nav-button', 'nav-next', { hidden: !showNav }]"
+      class="nav-button nav-next"
+      :class="{ hidden: !showNav, dragging: dragState.type === 'next', active: dragState.atFullExtent && dragState.type === 'next','dark-mode': isDarkMode}"
+      :style="dragState.type === 'next' ? { transform: `translateY(-50%) translate(${dragState.deltaX}px, 0)` } : {}"
       :aria-label="$t('buttons.next')"
       :title="$t('buttons.next')"
     >
-      <i class="material-icons">chevron_right</i>
+      <i class="material-icons">
+        {{ dragState.type === 'next' && dragState.atFullExtent ? 'list_alt' : 'chevron_right' }} <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+      </i>
     </button>
 
     <!-- Prefetch links for better performance -->
@@ -63,27 +84,43 @@ export default {
   name: "NextPrevious",
   data() {
     return {
+      logInterval: null,
+      cursorY: 0,
+      cursorX: 0,
       hoverNav: false,
+      dragState: {
+        isDragging: false,
+        type: null, // 'previous' or 'next'
+        startX: 0,
+        startY: 0,
+        deltaX: 0,
+        deltaY: 0,
+        threshold: 0, // Will be calculated as 10em in pixels
+        atFullExtent: false,
+        triggered: false,
+      },
     };
   },
   computed: {
+    isDarkMode() { return getters.isDarkMode(); },
+    moveWithSidebar() {
+      return getters.isSidebarVisible() && getters.isStickySidebar();
+    },
     enabled() {
-      console.log("🔍 NextPrevious enabled:", state.navigation.enabled);
       return state.navigation.enabled;
     },
     showNav() {
       const shouldShow = state.navigation.show || this.hoverNav;
-      console.log("🔍 NextPrevious showNav:", shouldShow, "state.navigation.show:", state.navigation.show, "hoverNav:", this.hoverNav);
+      // eslint-disable-next-line no-console
+      console.log(`[showNav] state.navigation.show: ${state.navigation.show}, this.hoverNav: ${this.hoverNav}, result: ${shouldShow}`);
       return shouldShow;
     },
     hasPrevious() {
       const has = state.navigation.previousLink !== "";
-      console.log("🔍 NextPrevious hasPrevious:", has, "link:", state.navigation.previousLink);
       return has;
     },
     hasNext() {
       const has = state.navigation.nextLink !== "";
-      console.log("🔍 NextPrevious hasNext:", has, "link:", state.navigation.nextLink);
       return has;
     },
     previousRaw() {
@@ -94,17 +131,14 @@ export default {
     },
     currentView() {
       const view = getters.currentView();
-      console.log("🔍 NextPrevious currentView:", view);
       return view;
     }
   },
   watch: {
     currentView() {
-      console.log("👀 NextPrevious currentView changed to:", this.currentView);
       this.updateNavigationEnabled();
     },
     'state.req'() {
-      console.log("👀 NextPrevious state.req changed:", state.req?.name, state.req?.type);
       this.updateNavigationEnabled();
       // Auto-setup navigation when request changes and we're enabled
       if (this.enabled) {
@@ -114,7 +148,6 @@ export default {
       }
     },
     enabled(newEnabled) {
-      console.log("👀 NextPrevious enabled changed:", newEnabled);
       if (newEnabled && state.req) {
         this.$nextTick(() => {
           this.setupNavigationForCurrentItem();
@@ -123,17 +156,32 @@ export default {
     },
     // Watch for when navigation links are set up
     'state.navigation.previousLink'() {
-      console.log("👀 previousLink changed:", state.navigation.previousLink);
       this.showInitialNavigation();
     },
     'state.navigation.nextLink'() {
-      console.log("👀 nextLink changed:", state.navigation.nextLink);
       this.showInitialNavigation();
     },
   },
   mounted() {
-    console.log("🚀 NextPrevious mounted, currentView:", this.currentView, "navigation state:", state.navigation);
+    // eslint-disable-next-line no-console
+    console.log('[NextPrevious] Component mounted');
     window.addEventListener("keydown", this.keyEvent);
+    window.addEventListener("mousemove", this.handleDrag);
+    window.addEventListener("mouseup", this.endDrag);
+    window.addEventListener("touchmove", this.handleDrag, { passive: false });
+    window.addEventListener("touchend", this.endDrag);
+    window.addEventListener("mousemove", this.updateCursorPosition);
+    this.logInterval = setInterval(() => {
+      // eslint-disable-next-line no-console
+      console.log('[NextPrevious] Interval fired');
+      // eslint-disable-next-line no-console
+      console.log(`[Cursor Position] x: ${this.cursorX}, y: ${this.cursorY}`);
+    }, 1000);
+
+    // Calculate 10em threshold in pixels
+    const emSize = parseFloat(getComputedStyle(document.documentElement).fontSize);
+    this.dragState.threshold = 10 * emSize;
+
     this.updateNavigationEnabled();
 
     // Setup navigation if enabled and we have a current item
@@ -148,28 +196,30 @@ export default {
     }
   },
   beforeUnmount() {
-    console.log("💀 NextPrevious unmounting");
     window.removeEventListener("keydown", this.keyEvent);
+    window.removeEventListener("mousemove", this.handleDrag);
+    window.removeEventListener("mouseup", this.endDrag);
+    window.removeEventListener("touchmove", this.handleDrag);
+    window.removeEventListener("touchend", this.endDrag);
+    window.removeEventListener("mousemove", this.updateCursorPosition);
+    if (this.logInterval) {
+      clearInterval(this.logInterval);
+    }
     mutations.clearNavigation();
   },
   methods: {
+    updateCursorPosition(event) {
+      this.cursorX = event.clientX;
+      this.cursorY = event.clientY;
+    },
     updateNavigationEnabled() {
       const shouldEnable = previewViews.includes(this.currentView);
-      console.log("🔧 NextPrevious updateNavigationEnabled:", {
-        currentView: this.currentView,
-        previewViews,
-        shouldEnable,
-        navigationState: state.navigation
-      });
       mutations.setNavigationEnabled(shouldEnable);
     },
     async setupNavigationForCurrentItem() {
       if (!this.enabled || !state.req || state.req.type === 'directory') {
-        console.log("⏭️ Skipping navigation setup:", { enabled: this.enabled, req: !!state.req, isDirectory: state.req?.type === 'directory' });
         return;
       }
-
-      console.log("🔧 Setting up navigation for:", state.req.name);
 
       const directoryPath = url.removeLastDir(state.req.path);
       let listing = null;
@@ -188,7 +238,6 @@ export default {
           }
           listing = res.items;
         } catch (error) {
-          console.error("Failed to fetch directory listing:", error);
           listing = [state.req]; // Fallback to current item only
         }
       }
@@ -200,25 +249,15 @@ export default {
       });
     },
     showInitialNavigation() {
-      console.log("🎯 showInitialNavigation called:", {
-        enabled: this.enabled,
-        hasPrevious: this.hasPrevious,
-        hasNext: this.hasNext,
-        condition: this.enabled && (this.hasPrevious || this.hasNext)
-      });
 
       // Show navigation initially for 3 seconds when navigation is set up
       if (this.enabled && (this.hasPrevious || this.hasNext)) {
-        console.log("✨ Showing initial navigation for 3 seconds");
         mutations.setNavigationShow(true);
         setTimeout(() => {
-          console.log("⏰ Auto-hiding navigation, hoverNav:", this.hoverNav);
           if (!this.hoverNav) {
             mutations.setNavigationShow(false);
           }
         }, 3000);
-      } else {
-        console.log("❌ Not showing navigation - conditions not met");
       }
     },
     prev() {
@@ -259,56 +298,220 @@ export default {
       // Simplified: clicking anywhere in the CSS zones shows navigation
       if (!this.enabled || (!this.hasPrevious && !this.hasNext)) return;
 
-      console.log("✨ Click in navigation zone - showing navigation");
       this.showNavigation();
     },
     showNavigation() {
-      console.log("🎯 showNavigation called - showing nav for 3 seconds");
+      // eslint-disable-next-line no-console
+      console.log('[showNavigation] called');
       mutations.setNavigationShow(true);
       mutations.clearNavigationTimeout();
 
       const timeout = setTimeout(() => {
+        // eslint-disable-next-line no-console
+        console.log(`[showNavigation timeout] hiding navigation. this.hoverNav: ${this.hoverNav}`);
         if (!this.hoverNav) {
-          console.log("⏰ Timeout: hiding navigation (not hovered)");
           mutations.setNavigationShow(false);
-        } else {
-          console.log("⏰ Timeout: keeping navigation (hovered)");
         }
         mutations.clearNavigationTimeout();
       }, 3000); // Show for 3 seconds instead of 1.5
+      // eslint-disable-next-line no-console
+      console.log(`[showNavigation] timeout set to hide navigation in 3s. timeoutId: ${timeout}`);
 
       mutations.setNavigationTimeout(timeout);
     },
     toggleNavigation: throttle(function (event) {
-      console.log("🖱️ toggleNavigation called from zone", {
-        enabled: this.enabled,
-        showNav: this.showNav,
-        eventType: event.type,
-        target: event.target.className
-      });
       if (!this.enabled) return;
+      // eslint-disable-next-line no-console
+      console.log(`[toggleNavigation] cursor at (${event.clientX}, ${event.clientY})`);
       this.showNavigation();
     }, 100),
     setHoverNav(value) {
-      console.log("🖱️ setHoverNav:", { value, currentHover: this.hoverNav });
+      // eslint-disable-next-line no-console
+      console.log(`[setHoverNav] value: ${value}`);
       this.hoverNav = value;
       mutations.setNavigationHover(value);
+    },
+
+    // Drag functionality for navigation buttons
+    startDrag(event, type) {
+      event.preventDefault();
+
+      const clientX = event.touches ? event.touches[0].clientX : event.clientX;
+      const clientY = event.touches ? event.touches[0].clientY : event.clientY;
+
+      this.dragState = {
+        isDragging: true,
+        type: type,
+        startX: clientX,
+        startY: clientY,
+        deltaX: 0,
+        deltaY: 0,
+        threshold: this.dragState.threshold,
+        atFullExtent: false,
+        triggered: false,
+      };
+
+    },
+
+    handleDrag(event) {
+      if (!this.dragState.isDragging) return;
+
+      const clientX = event.touches ? event.touches[0].clientX : event.clientX;
+
+      let deltaX = clientX - this.dragState.startX;
+
+      // Constrain drag to correct direction and max distance
+      const maxDrag = this.dragState.threshold; // 10em
+      if (this.dragState.type === 'previous') {
+        // Left button: only allow rightward drag (positive deltaX)
+        deltaX = Math.max(0, Math.min(maxDrag, deltaX));
+      } else if (this.dragState.type === 'next') {
+        // Right button: only allow leftward drag (negative deltaX)
+        deltaX = Math.min(0, Math.max(-maxDrag, deltaX));
+      }
+
+      this.dragState.deltaX = deltaX;
+
+      // Check if we've reached the full extent
+      const atFullExtent = Math.abs(deltaX) >= maxDrag;
+      this.dragState.atFullExtent = atFullExtent;
+
+      // Prevent default to avoid text selection during drag
+      event.preventDefault();
+    },
+
+    endDrag() {
+      if (!this.dragState.isDragging) return;
+
+      // Only show file list if user released at full extent
+      if (this.dragState.atFullExtent) {
+        this.showFileList(this.dragState.type);
+      }
+
+      this.resetDragState();
+    },
+
+    resetDragState() {
+      this.dragState = {
+        isDragging: false,
+        type: null,
+        startX: 0,
+        startY: 0,
+        deltaX: 0,
+        deltaY: 0,
+        threshold: this.dragState.threshold,
+        atFullExtent: false,
+        triggered: false,
+      };
+    },
+
+    handlePrevClick() {
+      // Only navigate if this wasn't a drag
+      if (!this.dragState.triggered) {
+        this.prev();
+      }
+      this.resetDragState();
+    },
+
+    handleNextClick() {
+      // Only navigate if this wasn't a drag
+      if (!this.dragState.triggered) {
+        this.next();
+      }
+      this.resetDragState();
+    },
+
+    showFileList(type) {
+      // Determine what list to show based on drag type
+      if (type === 'previous') {
+        // Show parent directories for navigating up
+        this.showParentDirectories();
+      } else if (type === 'next') {
+        // Show current listing items for quick jumping
+        this.showCurrentListing();
+      }
+    },
+
+    showParentDirectories() {
+      // Show files in the current directory (same directory as the previewed file)
+      const currentItems = this.getCurrentListingItems();
+      mutations.showHover({
+        name: "file-list",
+        props: {
+          fileList: currentItems,
+          mode: "navigate-siblings",
+          title: this.$t("prompts.quickJump")
+        }
+      });
+    },
+
+    showCurrentListing() {
+      const currentItems = this.getCurrentListingItems();
+      mutations.showHover({
+        name: "file-list",
+        props: {
+          fileList: currentItems,
+          mode: "quick-jump",
+          title: this.$t("prompts.quickJump")
+        }
+      });
+    },
+
+    getParentDirectories() {
+      // Build array of parent directories from current path
+      const currentPath = state.req.path || "/";
+      const pathParts = currentPath.split("/").filter(part => part);
+      const parentDirs = [];
+
+      // Add root
+      parentDirs.push({
+        name: "/",
+        path: "/",
+        source: state.req.source,
+        isDirectory: true
+      });
+
+      // Add each level up to current
+      let buildPath = "";
+      for (let i = 0; i < pathParts.length; i++) {
+        buildPath += "/" + pathParts[i];
+        parentDirs.push({
+          name: pathParts[i],
+          path: buildPath,
+          source: state.req.source,
+          isDirectory: true
+        });
+      }
+
+      return parentDirs.reverse(); // Show deepest first
+    },
+
+    getCurrentListingItems() {
+      // Get items from the current navigation listing (files in same directory)
+      const listing = state.navigation.listing || [];
+      return listing.map(item => ({
+        name: item.name, // Keep original names without emojis
+        path: item.path,
+        source: item.source || state.req.source,
+        type: item.type,
+        isDirectory: item.type === 'directory',
+        originalItem: item
+      }));
     }
   },
 };
 </script>
 
 <style scoped>
-/* Edge detection zones for mouse/touch events */
+/* Thin edge detection zones - minimal interference with content */
 .nav-zone {
   position: fixed;
   top: 25%; /* Start at 25% from top */
   bottom: 25%; /* End at 25% from bottom (so middle 50%) */
-  width: 7em; /* 7em wide zones at screen edges */
+  width: 15px; /* Very thin zones at absolute screen edge */
   pointer-events: auto;
-  z-index: 10;
-  background: rgba(255, 0, 0, 0.1); /* Temporary debug - red tint to see zones */
-  border: 2px dashed rgba(255, 0, 0, 0.3); /* Temporary debug border */
+  z-index: 5; /* Lower z-index so content can appear above */
+  background: transparent; /* Invisible zones for mouse/touch detection */
 }
 
 .nav-zone-left {
@@ -337,8 +540,8 @@ export default {
   height: 50px;
   border: none;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.7);
-  color: white;
+  background: var(--background);
+  color: var(--textPrimary);
   cursor: pointer;
   transition: all 0.3s ease;
   pointer-events: auto;
@@ -349,14 +552,18 @@ export default {
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
-.nav-button:hover {
-  background: var(--primaryColor, rgba(0, 178, 255, 0.9));
-  transform: translateY(-50%) scale(1.1);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+.nav-button.dark-mode {
+  background: var(--surfacePrimary);
+  color: var(--textPrimary);
 }
 
-.nav-button:active {
-  transform: translateY(-50%) scale(0.95);
+.nav-button:hover,
+.nav-button.active {
+  background: var(--primaryColor);
+  transform: translateY(-50%) scale(1.1);
+  box-shadow:
+        inset 0 -3em 3em rgba(217, 217, 217, 0.211),
+        0 0 0 2px var(--alt-background) !important;
 }
 
 .nav-previous {
@@ -371,6 +578,12 @@ export default {
   opacity: 0;
   transform: translateY(-50%) scale(0.8);
   pointer-events: none;
+}
+
+.nav-button.dragging {
+  z-index: 1002;
+  cursor: grabbing;
+  transition: none; /* Disable transitions during drag for immediate response */
 }
 
 .nav-button i.material-icons {
@@ -407,5 +620,8 @@ export default {
   .nav-next {
     right: 8px;
   }
+}
+.moveWithSidebar {
+  margin-left: 20em;
 }
 </style>

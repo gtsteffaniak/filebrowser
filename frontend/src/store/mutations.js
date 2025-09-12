@@ -516,7 +516,6 @@ export const mutations = {
     emitStateChanged();
   },
   setNavigationEnabled: (enabled) => {
-    console.log("🔧 setNavigationEnabled:", enabled, "current:", state.navigation.enabled);
     if (state.navigation.enabled === enabled) {
       return;
     }
@@ -527,12 +526,6 @@ export const mutations = {
     emitStateChanged();
   },
   setupNavigation: ({ listing, currentItem, directoryPath }) => {
-    console.log("🔧 setupNavigation called with:", { 
-      listing: listing?.length, 
-      currentItem: currentItem?.name, 
-      directoryPath 
-    });
-    
     state.navigation.listing = listing;
     state.navigation.currentIndex = -1;
     state.navigation.previousItem = null;
@@ -543,7 +536,6 @@ export const mutations = {
     state.navigation.nextRaw = "";
 
     if (!listing || !currentItem) {
-      console.log("⚠️ setupNavigation: missing listing or currentItem");
       emitStateChanged();
       return;
     }
@@ -552,28 +544,23 @@ export const mutations = {
     for (let i = 0; i < listing.length; i++) {
       if (listing[i].name === currentItem.name) {
         state.navigation.currentIndex = i;
-        console.log("📍 Found current item at index:", i, "name:", currentItem.name);
         break;
       }
     }
 
     if (state.navigation.currentIndex === -1) {
-      console.log("⚠️ setupNavigation: current item not found in listing");
       emitStateChanged();
       return;
     }
 
     // Find previous item (skip directories)
-    console.log("🔍 Looking for previous item from index:", state.navigation.currentIndex - 1);
     for (let j = state.navigation.currentIndex - 1; j >= 0; j--) {
       let item = listing[j];
-      console.log("🔍 Checking item:", item.name, "type:", item.type);
       if (item.type === 'directory') continue;
 
       item.path = directoryPath + "/" + item.name;
       state.navigation.previousItem = item;
       state.navigation.previousLink = url.buildItemUrl(item.source, item.path);
-      console.log("✅ Found previous item:", item.name, "link:", state.navigation.previousLink);
 
       if (getTypeInfo(item.type).simpleType === "image") {
         state.navigation.previousRaw = mutations.getPrefetchUrl(item);
@@ -582,16 +569,13 @@ export const mutations = {
     }
 
     // Find next item (skip directories)
-    console.log("🔍 Looking for next item from index:", state.navigation.currentIndex + 1);
     for (let j = state.navigation.currentIndex + 1; j < listing.length; j++) {
       let item = listing[j];
-      console.log("🔍 Checking item:", item.name, "type:", item.type);
       if (item.type === 'directory') continue;
 
       item.path = directoryPath + "/" + item.name;
       state.navigation.nextItem = item;
       state.navigation.nextLink = url.buildItemUrl(item.source, item.path);
-      console.log("✅ Found next item:", item.name, "link:", state.navigation.nextLink);
 
       if (getTypeInfo(item.type).simpleType === "image") {
         state.navigation.nextRaw = mutations.getPrefetchUrl(item);
@@ -599,17 +583,10 @@ export const mutations = {
       break;
     }
 
-    console.log("🎯 setupNavigation complete:", {
-      previousLink: state.navigation.previousLink,
-      nextLink: state.navigation.nextLink,
-      enabled: state.navigation.enabled
-    });
-
     emitStateChanged();
     
     // Auto-show navigation when it's first set up
     if (state.navigation.enabled && (state.navigation.previousLink || state.navigation.nextLink)) {
-      console.log("🚀 Auto-showing navigation for 3 seconds");
       mutations.setNavigationShow(true);
       setTimeout(() => {
         if (!state.navigation.hoverNav) {
@@ -625,13 +602,10 @@ export const mutations = {
     return filesApi.getDownloadURL(state.req.source, item.path, true);
   },
   setNavigationShow: (show) => {
-    console.log("🔧 setNavigationShow called:", show, "current:", state.navigation.show);
     if (state.navigation.show === show) {
-      console.log("⏭️ setNavigationShow: no change needed");
       return;
     }
     state.navigation.show = show;
-    console.log("✅ setNavigationShow: changed to", show);
     emitStateChanged();
   },
   setNavigationHover: (hover) => {
