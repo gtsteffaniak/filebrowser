@@ -1,6 +1,6 @@
 import { adjustedData } from "./utils";
 import { notify } from "@/notify";
-import { getApiPath, getPublicApiPath } from "@/utils/url.js";
+import { getApiPath, getPublicApiPath, encodedPath } from "@/utils/url.js";
 import { globalVars } from "@/utils/constants";
 import { state } from "@/store";
 
@@ -17,8 +17,9 @@ import { state } from "@/store";
  * @returns {Promise<any>}
  */
 export async function fetchPub(path, hash, password = "", content = false) {
+  path = encodedPath(path);
   const params = {
-    path,
+    path: path,
     hash,
     ...(content && { content: 'true' }),
     ...(state.share.token && { token: state.share.token })

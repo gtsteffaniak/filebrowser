@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"runtime"
 	"slices"
 	"strings"
@@ -48,7 +49,13 @@ type handleFunc func(w http.ResponseWriter, r *http.Request, data *requestContex
 func withHashFileHelper(fn handleFunc) handleFunc {
 	return withOrWithoutUserHelper(func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
 		hash := r.URL.Query().Get("hash")
-		path := r.URL.Query().Get("path")
+		encodedPath := r.URL.Query().Get("path")
+		// Decode the URL-encoded path - use PathUnescape to preserve + as literal character
+		path, err := url.PathUnescape(encodedPath)
+		if err != nil {
+			return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
+		}
+
 		// Get the file link by hash
 		link, err := store.Share.GetByHash(hash)
 		if err != nil {
@@ -84,6 +91,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		if link.DisableFileViewer || link.Downloads >= link.DownloadsLimit {
 			getContent = false
 		}
+		logger.Debugf("getPath: %v", utils.JoinPathAsUnix(link.Path, path))
 		file, err := FileInfoFasterFunc(iteminfo.FileOptions{
 			Path:    utils.JoinPathAsUnix(link.Path, path),
 			Source:  link.Source,
