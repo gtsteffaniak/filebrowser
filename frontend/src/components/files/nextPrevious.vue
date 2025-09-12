@@ -20,58 +20,54 @@
     @click="handleClick"
   ></div>
 
-  <!-- Navigation buttons container -->
-  <div
-    v-if="enabled && (hasPrevious || hasNext)"
-    class="navigation-buttons"
+  <!-- Previous button -->
+  <button
+    v-if="enabled && hasPrevious"
+    @click.stop="handlePrevClick"
+    @mousedown="startDrag($event, 'previous')"
+    @touchstart="startDrag($event, 'previous')"
+    @mouseover="setHoverNav(true)"
+    @mouseleave="setHoverNav(false)"
+    class="nav-button nav-previous"
+    :class="{
+      moveWithSidebar: moveWithSidebar,
+      hidden: !showNav,
+      disabled: !hasPrevious,
+      dragging: dragState.type === 'previous',
+      active: dragState.atFullExtent && dragState.type === 'previous',
+      'dark-mode': isDarkMode,
+  }"
+    :style="dragState.type === 'previous' ? { transform: `translateY(-50%) translate(${dragState.deltaX}px, 0)` } : {}"
+    :aria-label="$t('buttons.previous')"
+    :title="$t('buttons.previous')"
   >
-    <button
-      v-if="hasPrevious"
-      @click.stop="handlePrevClick"
-      @mousedown="startDrag($event, 'previous')"
-      @touchstart="startDrag($event, 'previous')"
-      @mouseover="setHoverNav(true)"
-      @mouseleave="setHoverNav(false)"
-      class="nav-button nav-previous"
-      :class="{
-        moveWithSidebar: moveWithSidebar,
-        hidden: !showNav,
-        disabled: !hasPrevious,
-        dragging: dragState.type === 'previous',
-        active: dragState.atFullExtent && dragState.type === 'previous',
-        'dark-mode': isDarkMode,
-    }"
-      :style="dragState.type === 'previous' ? { transform: `translateY(-50%) translate(${dragState.deltaX}px, 0)` } : {}"
-      :aria-label="$t('buttons.previous')"
-      :title="$t('buttons.previous')"
-    >
-      <i class="material-icons">
-        {{ dragState.type === 'previous' && dragState.atFullExtent ? 'list_alt' : 'chevron_left' }} <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-      </i>
-    </button>
+    <i class="material-icons">
+      {{ dragState.type === 'previous' && dragState.atFullExtent ? 'list_alt' : 'chevron_left' }} <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+    </i>
+  </button>
 
-    <button
-      v-if="hasNext"
-      @click.stop="handleNextClick"
-      @mousedown="startDrag($event, 'next')"
-      @touchstart="startDrag($event, 'next')"
-      @mouseover="setHoverNav(true)"
-      @mouseleave="setHoverNav(false)"
-      class="nav-button nav-next"
-      :class="{ hidden: !showNav, dragging: dragState.type === 'next', active: dragState.atFullExtent && dragState.type === 'next','dark-mode': isDarkMode}"
-      :style="dragState.type === 'next' ? { transform: `translateY(-50%) translate(${dragState.deltaX}px, 0)` } : {}"
-      :aria-label="$t('buttons.next')"
-      :title="$t('buttons.next')"
-    >
-      <i class="material-icons">
-        {{ dragState.type === 'next' && dragState.atFullExtent ? 'list_alt' : 'chevron_right' }} <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-      </i>
-    </button>
+  <!-- Next button -->
+  <button
+    v-if="enabled && hasNext"
+    @click.stop="handleNextClick"
+    @mousedown="startDrag($event, 'next')"
+    @touchstart="startDrag($event, 'next')"
+    @mouseover="setHoverNav(true)"
+    @mouseleave="setHoverNav(false)"
+    class="nav-button nav-next"
+    :class="{ hidden: !showNav, dragging: dragState.type === 'next', active: dragState.atFullExtent && dragState.type === 'next','dark-mode': isDarkMode}"
+    :style="dragState.type === 'next' ? { transform: `translateY(-50%) translate(${dragState.deltaX}px, 0)` } : {}"
+    :aria-label="$t('buttons.next')"
+    :title="$t('buttons.next')"
+  >
+    <i class="material-icons">
+      {{ dragState.type === 'next' && dragState.atFullExtent ? 'list_alt' : 'chevron_right' }} <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+    </i>
+  </button>
 
-    <!-- Prefetch links for better performance -->
-    <link v-if="previousRaw" rel="prefetch" :href="previousRaw" />
-    <link v-if="nextRaw" rel="prefetch" :href="nextRaw" />
-  </div>
+  <!-- Prefetch links for better performance -->
+  <link v-if="previousRaw" rel="prefetch" :href="previousRaw" />
+  <link v-if="nextRaw" rel="prefetch" :href="nextRaw" />
 </template>
 
 <script>
@@ -138,6 +134,13 @@ export default {
   watch: {
     currentView() {
       this.updateNavigationEnabled();
+      
+      // Also trigger navigation setup if we're now in a preview view
+      this.$nextTick(() => {
+        if (this.enabled && state.req) {
+          this.setupNavigationForCurrentItem();
+        }
+      });
     },
     'state.req'() {
       this.updateNavigationEnabled();
@@ -547,7 +550,7 @@ export default {
   position: fixed;
   top: 25%; /* Start at 25% from top */
   bottom: 25%; /* End at 25% from bottom (so middle 50%) */
-  width: 7em; /* Very thin zones at absolute screen edge */
+  width: 3em; /* Reduced width to minimize content interference */
   pointer-events: auto;
   z-index: 5; /* Lower z-index so content can appear above */
   background: transparent; /* Invisible zones for mouse/touch detection */
@@ -562,15 +565,7 @@ export default {
   right: 0;
 }
 
-.navigation-buttons {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  pointer-events: none; /* Don't block content interaction */
-  z-index: 1000;
-}
+/* Removed navigation-buttons container to prevent content interaction blocking */
 
 .nav-button {
   position: fixed;
@@ -622,7 +617,8 @@ export default {
 .nav-button.hidden {
   opacity: 0;
   transform: translateY(-50%) scale(0.9);
-  pointer-events: none;
+  pointer-events: none !important; /* Ensure no interaction when hidden */
+  z-index: -1; /* Move behind content when hidden */
 }
 
 /* Smooth show animation for better UX */

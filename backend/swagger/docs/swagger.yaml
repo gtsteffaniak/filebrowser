@@ -315,8 +315,8 @@ definitions:
     type: object
   settings.Media:
     properties:
-      disableHeicConversion:
-        description: disable heic ffmpeg conversion and preview
+      enableHeicConversion:
+        description: enable automatic heic ffmpeg conversion and preview
         type: boolean
       ffmpegPath:
         description: path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)

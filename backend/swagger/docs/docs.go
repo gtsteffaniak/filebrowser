@@ -2835,8 +2835,8 @@ const docTemplate = `{
         "settings.Media": {
             "type": "object",
             "properties": {
-                "disableHeicConversion": {
-                    "description": "disable heic ffmpeg conversion and preview",
+                "enableHeicConversion": {
+                    "description": "enable automatic heic ffmpeg conversion and preview",
                     "type": "boolean"
                 },
                 "ffmpegPath": {

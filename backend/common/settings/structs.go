@@ -61,8 +61,8 @@ type OnlyOffice struct {
 }
 
 type Media struct {
-	FfmpegPath            string `json:"ffmpegPath"`            // path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)
-	DisableHeicConversion bool   `json:"disableHeicConversion"` // disable heic ffmpeg conversion and preview
+	FfmpegPath           string `json:"ffmpegPath"`           // path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)
+	EnableHeicConversion bool   `json:"enableHeicConversion"` // enable automatic heic ffmpeg conversion and preview
 }
 
 type LogConfig struct {

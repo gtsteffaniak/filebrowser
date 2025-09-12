@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **New Features**:
  - Remember folder view type (and sorting) for each folder #966
- - heic is supported in viewer (via ffmpeg conversion) when on non-safari browser. This can be disabled via `integrations.ffmpeg.disableHeicConversion` #1191
+ - heic is supported in viewer (via ffmpeg conversion) when on non-safari browser. This can be enabled via `integrations.ffmpeg.enableHeicConversion` #1191
  - OnlyOffice: Add option to open documents in viewer mode (`integrations.office.viewOnly`) #1193
  - Universal Next/Previous buttons
    - available for all listing items (including office/markdown etc)
