@@ -250,7 +250,7 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
 /* This style block is now plain CSS, no "lang=scss" needed */
 #markedown-viewer {
   margin: 1em;
@@ -382,4 +382,12 @@ export default {
 #markedown-viewer .code-content pre code br {
   line-height: 1.45;
 }
+#markedown-viewer .code-content a {
+  color: #3737c9 !important;
+  font-weight: 500 !important;
+}
+#markedown-viewer .code-content a:hover {
+  text-decoration: underline !important;
+}
+
 </style>

@@ -118,6 +118,20 @@ export const state = reactive({
       files: "",
     },
   },
+  navigation: {
+    show: false,
+    hoverNav: false,
+    listing: null,
+    currentIndex: -1,
+    previousItem: null,
+    nextItem: null,
+    previousLink: "",
+    nextLink: "",
+    previousRaw: "",
+    nextRaw: "",
+    timeout: null,
+    enabled: false,
+  },
 });
 
 function stickyStartup() {

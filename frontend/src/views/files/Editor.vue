@@ -6,8 +6,9 @@
 
 <script>
 import { eventBus } from "@/store/eventBus";
-import { state, getters } from "@/store";
-import { filesApi } from "@/api";
+import { state, getters, mutations } from "@/store";
+import { filesApi, publicApi } from "@/api";
+import { url } from "@/utils";
 import { notify } from "@/notify";
 import ace, { version as ace_version } from "ace-builds";
 import modelist from "ace-builds/src-noconflict/ext-modelist";
@@ -46,6 +47,9 @@ export default {
     isDarkMode() {
       return getters.isDarkMode();
     },
+    req() {
+      return state.req;
+    },
   },
   watch: {
     // Update editor content when prop changes in viewer mode
@@ -58,6 +62,20 @@ export default {
     isDarkMode(newValue) {
       if (this.editor) {
         this.editor.setTheme(newValue ? "ace/theme/twilight" : "ace/theme/chrome");
+      }
+    },
+    // Watch for req changes to update navigation
+    req(newReq) {
+      if (newReq && newReq.path && newReq.name && !this.viewerMode) {
+        this.updateNavigationForCurrentItem();
+        mutations.resetSelected();
+        mutations.addSelected({
+          name: newReq.name,
+          path: newReq.path,
+          size: newReq.size,
+          type: newReq.type,
+          source: newReq.source,
+        });
       }
     }
   },
@@ -88,8 +106,50 @@ export default {
   },
   mounted: function () {
     this.setupEditor();
+
+    // Initialize navigation for file editor mode
+    if (!this.viewerMode && state.req) {
+      mutations.resetSelected();
+      mutations.addSelected({
+        name: state.req.name,
+        path: state.req.path,
+        size: state.req.size,
+        type: state.req.type,
+        source: state.req.source,
+      });
+    }
   },
   methods: {
+    async updateNavigationForCurrentItem() {
+      if (!state.req || state.req.type === 'directory') {
+        return;
+      }
+
+      const directoryPath = url.removeLastDir(state.req.path);
+      let listing = null;
+
+      if (state.req.items) {
+        listing = state.req.items;
+      } else {
+        try {
+          let res;
+          if (getters.isShare()) {
+            res = await publicApi.fetchPub(directoryPath, state.share.hash);
+          } else {
+            res = await filesApi.fetchFiles(state.req.source, directoryPath);
+          }
+          listing = res.items;
+        } catch (error) {
+          listing = [state.req];
+        }
+      }
+
+      mutations.setupNavigation({
+        listing: listing,
+        currentItem: state.req,
+        directoryPath: directoryPath
+      });
+    },
     setupEditor(attempt = 1) {
       try {
         // Handle viewer mode - bypass all req/route logic
@@ -237,10 +297,10 @@ export default {
     keyEvent(event) {
       const { key, ctrlKey, metaKey } = event;
       if (getters.currentPromptName()) return;
-      
+
       // Skip save shortcut in viewer mode
       if (this.viewerMode) return;
-      
+
       if ((ctrlKey || metaKey) && key.toLowerCase() === "s") {
         event.preventDefault();
         this.handleEditorValueRequest();

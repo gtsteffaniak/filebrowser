@@ -1,7 +1,7 @@
 import { removePrefix, buildItemUrl, removeLeadingSlash } from '@/utils/url.js'
 import { getFileExtension } from '@/utils/files.js'
 import { state, mutations } from '@/store'
-import { globalVars, shareInfo } from '@/utils/constants.js'
+import { globalVars, shareInfo, previewViews } from '@/utils/constants.js'
 import { getTypeInfo } from '@/utils/mimetype'
 import { fromNow } from '@/utils/moment'
 import * as i18n from '@/i18n'
@@ -167,15 +167,6 @@ export const getters = {
     if (cv == 'onlyOfficeEditor') {
       return false
     }
-    const previewViews = [
-      'preview',
-      'markdownViewer',
-      'epubViewer',
-      'docViewer',
-      'onlyOfficeEditor',
-      'editor'
-    ]
-
     let visible = (state.showSidebar || getters.isStickySidebar())
     if (getters.currentPromptName() && !getters.isStickySidebar()) {
       visible = false

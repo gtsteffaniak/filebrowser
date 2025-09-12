@@ -56,9 +56,9 @@
   </div>
 
   <div class="card-action">
-    <button type="submit" @click="closeHovers" class="button button--flat" :aria-label="$t('buttons.ok')"
-      :title="$t('buttons.ok')">
-      {{ $t("buttons.ok") }}
+    <button type="submit" @click="closeHovers" class="button button--flat" :aria-label="$t('buttons.close')"
+      :title="$t('buttons.close')">
+      {{ $t("buttons.close") }}
     </button>
   </div>
 </template>

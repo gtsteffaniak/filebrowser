@@ -6,6 +6,9 @@ import { usersApi } from "@/api";
 import { notify } from "@/notify";
 import { sortedItems } from "@/utils/sort.js";
 import { serverHasMultipleSources } from "@/utils/constants.js";
+import { url } from "@/utils";
+import { getTypeInfo } from "@/utils/mimetype";
+import { filesApi } from "@/api";
 
 export const mutations = {
   setPreviousHistoryItem: (value) => {
@@ -510,6 +513,132 @@ export const mutations = {
     allPreferences[state.user.username] = state.displayPreferences;
     localStorage.setItem("displayPreferences", JSON.stringify(allPreferences));
 
+    emitStateChanged();
+  },
+  setNavigationEnabled: (enabled) => {
+    if (state.navigation.enabled === enabled) {
+      return;
+    }
+    state.navigation.enabled = enabled;
+    if (!enabled) {
+      mutations.clearNavigation();
+    }
+    emitStateChanged();
+  },
+  setupNavigation: ({ listing, currentItem, directoryPath }) => {
+    state.navigation.listing = listing;
+    state.navigation.currentIndex = -1;
+    state.navigation.previousItem = null;
+    state.navigation.nextItem = null;
+    state.navigation.previousLink = "";
+    state.navigation.nextLink = "";
+    state.navigation.previousRaw = "";
+    state.navigation.nextRaw = "";
+
+    if (!listing || !currentItem) {
+      emitStateChanged();
+      return;
+    }
+
+    // Find current item index in the listing
+    for (let i = 0; i < listing.length; i++) {
+      if (listing[i].name === currentItem.name) {
+        state.navigation.currentIndex = i;
+        break;
+      }
+    }
+
+    if (state.navigation.currentIndex === -1) {
+      emitStateChanged();
+      return;
+    }
+
+    // Find previous item (skip directories)
+    for (let j = state.navigation.currentIndex - 1; j >= 0; j--) {
+      let item = listing[j];
+      if (item.type === 'directory') continue;
+
+      item.path = directoryPath + "/" + item.name;
+      state.navigation.previousItem = item;
+      state.navigation.previousLink = url.buildItemUrl(item.source, item.path);
+
+      if (getTypeInfo(item.type).simpleType === "image") {
+        state.navigation.previousRaw = mutations.getPrefetchUrl(item);
+      }
+      break;
+    }
+
+    // Find next item (skip directories)
+    for (let j = state.navigation.currentIndex + 1; j < listing.length; j++) {
+      let item = listing[j];
+      if (item.type === 'directory') continue;
+
+      item.path = directoryPath + "/" + item.name;
+      state.navigation.nextItem = item;
+      state.navigation.nextLink = url.buildItemUrl(item.source, item.path);
+
+      if (getTypeInfo(item.type).simpleType === "image") {
+        state.navigation.nextRaw = mutations.getPrefetchUrl(item);
+      }
+      break;
+    }
+
+    emitStateChanged();
+    
+    // Auto-show navigation when it's first set up
+    if (state.navigation.enabled && (state.navigation.previousLink || state.navigation.nextLink)) {
+      mutations.setNavigationShow(true);
+      setTimeout(() => {
+        if (!state.navigation.hoverNav) {
+          mutations.setNavigationShow(false);
+        }
+      }, 3000);
+    }
+  },
+  getPrefetchUrl: (item) => {
+    if (getters.isShare()) {
+      return filesApi.getDownloadURL(state.req.source, item.path, true);
+    }
+    return filesApi.getDownloadURL(state.req.source, item.path, true);
+  },
+  setNavigationShow: (show) => {
+    if (state.navigation.show === show) {
+      return;
+    }
+    state.navigation.show = show;
+    emitStateChanged();
+  },
+  setNavigationHover: (hover) => {
+    if (state.navigation.hoverNav === hover) {
+      return;
+    }
+    state.navigation.hoverNav = hover;
+    emitStateChanged();
+  },
+  setNavigationTimeout: (timeout) => {
+    if (state.navigation.timeout) {
+      clearTimeout(state.navigation.timeout);
+    }
+    state.navigation.timeout = timeout;
+  },
+  clearNavigationTimeout: () => {
+    if (state.navigation.timeout) {
+      clearTimeout(state.navigation.timeout);
+      state.navigation.timeout = null;
+    }
+  },
+  clearNavigation: () => {
+    state.navigation.show = false;
+    state.navigation.hoverNav = false;
+    state.navigation.listing = null;
+    state.navigation.currentIndex = -1;
+    state.navigation.previousItem = null;
+    state.navigation.nextItem = null;
+    state.navigation.previousLink = "";
+    state.navigation.nextLink = "";
+    state.navigation.previousRaw = "";
+    state.navigation.nextRaw = "";
+    mutations.clearNavigationTimeout();
     emitStateChanged();
   },
 };
