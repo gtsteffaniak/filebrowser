@@ -193,13 +193,13 @@ export default {
     window.removeEventListener("mouseup", this.endDrag);
     window.removeEventListener("touchmove", this.handleDrag);
     window.removeEventListener("touchend", this.endDrag);
-    
+
     // Clear our local timeout
     if (this.navigationTimeout) {
       clearTimeout(this.navigationTimeout);
       this.navigationTimeout = null;
     }
-    
+
     mutations.clearNavigation();
   },
   methods: {
@@ -244,13 +244,13 @@ export default {
       // Show navigation initially for 3 seconds when navigation is set up
       if (this.enabled && (this.hasPrevious || this.hasNext)) {
         mutations.setNavigationShow(true);
-        
+
         // Clear any existing timeout
         if (this.navigationTimeout) {
           clearTimeout(this.navigationTimeout);
           this.navigationTimeout = null;
         }
-        
+
         this.navigationTimeout = setTimeout(() => {
           if (!this.hoverNav) {
             mutations.setNavigationShow(false);
@@ -293,7 +293,7 @@ export default {
           break;
       }
     },
-    handleClick(event) {
+    handleClick() {
       // Don't show navigation if this is part of a swipe gesture
       if (this.isSwipe) {
         return;
@@ -326,7 +326,7 @@ export default {
 
       mutations.setNavigationTimeout(this.navigationTimeout);
     },
-    toggleNavigation: throttle(function (event) {
+    toggleNavigation: throttle(function () {
       if (!this.enabled) {
         return;
       }
@@ -352,7 +352,7 @@ export default {
 
     handleTouchMove(event) {
       if (!event.touches || event.touches.length === 0) return;
-      
+
       const touch = event.touches[0];
       const deltaX = Math.abs(touch.clientX - this.touchStartX);
       const deltaY = Math.abs(touch.clientY - this.touchStartY);
@@ -676,7 +676,7 @@ export default {
   .nav-button i.material-icons {
     font-size: 20px;
   }
-  
+
   /* Reduce animation intensity on mobile for better performance */
   .nav-button:not(.hidden) {
     animation-duration: 0.3s;

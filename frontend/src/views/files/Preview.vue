@@ -1,120 +1,72 @@
 <template>
-    <div
-        id="previewer"
-    >
-        <div class="preview" v-if="!isDeleted">
-            <ExtendedImage
-                v-if="showImage"
-                :src="raw"
-            >
+    <div id="previewer">
+        <div class="preview" :class="{'plyr-background': previewType == 'audio' && !useDefaultMediaPlayer}" v-if="!isDeleted">
+            <ExtendedImage v-if="showImage" :src="raw">
             </ExtendedImage>
 
             <!-- Audio with plyr -->
-            <div
-                v-else-if="previewType == 'audio' && !useDefaultMediaPlayer"
-                class="audio-player-container"
-            >
-                <!-- Album art with a generic icon if no image/metadata -->
-                <div
-                    class="album-art-container"
-                    :class="{ 'no-artwork': !albumArtUrl }"
-                >
-                    <img
-                        v-if="albumArtUrl"
-                        :src="albumArtUrl"
-                        :alt="audioMetadata.album || 'Album art'"
-                        class="album-art"
-                    />
-                    <div v-else class="album-art-fallback">
-                        <i class="material-icons">music_note</i>
-                    </div>
-                </div>
+            <div v-else-if="previewType == 'audio' && !useDefaultMediaPlayer" class="audio-player-container">
+                <div class="audio-player-content">
 
-                <!-- Metadata info -->
-                <div class="metadata-info" v-if="audioMetadata">
-                    <div class="audio-title">
-                        {{ audioMetadata.title || state.req.name }}
+                    <!-- Album art with a generic icon if no image/metadata -->
+                    <div class="album-art-container" :class="{ 'no-artwork': !albumArtUrl }">
+                        <img v-if="albumArtUrl" :src="albumArtUrl" :alt="audioMetadata.album || 'Album art'"
+                            class="album-art" />
+                        <div v-else class="album-art-fallback">
+                            <i class="material-icons">music_note</i>
+                        </div>
                     </div>
-                    <div class="audio-artist" v-if="audioMetadata.artist">
-                        {{ audioMetadata.artist }}
+
+                    <!-- Metadata info -->
+                    <div class="metadata-info" v-if="audioMetadata">
+                        <div class="audio-title">
+                            {{ audioMetadata.title || state.req.name }}
+                        </div>
+                        <div class="audio-artist" v-if="audioMetadata.artist">
+                            {{ audioMetadata.artist }}
+                        </div>
+                        <div class="audio-album" v-if="audioMetadata.album">
+                            {{ audioMetadata.album }}
+                        </div>
+                        <div class="audio-year" v-if="audioMetadata.album">
+                            {{ audioMetadata.year }}
+                        </div>
                     </div>
-                    <div class="audio-album" v-if="audioMetadata.album">
-                        {{ audioMetadata.album }}
-                    </div>
-                    <div class="audio-year" v-if="audioMetadata.album">
-                        {{ audioMetadata.year }}
-                    </div>
+
                 </div>
 
                 <div class="audio-controls-container">
                     <vue-plyr ref="audioPlayer" :options="plyrOptions">
-                        <audio
-                            :src="raw"
-                            :autoplay="autoPlay"
-                            @play="autoPlay = true"
-                        ></audio>
+                        <audio :src="raw" :autoplay="autoPlay" @play="autoPlay = true"></audio>
                     </vue-plyr>
                 </div>
             </div>
 
             <!-- Video with plyr -->
-            <vue-plyr
-                v-else-if="previewType == 'video' && !useDefaultMediaPlayer"
-                ref="videoPlayer"
-                :options="plyrOptions"
-            >
+            <vue-plyr v-else-if="previewType == 'video' && !useDefaultMediaPlayer" ref="videoPlayer"
+                :options="plyrOptions">
                 <video :src="raw" :autoplay="autoPlay" @play="autoPlay = true">
-                    <track
-                        kind="captions"
-                        v-for="(sub, index) in subtitlesList"
-                        :key="index"
-                        :src="sub.src"
-                        :label="'Subtitle ' + sub.name"
-                        :default="index === 0"
-                    />
+                    <track kind="captions" v-for="(sub, index) in subtitlesList" :key="index" :src="sub.src"
+                        :label="'Subtitle ' + sub.name" :default="index === 0" />
                 </video>
             </vue-plyr>
 
             <!-- Default HTML5 Audio -->
-            <audio
-                v-else-if="previewType == 'audio' && useDefaultMediaPlayer"
-                ref="defaultAudioPlayer"
-                :src="raw"
-                controls
-                :autoplay="autoPlay"
-                @play="autoPlay = true"
-            ></audio>
+            <audio v-else-if="previewType == 'audio' && useDefaultMediaPlayer" ref="defaultAudioPlayer" :src="raw"
+                controls :autoplay="autoPlay" @play="autoPlay = true"></audio>
 
             <!-- Default HTML5 Video -->
-            <video
-                v-else-if="previewType == 'video' && useDefaultMediaPlayer"
-                ref="defaultVideoPlayer"
-                :src="raw"
-                controls
-                :autoplay="autoPlay"
-                @play="autoPlay = true"
-            >
-                <track
-                    kind="captions"
-                    v-for="(sub, index) in subtitlesList"
-                    :key="index"
-                    :src="sub.src"
-                    :label="'Subtitle ' + sub.name"
-                    :default="index === 0"
-                />
+            <video v-else-if="previewType == 'video' && useDefaultMediaPlayer" ref="defaultVideoPlayer" :src="raw"
+                controls :autoplay="autoPlay" @play="autoPlay = true">
+                <track kind="captions" v-for="(sub, index) in subtitlesList" :key="index" :src="sub.src"
+                    :label="'Subtitle ' + sub.name" :default="index === 0" />
             </video>
 
             <div v-else-if="previewType == 'pdf'" class="pdf-wrapper">
                 <iframe class="pdf" :src="raw"></iframe>
-                <a
-                    v-if="isMobileSafari"
-                    :href="raw"
-                    target="_blank"
-                    class="button button--flat floating-btn"
-                >
+                <a v-if="isMobileSafari" :href="raw" target="_blank" class="button button--flat floating-btn">
                     <div>
-                        <i class="material-icons">open_in_new</i
-                        >{{ $t("buttons.openFile") }}
+                        <i class="material-icons">open_in_new</i>{{ $t("buttons.openFile") }}
                     </div>
                 </a>
             </div>
@@ -125,25 +77,14 @@
                     {{ $t("files.noPreview") }}
                 </div>
                 <div>
-                    <a
-                        target="_blank"
-                        :href="downloadUrl"
-                        class="button button--flat"
-                    >
+                    <a target="_blank" :href="downloadUrl" class="button button--flat">
                         <div>
-                            <i class="material-icons">file_download</i
-                            >{{ $t("buttons.download") }}
+                            <i class="material-icons">file_download</i>{{ $t("buttons.download") }}
                         </div>
                     </a>
-                    <a
-                        target="_blank"
-                        :href="raw"
-                        class="button button--flat"
-                        v-if="req.type != 'directory'"
-                    >
+                    <a target="_blank" :href="raw" class="button button--flat" v-if="req.type != 'directory'">
                         <div>
-                            <i class="material-icons">open_in_new</i
-                            >{{ $t("buttons.openFile") }}
+                            <i class="material-icons">open_in_new</i>{{ $t("buttons.openFile") }}
                         </div>
                     </a>
                 </div>
@@ -154,20 +95,17 @@
         <div :class="['loop-toast', toastVisible ? 'visible' : '']">
             <svg class="loop-icon" viewBox="0 0 24 24">
                 <path
-                    d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46A7.93 7.93 0 0020 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74A7.93 7.93 0 004 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"
-                />
+                    d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46A7.93 7.93 0 0020 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74A7.93 7.93 0 004 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z" />
             </svg>
             <span>{{
                 loopEnabled
                     ? $t("player.LoopEnabled")
                     : $t("player.LoopDisabled")
             }}</span>
-            <span
-                :class="[
-                    'status-indicator',
-                    loopEnabled ? 'status-on' : 'status-off',
-                ]"
-            ></span>
+            <span :class="[
+                'status-indicator',
+                loopEnabled ? 'status-on' : 'status-off',
+            ]"></span>
         </div>
 
     </div>
@@ -703,6 +641,7 @@ export default {
 
 <style>
 @import url("plyr/dist/plyr.css");
+
 .clickable:hover,
 .plyr .plyr__control:hover,
 button:hover,
@@ -715,6 +654,11 @@ button:hover,
     transform: scale(1.02);
     /* Slightly enlarges the element */
 }
+
+.plyr-background {
+    background: radial-gradient(#2b2b2b, black);
+}
+
 .pdf-wrapper {
     position: relative;
     width: 100%;
@@ -757,10 +701,8 @@ button:hover,
     --plyr-tooltip-background: rgba(0, 0, 0, 0.8);
     --plyr-tooltip-color: #ffffff;
     --plyr-audio-controls-background: transparent;
-    --plyr-video-controls-background: linear-gradient(
-        transparent,
-        rgba(0, 0, 0, 0.7)
-    );
+    --plyr-video-controls-background: linear-gradient(transparent,
+            rgba(0, 0, 0, 0.7));
     border-radius: 12px;
     overflow: visible;
 }
@@ -862,20 +804,10 @@ button:hover,
 }
 
 /* Style for audio player on mobile */
-@media (max-width: 768px) {
+@media (max-width: 800px) {
     .plyr.plyr--audio {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        width: 100%;
-        max-width: 100%;
-        max-height: 70px;
-        border-radius: 5px;
-        padding: 10px 15px;
-        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
-        margin: 0;
-        transform: none;
+        padding: 1em;
+        border-radius: 0;
     }
 
     /* Buttons container more "big" for easy touch */
@@ -928,23 +860,35 @@ button:hover,
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 20px;
+    gap: 1em;
     margin: 0 auto;
-    padding: 20px;
+    padding: 1em;
     width: 100%;
     box-sizing: border-box;
     height: 100%;
     justify-content: center;
 }
 
+.audio-player-content {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-grow: 1;
+    margin: auto;
+    gap: 1em;
+    justify-content: center;
+}
+
 .album-art-container {
-    width: min(350px, 80vw);
-    height: min(350px, 80vw);
-    border-radius: 12px;
+    height: 100%;
+    width: 100%;
+    max-height: 25em;
+    max-width: 25em;
+    border-radius: 1em;
     overflow: hidden;
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
-    margin-top: 30px;
-    bottom: 0;
 }
 
 .album-art {
@@ -960,11 +904,9 @@ button:hover,
     width: 100%;
     height: 100%;
     border-radius: 18px;
-    background: linear-gradient(
-        115deg,
-        var(--primaryColor),
-        rgba(2, 0, 36, 0.9)
-    );
+    background: linear-gradient(115deg,
+            var(--primaryColor),
+            rgba(2, 0, 36, 0.9));
     filter: brightness(0.85);
 }
 
@@ -998,6 +940,10 @@ button:hover,
     word-break: break-word;
 }
 
+.metadata-info {
+    color: whitesmoke
+}
+
 .audio-artist,
 .audio-album,
 .audio-year {
@@ -1009,75 +955,13 @@ button:hover,
 
 .audio-controls-container {
     width: 100%;
-    margin-top: 15px;
-}
-
-/* Mobile */
-@media (max-width: 480px) and (orientation: portrait) {
-    .audio-player-container {
-        padding: 10px 15px 20px;
-        gap: 20px;
-        justify-content: center;
-        min-height: 70vh;
-        display: flex;
-    }
-
-    .album-art-container {
-        width: min(280px, 75vw);
-        height: min(280px, 75vw);
-        margin-top: 50px;
-    }
-
-    .album-art-fallback i.material-icons {
-        font-size: 4rem;
-    }
-
-    .audio-metadata {
-        max-width: min(300px, 85vw);
-        margin-top: 5px;
-        padding: 12px 15px;
-        background: rgba(0, 0, 0, 0.08);
-    }
-
-    .audio-title {
-        font-size: 1.4rem;
-        margin-bottom: 6px;
-    }
-
-    .audio-artist {
-        font-size: 1.1rem;
-        font-weight: 500;
-        margin-bottom: 4px;
-    }
-
-    .audio-album {
-        font-size: 1rem;
-    }
-
-    .audio-controls-container {
-        width: 100%;
-        margin-top: 20px;
-        position: relative;
-    }
-}
-
-/* For medium screens (like tablets) */
-@media (max-width: 1024px) and (min-width: 769px) {
-    .album-art-container {
-        width: min(300px, 60vw);
-        height: min(300px, 60vw);
-    }
-
-    .audio-metadata {
-        max-width: min(300px, 60vw);
-    }
 }
 
 /* For small tablets and phones with big screen */
-@media (max-width: 768px) {
+@media (max-width: 800px) {
     .audio-player-container {
-        padding: 15px;
-        gap: 15px;
+        padding: 0;
+        padding-top: 1em;
     }
 
     .album-art-container {
@@ -1092,70 +976,6 @@ button:hover,
         padding: 12px;
     }
 
-    .audio-controls-container {
-        margin-top: 10px;
-    }
-}
-
-/* For small phones */
-@media (max-width: 480px) and (orientation: landscape) {
-    .audio-player-container {
-        padding: 10px;
-        gap: 10px;
-        margin-top: 10px;
-    }
-
-    .album-art-container {
-        width: min(220px, 65vw);
-        height: min(220px, 65vw);
-        margin-top: 10px;
-    }
-
-    .audio-metadata {
-        max-width: min(220px, 65vw);
-        margin-top: 8px;
-        padding: 10px;
-    }
-
-    .audio-title {
-        font-size: clamp(1.1rem, 5vw, 1.3rem);
-    }
-
-    .audio-artist,
-    .audio-album {
-        font-size: clamp(0.9rem, 4vw, 1rem);
-    }
-}
-
-/* For small screens in landscape orientation (Like a phone) */
-@media (max-height: 500px) and (orientation: landscape) {
-    .audio-player-container {
-        flex-direction: row;
-        flex-wrap: wrap;
-        justify-content: center;
-        align-items: center;
-        gap: 15px;
-    }
-
-    .album-art-container {
-        width: min(150px, 30vh);
-        height: min(150px, 30vh);
-        margin-right: 10px;
-        margin-top: 10px;
-    }
-
-    .audio-metadata {
-        max-width: calc(100% - 180px);
-        text-align: left;
-        margin-top: 0;
-        flex: 1;
-    }
-
-    .audio-controls-container {
-        width: 100%;
-        margin-top: 10px;
-        order: 3;
-    }
 }
 
 /* For ultra-wide screens. This need test, I'm not sure if will work correctly */
@@ -1220,4 +1040,3 @@ button:hover,
     background: #f44336;
 }
 </style>
-
