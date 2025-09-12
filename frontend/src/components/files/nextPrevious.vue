@@ -3,11 +3,11 @@
   <div
     v-if="enabled && hasPrevious"
     class="nav-zone nav-zone-left"
-    @mousemove="toggleNavigation"
-    @touchstart="toggleNavigation"
-    @click="handleClick"
     :class="{ moveWithSidebar: moveWithSidebar }"
-
+    @mousemove="toggleNavigation"
+    @touchstart="(e) => { handleTouchStart(e); toggleNavigation(e); }"
+    @touchmove="handleTouchMove"
+    @click="handleClick"
   ></div>
 
   <!-- Right edge detection zone -->
@@ -15,7 +15,8 @@
     v-if="enabled && hasNext"
     class="nav-zone nav-zone-right"
     @mousemove="toggleNavigation"
-    @touchstart="toggleNavigation"
+    @touchstart="(e) => { handleTouchStart(e); toggleNavigation(e); }"
+    @touchmove="handleTouchMove"
     @click="handleClick"
   ></div>
 
@@ -84,9 +85,6 @@ export default {
   name: "NextPrevious",
   data() {
     return {
-      logInterval: null,
-      cursorY: 0,
-      cursorX: 0,
       hoverNav: false,
       dragState: {
         isDragging: false,
@@ -99,6 +97,11 @@ export default {
         atFullExtent: false,
         triggered: false,
       },
+      // State tracking
+      navigationTimeout: null,
+      isSwipe: false,
+      touchStartX: 0,
+      touchStartY: 0,
     };
   },
   computed: {
@@ -111,8 +114,6 @@ export default {
     },
     showNav() {
       const shouldShow = state.navigation.show || this.hoverNav;
-      // eslint-disable-next-line no-console
-      console.log(`[showNav] state.navigation.show: ${state.navigation.show}, this.hoverNav: ${this.hoverNav}, result: ${shouldShow}`);
       return shouldShow;
     },
     hasPrevious() {
@@ -163,20 +164,11 @@ export default {
     },
   },
   mounted() {
-    // eslint-disable-next-line no-console
-    console.log('[NextPrevious] Component mounted');
     window.addEventListener("keydown", this.keyEvent);
     window.addEventListener("mousemove", this.handleDrag);
     window.addEventListener("mouseup", this.endDrag);
     window.addEventListener("touchmove", this.handleDrag, { passive: false });
     window.addEventListener("touchend", this.endDrag);
-    window.addEventListener("mousemove", this.updateCursorPosition);
-    this.logInterval = setInterval(() => {
-      // eslint-disable-next-line no-console
-      console.log('[NextPrevious] Interval fired');
-      // eslint-disable-next-line no-console
-      console.log(`[Cursor Position] x: ${this.cursorX}, y: ${this.cursorY}`);
-    }, 1000);
 
     // Calculate 10em threshold in pixels
     const emSize = parseFloat(getComputedStyle(document.documentElement).fontSize);
@@ -201,17 +193,17 @@ export default {
     window.removeEventListener("mouseup", this.endDrag);
     window.removeEventListener("touchmove", this.handleDrag);
     window.removeEventListener("touchend", this.endDrag);
-    window.removeEventListener("mousemove", this.updateCursorPosition);
-    if (this.logInterval) {
-      clearInterval(this.logInterval);
+    
+    // Clear our local timeout
+    if (this.navigationTimeout) {
+      clearTimeout(this.navigationTimeout);
+      this.navigationTimeout = null;
     }
+    
     mutations.clearNavigation();
   },
   methods: {
-    updateCursorPosition(event) {
-      this.cursorX = event.clientX;
-      this.cursorY = event.clientY;
-    },
+
     updateNavigationEnabled() {
       const shouldEnable = previewViews.includes(this.currentView);
       mutations.setNavigationEnabled(shouldEnable);
@@ -249,14 +241,21 @@ export default {
       });
     },
     showInitialNavigation() {
-
       // Show navigation initially for 3 seconds when navigation is set up
       if (this.enabled && (this.hasPrevious || this.hasNext)) {
         mutations.setNavigationShow(true);
-        setTimeout(() => {
+        
+        // Clear any existing timeout
+        if (this.navigationTimeout) {
+          clearTimeout(this.navigationTimeout);
+          this.navigationTimeout = null;
+        }
+        
+        this.navigationTimeout = setTimeout(() => {
           if (!this.hoverNav) {
             mutations.setNavigationShow(false);
           }
+          this.navigationTimeout = null;
         }, 3000);
       }
     },
@@ -294,42 +293,82 @@ export default {
           break;
       }
     },
-    handleClick() {
+    handleClick(event) {
+      // Don't show navigation if this is part of a swipe gesture
+      if (this.isSwipe) {
+        return;
+      }
+
       // Simplified: clicking anywhere in the CSS zones shows navigation
-      if (!this.enabled || (!this.hasPrevious && !this.hasNext)) return;
+      if (!this.enabled || (!this.hasPrevious && !this.hasNext)) {
+        return;
+      }
 
       this.showNavigation();
     },
     showNavigation() {
-      // eslint-disable-next-line no-console
-      console.log('[showNavigation] called');
       mutations.setNavigationShow(true);
       mutations.clearNavigationTimeout();
 
-      const timeout = setTimeout(() => {
-        // eslint-disable-next-line no-console
-        console.log(`[showNavigation timeout] hiding navigation. this.hoverNav: ${this.hoverNav}`);
+      // Clear our local timeout too
+      if (this.navigationTimeout) {
+        clearTimeout(this.navigationTimeout);
+        this.navigationTimeout = null;
+      }
+
+      this.navigationTimeout = setTimeout(() => {
         if (!this.hoverNav) {
           mutations.setNavigationShow(false);
         }
         mutations.clearNavigationTimeout();
-      }, 3000); // Show for 3 seconds instead of 1.5
-      // eslint-disable-next-line no-console
-      console.log(`[showNavigation] timeout set to hide navigation in 3s. timeoutId: ${timeout}`);
+        this.navigationTimeout = null;
+      }, 3000); // Show for 3 seconds
 
-      mutations.setNavigationTimeout(timeout);
+      mutations.setNavigationTimeout(this.navigationTimeout);
     },
     toggleNavigation: throttle(function (event) {
-      if (!this.enabled) return;
-      // eslint-disable-next-line no-console
-      console.log(`[toggleNavigation] cursor at (${event.clientX}, ${event.clientY})`);
+      if (!this.enabled) {
+        return;
+      }
+      if (this.isSwipe) {
+        return;
+      }
       this.showNavigation();
     }, 100),
     setHoverNav(value) {
-      // eslint-disable-next-line no-console
-      console.log(`[setHoverNav] value: ${value}`);
       this.hoverNav = value;
       mutations.setNavigationHover(value);
+    },
+
+    // Touch handling and swipe detection (similar to ListingItem.vue)
+    handleTouchStart(event) {
+      if (event.touches && event.touches.length > 0) {
+        const touch = event.touches[0];
+        this.touchStartX = touch.clientX;
+        this.touchStartY = touch.clientY;
+        this.isSwipe = false;
+      }
+    },
+
+    handleTouchMove(event) {
+      if (!event.touches || event.touches.length === 0) return;
+      
+      const touch = event.touches[0];
+      const deltaX = Math.abs(touch.clientX - this.touchStartX);
+      const deltaY = Math.abs(touch.clientY - this.touchStartY);
+      const movementThreshold = 10;
+
+      if (deltaX > movementThreshold || deltaY > movementThreshold) {
+        this.isSwipe = true;
+        this.cancelNavigationTimeout();
+      }
+    },
+
+    cancelNavigationTimeout() {
+      if (this.navigationTimeout) {
+        clearTimeout(this.navigationTimeout);
+        this.navigationTimeout = null;
+      }
     },
 
     // Drag functionality for navigation buttons
@@ -508,11 +547,12 @@ export default {
   position: fixed;
   top: 25%; /* Start at 25% from top */
   bottom: 25%; /* End at 25% from bottom (so middle 50%) */
-  width: 15px; /* Very thin zones at absolute screen edge */
+  width: 7em; /* Very thin zones at absolute screen edge */
   pointer-events: auto;
   z-index: 5; /* Lower z-index so content can appear above */
   background: transparent; /* Invisible zones for mouse/touch detection */
 }
+
 
 .nav-zone-left {
   left: 0;
@@ -543,13 +583,14 @@ export default {
   background: var(--background);
   color: var(--textPrimary);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: opacity 0.4s ease, transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
   pointer-events: auto;
   z-index: 1001;
   display: flex;
   align-items: center;
   justify-content: center;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  opacity: 1;
 }
 
 .nav-button.dark-mode {
@@ -563,8 +604,12 @@ export default {
   transform: translateY(-50%) scale(1.1);
   box-shadow:
         inset 0 -3em 3em rgba(217, 217, 217, 0.211),
-        0 0 0 2px var(--alt-background) !important;
+        0 0 0 2px var(--alt-background),
+        0 4px 20px rgba(0, 0, 0, 0.4);
+  color: white;
+  opacity: 1;
 }
+
 
 .nav-previous {
   left: 20px;
@@ -576,8 +621,24 @@ export default {
 
 .nav-button.hidden {
   opacity: 0;
-  transform: translateY(-50%) scale(0.8);
+  transform: translateY(-50%) scale(0.9);
   pointer-events: none;
+}
+
+/* Smooth show animation for better UX */
+.nav-button:not(.hidden) {
+  animation: nav-button-show 0.4s ease-out;
+}
+
+@keyframes nav-button-show {
+  0% {
+    opacity: 0;
+    transform: translateY(-50%) scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(-50%) scale(1);
+  }
 }
 
 .nav-button.dragging {
@@ -589,6 +650,12 @@ export default {
 .nav-button i.material-icons {
   font-size: 24px;
   line-height: 1;
+  transition: transform 0.2s ease;
+}
+
+.nav-button:hover i.material-icons,
+.nav-button.active i.material-icons {
+  transform: scale(1.1);
 }
 
 /* Mobile styles */
@@ -608,6 +675,11 @@ export default {
 
   .nav-button i.material-icons {
     font-size: 20px;
+  }
+  
+  /* Reduce animation intensity on mobile for better performance */
+  .nav-button:not(.hidden) {
+    animation-duration: 0.3s;
   }
 }
 

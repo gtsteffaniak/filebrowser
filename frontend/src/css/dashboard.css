@@ -28,6 +28,10 @@ body.rtl .dashboard .row {
   }
 }
 
+a {
+  color: inherit
+}
+
 .dashboard p label {
   margin-bottom: .2em;
   display: block;
@@ -161,9 +165,6 @@ table tr>*:last-child {
   border-radius: 2px;
   box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2);
   border-radius: 1em;
-  display: flex !important;
-  flex-direction: column;
-  overflow: hidden;
 }
 
 .card.floating {
@@ -176,6 +177,9 @@ table tr>*:last-child {
   width: 90%;
   max-height: 80vh; /* Constrain modal height for scrolling */
   animation: .1s show forwards;
+  display: flex !important;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .card>*>*:first-child {

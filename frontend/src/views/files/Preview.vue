@@ -239,6 +239,7 @@ export default {
         };
     },
     computed: {
+
         showImage() {
             return (this.previewType == 'image' || this.pdfConvertable) && (!globalVars.disableHeicConversion && state.req.type == "image/heic");
         },
@@ -849,16 +850,7 @@ button:hover,
 /* Style for audio player */
 .plyr.plyr--audio {
     background: rgba(40, 40, 55, 1);
-    border-radius: 16px;
-    padding: 15px;
-    max-width: flex;
-    width: 75%;
-    max-height: 300px;
-    margin: auto auto;
-    position: absolute;
-    bottom: 18px;
-    left: 50%;
-    transform: translateX(-50%);
+    border-radius: 1em;
 }
 
 /* Hide some unnesary buttons on the audio player */
@@ -937,7 +929,6 @@ button:hover,
     flex-direction: column;
     align-items: center;
     gap: 20px;
-    max-width: 800px;
     margin: 0 auto;
     padding: 20px;
     width: 100%;
