@@ -112,11 +112,8 @@ func processContent(info *iteminfo.ExtendedFileInfo, idx *indexing.Index) {
 
 	if isAudio {
 		metadata, err := extractAudioMetadata(info.RealPath)
-		if err != nil {
-			logger.Debugf("could not extract audio metadata for file: %s, error: %v", info.RealPath, err)
-		} else {
+		if err == nil {
 			info.AudioMeta = metadata
-			logger.Debugf("extracted audio metadata for: %s (title: %s, artist: %s)", info.Name, metadata.Title, metadata.Artist)
 		}
 		return
 	}
