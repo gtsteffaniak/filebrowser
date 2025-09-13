@@ -8,16 +8,14 @@ All notable changes to this project will be documented in this file. For commit 
  - Remember folder view type (and sorting) for each folder #966
  - heic is supported in viewer (via ffmpeg conversion) when on non-safari browser. This can be enabled via `integrations.ffmpeg.convert.impagePreview.heic: true` #1191
  - OnlyOffice: Add option to open documents in viewer mode (`integrations.office.viewOnly`) #1193
- - Exclude folders and file names 'starting with' or wildcard option
+ - Exclude folders and file names 'starting with' or wildcard option #1054
  - added better info for failed uploads #1050
  - upload prompt "clear completed" can be changed to "clear all" in uploads & downloads settings to clear error and conflict states as well. #1128
  - share 'default view mode' option #1212
  - backend media metadata processing
    - significantly improved performance
-   - album artwork shows in listing view as preview thumbnail Album art thumbnail: display embedded covers of mp3/flac files
-#925
+   - album artwork shows in listing view as preview thumbnail Album art thumbnail: display embedded covers of mp3/flac files #925
    - removed need for frontend dependancies.
-#1054
  - Universal Next/Previous buttons
    - available for all listing items (including office/markdown etc)
    - remembers sort order from parent directory
