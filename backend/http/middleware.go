@@ -92,7 +92,6 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		if link.DisableFileViewer || reachedDownloadsLimit {
 			getContent = false
 		}
-		logger.Debugf("getPath: %v", utils.JoinPathAsUnix(link.Path, path))
 		file, err := FileInfoFasterFunc(iteminfo.FileOptions{
 			Path:    utils.JoinPathAsUnix(link.Path, path),
 			Source:  link.Source,

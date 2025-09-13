@@ -1,7 +1,6 @@
 package iteminfo
 
 import (
-	"fmt"
 	"mime"
 	"net/http"
 	"os"
@@ -34,21 +33,21 @@ var SubtitleExts = []string{
 	".smi",
 }
 
-var MuPdfConvertable = []string{
-	".pdf",  // PDF
-	".xps",  // XPS
-	".epub", // EPUB
-	".mobi", // MOBI
-	".fb2",  // FB2
-	".cbz",  // CBZ
-	".svg",  // SVG
-	".txt",  // TXT
-	".docx", // DOCX
-	".pptx", // PPTX
-	".xlsx", // XLSX
-	".hwp",  // HWP
-	".hwp",  // HWPX
-	".md",   // Markdown
+var MuPdfConvertable = map[string]bool{
+	".pdf":  true, // PDF
+	".xps":  true, // XPS
+	".epub": true, // EPUB
+	".mobi": true, // MOBI
+	".fb2":  true, // FB2
+	".cbz":  true, // CBZ
+	".svg":  true, // SVG
+	".txt":  true, // TXT
+	".docx": true, // DOCX
+	".pptx": true, // PPTX
+	".xlsx": true, // XLSX
+	".hwp":  true, // HWP
+	".hwpx": true, // HWPX
+	".md":   true, // Markdown
 }
 
 // Known bundle-style extensions that are technically directories but treated as files
@@ -329,7 +328,6 @@ func HasAlbumArt(filePath string, extension string) bool {
 	}
 	file, err := os.Open(filePath)
 	if err != nil {
-		fmt.Println("error opening file", err)
 		return false
 	}
 	defer file.Close()
@@ -464,10 +462,9 @@ func HasDocConvertableExtension(name, mimetype string) bool {
 		return true
 	}
 	ext := strings.ToLower(filepath.Ext(name))
-	for _, e := range MuPdfConvertable {
-		if ext == e {
-			return true
-		}
+	val, ok := MuPdfConvertable[ext]
+	if ok {
+		return val
 	}
 	return false
 }

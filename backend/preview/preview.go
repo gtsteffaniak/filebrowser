@@ -75,9 +75,9 @@ func NewPreviewGenerator(concurrencyLimit int, ffmpegPath string, cacheDir strin
 		logger.Fatalf("the configured ffmpeg path is not a valid ffprobe binary %s, err: %v", ffmpegPath, err)
 	}
 	if errprobe == nil && err == nil {
-		logger.Debugf("Media Enabled            : %v", errprobe == nil)
 		settings.Config.Integrations.Media.FfmpegPath = filepath.Base(ffmpegMainPath)
 	}
+	logger.Debugf("Media Enabled            : %v", ffmpegMainPath != "" && ffprobePath != "")
 	settings.Config.Server.MuPdfAvailable = docEnabled()
 	logger.Debugf("MuPDF Enabled            : %v", settings.Config.Server.MuPdfAvailable)
 	return &Service{
@@ -95,11 +95,11 @@ func StartPreviewGenerator(concurrencyLimit int, ffmpegPath, cacheDir string) er
 }
 
 func GetPreviewForFile(file iteminfo.ExtendedFileInfo, previewSize, url string, seekPercentage int) ([]byte, error) {
-	if !AvailablePreview(file.ItemInfo) {
+	if !file.HasPreview {
 		return nil, ErrUnsupportedMedia
 	}
 	var thisMd5 string
-	if file.AudioMeta.AlbumArt != "" {
+	if file.AudioMeta != nil && file.AudioMeta.AlbumArt != "" {
 		// md5 is based on album art
 		// md5 file.AlbumArt
 		hasher := md5.New() //nolint:gosec
@@ -252,13 +252,6 @@ func DelThumbs(ctx context.Context, file iteminfo.ExtendedFileInfo) {
 			logger.Debugf("Could not delete thumbnail: %v", file.Name)
 		}
 	}
-}
-
-func AvailablePreview(file iteminfo.ItemInfo) bool {
-	if file.HasPreview {
-		return true
-	}
-	return false
 }
 
 // CheckValidFFmpeg checks for a valid ffmpeg executable.

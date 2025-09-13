@@ -333,16 +333,7 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 			if simpleType == "image" {
 				itemInfo.HasPreview = true
 			}
-			if settings.Config.Integrations.OnlyOffice.Secret != "" && iteminfo.IsOnlyOffice(file.Name()) {
-				itemInfo.HasPreview = true
-			}
 			if settings.Config.Integrations.Media.FfmpegPath != "" && simpleType == "video" {
-				itemInfo.HasPreview = true
-			}
-			if settings.Config.Integrations.Media.FfmpegPath != "" && strings.HasPrefix(itemInfo.Type, "video") && itemInfo.HasPreview {
-				itemInfo.HasPreview = true
-			}
-			if iteminfo.HasDocConvertableExtension(itemInfo.Name, itemInfo.Type) {
 				itemInfo.HasPreview = true
 			}
 
@@ -356,6 +347,13 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 			}
 			if itemInfo.HasPreview {
 				hasPreview = true
+			}
+			// these don't create preview for parent folders
+			if settings.Config.Integrations.OnlyOffice.Secret != "" && iteminfo.IsOnlyOffice(file.Name()) {
+				itemInfo.HasPreview = true
+			}
+			if iteminfo.HasDocConvertableExtension(itemInfo.Name, itemInfo.Type) {
+				itemInfo.HasPreview = true
 			}
 		}
 	}

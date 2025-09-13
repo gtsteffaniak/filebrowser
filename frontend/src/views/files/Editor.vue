@@ -40,7 +40,6 @@ export default {
   data: function () {
     return {
       editor: null, // The editor instance
-      filename: "",
     };
   },
   computed: {
@@ -50,12 +49,79 @@ export default {
     req() {
       return state.req;
     },
+    // Current filename from route
+    routeFilename() {
+      if (this.viewerMode) return null;
+      const filename = decodeURIComponent(this.$route.path.split("/").pop() || "");
+      return getters.shareHash() === filename ? "" : filename;
+    },
+    // Check if state and route are synchronized
+    isStateSynced() {
+      if (this.viewerMode) return true;
+      if (!this.routeFilename || !this.req) return false;
+      return this.req.name === this.routeFilename;
+    },
+    // Editor content to display
+    editorContent() {
+      if (this.viewerMode) {
+        return this.content || "";
+      }
+      
+      if (!this.isStateSynced) {
+        return ""; // Show blank content until synced
+      }
+      
+      return this.req.content === "empty-file-x6OlSil" ? "" : (this.req.content || "");
+    },
+    // Editor mode/language
+    editorLanguageMode() {
+      if (this.viewerMode) {
+        return this.getAceMode(this.editorMode);
+      }
+      
+      if (!this.isStateSynced || !this.req) {
+        return "ace/mode/text";
+      }
+      
+      return modelist.getModeForPath(this.req.name).mode;
+    },
+    // Editor read-only state
+    editorReadOnly() {
+      if (this.readOnly !== null) {
+        return this.readOnly;
+      }
+      
+      if (this.viewerMode) {
+        return true;
+      }
+      
+      if (!this.isStateSynced) {
+        return true; // Read-only until synced
+      }
+      
+      return this.req.type === "textImmutable";
+    },
   },
   watch: {
-    // Update editor content when prop changes in viewer mode
-    content(newContent) {
-      if (this.viewerMode && this.editor) {
-        this.editor.setValue(newContent || "", -1); // -1 moves cursor to start
+    // Update editor content reactively
+    editorContent(newContent) {
+      if (this.editor) {
+        const currentValue = this.editor.getValue();
+        if (currentValue !== newContent) {
+          this.editor.setValue(newContent, -1); // -1 moves cursor to start
+        }
+      }
+    },
+    // Update editor language mode
+    editorLanguageMode(newMode) {
+      if (this.editor) {
+        this.editor.session.setMode(newMode);
+      }
+    },
+    // Update read-only state
+    editorReadOnly(isReadOnly) {
+      if (this.editor) {
+        this.editor.setReadOnly(isReadOnly);
       }
     },
     // Update theme when dark mode changes
@@ -64,35 +130,12 @@ export default {
         this.editor.setTheme(newValue ? "ace/theme/twilight" : "ace/theme/chrome");
       }
     },
-    // Watch for req changes to update navigation
-    req(newReq) {
-      if (newReq && newReq.path && newReq.name && !this.viewerMode) {
-        this.updateNavigationForCurrentItem();
-        mutations.resetSelected();
-        mutations.addSelected({
-          name: newReq.name,
-          path: newReq.path,
-          size: newReq.size,
-          type: newReq.type,
-          source: newReq.source,
-        });
+    // Initialize navigation when state syncs for file editing
+    isStateSynced(synced) {
+      if (synced && !this.viewerMode && this.req) {
+        this.initializeNavigation();
       }
     }
-  },
-  beforeRouteUpdate(to, from, next) {
-    // Destroy the old editor instance to ensure a clean state
-    if (this.editor) {
-      this.editor.destroy();
-      this.editor = null;
-    }
-
-    // Call setupEditor on the next DOM update cycle
-    this.$nextTick(() => {
-      this.setupEditor();
-    });
-
-    // Continue with the navigation
-    next();
   },
   created() {
     window.addEventListener("keydown", this.keyEvent);
@@ -105,149 +148,94 @@ export default {
     }
   },
   mounted: function () {
-    this.setupEditor();
-
-    // Initialize navigation for file editor mode
-    if (!this.viewerMode && state.req) {
-      mutations.resetSelected();
-      mutations.addSelected({
-        name: state.req.name,
-        path: state.req.path,
-        size: state.req.size,
-        type: state.req.type,
-        source: state.req.source,
-      });
-    }
+    this.initializeEditor();
   },
   methods: {
-    async updateNavigationForCurrentItem() {
-      if (!state.req || state.req.type === 'directory') {
+    initializeNavigation() {
+      if (!this.req || this.req.type === 'directory') {
         return;
       }
 
-      const directoryPath = url.removeLastDir(state.req.path);
+      mutations.resetSelected();
+      mutations.addSelected({
+        name: this.req.name,
+        path: this.req.path,
+        size: this.req.size,
+        type: this.req.type,
+        source: this.req.source,
+      });
+
+      this.updateNavigationForCurrentItem();
+    },
+
+    async updateNavigationForCurrentItem() {
+      if (!this.req || this.req.type === 'directory') {
+        return;
+      }
+
+      const directoryPath = url.removeLastDir(this.req.path);
       let listing = null;
 
-      if (state.req.items) {
-        listing = state.req.items;
+      if (this.req.items) {
+        listing = this.req.items;
       } else {
         try {
           let res;
           if (getters.isShare()) {
             res = await publicApi.fetchPub(directoryPath, state.share.hash);
           } else {
-            res = await filesApi.fetchFiles(state.req.source, directoryPath);
+            res = await filesApi.fetchFiles(this.req.source, directoryPath);
           }
           listing = res.items;
         } catch (error) {
-          listing = [state.req];
+          listing = [this.req];
         }
       }
 
       mutations.setupNavigation({
         listing: listing,
-        currentItem: state.req,
+        currentItem: this.req,
         directoryPath: directoryPath
       });
     },
-    setupEditor(attempt = 1) {
-      try {
-        // Handle viewer mode - bypass all req/route logic
-        if (this.viewerMode) {
-          return this.setupViewerMode();
-        }
-
-        // Original file editor logic
-        this.filename = decodeURIComponent(this.$route.path.split("/").pop() || "");
-        // Safety Check 1: Use the component's 'filename' data property for comparison
-
-        // no need to do safety check for direct link
-        if (getters.shareHash() == this.filename) {
-          this.filename = "";
-        }
-
-        if (this.filename && state.req.name !== this.filename) {
-          if (attempt < 5) {
-            console.warn(
-              `[Attempt ${attempt}/5] State filename ("${state.req.name}") does not match route filename ("${this.filename}"). Retrying in 500ms...`
-            );
-            setTimeout(() => this.setupEditor(attempt + 1), 500);
-          } else {
-            const errorMsg = `${this.$t("editor.syncFailed", { filename: this.filename })}`;
-            console.error(errorMsg);
-            notify.showError(errorMsg); // Using the custom notifier
-          }
-          return;
-        }
-
-        console.log(
-          "State and route are in sync. Proceeding with editor setup for",
-          this.filename
-        );
-        const editorEl = document.getElementById("editor");
-        if (!editorEl) {
-          return;
-        }
-
-        ace.config.set(
-          "basePath",
-          `https://cdn.jsdelivr.net/npm/ace-builds@${ace_version}/src-min-noconflict/`
-        );
-
-        const fileContent = state.req.content == "empty-file-x6OlSil" ? "" : state.req.content || "";
-        this.editor = ace.edit(editorEl, {
-          mode: modelist.getModeForPath(state.req.name).mode,
-          value: fileContent,
-          showPrintMargin: false,
-          showGutter: true,
-          showLineNumbers: true,
-          theme: this.isDarkMode ? "ace/theme/twilight" : "ace/theme/chrome",
-          readOnly: this.readOnly !== null ? this.readOnly : (state.req.type === "textImmutable"),
-          wrap: false,
-          enableMobileMenu: true,
-        });
-
-        this.editor.container.addEventListener("contextmenu", (event) => {
-          event.preventDefault();
-          event.stopPropagation();
-        }, true);
-
-        this.filename = decodeURIComponent(this.$route.path.split("/").pop());
-      } catch (error) {
-        notify.showError(this.$t("editor.uninitialized"));
-      }
-    },
-    setupViewerMode() {
+    initializeEditor() {
       const editorEl = document.getElementById("editor");
       if (!editorEl) {
         return;
       }
 
-      ace.config.set(
-        "basePath",
-        `https://cdn.jsdelivr.net/npm/ace-builds@${ace_version}/src-min-noconflict/`
-      );
+      try {
+        ace.config.set(
+          "basePath",
+          `https://cdn.jsdelivr.net/npm/ace-builds@${ace_version}/src-min-noconflict/`
+        );
 
-      // Determine the ACE mode from the editorMode prop
-      const aceMode = this.getAceMode(this.editorMode);
+        this.editor = ace.edit(editorEl, {
+          mode: this.editorLanguageMode,
+          value: this.editorContent,
+          showPrintMargin: false,
+          showGutter: true,
+          showLineNumbers: true,
+          theme: this.isDarkMode ? "ace/theme/twilight" : "ace/theme/chrome",
+          readOnly: this.editorReadOnly,
+          wrap: false,
+          enableMobileMenu: !this.viewerMode,
+        });
 
-      this.editor = ace.edit(editorEl, {
-        mode: aceMode,
-        value: this.content || "",
-        showPrintMargin: false,
-        showGutter: true,
-        showLineNumbers: true,
-        theme: this.isDarkMode ? "ace/theme/twilight" : "ace/theme/chrome",
-        readOnly: this.readOnly !== null ? this.readOnly : true, // Default to read-only in viewer mode
-        wrap: false,
-        enableMobileMenu: false, // Disable mobile menu in viewer mode
-      });
+        // Disable context menu
+        this.editor.container.addEventListener("contextmenu", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+        }, true);
 
-      // Disable context menu in viewer mode
-      this.editor.container.addEventListener("contextmenu", (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-      }, true);
+        // Initialize navigation for file editing mode when synced
+        if (this.isStateSynced && !this.viewerMode) {
+          this.initializeNavigation();
+        }
+      } catch (error) {
+        console.error("Failed to initialize editor:", error);
+        notify.showError(this.$t("editor.uninitialized"));
+      }
     },
     getAceMode(mode) {
       const modeMap = {
@@ -269,28 +257,32 @@ export default {
         return;
       }
 
-      // Safety Check 2: Final verification before saving
-      if (state.req.name !== this.filename) {
-        // Corrected the error message to be more accurate
-        notify.showError(this.$t("editor.saveAbortedMessage", { activeFile: state.req.name, tryingToSave: this.filename }));
+      // Filename protection - ensure state is synced before saving
+      if (!this.isStateSynced) {
+        notify.showError(this.$t("editor.saveAbortedMessage", { 
+          activeFile: this.req?.name || "unknown", 
+          tryingToSave: this.routeFilename || "unknown" 
+        }));
         return;
       }
+
+      if (!this.editor) {
+        notify.showError(this.$t("editor.uninitialized"));
+        return;
+      }
+
       try {
-        if (this.editor) {
-          if (getters.isShare()) {
-            // TODO: add support for saving shared files
-            notify.showError(this.$t("share.saveDisabled"));
-            return;
-          } else {
-            // Use regular files API for authenticated users
-            await filesApi.put(state.req.source, state.req.path, this.editor.getValue());
-          }
-        } else {
-          notify.showError(this.$t("editor.uninitialized"));
+        if (getters.isShare()) {
+          // TODO: add support for saving shared files
+          notify.showError(this.$t("share.saveDisabled"));
           return;
         }
-        notify.showSuccess(`${this.filename} saved successfully.`);
+
+        // Save the file
+        await filesApi.put(this.req.source, this.req.path, this.editor.getValue());
+        notify.showSuccess(`${this.req.name} saved successfully.`);
       } catch (error) {
+        console.error("Save failed:", error);
         notify.showError(this.$t("editor.saveFailed"));
       }
     },

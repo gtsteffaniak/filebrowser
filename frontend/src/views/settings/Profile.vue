@@ -36,6 +36,8 @@
             <ToggleSwitch class="item" v-model="localuser.showSelectMultiple" @change="updateSettings"
               :name="$t('profileSettings.showSelectMultiple')"
               :description="$t('profileSettings.showSelectMultipleDescription')" />
+            <ToggleSwitch class="item" v-model="localuser.preview.folder" @change="updateSettings"
+              :name="$t('profileSettings.previewFolder')" :description="$t('profileSettings.previewFolderDescription')" />
           </div>
         </SettingsItem>
         <SettingsItem :title="$t('profileSettings.sidebarOptions')" :collapsable="true" :start-collapsed="true"

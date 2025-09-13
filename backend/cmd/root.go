@@ -77,12 +77,22 @@ func StartFilebrowser() {
 	if !dbExists {
 		database = fmt.Sprintf("Creating new database    : %v", settings.Config.Server.Database)
 	}
+
+	// Dev mode enables development features like template hot-reloading
+	devMode := os.Getenv("FILEBROWSER_DEVMODE") == "true"
+	_, err := os.Stat("http/dist")
+	// In dev mode, always use filesystem assets. Otherwise, check if http/dist exists
+	if !devMode {
+		settings.Config.Server.EmbeddedFs = os.IsNotExist(err)
+	}
+
 	sourceList := []string{}
 	for path, source := range settings.Config.Server.SourceMap {
 		sourceList = append(sourceList, fmt.Sprintf("%v: %v", source.Name, path))
 	}
 	logger.Infof("Initializing FileBrowser Quantum (%v)", version.Version)
 	logger.Infof("Using Config file        : %v", configPath)
+	logger.Infof("Using Embedded FS        : %v", settings.Config.Server.EmbeddedFs)
 	logger.Infof("Auth Methods             : %v", settings.Config.Auth.AuthMethods)
 	logger.Info(database)
 	logger.Infof("Sources                  : %v", sourceList)

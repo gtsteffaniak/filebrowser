@@ -83,6 +83,9 @@ export default {
       if (!this.hasPreview) {
         return false;
       }
+      if (!state.user.preview.folder && this.mimetype == "directory") {
+        return false;
+      }
       return this.imageState !== 'error' && !this.disablePreviewExt && !this.officeFileDisabled
     },
     disablePreviewExt() {

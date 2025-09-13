@@ -98,16 +98,27 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 		previewSize = "small"
 	}
 	if d.fileInfo.Type == "directory" && !d.fileInfo.HasPreview {
-		return http.StatusBadRequest, fmt.Errorf("This folder does not have a preview")
+		return http.StatusBadRequest, fmt.Errorf("this folder does not have a preview")
 	}
 	if d.fileInfo.Type == "directory" {
 		// get extended file info of first previewable item in directory
 		for _, item := range d.fileInfo.Files {
-			if preview.AvailablePreview(item) {
+			if item.HasPreview {
+				source := d.fileInfo.Source
+				path := utils.JoinPathAsUnix(d.fileInfo.Path, item.Name)
+				if d.share != nil {
+					// Get the actual source name from the share's source mapping
+					sourceInfo, ok := settings.Config.Server.SourceMap[d.share.Source]
+					if !ok {
+						return http.StatusInternalServerError, fmt.Errorf("source not found for share")
+					}
+					source = sourceInfo.Name
+					path = utils.JoinPathAsUnix(d.share.Path, path)
+				}
 				fileInfo, err := files.FileInfoFaster(
 					iteminfo.FileOptions{
-						Path:    utils.JoinPathAsUnix(d.fileInfo.Path, item.Name),
-						Source:  d.fileInfo.Source,
+						Path:    path,
+						Source:  source,
 						Content: true,
 					})
 				if err != nil {
@@ -124,7 +135,8 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 	if config.Server.DisableResize && isImage {
 		return rawFileHandler(w, r, d.fileInfo)
 	}
-	if !preview.AvailablePreview(d.fileInfo.ItemInfo) {
+
+	if !d.fileInfo.HasPreview {
 		if isImage {
 			return rawFileHandler(w, r, d.fileInfo)
 		}

@@ -44,20 +44,9 @@ var (
 func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete chan struct{}) {
 	store = storage
 	config = &settings.Config
-
-	// Dev mode enables development features like template hot-reloading
-	devMode := os.Getenv("FILEBROWSER_DEVMODE") == "true"
-	_, err := os.Stat("http/dist")
-	// In dev mode, always use filesystem assets. Otherwise, check if http/dist exists
-	var embeddedFS bool
-	if devMode {
-		embeddedFS = false
-	} else {
-		embeddedFS = os.IsNotExist(err)
-	}
-
+	var err error
 	// --- START: ADD THIS DECRYPTION LOGIC ---
-	if embeddedFS {
+	if settings.Config.Server.EmbeddedFs {
 		// Embedded mode: Serve files from the embedded assets
 		assetFs, err = fs.Sub(assets, "embed")
 		if err != nil {
@@ -75,6 +64,8 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 			return string(a), err
 		},
 	})
+
+	devMode := os.Getenv("FILEBROWSER_DEVMODE") == "true"
 	if !devMode {
 		templates = template.Must(templates.ParseFS(assetFs, "public/index.html"))
 	}

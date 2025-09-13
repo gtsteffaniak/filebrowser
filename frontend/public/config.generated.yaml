@@ -140,6 +140,7 @@ userDefaults:
     popup: false
     autoplayMedia: false
     defaultMediaPlayer: false
+    folder: false
   permissions:
     api: false
     admin: false

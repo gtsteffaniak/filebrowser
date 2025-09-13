@@ -37,22 +37,34 @@ func FileInfoFaster(opts iteminfo.FileOptions) (*iteminfo.ExtendedFileInfo, erro
 	opts.IsDir = isDir
 	var info *iteminfo.FileInfo
 	var exists bool
+	var useFsDirInfo bool
 	if isDir {
 		err = index.RefreshFileInfo(opts)
 		if err != nil {
 			if err == errors.ErrNotIndexed && index.Config.DisableIndexing {
-				info, err = index.GetFsDirInfo(opts.Path)
-				if err != nil {
-					return response, err
-				}
+				useFsDirInfo = true
 			} else if err == errors.ErrNotIndexed {
 				return response, fmt.Errorf("could not refresh file info: %v", err)
 			}
 		}
 	}
-	info, exists = index.GetReducedMetadata(opts.Path, opts.IsDir)
-	if !exists {
-		return response, fmt.Errorf("could not get metadata for path: %v", opts.Path)
+	if useFsDirInfo {
+		info, err = index.GetFsDirInfo(opts.Path)
+		if err != nil {
+			return response, err
+		}
+	} else {
+		info, exists = index.GetReducedMetadata(opts.Path, opts.IsDir)
+		if !exists {
+			err = index.RefreshFileInfo(opts)
+			if err != nil {
+				return response, fmt.Errorf("could not refresh file info: %v", err)
+			}
+			info, exists = index.GetReducedMetadata(opts.Path, opts.IsDir)
+			if !exists {
+				return response, fmt.Errorf("could not get metadata for path: %v", opts.Path)
+			}
+		}
 	}
 
 	response.FileInfo = *info
@@ -97,6 +109,10 @@ func FileInfoFaster(opts iteminfo.FileOptions) (*iteminfo.ExtendedFileInfo, erro
 func processContent(info *iteminfo.ExtendedFileInfo, idx *indexing.Index) {
 	isVideo := strings.HasPrefix(info.Type, "video")
 	isAudio := strings.HasPrefix(info.Type, "audio")
+	isFolder := info.Type == "directory"
+	if isFolder {
+		return
+	}
 
 	if isVideo {
 		parentInfo, exists := idx.GetReducedMetadata(filepath.Dir(info.Path), true)

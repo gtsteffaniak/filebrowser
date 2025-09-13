@@ -220,7 +220,6 @@ export default {
     mutations.clearNavigation();
   },
   methods: {
-
     updateNavigationEnabled() {
       const shouldEnable = previewViews.includes(this.currentView);
       mutations.setNavigationEnabled(shouldEnable);
