@@ -2665,6 +2665,13 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
+                "fileStartsWith": {
+                    "description": "(global) exclude files that start with these prefixes. Eg. \"archive-\" or \"backup-\"",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "folderEndsWith": {
                     "description": "(global) exclude folders that end with these suffixes. Eg. \".thumbnails\" or \".git\"",
                     "type": "array",
@@ -2681,6 +2688,13 @@ const docTemplate = `{
                 },
                 "folderPaths": {
                     "description": "(filepath) list of folder names to include/exclude. Eg. \"folder1\" or \"folder1/subfolder\" (do not include source path, just the subpaths from the source path)",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "folderStartsWith": {
+                    "description": "(global) exclude folders that start with these prefixes. Eg. \"archive-\" or \"backup-\"",
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -2714,6 +2728,18 @@ const docTemplate = `{
                 "url": {
                     "description": "the url to link to",
                     "type": "string"
+                }
+            }
+        },
+        "settings.FfmpegConvert": {
+            "type": "object",
+            "properties": {
+                "imagePreview": {
+                    "description": "supported image preview formats. default is heic",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "boolean"
+                    }
                 }
             }
         },
@@ -2835,9 +2861,13 @@ const docTemplate = `{
         "settings.Media": {
             "type": "object",
             "properties": {
-                "enableHeicConversion": {
-                    "description": "enable automatic heic ffmpeg conversion and preview",
-                    "type": "boolean"
+                "convert": {
+                    "description": "config for ffmpeg conversion settings",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.FfmpegConvert"
+                        }
+                    ]
                 },
                 "ffmpegPath": {
                     "description": "path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)",
@@ -3418,6 +3448,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "viewMode": {
+                    "description": "default view mode for anonymous users: \"list\", \"compact\", \"normal\", \"gallery\"",
                     "type": "string"
                 }
             }
@@ -3523,6 +3554,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "viewMode": {
+                    "description": "default view mode for anonymous users: \"list\", \"compact\", \"normal\", \"gallery\"",
                     "type": "string"
                 }
             }
@@ -3553,6 +3585,9 @@ const docTemplate = `{
         "users.FileLoading": {
             "type": "object",
             "properties": {
+                "clearAll": {
+                    "type": "boolean"
+                },
                 "maxConcurrentUpload": {
                     "type": "integer"
                 },

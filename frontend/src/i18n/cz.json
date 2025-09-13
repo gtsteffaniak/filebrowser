@@ -50,7 +50,11 @@
     "showMore": "Zobrazit více",
     "showLess": "Zobrazit méně",
     "openParentFolder": "Otevření nadřazené složky",
-    "selectedCount": "Počet položek vybraných k provedení akce"
+    "selectedCount": "Počet položek vybraných k provedení akce",
+    "listView": "Zobrazení seznamu",
+    "compactView": "Kompaktní zobrazení",
+    "normalView": "Normální zobrazení",
+    "galleryView": "Pohled do galerie"
   },
   "download": {
     "downloadFile": "Stáhnout soubor",
@@ -176,7 +180,9 @@
     "enableOnlyOfficeDescription": "Povolit prohlížení kancelářských souborů pomocí OnlyOffice v této sdílené složce.",
     "enableOnlyOfficeEditing": "Povolení úprav OnlyOffice",
     "enableOnlyOfficeEditingDescription": "Povolit úpravy kancelářských souborů pomocí OnlyOffice v této sdílené složce.",
-    "titleDefault": "Sdílené soubory - {title}"
+    "titleDefault": "Sdílené soubory - {title}",
+    "defaultViewMode": "Výchozí režim zobrazení",
+    "defaultViewModeDescription": "Nastavení výchozího režimu zobrazení pro anonymní uživatele prohlížející tuto sdílenou složku. Přihlášení uživatelé mohou stále měnit předvolby zobrazení."
   },
   "prompts": {
     "copy": "Kopírovat",
@@ -234,7 +240,10 @@
     "numberFiles": "Počet souborů{suffix}",
     "renameMessageConflict": "Položka s názvem \"{filename}\" již existuje!",
     "uploadSettingsChunked": "Maximální souběžné nahrávání: {maxConcurrentUpload}, velikost chunků: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "Maximální souběžné nahrávání: {maxConcurrentUpload}, vypnuto hromadné nahrávání"
+    "uploadSettingsNoChunk": "Maximální souběžné nahrávání: {maxConcurrentUpload}, vypnuto hromadné nahrávání",
+    "quickJump": "Rychlý přechod na jiné soubory",
+    "moveSuccess": "Soubory byly úspěšně přesunuty!",
+    "copySuccess": "Soubory byly úspěšně zkopírovány!"
   },
   "search": {
     "images": "Obrázky",
@@ -503,7 +512,9 @@
     "maxConcurrentUpload": "Maximální souběžné nahrávání",
     "maxConcurrentUploadHelp": "Maximální počet souběžných odesílání. Vyšší hodnoty jsou obvykle výkonnější, ale záleží na mnoha faktorech.",
     "uploadChunkSizeMb": "Velikost nahraného souboru v MB",
-    "uploadChunkSizeMbHelp": "Obvykle 5 až 50 MB, menší velikost je lepší pro nestabilní nebo omezené připojení. Nastavením na hodnotu 0 se vypne rozdělování nahrávání."
+    "uploadChunkSizeMbHelp": "Obvykle 5 až 50 MB, menší velikost je lepší pro nestabilní nebo omezené připojení. Nastavením na hodnotu 0 se vypne rozdělování nahrávání.",
+    "clearAll": "Vymazání dokončeno by mělo odstranit chybu, pauzu a konflikt.",
+    "clearAllDescription": "Tlačítko Vymazat dokončené vymaže všechna odesílání v dokončeném stavu, včetně chybových, pozastavených a konfliktních stavů."
   },
   "colors": {
     "red": "červená",

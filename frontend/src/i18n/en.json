@@ -50,6 +50,10 @@
     "showMore": "Show more",
     "showLess": "Show less",
     "openParentFolder": "Open parent folder",
+    "listView": "List View",
+    "compactView": "Compact View",
+    "normalView": "Normal View",
+    "galleryView": "Gallery View",
     "selectedCount": "Number of items selected to perform an action"
   },
   "download": {
@@ -170,7 +174,9 @@
     "disableSidebarDescription": "Disable the sidebar on the shared page.",
     "enforceDarkLightMode": "Enforce theme mode",
     "enforceDarkLightModeDescription": "Force a specific theme mode (dark or light) for this share, overriding user preferences.",
-    "default": "Do not enforce a mode",
+    "defaultViewMode": "Default view mode",
+    "defaultViewModeDescription": "Set the default view mode for anonymous users viewing this share. Logged-in users can still change their view preference.",
+    "default": "Use user preference",
     "dark": "Dark",
     "light": "Light",
     "enableOnlyOffice": "Enable OnlyOffice viewer",
@@ -210,6 +216,8 @@
     "filesSelected": "files selected",
     "lastModified": "Last Modified{suffix}",
     "move": "Move",
+    "moveSuccess": "Files moved successfully!",
+    "copySuccess": "Files copied successfully!",
     "moveMessage": "Choose new house for your file(s)/folder(s):",
     "newArchetype": "Create a new post based on an archetype. Your file will be created on content folder.",
     "newDir": "New directory",
@@ -540,7 +548,9 @@
     "maxConcurrentUpload": "Max concurrent uploads",
     "maxConcurrentUploadHelp": "The maximum number of concurrent uploads. Higher values typically perform better, but this depends on many factors.",
     "uploadChunkSizeMb": "Upload chunk size in MB",
-    "uploadChunkSizeMbHelp": "Typically 5 to 50 MB, smaller is better for unstable or restricted connections. Setting to 0 will disable upload chunking."
+    "uploadChunkSizeMbHelp": "Typically 5 to 50 MB, smaller is better for unstable or restricted connections. Setting to 0 will disable upload chunking.",
+    "clearAll": "Clear completed should remove error, pause, and conflict",
+    "clearAllDescription": "The clear completed button will clear all uploads in a finished state, including error, paused, and conflict states."
   },
   "colors": {
     "red": "red",

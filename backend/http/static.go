@@ -104,6 +104,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 			shareProps["isPasswordProtected"] = d.share.PasswordHash != ""
 			shareProps["downloadURL"] = getDownloadURL(r, d.share.Hash)
 			shareProps["enforceDarkLightMode"] = d.share.EnforceDarkLightMode
+			shareProps["viewMode"] = d.share.ViewMode
 			shareProps["enableOnlyOffice"] = d.share.EnableOnlyOffice
 			shareProps["enableOnlyOfficeEditing"] = d.share.EnableOnlyOfficeEditing
 			if d.share.Favicon != "" {
@@ -170,7 +171,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"updateAvailable":      utils.GetUpdateAvailableUrl(),
 		"disableNavButtons":    disableNavButtons,
 		"userSelectableThemes": config.Frontend.Styling.CustomThemeOptions,
-		"enableHeicConversion": config.Integrations.Media.EnableHeicConversion,
+		"enableHeicConversion": config.Integrations.Media.Convert.ImagePreview[settings.HEICImagePreview],
 	}
 
 	// Marshal each variable to JSON strings for direct template usage

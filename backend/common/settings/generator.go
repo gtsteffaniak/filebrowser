@@ -516,7 +516,10 @@ func buildNodeWithDefaults(v reflect.Value, comm CommentsMap, defaults reflect.V
 			if err != nil {
 				return nil, err
 			}
-			seq.Content = append(seq.Content, n)
+			// Only add placeholder if it's not empty
+			if n.Kind == yaml.MappingNode && len(n.Content) > 0 {
+				seq.Content = append(seq.Content, n)
+			}
 			return seq, nil
 		}
 		for i := 0; i < v.Len(); i++ {
@@ -533,6 +536,10 @@ func buildNodeWithDefaults(v reflect.Value, comm CommentsMap, defaults reflect.V
 		return seq, nil
 
 	case reflect.Map:
+		if v.Len() == 0 {
+			// Return an empty string node for empty maps, which renders as a blank value.
+			return &yaml.Node{Kind: yaml.ScalarNode, Tag: "!!str", Value: ""}, nil
+		}
 		mapNode := &yaml.Node{Kind: yaml.MappingNode}
 
 		for _, key := range v.MapKeys() {

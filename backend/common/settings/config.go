@@ -364,7 +364,7 @@ func setDefaults(generate bool) Settings {
 	if database == "" {
 		database = "database.db"
 	}
-	return Settings{
+	s := Settings{
 		Server: Server{
 			Port:               80,
 			NumImageProcessors: numCpus,
@@ -412,6 +412,12 @@ func setDefaults(generate bool) Settings {
 			},
 		},
 	}
+	// set default image preview types
+	s.Integrations.Media.Convert.ImagePreview = make(map[ImagePreviewType]bool)
+	for _, t := range AllImagePreviewTypes {
+		s.Integrations.Media.Convert.ImagePreview[t] = (t == HEICImagePreview) // default is heic
+	}
+	return s
 }
 
 func ConvertToBackendScopes(scopes []users.SourceScope) ([]users.SourceScope, error) {

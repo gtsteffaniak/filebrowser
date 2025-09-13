@@ -59,6 +59,19 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	if err != nil {
 		return http.StatusForbidden, err
 	}
+	getContent := false
+	lowerPath := strings.ToLower(path)
+	// Check for audio formats that might contain album artwork
+	if strings.HasSuffix(lowerPath, ".mp3") ||
+		strings.HasSuffix(lowerPath, ".flac") ||
+		strings.HasSuffix(lowerPath, ".ogg") ||
+		strings.HasSuffix(lowerPath, ".m4a") ||
+		strings.HasSuffix(lowerPath, ".mp4") ||
+		strings.HasSuffix(lowerPath, ".wav") ||
+		strings.HasSuffix(lowerPath, ".ape") ||
+		strings.HasSuffix(lowerPath, ".wv") {
+		getContent = true
+	}
 	fileInfo, err := files.FileInfoFaster(iteminfo.FileOptions{
 		Access:   store.Access,
 		Username: d.user.Username,
@@ -66,6 +79,7 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		Modify:   d.user.Permissions.Modify,
 		Source:   source,
 		Expand:   true,
+		Content:  getContent,
 	})
 	if err != nil {
 		return errToStatus(err), err

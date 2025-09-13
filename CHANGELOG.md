@@ -6,8 +6,18 @@ All notable changes to this project will be documented in this file. For commit 
 
  **New Features**:
  - Remember folder view type (and sorting) for each folder #966
- - heic is supported in viewer (via ffmpeg conversion) when on non-safari browser. This can be enabled via `integrations.ffmpeg.enableHeicConversion` #1191
+ - heic is supported in viewer (via ffmpeg conversion) when on non-safari browser. This can be enabled via `integrations.ffmpeg.convert.impagePreview.heic: true` #1191
  - OnlyOffice: Add option to open documents in viewer mode (`integrations.office.viewOnly`) #1193
+ - Exclude folders and file names 'starting with' or wildcard option
+ - added better info for failed uploads #1050
+ - upload prompt "clear completed" can be changed to "clear all" in uploads & downloads settings to clear error and conflict states as well. #1128
+ - share 'default view mode' option #1212
+ - backend media metadata processing
+   - significantly improved performance
+   - album artwork shows in listing view as preview thumbnail Album art thumbnail: display embedded covers of mp3/flac files
+#925
+   - removed need for frontend dependancies.
+#1054
  - Universal Next/Previous buttons
    - available for all listing items (including office/markdown etc)
    - remembers sort order from parent directory
@@ -15,14 +25,17 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Notes**:
  - Added more tests to ensure new features work in future.
- - Replaced the previously introduced media metadata solution with a backend solution for significantly improved performance and reduced need for frontend dependancies.
- #- caching for preview images is md5 based, so moved, renamed, or duplicate images don't get re-generated.
+ - caching for preview images is md5 based. Moved, renamed, or duplicate images don't get re-generated.
+ - Hide @eaDir folder by default #1212
+ - defaults to hide "@eadir" folders (common for synology) #1212
 
  **BugFixes**:
  - Access Management: issue with access settings #1195
  - fix shutdown panic related to sse connection
  - Custom theming not working in 0.8.4 beta #1204
  - Config Viewer not working #1189
+ - "Path not found" when trying to share a file or folder inside a sub-directory #1139
+ - files containing "+" in share issue #1089
 
 ## v0.8.4-beta
 

@@ -50,7 +50,11 @@
     "showMore": "Pokaż więcej",
     "showLess": "Pokaż mniej",
     "openParentFolder": "Otwórz folder nadrzędny",
-    "selectedCount": "Liczba elementów wybranych do wykonania akcji"
+    "selectedCount": "Liczba elementów wybranych do wykonania akcji",
+    "listView": "Widok listy",
+    "compactView": "Widok kompaktowy",
+    "normalView": "Widok normalny",
+    "galleryView": "Widok galerii"
   },
   "download": {
     "downloadFile": "Pobierz plik",
@@ -188,7 +192,10 @@
     "numberFiles": "Liczba plików{suffix}",
     "renameMessageConflict": "Element o nazwie \"{filename}\" już istnieje!",
     "uploadSettingsChunked": "Maks. jednoczesne przesyłanie: {maxConcurrentUpload}, rozmiar fragmentu: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "Maksymalny jednoczesny upload: {maxConcurrentUpload}, przesyłanie fragmentaryczne wyłączone"
+    "uploadSettingsNoChunk": "Maksymalny jednoczesny upload: {maxConcurrentUpload}, przesyłanie fragmentaryczne wyłączone",
+    "quickJump": "Szybkie przechodzenie do innych plików",
+    "moveSuccess": "Pliki zostały przeniesione pomyślnie!",
+    "copySuccess": "Pliki zostały skopiowane pomyślnie!"
   },
   "search": {
     "images": "Zdjęcia",
@@ -390,7 +397,9 @@
     "enableOnlyOfficeDescription": "Zezwalaj na wyświetlanie plików biurowych przy użyciu OnlyOffice w tym udziale.",
     "enableOnlyOfficeEditing": "Włącz edycję OnlyOffice",
     "enableOnlyOfficeEditingDescription": "Zezwalaj na edycję plików biurowych za pomocą OnlyOffice w tym udziale.",
-    "titleDefault": "Udostępnione pliki - {title}"
+    "titleDefault": "Udostępnione pliki - {title}",
+    "defaultViewMode": "Domyślny tryb widoku",
+    "defaultViewModeDescription": "Ustawia domyślny tryb widoku dla anonimowych użytkowników przeglądających ten folder udostępniony. Zalogowani użytkownicy mogą nadal zmieniać swoje preferencje widoku."
   },
   "api": {
     "title": "Klucze API:",
@@ -482,7 +491,9 @@
     "maxConcurrentUpload": "Maksymalne jednoczesne przesyłanie",
     "maxConcurrentUploadHelp": "Maksymalna liczba jednocześnie przesyłanych plików. Wyższe wartości zazwyczaj działają lepiej, ale zależy to od wielu czynników.",
     "uploadChunkSizeMb": "Rozmiar przesyłanego fragmentu w MB",
-    "uploadChunkSizeMbHelp": "Zazwyczaj od 5 do 50 MB, mniejsze są lepsze dla niestabilnych lub ograniczonych połączeń. Ustawienie wartości 0 spowoduje wyłączenie podziału na fragmenty."
+    "uploadChunkSizeMbHelp": "Zazwyczaj od 5 do 50 MB, mniejsze są lepsze dla niestabilnych lub ograniczonych połączeń. Ustawienie wartości 0 spowoduje wyłączenie podziału na fragmenty.",
+    "clearAll": "Wyczyszczenie zakończone powinno usunąć błąd, pauzę i konflikt",
+    "clearAllDescription": "Przycisk wyczyść ukończone spowoduje wyczyszczenie wszystkich przesłanych plików w stanie ukończenia, w tym w stanie błędu, wstrzymania i konfliktu."
   },
   "colors": {
     "red": "czerwony",

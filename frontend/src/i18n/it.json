@@ -50,7 +50,11 @@
     "showMore": "Mostra di più",
     "showLess": "Mostra meno",
     "openParentFolder": "Aprire la cartella madre",
-    "selectedCount": "Numero di elementi selezionati per eseguire un'azione"
+    "selectedCount": "Numero di elementi selezionati per eseguire un'azione",
+    "listView": "Vista elenco",
+    "compactView": "Vista compatta",
+    "normalView": "Vista normale",
+    "galleryView": "Vista della galleria"
   },
   "download": {
     "downloadFile": "Scarica file",
@@ -188,7 +192,10 @@
     "numberFiles": "Numero di file{suffix}",
     "renameMessageConflict": "Un elemento chiamato \"{filename}\" esiste già!",
     "uploadSettingsChunked": "Carichi massimi contemporanei: {maxConcurrentUpload}, dimensione dei pezzi: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "Carichi massimi contemporanei: {maxConcurrentUpload}, caricamento chunked disabilitato"
+    "uploadSettingsNoChunk": "Carichi massimi contemporanei: {maxConcurrentUpload}, caricamento chunked disabilitato",
+    "quickJump": "Salto rapido ad altri file",
+    "moveSuccess": "I file sono stati spostati con successo!",
+    "copySuccess": "I file sono stati copiati con successo!"
   },
   "search": {
     "images": "Immagini",
@@ -390,7 +397,9 @@
     "enableOnlyOfficeDescription": "Consente di visualizzare i file di Office utilizzando OnlyOffice in questa condivisione.",
     "enableOnlyOfficeEditing": "Abilita la modifica di OnlyOffice",
     "enableOnlyOfficeEditingDescription": "Consentire la modifica dei file di Office utilizzando OnlyOffice in questa condivisione.",
-    "titleDefault": "File condivisi - {title}"
+    "titleDefault": "File condivisi - {title}",
+    "defaultViewMode": "Modalità di visualizzazione predefinita",
+    "defaultViewModeDescription": "Imposta la modalità di visualizzazione predefinita per gli utenti anonimi che visualizzano questa condivisione. Gli utenti registrati possono comunque modificare le loro preferenze di visualizzazione."
   },
   "api": {
     "title": "Chiavi API:",
@@ -482,7 +491,9 @@
     "maxConcurrentUpload": "Carichi massimi contemporanei",
     "maxConcurrentUploadHelp": "Il numero massimo di upload contemporanei. I valori più alti sono in genere più performanti, ma ciò dipende da molti fattori.",
     "uploadChunkSizeMb": "Dimensione dei pezzi caricati in MB",
-    "uploadChunkSizeMbHelp": "In genere da 5 a 50 MB, ma per connessioni instabili o limitate è meglio che sia più piccolo. Impostando 0 si disattiva il chunking del caricamento."
+    "uploadChunkSizeMbHelp": "In genere da 5 a 50 MB, ma per connessioni instabili o limitate è meglio che sia più piccolo. Impostando 0 si disattiva il chunking del caricamento.",
+    "clearAll": "L'opzione Clear completed dovrebbe rimuovere gli errori, le pause e i conflitti.",
+    "clearAllDescription": "Il pulsante Cancella completato cancella tutti i caricamenti in stato completato, compresi gli stati di errore, pausa e conflitto."
   },
   "colors": {
     "red": "rosso",

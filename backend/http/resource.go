@@ -116,13 +116,13 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 			return http.StatusNotFound, fmt.Errorf("source %s not found", source)
 		}
 		realPath, _, _ := idx.GetRealPath(userscope, path)
-		checksums, err := files.GetChecksum(realPath, algo)
+		checksum, err := utils.GetChecksum(realPath, algo)
 		if err == errors.ErrInvalidOption {
 			return http.StatusBadRequest, nil
 		} else if err != nil {
 			return http.StatusInternalServerError, err
 		}
-		fileInfo.Checksums = checksums
+		fileInfo.Checksums[algo] = checksum
 	}
 	return renderJSON(w, r, fileInfo)
 

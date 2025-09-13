@@ -65,6 +65,9 @@ const (
 	UNAVAILABLE IndexStatus = "unavailable"
 )
 
+// omitList contains directory names to skip during indexing
+var omitList = []string{"$RECYCLE.BIN", "System Volume Information", "@eaDir"}
+
 func init() {
 	indexes = make(map[string]*Index)
 }
@@ -271,7 +274,7 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 				}
 			}
 			// skip non-indexable dirs.
-			if file.Name() == "$RECYCLE.BIN" || file.Name() == "System Volume Information" {
+			if slices.Contains(omitList, file.Name()) {
 				continue
 			}
 
@@ -488,6 +491,13 @@ func (idx *Index) shouldSkip(isDir bool, isHidden bool, fullCombined, baseName s
 				}
 			}
 		}
+		if len(rules.FolderStartsWith) > 0 {
+			for _, start := range rules.FolderStartsWith {
+				if strings.HasPrefix(baseName, start) {
+					return true
+				}
+			}
+		}
 	} else {
 		if len(rules.FilePaths) > 0 {
 			for _, p := range rules.FilePaths {
@@ -502,6 +512,13 @@ func (idx *Index) shouldSkip(isDir bool, isHidden bool, fullCombined, baseName s
 		if len(rules.FileEndsWith) > 0 {
 			for _, end := range rules.FileEndsWith {
 				if strings.HasSuffix(baseName, end) {
+					return true
+				}
+			}
+		}
+		if len(rules.FileStartsWith) > 0 {
+			for _, start := range rules.FileStartsWith {
+				if strings.HasPrefix(baseName, start) {
 					return true
 				}
 			}

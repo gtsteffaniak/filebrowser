@@ -1,14 +1,8 @@
 package files
 
 import (
-	"crypto/md5"
-	"crypto/sha1"
-	"crypto/sha256"
-	"crypto/sha512"
 	"encoding/base64"
-	"encoding/hex"
 	"fmt"
-	"hash"
 	"io"
 	"unicode"
 	"unicode/utf8"
@@ -187,36 +181,6 @@ func extractAudioMetadata(realPath string) (*iteminfo.AudioMetadata, error) {
 	}
 
 	return metadata, nil
-}
-
-// Checksum checksums a given File for a given User, using a specific
-// algorithm. The checksums data is saved on File object.
-func GetChecksum(fullPath, algo string) (map[string]string, error) {
-	subs := map[string]string{}
-	reader, err := os.Open(fullPath)
-	if err != nil {
-		return subs, err
-	}
-	defer reader.Close()
-
-	hashFuncs := map[string]hash.Hash{
-		"md5":    md5.New(),
-		"sha1":   sha1.New(),
-		"sha256": sha256.New(),
-		"sha512": sha512.New(),
-	}
-
-	h, ok := hashFuncs[algo]
-	if !ok {
-		return subs, errors.ErrInvalidOption
-	}
-
-	_, err = io.Copy(h, reader)
-	if err != nil {
-		return subs, err
-	}
-	subs[algo] = hex.EncodeToString(h.Sum(nil))
-	return subs, nil
 }
 
 func DeleteFiles(source, absPath string, absDirPath string) error {

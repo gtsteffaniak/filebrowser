@@ -61,8 +61,27 @@ type OnlyOffice struct {
 }
 
 type Media struct {
-	FfmpegPath           string `json:"ffmpegPath"`           // path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)
-	EnableHeicConversion bool   `json:"enableHeicConversion"` // enable automatic heic ffmpeg conversion and preview
+	FfmpegPath string        `json:"ffmpegPath"` // path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)
+	Convert    FfmpegConvert `json:"convert"`    // config for ffmpeg conversion settings
+}
+
+type FfmpegConvert struct {
+	ImagePreview map[ImagePreviewType]bool `json:"imagePreview"` // supported image preview formats. default is heic
+}
+
+type ImagePreviewType string
+
+const (
+	HEICImagePreview ImagePreviewType = "heic"
+)
+
+func (i ImagePreviewType) String() string {
+	return string(i)
+}
+
+// AllImagePreviewTypes contains all supported image preview types.
+var AllImagePreviewTypes = []ImagePreviewType{
+	HEICImagePreview,
 }
 
 type LogConfig struct {
@@ -101,14 +120,16 @@ type IncludeIndexFilter struct {
 }
 
 type ExcludeIndexFilter struct {
-	Hidden          bool     `json:"hidden"`                // exclude hidden files and folders.
-	ZeroSizeFolders bool     `json:"ignoreZeroSizeFolders"` // ignore folders with 0 size
-	FilePaths       []string `json:"filePaths"`             // list of filepaths Eg. "folder1" or "file1.txt" or "folder1/file1.txt" (without source path prefix)
-	FolderPaths     []string `json:"folderPaths"`           // (filepath) list of folder names to include/exclude. Eg. "folder1" or "folder1/subfolder" (do not include source path, just the subpaths from the source path)
-	FileNames       []string `json:"fileNames"`             // (global) list of file names to include/exclude. Eg. "a.jpg"
-	FolderNames     []string `json:"folderNames"`           // (global) list of folder names to include/exclude. Eg. "@eadir" or ".thumbnails"
-	FileEndsWith    []string `json:"fileEndsWith"`          // (global) exclude files that end with these suffixes. Eg. ".jpg" or ".txt"
-	FolderEndsWith  []string `json:"folderEndsWith"`        // (global) exclude folders that end with these suffixes. Eg. ".thumbnails" or ".git"
+	Hidden           bool     `json:"hidden"`                // exclude hidden files and folders.
+	ZeroSizeFolders  bool     `json:"ignoreZeroSizeFolders"` // ignore folders with 0 size
+	FilePaths        []string `json:"filePaths"`             // list of filepaths Eg. "folder1" or "file1.txt" or "folder1/file1.txt" (without source path prefix)
+	FolderPaths      []string `json:"folderPaths"`           // (filepath) list of folder names to include/exclude. Eg. "folder1" or "folder1/subfolder" (do not include source path, just the subpaths from the source path)
+	FileNames        []string `json:"fileNames"`             // (global) list of file names to include/exclude. Eg. "a.jpg"
+	FolderNames      []string `json:"folderNames"`           // (global) list of folder names to include/exclude. Eg. "@eadir" or ".thumbnails"
+	FileEndsWith     []string `json:"fileEndsWith"`          // (global) exclude files that end with these suffixes. Eg. ".jpg" or ".txt"
+	FolderEndsWith   []string `json:"folderEndsWith"`        // (global) exclude folders that end with these suffixes. Eg. ".thumbnails" or ".git"
+	FileStartsWith   []string `json:"fileStartsWith"`        // (global) exclude files that start with these prefixes. Eg. "archive-" or "backup-"
+	FolderStartsWith []string `json:"folderStartsWith"`      // (global) exclude folders that start with these prefixes. Eg. "archive-" or "backup-"
 }
 
 type Frontend struct {

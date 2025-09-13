@@ -38,7 +38,7 @@ import buttons from "@/utils/buttons";
 import * as upload from "@/utils/upload";
 import { url } from "@/utils";
 import { notify } from "@/notify";
-import { removeLastDir } from "@/utils/url";
+import { removeLastDir, goToItem } from "@/utils/url";
 
 export default {
   name: "move-copy",
@@ -171,7 +171,15 @@ export default {
         }
         mutations.closeHovers();
         mutations.setSearch(false);
-        notify.showSuccess(`Server is ${this.operation === "copy" ? "copying" : "moving"} files...`);
+        if (this.operation === "move") {
+          notify.showSuccess(this.$t(`prompts.moveSuccess`));
+        } else {
+          notify.showSuccess(this.$t(`prompts.copySuccess`));
+        }
+        // Navigate to the destination folder after successful operation
+        if (this.destSource && this.destPath) {
+          goToItem(this.destSource, this.destPath);
+        }
       } catch (error) {
         notify.showError(error);
       }

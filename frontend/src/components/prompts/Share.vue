@@ -130,6 +130,22 @@
             </option>
           </select>
         </div>
+        <p>
+          {{ $t("share.defaultViewMode") }}
+          <i
+            class="no-select material-symbols-outlined tooltip-info-icon"
+            @mouseenter="showTooltip($event, $t('share.defaultViewModeDescription'))"
+            @mouseleave="hideTooltip"
+          >
+            help
+          </i>
+        </p>
+        <select class="input" v-model="viewMode">
+          <option value="normal">{{ $t("buttons.normalView") }}</option>
+          <option value="list">{{ $t("buttons.listView") }}</option>
+          <option value="compact">{{ $t("buttons.compactView") }}</option>
+          <option value="gallery">{{ $t("buttons.galleryView") }}</option>
+        </select>
       <SettingsItem :title="$t('buttons.showMore')" :collapsable="true" :start-collapsed="true">
         <div class="settings-items">
           <ToggleSwitch class="item" v-model="keepAfterExpiration" :name="$t('share.keepAfterExpiration')" :description="$t('share.keepAfterExpirationDescription')" />
@@ -316,6 +332,7 @@ export default {
       disableShareCard: false,
       disableSidebar: false,
       enforceDarkLightMode: "default",
+      viewMode: "normal",
       enableOnlyOffice: false,
       enableOnlyOfficeEditing: false,
       //viewMode: "normal",
@@ -397,6 +414,7 @@ export default {
           this.disableShareCard = this.link.disableShareCard || false;
           this.disableSidebar = this.link.disableSidebar || false;
           this.enforceDarkLightMode = this.link.enforceDarkLightMode || "default";
+          this.viewMode = this.link.viewMode || "normal";
           this.enableOnlyOffice = this.link.enableOnlyOffice || false;
           this.enableOnlyOfficeEditing = this.link.enableOnlyOfficeEditing || false;
           //this.viewMode = this.link.viewMode || "normal";
@@ -478,6 +496,7 @@ export default {
           disableShareCard: this.disableShareCard,
           disableSidebar: this.disableSidebar,
           enforceDarkLightMode: this.enforceDarkLightMode,
+          viewMode: this.viewMode,
           enableOnlyOffice: this.enableOnlyOffice,
           enableOnlyOfficeEditing: this.enableOnlyOfficeEditing,
         };

@@ -134,7 +134,7 @@ export default {
   watch: {
     currentView() {
       this.updateNavigationEnabled();
-      
+
       // Also trigger navigation setup if we're now in a preview view
       this.$nextTick(() => {
         if (this.enabled && state.req) {
@@ -142,14 +142,18 @@ export default {
         }
       });
     },
-    'state.req'() {
-      this.updateNavigationEnabled();
-      // Auto-setup navigation when request changes and we're enabled
-      if (this.enabled) {
-        this.$nextTick(() => {
-          this.setupNavigationForCurrentItem();
-        });
-      }
+    'state.req': {
+      handler() {
+        this.updateNavigationEnabled();
+        // Auto-setup navigation when request changes and we're enabled
+        if (this.enabled) {
+          this.$nextTick(() => {
+            this.setupNavigationForCurrentItem();
+          });
+        }
+      },
+      deep: true,
+      immediate: false
     },
     enabled(newEnabled) {
       if (newEnabled && state.req) {
@@ -158,11 +162,21 @@ export default {
         });
       }
     },
+    '$route'() {
+      // Give time for state.req to be updated, then setup navigation
+      setTimeout(() => {
+        this.$nextTick(() => {
+          if (this.enabled && state.req) {
+            this.setupNavigationForCurrentItem();
+          }
+        });
+      }, 100);
+    },
     // Watch for when navigation links are set up
-    'state.navigation.previousLink'() {
+    'state.navigation.previousLink'(newLink, oldLink) {
       this.showInitialNavigation();
     },
-    'state.navigation.nextLink'() {
+    'state.navigation.nextLink'(newLink, oldLink) {
       this.showInitialNavigation();
     },
   },
@@ -213,6 +227,8 @@ export default {
     },
     async setupNavigationForCurrentItem() {
       if (!this.enabled || !state.req || state.req.type === 'directory') {
+        // Clear navigation when not applicable
+        mutations.clearNavigation();
         return;
       }
 
@@ -281,6 +297,7 @@ export default {
       }
 
       const { key } = event;
+
       switch (key) {
         case "ArrowRight":
           if (this.hasNext) {

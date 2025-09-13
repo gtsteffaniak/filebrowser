@@ -345,7 +345,7 @@ button:hover,
 }
 
 .plyr-background {
-    background: radial-gradient(#2b2b2b, black);
+    background: radial-gradient(#3b3b3b, black);
 }
 
 /**********************************

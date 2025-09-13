@@ -44,6 +44,10 @@ export const getters = {
     return null;
   },
   viewMode: () => {
+    // If user is anonymous and on a share, check for defaultViewMode override
+    if (getters.isShare() && state.user?.username === 'anonymous' && shareInfo.viewMode) {
+      return shareInfo.viewMode;
+    }
     return getters.displayPreference()?.viewMode || state.user.viewMode || "normal";
   },
   sorting: () => {
