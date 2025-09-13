@@ -60,7 +60,7 @@ export default {
   },
   computed: {
     getTopTitle() {
-      if (getters.isShare() && shareInfo.title) {
+      if (getters.isShare() && shareInfo.title && state.req.type === "directory") {
         return shareInfo.title;
       }
       return state.req.name;

@@ -75,9 +75,9 @@ func NewPreviewGenerator(concurrencyLimit int, ffmpegPath string, cacheDir strin
 		logger.Fatalf("the configured ffmpeg path is not a valid ffprobe binary %s, err: %v", ffmpegPath, err)
 	}
 	if errprobe == nil && err == nil {
-		logger.Debugf("Media Enabled            : %v", errprobe == nil)
 		settings.Config.Integrations.Media.FfmpegPath = filepath.Base(ffmpegMainPath)
 	}
+	logger.Debugf("Media Enabled            : %v", ffmpegMainPath != "" && ffprobePath != "")
 	settings.Config.Server.MuPdfAvailable = docEnabled()
 	logger.Debugf("MuPDF Enabled            : %v", settings.Config.Server.MuPdfAvailable)
 	return &Service{
@@ -95,22 +95,31 @@ func StartPreviewGenerator(concurrencyLimit int, ffmpegPath, cacheDir string) er
 }
 
 func GetPreviewForFile(file iteminfo.ExtendedFileInfo, previewSize, url string, seekPercentage int) ([]byte, error) {
-	if !AvailablePreview(file) {
+	if !file.HasPreview {
 		return nil, ErrUnsupportedMedia
 	}
-	md5, err := utils.GetChecksum(file.RealPath, "md5")
-	if err != nil {
-		return nil, fmt.Errorf("failed to get checksum: %w", err)
+	var thisMd5 string
+	if file.AudioMeta != nil && file.AudioMeta.AlbumArt != "" {
+		// md5 is based on album art
+		// md5 file.AlbumArt
+		hasher := md5.New() //nolint:gosec
+		_, _ = hasher.Write([]byte(file.AudioMeta.AlbumArt))
+		thisMd5 = hex.EncodeToString(hasher.Sum(nil))
+		file.Checksums = make(map[string]string)
+		file.Checksums["md5"] = thisMd5
+	} else {
+		var err error
+		thisMd5, err = utils.GetChecksum(file.RealPath, "md5")
+		if err != nil {
+			return nil, fmt.Errorf("failed to get checksum: %w", err)
+		}
 	}
-	file.Checksums = make(map[string]string)
-	file.Checksums["md5"] = md5
-	cacheKey := CacheKey(md5, previewSize, seekPercentage)
+	cacheKey := CacheKey(thisMd5, previewSize, seekPercentage)
 	if data, found, err := service.fileCache.Load(context.Background(), cacheKey); err != nil {
 		return nil, fmt.Errorf("failed to load from cache: %w", err)
 	} else if found {
 		return data, nil
 	}
-
 	return GeneratePreview(file, previewSize, url, seekPercentage)
 }
 
@@ -120,6 +129,7 @@ func GeneratePreview(file iteminfo.ExtendedFileInfo, previewSize, officeUrl stri
 		err        error
 		imageBytes []byte
 	)
+
 	// Generate thumbnail image from video
 	hasher := md5.New() //nolint:gosec
 	_, _ = hasher.Write([]byte(CacheKey(file.Checksums["md5"], previewSize, seekPercentage)))
@@ -242,25 +252,6 @@ func DelThumbs(ctx context.Context, file iteminfo.ExtendedFileInfo) {
 			logger.Debugf("Could not delete thumbnail: %v", file.Name)
 		}
 	}
-}
-
-func AvailablePreview(file iteminfo.ExtendedFileInfo) bool {
-	if strings.HasPrefix(file.Type, "video") && service.ffmpegPath != "" {
-		return true
-	}
-	if iteminfo.HasDocConvertableExtension(file.Name, file.Type) {
-		return true
-	}
-	ext := strings.ToLower(filepath.Ext(file.Name))
-	switch ext {
-	case ".jpg", ".jpeg", ".png", ".bmp", ".tiff":
-		return true
-	case ".mp3", ".flac", ".ogg", ".m4a", ".mp4", ".wav", ".ape", ".wv":
-		return true
-	case ".heic", ".heif":
-		return service.ffmpegPath != "" // HEIC support available when FFmpeg is available
-	}
-	return file.OnlyOfficeId != ""
 }
 
 // CheckValidFFmpeg checks for a valid ffmpeg executable.

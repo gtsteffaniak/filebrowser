@@ -25,7 +25,9 @@
     v-if="enabled && hasPrevious"
     @click.stop="handlePrevClick"
     @mousedown="startDrag($event, 'previous')"
-    @touchstart="startDrag($event, 'previous')"
+    @touchstart="handleTouchStart($event, 'previous')"
+    @touchmove="handleButtonTouchMove"
+    @touchend="handleTouchEnd"
     @mouseover="setHoverNav(true)"
     @mouseleave="setHoverNav(false)"
     class="nav-button nav-previous"
@@ -51,7 +53,9 @@
     v-if="enabled && hasNext"
     @click.stop="handleNextClick"
     @mousedown="startDrag($event, 'next')"
-    @touchstart="startDrag($event, 'next')"
+    @touchstart="handleTouchStart($event, 'next')"
+    @touchmove="handleButtonTouchMove"
+    @touchend="handleTouchEnd"
     @mouseover="setHoverNav(true)"
     @mouseleave="setHoverNav(false)"
     class="nav-button nav-next"
@@ -98,6 +102,15 @@ export default {
       isSwipe: false,
       touchStartX: 0,
       touchStartY: 0,
+      // Button touch handling
+      touchState: {
+        isButtonTouch: false,
+        buttonType: null,
+        startTime: 0,
+        hasMoved: false,
+        tapTimeout: null,
+        triggered: false
+      },
     };
   },
   computed: {
@@ -173,10 +186,10 @@ export default {
       }, 100);
     },
     // Watch for when navigation links are set up
-    'state.navigation.previousLink'(newLink, oldLink) {
+    'state.navigation.previousLink'() {
       this.showInitialNavigation();
     },
-    'state.navigation.nextLink'(newLink, oldLink) {
+    'state.navigation.nextLink'() {
       this.showInitialNavigation();
     },
   },
@@ -217,10 +230,12 @@ export default {
       this.navigationTimeout = null;
     }
 
+    // Clean up touch state
+    this.resetTouchState();
+
     mutations.clearNavigation();
   },
   methods: {
-
     updateNavigationEnabled() {
       const shouldEnable = previewViews.includes(this.currentView);
       mutations.setNavigationEnabled(shouldEnable);
@@ -361,12 +376,32 @@ export default {
     },
 
     // Touch handling and swipe detection (similar to ListingItem.vue)
-    handleTouchStart(event) {
+    handleTouchStart(event, buttonType = null) {
       if (event.touches && event.touches.length > 0) {
         const touch = event.touches[0];
         this.touchStartX = touch.clientX;
         this.touchStartY = touch.clientY;
         this.isSwipe = false;
+
+        // Handle button-specific touch
+        if (buttonType) {
+          this.touchState = {
+            isButtonTouch: true,
+            buttonType: buttonType,
+            startTime: Date.now(),
+            hasMoved: false,
+            tapTimeout: null,
+            triggered: false
+          };
+          
+          // Set a longer timeout to allow for drag intent detection
+          this.touchState.tapTimeout = setTimeout(() => {
+            // If we haven't moved significantly and not dragging, treat as tap
+            if (!this.touchState.hasMoved && !this.dragState.isDragging) {
+              this.handleButtonTap(buttonType);
+            }
+          }, 300); // Increased to 300ms to allow for drag detection
+        }
       }
     },
 
@@ -384,11 +419,142 @@ export default {
       }
     },
 
+    // Handle touch movement specifically for navigation buttons
+    handleButtonTouchMove(event) {
+      if (!event.touches || event.touches.length === 0) return;
+      if (!this.touchState.isButtonTouch) return;
+
+      event.preventDefault(); // Prevent scrolling while dragging
+
+      const touch = event.touches[0];
+      const deltaX = Math.abs(touch.clientX - this.touchStartX);
+      const deltaY = Math.abs(touch.clientY - this.touchStartY);
+      const movementThreshold = 10;
+
+      // Check if user has moved enough to start dragging
+      if (deltaX > movementThreshold || deltaY > movementThreshold) {
+        this.touchState.hasMoved = true;
+        
+        // Cancel tap timeout since user is dragging
+        if (this.touchState.tapTimeout) {
+          clearTimeout(this.touchState.tapTimeout);
+          this.touchState.tapTimeout = null;
+        }
+        
+        // Initialize drag state if not already dragging
+        if (!this.dragState.isDragging) {
+          // Calculate 10em threshold in pixels if not set
+          if (!this.dragState.threshold) {
+            const emSize = parseFloat(getComputedStyle(document.documentElement).fontSize);
+            this.dragState.threshold = 10 * emSize;
+          }
+          
+          this.dragState = {
+            isDragging: true,
+            type: this.touchState.buttonType,
+            startX: this.touchStartX,
+            startY: this.touchStartY,
+            deltaX: 0,
+            deltaY: 0,
+            threshold: this.dragState.threshold,
+            atFullExtent: false,
+            triggered: false,
+          };
+        }
+        
+        // Update drag position - implement drag logic directly
+        if (this.dragState.isDragging) {
+          let dragDeltaX = touch.clientX - this.dragState.startX;
+          const maxDrag = this.dragState.threshold; // 10em
+          
+          // Constrain drag to correct direction and max distance
+          if (this.dragState.type === 'previous') {
+            // Left button: only allow rightward drag (positive deltaX)
+            dragDeltaX = Math.max(0, Math.min(maxDrag, dragDeltaX));
+          } else if (this.dragState.type === 'next') {
+            // Right button: only allow leftward drag (negative deltaX)
+            dragDeltaX = Math.min(0, Math.max(-maxDrag, dragDeltaX));
+          }
+
+          this.dragState.deltaX = dragDeltaX;
+          
+          // Check if we've reached the full extent
+          const atFullExtent = Math.abs(dragDeltaX) >= maxDrag;
+          this.dragState.atFullExtent = atFullExtent;
+        }
+      }
+    },
+    handleTouchEnd() {
+      // Handle touch end for buttons
+      if (this.touchState.isButtonTouch) {
+        const touchDuration = Date.now() - this.touchState.startTime;
+        
+        // If it was a short touch without movement, and we haven't already navigated, treat as tap
+        if (!this.touchState.hasMoved && touchDuration < 300 && this.touchState.tapTimeout) {
+          clearTimeout(this.touchState.tapTimeout);
+          this.touchState.tapTimeout = null;
+          this.handleButtonTap(this.touchState.buttonType);
+        }
+        
+        // Reset touch state
+        this.resetTouchState();
+      }
+      
+      // Reset navigation swipe state
+      this.isSwipe = false;
+      
+      // Let endDrag handle the drag cleanup
+      if (this.dragState.isDragging) {
+        this.endDrag();
+      }
+    },
+
     cancelNavigationTimeout() {
       if (this.navigationTimeout) {
         clearTimeout(this.navigationTimeout);
         this.navigationTimeout = null;
       }
+    },
+
+    // Handle immediate button tap (mobile-friendly)
+    handleButtonTap(buttonType) {
+      // Prevent double navigation if already triggered
+      if (this.touchState.triggered) {
+        return;
+      }
+      
+      // Clear any pending timeouts
+      if (this.touchState.tapTimeout) {
+        clearTimeout(this.touchState.tapTimeout);
+        this.touchState.tapTimeout = null;
+      }
+      
+      // Mark as triggered to prevent double navigation
+      this.touchState.triggered = true;
+      
+      // Navigate immediately on tap
+      if (buttonType === 'previous' && this.hasPrevious) {
+        this.prev();
+      } else if (buttonType === 'next' && this.hasNext) {
+        this.next();
+      }
+      
+      // Reset touch state
+      this.resetTouchState();
+    },
+
+    resetTouchState() {
+      if (this.touchState.tapTimeout) {
+        clearTimeout(this.touchState.tapTimeout);
+      }
+      this.touchState = {
+        isButtonTouch: false,
+        buttonType: null,
+        startTime: 0,
+        hasMoved: false,
+        tapTimeout: null,
+        triggered: false
+      };
     },
 
     // Drag functionality for navigation buttons
@@ -440,7 +606,7 @@ export default {
     },
 
     endDrag() {
-      if (!this.dragState.isDragging) return;
+      if (!this.dragState.isDragging && !this.touchState.isButtonTouch) return;
 
       // Only show file list if user released at full extent
       if (this.dragState.atFullExtent) {
@@ -448,6 +614,7 @@ export default {
       }
 
       this.resetDragState();
+      this.resetTouchState();
     },
 
     resetDragState() {
@@ -481,6 +648,9 @@ export default {
     },
 
     showFileList(type) {
+      // Hide navigation buttons when showing file list
+      mutations.setNavigationShow(false);
+      
       // Determine what list to show based on drag type
       if (type === 'previous') {
         // Show parent directories for navigating up

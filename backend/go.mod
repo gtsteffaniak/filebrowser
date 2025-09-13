@@ -5,6 +5,7 @@ go 1.25.0
 require (
 	github.com/asdine/storm/v3 v3.2.1
 	github.com/coreos/go-oidc/v3 v3.15.0
+	github.com/dhowden/tag v0.0.0-20240417053706-3d75831295e8
 	github.com/dsoprea/go-exif/v3 v3.0.1
 	github.com/gen2brain/go-fitz v1.24.15
 	github.com/go-playground/validator/v10 v10.27.0
@@ -86,7 +87,6 @@ require (
 	github.com/dave/dst v0.27.3 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/denis-tingaikin/go-header v0.5.0 // indirect
-	github.com/dhowden/tag v0.0.0-20240417053706-3d75831295e8 // indirect
 	github.com/dlclark/regexp2 v1.11.5 // indirect
 	github.com/dsoprea/go-logging v0.0.0-20200710184922-b02d349568dd // indirect
 	github.com/dsoprea/go-utility/v2 v2.0.0-20221003172846-a3e1774ef349 // indirect
@@ -131,7 +131,7 @@ require (
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/gofrs/flock v0.12.1 // indirect
 	github.com/gohugoio/hugo v0.149.1 // indirect
-	github.com/golang/geo v0.0.0-20250909101022-21d0664d86be // indirect
+	github.com/golang/geo v0.0.0-20250912065020-b504328d3ef3 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/golangci/dupl v0.0.0-20250308024227-f665c8d69b32 // indirect
 	github.com/golangci/go-printf-func-name v0.1.0 // indirect

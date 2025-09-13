@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/dhowden/tag"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 )
 
@@ -32,21 +33,21 @@ var SubtitleExts = []string{
 	".smi",
 }
 
-var MuPdfConvertable = []string{
-	".pdf",  // PDF
-	".xps",  // XPS
-	".epub", // EPUB
-	".mobi", // MOBI
-	".fb2",  // FB2
-	".cbz",  // CBZ
-	".svg",  // SVG
-	".txt",  // TXT
-	".docx", // DOCX
-	".pptx", // PPTX
-	".xlsx", // XLSX
-	".hwp",  // HWP
-	".hwp",  // HWPX
-	".md",   // Markdown
+var MuPdfConvertable = map[string]bool{
+	".pdf":  true, // PDF
+	".xps":  true, // XPS
+	".epub": true, // EPUB
+	".mobi": true, // MOBI
+	".fb2":  true, // FB2
+	".cbz":  true, // CBZ
+	".svg":  true, // SVG
+	".txt":  true, // TXT
+	".docx": true, // DOCX
+	".pptx": true, // PPTX
+	".xlsx": true, // XLSX
+	".hwp":  true, // HWP
+	".hwpx": true, // HWPX
+	".md":   true, // Markdown
 }
 
 // Known bundle-style extensions that are technically directories but treated as files
@@ -184,6 +185,26 @@ var compressedFile = []string{
 	".zstd",
 }
 
+var audioMetadataTypes = []string{
+	".mp3",
+	".flac",
+	".ogg",
+	".m4a",
+	".mp4",
+	".wav",
+	".ape",
+	".wv",
+}
+
+func CouldHaveAlbumArt(extension string) bool {
+	for _, typefile := range audioMetadataTypes {
+		if extension == typefile {
+			return true
+		}
+	}
+	return false
+}
+
 func ExtendedMimeTypeCheck(extension string) string {
 	if IsDoc(extension) {
 		return "application/document"
@@ -297,6 +318,33 @@ func (i *ItemInfo) DetectType(realPath string, saveContent bool) {
 	if i.Type == "" || i.Type == "application/octet-stream" {
 		i.Type = "blob"
 	}
+}
+
+// hasAlbumArt efficiently checks if an audio file contains embedded album art.
+// It returns true if album art is found, and false otherwise.
+func HasAlbumArt(filePath string, extension string) bool {
+	if !CouldHaveAlbumArt(extension) {
+		return false
+	}
+	file, err := os.Open(filePath)
+	if err != nil {
+		return false
+	}
+	defer file.Close()
+
+	// Read metadata from the file.
+	m, err := tag.ReadFrom(file)
+	if err != nil {
+		// If the error is simply that no tags were found, it's not a processing error.
+		// It just means there's no album art.
+		if err == tag.ErrNoTagsFound {
+			return false
+		}
+		// For any other error (e.g., corrupted file), return the error.
+		return false
+	}
+	// m.Picture() returns the first picture found. If it's not nil, album art exists.
+	return m.Picture() != nil
 }
 
 // DetectTypeByHeader detects the MIME type of a file based on its header.
@@ -414,10 +462,9 @@ func HasDocConvertableExtension(name, mimetype string) bool {
 		return true
 	}
 	ext := strings.ToLower(filepath.Ext(name))
-	for _, e := range MuPdfConvertable {
-		if ext == e {
-			return true
-		}
+	val, ok := MuPdfConvertable[ext]
+	if ok {
+		return val
 	}
 	return false
 }

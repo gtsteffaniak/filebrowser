@@ -114,6 +114,7 @@
             v-bind:reducedOpacity="item.hidden || isDragging"
             v-bind:hash="isShare ? state.share.hash : undefined"
             :readOnly="isShare ? true : undefined"
+            v-bind:hasPreview="item.hasPreview"
           />
         </div>
         <div v-if="numFiles > 0">
@@ -135,6 +136,7 @@
             v-bind:path="item.path"
             v-bind:reducedOpacity="item.hidden || isDragging"
             v-bind:hash="isShare ? state.share.hash : undefined"
+            v-bind:hasPreview="item.hasPreview"
           />
         </div>
 

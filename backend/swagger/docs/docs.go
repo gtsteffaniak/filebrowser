@@ -2549,6 +2549,10 @@ const docTemplate = `{
                         "$ref": "#/definitions/iteminfo.ItemInfo"
                     }
                 },
+                "hasPreview": {
+                    "description": "whether the file has a thumbnail preview",
+                    "type": "boolean"
+                },
                 "hidden": {
                     "description": "whether the file is hidden",
                     "type": "boolean"
@@ -2578,6 +2582,10 @@ const docTemplate = `{
         "iteminfo.ItemInfo": {
             "type": "object",
             "properties": {
+                "hasPreview": {
+                    "description": "whether the file has a thumbnail preview",
+                    "type": "boolean"
+                },
                 "hidden": {
                     "description": "whether the file is hidden",
                     "type": "boolean"
@@ -3186,6 +3194,10 @@ const docTemplate = `{
                         }
                     ]
                 },
+                "indexAlbumArt": {
+                    "description": "check for album art in audio files and remember it for folder previews. Can slow down indexing.",
+                    "type": "boolean"
+                },
                 "indexingIntervalMinutes": {
                     "description": "optional manual overide interval in minutes to re-index the source",
                     "type": "integer"
@@ -3644,28 +3656,32 @@ const docTemplate = `{
                     "description": "disable the hide sidebar preview for previews and editors",
                     "type": "boolean"
                 },
+                "folder": {
+                    "description": "show thumbnail preview image for folder files",
+                    "type": "boolean"
+                },
                 "highQuality": {
-                    "description": "generate high quality preview images",
+                    "description": "generate high quality thumbnail preview images",
                     "type": "boolean"
                 },
                 "image": {
-                    "description": "show real image as icon instead of generic photo icon",
+                    "description": "show thumbnail preview image for image files",
                     "type": "boolean"
                 },
                 "motionVideoPreview": {
-                    "description": "show multiple frames for videos in preview when hovering",
+                    "description": "show multiple frames for videos in thumbnail preview when hovering",
                     "type": "boolean"
                 },
                 "office": {
-                    "description": "show preview image for office files",
+                    "description": "show thumbnail preview image for office files",
                     "type": "boolean"
                 },
                 "popup": {
-                    "description": "show larger popup preview when hovering",
+                    "description": "show larger popup preview when hovering over thumbnail",
                     "type": "boolean"
                 },
                 "video": {
-                    "description": "show preview image for video files",
+                    "description": "show thumbnail preview image for video files",
                     "type": "boolean"
                 }
             }

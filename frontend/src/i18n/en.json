@@ -272,6 +272,8 @@
     "helpText2": "The index: Search utilizes the index which automatically gets updated on the configured interval (default: 5 minutes). Searching when the program has just started may result in incomplete results."
   },
   "profileSettings": {
+    "previewFolder": "Show thumbnails for folders if available",
+    "previewFolderDescription": "Show thumbnail previews for folders with first child item with thumbnail as cover.",
     "debugOfficeEditor": "Enable OnlyOffice Debug Mode",
     "debugOfficeEditorDescription": "Show a debug popup with additional information in the OnlyOffice editor.",
     "defaultMediaPlayer": "Use your browser's native media player",

@@ -1,6 +1,7 @@
 package http
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
@@ -54,27 +55,27 @@ func settingsConfigHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 
 	showFull := fullParam == "true"
 	showComments := commentsParam == "true"
-
-	// First, try to generate YAML using the existing generator function (don't filter deprecated fields in API)
-	yamlOutput, err := settings.GenerateConfigYaml(config, showComments, showFull, false)
-	if err != nil {
-		// If the primary method fails, try to use embedded YAML as fallback
-		if showComments {
-			embeddedYaml, readErr := assets.ReadFile("embed/config.generated.yaml")
-			if readErr == nil {
-				yamlOutput, err = settings.GenerateConfigYamlWithEmbedded(config, showComments, showFull, false, string(embeddedYaml))
-			}
+	var err error
+	var yamlConfig string
+	if config.Server.EmbeddedFs {
+		embeddedYaml, readErr := assets.ReadFile("embed/config.generated.yaml")
+		if readErr != nil {
+			return http.StatusInternalServerError, fmt.Errorf("error reading embedded YAML: %v", readErr)
 		}
-
-		// If still failing, return the error
+		yamlConfig, err = settings.GenerateConfigYamlWithEmbedded(config, showComments, showFull, false, string(embeddedYaml))
 		if err != nil {
-			return http.StatusInternalServerError, err
+			return http.StatusInternalServerError, fmt.Errorf("error generating YAML: %v", err)
+		}
+	} else {
+		yamlConfig, err = settings.GenerateConfigYaml(config, showComments, showFull, false)
+		if err != nil {
+			return http.StatusInternalServerError, fmt.Errorf("error generating YAML: %v", err)
 		}
 	}
 
 	// Set content type and write response
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-	if _, err := w.Write([]byte(yamlOutput)); err != nil {
+	if _, err := w.Write([]byte(yamlConfig)); err != nil {
 		return http.StatusInternalServerError, err
 	}
 

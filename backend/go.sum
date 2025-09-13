@@ -384,8 +384,8 @@ github.com/golang-jwt/jwt/v4 v4.5.2/go.mod h1:m21LjoU+eqJr34lmDMbreY2eSTRJ1cv77w
 github.com/golang/geo v0.0.0-20190916061304-5b978397cfec/go.mod h1:QZ0nwyI2jOfgRAoBvP+ab5aRr7c9x7lhGEJrKvBwjWI=
 github.com/golang/geo v0.0.0-20200319012246-673a6f80352d/go.mod h1:QZ0nwyI2jOfgRAoBvP+ab5aRr7c9x7lhGEJrKvBwjWI=
 github.com/golang/geo v0.0.0-20210211234256-740aa86cb551/go.mod h1:QZ0nwyI2jOfgRAoBvP+ab5aRr7c9x7lhGEJrKvBwjWI=
-github.com/golang/geo v0.0.0-20250909101022-21d0664d86be h1:LYVqvM1o7RQN4bdv0iQbd7+x2aQ5m0mi5aQp5r/oR9U=
-github.com/golang/geo v0.0.0-20250909101022-21d0664d86be/go.mod h1:AN0OjM34c3PbjAsX+QNma1nYtJtRxl+s9MZNV7S+efw=
+github.com/golang/geo v0.0.0-20250912065020-b504328d3ef3 h1:vLpszxHK60Falbg9wHLAFI5LPqXlxnbvQRGxCJJHvLY=
+github.com/golang/geo v0.0.0-20250912065020-b504328d3ef3/go.mod h1:AN0OjM34c3PbjAsX+QNma1nYtJtRxl+s9MZNV7S+efw=
 github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b/go.mod h1:SBH7ygxi8pfUlaOkMMuAQtPIUF8ecWP5IEl/CR7VP2Q=
 github.com/golang/groupcache v0.0.0-20190702054246-869f871628b6/go.mod h1:cIg4eruTrX1D+g88fzRXU5OdNfaM+9IcxsU14FzY7Hc=
 github.com/golang/groupcache v0.0.0-20191227052852-215e87163ea7/go.mod h1:cIg4eruTrX1D+g88fzRXU5OdNfaM+9IcxsU14FzY7Hc=

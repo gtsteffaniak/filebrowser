@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file. For commit 
 ## v0.8.5-beta
 
  **New Features**:
+ - backend media metadata processing
+   - significantly improved performance
+   - album artwork shows in listing view as preview thumbnail Album art thumbnail: display embedded covers of mp3/flac files #925
+   - folders can show album art if enabled with indexing `server.sources.config.indexAlbumArt:true`
+   - removed need for frontend dependancies.
+ - optional thumbnail support for folders -- uses first child item with thumbnail as cover. Useful in combination with album metadata support to show album covers for folders with music.
  - Remember folder view type (and sorting) for each folder #966
  - heic is supported in viewer (via ffmpeg conversion) when on non-safari browser. This can be enabled via `integrations.ffmpeg.convert.impagePreview.heic: true` #1191
  - OnlyOffice: Add option to open documents in viewer mode (`integrations.office.viewOnly`) #1193
@@ -12,10 +18,6 @@ All notable changes to this project will be documented in this file. For commit 
  - added better info for failed uploads #1050
  - upload prompt "clear completed" can be changed to "clear all" in uploads & downloads settings to clear error and conflict states as well. #1128
  - share 'default view mode' option #1212
- - backend media metadata processing
-   - significantly improved performance
-   - album artwork shows in listing view as preview thumbnail Album art thumbnail: display embedded covers of mp3/flac files #925
-   - removed need for frontend dependancies.
  - Universal Next/Previous buttons
    - available for all listing items (including office/markdown etc)
    - remembers sort order from parent directory
@@ -23,9 +25,10 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Notes**:
  - Added more tests to ensure new features work in future.
- - caching for preview images is md5 based. Moved, renamed, or duplicate images don't get re-generated.
+ - caching for preview images is md5 based. Moved, renamed, or duplicate images don't get re-generated. Same album artwork shares cache.
  - Hide @eaDir folder by default #1212
  - defaults to hide "@eadir" folders (common for synology) #1212
+ - After move/copy, ability to move to the destination folder #999
 
  **BugFixes**:
  - Access Management: issue with access settings #1195

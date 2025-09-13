@@ -197,7 +197,7 @@ func (idx *Index) GetFsDirInfo(adjustedPath string) (*iteminfo.FileInfo, error) 
 				ModTime: dirInfo.ModTime(),
 			},
 		}
-		fileInfo.DetectType(adjustedPath, false)
+		fileInfo.DetectType(realPath, false)
 		return &fileInfo, nil
 	}
 	combinedPath := adjustedPath + "/"
@@ -241,6 +241,13 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 	var totalSize int64
 	fileInfos := []iteminfo.ItemInfo{}
 	dirInfos := []iteminfo.ItemInfo{}
+	hasPreview := false
+	if !recursive {
+		realDirInfo, exists := idx.GetMetadataInfo(adjustedPath, true)
+		if exists {
+			hasPreview = realDirInfo.HasPreview
+		}
+	}
 
 	// Process each file and directory in the current directory
 	for _, file := range files {
@@ -291,6 +298,7 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 			realDirInfo, exists := idx.GetMetadataInfo(dirPath, true)
 			if exists {
 				itemInfo.Size = realDirInfo.Size
+				itemInfo.HasPreview = realDirInfo.HasPreview
 			}
 			totalSize += itemInfo.Size
 			itemInfo.Type = "directory"
@@ -300,7 +308,35 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 			}
 		} else {
 			size, shouldCountSize := idx.handleFile(file, fullCombined)
-			itemInfo.DetectType(fullCombined, false)
+			itemInfo.DetectType(realPath+"/"+file.Name(), false)
+			simpleType := strings.Split(itemInfo.Type, "/")[0]
+			if simpleType == "audio" {
+				if recursive && !quick && idx.Config.IndexAlbumArt {
+					itemInfo.HasPreview = iteminfo.HasAlbumArt(realPath+"/"+file.Name(), filepath.Ext(file.Name()))
+				}
+				if !recursive && !itemInfo.HasPreview {
+					info, exists := idx.GetReducedMetadata(fullCombined, false)
+					if exists {
+						itemInfo.HasPreview = info.HasPreview
+					}
+				}
+			}
+			ext := strings.ToLower(filepath.Ext(file.Name()))
+			switch ext {
+			case ".jpg", ".jpeg", ".png", ".bmp", ".tiff":
+				itemInfo.HasPreview = true
+			case ".heic", ".heif":
+				if settings.Config.Integrations.Media.FfmpegPath != "" {
+					itemInfo.HasPreview = true
+				}
+			}
+			if simpleType == "image" {
+				itemInfo.HasPreview = true
+			}
+			if settings.Config.Integrations.Media.FfmpegPath != "" && simpleType == "video" {
+				itemInfo.HasPreview = true
+			}
+
 			itemInfo.Size = int64(size)
 			fileInfos = append(fileInfos, *itemInfo)
 			if shouldCountSize {
@@ -308,6 +344,16 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 			}
 			if recursive {
 				idx.NumFiles++
+			}
+			if itemInfo.HasPreview {
+				hasPreview = true
+			}
+			// these don't create preview for parent folders
+			if settings.Config.Integrations.OnlyOffice.Secret != "" && iteminfo.IsOnlyOffice(file.Name()) {
+				itemInfo.HasPreview = true
+			}
+			if iteminfo.HasDocConvertableExtension(itemInfo.Name, itemInfo.Type) {
+				itemInfo.HasPreview = true
 			}
 		}
 	}
@@ -329,10 +375,11 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 		Folders: dirInfos,
 	}
 	dirFileInfo.ItemInfo = iteminfo.ItemInfo{
-		Name:    filepath.Base(dirInfo.Name()),
-		Type:    "directory",
-		Size:    totalSize,
-		ModTime: stat.ModTime(),
+		Name:       filepath.Base(dirInfo.Name()),
+		Type:       "directory",
+		Size:       totalSize,
+		ModTime:    stat.ModTime(),
+		HasPreview: hasPreview,
 	}
 	dirFileInfo.SortItems()
 	return dirFileInfo, nil
