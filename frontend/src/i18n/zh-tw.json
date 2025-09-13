@@ -494,7 +494,9 @@
     "debugOfficeEditor": "啟用 OnlyOffice 除錯模式",
     "debugOfficeEditorDescription": "在 OnlyOffice 編輯器中顯示包含其他資訊的除錯彈出式視窗。",
     "fileViewerOptions": "檔案檢視器選項",
-    "themeAndLanguage": "主題與語言"
+    "themeAndLanguage": "主題與語言",
+    "previewFolder": "顯示資料夾的縮圖（若有",
+    "previewFolderDescription": "顯示資料夾的縮圖預覽，第一個子項目以縮圖為封面。"
   },
   "otp": {
     "name": "雙因素驗證",

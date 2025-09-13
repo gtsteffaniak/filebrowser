@@ -558,7 +558,9 @@
     "debugOfficeEditor": "Activați modul de depanare OnlyOffice",
     "debugOfficeEditorDescription": "Afișați o fereastră pop-up de depanare cu informații suplimentare în editorul OnlyOffice.",
     "fileViewerOptions": "Opțiuni vizualizator de fișiere",
-    "themeAndLanguage": "Temă și limbaj"
+    "themeAndLanguage": "Temă și limbaj",
+    "previewFolder": "Afișați miniaturi pentru foldere, dacă sunt disponibile",
+    "previewFolderDescription": "Afișează previzualizări ale miniaturilor pentru folderele cu primul element copil cu miniatură ca copertă."
   },
   "editor": {
     "uninitialized": "Nu s-a reușit inițializarea editorului. Vă rugăm să reîncărcați.",

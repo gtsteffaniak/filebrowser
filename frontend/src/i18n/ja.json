@@ -491,7 +491,7 @@
     "maxConcurrentUpload": "最大同時アップロード数",
     "maxConcurrentUploadHelp": "同時アップロードの最大数。一般的に高い値の方がパフォーマンスが良いですが、これは多くの要因に依存します。",
     "clearAll": "クリアが完了すると、エラー、一時停止、コンフリクトが取り除かれる。",
-    "clearAllDescription": "clear completedボタンは、エラー、一時停止、競合状態を含む、完了状態のすべてのアップロードをクリアします。", 
+    "clearAllDescription": "clear completedボタンは、エラー、一時停止、競合状態を含む、完了状態のすべてのアップロードをクリアします。",
     "uploadChunkSizeMb": "アップロードチャンクサイズ（MB）",
     "uploadChunkSizeMbHelp": "通常5～50MBですが、不安定な接続や制限のある接続の場合は小さい方が良いでしょう。0に設定するとアップロードチャンキングが無効になります。"
   },
@@ -558,7 +558,9 @@
     "debugOfficeEditor": "OnlyOfficeデバッグモードを有効にする",
     "debugOfficeEditorDescription": "OnlyOfficeエディタに追加情報のデバッグポップアップを表示します。",
     "fileViewerOptions": "ファイルビューアオプション",
-    "themeAndLanguage": "テーマと言語"
+    "themeAndLanguage": "テーマと言語",
+    "previewFolder": "利用可能であれば、フォルダのサムネイルを表示する",
+    "previewFolderDescription": "サムネイルを持つ最初の子アイテムをカバーとするフォルダのサムネイルプレビューを表示します。"
   },
   "editor": {
     "uninitialized": "エディタの初期化に失敗しました。再読み込みしてください。",

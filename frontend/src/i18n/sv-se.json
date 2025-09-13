@@ -522,7 +522,9 @@
     "debugOfficeEditor": "Aktivera OnlyOffice felsökningsläge",
     "debugOfficeEditorDescription": "Visa en debug-popup med ytterligare information i OnlyOffice-redigeraren.",
     "fileViewerOptions": "Alternativ för filvisare",
-    "themeAndLanguage": "Tema & språk"
+    "themeAndLanguage": "Tema & språk",
+    "previewFolder": "Visa miniatyrbilder för mappar om de är tillgängliga",
+    "previewFolderDescription": "Visa förhandsvisningar av miniatyrbilder för mappar med första underordnade objekt med miniatyrbild som omslag."
   },
   "general": {
     "name": "Namn",

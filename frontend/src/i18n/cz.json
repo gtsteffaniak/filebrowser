@@ -326,7 +326,9 @@
     "debugOfficeEditor": "Povolení režimu ladění OnlyOffice",
     "debugOfficeEditorDescription": "Zobrazení vyskakovacího okna pro ladění s dalšími informacemi v editoru OnlyOffice.",
     "fileViewerOptions": "Možnosti prohlížeče souborů",
-    "themeAndLanguage": "Téma a jazyk"
+    "themeAndLanguage": "Téma a jazyk",
+    "previewFolder": "Zobrazení miniatur složek, pokud jsou k dispozici",
+    "previewFolderDescription": "Zobrazení náhledů miniatur pro složky s první podřízenou položkou s miniaturou jako obálkou."
   },
   "settings": {
     "enterPassword": "Zadejte heslo",

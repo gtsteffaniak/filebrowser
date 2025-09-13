@@ -522,7 +522,9 @@
     "debugOfficeEditor": "Debugmodus OnlyOffice inschakelen",
     "debugOfficeEditorDescription": "Een foutopsporingspop-up weergeven met aanvullende informatie in de OnlyOffice-editor.",
     "fileViewerOptions": "Opties voor bestandsviewer",
-    "themeAndLanguage": "Thema & Taal"
+    "themeAndLanguage": "Thema & Taal",
+    "previewFolder": "Toon miniaturen voor mappen indien beschikbaar",
+    "previewFolderDescription": "Toon miniatuurafbeeldingen voor mappen met het eerste kinditem met miniatuurafbeelding als omslag."
   },
   "general": {
     "name": "Naam",
