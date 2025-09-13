@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Exclude folders and file names 'starting with' or wildcard option
  - added better info for failed uploads #1050
  - upload prompt "clear completed" can be changed to "clear all" in uploads & downloads settings to clear error and conflict states as well. #1128
+ - share 'default view mode' option #1212
  - backend media metadata processing
    - significantly improved performance
    - album artwork shows in listing view as preview thumbnail Album art thumbnail: display embedded covers of mp3/flac files
@@ -25,6 +26,8 @@ All notable changes to this project will be documented in this file. For commit 
  **Notes**:
  - Added more tests to ensure new features work in future.
  - caching for preview images is md5 based. Moved, renamed, or duplicate images don't get re-generated.
+ - Hide @eaDir folder by default #1212
+ - defaults to hide "@eadir" folders (common for synology) #1212
 
  **BugFixes**:
  - Access Management: issue with access settings #1195

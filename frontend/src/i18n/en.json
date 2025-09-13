@@ -50,6 +50,10 @@
     "showMore": "Show more",
     "showLess": "Show less",
     "openParentFolder": "Open parent folder",
+    "listView": "List View",
+    "compactView": "Compact View",
+    "normalView": "Normal View",
+    "galleryView": "Gallery View",
     "selectedCount": "Number of items selected to perform an action"
   },
   "download": {
@@ -170,7 +174,9 @@
     "disableSidebarDescription": "Disable the sidebar on the shared page.",
     "enforceDarkLightMode": "Enforce theme mode",
     "enforceDarkLightModeDescription": "Force a specific theme mode (dark or light) for this share, overriding user preferences.",
-    "default": "Do not enforce a mode",
+    "defaultViewMode": "Default view mode",
+    "defaultViewModeDescription": "Set the default view mode for anonymous users viewing this share. Logged-in users can still change their view preference.",
+    "default": "Use user preference",
     "dark": "Dark",
     "light": "Light",
     "enableOnlyOffice": "Enable OnlyOffice viewer",

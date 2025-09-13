@@ -3448,6 +3448,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "viewMode": {
+                    "description": "default view mode for anonymous users: \"list\", \"compact\", \"normal\", \"gallery\"",
                     "type": "string"
                 }
             }
@@ -3553,6 +3554,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "viewMode": {
+                    "description": "default view mode for anonymous users: \"list\", \"compact\", \"normal\", \"gallery\"",
                     "type": "string"
                 }
             }

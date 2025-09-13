@@ -774,6 +774,8 @@ definitions:
       unit:
         type: string
       viewMode:
+        description: 'default view mode for anonymous users: "list", "compact", "normal",
+          "gallery"'
         type: string
     type: object
   share.Link:
@@ -848,6 +850,8 @@ definitions:
       userID:
         type: integer
       viewMode:
+        description: 'default view mode for anonymous users: "list", "compact", "normal",
+          "gallery"'
         type: string
     type: object
   users.AuthToken:

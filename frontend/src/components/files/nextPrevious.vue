@@ -132,7 +132,7 @@ export default {
     }
   },
   watch: {
-    currentView(newView, oldView) {
+    currentView() {
       this.updateNavigationEnabled();
 
       // Also trigger navigation setup if we're now in a preview view
@@ -143,7 +143,7 @@ export default {
       });
     },
     'state.req': {
-      handler(newReq, oldReq) {
+      handler() {
         this.updateNavigationEnabled();
         // Auto-setup navigation when request changes and we're enabled
         if (this.enabled) {
@@ -162,7 +162,7 @@ export default {
         });
       }
     },
-    '$route'(to, from) {
+    '$route'() {
       // Give time for state.req to be updated, then setup navigation
       setTimeout(() => {
         this.$nextTick(() => {
