@@ -173,10 +173,10 @@ export default {
       }, 100);
     },
     // Watch for when navigation links are set up
-    'state.navigation.previousLink'(newLink, oldLink) {
+    'state.navigation.previousLink'() {
       this.showInitialNavigation();
     },
-    'state.navigation.nextLink'(newLink, oldLink) {
+    'state.navigation.nextLink'() {
       this.showInitialNavigation();
     },
   },

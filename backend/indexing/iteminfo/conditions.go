@@ -1,6 +1,7 @@
 package iteminfo
 
 import (
+	"fmt"
 	"mime"
 	"net/http"
 	"os"
@@ -9,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/dhowden/tag"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 )
 
@@ -184,6 +186,26 @@ var compressedFile = []string{
 	".zstd",
 }
 
+var audioMetadataTypes = []string{
+	".mp3",
+	".flac",
+	".ogg",
+	".m4a",
+	".mp4",
+	".wav",
+	".ape",
+	".wv",
+}
+
+func CouldHaveAlbumArt(extension string) bool {
+	for _, typefile := range audioMetadataTypes {
+		if extension == typefile {
+			return true
+		}
+	}
+	return false
+}
+
 func ExtendedMimeTypeCheck(extension string) string {
 	if IsDoc(extension) {
 		return "application/document"
@@ -297,6 +319,34 @@ func (i *ItemInfo) DetectType(realPath string, saveContent bool) {
 	if i.Type == "" || i.Type == "application/octet-stream" {
 		i.Type = "blob"
 	}
+}
+
+// hasAlbumArt efficiently checks if an audio file contains embedded album art.
+// It returns true if album art is found, and false otherwise.
+func HasAlbumArt(filePath string, extension string) bool {
+	if !CouldHaveAlbumArt(extension) {
+		return false
+	}
+	file, err := os.Open(filePath)
+	if err != nil {
+		fmt.Println("error opening file", err)
+		return false
+	}
+	defer file.Close()
+
+	// Read metadata from the file.
+	m, err := tag.ReadFrom(file)
+	if err != nil {
+		// If the error is simply that no tags were found, it's not a processing error.
+		// It just means there's no album art.
+		if err == tag.ErrNoTagsFound {
+			return false
+		}
+		// For any other error (e.g., corrupted file), return the error.
+		return false
+	}
+	// m.Picture() returns the first picture found. If it's not nil, album art exists.
+	return m.Picture() != nil
 }
 
 // DetectTypeByHeader detects the MIME type of a file based on its header.

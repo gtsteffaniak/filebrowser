@@ -34,6 +34,7 @@
         :active="isSelected"
         :thumbnailUrl="isThumbnailInView ? thumbnailUrl : ''"
         :filename="name"
+        :hasPreview="hasPreview"
       />
     </div>
 
@@ -54,6 +55,7 @@
       @click.stop="downloadFile"
       v-if="quickDownloadEnabled"
       :filename="name"
+      :hasPreview="hasPreview"
       mimetype="file_download"
       style="padding-right: 0.5em"
       class="download-icon"
@@ -105,6 +107,7 @@ export default {
     "path",
     "reducedOpacity",
     "hash",
+    "hasPreview",
   ],
   computed: {
     galleryView() {

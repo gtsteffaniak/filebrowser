@@ -43,6 +43,10 @@ export default {
       type: String,
       required: true,
     },
+    hasPreview: {
+      type: Boolean,
+      default: false,
+    },
     active: {
       type: Boolean,
     },
@@ -73,7 +77,13 @@ export default {
       if (shareInfo.disableThumbnails) {
         return false;
       }
-      return this.isPreviewImg && this.imageState !== 'error' && !this.disablePreviewExt && !this.officeFileDisabled
+      if (this.thumbnailUrl == "") {
+        return false;
+      }
+      if (!this.hasPreview) {
+        return false;
+      }
+      return this.imageState !== 'error' && !this.disablePreviewExt && !this.officeFileDisabled
     },
     disablePreviewExt() {
       const ext = "." + (this.filename.split(".").pop() || "").toLowerCase(); // Ensure lowercase and dot
@@ -136,43 +146,6 @@ export default {
     },
     isMaterialIcon() {
       return this.materialIcon !== "";
-    },
-    isPreviewImg() {
-      if (this.thumbnailUrl == "") {
-        return false;
-      }
-      if (this.mimetype == "image/heic") {
-        return false;
-      }
-      if (this.mimetype == "text/csv") {
-        return false;
-      }
-      if (this.mimetype == "audio/mpeg") {
-        return true;
-      }
-      // @ts-ignore
-      if (this.pdfConvertable && state.user.preview?.office) {
-        return true;
-      }
-      if (this.getIconForType().simpleType === "image" && state.user.preview?.image) {
-        return true;
-      }
-      if (
-        this.getIconForType().simpleType === "video" &&
-        state.user.preview?.video &&
-        globalVars.mediaAvailable
-      ) {
-        return true;
-      }
-      if (
-        this.getIconForType().simpleType === "document" &&
-        // @ts-ignore
-        state.user.preview?.office &&
-        globalVars.onlyOfficeUrl != ""
-      ) {
-        return true;
-      }
-      return false;
     },
   },
   methods: {
@@ -276,11 +249,11 @@ export default {
     showLargeIcon() {
       this.updateImageTargetSrc();
     },
-    // UPDATED: Added a check for isPreviewImg
+    // UPDATED: Added a check for hasPreviewImage
     imageTargetSrc: {
       handler(newSrc) {
         // ONLY trigger the image loader if the component is meant to show a preview.
-        if (this.isPreviewImg) {
+        if (this.hasPreviewImage) {
           this.loadImage(newSrc);
         }
       },

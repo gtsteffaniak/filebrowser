@@ -9,11 +9,12 @@ import (
 )
 
 type ItemInfo struct {
-	Name    string    `json:"name"`     // name of the file
-	Size    int64     `json:"size"`     // length in bytes for regular files
-	ModTime time.Time `json:"modified"` // modification time
-	Type    string    `json:"type"`     // type of the file, either "directory" or a file mimetype
-	Hidden  bool      `json:"hidden"`   // whether the file is hidden
+	Name       string    `json:"name"`       // name of the file
+	Size       int64     `json:"size"`       // length in bytes for regular files
+	ModTime    time.Time `json:"modified"`   // modification time
+	Type       string    `json:"type"`       // type of the file, either "directory" or a file mimetype
+	Hidden     bool      `json:"hidden"`     // whether the file is hidden
+	HasPreview bool      `json:"hasPreview"` // whether the file has a thumbnail preview
 }
 
 // FileInfo describes a file.

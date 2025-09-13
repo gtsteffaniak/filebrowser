@@ -30,7 +30,6 @@ func FileInfoFaster(opts iteminfo.FileOptions) (*iteminfo.ExtendedFileInfo, erro
 	if index == nil {
 		return response, fmt.Errorf("could not get index: %v ", opts.Source)
 	}
-
 	realPath, isDir, err := index.GetRealPath(opts.Path)
 	if err != nil {
 		return response, fmt.Errorf("could not get real path for requested path: %v", opts.Path)
@@ -38,26 +37,27 @@ func FileInfoFaster(opts iteminfo.FileOptions) (*iteminfo.ExtendedFileInfo, erro
 	opts.IsDir = isDir
 	var info *iteminfo.FileInfo
 	var exists bool
-	err = index.RefreshFileInfo(opts)
-	if err != nil {
-		if err == errors.ErrNotIndexed && index.Config.DisableIndexing {
-			info, err = index.GetFsDirInfo(opts.Path)
-			if err != nil {
-				return response, err
+	if isDir {
+		err = index.RefreshFileInfo(opts)
+		if err != nil {
+			if err == errors.ErrNotIndexed && index.Config.DisableIndexing {
+				info, err = index.GetFsDirInfo(opts.Path)
+				if err != nil {
+					return response, err
+				}
+			} else if err == errors.ErrNotIndexed {
+				return response, fmt.Errorf("could not refresh file info: %v", err)
 			}
-		} else if err == errors.ErrNotIndexed {
-			return response, fmt.Errorf("could not refresh file info: %v", err)
-		}
-	} else {
-		info, exists = index.GetReducedMetadata(opts.Path, opts.IsDir)
-		if !exists {
-			return response, fmt.Errorf("could not get metadata for path: %v", opts.Path)
 		}
 	}
+	info, exists = index.GetReducedMetadata(opts.Path, opts.IsDir)
+	if !exists {
+		return response, fmt.Errorf("could not get metadata for path: %v", opts.Path)
+	}
+
 	response.FileInfo = *info
 	response.RealPath = realPath
 	response.Source = opts.Source
-
 	if opts.Access != nil && !opts.Access.Permitted(index.Path, opts.Path, opts.Username) {
 		// check if any subpath is permitted
 		// keep track of permitted paths and only show them at the end
@@ -111,9 +111,11 @@ func processContent(info *iteminfo.ExtendedFileInfo, idx *indexing.Index) {
 	}
 
 	if isAudio {
-		metadata, err := extractAudioMetadata(info.RealPath)
-		if err == nil {
-			info.AudioMeta = metadata
+		err := extractAudioMetadata(info)
+		if err != nil {
+			logger.Debugf("failed to extract audio metadata for file: "+info.RealPath, info.Name, err)
+		} else {
+			info.HasPreview = info.AudioMeta.AlbumArt != ""
 		}
 		return
 	}
@@ -143,19 +145,19 @@ func generateOfficeId(realPath string) string {
 }
 
 // extractAudioMetadata extracts metadata from an audio file using dhowden/tag
-func extractAudioMetadata(realPath string) (*iteminfo.AudioMetadata, error) {
-	file, err := os.Open(realPath)
+func extractAudioMetadata(item *iteminfo.ExtendedFileInfo) error {
+	file, err := os.Open(item.RealPath)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer file.Close()
 
 	m, err := tag.ReadFrom(file)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	metadata := &iteminfo.AudioMetadata{
+	item.AudioMeta = &iteminfo.AudioMetadata{
 		Title:  m.Title(),
 		Artist: m.Artist(),
 		Album:  m.Album(),
@@ -165,19 +167,19 @@ func extractAudioMetadata(realPath string) (*iteminfo.AudioMetadata, error) {
 
 	// Extract track number
 	track, _ := m.Track()
-	metadata.Track = track
+	item.AudioMeta.Track = track
 
 	// Extract album art and encode as base64
 	if picture := m.Picture(); picture != nil && picture.Data != nil {
 		// Limit album art size to prevent excessive response sizes (max 1MB)
 		if len(picture.Data) <= 1024*1024 {
-			metadata.AlbumArt = base64.StdEncoding.EncodeToString(picture.Data)
+			item.AudioMeta.AlbumArt = base64.StdEncoding.EncodeToString(picture.Data)
 		} else {
-			logger.Debugf("Skipping album art for %s: too large (%d bytes)", realPath, len(picture.Data))
+			logger.Debugf("Skipping album art for %s: too large (%d bytes)", item.RealPath, len(picture.Data))
 		}
 	}
 
-	return metadata, nil
+	return nil
 }
 
 func DeleteFiles(source, absPath string, absDirPath string) error {

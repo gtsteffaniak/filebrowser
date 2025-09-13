@@ -112,6 +112,7 @@ type SourceConfig struct {
 	DefaultUserScope string             `json:"defaultUserScope"`                  // default "/" should match folders under path
 	DefaultEnabled   bool               `json:"defaultEnabled"`                    // should be added as a default source for new users?
 	CreateUserDir    bool               `json:"createUserDir"`                     // create a user directory for each user
+	IndexAlbumArt    bool               `json:"indexAlbumArt"`                     // check for album art in audio files and remember it for folder previews. Can slow down indexing.
 }
 
 type IncludeIndexFilter struct {

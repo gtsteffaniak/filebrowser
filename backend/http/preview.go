@@ -59,27 +59,12 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	if err != nil {
 		return http.StatusForbidden, err
 	}
-	getContent := false
-	lowerPath := strings.ToLower(path)
-	// Check for audio formats that might contain album artwork
-	if strings.HasSuffix(lowerPath, ".mp3") ||
-		strings.HasSuffix(lowerPath, ".flac") ||
-		strings.HasSuffix(lowerPath, ".ogg") ||
-		strings.HasSuffix(lowerPath, ".m4a") ||
-		strings.HasSuffix(lowerPath, ".mp4") ||
-		strings.HasSuffix(lowerPath, ".wav") ||
-		strings.HasSuffix(lowerPath, ".ape") ||
-		strings.HasSuffix(lowerPath, ".wv") {
-		getContent = true
-	}
 	fileInfo, err := files.FileInfoFaster(iteminfo.FileOptions{
 		Access:   store.Access,
 		Username: d.user.Username,
 		Path:     utils.JoinPathAsUnix(userscope, path),
-		Modify:   d.user.Permissions.Modify,
 		Source:   source,
-		Expand:   true,
-		Content:  getContent,
+		Content:  true,
 	})
 	if err != nil {
 		return errToStatus(err), err
@@ -112,15 +97,34 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 	if !(previewSize == "large" || previewSize == "original") {
 		previewSize = "small"
 	}
-	if d.fileInfo.Type == "directory" {
-		return http.StatusBadRequest, fmt.Errorf("can't create preview for directory")
+	if d.fileInfo.Type == "directory" && !d.fileInfo.HasPreview {
+		return http.StatusBadRequest, fmt.Errorf("This folder does not have a preview")
 	}
+	if d.fileInfo.Type == "directory" {
+		// get extended file info of first previewable item in directory
+		for _, item := range d.fileInfo.Files {
+			if preview.AvailablePreview(item) {
+				fileInfo, err := files.FileInfoFaster(
+					iteminfo.FileOptions{
+						Path:    utils.JoinPathAsUnix(d.fileInfo.Path, item.Name),
+						Source:  d.fileInfo.Source,
+						Content: true,
+					})
+				if err != nil {
+					return http.StatusInternalServerError, err
+				}
+				d.fileInfo = *fileInfo
+				break
+			}
+		}
+	}
+
 	setContentDisposition(w, r, d.fileInfo.Name)
 	isImage := strings.HasPrefix(d.fileInfo.Type, "image")
 	if config.Server.DisableResize && isImage {
 		return rawFileHandler(w, r, d.fileInfo)
 	}
-	if !preview.AvailablePreview(d.fileInfo) {
+	if !preview.AvailablePreview(d.fileInfo.ItemInfo) {
 		if isImage {
 			return rawFileHandler(w, r, d.fileInfo)
 		}

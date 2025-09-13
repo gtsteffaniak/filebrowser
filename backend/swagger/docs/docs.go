@@ -2549,6 +2549,10 @@ const docTemplate = `{
                         "$ref": "#/definitions/iteminfo.ItemInfo"
                     }
                 },
+                "hasPreview": {
+                    "description": "whether the file has a thumbnail preview",
+                    "type": "boolean"
+                },
                 "hidden": {
                     "description": "whether the file is hidden",
                     "type": "boolean"
@@ -2578,6 +2582,10 @@ const docTemplate = `{
         "iteminfo.ItemInfo": {
             "type": "object",
             "properties": {
+                "hasPreview": {
+                    "description": "whether the file has a thumbnail preview",
+                    "type": "boolean"
+                },
                 "hidden": {
                     "description": "whether the file is hidden",
                     "type": "boolean"
@@ -3185,6 +3193,10 @@ const docTemplate = `{
                             "$ref": "#/definitions/settings.IncludeIndexFilter"
                         }
                     ]
+                },
+                "indexAlbumArt": {
+                    "description": "check for album art in audio files and remember it for folder previews. Can slow down indexing.",
+                    "type": "boolean"
                 },
                 "indexingIntervalMinutes": {
                     "description": "optional manual overide interval in minutes to re-index the source",

@@ -15,7 +15,9 @@ All notable changes to this project will be documented in this file. For commit 
  - backend media metadata processing
    - significantly improved performance
    - album artwork shows in listing view as preview thumbnail Album art thumbnail: display embedded covers of mp3/flac files #925
+   - folders can show album art if enabled with indexing `server.sources.config.indexAlbumArt:true`
    - removed need for frontend dependancies.
+ - optional thumbnail support for folders -- uses first child item with thumbnail as cover. Useful in combination with album metadata support to show album covers for folders with music. 
  - Universal Next/Previous buttons
    - available for all listing items (including office/markdown etc)
    - remembers sort order from parent directory
@@ -23,7 +25,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Notes**:
  - Added more tests to ensure new features work in future.
- - caching for preview images is md5 based. Moved, renamed, or duplicate images don't get re-generated.
+ - caching for preview images is md5 based. Moved, renamed, or duplicate images don't get re-generated. Same album artwork shares cache.
  - Hide @eaDir folder by default #1212
  - defaults to hide "@eadir" folders (common for synology) #1212
 

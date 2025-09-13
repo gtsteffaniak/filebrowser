@@ -100,6 +100,9 @@ definitions:
         items:
           $ref: '#/definitions/iteminfo.ItemInfo'
         type: array
+      hasPreview:
+        description: whether the file has a thumbnail preview
+        type: boolean
       hidden:
         description: whether the file is hidden
         type: boolean
@@ -121,6 +124,9 @@ definitions:
     type: object
   iteminfo.ItemInfo:
     properties:
+      hasPreview:
+        description: whether the file has a thumbnail preview
+        type: boolean
       hidden:
         description: whether the file is hidden
         type: boolean
@@ -577,6 +583,10 @@ definitions:
         allOf:
         - $ref: '#/definitions/settings.IncludeIndexFilter'
         description: include files and folders from indexing, if exclude is not set
+      indexAlbumArt:
+        description: check for album art in audio files and remember it for folder
+          previews. Can slow down indexing.
+        type: boolean
       indexingIntervalMinutes:
         description: optional manual overide interval in minutes to re-index the source
         type: integer

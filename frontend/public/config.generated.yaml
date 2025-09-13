@@ -47,6 +47,7 @@ server:
         defaultUserScope: "/"             # default "/" should match folders under path
         defaultEnabled: false             # should be added as a default source for new users?
         createUserDir: false              # create a user directory for each user
+        indexAlbumArt: false              # check for album art in audio files and remember it for folder previews. Can slow down indexing.
   externalUrl: ""                         # used by share links if set (eg. http://mydomain.com)
   internalUrl: ""                         # used by integrations if set, this is the base domain that an integration service will use to communicate with filebrowser (eg. http://localhost:8080)
   cacheDir: "tmp"                         # path to the cache directory, used for thumbnails and other cached files

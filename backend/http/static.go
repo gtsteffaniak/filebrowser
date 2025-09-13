@@ -56,7 +56,9 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 
 	defaultThemeColor := "#455a64"
 	staticURL := config.Server.BaseURL + "static"
-	publicStaticURL := config.Server.BaseURL + "public/static"
+	if d.share != nil {
+		staticURL = config.Server.BaseURL + "public/static"
+	}
 
 	// Use custom favicon if configured and validated, otherwise fall back to default
 	var favicon string
@@ -111,7 +113,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 				if strings.HasPrefix(d.share.Favicon, "http") {
 					data["favicon"] = d.share.Favicon
 				} else {
-					data["favicon"] = publicStaticURL + "/" + d.share.Favicon
+					data["favicon"] = staticURL + "/" + d.share.Favicon
 				}
 			}
 			if d.share.Description != "" {
@@ -123,15 +125,15 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		}
 
 		// base url could be different for routes behind proxy
-		data["staticURL"] = publicStaticURL
+		data["staticURL"] = staticURL
 		// Use custom favicon for shares too if configured
 		if config.Frontend.Favicon != "" {
-			data["favicon"] = publicStaticURL + "/favicon"
+			data["favicon"] = staticURL + "/favicon"
 		} else {
-			data["favicon"] = publicStaticURL + "/img/icons/favicon-256x256.png"
+			data["favicon"] = staticURL + "/img/icons/favicon-256x256.png"
 		}
-		data["winIcon"] = publicStaticURL + "/img/icons/mstile-144x144.png"
-		data["appIcon"] = publicStaticURL + "/img/icons/android-chrome-256x256.png"
+		data["winIcon"] = staticURL + "/img/icons/mstile-144x144.png"
+		data["appIcon"] = staticURL + "/img/icons/android-chrome-256x256.png"
 	}
 	data["htmlVars"] = map[string]interface{}{
 		"title":             config.Frontend.Name,
