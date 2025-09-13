@@ -28,6 +28,7 @@ All notable changes to this project will be documented in this file. For commit 
  - caching for preview images is md5 based. Moved, renamed, or duplicate images don't get re-generated. Same album artwork shares cache.
  - Hide @eaDir folder by default #1212
  - defaults to hide "@eadir" folders (common for synology) #1212
+ - After move/copy, ability to move to the destination folder #999
 
  **BugFixes**:
  - Access Management: issue with access settings #1195

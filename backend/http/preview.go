@@ -48,7 +48,7 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	source := r.URL.Query().Get("source")
 	var err error
 	// decode url encoded source name
-	source, err = url.QueryUnescape(source)
+	source, err = url.PathUnescape(source)
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid source encoding: %v", err)
 	}

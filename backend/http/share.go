@@ -89,7 +89,7 @@ func shareGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) 
 	encodedPath := r.URL.Query().Get("path")
 	sourceName := r.URL.Query().Get("source")
 	// Decode the URL-encoded path
-	path, err := url.QueryUnescape(encodedPath)
+	path, err := url.PathUnescape(encodedPath)
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}
