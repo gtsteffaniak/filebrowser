@@ -558,7 +558,9 @@
     "debugOfficeEditor": "Abilita la modalità di debug di OnlyOffice",
     "debugOfficeEditorDescription": "Mostra un popup di debug con informazioni aggiuntive nell'editor di OnlyOffice.",
     "fileViewerOptions": "Opzioni del visualizzatore di file",
-    "themeAndLanguage": "Tema e linguaggio"
+    "themeAndLanguage": "Tema e linguaggio",
+    "previewFolder": "Mostra le miniature delle cartelle, se disponibili.",
+    "previewFolderDescription": "Mostra le anteprime per le cartelle con il primo elemento figlio con miniatura come copertina."
   },
   "editor": {
     "uninitialized": "Impossibile inizializzare l'editor. Ricaricare.",

@@ -558,7 +558,9 @@
     "debugOfficeEditor": "OnlyOffice Hata Ayıklama Modunu Etkinleştir",
     "debugOfficeEditorDescription": "OnlyOffice düzenleyicisinde ek bilgiler içeren bir hata ayıklama açılır penceresi gösterin.",
     "fileViewerOptions": "Dosya Görüntüleyici Seçenekleri",
-    "themeAndLanguage": "Tema ve Dil"
+    "themeAndLanguage": "Tema ve Dil",
+    "previewFolder": "Varsa klasörler için küçük resimleri göster",
+    "previewFolderDescription": "Kapak olarak küçük resmi olan ilk alt öğeye sahip klasörler için küçük resim önizlemelerini gösterin."
   },
   "editor": {
     "uninitialized": "Düzenleyici başlatılamadı. Lütfen yeniden yükleyin.",

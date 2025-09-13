@@ -558,7 +558,9 @@
     "debugOfficeEditor": "OnlyOffice hibakeresési mód engedélyezése",
     "debugOfficeEditorDescription": "További információkat tartalmazó hibakeresési felugró ablak megjelenítése az OnlyOffice szerkesztőben.",
     "fileViewerOptions": "Fájlnéző beállításai",
-    "themeAndLanguage": "Téma és nyelv"
+    "themeAndLanguage": "Téma és nyelv",
+    "previewFolder": "A mappák miniatűrjeinek megjelenítése, ha rendelkezésre állnak",
+    "previewFolderDescription": "Miniatűr előnézetek megjelenítése olyan mappákhoz, amelyekben az első gyermekelem miniatűrrel borítóképként szerepel."
   },
   "editor": {
     "uninitialized": "Nem sikerült inicializálni a szerkesztőt. Kérjük, töltse újra.",

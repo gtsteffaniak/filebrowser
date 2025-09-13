@@ -558,7 +558,9 @@
     "debugOfficeEditor": "OnlyOffice-Debug-Modus einschalten",
     "debugOfficeEditorDescription": "Ein Debug-Popup mit zusätzlichen Informationen im OnlyOffice-Editor anzeigen.",
     "fileViewerOptions": "Optionen des Dateibetrachters",
-    "themeAndLanguage": "Thema und Sprache"
+    "themeAndLanguage": "Thema und Sprache",
+    "previewFolder": "Miniaturansichten für Ordner anzeigen, falls vorhanden",
+    "previewFolderDescription": "Zeigen Sie Miniaturvorschauen für Ordner an, deren erstes untergeordnetes Element ein Miniaturbild als Cover hat."
   },
   "editor": {
     "uninitialized": "Der Editor konnte nicht initialisiert werden. Bitte neu laden.",

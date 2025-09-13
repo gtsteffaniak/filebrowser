@@ -558,7 +558,9 @@
     "debugOfficeEditor": "Activar el modo de depuración de OnlyOffice",
     "debugOfficeEditorDescription": "Mostrar una ventana emergente de depuración con información adicional en el editor OnlyOffice.",
     "fileViewerOptions": "Opciones del visor de archivos",
-    "themeAndLanguage": "Tema y lengua"
+    "themeAndLanguage": "Tema y lengua",
+    "previewFolder": "Mostrar miniaturas de las carpetas si están disponibles",
+    "previewFolderDescription": "Mostrar vistas previas en miniatura para carpetas con el primer elemento hijo con miniatura como portada."
   },
   "editor": {
     "uninitialized": "Error al iniciar el editor, inténtelo de nuevo",

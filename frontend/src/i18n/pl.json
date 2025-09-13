@@ -558,7 +558,9 @@
     "debugOfficeEditor": "Włącz tryb debugowania OnlyOffice",
     "debugOfficeEditorDescription": "Wyświetla wyskakujące okienko debugowania z dodatkowymi informacjami w edytorze OnlyOffice.",
     "fileViewerOptions": "Opcje przeglądarki plików",
-    "themeAndLanguage": "Temat i język"
+    "themeAndLanguage": "Temat i język",
+    "previewFolder": "Wyświetlanie miniatur folderów, jeśli są dostępne.",
+    "previewFolderDescription": "Wyświetlanie podglądu miniatur dla folderów z pierwszym elementem podrzędnym z miniaturą jako okładką."
   },
   "editor": {
     "uninitialized": "Nie udało się zainicjować edytora. Przeładuj ponownie.",

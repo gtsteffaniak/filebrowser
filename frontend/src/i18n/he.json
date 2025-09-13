@@ -558,7 +558,9 @@
     "debugOfficeEditor": "הפעל מצב ניפוי באגים של OnlyOffice",
     "debugOfficeEditorDescription": "הצג חלון קופץ לאיתור באגים עם מידע נוסף בעורך OnlyOffice.",
     "fileViewerOptions": "אפשרויות תצוגת קבצים",
-    "themeAndLanguage": "נושא ושפה"
+    "themeAndLanguage": "נושא ושפה",
+    "previewFolder": "הצג תמונות ממוזערות של תיקיות, אם זמינות",
+    "previewFolderDescription": "הצג תצוגה מקדימה של תמונות ממוזערות עבור תיקיות עם פריט משנה ראשון עם תמונה ממוזערת ככריכה."
   },
   "editor": {
     "uninitialized": "לא ניתן לאתחל את העורך. אנא טען מחדש.",

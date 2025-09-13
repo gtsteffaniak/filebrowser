@@ -558,7 +558,9 @@
     "debugOfficeEditor": "Office 디버그 모드만 사용",
     "debugOfficeEditorDescription": "OnlyOffice 편집기에서 추가 정보가 포함된 디버그 팝업을 표시합니다.",
     "fileViewerOptions": "파일 뷰어 옵션",
-    "themeAndLanguage": "테마 및 언어"
+    "themeAndLanguage": "테마 및 언어",
+    "previewFolder": "가능한 경우 폴더의 썸네일 표시",
+    "previewFolderDescription": "썸네일을 표지로 사용하는 첫 번째 하위 항목이 있는 폴더의 썸네일 미리 보기를 표시합니다."
   },
   "editor": {
     "uninitialized": "편집기를 초기화하지 못했습니다. 다시 로드하세요.",

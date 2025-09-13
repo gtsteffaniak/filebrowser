@@ -522,7 +522,9 @@
     "debugOfficeEditor": "Ativar o modo de depuração do OnlyOffice",
     "debugOfficeEditorDescription": "Mostrar um popup de depuração com informações adicionais no editor OnlyOffice.",
     "fileViewerOptions": "Opções do visualizador de ficheiros",
-    "themeAndLanguage": "Tema e linguagem"
+    "themeAndLanguage": "Tema e linguagem",
+    "previewFolder": "Mostrar miniaturas das pastas, se disponíveis",
+    "previewFolderDescription": "Mostrar pré-visualizações em miniatura para pastas com o primeiro item filho com miniatura como capa."
   },
   "general": {
     "name": "Nome",

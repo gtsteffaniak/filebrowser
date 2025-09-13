@@ -550,7 +550,9 @@
     "debugOfficeEditor": "تمكين وضع التصحيح فقط",
     "debugOfficeEditorDescription": "إظهار نافذة منبثقة للتصحيح مع معلومات إضافية في محرر OnlyOffice.",
     "fileViewerOptions": "خيارات عارض الملفات",
-    "themeAndLanguage": "الموضوع واللغة"
+    "themeAndLanguage": "الموضوع واللغة",
+    "previewFolder": "إظهار الصور المصغرة للمجلدات إذا كانت متوفرة",
+    "previewFolderDescription": "إظهار معاينات الصور المصغرة للمجلدات التي تحتوي على العنصر الفرعي الأول مع صورة مصغرة كغلاف."
   },
   "colors": {
     "red": "أحمر",

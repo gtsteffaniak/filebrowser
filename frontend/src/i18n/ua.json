@@ -522,7 +522,9 @@
     "debugOfficeEditor": "Увімкнути режим налагодження OnlyOffice",
     "debugOfficeEditorDescription": "Показати налагоджувальне спливаюче вікно з додатковою інформацією в редакторі OnlyOffice.",
     "fileViewerOptions": "Параметри перегляду файлів",
-    "themeAndLanguage": "Тема та мова"
+    "themeAndLanguage": "Тема та мова",
+    "previewFolder": "Показувати мініатюри для папок, якщо вони доступні",
+    "previewFolderDescription": "Показувати попередній перегляд мініатюр для папок з першим дочірнім елементом, що має мініатюру як обкладинку."
   },
   "general": {
     "name": "Ім'я",

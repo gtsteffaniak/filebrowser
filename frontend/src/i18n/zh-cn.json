@@ -522,7 +522,9 @@
     "debugOfficeEditor": "启用 OnlyOffice 调试模式",
     "debugOfficeEditorDescription": "在 OnlyOffice 编辑器中显示包含附加信息的调试弹出窗口。",
     "fileViewerOptions": "文件查看器选项",
-    "themeAndLanguage": "主题与语言"
+    "themeAndLanguage": "主题与语言",
+    "previewFolder": "如果有的话，显示文件夹的缩略图",
+    "previewFolderDescription": "显示文件夹的缩略图预览，第一个子项的缩略图为封面。"
   },
   "general": {
     "name": "名称",
