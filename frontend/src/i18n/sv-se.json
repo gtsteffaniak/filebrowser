@@ -50,7 +50,11 @@
     "showMore": "Visa mer",
     "showLess": "Visa mindre",
     "openParentFolder": "Öppna överordnad mapp",
-    "selectedCount": "Antal objekt som valts för att utföra en åtgärd"
+    "selectedCount": "Antal objekt som valts för att utföra en åtgärd",
+    "listView": "Listvy",
+    "compactView": "Kompakt vy",
+    "normalView": "Normal vy",
+    "galleryView": "Galleri utsikt"
   },
   "download": {
     "downloadFile": "Ladda ner fil",
@@ -393,7 +397,9 @@
     "enableOnlyOfficeDescription": "Tillåt visning av kontorsfiler med OnlyOffice i denna delning.",
     "enableOnlyOfficeEditing": "Aktivera redigering av OnlyOffice",
     "enableOnlyOfficeEditingDescription": "Tillåt redigering av kontorsfiler med hjälp av OnlyOffice i denna andel.",
-    "titleDefault": "Delade filer {title}"
+    "titleDefault": "Delade filer {title}",
+    "defaultViewMode": "Standardläge för visning",
+    "defaultViewModeDescription": "Ange standardvisningsläge för anonyma användare som visar den här andelen. Inloggade användare kan fortfarande ändra sina visningspreferenser."
   },
   "api": {
     "title": "API-nycklar",

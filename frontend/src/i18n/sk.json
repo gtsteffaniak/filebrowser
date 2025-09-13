@@ -50,7 +50,11 @@
     "showMore": "Zobraziť viac",
     "showLess": "Zobraziť menej",
     "openParentFolder": "Otvorenie nadradeného priečinka",
-    "selectedCount": "Počet položiek vybraných na vykonanie akcie"
+    "selectedCount": "Počet položiek vybraných na vykonanie akcie",
+    "listView": "Zobrazenie zoznamu",
+    "compactView": "Kompaktný pohľad",
+    "normalView": "Normálne zobrazenie",
+    "galleryView": "Zobrazenie galérie"
   },
   "download": {
     "downloadFile": "Stiahnuť súbor",
@@ -393,7 +397,9 @@
     "enableOnlyOfficeDescription": "Povoľte zobrazovanie kancelárskych súborov pomocou OnlyOffice v tejto zdieľanej zložke.",
     "enableOnlyOfficeEditing": "Povolenie úprav OnlyOffice",
     "enableOnlyOfficeEditingDescription": "Povoľte úpravu kancelárskych súborov pomocou aplikácie OnlyOffice v tejto zdieľanej zložke.",
-    "titleDefault": "Zdieľané súbory - {title}"
+    "titleDefault": "Zdieľané súbory - {title}",
+    "defaultViewMode": "Predvolený režim zobrazenia",
+    "defaultViewModeDescription": "Nastavenie predvoleného režimu zobrazenia pre anonymných používateľov pri prezeraní tejto zdieľanej zložky. Prihlásení používatelia môžu stále zmeniť svoje preferencie zobrazenia."
   },
   "api": {
     "title": "Kľúče API:",

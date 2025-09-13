@@ -50,7 +50,11 @@
     "showMore": "Показати більше",
     "showLess": "Показати менше",
     "openParentFolder": "Відкрийте батьківську папку",
-    "selectedCount": "Кількість елементів, вибраних для виконання дії"
+    "selectedCount": "Кількість елементів, вибраних для виконання дії",
+    "listView": "Перегляд списку",
+    "compactView": "Компактний вигляд",
+    "normalView": "Звичайний вигляд",
+    "galleryView": "Перегляд галереї"
   },
   "download": {
     "downloadFile": "Завантажити файл",
@@ -393,7 +397,9 @@
     "enableOnlyOfficeDescription": "Дозволити перегляд офісних файлів за допомогою OnlyOffice у цьому ресурсі.",
     "enableOnlyOfficeEditing": "Увімкнути редагування OnlyOffice",
     "enableOnlyOfficeEditingDescription": "Дозволити редагування офісних файлів за допомогою OnlyOffice у цьому ресурсі.",
-    "titleDefault": "Спільні файли - {title}"
+    "titleDefault": "Спільні файли - {title}",
+    "defaultViewMode": "Режим перегляду за замовчуванням",
+    "defaultViewModeDescription": "Встановити режим перегляду за замовчуванням для анонімних користувачів, які переглядають цей ресурс. Користувачі, що увійшли в систему, можуть змінити режим перегляду."
   },
   "api": {
     "title": "Ключі API",

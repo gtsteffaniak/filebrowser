@@ -50,7 +50,11 @@
     "showMore": "הצג עוד",
     "showLess": "הצג פחות",
     "openParentFolder": "פתח את התיקייה הראשית",
-    "selectedCount": "מספר הפריטים שנבחרו לביצוע פעולה"
+    "selectedCount": "מספר הפריטים שנבחרו לביצוע פעולה",
+    "listView": "תצוגת רשימה",
+    "compactView": "תצוגה קומפקטית",
+    "normalView": "תצוגה רגילה",
+    "galleryView": "תצוגת גלריה"
   },
   "download": {
     "downloadFile": "הורד קובץ",
@@ -393,7 +397,9 @@
     "enableOnlyOfficeDescription": "אפשר צפייה בקבצי Office באמצעות OnlyOffice בשיתוף זה.",
     "enableOnlyOfficeEditing": "אפשר עריכה ב-OnlyOffice",
     "enableOnlyOfficeEditingDescription": "אפשר עריכת קבצי Office באמצעות OnlyOffice בשיתוף זה.",
-    "titleDefault": "קבצים משותפים - {title}"
+    "titleDefault": "קבצים משותפים - {title}",
+    "defaultViewMode": "מצב תצוגה ברירת מחדל",
+    "defaultViewModeDescription": "הגדר את מצב התצוגה המוגדר כברירת מחדל עבור משתמשים אנונימיים הצופים בשיתוף זה. משתמשים מחוברים עדיין יכולים לשנות את העדפות התצוגה שלהם."
   },
   "api": {
     "title": "מפתחות API",

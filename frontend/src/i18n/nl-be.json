@@ -50,7 +50,11 @@
     "showMore": "Meer tonen",
     "showLess": "Minder tonen",
     "openParentFolder": "Bovenliggende map openen",
-    "selectedCount": "Aantal items geselecteerd om een actie uit te voeren"
+    "selectedCount": "Aantal items geselecteerd om een actie uit te voeren",
+    "listView": "Lijstweergave",
+    "compactView": "Compacte weergave",
+    "normalView": "Normale weergave",
+    "galleryView": "Galerij"
   },
   "download": {
     "downloadFile": "Bestand downloaden",
@@ -393,7 +397,9 @@
     "enableOnlyOfficeDescription": "Sta het bekijken van Office-bestanden toe met OnlyOffice in deze share.",
     "enableOnlyOfficeEditing": "Bewerken met OnlyOffice inschakelen",
     "enableOnlyOfficeEditingDescription": "Laat het bewerken van Office-bestanden met OnlyOffice toe in deze share.",
-    "titleDefault": "Gedeelde bestanden - {title}"
+    "titleDefault": "Gedeelde bestanden - {title}",
+    "defaultViewMode": "Standaard weergavemodus",
+    "defaultViewModeDescription": "Stel de standaard weergavemodus in voor anonieme gebruikers die deze share bekijken. Aangemelde gebruikers kunnen nog steeds hun weergavevoorkeur wijzigen."
   },
   "api": {
     "title": "API-sleutels",

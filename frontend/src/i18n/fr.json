@@ -50,7 +50,11 @@
     "showMore": "Afficher plus",
     "showLess": "Montrer moins",
     "openParentFolder": "Ouvrir le dossier parent",
-    "selectedCount": "Nombre d'éléments sélectionnés pour effectuer une action"
+    "selectedCount": "Nombre d'éléments sélectionnés pour effectuer une action",
+    "listView": "Vue de la liste",
+    "compactView": "Vue compacte",
+    "normalView": "Vue normale",
+    "galleryView": "Vue de la galerie"
   },
   "download": {
     "downloadFile": "Télécharger le fichier",
@@ -393,7 +397,9 @@
     "enableOnlyOfficeDescription": "Autoriser la visualisation de fichiers bureautiques en utilisant OnlyOffice dans ce partage.",
     "enableOnlyOfficeEditing": "Activer l'édition OnlyOffice",
     "enableOnlyOfficeEditingDescription": "Autoriser l'édition de fichiers bureautiques en utilisant OnlyOffice dans ce partage.",
-    "titleDefault": "Fichiers partagés - {title}"
+    "titleDefault": "Fichiers partagés - {title}",
+    "defaultViewMode": "Mode d'affichage par défaut",
+    "defaultViewModeDescription": "Définit le mode d'affichage par défaut pour les utilisateurs anonymes qui consultent ce partage. Les utilisateurs connectés peuvent toujours modifier leurs préférences d'affichage."
   },
   "api": {
     "title": "Clés API :",

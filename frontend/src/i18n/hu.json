@@ -50,7 +50,11 @@
     "showMore": "Többet mutasson",
     "showLess": "Kevesebb mutatása",
     "openParentFolder": "Szülői mappa megnyitása",
-    "selectedCount": "A művelet végrehajtásához kiválasztott elemek száma"
+    "selectedCount": "A művelet végrehajtásához kiválasztott elemek száma",
+    "listView": "Lista nézet",
+    "compactView": "Kompakt nézet",
+    "normalView": "Normál nézet",
+    "galleryView": "Galéria nézet"
   },
   "download": {
     "downloadFile": "Fájl letöltése",
@@ -393,7 +397,9 @@
     "enableOnlyOfficeDescription": "Engedélyezze az irodai fájlok megtekintését az OnlyOffice használatával ezen a megosztáson.",
     "enableOnlyOfficeEditing": "Engedélyezze az OnlyOffice szerkesztést",
     "enableOnlyOfficeEditingDescription": "Engedélyezze az irodai fájlok szerkesztését az OnlyOffice használatával ezen a megosztáson.",
-    "titleDefault": "Megosztott fájlok - {title}"
+    "titleDefault": "Megosztott fájlok - {title}",
+    "defaultViewMode": "Alapértelmezett nézetmód",
+    "defaultViewModeDescription": "A megosztást megtekintő névtelen felhasználók alapértelmezett megtekintési módjának beállítása. A bejelentkezett felhasználók továbbra is módosíthatják a nézeti beállításaikat."
   },
   "api": {
     "title": "API-kulcsok:",

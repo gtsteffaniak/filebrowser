@@ -50,7 +50,11 @@
     "showMore": "显示更多",
     "showLess": "显示更少",
     "openParentFolder": "打开父文件夹",
-    "selectedCount": "选择执行操作的项目数"
+    "selectedCount": "选择执行操作的项目数",
+    "listView": "列表查看",
+    "compactView": "紧凑型视图",
+    "normalView": "正常视图",
+    "galleryView": "图库浏览"
   },
   "download": {
     "downloadFile": "下载文件",
@@ -393,7 +397,9 @@
     "enableOnlyOfficeDescription": "允许在此共享中使用 OnlyOffice 查看办公文件。",
     "enableOnlyOfficeEditing": "启用 OnlyOffice 编辑功能",
     "enableOnlyOfficeEditingDescription": "允许在此共享中使用 OnlyOffice 编辑办公文件。",
-    "titleDefault": "共享文件{title}"
+    "titleDefault": "共享文件{title}",
+    "defaultViewMode": "默认视图模式",
+    "defaultViewModeDescription": "设置匿名用户查看此共享的默认视图模式。已登录的用户仍可更改其查看首选项。"
   },
   "api": {
     "title": "应用程序接口密钥",

@@ -50,7 +50,11 @@
     "showMore": "Zobrazit více",
     "showLess": "Zobrazit méně",
     "openParentFolder": "Otevření nadřazené složky",
-    "selectedCount": "Počet položek vybraných k provedení akce"
+    "selectedCount": "Počet položek vybraných k provedení akce",
+    "listView": "Zobrazení seznamu",
+    "compactView": "Kompaktní zobrazení",
+    "normalView": "Normální zobrazení",
+    "galleryView": "Pohled do galerie"
   },
   "download": {
     "downloadFile": "Stáhnout soubor",
@@ -176,7 +180,9 @@
     "enableOnlyOfficeDescription": "Povolit prohlížení kancelářských souborů pomocí OnlyOffice v této sdílené složce.",
     "enableOnlyOfficeEditing": "Povolení úprav OnlyOffice",
     "enableOnlyOfficeEditingDescription": "Povolit úpravy kancelářských souborů pomocí OnlyOffice v této sdílené složce.",
-    "titleDefault": "Sdílené soubory - {title}"
+    "titleDefault": "Sdílené soubory - {title}",
+    "defaultViewMode": "Výchozí režim zobrazení",
+    "defaultViewModeDescription": "Nastavení výchozího režimu zobrazení pro anonymní uživatele prohlížející tuto sdílenou složku. Přihlášení uživatelé mohou stále měnit předvolby zobrazení."
   },
   "prompts": {
     "copy": "Kopírovat",

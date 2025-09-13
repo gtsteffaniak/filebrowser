@@ -50,7 +50,11 @@
     "showMore": "Arată mai multe",
     "showLess": "Arată mai puțin",
     "openParentFolder": "Deschideți folderul părinte",
-    "selectedCount": "Numărul de elemente selectate pentru a efectua o acțiune"
+    "selectedCount": "Numărul de elemente selectate pentru a efectua o acțiune",
+    "listView": "Vizualizare listă",
+    "compactView": "Vedere compactă",
+    "normalView": "Vizualizare normală",
+    "galleryView": "Vizualizare galerie"
   },
   "download": {
     "downloadFile": "Descarcă fișier",
@@ -393,7 +397,9 @@
     "enableOnlyOfficeDescription": "Permiteți vizualizarea fișierelor office utilizând OnlyOffice în această partajare.",
     "enableOnlyOfficeEditing": "Activați editarea OnlyOffice",
     "enableOnlyOfficeEditingDescription": "Permiteți editarea fișierelor de birou utilizând OnlyOffice în această partajare.",
-    "titleDefault": "Fișiere partajate - {title}"
+    "titleDefault": "Fișiere partajate - {title}",
+    "defaultViewMode": "Mod de vizualizare implicit",
+    "defaultViewModeDescription": "Setează modul de vizualizare implicit pentru utilizatorii anonimi care vizualizează această partajare. Utilizatorii conectați își pot schimba în continuare preferințele de vizualizare."
   },
   "api": {
     "title": "Chei API:",

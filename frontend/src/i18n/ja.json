@@ -50,7 +50,11 @@
     "showMore": "もっと見る",
     "showLess": "もっと見る",
     "openParentFolder": "親フォルダを開く",
-    "selectedCount": "アクションを実行するために選択された項目の数"
+    "selectedCount": "アクションを実行するために選択された項目の数",
+    "listView": "リスト表示",
+    "compactView": "コンパクトビュー",
+    "normalView": "通常表示",
+    "galleryView": "ギャラリービュー"
   },
   "download": {
     "downloadFile": "Download File",
@@ -393,7 +397,9 @@
     "enableOnlyOfficeDescription": "この共有でOnlyOfficeを使用したオフィスファイルの閲覧を許可する。",
     "enableOnlyOfficeEditing": "OnlyOffice編集を有効にする",
     "enableOnlyOfficeEditingDescription": "この共有でOnlyOfficeを使ったオフィスファイルの編集を許可する。",
-    "titleDefault": "共有ファイル{title}"
+    "titleDefault": "共有ファイル{title}",
+    "defaultViewMode": "デフォルトの表示モード",
+    "defaultViewModeDescription": "匿名ユーザーがこの共有を閲覧する際のデフォルトの表示モードを設定します。ログインしているユーザーは、表示モードを変更することができます。"
   },
   "api": {
     "title": "APIキー：",
