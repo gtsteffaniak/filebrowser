@@ -50,6 +50,7 @@ type Index struct {
 	FoundHardLinks             map[string]uint64   `json:"-"` // hardlink path -> size
 	processedInodes            map[uint64]struct{} `json:"-"`
 	totalSize                  uint64              `json:"-"`
+	gcStopChan                 chan struct{}       `json:"-"` // channel to stop garbage collection routine
 }
 
 var (
@@ -311,7 +312,7 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 			itemInfo.DetectType(realPath+"/"+file.Name(), false)
 			simpleType := strings.Split(itemInfo.Type, "/")[0]
 			if simpleType == "audio" {
-				if recursive && !quick && idx.Config.IndexAlbumArt {
+				if recursive && !quick {
 					itemInfo.HasPreview = iteminfo.HasAlbumArt(realPath+"/"+file.Name(), filepath.Ext(file.Name()))
 				}
 				if !recursive && !itemInfo.HasPreview {
@@ -382,6 +383,7 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 		HasPreview: hasPreview,
 	}
 	dirFileInfo.SortItems()
+
 	return dirFileInfo, nil
 }
 

@@ -2,6 +2,7 @@ package indexing
 
 import (
 	"encoding/json"
+	"runtime"
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/events"
@@ -104,6 +105,39 @@ func (idx *Index) UpdateSchedule() {
 	}
 }
 
+func (idx *Index) startGarbageCollectionRoutine() {
+	idx.mu.Lock()
+	idx.gcStopChan = make(chan struct{})
+	idx.mu.Unlock()
+
+	go func() {
+		ticker := time.NewTicker(5 * time.Second)
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-ticker.C:
+				// Force garbage collection every 5 seconds during indexing
+				runtime.GC()
+			case <-idx.gcStopChan:
+				// Final garbage collection when indexing ends
+				runtime.GC()
+				return
+			}
+		}
+	}()
+}
+
+func (idx *Index) stopGarbageCollectionRoutine() {
+	idx.mu.Lock()
+	defer idx.mu.Unlock()
+
+	if idx.gcStopChan != nil {
+		close(idx.gcStopChan)
+		idx.gcStopChan = nil
+	}
+}
+
 func (idx *Index) SendSourceUpdateEvent() {
 	if idx.mock {
 		logger.Debug("Skipping source update event for mock index.")
@@ -131,6 +165,10 @@ func (idx *Index) RunIndexing(origin string, quick bool) {
 		return
 	}
 	idx.PreScan()
+
+	// Start garbage collection routine for this indexing session
+	idx.startGarbageCollectionRoutine()
+
 	prevNumDirs := idx.NumDirs
 	prevNumFiles := idx.NumFiles
 	if quick {
@@ -181,6 +219,9 @@ func (idx *Index) RunIndexing(origin string, quick bool) {
 		}
 		logger.Debugf("Time spent indexing [%v]: %v seconds", idx.Name, idx.FullScanTime)
 	}
+
+	// Stop garbage collection routine before post-scan
+	idx.stopGarbageCollectionRoutine()
 
 	idx.PostScan()
 }
