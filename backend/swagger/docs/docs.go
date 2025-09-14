@@ -2549,6 +2549,10 @@ const docTemplate = `{
                         "$ref": "#/definitions/iteminfo.ItemInfo"
                     }
                 },
+                "hasPreview": {
+                    "description": "whether the file has a thumbnail preview",
+                    "type": "boolean"
+                },
                 "hidden": {
                     "description": "whether the file is hidden",
                     "type": "boolean"
@@ -2578,6 +2582,10 @@ const docTemplate = `{
         "iteminfo.ItemInfo": {
             "type": "object",
             "properties": {
+                "hasPreview": {
+                    "description": "whether the file has a thumbnail preview",
+                    "type": "boolean"
+                },
                 "hidden": {
                     "description": "whether the file is hidden",
                     "type": "boolean"
@@ -2665,6 +2673,13 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
+                "fileStartsWith": {
+                    "description": "(global) exclude files that start with these prefixes. Eg. \"archive-\" or \"backup-\"",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "folderEndsWith": {
                     "description": "(global) exclude folders that end with these suffixes. Eg. \".thumbnails\" or \".git\"",
                     "type": "array",
@@ -2681,6 +2696,13 @@ const docTemplate = `{
                 },
                 "folderPaths": {
                     "description": "(filepath) list of folder names to include/exclude. Eg. \"folder1\" or \"folder1/subfolder\" (do not include source path, just the subpaths from the source path)",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "folderStartsWith": {
+                    "description": "(global) exclude folders that start with these prefixes. Eg. \"archive-\" or \"backup-\"",
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -2714,6 +2736,18 @@ const docTemplate = `{
                 "url": {
                     "description": "the url to link to",
                     "type": "string"
+                }
+            }
+        },
+        "settings.FfmpegConvert": {
+            "type": "object",
+            "properties": {
+                "imagePreview": {
+                    "description": "supported image preview formats. default is heic",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "boolean"
+                    }
                 }
             }
         },
@@ -2835,6 +2869,14 @@ const docTemplate = `{
         "settings.Media": {
             "type": "object",
             "properties": {
+                "convert": {
+                    "description": "config for ffmpeg conversion settings",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.FfmpegConvert"
+                        }
+                    ]
+                },
                 "ffmpegPath": {
                     "description": "path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)",
                     "type": "string"
@@ -2908,6 +2950,10 @@ const docTemplate = `{
                 "url": {
                     "description": "The URL to the OnlyOffice Document Server, needs to be accessible to the user.",
                     "type": "string"
+                },
+                "viewOnly": {
+                    "description": "view only mode for OnlyOffice",
+                    "type": "boolean"
                 }
             }
         },
@@ -3147,6 +3193,10 @@ const docTemplate = `{
                             "$ref": "#/definitions/settings.IncludeIndexFilter"
                         }
                     ]
+                },
+                "indexAlbumArt": {
+                    "description": "check for album art in audio files and remember it for folder previews. Can slow down indexing.",
+                    "type": "boolean"
                 },
                 "indexingIntervalMinutes": {
                     "description": "optional manual overide interval in minutes to re-index the source",
@@ -3410,6 +3460,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "viewMode": {
+                    "description": "default view mode for anonymous users: \"list\", \"compact\", \"normal\", \"gallery\"",
                     "type": "string"
                 }
             }
@@ -3515,6 +3566,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "viewMode": {
+                    "description": "default view mode for anonymous users: \"list\", \"compact\", \"normal\", \"gallery\"",
                     "type": "string"
                 }
             }
@@ -3545,6 +3597,9 @@ const docTemplate = `{
         "users.FileLoading": {
             "type": "object",
             "properties": {
+                "clearAll": {
+                    "type": "boolean"
+                },
                 "maxConcurrentUpload": {
                     "type": "integer"
                 },
@@ -3601,28 +3656,32 @@ const docTemplate = `{
                     "description": "disable the hide sidebar preview for previews and editors",
                     "type": "boolean"
                 },
+                "folder": {
+                    "description": "show thumbnail preview image for folder files",
+                    "type": "boolean"
+                },
                 "highQuality": {
-                    "description": "generate high quality preview images",
+                    "description": "generate high quality thumbnail preview images",
                     "type": "boolean"
                 },
                 "image": {
-                    "description": "show real image as icon instead of generic photo icon",
+                    "description": "show thumbnail preview image for image files",
                     "type": "boolean"
                 },
                 "motionVideoPreview": {
-                    "description": "show multiple frames for videos in preview when hovering",
+                    "description": "show multiple frames for videos in thumbnail preview when hovering",
                     "type": "boolean"
                 },
                 "office": {
-                    "description": "show preview image for office files",
+                    "description": "show thumbnail preview image for office files",
                     "type": "boolean"
                 },
                 "popup": {
-                    "description": "show larger popup preview when hovering",
+                    "description": "show larger popup preview when hovering over thumbnail",
                     "type": "boolean"
                 },
                 "video": {
-                    "description": "show preview image for video files",
+                    "description": "show thumbnail preview image for video files",
                     "type": "boolean"
                 }
             }

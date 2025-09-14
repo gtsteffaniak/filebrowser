@@ -44,7 +44,7 @@ import { eventBus } from "@/store/eventBus";
 import { getters, state, mutations } from "@/store";
 import Action from "@/components/Action.vue";
 import Search from "@/components/Search.vue";
-import { disableNavButtons, shareInfo } from "@/utils/constants";
+import { globalVars, shareInfo } from "@/utils/constants";
 import { url } from "@/utils";
 
 export default {
@@ -60,7 +60,7 @@ export default {
   },
   computed: {
     getTopTitle() {
-      if (getters.isShare() && shareInfo.title) {
+      if (getters.isShare() && shareInfo.title && state.req.type === "directory") {
         return shareInfo.title;
       }
       return state.req.name;
@@ -72,7 +72,7 @@ export default {
       return state.user.editorQuickSave;
     },
     disableNavButtons() {
-      return disableNavButtons && !state.user.permissions.admin;
+      return globalVars.disableNavButtons && !state.user.permissions.admin;
     },
     isOnlyOffice() {
       return getters.currentView() === "onlyOfficeEditor";
@@ -92,7 +92,7 @@ export default {
         normal: "view_module",
         gallery: "grid_view",
       };
-      return icons[state.user.viewMode] || "grid_view";
+      return icons[getters.viewMode()] || "grid_view";
     },
     isShare() {
       return getters.isShare();
@@ -157,9 +157,11 @@ export default {
     },
     switchView() {
       mutations.closeHovers();
-      const index = this.viewModes.indexOf(state.user.viewMode);
+      const index = this.viewModes.indexOf(getters.viewMode());
       const next = (index + 1) % this.viewModes.length;
-      mutations.updateCurrentUser({ viewMode: this.viewModes[next] });
+      const newViewMode = this.viewModes[next];
+      mutations.updateDisplayPreferences({ viewMode: newViewMode });
+      mutations.updateCurrentUser({ viewMode: newViewMode });
     },
     multiAction() {
       const listingView = getters.currentView();

@@ -116,6 +116,267 @@ func CollectCommentsAndSecrets(srcPath string) (CommentsMap, SecretFieldsMap, De
 	return comments, secrets, deprecated, nil
 }
 
+// PathToTypeField represents a mapping from YAML path to Go type and field info
+type PathToTypeField struct {
+	TypeName  string
+	FieldName string
+}
+
+// buildStructPathMap builds a dynamic mapping from YAML paths to Go struct types/fields using reflection
+func buildStructPathMap(config *Settings) map[string]PathToTypeField {
+	pathMap := make(map[string]PathToTypeField)
+
+	// Start with the root Settings struct
+	buildPathMapRecursive(reflect.TypeOf(config).Elem(), reflect.ValueOf(config).Elem(), "", "Settings", pathMap)
+
+	return pathMap
+}
+
+// buildPathMapRecursive recursively builds the path mapping using reflection
+func buildPathMapRecursive(structType reflect.Type, structValue reflect.Value, currentPath string, typeName string, pathMap map[string]PathToTypeField) {
+	for i := 0; i < structType.NumField(); i++ {
+		field := structType.Field(i)
+
+		// Skip unexported fields
+		if field.PkgPath != "" {
+			continue
+		}
+
+		// Skip fields marked to ignore
+		if yamlTag := field.Tag.Get("yaml"); yamlTag == "-" {
+			continue
+		}
+		if jsonTag := field.Tag.Get("json"); jsonTag == "-" {
+			continue
+		}
+
+		// Determine the YAML field name from struct tags
+		yamlFieldName := getYamlFieldName(field)
+
+		// Build the full path
+		var fullPath string
+		if currentPath == "" {
+			fullPath = yamlFieldName
+		} else {
+			fullPath = currentPath + "." + yamlFieldName
+		}
+
+		// Add this field to the path map
+		pathMap[fullPath] = PathToTypeField{
+			TypeName:  typeName,
+			FieldName: field.Name,
+		}
+
+		// If this field is a struct, recurse into it
+		fieldValue := structValue.Field(i)
+		fieldType := field.Type
+
+		// Handle pointers
+		if fieldType.Kind() == reflect.Ptr {
+			if fieldValue.IsNil() {
+				// Skip nil pointers
+				continue
+			}
+			fieldValue = fieldValue.Elem()
+			fieldType = fieldType.Elem()
+		}
+
+		// Recurse into structs (but not slices of structs for now - those are handled differently)
+		if fieldType.Kind() == reflect.Struct {
+			// Skip certain types that shouldn't be recursed into
+			if isSkippableStructType(fieldType) {
+				continue
+			}
+
+			buildPathMapRecursive(fieldType, fieldValue, fullPath, fieldType.Name(), pathMap)
+		} else if fieldType.Kind() == reflect.Slice && fieldType.Elem().Kind() == reflect.Struct {
+			// For slices of structs, we map to the element type
+			elemType := fieldType.Elem()
+			if !isSkippableStructType(elemType) {
+				// Create a zero value of the element type to recurse into
+				zeroValue := reflect.Zero(elemType)
+				buildPathMapRecursive(elemType, zeroValue, fullPath, elemType.Name(), pathMap)
+			}
+		}
+	}
+}
+
+// getYamlFieldName determines the YAML field name from struct tags
+func getYamlFieldName(field reflect.StructField) string {
+	// Check yaml tag first
+	if yamlTag := field.Tag.Get("yaml"); yamlTag != "" && yamlTag != "-" {
+		return strings.Split(yamlTag, ",")[0]
+	}
+
+	// Check json tag second
+	if jsonTag := field.Tag.Get("json"); jsonTag != "" && jsonTag != "-" {
+		return strings.Split(jsonTag, ",")[0]
+	}
+
+	// Default to field name
+	return field.Name
+}
+
+// isSkippableStructType checks if a struct type should be skipped during recursion
+func isSkippableStructType(t reflect.Type) bool {
+	// Skip types from other packages that we don't want to recurse into
+	pkgPath := t.PkgPath()
+
+	// Skip external packages
+	if pkgPath != "" && !strings.Contains(pkgPath, "filebrowser/backend") {
+		return true
+	}
+
+	return false
+}
+
+// CollectCommentsFromEmbeddedYaml parses comments from embedded YAML content and returns CommentsMap, SecretFieldsMap, and DeprecatedFieldsMap
+func CollectCommentsFromEmbeddedYaml(yamlContent string) (CommentsMap, SecretFieldsMap, DeprecatedFieldsMap, error) {
+	comments := make(CommentsMap)
+	secrets := make(SecretFieldsMap)
+	deprecated := make(DeprecatedFieldsMap)
+
+	// Build the dynamic path mapping from the actual Config struct
+	pathMap := buildStructPathMap(&Config)
+
+	lines := strings.Split(yamlContent, "\n")
+
+	// Track the current path in the YAML structure
+	var currentPath []string
+
+	for _, line := range lines {
+		// Skip empty lines and lines that are just comments
+		trimmed := strings.TrimSpace(line)
+		if trimmed == "" || strings.HasPrefix(trimmed, "#") {
+			continue
+		}
+
+		// Find the key and comment in the line
+		if !strings.Contains(line, ":") {
+			continue
+		}
+
+		// Split on the first colon to get key part
+		colonIndex := strings.Index(line, ":")
+		keyPart := line[:colonIndex]
+		restPart := line[colonIndex+1:]
+
+		// Calculate indentation
+		indent := 0
+		for i, char := range keyPart {
+			if char == ' ' {
+				indent++
+			} else {
+				keyPart = keyPart[i:]
+				break
+			}
+		}
+		depth := indent / 2
+
+		// Get the key name
+		key := strings.TrimSpace(keyPart)
+		if key == "" {
+			continue
+		}
+
+		// Adjust the current path based on depth
+		if depth < len(currentPath) {
+			currentPath = currentPath[:depth]
+		}
+
+		// Add current key to path
+		if depth < len(currentPath) {
+			currentPath[depth] = key
+			currentPath = currentPath[:depth+1]
+		} else {
+			currentPath = append(currentPath, key)
+		}
+
+		// Look for comment in the rest of the line
+		var comment string
+		if strings.Contains(restPart, "#") {
+			// Find the comment part (not inside quotes)
+			inQuotes := false
+			for i, char := range restPart {
+				if char == '"' && (i == 0 || restPart[i-1] != '\\') {
+					inQuotes = !inQuotes
+				} else if char == '#' && !inQuotes {
+					comment = strings.TrimSpace(restPart[i+1:])
+					break
+				}
+			}
+		}
+
+		// Store comment if it exists
+		if comment != "" {
+			// Build the full path string
+			fullPath := strings.Join(currentPath, ".")
+
+			// Look up the type and field name from our dynamic mapping
+			if pathInfo, exists := pathMap[fullPath]; exists {
+				typeName := pathInfo.TypeName
+				fieldName := pathInfo.FieldName
+
+				// Initialize maps if they don't exist
+				if comments[typeName] == nil {
+					comments[typeName] = make(map[string]string)
+				}
+				if secrets[typeName] == nil {
+					secrets[typeName] = make(map[string]bool)
+				}
+				if deprecated[typeName] == nil {
+					deprecated[typeName] = make(map[string]bool)
+				}
+
+				comments[typeName][fieldName] = comment
+
+				// Check for secret and deprecated markers
+				commentLower := strings.ToLower(comment)
+				if strings.Contains(commentLower, "secret:") {
+					secrets[typeName][fieldName] = true
+				}
+				if strings.Contains(commentLower, "deprecated:") {
+					deprecated[typeName][fieldName] = true
+				}
+			}
+		}
+	}
+
+	return comments, secrets, deprecated, nil
+}
+
+// parseDefaultsFromEmbeddedYaml creates a default config by parsing the embedded YAML template
+func parseDefaultsFromEmbeddedYaml(embeddedYaml string) (*Settings, error) {
+	// Start with baseline defaults from setDefaults to ensure all fields are initialized
+	defaultConfig := setDefaults(true)
+	defaultConfig.Server.Sources = []Source{{Path: "."}}
+
+	// Parse the embedded YAML to overlay the documented defaults
+	if err := yaml.Unmarshal([]byte(embeddedYaml), &defaultConfig); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal embedded YAML into config: %v", err)
+	}
+
+	return &defaultConfig, nil
+}
+
+// readEmbeddedYaml attempts to read the embedded config.generated.yaml file
+func readEmbeddedYaml() (string, error) {
+	// Try to read from the relative path that should work when the binary includes embedded files
+	embeddedContent, err := os.ReadFile("http/dist/config.generated.yaml")
+	if err != nil {
+		// Try alternative path
+		embeddedContent, err = os.ReadFile("backend/http/dist/config.generated.yaml")
+		if err != nil {
+			// Try current directory path
+			embeddedContent, err = os.ReadFile("dist/config.generated.yaml")
+			if err != nil {
+				return "", fmt.Errorf("could not read embedded YAML from any path: %v", err)
+			}
+		}
+	}
+	return string(embeddedContent), nil
+}
+
 // BuildNode constructs a yaml.Node for any Go value, injecting comments on struct fields.
 func BuildNode(v reflect.Value, comm CommentsMap) (*yaml.Node, error) {
 	return buildNodeWithDefaults(v, comm, reflect.Value{}, SecretFieldsMap{}, DeprecatedFieldsMap{})
@@ -255,7 +516,10 @@ func buildNodeWithDefaults(v reflect.Value, comm CommentsMap, defaults reflect.V
 			if err != nil {
 				return nil, err
 			}
-			seq.Content = append(seq.Content, n)
+			// Only add placeholder if it's not empty
+			if n.Kind == yaml.MappingNode && len(n.Content) > 0 {
+				seq.Content = append(seq.Content, n)
+			}
 			return seq, nil
 		}
 		for i := 0; i < v.Len(); i++ {
@@ -272,6 +536,10 @@ func buildNodeWithDefaults(v reflect.Value, comm CommentsMap, defaults reflect.V
 		return seq, nil
 
 	case reflect.Map:
+		if v.Len() == 0 {
+			// Return an empty string node for empty maps, which renders as a blank value.
+			return &yaml.Node{Kind: yaml.ScalarNode, Tag: "!!str", Value: ""}, nil
+		}
 		mapNode := &yaml.Node{Kind: yaml.MappingNode}
 
 		for _, key := range v.MapKeys() {
@@ -361,6 +629,71 @@ func GenerateConfigYaml(config *Settings, showComments bool, showFull bool, filt
 	return GenerateConfigYamlWithEmptyMaps(config, showFull)
 }
 
+// GenerateConfigYamlWithEmbedded generates YAML from a given config using embedded YAML content as comment source
+func GenerateConfigYamlWithEmbedded(config *Settings, showComments bool, showFull bool, filterDeprecated bool, embeddedYaml string) (string, error) {
+	var comm CommentsMap
+	var secrets SecretFieldsMap
+	var deprecated DeprecatedFieldsMap
+	var err error
+
+	if showComments && embeddedYaml != "" {
+		// Parse comments from the embedded YAML content
+		comm, secrets, deprecated, err = CollectCommentsFromEmbeddedYaml(embeddedYaml)
+		if err != nil {
+			return "", fmt.Errorf("error parsing embedded YAML comments: %w", err)
+		}
+	} else {
+		// Create empty maps
+		comm = make(CommentsMap)
+		secrets = make(SecretFieldsMap)
+		deprecated = make(DeprecatedFieldsMap)
+	}
+
+	// If not filtering deprecated fields, clear the deprecated map
+	if !filterDeprecated {
+		deprecated = make(DeprecatedFieldsMap)
+	}
+
+	var node *yaml.Node
+
+	if showFull {
+		// Show the full current config
+		node, err = buildNodeWithDefaults(reflect.ValueOf(config), comm, reflect.Value{}, secrets, deprecated)
+	} else {
+		// Show only non-default values by comparing with defaults from embedded YAML
+		defaultConfig, parseErr := parseDefaultsFromEmbeddedYaml(embeddedYaml)
+		if parseErr != nil {
+			return "", fmt.Errorf("failed to parse defaults from embedded YAML: %v", parseErr)
+		}
+
+		node, err = buildNodeWithDefaults(reflect.ValueOf(config), comm, reflect.ValueOf(defaultConfig), secrets, deprecated)
+	}
+
+	if err != nil {
+		return "", err
+	}
+
+	// Create document
+	doc := &yaml.Node{Kind: yaml.DocumentNode}
+	doc.Content = []*yaml.Node{node}
+
+	// Encode to YAML
+	var rawBuf bytes.Buffer
+	enc := yaml.NewEncoder(&rawBuf)
+	enc.SetIndent(2)
+	if err := enc.Encode(doc); err != nil {
+		return "", err
+	}
+
+	// Apply comment alignment if comments are enabled
+	yamlOutput := rawBuf.String()
+	if showComments {
+		yamlOutput = AlignComments(yamlOutput)
+	}
+
+	return yamlOutput, nil
+}
+
 // GenerateConfigYamlWithEmptyMaps generates YAML without comment parsing when source files are unavailable
 func GenerateConfigYamlWithEmptyMaps(config *Settings, showFull bool) (string, error) {
 	// Create empty maps
@@ -376,10 +709,20 @@ func GenerateConfigYamlWithEmptyMaps(config *Settings, showFull bool) (string, e
 		node, err = buildNodeWithDefaults(reflect.ValueOf(config), comm, reflect.Value{}, secrets, deprecated)
 	} else {
 		// Show only non-default values by comparing with defaults during node building
-		defaultConfig := setDefaults(true)
-		defaultConfig.Server.Sources = []Source{{Path: "."}}
+		// Try to use embedded YAML defaults for consistency, fallback to setDefaults
+		var defaultConfig *Settings
+		embeddedYaml, readErr := readEmbeddedYaml()
+		if readErr == nil {
+			defaultConfig, err = parseDefaultsFromEmbeddedYaml(embeddedYaml)
+		}
+		if err != nil || readErr != nil {
+			// Fallback to setDefaults
+			defaultConfigValue := setDefaults(true)
+			defaultConfigValue.Server.Sources = []Source{{Path: "."}}
+			defaultConfig = &defaultConfigValue
+		}
 
-		node, err = buildNodeWithDefaults(reflect.ValueOf(config), comm, reflect.ValueOf(&defaultConfig), secrets, deprecated)
+		node, err = buildNodeWithDefaults(reflect.ValueOf(config), comm, reflect.ValueOf(defaultConfig), secrets, deprecated)
 	}
 
 	if err != nil {
@@ -435,12 +778,20 @@ func GenerateConfigYamlWithSource(config *Settings, showComments bool, showFull 
 		node, err = buildNodeWithDefaults(reflect.ValueOf(config), comm, reflect.Value{}, secrets, deprecated)
 	} else {
 		// Show only non-default values by comparing with defaults during node building
-		// Create a clean default config (no file loading, just pure defaults)
-		defaultConfig := setDefaults(true)
-		// Apply same setup as a fresh instance would have
-		defaultConfig.Server.Sources = []Source{{Path: "."}}
+		// Try to use embedded YAML defaults for consistency, fallback to setDefaults
+		var defaultConfig *Settings
+		embeddedYaml, readErr := readEmbeddedYaml()
+		if readErr == nil {
+			defaultConfig, err = parseDefaultsFromEmbeddedYaml(embeddedYaml)
+		}
+		if err != nil || readErr != nil {
+			// Fallback to setDefaults
+			defaultConfigValue := setDefaults(true)
+			defaultConfigValue.Server.Sources = []Source{{Path: "."}}
+			defaultConfig = &defaultConfigValue
+		}
 
-		node, err = buildNodeWithDefaults(reflect.ValueOf(config), comm, reflect.ValueOf(&defaultConfig), secrets, deprecated)
+		node, err = buildNodeWithDefaults(reflect.ValueOf(config), comm, reflect.ValueOf(defaultConfig), secrets, deprecated)
 	}
 
 	if err != nil {

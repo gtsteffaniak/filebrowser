@@ -36,6 +36,8 @@
             <ToggleSwitch class="item" v-model="localuser.showSelectMultiple" @change="updateSettings"
               :name="$t('profileSettings.showSelectMultiple')"
               :description="$t('profileSettings.showSelectMultipleDescription')" />
+            <ToggleSwitch class="item" v-model="localuser.preview.folder" @change="updateSettings"
+              :name="$t('profileSettings.previewFolder')" :description="$t('profileSettings.previewFolderDescription')" />
           </div>
         </SettingsItem>
         <SettingsItem :title="$t('profileSettings.sidebarOptions')" :collapsable="true" :start-collapsed="true"
@@ -140,7 +142,7 @@
 
           <h4 v-if="Object.keys(availableThemes).length > 0">{{ $t('profileSettings.customTheme') }}</h4>
           <div v-if="Object.keys(availableThemes).length > 0" class="form-flex-group">
-            <select class="input" v-model="selectedTheme" @change="updateSettings">
+            <select class="input" v-model="selectedTheme" @change="updateSettings" aria-label="themeOptions">
               <option v-for="(theme, key) in availableThemes" :key="key" :value="key">
                 {{ String(key) === 'default' ? $t('profileSettings.defaultThemeDescription') : `${key} - ${theme.description}` }}
               </option>
@@ -158,7 +160,7 @@
 
 <script>
 import { notify } from "@/notify";
-import { mediaAvailable, muPdfAvailable, onlyOfficeUrl, userSelectableThemes } from "@/utils/constants.js";
+import { globalVars } from "@/utils/constants.js";
 import { state, mutations } from "@/store";
 import { usersApi } from "@/api";
 import Languages from "@/components/settings/Languages.vue";
@@ -195,19 +197,19 @@ export default {
       ];
     },
     availableThemes() {
-      return userSelectableThemes || {};
+      return globalVars.userSelectableThemes || {};
     },
     onlyOfficeAvailable() {
-      return onlyOfficeUrl !== "";
+      return globalVars.onlyOfficeUrl !== "";
     },
     user() {
       return state.user;
     },
     muPdfAvailable() {
-      return muPdfAvailable;
+      return globalVars.muPdfAvailable;
     },
     mediaEnabled() {
-      return mediaAvailable;
+      return globalVars.mediaAvailable;
     },
     settings() {
       return state.settings;

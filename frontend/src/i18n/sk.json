@@ -50,7 +50,11 @@
     "showMore": "Zobraziť viac",
     "showLess": "Zobraziť menej",
     "openParentFolder": "Otvorenie nadradeného priečinka",
-    "selectedCount": "Počet položiek vybraných na vykonanie akcie"
+    "selectedCount": "Počet položiek vybraných na vykonanie akcie",
+    "listView": "Zobrazenie zoznamu",
+    "compactView": "Kompaktný pohľad",
+    "normalView": "Normálne zobrazenie",
+    "galleryView": "Zobrazenie galérie"
   },
   "download": {
     "downloadFile": "Stiahnuť súbor",
@@ -188,7 +192,10 @@
     "numberFiles": "Počet súborov{suffix}",
     "renameMessageConflict": "Položka s názvom \"{filename}\" už existuje!",
     "uploadSettingsChunked": "Maximálne súbežné nahrávanie: {maxConcurrentUpload}, veľkosť chunk: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "Maximálne súbežné nahrávanie: {maxConcurrentUpload}, chunked upload vypnuté"
+    "uploadSettingsNoChunk": "Maximálne súbežné nahrávanie: {maxConcurrentUpload}, chunked upload vypnuté",
+    "quickJump": "Rýchly prechod na iné súbory",
+    "moveSuccess": "Súbory boli úspešne presunuté!",
+    "copySuccess": "Súbory boli úspešne skopírované!"
   },
   "search": {
     "images": "Obrázky",
@@ -390,7 +397,9 @@
     "enableOnlyOfficeDescription": "Povoľte zobrazovanie kancelárskych súborov pomocou OnlyOffice v tejto zdieľanej zložke.",
     "enableOnlyOfficeEditing": "Povolenie úprav OnlyOffice",
     "enableOnlyOfficeEditingDescription": "Povoľte úpravu kancelárskych súborov pomocou aplikácie OnlyOffice v tejto zdieľanej zložke.",
-    "titleDefault": "Zdieľané súbory - {title}"
+    "titleDefault": "Zdieľané súbory - {title}",
+    "defaultViewMode": "Predvolený režim zobrazenia",
+    "defaultViewModeDescription": "Nastavenie predvoleného režimu zobrazenia pre anonymných používateľov pri prezeraní tejto zdieľanej zložky. Prihlásení používatelia môžu stále zmeniť svoje preferencie zobrazenia."
   },
   "api": {
     "title": "Kľúče API:",
@@ -482,7 +491,9 @@
     "maxConcurrentUpload": "Maximálne súbežné nahrávanie",
     "maxConcurrentUploadHelp": "Maximálny počet súbežných odosielaní. Vyššie hodnoty sú zvyčajne výkonnejšie, ale závisí to od mnohých faktorov.",
     "uploadChunkSizeMb": "Veľkosť nahraného úseku v MB",
-    "uploadChunkSizeMbHelp": "Zvyčajne 5 až 50 MB, v prípade nestabilných alebo obmedzených pripojení je vhodnejšie použiť menšiu veľkosť. Nastavením na hodnotu 0 sa vypne zoskupovanie pri odosielaní."
+    "uploadChunkSizeMbHelp": "Zvyčajne 5 až 50 MB, v prípade nestabilných alebo obmedzených pripojení je vhodnejšie použiť menšiu veľkosť. Nastavením na hodnotu 0 sa vypne zoskupovanie pri odosielaní.",
+    "clearAll": "Vymazanie dokončenia by malo odstrániť chybu, pauzu a konflikt",
+    "clearAllDescription": "Tlačidlo Vymazať dokončené vymaže všetky odoslania v stave dokončenia vrátane chybových, pozastavených a konfliktných stavov."
   },
   "colors": {
     "red": "červená",
@@ -547,7 +558,9 @@
     "debugOfficeEditor": "Povolenie režimu ladenia OnlyOffice",
     "debugOfficeEditorDescription": "Zobrazenie vyskakovacieho okna ladenia s ďalšími informáciami v editore OnlyOffice.",
     "fileViewerOptions": "Možnosti prehliadača súborov",
-    "themeAndLanguage": "Téma a jazyk"
+    "themeAndLanguage": "Téma a jazyk",
+    "previewFolder": "Zobrazenie miniatúr priečinkov, ak sú k dispozícii",
+    "previewFolderDescription": "Zobrazenie náhľadov miniatúr pre priečinky s prvou podriadenou položkou s miniatúrou ako obálkou."
   },
   "editor": {
     "uninitialized": "Nepodarilo sa inicializovať editor. Prosím, načítajte ho znova.",

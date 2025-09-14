@@ -147,7 +147,7 @@ import { getters, mutations, state } from "@/store";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { url } from "@/utils/";
 import Icon from "@/components/files/Icon.vue";
-import { serverHasMultipleSources, baseURL, minSearchLength } from "@/utils/constants";
+import { globalVars, serverHasMultipleSources } from "@/utils/constants";
 
 var boxes = {
   folder: { label: "folders", icon: "folder" },
@@ -169,7 +169,7 @@ export default {
     return {
       largerThan: "",
       smallerThan: "",
-      noneMessage: this.$t("search.typeToSearch", { minSearchLength: minSearchLength }),
+      noneMessage: this.$t("search.typeToSearch", { minSearchLength: globalVars.minSearchLength }),
       searchTypes: "",
       isTypeSelectDisabled: false,
       showHelp: false,
@@ -294,7 +294,7 @@ export default {
       if (this.ongoing) {
         return "";
       }
-      return this.$t("search.typeToSearch", { minSearchLength: minSearchLength })
+      return this.$t("search.typeToSearch", { minSearchLength: globalVars.minSearchLength })
     },
     isRunning() {
       return this.ongoing;
@@ -395,9 +395,9 @@ export default {
       const encodedPath = encodeURIComponent(context + "/" + path).replaceAll("%2F", "/");
       let fullpath = encodedPath;
       if (serverHasMultipleSources) {
-        fullpath = baseURL+"files/" + this.selectedSource + encodedPath;
+        fullpath = globalVars.baseURL+"files/" + this.selectedSource + encodedPath;
       } else {
-        fullpath = baseURL+"files" + encodedPath;
+        fullpath = globalVars.baseURL+"files" + encodedPath;
       }
       return fullpath;
     },
@@ -483,9 +483,8 @@ export default {
       if (event != undefined) {
         event.preventDefault();
       }
-      if (this.value === "" || this.value.length < minSearchLength) {
-        this.ongoing = false;
-        this.noneMessage = this.$t("search.notEnoughCharacters", { minSearchLength: minSearchLength });
+      if (this.value === "" || this.value.length < globalVars.minSearchLength) {
+        this.ongoing = false;        this.noneMessage = this.$t("search.notEnoughCharacters", { minSearchLength: globalVars.minSearchLength });
         return;
       }
       let searchTypesFull = this.searchTypes;

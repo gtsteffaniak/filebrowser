@@ -18,12 +18,21 @@ https://raw.githubusercontent.com/dzwillia/vue-simple-progress/master/src/compon
       v-if="textPosition == 'inside'"
     >
       {{ displayed_text }}
+      <i
+        v-if="helpText && status === 'error'"
+        class="no-select material-symbols-outlined tooltip-info-icon"
+        @mouseenter="showTooltip"
+        @mouseleave="hideTooltip"
+      >
+        help
+      </i>
     </div>
   </div>
 </template>
 
 <script>
 import { getHumanReadableFilesize } from "@/utils/filesizes.js";
+import { mutations } from "@/store";
 
 // We're leaving this untouched as you can read in the beginning
 var isNumber = function (n) {
@@ -91,6 +100,10 @@ export default {
     status: {
       type: String,
       default: 'default',
+    },
+    "help-text": {
+      type: String,
+      default: "",
     },
   },
   computed: {
@@ -244,6 +257,20 @@ export default {
       return style;
     },
   },
+  methods: {
+    showTooltip(event) {
+      if (this.helpText) {
+        mutations.showTooltip({
+          content: this.helpText,
+          x: event.clientX,
+          y: event.clientY,
+        });
+      }
+    },
+    hideTooltip() {
+      mutations.hideTooltip();
+    },
+  },
 };
 </script>
 
@@ -262,5 +289,17 @@ export default {
 }
 .vue-simple-progress-text {
   color: black;
+}
+
+.tooltip-info-icon {
+  font-size: 1rem;
+  cursor: pointer;
+  margin-left: 0.3em;
+  vertical-align: middle;
+  opacity: 0.7;
+}
+
+.tooltip-info-icon:hover {
+  opacity: 1;
 }
 </style>

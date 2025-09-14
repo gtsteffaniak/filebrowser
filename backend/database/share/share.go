@@ -21,12 +21,12 @@ type CommonShare struct {
 	QuickDownload           bool     `json:"quickDownload,omitempty"`
 	HideNavButtons          bool     `json:"hideNavButtons,omitempty"`
 	DisableSidebar          bool     `json:"disableSidebar"`
-	ViewMode                string   `json:"viewMode,omitempty"`
 	Source                  string   `json:"source,omitempty"` // backend source is path to maintain between name changes
 	Path                    string   `json:"path,omitempty"`
 	DownloadURL             string   `json:"downloadURL,omitempty"`
 	DisableShareCard        bool     `json:"disableShareCard,omitempty"`
 	EnforceDarkLightMode    string   `json:"enforceDarkLightMode,omitempty"` // "dark" or "light"
+	ViewMode                string   `json:"viewMode,omitempty"`             // default view mode for anonymous users: "list", "compact", "normal", "gallery"
 	EnableOnlyOffice        bool     `json:"enableOnlyOffice,omitempty"`
 	EnableOnlyOfficeEditing bool     `json:"enableOnlyOfficeEditing,omitempty"`
 }

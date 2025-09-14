@@ -1,4 +1,47 @@
 import { describe, it, expect, vi } from 'vitest';
+
+vi.mock('@/utils/constants', () => {
+  return {
+    globalVars: {
+      baseURL: "/files/",
+      name: "Test App",
+      mediaAvailable: true,
+      muPdfAvailable: true,
+      onlyOfficeUrl: "",
+      recaptcha: false,
+      recaptchaKey: "",
+      darkMode: false,
+      oidcAvailable: false,
+      passwordAvailable: true,
+      externalUrl: "",
+      minSearchLength: 1,
+      disableNavButtons: false,
+      userSelectableThemes: {},
+      enableThumbs: true,
+      noAuth: false,
+      loginPage: true,
+      signup: false,
+      version: "test",
+      commitSHA: "test",
+      disableExternal: false,
+      externalLinks: [],
+      updateAvailable: "",
+    },
+    shareInfo: {
+      isShare: false,
+      disableThumbnails: false,
+      hash: "",
+      enforceDarkLightMode: "",
+      disableSidebar: false,
+      isValid: true,
+    },
+    serverHasMultipleSources: false,
+    logoURL: "test-logo.png",
+    origin: "http://localhost",
+    settings: [],
+  };
+});
+
 import { removePrefix, extractSourceFromPath, getApiPath } from './url.js';
 
 describe('testurl', () => {

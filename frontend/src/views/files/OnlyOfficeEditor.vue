@@ -1,6 +1,6 @@
 <template>
   <!-- Conditionally render the DocumentEditor component -->
-  <DocumentEditor v-if="ready" id="docEditor" :documentServerUrl="onlyOfficeUrl" :config="clientConfig"
+  <DocumentEditor v-if="ready" id="docEditor" :documentServerUrl="globalVars.onlyOfficeUrl" :config="clientConfig"
     :onLoadComponentError="onLoadComponentError" />
   <div v-else>
     <p>{{ $t("files.loading") }}</p>
@@ -12,9 +12,8 @@
 
 <script>
 import { DocumentEditor } from "@onlyoffice/document-editor-vue";
-import { onlyOfficeUrl } from "@/utils/constants";
+import { globalVars } from "@/utils/constants";
 import { state, getters, mutations } from "@/store";
-import { baseURL } from "@/utils/constants";
 import { removeLastDir } from "@/utils/url";
 import { filesApi } from "@/api";
 
@@ -43,7 +42,10 @@ export default {
       return state.req;
     },
     onlyOfficeUrl() {
-      return onlyOfficeUrl;
+      return globalVars.onlyOfficeUrl;
+    },
+    globalVars() {
+      return globalVars;
     },
   },
   async mounted() {
@@ -104,6 +106,36 @@ export default {
     }
   },
   methods: {
+    getInternalUrlInfo() {
+      if (this.clientConfig && this.clientConfig.document && this.clientConfig.document.url) {
+        try {
+          const docUrlOrigin = new URL(this.clientConfig.document.url).origin;
+          const windowOrigin = window.location.origin;
+
+          if (docUrlOrigin !== windowOrigin) {
+            return {
+              isSet: true,
+              message: `${docUrlOrigin}`
+            };
+          } else {
+            return {
+              isSet: false,
+              message: "Not set, using window.location"
+            };
+          }
+        } catch (e) {
+          return {
+            isSet: false,
+            message: "⚠️ Error parsing document URL"
+          };
+        }
+      }
+      return {
+        isSet: false,
+        message: "Analyzing..."
+      };
+    },
+
     close() {
       const current = window.location.pathname;
       const newpath = removeLastDir(current);
@@ -137,8 +169,8 @@ export default {
           <div style="margin-bottom: 15px; padding: 10px; background: #f5f5f5; border-radius: 4px;">
             <strong>Configuration:</strong><br/>
             OnlyOffice URL: ${this.onlyOfficeUrl}<br/>
-            Internal URL: Check server logs<br/>
-            Base URL: ${baseURL}<br/>
+            Internal URL: ${this.getInternalUrlInfo().message}<br/>
+            Base URL: ${globalVars.baseURL}<br/>
             Source: ${this.source}<br/>
             Path: ${this.path}<br/>
             Filename: ${filename}<br/>
@@ -175,6 +207,7 @@ export default {
 
       const filename = this.path.split('/').pop() || "";
       const isShare = getters.isShare();
+      const internalUrlInfo = this.getInternalUrlInfo();
 
       // Build config details if available
       let configDetailsHtml = "";
@@ -184,7 +217,6 @@ export default {
 
         // Extract domains for network flow analysis
         const downloadDomain = doc.url ? new URL(doc.url).origin : 'N/A';
-        const callbackDomain = editor && editor.callbackUrl ? new URL(editor.callbackUrl).origin : 'N/A';
 
         configDetailsHtml = `
           <div style="margin-bottom: 15px; padding: 10px; background: #e3f2fd; border-radius: 4px;">
@@ -196,9 +228,8 @@ export default {
             Callback URL: ${editor && editor.callbackUrl ? editor.callbackUrl.substring(0, 80) + '...' : 'N/A'}<br/>
             <br/>
             <strong>Network Flow:</strong><br/>
-            Browser ↔ OnlyOffice: ${this.onlyOfficeUrl}<br/>
+            Browser (${window.location.origin}) ↔ OnlyOffice: ${this.onlyOfficeUrl}<br/>
             OnlyOffice → FileBrowser: ${downloadDomain}<br/>
-            OnlyOffice → FileBrowser: ${callbackDomain}<br/>
           </div>
         `;
       }
@@ -234,8 +265,8 @@ export default {
           <div style="margin-bottom: 15px; padding: 10px; background: #f5f5f5; border-radius: 4px;">
             <strong>Basic Configuration:</strong><br/>
             OnlyOffice URL: ${this.onlyOfficeUrl}<br/>
-            Internal URL: Check server logs<br/>
-            Base URL: ${baseURL}<br/>
+            Internal URL: ${internalUrlInfo.message}<br/>
+            Base URL: ${globalVars.baseURL}<br/>
             Source: ${this.source}<br/>
             Path: ${this.path}<br/>
             Filename: ${filename}<br/>
@@ -372,6 +403,9 @@ export default {
           errorMsg += "<strong>Error Code -4:</strong> Document download failed<br/>";
           errorMsg += "• Authentication may have expired<br/>";
           errorMsg += "• Check download URL accessibility<br/>";
+          if (!this.getInternalUrlInfo().isSet) {
+            errorMsg += "• <strong>Suggestion:</strong> consider adding `server.internalUrl` if your OnlyOffice service is on the same network as FileBrowser<br/>";
+          }
         } else {
           errorMsg += `<strong>Error Code:</strong> ${errorInfo || 'Unknown error'}<br/>`;
           errorMsg += "• Check browser console for detailed error messages<br/>";

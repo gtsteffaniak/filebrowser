@@ -24,6 +24,7 @@ export const state = reactive({
   isMobile: window.innerWidth <= 800,
   isSearchActive: false,
   showSidebar: false,
+  displayPreferences: {},
   usages: {},
   editor: null,
   serverHasMultipleSources: false,
@@ -116,6 +117,20 @@ export const state = reactive({
       name: "",
       files: "",
     },
+  },
+  navigation: {
+    show: false,
+    hoverNav: false,
+    listing: null,
+    currentIndex: -1,
+    previousItem: null,
+    nextItem: null,
+    previousLink: "",
+    nextLink: "",
+    previousRaw: "",
+    nextRaw: "",
+    timeout: null,
+    enabled: false,
   },
 });
 

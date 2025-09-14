@@ -164,7 +164,6 @@ table tr>*:last-child {
   background-color: var(--background);
   border-radius: 2px;
   box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2);
-  overflow: auto;
   border-radius: 1em;
 }
 
@@ -176,8 +175,11 @@ table tr>*:last-child {
   z-index: 5;
   max-width: 40em;
   width: 90%;
-  max-height: 95%;
+  max-height: 80vh; /* Constrain modal height for scrolling */
   animation: .1s show forwards;
+  display: flex !important;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .card>*>*:first-child {
@@ -186,6 +188,12 @@ table tr>*:last-child {
 
 .card>*>*:last-child {
   margin-bottom: 0;
+}
+
+/* Apply flex behavior only to direct children of floating cards */
+.card.floating > .card-title {
+  text-align: center;
+  flex-shrink: 0;
 }
 
 .card-title {
@@ -220,6 +228,19 @@ body.rtl .card-title>*:first-child {
   margin: 0;
 }
 
+/* Apply flex behavior only to direct children of floating cards */
+.card.floating > .card-action {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.card.floating > .card-content {
+  flex-grow: 1;
+  overflow: auto;
+  min-height: 0; /* Allows flex child to shrink below content size */
+}
+
+/* Regular card styles (non-floating) */
 .card .card-action {
   text-align: right;
 }
@@ -251,46 +272,6 @@ body.rtl .card-title>*:first-child {
   max-width: 15em;
 }
 
-.file-list {
-  max-height: 50vh;
-  overflow: auto;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  width: 100%;
-}
-
-.file-list li {
-  width: 100%;
-  user-select: none;
-  border-radius: .2em;
-  padding: .3em;
-}
-
-.file-list li[aria-selected=true] {
-  background: var(--primaryColor) !important;
-  color: #fff !important;
-  transition: .1s ease all;
-}
-
-.file-list li:hover {
-  background-color: #e9eaeb;
-  cursor: pointer;
-}
-
-.file-list li:before {
-  content: "folder";
-  color: #6f6f6f;
-  vertical-align: middle;
-  line-height: 1.4;
-  font-family: 'Material Icons';
-  font-size: 1.75em;
-  margin-right: .25em;
-}
-
-.file-list li[aria-selected=true]:before {
-  color: white;
-}
 
 .help {
   max-width: 24em;

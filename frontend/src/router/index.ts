@@ -1,10 +1,10 @@
-import { RouteLocation, createRouter, createWebHistory } from "vue-router";
+import { RouteLocation, createRouter, createWebHistory, RouteRecordRaw } from "vue-router";
 import Login from "@/views/Login.vue";
 import Layout from "@/views/Layout.vue";
 import Files from "@/views/Files.vue";
 import Settings from "@/views/Settings.vue";
 import Errors from "@/views/Errors.vue";
-import { baseURL, name, oidcAvailable, passwordAvailable } from "@/utils/constants";
+import { globalVars } from "@/utils/constants";
 import { getters, state } from "@/store";
 import { mutations } from "@/store";
 import { validateLogin } from "@/utils/auth";
@@ -28,7 +28,7 @@ const titles = {
   InternalServerError: "errors.internal",
 };
 
-const routes = [
+const routes: RouteRecordRaw[] = [
   {
     path: "/login",
     name: "Login",
@@ -132,7 +132,7 @@ const routes = [
 ];
 
 const router = createRouter({
-  history: createWebHistory(baseURL),
+  history: createWebHistory(globalVars.baseURL),
   routes,
 });
 
@@ -148,7 +148,7 @@ router.beforeResolve(async (to, from, next) => {
   }
 
   const title = i18n.global.t(titles[to.name as keyof typeof titles]);
-  document.title = name + " - " + title;
+  document.title = globalVars.name + " - " + title;
   mutations.setRoute(to);
 
   if (
@@ -168,14 +168,14 @@ router.beforeResolve(async (to, from, next) => {
     if (getters.isLoggedIn() || to.matched.some((record) => record.meta.optionalAuth)) {
       // do nothing
     } else {
-      if (passwordAvailable) {
+      if (globalVars.passwordAvailable) {
         next({ path: "/login", query: { redirect: to.fullPath } });
         return;
       }
 
-      if (oidcAvailable) {
-        const modifiedPath = encodeURIComponent(baseURL+removeLeadingSlash(to.fullPath))
-        window.location.href = baseURL+`api/auth/oidc/login?redirect=${modifiedPath}`;
+      if (globalVars.oidcAvailable) {
+        const modifiedPath = encodeURIComponent(globalVars.baseURL+removeLeadingSlash(to.fullPath))
+        window.location.href = globalVars.baseURL+`api/auth/oidc/login?redirect=${modifiedPath}`;
         return;
       }
     }

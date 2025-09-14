@@ -32,7 +32,7 @@ dev:
 		sed -i '/func init/,+3d' ./swagger/docs/docs.go; \
 	fi
 	@echo "Generating frontend config..."
-	cd backend && FILEBROWSER_GENERATE_CONFIG=true go run . && cp generated.yaml ../frontend/public/config.generated.yaml
+	cd backend && FILEBROWSER_GENERATE_CONFIG=true go run --tags=mupdf . && cp generated.yaml ../frontend/public/config.generated.yaml
 	@echo "Running initial frontend build..."
 	cd frontend && npm run build
 	@echo "Starting dev servers... Press Ctrl+C to stop."
@@ -41,7 +41,7 @@ dev:
 	cd backend && go tool air & \
 	wait
 
-run: build-frontend
+run: build-frontend generate-config
 	cd backend && go tool swag init --output swagger/docs && \
 	if [ "$(shell uname)" = "Darwin" ]; then \
 		sed -i '' '/func init/,+3d' ./swagger/docs/docs.go; \
@@ -50,6 +50,9 @@ run: build-frontend
 	fi && \
 	CGO_ENABLED=1 go run --tags=mupdf \
 	--ldflags="-w -s -X 'github.com/gtsteffaniak/filebrowser/backend/version.CommitSHA=testingCommit' -X 'github.com/gtsteffaniak/filebrowser/backend/version.Version=testing'" . -c test_config.yaml
+
+generate-config:
+	cd backend && FILEBROWSER_GENERATE_CONFIG=true go run .
 
 build-frontend:
 	if [ "$(OS)" = "Windows_NT" ]; then \

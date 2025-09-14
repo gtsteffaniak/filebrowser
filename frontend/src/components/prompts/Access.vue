@@ -5,14 +5,6 @@
   <div class="card-content">
     <div v-if="isEditingPath">
       <file-list @update:selected="updateTempPath" :browse-source="sourceName"></file-list>
-      <div style="margin-top: 1em; text-align: right;">
-        <button class="button button--flat" @click="cancelPathChange">
-          {{ $t("buttons.cancel") }}
-        </button>
-        <button class="button button--flat" @click="confirmPathChange">
-          {{ $t("buttons.ok") }}
-        </button>
-      </div>
     </div>
     <div v-else>
       <p>{{ $t("prompts.source", { suffix: ":" }) }} {{ currentSource }}</p>
@@ -77,10 +69,19 @@
     </div>
   </div>
   <div class="card-action">
-    <button v-if="!isEditingPath" @click="closeHovers" class="button button--flat button--grey"
-      :aria-label="$t('buttons.close')" :title="$t('buttons.close')">
-      {{ $t("buttons.close") }}
-    </button>
+    <template v-if="isEditingPath">
+      <button class="button button--flat" @click="cancelPathChange" :aria-label="$t('buttons.cancel')" :title="$t('buttons.cancel')">
+        {{ $t("buttons.cancel") }}
+      </button>
+      <button class="button button--flat" @click="confirmPathChange" :aria-label="$t('buttons.ok')" :title="$t('buttons.ok')">
+        {{ $t("buttons.ok") }}
+      </button>
+    </template>
+    <template v-else>
+      <button @click="closeHovers" class="button button--flat button--grey" :aria-label="$t('buttons.close')" :title="$t('buttons.close')">
+        {{ $t("buttons.close") }}
+      </button>
+    </template>
   </div>
 </template>
 

@@ -24,19 +24,13 @@
 </template>
 
 <script>
-import {
-  onlyOfficeUrl,
-  mediaAvailable,
-  muPdfAvailable,
-  baseURL,
-} from "@/utils/constants";
+import { globalVars, shareInfo } from "@/utils/constants";
 import { getTypeInfo } from "@/utils/mimetype";
-import { mutations, state } from "@/store";
-import { shareInfo } from "@/utils/constants";
+import { mutations, state, getters } from "@/store";
 
 // NEW: Define placeholder and error image URLs for easy configuration
-const PLACEHOLDER_URL = baseURL + "static/img/placeholder.png"; // A generic loading placeholder
-const ERROR_URL = baseURL + "static/img/placeholder.png";
+const PLACEHOLDER_URL = globalVars.baseURL + "static/img/placeholder.png"; // A generic loading placeholder
+const ERROR_URL = globalVars.baseURL + "static/img/placeholder.png";
 
 export default {
   name: "Icon",
@@ -48,6 +42,10 @@ export default {
     mimetype: {
       type: String,
       required: true,
+    },
+    hasPreview: {
+      type: Boolean,
+      default: false,
     },
     active: {
       type: Boolean,
@@ -79,7 +77,16 @@ export default {
       if (shareInfo.disableThumbnails) {
         return false;
       }
-      return this.isPreviewImg && this.imageState !== 'error' && !this.disablePreviewExt && !this.officeFileDisabled
+      if (this.thumbnailUrl == "") {
+        return false;
+      }
+      if (!this.hasPreview) {
+        return false;
+      }
+      if (!state.user.preview.folder && this.mimetype == "directory") {
+        return false;
+      }
+      return this.imageState !== 'error' && !this.disablePreviewExt && !this.officeFileDisabled
     },
     disablePreviewExt() {
       const ext = "." + (this.filename.split(".").pop() || "").toLowerCase(); // Ensure lowercase and dot
@@ -92,7 +99,7 @@ export default {
       return state.user?.disablePreviewExt?.includes(ext);
     },
     pdfConvertable() {
-      if (!muPdfAvailable) {
+      if (!globalVars.muPdfAvailable) {
         return false; // If muPDF is not available
       }
       const ext = "." + (this.filename.split(".").pop() || "").toLowerCase(); // Ensure lowercase and dot
@@ -126,53 +133,22 @@ export default {
       return this.imageTargetSrc;
     },
     showLargeIcon() {
-      return state.user.viewMode === "gallery" && state.user.preview.highQuality;
+      return getters.viewMode() === "gallery" && state.user.preview.highQuality;
     },
     showLarger() {
-      return state.user.viewMode === "gallery" || state.user.viewMode === "normal";
+      return getters.viewMode() === "gallery" || getters.viewMode() === "normal";
     },
     hasMotion() {
       return (
         this.getIconForType().simpleType === "video" &&
         state.user.preview?.video &&
-        mediaAvailable &&
+        globalVars.mediaAvailable &&
         // @ts-ignore
         state.user.preview.motionVideoPreview
       );
     },
     isMaterialIcon() {
       return this.materialIcon !== "";
-    },
-    isPreviewImg() {
-      if (this.thumbnailUrl == "") {
-        return false;
-      }
-      if (this.mimetype == "text/csv") {
-        return false;
-      }
-      // @ts-ignore
-      if (this.pdfConvertable && state.user.preview?.office) {
-        return true;
-      }
-      if (this.getIconForType().simpleType === "image" && state.user.preview?.image) {
-        return true;
-      }
-      if (
-        this.getIconForType().simpleType === "video" &&
-        state.user.preview?.video &&
-        mediaAvailable
-      ) {
-        return true;
-      }
-      if (
-        this.getIconForType().simpleType === "document" &&
-        // @ts-ignore
-        state.user.preview?.office &&
-        onlyOfficeUrl != ""
-      ) {
-        return true;
-      }
-      return false;
     },
   },
   methods: {
@@ -276,11 +252,11 @@ export default {
     showLargeIcon() {
       this.updateImageTargetSrc();
     },
-    // UPDATED: Added a check for isPreviewImg
+    // UPDATED: Added a check for hasPreviewImage
     imageTargetSrc: {
       handler(newSrc) {
         // ONLY trigger the image loader if the component is meant to show a preview.
-        if (this.isPreviewImg) {
+        if (this.hasPreviewImage) {
           this.loadImage(newSrc);
         }
       },

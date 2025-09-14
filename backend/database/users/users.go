@@ -42,14 +42,15 @@ type Sorting struct {
 
 type Preview struct {
 	DisableHideSidebar bool `json:"disableHideSidebar"` // disable the hide sidebar preview for previews and editors
-	HighQuality        bool `json:"highQuality"`        // generate high quality preview images
-	Image              bool `json:"image"`              // show real image as icon instead of generic photo icon
-	Video              bool `json:"video"`              // show preview image for video files
-	MotionVideoPreview bool `json:"motionVideoPreview"` // show multiple frames for videos in preview when hovering
-	Office             bool `json:"office"`             // show preview image for office files
-	PopUp              bool `json:"popup"`              // show larger popup preview when hovering
+	HighQuality        bool `json:"highQuality"`        // generate high quality thumbnail preview images
+	Image              bool `json:"image"`              // show thumbnail preview image for image files
+	Video              bool `json:"video"`              // show thumbnail preview image for video files
+	MotionVideoPreview bool `json:"motionVideoPreview"` // show multiple frames for videos in thumbnail preview when hovering
+	Office             bool `json:"office"`             // show thumbnail preview image for office files
+	PopUp              bool `json:"popup"`              // show larger popup preview when hovering over thumbnail
 	AutoplayMedia      bool `json:"autoplayMedia"`      // autoplay media files in preview
 	DefaultMediaPlayer bool `json:"defaultMediaPlayer"` // disable html5 media player and use the default media player
+	Folder             bool `json:"folder"`             // show thumbnail preview image for folder files
 }
 
 // User describes a user.
@@ -108,8 +109,9 @@ type NonAdminEditable struct {
 }
 
 type FileLoading struct {
-	MaxConcurrent int `json:"maxConcurrentUpload"`
-	ChunkSize     int `json:"uploadChunkSizeMb"`
+	MaxConcurrent int  `json:"maxConcurrentUpload"`
+	ChunkSize     int  `json:"uploadChunkSizeMb"`
+	ClearAll      bool `json:"clearAll"`
 }
 
 func CleanUsername(s string) string {

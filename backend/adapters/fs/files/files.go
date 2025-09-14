@@ -1,13 +1,8 @@
 package files
 
 import (
-	"crypto/md5"
-	"crypto/sha1"
-	"crypto/sha256"
-	"crypto/sha512"
-	"encoding/hex"
+	"encoding/base64"
 	"fmt"
-	"hash"
 	"io"
 	"unicode"
 	"unicode/utf8"
@@ -18,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/dhowden/tag"
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
@@ -34,7 +30,6 @@ func FileInfoFaster(opts iteminfo.FileOptions) (*iteminfo.ExtendedFileInfo, erro
 	if index == nil {
 		return response, fmt.Errorf("could not get index: %v ", opts.Source)
 	}
-
 	realPath, isDir, err := index.GetRealPath(opts.Path)
 	if err != nil {
 		return response, fmt.Errorf("could not get real path for requested path: %v", opts.Path)
@@ -42,26 +37,39 @@ func FileInfoFaster(opts iteminfo.FileOptions) (*iteminfo.ExtendedFileInfo, erro
 	opts.IsDir = isDir
 	var info *iteminfo.FileInfo
 	var exists bool
-	err = index.RefreshFileInfo(opts)
-	if err != nil {
-		if err == errors.ErrNotIndexed && index.Config.DisableIndexing {
-			info, err = index.GetFsDirInfo(opts.Path)
-			if err != nil {
-				return response, err
+	var useFsDirInfo bool
+	if isDir {
+		err = index.RefreshFileInfo(opts)
+		if err != nil {
+			if err == errors.ErrNotIndexed && index.Config.DisableIndexing {
+				useFsDirInfo = true
+			} else if err == errors.ErrNotIndexed {
+				return response, fmt.Errorf("could not refresh file info: %v", err)
 			}
-		} else if err == errors.ErrNotIndexed {
-			return response, fmt.Errorf("could not refresh file info: %v", err)
+		}
+	}
+	if useFsDirInfo {
+		info, err = index.GetFsDirInfo(opts.Path)
+		if err != nil {
+			return response, err
 		}
 	} else {
 		info, exists = index.GetReducedMetadata(opts.Path, opts.IsDir)
 		if !exists {
-			return response, fmt.Errorf("could not get metadata for path: %v", opts.Path)
+			err = index.RefreshFileInfo(opts)
+			if err != nil {
+				return response, fmt.Errorf("could not refresh file info: %v", err)
+			}
+			info, exists = index.GetReducedMetadata(opts.Path, opts.IsDir)
+			if !exists {
+				return response, fmt.Errorf("could not get metadata for path: %v", opts.Path)
+			}
 		}
 	}
+
 	response.FileInfo = *info
 	response.RealPath = realPath
 	response.Source = opts.Source
-
 	if opts.Access != nil && !opts.Access.Permitted(index.Path, opts.Path, opts.Username) {
 		// check if any subpath is permitted
 		// keep track of permitted paths and only show them at the end
@@ -100,6 +108,12 @@ func FileInfoFaster(opts iteminfo.FileOptions) (*iteminfo.ExtendedFileInfo, erro
 
 func processContent(info *iteminfo.ExtendedFileInfo, idx *indexing.Index) {
 	isVideo := strings.HasPrefix(info.Type, "video")
+	isAudio := strings.HasPrefix(info.Type, "audio")
+	isFolder := info.Type == "directory"
+	if isFolder {
+		return
+	}
+
 	if isVideo {
 		parentInfo, exists := idx.GetReducedMetadata(filepath.Dir(info.Path), true)
 		if exists {
@@ -111,6 +125,18 @@ func processContent(info *iteminfo.ExtendedFileInfo, idx *indexing.Index) {
 		}
 		return
 	}
+
+	if isAudio {
+		err := extractAudioMetadata(info)
+		if err != nil {
+			logger.Debugf("failed to extract audio metadata for file: "+info.RealPath, info.Name, err)
+		} else {
+			info.HasPreview = info.AudioMeta.AlbumArt != ""
+		}
+		return
+	}
+
+	// Process text content for non-video, non-audio files
 	if info.Size < 20*1024*1024 { // 20 megabytes in bytes
 		content, err := getContent(info.RealPath)
 		if err != nil {
@@ -134,34 +160,42 @@ func generateOfficeId(realPath string) string {
 	return key
 }
 
-// Checksum checksums a given File for a given User, using a specific
-// algorithm. The checksums data is saved on File object.
-func GetChecksum(fullPath, algo string) (map[string]string, error) {
-	subs := map[string]string{}
-	reader, err := os.Open(fullPath)
+// extractAudioMetadata extracts metadata from an audio file using dhowden/tag
+func extractAudioMetadata(item *iteminfo.ExtendedFileInfo) error {
+	file, err := os.Open(item.RealPath)
 	if err != nil {
-		return subs, err
+		return err
 	}
-	defer reader.Close()
+	defer file.Close()
 
-	hashFuncs := map[string]hash.Hash{
-		"md5":    md5.New(),
-		"sha1":   sha1.New(),
-		"sha256": sha256.New(),
-		"sha512": sha512.New(),
-	}
-
-	h, ok := hashFuncs[algo]
-	if !ok {
-		return subs, errors.ErrInvalidOption
-	}
-
-	_, err = io.Copy(h, reader)
+	m, err := tag.ReadFrom(file)
 	if err != nil {
-		return subs, err
+		return err
 	}
-	subs[algo] = hex.EncodeToString(h.Sum(nil))
-	return subs, nil
+
+	item.AudioMeta = &iteminfo.AudioMetadata{
+		Title:  m.Title(),
+		Artist: m.Artist(),
+		Album:  m.Album(),
+		Year:   m.Year(),
+		Genre:  m.Genre(),
+	}
+
+	// Extract track number
+	track, _ := m.Track()
+	item.AudioMeta.Track = track
+
+	// Extract album art and encode as base64
+	if picture := m.Picture(); picture != nil && picture.Data != nil {
+		// Limit album art size to prevent excessive response sizes (max 1MB)
+		if len(picture.Data) <= 1024*1024 {
+			item.AudioMeta.AlbumArt = base64.StdEncoding.EncodeToString(picture.Data)
+		} else {
+			logger.Debugf("Skipping album art for %s: too large (%d bytes)", item.RealPath, len(picture.Data))
+		}
+	}
+
+	return nil
 }
 
 func DeleteFiles(source, absPath string, absDirPath string) error {

@@ -50,7 +50,11 @@
     "showMore": "Mehr anzeigen",
     "showLess": "Weniger anzeigen",
     "openParentFolder": "Übergeordneten Ordner öffnen",
-    "selectedCount": "Anzahl der zur Durchführung einer Aktion ausgewählten Elemente"
+    "selectedCount": "Anzahl der zur Durchführung einer Aktion ausgewählten Elemente",
+    "listView": "Listenansicht",
+    "compactView": "Kompakte Ansicht",
+    "normalView": "Normale Ansicht",
+    "galleryView": "Galerie-Ansicht"
   },
   "download": {
     "downloadFile": "Datei herunterladen",
@@ -188,7 +192,10 @@
     "numberFiles": "Anzahl der Dateien{suffix}",
     "renameMessageConflict": "Ein Artikel mit dem Namen \"{filename}\" existiert bereits!",
     "uploadSettingsChunked": "Max. gleichzeitige Uploads: {maxConcurrentUpload}, Chunk-Größe: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "Max. gleichzeitige Uploads: {maxConcurrentUpload}, Chunked Upload deaktiviert"
+    "uploadSettingsNoChunk": "Max. gleichzeitige Uploads: {maxConcurrentUpload}, Chunked Upload deaktiviert",
+    "quickJump": "Schnelles Springen zu anderen Dateien",
+    "moveSuccess": "Dateien erfolgreich verschoben!",
+    "copySuccess": "Dateien erfolgreich kopiert!"
   },
   "search": {
     "images": "Bilder",
@@ -390,7 +397,9 @@
     "enableOnlyOfficeDescription": "Erlauben Sie die Anzeige von Office-Dateien mit OnlyOffice in dieser Freigabe.",
     "enableOnlyOfficeEditing": "OnlyOffice-Bearbeitung aktivieren",
     "enableOnlyOfficeEditingDescription": "Erlauben Sie die Bearbeitung von Office-Dateien mit OnlyOffice in dieser Freigabe.",
-    "titleDefault": "Gemeinsame Dateien - {title}"
+    "titleDefault": "Gemeinsame Dateien - {title}",
+    "defaultViewMode": "Standard-Ansichtsmodus",
+    "defaultViewModeDescription": "Legen Sie den Standardanzeigemodus für anonyme Benutzer fest, die diese Freigabe anzeigen. Angemeldete Benutzer können ihre Ansichtseinstellungen immer noch ändern."
   },
   "api": {
     "title": "API-Schlüssel:",
@@ -482,7 +491,9 @@
     "maxConcurrentUpload": "Max. gleichzeitige Uploads",
     "maxConcurrentUploadHelp": "Die maximale Anzahl der gleichzeitigen Uploads. Höhere Werte führen in der Regel zu einer besseren Leistung, aber dies hängt von vielen Faktoren ab.",
     "uploadChunkSizeMb": "Größe des hochzuladenden Pakets in MB",
-    "uploadChunkSizeMbHelp": "Normalerweise 5 bis 50 MB, kleiner ist besser für instabile oder eingeschränkte Verbindungen. Die Einstellung 0 deaktiviert das Chunking beim Hochladen."
+    "uploadChunkSizeMbHelp": "Normalerweise 5 bis 50 MB, kleiner ist besser für instabile oder eingeschränkte Verbindungen. Die Einstellung 0 deaktiviert das Chunking beim Hochladen.",
+    "clearAll": "Clear completed sollte Fehler, Pausen und Konflikte beseitigen",
+    "clearAllDescription": "Mit der Schaltfläche Abgeschlossen löschen werden alle Uploads im abgeschlossenen Zustand gelöscht, einschließlich Fehler-, Pausen- und Konfliktstatus."
   },
   "colors": {
     "red": "rot",
@@ -547,7 +558,9 @@
     "debugOfficeEditor": "OnlyOffice-Debug-Modus einschalten",
     "debugOfficeEditorDescription": "Ein Debug-Popup mit zusätzlichen Informationen im OnlyOffice-Editor anzeigen.",
     "fileViewerOptions": "Optionen des Dateibetrachters",
-    "themeAndLanguage": "Thema und Sprache"
+    "themeAndLanguage": "Thema und Sprache",
+    "previewFolder": "Miniaturansichten für Ordner anzeigen, falls vorhanden",
+    "previewFolderDescription": "Zeigen Sie Miniaturvorschauen für Ordner an, deren erstes untergeordnetes Element ein Miniaturbild als Cover hat."
   },
   "editor": {
     "uninitialized": "Der Editor konnte nicht initialisiert werden. Bitte neu laden.",

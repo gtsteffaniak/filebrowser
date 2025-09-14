@@ -56,7 +56,9 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 
 	defaultThemeColor := "#455a64"
 	staticURL := config.Server.BaseURL + "static"
-	publicStaticURL := config.Server.BaseURL + "public/static"
+	if d.share != nil {
+		staticURL = config.Server.BaseURL + "public/static"
+	}
 
 	// Use custom favicon if configured and validated, otherwise fall back to default
 	var favicon string
@@ -66,20 +68,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		// Default favicon
 		favicon = staticURL + "/img/icons/favicon-256x256.png"
 	}
-	data := map[string]interface{}{
-		"title":             config.Frontend.Name,
-		"customCSS":         config.Frontend.Styling.CustomCSSRaw,
-		"userSelectedTheme": userSelectedTheme,
-		"lightBackground":   config.Frontend.Styling.LightBackground,
-		"darkBackground":    config.Frontend.Styling.DarkBackground,
-		"staticURL":         staticURL,
-		"baseURL":           config.Server.BaseURL,
-		"favicon":           favicon,
-		"color":             defaultThemeColor,
-		"winIcon":           staticURL + "/img/icons/mstile-144x144.png",
-		"appIcon":           staticURL + "/img/icons/android-chrome-256x256.png",
-		"description":       config.Frontend.Description,
-	}
+	data := make(map[string]interface{})
 	shareProps := map[string]interface{}{
 		"isShare":             false,
 		"isValid":             false,
@@ -117,13 +106,14 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 			shareProps["isPasswordProtected"] = d.share.PasswordHash != ""
 			shareProps["downloadURL"] = getDownloadURL(r, d.share.Hash)
 			shareProps["enforceDarkLightMode"] = d.share.EnforceDarkLightMode
+			shareProps["viewMode"] = d.share.ViewMode
 			shareProps["enableOnlyOffice"] = d.share.EnableOnlyOffice
 			shareProps["enableOnlyOfficeEditing"] = d.share.EnableOnlyOfficeEditing
 			if d.share.Favicon != "" {
 				if strings.HasPrefix(d.share.Favicon, "http") {
 					data["favicon"] = d.share.Favicon
 				} else {
-					data["favicon"] = publicStaticURL + "/" + d.share.Favicon
+					data["favicon"] = staticURL + "/" + d.share.Favicon
 				}
 			}
 			if d.share.Description != "" {
@@ -135,15 +125,29 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		}
 
 		// base url could be different for routes behind proxy
-		data["staticURL"] = publicStaticURL
+		data["staticURL"] = staticURL
 		// Use custom favicon for shares too if configured
 		if config.Frontend.Favicon != "" {
-			data["favicon"] = publicStaticURL + "/favicon"
+			data["favicon"] = staticURL + "/favicon"
 		} else {
-			data["favicon"] = publicStaticURL + "/img/icons/favicon-256x256.png"
+			data["favicon"] = staticURL + "/img/icons/favicon-256x256.png"
 		}
-		data["winIcon"] = publicStaticURL + "/img/icons/mstile-144x144.png"
-		data["appIcon"] = publicStaticURL + "/img/icons/android-chrome-256x256.png"
+		data["winIcon"] = staticURL + "/img/icons/mstile-144x144.png"
+		data["appIcon"] = staticURL + "/img/icons/android-chrome-256x256.png"
+	}
+	data["htmlVars"] = map[string]interface{}{
+		"title":             config.Frontend.Name,
+		"customCSS":         config.Frontend.Styling.CustomCSSRaw,
+		"userSelectedTheme": userSelectedTheme,
+		"lightBackground":   config.Frontend.Styling.LightBackground,
+		"darkBackground":    config.Frontend.Styling.DarkBackground,
+		"staticURL":         staticURL,
+		"baseURL":           config.Server.BaseURL,
+		"favicon":           favicon,
+		"color":             defaultThemeColor,
+		"winIcon":           staticURL + "/img/icons/mstile-144x144.png",
+		"appIcon":           staticURL + "/img/icons/android-chrome-256x256.png",
+		"description":       config.Frontend.Description,
 	}
 	// variables consumed by frontend as json
 	data["globalVars"] = map[string]interface{}{
@@ -169,13 +173,22 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"updateAvailable":      utils.GetUpdateAvailableUrl(),
 		"disableNavButtons":    disableNavButtons,
 		"userSelectableThemes": config.Frontend.Styling.CustomThemeOptions,
-		"share":                shareProps,
+		"enableHeicConversion": config.Integrations.Media.Convert.ImagePreview[settings.HEICImagePreview],
 	}
-	jsonVars, err := json.Marshal(data["globalVars"])
+
+	// Marshal each variable to JSON strings for direct template usage
+	globalVarsJSON, err := json.Marshal(data["globalVars"])
 	if err != nil {
-		return http.StatusInternalServerError, err
+		return http.StatusInternalServerError, fmt.Errorf("error marshaling globalVars: %w", err)
 	}
-	data["globalVars"] = strings.ReplaceAll(string(jsonVars), `'`, `\'`)
+	shareVarsJSON, err := json.Marshal(shareProps)
+	if err != nil {
+		return http.StatusInternalServerError, fmt.Errorf("error marshaling shareVars: %w", err)
+	}
+
+	// Replace with JSON strings for direct template usage
+	data["globalVars"] = string(globalVarsJSON)
+	data["shareVars"] = string(shareVarsJSON)
 
 	// Render the template with global variables
 	if err := templateRenderer.Render(w, file, data); err != nil {

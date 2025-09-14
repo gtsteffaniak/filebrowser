@@ -50,7 +50,11 @@
     "showMore": "Meer tonen",
     "showLess": "Minder tonen",
     "openParentFolder": "Bovenliggende map openen",
-    "selectedCount": "Aantal items geselecteerd om een actie uit te voeren"
+    "selectedCount": "Aantal items geselecteerd om een actie uit te voeren",
+    "listView": "Lijstweergave",
+    "compactView": "Compacte weergave",
+    "normalView": "Normale weergave",
+    "galleryView": "Galerij"
   },
   "download": {
     "downloadFile": "Bestand downloaden",
@@ -188,7 +192,10 @@
     "numberFiles": "Aantal bestanden{suffix}",
     "renameMessageConflict": "Een item met de naam \"{filename}\" bestaat al!",
     "uploadSettingsChunked": "Max gelijktijdige uploads: {maxConcurrentUpload}, brokgrootte: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "Max gelijktijdige uploads: {maxConcurrentUpload}, chunked upload uitgeschakeld"
+    "uploadSettingsNoChunk": "Max gelijktijdige uploads: {maxConcurrentUpload}, chunked upload uitgeschakeld",
+    "quickJump": "Snel naar andere bestanden springen",
+    "moveSuccess": "Bestanden succesvol verplaatst!",
+    "copySuccess": "Bestanden succesvol gekopieerd!"
   },
   "search": {
     "images": "Afbeeldingen",
@@ -390,7 +397,9 @@
     "enableOnlyOfficeDescription": "Sta het bekijken van Office-bestanden toe met OnlyOffice in deze share.",
     "enableOnlyOfficeEditing": "Bewerken met OnlyOffice inschakelen",
     "enableOnlyOfficeEditingDescription": "Laat het bewerken van Office-bestanden met OnlyOffice toe in deze share.",
-    "titleDefault": "Gedeelde bestanden - {title}"
+    "titleDefault": "Gedeelde bestanden - {title}",
+    "defaultViewMode": "Standaard weergavemodus",
+    "defaultViewModeDescription": "Stel de standaard weergavemodus in voor anonieme gebruikers die deze share bekijken. Aangemelde gebruikers kunnen nog steeds hun weergavevoorkeur wijzigen."
   },
   "api": {
     "title": "API-sleutels",
@@ -446,7 +455,9 @@
     "maxConcurrentUpload": "Max. gelijktijdige uploads",
     "maxConcurrentUploadHelp": "Het maximum aantal gelijktijdige uploads. Hogere waarden presteren meestal beter, maar dit hangt van veel factoren af.",
     "uploadChunkSizeMb": "Upload brokgrootte in MB",
-    "uploadChunkSizeMbHelp": "Gewoonlijk 5 tot 50 MB, kleiner is beter voor onstabiele of beperkte verbindingen. Instellen op 0 schakelt chunking uit."
+    "uploadChunkSizeMbHelp": "Gewoonlijk 5 tot 50 MB, kleiner is beter voor onstabiele of beperkte verbindingen. Instellen op 0 schakelt chunking uit.",
+    "clearAll": "Wissen voltooid moet fout, pauze en conflict verwijderen",
+    "clearAllDescription": "De knop Voltooid wissen wist alle uploads in een voltooide status, inclusief fout-, gepauzeerde en conflictstatussen."
   },
   "colors": {
     "red": "rood",
@@ -511,7 +522,9 @@
     "debugOfficeEditor": "Debugmodus OnlyOffice inschakelen",
     "debugOfficeEditorDescription": "Een foutopsporingspop-up weergeven met aanvullende informatie in de OnlyOffice-editor.",
     "fileViewerOptions": "Opties voor bestandsviewer",
-    "themeAndLanguage": "Thema & Taal"
+    "themeAndLanguage": "Thema & Taal",
+    "previewFolder": "Toon miniaturen voor mappen indien beschikbaar",
+    "previewFolderDescription": "Toon miniatuurafbeeldingen voor mappen met het eerste kinditem met miniatuurafbeelding als omslag."
   },
   "general": {
     "name": "Naam",

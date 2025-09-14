@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -49,7 +50,21 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 		return http.StatusBadRequest, errors.New("missing required parameters: path + source/hash are required")
 	}
 	themeMode := utils.Ternary(d.user.DarkMode, "dark", "light")
-
+	var sourceInfo settings.Source
+	var ok bool
+	if d.fileInfo.Hash != "" {
+		sourceInfo, ok = settings.Config.Server.SourceMap[source]
+		if !ok {
+			logger.Error("OnlyOffice: source not found")
+			return http.StatusInternalServerError, fmt.Errorf("source not found")
+		}
+	} else {
+		sourceInfo, ok = settings.Config.Server.NameToSource[source]
+		if !ok {
+			logger.Error("OnlyOffice: source not found")
+			return http.StatusInternalServerError, fmt.Errorf("source not found")
+		}
+	}
 	if d.fileInfo.Hash == "" {
 		// Build file info based on whether this is a share or regular request
 		// Regular user request - need to resolve scope
@@ -58,27 +73,20 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 			logger.Errorf("OnlyOffice: source %s not available for user %s: %v", source, d.user.Username, scopeErr)
 			return http.StatusForbidden, fmt.Errorf("source %s is not available", source)
 		}
-		resolvedPath := utils.JoinPathAsUnix(userScope, path)
-		logger.Debugf("OnlyOffice user request: resolved path=%s", resolvedPath)
-
+		indexPath := utils.JoinPathAsUnix(userScope, path)
+		logger.Debugf("OnlyOffice user request: resolved path=%s", indexPath)
 		fileInfo, err := files.FileInfoFaster(iteminfo.FileOptions{
-			Path:   resolvedPath,
+			Path:   indexPath,
 			Modify: d.user.Permissions.Modify,
 			Source: source,
 			Expand: false,
 		})
 		if err != nil {
-			logger.Errorf("OnlyOffice: failed to get file info for source=%s, path=%s: %v", source, resolvedPath, err)
+			logger.Errorf("OnlyOffice: failed to get file info for source=%s, path=%s: %v", source, indexPath, err)
 			return errToStatus(err), err
 		}
 		d.fileInfo = *fileInfo
 	} else {
-		// is a share, use the file info from the share middleware
-		sourceInfo, ok := settings.Config.Server.SourceMap[d.share.Source]
-		if !ok {
-			logger.Error("OnlyOffice: source from share not found")
-			return http.StatusInternalServerError, fmt.Errorf("source not found for share")
-		}
 		source = sourceInfo.Name
 		// path is index path, so we build from share path
 		path = utils.JoinPathAsUnix(d.share.Path, path)
@@ -92,7 +100,7 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 	}
 
 	// Determine file type and editing permissions
-	fileType := getFileExtension(d.fileInfo.Name)
+	fileType := strings.TrimPrefix(filepath.Ext(d.fileInfo.Name), ".")
 	canEdit := iteminfo.CanEditOnlyOffice(d.user.Permissions.Modify, fileType)
 	canEditMode := utils.Ternary(canEdit, "edit", "view")
 	if d.fileInfo.Hash != "" {
@@ -111,7 +119,7 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 	}
 
 	// Generate document ID for OnlyOffice
-	documentId, err := getOnlyOfficeId(source, path)
+	documentId, err := getOnlyOfficeId(d.fileInfo.RealPath)
 	if err != nil {
 		logger.Errorf("OnlyOffice: failed to generate document ID for source=%s, path=%s: %v", source, path, err)
 		return http.StatusNotFound, fmt.Errorf("failed to generate document ID: %v", err)
@@ -131,7 +139,7 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 			"title":    d.fileInfo.Name,
 			"url":      downloadURL,
 			"permissions": map[string]interface{}{
-				"edit":     canEditMode,
+				"edit":     utils.Ternary(settings.Config.Integrations.OnlyOffice.ViewOnly, "view", canEditMode),
 				"download": true,
 				"print":    true,
 			},
@@ -148,7 +156,7 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 				"uiTheme":   themeMode,
 			},
 			"lang": d.user.Locale,
-			"mode": canEditMode,
+			"mode": utils.Ternary(settings.Config.Integrations.OnlyOffice.ViewOnly, "view", canEditMode),
 		},
 	}
 
@@ -164,15 +172,6 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 	}
 
 	return renderJSON(w, r, clientConfig)
-}
-
-// getFileExtension extracts file extension from filename
-func getFileExtension(filename string) string {
-	parts := strings.Split(filename, ".")
-	if len(parts) < 2 {
-		return ""
-	}
-	return parts[len(parts)-1]
 }
 
 // buildOnlyOfficeDownloadURL constructs the download URL that OnlyOffice server will use to fetch the file
@@ -254,6 +253,21 @@ func onlyofficeCallbackHandler(w http.ResponseWriter, r *http.Request, d *reques
 		logger.Errorf("OnlyOffice callback missing required parameters: source=%s, path=%s", source, path)
 		return http.StatusBadRequest, errors.New("missing required parameters: path + source/hash are required")
 	}
+	var sourceInfo settings.Source
+	var ok bool
+	if d.fileInfo.Hash != "" {
+		sourceInfo, ok = settings.Config.Server.SourceMap[source]
+		if !ok {
+			logger.Error("OnlyOffice: source not found")
+			return http.StatusInternalServerError, fmt.Errorf("source not found")
+		}
+	} else {
+		sourceInfo, ok = settings.Config.Server.NameToSource[source]
+		if !ok {
+			logger.Error("OnlyOffice: source not found")
+			return http.StatusInternalServerError, fmt.Errorf("source not found")
+		}
+	}
 
 	if d.fileInfo.Hash == "" {
 		// Regular user request - need to resolve scope
@@ -264,12 +278,6 @@ func onlyofficeCallbackHandler(w http.ResponseWriter, r *http.Request, d *reques
 		}
 		path = utils.JoinPathAsUnix(userScope, path)
 	} else {
-		// is a share, use the file info from the share middleware
-		sourceInfo, ok := settings.Config.Server.SourceMap[d.share.Source]
-		if !ok {
-			logger.Error("OnlyOffice: source from share not found")
-			return http.StatusInternalServerError, fmt.Errorf("source not found for share")
-		}
 		source = sourceInfo.Name
 		// path is index path, so we build from share path
 		path = utils.JoinPathAsUnix(d.share.Path, path)
@@ -339,12 +347,7 @@ func onlyofficeCallbackHandler(w http.ResponseWriter, r *http.Request, d *reques
 	return renderJSON(w, r, resp)
 }
 
-func getOnlyOfficeId(source, path string) (string, error) {
-	idx := indexing.GetIndex(source)
-	if idx == nil {
-		return "", fmt.Errorf("source not found")
-	}
-	realpath, _, _ := idx.GetRealPath(path)
+func getOnlyOfficeId(realpath string) (string, error) {
 	// error is intentionally ignored in order treat errors
 	// the same as a cache-miss
 	cachedDocumentKey, ok := utils.OnlyOfficeCache.Get(realpath).(string)

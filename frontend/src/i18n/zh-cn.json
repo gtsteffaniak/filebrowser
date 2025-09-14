@@ -50,7 +50,11 @@
     "showMore": "显示更多",
     "showLess": "显示更少",
     "openParentFolder": "打开父文件夹",
-    "selectedCount": "选择执行操作的项目数"
+    "selectedCount": "选择执行操作的项目数",
+    "listView": "列表查看",
+    "compactView": "紧凑型视图",
+    "normalView": "正常视图",
+    "galleryView": "图库浏览"
   },
   "download": {
     "downloadFile": "下载文件",
@@ -188,7 +192,10 @@
     "numberFiles": "文件数量{suffix}",
     "renameMessageConflict": "名为 \"{filename}\" 的项目已经存在！",
     "uploadSettingsChunked": "最大并发上传：{maxConcurrentUpload}块大小 {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "最大并发上传：{maxConcurrentUpload}已禁用分块上传"
+    "uploadSettingsNoChunk": "最大并发上传：{maxConcurrentUpload}已禁用分块上传",
+    "quickJump": "快速跳转到其他文件",
+    "moveSuccess": "文件移动成功！",
+    "copySuccess": "文件复制成功！"
   },
   "search": {
     "images": "图像",
@@ -390,7 +397,9 @@
     "enableOnlyOfficeDescription": "允许在此共享中使用 OnlyOffice 查看办公文件。",
     "enableOnlyOfficeEditing": "启用 OnlyOffice 编辑功能",
     "enableOnlyOfficeEditingDescription": "允许在此共享中使用 OnlyOffice 编辑办公文件。",
-    "titleDefault": "共享文件{title}"
+    "titleDefault": "共享文件{title}",
+    "defaultViewMode": "默认视图模式",
+    "defaultViewModeDescription": "设置匿名用户查看此共享的默认视图模式。已登录的用户仍可更改其查看首选项。"
   },
   "api": {
     "title": "应用程序接口密钥",
@@ -446,7 +455,9 @@
     "maxConcurrentUpload": "最大并发上传",
     "maxConcurrentUploadHelp": "最大并发上传次数。数值越大，性能通常越好，但这取决于很多因素。",
     "uploadChunkSizeMb": "上传块大小（以 MB 为单位",
-    "uploadChunkSizeMbHelp": "通常为 5 至 50 MB，对于不稳定或受限制的连接，越小越好。设置为 0 将禁用上传分块。"
+    "uploadChunkSizeMbHelp": "通常为 5 至 50 MB，对于不稳定或受限制的连接，越小越好。设置为 0 将禁用上传分块。",
+    "clearAll": "清除完成后，应消除错误、暂停和冲突",
+    "clearAllDescription": "清除已完成按钮将清除所有处于完成状态的上传，包括错误、暂停和冲突状态。"
   },
   "colors": {
     "red": "红",
@@ -511,7 +522,9 @@
     "debugOfficeEditor": "启用 OnlyOffice 调试模式",
     "debugOfficeEditorDescription": "在 OnlyOffice 编辑器中显示包含附加信息的调试弹出窗口。",
     "fileViewerOptions": "文件查看器选项",
-    "themeAndLanguage": "主题与语言"
+    "themeAndLanguage": "主题与语言",
+    "previewFolder": "如果有的话，显示文件夹的缩略图",
+    "previewFolderDescription": "显示文件夹的缩略图预览，第一个子项的缩略图为封面。"
   },
   "general": {
     "name": "名称",

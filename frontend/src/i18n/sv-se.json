@@ -50,7 +50,11 @@
     "showMore": "Visa mer",
     "showLess": "Visa mindre",
     "openParentFolder": "Öppna överordnad mapp",
-    "selectedCount": "Antal objekt som valts för att utföra en åtgärd"
+    "selectedCount": "Antal objekt som valts för att utföra en åtgärd",
+    "listView": "Listvy",
+    "compactView": "Kompakt vy",
+    "normalView": "Normal vy",
+    "galleryView": "Galleri utsikt"
   },
   "download": {
     "downloadFile": "Ladda ner fil",
@@ -188,7 +192,10 @@
     "numberFiles": "Antal filer{suffix}",
     "renameMessageConflict": "Ett objekt med namnet \"{filename}\" finns redan!",
     "uploadSettingsChunked": "Max samtidiga uppladdningar: {maxConcurrentUpload}, chunkstorlek: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "Max samtidiga uppladdningar: {maxConcurrentUpload}, chunked uppladdning inaktiverad"
+    "uploadSettingsNoChunk": "Max samtidiga uppladdningar: {maxConcurrentUpload}, chunked uppladdning inaktiverad",
+    "quickJump": "Hoppa snabbt till andra filer",
+    "moveSuccess": "Filerna flyttades framgångsrikt!",
+    "copySuccess": "Filerna kopierades framgångsrikt!"
   },
   "search": {
     "images": "Bilder",
@@ -390,7 +397,9 @@
     "enableOnlyOfficeDescription": "Tillåt visning av kontorsfiler med OnlyOffice i denna delning.",
     "enableOnlyOfficeEditing": "Aktivera redigering av OnlyOffice",
     "enableOnlyOfficeEditingDescription": "Tillåt redigering av kontorsfiler med hjälp av OnlyOffice i denna andel.",
-    "titleDefault": "Delade filer {title}"
+    "titleDefault": "Delade filer {title}",
+    "defaultViewMode": "Standardläge för visning",
+    "defaultViewModeDescription": "Ange standardvisningsläge för anonyma användare som visar den här andelen. Inloggade användare kan fortfarande ändra sina visningspreferenser."
   },
   "api": {
     "title": "API-nycklar",
@@ -446,7 +455,9 @@
     "maxConcurrentUpload": "Max samtidiga uppladdningar",
     "maxConcurrentUploadHelp": "Det maximala antalet samtidiga uppladdningar. Högre värden ger normalt bättre prestanda, men detta beror på många faktorer.",
     "uploadChunkSizeMb": "Ladda upp chunkstorlek i MB",
-    "uploadChunkSizeMbHelp": "Vanligtvis 5 till 50 MB, men mindre är bättre för instabila eller begränsade anslutningar. Om du ställer in 0 inaktiveras chunking för uppladdning."
+    "uploadChunkSizeMbHelp": "Vanligtvis 5 till 50 MB, men mindre är bättre för instabila eller begränsade anslutningar. Om du ställer in 0 inaktiveras chunking för uppladdning.",
+    "clearAll": "Klart avslutat ska ta bort fel, paus och konflikt",
+    "clearAllDescription": "Knappen Clear Completed rensar alla uppladdningar som är klara, inklusive fel-, paus- och konflikttillstånd."
   },
   "colors": {
     "red": "röd",
@@ -511,7 +522,9 @@
     "debugOfficeEditor": "Aktivera OnlyOffice felsökningsläge",
     "debugOfficeEditorDescription": "Visa en debug-popup med ytterligare information i OnlyOffice-redigeraren.",
     "fileViewerOptions": "Alternativ för filvisare",
-    "themeAndLanguage": "Tema & språk"
+    "themeAndLanguage": "Tema & språk",
+    "previewFolder": "Visa miniatyrbilder för mappar om de är tillgängliga",
+    "previewFolderDescription": "Visa förhandsvisningar av miniatyrbilder för mappar med första underordnade objekt med miniatyrbild som omslag."
   },
   "general": {
     "name": "Namn",

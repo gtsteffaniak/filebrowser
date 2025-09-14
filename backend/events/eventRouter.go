@@ -75,7 +75,12 @@ func Register(username string, sources []string) chan EventMessage {
 
 func Unregister(username string, ch chan EventMessage) {
 	userClientsMu.Lock()
-	conns := userClients[username]
+	defer userClientsMu.Unlock()
+	conns, ok := userClients[username]
+	if !ok {
+		// User already cleaned up by Shutdown, nothing to do.
+		return
+	}
 	for i, c := range conns {
 		if c == ch {
 			userClients[username] = append(conns[:i], conns[i+1:]...)
@@ -85,18 +90,15 @@ func Unregister(username string, ch chan EventMessage) {
 	if len(userClients[username]) == 0 {
 		delete(userClients, username)
 	}
-	userClientsMu.Unlock()
 
 	sourceClientsMu.Lock()
+	defer sourceClientsMu.Unlock()
 	for source, clients := range sourceClients {
 		delete(clients, ch)
 		if len(clients) == 0 {
 			delete(sourceClients, source)
 		}
 	}
-	sourceClientsMu.Unlock()
-
-	close(ch)
 }
 
 func SendToUsers(eventType, message string, users []string) {
@@ -142,10 +144,20 @@ func handleSourceUpdates() {
 func Shutdown() {
 	userClientsMu.Lock()
 	defer userClientsMu.Unlock()
+	sourceClientsMu.Lock()
+	defer sourceClientsMu.Unlock()
 
-	for _, clientChannels := range userClients {
+	for username, clientChannels := range userClients {
 		for _, ch := range clientChannels {
+			// Clean up source clients
+			for source, clients := range sourceClients {
+				delete(clients, ch)
+				if len(clients) == 0 {
+					delete(sourceClients, source)
+				}
+			}
 			close(ch)
 		}
+		delete(userClients, username)
 	}
 }

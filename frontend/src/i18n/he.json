@@ -50,7 +50,11 @@
     "showMore": "הצג עוד",
     "showLess": "הצג פחות",
     "openParentFolder": "פתח את התיקייה הראשית",
-    "selectedCount": "מספר הפריטים שנבחרו לביצוע פעולה"
+    "selectedCount": "מספר הפריטים שנבחרו לביצוע פעולה",
+    "listView": "תצוגת רשימה",
+    "compactView": "תצוגה קומפקטית",
+    "normalView": "תצוגה רגילה",
+    "galleryView": "תצוגת גלריה"
   },
   "download": {
     "downloadFile": "הורד קובץ",
@@ -188,7 +192,10 @@
     "numberFiles": "מספר הקבצים{suffix}",
     "renameMessageConflict": "פריט בשם \"{filename}\" כבר קיים!",
     "uploadSettingsChunked": "מספר העלאות מקסימלי בו-זמנית: {maxConcurrentUpload}, גודל קובץ: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "מספר העלאות מקסימלי בו-זמנית: {maxConcurrentUpload}, העלאה מקוטעת מושבתת"
+    "uploadSettingsNoChunk": "מספר העלאות מקסימלי בו-זמנית: {maxConcurrentUpload}, העלאה מקוטעת מושבתת",
+    "quickJump": "קפיצה מהירה לקבצים אחרים",
+    "moveSuccess": "הקבצים הועברו בהצלחה!",
+    "copySuccess": "הקבצים הועתקו בהצלחה!"
   },
   "search": {
     "images": "תמונות",
@@ -390,7 +397,9 @@
     "enableOnlyOfficeDescription": "אפשר צפייה בקבצי Office באמצעות OnlyOffice בשיתוף זה.",
     "enableOnlyOfficeEditing": "אפשר עריכה ב-OnlyOffice",
     "enableOnlyOfficeEditingDescription": "אפשר עריכת קבצי Office באמצעות OnlyOffice בשיתוף זה.",
-    "titleDefault": "קבצים משותפים - {title}"
+    "titleDefault": "קבצים משותפים - {title}",
+    "defaultViewMode": "מצב תצוגה ברירת מחדל",
+    "defaultViewModeDescription": "הגדר את מצב התצוגה המוגדר כברירת מחדל עבור משתמשים אנונימיים הצופים בשיתוף זה. משתמשים מחוברים עדיין יכולים לשנות את העדפות התצוגה שלהם."
   },
   "api": {
     "title": "מפתחות API",
@@ -482,7 +491,9 @@
     "maxConcurrentUpload": "העלאות מקסימליות בו-זמנית",
     "maxConcurrentUploadHelp": "המספר המרבי של העלאות בו-זמנית. ערכים גבוהים יותר בדרך כלל מספקים ביצועים טובים יותר, אך הדבר תלוי בגורמים רבים.",
     "uploadChunkSizeMb": "גודל הקובץ להעלאה במגה-בייט",
-    "uploadChunkSizeMbHelp": "בדרך כלל 5 עד 50 MB, קטן יותר עדיף עבור חיבורים לא יציבים או מוגבלים. הגדרה ל-0 תשבית את חלוקת הקבצים להעלאה."
+    "uploadChunkSizeMbHelp": "בדרך כלל 5 עד 50 MB, קטן יותר עדיף עבור חיבורים לא יציבים או מוגבלים. הגדרה ל-0 תשבית את חלוקת הקבצים להעלאה.",
+    "clearAll": "השלמת הניקוי אמורה להסיר את השגיאה, ההשהיה והקונפליקט.",
+    "clearAllDescription": "הכפתור 'נקה את ההשלמות' ינקה את כל ההעלאות במצב 'הושלם', כולל מצבי שגיאה, השהיה וקונפליקט."
   },
   "colors": {
     "red": "אדום",
@@ -547,7 +558,9 @@
     "debugOfficeEditor": "הפעל מצב ניפוי באגים של OnlyOffice",
     "debugOfficeEditorDescription": "הצג חלון קופץ לאיתור באגים עם מידע נוסף בעורך OnlyOffice.",
     "fileViewerOptions": "אפשרויות תצוגת קבצים",
-    "themeAndLanguage": "נושא ושפה"
+    "themeAndLanguage": "נושא ושפה",
+    "previewFolder": "הצג תמונות ממוזערות של תיקיות, אם זמינות",
+    "previewFolderDescription": "הצג תצוגה מקדימה של תמונות ממוזערות עבור תיקיות עם פריט משנה ראשון עם תמונה ממוזערת ככריכה."
   },
   "editor": {
     "uninitialized": "לא ניתן לאתחל את העורך. אנא טען מחדש.",

@@ -100,6 +100,9 @@ definitions:
         items:
           $ref: '#/definitions/iteminfo.ItemInfo'
         type: array
+      hasPreview:
+        description: whether the file has a thumbnail preview
+        type: boolean
       hidden:
         description: whether the file is hidden
         type: boolean
@@ -121,6 +124,9 @@ definitions:
     type: object
   iteminfo.ItemInfo:
     properties:
+      hasPreview:
+        description: whether the file has a thumbnail preview
+        type: boolean
       hidden:
         description: whether the file is hidden
         type: boolean
@@ -189,6 +195,12 @@ definitions:
         items:
           type: string
         type: array
+      fileStartsWith:
+        description: (global) exclude files that start with these prefixes. Eg. "archive-"
+          or "backup-"
+        items:
+          type: string
+        type: array
       folderEndsWith:
         description: (global) exclude folders that end with these suffixes. Eg. ".thumbnails"
           or ".git"
@@ -205,6 +217,12 @@ definitions:
         description: (filepath) list of folder names to include/exclude. Eg. "folder1"
           or "folder1/subfolder" (do not include source path, just the subpaths from
           the source path)
+        items:
+          type: string
+        type: array
+      folderStartsWith:
+        description: (global) exclude folders that start with these prefixes. Eg.
+          "archive-" or "backup-"
         items:
           type: string
         type: array
@@ -229,6 +247,14 @@ definitions:
     required:
     - text
     - url
+    type: object
+  settings.FfmpegConvert:
+    properties:
+      imagePreview:
+        additionalProperties:
+          type: boolean
+        description: supported image preview formats. default is heic
+        type: object
     type: object
   settings.Frontend:
     properties:
@@ -315,6 +341,10 @@ definitions:
     type: object
   settings.Media:
     properties:
+      convert:
+        allOf:
+        - $ref: '#/definitions/settings.FfmpegConvert'
+        description: config for ffmpeg conversion settings
       ffmpegPath:
         description: path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)
         type: string
@@ -372,6 +402,9 @@ definitions:
         description: The URL to the OnlyOffice Document Server, needs to be accessible
           to the user.
         type: string
+      viewOnly:
+        description: view only mode for OnlyOffice
+        type: boolean
     required:
     - secret
     - url
@@ -550,6 +583,10 @@ definitions:
         allOf:
         - $ref: '#/definitions/settings.IncludeIndexFilter'
         description: include files and folders from indexing, if exclude is not set
+      indexAlbumArt:
+        description: check for album art in audio files and remember it for folder
+          previews. Can slow down indexing.
+        type: boolean
       indexingIntervalMinutes:
         description: optional manual overide interval in minutes to re-index the source
         type: integer
@@ -747,6 +784,8 @@ definitions:
       unit:
         type: string
       viewMode:
+        description: 'default view mode for anonymous users: "list", "compact", "normal",
+          "gallery"'
         type: string
     type: object
   share.Link:
@@ -821,6 +860,8 @@ definitions:
       userID:
         type: integer
       viewMode:
+        description: 'default view mode for anonymous users: "list", "compact", "normal",
+          "gallery"'
         type: string
     type: object
   users.AuthToken:
@@ -840,6 +881,8 @@ definitions:
     type: object
   users.FileLoading:
     properties:
+      clearAll:
+        type: boolean
       maxConcurrentUpload:
         type: integer
       uploadChunkSizeMb:
@@ -879,23 +922,26 @@ definitions:
       disableHideSidebar:
         description: disable the hide sidebar preview for previews and editors
         type: boolean
+      folder:
+        description: show thumbnail preview image for folder files
+        type: boolean
       highQuality:
-        description: generate high quality preview images
+        description: generate high quality thumbnail preview images
         type: boolean
       image:
-        description: show real image as icon instead of generic photo icon
+        description: show thumbnail preview image for image files
         type: boolean
       motionVideoPreview:
-        description: show multiple frames for videos in preview when hovering
+        description: show multiple frames for videos in thumbnail preview when hovering
         type: boolean
       office:
-        description: show preview image for office files
+        description: show thumbnail preview image for office files
         type: boolean
       popup:
-        description: show larger popup preview when hovering
+        description: show larger popup preview when hovering over thumbnail
         type: boolean
       video:
-        description: show preview image for video files
+        description: show thumbnail preview image for video files
         type: boolean
     type: object
   users.Sorting:

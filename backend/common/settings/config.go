@@ -69,7 +69,9 @@ func setupFrontend(generate bool) {
 	Config.Frontend.Styling.DarkBackground = FallbackColor(Config.Frontend.Styling.DarkBackground, "#141D24")
 	Config.Frontend.Styling.CustomCSSRaw = readCustomCSS(Config.Frontend.Styling.CustomCSS)
 	Config.Frontend.Styling.CustomThemeOptions = map[string]CustomTheme{}
-	Config.Frontend.Styling.CustomThemes = map[string]CustomTheme{}
+	if Config.Frontend.Styling.CustomThemes == nil {
+		Config.Frontend.Styling.CustomThemes = map[string]CustomTheme{}
+	}
 	for name, theme := range Config.Frontend.Styling.CustomThemes {
 		addCustomTheme(name, theme.Description, theme.CSS)
 	}
@@ -362,7 +364,7 @@ func setDefaults(generate bool) Settings {
 	if database == "" {
 		database = "database.db"
 	}
-	return Settings{
+	s := Settings{
 		Server: Server{
 			Port:               80,
 			NumImageProcessors: numCpus,
@@ -410,6 +412,12 @@ func setDefaults(generate bool) Settings {
 			},
 		},
 	}
+	// set default image preview types
+	s.Integrations.Media.Convert.ImagePreview = make(map[ImagePreviewType]bool)
+	for _, t := range AllImagePreviewTypes {
+		s.Integrations.Media.Convert.ImagePreview[t] = (t == HEICImagePreview) // default is heic
+	}
+	return s
 }
 
 func ConvertToBackendScopes(scopes []users.SourceScope) ([]users.SourceScope, error) {

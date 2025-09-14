@@ -11,6 +11,7 @@ import { defineComponent } from "vue";
 import * as mammoth from "mammoth";
 import { filesApi, publicApi } from "@/api";
 import { state, mutations, getters } from "@/store";
+import { url } from "@/utils";
 
 export default defineComponent({
   name: "DocxViewer",
@@ -19,18 +20,56 @@ export default defineComponent({
       docxHtml: "",
       loading: false,
       error: "",
+      navigationUpdateTimeout: null,
+      lastNavigationUpdatePath: null,
     };
+  },
+  computed: {
+    req() {
+      return state.req;
+    },
   },
   watch: {
     "state.req.path": {
-      handler(newPath, oldPath) {
-        // Added a console log to the watcher to see when it runs
-        console.log(
-          `[DEBUG] Watcher triggered: Path changed from "${oldPath}" to "${newPath}"`
-        );
+      handler() {
         this.loadFile();
       },
       immediate: true,
+    },
+    // Watch for req changes (similar to Preview.vue)
+    req: {
+      handler(newReq) {
+        if (newReq && newReq.path && newReq.name) {
+          // Prevent duplicate navigation updates for the same path
+          if (this.lastNavigationUpdatePath === newReq.path) {
+            return;
+          }
+
+          // Clear any pending navigation update
+          if (this.navigationUpdateTimeout) {
+            clearTimeout(this.navigationUpdateTimeout);
+          }
+
+          this.lastNavigationUpdatePath = newReq.path;
+
+          // Debounce navigation updates to prevent rapid firing
+          this.navigationUpdateTimeout = setTimeout(() => {
+            this.updateNavigationForCurrentItem();
+            this.navigationUpdateTimeout = null;
+          }, 50);
+
+          // Update selected items immediately
+          mutations.resetSelected();
+          mutations.addSelected({
+            name: newReq.name,
+            path: newReq.path,
+            size: newReq.size,
+            type: newReq.type,
+            source: newReq.source,
+          });
+        }
+      },
+      immediate: true
     },
   },
   mounted() {
@@ -43,7 +82,47 @@ export default defineComponent({
       source: state.req.source,
     });
   },
+  beforeUnmount() {
+    // Clean up any pending navigation update
+    if (this.navigationUpdateTimeout) {
+      clearTimeout(this.navigationUpdateTimeout);
+      this.navigationUpdateTimeout = null;
+    }
+  },
   methods: {
+    async updateNavigationForCurrentItem() {
+      if (!state.req || state.req.type === 'directory') {
+        return;
+      }
+
+      // Use same directory path calculation as Preview.vue
+      const directoryPath = url.removeLastDir(state.req.path);
+      let listing = null;
+
+      // Try to get listing from current request first
+      if (state.req.items) {
+        listing = state.req.items;
+      } else {
+        // Fetch the directory listing
+        try {
+          let res;
+          if (getters.isShare()) {
+            res = await publicApi.fetchPub(directoryPath, state.share.hash);
+          } else {
+            res = await filesApi.fetchFiles(state.req.source, directoryPath);
+          }
+          listing = res.items;
+        } catch (error) {
+          listing = [state.req]; // Fallback to current item only
+        }
+      }
+
+      mutations.setupNavigation({
+        listing: listing,
+        currentItem: state.req,
+        directoryPath: directoryPath
+      });
+    },
     async loadFile() {
       try {
         const filename = state.req.name;

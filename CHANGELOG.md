@@ -2,6 +2,42 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.8.5-beta
+
+ **New Features**:
+ - backend media metadata processing
+   - significantly improved performance
+   - album artwork shows in listing view as preview thumbnail Album art thumbnail: display embedded covers of mp3/flac files #925
+   - folders can show album art if enabled with indexing `server.sources.config.indexAlbumArt:true`
+   - removed need for frontend dependancies.
+ - optional thumbnail support for folders -- uses first child item with thumbnail as cover. Useful in combination with album metadata support to show album covers for folders with music.
+ - Remember folder view type (and sorting) for each folder #966
+ - heic is supported in viewer (via ffmpeg conversion) when on non-safari browser. This can be enabled via `integrations.ffmpeg.convert.impagePreview.heic: true` #1191
+ - OnlyOffice: Add option to open documents in viewer mode (`integrations.office.viewOnly`) #1193
+ - Exclude folders and file names 'starting with' or wildcard option #1054
+ - added better info for failed uploads #1050
+ - upload prompt "clear completed" can be changed to "clear all" in uploads & downloads settings to clear error and conflict states as well. #1128
+ - share 'default view mode' option #1212
+ - Universal Next/Previous buttons
+   - available for all listing items (including office/markdown etc)
+   - remembers sort order from parent directory
+   - new "Quick Jump" prompt if you drag the next/previous icons. This shows other files available to "jump" directly to quickly.
+
+ **Notes**:
+ - Added more tests to ensure new features work in future.
+ - caching for preview images is md5 based. Moved, renamed, or duplicate images don't get re-generated. Same album artwork shares cache.
+ - Hide @eaDir folder by default #1212
+ - defaults to hide "@eadir" folders (common for synology) #1212
+ - After move/copy, ability to move to the destination folder #999
+
+ **BugFixes**:
+ - Access Management: issue with access settings #1195
+ - fix shutdown panic related to sse connection
+ - Custom theming not working in 0.8.4 beta #1204
+ - Config Viewer not working #1189
+ - "Path not found" when trying to share a file or folder inside a sub-directory #1139
+ - files containing "+" in share issue #1089
+
 ## v0.8.4-beta
 
  **New Features**:

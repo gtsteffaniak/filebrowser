@@ -1,7 +1,7 @@
 import { removePrefix, buildItemUrl, removeLeadingSlash } from '@/utils/url.js'
 import { getFileExtension } from '@/utils/files.js'
 import { state, mutations } from '@/store'
-import { noAuth, shareInfo } from '@/utils/constants.js'
+import { globalVars, shareInfo, previewViews } from '@/utils/constants.js'
 import { getTypeInfo } from '@/utils/mimetype'
 import { fromNow } from '@/utils/moment'
 import * as i18n from '@/i18n'
@@ -32,9 +32,30 @@ export const getters = {
     }
     return true
   },
+  displayPreference: () => {
+    let source = state.sources.current;
+    if (getters.isShare()) {
+      source = getters.currentHash();
+    }
+    const path = state.route.path;
+    if (state.displayPreferences?.[source]?.[path]) {
+      return state.displayPreferences[source][path];
+    }
+    return null;
+  },
+  viewMode: () => {
+    // If user is anonymous and on a share, check for defaultViewMode override
+    if (getters.isShare() && state.user?.username === 'anonymous' && shareInfo.viewMode) {
+      return shareInfo.viewMode;
+    }
+    return getters.displayPreference()?.viewMode || state.user.viewMode || "normal";
+  },
+  sorting: () => {
+    return getters.displayPreference()?.sorting || state.user.sorting || { by: "name", asc: true };
+  },
   previewType: () => getTypeInfo(state.req.type).simpleType,
   isCardView: () =>
-    (state.user.viewMode == 'gallery' || state.user.viewMode == 'normal') &&
+    (getters.viewMode() == 'gallery' || getters.viewMode() == 'normal') &&
     getters.currentView() == 'listingView',
   currentHash: () => shareInfo.hash,
   isMobile: () => state.isMobile,
@@ -66,7 +87,7 @@ export const getters = {
       }
       mutations.updateCurrentUser({ locale: savedLocale })
     }
-    if (noAuth) {
+    if (globalVars.noAuth) {
       return true
     }
     if (
@@ -150,15 +171,6 @@ export const getters = {
     if (cv == 'onlyOfficeEditor') {
       return false
     }
-    const previewViews = [
-      'preview',
-      'markdownViewer',
-      'epubViewer',
-      'docViewer',
-      'onlyOfficeEditor',
-      'editor'
-    ]
-
     let visible = (state.showSidebar || getters.isStickySidebar())
     if (getters.currentPromptName() && !getters.isStickySidebar()) {
       visible = false

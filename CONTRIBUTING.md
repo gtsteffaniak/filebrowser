@@ -9,14 +9,14 @@ Thank you for your interest in contributing to FileBrowser Quantum! This guide w
 - **Docker** (optional, for containerized development)
 - **Git**
 
-### Required Tools
+### Optional Tools
 
-- **ffmpeg**: Required for video thumbnail generation
+- **ffmpeg**: For media features (subtitles, thumbnails, heic)
   - Ubuntu/Debian: `sudo apt-get install ffmpeg`
   - macOS: `brew install ffmpeg`
   - Windows: Download from [ffmpeg.org](https://ffmpeg.org/download.html)
 
-- **mupdf-tools**: Required for PDF preview generation
+- **mupdf-tools**: For PDF preview generation
   - Ubuntu/Debian: `sudo apt-get install mupdf-tools`
   - macOS: `brew install mupdf-tools`
   - Windows: Download from [mupdf.com](https://mupdf.com/downloads/)

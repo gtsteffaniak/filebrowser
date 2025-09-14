@@ -1,7 +1,6 @@
-import { baseURL } from "@/utils/constants.js";
+import { globalVars, shareInfo } from "@/utils/constants.js";
 import { state, mutations, getters } from "@/store";
 import { router } from "@/router";
-import { shareInfo } from "@/utils/constants.js";
 
 export function removeLastDir(url) {
   var arr = url.split("/");
@@ -60,7 +59,7 @@ export function removePrefix(path, prefix = "") {
   if (prefix != "") {
     prefix = trimSlashes(prefix)
   }
-  // Remove combined (baseURL + prefix) from the start of the path if present
+  // Remove combined (globalVars.baseURL + prefix) from the start of the path if present
   if (path.startsWith(prefix)) {
     path = path.slice(prefix.length);
   }
@@ -78,7 +77,7 @@ export function getApiPath(path, params = {}) {
   if (path.startsWith("/")) {
     path = path.slice(1);
   }
-  path = `${baseURL}${path}`;
+  path = `${globalVars.baseURL}${path}`;
   if (Object.keys(params).length > 0) {
     path += "?";
   }
@@ -185,7 +184,7 @@ export function doubleEncode(str) {
 
 /**
  * Fixes download URLs by replacing everything before /public/api 
- * with the current window.location.origin + baseURL
+ * with the current window.location.origin + globalVars.baseURL
  * @param {string} downloadUrl - The original download URL from backend
  * @returns {string} - The corrected URL using current client origin
  */
@@ -203,7 +202,7 @@ export function fixDownloadURL(downloadUrl) {
   // Extract the part from /public/api onwards
   const publicApiPath = downloadUrl.substring(publicApiIndex);
   
-  // Build the corrected URL using current client origin and baseURL
-  const correctedBaseURL = removeTrailingSlash(baseURL);
+  // Build the corrected URL using current client origin and globalVars.baseURL
+  const correctedBaseURL = removeTrailingSlash(globalVars.baseURL);
   return `${window.location.origin}${correctedBaseURL}${publicApiPath}`;
 }

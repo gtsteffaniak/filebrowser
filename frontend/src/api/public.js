@@ -1,7 +1,7 @@
 import { adjustedData } from "./utils";
 import { notify } from "@/notify";
-import { getApiPath, getPublicApiPath } from "@/utils/url.js";
-import { externalUrl } from "@/utils/constants";
+import { getApiPath, getPublicApiPath, encodedPath } from "@/utils/url.js";
+import { globalVars } from "@/utils/constants";
 import { state } from "@/store";
 
 // ============================================================================
@@ -17,8 +17,9 @@ import { state } from "@/store";
  * @returns {Promise<any>}
  */
 export async function fetchPub(path, hash, password = "", content = false) {
+  path = encodedPath(path);
   const params = {
-    path,
+    path: path,
     hash,
     ...(content && { content: 'true' }),
     ...(state.share.token && { token: state.share.token })
@@ -97,9 +98,9 @@ export function getPreviewURL(path,size="small") {
  * @returns {string}
  */
 export function getShareURL(share) {
-  if (externalUrl) {
+  if (globalVars.externalUrl) {
     const apiPath = getApiPath(`public/share/${share.hash}`)
-    return externalUrl + apiPath;
+    return globalVars.externalUrl + apiPath;
   }
   return window.origin + getApiPath(`public/share/${share.hash}`);
 }

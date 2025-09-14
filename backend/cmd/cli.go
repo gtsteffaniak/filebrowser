@@ -349,11 +349,17 @@ func createConfig(configpath string) {
 }
 
 func generateYaml() {
-	if os.Getenv("FILEBROWSER_GENERATE_CONFIG") != "" {
+	generateConfig := os.Getenv("FILEBROWSER_GENERATE_CONFIG") == "true"
+	devMode := os.Getenv("FILEBROWSER_DEVMODE") == "true"
+	if generateConfig || devMode {
 		logger.Info("Generating config.yaml")
 		settings.GenerateYaml()
+	}
+
+	if generateConfig {
 		os.Exit(0)
 	}
+
 }
 
 func SplitByMultiple(str string) []string {

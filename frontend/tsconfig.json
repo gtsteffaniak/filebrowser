@@ -7,7 +7,11 @@
     "noEmit": true,
     "module": "ESNext",
     "moduleResolution": "Node10",
-    "strict": true,
+    "strict": false,
+    "noImplicitAny": false,
+    "noImplicitThis": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
     "sourceMap": true,
     "noImplicitReturns": true,
     "isolatedModules": true,
@@ -19,8 +23,7 @@
     "paths": {
       "@/*": ["./src/*"]
     },
-    "checkJs": true,
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.vue", "tests-playwright/**/*.ts", "../_docker/src/proxy/frontend/playwright.config.ts"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.vue", "tests-playwright/**/*.ts"],
+  "exclude": ["node_modules", "dist", "../_docker/src/proxy/frontend/playwright.config.ts"]
 }

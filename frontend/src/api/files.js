@@ -2,7 +2,7 @@ import { fetchURL, adjustedData } from './utils'
 import { getApiPath, doubleEncode, getPublicApiPath } from '@/utils/url.js'
 import { mutations } from '@/store'
 import { notify } from '@/notify'
-import { externalUrl } from '@/utils/constants'
+import { globalVars } from '@/utils/constants'
 
 // Notify if errors occur
 export async function fetchFiles(source, path, content = false) {
@@ -229,8 +229,8 @@ export function getDownloadURL(source, path, inline, useExternal) {
       ...(inline && { inline: 'true' })
     }
     const apiPath = getApiPath('api/raw', params)
-    if (externalUrl && useExternal) {
-      return externalUrl + apiPath
+    if (globalVars.externalUrl && useExternal) {
+      return globalVars.externalUrl + apiPath
     }
     return window.origin + apiPath
   } catch (err) {

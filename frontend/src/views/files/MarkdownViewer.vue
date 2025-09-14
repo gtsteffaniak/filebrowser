@@ -193,6 +193,20 @@ export default {
       const div = document.createElement('div');
       div.textContent = text;
       return div.innerHTML;
+    },
+    reinit() {
+      mutations.resetSelected();
+      mutations.addSelected({
+        name: state.req.name,
+        path: state.req.path,
+        size: state.req.size,
+        type: state.req.type,
+        source: state.req.source,
+      });
+      this.setHighlightTheme(getters.isDarkMode());
+      // Set initial content. The `watch` will trigger the first highlight.
+      const fileContent = state.req.content == "empty-file-x6OlSil" ? "" : state.req.content || "";
+      this.content = fileContent;
     }
   },
   watch: {
@@ -204,11 +218,18 @@ export default {
         this.applyHighlighting();
       });
     },
+    // Watch for changes in state.req.content and update local content
+    req() {
+      this.reinit()
+    },
     darkMode() {
       this.setHighlightTheme(getters.isDarkMode());
     }
   },
   computed: {
+    req() {
+      return state.req;
+    },
     darkMode() {
       // This computed property returns the current dark mode state.
       return state.user.darkMode;
@@ -227,18 +248,7 @@ export default {
     },
   },
   mounted() {
-    mutations.resetSelected();
-    mutations.addSelected({
-      name: state.req.name,
-      path: state.req.path,
-      size: state.req.size,
-      type: state.req.type,
-      source: state.req.source,
-    });
-    this.setHighlightTheme(getters.isDarkMode());
-    // Set initial content. The `watch` will trigger the first highlight.
-    const fileContent = state.req.content == "empty-file-x6OlSil" ? "" : state.req.content || "";
-    this.content = fileContent;
+    this.reinit();
   },
   unmounted() {
     // Cleanup logic is correct and remains.
@@ -382,4 +392,12 @@ export default {
 #markedown-viewer .code-content pre code br {
   line-height: 1.45;
 }
+#markedown-viewer .code-content a {
+  color: #3737c9 !important;
+  font-weight: 500 !important;
+}
+#markedown-viewer .code-content a:hover {
+  text-decoration: underline !important;
+}
+
 </style>

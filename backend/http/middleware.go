@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"runtime"
 	"slices"
 	"strings"
@@ -48,7 +49,13 @@ type handleFunc func(w http.ResponseWriter, r *http.Request, data *requestContex
 func withHashFileHelper(fn handleFunc) handleFunc {
 	return withOrWithoutUserHelper(func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
 		hash := r.URL.Query().Get("hash")
-		path := r.URL.Query().Get("path")
+		encodedPath := r.URL.Query().Get("path")
+		// Decode the URL-encoded path - use PathUnescape to preserve + as literal character
+		path, err := url.PathUnescape(encodedPath)
+		if err != nil {
+			return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
+		}
+
 		// Get the file link by hash
 		link, err := store.Share.GetByHash(hash)
 		if err != nil {
@@ -81,7 +88,8 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		}
 		// Get file information with options
 		getContent := r.URL.Query().Get("content") == "true"
-		if link.DisableFileViewer || link.Downloads >= link.DownloadsLimit {
+		reachedDownloadsLimit := link.Downloads >= link.DownloadsLimit && link.DownloadsLimit > 0
+		if link.DisableFileViewer || reachedDownloadsLimit {
 			getContent = false
 		}
 		file, err := FileInfoFasterFunc(iteminfo.FileOptions{
@@ -98,7 +106,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		file.Token = link.Token
 		file.Source = ""
 		file.Hash = link.Hash
-		if !link.EnableOnlyOffice || !link.DisableFileViewer {
+		if !link.EnableOnlyOffice || !link.DisableFileViewer || reachedDownloadsLimit {
 			file.OnlyOfficeId = ""
 		}
 		if getContent && file.Content != "" {

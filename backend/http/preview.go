@@ -48,7 +48,7 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	source := r.URL.Query().Get("source")
 	var err error
 	// decode url encoded source name
-	source, err = url.QueryUnescape(source)
+	source, err = url.PathUnescape(source)
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid source encoding: %v", err)
 	}
@@ -63,9 +63,8 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		Access:   store.Access,
 		Username: d.user.Username,
 		Path:     utils.JoinPathAsUnix(userscope, path),
-		Modify:   d.user.Permissions.Modify,
 		Source:   source,
-		Expand:   true,
+		Content:  true,
 	})
 	if err != nil {
 		return errToStatus(err), err
@@ -98,15 +97,46 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 	if !(previewSize == "large" || previewSize == "original") {
 		previewSize = "small"
 	}
-	if d.fileInfo.Type == "directory" {
-		return http.StatusBadRequest, fmt.Errorf("can't create preview for directory")
+	if d.fileInfo.Type == "directory" && !d.fileInfo.HasPreview {
+		return http.StatusBadRequest, fmt.Errorf("this folder does not have a preview")
 	}
+	if d.fileInfo.Type == "directory" {
+		// get extended file info of first previewable item in directory
+		for _, item := range d.fileInfo.Files {
+			if item.HasPreview {
+				source := d.fileInfo.Source
+				path := utils.JoinPathAsUnix(d.fileInfo.Path, item.Name)
+				if d.share != nil {
+					// Get the actual source name from the share's source mapping
+					sourceInfo, ok := settings.Config.Server.SourceMap[d.share.Source]
+					if !ok {
+						return http.StatusInternalServerError, fmt.Errorf("source not found for share")
+					}
+					source = sourceInfo.Name
+					path = utils.JoinPathAsUnix(d.share.Path, path)
+				}
+				fileInfo, err := files.FileInfoFaster(
+					iteminfo.FileOptions{
+						Path:    path,
+						Source:  source,
+						Content: true,
+					})
+				if err != nil {
+					return http.StatusInternalServerError, err
+				}
+				d.fileInfo = *fileInfo
+				break
+			}
+		}
+	}
+
 	setContentDisposition(w, r, d.fileInfo.Name)
 	isImage := strings.HasPrefix(d.fileInfo.Type, "image")
 	if config.Server.DisableResize && isImage {
 		return rawFileHandler(w, r, d.fileInfo)
 	}
-	if !preview.AvailablePreview(d.fileInfo) {
+
+	if !d.fileInfo.HasPreview {
 		if isImage {
 			return rawFileHandler(w, r, d.fileInfo)
 		}

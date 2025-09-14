@@ -50,7 +50,11 @@
     "showMore": "Arată mai multe",
     "showLess": "Arată mai puțin",
     "openParentFolder": "Deschideți folderul părinte",
-    "selectedCount": "Numărul de elemente selectate pentru a efectua o acțiune"
+    "selectedCount": "Numărul de elemente selectate pentru a efectua o acțiune",
+    "listView": "Vizualizare listă",
+    "compactView": "Vedere compactă",
+    "normalView": "Vizualizare normală",
+    "galleryView": "Vizualizare galerie"
   },
   "download": {
     "downloadFile": "Descarcă fișier",
@@ -188,7 +192,10 @@
     "numberFiles": "Număr de fișiere{suffix}",
     "renameMessageConflict": "Un element numit \"{filename}\" există deja!",
     "uploadSettingsChunked": "Încărcări simultane maxime: {maxConcurrentUpload}, dimensiunea bucăților: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "Încărcări simultane maxime: {maxConcurrentUpload}, încărcare fragmentată dezactivată"
+    "uploadSettingsNoChunk": "Încărcări simultane maxime: {maxConcurrentUpload}, încărcare fragmentată dezactivată",
+    "quickJump": "Salt rapid la alte fișiere",
+    "moveSuccess": "Fișiere mutate cu succes!",
+    "copySuccess": "Fișiere copiate cu succes!"
   },
   "search": {
     "images": "Imagini",
@@ -390,7 +397,9 @@
     "enableOnlyOfficeDescription": "Permiteți vizualizarea fișierelor office utilizând OnlyOffice în această partajare.",
     "enableOnlyOfficeEditing": "Activați editarea OnlyOffice",
     "enableOnlyOfficeEditingDescription": "Permiteți editarea fișierelor de birou utilizând OnlyOffice în această partajare.",
-    "titleDefault": "Fișiere partajate - {title}"
+    "titleDefault": "Fișiere partajate - {title}",
+    "defaultViewMode": "Mod de vizualizare implicit",
+    "defaultViewModeDescription": "Setează modul de vizualizare implicit pentru utilizatorii anonimi care vizualizează această partajare. Utilizatorii conectați își pot schimba în continuare preferințele de vizualizare."
   },
   "api": {
     "title": "Chei API:",
@@ -482,7 +491,9 @@
     "maxConcurrentUpload": "Încărcări simultane maxime",
     "maxConcurrentUploadHelp": "Numărul maxim de încărcări simultane. Valorile mai mari au de obicei performanțe mai bune, dar acest lucru depinde de mai mulți factori.",
     "uploadChunkSizeMb": "Mărimea pachetului de încărcare în MB",
-    "uploadChunkSizeMbHelp": "De obicei între 5 și 50 MB, mai mic este mai bine pentru conexiunile instabile sau restricționate. Setarea la 0 va dezactiva fragmentarea încărcării."
+    "uploadChunkSizeMbHelp": "De obicei între 5 și 50 MB, mai mic este mai bine pentru conexiunile instabile sau restricționate. Setarea la 0 va dezactiva fragmentarea încărcării.",
+    "clearAll": "Clear completed ar trebui să elimine erorile, pauzele și conflictele",
+    "clearAllDescription": "Butonul șterge finalizat va șterge toate încărcările în stare finalizată, inclusiv stările de eroare, pauză și conflict."
   },
   "colors": {
     "red": "roșu",
@@ -547,7 +558,9 @@
     "debugOfficeEditor": "Activați modul de depanare OnlyOffice",
     "debugOfficeEditorDescription": "Afișați o fereastră pop-up de depanare cu informații suplimentare în editorul OnlyOffice.",
     "fileViewerOptions": "Opțiuni vizualizator de fișiere",
-    "themeAndLanguage": "Temă și limbaj"
+    "themeAndLanguage": "Temă și limbaj",
+    "previewFolder": "Afișați miniaturi pentru foldere, dacă sunt disponibile",
+    "previewFolderDescription": "Afișează previzualizări ale miniaturilor pentru folderele cu primul element copil cu miniatură ca copertă."
   },
   "editor": {
     "uninitialized": "Nu s-a reușit inițializarea editorului. Vă rugăm să reîncărcați.",

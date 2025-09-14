@@ -155,15 +155,6 @@
   color: var(--textSecondary);
 }
 
-/* File list item */
-.dark-mode .file-list li:hover {
-  background: var(--surfaceSecondary);
-}
-
-.dark-mode .file-list li:before {
-  color: var(--textSecondary);
-}
-
 /* Shell */
 .dark-mode .shell {
   background: var(--surfacePrimary);

@@ -50,7 +50,11 @@
     "showMore": "顯示更多",
     "showLess": "顯示更少",
     "openParentFolder": "開啟父資料夾",
-    "selectedCount": "選取執行動作的項目數量"
+    "selectedCount": "選取執行動作的項目數量",
+    "listView": "清單檢視",
+    "compactView": "緊湊型視圖",
+    "normalView": "正常檢視",
+    "galleryView": "圖庫瀏覽"
   },
   "download": {
     "downloadFile": "下載檔案",
@@ -188,7 +192,10 @@
     "numberFiles": "檔案數量{suffix}",
     "renameMessageConflict": "名為 \"{filename}\" 的項目已經存在！",
     "uploadSettingsChunked": "最大同時上傳數量：{maxConcurrentUpload}, 分塊大小： {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "最大同時上傳數量：{maxConcurrentUpload}, 已停用分塊上傳"
+    "uploadSettingsNoChunk": "最大同時上傳數量：{maxConcurrentUpload}, 已停用分塊上傳",
+    "quickJump": "快速跳到其他檔案",
+    "moveSuccess": "檔案移動成功！",
+    "copySuccess": "檔案已成功複製！"
   },
   "search": {
     "images": "影像",
@@ -390,7 +397,9 @@
     "enableOnlyOfficeDescription": "允許在此共用中使用 OnlyOffice 檢視辦公室檔案。",
     "enableOnlyOfficeEditing": "啟用 OnlyOffice 編輯",
     "enableOnlyOfficeEditingDescription": "允許在此共用中使用 OnlyOffice 編輯辦公室檔案。",
-    "titleDefault": "共用檔案 -{title}"
+    "titleDefault": "共用檔案 -{title}",
+    "defaultViewMode": "預設檢視模式",
+    "defaultViewModeDescription": "設定匿名使用者檢視此分享的預設檢視模式。登入的使用者仍可變更檢視偏好。"
   },
   "api": {
     "title": "API 金鑰",
@@ -485,7 +494,9 @@
     "debugOfficeEditor": "啟用 OnlyOffice 除錯模式",
     "debugOfficeEditorDescription": "在 OnlyOffice 編輯器中顯示包含其他資訊的除錯彈出式視窗。",
     "fileViewerOptions": "檔案檢視器選項",
-    "themeAndLanguage": "主題與語言"
+    "themeAndLanguage": "主題與語言",
+    "previewFolder": "顯示資料夾的縮圖（若有",
+    "previewFolderDescription": "顯示資料夾的縮圖預覽，第一個子項目以縮圖為封面。"
   },
   "otp": {
     "name": "雙因素驗證",
@@ -503,7 +514,9 @@
     "maxConcurrentUpload": "最大同時上傳數量",
     "maxConcurrentUploadHelp": "最大同時上傳數量。較高的值通常效能較佳，但這取決於許多因素。",
     "uploadChunkSizeMb": "上傳區塊大小（以 MB 為單位",
-    "uploadChunkSizeMbHelp": "通常為 5 到 50 MB，對於不穩定或受限制的連線，越小越好。設定為 0 會停用上傳分塊。"
+    "uploadChunkSizeMbHelp": "通常為 5 到 50 MB，對於不穩定或受限制的連線，越小越好。設定為 0 會停用上傳分塊。",
+    "clearAll": "清除完成應移除錯誤、暫停和衝突",
+    "clearAllDescription": "清除完成按鈕將會清除所有處於完成狀態的上傳，包括錯誤、暫停和衝突狀態。"
   },
   "colors": {
     "red": "紅色",

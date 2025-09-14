@@ -1,10 +1,14 @@
 import * as i18n from "@/i18n";
 import { state } from "./state.js";
+import { getters } from "./getters.js";
 import { emitStateChanged } from './eventBus'; // Import the function from eventBus.js
 import { usersApi } from "@/api";
 import { notify } from "@/notify";
 import { sortedItems } from "@/utils/sort.js";
 import { serverHasMultipleSources } from "@/utils/constants.js";
+import { url } from "@/utils";
+import { getTypeInfo } from "@/utils/mimetype";
+import { filesApi } from "@/api";
 
 export const mutations = {
   setPreviousHistoryItem: (value) => {
@@ -241,7 +245,7 @@ export const mutations = {
         emitStateChanged();
         return;
       }
-      if (value.username != "anonymous") {
+      if (value.username !== "anonymous") {
         mutations.setSources(value);
       }
       // Ensure locale exists and is valid
@@ -251,8 +255,14 @@ export const mutations = {
         i18n.setLocale(value.locale);
       }
       state.user = value;
+      state.user.sorting = {};
       state.user.sorting.by = "name";
       state.user.sorting.asc = true;
+
+      // Load display preferences for the current user
+      const allPreferences = JSON.parse(localStorage.getItem("displayPreferences") || "{}");
+      state.displayPreferences = allPreferences[state.user.username] || {};
+
     } catch (error) {
       console.log(error);
     }
@@ -377,8 +387,9 @@ export const mutations = {
     }
     let sortby = "name"
     let asc = true
-    sortby = state.user.sorting.by;
-    asc = state.user.sorting.asc;
+    const sorting = getters.sorting();
+    sortby = sorting.by;
+    asc = sorting.asc;
     // Separate directories and files
     const dirs = value.items.filter((item) => item.type === 'directory');
     const files = value.items.filter((item) => item.type !== 'directory');
@@ -404,8 +415,7 @@ export const mutations = {
     if (!state.user.sorting) {
       state.user.sorting = {};
     }
-    state.user.sorting.by = field;
-    state.user.sorting.asc = asc;
+    mutations.updateDisplayPreferences({ sorting: { by: field, asc: asc } });
     emitStateChanged();
   },
   updateListingItems: () => {
@@ -459,6 +469,176 @@ export const mutations = {
       state.user.fileLoading = {};
     }
     state.user.fileLoading.maxConcurrentUpload = value;
+    emitStateChanged();
+  },
+  updateViewModeHistory: ({ source, path, viewMode }) => {
+    if (!source || !path) return;
+    if (!state.viewModeHistory) {
+      state.viewModeHistory = {};
+    }
+    if (!state.viewModeHistory[source]) {
+      state.viewModeHistory[source] = {};
+    }
+    state.viewModeHistory[source][path] = viewMode;
+    localStorage.setItem("viewModeHistory", JSON.stringify(state.viewModeHistory));
+    emitStateChanged();
+  },
+  updateDisplayPreferences: (payload) => {
+    let source = state.sources.current;
+    if (getters.isShare()) {
+      source = getters.currentHash();
+    }
+    const path = state.route.path;
+
+    if (!source || !path) return;
+    if (!state.displayPreferences) {
+      state.displayPreferences = {};
+    }
+    if (!state.displayPreferences[source]) {
+      state.displayPreferences[source] = {};
+    }
+    if (!state.displayPreferences[source][path]) {
+      state.displayPreferences[source][path] = {};
+    }
+
+    state.displayPreferences[source][path] = {
+      ...state.displayPreferences[source][path],
+      ...payload,
+    };
+
+    const allPreferences = JSON.parse(localStorage.getItem("displayPreferences") || "{}");
+    if (!allPreferences[state.user.username]) {
+      allPreferences[state.user.username] = {};
+    }
+    allPreferences[state.user.username] = state.displayPreferences;
+    localStorage.setItem("displayPreferences", JSON.stringify(allPreferences));
+
+    emitStateChanged();
+  },
+  setNavigationEnabled: (enabled) => {
+    if (state.navigation.enabled === enabled) {
+      return;
+    }
+    state.navigation.enabled = enabled;
+    if (!enabled) {
+      mutations.clearNavigation();
+    }
+    emitStateChanged();
+  },
+  setupNavigation: ({ listing, currentItem, directoryPath }) => {
+    state.navigation.listing = listing;
+    state.navigation.currentIndex = -1;
+    state.navigation.previousItem = null;
+    state.navigation.nextItem = null;
+    state.navigation.previousLink = "";
+    state.navigation.nextLink = "";
+    state.navigation.previousRaw = "";
+    state.navigation.nextRaw = "";
+
+    if (!listing || !currentItem) {
+      emitStateChanged();
+      return;
+    }
+
+    // Find current item index in the listing
+    for (let i = 0; i < listing.length; i++) {
+      if (listing[i].name === currentItem.name) {
+        state.navigation.currentIndex = i;
+        break;
+      }
+    }
+
+    if (state.navigation.currentIndex === -1) {
+      emitStateChanged();
+      return;
+    }
+
+    // Find previous item (skip directories)
+    for (let j = state.navigation.currentIndex - 1; j >= 0; j--) {
+      let item = listing[j];
+      if (item.type === 'directory') continue;
+
+      item.path = directoryPath + "/" + item.name;
+      state.navigation.previousItem = item;
+      state.navigation.previousLink = url.buildItemUrl(item.source, item.path);
+
+      if (getTypeInfo(item.type).simpleType === "image") {
+        state.navigation.previousRaw = mutations.getPrefetchUrl(item);
+      }
+      break;
+    }
+
+    // Find next item (skip directories)
+    for (let j = state.navigation.currentIndex + 1; j < listing.length; j++) {
+      let item = listing[j];
+      if (item.type === 'directory') continue;
+
+      item.path = directoryPath + "/" + item.name;
+      state.navigation.nextItem = item;
+      state.navigation.nextLink = url.buildItemUrl(item.source, item.path);
+
+      if (getTypeInfo(item.type).simpleType === "image") {
+        state.navigation.nextRaw = mutations.getPrefetchUrl(item);
+      }
+      break;
+    }
+
+    emitStateChanged();
+    
+    // Auto-show navigation when it's first set up
+    if (state.navigation.enabled && (state.navigation.previousLink || state.navigation.nextLink)) {
+      mutations.setNavigationShow(true);
+      setTimeout(() => {
+        if (!state.navigation.hoverNav) {
+          mutations.setNavigationShow(false);
+        }
+      }, 3000);
+    }
+  },
+  getPrefetchUrl: (item) => {
+    if (getters.isShare()) {
+      return filesApi.getDownloadURL(state.req.source, item.path, true);
+    }
+    return filesApi.getDownloadURL(state.req.source, item.path, true);
+  },
+  setNavigationShow: (show) => {
+    if (state.navigation.show === show) {
+      return;
+    }
+    state.navigation.show = show;
+    emitStateChanged();
+  },
+  setNavigationHover: (hover) => {
+    if (state.navigation.hoverNav === hover) {
+      return;
+    }
+    state.navigation.hoverNav = hover;
+    emitStateChanged();
+  },
+  setNavigationTimeout: (timeout) => {
+    if (state.navigation.timeout) {
+      clearTimeout(state.navigation.timeout);
+    }
+    state.navigation.timeout = timeout;
+  },
+  clearNavigationTimeout: () => {
+    if (state.navigation.timeout) {
+      clearTimeout(state.navigation.timeout);
+      state.navigation.timeout = null;
+    }
+  },
+  clearNavigation: () => {
+    state.navigation.show = false;
+    state.navigation.hoverNav = false;
+    state.navigation.listing = null;
+    state.navigation.currentIndex = -1;
+    state.navigation.previousItem = null;
+    state.navigation.nextItem = null;
+    state.navigation.previousLink = "";
+    state.navigation.nextLink = "";
+    state.navigation.previousRaw = "";
+    state.navigation.nextRaw = "";
+    mutations.clearNavigationTimeout();
     emitStateChanged();
   },
 };

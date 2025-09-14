@@ -50,7 +50,11 @@
     "showMore": "Afficher plus",
     "showLess": "Montrer moins",
     "openParentFolder": "Ouvrir le dossier parent",
-    "selectedCount": "Nombre d'éléments sélectionnés pour effectuer une action"
+    "selectedCount": "Nombre d'éléments sélectionnés pour effectuer une action",
+    "listView": "Vue de la liste",
+    "compactView": "Vue compacte",
+    "normalView": "Vue normale",
+    "galleryView": "Vue de la galerie"
   },
   "download": {
     "downloadFile": "Télécharger le fichier",
@@ -188,7 +192,10 @@
     "numberFiles": "Nombre de fichiers{suffix}",
     "renameMessageConflict": "Un article nommé \"{filename}\" existe déjà !",
     "uploadSettingsChunked": "Nombre maximum de téléchargements simultanés : {maxConcurrentUpload}, taille de chunk : {uploadChunkSizeMb} MO",
-    "uploadSettingsNoChunk": "Nombre maximum de téléchargements simultanés : {maxConcurrentUpload}, chunked upload désactivé"
+    "uploadSettingsNoChunk": "Nombre maximum de téléchargements simultanés : {maxConcurrentUpload}, chunked upload désactivé",
+    "quickJump": "Passer rapidement à d'autres fichiers",
+    "moveSuccess": "Les fichiers ont été déplacés avec succès !",
+    "copySuccess": "Les fichiers ont été copiés avec succès !"
   },
   "search": {
     "images": "Images",
@@ -390,7 +397,9 @@
     "enableOnlyOfficeDescription": "Autoriser la visualisation de fichiers bureautiques en utilisant OnlyOffice dans ce partage.",
     "enableOnlyOfficeEditing": "Activer l'édition OnlyOffice",
     "enableOnlyOfficeEditingDescription": "Autoriser l'édition de fichiers bureautiques en utilisant OnlyOffice dans ce partage.",
-    "titleDefault": "Fichiers partagés - {title}"
+    "titleDefault": "Fichiers partagés - {title}",
+    "defaultViewMode": "Mode d'affichage par défaut",
+    "defaultViewModeDescription": "Définit le mode d'affichage par défaut pour les utilisateurs anonymes qui consultent ce partage. Les utilisateurs connectés peuvent toujours modifier leurs préférences d'affichage."
   },
   "api": {
     "title": "Clés API :",
@@ -482,7 +491,9 @@
     "maxConcurrentUpload": "Nombre maximum de téléchargements simultanés",
     "maxConcurrentUploadHelp": "Nombre maximal de téléchargements simultanés. Des valeurs plus élevées sont généralement plus performantes, mais cela dépend de nombreux facteurs.",
     "uploadChunkSizeMb": "Taille de la zone de téléchargement en Mo",
-    "uploadChunkSizeMbHelp": "Généralement de 5 à 50 Mo, une taille inférieure est préférable pour les connexions instables ou restreintes. La valeur 0 désactive le fractionnement de l'upload."
+    "uploadChunkSizeMbHelp": "Généralement de 5 à 50 Mo, une taille inférieure est préférable pour les connexions instables ou restreintes. La valeur 0 désactive le fractionnement de l'upload.",
+    "clearAll": "Clear completed devrait supprimer les erreurs, les pauses et les conflits.",
+    "clearAllDescription": "Le bouton \"Effacer les téléchargements terminés\" efface tous les téléchargements terminés, y compris les erreurs, les pauses et les conflits."
   },
   "colors": {
     "red": "rouge",
@@ -547,7 +558,9 @@
     "debugOfficeEditor": "Activer le mode de débogage d'OnlyOffice",
     "debugOfficeEditorDescription": "Afficher une fenêtre de débogage avec des informations supplémentaires dans l'éditeur OnlyOffice.",
     "fileViewerOptions": "Options de visualisation des fichiers",
-    "themeAndLanguage": "Thème et langue"
+    "themeAndLanguage": "Thème et langue",
+    "previewFolder": "Afficher les vignettes des dossiers si elles sont disponibles",
+    "previewFolderDescription": "Afficher des aperçus de vignettes pour les dossiers dont le premier élément enfant a une vignette comme couverture."
   },
   "editor": {
     "uninitialized": "Échec de l'initialisation de l'éditeur. Veuillez recharger.",
