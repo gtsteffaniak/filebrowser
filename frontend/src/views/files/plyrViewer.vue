@@ -5,7 +5,15 @@
             <div class="audio-player-content">
 
                 <!-- Album art with a generic icon if no image/metadata -->
-                <div class="album-art-container" :class="{ 'no-artwork': !albumArtUrl }">
+                <div class="album-art-container"
+                     :class="{ 'no-artwork': !albumArtUrl }"
+                     :style="{
+                         maxHeight: albumArtSize + 'em',
+                         maxWidth: albumArtSize + 'em'
+                     }"
+                     @mouseenter="onAlbumArtHover"
+                     @mouseleave="onAlbumArtLeave"
+                     @wheel="onAlbumArtScroll">
                     <img v-if="albumArtUrl" :src="albumArtUrl" :alt="audioMetadata.album || 'Album art'"
                         class="album-art" />
                     <div v-else class="album-art-fallback">
@@ -116,6 +124,8 @@ export default {
             albumArtUrl: null,
             albumArt: null,
             metadataId: 0,
+            albumArtSize: 25, // Default size in em
+            isHovering: false, // Track hover state
             // Plyr options
             plyrOptions: {
                 controls: [
@@ -227,12 +237,13 @@ export default {
                                 : this.$refs.defaultAudioPlayer;
 
                         if (playerRef) {
+                            // Ensure player is not muted before attempting autoplay
+                            playerRef.muted = false;
                             const playPromise = playerRef.play();
                             if (playPromise !== undefined) {
                                 playPromise.catch((error) => {
                                     console.log("autoplay failed", error);
-                                    playerRef.muted = true;
-                                    playerRef.play();
+                                    // Don't force muted playback - let user manually start
                                 });
                             }
                         }
@@ -244,12 +255,13 @@ export default {
                                 : this.$refs.audioPlayer;
 
                         if (playerRef && playerRef.player) {
+                            // Ensure player is not muted before attempting autoplay
+                            playerRef.player.muted = false;
                             const playPromise = playerRef.player.play();
                             if (playPromise !== undefined) {
                                 playPromise.catch((error) => {
                                     console.log("autoplay failed", error);
-                                    playerRef.player.muted = true;
-                                    playerRef.player.play();
+                                    // Don't force muted playback - let user manually start
                                 });
                             }
                         }
@@ -269,6 +281,24 @@ export default {
             if (this.previewType === "audio") {
                 this.loadAudioMetadata();
             }
+        },
+        // Album art hover and scroll handlers
+        onAlbumArtHover() {
+            this.isHovering = true;
+        },
+        onAlbumArtLeave() {
+            this.isHovering = false;
+        },
+        onAlbumArtScroll(event) {
+            if (!this.isHovering) return;
+
+            event.preventDefault();
+
+            const scrollDelta = event.deltaY > 0 ? -5 : 5; // Scroll down decreases, scroll up increases
+            const newSize = this.albumArtSize + scrollDelta;
+
+            // Apply size constraints (minimum 10em, maximum 50em)
+            this.albumArtSize = Math.max(10, Math.min(50, newSize));
         },
         // Load metadata from the backend response
         async loadAudioMetadata() {
@@ -557,11 +587,11 @@ button:hover,
 .album-art-container {
     height: 100%;
     width: 100%;
-    max-height: 25em;
-    max-width: 25em;
     border-radius: 1em;
     overflow: hidden;
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+    transition: max-height 0.3s ease, max-width 0.3s ease;
+    cursor: pointer;
 }
 
 .album-art {
