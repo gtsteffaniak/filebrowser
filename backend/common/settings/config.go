@@ -562,10 +562,10 @@ func loadCustomFavicon() {
 	// Validate file format based on extension
 	ext := strings.ToLower(filepath.Ext(faviconPath))
 	switch ext {
-	case ".ico", ".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp":
+	case ".ico", ".png", ".svg":
 		// Valid favicon formats
 	default:
-		logger.Warningf("Unsupported favicon format '%v', supported formats: .ico, .png, .jpg, .gif, .svg, .webp", ext)
+		logger.Warningf("Unsupported favicon format '%v', supported formats: .ico, .png, .svg", ext)
 		Config.Frontend.Favicon = "" // Unset invalid path
 		return
 	}

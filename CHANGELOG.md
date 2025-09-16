@@ -8,7 +8,8 @@ All notable changes to this project will be documented in this file. For commit 
  - Please remove `indexAbumArt` config option from your config: it has been deprecated... I found a way to detect album art without impacting indexing performance -- so its default behavior.
 
  **BugFixes**:
- - Copy/Move index update changes to be more thorough and update album artwork #1220
+ - Copy/Move index update changes to be more thorough and update album artwork #1220 #1219
+ - fix preview related issues #1225 #1223
 
 ## v0.8.5-beta
 
