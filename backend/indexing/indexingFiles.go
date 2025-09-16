@@ -372,6 +372,16 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 			}
 
 			itemInfo.Size = int64(size)
+
+			// Set HasPreview before appending to fileInfos
+			// these don't create preview for parent folders
+			if settings.Config.Integrations.OnlyOffice.Secret != "" && iteminfo.IsOnlyOffice(file.Name()) {
+				itemInfo.HasPreview = true
+			}
+			if iteminfo.HasDocConvertableExtension(itemInfo.Name, itemInfo.Type) {
+				itemInfo.HasPreview = true
+			}
+
 			fileInfos = append(fileInfos, *itemInfo)
 			if shouldCountSize {
 				totalSize += itemInfo.Size
@@ -381,13 +391,6 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 			}
 			if itemInfo.HasPreview {
 				hasPreview = true
-			}
-			// these don't create preview for parent folders
-			if settings.Config.Integrations.OnlyOffice.Secret != "" && iteminfo.IsOnlyOffice(file.Name()) {
-				itemInfo.HasPreview = true
-			}
-			if iteminfo.HasDocConvertableExtension(itemInfo.Name, itemInfo.Type) {
-				itemInfo.HasPreview = true
 			}
 		}
 	}

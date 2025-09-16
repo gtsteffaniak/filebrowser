@@ -53,6 +53,15 @@ var MuPdfConvertable = map[string]bool{
 	".md":   true, // Markdown
 }
 
+var ResizableImageTypes = map[string]bool{
+	".jpg":   true,
+	".jpeg":  true,
+	".png":   true,
+	".gif":   true,
+	".bmp":   true,
+	".other": false,
+}
+
 // Known bundle-style extensions that are technically directories but treated as files
 var BundleExtensions = []string{
 	".app",       // macOS application bundle
