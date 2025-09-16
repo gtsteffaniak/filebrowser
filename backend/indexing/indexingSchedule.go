@@ -55,12 +55,26 @@ func (idx *Index) PreScan() {
 
 func (idx *Index) PostScan() {
 	idx.mu.Lock()
+	idx.garbageCollection()
 	idx.hasIndex = true
 	idx.runningScannerCount--
 	idx.mu.Unlock()
 	if idx.runningScannerCount == 0 {
 		idx.SetStatus(READY)
 	}
+}
+
+func (idx *Index) garbageCollection() {
+	for path := range idx.Directories {
+		_, ok := idx.DirectoriesLedger[path]
+		if !ok {
+			idx.Directories[path] = nil
+			delete(idx.Directories, path)
+			idx.NumDeleted++
+		}
+	}
+	// Reset the ledger for the next scan.
+	idx.DirectoriesLedger = make(map[string]struct{})
 }
 
 func (idx *Index) UpdateSchedule() {
@@ -134,7 +148,12 @@ func (idx *Index) RunIndexing(origin string, quick bool) {
 	startTime := time.Now()
 	idx.FilesChangedDuringIndexing = false
 	// Perform the indexing operation
-	err := idx.indexDirectory("/", quick, true)
+	config := &actionConfig{
+		Quick:     quick,
+		Recursive: true,
+		CheckSkip: true,
+	}
+	err := idx.indexDirectory("/", config)
 	if err != nil {
 		logger.Errorf("Error during indexing: %v", err)
 	}

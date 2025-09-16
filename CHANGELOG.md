@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.8.6-beta
+
+ **Notes**:
+ - Please remove `indexAbumArt` config option from your config: it has been deprecated... I found a way to detect album art without impacting indexing performance -- so its default behavior.
+
+ **BugFixes**:
+ - Copy/Move index update changes to be more thorough and update album artwork #1220
+
 ## v0.8.5-beta
 
  **New Features**:

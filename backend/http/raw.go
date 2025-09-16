@@ -15,6 +15,7 @@ import (
 	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
+	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
@@ -160,7 +161,7 @@ func addFile(path string, d *requestContext, tarWriter *tar.Writer, zipWriter *z
 				if tarWriter != nil {
 					header := &tar.Header{
 						Name:     relPath + "/",
-						Mode:     0755,
+						Mode:     fileutils.PermDir,
 						Typeflag: tar.TypeDir,
 						ModTime:  fileInfo.ModTime(),
 					}

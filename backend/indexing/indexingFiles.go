@@ -20,6 +20,22 @@ import (
 
 var RealPathCache = cache.NewCache(48*time.Hour, 72*time.Hour)
 
+// actionConfig holds all configuration options for indexing operations
+type actionConfig struct {
+	Quick     bool // whether to perform a quick scan (skip unchanged directories)
+	Recursive bool // whether to recursively index subdirectories
+	CheckSkip bool // whether to check if items should be skipped based on exclusion rules
+}
+
+// NewactionConfig creates a new actionConfig with common presets
+func NewactionConfig() *actionConfig {
+	return &actionConfig{
+		Quick:     false,
+		Recursive: true,
+		CheckSkip: true,
+	}
+}
+
 // reduced index is json exposed to the client
 type ReducedIndex struct {
 	IdxName         string      `json:"name"`
@@ -50,7 +66,6 @@ type Index struct {
 	FoundHardLinks             map[string]uint64   `json:"-"` // hardlink path -> size
 	processedInodes            map[uint64]struct{} `json:"-"`
 	totalSize                  uint64              `json:"-"`
-	gcStopChan                 chan struct{}       `json:"-"` // channel to stop garbage collection routine
 }
 
 var (
@@ -101,8 +116,13 @@ func Initialize(source settings.Source, mock bool) {
 	}
 }
 
+// indexDirectoryWithOptions wraps indexDirectory with actionConfig
+func (idx *Index) indexDirectoryWithOptions(adjustedPath string, config *actionConfig) error {
+	return idx.indexDirectory(adjustedPath, config)
+}
+
 // Define a function to recursively index files and directories
-func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) error {
+func (idx *Index) indexDirectory(adjustedPath string, config *actionConfig) error {
 	realPath := strings.TrimRight(idx.Path, "/") + adjustedPath
 	// Open the directory
 	dir, err := os.Open(realPath)
@@ -124,7 +144,7 @@ func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) err
 	}
 
 	// if indexing, mark the directory as valid and indexed.
-	if recursive {
+	if config.Recursive {
 		// Prevent race conditions if scanning becomes concurrent in the future.
 		idx.mu.Lock()
 		idx.DirectoriesLedger[adjustedPath] = struct{}{}
@@ -147,14 +167,19 @@ func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) err
 
 	// If the directory has not been modified since the last index, skip expensive readdir
 	// recursively check cached dirs for mod time changes as well
-	if recursive {
+	if config.Recursive {
 		if modChange {
 			idx.mu.Lock()
 			idx.FilesChangedDuringIndexing = true
 			idx.mu.Unlock()
-		} else if quick {
+		} else if config.Quick {
 			for _, item := range cacheDirItems {
-				err = idx.indexDirectory(combinedPath+item.Name, quick, true)
+				subConfig := &actionConfig{
+					Quick:     config.Quick,
+					Recursive: true,
+					CheckSkip: config.CheckSkip,
+				}
+				err = idx.indexDirectory(combinedPath+item.Name, subConfig)
 				if err != nil && err != errors.ErrNotIndexed {
 					logger.Errorf("error indexing directory %v : %v", combinedPath+item.Name, err)
 				}
@@ -162,7 +187,7 @@ func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) err
 			return nil
 		}
 	}
-	dirFileInfo, err2 := idx.GetDirInfo(dir, dirInfo, realPath, adjustedPath, combinedPath, quick, recursive, true)
+	dirFileInfo, err2 := idx.GetDirInfo(dir, dirInfo, realPath, adjustedPath, combinedPath, config)
 	if err2 != nil {
 		return err2
 	}
@@ -206,7 +231,11 @@ func (idx *Index) GetFsDirInfo(adjustedPath string) (*iteminfo.FileInfo, error) 
 		combinedPath = "/"
 	}
 	var response *iteminfo.FileInfo
-	response, err = idx.GetDirInfo(dir, dirInfo, realPath, adjustedPath, combinedPath, false, false, false)
+	response, err = idx.GetDirInfo(dir, dirInfo, realPath, adjustedPath, combinedPath, &actionConfig{
+		Quick:     false,
+		Recursive: false,
+		CheckSkip: false,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -233,7 +262,7 @@ func (idx *Index) GetFsDirInfo(adjustedPath string) (*iteminfo.FileInfo, error) 
 
 }
 
-func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjustedPath, combinedPath string, quick, recursive, checkSkip bool) (*iteminfo.FileInfo, error) {
+func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjustedPath, combinedPath string, config *actionConfig) (*iteminfo.FileInfo, error) {
 	// Read directory contents
 	files, err := dirInfo.Readdir(-1)
 	if err != nil {
@@ -243,7 +272,7 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 	fileInfos := []iteminfo.ItemInfo{}
 	dirInfos := []iteminfo.ItemInfo{}
 	hasPreview := false
-	if !recursive {
+	if !config.Recursive {
 		realDirInfo, exists := idx.GetMetadataInfo(adjustedPath, true)
 		if exists {
 			hasPreview = realDirInfo.HasPreview
@@ -261,7 +290,7 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 				continue
 			}
 		}
-		if checkSkip && idx.shouldSkip(isDir, hidden, fullCombined, baseName) {
+		if config.CheckSkip && idx.shouldSkip(isDir, hidden, fullCombined, baseName) {
 			continue
 		}
 		itemInfo := &iteminfo.ItemInfo{
@@ -272,7 +301,7 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 
 		if isDir {
 			dirPath := combinedPath + file.Name()
-			if idx.hasIndex && recursive && len(idx.Config.NeverWatchPaths) > 0 {
+			if idx.hasIndex && config.Recursive && len(idx.Config.NeverWatchPaths) > 0 {
 				if slices.Contains(idx.Config.NeverWatchPaths, fullCombined) {
 					realDirInfo, exists := idx.GetMetadataInfo(dirPath, true)
 					if exists {
@@ -286,11 +315,11 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 				continue
 			}
 
-			if recursive {
+			if config.Recursive {
 				// clear for garbage collection
 				file = nil
 				// Recursively index the subdirectory
-				err = idx.indexDirectory(dirPath, quick, recursive)
+				err = idx.indexDirectory(dirPath, config)
 				if err != nil {
 					logger.Errorf("Failed to index directory %s: %v", dirPath, err)
 					continue
@@ -304,7 +333,7 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 			totalSize += itemInfo.Size
 			itemInfo.Type = "directory"
 			dirInfos = append(dirInfos, *itemInfo)
-			if recursive {
+			if config.Recursive {
 				idx.NumDirs++
 			}
 		} else {
@@ -312,14 +341,22 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 			itemInfo.DetectType(realPath+"/"+file.Name(), false)
 			simpleType := strings.Split(itemInfo.Type, "/")[0]
 			if simpleType == "audio" {
-				if recursive && !quick {
-					itemInfo.HasPreview = iteminfo.HasAlbumArt(realPath+"/"+file.Name(), filepath.Ext(file.Name()))
+				// Check if this file is new or changed by comparing with previous metadata
+				shouldCheckAlbumArt := false
+				previousInfo, exists := idx.GetReducedMetadata(fullCombined, false)
+				if !exists {
+					// File is new - check album art
+					shouldCheckAlbumArt = true
+				} else if previousInfo.ModTime != file.ModTime() {
+					// File has been modified - check album art
+					shouldCheckAlbumArt = true
+				} else {
+					// File unchanged - use cached album art info
+					itemInfo.HasPreview = previousInfo.HasPreview
 				}
-				if !recursive && !itemInfo.HasPreview {
-					info, exists := idx.GetReducedMetadata(fullCombined, false)
-					if exists {
-						itemInfo.HasPreview = info.HasPreview
-					}
+
+				if shouldCheckAlbumArt {
+					itemInfo.HasPreview = iteminfo.HasAlbumArt(realPath+"/"+file.Name(), filepath.Ext(file.Name()))
 				}
 			}
 			ext := strings.ToLower(filepath.Ext(file.Name()))
@@ -343,7 +380,7 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 			if shouldCountSize {
 				totalSize += itemInfo.Size
 			}
-			if recursive {
+			if config.Recursive {
 				idx.NumFiles++
 			}
 			if itemInfo.HasPreview {
@@ -443,29 +480,33 @@ func (idx *Index) GetRealPath(relativePath ...string) (string, bool, error) {
 }
 
 func (idx *Index) RefreshFileInfo(opts iteminfo.FileOptions) error {
-	refreshOptions := iteminfo.FileOptions{
-		Path:  opts.Path,
-		IsDir: opts.IsDir,
+	config := &actionConfig{
+		Quick:     false,
+		Recursive: opts.Recursive,
+		CheckSkip: true,
 	}
-	if !refreshOptions.IsDir {
-		refreshOptions.Path = idx.MakeIndexPath(filepath.Dir(refreshOptions.Path))
-		refreshOptions.IsDir = true
+
+	targetPath := opts.Path
+	if !opts.IsDir {
+		targetPath = idx.MakeIndexPath(filepath.Dir(targetPath))
 	}
-	err := idx.indexDirectory(refreshOptions.Path, false, false)
+
+	// Use the recursive flag from options - false for quick scan, true for recursive
+	err := idx.indexDirectoryWithOptions(targetPath, config)
 	if err != nil {
 		return err
 	}
-	file, exists := idx.GetMetadataInfo(refreshOptions.Path, true)
+	file, exists := idx.GetMetadataInfo(targetPath, true)
 	if !exists {
-		return fmt.Errorf("file/folder does not exist in metadata: %s", refreshOptions.Path)
+		return fmt.Errorf("file/folder does not exist in metadata: %s", targetPath)
 	}
 
-	current, firstExisted := idx.GetMetadataInfo(refreshOptions.Path, true)
+	current, firstExisted := idx.GetMetadataInfo(targetPath, true)
 	refreshParentInfo := firstExisted && current.Size != file.Size
 	//utils.PrintStructFields(*file)
 	result := idx.UpdateMetadata(file)
 	if !result {
-		return fmt.Errorf("file/folder does not exist in metadata: %s", refreshOptions.Path)
+		return fmt.Errorf("file/folder does not exist in metadata: %s", targetPath)
 	}
 	if !exists {
 		return nil

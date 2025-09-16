@@ -284,12 +284,12 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 
 		// Use a temporary file in the cache directory for chunks.
 		// Create a unique name for the temporary file to avoid collisions.
-		hasher := md5.New() //nolint:gosec
+		hasher := md5.New()
 		hasher.Write([]byte(realPath))
 		uploadID := hex.EncodeToString(hasher.Sum(nil))
 		tempFilePath := filepath.Join(settings.Config.Server.CacheDir, "uploads", uploadID)
 
-		if err = os.MkdirAll(filepath.Dir(tempFilePath), 0755); err != nil {
+		if err = os.MkdirAll(filepath.Dir(tempFilePath), fileutils.PermDir); err != nil {
 			logger.Debugf("could not create temp dir: %v", err)
 			return http.StatusInternalServerError, fmt.Errorf("could not create temp dir: %v", err)
 		}
@@ -326,7 +326,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 				logger.Debugf("could not move temp file to destination: %v", err)
 				return http.StatusInternalServerError, fmt.Errorf("could not move temp file to destination: %v", err)
 			}
-			go files.RefreshIndex(source, realPath, false) //nolint:errcheck
+			go files.RefreshIndex(source, realPath, false, false) //nolint:errcheck
 		}
 
 		return http.StatusOK, nil

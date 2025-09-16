@@ -176,8 +176,8 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	var expire int64 = 0
 
 	if body.Expires != "" {
-		//nolint:govet
-		num, err := strconv.Atoi(body.Expires)
+		var num int
+		num, err = strconv.Atoi(body.Expires)
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}
@@ -204,7 +204,7 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	stringHash := ""
 	var token string
 	if len(hash) > 0 {
-		tokenBuffer := make([]byte, 24) //nolint:gomnd
+		tokenBuffer := make([]byte, 24)
 		if _, err = rand.Read(tokenBuffer); err != nil {
 			return http.StatusInternalServerError, err
 		}
