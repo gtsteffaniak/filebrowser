@@ -183,8 +183,9 @@ export function doubleEncode(str) {
 }
 
 /**
- * Fixes download URLs by replacing everything before /public/api 
+ * Fixes download URLs by replacing everything before /public/api
  * with the current window.location.origin + globalVars.baseURL
+ * This is only needed when the backend didn't use externalUrl
  * @param {string} downloadUrl - The original download URL from backend
  * @returns {string} - The corrected URL using current client origin
  */
@@ -198,10 +199,10 @@ export function fixDownloadURL(downloadUrl) {
     // If /public/api is not found, return the original URL
     return downloadUrl;
   }
-  
+
   // Extract the part from /public/api onwards
   const publicApiPath = downloadUrl.substring(publicApiIndex);
-  
+
   // Build the corrected URL using current client origin and globalVars.baseURL
   const correctedBaseURL = removeTrailingSlash(globalVars.baseURL);
   return `${window.location.origin}${correctedBaseURL}${publicApiPath}`;

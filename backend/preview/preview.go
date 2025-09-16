@@ -114,6 +114,11 @@ func GetPreviewForFile(file iteminfo.ExtendedFileInfo, previewSize, url string, 
 		if err != nil {
 			return nil, fmt.Errorf("failed to get checksum: %w", err)
 		}
+		// Ensure the file.Checksums map is initialized and MD5 is set
+		if file.Checksums == nil {
+			file.Checksums = make(map[string]string)
+		}
+		file.Checksums["md5"] = thisMd5
 	}
 	cacheKey := CacheKey(thisMd5, previewSize, seekPercentage)
 	if data, found, err := service.fileCache.Load(context.Background(), cacheKey); err != nil {
@@ -206,7 +211,7 @@ func GeneratePreview(file iteminfo.ExtendedFileInfo, previewSize, officeUrl stri
 	} else {
 		cacheKey := CacheKey(file.Checksums["md5"], previewSize, seekPercentage)
 		if err := service.fileCache.Store(context.Background(), cacheKey, imageBytes); err != nil {
-			logger.Errorf("failed to cache resized image: %v", err)
+			logger.Errorf("failed to cache original image: %v", err)
 		}
 		return imageBytes, nil
 	}

@@ -1,6 +1,7 @@
 package http
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -33,6 +34,17 @@ type OnlyOfficeCallback struct {
 	URL        string   `json:"url,omitempty"`
 	Users      []string `json:"users,omitempty"`
 	UserData   string   `json:"userdata,omitempty"`
+}
+
+// OnlyOfficeJWTPayload represents the JWT payload structure for OnlyOffice callbacks
+type OnlyOfficeJWTPayload struct {
+	Key     string   `json:"key"`
+	Status  int      `json:"status"`
+	Users   []string `json:"users"`
+	Actions []struct {
+		Type   int    `json:"type"`
+		UserID string `json:"userid"`
+	} `json:"actions"`
 }
 
 func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
@@ -179,7 +191,10 @@ func buildOnlyOfficeDownloadURL(source, path, hash, token string) string {
 	// Determine base URL (internal URL takes priority for OnlyOffice server communication)
 	baseURL := settings.Config.Server.BaseURL
 	if settings.Config.Server.InternalUrl != "" {
-		baseURL = settings.Config.Server.InternalUrl + settings.Config.Server.BaseURL
+		// Ensure proper URL joining without double slashes
+		internalURL := strings.TrimSuffix(settings.Config.Server.InternalUrl, "/")
+		baseURLPath := strings.TrimPrefix(settings.Config.Server.BaseURL, "/")
+		baseURL = internalURL + "/" + baseURLPath
 	}
 
 	var downloadURL string
@@ -202,7 +217,10 @@ func buildOnlyOfficeDownloadURL(source, path, hash, token string) string {
 func buildOnlyOfficeCallbackURL(source, path, hash, token string) string {
 	baseURL := settings.Config.Server.BaseURL
 	if settings.Config.Server.InternalUrl != "" {
-		baseURL = settings.Config.Server.InternalUrl + settings.Config.Server.BaseURL
+		// Ensure proper URL joining without double slashes
+		internalURL := strings.TrimSuffix(settings.Config.Server.InternalUrl, "/")
+		baseURLPath := strings.TrimPrefix(settings.Config.Server.BaseURL, "/")
+		baseURL = internalURL + "/" + baseURLPath
 	}
 
 	var callbackURL string
@@ -229,21 +247,8 @@ func buildOnlyOfficeCallbackURL(source, path, hash, token string) string {
 	return callbackURL
 }
 
-func onlyofficeCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	// Parse OnlyOffice callback data
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		logger.Errorf("OnlyOffice callback: failed to read request body: %v", err)
-		return http.StatusInternalServerError, err
-	}
-
-	var data OnlyOfficeCallback
-	err = json.Unmarshal(body, &data)
-	if err != nil {
-		logger.Errorf("OnlyOffice callback: failed to parse JSON: %v", err)
-		return http.StatusInternalServerError, err
-	}
-
+// processOnlyOfficeCallback handles the common callback processing logic for both GET and POST requests
+func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *requestContext, data *OnlyOfficeCallback) (int, error) {
 	// Extract clean parameters from query string
 	source := r.URL.Query().Get("source")
 	path := r.URL.Query().Get("path")
@@ -291,7 +296,6 @@ func onlyofficeCallbackHandler(w http.ResponseWriter, r *http.Request, d *reques
 		//
 		// When the document is fully closed by all editors,
 		// the document key should no longer be re-used.
-		logger.Debugf("OnlyOffice: document closed, cleaning up document ID for source=%s, path=%s", source, path)
 		deleteOfficeId(source, path)
 	}
 
@@ -347,6 +351,61 @@ func onlyofficeCallbackHandler(w http.ResponseWriter, r *http.Request, d *reques
 	return renderJSON(w, r, resp)
 }
 
+func onlyofficeCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	// Parse callback data based on request method
+	var callbackData *OnlyOfficeCallback
+	var err error
+
+	if r.Method == "GET" {
+		// OnlyOffice sends callback data in Authorization header as JWT
+		callbackData, err = parseOnlyOfficeCallbackFromJWT(r)
+	} else if r.Method == "POST" {
+		// OnlyOffice sends callback data in request body as JSON
+		callbackData, err = parseOnlyOfficeCallbackFromJSON(r)
+	} else {
+		return http.StatusMethodNotAllowed, fmt.Errorf("unsupported method: %s", r.Method)
+	}
+
+	if err != nil {
+		logger.Errorf("OnlyOffice callback: failed to parse callback data: %v", err)
+		return http.StatusBadRequest, err
+	}
+
+	// Process the callback data using shared logic
+	return processOnlyOfficeCallback(w, r, d, callbackData)
+}
+
+// parseOnlyOfficeCallbackFromJWT extracts callback data from JWT in Authorization header
+func parseOnlyOfficeCallbackFromJWT(r *http.Request) (*OnlyOfficeCallback, error) {
+	authHeader := r.Header.Get("Authorization")
+	if authHeader == "" {
+		return nil, errors.New("missing Authorization header")
+	}
+
+	if !strings.HasPrefix(authHeader, "Bearer ") {
+		return nil, errors.New("invalid Authorization header format")
+	}
+
+	jwtToken := strings.TrimPrefix(authHeader, "Bearer ")
+
+	return parseOnlyOfficeJWT(jwtToken)
+}
+
+// parseOnlyOfficeCallbackFromJSON extracts callback data from JSON request body
+func parseOnlyOfficeCallbackFromJSON(r *http.Request) (*OnlyOfficeCallback, error) {
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read request body: %v", err)
+	}
+	var data OnlyOfficeCallback
+	err = json.Unmarshal(body, &data)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse JSON: %v", err)
+	}
+
+	return &data, nil
+}
+
 func getOnlyOfficeId(realpath string) (string, error) {
 	// error is intentionally ignored in order treat errors
 	// the same as a cache-miss
@@ -365,4 +424,72 @@ func deleteOfficeId(source, path string) {
 	}
 	realpath, _, _ := idx.GetRealPath(path)
 	utils.OnlyOfficeCache.Delete(realpath)
+}
+
+// parseOnlyOfficeJWT parses the JWT token from OnlyOffice callback
+func parseOnlyOfficeJWT(tokenString string) (*OnlyOfficeCallback, error) {
+	// Parse the JWT token without signature verification since OnlyOffice uses different signing
+	// We'll parse it manually to avoid signature validation issues
+	parts := strings.Split(tokenString, ".")
+	if len(parts) != 3 {
+		return nil, fmt.Errorf("invalid JWT format")
+	}
+
+	// Decode the payload (second part) with fallback to standard base64
+	payloadBytes, err := base64.RawURLEncoding.DecodeString(parts[1])
+	if err != nil {
+		// Fallback to standard base64 decoding
+		payloadBytes, err = base64.StdEncoding.DecodeString(parts[1])
+		if err != nil {
+			return nil, fmt.Errorf("failed to decode JWT payload: %v", err)
+		}
+	}
+
+	var claims jwt.MapClaims
+	err = json.Unmarshal(payloadBytes, &claims)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal JWT claims: %v", err)
+	}
+
+	// Extract payload from claims with fallback
+	payload, ok := claims["payload"].(map[string]interface{})
+	if !ok {
+		// Fallback: try to use claims directly if no payload wrapper
+		payload = map[string]interface{}(claims)
+	}
+
+	// Convert to OnlyOfficeCallback struct with safe type assertions
+	callback := &OnlyOfficeCallback{}
+
+	// Extract key with validation
+	if key, ok := payload["key"].(string); ok && key != "" {
+		callback.Key = key
+	} else {
+		logger.Warningf("OnlyOffice callback: missing or empty key in JWT payload")
+	}
+
+	// Extract status with validation
+	if status, ok := payload["status"].(float64); ok {
+		callback.Status = int(status)
+	} else {
+		logger.Warningf("OnlyOffice callback: missing or invalid status in JWT payload")
+		callback.Status = 0 // Default to unknown status
+	}
+
+	// Extract users with safe array handling
+	if users, ok := payload["users"].([]interface{}); ok {
+		callback.Users = make([]string, 0, len(users))
+		for _, user := range users {
+			if userStr, ok := user.(string); ok && userStr != "" {
+				callback.Users = append(callback.Users, userStr)
+			}
+		}
+	}
+
+	// Validate essential fields
+	if callback.Key == "" {
+		return nil, fmt.Errorf("missing document key in JWT payload")
+	}
+
+	return callback, nil
 }

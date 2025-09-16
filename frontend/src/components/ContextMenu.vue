@@ -87,7 +87,7 @@
         v-if="!showCreate && selectedCount == 1 && isSearchActive"
         icon="folder"
         :label="$t('buttons.openParentFolder')"
-        @action="openParentFolder"  
+        @action="openParentFolder"
       />
       <action
         v-if="!showCreate && selectedCount > 0 && userPerms.modify"
@@ -134,7 +134,7 @@
     >
       <action v-if="showGoToRaw" icon="open_in_new" :label="$t('buttons.openFile')" @action="goToRaw()" />
       <action v-if="shouldShowParentFolder()" icon="folder" :label="$t('buttons.openParentFolder')" @action="openParentFolder" />
-      <action v-if="isPreview" icon="file_download" :label="$t('buttons.download')" @action="startDownload" />
+      <action v-if="hasDownload" icon="file_download" :label="$t('buttons.download')" @action="startDownload" />
       <action v-if="showEdit" icon="edit" :label="$t('buttons.edit')" @action="edit()" />
       <action v-if="showSave" icon="save" :label="$t('buttons.save')" @action="save()" />
       <action v-if="showDelete" icon="delete" :label="$t('buttons.delete')" show="delete" />
@@ -189,7 +189,7 @@ export default {
       return false
     },
     hasOverflowItems() {
-      return this.showEdit || this.showDelete || this.showSave || this.showGoToRaw;
+      return this.showEdit || this.showDelete || this.showSave || this.showGoToRaw || this.hasDownload;
     },
     showGoToRaw() {
       const cv = getters.currentView();
@@ -212,8 +212,12 @@ export default {
       const showDelete = cv != "settings" && !this.showCreate && this.selectedCount > 0 && !this.isSearchActive;
       return showDelete;
     },
+    hasDownload() {
+      return this.selectedCount > 0;
+    },
     isPreview() {
       const cv = getters.currentView();
+      console.log("cv", cv);
       return (
         cv == "preview" ||
         cv == "onlyOfficeEditor" ||
