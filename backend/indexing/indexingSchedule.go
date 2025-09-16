@@ -2,7 +2,6 @@ package indexing
 
 import (
 	"encoding/json"
-	"runtime"
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/events"
@@ -56,26 +55,12 @@ func (idx *Index) PreScan() {
 
 func (idx *Index) PostScan() {
 	idx.mu.Lock()
-	idx.garbageCollection()
 	idx.hasIndex = true
 	idx.runningScannerCount--
 	idx.mu.Unlock()
 	if idx.runningScannerCount == 0 {
 		idx.SetStatus(READY)
 	}
-}
-
-func (idx *Index) garbageCollection() {
-	for path := range idx.Directories {
-		_, ok := idx.DirectoriesLedger[path]
-		if !ok {
-			idx.Directories[path] = nil
-			delete(idx.Directories, path)
-			idx.NumDeleted++
-		}
-	}
-	// Reset the ledger for the next scan.
-	idx.DirectoriesLedger = make(map[string]struct{})
 }
 
 func (idx *Index) UpdateSchedule() {
@@ -102,39 +87,6 @@ func (idx *Index) UpdateSchedule() {
 		idx.CurrentSchedule = 0
 	} else if idx.CurrentSchedule >= len(scanSchedule) {
 		idx.CurrentSchedule = len(scanSchedule) - 1
-	}
-}
-
-func (idx *Index) startGarbageCollectionRoutine() {
-	idx.mu.Lock()
-	idx.gcStopChan = make(chan struct{})
-	idx.mu.Unlock()
-
-	go func() {
-		ticker := time.NewTicker(5 * time.Second)
-		defer ticker.Stop()
-
-		for {
-			select {
-			case <-ticker.C:
-				// Force garbage collection every 5 seconds during indexing
-				runtime.GC()
-			case <-idx.gcStopChan:
-				// Final garbage collection when indexing ends
-				runtime.GC()
-				return
-			}
-		}
-	}()
-}
-
-func (idx *Index) stopGarbageCollectionRoutine() {
-	idx.mu.Lock()
-	defer idx.mu.Unlock()
-
-	if idx.gcStopChan != nil {
-		close(idx.gcStopChan)
-		idx.gcStopChan = nil
 	}
 }
 
@@ -165,9 +117,6 @@ func (idx *Index) RunIndexing(origin string, quick bool) {
 		return
 	}
 	idx.PreScan()
-
-	// Start garbage collection routine for this indexing session
-	idx.startGarbageCollectionRoutine()
 
 	prevNumDirs := idx.NumDirs
 	prevNumFiles := idx.NumFiles
@@ -219,9 +168,6 @@ func (idx *Index) RunIndexing(origin string, quick bool) {
 		}
 		logger.Debugf("Time spent indexing [%v]: %v seconds", idx.Name, idx.FullScanTime)
 	}
-
-	// Stop garbage collection routine before post-scan
-	idx.stopGarbageCollectionRoutine()
 
 	idx.PostScan()
 }
