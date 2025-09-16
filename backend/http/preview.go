@@ -99,7 +99,7 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 		previewSize = "small"
 	}
 	if !d.fileInfo.HasPreview {
-		return http.StatusBadRequest, fmt.Errorf("this folder does not have a preview")
+		return http.StatusBadRequest, fmt.Errorf("this item does not have a preview")
 	}
 	if d.fileInfo.Type == "directory" {
 		// get extended file info of first previewable item in directory
