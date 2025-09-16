@@ -10,6 +10,8 @@ All notable changes to this project will be documented in this file. For commit 
  **BugFixes**:
  - Copy/Move index update changes to be more thorough and update album artwork #1220 #1219
  - fix preview related issues #1225 #1223
+ - Scrollbar missing on user-edit-prompt in v0.8.5-beta #1221
+ - copy share download link inconsistency #1207
 
 ## v0.8.5-beta
 

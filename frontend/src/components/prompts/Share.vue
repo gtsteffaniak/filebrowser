@@ -562,7 +562,14 @@ export default {
      * @param {Share} share
      */
     buildDownloadLink(share) {
-      if (share.downloadURL && globalVars.externalUrl == "") {
+      if (share.downloadURL) {
+        // Only fix the URL if it doesn't already have the correct external domain
+        if (globalVars.externalUrl) {
+
+          // URL already has the correct external domain, use as-is
+          return share.downloadURL;
+        }
+        // URL needs fixing (internal domain or no externalUrl set)
         return this.fixDownloadURL(share.downloadURL);
       }
       return publicApi.getDownloadURL(share, [this.item.name]);
