@@ -14,7 +14,7 @@ type AuthMethod string
 
 // GenerateKey generates a key of 512 bits.
 func GenerateKey() ([]byte, error) {
-	b := make([]byte, 64) //nolint:gomnd
+	b := make([]byte, 64)
 	_, err := rand.Read(b)
 	// Note that err == nil only if we read len(b) bytes.
 	if err != nil {

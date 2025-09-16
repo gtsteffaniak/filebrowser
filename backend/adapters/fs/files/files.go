@@ -168,6 +168,18 @@ func extractAudioMetadata(item *iteminfo.ExtendedFileInfo) error {
 	}
 	defer file.Close()
 
+	// Check file size first to prevent reading extremely large files
+	fileInfo, err := file.Stat()
+	if err != nil {
+		return err
+	}
+
+	// Skip files larger than 50MB to prevent memory issues
+	maxSize := int64(50)
+	if fileInfo.Size() > maxSize*1024*1024 {
+		return fmt.Errorf("file exceeds metadata check limit: %d MB", maxSize)
+	}
+
 	m, err := tag.ReadFrom(file)
 	if err != nil {
 		return err
@@ -185,10 +197,10 @@ func extractAudioMetadata(item *iteminfo.ExtendedFileInfo) error {
 	track, _ := m.Track()
 	item.AudioMeta.Track = track
 
-	// Extract album art and encode as base64
+	// Extract album art and encode as base64 with strict size limits
 	if picture := m.Picture(); picture != nil && picture.Data != nil {
-		// Limit album art size to prevent excessive response sizes (max 1MB)
-		if len(picture.Data) <= 1024*1024 {
+		// More aggressive size limit to prevent memory issues (max 2MB)
+		if len(picture.Data) <= 2*1024*1024 {
 			item.AudioMeta.AlbumArt = base64.StdEncoding.EncodeToString(picture.Data)
 		} else {
 			logger.Debugf("Skipping album art for %s: too large (%d bytes)", item.RealPath, len(picture.Data))
@@ -218,7 +230,7 @@ func DeleteFiles(source, absPath string, absDirPath string) error {
 	return nil
 }
 
-func RefreshIndex(source string, path string, isDir bool) error {
+func RefreshIndex(source string, path string, isDir bool, recursive bool) error {
 	idx := indexing.GetIndex(source)
 	if idx == nil {
 		return fmt.Errorf("could not get index: %v ", source)
@@ -227,7 +239,7 @@ func RefreshIndex(source string, path string, isDir bool) error {
 		return nil
 	}
 	path = idx.MakeIndexPath(path)
-	return idx.RefreshFileInfo(iteminfo.FileOptions{Path: path, IsDir: isDir})
+	return idx.RefreshFileInfo(iteminfo.FileOptions{Path: path, IsDir: isDir, Recursive: recursive})
 }
 
 // validateMoveDestination checks if a move/rename operation is valid
@@ -269,21 +281,37 @@ func MoveResource(isSrcDir, isDestDir bool, sourceIndex, destIndex, realsrc, rea
 	if err != nil {
 		return err
 	}
-	go RefreshIndex(sourceIndex, realsrc, isSrcDir) //nolint:errcheck
-	go RefreshIndex(destIndex, realdst, isDestDir)  //nolint:errcheck
 
-	// update shares
-	idx := indexing.GetIndex(sourceIndex)
-	if idx == nil {
-		return fmt.Errorf("could not get index: %v ", sourceIndex)
+	// For move operations:
+	// 1. Delete the source from the index (recursively if it's a directory)
+	// 2. Recursively index the destination to capture the entire moved tree
+
+	// Get indexes for deletion and refresh operations
+	srcIdx := indexing.GetIndex(sourceIndex)
+	if srcIdx == nil {
+		return fmt.Errorf("could not get source index: %v", sourceIndex)
 	}
-	idx2 := indexing.GetIndex(destIndex)
-	if idx2 == nil {
-		return fmt.Errorf("could not get index: %v ", destIndex)
+	dstIdx := indexing.GetIndex(destIndex)
+	if dstIdx == nil {
+		return fmt.Errorf("could not get destination index: %v", destIndex)
 	}
+
+	// Delete from source index (recursively for directories)
+	go srcIdx.DeleteMetadata(realsrc, isSrcDir, isSrcDir) //nolint:errcheck
+
+	// For move operations, refresh the parent directory to capture the moved file
+	refreshPath := realdst
+	refreshIsDir := isDestDir
+	if !isSrcDir {
+		// If moving a file (regardless of destination), refresh the parent directory
+		refreshPath = filepath.Dir(realdst)
+		refreshIsDir = true
+	}
+
+	go RefreshIndex(destIndex, refreshPath, refreshIsDir, true) //nolint:errcheck
 
 	// Use backend source paths to match how shares are stored
-	go s.UpdateShares(idx.Path, idx.MakeIndexPath(realsrc), idx2.Path, idx2.MakeIndexPath(realdst)) //nolint:errcheck
+	go s.UpdateShares(srcIdx.Path, srcIdx.MakeIndexPath(realsrc), dstIdx.Path, dstIdx.MakeIndexPath(realdst)) //nolint:errcheck
 	return nil
 }
 
@@ -297,9 +325,31 @@ func CopyResource(isSrcDir, isDestDir bool, sourceIndex, destIndex, realsrc, rea
 	if err != nil {
 		return err
 	}
-	go RefreshIndex(sourceIndex, realsrc, isSrcDir) //nolint:errcheck
-	go RefreshIndex(destIndex, realdst, isDestDir)  //nolint:errcheck
-	// update shares
+
+	// For copy operations:
+	// 1. Shallow refresh of source (just to update access times if needed)
+	// 2. Recursively index the destination to capture the entire copied tree
+
+	// Refresh source (parent directory if it's a file)
+	srcRefreshPath := realsrc
+	srcRefreshIsDir := isSrcDir
+	if !isSrcDir {
+		srcRefreshPath = filepath.Dir(realsrc)
+		srcRefreshIsDir = true
+	}
+
+	go RefreshIndex(sourceIndex, srcRefreshPath, srcRefreshIsDir, false) //nolint:errcheck
+
+	// Refresh destination (parent directory if it's a file)
+	dstRefreshPath := realdst
+	dstRefreshIsDir := isDestDir
+	if !isSrcDir {
+		// If copying a file (regardless of destination), refresh the parent directory
+		dstRefreshPath = filepath.Dir(realdst)
+		dstRefreshIsDir = true
+	}
+
+	go RefreshIndex(destIndex, dstRefreshPath, dstRefreshIsDir, true) //nolint:errcheck
 	return nil
 }
 
@@ -314,7 +364,7 @@ func WriteDirectory(opts iteminfo.FileOptions) error {
 	if err != nil {
 		return err
 	}
-	return RefreshIndex(idx.Name, opts.Path, true)
+	return RefreshIndex(idx.Name, opts.Path, true, true)
 }
 
 func WriteFile(opts iteminfo.FileOptions, in io.Reader) error {
@@ -340,7 +390,7 @@ func WriteFile(opts iteminfo.FileOptions, in io.Reader) error {
 	if err != nil {
 		return err
 	}
-	return RefreshIndex(opts.Source, opts.Path, false)
+	return RefreshIndex(opts.Source, opts.Path, false, false)
 }
 
 // getContent reads and returns the file content if it's considered an editable text file.

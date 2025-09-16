@@ -584,8 +584,7 @@ definitions:
         - $ref: '#/definitions/settings.IncludeIndexFilter'
         description: include files and folders from indexing, if exclude is not set
       indexAlbumArt:
-        description: check for album art in audio files and remember it for folder
-          previews. Can slow down indexing.
+        description: 'deprecated: always enabled since 0.8.6'
         type: boolean
       indexingIntervalMinutes:
         description: optional manual overide interval in minutes to re-index the source

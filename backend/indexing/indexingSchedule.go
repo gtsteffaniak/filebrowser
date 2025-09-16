@@ -131,6 +131,7 @@ func (idx *Index) RunIndexing(origin string, quick bool) {
 		return
 	}
 	idx.PreScan()
+
 	prevNumDirs := idx.NumDirs
 	prevNumFiles := idx.NumFiles
 	if quick {
@@ -147,7 +148,11 @@ func (idx *Index) RunIndexing(origin string, quick bool) {
 	startTime := time.Now()
 	idx.FilesChangedDuringIndexing = false
 	// Perform the indexing operation
-	err := idx.indexDirectory("/", quick, true)
+	config := &actionConfig{
+		Quick:     quick,
+		Recursive: true,
+	}
+	err := idx.indexDirectory("/", config)
 	if err != nil {
 		logger.Errorf("Error during indexing: %v", err)
 	}

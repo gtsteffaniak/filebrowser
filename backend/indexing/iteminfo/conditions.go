@@ -1,6 +1,10 @@
 package iteminfo
 
 import (
+	"bytes"
+	"encoding/binary"
+	"fmt"
+	"io"
 	"mime"
 	"net/http"
 	"os"
@@ -9,7 +13,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/dhowden/tag"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 )
 
@@ -320,31 +323,139 @@ func (i *ItemInfo) DetectType(realPath string, saveContent bool) {
 	}
 }
 
-// hasAlbumArt efficiently checks if an audio file contains embedded album art.
-// It returns true if album art is found, and false otherwise.
+// hasAlbumArtLowLevel efficiently checks for album art in audio files.
+// It handles ID3v2 tags (MP3) and Vorbis comments (FLAC, OGG) with low-level parsing.
+func hasAlbumArtLowLevel(filePath string, extension string) (bool, error) {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return false, fmt.Errorf("failed to open file: %w", err)
+	}
+	defer file.Close()
+
+	// Handle different audio formats
+	switch extension {
+	case ".mp3":
+		return hasAlbumArtMP3(file)
+	case ".flac", ".ogg":
+		return hasAlbumArtVorbis(file)
+	case ".m4a", ".mp4":
+		return hasAlbumArtM4A(file)
+	default:
+		// For other formats, return false (no album art detection)
+		return false, nil
+	}
+}
+
+// hasAlbumArtMP3 checks for APIC frames in ID3v2 tags
+func hasAlbumArtMP3(file *os.File) (bool, error) {
+	// 1. Read the 10-byte ID3v2 header.
+	header := make([]byte, 10)
+	if _, err := io.ReadFull(file, header); err != nil {
+		return false, nil // No ID3v2 tag found
+	}
+
+	// 2. Check for the "ID3" identifier.
+	if string(header[0:3]) != "ID3" {
+		return false, nil // No ID3v2 tag found
+	}
+
+	// 3. Decode the tag size. It's a "synchsafe" integer.
+	tagSize := (int(header[6]) << 21) | (int(header[7]) << 14) | (int(header[8]) << 7) | int(header[9])
+
+	// 4. Read the entire tag content into a buffer.
+	tagData := make([]byte, tagSize)
+	if _, err := io.ReadFull(file, tagData); err != nil {
+		return false, fmt.Errorf("failed to read tag data: %w", err)
+	}
+
+	position := 0
+	// 5. Loop through the frames within the tag data.
+	for position < tagSize {
+		if position+10 > tagSize {
+			break
+		}
+
+		frameHeader := tagData[position : position+10]
+		frameID := string(frameHeader[0:4])
+
+		// We found it! The APIC frame contains the album art.
+		if frameID == "APIC" {
+			return true, nil
+		}
+
+		// If it's not APIC, find the frame's size to skip over it.
+		var frameSize uint32
+		if err := binary.Read(bytes.NewReader(frameHeader[4:8]), binary.BigEndian, &frameSize); err != nil {
+			return false, fmt.Errorf("corrupt frame header: %w", err)
+		}
+
+		// Move position to the next frame header.
+		position += 10 + int(frameSize)
+
+		// Break if the next frame would start with padding (null bytes).
+		if position >= tagSize || tagData[position] == 0 {
+			break
+		}
+	}
+
+	return false, nil
+}
+
+// hasAlbumArtVorbis checks for METADATA_BLOCK_PICTURE in Vorbis comments (FLAC, OGG)
+func hasAlbumArtVorbis(file *os.File) (bool, error) {
+	// For FLAC files, look for METADATA_BLOCK_PICTURE in Vorbis comments
+	// This is a simplified check - in practice, you'd need to parse the FLAC structure
+	// For now, we'll do a basic search for common picture-related strings
+	buffer := make([]byte, 8192) // Read first 8KB
+	n, err := file.Read(buffer)
+	if err != nil && err != io.EOF {
+		return false, err
+	}
+
+	// Look for METADATA_BLOCK_PICTURE or COVERART in the buffer
+	content := string(buffer[:n])
+	if strings.Contains(content, "METADATA_BLOCK_PICTURE") ||
+		strings.Contains(content, "COVERART") ||
+		strings.Contains(content, "COVER_ART") {
+		return true, nil
+	}
+
+	return false, nil
+}
+
+// hasAlbumArtM4A checks for embedded artwork in M4A/MP4 files
+func hasAlbumArtM4A(file *os.File) (bool, error) {
+	// For M4A files, look for 'covr' atom which contains artwork
+	// This is a simplified check - in practice, you'd need to parse the MP4 structure
+	buffer := make([]byte, 8192) // Read first 8KB
+	n, err := file.Read(buffer)
+	if err != nil && err != io.EOF {
+		return false, err
+	}
+
+	// Look for 'covr' atom in the buffer
+	content := string(buffer[:n])
+	if strings.Contains(content, "covr") {
+		return true, nil
+	}
+
+	return false, nil
+}
+
 func HasAlbumArt(filePath string, extension string) bool {
 	if !CouldHaveAlbumArt(extension) {
 		return false
 	}
-	file, err := os.Open(filePath)
-	if err != nil {
-		return false
-	}
-	defer file.Close()
 
-	// Read metadata from the file.
-	m, err := tag.ReadFrom(file)
+	// Use low-level detection for all audio formats
+	hasArt, err := hasAlbumArtLowLevel(filePath, extension)
 	if err != nil {
-		// If the error is simply that no tags were found, it's not a processing error.
-		// It just means there's no album art.
-		if err == tag.ErrNoTagsFound {
-			return false
-		}
-		// For any other error (e.g., corrupted file), return the error.
+		// If there's an error with low-level detection, return false
+		// This is safer than potentially crashing the indexing process
 		return false
 	}
-	// m.Picture() returns the first picture found. If it's not nil, album art exists.
-	return m.Picture() != nil
+
+	return hasArt
 }
 
 // DetectTypeByHeader detects the MIME type of a file based on its header.
