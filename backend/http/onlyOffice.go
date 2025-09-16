@@ -253,8 +253,6 @@ func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *reques
 	source := r.URL.Query().Get("source")
 	path := r.URL.Query().Get("path")
 
-	logger.Debugf("OnlyOffice callback: extracted params - source=%s, path=%s, hash=%s", source, path, d.fileInfo.Hash)
-
 	// Validate required parameters
 	if (path == "" || source == "") && d.fileInfo.Hash == "" {
 		logger.Errorf("OnlyOffice callback missing required parameters: source=%s, path=%s", source, path)
@@ -298,7 +296,6 @@ func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *reques
 		//
 		// When the document is fully closed by all editors,
 		// the document key should no longer be re-used.
-		logger.Debugf("OnlyOffice: document closed, cleaning up document ID for source=%s, path=%s", source, path)
 		deleteOfficeId(source, path)
 	}
 
@@ -355,10 +352,6 @@ func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *reques
 }
 
 func onlyofficeCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	logger.Debugf("OnlyOffice callback: received %s request to %s", r.Method, r.URL.Path)
-	logger.Debugf("OnlyOffice callback: query params: %s", r.URL.RawQuery)
-	logger.Debugf("OnlyOffice callback: headers: %v", r.Header)
-
 	// Parse callback data based on request method
 	var callbackData *OnlyOfficeCallback
 	var err error
@@ -378,8 +371,6 @@ func onlyofficeCallbackHandler(w http.ResponseWriter, r *http.Request, d *reques
 		return http.StatusBadRequest, err
 	}
 
-	logger.Debugf("OnlyOffice callback: parsed data - Status: %d, Key: %s", callbackData.Status, callbackData.Key)
-
 	// Process the callback data using shared logic
 	return processOnlyOfficeCallback(w, r, d, callbackData)
 }
@@ -396,7 +387,6 @@ func parseOnlyOfficeCallbackFromJWT(r *http.Request) (*OnlyOfficeCallback, error
 	}
 
 	jwtToken := strings.TrimPrefix(authHeader, "Bearer ")
-	logger.Debugf("OnlyOffice callback: extracted JWT token: %s", jwtToken)
 
 	return parseOnlyOfficeJWT(jwtToken)
 }
@@ -407,16 +397,11 @@ func parseOnlyOfficeCallbackFromJSON(r *http.Request) (*OnlyOfficeCallback, erro
 	if err != nil {
 		return nil, fmt.Errorf("failed to read request body: %v", err)
 	}
-
-	logger.Debugf("OnlyOffice callback: request body length: %d", len(body))
-
 	var data OnlyOfficeCallback
 	err = json.Unmarshal(body, &data)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse JSON: %v", err)
 	}
-
-	logger.Debugf("OnlyOffice callback: parsed JSON data - Status: %d, Key: %s, URL: %s", data.Status, data.Key, data.URL)
 
 	return &data, nil
 }
@@ -458,7 +443,6 @@ func parseOnlyOfficeJWT(tokenString string) (*OnlyOfficeCallback, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to decode JWT payload: %v", err)
 		}
-		logger.Debugf("OnlyOffice callback: used standard base64 fallback for JWT decoding")
 	}
 
 	var claims jwt.MapClaims
@@ -471,7 +455,6 @@ func parseOnlyOfficeJWT(tokenString string) (*OnlyOfficeCallback, error) {
 	payload, ok := claims["payload"].(map[string]interface{})
 	if !ok {
 		// Fallback: try to use claims directly if no payload wrapper
-		logger.Debugf("OnlyOffice callback: no payload wrapper found, using claims directly")
 		payload = map[string]interface{}(claims)
 	}
 
@@ -496,23 +479,9 @@ func parseOnlyOfficeJWT(tokenString string) (*OnlyOfficeCallback, error) {
 	// Extract users with safe array handling
 	if users, ok := payload["users"].([]interface{}); ok {
 		callback.Users = make([]string, 0, len(users))
-		for i, user := range users {
+		for _, user := range users {
 			if userStr, ok := user.(string); ok && userStr != "" {
 				callback.Users = append(callback.Users, userStr)
-			} else {
-				logger.Debugf("OnlyOffice callback: skipping invalid user at index %d", i)
-			}
-		}
-	}
-
-	// Extract actions if present
-	if actions, ok := payload["actions"].([]interface{}); ok {
-		logger.Debugf("OnlyOffice callback: found %d actions in JWT", len(actions))
-		for i, action := range actions {
-			if actionMap, ok := action.(map[string]interface{}); ok {
-				if actionType, ok := actionMap["type"].(float64); ok {
-					logger.Debugf("OnlyOffice callback: action %d type: %v", i, int(actionType))
-				}
 			}
 		}
 	}
@@ -521,8 +490,6 @@ func parseOnlyOfficeJWT(tokenString string) (*OnlyOfficeCallback, error) {
 	if callback.Key == "" {
 		return nil, fmt.Errorf("missing document key in JWT payload")
 	}
-
-	logger.Debugf("OnlyOffice callback: parsed JWT - Key: %s, Status: %d, Users: %v", callback.Key, callback.Status, callback.Users)
 
 	return callback, nil
 }
