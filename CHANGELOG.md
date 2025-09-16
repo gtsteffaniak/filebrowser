@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file. For commit 
  - fix preview related issues #1225 #1223
  - Scrollbar missing on user-edit-prompt in v0.8.5-beta #1221
  - copy share download link inconsistency #1207
+ - fixed some onlyoffice related issues #1192 #1068
 
 ## v0.8.5-beta
 
