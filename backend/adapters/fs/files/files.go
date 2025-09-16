@@ -161,7 +161,6 @@ func generateOfficeId(realPath string) string {
 }
 
 // extractAudioMetadata extracts metadata from an audio file using dhowden/tag
-// This function is optimized for memory efficiency by using streaming and limiting data sizes
 func extractAudioMetadata(item *iteminfo.ExtendedFileInfo) error {
 	file, err := os.Open(item.RealPath)
 	if err != nil {
@@ -170,7 +169,6 @@ func extractAudioMetadata(item *iteminfo.ExtendedFileInfo) error {
 	defer file.Close()
 
 	// Check file size first to prevent reading extremely large files
-	// This helps prevent memory exhaustion on corrupted or very large files
 	fileInfo, err := file.Stat()
 	if err != nil {
 		return err
@@ -201,8 +199,8 @@ func extractAudioMetadata(item *iteminfo.ExtendedFileInfo) error {
 
 	// Extract album art and encode as base64 with strict size limits
 	if picture := m.Picture(); picture != nil && picture.Data != nil {
-		// More aggressive size limit to prevent memory issues (max 1MB)
-		if len(picture.Data) <= 1024*1024 {
+		// More aggressive size limit to prevent memory issues (max 2MB)
+		if len(picture.Data) <= 2*1024*1024 {
 			item.AudioMeta.AlbumArt = base64.StdEncoding.EncodeToString(picture.Data)
 		} else {
 			logger.Debugf("Skipping album art for %s: too large (%d bytes)", item.RealPath, len(picture.Data))

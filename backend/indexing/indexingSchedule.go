@@ -151,7 +151,6 @@ func (idx *Index) RunIndexing(origin string, quick bool) {
 	config := &actionConfig{
 		Quick:     quick,
 		Recursive: true,
-		CheckSkip: true,
 	}
 	err := idx.indexDirectory("/", config)
 	if err != nil {
