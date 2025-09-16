@@ -19,7 +19,7 @@ test('create, check settings, and delete testuser2', async ({
     await page.locator('input[aria-label="Password2"]').fill('testpassword')
 
     // Just create the user first
-    await page.locator('input[aria-label="Save User"]').click();
+    await page.locator('button[aria-label="Save"]').click();
     await page.waitForResponse((resp) => resp.url().includes('/api/users') && resp.status() === 201)
 
     // We should be back on the settings page
@@ -48,7 +48,7 @@ test('create, check settings, and delete testuser2', async ({
     }
 
     // Save the updated settings
-    await modal.locator('input[aria-label="Save User"]').click();
+    await modal.locator('button[aria-label="Save"]').click();
     await expect(modal).not.toBeVisible();
 
     // Re-open the modal to check the settings
@@ -122,7 +122,7 @@ test.describe("User Settings Persistence", () => {
         // --- Toggle ON and save ---
         const toggleSwitch = modal.locator(".toggle-container", { hasText: settingName }).locator("label.switch");
         await toggleSwitch.click();
-        await modal.locator('input[aria-label="Save User"]').click();
+        await modal.locator('button[aria-label="Save"]').click();
         await expect(modal).not.toBeVisible();
 
         // --- Re-open and check persisted state (should be ON) ---
@@ -134,7 +134,7 @@ test.describe("User Settings Persistence", () => {
         // --- Toggle OFF to restore state and save ---
         const toggleSwitchOn = modal.locator(".toggle-container", { hasText: settingName }).locator("label.switch");
         await toggleSwitchOn.click();
-        await modal.locator('input[aria-label="Save User"]').click();
+        await modal.locator('button[aria-label="Save"]').click();
         await expect(modal).not.toBeVisible();
 
         // --- Re-open and check state is restored (should be OFF) ---
@@ -181,7 +181,7 @@ test.describe("User Settings Persistence", () => {
         await expect(loginMethodSelector).toHaveValue("password");
 
         await loginMethodSelector.selectOption({ label: "Proxy" });
-        await modal.locator('input[aria-label="Save User"]').click();
+        await modal.locator('button[aria-label="Save"]').click();
         await expect(modal).not.toBeVisible();
 
         await userRow.getByLabel('Edit User').click();
@@ -192,7 +192,7 @@ test.describe("User Settings Persistence", () => {
         // Revert change
         const loginMethodSelector2 = modal.locator("#loginMethod");
         await loginMethodSelector2.selectOption({ label: "Password" });
-        await modal.locator('input[aria-label="Save User"]').click();
+        await modal.locator('button[aria-label="Save"]').click();
         await expect(modal).not.toBeVisible();
     });
 });
