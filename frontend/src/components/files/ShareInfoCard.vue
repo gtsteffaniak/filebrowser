@@ -10,21 +10,25 @@
       <div v-if="shareInfo.description" class="share__box__element">
         <p>{{ shareInfo.description }}</p>
       </div>
-      <hr v-if="shareInfo.banner || shareInfo.title || shareInfo.description" />
-      <div class="share__box__element">
-        <strong>{{ $t("prompts.displayName") }}</strong> {{ req.name }}
-      </div>
-      <div class="share__box__element" :title="modTime">
-        <strong>{{ $t("prompts.lastModified") }}:</strong> {{ humanTime }} <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-      </div>
-      <div class="share__box__element">
-        <strong>{{ $t("prompts.size") }}:</strong> {{ humanSize }} <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-      </div>
 
-      <div class="share__box__element share__box__center">
-        <button class="button button--flat clickable" @click="goToLink()"> {{ $t("buttons.download") }} </button>
-      </div>
+      <div v-if="accessible">
+        <hr v-if="shareInfo.banner || shareInfo.title || shareInfo.description" />
+        <div class="share__box__element">
+          <strong>{{ $t("prompts.displayName") }}</strong> {{ req.name }}
+        </div>
+        <div class="share__box__element" :title="modTime">
+          <strong>{{ $t("prompts.lastModified", {suffix: ":"}) }}</strong> {{ humanTime }}
+          <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+        </div>
+        <div class="share__box__element">
+          <strong>{{ $t("prompts.size", {suffix: ":"}) }}</strong> {{ humanSize }}
+          <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+        </div>
 
+        <div class="share__box__element share__box__center">
+          <button class="button button--flat clickable" @click="goToLink()"> {{ $t("buttons.download") }} </button>
+        </div>
+      </div>
       <div v-if="req.type" class="share__box__element share__box__center">
         <qrcode-vue class="qrcode" :value="getLink(false)" size="200" level="M"></qrcode-vue>
       </div>
@@ -60,6 +64,9 @@ export default {
     },
   },
   computed: {
+    accessible() {
+      return shareInfo.isPasswordProtected && state.share.passwordValid;
+    },
     getShareBanner() {
       if (this.shareInfo.banner.startsWith("http")) {
         return this.shareInfo.banner;
@@ -122,6 +129,7 @@ export default {
 .banner img {
   width: 100%;
 }
+
 .share {
   display: flex;
 }
@@ -146,6 +154,7 @@ export default {
 .share__box__element canvas {
   border-style: solid;
 }
+
 .share__box__center {
   text-align: center;
 }

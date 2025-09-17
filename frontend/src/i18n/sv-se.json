@@ -159,7 +159,6 @@
     "schedule": "Schema",
     "scheduleMessage": "Pick a date and time to schedule the publication of this post.",
     "show": "Visa",
-    "size": "Storlek",
     "upload": "Ladda upp",
     "deleteUserMessage": "Är du säker på att du vill ta bort den här användaren?",
     "selected": "utvalda",
@@ -187,7 +186,6 @@
     "source": "Källa{suffix}",
     "deleteMessageMultiple": "Är du säker att du vill ta bort {count} fil(er)?",
     "deleteMessageShare": "Är du säker på att du vill ta bort den här aktien: {path} ?",
-    "lastModified": "Senast ändrad{suffix}",
     "numberDirs": "Antal kataloger{suffix}",
     "numberFiles": "Antal filer{suffix}",
     "renameMessageConflict": "Ett objekt med namnet \"{filename}\" finns redan!",
@@ -195,7 +193,9 @@
     "uploadSettingsNoChunk": "Max samtidiga uppladdningar: {maxConcurrentUpload}, chunked uppladdning inaktiverad",
     "quickJump": "Hoppa snabbt till andra filer",
     "moveSuccess": "Filerna flyttades framgångsrikt!",
-    "copySuccess": "Filerna kopierades framgångsrikt!"
+    "copySuccess": "Filerna kopierades framgångsrikt!",
+    "lastModified": "Senast ändrad{suffix}",
+    "size": "Storlek{suffix}"
   },
   "search": {
     "images": "Bilder",

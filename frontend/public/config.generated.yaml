@@ -167,4 +167,4 @@ integrations:
     ffmpegPath: ""                        # path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)
     convert:                              # config for ffmpeg conversion settings
       imagePreview:                       # supported image preview formats. default is heic
-        heic: true
+        heic: false

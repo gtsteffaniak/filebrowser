@@ -210,7 +210,6 @@
     "schedule": "Naplánovat",
     "scheduleMessage": "Vyberte datum a čas naplánování publikace tohoto příspěvku.",
     "show": "Zobrazit",
-    "size": "Velikost",
     "upload": "Nahrát",
     "optionalPassword": "Volitelné heslo",
     "typeName": "Typ:",
@@ -235,7 +234,6 @@
     "source": "Zdroj:{suffix}",
     "deleteMessageMultiple": "Opravdu chcete odstranit soubor(y) {count}?",
     "deleteMessageShare": "Jste si jisti, že chcete tuto sdílenou složku odstranit: {path} ?",
-    "lastModified": "Poslední úprava{suffix}",
     "numberDirs": "Počet adresářů{suffix}",
     "numberFiles": "Počet souborů{suffix}",
     "renameMessageConflict": "Položka s názvem \"{filename}\" již existuje!",
@@ -243,7 +241,9 @@
     "uploadSettingsNoChunk": "Maximální souběžné nahrávání: {maxConcurrentUpload}, vypnuto hromadné nahrávání",
     "quickJump": "Rychlý přechod na jiné soubory",
     "moveSuccess": "Soubory byly úspěšně přesunuty!",
-    "copySuccess": "Soubory byly úspěšně zkopírovány!"
+    "copySuccess": "Soubory byly úspěšně zkopírovány!",
+    "lastModified": "Poslední úprava{suffix}",
+    "size": "Velikost{suffix}"
   },
   "search": {
     "images": "Obrázky",

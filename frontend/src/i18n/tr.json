@@ -159,7 +159,6 @@
     "schedule": "Planla",
     "scheduleMessage": "Bu paylaşımın yayınlanmasını planlamak için bir tarih ve saat seçin.",
     "show": "Göster",
-    "size": "Boyut",
     "upload": "Gönder",
     "optionalPassword": "İsteğe bağlı şifre",
     "deleteUserMessage": "Bu kullanıcıyı silmek istediğinizden emin misiniz?",
@@ -187,7 +186,6 @@
     "source": "Kaynak{suffix}",
     "deleteMessageMultiple": "{count} dosya(lar)ını silmek istediğinizden emin misiniz?",
     "deleteMessageShare": "Bu paylaşımı silmek istediğinizden emin misiniz? {path} ?",
-    "lastModified": "Son Değişiklik{suffix}",
     "numberDirs": "Dizin sayısı{suffix}",
     "numberFiles": "Dosya sayısı{suffix}",
     "renameMessageConflict": "\"{filename}\" adında bir öğe zaten var!",
@@ -195,7 +193,9 @@
     "uploadSettingsNoChunk": "Maksimum eşzamanlı yükleme: {maxConcurrentUpload}, yığınlanmış yükleme devre dışı",
     "quickJump": "Diğer dosyalara hızlıca atlayın",
     "moveSuccess": "Dosyalar başarıyla taşındı!",
-    "copySuccess": "Dosyalar başarıyla kopyalandı!"
+    "copySuccess": "Dosyalar başarıyla kopyalandı!",
+    "lastModified": "Son Değişiklik{suffix}",
+    "size": "Boyut{suffix}"
   },
   "search": {
     "images": "Görseller",

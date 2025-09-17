@@ -186,7 +186,7 @@ export default {
       if (!getters.isLoggedIn()) {
         return;
       }
-      if (!this.isStickySidebar) {
+      if (!this.isStickySidebar && !shareInfo.singleFileShare) {
         mutations.closeSidebar();
       }
     },

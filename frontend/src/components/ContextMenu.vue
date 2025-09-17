@@ -217,7 +217,6 @@ export default {
     },
     isPreview() {
       const cv = getters.currentView();
-      console.log("cv", cv);
       return (
         cv == "preview" ||
         cv == "onlyOfficeEditor" ||

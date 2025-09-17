@@ -1,5 +1,5 @@
 <template>
-    <div class="plyr-viewer">
+    <div class="plyr-viewer" :key="`${previewType}-${raw}`">
         <!-- Audio with plyr -->
         <div v-if="previewType == 'audio' && !useDefaultMediaPlayer" class="audio-player-container">
             <div class="audio-player-content">

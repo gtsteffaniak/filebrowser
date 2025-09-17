@@ -165,7 +165,7 @@ export default {
     },
     multiAction() {
       const listingView = getters.currentView();
-      if (listingView == "listingView") {
+      if (listingView == "listingView" || shareInfo.singleFileShare) {
         mutations.toggleSidebar();
       } else if (listingView == "settings" && state.isMobile) {
         mutations.toggleSidebar();

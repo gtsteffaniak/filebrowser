@@ -159,7 +159,6 @@
     "schedule": "Agendar",
     "scheduleMessage": "Escolha uma data para publicar este post.",
     "show": "Mostrar",
-    "size": "Tamanho",
     "upload": "Carregar",
     "deleteUserMessage": "Tem a certeza de que pretende apagar este utilizador?",
     "selected": "selecionado",
@@ -187,7 +186,6 @@
     "source": "Fonte{suffix}",
     "deleteMessageMultiple": "Tem a certeza de que pretende apagar o(s) ficheiro(s) {count}?",
     "deleteMessageShare": "Tem a certeza de que pretende apagar esta partilha: {path} ?",
-    "lastModified": "Última modificação{suffix}",
     "numberDirs": "Número de diretórios{suffix}",
     "numberFiles": "Número de ficheiros{suffix}",
     "renameMessageConflict": "Já existe um item com o nome \"{filename}\"!",
@@ -195,7 +193,9 @@
     "uploadSettingsNoChunk": "Máximo de carregamentos simultâneos: {maxConcurrentUpload}, carregamento em pedaços desativado",
     "quickJump": "Saltar rapidamente para outros ficheiros",
     "moveSuccess": "Ficheiros movidos com sucesso!",
-    "copySuccess": "Ficheiros copiados com sucesso!"
+    "copySuccess": "Ficheiros copiados com sucesso!",
+    "lastModified": "Última modificação{suffix}",
+    "size": "Tamanho{suffix}"
   },
   "search": {
     "images": "Imagens",

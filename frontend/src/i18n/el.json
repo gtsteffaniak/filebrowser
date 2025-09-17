@@ -162,7 +162,6 @@
     "schedule": "Προγραμματισμός",
     "scheduleMessage": "Επιλέξτε μια ημερομηνία και ώρα για τον προγραμματισμό της δημοσίευσης αυτής της ανάρτησης.",
     "show": "Εμφάνιση",
-    "size": "Μέγεθος",
     "upload": "Μεταφόρτωση",
     "optionalPassword": "Προαιρετικός κωδικός πρόσβασης",
     "deleteUserMessage": "Είστε σίγουροι ότι θέλετε να διαγράψετε αυτόν τον χρήστη;",
@@ -190,7 +189,6 @@
     "source": "Πηγή{suffix}",
     "deleteMessageMultiple": "Είστε σίγουροι ότι θέλετε να διαγράψετε το/τα αρχείο/α {count};",
     "deleteMessageShare": "Είστε σίγουροι ότι θέλετε να διαγράψετε αυτό το μερίδιο: {path} ?",
-    "lastModified": "Τελευταία τροποποίηση{suffix}",
     "numberDirs": "Αριθμός καταλόγων{suffix}",
     "numberFiles": "Αριθμός αρχείων{suffix}",
     "renameMessageConflict": "Ένα στοιχείο με όνομα \"{filename}\" υπάρχει ήδη!",
@@ -198,7 +196,9 @@
     "uploadSettingsNoChunk": "Μέγιστες ταυτόχρονες μεταφορτώσεις: {maxConcurrentUpload}, chunked upload disabled",
     "quickJump": "Γρήγορη μετάβαση σε άλλα αρχεία",
     "moveSuccess": "Τα αρχεία μετακινήθηκαν με επιτυχία!",
-    "copySuccess": "Τα αρχεία αντιγράφηκαν με επιτυχία!"
+    "copySuccess": "Τα αρχεία αντιγράφηκαν με επιτυχία!",
+    "lastModified": "Τελευταία τροποποίηση{suffix}",
+    "size": "Μέγεθος{suffix}"
   },
   "search": {
     "images": "Εικόνες",

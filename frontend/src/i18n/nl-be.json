@@ -159,7 +159,6 @@
     "schedule": "Plannen",
     "scheduleMessage": "Kies een datum en tijd om de publicatie van dit bericht in te plannen.",
     "show": "Tonen",
-    "size": "Grootte",
     "upload": "Uploaden",
     "deleteUserMessage": "Weet je zeker dat je deze gebruiker wilt verwijderen?",
     "selected": "geselecteerd",
@@ -187,7 +186,6 @@
     "source": "Bron{suffix}",
     "deleteMessageMultiple": "Weet je zeker dat je {count} bestand(en) wilt verwijderen?",
     "deleteMessageShare": "Weet je zeker dat je deze share wilt verwijderen: {path} ?",
-    "lastModified": "Laatst gewijzigd{suffix}",
     "numberDirs": "Aantal mappen{suffix}",
     "numberFiles": "Aantal bestanden{suffix}",
     "renameMessageConflict": "Een item met de naam \"{filename}\" bestaat al!",
@@ -195,7 +193,9 @@
     "uploadSettingsNoChunk": "Max gelijktijdige uploads: {maxConcurrentUpload}, chunked upload uitgeschakeld",
     "quickJump": "Snel naar andere bestanden springen",
     "moveSuccess": "Bestanden succesvol verplaatst!",
-    "copySuccess": "Bestanden succesvol gekopieerd!"
+    "copySuccess": "Bestanden succesvol gekopieerd!",
+    "lastModified": "Laatst gewijzigd{suffix}",
+    "size": "Maat{suffix}"
   },
   "search": {
     "images": "Afbeeldingen",
