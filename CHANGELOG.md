@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file. For commit 
  - opus files / opus files detected wrongly #1164
  - changed autoplay behavior on plyr to not start playing if blocked instead of playing muted.
  - QR-Code disappearing / sliding out from shared link #1155
+ - audio player matches dark/light mode better
 
  **BugFixes**:
  - Copy/Move index update changes to be more thorough and update album artwork #1220 #1219
