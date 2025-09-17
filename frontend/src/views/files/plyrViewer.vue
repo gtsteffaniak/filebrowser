@@ -413,12 +413,18 @@ button:hover,
             rgba(0, 0, 0, 0.7));
     border-radius: 12px;
     overflow: visible;
-    background-color: gray;
-    backdrop-filter: blur(16px) invert(0.1);
+    background-color: rgb(216 216 216);
 }
 
 .audio-controls-container.dark-mode .plyr {
     background-color: rgb(37 49 55 / 33%);
+    color: white;
+}
+/* sidebar with backdrop-filter support */
+@supports (backdrop-filter: none) {
+  .plyr {
+    backdrop-filter: blur(16px) invert(0.1);
+  }
 }
 
 /* Position/space of the buttons */
@@ -427,8 +433,11 @@ button:hover,
     flex-direction: row;
     gap: 8px;
     background-color: transparent;
+    color: black;
 }
-
+.audio-controls-container.dark-mode .plyr .plyr__controls {
+    color: white;
+}
 .plyr .plyr__controls__items {
     display: flex;
     justify-content: space-between;

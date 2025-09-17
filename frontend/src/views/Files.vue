@@ -243,7 +243,6 @@ export default {
       if (shareInfo.isPasswordProtected) {
         mutations.setShareData({ passwordValid: false });
       }
-
       // Fetch share data
       let file = await publicApi.fetchPub(this.shareSubPath, this.shareHash, this.sharePassword);
       file.hash = this.shareHash;

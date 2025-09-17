@@ -101,7 +101,17 @@ export default {
   transition: 0.5s ease;
   top: 4em;
   padding-bottom: 4em;
-  background-color: #dddddd;
+  background-color: rgb(37 49 55 / 5%) !important;
+}
+
+/* sidebar with backdrop-filter support */
+@supports (backdrop-filter: none) {
+  #sidebar {
+    backdrop-filter: blur(16px) invert(0.1);
+  }
+  #sidebar.dark-mode {
+    background-color: rgb(37 49 55 / 33%) !important;
+  }
 }
 
 #sidebar.behind-overlay {
@@ -110,13 +120,6 @@ export default {
 
 #sidebar.sticky {
   z-index: 3;
-}
-
-@supports (backdrop-filter: none) {
-  #sidebar {
-    background-color: rgba(237, 237, 237, 0.33) !important;
-    backdrop-filter: blur(16px) invert(0.1);
-  }
 }
 
 body.rtl nav {
