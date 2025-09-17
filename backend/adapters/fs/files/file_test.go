@@ -177,3 +177,177 @@ func TestSortItems(t *testing.T) {
 		})
 	}
 }
+
+func TestDeleteFilesCacheClearing(t *testing.T) {
+	// Create a temporary directory for testing
+	tempDir, err := os.MkdirTemp("", "filebrowser_test")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(tempDir)
+
+	// Create a test file
+	testFile := filepath.Join(tempDir, "Test Object")
+	err = os.WriteFile(testFile, []byte("test content"), 0644)
+	if err != nil {
+		t.Fatalf("Failed to create test file: %v", err)
+	}
+
+	// Initialize a mock index
+	idx := indexing.Index{
+		Source: settings.Source{
+			Path: tempDir,
+		},
+	}
+
+	// Get the real path and cache it
+	_, isDir, err := idx.GetRealPath("/Test Object")
+	if err != nil {
+		t.Fatalf("Failed to get real path: %v", err)
+	}
+
+	// Verify the file is detected as a file (not directory)
+	if isDir {
+		t.Errorf("Expected file to be detected as file, but got directory")
+	}
+
+	// Initialize the index in the indexing system
+	indexing.Initialize(settings.Source{
+		Name: "test",
+		Path: tempDir,
+	}, true) // true for mock mode
+
+	// Delete the file
+	err = DeleteFiles("test", testFile, tempDir)
+	if err != nil {
+		t.Fatalf("Failed to delete file: %v", err)
+	}
+
+	// Create a directory with the same name
+	testDir := filepath.Join(tempDir, "Test Object")
+	err = os.Mkdir(testDir, 0755)
+	if err != nil {
+		t.Fatalf("Failed to create test directory: %v", err)
+	}
+
+	// Get the real path again - it should now detect it as a directory
+	// The cache should have been cleared, so it should re-detect the type
+	realPath2, isDir2, err := idx.GetRealPath("/Test Object")
+	if err != nil {
+		t.Fatalf("Failed to get real path after recreation: %v", err)
+	}
+
+	// Verify the directory is detected as a directory
+	if !isDir2 {
+		t.Errorf("Expected directory to be detected as directory, but got file. Real path: %s", realPath2)
+	}
+
+	// Clean up
+	os.RemoveAll(tempDir)
+}
+
+func TestOverrideDirectoryToFile(t *testing.T) {
+	// Create a temporary directory for testing
+	tempDir, err := os.MkdirTemp("", "filebrowser_test")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(tempDir)
+
+	// Initialize the index in the indexing system
+	indexing.Initialize(settings.Source{
+		Name: "test",
+		Path: tempDir,
+	}, true) // true for mock mode
+
+	// Create a directory first
+	testDir := filepath.Join(tempDir, "Test Object")
+	err = os.Mkdir(testDir, 0755)
+	if err != nil {
+		t.Fatalf("Failed to create test directory: %v", err)
+	}
+
+	// Now try to create a file with the same name (should work with override)
+	fileOpts := iteminfo.FileOptions{
+		Path:   "/Test Object",
+		Source: "test",
+	}
+
+	// Create a test reader with some content
+	testContent := "This is test file content"
+	reader := strings.NewReader(testContent)
+
+	err = WriteFile(fileOpts, reader)
+	if err != nil {
+		t.Fatalf("Failed to create file over directory: %v", err)
+	}
+
+	// Verify the file was created and the directory was removed
+	stat, err := os.Stat(testDir)
+	if err != nil {
+		t.Fatalf("File should exist but got error: %v", err)
+	}
+
+	if stat.IsDir() {
+		t.Errorf("Expected file but got directory")
+	}
+
+	// Verify the content
+	content, err := os.ReadFile(testDir)
+	if err != nil {
+		t.Fatalf("Failed to read file content: %v", err)
+	}
+
+	if string(content) != testContent {
+		t.Errorf("Expected content %q but got %q", testContent, string(content))
+	}
+
+	// Clean up
+	os.RemoveAll(tempDir)
+}
+
+func TestOverrideFileToDirectory(t *testing.T) {
+	// Create a temporary directory for testing
+	tempDir, err := os.MkdirTemp("", "filebrowser_test")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(tempDir)
+
+	// Initialize the index in the indexing system
+	indexing.Initialize(settings.Source{
+		Name: "test",
+		Path: tempDir,
+	}, true) // true for mock mode
+
+	// Create a file first
+	testFile := filepath.Join(tempDir, "Test Object")
+	err = os.WriteFile(testFile, []byte("test content"), 0644)
+	if err != nil {
+		t.Fatalf("Failed to create test file: %v", err)
+	}
+
+	// Now try to create a directory with the same name (should work with override)
+	fileOpts := iteminfo.FileOptions{
+		Path:   "/Test Object/",
+		Source: "test",
+	}
+
+	err = WriteDirectory(fileOpts)
+	if err != nil {
+		t.Fatalf("Failed to create directory over file: %v", err)
+	}
+
+	// Verify the directory was created and the file was removed
+	stat, err := os.Stat(testFile)
+	if err != nil {
+		t.Fatalf("Directory should exist but got error: %v", err)
+	}
+
+	if !stat.IsDir() {
+		t.Errorf("Expected directory but got file")
+	}
+
+	// Clean up
+	os.RemoveAll(tempDir)
+}

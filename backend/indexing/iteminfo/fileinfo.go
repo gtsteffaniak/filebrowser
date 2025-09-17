@@ -64,6 +64,7 @@ type FileOptions struct {
 	Expand     bool
 	ReadHeader bool
 	Content    bool
+	Recursive  bool // whether to recursively index directories
 }
 
 func (f FileOptions) Components() (string, string) {

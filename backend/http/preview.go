@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -97,8 +98,8 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 	if !(previewSize == "large" || previewSize == "original") {
 		previewSize = "small"
 	}
-	if d.fileInfo.Type == "directory" && !d.fileInfo.HasPreview {
-		return http.StatusBadRequest, fmt.Errorf("this folder does not have a preview")
+	if !d.fileInfo.HasPreview {
+		return http.StatusBadRequest, fmt.Errorf("this item does not have a preview")
 	}
 	if d.fileInfo.Type == "directory" {
 		// get extended file info of first previewable item in directory
@@ -132,15 +133,10 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 
 	setContentDisposition(w, r, d.fileInfo.Name)
 	isImage := strings.HasPrefix(d.fileInfo.Type, "image")
-	if config.Server.DisableResize && isImage {
+	ext := strings.ToLower(filepath.Ext(d.fileInfo.Name))
+	resizable := iteminfo.ResizableImageTypes[ext]
+	if (!resizable || config.Server.DisableResize) && isImage {
 		return rawFileHandler(w, r, d.fileInfo)
-	}
-
-	if !d.fileInfo.HasPreview {
-		if isImage {
-			return rawFileHandler(w, r, d.fileInfo)
-		}
-		return http.StatusNotImplemented, fmt.Errorf("can't create preview for %s type", d.fileInfo.Type)
 	}
 	seekPercentage := 0
 	percentage := r.URL.Query().Get("atPercentage")

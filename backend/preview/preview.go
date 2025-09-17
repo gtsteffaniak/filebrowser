@@ -16,6 +16,7 @@ import (
 	"sync"
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/diskcache"
+	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
@@ -53,16 +54,16 @@ func NewPreviewGenerator(concurrencyLimit int, ffmpegPath string, cacheDir strin
 		// No-op cache if no cacheDir is specified
 		fileCache = diskcache.NewNoOp()
 	}
-	// Create directories recursively with 0755 permissions
-	err := os.MkdirAll(filepath.Join(settings.Config.Server.CacheDir, "thumbnails", "docs"), 0755)
+	// Create directories recursively
+	err := os.MkdirAll(filepath.Join(settings.Config.Server.CacheDir, "thumbnails", "docs"), fileutils.PermDir)
 	if err != nil {
 		logger.Error(err)
 	}
-	err = os.MkdirAll(filepath.Join(settings.Config.Server.CacheDir, "thumbnails", "videos"), 0755)
+	err = os.MkdirAll(filepath.Join(settings.Config.Server.CacheDir, "thumbnails", "videos"), fileutils.PermDir)
 	if err != nil {
 		logger.Error(err)
 	}
-	err = os.MkdirAll(filepath.Join(settings.Config.Server.CacheDir, "heic"), 0755)
+	err = os.MkdirAll(filepath.Join(settings.Config.Server.CacheDir, "heic"), fileutils.PermDir)
 	if err != nil {
 		logger.Error(err)
 	}
@@ -102,7 +103,7 @@ func GetPreviewForFile(file iteminfo.ExtendedFileInfo, previewSize, url string, 
 	if file.AudioMeta != nil && file.AudioMeta.AlbumArt != "" {
 		// md5 is based on album art
 		// md5 file.AlbumArt
-		hasher := md5.New() //nolint:gosec
+		hasher := md5.New()
 		_, _ = hasher.Write([]byte(file.AudioMeta.AlbumArt))
 		thisMd5 = hex.EncodeToString(hasher.Sum(nil))
 		file.Checksums = make(map[string]string)
@@ -113,6 +114,11 @@ func GetPreviewForFile(file iteminfo.ExtendedFileInfo, previewSize, url string, 
 		if err != nil {
 			return nil, fmt.Errorf("failed to get checksum: %w", err)
 		}
+		// Ensure the file.Checksums map is initialized and MD5 is set
+		if file.Checksums == nil {
+			file.Checksums = make(map[string]string)
+		}
+		file.Checksums["md5"] = thisMd5
 	}
 	cacheKey := CacheKey(thisMd5, previewSize, seekPercentage)
 	if data, found, err := service.fileCache.Load(context.Background(), cacheKey); err != nil {
@@ -131,7 +137,7 @@ func GeneratePreview(file iteminfo.ExtendedFileInfo, previewSize, officeUrl stri
 	)
 
 	// Generate thumbnail image from video
-	hasher := md5.New() //nolint:gosec
+	hasher := md5.New()
 	_, _ = hasher.Write([]byte(CacheKey(file.Checksums["md5"], previewSize, seekPercentage)))
 	hash := hex.EncodeToString(hasher.Sum(nil))
 	// Generate an image from office document
@@ -205,7 +211,7 @@ func GeneratePreview(file iteminfo.ExtendedFileInfo, previewSize, officeUrl stri
 	} else {
 		cacheKey := CacheKey(file.Checksums["md5"], previewSize, seekPercentage)
 		if err := service.fileCache.Store(context.Background(), cacheKey, imageBytes); err != nil {
-			logger.Errorf("failed to cache resized image: %v", err)
+			logger.Errorf("failed to cache original image: %v", err)
 		}
 		return imageBytes, nil
 	}

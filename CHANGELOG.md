@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.8.6-beta
+
+ **Notes**:
+ - Please remove `indexAbumArt` config option from your config: it has been deprecated... I found a way to detect album art without impacting indexing performance -- so its default behavior.
+ - Download button should be invisible before password input #1162
+ - opus files / opus files detected wrongly #1164
+ - changed autoplay behavior on plyr to not start playing if blocked instead of playing muted.
+ - QR-Code disappearing / sliding out from shared link #1155
+ - audio player matches dark/light mode better
+
+ **BugFixes**:
+ - Copy/Move index update changes to be more thorough and update album artwork #1220 #1219
+ - fix preview related issues #1225 #1223
+ - Scrollbar missing on user-edit-prompt in v0.8.5-beta #1221
+ - copy share download link inconsistency #1207
+ - fixed some onlyoffice related issues #1192 #1068
+ - Creating a file, then a folder with the same name makes the folder unusable #1167
+ - fix plyr issue switching from video to audio via next/previous button.
+
 ## v0.8.5-beta
 
  **New Features**:

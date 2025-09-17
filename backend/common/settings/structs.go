@@ -74,6 +74,7 @@ type ImagePreviewType string
 
 const (
 	HEICImagePreview ImagePreviewType = "heic"
+	//RAWImagePreview  ImagePreviewType = "raw"
 )
 
 func (i ImagePreviewType) String() string {
@@ -83,6 +84,7 @@ func (i ImagePreviewType) String() string {
 // AllImagePreviewTypes contains all supported image preview types.
 var AllImagePreviewTypes = []ImagePreviewType{
 	HEICImagePreview,
+	//RAWImagePreview,
 }
 
 type LogConfig struct {
@@ -113,7 +115,7 @@ type SourceConfig struct {
 	DefaultUserScope string             `json:"defaultUserScope"`                  // default "/" should match folders under path
 	DefaultEnabled   bool               `json:"defaultEnabled"`                    // should be added as a default source for new users?
 	CreateUserDir    bool               `json:"createUserDir"`                     // create a user directory for each user
-	IndexAlbumArt    bool               `json:"indexAlbumArt"`                     // check for album art in audio files and remember it for folder previews. Can slow down indexing.
+	IndexAlbumArt    bool               `json:"indexAlbumArt"`                     // deprecated: always enabled since 0.8.6
 }
 
 type IncludeIndexFilter struct {

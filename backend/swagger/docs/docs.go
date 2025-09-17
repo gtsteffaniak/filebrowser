@@ -3195,7 +3195,7 @@ const docTemplate = `{
                     ]
                 },
                 "indexAlbumArt": {
-                    "description": "check for album art in audio files and remember it for folder previews. Can slow down indexing.",
+                    "description": "deprecated: always enabled since 0.8.6",
                     "type": "boolean"
                 },
                 "indexingIntervalMinutes": {

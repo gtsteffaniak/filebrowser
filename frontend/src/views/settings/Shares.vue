@@ -77,6 +77,7 @@ import Errors from "@/views/Errors.vue";
 import { fromNow } from '@/utils/moment';
 import { eventBus } from "@/store/eventBus";
 import { fixDownloadURL } from "@/utils/url";
+import { globalVars } from "@/utils/constants";
 
 export default {
   name: "shares",
@@ -187,6 +188,12 @@ export default {
       return publicApi.getShareURL(share);
     },
     fixDownloadURL(downloadUrl) {
+      // Only fix the URL if it doesn't already have the correct external domain
+      if (globalVars.externalUrl) {
+        // URL already has the correct external domain, use as-is
+        return downloadUrl;
+      }
+      // URL needs fixing (internal domain or no externalUrl set)
       return fixDownloadURL(downloadUrl);
     },
   },

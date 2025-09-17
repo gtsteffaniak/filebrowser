@@ -159,7 +159,6 @@
     "schedule": "Ütemezés",
     "scheduleMessage": "Válasszon egy dátumot és időpontot a bejegyzés közzétételének ütemezéséhez.",
     "show": "Megjelenítés",
-    "size": "Méret",
     "upload": "Feltöltés",
     "optionalPassword": "Választható jelszó",
     "deleteUserMessage": "Biztos, hogy törölni szeretné ezt a felhasználót?",
@@ -187,7 +186,6 @@
     "source": "Forrás{suffix}",
     "deleteMessageMultiple": "Biztos, hogy törölni szeretné a {count} fájl(ok)at?",
     "deleteMessageShare": "Biztos, hogy törölni szeretné ezt a megosztást: {path} ?",
-    "lastModified": "Utoljára módosítva{suffix}",
     "numberDirs": "A könyvtárak száma{suffix}",
     "numberFiles": "Fájlok száma{suffix}",
     "renameMessageConflict": "A \"{filename}\" nevű elem már létezik!",
@@ -195,7 +193,9 @@
     "uploadSettingsNoChunk": "Maximális egyidejű feltöltés: {maxConcurrentUpload}, chunked upload disabled",
     "quickJump": "Gyors ugrás más fájlokra",
     "moveSuccess": "Fájlok sikeresen áthelyezve!",
-    "copySuccess": "A fájlok másolása sikeres volt!"
+    "copySuccess": "A fájlok másolása sikeres volt!",
+    "lastModified": "Utoljára módosítva{suffix}",
+    "size": "Méret{suffix}"
   },
   "search": {
     "images": "Képek",

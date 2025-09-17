@@ -590,10 +590,11 @@ var types = map[string]string{
 	".xpi":       "application/x-xpinstall",
 	".wasm":      "application/wasm",
 	".m4a":       "audio/mp4",
-	".flac":      "audio/x-flac",
+	".flac":      "audio/flac",
 	".amr":       "audio/amr",
 	".aac":       "audio/aac",
-	".opus":      "video/ogg",
+	".opus":      "audio/ogg", // https://wiki.xiph.org/MIME_Types_and_File_Extensions
+	".ogx":       "application/ogg",
 	".m4v":       "video/mp4",
 	".mkv":       "video/x-matroska",
 	".caf":       "audio/x-caf",

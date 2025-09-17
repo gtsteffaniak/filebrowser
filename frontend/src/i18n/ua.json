@@ -159,7 +159,6 @@
     "schedule": "Планування",
     "scheduleMessage": "Запланувати дату та час публікації.",
     "show": "Показати",
-    "size": "Розмір",
     "upload": "Завантажити",
     "optionalPassword": "Необов'язковий пароль",
     "deleteUserMessage": "Ви впевнені, що хочете видалити цього користувача?",
@@ -187,7 +186,6 @@
     "source": "Джерело{suffix}",
     "deleteMessageMultiple": "Ви дійсно хочете видалити файл(и) {count}?",
     "deleteMessageShare": "Ви впевнені, що хочете видалити цей ресурс? {path} ?",
-    "lastModified": "Останній раз змінено{suffix}",
     "numberDirs": "Кількість каталогів{suffix}",
     "numberFiles": "Кількість файлів{suffix}",
     "renameMessageConflict": "Елемент з назвою \"{filename}\" вже існує!",
@@ -195,7 +193,9 @@
     "uploadSettingsNoChunk": "Максимальне одночасне завантаження: {maxConcurrentUpload}, chunked upload вимкнено",
     "quickJump": "Швидкий перехід до інших файлів",
     "moveSuccess": "Файли успішно перенесено!",
-    "copySuccess": "Файли успішно скопійовано!"
+    "copySuccess": "Файли успішно скопійовано!",
+    "lastModified": "Останній раз змінено{suffix}",
+    "size": "Розмір{suffix}"
   },
   "search": {
     "images": "Зображення",

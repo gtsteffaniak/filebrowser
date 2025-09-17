@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	storm "github.com/asdine/storm/v3"
+	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/storage/bolt"
@@ -57,7 +58,7 @@ func dbExists(path string) (bool, error) {
 		d := filepath.Dir(path)
 		_, err = os.Stat(d)
 		if os.IsNotExist(err) {
-			if err := os.MkdirAll(d, 0700); err != nil { //nolint:govet,gomnd
+			if err = os.MkdirAll(d, fileutils.PermDir); err != nil {
 				return false, err
 			}
 			return false, nil

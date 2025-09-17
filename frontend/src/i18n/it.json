@@ -159,7 +159,6 @@
     "schedule": "Pianifica",
     "scheduleMessage": "Seleziona data e ora per programmare la pubbilicazione di questo post",
     "show": "Mostra",
-    "size": "Dimensione",
     "upload": "Carica",
     "deleteUserMessage": "Siete sicuri di voler eliminare questo utente?",
     "filesSelected": "file selezionati",
@@ -187,7 +186,6 @@
     "source": "Fonte{suffix}",
     "deleteMessageMultiple": "Siete sicuri di voler eliminare i file {count}?",
     "deleteMessageShare": "Sei sicuro di voler eliminare questa condivisione: {path} ?",
-    "lastModified": "Ultima modifica{suffix}",
     "numberDirs": "Numero di directory{suffix}",
     "numberFiles": "Numero di file{suffix}",
     "renameMessageConflict": "Un elemento chiamato \"{filename}\" esiste già!",
@@ -195,7 +193,9 @@
     "uploadSettingsNoChunk": "Carichi massimi contemporanei: {maxConcurrentUpload}, caricamento chunked disabilitato",
     "quickJump": "Salto rapido ad altri file",
     "moveSuccess": "I file sono stati spostati con successo!",
-    "copySuccess": "I file sono stati copiati con successo!"
+    "copySuccess": "I file sono stati copiati con successo!",
+    "lastModified": "Ultima modifica{suffix}",
+    "size": "Dimensione{suffix}"
   },
   "search": {
     "images": "Immagini",

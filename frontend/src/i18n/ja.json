@@ -159,7 +159,6 @@
     "schedule": "スケジュール",
     "scheduleMessage": "この投稿の公開日時をスケジュールしてください。",
     "show": "表示",
-    "size": "サイズ",
     "upload": "アップロード",
     "deleteUserMessage": "本当にこのユーザーを削除しますか？",
     "filesSelected": "選択されたファイル",
@@ -187,7 +186,6 @@
     "source": "送信元{suffix}",
     "deleteMessageMultiple": "本当に{count}個のファイルを削除しますか？",
     "deleteMessageShare": "この共有を削除してもよろしいですか？ {path}",
-    "lastModified": "最終更新日時{suffix}",
     "numberDirs": "ディレクトリ数{suffix}",
     "numberFiles": "ファイル数{suffix}",
     "quickJump": "他のファイルに素早くジャンプ",
@@ -195,7 +193,9 @@
     "copySuccess": "ファイルは正常にコピーされました！",
     "renameMessageConflict": "\"{filename}\"という名前のアイテムがすでに存在します！",
     "uploadSettingsChunked": "最大同時アップロード数：{maxConcurrentUpload}、チャンクサイズ：{uploadChunkSizeMb}MB",
-    "uploadSettingsNoChunk": "最大同時アップロード数：{maxConcurrentUpload}、チャンクアップロード無効"
+    "uploadSettingsNoChunk": "最大同時アップロード数：{maxConcurrentUpload}、チャンクアップロード無効",
+    "lastModified": "最終更新日{suffix}",
+    "size": "サイズ{suffix}"
   },
   "search": {
     "images": "画像",

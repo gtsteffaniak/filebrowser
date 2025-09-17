@@ -19,6 +19,8 @@ frontend:
 
 auth:
   methods:
+    password:
+      enabled: false
     proxy:
       enabled: true
       header: "X-Username"

@@ -159,7 +159,6 @@
     "schedule": "일정",
     "scheduleMessage": "이 글을 공개할 시간을 알려주세요.",
     "show": "보기",
-    "size": "크기",
     "upload": "업로드",
     "deleteUserMessage": "이 사용자를 삭제하시겠습니까?",
     "filesSelected": "선택한 파일",
@@ -187,7 +186,6 @@
     "source": "출처{suffix}",
     "deleteMessageMultiple": "{count} 파일을 정말 삭제하시겠습니까?",
     "deleteMessageShare": "이 공유를 삭제하시겠습니까? {path} ?",
-    "lastModified": "마지막 수정{suffix}",
     "numberDirs": "디렉터리 수{suffix}",
     "numberFiles": "파일 수{suffix}",
     "renameMessageConflict": "\"{filename}\"라는 이름의 항목이 이미 존재합니다!",
@@ -195,7 +193,9 @@
     "uploadSettingsNoChunk": "최대 동시 업로드: {maxConcurrentUpload}, 청크 업로드 비활성화",
     "quickJump": "다른 파일로 빠르게 이동",
     "moveSuccess": "파일이 성공적으로 이동했습니다!",
-    "copySuccess": "파일이 성공적으로 복사되었습니다!"
+    "copySuccess": "파일이 성공적으로 복사되었습니다!",
+    "lastModified": "마지막 수정{suffix}",
+    "size": "크기{suffix}"
   },
   "search": {
     "images": "이미지",

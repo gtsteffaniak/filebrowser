@@ -35,6 +35,7 @@ export const state = reactive({
     hash: null,
     token: "",
     subPath: "",
+    passwordValid: false,
   },
   sources: {
     current: "",

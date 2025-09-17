@@ -159,7 +159,6 @@
     "schedule": "Naplánovať",
     "scheduleMessage": "Pick a date and time to schedule the publication of this post.",
     "show": "Zobraziť",
-    "size": "Veľkosť",
     "upload": "Nahrať",
     "optionalPassword": "Voliteľné heslo",
     "deleteUserMessage": "Ste si istí, že chcete odstrániť tohto používateľa?",
@@ -187,7 +186,6 @@
     "source": "Zdroj{suffix}",
     "deleteMessageMultiple": "Ste si istí, že chcete odstrániť súbor(y) {count}?",
     "deleteMessageShare": "Ste si istí, že chcete odstrániť toto zdieľanie: {path} ?",
-    "lastModified": "Posledná úprava{suffix}",
     "numberDirs": "Počet adresárov{suffix}",
     "numberFiles": "Počet súborov{suffix}",
     "renameMessageConflict": "Položka s názvom \"{filename}\" už existuje!",
@@ -195,7 +193,9 @@
     "uploadSettingsNoChunk": "Maximálne súbežné nahrávanie: {maxConcurrentUpload}, chunked upload vypnuté",
     "quickJump": "Rýchly prechod na iné súbory",
     "moveSuccess": "Súbory boli úspešne presunuté!",
-    "copySuccess": "Súbory boli úspešne skopírované!"
+    "copySuccess": "Súbory boli úspešne skopírované!",
+    "lastModified": "Posledná úprava{suffix}",
+    "size": "Veľkosť{suffix}"
   },
   "search": {
     "images": "Obrázky",

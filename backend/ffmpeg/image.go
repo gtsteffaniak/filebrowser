@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
 )
 
 // ImageService handles image operations with ffmpeg
@@ -154,7 +156,7 @@ func (s *ImageService) ConvertHEICToJPEGDirect(heicPath string, targetWidth, tar
 
 	// Create temporary output file
 	outputDir := s.cacheDir
-	err = os.MkdirAll(outputDir, 0755)
+	err = os.MkdirAll(outputDir, fileutils.PermDir)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create cache directory: %w", err)
 	}
@@ -208,7 +210,7 @@ func (s *ImageService) ConvertHEICToJPEG(heicPath string, targetWidth, targetHei
 	// Create temporary directory for tile processing
 	outputDir := s.cacheDir
 	tempDir := filepath.Join(outputDir, fmt.Sprintf("heic_tiles_%d", os.Getpid()))
-	err := os.MkdirAll(tempDir, 0755)
+	err := os.MkdirAll(tempDir, fileutils.PermDir)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create temp directory: %w", err)
 	}

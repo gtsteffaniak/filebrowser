@@ -18,6 +18,67 @@ func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo) bool {
 	return true
 }
 
+// DeleteMetadata removes the specified path from the index.
+// If recursive is true and the path is a directory, it will also remove all subdirectories.
+func (idx *Index) DeleteMetadata(path string, isDir bool, recursive bool) bool {
+	idx.mu.Lock()
+	defer idx.mu.Unlock()
+
+	indexPath := idx.MakeIndexPath(path)
+
+	if !isDir {
+		// For files, remove from parent directory's Files slice
+		parentPath := idx.MakeIndexPath(filepath.Dir(path))
+		if parentDir, exists := idx.Directories[parentPath]; exists {
+			fileName := filepath.Base(path)
+			for i, file := range parentDir.Files {
+				if file.Name == fileName {
+					// Remove file from slice
+					parentDir.Files = append(parentDir.Files[:i], parentDir.Files[i+1:]...)
+					break
+				}
+			}
+		}
+		return true
+	}
+
+	// For directories
+	if recursive {
+		// Remove all subdirectories that start with this path
+		toDelete := []string{}
+		for dirPath := range idx.Directories {
+			if dirPath == indexPath || (len(dirPath) > len(indexPath) &&
+				dirPath[:len(indexPath)] == indexPath &&
+				(indexPath == "/" || dirPath[len(indexPath)] == '/')) {
+				toDelete = append(toDelete, dirPath)
+			}
+		}
+		for _, dirPath := range toDelete {
+			delete(idx.Directories, dirPath)
+		}
+	} else {
+		// Just remove this specific directory
+		delete(idx.Directories, indexPath)
+	}
+
+	// Remove from parent directory's Folders slice
+	if indexPath != "/" {
+		parentPath := idx.MakeIndexPath(filepath.Dir(path))
+		if parentDir, exists := idx.Directories[parentPath]; exists {
+			dirName := filepath.Base(path)
+			for i, folder := range parentDir.Folders {
+				if folder.Name == dirName {
+					// Remove folder from slice
+					parentDir.Folders = append(parentDir.Folders[:i], parentDir.Folders[i+1:]...)
+					break
+				}
+			}
+		}
+	}
+
+	return true
+}
+
 // GetMetadataInfo retrieves the FileInfo from the specified file or directory in the index.
 func (idx *Index) GetReducedMetadata(target string, isDir bool) (*iteminfo.FileInfo, bool) {
 	idx.mu.RLock()

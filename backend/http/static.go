@@ -92,6 +92,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		shareProps["hash"] = d.share.Hash
 
 		if d.shareValid {
+			shareProps["singleFileShare"] = d.share.IsSingleFileShare()
 			disableNavButtons = disableNavButtons || d.share.HideNavButtons
 			shareProps["viewMode"] = d.share.ViewMode
 			shareProps["banner"] = d.share.Banner
@@ -109,6 +110,12 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 			shareProps["viewMode"] = d.share.ViewMode
 			shareProps["enableOnlyOffice"] = d.share.EnableOnlyOffice
 			shareProps["enableOnlyOfficeEditing"] = d.share.EnableOnlyOfficeEditing
+
+			// Additional computed properties from extended.go
+			shareProps["hasPassword"] = d.share.HasPassword()
+			shareProps["isPermanent"] = d.share.IsPermanent()
+			shareProps["fileExtension"] = d.share.GetFileExtension()
+			shareProps["fileName"] = d.share.GetFileName()
 			if d.share.Favicon != "" {
 				if strings.HasPrefix(d.share.Favicon, "http") {
 					data["favicon"] = d.share.Favicon

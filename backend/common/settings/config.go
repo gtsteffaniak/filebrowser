@@ -412,10 +412,10 @@ func setDefaults(generate bool) Settings {
 			},
 		},
 	}
-	// set default image preview types
+	// Initialize ImagePreview map with all supported types set to false by default
 	s.Integrations.Media.Convert.ImagePreview = make(map[ImagePreviewType]bool)
 	for _, t := range AllImagePreviewTypes {
-		s.Integrations.Media.Convert.ImagePreview[t] = (t == HEICImagePreview) // default is heic
+		s.Integrations.Media.Convert.ImagePreview[t] = false
 	}
 	return s
 }
@@ -562,10 +562,10 @@ func loadCustomFavicon() {
 	// Validate file format based on extension
 	ext := strings.ToLower(filepath.Ext(faviconPath))
 	switch ext {
-	case ".ico", ".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp":
+	case ".ico", ".png", ".svg":
 		// Valid favicon formats
 	default:
-		logger.Warningf("Unsupported favicon format '%v', supported formats: .ico, .png, .jpg, .gif, .svg, .webp", ext)
+		logger.Warningf("Unsupported favicon format '%v', supported formats: .ico, .png, .svg", ext)
 		Config.Frontend.Favicon = "" // Unset invalid path
 		return
 	}

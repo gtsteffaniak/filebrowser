@@ -199,7 +199,6 @@ input.sizeInput:disabled {
   backdrop-filter: invert(.1);
   height: 2em;
   width: 5em;
-
 }
 
 .roundedInputLeft {
