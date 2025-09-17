@@ -159,7 +159,6 @@
     "schedule": "Agendar",
     "scheduleMessage": "Escolha uma data para agendar a publicação deste post.",
     "show": "Mostrar",
-    "size": "Tamanho",
     "upload": "Enviar",
     "optionalPassword": "Senha opcional",
     "deleteUserMessage": "Tem certeza de que deseja excluir esse usuário?",
@@ -187,7 +186,6 @@
     "source": "Fonte{suffix}",
     "deleteMessageMultiple": "Tem certeza de que deseja excluir o(s) arquivo(s) {count}?",
     "deleteMessageShare": "Tem certeza de que deseja excluir esse compartilhamento: {path} ?",
-    "lastModified": "Última modificação{suffix}",
     "numberDirs": "Número de diretórios{suffix}",
     "numberFiles": "Número de arquivos{suffix}",
     "renameMessageConflict": "Já existe um item chamado \"{filename}\"!",
@@ -195,7 +193,9 @@
     "uploadSettingsNoChunk": "Máximo de uploads simultâneos: {maxConcurrentUpload}, upload em pedaços desativado",
     "quickJump": "Pular rapidamente para outros arquivos",
     "moveSuccess": "Os arquivos foram movidos com sucesso!",
-    "copySuccess": "Os arquivos foram copiados com sucesso!"
+    "copySuccess": "Os arquivos foram copiados com sucesso!",
+    "lastModified": "Última modificação{suffix}",
+    "size": "Tamanho{suffix}"
   },
   "search": {
     "images": "Imagens",

@@ -159,7 +159,6 @@
     "schedule": "תזמון",
     "scheduleMessage": "בחר תאריך ושעה לתזמון הפרסום של פוסט זה.",
     "show": "הצג",
-    "size": "גודל",
     "upload": "העלאה",
     "optionalPassword": "סיסמא אופציונלית",
     "deleteUserMessage": "האם אתה בטוח שברצונך למחוק משתמש זה?",
@@ -187,7 +186,6 @@
     "source": "מקור{suffix}",
     "deleteMessageMultiple": "האם אתה בטוח שברצונך למחוק את הקובץ/ים {count}?",
     "deleteMessageShare": "האם אתה בטוח שברצונך למחוק שיתוף זה: {path}?",
-    "lastModified": "שינוי אחרון{suffix}",
     "numberDirs": "מספר הספריות{suffix}",
     "numberFiles": "מספר הקבצים{suffix}",
     "renameMessageConflict": "פריט בשם \"{filename}\" כבר קיים!",
@@ -195,7 +193,9 @@
     "uploadSettingsNoChunk": "מספר העלאות מקסימלי בו-זמנית: {maxConcurrentUpload}, העלאה מקוטעת מושבתת",
     "quickJump": "קפיצה מהירה לקבצים אחרים",
     "moveSuccess": "הקבצים הועברו בהצלחה!",
-    "copySuccess": "הקבצים הועתקו בהצלחה!"
+    "copySuccess": "הקבצים הועתקו בהצלחה!",
+    "lastModified": "שינוי אחרון{suffix}",
+    "size": "גודל{suffix}"
   },
   "search": {
     "images": "תמונות",

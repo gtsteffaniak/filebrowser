@@ -12,13 +12,6 @@ header {
   padding: 0.5em;
 }
 
-@supports (backdrop-filter: none) {
-  header {
-    background-color: rgba(237, 237, 237, 0.33) !important;
-    backdrop-filter: blur(16px) invert(0.1);
-  }
-}
-
 header>* {
   flex: 0 0 auto;
 }
@@ -51,10 +44,3 @@ header .action span {
   display: none;
 }
 
-/* Header with backdrop-filter support */
-@supports (backdrop-filter: none) {
-  header {
-    background-color: rgba(237, 237, 237, 0.33) !important;
-    backdrop-filter: blur(16px) invert(0.1);
-  }
-}

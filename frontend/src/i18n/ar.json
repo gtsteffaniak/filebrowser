@@ -159,7 +159,6 @@
     "schedule": "جدولة",
     "scheduleMessage": "أختر الوقت والتاريخ لجدولة نشر هذا المقال.",
     "show": "عرض",
-    "size": "الحجم",
     "upload": "التحميل",
     "deleteUserMessage": "هل أنت متأكد من رغبتك في حذف هذا المستخدم؟",
     "filesSelected": "الملفات المحددة",
@@ -187,7 +186,6 @@
     "source": "المصدر{suffix}",
     "deleteMessageMultiple": "هل تريد بالتأكيد حذف الملف (الملفات) {count} ؟",
     "deleteMessageShare": "هل أنت متأكد أنك تريد حذف هذه المشاركة؟ {path} ?",
-    "lastModified": "آخر تعديل{suffix}",
     "numberDirs": "عدد الدلائل{suffix}",
     "numberFiles": "عدد الملفات{suffix}",
     "renameMessageConflict": "عنصر باسم \"{filename}\" موجود بالفعل!",
@@ -195,7 +193,9 @@
     "uploadSettingsNoChunk": "الحد الأقصى للتحميلات المتزامنة: {maxConcurrentUpload} ، تم تعطيل التحميل المقطّع",
     "quickJump": "الانتقال بسرعة إلى ملفات أخرى",
     "moveSuccess": "تم نقل الملفات بنجاح!",
-    "copySuccess": "تم نسخ الملفات بنجاح!"
+    "copySuccess": "تم نسخ الملفات بنجاح!",
+    "lastModified": "آخر تعديل{suffix}",
+    "size": "الحجم{suffix}"
   },
   "search": {
     "images": "الصور",

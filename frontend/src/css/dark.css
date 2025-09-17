@@ -235,18 +235,3 @@
   background-color: #283136;
 }
 
-/* Header with backdrop-filter support */
-@supports (backdrop-filter: none) {
-  .dark-mode-header {
-    background-color: rgb(37 49 55 / 33%) !important;
-    backdrop-filter: blur(16px) invert(0.1);
-  }
-  #sidebar.dark-mode {
-    background-color: rgb(37 49 55 / 33%) !important;
-    backdrop-filter: blur(16px) invert(0.1);
-  }
-}
-
-#sidebar.dark-mode {
-  background-color: var(--alt-background);
-}

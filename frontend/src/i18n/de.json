@@ -159,7 +159,6 @@
     "schedule": "Zeitplan",
     "scheduleMessage": "Wählen Sie ein Datum und eine Zeit für die Veröffentlichung dieses Beitrags.",
     "show": "Anzeigen",
-    "size": "Größe",
     "upload": "Hochladen",
     "optionalPassword": "Optionales Kennwort",
     "deleteUserMessage": "Sind Sie sicher, dass Sie diesen Benutzer löschen möchten?",
@@ -187,7 +186,6 @@
     "source": "Quelle{suffix}",
     "deleteMessageMultiple": "Sind Sie sicher, dass Sie die Datei(en) {count} löschen möchten?",
     "deleteMessageShare": "Sind Sie sicher, dass Sie diese Freigabe löschen möchten: {path} ?",
-    "lastModified": "Zuletzt modifiziert{suffix}",
     "numberDirs": "Anzahl der Verzeichnisse{suffix}",
     "numberFiles": "Anzahl der Dateien{suffix}",
     "renameMessageConflict": "Ein Artikel mit dem Namen \"{filename}\" existiert bereits!",
@@ -195,7 +193,9 @@
     "uploadSettingsNoChunk": "Max. gleichzeitige Uploads: {maxConcurrentUpload}, Chunked Upload deaktiviert",
     "quickJump": "Schnelles Springen zu anderen Dateien",
     "moveSuccess": "Dateien erfolgreich verschoben!",
-    "copySuccess": "Dateien erfolgreich kopiert!"
+    "copySuccess": "Dateien erfolgreich kopiert!",
+    "lastModified": "Zuletzt modifiziert{suffix}",
+    "size": "Größe{suffix}"
   },
   "search": {
     "images": "Bilder",

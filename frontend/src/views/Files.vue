@@ -199,6 +199,8 @@ export default {
         } else if (e.status === 401 && this.isShare) {
           // Handle share password requirement
           this.attemptedPasswordLogin = this.sharePassword !== "";
+          // Reset password validation state on wrong password
+          mutations.setShareData({ passwordValid: false });
           this.showPasswordPrompt();
         } else {
           router.push({ name: "error" });
@@ -234,6 +236,13 @@ export default {
       mutations.setMultiple(false);
       mutations.closeHovers();
 
+      if (shareInfo.singleFileShare) {
+        mutations.setSidebarVisible(true);
+      }
+      // Initialize password validation state for password-protected shares
+      if (shareInfo.isPasswordProtected) {
+        mutations.setShareData({ passwordValid: false });
+      }
       // Fetch share data
       let file = await publicApi.fetchPub(this.shareSubPath, this.shareHash, this.sharePassword);
       file.hash = this.shareHash;
@@ -243,6 +252,7 @@ export default {
         hash: this.shareHash,
         token: this.shareToken,
         subPath: this.shareSubPath,
+        passwordValid: true,
       });
       // If not a directory, fetch content for preview components
       if (file.type != "directory") {

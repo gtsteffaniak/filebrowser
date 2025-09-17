@@ -159,7 +159,6 @@
     "schedule": "計畫",
     "scheduleMessage": "請選擇發佈這篇貼文的日期。",
     "show": "顯示",
-    "size": "大小",
     "upload": "上傳",
     "destinationSource": "目的地來源：",
     "deleteUserMessage": "您確定要刪除此使用者嗎？",
@@ -187,7 +186,6 @@
     "source": "來源{suffix}",
     "deleteMessageMultiple": "您確定要刪除{count} 檔案嗎？",
     "deleteMessageShare": "您確定要刪除此共用嗎？ {path} ?",
-    "lastModified": "最後修改{suffix}",
     "numberDirs": "目錄數量{suffix}",
     "numberFiles": "檔案數量{suffix}",
     "renameMessageConflict": "名為 \"{filename}\" 的項目已經存在！",
@@ -195,7 +193,9 @@
     "uploadSettingsNoChunk": "最大同時上傳數量：{maxConcurrentUpload}, 已停用分塊上傳",
     "quickJump": "快速跳到其他檔案",
     "moveSuccess": "檔案移動成功！",
-    "copySuccess": "檔案已成功複製！"
+    "copySuccess": "檔案已成功複製！",
+    "lastModified": "最後修改{suffix}",
+    "size": "尺寸{suffix}"
   },
   "search": {
     "images": "影像",

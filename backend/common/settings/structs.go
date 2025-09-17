@@ -74,6 +74,7 @@ type ImagePreviewType string
 
 const (
 	HEICImagePreview ImagePreviewType = "heic"
+	//RAWImagePreview  ImagePreviewType = "raw"
 )
 
 func (i ImagePreviewType) String() string {
@@ -83,6 +84,7 @@ func (i ImagePreviewType) String() string {
 // AllImagePreviewTypes contains all supported image preview types.
 var AllImagePreviewTypes = []ImagePreviewType{
 	HEICImagePreview,
+	//RAWImagePreview,
 }
 
 type LogConfig struct {

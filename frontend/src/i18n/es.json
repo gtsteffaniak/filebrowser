@@ -159,7 +159,6 @@
     "schedule": "Programar",
     "scheduleMessage": "Selecciona una fecha y hora para la publicacion:",
     "show": "Mostrar",
-    "size": "Tamaño",
     "upload": "Subir",
     "optionalPassword": "Contraseña (opcional)",
     "deleteUserMessage": "¿Estas seguro que quieres eliminar este usuario?",
@@ -187,7 +186,6 @@
     "source": "Fuente{suffix}",
     "deleteMessageMultiple": "¿Está seguro de que desea eliminar los archivos de {count}?",
     "deleteMessageShare": "¿Estás seguro de que quieres borrar esta acción? {path} ?",
-    "lastModified": "Última modificación{suffix}",
     "numberDirs": "Número de directorios{suffix}",
     "numberFiles": "Número de ficheros{suffix}",
     "renameMessageConflict": "Ya existe un elemento llamado \"{filename}\".",
@@ -195,7 +193,9 @@
     "uploadSettingsNoChunk": "Carga máxima simultánea: {maxConcurrentUpload} Carga por trozos desactivada",
     "quickJump": "Saltar rápidamente a otros archivos",
     "moveSuccess": "¡Archivos movidos con éxito!",
-    "copySuccess": "¡Archivos copiados correctamente!"
+    "copySuccess": "¡Archivos copiados correctamente!",
+    "lastModified": "Última modificación{suffix}",
+    "size": "Talla{suffix}"
   },
   "search": {
     "images": "Imágenes",

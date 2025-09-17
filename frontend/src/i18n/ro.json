@@ -159,7 +159,6 @@
     "schedule": "Programare",
     "scheduleMessage": "Alege data si ora pentru a programa publicarea acestei postări.",
     "show": "Arată",
-    "size": "Dimensiune",
     "upload": "Încărcare",
     "deleteUserMessage": "Sunteți sigur că doriți să ștergeți acest utilizator?",
     "filesSelected": "fișiere selectate",
@@ -187,7 +186,6 @@
     "source": "Sursa{suffix}",
     "deleteMessageMultiple": "Sunteți sigur că doriți să eliminați fișierul (fișierele) {count}?",
     "deleteMessageShare": "Sunteți sigur că doriți să ștergeți această partajare: {path} ?",
-    "lastModified": "Ultima modificare{suffix}",
     "numberDirs": "Număr de directoare{suffix}",
     "numberFiles": "Număr de fișiere{suffix}",
     "renameMessageConflict": "Un element numit \"{filename}\" există deja!",
@@ -195,7 +193,9 @@
     "uploadSettingsNoChunk": "Încărcări simultane maxime: {maxConcurrentUpload}, încărcare fragmentată dezactivată",
     "quickJump": "Salt rapid la alte fișiere",
     "moveSuccess": "Fișiere mutate cu succes!",
-    "copySuccess": "Fișiere copiate cu succes!"
+    "copySuccess": "Fișiere copiate cu succes!",
+    "lastModified": "Ultima modificare{suffix}",
+    "size": "Mărime{suffix}"
   },
   "search": {
     "images": "Imagini",

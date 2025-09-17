@@ -159,7 +159,6 @@
     "schedule": "计划",
     "scheduleMessage": "请选择发布这篇帖子的日期与时间。",
     "show": "点击以显示",
-    "size": "大小",
     "upload": "上传",
     "optionalPassword": "密码（选填，不填即无密码）",
     "deleteUserMessage": "您确定要删除该用户吗？",
@@ -187,7 +186,6 @@
     "source": "资料来源{suffix}",
     "deleteMessageMultiple": "您确定要删除{count} 文件吗？",
     "deleteMessageShare": "您确定要删除此共享？ {path} ?",
-    "lastModified": "最后修改{suffix}",
     "numberDirs": "目录数量{suffix}",
     "numberFiles": "文件数量{suffix}",
     "renameMessageConflict": "名为 \"{filename}\" 的项目已经存在！",
@@ -195,7 +193,9 @@
     "uploadSettingsNoChunk": "最大并发上传：{maxConcurrentUpload}已禁用分块上传",
     "quickJump": "快速跳转到其他文件",
     "moveSuccess": "文件移动成功！",
-    "copySuccess": "文件复制成功！"
+    "copySuccess": "文件复制成功！",
+    "lastModified": "最后修改{suffix}",
+    "size": "尺寸{suffix}"
   },
   "search": {
     "images": "图像",

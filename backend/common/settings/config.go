@@ -412,10 +412,10 @@ func setDefaults(generate bool) Settings {
 			},
 		},
 	}
-	// set default image preview types
+	// Initialize ImagePreview map with all supported types set to false by default
 	s.Integrations.Media.Convert.ImagePreview = make(map[ImagePreviewType]bool)
 	for _, t := range AllImagePreviewTypes {
-		s.Integrations.Media.Convert.ImagePreview[t] = (t == HEICImagePreview) // default is heic
+		s.Integrations.Media.Convert.ImagePreview[t] = false
 	}
 	return s
 }

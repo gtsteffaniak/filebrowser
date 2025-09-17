@@ -159,7 +159,6 @@
     "schedule": "Grafi",
     "scheduleMessage": "Wybierz datę i czas dla publikacji tego wpisu.",
     "show": "Pokaż",
-    "size": "Rozmiar",
     "upload": "Prześlij",
     "deleteUserMessage": "Czy na pewno chcesz usunąć tego użytkownika?",
     "filesSelected": "wybrane pliki",
@@ -187,7 +186,6 @@
     "source": "Źródło{suffix}",
     "deleteMessageMultiple": "Czy na pewno chcesz usunąć plik(i) {count}?",
     "deleteMessageShare": "Czy na pewno chcesz usunąć ten udział: {path} ?",
-    "lastModified": "Ostatnia modyfikacja{suffix}",
     "numberDirs": "Liczba katalogów{suffix}",
     "numberFiles": "Liczba plików{suffix}",
     "renameMessageConflict": "Element o nazwie \"{filename}\" już istnieje!",
@@ -195,7 +193,9 @@
     "uploadSettingsNoChunk": "Maksymalny jednoczesny upload: {maxConcurrentUpload}, przesyłanie fragmentaryczne wyłączone",
     "quickJump": "Szybkie przechodzenie do innych plików",
     "moveSuccess": "Pliki zostały przeniesione pomyślnie!",
-    "copySuccess": "Pliki zostały skopiowane pomyślnie!"
+    "copySuccess": "Pliki zostały skopiowane pomyślnie!",
+    "lastModified": "Ostatnia modyfikacja{suffix}",
+    "size": "Rozmiar{suffix}"
   },
   "search": {
     "images": "Zdjęcia",

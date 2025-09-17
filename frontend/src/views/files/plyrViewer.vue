@@ -1,5 +1,5 @@
 <template>
-    <div class="plyr-viewer">
+    <div class="plyr-viewer" :key="`${previewType}-${raw}`">
         <!-- Audio with plyr -->
         <div v-if="previewType == 'audio' && !useDefaultMediaPlayer" class="audio-player-container">
             <div class="audio-player-content">
@@ -39,7 +39,7 @@
 
             </div>
 
-            <div class="audio-controls-container">
+            <div class="audio-controls-container" :class="{ 'dark-mode': darkMode }">
                 <vue-plyr ref="audioPlayer" :options="plyrOptions">
                     <audio :src="raw" :autoplay="autoPlayEnabled" @play="handlePlay"></audio>
                 </vue-plyr>
@@ -86,6 +86,7 @@
 </template>
 
 <script>
+import { state } from '@/store/state';
 export default {
     name: "plyrViewer",
     props: {
@@ -165,6 +166,11 @@ export default {
     watch: {
         req() {
             this.updateMedia();
+        },
+    },
+    computed: {
+        darkMode() {
+            return state.user.darkMode;
         },
     },
     mounted() {
@@ -403,11 +409,22 @@ button:hover,
     --plyr-control-padding: 6px;
     --plyr-tooltip-background: rgba(0, 0, 0, 0.8);
     --plyr-tooltip-color: #ffffff;
-    --plyr-audio-controls-background: transparent;
     --plyr-video-controls-background: linear-gradient(transparent,
             rgba(0, 0, 0, 0.7));
     border-radius: 12px;
     overflow: visible;
+    background-color: rgb(216 216 216);
+}
+
+.audio-controls-container.dark-mode .plyr {
+    background-color: rgb(37 49 55 / 33%);
+    color: white;
+}
+/* sidebar with backdrop-filter support */
+@supports (backdrop-filter: none) {
+  .plyr {
+    backdrop-filter: blur(16px) invert(0.1);
+  }
 }
 
 /* Position/space of the buttons */
@@ -415,8 +432,12 @@ button:hover,
     display: flex;
     flex-direction: row;
     gap: 8px;
+    background-color: transparent;
+    color: black;
 }
-
+.audio-controls-container.dark-mode .plyr .plyr__controls {
+    color: white;
+}
 .plyr .plyr__controls__items {
     display: flex;
     justify-content: space-between;
@@ -492,11 +513,6 @@ button:hover,
 *** AUDIO ***
 ************/
 
-/* Style for audio player */
-.plyr.plyr--audio {
-    background: rgba(40, 40, 55, 1);
-    border-radius: 1em;
-}
 
 /* Hide some unnesary buttons on the audio player */
 .plyr--audio .plyr__control--overlaid,
@@ -658,6 +674,7 @@ button:hover,
 
 .audio-controls-container {
     width: 100%;
+    border-radius: 1em;
 }
 
 /* For small tablets and phones with big screen */

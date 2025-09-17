@@ -680,28 +680,26 @@ export default {
       // Instead of testing the download URL (which fails due to hostname resolution),
       // we'll monitor for actual callback success/failure patterns
       this.updateDebugStatus("🔄 Monitoring OnlyOffice server → FileBrowser API communication...");
-      
+
       // Set up a timer to check if callbacks are working
       let callbackCount = 0;
-      let lastCallbackTime = 0;
-      
+
       // Monitor for successful callbacks in the network tab
       const originalFetch = window.fetch;
       window.fetch = (...args) => {
         return originalFetch.apply(window, args).then(response => {
           if (response.url.includes('onlyoffice/callback') && response.status === 200) {
             callbackCount++;
-            lastCallbackTime = Date.now();
             this.updateDebugStatus(`✅ OnlyOffice callback #${callbackCount} received successfully`);
           }
           return response;
         });
       };
-      
+
       // Check after 10 seconds if we've seen any callbacks
       setTimeout(() => {
         window.fetch = originalFetch; // Restore original fetch
-        
+
         if (callbackCount > 0) {
           this.updateDebugStatus(`✅ OnlyOffice server → FileBrowser API communication confirmed (${callbackCount} callbacks received)`);
         } else {

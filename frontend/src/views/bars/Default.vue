@@ -165,7 +165,7 @@ export default {
     },
     multiAction() {
       const listingView = getters.currentView();
-      if (listingView == "listingView") {
+      if (listingView == "listingView" || shareInfo.singleFileShare) {
         mutations.toggleSidebar();
       } else if (listingView == "settings" && state.isMobile) {
         mutations.toggleSidebar();
@@ -192,5 +192,17 @@ export default {
 header button:hover {
   box-shadow: unset !important;
   -webkit-box-shadow: unset !important;
+}
+header {
+  background-color: rgb(37 49 55 / 5%) !important;
+}
+/* Header with backdrop-filter support */
+@supports (backdrop-filter: none) {
+  header {
+    backdrop-filter: blur(16px) invert(0.1);
+  }
+  .dark-mode-header {
+    background-color: rgb(37 49 55 / 33%) !important;
+  }
 }
 </style>

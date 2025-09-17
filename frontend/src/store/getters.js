@@ -178,6 +178,9 @@ export const getters = {
     if (previewViews.includes(cv) && !state.user.preview?.disableHideSidebar) {
       visible = false
     }
+    if (shareInfo.singleFileShare) {
+      visible = state.showSidebar
+    }
     return visible
   },
   isStickySidebar: () => {
@@ -423,13 +426,17 @@ export const getters = {
         }
         return "close";
       }
-      if (cv == "listingView") {
+      if (cv == "listingView" || shareInfo.singleFileShare) {
         if (state.user.stickySidebar) {
           return "menu";
         }
+
         return "back";
       }
       return "close";
+    }
+    if (shareInfo.singleFileShare) {
+      return "menu";
     }
     if (cv == "settings") {
       if (state.isMobile) {

@@ -180,6 +180,10 @@ export const mutations = {
     state.showSidebar = false;
     emitStateChanged();
   },
+  setSidebarVisible(value) {
+    state.showSidebar = value;
+    emitStateChanged();
+  },
   setUpload(value) {
     state.upload = value;
     emitStateChanged();
@@ -284,6 +288,7 @@ export const mutations = {
       hash: null,
       token: "",
       subPath: "",
+      passwordValid: false,
     };
     emitStateChanged();
   },
