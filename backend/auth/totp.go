@@ -48,7 +48,7 @@ var (
 	// (2*2 + 1) * 30s = 150s (2.5 minutes). This is the closest we can get.
 	TOTPSkew      uint = uint(TokenValidTime.Seconds()) / (2 * uint(TOTPPeriod))
 	encryptionKey []byte
-	TotpCache     = cache.NewCache(5 * time.Minute)
+	TotpCache     = cache.NewCache[string](5 * time.Minute)
 )
 
 func GenerateOtpForUser(user *users.User, userStore *users.Storage) (string, error) {
@@ -145,7 +145,7 @@ func decryptSecret(b64Ciphertext, b64Nonce string) (string, error) {
 
 func VerifyTotpCode(user *users.User, code string, userStore *users.Storage) error {
 	// get data from cache
-	cachedSecret, found := TotpCache.Get(user.Username).(string)
+	cachedSecret, found := TotpCache.Get(user.Username)
 	if !found && user.TOTPSecret == "" {
 		return fmt.Errorf("OTP token not found in cache, please generate a new one")
 	}

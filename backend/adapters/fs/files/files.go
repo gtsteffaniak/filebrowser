@@ -150,7 +150,7 @@ func processContent(info *iteminfo.ExtendedFileInfo, idx *indexing.Index) {
 }
 
 func generateOfficeId(realPath string) string {
-	key, ok := utils.OnlyOfficeCache.Get(realPath).(string)
+	key, ok := utils.OnlyOfficeCache.Get(realPath)
 	if !ok {
 		timestamp := strconv.FormatInt(time.Now().UnixMilli(), 10)
 		documentKey := utils.HashSHA256(realPath + timestamp)
@@ -174,10 +174,10 @@ func extractAudioMetadata(item *iteminfo.ExtendedFileInfo) error {
 		return err
 	}
 
-	// Skip files larger than 50MB to prevent memory issues
-	maxSize := int64(50)
+	// Skip files larger than 300MB to prevent memory issues
+	maxSize := int64(300)
 	if fileInfo.Size() > maxSize*1024*1024 {
-		return fmt.Errorf("file exceeds metadata check limit: %d MB", maxSize)
+		return fmt.Errorf("file with size %d MB exceeds metadata check limit: %d MB", fileInfo.Size()/1024/1024, maxSize)
 	}
 
 	m, err := tag.ReadFrom(file)

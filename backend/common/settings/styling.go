@@ -108,6 +108,6 @@ func readCustomCSS(path string) string {
 		logger.Warningf("Custom CSS file %s is too large (%d bytes), ignoring", path, len(content))
 		return ""
 	}
-	logger.Infof("Loaded custom CSS from: %s (%d bytes)", path, len(content))
+	logger.Debugf("Loaded custom CSS from: %s (%d bytes)", path, len(content))
 	return string(content)
 }

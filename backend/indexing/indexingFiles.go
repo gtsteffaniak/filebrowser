@@ -18,7 +18,10 @@ import (
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
-var RealPathCache = cache.NewCache(48*time.Hour, 72*time.Hour)
+var (
+	RealPathCache = cache.NewCache[string](48*time.Hour, 72*time.Hour)
+	IsDirCache    = cache.NewCache[bool](48*time.Hour, 72*time.Hour)
+)
 
 // actionConfig holds all configuration options for indexing operations
 type actionConfig struct {
@@ -459,8 +462,8 @@ func (idx *Index) recursiveUpdateDirSizes(childInfo *iteminfo.FileInfo, previous
 func (idx *Index) GetRealPath(relativePath ...string) (string, bool, error) {
 	combined := append([]string{idx.Path}, relativePath...)
 	joinedPath := filepath.Join(combined...)
-	isDir, _ := RealPathCache.Get(joinedPath + ":isdir").(bool)
-	cached, ok := RealPathCache.Get(joinedPath).(string)
+	isDir, _ := IsDirCache.Get(joinedPath + ":isdir")
+	cached, ok := RealPathCache.Get(joinedPath)
 	if ok && cached != "" {
 		return cached, isDir, nil
 	}
@@ -473,7 +476,7 @@ func (idx *Index) GetRealPath(relativePath ...string) (string, bool, error) {
 	realPath, isDir, err := iteminfo.ResolveSymlinks(absolutePath)
 	if err == nil {
 		RealPathCache.Set(joinedPath, realPath)
-		RealPathCache.Set(joinedPath+":isdir", isDir)
+		IsDirCache.Set(joinedPath+":isdir", isDir)
 	}
 	return realPath, isDir, err
 }

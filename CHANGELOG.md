@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.8.7-beta
+
+ **Notes**:
+ - increased overall file size limit to retrieve metadata from 50MB to 300MB #1234
+
 ## v0.8.6-beta
 
  **Notes**:

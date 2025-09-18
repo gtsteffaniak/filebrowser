@@ -157,7 +157,7 @@ func GetIndexInfo(sourceName string) (ReducedIndex, error) {
 	}
 	sourcePath := idx.Path
 	cacheKey := "usageCache-" + sourceName
-	_, ok = utils.DiskUsageCache.Get(cacheKey).(bool)
+	_, ok = utils.DiskUsageCache.Get(cacheKey)
 	if !ok {
 		totalBytes, err := getPartitionSize(sourcePath)
 		if err != nil {
