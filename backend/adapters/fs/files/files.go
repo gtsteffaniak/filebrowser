@@ -150,7 +150,7 @@ func processContent(info *iteminfo.ExtendedFileInfo, idx *indexing.Index) {
 }
 
 func generateOfficeId(realPath string) string {
-	key, ok := utils.OnlyOfficeCache.Get(realPath).(string)
+	key, ok := utils.OnlyOfficeCache.Get(realPath)
 	if !ok {
 		timestamp := strconv.FormatInt(time.Now().UnixMilli(), 10)
 		documentKey := utils.HashSHA256(realPath + timestamp)

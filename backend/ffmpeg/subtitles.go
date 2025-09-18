@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
+	"github.com/gtsteffaniak/go-cache/cache"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
@@ -24,6 +24,11 @@ type SubtitleTrack struct {
 	Content  string `json:"content,omitempty"`  // subtitle content
 	IsFile   bool   `json:"isFile"`             // true for external files, false for embedded streams
 }
+
+var (
+	MediaCache           = cache.NewCache[[]SubtitleTrack](24 * time.Hour) // subtitles get cached for 24 hours
+	SubtitleContentCache = cache.NewCache[string](24 * time.Hour)          // subtitle content gets cached for 24 hours
+)
 
 // FFProbeOutput represents the JSON output from ffprobe
 type FFProbeOutput struct {
@@ -41,7 +46,7 @@ func DetectAllSubtitles(videoPath string, parentDir string, modtime time.Time) [
 	key := "all_subtitles:" + videoPath + ":" + modtime.Format(time.RFC3339)
 
 	// Check cache first
-	if cached, ok := utils.MediaCache.Get(key); ok {
+	if cached, ok := MediaCache.Get(key); ok {
 		return cached
 	}
 
@@ -56,7 +61,7 @@ func DetectAllSubtitles(videoPath string, parentDir string, modtime time.Time) [
 	allSubtitles = append(allSubtitles, externalSubs...)
 
 	// Cache the complete list
-	utils.MediaCache.Set(key, allSubtitles)
+	MediaCache.Set(key, allSubtitles)
 
 	return allSubtitles
 }
@@ -252,7 +257,7 @@ func LoadAllSubtitleContent(videoPath string, subtitles []SubtitleTrack, modtime
 
 		// Check if content is already cached
 		contentKey := fmt.Sprintf("subtitle_content:%s:%d:%s", videoPath, idx, modtime.Format(time.RFC3339))
-		if cached, ok := utils.SubtitleContentCache.Get(contentKey); ok {
+		if cached, ok := SubtitleContentCache.Get(contentKey); ok {
 			subtitle.Content = cached
 			continue
 		}
@@ -283,7 +288,7 @@ func LoadAllSubtitleContent(videoPath string, subtitles []SubtitleTrack, modtime
 
 		subtitle.Content = content
 		// Cache the content for future requests
-		utils.SubtitleContentCache.Set(contentKey, content)
+		SubtitleContentCache.Set(contentKey, content)
 	}
 	return nil
 }
