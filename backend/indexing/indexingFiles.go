@@ -18,7 +18,7 @@ import (
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
-var RealPathCache = cache.NewCache(48*time.Hour, 72*time.Hour)
+var RealPathCache = cache.NewCache[string](48*time.Hour, 72*time.Hour)
 
 // actionConfig holds all configuration options for indexing operations
 type actionConfig struct {

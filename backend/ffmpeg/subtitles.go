@@ -41,7 +41,7 @@ func DetectAllSubtitles(videoPath string, parentDir string, modtime time.Time) [
 	key := "all_subtitles:" + videoPath + ":" + modtime.Format(time.RFC3339)
 
 	// Check cache first
-	if cached, ok := utils.MediaCache.Get(key).([]SubtitleTrack); ok {
+	if cached, ok := utils.MediaCache.Get(key); ok {
 		return cached
 	}
 
@@ -252,7 +252,7 @@ func LoadAllSubtitleContent(videoPath string, subtitles []SubtitleTrack, modtime
 
 		// Check if content is already cached
 		contentKey := fmt.Sprintf("subtitle_content:%s:%d:%s", videoPath, idx, modtime.Format(time.RFC3339))
-		if cached, ok := utils.MediaCache.Get(contentKey).(string); ok {
+		if cached, ok := utils.SubtitleContentCache.Get(contentKey); ok {
 			subtitle.Content = cached
 			continue
 		}
@@ -283,7 +283,7 @@ func LoadAllSubtitleContent(videoPath string, subtitles []SubtitleTrack, modtime
 
 		subtitle.Content = content
 		// Cache the content for future requests
-		utils.MediaCache.Set(contentKey, content)
+		utils.SubtitleContentCache.Set(contentKey, content)
 	}
 	return nil
 }
