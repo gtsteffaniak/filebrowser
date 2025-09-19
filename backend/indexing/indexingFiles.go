@@ -232,7 +232,7 @@ func (idx *Index) GetFsDirInfo(adjustedPath string) (*iteminfo.FileInfo, error) 
 	response, err = idx.GetDirInfo(dir, dirInfo, realPath, adjustedPath, combinedPath, &actionConfig{
 		Quick:     false,
 		Recursive: false,
-		ForceCheck: false,
+		ForceCheck: true,
 	})
 	if err != nil {
 		return nil, err
