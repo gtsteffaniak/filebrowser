@@ -2827,7 +2827,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "json": {
-                    "description": "output in json format, currently not supported",
+                    "description": "output in json format",
                     "type": "boolean"
                 },
                 "levels": {
@@ -2841,6 +2841,10 @@ const docTemplate = `{
                 "output": {
                     "description": "output location. (eg. \"stdout\" or \"path/to/file.log\")",
                     "type": "string"
+                },
+                "structured": {
+                    "description": "enable structured logging",
+                    "type": "boolean"
                 },
                 "utc": {
                     "description": "use UTC time in the output instead of local time",
