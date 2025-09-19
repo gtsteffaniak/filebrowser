@@ -133,6 +133,62 @@ func withAdminHelper(fn handleFunc) handleFunc {
 	})
 }
 
+// extractUserFromExpiredToken attempts to extract user information from an expired token
+// This is used by withOrWithoutUserHelper to get user context even when tokens are expired
+func extractUserFromExpiredToken(r *http.Request, data *requestContext) *users.User {
+	if config.Auth.Methods.NoAuth {
+		user, err := store.Users.Get(uint(1))
+		if err != nil {
+			logger.Errorf("no auth: %v", err)
+			return nil
+		}
+		return user
+	}
+
+	proxyUser := r.Header.Get(config.Auth.Methods.ProxyAuth.Header)
+	if config.Auth.Methods.ProxyAuth.Enabled && proxyUser != "" {
+		user, err := setupProxyUser(r, data, proxyUser)
+		if err != nil {
+			return nil
+		}
+		return user
+	}
+
+	keyFunc := func(token *jwt.Token) (interface{}, error) {
+		return []byte(config.Auth.Key), nil
+	}
+
+	tokenString, err := extractToken(r)
+	if err != nil {
+		return nil
+	}
+
+	data.token = tokenString
+	var tk users.AuthToken
+	token, err := jwt.ParseWithClaims(tokenString, &tk, keyFunc)
+	if err != nil {
+		return nil
+	}
+
+	if !token.Valid {
+		return nil
+	}
+
+	// Token is valid (but might be expired or revoked)
+	// Try to get the user regardless of expiration status
+	user, err := store.Users.Get(tk.BelongsTo)
+	if err != nil {
+		logger.Errorf("Failed to get user with ID %v: %v", tk.BelongsTo, err)
+		return nil
+	}
+
+	if user.Username == "" {
+		return nil
+	}
+
+	return user
+}
+
 // withOrWithoutUserHelper is a middleware that tries to authenticate a user.
 // If authentication is successful, the user is added to the request context.
 // If authentication fails, the request continues without a user.
@@ -192,11 +248,23 @@ func withOrWithoutUserHelper(fn handleFunc) handleFunc {
 			}
 			return fn(w, r, data)
 		}
-		// Only fall back to anonymous if authentication actually failed
+
+		// Authentication failed, but try to extract user info from expired tokens
 		if status == http.StatusUnauthorized || status == http.StatusForbidden {
+			// Try to extract user info from potentially expired token
+			userFromExpiredToken := extractUserFromExpiredToken(r, data)
+			if userFromExpiredToken != nil {
+				data.user = userFromExpiredToken
+				if data.share != nil && data.shareValid {
+					data.user.CustomTheme = data.share.ShareTheme
+				}
+				setUserInResponseWriter(w, data.user)
+				return fn(w, r, data)
+			}
+
+			// No valid token or user found, fall back to anonymous
 			data.user = &users.User{Username: "anonymous"}
 			settings.ApplyUserDefaults(data.user)
-			// If user authentication failed, call the handler without user context
 			// Clear any user data that might have been partially set
 			data.token = ""
 			if data.share != nil && data.shareValid {
