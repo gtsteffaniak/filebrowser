@@ -65,7 +65,10 @@ export default {
   },
   computed: {
     accessible() {
-      return shareInfo.isPasswordProtected && state.share.passwordValid;
+      if (!shareInfo.isPasswordProtected) {
+        return true
+      }
+      return state.share.passwordValid
     },
     getShareBanner() {
       if (this.shareInfo.banner.startsWith("http")) {
