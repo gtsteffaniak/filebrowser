@@ -14,6 +14,9 @@ All notable changes to this project will be documented in this file. For commit 
  - Fix directories empty issue when disableIndexing is true #1249
  - OIDC to Authentik behind CloudFlare with Bot Fight turned on triggers a JS challenge #1165
  - OIDC Auth - loop with expired token #995
+ - We lost the ability for download all? #1250
+ - Directories are all empty when disableIndexing is true #1248
+ - Access Management: issues on the shared folder when there's a sub folder #1208
 
 ## v0.8.6-beta
 

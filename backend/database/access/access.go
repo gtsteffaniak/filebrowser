@@ -6,6 +6,7 @@ import (
 	"maps"
 	"slices"
 	"sort"
+	"strings"
 	"sync"
 	"time"
 
@@ -260,6 +261,13 @@ func (s *Storage) DenyAll(sourcePath, indexPath string) error {
 
 // Permitted checks if a username is permitted for a given sourcePath and indexPath, recursively checking parent directories.
 func (s *Storage) Permitted(sourcePath, indexPath, username string) bool {
+
+	// SECURITY: All paths MUST start with "/" - reject any path that doesn't
+	// This prevents path normalization bypass attacks
+	if !strings.HasPrefix(indexPath, "/") {
+		logger.Debugf("Access denied: path %q does not start with '/' (user: %s, source: %s)", indexPath, username, sourcePath)
+		return false
+	}
 
 	// Get current version for the sourcePath
 	versionKey := "version:" + sourcePath
@@ -1050,7 +1058,6 @@ func (s *Storage) GetAllRulesByGroups(sourcePath string) map[string]map[string]F
 }
 
 // incrementSourceVersion increments the version of a sourcePath to invalidate caches.
-// The caller MUST hold the mutex lock.
 func (s *Storage) incrementSourceVersion(sourcePath string) {
 	key := "version:" + sourcePath
 	version := 0

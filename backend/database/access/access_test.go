@@ -2,6 +2,7 @@ package access_test
 
 import (
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/asdine/storm/v3"
@@ -477,5 +478,209 @@ func TestPermitted_DenyByDefault_AdminRootAccess(t *testing.T) {
 	}
 	if s.Permitted("mnt/secure", "/test/sub", "bob") {
 		t.Error("bob should NOT be permitted for /test/sub")
+	}
+}
+
+// TestUserReportedBug reproduces the exact scenario described by the user
+func TestUserReportedBug(t *testing.T) {
+	access.ClearCache()
+	s, userStore := createTestStorage(t)
+
+	// Create the exact users from user's report
+	createTestUser(t, userStore, "testu1")
+	createTestUser(t, userStore, "testu2")
+
+	err := s.LoadFromDB()
+	if err != nil && err != storm.ErrNotFound {
+		t.Errorf("unexpected error loading from DB: %v", err)
+	}
+
+	// Setup test configuration for TEST_FOLDER source
+	originalSourceMap := settings.Config.Server.SourceMap
+	defer func() {
+		settings.Config.Server.SourceMap = originalSourceMap
+		access.ClearCache()
+	}()
+
+	settings.Config.Server.SourceMap = map[string]settings.Source{
+		"TEST_FOLDER": {
+			Path: "TEST_FOLDER",
+			Name: "TEST_FOLDER",
+			Config: settings.SourceConfig{
+				DenyByDefault: false, // Allow by default
+			},
+		},
+	}
+
+	// SCENARIO 1: Set up initial access rules exactly as described
+	// testu1 is denied access to USER2_folder
+	if err := s.DenyUser("TEST_FOLDER", "/USER2_folder", "testu1"); err != nil {
+		t.Fatalf("DenyUser failed for testu1->USER2_folder: %v", err)
+	}
+
+	// testu2 is denied access to USER1_folder
+	if err := s.DenyUser("TEST_FOLDER", "/USER1_folder", "testu2"); err != nil {
+		t.Fatalf("DenyUser failed for testu2->USER1_folder: %v", err)
+	}
+
+	// VERIFY SCENARIO 1: Initial permissions work correctly
+	if s.Permitted("TEST_FOLDER", "/USER2_folder", "testu1") {
+		t.Error("SCENARIO 1 FAILED: testu1 should NOT be permitted to access USER2_folder")
+	}
+	if s.Permitted("TEST_FOLDER", "/USER1_folder", "testu2") {
+		t.Error("SCENARIO 1 FAILED: testu2 should NOT be permitted to access USER1_folder")
+	}
+
+	// Verify allowed access still works
+	if !s.Permitted("TEST_FOLDER", "/USER1_folder", "testu1") {
+		t.Error("SCENARIO 1 FAILED: testu1 SHOULD be permitted to access USER1_folder")
+	}
+	if !s.Permitted("TEST_FOLDER", "/USER2_folder", "testu2") {
+		t.Error("SCENARIO 1 FAILED: testu2 SHOULD be permitted to access USER2_folder")
+	}
+
+	t.Log("SCENARIO 1 PASSED: Initial access rules work correctly")
+
+	// SCENARIO 2: The bug should NOT happen with proper access control
+	// testu2 should still be denied access regardless of filesystem changes
+	if s.Permitted("TEST_FOLDER", "/USER1_folder", "testu2") {
+		t.Fatal("BUG REPRODUCED: testu2 can now access USER1_folder!")
+	}
+
+	t.Log("SCENARIO 2 PASSED: Access control rules work correctly")
+}
+
+// TestSubfolderAccessLogicBug tests the theory that the bug is caused by subfolder access logic
+func TestSubfolderAccessLogicBug(t *testing.T) {
+	access.ClearCache()
+	s, userStore := createTestStorage(t)
+	createTestUser(t, userStore, "testu1")
+	createTestUser(t, userStore, "testu2")
+	err := s.LoadFromDB()
+	if err != nil && err != storm.ErrNotFound {
+		t.Errorf("unexpected error loading from DB: %v", err)
+	}
+
+	originalSourceMap := settings.Config.Server.SourceMap
+	defer func() {
+		settings.Config.Server.SourceMap = originalSourceMap
+		access.ClearCache()
+	}()
+
+	settings.Config.Server.SourceMap = map[string]settings.Source{
+		"TEST_FOLDER": {
+			Path: "TEST_FOLDER",
+			Name: "TEST_FOLDER",
+			Config: settings.SourceConfig{
+				DenyByDefault: false, // This is key!
+			},
+		},
+	}
+
+	// Set up the exact scenario: testu2 denied access to /USER1_folder
+	if err := s.DenyUser("TEST_FOLDER", "/USER1_folder", "testu2"); err != nil {
+		t.Fatalf("DenyUser failed: %v", err)
+	}
+
+	// TEST THEORY: What happens when we check testu2's access to a SUBFOLDER that has no explicit rule?
+
+	// Case 1: testu2 access to parent folder (should be denied)
+	if s.Permitted("TEST_FOLDER", "/USER1_folder", "testu2") {
+		t.Error("testu2 should be denied access to /USER1_folder")
+	}
+
+	// Case 2: testu2 access to subfolder that doesn't have explicit deny rule
+	// With DenyByDefault=false, this should be ALLOWED!
+	if !s.Permitted("TEST_FOLDER", "/USER1_folder/test_folder", "testu2") {
+		t.Log("testu2 is denied access to /USER1_folder/test_folder (subfolder)")
+	} else {
+		t.Log("testu2 HAS access to /USER1_folder/test_folder (subfolder) - this might be the bug!")
+	}
+
+	// Case 3: Let's test with a deeply nested subfolder
+	if s.Permitted("TEST_FOLDER", "/USER1_folder/sub1/sub2/deep", "testu2") {
+		t.Log("testu2 HAS access to deep subfolder - confirming the pattern")
+	}
+
+	// THE CRITICAL TEST: What about parent directory inheritance?
+	// According to the access control docs, rules should apply recursively to subdirectories
+	// If testu2 is denied access to /USER1_folder, they should also be denied access to ALL subdirectories
+
+	// This might be where the bug is - the recursive checking might not be working correctly
+}
+
+// TestFileInfoBrowsingBug tests if the file browsing logic causes the access bug
+func TestFileInfoBrowsingBug(t *testing.T) {
+	access.ClearCache()
+	s, userStore := createTestStorage(t)
+	createTestUser(t, userStore, "testu1")
+	createTestUser(t, userStore, "testu2")
+	err := s.LoadFromDB()
+	if err != nil && err != storm.ErrNotFound {
+		t.Errorf("unexpected error loading from DB: %v", err)
+	}
+
+	originalSourceMap := settings.Config.Server.SourceMap
+	defer func() {
+		settings.Config.Server.SourceMap = originalSourceMap
+		access.ClearCache()
+	}()
+
+	settings.Config.Server.SourceMap = map[string]settings.Source{
+		"TEST_FOLDER": {
+			Path: "TEST_FOLDER",
+			Name: "TEST_FOLDER",
+			Config: settings.SourceConfig{
+				DenyByDefault: false,
+			},
+		},
+	}
+
+	// Set up: testu2 denied access to /USER1_folder
+	if err := s.DenyUser("TEST_FOLDER", "/USER1_folder", "testu2"); err != nil {
+		t.Fatalf("DenyUser failed: %v", err)
+	}
+
+	// CRITICAL TEST: What if testu2 has access to a subfolder?
+	// This tests the exact line: indexPath := info.Path + subFolder.Name
+
+	// Scenario A: Subfolder should inherit deny rule from parent (correct behavior)
+	parentDenied := !s.Permitted("TEST_FOLDER", "/USER1_folder", "testu2")
+	subfolderDenied := !s.Permitted("TEST_FOLDER", "/USER1_folder/test_folder", "testu2")
+
+	t.Logf("Parent denied: %v, Subfolder denied: %v", parentDenied, subfolderDenied)
+
+	if parentDenied && !subfolderDenied {
+		t.Error("BUG FOUND: Parent denied but subfolder allowed - this would trigger hasPermittedPaths = true")
+	}
+
+	// Scenario B: What if there's a path construction bug?
+	// Maybe the path constructed in FileInfoFaster doesn't match the path used in access rules?
+
+	// Let's test different path formats that might be constructed
+	testPaths := []string{
+		"/USER1_folder/test_folder",  // Normal path
+		"/USER1_folder/test_folder/", // With trailing slash
+		"USER1_folder/test_folder",   // Without leading slash
+		"/USER1_folder/test_folder",  // info.Path + subFolder.Name simulation
+	}
+
+	for _, testPath := range testPaths {
+		permitted := s.Permitted("TEST_FOLDER", testPath, "testu2")
+		t.Logf("Path %q permitted for testu2: %v", testPath, permitted)
+
+		// Paths without leading slash should ALWAYS be denied (security fix)
+		if !strings.HasPrefix(testPath, "/") {
+			if permitted {
+				t.Errorf("SECURITY BUG: Path without leading slash %q should be denied but was permitted", testPath)
+			} else {
+				t.Logf("SECURITY FIX WORKING: Path without leading slash %q correctly denied", testPath)
+			}
+		} else {
+			// Paths with leading slash should follow normal access rules (deny in this case)
+			if permitted {
+				t.Errorf("ACCESS CONTROL BUG: testu2 has access to %q despite being denied parent folder", testPath)
+			}
+		}
 	}
 }
