@@ -49,6 +49,7 @@ func FileInfoFaster(opts iteminfo.FileOptions) (*iteminfo.ExtendedFileInfo, erro
 		}
 	}
 	if useFsDirInfo {
+		logger.Debugf("Using fs dir info for path: %v", opts.Path)
 		info, err = index.GetFsDirInfo(opts.Path)
 		if err != nil {
 			return response, err
