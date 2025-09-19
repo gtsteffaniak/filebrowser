@@ -264,7 +264,7 @@ func (s *Storage) Permitted(sourcePath, indexPath, username string) bool {
 
 	// SECURITY: All paths MUST start with "/" - reject any path that doesn't
 	// This prevents path normalization bypass attacks
-	if indexPath != "" && !strings.HasPrefix(indexPath, "/") {
+	if !strings.HasPrefix(indexPath, "/") {
 		logger.Debugf("Access denied: path %q does not start with '/' (user: %s, source: %s)", indexPath, username, sourcePath)
 		return false
 	}
