@@ -88,13 +88,12 @@ var AllImagePreviewTypes = []ImagePreviewType{
 }
 
 type LogConfig struct {
-	Levels     string `json:"levels" yaml:"levels"`         // separated list of log levels to enable. (eg. "info|warning|error|debug")
-	ApiLevels  string `json:"apiLevels" yaml:"apiLevels"`   // separated list of log levels to enable for the API. (eg. "info|warning|error")
-	Output     string `json:"output" yaml:"output"`         // output location. (eg. "stdout" or "path/to/file.log")
-	NoColors   bool   `json:"noColors" yaml:"noColors"`     // disable colors in the output
-	Json       bool   `json:"json" yaml:"json"`             // output in json format
-	Structured bool   `json:"structured" yaml:"structured"` // enable structured logging
-	Utc        bool   `json:"utc" yaml:"utc"`               // use UTC time in the output instead of local time
+	Levels    string `json:"levels" yaml:"levels"`       // separated list of log levels to enable. (eg. "info|warning|error|debug")
+	ApiLevels string `json:"apiLevels" yaml:"apiLevels"` // separated list of log levels to enable for the API. (eg. "info|warning|error")
+	Output    string `json:"output" yaml:"output"`       // output location. (eg. "stdout" or "path/to/file.log")
+	NoColors  bool   `json:"noColors" yaml:"noColors"`   // disable colors in the output
+	Json      bool   `json:"json" yaml:"json"`           // output in json format
+	Utc       bool   `json:"utc" yaml:"utc"`             // use UTC time in the output instead of local time
 }
 
 type Source struct {

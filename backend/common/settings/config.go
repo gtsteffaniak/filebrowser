@@ -249,7 +249,7 @@ func setupLogging() {
 			Utc:        logConfig.Utc,
 			NoColors:   logConfig.NoColors,
 			Json:       logConfig.Json,
-			Structured: logConfig.Structured,
+			Structured: false,
 		}
 		err := logger.EnableCompatibilityMode(logConfig)
 		if err != nil {
