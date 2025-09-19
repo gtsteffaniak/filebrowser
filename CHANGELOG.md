@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v0.8.7-beta
 
+ **New Features**:
+ - json logging format support
+
  **Notes**:
  - increased overall file size limit to retrieve metadata from 50MB to 300MB #1234
 
