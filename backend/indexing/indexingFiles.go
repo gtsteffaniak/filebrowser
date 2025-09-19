@@ -24,6 +24,7 @@ var RealPathCache = cache.NewCache(48*time.Hour, 72*time.Hour)
 type actionConfig struct {
 	Quick     bool // whether to perform a quick scan (skip unchanged directories)
 	Recursive bool // whether to recursively index subdirectories
+	CheckSkip bool // whether to check indexing skip rules.
 }
 
 // NewactionConfig creates a new actionConfig with common presets
@@ -231,6 +232,7 @@ func (idx *Index) GetFsDirInfo(adjustedPath string) (*iteminfo.FileInfo, error) 
 	response, err = idx.GetDirInfo(dir, dirInfo, realPath, adjustedPath, combinedPath, &actionConfig{
 		Quick:     false,
 		Recursive: false,
+		CheckSkip: false,
 	})
 	if err != nil {
 		return nil, err
@@ -286,7 +288,7 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 				continue
 			}
 		}
-		if idx.shouldSkip(isDir, hidden, fullCombined, baseName) {
+		if config.CheckSkip && idx.shouldSkip(isDir, hidden, fullCombined, baseName) {
 			continue
 		}
 		itemInfo := &iteminfo.ItemInfo{
