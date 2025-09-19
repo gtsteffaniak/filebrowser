@@ -175,6 +175,7 @@ export default {
     },
     mounted() {
         this.updateMedia();
+        this.hookEvents();
     },
     beforeUnmount() {
         if (this.toastTimeout) {
@@ -358,6 +359,31 @@ export default {
                 this.audioMetadata = null;
                 this.albumArtUrl = null;
             }
+        },
+        hookEvents() {
+            if (!this.useDefaultMediaPlayer && this.$refs.videoPlayer && this.$refs.videoPlayer.player) {
+                const player = this.$refs.videoPlayer.player;
+
+                // Attach handlers only if the screen.orientation API is available.
+                if (screen.orientation) {
+                    player.on('enterfullscreen', this.onFullscreenEnter);
+                    player.on('exitfullscreen', this.onFullscreenExit);
+                }
+            }
+        },
+        async onFullscreenEnter() {
+            // Allow free rotation when video enters full screen mode. This works even if the device's orientation is currently locked.
+            try {
+                await screen.orientation.lock('any');
+            } catch (error) {
+                // The NotSupportedError is thrown for non-mobile browsers and there seems to be no way to pre-check if it is supported.
+                // -> Swallow NotSupportedError but let other errors be thrown.
+                if (error.name !== 'NotSupportedError')
+                    throw error;
+            }
+        },
+        onFullscreenExit() {
+            screen.orientation.unlock();
         },
     },
     expose: ['toggleLoop'],
