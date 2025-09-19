@@ -98,6 +98,7 @@
         <div
           v-if="numDirs > 0"
           class="folder-items"
+          aria-label="Folder Items"
           :class="{ lastGroup: numFiles === 0 }"
         >
           <item
@@ -122,7 +123,7 @@
             <h2>{{ $t("general.files") }}</h2>
           </div>
         </div>
-        <div v-if="numFiles > 0" class="file-items" :class="{ lastGroup: numFiles > 0 }">
+        <div v-if="numFiles > 0" class="file-items" :class="{ lastGroup: numFiles > 0 }" aria-label="File Items">
           <item
             v-for="item in files"
             :key="base64(item.name)"

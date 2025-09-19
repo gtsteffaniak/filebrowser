@@ -10,6 +10,9 @@ All notable changes to this project will be documented in this file. For commit 
  **Notes**:
  - increased overall file size limit to retrieve metadata from 50MB to 300MB #1234
 
+ **BugFixes**:
+ - Fix directories empty issue when disableIndexing is true #1249
+
 ## v0.8.6-beta
 
  **Notes**:

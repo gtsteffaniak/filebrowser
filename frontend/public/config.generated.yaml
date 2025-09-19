@@ -16,7 +16,6 @@ server:
       output: "stdout"                    # output location. (eg. "stdout" or "path/to/file.log")
       noColors: false                     # disable colors in the output
       json: false                         # output in json format
-      structured: false                   # enable structured logging
       utc: false                          # use UTC time in the output instead of local time
   debugMedia: false                       # output ffmpeg stdout for media integration -- careful can produces lots of output!
   database: "database.db"                 # path to the database file
