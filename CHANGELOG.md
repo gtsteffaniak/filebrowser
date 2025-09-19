@@ -12,6 +12,8 @@ All notable changes to this project will be documented in this file. For commit 
 
  **BugFixes**:
  - Fix directories empty issue when disableIndexing is true #1249
+ - OIDC to Authentik behind CloudFlare with Bot Fight turned on triggers a JS challenge #1165
+ - OIDC Auth - loop with expired token #995
 
 ## v0.8.6-beta
 
