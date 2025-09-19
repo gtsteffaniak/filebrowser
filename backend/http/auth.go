@@ -130,12 +130,12 @@ func loginHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (in
 func logoutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	defer auth.RevokeAPIKey(d.token)
 	logoutUrl := fmt.Sprintf("%vlogin", config.Server.BaseURL) // Default fallback
-	if d.user.LoginMethod == users.LoginMethodProxy {
+	if d.user != nil && d.user.LoginMethod == users.LoginMethodProxy {
 		proxyRedirectUrl := config.Auth.Methods.ProxyAuth.LogoutRedirectUrl
 		if proxyRedirectUrl != "" {
 			logoutUrl = proxyRedirectUrl
 		}
-	} else if d.user.LoginMethod == users.LoginMethodOidc {
+	} else if d.user != nil && d.user.LoginMethod == users.LoginMethodOidc {
 		oidcRedirectUrl := config.Auth.Methods.OidcAuth.LogoutRedirectUrl
 		if oidcRedirectUrl != "" {
 			logoutUrl = oidcRedirectUrl
