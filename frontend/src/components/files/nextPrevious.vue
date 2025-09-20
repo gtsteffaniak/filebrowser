@@ -311,6 +311,27 @@ export default {
         return;
       }
 
+     if (!this.useDefaultMediaPlayer && this.$refs.videoPlayer && this.$refs.videoPlayer.player) {
+        return;
+      }
+
+     // Check if any media element is currently playing
+     const mediaElements = document.querySelectorAll('audio, video');
+     let mediaActive = false;
+  
+     mediaElements.forEach(media => {
+       if (!media.paused || 
+           document.activeElement === media  || 
+           document.activeElement.closest('.plyr__controls')) {
+         mediaActive = true;
+       }
+     });
+  
+     // If media is playing don't handle arrow keys and let use fastfoward and rewind of the player
+     if (mediaActive) {
+       return;
+     }
+
       const { key } = event;
 
       switch (key) {
