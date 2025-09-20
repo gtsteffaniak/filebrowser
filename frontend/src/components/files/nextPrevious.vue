@@ -311,10 +311,6 @@ export default {
         return;
       }
 
-     if (!this.useDefaultMediaPlayer && this.$refs.videoPlayer && this.$refs.videoPlayer.player) {
-        return;
-      }
-
      // Check if any media element is currently playing
      const mediaElements = document.querySelectorAll('audio, video');
      let mediaActive = false;
