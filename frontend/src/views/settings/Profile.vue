@@ -85,7 +85,7 @@
           <div class="form-flex-group">
             <input class="input form-form flat-right"
               :class="{ 'form-invalid': !validateExtensions(formDisablePreviews) }" type="text"
-              placeholder="enter file extensions" id="disablePreviews" v-model="formDisablePreviews" />
+              :placeholder="$t('profileSettings.disableFileExtensions')" id="disablePreviews" v-model="formDisablePreviews" />
             <button type="button" class="button form-button flat-left" @click="submitDisablePreviewsChange">
               {{ $t("buttons.save") }}
             </button>
@@ -103,7 +103,7 @@
           <div class="form-flex-group">
             <input class="input form-form flat-right"
               :class="{ 'form-invalid': !validateExtensions(formDisabledViewing) }" type="text"
-              placeholder="enter file extensions" id="disableViewing" v-model="formDisabledViewing" />
+              :placeholder="$t('profileSettings.disableFileExtensions')" id="disableViewing" v-model="formDisabledViewing" />
             <button type="button" class="button form-button flat-left" @click="submitDisabledViewingChange">
               {{ $t("buttons.save") }}
             </button>
@@ -121,7 +121,7 @@
           <div class="form-flex-group">
             <input class="input form-form flat-right"
               :class="{ 'form-invalid': !validateExtensions(formDisableOfficePreview) }" type="text"
-              placeholder="enter file extensions" id="disableOfficePreview" v-model="formDisableOfficePreview" />
+              :placeholder="$t('profileSettings.disableFileExtensions')" id="disableOfficePreview" v-model="formDisableOfficePreview" />
             <button type="button" class="button form-button flat-left" @click="submitDisableOfficePreviewChange">
               {{ $t("buttons.save") }}
             </button>
