@@ -308,6 +308,7 @@
     "autoplayMediaDescription": "Autoplay media files when viewing. This will only work if the file is a media file.",
     "sidebarOptions": "Sidebar options",
     "disableQuickToggles": "Disable quick toggles",
+    "disableFileExtensions": "Enter file extensions to disable",
     "disableQuickTogglesDescription": "Disable the quick toggles that show up on the sidebar.",
     "disableSearchOptions": "Disable search options",
     "disableSearchOptionsDescription": "Disable the search options that show up on the sidebar.",
@@ -340,6 +341,11 @@
     "enterPasswordAgain": "Enter the password again",
     "passwordsDoNotMatch": "Passwords do not match",
     "loginMethod": "Login method",
+    "loginMethods": {
+      "password": "Password",
+      "oidc": "OIDC",
+      "proxy": "Proxy"
+    },
     "loginMethodDescription": "allowed login method for the user.",
     "modifyOtherUser": "Modify user:",
     "modifyCurrentUser": "Modify current user",
@@ -393,6 +399,7 @@
     "newPassword": "Your new password",
     "newPasswordConfirm": "Confirm your new password",
     "newUser": "New User",
+    "newUserHintSubFolder": "eg '/subfolder' - blank for default",
     "password": "Password",
     "passwordUpdated": "Password updated!",
     "path": "Path",
@@ -432,6 +439,7 @@
     "userUpdated": "User updated!",
     "username": "Username",
     "users": "Users",
+    "userScopes": "Scopes",
     "adminOptions": "Admin user options"
   },
   "sidebar": {

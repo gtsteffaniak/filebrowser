@@ -143,7 +143,7 @@
 
           <input
             class="input flat-left scope-input"
-            placeholder="scope eg. '/subfolder', leave blank for default path"
+            :placeholder="$t('settings.newUserHintSubFolder')"
             @input="updateParent({ source: source, input: $event })"
             :value="source.scope"
             :class="{ 'flat-right': selectedSources.length > 1 }"
@@ -183,9 +183,9 @@
       <div v-if="stateUser.permissions.admin">
         <label for="loginMethod">{{ $t("settings.loginMethodDescription") }}</label>
         <select v-model="user.loginMethod" class="input" id="loginMethod">
-          <option value="password">Password</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-          <option value="oidc">OIDC</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-          <option value="proxy">Proxy</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <option value="password">{{ $t("settings.loginMethods.password") }}</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <option value="oidc">{{ $t("settings.loginMethods.oidc") }}</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <option value="proxy">{{ $t("settings.loginMethods.proxy") }}</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
         </select>
       </div>
       <permissions v-if="stateUser.permissions.admin" :permissions="user.permissions" />
