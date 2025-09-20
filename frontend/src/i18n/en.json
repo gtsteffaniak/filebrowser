@@ -171,6 +171,7 @@
     "disableShareCard": "Disable share card",
     "disableShareCardDescription": "Disable the share card on the shared page in the sidebar or at the top of the page on mobile.",
     "disableSidebar": "Disable sidebar",
+    "disableFileViewer": "Disable File Viewer",
     "disableSidebarDescription": "Disable the sidebar on the shared page.",
     "enforceDarkLightMode": "Enforce theme mode",
     "enforceDarkLightModeDescription": "Force a specific theme mode (dark or light) for this share, overriding user preferences.",
