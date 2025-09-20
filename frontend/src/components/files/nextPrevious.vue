@@ -317,8 +317,7 @@ export default {
   
      mediaElements.forEach(media => {
        if (!media.paused || 
-           document.activeElement === media  || 
-           document.activeElement.closest('.plyr__controls')) {
+           document.activeElement === media) {
          mediaActive = true;
        }
      });
