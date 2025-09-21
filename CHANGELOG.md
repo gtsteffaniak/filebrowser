@@ -20,7 +20,8 @@ All notable changes to this project will be documented in this file. For commit 
  - Access Management: issues on the shared folder when there's a sub folder #1208
  - user preferences for individual preview file types not getting respected (disable/enable office,image,video)
  - High server load when browsing folders with .mkv files #1259
-
+ - 2FA can not be disabled with non-admin user #1244
+ - 2FA not working on login #1243
 
 ## v0.8.6-beta
 

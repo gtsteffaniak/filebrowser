@@ -93,10 +93,7 @@ func (st usersBackend) Update(user *users.User, actorIsAdmin bool, fields ...str
 	}
 
 	if !actorIsAdmin {
-		err := checkRestrictedFields(existingUser, fields)
-		if err != nil {
-			return err
-		}
+		fields = filterRestrictedFields(fields)
 	}
 
 	if len(fields) == 0 {
@@ -133,11 +130,11 @@ func (st usersBackend) Update(user *users.User, actorIsAdmin bool, fields ...str
 		val := fieldValue.Interface()
 		if field == "OtpEnabled" {
 			otpEnabled, _ := val.(bool)
-			if otpEnabled {
-				continue
+			if !otpEnabled {
+				field = "TOTPSecret" // if otp is disabled, we also want to clear the TOTPSecret
+				val = ""             // clear the TOTPSecret
 			}
-			field = "TOTPSecret" // if otp is disabled, we also want to clear the TOTPSecret
-			val = ""             // clear the TOTPSecret
+			// If otpEnabled is true, continue with normal field update
 		}
 		// Update the database
 		if err := st.db.UpdateField(existingUser, field, val); err != nil {
@@ -204,17 +201,19 @@ func (st usersBackend) DeleteByUsername(username string) error {
 	return st.db.DeleteStruct(user)
 }
 
-// Define a function to check for restricted fields
-func checkRestrictedFields(existingUser *users.User, fields []string) error {
+// Define a function to filter out restricted fields for non-admin users
+func filterRestrictedFields(fields []string) []string {
 	// Get a list of allowed fields from NonAdminEditable
 	allowed := getNonAdminEditableFieldNames()
+	var filteredFields []string
+
 	for _, field := range fields {
-		if !slices.Contains(allowed, field) {
-			return fmt.Errorf("non-admins cannot modify field: %s", field)
+		if slices.Contains(allowed, field) {
+			filteredFields = append(filteredFields, field)
 		}
 	}
 
-	return nil
+	return filteredFields
 }
 
 // Helper to return list of field names from NonAdminEditable struct
@@ -242,12 +241,27 @@ func parseFields(user *users.User, fields []string, actorIsAdmin bool) ([]string
 			field := t.Field(i)
 			// which=all can't update password
 			switch strings.ToLower(field.Name) {
-			case "id", "username", "password", "apikeys", "totpenabled", "totpsecret", "totpnonce":
+			case "id", "username", "password", "apikeys", "totpsecret", "totpnonce":
 				// Skip these fields
 				continue
 			}
 
-			fields = append(fields, field.Name)
+			// Handle embedded structs (like NonAdminEditable)
+			if field.Anonymous {
+				// Get the embedded struct type
+				embeddedType := field.Type
+				if embeddedType.Kind() == reflect.Ptr {
+					embeddedType = embeddedType.Elem()
+				}
+
+				// Add all fields from the embedded struct
+				for j := 0; j < embeddedType.NumField(); j++ {
+					embeddedField := embeddedType.Field(j)
+					fields = append(fields, embeddedField.Name)
+				}
+			} else {
+				fields = append(fields, field.Name)
+			}
 		}
 	}
 	newfields := []string{}
@@ -259,18 +273,24 @@ func parseFields(user *users.User, fields []string, actorIsAdmin bool) ([]string
 			}
 		}
 		if capitalField == "Password" {
-			if user.LoginMethod != users.LoginMethodPassword {
-				return nil, fmt.Errorf("password cannot be changed when login method is not password")
+			// Only process password if it's actually being updated (not empty)
+			if user.Password != "" {
+				if user.LoginMethod != users.LoginMethodPassword {
+					return nil, fmt.Errorf("password cannot be changed when login method is not password")
+				}
+				err := checkPassword(user.Password)
+				if err != nil {
+					return nil, fmt.Errorf("password does not meet complexity requirements")
+				}
+				value, err := users.HashPwd(user.Password)
+				if err != nil {
+					logger.Error(err.Error())
+				}
+				user.Password = value
+			} else {
+				// Skip password field if it's empty
+				continue
 			}
-			err := checkPassword(user.Password)
-			if err != nil {
-				return nil, fmt.Errorf("password does not meet complexity requirements")
-			}
-			value, err := users.HashPwd(user.Password)
-			if err != nil {
-				logger.Error(err.Error())
-			}
-			user.Password = value
 		}
 		newfields = append(newfields, capitalField)
 	}

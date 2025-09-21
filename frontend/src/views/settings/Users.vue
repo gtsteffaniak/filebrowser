@@ -43,6 +43,7 @@
 import { state, mutations, getters } from "@/store";
 import { usersApi } from "@/api";
 import Errors from "@/views/Errors.vue";
+import { eventBus } from "@/store/eventBus";
 
 export default {
   name: "users",
@@ -56,10 +57,15 @@ export default {
     };
   },
   async created() {
-    mutations.setLoading("users", true);
-    // Set loading state to true
-    this.users = await usersApi.getAllUsers();
-    mutations.setLoading("users", false);
+    await this.reloadUsers();
+  },
+  mounted() {
+    // Listen for user changes
+    eventBus.on('usersChanged', this.reloadUsers);
+  },
+  beforeUnmount() {
+    // Clean up event listener
+    eventBus.removeEventListener('usersChanged', this.reloadUsers);
   },
   computed: {
     settings() {
@@ -74,6 +80,17 @@ export default {
     },
   },
   methods: {
+    async reloadUsers() {
+      mutations.setLoading("users", true);
+      try {
+        this.users = await usersApi.getAllUsers();
+        this.error = null; // Clear any previous errors
+      } catch (e) {
+        this.error = e;
+      } finally {
+        mutations.setLoading("users", false);
+      }
+    },
     formatScopes(scopes) {
       if (!Array.isArray(scopes)) {
         return scopes;
