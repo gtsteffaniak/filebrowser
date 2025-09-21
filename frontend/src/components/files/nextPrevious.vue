@@ -311,6 +311,22 @@ export default {
         return;
       }
 
+     // Check if any media element is currently playing
+     const mediaElements = document.querySelectorAll('audio, video');
+     let mediaActive = false;
+  
+     mediaElements.forEach(media => {
+       if (!media.paused || 
+           document.activeElement === media) {
+         mediaActive = true;
+       }
+     });
+  
+     // If media is playing don't handle arrow keys and let use fastfoward and rewind of the player
+     if (mediaActive) {
+       return;
+     }
+
       const { key } = event;
 
       switch (key) {
