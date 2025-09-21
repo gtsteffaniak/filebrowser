@@ -80,7 +80,7 @@
         <ToggleSwitch class="item" v-model="allowEdit" :name="'Allow modifications'" />
         <ToggleSwitch class="item" v-model="allowUpload" :name="'Allow uploading'" />
         -->
-        <ToggleSwitch class="item" v-model="disableFileViewer" :name="'Disable File Viewer'" />
+        <ToggleSwitch class="item" v-model="disableFileViewer" :name="$t('share.disableFileViewer')" />
         <ToggleSwitch
           class="item"
           v-model="quickDownload"
