@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Notes**:
  - increased overall file size limit to retrieve metadata from 50MB to 300MB #1234
+ - document previews don't show up as folder previews.
 
  **BugFixes**:
  - Fix directories empty issue when disableIndexing is true #1249
@@ -17,6 +18,9 @@ All notable changes to this project will be documented in this file. For commit 
  - We lost the ability for download all? #1250
  - Directories are all empty when disableIndexing is true #1248
  - Access Management: issues on the shared folder when there's a sub folder #1208
+ - user preferences for individual preview file types not getting respected (disable/enable office,image,video)
+ - High server load when browsing folders with .mkv files #1259
+
 
 ## v0.8.6-beta
 

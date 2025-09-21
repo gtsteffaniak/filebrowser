@@ -1,17 +1,17 @@
 package preview
 
 import (
-	"path/filepath"
-
-	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
-	"github.com/gtsteffaniak/filebrowser/backend/ffmpeg"
+	"fmt"
 )
 
 // convertHEICToJPEGWithFFmpeg converts a HEIC file to JPEG format using FFmpeg
 // This function handles all FFmpeg-related logic and parameters
 func (s *Service) convertHEICToJPEGWithFFmpeg(filePath string, previewSize string) ([]byte, error) {
-	// Create FFmpeg image service
-	imageService := ffmpeg.NewImageService(s.ffmpegPath, s.ffprobePath, s.debug, filepath.Join(settings.Config.Server.CacheDir, "heic", filepath.Base(filePath)))
+	// Use the shared image service
+	if s.imageService == nil {
+		return nil, fmt.Errorf("image service not available")
+	}
+	
 	// Determine target dimensions and quality based on preview size
 	var width, height int
 	var quality string
@@ -28,7 +28,7 @@ func (s *Service) convertHEICToJPEGWithFFmpeg(filePath string, previewSize strin
 		quality = "5" // Medium quality
 	}
 	// Use tile-based conversion for correct full-resolution image reconstruction
-	result, err := imageService.ConvertHEICToJPEG(filePath, width, height, quality)
+	result, err := s.imageService.ConvertHEICToJPEG(filePath, width, height, quality)
 	if err != nil {
 		return nil, err
 	}

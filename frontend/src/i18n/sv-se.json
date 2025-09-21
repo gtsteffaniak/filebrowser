@@ -325,7 +325,14 @@
     "configViewerShowComments": "Visa kommentarer",
     "configViewerLoadConfig": "Ladda konfig",
     "brandingHelp": "Du kan anpassa hur din File Browser-instans ser ut och känns genom att ändra dess namn, byta ut logotypen, lägga till anpassade stilar och till och med inaktivera externa länkar till GitHub.\nFör mer information om anpassad branding, se {0}.",
-    "commandRunnerHelp": "Här kan du ställa in kommandon som utförs i de namngivna händelserna. Du måste skriva ett per rad. Miljövariablerna {0} och {1} kommer att vara tillgängliga, {0} i förhållande till {1}. För mer information om denna funktion och de tillgängliga miljövariablerna, läs {2}."
+    "commandRunnerHelp": "Här kan du ställa in kommandon som utförs i de namngivna händelserna. Du måste skriva ett per rad. Miljövariablerna {0} och {1} kommer att vara tillgängliga, {0} i förhållande till {1}. För mer information om denna funktion och de tillgängliga miljövariablerna, läs {2}.",
+    "loginMethods": {
+      "password": "Lösenord",
+      "oidc": "OIDC",
+      "proxy": "Proxy"
+    },
+    "newUserHintSubFolder": "t.ex. \"/undermapp\" - tom för standard",
+    "userScopes": "Omfattningar"
   },
   "sidebar": {
     "help": "Hjälp",
@@ -399,7 +406,8 @@
     "enableOnlyOfficeEditingDescription": "Tillåt redigering av kontorsfiler med hjälp av OnlyOffice i denna andel.",
     "titleDefault": "Delade filer {title}",
     "defaultViewMode": "Standardläge för visning",
-    "defaultViewModeDescription": "Ange standardvisningsläge för anonyma användare som visar den här andelen. Inloggade användare kan fortfarande ändra sina visningspreferenser."
+    "defaultViewModeDescription": "Ange standardvisningsläge för anonyma användare som visar den här andelen. Inloggade användare kan fortfarande ändra sina visningspreferenser.",
+    "disableFileViewer": "Inaktivera filvisare"
   },
   "api": {
     "title": "API-nycklar",
@@ -524,7 +532,8 @@
     "fileViewerOptions": "Alternativ för filvisare",
     "themeAndLanguage": "Tema & språk",
     "previewFolder": "Visa miniatyrbilder för mappar om de är tillgängliga",
-    "previewFolderDescription": "Visa förhandsvisningar av miniatyrbilder för mappar med första underordnade objekt med miniatyrbild som omslag."
+    "previewFolderDescription": "Visa förhandsvisningar av miniatyrbilder för mappar med första underordnade objekt med miniatyrbild som omslag.",
+    "disableFileExtensions": "Ange filändelser som ska inaktiveras"
   },
   "general": {
     "name": "Namn",

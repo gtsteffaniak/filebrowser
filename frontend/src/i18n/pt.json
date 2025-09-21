@@ -325,7 +325,14 @@
     "configViewerShowComments": "Mostrar comentários",
     "configViewerLoadConfig": "Configuração de carga",
     "brandingHelp": "É possível personalizar a aparência da instância do Navegador de arquivos alterando seu nome, substituindo o logotipo, adicionando estilos personalizados e até mesmo desativando links externos para o GitHub.\nPara obter mais informações sobre a marca personalizada, consulte {0}.",
-    "commandRunnerHelp": "Aqui pode definir comandos que são executados nos eventos nomeados. Deve escrever um por linha. As variáveis de ambiente {0} e {1} estarão disponíveis, sendo {0} relativo a {1}. Para obter mais informações sobre este recurso e as variáveis de ambiente disponíveis, leia {2}."
+    "commandRunnerHelp": "Aqui pode definir comandos que são executados nos eventos nomeados. Deve escrever um por linha. As variáveis de ambiente {0} e {1} estarão disponíveis, sendo {0} relativo a {1}. Para obter mais informações sobre este recurso e as variáveis de ambiente disponíveis, leia {2}.",
+    "loginMethods": {
+      "password": "Palavra-passe",
+      "oidc": "OIDC",
+      "proxy": "Proxy"
+    },
+    "newUserHintSubFolder": "por exemplo, '/subpasta' - em branco por defeito",
+    "userScopes": "Escopos"
   },
   "sidebar": {
     "help": "Ajuda",
@@ -399,7 +406,8 @@
     "enableOnlyOfficeEditingDescription": "Permitir a edição de ficheiros do Office utilizando o OnlyOffice nesta partilha.",
     "titleDefault": "Ficheiros partilhados - {title}",
     "defaultViewMode": "Modo de visualização predefinido",
-    "defaultViewModeDescription": "Define o modo de visualização predefinido para os utilizadores anónimos que visualizam esta partilha. Os utilizadores com sessão iniciada ainda podem alterar a sua preferência de visualização."
+    "defaultViewModeDescription": "Define o modo de visualização predefinido para os utilizadores anónimos que visualizam esta partilha. Os utilizadores com sessão iniciada ainda podem alterar a sua preferência de visualização.",
+    "disableFileViewer": "Desativar o visualizador de ficheiros"
   },
   "api": {
     "title": "Chaves da API",
@@ -524,7 +532,8 @@
     "fileViewerOptions": "Opções do visualizador de ficheiros",
     "themeAndLanguage": "Tema e linguagem",
     "previewFolder": "Mostrar miniaturas das pastas, se disponíveis",
-    "previewFolderDescription": "Mostrar pré-visualizações em miniatura para pastas com o primeiro item filho com miniatura como capa."
+    "previewFolderDescription": "Mostrar pré-visualizações em miniatura para pastas com o primeiro item filho com miniatura como capa.",
+    "disableFileExtensions": "Introduzir as extensões de ficheiros a desativar"
   },
   "general": {
     "name": "Nome",

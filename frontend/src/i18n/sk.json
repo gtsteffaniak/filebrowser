@@ -325,7 +325,14 @@
     "configViewerShowComments": "Zobraziť komentáre",
     "configViewerLoadConfig": "Konfigurácia načítania",
     "brandingHelp": "Vzhľad a pôsobenie inštancie Prieskumníka súborov môžete prispôsobiť zmenou názvu, výmenou loga, pridaním vlastných štýlov a dokonca aj zakázaním externých prepojení na GitHub.\nViac informácií o používaní vlastnej značky nájdete na stránke {0}.",
-    "commandRunnerHelp": "Tu môžete nastaviť príkazy, ktoré sa vykonajú v pomenovaných udalostiach. Na každý riadok musíte napísať jeden. K dispozícii budú premenné prostredia {0} a {1}, pričom {0} bude relatívne k {1}. Viac informácií o tejto funkcii a dostupných premenných prostredia nájdete na stránke {2}."
+    "commandRunnerHelp": "Tu môžete nastaviť príkazy, ktoré sa vykonajú v pomenovaných udalostiach. Na každý riadok musíte napísať jeden. K dispozícii budú premenné prostredia {0} a {1}, pričom {0} bude relatívne k {1}. Viac informácií o tejto funkcii a dostupných premenných prostredia nájdete na stránke {2}.",
+    "loginMethods": {
+      "password": "Heslo",
+      "oidc": "OIDC",
+      "proxy": "Proxy"
+    },
+    "newUserHintSubFolder": "napr. '/subfolder' - prázdne pre predvolené nastavenie",
+    "userScopes": "Rozsahy"
   },
   "sidebar": {
     "help": "Pomoc",
@@ -399,7 +406,8 @@
     "enableOnlyOfficeEditingDescription": "Povoľte úpravu kancelárskych súborov pomocou aplikácie OnlyOffice v tejto zdieľanej zložke.",
     "titleDefault": "Zdieľané súbory - {title}",
     "defaultViewMode": "Predvolený režim zobrazenia",
-    "defaultViewModeDescription": "Nastavenie predvoleného režimu zobrazenia pre anonymných používateľov pri prezeraní tejto zdieľanej zložky. Prihlásení používatelia môžu stále zmeniť svoje preferencie zobrazenia."
+    "defaultViewModeDescription": "Nastavenie predvoleného režimu zobrazenia pre anonymných používateľov pri prezeraní tejto zdieľanej zložky. Prihlásení používatelia môžu stále zmeniť svoje preferencie zobrazenia.",
+    "disableFileViewer": "Zakázanie prehliadača súborov"
   },
   "api": {
     "title": "Kľúče API:",
@@ -560,7 +568,8 @@
     "fileViewerOptions": "Možnosti prehliadača súborov",
     "themeAndLanguage": "Téma a jazyk",
     "previewFolder": "Zobrazenie miniatúr priečinkov, ak sú k dispozícii",
-    "previewFolderDescription": "Zobrazenie náhľadov miniatúr pre priečinky s prvou podriadenou položkou s miniatúrou ako obálkou."
+    "previewFolderDescription": "Zobrazenie náhľadov miniatúr pre priečinky s prvou podriadenou položkou s miniatúrou ako obálkou.",
+    "disableFileExtensions": "Zadajte prípony súborov, ktoré chcete zakázať"
   },
   "editor": {
     "uninitialized": "Nepodarilo sa inicializovať editor. Prosím, načítajte ho znova.",

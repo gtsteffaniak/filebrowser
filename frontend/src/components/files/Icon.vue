@@ -83,6 +83,20 @@ export default {
       if (!this.hasPreview) {
         return false;
       }
+      if (this.getIconForType().simpleType === "video" && !state.user.preview?.video) {
+        return false;
+      }
+      if (this.getIconForType().simpleType === "image" && !state.user.preview?.image) {
+        return false;
+      }
+      // office files
+      if (this.getIconForType().simpleType === "document" && !state.user.preview?.office) {
+        return false;
+      }
+      // text files
+      if (this.getIconForType().simpleType === "text" && !state.user.preview?.text) {
+        return false;
+      }
       if (!state.user.preview.folder && this.mimetype == "directory") {
         return false;
       }
