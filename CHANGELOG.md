@@ -19,6 +19,8 @@ All notable changes to this project will be documented in this file. For commit 
  - Directories are all empty when disableIndexing is true #1248
  - Access Management: issues on the shared folder when there's a sub folder #1208
  - user preferences for individual preview file types not getting respected (disable/enable office,image,video)
+ - High server load when browsing folders with .mkv files #1259
+
 
 ## v0.8.6-beta
 
