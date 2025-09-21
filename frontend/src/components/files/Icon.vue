@@ -80,7 +80,7 @@ export default {
       if (this.thumbnailUrl == "") {
         return false;
       }
-      if (!this.hasPreview && !this) {
+      if (!this.hasPreview) {
         return false;
       }
       if (this.getIconForType().simpleType === "video" && !state.user.preview?.video) {
