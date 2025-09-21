@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"strconv"
@@ -46,18 +47,22 @@ func (s *VideoService) release() {
 // GenerateVideoPreview generates a single preview image from a video using ffmpeg.
 // videoPath: path to the input video file.
 // outputPath: path where the generated preview image will be saved (e.g., "/tmp/preview.jpg").
-// seekTime: how many seconds into the video to seek before capturing the frame.
+// percentageSeek: percentage of video duration to seek to (0-100).
 func (s *VideoService) GenerateVideoPreview(videoPath, outputPath string, percentageSeek int) ([]byte, error) {
 	if err := s.acquire(context.Background()); err != nil {
 		return nil, err
 	}
 	defer s.release()
 
+	// Validate percentage parameter
+	if percentageSeek < 0 || percentageSeek > 100 {
+		percentageSeek = 10 // Default to 10% if invalid
+	}
+
 	// Step 1: Get video duration from the container format
 	probeCmd := exec.Command(
 		s.ffprobePath,
 		"-v", "error",
-		// Use format=duration for better compatibility
 		"-show_entries", "format=duration",
 		"-of", "default=noprint_wrappers=1:nokey=1",
 		videoPath,
@@ -81,7 +86,6 @@ func (s *VideoService) GenerateVideoPreview(videoPath, outputPath string, percen
 
 	durationFloat, err := strconv.ParseFloat(durationStr, 64)
 	if err != nil {
-		// The original error you saw would be caught here if "N/A" was still the output
 		return nil, fmt.Errorf("invalid duration: %v", err)
 	}
 
@@ -89,22 +93,18 @@ func (s *VideoService) GenerateVideoPreview(videoPath, outputPath string, percen
 		return nil, fmt.Errorf("video duration must be positive")
 	}
 
-	// Step 2: Get the duration of the video in whole seconds
-	duration := int(durationFloat)
+	// Step 2: Calculate seek time with higher precision
+	seekTime := durationFloat * float64(percentageSeek) / 100.0
+	seekTimeStr := strconv.FormatFloat(seekTime, 'f', 3, 64) // 3 decimal places precision
 
-	// Step 3: Calculate seek time based on percentageSeek (percentage value)
-	seekSeconds := duration * percentageSeek / 100
-
-	// Step 4: Convert seekSeconds to string for ffmpeg command
-	seekTime := strconv.Itoa(seekSeconds)
-
-	// Step 5: Extract frame at seek time
+	// Step 3: Extract frame at seek time with optimized parameters
 	cmd := exec.Command(
 		s.ffmpegPath,
-		"-ss", seekTime,
+		"-ss", seekTimeStr, // Use precise seek time
 		"-i", videoPath,
 		"-frames:v", "1",
-		"-q:v", "10",
+		"-q:v", "10", // Good quality/size balance
+		"-f", "image2", // Explicitly specify image format
 		"-y", // overwrite output
 		outputPath,
 	)
@@ -118,6 +118,81 @@ func (s *VideoService) GenerateVideoPreview(videoPath, outputPath string, percen
 		return nil, fmt.Errorf("ffmpeg command failed on file '%v' : %w", videoPath, err)
 	}
 	return os.ReadFile(outputPath)
+}
+
+// GenerateVideoPreviewStreaming generates a video preview and streams it directly to a writer
+// This is more memory efficient for large previews as it doesn't load the entire file into memory
+func (s *VideoService) GenerateVideoPreviewStreaming(videoPath string, percentageSeek int, writer io.Writer) error {
+	if err := s.acquire(context.Background()); err != nil {
+		return err
+	}
+	defer s.release()
+
+	// Validate percentage parameter
+	if percentageSeek < 0 || percentageSeek > 100 {
+		percentageSeek = 10 // Default to 10% if invalid
+	}
+
+	// Step 1: Get video duration from the container format
+	probeCmd := exec.Command(
+		s.ffprobePath,
+		"-v", "error",
+		"-show_entries", "format=duration",
+		"-of", "default=noprint_wrappers=1:nokey=1",
+		videoPath,
+	)
+
+	var probeOut bytes.Buffer
+	probeCmd.Stdout = &probeOut
+	if s.debug {
+		probeCmd.Stderr = os.Stderr
+	}
+	if err := probeCmd.Run(); err != nil {
+		logger.Errorf("ffprobe command failed on file '%v' : %v", videoPath, err)
+		return fmt.Errorf("ffprobe failed: %w", err)
+	}
+
+	durationStr := strings.TrimSpace(probeOut.String())
+	if durationStr == "" || durationStr == "N/A" {
+		logger.Errorf("could not determine video duration for file '%v' using duration info '%v'", videoPath, durationStr)
+		return fmt.Errorf("could not determine video duration")
+	}
+
+	durationFloat, err := strconv.ParseFloat(durationStr, 64)
+	if err != nil {
+		return fmt.Errorf("invalid duration: %v", err)
+	}
+
+	if durationFloat <= 0 {
+		return fmt.Errorf("video duration must be positive")
+	}
+
+	// Step 2: Calculate seek time with higher precision
+	seekTime := durationFloat * float64(percentageSeek) / 100.0
+	seekTimeStr := strconv.FormatFloat(seekTime, 'f', 3, 64) // 3 decimal places precision
+
+	// Step 3: Extract frame and stream directly to writer
+	cmd := exec.Command(
+		s.ffmpegPath,
+		"-ss", seekTimeStr, // Use precise seek time
+		"-i", videoPath,
+		"-frames:v", "1",
+		"-q:v", "10", // Good quality/size balance
+		"-f", "image2", // Explicitly specify image format
+		"-vcodec", "mjpeg", // Use MJPEG codec for better compression
+		"-", // Output to stdout
+	)
+
+	cmd.Stdout = writer
+	if s.debug {
+		cmd.Stderr = os.Stderr
+	}
+
+	err = cmd.Run()
+	if err != nil {
+		return fmt.Errorf("ffmpeg command failed on file '%v' : %w", videoPath, err)
+	}
+	return nil
 }
 
 // GetVideoDuration extracts the duration of a video file using ffprobe

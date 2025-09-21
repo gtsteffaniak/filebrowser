@@ -378,6 +378,11 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 
 			itemInfo.Size = int64(size)
 
+			// all checks after this won't update folder preview
+			if itemInfo.HasPreview {
+				hasPreview = true
+			}
+
 			// Set HasPreview before appending to fileInfos
 			// these don't create preview for parent folders
 			if settings.Config.Integrations.OnlyOffice.Secret != "" && iteminfo.IsOnlyOffice(file.Name()) {
@@ -394,9 +399,7 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 			if config.Recursive {
 				idx.NumFiles++
 			}
-			if itemInfo.HasPreview {
-				hasPreview = true
-			}
+
 		}
 	}
 

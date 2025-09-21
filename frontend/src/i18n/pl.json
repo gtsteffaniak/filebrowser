@@ -325,7 +325,14 @@
     "configViewerShowComments": "Pokaż komentarze",
     "configViewerLoadConfig": "Konfiguracja ładowania",
     "brandingHelp": "Możesz dostosować wygląd i sposób działania swojej instancji przeglądarki plików, zmieniając jej nazwę, zastępując logo, dodając niestandardowe style, a nawet wyłączając zewnętrzne łącza do GitHub.\nWięcej informacji na temat niestandardowego brandingu można znaleźć na stronie {0}.",
-    "commandRunnerHelp": "Tutaj można ustawić polecenia, które będą wykonywane w nazwanych zdarzeniach. Należy wpisać jedną komendę w wierszu. Dostępne będą zmienne środowiskowe {0} i {1}, przy czym {0} będzie relatywna do {1}. Więcej informacji na temat tej funkcji i dostępnych zmiennych środowiskowych można znaleźć na stronie {2}."
+    "commandRunnerHelp": "Tutaj można ustawić polecenia, które będą wykonywane w nazwanych zdarzeniach. Należy wpisać jedną komendę w wierszu. Dostępne będą zmienne środowiskowe {0} i {1}, przy czym {0} będzie relatywna do {1}. Więcej informacji na temat tej funkcji i dostępnych zmiennych środowiskowych można znaleźć na stronie {2}.",
+    "loginMethods": {
+      "password": "Hasło",
+      "oidc": "OIDC",
+      "proxy": "Pełnomocnik"
+    },
+    "newUserHintSubFolder": "np. '/subfolder' - domyślnie puste",
+    "userScopes": "Lunety"
   },
   "sidebar": {
     "help": "Pomoc",
@@ -399,7 +406,8 @@
     "enableOnlyOfficeEditingDescription": "Zezwalaj na edycję plików biurowych za pomocą OnlyOffice w tym udziale.",
     "titleDefault": "Udostępnione pliki - {title}",
     "defaultViewMode": "Domyślny tryb widoku",
-    "defaultViewModeDescription": "Ustawia domyślny tryb widoku dla anonimowych użytkowników przeglądających ten folder udostępniony. Zalogowani użytkownicy mogą nadal zmieniać swoje preferencje widoku."
+    "defaultViewModeDescription": "Ustawia domyślny tryb widoku dla anonimowych użytkowników przeglądających ten folder udostępniony. Zalogowani użytkownicy mogą nadal zmieniać swoje preferencje widoku.",
+    "disableFileViewer": "Wyłącz przeglądarkę plików"
   },
   "api": {
     "title": "Klucze API:",
@@ -560,7 +568,8 @@
     "fileViewerOptions": "Opcje przeglądarki plików",
     "themeAndLanguage": "Temat i język",
     "previewFolder": "Wyświetlanie miniatur folderów, jeśli są dostępne.",
-    "previewFolderDescription": "Wyświetlanie podglądu miniatur dla folderów z pierwszym elementem podrzędnym z miniaturą jako okładką."
+    "previewFolderDescription": "Wyświetlanie podglądu miniatur dla folderów z pierwszym elementem podrzędnym z miniaturą jako okładką.",
+    "disableFileExtensions": "Wprowadź rozszerzenia plików do wyłączenia"
   },
   "editor": {
     "uninitialized": "Nie udało się zainicjować edytora. Przeładuj ponownie.",

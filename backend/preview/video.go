@@ -2,8 +2,7 @@ package preview
 
 import (
 	"context"
-
-	"github.com/gtsteffaniak/filebrowser/backend/ffmpeg"
+	"fmt"
 )
 
 // GenerateVideoPreview generates a single preview image from a video using ffmpeg.
@@ -16,7 +15,9 @@ func (s *Service) GenerateVideoPreview(videoPath, outputPath string, percentageS
 	}
 	defer s.release()
 
-	// Create a temporary video service for this operation
-	videoSvc := ffmpeg.NewVideoService(s.ffmpegPath, s.ffprobePath, 1, s.debug)
-	return videoSvc.GenerateVideoPreview(videoPath, outputPath, percentageSeek)
+	// Use the shared video service
+	if s.videoService == nil {
+		return nil, fmt.Errorf("video service not available")
+	}
+	return s.videoService.GenerateVideoPreview(videoPath, outputPath, percentageSeek)
 }

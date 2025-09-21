@@ -325,7 +325,14 @@
     "configViewerShowComments": "Afișați comentariile",
     "configViewerLoadConfig": "Configurare încărcare",
     "brandingHelp": "Puteți personaliza aspectul instanței File Browser prin schimbarea numelui, înlocuirea logo-ului, adăugarea de stiluri personalizate și chiar dezactivarea linkurilor externe către GitHub.\nPentru mai multe informații despre brandingul personalizat, consultați {0}.",
-    "commandRunnerHelp": "Aici puteți seta comenzi care sunt executate în cadrul evenimentelor numite. Trebuie să scrieți câte una pe linie. Variabilele de mediu {0} și {1} vor fi disponibile, {0} fiind relativ la {1}. Pentru mai multe informații despre această caracteristică și variabilele de mediu disponibile, vă rugăm să citiți {2}."
+    "commandRunnerHelp": "Aici puteți seta comenzi care sunt executate în cadrul evenimentelor numite. Trebuie să scrieți câte una pe linie. Variabilele de mediu {0} și {1} vor fi disponibile, {0} fiind relativ la {1}. Pentru mai multe informații despre această caracteristică și variabilele de mediu disponibile, vă rugăm să citiți {2}.",
+    "loginMethods": {
+      "password": "Parolă",
+      "oidc": "OIDC",
+      "proxy": "Proxy"
+    },
+    "newUserHintSubFolder": "de exemplu \"/subfolder\" - gol pentru implicit",
+    "userScopes": "Scopuri"
   },
   "sidebar": {
     "help": "Ajutor",
@@ -399,7 +406,8 @@
     "enableOnlyOfficeEditingDescription": "Permiteți editarea fișierelor de birou utilizând OnlyOffice în această partajare.",
     "titleDefault": "Fișiere partajate - {title}",
     "defaultViewMode": "Mod de vizualizare implicit",
-    "defaultViewModeDescription": "Setează modul de vizualizare implicit pentru utilizatorii anonimi care vizualizează această partajare. Utilizatorii conectați își pot schimba în continuare preferințele de vizualizare."
+    "defaultViewModeDescription": "Setează modul de vizualizare implicit pentru utilizatorii anonimi care vizualizează această partajare. Utilizatorii conectați își pot schimba în continuare preferințele de vizualizare.",
+    "disableFileViewer": "Dezactivați vizualizatorul de fișiere"
   },
   "api": {
     "title": "Chei API:",
@@ -560,7 +568,8 @@
     "fileViewerOptions": "Opțiuni vizualizator de fișiere",
     "themeAndLanguage": "Temă și limbaj",
     "previewFolder": "Afișați miniaturi pentru foldere, dacă sunt disponibile",
-    "previewFolderDescription": "Afișează previzualizări ale miniaturilor pentru folderele cu primul element copil cu miniatură ca copertă."
+    "previewFolderDescription": "Afișează previzualizări ale miniaturilor pentru folderele cu primul element copil cu miniatură ca copertă.",
+    "disableFileExtensions": "Introduceți extensiile de fișier pe care doriți să le dezactivați"
   },
   "editor": {
     "uninitialized": "Nu s-a reușit inițializarea editorului. Vă rugăm să reîncărcați.",
