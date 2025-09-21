@@ -11,46 +11,25 @@ import (
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
-// getPermFile returns the file permission mode from environment variable PERM_FILE
-// or the default value 0644 if the environment variable is not set or invalid
+// getPermFile returns the file permission mode from the config
 func getPermFile() os.FileMode {
-	defaultPerm := os.FileMode(0644) // Default value
-	envValue := os.Getenv("PERM_FILE")
-
-	// Check if PERM_FILE is set
-	if envValue == "" {
-		return defaultPerm
+	PermFileOctal, err := strconv.ParseUint(settings.Config.Server.Filesystem.CreateFilePermission, 8, 32)
+	if err != nil { // Only for testing purposes
+		logger.Errorf("failed to parse create file permission: %v", err)
+		logger.Errorf(settings.Config.Server.Filesystem.CreateFilePermission)
+		logger.Errorf(settings.Config.Auth.AdminUsername)
 	}
-	
-	// Validate the content of PERM_FILE
-	perm, err := strconv.ParseUint(envValue, 8, 32)
-	if err != nil {
-		logger.Errorf("Invalid PERM_FILE value '%s', using default %o: %v", envValue, defaultPerm, err)
-		return defaultPerm
-	}
-
-	return os.FileMode(perm)
+	return os.FileMode(PermFileOctal)
 }
 
-// getPermDir returns the directory permission mode from environment variable PERM_DIR
-// or the default value 0755 if the environment variable is not set or invalid
+// getPermDir returns the directory permission mode from the config
 func getPermDir() os.FileMode {
-	defaultPerm := os.FileMode(0755) // Default value
-	envValue := os.Getenv("PERM_DIR")
-
-	// Check if PERM_DIR is set
-	if envValue == "" {
-		return defaultPerm
+	PermDirOctal, err := strconv.ParseUint(settings.Config.Server.Filesystem.CreateDirectoryPermission, 8, 32)
+	if err != nil { // Only for testing purposes
+		logger.Errorf("failed to parse create directory permission: %v", err)
+		logger.Errorf(settings.Config.Server.Filesystem.CreateDirectoryPermission)
 	}
-	
-	// Validate the content of PERM_DIR
-	perm, err := strconv.ParseUint(envValue, 8, 32)
-	if err != nil {
-		logger.Errorf("Invalid PERM_DIR value '%s', using default %o: %v", envValue, defaultPerm, err)
-		return defaultPerm
-	}
-	
-	return os.FileMode(perm)
+	return os.FileMode(PermDirOctal)
 }
 
 var PermFile = getPermFile()

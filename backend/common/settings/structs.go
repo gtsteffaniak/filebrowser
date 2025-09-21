@@ -40,11 +40,17 @@ type Server struct {
 	InternalUrl                  string      `json:"internalUrl"`    // used by integrations if set, this is the base domain that an integration service will use to communicate with filebrowser (eg. http://localhost:8080)
 	CacheDir                     string      `json:"cacheDir"`       // path to the cache directory, used for thumbnails and other cached files
 	MaxArchiveSizeGB             int64       `json:"maxArchiveSize"` // max pre-archive combined size of files/folder that are allowed to be archived (in GB)
+	Filesystem                   Filesystem  `json:"filesystem"`     // filesystem settings
 	// not exposed to config
 	SourceMap      map[string]Source `json:"-" validate:"omitempty"` // uses realpath as key
 	NameToSource   map[string]Source `json:"-" validate:"omitempty"` // uses name as key
 	MuPdfAvailable bool              `json:"-"`                      // used internally if compiled with mupdf support
 	EmbeddedFs     bool              `json:"-"`                      // used internally if compiled with embedded fs support
+}
+
+type Filesystem struct {
+	CreateFilePermission      string `json:"createFilePermission"`      // file permissions for created files (default: "0644")
+	CreateDirectoryPermission string `json:"createDirectoryPermission"` // directory permissions for created directories (default: "0755")
 }
 
 type Integrations struct {

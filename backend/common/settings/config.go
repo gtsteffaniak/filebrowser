@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"slices"
+	"strconv"
 	"strings"
 	"time"
 
@@ -301,6 +302,30 @@ func ValidateConfig(config Settings) error {
 	if err != nil {
 		return fmt.Errorf("could not validate config: %v", err)
 	}
+	
+	// Validate permission values
+	if err := validatePermissions(config); err != nil {
+		return fmt.Errorf("permission validation failed: %v", err)
+	}
+	
+	return nil
+}
+
+func validatePermissions(config Settings) error {
+	// Validate CreateFilePermission
+	filePerm, err := strconv.ParseUint(config.Server.Filesystem.CreateFilePermission, 8, 32)
+
+	if err != nil || (filePerm < 0 || filePerm > 0777) {
+		return fmt.Errorf("CreateFilePermission value %d is invalid, must be between 0000 and 0777", filePerm)
+	}
+	
+	// Validate CreateDirectoryPermission
+	dirPerm, err := strconv.ParseUint(config.Server.Filesystem.CreateDirectoryPermission, 8, 32)
+
+	if err != nil || (dirPerm < 0 || dirPerm > 0777) {
+		return fmt.Errorf("CreateDirectoryPermission value %d is invalid, must be between 0000 and 0777", dirPerm)
+	}
+	
 	return nil
 }
 
@@ -374,6 +399,10 @@ func setDefaults(generate bool) Settings {
 			NameToSource:       map[string]Source{},
 			MaxArchiveSizeGB:   50,
 			CacheDir:           "tmp",
+			Filesystem: Filesystem{
+				CreateFilePermission:      "0644",
+				CreateDirectoryPermission: "0755",
+			},
 		},
 		Auth: Auth{
 			AdminUsername:        "admin",
