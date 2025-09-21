@@ -5,13 +5,56 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strconv"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
-const PermFile = 0644
-const PermDir = 0755
+// getPermFile returns the file permission mode from environment variable PERM_FILE
+// or the default value 0644 if the environment variable is not set or invalid
+func getPermFile() os.FileMode {
+	defaultPerm := os.FileMode(0644) // Default value
+	envValue := os.Getenv("PERM_FILE")
+
+	// Check if PERM_FILE is set
+	if envValue == "" {
+		return defaultPerm
+	}
+	
+	// Validate the content of PERM_FILE
+	perm, err := strconv.ParseUint(envValue, 8, 32)
+	if err != nil {
+		logger.Errorf("Invalid PERM_FILE value '%s', using default %o: %v", envValue, defaultPerm, err)
+		return defaultPerm
+	}
+
+	return os.FileMode(perm)
+}
+
+// getPermDir returns the directory permission mode from environment variable PERM_DIR
+// or the default value 0755 if the environment variable is not set or invalid
+func getPermDir() os.FileMode {
+	defaultPerm := os.FileMode(0755) // Default value
+	envValue := os.Getenv("PERM_DIR")
+
+	// Check if PERM_DIR is set
+	if envValue == "" {
+		return defaultPerm
+	}
+	
+	// Validate the content of PERM_DIR
+	perm, err := strconv.ParseUint(envValue, 8, 32)
+	if err != nil {
+		logger.Errorf("Invalid PERM_DIR value '%s', using default %o: %v", envValue, defaultPerm, err)
+		return defaultPerm
+	}
+	
+	return os.FileMode(perm)
+}
+
+var PermFile = getPermFile()
+var PermDir = getPermDir()
 
 // MoveFile moves a file from src to dst.
 // By default, the rename system call is used. If src and dst point to different volumes,
