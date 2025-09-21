@@ -14,21 +14,21 @@ import (
 // getPermFile returns the file permission mode from the config
 func getPermFile() os.FileMode {
 	PermFileOctal, err := strconv.ParseUint(settings.Config.Server.Filesystem.CreateFilePermission, 8, 32)
-	if err != nil { // Only for testing purposes
-		logger.Errorf("failed to parse create file permission: %v", err)
-		logger.Errorf(settings.Config.Server.Filesystem.CreateFilePermission)
-		logger.Errorf(settings.Config.Auth.AdminUsername)
-	}
+	// if err != nil { // Only for testing purposes
+	// 	logger.Errorf("failed to parse create file permission: %v", err)
+	// 	logger.Errorf(settings.Config.Server.Filesystem.CreateFilePermission)
+	// 	logger.Errorf(settings.Config.Auth.AdminUsername)
+	// }
 	return os.FileMode(PermFileOctal)
 }
 
 // getPermDir returns the directory permission mode from the config
 func getPermDir() os.FileMode {
 	PermDirOctal, err := strconv.ParseUint(settings.Config.Server.Filesystem.CreateDirectoryPermission, 8, 32)
-	if err != nil { // Only for testing purposes
-		logger.Errorf("failed to parse create directory permission: %v", err)
-		logger.Errorf(settings.Config.Server.Filesystem.CreateDirectoryPermission)
-	}
+	// if err != nil { // Only for testing purposes
+	// 	logger.Errorf("failed to parse create directory permission: %v", err)
+	// 	logger.Errorf(settings.Config.Server.Filesystem.CreateDirectoryPermission)
+	// }
 	return os.FileMode(PermDirOctal)
 }
 
