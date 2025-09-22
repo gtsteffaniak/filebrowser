@@ -400,7 +400,7 @@ func WriteDirectory(opts iteminfo.FileOptions) error {
 	}
 
 	// Ensure the parent directories exist
-	err = os.MkdirAll(realPath, fileutils.PermDir)
+	err = os.MkdirAll(realPath, fileutils.GetDirectoryPermissions())
 	if err != nil {
 		return err
 	}
@@ -413,8 +413,9 @@ func WriteFile(opts iteminfo.FileOptions, in io.Reader) error {
 		return fmt.Errorf("could not get index: %v ", opts.Source)
 	}
 	realPath, _, _ := idx.GetRealPath(opts.Path)
+	
 	// Ensure the parent directories exist
-	err := os.MkdirAll(filepath.Dir(realPath), fileutils.PermDir)
+	err := os.MkdirAll(filepath.Dir(realPath), fileutils.GetDirectoryPermissions())
 	if err != nil {
 		return err
 	}
@@ -436,7 +437,7 @@ func WriteFile(opts iteminfo.FileOptions, in io.Reader) error {
 	}
 
 	// Open the file for writing (create if it doesn't exist, truncate if it does)
-	file, err := os.OpenFile(realPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, fileutils.PermFile)
+	file, err := os.OpenFile(realPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, fileutils.GetFilePermissions())
 	if err != nil {
 		return err
 	}
@@ -447,6 +448,13 @@ func WriteFile(opts iteminfo.FileOptions, in io.Reader) error {
 	if err != nil {
 		return err
 	}
+	
+	// Explicitly set file permissions to bypass umask
+	err = os.Chmod(realPath, fileutils.GetFilePermissions())
+	if err != nil {
+		return err
+	}
+	
 	return RefreshIndex(opts.Source, opts.Path, false, false)
 }
 

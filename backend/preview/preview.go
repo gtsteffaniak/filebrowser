@@ -55,15 +55,15 @@ func NewPreviewGenerator(concurrencyLimit int, ffmpegPath string, cacheDir strin
 		fileCache = diskcache.NewNoOp()
 	}
 	// Create directories recursively
-	err := os.MkdirAll(filepath.Join(settings.Config.Server.CacheDir, "thumbnails", "docs"), fileutils.PermDir)
+	err := os.MkdirAll(filepath.Join(settings.Config.Server.CacheDir, "thumbnails", "docs"), fileutils.GetDirectoryPermissions())
 	if err != nil {
 		logger.Error(err)
 	}
-	err = os.MkdirAll(filepath.Join(settings.Config.Server.CacheDir, "thumbnails", "videos"), fileutils.PermDir)
+	err = os.MkdirAll(filepath.Join(settings.Config.Server.CacheDir, "thumbnails", "videos"), fileutils.GetDirectoryPermissions())
 	if err != nil {
 		logger.Error(err)
 	}
-	err = os.MkdirAll(filepath.Join(settings.Config.Server.CacheDir, "heic"), fileutils.PermDir)
+	err = os.MkdirAll(filepath.Join(settings.Config.Server.CacheDir, "heic"), fileutils.GetDirectoryPermissions())
 	if err != nil {
 		logger.Error(err)
 	}

@@ -10,8 +10,17 @@ import (
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
-const PermFile = 0644
-const PermDir = 0755
+// GetFilePermissions returns the configured file permissions
+func GetFilePermissions() os.FileMode {
+	perm := os.FileMode(settings.Config.Server.FilePermissions)
+	return perm
+}
+
+// GetDirectoryPermissions returns the configured directory permissions
+func GetDirectoryPermissions() os.FileMode {
+	perm := os.FileMode(settings.Config.Server.DirectoryPermissions)
+	return perm
+}
 
 // MoveFile moves a file from src to dst.
 // By default, the rename system call is used. If src and dst point to different volumes,
@@ -66,13 +75,13 @@ func copySingleFile(source, dest string) error {
 	defer src.Close()
 
 	// Create the destination directory if needed.
-	err = os.MkdirAll(filepath.Dir(dest), PermDir)
+	err = os.MkdirAll(filepath.Dir(dest), GetDirectoryPermissions())
 	if err != nil {
 		return err
 	}
 
 	// Create the destination file.
-	dst, err := os.OpenFile(dest, os.O_RDWR|os.O_CREATE|os.O_TRUNC, PermFile)
+	dst, err := os.OpenFile(dest, os.O_RDWR|os.O_CREATE|os.O_TRUNC, GetFilePermissions())
 	if err != nil {
 		return err
 	}
@@ -84,12 +93,8 @@ func copySingleFile(source, dest string) error {
 		return err
 	}
 
-	// Copy the mode.
-	info, err := os.Stat(source)
-	if err != nil {
-		return err
-	}
-	err = os.Chmod(dest, info.Mode())
+	// Set the configured file permissions instead of copying from source
+	err = os.Chmod(dest, GetFilePermissions())
 	if err != nil {
 		return err
 	}
@@ -100,7 +105,7 @@ func copySingleFile(source, dest string) error {
 // copyDirectory handles copying directories recursively.
 func copyDirectory(source, dest string) error {
 	// Create the destination directory.
-	err := os.MkdirAll(dest, PermDir)
+	err := os.MkdirAll(dest, GetDirectoryPermissions())
 	if err != nil {
 		return err
 	}

@@ -366,14 +366,16 @@ func setDefaults(generate bool) Settings {
 	}
 	s := Settings{
 		Server: Server{
-			Port:               80,
-			NumImageProcessors: numCpus,
-			BaseURL:            "",
-			Database:           database,
-			SourceMap:          map[string]Source{},
-			NameToSource:       map[string]Source{},
-			MaxArchiveSizeGB:   50,
-			CacheDir:           "tmp",
+			Port:                 80,
+			NumImageProcessors:   numCpus,
+			BaseURL:              "",
+			Database:             database,
+			SourceMap:            map[string]Source{},
+			NameToSource:         map[string]Source{},
+			MaxArchiveSizeGB:     50,
+			CacheDir:             "tmp",
+			FilePermissions:      0644,
+			DirectoryPermissions: 0755,
 		},
 		Auth: Auth{
 			AdminUsername:        "admin",

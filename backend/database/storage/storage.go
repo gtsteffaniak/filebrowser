@@ -58,7 +58,7 @@ func dbExists(path string) (bool, error) {
 		d := filepath.Dir(path)
 		_, err = os.Stat(d)
 		if os.IsNotExist(err) {
-			if err = os.MkdirAll(d, fileutils.PermDir); err != nil {
+			if err = os.MkdirAll(d, fileutils.GetDirectoryPermissions()); err != nil {
 				return false, err
 			}
 			return false, nil

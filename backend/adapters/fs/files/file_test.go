@@ -247,6 +247,10 @@ func TestDeleteFilesCacheClearing(t *testing.T) {
 }
 
 func TestOverrideDirectoryToFile(t *testing.T) {
+	// Initialize settings with defaults for file permissions
+	settings.Config.Server.FilePermissions = 0644
+	settings.Config.Server.DirectoryPermissions = 0755
+	
 	// Create a temporary directory for testing
 	tempDir, err := os.MkdirTemp("", "filebrowser_test")
 	if err != nil {
@@ -307,6 +311,10 @@ func TestOverrideDirectoryToFile(t *testing.T) {
 }
 
 func TestOverrideFileToDirectory(t *testing.T) {
+	// Initialize settings with defaults for file permissions
+	settings.Config.Server.FilePermissions = 0644
+	settings.Config.Server.DirectoryPermissions = 0755
+	
 	// Create a temporary directory for testing
 	tempDir, err := os.MkdirTemp("", "filebrowser_test")
 	if err != nil {

@@ -38,8 +38,10 @@ type Server struct {
 	Sources                      []Source    `json:"sources" validate:"required,dive"`
 	ExternalUrl                  string      `json:"externalUrl"`    // used by share links if set (eg. http://mydomain.com)
 	InternalUrl                  string      `json:"internalUrl"`    // used by integrations if set, this is the base domain that an integration service will use to communicate with filebrowser (eg. http://localhost:8080)
-	CacheDir                     string      `json:"cacheDir"`       // path to the cache directory, used for thumbnails and other cached files
-	MaxArchiveSizeGB             int64       `json:"maxArchiveSize"` // max pre-archive combined size of files/folder that are allowed to be archived (in GB)
+	CacheDir                     string      `json:"cacheDir"`             // path to the cache directory, used for thumbnails and other cached files
+	MaxArchiveSizeGB             int64       `json:"maxArchiveSize"`       // max pre-archive combined size of files/folder that are allowed to be archived (in GB)
+	FilePermissions              uint32      `json:"filePermissions"`      // default file permissions in octal format (default: 0644)
+	DirectoryPermissions         uint32      `json:"directoryPermissions"` // default directory permissions in octal format (default: 0755)
 	// not exposed to config
 	SourceMap      map[string]Source `json:"-" validate:"omitempty"` // uses realpath as key
 	NameToSource   map[string]Source `json:"-" validate:"omitempty"` // uses name as key

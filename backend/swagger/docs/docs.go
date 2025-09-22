@@ -3046,6 +3046,10 @@ const docTemplate = `{
                     "description": "output ffmpeg stdout for media integration -- careful can produces lots of output!",
                     "type": "boolean"
                 },
+                "directoryPermissions": {
+                    "description": "default directory permissions in octal format (default: 0755)",
+                    "type": "integer"
+                },
                 "disablePreviewResize": {
                     "description": "disable resizing of previews for faster loading over slow connections",
                     "type": "boolean"
@@ -3065,6 +3069,10 @@ const docTemplate = `{
                 "externalUrl": {
                     "description": "used by share links if set (eg. http://mydomain.com)",
                     "type": "string"
+                },
+                "filePermissions": {
+                    "description": "default file permissions in octal format (default: 0644)",
+                    "type": "integer"
                 },
                 "internalUrl": {
                     "description": "used by integrations if set, this is the base domain that an integration service will use to communicate with filebrowser (eg. http://localhost:8080)",

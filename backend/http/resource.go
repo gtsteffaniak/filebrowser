@@ -289,13 +289,13 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		uploadID := hex.EncodeToString(hasher.Sum(nil))
 		tempFilePath := filepath.Join(settings.Config.Server.CacheDir, "uploads", uploadID)
 
-		if err = os.MkdirAll(filepath.Dir(tempFilePath), fileutils.PermDir); err != nil {
+		if err = os.MkdirAll(filepath.Dir(tempFilePath), fileutils.GetDirectoryPermissions()); err != nil {
 			logger.Debugf("could not create temp dir: %v", err)
 			return http.StatusInternalServerError, fmt.Errorf("could not create temp dir: %v", err)
 		}
 		// Create or open the temporary file
 		var outFile *os.File
-		outFile, err = os.OpenFile(tempFilePath, os.O_CREATE|os.O_WRONLY, 0644)
+		outFile, err = os.OpenFile(tempFilePath, os.O_CREATE|os.O_WRONLY, fileutils.GetFilePermissions())
 		if err != nil {
 			logger.Debugf("could not open temp file: %v", err)
 			return http.StatusInternalServerError, fmt.Errorf("could not open temp file: %v", err)

@@ -161,7 +161,7 @@ func addFile(path string, d *requestContext, tarWriter *tar.Writer, zipWriter *z
 				if tarWriter != nil {
 					header := &tar.Header{
 						Name:     relPath + "/",
-						Mode:     fileutils.PermDir,
+						Mode:     int64(fileutils.GetDirectoryPermissions()),
 						Typeflag: tar.TypeDir,
 						ModTime:  fileInfo.ModTime(),
 					}
