@@ -44,4 +44,5 @@ RUN [ "ffprobe", "-version" ]
 USER root
 # exposing default port for auto discovery.
 EXPOSE 80
-ENTRYPOINT [ "./filebrowser" ]
+SHELL [ "sh", "-c" ]
+ENTRYPOINT umask 0000 && exec ./filebrowser
