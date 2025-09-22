@@ -143,7 +143,7 @@
 
           <input
             class="input flat-left scope-input"
-            placeholder="scope eg. '/subfolder', leave blank for default path"
+            :placeholder="$t('settings.newUserHintSubFolder')"
             @input="updateParent({ source: source, input: $event })"
             :value="source.scope"
             :class="{ 'flat-right': selectedSources.length > 1 }"
@@ -183,9 +183,9 @@
       <div v-if="stateUser.permissions.admin">
         <label for="loginMethod">{{ $t("settings.loginMethodDescription") }}</label>
         <select v-model="user.loginMethod" class="input" id="loginMethod">
-          <option value="password">Password</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-          <option value="oidc">OIDC</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-          <option value="proxy">Proxy</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <option v-if="globalVars.passwordAvailable" value="password">{{ $t("settings.loginMethods.password") }}</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <option v-if="globalVars.oidcAvailable" value="oidc">{{ $t("settings.loginMethods.oidc") }}</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <option v-if="globalVars.proxyAvailable" value="proxy">{{ $t("settings.loginMethods.proxy") }}</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
         </select>
       </div>
       <permissions v-if="stateUser.permissions.admin" :permissions="user.permissions" />
@@ -216,6 +216,7 @@ import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import Errors from "@/views/Errors.vue";
 import { notify } from "@/notify";
 import { globalVars } from "@/utils/constants";
+import { eventBus } from "@/store/eventBus";
 
 export default {
   name: "user-edit",
@@ -241,6 +242,7 @@ export default {
         password: "",
         permissions: { admin: false },
         otpEnabled: false,
+        loginMethod: null, // Will be set based on available methods
       },
       showDelete: false,
       createUserDir: false,
@@ -289,6 +291,12 @@ export default {
     displayHomeDirectoryCheckbox() {
       return this.isNew && this.createUserDir;
     },
+    firstAvailableLoginMethod() {
+      if (this.globalVars.passwordAvailable) return "password";
+      if (this.globalVars.oidcAvailable) return "oidc";
+      if (this.globalVars.proxyAvailable) return "proxy";
+      return "password"; // fallback
+    },
   },
   watch: {
     createUserDir(newVal) {
@@ -298,6 +306,15 @@ export default {
     stateUser() {
       this.user.otpEnabled = state.user.otpEnabled;
       this.emitUserUpdate();
+    },
+    globalVars: {
+      handler() {
+        // Set loginMethod when globalVars becomes available
+        if (this.isNew) {
+          this.setDefaultLoginMethod();
+        }
+      },
+      immediate: true
     },
   },
   methods: {
@@ -311,6 +328,15 @@ export default {
           let defaults = await settingsApi.get("userDefaults");
           this.user = defaults;
           this.user.password = "";
+          // Ensure loginMethod is valid, set to first available method if not set or invalid
+          const validMethods = [];
+          if (this.globalVars.passwordAvailable) validMethods.push("password");
+          if (this.globalVars.oidcAvailable) validMethods.push("oidc");
+          if (this.globalVars.proxyAvailable) validMethods.push("proxy");
+          
+          if (!this.user.loginMethod || !validMethods.includes(this.user.loginMethod)) {
+            this.user.loginMethod = this.firstAvailableLoginMethod;
+          }
         } else {
           const id = this.userId;
           if (id === undefined) {
@@ -318,6 +344,15 @@ export default {
           }
           this.user = { ...(await usersApi.get(id)) };
           this.user.password = "";
+          // Ensure loginMethod is valid, set to first available method if not set or invalid
+          const validMethods = [];
+          if (this.globalVars.passwordAvailable) validMethods.push("password");
+          if (this.globalVars.oidcAvailable) validMethods.push("oidc");
+          if (this.globalVars.proxyAvailable) validMethods.push("proxy");
+          
+          if (!this.user.loginMethod || !validMethods.includes(this.user.loginMethod)) {
+            this.user.loginMethod = this.firstAvailableLoginMethod;
+          }
         }
       } catch (e) {
         notify.showError(e);
@@ -335,6 +370,8 @@ export default {
       }
 
       this.user.password = this.user.password || "";
+      // Set default login method
+      this.setDefaultLoginMethod();
       this.selectedSources = this.user.scopes || [];
       this.availableSources = this.sourceList.filter(
         (s) => !this.selectedSources.some((sel) => sel.name === s.name)
@@ -355,18 +392,25 @@ export default {
       event.preventDefault();
       try {
         let fields = ["all"];
-        if (!state.user.permissions.admin) {
-          notify.showError(this.$t("settings.userNotAdmin"));
-          return;
-        }
         if (this.isNew) {
+          if (!state.user.permissions.admin) {
+            notify.showError(this.$t("settings.userNotAdmin"));
+            return;
+          }
           await usersApi.create({ ...this.user, scopes: this.selectedSources });
-          this.$router.push({ path: "/settings", hash: "#users-main" });
+          // Emit event to refresh user list
+          eventBus.emit('usersChanged');
+          // Close the modal
+          mutations.closeHovers();
         } else {
           await usersApi.update({ ...this.user, scopes: this.selectedSources }, fields);
+          // Only emit usersChanged for admin user management, not profile updates
+          if (state.user.permissions.admin && this.user.id !== state.user.id) {
+            eventBus.emit('usersChanged');
+          }
           notify.showSuccess(this.$t("settings.userUpdated"));
+          mutations.closeHovers();
         }
-        window.location.reload();
       } catch (e) {
         notify.showError(e);
       }
@@ -387,6 +431,10 @@ export default {
       }
       try {
         await usersApi.update(this.user, ["password"]);
+        // Only emit usersChanged for admin user management, not profile updates
+        if (state.user.permissions.admin && this.user.id !== state.user.id) {
+          eventBus.emit('usersChanged');
+        }
         notify.showSuccess(this.$t("settings.userUpdated"));
       } catch (e) {
         notify.showError(e);
@@ -395,10 +443,18 @@ export default {
     emitUserUpdate() {
       // Update the user object with current scopes
       this.user = { ...this.user, scopes: this.selectedSources };
+      // Ensure loginMethod is preserved
+      if (!this.user.loginMethod) {
+        this.user.loginMethod = this.firstAvailableLoginMethod;
+      }
     },
     emitUpdate() {
       // Update the user object
       this.user = { ...this.user };
+      // Ensure loginMethod is preserved
+      if (!this.user.loginMethod) {
+        this.user.loginMethod = this.firstAvailableLoginMethod;
+      }
     },
     setUpdatePassword() {
       // This method is kept for compatibility but not used in the new structure
@@ -436,6 +492,19 @@ export default {
     updateUserField(field, value) {
       this.user[field] = value;
       this.emitUserUpdate();
+    },
+    setDefaultLoginMethod() {
+      // Set loginMethod to first available method if not already set or if current value is invalid
+      const validMethods = [];
+      if (this.globalVars.passwordAvailable) validMethods.push("password");
+      if (this.globalVars.oidcAvailable) validMethods.push("oidc");
+      if (this.globalVars.proxyAvailable) validMethods.push("proxy");
+      
+      const isValidMethod = validMethods.includes(this.user.loginMethod);
+      
+      if (!this.user.loginMethod || this.user.loginMethod === null || !isValidMethod) {
+        this.user.loginMethod = this.firstAvailableLoginMethod;
+      }
     },
   },
 };

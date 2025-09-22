@@ -28,14 +28,14 @@
         </button>
       </div>
 
-      <div class="inner-card" v-if="user.username !== 'anonymous'" @click="logout">
+      <div class="inner-card" v-if="canLogout" @click="logout">
         <button
           aria-label="logout-button"
           class="logout-button action"
           @mouseenter="showTooltip($event, $t('index.logout'))"
           @mouseleave="hideTooltip"
         >
-          <i v-if="canLogout" class="material-icons">exit_to_app</i>
+          <i class="material-icons">exit_to_app</i>
         </button>
       </div>
     </div>
@@ -174,7 +174,7 @@ export default {
     version: () => globalVars.version,
     commitSHA: () => globalVars.commitSHA,
     disableExternal: () => globalVars.disableExternal,
-    canLogout: () => !globalVars.noAuth && globalVars.loginPage,
+    canLogout: () => !globalVars.noAuth && state.user.username !== 'anonymous',
     route: () => state.route,
     sourceInfo: () => state.sources.info,
     activeSource: () => state.sources.current,

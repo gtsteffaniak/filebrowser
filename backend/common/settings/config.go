@@ -244,14 +244,15 @@ func setupLogging() {
 		}
 
 		logConfig := logger.JsonConfig{
-			Levels:    levels,
-			ApiLevels: logConfig.ApiLevels,
-			Output:    logConfig.Output,
-			Utc:       logConfig.Utc,
-			NoColors:  logConfig.NoColors,
-			Json:      logConfig.Json,
+			Levels:     levels,
+			ApiLevels:  logConfig.ApiLevels,
+			Output:     logConfig.Output,
+			Utc:        logConfig.Utc,
+			NoColors:   logConfig.NoColors,
+			Json:       logConfig.Json,
+			Structured: false,
 		}
-		err := logger.SetupLogger(logConfig)
+		err := logger.EnableCompatibilityMode(logConfig)
 		if err != nil {
 			log.Println("[ERROR] Failed to set up logger:", err)
 		}

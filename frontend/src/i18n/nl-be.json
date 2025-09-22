@@ -325,7 +325,14 @@
     "configViewerShowComments": "Opmerkingen tonen",
     "configViewerLoadConfig": "Configuratie laden",
     "brandingHelp": "Je kunt aanpassen hoe je File Browser instance eruit ziet en aanvoelt door de naam te veranderen, het logo te vervangen, aangepaste stijlen toe te voegen en zelfs externe links naar GitHub uit te schakelen.\nVoor meer informatie over het aanpassen van je branding, kun je kijken op {0}.",
-    "commandRunnerHelp": "Hier kun je commando's instellen die worden uitgevoerd in de genoemde gebeurtenissen. Je moet er één per regel schrijven. De omgevingsvariabelen {0} en {1} zullen beschikbaar zijn, waarbij {0} relatief is ten opzichte van {1}. Lees voor meer informatie over deze functie en de beschikbare omgevingsvariabelen de {2}."
+    "commandRunnerHelp": "Hier kun je commando's instellen die worden uitgevoerd in de genoemde gebeurtenissen. Je moet er één per regel schrijven. De omgevingsvariabelen {0} en {1} zullen beschikbaar zijn, waarbij {0} relatief is ten opzichte van {1}. Lees voor meer informatie over deze functie en de beschikbare omgevingsvariabelen de {2}.",
+    "loginMethods": {
+      "password": "Wachtwoord",
+      "oidc": "OIDC",
+      "proxy": "Proxy"
+    },
+    "newUserHintSubFolder": "bijv. '/submap' - leeg voor standaard",
+    "userScopes": "Richtkijkers"
   },
   "sidebar": {
     "help": "Help",
@@ -399,7 +406,8 @@
     "enableOnlyOfficeEditingDescription": "Laat het bewerken van Office-bestanden met OnlyOffice toe in deze share.",
     "titleDefault": "Gedeelde bestanden - {title}",
     "defaultViewMode": "Standaard weergavemodus",
-    "defaultViewModeDescription": "Stel de standaard weergavemodus in voor anonieme gebruikers die deze share bekijken. Aangemelde gebruikers kunnen nog steeds hun weergavevoorkeur wijzigen."
+    "defaultViewModeDescription": "Stel de standaard weergavemodus in voor anonieme gebruikers die deze share bekijken. Aangemelde gebruikers kunnen nog steeds hun weergavevoorkeur wijzigen.",
+    "disableFileViewer": "Bestandsviewer uitschakelen"
   },
   "api": {
     "title": "API-sleutels",
@@ -524,7 +532,8 @@
     "fileViewerOptions": "Opties voor bestandsviewer",
     "themeAndLanguage": "Thema & Taal",
     "previewFolder": "Toon miniaturen voor mappen indien beschikbaar",
-    "previewFolderDescription": "Toon miniatuurafbeeldingen voor mappen met het eerste kinditem met miniatuurafbeelding als omslag."
+    "previewFolderDescription": "Toon miniatuurafbeeldingen voor mappen met het eerste kinditem met miniatuurafbeelding als omslag.",
+    "disableFileExtensions": "Voer bestandsextensies in om uit te schakelen"
   },
   "general": {
     "name": "Naam",

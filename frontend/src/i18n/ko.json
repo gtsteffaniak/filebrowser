@@ -325,7 +325,14 @@
     "configViewerShowComments": "댓글 표시",
     "configViewerLoadConfig": "로드 구성",
     "brandingHelp": "파일 브라우저 인스턴스의 이름을 변경하고, 로고를 바꾸고, 사용자 지정 스타일을 추가하고, GitHub에 대한 외부 링크를 비활성화하여 모양과 느낌을 사용자 지정할 수 있습니다.\n사용자 지정 브랜딩에 대한 자세한 내용은 {0} 을 참조하세요.",
-    "commandRunnerHelp": "여기에서 명명된 이벤트에서 실행되는 명령을 설정할 수 있습니다. 한 줄에 하나씩 작성해야 합니다. 환경 변수 {0} 및 {1} 을 사용할 수 있으며, {0} 은 {1} 에 상대적입니다. 이 기능 및 사용 가능한 환경 변수에 대한 자세한 내용은 {2} 을 참조하세요."
+    "commandRunnerHelp": "여기에서 명명된 이벤트에서 실행되는 명령을 설정할 수 있습니다. 한 줄에 하나씩 작성해야 합니다. 환경 변수 {0} 및 {1} 을 사용할 수 있으며, {0} 은 {1} 에 상대적입니다. 이 기능 및 사용 가능한 환경 변수에 대한 자세한 내용은 {2} 을 참조하세요.",
+    "loginMethods": {
+      "password": "비밀번호",
+      "oidc": "OIDC",
+      "proxy": "프록시"
+    },
+    "newUserHintSubFolder": "예: '/subfolder' - 기본값은 비어 있습니다.",
+    "userScopes": "범위"
   },
   "sidebar": {
     "help": "도움말",
@@ -399,7 +406,8 @@
     "enableOnlyOfficeEditingDescription": "이 공유에서 OnlyOffice를 사용하여 Office 파일을 편집할 수 있도록 허용합니다.",
     "titleDefault": "공유 파일 - {title}",
     "defaultViewMode": "기본 보기 모드",
-    "defaultViewModeDescription": "이 공유를 보는 익명 사용자의 기본 보기 모드를 설정합니다. 로그인한 사용자는 여전히 보기 기본 설정을 변경할 수 있습니다."
+    "defaultViewModeDescription": "이 공유를 보는 익명 사용자의 기본 보기 모드를 설정합니다. 로그인한 사용자는 여전히 보기 기본 설정을 변경할 수 있습니다.",
+    "disableFileViewer": "파일 뷰어 비활성화"
   },
   "api": {
     "title": "API 키:",
@@ -560,7 +568,8 @@
     "fileViewerOptions": "파일 뷰어 옵션",
     "themeAndLanguage": "테마 및 언어",
     "previewFolder": "가능한 경우 폴더의 썸네일 표시",
-    "previewFolderDescription": "썸네일을 표지로 사용하는 첫 번째 하위 항목이 있는 폴더의 썸네일 미리 보기를 표시합니다."
+    "previewFolderDescription": "썸네일을 표지로 사용하는 첫 번째 하위 항목이 있는 폴더의 썸네일 미리 보기를 표시합니다.",
+    "disableFileExtensions": "비활성화할 파일 확장명을 입력합니다."
   },
   "editor": {
     "uninitialized": "편집기를 초기화하지 못했습니다. 다시 로드하세요.",

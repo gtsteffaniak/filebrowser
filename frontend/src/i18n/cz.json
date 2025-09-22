@@ -182,7 +182,8 @@
     "enableOnlyOfficeEditingDescription": "Povolit úpravy kancelářských souborů pomocí OnlyOffice v této sdílené složce.",
     "titleDefault": "Sdílené soubory - {title}",
     "defaultViewMode": "Výchozí režim zobrazení",
-    "defaultViewModeDescription": "Nastavení výchozího režimu zobrazení pro anonymní uživatele prohlížející tuto sdílenou složku. Přihlášení uživatelé mohou stále měnit předvolby zobrazení."
+    "defaultViewModeDescription": "Nastavení výchozího režimu zobrazení pro anonymní uživatele prohlížející tuto sdílenou složku. Přihlášení uživatelé mohou stále měnit předvolby zobrazení.",
+    "disableFileViewer": "Zakázat prohlížeč souborů"
   },
   "prompts": {
     "copy": "Kopírovat",
@@ -328,7 +329,8 @@
     "fileViewerOptions": "Možnosti prohlížeče souborů",
     "themeAndLanguage": "Téma a jazyk",
     "previewFolder": "Zobrazení miniatur složek, pokud jsou k dispozici",
-    "previewFolderDescription": "Zobrazení náhledů miniatur pro složky s první podřízenou položkou s miniaturou jako obálkou."
+    "previewFolderDescription": "Zobrazení náhledů miniatur pro složky s první podřízenou položkou s miniaturou jako obálkou.",
+    "disableFileExtensions": "Zadejte přípony souborů, které chcete zakázat"
   },
   "settings": {
     "enterPassword": "Zadejte heslo",
@@ -432,7 +434,14 @@
     "configViewerShowComments": "Zobrazit komentáře",
     "configViewerLoadConfig": "Konfigurace načítání",
     "brandingHelp": "Vzhled instance Průzkumníka souborů si můžete přizpůsobit změnou názvu, nahrazením loga, přidáním vlastních stylů a dokonce i zakázáním externích odkazů na GitHub.\nDalší informace o vlastním brandingu naleznete na stránce {0}.",
-    "commandRunnerHelp": "Zde můžete nastavit příkazy, které se provedou v pojmenovaných událostech. Na každý řádek musíte napsat jeden. K dispozici budou proměnné prostředí {0} a {1}, přičemž {0} bude relativní vůči {1}. Další informace o této funkci a dostupných proměnných prostředí naleznete na {2}."
+    "commandRunnerHelp": "Zde můžete nastavit příkazy, které se provedou v pojmenovaných událostech. Na každý řádek musíte napsat jeden. K dispozici budou proměnné prostředí {0} a {1}, přičemž {0} bude relativní vůči {1}. Další informace o této funkci a dostupných proměnných prostředí naleznete na {2}.",
+    "loginMethods": {
+      "password": "Heslo",
+      "oidc": "OIDC",
+      "proxy": "Proxy"
+    },
+    "newUserHintSubFolder": "např. '/subfolder' - prázdný pro výchozí nastavení",
+    "userScopes": "Rozsahy"
   },
   "sidebar": {
     "help": "Nápověda",

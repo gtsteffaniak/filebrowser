@@ -18,12 +18,16 @@ import (
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
-var RealPathCache = cache.NewCache(48*time.Hour, 72*time.Hour)
+var (
+	RealPathCache = cache.NewCache[string](48*time.Hour, 72*time.Hour)
+	IsDirCache    = cache.NewCache[bool](48*time.Hour, 72*time.Hour)
+)
 
 // actionConfig holds all configuration options for indexing operations
 type actionConfig struct {
 	Quick     bool // whether to perform a quick scan (skip unchanged directories)
 	Recursive bool // whether to recursively index subdirectories
+	ForceCheck bool // whether to check indexing skip rules.
 }
 
 // NewactionConfig creates a new actionConfig with common presets
@@ -231,6 +235,7 @@ func (idx *Index) GetFsDirInfo(adjustedPath string) (*iteminfo.FileInfo, error) 
 	response, err = idx.GetDirInfo(dir, dirInfo, realPath, adjustedPath, combinedPath, &actionConfig{
 		Quick:     false,
 		Recursive: false,
+		ForceCheck: true,
 	})
 	if err != nil {
 		return nil, err
@@ -286,7 +291,7 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 				continue
 			}
 		}
-		if idx.shouldSkip(isDir, hidden, fullCombined, baseName) {
+		if !config.ForceCheck && idx.shouldSkip(isDir, hidden, fullCombined, baseName) {
 			continue
 		}
 		itemInfo := &iteminfo.ItemInfo{
@@ -373,6 +378,11 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 
 			itemInfo.Size = int64(size)
 
+			// all checks after this won't update folder preview
+			if itemInfo.HasPreview {
+				hasPreview = true
+			}
+
 			// Set HasPreview before appending to fileInfos
 			// these don't create preview for parent folders
 			if settings.Config.Integrations.OnlyOffice.Secret != "" && iteminfo.IsOnlyOffice(file.Name()) {
@@ -389,9 +399,7 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 			if config.Recursive {
 				idx.NumFiles++
 			}
-			if itemInfo.HasPreview {
-				hasPreview = true
-			}
+
 		}
 	}
 
@@ -459,8 +467,8 @@ func (idx *Index) recursiveUpdateDirSizes(childInfo *iteminfo.FileInfo, previous
 func (idx *Index) GetRealPath(relativePath ...string) (string, bool, error) {
 	combined := append([]string{idx.Path}, relativePath...)
 	joinedPath := filepath.Join(combined...)
-	isDir, _ := RealPathCache.Get(joinedPath + ":isdir").(bool)
-	cached, ok := RealPathCache.Get(joinedPath).(string)
+	isDir, _ := IsDirCache.Get(joinedPath + ":isdir")
+	cached, ok := RealPathCache.Get(joinedPath)
 	if ok && cached != "" {
 		return cached, isDir, nil
 	}
@@ -473,7 +481,7 @@ func (idx *Index) GetRealPath(relativePath ...string) (string, bool, error) {
 	realPath, isDir, err := iteminfo.ResolveSymlinks(absolutePath)
 	if err == nil {
 		RealPathCache.Set(joinedPath, realPath)
-		RealPathCache.Set(joinedPath+":isdir", isDir)
+		IsDirCache.Set(joinedPath+":isdir", isDir)
 	}
 	return realPath, isDir, err
 }

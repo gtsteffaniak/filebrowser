@@ -6,6 +6,7 @@ import (
 	"maps"
 	"slices"
 	"sort"
+	"strings"
 	"sync"
 	"time"
 
@@ -18,7 +19,12 @@ import (
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
-var accessCache = cache.NewCache(1 * time.Minute)
+var (
+	accessCache     = cache.NewCache[string](1 * time.Minute)                        // for accessChangedKey
+	versionCache    = cache.NewCache[int](1 * time.Minute)                           // for version keys
+	permissionCache = cache.NewCache[bool](1 * time.Minute)                          // for permission keys
+	rulesCache      = cache.NewCache[map[string]FrontendAccessRule](1 * time.Minute) // for rules
+)
 
 const accessRulesBucket = "access_rules"
 const accessRulesKey = "rules"
@@ -138,8 +144,11 @@ func NewStorage(db *storm.DB, usersStore *users.Storage) *Storage {
 
 // ClearCache clears the access cache (useful for testing)
 func ClearCache() {
-	// Recreate the cache to clear it
-	accessCache = cache.NewCache(1 * time.Minute)
+	// Recreate the caches to clear them
+	accessCache = cache.NewCache[string](1 * time.Minute)
+	versionCache = cache.NewCache[int](1 * time.Minute)
+	permissionCache = cache.NewCache[bool](1 * time.Minute)
+	rulesCache = cache.NewCache[map[string]FrontendAccessRule](1 * time.Minute)
 }
 
 // getOrCreateRuleNL ensures a rule exists for the given source and index path.
@@ -176,7 +185,7 @@ func (s *Storage) DenyUser(sourcePath, indexPath, username string) error {
 	}
 	rule.Deny.Users[username] = struct{}{}
 	s.incrementSourceVersion(sourcePath)
-	accessCache.Set(accessChangedKey+sourcePath, false)
+	accessCache.Set(accessChangedKey+sourcePath, "false")
 	return s.SaveToDB()
 }
 
@@ -196,7 +205,7 @@ func (s *Storage) AllowUser(sourcePath, indexPath, username string) error {
 	}
 	rule.Allow.Users[username] = struct{}{}
 	s.incrementSourceVersion(sourcePath)
-	accessCache.Set(accessChangedKey+sourcePath, false)
+	accessCache.Set(accessChangedKey+sourcePath, "false")
 	return s.SaveToDB()
 }
 
@@ -214,7 +223,7 @@ func (s *Storage) DenyGroup(sourcePath, indexPath, groupname string) error {
 	}
 	rule.Deny.Groups[groupname] = struct{}{}
 	s.incrementSourceVersion(sourcePath)
-	accessCache.Set(accessChangedKey+sourcePath, false)
+	accessCache.Set(accessChangedKey+sourcePath, "false")
 	return s.SaveToDB()
 }
 
@@ -232,7 +241,7 @@ func (s *Storage) AllowGroup(sourcePath, indexPath, groupname string) error {
 	}
 	rule.Allow.Groups[groupname] = struct{}{}
 	s.incrementSourceVersion(sourcePath)
-	accessCache.Set(accessChangedKey+sourcePath, false)
+	accessCache.Set(accessChangedKey+sourcePath, "false")
 	return s.SaveToDB()
 }
 
@@ -246,29 +255,36 @@ func (s *Storage) DenyAll(sourcePath, indexPath string) error {
 	}
 	rule.DenyAll = true
 	s.incrementSourceVersion(sourcePath)
-	accessCache.Set(accessChangedKey+sourcePath, false)
+	accessCache.Set(accessChangedKey+sourcePath, "false")
 	return s.SaveToDB()
 }
 
 // Permitted checks if a username is permitted for a given sourcePath and indexPath, recursively checking parent directories.
 func (s *Storage) Permitted(sourcePath, indexPath, username string) bool {
 
+	// SECURITY: All paths MUST start with "/" - reject any path that doesn't
+	// This prevents path normalization bypass attacks
+	if !strings.HasPrefix(indexPath, "/") {
+		logger.Debugf("Access denied: path %q does not start with '/' (user: %s, source: %s)", indexPath, username, sourcePath)
+		return false
+	}
+
 	// Get current version for the sourcePath
 	versionKey := "version:" + sourcePath
 	version := 0
-	if v, ok := accessCache.Get(versionKey).(int); ok {
+	if v, ok := versionCache.Get(versionKey); ok {
 		version = v
 	}
 
 	// Check cache with versioned key
 	permKey := fmt.Sprintf("perm:%s:%d:%s:%s", sourcePath, version, indexPath, username)
-	if p, ok := accessCache.Get(permKey).(bool); ok {
+	if p, ok := permissionCache.Get(permKey); ok {
 		return p
 	}
 
 	// Not in cache, compute, then cache it.
 	result := s.computePermitted(sourcePath, indexPath, username)
-	accessCache.Set(permKey, result)
+	permissionCache.Set(permKey, result)
 	return result
 }
 
@@ -486,7 +502,7 @@ func (s *Storage) GetFrontendRules(sourcePath, indexPath string) (FrontendAccess
 
 // GetAllRules returns all access rules as a map.
 func (s *Storage) GetAllRules(sourcePath string) (map[string]FrontendAccessRule, error) {
-	value, ok := accessCache.Get(accessChangedKey + sourcePath).(map[string]FrontendAccessRule)
+	value, ok := rulesCache.Get(accessChangedKey + sourcePath)
 	if ok {
 		return value, nil
 	}
@@ -523,7 +539,7 @@ func (s *Storage) GetAllRules(sourcePath string) (map[string]FrontendAccessRule,
 		}
 	}
 	// cache responses
-	accessCache.Set(accessChangedKey+sourcePath, frontendRules)
+	rulesCache.Set(accessChangedKey+sourcePath, frontendRules)
 	return frontendRules, nil
 }
 
@@ -650,7 +666,7 @@ func (s *Storage) RemoveAllowUser(sourcePath, indexPath, username string) (bool,
 		}
 	}
 	if removed {
-		accessCache.Set(accessChangedKey+sourcePath, false)
+		accessCache.Set(accessChangedKey+sourcePath, "false")
 		return exists, s.SaveToDB()
 	}
 	return false, nil
@@ -681,7 +697,7 @@ func (s *Storage) RemoveAllowGroup(sourcePath, indexPath, groupname string) (boo
 		}
 	}
 	if removed {
-		accessCache.Set(accessChangedKey+sourcePath, false)
+		accessCache.Set(accessChangedKey+sourcePath, "false")
 		return exists, s.SaveToDB()
 	}
 	return exists, nil
@@ -712,7 +728,7 @@ func (s *Storage) RemoveDenyUser(sourcePath, indexPath, username string) (bool, 
 		}
 	}
 	if removed {
-		accessCache.Set(accessChangedKey+sourcePath, false)
+		accessCache.Set(accessChangedKey+sourcePath, "false")
 		return exists, s.SaveToDB()
 	}
 	return false, nil
@@ -743,7 +759,7 @@ func (s *Storage) RemoveDenyGroup(sourcePath, indexPath, groupname string) (bool
 		}
 	}
 	if removed {
-		accessCache.Set(accessChangedKey+sourcePath, false)
+		accessCache.Set(accessChangedKey+sourcePath, "false")
 		return exists, s.SaveToDB()
 	}
 	return exists, nil
@@ -771,7 +787,7 @@ func (s *Storage) RemoveDenyAll(sourcePath, indexPath string) (bool, error) {
 		}
 	}
 	if removed {
-		accessCache.Set(accessChangedKey+sourcePath, false)
+		accessCache.Set(accessChangedKey+sourcePath, "false")
 		return true, s.SaveToDB()
 	}
 	return false, nil
@@ -805,7 +821,7 @@ func (s *Storage) RemoveAllRulesForUser(username string) error {
 	}
 	for sp := range changedSourcePaths {
 		s.incrementSourceVersion(sp)
-		accessCache.Set(accessChangedKey+sp, false)
+		accessCache.Set(accessChangedKey+sp, "false")
 	}
 	if changed {
 		return s.SaveToDB()
@@ -841,7 +857,7 @@ func (s *Storage) RemoveAllRulesForGroup(groupname string) error {
 	}
 	for sp := range changedSourcePaths {
 		s.incrementSourceVersion(sp)
-		accessCache.Set(accessChangedKey+sp, false)
+		accessCache.Set(accessChangedKey+sp, "false")
 	}
 	if changed {
 		return s.SaveToDB()
@@ -1042,12 +1058,11 @@ func (s *Storage) GetAllRulesByGroups(sourcePath string) map[string]map[string]F
 }
 
 // incrementSourceVersion increments the version of a sourcePath to invalidate caches.
-// The caller MUST hold the mutex lock.
 func (s *Storage) incrementSourceVersion(sourcePath string) {
 	key := "version:" + sourcePath
 	version := 0
-	if v, ok := accessCache.Get(key).(int); ok {
+	if v, ok := versionCache.Get(key); ok {
 		version = v
 	}
-	accessCache.Set(key, version+1)
+	versionCache.Set(key, version+1)
 }

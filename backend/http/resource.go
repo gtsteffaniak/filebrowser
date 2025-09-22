@@ -240,6 +240,20 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	}
 	realPath, _, _ := idx.GetRealPath(userscope, path)
 	isDir := strings.HasSuffix(path, "/")
+
+	// Check for file/folder conflicts before creation
+	if stat, statErr := os.Stat(realPath); statErr == nil {
+		// Path exists, check for type conflicts
+		existingIsDir := stat.IsDir()
+		requestingDir := isDir
+
+		// If type mismatch (file vs folder or folder vs file) and not overriding
+		if existingIsDir != requestingDir && r.URL.Query().Get("override") != "true" {
+			logger.Debugf("Type conflict detected: existing is dir=%v, requesting dir=%v at path=%v", existingIsDir, requestingDir, realPath)
+			return http.StatusConflict, nil
+		}
+	}
+
 	// Directories creation on POST.
 	if isDir {
 		err = files.WriteDirectory(fileOpts)
@@ -269,6 +283,18 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		}
 		// On the first chunk, check for conflicts or handle override
 		if offset == 0 {
+			// Check for file/folder conflicts for chunked uploads
+			if stat, statErr := os.Stat(realPath); statErr == nil {
+				existingIsDir := stat.IsDir()
+				requestingDir := false // Files are never directories
+
+				// If type mismatch (existing dir vs requesting file) and not overriding
+				if existingIsDir != requestingDir && r.URL.Query().Get("override") != "true" {
+					logger.Debugf("Type conflict detected in chunked: existing is dir=%v, requesting dir=%v at path=%v", existingIsDir, requestingDir, realPath)
+					return http.StatusConflict, nil
+				}
+			}
+
 			var fileInfo *iteminfo.ExtendedFileInfo
 			fileInfo, err = files.FileInfoFaster(fileOpts)
 			if err == nil { // File exists
@@ -334,6 +360,19 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 
 	logger.Debugf("non-chunked upload logic for %s", realPath)
 	// Non-chunked upload logic (original code)
+
+	// Check for file/folder conflicts for non-chunked uploads
+	if stat, statErr := os.Stat(realPath); statErr == nil {
+		existingIsDir := stat.IsDir()
+		requestingDir := false // Files are never directories
+
+		// If type mismatch (existing dir vs requesting file) and not overriding
+		if existingIsDir != requestingDir && r.URL.Query().Get("override") != "true" {
+			logger.Debugf("Type conflict detected in non-chunked: existing is dir=%v, requesting dir=%v at path=%v", existingIsDir, requestingDir, realPath)
+			return http.StatusConflict, nil
+		}
+	}
+
 	fileInfo, err := files.FileInfoFaster(fileOpts)
 	if err == nil {
 		if r.URL.Query().Get("override") != "true" {

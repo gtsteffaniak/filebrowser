@@ -65,6 +65,7 @@ import { usersApi } from "@/api";
 import { state, mutations, getters } from "@/store";
 import Clipboard from "clipboard";
 import Errors from "@/views/Errors.vue";
+import { eventBus } from "@/store/eventBus";
 
 export default {
   name: "api",
@@ -82,23 +83,19 @@ export default {
     };
   },
   async created() {
-    mutations.setLoading("api", true);
-    try {
-      // Fetch the API keys from the specified endpoint
-      this.links = await usersApi.getApiKeys(); // Updated to the correct API endpoint
-    } catch (e) {
-      this.error = e;
-    } finally {
-      mutations.setLoading("api", false);
-    }
+    await this.reloadApiKeys();
   },
   mounted() {
+    // Listen for API key changes
+    eventBus.on('apiKeysChanged', this.reloadApiKeys);
     this.clip = new Clipboard(".copy-clipboard");
     this.clip.on("success", () => {
       notify.showSuccess("Copied API Key!");
     });
   },
   beforeUnmount() {
+    // Clean up event listener
+    eventBus.removeEventListener('apiKeysChanged', this.reloadApiKeys);
     this.clip.destroy();
   },
   computed: {
@@ -113,6 +110,18 @@ export default {
     },
   },
   methods: {
+    async reloadApiKeys() {
+      mutations.setLoading("api", true);
+      try {
+        // Fetch the API keys from the specified endpoint
+        this.links = await usersApi.getApiKeys();
+        this.error = null; // Clear any previous errors
+      } catch (e) {
+        this.error = e;
+      } finally {
+        mutations.setLoading("api", false);
+      }
+    },
     showResult(value) {
       return value ? "✓" : "✗";
     },

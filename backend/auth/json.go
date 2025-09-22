@@ -65,11 +65,6 @@ func (auther JSONAuth) Auth(r *http.Request, userStore *users.Storage) (*users.U
 
 }
 
-// LoginPage tells that json auth doesn't require a login page.
-func (a JSONAuth) LoginPage() bool {
-	return true
-}
-
 const reCaptchaAPI = "/recaptcha/api/siteverify"
 
 // ReCaptcha identifies a recaptcha connection.

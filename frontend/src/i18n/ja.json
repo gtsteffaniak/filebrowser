@@ -325,7 +325,14 @@
     "configViewerShowComments": "コメントを表示",
     "configViewerLoadConfig": "設定を読み込み",
     "brandingHelp": "File Browserインスタンスの見た目と操作感は、名前の変更、ロゴの置き換え、カスタムスタイルの追加、GitHubへの外部リンクの無効化などでカスタマイズできます。\nカスタムブランディングの詳細については、{0}をご覧ください。",
-    "commandRunnerHelp": "ここでは、指定したイベントで実行されるコマンドを設定できます。1行に1つ記述する必要があります。環境変数{0}と{1}が使用可能になり、{0}は{1}の相対変数になります。この機能と使用可能な環境変数の詳細については、{2}をお読みください。"
+    "commandRunnerHelp": "ここでは、指定したイベントで実行されるコマンドを設定できます。1行に1つ記述する必要があります。環境変数{0}と{1}が使用可能になり、{0}は{1}の相対変数になります。この機能と使用可能な環境変数の詳細については、{2}をお読みください。",
+    "loginMethods": {
+      "password": "パスワード",
+      "oidc": "OIDC",
+      "proxy": "プロキシ"
+    },
+    "newUserHintSubFolder": "例 '/subfolder' - デフォルトは空白",
+    "userScopes": "スコープ"
   },
   "sidebar": {
     "help": "ヘルプ",
@@ -399,7 +406,8 @@
     "defaultViewMode": "デフォルトの表示モード",
     "defaultViewModeDescription": "匿名ユーザーがこの共有を閲覧する際のデフォルトの表示モードを設定します。ログインしているユーザーは、表示モードを変更することができます。",
     "enableOnlyOfficeEditingDescription": "この共有でOnlyOfficeを使ったオフィスファイルの編集を許可する",
-    "titleDefault": "共有ファイル{title}"
+    "titleDefault": "共有ファイル{title}",
+    "disableFileViewer": "ファイルビューアを無効にする"
   },
   "api": {
     "title": "APIキー：",
@@ -560,7 +568,8 @@
     "fileViewerOptions": "ファイルビューアオプション",
     "themeAndLanguage": "テーマと言語",
     "previewFolder": "利用可能であれば、フォルダのサムネイルを表示する",
-    "previewFolderDescription": "サムネイルを持つ最初の子アイテムをカバーとするフォルダのサムネイルプレビューを表示します。"
+    "previewFolderDescription": "サムネイルを持つ最初の子アイテムをカバーとするフォルダのサムネイルプレビューを表示します。",
+    "disableFileExtensions": "無効にするファイル拡張子を入力"
   },
   "editor": {
     "uninitialized": "エディタの初期化に失敗しました。再読み込みしてください。",

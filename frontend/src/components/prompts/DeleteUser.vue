@@ -16,6 +16,7 @@
 import { usersApi } from "@/api";
 import { notify } from "@/notify";
 import { mutations, getters } from "@/store";
+import { eventBus } from "@/store/eventBus";
 
 export default {
   name: "delete",
@@ -32,8 +33,10 @@ export default {
       event.preventDefault();
       try {
         await usersApi.remove(this.user.id);
+        // Emit event to refresh user list
+        eventBus.emit('usersChanged');
         notify.showSuccess(this.$t("settings.userDeleted"));
-        window.location.reload();
+        mutations.closeHovers();
       } catch (e) {
         e.message === "403"
           ? notify.showError(this.$t("errors.forbidden"), false)

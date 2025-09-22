@@ -98,7 +98,7 @@ type LogConfig struct {
 	ApiLevels string `json:"apiLevels" yaml:"apiLevels"` // separated list of log levels to enable for the API. (eg. "info|warning|error")
 	Output    string `json:"output" yaml:"output"`       // output location. (eg. "stdout" or "path/to/file.log")
 	NoColors  bool   `json:"noColors" yaml:"noColors"`   // disable colors in the output
-	Json      bool   `json:"json" yaml:"json"`           // output in json format, currently not supported
+	Json      bool   `json:"json" yaml:"json"`           // output in json format
 	Utc       bool   `json:"utc" yaml:"utc"`             // use UTC time in the output instead of local time
 }
 

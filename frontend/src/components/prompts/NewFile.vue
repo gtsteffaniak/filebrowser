@@ -50,10 +50,62 @@ export default {
       try {
         event.preventDefault();
         if (this.name === "") return;
-        await filesApi.post(state.req.source,state.req.path + "/" + this.name, "", true );
-        goToItem(state.req.source, state.req.path + "/" + this.name);
+        await this.createFile(false);
       } catch (error) {
         notify.showError(error);
+      }
+    },
+    
+    async createFile(overwrite = false) {
+      try {
+        await filesApi.post(state.req.source, state.req.path + "/" + this.name, "", overwrite);
+        goToItem(state.req.source, state.req.path + "/" + this.name);
+        mutations.closeHovers();
+      } catch (error) {
+        if (error.message === "conflict") {
+          // Show replace-rename prompt for file/folder conflicts
+          mutations.showHover({
+            name: "replace-rename",
+            confirm: async (event, option) => {
+              event.preventDefault();
+              try {
+                if (option === "overwrite") {
+                  await this.createFile(true); // Retry with overwrite
+                } else if (option === "rename") {
+                  // Add a suffix to make the name unique (max 100 attempts)
+                  const originalName = this.name;
+                  const maxAttempts = 100;
+                  let success = false;
+                  
+                  for (let counter = 1; counter <= maxAttempts && !success; counter++) {
+                    try {
+                      const newName = counter === 1 ? `${originalName} (1)` : `${originalName} (${counter})`;
+                      await filesApi.post(state.req.source, state.req.path + "/" + newName, "", false);
+                      goToItem(state.req.source, state.req.path + "/" + newName);
+                      mutations.closeHovers();
+                      success = true;
+                    } catch (renameError) {
+                      if (renameError.message === "conflict") {
+                        // Continue to next iteration
+                        continue;
+                      } else {
+                        throw renameError;
+                      }
+                    }
+                  }
+                  
+                  if (!success) {
+                    throw new Error("Could not find a unique name after " + maxAttempts + " attempts");
+                  }
+                }
+              } catch (retryError) {
+                notify.showError(retryError);
+              }
+            },
+          });
+        } else {
+          throw error;
+        }
       }
     },
   },

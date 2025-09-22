@@ -12,7 +12,7 @@ import (
 	"github.com/gtsteffaniak/go-cache/cache"
 )
 
-var SearchResultsCache = cache.NewCache(15 * time.Second)
+var SearchResultsCache = cache.NewCache[[]string](15 * time.Second)
 
 var (
 	sessionInProgress sync.Map
@@ -37,7 +37,7 @@ func (idx *Index) Search(search string, scope string, sourceSession string) []Se
 	results := make(map[string]SearchResult, 0)
 	count := 0
 	var directories []string
-	cachedDirs, ok := SearchResultsCache.Get(idx.Path + scope).([]string)
+	cachedDirs, ok := SearchResultsCache.Get(idx.Path + scope)
 	if ok {
 		directories = cachedDirs
 	} else {

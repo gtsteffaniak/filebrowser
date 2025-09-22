@@ -96,12 +96,10 @@ func StartFilebrowser() {
 	
 	logger.Infof("Initializing FileBrowser Quantum (%v)", version.Version)
 	logger.Infof("Using Config file        : %v", configPath)
-	logger.Infof("Using Embedded FS        : %v", settings.Config.Server.EmbeddedFs)
 	logger.Infof("Auth Methods             : %v", settings.Config.Auth.AuthMethods)
 	logger.Info(database)
 	logger.Infof("Sources                  : %v", sourceList)
-	logger.Infof("File permissions         : %v", fileutils.PermFile)
-	logger.Infof("Directory permissions    : %v", fileutils.PermDir)
+	logger.Debugf("Using Embedded FS        : %v", settings.Config.Server.EmbeddedFs)
 
 	serverConfig := settings.Config.Server
 	swagInfo := docs.SwaggerInfo

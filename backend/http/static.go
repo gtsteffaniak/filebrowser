@@ -42,10 +42,6 @@ func (t *TemplateRenderer) Render(w http.ResponseWriter, name string, data inter
 func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestContext, file, contentType string) (int, error) {
 	w.Header().Set("Content-Type", contentType)
 
-	auther, err := store.Auth.Get("password")
-	if err != nil {
-		return http.StatusInternalServerError, err
-	}
 	userSelectedTheme := ""
 	if d.user != nil {
 		theme, ok := config.Frontend.Styling.CustomThemeOptions[d.user.CustomTheme]
@@ -167,13 +163,13 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"commitSHA":            version.CommitSHA,
 		"signup":               settings.Config.Auth.Methods.PasswordAuth.Signup,
 		"noAuth":               config.Auth.Methods.NoAuth,
-		"loginPage":            auther.LoginPage(),
 		"enableThumbs":         !config.Server.DisablePreviews,
 		"externalLinks":        config.Frontend.ExternalLinks,
 		"externalUrl":          strings.TrimSuffix(config.Server.ExternalUrl, "/"),
 		"onlyOfficeUrl":        settings.Config.Integrations.OnlyOffice.Url,
 		"sourceCount":          len(config.Server.SourceMap),
 		"oidcAvailable":        config.Auth.Methods.OidcAuth.Enabled,
+		"proxyAvailable":       config.Auth.Methods.ProxyAuth.Enabled,
 		"passwordAvailable":    config.Auth.Methods.PasswordAuth.Enabled,
 		"mediaAvailable":       config.Integrations.Media.FfmpegPath != "",
 		"muPdfAvailable":       config.Server.MuPdfAvailable,

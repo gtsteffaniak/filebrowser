@@ -2,7 +2,6 @@ package iteminfo
 
 import (
 	"bytes"
-	"encoding/binary"
 	"fmt"
 	"io"
 	"mime"
@@ -201,6 +200,7 @@ var audioMetadataTypes = []string{
 	".mp3",
 	".flac",
 	".ogg",
+	".opus",
 	".m4a",
 	".mp4",
 	".wav",
@@ -345,7 +345,7 @@ func hasAlbumArtLowLevel(filePath string, extension string) (bool, error) {
 	switch extension {
 	case ".mp3":
 		return hasAlbumArtMP3(file)
-	case ".flac", ".ogg":
+	case ".flac", ".ogg", ".opus":
 		return hasAlbumArtVorbis(file)
 	case ".m4a", ".mp4":
 		return hasAlbumArtM4A(file)
@@ -355,54 +355,93 @@ func hasAlbumArtLowLevel(filePath string, extension string) (bool, error) {
 	}
 }
 
-// hasAlbumArtMP3 checks for APIC frames in ID3v2 tags
+// hasAlbumArtMP3 checks for APIC/PIC frames in ID3v2 tags with optimized parsing
 func hasAlbumArtMP3(file *os.File) (bool, error) {
-	// 1. Read the 10-byte ID3v2 header.
+	// Read 10-byte ID3v2 header
 	header := make([]byte, 10)
 	if _, err := io.ReadFull(file, header); err != nil {
 		return false, nil // No ID3v2 tag found
 	}
 
-	// 2. Check for the "ID3" identifier.
+	// Check for "ID3" identifier
 	if string(header[0:3]) != "ID3" {
 		return false, nil // No ID3v2 tag found
 	}
 
-	// 3. Decode the tag size. It's a "synchsafe" integer.
+	// Determine ID3v2 version for proper frame ID detection
+	version := header[3]
+	var pictureFrameID string
+	var frameHeaderSize int
+
+	switch version {
+	case 2:
+		pictureFrameID = "PIC" // ID3v2.2 uses 3-byte frame IDs
+		frameHeaderSize = 6
+	case 3, 4:
+		pictureFrameID = "APIC" // ID3v2.3/2.4 use 4-byte frame IDs
+		frameHeaderSize = 10
+	default:
+		return false, nil // Unsupported version
+	}
+
+	// Decode synchsafe tag size
 	tagSize := (int(header[6]) << 21) | (int(header[7]) << 14) | (int(header[8]) << 7) | int(header[9])
 
-	// 4. Read the entire tag content into a buffer.
-	tagData := make([]byte, tagSize)
+	// Limit reading to reasonable size for performance
+	maxReadSize := 32768 // 32KB should be enough to find picture frames
+	readSize := tagSize
+	if readSize > maxReadSize {
+		readSize = maxReadSize
+	}
+
+	// Read tag data
+	tagData := make([]byte, readSize)
 	if _, err := io.ReadFull(file, tagData); err != nil {
-		return false, fmt.Errorf("failed to read tag data: %w", err)
+		return false, nil // Failed to read, assume no artwork
 	}
 
 	position := 0
-	// 5. Loop through the frames within the tag data.
-	for position < tagSize {
-		if position+10 > tagSize {
+	frameIDLen := len(pictureFrameID)
+
+	// Loop through frames looking for picture frame
+	for position+frameHeaderSize <= readSize {
+		// Check if we've hit padding (null bytes)
+		if tagData[position] == 0 {
 			break
 		}
 
-		frameHeader := tagData[position : position+10]
-		frameID := string(frameHeader[0:4])
+		// Extract frame ID
+		if position+frameIDLen > readSize {
+			break
+		}
+		frameID := string(tagData[position : position+frameIDLen])
 
-		// We found it! The APIC frame contains the album art.
-		if frameID == "APIC" {
+		// Found picture frame!
+		if frameID == pictureFrameID {
 			return true, nil
 		}
 
-		// If it's not APIC, find the frame's size to skip over it.
-		var frameSize uint32
-		if err := binary.Read(bytes.NewReader(frameHeader[4:8]), binary.BigEndian, &frameSize); err != nil {
-			return false, fmt.Errorf("corrupt frame header: %w", err)
+		// Skip to next frame
+		var frameSize int
+		if version == 2 {
+			// ID3v2.2: 3-byte size
+			if position+6 > readSize {
+				break
+			}
+			frameSize = int(tagData[position+3])<<16 | int(tagData[position+4])<<8 | int(tagData[position+5])
+			position += 6 + frameSize
+		} else {
+			// ID3v2.3/2.4: 4-byte size
+			if position+10 > readSize {
+				break
+			}
+			frameSize = int(tagData[position+4])<<24 | int(tagData[position+5])<<16 |
+				int(tagData[position+6])<<8 | int(tagData[position+7])
+			position += 10 + frameSize
 		}
 
-		// Move position to the next frame header.
-		position += 10 + int(frameSize)
-
-		// Break if the next frame would start with padding (null bytes).
-		if position >= tagSize || tagData[position] == 0 {
+		// Safety check to prevent infinite loops
+		if frameSize <= 0 || position >= tagSize {
 			break
 		}
 	}
@@ -410,22 +449,95 @@ func hasAlbumArtMP3(file *os.File) (bool, error) {
 	return false, nil
 }
 
-// hasAlbumArtVorbis checks for METADATA_BLOCK_PICTURE in Vorbis comments (FLAC, OGG)
+// hasAlbumArtVorbis checks for album art in FLAC, OGG, and OPUS files using surgical format-specific parsing
 func hasAlbumArtVorbis(file *os.File) (bool, error) {
-	// For FLAC files, look for METADATA_BLOCK_PICTURE in Vorbis comments
-	// This is a simplified check - in practice, you'd need to parse the FLAC structure
-	// For now, we'll do a basic search for common picture-related strings
-	buffer := make([]byte, 8192) // Read first 8KB
+	// Read initial buffer to determine file type
+	buffer := make([]byte, 16384) // 16KB should be enough for most metadata sections
 	n, err := file.Read(buffer)
 	if err != nil && err != io.EOF {
 		return false, err
 	}
 
-	// Look for METADATA_BLOCK_PICTURE or COVERART in the buffer
+	// Check if it's a FLAC file
+	if n >= 4 && string(buffer[0:4]) == "fLaC" {
+		return hasAlbumArtFLAC(buffer, n)
+	}
+
+	// Check if it's an OGG file (including OPUS)
+	if n >= 4 && string(buffer[0:4]) == "OggS" {
+		return hasAlbumArtOGG(buffer, n)
+	}
+
+	return false, nil
+}
+
+// hasAlbumArtFLAC checks for PICTURE metadata block (type 6) in FLAC files
+func hasAlbumArtFLAC(buffer []byte, n int) (bool, error) {
+	pos := 4 // Skip "fLaC" header
+
+	for pos < n-4 {
+		// Read metadata block header (4 bytes total)
+		blockHeader := buffer[pos]
+		blockType := blockHeader & 0x7F // bits 0-6
+		isLast := blockHeader&0x80 != 0 // bit 7
+
+		// Found picture block!
+		if blockType == 6 { // PICTURE block type
+			return true, nil
+		}
+
+		// Get block size (next 3 bytes, big-endian)
+		if pos+4 > n {
+			break
+		}
+		blockSize := int(buffer[pos+1])<<16 | int(buffer[pos+2])<<8 | int(buffer[pos+3])
+
+		// Move to next block
+		pos += 4 + blockSize
+
+		// Stop if this was the last block or we've exceeded buffer
+		if isLast || pos >= n {
+			break
+		}
+	}
+
+	return false, nil
+}
+
+// hasAlbumArtOGG checks for METADATA_BLOCK_PICTURE in OGG Vorbis comments (including OPUS)
+func hasAlbumArtOGG(buffer []byte, n int) (bool, error) {
+	// Look for Vorbis comment patterns
+	vorbisPrefix := []byte("\x03vorbis")
+	opusPrefix := []byte("OpusTags")
+
+	// Search for either Vorbis or Opus tags
+	for i := 0; i < n-8; i++ {
+		if i+len(vorbisPrefix) < n && bytes.Equal(buffer[i:i+len(vorbisPrefix)], vorbisPrefix) {
+			// Found Vorbis comment block, look for METADATA_BLOCK_PICTURE
+			return searchForPictureInVorbisComment(buffer[i+len(vorbisPrefix):], n-i-len(vorbisPrefix))
+		}
+		if i+len(opusPrefix) < n && bytes.Equal(buffer[i:i+len(opusPrefix)], opusPrefix) {
+			// Found Opus tags block, look for METADATA_BLOCK_PICTURE
+			return searchForPictureInVorbisComment(buffer[i+len(opusPrefix):], n-i-len(opusPrefix))
+		}
+	}
+
+	return false, nil
+}
+
+// searchForPictureInVorbisComment looks for METADATA_BLOCK_PICTURE field in Vorbis comments
+func searchForPictureInVorbisComment(buffer []byte, n int) (bool, error) {
+	// Convert to string and look for the METADATA_BLOCK_PICTURE field
+	// This field contains base64-encoded picture data
 	content := string(buffer[:n])
-	if strings.Contains(content, "METADATA_BLOCK_PICTURE") ||
-		strings.Contains(content, "COVERART") ||
-		strings.Contains(content, "COVER_ART") {
+
+	// Look for the exact field name used in Vorbis comments
+	if strings.Contains(content, "METADATA_BLOCK_PICTURE=") {
+		return true, nil
+	}
+
+	// Some files might use alternative field names
+	if strings.Contains(content, "COVERART=") || strings.Contains(content, "COVER_ART=") {
 		return true, nil
 	}
 
@@ -435,16 +547,67 @@ func hasAlbumArtVorbis(file *os.File) (bool, error) {
 // hasAlbumArtM4A checks for embedded artwork in M4A/MP4 files
 func hasAlbumArtM4A(file *os.File) (bool, error) {
 	// For M4A files, look for 'covr' atom which contains artwork
-	// This is a simplified check - in practice, you'd need to parse the MP4 structure
-	buffer := make([]byte, 8192) // Read first 8KB
+	// MP4/M4A files use a nested atom structure
+	buffer := make([]byte, 65536) // Read first 64KB to increase chances of finding atoms
 	n, err := file.Read(buffer)
 	if err != nil && err != io.EOF {
 		return false, err
 	}
 
-	// Look for 'covr' atom in the buffer
-	content := string(buffer[:n])
-	if strings.Contains(content, "covr") {
+	// Look for the binary 'covr' atom signature
+	// MP4 atoms have: [4-byte size][4-byte type][data...]
+	if bytes.Contains(buffer[:n], []byte("covr")) {
+		return true, nil
+	}
+
+	// Also look for other common MP4 metadata atoms that might contain artwork
+	// 'data' atoms often contain the actual image data
+	pos := 0
+	for pos < n-8 {
+		// Skip if not enough bytes left for an atom header
+		if pos+8 > n {
+			break
+		}
+
+		// Read atom size (big-endian 32-bit)
+		atomSize := int(buffer[pos])<<24 | int(buffer[pos+1])<<16 | int(buffer[pos+2])<<8 | int(buffer[pos+3])
+
+		// Read atom type (4 bytes)
+		atomType := string(buffer[pos+4 : pos+8])
+
+		// Check for relevant atoms
+		if atomType == "covr" || atomType == "data" {
+			// If we found a data atom, check if it contains image signatures
+			if atomType == "data" && pos+16 < n {
+				dataStart := pos + 16 // Skip atom header + data atom header
+				if dataStart < n {
+					// Check for common image format signatures
+					if bytes.HasPrefix(buffer[dataStart:], []byte("\xFF\xD8\xFF")) || // JPEG
+						bytes.HasPrefix(buffer[dataStart:], []byte("\x89PNG")) || // PNG
+						bytes.HasPrefix(buffer[dataStart:], []byte("GIF8")) { // GIF
+						return true, nil
+					}
+				}
+			}
+			if atomType == "covr" {
+				return true, nil
+			}
+		}
+
+		// Move to next atom
+		if atomSize <= 8 || atomSize > n-pos {
+			// Invalid atom size, try to find next potential atom
+			pos++
+		} else {
+			pos += atomSize
+		}
+	}
+
+	// Fallback: look for common image format signatures anywhere in the buffer
+	// This catches cases where the atom structure parsing fails
+	if bytes.Contains(buffer[:n], []byte("\xFF\xD8\xFF")) || // JPEG signature
+		bytes.Contains(buffer[:n], []byte("\x89PNG\x0D\x0A\x1A\x0A")) || // Full PNG signature
+		bytes.Contains(buffer[:n], []byte("GIF8")) { // GIF signature
 		return true, nil
 	}
 

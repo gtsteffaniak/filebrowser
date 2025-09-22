@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.8.7-beta
+
+ **New Features**:
+ - json logging format support
+
+ **Notes**:
+ - increased overall file size limit to retrieve metadata from 50MB to 300MB #1234
+ - document previews don't show up as folder previews.
+
+ **BugFixes**:
+ - Fix directories empty issue when disableIndexing is true #1249
+ - OIDC to Authentik behind CloudFlare with Bot Fight turned on triggers a JS challenge #1165
+ - OIDC Auth - loop with expired token #995
+ - We lost the ability for download all? #1250
+ - Directories are all empty when disableIndexing is true #1248
+ - Access Management: issues on the shared folder when there's a sub folder #1208
+ - user preferences for individual preview file types not getting respected (disable/enable office,image,video)
+ - High server load when browsing folders with .mkv files #1259
+ - 2FA can not be disabled with non-admin user #1244
+ - 2FA not working on login #1243
+ - Thumbnails of .m4a, .flac, and .opus are not displaying #1234
+ - creating files/folders with same name overwrite each other #1242
+
 ## v0.8.6-beta
 
  **Notes**:
