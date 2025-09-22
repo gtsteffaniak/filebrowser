@@ -443,6 +443,10 @@ button:hover,
     background-color: rgb(216 216 216);
 }
 
+.plyr__controls {
+    color: black;
+}
+
 .audio-controls-container.dark-mode .plyr {
     background-color: rgb(37 49 55 / 33%);
     color: white;
@@ -460,8 +464,9 @@ button:hover,
     flex-direction: row;
     gap: 8px;
     background-color: transparent;
-    color: white;
+    color: black;
 }
+
 .audio-controls-container.dark-mode .plyr .plyr__controls {
     color: white;
 }
