@@ -19,7 +19,6 @@ vi.mock('@/utils/constants', () => {
       userSelectableThemes: {},
       enableThumbs: true,
       noAuth: false,
-      loginPage: true,
       signup: false,
       version: "test",
       commitSHA: "test",

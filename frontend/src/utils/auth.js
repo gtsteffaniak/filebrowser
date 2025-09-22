@@ -92,7 +92,7 @@ export async function logout() {
 //}
 
 export async function initAuth() {
-  if (globalVars.loginPage && !getters.isShare()) {
+  if (!getters.isShare()) {
     console.log("validating login");
     await validateLogin();
   }

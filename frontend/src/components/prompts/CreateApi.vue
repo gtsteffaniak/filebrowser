@@ -44,6 +44,7 @@ import { mutations } from "@/store";
 import { notify } from "@/notify";
 import { usersApi } from "@/api";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
+import { eventBus } from "@/store/eventBus";
 
 export default {
   name: "CreateAPI",
@@ -87,8 +88,9 @@ export default {
         };
 
         await usersApi.createApiKey(params);
+        // Emit event to refresh API keys list
+        eventBus.emit('apiKeysChanged');
         notify.showSuccess($t("api.createKeySuccess"));
-        window.location.reload();
         mutations.closeHovers();
       } catch (error) {
         notify.showError($t("api.createKeyFailed"));

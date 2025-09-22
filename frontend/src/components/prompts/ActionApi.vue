@@ -52,6 +52,7 @@
 import { mutations } from "@/store";
 import { notify } from "@/notify";
 import { usersApi } from "@/api";
+import { eventBus } from "@/store/eventBus";
 
 export default {
   name: "ActionApi",
@@ -80,8 +81,9 @@ export default {
       // Dummy delete function, to be filled in later
       try {
         usersApi.deleteApiKey({ name: this.name });
+        // Emit event to refresh API keys list
+        eventBus.emit('apiKeysChanged');
         notify.showSuccess("API key deleted!");
-        window.location.reload();
         mutations.closeHovers();
       } catch (error) {
         notify.showError(error);
