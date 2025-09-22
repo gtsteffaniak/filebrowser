@@ -2827,7 +2827,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "json": {
-                    "description": "output in json format, currently not supported",
+                    "description": "output in json format",
                     "type": "boolean"
                 },
                 "levels": {

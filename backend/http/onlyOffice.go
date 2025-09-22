@@ -409,7 +409,7 @@ func parseOnlyOfficeCallbackFromJSON(r *http.Request) (*OnlyOfficeCallback, erro
 func getOnlyOfficeId(realpath string) (string, error) {
 	// error is intentionally ignored in order treat errors
 	// the same as a cache-miss
-	cachedDocumentKey, ok := utils.OnlyOfficeCache.Get(realpath).(string)
+	cachedDocumentKey, ok := utils.OnlyOfficeCache.Get(realpath)
 	if ok {
 		return cachedDocumentKey, nil
 	}

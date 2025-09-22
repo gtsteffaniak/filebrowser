@@ -156,6 +156,7 @@ export default {
                 tooltips: { controls: true, seek: true },
                 loop: { active: true },
                 blankVideo: "",
+                muted: false, // Disable muting automatically
                 autoplay: false, // The users will manage this from their profile settings
                 clickToPlay: true,
                 resetOnEnd: true,
@@ -175,6 +176,7 @@ export default {
     },
     mounted() {
         this.updateMedia();
+        this.hookEvents();
     },
     beforeUnmount() {
         if (this.toastTimeout) {
@@ -359,6 +361,31 @@ export default {
                 this.albumArtUrl = null;
             }
         },
+        hookEvents() {
+            if (!this.useDefaultMediaPlayer && this.$refs.videoPlayer && this.$refs.videoPlayer.player) {
+                const player = this.$refs.videoPlayer.player;
+
+                // Attach handlers only if the screen.orientation API is available.
+                if (screen.orientation) {
+                    player.on('enterfullscreen', this.onFullscreenEnter);
+                    player.on('exitfullscreen', this.onFullscreenExit);
+                }
+            }
+        },
+        async onFullscreenEnter() {
+            // Allow free rotation when video enters full screen mode. This works even if the device's orientation is currently locked.
+            try {
+                await screen.orientation.lock('any');
+            } catch (error) {
+                // The NotSupportedError is thrown for non-mobile browsers and there seems to be no way to pre-check if it is supported.
+                // -> Swallow NotSupportedError but let other errors be thrown.
+                if (error.name !== 'NotSupportedError')
+                    throw error;
+            }
+        },
+        onFullscreenExit() {
+            screen.orientation.unlock();
+        },
     },
     expose: ['toggleLoop'],
 };
@@ -416,6 +443,10 @@ button:hover,
     background-color: rgb(216 216 216);
 }
 
+.plyr__controls {
+    color: black;
+}
+
 .audio-controls-container.dark-mode .plyr {
     background-color: rgb(37 49 55 / 33%);
     color: white;
@@ -435,6 +466,7 @@ button:hover,
     background-color: transparent;
     color: black;
 }
+
 .audio-controls-container.dark-mode .plyr .plyr__controls {
     color: white;
 }
@@ -473,17 +505,29 @@ button:hover,
     background: var(--plyr-video-control-background-hover, var(--primaryColor));
     border: 0;
     display: none;
-    position: fixed;
+    position: absolute;
     transition: 0.3s;
     z-index: 2;
     height: 4em;
-    transform: none;
-    padding: unset;
-    left: unset;
-    right: unset;
-    bottom: unset;
+    top: 50%;
+    left: 50%;
+    right: auto;
+    transform: translate(-50%, -50%) !important;
+    bottom: auto;
     width: 4em !important;
+    margin: 0 !important;
     border-radius: 5em !important;
+    transition: transform 0.2s ease !important; 
+}
+
+.plyr--fullscreen-active .plyr__control--overlaid {
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+}
+
+.plyr__control--overlaid:hover {
+    transform: translate(-50%, -50%) scale(1.05) !important;
 }
 
 /************
@@ -512,7 +556,6 @@ button:hover,
 /************
 *** AUDIO ***
 ************/
-
 
 /* Hide some unnesary buttons on the audio player */
 .plyr--audio .plyr__control--overlaid,
@@ -551,7 +594,7 @@ button:hover,
 
     /* Play button a bit more big */
     .plyr--audio .plyr__control--play {
-        transform: scale(1.2);
+        transform: scale(1.25);
     }
 
     /* Hide volume buttons for made more space */
@@ -595,7 +638,7 @@ button:hover,
     flex-direction: column;
     align-items: center;
     flex-grow: 1;
-    margin: auto;
+    margin: 0 auto;
     gap: 1em;
     justify-content: center;
 }
@@ -607,7 +650,6 @@ button:hover,
     overflow: hidden;
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
     transition: max-height 0.3s ease, max-width 0.3s ease;
-    cursor: pointer;
 }
 
 .album-art {
@@ -623,9 +665,7 @@ button:hover,
     width: 100%;
     height: 100%;
     border-radius: 18px;
-    background: linear-gradient(115deg,
-            var(--primaryColor),
-            rgba(2, 0, 36, 0.9));
+    background: linear-gradient(115deg, var(--primaryColor), rgba(2, 0, 36, 0.9));
     filter: brightness(0.85);
 }
 
@@ -640,18 +680,6 @@ button:hover,
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.audio-metadata {
-    text-align: center;
-    color: var(--text-color);
-    margin-top: 15px;
-    padding: 15px;
-    background: rgba(0, 0, 0, 0.05);
-    border-radius: 8px;
-    width: 100%;
-    max-width: min(350px, 80vw);
-    box-sizing: border-box;
-}
-
 .audio-title {
     font-size: clamp(1.2rem, 4vw, 1.5rem);
     font-weight: bold;
@@ -660,7 +688,11 @@ button:hover,
 }
 
 .metadata-info {
-    color: whitesmoke
+   text-align: center;
+   color: whitesmoke;
+   box-sizing: border-box;
+   padding: 10px 15px;
+   word-wrap: break-word;
 }
 
 .audio-artist,
@@ -675,6 +707,7 @@ button:hover,
 .audio-controls-container {
     width: 100%;
     border-radius: 1em;
+    margin: -2px;
 }
 
 /* For small tablets and phones with big screen */
@@ -684,18 +717,15 @@ button:hover,
         padding-top: 1em;
     }
 
+    .metadata-info {
+        padding: 12px 15px;
+    }
+
     .album-art-container {
         width: min(280px, 70vw);
         height: min(280px, 70vw);
         margin-top: 10px;
     }
-
-    .audio-metadata {
-        max-width: min(280px, 70vw);
-        margin-top: 10px;
-        padding: 12px;
-    }
-
 }
 
 /* For ultra-wide screens. This need test, I'm not sure if will work correctly */
@@ -704,9 +734,54 @@ button:hover,
         width: min(400px, 25vw);
         height: min(400px, 25vw);
     }
+}
 
-    .audio-metadata {
-        max-width: min(400px, 25vw);
+/* For small screens in landscape orientation (Like a phone) */
+@media (max-height: 500px) and (orientation: landscape) {
+
+    .audio-player-container {
+        justify-content: center;
+        align-items: center;
+        padding: 1em;
+    }
+
+    .audio-player-content {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+        gap: 1.5em;
+        width: auto;
+        max-width: 90vw;
+        margin: 0 auto;
+    }
+
+    .metadata-info {
+        text-align: left;
+        margin: 0;
+        padding: 15px;
+        flex: 0 1 auto;
+        align-self: center;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .album-art-container {
+        width: min(150px, 30vh);
+        height: min(150px, 30vh);
+        margin: 0;
+        flex-shrink: 0;
+    }
+    
+    .audio-title {
+      font-size: clamp(1rem, 3vw, 1.3rem);
+    }
+    
+    .audio-artist, 
+    .audio-album, 
+    .audio-year {
+      font-size: clamp(0.85rem, 2vw, 1rem);
     }
 }
 
@@ -729,6 +804,7 @@ button:hover,
     gap: 10px;
     z-index: 10000;
     pointer-events: none;
+    user-select: none;
     opacity: 0;
     transition: opacity 0.3s ease;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);

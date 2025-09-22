@@ -325,7 +325,14 @@
     "configViewerShowComments": "Yorumları göster",
     "configViewerLoadConfig": "Yük Konfigürasyonu",
     "brandingHelp": "Adını değiştirerek, logoyu değiştirerek, özel stiller ekleyerek ve hatta GitHub'a harici bağlantıları devre dışı bırakarak Dosya Tarayıcı örneğinizin nasıl göründüğünü ve hissettirdiğini özelleştirebilirsiniz.\nÖzel markalama hakkında daha fazla bilgi için lütfen {0} adresine göz atın.",
-    "commandRunnerHelp": "Burada, adlandırılmış olaylarda yürütülecek komutları ayarlayabilirsiniz. Her satıra bir tane yazmalısınız. {0} ve {1} ortam değişkenleri kullanılabilir olacaktır, {0} ise {1} ile ilişkilidir. Bu özellik ve mevcut ortam değişkenleri hakkında daha fazla bilgi için lütfen {2} adresini okuyun."
+    "commandRunnerHelp": "Burada, adlandırılmış olaylarda yürütülecek komutları ayarlayabilirsiniz. Her satıra bir tane yazmalısınız. {0} ve {1} ortam değişkenleri kullanılabilir olacaktır, {0} ise {1} ile ilişkilidir. Bu özellik ve mevcut ortam değişkenleri hakkında daha fazla bilgi için lütfen {2} adresini okuyun.",
+    "loginMethods": {
+      "password": "Şifre",
+      "oidc": "OIDC",
+      "proxy": "Proxy"
+    },
+    "newUserHintSubFolder": "örneğin '/subfolder' - varsayılan için boş",
+    "userScopes": "Dürbünler"
   },
   "sidebar": {
     "help": "Yardım",
@@ -399,7 +406,8 @@
     "enableOnlyOfficeEditingDescription": "Bu paylaşımda OnlyOffice kullanarak ofis dosyalarının düzenlenmesine izin verin.",
     "titleDefault": "Paylaşılan dosyalar - {title}",
     "defaultViewMode": "Varsayılan görünüm modu",
-    "defaultViewModeDescription": "Bu paylaşımı görüntüleyen anonim kullanıcılar için varsayılan görünüm modunu ayarlayın. Oturum açmış kullanıcılar yine de görünüm tercihlerini değiştirebilirler."
+    "defaultViewModeDescription": "Bu paylaşımı görüntüleyen anonim kullanıcılar için varsayılan görünüm modunu ayarlayın. Oturum açmış kullanıcılar yine de görünüm tercihlerini değiştirebilirler.",
+    "disableFileViewer": "Dosya Görüntüleyiciyi Devre Dışı Bırak"
   },
   "api": {
     "title": "API Anahtarları:",
@@ -560,7 +568,8 @@
     "fileViewerOptions": "Dosya Görüntüleyici Seçenekleri",
     "themeAndLanguage": "Tema ve Dil",
     "previewFolder": "Varsa klasörler için küçük resimleri göster",
-    "previewFolderDescription": "Kapak olarak küçük resmi olan ilk alt öğeye sahip klasörler için küçük resim önizlemelerini gösterin."
+    "previewFolderDescription": "Kapak olarak küçük resmi olan ilk alt öğeye sahip klasörler için küçük resim önizlemelerini gösterin.",
+    "disableFileExtensions": "Devre dışı bırakılacak dosya uzantılarını girin"
   },
   "editor": {
     "uninitialized": "Düzenleyici başlatılamadı. Lütfen yeniden yükleyin.",

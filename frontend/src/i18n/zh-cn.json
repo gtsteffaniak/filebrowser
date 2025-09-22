@@ -325,7 +325,14 @@
     "configViewerShowComments": "显示评论",
     "configViewerLoadConfig": "加载配置",
     "brandingHelp": "您可以更改文件浏览器实例的名称、更换徽标、添加自定义样式，甚至禁用指向 GitHub 的外部链接，从而自定义文件浏览器实例的外观和感觉。\n有关自定义品牌的更多信息，请查阅{0} 。",
-    "commandRunnerHelp": "您可以在此设置在命名事件中执行的命令。每行必须写一条。环境变量{0} 和{1} 将可用，{0} 与{1} 相对。有关此功能和可用环境变量的更多信息，请阅读{2} 。"
+    "commandRunnerHelp": "您可以在此设置在命名事件中执行的命令。每行必须写一条。环境变量{0} 和{1} 将可用，{0} 与{1} 相对。有关此功能和可用环境变量的更多信息，请阅读{2} 。",
+    "loginMethods": {
+      "password": "密码",
+      "oidc": "OIDC",
+      "proxy": "代理"
+    },
+    "newUserHintSubFolder": "例如\"/子文件夹\"--默认为空",
+    "userScopes": "瞄准镜"
   },
   "sidebar": {
     "help": "帮助",
@@ -399,7 +406,8 @@
     "enableOnlyOfficeEditingDescription": "允许在此共享中使用 OnlyOffice 编辑办公文件。",
     "titleDefault": "共享文件{title}",
     "defaultViewMode": "默认视图模式",
-    "defaultViewModeDescription": "设置匿名用户查看此共享的默认视图模式。已登录的用户仍可更改其查看首选项。"
+    "defaultViewModeDescription": "设置匿名用户查看此共享的默认视图模式。已登录的用户仍可更改其查看首选项。",
+    "disableFileViewer": "禁用文件查看器"
   },
   "api": {
     "title": "应用程序接口密钥",
@@ -524,7 +532,8 @@
     "fileViewerOptions": "文件查看器选项",
     "themeAndLanguage": "主题与语言",
     "previewFolder": "如果有的话，显示文件夹的缩略图",
-    "previewFolderDescription": "显示文件夹的缩略图预览，第一个子项的缩略图为封面。"
+    "previewFolderDescription": "显示文件夹的缩略图预览，第一个子项的缩略图为封面。",
+    "disableFileExtensions": "输入要禁用的文件扩展名"
   },
   "general": {
     "name": "名称",

@@ -26,8 +26,3 @@ func (a ProxyAuth) Auth(r *http.Request, usr *users.Storage) (*users.User, error
 
 	return user, err
 }
-
-// LoginPage tells that proxy auth doesn't require a login page.
-func (a ProxyAuth) LoginPage() bool {
-	return false
-}

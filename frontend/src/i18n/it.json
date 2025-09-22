@@ -325,7 +325,14 @@
     "configViewerShowComments": "Mostra i commenti",
     "configViewerLoadConfig": "Configurazione del carico",
     "brandingHelp": "È possibile personalizzare l'aspetto dell'istanza del File Browser cambiandone il nome, sostituendo il logo, aggiungendo stili personalizzati e persino disabilitando i collegamenti esterni a GitHub.\nPer ulteriori informazioni sul branding personalizzato, consultare il sito {0}.",
-    "commandRunnerHelp": "Qui è possibile impostare i comandi che vengono eseguiti negli eventi denominati. È necessario scriverne uno per riga. Le variabili d'ambiente {0} e {1} saranno disponibili, essendo {0} relativa a {1}. Per ulteriori informazioni su questa funzione e sulle variabili d'ambiente disponibili, leggere {2}."
+    "commandRunnerHelp": "Qui è possibile impostare i comandi che vengono eseguiti negli eventi denominati. È necessario scriverne uno per riga. Le variabili d'ambiente {0} e {1} saranno disponibili, essendo {0} relativa a {1}. Per ulteriori informazioni su questa funzione e sulle variabili d'ambiente disponibili, leggere {2}.",
+    "loginMethods": {
+      "password": "Password",
+      "oidc": "OIDC",
+      "proxy": "Proxy"
+    },
+    "newUserHintSubFolder": "es. '/sottocartella' - vuoto per l'impostazione predefinita",
+    "userScopes": "Cannocchiali"
   },
   "sidebar": {
     "help": "Aiuto",
@@ -399,7 +406,8 @@
     "enableOnlyOfficeEditingDescription": "Consentire la modifica dei file di Office utilizzando OnlyOffice in questa condivisione.",
     "titleDefault": "File condivisi - {title}",
     "defaultViewMode": "Modalità di visualizzazione predefinita",
-    "defaultViewModeDescription": "Imposta la modalità di visualizzazione predefinita per gli utenti anonimi che visualizzano questa condivisione. Gli utenti registrati possono comunque modificare le loro preferenze di visualizzazione."
+    "defaultViewModeDescription": "Imposta la modalità di visualizzazione predefinita per gli utenti anonimi che visualizzano questa condivisione. Gli utenti registrati possono comunque modificare le loro preferenze di visualizzazione.",
+    "disableFileViewer": "Disattivare il visualizzatore di file"
   },
   "api": {
     "title": "Chiavi API:",
@@ -560,7 +568,8 @@
     "fileViewerOptions": "Opzioni del visualizzatore di file",
     "themeAndLanguage": "Tema e linguaggio",
     "previewFolder": "Mostra le miniature delle cartelle, se disponibili.",
-    "previewFolderDescription": "Mostra le anteprime per le cartelle con il primo elemento figlio con miniatura come copertina."
+    "previewFolderDescription": "Mostra le anteprime per le cartelle con il primo elemento figlio con miniatura come copertina.",
+    "disableFileExtensions": "Immettere le estensioni dei file da disabilitare"
   },
   "editor": {
     "uninitialized": "Impossibile inizializzare l'editor. Ricaricare.",

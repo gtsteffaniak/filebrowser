@@ -90,6 +90,7 @@ import { notify } from "@/notify";
 import { accessApi } from "@/api";
 import { mutations } from "@/store";
 import FileList from "./FileList.vue";
+import { eventBus } from "@/store/eventBus";
 
 export default {
   name: "access",
@@ -211,7 +212,8 @@ export default {
         await accessApi.del(this.currentSource, this.currentPath, body);
         notify.showSuccess(this.$t("access.deleted"));
         await this.fetchRule();
-        this.$emit('updated');
+        // Emit event to refresh access rules list
+        eventBus.emit('accessRulesChanged');
       } catch (e) {
         notify.showError(e);
       }
@@ -235,7 +237,8 @@ export default {
         notify.showSuccess(this.$t("access.added"));
         this.addName = "";
         await this.fetchRule();
-        this.$emit('updated');
+        // Emit event to refresh access rules list
+        eventBus.emit('accessRulesChanged');
       } catch (e) {
         notify.showError(e);
       }

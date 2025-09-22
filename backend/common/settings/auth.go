@@ -8,8 +8,26 @@ import (
 	"net/http"
 
 	"github.com/coreos/go-oidc/v3/oidc"
+	"github.com/gtsteffaniak/filebrowser/backend/common/version"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
+
+// userAgentTransport wraps an http.RoundTripper to add a User-Agent header
+type userAgentTransport struct {
+	base      http.RoundTripper
+	userAgent string
+}
+
+// RoundTrip implements the http.RoundTripper interface
+func (t *userAgentTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	// Clone the request to avoid modifying the original
+	reqCopy := req.Clone(req.Context())
+	// Set User-Agent header if not already set
+	if reqCopy.Header.Get("User-Agent") == "" {
+		reqCopy.Header.Set("User-Agent", t.userAgent)
+	}
+	return t.base.RoundTrip(reqCopy)
+}
 
 type Auth struct {
 	TokenExpirationHours int          `json:"tokenExpirationHours"` // time in hours each web UI session token is valid for. Default is 2 hours.
@@ -84,21 +102,25 @@ func validateOidcAuth() error {
 	}
 	ctx := context.Background()
 
-	// If disableVerifyTLS is true, create a custom HTTP client
-	// and set it in the context for the OIDC provider.
+	// Create a custom HTTP client with proper User-Agent to avoid being blocked by bot protection
+	transport := &http.Transport{}
+
+	// If disableVerifyTLS is true, disable TLS verification
 	if oidcCfg.DisableVerifyTLS {
-		// Create a custom transport with InsecureSkipVerify set to true
-		transport := &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-		}
-		customClient := &http.Client{
-			Transport: transport,
-		}
-		// Use oidc.ClientContext to pass the custom client to the OIDC library
-		ctx = oidc.ClientContext(ctx, customClient)
-		// Log that TLS verification is disabled (important for security awareness)
+		transport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 		logger.Warning("OIDC TLS verification is disabled.")
 	}
+
+	// Create custom client with User-Agent header to bypass bot protection (like Cloudflare Bot Fight Mode)
+	customClient := &http.Client{
+		Transport: &userAgentTransport{
+			base:      transport,
+			userAgent: fmt.Sprintf("FileBrowser Quantum - %s (OIDC Client)", version.Version),
+		},
+	}
+
+	// Use oidc.ClientContext to pass the custom client to the OIDC library
+	ctx = oidc.ClientContext(ctx, customClient)
 
 	provider, err := oidc.NewProvider(ctx, oidcCfg.IssuerUrl)
 	if err != nil {

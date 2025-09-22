@@ -53,6 +53,7 @@
 import { accessApi } from "@/api";
 import { state, mutations } from "@/store";
 import Errors from "@/views/Errors.vue";
+import { eventBus } from "@/store/eventBus";
 
 export default {
   name: "accessSettings",
@@ -71,6 +72,12 @@ export default {
   async mounted() {
     this.selectedSource = state.sources.current;
     await this.fetchRules();
+    // Listen for access rule changes
+    eventBus.on('accessRulesChanged', this.fetchRules);
+  },
+  beforeUnmount() {
+    // Clean up event listener
+    eventBus.removeEventListener('accessRulesChanged', this.fetchRules);
   },
   computed: {
     /*loading() {

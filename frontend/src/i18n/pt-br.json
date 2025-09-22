@@ -325,7 +325,14 @@
     "configViewerShowComments": "Mostrar comentários",
     "configViewerLoadConfig": "Configuração de carga",
     "brandingHelp": "Você pode personalizar a aparência da instância do Navegador de arquivos alterando seu nome, substituindo o logotipo, adicionando estilos personalizados e até mesmo desativando links externos para o GitHub.\nPara obter mais informações sobre branding personalizado, consulte {0}.",
-    "commandRunnerHelp": "Aqui você pode definir comandos que são executados nos eventos nomeados. Você deve escrever um por linha. As variáveis de ambiente {0} e {1} estarão disponíveis, sendo {0} relativo a {1}. Para obter mais informações sobre esse recurso e as variáveis de ambiente disponíveis, leia {2}."
+    "commandRunnerHelp": "Aqui você pode definir comandos que são executados nos eventos nomeados. Você deve escrever um por linha. As variáveis de ambiente {0} e {1} estarão disponíveis, sendo {0} relativo a {1}. Para obter mais informações sobre esse recurso e as variáveis de ambiente disponíveis, leia {2}.",
+    "loginMethods": {
+      "password": "Senha",
+      "oidc": "OIDC",
+      "proxy": "Proxy"
+    },
+    "newUserHintSubFolder": "Por exemplo, '/subfolder' - em branco para o padrão",
+    "userScopes": "Escopos"
   },
   "sidebar": {
     "help": "Ajuda",
@@ -399,7 +406,8 @@
     "enableOnlyOfficeEditingDescription": "Permitir a edição de arquivos do Office usando o OnlyOffice nesse compartilhamento.",
     "titleDefault": "Arquivos compartilhados - {title}",
     "defaultViewMode": "Modo de exibição padrão",
-    "defaultViewModeDescription": "Define o modo de exibição padrão para usuários anônimos que visualizam esse compartilhamento. Os usuários conectados ainda podem alterar sua preferência de visualização."
+    "defaultViewModeDescription": "Define o modo de exibição padrão para usuários anônimos que visualizam esse compartilhamento. Os usuários conectados ainda podem alterar sua preferência de visualização.",
+    "disableFileViewer": "Desativar o visualizador de arquivos"
   },
   "api": {
     "title": "Chaves de API:",
@@ -560,7 +568,8 @@
     "fileViewerOptions": "Opções do visualizador de arquivos",
     "themeAndLanguage": "Tema e linguagem",
     "previewFolder": "Mostrar miniaturas das pastas, se disponíveis",
-    "previewFolderDescription": "Mostrar visualizações em miniatura para pastas com o primeiro item filho com miniatura como capa."
+    "previewFolderDescription": "Mostrar visualizações em miniatura para pastas com o primeiro item filho com miniatura como capa.",
+    "disableFileExtensions": "Digite as extensões de arquivo a serem desativadas"
   },
   "editor": {
     "uninitialized": "Falha ao inicializar o editor. Favor recarregar.",

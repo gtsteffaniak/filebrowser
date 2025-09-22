@@ -325,7 +325,14 @@
     "configViewerShowComments": "Hozzászólások megjelenítése",
     "configViewerLoadConfig": "Konfiguráció betöltése",
     "brandingHelp": "Testreszabhatja a Fájlböngésző példányának megjelenését és érzetét a név megváltoztatásával, a logó cseréjével, egyéni stílusok hozzáadásával és akár a GitHubra mutató külső hivatkozások letiltásával.\nAz egyéni márkaépítéssel kapcsolatos további információkat a {0} oldalon talál.",
-    "commandRunnerHelp": "Itt állíthatja be azokat a parancsokat, amelyek a megnevezett események során végrehajtásra kerülnek. Soronként egyet kell írni. A {0} és a {1} környezeti változók lesznek elérhetőek, a {0} a {1}-hoz képest . A funkcióról és a rendelkezésre álló környezeti változókról bővebb információt a {2} oldalon talál."
+    "commandRunnerHelp": "Itt állíthatja be azokat a parancsokat, amelyek a megnevezett események során végrehajtásra kerülnek. Soronként egyet kell írni. A {0} és a {1} környezeti változók lesznek elérhetőek, a {0} a {1}-hoz képest . A funkcióról és a rendelkezésre álló környezeti változókról bővebb információt a {2} oldalon talál.",
+    "loginMethods": {
+      "password": "Jelszó",
+      "oidc": "OIDC",
+      "proxy": "Proxy"
+    },
+    "newUserHintSubFolder": "pl. '/subfolder' - üres az alapértelmezéshez",
+    "userScopes": "Területek"
   },
   "sidebar": {
     "help": "Súgó",
@@ -399,7 +406,8 @@
     "enableOnlyOfficeEditingDescription": "Engedélyezze az irodai fájlok szerkesztését az OnlyOffice használatával ezen a megosztáson.",
     "titleDefault": "Megosztott fájlok - {title}",
     "defaultViewMode": "Alapértelmezett nézetmód",
-    "defaultViewModeDescription": "A megosztást megtekintő névtelen felhasználók alapértelmezett megtekintési módjának beállítása. A bejelentkezett felhasználók továbbra is módosíthatják a nézeti beállításaikat."
+    "defaultViewModeDescription": "A megosztást megtekintő névtelen felhasználók alapértelmezett megtekintési módjának beállítása. A bejelentkezett felhasználók továbbra is módosíthatják a nézeti beállításaikat.",
+    "disableFileViewer": "Fájlnéző letiltása"
   },
   "api": {
     "title": "API-kulcsok:",
@@ -560,7 +568,8 @@
     "fileViewerOptions": "Fájlnéző beállításai",
     "themeAndLanguage": "Téma és nyelv",
     "previewFolder": "A mappák miniatűrjeinek megjelenítése, ha rendelkezésre állnak",
-    "previewFolderDescription": "Miniatűr előnézetek megjelenítése olyan mappákhoz, amelyekben az első gyermekelem miniatűrrel borítóképként szerepel."
+    "previewFolderDescription": "Miniatűr előnézetek megjelenítése olyan mappákhoz, amelyekben az első gyermekelem miniatűrrel borítóképként szerepel.",
+    "disableFileExtensions": "Adja meg a letiltandó fájlkiterjesztéseket"
   },
   "editor": {
     "uninitialized": "Nem sikerült inicializálni a szerkesztőt. Kérjük, töltse újra.",

@@ -12,8 +12,8 @@ require (
 	github.com/goccy/go-yaml v1.18.0
 	github.com/golang-jwt/jwt/v4 v4.5.2
 	github.com/google/go-cmp v0.7.0
-	github.com/gtsteffaniak/go-cache v0.0.0-20250521142451-edc77dfcb063
-	github.com/gtsteffaniak/go-logger v0.1.2
+	github.com/gtsteffaniak/go-cache v1.0.0
+	github.com/gtsteffaniak/go-logger v0.2.2
 	github.com/kovidgoyal/imaging v1.6.4
 	github.com/pquerna/otp v1.5.0
 	github.com/spf13/afero v1.15.0
@@ -131,7 +131,7 @@ require (
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/gofrs/flock v0.12.1 // indirect
 	github.com/gohugoio/hugo v0.149.1 // indirect
-	github.com/golang/geo v0.0.0-20250912065020-b504328d3ef3 // indirect
+	github.com/golang/geo v0.0.0-20250917161122-64cb148137c6 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/golangci/dupl v0.0.0-20250308024227-f665c8d69b32 // indirect
 	github.com/golangci/go-printf-func-name v0.1.0 // indirect
@@ -176,7 +176,7 @@ require (
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/macabu/inamedparam v0.2.0 // indirect
 	github.com/magiconair/properties v1.8.6 // indirect
-	github.com/mailru/easyjson v0.9.0 // indirect
+	github.com/mailru/easyjson v0.9.1 // indirect
 	github.com/manuelarte/embeddedstructfieldcheck v0.3.0 // indirect
 	github.com/manuelarte/funcorder v0.5.0 // indirect
 	github.com/maratori/testableexamples v1.0.0 // indirect

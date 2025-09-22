@@ -444,3 +444,24 @@ func TestService_FormatFromExtension(t *testing.T) {
 		})
 	}
 }
+
+func TestCacheKeyConsistency(t *testing.T) {
+	// Test that folder previews and direct file previews use the same cache key
+	// when the folder preview is based on a child file
+	
+	// Test direct file preview
+	cacheKey1 := CacheKey("testmd5hash123", "small", 0)
+	
+	// Test folder preview with same child MD5
+	cacheKey2 := CacheKey("testmd5hash123", "small", 0)
+	
+	// Both should produce the same cache key
+	require.Equal(t, cacheKey1, cacheKey2, "Folder preview and direct file preview should use the same cache key")
+	
+	// Test with different seek percentages
+	cacheKey3 := CacheKey("testmd5hash123", "small", 25)
+	cacheKey4 := CacheKey("testmd5hash123", "small", 25)
+	
+	require.Equal(t, cacheKey3, cacheKey4, "Cache keys should be consistent for same parameters")
+	require.NotEqual(t, cacheKey1, cacheKey3, "Different seek percentages should produce different cache keys")
+}

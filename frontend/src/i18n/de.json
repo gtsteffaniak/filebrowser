@@ -325,7 +325,14 @@
     "configViewerShowComments": "Kommentare anzeigen",
     "configViewerLoadConfig": "Lastkonfiguration",
     "brandingHelp": "Sie können das Aussehen Ihrer Dateibrowser-Instanz anpassen, indem Sie den Namen ändern, das Logo ersetzen, eigene Stile hinzufügen und sogar externe Links zu GitHub deaktivieren.\nWeitere Informationen zum benutzerdefinierten Branding finden Sie unter {0}.",
-    "commandRunnerHelp": "Hier können Sie Befehle eingeben, die bei den genannten Ereignissen ausgeführt werden. Sie müssen einen pro Zeile schreiben. Die Umgebungsvariablen {0} und {1} werden verfügbar sein, wobei {0} relativ zu {1} ist. Weitere Informationen über diese Funktion und die verfügbaren Umgebungsvariablen finden Sie unter {2}."
+    "commandRunnerHelp": "Hier können Sie Befehle eingeben, die bei den genannten Ereignissen ausgeführt werden. Sie müssen einen pro Zeile schreiben. Die Umgebungsvariablen {0} und {1} werden verfügbar sein, wobei {0} relativ zu {1} ist. Weitere Informationen über diese Funktion und die verfügbaren Umgebungsvariablen finden Sie unter {2}.",
+    "loginMethods": {
+      "password": "Passwort",
+      "oidc": "OIDC",
+      "proxy": "Vollmacht"
+    },
+    "newUserHintSubFolder": "z.B. '/subfolder' - leer für Standard",
+    "userScopes": "Geltungsbereiche"
   },
   "sidebar": {
     "help": "Hilfe",
@@ -399,7 +406,8 @@
     "enableOnlyOfficeEditingDescription": "Erlauben Sie die Bearbeitung von Office-Dateien mit OnlyOffice in dieser Freigabe.",
     "titleDefault": "Gemeinsame Dateien - {title}",
     "defaultViewMode": "Standard-Ansichtsmodus",
-    "defaultViewModeDescription": "Legen Sie den Standardanzeigemodus für anonyme Benutzer fest, die diese Freigabe anzeigen. Angemeldete Benutzer können ihre Ansichtseinstellungen immer noch ändern."
+    "defaultViewModeDescription": "Legen Sie den Standardanzeigemodus für anonyme Benutzer fest, die diese Freigabe anzeigen. Angemeldete Benutzer können ihre Ansichtseinstellungen immer noch ändern.",
+    "disableFileViewer": "Dateibetrachter deaktivieren"
   },
   "api": {
     "title": "API-Schlüssel:",
@@ -560,7 +568,8 @@
     "fileViewerOptions": "Optionen des Dateibetrachters",
     "themeAndLanguage": "Thema und Sprache",
     "previewFolder": "Miniaturansichten für Ordner anzeigen, falls vorhanden",
-    "previewFolderDescription": "Zeigen Sie Miniaturvorschauen für Ordner an, deren erstes untergeordnetes Element ein Miniaturbild als Cover hat."
+    "previewFolderDescription": "Zeigen Sie Miniaturvorschauen für Ordner an, deren erstes untergeordnetes Element ein Miniaturbild als Cover hat.",
+    "disableFileExtensions": "Zu deaktivierende Dateierweiterungen eingeben"
   },
   "editor": {
     "uninitialized": "Der Editor konnte nicht initialisiert werden. Bitte neu laden.",

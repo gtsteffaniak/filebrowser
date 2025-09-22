@@ -325,7 +325,14 @@
     "configViewerShowComments": "Afficher les commentaires",
     "configViewerLoadConfig": "Configuration de la charge",
     "brandingHelp": "Vous pouvez personnaliser l'apparence de votre instance du navigateur de fichiers en changeant son nom, en remplaçant le logo, en ajoutant des styles personnalisés et même en désactivant les liens externes vers GitHub.\nPour plus d'informations sur la personnalisation de l'image de marque, consultez le site {0}.",
-    "commandRunnerHelp": "Vous pouvez définir ici les commandes qui seront exécutées dans les événements nommés. Vous devez en écrire une par ligne. Les variables d'environnement {0} et {1} seront disponibles, {0} étant relatif à {1}. Pour plus d'informations sur cette fonctionnalité et les variables d'environnement disponibles, veuillez consulter le site {2}."
+    "commandRunnerHelp": "Vous pouvez définir ici les commandes qui seront exécutées dans les événements nommés. Vous devez en écrire une par ligne. Les variables d'environnement {0} et {1} seront disponibles, {0} étant relatif à {1}. Pour plus d'informations sur cette fonctionnalité et les variables d'environnement disponibles, veuillez consulter le site {2}.",
+    "loginMethods": {
+      "password": "Mot de passe",
+      "oidc": "OIDC",
+      "proxy": "Proxy"
+    },
+    "newUserHintSubFolder": "par exemple \"/sous-dossier\" - vide par défaut",
+    "userScopes": "Scopes"
   },
   "sidebar": {
     "help": "Aide",
@@ -399,7 +406,8 @@
     "enableOnlyOfficeEditingDescription": "Autoriser l'édition de fichiers bureautiques en utilisant OnlyOffice dans ce partage.",
     "titleDefault": "Fichiers partagés - {title}",
     "defaultViewMode": "Mode d'affichage par défaut",
-    "defaultViewModeDescription": "Définit le mode d'affichage par défaut pour les utilisateurs anonymes qui consultent ce partage. Les utilisateurs connectés peuvent toujours modifier leurs préférences d'affichage."
+    "defaultViewModeDescription": "Définit le mode d'affichage par défaut pour les utilisateurs anonymes qui consultent ce partage. Les utilisateurs connectés peuvent toujours modifier leurs préférences d'affichage.",
+    "disableFileViewer": "Désactiver le visualiseur de fichiers"
   },
   "api": {
     "title": "Clés API :",
@@ -560,7 +568,8 @@
     "fileViewerOptions": "Options de visualisation des fichiers",
     "themeAndLanguage": "Thème et langue",
     "previewFolder": "Afficher les vignettes des dossiers si elles sont disponibles",
-    "previewFolderDescription": "Afficher des aperçus de vignettes pour les dossiers dont le premier élément enfant a une vignette comme couverture."
+    "previewFolderDescription": "Afficher des aperçus de vignettes pour les dossiers dont le premier élément enfant a une vignette comme couverture.",
+    "disableFileExtensions": "Saisir les extensions de fichiers à désactiver"
   },
   "editor": {
     "uninitialized": "Échec de l'initialisation de l'éditeur. Veuillez recharger.",
