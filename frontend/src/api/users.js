@@ -158,7 +158,6 @@ export async function create(user) {
     const res = await fetchURL(apiPath, {
       method: 'POST',
       body: JSON.stringify({
-        what: 'user',
         which: [],
         data: user
       })
@@ -187,7 +186,6 @@ export async function update(user, which = ['all']) {
   await fetchURL(apiPath, {
     method: 'PUT',
     body: JSON.stringify({
-      what: 'user',
       which: which,
       data: user
     })

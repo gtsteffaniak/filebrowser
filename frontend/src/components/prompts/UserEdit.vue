@@ -393,14 +393,21 @@ export default {
       try {
         let fields = ["all"];
         if (this.isNew) {
+          if (!state.user.permissions.admin) {
+            notify.showError(this.$t("settings.userNotAdmin"));
+            return;
+          }
           await usersApi.create({ ...this.user, scopes: this.selectedSources });
           // Emit event to refresh user list
           eventBus.emit('usersChanged');
-          this.$router.push({ path: "/settings", hash: "#users-main" });
+          // Close the modal
+          mutations.closeHovers();
         } else {
           await usersApi.update({ ...this.user, scopes: this.selectedSources }, fields);
-          // Emit event to refresh user list
-          eventBus.emit('usersChanged');
+          // Only emit usersChanged for admin user management, not profile updates
+          if (state.user.permissions.admin && this.user.id !== state.user.id) {
+            eventBus.emit('usersChanged');
+          }
           notify.showSuccess(this.$t("settings.userUpdated"));
           mutations.closeHovers();
         }
@@ -424,8 +431,10 @@ export default {
       }
       try {
         await usersApi.update(this.user, ["password"]);
-        // Emit event to refresh user list
-        eventBus.emit('usersChanged');
+        // Only emit usersChanged for admin user management, not profile updates
+        if (state.user.permissions.admin && this.user.id !== state.user.id) {
+          eventBus.emit('usersChanged');
+        }
         notify.showSuccess(this.$t("settings.userUpdated"));
       } catch (e) {
         notify.showError(e);
