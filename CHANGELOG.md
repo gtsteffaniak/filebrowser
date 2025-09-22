@@ -22,6 +22,8 @@ All notable changes to this project will be documented in this file. For commit 
  - High server load when browsing folders with .mkv files #1259
  - 2FA can not be disabled with non-admin user #1244
  - 2FA not working on login #1243
+ - Thumbnails of .m4a, .flac, and .opus are not displaying #1234
+ - creating files/folders with same name overwrite each other #1242
 
 ## v0.8.6-beta
 
