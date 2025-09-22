@@ -49,8 +49,8 @@ type Server struct {
 }
 
 type Filesystem struct {
-	CreateFilePermission      string `json:"createFilePermission"`      // file permissions for created files (default: "0644")
-	CreateDirectoryPermission string `json:"createDirectoryPermission"` // directory permissions for created directories (default: "0755")
+	CreateFilePermission      string `json:"createFilePermission"`      // default file permissions in octal notation (type string) (default: "0644")
+	CreateDirectoryPermission string `json:"createDirectoryPermission"` // default directory permissions in octal notation (type string) (default: "0755")
 }
 
 type Integrations struct {

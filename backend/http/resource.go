@@ -295,7 +295,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		}
 		// Create or open the temporary file
 		var outFile *os.File
-		outFile, err = os.OpenFile(tempFilePath, os.O_CREATE|os.O_WRONLY, 0644)
+		outFile, err = os.OpenFile(tempFilePath, os.O_CREATE|os.O_WRONLY, fileutils.PermFile)
 		if err != nil {
 			logger.Debugf("could not open temp file: %v", err)
 			return http.StatusInternalServerError, fmt.Errorf("could not open temp file: %v", err)

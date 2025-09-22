@@ -404,6 +404,13 @@ func WriteDirectory(opts iteminfo.FileOptions) error {
 	if err != nil {
 		return err
 	}
+
+	// Explicitly set directory permissions to bypass umask
+	err = os.Chmod(realPath, fileutils.PermDir)
+	if err != nil {
+		return err
+	}
+
 	return RefreshIndex(idx.Name, opts.Path, true, true)
 }
 
@@ -447,6 +454,13 @@ func WriteFile(opts iteminfo.FileOptions, in io.Reader) error {
 	if err != nil {
 		return err
 	}
+
+	// Explicitly set file permissions to bypass umask
+	err = os.Chmod(realPath, fileutils.PermFile)
+	if err != nil {
+		return err
+	}
+
 	return RefreshIndex(opts.Source, opts.Path, false, false)
 }
 

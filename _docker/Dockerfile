@@ -45,4 +45,4 @@ USER root
 # exposing default port for auto discovery.
 EXPOSE 80
 SHELL [ "sh", "-c" ]
-ENTRYPOINT umask 0000 && exec ./filebrowser
+ENTRYPOINT [ "./filebrowser" ]

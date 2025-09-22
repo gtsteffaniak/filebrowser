@@ -93,12 +93,9 @@ func copySingleFile(source, dest string) error {
 		return err
 	}
 
-	// Copy the mode.
-	info, err := os.Stat(source)
-	if err != nil {
-		return err
-	}
-	err = os.Chmod(dest, info.Mode())
+	// Set the configured file permissions instead of copying from source
+	err = os.Chmod(dest, PermFile)
+
 	if err != nil {
 		return err
 	}
