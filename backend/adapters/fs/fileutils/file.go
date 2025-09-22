@@ -11,29 +11,16 @@ import (
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
-// getPermFile returns the file permission mode from the config
-func getPermFile() os.FileMode {
-	PermFileOctal, err := strconv.ParseUint(settings.Config.Server.Filesystem.CreateFilePermission, 8, 32)
-	// if err != nil { // Only for testing purposes
-	// 	logger.Errorf("failed to parse create file permission: %v", err)
-	// 	logger.Errorf(settings.Config.Server.Filesystem.CreateFilePermission)
-	// 	logger.Errorf(settings.Config.Auth.AdminUsername)
-	// }
-	return os.FileMode(PermFileOctal)
-}
+var PermFile os.FileMode
+var PermDir os.FileMode
 
-// getPermDir returns the directory permission mode from the config
-func getPermDir() os.FileMode {
-	PermDirOctal, err := strconv.ParseUint(settings.Config.Server.Filesystem.CreateDirectoryPermission, 8, 32)
-	// if err != nil { // Only for testing purposes
-	// 	logger.Errorf("failed to parse create directory permission: %v", err)
-	// 	logger.Errorf(settings.Config.Server.Filesystem.CreateDirectoryPermission)
-	// }
-	return os.FileMode(PermDirOctal)
+func InitializeFsPermissions() {
+	PermFileOctal, _ := strconv.ParseUint(settings.Config.Server.Filesystem.CreateFilePermission, 8, 32)
+	PermDirOctal, _ := strconv.ParseUint(settings.Config.Server.Filesystem.CreateDirectoryPermission, 8, 32)
+	
+	PermFile = os.FileMode(PermFileOctal)
+	PermDir = os.FileMode(PermDirOctal)
 }
-
-var PermFile = getPermFile()
-var PermDir = getPermDir()
 
 // MoveFile moves a file from src to dst.
 // By default, the rename system call is used. If src and dst point to different volumes,
@@ -158,7 +145,7 @@ func copyDirectory(source, dest string) error {
 
 // CommonPrefix returns the common directory path of provided files.
 func CommonPrefix(sep byte, paths ...string) string {
-	// Handle special cases.
+	// Handle special cases.s.FileMode
 	switch len(paths) {
 	case 0:
 		return ""

@@ -316,14 +316,14 @@ func validatePermissions(config Settings) error {
 	filePerm, err := strconv.ParseUint(config.Server.Filesystem.CreateFilePermission, 8, 32)
 
 	if err != nil || filePerm > 0777 {
-		return fmt.Errorf("CreateFilePermission value %d is invalid, must be between 0000 and 0777", filePerm)
+		return fmt.Errorf("CreateFilePermission value %v is invalid, must be between 0000 and 0777", config.Server.Filesystem.CreateFilePermission)
 	}
 	
 	// Validate CreateDirectoryPermission
 	dirPerm, err := strconv.ParseUint(config.Server.Filesystem.CreateDirectoryPermission, 8, 32)
 
 	if err != nil || dirPerm > 0777 {
-		return fmt.Errorf("CreateDirectoryPermission value %d is invalid, must be between 0000 and 0777", dirPerm)
+		return fmt.Errorf("CreateDirectoryPermission value %v is invalid, must be between 0000 and 0777", config.Server.Filesystem.CreateDirectoryPermission)
 	}
 	
 	return nil
