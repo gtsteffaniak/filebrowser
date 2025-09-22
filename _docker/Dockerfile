@@ -44,5 +44,4 @@ RUN [ "ffprobe", "-version" ]
 USER root
 # exposing default port for auto discovery.
 EXPOSE 80
-SHELL [ "sh", "-c" ]
 ENTRYPOINT [ "./filebrowser" ]
