@@ -145,7 +145,7 @@ func copyDirectory(source, dest string) error {
 
 // CommonPrefix returns the common directory path of provided files.
 func CommonPrefix(sep byte, paths ...string) string {
-	// Handle special cases.s.FileMode
+	// Handle special cases.
 	switch len(paths) {
 	case 0:
 		return ""
