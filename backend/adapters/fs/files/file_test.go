@@ -10,6 +10,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
+	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
 )
 
 func Test_GetRealPath(t *testing.T) {
@@ -247,6 +248,10 @@ func TestDeleteFilesCacheClearing(t *testing.T) {
 }
 
 func TestOverrideDirectoryToFile(t *testing.T) {
+	// Initialize default file permissions
+	fileutils.PermFile = 0644
+	fileutils.PermDir = 0755
+
 	// Create a temporary directory for testing
 	tempDir, err := os.MkdirTemp("", "filebrowser_test")
 	if err != nil {
@@ -307,6 +312,10 @@ func TestOverrideDirectoryToFile(t *testing.T) {
 }
 
 func TestOverrideFileToDirectory(t *testing.T) {
+	// Initialize default file permissions
+	fileutils.PermFile = 0644
+	fileutils.PermDir = 0755
+
 	// Create a temporary directory for testing
 	tempDir, err := os.MkdirTemp("", "filebrowser_test")
 	if err != nil {
