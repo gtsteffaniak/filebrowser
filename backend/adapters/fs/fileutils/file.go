@@ -5,18 +5,16 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"strconv"
 
-	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 var PermFile os.FileMode
 var PermDir os.FileMode
 
-func InitializeFsPermissions(PermFileOctal, PermDirOctal) {
-	PermFile = os.FileMode(PermFileOctal)
-	PermDir = os.FileMode(PermDirOctal)
+func SetFsPermissions(PermFileOctal os.FileMode, PermDirOctal os.FileMode) {
+	PermFile = PermFileOctal
+	PermDir = PermDirOctal
 }
 
 // MoveFile moves a file from src to dst.
@@ -182,8 +180,7 @@ func CommonPrefix(sep byte, paths ...string) string {
 	return string(c)
 }
 
-func ClearCacheDir() {
-	cacheDir := settings.Config.Server.CacheDir
+func ClearCacheDir(cacheDir string) {
 	entries, err := os.ReadDir(cacheDir)
 	if err != nil {
 		logger.Errorf("failed clear cache dir: %v", err)

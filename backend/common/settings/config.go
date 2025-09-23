@@ -16,6 +16,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/common/version"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/go-logger/logger"
+	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
 )
 
 var Config Settings
@@ -42,9 +43,9 @@ func Initialize(configFile string) {
 		logger.Fatal(err.Error())
 	}
 	// Initialize filesystem permissions
-	PermFileOctal, _ := strconv.ParseUint(settings.Config.Server.Filesystem.CreateFilePermission, 8, 32)
-	PermDirOctal, _ := strconv.ParseUint(settings.Config.Server.Filesystem.CreateDirectoryPermission, 8, 32)
-	fileutils.InitializeFsPermissions(PermFileOctal, PermDirOctal)
+	PermFileOctal, _ := strconv.ParseUint(Config.Server.Filesystem.CreateFilePermission, 8, 32)
+	PermDirOctal, _ := strconv.ParseUint(Config.Server.Filesystem.CreateDirectoryPermission, 8, 32)
+	fileutils.SetFsPermissions(os.FileMode(PermFileOctal), os.FileMode(PermDirOctal))
 	
 	setupLogging()
 	setupAuth(false)
