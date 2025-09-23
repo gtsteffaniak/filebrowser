@@ -41,6 +41,11 @@ func Initialize(configFile string) {
 		time.Sleep(5 * time.Second) // allow sleep time before exiting to give docker/kubernetes time before restarting
 		logger.Fatal(err.Error())
 	}
+	// Initialize filesystem permissions
+	PermFileOctal, _ := strconv.ParseUint(settings.Config.Server.Filesystem.CreateFilePermission, 8, 32)
+	PermDirOctal, _ := strconv.ParseUint(settings.Config.Server.Filesystem.CreateDirectoryPermission, 8, 32)
+	fileutils.InitializeFsPermissions(PermFileOctal, PermDirOctal)
+	
 	setupLogging()
 	setupAuth(false)
 	setupSources(false)

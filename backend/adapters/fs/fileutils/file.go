@@ -14,10 +14,7 @@ import (
 var PermFile os.FileMode
 var PermDir os.FileMode
 
-func InitializeFsPermissions() {
-	PermFileOctal, _ := strconv.ParseUint(settings.Config.Server.Filesystem.CreateFilePermission, 8, 32)
-	PermDirOctal, _ := strconv.ParseUint(settings.Config.Server.Filesystem.CreateDirectoryPermission, 8, 32)
-	
+func InitializeFsPermissions(PermFileOctal, PermDirOctal) {
 	PermFile = os.FileMode(PermFileOctal)
 	PermDir = os.FileMode(PermDirOctal)
 }
