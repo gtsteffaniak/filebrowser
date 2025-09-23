@@ -3080,6 +3080,19 @@ const docTemplate = `{
                     "description": "max pre-archive combined size of files/folder that are allowed to be archived (in GB)",
                     "type": "integer"
                 },
+                "filesystem": {
+                    "type": "object",
+                    "properties": {
+                        "createFilePermission": {
+                            "description": "default file permissions in octal notation (default: '0644')",
+                            "type": "string"
+                        },
+                        "createDirectoryPermission": {
+                            "description": "default directory permissions in octal notation (default: '0755')",
+                            "type": "string"
+                        }
+                    }
+                },
                 "minSearchLength": {
                     "description": "minimum length of search query to begin searching (default: 3)",
                     "type": "integer"

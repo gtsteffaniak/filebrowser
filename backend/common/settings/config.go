@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"slices"
+	"strconv"
 	"strings"
 	"time"
 
@@ -15,6 +16,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/common/version"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/go-logger/logger"
+	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
 )
 
 var Config Settings
@@ -40,6 +42,11 @@ func Initialize(configFile string) {
 		time.Sleep(5 * time.Second) // allow sleep time before exiting to give docker/kubernetes time before restarting
 		logger.Fatal(err.Error())
 	}
+	// Initialize filesystem permissions
+	PermFileOctal, _ := strconv.ParseUint(Config.Server.Filesystem.CreateFilePermission, 8, 32)
+	PermDirOctal, _ := strconv.ParseUint(Config.Server.Filesystem.CreateDirectoryPermission, 8, 32)
+	fileutils.SetFsPermissions(os.FileMode(PermFileOctal), os.FileMode(PermDirOctal))
+	
 	setupLogging()
 	setupAuth(false)
 	setupSources(false)
@@ -302,6 +309,30 @@ func ValidateConfig(config Settings) error {
 	if err != nil {
 		return fmt.Errorf("could not validate config: %v", err)
 	}
+	
+	// Validate permission values
+	if err := validatePermissions(config); err != nil {
+		return fmt.Errorf("permission validation failed: %v", err)
+	}
+	
+	return nil
+}
+
+func validatePermissions(config Settings) error {
+	// Validate CreateFilePermission
+	filePerm, err := strconv.ParseUint(config.Server.Filesystem.CreateFilePermission, 8, 32)
+
+	if err != nil || filePerm > 0777 {
+		return fmt.Errorf("CreateFilePermission value %v is invalid, must be between 0000 and 0777", config.Server.Filesystem.CreateFilePermission)
+	}
+	
+	// Validate CreateDirectoryPermission
+	dirPerm, err := strconv.ParseUint(config.Server.Filesystem.CreateDirectoryPermission, 8, 32)
+
+	if err != nil || dirPerm > 0777 {
+		return fmt.Errorf("CreateDirectoryPermission value %v is invalid, must be between 0000 and 0777", config.Server.Filesystem.CreateDirectoryPermission)
+	}
+	
 	return nil
 }
 
@@ -375,6 +406,10 @@ func setDefaults(generate bool) Settings {
 			NameToSource:       map[string]Source{},
 			MaxArchiveSizeGB:   50,
 			CacheDir:           "tmp",
+			Filesystem: Filesystem{
+				CreateFilePermission:      "0644",
+				CreateDirectoryPermission: "0755",
+			},
 		},
 		Auth: Auth{
 			AdminUsername:        "admin",
