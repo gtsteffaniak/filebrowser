@@ -23,68 +23,6 @@ builds:
       post:
         - upx {{ .Path }}
 
-  # Build configuration for linux arm64
-  - id: linux-arm64
-    ldflags: *ldflags
-    main: main.go
-    binary: filebrowser
-    env:
-      - CGO_ENABLED=1
-      - CC=zig cc -target aarch64-linux-musl
-    tags:
-      - mupdf
-      - musl
-    goos:
-      - linux
-    goarch:
-      - arm64
-    hooks:
-      post:
-        - upx {{ .Path }}
-
-  # Build configuration for linux
-  - id: linux-arm32
-    ldflags: *ldflags
-    main: main.go
-    binary: filebrowser
-    goos:
-      - linux
-    goarch:
-      - arm
-    goarm:
-      - "6"
-      - "7"
-    hooks:
-      post:
-        - upx {{ .Path }}  # Compress the binary with UPX
-
-  # Build configuration for windows without arm
-  - id: windows
-    env:
-      - CGO_ENABLED=1
-      - CC=zig cc -target x86_64-windows
-    tags:
-      - mupdf
-    ldflags: *ldflags
-    main: main.go
-    binary: filebrowser
-    goos:
-      - windows
-    goarch:
-      - amd64
-    hooks:
-      post:
-        - upx {{ .Path }}  # Compress the binary with UPX
-
-  # Build configuration for freebsd without arm & upx
-  - id: freeBSD and freebsd-arm
-    ldflags: *ldflags
-    main: main.go
-    binary: filebrowser
-    goos:
-      - freebsd
-    goarch:
-      - amd64
 
   # Build configuration for macos without upx
   - id: macos
@@ -104,7 +42,7 @@ archives:
       {{- else -}}
       {{.Os}}-{{.Arch}}{{if .Arm}}v{{.Arm}}{{end}}-{{.ProjectName}}
       {{- end -}}
-    format: binary
+    formats: [ 'binary' ]
 
 checksum:
   disable: true

@@ -2,6 +2,7 @@ package http
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
@@ -55,20 +56,30 @@ func settingsConfigHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 
 	showFull := fullParam == "true"
 	showComments := commentsParam == "true"
+
+	log.Printf("[DEBUG] settingsConfigHandler: full=%s, comments=%s, showFull=%v, showComments=%v", fullParam, commentsParam, showFull, showComments)
+	log.Printf("[DEBUG] settingsConfigHandler: EmbeddedFs=%v", config.Server.EmbeddedFs)
+
 	var err error
 	var yamlConfig string
 	if config.Server.EmbeddedFs {
+		log.Printf("[DEBUG] settingsConfigHandler: Using embedded YAML path")
 		embeddedYaml, readErr := assets.ReadFile("embed/config.generated.yaml")
 		if readErr != nil {
+			log.Printf("[DEBUG] settingsConfigHandler: Error reading embedded YAML: %v", readErr)
 			return http.StatusInternalServerError, fmt.Errorf("error reading embedded YAML: %v", readErr)
 		}
+		log.Printf("[DEBUG] settingsConfigHandler: Embedded YAML length: %d bytes", len(embeddedYaml))
 		yamlConfig, err = settings.GenerateConfigYamlWithEmbedded(config, showComments, showFull, false, string(embeddedYaml))
 		if err != nil {
+			log.Printf("[DEBUG] settingsConfigHandler: Error in GenerateConfigYamlWithEmbedded: %v", err)
 			return http.StatusInternalServerError, fmt.Errorf("error generating YAML: %v", err)
 		}
 	} else {
+		log.Printf("[DEBUG] settingsConfigHandler: Using source code path")
 		yamlConfig, err = settings.GenerateConfigYaml(config, showComments, showFull, false)
 		if err != nil {
+			log.Printf("[DEBUG] settingsConfigHandler: Error in GenerateConfigYaml: %v", err)
 			return http.StatusInternalServerError, fmt.Errorf("error generating YAML: %v", err)
 		}
 	}

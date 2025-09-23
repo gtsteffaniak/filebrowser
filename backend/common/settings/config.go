@@ -13,10 +13,10 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/goccy/go-yaml"
-	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/common/version"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/go-logger/logger"
+	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
 )
 
 var Config Settings
@@ -42,27 +42,16 @@ func Initialize(configFile string) {
 		time.Sleep(5 * time.Second) // allow sleep time before exiting to give docker/kubernetes time before restarting
 		logger.Fatal(err.Error())
 	}
-	setupFs()
+	// Initialize filesystem permissions
+	PermFileOctal, _ := strconv.ParseUint(Config.Server.Filesystem.CreateFilePermission, 8, 32)
+	PermDirOctal, _ := strconv.ParseUint(Config.Server.Filesystem.CreateDirectoryPermission, 8, 32)
+	fileutils.SetFsPermissions(os.FileMode(PermFileOctal), os.FileMode(PermDirOctal))
+	
 	setupLogging()
 	setupAuth(false)
 	setupSources(false)
 	setupUrls()
 	setupFrontend(false)
-}
-
-func setupFs() {
-	// Convert permission values (like 644, 755) to octal interpretation
-	filePermOctal, err := strconv.ParseUint(fmt.Sprintf("%d", Config.Server.Filesystem.CreateFilePermission), 8, 32)
-	if err != nil {
-		Config.Server.Filesystem.CreateFilePermission = 644
-		filePermOctal, _ = strconv.ParseUint("644", 8, 32)
-	}
-	dirPermOctal, err := strconv.ParseUint(fmt.Sprintf("%d", Config.Server.Filesystem.CreateDirectoryPermission), 8, 32)
-	if err != nil {
-		Config.Server.Filesystem.CreateDirectoryPermission = 755
-		dirPermOctal, _ = strconv.ParseUint("755", 8, 32)
-	}
-	fileutils.SetFsPermissions(os.FileMode(filePermOctal), os.FileMode(dirPermOctal))
 }
 
 func setupFrontend(generate bool) {
@@ -293,57 +282,57 @@ func loadConfigWithDefaults(configFile string, generate bool) error {
 		return nil
 	}
 	defer yamlFile.Close()
-
-	// Get the directory containing the config file for reference resolution
-	configDir := filepath.Dir(configFile)
-	if configDir == "" {
-		configDir = "."
-	}
-
-	// Create decoder with ReferenceDirs to support multi-config files
-	// This enables YAML anchors and references to work across multiple files
-	decoder := yaml.NewDecoder(yamlFile,
-		yaml.DisallowUnknownField(),
-		yaml.ReferenceDirs(configDir),
-	)
-
-	err = decoder.Decode(&Config)
+	stat, err := yamlFile.Stat()
 	if err != nil {
-		// Fallback to old method if multi-config parsing fails
-		logger.Debugf("Multi-config parsing failed, falling back to single file parsing: %v", err)
-
-		// Reset file position and try old method
-		yamlFile.Seek(0, 0)
-		stat, statErr := yamlFile.Stat()
-		if statErr != nil {
-			return statErr
-		}
-		yamlData := make([]byte, stat.Size())
-		_, readErr := yamlFile.Read(yamlData)
-		if readErr != nil && configFile != "config.yaml" {
-			return fmt.Errorf("could not load specified config file: %v", readErr.Error())
-		}
-		if readErr != nil {
-			logger.Warningf("Could not load config file '%v', using default settings: %v", configFile, readErr)
-		}
-
-		// Use simple decoder without ReferenceDirs
-		fallbackErr := yaml.NewDecoder(strings.NewReader(string(yamlData)), yaml.DisallowUnknownField()).Decode(&Config)
-		if fallbackErr != nil {
-			return fmt.Errorf("error unmarshaling YAML data: %v", fallbackErr)
-		}
+		return err
 	}
-
+	yamlData := make([]byte, stat.Size())
+	_, err = yamlFile.Read(yamlData)
+	if err != nil && configFile != "config.yaml" {
+		return fmt.Errorf("could not load specified config file: %v", err.Error())
+	}
+	if err != nil {
+		logger.Warningf("Could not load config file '%v', using default settings: %v", configFile, err)
+	}
+	err = yaml.NewDecoder(strings.NewReader(string(yamlData)), yaml.DisallowUnknownField()).Decode(&Config)
+	if err != nil {
+		return fmt.Errorf("error unmarshaling YAML data: %v", err)
+	}
 	loadEnvConfig()
 	return nil
 }
 
 func ValidateConfig(config Settings) error {
+
 	validate := validator.New()
 	err := validate.Struct(Config)
 	if err != nil {
 		return fmt.Errorf("could not validate config: %v", err)
 	}
+	
+	// Validate permission values
+	if err := validatePermissions(config); err != nil {
+		return fmt.Errorf("permission validation failed: %v", err)
+	}
+	
+	return nil
+}
+
+func validatePermissions(config Settings) error {
+	// Validate CreateFilePermission
+	filePerm, err := strconv.ParseUint(config.Server.Filesystem.CreateFilePermission, 8, 32)
+
+	if err != nil || filePerm > 0777 {
+		return fmt.Errorf("CreateFilePermission value %v is invalid, must be between 0000 and 0777", config.Server.Filesystem.CreateFilePermission)
+	}
+	
+	// Validate CreateDirectoryPermission
+	dirPerm, err := strconv.ParseUint(config.Server.Filesystem.CreateDirectoryPermission, 8, 32)
+
+	if err != nil || dirPerm > 0777 {
+		return fmt.Errorf("CreateDirectoryPermission value %v is invalid, must be between 0000 and 0777", config.Server.Filesystem.CreateDirectoryPermission)
+	}
+	
 	return nil
 }
 
@@ -418,8 +407,8 @@ func setDefaults(generate bool) Settings {
 			MaxArchiveSizeGB:   50,
 			CacheDir:           "tmp",
 			Filesystem: Filesystem{
-				CreateFilePermission:      644,
-				CreateDirectoryPermission: 755,
+				CreateFilePermission:      "0644",
+				CreateDirectoryPermission: "0755",
 			},
 		},
 		Auth: Auth{
