@@ -593,7 +593,7 @@ func GenerateYaml() {
 	setupSources(true)
 	setupUrls()
 	setupFrontend(true)
-	output := "generated.yaml" // "output YAML file"
+	output := "../frontend/public/config.generated.yaml" // "output YAML file"
 
 	// Generate YAML with comments enabled, full config, and deprecated fields filtered
 	// Force the source path to be correct for static generation

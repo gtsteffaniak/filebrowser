@@ -55,18 +55,12 @@ func setupFs() {
 	filePermOctal, err := strconv.ParseUint(fmt.Sprintf("%d", Config.Server.Filesystem.CreateFilePermission), 8, 32)
 	if err != nil {
 		Config.Server.Filesystem.CreateFilePermission = 644
-		filePermOctal, err = strconv.ParseUint(fmt.Sprintf("%d", Config.Server.Filesystem.CreateFilePermission), 8, 32)
-		if err != nil {
-			logger.Fatalf("could not parse create file permission: %v", err)
-		}
+		filePermOctal, _ = strconv.ParseUint("644", 8, 32)
 	}
 	dirPermOctal, err := strconv.ParseUint(fmt.Sprintf("%d", Config.Server.Filesystem.CreateDirectoryPermission), 8, 32)
 	if err != nil {
 		Config.Server.Filesystem.CreateDirectoryPermission = 755
-		dirPermOctal, err = strconv.ParseUint(fmt.Sprintf("%d", Config.Server.Filesystem.CreateDirectoryPermission), 8, 32)
-		if err != nil {
-			logger.Fatalf("could not parse create directory permission: %v", err)
-		}
+		dirPermOctal, _ = strconv.ParseUint("755", 8, 32)
 	}
 	fileutils.SetFsPermissions(os.FileMode(filePermOctal), os.FileMode(dirPermOctal))
 }

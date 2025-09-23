@@ -32,7 +32,7 @@ dev:
 		sed -i '/func init/,+3d' ./swagger/docs/docs.go; \
 	fi
 	@echo "Generating frontend config..."
-	cd backend && FILEBROWSER_GENERATE_CONFIG=true go run --tags=mupdf . && cp generated.yaml ../frontend/public/config.generated.yaml
+	cd backend && FILEBROWSER_GENERATE_CONFIG=true go run --tags=mupdf .
 	@echo "Running initial frontend build..."
 	cd frontend && npm run build
 	@echo "Starting dev servers... Press Ctrl+C to stop."
