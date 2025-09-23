@@ -39,7 +39,7 @@
 
             </div>
 
-            <div class="audio-controls-container" :class="{ 'dark-mode': darkMode }">
+            <div class="audio-controls-container" :class="{ 'dark-mode': darkMode, 'light-mode': !darkMode }">
                 <vue-plyr ref="audioPlayer" :options="plyrOptions">
                     <audio :src="raw" :autoplay="autoPlayEnabled" @play="handlePlay"></audio>
                 </vue-plyr>
@@ -464,12 +464,17 @@ button:hover,
     flex-direction: row;
     gap: 8px;
     background-color: transparent;
-    color: black;
+    color: white;
 }
 
 .audio-controls-container.dark-mode .plyr .plyr__controls {
     color: white;
 }
+
+.audio-controls-container.light-mode .plyr .plyr__controls {
+    color: black;
+}
+
 .plyr .plyr__controls__items {
     display: flex;
     justify-content: space-between;

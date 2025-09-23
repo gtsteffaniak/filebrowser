@@ -327,6 +327,12 @@ export default {
        return;
      }
 
+    // Don't handle arrow keys when playing media or when editing a file on the editor
+    const blockedViews = ['audio', 'video', 'editor'];
+    if (blockedViews.includes(this.currentView)) {
+      return;
+    }
+
       const { key } = event;
 
       switch (key) {
