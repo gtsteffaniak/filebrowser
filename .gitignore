@@ -20,6 +20,7 @@ rice-box.go
 /backend/vendor
 /backend/*.cov
 /backend/test_config.yaml
+/backend/test-*.yaml
 /backend/generated.yaml
 /backend/srv
 /backend/http/dist

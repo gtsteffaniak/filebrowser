@@ -2751,6 +2751,23 @@ const docTemplate = `{
                 }
             }
         },
+        "settings.Filesystem": {
+            "type": "object",
+            "properties": {
+                "createDirectoryPermission": {
+                    "description": "Unix permissions like 755, 2755, 1777 (default: 755)",
+                    "type": "integer",
+                    "maximum": 7777,
+                    "minimum": 0
+                },
+                "createFilePermission": {
+                    "description": "Unix permissions like 644, 755, 2755 (default: 644)",
+                    "type": "integer",
+                    "maximum": 7777,
+                    "minimum": 0
+                }
+            }
+        },
         "settings.Frontend": {
             "type": "object",
             "properties": {
@@ -3066,6 +3083,14 @@ const docTemplate = `{
                     "description": "used by share links if set (eg. http://mydomain.com)",
                     "type": "string"
                 },
+                "filesystem": {
+                    "description": "filesystem settings",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.Filesystem"
+                        }
+                    ]
+                },
                 "internalUrl": {
                     "description": "used by integrations if set, this is the base domain that an integration service will use to communicate with filebrowser (eg. http://localhost:8080)",
                     "type": "string"
@@ -3079,19 +3104,6 @@ const docTemplate = `{
                 "maxArchiveSize": {
                     "description": "max pre-archive combined size of files/folder that are allowed to be archived (in GB)",
                     "type": "integer"
-                },
-                "filesystem": {
-                    "type": "object",
-                    "properties": {
-                        "createFilePermission": {
-                            "description": "default file permissions in octal notation (default: '0644')",
-                            "type": "string"
-                        },
-                        "createDirectoryPermission": {
-                            "description": "default directory permissions in octal notation (default: '0755')",
-                            "type": "string"
-                        }
-                    }
                 },
                 "minSearchLength": {
                     "description": "minimum length of search query to begin searching (default: 3)",
