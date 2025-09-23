@@ -74,8 +74,8 @@ auth:
       enforcedOtp: false                  # if set to true, TOTP is enforced for all password users users. Otherwise, users can choose to enable TOTP.
     oidc:                                 #  validate:omitempty
       enabled: false                      # whether to enable OIDC authentication
-      clientId: ""                        # secret: client id of the OIDC application
-      clientSecret: ""                    # secret: client secret of the OIDC application
+      clientId: "**hidden**"              # secret: client id of the OIDC application
+      clientSecret: "**hidden**"          # secret: client secret of the OIDC application
       issuerUrl: ""                       # authorization URL of the OIDC provider
       scopes: "openid email profile"      # scopes to request from the OIDC provider
       userIdentifier: "preferred_username" # the field value to use as the username. Default is "preferred_username", can also be "email" or "username", or "phone"
@@ -84,10 +84,10 @@ auth:
       createUser: false                   # create user if not exists
       adminGroup: ""                      # if set, users in this group will be granted admin privileges.
       groupsClaim: "groups"               # the JSON field name to read groups from. Default is "groups"
-  key: ""                                 # secret: the key used to sign the JWT tokens. If not set, a random key will be generated.
+  key: "**hidden**"                       # secret: the key used to sign the JWT tokens. If not set, a random key will be generated.
   adminUsername: "**hidden**"             # secret: the username of the admin user. If not set, the default is "admin".
   adminPassword: "**hidden**"             # secret: the password of the admin user. If not set, the default is "admin".
-  totpSecret: ""                          # secret: secret used to encrypt TOTP secrets
+  totpSecret: "**hidden**"                # secret: secret used to encrypt TOTP secrets
 frontend:
   name: "FileBrowser Quantum"             # display name
   disableDefaultLinks: false              # disable default links in the sidebar
@@ -164,7 +164,7 @@ integrations:
   office:                                 #  validate:omitempty
     url: ""                               # The URL to the OnlyOffice Document Server, needs to be accessible to the user.  validate:required
     internalUrl: ""                       # An optional internal address that the filebrowser server can use to communicate with the OnlyOffice Document Server, could be useful to bypass proxy.
-    secret: ""                            # secret: authentication key for OnlyOffice integration  validate:required
+    secret: "**hidden**"                  # secret: authentication key for OnlyOffice integration  validate:required
     viewOnly: false                       # view only mode for OnlyOffice
   media:                                  #  validate:omitempty
     ffmpegPath: ""                        # path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)

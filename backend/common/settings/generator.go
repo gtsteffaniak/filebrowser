@@ -1,3 +1,5 @@
+// WARNING: the vast majority of generator.go is ai generated
+// troubleshooting is best done with ai agent assistance
 package settings
 
 import (
@@ -477,11 +479,24 @@ func buildNodeWithDefaults(v reflect.Value, comm CommentsMap, defaults reflect.V
 			var valNode *yaml.Node
 			var err error
 			if secrets[typeName][sf.Name] {
-				valNode = &yaml.Node{
-					Kind:  yaml.ScalarNode,
-					Tag:   "!!str",
-					Value: "**hidden**",
-					Style: yaml.DoubleQuotedStyle, // Keep secrets quoted for clarity
+				// Check if the secret value is empty
+				fieldValue := currentField.Interface()
+				if str, ok := fieldValue.(string); ok && str == "" {
+					// Show empty string for empty secret values
+					valNode = &yaml.Node{
+						Kind:  yaml.ScalarNode,
+						Tag:   "!!str",
+						Value: "",
+						Style: yaml.DoubleQuotedStyle,
+					}
+				} else {
+					// Show **hidden** for non-empty secret values
+					valNode = &yaml.Node{
+						Kind:  yaml.ScalarNode,
+						Tag:   "!!str",
+						Value: "**hidden**",
+						Style: yaml.DoubleQuotedStyle, // Keep secrets quoted for clarity
+					}
 				}
 			} else {
 				// Pass through the corresponding default field for recursive comparison
@@ -641,14 +656,19 @@ func GenerateConfigYamlWithEmbedded(config *Settings, showComments bool, showFul
 	var deprecated DeprecatedFieldsMap
 	var err error
 
-	if showComments && embeddedYaml != "" {
-		// Parse comments from the embedded YAML content
+	if embeddedYaml != "" {
+		// Always parse the embedded YAML to get secrets and deprecated fields
 		comm, secrets, deprecated, err = CollectCommentsFromEmbeddedYaml(embeddedYaml)
 		if err != nil {
 			return "", fmt.Errorf("error parsing embedded YAML comments: %w", err)
 		}
+
+		// If not showing comments, clear the comments map but keep secrets and deprecated
+		if !showComments {
+			comm = make(CommentsMap)
+		}
 	} else {
-		// Create empty maps
+		// Create empty maps only if no embedded YAML is available
 		comm = make(CommentsMap)
 		secrets = make(SecretFieldsMap)
 		deprecated = make(DeprecatedFieldsMap)
