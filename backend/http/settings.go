@@ -2,7 +2,6 @@ package http
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 
@@ -58,33 +57,25 @@ func settingsConfigHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 	showFull := fullParam == "true"
 	showComments := commentsParam == "true"
 
-	log.Printf("[DEBUG] settingsConfigHandler: full=%s, comments=%s, showFull=%v, showComments=%v", fullParam, commentsParam, showFull, showComments)
-	log.Printf("[DEBUG] settingsConfigHandler: EmbeddedFs=%v", config.Server.EmbeddedFs)
-
 	var err error
 	var yamlConfig string
 
 	// Always try to use embedded YAML for comments to avoid parsing source files
-	log.Printf("[DEBUG] settingsConfigHandler: Attempting to use embedded YAML for comments")
 	embeddedYaml, readErr := assets.ReadFile("embed/config.generated.yaml")
 	if readErr != nil {
-		log.Printf("[DEBUG] settingsConfigHandler: Error reading embedded YAML, falling back to file system: %v", readErr)
 		// Try to read from file system as fallback
 		embeddedYamlBytes, fsErr := os.ReadFile("frontend/public/config.generated.yaml")
 		if fsErr != nil {
 			embeddedYamlBytes, fsErr = os.ReadFile("../frontend/public/config.generated.yaml")
 			if fsErr != nil {
-				log.Printf("[DEBUG] settingsConfigHandler: Error reading from file system: %v", fsErr)
 				return http.StatusInternalServerError, fmt.Errorf("error reading embedded YAML: %v", readErr)
 			}
 		}
 		embeddedYaml = embeddedYamlBytes
 	}
 
-	log.Printf("[DEBUG] settingsConfigHandler: Using embedded YAML, length: %d bytes", len(embeddedYaml))
 	yamlConfig, err = settings.GenerateConfigYamlWithEmbedded(config, showComments, showFull, false, string(embeddedYaml))
 	if err != nil {
-		log.Printf("[DEBUG] settingsConfigHandler: Error in GenerateConfigYamlWithEmbedded: %v", err)
 		return http.StatusInternalServerError, fmt.Errorf("error generating YAML: %v", err)
 	}
 
