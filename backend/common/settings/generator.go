@@ -617,7 +617,7 @@ func buildNodeWithDefaults(v reflect.Value, comm CommentsMap, defaults reflect.V
 		if v.Len() == 0 {
 			return &yaml.Node{Kind: yaml.ScalarNode, Tag: "!!null", Value: ""}, nil
 		}
-		
+
 		seq := &yaml.Node{Kind: yaml.SequenceNode}
 		// for non-struct slices, render inline [] via flow style
 		if v.Type().Elem().Kind() != reflect.Struct {
@@ -715,9 +715,9 @@ func GenerateYaml() {
 func GenerateConfigYaml(config *Settings, showComments bool, showFull bool, filterDeprecated bool) (string, error) {
 	// Try different source paths to handle both runtime and test scenarios
 	sourcePaths := []string{
-		"common/settings", // When running from backend directory
-		".",               // When running tests from settings directory
-		"../settings",     // Alternative test path
+		".",                  // When running tests from settings directory
+		"../common/settings", // When running from backend directory
+		"common/settings",    // Alternative path
 	}
 
 	for _, sourcePath := range sourcePaths {
@@ -805,12 +805,104 @@ func GenerateConfigYamlWithEmbedded(config *Settings, showComments bool, showFul
 	return yamlOutput, nil
 }
 
+// identifySecretFieldsByReflection identifies secret fields by known field names
+func identifySecretFieldsByReflection(v reflect.Value, typeName string, secrets SecretFieldsMap) {
+	if v.Kind() == reflect.Ptr {
+		if v.IsNil() {
+			return
+		}
+		v = v.Elem()
+	}
+
+	if v.Kind() != reflect.Struct {
+		return
+	}
+
+	t := v.Type()
+	if secrets[typeName] == nil {
+		secrets[typeName] = make(map[string]bool)
+	}
+
+	// Known secret field names
+	secretFields := map[string]bool{
+		"Key":           true,
+		"AdminUsername": true,
+		"AdminPassword": true,
+		"TotpSecret":    true,
+		"ClientID":      true,
+		"ClientSecret":  true,
+		"Secret":        true,
+	}
+
+	for i := 0; i < t.NumField(); i++ {
+		field := t.Field(i)
+		if secretFields[field.Name] {
+			secrets[typeName][field.Name] = true
+		}
+
+		// Recursively check nested structs
+		fieldValue := v.Field(i)
+		if fieldValue.Kind() == reflect.Struct || (fieldValue.Kind() == reflect.Ptr && !fieldValue.IsNil() && fieldValue.Elem().Kind() == reflect.Struct) {
+			nestedTypeName := field.Type.Name()
+			if field.Type.Kind() == reflect.Ptr {
+				nestedTypeName = field.Type.Elem().Name()
+			}
+			identifySecretFieldsByReflection(fieldValue, nestedTypeName, secrets)
+		}
+	}
+}
+
+// identifyDeprecatedFieldsByReflection identifies deprecated fields by known field names
+func identifyDeprecatedFieldsByReflection(v reflect.Value, typeName string, deprecated DeprecatedFieldsMap) {
+	if v.Kind() == reflect.Ptr {
+		if v.IsNil() {
+			return
+		}
+		v = v.Elem()
+	}
+
+	if v.Kind() != reflect.Struct {
+		return
+	}
+
+	t := v.Type()
+	if deprecated[typeName] == nil {
+		deprecated[typeName] = make(map[string]bool)
+	}
+
+	// Known deprecated field names
+	deprecatedFields := map[string]bool{
+		"IndexAlbumArt":           true,
+		"DisableOfficePreviewExt": true,
+	}
+
+	for i := 0; i < t.NumField(); i++ {
+		field := t.Field(i)
+		if deprecatedFields[field.Name] {
+			deprecated[typeName][field.Name] = true
+		}
+
+		// Recursively check nested structs
+		fieldValue := v.Field(i)
+		if fieldValue.Kind() == reflect.Struct || (fieldValue.Kind() == reflect.Ptr && !fieldValue.IsNil() && fieldValue.Elem().Kind() == reflect.Struct) {
+			nestedTypeName := field.Type.Name()
+			if field.Type.Kind() == reflect.Ptr {
+				nestedTypeName = field.Type.Elem().Name()
+			}
+			identifyDeprecatedFieldsByReflection(fieldValue, nestedTypeName, deprecated)
+		}
+	}
+}
+
 // GenerateConfigYamlWithEmptyMaps generates YAML without comment parsing when source files are unavailable
 func GenerateConfigYamlWithEmptyMaps(config *Settings, showFull bool) (string, error) {
 	// Create empty maps
 	comm := make(CommentsMap)
 	secrets := make(SecretFieldsMap)
 	deprecated := make(DeprecatedFieldsMap)
+
+	// Identify secret fields by reflection since we can't parse source files
+	identifySecretFieldsByReflection(reflect.ValueOf(config), "Settings", secrets)
 
 	var node *yaml.Node
 	var err error
@@ -875,6 +967,30 @@ func GenerateConfigYamlWithSource(config *Settings, showComments bool, showFull 
 		}
 		// Create empty comments map
 		comm = make(CommentsMap)
+	}
+
+	// If secrets map is empty (directory parsing failed), use reflection to identify secrets
+	secretsEmpty := true
+	for typeName := range secrets {
+		if len(secrets[typeName]) > 0 {
+			secretsEmpty = false
+			break
+		}
+	}
+	if secretsEmpty {
+		identifySecretFieldsByReflection(reflect.ValueOf(config), "Settings", secrets)
+	}
+
+	// If deprecated map is empty (directory parsing failed), use reflection to identify deprecated fields
+	deprecatedEmpty := true
+	for typeName := range deprecated {
+		if len(deprecated[typeName]) > 0 {
+			deprecatedEmpty = false
+			break
+		}
+	}
+	if deprecatedEmpty {
+		identifyDeprecatedFieldsByReflection(reflect.ValueOf(config), "Settings", deprecated)
 	}
 
 	// If not filtering deprecated fields, clear the deprecated map
