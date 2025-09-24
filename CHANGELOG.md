@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.8.8-beta
+
+ **New Features**:
+ - Ability to split configuration files #1267
+ - Add capability to edit files permissions #813
+
 ## v0.8.7-beta
 
  **New Features**:
