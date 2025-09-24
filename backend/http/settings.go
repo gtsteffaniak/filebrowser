@@ -3,7 +3,6 @@ package http
 import (
 	"fmt"
 	"net/http"
-	"os"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 )
@@ -60,23 +59,20 @@ func settingsConfigHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 	var err error
 	var yamlConfig string
 
-	// Always try to use embedded YAML for comments to avoid parsing source files
-	embeddedYaml, readErr := assets.ReadFile("embed/config.generated.yaml")
-	if readErr != nil {
-		// Try to read from file system as fallback
-		embeddedYamlBytes, fsErr := os.ReadFile("frontend/public/config.generated.yaml")
-		if fsErr != nil {
-			embeddedYamlBytes, fsErr = os.ReadFile("../frontend/public/config.generated.yaml")
-			if fsErr != nil {
-				return http.StatusInternalServerError, fmt.Errorf("error reading embedded YAML: %v", readErr)
-			}
+	if config.Server.EmbeddedFs {
+		embeddedYaml, readErr := assets.ReadFile("embed/config.generated.yaml")
+		if readErr != nil {
+			return http.StatusInternalServerError, fmt.Errorf("error reading embedded YAML: %v", readErr)
 		}
-		embeddedYaml = embeddedYamlBytes
-	}
-
-	yamlConfig, err = settings.GenerateConfigYamlWithEmbedded(config, showComments, showFull, false, string(embeddedYaml))
-	if err != nil {
-		return http.StatusInternalServerError, fmt.Errorf("error generating YAML: %v", err)
+		yamlConfig, err = settings.GenerateConfigYamlWithEmbedded(config, showComments, showFull, false, string(embeddedYaml))
+		if err != nil {
+			return http.StatusInternalServerError, fmt.Errorf("error generating YAML: %v", err)
+		}
+	} else {
+		yamlConfig, err = settings.GenerateConfigYaml(config, showComments, showFull, false)
+		if err != nil {
+			return http.StatusInternalServerError, fmt.Errorf("error generating YAML: %v", err)
+		}
 	}
 
 	// Set content type and write response
