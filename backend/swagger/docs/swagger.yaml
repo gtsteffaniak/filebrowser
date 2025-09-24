@@ -256,6 +256,19 @@ definitions:
         description: supported image preview formats. default is heic
         type: object
     type: object
+  settings.Filesystem:
+    properties:
+      createDirectoryPermission:
+        description: 'Unix permissions like 755, 2755, 1777 (default: 755)'
+        maximum: 7777
+        minimum: 0
+        type: integer
+      createFilePermission:
+        description: 'Unix permissions like 644, 755, 2755 (default: 644)'
+        maximum: 7777
+        minimum: 0
+        type: integer
+    type: object
   settings.Frontend:
     properties:
       description:
@@ -489,6 +502,10 @@ definitions:
       externalUrl:
         description: used by share links if set (eg. http://mydomain.com)
         type: string
+      filesystem:
+        allOf:
+        - $ref: '#/definitions/settings.Filesystem'
+        description: filesystem settings
       internalUrl:
         description: used by integrations if set, this is the base domain that an
           integration service will use to communicate with filebrowser (eg. http://localhost:8080)
@@ -501,14 +518,6 @@ definitions:
         description: max pre-archive combined size of files/folder that are allowed
           to be archived (in GB)
         type: integer
-      filesystem:
-        properties:
-          createFilePermission:
-            description: "default file permissions in octal notation (default: '0644')"
-            type: string
-          createDirectoryPermission:
-            description: "default directory permissions in octal notation (default: '0755')"
-            type: string
       minSearchLength:
         description: 'minimum length of search query to begin searching (default:
           3)'

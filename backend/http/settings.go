@@ -55,8 +55,10 @@ func settingsConfigHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 
 	showFull := fullParam == "true"
 	showComments := commentsParam == "true"
+
 	var err error
 	var yamlConfig string
+
 	if config.Server.EmbeddedFs {
 		embeddedYaml, readErr := assets.ReadFile("embed/config.generated.yaml")
 		if readErr != nil {
