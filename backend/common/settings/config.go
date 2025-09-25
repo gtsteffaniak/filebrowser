@@ -276,8 +276,8 @@ func setupLogging() {
 	}
 }
 
-func loadConfigWithDefaults(configFile string, generate bool) error {
-	Config = setDefaults(generate)
+func loadConfigWithDefaults(configFile string, isGenerate bool) error {
+	Config = setDefaults(isGenerate)
 	// Open and read the YAML file
 	yamlFile, err := os.Open(configFile)
 	if err != nil {
@@ -287,6 +287,9 @@ func loadConfigWithDefaults(configFile string, generate bool) error {
 		Config.Server.Sources = []Source{
 			{
 				Path: ".",
+				Config: SourceConfig{
+					DefaultEnabled: true,
+				},
 			},
 		}
 		loadEnvConfig()

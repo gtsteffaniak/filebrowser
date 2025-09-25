@@ -189,7 +189,11 @@ export default {
           await this.fetchFilesData();
         }
       } catch (e) {
-        notify.showError(e.message);
+        if (e.message) {
+          notify.showError(e.message);
+        } else {
+          notify.showError(e);
+        }
         this.error = e;
         mutations.replaceRequest({});
         if (e.status === 404) {
@@ -293,7 +297,9 @@ export default {
 
       const result = extractSourceFromPath(getters.routePath());
       if (result.source === "") {
-        notify.showError($t("index.noSources"));
+        // No sources available - show a more graceful message instead of error popup
+        this.error = { message: $t("index.noSources") };
+        mutations.replaceRequest({});
         return;
       }
 
