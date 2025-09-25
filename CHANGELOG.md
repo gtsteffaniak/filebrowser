@@ -8,6 +8,9 @@ All notable changes to this project will be documented in this file. For commit 
  - Ability to split configuration files #1267
  - Add capability to edit files permissions #813
 
+ **BugFixes**:
+ - error when running without a config file #1280
+
 ## v0.8.7-beta
 
  **New Features**:

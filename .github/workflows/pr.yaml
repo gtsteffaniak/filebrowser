@@ -75,6 +75,10 @@ jobs:
             dockerfile: ./_docker/Dockerfile.playwright-oidc
           - name: sharing
             dockerfile: ./_docker/Dockerfile.playwright-sharing
+          - name: no-config
+            dockerfile: ./_docker/Dockerfile.playwright-no-config
+          - name: settings
+            dockerfile: ./_docker/Dockerfile.playwright-settings
     steps:
       - name: Checkout
         uses: actions/checkout@v4
