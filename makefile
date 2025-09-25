@@ -33,8 +33,29 @@ dev:
 	fi
 	@echo "Generating frontend config..."
 	cd backend && FILEBROWSER_GENERATE_CONFIG=true go run --tags=mupdf .
-	@echo "Running initial frontend build..."
-	cd frontend && npm run build
+	@echo "Running initial frontend build (English only for faster dev builds)..."
+	cd frontend && npm run build:dev
+	@echo "Starting dev servers... Press Ctrl+C to stop."
+	@trap 'echo "Stopping servers..."; kill -TERM 0' INT TERM
+	cd frontend && npm run watch & \
+	cd backend && go tool air & \
+	wait
+
+# Dev target with specific additional languages
+dev-lang:
+	@echo "NOTE: Run 'make setup' if you haven't already."
+	@echo "Usage: make dev-lang LANG=es,fr,de"
+	@echo "Generating swagger docs..."
+	cd backend && go tool swag init --output swagger/docs && \
+	if [ "$(shell uname)" = "Darwin" ]; then \
+		sed -i '' '/func init/,+3d' ./swagger/docs/docs.go; \
+	else \
+		sed -i '/func init/,+3d' ./swagger/docs/docs.go; \
+	fi
+	@echo "Generating frontend config..."
+	cd backend && FILEBROWSER_GENERATE_CONFIG=true go run --tags=mupdf .
+	@echo "Running frontend build with additional languages: $(LANG)"
+	cd frontend && ADDITIONAL_LANGUAGES=$(LANG) npm run build:dev
 	@echo "Starting dev servers... Press Ctrl+C to stop."
 	@trap 'echo "Stopping servers..."; kill -TERM 0' INT TERM
 	cd frontend && npm run watch & \
@@ -58,7 +79,7 @@ build-frontend:
 	if [ "$(OS)" = "Windows_NT" ]; then \
 		cd frontend && npm run build-windows; \
 	else \
-		cd frontend && npm run build; \
+		cd frontend && npm run build:dev; \
 	fi
 
 lint-frontend:
