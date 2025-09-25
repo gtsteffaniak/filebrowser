@@ -1,1 +1,1 @@
-FROM gtstef/playwright-base
+FROM ghcr.io/gtsteffaniak/playwright-base:latest
