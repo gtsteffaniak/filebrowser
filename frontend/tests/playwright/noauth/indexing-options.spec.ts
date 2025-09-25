@@ -8,5 +8,5 @@ test("navigate folders", async ({ page, checkForErrors, context }) => {
     await page.goto("/files/excluded");
     const msg = "500: could not refresh file info: directory or item excluded from indexing"
     await expect(page.locator('#popup-notification-content')).toHaveText(msg);
-    checkForErrors(2,1); // expect error not indexed
+    checkForErrors(1,1); // expect error not indexed
 });
