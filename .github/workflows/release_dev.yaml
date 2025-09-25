@@ -55,7 +55,7 @@ jobs:
           build-args: |
             VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
             REVISION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           file: ./_docker/Dockerfile
           push: true
           tags: ${{ steps.modify-json.outputs.cleaned_tag }}

@@ -116,7 +116,6 @@ jobs:
           cache-to: |
             type=gha,mode=max,scope=${{ github.ref_name }}-playwright-base
   push_pr_to_registry:
-    if: github.event.pull_request.head.repo.fork == false
     name: Build docker image
     runs-on: ubuntu-latest
     steps:
@@ -126,16 +125,9 @@ jobs:
         uses: docker/setup-qemu-action@v3.0.0
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3.0.0
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@v5
-        with:
-          images: gtstef/filebrowser
       - name: Build and push
         uses: docker/build-push-action@v6
         with:

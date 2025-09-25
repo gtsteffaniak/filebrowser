@@ -1,4 +1,4 @@
-FROM gtstef/playwright-base
+FROM ghcr.io/gtsteffaniak/playwright-base:latest
 
 COPY [ "./_docker/src/oidc/frontend/", "./" ]
 COPY [ "./frontend/tests/", "./tests" ]

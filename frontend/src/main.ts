@@ -16,6 +16,13 @@ app.use(i18n);
 app.use(router);
 app.use(VuePlyr);
 
+// Ensure i18n functions are available globally (needed after removing Vite i18n plugin)
+app.config.globalProperties.$t = i18n.global.t as any;
+app.config.globalProperties.$tc = i18n.global.tc as any;
+app.config.globalProperties.$te = i18n.global.te as any;
+app.config.globalProperties.$d = i18n.global.d as any;
+app.config.globalProperties.$n = i18n.global.n as any;
+
 // Provide state to the entire application
 app.provide("state", state);
 

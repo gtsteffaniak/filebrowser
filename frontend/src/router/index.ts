@@ -147,6 +147,7 @@ router.beforeResolve(async (to, from, next) => {
     return next(false);
   }
 
+  // @ts-ignore - Temporary fix for type instantiation issue
   const title = i18n.global.t(titles[to.name as keyof typeof titles]);
   document.title = globalVars.name + " - " + title;
   mutations.setRoute(to);

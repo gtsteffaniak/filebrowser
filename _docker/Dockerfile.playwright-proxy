@@ -1,4 +1,4 @@
-FROM gtstef/playwright-base
+FROM ghcr.io/gtsteffaniak/playwright-base:latest
 WORKDIR /app
 COPY [ "./_docker/src/proxy/", "./" ]
 WORKDIR /app/frontend
