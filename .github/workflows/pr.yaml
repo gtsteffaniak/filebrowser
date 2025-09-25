@@ -170,7 +170,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository }}/playwright-base
+          images: ghcr.io/gtsteffaniak/playwright-base
           tags: latest
       - name: Build and push playwright-base
         uses: docker/build-push-action@v6
