@@ -10,16 +10,16 @@ import (
 func (s *Storage) CheckChildItemAccess(response *iteminfo.ExtendedFileInfo, index *indexing.Index, username string) error {
 
 	// Collect all item names to check
-	allItemNames := make([]string, 0, len(response.FileInfo.Folders)+len(response.FileInfo.Files))
-	for _, folder := range response.FileInfo.Folders {
+	allItemNames := make([]string, 0, len(response.Folders)+len(response.Files))
+	for _, folder := range response.Folders {
 		allItemNames = append(allItemNames, folder.Name)
 	}
-	for _, file := range response.FileInfo.Files {
+	for _, file := range response.Files {
 		allItemNames = append(allItemNames, file.Name)
 	}
 
 	// Use standardized path with trailing slash for proper path construction
-	parentPath := index.MakeIndexPath(response.FileInfo.Path)
+	parentPath := index.MakeIndexPath(response.Path)
 
 	// Check if user has access to any items
 	if !s.HasAnyVisibleItems(index.Path, parentPath, allItemNames, username) {
@@ -31,7 +31,7 @@ func (s *Storage) CheckChildItemAccess(response *iteminfo.ExtendedFileInfo, inde
 	response.Files = make([]iteminfo.ItemInfo, 0)
 
 	// Check each subfolder for access permissions
-	for _, folder := range response.FileInfo.Folders {
+	for _, folder := range response.Folders {
 		indexPath := parentPath + folder.Name
 		if s.Permitted(index.Path, indexPath, username) {
 			response.Folders = append(response.Folders, folder)
@@ -39,7 +39,7 @@ func (s *Storage) CheckChildItemAccess(response *iteminfo.ExtendedFileInfo, inde
 	}
 
 	// Check each subfile for access permissions
-	for _, file := range response.FileInfo.Files {
+	for _, file := range response.Files {
 		indexPath := parentPath + file.Name
 		if s.Permitted(index.Path, indexPath, username) {
 			response.Files = append(response.Files, file)

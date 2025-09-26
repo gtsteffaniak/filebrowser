@@ -190,7 +190,10 @@ func (s *Storage) RemoveRuleByPath(sourcePath, indexPath string) {
 		rulesCache.Delete(accessChangedKey + sourcePath)
 
 		// Save to database
-		s.SaveToDB()
+		err := s.SaveToDB()
+		if err != nil {
+			logger.Errorf("error saving access rules to database: %v", err)
+		}
 	}
 }
 

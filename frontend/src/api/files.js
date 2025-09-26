@@ -18,7 +18,6 @@ export async function fetchFiles(source, path, content = false) {
     const res = await fetchURL(apiPath)
     const data = await res.json()
     const adjusted = adjustedData(data)
-    console.log("adjusted", adjusted)
     return adjusted
   } catch (err) {
     notify.showError(err.message || 'Error fetching data')
