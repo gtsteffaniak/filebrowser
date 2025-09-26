@@ -10,6 +10,7 @@ import (
 	storm "github.com/asdine/storm/v3"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/database/access"
 	"github.com/gtsteffaniak/filebrowser/backend/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/database/storage/bolt"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
@@ -43,7 +44,7 @@ func mockFileInfoFaster(t *testing.T) {
 	t.Cleanup(func() { FileInfoFasterFunc = originalFileInfoFaster })
 
 	// Mock the function to skip execution
-	FileInfoFasterFunc = func(opts iteminfo.FileOptions) (*iteminfo.ExtendedFileInfo, error) {
+	FileInfoFasterFunc = func(opts utils.FileOptions, access *access.Storage) (*iteminfo.ExtendedFileInfo, error) {
 		return &iteminfo.ExtendedFileInfo{
 			FileInfo: iteminfo.FileInfo{
 				Path: opts.Path,

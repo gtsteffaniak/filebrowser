@@ -19,7 +19,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
-	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 	"github.com/gtsteffaniak/go-logger/logger"
 	"golang.org/x/time/rate"
 )
@@ -111,13 +110,12 @@ func addFile(path string, d *requestContext, tarWriter *tar.Writer, zipWriter *z
 	if idx == nil {
 		return fmt.Errorf("source %s is not available", source)
 	}
-	_, err = files.FileInfoFaster(iteminfo.FileOptions{
-		Access:   store.Access,
+	_, err = files.FileInfoFaster(utils.FileOptions{
 		Username: d.user.Username,
 		Path:     path,
 		Source:   source,
 		Expand:   false,
-	})
+	}, store.Access)
 	if err != nil {
 		return err
 	}

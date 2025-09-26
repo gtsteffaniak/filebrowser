@@ -6,6 +6,9 @@ import { globalVars } from '@/utils/constants'
 
 // Notify if errors occur
 export async function fetchFiles(source, path, content = false) {
+  if (!source || source === undefined || source === null) {
+    throw new Error('no source provided')
+  }
   try {
     const apiPath = getApiPath('api/resources', {
       path: doubleEncode(path),
@@ -15,6 +18,7 @@ export async function fetchFiles(source, path, content = false) {
     const res = await fetchURL(apiPath)
     const data = await res.json()
     const adjusted = adjustedData(data)
+    console.log("adjusted", adjusted)
     return adjusted
   } catch (err) {
     notify.showError(err.message || 'Error fetching data')
@@ -23,6 +27,9 @@ export async function fetchFiles(source, path, content = false) {
 }
 
 async function resourceAction(source, path, method, content) {
+  if (!source || source === undefined || source === null) {
+    throw new Error('no source provided')
+  }
   try {
     source = doubleEncode(source)
     path = doubleEncode(path)
@@ -40,6 +47,9 @@ async function resourceAction(source, path, method, content) {
 }
 
 export async function remove(source, path) {
+  if (!source || source === undefined || source === null) {
+    throw new Error('no source provided')
+  }
   try {
     return await resourceAction( source, path, 'DELETE')
   } catch (err) {
@@ -49,6 +59,9 @@ export async function remove(source, path) {
 }
 
 export async function put(source, path, content = '') {
+  if (!source) {
+    throw new Error('no source provided')
+  }
   try {
     return await resourceAction(source, path, 'PUT', content)
   } catch (err) {
@@ -94,6 +107,9 @@ export function post(
   onupload,
   headers = {}
 ) {
+  if (!source || source === undefined || source === null) {
+    throw new Error('no source provided')
+  }
   try {
     const apiPath = getApiPath("api/resources", {
       path: doubleEncode(path),
@@ -206,6 +222,9 @@ export async function moveCopy(
 }
 
 export async function checksum(source, path, algo) {
+  if (!source || source === undefined || source === null) {
+    throw new Error('no source provided')
+  }
   try {
     const params = {
       path: doubleEncode(path),
@@ -223,6 +242,9 @@ export async function checksum(source, path, algo) {
 }
 
 export function getDownloadURL(source, path, inline, useExternal) {
+  if (!source || source === undefined || source === null) {
+    throw new Error('no source provided')
+  }
   try {
     const params = {
       files: encodeURIComponent(source) + '::' + encodeURIComponent(path),
@@ -240,6 +262,9 @@ export function getDownloadURL(source, path, inline, useExternal) {
 }
 
 export function getPreviewURL(source, path, modified) {
+  if (!source || source === undefined || source === null) {
+    throw new Error('no source provided')
+  }
   try {
     const params = {
       path: encodeURIComponent(path),

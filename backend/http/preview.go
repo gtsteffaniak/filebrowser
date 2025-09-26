@@ -61,13 +61,12 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	if err != nil {
 		return http.StatusForbidden, err
 	}
-	fileInfo, err := files.FileInfoFaster(iteminfo.FileOptions{
-		Access:   store.Access,
+	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
 		Username: d.user.Username,
 		Path:     utils.JoinPathAsUnix(userscope, path),
 		Source:   source,
 		Content:  true,
-	})
+	}, store.Access)
 	if err != nil {
 		return errToStatus(err), err
 	}
@@ -119,11 +118,11 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 					path = utils.JoinPathAsUnix(d.share.Path, path)
 				}
 				fileInfo, err := files.FileInfoFaster(
-					iteminfo.FileOptions{
+					utils.FileOptions{
 						Path:    path,
 						Source:  source,
 						Content: true,
-					})
+					}, store.Access)
 				if err != nil {
 					return http.StatusInternalServerError, err
 				}

@@ -92,21 +92,21 @@ func TestSearchWhileIndexing(t *testing.T) {
 func TestSearchIndexes(t *testing.T) {
 	index := Index{
 		Directories: map[string]*iteminfo.FileInfo{
-			"/":          {Files: []iteminfo.ItemInfo{{Name: "audio-one.wav", Type: "audio"}}},
-			"/test":      {Files: []iteminfo.ItemInfo{{Name: "audio-one.wav", Type: "audio"}}},
-			"/test/path": {Files: []iteminfo.ItemInfo{{Name: "file.txt", Type: "text"}}},
-			"/new/test": {Files: []iteminfo.ItemInfo{
+			"/":           {Files: []iteminfo.ItemInfo{{Name: "audio-one.wav", Type: "audio"}}},
+			"/test/":      {Files: []iteminfo.ItemInfo{{Name: "audio-one.wav", Type: "audio"}}},
+			"/test/path/": {Files: []iteminfo.ItemInfo{{Name: "file.txt", Type: "text"}}},
+			"/new/test/": {Files: []iteminfo.ItemInfo{
 				{Name: "audio.wav", Type: "audio"},
 				{Name: "video.mp4", Type: "video"},
 				{Name: "video.MP4", Type: "video"},
 			}},
-			"/first Dir": {
+			"/first Dir/": {
 				Files: []iteminfo.ItemInfo{
 					{Name: "space jam.zip", Size: 100, Type: "archive"},
 				},
 			},
-			"/new/test/path": {Files: []iteminfo.ItemInfo{{Name: "archive.zip", Type: "archive"}}},
-			"/firstDir": {
+			"/new/test/path/": {Files: []iteminfo.ItemInfo{{Name: "archive.zip", Type: "archive"}}},
+			"/firstDir/": {
 				Files: []iteminfo.ItemInfo{
 					{Name: "archive.zip", Size: 100, Type: "archive"},
 				},
@@ -114,7 +114,7 @@ func TestSearchIndexes(t *testing.T) {
 					{Name: "thisIsDir", Type: "directory", Size: 2 * 1024 * 1024},
 				},
 			},
-			"/firstDir/thisIsDir": {
+			"/firstDir/thisIsDir/": {
 				Files: []iteminfo.ItemInfo{
 					{Name: "hi.txt", Type: "text"},
 				},

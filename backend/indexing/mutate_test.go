@@ -121,7 +121,7 @@ func TestGetFileMetadata(t *testing.T) {
 // Test for UpdateFileMetadata
 func TestUpdateFileMetadata(t *testing.T) {
 	info := &iteminfo.FileInfo{
-		Path: "/testpath",
+		Path: "/testpath/",
 		Files: []iteminfo.ItemInfo{
 			{Name: "testfile.txt"},
 			{Name: "anotherfile.txt"},
@@ -130,7 +130,7 @@ func TestUpdateFileMetadata(t *testing.T) {
 
 	index := &Index{
 		Directories: map[string]*iteminfo.FileInfo{
-			"/testpath": info,
+			"/testpath/": info,
 		},
 	}
 
@@ -205,8 +205,8 @@ func init() {
 		},
 
 		Directories: map[string]*iteminfo.FileInfo{
-			"/testpath": {
-				Path: "/testpath",
+			"/testpath/": {
+				Path: "/testpath/",
 				ItemInfo: iteminfo.ItemInfo{
 					Name: "testpath",
 					Type: "directory",
@@ -216,8 +216,8 @@ func init() {
 					{Name: "anotherfile.txt", Size: 100},
 				},
 			},
-			"/anotherpath": {
-				Path: "/anotherpath",
+			"/anotherpath/": {
+				Path: "/anotherpath/",
 				ItemInfo: iteminfo.ItemInfo{
 					Name: "anotherpath",
 					Type: "directory",

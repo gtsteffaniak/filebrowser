@@ -4,6 +4,7 @@
 package indexing
 
 import (
+	"strings"
 	"syscall"
 )
 
@@ -31,4 +32,20 @@ func getFileDetails(sys any) (uint64, uint64, uint64, bool) {
 		return realSize, uint64(stat.Nlink), stat.Ino, true
 	}
 	return 0, 1, 0, false
+}
+
+// platform specific rules
+func (idx *Index) MakeIndexPathPlatform(path string) string {
+	if idx.mock {
+		// also do windows check for testing
+		split := strings.Split(path, "\\")
+		if len(split) > 1 {
+			path = strings.Join(split, "/")
+		} else {
+			path = "/" + strings.TrimPrefix(path, "/")
+		}
+	} else {
+		path = "/" + strings.TrimPrefix(path, "/")
+	}
+	return path
 }
