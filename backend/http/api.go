@@ -46,10 +46,11 @@ func createApiKeyHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	}
 	// Parse permissions from the query parameter
 	permissions := users.Permissions{
-		Api:    strings.Contains(permissionsStr, "api") && d.user.Permissions.Api,
-		Admin:  strings.Contains(permissionsStr, "admin") && d.user.Permissions.Admin,
-		Modify: strings.Contains(permissionsStr, "modify") && d.user.Permissions.Modify,
-		Share:  strings.Contains(permissionsStr, "share") && d.user.Permissions.Share,
+		Api:      strings.Contains(permissionsStr, "api") && d.user.Permissions.Api,
+		Admin:    strings.Contains(permissionsStr, "admin") && d.user.Permissions.Admin,
+		Modify:   strings.Contains(permissionsStr, "modify") && d.user.Permissions.Modify,
+		Share:    strings.Contains(permissionsStr, "share") && d.user.Permissions.Share,
+		Realtime: strings.Contains(permissionsStr, "realtime") && d.user.Permissions.Realtime,
 	}
 
 	// Convert the duration string to an int64
