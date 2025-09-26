@@ -257,7 +257,12 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	if idx == nil {
 		return http.StatusForbidden, fmt.Errorf("source with name not found: %s", body.Source)
 	}
-
+	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, source.Name)
+	if err != nil {
+		return http.StatusForbidden, err
+	}
+	scopePath := utils.JoinPathAsUnix(userscope, body.Path)
+	body.Path = scopePath
 	// validate path exists as file or folder
 	_, exists := idx.GetReducedMetadata(body.Path, true) // true to check if it exists
 	if !exists {
@@ -267,13 +272,6 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 			return http.StatusForbidden, fmt.Errorf("path not found: %s", body.Path)
 		}
 	}
-
-	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, source.Name)
-	if err != nil {
-		return http.StatusForbidden, err
-	}
-	scopePath := utils.JoinPathAsUnix(userscope, body.Path)
-	body.Path = scopePath
 	body.Source = source.Path // backend source is path
 	s = &share.Link{
 		Expire:       expire,
