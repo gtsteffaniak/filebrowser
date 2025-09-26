@@ -25,7 +25,7 @@ import { state } from "@/store";
 import { filesApi } from "@/api";
 import { getters, mutations } from "@/store"; // Import your custom store
 import { notify } from "@/notify";
-import { goToItem } from "@/utils/url";
+import { url } from "@/utils";
 
 export default {
   name: "new-file",
@@ -55,11 +55,11 @@ export default {
         notify.showError(error);
       }
     },
-    
+
     async createFile(overwrite = false) {
       try {
-        await filesApi.post(state.req.source, state.req.path + "/" + this.name, "", overwrite);
-        goToItem(state.req.source, state.req.path + "/" + this.name);
+        await filesApi.post(state.req.source, url.joinPath(state.req.path, this.name), "", overwrite);
+        url.goToItem(state.req.source, url.joinPath(state.req.path, this.name));
         mutations.closeHovers();
       } catch (error) {
         if (error.message === "conflict") {
@@ -76,12 +76,11 @@ export default {
                   const originalName = this.name;
                   const maxAttempts = 100;
                   let success = false;
-                  
                   for (let counter = 1; counter <= maxAttempts && !success; counter++) {
                     try {
                       const newName = counter === 1 ? `${originalName} (1)` : `${originalName} (${counter})`;
-                      await filesApi.post(state.req.source, state.req.path + "/" + newName, "", false);
-                      goToItem(state.req.source, state.req.path + "/" + newName);
+                      await filesApi.post(state.req.source, url.joinPath(state.req.path, newName), "", false);
+                      url.goToItem(state.req.source, url.joinPath(state.req.path, newName));
                       mutations.closeHovers();
                       success = true;
                     } catch (renameError) {
@@ -93,7 +92,6 @@ export default {
                       }
                     }
                   }
-                  
                   if (!success) {
                     throw new Error("Could not find a unique name after " + maxAttempts + " attempts");
                   }

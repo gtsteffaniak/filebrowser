@@ -1,5 +1,3 @@
-import * as url from "./url.js";
-
 export {
-  url,
-};
+  default as url,
+} from "./url.js";

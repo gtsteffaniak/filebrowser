@@ -1,4 +1,5 @@
 import { removePrefix, buildItemUrl, removeLeadingSlash } from '@/utils/url.js'
+import { url } from '@/utils'
 import { getFileExtension } from '@/utils/files.js'
 import { state, mutations } from '@/store'
 import { globalVars, shareInfo, previewViews } from '@/utils/constants.js'
@@ -220,7 +221,7 @@ export const getters = {
     let urlPath = getters.routePath('public/share')
     let path =  "/" + removeLeadingSlash(urlPath.split(shareInfo.hash)[1])
     if (subPath != "") {
-      path += "/" + removeLeadingSlash(subPath)
+      path = url.joinPath(path, removeLeadingSlash(subPath))
     }
     return path
   },

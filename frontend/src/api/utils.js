@@ -62,9 +62,17 @@ export function adjustedData(data) {
     data.items = data.items.map((item) => {
       item.source = data.source
       if (data.path == "/") {
-        item.path = `/${item.name}`
+        if (item.type === "directory") {
+        item.path = `/${item.name}/`
+        } else {
+          item.path = `/${item.name}`
+        }
       } else {
-        item.path = `${data.path}/${item.name}`
+        if (item.type === "directory") {
+          item.path = `${data.path}${item.name}/`
+        } else {
+          item.path = `${data.path}${item.name}`
+        }
       }
       return item;
     });

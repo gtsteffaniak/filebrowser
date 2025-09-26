@@ -25,8 +25,8 @@ var (
 
 // actionConfig holds all configuration options for indexing operations
 type actionConfig struct {
-	Quick     bool // whether to perform a quick scan (skip unchanged directories)
-	Recursive bool // whether to recursively index subdirectories
+	Quick      bool // whether to perform a quick scan (skip unchanged directories)
+	Recursive  bool // whether to recursively index subdirectories
 	ForceCheck bool // whether to check indexing skip rules.
 }
 
@@ -233,8 +233,8 @@ func (idx *Index) GetFsDirInfo(adjustedPath string) (*iteminfo.FileInfo, error) 
 	}
 	var response *iteminfo.FileInfo
 	response, err = idx.GetDirInfo(dir, dirInfo, realPath, adjustedPath, combinedPath, &actionConfig{
-		Quick:     false,
-		Recursive: false,
+		Quick:      false,
+		Recursive:  false,
 		ForceCheck: true,
 	})
 	if err != nil {
@@ -431,27 +431,6 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 	return dirFileInfo, nil
 }
 
-// input should be non-index path.
-func (idx *Index) MakeIndexPath(subPath string) string {
-	if strings.HasPrefix(subPath, "./") {
-		subPath = strings.TrimPrefix(subPath, ".")
-	}
-	if idx.Path == subPath || subPath == "." {
-		return "/"
-	}
-	// clean path
-	subPath = strings.TrimSuffix(subPath, "/")
-	adjustedPath := strings.TrimPrefix(subPath, idx.Path)
-	// remove index prefix
-	adjustedPath = strings.ReplaceAll(adjustedPath, "\\", "/")
-	// remove trailing slash
-	adjustedPath = strings.TrimSuffix(adjustedPath, "/")
-	if !strings.HasPrefix(adjustedPath, "/") {
-		adjustedPath = "/" + adjustedPath
-	}
-	return adjustedPath
-}
-
 func (idx *Index) recursiveUpdateDirSizes(childInfo *iteminfo.FileInfo, previousSize int64) {
 	parentDir := utils.GetParentDirectoryPath(childInfo.Path)
 	parentInfo, exists := idx.GetMetadataInfo(parentDir, true)
@@ -486,7 +465,7 @@ func (idx *Index) GetRealPath(relativePath ...string) (string, bool, error) {
 	return realPath, isDir, err
 }
 
-func (idx *Index) RefreshFileInfo(opts iteminfo.FileOptions) error {
+func (idx *Index) RefreshFileInfo(opts utils.FileOptions) error {
 	config := &actionConfig{
 		Quick:     false,
 		Recursive: opts.Recursive,
@@ -698,4 +677,15 @@ func (idx *Index) handleFile(file os.FileInfo, fullCombined string) (size uint64
 	idx.totalSize += realSize
 	idx.mu.Unlock()
 	return realSize, true // Count size.
+}
+
+// input should be non-index path.
+func (idx *Index) MakeIndexPath(path string) string {
+	if path == "." || strings.HasPrefix(path, "./") {
+		path = strings.TrimPrefix(path, ".")
+	}
+	path = strings.TrimPrefix(path, idx.Path)
+	path = idx.MakeIndexPathPlatform(path)
+	path = strings.TrimSuffix(path, "/") + "/"
+	return path
 }

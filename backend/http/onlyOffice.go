@@ -87,12 +87,12 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 		}
 		indexPath := utils.JoinPathAsUnix(userScope, path)
 		logger.Debugf("OnlyOffice user request: resolved path=%s", indexPath)
-		fileInfo, err := files.FileInfoFaster(iteminfo.FileOptions{
+		fileInfo, err := files.FileInfoFaster(utils.FileOptions{
 			Path:   indexPath,
 			Modify: d.user.Permissions.Modify,
 			Source: source,
 			Expand: false,
-		})
+		}, store.Access)
 		if err != nil {
 			logger.Errorf("OnlyOffice: failed to get file info for source=%s, path=%s: %v", source, indexPath, err)
 			return errToStatus(err), err
@@ -332,7 +332,7 @@ func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *reques
 		}
 
 		// Write the updated document
-		fileOpts := iteminfo.FileOptions{
+		fileOpts := utils.FileOptions{
 			Path:   resolvedPath,
 			Source: source,
 		}

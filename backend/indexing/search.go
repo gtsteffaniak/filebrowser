@@ -53,9 +53,7 @@ func (idx *Index) Search(search string, scope string, sourceSession string) []Se
 		}
 		idx.mu.Lock()
 		for _, dirName := range directories {
-			idx.mu.Unlock()
-			dir, found := idx.GetReducedMetadata(dirName, true)
-			idx.mu.Lock()
+			dir, found := idx.Directories[dirName]
 			if !found {
 				continue
 			}
@@ -69,15 +67,12 @@ func (idx *Index) Search(search string, scope string, sourceSession string) []Se
 			}
 			matches := reducedDir.ContainsSearchTerm(searchTerm, searchOptions)
 			if matches {
-				results[dirName+"/"] = SearchResult{Path: dirName + "/", Type: "directory", Size: dir.Size}
+				results[dirName] = SearchResult{Path: dirName, Type: "directory", Size: dir.Size}
 				count++
 			}
 			// search files first
 			for _, item := range dir.Files {
-				fullPath := dirName + "/" + item.Name
-				if dirName == "/" {
-					fullPath = dirName + item.Name
-				}
+				fullPath := filepath.Join(dirName, item.Name)
 				value, found := sessionInProgress.Load(sourceSession)
 				if !found || value != runningHash {
 					idx.mu.Unlock()
