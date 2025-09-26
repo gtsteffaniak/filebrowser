@@ -11,6 +11,9 @@ All notable changes to this project will be documented in this file. For commit 
  **BugFixes**:
  - error when running without a config file #1280
  - Issue persist in 0.8.7 with Access Management #1282
+ - all static resources go through /public/static url to fix logout loop #995
+ - "realtime" Permission of API keys is not working #1141
+ - "Path not found" when trying to share a file or folder inside a sub-directory #1139
 
 ## v0.8.7-beta
 

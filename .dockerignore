@@ -1,5 +1,6 @@
 backend/**.db
 backend/tmp
+backend/dist
 backend/backend*
 backend/vendor/**
 frontend/dist/**
