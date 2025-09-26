@@ -499,11 +499,6 @@ const docTemplate = `{
         },
         "/api/auth/otp/generate": {
             "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
                 "description": "Generates a new TOTP secret and QR code for the authenticated user.",
                 "consumes": [
                     "application/json"
@@ -534,16 +529,16 @@ const docTemplate = `{
                             }
                         }
                     }
-                }
-            }
-        },
-        "/api/auth/otp/verify": {
-            "post": {
+                },
                 "security": [
                     {
                         "ApiKeyAuth": []
                     }
-                ],
+                ]
+            }
+        },
+        "/api/auth/otp/verify": {
+            "post": {
                 "description": "Verifies the provided TOTP code for the authenticated user.",
                 "consumes": [
                     "application/json"
@@ -580,7 +575,12 @@ const docTemplate = `{
                             }
                         }
                     }
-                }
+                },
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ]
             }
         },
         "/api/auth/token": {

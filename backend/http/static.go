@@ -51,10 +51,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 	}
 
 	defaultThemeColor := "#455a64"
-	staticURL := config.Server.BaseURL + "static"
-	if d.share != nil {
-		staticURL = config.Server.BaseURL + "public/static"
-	}
+	staticURL := config.Server.BaseURL + "public/static"
 
 	// Use custom favicon if configured and validated, otherwise fall back to default
 	var favicon string

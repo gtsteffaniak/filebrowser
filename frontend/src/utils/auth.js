@@ -76,11 +76,9 @@ export async function logout() {
       // Handle potential errors from the API, e.g., res.status 401, 500
       console.error("Logout API call failed:", res.status, res.statusText);
     }
-
   } catch (e) {
     console.error("An error occurred during logout:", e);
   }
-
 }
 
 // Helper function to retrieve the value of a specific cookie
