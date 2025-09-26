@@ -1,10 +1,8 @@
 package iteminfo
 
 import (
-	"path/filepath"
 	"time"
 
-	"github.com/gtsteffaniak/filebrowser/backend/database/access"
 	"github.com/gtsteffaniak/filebrowser/backend/ffmpeg"
 )
 
@@ -51,22 +49,4 @@ type ExtendedFileInfo struct {
 	Source       string                 `json:"source,omitempty"`       // associated index source for the file
 	Hash         string                 `json:"hash,omitempty"`         // hash for the file -- used for sharing
 	RealPath     string                 `json:"-"`
-}
-
-// FileOptions are the options when getting a file info.
-type FileOptions struct {
-	Access     *access.Storage
-	Username   string // username for access control
-	Path       string // realpath
-	Source     string
-	IsDir      bool
-	Modify     bool
-	Expand     bool
-	ReadHeader bool
-	Content    bool
-	Recursive  bool // whether to recursively index directories
-}
-
-func (f FileOptions) Components() (string, string) {
-	return filepath.Dir(f.Path), filepath.Base(f.Path)
 }

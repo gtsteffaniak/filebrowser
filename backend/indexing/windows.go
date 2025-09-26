@@ -4,6 +4,8 @@
 package indexing
 
 import (
+	"strings"
+
 	"golang.org/x/sys/windows"
 )
 
@@ -50,4 +52,15 @@ func getFileDetails(sys any) (uint64, uint64, uint64, bool) {
 	// which does not contain inode or link count information.
 	// We return false to indicate that we should use the fallback mechanism.
 	return 0, 1, 0, false
+}
+
+// input should be non-index path.
+func (idx *Index) MakeIndexPathPlatform(path string) string {
+	split := strings.Split(path, "\\")
+	if len(split) > 1 {
+		path = strings.Join(split, "/")
+	} else {
+		path = "/" + strings.TrimPrefix(path, "/")
+	}
+	return path
 }

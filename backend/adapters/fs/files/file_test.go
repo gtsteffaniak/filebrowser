@@ -7,10 +7,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
-	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
 )
 
 func Test_GetRealPath(t *testing.T) {
@@ -273,7 +274,7 @@ func TestOverrideDirectoryToFile(t *testing.T) {
 	}
 
 	// Now try to create a file with the same name (should work with override)
-	fileOpts := iteminfo.FileOptions{
+	fileOpts := utils.FileOptions{
 		Path:   "/Test Object",
 		Source: "test",
 	}
@@ -337,7 +338,7 @@ func TestOverrideFileToDirectory(t *testing.T) {
 	}
 
 	// Now try to create a directory with the same name (should work with override)
-	fileOpts := iteminfo.FileOptions{
+	fileOpts := utils.FileOptions{
 		Path:   "/Test Object/",
 		Source: "test",
 	}

@@ -89,15 +89,14 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	if d.share != nil && d.share.DisableFileViewer {
 		getContent = false
 	}
-	fileInfo, err := files.FileInfoFaster(iteminfo.FileOptions{
-		Access:   store.Access,
+	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
 		Username: d.user.Username,
 		Path:     scopePath,
 		Modify:   d.user.Permissions.Modify,
 		Source:   source,
 		Expand:   true,
 		Content:  getContent,
-	})
+	}, store.Access)
 	if err != nil {
 		return errToStatus(err), err
 	}
@@ -163,14 +162,13 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 	if err != nil {
 		return http.StatusForbidden, err
 	}
-	fileInfo, err := files.FileInfoFaster(iteminfo.FileOptions{
-		Access:   store.Access,
+	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
 		Username: d.user.Username,
 		Path:     utils.JoinPathAsUnix(userscope, path),
 		Source:   source,
 		Modify:   d.user.Permissions.Modify,
 		Expand:   false,
-	})
+	}, store.Access)
 	if err != nil {
 		return errToStatus(err), err
 	}
@@ -225,8 +223,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		logger.Debugf("error getting scope from source name: %v", err)
 		return http.StatusForbidden, err
 	}
-	fileOpts := iteminfo.FileOptions{
-		Access:   store.Access,
+	fileOpts := utils.FileOptions{
 		Username: d.user.Username,
 		Path:     utils.JoinPathAsUnix(userscope, path),
 		Source:   source,
@@ -239,6 +236,12 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		return http.StatusNotFound, fmt.Errorf("source %s not found", source)
 	}
 	realPath, _, _ := idx.GetRealPath(userscope, path)
+
+	// Check access control for the target path
+	if store.Access != nil && !store.Access.Permitted(idx.Path, path, d.user.Username) {
+		logger.Debugf("user %s denied access to path %s", d.user.Username, path)
+		return http.StatusForbidden, fmt.Errorf("access denied to path %s", path)
+	}
 	isDir := strings.HasSuffix(path, "/")
 
 	// Check for file/folder conflicts before creation
@@ -296,7 +299,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 			}
 
 			var fileInfo *iteminfo.ExtendedFileInfo
-			fileInfo, err = files.FileInfoFaster(fileOpts)
+			fileInfo, err = files.FileInfoFaster(fileOpts, store.Access)
 			if err == nil { // File exists
 				if r.URL.Query().Get("override") != "true" {
 					logger.Debugf("resource already exists: %v", fileInfo.RealPath)
@@ -373,7 +376,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		}
 	}
 
-	fileInfo, err := files.FileInfoFaster(fileOpts)
+	fileInfo, err := files.FileInfoFaster(fileOpts, store.Access)
 	if err == nil {
 		if r.URL.Query().Get("override") != "true" {
 			logger.Debugf("Resource already exists: %v", fileInfo.RealPath)
@@ -431,14 +434,24 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	if err != nil {
 		return http.StatusForbidden, err
 	}
-	fileOpts := iteminfo.FileOptions{
-		Access:   store.Access,
+	fileOpts := utils.FileOptions{
 		Username: d.user.Username,
 		Path:     utils.JoinPathAsUnix(userscope, path),
 		Source:   source,
 		Modify:   d.user.Permissions.Modify,
 		Expand:   false,
 	}
+
+	// Check access control for the target path
+	idx := indexing.GetIndex(source)
+	if idx == nil {
+		return http.StatusNotFound, fmt.Errorf("source %s not found", source)
+	}
+	if store.Access != nil && !store.Access.Permitted(idx.Path, path, d.user.Username) {
+		logger.Debugf("user %s denied access to path %s", d.user.Username, path)
+		return http.StatusForbidden, fmt.Errorf("access denied to path %s", path)
+	}
+
 	err = files.WriteFile(fileOpts, r.Body)
 	return errToStatus(err), err
 }
@@ -526,6 +539,18 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	if err != nil {
 		return http.StatusNotFound, err
 	}
+
+	// Check access control for both source and destination paths
+	if store.Access != nil {
+		if !store.Access.Permitted(idx2.Path, src, d.user.Username) {
+			logger.Debugf("user %s denied access to source path %s", d.user.Username, src)
+			return http.StatusForbidden, fmt.Errorf("access denied to source path %s", src)
+		}
+		if !store.Access.Permitted(idx.Path, dst, d.user.Username) {
+			logger.Debugf("user %s denied access to destination path %s", d.user.Username, dst)
+			return http.StatusForbidden, fmt.Errorf("access denied to destination path %s", dst)
+		}
+	}
 	overwrite := r.URL.Query().Get("overwrite") == "true"
 	rename := r.URL.Query().Get("rename") == "true"
 	if rename {
@@ -594,8 +619,7 @@ func patchAction(ctx context.Context, params patchActionParams) error {
 	case "rename", "move":
 		idx := indexing.GetIndex(params.srcIndex)
 		srcPath := idx.MakeIndexPath(params.src)
-		fileInfo, err := files.FileInfoFaster(iteminfo.FileOptions{
-			Access:     store.Access,
+		fileInfo, err := files.FileInfoFaster(utils.FileOptions{
 			Username:   params.d.user.Username,
 			Path:       srcPath,
 			Source:     params.srcIndex,
@@ -603,7 +627,7 @@ func patchAction(ctx context.Context, params patchActionParams) error {
 			Modify:     params.d.user.Permissions.Modify,
 			Expand:     false,
 			ReadHeader: false,
-		})
+		}, store.Access)
 
 		if err != nil {
 			return err

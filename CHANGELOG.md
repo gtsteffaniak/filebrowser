@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **BugFixes**:
  - error when running without a config file #1280
+ - Issue persist in 0.8.7 with Access Management #1282
 
 ## v0.8.7-beta
 

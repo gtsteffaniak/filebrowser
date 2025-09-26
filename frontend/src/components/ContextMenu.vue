@@ -411,8 +411,7 @@ export default {
       return mutations.showHover(value);
     },
     showShareHover() {
-      mutations.showHover({
-        name: "share",
+      mutations.showHover({name: "share",
         props: {
           item: getters.selectedCount() == 1 ? getters.getFirstSelected() : state.req
         },

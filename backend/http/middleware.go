@@ -92,13 +92,13 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		if link.DisableFileViewer || reachedDownloadsLimit {
 			getContent = false
 		}
-		file, err := FileInfoFasterFunc(iteminfo.FileOptions{
+		file, err := FileInfoFasterFunc(utils.FileOptions{
 			Path:    utils.JoinPathAsUnix(link.Path, path),
 			Source:  link.Source,
 			Modify:  false,
 			Expand:  true,
 			Content: getContent,
-		})
+		}, store.Access)
 		if err != nil {
 			logger.Errorf("error fetching file info for share. hash=%v path=%v error=%v", hash, path, err)
 			return errToStatus(err), fmt.Errorf("error fetching share from server")

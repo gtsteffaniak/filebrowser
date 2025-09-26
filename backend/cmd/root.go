@@ -110,6 +110,7 @@ func StartFilebrowser() {
 	}
 	validateUserInfo()
 	validateOfficeIntegration()
+	validateAccessRules()
 	// Start the rootCMD in a goroutine
 	go func() {
 		if err := rootCMD(ctx, store, &serverConfig, shutdownComplete); err != nil {

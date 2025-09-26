@@ -169,7 +169,7 @@ export default {
       if (!globalVars.enableThumbs) {
         return "";
       }
-      const previewPath = url.removeTrailingSlash(state.req.path) + "/" + this.name;
+      const previewPath = url.joinPath(state.req.path, this.name);
       if (getters.isShare()) {
         return publicApi.getPreviewURL(previewPath);
       }
@@ -321,7 +321,7 @@ export default {
           // @ts-ignore
           fromSource: state.req.items[i].source,
           // @ts-ignore
-          to: this.path + "/" + state.req.items[i].name,
+          to: url.joinPath(this.path, state.req.items[i].name),
           toSource: this.source,
         });
       }

@@ -409,6 +409,7 @@ export const mutations = {
       item.index = index;
       return item;
     })
+
     state.req = value;
     emitStateChanged();
   },
@@ -563,7 +564,7 @@ export const mutations = {
       let item = listing[j];
       if (item.type === 'directory') continue;
 
-      item.path = directoryPath + "/" + item.name;
+      item.path = url.joinPath(directoryPath, item.name);
       state.navigation.previousItem = item;
       state.navigation.previousLink = url.buildItemUrl(item.source, item.path);
 
@@ -578,7 +579,7 @@ export const mutations = {
       let item = listing[j];
       if (item.type === 'directory') continue;
 
-      item.path = directoryPath + "/" + item.name;
+      item.path = url.joinPath(directoryPath, item.name);
       state.navigation.nextItem = item;
       state.navigation.nextLink = url.buildItemUrl(item.source, item.path);
 

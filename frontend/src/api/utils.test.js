@@ -55,7 +55,7 @@ describe('adjustedData', () => {
         { name: "file1.txt", type: "file" },
         { name: "file2.txt", type: "file" },
       ],
-      path: "/root"
+      path: "/root/"
     };
 
     const expected = {
@@ -63,12 +63,12 @@ describe('adjustedData', () => {
       folders: [],
       files: [],
       items: [
-        { name: "folder1", path: "/root/folder1", source: undefined, type: "directory" },
-        { name: "folder2", path: "/root/folder2", source: undefined, type: "directory" },
+        { name: "folder1", path: "/root/folder1/", source: undefined, type: "directory" },
+        { name: "folder2", path: "/root/folder2/", source: undefined, type: "directory" },
         { name: "file1.txt", path: "/root/file1.txt", source: undefined, type: "file" },
         { name: "file2.txt", path: "/root/file2.txt", source: undefined, type: "file" },
       ],
-      path: "/root",
+      path: "/root/",
     };
 
     expect(adjustedData(input)).toEqual(expected);
