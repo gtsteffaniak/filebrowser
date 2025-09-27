@@ -98,6 +98,8 @@ export default {
     mutations.setCurrentUser(null);
     mutations.setJWT("");
     document.cookie = "auth=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/";
+    console.log(state.route.query.redirect);
+    console.log(state.route);
     let redirect = state.route.query.redirect;
     if (redirect === "" || redirect === undefined || redirect === null) {
       redirect = globalVars.baseURL + "files/";

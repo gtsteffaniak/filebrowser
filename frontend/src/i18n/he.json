@@ -195,7 +195,8 @@
     "moveSuccess": "הקבצים הועברו בהצלחה!",
     "copySuccess": "הקבצים הועתקו בהצלחה!",
     "lastModified": "שינוי אחרון{suffix}",
-    "size": "גודל{suffix}"
+    "size": "גודל{suffix}",
+    "operationInProgress": "הפעולה מתבצעת, אנא המתן..."
   },
   "search": {
     "images": "תמונות",

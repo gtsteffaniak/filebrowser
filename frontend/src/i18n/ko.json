@@ -195,7 +195,8 @@
     "moveSuccess": "파일이 성공적으로 이동했습니다!",
     "copySuccess": "파일이 성공적으로 복사되었습니다!",
     "lastModified": "마지막 수정{suffix}",
-    "size": "크기{suffix}"
+    "size": "크기{suffix}",
+    "operationInProgress": "작업이 진행 중입니다 잠시만 기다려주세요..."
   },
   "search": {
     "images": "이미지",

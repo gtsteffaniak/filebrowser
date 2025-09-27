@@ -195,7 +195,8 @@
     "moveSuccess": "Fájlok sikeresen áthelyezve!",
     "copySuccess": "A fájlok másolása sikeres volt!",
     "lastModified": "Utoljára módosítva{suffix}",
-    "size": "Méret{suffix}"
+    "size": "Méret{suffix}",
+    "operationInProgress": "Művelet folyamatban, kérjük várjon..."
   },
   "search": {
     "images": "Képek",

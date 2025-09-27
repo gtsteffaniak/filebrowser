@@ -186,6 +186,7 @@
     "enableOnlyOfficeEditingDescription": "Allow editing of office files using OnlyOffice in this share."
   },
   "prompts": {
+    "operationInProgress": "Operation in progress, please wait...",
     "quickJump": "Quickly jump to other files",
     "downloadsLimit": "Number of downloads limit",
     "maxBandwidth": "Max download bandwidth (kbps)",

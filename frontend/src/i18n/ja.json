@@ -195,7 +195,8 @@
     "uploadSettingsChunked": "最大同時アップロード数：{maxConcurrentUpload}、チャンクサイズ：{uploadChunkSizeMb}MB",
     "uploadSettingsNoChunk": "最大同時アップロード数：{maxConcurrentUpload}、チャンクアップロード無効",
     "lastModified": "最終更新日{suffix}",
-    "size": "サイズ{suffix}"
+    "size": "サイズ{suffix}",
+    "operationInProgress": "操作中です、しばらくお待ちください..."
   },
   "search": {
     "images": "画像",

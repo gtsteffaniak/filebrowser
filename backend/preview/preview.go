@@ -211,9 +211,7 @@ func GeneratePreviewWithMD5(file iteminfo.ExtendedFileInfo, previewSize, officeU
 		if videoSeekPercentage == 0 {
 			videoSeekPercentage = 10
 		}
-		outPathPattern := filepath.Join(settings.Config.Server.CacheDir, "thumbnails", "videos", hash) + ".jpg"
-		defer os.Remove(outPathPattern) // cleanup
-		imageBytes, err = service.GenerateVideoPreview(file.RealPath, outPathPattern, videoSeekPercentage)
+		imageBytes, err = service.GenerateVideoPreview(file.RealPath, videoSeekPercentage)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create image for video file: %w", err)
 		}

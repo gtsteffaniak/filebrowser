@@ -6,6 +6,12 @@ on:
       - "**"
 
 jobs:
+  check-translations:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - working-directory: frontend
+        run: npm run i18n:check
   test-backend:
     runs-on: ubuntu-latest
     steps:

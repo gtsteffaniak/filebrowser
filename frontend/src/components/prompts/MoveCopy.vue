@@ -4,6 +4,14 @@
   </div>
 
   <div class="card-content">
+    <!-- Loading spinner overlay -->
+    <div v-if="isLoading" class="loading-overlay">
+      <div class="loading-content">
+        <div class="spinner"></div>
+        <p class="loading-text">{{ $t("prompts.operationInProgress") }}</p>
+      </div>
+    </div>
+
     <p v-if="operation === 'copy'">{{ $t("prompts.copyMessage") }}</p>
 
     <file-list ref="fileList" @update:selected="updateDestination">
@@ -56,6 +64,7 @@ export default {
       destPath: "/", // Start at root of selected source
       destSource: null, // Will be set by FileList component
       items: [],
+      isLoading: false, // Track loading state for spinner
     };
   },
   computed: {
@@ -126,6 +135,7 @@ export default {
     },
     performOperation: async function (event) {
       event.preventDefault();
+      this.isLoading = true; // Show loading spinner
       try {
         // Define the action function
         let action = async (overwrite, rename) => {
@@ -182,8 +192,60 @@ export default {
         }
       } catch (error) {
         notify.showError(error);
+      } finally {
+        this.isLoading = false; // Hide loading spinner
       }
     },
   },
 };
 </script>
+
+<style scoped>
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  border-radius: 4px;
+}
+
+.loading-content {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #2196f3;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.loading-text {
+  margin: 0;
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Make card-content position relative for absolute positioning of overlay */
+.card-content {
+  position: relative;
+}
+</style>

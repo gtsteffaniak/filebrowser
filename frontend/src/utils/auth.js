@@ -1,6 +1,5 @@
 import { mutations, getters,state } from "@/store";
-import { usersApi } from "@/api";
-import { getApiPath } from "@/utils/url.js";
+import { getApiPath, getPublicApiPath } from "@/utils/url.js";
 import { globalVars } from "@/utils/constants";
 
 export async function setNewToken(token) {
@@ -9,9 +8,22 @@ export async function setNewToken(token) {
 }
 
 export async function validateLogin() {
-  let userInfo = await usersApi.get("self");
+  // Use direct fetch to avoid automatic logout on 401
+  let apiPath = getPublicApiPath('users', { id: 'self' });
+  const res = await fetch(apiPath, {
+    headers: {
+      "sessionId": state.sessionId,
+    }
+  });
+  
+  if (res.status !== 200) {
+    throw new Error(`{"status":${res.status},"message":"${await res.text()}"}`);
+  }
+  
+  const userInfo = await res.json();
   mutations.setCurrentUser(userInfo);
   getters.isLoggedIn()
+  
   if (state.user.loginMethod == "proxy") {
     let apiPath = getApiPath("api/auth/login")
     const res = await fetch(apiPath, {

@@ -195,7 +195,8 @@
     "moveSuccess": "Dosyalar başarıyla taşındı!",
     "copySuccess": "Dosyalar başarıyla kopyalandı!",
     "lastModified": "Son Değişiklik{suffix}",
-    "size": "Boyut{suffix}"
+    "size": "Boyut{suffix}",
+    "operationInProgress": "İşlem devam ediyor, lütfen bekleyin..."
   },
   "search": {
     "images": "Görseller",

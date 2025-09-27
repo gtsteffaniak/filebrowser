@@ -244,7 +244,8 @@
     "moveSuccess": "Soubory byly úspěšně přesunuty!",
     "copySuccess": "Soubory byly úspěšně zkopírovány!",
     "lastModified": "Poslední úprava{suffix}",
-    "size": "Velikost{suffix}"
+    "size": "Velikost{suffix}",
+    "operationInProgress": "Probíhá operace, vyčkejte prosím..."
   },
   "search": {
     "images": "Obrázky",

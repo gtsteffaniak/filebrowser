@@ -195,7 +195,8 @@
     "moveSuccess": "Filerna flyttades framgångsrikt!",
     "copySuccess": "Filerna kopierades framgångsrikt!",
     "lastModified": "Senast ändrad{suffix}",
-    "size": "Storlek{suffix}"
+    "size": "Storlek{suffix}",
+    "operationInProgress": "Operation pågår, vänligen vänta..."
   },
   "search": {
     "images": "Bilder",
