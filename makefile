@@ -1,5 +1,4 @@
 SHELL := /bin/bash
-FILEBROWSER_DEVMODE=true
 .SILENT:
 setup:
 	echo "creating ./backend/test_config.yaml for local testing..."
@@ -38,7 +37,7 @@ dev:
 	@echo "Starting dev servers... Press Ctrl+C to stop."
 	@trap 'echo "Stopping servers..."; kill -TERM 0' INT TERM
 	cd frontend && npm run watch & \
-	cd backend && go tool air & \
+	cd backend && FILEBROWSER_DEVMODE=true go tool air & \
 	wait
 
 # Dev target with specific additional languages
@@ -53,7 +52,7 @@ dev-lang:
 		sed -i '/func init/,+3d' ./swagger/docs/docs.go; \
 	fi
 	@echo "Generating frontend config..."
-	cd backend && FILEBROWSER_GENERATE_CONFIG=true go run --tags=mupdf .
+	cd backend && FILEBROWSER_DEVMODE=true FILEBROWSER_GENERATE_CONFIG=true go run --tags=mupdf .
 	@echo "Running frontend build with additional languages: $(LANG)"
 	cd frontend && ADDITIONAL_LANGUAGES=$(LANG) npm run build:dev
 	@echo "Starting dev servers... Press Ctrl+C to stop."
@@ -69,7 +68,7 @@ run: build-frontend generate-config
 	else \
 		sed -i '/func init/,+3d' ./swagger/docs/docs.go; \
 	fi && \
-	CGO_ENABLED=1 go run --tags=mupdf \
+	CGO_ENABLED=1 FILEBROWSER_DEVMODE=true go run --tags=mupdf \
 	--ldflags="-w -s -X 'github.com/gtsteffaniak/filebrowser/backend/version.CommitSHA=testingCommit' -X 'github.com/gtsteffaniak/filebrowser/backend/version.Version=testing'" . -c test_config.yaml
 
 generate-config:

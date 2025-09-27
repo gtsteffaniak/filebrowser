@@ -1,1 +1,1 @@
-{"root":["./src/main.ts","./src/shims-vue.d.ts","./src/i18n/index.ts","./src/notify/index.ts","./src/router/index.ts","./src/store/index.ts","./src/store/types.ts","./src/utils/deepclone.ts","./src/utils/index.ts"],"version":"5.9.2"}
+{"root":["./src/main.ts","./src/shims-vue.d.ts","./src/i18n/index.ts","./src/notify/index.ts","./src/router/index.ts","./src/store/index.ts","./src/store/types.ts","./src/utils/deepclone.ts","./src/utils/index.ts"],"version":"5.8.3"}

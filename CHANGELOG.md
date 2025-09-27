@@ -5,8 +5,19 @@ All notable changes to this project will be documented in this file. For commit 
 ## v0.8.8-beta
 
  **New Features**:
- - Ability to split configuration files #1267
+ - Ability to split configuration files via yaml anchoring #1267
  - Add capability to edit files permissions #813
+ #- better copy/move prompt "in progress" indicator
+ #- better login error message feedback
+ #- Add capability to disable certain video previews
+ #- Added ability to play media in same folder sequentially or shuffled
+ #- better init script support #897
+ #- share download limit feature to apply per user -- and disables anonymous download when enabled.
+ #- Default landing directory #781
+ #- Feat(preview): Extract and display duration for media files when previews are enabled #1260
+
+ **Notes**:
+ - Some standardized path format changes for access rules to ensure the rules apply. A migration check happens on startup, all rules should still be in effect without any issues, but double check.
 
  **BugFixes**:
  - error when running without a config file #1280
