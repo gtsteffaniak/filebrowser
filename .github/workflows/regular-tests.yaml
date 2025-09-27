@@ -55,11 +55,5 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-      - name: Install dependencies
-        working-directory: frontend
-        run: npm ci
-      - name: Check translations
-        working-directory: frontend
-        run: npm run i18n:check
+      - working-directory: frontend
+        run: npm i && npm run i18n:check
