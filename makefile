@@ -91,7 +91,10 @@ lint: lint-backend lint-frontend
 
 test: test-backend test-frontend
 
-check-all: lint test
+check-all: lint test check-translations
+
+check-translations:
+	cd frontend && npm run i18n:check
 
 test-backend:
 	cd backend && go test -race -timeout=10s ./...
