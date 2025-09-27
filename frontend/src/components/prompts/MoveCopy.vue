@@ -5,20 +5,16 @@
 
   <div class="card-content">
     <!-- Loading spinner overlay -->
-    <div v-if="isLoading" class="loading-overlay">
-      <div class="loading-content">
-        <div class="spinner"></div>
-        <p class="loading-text">{{ $t("prompts.operationInProgress") }}</p>
-      </div>
+    <div v-if="isLoading" class="loading-content">
+      <i class="material-icons spin">sync</i>
+      <p class="loading-text">{{ $t("prompts.operationInProgress") }}</p>
     </div>
-
-    <p v-if="operation === 'copy'">{{ $t("prompts.copyMessage") }}</p>
-
-    <file-list ref="fileList" @update:selected="updateDestination">
-    </file-list>
+    <div v-else>  
+      <file-list  ref="fileList" @update:selected="updateDestination">
+      </file-list>
+    </div>
   </div>
-
-  <div class="card-action" style="display: flex; align-items: center; justify-content: space-between">
+  <div v-if="!isLoading" class="card-action" style="display: flex; align-items: center; justify-content: space-between">
     <template v-if="user.permissions.modify">
       <button class="button button--flat" @click="$refs.fileList.createDir()" :aria-label="$t('sidebar.newFolder')"
         :title="$t('sidebar.newFolder')" style="justify-self: left">
@@ -201,19 +197,6 @@ export default {
 </script>
 
 <style scoped>
-.loading-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(255, 255, 255, 0.9);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  border-radius: 4px;
-}
 
 .loading-content {
   text-align: center;
@@ -223,20 +206,15 @@ export default {
   gap: 16px;
 }
 
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #2196f3;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
+.loading-text {
+  padding: 1em;
+  margin: 0;
+  font-size: 1em;
+  font-weight: 500;
 }
 
-.loading-text {
-  margin: 0;
-  font-size: 14px;
-  color: #666;
-  font-weight: 500;
+.spin {
+  animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
