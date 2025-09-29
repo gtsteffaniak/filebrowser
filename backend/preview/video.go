@@ -44,6 +44,5 @@ func (s *Service) GenerateVideoPreview(ctx context.Context, videoPath string, pe
 		return nil, fmt.Errorf("video preview generation returned empty result")
 	}
 
-	logger.Debugf("Video preview generated successfully for '%s', result size: %d bytes", videoPath, len(previewBytes))
 	return previewBytes, nil
 }
