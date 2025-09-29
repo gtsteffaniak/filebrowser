@@ -195,7 +195,8 @@
     "moveSuccess": "文件移动成功！",
     "copySuccess": "文件复制成功！",
     "lastModified": "最后修改{suffix}",
-    "size": "尺寸{suffix}"
+    "size": "尺寸{suffix}",
+    "operationInProgress": "操作正在进行中，请稍候..."
   },
   "search": {
     "images": "图像",

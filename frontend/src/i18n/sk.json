@@ -195,7 +195,8 @@
     "moveSuccess": "Súbory boli úspešne presunuté!",
     "copySuccess": "Súbory boli úspešne skopírované!",
     "lastModified": "Posledná úprava{suffix}",
-    "size": "Veľkosť{suffix}"
+    "size": "Veľkosť{suffix}",
+    "operationInProgress": "Operácia prebieha, počkajte, prosím..."
   },
   "search": {
     "images": "Obrázky",

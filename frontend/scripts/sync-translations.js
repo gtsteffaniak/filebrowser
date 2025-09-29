@@ -5,6 +5,10 @@ import { fileURLToPath } from 'node:url';
 import * as glob from 'glob';
 import * as deepl from 'deepl-node';
 
+// Parse command line arguments
+const args = process.argv.slice(2);
+const checkOnly = args.includes('--check') || args.includes('-c');
+
 // --- Configuration ---
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -12,15 +16,16 @@ const localesDir = path.resolve(__dirname, '../src/i18n');
 const masterLocaleFile = path.join(localesDir, 'en.json');
 const masterLanguageCode = 'en';
 const targetLocaleFiles = glob.sync(path.join(localesDir, '*.json'))
-  .filter(file => path.basename(file) !== `${masterLanguageCode}.json`);
+  .filter(file => path.basename(file) !== `${masterLanguageCode}.json`)
+  .filter(file => path.basename(file) !== 'is.json'); // Exclude Icelandic - DeepL doesn't support it
 
 const DEEPL_API_KEY = process.env.DEEPL_API_KEY;
-if (!DEEPL_API_KEY) {
+if (!checkOnly && !DEEPL_API_KEY) {
   console.error("❌ Missing DEEPL_API_KEY in environment.");
   process.exit(1);
 }
 
-const translator = new deepl.Translator(DEEPL_API_KEY);
+const translator = checkOnly ? null : new deepl.Translator(DEEPL_API_KEY);
 
 const deeplLangMap = {
   'zh-cn': 'ZH-HANS',
@@ -40,6 +45,10 @@ const deeplLangMap = {
 
 // --- Translation Function using DeepL ---
 async function translateText(text, targetLanguage, keyPath = '') {
+  if (checkOnly) {
+    // In check mode, just return the original text to detect changes
+    return text;
+  }
 
   if (!text || typeof text !== 'string' || text.trim() === '') {
     console.warn(`Skipping translation for empty or non-string text: "${text}"`);
@@ -89,6 +98,7 @@ async function translateText(text, targetLanguage, keyPath = '') {
 // --- Recursive key processor ---
 async function processKeys(masterObj, targetObj, targetLangCode, currentPathParts = []) {
   let changesMade = false;
+  let meaningfulChanges = 0; // Only count meaningful changes
 
   // First pass: Add/update keys from master to target
   for (const key in masterObj) {
@@ -100,16 +110,27 @@ async function processKeys(masterObj, targetObj, targetLangCode, currentPathPart
 
       // Special handling for "languages" key - always copy the entire object from master
       if (key === 'languages' && currentPathParts.length === 0) {
-        console.log(`Copying entire "languages" object from master to ${targetLangCode}.json`);
-        targetObj[key] = JSON.parse(JSON.stringify(masterValue)); // Deep copy
+        if (checkOnly) {
+          // Don't print or count languages object copying - it's routine
+        } else {
+          console.log(`Copying entire "languages" object from master to ${targetLangCode}.json`);
+          targetObj[key] = JSON.parse(JSON.stringify(masterValue)); // Deep copy
+        }
         changesMade = true;
         continue;
       }
 
       if (typeof masterValue === 'object' && masterValue !== null && !Array.isArray(masterValue)) {
         if (!targetObj[key] || typeof targetObj[key] !== 'object') {
-          console.log(`Creating missing object structure for "${currentKeyPath}" in ${targetLangCode}.json`);
-          targetObj[key] = {};
+          if (checkOnly) {
+            console.log(`Would create missing object structure for "${currentKeyPath}" in ${targetLangCode}.json`);
+            meaningfulChanges++; // Creating new object structures is meaningful
+            // In check mode, create a temporary object for processing
+            targetObj[key] = {};
+          } else {
+            console.log(`Creating missing object structure for "${currentKeyPath}" in ${targetLangCode}.json`);
+            targetObj[key] = {};
+          }
           changesMade = true;
         }
         const result = await processKeys(masterValue, targetObj[key], targetLangCode, currentPathPartsNext);
@@ -117,22 +138,35 @@ async function processKeys(masterObj, targetObj, targetLangCode, currentPathPart
             console.log(`Skipping translation for "${targetLangCode}" due to unsupported structure.`);
             return "UNSUPPORTED";
         }
-        if (result) {
+        if (typeof result === 'number') {
+          meaningfulChanges += result;
+          changesMade = true;
+        } else if (result) {
           changesMade = true;
         }
       } else if (typeof masterValue === 'string') {
         if (!targetObj.hasOwnProperty(key) || targetObj[key] === '' || targetObj[key] === null) {
-          const result = await translateText(masterValue, targetLangCode, currentKeyPath);
-          if (result == "") {
-            return "UNSUPPORTED";
+          if (checkOnly) {
+            console.log(`Would translate "${currentKeyPath}" for ${targetLangCode}.json`);
+            meaningfulChanges++; // Translation is meaningful
+          } else {
+            const result = await translateText(masterValue, targetLangCode, currentKeyPath);
+            if (result == "") {
+              return "UNSUPPORTED";
+            }
+            targetObj[key] = result;
           }
-          targetObj[key] = result;
           changesMade = true;
         }
       } else {
         if (!targetObj.hasOwnProperty(key)) {
-          console.log(`Key "${currentKeyPath}" (non-string) missing in ${targetLangCode}.json. Copying from English.`);
-          targetObj[key] = masterValue;
+          if (checkOnly) {
+            console.log(`Would copy key "${currentKeyPath}" (non-string) from English to ${targetLangCode}.json`);
+            meaningfulChanges++; // Copying non-string values is meaningful
+          } else {
+            console.log(`Key "${currentKeyPath}" (non-string) missing in ${targetLangCode}.json. Copying from English.`);
+            targetObj[key] = masterValue;
+          }
           changesMade = true;
         }
       }
@@ -151,17 +185,26 @@ async function processKeys(masterObj, targetObj, targetLangCode, currentPathPart
 
   for (const key of keysToRemove) {
     const currentKeyPath = [...currentPathParts, key].join('.');
-    console.log(`🗑️  Removing obsolete key "${currentKeyPath}" from ${targetLangCode}.json`);
-    delete targetObj[key];
+    if (checkOnly) {
+      console.log(`Would remove obsolete key "${currentKeyPath}" from ${targetLangCode}.json`);
+      meaningfulChanges++; // Removing obsolete keys is meaningful
+    } else {
+      console.log(`🗑️  Removing obsolete key "${currentKeyPath}" from ${targetLangCode}.json`);
+      delete targetObj[key];
+    }
     changesMade = true;
   }
 
-  return changesMade;
+  return checkOnly ? meaningfulChanges : changesMade;
 }
 
 // --- Main synchronization ---
 async function syncAllTranslations() {
-  console.warn("--- Using DeepL API for translation ---");
+  if (checkOnly) {
+    console.log("--- Checking for translation changes (no translations will be performed) ---");
+  } else {
+    console.warn("--- Using DeepL API for translation ---");
+  }
 
   if (!await fs.pathExists(masterLocaleFile)) {
     console.error(`Master locale file not found: ${masterLocaleFile}`);
@@ -170,6 +213,9 @@ async function syncAllTranslations() {
 
   const masterContent = await fs.readJson(masterLocaleFile);
   console.log(`Loaded master translations from ${masterLocaleFile}`);
+
+  let meaningfulChanges = 0;
+  let hasMeaningfulChanges = false;
 
   for (const targetFile of targetLocaleFiles) {
     const targetLangCode = path.basename(targetFile, '.json');
@@ -188,24 +234,53 @@ async function syncAllTranslations() {
       console.log(`\nTarget file ${targetFile} not found. Will create for language: ${targetLangCode}.`);
     }
 
-    const wasUpdated = await processKeys(masterContent, targetContent, targetLangCode);
+    const result = await processKeys(masterContent, targetContent, targetLangCode);
 
-    if (wasUpdated || !fileExisted) {
-      try {
-        await fs.writeJson(targetFile, targetContent, { spaces: 2 });
-        console.log(`Successfully ${wasUpdated ? 'updated' : 'created'} ${targetFile}`);
-      } catch (error) {
-        console.error(`Error writing to ${targetFile}:`, error);
+    if (checkOnly) {
+      if (typeof result === 'number' && result > 0) {
+        meaningfulChanges += result;
+        hasMeaningfulChanges = true;
+        console.log(`Found ${result} meaningful changes needed for ${targetLangCode}.json`);
+      } else if (!fileExisted) {
+        meaningfulChanges++;
+        hasMeaningfulChanges = true;
+        console.log(`Would create new file for ${targetLangCode}.json`);
+      } else {
+        // Only print if there are meaningful changes
       }
     } else {
-      console.log(`No changes needed for ${targetFile}`);
+      if (result || !fileExisted) {
+        try {
+          await fs.writeJson(targetFile, targetContent, { spaces: 2 });
+          console.log(`Successfully ${result ? 'updated' : 'created'} ${targetFile}`);
+        } catch (error) {
+          console.error(`Error writing to ${targetFile}:`, error);
+        }
+      } else {
+        console.log(`No changes needed for ${targetFile}`);
+      }
     }
   }
 
-  console.log('\n✅ Translation synchronization complete (via DeepL).');
+  if (checkOnly) {
+    if (hasMeaningfulChanges) {
+      console.log(`\n⚠️  Found ${meaningfulChanges} meaningful translation changes needed.`);
+      return 1; // Exit code 1 for meaningful changes needed
+    } else {
+      console.log('\n✅ No meaningful translation changes needed.');
+      return 0; // Exit code 0 for no meaningful changes
+    }
+  } else {
+    console.log('\n✅ Translation synchronization complete (via DeepL).');
+    return 0;
+  }
 }
 
-syncAllTranslations().catch(error => {
-  console.error("\n❌ An error occurred during translation synchronization:", error);
-  process.exit(1);
-});
+syncAllTranslations()
+  .then(exitCode => {
+    process.exit(exitCode);
+  })
+  .catch(error => {
+    console.error("\n❌ An error occurred during translation synchronization:", error);
+    process.exit(1);
+  });
