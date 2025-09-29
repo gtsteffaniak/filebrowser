@@ -134,7 +134,10 @@
     "submit": "登入",
     "usernameTaken": "用戶名已存在",
     "wrongCredentials": "帳號或密碼錯誤",
-    "or": "或"
+    "or": "或",
+    "inProgress": "登入...",
+    "failedLogin": "登入失敗",
+    "invalidCredentials": "提供的憑證無效"
   },
   "prompts": {
     "copy": "複製",

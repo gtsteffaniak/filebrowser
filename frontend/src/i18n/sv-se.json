@@ -134,7 +134,10 @@
     "submit": "Logga in",
     "usernameTaken": "Användarnamn upptaget",
     "wrongCredentials": "Fel inloggning",
-    "or": "ELLER"
+    "or": "ELLER",
+    "inProgress": "Loggar in...",
+    "failedLogin": "Misslyckades med att logga in",
+    "invalidCredentials": "Ogiltiga inloggningsuppgifter har angetts"
   },
   "prompts": {
     "copy": "Kopiera",

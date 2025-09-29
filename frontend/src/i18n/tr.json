@@ -134,7 +134,10 @@
     "submit": "Giriş",
     "usernameTaken": "Kullanıcı adı mevcut",
     "wrongCredentials": "Yanlış hesap bilgileri",
-    "or": "VEYA"
+    "or": "VEYA",
+    "inProgress": "Giriş yapıyorum...",
+    "failedLogin": "Giriş yapılamadı",
+    "invalidCredentials": "Geçersiz kimlik bilgileri sağlandı"
   },
   "prompts": {
     "copy": "Kopyala",

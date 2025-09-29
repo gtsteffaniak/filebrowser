@@ -134,7 +134,10 @@
     "submit": "Se connecter",
     "usernameTaken": "Le nom d'utilisateur est déjà pris",
     "wrongCredentials": "Identifiants incorrects !",
-    "or": "OU"
+    "or": "OU",
+    "inProgress": "Connexion...",
+    "failedLogin": "Échec de la connexion",
+    "invalidCredentials": "Les informations d'identification fournies ne sont pas valides"
   },
   "prompts": {
     "copy": "Copier",

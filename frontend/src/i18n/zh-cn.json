@@ -134,7 +134,10 @@
     "submit": "登录",
     "usernameTaken": "用户名已经被使用",
     "wrongCredentials": "用户名或密码错误",
-    "or": "或"
+    "or": "或",
+    "inProgress": "登录...",
+    "failedLogin": "登录失败",
+    "invalidCredentials": "提供的证书无效"
   },
   "prompts": {
     "copy": "复制",

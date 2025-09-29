@@ -134,7 +134,10 @@
     "submit": "Iniciar sesión",
     "usernameTaken": "Este usuario ya está en uso",
     "wrongCredentials": "Nombre de usuario y/o contraseña incorrectos",
-    "or": "O"
+    "or": "O",
+    "inProgress": "Iniciando sesión...",
+    "failedLogin": "Error al iniciar sesión",
+    "invalidCredentials": "Credenciales no válidas"
   },
   "prompts": {
     "copy": "Copiar",

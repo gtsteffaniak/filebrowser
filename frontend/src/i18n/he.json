@@ -134,7 +134,10 @@
     "submit": "התחברות",
     "usernameTaken": "שם משתמש כבר קיים",
     "wrongCredentials": "פרטי התחברות שגויים",
-    "or": "או"
+    "or": "או",
+    "inProgress": "מתחבר...",
+    "failedLogin": "נכשל בכניסה",
+    "invalidCredentials": "פרטי הזדהות לא חוקיים"
   },
   "prompts": {
     "copy": "העתק",

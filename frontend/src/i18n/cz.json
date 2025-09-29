@@ -137,7 +137,10 @@
     "submit": "Přihlásit se",
     "usernameTaken": "Uživatelské jméno je již obsazeno",
     "wrongCredentials": "Nesprávné přihlašovací údaje",
-    "or": "NEBO"
+    "or": "NEBO",
+    "inProgress": "Přihlášení...",
+    "failedLogin": "Nepodařilo se přihlásit",
+    "invalidCredentials": "Neplatné zadané pověření"
   },
   "share": {
     "notice": "Poznámka: po vytvoření sdílené složky je tato složka více vystavena veřejnosti a platí pro ni jiná pravidla přístupu. Pokud není sdílená složka bezpečně nakonfigurována, může k ní mít přístup kdokoli.",

@@ -134,7 +134,10 @@
     "submit": "Entrar na conta",
     "usernameTaken": "O nome de utilizador já está registado",
     "wrongCredentials": "Dados errados",
-    "or": "OU"
+    "or": "OU",
+    "inProgress": "Iniciar sessão...",
+    "failedLogin": "Falha no início de sessão",
+    "invalidCredentials": "Credenciais inválidas fornecidas"
   },
   "prompts": {
     "copy": "Copiar",
