@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Notes**:
  - Some standardized path format changes for access rules to ensure the rules apply. A migration check happens on startup, all rules should still be in effect without any issues, but double check.
+ - optimized video previews
 
  **BugFixes**:
  - error when running without a config file #1280
@@ -25,6 +26,7 @@ All notable changes to this project will be documented in this file. For commit 
  - all static resources go through /public/static url to fix logout loop #995
  - "realtime" Permission of API keys is not working #1141
  - "Path not found" when trying to share a file or folder inside a sub-directory #1139
+ - logout path redirect not working
 
 ## v0.8.7-beta
 

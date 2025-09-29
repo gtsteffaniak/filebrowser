@@ -195,7 +195,8 @@
     "moveSuccess": "Bestanden succesvol verplaatst!",
     "copySuccess": "Bestanden succesvol gekopieerd!",
     "lastModified": "Laatst gewijzigd{suffix}",
-    "size": "Maat{suffix}"
+    "size": "Maat{suffix}",
+    "operationInProgress": "Werking bezig, even geduld a.u.b..."
   },
   "search": {
     "images": "Afbeeldingen",

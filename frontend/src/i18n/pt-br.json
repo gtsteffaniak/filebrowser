@@ -195,7 +195,8 @@
     "moveSuccess": "Os arquivos foram movidos com sucesso!",
     "copySuccess": "Os arquivos foram copiados com sucesso!",
     "lastModified": "Última modificação{suffix}",
-    "size": "Tamanho{suffix}"
+    "size": "Tamanho{suffix}",
+    "operationInProgress": "Operação em andamento, aguarde..."
   },
   "search": {
     "images": "Imagens",

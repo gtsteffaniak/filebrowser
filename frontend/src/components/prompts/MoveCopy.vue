@@ -4,13 +4,17 @@
   </div>
 
   <div class="card-content">
-    <p v-if="operation === 'copy'">{{ $t("prompts.copyMessage") }}</p>
-
-    <file-list ref="fileList" @update:selected="updateDestination">
-    </file-list>
+    <!-- Loading spinner overlay -->
+    <div v-if="isLoading" class="loading-content">
+      <i class="material-icons spin">sync</i>
+      <p class="loading-text">{{ $t("prompts.operationInProgress") }}</p>
+    </div>
+    <div v-else>  
+      <file-list  ref="fileList" @update:selected="updateDestination">
+      </file-list>
+    </div>
   </div>
-
-  <div class="card-action" style="display: flex; align-items: center; justify-content: space-between">
+  <div v-if="!isLoading" class="card-action" style="display: flex; align-items: center; justify-content: space-between">
     <template v-if="user.permissions.modify">
       <button class="button button--flat" @click="$refs.fileList.createDir()" :aria-label="$t('sidebar.newFolder')"
         :title="$t('sidebar.newFolder')" style="justify-self: left">
@@ -56,6 +60,7 @@ export default {
       destPath: "/", // Start at root of selected source
       destSource: null, // Will be set by FileList component
       items: [],
+      isLoading: false, // Track loading state for spinner
     };
   },
   computed: {
@@ -126,6 +131,7 @@ export default {
     },
     performOperation: async function (event) {
       event.preventDefault();
+      this.isLoading = true; // Show loading spinner
       try {
         // Define the action function
         let action = async (overwrite, rename) => {
@@ -182,8 +188,42 @@ export default {
         }
       } catch (error) {
         notify.showError(error);
+      } finally {
+        this.isLoading = false; // Hide loading spinner
       }
     },
   },
 };
 </script>
+
+<style scoped>
+
+.loading-content {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.loading-text {
+  padding: 1em;
+  margin: 0;
+  font-size: 1em;
+  font-weight: 500;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Make card-content position relative for absolute positioning of overlay */
+.card-content {
+  position: relative;
+}
+</style>

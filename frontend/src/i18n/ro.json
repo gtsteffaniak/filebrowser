@@ -195,7 +195,8 @@
     "moveSuccess": "Fișiere mutate cu succes!",
     "copySuccess": "Fișiere copiate cu succes!",
     "lastModified": "Ultima modificare{suffix}",
-    "size": "Mărime{suffix}"
+    "size": "Mărime{suffix}",
+    "operationInProgress": "Operațiune în curs, vă rugăm să așteptați..."
   },
   "search": {
     "images": "Imagini",

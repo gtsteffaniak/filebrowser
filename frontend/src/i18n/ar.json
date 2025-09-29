@@ -195,7 +195,8 @@
     "moveSuccess": "تم نقل الملفات بنجاح!",
     "copySuccess": "تم نسخ الملفات بنجاح!",
     "lastModified": "آخر تعديل{suffix}",
-    "size": "الحجم{suffix}"
+    "size": "الحجم{suffix}",
+    "operationInProgress": "العملية جارية، يرجى الانتظار..."
   },
   "search": {
     "images": "الصور",
