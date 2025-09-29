@@ -239,7 +239,6 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 
 	// Check access control for the target path
 	if store.Access != nil && !store.Access.Permitted(idx.Path, path, d.user.Username) {
-		logger.Debugf("user %s denied access to path %s", d.user.Username, path)
 		return http.StatusForbidden, fmt.Errorf("access denied to path %s", path)
 	}
 	isDir := strings.HasSuffix(path, "/")
@@ -252,7 +251,6 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 
 		// If type mismatch (file vs folder or folder vs file) and not overriding
 		if existingIsDir != requestingDir && r.URL.Query().Get("override") != "true" {
-			logger.Debugf("Type conflict detected: existing is dir=%v, requesting dir=%v at path=%v", existingIsDir, requestingDir, realPath)
 			return http.StatusConflict, nil
 		}
 	}
@@ -361,9 +359,6 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		return http.StatusOK, nil
 	}
 
-	logger.Debugf("non-chunked upload logic for %s", realPath)
-	// Non-chunked upload logic (original code)
-
 	// Check for file/folder conflicts for non-chunked uploads
 	if stat, statErr := os.Stat(realPath); statErr == nil {
 		existingIsDir := stat.IsDir()
@@ -371,7 +366,6 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 
 		// If type mismatch (existing dir vs requesting file) and not overriding
 		if existingIsDir != requestingDir && r.URL.Query().Get("override") != "true" {
-			logger.Debugf("Type conflict detected in non-chunked: existing is dir=%v, requesting dir=%v at path=%v", existingIsDir, requestingDir, realPath)
 			return http.StatusConflict, nil
 		}
 	}
@@ -379,7 +373,6 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	fileInfo, err := files.FileInfoFaster(fileOpts, store.Access)
 	if err == nil {
 		if r.URL.Query().Get("override") != "true" {
-			logger.Debugf("Resource already exists: %v", fileInfo.RealPath)
 			return http.StatusConflict, nil
 		}
 

@@ -63,7 +63,6 @@ func sseHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int,
 			return http.StatusOK, nil
 
 		case <-clientGone:
-			logger.Debugf("client disconnected. user: %s, SessionId: %s", username, sessionId)
 			return http.StatusOK, nil
 
 		case msg := <-events.BroadcastChan:
@@ -73,7 +72,6 @@ func sseHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int,
 
 		case msg, ok := <-sendChan:
 			if !ok {
-				logger.Debugf("SSE channel closed for user: %s, SessionId: %s", username, sessionId)
 				return http.StatusOK, nil
 			}
 			if err := msgr.sendEvent(msg.EventType, msg.Message); err != nil {

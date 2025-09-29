@@ -28,12 +28,6 @@ func (s *Service) GenerateVideoPreview(ctx context.Context, videoPath string, pe
 	var buf bytes.Buffer
 	err := s.videoService.GenerateVideoPreviewStreaming(ctx, videoPath, percentageSeek, &buf)
 	if err != nil {
-		// Don't log client cancellations as errors
-		if ctx.Err() == context.Canceled {
-			logger.Debugf("Video service cancelled by client for '%s'", videoPath)
-		} else {
-			logger.Errorf("Video service failed for '%s': %v", videoPath, err)
-		}
 		return nil, err
 	}
 

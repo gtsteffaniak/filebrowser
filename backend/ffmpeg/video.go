@@ -133,11 +133,6 @@ func (s *VideoService) GenerateVideoPreviewStreaming(ctx context.Context, videoP
 	err = cmd.Run()
 	if err != nil {
 		if ctx.Err() != nil {
-			if ctx.Err() == context.Canceled {
-				logger.Debugf("ffmpeg cancelled by client for file '%s'", videoPath)
-			} else {
-				logger.Errorf("ffmpeg cancelled by context for file '%s': %v", videoPath, ctx.Err())
-			}
 			return ctx.Err()
 		}
 
@@ -146,7 +141,6 @@ func (s *VideoService) GenerateVideoPreviewStreaming(ctx context.Context, videoP
 			videoPath, seekTimeStr, err, stderrOutput)
 		return fmt.Errorf("ffmpeg command failed on file '%v' : %w", videoPath, err)
 	}
-	logger.Debugf("ffmpeg command completed successfully for '%s'", videoPath)
 	return nil
 }
 
