@@ -90,26 +90,6 @@ Check out the [Getting Started Wiki](https://github.com/gtsteffaniak/filebrowser
 
 For help configuring your filebrowser see [Configuration Wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Configuration-And-Examples)
 
-### Development Builds
-
-For faster development builds, you can build with only English or English + specific languages:
-
-```bash
-# English only (fastest)
-npm run build:dev
-
-# English + Spanish
-npm run build:dev:es
-
-# English + multiple languages
-ADDITIONAL_LANGUAGES=es,fr,de npm run build:dev
-
-# All languages (production)
-npm run build
-```
-
-This significantly reduces build times during development while maintaining full functionality in production.
-
 ## Command Line Usage
 
 See the [CLI Wiki](https://github.com/gtsteffaniak/filebrowser/wiki/CLI)

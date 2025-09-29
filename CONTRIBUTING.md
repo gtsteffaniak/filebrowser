@@ -59,17 +59,14 @@ make dev
 
 ### Essential Commands
 ```bash
-make dev          # Start development server with hot-reloading (English only)
-make dev-lang     # Dev server with specific languages: make dev-lang LANG=es,fr,de
+make dev          # Start development server with hot-reloading
 make test         # Run all tests
 make lint         # Check code quality
 make check-all    # Lint + tests
 
-make build-frontend      # Build frontend only (all languages)
-make build-frontend-dev  # Build frontend with English only (faster)
-make build-frontend-lang # Build with specific languages: make build-frontend-lang LANG=es,fr,de
-make build-backend       # Build backend only
-make build              # Build Docker image
+make build-frontend  # Build frontend only
+make build-backend   # Build backend only
+make build          # Build Docker image
 ```
 
 ### Frontend Development
@@ -79,14 +76,6 @@ Note: consider using make commands above instead.
 cd frontend
 npm run lint:fix  # Auto-fix linting issues
 npm run i18n:sync # Sync translations changes
-
-# Development builds (faster)
-npm run build:dev        # English only (fastest)
-npm run build:dev:es     # English + Spanish
-ADDITIONAL_LANGUAGES=es,fr,de npm run build:dev  # English + multiple languages
-
-# Production builds
-npm run build            # All languages
 ```
 
 ## Testing
@@ -133,16 +122,9 @@ cd backend
 The project builds into a single binary with embedded frontend:
 
 ```bash
-make build-frontend      # Build Vue.js app (all languages)
-make build-frontend-dev  # Build Vue.js app (English only - faster)
-make build-frontend-lang # Build with specific languages: make build-frontend-lang LANG=es,fr,de
-make build-backend       # Build Go binary with embedded assets
+make build-frontend  # Build Vue.js app
+make build-backend   # Build Go binary with embedded assets
 ```
-
-**Build Performance Tips:**
-- Use `make build-frontend-dev` for faster development builds (English only)
-- Use `make dev-lang LANG=es,fr,de` to test specific languages during development
-- Production builds always include all 25+ languages for complete functionality
 
 ### Docker
 ```bash
@@ -158,10 +140,9 @@ make build       # Full image with ffmpeg and muPDF
 
 1. Fork and create a feature branch
 2. Make your changes following the code standards
-3. Run `make dev` to build and run with your changes (English only for faster builds). Supports hot-reloading frontend and backend changes.
-4. For i18n testing, use `make dev-lang LANG=es,fr,de` to test specific languages
-5. When ready, run `make check-all` to verify tests and linting
-6. Submit PR with a clear description
+3. Run `make dev` to build and run with your changes. Supports hot-reloading frontend and backend changes.
+4. When ready, run `make check-all` to verify tests and linting
+5. Submit PR with a clear description
 
 ### PR Requirements
 - Clear description of changes

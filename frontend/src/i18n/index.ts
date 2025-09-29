@@ -1,16 +1,13 @@
 // i18n.js
 import { createI18n } from 'vue-i18n';
 
-// Import English (always included)
-import en from './en.json';
-
-// Import all other languages statically
-// These will be tree-shaken by Vite based on the conditional logic below
+// Import translations
 import he from './he.json';
 import hu from './hu.json';
 import ar from './ar.json';
 import de from './de.json';
 import el from './el.json';
+import en from './en.json';
 import es from './es.json';
 import fr from './fr.json';
 import is from './is.json';
@@ -29,14 +26,6 @@ import svSE from './sv-se.json';
 import zhCN from './zh-cn.json';
 import zhTW from './zh-tw.json';
 import cz from './cz.json';
-
-// Create messages object based on build environment
-// Vite's tree-shaking should remove unused languages in development builds
-const messages: Record<string, any> = import.meta.env.DEV_BUILD === 'true' 
-  ? { en } // Development: English only
-  : { // Production: All languages
-      en, he, hu, ar, de, el, es, fr, is, it, ja, ko, nlBE, pl, pt, ptBR, ro, ru, sk, svSE, ua, zhCN, zhTW, cz
-    };
 
 type LocaleMap = { [key: string]: string };
 
@@ -104,15 +93,10 @@ export const isRtl = (locale: string) => {
 };
 
 export function setLocale(locale: string) {
-  // With legacy: true, locale is a string, not a ref
-  // With legacy: false, locale is a ref and needs .value
-  if (typeof i18n.global.locale === 'string') {
-    // Legacy mode - direct assignment
-    (i18n.global as any).locale = locale;
-  } else {
-    // Composition mode - use .value
-    (i18n.global.locale as any).value = locale;
-  }
+  // according to doc u only need .value if legacy: false but they lied
+  // https://vue-i18n.intlify.dev/guide/essentials/scope.html#local-scope-1
+  //@ts-ignore
+  i18n.global.locale.value = locale;
 }
 
 
@@ -122,7 +106,32 @@ const i18n = createI18n({
   fallbackLocale: 'en',
   // expose i18n.global for outside components
   legacy: true,
-  messages,
+  messages: {
+    he,
+    hu,
+    ar,
+    de,
+    el,
+    en,
+    es,
+    fr,
+    is,
+    it,
+    ja,
+    ko,
+    nlBE,
+    pl,
+    ptBR,
+    pt,
+    ru,
+    ro,
+    sk,
+    svSE,
+    ua,
+    zhCN,
+    zhTW,
+    cz,
+  },
 });
 
 export default i18n;
