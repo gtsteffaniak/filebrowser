@@ -795,6 +795,7 @@ export default {
   justify-content: center;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
   opacity: 1;
+  margin-top: 2em;
 }
 
 .nav-button.dark-mode {
