@@ -3,6 +3,7 @@ package http
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -24,6 +25,17 @@ type FileCache interface {
 	Store(ctx context.Context, key string, value []byte) error
 	Load(ctx context.Context, key string) ([]byte, bool, error)
 	Delete(ctx context.Context, key string) error
+}
+
+// isClientCancellation checks if an error is due to client cancellation (navigation away)
+func isClientCancellation(ctx context.Context, err error) bool {
+	// Check context state first
+	if ctx.Err() == context.Canceled {
+		return true
+	}
+
+	// Check if the error chain contains context cancellation
+	return errors.Is(err, context.Canceled)
 }
 
 // previewHandler handles the preview request for images.
@@ -186,6 +198,22 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 
 	previewImg, err := preview.GetPreviewForFileWithChildMD5(ctx, d.fileInfo, previewSize, officeUrl, seekPercentage, childMD5)
 	if err != nil {
+		// Check if it was a context cancellation (client navigated away)
+		if isClientCancellation(ctx, err) {
+			// Return 200 to avoid error logging - client cancellation is normal
+			return http.StatusOK, nil
+		}
+
+		// Check if it was a context timeout (server-side timeout)
+		if ctx.Err() == context.DeadlineExceeded || errors.Is(err, context.DeadlineExceeded) {
+			logger.Errorf("Preview timeout for file '%s' after 30 seconds", d.fileInfo.Name)
+			return http.StatusRequestTimeout, fmt.Errorf("preview generation timed out after 30 seconds")
+		}
+
+		// Log detailed error information for actual server errors
+		logger.Errorf("Preview generation failed for file '%s' (type: %s, size: %s, seek: %d%%): %v",
+			d.fileInfo.Name, d.fileInfo.Type, previewSize, seekPercentage, err)
+
 		return http.StatusInternalServerError, err
 	}
 	w.Header().Set("Cache-Control", "private")

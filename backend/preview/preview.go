@@ -246,6 +246,7 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 	} else if strings.HasPrefix(file.Type, "image") {
 		imageBytes, err = os.ReadFile(file.RealPath)
 		if err != nil {
+			logger.Errorf("Failed to read image file '%s' (path: %s): %v", file.Name, file.RealPath, err)
 			return nil, fmt.Errorf("failed to read image file: %w", err)
 		}
 	} else if strings.HasPrefix(file.Type, "video") {
@@ -255,6 +256,11 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 		}
 		imageBytes, err = service.GenerateVideoPreview(ctx, file.RealPath, videoSeekPercentage)
 		if err != nil {
+			// Don't log client cancellations as errors
+			if ctx.Err() != context.Canceled {
+				logger.Errorf("Video preview generation failed for '%s' (path: %s, seek: %d%%): %v",
+					file.Name, file.RealPath, videoSeekPercentage, err)
+			}
 			return nil, fmt.Errorf("failed to create image for video file: %w", err)
 		}
 	} else if strings.HasPrefix(file.Type, "audio") {
@@ -277,6 +283,8 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 	}
 
 	if len(imageBytes) < 100 {
+		logger.Errorf("Generated image too small for '%s' (type: %s): %d bytes - likely an error occurred",
+			file.Name, file.Type, len(imageBytes))
 		return nil, fmt.Errorf("generated image is too small, likely an error occurred: %d bytes", len(imageBytes))
 	}
 

@@ -78,9 +78,17 @@ func (s *VideoService) GenerateVideoPreviewStreaming(ctx context.Context, videoP
 	}
 	if err := probeCmd.Run(); err != nil {
 		if ctx.Err() != nil {
+			logger.Errorf("ffprobe cancelled by context for file '%s': %v", videoPath, ctx.Err())
 			return ctx.Err()
 		}
-		logger.Errorf("ffprobe command failed on file '%v' : %v", videoPath, err)
+		// Capture stderr output for better debugging
+		stderrOutput := ""
+		if probeCmd.Stderr != nil {
+			if stderrBuf, ok := probeCmd.Stderr.(*bytes.Buffer); ok {
+				stderrOutput = stderrBuf.String()
+			}
+		}
+		logger.Errorf("ffprobe command failed on file '%s': %v (stderr: %s)", videoPath, err, stderrOutput)
 		return fmt.Errorf("ffprobe failed: %w", err)
 	}
 
@@ -116,15 +124,22 @@ func (s *VideoService) GenerateVideoPreviewStreaming(ctx context.Context, videoP
 	)
 
 	cmd.Stdout = writer
+	var stderrBuf bytes.Buffer
 	if s.debug {
 		cmd.Stderr = os.Stderr
+	} else {
+		// Capture stderr for error logging
+		cmd.Stderr = &stderrBuf
 	}
-
 	err = cmd.Run()
 	if err != nil {
 		if ctx.Err() != nil {
 			return ctx.Err()
 		}
+
+		stderrOutput := stderrBuf.String()
+		logger.Errorf("ffmpeg command failed on file '%s' (seek: %s): %v (stderr: %s)",
+			videoPath, seekTimeStr, err, stderrOutput)
 		return fmt.Errorf("ffmpeg command failed on file '%v' : %w", videoPath, err)
 	}
 	return nil
