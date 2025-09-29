@@ -12,13 +12,16 @@
   <h3>FileBrowser Quantum</h3>
   The best free self-hosted web-based file manager.
   <br/><br/>
-  <img width="800" src="https://github.com/user-attachments/assets/95af22fa-7760-4f7b-9c20-51fdcfe8f4ea" title="Main Screenshot">
+  <img width="800" src="https://github.com/user-attachments/assets/162d7a95-33b7-49bd-976c-dd6822c0d22b">
 </div>
 
 > [!WARNING]
 > There is no stable version -- :construction: planned for 2025. ([Read more](https://github.com/gtsteffaniak/filebrowser/discussions/628))
 
-[FYI: how much RAM does it require?](https://github.com/gtsteffaniak/filebrowser/discussions/787)
+
+## Announcements
+
+[Stable Release & 0.9.0 update](https://github.com/gtsteffaniak/filebrowser/discussions/1293)
 
 ## About
 
@@ -62,10 +65,16 @@ Notable features that this fork *does not* have (removed):
  - :construction: jobs are not supported yet.
  - ❌ shell commands are completely removed and will not be returned.
 
+
+FileBrowser Quantum differs significantly from the original version. Many of these changes required a significant overhaul. Creating a fork was a necessary process to make the program better. There have been many growing pains, but a stable release is planned and coming soon.
+
+## System Requirements
+
 > [!WARNING]
 > Every file and directory in the source gets indexed (by default). This enables powerful features such as instant search, but large source filesystems can increase your system requirements. [See indexing wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Indexing) for more info.
 
-FileBrowser Quantum differs significantly from the original version. Many of these changes required a significant overhaul. Creating a fork was a necessary process to make the program better. There have been many growing pains, but a stable release is planned and coming soon.
+ - **Memory**: depends on configured source complexity. See [how much RAM does it require?](https://github.com/gtsteffaniak/filebrowser/discussions/787)
+ - **GPU**: Not currently used (planned)
 
 ## The UI
 

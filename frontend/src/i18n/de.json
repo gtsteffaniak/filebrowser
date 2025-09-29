@@ -134,7 +134,10 @@
     "submit": "Anmelden",
     "usernameTaken": "Benutzername ist bereits vergeben",
     "wrongCredentials": "Falsche Zugangsdaten",
-    "or": "OR"
+    "or": "OR",
+    "inProgress": "Einloggen...",
+    "failedLogin": "Anmeldung fehlgeschlagen",
+    "invalidCredentials": "Ungültige Anmeldedaten angegeben"
   },
   "prompts": {
     "copy": "Kopieren",

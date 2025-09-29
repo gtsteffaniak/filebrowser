@@ -134,7 +134,10 @@
     "submit": "Entra",
     "usernameTaken": "Username già usato",
     "wrongCredentials": "Credenziali errate",
-    "or": "O"
+    "or": "O",
+    "inProgress": "Accesso...",
+    "failedLogin": "Accesso non riuscito",
+    "invalidCredentials": "Credenziali non valide fornite"
   },
   "prompts": {
     "copy": "Copia",

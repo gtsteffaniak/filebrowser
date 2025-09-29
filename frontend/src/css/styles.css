@@ -21,7 +21,7 @@
     padding: 1em 0;
 }
 
-#main .spinner > div {
+#main .spinner>div {
     width: 0.8em;
     height: 0.8em;
     margin: 0 0.1em;
@@ -48,9 +48,11 @@
     0% {
         opacity: 0;
     }
+
     99% {
         opacity: 0;
     }
+
     100% {
         opacity: 1;
     }
@@ -142,7 +144,7 @@
     color: #fff;
 }
 
-#previewer header > .action i {
+#previewer header>.action i {
     color: #fff;
 }
 
@@ -192,20 +194,25 @@
     font-size: 1.5em;
     color: #fff;
 }
+
 #previewer .preview .info .title {
     margin-bottom: 1em;
 }
+
 #previewer .preview .info .title i {
     display: block;
     margin-bottom: 0.1em;
     font-size: 4em;
 }
+
 #previewer .preview .info .button {
     display: inline-block;
 }
+
 #previewer .preview .info .button:hover {
     background-color: rgba(255, 255, 255, 0.2);
 }
+
 #previewer .preview .info .button i {
     display: block;
     margin-bottom: 4px;
@@ -221,7 +228,7 @@
     color: rgba(255, 255, 255, 0.5);
 }
 
-#previewer > button {
+#previewer>button {
     margin: 0;
     position: fixed;
     top: calc(50% + 1.85em);
@@ -236,16 +243,16 @@
     transition: 0.2s ease all;
 }
 
-#previewer > button.hidden {
+#previewer>button.hidden {
     opacity: 0;
     visibility: hidden;
 }
 
-#previewer > button > i {
+#previewer>button>i {
     padding: 0.4em;
 }
 
-#previewer > button:last-of-type {
+#previewer>button:last-of-type {
     right: 0.5em;
 }
 
@@ -257,7 +264,7 @@
     transform: translate(-50%, -50%);
 }
 
-#previewer .spinner > div {
+#previewer .spinner>div {
     width: 18px;
     height: 18px;
     background-color: white;
@@ -293,7 +300,7 @@
  *         SETTINGS RULES      *
  * * * * * * * * * * * * * * * */
 
-.rules > div {
+.rules>div {
     display: flex;
     align-items: center;
     margin: 0.5rem 0;
@@ -330,7 +337,7 @@ body.rtl .card-content textarea {
     text-align: left;
 }
 
-body.rtl .card-content .small + input {
+body.rtl .card-content .small+input {
     direction: ltr;
     text-align: left;
 }
@@ -380,7 +387,7 @@ button:hover,
     align-items: center;
 }
 
-.form-flex-group > .form-compact {
+.form-flex-group>.form-compact {
     min-height: 2em;
     width: unset !important;
 }
@@ -408,4 +415,29 @@ button:hover,
 
 .tooltip-close-button {
     max-width: 4em !important;
+}
+
+.no-padding {
+    padding: 0 !important;
+}
+
+.loading-spinner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100px;
+}
+
+.spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }

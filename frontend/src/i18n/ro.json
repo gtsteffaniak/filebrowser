@@ -134,7 +134,10 @@
     "submit": "Autentificare",
     "usernameTaken": "Utilizatorul există",
     "wrongCredentials": "Informații greșite",
-    "or": "SAU"
+    "or": "SAU",
+    "inProgress": "Conectarea...",
+    "failedLogin": "A eșuat autentificarea",
+    "invalidCredentials": "Acreditări invalide furnizate"
   },
   "prompts": {
     "copy": "Copiază",

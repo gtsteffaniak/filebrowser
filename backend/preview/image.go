@@ -128,10 +128,13 @@ func WithQuality(quality Quality) Option {
 }
 
 func (s *Service) Resize(in io.Reader, width, height int, out io.Writer, options ...Option) error {
-	if err := s.acquire(context.Background()); err != nil {
-		return err
+	// Use image service semaphore for image processing
+	if s.imageService != nil {
+		if err := s.imageService.Acquire(context.Background()); err != nil {
+			return err
+		}
+		defer s.imageService.Release()
 	}
-	defer s.release()
 
 	format, wrappedReader, err := s.detectFormat(in)
 	if err != nil {

@@ -134,7 +134,10 @@
     "submit": "Login",
     "usernameTaken": "Nome de usuário já existe",
     "wrongCredentials": "Ops! Dados incorretos.",
-    "or": "OU"
+    "or": "OU",
+    "inProgress": "Fazendo login...",
+    "failedLogin": "Falha no login",
+    "invalidCredentials": "Credenciais inválidas fornecidas"
   },
   "prompts": {
     "copy": "Copiar",

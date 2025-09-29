@@ -3,7 +3,11 @@
 
 package preview
 
-import "github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
+import (
+	"context"
+
+	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
+)
 
 func docEnabled() bool {
 	// This function checks if the PDF support is enabled.
@@ -11,7 +15,13 @@ func docEnabled() bool {
 	return false
 }
 
-func (s *Service) GenerateImageFromDoc(file iteminfo.ExtendedFileInfo, tempFilePath string, pageNumber int) ([]byte, error) { // 1. Serialize access to the entire go-fitz operation block
+func (s *Service) GenerateImageFromDoc(ctx context.Context, file iteminfo.ExtendedFileInfo, tempFilePath string, pageNumber int) ([]byte, error) {
+	// Acquire document semaphore
+	if err := s.acquireDoc(ctx); err != nil {
+		return nil, err
+	}
+	defer s.releaseDoc()
+
 	s.docGenMutex.Lock()
 	defer s.docGenMutex.Unlock()
 

@@ -178,7 +178,13 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 			officeUrl = scheme + "://" + r.Host + pathUrl
 		}
 	}
-	previewImg, err := preview.GetPreviewForFileWithChildMD5(d.fileInfo, previewSize, officeUrl, seekPercentage, childMD5)
+	// Use the context from the request context (which includes timeout)
+	ctx := r.Context()
+	if d.ctx != nil {
+		ctx = d.ctx
+	}
+
+	previewImg, err := preview.GetPreviewForFileWithChildMD5(ctx, d.fileInfo, previewSize, officeUrl, seekPercentage, childMD5)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
