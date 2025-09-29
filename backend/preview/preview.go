@@ -206,8 +206,16 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 
 	// Check if context is cancelled before starting
 	if ctx.Err() != nil {
+		if ctx.Err() == context.Canceled {
+			logger.Debugf("Preview generation cancelled by client for '%s'", file.Name)
+		} else {
+			logger.Debugf("Context cancelled before starting preview generation for '%s': %v", file.Name, ctx.Err())
+		}
 		return nil, ctx.Err()
 	}
+
+	logger.Debugf("Starting preview generation for '%s' (type: %s, size: %s, seek: %d%%)",
+		file.Name, file.Type, previewSize, seekPercentage)
 
 	ext := strings.ToLower(filepath.Ext(file.Name))
 	var (
@@ -244,19 +252,29 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 		}
 		return imageBytes, nil
 	} else if strings.HasPrefix(file.Type, "image") {
+		logger.Debugf("Reading image file '%s' (path: %s)", file.Name, file.RealPath)
 		imageBytes, err = os.ReadFile(file.RealPath)
 		if err != nil {
+			logger.Errorf("Failed to read image file '%s' (path: %s): %v", file.Name, file.RealPath, err)
 			return nil, fmt.Errorf("failed to read image file: %w", err)
 		}
+		logger.Debugf("Image file '%s' read successfully, size: %d bytes", file.Name, len(imageBytes))
 	} else if strings.HasPrefix(file.Type, "video") {
 		videoSeekPercentage := seekPercentage
 		if videoSeekPercentage == 0 {
 			videoSeekPercentage = 10
 		}
+		logger.Debugf("Generating video preview for '%s' at %d%% seek", file.Name, videoSeekPercentage)
 		imageBytes, err = service.GenerateVideoPreview(ctx, file.RealPath, videoSeekPercentage)
 		if err != nil {
+			// Don't log client cancellations as errors
+			if ctx.Err() != context.Canceled {
+				logger.Errorf("Video preview generation failed for '%s' (path: %s, seek: %d%%): %v",
+					file.Name, file.RealPath, videoSeekPercentage, err)
+			}
 			return nil, fmt.Errorf("failed to create image for video file: %w", err)
 		}
+		logger.Debugf("Video preview generated successfully for '%s', size: %d bytes", file.Name, len(imageBytes))
 	} else if strings.HasPrefix(file.Type, "audio") {
 		// Extract album artwork from audio files
 		if file.AudioMeta != nil && file.AudioMeta.AlbumArt != "" {
@@ -277,8 +295,12 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 	}
 
 	if len(imageBytes) < 100 {
+		logger.Errorf("Generated image too small for '%s' (type: %s): %d bytes - likely an error occurred",
+			file.Name, file.Type, len(imageBytes))
 		return nil, fmt.Errorf("generated image is too small, likely an error occurred: %d bytes", len(imageBytes))
 	}
+
+	logger.Debugf("Image bytes generated successfully for '%s': %d bytes", file.Name, len(imageBytes))
 
 	if previewSize != "original" {
 		// resize image
