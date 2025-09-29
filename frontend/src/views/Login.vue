@@ -5,19 +5,19 @@
       <div class="login-brand">
         <Icon mimetype="directory" />
       </div>
-      <div class="login-brand brand-text">
+      <div v-if="!inProgress" class="login-brand brand-text">
         <h3>{{ loginName }}</h3>
       </div>
       <transition name="login-options" @before-enter="beforeEnter" @enter="enter" @leave="leave">
-        <div v-if="inProgress" class="loginOptions" key="inProgress">
-          <p>{{ $t("login.inProgress") }}</p>
+        <div v-if="inProgress" class="loading-spinner">
+          <i class="material-icons spin">sync</i>
         </div>
-        <div v-else class="loginOptions" key="loginForm">
+        <div v-else class="loginOptions no-padding" key="loginForm">
           <div v-if="passwordAvailable" class="password-entry">
             <div v-if="error !== ''" class="wrong-login card">
               <span>{{ $t("login.failedLogin") }}</span>
-              <i class="no-select material-symbols-outlined tooltip-info-icon"
-                @mouseenter="showTooltip($event, error)" @mouseleave="hideTooltip">
+              <i class="no-select material-symbols-outlined tooltip-info-icon" @mouseenter="showTooltip($event, error)"
+                @mouseleave="hideTooltip">
                 help <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
               </i>
             </div>
@@ -234,7 +234,8 @@ export default {
 };
 </script>
 
-<style>
+<style >
+
 .password-entry .input {
   margin-bottom: 0.5em;
 }
@@ -311,7 +312,6 @@ export default {
 }
 
 .loginOptions {
-  padding: 0 !important;
   text-align: center;
   display: flex;
   align-content: center;
