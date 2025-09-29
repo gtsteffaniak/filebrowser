@@ -22,10 +22,10 @@ type officePreviewResponse struct {
 
 // GenerateOfficePreview generates a preview for an office document using OnlyOffice.
 func (s *Service) GenerateOfficePreview(ctx context.Context, filetype, key, title, url string) ([]byte, error) {
-	if err := s.acquire(ctx); err != nil {
+	if err := s.acquireOffice(ctx); err != nil {
 		return nil, err
 	}
-	defer s.release()
+	defer s.releaseOffice()
 	data := []byte{}
 	// Create the request payload
 	requestPayload := map[string]interface{}{

@@ -18,6 +18,12 @@ func (s *Service) convertHEICToJPEGWithFFmpeg(ctx context.Context, filePath stri
 		return nil, fmt.Errorf("image service not available")
 	}
 
+	// Acquire image service semaphore
+	if err := s.imageService.Acquire(ctx); err != nil {
+		return nil, err
+	}
+	defer s.imageService.Release()
+
 	// Determine target dimensions and quality based on preview size
 	var width, height int
 	var quality string

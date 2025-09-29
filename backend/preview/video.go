@@ -11,11 +11,6 @@ import (
 // percentageSeek: percentage of video duration to seek to (0–100).
 // Returns: JPEG image bytes.
 func (s *Service) GenerateVideoPreview(ctx context.Context, videoPath string, percentageSeek int) ([]byte, error) {
-	if err := s.acquire(ctx); err != nil {
-		return nil, err
-	}
-	defer s.release()
-
 	if s.videoService == nil {
 		return nil, fmt.Errorf("video service not available")
 	}

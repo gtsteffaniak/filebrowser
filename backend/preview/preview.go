@@ -31,12 +31,13 @@ var (
 )
 
 type Service struct {
-	sem          chan struct{}
 	ffmpegPath   string
 	ffprobePath  string
 	fileCache    diskcache.Interface
 	debug        bool
-	docGenMutex  sync.Mutex // Mutex to serialize access to doc generation
+	docGenMutex  sync.Mutex    // Mutex to serialize access to doc generation
+	docSemaphore chan struct{} // Semaphore for document generation
+	officeSem    chan struct{} // Semaphore for office document processing
 	videoService *ffmpeg.VideoService
 	imageService *ffmpeg.ImageService
 }
@@ -91,33 +92,48 @@ func NewPreviewGenerator(concurrencyLimit int, ffmpegPath string, cacheDir strin
 
 	if ffmpegMainPath != "" && ffprobePath != "" {
 		videoService = ffmpeg.NewVideoService(ffmpegMainPath, ffprobePath, concurrencyLimit, settings.Config.Server.DebugMedia)
-		imageService = ffmpeg.NewImageService(ffmpegMainPath, ffprobePath, settings.Config.Server.DebugMedia, filepath.Join(settings.Config.Server.CacheDir, "heic"))
+		imageService = ffmpeg.NewImageService(ffmpegMainPath, ffprobePath, concurrencyLimit, settings.Config.Server.DebugMedia, filepath.Join(settings.Config.Server.CacheDir, "heic"))
 	}
 
 	return &Service{
-		sem:          make(chan struct{}, concurrencyLimit),
-		ffmpegPath:   ffmpegMainPath,
-		ffprobePath:  ffprobePath,
-		fileCache:    fileCache,
-		debug:        settings.Config.Server.DebugMedia,
+		ffmpegPath:  ffmpegMainPath,
+		ffprobePath: ffprobePath,
+		fileCache:   fileCache,
+		debug:       settings.Config.Server.DebugMedia,
+		// CGo library (go-fitz) is NOT thread-safe - only 1 concurrent operation allowed
+		docSemaphore: make(chan struct{}, 1),
+		officeSem:    make(chan struct{}, concurrencyLimit),
 		videoService: videoService,
 		imageService: imageService,
 	}
 }
 
-// acquire acquires a semaphore slot with context support for timeouts
-func (s *Service) acquire(ctx context.Context) error {
+// Document semaphore methods
+func (s *Service) acquireDoc(ctx context.Context) error {
 	select {
-	case s.sem <- struct{}{}:
+	case s.docSemaphore <- struct{}{}:
 		return nil
 	case <-ctx.Done():
 		return ctx.Err()
 	}
 }
 
-// release releases a semaphore slot
-func (s *Service) release() {
-	<-s.sem
+func (s *Service) releaseDoc() {
+	<-s.docSemaphore
+}
+
+// Office semaphore methods
+func (s *Service) acquireOffice(ctx context.Context) error {
+	select {
+	case s.officeSem <- struct{}{}:
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+}
+
+func (s *Service) releaseOffice() {
+	<-s.officeSem
 }
 
 func StartPreviewGenerator(concurrencyLimit int, ffmpegPath, cacheDir string) error {
