@@ -497,10 +497,6 @@ func withTimeoutHelper(timeout time.Duration, fn handleFunc) handleFunc {
 		// Replace the request context with the timeout context
 		r = r.WithContext(ctx)
 		data.ctx = ctx
-
-		// Log timeout setup for debugging
-		logger.Debugf("Timeout middleware: %.0f second timeout set for %s %s", timeout.Seconds(), r.Method, r.URL.Path)
-
 		// Call the handler and check for timeout
 		status, err := fn(w, r, data)
 

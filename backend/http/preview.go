@@ -200,7 +200,6 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 	if err != nil {
 		// Check if it was a context cancellation (client navigated away)
 		if isClientCancellation(ctx, err) {
-			logger.Debugf("Preview request cancelled by client for file '%s'", d.fileInfo.Name)
 			// Return 200 to avoid error logging - client cancellation is normal
 			return http.StatusOK, nil
 		}

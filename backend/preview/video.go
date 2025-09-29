@@ -26,15 +26,8 @@ func (s *Service) GenerateVideoPreview(ctx context.Context, videoPath string, pe
 	}
 
 	var buf bytes.Buffer
-	logger.Debugf("Calling video service for '%s' at %d%% seek", videoPath, percentageSeek)
 	err := s.videoService.GenerateVideoPreviewStreaming(ctx, videoPath, percentageSeek, &buf)
 	if err != nil {
-		// Don't log client cancellations as errors
-		if ctx.Err() == context.Canceled {
-			logger.Debugf("Video service cancelled by client for '%s'", videoPath)
-		} else {
-			logger.Errorf("Video service failed for '%s': %v", videoPath, err)
-		}
 		return nil, err
 	}
 
@@ -44,6 +37,5 @@ func (s *Service) GenerateVideoPreview(ctx context.Context, videoPath string, pe
 		return nil, fmt.Errorf("video preview generation returned empty result")
 	}
 
-	logger.Debugf("Video preview generated successfully for '%s', result size: %d bytes", videoPath, len(previewBytes))
 	return previewBytes, nil
 }
