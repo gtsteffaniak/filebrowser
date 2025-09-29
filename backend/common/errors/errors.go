@@ -22,4 +22,6 @@ var (
 	ErrUnauthorized         = errors.New("user unauthorized")
 	ErrNotIndexed           = errors.New("directory or item excluded from indexing")
 	ErrWrongLoginMethod     = errors.New("user attempted to login with wrong login method")
+	ErrTimeout              = errors.New("API request timed out")
+	ErrPreviewTimeout       = errors.New("Preview generation timed out after 30 seconds")
 )
