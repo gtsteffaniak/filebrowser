@@ -31,12 +31,13 @@ var (
 )
 
 type Service struct {
-	sem          chan struct{}
 	ffmpegPath   string
 	ffprobePath  string
 	fileCache    diskcache.Interface
 	debug        bool
-	docGenMutex  sync.Mutex // Mutex to serialize access to doc generation
+	docGenMutex  sync.Mutex    // Mutex to serialize access to doc generation
+	docSemaphore chan struct{} // Semaphore for document generation
+	officeSem    chan struct{} // Semaphore for office document processing
 	videoService *ffmpeg.VideoService
 	imageService *ffmpeg.ImageService
 }
@@ -91,18 +92,48 @@ func NewPreviewGenerator(concurrencyLimit int, ffmpegPath string, cacheDir strin
 
 	if ffmpegMainPath != "" && ffprobePath != "" {
 		videoService = ffmpeg.NewVideoService(ffmpegMainPath, ffprobePath, concurrencyLimit, settings.Config.Server.DebugMedia)
-		imageService = ffmpeg.NewImageService(ffmpegMainPath, ffprobePath, settings.Config.Server.DebugMedia, filepath.Join(settings.Config.Server.CacheDir, "heic"))
+		imageService = ffmpeg.NewImageService(ffmpegMainPath, ffprobePath, concurrencyLimit, settings.Config.Server.DebugMedia, filepath.Join(settings.Config.Server.CacheDir, "heic"))
 	}
 
 	return &Service{
-		sem:          make(chan struct{}, concurrencyLimit),
-		ffmpegPath:   ffmpegMainPath,
-		ffprobePath:  ffprobePath,
-		fileCache:    fileCache,
-		debug:        settings.Config.Server.DebugMedia,
+		ffmpegPath:  ffmpegMainPath,
+		ffprobePath: ffprobePath,
+		fileCache:   fileCache,
+		debug:       settings.Config.Server.DebugMedia,
+		// CGo library (go-fitz) is NOT thread-safe - only 1 concurrent operation allowed
+		docSemaphore: make(chan struct{}, 1),
+		officeSem:    make(chan struct{}, concurrencyLimit),
 		videoService: videoService,
 		imageService: imageService,
 	}
+}
+
+// Document semaphore methods
+func (s *Service) acquireDoc(ctx context.Context) error {
+	select {
+	case s.docSemaphore <- struct{}{}:
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+}
+
+func (s *Service) releaseDoc() {
+	<-s.docSemaphore
+}
+
+// Office semaphore methods
+func (s *Service) acquireOffice(ctx context.Context) error {
+	select {
+	case s.officeSem <- struct{}{}:
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+}
+
+func (s *Service) releaseOffice() {
+	<-s.officeSem
 }
 
 func StartPreviewGenerator(concurrencyLimit int, ffmpegPath, cacheDir string) error {
@@ -110,14 +141,20 @@ func StartPreviewGenerator(concurrencyLimit int, ffmpegPath, cacheDir string) er
 	return nil
 }
 
-func GetPreviewForFile(file iteminfo.ExtendedFileInfo, previewSize, url string, seekPercentage int) ([]byte, error) {
-	return GetPreviewForFileWithChildMD5(file, previewSize, url, seekPercentage, "")
+func GetPreviewForFile(ctx context.Context, file iteminfo.ExtendedFileInfo, previewSize, url string, seekPercentage int) ([]byte, error) {
+	return GetPreviewForFileWithChildMD5(ctx, file, previewSize, url, seekPercentage, "")
 }
 
-func GetPreviewForFileWithChildMD5(file iteminfo.ExtendedFileInfo, previewSize, url string, seekPercentage int, childMD5 string) ([]byte, error) {
+func GetPreviewForFileWithChildMD5(ctx context.Context, file iteminfo.ExtendedFileInfo, previewSize, url string, seekPercentage int, childMD5 string) ([]byte, error) {
 	if !file.HasPreview {
 		return nil, ErrUnsupportedMedia
 	}
+
+	// Check if context is cancelled before starting
+	if ctx.Err() != nil {
+		return nil, ctx.Err()
+	}
+
 	var thisMd5 string
 	if childMD5 != "" {
 		// Use the child's MD5 for folder previews to ensure cache sharing
@@ -151,20 +188,25 @@ func GetPreviewForFileWithChildMD5(file iteminfo.ExtendedFileInfo, previewSize, 
 	}
 
 	cacheKey := CacheKey(thisMd5, previewSize, seekPercentage)
-	if data, found, err := service.fileCache.Load(context.Background(), cacheKey); err != nil {
+	if data, found, err := service.fileCache.Load(ctx, cacheKey); err != nil {
 		return nil, fmt.Errorf("failed to load from cache: %w", err)
 	} else if found {
 		return data, nil
 	}
-	return GeneratePreviewWithMD5(file, previewSize, url, seekPercentage, thisMd5)
+	return GeneratePreviewWithMD5(ctx, file, previewSize, url, seekPercentage, thisMd5)
 }
 
-func GeneratePreviewWithMD5(file iteminfo.ExtendedFileInfo, previewSize, officeUrl string, seekPercentage int, fileMD5 string) ([]byte, error) {
+func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo, previewSize, officeUrl string, seekPercentage int, fileMD5 string) ([]byte, error) {
 	// Validate that MD5 is not empty to prevent cache corruption
 	if fileMD5 == "" {
 		errorMsg := fmt.Sprintf("MD5 is empty for file: %s (path: %s)", file.Name, file.RealPath)
 		logger.Errorf("Preview generation failed: %s", errorMsg)
 		return nil, fmt.Errorf("preview generation failed: %s", errorMsg)
+	}
+
+	// Check if context is cancelled before starting
+	if ctx.Err() != nil {
+		return nil, ctx.Err()
 	}
 
 	ext := strings.ToLower(filepath.Ext(file.Name))
@@ -180,24 +222,24 @@ func GeneratePreviewWithMD5(file iteminfo.ExtendedFileInfo, previewSize, officeU
 	// Generate an image from office document
 	if iteminfo.HasDocConvertableExtension(file.Name, file.Type) {
 		tempFilePath := filepath.Join(settings.Config.Server.CacheDir, "thumbnails", "docs", hash) + ".txt"
-		imageBytes, err = service.GenerateImageFromDoc(file, tempFilePath, 0) // 0 for the first page
+		imageBytes, err = service.GenerateImageFromDoc(ctx, file, tempFilePath, 0) // 0 for the first page
 		if err != nil {
 			return nil, fmt.Errorf("failed to create image for PDF file: %w", err)
 		}
 	} else if file.OnlyOfficeId != "" {
-		imageBytes, err = service.GenerateOfficePreview(filepath.Ext(file.Name), file.OnlyOfficeId, file.Name, officeUrl)
+		imageBytes, err = service.GenerateOfficePreview(ctx, filepath.Ext(file.Name), file.OnlyOfficeId, file.Name, officeUrl)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create image for office file: %w", err)
 		}
 	} else if strings.HasPrefix(file.Type, "image/heic") {
 		// HEIC files need FFmpeg conversion to JPEG with proper size/quality handling
-		imageBytes, err = service.convertHEICToJPEGWithFFmpeg(file.RealPath, previewSize)
+		imageBytes, err = service.convertHEICToJPEGWithFFmpeg(ctx, file.RealPath, previewSize)
 		if err != nil {
 			return nil, fmt.Errorf("failed to process HEIC image file: %w", err)
 		}
 		// For HEIC files, we've already done the resize/conversion, so cache and return directly
 		cacheKey := CacheKey(fileMD5, previewSize, seekPercentage)
-		if err = service.fileCache.Store(context.Background(), cacheKey, imageBytes); err != nil {
+		if err = service.fileCache.Store(ctx, cacheKey, imageBytes); err != nil {
 			logger.Errorf("failed to cache HEIC image: %v", err)
 		}
 		return imageBytes, nil
@@ -211,7 +253,7 @@ func GeneratePreviewWithMD5(file iteminfo.ExtendedFileInfo, previewSize, officeU
 		if videoSeekPercentage == 0 {
 			videoSeekPercentage = 10
 		}
-		imageBytes, err = service.GenerateVideoPreview(file.RealPath, videoSeekPercentage)
+		imageBytes, err = service.GenerateVideoPreview(ctx, file.RealPath, videoSeekPercentage)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create image for video file: %w", err)
 		}
@@ -228,6 +270,12 @@ func GeneratePreviewWithMD5(file iteminfo.ExtendedFileInfo, previewSize, officeU
 	} else {
 		return nil, fmt.Errorf("unsupported media type: %s", ext)
 	}
+
+	// Check if context was cancelled during processing
+	if ctx.Err() != nil {
+		return nil, ctx.Err()
+	}
+
 	if len(imageBytes) < 100 {
 		return nil, fmt.Errorf("generated image is too small, likely an error occurred: %d bytes", len(imageBytes))
 	}
@@ -240,13 +288,13 @@ func GeneratePreviewWithMD5(file iteminfo.ExtendedFileInfo, previewSize, officeU
 		}
 		// Cache and return
 		cacheKey := CacheKey(fileMD5, previewSize, seekPercentage)
-		if err := service.fileCache.Store(context.Background(), cacheKey, resizedBytes); err != nil {
+		if err := service.fileCache.Store(ctx, cacheKey, resizedBytes); err != nil {
 			logger.Errorf("failed to cache resized image: %v", err)
 		}
 		return resizedBytes, nil
 	} else {
 		cacheKey := CacheKey(fileMD5, previewSize, seekPercentage)
-		if err := service.fileCache.Store(context.Background(), cacheKey, imageBytes); err != nil {
+		if err := service.fileCache.Store(ctx, cacheKey, imageBytes); err != nil {
 			logger.Errorf("failed to cache original image: %v", err)
 		}
 		return imageBytes, nil
@@ -254,7 +302,7 @@ func GeneratePreviewWithMD5(file iteminfo.ExtendedFileInfo, previewSize, officeU
 
 }
 
-func GeneratePreview(file iteminfo.ExtendedFileInfo, previewSize, officeUrl string, seekPercentage int) ([]byte, error) {
+func GeneratePreview(ctx context.Context, file iteminfo.ExtendedFileInfo, previewSize, officeUrl string, seekPercentage int) ([]byte, error) {
 	// For backward compatibility, calculate MD5 if not provided
 	var fileMD5 string
 	if file.Checksums != nil && file.Checksums["md5"] != "" {
@@ -266,7 +314,7 @@ func GeneratePreview(file iteminfo.ExtendedFileInfo, previewSize, officeUrl stri
 			return nil, fmt.Errorf("failed to get checksum: %w", err)
 		}
 	}
-	return GeneratePreviewWithMD5(file, previewSize, officeUrl, seekPercentage, fileMD5)
+	return GeneratePreviewWithMD5(ctx, file, previewSize, officeUrl, seekPercentage, fileMD5)
 }
 
 func (s *Service) CreatePreview(data []byte, previewSize string) ([]byte, error) {

@@ -487,6 +487,33 @@ func withSelfOrAdmin(fn handleFunc) http.HandlerFunc {
 	return wrapHandler(withSelfOrAdminHelper(fn))
 }
 
+// withTimeoutHelper adds a configurable timeout context to any operation
+func withTimeoutHelper(timeoutSeconds int, fn handleFunc) handleFunc {
+	return func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
+		// Create a context with the specified timeout
+		ctx, cancel := context.WithTimeout(r.Context(), time.Duration(timeoutSeconds)*time.Second)
+		defer cancel()
+
+		// Replace the request context with the timeout context
+		r = r.WithContext(ctx)
+		data.ctx = ctx
+
+		// Call the handler and check for timeout
+		status, err := fn(w, r, data)
+
+		// Check if the context was cancelled due to timeout
+		if ctx.Err() == context.DeadlineExceeded {
+			return http.StatusRequestTimeout, fmt.Errorf("request timed out after %d seconds", timeoutSeconds)
+		}
+
+		return status, err
+	}
+}
+
+func withTimeout(timeoutSeconds int, fn handleFunc) http.HandlerFunc {
+	return wrapHandler(withTimeoutHelper(timeoutSeconds, fn))
+}
+
 func muxWithMiddleware(mux *http.ServeMux) *http.ServeMux {
 	wrappedMux := http.NewServeMux()
 	wrappedMux.Handle("/", LoggingMiddleware(mux))

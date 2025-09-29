@@ -137,7 +137,10 @@
     "submit": "Login",
     "usernameTaken": "Username already taken",
     "wrongCredentials": "Wrong credentials",
-    "or": "OR"
+    "or": "OR",
+    "inProgress": "Logging in...",
+    "failedLogin": "Failed to login",
+    "invalidCredentials": "Invalid credentials provided"
   },
   "share": {
     "notice": "Note: when a share is a created, it becomes more exposed to the public and has different rules for access. If your share is not securely configured, it may be accessed by anyone.",

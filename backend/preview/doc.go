@@ -5,6 +5,7 @@ package preview
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"image/jpeg"
 	"io"
@@ -22,7 +23,18 @@ func docEnabled() bool {
 	return true
 }
 
-func (s *Service) GenerateImageFromDoc(file iteminfo.ExtendedFileInfo, tempFilePath string, pageNumber int) ([]byte, error) {
+func (s *Service) GenerateImageFromDoc(ctx context.Context, file iteminfo.ExtendedFileInfo, tempFilePath string, pageNumber int) ([]byte, error) {
+	// Check if context is cancelled before starting
+	if ctx.Err() != nil {
+		return nil, ctx.Err()
+	}
+
+	// Acquire document semaphore
+	if err := s.acquireDoc(ctx); err != nil {
+		return nil, err
+	}
+	defer s.releaseDoc()
+
 	// 1. Serialize access to the entire go-fitz operation block
 	s.docGenMutex.Lock()
 	defer s.docGenMutex.Unlock()

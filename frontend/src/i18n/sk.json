@@ -134,7 +134,10 @@
     "submit": "Prihlásiť",
     "usernameTaken": "Meno je už obsadené",
     "wrongCredentials": "Nesprávne prihlasovacie údaje",
-    "or": "ALEBO"
+    "or": "ALEBO",
+    "inProgress": "Prihlásenie...",
+    "failedLogin": "Nepodarilo sa prihlásiť",
+    "invalidCredentials": "Zadané neplatné poverenia"
   },
   "prompts": {
     "copy": "Kopírovať",

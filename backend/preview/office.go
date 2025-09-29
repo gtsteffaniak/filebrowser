@@ -21,11 +21,11 @@ type officePreviewResponse struct {
 }
 
 // GenerateOfficePreview generates a preview for an office document using OnlyOffice.
-func (s *Service) GenerateOfficePreview(filetype, key, title, url string) ([]byte, error) {
-	if err := s.acquire(context.Background()); err != nil {
+func (s *Service) GenerateOfficePreview(ctx context.Context, filetype, key, title, url string) ([]byte, error) {
+	if err := s.acquireOffice(ctx); err != nil {
 		return nil, err
 	}
-	defer s.release()
+	defer s.releaseOffice()
 	data := []byte{}
 	// Create the request payload
 	requestPayload := map[string]interface{}{
@@ -59,7 +59,7 @@ func (s *Service) GenerateOfficePreview(filetype, key, title, url string) ([]byt
 		convertURL = settings.Config.Integrations.OnlyOffice.InternalUrl + "/converter"
 	}
 	// Send the request with buf.Bytes() — not jsonData
-	req, err := http.NewRequest("POST", convertURL, buf)
+	req, err := http.NewRequestWithContext(ctx, "POST", convertURL, buf)
 	if err != nil {
 		return data, err
 	}

@@ -134,7 +134,10 @@
     "submit": "Logowanie",
     "usernameTaken": "Nazwa użytkownika już zajęta",
     "wrongCredentials": "Błędne dane logowania",
-    "or": "LUB"
+    "or": "LUB",
+    "inProgress": "Logowanie...",
+    "failedLogin": "Logowanie nie powiodło się",
+    "invalidCredentials": "Podano nieprawidłowe dane uwierzytelniające"
   },
   "prompts": {
     "copy": "Kopiuj",

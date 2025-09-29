@@ -2,6 +2,7 @@ package ffmpeg
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
@@ -18,16 +19,31 @@ type ImageService struct {
 	ffprobePath string
 	debug       bool
 	cacheDir    string
+	semaphore   chan struct{}
 }
 
 // NewImageService creates a new image service instance
-func NewImageService(ffmpegPath, ffprobePath string, debug bool, cacheDir string) *ImageService {
+func NewImageService(ffmpegPath, ffprobePath string, maxConcurrent int, debug bool, cacheDir string) *ImageService {
 	return &ImageService{
 		ffmpegPath:  ffmpegPath,
 		ffprobePath: ffprobePath,
 		debug:       debug,
 		cacheDir:    cacheDir,
+		semaphore:   make(chan struct{}, maxConcurrent),
 	}
+}
+
+func (s *ImageService) Acquire(ctx context.Context) error {
+	select {
+	case s.semaphore <- struct{}{}:
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+}
+
+func (s *ImageService) Release() {
+	<-s.semaphore
 }
 
 // GetImageOrientation extracts the EXIF orientation from an image file using exiftool

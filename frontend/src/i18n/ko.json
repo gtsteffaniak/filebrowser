@@ -134,7 +134,10 @@
     "submit": "로그인",
     "usernameTaken": "사용자 이름이 존재합니다",
     "wrongCredentials": "사용자 이름 또는 비밀번호를 확인하십시오",
-    "or": "또는"
+    "or": "또는",
+    "inProgress": "로그인...",
+    "failedLogin": "로그인에 실패했습니다.",
+    "invalidCredentials": "제공된 자격 증명이 잘못되었습니다."
   },
   "prompts": {
     "copy": "복사",

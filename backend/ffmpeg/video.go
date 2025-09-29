@@ -46,11 +46,16 @@ func (s *VideoService) release() {
 
 // GenerateVideoPreviewStreaming generates a video preview and streams it directly to a writer
 // This is more memory efficient for large previews as it doesn't load the entire file into memory
-func (s *VideoService) GenerateVideoPreviewStreaming(videoPath string, percentageSeek int, writer io.Writer) error {
-	if err := s.acquire(context.Background()); err != nil {
+func (s *VideoService) GenerateVideoPreviewStreaming(ctx context.Context, videoPath string, percentageSeek int, writer io.Writer) error {
+	if err := s.acquire(ctx); err != nil {
 		return err
 	}
 	defer s.release()
+
+	// Check if context is cancelled before starting
+	if ctx.Err() != nil {
+		return ctx.Err()
+	}
 
 	// Validate percentage parameter
 	if percentageSeek < 0 || percentageSeek > 100 {
@@ -58,7 +63,7 @@ func (s *VideoService) GenerateVideoPreviewStreaming(videoPath string, percentag
 	}
 
 	// Step 1: Get video duration from the container format
-	probeCmd := exec.Command(
+	probeCmd := exec.CommandContext(ctx,
 		s.ffprobePath,
 		"-v", "error",
 		"-show_entries", "format=duration",
@@ -72,6 +77,9 @@ func (s *VideoService) GenerateVideoPreviewStreaming(videoPath string, percentag
 		probeCmd.Stderr = os.Stderr
 	}
 	if err := probeCmd.Run(); err != nil {
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
 		logger.Errorf("ffprobe command failed on file '%v' : %v", videoPath, err)
 		return fmt.Errorf("ffprobe failed: %w", err)
 	}
@@ -96,7 +104,7 @@ func (s *VideoService) GenerateVideoPreviewStreaming(videoPath string, percentag
 	seekTimeStr := strconv.FormatFloat(seekTime, 'f', 3, 64) // 3 decimal places precision
 
 	// Step 3: Extract frame and stream directly to writer
-	cmd := exec.Command(
+	cmd := exec.CommandContext(ctx,
 		s.ffmpegPath,
 		"-ss", seekTimeStr, // Use precise seek time
 		"-i", videoPath,
@@ -114,6 +122,9 @@ func (s *VideoService) GenerateVideoPreviewStreaming(videoPath string, percentag
 
 	err = cmd.Run()
 	if err != nil {
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
 		return fmt.Errorf("ffmpeg command failed on file '%v' : %w", videoPath, err)
 	}
 	return nil

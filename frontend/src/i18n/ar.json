@@ -134,7 +134,10 @@
     "submit": "تسجيل دخول",
     "usernameTaken": "Username already taken",
     "wrongCredentials": "بيانات دخول خاطئة",
-    "or": "أو"
+    "or": "أو",
+    "inProgress": "تسجيل الدخول...",
+    "failedLogin": "فشل في تسجيل الدخول",
+    "invalidCredentials": "تم توفير بيانات اعتماد غير صالحة"
   },
   "prompts": {
     "copy": "نسخ",

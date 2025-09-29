@@ -134,7 +134,10 @@
     "submit": "Belépés",
     "usernameTaken": "A felhasználói név már foglalt",
     "wrongCredentials": "Hibás hitelesítő adatok",
-    "or": "VAGY"
+    "or": "VAGY",
+    "inProgress": "Bejelentkezés...",
+    "failedLogin": "Sikertelen bejelentkezés",
+    "invalidCredentials": "Érvénytelen hitelesítő adatok megadása"
   },
   "prompts": {
     "copy": "Másolása",

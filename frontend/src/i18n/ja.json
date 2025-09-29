@@ -134,7 +134,10 @@
     "submit": "ログイン",
     "usernameTaken": "ユーザー名はすでに使用されています",
     "wrongCredentials": "ユーザー名またはパスワードが間違っています。",
-    "or": "または"
+    "or": "または",
+    "inProgress": "ログイン...",
+    "failedLogin": "ログインに失敗しました",
+    "invalidCredentials": "無効な認証情報が提供された"
   },
   "prompts": {
     "copy": "コピー",

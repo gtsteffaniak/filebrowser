@@ -134,7 +134,10 @@
     "submit": "Log in",
     "usernameTaken": "Gebruikersnaam reeds in gebruik",
     "wrongCredentials": "Verkeerde inloggegevens",
-    "or": "OF"
+    "or": "OF",
+    "inProgress": "Inloggen...",
+    "failedLogin": "Aanmelden mislukt",
+    "invalidCredentials": "Ongeldige referenties verstrekt"
   },
   "prompts": {
     "copy": "Kopiëren",
