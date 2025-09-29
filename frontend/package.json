@@ -9,10 +9,7 @@
   },
   "scripts": {
     "build": "vite build --outDir ../backend/http/dist && cp -r ../backend/http/dist/* ../backend/http/embed",
-    "build:dev": "DEV_BUILD=true vite build --outDir ../backend/http/dist && cp -r ../backend/http/dist/* ../backend/http/embed",
-    "build:dev:es": "DEV_BUILD=true ADDITIONAL_LANGUAGES=es vite build --outDir ../backend/http/dist && cp -r ../backend/http/dist/* ../backend/http/embed",
-    "build-windows": "vite build --outDir ../backend/http/dist && robocopy ../backend/http/dist ../backend/http/embed /e",
-    "build-docker": "vite build",
+    "build:windows": "vite build --outDir ../backend/http/dist && robocopy ../backend/http/dist ../backend/http/embed /e",
     "watch": "DEV_BUILD=true vite build --watch --outDir ../backend/http/dist",
     "typecheck": "vue-tsc -p ./tsconfig.json --noEmit",
     "lint": "eslint --ext .js,.vue,ts src",
