@@ -341,8 +341,8 @@ func hasAlbumArtLowLevel(filePath string, extension string) (bool, error) {
 	}
 	defer file.Close()
 
-    // Look for common signatures in first 64KB for M4A files
-    buffer := make([]byte, 65536)
+	// Same buffer for all the audio formats, will read the first 64KB.
+    buffer := make([]byte, 65536) // 64KB
     n, err := file.Read(buffer)
     if err != nil && err != io.EOF {
         return false, err
@@ -350,19 +350,17 @@ func hasAlbumArtLowLevel(filePath string, extension string) (bool, error) {
 
     data := buffer[:n]
 
-    // Signature check to detect album art without parsing the entire file
-    if hasImageSignature(data) {
-        return true, nil
-    }
+    hasAlbumArtM4A := hasAlbumArtM4A(data)
 
 	// Handle different audio formats
 	switch extension {
 	case ".mp3":
-		return hasAlbumArtMP3(file)
+		return hasAlbumArtMP3(data)
 	case ".flac", ".ogg", ".opus":
-		return hasAlbumArtVorbis(file)
+		return hasAlbumArtVorbis(data), nil
 	case ".m4a", ".mp4":
-		return hasAlbumArtM4A(file, data)
+		// For M4A check signature or covr atom
+		return hasAlbumArtM4A || bytes.Contains(data, []byte("covr")), nil
 	default:
 		// For other formats, return false (no album art detection)
 		return false, nil
@@ -370,20 +368,19 @@ func hasAlbumArtLowLevel(filePath string, extension string) (bool, error) {
 }
 
 // hasAlbumArtMP3 checks for APIC/PIC frames in ID3v2 tags with optimized parsing
-func hasAlbumArtMP3(file *os.File) (bool, error) {
+func hasAlbumArtMP3(data []byte) (bool, error) {
 	// Read 10-byte ID3v2 header
-	header := make([]byte, 10)
-	if _, err := io.ReadFull(file, header); err != nil {
-		return false, nil // No ID3v2 tag found
-	}
+	if len(data) < 10 {
+        return false, nil
+    }
 
 	// Check for "ID3" identifier
-	if string(header[0:3]) != "ID3" {
-		return false, nil // No ID3v2 tag found
-	}
+	if string(data[0:3]) != "ID3" {
+        return false, nil
+    }
 
 	// Determine ID3v2 version for proper frame ID detection
-	version := header[3]
+	version := data[3]
 	var pictureFrameID string
 	var frameHeaderSize int
 
@@ -399,33 +396,29 @@ func hasAlbumArtMP3(file *os.File) (bool, error) {
 	}
 
 	// Decode synchsafe tag size
-	tagSize := (int(header[6]) << 21) | (int(header[7]) << 14) | (int(header[8]) << 7) | int(header[9])
+	tagSize := (int(data[6]) << 21) | (int(data[7]) << 14) | (int(data[8]) << 7) | int(data[9])
 
 	// Limit reading to reasonable size for performance
-	maxReadSize := 65536 // 64KB should be enough to find picture frames
 	readSize := tagSize
-	if readSize > maxReadSize {
-		readSize = maxReadSize
+	if readSize > len(data)-10 {
+		readSize = len(data) - 10
 	}
 
 	// Read tag data
-	tagData := make([]byte, readSize)
-	if _, err := io.ReadFull(file, tagData); err != nil {
-		return false, nil // Failed to read, assume no artwork
-	}
+	tagData := data[10 : 10+readSize]
 
 	position := 0
 	frameIDLen := len(pictureFrameID)
 
 	// Loop through frames looking for picture frame
-	for position+frameHeaderSize <= readSize {
+	for position+frameHeaderSize <= len(tagData) {
 		// Check if we've hit padding (null bytes)
 		if tagData[position] == 0 {
 			break
 		}
 
 		// Extract frame ID
-		if position+frameIDLen > readSize {
+		if position+frameIDLen > len(tagData) {
 			break
 		}
 		frameID := string(tagData[position : position+frameIDLen])
@@ -439,14 +432,14 @@ func hasAlbumArtMP3(file *os.File) (bool, error) {
 		var frameSize int
 		if version == 2 {
 			// ID3v2.2: 3-byte size
-			if position+6 > readSize {
+			if position+6 > len(tagData) {
 				break
 			}
 			frameSize = int(tagData[position+3])<<16 | int(tagData[position+4])<<8 | int(tagData[position+5])
 			position += 6 + frameSize
 		} else {
 			// ID3v2.3/2.4: 4-byte size
-			if position+10 > readSize {
+			if position+10 > len(tagData) {
 				break
 			}
 			frameSize = int(tagData[position+4])<<24 | int(tagData[position+5])<<16 |
@@ -455,7 +448,7 @@ func hasAlbumArtMP3(file *os.File) (bool, error) {
 		}
 
 		// Safety check to prevent infinite loops
-		if frameSize <= 0 || position >= tagSize {
+		if frameSize <= 0 || position >= len(tagData) {
 			break
 		}
 	}
@@ -463,203 +456,30 @@ func hasAlbumArtMP3(file *os.File) (bool, error) {
 	return false, nil
 }
 
-// hasAlbumArtVorbis checks for album art in FLAC, OGG, and OPUS files using surgical format-specific parsing
-func hasAlbumArtVorbis(file *os.File) (bool, error) {
-	// Read initial buffer to determine file type
-	buffer := make([]byte, 32768) // 32KB should be enough for most metadata sections
-	n, err := file.Read(buffer)
-	if err != nil && err != io.EOF {
-		return false, err
-	}
+// hasAlbumArtVorbis checks for album art in FLAC, OGG, and OPUS files
+func hasAlbumArtVorbis(data []byte) bool {
+    // Check for FLAC signature and picture block
+    if len(data) >= 4 && string(data[0:4]) == "fLaC" {
+        return bytes.Contains(data, []byte("\x06")) // Picture block type
+    }
 
-	// Check if it's a FLAC file
-	if n >= 4 && string(buffer[0:4]) == "fLaC" {
-		return hasAlbumArtFLAC(buffer, n)
-	}
+    // Check for OGG signature and cover art (opus included)
+    if len(data) >= 4 && string(data[0:4]) == "OggS" {
+        return bytes.Contains(data, []byte("METADATA_BLOCK_PICTURE")) ||
+               bytes.Contains(data, []byte("COVERART")) ||
+               bytes.Contains(data, []byte("COVER_ART"))
+    }
 
-	// Check if it's an OGG file (including OPUS)
-	if n >= 4 && string(buffer[0:4]) == "OggS" {
-		return hasAlbumArtOGG(buffer, n)
-	}
-
-	return false, nil
-}
-
-// hasAlbumArtFLAC checks for PICTURE metadata block (type 6) in FLAC files
-func hasAlbumArtFLAC(buffer []byte, n int) (bool, error) {
-	pos := 4 // Skip "fLaC" header
-
-	for pos < n-4 {
-		// Read metadata block header (4 bytes total)
-		blockHeader := buffer[pos]
-		blockType := blockHeader & 0x7F // bits 0-6
-		isLast := blockHeader&0x80 != 0 // bit 7
-
-		// Found picture block!
-		if blockType == 6 { // PICTURE block type
-			return true, nil
-		}
-
-		// Get block size (next 3 bytes, big-endian)
-		if pos+4 > n {
-			break
-		}
-		blockSize := int(buffer[pos+1])<<16 | int(buffer[pos+2])<<8 | int(buffer[pos+3])
-
-		// Move to next block
-		pos += 4 + blockSize
-
-		// Stop if this was the last block or we've exceeded buffer
-		if isLast || pos >= n {
-			break
-		}
-	}
-
-	return false, nil
-}
-
-// hasAlbumArtOGG checks for METADATA_BLOCK_PICTURE in OGG Vorbis comments (including OPUS)
-func hasAlbumArtOGG(buffer []byte, n int) (bool, error) {
-	// Look for Vorbis comment patterns
-	vorbisPrefix := []byte("\x03vorbis")
-	opusPrefix := []byte("OpusTags")
-
-	// Search for either Vorbis or Opus tags
-	for i := 0; i < n-8; i++ {
-		if i+len(vorbisPrefix) < n && bytes.Equal(buffer[i:i+len(vorbisPrefix)], vorbisPrefix) {
-			// Found Vorbis comment block, look for METADATA_BLOCK_PICTURE
-			return searchForPictureInVorbisComment(buffer[i+len(vorbisPrefix):], n-i-len(vorbisPrefix))
-		}
-		if i+len(opusPrefix) < n && bytes.Equal(buffer[i:i+len(opusPrefix)], opusPrefix) {
-			// Found Opus tags block, look for METADATA_BLOCK_PICTURE
-			return searchForPictureInVorbisComment(buffer[i+len(opusPrefix):], n-i-len(opusPrefix))
-		}
-	}
-
-	return false, nil
-}
-
-// searchForPictureInVorbisComment looks for METADATA_BLOCK_PICTURE field in Vorbis comments
-func searchForPictureInVorbisComment(buffer []byte, n int) (bool, error) {
-	// Convert to string and look for the METADATA_BLOCK_PICTURE field
-	// This field contains base64-encoded picture data
-	content := string(buffer[:n])
-
-	// Look for the exact field name used in Vorbis comments
-	if strings.Contains(content, "METADATA_BLOCK_PICTURE=") {
-		return true, nil
-	}
-
-	// Some files might use alternative field names
-	if strings.Contains(content, "COVERART=") || strings.Contains(content, "COVER_ART=") {
-		return true, nil
-	}
-
-	return false, nil
+    return false
 }
 
 // hasAlbumArtM4A checks for embedded artwork in M4A/MP4 files
-func hasAlbumArtM4A(file *os.File, initialBuffer []byte) (bool, error) {
-    // Look for 'covr' atom directly in initial buffer
-    if bytes.Contains(initialBuffer, []byte("covr")) {
-        return true, nil
-    }
-
-    // Also check for common image signatures that might indicate embedded artwork
-    if hasImageSignature(initialBuffer) {
-        return true, nil
-    }
-
-    // If initial buffer (64KB) wasn't enough, read more but with limits
-    if len(initialBuffer) < 262144 { // 256KB total maximum
-        additionalBytes := 262144 - len(initialBuffer)
-        additionalBuffer := make([]byte, additionalBytes)
-        n, err := file.Read(additionalBuffer)
-        if err != nil && err != io.EOF {
-            return false, err
-        }
-
-        // Combine buffers and search for the embedded art
-        combined := append(initialBuffer, additionalBuffer[:n]...)
-        if bytes.Contains(combined, []byte("covr")) || hasImageSignature(combined) {
-            return true, nil
-        }
-    }
-
-    // Parse MP4 atom structure more thoroughly but with limits
-    return parseM4AAtoms(initialBuffer)
-}
-
-func parseM4AAtoms(data []byte) (bool, error) {
-    pos := 0
-    maxPos := len(data) - 8
-    iterationCount := 0
-    maxIterations := 1000 // Safety limit to prevent infinite loops
-
-    for pos < maxPos && iterationCount < maxIterations {
-        iterationCount++
-
-        // Read atom size (big-endian)
-        atomSize := int(data[pos])<<24 | int(data[pos+1])<<16 |
-                   int(data[pos+2])<<8 | int(data[pos+3])
-
-        // Validate atom size
-        if atomSize < 8 || atomSize > len(data)-pos {
-            pos += 8 // Move to next potential atom
-            continue
-        }
-
-        atomType := string(data[pos+4 : pos+8])
-
-        // Check for metadata container atoms
-        if atomType == "moov" || atomType == "udta" || atomType == "meta" ||
-           atomType == "ilst" || atomType == "trak" {
-
-            // Look for 'covr' in nested atoms with depth limit
-            subPos := pos + 8
-            subEnd := pos + atomSize
-            if subEnd > len(data) {
-                subEnd = len(data)
-            }
-
-            subIteration := 0
-            for subPos < subEnd-8 && subIteration < 100 {
-                subIteration++
-
-                subSize := int(data[subPos])<<24 | int(data[subPos+1])<<16 |
-                          int(data[subPos+2])<<8 | int(data[subPos+3])
-
-                if subSize < 8 || subSize > subEnd-subPos {
-                    break
-                }
-
-                subType := string(data[subPos+4 : subPos+8])
-                if subType == "covr" {
-                    return true, nil
-                }
-
-                subPos += subSize
-            }
-        }
-
-        // Check atom type directly
-        if atomType == "covr" {
-            return true, nil
-        }
-
-        pos += atomSize
-    }
-
-    return false, nil
-}
-
-// Check image signature for M4A files
-func hasImageSignature(data []byte) bool {
+func hasAlbumArtM4A(data []byte) bool {
     signatures := [][]byte{
-        []byte("\xFF\xD8\xFF"),           // JPEG
+        []byte("\xFF\xD8\xFF"),            // JPEG
         []byte("\x89PNG\x0D\x0A\x1A\x0A"), // PNG
-        []byte("GIF8"),                   // GIF
-        []byte("BM"),                     // BMP
+        []byte("GIF8"),                    // GIF
+        []byte("BM"),                      // BMP
         []byte("\x00\x00\x00\x1C\x66\x74\x79\x70"), // MP4/M4A start
     }
 
