@@ -33,7 +33,7 @@ dev:
 	@echo "Generating frontend config..."
 	cd backend && FILEBROWSER_GENERATE_CONFIG=true go run --tags=mupdf .
 	@echo "Running initial frontend build (English only for faster dev builds)..."
-	cd frontend && npm run build:dev
+	cd frontend && npm run build
 	@echo "Starting dev servers... Press Ctrl+C to stop."
 	@trap 'echo "Stopping servers..."; kill -TERM 0' INT TERM
 	cd frontend && npm run watch & \
