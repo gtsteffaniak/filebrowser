@@ -43,6 +43,17 @@ type Service struct {
 }
 
 func NewPreviewGenerator(concurrencyLimit int, ffmpegPath string, cacheDir string) *Service {
+	// Hard limit ffmpeg concurrency to prevent I/O lockup
+	// Users can configure this, but we enforce a reasonable maximum
+	const maxFFmpegConcurrency = 4
+	if concurrencyLimit > maxFFmpegConcurrency {
+		logger.Debugf("Limiting ffmpeg concurrency from %d to %d to prevent I/O issues", concurrencyLimit, maxFFmpegConcurrency)
+		concurrencyLimit = maxFFmpegConcurrency
+	}
+	if concurrencyLimit < 1 {
+		concurrencyLimit = 1
+	}
+
 	var fileCache diskcache.Interface
 	// Use file cache if cacheDir is specified
 	if cacheDir != "" {
@@ -83,6 +94,7 @@ func NewPreviewGenerator(concurrencyLimit int, ffmpegPath string, cacheDir strin
 		settings.Config.Integrations.Media.FfmpegPath = filepath.Base(ffmpegMainPath)
 	}
 	logger.Debugf("Media Enabled            : %v", ffmpegMainPath != "" && ffprobePath != "")
+	logger.Debugf("FFmpeg Concurrency Limit : %d", concurrencyLimit)
 	settings.Config.Server.MuPdfAvailable = docEnabled()
 	logger.Debugf("MuPDF Enabled            : %v", settings.Config.Server.MuPdfAvailable)
 
@@ -91,6 +103,7 @@ func NewPreviewGenerator(concurrencyLimit int, ffmpegPath string, cacheDir strin
 	var imageService *ffmpeg.ImageService
 
 	if ffmpegMainPath != "" && ffprobePath != "" {
+		logger.Debugf("Initializing video and image services with concurrency=%d", concurrencyLimit)
 		videoService = ffmpeg.NewVideoService(ffmpegMainPath, ffprobePath, concurrencyLimit, settings.Config.Server.DebugMedia)
 		imageService = ffmpeg.NewImageService(ffmpegMainPath, ffprobePath, concurrencyLimit, settings.Config.Server.DebugMedia, filepath.Join(settings.Config.Server.CacheDir, "heic"))
 	}
@@ -137,7 +150,12 @@ func (s *Service) releaseOffice() {
 }
 
 func StartPreviewGenerator(concurrencyLimit int, ffmpegPath, cacheDir string) error {
+	if service != nil {
+		logger.Errorf("[PREVIEW_SERVICE] WARNING: StartPreviewGenerator called multiple times! This will create multiple semaphores!")
+	}
+	logger.Debugf("[PREVIEW_SERVICE] Initializing preview service with concurrency=%d", concurrencyLimit)
 	service = NewPreviewGenerator(concurrencyLimit, ffmpegPath, cacheDir)
+	logger.Debugf("[PREVIEW_SERVICE] Preview service initialized successfully")
 	return nil
 }
 

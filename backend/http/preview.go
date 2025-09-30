@@ -196,6 +196,7 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 		ctx = d.ctx
 	}
 
+	logger.Debugf("[PREVIEW_HANDLER] Requesting preview for: %s (type: %s, size: %s, seek: %d%%)", d.fileInfo.Name, d.fileInfo.Type, previewSize, seekPercentage)
 	previewImg, err := preview.GetPreviewForFileWithChildMD5(ctx, d.fileInfo, previewSize, officeUrl, seekPercentage, childMD5)
 	if err != nil {
 		// Check if it was a context cancellation (client navigated away)
@@ -206,8 +207,8 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 
 		// Check if it was a context timeout (server-side timeout)
 		if ctx.Err() == context.DeadlineExceeded || errors.Is(err, context.DeadlineExceeded) {
-			logger.Errorf("Preview timeout for file '%s' after 30 seconds", d.fileInfo.Name)
-			return http.StatusRequestTimeout, fmt.Errorf("preview generation timed out after 30 seconds")
+			logger.Errorf("Preview timeout for file '%s' after 15 seconds", d.fileInfo.Name)
+			return http.StatusRequestTimeout, fmt.Errorf("preview generation timed out after 15 seconds")
 		}
 
 		// Log detailed error information for actual server errors

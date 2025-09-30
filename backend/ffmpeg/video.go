@@ -15,42 +15,57 @@ import (
 
 // VideoService handles video preview operations with ffmpeg
 type VideoService struct {
-	ffmpegPath  string
-	ffprobePath string
-	debug       bool
-	semaphore   chan struct{}
+	ffmpegPath    string
+	ffprobePath   string
+	debug         bool
+	semaphore     chan struct{}
+	maxConcurrent int // For logging purposes
 }
 
 // NewVideoService creates a new video service instance
 func NewVideoService(ffmpegPath, ffprobePath string, maxConcurrent int, debug bool) *VideoService {
+	logger.Debugf("Creating VideoService with maxConcurrent=%d", maxConcurrent)
 	return &VideoService{
-		ffmpegPath:  ffmpegPath,
-		ffprobePath: ffprobePath,
-		debug:       debug,
-		semaphore:   make(chan struct{}, maxConcurrent),
+		ffmpegPath:    ffmpegPath,
+		ffprobePath:   ffprobePath,
+		debug:         debug,
+		semaphore:     make(chan struct{}, maxConcurrent),
+		maxConcurrent: maxConcurrent,
 	}
 }
 
 func (s *VideoService) acquire(ctx context.Context) error {
+	currentUsage := len(s.semaphore)
+	logger.Debugf("[VIDEO_SEMAPHORE] Attempting to acquire (current: %d/%d)", currentUsage, s.maxConcurrent)
 	select {
 	case s.semaphore <- struct{}{}:
+		newUsage := len(s.semaphore)
+		logger.Debugf("[VIDEO_SEMAPHORE] Acquired successfully (now: %d/%d)", newUsage, s.maxConcurrent)
 		return nil
 	case <-ctx.Done():
+		logger.Debugf("[VIDEO_SEMAPHORE] Acquire cancelled by context")
 		return ctx.Err()
 	}
 }
 
 func (s *VideoService) release() {
 	<-s.semaphore
+	currentUsage := len(s.semaphore)
+	logger.Debugf("[VIDEO_SEMAPHORE] Released (now: %d/%d)", currentUsage, s.maxConcurrent)
 }
 
 // GenerateVideoPreviewStreaming generates a video preview and streams it directly to a writer
 // This is more memory efficient for large previews as it doesn't load the entire file into memory
 func (s *VideoService) GenerateVideoPreviewStreaming(ctx context.Context, videoPath string, percentageSeek int, writer io.Writer) error {
+	logger.Debugf("[VIDEO_PREVIEW] Starting preview generation for: %s", videoPath)
 	if err := s.acquire(ctx); err != nil {
+		logger.Errorf("[VIDEO_PREVIEW] Failed to acquire semaphore for: %s", videoPath)
 		return err
 	}
-	defer s.release()
+	defer func() {
+		s.release()
+		logger.Debugf("[VIDEO_PREVIEW] Completed preview generation for: %s", videoPath)
+	}()
 
 	// Check if context is cancelled before starting
 	if ctx.Err() != nil {
@@ -112,6 +127,7 @@ func (s *VideoService) GenerateVideoPreviewStreaming(ctx context.Context, videoP
 	seekTimeStr := strconv.FormatFloat(seekTime, 'f', 3, 64) // 3 decimal places precision
 
 	// Step 3: Extract frame and stream directly to writer
+	logger.Debugf("[VIDEO_PREVIEW] Executing ffmpeg for: %s (seek: %s)", videoPath, seekTimeStr)
 	cmd := exec.CommandContext(ctx,
 		s.ffmpegPath,
 		"-ss", seekTimeStr, // Use precise seek time

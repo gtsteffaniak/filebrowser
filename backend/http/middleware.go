@@ -494,6 +494,20 @@ func withTimeoutHelper(timeout time.Duration, fn handleFunc) handleFunc {
 		ctx, cancel := context.WithTimeout(r.Context(), timeout)
 		defer cancel()
 
+		// Log timeout warning at 80% of timeout duration
+		warningTime := time.Duration(float64(timeout) * 0.8)
+		go func() {
+			select {
+			case <-time.After(warningTime):
+				if ctx.Err() == nil {
+					logger.Api(http.StatusRequestTimeout, fmt.Sprintf("Request approaching timeout (%.1fs/%.0fs): %s %s", warningTime.Seconds(), timeout.Seconds(), r.Method, r.URL.Path))
+				}
+			case <-ctx.Done():
+				// Context finished before warning time
+				return
+			}
+		}()
+
 		// Replace the request context with the timeout context
 		r = r.WithContext(ctx)
 		data.ctx = ctx

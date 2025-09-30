@@ -172,21 +172,21 @@ integrations:
       imagePreview:                       # supported image preview formats. defaults to false for all types unless explicitly enabled.
         heic: false
       videoPreview:                       # supported video preview formats. defaults to true for all types unless explicitly disabled.
-        3gp: true
-        3g2: true
-        mpg: true
-        mpeg: true
-        f4v: true
-        mkv: true
-        m2ts: true
-        vob: true
-        asf: true
+        m4v: true
         ogv: true
-        mov: true
+        mkv: true
         flv: true
         ts: true
+        mp4: true
+        mov: true
+        avi: true
+        m2ts: true
+        vob: true
+        mpeg: true
         webm: true
         wmv: true
-        mp4: true
-        avi: true
-        m4v: true
+        3gp: true
+        3g2: true
+        asf: true
+        mpg: true
+        f4v: true

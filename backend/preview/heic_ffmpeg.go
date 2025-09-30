@@ -40,7 +40,7 @@ func (s *Service) convertHEICToJPEGWithFFmpeg(ctx context.Context, filePath stri
 		quality = "5" // Medium quality
 	}
 	// Use tile-based conversion for correct full-resolution image reconstruction
-	result, err := s.imageService.ConvertHEICToJPEG(filePath, width, height, quality)
+	result, err := s.imageService.ConvertHEICToJPEG(ctx, filePath, width, height, quality)
 	if err != nil {
 		return nil, err
 	}
