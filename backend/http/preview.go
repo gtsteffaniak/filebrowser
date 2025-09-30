@@ -130,9 +130,9 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 				}
 				fileInfo, err := files.FileInfoFaster(
 					utils.FileOptions{
-						Path:    path,
-						Source:  source,
-						Content: false,
+						Path:     path,
+						Source:   source,
+						Metadata: true,
 					}, store.Access)
 				if err != nil {
 					return http.StatusInternalServerError, err
