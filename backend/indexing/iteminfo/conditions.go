@@ -385,7 +385,7 @@ func hasAlbumArtLowLevel(filePath string, extension string) (bool, error) {
 		if _, err := file.Seek(0, 0); err != nil {
 			return false, err
 		}
-		buffer := make([]byte, 65536) // 64KB
+		buffer := make([]byte, 12288) // 12KB seems to be enought
 		n, err := file.Read(buffer)
 		if err != nil && err != io.EOF {
 			return false, err
@@ -492,7 +492,7 @@ func hasAlbumArtMP3Optimized(file *os.File, header []byte) (bool, error) {
 // hasAlbumArtFLACOptimized checks for PICTURE metadata block (type 6) in FLAC files
 func hasAlbumArtFLACOptimized(file *os.File, initialBuffer []byte) (bool, error) {
 	// Read a reasonable amount for FLAC metadata (typically in first 64KB)
-	buffer := make([]byte, 65526) // 64KB - 10 bytes already read
+	buffer := make([]byte, 32768) // 32KB - 10 bytes already read
 	n, err := file.Read(buffer)
 	if err != nil && err != io.EOF {
 		return false, err
@@ -535,7 +535,7 @@ func hasAlbumArtFLACOptimized(file *os.File, initialBuffer []byte) (bool, error)
 // hasAlbumArtOGGOptimized checks for METADATA_BLOCK_PICTURE in OGG Vorbis comments
 func hasAlbumArtOGGOptimized(file *os.File, initialBuffer []byte) (bool, error) {
 	// Read a reasonable amount for OGG metadata
-	buffer := make([]byte, 65526) // 64KB - 10 bytes already read
+	buffer := make([]byte, 32768) // 32KB - 10 bytes already read
 	n, err := file.Read(buffer)
 	if err != nil && err != io.EOF {
 		return false, err
