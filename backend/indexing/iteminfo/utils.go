@@ -33,18 +33,31 @@ type FFProbeOutput struct {
 
 // detects subtitles for video files.
 func (i *ExtendedFileInfo) DetectSubtitles(parentInfo *FileInfo) {
+	logger.Debugf("[DETECT_SUBTITLES] Called for: %s (type: %s)", i.Name, i.Type)
 	if !strings.HasPrefix(i.Type, "video") {
-		logger.Debug("subtitles are not supported for this file : " + i.Name)
+		logger.Debugf("[DETECT_SUBTITLES] Not a video file: %s", i.Name)
 		return
 	}
 	// Use unified subtitle detection that finds both embedded and external
 	parentDir := filepath.Dir(i.RealPath)
+	logger.Debugf("[DETECT_SUBTITLES] Scanning for subtitles: file=%s, realPath=%s, parentDir=%s", i.Name, i.RealPath, parentDir)
 	i.Subtitles = ffmpeg.DetectAllSubtitles(i.RealPath, parentDir, i.ModTime)
+	logger.Debugf("[DETECT_SUBTITLES] Found %d subtitle tracks for: %s", len(i.Subtitles), i.Name)
+	for idx, sub := range i.Subtitles {
+		logger.Debugf("[DETECT_SUBTITLES]   Track %d: name=%s, lang=%s, isFile=%v, index=%v", idx, sub.Name, sub.Language, sub.IsFile, sub.Index)
+	}
 }
 
 // LoadSubtitleContent loads the actual content for all detected subtitle tracks
 func (i *ExtendedFileInfo) LoadSubtitleContent() error {
-	return ffmpeg.LoadAllSubtitleContent(i.RealPath, i.Subtitles, i.ModTime)
+	logger.Debugf("[LOAD_SUBTITLES] Loading content for %d subtitle tracks: %s", len(i.Subtitles), i.Name)
+	err := ffmpeg.LoadAllSubtitleContent(i.RealPath, i.Subtitles, i.ModTime)
+	if err != nil {
+		logger.Errorf("[LOAD_SUBTITLES] Error loading subtitles: %v", err)
+	} else {
+		logger.Debugf("[LOAD_SUBTITLES] Successfully loaded subtitle content for: %s", i.Name)
+	}
+	return err
 }
 
 func (info *FileInfo) SortItems() {

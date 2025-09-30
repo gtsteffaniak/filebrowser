@@ -43,10 +43,12 @@ type FFProbeOutput struct {
 
 // DetectAllSubtitles finds both embedded and external subtitle tracks
 func DetectAllSubtitles(videoPath string, parentDir string, modtime time.Time) []SubtitleTrack {
+	logger.Debugf("[DETECT_ALL_SUBS] Called for: videoPath=%s, parentDir=%s", videoPath, parentDir)
 	key := "all_subtitles:" + videoPath + ":" + modtime.Format(time.RFC3339)
 
 	// Check cache first
 	if cached, ok := MediaCache.Get(key); ok {
+		logger.Debugf("[DETECT_ALL_SUBS] Found %d subtitles in cache for: %s", len(cached), videoPath)
 		return cached
 	}
 
@@ -54,69 +56,25 @@ func DetectAllSubtitles(videoPath string, parentDir string, modtime time.Time) [
 
 	// First, get embedded subtitles
 	embeddedSubs := detectEmbeddedSubtitles(videoPath)
+	logger.Debugf("[DETECT_ALL_SUBS] Found %d embedded subtitles", len(embeddedSubs))
 	allSubtitles = append(allSubtitles, embeddedSubs...)
 
 	// Then, get external subtitle files
 	externalSubs := detectExternalSubtitles(videoPath, parentDir)
+	logger.Debugf("[DETECT_ALL_SUBS] Found %d external subtitle files", len(externalSubs))
 	allSubtitles = append(allSubtitles, externalSubs...)
 
 	// Cache the complete list
 	MediaCache.Set(key, allSubtitles)
+	logger.Debugf("[DETECT_ALL_SUBS] Total subtitles found: %d for %s", len(allSubtitles), videoPath)
 
 	return allSubtitles
 }
 
-// hasSubtitleStreams performs a fast header check to detect if subtitle streams likely exist
-// This avoids expensive ffprobe calls on files without subtitles
-func hasSubtitleStreams(realPath string) bool {
-	file, err := os.Open(realPath)
-	if err != nil {
-		return false // If we can't open, assume no subtitles
-	}
-	defer file.Close()
-
-	// Read first 64KB of file - enough to check container headers
-	buffer := make([]byte, 65536)
-	n, err := file.Read(buffer)
-	if err != nil || n < 100 {
-		return false
-	}
-
-	// Check file extension for quick filtering
-	ext := strings.ToLower(filepath.Ext(realPath))
-
-	// Check container-specific subtitle markers
-	switch ext {
-	case ".mkv", ".webm":
-		// MKV/WebM: Look for subtitle track type markers
-		// "S_TEXT" = SRT subtitles, "S_VOBSUB" = VobSub, etc.
-		return strings.Contains(string(buffer[:n]), "S_TEXT") ||
-			strings.Contains(string(buffer[:n]), "S_VOBSUB") ||
-			strings.Contains(string(buffer[:n]), "S_HDMV") ||
-			strings.Contains(string(buffer[:n]), "S_SSA") ||
-			strings.Contains(string(buffer[:n]), "S_ASS")
-	case ".mp4", ".m4v", ".mov":
-		// MP4: Look for subtitle track atoms (tx3g, c608, etc.)
-		return strings.Contains(string(buffer[:n]), "tx3g") || // Timed text
-			strings.Contains(string(buffer[:n]), "c608") || // CEA-608 captions
-			strings.Contains(string(buffer[:n]), "c708") || // CEA-708 captions
-			strings.Contains(string(buffer[:n]), "sbtl") // Subtitle track
-	case ".avi":
-		// AVI: Check for subtitle stream headers
-		return strings.Contains(string(buffer[:n]), "txts") || // Text subtitle stream
-			strings.Contains(string(buffer[:n]), "ISFT") // Subtitle chunk
-	default:
-		// For unknown formats, assume subtitles might exist (safe fallback)
-		return true
-	}
-}
-
 // detectEmbeddedSubtitles uses ffprobe to find embedded subtitle tracks
+// Always runs ffprobe - results are cached for performance
 func detectEmbeddedSubtitles(realPath string) []SubtitleTrack {
-	// Fast pre-check: skip ffprobe if no subtitle streams detected in header
-	if !hasSubtitleStreams(realPath) {
-		return nil
-	}
+	logger.Debugf("[DETECT_EMBEDDED] Running ffprobe for: %s", realPath)
 
 	cmd := exec.Command("ffprobe",
 		"-v", "quiet",
@@ -127,18 +85,22 @@ func detectEmbeddedSubtitles(realPath string) []SubtitleTrack {
 
 	output, err := cmd.Output()
 	if err != nil {
-		logger.Debug("ffprobe failed for file: " + realPath + ", error: " + err.Error())
+		logger.Errorf("[DETECT_EMBEDDED] ffprobe failed for file: %s, error: %v", realPath, err)
 		return nil
 	}
+	logger.Debugf("[DETECT_EMBEDDED] ffprobe output length: %d bytes", len(output))
 
 	var probeOutput FFProbeOutput
 	if err := json.Unmarshal(output, &probeOutput); err != nil {
-		logger.Debug("failed to parse ffprobe output for file: " + realPath)
+		logger.Errorf("[DETECT_EMBEDDED] Failed to parse ffprobe JSON for file: %s, error: %v", realPath, err)
+		logger.Debugf("[DETECT_EMBEDDED] Raw ffprobe output: %s", string(output))
 		return nil
 	}
+	logger.Debugf("[DETECT_EMBEDDED] ffprobe found %d total streams", len(probeOutput.Streams))
 
 	var subtitles []SubtitleTrack
 	for _, stream := range probeOutput.Streams {
+		logger.Debugf("[DETECT_EMBEDDED] Stream %d: type=%s, codec=%s", stream.Index, stream.CodecType, stream.CodecName)
 		if stream.CodecType == "subtitle" {
 			track := SubtitleTrack{
 				Index:  &stream.Index,
@@ -165,18 +127,22 @@ func detectEmbeddedSubtitles(realPath string) []SubtitleTrack {
 				track.Name = "Embedded Subtitle " + strconv.Itoa(stream.Index)
 			}
 
+			logger.Debugf("[DETECT_EMBEDDED] Added subtitle track: %s (index: %d, codec: %s)", track.Name, *track.Index, track.Codec)
 			subtitles = append(subtitles, track)
 		}
 	}
+	logger.Debugf("[DETECT_EMBEDDED] Returning %d subtitle tracks", len(subtitles))
 	return subtitles
 }
 
 // detectExternalSubtitles finds external subtitle files in the same directory
 func detectExternalSubtitles(videoPath string, parentDir string) []SubtitleTrack {
+	logger.Debugf("[DETECT_EXTERNAL] Checking for external subtitle files: videoPath=%s, parentDir=%s", videoPath, parentDir)
 	var subtitles []SubtitleTrack
 
 	// Get the base name of the video (without extension)
 	videoBaseName := strings.TrimSuffix(filepath.Base(videoPath), filepath.Ext(videoPath))
+	logger.Debugf("[DETECT_EXTERNAL] Video base name: %s", videoBaseName)
 
 	// Common subtitle extensions
 	subtitleExts := []string{".srt", ".vtt", ".lrc", ".sbv", ".ass", ".ssa", ".sub", ".smi"}
@@ -186,6 +152,7 @@ func detectExternalSubtitles(videoPath string, parentDir string) []SubtitleTrack
 		subtitlePath := filepath.Join(parentDir, videoBaseName+ext)
 		if _, err := os.Stat(subtitlePath); err == nil {
 			// File exists
+			logger.Debugf("[DETECT_EXTERNAL] Found external subtitle file: %s", subtitlePath)
 			track := SubtitleTrack{
 				Name:   filepath.Base(subtitlePath),
 				IsFile: true, // This is an external file

@@ -3,6 +3,7 @@ package indexing
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
@@ -99,14 +100,19 @@ func (idx *Index) GetReducedMetadata(target string, isDir bool) (*iteminfo.FileI
 		return dir, true
 	}
 	// handle file
-	if checkDir == "/" {
-		checkDir = ""
-	}
 	baseName := filepath.Base(target)
 	for _, item := range dir.Files {
 		if item.Name == baseName {
+			// Use path.Join to properly handle trailing slashes and avoid double slashes
+			filePath := checkDir
+			if checkDir == "/" {
+				filePath = "/" + item.Name
+			} else {
+				// Clean path to remove any trailing slashes before joining
+				filePath = strings.TrimSuffix(checkDir, "/") + "/" + item.Name
+			}
 			return &iteminfo.FileInfo{
-				Path:     checkDir + "/" + item.Name,
+				Path:     filePath,
 				ItemInfo: item,
 			}, true
 		}

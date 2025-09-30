@@ -246,8 +246,10 @@ func (idx *Index) GetFsDirInfo(adjustedPath string) (*iteminfo.FileInfo, error) 
 		found := false
 		for _, item := range response.Files {
 			if item.Name == baseName {
+				// Clean path to remove trailing slashes before joining
+				filePath := strings.TrimSuffix(adjustedPath, "/") + "/" + item.Name
 				response = &iteminfo.FileInfo{
-					Path:     adjustedPath + "/" + item.Name,
+					Path:     filePath,
 					ItemInfo: item,
 				}
 				found = true

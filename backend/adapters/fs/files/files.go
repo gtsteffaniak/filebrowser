@@ -26,6 +26,7 @@ import (
 )
 
 func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.ExtendedFileInfo, error) {
+	logger.Debugf("[FILEINFO] FileInfoFaster called: path='%s', source='%s', content=%v", opts.Path, opts.Source, opts.Content)
 	response := &iteminfo.ExtendedFileInfo{}
 	index := indexing.GetIndex(opts.Source)
 	if index == nil {
@@ -77,6 +78,7 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.E
 	response.FileInfo = *info
 	response.RealPath = realPath
 	response.Source = opts.Source
+	logger.Debugf("[FILEINFO] File info loaded: path='%s', type='%s', realPath='%s'", info.Path, info.Type, realPath)
 
 	if access != nil && !access.Permitted(index.Path, opts.Path, opts.Username) {
 		// User doesn't have access to the current folder, but check if they have access to any subitems
@@ -87,6 +89,7 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.E
 		}
 	}
 	if opts.Content {
+		logger.Debugf("[FILEINFO] Processing content for: %s (type: %s)", response.Name, response.Type)
 		processContent(response, index)
 	}
 	if settings.Config.Integrations.OnlyOffice.Secret != "" && info.Type != "directory" && iteminfo.IsOnlyOffice(info.Name) {
@@ -100,17 +103,28 @@ func processContent(info *iteminfo.ExtendedFileInfo, idx *indexing.Index) {
 	isVideo := strings.HasPrefix(info.Type, "video")
 	isAudio := strings.HasPrefix(info.Type, "audio")
 	isFolder := info.Type == "directory"
+	logger.Debugf("[PROCESS_CONTENT] File: %s, Type: %s, isVideo: %v, isAudio: %v, isFolder: %v", info.Name, info.Type, isVideo, isAudio, isFolder)
 	if isFolder {
 		return
 	}
 
 	if isVideo {
-		parentInfo, exists := idx.GetReducedMetadata(filepath.Dir(info.Path), true)
-		if exists {
-			info.DetectSubtitles(parentInfo)
+		parentPath := filepath.Dir(info.Path)
+		logger.Debugf("[PROCESS_CONTENT] Video detected: %s, looking for parent: %s", info.Name, parentPath)
+		parentInfo, exists := idx.GetReducedMetadata(parentPath, true)
+		if !exists {
+			logger.Errorf("[PROCESS_CONTENT] Parent directory not found in index: %s", parentPath)
+			return
+		}
+		logger.Debugf("[PROCESS_CONTENT] Parent found, detecting subtitles for: %s (realPath: %s)", info.Name, info.RealPath)
+		info.DetectSubtitles(parentInfo)
+		logger.Debugf("[PROCESS_CONTENT] Detected %d subtitle tracks for: %s", len(info.Subtitles), info.Name)
+		if len(info.Subtitles) > 0 {
 			err := info.LoadSubtitleContent()
 			if err != nil {
-				logger.Debug("failed to load subtitle content: " + err.Error())
+				logger.Errorf("[PROCESS_CONTENT] Failed to load subtitle content: %v", err)
+			} else {
+				logger.Debugf("[PROCESS_CONTENT] Successfully loaded subtitle content for: %s", info.Name)
 			}
 		}
 		return
