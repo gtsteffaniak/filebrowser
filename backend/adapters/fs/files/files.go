@@ -189,8 +189,8 @@ func extractAudioMetadata(item *iteminfo.ExtendedFileInfo) error {
 
 	// Extract album art and encode as base64 with strict size limits
 	if picture := m.Picture(); picture != nil && picture.Data != nil {
-		// More aggressive size limit to prevent memory issues (max 2MB)
-		if len(picture.Data) <= 2*1024*1024 {
+		// More aggressive size limit to prevent memory issues (max 5MB)
+		if len(picture.Data) <= 5*1024*1024 {
 			item.AudioMeta.AlbumArt = base64.StdEncoding.EncodeToString(picture.Data)
 		} else {
 			logger.Debugf("Skipping album art for %s: too large (%d bytes)", item.RealPath, len(picture.Data))
