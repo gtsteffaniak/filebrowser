@@ -1,6 +1,7 @@
 package ffmpeg
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -222,7 +223,7 @@ func TestConvertHEICToJPEGDirect_OrientationHandling(t *testing.T) {
 			t.Logf("Generated filter: %s", filter)
 
 			// Test actual conversion (small size for speed)
-			jpegBytes, err := service.ConvertHEICToJPEGDirect(testFile, 100, 100, "5")
+			jpegBytes, err := service.ConvertHEICToJPEGDirect(context.Background(), testFile, 100, 100, "5")
 			if err != nil {
 				t.Errorf("Failed to convert %s: %v", filepath.Base(testFile), err)
 				continue

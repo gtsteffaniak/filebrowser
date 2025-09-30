@@ -15,19 +15,21 @@ import (
 
 // VideoService handles video preview operations with ffmpeg
 type VideoService struct {
-	ffmpegPath  string
-	ffprobePath string
-	debug       bool
-	semaphore   chan struct{}
+	ffmpegPath    string
+	ffprobePath   string
+	debug         bool
+	semaphore     chan struct{}
+	maxConcurrent int // For logging purposes
 }
 
 // NewVideoService creates a new video service instance
 func NewVideoService(ffmpegPath, ffprobePath string, maxConcurrent int, debug bool) *VideoService {
 	return &VideoService{
-		ffmpegPath:  ffmpegPath,
-		ffprobePath: ffprobePath,
-		debug:       debug,
-		semaphore:   make(chan struct{}, maxConcurrent),
+		ffmpegPath:    ffmpegPath,
+		ffprobePath:   ffprobePath,
+		debug:         debug,
+		semaphore:     make(chan struct{}, maxConcurrent),
+		maxConcurrent: maxConcurrent,
 	}
 }
 

@@ -53,4 +53,5 @@ type FileOptions struct {
 	ReadHeader bool
 	Content    bool
 	Recursive  bool // whether to recursively index directories
+	Metadata   bool // whether to get metadata
 }

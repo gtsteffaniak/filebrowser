@@ -77,7 +77,7 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		Username: d.user.Username,
 		Path:     utils.JoinPathAsUnix(userscope, path),
 		Source:   source,
-		Content:  true,
+		Metadata: true,
 	}, store.Access)
 	if err != nil {
 		return errToStatus(err), err
@@ -113,7 +113,6 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 	if !d.fileInfo.HasPreview {
 		return http.StatusBadRequest, fmt.Errorf("this item does not have a preview")
 	}
-	var childMD5 string
 	if d.fileInfo.Type == "directory" {
 		// get extended file info of first previewable item in directory
 		for _, item := range d.fileInfo.Files {
@@ -131,23 +130,12 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 				}
 				fileInfo, err := files.FileInfoFaster(
 					utils.FileOptions{
-						Path:    path,
-						Source:  source,
-						Content: true,
+						Path:     path,
+						Source:   source,
+						Metadata: true,
 					}, store.Access)
 				if err != nil {
 					return http.StatusInternalServerError, err
-				}
-				// Calculate child's MD5 for cache sharing
-				childMD5, err = utils.GetChecksum(fileInfo.RealPath, "md5")
-				if err != nil {
-					return http.StatusInternalServerError, fmt.Errorf("failed to get child file checksum: %w", err)
-				}
-				// Validate child MD5 is not empty
-				if childMD5 == "" {
-					errorMsg := fmt.Sprintf("Child MD5 is empty for file: %s (path: %s)", fileInfo.Name, fileInfo.RealPath)
-					logger.Errorf("Preview generation failed: %s", errorMsg)
-					return http.StatusInternalServerError, fmt.Errorf("preview generation failed: %s", errorMsg)
 				}
 				d.fileInfo = *fileInfo
 				break
@@ -196,7 +184,7 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 		ctx = d.ctx
 	}
 
-	previewImg, err := preview.GetPreviewForFileWithChildMD5(ctx, d.fileInfo, previewSize, officeUrl, seekPercentage, childMD5)
+	previewImg, err := preview.GetPreviewForFile(ctx, d.fileInfo, previewSize, officeUrl, seekPercentage)
 	if err != nil {
 		// Check if it was a context cancellation (client navigated away)
 		if isClientCancellation(ctx, err) {
@@ -206,8 +194,8 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 
 		// Check if it was a context timeout (server-side timeout)
 		if ctx.Err() == context.DeadlineExceeded || errors.Is(err, context.DeadlineExceeded) {
-			logger.Errorf("Preview timeout for file '%s' after 30 seconds", d.fileInfo.Name)
-			return http.StatusRequestTimeout, fmt.Errorf("preview generation timed out after 30 seconds")
+			logger.Errorf("Preview timeout for file '%s' after 60 seconds", d.fileInfo.Name)
+			return http.StatusRequestTimeout, fmt.Errorf("preview generation timed out after 60 seconds")
 		}
 
 		// Log detailed error information for actual server errors
