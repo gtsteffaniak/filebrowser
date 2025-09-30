@@ -73,7 +73,8 @@ type Media struct {
 }
 
 type FfmpegConvert struct {
-	ImagePreview map[ImagePreviewType]bool `json:"imagePreview"` // supported image preview formats. default is heic
+	ImagePreview map[ImagePreviewType]bool `json:"imagePreview"` // supported image preview formats. defaults to false for all types unless explicitly enabled.
+	VideoPreview map[VideoPreviewType]bool `json:"videoPreview"` // supported video preview formats. defaults to true for all types unless explicitly disabled.
 }
 
 type ImagePreviewType string
@@ -91,6 +92,55 @@ func (i ImagePreviewType) String() string {
 var AllImagePreviewTypes = []ImagePreviewType{
 	HEICImagePreview,
 	//RAWImagePreview,
+}
+
+type VideoPreviewType string
+
+const (
+	MP4VideoPreview      VideoPreviewType = "mp4"
+	WebMVideoPreview     VideoPreviewType = "webm"
+	MOVVideoPreview      VideoPreviewType = "mov"
+	AVIVideoPreview      VideoPreviewType = "avi"
+	MKVVideoPreview      VideoPreviewType = "mkv"
+	FLVVideoPreview      VideoPreviewType = "flv"
+	WMVVideoPreview      VideoPreviewType = "wmv"
+	M4VVideoPreview      VideoPreviewType = "m4v"
+	ThreeGPVideoPreview  VideoPreviewType = "3gp"
+	ThreeGP2VideoPreview VideoPreviewType = "3g2"
+	TSVideoPreview       VideoPreviewType = "ts"
+	M2TSVideoPreview     VideoPreviewType = "m2ts"
+	VOBVideoPreview      VideoPreviewType = "vob"
+	ASFVideoPreview      VideoPreviewType = "asf"
+	MPGVideoPreview      VideoPreviewType = "mpg"
+	MPEGVideoPreview     VideoPreviewType = "mpeg"
+	F4VVideoPreview      VideoPreviewType = "f4v"
+	OGVVideoPreview      VideoPreviewType = "ogv"
+)
+
+func (v VideoPreviewType) String() string {
+	return string(v)
+}
+
+// AllVideoPreviewTypes contains all supported video preview types.
+var AllVideoPreviewTypes = []VideoPreviewType{
+	MP4VideoPreview,
+	WebMVideoPreview,
+	MOVVideoPreview,
+	AVIVideoPreview,
+	MKVVideoPreview,
+	FLVVideoPreview,
+	WMVVideoPreview,
+	M4VVideoPreview,
+	ThreeGPVideoPreview,
+	ThreeGP2VideoPreview,
+	TSVideoPreview,
+	M2TSVideoPreview,
+	VOBVideoPreview,
+	ASFVideoPreview,
+	MPGVideoPreview,
+	MPEGVideoPreview,
+	F4VVideoPreview,
+	OGVVideoPreview,
 }
 
 type LogConfig struct {

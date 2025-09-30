@@ -48,6 +48,7 @@ func Initialize(configFile string) {
 	setupSources(false)
 	setupUrls()
 	setupFrontend(false)
+	setupVideoPreview()
 }
 
 func setupFs() {
@@ -114,6 +115,44 @@ func setupFrontend(generate bool) {
 
 	// Load custom favicon if configured
 	loadCustomFavicon()
+}
+
+func setupVideoPreview() {
+	// If VideoPreview is not initialized, initialize with all types enabled
+	if Config.Integrations.Media.Convert.VideoPreview == nil {
+		Config.Integrations.Media.Convert.VideoPreview = make(map[VideoPreviewType]bool)
+		for _, t := range AllVideoPreviewTypes {
+			Config.Integrations.Media.Convert.VideoPreview[t] = true
+		}
+		return
+	}
+
+	// If VideoPreview map is empty, it means user didn't configure any video preview settings
+	// In this case, enable all by default
+	if len(Config.Integrations.Media.Convert.VideoPreview) == 0 {
+		for _, t := range AllVideoPreviewTypes {
+			Config.Integrations.Media.Convert.VideoPreview[t] = true
+		}
+		return
+	}
+
+	// User has explicitly configured some video preview settings
+	// Start with all enabled, then apply user overrides
+	userConfig := make(map[VideoPreviewType]bool)
+	for k, v := range Config.Integrations.Media.Convert.VideoPreview {
+		userConfig[k] = v
+	}
+
+	// Reset to defaults (all enabled)
+	Config.Integrations.Media.Convert.VideoPreview = make(map[VideoPreviewType]bool)
+	for _, t := range AllVideoPreviewTypes {
+		Config.Integrations.Media.Convert.VideoPreview[t] = true
+	}
+
+	// Apply user overrides (only for explicitly set values)
+	for k, v := range userConfig {
+		Config.Integrations.Media.Convert.VideoPreview[k] = v
+	}
 }
 
 func getRealPath(path string) string {
@@ -468,6 +507,12 @@ func setDefaults(generate bool) Settings {
 	s.Integrations.Media.Convert.ImagePreview = make(map[ImagePreviewType]bool)
 	for _, t := range AllImagePreviewTypes {
 		s.Integrations.Media.Convert.ImagePreview[t] = false
+	}
+
+	// Initialize VideoPreview map with all supported types set to true by default
+	s.Integrations.Media.Convert.VideoPreview = make(map[VideoPreviewType]bool)
+	for _, t := range AllVideoPreviewTypes {
+		s.Integrations.Media.Convert.VideoPreview[t] = true
 	}
 	return s
 }

@@ -253,7 +253,14 @@ definitions:
       imagePreview:
         additionalProperties:
           type: boolean
-        description: supported image preview formats. default is heic
+        description: supported image preview formats. defaults to false for all types
+          unless explicitly enabled.
+        type: object
+      videoPreview:
+        additionalProperties:
+          type: boolean
+        description: supported video preview formats. defaults to true for all types
+          unless explicitly disabled.
         type: object
     type: object
   settings.Filesystem:
