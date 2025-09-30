@@ -107,7 +107,7 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	api.HandleFunc("PUT /resources", withUser(resourcePutHandler))
 	api.HandleFunc("PATCH /resources", withUser(resourcePatchHandler))
 	api.HandleFunc("GET /raw", withUser(rawHandler))
-	api.HandleFunc("GET /preview", withTimeout(15*time.Second, withUserHelper(previewHandler)))
+	api.HandleFunc("GET /preview", withTimeout(60*time.Second, withUserHelper(previewHandler)))
 	api.HandleFunc("GET /media/subtitles", withUser(subtitlesHandler))
 	if version.Version == "testing" || version.Version == "untracked" {
 		api.HandleFunc("GET /inspectIndex", inspectIndex)
@@ -133,7 +133,7 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	// NEW PUBLIC ROUTES - All publicly accessible endpoints
 	// Public API routes (hash-based authentication)
 	publicAPI.HandleFunc("GET /raw", withHashFile(publicRawHandler))
-	publicAPI.HandleFunc("GET /preview", withTimeout(15*time.Second, withHashFileHelper(publicPreviewHandler)))
+	publicAPI.HandleFunc("GET /preview", withTimeout(60*time.Second, withHashFileHelper(publicPreviewHandler)))
 	publicAPI.HandleFunc("GET /resources", withHashFile(publicShareHandler))
 	publicAPI.HandleFunc("GET /users", withUser(userGetHandler))
 	publicAPI.HandleFunc("POST /onlyoffice/callback", withHashFile(onlyofficeCallbackHandler))

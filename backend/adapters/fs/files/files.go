@@ -86,7 +86,7 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.E
 			return response, err
 		}
 	}
-	if opts.Content {
+	if opts.Content || opts.Metadata {
 		processContent(response, index)
 	}
 	if settings.Config.Integrations.OnlyOffice.Secret != "" && info.Type != "directory" && iteminfo.IsOnlyOffice(info.Name) {
@@ -105,7 +105,8 @@ func processContent(info *iteminfo.ExtendedFileInfo, idx *indexing.Index) {
 	}
 
 	if isVideo {
-		parentInfo, exists := idx.GetReducedMetadata(filepath.Dir(info.Path), true)
+		parentPath := filepath.Dir(info.Path)
+		parentInfo, exists := idx.GetReducedMetadata(parentPath, true)
 		if exists {
 			info.DetectSubtitles(parentInfo)
 			err := info.LoadSubtitleContent()

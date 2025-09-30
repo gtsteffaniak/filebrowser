@@ -15,19 +15,21 @@ import (
 
 // VideoService handles video preview operations with ffmpeg
 type VideoService struct {
-	ffmpegPath  string
-	ffprobePath string
-	debug       bool
-	semaphore   chan struct{}
+	ffmpegPath    string
+	ffprobePath   string
+	debug         bool
+	semaphore     chan struct{}
+	maxConcurrent int // For logging purposes
 }
 
 // NewVideoService creates a new video service instance
 func NewVideoService(ffmpegPath, ffprobePath string, maxConcurrent int, debug bool) *VideoService {
 	return &VideoService{
-		ffmpegPath:  ffmpegPath,
-		ffprobePath: ffprobePath,
-		debug:       debug,
-		semaphore:   make(chan struct{}, maxConcurrent),
+		ffmpegPath:    ffmpegPath,
+		ffprobePath:   ffprobePath,
+		debug:         debug,
+		semaphore:     make(chan struct{}, maxConcurrent),
+		maxConcurrent: maxConcurrent,
 	}
 }
 
@@ -78,7 +80,10 @@ func (s *VideoService) GenerateVideoPreviewStreaming(ctx context.Context, videoP
 	}
 	if err := probeCmd.Run(); err != nil {
 		if ctx.Err() != nil {
-			logger.Errorf("ffprobe cancelled by context for file '%s': %v", videoPath, ctx.Err())
+			// Don't log client cancellations as errors - they're normal user behavior
+			if ctx.Err() != context.Canceled {
+				logger.Errorf("ffprobe cancelled by context for file '%s': %v", videoPath, ctx.Err())
+			}
 			return ctx.Err()
 		}
 		// Capture stderr output for better debugging
