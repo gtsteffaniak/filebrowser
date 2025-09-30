@@ -672,7 +672,6 @@ export default {
     showFileList(type) {
       // Hide navigation buttons when showing file list
       mutations.setNavigationShow(false);
-      
       // Determine what list to show based on drag type
       if (type === 'previous') {
         // Show parent directories for navigating up

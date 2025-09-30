@@ -9,8 +9,8 @@ All notable changes to this project will be documented in this file. For commit 
  - Add capability to edit files permissions #813
  - better copy/move prompt "in progress" indicator
  - better login error message feedback
- #- Add capability to disable certain video previews
- #- Added ability to play media in same folder sequentially or shuffled
+ - Add capability to disable certain video previews
+ - Added ability to play media in same folder sequentially or shuffled
  #- better init script support #897
  #- share download limit feature to apply per user -- and disables anonymous download when enabled.
  #- Default landing directory #781

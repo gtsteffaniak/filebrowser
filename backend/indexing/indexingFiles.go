@@ -361,21 +361,19 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 				}
 			}
 			ext := strings.ToLower(filepath.Ext(file.Name()))
-			switch ext {
-			case ".jpg", ".jpeg", ".png", ".bmp", ".tiff":
-				itemInfo.HasPreview = true
-			case ".heic", ".heif":
-				if settings.Config.Integrations.Media.FfmpegPath != "" {
-					itemInfo.HasPreview = true
-				}
-			}
+			extWithoutPeriod := strings.TrimPrefix(ext, ".")
 			if simpleType == "image" {
 				itemInfo.HasPreview = true
 			}
-			if settings.Config.Integrations.Media.FfmpegPath != "" && simpleType == "video" {
+			switch extWithoutPeriod {
+			case "heic", "heif":
+				if settings.CanConvertImage(extWithoutPeriod) {
+					itemInfo.HasPreview = true
+				}
+			}
+			if simpleType == "video" && settings.CanConvertVideo(extWithoutPeriod) {
 				itemInfo.HasPreview = true
 			}
-
 			itemInfo.Size = int64(size)
 
 			// all checks after this won't update folder preview
