@@ -382,7 +382,9 @@ func hasAlbumArtLowLevel(filePath string, extension string) (bool, error) {
 	case ".m4a", ".mp4":
 		// M4A/MP4 files need larger read for atom structure
 		// Reset to beginning and read sufficient data
-		file.Seek(0, 0)
+		if _, err := file.Seek(0, 0); err != nil {
+			return false, err
+		}
 		buffer := make([]byte, 65536) // 64KB
 		n, err := file.Read(buffer)
 		if err != nil && err != io.EOF {
@@ -437,96 +439,6 @@ func hasAlbumArtMP3Optimized(file *os.File, header []byte) (bool, error) {
 		return false, nil
 	}
 	tagData = tagData[:n]
-
-	position := 0
-	frameIDLen := len(pictureFrameID)
-
-	// Loop through frames looking for picture frame
-	for position+frameHeaderSize <= len(tagData) {
-		// Check if we've hit padding (null bytes)
-		if tagData[position] == 0 {
-			break
-		}
-
-		// Extract frame ID
-		if position+frameIDLen > len(tagData) {
-			break
-		}
-		frameID := string(tagData[position : position+frameIDLen])
-
-		// Found picture frame!
-		if frameID == pictureFrameID {
-			return true, nil
-		}
-
-		// Skip to next frame
-		var frameSize int
-		if version == 2 {
-			// ID3v2.2: 3-byte size
-			if position+6 > len(tagData) {
-				break
-			}
-			frameSize = int(tagData[position+3])<<16 | int(tagData[position+4])<<8 | int(tagData[position+5])
-			position += 6 + frameSize
-		} else {
-			// ID3v2.3/2.4: 4-byte size
-			if position+10 > len(tagData) {
-				break
-			}
-			frameSize = int(tagData[position+4])<<24 | int(tagData[position+5])<<16 |
-				int(tagData[position+6])<<8 | int(tagData[position+7])
-			position += 10 + frameSize
-		}
-
-		// Safety check to prevent infinite loops
-		if frameSize <= 0 || position >= len(tagData) {
-			break
-		}
-	}
-
-	return false, nil
-}
-
-// hasAlbumArtMP3 checks for APIC/PIC frames in ID3v2 tags with optimized parsing
-// Legacy function kept for compatibility - operates on pre-loaded byte slice
-func hasAlbumArtMP3(data []byte) (bool, error) {
-	// Read 10-byte ID3v2 header
-	if len(data) < 10 {
-		return false, nil
-	}
-
-	// Check for "ID3" identifier
-	if string(data[0:3]) != "ID3" {
-		return false, nil
-	}
-
-	// Determine ID3v2 version for proper frame ID detection
-	version := data[3]
-	var pictureFrameID string
-	var frameHeaderSize int
-
-	switch version {
-	case 2:
-		pictureFrameID = "PIC" // ID3v2.2 uses 3-byte frame IDs
-		frameHeaderSize = 6
-	case 3, 4:
-		pictureFrameID = "APIC" // ID3v2.3/2.4 use 4-byte frame IDs
-		frameHeaderSize = 10
-	default:
-		return false, nil // Unsupported version
-	}
-
-	// Decode synchsafe tag size
-	tagSize := (int(data[6]) << 21) | (int(data[7]) << 14) | (int(data[8]) << 7) | int(data[9])
-
-	// Limit reading to reasonable size for performance
-	readSize := tagSize
-	if readSize > len(data)-10 {
-		readSize = len(data) - 10
-	}
-
-	// Read tag data
-	tagData := data[10 : 10+readSize]
 
 	position := 0
 	frameIDLen := len(pictureFrameID)
@@ -667,24 +579,6 @@ func searchForPictureInVorbisComment(buffer []byte) (bool, error) {
 	}
 
 	return false, nil
-}
-
-// hasAlbumArtVorbis checks for album art in FLAC, OGG, and OPUS files
-// Legacy function kept for compatibility - operates on pre-loaded byte slice
-func hasAlbumArtVorbis(data []byte) bool {
-	// Check for FLAC signature and picture block
-	if len(data) >= 4 && string(data[0:4]) == "fLaC" {
-		return bytes.Contains(data, []byte("\x06")) // Picture block type
-	}
-
-	// Check for OGG signature and cover art (opus included)
-	if len(data) >= 4 && string(data[0:4]) == "OggS" {
-		return bytes.Contains(data, []byte("METADATA_BLOCK_PICTURE")) ||
-			bytes.Contains(data, []byte("COVERART")) ||
-			bytes.Contains(data, []byte("COVER_ART"))
-	}
-
-	return false
 }
 
 // hasAlbumArtM4A checks for embedded artwork in M4A/MP4 files
