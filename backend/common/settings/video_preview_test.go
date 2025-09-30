@@ -1,7 +1,9 @@
 package settings
 
 import (
+	"fmt"
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -17,6 +19,9 @@ integrations:
     convert:
       imagePreview:
         heic: false
+  office:
+    url: "http://localhost:8080"
+    secret: "test-secret"
 `
 		testVideoPreviewConfig(t, config, func(t *testing.T, config *Settings) {
 			// All video formats should be enabled by default
@@ -40,6 +45,9 @@ integrations:
       imagePreview:
         heic: false
       videoPreview: {}
+  office:
+    url: "http://localhost:8080"
+    secret: "test-secret"
 `
 		testVideoPreviewConfig(t, config, func(t *testing.T, config *Settings) {
 			// All video formats should be enabled by default
@@ -67,6 +75,9 @@ integrations:
         webm: false
         mkv: false
         wmv: false
+  office:
+    url: "http://localhost:8080"
+    secret: "test-secret"
 `
 		testVideoPreviewConfig(t, config, func(t *testing.T, config *Settings) {
 			// Check explicitly set formats
@@ -126,6 +137,9 @@ integrations:
         mpeg: false
         f4v: true
         ogv: false
+  office:
+    url: "http://localhost:8080"
+    secret: "test-secret"
 `
 		testVideoPreviewConfig(t, config, func(t *testing.T, config *Settings) {
 			// Check all explicitly set formats
@@ -160,6 +174,10 @@ integrations:
 server:
   sources:
     - path: "."
+integrations:
+  office:
+    url: "http://localhost:8080"
+    secret: "test-secret"
 `
 		testVideoPreviewConfig(t, config, func(t *testing.T, config *Settings) {
 			// All video formats should be enabled by default
@@ -179,6 +197,10 @@ func TestVideoPreviewFormatCategories(t *testing.T) {
 server:
   sources:
     - path: "."
+integrations:
+  office:
+    url: "http://localhost:8080"
+    secret: "test-secret"
 `
 		testVideoPreviewConfig(t, config, func(t *testing.T, config *Settings) {
 			// Test format categories
@@ -238,6 +260,9 @@ integrations:
         webm: false
         mkv: true
         wmv: false
+  office:
+    url: "http://localhost:8080"
+    secret: "test-secret"
 `
 
 	// Create temporary config file
@@ -247,7 +272,17 @@ integrations:
 	}
 	defer os.Remove(tmpFile.Name())
 
-	_, err = tmpFile.WriteString(config)
+	// Create a temporary directory for cache
+	tmpCacheDir, err := os.MkdirTemp("", "benchmark_cache_*")
+	if err != nil {
+		b.Fatalf("Error creating temp cache dir: %v", err)
+	}
+	defer os.RemoveAll(tmpCacheDir)
+
+	// Modify config to use absolute temp directory
+	modifiedConfig := strings.Replace(config, "server:", fmt.Sprintf("server:\n  cacheDir: %s", tmpCacheDir), 1)
+
+	_, err = tmpFile.WriteString(modifiedConfig)
 	if err != nil {
 		b.Fatalf("Error writing config: %v", err)
 	}
