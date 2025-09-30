@@ -66,8 +66,58 @@ func DetectAllSubtitles(videoPath string, parentDir string, modtime time.Time) [
 	return allSubtitles
 }
 
+// hasSubtitleStreams performs a fast header check to detect if subtitle streams likely exist
+// This avoids expensive ffprobe calls on files without subtitles
+func hasSubtitleStreams(realPath string) bool {
+	file, err := os.Open(realPath)
+	if err != nil {
+		return false // If we can't open, assume no subtitles
+	}
+	defer file.Close()
+
+	// Read first 64KB of file - enough to check container headers
+	buffer := make([]byte, 65536)
+	n, err := file.Read(buffer)
+	if err != nil || n < 100 {
+		return false
+	}
+
+	// Check file extension for quick filtering
+	ext := strings.ToLower(filepath.Ext(realPath))
+
+	// Check container-specific subtitle markers
+	switch ext {
+	case ".mkv", ".webm":
+		// MKV/WebM: Look for subtitle track type markers
+		// "S_TEXT" = SRT subtitles, "S_VOBSUB" = VobSub, etc.
+		return strings.Contains(string(buffer[:n]), "S_TEXT") ||
+			strings.Contains(string(buffer[:n]), "S_VOBSUB") ||
+			strings.Contains(string(buffer[:n]), "S_HDMV") ||
+			strings.Contains(string(buffer[:n]), "S_SSA") ||
+			strings.Contains(string(buffer[:n]), "S_ASS")
+	case ".mp4", ".m4v", ".mov":
+		// MP4: Look for subtitle track atoms (tx3g, c608, etc.)
+		return strings.Contains(string(buffer[:n]), "tx3g") || // Timed text
+			strings.Contains(string(buffer[:n]), "c608") || // CEA-608 captions
+			strings.Contains(string(buffer[:n]), "c708") || // CEA-708 captions
+			strings.Contains(string(buffer[:n]), "sbtl") // Subtitle track
+	case ".avi":
+		// AVI: Check for subtitle stream headers
+		return strings.Contains(string(buffer[:n]), "txts") || // Text subtitle stream
+			strings.Contains(string(buffer[:n]), "ISFT") // Subtitle chunk
+	default:
+		// For unknown formats, assume subtitles might exist (safe fallback)
+		return true
+	}
+}
+
 // detectEmbeddedSubtitles uses ffprobe to find embedded subtitle tracks
 func detectEmbeddedSubtitles(realPath string) []SubtitleTrack {
+	// Fast pre-check: skip ffprobe if no subtitle streams detected in header
+	if !hasSubtitleStreams(realPath) {
+		return nil
+	}
+
 	cmd := exec.Command("ffprobe",
 		"-v", "quiet",
 		"-print_format", "json",

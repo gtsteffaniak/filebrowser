@@ -35,37 +35,25 @@ func NewVideoService(ffmpegPath, ffprobePath string, maxConcurrent int, debug bo
 }
 
 func (s *VideoService) acquire(ctx context.Context) error {
-	currentUsage := len(s.semaphore)
-	logger.Debugf("[VIDEO_SEMAPHORE] Attempting to acquire (current: %d/%d)", currentUsage, s.maxConcurrent)
 	select {
 	case s.semaphore <- struct{}{}:
-		newUsage := len(s.semaphore)
-		logger.Debugf("[VIDEO_SEMAPHORE] Acquired successfully (now: %d/%d)", newUsage, s.maxConcurrent)
 		return nil
 	case <-ctx.Done():
-		logger.Debugf("[VIDEO_SEMAPHORE] Acquire cancelled by context")
 		return ctx.Err()
 	}
 }
 
 func (s *VideoService) release() {
 	<-s.semaphore
-	currentUsage := len(s.semaphore)
-	logger.Debugf("[VIDEO_SEMAPHORE] Released (now: %d/%d)", currentUsage, s.maxConcurrent)
 }
 
 // GenerateVideoPreviewStreaming generates a video preview and streams it directly to a writer
 // This is more memory efficient for large previews as it doesn't load the entire file into memory
 func (s *VideoService) GenerateVideoPreviewStreaming(ctx context.Context, videoPath string, percentageSeek int, writer io.Writer) error {
-	logger.Debugf("[VIDEO_PREVIEW] Starting preview generation for: %s", videoPath)
 	if err := s.acquire(ctx); err != nil {
-		logger.Errorf("[VIDEO_PREVIEW] Failed to acquire semaphore for: %s", videoPath)
 		return err
 	}
-	defer func() {
-		s.release()
-		logger.Debugf("[VIDEO_PREVIEW] Completed preview generation for: %s", videoPath)
-	}()
+	defer s.release()
 
 	// Check if context is cancelled before starting
 	if ctx.Err() != nil {
@@ -93,7 +81,10 @@ func (s *VideoService) GenerateVideoPreviewStreaming(ctx context.Context, videoP
 	}
 	if err := probeCmd.Run(); err != nil {
 		if ctx.Err() != nil {
-			logger.Errorf("ffprobe cancelled by context for file '%s': %v", videoPath, ctx.Err())
+			// Don't log client cancellations as errors - they're normal user behavior
+			if ctx.Err() != context.Canceled {
+				logger.Errorf("ffprobe cancelled by context for file '%s': %v", videoPath, ctx.Err())
+			}
 			return ctx.Err()
 		}
 		// Capture stderr output for better debugging
@@ -127,7 +118,6 @@ func (s *VideoService) GenerateVideoPreviewStreaming(ctx context.Context, videoP
 	seekTimeStr := strconv.FormatFloat(seekTime, 'f', 3, 64) // 3 decimal places precision
 
 	// Step 3: Extract frame and stream directly to writer
-	logger.Debugf("[VIDEO_PREVIEW] Executing ffmpeg for: %s (seek: %s)", videoPath, seekTimeStr)
 	cmd := exec.CommandContext(ctx,
 		s.ffmpegPath,
 		"-ss", seekTimeStr, // Use precise seek time
