@@ -1,10 +1,10 @@
 server:
   port: 80
-  baseURL:  "/testing"
+  baseURL:  "/"
   logging:
     - levels: "info|warning|error"
   sources:
-    - path: "/Users/steffag/Downloads"
+    - path: "/srv"
 userDefaults:
   preview:
     image: true

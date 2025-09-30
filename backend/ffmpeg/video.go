@@ -24,7 +24,6 @@ type VideoService struct {
 
 // NewVideoService creates a new video service instance
 func NewVideoService(ffmpegPath, ffprobePath string, maxConcurrent int, debug bool) *VideoService {
-	logger.Debugf("Creating VideoService with maxConcurrent=%d", maxConcurrent)
 	return &VideoService{
 		ffmpegPath:    ffmpegPath,
 		ffprobePath:   ffprobePath,

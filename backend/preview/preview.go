@@ -47,7 +47,6 @@ func NewPreviewGenerator(concurrencyLimit int, ffmpegPath string, cacheDir strin
 	// Users can configure this, but we enforce a reasonable maximum
 	const maxFFmpegConcurrency = 4
 	if concurrencyLimit > maxFFmpegConcurrency {
-		logger.Debugf("Limiting ffmpeg concurrency from %d to %d to prevent I/O issues", concurrencyLimit, maxFFmpegConcurrency)
 		concurrencyLimit = maxFFmpegConcurrency
 	}
 	if concurrencyLimit < 1 {
@@ -103,7 +102,6 @@ func NewPreviewGenerator(concurrencyLimit int, ffmpegPath string, cacheDir strin
 	var imageService *ffmpeg.ImageService
 
 	if ffmpegMainPath != "" && ffprobePath != "" {
-		logger.Debugf("Initializing video and image services with concurrency=%d", concurrencyLimit)
 		videoService = ffmpeg.NewVideoService(ffmpegMainPath, ffprobePath, concurrencyLimit, settings.Config.Server.DebugMedia)
 		imageService = ffmpeg.NewImageService(ffmpegMainPath, ffprobePath, concurrencyLimit, settings.Config.Server.DebugMedia, filepath.Join(settings.Config.Server.CacheDir, "heic"))
 	}

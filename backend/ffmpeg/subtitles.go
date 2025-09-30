@@ -43,12 +43,10 @@ type FFProbeOutput struct {
 
 // DetectAllSubtitles finds both embedded and external subtitle tracks
 func DetectAllSubtitles(videoPath string, parentDir string, modtime time.Time) []SubtitleTrack {
-	logger.Debugf("[DETECT_ALL_SUBS] Called for: videoPath=%s, parentDir=%s", videoPath, parentDir)
 	key := "all_subtitles:" + videoPath + ":" + modtime.Format(time.RFC3339)
 
 	// Check cache first
 	if cached, ok := MediaCache.Get(key); ok {
-		logger.Debugf("[DETECT_ALL_SUBS] Found %d subtitles in cache for: %s", len(cached), videoPath)
 		return cached
 	}
 
@@ -56,17 +54,14 @@ func DetectAllSubtitles(videoPath string, parentDir string, modtime time.Time) [
 
 	// First, get embedded subtitles
 	embeddedSubs := detectEmbeddedSubtitles(videoPath)
-	logger.Debugf("[DETECT_ALL_SUBS] Found %d embedded subtitles", len(embeddedSubs))
 	allSubtitles = append(allSubtitles, embeddedSubs...)
 
 	// Then, get external subtitle files
 	externalSubs := detectExternalSubtitles(videoPath, parentDir)
-	logger.Debugf("[DETECT_ALL_SUBS] Found %d external subtitle files", len(externalSubs))
 	allSubtitles = append(allSubtitles, externalSubs...)
 
 	// Cache the complete list
 	MediaCache.Set(key, allSubtitles)
-	logger.Debugf("[DETECT_ALL_SUBS] Total subtitles found: %d for %s", len(allSubtitles), videoPath)
 
 	return allSubtitles
 }
@@ -74,8 +69,6 @@ func DetectAllSubtitles(videoPath string, parentDir string, modtime time.Time) [
 // detectEmbeddedSubtitles uses ffprobe to find embedded subtitle tracks
 // Always runs ffprobe - results are cached for performance
 func detectEmbeddedSubtitles(realPath string) []SubtitleTrack {
-	logger.Debugf("[DETECT_EMBEDDED] Running ffprobe for: %s", realPath)
-
 	cmd := exec.Command("ffprobe",
 		"-v", "quiet",
 		"-print_format", "json",
@@ -85,22 +78,18 @@ func detectEmbeddedSubtitles(realPath string) []SubtitleTrack {
 
 	output, err := cmd.Output()
 	if err != nil {
-		logger.Errorf("[DETECT_EMBEDDED] ffprobe failed for file: %s, error: %v", realPath, err)
+		logger.Debug("ffprobe failed for file: " + realPath + ", error: " + err.Error())
 		return nil
 	}
-	logger.Debugf("[DETECT_EMBEDDED] ffprobe output length: %d bytes", len(output))
 
 	var probeOutput FFProbeOutput
 	if err := json.Unmarshal(output, &probeOutput); err != nil {
-		logger.Errorf("[DETECT_EMBEDDED] Failed to parse ffprobe JSON for file: %s, error: %v", realPath, err)
-		logger.Debugf("[DETECT_EMBEDDED] Raw ffprobe output: %s", string(output))
+		logger.Debug("failed to parse ffprobe output for file: " + realPath)
 		return nil
 	}
-	logger.Debugf("[DETECT_EMBEDDED] ffprobe found %d total streams", len(probeOutput.Streams))
 
 	var subtitles []SubtitleTrack
 	for _, stream := range probeOutput.Streams {
-		logger.Debugf("[DETECT_EMBEDDED] Stream %d: type=%s, codec=%s", stream.Index, stream.CodecType, stream.CodecName)
 		if stream.CodecType == "subtitle" {
 			track := SubtitleTrack{
 				Index:  &stream.Index,
@@ -127,22 +116,18 @@ func detectEmbeddedSubtitles(realPath string) []SubtitleTrack {
 				track.Name = "Embedded Subtitle " + strconv.Itoa(stream.Index)
 			}
 
-			logger.Debugf("[DETECT_EMBEDDED] Added subtitle track: %s (index: %d, codec: %s)", track.Name, *track.Index, track.Codec)
 			subtitles = append(subtitles, track)
 		}
 	}
-	logger.Debugf("[DETECT_EMBEDDED] Returning %d subtitle tracks", len(subtitles))
 	return subtitles
 }
 
 // detectExternalSubtitles finds external subtitle files in the same directory
 func detectExternalSubtitles(videoPath string, parentDir string) []SubtitleTrack {
-	logger.Debugf("[DETECT_EXTERNAL] Checking for external subtitle files: videoPath=%s, parentDir=%s", videoPath, parentDir)
 	var subtitles []SubtitleTrack
 
 	// Get the base name of the video (without extension)
 	videoBaseName := strings.TrimSuffix(filepath.Base(videoPath), filepath.Ext(videoPath))
-	logger.Debugf("[DETECT_EXTERNAL] Video base name: %s", videoBaseName)
 
 	// Common subtitle extensions
 	subtitleExts := []string{".srt", ".vtt", ".lrc", ".sbv", ".ass", ".ssa", ".sub", ".smi"}
@@ -152,7 +137,6 @@ func detectExternalSubtitles(videoPath string, parentDir string) []SubtitleTrack
 		subtitlePath := filepath.Join(parentDir, videoBaseName+ext)
 		if _, err := os.Stat(subtitlePath); err == nil {
 			// File exists
-			logger.Debugf("[DETECT_EXTERNAL] Found external subtitle file: %s", subtitlePath)
 			track := SubtitleTrack{
 				Name:   filepath.Base(subtitlePath),
 				IsFile: true, // This is an external file
