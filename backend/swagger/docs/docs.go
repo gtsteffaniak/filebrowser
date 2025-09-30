@@ -2743,7 +2743,14 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "imagePreview": {
-                    "description": "supported image preview formats. default is heic",
+                    "description": "supported image preview formats. defaults to false for all types unless explicitly enabled.",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "boolean"
+                    }
+                },
+                "videoPreview": {
+                    "description": "supported video preview formats. defaults to true for all types unless explicitly disabled.",
                     "type": "object",
                     "additionalProperties": {
                         "type": "boolean"
