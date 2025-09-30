@@ -77,7 +77,7 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		Username: d.user.Username,
 		Path:     utils.JoinPathAsUnix(userscope, path),
 		Source:   source,
-		Content:  false, // Don't load subtitle content for preview generation
+		Metadata: true,
 	}, store.Access)
 	if err != nil {
 		return errToStatus(err), err
