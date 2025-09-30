@@ -104,7 +104,7 @@ func (idx *Index) GetReducedMetadata(target string, isDir bool) (*iteminfo.FileI
 	for _, item := range dir.Files {
 		if item.Name == baseName {
 			// Use path.Join to properly handle trailing slashes and avoid double slashes
-			fp := checkDir
+			var fp string
 			if checkDir == "/" {
 				fp = "/" + item.Name
 			} else {
