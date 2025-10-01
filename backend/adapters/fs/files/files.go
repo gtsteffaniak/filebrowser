@@ -243,6 +243,11 @@ func RefreshIndex(source string, path string, isDir bool, recursive bool) error 
 	// Always normalize path using MakeIndexPath
 	path = idx.MakeIndexPath(path)
 
+	// MakeIndexPath always adds trailing slash, but for files we need to remove it
+	if !isDir {
+		path = strings.TrimSuffix(path, "/")
+	}
+
 	err := idx.RefreshFileInfo(utils.FileOptions{Path: path, IsDir: isDir, Recursive: recursive})
 	return err
 }
@@ -422,19 +427,14 @@ func WriteFile(opts utils.FileOptions, in io.Reader) error {
 		return fmt.Errorf("could not get index: %v ", opts.Source)
 	}
 	realPath, _, _ := idx.GetRealPath(opts.Path)
-	logger.Debugf("[WriteFile] Initial realPath=%q", realPath)
 	// Strip trailing slash from realPath if it's meant to be a file
 	realPath = strings.TrimRight(realPath, "/")
-	logger.Debugf("[WriteFile] After trim realPath=%q", realPath)
 	// Ensure the parent directories exist
 	parentDir := filepath.Dir(realPath)
-	logger.Debugf("[WriteFile] Parent dir=%q", parentDir)
 	err := os.MkdirAll(parentDir, fileutils.PermDir)
 	if err != nil {
-		logger.Debugf("[WriteFile] MkdirAll failed: %v", err)
 		return err
 	}
-	logger.Debugf("[WriteFile] MkdirAll succeeded")
 	var stat os.FileInfo
 	// Check if the destination exists and is a directory
 	if stat, err = os.Stat(realPath); err == nil && stat.IsDir() {
@@ -449,10 +449,8 @@ func WriteFile(opts utils.FileOptions, in io.Reader) error {
 	}
 
 	// Open the file for writing (create if it doesn't exist, truncate if it does)
-	logger.Debugf("[WriteFile] About to call os.OpenFile with realPath=%q", realPath)
 	file, err := os.OpenFile(realPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, fileutils.PermFile)
 	if err != nil {
-		logger.Debugf("[WriteFile] os.OpenFile failed with error: %v", err)
 		return err
 	}
 	defer file.Close()
