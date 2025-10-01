@@ -303,7 +303,7 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 		}
 
 		if isDir {
-			dirPath := combinedPath + file.Name()
+			dirPath := combinedPath + file.Name() + "/"
 			if idx.hasIndex && config.Recursive && len(idx.Config.NeverWatchPaths) > 0 {
 				if slices.Contains(idx.Config.NeverWatchPaths, fullCombined) {
 					realDirInfo, exists := idx.GetMetadataInfo(dirPath, true)
@@ -378,13 +378,14 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 			}
 			itemInfo.Size = int64(size)
 
-			// all checks after this won't update folder preview
+			// Update parent folder preview status for images, videos, and audio with album art
+			// All checks after this point won't update folder preview
 			if itemInfo.HasPreview {
 				hasPreview = true
 			}
 
-			// Set HasPreview before appending to fileInfos
-			// these don't create preview for parent folders
+			// Set HasPreview for office docs and PDFs
+			// These files are previewable but DON'T set parent folder preview
 			if settings.Config.Integrations.OnlyOffice.Secret != "" && iteminfo.IsOnlyOffice(file.Name()) {
 				itemInfo.HasPreview = true
 			}
@@ -399,7 +400,6 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 			if config.Recursive {
 				idx.NumFiles++
 			}
-
 		}
 	}
 
@@ -427,7 +427,6 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 		HasPreview: hasPreview,
 	}
 	dirFileInfo.SortItems()
-
 	return dirFileInfo, nil
 }
 
