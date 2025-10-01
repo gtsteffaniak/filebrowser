@@ -240,11 +240,16 @@ func RefreshIndex(source string, path string, isDir bool, recursive bool) error 
 	if idx.Config.DisableIndexing {
 		return nil
 	}
-	// Only use MakeIndexPath for directory operations to ensure trailing slashes
-	if isDir {
-		path = idx.MakeIndexPath(path)
+	// Always normalize path using MakeIndexPath
+	path = idx.MakeIndexPath(path)
+
+	// MakeIndexPath always adds trailing slash, but for files we need to remove it
+	if !isDir {
+		path = strings.TrimSuffix(path, "/")
 	}
-	return idx.RefreshFileInfo(utils.FileOptions{Path: path, IsDir: isDir, Recursive: recursive})
+
+	err := idx.RefreshFileInfo(utils.FileOptions{Path: path, IsDir: isDir, Recursive: recursive})
+	return err
 }
 
 // validateMoveDestination checks if a move/rename operation is valid
@@ -314,19 +319,27 @@ func MoveResource(isSrcDir, isDestDir bool, sourceIndex, destIndex, realsrc, rea
 		indexing.RealPathCache.Delete(srcRealPath + ":isdir")
 	}
 
-	// For move operations, refresh the parent directory to capture the moved file
-	refreshPath := realdst
-	refreshIsDir := isDestDir
-	if !isSrcDir {
-		// If moving a file (regardless of destination), refresh the parent directory
-		refreshPath = filepath.Dir(realdst)
-		refreshIsDir = true
-	}
+	// For move operations, refresh the moved item and its new parent directory
+	// Run all refresh operations in a goroutine to avoid blocking the API
+	if isSrcDir {
+		go func() {
+			// When moving a folder, refresh the folder itself recursively FIRST
+			// Must complete before parent refresh to avoid race condition
+			RefreshIndex(destIndex, realdst, true, true) //nolint:errcheck
 
-	go RefreshIndex(destIndex, refreshPath, refreshIsDir, true) //nolint:errcheck
+			// THEN refresh the parent directory so it sees the newly indexed child
+			parentDir := filepath.Dir(realdst)
+			RefreshIndex(destIndex, parentDir, true, false) //nolint:errcheck
+		}()
+	} else {
+		// If moving a file, just refresh the parent directory
+		parentDir := filepath.Dir(realdst)
+		go RefreshIndex(destIndex, parentDir, true, false) //nolint:errcheck
+	}
 
 	// Use backend source paths to match how shares are stored
 	go s.UpdateShares(srcIdx.Path, srcIdx.MakeIndexPath(realsrc), dstIdx.Path, dstIdx.MakeIndexPath(realdst)) //nolint:errcheck
+
 	return nil
 }
 
@@ -365,6 +378,7 @@ func CopyResource(isSrcDir, isDestDir bool, sourceIndex, destIndex, realsrc, rea
 	}
 
 	go RefreshIndex(destIndex, dstRefreshPath, dstRefreshIsDir, true) //nolint:errcheck
+
 	return nil
 }
 
@@ -413,8 +427,11 @@ func WriteFile(opts utils.FileOptions, in io.Reader) error {
 		return fmt.Errorf("could not get index: %v ", opts.Source)
 	}
 	realPath, _, _ := idx.GetRealPath(opts.Path)
+	// Strip trailing slash from realPath if it's meant to be a file
+	realPath = strings.TrimRight(realPath, "/")
 	// Ensure the parent directories exist
-	err := os.MkdirAll(filepath.Dir(realPath), fileutils.PermDir)
+	parentDir := filepath.Dir(realPath)
+	err := os.MkdirAll(parentDir, fileutils.PermDir)
 	if err != nil {
 		return err
 	}
@@ -426,12 +443,9 @@ func WriteFile(opts utils.FileOptions, in io.Reader) error {
 		if err != nil {
 			return fmt.Errorf("could not remove existing directory to create file: %v", err)
 		}
-		// Clear the cache for the removed directory
-		realPath, _, err = idx.GetRealPath(opts.Path)
-		if err == nil {
-			indexing.RealPathCache.Delete(realPath)
-			indexing.RealPathCache.Delete(realPath + ":isdir")
-		}
+		// Clear the cache for the removed directory (use realPath without re-fetching)
+		indexing.RealPathCache.Delete(realPath)
+		indexing.RealPathCache.Delete(realPath + ":isdir")
 	}
 
 	// Open the file for writing (create if it doesn't exist, truncate if it does)
