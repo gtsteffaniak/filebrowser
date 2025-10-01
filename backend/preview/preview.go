@@ -43,16 +43,11 @@ type Service struct {
 }
 
 func NewPreviewGenerator(concurrencyLimit int, ffmpegPath string, cacheDir string) *Service {
-	// Hard limit ffmpeg concurrency to prevent I/O lockup
-	// Users can configure this, but we enforce a reasonable maximum
-	const maxFFmpegConcurrency = 4
-	if concurrencyLimit > maxFFmpegConcurrency {
-		concurrencyLimit = maxFFmpegConcurrency
-	}
 	if concurrencyLimit < 1 {
 		concurrencyLimit = 1
 	}
-
+	// get round up half value of concurrencyLimit
+	ffmpegConcurrencyLimit := (concurrencyLimit + 1) / 2
 	var fileCache diskcache.Interface
 	// Use file cache if cacheDir is specified
 	if cacheDir != "" {
@@ -93,7 +88,7 @@ func NewPreviewGenerator(concurrencyLimit int, ffmpegPath string, cacheDir strin
 		settings.Config.Integrations.Media.FfmpegPath = filepath.Base(ffmpegMainPath)
 	}
 	logger.Debugf("Media Enabled            : %v", ffmpegMainPath != "" && ffprobePath != "")
-	logger.Debugf("FFmpeg Concurrency Limit : %d", concurrencyLimit)
+	logger.Debugf("FFmpeg Concurrency Limit : %d", ffmpegConcurrencyLimit)
 	settings.Config.Server.MuPdfAvailable = docEnabled()
 	logger.Debugf("MuPDF Enabled            : %v", settings.Config.Server.MuPdfAvailable)
 
@@ -102,7 +97,7 @@ func NewPreviewGenerator(concurrencyLimit int, ffmpegPath string, cacheDir strin
 	var imageService *ffmpeg.ImageService
 
 	if ffmpegMainPath != "" && ffprobePath != "" {
-		videoService = ffmpeg.NewVideoService(ffmpegMainPath, ffprobePath, concurrencyLimit, settings.Config.Server.DebugMedia)
+		videoService = ffmpeg.NewVideoService(ffmpegMainPath, ffprobePath, ffmpegConcurrencyLimit, settings.Config.Server.DebugMedia)
 		imageService = ffmpeg.NewImageService(ffmpegMainPath, ffprobePath, concurrencyLimit, settings.Config.Server.DebugMedia, filepath.Join(settings.Config.Server.CacheDir, "heic"))
 	}
 

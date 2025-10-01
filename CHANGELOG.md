@@ -11,9 +11,9 @@ All notable changes to this project will be documented in this file. For commit 
  - better login error message feedback
  - Add capability to disable certain video previews
  - Added ability to play media in same folder sequentially or shuffled
+ #- Default landing directory #781
  #- better init script support #897
  #- share download limit feature to apply per user -- and disables anonymous download when enabled.
- #- Default landing directory #781
  #- Feat(preview): Extract and display duration for media files when previews are enabled #1260
 
  **Notes**:
@@ -27,6 +27,7 @@ All notable changes to this project will be documented in this file. For commit 
  - "realtime" Permission of API keys is not working #1141
  - "Path not found" when trying to share a file or folder inside a sub-directory #1139
  - logout path redirect not working
+ - 2FA secret error #1305
 
 ## v0.8.7-beta
 

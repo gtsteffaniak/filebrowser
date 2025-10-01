@@ -305,7 +305,7 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 		}
 
 		if isDir {
-			dirPath := combinedPath + file.Name() + "/"
+			dirPath := combinedPath + file.Name()
 			if idx.hasIndex && config.Recursive && len(idx.Config.NeverWatchPaths) > 0 {
 				if slices.Contains(idx.Config.NeverWatchPaths, fullCombined) {
 					realDirInfo, exists := idx.GetMetadataInfo(dirPath, true)
@@ -430,11 +430,7 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 	}
 	dirFileInfo.SortItems()
 
-	// Update metadata (propagation handled by RefreshFileInfo caller)
-	if idx.hasIndex {
-		idx.UpdateMetadata(dirFileInfo)
-	}
-
+	// Metadata will be updated by the caller (indexDirectory or GetFsDirInfo)
 	return dirFileInfo, nil
 }
 
