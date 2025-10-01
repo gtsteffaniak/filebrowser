@@ -222,7 +222,7 @@ func setupSources(generate bool) {
 			}
 			allSourceNames = append(allSourceNames, source.Name)
 		} else {
-			logger.Warningf("source %v is not configured correctly, skipping", sourcePathOnly.Path)
+			logger.Warningf("skipping source: %v", sourcePathOnly.Path)
 		}
 	}
 	Config.UserDefaults.DefaultScopes = defaultScopes

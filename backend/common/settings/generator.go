@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"sort"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -648,9 +649,23 @@ func buildNodeWithDefaults(v reflect.Value, comm CommentsMap, defaults reflect.V
 			return buildImagePreviewMap(v, comm, secrets, deprecated)
 		}
 
-		for _, key := range v.MapKeys() {
-			// Handle key
+		// Get and sort map keys alphabetically for consistent output
+		mapKeys := v.MapKeys()
+		keyStrings := make([]string, len(mapKeys))
+		keyMap := make(map[string]reflect.Value)
+		for i, key := range mapKeys {
 			keyStr := fmt.Sprintf("%v", key.Interface())
+			keyStrings[i] = keyStr
+			keyMap[keyStr] = key
+		}
+
+		// Sort alphabetically
+		sort.Strings(keyStrings)
+
+		for _, keyStr := range keyStrings {
+			key := keyMap[keyStr]
+
+			// Handle key
 			keyNode := &yaml.Node{
 				Kind:  yaml.ScalarNode,
 				Value: keyStr,

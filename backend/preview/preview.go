@@ -265,7 +265,7 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 				return nil, fmt.Errorf("failed to decode album artwork: %w", err)
 			}
 		} else {
-			return nil, fmt.Errorf("no album artwork available for audio file: %s", file.Name)
+			return nil, nil
 		}
 	} else {
 		return nil, fmt.Errorf("unsupported media type: %s", ext)

@@ -189,13 +189,4 @@ export default {
   font-size: 1.2em;
 }
 
-/* Dark mode support */
-.dark-mode .share__box {
-  background: var(--surfacePrimary);
-  color: var(--textPrimary);
-}
-
-.dark-mode .share__box__header {
-  border-color: var(--divider);
-}
 </style>

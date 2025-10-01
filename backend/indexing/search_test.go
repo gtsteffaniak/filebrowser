@@ -122,6 +122,13 @@ func TestSearchIndexes(t *testing.T) {
 					Size: 2 * 1024 * 1024,
 				},
 			},
+			"/new+folder/Pictures/": {
+				Files: []iteminfo.ItemInfo{
+					{Name: "consoletest.mp4", Size: 196091904, Type: "video/mp4"},
+					{Name: "playwright.gif", Size: 2416640, Type: "image/gif"},
+					{Name: "toggle.gif", Size: 65536, Type: "image/gif"},
+				},
+			},
 		},
 	}
 
@@ -155,6 +162,11 @@ func TestSearchIndexes(t *testing.T) {
 					Type: "directory",
 					Size: 0,
 				},
+				{
+					Path: "/new+folder/Pictures/consoletest.mp4",
+					Type: "video/mp4",
+					Size: 196091904,
+				},
 			},
 		},
 		{
@@ -175,7 +187,7 @@ func TestSearchIndexes(t *testing.T) {
 		},
 		{
 			search: "arch",
-			scope:  "/firstDir",
+			scope:  "/firstDir/",
 			expectedResult: []SearchResult{
 				{
 					Path: "/firstDir/archive.zip",
@@ -251,6 +263,28 @@ func TestSearchIndexes(t *testing.T) {
 					Path: "/new/test/audio.wav",
 					Type: "audio",
 					Size: 0,
+				},
+			},
+		},
+		{
+			search: "cons",
+			scope:  "/new+folder/Pictures/",
+			expectedResult: []SearchResult{
+				{
+					Path: "/new+folder/Pictures/consoletest.mp4",
+					Type: "video/mp4",
+					Size: 196091904,
+				},
+			},
+		},
+		{
+			search: "toggle",
+			scope:  "/new+folder/Pictures/",
+			expectedResult: []SearchResult{
+				{
+					Path: "/new+folder/Pictures/toggle.gif",
+					Type: "image/gif",
+					Size: 65536,
 				},
 			},
 		},

@@ -84,6 +84,7 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	if err != nil {
 		return http.StatusForbidden, err
 	}
+	userscope = strings.TrimRight(userscope, "/")
 	scopePath := utils.JoinPathAsUnix(userscope, path)
 	getContent := r.URL.Query().Get("content") == "true"
 	if d.share != nil && d.share.DisableFileViewer {
@@ -162,6 +163,7 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 	if err != nil {
 		return http.StatusForbidden, err
 	}
+	userscope = strings.TrimRight(userscope, "/")
 	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
 		Username: d.user.Username,
 		Path:     utils.JoinPathAsUnix(userscope, path),
@@ -218,11 +220,17 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		logger.Debugf("user is not allowed to create or modify")
 		return http.StatusForbidden, fmt.Errorf("user is not allowed to create or modify")
 	}
+
+	// Determine if this is a directory or file based on trailing slash
+	isDir := strings.HasSuffix(path, "/")
+	// Strip trailing slash from userscope to prevent double slashes
 	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, source)
 	if err != nil {
 		logger.Debugf("error getting scope from source name: %v", err)
 		return http.StatusForbidden, err
 	}
+	userscope = strings.TrimRight(userscope, "/")
+
 	fileOpts := utils.FileOptions{
 		Username: d.user.Username,
 		Path:     utils.JoinPathAsUnix(userscope, path),
@@ -241,7 +249,6 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	if store.Access != nil && !store.Access.Permitted(idx.Path, path, d.user.Username) {
 		return http.StatusForbidden, fmt.Errorf("access denied to path %s", path)
 	}
-	isDir := strings.HasSuffix(path, "/")
 
 	// Check for file/folder conflicts before creation
 	if stat, statErr := os.Stat(realPath); statErr == nil {
@@ -423,10 +430,13 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	if strings.HasSuffix(path, "/") {
 		return http.StatusMethodNotAllowed, nil
 	}
+	// Strip trailing slash from userscope to prevent double slashes
 	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, source)
 	if err != nil {
 		return http.StatusForbidden, err
 	}
+	userscope = strings.TrimRight(userscope, "/")
+
 	fileOpts := utils.FileOptions{
 		Username: d.user.Username,
 		Path:     utils.JoinPathAsUnix(userscope, path),
@@ -506,10 +516,13 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	if err != nil {
 		return http.StatusForbidden, err
 	}
+	userscopeDst = strings.TrimRight(userscopeDst, "/")
+
 	userscopeSrc, err := settings.GetScopeFromSourceName(d.user.Scopes, srcIndex)
 	if err != nil {
 		return http.StatusForbidden, err
 	}
+	userscopeSrc = strings.TrimRight(userscopeSrc, "/")
 
 	idx := indexing.GetIndex(dstIndex)
 	if idx == nil {

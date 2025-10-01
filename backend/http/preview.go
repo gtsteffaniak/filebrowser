@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
@@ -115,6 +116,9 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 	}
 	if d.fileInfo.Type == "directory" {
 		// get extended file info of first previewable item in directory
+		// Try multiple files in case some are corrupted
+		var lastErr error
+		foundValidFile := false
 		for _, item := range d.fileInfo.Files {
 			if item.HasPreview {
 				source := d.fileInfo.Source
@@ -135,11 +139,32 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 						Metadata: true,
 					}, store.Access)
 				if err != nil {
-					return http.StatusInternalServerError, err
+					lastErr = err
+					continue // Try next file if this one fails
 				}
+
+				// Try to generate preview to verify the file is not corrupted
+				tempCtx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+				_, previewErr := preview.GetPreviewForFile(tempCtx, *fileInfo, "small", "", 0)
+				cancel()
+
+				if previewErr != nil {
+					// File might be corrupted, try next one
+					logger.Debugf("Skipping corrupted preview file in directory '%s': %s (error: %v)",
+						d.fileInfo.Name, item.Name, previewErr)
+					lastErr = previewErr
+					continue
+				}
+
+				// Success! Use this file for the directory preview
 				d.fileInfo = *fileInfo
+				foundValidFile = true
 				break
 			}
+		}
+		// If we exhausted all files and none worked, return the last error
+		if !foundValidFile && lastErr != nil {
+			return http.StatusInternalServerError, fmt.Errorf("no valid preview files found in directory: %w", lastErr)
 		}
 	}
 

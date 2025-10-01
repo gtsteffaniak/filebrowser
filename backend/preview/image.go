@@ -138,7 +138,7 @@ func (s *Service) Resize(in io.Reader, width, height int, out io.Writer, options
 
 	format, wrappedReader, err := s.detectFormat(in)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to detect image format: %w", err)
 	}
 
 	config := resizeConfig{
@@ -168,7 +168,7 @@ func (s *Service) Resize(in io.Reader, width, height int, out io.Writer, options
 	// For HEIC files, try without AutoOrientation first since it might not work properly
 	img, err := imaging.Decode(wrappedReader)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to decode image: %w", err)
 	}
 
 	// Note: For HEIC files processed via FFmpeg, orientation is handled automatically
@@ -186,12 +186,17 @@ func (s *Service) Resize(in io.Reader, width, height int, out io.Writer, options
 }
 
 func (s *Service) detectFormat(in io.Reader) (Format, io.Reader, error) {
-	buf := &bytes.Buffer{}
-	r := io.TeeReader(in, buf)
-
-	_, imgFormat, err := image.DecodeConfig(r)
+	// Read all data into a buffer first to avoid consuming the reader twice
+	allData, err := io.ReadAll(in)
 	if err != nil {
-		return 0, nil, fmt.Errorf("%s: %w", err.Error(), ErrUnsupportedFormat)
+		return 0, nil, fmt.Errorf("failed to read image data: %w", err)
+	}
+
+	// Create a reader for format detection
+	reader := bytes.NewReader(allData)
+	_, imgFormat, err := image.DecodeConfig(reader)
+	if err != nil {
+		return 0, nil, fmt.Errorf("image.DecodeConfig failed (data size: %d bytes): %s: %w", len(allData), err.Error(), ErrUnsupportedFormat)
 	}
 
 	if imgFormat == "heif" {
@@ -203,31 +208,40 @@ func (s *Service) detectFormat(in io.Reader) (Format, io.Reader, error) {
 		return 0, nil, ErrUnsupportedFormat
 	}
 
-	return format, io.MultiReader(buf, in), nil
+	// Return a new reader with all the data for subsequent operations
+	return format, bytes.NewReader(allData), nil
 }
 
 func getEmbeddedThumbnail(in io.Reader) ([]byte, io.Reader, error) {
-	buf := &bytes.Buffer{}
-	r := io.TeeReader(in, buf)
-	wrappedReader := io.MultiReader(buf, in)
-
-	offsets := []int{12, 30}
-	head := make([]byte, 0xffff)
-
-	_, err := r.Read(head)
+	// Read all data to avoid partial consumption issues
+	allData, err := io.ReadAll(in)
 	if err != nil {
-		return nil, wrappedReader, err
+		return nil, nil, err
 	}
 
+	// Create a reader that can be returned for fallback processing
+	wrappedReader := bytes.NewReader(allData)
+
+	// Try to read up to 0xffff bytes for EXIF header parsing
+	// Use the actual data size if file is smaller
+	headSize := 0xffff
+	if len(allData) < headSize {
+		headSize = len(allData)
+	}
+
+	head := allData[:headSize]
+	offsets := []int{12, 30}
+
 	var offset int
+	var exifErr error
 	for _, offset = range offsets {
-		if _, err = exif.ParseExifHeader(head[offset:]); err == nil {
+		if _, exifErr = exif.ParseExifHeader(head[offset:]); exifErr == nil {
 			break
 		}
 	}
 
-	if err != nil {
-		return nil, wrappedReader, err
+	if exifErr != nil {
+		return nil, wrappedReader, exifErr
 	}
 
 	im, err := exifcommon.NewIfdMappingWithStandard()
