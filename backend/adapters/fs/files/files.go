@@ -315,17 +315,17 @@ func MoveResource(isSrcDir, isDestDir bool, sourceIndex, destIndex, realsrc, rea
 	}
 
 	// For move operations, refresh the moved item and its new parent directory
+	// Run all refresh operations in a goroutine to avoid blocking the API
 	if isSrcDir {
-		// When moving a folder, refresh the folder itself recursively FIRST
-		// Must complete before parent refresh to avoid race condition
-		err = RefreshIndex(destIndex, realdst, true, true)
-		if err != nil {
-			// Log error but continue
-		}
+		go func() {
+			// When moving a folder, refresh the folder itself recursively FIRST
+			// Must complete before parent refresh to avoid race condition
+			RefreshIndex(destIndex, realdst, true, true) //nolint:errcheck
 
-		// THEN refresh the parent directory so it sees the newly indexed child
-		parentDir := filepath.Dir(realdst)
-		go RefreshIndex(destIndex, parentDir, true, false) //nolint:errcheck
+			// THEN refresh the parent directory so it sees the newly indexed child
+			parentDir := filepath.Dir(realdst)
+			RefreshIndex(destIndex, parentDir, true, false) //nolint:errcheck
+		}()
 	} else {
 		// If moving a file, just refresh the parent directory
 		parentDir := filepath.Dir(realdst)
@@ -422,11 +422,19 @@ func WriteFile(opts utils.FileOptions, in io.Reader) error {
 		return fmt.Errorf("could not get index: %v ", opts.Source)
 	}
 	realPath, _, _ := idx.GetRealPath(opts.Path)
+	logger.Debugf("[WriteFile] Initial realPath=%q", realPath)
+	// Strip trailing slash from realPath if it's meant to be a file
+	realPath = strings.TrimRight(realPath, "/")
+	logger.Debugf("[WriteFile] After trim realPath=%q", realPath)
 	// Ensure the parent directories exist
-	err := os.MkdirAll(filepath.Dir(realPath), fileutils.PermDir)
+	parentDir := filepath.Dir(realPath)
+	logger.Debugf("[WriteFile] Parent dir=%q", parentDir)
+	err := os.MkdirAll(parentDir, fileutils.PermDir)
 	if err != nil {
+		logger.Debugf("[WriteFile] MkdirAll failed: %v", err)
 		return err
 	}
+	logger.Debugf("[WriteFile] MkdirAll succeeded")
 	var stat os.FileInfo
 	// Check if the destination exists and is a directory
 	if stat, err = os.Stat(realPath); err == nil && stat.IsDir() {
@@ -435,17 +443,16 @@ func WriteFile(opts utils.FileOptions, in io.Reader) error {
 		if err != nil {
 			return fmt.Errorf("could not remove existing directory to create file: %v", err)
 		}
-		// Clear the cache for the removed directory
-		realPath, _, err = idx.GetRealPath(opts.Path)
-		if err == nil {
-			indexing.RealPathCache.Delete(realPath)
-			indexing.RealPathCache.Delete(realPath + ":isdir")
-		}
+		// Clear the cache for the removed directory (use realPath without re-fetching)
+		indexing.RealPathCache.Delete(realPath)
+		indexing.RealPathCache.Delete(realPath + ":isdir")
 	}
 
 	// Open the file for writing (create if it doesn't exist, truncate if it does)
+	logger.Debugf("[WriteFile] About to call os.OpenFile with realPath=%q", realPath)
 	file, err := os.OpenFile(realPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, fileutils.PermFile)
 	if err != nil {
+		logger.Debugf("[WriteFile] os.OpenFile failed with error: %v", err)
 		return err
 	}
 	defer file.Close()

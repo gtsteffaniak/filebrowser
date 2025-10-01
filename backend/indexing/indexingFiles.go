@@ -492,7 +492,7 @@ func (idx *Index) RefreshFileInfo(opts utils.FileOptions) error {
 
 	// Get PREVIOUS metadata BEFORE indexing
 	previousInfo, previousExists := idx.GetMetadataInfo(targetPath, true)
-	previousSize := int64(0)
+	var previousSize int64
 	if previousExists {
 		previousSize = previousInfo.Size
 	}
