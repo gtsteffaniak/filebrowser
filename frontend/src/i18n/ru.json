@@ -585,6 +585,9 @@
   },
   "player": {
     "LoopEnabled": "Петля включена",
-    "LoopDisabled": "Петля отключена"
+    "LoopDisabled": "Петля отключена",
+    "SequentialPlayback": "Последовательное воспроизведение",
+    "ShufflePlayback": "Воспроизведение в случайном порядке",
+    "LoopAllFilesPlayback": "Повторное воспроизведение всех файлов"
   }
 }

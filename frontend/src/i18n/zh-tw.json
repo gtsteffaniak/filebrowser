@@ -585,6 +585,9 @@
   },
   "player": {
     "LoopEnabled": "啟用循環",
-    "LoopDisabled": "迴路停用"
+    "LoopDisabled": "迴路停用",
+    "SequentialPlayback": "連續播放",
+    "ShufflePlayback": "隨機播放",
+    "LoopAllFilesPlayback": "循環所有檔案"
   }
 }

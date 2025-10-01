@@ -585,6 +585,9 @@
   },
   "player": {
     "LoopEnabled": "تم تمكين الحلقة",
-    "LoopDisabled": "حلقة معطلة"
+    "LoopDisabled": "حلقة معطلة",
+    "SequentialPlayback": "التشغيل المتسلسل",
+    "ShufflePlayback": "تشغيل عشوائي",
+    "LoopAllFilesPlayback": "تكرار جميع الملفات"
   }
 }

@@ -585,6 +585,9 @@
   },
   "player": {
     "LoopEnabled": "Lus ingeschakeld",
-    "LoopDisabled": "Lus uitgeschakeld"
+    "LoopDisabled": "Lus uitgeschakeld",
+    "SequentialPlayback": "Sequentiële weergave",
+    "ShufflePlayback": "Willekeurig afspelen",
+    "LoopAllFilesPlayback": "Alle bestanden afspelen"
   }
 }

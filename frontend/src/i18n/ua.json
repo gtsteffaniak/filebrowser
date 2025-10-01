@@ -585,6 +585,9 @@
   },
   "player": {
     "LoopEnabled": "Цикл увімкнено",
-    "LoopDisabled": "Цикл вимкнено"
+    "LoopDisabled": "Цикл вимкнено",
+    "SequentialPlayback": "Послідовне відтворення",
+    "ShufflePlayback": "Відтворення у випадковому порядку",
+    "LoopAllFilesPlayback": "Відтворити всі файли по колу"
   }
 }

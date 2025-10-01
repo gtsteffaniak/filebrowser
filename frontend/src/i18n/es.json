@@ -585,6 +585,9 @@
   },
   "player": {
     "LoopEnabled": "Bucle activado",
-    "LoopDisabled": "Bucle desactivado"
+    "LoopDisabled": "Bucle desactivado",
+    "SequentialPlayback": "Reproducción continua",
+    "ShufflePlayback": "Reproducción aleatoria",
+    "LoopAllFilesPlayback": "Reproducción de todos los archivos"
   }
 }

@@ -585,6 +585,9 @@
   },
   "player": {
     "LoopEnabled": "Slinga aktiverad",
-    "LoopDisabled": "Slinga avaktiverad"
+    "LoopDisabled": "Slinga avaktiverad",
+    "SequentialPlayback": "Sekventiell uppspelning",
+    "ShufflePlayback": "Slumpvis uppspelning",
+    "LoopAllFilesPlayback": "Spela upp alla filer i loop"
   }
 }

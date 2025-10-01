@@ -585,6 +585,9 @@
   },
   "player": {
     "LoopEnabled": "루프 사용",
-    "LoopDisabled": "루프 비활성화"
+    "LoopDisabled": "루프 비활성화",
+    "SequentialPlayback": "순차 재생",
+    "ShufflePlayback": "셔플 재생",
+    "LoopAllFilesPlayback": "모든 파일 재생 반복"
   }
 }

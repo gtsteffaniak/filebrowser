@@ -585,6 +585,9 @@
   },
   "player": {
     "LoopEnabled": "Włączona pętla",
-    "LoopDisabled": "Pętla wyłączona"
+    "LoopDisabled": "Pętla wyłączona",
+    "SequentialPlayback": "Odtwarzanie sekwencyjne",
+    "ShufflePlayback": "Odtwarzanie losowe",
+    "LoopAllFilesPlayback": "Odtwarzanie wszystkich plików w pętli"
   }
 }

@@ -585,6 +585,9 @@
   },
   "player": {
     "LoopEnabled": "Povolená smyčka",
-    "LoopDisabled": "Vypnutá smyčka"
+    "LoopDisabled": "Vypnutá smyčka",
+    "SequentialPlayback": "Sekvenční přehrávání",
+    "ShufflePlayback": "Přehraj náhodně",
+    "LoopAllFilesPlayback": "Smyčka všech souborů"
   }
 }

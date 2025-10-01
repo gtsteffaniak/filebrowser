@@ -585,6 +585,9 @@
   },
   "player": {
     "LoopEnabled": "Povolená slučka",
-    "LoopDisabled": "Vypnutá slučka"
+    "LoopDisabled": "Vypnutá slučka",
+    "SequentialPlayback": "Sekvenčné prehrávanie",
+    "ShufflePlayback": "prehrávanie v náhodnom poradí",
+    "LoopAllFilesPlayback": "Prehrávať všetky súbory"
   }
 }

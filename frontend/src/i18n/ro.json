@@ -585,6 +585,9 @@
   },
   "player": {
     "LoopEnabled": "Bucla activată",
-    "LoopDisabled": "Bucla dezactivată"
+    "LoopDisabled": "Bucla dezactivată",
+    "SequentialPlayback": "Redare secvențială",
+    "ShufflePlayback": "Redare aleatorie",
+    "LoopAllFilesPlayback": "Redați toate fișierele în buclă"
   }
 }

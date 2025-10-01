@@ -585,6 +585,9 @@
   },
   "player": {
     "LoopEnabled": "לולאה מופעלת",
-    "LoopDisabled": "לולאה מושבתת"
+    "LoopDisabled": "לולאה מושבתת",
+    "SequentialPlayback": "הפעלה רציפה",
+    "ShufflePlayback": "הפעלה אקראית",
+    "LoopAllFilesPlayback": "לעבור על כל הקבצים"
   }
 }

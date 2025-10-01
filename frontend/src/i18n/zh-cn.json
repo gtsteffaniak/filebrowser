@@ -585,6 +585,9 @@
   },
   "player": {
     "LoopEnabled": "启用环路",
-    "LoopDisabled": "环路禁用"
+    "LoopDisabled": "环路禁用",
+    "SequentialPlayback": "顺序播放",
+    "ShufflePlayback": "随机播放",
+    "LoopAllFilesPlayback": "循环播放所有文件"
   }
 }

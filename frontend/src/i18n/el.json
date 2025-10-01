@@ -585,6 +585,9 @@
   },
   "player": {
     "LoopEnabled": "Ενεργοποίηση βρόχου",
-    "LoopDisabled": "Βρόχος απενεργοποιημένος"
+    "LoopDisabled": "Βρόχος απενεργοποιημένος",
+    "SequentialPlayback": "Διαδοχική αναπαραγωγή",
+    "ShufflePlayback": "αναπαραγωγή με τυχαία σειρά",
+    "LoopAllFilesPlayback": "Επανάληψη όλων των αρχείων"
   }
 }
