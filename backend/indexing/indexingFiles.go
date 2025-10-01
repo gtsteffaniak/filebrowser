@@ -84,7 +84,11 @@ const (
 )
 
 // omitList contains directory names to skip during indexing
-var omitList = []string{"$RECYCLE.BIN", "System Volume Information", "@eaDir"}
+var omitList = map[string]bool{
+	"$RECYCLE.BIN":              true,
+	"System Volume Information": true,
+	"@eaDir":                    true,
+}
 
 func init() {
 	indexes = make(map[string]*Index)
@@ -316,7 +320,7 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 				}
 			}
 			// skip non-indexable dirs.
-			if slices.Contains(omitList, file.Name()) {
+			if omitList[file.Name()] {
 				continue
 			}
 
