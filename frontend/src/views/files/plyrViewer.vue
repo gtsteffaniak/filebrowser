@@ -66,23 +66,35 @@
                 :label="'Subtitle ' + sub.name" :default="index === 0" />
         </video>
 
-
-        <!-- Loop indicator, shows when you press "L" on the player -->
+        <!-- Toast that shows when you press "P" or "L" on the media player -->
         <div :class="['loop-toast', toastVisible ? 'visible' : '']">
-            <svg class="loop-icon" viewBox="0 0 24 24">
-                <path
-                    d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46A7.93 7.93 0 0020 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74A7.93 7.93 0 004 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z" />
+            <!-- Loop icon for "single playback", "loop single file" and "loop all files" -->
+            <svg v-if="playbackMode === 'single' || playbackMode === 'loop-single' || playbackMode === 'loop-all'" class="loop-icon" viewBox="0 0 24 24">
+                <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46A7.93 7.93 0 0020 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74A7.93 7.93 0 004 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z" />
             </svg>
+            
+            <!-- Shuffle icon for "shuffle playback" -->
+            <svg v-else-if="playbackMode === 'shuffle'" class="shuffle-icon" viewBox="0 0 24 24">
+                <path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/>
+            </svg>
+            
+            <!-- List icon for "sequential playback" -->
+            <svg v-else class="sequential-icon" viewBox="0 0 24 24">
+                <path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/>
+            </svg>
+            
             <span>{{
-                loopEnabled
-                    ? $t("player.LoopEnabled")
-                    : $t("player.LoopDisabled")
-            }}</span>
-            <span :class="[
-                'status-indicator',
-                loopEnabled ? 'status-on' : 'status-off',
-            ]"></span>
+                playbackMode === 'sequential' ? $t('player.SequentialPlayback') :
+                playbackMode === 'shuffle' ? $t('player.ShufflePlayback') :
+                playbackMode === 'loop-all' ? $t('player.LoopAllFilesPlayback') :
+                playbackMode === 'loop-single' ? $t('player.LoopEnabled') :
+                $t('player.LoopDisabled') }}</span>
+            
+            <!-- Status indicator for loop -->
+            <span v-if="playbackMode === 'single' || playbackMode === 'loop-single'" :class="[
+                'status-indicator', playbackMode === 'loop-single' ? 'status-on' : 'status-off',]"></span>
         </div>
+        
     </div>
 </template>
 
@@ -353,6 +365,48 @@ export default {
             this.showToast();
             
             // Ensure player is focused and UI is updated
+            this.focusPlayer();
+            this.$nextTick(() => {
+                this.ensurePlaybackModeApplied();
+            });
+        },
+        handleKeydown(event) {
+            if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
+                return;
+            }
+            
+            if (event.key.toLowerCase() === 'p') {
+                event.preventDefault();
+                this.cyclePlaybackModes();
+            }
+        },
+        cyclePlaybackModes() {
+            // cycle order (excluding single and loop-single cuz they are handled by the "L" key)
+            const modeCycle = ['sequential', 'shuffle', 'loop-all'];
+            
+            // Find current mode index in the cycle
+            const currentIndex = modeCycle.indexOf(this.playbackMode);
+            
+            // Next mode index
+            let nextIndex;
+            if (currentIndex === -1) {
+                // If current mode is not in cycle (single or loop-single), start from beginning
+                nextIndex = 0;
+            } else {
+                nextIndex = (currentIndex + 1) % modeCycle.length;
+            }
+            
+            // Set the new playback mode
+            const newMode = modeCycle[nextIndex];
+            this.playbackMode = newMode;
+            
+            console.log(`Playback mode changed to: ${newMode}`);
+            
+            // Update playback queue
+            this.setupPlaybackQueue();
+            
+            // Show toast
+            this.showToast();
             this.focusPlayer();
             this.$nextTick(() => {
                 this.ensurePlaybackModeApplied();
@@ -1382,6 +1436,13 @@ button:hover,
 }
 
 .loop-icon {
+    width: 24px;
+    height: 24px;
+    fill: white;
+}
+
+.shuffle-icon,
+.sequential-icon {
     width: 24px;
     height: 24px;
     fill: white;
