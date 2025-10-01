@@ -130,7 +130,7 @@ export default {
             albumArtSize: 25, // Default size in em
             isHovering: false, // Track hover state
             // Playback settings
-            playbackMode: 'loop-single', // 'single', 'sequential', 'shuffle', 'loop-single', 'loop-all'
+            playbackMode: 'single', // 'single', 'sequential', 'shuffle', 'loop-single', 'loop-all'
             playbackQueue: [],
             currentQueueIndex: 0,
             isNavigating: false,
