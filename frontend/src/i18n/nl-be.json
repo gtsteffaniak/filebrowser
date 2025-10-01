@@ -584,7 +584,10 @@
     "syncFailed": "Na 5 pogingen is het niet gelukt om de status te synchroniseren met de route voor \"{filename}\". Installatie van editor afgebroken om gegevensbeschadiging te voorkomen."
   },
   "player": {
-    "LoopEnabled": "Lus ingeschakeld",
-    "LoopDisabled": "Lus uitgeschakeld"
+    "LoopEnabled": "Herhaling ingeschakeld",
+    "LoopDisabled": "Herhaling uitgeschakeld",
+    "PlayAllOncePlayback": "Alles eenmaal afspelen",
+    "ShuffleAllPlayback": "Alles willekeurig afspelen",
+    "PlayAllLoopedPlayback": "Alles herhaald afspelen"
   }
 }

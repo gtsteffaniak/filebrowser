@@ -585,6 +585,9 @@
   },
   "player": {
     "LoopEnabled": "לולאה מופעלת",
-    "LoopDisabled": "לולאה מושבתת"
+    "LoopDisabled": "לולאה מושבתת",
+    "PlayAllOncePlayback": "נגן הכל פעם אחת",
+    "ShuffleAllPlayback": "ערבב הכל",
+    "PlayAllLoopedPlayback": "נגן הכל בלולאה"
   }
 }

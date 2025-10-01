@@ -584,7 +584,10 @@
     "syncFailed": "Nie udało się zsynchronizować stanu z trasą dla \"{filename}\" po 5 próbach. Przerwano konfigurację edytora, aby zapobiec uszkodzeniu danych."
   },
   "player": {
-    "LoopEnabled": "Włączona pętla",
-    "LoopDisabled": "Pętla wyłączona"
+    "LoopEnabled": "Pętla włączona",
+    "LoopDisabled": "Pętla wyłączona",
+    "PlayAllOncePlayback": "Odtwórz wszystkie raz",
+    "ShuffleAllPlayback": "Losowe odtwarzanie wszystkich",
+    "PlayAllLoopedPlayback": "Odtwórz wszystkie w pętli"
   }
 }

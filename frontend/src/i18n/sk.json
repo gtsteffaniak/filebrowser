@@ -584,7 +584,10 @@
     "syncFailed": "sa nepodarilo synchronizovať stav s trasou pre \"{filename}\" po 5 pokusoch. Prerušenie nastavenia editora, aby sa zabránilo poškodeniu údajov."
   },
   "player": {
-    "LoopEnabled": "Povolená slučka",
-    "LoopDisabled": "Vypnutá slučka"
+    "LoopEnabled": "Slučka povolená",
+    "LoopDisabled": "Slučka zakázaná",
+    "PlayAllOncePlayback": "Prehrať všetko raz",
+    "ShuffleAllPlayback": "Náhodné prehrávanie všetkého",
+    "PlayAllLoopedPlayback": "Prehrať všetko v slučke"
   }
 }

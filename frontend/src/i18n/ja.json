@@ -585,6 +585,9 @@
   },
   "player": {
     "LoopEnabled": "ループ有効",
-    "LoopDisabled": "ループ無効"
+    "LoopDisabled": "ループ無効",
+    "PlayAllOncePlayback": "すべて一度再生",
+    "ShuffleAllPlayback": "すべてシャッフル再生",
+    "PlayAllLoopedPlayback": "すべてループ再生"
   }
 }

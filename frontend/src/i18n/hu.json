@@ -585,6 +585,9 @@
   },
   "player": {
     "LoopEnabled": "Hurok engedélyezve",
-    "LoopDisabled": "Hurok letiltva"
+    "LoopDisabled": "Hurok letiltva",
+    "PlayAllOncePlayback": "Összes lejátszása egyszer",
+    "ShuffleAllPlayback": "Összes keverése",
+    "PlayAllLoopedPlayback": "Összes lejátszása hurkokban"
   }
 }
