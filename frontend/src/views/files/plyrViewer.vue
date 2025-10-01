@@ -975,6 +975,10 @@ export default {
 
                             // Set up playback queue
                             this.setupPlaybackQueue();
+
+                            // Show toast
+                            this.showToast();
+                            this.focusPlayer();
                         });
                     });
 
