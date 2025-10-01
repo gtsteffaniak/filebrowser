@@ -584,10 +584,10 @@
     "syncFailed": "не вдалося синхронізувати стан з маршрутом для \"{filename}\" після 5 спроб. Переривання налаштування редактора для запобігання пошкодженню даних."
   },
   "player": {
-    "LoopEnabled": "Цикл увімкнено",
-    "LoopDisabled": "Цикл вимкнено",
-    "SequentialPlayback": "Послідовне відтворення",
-    "ShufflePlayback": "Відтворення у випадковому порядку",
-    "LoopAllFilesPlayback": "Відтворити всі файли по колу"
+    "LoopEnabled": "Повтор увімкнено",
+    "LoopDisabled": "Повтор вимкнено",
+    "PlayAllOncePlayback": "Відтворити все один раз",
+    "ShuffleAllPlayback": "Перемішати все",
+    "PlayAllLoopedPlayback": "Відтворити все з повторенням"
   }
 }

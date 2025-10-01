@@ -584,10 +584,10 @@
     "syncFailed": "nu a reușit să sincronizeze starea cu ruta pentru \"{filename}\" după 5 încercări. Întreruperea configurării editorului pentru a preveni coruperea datelor."
   },
   "player": {
-    "LoopEnabled": "Bucla activată",
-    "LoopDisabled": "Bucla dezactivată",
-    "SequentialPlayback": "Redare secvențială",
-    "ShufflePlayback": "Redare aleatorie",
-    "LoopAllFilesPlayback": "Redați toate fișierele în buclă"
+    "LoopEnabled": "Buclă activată",
+    "LoopDisabled": "Buclă dezactivată",
+    "PlayAllOncePlayback": "Redă toate o dată",
+    "ShuffleAllPlayback": "Redare aleatoare a tuturor",
+    "PlayAllLoopedPlayback": "Redă toate în buclă"
   }
 }

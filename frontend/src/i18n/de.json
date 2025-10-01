@@ -584,10 +584,10 @@
     "syncFailed": "Nach 5 Versuchen ist es nicht gelungen, den Status mit der Route für \"{filename}\" zu synchronisieren. Abbruch der Editor-Einrichtung, um Datenbeschädigung zu vermeiden."
   },
   "player": {
-    "LoopEnabled": "Schleife Aktiviert",
-    "LoopDisabled": "Schleife Deaktiviert",
-    "SequentialPlayback": "Sequentielle Wiedergabe",
-    "ShufflePlayback": "Zufällige Wiedergabe",
-    "LoopAllFilesPlayback": "Alle Dateien durchlaufen"
+    "LoopEnabled": "Schleife aktiviert",
+    "LoopDisabled": "Schleife deaktiviert",
+    "PlayAllOncePlayback": "Alle auf einmal abspielen",
+    "ShuffleAllPlayback": "Alle mischen",
+    "PlayAllLoopedPlayback": "Alle in Schleife abspielen"
   }
 }

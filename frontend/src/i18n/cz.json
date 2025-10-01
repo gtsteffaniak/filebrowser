@@ -584,10 +584,10 @@
     "syncFailed": "po 5 pokusech se nepodařilo synchronizovat stav s trasou pro \"{filename}\". Přerušení nastavení editoru, aby se zabránilo poškození dat."
   },
   "player": {
-    "LoopEnabled": "Povolená smyčka",
-    "LoopDisabled": "Vypnutá smyčka",
-    "SequentialPlayback": "Sekvenční přehrávání",
-    "ShufflePlayback": "Přehraj náhodně",
-    "LoopAllFilesPlayback": "Smyčka všech souborů"
+    "LoopEnabled": "Smyčka povolena",
+    "LoopDisabled": "Smyčka zakázána",
+    "PlayAllOncePlayback": "Přehrát vše najednou",
+    "ShuffleAllPlayback": "Zamíchat vše",
+    "PlayAllLoopedPlayback": "Přehrát vše v smyčce"
   }
 }

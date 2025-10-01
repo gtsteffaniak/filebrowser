@@ -584,10 +584,10 @@
     "syncFailed": "经过 5 次尝试后，未能将 \"{filename}\" 的状态与路由同步。终止编辑器设置，以防数据损坏。"
   },
   "player": {
-    "LoopEnabled": "启用环路",
-    "LoopDisabled": "环路禁用",
-    "SequentialPlayback": "顺序播放",
-    "ShufflePlayback": "随机播放",
-    "LoopAllFilesPlayback": "循环播放所有文件"
+    "LoopEnabled": "循环已启用",
+    "LoopDisabled": "循环已禁用",
+    "PlayAllOncePlayback": "播放全部一次",
+    "ShuffleAllPlayback": "随机播放全部",
+    "PlayAllLoopedPlayback": "循环播放全部"
   }
 }

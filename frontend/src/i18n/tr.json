@@ -586,8 +586,8 @@
   "player": {
     "LoopEnabled": "Döngü Etkin",
     "LoopDisabled": "Döngü Devre Dışı",
-    "SequentialPlayback": "Sıralı oynatma",
-    "ShufflePlayback": "karışık çalma",
-    "LoopAllFilesPlayback": "Tüm dosyaları döngüsel olarak oynat"
+    "PlayAllOncePlayback": "Tümünü Bir Kez Oynat",
+    "ShuffleAllPlayback": "Tümünü Karıştır",
+    "PlayAllLoopedPlayback": "Tümünü Döngüde Oynat"
   }
 }

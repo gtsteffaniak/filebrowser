@@ -584,10 +584,10 @@
     "syncFailed": "5번 시도 후 \"{filename}\"의 경로와 상태를 동기화하지 못했습니다. 데이터 손상을 방지하기 위해 편집기 설정을 중단합니다."
   },
   "player": {
-    "LoopEnabled": "루프 사용",
-    "LoopDisabled": "루프 비활성화",
-    "SequentialPlayback": "순차 재생",
-    "ShufflePlayback": "셔플 재생",
-    "LoopAllFilesPlayback": "모든 파일 재생 반복"
+    "LoopEnabled": "반복 활성화",
+    "LoopDisabled": "반복 비활성화",
+    "PlayAllOncePlayback": "모두 한 번 재생",
+    "ShuffleAllPlayback": "모두 셔플 재생",
+    "PlayAllLoopedPlayback": "모두 반복 재생"
   }
 }

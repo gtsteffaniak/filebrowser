@@ -586,8 +586,8 @@
   "player": {
     "LoopEnabled": "Endurtekning Virk",
     "LoopDisabled": "Endurtekning Óvirk",
-    "SequentialPlayback": "Röðuð Afspilun",
-    "ShufflePlayback": "Stokkun Afspilun",
-    "LoopAllFilesPlayback": "Endurtaka Allar Skrár"
+    "PlayAllOncePlayback": "Spila Allt Einu Sinni",
+    "ShuffleAllPlayback": "Stokka Allt",
+    "PlayAllLoopedPlayback": "Spila Allt í Endurtekningu"
   }
 }

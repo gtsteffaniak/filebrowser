@@ -586,8 +586,8 @@
   "player": {
     "LoopEnabled": "Hurok engedélyezve",
     "LoopDisabled": "Hurok letiltva",
-    "SequentialPlayback": "Szekvenciális lejátszás",
-    "ShufflePlayback": "Véletlenszerű lejátszás",
-    "LoopAllFilesPlayback": "Az összes fájl lejátszása hurokban"
+    "PlayAllOncePlayback": "Összes lejátszása egyszer",
+    "ShuffleAllPlayback": "Összes keverése",
+    "PlayAllLoopedPlayback": "Összes lejátszása hurkokban"
   }
 }

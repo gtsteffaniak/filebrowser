@@ -586,8 +586,8 @@
   "player": {
     "LoopEnabled": "ループ有効",
     "LoopDisabled": "ループ無効",
-    "SequentialPlayback": "連続再生",
-    "ShufflePlayback": "シャッフル再生",
-    "LoopAllFilesPlayback": "すべてのファイルをループ再生"
+    "PlayAllOncePlayback": "すべて一度再生",
+    "ShuffleAllPlayback": "すべてシャッフル再生",
+    "PlayAllLoopedPlayback": "すべてループ再生"
   }
 }

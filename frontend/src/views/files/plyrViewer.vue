@@ -84,9 +84,9 @@
             </svg>
             
             <span>{{
-                playbackMode === 'sequential' ? $t('player.SequentialPlayback') :
-                playbackMode === 'shuffle' ? $t('player.ShufflePlayback') :
-                playbackMode === 'loop-all' ? $t('player.LoopAllFilesPlayback') :
+                playbackMode === 'sequential' ? $t('player.PlayAllOncePlayback') :
+                playbackMode === 'shuffle' ? $t('player.ShuffleAllPlayback') :
+                playbackMode === 'loop-all' ? $t('player.PlayAllLoopedPlayback') :
                 playbackMode === 'loop-single' ? $t('player.LoopEnabled') :
                 $t('player.LoopDisabled') }}</span>
             
@@ -920,11 +920,11 @@ export default {
 
                     // Set up the button text
                     const modeLabels = {
-                        'single': 'Single',
-                        'sequential': 'Sequential',
-                        'shuffle': 'Shuffle',
-                        'loop-single': 'Loop Single',
-                        'loop-all': 'Loop All'
+                        'single': 'Play Once',
+                        'sequential': 'Play All',
+                        'shuffle': 'Shuffle All',
+                        'loop-single': 'Loop current',
+                        'loop-all': 'Play All Looped'
                     };
                     const currentMode = modeLabels[this.playbackMode] || 'Single';
                     playbackBtn.querySelector('span').innerHTML = `Playback: <span class="plyr__menu__value">${currentMode}</span>`;
@@ -939,19 +939,19 @@ export default {
                     // Create the menu options
                     menu.innerHTML = `
                         <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" aria-checked="${this.playbackMode === 'single'}" value="single">
-                            <span>Single Playback</span>
+                            <span>Play Once</span>
                         </button>
                         <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" aria-checked="${this.playbackMode === 'sequential'}" value="sequential">
-                            <span>Sequential Playback</span>
+                            <span>Play All Once</span>
                         </button>
                         <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" aria-checked="${this.playbackMode === 'shuffle'}" value="shuffle">
-                            <span>Shuffle Playback</span>
+                            <span>Shuffle All</span>
                         </button>
                         <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" aria-checked="${this.playbackMode === 'loop-single'}" value="loop-single">
-                            <span>Loop Single File</span>
+                            <span>Loop Current</span>
                         </button>
                         <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" aria-checked="${this.playbackMode === 'loop-all'}" value="loop-all">
-                            <span>Loop All Files</span>
+                            <span>Play All Looped</span>
                         </button>
                     `;
 

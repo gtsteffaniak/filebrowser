@@ -584,10 +584,10 @@
     "syncFailed": "lyckades inte synkronisera tillstånd med rutten för \"{filename}\" efter 5 försök. Avbryter redigeringsinställningen för att förhindra datakorruption."
   },
   "player": {
-    "LoopEnabled": "Slinga aktiverad",
-    "LoopDisabled": "Slinga avaktiverad",
-    "SequentialPlayback": "Sekventiell uppspelning",
-    "ShufflePlayback": "Slumpvis uppspelning",
-    "LoopAllFilesPlayback": "Spela upp alla filer i loop"
+    "LoopEnabled": "Loop aktiverad",
+    "LoopDisabled": "Loop inaktiverad",
+    "PlayAllOncePlayback": "Spela alla en gång",
+    "ShuffleAllPlayback": "Blanda alla",
+    "PlayAllLoopedPlayback": "Spela alla i loop"
   }
 }
