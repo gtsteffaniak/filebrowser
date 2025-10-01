@@ -584,7 +584,10 @@
     "syncFailed": "經過 5 次嘗試後，未能與 \"{filename}\" 的路由同步狀態。中止編輯器設定以防止資料損毀。"
   },
   "player": {
-    "LoopEnabled": "啟用循環",
-    "LoopDisabled": "迴路停用"
+    "LoopEnabled": "循環已啟用",
+    "LoopDisabled": "循環已停用",
+    "PlayAllOncePlayback": "播放全部一次",
+    "ShuffleAllPlayback": "隨機播放全部",
+    "PlayAllLoopedPlayback": "循環播放全部"
   }
 }

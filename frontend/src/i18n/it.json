@@ -585,6 +585,9 @@
   },
   "player": {
     "LoopEnabled": "Loop abilitato",
-    "LoopDisabled": "Loop disabilitato"
+    "LoopDisabled": "Loop disabilitato",
+    "PlayAllOncePlayback": "Riproduci tutto una volta",
+    "ShuffleAllPlayback": "Riproduzione casuale di tutto",
+    "PlayAllLoopedPlayback": "Riproduci tutto in ripetizione"
   }
 }

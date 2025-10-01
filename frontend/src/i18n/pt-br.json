@@ -584,7 +584,10 @@
     "syncFailed": "Falha ao sincronizar o estado com a rota para \"{filename}\" após 5 tentativas. Abortar a configuração do editor para evitar a corrupção de dados."
   },
   "player": {
-    "LoopEnabled": "Loop ativado",
-    "LoopDisabled": "Loop desativado"
+    "LoopEnabled": "Repetição ativada",
+    "LoopDisabled": "Repetição desativada",
+    "PlayAllOncePlayback": "Reproduzir tudo uma vez",
+    "ShuffleAllPlayback": "Reprodução aleatória de tudo",
+    "PlayAllLoopedPlayback": "Reproduzir tudo em repetição"
   }
 }

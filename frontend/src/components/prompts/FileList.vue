@@ -90,7 +90,7 @@ export default {
   },
   computed: {
     effectiveTitle() {
-      return this.title || this.$t("files.files");
+      return this.title || this.$t("general.files");
     },
     sourcePath() {
       return { source: this.source, path: this.path };

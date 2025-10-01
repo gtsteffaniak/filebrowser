@@ -20,7 +20,7 @@
             <td>{{ link.hash }}</td>
             <td>
               <template v-if="link.expire !== 0">{{ humanTime(link.expire) }}</template>
-              <template v-else>{{ $t("permanent") }}</template>
+              <template v-else>{{ $t("general.permanent") }}</template>
             </td>
             <td class="small">
               <button class="action copy-clipboard" :data-clipboard-text="buildLink(link)"

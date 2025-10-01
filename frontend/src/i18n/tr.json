@@ -585,6 +585,9 @@
   },
   "player": {
     "LoopEnabled": "Döngü Etkin",
-    "LoopDisabled": "Döngü Devre Dışı"
+    "LoopDisabled": "Döngü Devre Dışı",
+    "PlayAllOncePlayback": "Tümünü Bir Kez Oynat",
+    "ShuffleAllPlayback": "Tümünü Karıştır",
+    "PlayAllLoopedPlayback": "Tümünü Döngüde Oynat"
   }
 }

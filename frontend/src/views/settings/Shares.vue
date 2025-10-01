@@ -27,7 +27,7 @@
           </td>
           <td>
             <template v-if="link.expire !== 0">{{ humanTime(link.expire) }}</template>
-            <template v-else>{{ $t("permanent") }}</template>
+            <template v-else>{{ $t("general.permanent") }}</template>
           </td>
           <td>
             <template v-if="link.downloadsLimit && link.downloadsLimit > 0">{{ link.downloads }} / {{ link.downloadsLimit }}</template> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->

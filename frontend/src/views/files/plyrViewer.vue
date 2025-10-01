@@ -66,23 +66,35 @@
                 :label="'Subtitle ' + sub.name" :default="index === 0" />
         </video>
 
-
-        <!-- Loop indicator, shows when you press "L" on the player -->
+        <!-- Toast that shows when you press "P" or "L" on the media player -->
         <div :class="['loop-toast', toastVisible ? 'visible' : '']">
-            <svg class="loop-icon" viewBox="0 0 24 24">
-                <path
-                    d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46A7.93 7.93 0 0020 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74A7.93 7.93 0 004 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z" />
+            <!-- Loop icon for "single playback", "loop single file" and "loop all files" -->
+            <svg v-if="playbackMode === 'single' || playbackMode === 'loop-single' || playbackMode === 'loop-all'" class="loop-icon" viewBox="0 0 24 24">
+                <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46A7.93 7.93 0 0020 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74A7.93 7.93 0 004 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z" />
             </svg>
+            
+            <!-- Shuffle icon for "shuffle playback" -->
+            <svg v-else-if="playbackMode === 'shuffle'" class="shuffle-icon" viewBox="0 0 24 24">
+                <path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/>
+            </svg>
+            
+            <!-- List icon for "sequential playback" -->
+            <svg v-else class="sequential-icon" viewBox="0 0 24 24">
+                <path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/>
+            </svg>
+            
             <span>{{
-                loopEnabled
-                    ? $t("player.LoopEnabled")
-                    : $t("player.LoopDisabled")
-            }}</span>
-            <span :class="[
-                'status-indicator',
-                loopEnabled ? 'status-on' : 'status-off',
-            ]"></span>
+                playbackMode === 'sequential' ? $t('player.PlayAllOncePlayback') :
+                playbackMode === 'shuffle' ? $t('player.ShuffleAllPlayback') :
+                playbackMode === 'loop-all' ? $t('player.PlayAllLoopedPlayback') :
+                playbackMode === 'loop-single' ? $t('player.LoopEnabled') :
+                $t('player.LoopDisabled') }}</span>
+            
+            <!-- Status indicator for loop -->
+            <span v-if="playbackMode === 'single' || playbackMode === 'loop-single'" :class="[
+                'status-indicator', playbackMode === 'loop-single' ? 'status-on' : 'status-off',]"></span>
         </div>
+        
     </div>
 </template>
 
@@ -151,7 +163,7 @@ export default {
                     "settings",
                     "fullscreen",
                 ],
-                settings: ["quality", "speed", "loop", "playback"],
+                settings: ["quality", "speed", "playback"],
                 speed: {
                     selected: 1,
                     options: [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2],
@@ -220,6 +232,16 @@ export default {
                 }
             });
         },
+        playbackMode: {
+            handler(newMode, oldMode) {
+                if (newMode !== oldMode) {
+                    this.$nextTick(() => {
+                        this.ensurePlaybackModeApplied();
+                    });
+                }
+            },
+            immediate: true
+        }
     },
     computed: {
         darkMode() {
@@ -237,6 +259,7 @@ export default {
 
         this.updateMedia();
         this.hookEvents();
+        document.addEventListener('keydown', this.handleKeydown);
     },
     beforeUnmount() {
         if (this.toastTimeout) {
@@ -248,38 +271,146 @@ export default {
             } catch (e) {Error;}
             this.albumArt = null;
         }
+        document.removeEventListener('keydown', this.handleKeydown);
     },
     methods: {
         handlePlay() {
             this.$emit('play');
         },
-        toggleLoop() {
-            if (this.useDefaultMediaPlayer) {
-                // Handle default HTML5 players
-                let playerRef =
-                    this.previewType === "video"
-                        ? this.$refs.defaultVideoPlayer
+        ensurePlaybackModeApplied() {
+            if (this.useDefaultMediaPlayer) return;
+            
+            const playerRef = this.previewType === 'video' 
+                ? this.$refs.videoPlayer 
+                : this.$refs.audioPlayer;
+                
+            if (!playerRef || !playerRef.player) return;
+            
+            const player = playerRef.player;
+            
+            // Try multiple times to apply the settings
+            const tryApplySettings = (attempt = 0) => {
+                if (attempt > 10) {
+                    console.log('Failed to apply playback mode after 10 attempts');
+                    return;
+                }
+                
+                try {
+                    const playbackBtn = player.elements.settings?.buttons?.playback;
+                    if (playbackBtn) {
+                        // Settings elements exist - apply the mode
+                        this.applyCustomPlaybackSettings(player);
+                        console.log('Playback mode applied to UI on attempt', attempt);
+                    } else {
+                        // Settings don't exist yet - try again
+                        setTimeout(() => tryApplySettings(attempt + 1), 100);
+                    }
+                } catch (error) {
+                    // Try again on error
+                    setTimeout(() => tryApplySettings(attempt + 1), 100);
+                }
+            };
+            
+            // Start trying
+            tryApplySettings();
+        },
+        focusPlayer() {
+            this.$nextTick(() => {
+                if (this.useDefaultMediaPlayer) {
+                    // Focus default HTML5 players
+                    const playerElement = this.previewType === 'video' 
+                        ? this.$refs.defaultVideoPlayer 
                         : this.$refs.defaultAudioPlayer;
-
-                if (playerRef) {
-                    this.loopEnabled = !this.loopEnabled;
-                    playerRef.loop = this.loopEnabled;
-                    this.showToast();
-                }
-            } else {
-                // Handle vue-plyr players
-                let playerRef =
-                    this.previewType === "video"
-                        ? this.$refs.videoPlayer
+                    
+                    if (playerElement) {
+                        playerElement.focus();
+                        console.log('Focused default media player');
+                    }
+                } else {
+                    // Focus Plyr players
+                    const playerRef = this.previewType === 'video' 
+                        ? this.$refs.videoPlayer 
                         : this.$refs.audioPlayer;
-
-                if (playerRef && playerRef.player) {
-                    // Toggle loop mode
-                    this.loopEnabled = !this.loopEnabled;
-                    playerRef.player.loop = this.loopEnabled;
-                    this.showToast();
+                        
+                    if (playerRef && playerRef.player && playerRef.player.elements.container) {
+                        const container = playerRef.player.elements.container;
+                        container.focus();
+                        console.log('Focused Plyr player container');
+                        
+                        // Also try to focus the progress bar specifically
+                        const progressContainer = container.querySelector('.plyr__progress__container');
+                        if (progressContainer) {
+                            progressContainer.focus();
+                            console.log('Focused progress bar');
+                        }
+                    }
                 }
+            });
+        },
+        toggleLoop() {
+            // Always use our custom loop instead of Plyr's default
+            this.loopEnabled = !this.loopEnabled;
+            
+            // Update playback mode based on custom loop state
+            if (this.loopEnabled) {
+                this.playbackMode = 'loop-single';
+                console.log('Custom Loop Single File enabled');
+            } else {
+                this.playbackMode = 'single';
+                console.log('Custom Loop Single File disabled');
             }
+            
+            // Update playback queue to reflect the new mode
+            this.setupPlaybackQueue();
+            this.showToast();
+            
+            // Ensure player is focused and UI is updated
+            this.focusPlayer();
+            this.$nextTick(() => {
+                this.ensurePlaybackModeApplied();
+            });
+        },
+        handleKeydown(event) {
+            if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
+                return;
+            }
+            
+            if (event.key.toLowerCase() === 'p') {
+                event.preventDefault();
+                this.cyclePlaybackModes();
+            }
+        },
+        cyclePlaybackModes() {
+            // cycle order (excluding single and loop-single cuz they are handled by the "L" key)
+            const modeCycle = ['sequential', 'shuffle', 'loop-all'];
+            
+            // Find current mode index in the cycle
+            const currentIndex = modeCycle.indexOf(this.playbackMode);
+            
+            // Next mode index
+            let nextIndex;
+            if (currentIndex === -1) {
+                // If current mode is not in cycle (single or loop-single), start from beginning
+                nextIndex = 0;
+            } else {
+                nextIndex = (currentIndex + 1) % modeCycle.length;
+            }
+            
+            // Set the new playback mode
+            const newMode = modeCycle[nextIndex];
+            this.playbackMode = newMode;
+            
+            console.log(`Playback mode changed to: ${newMode}`);
+            
+            // Update playback queue
+            this.setupPlaybackQueue();
+            
+            // Show toast
+            this.showToast();
+            this.focusPlayer();
+            this.$nextTick(() => {
+                this.ensurePlaybackModeApplied();
+            });
         },
         showToast() {
             if (this.toastTimeout) {
@@ -349,6 +480,11 @@ export default {
             if (this.previewType === "audio") {
                 this.loadAudioMetadata();
             }
+            this.$nextTick(() => {
+                setTimeout(() => {
+                    this.focusPlayer();
+                }, 300);
+            });
         },
         // Album art hover and scroll handlers
         onAlbumArtHover() {
@@ -442,6 +578,23 @@ export default {
 
                 // Set up custom playback settings
                 this.setupCustomPlaybackSettings(player);
+                player.on('controlsshown', () => {
+                    this.$nextTick(() => {
+                        this.ensurePlaybackModeApplied();
+                    });
+                });
+                player.on('play', () => {
+                    console.log('Video playing - focusing player');
+                    this.focusPlayer();
+                });
+
+                player.on('ready', () => {
+                    console.log('Video player ready - focusing player');
+                    this.focusPlayer();
+                });
+
+                // Set up custom playback settings
+                this.setupCustomPlaybackSettings(player);
             }
 
             // Also debug audio player
@@ -457,6 +610,23 @@ export default {
 
                 // Set up custom playback settings
                 this.setupCustomPlaybackSettings(player);
+                player.on('controlsshown', () => {
+                    this.$nextTick(() => {
+                        this.ensurePlaybackModeApplied();
+                    });
+                });
+                player.on('play', () => {
+                    console.log('Audio playing - focusing player');
+                    this.focusPlayer();
+                });
+
+                player.on('ready', () => {
+                    console.log('Audio player ready - focusing player');
+                    this.focusPlayer();
+                });
+
+                // Set up custom playback settings
+                this.setupCustomPlaybackSettings(player);
             }
 
             // Handle default HTML5 players
@@ -466,9 +636,15 @@ export default {
 
                 if (videoElement) {
                     videoElement.addEventListener('ended', this.handleMediaEnd);
+                    videoElement.addEventListener('play', () => {
+                        this.focusPlayer();
+                    });
                 }
                 if (audioElement) {
                     audioElement.addEventListener('ended', this.handleMediaEnd);
+                    audioElement.addEventListener('play', () => {
+                        this.focusPlayer();
+                    });
                 }
             }
         },
@@ -727,6 +903,9 @@ export default {
             // Separated so it can be called both on 'ready' event and after source changes
             console.log('Applying custom playback settings, current mode:', this.playbackMode);
 
+            // Sync loopEnabled with playbackMode
+            this.loopEnabled = (this.playbackMode === 'loop-single');
+            
             try {
                 // Access the playback button and panel
                 const playbackBtn = player.elements.settings.buttons.playback;
@@ -741,11 +920,11 @@ export default {
 
                     // Set up the button text
                     const modeLabels = {
-                        'single': 'Single',
-                        'sequential': 'Sequential',
-                        'shuffle': 'Shuffle',
-                        'loop-single': 'Loop Single',
-                        'loop-all': 'Loop All'
+                        'single': 'Play Once',
+                        'sequential': 'Play All',
+                        'shuffle': 'Shuffle All',
+                        'loop-single': 'Loop current',
+                        'loop-all': 'Play All Looped'
                     };
                     const currentMode = modeLabels[this.playbackMode] || 'Single';
                     playbackBtn.querySelector('span').innerHTML = `Playback: <span class="plyr__menu__value">${currentMode}</span>`;
@@ -760,19 +939,19 @@ export default {
                     // Create the menu options
                     menu.innerHTML = `
                         <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" aria-checked="${this.playbackMode === 'single'}" value="single">
-                            <span>Single Playback</span>
+                            <span>Play Once</span>
                         </button>
                         <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" aria-checked="${this.playbackMode === 'sequential'}" value="sequential">
-                            <span>Sequential Playback</span>
+                            <span>Play All Once</span>
                         </button>
                         <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" aria-checked="${this.playbackMode === 'shuffle'}" value="shuffle">
-                            <span>Shuffle Playback</span>
+                            <span>Shuffle All</span>
                         </button>
                         <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" aria-checked="${this.playbackMode === 'loop-single'}" value="loop-single">
-                            <span>Loop Single File</span>
+                            <span>Loop Current</span>
                         </button>
                         <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" aria-checked="${this.playbackMode === 'loop-all'}" value="loop-all">
-                            <span>Loop All Files</span>
+                            <span>Play All Looped</span>
                         </button>
                     `;
 
@@ -796,6 +975,10 @@ export default {
 
                             // Set up playback queue
                             this.setupPlaybackQueue();
+
+                            // Show toast
+                            this.showToast();
+                            this.focusPlayer();
                         });
                     });
 
@@ -1257,6 +1440,13 @@ button:hover,
 }
 
 .loop-icon {
+    width: 24px;
+    height: 24px;
+    fill: white;
+}
+
+.shuffle-icon,
+.sequential-icon {
     width: 24px;
     height: 24px;
     fill: white;
