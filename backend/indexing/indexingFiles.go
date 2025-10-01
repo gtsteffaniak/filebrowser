@@ -266,6 +266,8 @@ func (idx *Index) GetFsDirInfo(adjustedPath string) (*iteminfo.FileInfo, error) 
 }
 
 func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjustedPath, combinedPath string, config *actionConfig) (*iteminfo.FileInfo, error) {
+	// Ensure combinedPath has exactly one trailing slash to prevent double slashes in subdirectory paths
+	combinedPath = strings.TrimRight(combinedPath, "/") + "/"
 	// Read directory contents
 	files, err := dirInfo.Readdir(-1)
 	if err != nil {
@@ -427,19 +429,32 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 		HasPreview: hasPreview,
 	}
 	dirFileInfo.SortItems()
+
+	// Update metadata (propagation handled by RefreshFileInfo caller)
+	if idx.hasIndex {
+		idx.UpdateMetadata(dirFileInfo)
+	}
+
 	return dirFileInfo, nil
 }
 
 func (idx *Index) recursiveUpdateDirSizes(childInfo *iteminfo.FileInfo, previousSize int64) {
 	parentDir := utils.GetParentDirectoryPath(childInfo.Path)
+
 	parentInfo, exists := idx.GetMetadataInfo(parentDir, true)
 	if !exists || parentDir == "" {
 		return
 	}
-	newSize := parentInfo.Size - previousSize + childInfo.Size
-	parentInfo.Size += newSize
+
+	// Calculate size delta and update parent
+	previousParentSize := parentInfo.Size
+	sizeDelta := childInfo.Size - previousSize
+	parentInfo.Size = previousParentSize + sizeDelta
+
 	idx.UpdateMetadata(parentInfo)
-	idx.recursiveUpdateDirSizes(parentInfo, newSize)
+
+	// Recursively update grandparents
+	idx.recursiveUpdateDirSizes(parentInfo, previousParentSize)
 }
 
 func (idx *Index) GetRealPath(relativePath ...string) (string, bool, error) {
@@ -475,29 +490,30 @@ func (idx *Index) RefreshFileInfo(opts utils.FileOptions) error {
 		targetPath = idx.MakeIndexPath(filepath.Dir(targetPath))
 	}
 
-	// Use the recursive flag from options - false for quick scan, true for recursive
+	// Get PREVIOUS metadata BEFORE indexing
+	previousInfo, previousExists := idx.GetMetadataInfo(targetPath, true)
+	previousSize := int64(0)
+	if previousExists {
+		previousSize = previousInfo.Size
+	}
+
+	// Re-index the directory
 	err := idx.indexDirectoryWithOptions(targetPath, config)
 	if err != nil {
 		return err
 	}
-	file, exists := idx.GetMetadataInfo(targetPath, true)
+
+	// Get the NEW metadata after indexing
+	newInfo, exists := idx.GetMetadataInfo(targetPath, true)
 	if !exists {
 		return fmt.Errorf("file/folder does not exist in metadata: %s", targetPath)
 	}
 
-	current, firstExisted := idx.GetMetadataInfo(targetPath, true)
-	refreshParentInfo := firstExisted && current.Size != file.Size
-	//utils.PrintStructFields(*file)
-	result := idx.UpdateMetadata(file)
-	if !result {
-		return fmt.Errorf("file/folder does not exist in metadata: %s", targetPath)
+	// If size changed, propagate to parents
+	if previousSize != newInfo.Size {
+		idx.recursiveUpdateDirSizes(newInfo, previousSize)
 	}
-	if !exists {
-		return nil
-	}
-	if refreshParentInfo {
-		idx.recursiveUpdateDirSizes(file, current.Size)
-	}
+
 	return nil
 }
 

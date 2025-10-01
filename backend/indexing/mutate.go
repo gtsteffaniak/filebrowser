@@ -15,6 +15,7 @@ import (
 func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo) bool {
 	idx.mu.Lock()
 	defer idx.mu.Unlock()
+
 	idx.Directories[info.Path] = info
 	return true
 }
