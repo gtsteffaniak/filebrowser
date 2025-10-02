@@ -21,7 +21,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends git ca-certific
     && git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
 RUN npm i --maxsockets 1
 COPY  ./frontend/ ./
-RUN npm run build-docker
+RUN npm run build:docker
 
 FROM alpine:latest
 COPY --from=ffmpeg [ "/ffmpeg", "/ffprobe", "/usr/local/bin/" ]
