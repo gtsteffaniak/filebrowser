@@ -54,7 +54,10 @@
     "compactView": "Compact View",
     "normalView": "Normal View",
     "galleryView": "Gallery View",
-    "selectedCount": "Number of items selected to perform an action"
+    "selectedCount": "Number of items selected to perform an action",
+    "uploadFiles": "Upload Files",
+    "uploadFolder": "Upload Folder",
+    "openUploadViewer": "Open Upload Manager"
   },
   "download": {
     "downloadFile": "Download File",
@@ -186,7 +189,14 @@
     "enableOnlyOffice": "Enable OnlyOffice viewer",
     "enableOnlyOfficeDescription": "Allow viewing office files using OnlyOffice in this share.",
     "enableOnlyOfficeEditing": "Enable OnlyOffice editing",
-    "enableOnlyOfficeEditingDescription": "Allow editing of office files using OnlyOffice in this share."
+    "enableOnlyOfficeEditingDescription": "Allow editing of office files using OnlyOffice in this share.",
+    "shareType": "Share type",
+    "shareTypeDescription": "The type of share to create. Normal shares allow viewing and downloading files. Upload shares allow uploading files to the share.",
+    "normalShare": "Normal",
+    "uploadShare": "Upload only",
+    "uploadShareTitle": "Upload Files to Share",
+    "uploadShareDescription": "Drag and drop files here or use the upload manager to add files.",
+    "uploadShareHint": "Files will be uploaded to this shared location"
   },
   "prompts": {
     "operationInProgress": "Operation in progress, please wait...",

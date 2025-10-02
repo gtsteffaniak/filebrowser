@@ -3478,6 +3478,10 @@ const docTemplate = `{
                 "shareTheme": {
                     "type": "string"
                 },
+                "shareType": {
+                    "description": "type of share: normal, upload, max",
+                    "type": "string"
+                },
                 "source": {
                     "description": "backend source is path to maintain between name changes",
                     "type": "string"
@@ -3578,6 +3582,10 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "shareTheme": {
+                    "type": "string"
+                },
+                "shareType": {
+                    "description": "type of share: normal, upload, max",
                     "type": "string"
                 },
                 "source": {

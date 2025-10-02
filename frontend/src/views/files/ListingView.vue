@@ -1,5 +1,5 @@
 <template>
-  <div class="no-select">
+  <div v-if="shareInfo.shareType != 'upload'" class="no-select">
     <div v-if="loading">
       <h2 class="message delayed">
         <div class="spinner">
@@ -113,7 +113,7 @@
             v-bind:size="item.size"
             v-bind:path="item.path"
             v-bind:reducedOpacity="item.hidden || isDragging"
-            v-bind:hash="isShare ? state.share.hash : undefined"
+            v-bind:hash="shareInfo.isShare ? state.share.hash : undefined"
             :readOnly="isShare ? true : undefined"
             v-bind:hasPreview="item.hasPreview"
           />
@@ -136,7 +136,7 @@
             v-bind:size="item.size"
             v-bind:path="item.path"
             v-bind:reducedOpacity="item.hidden || isDragging"
-            v-bind:hash="isShare ? state.share.hash : undefined"
+            v-bind:hash="shareInfo.isShare ? state.share.hash : undefined"
             v-bind:hasPreview="item.hasPreview"
           />
         </div>
@@ -159,6 +159,29 @@
       </div>
     </div>
   </div>
+
+  <!-- Upload Share Target -->
+  <div v-else class="upload-share-container">
+    <div
+      class="upload-target"
+      :class="{ dropping: isDragging }"
+      @dragenter.prevent="dragEnter"
+      @dragover.prevent="dragOver"
+      @dragleave.prevent="dragLeave"
+      @drop.prevent="handleDrop"
+    >
+      <i class="material-icons upload-icon">cloud_upload</i>
+      <h2>{{ $t("share.uploadShareTitle") }}</h2>
+      <p class="upload-description">{{ $t("share.uploadShareDescription") }}</p>
+      <div class="upload-actions">
+        <button @click="openUploadPrompt" class="button button--flat button--blue">
+          <i class="material-icons">upload</i>
+          {{ $t("buttons.openUploadViewer") }}
+        </button>
+      </div>
+      <p class="upload-hint">{{ $t("share.uploadShareHint") }}</p>
+    </div>
+  </div>
 </template>
 
 <script>
@@ -170,6 +193,7 @@ import * as upload from "@/utils/upload";
 import throttle from "@/utils/throttle";
 import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
+import { shareInfo } from "@/utils/constants";
 
 import Item from "@/components/files/ListingItem.vue";
 
@@ -233,8 +257,8 @@ export default {
     },
   },
   computed: {
-    isShare() {
-      return getters.isShare();
+    shareInfo() {
+      return shareInfo;
     },
     state() {
       return state;
@@ -796,7 +820,7 @@ export default {
         return;
       }
       mutations.setLoading("listing", true);
-      if (getters.isShare()) {
+      if (shareInfo.isShare) {
         // Shared files don't support move/copy operations
         mutations.setLoading("listing", false);
         notify.showError("Move/copy operations are not supported for shared files.");
@@ -964,6 +988,14 @@ export default {
         });
       }
     },
+    openUploadPrompt() {
+      mutations.showHover({
+        name: "upload",
+        props: {
+          initialItems: null,
+        },
+      });
+    },
   },
 };
 </script>
@@ -1000,6 +1032,85 @@ export default {
 .folder-items a {
   border-color: #d1d1d1;
   border-style: solid;
+}
+
+/* Upload Share Styles */
+.upload-share-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 80vh;
+  padding: 2em;
+}
+
+.upload-target {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  max-width: 600px;
+  width: 100%;
+  padding: 3em 2em;
+  border: 3px dashed var(--divider);
+  border-radius: 16px;
+  background: var(--surfaceSecondary);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.upload-target.dropping {
+  transform: scale(0.97);
+  border-radius: 1em;
+  border-color: var(--primaryColor);
+  box-shadow: var(--primaryColor) 0 0 1em;
+}
+
+.upload-target .upload-icon {
+  font-size: 5em;
+  color: var(--primaryColor);
+  margin-bottom: 0.5em;
+  opacity: 0.8;
+}
+
+.upload-target h2 {
+  margin: 0.5em 0;
+  color: var(--textPrimary);
+  font-size: 1.8em;
+}
+
+.upload-target .upload-description {
+  text-align: center;
+  color: var(--textSecondary);
+  margin: 0.5em 0 1.5em 0;
+  font-size: 1.1em;
+}
+
+.upload-target .upload-actions {
+  display: flex;
+  gap: 1em;
+  margin: 1em 0;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.upload-target .upload-actions button {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.75em 1.5em;
+  font-size: 1em;
+}
+
+.upload-target .upload-actions button i {
+  font-size: 1.2em;
+}
+
+.upload-target .upload-hint {
+  margin-top: 1em;
+  color: var(--textSecondary);
+  font-size: 0.9em;
+  opacity: 0.7;
+  text-align: center;
 }
 
 </style>

@@ -94,11 +94,11 @@ func init() {
 	indexes = make(map[string]*Index)
 }
 
-func Initialize(source settings.Source, mock bool) {
+func Initialize(source *settings.Source, mock bool) {
 	indexesMutex.Lock()
 	newIndex := Index{
 		mock:              mock,
-		Source:            source,
+		Source:            *source,
 		Directories:       make(map[string]*iteminfo.FileInfo),
 		DirectoriesLedger: make(map[string]struct{}),
 		processedInodes:   make(map[uint64]struct{}),

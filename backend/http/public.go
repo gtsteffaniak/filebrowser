@@ -30,6 +30,9 @@ import (
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /public/dl [get]
 func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	if d.share.ShareType == "upload" {
+		return http.StatusNotImplemented, fmt.Errorf("downloads are disabled for upload shares")
+	}
 	if d.share.DownloadsLimit > 0 && d.share.Downloads >= d.share.DownloadsLimit {
 		return http.StatusForbidden, fmt.Errorf("share downloads limit reached")
 	}
@@ -84,6 +87,9 @@ func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 }
 
 func publicShareHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	if d.share.ShareType == "upload" {
+		return http.StatusNotImplemented, fmt.Errorf("browsing is disabled for upload shares")
+	}
 	return renderJSON(w, r, d.fileInfo)
 }
 
@@ -125,5 +131,26 @@ func publicPreviewHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	if config.Server.DisablePreviews || d.share.DisableThumbnails {
 		return http.StatusNotImplemented, fmt.Errorf("preview is disabled")
 	}
-	return previewHelperFunc(w, r, d)
+
+	if d.share.ShareType == "upload" {
+		return http.StatusNotImplemented, fmt.Errorf("preview is disabled for upload shares")
+	}
+
+	// Restore source name from share for preview generation
+	// The middleware clears file.Source for security, but we need it for index lookups
+	if d.fileInfo.Source == "" && d.share != nil {
+		sourceInfo, ok := settings.Config.Server.SourceMap[d.share.Source]
+		if !ok {
+			// Don't expose internal errors to share users
+			return http.StatusNotFound, fmt.Errorf("resource not available")
+		}
+		d.fileInfo.Source = sourceInfo.Name
+	}
+
+	status, err := previewHelperFunc(w, r, d)
+	if err != nil {
+		// Obfuscate errors for shares to prevent information leakage
+		return http.StatusNotFound, fmt.Errorf("preview not available for this item")
+	}
+	return status, err
 }

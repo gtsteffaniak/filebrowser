@@ -29,6 +29,7 @@ type CommonShare struct {
 	ViewMode                string   `json:"viewMode,omitempty"`             // default view mode for anonymous users: "list", "compact", "normal", "gallery"
 	EnableOnlyOffice        bool     `json:"enableOnlyOffice,omitempty"`
 	EnableOnlyOfficeEditing bool     `json:"enableOnlyOfficeEditing,omitempty"`
+	ShareType               string   `json:"shareType"` // type of share: normal, upload, max
 }
 type CreateBody struct {
 	CommonShare

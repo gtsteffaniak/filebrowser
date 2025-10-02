@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file. For commit 
  - better login error message feedback
  - Add capability to disable certain video previews
  - Added ability to play media in same folder sequentially or shuffled
+ - upload/upload only share links. #661
  #- Default landing directory #781
  #- better init script support #897
  #- share download limit feature to apply per user -- and disables anonymous download when enabled.

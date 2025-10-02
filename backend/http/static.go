@@ -103,6 +103,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 			shareProps["viewMode"] = d.share.ViewMode
 			shareProps["enableOnlyOffice"] = d.share.EnableOnlyOffice
 			shareProps["enableOnlyOfficeEditing"] = d.share.EnableOnlyOfficeEditing
+			shareProps["shareType"] = utils.Ternary(d.share.ShareType == "", "normal", d.share.ShareType)
 
 			// Additional computed properties from extended.go
 			shareProps["hasPassword"] = d.share.HasPassword()
