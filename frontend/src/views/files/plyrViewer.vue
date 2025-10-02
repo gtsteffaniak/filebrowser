@@ -180,6 +180,7 @@ export default {
                 clickToPlay: true,
                 resetOnEnd: true,
                 toggleInvert: false,
+                preload: 'none',
             },
         };
     },
@@ -335,13 +336,11 @@ export default {
                     if (playerRef && playerRef.player && playerRef.player.elements.container) {
                         const container = playerRef.player.elements.container;
                         container.focus();
-                        console.log('Focused Plyr player container');
                         
                         // Also try to focus the progress bar specifically
                         const progressContainer = container.querySelector('.plyr__progress__container');
                         if (progressContainer) {
                             progressContainer.focus();
-                            console.log('Focused progress bar');
                         }
                     }
                 }
@@ -364,20 +363,29 @@ export default {
             this.setupPlaybackQueue();
             this.showToast();
             
+            // Sync the actual media element's loop state
+            this.syncMediaLoopState();
+
             // Ensure player is focused and UI is updated
             this.focusPlayer();
             this.$nextTick(() => {
                 this.ensurePlaybackModeApplied();
             });
         },
-        handleKeydown(event) {
-            if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
-                return;
-            }
-            
-            if (event.key.toLowerCase() === 'p') {
+        handleKeydown(event) {            
+            // Handle 'P' and 'L' keys for loop and change playback
+            if (event.key.toLowerCase() === 'p' || event.key.toLowerCase() === 'l') {
                 event.preventDefault();
-                this.cyclePlaybackModes();
+                event.stopPropagation();
+                
+                // Use requestAnimationFrame to ensure UI updates
+                requestAnimationFrame(() => {
+                    if (event.key.toLowerCase() === 'p') {
+                        this.cyclePlaybackModes();
+                    } else if (event.key.toLowerCase() === 'l') {
+                        this.toggleLoop();
+                    }
+                });
             }
         },
         cyclePlaybackModes() {
@@ -404,6 +412,9 @@ export default {
             
             // Update playback queue
             this.setupPlaybackQueue();
+
+            // Sync the actual media element's loop state
+            this.syncMediaLoopState();
             
             // Show toast
             this.showToast();
@@ -584,12 +595,11 @@ export default {
                     });
                 });
                 player.on('play', () => {
-                    console.log('Video playing - focusing player');
                     this.focusPlayer();
                 });
 
                 player.on('ready', () => {
-                    console.log('Video player ready - focusing player');
+                    console.log('Video player ready, focusing');
                     this.focusPlayer();
                 });
 
@@ -616,12 +626,11 @@ export default {
                     });
                 });
                 player.on('play', () => {
-                    console.log('Audio playing - focusing player');
                     this.focusPlayer();
                 });
 
                 player.on('ready', () => {
-                    console.log('Audio player ready - focusing player');
+                    console.log('Audio player ready, focusing');
                     this.focusPlayer();
                 });
 
@@ -707,7 +716,7 @@ export default {
             }
 
             // Shuffle if shuffle mode is enabled
-            if (this.playbackMode === 'shuffle' || this.playbackMode === 'loop-all') {
+            if (this.playbackMode === 'shuffle') {
                 this.shufflePlaybackQueue();
             }
 
@@ -747,13 +756,18 @@ export default {
 
             if (this.currentQueueIndex >= this.playbackQueue.length) {
                 // End of queue - handle based on mode
-                if (this.playbackMode === 'loop-all' || this.playbackMode === 'sequential' || this.playbackMode === 'shuffle') {
-                    // Loop back to beginning for sequential, shuffle, and loop-all modes
+                if (this.playbackMode === 'loop-all' || this.playbackMode === 'shuffle') {
+                    // Loop back to beginning for loop-all and shuffle mode
                     console.log('Reached end of queue, looping back to beginning');
                     this.currentQueueIndex = 0;
+                } else if (this.playbackMode === 'sequential') {
+                    // Stop at end of the queue for sequential
+                    console.log('Reached end of queue, stopping');
+                    this.isNavigating = false;
+                    return;
                 } else {
-                    // End of queue for single mode (shouldn't happen, but just in case)
-                    console.log('End of playback queue');
+                    // End of queue for single/loop-single modes (shouldn't happen, but just in case)
+                    console.log('End of playback queue for single mode');
                     this.isNavigating = false;
                     return;
                 }
@@ -1005,6 +1019,25 @@ export default {
                 // Apply the custom settings
                 this.applyCustomPlaybackSettings(player);
             });
+        },
+        syncMediaLoopState() {
+            const player = this.getCurrentPlayer();
+            if (!player) return;
+            
+            // Only enable loop for "Loop Current" mode
+            const shouldLoop = this.playbackMode === 'loop-single';
+            
+            if (this.useDefaultMediaPlayer) {
+                // HTML5 player
+                player.loop = shouldLoop;
+            } else {
+                // Plyr player
+                if (player.player) {
+                    player.player.loop = shouldLoop;
+                }
+            }
+            
+            console.log('Synced media loop state:', shouldLoop ? 'ON' : 'OFF');
         },
     },
     expose: ['toggleLoop'],
