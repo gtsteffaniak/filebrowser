@@ -263,6 +263,26 @@ export const mutations = {
       state.user.sorting.by = "name";
       state.user.sorting.asc = true;
 
+      // Ensure fileLoading defaults are set
+      if (!state.user.fileLoading) {
+        state.user.fileLoading = {
+          maxConcurrentUpload: 3,
+          uploadChunkSizeMb: 5,
+          clearAll: false
+        };
+      } else {
+        // Ensure each property has a default if missing
+        if (state.user.fileLoading.maxConcurrentUpload === undefined) {
+          state.user.fileLoading.maxConcurrentUpload = 3;
+        }
+        if (state.user.fileLoading.uploadChunkSizeMb === undefined) {
+          state.user.fileLoading.uploadChunkSizeMb = 5;
+        }
+        if (state.user.fileLoading.clearAll === undefined) {
+          state.user.fileLoading.clearAll = false;
+        }
+      }
+
       // Load display preferences for the current user
       const allPreferences = JSON.parse(localStorage.getItem("displayPreferences") || "{}");
       state.displayPreferences = allPreferences[state.user.username] || {};

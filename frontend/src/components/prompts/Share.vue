@@ -3,7 +3,7 @@
     <h2>{{ $t("buttons.share") }}</h2>
   </div>
   <div class="card-content">
-    <div aria-label="share-path" class="searchContext button"> {{ $t('search.path') }} {{ item.path }}</div>
+    <div aria-label="share-path" class="searchContext button"> {{ $t('search.path') }} {{ displayPath }}</div>
     <p> {{ $t('share.notice') }} </p>
 
     <div v-if="listing">
@@ -75,13 +75,29 @@
         </i>
       </p>
       <input class="input" type="password" autocomplete="new-password" v-model.trim="password" />
+      <p>
+        {{ $t("share.shareType") }}
+        <i
+          class="no-select material-symbols-outlined tooltip-info-icon"
+          @mouseenter="showTooltip($event, $t('share.shareTypeDescription'))"
+          @mouseleave="hideTooltip"
+        >
+          help
+        </i>
+      </p>
+      <select class="input" v-model="shareType">
+        <option value="normal">{{ $t("share.normalShare") }}</option>
+        <option value="upload">{{ $t("share.uploadShare") }}</option>
+      </select>
+
       <div class="settings-items" style="margin-top: 0.5em;">
         <!--
         <ToggleSwitch class="item" v-model="allowEdit" :name="'Allow modifications'" />
         <ToggleSwitch class="item" v-model="allowUpload" :name="'Allow uploading'" />
         -->
-        <ToggleSwitch class="item" v-model="disableFileViewer" :name="$t('share.disableFileViewer')" />
+        <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="disableFileViewer" :name="$t('share.disableFileViewer')" />
         <ToggleSwitch
+          v-if="shareType === 'normal'"
           class="item"
           v-model="quickDownload"
           :name="$t('profileSettings.showQuickDownload')"
@@ -89,9 +105,11 @@
         />
         <ToggleSwitch class="item" v-model="disableAnonymous" :name="$t('share.disableAnonymous')" :description="$t('share.disableAnonymousDescription')" />
         <ToggleSwitch class="item" v-model="enableAllowedUsernames" :name="$t('share.enableAllowedUsernames')" :description="$t('share.enableAllowedUsernamesDescription')" />
-
-        <ToggleSwitch v-if="onlyOfficeAvailable" class="item" v-model="enableOnlyOffice" :name="$t('share.enableOnlyOffice')" :description="$t('share.enableOnlyOfficeDescription')" />
-        <ToggleSwitch v-if="onlyOfficeAvailable" class="item" v-model="enableOnlyOfficeEditing" :name="$t('share.enableOnlyOfficeEditing')" :description="$t('share.enableOnlyOfficeEditingDescription')" />
+        <div v-if="enableAllowedUsernames" class="item">
+          <input class="input" type="text" v-model.trim="allowedUsernames" :placeholder="$t('share.allowedUsernamesPlaceholder')" />
+        </div>
+        <ToggleSwitch v-if="shareType === 'normal' && onlyOfficeAvailable" class="item" v-model="enableOnlyOffice" :name="$t('share.enableOnlyOffice')" :description="$t('share.enableOnlyOfficeDescription')" />
+        <ToggleSwitch v-if="shareType === 'normal' && onlyOfficeAvailable" class="item" v-model="enableOnlyOfficeEditing" :name="$t('share.enableOnlyOfficeEditing')" :description="$t('share.enableOnlyOfficeEditingDescription')" />
         <p>
           {{ $t("share.enforceDarkLightMode") }}
           <i
@@ -107,10 +125,6 @@
           <option value="dark">{{ $t("share.dark") }}</option>
           <option value="light">{{ $t("share.light") }}</option>
         </select>
-
-        <div v-if="enableAllowedUsernames" class="item">
-          <input class="input" type="text" v-model.trim="allowedUsernames" :placeholder="$t('share.allowedUsernamesPlaceholder')" />
-        </div>
       </div>
         <!-- <ViewMode :viewMode="viewMode" @update:viewMode="viewMode = $event" /> -->
         <p>
@@ -130,53 +144,58 @@
             </option>
           </select>
         </div>
-        <p>
-          {{ $t("share.defaultViewMode") }}
-          <i
-            class="no-select material-symbols-outlined tooltip-info-icon"
-            @mouseenter="showTooltip($event, $t('share.defaultViewModeDescription'))"
-            @mouseleave="hideTooltip"
-          >
-            help
-          </i>
-        </p>
-        <select class="input" v-model="viewMode">
-          <option value="normal">{{ $t("buttons.normalView") }}</option>
-          <option value="list">{{ $t("buttons.listView") }}</option>
-          <option value="compact">{{ $t("buttons.compactView") }}</option>
-          <option value="gallery">{{ $t("buttons.galleryView") }}</option>
-        </select>
+        <div v-if="shareType === 'normal'">
+          <p>
+            {{ $t("share.defaultViewMode") }}
+            <i
+              class="no-select material-symbols-outlined tooltip-info-icon"
+              @mouseenter="showTooltip($event, $t('share.defaultViewModeDescription'))"
+              @mouseleave="hideTooltip"
+            >
+              help
+            </i>
+          </p>
+          <select class="input" v-model="viewMode">
+            <option value="normal">{{ $t("buttons.normalView") }}</option>
+            <option value="list">{{ $t("buttons.listView") }}</option>
+            <option value="compact">{{ $t("buttons.compactView") }}</option>
+            <option value="gallery">{{ $t("buttons.galleryView") }}</option>
+          </select>
+        </div>
       <SettingsItem :title="$t('buttons.showMore')" :collapsable="true" :start-collapsed="true">
         <div class="settings-items">
           <ToggleSwitch class="item" v-model="keepAfterExpiration" :name="$t('share.keepAfterExpiration')" :description="$t('share.keepAfterExpirationDescription')" />
-          <ToggleSwitch class="item" v-model="disableThumbnails" :name="$t('share.disableThumbnails')" :description="$t('share.disableThumbnailsDescription')" />
+          <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="disableThumbnails" :name="$t('share.disableThumbnails')" :description="$t('share.disableThumbnailsDescription')" />
           <ToggleSwitch class="item" v-model="disableNavButtons" :name="$t('share.hideNavButtons')" :description="$t('share.hideNavButtonsDescription')" />
           <ToggleSwitch class="item" v-model="disableShareCard" :name="$t('share.disableShareCard')" :description="$t('share.disableShareCardDescription')" />
-          <ToggleSwitch class="item" v-model="disableSidebar" :name="$t('share.disableSidebar')" :description="$t('share.disableSidebarDescription')" />
+          <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="disableSidebar" :name="$t('share.disableSidebar')" :description="$t('share.disableSidebarDescription')" />
+          <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="perUserDownloadLimit" :name="$t('share.perUserDownloadLimit')" :description="$t('share.perUserDownloadLimitDescription')" />
         </div>
 
-        <p>
-          {{ $t("prompts.downloadsLimit") }}
-          <i
-            class="no-select material-symbols-outlined tooltip-info-icon"
-            @mouseenter="showTooltip($event, $t('share.downloadsLimitDescription'))"
-            @mouseleave="hideTooltip"
-          >
-            help
-          </i>
-        </p>
-        <input class="input" type="number" min="0" v-model.number="downloadsLimit" />
-        <p>
-          {{ $t("prompts.maxBandwidth") }}
-          <i
-            class="no-select material-symbols-outlined tooltip-info-icon"
-            @mouseenter="showTooltip($event, $t('share.maxBandwidthDescription'))"
-            @mouseleave="hideTooltip"
-          >
-            help
-          </i>
-        </p>
-        <input class="input" type="number" min="0" v-model.number="maxBandwidth" />
+        <div v-if="shareType === 'normal'">
+          <p>
+            {{ $t("prompts.downloadsLimit") }}
+            <i
+              class="no-select material-symbols-outlined tooltip-info-icon"
+              @mouseenter="showTooltip($event, $t('share.downloadsLimitDescription'))"
+              @mouseleave="hideTooltip"
+            >
+              help
+            </i>
+          </p>
+          <input class="input" type="number" min="0" v-model.number="downloadsLimit" />
+          <p>
+            {{ $t("prompts.maxBandwidth") }}
+            <i
+              class="no-select material-symbols-outlined tooltip-info-icon"
+              @mouseenter="showTooltip($event, $t('share.maxBandwidthDescription'))"
+              @mouseleave="hideTooltip"
+            >
+              help
+            </i>
+          </p>
+          <input class="input" type="number" min="0" v-model.number="maxBandwidth" />
+        </div>
 
 
         <p>
@@ -313,6 +332,7 @@ export default {
       listing: true,
       allowEdit: false,
       downloadsLimit: "",
+      perUserDownloadLimit: false,
       shareTheme: "default",
       disableAnonymous: false,
       allowUpload: false,
@@ -335,10 +355,19 @@ export default {
       viewMode: "normal",
       enableOnlyOffice: false,
       enableOnlyOfficeEditing: false,
+      shareType: "normal",
       //viewMode: "normal",
     };
   },
   computed: {
+    displayPath() {
+      // When editing, use the link's path; otherwise use the item's path
+      return this.isEditMode ? this.link.path : this.item.path;
+    },
+    displaySource() {
+      // When editing, use the link's source; otherwise use the item's source
+      return this.isEditMode ? this.link.source : this.item.source;
+    },
     onlyOfficeAvailable() {
       return globalVars.onlyOfficeUrl !== "";
     },
@@ -396,6 +425,7 @@ export default {
           this.unit = "hours";
           this.password = "";
           this.downloadsLimit = this.link.downloadsLimit ? String(this.link.downloadsLimit) : "";
+          this.perUserDownloadLimit = this.link.perUserDownloadLimit || false;
           this.maxBandwidth = this.link.maxBandwidth ? String(this.link.maxBandwidth) : "";
           this.shareTheme = this.link.shareTheme || "default";
           this.disableAnonymous = this.link.disableAnonymous || false;
@@ -417,6 +447,7 @@ export default {
           this.viewMode = this.link.viewMode || "normal";
           this.enableOnlyOffice = this.link.enableOnlyOffice || false;
           this.enableOnlyOfficeEditing = this.link.enableOnlyOfficeEditing || false;
+          this.shareType = this.link.shareType || "normal";
           //this.viewMode = this.link.viewMode || "normal";
         }
       },
@@ -471,8 +502,8 @@ export default {
         }
         let isPermanent = !this.time || this.time === "0";
         const payload = {
-          path: this.item.path,
-          source: this.item.source,
+          path: this.displayPath,
+          source: this.displaySource,
           password: this.password,
           expires: isPermanent ? "" : this.time.toString(),
           unit: this.unit,
@@ -480,6 +511,7 @@ export default {
           allowUpload: this.allowUpload,
           maxBandwidth: this.maxBandwidth ? parseInt(this.maxBandwidth) : 0,
           downloadsLimit: this.downloadsLimit ? parseInt(this.downloadsLimit) : 0,
+          perUserDownloadLimit: this.perUserDownloadLimit,
           shareTheme: this.shareTheme,
           disableFileViewer: this.disableFileViewer,
           disableThumbnails: this.disableThumbnails,
@@ -499,6 +531,7 @@ export default {
           viewMode: this.viewMode,
           enableOnlyOffice: this.enableOnlyOffice,
           enableOnlyOfficeEditing: this.enableOnlyOfficeEditing,
+          shareType: this.shareType,
         };
         if (this.isEditMode) {
           payload.hash = this.link.hash;

@@ -65,10 +65,18 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		if link.DisableAnonymous && data.user.Username == "anonymous" {
 			return http.StatusForbidden, fmt.Errorf("share is not available to anonymous users")
 		}
+		// Block anonymous users if per-user download limit is enabled
+		if link.PerUserDownloadLimit && data.user.Username == "anonymous" {
+			return http.StatusForbidden, fmt.Errorf("anonymous downloads are not allowed with per-user limits")
+		}
 		if len(link.AllowedUsernames) > 0 {
 			if !slices.Contains(link.AllowedUsernames, data.user.Username) {
 				return http.StatusForbidden, fmt.Errorf("share is not available to this user")
 			}
+		}
+		// Check per-user download limit
+		if link.PerUserDownloadLimit && link.HasReachedUserLimit(data.user.Username) {
+			return http.StatusForbidden, fmt.Errorf("user download limit reached for this share")
 		}
 		data.share = link
 		// Authenticate the share request if needed
@@ -113,6 +121,10 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 			link.Mu.Lock()
 			link.Downloads++
 			link.Mu.Unlock()
+			// Track per-user download if enabled
+			if link.PerUserDownloadLimit {
+				link.IncrementUserDownload(data.user.Username)
+			}
 		}
 		file.Path = "/" + strings.TrimPrefix(strings.TrimPrefix(file.Path, link.Path), "/")
 		// Set the file info in the `data` object

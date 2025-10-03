@@ -54,6 +54,9 @@ func ApplyUserDefaults(u *users.User) {
 	u.GallerySize = Config.UserDefaults.GallerySize
 	u.QuickDownload = Config.UserDefaults.QuickDownload
 	u.LockPassword = Config.UserDefaults.LockPassword
+	u.DisableOnlyOfficeExt = Config.UserDefaults.DisableOnlyOfficeExt
+	u.FileLoading = Config.UserDefaults.FileLoading
+	u.DisableOfficePreviewExt = Config.UserDefaults.DisableOfficePreviewExt
 	if len(u.Scopes) == 0 {
 		for _, source := range Config.Server.Sources {
 			if source.Config.DefaultEnabled {

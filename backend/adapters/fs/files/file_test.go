@@ -212,7 +212,7 @@ func TestDeleteFilesCacheClearing(t *testing.T) {
 	}
 
 	// Initialize the index in the indexing system
-	indexing.Initialize(settings.Source{
+	indexing.Initialize(&settings.Source{
 		Name: "test",
 		Path: tempDir,
 	}, true) // true for mock mode
@@ -248,7 +248,7 @@ func TestDeleteFilesCacheClearing(t *testing.T) {
 
 func TestOverrideDirectoryToFile(t *testing.T) {
 	// Initialize the index in mock mode (no filesystem operations)
-	indexing.Initialize(settings.Source{
+	indexing.Initialize(&settings.Source{
 		Name: "test",
 		Path: "/mock/path",
 	}, true) // true for mock mode
@@ -323,7 +323,7 @@ func TestOverrideDirectoryToFile(t *testing.T) {
 
 func TestOverrideFileToDirectory(t *testing.T) {
 	// Initialize the index in mock mode (no filesystem operations)
-	indexing.Initialize(settings.Source{
+	indexing.Initialize(&settings.Source{
 		Name: "test",
 		Path: "/mock/path",
 	}, true) // true for mock mode

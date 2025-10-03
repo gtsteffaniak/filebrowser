@@ -19,34 +19,33 @@ server:
       utc: false                          # use UTC time in the output instead of local time
   debugMedia: false                       # output ffmpeg stdout for media integration -- careful can produces lots of output!
   database: "database.db"                 # path to the database file
-  sources:                                #  validate:required,dive
-    - path: "/relative/or/absolute/path"  # file system path. (Can be relative)  validate:required
-      name: "backend"                     # display name
-      config:
-        denyByDefault: false              # deny access unless an "allow" access rule was specifically created.
-        private: false                    # designate as source as private -- currently just means no sharing permitted.
-        disabled: false                   # disable the source, this is useful so you don't need to remove it from the config file
-        indexingIntervalMinutes: 0        # optional manual overide interval in minutes to re-index the source
-        disableIndexing: false            # disable the indexing of this source
-        maxWatchers: 0                    # number of concurrent watchers to use for this source, currently not supported
-        neverWatchPaths:                  # paths that get initially once. Useful for folders that rarely change contents (without source path prefix)
-        exclude:                          # exclude files and folders from indexing, if include is not set
-          hidden: false                   # exclude hidden files and folders.
-          ignoreZeroSizeFolders: false    # ignore folders with 0 size
-          filePaths:                      # list of filepaths Eg. "folder1" or "file1.txt" or "folder1/file1.txt" (without source path prefix)
-          folderPaths:                    # (filepath) list of folder names to include/exclude. Eg. "folder1" or "folder1/subfolder" (do not include source path, just the subpaths from the source path)
-          fileNames:                      # (global) list of file names to include/exclude. Eg. "a.jpg"
-          folderNames:                    # (global) list of folder names to include/exclude. Eg. "@eadir" or ".thumbnails"
-          fileEndsWith:                   # (global) exclude files that end with these suffixes. Eg. ".jpg" or ".txt"
-          folderEndsWith:                 # (global) exclude folders that end with these suffixes. Eg. ".thumbnails" or ".git"
-          fileStartsWith:                 # (global) exclude files that start with these prefixes. Eg. "archive-" or "backup-"
-          folderStartsWith:               # (global) exclude folders that start with these prefixes. Eg. "archive-" or "backup-"
-        include:                          # include files and folders from indexing, if exclude is not set
-          rootFolders:                    # list of root folders to include, relative to the source path (eg. "folder1")
-          rootFiles:                      # list of root files to include, relative to the source path (eg. "file1.txt")
-        defaultUserScope: "/"             # default "/" should match folders under path
-        defaultEnabled: false             # should be added as a default source for new users?
-        createUserDir: false              # create a user directory for each user
+  sources: [{path: ".",                   # file system path. (Can be relative)  validate:required
+      name: "backend",                    # display name
+      config: {denyByDefault: false,      # deny access unless an "allow" access rule was specifically created.
+        private: false,                   # designate as source as private -- currently just means no sharing permitted.
+        disabled: false,                  # disable the source, this is useful so you don't need to remove it from the config file
+        indexingIntervalMinutes: 0,       # optional manual overide interval in minutes to re-index the source
+        disableIndexing: false,           # disable the indexing of this source
+        maxWatchers: 0,                   # number of concurrent watchers to use for this source, currently not supported
+        neverWatchPaths: '',              # paths that get initially once. Useful for folders that rarely change contents (without source path prefix)
+        exclude:,                         # exclude files and folders from indexing, if include is not set
+{hidden: false,                           # exclude hidden files and folders.
+          ignoreZeroSizeFolders: false,   # ignore folders with 0 size
+          filePaths: '',                  # list of filepaths Eg. "folder1" or "file1.txt" or "folder1/file1.txt" (without source path prefix)
+          folderPaths: '',                # (filepath) list of folder names to include/exclude. Eg. "folder1" or "folder1/subfolder" (do not include source path, just the subpaths from the source path)
+          fileNames: '',                  # (global) list of file names to include/exclude. Eg. "a.jpg"
+          folderNames: '',                # (global) list of folder names to include/exclude. Eg. "@eadir" or ".thumbnails"
+          fileEndsWith: '',               # (global) exclude files that end with these suffixes. Eg. ".jpg" or ".txt"
+          folderEndsWith: '',             # (global) exclude folders that end with these suffixes. Eg. ".thumbnails" or ".git"
+          fileStartsWith: '',             # (global) exclude files that start with these prefixes. Eg. "archive-" or "backup-"
+          folderStartsWith: '',           # (global) exclude folders that start with these prefixes. Eg. "archive-" or "backup-"
+} include:,                               # include files and folders from indexing, if exclude is not set
+{rootFolders: '',                         # list of root folders to include, relative to the source path (eg. "folder1")
+          rootFiles: '',                  # list of root files to include, relative to the source path (eg. "file1.txt")
+} defaultUserScope: "/",                  # default "/" should match folders under path
+        defaultEnabled: true,             # should be added as a default source for new users?
+        createUserDir: false,             # create a user directory for each user
+}}]
   externalUrl: ""                         # used by share links if set (eg. http://mydomain.com)
   internalUrl: ""                         # used by integrations if set, this is the base domain that an integration service will use to communicate with filebrowser (eg. http://localhost:8080)
   cacheDir: "tmp"                         # path to the cache directory, used for thumbnails and other cached files
@@ -156,7 +155,7 @@ userDefaults:
     maxConcurrentUpload: 10
     uploadChunkSizeMb: 10
     clearAll: false
-  disableOnlyOfficeExt: ""                # list of file extensions to disable onlyoffice editor for
+  disableOnlyOfficeExt: ".md .txt .pdf"   # list of file extensions to disable onlyoffice editor for
   customTheme: ""                         # Name of theme to use chosen from custom themes config.
   showSelectMultiple: false               # show select multiple files on desktop
   debugOffice: false                      # debug onlyoffice editor

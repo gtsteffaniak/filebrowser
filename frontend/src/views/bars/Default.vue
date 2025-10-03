@@ -1,17 +1,16 @@
 <template>
   <header v-if="!isOnlyOffice" :class="['flexbar', { 'dark-mode-header': isDarkMode }]">
     <action
-      v-if="!(disableNavButtons && isListingView)"
+      v-if="!disableNavButtons"
       icon="close_back"
       :label="$t('buttons.close')"
       :disabled="isDisabledMultiAction"
       @action="multiAction"
     />
     <search v-if="showSearch" />
-    <title v-else-if="isSettings" class="topTitle">{{ $t("sidebar.settings") }}</title>
     <title v-else class="topTitle">{{ getTopTitle }}</title>
     <action
-      v-if="isListingView && !disableNavButtons"
+      v-if="!disableNavButtons"
       class="menu-button"
       :icon="viewIcon"
       :label="$t('buttons.switchView')"
@@ -60,7 +59,10 @@ export default {
   },
   computed: {
     getTopTitle() {
-      if (getters.isShare() && shareInfo.title && state.req.type === "directory") {
+      if (getters.isSettings()) {
+        return this.$t("sidebar.settings");
+      }
+      if (shareInfo.isShare && shareInfo.title && state.req.type === "directory") {
         return shareInfo.title;
       }
       return state.req.name;
@@ -72,7 +74,7 @@ export default {
       return state.user.editorQuickSave;
     },
     disableNavButtons() {
-      return globalVars.disableNavButtons && !state.user.permissions.admin;
+      return (globalVars.disableNavButtons && this.isListingView) || (shareInfo.isShare && shareInfo.disableNavButtons);
     },
     isOnlyOffice() {
       return getters.currentView() === "onlyOfficeEditor";

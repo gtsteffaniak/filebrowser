@@ -1,6 +1,7 @@
 import { reactive } from "vue";
-import { filesApi } from "@/api";
+import { filesApi, publicApi } from "@/api";
 import { state,mutations } from "@/store";
+import { shareInfo } from "@/utils/constants";
 
 class UploadManager {
   constructor() {
@@ -14,6 +15,7 @@ class UploadManager {
     this.hadActiveUploads = false; // Track if we've had active uploads
     this.conflictingFolder = null; // Track the folder name that caused conflict
     this.pendingItems = null; // Store pending items during conflict resolution
+    this.probedDirs = new Set(); // Track directories that were probed/created during conflict check
   }
 
   setOnConflict(handler) {
@@ -21,11 +23,16 @@ class UploadManager {
   }
 
   async add(basePath, items, overwrite = false) {
+    // Handle undefined/null basePath
+    if (!basePath) {
+      basePath = "/";
+    }
     if (basePath.slice(-1) !== "/") {
       basePath += "/";
     }
 
     // Pre-upload conflict check for top-level directories
+    // Skip probing if overwrite is already true or overwriteAll is set
     if (this.overwriteAll === null && !overwrite) {
       const topLevelDirs = new Set();
       for (const item of items) {
@@ -35,8 +42,46 @@ class UploadManager {
       }
 
       if (topLevelDirs.size > 0) {
-        const existingItems = new Set(state.req.items.map(i => i.name));
-        const conflictingDirs = [...topLevelDirs].filter(dir => existingItems.has(dir));
+        // First try using state.req.items if available (regular uploads)
+        const existingItems = new Set(state.req?.items?.map(i => i.name) || []);
+        let conflictingDirs = [...topLevelDirs].filter(dir => existingItems.has(dir));
+        let probedDirs = new Set();
+
+        // If state.req.items is not available (upload shares), probe the server
+        if (existingItems.size === 0 && topLevelDirs.size > 0) {
+          // Probe each top-level directory to check for conflicts
+          const probeResults = await Promise.all(
+            [...topLevelDirs].map(async (dirName) => {
+              try {
+                const testPath = `${basePath}${dirName}`;
+                if (shareInfo.isShare) {
+                  await publicApi.post(shareInfo.hash, testPath, new Blob([]), false);
+                } else {
+                  await filesApi.post(state.req?.source, testPath, new Blob([]), false);
+                }
+                // No conflict - directory was created successfully
+                // Mark it so we can skip it later in the queue
+                return { dirName, conflict: false, probed: true };
+              } catch (err) {
+                // 409 means conflict
+                if (err?.response?.status === 409) {
+                  return { dirName, conflict: true, probed: false };
+                }
+                // Other errors are actual failures, treat as no conflict for now
+                return { dirName, conflict: false, probed: false };
+              }
+            })
+          );
+          conflictingDirs = probeResults
+            .filter(result => result.conflict)
+            .map(result => result.dirName);
+          // Track which directories we successfully probed (created)
+          probedDirs = new Set(
+            probeResults
+              .filter(result => result.probed)
+              .map(result => result.dirName)
+          );
+        }
 
         if (conflictingDirs.length > 0) {
           // Store the conflicting folder name (take the first one for now)
@@ -45,7 +90,7 @@ class UploadManager {
 
           this.onConflict(resolution => {
             if (resolution === true) {
-              // User chose overwrite
+              // User chose overwrite - set the flag and add with overwrite=true
               this.overwriteAll = true;
               this.add(basePath, items, true);
             } else if (resolution && resolution.rename) {
@@ -61,6 +106,8 @@ class UploadManager {
           });
           return;
         }
+        // Store probed directories so we can skip them in queue processing
+        this.probedDirs = probedDirs;
       }
     }
 
@@ -89,6 +136,11 @@ class UploadManager {
         const pathParts = dir.slice(0, -1).split("/");
         const dirName = pathParts[pathParts.length - 1];
 
+        // Skip top-level directories that were already created during probing
+        if (pathParts.length === 1 && this.probedDirs.has(dirName)) {
+          continue;
+        }
+
         const upload = {
           id: this.nextId++,
           name: dirName,
@@ -98,7 +150,7 @@ class UploadManager {
           type: "directory",
           isToplevelDir: pathParts.length === 1,
           path: `${basePath}${dir}`,
-          source: state.req.source,
+          source: state.req?.source,
           overwrite: effectiveOverwrite,
         };
 
@@ -121,7 +173,7 @@ class UploadManager {
         status: "pending", // pending, uploading, paused, completed, error
         xhr: null,
         path: destinationPath, // Full destination path
-        source: state.req.source,
+        source: state.req?.source,
         overwrite: effectiveOverwrite,
       };
       return upload;
@@ -132,6 +184,7 @@ class UploadManager {
     // Clean up pending items after successful add
     this.pendingItems = null;
     this.conflictingFolder = null;
+    this.probedDirs.clear();
 
     this.processQueue();
     return newUploads;
@@ -146,8 +199,9 @@ class UploadManager {
       return;
     }
 
+    const maxConcurrent = state.user.fileLoading?.maxConcurrentUpload || 3;
     while (
-      this.activeUploads < state.user.fileLoading.maxConcurrentUpload &&
+      this.activeUploads < maxConcurrent &&
       this.hasPending()
     ) {
       const upload = this.queue.find((item) => item.status === "pending");
@@ -192,12 +246,11 @@ class UploadManager {
     upload.status = "uploading";
 
     try {
-      await filesApi.post(
-        upload.source,
-        upload.path,
-        new Blob([]),
-        upload.overwrite
-      );
+      if (shareInfo.isShare) {
+        await publicApi.post(shareInfo.hash, upload.path, new Blob([]), upload.overwrite);
+      } else {
+        await filesApi.post(upload.source, upload.path, new Blob([]), upload.overwrite);
+      }
 
       upload.status = "completed";
       upload.progress = 100;
@@ -214,23 +267,23 @@ class UploadManager {
     this.hadActiveUploads = true; // Mark that we've had active uploads
     upload.status = "uploading";
 
-    const chunkSize = state.user.fileLoading.uploadChunkSizeMb * 1024 * 1024;
+    const chunkSize = (state.user.fileLoading?.uploadChunkSizeMb ?? 5) * 1024 * 1024;
     if (chunkSize === 0) {
       const progress = (percent) => {
         upload.progress = percent;
       };
 
       try {
-        const promise = filesApi.post(
-          upload.source,
-          upload.path,
-          upload.file,
-          upload.overwrite,
-          progress,
-          {
+        let promise;
+        if (shareInfo.isShare) {
+          promise = publicApi.post(shareInfo.hash, upload.path, upload.file, upload.overwrite, progress, {
             "X-File-Total-Size": upload.size,
-          }
-        );
+          });
+        } else {
+          promise = filesApi.post(upload.source, upload.path, upload.file, upload.overwrite, progress, {
+            "X-File-Total-Size": upload.size,
+          });
+        }
 
         upload.xhr = promise.xhr;
         await promise;
@@ -261,17 +314,32 @@ class UploadManager {
       };
 
       try {
-        const promise = filesApi.post(
-          upload.source,
-          upload.path,
-          chunk,
-          upload.overwrite,
-          chunkProgress,
-          {
-            "X-File-Chunk-Offset": upload.chunkOffset,
-            "X-File-Total-Size": upload.size,
-          }
-        );
+        let promise;
+        if (shareInfo.isShare) {
+          promise = publicApi.post(
+            shareInfo.hash,
+            upload.path,
+            chunk,
+            upload.overwrite,
+            chunkProgress,
+            {
+              "X-File-Chunk-Offset": upload.chunkOffset,
+              "X-File-Total-Size": upload.size,
+            }
+          );
+        } else {
+          promise = filesApi.post(
+            upload.source,
+            upload.path,
+            chunk,
+            upload.overwrite,
+            chunkProgress,
+            {
+              "X-File-Chunk-Offset": upload.chunkOffset,
+              "X-File-Total-Size": upload.size,
+            }
+          );
+        }
 
         upload.xhr = promise.xhr;
         await promise;

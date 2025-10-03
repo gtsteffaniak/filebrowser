@@ -2,7 +2,7 @@
   <div class="card headline-card">
     <div class="card-wrapper user-card">
       <div
-        v-if="settingsAllowed && user.username !== 'anonymous'"
+        v-if="settingsAllowed"
         @click="navigateTo('/settings','#profile-main')"
         class="inner-card"
       >
@@ -77,6 +77,7 @@
 
     <!-- Sidebar file actions -->
     <transition
+      v-if="shareInfo.shareType !== 'upload'"
       name="expand"
       @before-enter="beforeEnter"
       @enter="enter"
@@ -156,6 +157,7 @@ export default {
     return {};
   },
   computed: {
+    shareInfo: () => shareInfo,
     disableQuickToggles: () => state.user.disableQuickToggles,
     hasSourceInfo: () => state.sources.hasSourceInfo,
     hideSidebarFileActions: () => state.user.hideSidebarFileActions || getters.isInvalidShare(),

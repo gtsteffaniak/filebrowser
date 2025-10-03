@@ -54,7 +54,10 @@
     "listView": "Widok listy",
     "compactView": "Widok kompaktowy",
     "normalView": "Widok normalny",
-    "galleryView": "Widok galerii"
+    "galleryView": "Widok galerii",
+    "uploadFiles": "Przesyłanie plików",
+    "uploadFolder": "Folder przesyłania",
+    "openUploadViewer": "Otwórz Menedżera przesyłania"
   },
   "download": {
     "downloadFile": "Pobierz plik",
@@ -411,7 +414,13 @@
     "titleDefault": "Udostępnione pliki - {title}",
     "defaultViewMode": "Domyślny tryb widoku",
     "defaultViewModeDescription": "Ustawia domyślny tryb widoku dla anonimowych użytkowników przeglądających ten folder udostępniony. Zalogowani użytkownicy mogą nadal zmieniać swoje preferencje widoku.",
-    "disableFileViewer": "Wyłącz przeglądarkę plików"
+    "disableFileViewer": "Wyłącz przeglądarkę plików",
+    "shareType": "Typ udziału",
+    "shareTypeDescription": "Typ udziału do utworzenia. Zwykłe udziały umożliwiają przeglądanie i pobieranie plików. Udziały przesyłania umożliwiają przesyłanie plików do udziału.",
+    "normalShare": "Normalny",
+    "uploadShare": "Tylko przesyłanie",
+    "perUserDownloadLimit": "Zastosowanie limitu pobrań do każdego użytkownika",
+    "perUserDownloadLimitDescription": "Po włączeniu limit pobrań zostanie zastosowany do każdego użytkownika. Anonimowi użytkownicy nie będą mogli pobierać żadnych plików z tego folderu udostępnionego."
   },
   "api": {
     "title": "Klucze API:",
@@ -505,7 +514,8 @@
     "uploadChunkSizeMb": "Rozmiar przesyłanego fragmentu w MB",
     "uploadChunkSizeMbHelp": "Zazwyczaj od 5 do 50 MB, mniejsze są lepsze dla niestabilnych lub ograniczonych połączeń. Ustawienie wartości 0 spowoduje wyłączenie podziału na fragmenty.",
     "clearAll": "Wyczyszczenie zakończone powinno usunąć błąd, pauzę i konflikt",
-    "clearAllDescription": "Przycisk wyczyść ukończone spowoduje wyczyszczenie wszystkich przesłanych plików w stanie ukończenia, w tym w stanie błędu, wstrzymania i konfliktu."
+    "clearAllDescription": "Przycisk wyczyść ukończone spowoduje wyczyszczenie wszystkich przesłanych plików w stanie ukończenia, w tym w stanie błędu, wstrzymania i konfliktu.",
+    "uploadSettings": "Ustawienia przesyłania"
   },
   "colors": {
     "red": "czerwony",

@@ -139,6 +139,7 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	publicAPI.HandleFunc("POST /onlyoffice/callback", withHashFile(onlyofficeCallbackHandler))
 	publicAPI.HandleFunc("GET /onlyoffice/callback", withHashFile(onlyofficeCallbackHandler))
 	publicAPI.HandleFunc("GET /onlyoffice/config", withHashFile(onlyofficeClientConfigGetHandler))
+	publicAPI.HandleFunc("POST /resources", withHashFile(publicUploadHandler))
 
 	// Settings routes
 	api.HandleFunc("GET /settings", withAdmin(settingsGetHandler))

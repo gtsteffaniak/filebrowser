@@ -216,7 +216,13 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		logger.Debugf("invalid path encoding: %v", err)
 		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}
-	if !d.user.Permissions.Modify {
+	shareUpload := false
+	if d.share != nil {
+		if d.share.ShareType == "upload" {
+			shareUpload = true
+		}
+	}
+	if !d.user.Permissions.Modify && !shareUpload {
 		logger.Debugf("user is not allowed to create or modify")
 		return http.StatusForbidden, fmt.Errorf("user is not allowed to create or modify")
 	}
