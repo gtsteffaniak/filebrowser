@@ -136,7 +136,7 @@ export function getTypeInfo(mimeType) {
         };
     }
 
-    if (mimeType === "text/plain" || mimeType === "text/markdown") {
+    if (mimeType.startsWith("text/")) {
         return {
             classes: "white-icons material-icons",
             materialIcon: "description",
@@ -174,8 +174,6 @@ export function getTypeInfo(mimeType) {
 
     if (
         mimeType === "application/x-python" ||
-        mimeType === "text/html" ||
-        mimeType === "text/css" ||
         mimeType === "application/vnd.google-apps.sites"
     ) {
         return {

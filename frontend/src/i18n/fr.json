@@ -54,7 +54,10 @@
     "listView": "Vue de la liste",
     "compactView": "Vue compacte",
     "normalView": "Vue normale",
-    "galleryView": "Vue de la galerie"
+    "galleryView": "Vue de la galerie",
+    "uploadFiles": "Téléchargement de fichiers",
+    "uploadFolder": "Télécharger le dossier",
+    "openUploadViewer": "Ouvrir le gestionnaire de téléchargement"
   },
   "download": {
     "downloadFile": "Télécharger le fichier",
@@ -411,7 +414,13 @@
     "titleDefault": "Fichiers partagés - {title}",
     "defaultViewMode": "Mode d'affichage par défaut",
     "defaultViewModeDescription": "Définit le mode d'affichage par défaut pour les utilisateurs anonymes qui consultent ce partage. Les utilisateurs connectés peuvent toujours modifier leurs préférences d'affichage.",
-    "disableFileViewer": "Désactiver le visualiseur de fichiers"
+    "disableFileViewer": "Désactiver le visualiseur de fichiers",
+    "shareType": "Type d'action",
+    "shareTypeDescription": "Le type de partage à créer. Les partages normaux permettent de visualiser et de télécharger des fichiers. Les partages de téléchargement permettent de télécharger des fichiers vers le partage.",
+    "normalShare": "Normal",
+    "uploadShare": "Téléchargement uniquement",
+    "perUserDownloadLimit": "Appliquer la limite de téléchargements à chaque utilisateur",
+    "perUserDownloadLimitDescription": "Lorsque cette option est activée, la limite de téléchargements est appliquée à chaque utilisateur. Les utilisateurs anonymes ne pourront pas télécharger de fichiers à partir de ce partage."
   },
   "api": {
     "title": "Clés API :",
@@ -505,7 +514,8 @@
     "uploadChunkSizeMb": "Taille de la zone de téléchargement en Mo",
     "uploadChunkSizeMbHelp": "Généralement de 5 à 50 Mo, une taille inférieure est préférable pour les connexions instables ou restreintes. La valeur 0 désactive le fractionnement de l'upload.",
     "clearAll": "Clear completed devrait supprimer les erreurs, les pauses et les conflits.",
-    "clearAllDescription": "Le bouton \"Effacer les téléchargements terminés\" efface tous les téléchargements terminés, y compris les erreurs, les pauses et les conflits."
+    "clearAllDescription": "Le bouton \"Effacer les téléchargements terminés\" efface tous les téléchargements terminés, y compris les erreurs, les pauses et les conflits.",
+    "uploadSettings": "Paramètres de téléchargement"
   },
   "colors": {
     "red": "rouge",

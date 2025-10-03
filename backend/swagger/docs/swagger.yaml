@@ -793,9 +793,14 @@ definitions:
         type: string
       path:
         type: string
+      perUserDownloadLimit:
+        type: boolean
       quickDownload:
         type: boolean
       shareTheme:
+        type: string
+      shareType:
+        description: 'type of share: normal, upload, max'
         type: string
       source:
         description: backend source is path to maintain between name changes
@@ -863,9 +868,14 @@ definitions:
         type: string
       path:
         type: string
+      perUserDownloadLimit:
+        type: boolean
       quickDownload:
         type: boolean
       shareTheme:
+        type: string
+      shareType:
+        description: 'type of share: normal, upload, max'
         type: string
       source:
         description: backend source is path to maintain between name changes
@@ -1780,67 +1790,6 @@ paths:
       summary: Get image preview
       tags:
       - Resources
-  /api/public/preview:
-    get:
-      consumes:
-      - application/json
-      description: Returns a preview image based on the requested path and size.
-      parameters:
-      - description: source hash
-        in: query
-        name: hash
-        required: true
-        type: string
-      - description: File path of the image to preview
-        in: query
-        name: path
-        required: true
-        type: string
-      - description: Preview size ('small' or 'large'). Default is based on server
-          config.
-        in: query
-        name: size
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Preview image content
-          schema:
-            type: file
-        "202":
-          description: Download permissions required
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "400":
-          description: Invalid request path
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: File not found
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "415":
-          description: Unsupported file type for preview
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal server error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Get image preview
-      tags:
-      - Resources
   /api/raw:
     get:
       consumes:
@@ -2599,17 +2548,81 @@ paths:
       summary: Health Check
       tags:
       - Health
-  /public/dl:
+  /public/api/preview:
     get:
       consumes:
       - application/json
-      description: Returns the raw content of a file, multiple files, or a directory.
-        Supports downloading files as archives in various formats.
+      description: Returns a preview (thumbnail) for images or videos accessible via
+        a public share. Preview generation can be disabled globally or per-share.
+        Not available for upload-only shares.
       parameters:
-      - description: if specified, only the files in the list will be downloaded.
-          eg. files=/file1||/folder/file2
+      - description: Share hash for authentication
+        in: query
+        name: hash
+        required: true
+        type: string
+      - description: File path within the share to preview
+        in: query
+        name: path
+        required: true
+        type: string
+      - description: 'Preview size: ''small'' or ''large''. Default is based on server
+          config.'
+        in: query
+        name: size
+        type: string
+      produces:
+      - image/jpeg
+      responses:
+        "200":
+          description: Preview image content (JPEG)
+          schema:
+            type: file
+        "403":
+          description: Share unavailable or access denied
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: File not found or preview not available
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "501":
+          description: Previews disabled globally, for this share, or for upload shares
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get image/video preview from a public share
+      tags:
+      - Public Shares
+  /public/api/raw:
+    get:
+      consumes:
+      - application/json
+      description: Downloads raw content from a public share. Supports single files,
+        multiple files, or directories as archives. Enforces download limits (global
+        or per-user) and blocks anonymous users when per-user limits are enabled.
+      parameters:
+      - description: Share hash for authentication
+        in: query
+        name: hash
+        required: true
+        type: string
+      - description: 'Files to download in format: ''source::path||source::path''.
+          Example: ''/file1||/folder/file2'''
         in: query
         name: files
+        required: true
         type: string
       - description: If true, sets 'Content-Disposition' to 'inline'. Otherwise, defaults
           to 'attachment'.
@@ -2622,26 +2635,27 @@ paths:
         name: algo
         type: string
       produces:
-      - application/json
+      - application/octet-stream
       responses:
         "200":
           description: Raw file or directory content, or archive for multiple files
           schema:
             type: file
-        "202":
-          description: Modify permissions required
+        "400":
+          description: Invalid request path or encoding
           schema:
             additionalProperties:
               type: string
             type: object
-        "400":
-          description: Invalid request path
+        "403":
+          description: Download limit reached, anonymous access blocked, or share
+            unavailable
           schema:
             additionalProperties:
               type: string
             type: object
         "404":
-          description: File or directory not found
+          description: Share not found or file not found
           schema:
             additionalProperties:
               type: string
@@ -2652,9 +2666,146 @@ paths:
             additionalProperties:
               type: string
             type: object
-      summary: Get raw content of a file, multiple files, or directory
+        "501":
+          description: Downloads disabled for upload shares
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Download files from a public share
       tags:
-      - Resources
+      - Public Shares
+  /public/api/resources:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Handles file and directory uploads to an upload-only public share.
+        Supports chunked uploads, conflict resolution (override), and directory creation.
+      parameters:
+      - description: Share hash for authentication
+        in: query
+        name: hash
+        required: true
+        type: string
+      - description: Target path within the share to upload to. Must be relative to
+          share root.
+        in: query
+        name: targetPath
+        required: true
+        type: string
+      - description: If true, overwrite existing files/folders. Defaults to false.
+        in: query
+        name: override
+        type: boolean
+      - description: 'Upload action: ''override'' to replace files, ''rename'' to
+          auto-rename'
+        in: query
+        name: action
+        type: string
+      - description: File to upload
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Upload successful
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Invalid request or parameters
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Share unavailable or upload not allowed
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Share not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: File or directory already exists (conflict)
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error during upload
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "501":
+          description: Uploading disabled for non-upload shares
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Upload files to a public upload share
+      tags:
+      - Public Shares
+  /public/api/share:
+    get:
+      consumes:
+      - application/json
+      description: Returns metadata for files or directories accessible via a public
+        share link. Browsing is disabled for upload-only shares.
+      parameters:
+      - description: Share hash for authentication
+        in: query
+        name: hash
+        required: true
+        type: string
+      - description: Path within the share to retrieve information for. Defaults to
+          share root.
+        in: query
+        name: path
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: File or directory metadata
+          schema:
+            $ref: '#/definitions/iteminfo.FileInfo'
+        "403":
+          description: Share unavailable or access denied
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Share not found or file not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "501":
+          description: Browsing disabled for upload shares
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get file/directory information from a public share
+      tags:
+      - Public Shares
   /public/share/direct:
     get:
       consumes:

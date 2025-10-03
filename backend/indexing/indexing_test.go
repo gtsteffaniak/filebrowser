@@ -9,7 +9,7 @@ import (
 )
 
 func BenchmarkFillIndex(b *testing.B) {
-	Initialize(settings.Source{
+	Initialize(&settings.Source{
 		Name: "test",
 		Path: "/srv",
 	}, true)

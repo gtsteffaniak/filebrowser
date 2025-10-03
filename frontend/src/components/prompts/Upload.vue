@@ -3,6 +3,38 @@
     <h2>{{ $t("prompts.upload") }}</h2>
     <p>{{ uploadSettingsDescription }}</p>
   </div>
+  <SettingsItem :title="$t('fileLoading.uploadSettings')" :collapsable="true" :start-collapsed="true">
+    <div class="settings-items upload-settings">
+      <div class="settings-number-input item">
+        <div class="no-padding">
+          <label for="maxConcurrentUpload">{{ $t("fileLoading.maxConcurrentUpload") }}</label>
+          <i class="no-select material-symbols-outlined tooltip-info-icon"
+            @mouseenter="showTooltip($event, $t('fileLoading.maxConcurrentUploadHelp'))" @mouseleave="hideTooltip">
+            help
+          </i>
+        </div>
+        <div>
+          <input v-model.number="maxConcurrentUpload" type="range" min="1" max="10" @change="updateUploadSettings" />
+          <span class="range-value">{{ maxConcurrentUpload }}</span>
+        </div>
+      </div>
+      <div class="settings-number-input item">
+        <div class="no-padding">
+          <label for="uploadChunkSizeMb">{{ $t("fileLoading.uploadChunkSizeMb") }}</label>
+          <i class="no-select material-symbols-outlined tooltip-info-icon"
+            @mouseenter="showTooltip($event, $t('fileLoading.uploadChunkSizeMbHelp'))" @mouseleave="hideTooltip">
+            help
+          </i>
+        </div>
+        <div class="no-padding">
+          <input class="sizeInput input" v-model.number="uploadChunkSizeMb" type="number" min="0" @change="updateUploadSettings" />
+        </div>
+      </div>
+      <ToggleSwitch class="item" v-model="clearAll" @change="updateUploadSettings"
+        :name="$t('fileLoading.clearAll')"
+        :description="$t('fileLoading.clearAllDescription')" />
+    </div>
+  </SettingsItem>
   <div class="upload-prompt" :class="{ dropping: isDragging }" @dragenter.prevent="onDragEnter"
     @dragover.prevent="onDragOver" @dragleave.prevent="onDragLeave" @drop.prevent="onDrop">
     <div class="upload-prompt-container">
@@ -18,7 +50,7 @@
       </div>
     </div>
   </div>
-  <div class="card-content" @drop.prevent="onDrop">
+  <div v-show="files.length > 0" class="card-content" @drop.prevent="onDrop">
     <div v-if="showConflictPrompt" class="conflict-overlay">
       <div class="card">
         <div class="card-content">
@@ -82,7 +114,7 @@
   </div>
 
   <div class="card-actions">
-    <button @click="close" class="button button--flat button--grey" :aria-label="$t('buttons.cancel')"
+    <button v-if="shareInfo.shareType !== 'upload'"  @click="close" class="button button--flat button--grey" :aria-label="$t('buttons.cancel')"
       :title="$t('buttons.cancel')">
       {{ $t("buttons.close") }}
     </button>
@@ -111,12 +143,18 @@ import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { uploadManager } from "@/utils/upload";
 import { mutations, state } from "@/store";
 import { notify } from "@/notify";
+import { usersApi } from "@/api";
 import ProgressBar from "@/components/ProgressBar.vue";
+import SettingsItem from "@/components/settings/SettingsItem.vue";
+import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
+import { shareInfo } from "@/utils/constants";
 
 export default {
   name: "UploadFiles",
   components: {
     ProgressBar,
+    SettingsItem,
+    ToggleSwitch,
   },
   props: {
     initialItems: {
@@ -129,6 +167,9 @@ export default {
     },
   },
   computed: {
+    shareInfo() {
+      return shareInfo;
+    },
     uploadSettingsDescription() {
       const maxConcurrentUpload = state.user.fileLoading?.maxConcurrentUpload || 3;
       const uploadChunkSizeMb = state.user.fileLoading?.uploadChunkSizeMb || 0;
@@ -153,6 +194,41 @@ export default {
     let conflictResolver = null;
 
     let wakeLock = null;
+
+    // Upload settings
+    const maxConcurrentUpload = ref(state.user.fileLoading?.maxConcurrentUpload || 3);
+    const uploadChunkSizeMb = ref(state.user.fileLoading?.uploadChunkSizeMb || 0);
+    const clearAll = ref(state.user.fileLoading?.clearAll || false);
+
+    const showTooltip = (event, text) => {
+      mutations.showTooltip({
+        content: text,
+        x: event.clientX,
+        y: event.clientY,
+      });
+    };
+
+    const hideTooltip = () => {
+      mutations.hideTooltip();
+    };
+
+    const updateUploadSettings = async () => {
+      try {
+        const data = {
+          ...state.user,
+          fileLoading: {
+            maxConcurrentUpload: maxConcurrentUpload.value,
+            uploadChunkSizeMb: uploadChunkSizeMb.value,
+            clearAll: clearAll.value,
+          },
+        };
+        mutations.updateCurrentUser(data);
+        await usersApi.update(data, ["fileLoading"]);
+        notify.showSuccess("Upload settings updated");
+      } catch (e) {
+        notify.showError(e);
+      }
+    };
 
     const handleConflict = (resolver) => {
       conflictResolver = resolver;
@@ -471,6 +547,12 @@ export default {
       canPauseAll,
       canResumeAll,
       handleConflictAction,
+      maxConcurrentUpload,
+      uploadChunkSizeMb,
+      clearAll,
+      showTooltip,
+      hideTooltip,
+      updateUploadSettings,
     };
   },
 };
@@ -482,7 +564,7 @@ export default {
   padding: 2em;
   border: 2px dashed #ccc;
   border-radius: 8px;
-  margin: 0 1em;
+  margin: 1em;
 }
 
 .dropping {
@@ -591,5 +673,39 @@ export default {
   background-color: var(--card-background-color);
   padding: 1em;
   border-radius: 8px;
+}
+
+/* Upload settings styles */
+.upload-settings {
+  margin: 0 1em;
+}
+
+.settings-number-input {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.5em 0;
+}
+
+.settings-number-input div {
+  display: flex;
+  padding: 0.25em;
+  align-items: center;
+}
+
+.settings-number-input .no-padding {
+  padding: 0;
+}
+
+.range-value {
+  margin-left: 1em;
+  min-width: 2ch;
+  text-align: center;
+  font-weight: bold;
+}
+
+.sizeInput {
+  max-width: 100px;
 }
 </style>

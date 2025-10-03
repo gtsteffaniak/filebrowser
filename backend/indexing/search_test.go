@@ -11,7 +11,7 @@ import (
 )
 
 func BenchmarkSearchAllIndexes(b *testing.B) {
-	Initialize(settings.Source{Name: "test", Path: "/srv"}, true)
+	Initialize(&settings.Source{Name: "test", Path: "/srv"}, true)
 	idx := GetIndex("test")
 
 	idx.CreateMockData(50, 3) // 50 dirs, 3 files per dir
@@ -77,7 +77,7 @@ func TestParseSearch(t *testing.T) {
 }
 
 func TestSearchWhileIndexing(t *testing.T) {
-	Initialize(settings.Source{Name: "test", Path: "/srv"}, true)
+	Initialize(&settings.Source{Name: "test", Path: "/srv"}, true)
 	idx := GetIndex("test")
 
 	searchTerms := utils.GenerateRandomSearchTerms(10)

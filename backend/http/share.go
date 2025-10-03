@@ -212,6 +212,9 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		stringHash = string(hash)
 	}
 	if s != nil {
+		// Check if downloads limit or per-user limit changed - reset counts if so
+		shouldResetCounts := s.DownloadsLimit != body.DownloadsLimit || s.PerUserDownloadLimit != body.PerUserDownloadLimit
+
 		s.Expire = expire
 		s.PasswordHash = stringHash
 		s.Token = token
@@ -221,6 +224,12 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		body.Path = s.Path
 		body.Source = s.Source
 		s.CommonShare = body.CommonShare
+
+		// Reset download counts if limit settings changed
+		if shouldResetCounts {
+			s.ResetDownloadCounts()
+		}
+
 		if err = store.Share.Save(s); err != nil {
 			return http.StatusInternalServerError, err
 		}

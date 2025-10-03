@@ -54,7 +54,10 @@
     "listView": "リスト表示",
     "compactView": "コンパクトビュー",
     "normalView": "通常表示",
-    "galleryView": "ギャラリービュー"
+    "galleryView": "ギャラリービュー",
+    "uploadFiles": "ファイルのアップロード",
+    "uploadFolder": "フォルダのアップロード",
+    "openUploadViewer": "アップロードマネージャーを開く"
   },
   "download": {
     "downloadFile": "ファイルをダウンロード",
@@ -411,7 +414,13 @@
     "defaultViewModeDescription": "匿名ユーザーがこの共有を閲覧する際のデフォルトの表示モードを設定します。ログインしているユーザーは、表示モードを変更することができます。",
     "enableOnlyOfficeEditingDescription": "この共有でOnlyOfficeを使ったオフィスファイルの編集を許可する",
     "titleDefault": "共有ファイル{title}",
-    "disableFileViewer": "ファイルビューアを無効にする"
+    "disableFileViewer": "ファイルビューアを無効にする",
+    "shareType": "シェアタイプ",
+    "shareTypeDescription": "作成する共有のタイプ。通常の共有では、ファイルの表示とダウンロードが可能です。アップロード共有では、共有にファイルをアップロードできます。",
+    "normalShare": "ノーマル",
+    "uploadShare": "アップロードのみ",
+    "perUserDownloadLimit": "各ユーザーにダウンロード制限を適用する",
+    "perUserDownloadLimitDescription": "有効にすると、各ユーザーにダウンロード制限が適用されます。匿名ユーザーはこの共有からファイルをダウンロードできません。"
   },
   "api": {
     "title": "APIキー：",
@@ -505,7 +514,8 @@
     "clearAll": "クリアが完了すると、エラー、一時停止、コンフリクトが取り除かれる。",
     "clearAllDescription": "clear completedボタンは、エラー、一時停止、競合状態を含む、完了状態のすべてのアップロードをクリアします。",
     "uploadChunkSizeMb": "アップロードチャンクサイズ（MB）",
-    "uploadChunkSizeMbHelp": "通常5～50MBですが、不安定な接続や制限のある接続の場合は小さい方が良いでしょう。0に設定するとアップロードチャンキングが無効になります。"
+    "uploadChunkSizeMbHelp": "通常5～50MBですが、不安定な接続や制限のある接続の場合は小さい方が良いでしょう。0に設定するとアップロードチャンキングが無効になります。",
+    "uploadSettings": "設定のアップロード"
   },
   "colors": {
     "red": "赤",

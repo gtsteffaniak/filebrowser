@@ -62,7 +62,7 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 		return http.StatusBadRequest, errors.New("missing required parameters: path + source/hash are required")
 	}
 	themeMode := utils.Ternary(d.user.DarkMode, "dark", "light")
-	var sourceInfo settings.Source
+	var sourceInfo *settings.Source
 	var ok bool
 	if d.fileInfo.Hash != "" {
 		sourceInfo, ok = settings.Config.Server.SourceMap[source]
@@ -258,7 +258,7 @@ func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *reques
 		logger.Errorf("OnlyOffice callback missing required parameters: source=%s, path=%s", source, path)
 		return http.StatusBadRequest, errors.New("missing required parameters: path + source/hash are required")
 	}
-	var sourceInfo settings.Source
+	var sourceInfo *settings.Source
 	var ok bool
 	if d.fileInfo.Hash != "" {
 		sourceInfo, ok = settings.Config.Server.SourceMap[source]

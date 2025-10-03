@@ -54,7 +54,10 @@
     "listView": "Lista",
     "compactView": "Compacto",
     "normalView": "Normal",
-    "galleryView": "Galería"
+    "galleryView": "Galería",
+    "uploadFiles": "Cargar archivos",
+    "uploadFolder": "Cargar carpeta",
+    "openUploadViewer": "Abrir Upload Manager"
   },
   "download": {
     "downloadFile": "Descargar archivo",
@@ -411,7 +414,13 @@
     "enableOnlyOfficeEditingDescription": "Permitir la edición de archivos de oficina utilizando OnlyOffice en este recurso compartido.",
     "titleDefault": "Archivos compartidos - {title}",
     "defaultViewMode": "Modo de visualización",
-    "defaultViewModeDescription": "Establece el modo de visualización predeterminado para los usuarios anónimos que vean esta acción. Los usuarios registrados pueden cambiar su preferencia de visualización."
+    "defaultViewModeDescription": "Establece el modo de visualización predeterminado para los usuarios anónimos que vean esta acción. Los usuarios registrados pueden cambiar su preferencia de visualización.",
+    "shareType": "Tipo de acción",
+    "shareTypeDescription": "El tipo de recurso compartido que se va a crear. Los recursos compartidos normales permiten ver y descargar archivos. Los recursos compartidos de carga permiten cargar archivos en el recurso compartido.",
+    "normalShare": "Normal",
+    "uploadShare": "Cargar sólo",
+    "perUserDownloadLimit": "Aplicar el límite de descargas a cada usuario",
+    "perUserDownloadLimitDescription": "Cuando se activa, el límite de descargas se aplicará a cada usuario. Los usuarios anónimos no podrán descargar ningún archivo de este recurso compartido."
   },
   "api": {
     "title": "Gestión de claves API",
@@ -505,7 +514,8 @@
     "uploadChunkSizeMb": "Velocidad de subida (en MB)",
     "uploadChunkSizeMbHelp": "Típicamente 5 a 50 MB, más pequeño es mejor para conexiones inestables. Si se pone a 0, se desactiva la subida de archivo en partes",
     "clearAll": " Hacer que 'Limpiar completados' borre todo (incluyendo error, pausa y en conflicto)",
-    "clearAllDescription": "El botón de borrado de cargas completadas borrará todas las cargas en estado finalizado, incluidos los estados de error, pausa y conflicto."
+    "clearAllDescription": "El botón de borrado de cargas completadas borrará todas las cargas en estado finalizado, incluidos los estados de error, pausa y conflicto.",
+    "uploadSettings": "Cargar configuración"
   },
   "colors": {
     "red": "Rojo",

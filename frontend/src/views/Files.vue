@@ -81,10 +81,7 @@ export default {
       return state.share;
     },
     showShareInfo() {
-      return this.isShare && state.share.hash && state.isMobile && state.req.path == "/" && !shareInfo.disableShareCard;
-    },
-    isShare() {
-      return getters.isShare();
+      return shareInfo.isShare && state.share.hash && state.isMobile && state.req.path == "/" && !shareInfo.disableShareCard;
     },
     popupEnabled() {
       return state.user.preview.popup;
@@ -167,7 +164,7 @@ export default {
         }
     },
     async fetchData() {
-      if (state.deletedItem || getters.isInvalidShare()) {
+      if (state.deletedItem || getters.isInvalidShare() || shareInfo.shareType == "upload") {
         return
       }
 
@@ -178,12 +175,12 @@ export default {
         });
       }
       // Set loading and reset error
-      mutations.setLoading(this.isShare ? "share" : "files", true);
+      mutations.setLoading(shareInfo.isShare ? "share" : "files", true);
       this.error = null;
       mutations.setReload(false);
 
       try {
-        if (this.isShare) {
+        if (shareInfo.isShare) {
           await this.fetchShareData();
         } else {
           await this.fetchFilesData();
@@ -200,7 +197,7 @@ export default {
           router.push({ name: "notFound" });
         } else if (e.status === 403) {
           router.push({ name: "forbidden" });
-        } else if (e.status === 401 && this.isShare) {
+        } else if (e.status === 401 && shareInfo.isShare) {
           // Handle share password requirement
           this.attemptedPasswordLogin = this.sharePassword !== "";
           // Reset password validation state on wrong password
@@ -210,7 +207,7 @@ export default {
           router.push({ name: "error" });
         }
       } finally {
-        mutations.setLoading(this.isShare ? "share" : "files", false);
+        mutations.setLoading(shareInfo.isShare ? "share" : "files", false);
       }
 
       setTimeout(() => {
@@ -352,7 +349,7 @@ export default {
       }
 
       // Esc! - for shares, reset selection
-      if (this.isShare && event.keyCode === 27) {
+      if (shareInfo.isShare && event.keyCode === 27) {
         if (getters.selectedCount() > 0) {
           mutations.resetSelected();
         }

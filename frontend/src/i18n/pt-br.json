@@ -54,7 +54,10 @@
     "listView": "Exibição de lista",
     "compactView": "Visão compacta",
     "normalView": "Visualização normal",
-    "galleryView": "Visualização da galeria"
+    "galleryView": "Visualização da galeria",
+    "uploadFiles": "Carregar arquivos",
+    "uploadFolder": "Upload de pasta",
+    "openUploadViewer": "Abrir o Upload Manager"
   },
   "download": {
     "downloadFile": "Baixar arquivo",
@@ -411,7 +414,13 @@
     "titleDefault": "Arquivos compartilhados - {title}",
     "defaultViewMode": "Modo de exibição padrão",
     "defaultViewModeDescription": "Define o modo de exibição padrão para usuários anônimos que visualizam esse compartilhamento. Os usuários conectados ainda podem alterar sua preferência de visualização.",
-    "disableFileViewer": "Desativar o visualizador de arquivos"
+    "disableFileViewer": "Desativar o visualizador de arquivos",
+    "shareType": "Tipo de ação",
+    "shareTypeDescription": "O tipo de compartilhamento a ser criado. Os compartilhamentos normais permitem a visualização e o download de arquivos. Os compartilhamentos de upload permitem o upload de arquivos para o compartilhamento.",
+    "normalShare": "Normal",
+    "uploadShare": "Somente upload",
+    "perUserDownloadLimit": "Aplicar o limite de downloads a cada usuário",
+    "perUserDownloadLimitDescription": "Quando ativado, o limite de downloads será aplicado a cada usuário. Os usuários anônimos não poderão fazer download de nenhum arquivo desse compartilhamento."
   },
   "api": {
     "title": "Chaves de API:",
@@ -505,7 +514,8 @@
     "uploadChunkSizeMb": "Tamanho do bloco de upload em MB",
     "uploadChunkSizeMbHelp": "Normalmente, de 5 a 50 MB; quanto menor, melhor para conexões instáveis ou restritas. A configuração como 0 desabilitará o chunking de upload.",
     "clearAll": "O Clear completed deve remover erros, pausas e conflitos",
-    "clearAllDescription": "O botão limpar concluído limpará todos os uploads em um estado concluído, inclusive os estados de erro, pausa e conflito."
+    "clearAllDescription": "O botão limpar concluído limpará todos os uploads em um estado concluído, inclusive os estados de erro, pausa e conflito.",
+    "uploadSettings": "Configurações de upload"
   },
   "colors": {
     "red": "vermelho",

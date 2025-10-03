@@ -1,5 +1,5 @@
 <template>
-  <div class="no-select">
+  <div v-if="shareInfo.shareType != 'upload'" class="no-select">
     <div v-if="loading">
       <h2 class="message delayed">
         <div class="spinner">
@@ -113,7 +113,7 @@
             v-bind:size="item.size"
             v-bind:path="item.path"
             v-bind:reducedOpacity="item.hidden || isDragging"
-            v-bind:hash="isShare ? state.share.hash : undefined"
+            v-bind:hash="shareInfo.isShare ? state.share.hash : undefined"
             :readOnly="isShare ? true : undefined"
             v-bind:hasPreview="item.hasPreview"
           />
@@ -136,7 +136,7 @@
             v-bind:size="item.size"
             v-bind:path="item.path"
             v-bind:reducedOpacity="item.hidden || isDragging"
-            v-bind:hash="isShare ? state.share.hash : undefined"
+            v-bind:hash="shareInfo.isShare ? state.share.hash : undefined"
             v-bind:hasPreview="item.hasPreview"
           />
         </div>
@@ -159,6 +159,11 @@
       </div>
     </div>
   </div>
+
+  <!-- Upload Share Target -->
+  <div v-else class="upload-share-embed">
+    <Upload :initialItems="null" />
+  </div>
 </template>
 
 <script>
@@ -170,13 +175,16 @@ import * as upload from "@/utils/upload";
 import throttle from "@/utils/throttle";
 import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
+import { shareInfo } from "@/utils/constants";
 
 import Item from "@/components/files/ListingItem.vue";
+import Upload from "@/components/prompts/Upload.vue";
 
 export default {
   name: "listingView",
   components: {
     Item,
+    Upload,
   },
   data() {
     return {
@@ -233,8 +241,8 @@ export default {
     },
   },
   computed: {
-    isShare() {
-      return getters.isShare();
+    shareInfo() {
+      return shareInfo;
     },
     state() {
       return state;
@@ -796,7 +804,7 @@ export default {
         return;
       }
       mutations.setLoading("listing", true);
-      if (getters.isShare()) {
+      if (shareInfo.isShare) {
         // Shared files don't support move/copy operations
         mutations.setLoading("listing", false);
         notify.showError("Move/copy operations are not supported for shared files.");
@@ -856,6 +864,10 @@ export default {
       }
     },
     dragEnter(event) {
+      // If in upload share mode, let the embedded Upload component handle it
+      if (shareInfo.shareType === 'upload') {
+        return;
+      }
       const isInternal = Array.from(event.dataTransfer.types).includes(
         "application/x-filebrowser-internal-drag"
       );
@@ -865,6 +877,10 @@ export default {
       this.dragCounter++;
     },
     dragLeave(event) {
+      // If in upload share mode, let the embedded Upload component handle it
+      if (shareInfo.shareType === 'upload') {
+        return;
+      }
       const isInternal = Array.from(event.dataTransfer.types).includes(
         "application/x-filebrowser-internal-drag"
       );
@@ -941,6 +957,12 @@ export default {
       event.preventDefault();
       this.dragCounter = 0;
 
+      // If we're already in the embedded upload view, don't open a new prompt
+      // The embedded Upload component will handle its own drops
+      if (shareInfo.shareType === 'upload') {
+        return;
+      }
+
       if (event.type === "drop") {
         mutations.showHover({
           name: "upload",
@@ -1000,6 +1022,13 @@ export default {
 .folder-items a {
   border-color: #d1d1d1;
   border-style: solid;
+}
+
+/* Upload Share Styles */
+.upload-share-embed {
+  padding: 2em;
+  max-width: 800px;
+  margin: 0 auto;
 }
 
 </style>

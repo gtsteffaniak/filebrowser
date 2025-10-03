@@ -54,7 +54,10 @@
     "listView": "Zobrazení seznamu",
     "compactView": "Kompaktní zobrazení",
     "normalView": "Normální zobrazení",
-    "galleryView": "Pohled do galerie"
+    "galleryView": "Pohled do galerie",
+    "uploadFiles": "Nahrávání souborů",
+    "uploadFolder": "Nahrát složku",
+    "openUploadViewer": "Otevřít Správce nahrávání"
   },
   "download": {
     "downloadFile": "Stáhnout soubor",
@@ -186,7 +189,13 @@
     "titleDefault": "Sdílené soubory - {title}",
     "defaultViewMode": "Výchozí režim zobrazení",
     "defaultViewModeDescription": "Nastavení výchozího režimu zobrazení pro anonymní uživatele prohlížející tuto sdílenou složku. Přihlášení uživatelé mohou stále měnit předvolby zobrazení.",
-    "disableFileViewer": "Zakázat prohlížeč souborů"
+    "disableFileViewer": "Zakázat prohlížeč souborů",
+    "shareType": "Typ sdílení",
+    "shareTypeDescription": "Typ podílu, který se má vytvořit. Normální sdílení umožňuje prohlížení a stahování souborů. Sdílené složky typu Upload umožňují nahrávání souborů do sdílené složky.",
+    "normalShare": "Normální",
+    "uploadShare": "Pouze nahrávání",
+    "perUserDownloadLimit": "Použít limit stahování pro každého uživatele",
+    "perUserDownloadLimitDescription": "Pokud je tato možnost povolena, bude limit stahování platit pro každého uživatele. Anonymní uživatelé nebudou moci z této sdílené složky stahovat žádné soubory."
   },
   "prompts": {
     "copy": "Kopírovat",
@@ -529,7 +538,8 @@
     "uploadChunkSizeMb": "Velikost nahraného souboru v MB",
     "uploadChunkSizeMbHelp": "Obvykle 5 až 50 MB, menší velikost je lepší pro nestabilní nebo omezené připojení. Nastavením na hodnotu 0 se vypne rozdělování nahrávání.",
     "clearAll": "Vymazání dokončeno by mělo odstranit chybu, pauzu a konflikt.",
-    "clearAllDescription": "Tlačítko Vymazat dokončené vymaže všechna odesílání v dokončeném stavu, včetně chybových, pozastavených a konfliktních stavů."
+    "clearAllDescription": "Tlačítko Vymazat dokončené vymaže všechna odesílání v dokončeném stavu, včetně chybových, pozastavených a konfliktních stavů.",
+    "uploadSettings": "Nastavení nahrávání"
   },
   "colors": {
     "red": "červená",

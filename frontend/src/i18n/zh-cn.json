@@ -54,7 +54,10 @@
     "listView": "列表查看",
     "compactView": "紧凑型视图",
     "normalView": "正常视图",
-    "galleryView": "图库浏览"
+    "galleryView": "图库浏览",
+    "uploadFiles": "上传文件",
+    "uploadFolder": "上传文件夹",
+    "openUploadViewer": "打开上传管理器"
   },
   "download": {
     "downloadFile": "下载文件",
@@ -411,7 +414,13 @@
     "titleDefault": "共享文件{title}",
     "defaultViewMode": "默认视图模式",
     "defaultViewModeDescription": "设置匿名用户查看此共享的默认视图模式。已登录的用户仍可更改其查看首选项。",
-    "disableFileViewer": "禁用文件查看器"
+    "disableFileViewer": "禁用文件查看器",
+    "shareType": "共享类型",
+    "shareTypeDescription": "要创建的共享类型。普通共享允许查看和下载文件。上传共享允许向共享上传文件。",
+    "normalShare": "正常",
+    "uploadShare": "仅上传",
+    "perUserDownloadLimit": "为每个用户设置下载限制",
+    "perUserDownloadLimitDescription": "启用后，下载限制将应用于每个用户。匿名用户将无法从该共享下载任何文件。"
   },
   "api": {
     "title": "应用程序接口密钥",
@@ -469,7 +478,8 @@
     "uploadChunkSizeMb": "上传块大小（以 MB 为单位",
     "uploadChunkSizeMbHelp": "通常为 5 至 50 MB，对于不稳定或受限制的连接，越小越好。设置为 0 将禁用上传分块。",
     "clearAll": "清除完成后，应消除错误、暂停和冲突",
-    "clearAllDescription": "清除已完成按钮将清除所有处于完成状态的上传，包括错误、暂停和冲突状态。"
+    "clearAllDescription": "清除已完成按钮将清除所有处于完成状态的上传，包括错误、暂停和冲突状态。",
+    "uploadSettings": "上传设置"
   },
   "colors": {
     "red": "红",

@@ -54,7 +54,10 @@
     "compactView": "Compact View",
     "normalView": "Normal View",
     "galleryView": "Gallery View",
-    "selectedCount": "Number of items selected to perform an action"
+    "selectedCount": "Number of items selected to perform an action",
+    "uploadFiles": "Upload Files",
+    "uploadFolder": "Upload Folder",
+    "openUploadViewer": "Open Upload Manager"
   },
   "download": {
     "downloadFile": "Download File",
@@ -186,7 +189,13 @@
     "enableOnlyOffice": "Enable OnlyOffice viewer",
     "enableOnlyOfficeDescription": "Allow viewing office files using OnlyOffice in this share.",
     "enableOnlyOfficeEditing": "Enable OnlyOffice editing",
-    "enableOnlyOfficeEditingDescription": "Allow editing of office files using OnlyOffice in this share."
+    "enableOnlyOfficeEditingDescription": "Allow editing of office files using OnlyOffice in this share.",
+    "shareType": "Share type",
+    "shareTypeDescription": "The type of share to create. Normal shares allow viewing and downloading files. Upload shares allow uploading files to the share.",
+    "normalShare": "Normal",
+    "uploadShare": "Upload only",
+    "perUserDownloadLimit": "Apply the downloads limit to each user",
+    "perUserDownloadLimitDescription": "When enabled, the downloads limit will be applied to each user. Anonymous users will not be able to download any files from this share."
   },
   "prompts": {
     "operationInProgress": "Operation in progress, please wait...",
@@ -565,7 +574,8 @@
     "uploadChunkSizeMb": "Upload chunk size in MB",
     "uploadChunkSizeMbHelp": "Typically 5 to 50 MB, smaller is better for unstable or restricted connections. Setting to 0 will disable upload chunking.",
     "clearAll": "Clear completed should remove error, pause, and conflict",
-    "clearAllDescription": "The clear completed button will clear all uploads in a finished state, including error, paused, and conflict states."
+    "clearAllDescription": "The clear completed button will clear all uploads in a finished state, including error, paused, and conflict states.",
+    "uploadSettings": "Upload Settings"
   },
   "colors": {
     "red": "red",

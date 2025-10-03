@@ -437,7 +437,7 @@ func CollectCommentsFromEmbeddedYaml(yamlContent string) (CommentsMap, SecretFie
 func parseDefaultsFromEmbeddedYaml(embeddedYaml string) (*Settings, error) {
 	// Start with baseline defaults from setDefaults to ensure all fields are initialized
 	defaultConfig := setDefaults(true)
-	defaultConfig.Server.Sources = []Source{{Path: "."}}
+	defaultConfig.Server.Sources = []*Source{{Path: "."}}
 
 	// Parse the embedded YAML to overlay the documented defaults
 	if err := yaml.Unmarshal([]byte(embeddedYaml), &defaultConfig); err != nil {
@@ -698,7 +698,7 @@ func buildNodeWithDefaults(v reflect.Value, comm CommentsMap, defaults reflect.V
 
 func GenerateYaml() {
 	_ = loadConfigWithDefaults("", true)
-	Config.Server.Sources = []Source{
+	Config.Server.Sources = []*Source{
 		{
 			Path: ".",
 		},
@@ -706,9 +706,24 @@ func GenerateYaml() {
 
 	setupLogging()
 	setupAuth(true)
+
+	// Save original paths before setupSources modifies them (for YAML generation)
+	originalPaths := make(map[*Source]string)
+	for _, source := range Config.Server.Sources {
+		originalPaths[source] = source.Path
+	}
+
 	setupSources(true)
 	setupUrls()
 	setupFrontend(true)
+
+	// Restore original paths so the YAML output has the correct paths, not the placeholder
+	for _, source := range Config.Server.Sources {
+		if originalPath, ok := originalPaths[source]; ok {
+			source.Path = originalPath
+		}
+	}
+
 	output := "../frontend/public/config.generated.yaml" // "output YAML file"
 
 	// Generate YAML with comments enabled, full config, and deprecated fields filtered
@@ -936,7 +951,7 @@ func GenerateConfigYamlWithEmptyMaps(config *Settings, showFull bool) (string, e
 		if err != nil || readErr != nil {
 			// Fallback to setDefaults
 			defaultConfigValue := setDefaults(true)
-			defaultConfigValue.Server.Sources = []Source{{Path: "."}}
+			defaultConfigValue.Server.Sources = []*Source{{Path: "."}}
 			defaultConfig = &defaultConfigValue
 		}
 
@@ -1029,7 +1044,7 @@ func GenerateConfigYamlWithSource(config *Settings, showComments bool, showFull 
 		if err != nil || readErr != nil {
 			// Fallback to setDefaults
 			defaultConfigValue := setDefaults(true)
-			defaultConfigValue.Server.Sources = []Source{{Path: "."}}
+			defaultConfigValue.Server.Sources = []*Source{{Path: "."}}
 			defaultConfig = &defaultConfigValue
 		}
 
