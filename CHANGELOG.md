@@ -37,6 +37,7 @@ All notable changes to this project will be documented in this file. For commit 
  - 2FA secret error #1305
  - console errors during login/logout
  - fix scoped user share creation issue #1309
+ - share close button and navigation issues.
 
 ## v0.8.7-beta
 
