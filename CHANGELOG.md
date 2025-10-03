@@ -30,7 +30,9 @@ All notable changes to this project will be documented in this file. For commit 
  - logout path redirect not working
  - 2FA secret error #1305
  #- fix folder size indexing
- #- 
+ #- fox plyr loading same file many times
+ #- fix share direct download link issue
+ #- add share edit link on shares prompt
 
 ## v0.8.7-beta
 
