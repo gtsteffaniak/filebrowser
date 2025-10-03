@@ -420,7 +420,10 @@
     "normalShare": "正常",
     "uploadShare": "仅上传",
     "perUserDownloadLimit": "为每个用户设置下载限制",
-    "perUserDownloadLimitDescription": "启用后，下载限制将应用于每个用户。匿名用户将无法从该共享下载任何文件。"
+    "perUserDownloadLimitDescription": "启用后，下载限制将应用于每个用户。匿名用户将无法从该共享下载任何文件。",
+    "descriptionUploadDefault": "已为您发送了上传文件的共享。",
+    "extractEmbeddedSubtitles": "提取嵌入式字幕",
+    "extractEmbeddedSubtitlesDescription": "在加载时从媒体文件中提取内嵌字幕--这对于大文件来说可能会比较慢。"
   },
   "api": {
     "title": "应用程序接口密钥",
@@ -547,7 +550,9 @@
     "themeAndLanguage": "主题与语言",
     "previewFolder": "如果有的话，显示文件夹的缩略图",
     "previewFolderDescription": "显示文件夹的缩略图预览，第一个子项的缩略图为封面。",
-    "disableFileExtensions": "输入要禁用的文件扩展名"
+    "disableFileExtensions": "输入要禁用的文件扩展名",
+    "defaultLandingPage": "默认登陆页面",
+    "defaultLandingPageDescription": "例如/files/mysource/mysubpath \"或\"/settings\"--默认页面为 /files，进入第一个源列表视图"
   },
   "general": {
     "name": "名称",

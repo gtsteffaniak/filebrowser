@@ -392,7 +392,7 @@ export const mutations = {
         ].includes(key)
       );
       value.id = state.user.id;
-      value.username = state.user.username;
+      value.username = state.user?.username;
       if (updatedProperties.length > 0) {
         usersApi.update(value, updatedProperties);
       }

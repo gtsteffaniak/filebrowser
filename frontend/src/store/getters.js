@@ -45,6 +45,9 @@ export const getters = {
     return null;
   },
   viewMode: () => {
+    if (!state.user || state.user?.username == "") {
+      return "normal";
+    }
     // If user is anonymous and on a share, check for defaultViewMode override
     if (getters.isShare() && state.user?.username === 'anonymous' && shareInfo.viewMode) {
       return shareInfo.viewMode;
@@ -228,6 +231,9 @@ export const getters = {
   currentView: () => {
     let listingView = ''
     const pathname = getters.routePath()
+    if (!state.user || state.user?.username == "") {
+      return 'login'
+    }
     if (pathname.startsWith(`/settings`)) {
       listingView = 'settings'
     } else {

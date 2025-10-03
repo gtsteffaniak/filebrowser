@@ -420,7 +420,10 @@
     "normalShare": "Normal",
     "uploadShare": "Téléchargement uniquement",
     "perUserDownloadLimit": "Appliquer la limite de téléchargements à chaque utilisateur",
-    "perUserDownloadLimitDescription": "Lorsque cette option est activée, la limite de téléchargements est appliquée à chaque utilisateur. Les utilisateurs anonymes ne pourront pas télécharger de fichiers à partir de ce partage."
+    "perUserDownloadLimitDescription": "Lorsque cette option est activée, la limite de téléchargements est appliquée à chaque utilisateur. Les utilisateurs anonymes ne pourront pas télécharger de fichiers à partir de ce partage.",
+    "descriptionUploadDefault": "Un partage vous a été envoyé pour télécharger des fichiers.",
+    "extractEmbeddedSubtitles": "Extraire les sous-titres intégrés",
+    "extractEmbeddedSubtitlesDescription": "Extraire les sous-titres intégrés des fichiers multimédias lors du chargement - cette opération peut s'avérer lente pour les fichiers volumineux."
   },
   "api": {
     "title": "Clés API :",
@@ -583,7 +586,9 @@
     "themeAndLanguage": "Thème et langue",
     "previewFolder": "Afficher les vignettes des dossiers si elles sont disponibles",
     "previewFolderDescription": "Afficher des aperçus de vignettes pour les dossiers dont le premier élément enfant a une vignette comme couverture.",
-    "disableFileExtensions": "Saisir les extensions de fichiers à désactiver"
+    "disableFileExtensions": "Saisir les extensions de fichiers à désactiver",
+    "defaultLandingPage": "Page d'atterrissage par défaut",
+    "defaultLandingPageDescription": "ex. '/files/mysource/mysubpath' ou '/settings' - la page par défaut est /files qui renvoie à la première vue de la liste des sources."
   },
   "editor": {
     "uninitialized": "Échec de l'initialisation de l'éditeur. Veuillez recharger.",

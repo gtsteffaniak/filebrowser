@@ -420,7 +420,10 @@
     "normalShare": "보통",
     "uploadShare": "업로드만 가능",
     "perUserDownloadLimit": "각 사용자에게 다운로드 제한 적용",
-    "perUserDownloadLimitDescription": "이 기능을 활성화하면 각 사용자에게 다운로드 제한이 적용됩니다. 익명 사용자는 이 공유에서 어떤 파일도 다운로드할 수 없습니다."
+    "perUserDownloadLimitDescription": "이 기능을 활성화하면 각 사용자에게 다운로드 제한이 적용됩니다. 익명 사용자는 이 공유에서 어떤 파일도 다운로드할 수 없습니다.",
+    "descriptionUploadDefault": "파일을 업로드할 수 있는 공유가 전송되었습니다.",
+    "extractEmbeddedSubtitles": "임베디드 자막 추출",
+    "extractEmbeddedSubtitlesDescription": "로드 시 미디어 파일에서 임베디드 자막을 추출 - 대용량 파일의 경우 속도가 느려질 수 있습니다."
   },
   "api": {
     "title": "API 키:",
@@ -583,7 +586,9 @@
     "themeAndLanguage": "테마 및 언어",
     "previewFolder": "가능한 경우 폴더의 썸네일 표시",
     "previewFolderDescription": "썸네일을 표지로 사용하는 첫 번째 하위 항목이 있는 폴더의 썸네일 미리 보기를 표시합니다.",
-    "disableFileExtensions": "비활성화할 파일 확장명을 입력합니다."
+    "disableFileExtensions": "비활성화할 파일 확장명을 입력합니다.",
+    "defaultLandingPage": "기본 랜딩 페이지",
+    "defaultLandingPageDescription": "예. '/파일/마이소스/마이서브경로' 또는 '/설정' - 기본 페이지는 첫 번째 소스 목록 보기로 이동하는 /파일입니다."
   },
   "editor": {
     "uninitialized": "편집기를 초기화하지 못했습니다. 다시 로드하세요.",

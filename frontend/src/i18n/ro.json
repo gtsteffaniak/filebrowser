@@ -420,7 +420,10 @@
     "normalShare": "Normal",
     "uploadShare": "Numai încărcare",
     "perUserDownloadLimit": "Aplicați limita de descărcări pentru fiecare utilizator",
-    "perUserDownloadLimitDescription": "Atunci când este activată, limita de descărcări va fi aplicată fiecărui utilizator. Utilizatorii anonimi nu vor putea descărca niciun fișier din această partajare."
+    "perUserDownloadLimitDescription": "Atunci când este activată, limita de descărcări va fi aplicată fiecărui utilizator. Utilizatorii anonimi nu vor putea descărca niciun fișier din această partajare.",
+    "descriptionUploadDefault": "V-a fost trimisă o partajare pentru a încărca fișiere.",
+    "extractEmbeddedSubtitles": "Extragerea subtitrărilor încorporate",
+    "extractEmbeddedSubtitlesDescription": "Extragerea subtitrărilor încorporate din fișierele media la încărcare - acest lucru poate fi lent pentru fișierele mari."
   },
   "api": {
     "title": "Chei API:",
@@ -583,7 +586,9 @@
     "themeAndLanguage": "Temă și limbaj",
     "previewFolder": "Afișați miniaturi pentru foldere, dacă sunt disponibile",
     "previewFolderDescription": "Afișează previzualizări ale miniaturilor pentru folderele cu primul element copil cu miniatură ca copertă.",
-    "disableFileExtensions": "Introduceți extensiile de fișier pe care doriți să le dezactivați"
+    "disableFileExtensions": "Introduceți extensiile de fișier pe care doriți să le dezactivați",
+    "defaultLandingPage": "Pagina de destinație implicită",
+    "defaultLandingPageDescription": "de ex. \"/files/mysource/mysubpath\" sau \"/settings\" - pagina implicită este /files care duce la prima vizualizare a listei de surse"
   },
   "editor": {
     "uninitialized": "Nu s-a reușit inițializarea editorului. Vă rugăm să reîncărcați.",

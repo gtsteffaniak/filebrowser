@@ -420,7 +420,10 @@
     "normalShare": "Normál",
     "uploadShare": "Csak feltöltés",
     "perUserDownloadLimit": "Alkalmazza a letöltési korlátot minden egyes felhasználóra",
-    "perUserDownloadLimitDescription": "Ha engedélyezve van, a letöltési limit minden egyes felhasználóra vonatkozik. A névtelen felhasználók nem tölthetnek le fájlokat erről a megosztásról."
+    "perUserDownloadLimitDescription": "Ha engedélyezve van, a letöltési limit minden egyes felhasználóra vonatkozik. A névtelen felhasználók nem tölthetnek le fájlokat erről a megosztásról.",
+    "descriptionUploadDefault": "Megosztást küldtek Önnek fájlok feltöltéséhez.",
+    "extractEmbeddedSubtitles": "Beágyazott feliratok kivonása",
+    "extractEmbeddedSubtitlesDescription": "Beágyazott feliratok kivonása a médiafájlokból betöltéskor -- ez nagy fájlok esetén lassú lehet."
   },
   "api": {
     "title": "API-kulcsok:",
@@ -583,7 +586,9 @@
     "themeAndLanguage": "Téma és nyelv",
     "previewFolder": "A mappák miniatűrjeinek megjelenítése, ha rendelkezésre állnak",
     "previewFolderDescription": "Miniatűr előnézetek megjelenítése olyan mappákhoz, amelyekben az első gyermekelem miniatűrrel borítóképként szerepel.",
-    "disableFileExtensions": "Adja meg a letiltandó fájlkiterjesztéseket"
+    "disableFileExtensions": "Adja meg a letiltandó fájlkiterjesztéseket",
+    "defaultLandingPage": "Alapértelmezett céloldal",
+    "defaultLandingPageDescription": "pl. '/files/mysource/mysubpath' vagy '/settings' - az alapértelmezett oldal a /files, amely az első forráslistázó nézethez vezet."
   },
   "editor": {
     "uninitialized": "Nem sikerült inicializálni a szerkesztőt. Kérjük, töltse újra.",

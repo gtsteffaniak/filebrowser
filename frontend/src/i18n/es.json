@@ -420,7 +420,10 @@
     "normalShare": "Normal",
     "uploadShare": "Cargar sólo",
     "perUserDownloadLimit": "Aplicar el límite de descargas a cada usuario",
-    "perUserDownloadLimitDescription": "Cuando se activa, el límite de descargas se aplicará a cada usuario. Los usuarios anónimos no podrán descargar ningún archivo de este recurso compartido."
+    "perUserDownloadLimitDescription": "Cuando se activa, el límite de descargas se aplicará a cada usuario. Los usuarios anónimos no podrán descargar ningún archivo de este recurso compartido.",
+    "descriptionUploadDefault": "Se le ha enviado una acción para cargar archivos.",
+    "extractEmbeddedSubtitles": "Extraer subtítulos incrustados",
+    "extractEmbeddedSubtitlesDescription": "Extrae los subtítulos incrustados de los archivos multimedia al cargarlos -- esto puede ser lento para archivos grandes."
   },
   "api": {
     "title": "Gestión de claves API",
@@ -583,7 +586,9 @@
     "fileViewerOptions": "Opciones del visor de archivos",
     "themeAndLanguage": "Tema e idioma",
     "previewFolder": "Vista previa para carpetas (si se puede)",
-    "previewFolderDescription": "Mostrar vistas previas en miniatura para las carpetas - Se usará el primer elemento como portada. (puede ser una imagen, o audio con imagén)"
+    "previewFolderDescription": "Mostrar vistas previas en miniatura para las carpetas - Se usará el primer elemento como portada. (puede ser una imagen, o audio con imagén)",
+    "defaultLandingPage": "Página de destino predeterminada",
+    "defaultLandingPageDescription": "Ej. '/files/mysource/mysubpath' o '/settings' - la página por defecto es /files que va a la primera vista del listado de fuentes."
   },
   "editor": {
     "uninitialized": "Error al iniciar el editor, inténtelo de nuevo",

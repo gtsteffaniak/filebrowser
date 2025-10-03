@@ -420,7 +420,10 @@
     "normalShare": "Normal",
     "uploadShare": "Carregar apenas",
     "perUserDownloadLimit": "Aplicar o limite de descargas a cada utilizador",
-    "perUserDownloadLimitDescription": "Quando ativado, o limite de transferências será aplicado a cada utilizador. Os utilizadores anónimos não poderão descarregar quaisquer ficheiros desta partilha."
+    "perUserDownloadLimitDescription": "Quando ativado, o limite de transferências será aplicado a cada utilizador. Os utilizadores anónimos não poderão descarregar quaisquer ficheiros desta partilha.",
+    "descriptionUploadDefault": "Foi-lhe enviada uma partilha para carregar ficheiros.",
+    "extractEmbeddedSubtitles": "Extrair legendas incorporadas",
+    "extractEmbeddedSubtitlesDescription": "Extrair legendas incorporadas de ficheiros multimédia ao carregar -- isto pode ser lento para ficheiros grandes."
   },
   "api": {
     "title": "Chaves da API",
@@ -547,7 +550,9 @@
     "themeAndLanguage": "Tema e linguagem",
     "previewFolder": "Mostrar miniaturas das pastas, se disponíveis",
     "previewFolderDescription": "Mostrar pré-visualizações em miniatura para pastas com o primeiro item filho com miniatura como capa.",
-    "disableFileExtensions": "Introduzir as extensões de ficheiros a desativar"
+    "disableFileExtensions": "Introduzir as extensões de ficheiros a desativar",
+    "defaultLandingPage": "Página de destino predefinida",
+    "defaultLandingPageDescription": "por exemplo. '/files/mysource/mysubpath' ou '/settings' - a página predefinida é /files que vai para a primeira vista de listagem de fontes"
   },
   "general": {
     "name": "Nome",

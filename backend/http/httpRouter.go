@@ -134,7 +134,7 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	// Public API routes (hash-based authentication)
 	publicAPI.HandleFunc("GET /raw", withHashFile(publicRawHandler))
 	publicAPI.HandleFunc("GET /preview", withTimeout(60*time.Second, withHashFileHelper(publicPreviewHandler)))
-	publicAPI.HandleFunc("GET /resources", withHashFile(publicShareHandler))
+	publicAPI.HandleFunc("GET /resources", withHashFile(publicGetResourceHandler))
 	publicAPI.HandleFunc("GET /users", withUser(userGetHandler))
 	publicAPI.HandleFunc("POST /onlyoffice/callback", withHashFile(onlyofficeCallbackHandler))
 	publicAPI.HandleFunc("GET /onlyoffice/callback", withHashFile(onlyofficeCallbackHandler))

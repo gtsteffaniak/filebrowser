@@ -84,6 +84,9 @@ export default {
       return shareInfo.isShare && state.share.hash && state.isMobile && state.req.path == "/" && !shareInfo.disableShareCard;
     },
     popupEnabled() {
+      if (!state.user || state.user?.username == "") {
+        return false;
+      }
       return state.user.preview.popup;
     },
     showBreadCrumbs() {

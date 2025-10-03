@@ -105,6 +105,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 			shareProps["enableOnlyOfficeEditing"] = d.share.EnableOnlyOfficeEditing
 			shareProps["shareType"] = utils.Ternary(d.share.ShareType == "", "normal", d.share.ShareType)
 			shareProps["perUserDownloadLimit"] = d.share.PerUserDownloadLimit
+			shareProps["extractEmbeddedSubtitles"] = d.share.ExtractEmbeddedSubtitles
 
 			// Additional computed properties from extended.go
 			shareProps["hasPassword"] = d.share.HasPassword()

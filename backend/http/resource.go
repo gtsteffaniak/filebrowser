@@ -91,12 +91,13 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		getContent = false
 	}
 	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
-		Username: d.user.Username,
-		Path:     scopePath,
-		Modify:   d.user.Permissions.Modify,
-		Source:   source,
-		Expand:   true,
-		Content:  getContent,
+		Username:                 d.user.Username,
+		Path:                     scopePath,
+		Modify:                   d.user.Permissions.Modify,
+		Source:                   source,
+		Expand:                   true,
+		Content:                  getContent,
+		ExtractEmbeddedSubtitles: settings.Config.Integrations.Media.ExtractEmbeddedSubtitles,
 	}, store.Access)
 	if err != nil {
 		return errToStatus(err), err

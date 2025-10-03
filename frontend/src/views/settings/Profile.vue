@@ -20,9 +20,11 @@
               :name="$t('profileSettings.showQuickDownload')"
               :description="$t('profileSettings.showQuickDownloadDescription')" />
             <ToggleSwitch class="item" v-model="localuser.preview.image" @change="updateSettings"
-              :name="$t('profileSettings.previewImages')" :description="$t('profileSettings.previewImagesDescription')" />
+              :name="$t('profileSettings.previewImages')"
+              :description="$t('profileSettings.previewImagesDescription')" />
             <ToggleSwitch v-if="mediaEnabled" class="item" v-model="localuser.preview.video" @change="updateSettings"
-              :name="$t('profileSettings.previewVideos')" :description="$t('profileSettings.previewVideosDescription')" />
+              :name="$t('profileSettings.previewVideos')"
+              :description="$t('profileSettings.previewVideosDescription')" />
             <ToggleSwitch v-if="mediaEnabled" class="item" v-model="localuser.preview.motionVideoPreview"
               @change="updateSettings" :name="$t('profileSettings.previewMotionVideos')"
               :description="$t('profileSettings.previewMotionVideosDescription')" />
@@ -30,14 +32,32 @@
               :name="$t('profileSettings.highQualityPreview')"
               :description="$t('profileSettings.highQualityPreviewDescription')" />
             <ToggleSwitch class="item" v-model="localuser.preview.office" @change="updateSettings"
-              :name="$t('profileSettings.previewOffice')" :description="$t('profileSettings.previewOfficeDescription')" />
+              :name="$t('profileSettings.previewOffice')"
+              :description="$t('profileSettings.previewOfficeDescription')" />
             <ToggleSwitch class="item" v-model="localuser.preview.popup" @change="updateSettings"
               :name="$t('profileSettings.popupPreview')" :description="$t('profileSettings.popupPreviewDescription')" />
             <ToggleSwitch class="item" v-model="localuser.showSelectMultiple" @change="updateSettings"
               :name="$t('profileSettings.showSelectMultiple')"
               :description="$t('profileSettings.showSelectMultipleDescription')" />
             <ToggleSwitch class="item" v-model="localuser.preview.folder" @change="updateSettings"
-              :name="$t('profileSettings.previewFolder')" :description="$t('profileSettings.previewFolderDescription')" />
+              :name="$t('profileSettings.previewFolder')"
+              :description="$t('profileSettings.previewFolderDescription')" />
+            <div class="form-flex-group">
+              <h3>{{ $t("profileSettings.defaultLandingPage") }}</h3>
+              <i class="no-select material-symbols-outlined tooltip-info-icon"
+                @mouseenter="showTooltip($event, $t('profileSettings.defaultLandingPageDescription'))"
+                @mouseleave="hideTooltip">
+                help
+              </i>
+            </div>
+            <div class="form-flex-group">
+              <input class="input form-form flat-right" type="text"
+                :placeholder="$t('profileSettings.defaultLandingPageDescription')" id="defaultLandingPage"
+                v-model="formDefaultLandingPage" />
+              <button type="button" class="button form-button flat-left" @click="submitDefaultLandingPageChange">
+                {{ $t("buttons.save") }}
+              </button>
+            </div>
           </div>
         </SettingsItem>
         <SettingsItem :title="$t('profileSettings.sidebarOptions')" :collapsable="true" :start-collapsed="true"
@@ -68,75 +88,80 @@
               :name="$t('profileSettings.defaultMediaPlayer')"
               :description="$t('profileSettings.defaultMediaPlayerDescription')" />
             <ToggleSwitch class="item" v-model="localuser.preview.autoplayMedia" @change="updateSettings"
-              :name="$t('profileSettings.autoplayMedia')" :description="$t('profileSettings.autoplayMediaDescription')" />
+              :name="$t('profileSettings.autoplayMedia')"
+              :description="$t('profileSettings.autoplayMediaDescription')" />
             <ToggleSwitch class="item" v-model="localuser.editorQuickSave" @change="updateSettings"
               :name="$t('profileSettings.editorQuickSave')"
               :description="$t('profileSettings.editorQuickSaveDescription')" />
           </div>
           <div>
-          <div class="centered-with-tooltip">
-            <h3>{{ $t("profileSettings.disableThumbnailPreviews") }}</h3>
-            <i class="no-select material-symbols-outlined tooltip-info-icon"
-              @mouseenter="showTooltip($event, $t('profileSettings.disableThumbnailPreviewsDescription'))"
-              @mouseleave="hideTooltip">
-              help
-            </i>
+            <div class="centered-with-tooltip">
+              <h3>{{ $t("profileSettings.disableThumbnailPreviews") }}</h3>
+              <i class="no-select material-symbols-outlined tooltip-info-icon"
+                @mouseenter="showTooltip($event, $t('profileSettings.disableThumbnailPreviewsDescription'))"
+                @mouseleave="hideTooltip">
+                help
+              </i>
+            </div>
+            <div class="form-flex-group">
+              <input class="input form-form flat-right"
+                :class="{ 'form-invalid': !validateExtensions(formDisablePreviews) }" type="text"
+                :placeholder="$t('profileSettings.disableFileExtensions')" id="disablePreviews"
+                v-model="formDisablePreviews" />
+              <button type="button" class="button form-button flat-left" @click="submitDisablePreviewsChange">
+                {{ $t("buttons.save") }}
+              </button>
+            </div>
           </div>
-          <div class="form-flex-group">
-            <input class="input form-form flat-right"
-              :class="{ 'form-invalid': !validateExtensions(formDisablePreviews) }" type="text"
-              :placeholder="$t('profileSettings.disableFileExtensions')" id="disablePreviews" v-model="formDisablePreviews" />
-            <button type="button" class="button form-button flat-left" @click="submitDisablePreviewsChange">
-              {{ $t("buttons.save") }}
-            </button>
+          <div>
+            <div class="centered-with-tooltip">
+              <h3>{{ $t("profileSettings.disableViewingFiles") }}</h3>
+              <i class="no-select material-symbols-outlined tooltip-info-icon"
+                @mouseenter="showTooltip($event, $t('profileSettings.disableViewingFilesDescription'))"
+                @mouseleave="hideTooltip">
+                help
+              </i>
+            </div>
+            <div class="form-flex-group">
+              <input class="input form-form flat-right"
+                :class="{ 'form-invalid': !validateExtensions(formDisabledViewing) }" type="text"
+                :placeholder="$t('profileSettings.disableFileExtensions')" id="disableViewing"
+                v-model="formDisabledViewing" />
+              <button type="button" class="button form-button flat-left" @click="submitDisabledViewingChange">
+                {{ $t("buttons.save") }}
+              </button>
+            </div>
           </div>
-        </div>
-        <div>
-          <div class="centered-with-tooltip">
-            <h3>{{ $t("profileSettings.disableViewingFiles") }}</h3>
-            <i class="no-select material-symbols-outlined tooltip-info-icon"
-              @mouseenter="showTooltip($event, $t('profileSettings.disableViewingFilesDescription'))"
-              @mouseleave="hideTooltip">
-              help
-            </i>
-          </div>
-          <div class="form-flex-group">
-            <input class="input form-form flat-right"
-              :class="{ 'form-invalid': !validateExtensions(formDisabledViewing) }" type="text"
-              :placeholder="$t('profileSettings.disableFileExtensions')" id="disableViewing" v-model="formDisabledViewing" />
-            <button type="button" class="button form-button flat-left" @click="submitDisabledViewingChange">
-              {{ $t("buttons.save") }}
-            </button>
-          </div>
-        </div>
-        <div v-if="onlyOfficeAvailable">
-          <div class="centered-with-tooltip">
-            <h3>{{ $t("profileSettings.disableOfficeEditor") }}</h3>
-            <i class="no-select material-symbols-outlined tooltip-info-icon"
-              @mouseenter="showTooltip($event, $t('profileSettings.disableOfficeEditorDescription'))"
-              @mouseleave="hideTooltip">
-              help
-            </i>
-          </div>
-          <div class="form-flex-group">
-            <input class="input form-form flat-right"
-              :class="{ 'form-invalid': !validateExtensions(formDisableOfficePreview) }" type="text"
-              :placeholder="$t('profileSettings.disableFileExtensions')" id="disableOfficePreview" v-model="formDisableOfficePreview" />
-            <button type="button" class="button form-button flat-left" @click="submitDisableOfficePreviewChange">
-              {{ $t("buttons.save") }}
-            </button>
-          </div>
-          <div class="settings-items">
-            <br />
-            <ToggleSwitch class="item" v-model="localuser.debugOffice" @change="updateSettings"
-              :name="$t('profileSettings.debugOfficeEditor')"
-              :description="$t('profileSettings.debugOfficeEditorDescription')" />
-          </div>
+          <div v-if="onlyOfficeAvailable">
+            <div class="centered-with-tooltip">
+              <h3>{{ $t("profileSettings.disableOfficeEditor") }}</h3>
+              <i class="no-select material-symbols-outlined tooltip-info-icon"
+                @mouseenter="showTooltip($event, $t('profileSettings.disableOfficeEditorDescription'))"
+                @mouseleave="hideTooltip">
+                help
+              </i>
+            </div>
+            <div class="form-flex-group">
+              <input class="input form-form flat-right"
+                :class="{ 'form-invalid': !validateExtensions(formDisableOfficePreview) }" type="text"
+                :placeholder="$t('profileSettings.disableFileExtensions')" id="disableOfficePreview"
+                v-model="formDisableOfficePreview" />
+              <button type="button" class="button form-button flat-left" @click="submitDisableOfficePreviewChange">
+                {{ $t("buttons.save") }}
+              </button>
+            </div>
+            <div class="settings-items">
+              <br />
+              <ToggleSwitch class="item" v-model="localuser.debugOffice" @change="updateSettings"
+                :name="$t('profileSettings.debugOfficeEditor')"
+                :description="$t('profileSettings.debugOfficeEditorDescription')" />
+            </div>
 
           </div>
         </SettingsItem>
-        <SettingsItem aria-label="themeLanguage" :title="$t('profileSettings.themeAndLanguage')" :collapsable="true" :start-collapsed="true"
-          :force-collapsed="isSectionCollapsed('themeLanguage')" @toggle="handleSectionToggle('themeLanguage')">
+        <SettingsItem aria-label="themeLanguage" :title="$t('profileSettings.themeAndLanguage')" :collapsable="true"
+          :start-collapsed="true" :force-collapsed="isSectionCollapsed('themeLanguage')"
+          @toggle="handleSectionToggle('themeLanguage')">
           <h4>{{ $t('settings.themeColor') }}</h4>
           <ButtonGroup :buttons="colorChoices" @button-clicked="setColor" :initialActive="localuser.themeColor" />
 
@@ -144,7 +169,8 @@
           <div v-if="Object.keys(availableThemes).length > 0" class="form-flex-group">
             <select class="input" v-model="selectedTheme" @change="updateSettings" aria-label="themeOptions">
               <option v-for="(theme, key) in availableThemes" :key="key" :value="key">
-                {{ String(key) === 'default' ? $t('profileSettings.defaultThemeDescription') : `${key} - ${theme.description}` }}
+                {{ String(key) === 'default' ? $t('profileSettings.defaultThemeDescription') : `${key} -
+                ${theme.description}` }}
               </option>
             </select>
           </div>
@@ -179,6 +205,7 @@ export default {
   data() {
     return {
       localuser: { preview: {}, permissions: {} }, // Initialize localuser with empty objects to avoid undefined errors
+      formDefaultLandingPage: "", // holds temporary input before saving
       formDisablePreviews: "", // holds temporary input before saving
       formDisabledViewing: "", // holds temporary input before saving
       formDisableOfficePreview: "", // holds temporary input before saving
@@ -228,6 +255,7 @@ export default {
   },
   mounted() {
     this.localuser = { ...state.user };
+    this.formDefaultLandingPage = this.localuser.defaultLandingPage;
     this.formDisablePreviews = this.localuser.disablePreviewExt;
     this.formDisabledViewing = this.localuser.disableViewingExt;
     this.formDisableOfficePreview = this.localuser.disableOfficePreviewExt;
@@ -249,6 +277,10 @@ export default {
       }
       const regex = /^\.\w+(?: \.\w+)*$/;
       return regex.test(value);
+    },
+    submitDefaultLandingPageChange() {
+      this.localuser.defaultLandingPage = this.formDefaultLandingPage;
+      this.updateSettings();
     },
     submitDisablePreviewsChange() {
       if (!this.validateExtensions(this.formDisablePreviews)) {
@@ -299,6 +331,7 @@ export default {
           "themeColor",
           "customTheme",
           "quickDownload",
+          "defaultLandingPage",
           "disablePreviewExt",
           "disableViewingExt",
           "disableOfficePreviewExt",
@@ -351,5 +384,4 @@ export default {
   justify-content: center;
   align-items: center;
 }
-
 </style>
