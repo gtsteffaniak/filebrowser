@@ -54,7 +54,10 @@
     "listView": "Listvy",
     "compactView": "Kompakt vy",
     "normalView": "Normal vy",
-    "galleryView": "Galleri utsikt"
+    "galleryView": "Galleri utsikt",
+    "uploadFiles": "Ladda upp filer",
+    "uploadFolder": "Ladda upp mapp",
+    "openUploadViewer": "Öppna uppladdningshanteraren"
   },
   "download": {
     "downloadFile": "Ladda ner fil",
@@ -411,7 +414,13 @@
     "titleDefault": "Delade filer {title}",
     "defaultViewMode": "Standardläge för visning",
     "defaultViewModeDescription": "Ange standardvisningsläge för anonyma användare som visar den här andelen. Inloggade användare kan fortfarande ändra sina visningspreferenser.",
-    "disableFileViewer": "Inaktivera filvisare"
+    "disableFileViewer": "Inaktivera filvisare",
+    "shareType": "Typ av aktie",
+    "shareTypeDescription": "Den typ av delning som ska skapas. Normala andelar gör det möjligt att visa och hämta filer. Upload-andelar gör det möjligt att ladda upp filer till andelen.",
+    "normalShare": "Normal",
+    "uploadShare": "Endast uppladdning",
+    "perUserDownloadLimit": "Tillämpa nedladdningsgränsen för varje användare",
+    "perUserDownloadLimitDescription": "När den är aktiverad kommer nedladdningsgränsen att tillämpas på varje användare. Anonyma användare kan inte ladda ner några filer från den här delningen."
   },
   "api": {
     "title": "API-nycklar",
@@ -469,7 +478,8 @@
     "uploadChunkSizeMb": "Ladda upp chunkstorlek i MB",
     "uploadChunkSizeMbHelp": "Vanligtvis 5 till 50 MB, men mindre är bättre för instabila eller begränsade anslutningar. Om du ställer in 0 inaktiveras chunking för uppladdning.",
     "clearAll": "Klart avslutat ska ta bort fel, paus och konflikt",
-    "clearAllDescription": "Knappen Clear Completed rensar alla uppladdningar som är klara, inklusive fel-, paus- och konflikttillstånd."
+    "clearAllDescription": "Knappen Clear Completed rensar alla uppladdningar som är klara, inklusive fel-, paus- och konflikttillstånd.",
+    "uploadSettings": "Inställningar för uppladdning"
   },
   "colors": {
     "red": "röd",

@@ -54,7 +54,10 @@
     "listView": "Vista elenco",
     "compactView": "Vista compatta",
     "normalView": "Vista normale",
-    "galleryView": "Vista della galleria"
+    "galleryView": "Vista della galleria",
+    "uploadFiles": "Caricare i file",
+    "uploadFolder": "Cartella di caricamento",
+    "openUploadViewer": "Aprire Gestione caricamenti"
   },
   "download": {
     "downloadFile": "Scarica file",
@@ -411,7 +414,13 @@
     "titleDefault": "File condivisi - {title}",
     "defaultViewMode": "Modalità di visualizzazione predefinita",
     "defaultViewModeDescription": "Imposta la modalità di visualizzazione predefinita per gli utenti anonimi che visualizzano questa condivisione. Gli utenti registrati possono comunque modificare le loro preferenze di visualizzazione.",
-    "disableFileViewer": "Disattivare il visualizzatore di file"
+    "disableFileViewer": "Disattivare il visualizzatore di file",
+    "shareType": "Tipo di azione",
+    "shareTypeDescription": "Il tipo di condivisione da creare. Le condivisioni normali consentono di visualizzare e scaricare i file. Le condivisioni di caricamento consentono di caricare i file sulla condivisione.",
+    "normalShare": "Normale",
+    "uploadShare": "Solo caricamento",
+    "perUserDownloadLimit": "Applicare il limite di download a ciascun utente",
+    "perUserDownloadLimitDescription": "Se abilitato, il limite di download verrà applicato a ciascun utente. Gli utenti anonimi non potranno scaricare alcun file da questa condivisione."
   },
   "api": {
     "title": "Chiavi API:",
@@ -505,7 +514,8 @@
     "uploadChunkSizeMb": "Dimensione dei pezzi caricati in MB",
     "uploadChunkSizeMbHelp": "In genere da 5 a 50 MB, ma per connessioni instabili o limitate è meglio che sia più piccolo. Impostando 0 si disattiva il chunking del caricamento.",
     "clearAll": "L'opzione Clear completed dovrebbe rimuovere gli errori, le pause e i conflitti.",
-    "clearAllDescription": "Il pulsante Cancella completato cancella tutti i caricamenti in stato completato, compresi gli stati di errore, pausa e conflitto."
+    "clearAllDescription": "Il pulsante Cancella completato cancella tutti i caricamenti in stato completato, compresi gli stati di errore, pausa e conflitto.",
+    "uploadSettings": "Impostazioni di caricamento"
   },
   "colors": {
     "red": "rosso",

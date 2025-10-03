@@ -54,7 +54,10 @@
     "listView": "清單檢視",
     "compactView": "緊湊型視圖",
     "normalView": "正常檢視",
-    "galleryView": "圖庫瀏覽"
+    "galleryView": "圖庫瀏覽",
+    "uploadFiles": "上傳檔案",
+    "uploadFolder": "上傳資料夾",
+    "openUploadViewer": "開啟上傳管理員"
   },
   "download": {
     "downloadFile": "下載檔案",
@@ -411,7 +414,13 @@
     "titleDefault": "共用檔案 -{title}",
     "defaultViewMode": "預設檢視模式",
     "defaultViewModeDescription": "設定匿名使用者檢視此分享的預設檢視模式。登入的使用者仍可變更檢視偏好。",
-    "disableFileViewer": "停用檔案檢視器"
+    "disableFileViewer": "停用檔案檢視器",
+    "shareType": "分享類型",
+    "shareTypeDescription": "要建立的共用類型。一般共用允許檢視和下載檔案。上載共用允許上載檔案至共用。",
+    "normalShare": "正常",
+    "uploadShare": "僅上傳",
+    "perUserDownloadLimit": "將下載限制套用至每位使用者",
+    "perUserDownloadLimitDescription": "啟用時，下載限制會套用至每位使用者。匿名使用者將無法從此共用下載任何檔案。"
   },
   "api": {
     "title": "API 金鑰",
@@ -529,7 +538,8 @@
     "uploadChunkSizeMb": "上傳區塊大小（以 MB 為單位",
     "uploadChunkSizeMbHelp": "通常為 5 到 50 MB，對於不穩定或受限制的連線，越小越好。設定為 0 會停用上傳分塊。",
     "clearAll": "清除完成應移除錯誤、暫停和衝突",
-    "clearAllDescription": "清除完成按鈕將會清除所有處於完成狀態的上傳，包括錯誤、暫停和衝突狀態。"
+    "clearAllDescription": "清除完成按鈕將會清除所有處於完成狀態的上傳，包括錯誤、暫停和衝突狀態。",
+    "uploadSettings": "上傳設定"
   },
   "colors": {
     "red": "紅色",

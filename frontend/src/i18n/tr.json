@@ -54,7 +54,10 @@
     "listView": "Liste Görünümü",
     "compactView": "Kompakt Görünüm",
     "normalView": "Normal Görünüm",
-    "galleryView": "Galeri Görünümü"
+    "galleryView": "Galeri Görünümü",
+    "uploadFiles": "Dosya Yükleme",
+    "uploadFolder": "Klasör Yükle",
+    "openUploadViewer": "Yükleme Yöneticisini Açın"
   },
   "download": {
     "downloadFile": "Dosyayı indir",
@@ -411,7 +414,13 @@
     "titleDefault": "Paylaşılan dosyalar - {title}",
     "defaultViewMode": "Varsayılan görünüm modu",
     "defaultViewModeDescription": "Bu paylaşımı görüntüleyen anonim kullanıcılar için varsayılan görünüm modunu ayarlayın. Oturum açmış kullanıcılar yine de görünüm tercihlerini değiştirebilirler.",
-    "disableFileViewer": "Dosya Görüntüleyiciyi Devre Dışı Bırak"
+    "disableFileViewer": "Dosya Görüntüleyiciyi Devre Dışı Bırak",
+    "shareType": "Paylaşım türü",
+    "shareTypeDescription": "Oluşturulacak paylaşım türü. Normal paylaşımlar dosyaları görüntülemeye ve indirmeye izin verir. Yükleme paylaşımları, dosyaların paylaşıma yüklenmesine izin verir.",
+    "normalShare": "Normal",
+    "uploadShare": "Yalnızca yükle",
+    "perUserDownloadLimit": "İndirme sınırını her kullanıcıya uygulayın",
+    "perUserDownloadLimitDescription": "Etkinleştirildiğinde, indirme sınırı her kullanıcıya uygulanacaktır. Anonim kullanıcılar bu paylaşımdan herhangi bir dosya indiremeyecektir."
   },
   "api": {
     "title": "API Anahtarları:",
@@ -505,7 +514,8 @@
     "uploadChunkSizeMb": "MB cinsinden yığın boyutu yükleme",
     "uploadChunkSizeMbHelp": "Tipik olarak 5 ila 50 MB, daha küçük kararsız veya kısıtlı bağlantılar için daha iyidir. 0 olarak ayarlandığında yükleme yığınlaması devre dışı bırakılır.",
     "clearAll": "Clear completed hata, duraklama ve çakışmayı kaldırmalıdır",
-    "clearAllDescription": "Tamamlananları temizle düğmesi hata, duraklatılmış ve çakışma durumları da dahil olmak üzere bitmiş durumdaki tüm yüklemeleri temizler."
+    "clearAllDescription": "Tamamlananları temizle düğmesi hata, duraklatılmış ve çakışma durumları da dahil olmak üzere bitmiş durumdaki tüm yüklemeleri temizler.",
+    "uploadSettings": "Yükleme Ayarları"
   },
   "colors": {
     "red": "kırmızı",

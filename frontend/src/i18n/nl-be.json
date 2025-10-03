@@ -54,7 +54,10 @@
     "listView": "Lijstweergave",
     "compactView": "Compacte weergave",
     "normalView": "Normale weergave",
-    "galleryView": "Galerij"
+    "galleryView": "Galerij",
+    "uploadFiles": "Bestanden uploaden",
+    "uploadFolder": "Map uploaden",
+    "openUploadViewer": "Uploadmanager openen"
   },
   "download": {
     "downloadFile": "Bestand downloaden",
@@ -411,7 +414,13 @@
     "titleDefault": "Gedeelde bestanden - {title}",
     "defaultViewMode": "Standaard weergavemodus",
     "defaultViewModeDescription": "Stel de standaard weergavemodus in voor anonieme gebruikers die deze share bekijken. Aangemelde gebruikers kunnen nog steeds hun weergavevoorkeur wijzigen.",
-    "disableFileViewer": "Bestandsviewer uitschakelen"
+    "disableFileViewer": "Bestandsviewer uitschakelen",
+    "shareType": "Type aandeel",
+    "shareTypeDescription": "Het type share dat moet worden aangemaakt. Normale shares staan het bekijken en downloaden van bestanden toe. Upload shares staan het uploaden van bestanden naar de share toe.",
+    "normalShare": "Normaal",
+    "uploadShare": "Alleen uploaden",
+    "perUserDownloadLimit": "Pas de downloadlimiet toe op elke gebruiker",
+    "perUserDownloadLimitDescription": "Indien ingeschakeld, wordt de downloadlimiet toegepast op elke gebruiker. Anonieme gebruikers kunnen geen bestanden downloaden van deze share."
   },
   "api": {
     "title": "API-sleutels",
@@ -469,7 +478,8 @@
     "uploadChunkSizeMb": "Upload brokgrootte in MB",
     "uploadChunkSizeMbHelp": "Gewoonlijk 5 tot 50 MB, kleiner is beter voor onstabiele of beperkte verbindingen. Instellen op 0 schakelt chunking uit.",
     "clearAll": "Wissen voltooid moet fout, pauze en conflict verwijderen",
-    "clearAllDescription": "De knop Voltooid wissen wist alle uploads in een voltooide status, inclusief fout-, gepauzeerde en conflictstatussen."
+    "clearAllDescription": "De knop Voltooid wissen wist alle uploads in een voltooide status, inclusief fout-, gepauzeerde en conflictstatussen.",
+    "uploadSettings": "Instellingen uploaden"
   },
   "colors": {
     "red": "rood",
