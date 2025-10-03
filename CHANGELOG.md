@@ -14,8 +14,8 @@ All notable changes to this project will be documented in this file. For commit 
  - upload/upload only share links. #661
  #- Default landing directory #781
  #- better init script support #897
- #- share download limit feature to apply per user -- and disables anonymous download when enabled.
- #- Feat(preview): Extract and display duration for media files when previews are enabled #1260
+ - share download limit feature to apply per user -- and disables anonymous download when enabled.
+ #- embedded subtitle support is disabled by default, can be enabled via `integrations.media.extractEmbeddedSubtitles` and disabled for shares unless `extractEmbeddedSubtitles` is enabled per share. this is because reading subtitles requires processing the file, and multi GB video files can take 10-20 seconds.
 
  **Notes**:
  - Some standardized path format changes for access rules to ensure the rules apply. A migration check happens on startup, all rules should still be in effect without any issues, but double check.
@@ -29,6 +29,8 @@ All notable changes to this project will be documented in this file. For commit 
  - "Path not found" when trying to share a file or folder inside a sub-directory #1139
  - logout path redirect not working
  - 2FA secret error #1305
+ #- fix folder size indexing
+ #- 
 
 ## v0.8.7-beta
 
