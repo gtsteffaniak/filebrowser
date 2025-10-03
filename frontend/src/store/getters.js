@@ -65,9 +65,6 @@ export const getters = {
   isMobile: () => state.isMobile,
   isLoading: () => Object.keys(state.loading).length > 0,
   isSettings: () => getters.currentView() === 'settings',
-  isShare: () => {
-    return shareInfo.isShare
-  },
   isDarkMode: () => {
     if (shareInfo.enforceDarkLightMode == "dark") {
       return true
@@ -227,6 +224,14 @@ export const getters = {
       path = url.joinPath(path, removeLeadingSlash(subPath))
     }
     return path
+  },
+  isShare: () => {
+    if (shareInfo.isShare && state.route.path.startsWith('/public/share/' + shareInfo.hash)) {
+      console.log("isShare")
+      return true
+    }
+    console.log("isNotShare")
+    return false
   },
   currentView: () => {
     let listingView = ''
@@ -459,9 +464,9 @@ export const getters = {
     return "close";
   },
   isInvalidShare: () => {
-    return shareInfo.isShare && !shareInfo.isValid;
+    return getters.isShare() && !shareInfo.isValid;
   },
   isValidShare: () => {
-    return shareInfo.isShare && shareInfo.isValid;
+    return getters.isShare() && shareInfo.isValid;
   },
 };

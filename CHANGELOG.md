@@ -13,8 +13,8 @@ All notable changes to this project will be documented in this file. For commit 
  - Added ability to play media in same folder sequentially or shuffled
  - upload/upload only share links. #661
  - Default landing directory (set profile settings) #781
- #- better init script support #897
  - share download limit feature can apply per user -- and disables anonymous download when enabled.
+ - Docker health check #1292
  - embedded subtitle support is now **disabled** by default, can be enabled via `integrations.media.extractEmbeddedSubtitles`. Per share configuration is also possible via `extractEmbeddedSubtitles` toggle. This change is because reading subtitles requires processing the entire file, and multi GB video files can take 10-20 seconds.
 
  **Notes**:
@@ -36,9 +36,8 @@ All notable changes to this project will be documented in this file. For commit 
  - logout path redirect not working
  - 2FA secret error #1305
  - console errors during login/logout
- #- fix folder size indexing
- #- fox plyr loading same file many times
- #- add share edit link on shares prompt
+ - fix scoped user share creation issue #1309
+ #- fix plyr loading same file many times
 
 ## v0.8.7-beta
 

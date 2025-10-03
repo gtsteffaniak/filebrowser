@@ -62,7 +62,7 @@ export default {
       if (getters.isSettings()) {
         return this.$t("sidebar.settings");
       }
-      if (shareInfo.isShare && shareInfo.title && state.req.type === "directory") {
+      if (getters.isShare() && shareInfo.title && state.req.type === "directory") {
         return shareInfo.title;
       }
       return state.req.name;
@@ -74,7 +74,7 @@ export default {
       return state.user.editorQuickSave;
     },
     disableNavButtons() {
-      return (globalVars.disableNavButtons && this.isListingView) || (shareInfo.isShare && shareInfo.disableNavButtons);
+      return (globalVars.disableNavButtons && this.isListingView) || (getters.isShare() && shareInfo.disableNavButtons);
     },
     isOnlyOffice() {
       return getters.currentView() === "onlyOfficeEditor";
@@ -167,7 +167,7 @@ export default {
     },
     multiAction() {
       const listingView = getters.currentView();
-      if (listingView == "listingView" || shareInfo.singleFileShare) {
+      if (listingView == "listingView" || getters.isShare()) {
         mutations.toggleSidebar();
       } else if (listingView == "settings" && state.isMobile) {
         mutations.toggleSidebar();

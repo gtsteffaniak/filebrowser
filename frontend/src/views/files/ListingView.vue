@@ -113,7 +113,7 @@
             v-bind:size="item.size"
             v-bind:path="item.path"
             v-bind:reducedOpacity="item.hidden || isDragging"
-            v-bind:hash="shareInfo.isShare ? state.share.hash : undefined"
+            v-bind:hash="shareInfo.hash"
             :readOnly="isShare ? true : undefined"
             v-bind:hasPreview="item.hasPreview"
           />
@@ -136,7 +136,7 @@
             v-bind:size="item.size"
             v-bind:path="item.path"
             v-bind:reducedOpacity="item.hidden || isDragging"
-            v-bind:hash="shareInfo.isShare ? state.share.hash : undefined"
+            v-bind:hash="shareInfo.hash"
             v-bind:hasPreview="item.hasPreview"
           />
         </div>
@@ -804,7 +804,7 @@ export default {
         return;
       }
       mutations.setLoading("listing", true);
-      if (shareInfo.isShare) {
+      if (getters.isShare()) {
         // Shared files don't support move/copy operations
         mutations.setLoading("listing", false);
         notify.showError("Move/copy operations are not supported for shared files.");

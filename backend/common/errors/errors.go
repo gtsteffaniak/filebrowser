@@ -15,6 +15,7 @@ var (
 	ErrInvalidOption        = errors.New("invalid option")
 	ErrInvalidAuthMethod    = errors.New("invalid auth method")
 	ErrPermissionDenied     = errors.New("permission denied")
+	ErrAccessDenied         = errors.New("access denied")
 	ErrInvalidRequestParams = errors.New("invalid request params")
 	ErrSourceIsParent       = errors.New("source is parent")
 	ErrNoTotpProvided       = errors.New("OTP code is required for user")

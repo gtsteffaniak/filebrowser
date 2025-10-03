@@ -81,7 +81,7 @@ export default {
       return state.share;
     },
     showShareInfo() {
-      return shareInfo.isShare && state.share.hash && state.isMobile && state.req.path == "/" && !shareInfo.disableShareCard;
+      return getters.isShare() && state.isMobile && state.req.path == "/" && !shareInfo.disableShareCard;
     },
     popupEnabled() {
       if (!state.user || state.user?.username == "") {
@@ -178,12 +178,12 @@ export default {
         });
       }
       // Set loading and reset error
-      mutations.setLoading(shareInfo.isShare ? "share" : "files", true);
+      mutations.setLoading(getters.isShare() ? "share" : "files", true);
       this.error = null;
       mutations.setReload(false);
 
       try {
-        if (shareInfo.isShare) {
+        if (getters.isShare()) {
           await this.fetchShareData();
         } else {
           await this.fetchFilesData();
@@ -200,7 +200,7 @@ export default {
           router.push({ name: "notFound" });
         } else if (e.status === 403) {
           router.push({ name: "forbidden" });
-        } else if (e.status === 401 && shareInfo.isShare) {
+        } else if (e.status === 401 && getters.isShare()) {
           // Handle share password requirement
           this.attemptedPasswordLogin = this.sharePassword !== "";
           // Reset password validation state on wrong password
@@ -210,7 +210,7 @@ export default {
           router.push({ name: "error" });
         }
       } finally {
-        mutations.setLoading(shareInfo.isShare ? "share" : "files", false);
+        mutations.setLoading(getters.isShare() ? "share" : "files", false);
       }
 
       setTimeout(() => {
@@ -352,7 +352,7 @@ export default {
       }
 
       // Esc! - for shares, reset selection
-      if (shareInfo.isShare && event.keyCode === 27) {
+      if ( getters.isShare() && event.keyCode === 27) {
         if (getters.selectedCount() > 0) {
           mutations.resetSelected();
         }
