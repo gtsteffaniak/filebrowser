@@ -13,7 +13,7 @@
     >
     <i
       v-else-if="!isFile"
-      class="material-icons blue-icons"
+      class="material-icons"
       :class="{ larger: showLarger, smaller: !showLarger }"
       >folder</i
     >
