@@ -471,11 +471,13 @@ export default {
       mutations.setLastSelectedIndex(this.index);
     },
     open() {
+      console.log("state.req.items[this.index].name", state.req.items[this.index].name);
       const previousHistoryItem = {
         name: state.req.items[this.index].name,
         source: state.req.source,
         path: state.req.path,
       };
+      console.log("previousHistoryItem", previousHistoryItem);
       url.goToItem(this.source, this.path, previousHistoryItem);
     },
   },

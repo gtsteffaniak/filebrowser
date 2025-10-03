@@ -20,15 +20,12 @@ export const getters = {
     }
     return fromNow(timestamp, state.user.locale)
   },
-  isScrollable: () => {
+  isPreviewView: () => {
     const cv = getters.currentView()
-    if (
-      cv == 'preview' ||
-      cv == 'onlyOfficeEditor' ||
-      cv == 'epubViewer' ||
-      cv == 'docViewer' ||
-      cv == 'editor'
-    ) {
+    return cv == 'preview' || cv == 'onlyOfficeEditor' || cv == 'epubViewer' || cv == 'docViewer' || cv == 'editor'
+  },
+  isScrollable: () => {
+    if (getters.isPreviewView()) {
       return false
     }
     return true

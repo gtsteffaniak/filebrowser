@@ -149,7 +149,7 @@ export default {
         }
         scrollToId = url.base64Encode(encodeURIComponent(decodedName));
 
-      } else if (state.previousHistoryItem.name) {
+      } else if (state.previousHistoryItem.name && state.previousHistoryItem.path === state.req.path && state.previousHistoryItem.source === state.req.source) {
         scrollToId = url.base64Encode(encodeURIComponent(state.previousHistoryItem.name));
       }
       const element = document.getElementById(scrollToId);
