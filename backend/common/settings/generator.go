@@ -621,7 +621,11 @@ func buildNodeWithDefaults(v reflect.Value, comm CommentsMap, defaults reflect.V
 
 		seq := &yaml.Node{Kind: yaml.SequenceNode}
 		// for non-struct slices, render inline [] via flow style
-		if v.Type().Elem().Kind() != reflect.Struct {
+		elemType := v.Type().Elem()
+		// Check if element is a struct or pointer to struct
+		isStructSlice := elemType.Kind() == reflect.Struct ||
+			(elemType.Kind() == reflect.Ptr && elemType.Elem().Kind() == reflect.Struct)
+		if !isStructSlice {
 			seq.Style = yaml.FlowStyle
 		}
 		for i := 0; i < v.Len(); i++ {

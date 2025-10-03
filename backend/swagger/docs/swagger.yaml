@@ -267,14 +267,13 @@ definitions:
     properties:
       createDirectoryPermission:
         description: 'Unix permissions like 755, 2755, 1777 (default: 755)'
-        maximum: 7777
-        minimum: 0
-        type: integer
+        type: string
       createFilePermission:
         description: 'Unix permissions like 644, 755, 2755 (default: 644)'
-        maximum: 7777
-        minimum: 0
-        type: integer
+        type: string
+    required:
+    - createDirectoryPermission
+    - createFilePermission
     type: object
   settings.Frontend:
     properties:
