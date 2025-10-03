@@ -161,26 +161,8 @@
   </div>
 
   <!-- Upload Share Target -->
-  <div v-else class="upload-share-container">
-    <div
-      class="upload-target"
-      :class="{ dropping: isDragging }"
-      @dragenter.prevent="dragEnter"
-      @dragover.prevent="dragOver"
-      @dragleave.prevent="dragLeave"
-      @drop.prevent="handleDrop"
-    >
-      <i class="material-icons upload-icon">cloud_upload</i>
-      <h2>{{ $t("share.uploadShareTitle") }}</h2>
-      <p class="upload-description">{{ $t("share.uploadShareDescription") }}</p>
-      <div class="upload-actions">
-        <button @click="openUploadPrompt" class="button button--flat button--blue">
-          <i class="material-icons">upload</i>
-          {{ $t("buttons.openUploadViewer") }}
-        </button>
-      </div>
-      <p class="upload-hint">{{ $t("share.uploadShareHint") }}</p>
-    </div>
+  <div v-else class="upload-share-embed">
+    <Upload :initialItems="null" />
   </div>
 </template>
 
@@ -196,11 +178,13 @@ import { url } from "@/utils";
 import { shareInfo } from "@/utils/constants";
 
 import Item from "@/components/files/ListingItem.vue";
+import Upload from "@/components/prompts/Upload.vue";
 
 export default {
   name: "listingView",
   components: {
     Item,
+    Upload,
   },
   data() {
     return {
@@ -880,6 +864,10 @@ export default {
       }
     },
     dragEnter(event) {
+      // If in upload share mode, let the embedded Upload component handle it
+      if (shareInfo.shareType === 'upload') {
+        return;
+      }
       const isInternal = Array.from(event.dataTransfer.types).includes(
         "application/x-filebrowser-internal-drag"
       );
@@ -889,6 +877,10 @@ export default {
       this.dragCounter++;
     },
     dragLeave(event) {
+      // If in upload share mode, let the embedded Upload component handle it
+      if (shareInfo.shareType === 'upload') {
+        return;
+      }
       const isInternal = Array.from(event.dataTransfer.types).includes(
         "application/x-filebrowser-internal-drag"
       );
@@ -965,6 +957,12 @@ export default {
       event.preventDefault();
       this.dragCounter = 0;
 
+      // If we're already in the embedded upload view, don't open a new prompt
+      // The embedded Upload component will handle its own drops
+      if (shareInfo.shareType === 'upload') {
+        return;
+      }
+
       if (event.type === "drop") {
         mutations.showHover({
           name: "upload",
@@ -987,14 +985,6 @@ export default {
           },
         });
       }
-    },
-    openUploadPrompt() {
-      mutations.showHover({
-        name: "upload",
-        props: {
-          initialItems: null,
-        },
-      });
     },
   },
 };
@@ -1035,82 +1025,10 @@ export default {
 }
 
 /* Upload Share Styles */
-.upload-share-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 80vh;
+.upload-share-embed {
   padding: 2em;
-}
-
-.upload-target {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  max-width: 600px;
-  width: 100%;
-  padding: 3em 2em;
-  border: 3px dashed var(--divider);
-  border-radius: 16px;
-  background: var(--surfaceSecondary);
-  transition: all 0.3s ease;
-  cursor: pointer;
-}
-
-.upload-target.dropping {
-  transform: scale(0.97);
-  border-radius: 1em;
-  border-color: var(--primaryColor);
-  box-shadow: var(--primaryColor) 0 0 1em;
-}
-
-.upload-target .upload-icon {
-  font-size: 5em;
-  color: var(--primaryColor);
-  margin-bottom: 0.5em;
-  opacity: 0.8;
-}
-
-.upload-target h2 {
-  margin: 0.5em 0;
-  color: var(--textPrimary);
-  font-size: 1.8em;
-}
-
-.upload-target .upload-description {
-  text-align: center;
-  color: var(--textSecondary);
-  margin: 0.5em 0 1.5em 0;
-  font-size: 1.1em;
-}
-
-.upload-target .upload-actions {
-  display: flex;
-  gap: 1em;
-  margin: 1em 0;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-.upload-target .upload-actions button {
-  display: flex;
-  align-items: center;
-  gap: 0.5em;
-  padding: 0.75em 1.5em;
-  font-size: 1em;
-}
-
-.upload-target .upload-actions button i {
-  font-size: 1.2em;
-}
-
-.upload-target .upload-hint {
-  margin-top: 1em;
-  color: var(--textSecondary);
-  font-size: 0.9em;
-  opacity: 0.7;
-  text-align: center;
+  max-width: 800px;
+  margin: 0 auto;
 }
 
 </style>

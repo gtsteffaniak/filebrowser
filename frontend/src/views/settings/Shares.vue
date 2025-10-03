@@ -20,40 +20,40 @@
         </tr>
       </thead>
       <tbody class="settings-items">
-        <tr class="item" v-for="link in links" :key="link.hash">
-          <td>{{ link.hash }}</td>
+        <tr class="item" v-for="item in links" :key="item.hash">
+          <td>{{ item.hash }}</td>
           <td>
-            <a :href="buildLink(link)" target="_blank">{{ link.path }}</a>
+            <a :href="buildLink(item)" target="_blank">{{ item.path }}</a>
           </td>
           <td>
-            <template v-if="link.expire !== 0">{{ humanTime(link.expire) }}</template>
+            <template v-if="item.expire !== 0">{{ humanTime(item.expire) }}</template>
             <template v-else>{{ $t("general.permanent") }}</template>
           </td>
           <td>
-            <template v-if="link.downloadsLimit && link.downloadsLimit > 0">{{ link.downloads }} / {{ link.downloadsLimit }}</template> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-            <template v-else>{{ link.downloads }}</template>
+            <template v-if="item.downloadsLimit && item.downloadsLimit > 0">{{ item.downloads }} / {{ item.downloadsLimit }}</template> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+            <template v-else>{{ item.downloads }}</template>
           </td>
-          <td>{{ link.username }}</td>
+          <td>{{ item.username }}</td>
           <td class="small">
-            <button class="action" @click="editLink(link)" :aria-label="$t('buttons.edit')"
+            <button class="action" @click="editLink(item)" :aria-label="$t('buttons.edit')"
               :title="$t('buttons.edit')">
               <i class="material-icons">edit</i>
             </button>
           </td>
           <td class="small">
-            <button class="action" @click="deleteLink($event, link)" :aria-label="$t('buttons.delete')"
+            <button class="action" @click="deleteLink($event, item)" :aria-label="$t('buttons.delete')"
               :title="$t('buttons.delete')">
               <i class="material-icons">delete</i>
             </button>
           </td>
           <td class="small">
-            <button class="action copy-clipboard" :data-clipboard-text="buildLink(link)"
+            <button class="action copy-clipboard" :data-clipboard-text="buildLink(item)"
               :aria-label="$t('buttons.copyToClipboard')" :title="$t('buttons.copyToClipboard')">
               <i class="material-icons">content_paste</i>
             </button>
           </td>
           <td class="small">
-            <button class="action copy-clipboard" :data-clipboard-text="fixDownloadURL(link.downloadURL)" v-if="link.downloadURL"
+            <button :disabled="item.shareType == 'upload'" class="action copy-clipboard" :data-clipboard-text="fixDownloadURL(item.downloadURL)" v-if="item.downloadURL"
               :aria-label="$t('buttons.copyDownloadLinkToClipboard')" :title="$t('buttons.copyDownloadLinkToClipboard')">
               <i class="material-icons">content_paste_go</i>
             </button>
@@ -142,32 +142,28 @@ export default {
         mutations.setLoading("shares", false);
       }
     },
-    /**
-     * @param {any} link
-     */
-    editLink(link) {
+    editLink(item) {
       mutations.showHover({
         name: "share",
         props: {
           editing: true,
-          link: link,
+          link: item,
         },
       });
     },
     /**
      * @param {any} event
-     * @param {any} link
+     * @param {any} item
      */
-    deleteLink: async function (event, link) {
+    deleteLink: async function (event, item) {
       mutations.showHover({
         name: "share-delete",
-        props: { path: link.path },
+        props: { path: item.path },
         confirm: () => {
           mutations.closeHovers();
-
           try {
-            shareApi.remove(link.hash);
-            this.links = this.links.filter((item) => item.hash !== link.hash);
+            shareApi.remove(item.hash);
+            this.links = this.links.filter((item) => item.hash !== item.hash);
             notify.showSuccess(this.$t("settings.shareDeleted"));
           } catch (e) {
             notify.showError(e);
@@ -182,10 +178,10 @@ export default {
       return fromNow(time);
     },
     /**
-     * @param {any} share
+     * @param {any} item
      */
-    buildLink(share) {
-      return publicApi.getShareURL(share);
+    buildLink(item) {
+      return publicApi.getShareURL(item);
     },
     fixDownloadURL(downloadUrl) {
       // Only fix the URL if it doesn't already have the correct external domain

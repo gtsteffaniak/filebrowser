@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"path/filepath"
 	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
@@ -14,31 +15,53 @@ import (
 	_ "github.com/gtsteffaniak/filebrowser/backend/swagger/docs"
 )
 
-// rawHandler serves the raw content of a file, multiple files, or directory in various formats.
-// @Summary Get raw content of a file, multiple files, or directory
-// @Description Returns the raw content of a file, multiple files, or a directory. Supports downloading files as archives in various formats.
-// @Tags Resources
+// publicRawHandler serves the raw content of a file, multiple files, or directory via a public share.
+// @Summary Download files from a public share
+// @Description Downloads raw content from a public share. Supports single files, multiple files, or directories as archives. Enforces download limits (global or per-user) and blocks anonymous users when per-user limits are enabled.
+// @Tags Public Shares
 // @Accept json
-// @Produce json
-// @Param files query string false "if specified, only the files in the list will be downloaded. eg. files=/file1||/folder/file2"
+// @Produce octet-stream
+// @Param hash query string true "Share hash for authentication"
+// @Param files query string true "Files to download in format: 'source::path||source::path'. Example: '/file1||/folder/file2'"
 // @Param inline query bool false "If true, sets 'Content-Disposition' to 'inline'. Otherwise, defaults to 'attachment'."
 // @Param algo query string false "Compression algorithm for archiving multiple files or directories. Options: 'zip' and 'tar.gz'. Default is 'zip'."
 // @Success 200 {file} file "Raw file or directory content, or archive for multiple files"
-// @Failure 202 {object} map[string]string "Modify permissions required"
-// @Failure 400 {object} map[string]string "Invalid request path"
-// @Failure 404 {object} map[string]string "File or directory not found"
+// @Failure 400 {object} map[string]string "Invalid request path or encoding"
+// @Failure 403 {object} map[string]string "Download limit reached, anonymous access blocked, or share unavailable"
+// @Failure 404 {object} map[string]string "Share not found or file not found"
 // @Failure 500 {object} map[string]string "Internal server error"
-// @Router /public/dl [get]
+// @Failure 501 {object} map[string]string "Downloads disabled for upload shares"
+// @Router /public/api/raw [get]
 func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	if d.share.ShareType == "upload" {
 		return http.StatusNotImplemented, fmt.Errorf("downloads are disabled for upload shares")
 	}
-	if d.share.DownloadsLimit > 0 && d.share.Downloads >= d.share.DownloadsLimit {
+
+	// Check global download limit (if not using per-user limits)
+	if !d.share.PerUserDownloadLimit && d.share.DownloadsLimit > 0 && d.share.Downloads >= d.share.DownloadsLimit {
 		return http.StatusForbidden, fmt.Errorf("share downloads limit reached")
 	}
+
+	// Check per-user download limit
+	if d.share.PerUserDownloadLimit {
+		// Block anonymous users
+		if d.user.Username == "anonymous" {
+			return http.StatusForbidden, fmt.Errorf("anonymous downloads are not allowed with per-user limits")
+		}
+		// Check if user has reached their limit
+		if d.share.HasReachedUserLimit(d.user.Username) {
+			return http.StatusForbidden, fmt.Errorf("user download limit reached for this share")
+		}
+	}
+
 	d.share.Mu.Lock()
 	d.share.Downloads++
 	d.share.Mu.Unlock()
+
+	// Track per-user download if enabled
+	if d.share.PerUserDownloadLimit {
+		d.share.IncrementUserDownload(d.user.Username)
+	}
 	encodedFiles := r.URL.Query().Get("files")
 
 	// Decode the URL-encoded path - use PathUnescape to preserve + as literal character
@@ -86,11 +109,66 @@ func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	return status, nil
 }
 
+// publicShareHandler returns file or directory information from a public share.
+// @Summary Get file/directory information from a public share
+// @Description Returns metadata for files or directories accessible via a public share link. Browsing is disabled for upload-only shares.
+// @Tags Public Shares
+// @Accept json
+// @Produce json
+// @Param hash query string true "Share hash for authentication"
+// @Param path query string false "Path within the share to retrieve information for. Defaults to share root."
+// @Success 200 {object} iteminfo.FileInfo "File or directory metadata"
+// @Failure 403 {object} map[string]string "Share unavailable or access denied"
+// @Failure 404 {object} map[string]string "Share not found or file not found"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Failure 501 {object} map[string]string "Browsing disabled for upload shares"
+// @Router /public/api/share [get]
 func publicShareHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	if d.share.ShareType == "upload" {
 		return http.StatusNotImplemented, fmt.Errorf("browsing is disabled for upload shares")
 	}
 	return renderJSON(w, r, d.fileInfo)
+}
+
+// publicUploadHandler processes file uploads to a public upload share.
+// @Summary Upload files to a public upload share
+// @Description Handles file and directory uploads to an upload-only public share. Supports chunked uploads, conflict resolution (override), and directory creation.
+// @Tags Public Shares
+// @Accept multipart/form-data
+// @Produce json
+// @Param hash query string true "Share hash for authentication"
+// @Param targetPath query string true "Target path within the share to upload to. Must be relative to share root."
+// @Param override query bool false "If true, overwrite existing files/folders. Defaults to false."
+// @Param action query string false "Upload action: 'override' to replace files, 'rename' to auto-rename"
+// @Param file formData file true "File to upload"
+// @Success 200 {object} map[string]string "Upload successful"
+// @Failure 400 {object} map[string]string "Invalid request or parameters"
+// @Failure 403 {object} map[string]string "Share unavailable or upload not allowed"
+// @Failure 404 {object} map[string]string "Share not found"
+// @Failure 409 {object} map[string]string "File or directory already exists (conflict)"
+// @Failure 500 {object} map[string]string "Internal server error during upload"
+// @Failure 501 {object} map[string]string "Uploading disabled for non-upload shares"
+// @Router /public/api/resources [post]
+func publicUploadHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	if d.share.ShareType != "upload" {
+		return http.StatusNotImplemented, fmt.Errorf("uploading is disabled for non-upload shares")
+	}
+
+	fullPath := filepath.Join(d.share.Path, r.URL.Query().Get("targetPath"))
+	source := config.Server.SourceMap[d.share.Source].Name
+	logger.Infof("public upload handler: fullPath: '%v' for share: '%v' with source: '%v'", fullPath, d.share.Source, source)
+	// adjust query params to match resourcePostHandler
+	q := r.URL.Query()
+	q.Set("source", source)
+	q.Set("path", fullPath)
+	r.URL.RawQuery = q.Encode()
+
+	status, err := resourcePostHandler(w, r, d)
+	if err != nil {
+		logger.Errorf("public upload handler: error uploading: '%v' with error %v", d.fileInfo, err)
+		return http.StatusInternalServerError, fmt.Errorf("upload failure occured on backend")
+	}
+	return status, err
 }
 
 // health godoc
@@ -111,22 +189,21 @@ func healthHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// publicPreviewHandler handles the preview request for images from shares.
-// @Summary Get image preview
-// @Description Returns a preview image based on the requested path and size.
-// @Tags Resources
+// publicPreviewHandler handles the preview request for images from public shares.
+// @Summary Get image/video preview from a public share
+// @Description Returns a preview (thumbnail) for images or videos accessible via a public share. Preview generation can be disabled globally or per-share. Not available for upload-only shares.
+// @Tags Public Shares
 // @Accept json
-// @Produce json
-// @Param hash query string true "source hash"
-// @Param path query string true "File path of the image to preview"
-// @Param size query string false "Preview size ('small' or 'large'). Default is based on server config."
-// @Success 200 {file} file "Preview image content"
-// @Failure 202 {object} map[string]string "Download permissions required"
-// @Failure 400 {object} map[string]string "Invalid request path"
-// @Failure 404 {object} map[string]string "File not found"
-// @Failure 415 {object} map[string]string "Unsupported file type for preview"
+// @Produce image/jpeg
+// @Param hash query string true "Share hash for authentication"
+// @Param path query string true "File path within the share to preview"
+// @Param size query string false "Preview size: 'small' or 'large'. Default is based on server config."
+// @Success 200 {file} file "Preview image content (JPEG)"
+// @Failure 403 {object} map[string]string "Share unavailable or access denied"
+// @Failure 404 {object} map[string]string "File not found or preview not available"
 // @Failure 500 {object} map[string]string "Internal server error"
-// @Router /api/public/preview [get]
+// @Failure 501 {object} map[string]string "Previews disabled globally, for this share, or for upload shares"
+// @Router /public/api/preview [get]
 func publicPreviewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	if config.Server.DisablePreviews || d.share.DisableThumbnails {
 		return http.StatusNotImplemented, fmt.Errorf("preview is disabled")

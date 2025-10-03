@@ -155,7 +155,7 @@ userDefaults:
     maxConcurrentUpload: 10
     uploadChunkSizeMb: 10
     clearAll: false
-  disableOnlyOfficeExt: ""                # list of file extensions to disable onlyoffice editor for
+  disableOnlyOfficeExt: ".md .txt .pdf"   # list of file extensions to disable onlyoffice editor for
   customTheme: ""                         # Name of theme to use chosen from custom themes config.
   showSelectMultiple: false               # show select multiple files on desktop
   debugOffice: false                      # debug onlyoffice editor

@@ -30,6 +30,7 @@ type CommonShare struct {
 	EnableOnlyOffice        bool     `json:"enableOnlyOffice,omitempty"`
 	EnableOnlyOfficeEditing bool     `json:"enableOnlyOfficeEditing,omitempty"`
 	ShareType               string   `json:"shareType"` // type of share: normal, upload, max
+	PerUserDownloadLimit    bool     `json:"perUserDownloadLimit,omitempty"`
 }
 type CreateBody struct {
 	CommonShare
@@ -42,12 +43,13 @@ type CreateBody struct {
 // Link is the information needed to build a shareable link.
 type Link struct {
 	CommonShare
-	Mu           sync.Mutex `json:"-"`
-	Downloads    int        `json:"downloads"`
-	Hash         string     `json:"hash" storm:"id,index"`
-	UserID       uint       `json:"userID"`
-	Expire       int64      `json:"expire"`
-	PasswordHash string     `json:"password_hash,omitempty"`
+	Mu            sync.Mutex     `json:"-"`
+	Downloads     int            `json:"downloads"`
+	UserDownloads map[string]int `json:"-"` // Track downloads per username (not persisted)
+	Hash          string         `json:"hash" storm:"id,index"`
+	UserID        uint           `json:"userID"`
+	Expire        int64          `json:"expire"`
+	PasswordHash  string         `json:"password_hash,omitempty"`
 	// Token is a random value that will only be set when PasswordHash is set. It is
 	// URL-Safe and is used to download links in password-protected shares via a
 	// query arg.

@@ -28,8 +28,8 @@ func setupTestEnv(t *testing.T) {
 		t.Fatal(err)
 	}
 	config = &settings.Config // mocked
-	config.Server.SourceMap = map[string]settings.Source{
-		"/srv": settings.Source{
+	config.Server.SourceMap = map[string]*settings.Source{
+		"/srv": &settings.Source{
 			Path: "/srv",
 			Name: "srv",
 		},

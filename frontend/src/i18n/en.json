@@ -194,9 +194,8 @@
     "shareTypeDescription": "The type of share to create. Normal shares allow viewing and downloading files. Upload shares allow uploading files to the share.",
     "normalShare": "Normal",
     "uploadShare": "Upload only",
-    "uploadShareTitle": "Upload Files to Share",
-    "uploadShareDescription": "Drag and drop files here or use the upload manager to add files.",
-    "uploadShareHint": "Files will be uploaded to this shared location"
+    "perUserDownloadLimit": "Apply the downloads limit to each user",
+    "perUserDownloadLimitDescription": "When enabled, the downloads limit will be applied to each user. Anonymous users will not be able to download any files from this share."
   },
   "prompts": {
     "operationInProgress": "Operation in progress, please wait...",
@@ -575,7 +574,8 @@
     "uploadChunkSizeMb": "Upload chunk size in MB",
     "uploadChunkSizeMbHelp": "Typically 5 to 50 MB, smaller is better for unstable or restricted connections. Setting to 0 will disable upload chunking.",
     "clearAll": "Clear completed should remove error, pause, and conflict",
-    "clearAllDescription": "The clear completed button will clear all uploads in a finished state, including error, paused, and conflict states."
+    "clearAllDescription": "The clear completed button will clear all uploads in a finished state, including error, paused, and conflict states.",
+    "uploadSettings": "Upload Settings"
   },
   "colors": {
     "red": "red",

@@ -3,7 +3,7 @@
     <h2>{{ $t("buttons.share") }}</h2>
   </div>
   <div class="card-content">
-    <div aria-label="share-path" class="searchContext button"> {{ $t('search.path') }} {{ item.path }}</div>
+    <div aria-label="share-path" class="searchContext button"> {{ $t('search.path') }} {{ displayPath }}</div>
     <p> {{ $t('share.notice') }} </p>
 
     <div v-if="listing">
@@ -105,7 +105,9 @@
         />
         <ToggleSwitch class="item" v-model="disableAnonymous" :name="$t('share.disableAnonymous')" :description="$t('share.disableAnonymousDescription')" />
         <ToggleSwitch class="item" v-model="enableAllowedUsernames" :name="$t('share.enableAllowedUsernames')" :description="$t('share.enableAllowedUsernamesDescription')" />
-
+        <div v-if="enableAllowedUsernames" class="item">
+          <input class="input" type="text" v-model.trim="allowedUsernames" :placeholder="$t('share.allowedUsernamesPlaceholder')" />
+        </div>
         <ToggleSwitch v-if="shareType === 'normal' && onlyOfficeAvailable" class="item" v-model="enableOnlyOffice" :name="$t('share.enableOnlyOffice')" :description="$t('share.enableOnlyOfficeDescription')" />
         <ToggleSwitch v-if="shareType === 'normal' && onlyOfficeAvailable" class="item" v-model="enableOnlyOfficeEditing" :name="$t('share.enableOnlyOfficeEditing')" :description="$t('share.enableOnlyOfficeEditingDescription')" />
         <p>
@@ -123,10 +125,6 @@
           <option value="dark">{{ $t("share.dark") }}</option>
           <option value="light">{{ $t("share.light") }}</option>
         </select>
-
-        <div v-if="enableAllowedUsernames" class="item">
-          <input class="input" type="text" v-model.trim="allowedUsernames" :placeholder="$t('share.allowedUsernamesPlaceholder')" />
-        </div>
       </div>
         <!-- <ViewMode :viewMode="viewMode" @update:viewMode="viewMode = $event" /> -->
         <p>
@@ -171,6 +169,7 @@
           <ToggleSwitch class="item" v-model="disableNavButtons" :name="$t('share.hideNavButtons')" :description="$t('share.hideNavButtonsDescription')" />
           <ToggleSwitch class="item" v-model="disableShareCard" :name="$t('share.disableShareCard')" :description="$t('share.disableShareCardDescription')" />
           <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="disableSidebar" :name="$t('share.disableSidebar')" :description="$t('share.disableSidebarDescription')" />
+          <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="perUserDownloadLimit" :name="$t('share.perUserDownloadLimit')" :description="$t('share.perUserDownloadLimitDescription')" />
         </div>
 
         <div v-if="shareType === 'normal'">
@@ -333,6 +332,7 @@ export default {
       listing: true,
       allowEdit: false,
       downloadsLimit: "",
+      perUserDownloadLimit: false,
       shareTheme: "default",
       disableAnonymous: false,
       allowUpload: false,
@@ -360,6 +360,14 @@ export default {
     };
   },
   computed: {
+    displayPath() {
+      // When editing, use the link's path; otherwise use the item's path
+      return this.isEditMode ? this.link.path : this.item.path;
+    },
+    displaySource() {
+      // When editing, use the link's source; otherwise use the item's source
+      return this.isEditMode ? this.link.source : this.item.source;
+    },
     onlyOfficeAvailable() {
       return globalVars.onlyOfficeUrl !== "";
     },
@@ -417,6 +425,7 @@ export default {
           this.unit = "hours";
           this.password = "";
           this.downloadsLimit = this.link.downloadsLimit ? String(this.link.downloadsLimit) : "";
+          this.perUserDownloadLimit = this.link.perUserDownloadLimit || false;
           this.maxBandwidth = this.link.maxBandwidth ? String(this.link.maxBandwidth) : "";
           this.shareTheme = this.link.shareTheme || "default";
           this.disableAnonymous = this.link.disableAnonymous || false;
@@ -493,8 +502,8 @@ export default {
         }
         let isPermanent = !this.time || this.time === "0";
         const payload = {
-          path: this.item.path,
-          source: this.item.source,
+          path: this.displayPath,
+          source: this.displaySource,
           password: this.password,
           expires: isPermanent ? "" : this.time.toString(),
           unit: this.unit,
@@ -502,6 +511,7 @@ export default {
           allowUpload: this.allowUpload,
           maxBandwidth: this.maxBandwidth ? parseInt(this.maxBandwidth) : 0,
           downloadsLimit: this.downloadsLimit ? parseInt(this.downloadsLimit) : 0,
+          perUserDownloadLimit: this.perUserDownloadLimit,
           shareTheme: this.shareTheme,
           disableFileViewer: this.disableFileViewer,
           disableThumbnails: this.disableThumbnails,

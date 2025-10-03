@@ -33,7 +33,7 @@ func createTestUser(t *testing.T, userStore *users.Storage, username string) {
 
 func setupTestSources() {
 	// Setup default test sources with allow-by-default behavior
-	settings.Config.Server.SourceMap = map[string]settings.Source{
+	settings.Config.Server.SourceMap = map[string]*settings.Source{
 		"mnt/storage": {
 			Path: "mnt/storage",
 			Name: "storage",
@@ -259,7 +259,7 @@ func TestPermitted_DenyByDefault(t *testing.T) {
 		access.ClearCache()
 	}()
 
-	settings.Config.Server.SourceMap = map[string]settings.Source{
+	settings.Config.Server.SourceMap = map[string]*settings.Source{
 		"mnt/storage": {
 			Path: "mnt/storage",
 			Name: "storage",
@@ -359,7 +359,7 @@ func TestPermitted_DenyByDefaultWithDenyAll(t *testing.T) {
 		access.ClearCache()
 	}()
 
-	settings.Config.Server.SourceMap = map[string]settings.Source{
+	settings.Config.Server.SourceMap = map[string]*settings.Source{
 		"mnt/storage": {
 			Path: "mnt/storage",
 			Name: "storage",
@@ -425,7 +425,7 @@ func TestPermitted_DenyByDefault_AdminRootAccess(t *testing.T) {
 		settings.Config.Server.SourceMap = originalSourceMap
 		access.ClearCache()
 	}()
-	settings.Config.Server.SourceMap = map[string]settings.Source{
+	settings.Config.Server.SourceMap = map[string]*settings.Source{
 		"mnt/secure": {
 			Path: "mnt/secure",
 			Name: "secure",
@@ -502,7 +502,7 @@ func TestUserReportedBug(t *testing.T) {
 		access.ClearCache()
 	}()
 
-	settings.Config.Server.SourceMap = map[string]settings.Source{
+	settings.Config.Server.SourceMap = map[string]*settings.Source{
 		"TEST_FOLDER": {
 			Path: "TEST_FOLDER",
 			Name: "TEST_FOLDER",
@@ -567,7 +567,7 @@ func TestSubfolderAccessLogicBug(t *testing.T) {
 		access.ClearCache()
 	}()
 
-	settings.Config.Server.SourceMap = map[string]settings.Source{
+	settings.Config.Server.SourceMap = map[string]*settings.Source{
 		"TEST_FOLDER": {
 			Path: "TEST_FOLDER",
 			Name: "TEST_FOLDER",
@@ -626,7 +626,7 @@ func TestFileInfoBrowsingBug(t *testing.T) {
 		access.ClearCache()
 	}()
 
-	settings.Config.Server.SourceMap = map[string]settings.Source{
+	settings.Config.Server.SourceMap = map[string]*settings.Source{
 		"TEST_FOLDER": {
 			Path: "TEST_FOLDER",
 			Name: "TEST_FOLDER",
@@ -705,7 +705,7 @@ func TestCacheClearingOnRuleDeletion(t *testing.T) {
 		access.ClearCache()
 	}()
 
-	settings.Config.Server.SourceMap = map[string]settings.Source{
+	settings.Config.Server.SourceMap = map[string]*settings.Source{
 		"test_source": {
 			Path: "test_source",
 			Name: "test_source",
@@ -822,7 +822,7 @@ func TestCacheClearingOnBulkRuleDeletion(t *testing.T) {
 		access.ClearCache()
 	}()
 
-	settings.Config.Server.SourceMap = map[string]settings.Source{
+	settings.Config.Server.SourceMap = map[string]*settings.Source{
 		"test_source": {
 			Path: "test_source",
 			Name: "test_source",
@@ -895,7 +895,7 @@ func TestNestedFolderAccessBug(t *testing.T) {
 		access.ClearCache()
 	}()
 
-	settings.Config.Server.SourceMap = map[string]settings.Source{
+	settings.Config.Server.SourceMap = map[string]*settings.Source{
 		"TEST": {
 			Path: "TEST",
 			Name: "TEST",
@@ -1045,7 +1045,7 @@ func TestFolderVisibilityBugReproduction(t *testing.T) {
 		access.ClearCache()
 	}()
 
-	settings.Config.Server.SourceMap = map[string]settings.Source{
+	settings.Config.Server.SourceMap = map[string]*settings.Source{
 		"TEST": {
 			Path: "TEST",
 			Name: "TEST",
@@ -1160,7 +1160,7 @@ func TestHasAnyVisibleItems(t *testing.T) {
 		access.ClearCache()
 	}()
 
-	settings.Config.Server.SourceMap = map[string]settings.Source{
+	settings.Config.Server.SourceMap = map[string]*settings.Source{
 		"TEST": {
 			Path: "TEST",
 			Name: "TEST",
