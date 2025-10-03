@@ -392,3 +392,29 @@ func IsDirectory(fileInfo os.FileInfo) bool {
 	// For bundle-type dirs, treat them as files
 	return false
 }
+
+// ShouldBubbleUpToFolderPreview checks if a file type should be used for folder previews.
+// Only images, videos, and audio files with album art should bubble up.
+// Text files, office documents, and PDFs should NOT bubble up to folder previews.
+// This ensures consistency between indexing and preview generation.
+func ShouldBubbleUpToFolderPreview(item ItemInfo) bool {
+	// Get the simple type (e.g., "image", "video", "text")
+	simpleType := strings.Split(item.Type, "/")[0]
+	// Text files should NOT bubble up
+	if simpleType == "text" {
+		return false
+	}
+	// Office documents should NOT bubble up
+	if IsOnlyOffice(item.Name) {
+		return false
+	}
+	// Document convertable files (PDFs, etc.) should NOT bubble up
+	if HasDocConvertableExtension(item.Name, item.Type) {
+		return false
+	}
+	// Only allow images, videos, and audio with album art to bubble up
+	if simpleType == "image" || simpleType == "video" || simpleType == "audio" {
+		return true
+	}
+	return false
+}

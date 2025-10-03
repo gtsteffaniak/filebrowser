@@ -53,6 +53,11 @@ export default {
       required: true,
       validator: (value) => ["move", "copy"].includes(value),
     },
+    // When true, immediately shows loading state (for drag and drop operations)
+    operationInProgress: {
+      type: Boolean,
+      default: false,
+    },
   },
   data: function () {
     return {
@@ -90,6 +95,10 @@ export default {
     },
   },
   mounted() {
+    // If operationInProgress is true, show loading immediately (for drag and drop)
+    if (this.operationInProgress) {
+      this.isLoading = true;
+    }
     if (state.isSearchActive) {
       // Add null checks to prevent undefined values
       if (state.selected && state.selected[0] && state.selected[0].path) {

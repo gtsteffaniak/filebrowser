@@ -6,10 +6,16 @@
     :class="{ 'image-preview': hasPreviewImage }"
   >
     <i
-      v-if="hasMotion"
+      v-if="hasMotion && isFile"
       class="material-icons"
       :class="{ larger: showLarger, smaller: !showLarger }"
       >animation</i
+    >
+    <i
+      v-else-if="!isFile"
+      class="material-icons blue-icons"
+      :class="{ larger: showLarger, smaller: !showLarger }"
+      >folder</i
     >
     <img
       :key="imageTargetSrc"
@@ -73,8 +79,10 @@ export default {
     };
   },
   computed: {
+    isFile() {
+      return this.mimetype !== "directory";
+    },
     hasPreviewImage() {
-      
       if (shareInfo.disableThumbnails) {
         return false;
       }

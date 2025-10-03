@@ -23,7 +23,7 @@ func (s *Storage) CheckChildItemAccess(response *iteminfo.ExtendedFileInfo, inde
 
 	// Check if user has access to any items
 	if !s.HasAnyVisibleItems(index.Path, parentPath, allItemNames, username) {
-		return errors.ErrPermissionDenied
+		return errors.ErrAccessDenied
 	}
 
 	// Filter and return only the items the user has access to

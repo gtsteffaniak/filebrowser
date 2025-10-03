@@ -186,7 +186,7 @@ export function goToItem(source, path, previousHistoryItem) {
   mutations.setPreviousHistoryItem(previousHistoryItem);
   let newPath = encodedPath(path);
   let fullPath;
-  if (shareInfo.isShare) {
+  if (getters.isShare()) {
     fullPath = `/public/share/${shareInfo.hash}${newPath}`;
     router.push({ path: fullPath });
     return;

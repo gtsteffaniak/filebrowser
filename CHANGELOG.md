@@ -6,15 +6,18 @@ All notable changes to this project will be documented in this file. For commit 
 
  **New Features**:
  - Ability to split configuration files via yaml anchoring #1267
+   - see [How to: Use multiple config files](https://github.com/gtsteffaniak/filebrowser/wiki/How-to:-Use-multiple-config-files)
+ - added [Init Script Help wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Init-Script-Help) to examples how you can bootstrap filebrowser quantum programatically
  - Add capability to edit files permissions #813
+   - see updated full config for help using `server.filesystem`
  - better copy/move prompt "in progress" indicator
  - better login error message feedback
- - Add capability to disable certain video previews
+ - Add capability to disable certain video previews at server level.
  - Added ability to play media in same folder sequentially or shuffled
  - upload/upload only share links. #661
  - Default landing directory (set profile settings) #781
- #- better init script support #897
  - share download limit feature can apply per user -- and disables anonymous download when enabled.
+ - Docker health check #1292
  - embedded subtitle support is now **disabled** by default, can be enabled via `integrations.media.extractEmbeddedSubtitles`. Per share configuration is also possible via `extractEmbeddedSubtitles` toggle. This change is because reading subtitles requires processing the entire file, and multi GB video files can take 10-20 seconds.
 
  **Notes**:
@@ -36,9 +39,8 @@ All notable changes to this project will be documented in this file. For commit 
  - logout path redirect not working
  - 2FA secret error #1305
  - console errors during login/logout
- #- fix folder size indexing
- #- fox plyr loading same file many times
- #- add share edit link on shares prompt
+ - fix scoped user share creation issue #1309
+ - share close button and navigation issues.
 
 ## v0.8.7-beta
 

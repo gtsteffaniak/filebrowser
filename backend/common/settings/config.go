@@ -53,14 +53,14 @@ func Initialize(configFile string) {
 
 func setupFs() {
 	// Convert permission values (like 644, 755) to octal interpretation
-	filePermOctal, err := strconv.ParseUint(fmt.Sprintf("%d", Config.Server.Filesystem.CreateFilePermission), 8, 32)
+	filePermOctal, err := strconv.ParseUint(Config.Server.Filesystem.CreateFilePermission, 8, 32)
 	if err != nil {
-		Config.Server.Filesystem.CreateFilePermission = 644
+		Config.Server.Filesystem.CreateFilePermission = "644"
 		filePermOctal, _ = strconv.ParseUint("644", 8, 32)
 	}
-	dirPermOctal, err := strconv.ParseUint(fmt.Sprintf("%d", Config.Server.Filesystem.CreateDirectoryPermission), 8, 32)
+	dirPermOctal, err := strconv.ParseUint(Config.Server.Filesystem.CreateDirectoryPermission, 8, 32)
 	if err != nil {
-		Config.Server.Filesystem.CreateDirectoryPermission = 755
+		Config.Server.Filesystem.CreateDirectoryPermission = "755"
 		dirPermOctal, _ = strconv.ParseUint("755", 8, 32)
 	}
 	fileutils.SetFsPermissions(os.FileMode(filePermOctal), os.FileMode(dirPermOctal))
@@ -389,11 +389,37 @@ func loadConfigWithDefaults(configFile string, isGenerate bool) error {
 
 func ValidateConfig(config Settings) error {
 	validate := validator.New()
-	err := validate.Struct(Config)
+
+	// Register custom validator for file permissions
+	err := validate.RegisterValidation("file_permission", validateFilePermission)
+	if err != nil {
+		return fmt.Errorf("could not register file_permission validator: %v", err)
+	}
+
+	err = validate.Struct(Config)
 	if err != nil {
 		return fmt.Errorf("could not validate config: %v", err)
 	}
 	return nil
+}
+
+// validateFilePermission validates that a string is a valid Unix octal file permission (3-4 digits, 0-7)
+func validateFilePermission(fl validator.FieldLevel) bool {
+	value := fl.Field().String()
+
+	// Must be 3 or 4 characters long
+	if len(value) < 3 || len(value) > 4 {
+		return false
+	}
+
+	// All characters must be octal digits (0-7)
+	for _, char := range value {
+		if char < '0' || char > '7' {
+			return false
+		}
+	}
+
+	return true
 }
 
 func loadEnvConfig() {
@@ -467,8 +493,8 @@ func setDefaults(generate bool) Settings {
 			MaxArchiveSizeGB:   50,
 			CacheDir:           "tmp",
 			Filesystem: Filesystem{
-				CreateFilePermission:      644,
-				CreateDirectoryPermission: 755,
+				CreateFilePermission:      "644",
+				CreateDirectoryPermission: "755",
 			},
 		},
 		Auth: Auth{

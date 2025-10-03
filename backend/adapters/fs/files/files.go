@@ -36,7 +36,7 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.E
 	}
 	realPath, isDir, err := index.GetRealPath(opts.Path)
 	if err != nil {
-		return response, fmt.Errorf("could not get real path for requested path: %v", opts.Path)
+		return response, fmt.Errorf("could not get real path for requested path: %v, error: %v", opts.Path, err)
 	}
 	if !strings.HasSuffix(opts.Path, "/") && isDir {
 		opts.Path = opts.Path + "/"
@@ -44,21 +44,45 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.E
 	opts.IsDir = isDir
 	var info *iteminfo.FileInfo
 	var exists bool
-	var useFsDirInfo bool
-	if isDir {
+	var useFsInfo bool
+
+	// Check if indexing is disabled for this source
+	if index.Config.DisableIndexing {
+		useFsInfo = true
+	}
+
+	if !useFsInfo && isDir {
 		err = index.RefreshFileInfo(opts)
 		if err != nil {
-			if err == errors.ErrNotIndexed && index.Config.DisableIndexing {
-				useFsDirInfo = true
-			} else if err == errors.ErrNotIndexed {
+			if err == errors.ErrNotIndexed {
 				return response, fmt.Errorf("could not refresh file info: %v", err)
 			}
 		}
 	}
-	if useFsDirInfo {
-		info, err = index.GetFsDirInfo(opts.Path)
-		if err != nil {
-			return response, err
+
+	if useFsInfo {
+		if isDir {
+			info, err = index.GetFsDirInfo(opts.Path)
+			if err != nil {
+				return response, err
+			}
+		} else {
+			var fileInfo os.FileInfo
+			// Get file info directly from filesystem
+			fileInfo, err = os.Stat(realPath)
+			if err != nil {
+				return response, fmt.Errorf("could not stat file: %v", err)
+			}
+
+			info = &iteminfo.FileInfo{
+				Path: opts.Path,
+				ItemInfo: iteminfo.ItemInfo{
+					Name:    fileInfo.Name(),
+					Size:    fileInfo.Size(),
+					ModTime: fileInfo.ModTime(),
+				},
+			}
+			info.DetectType(realPath, false)
 		}
 	} else {
 		info, exists = index.GetReducedMetadata(opts.Path, opts.IsDir)
@@ -104,14 +128,16 @@ func processContent(info *iteminfo.ExtendedFileInfo, idx *indexing.Index, opts u
 		return
 	}
 
-	if isVideo && opts.ExtractEmbeddedSubtitles {
-		parentPath := filepath.Dir(info.Path)
-		parentInfo, exists := idx.GetReducedMetadata(parentPath, true)
-		if exists {
-			info.DetectSubtitles(parentInfo)
-			err := info.LoadSubtitleContent()
-			if err != nil {
-				logger.Debug("failed to load subtitle content: " + err.Error())
+	if isVideo {
+		if opts.ExtractEmbeddedSubtitles {
+			parentPath := filepath.Dir(info.Path)
+			parentInfo, exists := idx.GetReducedMetadata(parentPath, true)
+			if exists {
+				info.DetectSubtitles(parentInfo)
+				err := info.LoadSubtitleContent()
+				if err != nil {
+					logger.Debug("failed to load subtitle content: " + err.Error())
+				}
 			}
 		}
 		return
@@ -136,7 +162,7 @@ func processContent(info *iteminfo.ExtendedFileInfo, idx *indexing.Index, opts u
 		}
 		info.Content = content
 	} else {
-		logger.Debug("skipping large text file contents (20MB limit): "+info.Path, info.Name)
+		logger.Debug("skipping large text file contents (20MB limit): "+info.Path, info.Name, info.Type)
 	}
 }
 

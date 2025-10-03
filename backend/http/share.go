@@ -290,22 +290,14 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		Token:        token,
 		CommonShare:  body.CommonShare,
 	}
-
 	if err = store.Share.Save(s); err != nil {
 		return http.StatusInternalServerError, err
 	}
-	// Convert to ShareResponse format with username
-	var user *users.User
-	user, err = store.Users.Get(s.UserID)
-	username := ""
-	if err == nil {
-		username = user.Username
+	sharesWithUsernames, err := convertToShareResponse(r, []*share.Link{s})
+	if err != nil {
+		return http.StatusInternalServerError, err
 	}
-	response := &ShareResponse{
-		Link:     s,
-		Username: username,
-	}
-	return renderJSON(w, r, response)
+	return renderJSON(w, r, sharesWithUsernames[0])
 }
 
 // DirectDownloadResponse represents the response for direct download endpoint

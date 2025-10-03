@@ -129,6 +129,10 @@ func (idx *Index) indexDirectoryWithOptions(adjustedPath string, config *actionC
 
 // Define a function to recursively index files and directories
 func (idx *Index) indexDirectory(adjustedPath string, config *actionConfig) error {
+	// Normalize path to always have trailing slash (except for root which is just "/")
+	if adjustedPath != "/" {
+		adjustedPath = strings.TrimSuffix(adjustedPath, "/") + "/"
+	}
 	realPath := strings.TrimRight(idx.Path, "/") + adjustedPath
 	// Open the directory
 	dir, err := os.Open(realPath)
@@ -156,10 +160,8 @@ func (idx *Index) indexDirectory(adjustedPath string, config *actionConfig) erro
 		idx.DirectoriesLedger[adjustedPath] = struct{}{}
 		idx.mu.Unlock()
 	}
-	combinedPath := adjustedPath + "/"
-	if adjustedPath == "/" {
-		combinedPath = "/"
-	}
+	// adjustedPath is already normalized with trailing slash
+	combinedPath := adjustedPath
 	// get whats currently in cache
 	idx.mu.RLock()
 	cacheDirItems := []iteminfo.ItemInfo{}
@@ -231,10 +233,13 @@ func (idx *Index) GetFsDirInfo(adjustedPath string) (*iteminfo.FileInfo, error) 
 		fileInfo.DetectType(realPath, false)
 		return &fileInfo, nil
 	}
-	combinedPath := adjustedPath + "/"
-	if adjustedPath == "/" {
-		combinedPath = "/"
+
+	// Normalize directory path to always have trailing slash
+	if adjustedPath != "/" {
+		adjustedPath = strings.TrimSuffix(adjustedPath, "/") + "/"
 	}
+	// adjustedPath is already normalized with trailing slash
+	combinedPath := adjustedPath
 	var response *iteminfo.FileInfo
 	response, err = idx.GetDirInfo(dir, dirInfo, realPath, adjustedPath, combinedPath, &actionConfig{
 		Quick:      false,
@@ -385,8 +390,8 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 			itemInfo.Size = int64(size)
 
 			// Update parent folder preview status for images, videos, and audio with album art
-			// All checks after this point won't update folder preview
-			if itemInfo.HasPreview {
+			// Use shared function to determine if this file type should bubble up to folder preview
+			if itemInfo.HasPreview && iteminfo.ShouldBubbleUpToFolderPreview(*itemInfo) {
 				hasPreview = true
 			}
 
@@ -419,7 +424,7 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 		idx.mu.Unlock()
 	}
 
-	// Create FileInfo for the current directory
+	// Create FileInfo for the current directory (adjustedPath is already normalized with trailing slash)
 	dirFileInfo := &iteminfo.FileInfo{
 		Path:    adjustedPath,
 		Files:   fileInfos,
