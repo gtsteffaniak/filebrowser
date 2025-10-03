@@ -7,11 +7,12 @@ All notable changes to this project will be documented in this file. For commit 
  **New Features**:
  - Ability to split configuration files via yaml anchoring #1267
    - see [How to: Use multiple config files](https://github.com/gtsteffaniak/filebrowser/wiki/How-to:-Use-multiple-config-files)
+ - added [Init Script Help wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Init-Script-Help) to examples how you can bootstrap filebrowser quantum programatically
  - Add capability to edit files permissions #813
    - see updated full config for help using `server.filesystem`
  - better copy/move prompt "in progress" indicator
  - better login error message feedback
- - Add capability to disable certain video previews
+ - Add capability to disable certain video previews at server level.
  - Added ability to play media in same folder sequentially or shuffled
  - upload/upload only share links. #661
  - Default landing directory (set profile settings) #781
