@@ -3098,6 +3098,14 @@ const docTemplate = `{
                         }
                     ]
                 },
+                "debug": {
+                    "description": "output ffmpeg stdout for media integration -- careful can produces lots of output!",
+                    "type": "boolean"
+                },
+                "extractEmbeddedSubtitles": {
+                    "description": "extract embedded subtitles from media files",
+                    "type": "boolean"
+                },
                 "ffmpegPath": {
                     "description": "path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)",
                     "type": "string"
@@ -3262,10 +3270,6 @@ const docTemplate = `{
                 "database": {
                     "description": "path to the database file",
                     "type": "string"
-                },
-                "debugMedia": {
-                    "description": "output ffmpeg stdout for media integration -- careful can produces lots of output!",
-                    "type": "boolean"
                 },
                 "disablePreviewResize": {
                     "description": "disable resizing of previews for faster loading over slow connections",
@@ -3491,6 +3495,10 @@ const docTemplate = `{
                     "description": "debug onlyoffice editor",
                     "type": "boolean"
                 },
+                "defaultLandingPage": {
+                    "description": "default landing page to use if no redirect is specified: eg. /files/mysource/mysubpath, /settings, etc.",
+                    "type": "string"
+                },
                 "deleteWithoutConfirming": {
                     "description": "delete files without confirmation",
                     "type": "boolean"
@@ -3648,6 +3656,10 @@ const docTemplate = `{
                 "expires": {
                     "type": "string"
                 },
+                "extractEmbeddedSubtitles": {
+                    "description": "can be io intensive for large files and take 10-30 seconds.",
+                    "type": "boolean"
+                },
                 "favicon": {
                     "type": "string"
                 },
@@ -3756,6 +3768,10 @@ const docTemplate = `{
                 },
                 "expire": {
                     "type": "integer"
+                },
+                "extractEmbeddedSubtitles": {
+                    "description": "can be io intensive for large files and take 10-30 seconds.",
+                    "type": "boolean"
                 },
                 "favicon": {
                     "type": "string"
@@ -3975,6 +3991,10 @@ const docTemplate = `{
                 "debugOffice": {
                     "description": "debug onlyoffice editor",
                     "type": "boolean"
+                },
+                "defaultLandingPage": {
+                    "description": "default landing page to use: eg. /files/mysource/mysubpath, /settings, etc.",
+                    "type": "string"
                 },
                 "deleteWithoutConfirming": {
                     "description": "delete files without confirmation",

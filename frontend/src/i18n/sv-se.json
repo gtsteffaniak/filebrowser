@@ -420,7 +420,10 @@
     "normalShare": "Normal",
     "uploadShare": "Endast uppladdning",
     "perUserDownloadLimit": "Tillämpa nedladdningsgränsen för varje användare",
-    "perUserDownloadLimitDescription": "När den är aktiverad kommer nedladdningsgränsen att tillämpas på varje användare. Anonyma användare kan inte ladda ner några filer från den här delningen."
+    "perUserDownloadLimitDescription": "När den är aktiverad kommer nedladdningsgränsen att tillämpas på varje användare. Anonyma användare kan inte ladda ner några filer från den här delningen.",
+    "descriptionUploadDefault": "En andel har skickats till dig för att ladda upp filer.",
+    "extractEmbeddedSubtitles": "Extrahera inbäddade undertexter",
+    "extractEmbeddedSubtitlesDescription": "Extrahera inbäddade undertexter från mediefiler vid laddning - detta kan vara långsamt för stora filer."
   },
   "api": {
     "title": "API-nycklar",
@@ -547,7 +550,9 @@
     "themeAndLanguage": "Tema & språk",
     "previewFolder": "Visa miniatyrbilder för mappar om de är tillgängliga",
     "previewFolderDescription": "Visa förhandsvisningar av miniatyrbilder för mappar med första underordnade objekt med miniatyrbild som omslag.",
-    "disableFileExtensions": "Ange filändelser som ska inaktiveras"
+    "disableFileExtensions": "Ange filändelser som ska inaktiveras",
+    "defaultLandingPage": "Standardlandningssida",
+    "defaultLandingPageDescription": "t.ex. \"/files/mysource/mysubpath\" eller \"/settings\" - standardsidan är /files som går till den första källförteckningsvyn"
   },
   "general": {
     "name": "Namn",

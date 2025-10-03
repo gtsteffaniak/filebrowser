@@ -365,6 +365,13 @@ definitions:
         allOf:
         - $ref: '#/definitions/settings.FfmpegConvert'
         description: config for ffmpeg conversion settings
+      debug:
+        description: output ffmpeg stdout for media integration -- careful can produces
+          lots of output!
+        type: boolean
+      extractEmbeddedSubtitles:
+        description: extract embedded subtitles from media files
+        type: boolean
       ffmpegPath:
         description: path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)
         type: string
@@ -490,10 +497,6 @@ definitions:
       database:
         description: path to the database file
         type: string
-      debugMedia:
-        description: output ffmpeg stdout for media integration -- careful can produces
-          lots of output!
-        type: boolean
       disablePreviewResize:
         description: disable resizing of previews for faster loading over slow connections
         type: boolean
@@ -665,6 +668,10 @@ definitions:
       debugOffice:
         description: debug onlyoffice editor
         type: boolean
+      defaultLandingPage:
+        description: 'default landing page to use if no redirect is specified: eg.
+          /files/mysource/mysubpath, /settings, etc.'
+        type: string
       deleteWithoutConfirming:
         description: delete files without confirmation
         type: boolean
@@ -779,6 +786,9 @@ definitions:
         type: string
       expires:
         type: string
+      extractEmbeddedSubtitles:
+        description: can be io intensive for large files and take 10-30 seconds.
+        type: boolean
       favicon:
         type: string
       hash:
@@ -854,6 +864,9 @@ definitions:
         type: string
       expire:
         type: integer
+      extractEmbeddedSubtitles:
+        description: can be io intensive for large files and take 10-30 seconds.
+        type: boolean
       favicon:
         type: string
       hash:
@@ -1010,6 +1023,10 @@ definitions:
       debugOffice:
         description: debug onlyoffice editor
         type: boolean
+      defaultLandingPage:
+        description: 'default landing page to use: eg. /files/mysource/mysubpath,
+          /settings, etc.'
+        type: string
       deleteWithoutConfirming:
         description: delete files without confirmation
         type: boolean

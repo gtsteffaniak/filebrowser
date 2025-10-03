@@ -97,15 +97,15 @@ func NewPreviewGenerator(concurrencyLimit int, ffmpegPath string, cacheDir strin
 	var imageService *ffmpeg.ImageService
 
 	if ffmpegMainPath != "" && ffprobePath != "" {
-		videoService = ffmpeg.NewVideoService(ffmpegMainPath, ffprobePath, ffmpegConcurrencyLimit, settings.Config.Server.DebugMedia)
-		imageService = ffmpeg.NewImageService(ffmpegMainPath, ffprobePath, concurrencyLimit, settings.Config.Server.DebugMedia, filepath.Join(settings.Config.Server.CacheDir, "heic"))
+		videoService = ffmpeg.NewVideoService(ffmpegMainPath, ffprobePath, ffmpegConcurrencyLimit, settings.Config.Integrations.Media.Debug)
+		imageService = ffmpeg.NewImageService(ffmpegMainPath, ffprobePath, concurrencyLimit, settings.Config.Integrations.Media.Debug, filepath.Join(settings.Config.Server.CacheDir, "heic"))
 	}
 
 	return &Service{
 		ffmpegPath:  ffmpegMainPath,
 		ffprobePath: ffprobePath,
 		fileCache:   fileCache,
-		debug:       settings.Config.Server.DebugMedia,
+		debug:       settings.Config.Integrations.Media.Debug,
 		// CGo library (go-fitz) is NOT thread-safe - only 1 concurrent operation allowed
 		docSemaphore: make(chan struct{}, 1),
 		officeSem:    make(chan struct{}, concurrencyLimit),

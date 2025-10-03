@@ -420,7 +420,10 @@
     "normalShare": "Normaal",
     "uploadShare": "Alleen uploaden",
     "perUserDownloadLimit": "Pas de downloadlimiet toe op elke gebruiker",
-    "perUserDownloadLimitDescription": "Indien ingeschakeld, wordt de downloadlimiet toegepast op elke gebruiker. Anonieme gebruikers kunnen geen bestanden downloaden van deze share."
+    "perUserDownloadLimitDescription": "Indien ingeschakeld, wordt de downloadlimiet toegepast op elke gebruiker. Anonieme gebruikers kunnen geen bestanden downloaden van deze share.",
+    "descriptionUploadDefault": "Je hebt een share ontvangen om bestanden te uploaden.",
+    "extractEmbeddedSubtitles": "Ingesloten ondertitels uitpakken",
+    "extractEmbeddedSubtitlesDescription": "Ingesloten ondertitels uit mediabestanden halen tijdens het laden -- dit kan traag zijn voor grote bestanden."
   },
   "api": {
     "title": "API-sleutels",
@@ -547,7 +550,9 @@
     "themeAndLanguage": "Thema & Taal",
     "previewFolder": "Toon miniaturen voor mappen indien beschikbaar",
     "previewFolderDescription": "Toon miniatuurafbeeldingen voor mappen met het eerste kinditem met miniatuurafbeelding als omslag.",
-    "disableFileExtensions": "Voer bestandsextensies in om uit te schakelen"
+    "disableFileExtensions": "Voer bestandsextensies in om uit te schakelen",
+    "defaultLandingPage": "Standaard landingspagina",
+    "defaultLandingPageDescription": "bijv. /files/mysource/mysubpath' of '/settings' - standaardpagina is /files die naar de eerste bronweergave gaat."
   },
   "general": {
     "name": "Naam",

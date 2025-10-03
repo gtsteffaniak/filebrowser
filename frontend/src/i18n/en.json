@@ -174,6 +174,7 @@
     "viewModeDescription": "Default layout for the shared page.",
     "titleDefault": "Shared files - {title}",
     "descriptionDefault": "A share has been sent to you to view or download.",
+    "descriptionUploadDefault": "A share has been sent to you to upload files.",
     "disableShareCard": "Disable share card",
     "disableShareCardDescription": "Disable the share card on the shared page in the sidebar or at the top of the page on mobile.",
     "disableSidebar": "Disable sidebar",
@@ -195,7 +196,9 @@
     "normalShare": "Normal",
     "uploadShare": "Upload only",
     "perUserDownloadLimit": "Apply the downloads limit to each user",
-    "perUserDownloadLimitDescription": "When enabled, the downloads limit will be applied to each user. Anonymous users will not be able to download any files from this share."
+    "perUserDownloadLimitDescription": "When enabled, the downloads limit will be applied to each user. Anonymous users will not be able to download any files from this share.",
+    "extractEmbeddedSubtitles": "Extract embedded subtitles",
+    "extractEmbeddedSubtitlesDescription": "Extract embedded subtitles from media files on load -- this can be slow for large files."
   },
   "prompts": {
     "operationInProgress": "Operation in progress, please wait...",
@@ -343,7 +346,9 @@
     "disableOfficeEditorDescription": "A space-separated list of file extensions to disable the OnlyOffice editor and viewer for. (e.g., '.txt .html .pdf').",
     "disableOfficeEditor": "Disable office viewer for certain file extensions",
     "fileViewerOptions": "File Viewer Options",
-    "themeAndLanguage": "Theme & Language"
+    "themeAndLanguage": "Theme & Language",
+    "defaultLandingPage": "Default landing page",
+    "defaultLandingPageDescription": "eg. '/files/mysource/mysubpath' or '/settings' - default page is /files which goes to the first source listing view"
   },
   "settings": {
     "systemAdmin": "System & Admin",

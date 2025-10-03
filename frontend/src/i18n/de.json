@@ -420,7 +420,10 @@
     "normalShare": "Normal",
     "uploadShare": "Nur hochladen",
     "perUserDownloadLimit": "Anwenden des Download-Limits auf jeden Benutzer",
-    "perUserDownloadLimitDescription": "Wenn diese Option aktiviert ist, wird das Download-Limit auf jeden Benutzer angewendet. Anonyme Benutzer können keine Dateien von dieser Freigabe herunterladen."
+    "perUserDownloadLimitDescription": "Wenn diese Option aktiviert ist, wird das Download-Limit auf jeden Benutzer angewendet. Anonyme Benutzer können keine Dateien von dieser Freigabe herunterladen.",
+    "descriptionUploadDefault": "Sie haben eine Freigabe zum Hochladen von Dateien erhalten.",
+    "extractEmbeddedSubtitles": "Eingebettete Untertitel extrahieren",
+    "extractEmbeddedSubtitlesDescription": "Extrahieren von eingebetteten Untertiteln aus Mediendateien beim Laden - dies kann bei großen Dateien langsam sein."
   },
   "api": {
     "title": "API-Schlüssel:",
@@ -583,7 +586,9 @@
     "themeAndLanguage": "Thema und Sprache",
     "previewFolder": "Miniaturansichten für Ordner anzeigen, falls vorhanden",
     "previewFolderDescription": "Zeigen Sie Miniaturvorschauen für Ordner an, deren erstes untergeordnetes Element ein Miniaturbild als Cover hat.",
-    "disableFileExtensions": "Zu deaktivierende Dateierweiterungen eingeben"
+    "disableFileExtensions": "Zu deaktivierende Dateierweiterungen eingeben",
+    "defaultLandingPage": "Standard-Landeseite",
+    "defaultLandingPageDescription": "z.B.. '/files/mysource/mysubpath' oder '/settings' - die Standardseite ist /files, die zur ersten Ansicht der Quellenliste führt"
   },
   "editor": {
     "uninitialized": "Der Editor konnte nicht initialisiert werden. Bitte neu laden.",

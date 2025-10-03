@@ -14,6 +14,7 @@
             <th>{{ $t("settings.shareDuration") }}</th>
             <th></th>
             <th></th>
+            <th></th>
           </tr>
 
           <tr v-for="link in links" :key="link.hash">
@@ -23,13 +24,19 @@
               <template v-else>{{ $t("general.permanent") }}</template>
             </td>
             <td class="small">
+              <button class="action" @click="editLink(link)" :aria-label="$t('buttons.edit')"
+                :title="$t('buttons.edit')">
+                <i class="material-icons">edit</i>
+              </button>
+            </td>
+            <td class="small">
               <button class="action copy-clipboard" :data-clipboard-text="buildLink(link)"
                 :aria-label="$t('buttons.copyToClipboard')" :title="$t('buttons.copyToClipboard')">
                 <i class="material-icons">content_paste</i>
               </button>
             </td>
             <td class="small" v-if="hasDownloadLink()">
-              <button class="action copy-clipboard" :data-clipboard-text="buildDownloadLink(link)"
+              <button :disabled="link.shareType == 'upload'" class="action copy-clipboard" :data-clipboard-text="buildDownloadLink(link)"
                 :aria-label="$t('buttons.copyDownloadLinkToClipboard')"
                 :title="$t('buttons.copyDownloadLinkToClipboard')">
                 <i class="material-icons">content_paste_go</i>
@@ -170,6 +177,7 @@
           <ToggleSwitch class="item" v-model="disableShareCard" :name="$t('share.disableShareCard')" :description="$t('share.disableShareCardDescription')" />
           <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="disableSidebar" :name="$t('share.disableSidebar')" :description="$t('share.disableSidebarDescription')" />
           <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="perUserDownloadLimit" :name="$t('share.perUserDownloadLimit')" :description="$t('share.perUserDownloadLimitDescription')" />
+          <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="extractEmbeddedSubtitles" :name="$t('share.extractEmbeddedSubtitles')" :description="$t('share.extractEmbeddedSubtitlesDescription')" />
         </div>
 
         <div v-if="shareType === 'normal'">
@@ -356,6 +364,9 @@ export default {
       enableOnlyOffice: false,
       enableOnlyOfficeEditing: false,
       shareType: "normal",
+      extractEmbeddedSubtitles: false,
+      /** @type {Share | null} */
+      editingLink: null,
       //viewMode: "normal",
     };
   },
@@ -448,6 +459,7 @@ export default {
           this.enableOnlyOffice = this.link.enableOnlyOffice || false;
           this.enableOnlyOfficeEditing = this.link.enableOnlyOfficeEditing || false;
           this.shareType = this.link.shareType || "normal";
+          this.extractEmbeddedSubtitles = this.link.extractEmbeddedSubtitles || false;
           //this.viewMode = this.link.viewMode || "normal";
         }
       },
@@ -495,7 +507,11 @@ export default {
     async submit() {
       try {
         if (!this.description) {
-          this.description = this.$t("share.descriptionDefault");
+          if (this.shareType === 'upload') {
+            this.description = this.$t("share.descriptionUploadDefault");
+          } else {
+            this.description = this.$t("share.descriptionDefault");
+          }
         }
         if (!this.title) {
           this.title = this.$t("share.titleDefault", { title: this.item.name || "share" });
@@ -532,16 +548,28 @@ export default {
           enableOnlyOffice: this.enableOnlyOffice,
           enableOnlyOfficeEditing: this.enableOnlyOfficeEditing,
           shareType: this.shareType,
+          extractEmbeddedSubtitles: this.extractEmbeddedSubtitles,
         };
         if (this.isEditMode) {
           payload.hash = this.link.hash;
+        } else if (this.editingLink) {
+          payload.hash = this.editingLink.hash;
         }
 
         const res = await shareApi.create(payload);
 
-        if (!this.isEditMode) {
+        if (!this.isEditMode && !this.editingLink) {
           this.links.push(res);
           this.sort();
+        } else if (this.editingLink) {
+          // Update the link in the local list
+          const index = this.links.findIndex(l => l.hash === this.editingLink.hash);
+          if (index !== -1) {
+            this.links[index] = res;
+          }
+          this.editingLink = null;
+          // emit event to reload shares in settings view
+          eventBus.emit('sharesChanged');
         } else {
           // emit event to reload shares in settings view
           eventBus.emit('sharesChanged');
@@ -556,6 +584,44 @@ export default {
       } catch (err) {
         notify.showError(err);
       }
+    },
+    /**
+     * @param {Share} link
+     */
+    editLink(link) {
+      this.listing = false;
+      this.time = link.expire
+        ? String(Math.round((new Date(link.expire * 1000).getTime() - new Date().getTime()) / 3600000))
+        : "0";
+      this.unit = "hours";
+      this.password = "";
+      this.downloadsLimit = link.downloadsLimit ? String(link.downloadsLimit) : "";
+      this.perUserDownloadLimit = link.perUserDownloadLimit || false;
+      this.maxBandwidth = link.maxBandwidth ? String(link.maxBandwidth) : "";
+      this.shareTheme = link.shareTheme || "default";
+      this.disableAnonymous = link.disableAnonymous || false;
+      this.disableThumbnails = link.disableThumbnails || false;
+      this.disableFileViewer = link.disableFileViewer || false;
+      this.enableAllowedUsernames = Array.isArray(link.allowedUsernames) && link.allowedUsernames.length > 0;
+      this.allowedUsernames = this.enableAllowedUsernames ? link.allowedUsernames.join(", ") : "";
+      this.keepAfterExpiration = link.keepAfterExpiration || false;
+      this.themeColor = link.themeColor || "";
+      this.banner = link.banner || "";
+      this.title = link.title || "";
+      this.description = link.description || "";
+      this.favicon = link.favicon || "";
+      this.quickDownload = link.quickDownload || false;
+      this.disableNavButtons = link.hideNavButtons || false;
+      this.disableShareCard = link.disableShareCard || false;
+      this.disableSidebar = link.disableSidebar || false;
+      this.enforceDarkLightMode = link.enforceDarkLightMode || "default";
+      this.viewMode = link.viewMode || "normal";
+      this.enableOnlyOffice = link.enableOnlyOffice || false;
+      this.enableOnlyOfficeEditing = link.enableOnlyOfficeEditing || false;
+      this.shareType = link.shareType || "normal";
+      this.extractEmbeddedSubtitles = link.extractEmbeddedSubtitles || false;
+      // Store the link being edited
+      this.editingLink = link;
     },
     /**
      * @param {Event} event
@@ -595,14 +661,15 @@ export default {
      * @param {Share} share
      */
     buildDownloadLink(share) {
+      console.log(share)
       if (share.downloadURL) {
         // Only fix the URL if it doesn't already have the correct external domain
         if (globalVars.externalUrl) {
-
           // URL already has the correct external domain, use as-is
           return share.downloadURL;
         }
         // URL needs fixing (internal domain or no externalUrl set)
+        console.log(this.fixDownloadURL(share.downloadURL))
         return this.fixDownloadURL(share.downloadURL);
       }
       return publicApi.getDownloadURL(share, [this.item.name]);
@@ -621,6 +688,11 @@ export default {
       }
 
       this.listing = !this.listing;
+
+      // Clear editing link when switching back to listing
+      if (this.listing) {
+        this.editingLink = null;
+      }
     },
     fixDownloadURL(downloadUrl) {
       return fixDownloadURL(downloadUrl);

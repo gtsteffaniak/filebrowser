@@ -33,8 +33,7 @@ type Server struct {
 	Port                         int         `json:"port"`                                   // port to listen on
 	BaseURL                      string      `json:"baseURL"`                                // base URL for the server, the subpath that the server is running on.
 	Logging                      []LogConfig `json:"logging" yaml:"logging"`
-	DebugMedia                   bool        `json:"debugMedia"` // output ffmpeg stdout for media integration -- careful can produces lots of output!
-	Database                     string      `json:"database"`   // path to the database file
+	Database                     string      `json:"database"` // path to the database file
 	Sources                      []*Source   `json:"sources" validate:"required,dive"`
 	ExternalUrl                  string      `json:"externalUrl"`    // used by share links if set (eg. http://mydomain.com)
 	InternalUrl                  string      `json:"internalUrl"`    // used by integrations if set, this is the base domain that an integration service will use to communicate with filebrowser (eg. http://localhost:8080)
@@ -68,8 +67,10 @@ type OnlyOffice struct {
 }
 
 type Media struct {
-	FfmpegPath string        `json:"ffmpegPath"` // path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)
-	Convert    FfmpegConvert `json:"convert"`    // config for ffmpeg conversion settings
+	FfmpegPath               string        `json:"ffmpegPath"`               // path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)
+	Convert                  FfmpegConvert `json:"convert"`                  // config for ffmpeg conversion settings
+	Debug                    bool          `json:"debug"`                    // output ffmpeg stdout for media integration -- careful can produces lots of output!
+	ExtractEmbeddedSubtitles bool          `json:"extractEmbeddedSubtitles"` // extract embedded subtitles from media files
 }
 
 type FfmpegConvert struct {
@@ -258,4 +259,5 @@ type UserDefaults struct {
 	CustomTheme                string              `json:"customTheme"`                // Name of theme to use chosen from custom themes config.
 	ShowSelectMultiple         bool                `json:"showSelectMultiple"`         // show select multiple files on desktop
 	DebugOffice                bool                `json:"debugOffice"`                // debug onlyoffice editor
+	DefaultLandingPage         string              `json:"defaultLandingPage"`         // default landing page to use if no redirect is specified: eg. /files/mysource/mysubpath, /settings, etc.
 }

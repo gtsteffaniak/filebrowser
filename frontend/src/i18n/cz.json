@@ -195,7 +195,10 @@
     "normalShare": "Normální",
     "uploadShare": "Pouze nahrávání",
     "perUserDownloadLimit": "Použít limit stahování pro každého uživatele",
-    "perUserDownloadLimitDescription": "Pokud je tato možnost povolena, bude limit stahování platit pro každého uživatele. Anonymní uživatelé nebudou moci z této sdílené složky stahovat žádné soubory."
+    "perUserDownloadLimitDescription": "Pokud je tato možnost povolena, bude limit stahování platit pro každého uživatele. Anonymní uživatelé nebudou moci z této sdílené složky stahovat žádné soubory.",
+    "descriptionUploadDefault": "Byla vám zaslána sdílená složka pro nahrávání souborů.",
+    "extractEmbeddedSubtitles": "Výpis vložených titulků",
+    "extractEmbeddedSubtitlesDescription": "Extrahovat vložené titulky z mediálních souborů při načítání - u velkých souborů to může být pomalé."
   },
   "prompts": {
     "copy": "Kopírovat",
@@ -343,7 +346,9 @@
     "themeAndLanguage": "Téma a jazyk",
     "previewFolder": "Zobrazení miniatur složek, pokud jsou k dispozici",
     "previewFolderDescription": "Zobrazení náhledů miniatur pro složky s první podřízenou položkou s miniaturou jako obálkou.",
-    "disableFileExtensions": "Zadejte přípony souborů, které chcete zakázat"
+    "disableFileExtensions": "Zadejte přípony souborů, které chcete zakázat",
+    "defaultLandingPage": "Výchozí vstupní stránka",
+    "defaultLandingPageDescription": "např. '/files/mysource/mysubpath' nebo '/settings' - výchozí stránka je /files, která přejde do prvního zobrazení seznamu zdrojů."
   },
   "settings": {
     "enterPassword": "Zadejte heslo",

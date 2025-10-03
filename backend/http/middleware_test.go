@@ -224,7 +224,7 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 			recorder := httptest.NewRecorder()
 
 			// Wrap the handler with authentication middleware
-			handler := withHashFileHelper(publicShareHandler)
+			handler := withHashFileHelper(publicGetResourceHandler)
 			if err := store.Settings.Save(&settings.Settings{
 				Auth: settings.Auth{
 					Key: "key",
