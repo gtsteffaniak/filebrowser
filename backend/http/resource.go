@@ -632,14 +632,15 @@ func patchAction(ctx context.Context, params patchActionParams) error {
 	case "rename", "move":
 		idx := indexing.GetIndex(params.srcIndex)
 		srcPath := idx.MakeIndexPath(params.src)
+		if !params.isSrcDir {
+			srcPath = strings.TrimSuffix(srcPath, "/")
+		}
 		fileInfo, err := files.FileInfoFaster(utils.FileOptions{
-			Username:   params.d.user.Username,
-			Path:       srcPath,
-			Source:     params.srcIndex,
-			IsDir:      params.isSrcDir,
-			Modify:     params.d.user.Permissions.Modify,
-			Expand:     false,
-			ReadHeader: false,
+			Username: params.d.user.Username,
+			Path:     srcPath,
+			Source:   params.srcIndex,
+			IsDir:    params.isSrcDir,
+			Modify:   params.d.user.Permissions.Modify,
 		}, store.Access)
 
 		if err != nil {

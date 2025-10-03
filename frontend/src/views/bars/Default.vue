@@ -62,7 +62,7 @@ export default {
       if (getters.isSettings()) {
         return this.$t("sidebar.settings");
       }
-      if (shareInfo.isShare && shareInfo.title && state.req.type === "directory") {
+      if (getters.isShare() && shareInfo.title && state.req.type === "directory") {
         return shareInfo.title;
       }
       return state.req.name;
@@ -74,7 +74,7 @@ export default {
       return state.user.editorQuickSave;
     },
     disableNavButtons() {
-      return (globalVars.disableNavButtons && this.isListingView) || (shareInfo.isShare && shareInfo.disableNavButtons);
+      return (globalVars.disableNavButtons && this.isListingView) || (getters.isShare() && shareInfo.disableNavButtons);
     },
     isOnlyOffice() {
       return getters.currentView() === "onlyOfficeEditor";
@@ -166,22 +166,32 @@ export default {
       mutations.updateCurrentUser({ viewMode: newViewMode });
     },
     multiAction() {
-      const listingView = getters.currentView();
-      if (listingView == "listingView" || shareInfo.singleFileShare) {
+      const cv = getters.currentView();
+      if (cv == "listingView" || ( getters.isShare() && !getters.multibuttonState() === "close")) {
         mutations.toggleSidebar();
-      } else if (listingView == "settings" && state.isMobile) {
+      } else if (cv == "settings" && state.isMobile) {
         mutations.toggleSidebar();
       } else {
         mutations.closeHovers();
-        if (listingView === "settings") {
-          if (state.previousHistoryItem.name) {
+        if (cv === "settings") {
+          if (state.previousHistoryItem?.name) {
             url.goToItem(state.previousHistoryItem.source, state.previousHistoryItem.path, {});
             return;
           }
           router.push({ path: "/files" });
           return;
         }
-        mutations.replaceRequest({});
+        if (getters.isPreviewView()) {
+          if (state.previousHistoryItem?.name) {
+            url.goToItem(state.previousHistoryItem.source, state.previousHistoryItem.path, {});
+            return;
+          } else {
+            // navigate to parent directory of current url
+            const parentPath = url.removeLastDir(state.route.path);
+            router.push({ path: parentPath });
+          }
+          return;
+        }
 
         router.go(-1);
       }

@@ -20,15 +20,12 @@ export const getters = {
     }
     return fromNow(timestamp, state.user.locale)
   },
-  isScrollable: () => {
+  isPreviewView: () => {
     const cv = getters.currentView()
-    if (
-      cv == 'preview' ||
-      cv == 'onlyOfficeEditor' ||
-      cv == 'epubViewer' ||
-      cv == 'docViewer' ||
-      cv == 'editor'
-    ) {
+    return cv == 'preview' || cv == 'onlyOfficeEditor' || cv == 'epubViewer' || cv == 'docViewer' || cv == 'editor'
+  },
+  isScrollable: () => {
+    if (getters.isPreviewView()) {
       return false
     }
     return true
@@ -65,9 +62,6 @@ export const getters = {
   isMobile: () => state.isMobile,
   isLoading: () => Object.keys(state.loading).length > 0,
   isSettings: () => getters.currentView() === 'settings',
-  isShare: () => {
-    return shareInfo.isShare
-  },
   isDarkMode: () => {
     if (shareInfo.enforceDarkLightMode == "dark") {
       return true
@@ -227,6 +221,12 @@ export const getters = {
       path = url.joinPath(path, removeLeadingSlash(subPath))
     }
     return path
+  },
+  isShare: () => {
+    if (shareInfo.isShare && state.route.path.startsWith('/public/share/' + shareInfo.hash)) {
+      return true
+    }
+    return false
   },
   currentView: () => {
     let listingView = ''
@@ -459,9 +459,9 @@ export const getters = {
     return "close";
   },
   isInvalidShare: () => {
-    return shareInfo.isShare && !shareInfo.isValid;
+    return getters.isShare() && !shareInfo.isValid;
   },
   isValidShare: () => {
-    return shareInfo.isShare && shareInfo.isValid;
+    return getters.isShare() && shareInfo.isValid;
   },
 };

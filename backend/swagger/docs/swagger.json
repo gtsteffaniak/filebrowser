@@ -2946,18 +2946,18 @@
         },
         "settings.Filesystem": {
             "type": "object",
+            "required": [
+                "createDirectoryPermission",
+                "createFilePermission"
+            ],
             "properties": {
                 "createDirectoryPermission": {
                     "description": "Unix permissions like 755, 2755, 1777 (default: 755)",
-                    "type": "integer",
-                    "maximum": 7777,
-                    "minimum": 0
+                    "type": "string"
                 },
                 "createFilePermission": {
                     "description": "Unix permissions like 644, 755, 2755 (default: 644)",
-                    "type": "integer",
-                    "maximum": 7777,
-                    "minimum": 0
+                    "type": "string"
                 }
             }
         },

@@ -28,7 +28,7 @@ COPY --from=ffmpeg [ "/ffmpeg", "/ffprobe", "/usr/local/bin/" ]
 ENV FILEBROWSER_FFMPEG_PATH="/usr/local/bin/"
 ENV FILEBROWSER_DATABASE="/home/filebrowser/data/database.db"
 ENV PATH="$PATH:/home/filebrowser"
-RUN apk --no-cache add ca-certificates mailcap tzdata
+RUN apk --no-cache add ca-certificates mailcap tzdata curl
 RUN adduser -D -s /bin/true -u 1000 filebrowser
 USER filebrowser
 WORKDIR /home/filebrowser
@@ -44,4 +44,6 @@ RUN [ "ffprobe", "-version" ]
 USER root
 # exposing default port for auto discovery.
 EXPOSE 80
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+  CMD curl -f http://localhost:80/health || exit 1
 ENTRYPOINT [ "./filebrowser" ]

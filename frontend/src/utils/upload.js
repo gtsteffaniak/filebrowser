@@ -2,6 +2,7 @@ import { reactive } from "vue";
 import { filesApi, publicApi } from "@/api";
 import { state,mutations } from "@/store";
 import { shareInfo } from "@/utils/constants";
+import { getters } from "@/store/getters";
 
 class UploadManager {
   constructor() {
@@ -54,7 +55,7 @@ class UploadManager {
             [...topLevelDirs].map(async (dirName) => {
               try {
                 const testPath = `${basePath}${dirName}`;
-                if (shareInfo.isShare) {
+                if (getters.isShare()) {
                   await publicApi.post(shareInfo.hash, testPath, new Blob([]), false);
                 } else {
                   await filesApi.post(state.req?.source, testPath, new Blob([]), false);
@@ -246,7 +247,7 @@ class UploadManager {
     upload.status = "uploading";
 
     try {
-      if (shareInfo.isShare) {
+      if (getters.isShare()) {
         await publicApi.post(shareInfo.hash, upload.path, new Blob([]), upload.overwrite);
       } else {
         await filesApi.post(upload.source, upload.path, new Blob([]), upload.overwrite);
@@ -275,7 +276,7 @@ class UploadManager {
 
       try {
         let promise;
-        if (shareInfo.isShare) {
+        if (getters.isShare()) {
           promise = publicApi.post(shareInfo.hash, upload.path, upload.file, upload.overwrite, progress, {
             "X-File-Total-Size": upload.size,
           });
@@ -315,7 +316,7 @@ class UploadManager {
 
       try {
         let promise;
-        if (shareInfo.isShare) {
+        if (getters.isShare()) {
           promise = publicApi.post(
             shareInfo.hash,
             upload.path,

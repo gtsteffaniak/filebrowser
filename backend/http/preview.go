@@ -106,6 +106,69 @@ func rawFileHandler(w http.ResponseWriter, r *http.Request, file iteminfo.Extend
 	return 0, nil
 }
 
+// getDirectoryPreview finds a valid preview file within a directory.
+// It iterates through files, checking if they should bubble up to folder previews,
+// and returns the first valid, non-corrupted file suitable for preview.
+func getDirectoryPreview(r *http.Request, d *requestContext) (*iteminfo.ExtendedFileInfo, error) {
+	var lastErr error
+
+	for _, item := range d.fileInfo.Files {
+		// Only use files that should bubble up to folder previews (images, videos, audio)
+		// Exclude text files, office documents, and PDFs
+		if !item.HasPreview || !iteminfo.ShouldBubbleUpToFolderPreview(item) {
+			continue
+		}
+
+		source := d.fileInfo.Source
+		path := utils.JoinPathAsUnix(d.fileInfo.Path, item.Name)
+
+		if d.share != nil {
+			// Get the actual source name from the share's source mapping
+			sourceInfo, ok := settings.Config.Server.SourceMap[d.share.Source]
+			if !ok {
+				return nil, fmt.Errorf("source not found for share")
+			}
+			source = sourceInfo.Name
+			path = utils.JoinPathAsUnix(d.share.Path, path)
+		}
+
+		fileInfo, err := files.FileInfoFaster(
+			utils.FileOptions{
+				Username: d.user.Username,
+				Path:     path,
+				Source:   source,
+				Metadata: true,
+			}, store.Access)
+		if err != nil {
+			lastErr = err
+			continue // Try next file if this one fails
+		}
+
+		// Try to generate preview to verify the file is not corrupted
+		tempCtx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+		_, previewErr := preview.GetPreviewForFile(tempCtx, *fileInfo, "small", "", 0)
+		cancel()
+
+		if previewErr != nil {
+			// File might be corrupted, try next one
+			logger.Debugf("Skipping corrupted preview file in directory '%s': %s (error: %v)",
+				d.fileInfo.Name, item.Name, previewErr)
+			lastErr = previewErr
+			continue
+		}
+
+		// Success! Use this file for the directory preview
+		return fileInfo, nil
+	}
+
+	// If we exhausted all files and none worked, return the last error
+	if lastErr != nil {
+		return nil, fmt.Errorf("no valid preview files found in directory: %w", lastErr)
+	}
+
+	return nil, fmt.Errorf("no previewable files found in directory")
+}
+
 func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	previewSize := r.URL.Query().Get("size")
 	if !(previewSize == "large" || previewSize == "original") {
@@ -115,57 +178,12 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 		return http.StatusBadRequest, fmt.Errorf("this item does not have a preview")
 	}
 	if d.fileInfo.Type == "directory" {
-		// get extended file info of first previewable item in directory
-		// Try multiple files in case some are corrupted
-		var lastErr error
-		foundValidFile := false
-		for _, item := range d.fileInfo.Files {
-			if item.HasPreview {
-				source := d.fileInfo.Source
-				path := utils.JoinPathAsUnix(d.fileInfo.Path, item.Name)
-				if d.share != nil {
-					// Get the actual source name from the share's source mapping
-					sourceInfo, ok := settings.Config.Server.SourceMap[d.share.Source]
-					if !ok {
-						return http.StatusInternalServerError, fmt.Errorf("source not found for share")
-					}
-					source = sourceInfo.Name
-					path = utils.JoinPathAsUnix(d.share.Path, path)
-				}
-				fileInfo, err := files.FileInfoFaster(
-					utils.FileOptions{
-						Path:     path,
-						Source:   source,
-						Metadata: true,
-					}, store.Access)
-				if err != nil {
-					lastErr = err
-					continue // Try next file if this one fails
-				}
-
-				// Try to generate preview to verify the file is not corrupted
-				tempCtx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
-				_, previewErr := preview.GetPreviewForFile(tempCtx, *fileInfo, "small", "", 0)
-				cancel()
-
-				if previewErr != nil {
-					// File might be corrupted, try next one
-					logger.Debugf("Skipping corrupted preview file in directory '%s': %s (error: %v)",
-						d.fileInfo.Name, item.Name, previewErr)
-					lastErr = previewErr
-					continue
-				}
-
-				// Success! Use this file for the directory preview
-				d.fileInfo = *fileInfo
-				foundValidFile = true
-				break
-			}
+		// Get extended file info of first previewable item in directory
+		fileInfo, err := getDirectoryPreview(r, d)
+		if err != nil {
+			return http.StatusInternalServerError, err
 		}
-		// If we exhausted all files and none worked, return the last error
-		if !foundValidFile && lastErr != nil {
-			return http.StatusInternalServerError, fmt.Errorf("no valid preview files found in directory: %w", lastErr)
-		}
+		d.fileInfo = *fileInfo
 	}
 
 	setContentDisposition(w, r, d.fileInfo.Name)

@@ -48,8 +48,8 @@ type Server struct {
 }
 
 type Filesystem struct {
-	CreateFilePermission      int `json:"createFilePermission" validate:"min=0,max=7777"`      // Unix permissions like 644, 755, 2755 (default: 644)
-	CreateDirectoryPermission int `json:"createDirectoryPermission" validate:"min=0,max=7777"` // Unix permissions like 755, 2755, 1777 (default: 755)
+	CreateFilePermission      string `json:"createFilePermission" validate:"required,file_permission"`      // Unix permissions like 644, 755, 2755 (default: 644)
+	CreateDirectoryPermission string `json:"createDirectoryPermission" validate:"required,file_permission"` // Unix permissions like 755, 2755, 1777 (default: 755)
 }
 
 type Integrations struct {
