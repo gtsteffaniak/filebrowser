@@ -67,8 +67,9 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.E
 				return response, err
 			}
 		} else {
+			var fileInfo os.FileInfo
 			// Get file info directly from filesystem
-			fileInfo, err := os.Stat(realPath)
+			fileInfo, err = os.Stat(realPath)
 			if err != nil {
 				return response, fmt.Errorf("could not stat file: %v", err)
 			}
