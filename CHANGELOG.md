@@ -19,7 +19,12 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Notes**:
  - Some standardized path format changes for access rules to ensure the rules apply. A migration check happens on startup, all rules should still be in effect without any issues, but double check.
- - optimized video previews
+ - optimized thumbnail generation workflow
+   - more concurrency changes for video thumbnails (now half of the numImageProcessors config)
+   - 15s timeout added to preview api
+   - preview operations are cancelled if api request is terminated.
+   - reduced io overhead for video previews
+   - you can now disable individual video file previews system wide at server config level (all enabled by default)
 
  **BugFixes**:
  - error when running without a config file #1280
