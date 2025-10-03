@@ -6,8 +6,9 @@ All notable changes to this project will be documented in this file. For commit 
 
  **New Features**:
  - Ability to split configuration files via yaml anchoring #1267
-   - see [how-to wiki](https://github.com/gtsteffaniak/filebrowser/wiki/How-to:-Use-multiple-config-files)
+   - see [How to: Use multiple config files](https://github.com/gtsteffaniak/filebrowser/wiki/How-to:-Use-multiple-config-files)
  - Add capability to edit files permissions #813
+   - see updated full config for help using `server.filesystem`
  - better copy/move prompt "in progress" indicator
  - better login error message feedback
  - Add capability to disable certain video previews
