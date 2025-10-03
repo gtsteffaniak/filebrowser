@@ -420,7 +420,10 @@
     "normalShare": "Normálne",
     "uploadShare": "Iba odosielanie",
     "perUserDownloadLimit": "Uplatnenie limitu stiahnutí pre každého používateľa",
-    "perUserDownloadLimitDescription": "Ak je táto možnosť povolená, limit stiahnutí sa uplatní na každého používateľa. Anonymní používatelia nebudú môcť z tejto zdieľanej zložky sťahovať žiadne súbory."
+    "perUserDownloadLimitDescription": "Ak je táto možnosť povolená, limit stiahnutí sa uplatní na každého používateľa. Anonymní používatelia nebudú môcť z tejto zdieľanej zložky sťahovať žiadne súbory.",
+    "descriptionUploadDefault": "Bola vám odoslaná akcia na nahratie súborov.",
+    "extractEmbeddedSubtitles": "Výpis vložených titulkov",
+    "extractEmbeddedSubtitlesDescription": "Extrahovať vložené titulky z mediálnych súborov pri načítaní - pri veľkých súboroch to môže byť pomalé."
   },
   "api": {
     "title": "Kľúče API:",
@@ -583,7 +586,9 @@
     "themeAndLanguage": "Téma a jazyk",
     "previewFolder": "Zobrazenie miniatúr priečinkov, ak sú k dispozícii",
     "previewFolderDescription": "Zobrazenie náhľadov miniatúr pre priečinky s prvou podriadenou položkou s miniatúrou ako obálkou.",
-    "disableFileExtensions": "Zadajte prípony súborov, ktoré chcete zakázať"
+    "disableFileExtensions": "Zadajte prípony súborov, ktoré chcete zakázať",
+    "defaultLandingPage": "Predvolená vstupná stránka",
+    "defaultLandingPageDescription": "napr. '/files/mysource/mysubpath' alebo '/settings' - predvolená stránka je /files, ktorá prechádza do prvého zobrazenia zoznamu zdrojov"
   },
   "editor": {
     "uninitialized": "Nepodarilo sa inicializovať editor. Prosím, načítajte ho znova.",

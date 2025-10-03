@@ -17,7 +17,6 @@ server:
       noColors: false                     # disable colors in the output
       json: false                         # output in json format
       utc: false                          # use UTC time in the output instead of local time
-  debugMedia: false                       # output ffmpeg stdout for media integration -- careful can produces lots of output!
   database: "database.db"                 # path to the database file
   sources: [{path: ".",                   # file system path. (Can be relative)  validate:required
       name: "backend",                    # display name
@@ -159,6 +158,7 @@ userDefaults:
   customTheme: ""                         # Name of theme to use chosen from custom themes config.
   showSelectMultiple: false               # show select multiple files on desktop
   debugOffice: false                      # debug onlyoffice editor
+  defaultLandingPage: ""                  # default landing page to use if no redirect is specified: eg. /files/mysource/mysubpath, /settings, etc.
 integrations:
   office:                                 #  validate:omitempty
     url: ""                               # The URL to the OnlyOffice Document Server, needs to be accessible to the user.  validate:required
@@ -189,3 +189,5 @@ integrations:
         vob: true
         webm: true
         wmv: true
+    debug: false                          # output ffmpeg stdout for media integration -- careful can produces lots of output!
+    extractEmbeddedSubtitles: false       # extract embedded subtitles from media files

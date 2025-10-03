@@ -420,7 +420,10 @@
     "normalShare": "Normal",
     "uploadShare": "Yalnızca yükle",
     "perUserDownloadLimit": "İndirme sınırını her kullanıcıya uygulayın",
-    "perUserDownloadLimitDescription": "Etkinleştirildiğinde, indirme sınırı her kullanıcıya uygulanacaktır. Anonim kullanıcılar bu paylaşımdan herhangi bir dosya indiremeyecektir."
+    "perUserDownloadLimitDescription": "Etkinleştirildiğinde, indirme sınırı her kullanıcıya uygulanacaktır. Anonim kullanıcılar bu paylaşımdan herhangi bir dosya indiremeyecektir.",
+    "descriptionUploadDefault": "Dosyaları yüklemeniz için size bir paylaşım gönderildi.",
+    "extractEmbeddedSubtitles": "Gömülü altyazıları çıkarma",
+    "extractEmbeddedSubtitlesDescription": "Yüklenen medya dosyalarından gömülü altyazıları ayıklayın -- bu işlem büyük dosyalar için yavaş olabilir."
   },
   "api": {
     "title": "API Anahtarları:",
@@ -583,7 +586,9 @@
     "themeAndLanguage": "Tema ve Dil",
     "previewFolder": "Varsa klasörler için küçük resimleri göster",
     "previewFolderDescription": "Kapak olarak küçük resmi olan ilk alt öğeye sahip klasörler için küçük resim önizlemelerini gösterin.",
-    "disableFileExtensions": "Devre dışı bırakılacak dosya uzantılarını girin"
+    "disableFileExtensions": "Devre dışı bırakılacak dosya uzantılarını girin",
+    "defaultLandingPage": "Varsayılan açılış sayfası",
+    "defaultLandingPageDescription": "örn. '/files/mysource/mysubpath' veya '/settings' - varsayılan sayfa /files olup ilk kaynak listeleme görünümüne gider"
   },
   "editor": {
     "uninitialized": "Düzenleyici başlatılamadı. Lütfen yeniden yükleyin.",

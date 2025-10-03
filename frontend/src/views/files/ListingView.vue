@@ -415,7 +415,7 @@ export default {
     }
 
     // Also clean up drag/drop listeners on the component's root element
-    if (state.user.permissions?.modify) {
+    if (state.user && state.user?.permissions?.modify) {
       this.$el.removeEventListener("dragenter", this.dragEnter);
       this.$el.removeEventListener("dragleave", this.dragLeave);
       this.$el.removeEventListener("drop", this.drop);

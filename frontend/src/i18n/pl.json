@@ -420,7 +420,10 @@
     "normalShare": "Normalny",
     "uploadShare": "Tylko przesyłanie",
     "perUserDownloadLimit": "Zastosowanie limitu pobrań do każdego użytkownika",
-    "perUserDownloadLimitDescription": "Po włączeniu limit pobrań zostanie zastosowany do każdego użytkownika. Anonimowi użytkownicy nie będą mogli pobierać żadnych plików z tego folderu udostępnionego."
+    "perUserDownloadLimitDescription": "Po włączeniu limit pobrań zostanie zastosowany do każdego użytkownika. Anonimowi użytkownicy nie będą mogli pobierać żadnych plików z tego folderu udostępnionego.",
+    "descriptionUploadDefault": "Udział został wysłany w celu przesłania plików.",
+    "extractEmbeddedSubtitles": "Wyodrębnianie osadzonych napisów",
+    "extractEmbeddedSubtitlesDescription": "Wyodrębnianie osadzonych napisów z plików multimedialnych podczas ładowania - może to być powolne w przypadku dużych plików."
   },
   "api": {
     "title": "Klucze API:",
@@ -583,7 +586,9 @@
     "themeAndLanguage": "Temat i język",
     "previewFolder": "Wyświetlanie miniatur folderów, jeśli są dostępne.",
     "previewFolderDescription": "Wyświetlanie podglądu miniatur dla folderów z pierwszym elementem podrzędnym z miniaturą jako okładką.",
-    "disableFileExtensions": "Wprowadź rozszerzenia plików do wyłączenia"
+    "disableFileExtensions": "Wprowadź rozszerzenia plików do wyłączenia",
+    "defaultLandingPage": "Domyślna strona docelowa",
+    "defaultLandingPageDescription": "np. '/files/mysource/mysubpath' lub '/settings' - domyślną stroną jest /files, która przechodzi do pierwszego widoku listy źródeł."
   },
   "editor": {
     "uninitialized": "Nie udało się zainicjować edytora. Przeładuj ponownie.",

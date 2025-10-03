@@ -420,7 +420,10 @@
     "normalShare": "ノーマル",
     "uploadShare": "アップロードのみ",
     "perUserDownloadLimit": "各ユーザーにダウンロード制限を適用する",
-    "perUserDownloadLimitDescription": "有効にすると、各ユーザーにダウンロード制限が適用されます。匿名ユーザーはこの共有からファイルをダウンロードできません。"
+    "perUserDownloadLimitDescription": "有効にすると、各ユーザーにダウンロード制限が適用されます。匿名ユーザーはこの共有からファイルをダウンロードできません。",
+    "descriptionUploadDefault": "ファイルをアップロードするための共有が送信されました。",
+    "extractEmbeddedSubtitles": "埋め込み字幕の抽出",
+    "extractEmbeddedSubtitlesDescription": "読み込み時にメディアファイルから埋め込まれたサブタイトルを抽出する。"
   },
   "api": {
     "title": "APIキー：",
@@ -583,7 +586,9 @@
     "themeAndLanguage": "テーマと言語",
     "previewFolder": "利用可能であれば、フォルダのサムネイルを表示する",
     "previewFolderDescription": "サムネイルを持つ最初の子アイテムをカバーとするフォルダのサムネイルプレビューを表示します。",
-    "disableFileExtensions": "無効にするファイル拡張子を入力"
+    "disableFileExtensions": "無効にするファイル拡張子を入力",
+    "defaultLandingPage": "デフォルトのランディングページ",
+    "defaultLandingPageDescription": "例えばfiles/mysource/mysubpath'または'/settings' - デフォルトのページは/filesで、最初のソース・リスティング・ビューに移動します。"
   },
   "editor": {
     "uninitialized": "エディタの初期化に失敗しました。再読み込みしてください。",

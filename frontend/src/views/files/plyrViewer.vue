@@ -72,29 +72,29 @@
             <svg v-if="playbackMode === 'single' || playbackMode === 'loop-single' || playbackMode === 'loop-all'" class="loop-icon" viewBox="0 0 24 24">
                 <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46A7.93 7.93 0 0020 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74A7.93 7.93 0 004 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z" />
             </svg>
-            
+
             <!-- Shuffle icon for "shuffle playback" -->
             <svg v-else-if="playbackMode === 'shuffle'" class="shuffle-icon" viewBox="0 0 24 24">
                 <path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/>
             </svg>
-            
+
             <!-- List icon for "sequential playback" -->
             <svg v-else class="sequential-icon" viewBox="0 0 24 24">
                 <path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/>
             </svg>
-            
+
             <span>{{
                 playbackMode === 'sequential' ? $t('player.PlayAllOncePlayback') :
                 playbackMode === 'shuffle' ? $t('player.ShuffleAllPlayback') :
                 playbackMode === 'loop-all' ? $t('player.PlayAllLoopedPlayback') :
                 playbackMode === 'loop-single' ? $t('player.LoopEnabled') :
                 $t('player.LoopDisabled') }}</span>
-            
+
             <!-- Status indicator for loop -->
             <span v-if="playbackMode === 'single' || playbackMode === 'loop-single'" :class="[
                 'status-indicator', playbackMode === 'loop-single' ? 'status-on' : 'status-off',]"></span>
         </div>
-        
+
     </div>
 </template>
 
@@ -284,19 +284,19 @@ export default {
         },
         ensurePlaybackModeApplied() {
             if (this.useDefaultMediaPlayer) return;
-            
-            const playerRef = this.previewType === 'video' 
-                ? this.$refs.videoPlayer 
+
+            const playerRef = this.previewType === 'video'
+                ? this.$refs.videoPlayer
                 : this.$refs.audioPlayer;
-                
+
             if (!playerRef || !playerRef.player) return;
-            
+
             const player = playerRef.player;
-            
+
             try {
                 const settingsMenu = player.elements.settings?.menu;
                 const playbackBtn = player.elements.settings?.buttons?.playback;
-                
+
                 if (settingsMenu && settingsMenu.style.display !== 'none' && settingsMenu.getAttribute('hidden') === null) {
                     this.applyCustomPlaybackSettings(player);
                 } else if (playbackBtn && !this.playbackMenuInitialized) {
@@ -306,31 +306,31 @@ export default {
                 }
                 // Otherwise, skip to avoid unnecessary recreation
             } catch (error) {
-                // Catch errors silently -- the menu can be not initialized yet
-            } 
+                console.error('Error ensuring playback mode applied:', error);
+            }
         },
         focusPlayer() {
             this.$nextTick(() => {
                 if (this.useDefaultMediaPlayer) {
                     // Focus default HTML5 players
-                    const playerElement = this.previewType === 'video' 
-                        ? this.$refs.defaultVideoPlayer 
+                    const playerElement = this.previewType === 'video'
+                        ? this.$refs.defaultVideoPlayer
                         : this.$refs.defaultAudioPlayer;
-                    
+
                     if (playerElement) {
                         playerElement.focus();
                         console.log('Focused default media player');
                     }
                 } else {
                     // Focus Plyr players
-                    const playerRef = this.previewType === 'video' 
-                        ? this.$refs.videoPlayer 
+                    const playerRef = this.previewType === 'video'
+                        ? this.$refs.videoPlayer
                         : this.$refs.audioPlayer;
-                        
+
                     if (playerRef && playerRef.player && playerRef.player.elements.container) {
                         const container = playerRef.player.elements.container;
                         container.focus();
-                        
+
                         // Also try to focus the progress bar specifically
                         const progressContainer = container.querySelector('.plyr__progress__container');
                         if (progressContainer) {
@@ -343,18 +343,18 @@ export default {
         toggleLoop() {
             // Always use our custom loop instead of Plyr's default
             this.loopEnabled = !this.loopEnabled;
-            
+
             // Update playback mode based on custom loop state
             if (this.loopEnabled) {
                 this.playbackMode = 'loop-single';
             } else {
                 this.playbackMode = 'single';
             }
-            
+
             // Update playback queue to reflect the new mode
             this.setupPlaybackQueue();
             this.showToast();
-            
+
             // Sync the actual media element's loop state
             this.syncMediaLoopState();
 
@@ -364,12 +364,12 @@ export default {
                 this.ensurePlaybackModeApplied();
             });
         },
-        handleKeydown(event) {            
+        handleKeydown(event) {
             // Handle 'P' and 'L' keys for loop and change playback
             if (event.key.toLowerCase() === 'p' || event.key.toLowerCase() === 'l') {
                 event.preventDefault();
                 event.stopPropagation();
-                
+
                 // Use requestAnimationFrame to ensure UI updates
                 requestAnimationFrame(() => {
                     if (event.key.toLowerCase() === 'p') {
@@ -383,10 +383,10 @@ export default {
         cyclePlaybackModes() {
             // cycle order (excluding single and loop-single cuz they are handled by the "L" key)
             const modeCycle = ['sequential', 'shuffle', 'loop-all'];
-            
+
             // Find current mode index in the cycle
             const currentIndex = modeCycle.indexOf(this.playbackMode);
-            
+
             // Next mode index
             let nextIndex;
             if (currentIndex === -1) {
@@ -395,19 +395,19 @@ export default {
             } else {
                 nextIndex = (currentIndex + 1) % modeCycle.length;
             }
-            
+
             // Set the new playback mode
             const newMode = modeCycle[nextIndex];
             this.playbackMode = newMode;
-            
+
             console.log(`Playback mode changed to: ${newMode}`);
-            
+
             // Update playback queue
             this.setupPlaybackQueue();
 
             // Sync the actual media element's loop state
             this.syncMediaLoopState();
-            
+
             // Show toast
             this.showToast();
             this.focusPlayer();
@@ -678,13 +678,13 @@ export default {
             if (mediaFiles.length === 0) {
                 console.log('No media files found in current directory');
                 this.playbackQueue = [];
-                this.currentQueueIndex = -1; 
+                this.currentQueueIndex = -1;
                 return;
             }
 
             // Sort the media alphabetically by name
             const sortedFiles = [...mediaFiles].sort((a, b) => a.name.localeCompare(b.name));
-            
+
             // Find current file index of the file opened
             const currentIndex = sortedFiles.findIndex(item => item.path === this.req.path);
             console.log('Current file index in media files:', currentIndex);
@@ -718,7 +718,7 @@ export default {
                     if (currentIndex !== -1) {
                         const currentFile = sortedFiles[currentIndex];
                         const otherFiles = sortedFiles.filter((_, index) => index !== currentIndex);
-                        
+
                         // Shuffle other files
                         const shuffledOthers = this.shuffleArray([...otherFiles]);
                         this.playbackQueue = [currentFile, ...shuffledOthers];
@@ -732,7 +732,7 @@ export default {
 
             console.log('Final playback queue length:', this.playbackQueue.length);
             console.log('Current queue index:', this.currentQueueIndex);
-            
+
             // Log the paths for debugging
             this.playbackQueue.forEach((item, index) => {
                 console.log(`Queue[${index}]:`, item.name, item.path);
@@ -758,7 +758,7 @@ export default {
 
             // Calculate next index
             let nextIndex = this.currentQueueIndex + 1;
-            
+
             // Handle end of queue based on mode
             if (nextIndex >= this.playbackQueue.length) {
                 if (this.playbackMode === 'loop-all') {
@@ -807,7 +807,7 @@ export default {
                             } else if (player.player) {
                                 playPromise = player.player.play();
                             }
-                            
+
                             if (playPromise !== undefined) {
                                 playPromise.catch((error) => {
                                     console.log("Auto-play prevented:", error);
@@ -831,7 +831,7 @@ export default {
             this.isNavigating = true;
 
             let prevIndex = this.currentQueueIndex - 1;
-            
+
             // Handle start of queue
             if (prevIndex < 0) {
                 if (this.playbackMode === 'loop-all') {
@@ -847,7 +847,7 @@ export default {
 
             const prevItemUrl = url.buildItemUrl(prevItem.source || this.req.source, prevItem.path);
             mutations.replaceRequest(prevItem);
-            
+
             this.$router.replace({ path: prevItemUrl }).catch(err => {
                 if (err.name !== 'NavigationDuplicated') {
                     console.error('Router navigation error:', err);
@@ -864,7 +864,7 @@ export default {
                         } else if (player.player) {
                             playPromise = player.player.play();
                         }
-                        
+
                         if (playPromise !== undefined) {
                             playPromise.catch((error) => {
                                 console.log("Auto-play prevented:", error);
@@ -933,14 +933,14 @@ export default {
 
             // Sync loopEnabled with playbackMode
             this.loopEnabled = (this.playbackMode === 'loop-single');
-            
+
             // Only recreate menu if mode changed or menu not initialized, this for avoid unnecesary recreations
             const modeChanged = this.lastAppliedMode !== this.playbackMode;
-            
+
             if (this.playbackMenuInitialized && !modeChanged) {
                 return;
             }
-            
+
             try {
                 // Access the playback button and panel
                 const playbackBtn = player.elements.settings.buttons.playback;
@@ -966,7 +966,7 @@ export default {
 
                     // Only recreate menu if needed, will rebuild the UI if the source changes.
                     const menu = playbackPanel.querySelector('div[role="menu"]');
-                    
+
                     if (!this.playbackMenuInitialized || modeChanged) {
                         console.log('Creating/recreating playback menu buttons with mode:', this.playbackMode);
 
@@ -1056,10 +1056,10 @@ export default {
         syncMediaLoopState() {
             const player = this.getCurrentPlayer();
             if (!player) return;
-            
+
             // Only enable loop for "Loop Current" mode
             const shouldLoop = this.playbackMode === 'loop-single';
-            
+
             if (this.useDefaultMediaPlayer) {
                 // HTML5 player
                 player.loop = shouldLoop;

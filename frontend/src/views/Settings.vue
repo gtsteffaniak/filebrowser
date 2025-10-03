@@ -93,7 +93,6 @@ export default {
     mutations.closeHovers();
     mutations.setSearch(false);
     this.initializeActiveSettingFromHash();
-    
     // Listen for hash changes (browser navigation)
     window.addEventListener('hashchange', this.handleHashChange);
   },
