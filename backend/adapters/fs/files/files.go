@@ -104,14 +104,16 @@ func processContent(info *iteminfo.ExtendedFileInfo, idx *indexing.Index, opts u
 		return
 	}
 
-	if isVideo && opts.ExtractEmbeddedSubtitles {
-		parentPath := filepath.Dir(info.Path)
-		parentInfo, exists := idx.GetReducedMetadata(parentPath, true)
-		if exists {
-			info.DetectSubtitles(parentInfo)
-			err := info.LoadSubtitleContent()
-			if err != nil {
-				logger.Debug("failed to load subtitle content: " + err.Error())
+	if isVideo {
+		if opts.ExtractEmbeddedSubtitles {
+			parentPath := filepath.Dir(info.Path)
+			parentInfo, exists := idx.GetReducedMetadata(parentPath, true)
+			if exists {
+				info.DetectSubtitles(parentInfo)
+				err := info.LoadSubtitleContent()
+				if err != nil {
+					logger.Debug("failed to load subtitle content: " + err.Error())
+				}
 			}
 		}
 		return
@@ -136,7 +138,7 @@ func processContent(info *iteminfo.ExtendedFileInfo, idx *indexing.Index, opts u
 		}
 		info.Content = content
 	} else {
-		logger.Debug("skipping large text file contents (20MB limit): "+info.Path, info.Name)
+		logger.Debug("skipping large text file contents (20MB limit): "+info.Path, info.Name, info.Type)
 	}
 }
 

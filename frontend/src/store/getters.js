@@ -227,10 +227,8 @@ export const getters = {
   },
   isShare: () => {
     if (shareInfo.isShare && state.route.path.startsWith('/public/share/' + shareInfo.hash)) {
-      console.log("isShare")
       return true
     }
-    console.log("isNotShare")
     return false
   },
   currentView: () => {

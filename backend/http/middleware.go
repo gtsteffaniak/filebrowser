@@ -107,7 +107,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 			Expand:                   true,
 			Content:                  getContent,
 			ExtractEmbeddedSubtitles: settings.Config.Integrations.Media.ExtractEmbeddedSubtitles && link.ExtractEmbeddedSubtitles,
-		}, store.Access)
+		}, nil)
 		if err != nil {
 			logger.Errorf("error fetching file info for share. hash=%v path=%v error=%v", hash, path, err)
 			return errToStatus(err), fmt.Errorf("error fetching share from server")

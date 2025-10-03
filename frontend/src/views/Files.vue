@@ -258,12 +258,29 @@ export default {
         subPath: this.shareSubPath,
         passwordValid: true,
       });
-      // If not a directory, fetch content for preview components
+
+      // If not a directory, fetch content AND parent directory in parallel
       if (file.type != "directory") {
         const content = !getters.fileViewingDisabled(file.name);
-        file = await publicApi.fetchPub(this.shareSubPath, this.shareHash, this.sharePassword, content);
+        const directoryPath = url.removeLastDir(this.shareSubPath);
+
+        // Run both fetches in parallel to minimize total API calls
+        const [fileRes, dirRes] = await Promise.all([
+          publicApi.fetchPub(this.shareSubPath, this.shareHash, this.sharePassword, content),
+          publicApi.fetchPub(directoryPath, this.shareHash, this.sharePassword, false).catch(err => {
+            console.warn("Could not fetch parent directory for share navigation:", err);
+            return null;
+          })
+        ]);
+
+        file = fileRes;
         file.hash = this.shareHash;
-        this.shareToken = file.token;
+        this.shareToken = fileRes.token;
+
+        // Store the parent directory items for Preview to use
+        if (dirRes && dirRes.items) {
+          file.parentDirItems = dirRes.items;
+        }
       }
 
       mutations.replaceRequest(file);
@@ -312,12 +329,29 @@ export default {
         const fetchPath = decodeURIComponent(result.path);
         // Fetch initial data
         let res = await filesApi.fetchFiles(fetchSource, fetchPath );
-        // If not a directory, fetch content
+
+        // If not a directory, fetch content AND parent directory in parallel
         if (res.type != "directory" && !res.type.startsWith("image")) {
           const content = !getters.fileViewingDisabled(res.name);
-          res = await filesApi.fetchFiles(res.source, res.path, content);
+          const directoryPath = url.removeLastDir(res.path);
+
+          // Run both fetches in parallel to minimize total API calls
+          const [fileRes, dirRes] = await Promise.all([
+            filesApi.fetchFiles(res.source, res.path, content),
+            filesApi.fetchFiles(res.source, directoryPath).catch(err => {
+              console.warn("Could not fetch parent directory for navigation:", err);
+              return null;
+            })
+          ]);
+
+          res = fileRes;
+          // Store the parent directory items for Preview to use
+          if (dirRes && dirRes.items) {
+            res.parentDirItems = dirRes.items;
+          }
         }
         data = res;
+
         if (state.sources.count > 1) {
           mutations.setCurrentSource(data.source);
         }
