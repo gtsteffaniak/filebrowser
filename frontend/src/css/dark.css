@@ -235,3 +235,23 @@
   background-color: #283136;
 }
 
+/* Add missing VuePlyr dark mode styles */
+.plyr {
+  color: var(--textPrimary);
+}
+
+.plyr__control {
+  color: var(--textPrimary);
+}
+
+.plyr__menu__container {
+  background: var(--surfacePrimary);
+}
+
+.plyr__menu__item:hover {
+  background: var(--surfaceSecondary);
+}
+
+.plyr__progress__buffer {
+  background: var(--surfaceSecondary);
+}
