@@ -8,7 +8,7 @@ import { sortedItems } from "@/utils/sort.js";
 import { serverHasMultipleSources } from "@/utils/constants.js";
 import { url } from "@/utils";
 import { getTypeInfo } from "@/utils/mimetype";
-import { filesApi } from "@/api";
+import { filesApi, publicApi } from "@/api";
 
 export const mutations = {
   setPreviousHistoryItem: (value) => {
@@ -623,9 +623,17 @@ export const mutations = {
   },
   getPrefetchUrl: (item) => {
     if (getters.isShare()) {
-      return filesApi.getDownloadURL(state.req.source, item.path, true);
+      return publicApi.getDownloadURL(
+        {
+          path: item.path,
+          hash: state.share.hash,
+          token: state.share.token,
+        },
+        [item.path],
+        true,
+      );
     }
-    return filesApi.getDownloadURL(state.req.source, item.path, true);
+    return filesApi.getDownloadURL(item.source, item.path, true);
   },
   setNavigationShow: (show) => {
     if (state.navigation.show === show) {
