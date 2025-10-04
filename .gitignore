@@ -8,6 +8,7 @@ rice-box.go
 /backend/backend
 /backend/filebrowser
 /backend/filebrowser.exe
+frontend/tsconfig.tsbuildinfo
 /backend/backend.exe
 /backend/tmp
 /backend/dist
