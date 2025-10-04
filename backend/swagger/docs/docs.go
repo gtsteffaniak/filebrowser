@@ -499,11 +499,6 @@ const docTemplate = `{
         },
         "/api/auth/otp/generate": {
             "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
                 "description": "Generates a new TOTP secret and QR code for the authenticated user.",
                 "consumes": [
                     "application/json"
@@ -534,16 +529,16 @@ const docTemplate = `{
                             }
                         }
                     }
-                }
-            }
-        },
-        "/api/auth/otp/verify": {
-            "post": {
+                },
                 "security": [
                     {
                         "ApiKeyAuth": []
                     }
-                ],
+                ]
+            }
+        },
+        "/api/auth/otp/verify": {
+            "post": {
                 "description": "Verifies the provided TOTP code for the authenticated user.",
                 "consumes": [
                     "application/json"
@@ -580,7 +575,12 @@ const docTemplate = `{
                             }
                         }
                     }
-                }
+                },
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ]
             }
         },
         "/api/auth/token": {
@@ -1017,96 +1017,6 @@ const docTemplate = `{
                     },
                     "501": {
                         "description": "Preview generation not implemented",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/public/preview": {
-            "get": {
-                "description": "Returns a preview image based on the requested path and size.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Resources"
-                ],
-                "summary": "Get image preview",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "source hash",
-                        "name": "hash",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "File path of the image to preview",
-                        "name": "path",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Preview size ('small' or 'large'). Default is based on server config.",
-                        "name": "size",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Preview image content",
-                        "schema": {
-                            "type": "file"
-                        }
-                    },
-                    "202": {
-                        "description": "Download permissions required",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request path",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "File not found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "415": {
-                        "description": "Unsupported file type for preview",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -2232,25 +2142,114 @@ const docTemplate = `{
                 }
             }
         },
-        "/public/dl": {
+        "/public/api/preview": {
             "get": {
-                "description": "Returns the raw content of a file, multiple files, or a directory. Supports downloading files as archives in various formats.",
+                "description": "Returns a preview (thumbnail) for images or videos accessible via a public share. Preview generation can be disabled globally or per-share. Not available for upload-only shares.",
                 "consumes": [
                     "application/json"
                 ],
                 "produces": [
-                    "application/json"
+                    "image/jpeg"
                 ],
                 "tags": [
-                    "Resources"
+                    "Public Shares"
                 ],
-                "summary": "Get raw content of a file, multiple files, or directory",
+                "summary": "Get image/video preview from a public share",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "if specified, only the files in the list will be downloaded. eg. files=/file1||/folder/file2",
-                        "name": "files",
+                        "description": "Share hash for authentication",
+                        "name": "hash",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "File path within the share to preview",
+                        "name": "path",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Preview size: 'small' or 'large'. Default is based on server config.",
+                        "name": "size",
                         "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Preview image content (JPEG)",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "403": {
+                        "description": "Share unavailable or access denied",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "File not found or preview not available",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "501": {
+                        "description": "Previews disabled globally, for this share, or for upload shares",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/public/api/raw": {
+            "get": {
+                "description": "Downloads raw content from a public share. Supports single files, multiple files, or directories as archives. Enforces download limits (global or per-user) and blocks anonymous users when per-user limits are enabled.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "Public Shares"
+                ],
+                "summary": "Download files from a public share",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Share hash for authentication",
+                        "name": "hash",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Files to download in format: 'source::path||source::path'. Example: '/file1||/folder/file2'",
+                        "name": "files",
+                        "in": "query",
+                        "required": true
                     },
                     {
                         "type": "boolean",
@@ -2272,8 +2271,8 @@ const docTemplate = `{
                             "type": "file"
                         }
                     },
-                    "202": {
-                        "description": "Modify permissions required",
+                    "400": {
+                        "description": "Invalid request path or encoding",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -2281,8 +2280,8 @@ const docTemplate = `{
                             }
                         }
                     },
-                    "400": {
-                        "description": "Invalid request path",
+                    "403": {
+                        "description": "Download limit reached, anonymous access blocked, or share unavailable",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -2291,7 +2290,7 @@ const docTemplate = `{
                         }
                     },
                     "404": {
-                        "description": "File or directory not found",
+                        "description": "Share not found or file not found",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -2301,6 +2300,204 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "501": {
+                        "description": "Downloads disabled for upload shares",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/public/api/resources": {
+            "post": {
+                "description": "Handles file and directory uploads to an upload-only public share. Supports chunked uploads, conflict resolution (override), and directory creation.",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Shares"
+                ],
+                "summary": "Upload files to a public upload share",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Share hash for authentication",
+                        "name": "hash",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Target path within the share to upload to. Must be relative to share root.",
+                        "name": "targetPath",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "If true, overwrite existing files/folders. Defaults to false.",
+                        "name": "override",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Upload action: 'override' to replace files, 'rename' to auto-rename",
+                        "name": "action",
+                        "in": "query"
+                    },
+                    {
+                        "type": "file",
+                        "description": "File to upload",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Upload successful",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request or parameters",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Share unavailable or upload not allowed",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Share not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "File or directory already exists (conflict)",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error during upload",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "501": {
+                        "description": "Uploading disabled for non-upload shares",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/public/api/share": {
+            "get": {
+                "description": "Returns metadata for files or directories accessible via a public share link. Browsing is disabled for upload-only shares.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Shares"
+                ],
+                "summary": "Get file/directory information from a public share",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Share hash for authentication",
+                        "name": "hash",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Path within the share to retrieve information for. Defaults to share root.",
+                        "name": "path",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "File or directory metadata",
+                        "schema": {
+                            "$ref": "#/definitions/iteminfo.FileInfo"
+                        }
+                    },
+                    "403": {
+                        "description": "Share unavailable or access denied",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Share not found or file not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "501": {
+                        "description": "Browsing disabled for upload shares",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -2743,11 +2940,35 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "imagePreview": {
-                    "description": "supported image preview formats. default is heic",
+                    "description": "supported image preview formats. defaults to false for all types unless explicitly enabled.",
                     "type": "object",
                     "additionalProperties": {
                         "type": "boolean"
                     }
+                },
+                "videoPreview": {
+                    "description": "supported video preview formats. defaults to true for all types unless explicitly disabled.",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "boolean"
+                    }
+                }
+            }
+        },
+        "settings.Filesystem": {
+            "type": "object",
+            "required": [
+                "createDirectoryPermission",
+                "createFilePermission"
+            ],
+            "properties": {
+                "createDirectoryPermission": {
+                    "description": "Unix permissions like 755, 2755, 1777 (default: 755)",
+                    "type": "string"
+                },
+                "createFilePermission": {
+                    "description": "Unix permissions like 644, 755, 2755 (default: 644)",
+                    "type": "string"
                 }
             }
         },
@@ -2876,6 +3097,14 @@ const docTemplate = `{
                             "$ref": "#/definitions/settings.FfmpegConvert"
                         }
                     ]
+                },
+                "debug": {
+                    "description": "output ffmpeg stdout for media integration -- careful can produces lots of output!",
+                    "type": "boolean"
+                },
+                "extractEmbeddedSubtitles": {
+                    "description": "extract embedded subtitles from media files",
+                    "type": "boolean"
                 },
                 "ffmpegPath": {
                     "description": "path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)",
@@ -3042,10 +3271,6 @@ const docTemplate = `{
                     "description": "path to the database file",
                     "type": "string"
                 },
-                "debugMedia": {
-                    "description": "output ffmpeg stdout for media integration -- careful can produces lots of output!",
-                    "type": "boolean"
-                },
                 "disablePreviewResize": {
                     "description": "disable resizing of previews for faster loading over slow connections",
                     "type": "boolean"
@@ -3065,6 +3290,14 @@ const docTemplate = `{
                 "externalUrl": {
                     "description": "used by share links if set (eg. http://mydomain.com)",
                     "type": "string"
+                },
+                "filesystem": {
+                    "description": "filesystem settings",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.Filesystem"
+                        }
+                    ]
                 },
                 "internalUrl": {
                     "description": "used by integrations if set, this is the base domain that an integration service will use to communicate with filebrowser (eg. http://localhost:8080)",
@@ -3262,6 +3495,10 @@ const docTemplate = `{
                     "description": "debug onlyoffice editor",
                     "type": "boolean"
                 },
+                "defaultLandingPage": {
+                    "description": "default landing page to use if no redirect is specified: eg. /files/mysource/mysubpath, /settings, etc.",
+                    "type": "string"
+                },
                 "deleteWithoutConfirming": {
                     "description": "delete files without confirmation",
                     "type": "boolean"
@@ -3419,6 +3656,10 @@ const docTemplate = `{
                 "expires": {
                     "type": "string"
                 },
+                "extractEmbeddedSubtitles": {
+                    "description": "can be io intensive for large files and take 10-30 seconds.",
+                    "type": "boolean"
+                },
                 "favicon": {
                     "type": "string"
                 },
@@ -3440,10 +3681,17 @@ const docTemplate = `{
                 "path": {
                     "type": "string"
                 },
+                "perUserDownloadLimit": {
+                    "type": "boolean"
+                },
                 "quickDownload": {
                     "type": "boolean"
                 },
                 "shareTheme": {
+                    "type": "string"
+                },
+                "shareType": {
+                    "description": "type of share: normal, upload, max",
                     "type": "string"
                 },
                 "source": {
@@ -3521,6 +3769,10 @@ const docTemplate = `{
                 "expire": {
                     "type": "integer"
                 },
+                "extractEmbeddedSubtitles": {
+                    "description": "can be io intensive for large files and take 10-30 seconds.",
+                    "type": "boolean"
+                },
                 "favicon": {
                     "type": "string"
                 },
@@ -3542,10 +3794,17 @@ const docTemplate = `{
                 "path": {
                     "type": "string"
                 },
+                "perUserDownloadLimit": {
+                    "type": "boolean"
+                },
                 "quickDownload": {
                     "type": "boolean"
                 },
                 "shareTheme": {
+                    "type": "string"
+                },
+                "shareType": {
+                    "description": "type of share: normal, upload, max",
                     "type": "string"
                 },
                 "source": {
@@ -3732,6 +3991,10 @@ const docTemplate = `{
                 "debugOffice": {
                     "description": "debug onlyoffice editor",
                     "type": "boolean"
+                },
+                "defaultLandingPage": {
+                    "description": "default landing page to use: eg. /files/mysource/mysubpath, /settings, etc.",
+                    "type": "string"
                 },
                 "deleteWithoutConfirming": {
                     "description": "delete files without confirmation",

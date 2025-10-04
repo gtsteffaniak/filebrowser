@@ -2,6 +2,7 @@ package ffmpeg
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
@@ -18,16 +19,31 @@ type ImageService struct {
 	ffprobePath string
 	debug       bool
 	cacheDir    string
+	semaphore   chan struct{}
 }
 
 // NewImageService creates a new image service instance
-func NewImageService(ffmpegPath, ffprobePath string, debug bool, cacheDir string) *ImageService {
+func NewImageService(ffmpegPath, ffprobePath string, maxConcurrent int, debug bool, cacheDir string) *ImageService {
 	return &ImageService{
 		ffmpegPath:  ffmpegPath,
 		ffprobePath: ffprobePath,
 		debug:       debug,
 		cacheDir:    cacheDir,
+		semaphore:   make(chan struct{}, maxConcurrent),
 	}
+}
+
+func (s *ImageService) Acquire(ctx context.Context) error {
+	select {
+	case s.semaphore <- struct{}{}:
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+}
+
+func (s *ImageService) Release() {
+	<-s.semaphore
 }
 
 // GetImageOrientation extracts the EXIF orientation from an image file using exiftool
@@ -145,7 +161,11 @@ func (s *ImageService) GetImageDimensions(imagePath string) (width, height int, 
 }
 
 // ConvertHEICToJPEGDirect converts a HEIC file to JPEG using direct FFmpeg conversion (fast method)
-func (s *ImageService) ConvertHEICToJPEGDirect(heicPath string, targetWidth, targetHeight int, quality string) ([]byte, error) {
+func (s *ImageService) ConvertHEICToJPEGDirect(ctx context.Context, heicPath string, targetWidth, targetHeight int, quality string) ([]byte, error) {
+	// Check if context is cancelled before starting
+	if ctx.Err() != nil {
+		return nil, ctx.Err()
+	}
 
 	// Get EXIF orientation and create appropriate filter
 	orientation, err := s.GetImageOrientation(heicPath)
@@ -186,13 +206,16 @@ func (s *ImageService) ConvertHEICToJPEGDirect(heicPath string, targetWidth, tar
 	// Add quality and output settings
 	args = append(args, "-q:v", quality, "-pix_fmt", "yuvj420p", "-y", outputFile)
 
-	cmd := exec.Command(s.ffmpegPath, args...)
+	cmd := exec.CommandContext(ctx, s.ffmpegPath, args...)
 	var cmdOut bytes.Buffer
 	var cmdErr bytes.Buffer
 	cmd.Stdout = &cmdOut
 	cmd.Stderr = &cmdErr
 
 	if err = cmd.Run(); err != nil {
+		if ctx.Err() != nil {
+			return nil, ctx.Err()
+		}
 		return nil, fmt.Errorf("direct HEIC conversion failed: %w", err)
 	}
 
@@ -206,7 +229,11 @@ func (s *ImageService) ConvertHEICToJPEGDirect(heicPath string, targetWidth, tar
 }
 
 // ConvertHEICToJPEG converts a HEIC file to JPEG with specified dimensions and quality using proper tile extraction
-func (s *ImageService) ConvertHEICToJPEG(heicPath string, targetWidth, targetHeight int, quality string) ([]byte, error) {
+func (s *ImageService) ConvertHEICToJPEG(ctx context.Context, heicPath string, targetWidth, targetHeight int, quality string) ([]byte, error) {
+	// Check if context is cancelled before starting
+	if ctx.Err() != nil {
+		return nil, ctx.Err()
+	}
 	// Create temporary directory for tile processing
 	outputDir := s.cacheDir
 	tempDir := filepath.Join(outputDir, fmt.Sprintf("heic_tiles_%d", os.Getpid()))
@@ -220,7 +247,7 @@ func (s *ImageService) ConvertHEICToJPEG(heicPath string, targetWidth, targetHei
 	// Step 1: Get grid info using trace output
 
 	// Use ffprobe with trace level to get grid information (with time limit for speed)
-	gridCmd := exec.Command(s.ffmpegPath, "-loglevel", "trace", "-i", heicPath, "-f", "null", "-", "-t", "0.1")
+	gridCmd := exec.CommandContext(ctx, s.ffmpegPath, "-loglevel", "trace", "-i", heicPath, "-f", "null", "-", "-t", "0.1")
 	var gridOut bytes.Buffer
 	var gridErr bytes.Buffer
 	gridCmd.Stdout = &gridOut
@@ -267,11 +294,16 @@ func (s *ImageService) ConvertHEICToJPEG(heicPath string, targetWidth, targetHei
 
 	// Step 2: Extract tile streams (skip stream 0 which is compatibility image)
 
+	// Check context again before extraction
+	if ctx.Err() != nil {
+		return nil, ctx.Err()
+	}
+
 	// Extract using JPEG for faster I/O (PNG was unnecessarily slow and large)
 	// Skip the first output (stream 0) since it's the compatibility image
 	tilesPattern := filepath.Join(tempDir, "output_%d.jpg")
 
-	extractCmd := exec.Command(
+	extractCmd := exec.CommandContext(ctx,
 		s.ffmpegPath,
 		"-i", heicPath,
 		"-map", "0", // Map all streams
@@ -286,6 +318,9 @@ func (s *ImageService) ConvertHEICToJPEG(heicPath string, targetWidth, targetHei
 	extractCmd.Stderr = &extractErr
 
 	if err = extractCmd.Run(); err != nil {
+		if ctx.Err() != nil {
+			return nil, ctx.Err()
+		}
 		return nil, fmt.Errorf("tile extraction failed: %w", err)
 	}
 
@@ -321,6 +356,11 @@ func (s *ImageService) ConvertHEICToJPEG(heicPath string, targetWidth, targetHei
 
 	actualTiles := tileIndex - 1
 
+	// Check context before merge
+	if ctx.Err() != nil {
+		return nil, ctx.Err()
+	}
+
 	// Step 4: Merge tiles back into final image with proper quality and rotation
 	outputFile := filepath.Join(tempDir, "final_output.jpg")
 
@@ -342,7 +382,7 @@ func (s *ImageService) ConvertHEICToJPEG(heicPath string, targetWidth, targetHei
 			gridCols, gridRows, actualTiles, orientationFilter, targetWidth, targetHeight)
 	}
 
-	mergeCmd := exec.Command(
+	mergeCmd := exec.CommandContext(ctx,
 		s.ffmpegPath,
 		"-i", inputPattern,
 		"-vf", filterChain,
@@ -359,6 +399,9 @@ func (s *ImageService) ConvertHEICToJPEG(heicPath string, targetWidth, targetHei
 	mergeCmd.Stderr = &mergeErr
 
 	if err = mergeCmd.Run(); err != nil {
+		if ctx.Err() != nil {
+			return nil, ctx.Err()
+		}
 		return nil, fmt.Errorf("tile merge failed: %w", err)
 	}
 

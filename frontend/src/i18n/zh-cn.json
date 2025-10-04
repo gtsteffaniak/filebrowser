@@ -54,7 +54,10 @@
     "listView": "列表查看",
     "compactView": "紧凑型视图",
     "normalView": "正常视图",
-    "galleryView": "图库浏览"
+    "galleryView": "图库浏览",
+    "uploadFiles": "上传文件",
+    "uploadFolder": "上传文件夹",
+    "openUploadViewer": "打开上传管理器"
   },
   "download": {
     "downloadFile": "下载文件",
@@ -134,7 +137,10 @@
     "submit": "登录",
     "usernameTaken": "用户名已经被使用",
     "wrongCredentials": "用户名或密码错误",
-    "or": "或"
+    "or": "或",
+    "inProgress": "登录...",
+    "failedLogin": "登录失败",
+    "invalidCredentials": "提供的证书无效"
   },
   "prompts": {
     "copy": "复制",
@@ -195,7 +201,8 @@
     "moveSuccess": "文件移动成功！",
     "copySuccess": "文件复制成功！",
     "lastModified": "最后修改{suffix}",
-    "size": "尺寸{suffix}"
+    "size": "尺寸{suffix}",
+    "operationInProgress": "操作正在进行中，请稍候..."
   },
   "search": {
     "images": "图像",
@@ -407,7 +414,16 @@
     "titleDefault": "共享文件{title}",
     "defaultViewMode": "默认视图模式",
     "defaultViewModeDescription": "设置匿名用户查看此共享的默认视图模式。已登录的用户仍可更改其查看首选项。",
-    "disableFileViewer": "禁用文件查看器"
+    "disableFileViewer": "禁用文件查看器",
+    "shareType": "共享类型",
+    "shareTypeDescription": "要创建的共享类型。普通共享允许查看和下载文件。上传共享允许向共享上传文件。",
+    "normalShare": "正常",
+    "uploadShare": "仅上传",
+    "perUserDownloadLimit": "为每个用户设置下载限制",
+    "perUserDownloadLimitDescription": "启用后，下载限制将应用于每个用户。匿名用户将无法从该共享下载任何文件。",
+    "descriptionUploadDefault": "已为您发送了上传文件的共享。",
+    "extractEmbeddedSubtitles": "提取嵌入式字幕",
+    "extractEmbeddedSubtitlesDescription": "在加载时从媒体文件中提取内嵌字幕--这对于大文件来说可能会比较慢。"
   },
   "api": {
     "title": "应用程序接口密钥",
@@ -465,7 +481,8 @@
     "uploadChunkSizeMb": "上传块大小（以 MB 为单位",
     "uploadChunkSizeMbHelp": "通常为 5 至 50 MB，对于不稳定或受限制的连接，越小越好。设置为 0 将禁用上传分块。",
     "clearAll": "清除完成后，应消除错误、暂停和冲突",
-    "clearAllDescription": "清除已完成按钮将清除所有处于完成状态的上传，包括错误、暂停和冲突状态。"
+    "clearAllDescription": "清除已完成按钮将清除所有处于完成状态的上传，包括错误、暂停和冲突状态。",
+    "uploadSettings": "上传设置"
   },
   "colors": {
     "red": "红",
@@ -533,7 +550,9 @@
     "themeAndLanguage": "主题与语言",
     "previewFolder": "如果有的话，显示文件夹的缩略图",
     "previewFolderDescription": "显示文件夹的缩略图预览，第一个子项的缩略图为封面。",
-    "disableFileExtensions": "输入要禁用的文件扩展名"
+    "disableFileExtensions": "输入要禁用的文件扩展名",
+    "defaultLandingPage": "默认登陆页面",
+    "defaultLandingPageDescription": "例如/files/mysource/mysubpath \"或\"/settings\"--默认页面为 /files，进入第一个源列表视图"
   },
   "general": {
     "name": "名称",
@@ -580,7 +599,10 @@
     "syncFailed": "经过 5 次尝试后，未能将 \"{filename}\" 的状态与路由同步。终止编辑器设置，以防数据损坏。"
   },
   "player": {
-    "LoopEnabled": "启用环路",
-    "LoopDisabled": "环路禁用"
+    "LoopEnabled": "循环已启用",
+    "LoopDisabled": "循环已禁用",
+    "PlayAllOncePlayback": "播放全部一次",
+    "ShuffleAllPlayback": "随机播放全部",
+    "PlayAllLoopedPlayback": "循环播放全部"
   }
 }

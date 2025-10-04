@@ -49,6 +49,14 @@ export default {
   getApiPath,
   extractSourceFromPath,
   fixDownloadURL,
+  base64Encode,
+  joinPath,
+  goToItem,
+  buildItemUrl,
+  encodedPath,
+  doubleEncode,
+  trimSlashes,
+  getPublicApiPath,
 };
 
 export function removePrefix(path, prefix = "") {
@@ -118,6 +126,20 @@ export function trimSlashes(str) {
   return removeLeadingSlash(removeTrailingSlash(str))
 }
 
+export function joinPath(basePath, ...segments) {
+  if (!basePath) {
+    basePath = '/'
+  }
+  // Remove trailing slash from base path and leading slashes from segments
+  let result = basePath.replace(/\/$/, '');
+  for (const segment of segments) {
+    if (segment) {
+      result += '/' + segment.replace(/^\/+/, '');
+    }
+  }
+  return result;
+}
+
 export function base64Encode(str) {
   return btoa(unescape(encodeURIComponent(str)));
 }
@@ -164,7 +186,7 @@ export function goToItem(source, path, previousHistoryItem) {
   mutations.setPreviousHistoryItem(previousHistoryItem);
   let newPath = encodedPath(path);
   let fullPath;
-  if (shareInfo.isShare) {
+  if (getters.isShare()) {
     fullPath = `/public/share/${shareInfo.hash}${newPath}`;
     router.push({ path: fullPath });
     return;

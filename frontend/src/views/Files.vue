@@ -81,12 +81,12 @@ export default {
       return state.share;
     },
     showShareInfo() {
-      return this.isShare && state.share.hash && state.isMobile && state.req.path == "/" && !shareInfo.disableShareCard;
-    },
-    isShare() {
-      return getters.isShare();
+      return getters.isShare() && state.isMobile && state.req.path == "/" && !shareInfo.disableShareCard;
     },
     popupEnabled() {
+      if (!state.user || state.user?.username == "") {
+        return false;
+      }
       return state.user.preview.popup;
     },
     showBreadCrumbs() {
@@ -149,7 +149,7 @@ export default {
         }
         scrollToId = url.base64Encode(encodeURIComponent(decodedName));
 
-      } else if (state.previousHistoryItem.name) {
+      } else if (state.previousHistoryItem.name && state.previousHistoryItem.path === state.req.path && state.previousHistoryItem.source === state.req.source) {
         scrollToId = url.base64Encode(encodeURIComponent(state.previousHistoryItem.name));
       }
       const element = document.getElementById(scrollToId);
@@ -167,7 +167,7 @@ export default {
         }
     },
     async fetchData() {
-      if (state.deletedItem || getters.isInvalidShare()) {
+      if (state.deletedItem || getters.isInvalidShare() || shareInfo.shareType == "upload") {
         return
       }
 
@@ -178,25 +178,29 @@ export default {
         });
       }
       // Set loading and reset error
-      mutations.setLoading(this.isShare ? "share" : "files", true);
+      mutations.setLoading(getters.isShare() ? "share" : "files", true);
       this.error = null;
       mutations.setReload(false);
 
       try {
-        if (this.isShare) {
+        if (getters.isShare()) {
           await this.fetchShareData();
         } else {
           await this.fetchFilesData();
         }
       } catch (e) {
-        notify.showError(e.message);
+        if (e.message) {
+          notify.showError(e.message);
+        } else {
+          notify.showError(e);
+        }
         this.error = e;
         mutations.replaceRequest({});
         if (e.status === 404) {
           router.push({ name: "notFound" });
         } else if (e.status === 403) {
           router.push({ name: "forbidden" });
-        } else if (e.status === 401 && this.isShare) {
+        } else if (e.status === 401 && getters.isShare()) {
           // Handle share password requirement
           this.attemptedPasswordLogin = this.sharePassword !== "";
           // Reset password validation state on wrong password
@@ -206,7 +210,7 @@ export default {
           router.push({ name: "error" });
         }
       } finally {
-        mutations.setLoading(this.isShare ? "share" : "files", false);
+        mutations.setLoading(getters.isShare() ? "share" : "files", false);
       }
 
       setTimeout(() => {
@@ -254,12 +258,29 @@ export default {
         subPath: this.shareSubPath,
         passwordValid: true,
       });
-      // If not a directory, fetch content for preview components
+
+      // If not a directory, fetch content AND parent directory in parallel
       if (file.type != "directory") {
         const content = !getters.fileViewingDisabled(file.name);
-        file = await publicApi.fetchPub(this.shareSubPath, this.shareHash, this.sharePassword, content);
+        const directoryPath = url.removeLastDir(this.shareSubPath);
+
+        // Run both fetches in parallel to minimize total API calls
+        const [fileRes, dirRes] = await Promise.all([
+          publicApi.fetchPub(this.shareSubPath, this.shareHash, this.sharePassword, content),
+          publicApi.fetchPub(directoryPath, this.shareHash, this.sharePassword, false).catch(err => {
+            console.warn("Could not fetch parent directory for share navigation:", err);
+            return null;
+          })
+        ]);
+
+        file = fileRes;
         file.hash = this.shareHash;
-        this.shareToken = file.token;
+        this.shareToken = fileRes.token;
+
+        // Store the parent directory items for Preview to use
+        if (dirRes && dirRes.items) {
+          file.parentDirItems = dirRes.items;
+        }
       }
 
       mutations.replaceRequest(file);
@@ -293,7 +314,9 @@ export default {
 
       const result = extractSourceFromPath(getters.routePath());
       if (result.source === "") {
-        notify.showError($t("index.noSources"));
+        // No sources available - show a more graceful message instead of error popup
+        this.error = { message: $t("index.noSources") };
+        mutations.replaceRequest({});
         return;
       }
 
@@ -306,12 +329,29 @@ export default {
         const fetchPath = decodeURIComponent(result.path);
         // Fetch initial data
         let res = await filesApi.fetchFiles(fetchSource, fetchPath );
-        // If not a directory, fetch content
+
+        // If not a directory, fetch content AND parent directory in parallel
         if (res.type != "directory" && !res.type.startsWith("image")) {
           const content = !getters.fileViewingDisabled(res.name);
-          res = await filesApi.fetchFiles(res.source, res.path, content);
+          const directoryPath = url.removeLastDir(res.path);
+
+          // Run both fetches in parallel to minimize total API calls
+          const [fileRes, dirRes] = await Promise.all([
+            filesApi.fetchFiles(res.source, res.path, content),
+            filesApi.fetchFiles(res.source, directoryPath).catch(err => {
+              console.warn("Could not fetch parent directory for navigation:", err);
+              return null;
+            })
+          ]);
+
+          res = fileRes;
+          // Store the parent directory items for Preview to use
+          if (dirRes && dirRes.items) {
+            res.parentDirItems = dirRes.items;
+          }
         }
         data = res;
+
         if (state.sources.count > 1) {
           mutations.setCurrentSource(data.source);
         }
@@ -346,7 +386,7 @@ export default {
       }
 
       // Esc! - for shares, reset selection
-      if (this.isShare && event.keyCode === 27) {
+      if ( getters.isShare() && event.keyCode === 27) {
         if (getters.selectedCount() > 0) {
           mutations.resetSelected();
         }

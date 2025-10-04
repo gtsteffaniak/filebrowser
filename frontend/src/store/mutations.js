@@ -8,7 +8,7 @@ import { sortedItems } from "@/utils/sort.js";
 import { serverHasMultipleSources } from "@/utils/constants.js";
 import { url } from "@/utils";
 import { getTypeInfo } from "@/utils/mimetype";
-import { filesApi } from "@/api";
+import { filesApi, publicApi } from "@/api";
 
 export const mutations = {
   setPreviousHistoryItem: (value) => {
@@ -263,6 +263,26 @@ export const mutations = {
       state.user.sorting.by = "name";
       state.user.sorting.asc = true;
 
+      // Ensure fileLoading defaults are set
+      if (!state.user.fileLoading) {
+        state.user.fileLoading = {
+          maxConcurrentUpload: 3,
+          uploadChunkSizeMb: 5,
+          clearAll: false
+        };
+      } else {
+        // Ensure each property has a default if missing
+        if (state.user.fileLoading.maxConcurrentUpload === undefined) {
+          state.user.fileLoading.maxConcurrentUpload = 3;
+        }
+        if (state.user.fileLoading.uploadChunkSizeMb === undefined) {
+          state.user.fileLoading.uploadChunkSizeMb = 5;
+        }
+        if (state.user.fileLoading.clearAll === undefined) {
+          state.user.fileLoading.clearAll = false;
+        }
+      }
+
       // Load display preferences for the current user
       const allPreferences = JSON.parse(localStorage.getItem("displayPreferences") || "{}");
       state.displayPreferences = allPreferences[state.user.username] || {};
@@ -372,7 +392,7 @@ export const mutations = {
         ].includes(key)
       );
       value.id = state.user.id;
-      value.username = state.user.username;
+      value.username = state.user?.username;
       if (updatedProperties.length > 0) {
         usersApi.update(value, updatedProperties);
       }
@@ -409,6 +429,7 @@ export const mutations = {
       item.index = index;
       return item;
     })
+
     state.req = value;
     emitStateChanged();
   },
@@ -563,7 +584,7 @@ export const mutations = {
       let item = listing[j];
       if (item.type === 'directory') continue;
 
-      item.path = directoryPath + "/" + item.name;
+      item.path = url.joinPath(directoryPath, item.name);
       state.navigation.previousItem = item;
       state.navigation.previousLink = url.buildItemUrl(item.source, item.path);
 
@@ -578,7 +599,7 @@ export const mutations = {
       let item = listing[j];
       if (item.type === 'directory') continue;
 
-      item.path = directoryPath + "/" + item.name;
+      item.path = url.joinPath(directoryPath, item.name);
       state.navigation.nextItem = item;
       state.navigation.nextLink = url.buildItemUrl(item.source, item.path);
 
@@ -602,9 +623,17 @@ export const mutations = {
   },
   getPrefetchUrl: (item) => {
     if (getters.isShare()) {
-      return filesApi.getDownloadURL(state.req.source, item.path, true);
+      return publicApi.getDownloadURL(
+        {
+          path: item.path,
+          hash: state.share.hash,
+          token: state.share.token,
+        },
+        [item.path],
+        true,
+      );
     }
-    return filesApi.getDownloadURL(state.req.source, item.path, true);
+    return filesApi.getDownloadURL(item.source, item.path, true);
   },
   setNavigationShow: (show) => {
     if (state.navigation.show === show) {

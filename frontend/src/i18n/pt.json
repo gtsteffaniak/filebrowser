@@ -54,7 +54,10 @@
     "listView": "Vista de lista",
     "compactView": "Vista compacta",
     "normalView": "Vista normal",
-    "galleryView": "Vista da galeria"
+    "galleryView": "Vista da galeria",
+    "uploadFiles": "Carregar ficheiros",
+    "uploadFolder": "Carregar pasta",
+    "openUploadViewer": "Abrir o Upload Manager"
   },
   "download": {
     "downloadFile": "Descarregar ficheiro",
@@ -134,7 +137,10 @@
     "submit": "Entrar na conta",
     "usernameTaken": "O nome de utilizador já está registado",
     "wrongCredentials": "Dados errados",
-    "or": "OU"
+    "or": "OU",
+    "inProgress": "Iniciar sessão...",
+    "failedLogin": "Falha no início de sessão",
+    "invalidCredentials": "Credenciais inválidas fornecidas"
   },
   "prompts": {
     "copy": "Copiar",
@@ -195,7 +201,8 @@
     "moveSuccess": "Ficheiros movidos com sucesso!",
     "copySuccess": "Ficheiros copiados com sucesso!",
     "lastModified": "Última modificação{suffix}",
-    "size": "Tamanho{suffix}"
+    "size": "Tamanho{suffix}",
+    "operationInProgress": "Operação em curso, aguarde..."
   },
   "search": {
     "images": "Imagens",
@@ -407,7 +414,16 @@
     "titleDefault": "Ficheiros partilhados - {title}",
     "defaultViewMode": "Modo de visualização predefinido",
     "defaultViewModeDescription": "Define o modo de visualização predefinido para os utilizadores anónimos que visualizam esta partilha. Os utilizadores com sessão iniciada ainda podem alterar a sua preferência de visualização.",
-    "disableFileViewer": "Desativar o visualizador de ficheiros"
+    "disableFileViewer": "Desativar o visualizador de ficheiros",
+    "shareType": "Tipo de acções",
+    "shareTypeDescription": "O tipo de partilha a criar. As partilhas normais permitem a visualização e o descarregamento de ficheiros. As partilhas de carregamento permitem o carregamento de ficheiros para a partilha.",
+    "normalShare": "Normal",
+    "uploadShare": "Carregar apenas",
+    "perUserDownloadLimit": "Aplicar o limite de descargas a cada utilizador",
+    "perUserDownloadLimitDescription": "Quando ativado, o limite de transferências será aplicado a cada utilizador. Os utilizadores anónimos não poderão descarregar quaisquer ficheiros desta partilha.",
+    "descriptionUploadDefault": "Foi-lhe enviada uma partilha para carregar ficheiros.",
+    "extractEmbeddedSubtitles": "Extrair legendas incorporadas",
+    "extractEmbeddedSubtitlesDescription": "Extrair legendas incorporadas de ficheiros multimédia ao carregar -- isto pode ser lento para ficheiros grandes."
   },
   "api": {
     "title": "Chaves da API",
@@ -465,7 +481,8 @@
     "uploadChunkSizeMb": "Tamanho do bloco de carregamento em MB",
     "uploadChunkSizeMbHelp": "Tipicamente, 5 a 50 MB, mas um valor mais pequeno é melhor para ligações instáveis ou restritas. Definir como 0 desactivará a fragmentação do carregamento.",
     "clearAll": "Limpar concluído deve eliminar erros, pausas e conflitos",
-    "clearAllDescription": "O botão Limpar concluído limpa todos os carregamentos num estado concluído, incluindo os estados de erro, pausa e conflito."
+    "clearAllDescription": "O botão Limpar concluído limpa todos os carregamentos num estado concluído, incluindo os estados de erro, pausa e conflito.",
+    "uploadSettings": "Carregar definições"
   },
   "colors": {
     "red": "vermelho",
@@ -533,7 +550,9 @@
     "themeAndLanguage": "Tema e linguagem",
     "previewFolder": "Mostrar miniaturas das pastas, se disponíveis",
     "previewFolderDescription": "Mostrar pré-visualizações em miniatura para pastas com o primeiro item filho com miniatura como capa.",
-    "disableFileExtensions": "Introduzir as extensões de ficheiros a desativar"
+    "disableFileExtensions": "Introduzir as extensões de ficheiros a desativar",
+    "defaultLandingPage": "Página de destino predefinida",
+    "defaultLandingPageDescription": "por exemplo. '/files/mysource/mysubpath' ou '/settings' - a página predefinida é /files que vai para a primeira vista de listagem de fontes"
   },
   "general": {
     "name": "Nome",
@@ -580,7 +599,10 @@
     "syncFailed": "não conseguiu sincronizar o estado com a rota para \"{filename}\" após 5 tentativas. Abortar a configuração do editor para evitar a corrupção de dados."
   },
   "player": {
-    "LoopEnabled": "Loop ativado",
-    "LoopDisabled": "Loop desativado"
+    "LoopEnabled": "Repetição ativada",
+    "LoopDisabled": "Repetição desativada",
+    "PlayAllOncePlayback": "Reproduzir tudo uma vez",
+    "ShuffleAllPlayback": "Reprodução aleatória de tudo",
+    "PlayAllLoopedPlayback": "Reproduzir tudo em repetição"
   }
 }

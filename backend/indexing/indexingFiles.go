@@ -25,8 +25,8 @@ var (
 
 // actionConfig holds all configuration options for indexing operations
 type actionConfig struct {
-	Quick     bool // whether to perform a quick scan (skip unchanged directories)
-	Recursive bool // whether to recursively index subdirectories
+	Quick      bool // whether to perform a quick scan (skip unchanged directories)
+	Recursive  bool // whether to recursively index subdirectories
 	ForceCheck bool // whether to check indexing skip rules.
 }
 
@@ -84,17 +84,21 @@ const (
 )
 
 // omitList contains directory names to skip during indexing
-var omitList = []string{"$RECYCLE.BIN", "System Volume Information", "@eaDir"}
+var omitList = map[string]bool{
+	"$RECYCLE.BIN":              true,
+	"System Volume Information": true,
+	"@eaDir":                    true,
+}
 
 func init() {
 	indexes = make(map[string]*Index)
 }
 
-func Initialize(source settings.Source, mock bool) {
+func Initialize(source *settings.Source, mock bool) {
 	indexesMutex.Lock()
 	newIndex := Index{
 		mock:              mock,
-		Source:            source,
+		Source:            *source,
 		Directories:       make(map[string]*iteminfo.FileInfo),
 		DirectoriesLedger: make(map[string]struct{}),
 		processedInodes:   make(map[uint64]struct{}),
@@ -125,6 +129,10 @@ func (idx *Index) indexDirectoryWithOptions(adjustedPath string, config *actionC
 
 // Define a function to recursively index files and directories
 func (idx *Index) indexDirectory(adjustedPath string, config *actionConfig) error {
+	// Normalize path to always have trailing slash (except for root which is just "/")
+	if adjustedPath != "/" {
+		adjustedPath = strings.TrimSuffix(adjustedPath, "/") + "/"
+	}
 	realPath := strings.TrimRight(idx.Path, "/") + adjustedPath
 	// Open the directory
 	dir, err := os.Open(realPath)
@@ -152,10 +160,8 @@ func (idx *Index) indexDirectory(adjustedPath string, config *actionConfig) erro
 		idx.DirectoriesLedger[adjustedPath] = struct{}{}
 		idx.mu.Unlock()
 	}
-	combinedPath := adjustedPath + "/"
-	if adjustedPath == "/" {
-		combinedPath = "/"
-	}
+	// adjustedPath is already normalized with trailing slash
+	combinedPath := adjustedPath
 	// get whats currently in cache
 	idx.mu.RLock()
 	cacheDirItems := []iteminfo.ItemInfo{}
@@ -227,14 +233,17 @@ func (idx *Index) GetFsDirInfo(adjustedPath string) (*iteminfo.FileInfo, error) 
 		fileInfo.DetectType(realPath, false)
 		return &fileInfo, nil
 	}
-	combinedPath := adjustedPath + "/"
-	if adjustedPath == "/" {
-		combinedPath = "/"
+
+	// Normalize directory path to always have trailing slash
+	if adjustedPath != "/" {
+		adjustedPath = strings.TrimSuffix(adjustedPath, "/") + "/"
 	}
+	// adjustedPath is already normalized with trailing slash
+	combinedPath := adjustedPath
 	var response *iteminfo.FileInfo
 	response, err = idx.GetDirInfo(dir, dirInfo, realPath, adjustedPath, combinedPath, &actionConfig{
-		Quick:     false,
-		Recursive: false,
+		Quick:      false,
+		Recursive:  false,
 		ForceCheck: true,
 	})
 	if err != nil {
@@ -246,8 +255,10 @@ func (idx *Index) GetFsDirInfo(adjustedPath string) (*iteminfo.FileInfo, error) 
 		found := false
 		for _, item := range response.Files {
 			if item.Name == baseName {
+				// Clean path to remove trailing slashes before joining
+				filePath := strings.TrimSuffix(adjustedPath, "/") + "/" + item.Name
 				response = &iteminfo.FileInfo{
-					Path:     adjustedPath + "/" + item.Name,
+					Path:     filePath,
 					ItemInfo: item,
 				}
 				found = true
@@ -264,6 +275,8 @@ func (idx *Index) GetFsDirInfo(adjustedPath string) (*iteminfo.FileInfo, error) 
 }
 
 func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjustedPath, combinedPath string, config *actionConfig) (*iteminfo.FileInfo, error) {
+	// Ensure combinedPath has exactly one trailing slash to prevent double slashes in subdirectory paths
+	combinedPath = strings.TrimRight(combinedPath, "/") + "/"
 	// Read directory contents
 	files, err := dirInfo.Readdir(-1)
 	if err != nil {
@@ -312,7 +325,7 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 				}
 			}
 			// skip non-indexable dirs.
-			if slices.Contains(omitList, file.Name()) {
+			if omitList[file.Name()] {
 				continue
 			}
 
@@ -361,30 +374,29 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 				}
 			}
 			ext := strings.ToLower(filepath.Ext(file.Name()))
-			switch ext {
-			case ".jpg", ".jpeg", ".png", ".bmp", ".tiff":
-				itemInfo.HasPreview = true
-			case ".heic", ".heif":
-				if settings.Config.Integrations.Media.FfmpegPath != "" {
-					itemInfo.HasPreview = true
-				}
-			}
+			extWithoutPeriod := strings.TrimPrefix(ext, ".")
 			if simpleType == "image" {
 				itemInfo.HasPreview = true
 			}
-			if settings.Config.Integrations.Media.FfmpegPath != "" && simpleType == "video" {
+			switch extWithoutPeriod {
+			case "heic", "heif":
+				if settings.CanConvertImage(extWithoutPeriod) {
+					itemInfo.HasPreview = true
+				}
+			}
+			if simpleType == "video" && settings.CanConvertVideo(extWithoutPeriod) {
 				itemInfo.HasPreview = true
 			}
-
 			itemInfo.Size = int64(size)
 
-			// all checks after this won't update folder preview
-			if itemInfo.HasPreview {
+			// Update parent folder preview status for images, videos, and audio with album art
+			// Use shared function to determine if this file type should bubble up to folder preview
+			if itemInfo.HasPreview && iteminfo.ShouldBubbleUpToFolderPreview(*itemInfo) {
 				hasPreview = true
 			}
 
-			// Set HasPreview before appending to fileInfos
-			// these don't create preview for parent folders
+			// Set HasPreview for office docs and PDFs
+			// These files are previewable but DON'T set parent folder preview
 			if settings.Config.Integrations.OnlyOffice.Secret != "" && iteminfo.IsOnlyOffice(file.Name()) {
 				itemInfo.HasPreview = true
 			}
@@ -399,7 +411,6 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 			if config.Recursive {
 				idx.NumFiles++
 			}
-
 		}
 	}
 
@@ -413,7 +424,7 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 		idx.mu.Unlock()
 	}
 
-	// Create FileInfo for the current directory
+	// Create FileInfo for the current directory (adjustedPath is already normalized with trailing slash)
 	dirFileInfo := &iteminfo.FileInfo{
 		Path:    adjustedPath,
 		Files:   fileInfos,
@@ -428,40 +439,27 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 	}
 	dirFileInfo.SortItems()
 
+	// Metadata will be updated by the caller (indexDirectory or GetFsDirInfo)
 	return dirFileInfo, nil
-}
-
-// input should be non-index path.
-func (idx *Index) MakeIndexPath(subPath string) string {
-	if strings.HasPrefix(subPath, "./") {
-		subPath = strings.TrimPrefix(subPath, ".")
-	}
-	if idx.Path == subPath || subPath == "." {
-		return "/"
-	}
-	// clean path
-	subPath = strings.TrimSuffix(subPath, "/")
-	adjustedPath := strings.TrimPrefix(subPath, idx.Path)
-	// remove index prefix
-	adjustedPath = strings.ReplaceAll(adjustedPath, "\\", "/")
-	// remove trailing slash
-	adjustedPath = strings.TrimSuffix(adjustedPath, "/")
-	if !strings.HasPrefix(adjustedPath, "/") {
-		adjustedPath = "/" + adjustedPath
-	}
-	return adjustedPath
 }
 
 func (idx *Index) recursiveUpdateDirSizes(childInfo *iteminfo.FileInfo, previousSize int64) {
 	parentDir := utils.GetParentDirectoryPath(childInfo.Path)
+
 	parentInfo, exists := idx.GetMetadataInfo(parentDir, true)
 	if !exists || parentDir == "" {
 		return
 	}
-	newSize := parentInfo.Size - previousSize + childInfo.Size
-	parentInfo.Size += newSize
+
+	// Calculate size delta and update parent
+	previousParentSize := parentInfo.Size
+	sizeDelta := childInfo.Size - previousSize
+	parentInfo.Size = previousParentSize + sizeDelta
+
 	idx.UpdateMetadata(parentInfo)
-	idx.recursiveUpdateDirSizes(parentInfo, newSize)
+
+	// Recursively update grandparents
+	idx.recursiveUpdateDirSizes(parentInfo, previousParentSize)
 }
 
 func (idx *Index) GetRealPath(relativePath ...string) (string, bool, error) {
@@ -486,7 +484,7 @@ func (idx *Index) GetRealPath(relativePath ...string) (string, bool, error) {
 	return realPath, isDir, err
 }
 
-func (idx *Index) RefreshFileInfo(opts iteminfo.FileOptions) error {
+func (idx *Index) RefreshFileInfo(opts utils.FileOptions) error {
 	config := &actionConfig{
 		Quick:     false,
 		Recursive: opts.Recursive,
@@ -497,29 +495,30 @@ func (idx *Index) RefreshFileInfo(opts iteminfo.FileOptions) error {
 		targetPath = idx.MakeIndexPath(filepath.Dir(targetPath))
 	}
 
-	// Use the recursive flag from options - false for quick scan, true for recursive
+	// Get PREVIOUS metadata BEFORE indexing
+	previousInfo, previousExists := idx.GetMetadataInfo(targetPath, true)
+	var previousSize int64
+	if previousExists {
+		previousSize = previousInfo.Size
+	}
+
+	// Re-index the directory
 	err := idx.indexDirectoryWithOptions(targetPath, config)
 	if err != nil {
 		return err
 	}
-	file, exists := idx.GetMetadataInfo(targetPath, true)
+
+	// Get the NEW metadata after indexing
+	newInfo, exists := idx.GetMetadataInfo(targetPath, true)
 	if !exists {
 		return fmt.Errorf("file/folder does not exist in metadata: %s", targetPath)
 	}
 
-	current, firstExisted := idx.GetMetadataInfo(targetPath, true)
-	refreshParentInfo := firstExisted && current.Size != file.Size
-	//utils.PrintStructFields(*file)
-	result := idx.UpdateMetadata(file)
-	if !result {
-		return fmt.Errorf("file/folder does not exist in metadata: %s", targetPath)
+	// If size changed, propagate to parents
+	if previousSize != newInfo.Size {
+		idx.recursiveUpdateDirSizes(newInfo, previousSize)
 	}
-	if !exists {
-		return nil
-	}
-	if refreshParentInfo {
-		idx.recursiveUpdateDirSizes(file, current.Size)
-	}
+
 	return nil
 }
 
@@ -698,4 +697,15 @@ func (idx *Index) handleFile(file os.FileInfo, fullCombined string) (size uint64
 	idx.totalSize += realSize
 	idx.mu.Unlock()
 	return realSize, true // Count size.
+}
+
+// input should be non-index path.
+func (idx *Index) MakeIndexPath(path string) string {
+	if path == "." || strings.HasPrefix(path, "./") {
+		path = strings.TrimPrefix(path, ".")
+	}
+	path = strings.TrimPrefix(path, idx.Path)
+	path = idx.MakeIndexPathPlatform(path)
+	path = strings.TrimSuffix(path, "/") + "/"
+	return path
 }

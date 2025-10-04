@@ -212,6 +212,9 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		stringHash = string(hash)
 	}
 	if s != nil {
+		// Check if downloads limit or per-user limit changed - reset counts if so
+		shouldResetCounts := s.DownloadsLimit != body.DownloadsLimit || s.PerUserDownloadLimit != body.PerUserDownloadLimit
+
 		s.Expire = expire
 		s.PasswordHash = stringHash
 		s.Token = token
@@ -221,6 +224,12 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		body.Path = s.Path
 		body.Source = s.Source
 		s.CommonShare = body.CommonShare
+
+		// Reset download counts if limit settings changed
+		if shouldResetCounts {
+			s.ResetDownloadCounts()
+		}
+
 		if err = store.Share.Save(s); err != nil {
 			return http.StatusInternalServerError, err
 		}
@@ -257,7 +266,12 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	if idx == nil {
 		return http.StatusForbidden, fmt.Errorf("source with name not found: %s", body.Source)
 	}
-
+	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, source.Name)
+	if err != nil {
+		return http.StatusForbidden, err
+	}
+	scopePath := utils.JoinPathAsUnix(userscope, body.Path)
+	body.Path = scopePath
 	// validate path exists as file or folder
 	_, exists := idx.GetReducedMetadata(body.Path, true) // true to check if it exists
 	if !exists {
@@ -267,13 +281,6 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 			return http.StatusForbidden, fmt.Errorf("path not found: %s", body.Path)
 		}
 	}
-
-	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, source.Name)
-	if err != nil {
-		return http.StatusForbidden, err
-	}
-	scopePath := utils.JoinPathAsUnix(userscope, body.Path)
-	body.Path = scopePath
 	body.Source = source.Path // backend source is path
 	s = &share.Link{
 		Expire:       expire,
@@ -283,22 +290,14 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		Token:        token,
 		CommonShare:  body.CommonShare,
 	}
-
 	if err = store.Share.Save(s); err != nil {
 		return http.StatusInternalServerError, err
 	}
-	// Convert to ShareResponse format with username
-	var user *users.User
-	user, err = store.Users.Get(s.UserID)
-	username := ""
-	if err == nil {
-		username = user.Username
+	sharesWithUsernames, err := convertToShareResponse(r, []*share.Link{s})
+	if err != nil {
+		return http.StatusInternalServerError, err
 	}
-	response := &ShareResponse{
-		Link:     s,
-		Username: username,
-	}
-	return renderJSON(w, r, response)
+	return renderJSON(w, r, sharesWithUsernames[0])
 }
 
 // DirectDownloadResponse represents the response for direct download endpoint

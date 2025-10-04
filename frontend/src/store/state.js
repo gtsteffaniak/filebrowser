@@ -68,6 +68,11 @@ export const state = reactive({
       username: '', // Default to an empty string
       email: '', // Default to an empty string
       avatarUrl: '' // Default to an empty string
+    },
+    fileLoading: {
+      maxConcurrentUpload: 3,
+      uploadChunkSizeMb: 5,
+      clearAll: false
     }
   },
   req: {

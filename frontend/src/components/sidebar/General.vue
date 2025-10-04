@@ -2,7 +2,7 @@
   <div class="card headline-card">
     <div class="card-wrapper user-card">
       <div
-        v-if="settingsAllowed && user.username !== 'anonymous'"
+        v-if="settingsAllowed"
         @click="navigateTo('/settings','#profile-main')"
         class="inner-card"
       >
@@ -77,6 +77,7 @@
 
     <!-- Sidebar file actions -->
     <transition
+      v-if="shareInfo.shareType !== 'upload'"
       name="expand"
       @before-enter="beforeEnter"
       @enter="enter"
@@ -156,16 +157,17 @@ export default {
     return {};
   },
   computed: {
-    disableQuickToggles: () => state.user.disableQuickToggles,
+    shareInfo: () => shareInfo,
+    disableQuickToggles: () => state.user?.disableQuickToggles,
     hasSourceInfo: () => state.sources.hasSourceInfo,
-    hideSidebarFileActions: () => state.user.hideSidebarFileActions || getters.isInvalidShare(),
-    settingsAllowed: () => !state.user.disableSettings,
+    hideSidebarFileActions: () => state.user?.hideSidebarFileActions || getters.isInvalidShare(),
+    settingsAllowed: () => !state.user?.disableSettings,
     isSettings: () => getters.isSettings(),
     isStickySidebar: () => getters.isStickySidebar(),
     isMobile: () => getters.isMobile(),
     isInvalidShare: () => getters.isInvalidShare(),
     isListingView: () => getters.currentView() == "listingView",
-    user: () => (state.user),
+    user: () => (state.user || {username: 'anonymous'}),
     isDarkMode: () => getters.isDarkMode(),
     showSources: () => !getters.isShare(),
     currentPrompt: () => getters.currentPrompt(),
@@ -174,7 +176,7 @@ export default {
     version: () => globalVars.version,
     commitSHA: () => globalVars.commitSHA,
     disableExternal: () => globalVars.disableExternal,
-    canLogout: () => !globalVars.noAuth && state.user.username !== 'anonymous',
+    canLogout: () => !globalVars.noAuth && state.user?.username !== 'anonymous',
     route: () => state.route,
     sourceInfo: () => state.sources.info,
     activeSource: () => state.sources.current,

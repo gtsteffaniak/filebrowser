@@ -6,12 +6,16 @@ import (
 	"path"
 	"path/filepath"
 
-	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
-const PermFile = 0644
-const PermDir = 0755
+var PermFile os.FileMode
+var PermDir os.FileMode
+
+func SetFsPermissions(PermFileOctal os.FileMode, PermDirOctal os.FileMode) {
+	PermFile = PermFileOctal
+	PermDir = PermDirOctal
+}
 
 // MoveFile moves a file from src to dst.
 // By default, the rename system call is used. If src and dst point to different volumes,
@@ -84,12 +88,9 @@ func copySingleFile(source, dest string) error {
 		return err
 	}
 
-	// Copy the mode.
-	info, err := os.Stat(source)
-	if err != nil {
-		return err
-	}
-	err = os.Chmod(dest, info.Mode())
+	// Set the configured file permissions instead of copying from source
+	err = os.Chmod(dest, PermFile)
+
 	if err != nil {
 		return err
 	}
@@ -179,8 +180,7 @@ func CommonPrefix(sep byte, paths ...string) string {
 	return string(c)
 }
 
-func ClearCacheDir() {
-	cacheDir := settings.Config.Server.CacheDir
+func ClearCacheDir(cacheDir string) {
 	entries, err := os.ReadDir(cacheDir)
 	if err != nil {
 		logger.Errorf("failed clear cache dir: %v", err)

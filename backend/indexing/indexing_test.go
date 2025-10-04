@@ -9,7 +9,7 @@ import (
 )
 
 func BenchmarkFillIndex(b *testing.B) {
-	Initialize(settings.Source{
+	Initialize(&settings.Source{
 		Name: "test",
 		Path: "/srv",
 	}, true)
@@ -62,18 +62,18 @@ func TestMakeIndexPath(t *testing.T) {
 		{"Root path returns slash", "/", "/"},
 		{"Dot-prefixed returns slash", ".", "/"},
 		{"Double-dot prefix ignored", "./", "/"},
-		{"Dot prefix followed by text", "./test", "/test"},
-		{"Dot prefix followed by text", ".test", "/.test"},
-		{"Hidden file at root", "/.test", "/.test"},
-		{"Trailing slash removed", "/test/", "/test"},
-		{"Subpath without root prefix", "/other/test", "/other/test"},
-		{"Complex nested paths", "/nested/path", "/nested/path"},
+		{"Dot prefix followed by text", "./test", "/test/"},
+		{"Dot prefix followed by text", ".test", "/.test/"},
+		{"Hidden file at root", "/.test", "/.test/"},
+		{"Trailing slash removed", "/test/", "/test/"},
+		{"Subpath without root prefix", "/other/test", "/other/test/"},
+		{"Complex nested paths", "/nested/path", "/nested/path/"},
 		// TODO fix {"has source name as start", "/srv.tar.gz", "/srv.tar.gz"},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			idx := &Index{Source: settings.Source{Path: "/srv"}}
+			idx := &Index{Source: settings.Source{Path: "/srv"}, mock: true}
 			result := idx.MakeIndexPath(tt.subPath)
 			if result != tt.expected {
 				t.Errorf("MakeIndexPath(%q)\ngot %q\nwant %q", tt.name, result, tt.expected)
@@ -87,14 +87,14 @@ func TestMakeIndexPath(t *testing.T) {
 		expected string
 	}{
 		// Windows
-		{"Mixed slash", "/first\\second", "/first/second"},
-		{"Windows slash", "\\first\\second", "/first/second"},
-		{"Windows full path", "C:\\Users\\testfolder\\nestedfolder", "/testfolder/nestedfolder"},
+		{"Mixed slash", "/first\\second", "/first/second/"},
+		{"Windows slash", "\\first\\second", "/first/second/"},
+		{"Windows full path", "C:\\Users\\testfolder\\nestedfolder", "/testfolder/nestedfolder/"},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			idx := &Index{Source: settings.Source{Path: "C:\\Users"}}
+			idx := &Index{Source: settings.Source{Path: "C:\\Users"}, mock: true}
 			result := idx.MakeIndexPath(tt.subPath)
 			if result != tt.expected {
 				t.Errorf("MakeIndexPath(%q)\ngot %q\nwant %q", tt.name, result, tt.expected)
@@ -115,7 +115,7 @@ func TestMakeIndexPathRoot(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			idx := &Index{Source: settings.Source{Path: "/rootpath", Name: "default"}}
+			idx := &Index{Source: settings.Source{Path: "/rootpath", Name: "default"}, mock: true}
 			result := idx.MakeIndexPath(tt.subPath)
 			if result != tt.expected {
 				t.Errorf("MakeIndexPath(%q)\ngot %q\nwant %q", tt.name, result, tt.expected)

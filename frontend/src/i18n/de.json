@@ -54,7 +54,10 @@
     "listView": "Listenansicht",
     "compactView": "Kompakte Ansicht",
     "normalView": "Normale Ansicht",
-    "galleryView": "Galerie-Ansicht"
+    "galleryView": "Galerie-Ansicht",
+    "uploadFiles": "Dateien hochladen",
+    "uploadFolder": "Upload-Ordner",
+    "openUploadViewer": "Upload-Manager öffnen"
   },
   "download": {
     "downloadFile": "Datei herunterladen",
@@ -134,7 +137,10 @@
     "submit": "Anmelden",
     "usernameTaken": "Benutzername ist bereits vergeben",
     "wrongCredentials": "Falsche Zugangsdaten",
-    "or": "OR"
+    "or": "OR",
+    "inProgress": "Einloggen...",
+    "failedLogin": "Anmeldung fehlgeschlagen",
+    "invalidCredentials": "Ungültige Anmeldedaten angegeben"
   },
   "prompts": {
     "copy": "Kopieren",
@@ -195,7 +201,8 @@
     "moveSuccess": "Dateien erfolgreich verschoben!",
     "copySuccess": "Dateien erfolgreich kopiert!",
     "lastModified": "Zuletzt modifiziert{suffix}",
-    "size": "Größe{suffix}"
+    "size": "Größe{suffix}",
+    "operationInProgress": "Operation im Gange, bitte warten..."
   },
   "search": {
     "images": "Bilder",
@@ -407,7 +414,16 @@
     "titleDefault": "Gemeinsame Dateien - {title}",
     "defaultViewMode": "Standard-Ansichtsmodus",
     "defaultViewModeDescription": "Legen Sie den Standardanzeigemodus für anonyme Benutzer fest, die diese Freigabe anzeigen. Angemeldete Benutzer können ihre Ansichtseinstellungen immer noch ändern.",
-    "disableFileViewer": "Dateibetrachter deaktivieren"
+    "disableFileViewer": "Dateibetrachter deaktivieren",
+    "shareType": "Typ der Aktie",
+    "shareTypeDescription": "Der Typ der zu erstellenden Freigabe. Normale Freigaben ermöglichen das Anzeigen und Herunterladen von Dateien. Upload-Freigaben ermöglichen das Hochladen von Dateien in die Freigabe.",
+    "normalShare": "Normal",
+    "uploadShare": "Nur hochladen",
+    "perUserDownloadLimit": "Anwenden des Download-Limits auf jeden Benutzer",
+    "perUserDownloadLimitDescription": "Wenn diese Option aktiviert ist, wird das Download-Limit auf jeden Benutzer angewendet. Anonyme Benutzer können keine Dateien von dieser Freigabe herunterladen.",
+    "descriptionUploadDefault": "Sie haben eine Freigabe zum Hochladen von Dateien erhalten.",
+    "extractEmbeddedSubtitles": "Eingebettete Untertitel extrahieren",
+    "extractEmbeddedSubtitlesDescription": "Extrahieren von eingebetteten Untertiteln aus Mediendateien beim Laden - dies kann bei großen Dateien langsam sein."
   },
   "api": {
     "title": "API-Schlüssel:",
@@ -501,7 +517,8 @@
     "uploadChunkSizeMb": "Größe des hochzuladenden Pakets in MB",
     "uploadChunkSizeMbHelp": "Normalerweise 5 bis 50 MB, kleiner ist besser für instabile oder eingeschränkte Verbindungen. Die Einstellung 0 deaktiviert das Chunking beim Hochladen.",
     "clearAll": "Clear completed sollte Fehler, Pausen und Konflikte beseitigen",
-    "clearAllDescription": "Mit der Schaltfläche Abgeschlossen löschen werden alle Uploads im abgeschlossenen Zustand gelöscht, einschließlich Fehler-, Pausen- und Konfliktstatus."
+    "clearAllDescription": "Mit der Schaltfläche Abgeschlossen löschen werden alle Uploads im abgeschlossenen Zustand gelöscht, einschließlich Fehler-, Pausen- und Konfliktstatus.",
+    "uploadSettings": "Upload-Einstellungen"
   },
   "colors": {
     "red": "rot",
@@ -569,7 +586,9 @@
     "themeAndLanguage": "Thema und Sprache",
     "previewFolder": "Miniaturansichten für Ordner anzeigen, falls vorhanden",
     "previewFolderDescription": "Zeigen Sie Miniaturvorschauen für Ordner an, deren erstes untergeordnetes Element ein Miniaturbild als Cover hat.",
-    "disableFileExtensions": "Zu deaktivierende Dateierweiterungen eingeben"
+    "disableFileExtensions": "Zu deaktivierende Dateierweiterungen eingeben",
+    "defaultLandingPage": "Standard-Landeseite",
+    "defaultLandingPageDescription": "z.B.. '/files/mysource/mysubpath' oder '/settings' - die Standardseite ist /files, die zur ersten Ansicht der Quellenliste führt"
   },
   "editor": {
     "uninitialized": "Der Editor konnte nicht initialisiert werden. Bitte neu laden.",
@@ -580,7 +599,10 @@
     "syncFailed": "Nach 5 Versuchen ist es nicht gelungen, den Status mit der Route für \"{filename}\" zu synchronisieren. Abbruch der Editor-Einrichtung, um Datenbeschädigung zu vermeiden."
   },
   "player": {
-    "LoopEnabled": "Schleife Aktiviert",
-    "LoopDisabled": "Schleife Deaktiviert"
+    "LoopEnabled": "Schleife aktiviert",
+    "LoopDisabled": "Schleife deaktiviert",
+    "PlayAllOncePlayback": "Alle auf einmal abspielen",
+    "ShuffleAllPlayback": "Alle mischen",
+    "PlayAllLoopedPlayback": "Alle in Schleife abspielen"
   }
 }

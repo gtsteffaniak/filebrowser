@@ -148,8 +148,11 @@ func (s *Storage) GetByHash(hash string) (*Link, error) {
 		_ = s.back.Delete(hash)
 		return nil, errors.ErrNotExist
 	}
-	s.mu.Lock()
 
+	// Initialize UserDownloads map
+	link.InitUserDownloads()
+
+	s.mu.Lock()
 	s.shareCache[hash] = link
 	s.mu.Unlock()
 	return link, nil

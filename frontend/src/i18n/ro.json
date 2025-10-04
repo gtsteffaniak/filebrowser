@@ -54,7 +54,10 @@
     "listView": "Vizualizare listă",
     "compactView": "Vedere compactă",
     "normalView": "Vizualizare normală",
-    "galleryView": "Vizualizare galerie"
+    "galleryView": "Vizualizare galerie",
+    "uploadFiles": "Încărcați fișiere",
+    "uploadFolder": "Încărcați dosarul",
+    "openUploadViewer": "Deschideți Managerul de încărcare"
   },
   "download": {
     "downloadFile": "Descarcă fișier",
@@ -134,7 +137,10 @@
     "submit": "Autentificare",
     "usernameTaken": "Utilizatorul există",
     "wrongCredentials": "Informații greșite",
-    "or": "SAU"
+    "or": "SAU",
+    "inProgress": "Conectarea...",
+    "failedLogin": "A eșuat autentificarea",
+    "invalidCredentials": "Acreditări invalide furnizate"
   },
   "prompts": {
     "copy": "Copiază",
@@ -195,7 +201,8 @@
     "moveSuccess": "Fișiere mutate cu succes!",
     "copySuccess": "Fișiere copiate cu succes!",
     "lastModified": "Ultima modificare{suffix}",
-    "size": "Mărime{suffix}"
+    "size": "Mărime{suffix}",
+    "operationInProgress": "Operațiune în curs, vă rugăm să așteptați..."
   },
   "search": {
     "images": "Imagini",
@@ -407,7 +414,16 @@
     "titleDefault": "Fișiere partajate - {title}",
     "defaultViewMode": "Mod de vizualizare implicit",
     "defaultViewModeDescription": "Setează modul de vizualizare implicit pentru utilizatorii anonimi care vizualizează această partajare. Utilizatorii conectați își pot schimba în continuare preferințele de vizualizare.",
-    "disableFileViewer": "Dezactivați vizualizatorul de fișiere"
+    "disableFileViewer": "Dezactivați vizualizatorul de fișiere",
+    "shareType": "Tip de acțiune",
+    "shareTypeDescription": "Tipul de partajare care urmează să fie creat. Partajele normale permit vizualizarea și descărcarea fișierelor. Partajele de încărcare permit încărcarea fișierelor în partajare.",
+    "normalShare": "Normal",
+    "uploadShare": "Numai încărcare",
+    "perUserDownloadLimit": "Aplicați limita de descărcări pentru fiecare utilizator",
+    "perUserDownloadLimitDescription": "Atunci când este activată, limita de descărcări va fi aplicată fiecărui utilizator. Utilizatorii anonimi nu vor putea descărca niciun fișier din această partajare.",
+    "descriptionUploadDefault": "V-a fost trimisă o partajare pentru a încărca fișiere.",
+    "extractEmbeddedSubtitles": "Extragerea subtitrărilor încorporate",
+    "extractEmbeddedSubtitlesDescription": "Extragerea subtitrărilor încorporate din fișierele media la încărcare - acest lucru poate fi lent pentru fișierele mari."
   },
   "api": {
     "title": "Chei API:",
@@ -501,7 +517,8 @@
     "uploadChunkSizeMb": "Mărimea pachetului de încărcare în MB",
     "uploadChunkSizeMbHelp": "De obicei între 5 și 50 MB, mai mic este mai bine pentru conexiunile instabile sau restricționate. Setarea la 0 va dezactiva fragmentarea încărcării.",
     "clearAll": "Clear completed ar trebui să elimine erorile, pauzele și conflictele",
-    "clearAllDescription": "Butonul șterge finalizat va șterge toate încărcările în stare finalizată, inclusiv stările de eroare, pauză și conflict."
+    "clearAllDescription": "Butonul șterge finalizat va șterge toate încărcările în stare finalizată, inclusiv stările de eroare, pauză și conflict.",
+    "uploadSettings": "Setări de încărcare"
   },
   "colors": {
     "red": "roșu",
@@ -569,7 +586,9 @@
     "themeAndLanguage": "Temă și limbaj",
     "previewFolder": "Afișați miniaturi pentru foldere, dacă sunt disponibile",
     "previewFolderDescription": "Afișează previzualizări ale miniaturilor pentru folderele cu primul element copil cu miniatură ca copertă.",
-    "disableFileExtensions": "Introduceți extensiile de fișier pe care doriți să le dezactivați"
+    "disableFileExtensions": "Introduceți extensiile de fișier pe care doriți să le dezactivați",
+    "defaultLandingPage": "Pagina de destinație implicită",
+    "defaultLandingPageDescription": "de ex. \"/files/mysource/mysubpath\" sau \"/settings\" - pagina implicită este /files care duce la prima vizualizare a listei de surse"
   },
   "editor": {
     "uninitialized": "Nu s-a reușit inițializarea editorului. Vă rugăm să reîncărcați.",
@@ -580,7 +599,10 @@
     "syncFailed": "nu a reușit să sincronizeze starea cu ruta pentru \"{filename}\" după 5 încercări. Întreruperea configurării editorului pentru a preveni coruperea datelor."
   },
   "player": {
-    "LoopEnabled": "Bucla activată",
-    "LoopDisabled": "Bucla dezactivată"
+    "LoopEnabled": "Buclă activată",
+    "LoopDisabled": "Buclă dezactivată",
+    "PlayAllOncePlayback": "Redă toate o dată",
+    "ShuffleAllPlayback": "Redare aleatoare a tuturor",
+    "PlayAllLoopedPlayback": "Redă toate în buclă"
   }
 }

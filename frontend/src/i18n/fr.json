@@ -54,7 +54,10 @@
     "listView": "Vue de la liste",
     "compactView": "Vue compacte",
     "normalView": "Vue normale",
-    "galleryView": "Vue de la galerie"
+    "galleryView": "Vue de la galerie",
+    "uploadFiles": "Téléchargement de fichiers",
+    "uploadFolder": "Télécharger le dossier",
+    "openUploadViewer": "Ouvrir le gestionnaire de téléchargement"
   },
   "download": {
     "downloadFile": "Télécharger le fichier",
@@ -134,7 +137,10 @@
     "submit": "Se connecter",
     "usernameTaken": "Le nom d'utilisateur est déjà pris",
     "wrongCredentials": "Identifiants incorrects !",
-    "or": "OU"
+    "or": "OU",
+    "inProgress": "Connexion...",
+    "failedLogin": "Échec de la connexion",
+    "invalidCredentials": "Les informations d'identification fournies ne sont pas valides"
   },
   "prompts": {
     "copy": "Copier",
@@ -195,7 +201,8 @@
     "moveSuccess": "Les fichiers ont été déplacés avec succès !",
     "copySuccess": "Les fichiers ont été copiés avec succès !",
     "lastModified": "Dernière modification{suffix}",
-    "size": "Taille{suffix}"
+    "size": "Taille{suffix}",
+    "operationInProgress": "Opération en cours, veuillez patienter..."
   },
   "search": {
     "images": "Images",
@@ -407,7 +414,16 @@
     "titleDefault": "Fichiers partagés - {title}",
     "defaultViewMode": "Mode d'affichage par défaut",
     "defaultViewModeDescription": "Définit le mode d'affichage par défaut pour les utilisateurs anonymes qui consultent ce partage. Les utilisateurs connectés peuvent toujours modifier leurs préférences d'affichage.",
-    "disableFileViewer": "Désactiver le visualiseur de fichiers"
+    "disableFileViewer": "Désactiver le visualiseur de fichiers",
+    "shareType": "Type d'action",
+    "shareTypeDescription": "Le type de partage à créer. Les partages normaux permettent de visualiser et de télécharger des fichiers. Les partages de téléchargement permettent de télécharger des fichiers vers le partage.",
+    "normalShare": "Normal",
+    "uploadShare": "Téléchargement uniquement",
+    "perUserDownloadLimit": "Appliquer la limite de téléchargements à chaque utilisateur",
+    "perUserDownloadLimitDescription": "Lorsque cette option est activée, la limite de téléchargements est appliquée à chaque utilisateur. Les utilisateurs anonymes ne pourront pas télécharger de fichiers à partir de ce partage.",
+    "descriptionUploadDefault": "Un partage vous a été envoyé pour télécharger des fichiers.",
+    "extractEmbeddedSubtitles": "Extraire les sous-titres intégrés",
+    "extractEmbeddedSubtitlesDescription": "Extraire les sous-titres intégrés des fichiers multimédias lors du chargement - cette opération peut s'avérer lente pour les fichiers volumineux."
   },
   "api": {
     "title": "Clés API :",
@@ -501,7 +517,8 @@
     "uploadChunkSizeMb": "Taille de la zone de téléchargement en Mo",
     "uploadChunkSizeMbHelp": "Généralement de 5 à 50 Mo, une taille inférieure est préférable pour les connexions instables ou restreintes. La valeur 0 désactive le fractionnement de l'upload.",
     "clearAll": "Clear completed devrait supprimer les erreurs, les pauses et les conflits.",
-    "clearAllDescription": "Le bouton \"Effacer les téléchargements terminés\" efface tous les téléchargements terminés, y compris les erreurs, les pauses et les conflits."
+    "clearAllDescription": "Le bouton \"Effacer les téléchargements terminés\" efface tous les téléchargements terminés, y compris les erreurs, les pauses et les conflits.",
+    "uploadSettings": "Paramètres de téléchargement"
   },
   "colors": {
     "red": "rouge",
@@ -569,7 +586,9 @@
     "themeAndLanguage": "Thème et langue",
     "previewFolder": "Afficher les vignettes des dossiers si elles sont disponibles",
     "previewFolderDescription": "Afficher des aperçus de vignettes pour les dossiers dont le premier élément enfant a une vignette comme couverture.",
-    "disableFileExtensions": "Saisir les extensions de fichiers à désactiver"
+    "disableFileExtensions": "Saisir les extensions de fichiers à désactiver",
+    "defaultLandingPage": "Page d'atterrissage par défaut",
+    "defaultLandingPageDescription": "ex. '/files/mysource/mysubpath' ou '/settings' - la page par défaut est /files qui renvoie à la première vue de la liste des sources."
   },
   "editor": {
     "uninitialized": "Échec de l'initialisation de l'éditeur. Veuillez recharger.",
@@ -581,6 +600,9 @@
   },
   "player": {
     "LoopEnabled": "Boucle activée",
-    "LoopDisabled": "Boucle désactivée"
+    "LoopDisabled": "Boucle désactivée",
+    "PlayAllOncePlayback": "Lire tout une fois",
+    "ShuffleAllPlayback": "Lecture aléatoire de tout",
+    "PlayAllLoopedPlayback": "Lire tout en boucle"
   }
 }

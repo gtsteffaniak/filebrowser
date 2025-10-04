@@ -1,14 +1,8 @@
 package iteminfo
 
 import (
-	"bytes"
-	"fmt"
-	"io"
 	"mime"
-	"net/http"
-	"os"
 	"path/filepath"
-	"slices"
 	"strconv"
 	"strings"
 
@@ -24,15 +18,15 @@ var AllFiletypeOptions = []string{
 	"text",
 }
 
-var SubtitleExts = []string{
-	".vtt",
-	".srt",
-	".lrc",
-	".sbv",
-	".ass",
-	".ssa",
-	".sub",
-	".smi",
+var SubtitleExts = map[string]bool{
+	".vtt": true,
+	".srt": true,
+	".lrc": true,
+	".sbv": true,
+	".ass": true,
+	".ssa": true,
+	".sub": true,
+	".smi": true,
 }
 
 var MuPdfConvertable = map[string]bool{
@@ -62,159 +56,194 @@ var ResizableImageTypes = map[string]bool{
 }
 
 // Known bundle-style extensions that are technically directories but treated as files
-var BundleExtensions = []string{
-	".app",       // macOS application bundle
-	".bundle",    // macOS plugin bundle
-	".framework", // macOS framework
-	".plugin",    // macOS plugin
-	".kext",      // macOS kernel extension
-	".pkg",       // macOS installer package
-	".mpkg",      // macOS multi-package
-	".apk",       // Android package
-	".aab",       // Android App Bundle
-	".appx",      // Windows application package
-	".msix",      // Windows modern app package
-	".deb",       // Debian package
-	".snap",      // Snap package
-	".flatpak",   // Flatpak application
-	".dmg",       // macOS disk image
-	".iso",       // ISO disk image
+var BundleExtensions = map[string]bool{
+	".app":       true, // macOS application bundle
+	".bundle":    true, // macOS plugin bundle
+	".framework": true, // macOS framework
+	".plugin":    true, // macOS plugin
+	".kext":      true, // macOS kernel extension
+	".pkg":       true, // macOS installer package
+	".mpkg":      true, // macOS multi-package
+	".apk":       true, // Android package
+	".aab":       true, // Android App Bundle
+	".appx":      true, // Windows application package
+	".msix":      true, // Windows modern app package
+	".deb":       true, // Debian package
+	".snap":      true, // Snap package
+	".flatpak":   true, // Flatpak application
+	".dmg":       true, // macOS disk image
+	".iso":       true, // ISO disk image
 }
 
 // Document file extensions
-var documentTypes = []string{
+var documentTypes = map[string]bool{
 	// Common Document Formats
-	".doc", ".docx", // Microsoft Word
-	".pdf", // Portable Document Format
-	".odt", // OpenDocument Text
-	".rtf", // Rich Text Format
-	".conf",
-	".bash_history",
-	".gitignore",
-	".htpasswd",
-	".profile",
-	".dockerignore",
-	".editorconfig",
-
-	// Presentation Formats
-	".ppt", ".pptx", // Microsoft PowerPoint
-	".odp", // OpenDocument Presentation
-
-	// google docs
-	".gdoc",
-
-	// google sheet
-	".gsheet",
-
-	// Spreadsheet Formats
-	".xls", ".xlsx", // Microsoft Excel
-	".ods", // OpenDocument Spreadsheet
-
-	// Other Document Formats
-	".epub", // Electronic Publication
-	".mobi", // Amazon Kindle
-	".fb2",  // FictionBook
+	".doc":          true, // Microsoft Word
+	".docx":         true, // Microsoft Word
+	".pdf":          true, // Portable Document Format
+	".odt":          true, // OpenDocument Text
+	".rtf":          true, // Rich Text Format
+	".conf":         true,
+	".bash_history": true,
+	".gitignore":    true,
+	".htpasswd":     true,
+	".profile":      true,
+	".dockerignore": true,
+	".editorconfig": true,
+	".ppt":          true, // Microsoft PowerPoint
+	".pptx":         true, // Microsoft PowerPoint
+	".odp":          true, // OpenDocument Presentation
+	".gdoc":         true, // google docs
+	".gsheet":       true, // google sheet
+	".xls":          true, // Microsoft Excel
+	".xlsx":         true, // Microsoft Excel
+	".ods":          true, // OpenDocument Spreadsheet
+	".epub":         true, // Electronic Publication
+	".mobi":         true, // Amazon Kindle
+	".fb2":          true, // FictionBook
 }
 
-var onlyOfficeSupported = []string{
+var onlyOfficeSupported = map[string]bool{
 	// Word Processing Documents
-	".doc", ".docm", ".docx", ".dot", ".dotm", ".dotx", ".epub",
-	".fb2", ".fodt", ".htm", ".html", ".mht", ".mhtml", ".odt",
-	".ott", ".rtf", ".stw", ".sxw", ".txt", ".wps", ".wpt", ".xml",
-	".hwp", ".hwpx", ".md", ".pages", // Added missing Word extensions
-
+	".doc":   true,
+	".docm":  true,
+	".docx":  true,
+	".dot":   true,
+	".dotm":  true,
+	".dotx":  true,
+	".epub":  true,
+	".fb2":   true,
+	".fodt":  true,
+	".htm":   true,
+	".html":  true,
+	".mht":   true,
+	".mhtml": true,
+	".odt":   true,
+	".ott":   true,
+	".rtf":   true,
+	".stw":   true,
+	".sxw":   true,
+	".txt":   true,
+	".wps":   true,
+	".wpt":   true,
+	".xml":   true,
+	".hwp":   true,
+	".hwpx":  true,
+	".md":    true,
+	".pages": true,
 	// Spreadsheet Documents
-	".csv", ".et", ".ett", ".fods", ".ods", ".ots", ".sxc", ".xls",
-	".xlsb", ".xlsm", ".xlsx", ".xlt", ".xltm", ".xltx",
-	".numbers", // Added missing Spreadsheet extension
-
+	".csv":     true,
+	".et":      true,
+	".ett":     true,
+	".fods":    true,
+	".ods":     true,
+	".ots":     true,
+	".sxc":     true,
+	".xls":     true,
+	".xlsb":    true,
+	".xlsm":    true,
+	".xlsx":    true,
+	".xlt":     true,
+	".xltm":    true,
+	".xltx":    true,
+	".numbers": true,
 	// Presentation Documents
-	".dps", ".dpt", ".fodp", ".odp", ".otp", ".pot", ".potm", ".potx",
-	".pps", ".ppsm", ".ppsx", ".ppt", ".pptm", ".pptx", ".sxi",
-	".key", ".odg", // Added missing Presentation extensions
-
+	".dps":  true,
+	".dpt":  true,
+	".fodp": true,
+	".odp":  true,
+	".otp":  true,
+	".pot":  true,
+	".potm": true,
+	".potx": true,
+	".pps":  true,
+	".ppsm": true,
+	".ppsx": true,
+	".ppt":  true,
+	".pptm": true,
+	".pptx": true,
+	".sxi":  true,
+	".key":  true,
+	".odg":  true,
 	// Other Office-Related Formats
-	".djvu", ".docxf", ".oform", ".oxps", ".pdf", ".xps",
-
-	// Diagram Documents (New category from List 2)
-	".vsdm", ".vsdx", ".vssm", ".vssx", ".vstm", ".vstx",
+	".djvu":  true,
+	".docxf": true,
+	".oform": true,
+	".oxps":  true,
+	".pdf":   true,
+	".xps":   true,
+	// Diagram Documents
+	".vsdm": true,
+	".vsdx": true,
+	".vssm": true,
+	".vssx": true,
+	".vstm": true,
+	".vstx": true,
 }
 
 // Text-based file extensions
-var textTypes = []string{
+var textTypes = map[string]bool{
 	// Common Text Formats
-	".txt",
-	".md", // Markdown
-
-	// Scripting and Programming Languages
-	".sh",        // Bash script
-	".py",        // Python
-	".js",        // JavaScript
-	".ts",        // TypeScript
-	".php",       // PHP
-	".rb",        // Ruby
-	".go",        // Go
-	".java",      // Java
-	".c", ".cpp", // C/C++
-	".cs",    // C#
-	".swift", // Swift
-
-	// Configuration Files
-	".yaml", ".yml", // YAML
-	".json", // JSON
-	".xml",  // XML
-	".ini",  // INI
-	".toml", // TOML
-	".cfg",  // Configuration file
-
-	// Other Text-Based Formats
-	".css",          // Cascading Style Sheets
-	".html", ".htm", // HyperText Markup Language
-	".sql", // SQL
-	".csv", // Comma-Separated Values
-	".tsv", // Tab-Separated Values
-	".log", // Log file
-	".bat", // Batch file
-	".ps1", // PowerShell script
-	".tex", // LaTeX
-	".bib", // BibTeX
+	".txt":   true,
+	".md":    true, // Markdown
+	".sh":    true, // Bash script
+	".py":    true, // Python
+	".js":    true, // JavaScript
+	".ts":    true, // TypeScript
+	".php":   true, // PHP
+	".rb":    true, // Ruby
+	".go":    true, // Go
+	".java":  true, // Java
+	".c":     true, // C
+	".cpp":   true, // C++
+	".cs":    true, // C#
+	".swift": true, // Swift
+	".yaml":  true, // YAML
+	".yml":   true, // YAML
+	".json":  true, // JSON
+	".xml":   true, // XML
+	".ini":   true, // INI
+	".toml":  true, // TOML
+	".cfg":   true, // Configuration file
+	".css":   true, // Cascading Style Sheets
+	".html":  true, // HyperText Markup Language
+	".htm":   true, // HyperText Markup Language
+	".sql":   true, // SQL
+	".csv":   true, // Comma-Separated Values
+	".tsv":   true, // Tab-Separated Values
+	".log":   true, // Log file
+	".bat":   true, // Batch file
+	".ps1":   true, // PowerShell script
+	".tex":   true, // LaTeX
+	".bib":   true, // BibTeX
 }
 
 // Compressed file extensions
-var compressedFile = []string{
-	".7z",
-	".rar",
-	".zip",
-	".tar",
-	".gz",
-	".xz",
-	".bz2",
-	".tgz",  // tar.gz
-	".tbz2", // tar.bz2
-	".lzma",
-	".lz4",
-	".zstd",
+var compressedFile = map[string]bool{
+	".7z":   true,
+	".rar":  true,
+	".zip":  true,
+	".tar":  true,
+	".gz":   true,
+	".xz":   true,
+	".bz2":  true,
+	".tgz":  true, // tar.gz
+	".tbz2": true, // tar.bz2
+	".lzma": true,
+	".lz4":  true,
+	".zstd": true,
 }
 
-var audioMetadataTypes = []string{
-	".mp3",
-	".flac",
-	".ogg",
-	".opus",
-	".m4a",
-	".mp4",
-	".wav",
-	".ape",
-	".wv",
-}
-
-func CouldHaveAlbumArt(extension string) bool {
-	for _, typefile := range audioMetadataTypes {
-		if extension == typefile {
-			return true
-		}
-	}
-	return false
+var audioMetadataTypes = map[string]bool{
+	".mp3":  true,
+	".flac": true,
+	".ogg":  true,
+	".opus": true,
+	".m4a":  true,
+	".mp4":  true,
+	".wav":  true,
+	".ape":  true,
+	".wv":   true,
 }
 
 func ExtendedMimeTypeCheck(extension string) string {
@@ -245,40 +274,20 @@ func UpdateSize(given string) int {
 }
 
 func IsText(extension string) bool {
-	for _, typefile := range textTypes {
-		if extension == typefile {
-			return true
-		}
-	}
-	return false
+	return textTypes[extension]
 }
 
 func IsDoc(extension string) bool {
-	for _, typefile := range documentTypes {
-		if extension == typefile {
-			return true
-		}
-	}
-	return false
+	return documentTypes[extension]
 }
 
 func IsArchive(extension string) bool {
-	for _, typefile := range compressedFile {
-		if extension == typefile {
-			return true
-		}
-	}
-	return false
+	return compressedFile[extension]
 }
 
 func IsOnlyOffice(name string) bool {
 	extention := filepath.Ext(name)
-	for _, typefile := range onlyOfficeSupported {
-		if extention == typefile {
-			return true
-		}
-	}
-	return false
+	return onlyOfficeSupported[extention]
 }
 
 func IsMatchingType(extension string, matchType string) bool {
@@ -332,409 +341,10 @@ func (i *ItemInfo) DetectType(realPath string, saveContent bool) {
 	}
 }
 
-// hasAlbumArtLowLevel efficiently checks for album art in audio files.
-// It handles ID3v2 tags (MP3) and Vorbis comments (FLAC, OGG) with low-level parsing.
-func hasAlbumArtLowLevel(filePath string, extension string) (bool, error) {
-	file, err := os.Open(filePath)
-	if err != nil {
-		return false, fmt.Errorf("failed to open file: %w", err)
-	}
-	defer file.Close()
-
-	// Handle different audio formats
-	switch extension {
-	case ".mp3":
-		return hasAlbumArtMP3(file)
-	case ".flac", ".ogg", ".opus":
-		return hasAlbumArtVorbis(file)
-	case ".m4a", ".mp4":
-		return hasAlbumArtM4A(file)
-	default:
-		// For other formats, return false (no album art detection)
-		return false, nil
-	}
-}
-
-// hasAlbumArtMP3 checks for APIC/PIC frames in ID3v2 tags with optimized parsing
-func hasAlbumArtMP3(file *os.File) (bool, error) {
-	// Read 10-byte ID3v2 header
-	header := make([]byte, 10)
-	if _, err := io.ReadFull(file, header); err != nil {
-		return false, nil // No ID3v2 tag found
-	}
-
-	// Check for "ID3" identifier
-	if string(header[0:3]) != "ID3" {
-		return false, nil // No ID3v2 tag found
-	}
-
-	// Determine ID3v2 version for proper frame ID detection
-	version := header[3]
-	var pictureFrameID string
-	var frameHeaderSize int
-
-	switch version {
-	case 2:
-		pictureFrameID = "PIC" // ID3v2.2 uses 3-byte frame IDs
-		frameHeaderSize = 6
-	case 3, 4:
-		pictureFrameID = "APIC" // ID3v2.3/2.4 use 4-byte frame IDs
-		frameHeaderSize = 10
-	default:
-		return false, nil // Unsupported version
-	}
-
-	// Decode synchsafe tag size
-	tagSize := (int(header[6]) << 21) | (int(header[7]) << 14) | (int(header[8]) << 7) | int(header[9])
-
-	// Limit reading to reasonable size for performance
-	maxReadSize := 32768 // 32KB should be enough to find picture frames
-	readSize := tagSize
-	if readSize > maxReadSize {
-		readSize = maxReadSize
-	}
-
-	// Read tag data
-	tagData := make([]byte, readSize)
-	if _, err := io.ReadFull(file, tagData); err != nil {
-		return false, nil // Failed to read, assume no artwork
-	}
-
-	position := 0
-	frameIDLen := len(pictureFrameID)
-
-	// Loop through frames looking for picture frame
-	for position+frameHeaderSize <= readSize {
-		// Check if we've hit padding (null bytes)
-		if tagData[position] == 0 {
-			break
-		}
-
-		// Extract frame ID
-		if position+frameIDLen > readSize {
-			break
-		}
-		frameID := string(tagData[position : position+frameIDLen])
-
-		// Found picture frame!
-		if frameID == pictureFrameID {
-			return true, nil
-		}
-
-		// Skip to next frame
-		var frameSize int
-		if version == 2 {
-			// ID3v2.2: 3-byte size
-			if position+6 > readSize {
-				break
-			}
-			frameSize = int(tagData[position+3])<<16 | int(tagData[position+4])<<8 | int(tagData[position+5])
-			position += 6 + frameSize
-		} else {
-			// ID3v2.3/2.4: 4-byte size
-			if position+10 > readSize {
-				break
-			}
-			frameSize = int(tagData[position+4])<<24 | int(tagData[position+5])<<16 |
-				int(tagData[position+6])<<8 | int(tagData[position+7])
-			position += 10 + frameSize
-		}
-
-		// Safety check to prevent infinite loops
-		if frameSize <= 0 || position >= tagSize {
-			break
-		}
-	}
-
-	return false, nil
-}
-
-// hasAlbumArtVorbis checks for album art in FLAC, OGG, and OPUS files using surgical format-specific parsing
-func hasAlbumArtVorbis(file *os.File) (bool, error) {
-	// Read initial buffer to determine file type
-	buffer := make([]byte, 16384) // 16KB should be enough for most metadata sections
-	n, err := file.Read(buffer)
-	if err != nil && err != io.EOF {
-		return false, err
-	}
-
-	// Check if it's a FLAC file
-	if n >= 4 && string(buffer[0:4]) == "fLaC" {
-		return hasAlbumArtFLAC(buffer, n)
-	}
-
-	// Check if it's an OGG file (including OPUS)
-	if n >= 4 && string(buffer[0:4]) == "OggS" {
-		return hasAlbumArtOGG(buffer, n)
-	}
-
-	return false, nil
-}
-
-// hasAlbumArtFLAC checks for PICTURE metadata block (type 6) in FLAC files
-func hasAlbumArtFLAC(buffer []byte, n int) (bool, error) {
-	pos := 4 // Skip "fLaC" header
-
-	for pos < n-4 {
-		// Read metadata block header (4 bytes total)
-		blockHeader := buffer[pos]
-		blockType := blockHeader & 0x7F // bits 0-6
-		isLast := blockHeader&0x80 != 0 // bit 7
-
-		// Found picture block!
-		if blockType == 6 { // PICTURE block type
-			return true, nil
-		}
-
-		// Get block size (next 3 bytes, big-endian)
-		if pos+4 > n {
-			break
-		}
-		blockSize := int(buffer[pos+1])<<16 | int(buffer[pos+2])<<8 | int(buffer[pos+3])
-
-		// Move to next block
-		pos += 4 + blockSize
-
-		// Stop if this was the last block or we've exceeded buffer
-		if isLast || pos >= n {
-			break
-		}
-	}
-
-	return false, nil
-}
-
-// hasAlbumArtOGG checks for METADATA_BLOCK_PICTURE in OGG Vorbis comments (including OPUS)
-func hasAlbumArtOGG(buffer []byte, n int) (bool, error) {
-	// Look for Vorbis comment patterns
-	vorbisPrefix := []byte("\x03vorbis")
-	opusPrefix := []byte("OpusTags")
-
-	// Search for either Vorbis or Opus tags
-	for i := 0; i < n-8; i++ {
-		if i+len(vorbisPrefix) < n && bytes.Equal(buffer[i:i+len(vorbisPrefix)], vorbisPrefix) {
-			// Found Vorbis comment block, look for METADATA_BLOCK_PICTURE
-			return searchForPictureInVorbisComment(buffer[i+len(vorbisPrefix):], n-i-len(vorbisPrefix))
-		}
-		if i+len(opusPrefix) < n && bytes.Equal(buffer[i:i+len(opusPrefix)], opusPrefix) {
-			// Found Opus tags block, look for METADATA_BLOCK_PICTURE
-			return searchForPictureInVorbisComment(buffer[i+len(opusPrefix):], n-i-len(opusPrefix))
-		}
-	}
-
-	return false, nil
-}
-
-// searchForPictureInVorbisComment looks for METADATA_BLOCK_PICTURE field in Vorbis comments
-func searchForPictureInVorbisComment(buffer []byte, n int) (bool, error) {
-	// Convert to string and look for the METADATA_BLOCK_PICTURE field
-	// This field contains base64-encoded picture data
-	content := string(buffer[:n])
-
-	// Look for the exact field name used in Vorbis comments
-	if strings.Contains(content, "METADATA_BLOCK_PICTURE=") {
-		return true, nil
-	}
-
-	// Some files might use alternative field names
-	if strings.Contains(content, "COVERART=") || strings.Contains(content, "COVER_ART=") {
-		return true, nil
-	}
-
-	return false, nil
-}
-
-// hasAlbumArtM4A checks for embedded artwork in M4A/MP4 files
-func hasAlbumArtM4A(file *os.File) (bool, error) {
-	// For M4A files, look for 'covr' atom which contains artwork
-	// MP4/M4A files use a nested atom structure
-	buffer := make([]byte, 65536) // Read first 64KB to increase chances of finding atoms
-	n, err := file.Read(buffer)
-	if err != nil && err != io.EOF {
-		return false, err
-	}
-
-	// Look for the binary 'covr' atom signature
-	// MP4 atoms have: [4-byte size][4-byte type][data...]
-	if bytes.Contains(buffer[:n], []byte("covr")) {
-		return true, nil
-	}
-
-	// Also look for other common MP4 metadata atoms that might contain artwork
-	// 'data' atoms often contain the actual image data
-	pos := 0
-	for pos < n-8 {
-		// Skip if not enough bytes left for an atom header
-		if pos+8 > n {
-			break
-		}
-
-		// Read atom size (big-endian 32-bit)
-		atomSize := int(buffer[pos])<<24 | int(buffer[pos+1])<<16 | int(buffer[pos+2])<<8 | int(buffer[pos+3])
-
-		// Read atom type (4 bytes)
-		atomType := string(buffer[pos+4 : pos+8])
-
-		// Check for relevant atoms
-		if atomType == "covr" || atomType == "data" {
-			// If we found a data atom, check if it contains image signatures
-			if atomType == "data" && pos+16 < n {
-				dataStart := pos + 16 // Skip atom header + data atom header
-				if dataStart < n {
-					// Check for common image format signatures
-					if bytes.HasPrefix(buffer[dataStart:], []byte("\xFF\xD8\xFF")) || // JPEG
-						bytes.HasPrefix(buffer[dataStart:], []byte("\x89PNG")) || // PNG
-						bytes.HasPrefix(buffer[dataStart:], []byte("GIF8")) { // GIF
-						return true, nil
-					}
-				}
-			}
-			if atomType == "covr" {
-				return true, nil
-			}
-		}
-
-		// Move to next atom
-		if atomSize <= 8 || atomSize > n-pos {
-			// Invalid atom size, try to find next potential atom
-			pos++
-		} else {
-			pos += atomSize
-		}
-	}
-
-	// Fallback: look for common image format signatures anywhere in the buffer
-	// This catches cases where the atom structure parsing fails
-	if bytes.Contains(buffer[:n], []byte("\xFF\xD8\xFF")) || // JPEG signature
-		bytes.Contains(buffer[:n], []byte("\x89PNG\x0D\x0A\x1A\x0A")) || // Full PNG signature
-		bytes.Contains(buffer[:n], []byte("GIF8")) { // GIF signature
-		return true, nil
-	}
-
-	return false, nil
-}
-
-func HasAlbumArt(filePath string, extension string) bool {
-	if !CouldHaveAlbumArt(extension) {
-		return false
-	}
-
-	// Use low-level detection for all audio formats
-	hasArt, err := hasAlbumArtLowLevel(filePath, extension)
-	if err != nil {
-		// If there's an error with low-level detection, return false
-		// This is safer than potentially crashing the indexing process
-		return false
-	}
-
-	return hasArt
-}
-
-// DetectTypeByHeader detects the MIME type of a file based on its header.
-func DetectTypeByHeader(realPath string) string {
-	file, err := os.Open(realPath)
-	if err != nil {
-		return "blob"
-	}
-	defer file.Close()
-
-	buffer := make([]byte, 512)
-	n, err := file.Read(buffer)
-	if err != nil {
-		return "blob"
-	}
-	return http.DetectContentType(buffer[:n])
-}
-
-// returns true if the file name contains the search term
-// returns file type if the file name contains the search term
-// returns size of file/dir if the file name contains the search term
-func (fi ItemInfo) ContainsSearchTerm(searchTerm string, options SearchOptions) bool {
-
-	fileTypes := map[string]bool{}
-	largerThan := int64(options.LargerThan) * 1024 * 1024
-	smallerThan := int64(options.SmallerThan) * 1024 * 1024
-	conditions := options.Conditions
-	lowerFileName := strings.ToLower(fi.Name)
-
-	// Convert to lowercase if not exact match
-	if !conditions["exact"] {
-		searchTerm = strings.ToLower(searchTerm)
-	}
-
-	// Check if the file name contains the search term
-	if !strings.Contains(lowerFileName, searchTerm) {
-		return false
-	}
-
-	// Initialize file size and fileTypes map
-	var fileSize int64
-	extension := filepath.Ext(lowerFileName)
-
-	// Collect file types
-	for _, k := range AllFiletypeOptions {
-		if IsMatchingType(extension, k) {
-			fileTypes[k] = true
-		}
-	}
-	isDir := fi.Type == "directory"
-	fileTypes["dir"] = isDir
-	fileSize = fi.Size
-
-	// Evaluate all conditions
-	for t, v := range conditions {
-		if t == "exact" {
-			continue
-		}
-		switch t {
-		case "larger":
-			if largerThan > 0 {
-				if fileSize <= largerThan {
-					return false
-				}
-			}
-		case "smaller":
-			if smallerThan > 0 {
-				if fileSize >= smallerThan {
-					return false
-				}
-			}
-		default:
-			// Handle other file type conditions
-			notMatchType := v != fileTypes[t]
-			if notMatchType {
-				return false
-			}
-		}
-	}
-
-	return true
-}
-
-// IsDirectory determines if a path should be treated as a directory.
-// It treats known bundle-style directories as files instead.
-func IsDirectory(fileInfo os.FileInfo) bool {
-	if !fileInfo.IsDir() {
-		return false
-	}
-
-	if !hasBundleExtension(fileInfo.Name()) {
-		return true
-	}
-
-	// For bundle-type dirs, treat them as files
-	return false
-}
-
 // hasBundleExtension checks if a file has a known bundle-style extension.
 func hasBundleExtension(name string) bool {
 	ext := strings.ToLower(filepath.Ext(name))
-	for _, bundleExt := range BundleExtensions {
-		if ext == bundleExt {
-			return true
-		}
-	}
-	return false
+	return BundleExtensions[ext]
 }
 
 func HasDocConvertableExtension(name, mimetype string) bool {
@@ -752,11 +362,15 @@ func HasDocConvertableExtension(name, mimetype string) bool {
 	return false
 }
 
-var ONLYOFFICE_READONLY_FILE_EXTENSIONS = []string{"pages", "numbers", "key"}
+var ONLYOFFICE_READONLY_FILE_EXTENSIONS = map[string]bool{
+	"pages":   true,
+	"numbers": true,
+	"key":     true,
+}
 
 func CanEditOnlyOffice(modify bool, extention string) bool {
 	if !modify {
 		return false
 	}
-	return !slices.Contains(ONLYOFFICE_READONLY_FILE_EXTENSIONS, strings.ToLower(extention))
+	return !ONLYOFFICE_READONLY_FILE_EXTENSIONS[strings.ToLower(extention)]
 }

@@ -21,7 +21,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-            go-version: 'stable'
+          go-version: 'stable'
       - uses: golangci/golangci-lint-action@v7
         with:
           version: 'v2.1.6'
@@ -50,3 +50,10 @@ jobs:
       - uses: actions/setup-node@v4
       - working-directory: frontend
         run: npm i && npm run test
+  check-translations:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+      - working-directory: frontend
+        run: npm i && npm run i18n:check

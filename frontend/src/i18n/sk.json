@@ -54,7 +54,10 @@
     "listView": "Zobrazenie zoznamu",
     "compactView": "Kompaktný pohľad",
     "normalView": "Normálne zobrazenie",
-    "galleryView": "Zobrazenie galérie"
+    "galleryView": "Zobrazenie galérie",
+    "uploadFiles": "Nahrávanie súborov",
+    "uploadFolder": "Odoslanie priečinka",
+    "openUploadViewer": "Otvoriť Správcu nahrávania"
   },
   "download": {
     "downloadFile": "Stiahnuť súbor",
@@ -134,7 +137,10 @@
     "submit": "Prihlásiť",
     "usernameTaken": "Meno je už obsadené",
     "wrongCredentials": "Nesprávne prihlasovacie údaje",
-    "or": "ALEBO"
+    "or": "ALEBO",
+    "inProgress": "Prihlásenie...",
+    "failedLogin": "Nepodarilo sa prihlásiť",
+    "invalidCredentials": "Zadané neplatné poverenia"
   },
   "prompts": {
     "copy": "Kopírovať",
@@ -195,7 +201,8 @@
     "moveSuccess": "Súbory boli úspešne presunuté!",
     "copySuccess": "Súbory boli úspešne skopírované!",
     "lastModified": "Posledná úprava{suffix}",
-    "size": "Veľkosť{suffix}"
+    "size": "Veľkosť{suffix}",
+    "operationInProgress": "Operácia prebieha, počkajte, prosím..."
   },
   "search": {
     "images": "Obrázky",
@@ -407,7 +414,16 @@
     "titleDefault": "Zdieľané súbory - {title}",
     "defaultViewMode": "Predvolený režim zobrazenia",
     "defaultViewModeDescription": "Nastavenie predvoleného režimu zobrazenia pre anonymných používateľov pri prezeraní tejto zdieľanej zložky. Prihlásení používatelia môžu stále zmeniť svoje preferencie zobrazenia.",
-    "disableFileViewer": "Zakázanie prehliadača súborov"
+    "disableFileViewer": "Zakázanie prehliadača súborov",
+    "shareType": "Typ zdieľania",
+    "shareTypeDescription": "Typ akcie, ktorú chcete vytvoriť. Bežné zdieľania umožňujú zobrazovanie a sťahovanie súborov. Zdieľané položky Nahrávanie umožňujú nahrávanie súborov do zdieľanej položky.",
+    "normalShare": "Normálne",
+    "uploadShare": "Iba odosielanie",
+    "perUserDownloadLimit": "Uplatnenie limitu stiahnutí pre každého používateľa",
+    "perUserDownloadLimitDescription": "Ak je táto možnosť povolená, limit stiahnutí sa uplatní na každého používateľa. Anonymní používatelia nebudú môcť z tejto zdieľanej zložky sťahovať žiadne súbory.",
+    "descriptionUploadDefault": "Bola vám odoslaná akcia na nahratie súborov.",
+    "extractEmbeddedSubtitles": "Výpis vložených titulkov",
+    "extractEmbeddedSubtitlesDescription": "Extrahovať vložené titulky z mediálnych súborov pri načítaní - pri veľkých súboroch to môže byť pomalé."
   },
   "api": {
     "title": "Kľúče API:",
@@ -501,7 +517,8 @@
     "uploadChunkSizeMb": "Veľkosť nahraného úseku v MB",
     "uploadChunkSizeMbHelp": "Zvyčajne 5 až 50 MB, v prípade nestabilných alebo obmedzených pripojení je vhodnejšie použiť menšiu veľkosť. Nastavením na hodnotu 0 sa vypne zoskupovanie pri odosielaní.",
     "clearAll": "Vymazanie dokončenia by malo odstrániť chybu, pauzu a konflikt",
-    "clearAllDescription": "Tlačidlo Vymazať dokončené vymaže všetky odoslania v stave dokončenia vrátane chybových, pozastavených a konfliktných stavov."
+    "clearAllDescription": "Tlačidlo Vymazať dokončené vymaže všetky odoslania v stave dokončenia vrátane chybových, pozastavených a konfliktných stavov.",
+    "uploadSettings": "Nastavenia nahrávania"
   },
   "colors": {
     "red": "červená",
@@ -569,7 +586,9 @@
     "themeAndLanguage": "Téma a jazyk",
     "previewFolder": "Zobrazenie miniatúr priečinkov, ak sú k dispozícii",
     "previewFolderDescription": "Zobrazenie náhľadov miniatúr pre priečinky s prvou podriadenou položkou s miniatúrou ako obálkou.",
-    "disableFileExtensions": "Zadajte prípony súborov, ktoré chcete zakázať"
+    "disableFileExtensions": "Zadajte prípony súborov, ktoré chcete zakázať",
+    "defaultLandingPage": "Predvolená vstupná stránka",
+    "defaultLandingPageDescription": "napr. '/files/mysource/mysubpath' alebo '/settings' - predvolená stránka je /files, ktorá prechádza do prvého zobrazenia zoznamu zdrojov"
   },
   "editor": {
     "uninitialized": "Nepodarilo sa inicializovať editor. Prosím, načítajte ho znova.",
@@ -580,7 +599,10 @@
     "syncFailed": "sa nepodarilo synchronizovať stav s trasou pre \"{filename}\" po 5 pokusoch. Prerušenie nastavenia editora, aby sa zabránilo poškodeniu údajov."
   },
   "player": {
-    "LoopEnabled": "Povolená slučka",
-    "LoopDisabled": "Vypnutá slučka"
+    "LoopEnabled": "Slučka povolená",
+    "LoopDisabled": "Slučka zakázaná",
+    "PlayAllOncePlayback": "Prehrať všetko raz",
+    "ShuffleAllPlayback": "Náhodné prehrávanie všetkého",
+    "PlayAllLoopedPlayback": "Prehrať všetko v slučke"
   }
 }

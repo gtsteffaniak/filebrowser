@@ -1,6 +1,6 @@
 import { adjustedData } from "./utils";
 import { notify } from "@/notify";
-import { getApiPath, getPublicApiPath, encodedPath } from "@/utils/url.js";
+import { getApiPath, getPublicApiPath, encodedPath, doubleEncode } from "@/utils/url.js";
 import { globalVars } from "@/utils/constants";
 import { state } from "@/store";
 
@@ -103,4 +103,78 @@ export function getShareURL(share) {
     return globalVars.externalUrl + apiPath;
   }
   return window.origin + getApiPath(`public/share/${share.hash}`);
+}
+
+
+export function post(
+  hash,
+  path,
+  content = "",
+  overwrite = false,
+  onupload,
+  headers = {}
+) {
+  if (!hash || hash === undefined || hash === null) {
+    throw new Error('no hash provided')
+  }
+  try {
+    const apiPath = getPublicApiPath("resources", {
+      targetPath: doubleEncode(path),
+      hash: hash,
+      override: overwrite,
+    });
+
+    const request = new XMLHttpRequest();
+    request.open("POST", apiPath, true);
+
+    for (const header in headers) {
+      request.setRequestHeader(header, headers[header]);
+    }
+
+    if (typeof onupload === "function") {
+      request.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const percentComplete = Math.round(
+            (event.loaded / event.total) * 100
+          );
+          onupload(percentComplete); // Pass the percentage to the callback
+        }
+      };
+    }
+
+    const promise = new Promise((resolve, reject) => {
+      request.onload = () => {
+        if (request.status >= 200 && request.status < 300) {
+          resolve(request.responseText);
+        } else if (request.status === 409) {
+          const error = new Error("conflict");
+          error.response = { status: request.status, responseText: request.responseText };
+          reject(error);
+        } else {
+          reject(new Error(request.responseText || "Upload failed"));
+        }
+      };
+
+      request.onerror = () => reject(new Error("Network error"));
+      request.onabort = () => reject(new Error("Upload aborted"));
+
+      if (
+        content instanceof Blob &&
+        !["http:", "https:"].includes(window.location.protocol)
+      ) {
+        new Response(content).arrayBuffer()
+          .then(buffer => request.send(buffer))
+          .catch(err => reject(err));
+      } else {
+        request.send(content);
+      }
+    });
+
+    promise.xhr = request;
+    return promise;
+  } catch (err) {
+    notify.showError(err.message || "Error posting resource");
+    // We are returning a promise, so we should return a rejected promise on error.
+    return Promise.reject(err);
+  }
 }

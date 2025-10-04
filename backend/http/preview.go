@@ -3,6 +3,7 @@ package http
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -10,6 +11,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
@@ -24,6 +26,17 @@ type FileCache interface {
 	Store(ctx context.Context, key string, value []byte) error
 	Load(ctx context.Context, key string) ([]byte, bool, error)
 	Delete(ctx context.Context, key string) error
+}
+
+// isClientCancellation checks if an error is due to client cancellation (navigation away)
+func isClientCancellation(ctx context.Context, err error) bool {
+	// Check context state first
+	if ctx.Err() == context.Canceled {
+		return true
+	}
+
+	// Check if the error chain contains context cancellation
+	return errors.Is(err, context.Canceled)
 }
 
 // previewHandler handles the preview request for images.
@@ -61,13 +74,12 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	if err != nil {
 		return http.StatusForbidden, err
 	}
-	fileInfo, err := files.FileInfoFaster(iteminfo.FileOptions{
-		Access:   store.Access,
+	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
 		Username: d.user.Username,
 		Path:     utils.JoinPathAsUnix(userscope, path),
 		Source:   source,
-		Content:  true,
-	})
+		Metadata: true,
+	}, store.Access)
 	if err != nil {
 		return errToStatus(err), err
 	}
@@ -94,6 +106,69 @@ func rawFileHandler(w http.ResponseWriter, r *http.Request, file iteminfo.Extend
 	return 0, nil
 }
 
+// getDirectoryPreview finds a valid preview file within a directory.
+// It iterates through files, checking if they should bubble up to folder previews,
+// and returns the first valid, non-corrupted file suitable for preview.
+func getDirectoryPreview(r *http.Request, d *requestContext) (*iteminfo.ExtendedFileInfo, error) {
+	var lastErr error
+
+	for _, item := range d.fileInfo.Files {
+		// Only use files that should bubble up to folder previews (images, videos, audio)
+		// Exclude text files, office documents, and PDFs
+		if !item.HasPreview || !iteminfo.ShouldBubbleUpToFolderPreview(item) {
+			continue
+		}
+
+		source := d.fileInfo.Source
+		path := utils.JoinPathAsUnix(d.fileInfo.Path, item.Name)
+
+		if d.share != nil {
+			// Get the actual source name from the share's source mapping
+			sourceInfo, ok := settings.Config.Server.SourceMap[d.share.Source]
+			if !ok {
+				return nil, fmt.Errorf("source not found for share")
+			}
+			source = sourceInfo.Name
+			path = utils.JoinPathAsUnix(d.share.Path, path)
+		}
+
+		fileInfo, err := files.FileInfoFaster(
+			utils.FileOptions{
+				Username: d.user.Username,
+				Path:     path,
+				Source:   source,
+				Metadata: true,
+			}, store.Access)
+		if err != nil {
+			lastErr = err
+			continue // Try next file if this one fails
+		}
+
+		// Try to generate preview to verify the file is not corrupted
+		tempCtx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+		_, previewErr := preview.GetPreviewForFile(tempCtx, *fileInfo, "small", "", 0)
+		cancel()
+
+		if previewErr != nil {
+			// File might be corrupted, try next one
+			logger.Debugf("Skipping corrupted preview file in directory '%s': %s (error: %v)",
+				d.fileInfo.Name, item.Name, previewErr)
+			lastErr = previewErr
+			continue
+		}
+
+		// Success! Use this file for the directory preview
+		return fileInfo, nil
+	}
+
+	// If we exhausted all files and none worked, return the last error
+	if lastErr != nil {
+		return nil, fmt.Errorf("no valid preview files found in directory: %w", lastErr)
+	}
+
+	return nil, fmt.Errorf("no previewable files found in directory")
+}
+
 func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	previewSize := r.URL.Query().Get("size")
 	if !(previewSize == "large" || previewSize == "original") {
@@ -102,46 +177,13 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 	if !d.fileInfo.HasPreview {
 		return http.StatusBadRequest, fmt.Errorf("this item does not have a preview")
 	}
-	var childMD5 string
 	if d.fileInfo.Type == "directory" {
-		// get extended file info of first previewable item in directory
-		for _, item := range d.fileInfo.Files {
-			if item.HasPreview {
-				source := d.fileInfo.Source
-				path := utils.JoinPathAsUnix(d.fileInfo.Path, item.Name)
-				if d.share != nil {
-					// Get the actual source name from the share's source mapping
-					sourceInfo, ok := settings.Config.Server.SourceMap[d.share.Source]
-					if !ok {
-						return http.StatusInternalServerError, fmt.Errorf("source not found for share")
-					}
-					source = sourceInfo.Name
-					path = utils.JoinPathAsUnix(d.share.Path, path)
-				}
-				fileInfo, err := files.FileInfoFaster(
-					iteminfo.FileOptions{
-						Path:    path,
-						Source:  source,
-						Content: true,
-					})
-				if err != nil {
-					return http.StatusInternalServerError, err
-				}
-				// Calculate child's MD5 for cache sharing
-				childMD5, err = utils.GetChecksum(fileInfo.RealPath, "md5")
-				if err != nil {
-					return http.StatusInternalServerError, fmt.Errorf("failed to get child file checksum: %w", err)
-				}
-				// Validate child MD5 is not empty
-				if childMD5 == "" {
-					errorMsg := fmt.Sprintf("Child MD5 is empty for file: %s (path: %s)", fileInfo.Name, fileInfo.RealPath)
-					logger.Errorf("Preview generation failed: %s", errorMsg)
-					return http.StatusInternalServerError, fmt.Errorf("preview generation failed: %s", errorMsg)
-				}
-				d.fileInfo = *fileInfo
-				break
-			}
+		// Get extended file info of first previewable item in directory
+		fileInfo, err := getDirectoryPreview(r, d)
+		if err != nil {
+			return http.StatusInternalServerError, err
 		}
+		d.fileInfo = *fileInfo
 	}
 
 	setContentDisposition(w, r, d.fileInfo.Name)
@@ -179,8 +221,30 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 			officeUrl = scheme + "://" + r.Host + pathUrl
 		}
 	}
-	previewImg, err := preview.GetPreviewForFileWithChildMD5(d.fileInfo, previewSize, officeUrl, seekPercentage, childMD5)
+	// Use the context from the request context (which includes timeout)
+	ctx := r.Context()
+	if d.ctx != nil {
+		ctx = d.ctx
+	}
+
+	previewImg, err := preview.GetPreviewForFile(ctx, d.fileInfo, previewSize, officeUrl, seekPercentage)
 	if err != nil {
+		// Check if it was a context cancellation (client navigated away)
+		if isClientCancellation(ctx, err) {
+			// Return 200 to avoid error logging - client cancellation is normal
+			return http.StatusOK, nil
+		}
+
+		// Check if it was a context timeout (server-side timeout)
+		if ctx.Err() == context.DeadlineExceeded || errors.Is(err, context.DeadlineExceeded) {
+			logger.Errorf("Preview timeout for file '%s' after 60 seconds", d.fileInfo.Name)
+			return http.StatusRequestTimeout, fmt.Errorf("preview generation timed out after 60 seconds")
+		}
+
+		// Log detailed error information for actual server errors
+		logger.Errorf("Preview generation failed for file '%s' (type: %s, size: %s, seek: %d%%): %v",
+			d.fileInfo.Name, d.fileInfo.Type, previewSize, seekPercentage, err)
+
 		return http.StatusInternalServerError, err
 	}
 	w.Header().Set("Cache-Control", "private")

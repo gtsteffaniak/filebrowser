@@ -54,7 +54,10 @@
     "listView": "תצוגת רשימה",
     "compactView": "תצוגה קומפקטית",
     "normalView": "תצוגה רגילה",
-    "galleryView": "תצוגת גלריה"
+    "galleryView": "תצוגת גלריה",
+    "uploadFiles": "העלאת קבצים",
+    "uploadFolder": "העלה תיקייה",
+    "openUploadViewer": "פתח את מנהל ההעלאה"
   },
   "download": {
     "downloadFile": "הורד קובץ",
@@ -134,7 +137,10 @@
     "submit": "התחברות",
     "usernameTaken": "שם משתמש כבר קיים",
     "wrongCredentials": "פרטי התחברות שגויים",
-    "or": "או"
+    "or": "או",
+    "inProgress": "מתחבר...",
+    "failedLogin": "נכשל בכניסה",
+    "invalidCredentials": "פרטי הזדהות לא חוקיים"
   },
   "prompts": {
     "copy": "העתק",
@@ -195,7 +201,8 @@
     "moveSuccess": "הקבצים הועברו בהצלחה!",
     "copySuccess": "הקבצים הועתקו בהצלחה!",
     "lastModified": "שינוי אחרון{suffix}",
-    "size": "גודל{suffix}"
+    "size": "גודל{suffix}",
+    "operationInProgress": "הפעולה מתבצעת, אנא המתן..."
   },
   "search": {
     "images": "תמונות",
@@ -407,7 +414,16 @@
     "titleDefault": "קבצים משותפים - {title}",
     "defaultViewMode": "מצב תצוגה ברירת מחדל",
     "defaultViewModeDescription": "הגדר את מצב התצוגה המוגדר כברירת מחדל עבור משתמשים אנונימיים הצופים בשיתוף זה. משתמשים מחוברים עדיין יכולים לשנות את העדפות התצוגה שלהם.",
-    "disableFileViewer": "השבת תצוגת קבצים"
+    "disableFileViewer": "השבת תצוגת קבצים",
+    "shareType": "סוג השיתוף",
+    "shareTypeDescription": "סוג השיתוף שברצונך ליצור. שיתופים רגילים מאפשרים צפייה והורדה של קבצים. שיתופי העלאה מאפשרים העלאת קבצים לשיתוף.",
+    "normalShare": "רגיל",
+    "uploadShare": "העלה בלבד",
+    "perUserDownloadLimit": "החל את מגבלת ההורדות על כל משתמש",
+    "perUserDownloadLimitDescription": "כאשר אפשרות זו מופעלת, מגבלת ההורדות תחול על כל משתמש. משתמשים אנונימיים לא יוכלו להוריד קבצים משיתוף זה.",
+    "descriptionUploadDefault": "נשלחה אליך שיתוף כדי להעלות קבצים.",
+    "extractEmbeddedSubtitles": "חלץ כתוביות מוטמעות",
+    "extractEmbeddedSubtitlesDescription": "חלץ כתוביות מוטמעות מקבצי מדיה בעת הטעינה - פעולה זו עשויה להיות איטית עבור קבצים גדולים."
   },
   "api": {
     "title": "מפתחות API",
@@ -501,7 +517,8 @@
     "uploadChunkSizeMb": "גודל הקובץ להעלאה במגה-בייט",
     "uploadChunkSizeMbHelp": "בדרך כלל 5 עד 50 MB, קטן יותר עדיף עבור חיבורים לא יציבים או מוגבלים. הגדרה ל-0 תשבית את חלוקת הקבצים להעלאה.",
     "clearAll": "השלמת הניקוי אמורה להסיר את השגיאה, ההשהיה והקונפליקט.",
-    "clearAllDescription": "הכפתור 'נקה את ההשלמות' ינקה את כל ההעלאות במצב 'הושלם', כולל מצבי שגיאה, השהיה וקונפליקט."
+    "clearAllDescription": "הכפתור 'נקה את ההשלמות' ינקה את כל ההעלאות במצב 'הושלם', כולל מצבי שגיאה, השהיה וקונפליקט.",
+    "uploadSettings": "הגדרות העלאה"
   },
   "colors": {
     "red": "אדום",
@@ -569,7 +586,9 @@
     "themeAndLanguage": "נושא ושפה",
     "previewFolder": "הצג תמונות ממוזערות של תיקיות, אם זמינות",
     "previewFolderDescription": "הצג תצוגה מקדימה של תמונות ממוזערות עבור תיקיות עם פריט משנה ראשון עם תמונה ממוזערת ככריכה.",
-    "disableFileExtensions": "הזן סיומות קבצים שיש להשבית"
+    "disableFileExtensions": "הזן סיומות קבצים שיש להשבית",
+    "defaultLandingPage": "דף נחיתה ברירת מחדל",
+    "defaultLandingPageDescription": "לדוגמה, '/files/mysource/mysubpath' או '/settings' - הדף המוגדר כברירת מחדל הוא /files, המוביל לתצוגת רשימת המקורות הראשונה."
   },
   "editor": {
     "uninitialized": "לא ניתן לאתחל את העורך. אנא טען מחדש.",
@@ -581,6 +600,9 @@
   },
   "player": {
     "LoopEnabled": "לולאה מופעלת",
-    "LoopDisabled": "לולאה מושבתת"
+    "LoopDisabled": "לולאה מושבתת",
+    "PlayAllOncePlayback": "נגן הכל פעם אחת",
+    "ShuffleAllPlayback": "ערבב הכל",
+    "PlayAllLoopedPlayback": "נגן הכל בלולאה"
   }
 }

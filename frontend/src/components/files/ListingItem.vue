@@ -169,7 +169,7 @@ export default {
       if (!globalVars.enableThumbs) {
         return "";
       }
-      const previewPath = url.removeTrailingSlash(state.req.path) + "/" + this.name;
+      const previewPath = url.joinPath(state.req.path, this.name);
       if (getters.isShare()) {
         return publicApi.getPreviewURL(previewPath);
       }
@@ -321,7 +321,7 @@ export default {
           // @ts-ignore
           fromSource: state.req.items[i].source,
           // @ts-ignore
-          to: this.path + "/" + state.req.items[i].name,
+          to: url.joinPath(this.path, state.req.items[i].name),
           toSource: this.source,
         });
       }
@@ -337,7 +337,23 @@ export default {
        * @param {boolean} rename
        */
       let action = async (overwrite, rename) => {
-        await filesApi.moveCopy(items, "move", overwrite, rename);
+        // Show move prompt with operation in progress
+        mutations.showHover({
+          name: "move",
+          props: {
+            operationInProgress: true,
+          },
+        });
+
+        try {
+          await filesApi.moveCopy(items, "move", overwrite, rename);
+          // Close the prompt after successful operation
+          mutations.closeHovers();
+        } catch (error) {
+          // Close the prompt and let error handling continue
+          mutations.closeHovers();
+          throw error;
+        }
       };
 
       if (conflict) {
@@ -347,19 +363,19 @@ export default {
            * @param {Event} event
            * @param {string} option
            */
-          confirm: (event, option) => {
+          confirm: async (event, option) => {
             const overwrite = option === "overwrite";
             const rename = option === "rename";
 
             event.preventDefault();
             mutations.closeHovers();
-            action(overwrite, rename);
+            await action(overwrite, rename);
           },
         });
         return;
       }
 
-      action(false, false);
+      await action(false, false);
     },
     /** @param {TouchEvent} event */
     addSelected(event) {

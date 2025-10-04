@@ -54,7 +54,10 @@
     "listView": "Lijstweergave",
     "compactView": "Compacte weergave",
     "normalView": "Normale weergave",
-    "galleryView": "Galerij"
+    "galleryView": "Galerij",
+    "uploadFiles": "Bestanden uploaden",
+    "uploadFolder": "Map uploaden",
+    "openUploadViewer": "Uploadmanager openen"
   },
   "download": {
     "downloadFile": "Bestand downloaden",
@@ -134,7 +137,10 @@
     "submit": "Log in",
     "usernameTaken": "Gebruikersnaam reeds in gebruik",
     "wrongCredentials": "Verkeerde inloggegevens",
-    "or": "OF"
+    "or": "OF",
+    "inProgress": "Inloggen...",
+    "failedLogin": "Aanmelden mislukt",
+    "invalidCredentials": "Ongeldige referenties verstrekt"
   },
   "prompts": {
     "copy": "Kopiëren",
@@ -195,7 +201,8 @@
     "moveSuccess": "Bestanden succesvol verplaatst!",
     "copySuccess": "Bestanden succesvol gekopieerd!",
     "lastModified": "Laatst gewijzigd{suffix}",
-    "size": "Maat{suffix}"
+    "size": "Maat{suffix}",
+    "operationInProgress": "Werking bezig, even geduld a.u.b..."
   },
   "search": {
     "images": "Afbeeldingen",
@@ -407,7 +414,16 @@
     "titleDefault": "Gedeelde bestanden - {title}",
     "defaultViewMode": "Standaard weergavemodus",
     "defaultViewModeDescription": "Stel de standaard weergavemodus in voor anonieme gebruikers die deze share bekijken. Aangemelde gebruikers kunnen nog steeds hun weergavevoorkeur wijzigen.",
-    "disableFileViewer": "Bestandsviewer uitschakelen"
+    "disableFileViewer": "Bestandsviewer uitschakelen",
+    "shareType": "Type aandeel",
+    "shareTypeDescription": "Het type share dat moet worden aangemaakt. Normale shares staan het bekijken en downloaden van bestanden toe. Upload shares staan het uploaden van bestanden naar de share toe.",
+    "normalShare": "Normaal",
+    "uploadShare": "Alleen uploaden",
+    "perUserDownloadLimit": "Pas de downloadlimiet toe op elke gebruiker",
+    "perUserDownloadLimitDescription": "Indien ingeschakeld, wordt de downloadlimiet toegepast op elke gebruiker. Anonieme gebruikers kunnen geen bestanden downloaden van deze share.",
+    "descriptionUploadDefault": "Je hebt een share ontvangen om bestanden te uploaden.",
+    "extractEmbeddedSubtitles": "Ingesloten ondertitels uitpakken",
+    "extractEmbeddedSubtitlesDescription": "Ingesloten ondertitels uit mediabestanden halen tijdens het laden -- dit kan traag zijn voor grote bestanden."
   },
   "api": {
     "title": "API-sleutels",
@@ -465,7 +481,8 @@
     "uploadChunkSizeMb": "Upload brokgrootte in MB",
     "uploadChunkSizeMbHelp": "Gewoonlijk 5 tot 50 MB, kleiner is beter voor onstabiele of beperkte verbindingen. Instellen op 0 schakelt chunking uit.",
     "clearAll": "Wissen voltooid moet fout, pauze en conflict verwijderen",
-    "clearAllDescription": "De knop Voltooid wissen wist alle uploads in een voltooide status, inclusief fout-, gepauzeerde en conflictstatussen."
+    "clearAllDescription": "De knop Voltooid wissen wist alle uploads in een voltooide status, inclusief fout-, gepauzeerde en conflictstatussen.",
+    "uploadSettings": "Instellingen uploaden"
   },
   "colors": {
     "red": "rood",
@@ -533,7 +550,9 @@
     "themeAndLanguage": "Thema & Taal",
     "previewFolder": "Toon miniaturen voor mappen indien beschikbaar",
     "previewFolderDescription": "Toon miniatuurafbeeldingen voor mappen met het eerste kinditem met miniatuurafbeelding als omslag.",
-    "disableFileExtensions": "Voer bestandsextensies in om uit te schakelen"
+    "disableFileExtensions": "Voer bestandsextensies in om uit te schakelen",
+    "defaultLandingPage": "Standaard landingspagina",
+    "defaultLandingPageDescription": "bijv. /files/mysource/mysubpath' of '/settings' - standaardpagina is /files die naar de eerste bronweergave gaat."
   },
   "general": {
     "name": "Naam",
@@ -580,7 +599,10 @@
     "syncFailed": "Na 5 pogingen is het niet gelukt om de status te synchroniseren met de route voor \"{filename}\". Installatie van editor afgebroken om gegevensbeschadiging te voorkomen."
   },
   "player": {
-    "LoopEnabled": "Lus ingeschakeld",
-    "LoopDisabled": "Lus uitgeschakeld"
+    "LoopEnabled": "Herhaling ingeschakeld",
+    "LoopDisabled": "Herhaling uitgeschakeld",
+    "PlayAllOncePlayback": "Alles eenmaal afspelen",
+    "ShuffleAllPlayback": "Alles willekeurig afspelen",
+    "PlayAllLoopedPlayback": "Alles herhaald afspelen"
   }
 }

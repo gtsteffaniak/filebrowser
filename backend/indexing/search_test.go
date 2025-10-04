@@ -11,7 +11,7 @@ import (
 )
 
 func BenchmarkSearchAllIndexes(b *testing.B) {
-	Initialize(settings.Source{Name: "test", Path: "/srv"}, true)
+	Initialize(&settings.Source{Name: "test", Path: "/srv"}, true)
 	idx := GetIndex("test")
 
 	idx.CreateMockData(50, 3) // 50 dirs, 3 files per dir
@@ -77,7 +77,7 @@ func TestParseSearch(t *testing.T) {
 }
 
 func TestSearchWhileIndexing(t *testing.T) {
-	Initialize(settings.Source{Name: "test", Path: "/srv"}, true)
+	Initialize(&settings.Source{Name: "test", Path: "/srv"}, true)
 	idx := GetIndex("test")
 
 	searchTerms := utils.GenerateRandomSearchTerms(10)
@@ -92,21 +92,21 @@ func TestSearchWhileIndexing(t *testing.T) {
 func TestSearchIndexes(t *testing.T) {
 	index := Index{
 		Directories: map[string]*iteminfo.FileInfo{
-			"/":          {Files: []iteminfo.ItemInfo{{Name: "audio-one.wav", Type: "audio"}}},
-			"/test":      {Files: []iteminfo.ItemInfo{{Name: "audio-one.wav", Type: "audio"}}},
-			"/test/path": {Files: []iteminfo.ItemInfo{{Name: "file.txt", Type: "text"}}},
-			"/new/test": {Files: []iteminfo.ItemInfo{
+			"/":           {Files: []iteminfo.ItemInfo{{Name: "audio-one.wav", Type: "audio"}}},
+			"/test/":      {Files: []iteminfo.ItemInfo{{Name: "audio-one.wav", Type: "audio"}}},
+			"/test/path/": {Files: []iteminfo.ItemInfo{{Name: "file.txt", Type: "text"}}},
+			"/new/test/": {Files: []iteminfo.ItemInfo{
 				{Name: "audio.wav", Type: "audio"},
 				{Name: "video.mp4", Type: "video"},
 				{Name: "video.MP4", Type: "video"},
 			}},
-			"/first Dir": {
+			"/first Dir/": {
 				Files: []iteminfo.ItemInfo{
 					{Name: "space jam.zip", Size: 100, Type: "archive"},
 				},
 			},
-			"/new/test/path": {Files: []iteminfo.ItemInfo{{Name: "archive.zip", Type: "archive"}}},
-			"/firstDir": {
+			"/new/test/path/": {Files: []iteminfo.ItemInfo{{Name: "archive.zip", Type: "archive"}}},
+			"/firstDir/": {
 				Files: []iteminfo.ItemInfo{
 					{Name: "archive.zip", Size: 100, Type: "archive"},
 				},
@@ -114,12 +114,19 @@ func TestSearchIndexes(t *testing.T) {
 					{Name: "thisIsDir", Type: "directory", Size: 2 * 1024 * 1024},
 				},
 			},
-			"/firstDir/thisIsDir": {
+			"/firstDir/thisIsDir/": {
 				Files: []iteminfo.ItemInfo{
 					{Name: "hi.txt", Type: "text"},
 				},
 				ItemInfo: iteminfo.ItemInfo{
 					Size: 2 * 1024 * 1024,
+				},
+			},
+			"/new+folder/Pictures/": {
+				Files: []iteminfo.ItemInfo{
+					{Name: "consoletest.mp4", Size: 196091904, Type: "video/mp4"},
+					{Name: "playwright.gif", Size: 2416640, Type: "image/gif"},
+					{Name: "toggle.gif", Size: 65536, Type: "image/gif"},
 				},
 			},
 		},
@@ -155,6 +162,11 @@ func TestSearchIndexes(t *testing.T) {
 					Type: "directory",
 					Size: 0,
 				},
+				{
+					Path: "/new+folder/Pictures/consoletest.mp4",
+					Type: "video/mp4",
+					Size: 196091904,
+				},
 			},
 		},
 		{
@@ -175,7 +187,7 @@ func TestSearchIndexes(t *testing.T) {
 		},
 		{
 			search: "arch",
-			scope:  "/firstDir",
+			scope:  "/firstDir/",
 			expectedResult: []SearchResult{
 				{
 					Path: "/firstDir/archive.zip",
@@ -251,6 +263,28 @@ func TestSearchIndexes(t *testing.T) {
 					Path: "/new/test/audio.wav",
 					Type: "audio",
 					Size: 0,
+				},
+			},
+		},
+		{
+			search: "cons",
+			scope:  "/new+folder/Pictures/",
+			expectedResult: []SearchResult{
+				{
+					Path: "/new+folder/Pictures/consoletest.mp4",
+					Type: "video/mp4",
+					Size: 196091904,
+				},
+			},
+		},
+		{
+			search: "toggle",
+			scope:  "/new+folder/Pictures/",
+			expectedResult: []SearchResult{
+				{
+					Path: "/new+folder/Pictures/toggle.gif",
+					Type: "image/gif",
+					Size: 65536,
 				},
 			},
 		},

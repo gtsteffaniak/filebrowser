@@ -54,7 +54,10 @@
     "listView": "목록 보기",
     "compactView": "컴팩트 보기",
     "normalView": "일반 보기",
-    "galleryView": "갤러리 보기"
+    "galleryView": "갤러리 보기",
+    "uploadFiles": "파일 업로드",
+    "uploadFolder": "폴더 업로드",
+    "openUploadViewer": "업로드 관리자 열기"
   },
   "download": {
     "downloadFile": "파일 다운로드",
@@ -134,7 +137,10 @@
     "submit": "로그인",
     "usernameTaken": "사용자 이름이 존재합니다",
     "wrongCredentials": "사용자 이름 또는 비밀번호를 확인하십시오",
-    "or": "또는"
+    "or": "또는",
+    "inProgress": "로그인...",
+    "failedLogin": "로그인에 실패했습니다.",
+    "invalidCredentials": "제공된 자격 증명이 잘못되었습니다."
   },
   "prompts": {
     "copy": "복사",
@@ -195,7 +201,8 @@
     "moveSuccess": "파일이 성공적으로 이동했습니다!",
     "copySuccess": "파일이 성공적으로 복사되었습니다!",
     "lastModified": "마지막 수정{suffix}",
-    "size": "크기{suffix}"
+    "size": "크기{suffix}",
+    "operationInProgress": "작업이 진행 중입니다 잠시만 기다려주세요..."
   },
   "search": {
     "images": "이미지",
@@ -407,7 +414,16 @@
     "titleDefault": "공유 파일 - {title}",
     "defaultViewMode": "기본 보기 모드",
     "defaultViewModeDescription": "이 공유를 보는 익명 사용자의 기본 보기 모드를 설정합니다. 로그인한 사용자는 여전히 보기 기본 설정을 변경할 수 있습니다.",
-    "disableFileViewer": "파일 뷰어 비활성화"
+    "disableFileViewer": "파일 뷰어 비활성화",
+    "shareType": "공유 유형",
+    "shareTypeDescription": "만들 공유 유형입니다. 일반 공유는 파일을 보고 다운로드할 수 있습니다. 업로드 공유는 공유에 파일을 업로드할 수 있습니다.",
+    "normalShare": "보통",
+    "uploadShare": "업로드만 가능",
+    "perUserDownloadLimit": "각 사용자에게 다운로드 제한 적용",
+    "perUserDownloadLimitDescription": "이 기능을 활성화하면 각 사용자에게 다운로드 제한이 적용됩니다. 익명 사용자는 이 공유에서 어떤 파일도 다운로드할 수 없습니다.",
+    "descriptionUploadDefault": "파일을 업로드할 수 있는 공유가 전송되었습니다.",
+    "extractEmbeddedSubtitles": "임베디드 자막 추출",
+    "extractEmbeddedSubtitlesDescription": "로드 시 미디어 파일에서 임베디드 자막을 추출 - 대용량 파일의 경우 속도가 느려질 수 있습니다."
   },
   "api": {
     "title": "API 키:",
@@ -501,7 +517,8 @@
     "uploadChunkSizeMb": "업로드 청크 크기(MB)",
     "uploadChunkSizeMbHelp": "일반적으로 5~50MB이며, 연결이 불안정하거나 제한적인 경우에는 이보다 작을수록 좋습니다. 0으로 설정하면 업로드 청킹이 비활성화됩니다.",
     "clearAll": "완료를 지우면 오류, 일시 중지 및 충돌이 제거됩니다.",
-    "clearAllDescription": "완료 지우기 버튼은 오류, 일시 중지, 충돌 상태를 포함하여 완료된 상태의 모든 업로드를 지웁니다."
+    "clearAllDescription": "완료 지우기 버튼은 오류, 일시 중지, 충돌 상태를 포함하여 완료된 상태의 모든 업로드를 지웁니다.",
+    "uploadSettings": "업로드 설정"
   },
   "colors": {
     "red": "빨간색",
@@ -569,7 +586,9 @@
     "themeAndLanguage": "테마 및 언어",
     "previewFolder": "가능한 경우 폴더의 썸네일 표시",
     "previewFolderDescription": "썸네일을 표지로 사용하는 첫 번째 하위 항목이 있는 폴더의 썸네일 미리 보기를 표시합니다.",
-    "disableFileExtensions": "비활성화할 파일 확장명을 입력합니다."
+    "disableFileExtensions": "비활성화할 파일 확장명을 입력합니다.",
+    "defaultLandingPage": "기본 랜딩 페이지",
+    "defaultLandingPageDescription": "예. '/파일/마이소스/마이서브경로' 또는 '/설정' - 기본 페이지는 첫 번째 소스 목록 보기로 이동하는 /파일입니다."
   },
   "editor": {
     "uninitialized": "편집기를 초기화하지 못했습니다. 다시 로드하세요.",
@@ -580,7 +599,10 @@
     "syncFailed": "5번 시도 후 \"{filename}\"의 경로와 상태를 동기화하지 못했습니다. 데이터 손상을 방지하기 위해 편집기 설정을 중단합니다."
   },
   "player": {
-    "LoopEnabled": "루프 사용",
-    "LoopDisabled": "루프 비활성화"
+    "LoopEnabled": "반복 활성화",
+    "LoopDisabled": "반복 비활성화",
+    "PlayAllOncePlayback": "모두 한 번 재생",
+    "ShuffleAllPlayback": "모두 셔플 재생",
+    "PlayAllLoopedPlayback": "모두 반복 재생"
   }
 }

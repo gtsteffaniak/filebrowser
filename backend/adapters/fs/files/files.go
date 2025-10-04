@@ -18,13 +18,14 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/database/access"
 	"github.com/gtsteffaniak/filebrowser/backend/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
-func FileInfoFaster(opts iteminfo.FileOptions) (*iteminfo.ExtendedFileInfo, error) {
+func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.ExtendedFileInfo, error) {
 	response := &iteminfo.ExtendedFileInfo{}
 	index := indexing.GetIndex(opts.Source)
 	if index == nil {
@@ -35,26 +36,53 @@ func FileInfoFaster(opts iteminfo.FileOptions) (*iteminfo.ExtendedFileInfo, erro
 	}
 	realPath, isDir, err := index.GetRealPath(opts.Path)
 	if err != nil {
-		return response, fmt.Errorf("could not get real path for requested path: %v", opts.Path)
+		return response, fmt.Errorf("could not get real path for requested path: %v, error: %v", opts.Path, err)
+	}
+	if !strings.HasSuffix(opts.Path, "/") && isDir {
+		opts.Path = opts.Path + "/"
 	}
 	opts.IsDir = isDir
 	var info *iteminfo.FileInfo
 	var exists bool
-	var useFsDirInfo bool
-	if isDir {
+	var useFsInfo bool
+
+	// Check if indexing is disabled for this source
+	if index.Config.DisableIndexing {
+		useFsInfo = true
+	}
+
+	if !useFsInfo && isDir {
 		err = index.RefreshFileInfo(opts)
 		if err != nil {
-			if err == errors.ErrNotIndexed && index.Config.DisableIndexing {
-				useFsDirInfo = true
-			} else if err == errors.ErrNotIndexed {
+			if err == errors.ErrNotIndexed {
 				return response, fmt.Errorf("could not refresh file info: %v", err)
 			}
 		}
 	}
-	if useFsDirInfo {
-		info, err = index.GetFsDirInfo(opts.Path)
-		if err != nil {
-			return response, err
+
+	if useFsInfo {
+		if isDir {
+			info, err = index.GetFsDirInfo(opts.Path)
+			if err != nil {
+				return response, err
+			}
+		} else {
+			var fileInfo os.FileInfo
+			// Get file info directly from filesystem
+			fileInfo, err = os.Stat(realPath)
+			if err != nil {
+				return response, fmt.Errorf("could not stat file: %v", err)
+			}
+
+			info = &iteminfo.FileInfo{
+				Path: opts.Path,
+				ItemInfo: iteminfo.ItemInfo{
+					Name:    fileInfo.Name(),
+					Size:    fileInfo.Size(),
+					ModTime: fileInfo.ModTime(),
+				},
+			}
+			info.DetectType(realPath, false)
 		}
 	} else {
 		info, exists = index.GetReducedMetadata(opts.Path, opts.IsDir)
@@ -73,34 +101,17 @@ func FileInfoFaster(opts iteminfo.FileOptions) (*iteminfo.ExtendedFileInfo, erro
 	response.FileInfo = *info
 	response.RealPath = realPath
 	response.Source = opts.Source
-	if opts.Access != nil && !opts.Access.Permitted(index.Path, opts.Path, opts.Username) {
-		// check if any subpath is permitted
-		// keep track of permitted paths and only show them at the end
-		subFolders := info.Folders
-		subFiles := info.Files
-		response.Folders = make([]iteminfo.ItemInfo, 0)
-		response.Files = make([]iteminfo.ItemInfo, 0)
-		hasPermittedPaths := false
-		for _, subFolder := range subFolders {
-			indexPath := info.Path + subFolder.Name
-			if opts.Access.Permitted(index.Path, indexPath, opts.Username) {
-				hasPermittedPaths = true
-				response.Folders = append(response.Folders, subFolder)
-			}
-		}
-		for _, subFile := range subFiles {
-			indexPath := info.Path + subFile.Name
-			if opts.Access.Permitted(index.Path, indexPath, opts.Username) {
-				hasPermittedPaths = true
-				response.Files = append(response.Files, subFile)
-			}
-		}
-		if !hasPermittedPaths {
-			return response, errors.ErrPermissionDenied
+
+	if access != nil && !access.Permitted(index.Path, opts.Path, opts.Username) {
+		// User doesn't have access to the current folder, but check if they have access to any subitems
+		// This allows specific allow rules on subfolders/files to work even when parent is denied
+		err := access.CheckChildItemAccess(response, index, opts.Username)
+		if err != nil {
+			return response, err
 		}
 	}
-	if opts.Content {
-		processContent(response, index)
+	if opts.Content || opts.Metadata {
+		processContent(response, index, opts)
 	}
 	if settings.Config.Integrations.OnlyOffice.Secret != "" && info.Type != "directory" && iteminfo.IsOnlyOffice(info.Name) {
 		response.OnlyOfficeId = generateOfficeId(realPath)
@@ -109,7 +120,7 @@ func FileInfoFaster(opts iteminfo.FileOptions) (*iteminfo.ExtendedFileInfo, erro
 	return response, nil
 }
 
-func processContent(info *iteminfo.ExtendedFileInfo, idx *indexing.Index) {
+func processContent(info *iteminfo.ExtendedFileInfo, idx *indexing.Index, opts utils.FileOptions) {
 	isVideo := strings.HasPrefix(info.Type, "video")
 	isAudio := strings.HasPrefix(info.Type, "audio")
 	isFolder := info.Type == "directory"
@@ -118,12 +129,15 @@ func processContent(info *iteminfo.ExtendedFileInfo, idx *indexing.Index) {
 	}
 
 	if isVideo {
-		parentInfo, exists := idx.GetReducedMetadata(filepath.Dir(info.Path), true)
-		if exists {
-			info.DetectSubtitles(parentInfo)
-			err := info.LoadSubtitleContent()
-			if err != nil {
-				logger.Debug("failed to load subtitle content: " + err.Error())
+		if opts.ExtractEmbeddedSubtitles {
+			parentPath := filepath.Dir(info.Path)
+			parentInfo, exists := idx.GetReducedMetadata(parentPath, true)
+			if exists {
+				info.DetectSubtitles(parentInfo)
+				err := info.LoadSubtitleContent()
+				if err != nil {
+					logger.Debug("failed to load subtitle content: " + err.Error())
+				}
 			}
 		}
 		return
@@ -148,7 +162,7 @@ func processContent(info *iteminfo.ExtendedFileInfo, idx *indexing.Index) {
 		}
 		info.Content = content
 	} else {
-		logger.Debug("skipping large text file contents (20MB limit): "+info.Path, info.Name)
+		logger.Debug("skipping large text file contents (20MB limit): "+info.Path, info.Name, info.Type)
 	}
 }
 
@@ -202,8 +216,8 @@ func extractAudioMetadata(item *iteminfo.ExtendedFileInfo) error {
 
 	// Extract album art and encode as base64 with strict size limits
 	if picture := m.Picture(); picture != nil && picture.Data != nil {
-		// More aggressive size limit to prevent memory issues (max 2MB)
-		if len(picture.Data) <= 2*1024*1024 {
+		// More aggressive size limit to prevent memory issues (max 5MB)
+		if len(picture.Data) <= 5*1024*1024 {
 			item.AudioMeta.AlbumArt = base64.StdEncoding.EncodeToString(picture.Data)
 		} else {
 			logger.Debugf("Skipping album art for %s: too large (%d bytes)", item.RealPath, len(picture.Data))
@@ -236,7 +250,7 @@ func DeleteFiles(source, absPath string, absDirPath string) error {
 		indexing.RealPathCache.Delete(realPath + ":isdir")
 	}
 
-	refreshConfig := iteminfo.FileOptions{Path: index.MakeIndexPath(absDirPath), IsDir: true}
+	refreshConfig := utils.FileOptions{Path: index.MakeIndexPath(absDirPath), IsDir: true}
 	err = index.RefreshFileInfo(refreshConfig)
 	if err != nil {
 		return err
@@ -252,8 +266,16 @@ func RefreshIndex(source string, path string, isDir bool, recursive bool) error 
 	if idx.Config.DisableIndexing {
 		return nil
 	}
+	// Always normalize path using MakeIndexPath
 	path = idx.MakeIndexPath(path)
-	return idx.RefreshFileInfo(iteminfo.FileOptions{Path: path, IsDir: isDir, Recursive: recursive})
+
+	// MakeIndexPath always adds trailing slash, but for files we need to remove it
+	if !isDir {
+		path = strings.TrimSuffix(path, "/")
+	}
+
+	err := idx.RefreshFileInfo(utils.FileOptions{Path: path, IsDir: isDir, Recursive: recursive})
+	return err
 }
 
 // validateMoveDestination checks if a move/rename operation is valid
@@ -323,19 +345,27 @@ func MoveResource(isSrcDir, isDestDir bool, sourceIndex, destIndex, realsrc, rea
 		indexing.RealPathCache.Delete(srcRealPath + ":isdir")
 	}
 
-	// For move operations, refresh the parent directory to capture the moved file
-	refreshPath := realdst
-	refreshIsDir := isDestDir
-	if !isSrcDir {
-		// If moving a file (regardless of destination), refresh the parent directory
-		refreshPath = filepath.Dir(realdst)
-		refreshIsDir = true
-	}
+	// For move operations, refresh the moved item and its new parent directory
+	// Run all refresh operations in a goroutine to avoid blocking the API
+	if isSrcDir {
+		go func() {
+			// When moving a folder, refresh the folder itself recursively FIRST
+			// Must complete before parent refresh to avoid race condition
+			RefreshIndex(destIndex, realdst, true, true) //nolint:errcheck
 
-	go RefreshIndex(destIndex, refreshPath, refreshIsDir, true) //nolint:errcheck
+			// THEN refresh the parent directory so it sees the newly indexed child
+			parentDir := filepath.Dir(realdst)
+			RefreshIndex(destIndex, parentDir, true, false) //nolint:errcheck
+		}()
+	} else {
+		// If moving a file, just refresh the parent directory
+		parentDir := filepath.Dir(realdst)
+		go RefreshIndex(destIndex, parentDir, true, false) //nolint:errcheck
+	}
 
 	// Use backend source paths to match how shares are stored
 	go s.UpdateShares(srcIdx.Path, srcIdx.MakeIndexPath(realsrc), dstIdx.Path, dstIdx.MakeIndexPath(realdst)) //nolint:errcheck
+
 	return nil
 }
 
@@ -374,10 +404,11 @@ func CopyResource(isSrcDir, isDestDir bool, sourceIndex, destIndex, realsrc, rea
 	}
 
 	go RefreshIndex(destIndex, dstRefreshPath, dstRefreshIsDir, true) //nolint:errcheck
+
 	return nil
 }
 
-func WriteDirectory(opts iteminfo.FileOptions) error {
+func WriteDirectory(opts utils.FileOptions) error {
 	idx := indexing.GetIndex(opts.Source)
 	if idx == nil {
 		return fmt.Errorf("could not get index: %v ", opts.Source)
@@ -394,8 +425,7 @@ func WriteDirectory(opts iteminfo.FileOptions) error {
 			return fmt.Errorf("could not remove existing file to create directory: %v", err)
 		}
 		// Clear the cache for the removed file
-		indexPath := idx.MakeIndexPath(opts.Path)
-		realPath, _, err = idx.GetRealPath(indexPath)
+		realPath, _, err = idx.GetRealPath(opts.Path)
 		if err == nil {
 			indexing.RealPathCache.Delete(realPath)
 			indexing.RealPathCache.Delete(realPath + ":isdir")
@@ -407,17 +437,27 @@ func WriteDirectory(opts iteminfo.FileOptions) error {
 	if err != nil {
 		return err
 	}
+
+	// Explicitly set directory permissions to bypass umask
+	err = os.Chmod(realPath, fileutils.PermDir)
+	if err != nil {
+		return err
+	}
+
 	return RefreshIndex(idx.Name, opts.Path, true, true)
 }
 
-func WriteFile(opts iteminfo.FileOptions, in io.Reader) error {
+func WriteFile(opts utils.FileOptions, in io.Reader) error {
 	idx := indexing.GetIndex(opts.Source)
 	if idx == nil {
 		return fmt.Errorf("could not get index: %v ", opts.Source)
 	}
 	realPath, _, _ := idx.GetRealPath(opts.Path)
+	// Strip trailing slash from realPath if it's meant to be a file
+	realPath = strings.TrimRight(realPath, "/")
 	// Ensure the parent directories exist
-	err := os.MkdirAll(filepath.Dir(realPath), fileutils.PermDir)
+	parentDir := filepath.Dir(realPath)
+	err := os.MkdirAll(parentDir, fileutils.PermDir)
 	if err != nil {
 		return err
 	}
@@ -429,13 +469,9 @@ func WriteFile(opts iteminfo.FileOptions, in io.Reader) error {
 		if err != nil {
 			return fmt.Errorf("could not remove existing directory to create file: %v", err)
 		}
-		// Clear the cache for the removed directory
-		indexPath := idx.MakeIndexPath(opts.Path)
-		realPath, _, err = idx.GetRealPath(indexPath)
-		if err == nil {
-			indexing.RealPathCache.Delete(realPath)
-			indexing.RealPathCache.Delete(realPath + ":isdir")
-		}
+		// Clear the cache for the removed directory (use realPath without re-fetching)
+		indexing.RealPathCache.Delete(realPath)
+		indexing.RealPathCache.Delete(realPath + ":isdir")
 	}
 
 	// Open the file for writing (create if it doesn't exist, truncate if it does)
@@ -450,6 +486,13 @@ func WriteFile(opts iteminfo.FileOptions, in io.Reader) error {
 	if err != nil {
 		return err
 	}
+
+	// Explicitly set file permissions to bypass umask
+	err = os.Chmod(realPath, fileutils.PermFile)
+	if err != nil {
+		return err
+	}
+
 	return RefreshIndex(opts.Source, opts.Path, false, false)
 }
 

@@ -16,14 +16,14 @@ func TestUpdateUserScopes_Phases(t *testing.T) {
 		DefaultUserScope: "/defaultA",
 	}}
 	sourceB := settings.Source{Path: "/pathB", Name: "sourceB", Config: settings.SourceConfig{DefaultEnabled: true, DefaultUserScope: "/defaultB"}}
-	settings.Config.Server.Sources = []settings.Source{sourceA, sourceB}
-	settings.Config.Server.SourceMap = map[string]settings.Source{
-		"/pathA": sourceA,
-		"/pathB": sourceB,
+	settings.Config.Server.Sources = []*settings.Source{&sourceA, &sourceB}
+	settings.Config.Server.SourceMap = map[string]*settings.Source{
+		"/pathA": &sourceA,
+		"/pathB": &sourceB,
 	}
-	settings.Config.Server.NameToSource = map[string]settings.Source{
-		"sourceA": sourceA,
-		"sourceB": sourceB,
+	settings.Config.Server.NameToSource = map[string]*settings.Source{
+		"sourceA": &sourceA,
+		"sourceB": &sourceB,
 	}
 
 	// ---------------------
@@ -159,14 +159,14 @@ func TestUpdateUserScopes_Phases(t *testing.T) {
 		CreateUserDir:    true,
 	}}
 	sourceB = settings.Source{Path: "/pathB", Name: "sourceB", Config: settings.SourceConfig{DefaultEnabled: true, DefaultUserScope: "/defaultB"}}
-	settings.Config.Server.Sources = []settings.Source{sourceA, sourceB}
-	settings.Config.Server.SourceMap = map[string]settings.Source{
-		"/pathA": sourceA,
-		"/pathB": sourceB,
+	settings.Config.Server.Sources = []*settings.Source{&sourceA, &sourceB}
+	settings.Config.Server.SourceMap = map[string]*settings.Source{
+		"/pathA": &sourceA,
+		"/pathB": &sourceB,
 	}
-	settings.Config.Server.NameToSource = map[string]settings.Source{
-		"sourceA": sourceA,
-		"sourceB": sourceB,
+	settings.Config.Server.NameToSource = map[string]*settings.Source{
+		"sourceA": &sourceA,
+		"sourceB": &sourceB,
 	}
 
 	// Run again without resetting user objects to test idempotency + renaming

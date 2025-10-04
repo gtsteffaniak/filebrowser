@@ -65,10 +65,18 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		if link.DisableAnonymous && data.user.Username == "anonymous" {
 			return http.StatusForbidden, fmt.Errorf("share is not available to anonymous users")
 		}
+		// Block anonymous users if per-user download limit is enabled
+		if link.PerUserDownloadLimit && data.user.Username == "anonymous" {
+			return http.StatusForbidden, fmt.Errorf("anonymous downloads are not allowed with per-user limits")
+		}
 		if len(link.AllowedUsernames) > 0 {
 			if !slices.Contains(link.AllowedUsernames, data.user.Username) {
 				return http.StatusForbidden, fmt.Errorf("share is not available to this user")
 			}
+		}
+		// Check per-user download limit
+		if link.PerUserDownloadLimit && link.HasReachedUserLimit(data.user.Username) {
+			return http.StatusForbidden, fmt.Errorf("user download limit reached for this share")
 		}
 		data.share = link
 		// Authenticate the share request if needed
@@ -92,13 +100,14 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		if link.DisableFileViewer || reachedDownloadsLimit {
 			getContent = false
 		}
-		file, err := FileInfoFasterFunc(iteminfo.FileOptions{
-			Path:    utils.JoinPathAsUnix(link.Path, path),
-			Source:  link.Source,
-			Modify:  false,
-			Expand:  true,
-			Content: getContent,
-		})
+		file, err := FileInfoFasterFunc(utils.FileOptions{
+			Path:                     utils.JoinPathAsUnix(link.Path, path),
+			Source:                   link.Source,
+			Modify:                   false,
+			Expand:                   true,
+			Content:                  getContent,
+			ExtractEmbeddedSubtitles: settings.Config.Integrations.Media.ExtractEmbeddedSubtitles && link.ExtractEmbeddedSubtitles,
+		}, nil)
 		if err != nil {
 			logger.Errorf("error fetching file info for share. hash=%v path=%v error=%v", hash, path, err)
 			return errToStatus(err), fmt.Errorf("error fetching share from server")
@@ -113,6 +122,10 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 			link.Mu.Lock()
 			link.Downloads++
 			link.Mu.Unlock()
+			// Track per-user download if enabled
+			if link.PerUserDownloadLimit {
+				link.IncrementUserDownload(data.user.Username)
+			}
 		}
 		file.Path = "/" + strings.TrimPrefix(strings.TrimPrefix(file.Path, link.Path), "/")
 		// Set the file info in the `data` object
@@ -485,6 +498,46 @@ func userWithoutOTP(fn handleFunc) http.HandlerFunc {
 
 func withSelfOrAdmin(fn handleFunc) http.HandlerFunc {
 	return wrapHandler(withSelfOrAdminHelper(fn))
+}
+
+// withTimeoutHelper adds a configurable timeout context to any operation
+func withTimeoutHelper(timeout time.Duration, fn handleFunc) handleFunc {
+	return func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
+		// Create a context with the specified timeout
+		ctx, cancel := context.WithTimeout(r.Context(), timeout)
+		defer cancel()
+
+		// Log timeout warning at 80% of timeout duration
+		warningTime := time.Duration(float64(timeout) * 0.8)
+		go func() {
+			select {
+			case <-time.After(warningTime):
+				if ctx.Err() == nil {
+					logger.Api(http.StatusRequestTimeout, fmt.Sprintf("Request approaching timeout (%.1fs/%.0fs): %s %s", warningTime.Seconds(), timeout.Seconds(), r.Method, r.URL.Path))
+				}
+			case <-ctx.Done():
+				// Context finished before warning time
+				return
+			}
+		}()
+
+		// Replace the request context with the timeout context
+		r = r.WithContext(ctx)
+		data.ctx = ctx
+		// Call the handler and check for timeout
+		status, err := fn(w, r, data)
+
+		// Check if the context was cancelled due to timeout
+		if ctx.Err() == context.DeadlineExceeded {
+			return http.StatusRequestTimeout, fmt.Errorf("request timed out after %.0f seconds", timeout.Seconds())
+		}
+
+		return status, err
+	}
+}
+
+func withTimeout(timeout time.Duration, fn handleFunc) http.HandlerFunc {
+	return wrapHandler(withTimeoutHelper(timeout, fn))
 }
 
 func muxWithMiddleware(mux *http.ServeMux) *http.ServeMux {

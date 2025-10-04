@@ -60,7 +60,7 @@ func searchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 	query := r.URL.Query().Get("query")
 	source := r.URL.Query().Get("source")
 	scope := r.URL.Query().Get("scope")
-	unencodedScope, err := url.QueryUnescape(scope)
+	unencodedScope, err := url.PathUnescape(scope)
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}
@@ -79,7 +79,6 @@ func searchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 		return http.StatusForbidden, err
 	}
 	combinedPath := index.MakeIndexPath(filepath.Join(userscope, searchScope))
-	combinedPath = strings.TrimSuffix(combinedPath, "/") + "/" // Ensure trailing slash
 	// Perform the search using the provided query and user scope
 	response := index.Search(query, combinedPath, sessionId)
 	for i := range response {

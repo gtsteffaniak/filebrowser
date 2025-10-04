@@ -54,7 +54,10 @@
     "listView": "Lista nézet",
     "compactView": "Kompakt nézet",
     "normalView": "Normál nézet",
-    "galleryView": "Galéria nézet"
+    "galleryView": "Galéria nézet",
+    "uploadFiles": "Fájlok feltöltése",
+    "uploadFolder": "Mappa feltöltése",
+    "openUploadViewer": "Nyissa meg a Feltöltéskezelőt"
   },
   "download": {
     "downloadFile": "Fájl letöltése",
@@ -134,7 +137,10 @@
     "submit": "Belépés",
     "usernameTaken": "A felhasználói név már foglalt",
     "wrongCredentials": "Hibás hitelesítő adatok",
-    "or": "VAGY"
+    "or": "VAGY",
+    "inProgress": "Bejelentkezés...",
+    "failedLogin": "Sikertelen bejelentkezés",
+    "invalidCredentials": "Érvénytelen hitelesítő adatok megadása"
   },
   "prompts": {
     "copy": "Másolása",
@@ -195,7 +201,8 @@
     "moveSuccess": "Fájlok sikeresen áthelyezve!",
     "copySuccess": "A fájlok másolása sikeres volt!",
     "lastModified": "Utoljára módosítva{suffix}",
-    "size": "Méret{suffix}"
+    "size": "Méret{suffix}",
+    "operationInProgress": "Művelet folyamatban, kérjük várjon..."
   },
   "search": {
     "images": "Képek",
@@ -407,7 +414,16 @@
     "titleDefault": "Megosztott fájlok - {title}",
     "defaultViewMode": "Alapértelmezett nézetmód",
     "defaultViewModeDescription": "A megosztást megtekintő névtelen felhasználók alapértelmezett megtekintési módjának beállítása. A bejelentkezett felhasználók továbbra is módosíthatják a nézeti beállításaikat.",
-    "disableFileViewer": "Fájlnéző letiltása"
+    "disableFileViewer": "Fájlnéző letiltása",
+    "shareType": "Megosztás típusa",
+    "shareTypeDescription": "A létrehozandó megosztás típusa. A normál megosztások lehetővé teszik a fájlok megtekintését és letöltését. A feltöltési megosztások lehetővé teszik a fájlok feltöltését a megosztásra.",
+    "normalShare": "Normál",
+    "uploadShare": "Csak feltöltés",
+    "perUserDownloadLimit": "Alkalmazza a letöltési korlátot minden egyes felhasználóra",
+    "perUserDownloadLimitDescription": "Ha engedélyezve van, a letöltési limit minden egyes felhasználóra vonatkozik. A névtelen felhasználók nem tölthetnek le fájlokat erről a megosztásról.",
+    "descriptionUploadDefault": "Megosztást küldtek Önnek fájlok feltöltéséhez.",
+    "extractEmbeddedSubtitles": "Beágyazott feliratok kivonása",
+    "extractEmbeddedSubtitlesDescription": "Beágyazott feliratok kivonása a médiafájlokból betöltéskor -- ez nagy fájlok esetén lassú lehet."
   },
   "api": {
     "title": "API-kulcsok:",
@@ -501,7 +517,8 @@
     "uploadChunkSizeMb": "Feltöltési csomag mérete MB-ban",
     "uploadChunkSizeMbHelp": "Általában 5 és 50 MB között, instabil vagy korlátozott kapcsolatok esetén a kisebb méret jobb. A 0 értékre állítás kikapcsolja a feltöltési darabolás funkciót.",
     "clearAll": "A befejezett törlésnek el kell távolítania a hibát, a szünetet és a konfliktust.",
-    "clearAllDescription": "A befejezett állapot törlése gomb az összes befejezett állapotban lévő feltöltést törli, beleértve a hiba, a szüneteltetés és a konfliktus állapotokat is."
+    "clearAllDescription": "A befejezett állapot törlése gomb az összes befejezett állapotban lévő feltöltést törli, beleértve a hiba, a szüneteltetés és a konfliktus állapotokat is.",
+    "uploadSettings": "Feltöltési beállítások"
   },
   "colors": {
     "red": "piros",
@@ -569,7 +586,9 @@
     "themeAndLanguage": "Téma és nyelv",
     "previewFolder": "A mappák miniatűrjeinek megjelenítése, ha rendelkezésre állnak",
     "previewFolderDescription": "Miniatűr előnézetek megjelenítése olyan mappákhoz, amelyekben az első gyermekelem miniatűrrel borítóképként szerepel.",
-    "disableFileExtensions": "Adja meg a letiltandó fájlkiterjesztéseket"
+    "disableFileExtensions": "Adja meg a letiltandó fájlkiterjesztéseket",
+    "defaultLandingPage": "Alapértelmezett céloldal",
+    "defaultLandingPageDescription": "pl. '/files/mysource/mysubpath' vagy '/settings' - az alapértelmezett oldal a /files, amely az első forráslistázó nézethez vezet."
   },
   "editor": {
     "uninitialized": "Nem sikerült inicializálni a szerkesztőt. Kérjük, töltse újra.",
@@ -581,6 +600,9 @@
   },
   "player": {
     "LoopEnabled": "Hurok engedélyezve",
-    "LoopDisabled": "Hurok letiltva"
+    "LoopDisabled": "Hurok letiltva",
+    "PlayAllOncePlayback": "Összes lejátszása egyszer",
+    "ShuffleAllPlayback": "Összes keverése",
+    "PlayAllLoopedPlayback": "Összes lejátszása hurkokban"
   }
 }

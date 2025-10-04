@@ -185,17 +185,6 @@
   background: var(--surfaceSecondary) !important;
 }
 
-/* Share box */
-.dark-mode .share__box {
-  background: var(--surfacePrimary) !important;
-  color: var(--textPrimary);
-}
-
-/* Share box element */
-.dark-mode .share__box__element {
-  border-top-color: var(--divider);
-}
-
 /* Help button */
 .dark-mode .helpButton {
   background: var(--background);

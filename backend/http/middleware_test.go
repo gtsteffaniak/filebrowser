@@ -10,6 +10,7 @@ import (
 	storm "github.com/asdine/storm/v3"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/database/access"
 	"github.com/gtsteffaniak/filebrowser/backend/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/database/storage/bolt"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
@@ -27,8 +28,8 @@ func setupTestEnv(t *testing.T) {
 		t.Fatal(err)
 	}
 	config = &settings.Config // mocked
-	config.Server.SourceMap = map[string]settings.Source{
-		"/srv": settings.Source{
+	config.Server.SourceMap = map[string]*settings.Source{
+		"/srv": &settings.Source{
 			Path: "/srv",
 			Name: "srv",
 		},
@@ -43,7 +44,7 @@ func mockFileInfoFaster(t *testing.T) {
 	t.Cleanup(func() { FileInfoFasterFunc = originalFileInfoFaster })
 
 	// Mock the function to skip execution
-	FileInfoFasterFunc = func(opts iteminfo.FileOptions) (*iteminfo.ExtendedFileInfo, error) {
+	FileInfoFasterFunc = func(opts utils.FileOptions, access *access.Storage) (*iteminfo.ExtendedFileInfo, error) {
 		return &iteminfo.ExtendedFileInfo{
 			FileInfo: iteminfo.FileInfo{
 				Path: opts.Path,
@@ -223,7 +224,7 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 			recorder := httptest.NewRecorder()
 
 			// Wrap the handler with authentication middleware
-			handler := withHashFileHelper(publicShareHandler)
+			handler := withHashFileHelper(publicGetResourceHandler)
 			if err := store.Settings.Save(&settings.Settings{
 				Auth: settings.Auth{
 					Key: "key",

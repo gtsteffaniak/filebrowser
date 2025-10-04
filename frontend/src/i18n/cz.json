@@ -54,7 +54,10 @@
     "listView": "Zobrazení seznamu",
     "compactView": "Kompaktní zobrazení",
     "normalView": "Normální zobrazení",
-    "galleryView": "Pohled do galerie"
+    "galleryView": "Pohled do galerie",
+    "uploadFiles": "Nahrávání souborů",
+    "uploadFolder": "Nahrát složku",
+    "openUploadViewer": "Otevřít Správce nahrávání"
   },
   "download": {
     "downloadFile": "Stáhnout soubor",
@@ -137,7 +140,10 @@
     "submit": "Přihlásit se",
     "usernameTaken": "Uživatelské jméno je již obsazeno",
     "wrongCredentials": "Nesprávné přihlašovací údaje",
-    "or": "NEBO"
+    "or": "NEBO",
+    "inProgress": "Přihlášení...",
+    "failedLogin": "Nepodařilo se přihlásit",
+    "invalidCredentials": "Neplatné zadané pověření"
   },
   "share": {
     "notice": "Poznámka: po vytvoření sdílené složky je tato složka více vystavena veřejnosti a platí pro ni jiná pravidla přístupu. Pokud není sdílená složka bezpečně nakonfigurována, může k ní mít přístup kdokoli.",
@@ -183,7 +189,16 @@
     "titleDefault": "Sdílené soubory - {title}",
     "defaultViewMode": "Výchozí režim zobrazení",
     "defaultViewModeDescription": "Nastavení výchozího režimu zobrazení pro anonymní uživatele prohlížející tuto sdílenou složku. Přihlášení uživatelé mohou stále měnit předvolby zobrazení.",
-    "disableFileViewer": "Zakázat prohlížeč souborů"
+    "disableFileViewer": "Zakázat prohlížeč souborů",
+    "shareType": "Typ sdílení",
+    "shareTypeDescription": "Typ podílu, který se má vytvořit. Normální sdílení umožňuje prohlížení a stahování souborů. Sdílené složky typu Upload umožňují nahrávání souborů do sdílené složky.",
+    "normalShare": "Normální",
+    "uploadShare": "Pouze nahrávání",
+    "perUserDownloadLimit": "Použít limit stahování pro každého uživatele",
+    "perUserDownloadLimitDescription": "Pokud je tato možnost povolena, bude limit stahování platit pro každého uživatele. Anonymní uživatelé nebudou moci z této sdílené složky stahovat žádné soubory.",
+    "descriptionUploadDefault": "Byla vám zaslána sdílená složka pro nahrávání souborů.",
+    "extractEmbeddedSubtitles": "Výpis vložených titulků",
+    "extractEmbeddedSubtitlesDescription": "Extrahovat vložené titulky z mediálních souborů při načítání - u velkých souborů to může být pomalé."
   },
   "prompts": {
     "copy": "Kopírovat",
@@ -244,7 +259,8 @@
     "moveSuccess": "Soubory byly úspěšně přesunuty!",
     "copySuccess": "Soubory byly úspěšně zkopírovány!",
     "lastModified": "Poslední úprava{suffix}",
-    "size": "Velikost{suffix}"
+    "size": "Velikost{suffix}",
+    "operationInProgress": "Probíhá operace, vyčkejte prosím..."
   },
   "search": {
     "images": "Obrázky",
@@ -330,7 +346,9 @@
     "themeAndLanguage": "Téma a jazyk",
     "previewFolder": "Zobrazení miniatur složek, pokud jsou k dispozici",
     "previewFolderDescription": "Zobrazení náhledů miniatur pro složky s první podřízenou položkou s miniaturou jako obálkou.",
-    "disableFileExtensions": "Zadejte přípony souborů, které chcete zakázat"
+    "disableFileExtensions": "Zadejte přípony souborů, které chcete zakázat",
+    "defaultLandingPage": "Výchozí vstupní stránka",
+    "defaultLandingPageDescription": "např. '/files/mysource/mysubpath' nebo '/settings' - výchozí stránka je /files, která přejde do prvního zobrazení seznamu zdrojů."
   },
   "settings": {
     "enterPassword": "Zadejte heslo",
@@ -525,7 +543,8 @@
     "uploadChunkSizeMb": "Velikost nahraného souboru v MB",
     "uploadChunkSizeMbHelp": "Obvykle 5 až 50 MB, menší velikost je lepší pro nestabilní nebo omezené připojení. Nastavením na hodnotu 0 se vypne rozdělování nahrávání.",
     "clearAll": "Vymazání dokončeno by mělo odstranit chybu, pauzu a konflikt.",
-    "clearAllDescription": "Tlačítko Vymazat dokončené vymaže všechna odesílání v dokončeném stavu, včetně chybových, pozastavených a konfliktních stavů."
+    "clearAllDescription": "Tlačítko Vymazat dokončené vymaže všechna odesílání v dokončeném stavu, včetně chybových, pozastavených a konfliktních stavů.",
+    "uploadSettings": "Nastavení nahrávání"
   },
   "colors": {
     "red": "červená",
@@ -580,7 +599,10 @@
     "syncFailed": "po 5 pokusech se nepodařilo synchronizovat stav s trasou pro \"{filename}\". Přerušení nastavení editoru, aby se zabránilo poškození dat."
   },
   "player": {
-    "LoopEnabled": "Povolená smyčka",
-    "LoopDisabled": "Vypnutá smyčka"
+    "LoopEnabled": "Smyčka povolena",
+    "LoopDisabled": "Smyčka zakázána",
+    "PlayAllOncePlayback": "Přehrát vše najednou",
+    "ShuffleAllPlayback": "Zamíchat vše",
+    "PlayAllLoopedPlayback": "Přehrát vše v smyčce"
   }
 }

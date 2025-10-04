@@ -219,7 +219,10 @@ export default {
         },
     },
     async mounted() {
-        if (state.req.items) {
+        // Check for pre-fetched parent directory items from Files.vue
+        if (state.req.parentDirItems) {
+            this.listing = state.req.parentDirItems;
+        } else if (state.req.items) {
             this.listing = state.req.items;
         }
         mutations.setDeletedItem(false);

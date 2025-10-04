@@ -121,7 +121,7 @@ func TestGetFileMetadata(t *testing.T) {
 // Test for UpdateFileMetadata
 func TestUpdateFileMetadata(t *testing.T) {
 	info := &iteminfo.FileInfo{
-		Path: "/testpath",
+		Path: "/testpath/",
 		Files: []iteminfo.ItemInfo{
 			{Name: "testfile.txt"},
 			{Name: "anotherfile.txt"},
@@ -130,7 +130,7 @@ func TestUpdateFileMetadata(t *testing.T) {
 
 	index := &Index{
 		Directories: map[string]*iteminfo.FileInfo{
-			"/testpath": info,
+			"/testpath/": info,
 		},
 	}
 
@@ -163,8 +163,8 @@ func TestGetDirMetadata(t *testing.T) {
 func TestSetDirectoryInfo(t *testing.T) {
 	index := &Index{
 		Directories: map[string]*iteminfo.FileInfo{
-			"/testpath": {
-				Path: "/testpath",
+			"/testpath/": {
+				Path: "/testpath/",
 				ItemInfo: iteminfo.ItemInfo{
 					Name: "testpath",
 					Type: "directory",
@@ -177,7 +177,7 @@ func TestSetDirectoryInfo(t *testing.T) {
 		},
 	}
 	dir := &iteminfo.FileInfo{
-		Path: "/newPath",
+		Path: "/newPath/",
 		ItemInfo: iteminfo.ItemInfo{
 			Name: "newPath",
 			Type: "directory",
@@ -187,7 +187,7 @@ func TestSetDirectoryInfo(t *testing.T) {
 		},
 	}
 	index.UpdateMetadata(dir)
-	storedDir, exists := index.Directories["/newPath"]
+	storedDir, exists := index.Directories["/newPath/"]
 	if !exists || storedDir.Files[0].Name != "testfile.txt" {
 		t.Fatalf("expected SetDirectoryInfo to store directory info correctly")
 	}
@@ -205,8 +205,8 @@ func init() {
 		},
 
 		Directories: map[string]*iteminfo.FileInfo{
-			"/testpath": {
-				Path: "/testpath",
+			"/testpath/": {
+				Path: "/testpath/",
 				ItemInfo: iteminfo.ItemInfo{
 					Name: "testpath",
 					Type: "directory",
@@ -216,8 +216,8 @@ func init() {
 					{Name: "anotherfile.txt", Size: 100},
 				},
 			},
-			"/anotherpath": {
-				Path: "/anotherpath",
+			"/anotherpath/": {
+				Path: "/anotherpath/",
 				ItemInfo: iteminfo.ItemInfo{
 					Name: "anotherpath",
 					Type: "directory",

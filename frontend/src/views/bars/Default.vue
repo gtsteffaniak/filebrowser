@@ -1,17 +1,16 @@
 <template>
   <header v-if="!isOnlyOffice" :class="['flexbar', { 'dark-mode-header': isDarkMode }]">
     <action
-      v-if="!(disableNavButtons && isListingView)"
+      v-if="!disableNavButtons"
       icon="close_back"
       :label="$t('buttons.close')"
       :disabled="isDisabledMultiAction"
       @action="multiAction"
     />
     <search v-if="showSearch" />
-    <title v-else-if="isSettings" class="topTitle">{{ $t("sidebar.settings") }}</title>
     <title v-else class="topTitle">{{ getTopTitle }}</title>
     <action
-      v-if="isListingView && !disableNavButtons"
+      v-if="!disableNavButtons"
       class="menu-button"
       :icon="viewIcon"
       :label="$t('buttons.switchView')"
@@ -60,6 +59,9 @@ export default {
   },
   computed: {
     getTopTitle() {
+      if (getters.isSettings()) {
+        return this.$t("sidebar.settings");
+      }
       if (getters.isShare() && shareInfo.title && state.req.type === "directory") {
         return shareInfo.title;
       }
@@ -72,7 +74,7 @@ export default {
       return state.user.editorQuickSave;
     },
     disableNavButtons() {
-      return globalVars.disableNavButtons && !state.user.permissions.admin;
+      return (globalVars.disableNavButtons && this.isListingView) || (getters.isShare() && shareInfo.disableNavButtons);
     },
     isOnlyOffice() {
       return getters.currentView() === "onlyOfficeEditor";
@@ -164,22 +166,32 @@ export default {
       mutations.updateCurrentUser({ viewMode: newViewMode });
     },
     multiAction() {
-      const listingView = getters.currentView();
-      if (listingView == "listingView" || shareInfo.singleFileShare) {
+      const cv = getters.currentView();
+      if (cv == "listingView" || ( getters.isShare() && !getters.multibuttonState() === "close")) {
         mutations.toggleSidebar();
-      } else if (listingView == "settings" && state.isMobile) {
+      } else if (cv == "settings" && state.isMobile) {
         mutations.toggleSidebar();
       } else {
         mutations.closeHovers();
-        if (listingView === "settings") {
-          if (state.previousHistoryItem.name) {
+        if (cv === "settings") {
+          if (state.previousHistoryItem?.name) {
             url.goToItem(state.previousHistoryItem.source, state.previousHistoryItem.path, {});
             return;
           }
           router.push({ path: "/files" });
           return;
         }
-        mutations.replaceRequest({});
+        if (getters.isPreviewView()) {
+          if (state.previousHistoryItem?.name) {
+            url.goToItem(state.previousHistoryItem.source, state.previousHistoryItem.path, {});
+            return;
+          } else {
+            // navigate to parent directory of current url
+            const parentPath = url.removeLastDir(state.route.path);
+            router.push({ path: parentPath });
+          }
+          return;
+        }
 
         router.go(-1);
       }

@@ -137,10 +137,6 @@ export default {
   opacity: 0.9;
 }
 
-.no-padding {
-  padding: 0 !important;
-}
-
 .item {
   padding: 1em;
 }

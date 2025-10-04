@@ -126,7 +126,6 @@ export default {
   /* Make the container resizable */
   resize: vertical;
   width: 100%;
-  min-height: 20em;
   resize: vertical;
   overflow: hidden;
   border: 1px solid #ccc;

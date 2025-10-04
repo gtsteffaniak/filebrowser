@@ -33,18 +33,23 @@ type Server struct {
 	Port                         int         `json:"port"`                                   // port to listen on
 	BaseURL                      string      `json:"baseURL"`                                // base URL for the server, the subpath that the server is running on.
 	Logging                      []LogConfig `json:"logging" yaml:"logging"`
-	DebugMedia                   bool        `json:"debugMedia"` // output ffmpeg stdout for media integration -- careful can produces lots of output!
-	Database                     string      `json:"database"`   // path to the database file
-	Sources                      []Source    `json:"sources" validate:"required,dive"`
+	Database                     string      `json:"database"` // path to the database file
+	Sources                      []*Source   `json:"sources" validate:"required,dive"`
 	ExternalUrl                  string      `json:"externalUrl"`    // used by share links if set (eg. http://mydomain.com)
 	InternalUrl                  string      `json:"internalUrl"`    // used by integrations if set, this is the base domain that an integration service will use to communicate with filebrowser (eg. http://localhost:8080)
 	CacheDir                     string      `json:"cacheDir"`       // path to the cache directory, used for thumbnails and other cached files
 	MaxArchiveSizeGB             int64       `json:"maxArchiveSize"` // max pre-archive combined size of files/folder that are allowed to be archived (in GB)
+	Filesystem                   Filesystem  `json:"filesystem"`     // filesystem settings
 	// not exposed to config
-	SourceMap      map[string]Source `json:"-" validate:"omitempty"` // uses realpath as key
-	NameToSource   map[string]Source `json:"-" validate:"omitempty"` // uses name as key
-	MuPdfAvailable bool              `json:"-"`                      // used internally if compiled with mupdf support
-	EmbeddedFs     bool              `json:"-"`                      // used internally if compiled with embedded fs support
+	SourceMap      map[string]*Source `json:"-" validate:"omitempty"` // uses realpath as key
+	NameToSource   map[string]*Source `json:"-" validate:"omitempty"` // uses name as key
+	MuPdfAvailable bool               `json:"-"`                      // used internally if compiled with mupdf support
+	EmbeddedFs     bool               `json:"-"`                      // used internally if compiled with embedded fs support
+}
+
+type Filesystem struct {
+	CreateFilePermission      string `json:"createFilePermission" validate:"required,file_permission"`      // Unix permissions like 644, 755, 2755 (default: 644)
+	CreateDirectoryPermission string `json:"createDirectoryPermission" validate:"required,file_permission"` // Unix permissions like 755, 2755, 1777 (default: 755)
 }
 
 type Integrations struct {
@@ -62,12 +67,15 @@ type OnlyOffice struct {
 }
 
 type Media struct {
-	FfmpegPath string        `json:"ffmpegPath"` // path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)
-	Convert    FfmpegConvert `json:"convert"`    // config for ffmpeg conversion settings
+	FfmpegPath               string        `json:"ffmpegPath"`               // path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)
+	Convert                  FfmpegConvert `json:"convert"`                  // config for ffmpeg conversion settings
+	Debug                    bool          `json:"debug"`                    // output ffmpeg stdout for media integration -- careful can produces lots of output!
+	ExtractEmbeddedSubtitles bool          `json:"extractEmbeddedSubtitles"` // extract embedded subtitles from media files
 }
 
 type FfmpegConvert struct {
-	ImagePreview map[ImagePreviewType]bool `json:"imagePreview"` // supported image preview formats. default is heic
+	ImagePreview map[ImagePreviewType]bool `json:"imagePreview"` // supported image preview formats. defaults to false for all types unless explicitly enabled.
+	VideoPreview map[VideoPreviewType]bool `json:"videoPreview"` // supported video preview formats. defaults to true for all types unless explicitly disabled.
 }
 
 type ImagePreviewType string
@@ -85,6 +93,55 @@ func (i ImagePreviewType) String() string {
 var AllImagePreviewTypes = []ImagePreviewType{
 	HEICImagePreview,
 	//RAWImagePreview,
+}
+
+type VideoPreviewType string
+
+const (
+	MP4VideoPreview      VideoPreviewType = "mp4"
+	WebMVideoPreview     VideoPreviewType = "webm"
+	MOVVideoPreview      VideoPreviewType = "mov"
+	AVIVideoPreview      VideoPreviewType = "avi"
+	MKVVideoPreview      VideoPreviewType = "mkv"
+	FLVVideoPreview      VideoPreviewType = "flv"
+	WMVVideoPreview      VideoPreviewType = "wmv"
+	M4VVideoPreview      VideoPreviewType = "m4v"
+	ThreeGPVideoPreview  VideoPreviewType = "3gp"
+	ThreeGP2VideoPreview VideoPreviewType = "3g2"
+	TSVideoPreview       VideoPreviewType = "ts"
+	M2TSVideoPreview     VideoPreviewType = "m2ts"
+	VOBVideoPreview      VideoPreviewType = "vob"
+	ASFVideoPreview      VideoPreviewType = "asf"
+	MPGVideoPreview      VideoPreviewType = "mpg"
+	MPEGVideoPreview     VideoPreviewType = "mpeg"
+	F4VVideoPreview      VideoPreviewType = "f4v"
+	OGVVideoPreview      VideoPreviewType = "ogv"
+)
+
+func (v VideoPreviewType) String() string {
+	return string(v)
+}
+
+// AllVideoPreviewTypes contains all supported video preview types.
+var AllVideoPreviewTypes = []VideoPreviewType{
+	MP4VideoPreview,
+	WebMVideoPreview,
+	MOVVideoPreview,
+	AVIVideoPreview,
+	MKVVideoPreview,
+	FLVVideoPreview,
+	WMVVideoPreview,
+	M4VVideoPreview,
+	ThreeGPVideoPreview,
+	ThreeGP2VideoPreview,
+	TSVideoPreview,
+	M2TSVideoPreview,
+	VOBVideoPreview,
+	ASFVideoPreview,
+	MPGVideoPreview,
+	MPEGVideoPreview,
+	F4VVideoPreview,
+	OGVVideoPreview,
 }
 
 type LogConfig struct {
@@ -202,4 +259,5 @@ type UserDefaults struct {
 	CustomTheme                string              `json:"customTheme"`                // Name of theme to use chosen from custom themes config.
 	ShowSelectMultiple         bool                `json:"showSelectMultiple"`         // show select multiple files on desktop
 	DebugOffice                bool                `json:"debugOffice"`                // debug onlyoffice editor
+	DefaultLandingPage         string              `json:"defaultLandingPage"`         // default landing page to use if no redirect is specified: eg. /files/mysource/mysubpath, /settings, etc.
 }

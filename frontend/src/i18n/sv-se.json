@@ -54,7 +54,10 @@
     "listView": "Listvy",
     "compactView": "Kompakt vy",
     "normalView": "Normal vy",
-    "galleryView": "Galleri utsikt"
+    "galleryView": "Galleri utsikt",
+    "uploadFiles": "Ladda upp filer",
+    "uploadFolder": "Ladda upp mapp",
+    "openUploadViewer": "Öppna uppladdningshanteraren"
   },
   "download": {
     "downloadFile": "Ladda ner fil",
@@ -134,7 +137,10 @@
     "submit": "Logga in",
     "usernameTaken": "Användarnamn upptaget",
     "wrongCredentials": "Fel inloggning",
-    "or": "ELLER"
+    "or": "ELLER",
+    "inProgress": "Loggar in...",
+    "failedLogin": "Misslyckades med att logga in",
+    "invalidCredentials": "Ogiltiga inloggningsuppgifter har angetts"
   },
   "prompts": {
     "copy": "Kopiera",
@@ -195,7 +201,8 @@
     "moveSuccess": "Filerna flyttades framgångsrikt!",
     "copySuccess": "Filerna kopierades framgångsrikt!",
     "lastModified": "Senast ändrad{suffix}",
-    "size": "Storlek{suffix}"
+    "size": "Storlek{suffix}",
+    "operationInProgress": "Operation pågår, vänligen vänta..."
   },
   "search": {
     "images": "Bilder",
@@ -407,7 +414,16 @@
     "titleDefault": "Delade filer {title}",
     "defaultViewMode": "Standardläge för visning",
     "defaultViewModeDescription": "Ange standardvisningsläge för anonyma användare som visar den här andelen. Inloggade användare kan fortfarande ändra sina visningspreferenser.",
-    "disableFileViewer": "Inaktivera filvisare"
+    "disableFileViewer": "Inaktivera filvisare",
+    "shareType": "Typ av aktie",
+    "shareTypeDescription": "Den typ av delning som ska skapas. Normala andelar gör det möjligt att visa och hämta filer. Upload-andelar gör det möjligt att ladda upp filer till andelen.",
+    "normalShare": "Normal",
+    "uploadShare": "Endast uppladdning",
+    "perUserDownloadLimit": "Tillämpa nedladdningsgränsen för varje användare",
+    "perUserDownloadLimitDescription": "När den är aktiverad kommer nedladdningsgränsen att tillämpas på varje användare. Anonyma användare kan inte ladda ner några filer från den här delningen.",
+    "descriptionUploadDefault": "En andel har skickats till dig för att ladda upp filer.",
+    "extractEmbeddedSubtitles": "Extrahera inbäddade undertexter",
+    "extractEmbeddedSubtitlesDescription": "Extrahera inbäddade undertexter från mediefiler vid laddning - detta kan vara långsamt för stora filer."
   },
   "api": {
     "title": "API-nycklar",
@@ -465,7 +481,8 @@
     "uploadChunkSizeMb": "Ladda upp chunkstorlek i MB",
     "uploadChunkSizeMbHelp": "Vanligtvis 5 till 50 MB, men mindre är bättre för instabila eller begränsade anslutningar. Om du ställer in 0 inaktiveras chunking för uppladdning.",
     "clearAll": "Klart avslutat ska ta bort fel, paus och konflikt",
-    "clearAllDescription": "Knappen Clear Completed rensar alla uppladdningar som är klara, inklusive fel-, paus- och konflikttillstånd."
+    "clearAllDescription": "Knappen Clear Completed rensar alla uppladdningar som är klara, inklusive fel-, paus- och konflikttillstånd.",
+    "uploadSettings": "Inställningar för uppladdning"
   },
   "colors": {
     "red": "röd",
@@ -533,7 +550,9 @@
     "themeAndLanguage": "Tema & språk",
     "previewFolder": "Visa miniatyrbilder för mappar om de är tillgängliga",
     "previewFolderDescription": "Visa förhandsvisningar av miniatyrbilder för mappar med första underordnade objekt med miniatyrbild som omslag.",
-    "disableFileExtensions": "Ange filändelser som ska inaktiveras"
+    "disableFileExtensions": "Ange filändelser som ska inaktiveras",
+    "defaultLandingPage": "Standardlandningssida",
+    "defaultLandingPageDescription": "t.ex. \"/files/mysource/mysubpath\" eller \"/settings\" - standardsidan är /files som går till den första källförteckningsvyn"
   },
   "general": {
     "name": "Namn",
@@ -580,7 +599,10 @@
     "syncFailed": "lyckades inte synkronisera tillstånd med rutten för \"{filename}\" efter 5 försök. Avbryter redigeringsinställningen för att förhindra datakorruption."
   },
   "player": {
-    "LoopEnabled": "Slinga aktiverad",
-    "LoopDisabled": "Slinga avaktiverad"
+    "LoopEnabled": "Loop aktiverad",
+    "LoopDisabled": "Loop inaktiverad",
+    "PlayAllOncePlayback": "Spela alla en gång",
+    "ShuffleAllPlayback": "Blanda alla",
+    "PlayAllLoopedPlayback": "Spela alla i loop"
   }
 }

@@ -54,7 +54,10 @@
     "listView": "リスト表示",
     "compactView": "コンパクトビュー",
     "normalView": "通常表示",
-    "galleryView": "ギャラリービュー"
+    "galleryView": "ギャラリービュー",
+    "uploadFiles": "ファイルのアップロード",
+    "uploadFolder": "フォルダのアップロード",
+    "openUploadViewer": "アップロードマネージャーを開く"
   },
   "download": {
     "downloadFile": "ファイルをダウンロード",
@@ -134,7 +137,10 @@
     "submit": "ログイン",
     "usernameTaken": "ユーザー名はすでに使用されています",
     "wrongCredentials": "ユーザー名またはパスワードが間違っています。",
-    "or": "または"
+    "or": "または",
+    "inProgress": "ログイン...",
+    "failedLogin": "ログインに失敗しました",
+    "invalidCredentials": "無効な認証情報が提供された"
   },
   "prompts": {
     "copy": "コピー",
@@ -195,7 +201,8 @@
     "uploadSettingsChunked": "最大同時アップロード数：{maxConcurrentUpload}、チャンクサイズ：{uploadChunkSizeMb}MB",
     "uploadSettingsNoChunk": "最大同時アップロード数：{maxConcurrentUpload}、チャンクアップロード無効",
     "lastModified": "最終更新日{suffix}",
-    "size": "サイズ{suffix}"
+    "size": "サイズ{suffix}",
+    "operationInProgress": "操作中です、しばらくお待ちください..."
   },
   "search": {
     "images": "画像",
@@ -407,7 +414,16 @@
     "defaultViewModeDescription": "匿名ユーザーがこの共有を閲覧する際のデフォルトの表示モードを設定します。ログインしているユーザーは、表示モードを変更することができます。",
     "enableOnlyOfficeEditingDescription": "この共有でOnlyOfficeを使ったオフィスファイルの編集を許可する",
     "titleDefault": "共有ファイル{title}",
-    "disableFileViewer": "ファイルビューアを無効にする"
+    "disableFileViewer": "ファイルビューアを無効にする",
+    "shareType": "シェアタイプ",
+    "shareTypeDescription": "作成する共有のタイプ。通常の共有では、ファイルの表示とダウンロードが可能です。アップロード共有では、共有にファイルをアップロードできます。",
+    "normalShare": "ノーマル",
+    "uploadShare": "アップロードのみ",
+    "perUserDownloadLimit": "各ユーザーにダウンロード制限を適用する",
+    "perUserDownloadLimitDescription": "有効にすると、各ユーザーにダウンロード制限が適用されます。匿名ユーザーはこの共有からファイルをダウンロードできません。",
+    "descriptionUploadDefault": "ファイルをアップロードするための共有が送信されました。",
+    "extractEmbeddedSubtitles": "埋め込み字幕の抽出",
+    "extractEmbeddedSubtitlesDescription": "読み込み時にメディアファイルから埋め込まれたサブタイトルを抽出する。"
   },
   "api": {
     "title": "APIキー：",
@@ -501,7 +517,8 @@
     "clearAll": "クリアが完了すると、エラー、一時停止、コンフリクトが取り除かれる。",
     "clearAllDescription": "clear completedボタンは、エラー、一時停止、競合状態を含む、完了状態のすべてのアップロードをクリアします。",
     "uploadChunkSizeMb": "アップロードチャンクサイズ（MB）",
-    "uploadChunkSizeMbHelp": "通常5～50MBですが、不安定な接続や制限のある接続の場合は小さい方が良いでしょう。0に設定するとアップロードチャンキングが無効になります。"
+    "uploadChunkSizeMbHelp": "通常5～50MBですが、不安定な接続や制限のある接続の場合は小さい方が良いでしょう。0に設定するとアップロードチャンキングが無効になります。",
+    "uploadSettings": "設定のアップロード"
   },
   "colors": {
     "red": "赤",
@@ -569,7 +586,9 @@
     "themeAndLanguage": "テーマと言語",
     "previewFolder": "利用可能であれば、フォルダのサムネイルを表示する",
     "previewFolderDescription": "サムネイルを持つ最初の子アイテムをカバーとするフォルダのサムネイルプレビューを表示します。",
-    "disableFileExtensions": "無効にするファイル拡張子を入力"
+    "disableFileExtensions": "無効にするファイル拡張子を入力",
+    "defaultLandingPage": "デフォルトのランディングページ",
+    "defaultLandingPageDescription": "例えばfiles/mysource/mysubpath'または'/settings' - デフォルトのページは/filesで、最初のソース・リスティング・ビューに移動します。"
   },
   "editor": {
     "uninitialized": "エディタの初期化に失敗しました。再読み込みしてください。",
@@ -581,6 +600,9 @@
   },
   "player": {
     "LoopEnabled": "ループ有効",
-    "LoopDisabled": "ループ無効"
+    "LoopDisabled": "ループ無効",
+    "PlayAllOncePlayback": "すべて一度再生",
+    "ShuffleAllPlayback": "すべてシャッフル再生",
+    "PlayAllLoopedPlayback": "すべてループ再生"
   }
 }

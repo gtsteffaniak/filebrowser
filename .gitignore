@@ -8,6 +8,7 @@ rice-box.go
 /backend/backend
 /backend/filebrowser
 /backend/filebrowser.exe
+frontend/tsconfig.tsbuildinfo
 /backend/backend.exe
 /backend/tmp
 /backend/dist
@@ -20,6 +21,7 @@ rice-box.go
 /backend/vendor
 /backend/*.cov
 /backend/test_config.yaml
+/backend/test-*.yaml
 /backend/generated.yaml
 /backend/srv
 /backend/http/dist

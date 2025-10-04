@@ -6,10 +6,16 @@
     :class="{ 'image-preview': hasPreviewImage }"
   >
     <i
-      v-if="hasMotion"
+      v-if="hasMotion && isFile"
       class="material-icons"
       :class="{ larger: showLarger, smaller: !showLarger }"
       >animation</i
+    >
+    <i
+      v-else-if="!isFile"
+      class="material-icons"
+      :class="{ larger: showLarger, smaller: !showLarger }"
+      >folder</i
     >
     <img
       :key="imageTargetSrc"
@@ -73,6 +79,9 @@ export default {
     };
   },
   computed: {
+    isFile() {
+      return this.mimetype !== "directory";
+    },
     hasPreviewImage() {
       if (shareInfo.disableThumbnails) {
         return false;
@@ -83,18 +92,15 @@ export default {
       if (!this.hasPreview) {
         return false;
       }
-      if (this.getIconForType().simpleType === "video" && !state.user.preview?.video) {
+      const simpleType = this.getIconForType().simpleType;
+      if (simpleType === "video" && !state.user.preview?.video) {
         return false;
       }
-      if (this.getIconForType().simpleType === "image" && !state.user.preview?.image) {
+      if (simpleType === "image" && !state.user.preview?.image) {
         return false;
       }
       // office files
-      if (this.getIconForType().simpleType === "document" && !state.user.preview?.office) {
-        return false;
-      }
-      // text files
-      if (this.getIconForType().simpleType === "text" && !state.user.preview?.text) {
+      if ((simpleType === "document" || simpleType === "text") && !state.user.preview?.office) {
         return false;
       }
       if (!state.user.preview.folder && this.mimetype == "directory") {

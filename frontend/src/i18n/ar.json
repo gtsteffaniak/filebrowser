@@ -54,7 +54,10 @@
     "listView": "عرض القائمة",
     "compactView": "عرض مدمج",
     "normalView": "عرض عادي",
-    "galleryView": "عرض المعرض"
+    "galleryView": "عرض المعرض",
+    "uploadFiles": "تحميل الملفات",
+    "uploadFolder": "تحميل المجلد",
+    "openUploadViewer": "فتح مدير التحميل المفتوح"
   },
   "download": {
     "downloadFile": "Download File",
@@ -134,7 +137,10 @@
     "submit": "تسجيل دخول",
     "usernameTaken": "Username already taken",
     "wrongCredentials": "بيانات دخول خاطئة",
-    "or": "أو"
+    "or": "أو",
+    "inProgress": "تسجيل الدخول...",
+    "failedLogin": "فشل في تسجيل الدخول",
+    "invalidCredentials": "تم توفير بيانات اعتماد غير صالحة"
   },
   "prompts": {
     "copy": "نسخ",
@@ -195,7 +201,8 @@
     "moveSuccess": "تم نقل الملفات بنجاح!",
     "copySuccess": "تم نسخ الملفات بنجاح!",
     "lastModified": "آخر تعديل{suffix}",
-    "size": "الحجم{suffix}"
+    "size": "الحجم{suffix}",
+    "operationInProgress": "العملية جارية، يرجى الانتظار..."
   },
   "search": {
     "images": "الصور",
@@ -407,7 +414,16 @@
     "titleDefault": "الملفات المشتركة - {title}",
     "defaultViewMode": "وضع العرض الافتراضي",
     "defaultViewModeDescription": "تعيين وضع العرض الافتراضي للمستخدمين المجهولين الذين يشاهدون هذه المشاركة. لا يزال بإمكان المستخدمين المسجلين الدخول تغيير تفضيلات العرض الخاصة بهم.",
-    "disableFileViewer": "تعطيل عارض الملفات"
+    "disableFileViewer": "تعطيل عارض الملفات",
+    "shareType": "نوع المشاركة",
+    "shareTypeDescription": "نوع المشاركة المراد إنشاؤها. تسمح المشاركات العادية بعرض الملفات وتنزيلها. تسمح مشاركات التحميل بتحميل الملفات إلى المشاركة.",
+    "normalShare": "عادي",
+    "uploadShare": "التحميل فقط",
+    "perUserDownloadLimit": "تطبيق حد التنزيلات على كل مستخدم",
+    "perUserDownloadLimitDescription": "عند التمكين، سيتم تطبيق حد التنزيلات على كل مستخدم. لن يتمكن المستخدمون المجهولون من تنزيل أي ملفات من هذه المشاركة.",
+    "descriptionUploadDefault": "تم إرسال مشاركة إليك لتحميل الملفات.",
+    "extractEmbeddedSubtitles": "استخراج الترجمات المضمنة",
+    "extractEmbeddedSubtitlesDescription": "استخراج العناوين الفرعية المضمنة من ملفات الوسائط عند التحميل - قد يكون هذا بطيئًا بالنسبة للملفات الكبيرة."
   },
   "api": {
     "title": "مفاتيح واجهة برمجة التطبيقات (API):",
@@ -501,7 +517,8 @@
     "uploadChunkSizeMb": "حجم قطعة التحميل بالميجابايت",
     "uploadChunkSizeMbHelp": "عادةً من 5 إلى 50 ميغابايت، والأصغر هو الأفضل للاتصالات غير المستقرة أو المقيدة. سيؤدي التعيين إلى 0 إلى تعطيل تقطيع التحميل.",
     "clearAll": "يجب أن يزيل المسح المكتمل الخطأ والإيقاف المؤقت والتعارض",
-    "clearAllDescription": "سيؤدي زر مسح المكتمل إلى مسح جميع التحميلات في حالة الانتهاء، بما في ذلك حالات الخطأ والإيقاف المؤقت والتعارض."
+    "clearAllDescription": "سيؤدي زر مسح المكتمل إلى مسح جميع التحميلات في حالة الانتهاء، بما في ذلك حالات الخطأ والإيقاف المؤقت والتعارض.",
+    "uploadSettings": "إعدادات التحميل"
   },
   "profileSettings": {
     "setDateFormat": "تعيين تنسيق التاريخ الدقيق",
@@ -561,7 +578,9 @@
     "themeAndLanguage": "الموضوع واللغة",
     "previewFolder": "إظهار الصور المصغرة للمجلدات إذا كانت متوفرة",
     "previewFolderDescription": "إظهار معاينات الصور المصغرة للمجلدات التي تحتوي على العنصر الفرعي الأول مع صورة مصغرة كغلاف.",
-    "disableFileExtensions": "أدخل امتدادات الملفات لتعطيلها"
+    "disableFileExtensions": "أدخل امتدادات الملفات لتعطيلها",
+    "defaultLandingPage": "صفحة الهبوط الافتراضية",
+    "defaultLandingPageDescription": "على سبيل المثال. '/الملفات/المصدر/المصدر الفرعي/المسار الفرعي' أو '/الإعدادات' - الصفحة الافتراضية هي /الملفات التي تنتقل إلى عرض قائمة المصدر الأول"
   },
   "colors": {
     "red": "أحمر",
@@ -580,7 +599,10 @@
     "syncFailed": "فشل مزامنة الحالة مع مسار \"{filename}\" بعد 5 محاولات. إجهاض إعداد المحرر لمنع تلف البيانات."
   },
   "player": {
-    "LoopEnabled": "تم تمكين الحلقة",
-    "LoopDisabled": "حلقة معطلة"
+    "LoopEnabled": "تمكين الحلقة",
+    "LoopDisabled": "حلقة معطلة",
+    "PlayAllOncePlayback": "تشغيل الكل مرة واحدة",
+    "ShuffleAllPlayback": "تشغيل الكل عشوائيًا",
+    "PlayAllLoopedPlayback": "تشغيل كل المقاطع بشكل متكرر"
   }
 }

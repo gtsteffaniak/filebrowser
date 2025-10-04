@@ -14,11 +14,11 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/diskcache"
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
-	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/ffmpeg"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 	"github.com/gtsteffaniak/go-logger/logger"
@@ -31,17 +31,23 @@ var (
 )
 
 type Service struct {
-	sem          chan struct{}
 	ffmpegPath   string
 	ffprobePath  string
 	fileCache    diskcache.Interface
 	debug        bool
-	docGenMutex  sync.Mutex // Mutex to serialize access to doc generation
+	docGenMutex  sync.Mutex    // Mutex to serialize access to doc generation
+	docSemaphore chan struct{} // Semaphore for document generation
+	officeSem    chan struct{} // Semaphore for office document processing
 	videoService *ffmpeg.VideoService
 	imageService *ffmpeg.ImageService
 }
 
 func NewPreviewGenerator(concurrencyLimit int, ffmpegPath string, cacheDir string) *Service {
+	if concurrencyLimit < 1 {
+		concurrencyLimit = 1
+	}
+	// get round up half value of concurrencyLimit
+	ffmpegConcurrencyLimit := (concurrencyLimit + 1) / 2
 	var fileCache diskcache.Interface
 	// Use file cache if cacheDir is specified
 	if cacheDir != "" {
@@ -82,6 +88,7 @@ func NewPreviewGenerator(concurrencyLimit int, ffmpegPath string, cacheDir strin
 		settings.Config.Integrations.Media.FfmpegPath = filepath.Base(ffmpegMainPath)
 	}
 	logger.Debugf("Media Enabled            : %v", ffmpegMainPath != "" && ffprobePath != "")
+	logger.Debugf("FFmpeg Concurrency Limit : %d", ffmpegConcurrencyLimit)
 	settings.Config.Server.MuPdfAvailable = docEnabled()
 	logger.Debugf("MuPDF Enabled            : %v", settings.Config.Server.MuPdfAvailable)
 
@@ -90,81 +97,105 @@ func NewPreviewGenerator(concurrencyLimit int, ffmpegPath string, cacheDir strin
 	var imageService *ffmpeg.ImageService
 
 	if ffmpegMainPath != "" && ffprobePath != "" {
-		videoService = ffmpeg.NewVideoService(ffmpegMainPath, ffprobePath, concurrencyLimit, settings.Config.Server.DebugMedia)
-		imageService = ffmpeg.NewImageService(ffmpegMainPath, ffprobePath, settings.Config.Server.DebugMedia, filepath.Join(settings.Config.Server.CacheDir, "heic"))
+		videoService = ffmpeg.NewVideoService(ffmpegMainPath, ffprobePath, ffmpegConcurrencyLimit, settings.Config.Integrations.Media.Debug)
+		imageService = ffmpeg.NewImageService(ffmpegMainPath, ffprobePath, concurrencyLimit, settings.Config.Integrations.Media.Debug, filepath.Join(settings.Config.Server.CacheDir, "heic"))
 	}
 
 	return &Service{
-		sem:          make(chan struct{}, concurrencyLimit),
-		ffmpegPath:   ffmpegMainPath,
-		ffprobePath:  ffprobePath,
-		fileCache:    fileCache,
-		debug:        settings.Config.Server.DebugMedia,
+		ffmpegPath:  ffmpegMainPath,
+		ffprobePath: ffprobePath,
+		fileCache:   fileCache,
+		debug:       settings.Config.Integrations.Media.Debug,
+		// CGo library (go-fitz) is NOT thread-safe - only 1 concurrent operation allowed
+		docSemaphore: make(chan struct{}, 1),
+		officeSem:    make(chan struct{}, concurrencyLimit),
 		videoService: videoService,
 		imageService: imageService,
 	}
 }
 
+// Document semaphore methods
+func (s *Service) acquireDoc(ctx context.Context) error {
+	select {
+	case s.docSemaphore <- struct{}{}:
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+}
+
+func (s *Service) releaseDoc() {
+	<-s.docSemaphore
+}
+
+// Office semaphore methods
+func (s *Service) acquireOffice(ctx context.Context) error {
+	select {
+	case s.officeSem <- struct{}{}:
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+}
+
+func (s *Service) releaseOffice() {
+	<-s.officeSem
+}
+
 func StartPreviewGenerator(concurrencyLimit int, ffmpegPath, cacheDir string) error {
+	if service != nil {
+		logger.Errorf("WARNING: StartPreviewGenerator called multiple times! This will create multiple semaphores!")
+	}
 	service = NewPreviewGenerator(concurrencyLimit, ffmpegPath, cacheDir)
 	return nil
 }
 
-func GetPreviewForFile(file iteminfo.ExtendedFileInfo, previewSize, url string, seekPercentage int) ([]byte, error) {
-	return GetPreviewForFileWithChildMD5(file, previewSize, url, seekPercentage, "")
-}
-
-func GetPreviewForFileWithChildMD5(file iteminfo.ExtendedFileInfo, previewSize, url string, seekPercentage int, childMD5 string) ([]byte, error) {
+func GetPreviewForFile(ctx context.Context, file iteminfo.ExtendedFileInfo, previewSize, url string, seekPercentage int) ([]byte, error) {
 	if !file.HasPreview {
 		return nil, ErrUnsupportedMedia
 	}
-	var thisMd5 string
-	if childMD5 != "" {
-		// Use the child's MD5 for folder previews to ensure cache sharing
-		thisMd5 = childMD5
-	} else if file.AudioMeta != nil && file.AudioMeta.AlbumArt != "" {
-		// md5 is based on album art
-		// md5 file.AlbumArt
+
+	// Check if context is cancelled before starting
+	if ctx.Err() != nil {
+		return nil, ctx.Err()
+	}
+
+	// Generate fast cache key based on file metadata
+	var cacheHash string
+	if file.AudioMeta != nil && file.AudioMeta.AlbumArt != "" {
+		// For audio with album art, hash the album art content
 		hasher := md5.New()
 		_, _ = hasher.Write([]byte(file.AudioMeta.AlbumArt))
-		thisMd5 = hex.EncodeToString(hasher.Sum(nil))
-		file.Checksums = make(map[string]string)
-		file.Checksums["md5"] = thisMd5
+		cacheHash = hex.EncodeToString(hasher.Sum(nil))
 	} else {
-		var err error
-		thisMd5, err = utils.GetChecksum(file.RealPath, "md5")
-		if err != nil {
-			return nil, fmt.Errorf("failed to get checksum: %w", err)
-		}
-		// Ensure the file.Checksums map is initialized and MD5 is set
-		if file.Checksums == nil {
-			file.Checksums = make(map[string]string)
-		}
-		file.Checksums["md5"] = thisMd5
+		// For all other files, use fast metadata-based hash
+		hasher := md5.New()
+		cacheString := fmt.Sprintf("%s:%d:%s", file.RealPath, file.Size, file.ModTime.Format(time.RFC3339Nano))
+		_, _ = hasher.Write([]byte(cacheString))
+		cacheHash = hex.EncodeToString(hasher.Sum(nil))
 	}
 
-	// Validate that MD5 is not empty to prevent cache corruption
-	if thisMd5 == "" {
-		errorMsg := fmt.Sprintf("MD5 is empty for file: %s (path: %s)", file.Name, file.RealPath)
-		logger.Errorf("Preview generation failed: %s", errorMsg)
-		return nil, fmt.Errorf("preview generation failed: %s", errorMsg)
-	}
-
-	cacheKey := CacheKey(thisMd5, previewSize, seekPercentage)
-	if data, found, err := service.fileCache.Load(context.Background(), cacheKey); err != nil {
+	cacheKey := CacheKey(cacheHash, previewSize, seekPercentage)
+	if data, found, err := service.fileCache.Load(ctx, cacheKey); err != nil {
 		return nil, fmt.Errorf("failed to load from cache: %w", err)
 	} else if found {
 		return data, nil
 	}
-	return GeneratePreviewWithMD5(file, previewSize, url, seekPercentage, thisMd5)
+	return GeneratePreviewWithMD5(ctx, file, previewSize, url, seekPercentage, cacheHash)
 }
 
-func GeneratePreviewWithMD5(file iteminfo.ExtendedFileInfo, previewSize, officeUrl string, seekPercentage int, fileMD5 string) ([]byte, error) {
-	// Validate that MD5 is not empty to prevent cache corruption
+func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo, previewSize, officeUrl string, seekPercentage int, fileMD5 string) ([]byte, error) {
+	// Note: fileMD5 is actually a cache hash (metadata-based), not a true file content MD5
+	// Validate that cache hash is not empty to prevent cache corruption
 	if fileMD5 == "" {
-		errorMsg := fmt.Sprintf("MD5 is empty for file: %s (path: %s)", file.Name, file.RealPath)
+		errorMsg := fmt.Sprintf("Cache hash is empty for file: %s (path: %s)", file.Name, file.RealPath)
 		logger.Errorf("Preview generation failed: %s", errorMsg)
 		return nil, fmt.Errorf("preview generation failed: %s", errorMsg)
+	}
+
+	// Check if context is cancelled before starting
+	if ctx.Err() != nil {
+		return nil, ctx.Err()
 	}
 
 	ext := strings.ToLower(filepath.Ext(file.Name))
@@ -180,30 +211,31 @@ func GeneratePreviewWithMD5(file iteminfo.ExtendedFileInfo, previewSize, officeU
 	// Generate an image from office document
 	if iteminfo.HasDocConvertableExtension(file.Name, file.Type) {
 		tempFilePath := filepath.Join(settings.Config.Server.CacheDir, "thumbnails", "docs", hash) + ".txt"
-		imageBytes, err = service.GenerateImageFromDoc(file, tempFilePath, 0) // 0 for the first page
+		imageBytes, err = service.GenerateImageFromDoc(ctx, file, tempFilePath, 0) // 0 for the first page
 		if err != nil {
 			return nil, fmt.Errorf("failed to create image for PDF file: %w", err)
 		}
 	} else if file.OnlyOfficeId != "" {
-		imageBytes, err = service.GenerateOfficePreview(filepath.Ext(file.Name), file.OnlyOfficeId, file.Name, officeUrl)
+		imageBytes, err = service.GenerateOfficePreview(ctx, filepath.Ext(file.Name), file.OnlyOfficeId, file.Name, officeUrl)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create image for office file: %w", err)
 		}
 	} else if strings.HasPrefix(file.Type, "image/heic") {
 		// HEIC files need FFmpeg conversion to JPEG with proper size/quality handling
-		imageBytes, err = service.convertHEICToJPEGWithFFmpeg(file.RealPath, previewSize)
+		imageBytes, err = service.convertHEICToJPEGWithFFmpeg(ctx, file.RealPath, previewSize)
 		if err != nil {
 			return nil, fmt.Errorf("failed to process HEIC image file: %w", err)
 		}
 		// For HEIC files, we've already done the resize/conversion, so cache and return directly
 		cacheKey := CacheKey(fileMD5, previewSize, seekPercentage)
-		if err = service.fileCache.Store(context.Background(), cacheKey, imageBytes); err != nil {
+		if err = service.fileCache.Store(ctx, cacheKey, imageBytes); err != nil {
 			logger.Errorf("failed to cache HEIC image: %v", err)
 		}
 		return imageBytes, nil
 	} else if strings.HasPrefix(file.Type, "image") {
 		imageBytes, err = os.ReadFile(file.RealPath)
 		if err != nil {
+			logger.Errorf("Failed to read image file '%s' (path: %s): %v", file.Name, file.RealPath, err)
 			return nil, fmt.Errorf("failed to read image file: %w", err)
 		}
 	} else if strings.HasPrefix(file.Type, "video") {
@@ -211,10 +243,13 @@ func GeneratePreviewWithMD5(file iteminfo.ExtendedFileInfo, previewSize, officeU
 		if videoSeekPercentage == 0 {
 			videoSeekPercentage = 10
 		}
-		outPathPattern := filepath.Join(settings.Config.Server.CacheDir, "thumbnails", "videos", hash) + ".jpg"
-		defer os.Remove(outPathPattern) // cleanup
-		imageBytes, err = service.GenerateVideoPreview(file.RealPath, outPathPattern, videoSeekPercentage)
+		imageBytes, err = service.GenerateVideoPreview(ctx, file.RealPath, videoSeekPercentage)
 		if err != nil {
+			// Don't log client cancellations as errors
+			if ctx.Err() != context.Canceled {
+				logger.Errorf("Video preview generation failed for '%s' (path: %s, seek: %d%%): %v",
+					file.Name, file.RealPath, videoSeekPercentage, err)
+			}
 			return nil, fmt.Errorf("failed to create image for video file: %w", err)
 		}
 	} else if strings.HasPrefix(file.Type, "audio") {
@@ -225,12 +260,20 @@ func GeneratePreviewWithMD5(file iteminfo.ExtendedFileInfo, previewSize, officeU
 				return nil, fmt.Errorf("failed to decode album artwork: %w", err)
 			}
 		} else {
-			return nil, fmt.Errorf("no album artwork available for audio file: %s", file.Name)
+			return nil, nil
 		}
 	} else {
 		return nil, fmt.Errorf("unsupported media type: %s", ext)
 	}
+
+	// Check if context was cancelled during processing
+	if ctx.Err() != nil {
+		return nil, ctx.Err()
+	}
+
 	if len(imageBytes) < 100 {
+		logger.Errorf("Generated image too small for '%s' (type: %s): %d bytes - likely an error occurred",
+			file.Name, file.Type, len(imageBytes))
 		return nil, fmt.Errorf("generated image is too small, likely an error occurred: %d bytes", len(imageBytes))
 	}
 
@@ -242,13 +285,13 @@ func GeneratePreviewWithMD5(file iteminfo.ExtendedFileInfo, previewSize, officeU
 		}
 		// Cache and return
 		cacheKey := CacheKey(fileMD5, previewSize, seekPercentage)
-		if err := service.fileCache.Store(context.Background(), cacheKey, resizedBytes); err != nil {
+		if err := service.fileCache.Store(ctx, cacheKey, resizedBytes); err != nil {
 			logger.Errorf("failed to cache resized image: %v", err)
 		}
 		return resizedBytes, nil
 	} else {
 		cacheKey := CacheKey(fileMD5, previewSize, seekPercentage)
-		if err := service.fileCache.Store(context.Background(), cacheKey, imageBytes); err != nil {
+		if err := service.fileCache.Store(ctx, cacheKey, imageBytes); err != nil {
 			logger.Errorf("failed to cache original image: %v", err)
 		}
 		return imageBytes, nil
@@ -256,19 +299,14 @@ func GeneratePreviewWithMD5(file iteminfo.ExtendedFileInfo, previewSize, officeU
 
 }
 
-func GeneratePreview(file iteminfo.ExtendedFileInfo, previewSize, officeUrl string, seekPercentage int) ([]byte, error) {
-	// For backward compatibility, calculate MD5 if not provided
-	var fileMD5 string
-	if file.Checksums != nil && file.Checksums["md5"] != "" {
-		fileMD5 = file.Checksums["md5"]
-	} else {
-		var err error
-		fileMD5, err = utils.GetChecksum(file.RealPath, "md5")
-		if err != nil {
-			return nil, fmt.Errorf("failed to get checksum: %w", err)
-		}
-	}
-	return GeneratePreviewWithMD5(file, previewSize, officeUrl, seekPercentage, fileMD5)
+func GeneratePreview(ctx context.Context, file iteminfo.ExtendedFileInfo, previewSize, officeUrl string, seekPercentage int) ([]byte, error) {
+	// Generate fast metadata-based cache key
+	hasher := md5.New()
+	cacheString := fmt.Sprintf("%s:%d:%s", file.RealPath, file.Size, file.ModTime.Format(time.RFC3339Nano))
+	_, _ = hasher.Write([]byte(cacheString))
+	cacheHash := hex.EncodeToString(hasher.Sum(nil))
+
+	return GeneratePreviewWithMD5(ctx, file, previewSize, officeUrl, seekPercentage, cacheHash)
 }
 
 func (s *Service) CreatePreview(data []byte, previewSize string) ([]byte, error) {
@@ -305,9 +343,15 @@ func CacheKey(md5, previewSize string, percentage int) string {
 }
 
 func DelThumbs(ctx context.Context, file iteminfo.ExtendedFileInfo) {
-	errSmall := service.fileCache.Delete(ctx, CacheKey(file.Checksums["md5"], "small", 0))
+	// Generate metadata-based cache hash for deletion
+	hasher := md5.New()
+	cacheString := fmt.Sprintf("%s:%d:%s", file.RealPath, file.Size, file.ModTime.Format(time.RFC3339Nano))
+	_, _ = hasher.Write([]byte(cacheString))
+	cacheHash := hex.EncodeToString(hasher.Sum(nil))
+
+	errSmall := service.fileCache.Delete(ctx, CacheKey(cacheHash, "small", 0))
 	if errSmall != nil {
-		errLarge := service.fileCache.Delete(ctx, CacheKey(file.Checksums["md5"], "large", 0))
+		errLarge := service.fileCache.Delete(ctx, CacheKey(cacheHash, "large", 0))
 		if errLarge != nil {
 			logger.Debugf("Could not delete thumbnail: %v", file.Name)
 		}

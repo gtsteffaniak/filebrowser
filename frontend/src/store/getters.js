@@ -1,4 +1,5 @@
 import { removePrefix, buildItemUrl, removeLeadingSlash } from '@/utils/url.js'
+import { url } from '@/utils'
 import { getFileExtension } from '@/utils/files.js'
 import { state, mutations } from '@/store'
 import { globalVars, shareInfo, previewViews } from '@/utils/constants.js'
@@ -19,15 +20,12 @@ export const getters = {
     }
     return fromNow(timestamp, state.user.locale)
   },
-  isScrollable: () => {
+  isPreviewView: () => {
     const cv = getters.currentView()
-    if (
-      cv == 'preview' ||
-      cv == 'onlyOfficeEditor' ||
-      cv == 'epubViewer' ||
-      cv == 'docViewer' ||
-      cv == 'editor'
-    ) {
+    return cv == 'preview' || cv == 'onlyOfficeEditor' || cv == 'epubViewer' || cv == 'docViewer' || cv == 'editor'
+  },
+  isScrollable: () => {
+    if (getters.isPreviewView()) {
       return false
     }
     return true
@@ -44,6 +42,9 @@ export const getters = {
     return null;
   },
   viewMode: () => {
+    if (!state.user || state.user?.username == "") {
+      return "normal";
+    }
     // If user is anonymous and on a share, check for defaultViewMode override
     if (getters.isShare() && state.user?.username === 'anonymous' && shareInfo.viewMode) {
       return shareInfo.viewMode;
@@ -61,9 +62,6 @@ export const getters = {
   isMobile: () => state.isMobile,
   isLoading: () => Object.keys(state.loading).length > 0,
   isSettings: () => getters.currentView() === 'settings',
-  isShare: () => {
-    return shareInfo.isShare
-  },
   isDarkMode: () => {
     if (shareInfo.enforceDarkLightMode == "dark") {
       return true
@@ -220,13 +218,22 @@ export const getters = {
     let urlPath = getters.routePath('public/share')
     let path =  "/" + removeLeadingSlash(urlPath.split(shareInfo.hash)[1])
     if (subPath != "") {
-      path += "/" + removeLeadingSlash(subPath)
+      path = url.joinPath(path, removeLeadingSlash(subPath))
     }
     return path
+  },
+  isShare: () => {
+    if (shareInfo.isShare && state.route.path.startsWith('/public/share/' + shareInfo.hash)) {
+      return true
+    }
+    return false
   },
   currentView: () => {
     let listingView = ''
     const pathname = getters.routePath()
+    if (!state.user || state.user?.username == "") {
+      return 'login'
+    }
     if (pathname.startsWith(`/settings`)) {
       listingView = 'settings'
     } else {
@@ -452,9 +459,9 @@ export const getters = {
     return "close";
   },
   isInvalidShare: () => {
-    return shareInfo.isShare && !shareInfo.isValid;
+    return getters.isShare() && !shareInfo.isValid;
   },
   isValidShare: () => {
-    return shareInfo.isShare && shareInfo.isValid;
+    return getters.isShare() && shareInfo.isValid;
   },
 };

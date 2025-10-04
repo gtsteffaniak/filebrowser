@@ -3,7 +3,7 @@
     <h2>{{ $t("buttons.share") }}</h2>
   </div>
   <div class="card-content">
-    <div aria-label="share-path" class="searchContext button"> {{ $t('search.path') }} {{ item.path }}</div>
+    <div aria-label="share-path" class="searchContext button"> {{ $t('search.path') }} {{ displayPath }}</div>
     <p> {{ $t('share.notice') }} </p>
 
     <div v-if="listing">
@@ -14,13 +14,20 @@
             <th>{{ $t("settings.shareDuration") }}</th>
             <th></th>
             <th></th>
+            <th></th>
           </tr>
 
           <tr v-for="link in links" :key="link.hash">
             <td>{{ link.hash }}</td>
             <td>
               <template v-if="link.expire !== 0">{{ humanTime(link.expire) }}</template>
-              <template v-else>{{ $t("permanent") }}</template>
+              <template v-else>{{ $t("general.permanent") }}</template>
+            </td>
+            <td class="small">
+              <button class="action" @click="editLink(link)" :aria-label="$t('buttons.edit')"
+                :title="$t('buttons.edit')">
+                <i class="material-icons">edit</i>
+              </button>
             </td>
             <td class="small">
               <button class="action copy-clipboard" :data-clipboard-text="buildLink(link)"
@@ -29,7 +36,7 @@
               </button>
             </td>
             <td class="small" v-if="hasDownloadLink()">
-              <button class="action copy-clipboard" :data-clipboard-text="buildDownloadLink(link)"
+              <button :disabled="link.shareType == 'upload'" class="action copy-clipboard" :data-clipboard-text="buildDownloadLink(link)"
                 :aria-label="$t('buttons.copyDownloadLinkToClipboard')"
                 :title="$t('buttons.copyDownloadLinkToClipboard')">
                 <i class="material-icons">content_paste_go</i>
@@ -75,13 +82,29 @@
         </i>
       </p>
       <input class="input" type="password" autocomplete="new-password" v-model.trim="password" />
+      <p>
+        {{ $t("share.shareType") }}
+        <i
+          class="no-select material-symbols-outlined tooltip-info-icon"
+          @mouseenter="showTooltip($event, $t('share.shareTypeDescription'))"
+          @mouseleave="hideTooltip"
+        >
+          help
+        </i>
+      </p>
+      <select class="input" v-model="shareType">
+        <option value="normal">{{ $t("share.normalShare") }}</option>
+        <option value="upload">{{ $t("share.uploadShare") }}</option>
+      </select>
+
       <div class="settings-items" style="margin-top: 0.5em;">
         <!--
         <ToggleSwitch class="item" v-model="allowEdit" :name="'Allow modifications'" />
         <ToggleSwitch class="item" v-model="allowUpload" :name="'Allow uploading'" />
         -->
-        <ToggleSwitch class="item" v-model="disableFileViewer" :name="$t('share.disableFileViewer')" />
+        <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="disableFileViewer" :name="$t('share.disableFileViewer')" />
         <ToggleSwitch
+          v-if="shareType === 'normal'"
           class="item"
           v-model="quickDownload"
           :name="$t('profileSettings.showQuickDownload')"
@@ -89,9 +112,11 @@
         />
         <ToggleSwitch class="item" v-model="disableAnonymous" :name="$t('share.disableAnonymous')" :description="$t('share.disableAnonymousDescription')" />
         <ToggleSwitch class="item" v-model="enableAllowedUsernames" :name="$t('share.enableAllowedUsernames')" :description="$t('share.enableAllowedUsernamesDescription')" />
-
-        <ToggleSwitch v-if="onlyOfficeAvailable" class="item" v-model="enableOnlyOffice" :name="$t('share.enableOnlyOffice')" :description="$t('share.enableOnlyOfficeDescription')" />
-        <ToggleSwitch v-if="onlyOfficeAvailable" class="item" v-model="enableOnlyOfficeEditing" :name="$t('share.enableOnlyOfficeEditing')" :description="$t('share.enableOnlyOfficeEditingDescription')" />
+        <div v-if="enableAllowedUsernames" class="item">
+          <input class="input" type="text" v-model.trim="allowedUsernames" :placeholder="$t('share.allowedUsernamesPlaceholder')" />
+        </div>
+        <ToggleSwitch v-if="shareType === 'normal' && onlyOfficeAvailable" class="item" v-model="enableOnlyOffice" :name="$t('share.enableOnlyOffice')" :description="$t('share.enableOnlyOfficeDescription')" />
+        <ToggleSwitch v-if="shareType === 'normal' && onlyOfficeAvailable" class="item" v-model="enableOnlyOfficeEditing" :name="$t('share.enableOnlyOfficeEditing')" :description="$t('share.enableOnlyOfficeEditingDescription')" />
         <p>
           {{ $t("share.enforceDarkLightMode") }}
           <i
@@ -107,10 +132,6 @@
           <option value="dark">{{ $t("share.dark") }}</option>
           <option value="light">{{ $t("share.light") }}</option>
         </select>
-
-        <div v-if="enableAllowedUsernames" class="item">
-          <input class="input" type="text" v-model.trim="allowedUsernames" :placeholder="$t('share.allowedUsernamesPlaceholder')" />
-        </div>
       </div>
         <!-- <ViewMode :viewMode="viewMode" @update:viewMode="viewMode = $event" /> -->
         <p>
@@ -130,53 +151,59 @@
             </option>
           </select>
         </div>
-        <p>
-          {{ $t("share.defaultViewMode") }}
-          <i
-            class="no-select material-symbols-outlined tooltip-info-icon"
-            @mouseenter="showTooltip($event, $t('share.defaultViewModeDescription'))"
-            @mouseleave="hideTooltip"
-          >
-            help
-          </i>
-        </p>
-        <select class="input" v-model="viewMode">
-          <option value="normal">{{ $t("buttons.normalView") }}</option>
-          <option value="list">{{ $t("buttons.listView") }}</option>
-          <option value="compact">{{ $t("buttons.compactView") }}</option>
-          <option value="gallery">{{ $t("buttons.galleryView") }}</option>
-        </select>
+        <div v-if="shareType === 'normal'">
+          <p>
+            {{ $t("share.defaultViewMode") }}
+            <i
+              class="no-select material-symbols-outlined tooltip-info-icon"
+              @mouseenter="showTooltip($event, $t('share.defaultViewModeDescription'))"
+              @mouseleave="hideTooltip"
+            >
+              help
+            </i>
+          </p>
+          <select class="input" v-model="viewMode">
+            <option value="normal">{{ $t("buttons.normalView") }}</option>
+            <option value="list">{{ $t("buttons.listView") }}</option>
+            <option value="compact">{{ $t("buttons.compactView") }}</option>
+            <option value="gallery">{{ $t("buttons.galleryView") }}</option>
+          </select>
+        </div>
       <SettingsItem :title="$t('buttons.showMore')" :collapsable="true" :start-collapsed="true">
         <div class="settings-items">
           <ToggleSwitch class="item" v-model="keepAfterExpiration" :name="$t('share.keepAfterExpiration')" :description="$t('share.keepAfterExpirationDescription')" />
-          <ToggleSwitch class="item" v-model="disableThumbnails" :name="$t('share.disableThumbnails')" :description="$t('share.disableThumbnailsDescription')" />
+          <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="disableThumbnails" :name="$t('share.disableThumbnails')" :description="$t('share.disableThumbnailsDescription')" />
           <ToggleSwitch class="item" v-model="disableNavButtons" :name="$t('share.hideNavButtons')" :description="$t('share.hideNavButtonsDescription')" />
           <ToggleSwitch class="item" v-model="disableShareCard" :name="$t('share.disableShareCard')" :description="$t('share.disableShareCardDescription')" />
-          <ToggleSwitch class="item" v-model="disableSidebar" :name="$t('share.disableSidebar')" :description="$t('share.disableSidebarDescription')" />
+          <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="disableSidebar" :name="$t('share.disableSidebar')" :description="$t('share.disableSidebarDescription')" />
+          <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="perUserDownloadLimit" :name="$t('share.perUserDownloadLimit')" :description="$t('share.perUserDownloadLimitDescription')" />
+          <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="extractEmbeddedSubtitles" :name="$t('share.extractEmbeddedSubtitles')" :description="$t('share.extractEmbeddedSubtitlesDescription')" />
         </div>
 
-        <p>
-          {{ $t("prompts.downloadsLimit") }}
-          <i
-            class="no-select material-symbols-outlined tooltip-info-icon"
-            @mouseenter="showTooltip($event, $t('share.downloadsLimitDescription'))"
-            @mouseleave="hideTooltip"
-          >
-            help
-          </i>
-        </p>
-        <input class="input" type="number" min="0" v-model.number="downloadsLimit" />
-        <p>
-          {{ $t("prompts.maxBandwidth") }}
-          <i
-            class="no-select material-symbols-outlined tooltip-info-icon"
-            @mouseenter="showTooltip($event, $t('share.maxBandwidthDescription'))"
-            @mouseleave="hideTooltip"
-          >
-            help
-          </i>
-        </p>
-        <input class="input" type="number" min="0" v-model.number="maxBandwidth" />
+        <div v-if="shareType === 'normal'">
+          <p>
+            {{ $t("prompts.downloadsLimit") }}
+            <i
+              class="no-select material-symbols-outlined tooltip-info-icon"
+              @mouseenter="showTooltip($event, $t('share.downloadsLimitDescription'))"
+              @mouseleave="hideTooltip"
+            >
+              help
+            </i>
+          </p>
+          <input class="input" type="number" min="0" v-model.number="downloadsLimit" />
+          <p>
+            {{ $t("prompts.maxBandwidth") }}
+            <i
+              class="no-select material-symbols-outlined tooltip-info-icon"
+              @mouseenter="showTooltip($event, $t('share.maxBandwidthDescription'))"
+              @mouseleave="hideTooltip"
+            >
+              help
+            </i>
+          </p>
+          <input class="input" type="number" min="0" v-model.number="maxBandwidth" />
+        </div>
 
 
         <p>
@@ -313,6 +340,7 @@ export default {
       listing: true,
       allowEdit: false,
       downloadsLimit: "",
+      perUserDownloadLimit: false,
       shareTheme: "default",
       disableAnonymous: false,
       allowUpload: false,
@@ -335,10 +363,22 @@ export default {
       viewMode: "normal",
       enableOnlyOffice: false,
       enableOnlyOfficeEditing: false,
+      shareType: "normal",
+      extractEmbeddedSubtitles: false,
+      /** @type {Share | null} */
+      editingLink: null,
       //viewMode: "normal",
     };
   },
   computed: {
+    displayPath() {
+      // When editing, use the link's path; otherwise use the item's path
+      return this.isEditMode ? this.link.path : this.item.path;
+    },
+    displaySource() {
+      // When editing, use the link's source; otherwise use the item's source
+      return this.isEditMode ? this.link.source : this.item.source;
+    },
     onlyOfficeAvailable() {
       return globalVars.onlyOfficeUrl !== "";
     },
@@ -396,6 +436,7 @@ export default {
           this.unit = "hours";
           this.password = "";
           this.downloadsLimit = this.link.downloadsLimit ? String(this.link.downloadsLimit) : "";
+          this.perUserDownloadLimit = this.link.perUserDownloadLimit || false;
           this.maxBandwidth = this.link.maxBandwidth ? String(this.link.maxBandwidth) : "";
           this.shareTheme = this.link.shareTheme || "default";
           this.disableAnonymous = this.link.disableAnonymous || false;
@@ -417,6 +458,8 @@ export default {
           this.viewMode = this.link.viewMode || "normal";
           this.enableOnlyOffice = this.link.enableOnlyOffice || false;
           this.enableOnlyOfficeEditing = this.link.enableOnlyOfficeEditing || false;
+          this.shareType = this.link.shareType || "normal";
+          this.extractEmbeddedSubtitles = this.link.extractEmbeddedSubtitles || false;
           //this.viewMode = this.link.viewMode || "normal";
         }
       },
@@ -464,15 +507,19 @@ export default {
     async submit() {
       try {
         if (!this.description) {
-          this.description = this.$t("share.descriptionDefault");
+          if (this.shareType === 'upload') {
+            this.description = this.$t("share.descriptionUploadDefault");
+          } else {
+            this.description = this.$t("share.descriptionDefault");
+          }
         }
         if (!this.title) {
           this.title = this.$t("share.titleDefault", { title: this.item.name || "share" });
         }
         let isPermanent = !this.time || this.time === "0";
         const payload = {
-          path: this.item.path,
-          source: this.item.source,
+          path: this.displayPath,
+          source: this.displaySource,
           password: this.password,
           expires: isPermanent ? "" : this.time.toString(),
           unit: this.unit,
@@ -480,6 +527,7 @@ export default {
           allowUpload: this.allowUpload,
           maxBandwidth: this.maxBandwidth ? parseInt(this.maxBandwidth) : 0,
           downloadsLimit: this.downloadsLimit ? parseInt(this.downloadsLimit) : 0,
+          perUserDownloadLimit: this.perUserDownloadLimit,
           shareTheme: this.shareTheme,
           disableFileViewer: this.disableFileViewer,
           disableThumbnails: this.disableThumbnails,
@@ -499,16 +547,29 @@ export default {
           viewMode: this.viewMode,
           enableOnlyOffice: this.enableOnlyOffice,
           enableOnlyOfficeEditing: this.enableOnlyOfficeEditing,
+          shareType: this.shareType,
+          extractEmbeddedSubtitles: this.extractEmbeddedSubtitles,
         };
         if (this.isEditMode) {
           payload.hash = this.link.hash;
+        } else if (this.editingLink) {
+          payload.hash = this.editingLink.hash;
         }
 
         const res = await shareApi.create(payload);
 
-        if (!this.isEditMode) {
+        if (!this.isEditMode && !this.editingLink) {
           this.links.push(res);
           this.sort();
+        } else if (this.editingLink) {
+          // Update the link in the local list
+          const index = this.links.findIndex(l => l.hash === this.editingLink.hash);
+          if (index !== -1) {
+            this.links[index] = res;
+          }
+          this.editingLink = null;
+          // emit event to reload shares in settings view
+          eventBus.emit('sharesChanged');
         } else {
           // emit event to reload shares in settings view
           eventBus.emit('sharesChanged');
@@ -523,6 +584,44 @@ export default {
       } catch (err) {
         notify.showError(err);
       }
+    },
+    /**
+     * @param {Share} link
+     */
+    editLink(link) {
+      this.listing = false;
+      this.time = link.expire
+        ? String(Math.round((new Date(link.expire * 1000).getTime() - new Date().getTime()) / 3600000))
+        : "0";
+      this.unit = "hours";
+      this.password = "";
+      this.downloadsLimit = link.downloadsLimit ? String(link.downloadsLimit) : "";
+      this.perUserDownloadLimit = link.perUserDownloadLimit || false;
+      this.maxBandwidth = link.maxBandwidth ? String(link.maxBandwidth) : "";
+      this.shareTheme = link.shareTheme || "default";
+      this.disableAnonymous = link.disableAnonymous || false;
+      this.disableThumbnails = link.disableThumbnails || false;
+      this.disableFileViewer = link.disableFileViewer || false;
+      this.enableAllowedUsernames = Array.isArray(link.allowedUsernames) && link.allowedUsernames.length > 0;
+      this.allowedUsernames = this.enableAllowedUsernames ? link.allowedUsernames.join(", ") : "";
+      this.keepAfterExpiration = link.keepAfterExpiration || false;
+      this.themeColor = link.themeColor || "";
+      this.banner = link.banner || "";
+      this.title = link.title || "";
+      this.description = link.description || "";
+      this.favicon = link.favicon || "";
+      this.quickDownload = link.quickDownload || false;
+      this.disableNavButtons = link.hideNavButtons || false;
+      this.disableShareCard = link.disableShareCard || false;
+      this.disableSidebar = link.disableSidebar || false;
+      this.enforceDarkLightMode = link.enforceDarkLightMode || "default";
+      this.viewMode = link.viewMode || "normal";
+      this.enableOnlyOffice = link.enableOnlyOffice || false;
+      this.enableOnlyOfficeEditing = link.enableOnlyOfficeEditing || false;
+      this.shareType = link.shareType || "normal";
+      this.extractEmbeddedSubtitles = link.extractEmbeddedSubtitles || false;
+      // Store the link being edited
+      this.editingLink = link;
     },
     /**
      * @param {Event} event
@@ -565,7 +664,6 @@ export default {
       if (share.downloadURL) {
         // Only fix the URL if it doesn't already have the correct external domain
         if (globalVars.externalUrl) {
-
           // URL already has the correct external domain, use as-is
           return share.downloadURL;
         }
@@ -588,6 +686,11 @@ export default {
       }
 
       this.listing = !this.listing;
+
+      // Clear editing link when switching back to listing
+      if (this.listing) {
+        this.editingLink = null;
+      }
     },
     fixDownloadURL(downloadUrl) {
       return fixDownloadURL(downloadUrl);

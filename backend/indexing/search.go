@@ -26,11 +26,13 @@ type SearchResult struct {
 }
 
 func (idx *Index) Search(search string, scope string, sourceSession string) []SearchResult {
-	scope = strings.TrimSuffix(scope, "/")
+	// Ensure scope has consistent trailing slash for directory matching
+	if scope != "" && !strings.HasSuffix(scope, "/") {
+		scope = scope + "/"
+	}
 	if search == "" {
 		scope = ""
 	}
-	// Remove slashes
 	runningHash := utils.InsecureRandomIdentifier(4)
 	sessionInProgress.Store(sourceSession, runningHash) // Store the value in the sync.Map
 	searchOptions := iteminfo.ParseSearch(search)
@@ -53,9 +55,7 @@ func (idx *Index) Search(search string, scope string, sourceSession string) []Se
 		}
 		idx.mu.Lock()
 		for _, dirName := range directories {
-			idx.mu.Unlock()
-			dir, found := idx.GetReducedMetadata(dirName, true)
-			idx.mu.Lock()
+			dir, found := idx.Directories[dirName]
 			if !found {
 				continue
 			}
@@ -69,15 +69,12 @@ func (idx *Index) Search(search string, scope string, sourceSession string) []Se
 			}
 			matches := reducedDir.ContainsSearchTerm(searchTerm, searchOptions)
 			if matches {
-				results[dirName+"/"] = SearchResult{Path: dirName + "/", Type: "directory", Size: dir.Size}
+				results[dirName] = SearchResult{Path: dirName, Type: "directory", Size: dir.Size}
 				count++
 			}
 			// search files first
 			for _, item := range dir.Files {
-				fullPath := dirName + "/" + item.Name
-				if dirName == "/" {
-					fullPath = dirName + item.Name
-				}
+				fullPath := filepath.Join(dirName, item.Name)
 				value, found := sessionInProgress.Load(sourceSession)
 				if !found || value != runningHash {
 					idx.mu.Unlock()
@@ -114,8 +111,20 @@ func (idx *Index) getDirsInScope(scope string) []string {
 	newList := []string{}
 	idx.mu.Lock()
 	defer idx.mu.Unlock()
+
+	// If scope is empty, return all directories
+	if scope == "" {
+		for k := range idx.Directories {
+			newList = append(newList, k)
+		}
+		return newList
+	}
+
+	// For non-empty scope, include the scope directory itself and all subdirectories
 	for k := range idx.Directories {
-		if strings.HasPrefix(k, scope) || scope == "" {
+		// Match the scope directory exactly (k == scope)
+		// OR match subdirectories (k starts with scope)
+		if k == scope || strings.HasPrefix(k, scope) {
 			newList = append(newList, k)
 		}
 	}

@@ -94,3 +94,49 @@ func (l *Link) GetFileName() string {
 	}
 	return filepath.Base(l.Path)
 }
+
+// InitUserDownloads initializes the user downloads map if needed
+func (l *Link) InitUserDownloads() {
+	l.Mu.Lock()
+	defer l.Mu.Unlock()
+	if l.UserDownloads == nil {
+		l.UserDownloads = make(map[string]int)
+	}
+}
+
+// IncrementUserDownload increments the download count for a specific user
+func (l *Link) IncrementUserDownload(username string) {
+	l.Mu.Lock()
+	defer l.Mu.Unlock()
+	if l.UserDownloads == nil {
+		l.UserDownloads = make(map[string]int)
+	}
+	l.UserDownloads[username]++
+}
+
+// GetUserDownloadCount returns the download count for a specific user
+func (l *Link) GetUserDownloadCount(username string) int {
+	l.Mu.Lock()
+	defer l.Mu.Unlock()
+	if l.UserDownloads == nil {
+		return 0
+	}
+	return l.UserDownloads[username]
+}
+
+// ResetDownloadCounts resets both global and per-user download counts
+func (l *Link) ResetDownloadCounts() {
+	l.Mu.Lock()
+	defer l.Mu.Unlock()
+	l.Downloads = 0
+	l.UserDownloads = make(map[string]int)
+}
+
+// HasReachedUserLimit checks if a user has reached their download limit
+func (l *Link) HasReachedUserLimit(username string) bool {
+	if !l.PerUserDownloadLimit || l.DownloadsLimit == 0 {
+		return false
+	}
+	count := l.GetUserDownloadCount(username)
+	return count >= l.DownloadsLimit
+}

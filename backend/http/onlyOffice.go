@@ -62,7 +62,7 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 		return http.StatusBadRequest, errors.New("missing required parameters: path + source/hash are required")
 	}
 	themeMode := utils.Ternary(d.user.DarkMode, "dark", "light")
-	var sourceInfo settings.Source
+	var sourceInfo *settings.Source
 	var ok bool
 	if d.fileInfo.Hash != "" {
 		sourceInfo, ok = settings.Config.Server.SourceMap[source]
@@ -87,12 +87,12 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 		}
 		indexPath := utils.JoinPathAsUnix(userScope, path)
 		logger.Debugf("OnlyOffice user request: resolved path=%s", indexPath)
-		fileInfo, err := files.FileInfoFaster(iteminfo.FileOptions{
+		fileInfo, err := files.FileInfoFaster(utils.FileOptions{
 			Path:   indexPath,
 			Modify: d.user.Permissions.Modify,
 			Source: source,
 			Expand: false,
-		})
+		}, store.Access)
 		if err != nil {
 			logger.Errorf("OnlyOffice: failed to get file info for source=%s, path=%s: %v", source, indexPath, err)
 			return errToStatus(err), err
@@ -258,7 +258,7 @@ func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *reques
 		logger.Errorf("OnlyOffice callback missing required parameters: source=%s, path=%s", source, path)
 		return http.StatusBadRequest, errors.New("missing required parameters: path + source/hash are required")
 	}
-	var sourceInfo settings.Source
+	var sourceInfo *settings.Source
 	var ok bool
 	if d.fileInfo.Hash != "" {
 		sourceInfo, ok = settings.Config.Server.SourceMap[source]
@@ -332,7 +332,7 @@ func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *reques
 		}
 
 		// Write the updated document
-		fileOpts := iteminfo.FileOptions{
+		fileOpts := utils.FileOptions{
 			Path:   resolvedPath,
 			Source: source,
 		}

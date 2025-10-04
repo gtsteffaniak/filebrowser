@@ -2,6 +2,47 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.8.8-beta
+
+ **New Features**:
+ - Ability to split configuration files via yaml anchoring #1267
+   - see [How to: Use multiple config files](https://github.com/gtsteffaniak/filebrowser/wiki/How-to:-Use-multiple-config-files)
+ - added [Init Script Help wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Init-Script-Help) to examples how you can bootstrap filebrowser quantum programatically
+ - Add capability to edit files permissions #813
+   - see updated full config for help using `server.filesystem`
+ - better copy/move prompt "in progress" indicator
+ - better login error message feedback
+ - Add capability to disable certain video previews at server level. See full config for help.
+ - Added ability to play media in same folder sequentially or shuffled.
+ - upload/upload only share links. #661
+ - Default landing directory if no other redirect is found (set profile settings) #781
+ - share download limit feature can apply per user -- and disables anonymous download when enabled.
+ - Docker health check #1292
+ - embedded subtitle support is now **disabled** by default, can be enabled via `integrations.media.extractEmbeddedSubtitles`. Per share configuration is also possible via `extractEmbeddedSubtitles` toggle. This change is because reading subtitles requires processing the entire file, and multi GB video files can take 10-20 seconds.
+
+ **Notes**:
+ - Some standardized path format changes for access rules to ensure the rules apply. A migration check happens on startup, all rules should still be in effect without any issues, but double check.
+ - moved `server.debugMedia` to `integrations.media.debug`
+ - optimized thumbnail generation workflow
+   - more concurrency changes for video thumbnails (now half of the numImageProcessors config)
+   - 15s timeout added to preview api
+   - preview operations are cancelled if api request is terminated.
+   - reduced io overhead for video previews
+   - you can now disable individual video file previews system wide at server config level (all enabled by default)
+
+ **BugFixes**:
+ - video plyr dark mode style issue where buttons are black instead of white
+ - error when running without a config file #1280
+ - Issue persist in 0.8.7 with Access Management #1282
+ - all static resources go through /public/static url to fix logout loop #995
+ - "realtime" Permission of API keys is not working #1141
+ - "Path not found" when trying to share a file or folder inside a sub-directory #1139
+ - logout path redirect not working
+ - 2FA secret error #1305
+ - console errors during login/logout
+ - fix scoped user share creation issue #1309
+ - share close button and navigation issues.
+
 ## v0.8.7-beta
 
  **New Features**:

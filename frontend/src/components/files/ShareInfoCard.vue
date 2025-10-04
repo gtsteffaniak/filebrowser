@@ -11,23 +11,26 @@
         <p>{{ shareInfo.description }}</p>
       </div>
 
-      <div v-if="accessible">
+      <div>
         <hr v-if="shareInfo.banner || shareInfo.title || shareInfo.description" />
-        <div class="share__box__element">
-          <strong>{{ $t("prompts.displayName") }}</strong> {{ req.name }}
-        </div>
-        <div class="share__box__element" :title="modTime">
-          <strong>{{ $t("prompts.lastModified", {suffix: ":"}) }}</strong> {{ humanTime }}
-          <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-        </div>
-        <div class="share__box__element">
-          <strong>{{ $t("prompts.size", {suffix: ":"}) }}</strong> {{ humanSize }}
-          <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+        <div v-if="showShareInfo">
+          <div class="share__box__element">
+            <strong>{{ $t("prompts.displayName") }}</strong> {{ req.name }}
+          </div>
+          <div class="share__box__element" :title="modTime">
+            <strong>{{ $t("prompts.lastModified", { suffix: ":" }) }}</strong> {{ humanTime }}
+            <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          </div>
+          <div class="share__box__element">
+            <strong>{{ $t("prompts.size", { suffix: ":" }) }}</strong> {{ humanSize }}
+            <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          </div>
+
+          <div class="share__box__element share__box__center">
+            <button class="button button--flat clickable" @click="goToLink()"> {{ $t("buttons.download") }} </button>
+          </div>
         </div>
 
-        <div class="share__box__element share__box__center">
-          <button class="button button--flat clickable" @click="goToLink()"> {{ $t("buttons.download") }} </button>
-        </div>
       </div>
       <div v-if="req.type" class="share__box__element share__box__center">
         <qrcode-vue class="qrcode" :value="getLink(false)" size="200" level="M"></qrcode-vue>
@@ -64,7 +67,10 @@ export default {
     },
   },
   computed: {
-    accessible() {
+    showShareInfo() {
+      if (shareInfo.shareType !== 'normal') {
+        return false;
+      }
       if (!shareInfo.isPasswordProtected) {
         return true
       }
@@ -187,15 +193,5 @@ export default {
 
 .button i {
   font-size: 1.2em;
-}
-
-/* Dark mode support */
-.dark-mode .share__box {
-  background: var(--surfacePrimary);
-  color: var(--textPrimary);
-}
-
-.dark-mode .share__box__header {
-  border-color: var(--divider);
 }
 </style>

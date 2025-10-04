@@ -54,7 +54,10 @@
     "compactView": "Compact View",
     "normalView": "Normal View",
     "galleryView": "Gallery View",
-    "selectedCount": "Number of items selected to perform an action"
+    "selectedCount": "Number of items selected to perform an action",
+    "uploadFiles": "Upload Files",
+    "uploadFolder": "Upload Folder",
+    "openUploadViewer": "Open Upload Manager"
   },
   "download": {
     "downloadFile": "Download File",
@@ -137,7 +140,10 @@
     "submit": "Login",
     "usernameTaken": "Username already taken",
     "wrongCredentials": "Wrong credentials",
-    "or": "OR"
+    "or": "OR",
+    "inProgress": "Logging in...",
+    "failedLogin": "Failed to login",
+    "invalidCredentials": "Invalid credentials provided"
   },
   "share": {
     "notice": "Note: when a share is a created, it becomes more exposed to the public and has different rules for access. If your share is not securely configured, it may be accessed by anyone.",
@@ -168,6 +174,7 @@
     "viewModeDescription": "Default layout for the shared page.",
     "titleDefault": "Shared files - {title}",
     "descriptionDefault": "A share has been sent to you to view or download.",
+    "descriptionUploadDefault": "A share has been sent to you to upload files.",
     "disableShareCard": "Disable share card",
     "disableShareCardDescription": "Disable the share card on the shared page in the sidebar or at the top of the page on mobile.",
     "disableSidebar": "Disable sidebar",
@@ -183,9 +190,18 @@
     "enableOnlyOffice": "Enable OnlyOffice viewer",
     "enableOnlyOfficeDescription": "Allow viewing office files using OnlyOffice in this share.",
     "enableOnlyOfficeEditing": "Enable OnlyOffice editing",
-    "enableOnlyOfficeEditingDescription": "Allow editing of office files using OnlyOffice in this share."
+    "enableOnlyOfficeEditingDescription": "Allow editing of office files using OnlyOffice in this share.",
+    "shareType": "Share type",
+    "shareTypeDescription": "The type of share to create. Normal shares allow viewing and downloading files. Upload shares allow uploading files to the share.",
+    "normalShare": "Normal",
+    "uploadShare": "Upload only",
+    "perUserDownloadLimit": "Apply the downloads limit to each user",
+    "perUserDownloadLimitDescription": "When enabled, the downloads limit will be applied to each user. Anonymous users will not be able to download any files from this share.",
+    "extractEmbeddedSubtitles": "Extract embedded subtitles",
+    "extractEmbeddedSubtitlesDescription": "Extract embedded subtitles from media files on load -- this can be slow for large files."
   },
   "prompts": {
+    "operationInProgress": "Operation in progress, please wait...",
     "quickJump": "Quickly jump to other files",
     "downloadsLimit": "Number of downloads limit",
     "maxBandwidth": "Max download bandwidth (kbps)",
@@ -330,7 +346,9 @@
     "disableOfficeEditorDescription": "A space-separated list of file extensions to disable the OnlyOffice editor and viewer for. (e.g., '.txt .html .pdf').",
     "disableOfficeEditor": "Disable office viewer for certain file extensions",
     "fileViewerOptions": "File Viewer Options",
-    "themeAndLanguage": "Theme & Language"
+    "themeAndLanguage": "Theme & Language",
+    "defaultLandingPage": "Default landing page",
+    "defaultLandingPageDescription": "eg. '/files/mysource/mysubpath' or '/settings' - default page is /files which goes to the first source listing view"
   },
   "settings": {
     "systemAdmin": "System & Admin",
@@ -561,7 +579,8 @@
     "uploadChunkSizeMb": "Upload chunk size in MB",
     "uploadChunkSizeMbHelp": "Typically 5 to 50 MB, smaller is better for unstable or restricted connections. Setting to 0 will disable upload chunking.",
     "clearAll": "Clear completed should remove error, pause, and conflict",
-    "clearAllDescription": "The clear completed button will clear all uploads in a finished state, including error, paused, and conflict states."
+    "clearAllDescription": "The clear completed button will clear all uploads in a finished state, including error, paused, and conflict states.",
+    "uploadSettings": "Upload Settings"
   },
   "colors": {
     "red": "red",
@@ -581,6 +600,9 @@
   },
   "player": {
     "LoopEnabled": "Loop Enabled",
-    "LoopDisabled": "Loop Disabled"
+    "LoopDisabled": "Loop Disabled",
+    "PlayAllOncePlayback": "Play All Once",
+    "ShuffleAllPlayback": "Shuffle All",
+    "PlayAllLoopedPlayback": "Play All Looped"
   }
 }

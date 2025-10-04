@@ -67,6 +67,7 @@ func DetectAllSubtitles(videoPath string, parentDir string, modtime time.Time) [
 }
 
 // detectEmbeddedSubtitles uses ffprobe to find embedded subtitle tracks
+// Always runs ffprobe - results are cached for performance
 func detectEmbeddedSubtitles(realPath string) []SubtitleTrack {
 	cmd := exec.Command("ffprobe",
 		"-v", "quiet",

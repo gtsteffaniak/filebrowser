@@ -1,6 +1,7 @@
 package ffmpeg
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -124,7 +125,7 @@ func TestGetImageOrientation(t *testing.T) {
 	}
 	defer os.RemoveAll(tempDir)
 
-	service := NewImageService("ffmpeg", "ffprobe", false, tempDir)
+	service := NewImageService("ffmpeg", "ffprobe", 2, false, tempDir)
 
 	t.Run("Non-existent file", func(t *testing.T) {
 		nonExistentFile := filepath.Join(tempDir, "non_existent.heic")
@@ -158,7 +159,7 @@ func TestNewImageService(t *testing.T) {
 	debug := true
 	cacheDir := "/tmp/test_cache"
 
-	service := NewImageService(ffmpegPath, ffprobePath, debug, cacheDir)
+	service := NewImageService(ffmpegPath, ffprobePath, 2, debug, cacheDir)
 
 	if service.ffmpegPath != ffmpegPath {
 		t.Errorf("Expected ffmpegPath %q, got %q", ffmpegPath, service.ffmpegPath)
@@ -188,7 +189,7 @@ func TestConvertHEICToJPEGDirect_OrientationHandling(t *testing.T) {
 	}
 	defer os.RemoveAll(tempDir)
 
-	service := NewImageService("ffmpeg", "ffprobe", true, tempDir)
+	service := NewImageService("ffmpeg", "ffprobe", 2, true, tempDir)
 
 	t.Run("Direct conversion with orientation detection", func(t *testing.T) {
 		// This test requires actual HEIC files to work properly
@@ -222,7 +223,7 @@ func TestConvertHEICToJPEGDirect_OrientationHandling(t *testing.T) {
 			t.Logf("Generated filter: %s", filter)
 
 			// Test actual conversion (small size for speed)
-			jpegBytes, err := service.ConvertHEICToJPEGDirect(testFile, 100, 100, "5")
+			jpegBytes, err := service.ConvertHEICToJPEGDirect(context.Background(), testFile, 100, 100, "5")
 			if err != nil {
 				t.Errorf("Failed to convert %s: %v", filepath.Base(testFile), err)
 				continue

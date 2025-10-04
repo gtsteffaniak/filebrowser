@@ -1,3 +1,5 @@
+// WARNING: the vast majority of generator.go is ai generated
+// troubleshooting is best done with ai agent assistance
 package settings
 
 import (
@@ -9,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"sort"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -37,21 +40,89 @@ func CollectComments(srcPath string) (CommentsMap, error) {
 
 // CollectCommentsAndSecrets parses all Go source and returns comments, secrets, and deprecated field mappings
 func CollectCommentsAndSecrets(srcPath string) (CommentsMap, SecretFieldsMap, DeprecatedFieldsMap, error) {
-	// parse entire package so we capture comments on all types
+	// Determine directories to parse - include settings and users packages
 	dir := srcPath
 	if filepath.IsAbs(srcPath) {
 		// If it's an absolute path to a file, get the directory
 		dir = filepath.Dir(srcPath)
 	}
 
+	// List of directories to parse for comments
+	dirsToparse := []string{
+		dir, // settings package
+	}
+
+	// Add users package directory
+	// From common/settings, go up to backend root, then into database/users
+	var usersDir string
+	if filepath.IsAbs(dir) {
+		// If absolute path, calculate relative to it
+		usersDir = filepath.Join(filepath.Dir(filepath.Dir(dir)), "database/users")
+	} else {
+		// If relative path like "common/settings" or ".", calculate from current working directory
+		usersDir = "database/users"
+	}
+	if absUsersDir, err := filepath.Abs(usersDir); err == nil {
+		dirsToparse = append(dirsToparse, absUsersDir)
+	}
+
+	comments := make(CommentsMap)
+	secrets := make(SecretFieldsMap)
+	deprecated := make(DeprecatedFieldsMap)
+
+	// Parse each directory
+	for _, parseDir := range dirsToparse {
+		dirComments, dirSecrets, dirDeprecated, err := parseDirectoryComments(parseDir)
+		if err != nil {
+			// Log error but continue with other directories
+			fmt.Printf("Warning: failed to parse directory %s: %v\n", parseDir, err)
+			continue
+		}
+
+		// Merge results
+		for typeName, fieldMap := range dirComments {
+			if comments[typeName] == nil {
+				comments[typeName] = make(map[string]string)
+			}
+			for fieldName, comment := range fieldMap {
+				comments[typeName][fieldName] = comment
+			}
+		}
+
+		for typeName, fieldMap := range dirSecrets {
+			if secrets[typeName] == nil {
+				secrets[typeName] = make(map[string]bool)
+			}
+			for fieldName, isSecret := range fieldMap {
+				secrets[typeName][fieldName] = isSecret
+			}
+		}
+
+		for typeName, fieldMap := range dirDeprecated {
+			if deprecated[typeName] == nil {
+				deprecated[typeName] = make(map[string]bool)
+			}
+			for fieldName, isDeprecated := range fieldMap {
+				deprecated[typeName][fieldName] = isDeprecated
+			}
+		}
+	}
+
+	return comments, secrets, deprecated, nil
+}
+
+// parseDirectoryComments parses a single directory for comments, secrets, and deprecated fields
+func parseDirectoryComments(dir string) (CommentsMap, SecretFieldsMap, DeprecatedFieldsMap, error) {
 	fset := token.NewFileSet()
 	pkgs, err := parser.ParseDir(fset, dir, nil, parser.ParseComments)
 	if err != nil {
 		return nil, nil, nil, err
 	}
+
 	comments := make(CommentsMap)
 	secrets := make(SecretFieldsMap)
 	deprecated := make(DeprecatedFieldsMap)
+
 	for _, pkg := range pkgs {
 		for _, file := range pkg.Files {
 			for _, decl := range file.Decls {
@@ -241,8 +312,9 @@ func CollectCommentsFromEmbeddedYaml(yamlContent string) (CommentsMap, SecretFie
 
 	lines := strings.Split(yamlContent, "\n")
 
-	// Track the current path in the YAML structure
+	// Track the current path in the YAML structure and array context
 	var currentPath []string
+	var arrayDepth = -1 // Track the depth where we encountered an array element
 
 	for _, line := range lines {
 		// Skip empty lines and lines that are just comments
@@ -277,6 +349,22 @@ func CollectCommentsFromEmbeddedYaml(yamlContent string) (CommentsMap, SecretFie
 		key := strings.TrimSpace(keyPart)
 		if key == "" {
 			continue
+		}
+
+		// Handle YAML array elements that start with "- "
+		isArrayElement := strings.HasPrefix(key, "- ")
+		if isArrayElement {
+			key = strings.TrimSpace(key[2:]) // Remove "- " prefix
+			arrayDepth = depth               // Track that we're in an array element at this depth
+		} else {
+			// If we're processing a field that's part of an array element,
+			// keep it at the array element depth
+			if arrayDepth >= 0 && depth > arrayDepth {
+				depth = arrayDepth
+			} else if arrayDepth >= 0 && depth <= arrayDepth {
+				// We've moved out of the array element context
+				arrayDepth = -1
+			}
 		}
 
 		// Adjust the current path based on depth
@@ -349,7 +437,7 @@ func CollectCommentsFromEmbeddedYaml(yamlContent string) (CommentsMap, SecretFie
 func parseDefaultsFromEmbeddedYaml(embeddedYaml string) (*Settings, error) {
 	// Start with baseline defaults from setDefaults to ensure all fields are initialized
 	defaultConfig := setDefaults(true)
-	defaultConfig.Server.Sources = []Source{{Path: "."}}
+	defaultConfig.Server.Sources = []*Source{{Path: "."}}
 
 	// Parse the embedded YAML to overlay the documented defaults
 	if err := yaml.Unmarshal([]byte(embeddedYaml), &defaultConfig); err != nil {
@@ -459,8 +547,21 @@ func buildNodeWithDefaults(v reflect.Value, comm CommentsMap, defaults reflect.V
 
 			// attach validate and comments inline (only when comments are enabled)
 			var parts []string
+
+			// Try to find comment - first by current type, then by field's actual type
+			var comment string
 			if cm := comm[typeName][sf.Name]; cm != "" {
-				parts = append(parts, cm)
+				comment = cm
+			} else {
+				// Try the field's actual type name (for embedded structs)
+				fieldTypeName := sf.Type.Name()
+				if fieldTypeName != "" && comm[fieldTypeName][sf.Name] != "" {
+					comment = comm[fieldTypeName][sf.Name]
+				}
+			}
+
+			if comment != "" {
+				parts = append(parts, comment)
 			}
 			// Only add validation tags if comments map is not empty (meaning comments are enabled)
 			if len(comm) > 0 {
@@ -477,11 +578,24 @@ func buildNodeWithDefaults(v reflect.Value, comm CommentsMap, defaults reflect.V
 			var valNode *yaml.Node
 			var err error
 			if secrets[typeName][sf.Name] {
-				valNode = &yaml.Node{
-					Kind:  yaml.ScalarNode,
-					Tag:   "!!str",
-					Value: "**hidden**",
-					Style: yaml.DoubleQuotedStyle, // Keep secrets quoted for clarity
+				// Check if the secret value is empty
+				fieldValue := currentField.Interface()
+				if str, ok := fieldValue.(string); ok && str == "" {
+					// Show empty string for empty secret values
+					valNode = &yaml.Node{
+						Kind:  yaml.ScalarNode,
+						Tag:   "!!str",
+						Value: "",
+						Style: yaml.DoubleQuotedStyle,
+					}
+				} else {
+					// Show **hidden** for non-empty secret values
+					valNode = &yaml.Node{
+						Kind:  yaml.ScalarNode,
+						Tag:   "!!str",
+						Value: "**hidden**",
+						Style: yaml.DoubleQuotedStyle, // Keep secrets quoted for clarity
+					}
 				}
 			} else {
 				// Pass through the corresponding default field for recursive comparison
@@ -500,27 +614,19 @@ func buildNodeWithDefaults(v reflect.Value, comm CommentsMap, defaults reflect.V
 		return mapNode, nil
 
 	case reflect.Slice, reflect.Array:
+		// For empty arrays, return a null node so only the key with comment appears
+		if v.Len() == 0 {
+			return &yaml.Node{Kind: yaml.ScalarNode, Tag: "!!null", Value: ""}, nil
+		}
+
 		seq := &yaml.Node{Kind: yaml.SequenceNode}
 		// for non-struct slices, render inline [] via flow style
-		if v.Type().Elem().Kind() != reflect.Struct {
+		elemType := v.Type().Elem()
+		// Check if element is a struct or pointer to struct
+		isStructSlice := elemType.Kind() == reflect.Struct ||
+			(elemType.Kind() == reflect.Ptr && elemType.Elem().Kind() == reflect.Struct)
+		if !isStructSlice {
 			seq.Style = yaml.FlowStyle
-		}
-		// placeholder for empty slice of structs
-		if v.Len() == 0 && v.Type().Elem().Kind() == reflect.Struct {
-			zero := reflect.Zero(v.Type().Elem())
-			var defaultElem reflect.Value
-			if defaults.IsValid() && defaults.Len() > 0 {
-				defaultElem = defaults.Index(0)
-			}
-			n, err := buildNodeWithDefaults(zero, comm, defaultElem, secrets, deprecated)
-			if err != nil {
-				return nil, err
-			}
-			// Only add placeholder if it's not empty
-			if n.Kind == yaml.MappingNode && len(n.Content) > 0 {
-				seq.Content = append(seq.Content, n)
-			}
-			return seq, nil
 		}
 		for i := 0; i < v.Len(); i++ {
 			var defaultElem reflect.Value
@@ -547,9 +653,23 @@ func buildNodeWithDefaults(v reflect.Value, comm CommentsMap, defaults reflect.V
 			return buildImagePreviewMap(v, comm, secrets, deprecated)
 		}
 
-		for _, key := range v.MapKeys() {
-			// Handle key
+		// Get and sort map keys alphabetically for consistent output
+		mapKeys := v.MapKeys()
+		keyStrings := make([]string, len(mapKeys))
+		keyMap := make(map[string]reflect.Value)
+		for i, key := range mapKeys {
 			keyStr := fmt.Sprintf("%v", key.Interface())
+			keyStrings[i] = keyStr
+			keyMap[keyStr] = key
+		}
+
+		// Sort alphabetically
+		sort.Strings(keyStrings)
+
+		for _, keyStr := range keyStrings {
+			key := keyMap[keyStr]
+
+			// Handle key
 			keyNode := &yaml.Node{
 				Kind:  yaml.ScalarNode,
 				Value: keyStr,
@@ -582,7 +702,7 @@ func buildNodeWithDefaults(v reflect.Value, comm CommentsMap, defaults reflect.V
 
 func GenerateYaml() {
 	_ = loadConfigWithDefaults("", true)
-	Config.Server.Sources = []Source{
+	Config.Server.Sources = []*Source{
 		{
 			Path: ".",
 		},
@@ -590,13 +710,28 @@ func GenerateYaml() {
 
 	setupLogging()
 	setupAuth(true)
+
+	// Save original paths before setupSources modifies them (for YAML generation)
+	originalPaths := make(map[*Source]string)
+	for _, source := range Config.Server.Sources {
+		originalPaths[source] = source.Path
+	}
+
 	setupSources(true)
 	setupUrls()
 	setupFrontend(true)
-	output := "generated.yaml" // "output YAML file"
+
+	// Restore original paths so the YAML output has the correct paths, not the placeholder
+	for _, source := range Config.Server.Sources {
+		if originalPath, ok := originalPaths[source]; ok {
+			source.Path = originalPath
+		}
+	}
+
+	output := "../frontend/public/config.generated.yaml" // "output YAML file"
 
 	// Generate YAML with comments enabled, full config, and deprecated fields filtered
-	// Force the source path to be correct for static generation
+	// Use multi-directory comment parsing to get comments from all packages
 	yamlContent, err := GenerateConfigYamlWithSource(&Config, true, true, true, "common/settings")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error generating YAML: %v\n", err)
@@ -614,9 +749,9 @@ func GenerateYaml() {
 func GenerateConfigYaml(config *Settings, showComments bool, showFull bool, filterDeprecated bool) (string, error) {
 	// Try different source paths to handle both runtime and test scenarios
 	sourcePaths := []string{
-		"common/settings", // When running from backend directory
-		".",               // When running tests from settings directory
-		"../settings",     // Alternative test path
+		".",                  // When running tests from settings directory
+		"../common/settings", // When running from backend directory
+		"common/settings",    // Alternative path
 	}
 
 	for _, sourcePath := range sourcePaths {
@@ -641,14 +776,19 @@ func GenerateConfigYamlWithEmbedded(config *Settings, showComments bool, showFul
 	var deprecated DeprecatedFieldsMap
 	var err error
 
-	if showComments && embeddedYaml != "" {
-		// Parse comments from the embedded YAML content
+	if embeddedYaml != "" {
+		// Always parse the embedded YAML to get secrets and deprecated fields
 		comm, secrets, deprecated, err = CollectCommentsFromEmbeddedYaml(embeddedYaml)
 		if err != nil {
 			return "", fmt.Errorf("error parsing embedded YAML comments: %w", err)
 		}
+
+		// If not showing comments, clear the comments map but keep secrets and deprecated
+		if !showComments {
+			comm = make(CommentsMap)
+		}
 	} else {
-		// Create empty maps
+		// Create empty maps only if no embedded YAML is available
 		comm = make(CommentsMap)
 		secrets = make(SecretFieldsMap)
 		deprecated = make(DeprecatedFieldsMap)
@@ -699,12 +839,104 @@ func GenerateConfigYamlWithEmbedded(config *Settings, showComments bool, showFul
 	return yamlOutput, nil
 }
 
+// identifySecretFieldsByReflection identifies secret fields by known field names
+func identifySecretFieldsByReflection(v reflect.Value, typeName string, secrets SecretFieldsMap) {
+	if v.Kind() == reflect.Ptr {
+		if v.IsNil() {
+			return
+		}
+		v = v.Elem()
+	}
+
+	if v.Kind() != reflect.Struct {
+		return
+	}
+
+	t := v.Type()
+	if secrets[typeName] == nil {
+		secrets[typeName] = make(map[string]bool)
+	}
+
+	// Known secret field names
+	secretFields := map[string]bool{
+		"Key":           true,
+		"AdminUsername": true,
+		"AdminPassword": true,
+		"TotpSecret":    true,
+		"ClientID":      true,
+		"ClientSecret":  true,
+		"Secret":        true,
+	}
+
+	for i := 0; i < t.NumField(); i++ {
+		field := t.Field(i)
+		if secretFields[field.Name] {
+			secrets[typeName][field.Name] = true
+		}
+
+		// Recursively check nested structs
+		fieldValue := v.Field(i)
+		if fieldValue.Kind() == reflect.Struct || (fieldValue.Kind() == reflect.Ptr && !fieldValue.IsNil() && fieldValue.Elem().Kind() == reflect.Struct) {
+			nestedTypeName := field.Type.Name()
+			if field.Type.Kind() == reflect.Ptr {
+				nestedTypeName = field.Type.Elem().Name()
+			}
+			identifySecretFieldsByReflection(fieldValue, nestedTypeName, secrets)
+		}
+	}
+}
+
+// identifyDeprecatedFieldsByReflection identifies deprecated fields by known field names
+func identifyDeprecatedFieldsByReflection(v reflect.Value, typeName string, deprecated DeprecatedFieldsMap) {
+	if v.Kind() == reflect.Ptr {
+		if v.IsNil() {
+			return
+		}
+		v = v.Elem()
+	}
+
+	if v.Kind() != reflect.Struct {
+		return
+	}
+
+	t := v.Type()
+	if deprecated[typeName] == nil {
+		deprecated[typeName] = make(map[string]bool)
+	}
+
+	// Known deprecated field names
+	deprecatedFields := map[string]bool{
+		"IndexAlbumArt":           true,
+		"DisableOfficePreviewExt": true,
+	}
+
+	for i := 0; i < t.NumField(); i++ {
+		field := t.Field(i)
+		if deprecatedFields[field.Name] {
+			deprecated[typeName][field.Name] = true
+		}
+
+		// Recursively check nested structs
+		fieldValue := v.Field(i)
+		if fieldValue.Kind() == reflect.Struct || (fieldValue.Kind() == reflect.Ptr && !fieldValue.IsNil() && fieldValue.Elem().Kind() == reflect.Struct) {
+			nestedTypeName := field.Type.Name()
+			if field.Type.Kind() == reflect.Ptr {
+				nestedTypeName = field.Type.Elem().Name()
+			}
+			identifyDeprecatedFieldsByReflection(fieldValue, nestedTypeName, deprecated)
+		}
+	}
+}
+
 // GenerateConfigYamlWithEmptyMaps generates YAML without comment parsing when source files are unavailable
 func GenerateConfigYamlWithEmptyMaps(config *Settings, showFull bool) (string, error) {
 	// Create empty maps
 	comm := make(CommentsMap)
 	secrets := make(SecretFieldsMap)
 	deprecated := make(DeprecatedFieldsMap)
+
+	// Identify secret fields by reflection since we can't parse source files
+	identifySecretFieldsByReflection(reflect.ValueOf(config), "Settings", secrets)
 
 	var node *yaml.Node
 	var err error
@@ -723,7 +955,7 @@ func GenerateConfigYamlWithEmptyMaps(config *Settings, showFull bool) (string, e
 		if err != nil || readErr != nil {
 			// Fallback to setDefaults
 			defaultConfigValue := setDefaults(true)
-			defaultConfigValue.Server.Sources = []Source{{Path: "."}}
+			defaultConfigValue.Server.Sources = []*Source{{Path: "."}}
 			defaultConfig = &defaultConfigValue
 		}
 
@@ -771,6 +1003,30 @@ func GenerateConfigYamlWithSource(config *Settings, showComments bool, showFull 
 		comm = make(CommentsMap)
 	}
 
+	// If secrets map is empty (directory parsing failed), use reflection to identify secrets
+	secretsEmpty := true
+	for typeName := range secrets {
+		if len(secrets[typeName]) > 0 {
+			secretsEmpty = false
+			break
+		}
+	}
+	if secretsEmpty {
+		identifySecretFieldsByReflection(reflect.ValueOf(config), "Settings", secrets)
+	}
+
+	// If deprecated map is empty (directory parsing failed), use reflection to identify deprecated fields
+	deprecatedEmpty := true
+	for typeName := range deprecated {
+		if len(deprecated[typeName]) > 0 {
+			deprecatedEmpty = false
+			break
+		}
+	}
+	if deprecatedEmpty {
+		identifyDeprecatedFieldsByReflection(reflect.ValueOf(config), "Settings", deprecated)
+	}
+
 	// If not filtering deprecated fields, clear the deprecated map
 	if !filterDeprecated {
 		deprecated = make(DeprecatedFieldsMap)
@@ -792,7 +1048,7 @@ func GenerateConfigYamlWithSource(config *Settings, showComments bool, showFull 
 		if err != nil || readErr != nil {
 			// Fallback to setDefaults
 			defaultConfigValue := setDefaults(true)
-			defaultConfigValue.Server.Sources = []Source{{Path: "."}}
+			defaultConfigValue.Server.Sources = []*Source{{Path: "."}}
 			defaultConfig = &defaultConfigValue
 		}
 
