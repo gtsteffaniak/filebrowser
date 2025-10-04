@@ -97,7 +97,13 @@ export default {
         return;
       }
 
-      let newPath = this.item.path.substring(0, this.item.path.lastIndexOf("/"));
+      // Remove trailing slashes from the source path before calculating parent directory
+      let sourcePath = this.item.path;
+      while (sourcePath.endsWith("/") || sourcePath.endsWith("\\")) {
+        sourcePath = sourcePath.substring(0, sourcePath.length - 1);
+      }
+
+      let newPath = sourcePath.substring(0, sourcePath.lastIndexOf("/"));
       newPath = `${newPath}/${this.name}`;
       try {
         if (this.name === this.item.name) {

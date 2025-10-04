@@ -12,10 +12,10 @@ All notable changes to this project will be documented in this file. For commit 
    - see updated full config for help using `server.filesystem`
  - better copy/move prompt "in progress" indicator
  - better login error message feedback
- - Add capability to disable certain video previews at server level.
- - Added ability to play media in same folder sequentially or shuffled
+ - Add capability to disable certain video previews at server level. See full config for help.
+ - Added ability to play media in same folder sequentially or shuffled.
  - upload/upload only share links. #661
- - Default landing directory (set profile settings) #781
+ - Default landing directory if no other redirect is found (set profile settings) #781
  - share download limit feature can apply per user -- and disables anonymous download when enabled.
  - Docker health check #1292
  - embedded subtitle support is now **disabled** by default, can be enabled via `integrations.media.extractEmbeddedSubtitles`. Per share configuration is also possible via `extractEmbeddedSubtitles` toggle. This change is because reading subtitles requires processing the entire file, and multi GB video files can take 10-20 seconds.
@@ -31,6 +31,7 @@ All notable changes to this project will be documented in this file. For commit 
    - you can now disable individual video file previews system wide at server config level (all enabled by default)
 
  **BugFixes**:
+ - video plyr dark mode style issue where buttons are black instead of white
  - error when running without a config file #1280
  - Issue persist in 0.8.7 with Access Management #1282
  - all static resources go through /public/static url to fix logout loop #995
