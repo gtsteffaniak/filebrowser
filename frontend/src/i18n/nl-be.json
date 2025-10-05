@@ -603,6 +603,11 @@
     "LoopDisabled": "Herhaling uitgeschakeld",
     "PlayAllOncePlayback": "Alles eenmaal afspelen",
     "ShuffleAllPlayback": "Alles willekeurig afspelen",
-    "PlayAllLoopedPlayback": "Alles herhaald afspelen"
+    "PlayAllLoopedPlayback": "Alles herhaald afspelen",
+    "QueueButtonHint": "Toon afspeellijst",
+    "QueuePlayback": "Afspeellijst",
+    "changePlaybackMode": "Afspeelmodus wijzigen",
+    "changePlaybackModeHint": "Wijzig afspeelmodus om meer bestanden te zien",
+    "emptyQueue": "Wachtrij is leeg"
   }
 }

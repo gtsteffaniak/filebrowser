@@ -603,6 +603,11 @@
     "LoopDisabled": "Slučka zakázaná",
     "PlayAllOncePlayback": "Prehrať všetko raz",
     "ShuffleAllPlayback": "Náhodné prehrávanie všetkého",
-    "PlayAllLoopedPlayback": "Prehrať všetko v slučke"
+    "PlayAllLoopedPlayback": "Prehrať všetko v slučke",
+    "QueueButtonHint": "Zobraziť front prehrávania",
+    "QueuePlayback": "Front Prehrávania",
+    "changePlaybackMode": "Zmeniť režim prehrávania",
+    "changePlaybackModeHint": "Zmeňte režim prehrávania, aby ste videli viac súborov",
+    "emptyQueue": "Front je prázdny"
   }
 }

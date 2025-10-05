@@ -603,6 +603,11 @@
     "LoopDisabled": "Повтор вимкнено",
     "PlayAllOncePlayback": "Відтворити все один раз",
     "ShuffleAllPlayback": "Перемішати все",
-    "PlayAllLoopedPlayback": "Відтворити все з повторенням"
+    "PlayAllLoopedPlayback": "Відтворити все з повторенням",
+    "QueueButtonHint": "Показати чергу відтворення",
+    "QueuePlayback": "Черга Відтворення",
+    "changePlaybackMode": "Змінити режим відтворення",
+    "changePlaybackModeHint": "Змініть режим відтворення, щоб побачити більше файлів",
+    "emptyQueue": "Черга порожня"
   }
 }

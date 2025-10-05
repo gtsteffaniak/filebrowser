@@ -603,6 +603,11 @@
     "LoopDisabled": "Απενεργοποιημένη επανάληψη",
     "PlayAllOncePlayback": "Αναπαραγωγή όλων μία φορά",
     "ShuffleAllPlayback": "Τυχαία αναπαραγωγή όλων",
-    "PlayAllLoopedPlayback": "Αναπαραγωγή όλων με επανάληψη"
+    "PlayAllLoopedPlayback": "Αναπαραγωγή όλων με επανάληψη",
+    "QueueButtonHint": "Εμφάνιση ουράς αναπαραγωγής",
+    "QueuePlayback": "Ουρά Αναπαραγωγής",
+    "changePlaybackMode": "Αλλαγή λειτουργίας αναπαραγωγής",
+    "changePlaybackModeHint": "Αλλάξτε λειτουργία αναπαραγωγής για να δείτε περισσότερα αρχεία",
+    "emptyQueue": "Η ουρά είναι άδεια"
   }
 }

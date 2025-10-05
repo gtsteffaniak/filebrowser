@@ -603,6 +603,11 @@
     "LoopDisabled": "반복 비활성화",
     "PlayAllOncePlayback": "모두 한 번 재생",
     "ShuffleAllPlayback": "모두 셔플 재생",
-    "PlayAllLoopedPlayback": "모두 반복 재생"
+    "PlayAllLoopedPlayback": "모두 반복 재생",
+    "QueueButtonHint": "재생 대기열 표시",
+    "QueuePlayback": "재생 대기열",
+    "changePlaybackMode": "재생 모드 변경",
+    "changePlaybackModeHint": "더 많은 파일을 보려면 재생 모드를 변경하세요",
+    "emptyQueue": "대기열이 비어 있습니다"
   }
 }

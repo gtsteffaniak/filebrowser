@@ -603,6 +603,11 @@
     "LoopDisabled": "ループ無効",
     "PlayAllOncePlayback": "すべて一度再生",
     "ShuffleAllPlayback": "すべてシャッフル再生",
-    "PlayAllLoopedPlayback": "すべてループ再生"
+    "PlayAllLoopedPlayback": "すべてループ再生",
+    "QueueButtonHint": "再生キューを表示",
+    "QueuePlayback": "再生キュー",
+    "changePlaybackMode": "再生モードを変更",
+    "changePlaybackModeHint": "再生モードを変更してより多くのファイルを表示",
+    "emptyQueue": "キューは空です"
   }
 }

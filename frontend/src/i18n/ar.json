@@ -599,10 +599,15 @@
     "syncFailed": "فشل مزامنة الحالة مع مسار \"{filename}\" بعد 5 محاولات. إجهاض إعداد المحرر لمنع تلف البيانات."
   },
   "player": {
-    "LoopEnabled": "تمكين الحلقة",
-    "LoopDisabled": "حلقة معطلة",
+    "LoopEnabled": "تفعيل التكرار",
+    "LoopDisabled": "تعطيل التكرار", 
     "PlayAllOncePlayback": "تشغيل الكل مرة واحدة",
-    "ShuffleAllPlayback": "تشغيل الكل عشوائيًا",
-    "PlayAllLoopedPlayback": "تشغيل كل المقاطع بشكل متكرر"
+    "ShuffleAllPlayback": "تشغيل عشوائي للكل",
+    "PlayAllLoopedPlayback": "تشغيل الكل مع التكرار",
+    "QueueButtonHint": "إظهار قائمة التشغيل",
+    "QueuePlayback": "قائمة التشغيل",
+    "changePlaybackMode": "تغيير وضع التشغيل",
+    "changePlaybackModeHint": "غير وضع التشغيل لرؤية المزيد من الملفات",
+    "emptyQueue": "قائمة التشغيل فارغة"
   }
 }

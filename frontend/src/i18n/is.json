@@ -588,6 +588,11 @@
     "LoopDisabled": "Endurtekning Óvirk",
     "PlayAllOncePlayback": "Spila Allt Einu Sinni",
     "ShuffleAllPlayback": "Stokka Allt",
-    "PlayAllLoopedPlayback": "Spila Allt í Endurtekningu"
+    "PlayAllLoopedPlayback": "Spila Allt í Endurtekningu",
+    "QueueButtonHint": "Sýna spilunarröð",
+    "QueuePlayback": "Spilunarröð",
+    "changePlaybackMode": "Breyta spilunarmodi",
+    "changePlaybackModeHint": "Breyttu spilunarmoda til að sjá fleiri skrár",
+    "emptyQueue": "Röðin er tóm"
   }
 }

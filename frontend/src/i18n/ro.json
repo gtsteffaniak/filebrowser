@@ -603,6 +603,11 @@
     "LoopDisabled": "Buclă dezactivată",
     "PlayAllOncePlayback": "Redă toate o dată",
     "ShuffleAllPlayback": "Redare aleatoare a tuturor",
-    "PlayAllLoopedPlayback": "Redă toate în buclă"
+    "PlayAllLoopedPlayback": "Redă toate în buclă",
+    "QueueButtonHint": "Afișează coada de redare",
+    "QueuePlayback": "Coadă de Redare",
+    "changePlaybackMode": "Schimbă modul de redare",
+    "changePlaybackModeHint": "Schimbă modul de redare pentru a vedea mai multe fișiere",
+    "emptyQueue": "Coada este goală"
   }
 }

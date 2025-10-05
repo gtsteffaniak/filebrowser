@@ -603,6 +603,11 @@
     "LoopDisabled": "Loop disabilitato",
     "PlayAllOncePlayback": "Riproduci tutto una volta",
     "ShuffleAllPlayback": "Riproduzione casuale di tutto",
-    "PlayAllLoopedPlayback": "Riproduci tutto in ripetizione"
+    "PlayAllLoopedPlayback": "Riproduci tutto in ripetizione",
+    "QueueButtonHint": "Mostra coda di riproduzione",
+    "QueuePlayback": "Coda di Riproduzione",
+    "changePlaybackMode": "Cambia modalità di riproduzione",
+    "changePlaybackModeHint": "Cambia modalità di riproduzione per vedere più file",
+    "emptyQueue": "La coda è vuota"
   }
 }

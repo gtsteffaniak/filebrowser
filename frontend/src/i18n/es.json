@@ -601,8 +601,13 @@
   "player": {
     "LoopEnabled": "Bucle activado",
     "LoopDisabled": "Bucle desactivado",
-    "PlayAllOncePlayback": "Reproducir todo una vez",
+    "PlayAllOncePlayback": "Reproducir todo una sola vez",
     "ShuffleAllPlayback": "Reproducir todo aleatoriamente",
-    "PlayAllLoopedPlayback": "Reproducir todo en bucle"
+    "PlayAllLoopedPlayback": "Reproducir todo en bucle",
+    "QueueButtonHint": "Mostrar cola de reproducción",
+    "QueuePlayback": "Cola de Reproducción",
+    "changePlaybackMode": "Cambiar modo de reproducción",
+    "changePlaybackModeHint": "Cambia el modo de reproducción para ver más",
+    "emptyQueue": "La cola está vacía"
   }
 }

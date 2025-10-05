@@ -603,6 +603,11 @@
     "LoopDisabled": "Döngü Devre Dışı",
     "PlayAllOncePlayback": "Tümünü Bir Kez Oynat",
     "ShuffleAllPlayback": "Tümünü Karıştır",
-    "PlayAllLoopedPlayback": "Tümünü Döngüde Oynat"
+    "PlayAllLoopedPlayback": "Tümünü Döngüde Oynat",
+    "QueueButtonHint": "Oynatma kuyruğunu göster",
+    "QueuePlayback": "Oynatma Kuyruğu",
+    "changePlaybackMode": "Oynatma modunu değiştir",
+    "changePlaybackModeHint": "Daha fazla dosya görmek için oynatma modunu değiştirin",
+    "emptyQueue": "Kuyruk boş"
   }
 }
