@@ -299,19 +299,6 @@ export default {
                 case "Backspace":
                     this.close();
                     break;
-                case "l":
-                case "L":
-                    // Toggle loop mode with 'L' key
-                    if (
-                        this.previewType === "video" ||
-                        this.previewType === "audio"
-                    ) {
-                        event.preventDefault();
-                        if (this.$refs.plyrViewer) {
-                            this.$refs.plyrViewer.toggleLoop();
-                        }
-                    }
-                    break;
             }
         },
         async updatePreview() {

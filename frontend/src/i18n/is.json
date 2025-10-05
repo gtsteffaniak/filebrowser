@@ -54,7 +54,10 @@
     "compactView": "Þjappað yfirlit",
     "normalView": "Venjulegt yfirlit",
     "galleryView": "Galleríyfirlit",
-    "selectedCount": "Fjöldi valinna atriða til að framkvæma aðgerð"
+    "selectedCount": "Fjöldi valinna atriði til að framkvæma aðgerð",
+    "uploadFiles": "Hlaða upp skrám",
+    "uploadFolder": "Hlaða upp möppu",
+    "openUploadViewer": "Opna upphleðslustjóra"
   },
   "download": {
     "downloadFile": "Sækja skrá",
@@ -171,6 +174,7 @@
     "viewModeDescription": "Sjálfgefið útlit fyrir deilda síðuna.",
     "titleDefault": "Deildar skrár - {title}",
     "descriptionDefault": "Deiling hefur verið send til þín til að skoða eða sækja.",
+    "descriptionUploadDefault": "Deiling hefur verið send til þín til að hlaða upp skrám.",
     "disableShareCard": "Gera deilingarkort óvirkt",
     "disableShareCardDescription": "Gera deilingarkortið óvirkt á deilda síðunni í hliðarstikunni eða efst á síðunni á farsíma.",
     "disableSidebar": "Gera hliðarstiku óvirka",
@@ -186,7 +190,15 @@
     "enableOnlyOffice": "Virkja OnlyOffice skoðara",
     "enableOnlyOfficeDescription": "Leyfa skoðun skrifstofuskráa með OnlyOffice í þessari deilingu.",
     "enableOnlyOfficeEditing": "Virkja OnlyOffice ritstjórn",
-    "enableOnlyOfficeEditingDescription": "Leyfa breytingu á skrifstofuskrám með OnlyOffice í þessari deilingu."
+    "enableOnlyOfficeEditingDescription": "Leyfa breytingu á skrifstofuskrám með OnlyOffice í þessari deilingu.",
+    "shareType": "Tegund deilingar",
+    "shareTypeDescription": "Tegund deilingar sem á að búa til. Venjulegar deilingar leyfa skoðun og niðurhal skráa. Upphleðsludeilingar leyfa að hlaða upp skrám í deilinguna.",
+    "normalShare": "Venjuleg",
+    "uploadShare": "Aðeins upphleðsla",
+    "perUserDownloadLimit": "Beita niðurhalsmörkum fyrir hvern notanda",
+    "perUserDownloadLimitDescription": "Þegar virkt, verða niðurhalsmörkin notuð fyrir hvern notanda. Nafnlausir notendur munu ekki geta sótt neinar skrár úr þessari deilingu.",
+    "extractEmbeddedSubtitles": "Draga út innfellda texta",
+    "extractEmbeddedSubtitlesDescription": "Draga út innfellda texta úr miðlaskrám við hleðslu -- þetta getur verið hægt fyrir stórar skrár."
   },
   "prompts": {
     "operationInProgress": "Aðgerð í gangi, vinsamlega bíðið...",
@@ -334,7 +346,9 @@
     "disableOfficeEditorDescription": "Bilskiptur listi yfir skráarendingar til að gera OnlyOffice ritstjóra og skoðara óvirkan fyrir. (t.d., '.txt .html .pdf').",
     "disableOfficeEditor": "Gera skrifstofuskoðara óvirkan fyrir ákveðnar skráarendingar",
     "fileViewerOptions": "Skráaskoðaravalkostir",
-    "themeAndLanguage": "Þema & Tungumál"
+    "themeAndLanguage": "Þema & Tungumál",
+    "defaultLandingPage": "Sjálfgefin landingssíða",
+    "defaultLandingPageDescription": "t.d. '/files/mysource/mysubpath' eða '/settings' - sjálfgefna síðan er /files sem fer í fyrsta upprunalista"
   },
   "settings": {
     "systemAdmin": "Kerfi & Stjórnandi",
@@ -565,7 +579,8 @@
     "uploadChunkSizeMb": "Upphleðslu klumpastærð í MB",
     "uploadChunkSizeMbHelp": "Yfirleitt 5 til 50 MB, minni er betri fyrir óstöðugar eða takmarkaðar tengingar. Að setja á 0 mun gera upphleðslu klumpun óvirka.",
     "clearAll": "Hreinsa klárað ætti að fjarlægja villu, hlé og árekstur",
-    "clearAllDescription": "Hreinsa kláraður hnappurinn mun hreinsa allar upphleðslur í loknu ástandi, þar með talið villa, gert hlé og árekstrar ástand."
+    "clearAllDescription": "Hreinsa kláraður hnappurinn mun hreinsa allar upphleðslur í loknu ástandi, þar með talið villa, gert hlé og árekstrar ástand.",
+    "uploadSettings": "Upphleðslustillingar"
   },
   "colors": {
     "red": "rauður",
