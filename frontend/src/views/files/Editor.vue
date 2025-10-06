@@ -1,5 +1,8 @@
 <template>
   <div id="editor-container">
+    <button v-if="isMobile" @click="handleEditorValueRequest" class="save-button">
+      <i class="material-icons">save</i>
+    </button>
     <div id="editor"></div>
   </div>
 </template>
@@ -43,6 +46,9 @@ export default {
     };
   },
   computed: {
+    isMobile() {
+      return state.isMobile;
+    },
     isDarkMode() {
       return getters.isDarkMode();
     },
@@ -324,5 +330,20 @@ export default {
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
+}
+.save-button {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  z-index: 999;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
 }
 </style>
