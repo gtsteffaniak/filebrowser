@@ -40,6 +40,8 @@ export default {
   data: function () {
     return {
       editor: null, // The editor instance
+      isDirty: false,
+      originalReq: null,
     };
   },
   computed: {
@@ -58,8 +60,8 @@ export default {
     // Check if state and route are synchronized
     isStateSynced() {
       if (this.viewerMode) return true;
-      if (!this.routeFilename || !this.req) return false;
-      return this.req.name === this.routeFilename;
+      if (!this.routeFilename || !this.originalReq) return false;
+      return this.originalReq.name === this.routeFilename;
     },
     // Editor content to display
     editorContent() {
@@ -109,6 +111,7 @@ export default {
         const currentValue = this.editor.getValue();
         if (currentValue !== newContent) {
           this.editor.setValue(newContent, -1); // -1 moves cursor to start
+          this.isDirty = false;
         }
       }
     },
@@ -143,12 +146,18 @@ export default {
   },
   beforeUnmount() {
     window.removeEventListener("keydown", this.keyEvent);
+    if (this.isDirty) {
+      if (confirm("You have unsaved changes. Do you want to save them?")) {
+        this.handleEditorValueRequest();
+      }
+    }
     if (this.editor) {
       this.editor.destroy();
     }
   },
   mounted: function () {
     this.initializeEditor();
+    this.originalReq = this.req;
   },
   methods: {
     initializeNavigation() {
@@ -222,6 +231,10 @@ export default {
           enableMobileMenu: !this.viewerMode,
         });
 
+        this.editor.on('change', () => {
+          this.isDirty = true;
+        });
+
         // Disable context menu
         this.editor.container.addEventListener("contextmenu", (event) => {
           event.preventDefault();
@@ -260,7 +273,7 @@ export default {
       // Filename protection - ensure state is synced before saving
       if (!this.isStateSynced) {
         notify.showError(this.$t("editor.saveAbortedMessage", { 
-          activeFile: this.req?.name || "unknown", 
+          activeFile: this.originalReq?.name || "unknown", 
           tryingToSave: this.routeFilename || "unknown" 
         }));
         return;
@@ -279,8 +292,8 @@ export default {
         }
 
         // Save the file
-        await filesApi.put(this.req.source, this.req.path, this.editor.getValue());
-        notify.showSuccess(`${this.req.name} saved successfully.`);
+        await filesApi.put(this.originalReq.source, this.originalReq.path, this.editor.getValue());
+        notify.showSuccess(`${this.originalReq.name} saved successfully.`);
       } catch (error) {
         console.error("Save failed:", error);
         notify.showError(this.$t("editor.saveFailed"));
