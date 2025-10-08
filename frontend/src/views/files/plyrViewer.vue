@@ -302,7 +302,6 @@ export default {
     mounted() {
         this.updateMedia();
         this.hookEvents();
-        this.syncWithStore();
         this.$nextTick(() => {
             this.setupPlaybackQueue();
         });
@@ -327,23 +326,6 @@ export default {
             mutations.showHover({
                 name: "PlaybackQueue",
             });
-        },
-        syncWithStore() {
-            // Watch for store changes and update the player
-            this.$watch(
-                () => state.playbackQueue?.mode,
-                (newMode) => {
-                    if (newMode && newMode !== this.playbackMode) {
-                        // ALWAYS force reshuffle when mode changes to shuffle
-                        const forceReshuffle = newMode === 'shuffle';
-                        this.setupPlaybackQueue(forceReshuffle);
-                        this.showToast();
-                        this.$nextTick(() => {
-                        this.ensurePlaybackModeApplied();
-                        });
-                    }
-                }
-            );
         },
         togglePlayPause() {
             const player = this.getCurrentPlayer();
@@ -1027,43 +1009,42 @@ export default {
                 queue: this.playbackQueue,
                 currentIndex: prevIndex,
                 mode: this.playbackMode
-            });
-
-            const prevItemUrl = url.buildItemUrl(prevItem.source || this.req.source, prevItem.path);
-
-            // Store the expected path before making changes
-			const expectedPath = prevItem.path;
-
-            mutations.replaceRequest(prevItem);
-
-            await this.$router.replace({ path: prevItemUrl }).catch(err => {
-                if (err.name !== 'NavigationDuplicated') {
-                    console.error('Router navigation error:', err);
-                }
-            });
-
-            // Wait for state.req to be updated
-            await this.waitForReqUpdate(expectedPath);
-            
-            const player = this.getCurrentPlayer();
-            if (player) {
-                let playPromise;
-            if (this.useDefaultMediaPlayer) {
-                playPromise = player.play();
-            } else if (player.player) {
-                playPromise = player.player.play();
-            }
-
-            if (playPromise !== undefined) {
-                playPromise.catch((error) => {
-                    console.log("Auto-play prevented:", error);
                 });
-            }
-        }
-        this.isNavigating = false;
+
+                const prevItemUrl = url.buildItemUrl(prevItem.source || this.req.source, prevItem.path);
+
+                // Store the expected path before making changes
+                const expectedPath = prevItem.path;
+
+                mutations.replaceRequest(prevItem);
+
+                await this.$router.replace({ path: prevItemUrl }).catch(err => {
+                    if (err.name !== 'NavigationDuplicated') {
+                        console.error('Router navigation error:', err);
+                    }
+                });
+
+                // Wait for state.req to be updated
+                await this.waitForReqUpdate(expectedPath);
+            
+                const player = this.getCurrentPlayer();
+                if (player) {
+                    let playPromise;
+                if (this.useDefaultMediaPlayer) {
+                    playPromise = player.play();
+                } else if (player.player) {
+                    playPromise = player.player.play();
+                }
+
+                if (playPromise !== undefined) {
+                    playPromise.catch((error) => {
+                        console.log("Auto-play prevented:", error);
+                    });
+                }}
+                this.isNavigating = false;
             } catch (error) {
                 console.error('Failed to navigate to previous file:', error);
-               this.isNavigating = false;
+                this.isNavigating = false;
             }
         },
 

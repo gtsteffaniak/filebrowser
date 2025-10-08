@@ -66,9 +66,6 @@ import { state, mutations } from "@/store";
 import { url } from "@/utils";
 export default {
   name: "PlaybackQueue",
-  data() {
-    return {};
-  },
   computed: {
     playbackQueue() {
       return state.playbackQueue?.queue || [];
@@ -164,9 +161,9 @@ export default {
 
         // Update store with new mode - this will trigger plyrViewer to rebuild queue
         mutations.setPlaybackQueue({
-            queue: this.playbackQueue,
-            currentIndex: this.currentQueueIndex,
-            mode: nextMode
+          queue: this.playbackQueue,
+          currentIndex: this.currentQueueIndex,
+          mode: nextMode
         });
         
         // Auto-scroll after mode change
@@ -331,10 +328,6 @@ export default {
 
 .item-name {
   flex: 1;
-}
-
-.current-indicator i.material-icons {
-  font-size: 16px;
 }
 
 .track-number {
