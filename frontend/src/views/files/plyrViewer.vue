@@ -155,11 +155,8 @@ export default {
             albumArtSize: 25, // Default size in em
             isHovering: false, // Track hover state
             // Playback settings
-            playbackMode: 'single', // 'single', 'sequential', 'shuffle', 'loop-single', 'loop-all'
             playbackMenuInitialized: false,
             lastAppliedMode: null,
-            playbackQueue: [],
-            currentQueueIndex: 0,
             isNavigating: false,
             // Plyr options
             plyrOptions: {
@@ -213,13 +210,8 @@ export default {
                 console.log('Re-hooking events after source change');
                 this.hookEvents();
                 
-                // Only setup basic queue without reshuffling for shuffle mode
-                if (this.playbackMode === 'shuffle') {
-                    // For shuffle mode, just update the current index without reshuffling
-                    this.updateCurrentQueueIndex();
-                } else {
-                    this.setupPlaybackQueue();
-                }
+                // Update queue index to match current file
+                this.updateCurrentQueueIndex();
 
                 // Re-setup custom settings for the Plyr player
                 if (!this.useDefaultMediaPlayer) {
@@ -261,6 +253,8 @@ export default {
         playbackMode: {
             handler(newMode, oldMode) {
                 if (newMode !== oldMode) {
+                    const forceReshuffle = newMode === 'shuffle';
+                    this.setupPlaybackQueue(forceReshuffle);
                     this.$nextTick(() => {
                         this.ensurePlaybackModeApplied();
                     });
@@ -292,11 +286,26 @@ export default {
         shouldTogglePlayPause() {
         return state.playbackQueue?.shouldTogglePlayPause || false;
         },
+        playbackQueue() {
+            return state.playbackQueue?.queue || [];
+        },
+        currentQueueIndex() {
+            return state.playbackQueue?.currentIndex ?? -1;
+        },
+        playbackMode() {
+            return state.playbackQueue?.mode || 'single';
+        },
+        isPlaying() {
+            return state.playbackQueue?.isPlaying || false;
+        },
     },
     mounted() {
         this.updateMedia();
         this.hookEvents();
-        this.syncWithStore(); 
+        this.syncWithStore();
+        this.$nextTick(() => {
+            this.setupPlaybackQueue();
+        });
         document.addEventListener('keydown', this.handleKeydown);
     },
     beforeUnmount() {
@@ -325,27 +334,16 @@ export default {
                 () => state.playbackQueue?.mode,
                 (newMode) => {
                     if (newMode && newMode !== this.playbackMode) {
-                        console.log('Store mode changed to:', newMode);
-                        this.playbackMode = newMode;
                         // ALWAYS force reshuffle when mode changes to shuffle
                         const forceReshuffle = newMode === 'shuffle';
                         this.setupPlaybackQueue(forceReshuffle);
                         this.showToast();
+                        this.$nextTick(() => {
+                        this.ensurePlaybackModeApplied();
+                        });
                     }
                 }
             );
-            this.$watch(
-                () => state.playbackQueue?.currentIndex,
-                (newIndex) => {
-                    if (newIndex !== undefined && newIndex !== this.currentQueueIndex && newIndex !== -1) {
-                        this.currentQueueIndex = newIndex;
-                        const currentItem = this.playbackQueue[newIndex];
-                        if (currentItem && currentItem.path !== this.req.path) {
-                            this.navigateToQueueIndex(newIndex);
-                        }
-                    }
-                }
-            ); 
         },
         togglePlayPause() {
             const player = this.getCurrentPlayer();
@@ -429,13 +427,14 @@ export default {
         toggleLoop() {
             // Always use our custom loop instead of Plyr's default
             this.loopEnabled = !this.loopEnabled;
+            const newMode = this.loopEnabled ? 'loop-single' : 'single';
 
             // Update playback mode based on custom loop state
-            if (this.loopEnabled) {
-                this.playbackMode = 'loop-single';
-            } else {
-                this.playbackMode = 'single';
-            }
+            mutations.setPlaybackQueue({
+                queue: this.playbackQueue,
+                currentIndex: this.currentQueueIndex,
+                mode: newMode
+            });
 
             // Update playback queue to reflect the new mode
             this.setupPlaybackQueue();
@@ -490,7 +489,11 @@ export default {
 
             // Set the new playback mode
             const newMode = modeCycle[nextIndex];
-            this.playbackMode = newMode;
+            mutations.setPlaybackQueue({
+                queue: this.playbackQueue,
+                currentIndex: this.currentQueueIndex,
+                mode: newMode
+            });
 
             console.log(`Playback mode changed to: ${newMode}`);
 
@@ -807,8 +810,11 @@ export default {
 
             if (mediaFiles.length === 0) {
                 console.log('No media files found in current directory');
-                this.playbackQueue = [];
-                this.currentQueueIndex = -1;
+                mutations.setPlaybackQueue({
+                queue: [],
+                currentIndex: -1,
+                mode: this.playbackMode
+                });
                 return;
             }
 
@@ -816,12 +822,15 @@ export default {
             const currentIndex = mediaFiles.findIndex(item => item.path === this.req.path);
             console.log('Current file index in media files:', currentIndex);
 
+            let finalQueue = [];
+            let finalIndex = 0;
+
             switch (this.playbackMode) {
                 case 'single':
                 case 'loop-single':
                     // When playing the same file (single modes), the queue only contains only the current file
-                    this.playbackQueue = currentIndex !== -1 ? [mediaFiles[currentIndex]] : [];
-                    this.currentQueueIndex = 0;
+                    finalQueue = currentIndex !== -1 ? [mediaFiles[currentIndex]] : [];
+                    finalIndex = 0;
                     break;
 
                 case 'sequential':
@@ -830,15 +839,15 @@ export default {
                     // On sequential mode will start playing from the file opened and find its place on the queue by the current index (you can see this on UI queue)
                     // Loop-all will do the same, but if the queue ends, will restart from the first file of the current folder (alphabetically) 
                     const sortedFiles = [...mediaFiles].sort((a, b) => a.name.localeCompare(b.name));
-                    this.playbackQueue = sortedFiles;
+                    finalQueue = sortedFiles;
                     
                     // Find the current file position in the queue
                     if (currentIndex !== -1) {
                         const currentFile = mediaFiles[currentIndex];
-                        this.currentQueueIndex = sortedFiles.findIndex(item => item.path === currentFile.path);
+                        finalIndex = sortedFiles.findIndex(item => item.path === currentFile.path);
 
                     } else {
-                        this.currentQueueIndex = 0;
+                        finalIndex = 0;
                     }
                     break;
                 }
@@ -848,22 +857,22 @@ export default {
                     // This is for preserve the current queue and don't lose it when is changed to the next file
                     if (forceReshuffle || this.playbackQueue.length === 0) {
                         const shuffledFiles = this.shuffleArray([...mediaFiles]);
-                        this.playbackQueue = shuffledFiles;
+                        finalQueue = shuffledFiles;
                     } 
                     
                     // Find the current file position in the queue
                     if (currentIndex !== -1) {
                         const currentFile = mediaFiles[currentIndex];
-                        this.currentQueueIndex = this.playbackQueue.findIndex(item => item.path === currentFile.path);
+                        finalIndex = finalQueue.findIndex(item => item.path === currentFile.path);
                     } else {
-                        this.currentQueueIndex = 0;
+                        finalIndex = 0;
                     }
                     break;
                 }
             }
 
-            console.log('Final playback queue length:', this.playbackQueue.length);
-            console.log('Current queue index:', this.currentQueueIndex);
+            console.log('Final playback queue length:', finalQueue.length);
+            console.log('Current queue index:', finalIndex);
 
             // Log the paths for debugging
             this.playbackQueue.forEach((item, index) => {
@@ -871,8 +880,8 @@ export default {
             });
             // After the queue is set up, update the store
             mutations.setPlaybackQueue({
-                queue: this.playbackQueue,
-                currentIndex: this.currentQueueIndex,
+                queue: finalQueue,
+                currentIndex: finalIndex,
                 mode: this.playbackMode
             });
         },
@@ -893,7 +902,11 @@ export default {
             // Find current file in the existing queue
             const currentIndex = this.playbackQueue.findIndex(item => item.path === this.req.path);
             if (currentIndex !== -1) {
-                this.currentQueueIndex = currentIndex;
+                mutations.setPlaybackQueue({
+                queue: this.playbackQueue,
+                currentIndex: currentIndex,
+                mode: this.playbackMode
+                });
                 console.log('Updated current queue index to:', currentIndex);
             } else {
                 this.setupPlaybackQueue(true);
@@ -938,7 +951,11 @@ export default {
 
             try {
                 // Update current index
-                this.currentQueueIndex = nextIndex;
+                mutations.setPlaybackQueue({
+                queue: this.playbackQueue,
+                currentIndex: nextIndex,
+                mode: this.playbackMode
+                });
 
                 // Build the proper URL for browser history
                 const nextItemUrl = url.buildItemUrl(nextItem.source || this.req.source, nextItem.path);
@@ -1004,7 +1021,13 @@ export default {
             }
 
             const prevItem = this.playbackQueue[prevIndex];
-            this.currentQueueIndex = prevIndex;
+
+            try {
+                mutations.setPlaybackQueue({
+                queue: this.playbackQueue,
+                currentIndex: prevIndex,
+                mode: this.playbackMode
+            });
 
             const prevItemUrl = url.buildItemUrl(prevItem.source || this.req.source, prevItem.path);
 
@@ -1025,19 +1048,23 @@ export default {
             const player = this.getCurrentPlayer();
             if (player) {
                 let playPromise;
-                if (this.useDefaultMediaPlayer) {
-                    playPromise = player.play();
-                } else if (player.player) {
-                    playPromise = player.player.play();
-                }
-
-                if (playPromise !== undefined) {
-                    playPromise.catch((error) => {
-                        console.log("Auto-play prevented:", error);
-                    });
-                }
+            if (this.useDefaultMediaPlayer) {
+                playPromise = player.play();
+            } else if (player.player) {
+                playPromise = player.player.play();
             }
-            this.isNavigating = false;
+
+            if (playPromise !== undefined) {
+                playPromise.catch((error) => {
+                    console.log("Auto-play prevented:", error);
+                });
+            }
+        }
+        this.isNavigating = false;
+            } catch (error) {
+                console.error('Failed to navigate to previous file:', error);
+               this.isNavigating = false;
+            }
         },
 
         waitForReqUpdate(expectedPath) {
