@@ -150,33 +150,18 @@ export default {
     },
   },
   mounted() {
-    this.updatePlayState();
-    
     // Auto-scroll to current item when prompt opens
     this.$nextTick(() => {
       this.scrollToCurrentItem();
     });
-    
-    // Watch for play state changes
-    this.$watch(
-      () => state.playbackQueue?.isPlaying,
-      (newVal) => {
-        this.isPlaying = newVal;
-      },
-      { immediate: true }
-    );
   },
   methods: {
     cyclePlaybackModes() {
-        console.log('Cycle playback mode clicked');
-        
         // Cycle through modes using store mutations
         const modes = ['loop-all', 'shuffle', 'sequential', 'loop-single'];
         const currentIndex = modes.indexOf(this.playbackMode);
         const nextMode = modes[(currentIndex + 1) % modes.length];
-        
-        console.log('Changing mode to:', nextMode);
-        
+
         // Update store with new mode - this will trigger plyrViewer to rebuild queue
         mutations.setPlaybackQueue({
             queue: this.playbackQueue,
@@ -206,24 +191,6 @@ export default {
       mutations.togglePlayPause();
     },
     
-   findPlyrViewer() {
-      // Find the plyrViewer component in the parent components
-      let parent = this.$parent;
-      while (parent) {
-        if (parent.$options.name === 'plyrViewer') {
-          return parent;
-        }
-        parent = parent.$parent;
-      }
-      
-      const plyrViewerElement = document.querySelector('.plyr-viewer');
-      if (plyrViewerElement && plyrViewerElement.__vue__) {
-        return plyrViewerElement.__vue__;
-      }
-      
-      return null;
-    },
-
     navigateToIndex(index) {
       if (index >= 0 && index < this.playbackQueue.length) {
         const item = this.playbackQueue[index];

@@ -685,14 +685,6 @@ export const mutations = {
     state.playbackQueue.isPlaying = isPlaying;
     emitStateChanged();
   },
-  navigateToQueueItem: (index) => {
-    if (index < 0 || index >= state.playbackQueue.queue.length) return;
-    state.playbackQueue.currentIndex = index;
-    const item = state.playbackQueue.queue[index];
-    // This would trigger the actual navigation
-    mutations.replaceRequest(item);
-    emitStateChanged();
-  },
   navigateToQueueIndex: (index) => {
     if (index < 0 || index >= state.playbackQueue.queue.length) return;
     const item = state.playbackQueue.queue[index];

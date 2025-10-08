@@ -365,31 +365,6 @@ export default {
                 }
             }
         },
-        navigateToQueueIndex(index) {
-            if (index < 0 || index >= this.playbackQueue.length) return;
-            
-            this.currentQueueIndex = index;
-            const item = this.playbackQueue[index];
-            const itemUrl = url.buildItemUrl(item.source || this.req.source, item.path);
-
-            // Store the expected path before making changes
-            const expectedPath = item.path;
-
-            // Update state.req with the next item's data
-            mutations.replaceRequest(item);
-
-            // Then update the router URL
-            this.$router.replace({ path: itemUrl }).catch(err => {
-                if (err.name !== 'NavigationDuplicated') {
-                    console.error('Router navigation error:', err);
-                }
-            });
-
-            // Wait for state.req to be updated and reload media
-            this.waitForReqUpdate(expectedPath).then(() => {
-                this.updateMedia();
-            });
-        },
         handlePlay() {
             this.$emit('play');
         },
