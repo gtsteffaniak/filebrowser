@@ -267,7 +267,12 @@ export default {
                 }
             },
             immediate: true
-        }
+        },
+        shouldTogglePlayPause(newVal, oldVal) {
+            if (newVal !== oldVal) {
+            this.togglePlayPause();
+            }
+        },
     },
     computed: {
         darkMode() {
@@ -279,6 +284,9 @@ export default {
         },
         queueCount() {
             return state.playbackQueue?.queue?.length || 0;
+        },
+        shouldTogglePlayPause() {
+        return state.playbackQueue?.shouldTogglePlayPause || false;
         }
     },
     mounted() {

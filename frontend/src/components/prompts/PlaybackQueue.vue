@@ -203,17 +203,7 @@ export default {
     },
     
     togglePlayPause() {
-      console.log('Toggle play/pause from prompt');
-      
-      // Get the current player from plyrViewer component
-      const plyrViewer = this.findPlyrViewer();
-      if (plyrViewer) {
-        plyrViewer.togglePlayPause();
-      } else {
-        // Fallback: toggle store state
-        const newState = !this.isPlaying;
-        mutations.setPlaybackState(newState);
-      }
+      mutations.togglePlayPause();
     },
     
    findPlyrViewer() {

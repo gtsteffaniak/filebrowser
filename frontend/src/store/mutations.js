@@ -689,19 +689,20 @@ export const mutations = {
     if (index < 0 || index >= state.playbackQueue.queue.length) return;
     state.playbackQueue.currentIndex = index;
     const item = state.playbackQueue.queue[index];
-    
     // This would trigger the actual navigation
     mutations.replaceRequest(item);
     emitStateChanged();
   },
   navigateToQueueIndex: (index) => {
     if (index < 0 || index >= state.playbackQueue.queue.length) return;
-    
     const item = state.playbackQueue.queue[index];
     state.playbackQueue.currentIndex = index;
-    
     // Update the current request to trigger navigation
     mutations.replaceRequest(item);
+    emitStateChanged();
+  },
+  togglePlayPause: () => {
+    state.playbackQueue.shouldTogglePlayPause = !state.playbackQueue.shouldTogglePlayPause;
     emitStateChanged();
   },
 };
