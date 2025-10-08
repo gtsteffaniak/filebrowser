@@ -840,7 +840,10 @@ export default {
                     if (forceReshuffle || this.playbackQueue.length === 0) {
                         const shuffledFiles = this.shuffleArray([...mediaFiles]);
                         finalQueue = shuffledFiles;
-                    } 
+                        } else {
+                            // Use the existing queue when not forcing reshuffle
+                            finalQueue = this.playbackQueue;
+                        } 
                     
                     // Find the current file position in the queue
                     if (currentIndex !== -1) {
