@@ -171,7 +171,7 @@ export default {
         console.log('Cycle playback mode clicked');
         
         // Cycle through modes using store mutations
-        const modes = ['single', 'sequential', 'shuffle', 'loop-single', 'loop-all'];
+        const modes = ['loop-all', 'shuffle', 'sequential', 'loop-single'];
         const currentIndex = modes.indexOf(this.playbackMode);
         const nextMode = modes[(currentIndex + 1) % modes.length];
         
