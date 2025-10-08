@@ -66,6 +66,20 @@
                 :label="'Subtitle ' + sub.name" :default="index === 0" />
         </video>
 
+        <button
+            v-if="showQueueButton"
+            @click="showQueuePrompt"
+            class="queue-button floating"
+            :class="{
+                'dark-mode': darkMode,
+            }"
+            :aria-label="$t('player.QueueButtonHint')"
+            :title="$t('player.QueueButtonHint')"
+        >
+            <i class="material-icons">queue_music</i>
+            <span v-if="queueCount > 0" class="queue-count">{{ queueCount }}</span>
+        </button>
+
         <!-- Toast that shows when you press "P" or "L" on the media player -->
         <div :class="['loop-toast', toastVisible ? 'visible' : '']">
             <!-- Loop icon for "single playback", "loop single file" and "loop all files" -->
@@ -94,18 +108,14 @@
             <span v-if="playbackMode === 'single' || playbackMode === 'loop-single'" :class="[
                 'status-indicator', playbackMode === 'loop-single' ? 'status-on' : 'status-off',]"></span>
         </div>
-        <!-- Playback Queue UI -->
-        <PlaybackQueueUI />
     </div>
 </template>
 
 <script>
 import { state, mutations } from '@/store';
 import { url } from '@/utils';
-import PlaybackQueueUI from '@/components/files/PlaybackQueue.vue';
 export default {
     name: "plyrViewer",
-    components: { PlaybackQueueUI },
     props: {
         previewType: {
             type: String,
@@ -263,18 +273,18 @@ export default {
         darkMode() {
             return state.user.darkMode;
         },
-        shouldAutoPlay() {
-            // Use the autoPlayEnabled prop from parent
-            return this.autoPlayEnabled;
+        showQueueButton() {
+            return state.req && (state.req.type?.startsWith('audio/') || state.req.type?.startsWith('video/')) && 
+            state.navigation.enabled;
         },
+        queueCount() {
+            return state.playbackQueue?.queue?.length || 0;
+        }
     },
     mounted() {
-        console.log('PlyrViewer mounted, previewType:', this.previewType);
-        console.log('Plyr options:', this.plyrOptions);
-        console.log('Use default media player:', this.useDefaultMediaPlayer);
-
         this.updateMedia();
         this.hookEvents();
+        this.syncWithStore(); 
         document.addEventListener('keydown', this.handleKeydown);
     },
     beforeUnmount() {
@@ -292,19 +302,49 @@ export default {
         document.removeEventListener('keydown', this.handleKeydown);
     },
     methods: {
-        // Method used in the UI playback queue menu
+        showQueuePrompt() {
+            mutations.showHover({
+                name: "PlaybackQueue",
+            });
+        },
+        syncWithStore() {
+            // Watch for store changes and update the player
+            this.$watch(
+                () => state.playbackQueue?.mode,
+                (newMode) => {
+                    if (newMode && newMode !== this.playbackMode) {
+                        console.log('Store mode changed to:', newMode);
+                        this.playbackMode = newMode;
+                        // ALWAYS force reshuffle when mode changes to shuffle
+                        const forceReshuffle = newMode === 'shuffle';
+                        this.setupPlaybackQueue(forceReshuffle);
+                        this.showToast();
+                    }
+                }
+            );
+            this.$watch(
+                () => state.playbackQueue?.currentIndex,
+                (newIndex) => {
+                    if (newIndex !== undefined && newIndex !== this.currentQueueIndex && newIndex !== -1) {
+                        this.currentQueueIndex = newIndex;
+                        const currentItem = this.playbackQueue[newIndex];
+                        if (currentItem && currentItem.path !== this.req.path) {
+                            this.navigateToQueueIndex(newIndex);
+                        }
+                    }
+                }
+            ); 
+        },
         togglePlayPause() {
             const player = this.getCurrentPlayer();
             if (!player) return;
             if (this.useDefaultMediaPlayer) {
-                // HTML5 player
                 if (player.paused) {
                     player.play();
                 } else {
                     player.pause();
                 }
             } else {
-                // Plyr player
                 const plyrInstance = player.player;
                 if (plyrInstance.playing) {
                     plyrInstance.pause();
@@ -313,20 +353,29 @@ export default {
                 }
             }
         },
-
-        // Method used in the UI playback queue menu
         navigateToQueueIndex(index) {
             if (index < 0 || index >= this.playbackQueue.length) return;
             
             this.currentQueueIndex = index;
             const item = this.playbackQueue[index];
             const itemUrl = url.buildItemUrl(item.source || this.req.source, item.path);
+
+            // Store the expected path before making changes
+            const expectedPath = item.path;
+
+            // Update state.req with the next item's data
             mutations.replaceRequest(item);
-            
+
+            // Then update the router URL
             this.$router.replace({ path: itemUrl }).catch(err => {
                 if (err.name !== 'NavigationDuplicated') {
                     console.error('Router navigation error:', err);
                 }
+            });
+
+            // Wait for state.req to be updated and reload media
+            this.waitForReqUpdate(expectedPath).then(() => {
+                this.updateMedia();
             });
         },
         handlePlay() {
@@ -427,6 +476,13 @@ export default {
                         this.toggleLoop();
                     }
                 });
+            }
+            // "Q" key for open the queue prompt
+            if (event.key.toLowerCase() === 'q' && 
+                state.prompts.length === 0) { // Only open if no other prompts are open
+                event.stopPropagation();
+                event.preventDefault();
+                this.showQueuePrompt();
             }
         },
         cyclePlaybackModes() {
@@ -656,7 +712,12 @@ export default {
                     });
                 });
                 player.on('play', () => {
+                    mutations.setPlaybackState(true);
                     this.focusPlayer();
+                });
+
+                player.on('pause', () => {
+                mutations.setPlaybackState(false);
                 });
 
                 player.on('ready', () => {
@@ -684,7 +745,12 @@ export default {
                     });
                 });
                 player.on('play', () => {
+                    mutations.setPlaybackState(true);
                     this.focusPlayer();
+                });
+
+                player.on('pause', () => {
+                mutations.setPlaybackState(false);
                 });
 
                 player.on('ready', () => {
@@ -701,13 +767,21 @@ export default {
                 if (videoElement) {
                     videoElement.addEventListener('ended', this.handleMediaEnd);
                     videoElement.addEventListener('play', () => {
+                        mutations.setPlaybackState(true);
                         this.focusPlayer();
+                    });
+                    videoElement.addEventListener('pause', () => {
+                        mutations.setPlaybackState(false);
                     });
                 }
                 if (audioElement) {
                     audioElement.addEventListener('ended', this.handleMediaEnd);
                     audioElement.addEventListener('play', () => {
+                        mutations.setPlaybackState(true);
                         this.focusPlayer();
+                    });
+                    audioElement.addEventListener('pause', () => {
+                        mutations.setPlaybackState(false);
                     });
                 }
             }
@@ -807,6 +881,12 @@ export default {
             // Log the paths for debugging
             this.playbackQueue.forEach((item, index) => {
                 console.log(`Queue[${index}]:`, item.name, item.path);
+            });
+            // After the queue is set up, update the store
+            mutations.setPlaybackQueue({
+                queue: this.playbackQueue,
+                currentIndex: this.currentQueueIndex,
+                mode: this.playbackMode
             });
         },
         shuffleArray(array) {
@@ -1589,6 +1669,66 @@ button:hover,
     .audio-year {
       font-size: clamp(0.85rem, 2vw, 1rem);
     }
+}
+
+/*******************
+*** QUEUE BUTTON ***
+*******************/
+
+.queue-button {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    border: none;
+    border-radius: 50%;
+    background: var(--background);
+    color: var(--textPrimary);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    outline: none;
+    z-index: 9998; /* Make sure it's below prompts but above other content */
+}
+
+.queue-button.dark-mode {
+    background: var(--surfacePrimary);
+}
+
+.queue-button:hover {
+    background: var(--primaryColor);
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 8px 25px rgba(var(--primaryColor-rgb), 0.3), 0 4px 12px rgba(0, 0, 0, 0.2);
+    color: white;
+}
+
+.queue-button i.material-icons {
+    font-size: 24px;
+    transition: transform 0.2s ease;
+}
+
+.queue-button:hover i.material-icons {
+    transform: scale(1.1);
+}
+
+.queue-count {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: var(--accentColor);
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
 }
 
 /*****************
