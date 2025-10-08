@@ -273,6 +273,10 @@ export default {
         darkMode() {
             return state.user.darkMode;
         },
+        shouldAutoPlay() {
+            // Use the autoPlayEnabled prop from parent
+            return this.autoPlayEnabled;
+        },
         showQueueButton() {
             return state.req && (state.req.type?.startsWith('audio/') || state.req.type?.startsWith('video/')) && 
             state.navigation.enabled;
