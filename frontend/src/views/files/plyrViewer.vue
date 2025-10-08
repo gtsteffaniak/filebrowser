@@ -499,7 +499,7 @@ export default {
         },
         cyclePlaybackModes() {
             // cycle order (excluding single and loop-single cuz they are handled by the "L" key)
-            const modeCycle = ['sequential', 'shuffle', 'loop-all'];
+            const modeCycle = ['loop-all', 'shuffle', 'sequential'];
 
             // Find current mode index in the cycle
             const currentIndex = modeCycle.indexOf(this.playbackMode);
