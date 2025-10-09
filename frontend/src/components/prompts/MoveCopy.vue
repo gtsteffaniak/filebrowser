@@ -42,7 +42,7 @@ import buttons from "@/utils/buttons";
 import * as upload from "@/utils/upload";
 import { url } from "@/utils";
 import { notify } from "@/notify";
-import { removeLastDir, goToItem } from "@/utils/url";
+import { goToItem } from "@/utils/url";
 
 export default {
   name: "move-copy",
@@ -83,9 +83,16 @@ export default {
       if (!itemPath) {
         return false; // If itemPath is undefined, we can't check containment
       }
-      
-      const parentDir = (this.operation === "copy" ? url.removeLastDir(itemPath) : removeLastDir(itemPath)) + "/";
-      return this.destPath == parentDir || this.destPath.startsWith(itemPath);
+      // For move, prevent moving to the same directory, but for copy allow it.
+      if (this.operation === "move") {
+        const parentDir = url.removeLastDir(itemPath) + "/";
+        // Only disable if moving to the exact same directory
+        if (this.destPath === parentDir) {
+          return true;
+        }
+      }
+      // Prevent move/copy into itself or subdirectories (into itself too)
+      return this.destPath.startsWith(itemPath + "/") || this.destPath === itemPath;
     },
     user() {
       return state.user;
