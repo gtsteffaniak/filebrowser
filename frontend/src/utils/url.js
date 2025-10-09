@@ -182,7 +182,6 @@ export function encodedPath(path) {
 
 // assume non-encoded input path and source
 export function goToItem(source, path, previousHistoryItem) {
-  console.log('goToItem', source, path, previousHistoryItem)
   mutations.setPreviousHistoryItem(previousHistoryItem);
   mutations.resetAll()
   let newPath = encodedPath(path);

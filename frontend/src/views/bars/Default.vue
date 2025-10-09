@@ -175,7 +175,6 @@ export default {
         mutations.closeHovers();
         if (cv === "settings") {
           if (state.previousHistoryItem?.name) {
-            console.log('multiAction', state.previousHistoryItem)
             url.goToItem(state.previousHistoryItem.source, state.previousHistoryItem.path, state.previousHistoryItem);
             return;
           }
@@ -184,7 +183,6 @@ export default {
         }
         if (getters.isPreviewView()) {
           if (state.previousHistoryItem?.name) {
-            console.log('multiAction', state.previousHistoryItem)
             url.goToItem(state.previousHistoryItem.source, state.previousHistoryItem.path, state.previousHistoryItem);
             return;
           } else {
