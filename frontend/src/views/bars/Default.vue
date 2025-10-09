@@ -10,7 +10,7 @@
     <search v-if="showSearch" />
     <title v-else class="topTitle">{{ getTopTitle }}</title>
     <action
-      v-if="!disableNavButtons"
+      v-if="isListingView && !disableNavButtons"
       class="menu-button"
       :icon="viewIcon"
       :label="$t('buttons.switchView')"
