@@ -16,12 +16,12 @@
 </div>
 
 > [!WARNING]
-> There is no stable version -- :construction: planned for 2025. ([Read more](https://github.com/gtsteffaniak/filebrowser/discussions/628))
+> There is no stable version -- :construction: coming very soon!
 
+## Pinned
 
-## Announcements
-
-[Stable Release & 0.9.0 update](https://github.com/gtsteffaniak/filebrowser/discussions/1293)
+:loudspeaker: [Stable Release & 0.9.0 Update](https://github.com/gtsteffaniak/filebrowser/discussions/1293)
+:pushpin: [Read The Official Docs](https://filebrowserquantum.com/) (currently english-only)
 
 ## About
 
@@ -65,7 +65,6 @@ Notable features that this fork *does not* have (removed):
  - :construction: jobs are not supported yet.
  - ❌ shell commands are completely removed and will not be returned.
 
-
 FileBrowser Quantum differs significantly from the original version. Many of these changes required a significant overhaul. Creating a fork was a necessary process to make the program better. There have been many growing pains, but a stable release is planned and coming soon.
 
 ## System Requirements
@@ -93,31 +92,9 @@ a pop-up menu.
   <img width="1000" src="https://github.com/user-attachments/assets/aa32b05c-f917-47bb-b07f-857edc5e47f7" title="Search GIF">
 </p>
 
-## Install and Configuration
+## Official Docs
 
-Check out the [Getting Started Wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Getting-Started)
-
-For help configuring your filebrowser see [Configuration Wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Configuration-And-Examples)
-
-## Command Line Usage
-
-See the [CLI Wiki](https://github.com/gtsteffaniak/filebrowser/wiki/CLI)
-
-## API Usage
-
-See the [API Wiki](https://github.com/gtsteffaniak/filebrowser/wiki/API)
-
-## Office File Support
-
-See [Office Support Wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Office-Support#adding-open-office-integration-for-docker) on how to enable office file editing and office-related features.
-
-## Migration from the original filebrowser
-
-See the [Migration Wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Migration)
-
-## Other Questions
-
-For more, see the [Q&A Wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Q&A)
+See the [Official Docs](https://filebrowserquantum.com/). Contributions or welcome and encouraged! See [FilebrowserDocs Github](https://github.com/quantumx-apps/filebrowserDocs).
 
 ## Comparison Chart
 
