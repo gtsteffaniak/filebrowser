@@ -75,6 +75,9 @@ check-all: lint test check-translations
 check-translations:
 	cd frontend && npm run i18n:check
 
+sync-translations:
+	cd frontend && npm run i18n:sync
+
 test-backend:
 	cd backend && go test -race -timeout=10s ./...
 
