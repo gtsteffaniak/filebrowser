@@ -57,7 +57,8 @@
     "galleryView": "Vista della galleria",
     "uploadFiles": "Caricare i file",
     "uploadFolder": "Cartella di caricamento",
-    "openUploadViewer": "Aprire Gestione caricamenti"
+    "openUploadViewer": "Aprire Gestione caricamenti",
+    "selectAll": "Seleziona tutti"
   },
   "download": {
     "downloadFile": "Scarica file",
@@ -92,7 +93,9 @@
     "click": "seleziona un file o una cartella",
     "ctrl": {
       "click": "seleziona più file o cartelle",
-      "d": "scaricare gli articoli selezionati"
+      "d": "scaricare gli articoli selezionati",
+      "b": "Alterna la barra laterale",
+      "comma": "vai alle impostazioni"
     },
     "del": "elimina gli elementi selezionati",
     "esc": "annulla la selezione e/o chiude la finestra aperta",
@@ -100,7 +103,8 @@
     "help": "Aiuto",
     "f1": "mostra la richiesta di aiuto",
     "description": "Le opzioni di navigazione di base sono riportate di seguito. Per ulteriori informazioni, visitate il sito",
-    "wiki": "Wiki di FileBrowser Quantum"
+    "wiki": "Wiki di FileBrowser Quantum",
+    "slash": "attivare la ricerca"
   },
   "languages": {
     "he": "עברית",

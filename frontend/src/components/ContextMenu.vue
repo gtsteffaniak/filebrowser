@@ -96,6 +96,12 @@
         show="move"
       />
       <action
+        v-if="!showCreate && !isSearchActive && req?.items?.length > 0"
+        icon="select_all"
+        :label="$t('buttons.selectAll')"
+        @action="selectAllItems"
+      />
+      <action
         v-if="showDelete"
         icon="delete"
         :label="$t('buttons.delete')"
@@ -173,6 +179,9 @@ export default {
     },
   },
   computed: {
+    req() {
+      return state.req;
+    },
     isShare() {
       return getters.isShare();
     },
@@ -494,6 +503,18 @@ export default {
         parentPath = "/";
       }
       url.goToItem(state.req.source, parentPath, {});
+    },
+    selectAllItems() {
+      if (state.req && state.req.items && state.req.items.length > 0) {
+        // Clear current selection first
+        mutations.resetSelected();
+        // Add all items from current directory to selection by their indices
+        state.req.items.forEach((item, index) => {
+          mutations.addSelected(index);
+        });
+        // Close the context menu
+        mutations.closeHovers();
+      }
     },
   },
 };

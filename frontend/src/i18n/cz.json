@@ -57,7 +57,8 @@
     "galleryView": "Pohled do galerie",
     "uploadFiles": "Nahrávání souborů",
     "uploadFolder": "Nahrát složku",
-    "openUploadViewer": "Otevřít Správce nahrávání"
+    "openUploadViewer": "Otevřít Správce nahrávání",
+    "selectAll": "Vyberte vše"
   },
   "download": {
     "downloadFile": "Stáhnout soubor",
@@ -95,7 +96,9 @@
     "click": "označit soubor nebo složku",
     "ctrl": {
       "click": "označit více souborů nebo složek",
-      "d": "stáhnout vybrané položky"
+      "d": "stáhnout vybrané položky",
+      "b": "přepínání postranního panelu",
+      "comma": "přejít do nastavení"
     },
     "del": "smazat označené položky",
     "esc": "zrušit označení a/nebo zavřít dialog",
@@ -103,7 +106,8 @@
     "help": "Nápověda",
     "f1": "zobrazit výzvu nápovědy",
     "description": "Základní možnosti navigace si můžete prohlédnout níže. Další informace naleznete na adrese",
-    "wiki": "FileBrowser Quantum Wiki"
+    "wiki": "FileBrowser Quantum Wiki",
+    "slash": "aktivovat vyhledávání"
   },
   "languages": {
     "he": "עברית",

@@ -57,7 +57,8 @@
     "galleryView": "Galleri utsikt",
     "uploadFiles": "Ladda upp filer",
     "uploadFolder": "Ladda upp mapp",
-    "openUploadViewer": "Öppna uppladdningshanteraren"
+    "openUploadViewer": "Öppna uppladdningshanteraren",
+    "selectAll": "Välj alla"
   },
   "download": {
     "downloadFile": "Ladda ner fil",
@@ -92,7 +93,9 @@
     "click": "välj fil eller mapp",
     "ctrl": {
       "click": "välj flera filer eller mappar",
-      "d": "ladda ner valda artiklar"
+      "d": "ladda ner valda artiklar",
+      "b": "växla sidofält",
+      "comma": "gå till inställningar"
     },
     "del": "ta bort valda objekt",
     "esc": "Rensa markeringen och/eller stänga prompten",
@@ -100,7 +103,8 @@
     "help": "Hjälp",
     "f1": "visa hjälp prompt",
     "description": "Du kan se de grundläggande navigeringsalternativen nedan. För ytterligare information, vänligen besök",
-    "wiki": "FileBrowser Quantum Wiki"
+    "wiki": "FileBrowser Quantum Wiki",
+    "slash": "aktivera sökning"
   },
   "languages": {
     "he": "עברית",

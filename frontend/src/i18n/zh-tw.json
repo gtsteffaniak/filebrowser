@@ -57,7 +57,8 @@
     "galleryView": "圖庫瀏覽",
     "uploadFiles": "上傳檔案",
     "uploadFolder": "上傳資料夾",
-    "openUploadViewer": "開啟上傳管理員"
+    "openUploadViewer": "開啟上傳管理員",
+    "selectAll": "全部選取"
   },
   "download": {
     "downloadFile": "下載檔案",
@@ -92,7 +93,9 @@
     "click": "選擇檔案或目錄",
     "ctrl": {
       "click": "選擇多個檔案或目錄",
-      "d": "下載所選項目"
+      "d": "下載所選項目",
+      "b": "切換側邊欄",
+      "comma": "前往設定"
     },
     "del": "刪除所選的檔案/資料夾",
     "esc": "清除已選項或關閉提示資訊",
@@ -100,7 +103,8 @@
     "help": "幫助",
     "f1": "顯示幫助提示",
     "description": "您可以查看以下的基本導航選項。如需其他資訊，請造訪",
-    "wiki": "FileBrowser Quantum Wiki"
+    "wiki": "FileBrowser Quantum Wiki",
+    "slash": "啟動搜尋"
   },
   "languages": {
     "he": "עברית",

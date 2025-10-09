@@ -119,7 +119,7 @@ export default {
       return getters.isSidebarVisible() && getters.isStickySidebar();
     },
     enabled() {
-      return state.navigation.enabled;
+      return state.navigation.enabled && getters.currentPrompt() == null;
     },
     showNav() {
       const shouldShow = state.navigation.show || this.hoverNav;

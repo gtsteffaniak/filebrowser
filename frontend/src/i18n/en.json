@@ -55,6 +55,7 @@
     "normalView": "Normal View",
     "galleryView": "Gallery View",
     "selectedCount": "Number of items selected to perform an action",
+    "selectAll": "Select all",
     "uploadFiles": "Upload Files",
     "uploadFolder": "Upload Folder",
     "openUploadViewer": "Open Upload Manager"
@@ -95,12 +96,15 @@
     "click": "select file or directory",
     "ctrl": {
       "click": "select multiple files or directories",
-      "d": "download selected items"
+      "d": "download selected items",
+      "b": "toggle sidebar",
+      "comma": "go to settings"
     },
     "del": "delete selected items",
     "esc": "clear selection and/or close the prompt",
     "f2": "rename file",
     "f1": "show help prompt",
+    "slash": "activate search",
     "help": "Help",
     "description": "You can view the basic naviagation options below. For additional information, please visit",
     "wiki": "FileBrowser Quantum Wiki"

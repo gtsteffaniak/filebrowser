@@ -57,7 +57,8 @@
     "galleryView": "Vizualizare galerie",
     "uploadFiles": "Încărcați fișiere",
     "uploadFolder": "Încărcați dosarul",
-    "openUploadViewer": "Deschideți Managerul de încărcare"
+    "openUploadViewer": "Deschideți Managerul de încărcare",
+    "selectAll": "Selectați toate"
   },
   "download": {
     "downloadFile": "Descarcă fișier",
@@ -92,7 +93,9 @@
     "click": "alege fișier sau director",
     "ctrl": {
       "click": "alege multiple fișiere sau directoare",
-      "d": "descărcați elementele selectate"
+      "d": "descărcați elementele selectate",
+      "b": "comutare bară laterală",
+      "comma": "mergeți la setări"
     },
     "del": "șterge elementele selectate",
     "esc": "elibereaza selecția și/sau închide fereastra",
@@ -100,7 +103,8 @@
     "help": "Ajutor",
     "f1": "arată ajutor prompt",
     "description": "Puteți vizualiza mai jos opțiunile de navigație de bază. Pentru informații suplimentare, vă rugăm să vizitați",
-    "wiki": "FileBrowser Quantum Wiki"
+    "wiki": "FileBrowser Quantum Wiki",
+    "slash": "activați căutarea"
   },
   "languages": {
     "he": "עברית",

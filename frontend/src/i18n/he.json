@@ -57,7 +57,8 @@
     "galleryView": "תצוגת גלריה",
     "uploadFiles": "העלאת קבצים",
     "uploadFolder": "העלה תיקייה",
-    "openUploadViewer": "פתח את מנהל ההעלאה"
+    "openUploadViewer": "פתח את מנהל ההעלאה",
+    "selectAll": "בחר הכל"
   },
   "download": {
     "downloadFile": "הורד קובץ",
@@ -92,7 +93,9 @@
     "click": "בחר קובץ או תקייה",
     "ctrl": {
       "click": "בחר מספר קבצים או תקיות",
-      "d": "הורדת פריטים נבחרים"
+      "d": "הורדת פריטים נבחרים",
+      "b": "החלף סרגל צד",
+      "comma": "עבור להגדרות"
     },
     "del": "מחק את מה שנבחר",
     "esc": "נקה את הבחירה ו/או סגור את השדה",
@@ -100,7 +103,8 @@
     "help": "עזרה",
     "f1": "הצג עזרה",
     "description": "ניתן לצפות באפשרויות הניווט הבסיסיות להלן. למידע נוסף, בקרו בכתובת",
-    "wiki": "FileBrowser Quantum Wiki"
+    "wiki": "FileBrowser Quantum Wiki",
+    "slash": "הפעל חיפוש"
   },
   "languages": {
     "he": "עברית",

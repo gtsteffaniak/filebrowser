@@ -385,6 +385,12 @@ export default {
         mutations.showHover("help"); // Use mutation
       }
 
+      // Ctrl+, - navigate to settings
+      if (event.ctrlKey && event.key === ',') {
+        event.preventDefault();
+        router.push('/settings');
+      }
+
       // Esc! - for shares, reset selection
       if ( getters.isShare() && event.keyCode === 27) {
         if (getters.selectedCount() > 0) {

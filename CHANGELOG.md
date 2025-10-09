@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file. For commit 
 
  **New Features**:
  - Playback Queue for media thanks @Kurami32 #1339
+ - Shortcut to toggle sidebar, open settings, search #1172
+ - Add a "select all" toggle in the menu #974
 
  **BugFixes**:
  - Remember the previous location after closing a preview #1336
