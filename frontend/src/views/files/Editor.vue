@@ -364,13 +364,13 @@ export default {
 
 /* Current line highlight */
 .ace_editor .ace_active-line {
-    background-color: color-mix(in srgb, var(--primaryColor) 20%, transparent) !important;
+    background-color: color-mix(in srgb, var(--primaryColor) 18%, transparent) !important;
     border-left: 3px solid color-mix(in srgb, var(--primaryColor) 30%, transparent) !important;
     margin-left: -3px !important;
 }
 
 .ace_editor .ace_gutter-active-line {
-    background-color: color-mix(in srgb, var(--primaryColor) 15%, transparent) !important;
+    background-color: color-mix(in srgb, var(--primaryColor) 20%, transparent) !important;
     color: var(--primaryColor) !important;
     font-weight: bold !important;
 }
@@ -386,8 +386,8 @@ export default {
   border-right: 1px solid color-mix(in srgb, var(--primaryColor) 75%, transparent) !important;
 }
 
-/* Lightened Tomorrow Night Bright Theme */
+/* Lightened Tomorrow Night Bright Theme, was too dark */
 .ace-tomorrow-night-bright {
-  background-color: #1a1a1a !important; /* Original is #000000 */
+  background-color: #1f1f1f !important; /* original of the theme is #000000 */
 }
 </style>
