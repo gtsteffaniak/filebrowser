@@ -182,8 +182,8 @@ export function encodedPath(path) {
 
 // assume non-encoded input path and source
 export function goToItem(source, path, previousHistoryItem) {
-  mutations.resetAll()
   mutations.setPreviousHistoryItem(previousHistoryItem);
+  mutations.resetAll()
   let newPath = encodedPath(path);
   let fullPath;
   if (getters.isShare()) {
