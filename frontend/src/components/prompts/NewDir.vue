@@ -69,7 +69,7 @@ export default {
     async createDirectory(overwrite = false) {
       try {
         await filesApi.post(state.req.source, url.joinPath(state.req.path, this.name) + "/", "", overwrite);
-        goToItem(state.req.source, url.joinPath(state.req.path, this.name));
+        goToItem(state.req.source, url.joinPath(state.req.path, this.name), {});
         mutations.closeHovers();
       } catch (error) {
         if (error.message === "conflict") {
@@ -90,7 +90,7 @@ export default {
                     try {
                       const newName = counter === 1 ? `${originalName} (1)` : `${originalName} (${counter})`;
                       await filesApi.post(state.req.source, joinPath(state.req.path, newName) + "/", "", false);
-                      goToItem(state.req.source, joinPath(state.req.path, newName));
+                      goToItem(state.req.source, joinPath(state.req.path, newName), {});
                       mutations.closeHovers();
                       success = true;
                     } catch (renameError) {

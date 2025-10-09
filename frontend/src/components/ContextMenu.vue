@@ -493,7 +493,7 @@ export default {
       if (parentPath == "") {
         parentPath = "/";
       }
-      url.goToItem(state.req.source, parentPath);
+      url.goToItem(state.req.source, parentPath, {});
     },
   },
 };

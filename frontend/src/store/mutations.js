@@ -12,6 +12,7 @@ import { filesApi, publicApi } from "@/api";
 
 export const mutations = {
   setPreviousHistoryItem: (value) => {
+    console.log('setPreviousHistoryItem', value)
     if (value == state.previousHistoryItem) {
       return;
     }

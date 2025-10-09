@@ -135,6 +135,9 @@ export default {
       let scrollToId = "";
       // scroll to previous item either from location hash or from previousItemHashId state
       // prefers location hash
+      console.log('scrollToHash', window.location.hash, this.lastHash)
+      console.log('state.previousHistoryItem', state.previousHistoryItem)
+      console.log('state.req', state.req)
       const noHashChange = window.location.hash === this.lastHash
       if (noHashChange && state.previousHistoryItem.name === "") return;
       this.lastHash = window.location.hash;

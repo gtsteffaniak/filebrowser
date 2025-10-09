@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.8.9-beta
+
+ **New Features**:
+ - Playback Queue for media thanks @Kurami32 #1339
+
+ **BugFixes**:
+ - Remember the previous location after closing a preview #1336
+
 ## v0.8.8-beta
 
  **New Features**:

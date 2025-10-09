@@ -200,7 +200,7 @@ export default {
         }
         // Navigate to the destination folder after successful operation
         if (this.destSource && this.destPath) {
-          goToItem(this.destSource, this.destPath);
+          goToItem(this.destSource, this.destPath, {});
         }
       } catch (error) {
         notify.showError(error);
