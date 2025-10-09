@@ -57,7 +57,8 @@
     "galleryView": "Vue de la galerie",
     "uploadFiles": "Téléchargement de fichiers",
     "uploadFolder": "Télécharger le dossier",
-    "openUploadViewer": "Ouvrir le gestionnaire de téléchargement"
+    "openUploadViewer": "Ouvrir le gestionnaire de téléchargement",
+    "selectAll": "Sélectionner tout"
   },
   "download": {
     "downloadFile": "Télécharger le fichier",
@@ -92,7 +93,9 @@
     "click": "Sélectionner un élément",
     "ctrl": {
       "click": "Sélectionner plusieurs éléments",
-      "d": "télécharger les éléments sélectionnés"
+      "d": "télécharger les éléments sélectionnés",
+      "b": "barre latérale à bascule",
+      "comma": "accéder aux paramètres"
     },
     "del": "Supprimer les éléments sélectionnés",
     "esc": "Désélectionner et/ou fermer la boîte de dialogue",
@@ -100,7 +103,8 @@
     "help": "Aide",
     "f1": "show help prompt",
     "description": "Vous pouvez consulter les options de navigation de base ci-dessous. Pour plus d'informations, veuillez consulter le site",
-    "wiki": "Wiki FileBrowser Quantum"
+    "wiki": "Wiki FileBrowser Quantum",
+    "slash": "activer la recherche"
   },
   "languages": {
     "he": "עברית",

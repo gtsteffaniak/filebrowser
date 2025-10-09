@@ -57,7 +57,8 @@
     "galleryView": "Zobrazenie galérie",
     "uploadFiles": "Nahrávanie súborov",
     "uploadFolder": "Odoslanie priečinka",
-    "openUploadViewer": "Otvoriť Správcu nahrávania"
+    "openUploadViewer": "Otvoriť Správcu nahrávania",
+    "selectAll": "Vyberte všetky"
   },
   "download": {
     "downloadFile": "Stiahnuť súbor",
@@ -92,7 +93,9 @@
     "click": "vyberie súbor alebo priečinok",
     "ctrl": {
       "click": "vyberie viac súborov alebo priečinkov",
-      "d": "stiahnuť vybrané položky"
+      "d": "stiahnuť vybrané položky",
+      "b": "prepínanie bočného panela",
+      "comma": "prejsť na nastavenia"
     },
     "del": "odstráni vybraté položky",
     "esc": "zruší výber a/alebo zavrie okno",
@@ -100,7 +103,8 @@
     "help": "Pomoc",
     "f1": "zobraziť výzvu na pomoc",
     "description": "Základné možnosti navigácie si môžete pozrieť nižšie. Ďalšie informácie nájdete na stránke",
-    "wiki": "FileBrowser Quantum Wiki"
+    "wiki": "FileBrowser Quantum Wiki",
+    "slash": "aktivovať vyhľadávanie"
   },
   "languages": {
     "he": "עברית",

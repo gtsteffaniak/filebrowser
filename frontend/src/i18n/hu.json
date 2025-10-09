@@ -57,7 +57,8 @@
     "galleryView": "Galéria nézet",
     "uploadFiles": "Fájlok feltöltése",
     "uploadFolder": "Mappa feltöltése",
-    "openUploadViewer": "Nyissa meg a Feltöltéskezelőt"
+    "openUploadViewer": "Nyissa meg a Feltöltéskezelőt",
+    "selectAll": "Válasszon ki mindent"
   },
   "download": {
     "downloadFile": "Fájl letöltése",
@@ -92,7 +93,9 @@
     "click": "mappa vagy fájl kijelölése",
     "ctrl": {
       "click": "több mappa vagy fájl kijelölése",
-      "d": "kiválasztott elemek letöltése"
+      "d": "kiválasztott elemek letöltése",
+      "b": "oldalsáv átkapcsolása",
+      "comma": "menj a beállításokhoz"
     },
     "del": "kijelölt elemek törlése",
     "esc": "kijelölés törlése és/vagy parancssor bezárása",
@@ -100,7 +103,8 @@
     "help": "Súgó",
     "f1": "show help prompt",
     "description": "Az alábbiakban megtekintheti az alapvető navigációs lehetőségeket. További információkért kérjük, látogasson el a következő weboldalra",
-    "wiki": "FileBrowser Quantum Wiki"
+    "wiki": "FileBrowser Quantum Wiki",
+    "slash": "keresés aktiválása"
   },
   "languages": {
     "he": "עברית",

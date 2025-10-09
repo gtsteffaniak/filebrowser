@@ -57,7 +57,8 @@
     "galleryView": "Galerij",
     "uploadFiles": "Bestanden uploaden",
     "uploadFolder": "Map uploaden",
-    "openUploadViewer": "Uploadmanager openen"
+    "openUploadViewer": "Uploadmanager openen",
+    "selectAll": "Alles selecteren"
   },
   "download": {
     "downloadFile": "Bestand downloaden",
@@ -92,7 +93,9 @@
     "click": "selecteer bestand of map",
     "ctrl": {
       "click": "selecteer meerdere bestanden of mappen",
-      "d": "geselecteerde items downloaden"
+      "d": "geselecteerde items downloaden",
+      "b": "naar zijbalk wisselen",
+      "comma": "ga naar instellingen"
     },
     "del": "verwijder geselecteerde items",
     "esc": "Wis selectie en/of sluit de prompt",
@@ -100,7 +103,8 @@
     "help": "Help",
     "f1": "help prompt tonen",
     "description": "Je kunt de basisnavigatieopties hieronder bekijken. Ga voor aanvullende informatie naar",
-    "wiki": "FileBrowser Quantum Wiki"
+    "wiki": "FileBrowser Quantum Wiki",
+    "slash": "Zoeken activeren"
   },
   "languages": {
     "he": "עברית",

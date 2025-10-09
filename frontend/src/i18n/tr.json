@@ -57,7 +57,8 @@
     "galleryView": "Galeri Görünümü",
     "uploadFiles": "Dosya Yükleme",
     "uploadFolder": "Klasör Yükle",
-    "openUploadViewer": "Yükleme Yöneticisini Açın"
+    "openUploadViewer": "Yükleme Yöneticisini Açın",
+    "selectAll": "Tümünü seçin"
   },
   "download": {
     "downloadFile": "Dosyayı indir",
@@ -92,7 +93,9 @@
     "click": "dosya veya klasör seçin",
     "ctrl": {
       "click": "çoklu dosya ve klasör seçin",
-      "d": "seçili öğeleri indirin"
+      "d": "seçili öğeleri indirin",
+      "b": "kenar çubuğunu değiştir",
+      "comma": "ayarlara git"
     },
     "del": "seçilileri sil",
     "esc": "seçimi temizle veya kapatın",
@@ -100,7 +103,8 @@
     "help": "Yardım",
     "f1": "yardım istemini göster",
     "description": "Temel navigasyon seçeneklerini aşağıda görüntüleyebilirsiniz. Ek bilgi için lütfen şu adresi ziyaret edin",
-    "wiki": "FileBrowser Quantum Wiki"
+    "wiki": "FileBrowser Quantum Wiki",
+    "slash": "aramayı etkinleştir"
   },
   "languages": {
     "he": "עברית",
