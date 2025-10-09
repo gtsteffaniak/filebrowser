@@ -12,8 +12,8 @@ import { url } from "@/utils";
 import { notify } from "@/notify";
 import ace, { version as ace_version } from "ace-builds";
 import modelist from "ace-builds/src-noconflict/ext-modelist";
-import "ace-builds/src-min-noconflict/theme-chrome";
-import "ace-builds/src-min-noconflict/theme-twilight";
+import "ace-builds/src-min-noconflict/theme-github";
+import "ace-builds/src-min-noconflict/theme-tomorrow_night_bright";
 import "ace-builds/src-min-noconflict/mode-yaml";
 import "ace-builds/src-min-noconflict/mode-json";
 
@@ -225,21 +225,24 @@ export default {
           showPrintMargin: false,
           showGutter: true,
           showLineNumbers: true,
-          theme: this.isDarkMode ? "ace/theme/twilight" : "ace/theme/chrome",
+          theme: this.isDarkMode ? "ace/theme/tomorrow_night_bright" : "ace/theme/github",
           readOnly: this.editorReadOnly,
           wrap: false,
           enableMobileMenu: !this.viewerMode,
+          useWorker: false,
+          scrollPastEnd: 0.5,
+          cursorStyle: "smooth",
+          highlightGutterLine: true,
+          animatedScroll: true,
+          displayIndentGuides: true,
+          fixedWidthGutter: true,
         });
+
+        this.editor.setOption('displayIndentGuides', true);
 
         this.editor.on('change', () => {
           this.isDirty = true;
         });
-
-        // Disable context menu
-        this.editor.container.addEventListener("contextmenu", (event) => {
-          event.preventDefault();
-          event.stopPropagation();
-        }, true);
 
         // Initialize navigation for file editing mode when synced
         if (this.isStateSynced && !this.viewerMode) {
@@ -318,24 +321,73 @@ export default {
 <style>
 .ace_editor {
     font-size: 14px;
-    line-height: 1.3;
+    line-height: 1.4;
+    -webkit-user-select: text !important;
+    -moz-user-select: text !important;
+    -ms-user-select: text !important;
+    user-select: text !important;
 }
-/* Mobile menu */
+
 .ace_mobile-menu {
     font-size: 16px !important;
     border-radius: 12px !important;
     padding: 10px !important;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4) !important;
 }
+
 .ace_mobile-menu .ace_menu-item {
     font-size: 16px !important;
     margin: 8px 0 !important;
     border-radius: 8px !important;
     text-align: center !important;
-}
-.ace_mobile-menu .ace_menu-item {
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
+}
+
+/* make sure the text selection is detected*/
+.ace_content {
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+}
+
+/* Text selection color */
+.ace_editor .ace_selection {
+    background-color: color-mix(in srgb, var(--primaryColor) 25%, transparent) !important;
+}
+
+.ace_editor .ace_selection.ace_start {
+    box-shadow: 0 0 3px 0px color-mix(in srgb, var(--primaryColor) 40%, transparent) !important;
+}
+
+/* Current line highlight */
+.ace_editor .ace_active-line {
+    background-color: color-mix(in srgb, var(--primaryColor) 20%, transparent) !important;
+    border-left: 3px solid color-mix(in srgb, var(--primaryColor) 30%, transparent) !important;
+    margin-left: -3px !important;
+}
+
+.ace_editor .ace_gutter-active-line {
+    background-color: color-mix(in srgb, var(--primaryColor) 15%, transparent) !important;
+    color: var(--primaryColor) !important;
+    font-weight: bold !important;
+}
+
+/* Indent lines */
+.ace_editor .ace_indent-guide {
+  border-right: 1px solid color-mix(in srgb, var(--primaryColor) 50%, transparent) !important;
+  opacity: 1 !important;
+  z-index: 5 !important;
+}
+
+.ace_editor .ace_indent-guide-active {
+  border-right: 1px solid color-mix(in srgb, var(--primaryColor) 75%, transparent) !important;
+}
+
+/* Lightened Tomorrow Night Bright Theme */
+.ace-tomorrow-night-bright {
+  background-color: #1a1a1a !important; /* Original is #000000 */
 }
 </style>
