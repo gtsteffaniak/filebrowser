@@ -13,6 +13,9 @@
       <li><strong>CTRL + Click</strong> - {{ $t("help.ctrl.click") }}</li> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
       <li><strong>Click</strong> - {{ $t("help.click") }}</li> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
       <li><strong>CTRL + D</strong> - {{ $t("help.ctrl.d") }}</li> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+      <li><strong>CTRL + B</strong> - {{ $t("help.ctrl.b") }}</li> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+      <li><strong>CTRL + ,</strong> - {{ $t("help.ctrl.comma") }}</li> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+      <li><strong>/</strong> - {{ $t("help.slash") }}</li> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
     </ul>
   </div>
 
