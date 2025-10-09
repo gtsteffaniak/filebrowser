@@ -603,6 +603,11 @@
     "LoopDisabled": "Повтор отключен",
     "PlayAllOncePlayback": "Воспроизвести все один раз",
     "ShuffleAllPlayback": "Перемешать все",
-    "PlayAllLoopedPlayback": "Воспроизвести все с повторением"
+    "PlayAllLoopedPlayback": "Воспроизвести все с повторением",
+    "QueueButtonHint": "Показать очередь воспроизведения",
+    "QueuePlayback": "Очередь Воспроизведения",
+    "changePlaybackMode": "Изменить режим воспроизведения",
+    "changePlaybackModeHint": "Измените режим воспроизведения, чтобы увидеть больше файлов",
+    "emptyQueue": "Очередь пуста"
   }
 }

@@ -603,6 +603,11 @@
     "LoopDisabled": "Boucle désactivée",
     "PlayAllOncePlayback": "Lire tout une fois",
     "ShuffleAllPlayback": "Lecture aléatoire de tout",
-    "PlayAllLoopedPlayback": "Lire tout en boucle"
+    "PlayAllLoopedPlayback": "Lire tout en boucle",
+    "QueueButtonHint": "Afficher la file de lecture",
+    "QueuePlayback": "File de Lecture",
+    "changePlaybackMode": "Changer le mode de lecture",
+    "changePlaybackModeHint": "Changez le mode de lecture pour voir plus de fichiers",
+    "emptyQueue": "La file est vide"
   }
 }

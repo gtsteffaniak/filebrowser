@@ -603,6 +603,11 @@
     "LoopDisabled": "循环已禁用",
     "PlayAllOncePlayback": "播放全部一次",
     "ShuffleAllPlayback": "随机播放全部",
-    "PlayAllLoopedPlayback": "循环播放全部"
+    "PlayAllLoopedPlayback": "循环播放全部",
+    "QueueButtonHint": "显示播放队列",
+    "QueuePlayback": "播放队列",
+    "changePlaybackMode": "更改播放模式",
+    "changePlaybackModeHint": "更改播放模式以查看更多文件",
+    "emptyQueue": "队列为空"
   }
 }

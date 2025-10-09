@@ -675,4 +675,26 @@ export const mutations = {
     mutations.clearNavigationTimeout();
     emitStateChanged();
   },
+  setPlaybackQueue: (payload) => {
+    state.playbackQueue.queue = payload.queue || [];
+    state.playbackQueue.currentIndex = payload.currentIndex ?? -1;
+    state.playbackQueue.mode = payload.mode || 'single';
+    emitStateChanged();
+  },
+  setPlaybackState: (isPlaying) => {
+    state.playbackQueue.isPlaying = isPlaying;
+    emitStateChanged();
+  },
+  navigateToQueueIndex: (index) => {
+    if (index < 0 || index >= state.playbackQueue.queue.length) return;
+    const item = state.playbackQueue.queue[index];
+    state.playbackQueue.currentIndex = index;
+    // Update the current request to trigger navigation
+    mutations.replaceRequest(item);
+    emitStateChanged();
+  },
+  togglePlayPause: () => {
+    state.playbackQueue.shouldTogglePlayPause = !state.playbackQueue.shouldTogglePlayPause;
+    emitStateChanged();
+  },
 };

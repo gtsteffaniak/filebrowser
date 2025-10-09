@@ -601,8 +601,13 @@
   "player": {
     "LoopEnabled": "Smyčka povolena",
     "LoopDisabled": "Smyčka zakázána",
-    "PlayAllOncePlayback": "Přehrát vše najednou",
-    "ShuffleAllPlayback": "Zamíchat vše",
-    "PlayAllLoopedPlayback": "Přehrát vše v smyčce"
+    "PlayAllOncePlayback": "Přehrát vše jednou",
+    "ShuffleAllPlayback": "Náhodné přehrávání všeho",
+    "PlayAllLoopedPlayback": "Přehrát vše ve smyčce",
+    "QueueButtonHint": "Zobrazit frontu přehrávání",
+    "QueuePlayback": "Fronta přehrávání",
+    "changePlaybackMode": "Změnit režim přehrávání",
+    "changePlaybackModeHint": "Změňte režim přehrávání, abyste viděli více souborů",
+    "emptyQueue": "Fronta je prázdná"
   }
 }

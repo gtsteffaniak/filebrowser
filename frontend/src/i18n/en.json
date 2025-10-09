@@ -603,6 +603,11 @@
     "LoopDisabled": "Loop Disabled",
     "PlayAllOncePlayback": "Play All Once",
     "ShuffleAllPlayback": "Shuffle All",
-    "PlayAllLoopedPlayback": "Play All Looped"
+    "PlayAllLoopedPlayback": "Play All Looped",
+    "QueueButtonHint": "Show playback queue",
+    "QueuePlayback": "Playback Queue",
+    "changePlaybackMode": "Change playback mode",
+    "changePlaybackModeHint": "Change playback mode to see more files",
+    "emptyQueue": "Queue is empty"
   }
 }

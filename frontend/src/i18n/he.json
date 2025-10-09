@@ -603,6 +603,11 @@
     "LoopDisabled": "לולאה מושבתת",
     "PlayAllOncePlayback": "נגן הכל פעם אחת",
     "ShuffleAllPlayback": "ערבב הכל",
-    "PlayAllLoopedPlayback": "נגן הכל בלולאה"
+    "PlayAllLoopedPlayback": "נגן הכל בלולאה",
+    "QueueButtonHint": "הצג תור ניגון",
+    "QueuePlayback": "תור ניגון",
+    "changePlaybackMode": "שנה מצב ניגון",
+    "changePlaybackModeHint": "שנה מצב ניגון כדי לראות יותר קבצים",
+    "emptyQueue": "התור ריק"
   }
 }

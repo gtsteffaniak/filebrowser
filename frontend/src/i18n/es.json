@@ -603,6 +603,12 @@
     "LoopDisabled": "Bucle desactivado",
     "PlayAllOncePlayback": "Reproducir todo una vez",
     "ShuffleAllPlayback": "Reproducir todo aleatoriamente",
-    "PlayAllLoopedPlayback": "Reproducir todo en bucle"
+    "PlayAllLoopedPlayback": "Reproducir todo en bucle",
+    "QueueButtonHint": "Mostrar cola de Reproducción",
+    "QueuePlayback": "Cola de Reproducción",
+    "changePlaybackMode": "Cambiar modo de Reproducción",
+    "changePlaybackModeHint": "Cambia el modo de reproducción para ver más",
+    "emptyQueue": "La cola de reproducción está vacia..."
   }
 }
+

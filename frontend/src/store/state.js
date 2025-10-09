@@ -138,6 +138,12 @@ export const state = reactive({
     timeout: null,
     enabled: false,
   },
+  playbackQueue: {
+    queue: [],
+    currentIndex: -1,
+    mode: 'single', // 'single', 'sequential', 'shuffle', 'loop-single', 'loop-all'
+    isPlaying: false
+  },
 });
 
 function stickyStartup() {

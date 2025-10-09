@@ -603,6 +603,11 @@
     "LoopDisabled": "Pętla wyłączona",
     "PlayAllOncePlayback": "Odtwórz wszystkie raz",
     "ShuffleAllPlayback": "Losowe odtwarzanie wszystkich",
-    "PlayAllLoopedPlayback": "Odtwórz wszystkie w pętli"
+    "PlayAllLoopedPlayback": "Odtwórz wszystkie w pętli",
+    "QueueButtonHint": "Pokaż kolejkę odtwarzania",
+    "QueuePlayback": "Kolejka Odtwarzania",
+    "changePlaybackMode": "Zmień tryb odtwarzania",
+    "changePlaybackModeHint": "Zmień tryb odtwarzania, aby zobaczyć więcej plików",
+    "emptyQueue": "Kolejka jest pusta"
   }
 }

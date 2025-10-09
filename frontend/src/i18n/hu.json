@@ -603,6 +603,11 @@
     "LoopDisabled": "Hurok letiltva",
     "PlayAllOncePlayback": "Összes lejátszása egyszer",
     "ShuffleAllPlayback": "Összes keverése",
-    "PlayAllLoopedPlayback": "Összes lejátszása hurkokban"
+    "PlayAllLoopedPlayback": "Összes lejátszása hurkokban",
+    "QueueButtonHint": "Lejátszási sor megjelenítése",
+    "QueuePlayback": "Lejátszási Sor",
+    "changePlaybackMode": "Lejátszási mód változtatása",
+    "changePlaybackModeHint": "Változtasd meg a lejátszási módot, hogy több fájlt láss",
+    "emptyQueue": "A sor üres"
   }
 }

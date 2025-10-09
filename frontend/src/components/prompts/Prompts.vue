@@ -31,6 +31,7 @@ import buttons from "@/utils/buttons";
 import Totp from "./Totp.vue";
 import Access from "./Access.vue";
 import Password from "./Password.vue";
+import PlaybackQueue from "./PlaybackQueue.vue";
 import FileList from "./FileList.vue";
 import { state, getters, mutations } from "@/store"; // Import your custom store
 
@@ -59,6 +60,7 @@ export default {
     ActionApi,
     Access,
     Password,
+    PlaybackQueue,
     "file-list": FileList,
   },
   data() {
