@@ -9,8 +9,6 @@
 
   <link rel="icon" type="image/png" sizes="256x256" href="{{ .htmlVars.favicon }}">
 
-  <!--<link href="https://fonts.googleapis.com/css?family=Material+Icons|Material+Symbols+Outlined" rel="stylesheet">-->
-
   <!-- Add to home screen for Android and modern mobile browsers -->
   <link rel="manifest" id="manifestPlaceholder" crossorigin="use-credentials">
   <meta name="theme-color" content="{{ .htmlVars.color }}">
@@ -26,10 +24,10 @@
 
   <meta name="description" content="{{ .htmlVars.description }}">
   <link rel="canonical" href="https://github.com/gtsteffaniak/filebrowser">
-  <link rel="canonical" href="https://github.com/gtsteffaniak">
   <link rel="canonical" href="https://github.com/quantumx-apps">
+  <link rel="canonical" href="https://filebrowserquantum.com">
 
-  <!-- Inject Some Variables and generate the manifest json -->
+  <!-- Injected variables come from backend server -->
   <script>
     window.globalVars = {{ .globalVars }};
     window.shareVars = {{ .shareVars }};
