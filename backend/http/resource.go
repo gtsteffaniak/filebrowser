@@ -143,6 +143,10 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/resources [delete]
 func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	if !d.user.Permissions.Modify {
+		return http.StatusForbidden, fmt.Errorf("user is not allowed to delete")
+	}
+
 	// TODO source := r.URL.Query().Get("source")
 	encodedPath := r.URL.Query().Get("path")
 	source := r.URL.Query().Get("source")
