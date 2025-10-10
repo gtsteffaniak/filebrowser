@@ -7,7 +7,6 @@
     @mousemove="toggleNavigation"
     @touchstart="(e) => { handleTouchStart(e); toggleNavigation(e); }"
     @touchmove="handleTouchMove"
-    @click="handleClick"
   ></div>
 
   <!-- Right edge detection zone -->
@@ -17,7 +16,6 @@
     @mousemove="toggleNavigation"
     @touchstart="(e) => { handleTouchStart(e); toggleNavigation(e); }"
     @touchmove="handleTouchMove"
-    @click="handleClick"
   ></div>
 
   <!-- Previous button -->
@@ -199,6 +197,7 @@ export default {
     window.addEventListener("mouseup", this.endDrag);
     window.addEventListener("touchmove", this.handleDrag, { passive: false });
     window.addEventListener("touchend", this.endDrag);
+    document.addEventListener("click", this.handleDocumentClick);
 
     // Calculate 10em threshold in pixels
     const emSize = parseFloat(getComputedStyle(document.documentElement).fontSize);
@@ -223,6 +222,7 @@ export default {
     window.removeEventListener("mouseup", this.endDrag);
     window.removeEventListener("touchmove", this.handleDrag);
     window.removeEventListener("touchend", this.endDrag);
+    document.removeEventListener("click", this.handleDocumentClick);
 
     // Clear our local timeout
     if (this.navigationTimeout) {
@@ -362,6 +362,41 @@ export default {
       }
 
       this.showNavigation();
+    },
+    handleDocumentClick(event) {
+      // Only handle clicks if navigation is enabled
+      if (!this.enabled) {
+        return;
+      }
+
+      // Don't show navigation if this is part of a swipe gesture
+      if (this.isSwipe) {
+        return;
+      }
+
+      // Check if click is in the left edge zone
+      if (this.hasPrevious && this.isClickInLeftZone(event)) {
+        this.showNavigation();
+        return;
+      }
+
+      // Check if click is in the right edge zone
+      if (this.hasNext && this.isClickInRightZone(event)) {
+        this.showNavigation();
+        return;
+      }
+    },
+    isClickInLeftZone(event) {
+      const zoneWidth = 3 * parseFloat(getComputedStyle(document.documentElement).fontSize); // 3em in pixels
+      const sidebarOffset = this.moveWithSidebar ? 20 * parseFloat(getComputedStyle(document.documentElement).fontSize) : 0; // 20em in pixels
+      
+      return event.clientX >= sidebarOffset && event.clientX <= (sidebarOffset + zoneWidth);
+    },
+    isClickInRightZone(event) {
+      const viewportWidth = window.innerWidth;
+      const zoneWidth = 3 * parseFloat(getComputedStyle(document.documentElement).fontSize); // 3em in pixels
+      
+      return event.clientX >= (viewportWidth - zoneWidth) && event.clientX <= viewportWidth;
     },
     showNavigation() {
       mutations.setNavigationShow(true);
@@ -758,9 +793,9 @@ export default {
   position: fixed;
   top: 25%; /* Start at 25% from top */
   bottom: 25%; /* End at 25% from bottom (so middle 50%) */
-  width: 3em; /* Reduced width to minimize content interference */
-  pointer-events: auto;
-  z-index: 5; /* Lower z-index so content can appear above */
+  width: 5em;
+  pointer-events: none; /* Allow clicks to pass through to content behind */
+  z-index: -1; /* Negative z-index to ensure content appears above */
   background: transparent; /* Invisible zones for mouse/touch detection */
 }
 

@@ -362,13 +362,6 @@ export default {
     box-shadow: 0 0 3px 0px color-mix(in srgb, var(--primaryColor) 40%, transparent) !important;
 }
 
-/* Current line highlight */
-.ace_editor .ace_active-line {
-    background-color: color-mix(in srgb, var(--primaryColor) 18%, transparent) !important;
-    border-left: 3px solid color-mix(in srgb, var(--primaryColor) 30%, transparent) !important;
-    margin-left: -3px !important;
-}
-
 .ace_editor .ace_gutter-active-line {
     background-color: color-mix(in srgb, var(--primaryColor) 20%, transparent) !important;
     color: var(--primaryColor) !important;
