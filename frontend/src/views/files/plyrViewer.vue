@@ -1325,9 +1325,10 @@ button:hover,
     --plyr-tooltip-color: #ffffff;
     --plyr-video-controls-background: linear-gradient(transparent,
             rgba(0, 0, 0, 0.7));
-    border-radius: 12px;
+    border-radius: 0;
     overflow: visible;
     background-color: rgb(216 216 216);
+
 }
 
 .plyr__controls {

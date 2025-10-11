@@ -96,14 +96,23 @@ export default defineComponent({
       }
 
       // Use same directory path calculation as Preview.vue
-      const directoryPath = url.removeLastDir(state.req.path);
+      let directoryPath = url.removeLastDir(state.req.path);
+      
+      // If directoryPath is empty, the file is in root - use '/' as the directory
+      if (!directoryPath || directoryPath === '') {
+        directoryPath = '/';
+      }
+      
       let listing = null;
 
       // Try to get listing from current request first
       if (state.req.items) {
         listing = state.req.items;
-      } else {
-        // Fetch the directory listing
+      } else if (state.req.parentDirItems) {
+        // Use pre-fetched parent directory items from Files.vue
+        listing = state.req.parentDirItems;
+      } else if (directoryPath !== state.req.path) {
+        // Fetch directory listing (now with '/' for root files)
         try {
           let res;
           if (getters.isShare()) {
@@ -115,6 +124,9 @@ export default defineComponent({
         } catch (error) {
           listing = [state.req]; // Fallback to current item only
         }
+      } else {
+        // Shouldn't happen, but fallback to current item
+        listing = [state.req];
       }
 
       mutations.setupNavigation({
@@ -131,17 +143,14 @@ export default defineComponent({
           this.error = `This viewer only supports .docx files. Current file: "${
             filename || "Not available"
           }"`;
-          console.error(`[3a] Filename check FAILED. Stopping execution.`);
           this.docxHtml = ""; // Ensure view is cleared
           return;
         }
-        console.log("[3a] Filename check PASSED.");
 
         this.loading = true;
         this.error = "";
         this.docxHtml = "";
 
-        console.log("[4] Getting download URL from API...");
         const downloadUrl = getters.isShare()
           ? publicApi.getDownloadURL({
               path: state.share.subPath,
@@ -158,37 +167,25 @@ export default defineComponent({
         if (!downloadUrl) {
           throw new Error("Could not retrieve a valid download URL from the API.");
         }
-        console.log("[5] Got download URL:", downloadUrl);
 
-        console.log("[6] Fetching data from URL...");
         const response = await fetch(downloadUrl);
-        console.log("[7] Fetch response received. Status:", response.status);
 
         if (!response.ok) {
           throw new Error(`Failed to download file (Status: ${response.status})`);
         }
 
-        console.log("[8] Getting ArrayBuffer from response...");
         const arrayBuffer = await response.arrayBuffer();
-        console.log(`[8a] Got ArrayBuffer. Size: ${arrayBuffer.byteLength} bytes.`);
 
         if (arrayBuffer.byteLength === 0) {
           throw new Error("Downloaded file is empty (0 bytes).");
         }
 
-        console.log("[9] Passing ArrayBuffer to mammoth.js for conversion...");
         const result = await mammoth.convertToHtml({ arrayBuffer });
         this.docxHtml = result.value;
-        console.log(
-          "%c[10] SUCCESS: Document rendered.",
-          "font-weight: bold; color: green;"
-        );
       } catch (e) {
-        console.error("%c[X] CATCH BLOCK ERROR:", "font-weight: bold; color: red;", e);
         this.error = e.message || "An unknown error occurred.";
       } finally {
         this.loading = false;
-        console.log("[F] FINALLY block executed.");
       }
     },
   },
