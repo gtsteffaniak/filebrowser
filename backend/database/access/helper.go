@@ -26,12 +26,16 @@ func (s *Storage) CheckChildItemAccess(response *iteminfo.ExtendedFileInfo, inde
 		return errors.ErrAccessDenied
 	}
 
+	// Save original folders and files before filtering
+	originalFolders := response.Folders
+	originalFiles := response.Files
+
 	// Filter and return only the items the user has access to
 	response.Folders = make([]iteminfo.ItemInfo, 0)
 	response.Files = make([]iteminfo.ItemInfo, 0)
 
 	// Check each subfolder for access permissions
-	for _, folder := range response.Folders {
+	for _, folder := range originalFolders {
 		indexPath := parentPath + folder.Name
 		if s.Permitted(index.Path, indexPath, username) {
 			response.Folders = append(response.Folders, folder)
@@ -39,7 +43,7 @@ func (s *Storage) CheckChildItemAccess(response *iteminfo.ExtendedFileInfo, inde
 	}
 
 	// Check each subfile for access permissions
-	for _, file := range response.Files {
+	for _, file := range originalFiles {
 		indexPath := parentPath + file.Name
 		if s.Permitted(index.Path, indexPath, username) {
 			response.Files = append(response.Files, file)
