@@ -42,6 +42,8 @@ export default {
       editor: null, // The editor instance
       isDirty: false,
       originalReq: null,
+      saveLocked: false, // Lock saves during req transitions
+      currentReqPath: null, // Track current path for transition detection
     };
   },
   computed: {
@@ -105,6 +107,36 @@ export default {
     },
   },
   watch: {
+    // Lock saves during navigation transitions
+    'state.navigation.isTransitioning'(isTransitioning) {
+      if (isTransitioning && !this.viewerMode) {
+        this.saveLocked = true;
+      } else if (!isTransitioning && !this.viewerMode) {
+        // Unlock after a short delay to ensure req is fully loaded
+        setTimeout(() => {
+          this.saveLocked = false;
+        }, 300);
+      }
+    },
+    // Update originalReq and lock saves when req changes during navigation
+    'req'(newReq, oldReq) {
+      if (!this.viewerMode && oldReq && newReq && newReq.path !== oldReq.path) {
+        // Update originalReq to the new file
+        this.originalReq = newReq;
+        this.isDirty = false; // Reset dirty flag for new file
+        
+        // Lock saves temporarily
+        this.saveLocked = true;
+        this.currentReqPath = newReq.path;
+        
+        // Unlock after content loads
+        setTimeout(() => {
+          if (this.req.path === this.currentReqPath) {
+            this.saveLocked = false;
+          }
+        }, 500);
+      }
+    },
     // Update editor content reactively
     editorContent(newContent) {
       if (this.editor) {
@@ -182,12 +214,22 @@ export default {
         return;
       }
 
-      const directoryPath = url.removeLastDir(this.req.path);
+      let directoryPath = url.removeLastDir(this.req.path);
+      
+      // If directoryPath is empty, the file is in root - use '/' as the directory
+      if (!directoryPath || directoryPath === '') {
+        directoryPath = '/';
+      }
+      
       let listing = null;
 
       if (this.req.items) {
         listing = this.req.items;
-      } else {
+      } else if (this.req.parentDirItems) {
+        // Use pre-fetched parent directory items from Files.vue
+        listing = this.req.parentDirItems;
+      } else if (directoryPath !== this.req.path) {
+        // Fetch directory listing (now with '/' for root files)
         try {
           let res;
           if (getters.isShare()) {
@@ -199,6 +241,9 @@ export default {
         } catch (error) {
           listing = [this.req];
         }
+      } else {
+        // Shouldn't happen, but fallback to current item
+        listing = [this.req];
       }
 
       mutations.setupNavigation({
@@ -249,7 +294,6 @@ export default {
           this.initializeNavigation();
         }
       } catch (error) {
-        console.error("Failed to initialize editor:", error);
         notify.showError(this.$t("editor.uninitialized"));
       }
     },
@@ -270,6 +314,18 @@ export default {
     async handleEditorValueRequest() {
       // Skip save logic in viewer mode
       if (this.viewerMode) {
+        return;
+      }
+
+      // Check if navigation is transitioning
+      if (state.navigation.isTransitioning) {
+        notify.showError("Please wait for navigation to complete before saving.");
+        return;
+      }
+
+      // Check if save is locked due to req transition
+      if (this.saveLocked) {
+        notify.showError("Please wait a moment before saving.");
         return;
       }
 
@@ -297,8 +353,8 @@ export default {
         // Save the file
         await filesApi.put(this.originalReq.source, this.originalReq.path, this.editor.getValue());
         notify.showSuccess(`${this.originalReq.name} saved successfully.`);
+        this.isDirty = false;
       } catch (error) {
-        console.error("Save failed:", error);
         notify.showError(this.$t("editor.saveFailed"));
       }
     },

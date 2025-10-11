@@ -211,6 +211,10 @@ export default {
         }
       } finally {
         mutations.setLoading(getters.isShare() ? "share" : "files", false);
+        // Clear navigation transition when data fetch completes
+        if (state.navigation.isTransitioning) {
+          mutations.setNavigationTransitioning(false);
+        }
       }
 
       setTimeout(() => {
@@ -262,24 +266,35 @@ export default {
       // If not a directory, fetch content AND parent directory in parallel
       if (file.type != "directory") {
         const content = !getters.fileViewingDisabled(file.name);
-        const directoryPath = url.removeLastDir(this.shareSubPath);
+        let directoryPath = url.removeLastDir(this.shareSubPath);
+        
+        // If directoryPath is empty, the file is in root - use '/' as the directory
+        if (!directoryPath || directoryPath === '') {
+          directoryPath = '/';
+        }
+        
+        // Fetch parent directory unless it's the same as the file path
+        const shouldFetchParent = directoryPath !== this.shareSubPath;
 
         // Run both fetches in parallel to minimize total API calls
-        const [fileRes, dirRes] = await Promise.all([
-          publicApi.fetchPub(this.shareSubPath, this.shareHash, this.sharePassword, content),
-          publicApi.fetchPub(directoryPath, this.shareHash, this.sharePassword, false).catch(err => {
-            console.warn("Could not fetch parent directory for share navigation:", err);
-            return null;
-          })
-        ]);
+        const promises = [
+          publicApi.fetchPub(this.shareSubPath, this.shareHash, this.sharePassword, content)
+        ];
+        
+          if (shouldFetchParent) {
+            promises.push(
+              publicApi.fetchPub(directoryPath, this.shareHash, this.sharePassword, false).catch(() => null)
+            );
+          }
 
-        file = fileRes;
+        const results = await Promise.all(promises);
+        file = results[0];
         file.hash = this.shareHash;
-        this.shareToken = fileRes.token;
+        this.shareToken = results[0].token;
 
         // Store the parent directory items for Preview to use
-        if (dirRes && dirRes.items) {
-          file.parentDirItems = dirRes.items;
+        if (shouldFetchParent && results[1] && results[1].items) {
+          file.parentDirItems = results[1].items;
         }
       }
 
@@ -313,6 +328,7 @@ export default {
       }
 
       const result = extractSourceFromPath(getters.routePath());
+      
       if (result.source === "") {
         // No sources available - show a more graceful message instead of error popup
         this.error = { message: $t("index.noSources") };
@@ -333,21 +349,33 @@ export default {
         // If not a directory, fetch content AND parent directory in parallel
         if (res.type != "directory" && !res.type.startsWith("image")) {
           const content = !getters.fileViewingDisabled(res.name);
-          const directoryPath = url.removeLastDir(res.path);
+          let directoryPath = url.removeLastDir(res.path);
+          
+          // If directoryPath is empty, the file is in root - use '/' as the directory
+          if (!directoryPath || directoryPath === '') {
+            directoryPath = '/';
+          }
+
+          // Fetch parent directory unless it's the same as the file path
+          const shouldFetchParent = directoryPath !== res.path;
 
           // Run both fetches in parallel to minimize total API calls
-          const [fileRes, dirRes] = await Promise.all([
-            filesApi.fetchFiles(res.source, res.path, content),
-            filesApi.fetchFiles(res.source, directoryPath).catch(err => {
-              console.warn("Could not fetch parent directory for navigation:", err);
-              return null;
-            })
-          ]);
+          const promises = [
+            filesApi.fetchFiles(res.source, res.path, content)
+          ];
+          
+          if (shouldFetchParent) {
+            promises.push(
+              filesApi.fetchFiles(res.source, directoryPath).catch(() => null)
+            );
+          }
 
-          res = fileRes;
+          const results = await Promise.all(promises);
+          res = results[0];
+          
           // Store the parent directory items for Preview to use
-          if (dirRes && dirRes.items) {
-            res.parentDirItems = dirRes.items;
+          if (shouldFetchParent && results[1] && results[1].items) {
+            res.parentDirItems = results[1].items;
           }
         }
         data = res;

@@ -137,6 +137,8 @@ export const state = reactive({
     nextRaw: "",
     timeout: null,
     enabled: false,
+    isTransitioning: false,
+    transitionStartTime: null,
   },
   playbackQueue: {
     queue: [],
