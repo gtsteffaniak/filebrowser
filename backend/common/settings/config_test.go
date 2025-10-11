@@ -50,7 +50,7 @@ func TestConfigLoadChanged(t *testing.T) {
 		t.Fatalf("failed to read validConfig.yaml: %v", err)
 	}
 	configFile := filepath.Join(testDir, "config.yaml")
-	if err := os.WriteFile(configFile, validContent, 0644); err != nil {
+	if err = os.WriteFile(configFile, validContent, 0644); err != nil {
 		t.Fatalf("failed to write test config: %v", err)
 	}
 
@@ -73,7 +73,7 @@ func TestConfigLoadEnvVars(t *testing.T) {
 		t.Fatalf("failed to read validConfig.yaml: %v", err)
 	}
 	configFile := filepath.Join(testDir, "config.yaml")
-	if err := os.WriteFile(configFile, validContent, 0644); err != nil {
+	if err = os.WriteFile(configFile, validContent, 0644); err != nil {
 		t.Fatalf("failed to write test config: %v", err)
 	}
 
@@ -102,7 +102,7 @@ func TestConfigLoadSpecificValues(t *testing.T) {
 		t.Fatalf("failed to read validConfig.yaml: %v", err)
 	}
 	configFile := filepath.Join(testDir, "config.yaml")
-	if err := os.WriteFile(configFile, validContent, 0644); err != nil {
+	if err = os.WriteFile(configFile, validContent, 0644); err != nil {
 		t.Fatalf("failed to write test config: %v", err)
 	}
 
@@ -134,7 +134,7 @@ func TestInvalidConfig(t *testing.T) {
 		t.Fatalf("failed to read invalidConfig.yaml: %v", err)
 	}
 	configFile := filepath.Join(testDir, "config.yaml")
-	if err := os.WriteFile(configFile, invalidContent, 0644); err != nil {
+	if err = os.WriteFile(configFile, invalidContent, 0644); err != nil {
 		t.Fatalf("failed to write test config: %v", err)
 	}
 

@@ -44,6 +44,7 @@ func Initialize(configFile string) {
 	setupAuth(false)
 	setupSources(false)
 	setupUrls()
+	setupVideoPreview()
 	setupFrontend(false)
 }
 
@@ -98,6 +99,21 @@ func setupFrontend(generate bool) {
 	loadCustomFavicon()
 }
 
+func setupVideoPreview() {
+	// Initialize VideoPreview map if it's nil
+	if Config.Integrations.Media.Convert.VideoPreview == nil {
+		Config.Integrations.Media.Convert.VideoPreview = make(map[VideoPreviewType]bool)
+	}
+
+	// Set defaults for any missing video preview types
+	// Default is true for all supported types
+	for _, previewType := range AllVideoPreviewTypes {
+		if _, exists := Config.Integrations.Media.Convert.VideoPreview[previewType]; !exists {
+			Config.Integrations.Media.Convert.VideoPreview[previewType] = true
+		}
+	}
+}
+
 func getRealPath(path string) string {
 	realPath, err := filepath.Abs(path)
 	if err != nil {
@@ -137,7 +153,6 @@ func setupSources(generate bool) {
 				}
 			}
 			modifyExcludeInclude(source)
-
 			if source.Config.DefaultUserScope == "" {
 				source.Config.DefaultUserScope = "/"
 			}
@@ -149,10 +164,16 @@ func setupSources(generate bool) {
 	sourceList := []*Source{}
 	defaultScopes := []users.SourceScope{}
 	allSourceNames := []string{}
+	if len(Config.Server.Sources) == 1 {
+		Config.Server.Sources[0].Config.DefaultEnabled = true
+	}
 	for _, sourcePathOnly := range Config.Server.Sources {
-		realPath := getRealPath(sourcePathOnly.Path)
+		var realPath string
 		if generate {
-			realPath = generatorPath // use placeholder path
+			// When generating, skip path validation and use the already-set path
+			realPath = sourcePathOnly.Path
+		} else {
+			realPath = getRealPath(sourcePathOnly.Path)
 		}
 		source, ok := Config.Server.SourceMap[realPath]
 		if ok && !slices.Contains(allSourceNames, source.Name) {
@@ -165,7 +186,7 @@ func setupSources(generate bool) {
 			}
 			allSourceNames = append(allSourceNames, source.Name)
 		} else {
-			logger.Warningf("source %v is not configured correctly, skipping", sourcePathOnly.Path)
+			logger.Warningf("skipping source: %v", sourcePathOnly.Path)
 		}
 	}
 	Config.UserDefaults.DefaultScopes = defaultScopes
@@ -417,15 +438,16 @@ func setDefaults(generate bool) Settings {
 		},
 
 		UserDefaults: UserDefaults{
-			StickySidebar:   true,
-			LockPassword:    false,
-			ShowHidden:      false,
-			DarkMode:        true,
-			DisableSettings: false,
-			ViewMode:        "normal",
-			Locale:          "en",
-			GallerySize:     3,
-			ThemeColor:      "var(--blue)",
+			DisableOnlyOfficeExt: ".md .txt .pdf",
+			StickySidebar:        true,
+			LockPassword:         false,
+			ShowHidden:           false,
+			DarkMode:             true,
+			DisableSettings:      false,
+			ViewMode:             "normal",
+			Locale:               "en",
+			GallerySize:          3,
+			ThemeColor:           "var(--blue)",
 			Permissions: users.Permissions{
 				Modify: false,
 				Share:  false,
