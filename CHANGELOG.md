@@ -16,7 +16,11 @@ All notable changes to this project will be documented in this file. For commit 
  **BugFixes**:
  - Remember the previous location after closing a preview #1336
  - fixed issue related to multi-config parsing 
- - moving between items using next/previous will reset the req and show a responsive loading spinner -- fixing several state related issues.
+ - Cannot save text files, missing button #1326
+ - Files are being overwritten and/or content disappears #1312
+ - moving between items using next/previous will reset the req and show a responsive loading spinner -- fixing several state related issues. 
+ - access management: child folders accessible stopped showing up #1332
+ - Make source inaccessible if directory does not exist rather than exiting on start #1264
 
 ## v0.8.8-beta
 

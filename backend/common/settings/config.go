@@ -162,7 +162,7 @@ func getRealPath(path string) string {
 	}
 	// check path exists
 	if _, err = os.Stat(realPath); os.IsNotExist(err) {
-		logger.Fatalf("configured source path does not exist: %v", realPath)
+		logger.Warningf("configured source path is currently not available: %v", realPath)
 	}
 	return realPath
 }
