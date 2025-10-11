@@ -21,18 +21,18 @@ type Settings struct {
 }
 
 type Server struct {
-	MinSearchLength              int         `json:"minSearchLength"`              // minimum length of search query to begin searching (default: 3)
-	DisableUpdateCheck           bool        `json:"disableUpdateCheck"`           // disables backend update check service
-	NumImageProcessors           int         `json:"numImageProcessors"`           // number of concurrent image processing jobs used to create previews, default is number of cpu cores available.
-	Socket                       string      `json:"socket"`                       // socket to listen on
-	TLSKey                       string      `json:"tlsKey"`                       // path to TLS key
-	TLSCert                      string      `json:"tlsCert"`                      // path to TLS cert
-	DisablePreviews              bool        `json:"disablePreviews"`              // disable all previews thumbnails, simple icons will be used
-	DisableResize                bool        `json:"disablePreviewResize"`         // disable resizing of previews for faster loading over slow connections
-	DisableTypeDetectionByHeader bool        `json:"disableTypeDetectionByHeader"` // disable type detection by header, useful if filesystem is slow.
-	Port                         int         `json:"port"`                         // port to listen on
-	BaseURL                      string      `json:"baseURL"`                      // base URL for the server, the subpath that the server is running on.
-	Logging                      []LogConfig `json:"logging"`
+	MinSearchLength              int         `json:"minSearchLength" yaml:"minSearchLength"` // minimum length of search query to begin searching (default: 3)
+	DisableUpdateCheck           bool        `json:"disableUpdateCheck"`                     // disables backend update check service
+	NumImageProcessors           int         `json:"numImageProcessors"`                     // number of concurrent image processing jobs used to create previews, default is number of cpu cores available.
+	Socket                       string      `json:"socket"`                                 // socket to listen on
+	TLSKey                       string      `json:"tlsKey"`                                 // path to TLS key
+	TLSCert                      string      `json:"tlsCert"`                                // path to TLS cert
+	DisablePreviews              bool        `json:"disablePreviews"`                        // disable all previews thumbnails, simple icons will be used
+	DisableResize                bool        `json:"disablePreviewResize"`                   // disable resizing of previews for faster loading over slow connections
+	DisableTypeDetectionByHeader bool        `json:"disableTypeDetectionByHeader"`           // disable type detection by header, useful if filesystem is slow.
+	Port                         int         `json:"port"`                                   // port to listen on
+	BaseURL                      string      `json:"baseURL"`                                // base URL for the server, the subpath that the server is running on.
+	Logging                      []LogConfig `json:"logging" yaml:"logging"`
 	Database                     string      `json:"database"` // path to the database file
 	Sources                      []*Source   `json:"sources" validate:"required,dive"`
 	ExternalUrl                  string      `json:"externalUrl"`    // used by share links if set (eg. http://mydomain.com)

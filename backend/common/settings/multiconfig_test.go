@@ -29,7 +29,8 @@ simple_auth: &simple_auth
       enabled: true
       minLength: 8
 `
-	anchorsPath := filepath.Join(testDir, "anchors.yaml")
+	// Use pattern-based naming: main config is "config.yaml", so anchors must be "*-config.yaml"
+	anchorsPath := filepath.Join(testDir, "definitions-config.yaml")
 	if err := os.WriteFile(anchorsPath, []byte(anchorsConfig), 0644); err != nil {
 		t.Fatalf("Failed to write anchors config: %v", err)
 	}
@@ -165,7 +166,8 @@ base_permissions: &base_permissions
   admin: false
   api: false
 `
-	anchorsPath := filepath.Join(testDir, "anchors.yaml")
+	// Use pattern-based naming: main config is "config.yaml", so anchors must be "*-config.yaml"
+	anchorsPath := filepath.Join(testDir, "definitions-config.yaml")
 	if err := os.WriteFile(anchorsPath, []byte(anchorsConfig), 0644); err != nil {
 		t.Fatalf("Failed to write anchors config: %v", err)
 	}

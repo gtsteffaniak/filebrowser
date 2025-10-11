@@ -263,12 +263,20 @@ export default {
       }
 
       let directoryPath = url.removeLastDir(state.req.path);
-      
+
       // If directoryPath is empty, the file is in root - use '/' as the directory
       if (!directoryPath || directoryPath === '') {
         directoryPath = '/';
       }
-      
+
+      // Special case: if we're viewing a shared single file (where the share itself is the file)
+      // and directoryPath equals req.path, there's no directory to navigate within
+      if (getters.isShare() && directoryPath === state.req.path) {
+        // This is a single file share with no siblings to navigate to
+        mutations.clearNavigation();
+        return;
+      }
+
       let listing = null;
 
       // Try to get listing from current request first
@@ -288,13 +296,15 @@ export default {
           }
           listing = res.items;
         } catch (error) {
-          console.error("error nextPrevious.vue", error);
-          listing = [state.req]; // Fallback to current item only
+          // If we can't fetch the directory listing, navigation isn't possible
+          mutations.clearNavigation();
+          return;
         }
       } else {
-        // Shouldn't happen, but fallback to current item
-        console.error("No listing found nextPrevious.vue");
-        listing = [state.req];
+        // This is a file at root where directoryPath === req.path
+        // This shouldn't normally happen for non-share cases, but handle gracefully
+        mutations.clearNavigation();
+        return;
       }
 
       mutations.setupNavigation({
