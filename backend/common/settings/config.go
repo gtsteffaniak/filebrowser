@@ -442,7 +442,7 @@ func loadConfigWithDefaults(configFile string, isGenerate bool) error {
 
 	for {
 		var doc yaml.Node
-		err := decoder.Decode(&doc)
+		err = decoder.Decode(&doc)
 		if err != nil {
 			if err == io.EOF {
 				break

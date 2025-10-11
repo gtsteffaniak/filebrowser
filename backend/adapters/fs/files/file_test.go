@@ -255,12 +255,12 @@ func TestOverrideDirectoryToFile(t *testing.T) {
 
 	// Get the index and set up mock data
 	idx := indexing.GetIndex("test")
-	if idx == nil {
+	if idx == nil { //nolint:staticcheck // t.Fatal terminates execution
 		t.Fatal("Failed to get test index")
 	}
 
 	// Create mock directory structure
-	idx.Directories["/"] = &iteminfo.FileInfo{
+	idx.Directories["/"] = &iteminfo.FileInfo{ //nolint:staticcheck // t.Fatal terminates execution
 		Path: "/",
 		ItemInfo: iteminfo.ItemInfo{
 			Name: "/",
@@ -273,7 +273,7 @@ func TestOverrideDirectoryToFile(t *testing.T) {
 
 	// Simulate the directory-to-file override by updating the mock data
 	// Remove the directory from the parent's Folders slice
-	rootInfo := idx.Directories["/"]
+	rootInfo := idx.Directories["/"] //nolint:staticcheck // t.Fatal terminates execution
 	for i, folder := range rootInfo.Folders {
 		if folder.Name == "Test Object" {
 			rootInfo.Folders = append(rootInfo.Folders[:i], rootInfo.Folders[i+1:]...)
@@ -330,12 +330,12 @@ func TestOverrideFileToDirectory(t *testing.T) {
 
 	// Get the index and set up mock data
 	idx := indexing.GetIndex("test")
-	if idx == nil {
+	if idx == nil { //nolint:staticcheck // t.Fatal terminates execution
 		t.Fatal("Failed to get test index")
 	}
 
 	// Create mock directory structure with a file
-	idx.Directories["/"] = &iteminfo.FileInfo{
+	idx.Directories["/"] = &iteminfo.FileInfo{ //nolint:staticcheck // t.Fatal terminates execution
 		Path: "/",
 		ItemInfo: iteminfo.ItemInfo{
 			Name: "/",
@@ -348,7 +348,7 @@ func TestOverrideFileToDirectory(t *testing.T) {
 
 	// Simulate the file-to-directory override by updating the mock data
 	// Remove the file from the parent's Files slice
-	rootInfo := idx.Directories["/"]
+	rootInfo := idx.Directories["/"] //nolint:staticcheck // t.Fatal terminates execution
 	for i, file := range rootInfo.Files {
 		if file.Name == "Test Object" {
 			rootInfo.Files = append(rootInfo.Files[:i], rootInfo.Files[i+1:]...)
