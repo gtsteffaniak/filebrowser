@@ -1,7 +1,7 @@
 <template>
     <div id="previewer">
         <div class="preview" :class="{'plyr-background': previewType == 'audio' && !useDefaultMediaPlayer}" v-if="!isDeleted">
-            <ExtendedImage v-if="showImage" :src="raw"/>
+            <ExtendedImage v-if="showImage" :src="raw" @navigate-previous="navigatePrevious" @navigate-next="navigateNext"/>
 
             <!-- Media Player Component -->
             <plyrViewer v-else-if="previewType == 'audio' || previewType == 'video'"
@@ -369,6 +369,16 @@ export default {
         download() {
             const items = [state.req];
             downloadFiles(items);
+        },
+        navigatePrevious() {
+            if (state.navigation.previousLink) {
+                this.$router.replace({ path: state.navigation.previousLink });
+            }
+        },
+        navigateNext() {
+            if (state.navigation.nextLink) {
+                this.$router.replace({ path: state.navigation.nextLink });
+            }
         },
     },
 };
