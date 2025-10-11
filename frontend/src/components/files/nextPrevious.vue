@@ -36,6 +36,7 @@
       dragging: dragState.type === 'previous',
       active: dragState.atFullExtent && dragState.type === 'previous',
       'dark-mode': isDarkMode,
+      'media-mode': isMediaQueueMode,
   }"
     :style="dragState.type === 'previous' ? { transform: `translateY(-50%) translate(${dragState.deltaX}px, 0)` } : {}"
     :aria-label="$t('buttons.previous')"
@@ -57,7 +58,7 @@
     @mouseover="setHoverNav(true)"
     @mouseleave="setHoverNav(false)"
     class="nav-button nav-next"
-    :class="{ hidden: !showNav, dragging: dragState.type === 'next', active: dragState.atFullExtent && dragState.type === 'next','dark-mode': isDarkMode}"
+    :class="{ hidden: !showNav, dragging: dragState.type === 'next', active: dragState.atFullExtent && dragState.type === 'next','dark-mode': isDarkMode, 'media-mode': isMediaQueueMode}"
     :style="dragState.type === 'next' ? { transform: `translateY(-50%) translate(${dragState.deltaX}px, 0)` } : {}"
     :aria-label="$t('buttons.next')"
     :title="$t('buttons.next')"
@@ -124,11 +125,23 @@ export default {
       return shouldShow;
     },
     hasPrevious() {
+      if (this.isMediaQueueMode) {
+        const result = this.hasMediaPrevious();
+        console.log('[NextPrevious] hasPrevious (media mode):', result);
+        return result;
+      }
       const has = state.navigation.previousLink !== "";
+      console.log('[NextPrevious] hasPrevious (standard mode):', has, state.navigation.previousLink);
       return has;
     },
     hasNext() {
+      if (this.isMediaQueueMode) {
+        const result = this.hasMediaNext();
+        console.log('[NextPrevious] hasNext (media mode):', result);
+        return result;
+      }
       const has = state.navigation.nextLink !== "";
+      console.log('[NextPrevious] hasNext (standard mode):', has, state.navigation.nextLink);
       return has;
     },
     previousRaw() {
@@ -140,6 +153,28 @@ export default {
     currentView() {
       const view = getters.currentView();
       return view;
+    },
+    isMediaQueueMode() {
+      const previewType = getters.previewType();
+      const isMediaView = previewType === 'audio' || previewType === 'video';
+      const mode = state.playbackQueue?.mode || 'single';
+      const queueLength = state.playbackQueue?.queue?.length || 0;
+      const hasQueue = queueLength > 1;
+      
+      const result = isMediaView && mode !== 'single' && mode !== 'loop-single' && hasQueue;
+      
+      console.log('[NextPrevious] isMediaQueueMode check:', {
+        currentView: this.currentView,
+        previewType,
+        isMediaView,
+        mode,
+        queueLength,
+        hasQueue,
+        result
+      });
+      
+      // Use media queue when in media view, NOT in single/loop-single mode, and have a queue
+      return result;
     }
   },
   watch: {
@@ -294,16 +329,184 @@ export default {
       }
     },
     prev() {
+      console.log('[NextPrevious] prev() called, hasPrevious:', this.hasPrevious, 'isMediaQueueMode:', this.isMediaQueueMode);
       if (this.hasPrevious) {
         this.hoverNav = false;
-        this.$router.replace({ path: state.navigation.previousLink });
+        if (this.isMediaQueueMode) {
+          console.log('[NextPrevious] Using media queue navigation for previous');
+          this.navigateMediaPrevious();
+        } else {
+          console.log('[NextPrevious] Using standard navigation for previous:', state.navigation.previousLink);
+          this.$router.replace({ path: state.navigation.previousLink });
+        }
       }
     },
     next() {
+      console.log('[NextPrevious] next() called, hasNext:', this.hasNext, 'isMediaQueueMode:', this.isMediaQueueMode);
       if (this.hasNext) {
         this.hoverNav = false;
-        this.$router.replace({ path: state.navigation.nextLink });
+        if (this.isMediaQueueMode) {
+          console.log('[NextPrevious] Using media queue navigation for next');
+          this.navigateMediaNext();
+        } else {
+          console.log('[NextPrevious] Using standard navigation for next:', state.navigation.nextLink);
+          this.$router.replace({ path: state.navigation.nextLink });
+        }
       }
+    },
+    hasMediaPrevious() {
+      const queue = state.playbackQueue?.queue || [];
+      const currentIndex = state.playbackQueue?.currentIndex ?? -1;
+      const mode = state.playbackQueue?.mode || 'single';
+      
+      console.log('[NextPrevious] hasMediaPrevious check:', {
+        queueLength: queue.length,
+        currentIndex,
+        mode
+      });
+      
+      if (queue.length <= 1 || currentIndex < 0) return false;
+      
+      // For sequential mode, no previous if at start
+      if (mode === 'sequential' && currentIndex === 0) return false;
+      
+      // For loop-all and shuffle, always have previous (wraps around)
+      return true;
+    },
+    hasMediaNext() {
+      const queue = state.playbackQueue?.queue || [];
+      const currentIndex = state.playbackQueue?.currentIndex ?? -1;
+      const mode = state.playbackQueue?.mode || 'single';
+      
+      console.log('[NextPrevious] hasMediaNext check:', {
+        queueLength: queue.length,
+        currentIndex,
+        mode
+      });
+      
+      if (queue.length <= 1 || currentIndex < 0) return false;
+      
+      // For sequential mode, no next if at end
+      if (mode === 'sequential' && currentIndex >= queue.length - 1) return false;
+      
+      // For loop-all and shuffle, always have next (wraps around)
+      return true;
+    },
+    navigateMediaPrevious() {
+      const queue = state.playbackQueue?.queue || [];
+      const currentIndex = state.playbackQueue?.currentIndex ?? -1;
+      const mode = state.playbackQueue?.mode || 'single';
+      
+      console.log('[NextPrevious] navigateMediaPrevious called:', {
+        queueLength: queue.length,
+        currentIndex,
+        mode
+      });
+      
+      if (queue.length === 0 || currentIndex < 0) {
+        console.log('[NextPrevious] Cannot navigate: empty queue or invalid index');
+        return;
+      }
+      
+      let prevIndex = currentIndex - 1;
+      
+      // Handle wrapping
+      if (prevIndex < 0) {
+        if (mode === 'loop-all' || mode === 'shuffle') {
+          prevIndex = queue.length - 1;
+          console.log('[NextPrevious] Wrapping to end, prevIndex:', prevIndex);
+        } else {
+          console.log('[NextPrevious] At start in sequential mode, not navigating');
+          return;
+        }
+      }
+      
+      const prevItem = queue[prevIndex];
+      if (!prevItem) {
+        console.log('[NextPrevious] No item at prevIndex:', prevIndex);
+        return;
+      }
+      
+      console.log('[NextPrevious] Navigating to previous item:', {
+        prevIndex,
+        itemName: prevItem.name,
+        itemPath: prevItem.path
+      });
+      
+      // Update queue index
+      mutations.setPlaybackQueue({
+        queue: queue,
+        currentIndex: prevIndex,
+        mode: mode
+      });
+      
+      // Navigate
+      const prevItemUrl = url.buildItemUrl(prevItem.source || state.req.source, prevItem.path);
+      console.log('[NextPrevious] Previous item URL:', prevItemUrl);
+      mutations.replaceRequest(prevItem);
+      this.$router.replace({ path: prevItemUrl }).catch(err => {
+        if (err.name !== 'NavigationDuplicated') {
+          console.error('[NextPrevious] Router navigation error:', err);
+        }
+      });
+    },
+    navigateMediaNext() {
+      const queue = state.playbackQueue?.queue || [];
+      const currentIndex = state.playbackQueue?.currentIndex ?? -1;
+      const mode = state.playbackQueue?.mode || 'single';
+      
+      console.log('[NextPrevious] navigateMediaNext called:', {
+        queueLength: queue.length,
+        currentIndex,
+        mode
+      });
+      
+      if (queue.length === 0 || currentIndex < 0) {
+        console.log('[NextPrevious] Cannot navigate: empty queue or invalid index');
+        return;
+      }
+      
+      let nextIndex = currentIndex + 1;
+      
+      // Handle wrapping
+      if (nextIndex >= queue.length) {
+        if (mode === 'loop-all' || mode === 'shuffle') {
+          nextIndex = 0;
+          console.log('[NextPrevious] Wrapping to start, nextIndex:', nextIndex);
+        } else {
+          console.log('[NextPrevious] At end in sequential mode, not navigating');
+          return;
+        }
+      }
+      
+      const nextItem = queue[nextIndex];
+      if (!nextItem) {
+        console.log('[NextPrevious] No item at nextIndex:', nextIndex);
+        return;
+      }
+      
+      console.log('[NextPrevious] Navigating to next item:', {
+        nextIndex,
+        itemName: nextItem.name,
+        itemPath: nextItem.path
+      });
+      
+      // Update queue index
+      mutations.setPlaybackQueue({
+        queue: queue,
+        currentIndex: nextIndex,
+        mode: mode
+      });
+      
+      // Navigate
+      const nextItemUrl = url.buildItemUrl(nextItem.source || state.req.source, nextItem.path);
+      console.log('[NextPrevious] Next item URL:', nextItemUrl);
+      mutations.replaceRequest(nextItem);
+      this.$router.replace({ path: nextItemUrl }).catch(err => {
+        if (err.name !== 'NavigationDuplicated') {
+          console.error('[NextPrevious] Router navigation error:', err);
+        }
+      });
     },
     keyEvent(event) {
       // Only handle navigation if enabled and no prompt is active
@@ -835,6 +1038,10 @@ export default {
 .nav-button.dark-mode {
   background: var(--surfacePrimary);
   color: var(--textPrimary);
+}
+
+.nav-button.media-mode {
+  color: var(--primaryColor);
 }
 
 .nav-button:hover,

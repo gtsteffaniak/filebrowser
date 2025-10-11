@@ -11,9 +11,12 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Notes**:
  - Optimized font and icon loading.
+ - the next/previous buttons will follow media queue order if playback mode has a queue.
 
  **BugFixes**:
  - Remember the previous location after closing a preview #1336
+ - fixed issue related to multi-config parsing 
+ - moving between items using next/previous will reset the req and show a responsive loading spinner -- fixing several state related issues.
 
 ## v0.8.8-beta
 

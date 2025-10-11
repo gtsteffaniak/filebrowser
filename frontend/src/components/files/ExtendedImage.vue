@@ -44,7 +44,7 @@ export default {
         relative: { x: 0, y: 0 },
       },
       maxScale: 4,
-      minScale: 0.25,
+      minScale: 1, // Minimum scale is 1 (full frame view)
       isTiff: false, // Determine if the image is a TIFF
       // Swipe navigation properties
       swipeStartTime: null,
@@ -178,8 +178,8 @@ export default {
       this.lastY = null;
       this.lastTouchDistance = null;
 
-      // Initialize swipe tracking for single touch
-      if (event.targetTouches.length === 1) {
+      // Initialize swipe tracking for single touch only when at full frame view (scale === 1)
+      if (event.targetTouches.length === 1 && this.scale === 1) {
         const touch = event.targetTouches[0];
         this.swipeStartTime = Date.now();
         this.swipeStartX = touch.pageX;
@@ -191,7 +191,7 @@ export default {
         this.gestureDecided = false; // Reset decision for new touch
 
       } else {
-        // Reset swipe tracking for multi-touch (zoom gestures)
+        // Reset swipe tracking for multi-touch (zoom gestures) or when zoomed in
         this.resetSwipeTracking();
       }
 
@@ -202,9 +202,15 @@ export default {
         this.touches++;
         if (this.touches > 1) {
           this.zoomAuto(event);
+          event.preventDefault();
         }
       }
-      event.preventDefault();
+      
+      // Only prevent default if zoomed in (need to pan) or multi-touch (need to zoom)
+      // This allows nav-zone touches to work when at full frame view
+      if (this.scale > 1 || event.targetTouches.length >= 2) {
+        event.preventDefault();
+      }
     },
     zoomAuto(event) {
       switch (this.scale) {
@@ -224,10 +230,8 @@ export default {
       event.preventDefault();
     },
     touchMove(event) {
-      event.preventDefault();
-
-      // Update current swipe position for single touch
-      if (event.targetTouches.length === 1) {
+      // Update current swipe position for single touch, only when at full frame view
+      if (event.targetTouches.length === 1 && this.scale === 1) {
         const touch = event.targetTouches[0];
         this.swipeCurrentX = touch.pageX;
         this.swipeCurrentY = touch.pageY;
@@ -244,6 +248,7 @@ export default {
             if (deltaX > deltaY * 2) { 
               // Horizontal movement is significantly more than vertical - it's a swipe
               this.isSwipeGesture = true;
+              event.preventDefault(); // Prevent scrolling during swipe
             } else {
               // Not horizontal enough - it's a pan gesture
               this.isSwipeGesture = false;
@@ -251,10 +256,16 @@ export default {
           }
         }
 
-        // If we've decided it's a swipe gesture, don't do normal panning
+        // If we've decided it's a swipe gesture, prevent default and don't do normal panning
         if (this.gestureDecided && this.isSwipeGesture) {
+          event.preventDefault();
           return; // Block normal pan behavior for swipes
         }
+      }
+
+      // Only prevent default if we're zoomed in or doing multi-touch zoom
+      if (this.scale > 1 || event.targetTouches.length >= 2) {
+        event.preventDefault();
       }
 
       // Normal touch move logic for pan/zoom (only runs if not a swipe gesture)
@@ -284,7 +295,8 @@ export default {
         this.scale += (touchDistance - this.lastTouchDistance) / step;
         this.lastTouchDistance = touchDistance;
         this.setZoom();
-      } else if (event.targetTouches.length === 1) {
+      } else if (event.targetTouches.length === 1 && this.scale > 1) {
+        // Only allow panning when zoomed in
         if (this.moveDisabled) return;
         let x = event.targetTouches[0].pageX - this.lastX;
         let y = event.targetTouches[0].pageY - this.lastY;
@@ -308,6 +320,11 @@ export default {
     setZoom() {
       this.scale = Math.max(this.minScale, Math.min(this.maxScale, this.scale));
 
+      // If scale is back to 1 (full frame view), reset position to center
+      if (this.scale === 1) {
+        this.position.relative = { x: 0, y: 0 };
+      }
+
       // Update the transform with both translate and scale values
       this.$refs.imgex.style.transform = `translate(${this.position.relative.x}px, ${this.position.relative.y}px) scale(${this.scale})`;
     },
@@ -315,10 +332,10 @@ export default {
       return +style.replace("px", "");
     },
     touchEnd(event) {
-      event.preventDefault();
+      let handledSwipe = false;
 
-      // Only process swipe if it was a single touch and we detected a swipe gesture
-      if (this.isSwipeGesture && this.swipeStartTime) {
+      // Only process swipe if it was a single touch, we detected a swipe gesture, and at full frame view
+      if (this.isSwipeGesture && this.swipeStartTime && this.scale === 1) {
         const swipeEndTime = Date.now();
         const swipeDuration = swipeEndTime - this.swipeStartTime;
         const deltaX = this.swipeCurrentX - this.swipeStartX;
@@ -336,7 +353,14 @@ export default {
           } else {
             this.$emit('navigate-next');
           }
+          handledSwipe = true;
+          event.preventDefault();
         }
+      }
+      
+      // Only prevent default if we handled a swipe or were zoomed in (panning)
+      if (!handledSwipe && this.scale > 1) {
+        event.preventDefault();
       }
       
       // Reset swipe tracking

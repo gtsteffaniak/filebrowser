@@ -1,22 +1,25 @@
 package settings
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
 	"runtime"
 	"slices"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/goccy/go-yaml"
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/common/version"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/go-logger/logger"
+	"gopkg.in/yaml.v3"
 )
 
 var Config Settings
@@ -320,11 +323,92 @@ func setupLogging() {
 	}
 }
 
+// combineYAMLFiles combines multiple YAML files from a directory into a single YAML document
+// This allows YAML anchors defined in one file to be referenced in another
+func combineYAMLFiles(configFilePath string) ([]byte, error) {
+	// Get absolute path and expand tilde
+	expandedPath := configFilePath
+	if strings.HasPrefix(configFilePath, "~/") {
+		homeDir, err := os.UserHomeDir()
+		if err != nil {
+			return nil, fmt.Errorf("failed to expand home directory: %v", err)
+		}
+		expandedPath = filepath.Join(homeDir, configFilePath[2:])
+	}
+
+	absPath, err := filepath.Abs(expandedPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to resolve config file path: %v", err)
+	}
+
+	configDir := filepath.Dir(absPath)
+	configFileName := filepath.Base(absPath)
+
+	// Find all YAML files in the directory
+	entries, err := os.ReadDir(configDir)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read config directory: %v", err)
+	}
+
+	var yamlFiles []string
+	var mainConfigContent []byte
+
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+
+		name := entry.Name()
+		ext := strings.ToLower(filepath.Ext(name))
+
+		// Only process .yaml and .yml files
+		if ext != ".yaml" && ext != ".yml" {
+			continue
+		}
+
+		fullPath := filepath.Join(configDir, name)
+
+		// Keep track of the main config file to process it last
+		if name == configFileName {
+			content, err := os.ReadFile(fullPath)
+			if err != nil {
+				return nil, fmt.Errorf("failed to read main config file: %v", err)
+			}
+			mainConfigContent = content
+		} else {
+			yamlFiles = append(yamlFiles, fullPath)
+		}
+	}
+
+	// Sort the auxiliary files for consistent ordering
+	sort.Strings(yamlFiles)
+
+	// Combine all YAML files into one document
+	var combined bytes.Buffer
+
+	// First, add all auxiliary YAML files (these typically contain anchor definitions)
+	for _, file := range yamlFiles {
+		content, err := os.ReadFile(file)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read YAML file %s: %v", file, err)
+		}
+		combined.Write(content)
+		combined.WriteString("\n---\n") // YAML document separator
+	}
+
+	// Finally, add the main config file (this typically contains the references)
+	if mainConfigContent != nil {
+		combined.Write(mainConfigContent)
+	}
+
+	return combined.Bytes(), nil
+}
+
 func loadConfigWithDefaults(configFile string, isGenerate bool) error {
 	Config = setDefaults(isGenerate)
-	// Open and read the YAML file
-	yamlFile, err := os.Open(configFile)
-	if err != nil {
+
+	// Check if config file exists
+	if _, err := os.Stat(configFile); err != nil {
 		if configFile != "" {
 			logger.Errorf("could not open config file '%v', using default settings.", configFile)
 		}
@@ -339,48 +423,44 @@ func loadConfigWithDefaults(configFile string, isGenerate bool) error {
 		loadEnvConfig()
 		return nil
 	}
-	defer yamlFile.Close()
 
-	// Get the directory containing the config file for reference resolution
-	configDir := filepath.Dir(configFile)
-	if configDir == "" {
-		configDir = "."
+	// Combine all YAML files in the config directory
+	// This enables YAML anchors defined in one file to be referenced in another
+	combinedYAML, err := combineYAMLFiles(configFile)
+	if err != nil {
+		return fmt.Errorf("failed to combine YAML files: %v", err)
 	}
 
-	// Create decoder with ReferenceDirs to support multi-config files
-	// This enables YAML anchors and references to work across multiple files
-	decoder := yaml.NewDecoder(yamlFile,
-		yaml.DisallowUnknownField(),
-		yaml.ReferenceDirs(configDir),
-	)
+	// Decode the combined YAML into a slice of documents
+	decoder := yaml.NewDecoder(bytes.NewReader(combinedYAML))
+	decoder.KnownFields(true) // Equivalent to DisallowUnknownField
 
-	err = decoder.Decode(&Config)
+	// We need to decode all documents to process anchors, but only the last one
+	// (the main config) should be unmarshaled into Config
+	var lastDoc yaml.Node
+	documentCount := 0
+
+	for {
+		var doc yaml.Node
+		err := decoder.Decode(&doc)
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return fmt.Errorf("error decoding YAML: %v", err)
+		}
+		lastDoc = doc
+		documentCount++
+	}
+
+	if documentCount == 0 {
+		return fmt.Errorf("no YAML documents found in config")
+	}
+
+	// Unmarshal the last document (which contains the references) into Config
+	err = lastDoc.Decode(&Config)
 	if err != nil {
-		// Fallback to old method if multi-config parsing fails
-		logger.Debugf("Multi-config parsing failed, falling back to single file parsing: %v", err)
-
-		// Reset file position and try old method
-		if _, seekErr := yamlFile.Seek(0, 0); seekErr != nil {
-			return fmt.Errorf("failed to read yaml file: %v", seekErr)
-		}
-		stat, statErr := yamlFile.Stat()
-		if statErr != nil {
-			return statErr
-		}
-		yamlData := make([]byte, stat.Size())
-		_, readErr := yamlFile.Read(yamlData)
-		if readErr != nil && configFile != "config.yaml" {
-			return fmt.Errorf("could not load specified config file: %v", readErr.Error())
-		}
-		if readErr != nil {
-			logger.Warningf("Could not load config file '%v', using default settings: %v", configFile, readErr)
-		}
-
-		// Use simple decoder without ReferenceDirs
-		fallbackErr := yaml.NewDecoder(strings.NewReader(string(yamlData)), yaml.DisallowUnknownField()).Decode(&Config)
-		if fallbackErr != nil {
-			return fmt.Errorf("error unmarshaling YAML data: %v", fallbackErr)
-		}
+		return fmt.Errorf("error unmarshaling YAML data: %v", err)
 	}
 
 	loadEnvConfig()
