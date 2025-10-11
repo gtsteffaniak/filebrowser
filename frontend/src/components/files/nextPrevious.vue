@@ -36,6 +36,7 @@
       dragging: dragState.type === 'previous',
       active: dragState.atFullExtent && dragState.type === 'previous',
       'dark-mode': isDarkMode,
+      'media-mode': isMediaQueueMode,
   }"
     :style="dragState.type === 'previous' ? { transform: `translateY(-50%) translate(${dragState.deltaX}px, 0)` } : {}"
     :aria-label="$t('buttons.previous')"
@@ -57,7 +58,7 @@
     @mouseover="setHoverNav(true)"
     @mouseleave="setHoverNav(false)"
     class="nav-button nav-next"
-    :class="{ hidden: !showNav, dragging: dragState.type === 'next', active: dragState.atFullExtent && dragState.type === 'next','dark-mode': isDarkMode}"
+    :class="{ hidden: !showNav, dragging: dragState.type === 'next', active: dragState.atFullExtent && dragState.type === 'next','dark-mode': isDarkMode, 'media-mode': isMediaQueueMode}"
     :style="dragState.type === 'next' ? { transform: `translateY(-50%) translate(${dragState.deltaX}px, 0)` } : {}"
     :aria-label="$t('buttons.next')"
     :title="$t('buttons.next')"
@@ -124,12 +125,16 @@ export default {
       return shouldShow;
     },
     hasPrevious() {
-      const has = state.navigation.previousLink !== "";
-      return has;
+      if (this.isMediaQueueMode) {
+        return this.hasMediaPrevious();
+      }
+      return state.navigation.previousLink !== "";
     },
     hasNext() {
-      const has = state.navigation.nextLink !== "";
-      return has;
+      if (this.isMediaQueueMode) {
+        return this.hasMediaNext();
+      }
+      return state.navigation.nextLink !== "";
     },
     previousRaw() {
       return state.navigation.previousRaw;
@@ -140,6 +145,16 @@ export default {
     currentView() {
       const view = getters.currentView();
       return view;
+    },
+    isMediaQueueMode() {
+      const previewType = getters.previewType();
+      const isMediaView = previewType === 'audio' || previewType === 'video';
+      const mode = state.playbackQueue?.mode || 'single';
+      const queueLength = state.playbackQueue?.queue?.length || 0;
+      const hasQueue = queueLength > 1;
+      
+      // Use media queue when in media view, NOT in single/loop-single mode, and have a queue
+      return isMediaView && mode !== 'single' && mode !== 'loop-single' && hasQueue;
     }
   },
   watch: {
@@ -247,14 +262,31 @@ export default {
         return;
       }
 
-      const directoryPath = url.removeLastDir(state.req.path);
+      let directoryPath = url.removeLastDir(state.req.path);
+
+      // If directoryPath is empty, the file is in root - use '/' as the directory
+      if (!directoryPath || directoryPath === '') {
+        directoryPath = '/';
+      }
+
+      // Special case: if we're viewing a shared single file (where the share itself is the file)
+      // and directoryPath equals req.path, there's no directory to navigate within
+      if (getters.isShare() && directoryPath === state.req.path) {
+        // This is a single file share with no siblings to navigate to
+        mutations.clearNavigation();
+        return;
+      }
+
       let listing = null;
 
       // Try to get listing from current request first
       if (state.req.items) {
         listing = state.req.items;
-      } else {
-        // Fetch the directory listing
+      } else if (state.req.parentDirItems) {
+        // Use pre-fetched parent directory items from Files.vue
+        listing = state.req.parentDirItems;
+      } else if (directoryPath !== state.req.path) {
+        // Fetch directory listing (now with '/' for root files)
         try {
           let res;
           if (getters.isShare()) {
@@ -264,8 +296,15 @@ export default {
           }
           listing = res.items;
         } catch (error) {
-          listing = [state.req]; // Fallback to current item only
+          // If we can't fetch the directory listing, navigation isn't possible
+          mutations.clearNavigation();
+          return;
         }
+      } else {
+        // This is a file at root where directoryPath === req.path
+        // This shouldn't normally happen for non-share cases, but handle gracefully
+        mutations.clearNavigation();
+        return;
       }
 
       mutations.setupNavigation({
@@ -296,14 +335,140 @@ export default {
     prev() {
       if (this.hasPrevious) {
         this.hoverNav = false;
-        this.$router.replace({ path: state.navigation.previousLink });
+        
+        // Set transitioning state - keeps old req visible until new one loads
+        // Editor and other components check isTransitioning to prevent saves
+        mutations.setNavigationTransitioning(true);
+        
+        if (this.isMediaQueueMode) {
+          this.navigateMediaPrevious();
+        } else {
+          this.$router.replace({ path: state.navigation.previousLink });
+        }
       }
     },
     next() {
       if (this.hasNext) {
         this.hoverNav = false;
-        this.$router.replace({ path: state.navigation.nextLink });
+        
+        // Set transitioning state - keeps old req visible until new one loads
+        // Editor and other components check isTransitioning to prevent saves
+        mutations.setNavigationTransitioning(true);
+        
+        if (this.isMediaQueueMode) {
+          this.navigateMediaNext();
+        } else {
+          this.$router.replace({ path: state.navigation.nextLink });
+        }
       }
+    },
+    hasMediaPrevious() {
+      const queue = state.playbackQueue?.queue || [];
+      const currentIndex = state.playbackQueue?.currentIndex ?? -1;
+      const mode = state.playbackQueue?.mode || 'single';
+      
+      if (queue.length <= 1 || currentIndex < 0) return false;
+      
+      // For sequential mode, no previous if at start
+      if (mode === 'sequential' && currentIndex === 0) return false;
+      
+      // For loop-all and shuffle, always have previous (wraps around)
+      return true;
+    },
+    hasMediaNext() {
+      const queue = state.playbackQueue?.queue || [];
+      const currentIndex = state.playbackQueue?.currentIndex ?? -1;
+      const mode = state.playbackQueue?.mode || 'single';
+      
+      if (queue.length <= 1 || currentIndex < 0) return false;
+      
+      // For sequential mode, no next if at end
+      if (mode === 'sequential' && currentIndex >= queue.length - 1) return false;
+      
+      // For loop-all and shuffle, always have next (wraps around)
+      return true;
+    },
+    navigateMediaPrevious() {
+      const queue = state.playbackQueue?.queue || [];
+      const currentIndex = state.playbackQueue?.currentIndex ?? -1;
+      const mode = state.playbackQueue?.mode || 'single';
+      
+      if (queue.length === 0 || currentIndex < 0) {
+        return;
+      }
+      
+      let prevIndex = currentIndex - 1;
+      
+      // Handle wrapping
+      if (prevIndex < 0) {
+        if (mode === 'loop-all' || mode === 'shuffle') {
+          prevIndex = queue.length - 1;
+        } else {
+          return;
+        }
+      }
+      
+      const prevItem = queue[prevIndex];
+      if (!prevItem) {
+        return;
+      }
+      
+      // Update queue index
+      mutations.setPlaybackQueue({
+        queue: queue,
+        currentIndex: prevIndex,
+        mode: mode
+      });
+      
+      // Navigate
+      const prevItemUrl = url.buildItemUrl(prevItem.source || state.req.source, prevItem.path);
+      mutations.replaceRequest(prevItem);
+      this.$router.replace({ path: prevItemUrl }).catch(err => {
+        if (err.name !== 'NavigationDuplicated') {
+          // Silently ignore navigation errors
+        }
+      });
+    },
+    navigateMediaNext() {
+      const queue = state.playbackQueue?.queue || [];
+      const currentIndex = state.playbackQueue?.currentIndex ?? -1;
+      const mode = state.playbackQueue?.mode || 'single';
+      
+      if (queue.length === 0 || currentIndex < 0) {
+        return;
+      }
+      
+      let nextIndex = currentIndex + 1;
+      
+      // Handle wrapping
+      if (nextIndex >= queue.length) {
+        if (mode === 'loop-all' || mode === 'shuffle') {
+          nextIndex = 0;
+        } else {
+          return;
+        }
+      }
+      
+      const nextItem = queue[nextIndex];
+      if (!nextItem) {
+        return;
+      }
+      
+      // Update queue index
+      mutations.setPlaybackQueue({
+        queue: queue,
+        currentIndex: nextIndex,
+        mode: mode
+      });
+      
+      // Navigate
+      const nextItemUrl = url.buildItemUrl(nextItem.source || state.req.source, nextItem.path);
+      mutations.replaceRequest(nextItem);
+      this.$router.replace({ path: nextItemUrl }).catch(err => {
+        if (err.name !== 'NavigationDuplicated') {
+          // Silently ignore navigation errors
+        }
+      });
     },
     keyEvent(event) {
       // Only handle navigation if enabled and no prompt is active
@@ -835,6 +1000,10 @@ export default {
 .nav-button.dark-mode {
   background: var(--surfacePrimary);
   color: var(--textPrimary);
+}
+
+.nav-button.media-mode {
+  color: var(--primaryColor);
 }
 
 .nav-button:hover,

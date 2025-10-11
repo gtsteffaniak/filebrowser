@@ -2,6 +2,7 @@ package settings
 
 import (
 	"os"
+	"path/filepath"
 	"reflect"
 	"testing"
 
@@ -42,8 +43,19 @@ func Test_setDefaults(t *testing.T) {
 }
 
 func TestConfigLoadChanged(t *testing.T) {
+	// Create isolated test directory
+	testDir := t.TempDir()
+	validContent, err := os.ReadFile("./validConfig.yaml")
+	if err != nil {
+		t.Fatalf("failed to read validConfig.yaml: %v", err)
+	}
+	configFile := filepath.Join(testDir, "config.yaml")
+	if err = os.WriteFile(configFile, validContent, 0644); err != nil {
+		t.Fatalf("failed to write test config: %v", err)
+	}
+
 	defaultConfig := setDefaults(true)
-	err := loadConfigWithDefaults("./validConfig.yaml", true)
+	err = loadConfigWithDefaults(configFile, true)
 	if err != nil {
 		t.Fatalf("error loading config file: %v", err)
 	}
@@ -54,11 +66,22 @@ func TestConfigLoadChanged(t *testing.T) {
 }
 
 func TestConfigLoadEnvVars(t *testing.T) {
+	// Create isolated test directory
+	testDir := t.TempDir()
+	validContent, err := os.ReadFile("./validConfig.yaml")
+	if err != nil {
+		t.Fatalf("failed to read validConfig.yaml: %v", err)
+	}
+	configFile := filepath.Join(testDir, "config.yaml")
+	if err = os.WriteFile(configFile, validContent, 0644); err != nil {
+		t.Fatalf("failed to write test config: %v", err)
+	}
+
 	defaultConfig := setDefaults(true)
 	expectedKey := "MYKEY"
 	// mock environment variables
 	os.Setenv("FILEBROWSER_ONLYOFFICE_SECRET", expectedKey)
-	err := loadConfigWithDefaults("./validConfig.yaml", true)
+	err = loadConfigWithDefaults(configFile, true)
 	if err != nil {
 		t.Fatalf("error loading config file: %v", err)
 	}
@@ -72,8 +95,19 @@ func TestConfigLoadEnvVars(t *testing.T) {
 }
 
 func TestConfigLoadSpecificValues(t *testing.T) {
+	// Create isolated test directory
+	testDir := t.TempDir()
+	validContent, err := os.ReadFile("./validConfig.yaml")
+	if err != nil {
+		t.Fatalf("failed to read validConfig.yaml: %v", err)
+	}
+	configFile := filepath.Join(testDir, "config.yaml")
+	if err = os.WriteFile(configFile, validContent, 0644); err != nil {
+		t.Fatalf("failed to write test config: %v", err)
+	}
+
 	defaultConfig := setDefaults(true)
-	err := loadConfigWithDefaults("./validConfig.yaml", true)
+	err = loadConfigWithDefaults(configFile, true)
 	if err != nil {
 		t.Fatalf("error loading config file: %v", err)
 	}
@@ -93,9 +127,23 @@ func TestConfigLoadSpecificValues(t *testing.T) {
 }
 
 func TestInvalidConfig(t *testing.T) {
-	configFile := "./invalidConfig.yaml"
-	err := loadConfigWithDefaults(configFile, true)
+	// Create isolated test directory
+	testDir := t.TempDir()
+	invalidContent, err := os.ReadFile("./invalidConfig.yaml")
+	if err != nil {
+		t.Fatalf("failed to read invalidConfig.yaml: %v", err)
+	}
+	configFile := filepath.Join(testDir, "config.yaml")
+	if err = os.WriteFile(configFile, invalidContent, 0644); err != nil {
+		t.Fatalf("failed to write test config: %v", err)
+	}
+
+	err = loadConfigWithDefaults(configFile, true)
+	// Config loads successfully but validation should catch missing sources
 	if err == nil {
-		t.Fatalf("expected error loading config file %s, got nil", configFile)
+		err = ValidateConfig(Config)
+		if err == nil {
+			t.Fatal("expected validation error for config with missing required sources, got nil")
+		}
 	}
 }

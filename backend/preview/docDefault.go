@@ -1,5 +1,4 @@
 //go:build !mupdf
-// +build !mupdf
 
 package preview
 

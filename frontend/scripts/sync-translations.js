@@ -225,7 +225,6 @@ async function syncAllTranslations() {
     if (fileExisted) {
       try {
         targetContent = await fs.readJson(targetFile);
-        console.log(`\nProcessing target language: ${targetLangCode} (from ${targetFile})`);
       } catch (e) {
         console.warn(`Warning: Could not parse ${targetFile}. Starting fresh. Error: ${e.message}`);
         targetContent = {};

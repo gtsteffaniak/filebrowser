@@ -1195,15 +1195,23 @@ export default {
                                 buttons.forEach(btn => btn.setAttribute('aria-checked', 'false'));
                                 event.currentTarget.setAttribute('aria-checked', 'true');
 
-                                // Update our state
-                                this.playbackMode = value;
-
                                 // Update button text
-                                const currentMode = modeLabels[this.playbackMode] || 'Play Once';
+                                const currentMode = modeLabels[value] || 'Play Once';
                                 playbackBtn.querySelector('span').innerHTML = `Playback: <span class="plyr__menu__value">${currentMode}</span>`;
 
-                                // Set up playback queue
-                                this.setupPlaybackQueue();
+                                // Update the global state with the new mode
+                                mutations.setPlaybackQueue({
+                                    queue: this.playbackQueue,
+                                    currentIndex: this.currentQueueIndex,
+                                    mode: value
+                                });
+
+                                // Set up playback queue (this will trigger via the watcher)
+                                const forceReshuffle = value === 'shuffle';
+                                this.setupPlaybackQueue(forceReshuffle);
+
+                                // Sync media loop state
+                                this.syncMediaLoopState();
 
                                 // Show toast
                                 this.showToast();
@@ -1317,9 +1325,10 @@ button:hover,
     --plyr-tooltip-color: #ffffff;
     --plyr-video-controls-background: linear-gradient(transparent,
             rgba(0, 0, 0, 0.7));
-    border-radius: 12px;
+    border-radius: 0;
     overflow: visible;
     background-color: rgb(216 216 216);
+
 }
 
 .plyr__controls {
@@ -1621,7 +1630,7 @@ button:hover,
 }
 
 /* For small screens in landscape orientation (Like a phone) */
-@media (max-height: 500px) and (orientation: landscape) {
+@media (max-height: 800px) and (orientation: landscape) {
 
     .audio-player-container {
         justify-content: center;

@@ -29,7 +29,8 @@ simple_auth: &simple_auth
       enabled: true
       minLength: 8
 `
-	anchorsPath := filepath.Join(testDir, "anchors.yaml")
+	// Use pattern-based naming: main config is "config.yaml", so anchors must be "*-config.yaml"
+	anchorsPath := filepath.Join(testDir, "definitions-config.yaml")
 	if err := os.WriteFile(anchorsPath, []byte(anchorsConfig), 0644); err != nil {
 		t.Fatalf("Failed to write anchors config: %v", err)
 	}
@@ -61,7 +62,8 @@ userDefaults:
 	}
 
 	// Test loading the multi-config setup
-	err := loadConfigWithDefaults(mainPath, false)
+	// Use generate=true to skip filesystem validation of fake paths
+	err := loadConfigWithDefaults(mainPath, true)
 	if err != nil {
 		t.Fatalf("Failed to load multi-config: %v", err)
 	}
@@ -128,7 +130,8 @@ frontend:
 	}
 
 	// Test that fallback works for simple configs
-	err := loadConfigWithDefaults(configPath, false)
+	// Use generate=true to skip filesystem validation
+	err := loadConfigWithDefaults(configPath, true)
 	if err != nil {
 		t.Fatalf("Failed to load simple config: %v", err)
 	}
@@ -163,7 +166,8 @@ base_permissions: &base_permissions
   admin: false
   api: false
 `
-	anchorsPath := filepath.Join(testDir, "anchors.yaml")
+	// Use pattern-based naming: main config is "config.yaml", so anchors must be "*-config.yaml"
+	anchorsPath := filepath.Join(testDir, "definitions-config.yaml")
 	if err := os.WriteFile(anchorsPath, []byte(anchorsConfig), 0644); err != nil {
 		t.Fatalf("Failed to write anchors config: %v", err)
 	}
@@ -194,7 +198,8 @@ frontend:
 	}
 
 	// Test loading the nested reference setup
-	err := loadConfigWithDefaults(mainPath, false)
+	// Use generate=true to skip filesystem validation
+	err := loadConfigWithDefaults(mainPath, true)
 	if err != nil {
 		t.Fatalf("Failed to load nested config: %v", err)
 	}

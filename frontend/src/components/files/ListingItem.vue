@@ -166,7 +166,7 @@ export default {
       return true;
     },
     thumbnailUrl() {
-      if (!globalVars.enableThumbs) {
+      if (!globalVars.enableThumbs || !state.req.path || !this.name) {
         return "";
       }
       const previewPath = url.joinPath(state.req.path, this.name);

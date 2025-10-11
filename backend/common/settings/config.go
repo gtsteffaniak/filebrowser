@@ -320,67 +320,33 @@ func setupLogging() {
 	}
 }
 
-func loadConfigWithDefaults(configFile string, isGenerate bool) error {
-	Config = setDefaults(isGenerate)
-	// Open and read the YAML file
-	yamlFile, err := os.Open(configFile)
-	if err != nil {
+func loadConfigWithDefaults(configFile string, generate bool) error {
+	Config = setDefaults(generate)
+
+	// Check if config file exists
+	if _, err := os.Stat(configFile); err != nil {
 		if configFile != "" {
 			logger.Errorf("could not open config file '%v', using default settings.", configFile)
 		}
 		Config.Server.Sources = []*Source{
 			{
 				Path: ".",
-				Config: SourceConfig{
-					DefaultEnabled: true,
-				},
 			},
 		}
 		loadEnvConfig()
 		return nil
 	}
-	defer yamlFile.Close()
 
-	// Get the directory containing the config file for reference resolution
-	configDir := filepath.Dir(configFile)
-	if configDir == "" {
-		configDir = "."
+	// Try multi-file config first (combine all YAML files in the directory)
+	combinedYAML, err := combineYAMLFiles(configFile)
+	if err != nil {
+		return fmt.Errorf("failed to combine YAML files: %v", err)
 	}
 
-	// Create decoder with ReferenceDirs to support multi-config files
-	// This enables YAML anchors and references to work across multiple files
-	decoder := yaml.NewDecoder(yamlFile,
-		yaml.DisallowUnknownField(),
-		yaml.ReferenceDirs(configDir),
-	)
-
-	err = decoder.Decode(&Config)
+	// Decode the combined YAML
+	err = yaml.Unmarshal(combinedYAML, &Config)
 	if err != nil {
-		// Fallback to old method if multi-config parsing fails
-		logger.Debugf("Multi-config parsing failed, falling back to single file parsing: %v", err)
-
-		// Reset file position and try old method
-		if _, seekErr := yamlFile.Seek(0, 0); seekErr != nil {
-			return fmt.Errorf("failed to read yaml file: %v", seekErr)
-		}
-		stat, statErr := yamlFile.Stat()
-		if statErr != nil {
-			return statErr
-		}
-		yamlData := make([]byte, stat.Size())
-		_, readErr := yamlFile.Read(yamlData)
-		if readErr != nil && configFile != "config.yaml" {
-			return fmt.Errorf("could not load specified config file: %v", readErr.Error())
-		}
-		if readErr != nil {
-			logger.Warningf("Could not load config file '%v', using default settings: %v", configFile, readErr)
-		}
-
-		// Use simple decoder without ReferenceDirs
-		fallbackErr := yaml.NewDecoder(strings.NewReader(string(yamlData)), yaml.DisallowUnknownField()).Decode(&Config)
-		if fallbackErr != nil {
-			return fmt.Errorf("error unmarshaling YAML data: %v", fallbackErr)
-		}
+		return fmt.Errorf("error unmarshaling YAML data: %v", err)
 	}
 
 	loadEnvConfig()

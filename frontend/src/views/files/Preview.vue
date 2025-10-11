@@ -1,7 +1,16 @@
 <template>
     <div id="previewer">
-        <div class="preview" :class="{'plyr-background': previewType == 'audio' && !useDefaultMediaPlayer}" v-if="!isDeleted">
-            <ExtendedImage v-if="showImage" :src="raw"/>
+        <!-- Loading overlay during navigation transition -->
+        <div v-if="isTransitioning" class="transition-loading">
+            <div class="spinner">
+                <div class="bounce1"></div>
+                <div class="bounce2"></div>
+                <div class="bounce3"></div>
+            </div>
+        </div>
+        
+        <div class="preview" :class="{'plyr-background': previewType == 'audio' && !useDefaultMediaPlayer, 'transitioning': isTransitioning}" v-if="!isDeleted">
+            <ExtendedImage v-if="showImage && !isTransitioning" :src="raw" @navigate-previous="navigatePrevious" @navigate-next="navigateNext"/>
 
             <!-- Media Player Component -->
             <plyrViewer v-else-if="previewType == 'audio' || previewType == 'video'"
@@ -171,6 +180,9 @@ export default {
             }
             return filesApi.getDownloadURL(state.req.source, state.req.path);
         },
+        isTransitioning() {
+            return state.navigation.isTransitioning;
+        },
         getSubtitles() {
             return this.subtitles();
         },
@@ -206,6 +218,7 @@ export default {
             if (!getters.isLoggedIn()) {
                 return;
             }
+            
             this.isDeleted = false;
             this.updatePreview();
             mutations.resetSelected();
@@ -302,24 +315,46 @@ export default {
             }
         },
         async updatePreview() {
-            const directoryPath = url.removeLastDir(state.req.path);
-            if (!this.listing || this.listing == "undefined") {
-                let res;
-                if (getters.isShare()) {
-                    // Use public API for shared files
-                    res = await publicApi.fetchPub(
-                        directoryPath,
-                        state.share.hash,
-                    );
-                } else {
-                    // Use regular files API for authenticated users
-                    res = await filesApi.fetchFiles(
-                        state.req.source,
-                        directoryPath,
-                    );
-                }
-                this.listing = res.items;
+            let directoryPath = url.removeLastDir(state.req.path);
+            
+            // If directoryPath is empty, the file is in root - use '/' as the directory
+            if (!directoryPath || directoryPath === '') {
+                directoryPath = '/';
             }
+            
+            if (!this.listing || this.listing == "undefined") {
+                // Try to use pre-fetched parent directory items first
+                if (state.req.parentDirItems) {
+                    this.listing = state.req.parentDirItems;
+                } else if (directoryPath !== state.req.path) {
+                    // Fetch directory listing (now with '/' for root files)
+                    try {
+                        let res;
+                        if (getters.isShare()) {
+                            // Use public API for shared files
+                            res = await publicApi.fetchPub(
+                                directoryPath,
+                                state.share.hash,
+                            );
+                        } else {
+                            // Use regular files API for authenticated users
+                            res = await filesApi.fetchFiles(
+                                state.req.source,
+                                directoryPath,
+                            );
+                        }
+                        this.listing = res.items;
+                    } catch (error) {
+                        console.error("error Preview.vue", error);
+                        this.listing = [state.req];
+                    }
+                } else {
+                    console.error("No listing found Preview.vue");
+                    // Shouldn't happen, but fallback to current item
+                    this.listing = [state.req];
+                }
+            }
+            
             if (!this.listing) {
                 this.listing = [state.req];
             }
@@ -370,11 +405,73 @@ export default {
             const items = [state.req];
             downloadFiles(items);
         },
+        navigatePrevious() {
+            if (state.navigation.previousLink) {
+                this.$router.replace({ path: state.navigation.previousLink });
+            }
+        },
+        navigateNext() {
+            if (state.navigation.nextLink) {
+                this.$router.replace({ path: state.navigation.nextLink });
+            }
+        },
     },
 };
 </script>
 
 <style scoped>
+/* Loading overlay for navigation transitions */
+.transition-loading {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: var(--background);
+    z-index: 10000;
+    transition: 0.1s ease opacity;
+}
+
+.transition-loading .spinner {
+    width: 70px;
+    text-align: center;
+}
+
+.transition-loading .spinner > div {
+    width: 18px;
+    height: 18px;
+    background-color: var(--textPrimary);
+    border-radius: 100%;
+    display: inline-block;
+    animation: sk-bouncedelay 1.4s infinite ease-in-out both;
+}
+
+.transition-loading .spinner .bounce1 {
+    animation-delay: -0.32s;
+}
+
+.transition-loading .spinner .bounce2 {
+    animation-delay: -0.16s;
+}
+
+@keyframes sk-bouncedelay {
+    0%, 80%, 100% {
+        transform: scale(0);
+    }
+    40% {
+        transform: scale(1.0);
+    }
+}
+
+.preview.transitioning {
+    opacity: 0.3;
+    pointer-events: none;
+}
+
 .pdf-wrapper {
     position: relative;
     width: 100%;
