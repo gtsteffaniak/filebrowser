@@ -345,9 +345,11 @@ export default {
                         }
                         this.listing = res.items;
                     } catch (error) {
+                        console.error("error Preview.vue", error);
                         this.listing = [state.req];
                     }
                 } else {
+                    console.error("No listing found Preview.vue");
                     // Shouldn't happen, but fallback to current item
                     this.listing = [state.req];
                 }

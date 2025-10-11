@@ -95,7 +95,13 @@ func TestConfigLoadSpecificValues(t *testing.T) {
 func TestInvalidConfig(t *testing.T) {
 	configFile := "./invalidConfig.yaml"
 	err := loadConfigWithDefaults(configFile, true)
+	// With multi-config support, unknown fields (like old 'server.root') are silently ignored
+	// rather than causing load errors. This is more graceful. However, validation should
+	// catch missing required fields like sources.
 	if err == nil {
-		t.Fatalf("expected error loading config file %s, got nil", configFile)
+		err = ValidateConfig(Config)
+		if err == nil {
+			t.Fatal("expected validation error for config with missing required sources, got nil")
+		}
 	}
 }

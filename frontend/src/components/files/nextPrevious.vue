@@ -288,10 +288,12 @@ export default {
           }
           listing = res.items;
         } catch (error) {
+          console.error("error nextPrevious.vue", error);
           listing = [state.req]; // Fallback to current item only
         }
       } else {
         // Shouldn't happen, but fallback to current item
+        console.error("No listing found nextPrevious.vue");
         listing = [state.req];
       }
 

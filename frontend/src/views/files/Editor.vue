@@ -239,9 +239,11 @@ export default {
           }
           listing = res.items;
         } catch (error) {
+          console.error("error Editor.vue", error);
           listing = [this.req];
         }
       } else {
+        console.error("No listing found Editor.vue");
         // Shouldn't happen, but fallback to current item
         listing = [this.req];
       }

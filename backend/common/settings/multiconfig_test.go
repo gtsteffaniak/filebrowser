@@ -61,7 +61,8 @@ userDefaults:
 	}
 
 	// Test loading the multi-config setup
-	err := loadConfigWithDefaults(mainPath, false)
+	// Use generate=true to skip filesystem validation of fake paths
+	err := loadConfigWithDefaults(mainPath, true)
 	if err != nil {
 		t.Fatalf("Failed to load multi-config: %v", err)
 	}
@@ -128,7 +129,8 @@ frontend:
 	}
 
 	// Test that fallback works for simple configs
-	err := loadConfigWithDefaults(configPath, false)
+	// Use generate=true to skip filesystem validation
+	err := loadConfigWithDefaults(configPath, true)
 	if err != nil {
 		t.Fatalf("Failed to load simple config: %v", err)
 	}
@@ -194,7 +196,8 @@ frontend:
 	}
 
 	// Test loading the nested reference setup
-	err := loadConfigWithDefaults(mainPath, false)
+	// Use generate=true to skip filesystem validation
+	err := loadConfigWithDefaults(mainPath, true)
 	if err != nil {
 		t.Fatalf("Failed to load nested config: %v", err)
 	}

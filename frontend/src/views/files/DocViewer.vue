@@ -122,10 +122,12 @@ export default defineComponent({
           }
           listing = res.items;
         } catch (error) {
+          console.error("error DocViewer.vue", error);
           listing = [state.req]; // Fallback to current item only
         }
       } else {
         // Shouldn't happen, but fallback to current item
+        console.error("No listing found DocViewer.vue");
         listing = [state.req];
       }
 

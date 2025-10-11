@@ -1,0 +1,41 @@
+server_minimal: &server_minimal
+  port: 9050
+  baseURL:  "/files"
+  internalUrl: "http://filebrowser:8081/files"
+#externalUrl: "https://gportal.link/files"
+  logging:
+    - levels: "info|debug|warning|error"
+  sources:
+    - path: "/mnt/storage/"
+      config:
+        defaultEnabled: true
+    - path: "/home/graham/git/blog"
+
+auth:
+  adminUsername: "admin"
+  adminPassword: "mysecurepassword"
+  methods:
+    oidc:
+      enabled: false
+      clientId: "lqayEB7tEwp4anvzn2sEShEkbKFZogC2aIjyEFFM"
+      clientSecret: "DtjOahHAy3WIBsaJtrcdubfQDO8G0AsCb76x2XjwXLJicZogIX3OyyhZI5RBynJmTgh1hSlZeMzAPyVA8uJvNvX3b31hAzY7WrHt9EsIpEQmKv7REXXxw9ziEuj9SoIa"
+      issuerUrl: "http://vdebian:9080/application/o/filebrowser/"
+      scopes: "email openid profile"
+      createUser: true
+integrations:
+  office:
+    url: "https://files.gportal.link/"
+    internalUrl: "http://onlyoffice/"
+    secret: 6H1H7GzUk2alRkNxAPav0W02g8JS5oUd 
+userDefaults:
+  darkMode: true
+  disableSettings: false
+  singleClick: false
+  permissions:
+    admin: false
+    modify: false
+    share: false
+    api: false
+
+frontend_minimal: &frontend_minimal
+  favicon: "/home/graham/git/favicon.ico"
