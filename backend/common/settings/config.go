@@ -7,11 +7,13 @@ import (
 	"path/filepath"
 	"runtime"
 	"slices"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/goccy/go-yaml"
+	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/common/version"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/go-logger/logger"
@@ -40,12 +42,28 @@ func Initialize(configFile string) {
 		time.Sleep(5 * time.Second) // allow sleep time before exiting to give docker/kubernetes time before restarting
 		logger.Fatal(err.Error())
 	}
+	setupFs()
 	setupLogging()
 	setupAuth(false)
 	setupSources(false)
 	setupUrls()
-	setupVideoPreview()
 	setupFrontend(false)
+	setupVideoPreview()
+}
+
+func setupFs() {
+	// Convert permission values (like 644, 755) to octal interpretation
+	filePermOctal, err := strconv.ParseUint(Config.Server.Filesystem.CreateFilePermission, 8, 32)
+	if err != nil {
+		Config.Server.Filesystem.CreateFilePermission = "644"
+		filePermOctal, _ = strconv.ParseUint("644", 8, 32)
+	}
+	dirPermOctal, err := strconv.ParseUint(Config.Server.Filesystem.CreateDirectoryPermission, 8, 32)
+	if err != nil {
+		Config.Server.Filesystem.CreateDirectoryPermission = "755"
+		dirPermOctal, _ = strconv.ParseUint("755", 8, 32)
+	}
+	fileutils.SetFsPermissions(os.FileMode(filePermOctal), os.FileMode(dirPermOctal))
 }
 
 func setupFrontend(generate bool) {
@@ -100,17 +118,40 @@ func setupFrontend(generate bool) {
 }
 
 func setupVideoPreview() {
-	// Initialize VideoPreview map if it's nil
+	// If VideoPreview is not initialized, initialize with all types enabled
 	if Config.Integrations.Media.Convert.VideoPreview == nil {
 		Config.Integrations.Media.Convert.VideoPreview = make(map[VideoPreviewType]bool)
+		for _, t := range AllVideoPreviewTypes {
+			Config.Integrations.Media.Convert.VideoPreview[t] = true
+		}
+		return
 	}
 
-	// Set defaults for any missing video preview types
-	// Default is true for all supported types
-	for _, previewType := range AllVideoPreviewTypes {
-		if _, exists := Config.Integrations.Media.Convert.VideoPreview[previewType]; !exists {
-			Config.Integrations.Media.Convert.VideoPreview[previewType] = true
+	// If VideoPreview map is empty, it means user didn't configure any video preview settings
+	// In this case, enable all by default
+	if len(Config.Integrations.Media.Convert.VideoPreview) == 0 {
+		for _, t := range AllVideoPreviewTypes {
+			Config.Integrations.Media.Convert.VideoPreview[t] = true
 		}
+		return
+	}
+
+	// User has explicitly configured some video preview settings
+	// Start with all enabled, then apply user overrides
+	userConfig := make(map[VideoPreviewType]bool)
+	for k, v := range Config.Integrations.Media.Convert.VideoPreview {
+		userConfig[k] = v
+	}
+
+	// Reset to defaults (all enabled)
+	Config.Integrations.Media.Convert.VideoPreview = make(map[VideoPreviewType]bool)
+	for _, t := range AllVideoPreviewTypes {
+		Config.Integrations.Media.Convert.VideoPreview[t] = true
+	}
+
+	// Apply user overrides (only for explicitly set values)
+	for k, v := range userConfig {
+		Config.Integrations.Media.Convert.VideoPreview[k] = v
 	}
 }
 
@@ -464,6 +505,12 @@ func setDefaults(generate bool) Settings {
 	s.Integrations.Media.Convert.ImagePreview = make(map[ImagePreviewType]bool)
 	for _, t := range AllImagePreviewTypes {
 		s.Integrations.Media.Convert.ImagePreview[t] = false
+	}
+
+	// Initialize VideoPreview map with all supported types set to true by default
+	s.Integrations.Media.Convert.VideoPreview = make(map[VideoPreviewType]bool)
+	for _, t := range AllVideoPreviewTypes {
+		s.Integrations.Media.Convert.VideoPreview[t] = true
 	}
 	return s
 }
