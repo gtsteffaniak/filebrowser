@@ -58,7 +58,10 @@
     "uploadFiles": "Cargar archivos",
     "uploadFolder": "Cargar carpeta",
     "openUploadViewer": "Abrir Upload Manager",
-    "selectAll": "Seleccionar todo"
+    "selectAll": "Seleccionar todo",
+    "discardAndExit": "Descartar y salir",
+    "saveAndExit": "Guardar y salir",
+    "keepEditing": "Seguir editando"
   },
   "download": {
     "downloadFile": "Descargar archivo",
@@ -206,7 +209,9 @@
     "copySuccess": "¡Archivos copiados correctamente!",
     "lastModified": "Última modificación{suffix}",
     "size": "Tamaño {suffix}",
-    "operationInProgress": "Operación en curso, por favor espere..."
+    "operationInProgress": "Operación en curso, por favor espere...",
+    "saveBeforeExit": "Cambios no guardados",
+    "saveBeforeExitMessage": "Tienes cambios sin guardar en el editor. ¿Qué desea hacer?"
   },
   "search": {
     "images": "Imágenes",

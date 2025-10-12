@@ -58,7 +58,10 @@
     "uploadFiles": "Téléchargement de fichiers",
     "uploadFolder": "Télécharger le dossier",
     "openUploadViewer": "Ouvrir le gestionnaire de téléchargement",
-    "selectAll": "Sélectionner tout"
+    "selectAll": "Sélectionner tout",
+    "discardAndExit": "Rejeter et quitter",
+    "saveAndExit": "Sauvegarder et quitter",
+    "keepEditing": "Continuer à éditer"
   },
   "download": {
     "downloadFile": "Télécharger le fichier",
@@ -206,7 +209,9 @@
     "copySuccess": "Les fichiers ont été copiés avec succès !",
     "lastModified": "Dernière modification{suffix}",
     "size": "Taille{suffix}",
-    "operationInProgress": "Opération en cours, veuillez patienter..."
+    "operationInProgress": "Opération en cours, veuillez patienter...",
+    "saveBeforeExit": "Modifications non sauvegardées",
+    "saveBeforeExitMessage": "Vous avez des modifications non enregistrées dans l'éditeur. Que souhaitez-vous faire ?"
   },
   "search": {
     "images": "Images",

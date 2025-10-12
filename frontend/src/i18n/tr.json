@@ -58,7 +58,10 @@
     "uploadFiles": "Dosya Yükleme",
     "uploadFolder": "Klasör Yükle",
     "openUploadViewer": "Yükleme Yöneticisini Açın",
-    "selectAll": "Tümünü seçin"
+    "selectAll": "Tümünü seçin",
+    "discardAndExit": "At ve Çık",
+    "saveAndExit": "Kaydet ve Çık",
+    "keepEditing": "Düzenlemeye Devam Et"
   },
   "download": {
     "downloadFile": "Dosyayı indir",
@@ -206,7 +209,9 @@
     "copySuccess": "Dosyalar başarıyla kopyalandı!",
     "lastModified": "Son Değişiklik{suffix}",
     "size": "Boyut{suffix}",
-    "operationInProgress": "İşlem devam ediyor, lütfen bekleyin..."
+    "operationInProgress": "İşlem devam ediyor, lütfen bekleyin...",
+    "saveBeforeExit": "Kaydedilmemiş Değişiklikler",
+    "saveBeforeExitMessage": "Düzenleyicide kaydedilmemiş değişiklikleriniz var. Ne yapmak istiyorsunuz?"
   },
   "search": {
     "images": "Görseller",

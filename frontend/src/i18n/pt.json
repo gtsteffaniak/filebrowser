@@ -58,7 +58,10 @@
     "uploadFiles": "Carregar ficheiros",
     "uploadFolder": "Carregar pasta",
     "openUploadViewer": "Abrir o Upload Manager",
-    "selectAll": "Selecionar tudo"
+    "selectAll": "Selecionar tudo",
+    "discardAndExit": "Descartar e sair",
+    "saveAndExit": "Guardar e sair",
+    "keepEditing": "Continuar a editar"
   },
   "download": {
     "downloadFile": "Descarregar ficheiro",
@@ -206,7 +209,9 @@
     "copySuccess": "Ficheiros copiados com sucesso!",
     "lastModified": "Última modificação{suffix}",
     "size": "Tamanho{suffix}",
-    "operationInProgress": "Operação em curso, aguarde..."
+    "operationInProgress": "Operação em curso, aguarde...",
+    "saveBeforeExit": "Alterações não guardadas",
+    "saveBeforeExitMessage": "Tem alterações não guardadas no editor. O que é que gostaria de fazer?"
   },
   "search": {
     "images": "Imagens",

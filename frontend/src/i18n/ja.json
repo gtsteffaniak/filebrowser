@@ -58,7 +58,10 @@
     "uploadFiles": "ファイルのアップロード",
     "uploadFolder": "フォルダのアップロード",
     "openUploadViewer": "アップロードマネージャーを開く",
-    "selectAll": "すべて選択"
+    "selectAll": "すべて選択",
+    "discardAndExit": "破棄と終了",
+    "saveAndExit": "保存して終了する",
+    "keepEditing": "編集を続ける"
   },
   "download": {
     "downloadFile": "ファイルをダウンロード",
@@ -206,7 +209,9 @@
     "uploadSettingsNoChunk": "最大同時アップロード数：{maxConcurrentUpload}、チャンクアップロード無効",
     "lastModified": "最終更新日{suffix}",
     "size": "サイズ{suffix}",
-    "operationInProgress": "操作中です、しばらくお待ちください..."
+    "operationInProgress": "操作中です、しばらくお待ちください...",
+    "saveBeforeExit": "未保存の変更",
+    "saveBeforeExitMessage": "エディタに未保存の変更があります。どうしますか？"
   },
   "search": {
     "images": "画像",

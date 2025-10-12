@@ -58,7 +58,10 @@
     "uploadFiles": "上传文件",
     "uploadFolder": "上传文件夹",
     "openUploadViewer": "打开上传管理器",
-    "selectAll": "选择所有"
+    "selectAll": "选择所有",
+    "discardAndExit": "丢弃和退出",
+    "saveAndExit": "保存并退出",
+    "keepEditing": "继续编辑"
   },
   "download": {
     "downloadFile": "下载文件",
@@ -206,7 +209,9 @@
     "copySuccess": "文件复制成功！",
     "lastModified": "最后修改{suffix}",
     "size": "尺寸{suffix}",
-    "operationInProgress": "操作正在进行中，请稍候..."
+    "operationInProgress": "操作正在进行中，请稍候...",
+    "saveBeforeExit": "未保存的更改",
+    "saveBeforeExitMessage": "编辑器中还有未保存的更改。您想怎么做？"
   },
   "search": {
     "images": "图像",

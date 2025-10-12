@@ -58,7 +58,10 @@
     "uploadFiles": "Nahrávání souborů",
     "uploadFolder": "Nahrát složku",
     "openUploadViewer": "Otevřít Správce nahrávání",
-    "selectAll": "Vyberte vše"
+    "selectAll": "Vyberte vše",
+    "discardAndExit": "Vyřazení a ukončení",
+    "saveAndExit": "Uložit a ukončit",
+    "keepEditing": "Pokračovat v úpravách"
   },
   "download": {
     "downloadFile": "Stáhnout soubor",
@@ -264,7 +267,9 @@
     "copySuccess": "Soubory byly úspěšně zkopírovány!",
     "lastModified": "Poslední úprava{suffix}",
     "size": "Velikost{suffix}",
-    "operationInProgress": "Probíhá operace, vyčkejte prosím..."
+    "operationInProgress": "Probíhá operace, vyčkejte prosím...",
+    "saveBeforeExit": "Neuložené změny",
+    "saveBeforeExitMessage": "V editoru máte neuložené změny. Co byste chtěli udělat?"
   },
   "search": {
     "images": "Obrázky",

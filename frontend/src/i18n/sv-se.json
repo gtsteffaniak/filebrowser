@@ -58,7 +58,10 @@
     "uploadFiles": "Ladda upp filer",
     "uploadFolder": "Ladda upp mapp",
     "openUploadViewer": "Öppna uppladdningshanteraren",
-    "selectAll": "Välj alla"
+    "selectAll": "Välj alla",
+    "discardAndExit": "Kassera och avsluta",
+    "saveAndExit": "Spara och avsluta",
+    "keepEditing": "Fortsätt redigera"
   },
   "download": {
     "downloadFile": "Ladda ner fil",
@@ -206,7 +209,9 @@
     "copySuccess": "Filerna kopierades framgångsrikt!",
     "lastModified": "Senast ändrad{suffix}",
     "size": "Storlek{suffix}",
-    "operationInProgress": "Operation pågår, vänligen vänta..."
+    "operationInProgress": "Operation pågår, vänligen vänta...",
+    "saveBeforeExit": "Osparade ändringar",
+    "saveBeforeExitMessage": "Du har osparade ändringar i redigeringsverktyget. Vad skulle du vilja göra?"
   },
   "search": {
     "images": "Bilder",

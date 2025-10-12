@@ -27,6 +27,8 @@ export const state = reactive({
   displayPreferences: {},
   usages: {},
   editor: null,
+  editorDirty: false,
+  editorSaveHandler: null, // Function to save editor content
   serverHasMultipleSources: false,
   realtimeActive: undefined,
   realtimeDownCount: 0,

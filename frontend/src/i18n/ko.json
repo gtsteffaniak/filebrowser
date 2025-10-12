@@ -58,7 +58,10 @@
     "uploadFiles": "파일 업로드",
     "uploadFolder": "폴더 업로드",
     "openUploadViewer": "업로드 관리자 열기",
-    "selectAll": "모두 선택"
+    "selectAll": "모두 선택",
+    "discardAndExit": "삭제 및 종료",
+    "saveAndExit": "저장 및 종료",
+    "keepEditing": "계속 편집"
   },
   "download": {
     "downloadFile": "파일 다운로드",
@@ -206,7 +209,9 @@
     "copySuccess": "파일이 성공적으로 복사되었습니다!",
     "lastModified": "마지막 수정{suffix}",
     "size": "크기{suffix}",
-    "operationInProgress": "작업이 진행 중입니다 잠시만 기다려주세요..."
+    "operationInProgress": "작업이 진행 중입니다 잠시만 기다려주세요...",
+    "saveBeforeExit": "저장되지 않은 변경 사항",
+    "saveBeforeExitMessage": "편집기에 저장되지 않은 변경 내용이 있습니다. 어떻게 하시겠습니까?"
   },
   "search": {
     "images": "이미지",

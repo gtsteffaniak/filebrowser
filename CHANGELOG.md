@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Playback Queue for media -- thanks @Kurami32 #1339
  - Shortcut to toggle sidebar, open settings, search #1172
  - Add a "select all" toggle in the menu #974
+ - Save on exit text editor -- thanks @srini-abhiram #1334 #1241
 
  **Notes**:
  - Optimized font and icon loading.
@@ -21,6 +22,7 @@ All notable changes to this project will be documented in this file. For commit 
  - moving between items using next/previous will reset the req and show a responsive loading spinner -- fixing several state related issues. 
  - access management: child folders accessible stopped showing up #1332
  - Make source inaccessible if directory does not exist rather than exiting on start #1264
+ - HTTP Proxy environment gets ignored since version v0.8.6-beta #1324
 
 ## v0.8.8-beta
 

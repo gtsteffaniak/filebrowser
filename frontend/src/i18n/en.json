@@ -58,7 +58,10 @@
     "selectAll": "Select all",
     "uploadFiles": "Upload Files",
     "uploadFolder": "Upload Folder",
-    "openUploadViewer": "Open Upload Manager"
+    "openUploadViewer": "Open Upload Manager",
+    "discardAndExit": "Discard and Exit",
+    "saveAndExit": "Save and Exit",
+    "keepEditing": "Keep Editing"
   },
   "download": {
     "downloadFile": "Download File",
@@ -253,6 +256,8 @@
     "renameMessageInvalid": "A file can't container \"/\" or \"\\\"",
     "replace": "Replace",
     "replaceMessage": "One of the files you're trying to upload is conflicting because of its name. Do you wish to continue to upload or replace the existing one?\n",
+    "saveBeforeExit": "Unsaved Changes",
+    "saveBeforeExitMessage": "You have unsaved changes in the editor. What would you like to do?",
     "schedule": "Schedule",
     "scheduleMessage": "Pick a date and time to schedule the publication of this post.",
     "show": "Show",

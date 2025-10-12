@@ -58,7 +58,10 @@
     "uploadFiles": "העלאת קבצים",
     "uploadFolder": "העלה תיקייה",
     "openUploadViewer": "פתח את מנהל ההעלאה",
-    "selectAll": "בחר הכל"
+    "selectAll": "בחר הכל",
+    "discardAndExit": "מחק וצא",
+    "saveAndExit": "שמור וצא",
+    "keepEditing": "המשך עריכה"
   },
   "download": {
     "downloadFile": "הורד קובץ",
@@ -206,7 +209,9 @@
     "copySuccess": "הקבצים הועתקו בהצלחה!",
     "lastModified": "שינוי אחרון{suffix}",
     "size": "גודל{suffix}",
-    "operationInProgress": "הפעולה מתבצעת, אנא המתן..."
+    "operationInProgress": "הפעולה מתבצעת, אנא המתן...",
+    "saveBeforeExit": "שינויים שלא נשמרו",
+    "saveBeforeExitMessage": "יש לך שינויים שלא נשמרו בעורך. מה ברצונך לעשות?"
   },
   "search": {
     "images": "תמונות",

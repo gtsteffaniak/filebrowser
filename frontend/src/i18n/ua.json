@@ -58,7 +58,10 @@
     "uploadFiles": "Завантажити файли",
     "uploadFolder": "Завантажити папку",
     "openUploadViewer": "Відкрийте диспетчер завантажень",
-    "selectAll": "Вибрати все"
+    "selectAll": "Вибрати все",
+    "discardAndExit": "Викидання та вихід",
+    "saveAndExit": "Зберегти та вийти",
+    "keepEditing": "Продовжуйте редагувати"
   },
   "download": {
     "downloadFile": "Завантажити файл",
@@ -206,7 +209,9 @@
     "copySuccess": "Файли успішно скопійовано!",
     "lastModified": "Останній раз змінено{suffix}",
     "size": "Розмір{suffix}",
-    "operationInProgress": "Триває операція, будь ласка, зачекайте..."
+    "operationInProgress": "Триває операція, будь ласка, зачекайте...",
+    "saveBeforeExit": "Незбережені зміни",
+    "saveBeforeExitMessage": "У вас є незбережені зміни в редакторі. Що ви хочете зробити?"
   },
   "search": {
     "images": "Зображення",

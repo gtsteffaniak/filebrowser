@@ -58,7 +58,10 @@
     "uploadFiles": "Загрузка файлов",
     "uploadFolder": "Папка для загрузки",
     "openUploadViewer": "Откройте менеджер загрузки",
-    "selectAll": "Выбрать все"
+    "selectAll": "Выбрать все",
+    "discardAndExit": "Выброс и выход",
+    "saveAndExit": "Сохранить и выйти",
+    "keepEditing": "Продолжайте редактировать"
   },
   "download": {
     "downloadFile": "Скачать файл",
@@ -206,7 +209,9 @@
     "copySuccess": "Файлы успешно скопированы!",
     "lastModified": "Последнее изменение{suffix}",
     "size": "Размер{suffix}",
-    "operationInProgress": "Операция в процессе, пожалуйста, подождите..."
+    "operationInProgress": "Операция в процессе, пожалуйста, подождите...",
+    "saveBeforeExit": "Несохраненные изменения",
+    "saveBeforeExitMessage": "У вас есть несохраненные изменения в редакторе. Что бы вы хотели сделать?"
   },
   "search": {
     "images": "Изображения",

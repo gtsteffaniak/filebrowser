@@ -58,7 +58,10 @@
     "uploadFiles": "Bestanden uploaden",
     "uploadFolder": "Map uploaden",
     "openUploadViewer": "Uploadmanager openen",
-    "selectAll": "Alles selecteren"
+    "selectAll": "Alles selecteren",
+    "discardAndExit": "Weggooien en afsluiten",
+    "saveAndExit": "Opslaan en afsluiten",
+    "keepEditing": "Blijven bewerken"
   },
   "download": {
     "downloadFile": "Bestand downloaden",
@@ -206,7 +209,9 @@
     "copySuccess": "Bestanden succesvol gekopieerd!",
     "lastModified": "Laatst gewijzigd{suffix}",
     "size": "Maat{suffix}",
-    "operationInProgress": "Werking bezig, even geduld a.u.b..."
+    "operationInProgress": "Werking bezig, even geduld a.u.b...",
+    "saveBeforeExit": "Niet-opgeslagen wijzigingen",
+    "saveBeforeExitMessage": "U hebt niet-opgeslagen wijzigingen in de editor. Wat wilt u doen?"
   },
   "search": {
     "images": "Afbeeldingen",

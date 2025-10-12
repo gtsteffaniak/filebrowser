@@ -124,6 +124,7 @@ export default {
         // Update originalReq to the new file
         this.originalReq = newReq;
         this.isDirty = false; // Reset dirty flag for new file
+        mutations.setEditorDirty(false);
         
         // Lock saves temporarily
         this.saveLocked = true;
@@ -144,6 +145,7 @@ export default {
         if (currentValue !== newContent) {
           this.editor.setValue(newContent, -1); // -1 moves cursor to start
           this.isDirty = false;
+          mutations.setEditorDirty(false);
         }
       }
     },
@@ -176,13 +178,21 @@ export default {
     window.addEventListener("keydown", this.keyEvent);
     eventBus.on("handleEditorValueRequest", this.handleEditorValueRequest);
   },
+  beforeRouteLeave(to, from, next) {
+    // Only show prompt if there are unsaved changes and not in viewer mode
+    if (this.isDirty && !this.viewerMode) {
+      this.showSaveBeforeExitPrompt(next);
+    } else {
+      next();
+    }
+  },
   beforeUnmount() {
     window.removeEventListener("keydown", this.keyEvent);
-    if (this.isDirty) {
-      if (confirm("You have unsaved changes. Do you want to save them?")) {
-        this.handleEditorValueRequest();
-      }
-    }
+    
+    // Clear dirty state and save handler when leaving editor
+    mutations.setEditorDirty(false);
+    mutations.setEditorSaveHandler(null);
+    
     if (this.editor) {
       this.editor.destroy();
     }
@@ -190,6 +200,9 @@ export default {
   mounted: function () {
     this.initializeEditor();
     this.originalReq = this.req;
+    
+    // Register save handler so other components can trigger save
+    mutations.setEditorSaveHandler(() => this.handleEditorValueRequest());
   },
   methods: {
     initializeNavigation() {
@@ -289,6 +302,7 @@ export default {
 
         this.editor.on('change', () => {
           this.isDirty = true;
+          mutations.setEditorDirty(true);
         });
 
         // Initialize navigation for file editing mode when synced
@@ -321,43 +335,52 @@ export default {
 
       // Check if navigation is transitioning
       if (state.navigation.isTransitioning) {
-        notify.showError("Please wait for navigation to complete before saving.");
-        return;
+        const errorMsg = "Please wait for navigation to complete before saving.";
+        notify.showError(errorMsg);
+        throw new Error(errorMsg);
       }
 
       // Check if save is locked due to req transition
       if (this.saveLocked) {
-        notify.showError("Please wait a moment before saving.");
-        return;
+        const errorMsg = "Please wait a moment before saving.";
+        notify.showError(errorMsg);
+        throw new Error(errorMsg);
       }
 
       // Filename protection - ensure state is synced before saving
       if (!this.isStateSynced) {
-        notify.showError(this.$t("editor.saveAbortedMessage", { 
+        const errorMsg = this.$t("editor.saveAbortedMessage", { 
           activeFile: this.originalReq?.name || "unknown", 
           tryingToSave: this.routeFilename || "unknown" 
-        }));
-        return;
+        });
+        notify.showError(errorMsg);
+        throw new Error(errorMsg);
       }
 
       if (!this.editor) {
-        notify.showError(this.$t("editor.uninitialized"));
-        return;
+        const errorMsg = this.$t("editor.uninitialized");
+        notify.showError(errorMsg);
+        throw new Error(errorMsg);
       }
 
       try {
         if (getters.isShare()) {
           // TODO: add support for saving shared files
-          notify.showError(this.$t("share.saveDisabled"));
-          return;
+          const errorMsg = this.$t("share.saveDisabled");
+          notify.showError(errorMsg);
+          throw new Error(errorMsg);
         }
 
         // Save the file
         await filesApi.put(this.originalReq.source, this.originalReq.path, this.editor.getValue());
         notify.showSuccess(`${this.originalReq.name} saved successfully.`);
         this.isDirty = false;
+        mutations.setEditorDirty(false);
       } catch (error) {
-        notify.showError(this.$t("editor.saveFailed"));
+        // Show error with more details if available
+        const errorMessage = error.message || this.$t("editor.saveFailed");
+        notify.showError(errorMessage);
+        throw error; // Re-throw to propagate to caller
       }
     },
     keyEvent(event) {
@@ -372,8 +395,38 @@ export default {
         this.handleEditorValueRequest();
       }
     },
+    showSaveBeforeExitPrompt(next) {
+      mutations.showHover({
+        name: "SaveBeforeExit",
+        confirm: async () => {
+          // Save and exit - throw error if save fails to keep prompt open
+          try {
+            await this.handleEditorValueRequest();
+            this.isDirty = false;
+            mutations.setEditorDirty(false);
+            next(); // Allow navigation
+          } catch (error) {
+            // If save fails, call next(false) to prevent navigation
+            next(false);
+            // Re-throw to keep prompt open
+            throw error;
+          }
+        },
+        discard: () => {
+          // Discard changes and exit
+          this.isDirty = false;
+          mutations.setEditorDirty(false);
+          next(); // Allow navigation
+        },
+        cancel: () => {
+          // Keep editing - block navigation
+          next(false);
+        },
+      });
+    },
   },
 };
+
 </script>
 
 <style>

@@ -142,12 +142,20 @@ export default {
       const button = "save";
       buttons.loading("save");
       try {
-        eventBus.emit("handleEditorValueRequest", "data");
-        buttons.success(button);
-        notify.showSuccess("File Saved!");
+        // Call the editor's save handler directly
+        if (state.editorSaveHandler) {
+          await state.editorSaveHandler();
+          buttons.success(button);
+          // Note: Success notification is shown by the editor
+        } else {
+          const errorMsg = "No editor save handler registered";
+          notify.showError(errorMsg);
+          throw new Error(errorMsg);
+        }
       } catch (e) {
         buttons.done(button);
-        notify.showError("Error saving file: ", e);
+        // Note: Error notification is already shown by the editor
+        throw e; // Re-throw so caller knows save failed
       }
     },
     toggleOverflow() {
@@ -167,6 +175,16 @@ export default {
     },
     multiAction() {
       const cv = getters.currentView();
+      
+      // Check for unsaved editor changes before navigation
+      if (cv === "editor" && state.editorDirty) {
+        this.showSaveBeforeExitPrompt(() => this.performNavigation(cv));
+        return;
+      }
+      
+      this.performNavigation(cv);
+    },
+    performNavigation(cv) {
       if (cv == "listingView" || ( getters.isShare() && !getters.multibuttonState() === "close")) {
         mutations.toggleSidebar();
       } else if (cv == "settings" && state.isMobile) {
@@ -195,6 +213,26 @@ export default {
 
         router.go(-1);
       }
+    },
+    showSaveBeforeExitPrompt(onConfirmAction) {
+      mutations.showHover({
+        name: "SaveBeforeExit",
+        confirm: async () => {
+          // Save and exit - trigger the save action
+          // If save fails, this will throw and be caught by SaveBeforeExit component
+          await this.save();
+          mutations.setEditorDirty(false);
+          onConfirmAction();
+        },
+        discard: () => {
+          // Discard changes and exit
+          mutations.setEditorDirty(false);
+          onConfirmAction();
+        },
+        cancel: () => {
+          // Keep editing - do nothing
+        },
+      });
     },
   },
 };

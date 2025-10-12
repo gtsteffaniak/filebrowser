@@ -58,7 +58,10 @@
     "uploadFiles": "Încărcați fișiere",
     "uploadFolder": "Încărcați dosarul",
     "openUploadViewer": "Deschideți Managerul de încărcare",
-    "selectAll": "Selectați toate"
+    "selectAll": "Selectați toate",
+    "discardAndExit": "Renunțare și ieșire",
+    "saveAndExit": "Salvare și ieșire",
+    "keepEditing": "Continuă editarea"
   },
   "download": {
     "downloadFile": "Descarcă fișier",
@@ -206,7 +209,9 @@
     "copySuccess": "Fișiere copiate cu succes!",
     "lastModified": "Ultima modificare{suffix}",
     "size": "Mărime{suffix}",
-    "operationInProgress": "Operațiune în curs, vă rugăm să așteptați..."
+    "operationInProgress": "Operațiune în curs, vă rugăm să așteptați...",
+    "saveBeforeExit": "Modificări nesalvate",
+    "saveBeforeExitMessage": "Aveți modificări nesalvate în editor. Ce doriți să faceți?"
   },
   "search": {
     "images": "Imagini",

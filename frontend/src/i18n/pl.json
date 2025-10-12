@@ -58,7 +58,10 @@
     "uploadFiles": "Przesyłanie plików",
     "uploadFolder": "Folder przesyłania",
     "openUploadViewer": "Otwórz Menedżera przesyłania",
-    "selectAll": "Wybierz wszystko"
+    "selectAll": "Wybierz wszystko",
+    "discardAndExit": "Odrzuć i wyjdź",
+    "saveAndExit": "Zapisz i wyjdź",
+    "keepEditing": "Kontynuuj edycję"
   },
   "download": {
     "downloadFile": "Pobierz plik",
@@ -206,7 +209,9 @@
     "copySuccess": "Pliki zostały skopiowane pomyślnie!",
     "lastModified": "Ostatnia modyfikacja{suffix}",
     "size": "Rozmiar{suffix}",
-    "operationInProgress": "Operacja w toku, proszę czekać..."
+    "operationInProgress": "Operacja w toku, proszę czekać...",
+    "saveBeforeExit": "Niezapisane zmiany",
+    "saveBeforeExitMessage": "Masz niezapisane zmiany w edytorze. Co chcesz zrobić?"
   },
   "search": {
     "images": "Zdjęcia",

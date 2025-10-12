@@ -25,6 +25,17 @@ export const mutations = {
     state.contextMenuHasItems = value;
     emitStateChanged();
   },
+  setEditorDirty: (value) => {
+    if (value == state.editorDirty) {
+      return;
+    }
+    state.editorDirty = value;
+    emitStateChanged();
+  },
+  setEditorSaveHandler: (handler) => {
+    state.editorSaveHandler = handler;
+    emitStateChanged();
+  },
   setDeletedItem: (value) => {
     if (value == state.deletedItem) {
       return;
@@ -215,6 +226,8 @@ export const mutations = {
         confirm: value?.confirm,
         action: value?.action,
         props: value?.props,
+        discard: value?.discard,
+        cancel: value?.cancel,
       });
     } else {
       state.prompts.push({
@@ -222,6 +235,8 @@ export const mutations = {
         confirm: value?.confirm,
         action: value?.action,
         props: value?.props,
+        discard: value?.discard,
+        cancel: value?.cancel,
       });
     }
     emitStateChanged();

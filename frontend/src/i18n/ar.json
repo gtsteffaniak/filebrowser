@@ -58,7 +58,10 @@
     "uploadFiles": "تحميل الملفات",
     "uploadFolder": "تحميل المجلد",
     "openUploadViewer": "فتح مدير التحميل المفتوح",
-    "selectAll": "اختر الكل"
+    "selectAll": "اختر الكل",
+    "discardAndExit": "التخلص والخروج",
+    "saveAndExit": "الحفظ والخروج",
+    "keepEditing": "استمر في التحرير"
   },
   "download": {
     "downloadFile": "Download File",
@@ -206,7 +209,9 @@
     "copySuccess": "تم نسخ الملفات بنجاح!",
     "lastModified": "آخر تعديل{suffix}",
     "size": "الحجم{suffix}",
-    "operationInProgress": "العملية جارية، يرجى الانتظار..."
+    "operationInProgress": "العملية جارية، يرجى الانتظار...",
+    "saveBeforeExit": "التغييرات غير المحفوظة",
+    "saveBeforeExitMessage": "لديك تغييرات غير محفوظة في المحرر. ماذا تريد أن تفعل؟"
   },
   "search": {
     "images": "الصور",

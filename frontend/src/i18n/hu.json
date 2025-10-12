@@ -58,7 +58,10 @@
     "uploadFiles": "Fájlok feltöltése",
     "uploadFolder": "Mappa feltöltése",
     "openUploadViewer": "Nyissa meg a Feltöltéskezelőt",
-    "selectAll": "Válasszon ki mindent"
+    "selectAll": "Válasszon ki mindent",
+    "discardAndExit": "Dobás és kilépés",
+    "saveAndExit": "Mentés és kilépés",
+    "keepEditing": "Szerkesztés folytatása"
   },
   "download": {
     "downloadFile": "Fájl letöltése",
@@ -206,7 +209,9 @@
     "copySuccess": "A fájlok másolása sikeres volt!",
     "lastModified": "Utoljára módosítva{suffix}",
     "size": "Méret{suffix}",
-    "operationInProgress": "Művelet folyamatban, kérjük várjon..."
+    "operationInProgress": "Művelet folyamatban, kérjük várjon...",
+    "saveBeforeExit": "Nem mentett változtatások",
+    "saveBeforeExitMessage": "A szerkesztőben elmentetlen módosítások vannak. Mit szeretne tenni?"
   },
   "search": {
     "images": "Képek",

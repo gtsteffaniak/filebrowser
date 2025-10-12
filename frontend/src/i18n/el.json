@@ -58,7 +58,10 @@
     "uploadFiles": "Ανέβασμα αρχείων",
     "uploadFolder": "Φόρτωση φακέλου",
     "openUploadViewer": "Άνοιγμα του Διαχειριστή φόρτωσης",
-    "selectAll": "Επιλέξτε όλα"
+    "selectAll": "Επιλέξτε όλα",
+    "discardAndExit": "Απόρριψη και έξοδος",
+    "saveAndExit": "Αποθήκευση και έξοδος",
+    "keepEditing": "Συνεχίστε την επεξεργασία"
   },
   "download": {
     "downloadFile": "Λήψη αρχείου",
@@ -209,7 +212,9 @@
     "copySuccess": "Τα αρχεία αντιγράφηκαν με επιτυχία!",
     "lastModified": "Τελευταία τροποποίηση{suffix}",
     "size": "Μέγεθος{suffix}",
-    "operationInProgress": "Λειτουργία σε εξέλιξη, παρακαλώ περιμένετε..."
+    "operationInProgress": "Λειτουργία σε εξέλιξη, παρακαλώ περιμένετε...",
+    "saveBeforeExit": "Μη αποθηκευμένες αλλαγές",
+    "saveBeforeExitMessage": "Έχετε μη αποθηκευμένες αλλαγές στον επεξεργαστή. Τι θα θέλατε να κάνετε;"
   },
   "search": {
     "images": "Εικόνες",

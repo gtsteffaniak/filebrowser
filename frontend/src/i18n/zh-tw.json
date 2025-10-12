@@ -58,7 +58,10 @@
     "uploadFiles": "上傳檔案",
     "uploadFolder": "上傳資料夾",
     "openUploadViewer": "開啟上傳管理員",
-    "selectAll": "全部選取"
+    "selectAll": "全部選取",
+    "discardAndExit": "丟棄與退出",
+    "saveAndExit": "儲存並離開",
+    "keepEditing": "繼續編輯"
   },
   "download": {
     "downloadFile": "下載檔案",
@@ -206,7 +209,9 @@
     "copySuccess": "檔案已成功複製！",
     "lastModified": "最後修改{suffix}",
     "size": "尺寸{suffix}",
-    "operationInProgress": "操作正在進行中，請稍候..."
+    "operationInProgress": "操作正在進行中，請稍候...",
+    "saveBeforeExit": "未儲存的變更",
+    "saveBeforeExitMessage": "您在編輯器中有未儲存的變更。您想做什麼？"
   },
   "search": {
     "images": "影像",
