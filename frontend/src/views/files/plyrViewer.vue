@@ -151,7 +151,6 @@ export default {
             audioMetadata: null, // Null by default, will be loaded from the audio file.
             albumArtUrl: null,
             albumArt: null,
-            metadataId: 0,
             albumArtSize: 25, // Default size in em
             isHovering: false, // Track hover state
             // Playback settings
@@ -209,44 +208,12 @@ export default {
             this.$nextTick(() => {
                 console.log('Re-hooking events after source change');
                 this.hookEvents();
-                
+
                 // Update queue index to match current file
                 this.updateCurrentQueueIndex();
-
-                // Re-setup custom settings for the Plyr player
+                
                 if (!this.useDefaultMediaPlayer) {
-                    console.log('Re-setting up custom playback settings after source change');
-                    // Wait for Plyr to re-initialize its UI after source change
-                    // Try multiple times with increasing delays to ensure Plyr is ready
-                    const trySetupSettings = (attempt = 0) => {
-                        const playerRef = this.getCurrentPlayer();
-                        console.log('Attempt', attempt, 'to re-setup settings, playerRef:', playerRef);
-
-                        if (playerRef && playerRef.player) {
-                            const player = playerRef.player;
-
-                            // Check if Plyr's settings are ready
-                            if (player.elements && player.elements.settings && player.elements.settings.buttons) {
-                                console.log('Plyr settings elements are ready, applying custom settings');
-                                // Call applyCustomPlaybackSettings directly (not setupCustomPlaybackSettings)
-                                // because the 'ready' event won't fire again after source change
-                                this.applyCustomPlaybackSettings(player);
-                            } else if (attempt < 5) {
-                                // Retry if settings not ready yet
-                                console.log('Plyr settings not ready yet, retrying...');
-                                setTimeout(() => trySetupSettings(attempt + 1), 200);
-                            } else {
-                                console.error('Failed to set up custom settings after', attempt, 'attempts');
-                            }
-                        } else if (attempt < 5) {
-                            // Retry if player not ready yet
-                            console.log('Player not ready yet, retrying...');
-                            setTimeout(() => trySetupSettings(attempt + 1), 200);
-                        }
-                    };
-
-                    // Start trying after a small initial delay
-                    setTimeout(() => trySetupSettings(0), 300);
+                    this.settingsSetup();
                 }
             });
         },
@@ -322,6 +289,18 @@ export default {
         document.removeEventListener('keydown', this.handleKeydown);
     },
     methods: {
+        settingsSetup(attempt = 0) {
+            // Wait for Plyr to re-initialize its UI after source change
+            const playerRef = this.getCurrentPlayer();
+            
+            if (playerRef?.player?.elements?.settings) {
+                console.log('Player settings ready, applying custom settings');
+                this.applyCustomPlaybackSettings(playerRef.player);
+            } else if (attempt < 3) {
+                // Try multiple times with delays to ensure Plyr is ready
+                setTimeout(() => this.settingsSetup(attempt + 1), 200);
+            }
+        },
         showQueuePrompt() {
             mutations.showHover({
                 name: "PlaybackQueue",
@@ -375,37 +354,6 @@ export default {
                 console.error('Error ensuring playback mode applied:', error);
             }
         },
-        focusPlayer() {
-            this.$nextTick(() => {
-                if (this.useDefaultMediaPlayer) {
-                    // Focus default HTML5 players
-                    const playerElement = this.previewType === 'video'
-                        ? this.$refs.defaultVideoPlayer
-                        : this.$refs.defaultAudioPlayer;
-
-                    if (playerElement) {
-                        playerElement.focus();
-                        console.log('Focused default media player');
-                    }
-                } else {
-                    // Focus Plyr players
-                    const playerRef = this.previewType === 'video'
-                        ? this.$refs.videoPlayer
-                        : this.$refs.audioPlayer;
-
-                    if (playerRef && playerRef.player && playerRef.player.elements.container) {
-                        const container = playerRef.player.elements.container;
-                        container.focus();
-
-                        // Also try to focus the progress bar specifically
-                        const progressContainer = container.querySelector('.plyr__progress__container');
-                        if (progressContainer) {
-                            progressContainer.focus();
-                        }
-                    }
-                }
-            });
-        },
         toggleLoop() {
             // Always use our custom loop instead of Plyr's default
             this.loopEnabled = !this.loopEnabled;
@@ -425,8 +373,7 @@ export default {
             // Sync the actual media element's loop state
             this.syncMediaLoopState();
 
-            // Ensure player is focused and UI is updated
-            this.focusPlayer();
+            // Ensure UI is updated
             this.$nextTick(() => {
                 this.ensurePlaybackModeApplied();
             });
@@ -488,7 +435,6 @@ export default {
 
             // Show toast
             this.showToast();
-            this.focusPlayer();
             this.$nextTick(() => {
                 this.ensurePlaybackModeApplied();
             });
@@ -504,69 +450,33 @@ export default {
         },
         async updateMedia() {
             this.cleanupAlbumArt();
-            // Try to autoplay media, handle browser restrictions
-            if (
-                this.autoPlayEnabled &&
-                (this.previewType === "video" || this.previewType === "audio")
-            ) {
-                this.$nextTick(() => {
-                    if (this.useDefaultMediaPlayer) {
-                        // Handle default HTML5 players
-                        let playerRef =
-                            this.previewType === "video"
-                                ? this.$refs.defaultVideoPlayer
-                                : this.$refs.defaultAudioPlayer;
-
-                        if (playerRef) {
-                            // Ensure player is not muted before attempting autoplay
-                            playerRef.muted = false;
-                            const playPromise = playerRef.play();
-                            if (playPromise !== undefined) {
-                                playPromise.catch((error) => {
-                                    console.log("autoplay failed", error);
-                                    // Don't force muted playback - let user manually start
-                                });
-                            }
-                        }
-                    } else {
-                        // Handle vue-plyr players
-                        let playerRef =
-                            this.previewType === "video"
-                                ? this.$refs.videoPlayer
-                                : this.$refs.audioPlayer;
-
-                        if (playerRef && playerRef.player) {
-                            // Ensure player is not muted before attempting autoplay
-                            playerRef.player.muted = false;
-                            const playPromise = playerRef.player.play();
-                            if (playPromise !== undefined) {
-                                playPromise.catch((error) => {
-                                    console.log("autoplay failed", error);
-                                    // Don't force muted playback - let user manually start
-                                });
-                            }
-                        }
-                    }
-                });
-            }
-            if (this.albumArt) {
-                try {
-                    URL.revokeObjectURL(this.albumArt);
-                } catch (e) {Error;}
-                this.albumArt = null;
-            }
-            this.albumArtUrl = null;
             this.audioMetadata = null;
-            this.metadataId = (this.metadataId || 0) + 1;
-
+            
+            await this.handleAutoPlay();
+            
+            
             if (this.previewType === "audio") {
                 this.loadAudioMetadata();
             }
-            this.$nextTick(() => {
-                setTimeout(() => {
-                    this.focusPlayer();
-                }, 300);
-            });
+        },
+        async handleAutoPlay() {
+            if (!this.autoPlayEnabled || !this.shouldAutoPlay) return;
+
+            try {
+                const player = this.getCurrentPlayer();
+                if (!player) return;
+
+                if (this.useDefaultMediaPlayer) {
+                    player.muted = false;
+                    await player.play();
+                } else if (player.player) {
+                    player.player.muted = false;
+                    await player.player.play();
+                }
+            } catch (error) {
+                console.log("Autoplay failed", error);
+                // Don't force muted playback - let user manually start
+            }
         },
         // Album art hover and scroll handlers
         onAlbumArtHover() {
@@ -636,27 +546,26 @@ export default {
                 this.cleanupAlbumArt();
             }
         },
+
         cleanupAlbumArt() {
-            if (this.albumArtUrl && this.albumArtUrl.startsWith('blob:')) {
-                try {
-                    URL.revokeObjectURL(this.albumArtUrl);
-                    console.log('Cleaned up album art object URL');
-                } catch (e) {
-                    console.warn('Error revoking album art URL:', e);
+            const cleanupUrl = (url) => {
+                if (url && url.startsWith('blob:')) {
+                    try {
+                        URL.revokeObjectURL(url);
+                        console.log('Cleaned up album art object URL');
+                    } catch (e) {
+                        console.warn('Error revoking album art URL:', e);
+                    }
                 }
-            }
-            this.albumArtUrl = null;
+            };
+
+            cleanupUrl(this.albumArtUrl);
+            cleanupUrl(this.albumArt);
             
-            // Also clean up the backup reference if it exists
-            if (this.albumArt && this.albumArt.startsWith('blob:')) {
-                try {
-                    URL.revokeObjectURL(this.albumArt);
-                } catch (e) {
-                    console.warn('Error revoking album art URL:', e);
-                }
-            }
+            this.albumArtUrl = null;
             this.albumArt = null;
         },
+        
         hookEvents() {
             if (!this.useDefaultMediaPlayer && this.$refs.videoPlayer && this.$refs.videoPlayer.player) {
                 const player = this.$refs.videoPlayer.player;
@@ -685,16 +594,14 @@ export default {
                 });
                 player.on('play', () => {
                     mutations.setPlaybackState(true);
-                    this.focusPlayer();
                 });
 
                 player.on('pause', () => {
-                mutations.setPlaybackState(false);
+                    mutations.setPlaybackState(false);
                 });
 
                 player.on('ready', () => {
                     console.log('Video player ready, focusing');
-                    this.focusPlayer();
                 });
             }
 
@@ -718,7 +625,6 @@ export default {
                 });
                 player.on('play', () => {
                     mutations.setPlaybackState(true);
-                    this.focusPlayer();
                 });
 
                 player.on('pause', () => {
@@ -727,7 +633,6 @@ export default {
 
                 player.on('ready', () => {
                     console.log('Audio player ready, focusing');
-                    this.focusPlayer();
                 });
             }
 
@@ -740,7 +645,6 @@ export default {
                     videoElement.addEventListener('ended', this.handleMediaEnd);
                     videoElement.addEventListener('play', () => {
                         mutations.setPlaybackState(true);
-                        this.focusPlayer();
                     });
                     videoElement.addEventListener('pause', () => {
                         mutations.setPlaybackState(false);
@@ -750,7 +654,6 @@ export default {
                     audioElement.addEventListener('ended', this.handleMediaEnd);
                     audioElement.addEventListener('play', () => {
                         mutations.setPlaybackState(true);
-                        this.focusPlayer();
                     });
                     audioElement.addEventListener('pause', () => {
                         mutations.setPlaybackState(false);
@@ -1216,8 +1119,6 @@ export default {
                                 // Show toast
                                 this.showToast();
 
-                                // Ensure player stays focused and UI is updated
-                                this.focusPlayer();
                             });
                         });
 
@@ -1325,7 +1226,7 @@ button:hover,
     --plyr-tooltip-color: #ffffff;
     --plyr-video-controls-background: linear-gradient(transparent,
             rgba(0, 0, 0, 0.7));
-    border-radius: 0;
+    border-radius: 12px;
     overflow: visible;
     background-color: rgb(216 216 216);
 
