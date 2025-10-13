@@ -308,13 +308,21 @@ export default {
             });
         },
         togglePlayPause() {
-            const player = this.currentPlayerRef;
+            const player = this.getCurrentPlayer();
             if (!player) return;
             if (this.useDefaultMediaPlayer) {
-                player.paused ? player.play() : player.pause();
+                if (player.paused) {
+                    player.play();
+                } else {
+                    player.pause();
+                }
             } else {
                 const plyrInstance = player.player;
-                plyrInstance.playing ? plyrInstance.pause() : plyrInstance.play();
+                if (plyrInstance.playing) {
+                    plyrInstance.pause();
+                } else {
+                    plyrInstance.play();
+                }
             }
         },
         handlePlay() {
