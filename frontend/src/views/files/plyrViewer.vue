@@ -82,8 +82,8 @@
 
         <!-- Toast that shows when you press "P" or "L" on the media player -->
         <div :class="['loop-toast', toastVisible ? 'visible' : '']">
-            <i v-if="playbackMode === 'single' || playbackMode === 'loop-single' || playbackMode === 'loop-all'" 
-            class="material-icons loop-icon">
+            <!-- Loop icon for "single playback", "loop single file" and "loop all files" -->
+            <i v-if="playbackMode === 'single' || playbackMode === 'loop-single' || playbackMode === 'loop-all'" class="material-icons loop-icon">
                 <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
                 {{ playbackMode === 'loop-single' ? 'repeat_one' : 'repeat' }}
             </i>
@@ -689,14 +689,11 @@ export default {
                 currentIndex: currentIndex,
                 mode: this.playbackMode
                 });
-                console.log('Updated current queue index to:', currentIndex);
             } else {
                 this.setupPlaybackQueue(true);
             }
         },
         async playNext() {
-            console.log('Playing next, mode:', this.playbackMode, 'queue length:', this.playbackQueue.length, 'current index:', this.currentQueueIndex);
-
             if (this.isNavigating || this.playbackQueue.length === 0) {
                 console.log('Cannot play next: navigating or empty queue');
                 return;
@@ -889,7 +886,6 @@ export default {
                     const menu = playbackPanel.querySelector('div[role="menu"]');
 
                     if (!this.playbackMenuInitialized || modeChanged) {
-                        console.log('Creating/recreating playback menu buttons with mode:', this.playbackMode);
 
                         // Create the menu options
                         menu.innerHTML = `
