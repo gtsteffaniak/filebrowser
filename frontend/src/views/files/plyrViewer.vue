@@ -255,17 +255,6 @@ export default {
         isPlaying() {
             return state.playbackQueue?.isPlaying || false;
         },
-        currentPlayerRef() {
-            if (this.useDefaultMediaPlayer) {
-                return this.previewType === 'video' 
-                    ? this.$refs.defaultVideoPlayer 
-                    : this.$refs.defaultAudioPlayer;
-            } else {
-                return this.previewType === 'video' 
-                    ? this.$refs.videoPlayer 
-                    : this.$refs.audioPlayer;
-            }
-        },
     },
     mounted() {
         this.updateMedia();
@@ -824,19 +813,20 @@ export default {
         },
         restartCurrentFile() {
             console.log('Restarting current file');
-            this.playerAction('currentTime', 0);
-            this.playerAction('play');
-        },
-        playerAction(action, ...args) {
-            const player = this.currentPlayerRef;
-            if (!player) return null;
-            
-            if (this.useDefaultMediaPlayer) {
-                return player[action]?.(...args);
-            } else if (player.player) {
-                return player.player[action]?.(...args);
+            const player = this.getCurrentPlayer();
+            if (player) {
+                if (this.useDefaultMediaPlayer) {
+                    // HTML5 player
+                    player.currentTime = 0;
+                    player.play();
+                } else {
+                    // Plyr player
+                    if (player.player) {
+                        player.player.currentTime = 0;
+                        player.player.play();
+                    }
+                }
             }
-            return null;
         },
         handleMediaEnd() {
             const modeActions = {
