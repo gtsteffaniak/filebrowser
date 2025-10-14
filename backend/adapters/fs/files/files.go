@@ -43,13 +43,15 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.E
 	opts.IsDir = isDir
 	var info *iteminfo.FileInfo
 
-	// Skip index operations for viewable paths - go straight to filesystem
+	// Check if path is viewable (allows filesystem access without indexing)
 	isViewable := index.IsViewable(isDir, opts.Path)
 
-	if isDir && !isViewable {
+	// For non-viewable paths, verify they are indexed
+	// Skip this check if indexing is disabled for the entire source
+	if !isViewable && !index.Config.DisableIndexing {
 		err = index.RefreshFileInfo(opts)
 		if err != nil {
-			return response, fmt.Errorf("could not refresh file info: %v", err)
+			return response, fmt.Errorf("path not accessible: %v", err)
 		}
 	}
 
@@ -59,22 +61,11 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.E
 			return response, err
 		}
 	} else {
-		var fileInfo os.FileInfo
-		// Get file info directly from filesystem
-		fileInfo, err = os.Stat(realPath)
+		// For files, get info from parent directory to ensure HasPreview is set correctly
+		info, err = index.GetFsDirInfo(opts.Path)
 		if err != nil {
-			return response, fmt.Errorf("could not stat file: %v", err)
+			return response, err
 		}
-
-		info = &iteminfo.FileInfo{
-			Path: opts.Path,
-			ItemInfo: iteminfo.ItemInfo{
-				Name:    fileInfo.Name(),
-				Size:    fileInfo.Size(),
-				ModTime: fileInfo.ModTime(),
-			},
-		}
-		info.DetectType(realPath, false)
 	}
 
 	response.FileInfo = *info

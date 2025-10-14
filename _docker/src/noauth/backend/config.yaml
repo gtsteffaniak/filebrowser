@@ -7,9 +7,11 @@ server:
     - path: "../frontend/tests/playwright-files"
       config:
         defaultEnabled: true
-        exclude:
+        conditionals:
           folderPaths:
-            - "excluded"
+            - value: "excluded"
+            - value: "excludedButVisible"
+              viewable: true
 
 auth:
   methods:

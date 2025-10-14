@@ -232,6 +232,10 @@ func (idx *Index) GetFsDirInfo(adjustedPath string) (*iteminfo.FileInfo, error) 
 			},
 		}
 		fileInfo.DetectType(realPath, false)
+
+		// Set HasPreview flags using consolidated helper
+		setFilePreviewFlags(&fileInfo.ItemInfo, realPath)
+
 		return &fileInfo, nil
 	}
 
@@ -300,14 +304,18 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 		isDir := iteminfo.IsDirectory(file)
 		baseName := file.Name()
 		fullCombined := combinedPath + baseName
-		if adjustedPath == "/" && !config.CheckViewable {
-			if idx.shouldSkip(isDir, hidden, combinedPath, file.Name(), config) {
+
+		// Skip logic based on mode
+		if config.CheckViewable {
+			// When checking viewable items: skip if shouldSkip=true AND not viewable
+			if idx.shouldSkip(isDir, hidden, fullCombined, baseName, config) && !idx.IsViewable(isDir, fullCombined) {
 				continue
 			}
-		}
-
-		if !config.CheckViewable && idx.shouldSkip(isDir, hidden, fullCombined, baseName, config) {
-			continue
+		} else {
+			// Normal indexing mode: skip if shouldSkip=true
+			if idx.shouldSkip(isDir, hidden, fullCombined, baseName, config) {
+				continue
+			}
 		}
 		itemInfo := &iteminfo.ItemInfo{
 			Name:    file.Name(),
@@ -355,55 +363,27 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 		} else {
 			size, shouldCountSize := idx.handleFile(file, fullCombined)
 			itemInfo.DetectType(realPath+"/"+file.Name(), false)
-			simpleType := strings.Split(itemInfo.Type, "/")[0]
-			if simpleType == "audio" {
-				// Check if this file is new or changed by comparing with previous metadata
-				shouldCheckAlbumArt := false
-				previousInfo, exists := idx.GetReducedMetadata(fullCombined, false)
-				if !exists {
-					// File is new - check album art
-					shouldCheckAlbumArt = true
-				} else if previousInfo.ModTime != file.ModTime() {
-					// File has been modified - check album art
-					shouldCheckAlbumArt = true
-				} else {
-					// File unchanged - use cached album art info
-					itemInfo.HasPreview = previousInfo.HasPreview
+			// Set HasPreview flags - use cached metadata optimization only when indexing is enabled
+			if !idx.Config.DisableIndexing && config.Recursive {
+				// Optimization: For audio files during indexing, check if we can use cached album art info
+				simpleType := strings.Split(itemInfo.Type, "/")[0]
+				if simpleType == "audio" {
+					previousInfo, exists := idx.GetReducedMetadata(fullCombined, false)
+					if exists && previousInfo.ModTime == file.ModTime() {
+						// File unchanged - use cached album art info
+						itemInfo.HasPreview = previousInfo.HasPreview
+					}
 				}
+			}
+			// When indexing is disabled or CheckViewable mode, always check directly
+			setFilePreviewFlags(itemInfo, realPath+"/"+file.Name())
 
-				if shouldCheckAlbumArt {
-					itemInfo.HasPreview = iteminfo.HasAlbumArt(realPath+"/"+file.Name(), filepath.Ext(file.Name()))
-				}
-			}
-			ext := strings.ToLower(filepath.Ext(file.Name()))
-			extWithoutPeriod := strings.TrimPrefix(ext, ".")
-			if simpleType == "image" {
-				itemInfo.HasPreview = true
-			}
-			switch extWithoutPeriod {
-			case "heic", "heif":
-				if settings.CanConvertImage(extWithoutPeriod) {
-					itemInfo.HasPreview = true
-				}
-			}
-			if simpleType == "video" && settings.CanConvertVideo(extWithoutPeriod) {
-				itemInfo.HasPreview = true
-			}
 			itemInfo.Size = int64(size)
 
 			// Update parent folder preview status for images, videos, and audio with album art
 			// Use shared function to determine if this file type should bubble up to folder preview
 			if itemInfo.HasPreview && iteminfo.ShouldBubbleUpToFolderPreview(*itemInfo) {
 				hasPreview = true
-			}
-
-			// Set HasPreview for office docs and PDFs
-			// These files are previewable but DON'T set parent folder preview
-			if settings.Config.Integrations.OnlyOffice.Secret != "" && iteminfo.IsOnlyOffice(file.Name()) {
-				itemInfo.HasPreview = true
-			}
-			if iteminfo.HasDocConvertableExtension(itemInfo.Name, itemInfo.Type) {
-				itemInfo.HasPreview = true
 			}
 
 			fileInfos = append(fileInfos, *itemInfo)
@@ -538,6 +518,45 @@ func isHidden(file os.FileInfo, srcPath string) bool {
 	return false
 }
 
+// setFilePreviewFlags determines if a file should have a preview based on its type
+// This consolidates the logic used in both GetFsDirInfo and GetDirInfo
+func setFilePreviewFlags(fileInfo *iteminfo.ItemInfo, realPath string) {
+	simpleType := strings.Split(fileInfo.Type, "/")[0]
+	ext := strings.ToLower(filepath.Ext(fileInfo.Name))
+	extWithoutPeriod := strings.TrimPrefix(ext, ".")
+
+	// Check if it's an image
+	if simpleType == "image" {
+		fileInfo.HasPreview = true
+	}
+
+	// Check for HEIC/HEIF
+	switch extWithoutPeriod {
+	case "heic", "heif":
+		if settings.CanConvertImage(extWithoutPeriod) {
+			fileInfo.HasPreview = true
+		}
+	}
+
+	// Check if it's a video
+	if simpleType == "video" && settings.CanConvertVideo(extWithoutPeriod) {
+		fileInfo.HasPreview = true
+	}
+
+	// Check for audio with album art (always check, don't rely on cache)
+	if simpleType == "audio" {
+		fileInfo.HasPreview = iteminfo.HasAlbumArt(realPath, ext)
+	}
+
+	// Check for office docs and PDFs
+	if settings.Config.Integrations.OnlyOffice.Secret != "" && iteminfo.IsOnlyOffice(fileInfo.Name) {
+		fileInfo.HasPreview = true
+	}
+	if iteminfo.HasDocConvertableExtension(fileInfo.Name, fileInfo.Type) {
+		fileInfo.HasPreview = true
+	}
+}
+
 // matchResult represents the outcome of checking conditional rules
 type matchResult int
 
@@ -637,10 +656,26 @@ func (idx *Index) IsViewable(isDir bool, adjustedPath string) bool {
 				return true
 			}
 		}
-		// Check if parent directory is viewable
+		// Check if parent directory is viewable (recursively check all parent rules)
 		parent := filepath.Dir(adjustedPath)
+		parentBaseName := filepath.Base(strings.TrimSuffix(parent, "/"))
+
+		// Check parent against all folder rules
+		if rule, exists := maps.FolderNamesMap[parentBaseName]; exists && !rule.Index && rule.Viewable {
+			return true
+		}
 		for _, rule := range rules.FolderPaths {
 			if strings.HasPrefix(parent, rule.Value) && !rule.Index && rule.Viewable {
+				return true
+			}
+		}
+		for _, rule := range rules.FolderEndsWith {
+			if strings.HasSuffix(parentBaseName, rule.Value) && !rule.Index && rule.Viewable {
+				return true
+			}
+		}
+		for _, rule := range rules.FolderStartsWith {
+			if strings.HasPrefix(parentBaseName, rule.Value) && !rule.Index && rule.Viewable {
 				return true
 			}
 		}
@@ -649,7 +684,13 @@ func (idx *Index) IsViewable(isDir bool, adjustedPath string) bool {
 }
 
 func (idx *Index) shouldSkip(isDir bool, isHidden bool, fullCombined, baseName string, config *actionConfig) bool {
+	// When indexing is disabled globally, behavior depends on the mode
 	if idx.Config.DisableIndexing {
+		// If checking viewable (filesystem access), don't skip - show everything from filesystem
+		if config != nil && config.CheckViewable {
+			return false
+		}
+		// If indexing mode, skip everything
 		return true
 	}
 
