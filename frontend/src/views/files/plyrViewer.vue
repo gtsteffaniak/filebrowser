@@ -1,5 +1,5 @@
 <template>
-    <div class="plyr-viewer" :key="`${previewType}-${raw}`">
+    <div class="plyr-viewer">
         <!-- Audio with plyr -->
         <div v-if="previewType == 'audio' && !useDefaultMediaPlayer" class="audio-player-container">
             <div class="audio-player-content">
@@ -47,24 +47,30 @@
         </div>
 
         <!-- Video with plyr -->
-        <vue-plyr v-else-if="previewType == 'video' && !useDefaultMediaPlayer" ref="videoPlayer"
-            :options="plyrOptions">
-            <video :src="raw" :autoplay="shouldAutoPlay" @play="handlePlay">
+        <div v-else-if="previewType == 'video' && !useDefaultMediaPlayer" class="video-player-container">
+            <vue-plyr ref="videoPlayer" :options="plyrOptions">
+                <video :src="raw" :autoplay="shouldAutoPlay" @play="handlePlay">
+                    <track kind="captions" v-for="(sub, index) in subtitlesList" :key="index" :src="sub.src"
+                        :label="'Subtitle ' + sub.name" :default="index === 0" />
+                </video>
+            </vue-plyr>
+        </div>
+
+        <!-- Default HTML5 Audio -->
+        <div v-else-if="previewType == 'audio' && useDefaultMediaPlayer" class="audio-player-container">
+            <audio ref="defaultAudioPlayer" :src="raw"
+                controls :autoplay="shouldAutoPlay" @play="handlePlay">
+            </audio>
+        </div>
+
+        <!-- Default HTML5 Video -->
+        <div v-else-if="previewType == 'video' && useDefaultMediaPlayer" class="video-player-container">
+            <video ref="defaultVideoPlayer" :src="raw"
+                controls :autoplay="shouldAutoPlay" @play="handlePlay">
                 <track kind="captions" v-for="(sub, index) in subtitlesList" :key="index" :src="sub.src"
                     :label="'Subtitle ' + sub.name" :default="index === 0" />
             </video>
-        </vue-plyr>
-
-        <!-- Default HTML5 Audio -->
-        <audio v-else-if="previewType == 'audio' && useDefaultMediaPlayer" ref="defaultAudioPlayer" :src="raw"
-            controls :autoplay="shouldAutoPlay" @play="handlePlay"></audio>
-
-        <!-- Default HTML5 Video -->
-        <video v-else-if="previewType == 'video' && useDefaultMediaPlayer" ref="defaultVideoPlayer" :src="raw"
-            controls :autoplay="shouldAutoPlay" @play="handlePlay">
-            <track kind="captions" v-for="(sub, index) in subtitlesList" :key="index" :src="sub.src"
-                :label="'Subtitle ' + sub.name" :default="index === 0" />
-        </video>
+        </div>
 
         <button
             v-if="showQueueButton"
@@ -1131,14 +1137,13 @@ export default {
 *** VIDEO ***
 ************/
 
-/* Video settings (like rounded corners to the video itself) */
-.plyr video {
-    border-radius: 12px;
+/* Video container size */
+.video-player-container {
     width: 100%;
     height: 100%;
 }
 
-/* Video container size */
+/* Video size in the container */
 .plyr.plyr--video {
     width: 100%;
     height: 100%;
