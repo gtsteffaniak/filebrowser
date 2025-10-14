@@ -369,7 +369,7 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 				simpleType := strings.Split(itemInfo.Type, "/")[0]
 				if simpleType == "audio" {
 					previousInfo, exists := idx.GetReducedMetadata(fullCombined, false)
-					if exists && previousInfo.ModTime == file.ModTime() {
+					if exists && time.Time.Equal(previousInfo.ModTime, file.ModTime()) {
 						// File unchanged - use cached album art info
 						itemInfo.HasPreview = previousInfo.HasPreview
 					}
