@@ -15,7 +15,6 @@ import (
 
 	"github.com/dhowden/tag"
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
-	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/access"
@@ -43,59 +42,39 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.E
 	}
 	opts.IsDir = isDir
 	var info *iteminfo.FileInfo
-	var exists bool
-	var useFsInfo bool
 
-	// Check if indexing is disabled for this source
-	if index.Config.DisableIndexing {
-		useFsInfo = true
-	}
+	// Skip index operations for viewable paths - go straight to filesystem
+	isViewable := index.IsViewable(isDir, opts.Path)
 
-	if !useFsInfo && isDir {
+	if isDir && !isViewable {
 		err = index.RefreshFileInfo(opts)
 		if err != nil {
-			if err == errors.ErrNotIndexed {
-				return response, fmt.Errorf("could not refresh file info: %v", err)
-			}
+			return response, fmt.Errorf("could not refresh file info: %v", err)
 		}
 	}
 
-	if useFsInfo {
-		if isDir {
-			info, err = index.GetFsDirInfo(opts.Path)
-			if err != nil {
-				return response, err
-			}
-		} else {
-			var fileInfo os.FileInfo
-			// Get file info directly from filesystem
-			fileInfo, err = os.Stat(realPath)
-			if err != nil {
-				return response, fmt.Errorf("could not stat file: %v", err)
-			}
-
-			info = &iteminfo.FileInfo{
-				Path: opts.Path,
-				ItemInfo: iteminfo.ItemInfo{
-					Name:    fileInfo.Name(),
-					Size:    fileInfo.Size(),
-					ModTime: fileInfo.ModTime(),
-				},
-			}
-			info.DetectType(realPath, false)
+	if isDir {
+		info, err = index.GetFsDirInfo(opts.Path)
+		if err != nil {
+			return response, err
 		}
 	} else {
-		info, exists = index.GetReducedMetadata(opts.Path, opts.IsDir)
-		if !exists {
-			err = index.RefreshFileInfo(opts)
-			if err != nil {
-				return response, fmt.Errorf("could not refresh file info: %v", err)
-			}
-			info, exists = index.GetReducedMetadata(opts.Path, opts.IsDir)
-			if !exists {
-				return response, fmt.Errorf("could not get metadata for path: %v", opts.Path)
-			}
+		var fileInfo os.FileInfo
+		// Get file info directly from filesystem
+		fileInfo, err = os.Stat(realPath)
+		if err != nil {
+			return response, fmt.Errorf("could not stat file: %v", err)
 		}
+
+		info = &iteminfo.FileInfo{
+			Path: opts.Path,
+			ItemInfo: iteminfo.ItemInfo{
+				Name:    fileInfo.Name(),
+				Size:    fileInfo.Size(),
+				ModTime: fileInfo.ModTime(),
+			},
+		}
+		info.DetectType(realPath, false)
 	}
 
 	response.FileInfo = *info
@@ -272,6 +251,11 @@ func RefreshIndex(source string, path string, isDir bool, recursive bool) error 
 	// MakeIndexPath always adds trailing slash, but for files we need to remove it
 	if !isDir {
 		path = strings.TrimSuffix(path, "/")
+	}
+
+	// Skip indexing for viewable paths (viewable: true means don't index, just allow FS access)
+	if idx.IsViewable(isDir, path) {
+		return nil
 	}
 
 	err := idx.RefreshFileInfo(utils.FileOptions{Path: path, IsDir: isDir, Recursive: recursive})

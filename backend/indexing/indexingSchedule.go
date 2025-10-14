@@ -56,7 +56,7 @@ func (idx *Index) PreScan() error {
 func (idx *Index) PostScan() error {
 	idx.mu.Lock()
 	idx.garbageCollection()
-	idx.hasIndex = true
+	idx.wasIndexed = true
 	idx.runningScannerCount--
 	idx.mu.Unlock()
 	if idx.runningScannerCount == 0 {
@@ -153,8 +153,9 @@ func (idx *Index) RunIndexing(origin string, quick bool) {
 	idx.FilesChangedDuringIndexing = false
 	// Perform the indexing operation
 	config := &actionConfig{
-		Quick:     quick,
-		Recursive: true,
+		Quick:         quick,
+		Recursive:     true,
+		IsRoutineScan: idx.wasIndexed, // This is a routine scan if we already have an index
 	}
 	err = idx.indexDirectory("/", config)
 	if err != nil {

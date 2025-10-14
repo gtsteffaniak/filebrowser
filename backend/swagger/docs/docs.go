@@ -2910,7 +2910,7 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "neverWatch": {
-                    "description": "Index the file/folder in the first pass to get included in search, but never re-indexed.",
+                    "description": "Index the folder in the first pass to get included in search, but never re-indexed.",
                     "type": "boolean"
                 },
                 "value": {

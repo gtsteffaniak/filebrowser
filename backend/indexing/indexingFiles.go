@@ -25,9 +25,10 @@ var (
 
 // actionConfig holds all configuration options for indexing operations
 type actionConfig struct {
-	Quick      bool // whether to perform a quick scan (skip unchanged directories)
-	Recursive  bool // whether to recursively index subdirectories
-	ForceCheck bool // whether to check indexing skip rules.
+	Quick         bool // whether to perform a quick scan (skip unchanged directories)
+	Recursive     bool // whether to recursively index subdirectories
+	CheckViewable bool // whether to check if the path has viewable:true (for API access checks)
+	IsRoutineScan bool // whether this is a routine/scheduled scan (vs initial indexing)
 }
 
 // NewactionConfig creates a new actionConfig with common presets
@@ -64,7 +65,7 @@ type Index struct {
 	FilesChangedDuringIndexing bool                          `json:"-"`
 	mock                       bool
 	mu                         sync.RWMutex
-	hasIndex                   bool
+	wasIndexed                 bool
 	FoundHardLinks             map[string]uint64   `json:"-"` // hardlink path -> size
 	processedInodes            map[uint64]struct{} `json:"-"`
 	totalSize                  uint64              `json:"-"`
@@ -149,7 +150,7 @@ func (idx *Index) indexDirectory(adjustedPath string, config *actionConfig) erro
 
 	// check if excluded from indexing
 	hidden := isHidden(dirInfo, idx.Path+adjustedPath)
-	if idx.shouldSkip(dirInfo.IsDir(), hidden, adjustedPath, dirInfo.Name()) {
+	if idx.shouldSkip(dirInfo.IsDir(), hidden, adjustedPath, dirInfo.Name(), config) {
 		return errors.ErrNotIndexed
 	}
 
@@ -242,9 +243,9 @@ func (idx *Index) GetFsDirInfo(adjustedPath string) (*iteminfo.FileInfo, error) 
 	combinedPath := adjustedPath
 	var response *iteminfo.FileInfo
 	response, err = idx.GetDirInfo(dir, dirInfo, realPath, adjustedPath, combinedPath, &actionConfig{
-		Quick:      false,
-		Recursive:  false,
-		ForceCheck: true,
+		Quick:         false,
+		Recursive:     false,
+		CheckViewable: true,
 	})
 	if err != nil {
 		return nil, err
@@ -299,12 +300,13 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 		isDir := iteminfo.IsDirectory(file)
 		baseName := file.Name()
 		fullCombined := combinedPath + baseName
-		if adjustedPath == "/" {
-			if idx.shouldSkip(isDir, hidden, combinedPath, file.Name()) {
+		if adjustedPath == "/" && !config.CheckViewable {
+			if idx.shouldSkip(isDir, hidden, combinedPath, file.Name(), config) {
 				continue
 			}
 		}
-		if !config.ForceCheck && idx.shouldSkip(isDir, hidden, fullCombined, baseName) {
+
+		if !config.CheckViewable && idx.shouldSkip(isDir, hidden, fullCombined, baseName, config) {
 			continue
 		}
 		itemInfo := &iteminfo.ItemInfo{
@@ -315,7 +317,7 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 
 		if isDir {
 			dirPath := combinedPath + file.Name()
-			if idx.hasIndex && config.Recursive && len(idx.Config.NeverWatchPaths) > 0 {
+			if idx.wasIndexed && config.Recursive && len(idx.Config.NeverWatchPaths) > 0 {
 				if slices.Contains(idx.Config.NeverWatchPaths, fullCombined) {
 					realDirInfo, exists := idx.GetMetadataInfo(dirPath, true)
 					if exists {
@@ -583,7 +585,70 @@ func checkSuffixMatch(rules []settings.ConditionalIndexConfig, value string) mat
 	return noMatch
 }
 
-func (idx *Index) shouldSkip(isDir bool, isHidden bool, fullCombined, baseName string) bool {
+// IsViewable checks if a path has viewable:true (allows FS access without indexing)
+func (idx *Index) IsViewable(isDir bool, adjustedPath string) bool {
+	maps := idx.Config.ConditionalsMap
+	rules := &idx.Config.Conditionals
+	if maps == nil {
+		return false
+	}
+
+	baseName := filepath.Base(strings.TrimSuffix(adjustedPath, "/"))
+
+	if isDir {
+		// Exact match (O(1))
+		if rule, exists := maps.FolderNamesMap[baseName]; exists && !rule.Index && rule.Viewable {
+			return true
+		}
+		// Prefix/suffix (O(n))
+		for _, rule := range rules.FolderPaths {
+			if strings.HasPrefix(adjustedPath, rule.Value) && !rule.Index && rule.Viewable {
+				return true
+			}
+		}
+		for _, rule := range rules.FolderEndsWith {
+			if strings.HasSuffix(baseName, rule.Value) && !rule.Index && rule.Viewable {
+				return true
+			}
+		}
+		for _, rule := range rules.FolderStartsWith {
+			if strings.HasPrefix(baseName, rule.Value) && !rule.Index && rule.Viewable {
+				return true
+			}
+		}
+	} else {
+		// Exact match (O(1))
+		if rule, exists := maps.FileNamesMap[baseName]; exists && !rule.Index && rule.Viewable {
+			return true
+		}
+		// Prefix/suffix (O(n))
+		for _, rule := range rules.FilePaths {
+			if strings.HasPrefix(adjustedPath, rule.Value) && !rule.Index && rule.Viewable {
+				return true
+			}
+		}
+		for _, rule := range rules.FileEndsWith {
+			if strings.HasSuffix(baseName, rule.Value) && !rule.Index && rule.Viewable {
+				return true
+			}
+		}
+		for _, rule := range rules.FileStartsWith {
+			if strings.HasPrefix(baseName, rule.Value) && !rule.Index && rule.Viewable {
+				return true
+			}
+		}
+		// Check if parent directory is viewable
+		parent := filepath.Dir(adjustedPath)
+		for _, rule := range rules.FolderPaths {
+			if strings.HasPrefix(parent, rule.Value) && !rule.Index && rule.Viewable {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func (idx *Index) shouldSkip(isDir bool, isHidden bool, fullCombined, baseName string, config *actionConfig) bool {
 	if idx.Config.DisableIndexing {
 		return true
 	}
@@ -597,7 +662,32 @@ func (idx *Index) shouldSkip(isDir bool, isHidden bool, fullCombined, baseName s
 		return false
 	}
 
+	if isDir && config != nil && config.IsRoutineScan {
+		// Check NeverWatch: Skip directories with index=true AND neverWatch=true during routine scans
+		// This allows them to be indexed once but never re-scanned
+		checkNeverWatchIndexed := func(rules []settings.ConditionalIndexConfig, value string, matchFunc func(string, string) bool) bool {
+			for _, rule := range rules {
+				if matchFunc(rule.Value, value) && rule.Index && rule.NeverWatch {
+					return true
+				}
+			}
+			return false
+		}
+
+		exactMatch := func(a, b string) bool { return a == b }
+		prefixMatch := func(a, b string) bool { return strings.HasPrefix(b, a) }
+		suffixMatch := func(a, b string) bool { return strings.HasSuffix(b, a) }
+
+		if checkNeverWatchIndexed(rules.FolderNames, baseName, exactMatch) ||
+			checkNeverWatchIndexed(rules.FolderPaths, fullCombined, prefixMatch) ||
+			checkNeverWatchIndexed(rules.FolderEndsWith, baseName, suffixMatch) ||
+			checkNeverWatchIndexed(rules.FolderStartsWith, baseName, prefixMatch) {
+			return true // Skip this directory during routine scans
+		}
+	}
+
 	if isDir {
+
 		// Check FolderNames (exact match on base name) - O(1) lookup
 		if len(maps.FolderNamesMap) > 0 {
 			if result := checkExactMatch(maps.FolderNamesMap, baseName); result == shouldSkip {

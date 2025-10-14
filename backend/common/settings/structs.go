@@ -194,7 +194,7 @@ type ConditionalIndexConfig struct {
 	Value      string `json:"value"`      // The path or file name or value to match
 	Index      bool   `json:"index"`      // Index the file/folder in the index
 	Viewable   bool   `json:"viewable"`   // Enable viewing in UI but exclude from indexing
-	NeverWatch bool   `json:"neverWatch"` // Index the file/folder in the first pass to get included in search, but never re-indexed.
+	NeverWatch bool   `json:"neverWatch"` // Index the folder in the first pass to get included in search, but never re-indexed.
 }
 
 // ConditionalMaps provides O(1) lookup performance for conditional rules

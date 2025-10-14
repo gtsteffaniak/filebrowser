@@ -167,7 +167,7 @@ func TestCheckIndexExclude(t *testing.T) {
 					},
 				},
 			}
-			result := idx.shouldSkip(tc.isDir, tc.isHidden, tc.fullPath, tc.baseName)
+			result := idx.shouldSkip(tc.isDir, tc.isHidden, tc.fullPath, tc.baseName, nil)
 			if result != tc.expect {
 				t.Errorf("shouldSkip(%v, %v, %q, %q) = %v; want %v", tc.isDir, tc.isHidden, tc.fullPath, tc.baseName, result, tc.expect)
 			}
