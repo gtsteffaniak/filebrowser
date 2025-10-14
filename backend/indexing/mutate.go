@@ -167,8 +167,9 @@ func GetIndexInfo(sourceName string) (ReducedIndex, error) {
 	if !ok {
 		totalBytes, err := getPartitionSize(sourcePath)
 		if err != nil {
-			logger.Errorf("error getting disk usage for %s: %v", sourcePath, err)
-			idx.SetStatus(UNAVAILABLE)
+			idx.mu.Lock()
+			idx.Status = UNAVAILABLE
+			idx.mu.Unlock()
 			return ReducedIndex{}, fmt.Errorf("error getting disk usage for %s: %v", sourcePath, err)
 		}
 

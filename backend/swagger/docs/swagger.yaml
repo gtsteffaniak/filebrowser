@@ -167,6 +167,79 @@ definitions:
         description: 'secret: secret used to encrypt TOTP secrets'
         type: string
     type: object
+  settings.ConditionalFilter:
+    properties:
+      fileEndsWith:
+        description: (global) exclude files that end with these suffixes. Eg. ".jpg"
+          or ".txt"
+        items:
+          $ref: '#/definitions/settings.ConditionalIndexConfig'
+        type: array
+      fileNames:
+        description: (global) list of file names to include/exclude. Eg. "a.jpg"
+        items:
+          $ref: '#/definitions/settings.ConditionalIndexConfig'
+        type: array
+      filePaths:
+        description: list of filepaths Eg. "folder1" or "file1.txt" or "folder1/file1.txt"
+          (without source path prefix)
+        items:
+          $ref: '#/definitions/settings.ConditionalIndexConfig'
+        type: array
+      fileStartsWith:
+        description: (global) exclude files that start with these prefixes. Eg. "archive-"
+          or "backup-"
+        items:
+          $ref: '#/definitions/settings.ConditionalIndexConfig'
+        type: array
+      folderEndsWith:
+        description: (global) exclude folders that end with these suffixes. Eg. ".thumbnails"
+          or ".git"
+        items:
+          $ref: '#/definitions/settings.ConditionalIndexConfig'
+        type: array
+      folderNames:
+        description: (global) list of folder names to include/exclude. Eg. "@eadir"
+          or ".thumbnails"
+        items:
+          $ref: '#/definitions/settings.ConditionalIndexConfig'
+        type: array
+      folderPaths:
+        description: (filepath) list of folder names to include/exclude. Eg. "folder1"
+          or "folder1/subfolder" (do not include source path, just the subpaths from
+          the source path)
+        items:
+          $ref: '#/definitions/settings.ConditionalIndexConfig'
+        type: array
+      folderStartsWith:
+        description: (global) exclude folders that start with these prefixes. Eg.
+          "archive-" or "backup-"
+        items:
+          $ref: '#/definitions/settings.ConditionalIndexConfig'
+        type: array
+      hidden:
+        description: exclude hidden files and folders.
+        type: boolean
+      ignoreZeroSizeFolders:
+        description: ignore folders with 0 size
+        type: boolean
+    type: object
+  settings.ConditionalIndexConfig:
+    properties:
+      index:
+        description: Index the file/folder in the index
+        type: boolean
+      neverWatch:
+        description: Index the file/folder in the first pass to get included in search,
+          but never re-indexed.
+        type: boolean
+      value:
+        description: The path or file name or value to match
+        type: string
+      viewable:
+        description: Enable viewing in UI but exclude from indexing
+        type: boolean
+    type: object
   settings.CustomTheme:
     properties:
       css:
@@ -175,63 +248,6 @@ definitions:
       description:
         description: The description of the theme to display in the UI.
         type: string
-    type: object
-  settings.ExcludeIndexFilter:
-    properties:
-      fileEndsWith:
-        description: (global) exclude files that end with these suffixes. Eg. ".jpg"
-          or ".txt"
-        items:
-          type: string
-        type: array
-      fileNames:
-        description: (global) list of file names to include/exclude. Eg. "a.jpg"
-        items:
-          type: string
-        type: array
-      filePaths:
-        description: list of filepaths Eg. "folder1" or "file1.txt" or "folder1/file1.txt"
-          (without source path prefix)
-        items:
-          type: string
-        type: array
-      fileStartsWith:
-        description: (global) exclude files that start with these prefixes. Eg. "archive-"
-          or "backup-"
-        items:
-          type: string
-        type: array
-      folderEndsWith:
-        description: (global) exclude folders that end with these suffixes. Eg. ".thumbnails"
-          or ".git"
-        items:
-          type: string
-        type: array
-      folderNames:
-        description: (global) list of folder names to include/exclude. Eg. "@eadir"
-          or ".thumbnails"
-        items:
-          type: string
-        type: array
-      folderPaths:
-        description: (filepath) list of folder names to include/exclude. Eg. "folder1"
-          or "folder1/subfolder" (do not include source path, just the subpaths from
-          the source path)
-        items:
-          type: string
-        type: array
-      folderStartsWith:
-        description: (global) exclude folders that start with these prefixes. Eg.
-          "archive-" or "backup-"
-        items:
-          type: string
-        type: array
-      hidden:
-        description: exclude hidden files and folders.
-        type: boolean
-      ignoreZeroSizeFolders:
-        description: ignore folders with 0 size
-        type: boolean
     type: object
   settings.ExternalLink:
     properties:
@@ -301,21 +317,6 @@ definitions:
         type: string
       styling:
         $ref: '#/definitions/settings.StylingConfig'
-    type: object
-  settings.IncludeIndexFilter:
-    properties:
-      rootFiles:
-        description: list of root files to include, relative to the source path (eg.
-          "file1.txt")
-        items:
-          type: string
-        type: array
-      rootFolders:
-        description: list of root folders to include, relative to the source path
-          (eg. "folder1")
-        items:
-          type: string
-        type: array
     type: object
   settings.Integrations:
     properties:
@@ -582,6 +583,10 @@ definitions:
     type: object
   settings.SourceConfig:
     properties:
+      conditionals:
+        allOf:
+        - $ref: '#/definitions/settings.ConditionalFilter'
+        description: conditional rules to apply to specific paths
       createUserDir:
         description: create a user directory for each user
         type: boolean
@@ -601,14 +606,6 @@ definitions:
         description: disable the source, this is useful so you don't need to remove
           it from the config file
         type: boolean
-      exclude:
-        allOf:
-        - $ref: '#/definitions/settings.ExcludeIndexFilter'
-        description: exclude files and folders from indexing, if include is not set
-      include:
-        allOf:
-        - $ref: '#/definitions/settings.IncludeIndexFilter'
-        description: include files and folders from indexing, if exclude is not set
       indexAlbumArt:
         description: 'deprecated: always enabled since 0.8.6'
         type: boolean

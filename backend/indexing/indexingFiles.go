@@ -300,7 +300,7 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 		baseName := file.Name()
 		fullCombined := combinedPath + baseName
 		if adjustedPath == "/" {
-			if !idx.shouldInclude(isDir, combinedPath, file.Name()) {
+			if idx.shouldSkip(isDir, hidden, combinedPath, file.Name()) {
 				continue
 			}
 		}
@@ -414,7 +414,7 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 		}
 	}
 
-	if totalSize == 0 && idx.Config.Exclude.ZeroSizeFolders {
+	if totalSize == 0 && idx.Config.Conditionals.ZeroSizeFolders {
 		return nil, errors.ErrNotIndexed
 	}
 
@@ -536,29 +536,51 @@ func isHidden(file os.FileInfo, srcPath string) bool {
 	return false
 }
 
-func (idx *Index) shouldInclude(isDir bool, fullCombined, baseName string) bool {
-	rules := idx.Config.Include
-	hasRules := false
-	if len(rules.RootFolders) > 0 {
-		hasRules = true
-		for _, p := range rules.RootFolders {
-			if strings.HasPrefix(fullCombined, p) {
-				return true
+// matchResult represents the outcome of checking conditional rules
+type matchResult int
+
+const (
+	noMatch     matchResult = iota // No rule matched
+	shouldIndex                    // Rule matched and should be indexed
+	shouldSkip                     // Rule matched and should be skipped
+)
+
+// checkExactMatch checks if a value exists in the map and returns the appropriate action
+func checkExactMatch(ruleMap map[string]settings.ConditionalIndexConfig, value string) matchResult {
+	rule, exists := ruleMap[value]
+	if !exists {
+		return noMatch
+	}
+	if !rule.Index {
+		return shouldSkip
+	}
+	return shouldIndex
+}
+
+// checkPrefixMatch checks if value starts with any rule in the slice
+func checkPrefixMatch(rules []settings.ConditionalIndexConfig, value string) matchResult {
+	for _, rule := range rules {
+		if strings.HasPrefix(value, rule.Value) {
+			if !rule.Index {
+				return shouldSkip
 			}
+			return shouldIndex
 		}
 	}
-	if len(rules.RootFiles) > 0 {
-		hasRules = true
-		for _, p := range rules.RootFiles {
-			if strings.HasPrefix(fullCombined, p) {
-				return true
+	return noMatch
+}
+
+// checkSuffixMatch checks if value ends with any rule in the slice
+func checkSuffixMatch(rules []settings.ConditionalIndexConfig, value string) matchResult {
+	for _, rule := range rules {
+		if strings.HasSuffix(value, rule.Value) {
+			if !rule.Index {
+				return shouldSkip
 			}
+			return shouldIndex
 		}
 	}
-	if !hasRules {
-		return true
-	}
-	return false
+	return noMatch
 }
 
 func (idx *Index) shouldSkip(isDir bool, isHidden bool, fullCombined, baseName string) bool {
@@ -566,65 +588,77 @@ func (idx *Index) shouldSkip(isDir bool, isHidden bool, fullCombined, baseName s
 		return true
 	}
 
-	rules := idx.Config.Exclude
+	// Use optimized maps for lookups
+	maps := idx.Config.ConditionalsMap
+	rules := &idx.Config.Conditionals
+
+	if maps == nil {
+		// Fallback: maps not initialized (shouldn't happen in production)
+		return false
+	}
 
 	if isDir {
+		// Check FolderNames (exact match on base name) - O(1) lookup
+		if len(maps.FolderNamesMap) > 0 {
+			if result := checkExactMatch(maps.FolderNamesMap, baseName); result == shouldSkip {
+				return true
+			}
+		}
+
+		// Check FolderPaths (prefix match on full path) - use original slice
 		if len(rules.FolderPaths) > 0 {
-			for _, p := range rules.FolderPaths {
-				if strings.HasPrefix(fullCombined, p) {
-					return true
-				}
+			if result := checkPrefixMatch(rules.FolderPaths, fullCombined); result == shouldSkip {
+				return true
 			}
 		}
-		if len(rules.FolderNames) > 0 && slices.Contains(rules.FolderNames, baseName) {
-			return true
-		}
+
+		// Check FolderEndsWith (suffix match on base name) - use original slice
 		if len(rules.FolderEndsWith) > 0 {
-			for _, end := range rules.FolderEndsWith {
-				if strings.HasSuffix(baseName, end) {
-					return true
-				}
+			if result := checkSuffixMatch(rules.FolderEndsWith, baseName); result == shouldSkip {
+				return true
 			}
 		}
+
+		// Check FolderStartsWith (prefix match on base name) - use original slice
 		if len(rules.FolderStartsWith) > 0 {
-			for _, start := range rules.FolderStartsWith {
-				if strings.HasPrefix(baseName, start) {
-					return true
-				}
+			if result := checkPrefixMatch(rules.FolderStartsWith, baseName); result == shouldSkip {
+				return true
 			}
 		}
 	} else {
+		// Check FileNames (exact match on base name) - O(1) lookup
+		if len(maps.FileNamesMap) > 0 {
+			if result := checkExactMatch(maps.FileNamesMap, baseName); result == shouldSkip {
+				return true
+			}
+		}
+
+		// Check FilePaths (prefix match on full path) - use original slice
 		if len(rules.FilePaths) > 0 {
-			for _, p := range rules.FilePaths {
-				if strings.HasPrefix(fullCombined, p) {
-					return true
-				}
+			if result := checkPrefixMatch(rules.FilePaths, fullCombined); result == shouldSkip {
+				return true
 			}
 		}
-		if len(rules.FileNames) > 0 && slices.Contains(rules.FileNames, baseName) {
-			return true
-		}
+
+		// Check FileEndsWith (suffix match on base name) - use original slice
 		if len(rules.FileEndsWith) > 0 {
-			for _, end := range rules.FileEndsWith {
-				if strings.HasSuffix(baseName, end) {
-					return true
-				}
+			if result := checkSuffixMatch(rules.FileEndsWith, baseName); result == shouldSkip {
+				return true
 			}
 		}
+
+		// Check FileStartsWith (prefix match on base name) - use original slice
 		if len(rules.FileStartsWith) > 0 {
-			for _, start := range rules.FileStartsWith {
-				if strings.HasPrefix(baseName, start) {
-					return true
-				}
+			if result := checkPrefixMatch(rules.FileStartsWith, baseName); result == shouldSkip {
+				return true
 			}
 		}
-		// Exclude if parent directory matches FolderPaths
+
+		// Exclude if parent directory matches FolderPaths - use original slice
 		if len(rules.FolderPaths) > 0 {
 			parent := filepath.Dir(fullCombined)
-			for _, p := range rules.FolderPaths {
-				if strings.HasPrefix(parent, p) {
-					return true
-				}
+			if result := checkPrefixMatch(rules.FolderPaths, parent); result == shouldSkip {
+				return true
 			}
 		}
 	}
@@ -649,7 +683,7 @@ func (idx *Index) SetUsage(totalBytes uint64) {
 	idx.DiskTotal = totalBytes
 }
 
-func (idx *Index) SetStatus(status IndexStatus) {
+func (idx *Index) SetStatus(status IndexStatus) error {
 	idx.mu.Lock()
 	idx.Status = status
 	switch status {
@@ -659,7 +693,7 @@ func (idx *Index) SetStatus(status IndexStatus) {
 		idx.runningScannerCount = 0
 	}
 	idx.mu.Unlock()
-	idx.SendSourceUpdateEvent()
+	return idx.SendSourceUpdateEvent()
 }
 
 func (idx *Index) handleFile(file os.FileInfo, fullCombined string) (size uint64, shouldCountSize bool) {

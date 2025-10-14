@@ -160,37 +160,57 @@ type Source struct {
 }
 
 type SourceConfig struct {
-	DenyByDefault    bool               `json:"denyByDefault,omitempty"`           // deny access unless an "allow" access rule was specifically created.
-	Private          bool               `json:"private"`                           // designate as source as private -- currently just means no sharing permitted.
-	Disabled         bool               `json:"disabled,omitempty"`                // disable the source, this is useful so you don't need to remove it from the config file
-	IndexingInterval uint32             `json:"indexingIntervalMinutes,omitempty"` // optional manual overide interval in minutes to re-index the source
-	DisableIndexing  bool               `json:"disableIndexing,omitempty"`         // disable the indexing of this source
-	MaxWatchers      int                `json:"maxWatchers"`                       // number of concurrent watchers to use for this source, currently not supported
-	NeverWatchPaths  []string           `json:"neverWatchPaths"`                   // paths that get initially once. Useful for folders that rarely change contents (without source path prefix)
-	Exclude          ExcludeIndexFilter `json:"exclude"`                           // exclude files and folders from indexing, if include is not set
-	Include          IncludeIndexFilter `json:"include"`                           // include files and folders from indexing, if exclude is not set
-	DefaultUserScope string             `json:"defaultUserScope"`                  // default "/" should match folders under path
-	DefaultEnabled   bool               `json:"defaultEnabled"`                    // should be added as a default source for new users?
-	CreateUserDir    bool               `json:"createUserDir"`                     // create a user directory for each user
-	IndexAlbumArt    bool               `json:"indexAlbumArt"`                     // deprecated: always enabled since 0.8.6
+	DenyByDefault    bool              `json:"denyByDefault,omitempty"`           // deny access unless an "allow" access rule was specifically created.
+	Private          bool              `json:"private"`                           // designate as source as private -- currently just means no sharing permitted.
+	Disabled         bool              `json:"disabled,omitempty"`                // disable the source, this is useful so you don't need to remove it from the config file
+	IndexingInterval uint32            `json:"indexingIntervalMinutes,omitempty"` // optional manual overide interval in minutes to re-index the source
+	DisableIndexing  bool              `json:"disableIndexing,omitempty"`         // disable the indexing of this source
+	MaxWatchers      int               `json:"maxWatchers"`                       // number of concurrent watchers to use for this source, currently not supported
+	NeverWatchPaths  []string          `json:"neverWatchPaths"`                   // paths that get initially once. Useful for folders that rarely change contents (without source path prefix)
+	Conditionals     ConditionalFilter `json:"conditionals"`                      // conditional rules to apply to specific paths
+	DefaultUserScope string            `json:"defaultUserScope"`                  // default "/" should match folders under path
+	DefaultEnabled   bool              `json:"defaultEnabled"`                    // should be added as a default source for new users?
+	CreateUserDir    bool              `json:"createUserDir"`                     // create a user directory for each user
+	IndexAlbumArt    bool              `json:"indexAlbumArt"`                     // deprecated: always enabled since 0.8.6
+
+	// hidden but used internally - optimized map lookups for conditional rules
+	ConditionalsMap *ConditionalMaps `json:"-"`
 }
 
-type IncludeIndexFilter struct {
-	RootFolders []string `json:"rootFolders"` // list of root folders to include, relative to the source path (eg. "folder1")
-	RootFiles   []string `json:"rootFiles"`   // list of root files to include, relative to the source path (eg. "file1.txt")
+type ConditionalFilter struct {
+	Hidden           bool                     `json:"hidden"`                // exclude hidden files and folders.
+	ZeroSizeFolders  bool                     `json:"ignoreZeroSizeFolders"` // ignore folders with 0 size
+	FilePaths        []ConditionalIndexConfig `json:"filePaths"`             // list of filepaths Eg. "folder1" or "file1.txt" or "folder1/file1.txt" (without source path prefix)
+	FolderPaths      []ConditionalIndexConfig `json:"folderPaths"`           // (filepath) list of folder names to include/exclude. Eg. "folder1" or "folder1/subfolder" (do not include source path, just the subpaths from the source path)
+	FileNames        []ConditionalIndexConfig `json:"fileNames"`             // (global) list of file names to include/exclude. Eg. "a.jpg"
+	FolderNames      []ConditionalIndexConfig `json:"folderNames"`           // (global) list of folder names to include/exclude. Eg. "@eadir" or ".thumbnails"
+	FileEndsWith     []ConditionalIndexConfig `json:"fileEndsWith"`          // (global) exclude files that end with these suffixes. Eg. ".jpg" or ".txt"
+	FolderEndsWith   []ConditionalIndexConfig `json:"folderEndsWith"`        // (global) exclude folders that end with these suffixes. Eg. ".thumbnails" or ".git"
+	FileStartsWith   []ConditionalIndexConfig `json:"fileStartsWith"`        // (global) exclude files that start with these prefixes. Eg. "archive-" or "backup-"
+	FolderStartsWith []ConditionalIndexConfig `json:"folderStartsWith"`      // (global) exclude folders that start with these prefixes. Eg. "archive-" or "backup-"
 }
 
-type ExcludeIndexFilter struct {
-	Hidden           bool     `json:"hidden"`                // exclude hidden files and folders.
-	ZeroSizeFolders  bool     `json:"ignoreZeroSizeFolders"` // ignore folders with 0 size
-	FilePaths        []string `json:"filePaths"`             // list of filepaths Eg. "folder1" or "file1.txt" or "folder1/file1.txt" (without source path prefix)
-	FolderPaths      []string `json:"folderPaths"`           // (filepath) list of folder names to include/exclude. Eg. "folder1" or "folder1/subfolder" (do not include source path, just the subpaths from the source path)
-	FileNames        []string `json:"fileNames"`             // (global) list of file names to include/exclude. Eg. "a.jpg"
-	FolderNames      []string `json:"folderNames"`           // (global) list of folder names to include/exclude. Eg. "@eadir" or ".thumbnails"
-	FileEndsWith     []string `json:"fileEndsWith"`          // (global) exclude files that end with these suffixes. Eg. ".jpg" or ".txt"
-	FolderEndsWith   []string `json:"folderEndsWith"`        // (global) exclude folders that end with these suffixes. Eg. ".thumbnails" or ".git"
-	FileStartsWith   []string `json:"fileStartsWith"`        // (global) exclude files that start with these prefixes. Eg. "archive-" or "backup-"
-	FolderStartsWith []string `json:"folderStartsWith"`      // (global) exclude folders that start with these prefixes. Eg. "archive-" or "backup-"
+type ConditionalIndexConfig struct {
+	Value      string `json:"value"`      // The path or file name or value to match
+	Index      bool   `json:"index"`      // Index the file/folder in the index
+	Viewable   bool   `json:"viewable"`   // Enable viewing in UI but exclude from indexing
+	NeverWatch bool   `json:"neverWatch"` // Index the file/folder in the first pass to get included in search, but never re-indexed.
+}
+
+// ConditionalMaps provides O(1) lookup performance for conditional rules
+// Maps are built from ConditionalFilter during initialization
+type ConditionalMaps struct {
+	// Exact match maps - O(1) lookup
+	FileNamesMap   map[string]ConditionalIndexConfig // key: file name
+	FolderNamesMap map[string]ConditionalIndexConfig // key: folder name
+
+	// For prefix/suffix matches, we use the original slices from ConditionalFilter
+	FilePathsMap        map[string]ConditionalIndexConfig // key: path (for exact path checks)
+	FolderPathsMap      map[string]ConditionalIndexConfig // key: path (for exact path checks)
+	FileEndsWithMap     map[string]ConditionalIndexConfig // key: suffix
+	FolderEndsWithMap   map[string]ConditionalIndexConfig // key: suffix
+	FileStartsWithMap   map[string]ConditionalIndexConfig // key: prefix
+	FolderStartsWithMap map[string]ConditionalIndexConfig // key: prefix
 }
 
 type Frontend struct {

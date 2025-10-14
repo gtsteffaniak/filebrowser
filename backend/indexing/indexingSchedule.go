@@ -49,19 +49,20 @@ func (idx *Index) newScanner(origin string) {
 	}
 }
 
-func (idx *Index) PreScan() {
-	idx.SetStatus(INDEXING)
+func (idx *Index) PreScan() error {
+	return idx.SetStatus(INDEXING)
 }
 
-func (idx *Index) PostScan() {
+func (idx *Index) PostScan() error {
 	idx.mu.Lock()
 	idx.garbageCollection()
 	idx.hasIndex = true
 	idx.runningScannerCount--
 	idx.mu.Unlock()
 	if idx.runningScannerCount == 0 {
-		idx.SetStatus(READY)
+		return idx.SetStatus(READY)
 	}
+	return nil
 }
 
 func (idx *Index) garbageCollection() {
@@ -104,25 +105,24 @@ func (idx *Index) UpdateSchedule() {
 	}
 }
 
-func (idx *Index) SendSourceUpdateEvent() {
+func (idx *Index) SendSourceUpdateEvent() error {
 	if idx.mock {
 		logger.Debug("Skipping source update event for mock index.")
-		return
+		return nil
 	}
 	reducedIndex, err := GetIndexInfo(idx.Name)
 	if err != nil {
-		logger.Errorf("Error getting index info: %v", err)
-		return
+		return err
 	}
 	sourceAsMap := map[string]ReducedIndex{
 		idx.Name: reducedIndex,
 	}
 	message, err := json.Marshal(sourceAsMap)
 	if err != nil {
-		logger.Errorf("Error marshalling source update message: %v", err)
-		return
+		return err
 	}
 	events.SendSourceUpdate(idx.Name, string(message))
+	return nil
 }
 
 func (idx *Index) RunIndexing(origin string, quick bool) {
@@ -130,7 +130,11 @@ func (idx *Index) RunIndexing(origin string, quick bool) {
 		logger.Debugf("Indexing already in progress for [%v]", idx.Name)
 		return
 	}
-	idx.PreScan()
+	err := idx.PreScan()
+	if err != nil {
+		logger.Errorf("Error during indexing: %v", err)
+		return
+	}
 
 	prevNumDirs := idx.NumDirs
 	prevNumFiles := idx.NumFiles
@@ -152,7 +156,7 @@ func (idx *Index) RunIndexing(origin string, quick bool) {
 		Quick:     quick,
 		Recursive: true,
 	}
-	err := idx.indexDirectory("/", config)
+	err = idx.indexDirectory("/", config)
 	if err != nil {
 		logger.Errorf("Error during indexing: %v", err)
 	}
@@ -187,7 +191,11 @@ func (idx *Index) RunIndexing(origin string, quick bool) {
 		logger.Debugf("Time spent indexing [%v]: %v seconds", idx.Name, idx.FullScanTime)
 	}
 
-	idx.PostScan()
+	err = idx.PostScan()
+	if err != nil {
+		logger.Errorf("Error during post scan indexing: %v", err)
+		return
+	}
 }
 
 func (idx *Index) setupIndexingScanners() {

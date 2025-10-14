@@ -29,7 +29,7 @@ server:
         disableIndexing: false            # disable the indexing of this source
         maxWatchers: 0                    # number of concurrent watchers to use for this source, currently not supported
         neverWatchPaths:                  # paths that get initially once. Useful for folders that rarely change contents (without source path prefix)
-        exclude:                          # exclude files and folders from indexing, if include is not set
+        conditionals:                     # conditional rules to apply to specific paths
           hidden: false                   # exclude hidden files and folders.
           ignoreZeroSizeFolders: false    # ignore folders with 0 size
           filePaths:                      # list of filepaths Eg. "folder1" or "file1.txt" or "folder1/file1.txt" (without source path prefix)
@@ -40,9 +40,6 @@ server:
           folderEndsWith:                 # (global) exclude folders that end with these suffixes. Eg. ".thumbnails" or ".git"
           fileStartsWith:                 # (global) exclude files that start with these prefixes. Eg. "archive-" or "backup-"
           folderStartsWith:               # (global) exclude folders that start with these prefixes. Eg. "archive-" or "backup-"
-        include:                          # include files and folders from indexing, if exclude is not set
-          rootFolders:                    # list of root folders to include, relative to the source path (eg. "folder1")
-          rootFiles:                      # list of root files to include, relative to the source path (eg. "file1.txt")
         defaultUserScope: "/"             # default "/" should match folders under path
         defaultEnabled: true              # should be added as a default source for new users?
         createUserDir: false              # create a user directory for each user
