@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Optimized font and icon loading.
  - the next/previous buttons will follow media queue order if playback mode has a queue.
  - All new exclude rules -- see [full config example](https://github.com/gtsteffaniak/filebrowser/wiki/Full-Config-Example)
+ - The order of sources will strictly match order in config.yaml. Default landing page is root first source unless otherwise configured in profile settings.
 
  **BugFixes**:
  - Remember the previous location after closing a preview #1336

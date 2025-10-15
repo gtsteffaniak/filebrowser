@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -29,14 +28,6 @@ type actionConfig struct {
 	Recursive     bool // whether to recursively index subdirectories
 	CheckViewable bool // whether to check if the path has viewable:true (for API access checks)
 	IsRoutineScan bool // whether this is a routine/scheduled scan (vs initial indexing)
-}
-
-// NewactionConfig creates a new actionConfig with common presets
-func NewactionConfig() *actionConfig {
-	return &actionConfig{
-		Quick:     false,
-		Recursive: true,
-	}
 }
 
 // reduced index is json exposed to the client
@@ -124,12 +115,12 @@ func Initialize(source *settings.Source, mock bool) {
 }
 
 // indexDirectoryWithOptions wraps indexDirectory with actionConfig
-func (idx *Index) indexDirectoryWithOptions(adjustedPath string, config *actionConfig) error {
+func (idx *Index) indexDirectoryWithOptions(adjustedPath string, config actionConfig) error {
 	return idx.indexDirectory(adjustedPath, config)
 }
 
 // Define a function to recursively index files and directories
-func (idx *Index) indexDirectory(adjustedPath string, config *actionConfig) error {
+func (idx *Index) indexDirectory(adjustedPath string, config actionConfig) error {
 	// Normalize path to always have trailing slash (except for root which is just "/")
 	if adjustedPath != "/" {
 		adjustedPath = strings.TrimSuffix(adjustedPath, "/") + "/"
@@ -183,7 +174,7 @@ func (idx *Index) indexDirectory(adjustedPath string, config *actionConfig) erro
 			idx.mu.Unlock()
 		} else if config.Quick {
 			for _, item := range cacheDirItems {
-				subConfig := &actionConfig{
+				subConfig := actionConfig{
 					Quick:     config.Quick,
 					Recursive: true,
 				}
@@ -246,7 +237,7 @@ func (idx *Index) GetFsDirInfo(adjustedPath string) (*iteminfo.FileInfo, error) 
 	// adjustedPath is already normalized with trailing slash
 	combinedPath := adjustedPath
 	var response *iteminfo.FileInfo
-	response, err = idx.GetDirInfo(dir, dirInfo, realPath, adjustedPath, combinedPath, &actionConfig{
+	response, err = idx.GetDirInfo(dir, dirInfo, realPath, adjustedPath, combinedPath, actionConfig{
 		Quick:         false,
 		Recursive:     false,
 		CheckViewable: true,
@@ -279,7 +270,7 @@ func (idx *Index) GetFsDirInfo(adjustedPath string) (*iteminfo.FileInfo, error) 
 
 }
 
-func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjustedPath, combinedPath string, config *actionConfig) (*iteminfo.FileInfo, error) {
+func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjustedPath, combinedPath string, config actionConfig) (*iteminfo.FileInfo, error) {
 	// Ensure combinedPath has exactly one trailing slash to prevent double slashes in subdirectory paths
 	combinedPath = strings.TrimRight(combinedPath, "/") + "/"
 	// Read directory contents
@@ -304,16 +295,23 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 		isDir := iteminfo.IsDirectory(file)
 		baseName := file.Name()
 		fullCombined := combinedPath + baseName
-
+		if adjustedPath == "/" {
+			if !idx.shouldInclude(file.Name()) {
+				continue
+			}
+		}
 		// Skip logic based on mode
 		if config.CheckViewable {
+			fmt.Println("checking viewable", file.Name())
 			// When checking viewable items: skip if shouldSkip=true AND not viewable
 			if idx.shouldSkip(isDir, hidden, fullCombined, baseName, config) && !idx.IsViewable(isDir, fullCombined) {
+				fmt.Println("skipping viewable", file.Name())
 				continue
 			}
 		} else {
 			// Normal indexing mode: skip if shouldSkip=true
 			if idx.shouldSkip(isDir, hidden, fullCombined, baseName, config) {
+				fmt.Println("skipping", file.Name())
 				continue
 			}
 		}
@@ -325,17 +323,20 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 
 		if isDir {
 			dirPath := combinedPath + file.Name()
-			if idx.wasIndexed && config.Recursive && len(idx.Config.NeverWatchPaths) > 0 {
-				if slices.Contains(idx.Config.NeverWatchPaths, fullCombined) {
+			// Check NeverWatchPaths map - O(1) lookup for paths with neverWatch: true
+			if idx.wasIndexed && config.Recursive && idx.Config.ResolvedConditionals != nil {
+				if _, exists := idx.Config.ResolvedConditionals.NeverWatchPaths[fullCombined]; exists {
 					realDirInfo, exists := idx.GetMetadataInfo(dirPath, true)
 					if exists {
 						itemInfo.Size = realDirInfo.Size
 					}
+					fmt.Println("skipping never watch", file.Name())
 					continue
 				}
 			}
 			// skip non-indexable dirs.
 			if omitList[file.Name()] {
+				fmt.Println("skipping omit list", file.Name())
 				continue
 			}
 
@@ -467,7 +468,7 @@ func (idx *Index) GetRealPath(relativePath ...string) (string, bool, error) {
 }
 
 func (idx *Index) RefreshFileInfo(opts utils.FileOptions) error {
-	config := &actionConfig{
+	config := actionConfig{
 		Quick:     false,
 		Recursive: opts.Recursive,
 	}
@@ -557,125 +558,51 @@ func setFilePreviewFlags(fileInfo *iteminfo.ItemInfo, realPath string) {
 	}
 }
 
-// matchResult represents the outcome of checking conditional rules
-type matchResult int
-
-const (
-	noMatch     matchResult = iota // No rule matched
-	shouldIndex                    // Rule matched and should be indexed
-	shouldSkip                     // Rule matched and should be skipped
-)
-
-// checkExactMatch checks if a value exists in the map and returns the appropriate action
-func checkExactMatch(ruleMap map[string]settings.ConditionalIndexConfig, value string) matchResult {
-	rule, exists := ruleMap[value]
-	if !exists {
-		return noMatch
-	}
-	if !rule.Index {
-		return shouldSkip
-	}
-	return shouldIndex
-}
-
-// checkPrefixMatch checks if value starts with any rule in the slice
-func checkPrefixMatch(rules []settings.ConditionalIndexConfig, value string) matchResult {
-	for _, rule := range rules {
-		if strings.HasPrefix(value, rule.Value) {
-			if !rule.Index {
-				return shouldSkip
-			}
-			return shouldIndex
-		}
-	}
-	return noMatch
-}
-
-// checkSuffixMatch checks if value ends with any rule in the slice
-func checkSuffixMatch(rules []settings.ConditionalIndexConfig, value string) matchResult {
-	for _, rule := range rules {
-		if strings.HasSuffix(value, rule.Value) {
-			if !rule.Index {
-				return shouldSkip
-			}
-			return shouldIndex
-		}
-	}
-	return noMatch
-}
-
 // IsViewable checks if a path has viewable:true (allows FS access without indexing)
 func (idx *Index) IsViewable(isDir bool, adjustedPath string) bool {
-	maps := idx.Config.ConditionalsMap
-	rules := &idx.Config.Conditionals
-	if maps == nil {
-		return false
-	}
+	rules := idx.Config.ResolvedConditionals
 
 	baseName := filepath.Base(strings.TrimSuffix(adjustedPath, "/"))
 
 	if isDir {
 		// Exact match (O(1))
-		if rule, exists := maps.FolderNamesMap[baseName]; exists && !rule.Index && rule.Viewable {
+		if rule, exists := rules.FolderNames[baseName]; exists && rule.Viewable {
 			return true
 		}
 		// Prefix/suffix (O(n))
 		for _, rule := range rules.FolderPaths {
-			if strings.HasPrefix(adjustedPath, rule.Value) && !rule.Index && rule.Viewable {
+			if strings.HasPrefix(adjustedPath, rule.FolderPath) && rule.Viewable {
 				return true
 			}
 		}
 		for _, rule := range rules.FolderEndsWith {
-			if strings.HasSuffix(baseName, rule.Value) && !rule.Index && rule.Viewable {
+			if strings.HasSuffix(baseName, rule.FolderEndsWith) && rule.Viewable {
 				return true
 			}
 		}
 		for _, rule := range rules.FolderStartsWith {
-			if strings.HasPrefix(baseName, rule.Value) && !rule.Index && rule.Viewable {
+			if strings.HasPrefix(baseName, rule.FolderStartsWith) && rule.Viewable {
 				return true
 			}
 		}
 	} else {
 		// Exact match (O(1))
-		if rule, exists := maps.FileNamesMap[baseName]; exists && !rule.Index && rule.Viewable {
+		if rule, exists := rules.FileNames[baseName]; exists && rule.Viewable {
 			return true
 		}
 		// Prefix/suffix (O(n))
 		for _, rule := range rules.FilePaths {
-			if strings.HasPrefix(adjustedPath, rule.Value) && !rule.Index && rule.Viewable {
+			if strings.HasPrefix(adjustedPath, rule.FilePath) && rule.Viewable {
 				return true
 			}
 		}
 		for _, rule := range rules.FileEndsWith {
-			if strings.HasSuffix(baseName, rule.Value) && !rule.Index && rule.Viewable {
+			if strings.HasSuffix(baseName, rule.FileEndsWith) && rule.Viewable {
 				return true
 			}
 		}
 		for _, rule := range rules.FileStartsWith {
-			if strings.HasPrefix(baseName, rule.Value) && !rule.Index && rule.Viewable {
-				return true
-			}
-		}
-		// Check if parent directory is viewable (recursively check all parent rules)
-		parent := filepath.Dir(adjustedPath)
-		parentBaseName := filepath.Base(strings.TrimSuffix(parent, "/"))
-
-		// Check parent against all folder rules
-		if rule, exists := maps.FolderNamesMap[parentBaseName]; exists && !rule.Index && rule.Viewable {
-			return true
-		}
-		for _, rule := range rules.FolderPaths {
-			if strings.HasPrefix(parent, rule.Value) && !rule.Index && rule.Viewable {
-				return true
-			}
-		}
-		for _, rule := range rules.FolderEndsWith {
-			if strings.HasSuffix(parentBaseName, rule.Value) && !rule.Index && rule.Viewable {
-				return true
-			}
-		}
-		for _, rule := range rules.FolderStartsWith {
-			if strings.HasPrefix(parentBaseName, rule.Value) && !rule.Index && rule.Viewable {
+			if strings.HasPrefix(baseName, rule.FileStartsWith) && rule.Viewable {
 				return true
 			}
 		}
@@ -683,120 +610,80 @@ func (idx *Index) IsViewable(isDir bool, adjustedPath string) bool {
 	return false
 }
 
-func (idx *Index) shouldSkip(isDir bool, isHidden bool, fullCombined, baseName string, config *actionConfig) bool {
+func (idx *Index) shouldSkip(isDir bool, isHidden bool, fullCombined, baseName string, config actionConfig) bool {
+	rules := idx.Config.ResolvedConditionals
+	if rules == nil {
+		rules = &settings.ResolvedConditionalsConfig{}
+	}
+	if fullCombined == "/" {
+		return false
+	}
 	// When indexing is disabled globally, behavior depends on the mode
 	if idx.Config.DisableIndexing {
 		// If checking viewable (filesystem access), don't skip - show everything from filesystem
-		if config != nil && config.CheckViewable {
+		if config.CheckViewable {
 			return false
 		}
 		// If indexing mode, skip everything
 		return true
 	}
 
-	// Use optimized maps for lookups
-	maps := idx.Config.ConditionalsMap
-	rules := &idx.Config.Conditionals
-
-	if maps == nil {
-		// Fallback: maps not initialized (shouldn't happen in production)
-		return false
-	}
-
-	if isDir && config != nil && config.IsRoutineScan {
+	if isDir && config.IsRoutineScan {
 		// Check NeverWatch: Skip directories with index=true AND neverWatch=true during routine scans
 		// This allows them to be indexed once but never re-scanned
-		checkNeverWatchIndexed := func(rules []settings.ConditionalIndexConfig, value string, matchFunc func(string, string) bool) bool {
-			for _, rule := range rules {
-				if matchFunc(rule.Value, value) && rule.Index && rule.NeverWatch {
-					return true
-				}
-			}
-			return false
-		}
-
-		exactMatch := func(a, b string) bool { return a == b }
-		prefixMatch := func(a, b string) bool { return strings.HasPrefix(b, a) }
-		suffixMatch := func(a, b string) bool { return strings.HasSuffix(b, a) }
-
-		if checkNeverWatchIndexed(rules.FolderNames, baseName, exactMatch) ||
-			checkNeverWatchIndexed(rules.FolderPaths, fullCombined, prefixMatch) ||
-			checkNeverWatchIndexed(rules.FolderEndsWith, baseName, suffixMatch) ||
-			checkNeverWatchIndexed(rules.FolderStartsWith, baseName, prefixMatch) {
-			return true // Skip this directory during routine scans
+		_, ok := rules.NeverWatchPaths[fullCombined]
+		if ok {
+			// skip scanning, but is viewable
+			return true
 		}
 	}
 
 	if isDir {
-
-		// Check FolderNames (exact match on base name) - O(1) lookup
-		if len(maps.FolderNamesMap) > 0 {
-			if result := checkExactMatch(maps.FolderNamesMap, baseName); result == shouldSkip {
-				return true
-			}
+		if _, ok := rules.FolderNames[baseName]; ok {
+			return true
 		}
-
-		// Check FolderPaths (prefix match on full path) - use original slice
-		if len(rules.FolderPaths) > 0 {
-			if result := checkPrefixMatch(rules.FolderPaths, fullCombined); result == shouldSkip {
-				return true
-			}
+		if _, ok := rules.FolderPaths[fullCombined]; ok {
+			return true
 		}
 
 		// Check FolderEndsWith (suffix match on base name) - use original slice
 		if len(rules.FolderEndsWith) > 0 {
-			if result := checkSuffixMatch(rules.FolderEndsWith, baseName); result == shouldSkip {
-				return true
+			for _, rule := range rules.FolderEndsWith {
+				if hasSuffix := strings.HasSuffix(baseName, rule.FolderEndsWith); hasSuffix {
+					return true
+				}
 			}
 		}
-
-		// Check FolderStartsWith (prefix match on base name) - use original slice
-		if len(rules.FolderStartsWith) > 0 {
-			if result := checkPrefixMatch(rules.FolderStartsWith, baseName); result == shouldSkip {
+		for _, rule := range rules.FolderStartsWith {
+			if hasPrefix := strings.HasPrefix(baseName, rule.FolderStartsWith); hasPrefix {
 				return true
 			}
 		}
 	} else {
 		// Check FileNames (exact match on base name) - O(1) lookup
-		if len(maps.FileNamesMap) > 0 {
-			if result := checkExactMatch(maps.FileNamesMap, baseName); result == shouldSkip {
+		if _, ok := rules.FileNames[baseName]; ok {
+			return true
+		}
+		if _, ok := rules.FilePaths[fullCombined]; ok {
+			return true
+		}
+		for _, rule := range rules.FileEndsWith {
+			if hasSuffix := strings.HasSuffix(baseName, rule.FileEndsWith); hasSuffix {
+				return true
+			}
+		}
+		for _, rule := range rules.FileStartsWith {
+			if hasPrefix := strings.HasPrefix(baseName, rule.FileStartsWith); hasPrefix {
 				return true
 			}
 		}
 
-		// Check FilePaths (prefix match on full path) - use original slice
-		if len(rules.FilePaths) > 0 {
-			if result := checkPrefixMatch(rules.FilePaths, fullCombined); result == shouldSkip {
-				return true
-			}
-		}
-
-		// Check FileEndsWith (suffix match on base name) - use original slice
-		if len(rules.FileEndsWith) > 0 {
-			if result := checkSuffixMatch(rules.FileEndsWith, baseName); result == shouldSkip {
-				return true
-			}
-		}
-
-		// Check FileStartsWith (prefix match on base name) - use original slice
-		if len(rules.FileStartsWith) > 0 {
-			if result := checkPrefixMatch(rules.FileStartsWith, baseName); result == shouldSkip {
-				return true
-			}
-		}
-
-		// Exclude if parent directory matches FolderPaths - use original slice
-		if len(rules.FolderPaths) > 0 {
-			parent := filepath.Dir(fullCombined)
-			if result := checkPrefixMatch(rules.FolderPaths, parent); result == shouldSkip {
-				return true
-			}
-		}
 	}
 
-	if rules.Hidden && isHidden {
+	if idx.Config.Conditionals.Hidden && isHidden {
 		return true
 	}
+
 	return false
 }
 
@@ -873,4 +760,22 @@ func (idx *Index) MakeIndexPath(path string) string {
 	path = idx.MakeIndexPathPlatform(path)
 	path = strings.TrimSuffix(path, "/") + "/"
 	return path
+}
+
+func (idx *Index) shouldInclude(baseName string) bool {
+	rules := idx.Config.ResolvedConditionals
+	if rules == nil {
+		rules = &settings.ResolvedConditionalsConfig{}
+	}
+	hasRules := false
+	if len(rules.IncludeRootItems) > 0 {
+		hasRules = true
+		if _, exists := rules.IncludeRootItems["/"+baseName]; exists {
+			return true
+		}
+	}
+	if !hasRules {
+		return true
+	}
+	return false
 }

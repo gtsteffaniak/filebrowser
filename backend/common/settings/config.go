@@ -198,7 +198,7 @@ func setupSources(generate bool) {
 				}
 			}
 			modifyExcludeInclude(source)
-			setConditionalsMap(source)
+			setConditionals(source)
 			if source.Config.DefaultUserScope == "" {
 				source.Config.DefaultUserScope = "/"
 			}
@@ -649,11 +649,15 @@ func GetScopeFromSourcePath(scopes []users.SourceScope, sourcePath string) (stri
 // assumes backend style scopes
 func GetSources(u *users.User) []string {
 	sources := []string{}
-	for _, scope := range u.Scopes {
-		source, ok := Config.Server.SourceMap[scope.Name]
-		if ok {
-			sources = append(sources, source.Name)
+
+	// preserves order of sources
+	for _, source := range Config.Server.Sources {
+		_, err := GetScopeFromSourcePath(u.Scopes, source.Path)
+		if err != nil {
+			logger.Warningf("could not get scope for source %v: %v", source.Path, err)
+			continue
 		}
+		sources = append(sources, source.Name)
 	}
 	return sources
 }
@@ -707,68 +711,59 @@ func loadCustomFavicon() {
 }
 
 // setConditionalsMap builds optimized map structures from conditional rules for O(1) lookups
-func setConditionalsMap(config *Source) {
-	rules := &config.Config.Conditionals
+func setConditionals(config *Source) {
+	rules := config.Config.Conditionals.ItemRules
 
-	// Initialize the maps structure
-	config.Config.ConditionalsMap = &ConditionalMaps{
-		FileNamesMap:        make(map[string]ConditionalIndexConfig),
-		FolderNamesMap:      make(map[string]ConditionalIndexConfig),
-		FilePathsMap:        make(map[string]ConditionalIndexConfig),
-		FolderPathsMap:      make(map[string]ConditionalIndexConfig),
-		FileEndsWithMap:     make(map[string]ConditionalIndexConfig),
-		FolderEndsWithMap:   make(map[string]ConditionalIndexConfig),
-		FileStartsWithMap:   make(map[string]ConditionalIndexConfig),
-		FolderStartsWithMap: make(map[string]ConditionalIndexConfig),
+	// Initialize the maps structure (only exact match maps for Names)
+	resolved := &ResolvedConditionalsConfig{
+		FileNames:        make(map[string]ConditionalIndexConfig),
+		FolderNames:      make(map[string]ConditionalIndexConfig),
+		FilePaths:        make(map[string]ConditionalIndexConfig),
+		FolderPaths:      make(map[string]ConditionalIndexConfig),
+		FileEndsWith:     make([]ConditionalIndexConfig, 0),
+		FolderEndsWith:   make([]ConditionalIndexConfig, 0),
+		FileStartsWith:   make([]ConditionalIndexConfig, 0),
+		FolderStartsWith: make([]ConditionalIndexConfig, 0),
+		NeverWatchPaths:  make(map[string]struct{}),
+		IncludeRootItems: make(map[string]struct{}),
 	}
 
-	maps := config.Config.ConditionalsMap
-
-	// Build FileNames map (exact match - O(1) lookup)
-	for _, rule := range rules.FileNames {
-		maps.FileNamesMap[rule.Value] = rule
+	for _, rule := range rules {
+		if rule.FileEndsWith != "" {
+			resolved.FileEndsWith = append(resolved.FileEndsWith, rule)
+		}
+		if rule.FolderEndsWith != "" {
+			resolved.FolderEndsWith = append(resolved.FolderEndsWith, rule)
+		}
+		if rule.FileStartsWith != "" {
+			resolved.FileStartsWith = append(resolved.FileStartsWith, rule)
+		}
+		if rule.FolderStartsWith != "" {
+			resolved.FolderStartsWith = append(resolved.FolderStartsWith, rule)
+		}
+		if rule.FilePath != "" {
+			resolved.FilePaths[rule.FilePath] = rule
+		}
+		if rule.FolderPath != "" {
+			resolved.FolderPaths[rule.FolderPath] = rule
+		}
+		if rule.NeverWatchPath != "" {
+			resolved.NeverWatchPaths[rule.NeverWatchPath] = struct{}{}
+		}
+		if rule.IncludeRootItem != "" {
+			resolved.IncludeRootItems[rule.IncludeRootItem] = struct{}{}
+		}
 	}
-
-	// Build FolderNames map (exact match - O(1) lookup)
-	for _, rule := range rules.FolderNames {
-		maps.FolderNamesMap[rule.Value] = rule
-	}
-
-	// Build FilePaths map (for potential exact path checks)
-	for _, rule := range rules.FilePaths {
-		maps.FilePathsMap[rule.Value] = rule
-	}
-
-	// Build FolderPaths map (for potential exact path checks)
-	for _, rule := range rules.FolderPaths {
-		maps.FolderPathsMap[rule.Value] = rule
-	}
-
-	// Build FileEndsWith map
-	for _, rule := range rules.FileEndsWith {
-		maps.FileEndsWithMap[rule.Value] = rule
-	}
-
-	// Build FolderEndsWith map
-	for _, rule := range rules.FolderEndsWith {
-		maps.FolderEndsWithMap[rule.Value] = rule
-	}
-
-	// Build FileStartsWith map
-	for _, rule := range rules.FileStartsWith {
-		maps.FileStartsWithMap[rule.Value] = rule
-	}
-
-	// Build FolderStartsWith map
-	for _, rule := range rules.FolderStartsWith {
-		maps.FolderStartsWithMap[rule.Value] = rule
-	}
+	config.Config.ResolvedConditionals = resolved
 }
 
 func modifyExcludeInclude(config *Source) {
-	// Helper to normalize a full path value (FilePaths, FolderPaths, NeverWatchPaths)
+	// Helper to normalize a full path value (FilePaths, FolderPaths)
 	// These always start with "/" and match against full index paths
 	normalizeFullPath := func(value string, checkExists bool) string {
+		if value == "" {
+			return ""
+		}
 		normalized := "/" + strings.Trim(value, "/")
 		// check if file/folder exists
 		if checkExists {
@@ -788,42 +783,21 @@ func modifyExcludeInclude(config *Source) {
 	// These match against baseName, so no leading slash
 	normalizeName := func(value string) string {
 		// Just trim slashes - names shouldn't have slashes
-		return strings.Trim(value, "/")
-	}
-
-	// Normalize []string slices (full paths)
-	normalizeStringPaths := func(s []string, checkExists bool) {
-		for i, v := range s {
-			s[i] = normalizeFullPath(v, checkExists)
-		}
+		return strings.TrimSuffix(strings.TrimPrefix(value, "/"), "/")
 	}
 
 	// Normalize []ConditionalIndexConfig slices for full paths
-	normalizeConditionalPaths := func(configs []ConditionalIndexConfig, checkExists bool) {
-		for i := range configs {
-			configs[i].Value = normalizeFullPath(configs[i].Value, checkExists)
-		}
+	for i, rule := range config.Config.Conditionals.ItemRules {
+
+		// normalize full paths
+		config.Config.Conditionals.ItemRules[i].FilePath = normalizeFullPath(rule.FilePath, true)
+		config.Config.Conditionals.ItemRules[i].FolderPath = normalizeFullPath(rule.FolderPath, true)
+		config.Config.Conditionals.ItemRules[i].NeverWatchPath = normalizeFullPath(rule.NeverWatchPath, true)
+		config.Config.Conditionals.ItemRules[i].IncludeRootItem = normalizeFullPath(rule.IncludeRootItem, true)
+
+		// normalize names
+		config.Config.Conditionals.ItemRules[i].FileNames = normalizeName(rule.FileNames)
+		config.Config.Conditionals.ItemRules[i].FolderNames = normalizeName(rule.FolderNames)
 	}
 
-	// Normalize []ConditionalIndexConfig slices for names (no leading slash)
-	normalizeConditionalNames := func(configs []ConditionalIndexConfig) {
-		for i := range configs {
-			configs[i].Value = normalizeName(configs[i].Value)
-		}
-	}
-
-	// Normalize string slice fields (full paths)
-	normalizeStringPaths(config.Config.NeverWatchPaths, true)
-
-	// Normalize ConditionalFilter fields that use FULL PATHS
-	normalizeConditionalPaths(config.Config.Conditionals.FilePaths, true)
-	normalizeConditionalPaths(config.Config.Conditionals.FolderPaths, true)
-
-	// Normalize ConditionalFilter fields that use NAMES (no leading slash)
-	normalizeConditionalNames(config.Config.Conditionals.FileNames)
-	normalizeConditionalNames(config.Config.Conditionals.FolderNames)
-	normalizeConditionalNames(config.Config.Conditionals.FileEndsWith)
-	normalizeConditionalNames(config.Config.Conditionals.FolderEndsWith)
-	normalizeConditionalNames(config.Config.Conditionals.FileStartsWith)
-	normalizeConditionalNames(config.Config.Conditionals.FolderStartsWith)
 }

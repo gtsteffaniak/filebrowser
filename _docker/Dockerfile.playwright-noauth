@@ -6,11 +6,9 @@ COPY [ "./_docker/src/noauth/", "./" ]
 
 WORKDIR /app/frontend
 COPY [ "./frontend/tests", "./tests" ]
+COPY [ "./frontend/tests/playwright-files", "./tests/playwright-files2" ]
 
 WORKDIR /app/backend/
 COPY [ "./backend/filebrowser", "./"]
 RUN mkdir -p ./http/dist
 COPY [ "./backend/http/embed/", "./http/dist/"]
-
-# Run tests
-RUN ./filebrowser & sleep 2 && cd ../frontend && npx playwright test

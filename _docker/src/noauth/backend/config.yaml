@@ -5,13 +5,21 @@ server:
     - levels: "info|error|debug"
   sources:
     - path: "../frontend/tests/playwright-files"
+      name: "exclude"
+      config:
+        defaultEnabled: true
+        conditionals:
+          rules:
+            - folderPath: "excluded"
+            - folderPath: "excludedButVisible"
+              viewable: true
+    - path: "../frontend/tests/playwright-files2"
+      name: "include"
       config:
         defaultEnabled: true
         conditionals:
           folderPaths:
-            - value: "excluded"
-            - value: "excludedButVisible"
-              viewable: true
+            - includeRootItem: "myfolder"
 
 auth:
   methods:

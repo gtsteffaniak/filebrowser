@@ -2,7 +2,7 @@
 import { test, expect } from "../test-setup";
 
 test("breadcrumbs navigation checks", async ({ page, checkForErrors, context }) => {
-  await page.goto("/files/files/");
+  await page.goto("/files/exclude/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
 
   const shareHash = await page.evaluate(() => localStorage.getItem('shareHash'));
@@ -24,7 +24,7 @@ test("breadcrumbs navigation checks", async ({ page, checkForErrors, context }) 
 });
 
 test("root share path is valid", async ({ page, checkForErrors, openContextMenu, context }) => {
-  await page.goto("/files/files/");
+  await page.goto("/files/exclude/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
   await openContextMenu();
   await page.locator('button[aria-label="Share"]').click();
@@ -33,7 +33,7 @@ test("root share path is valid", async ({ page, checkForErrors, openContextMenu,
 });
 
 test("share file works", async ({ page, checkForErrors, context }) => {
-  await page.goto("/files/files/");
+  await page.goto("/files/exclude/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
   const shareHashFile = await page.evaluate(() => localStorage.getItem('shareHashFile'));
   if (shareHashFile == "") {
@@ -46,7 +46,7 @@ test("share file works", async ({ page, checkForErrors, context }) => {
 });
 
 test("share download single file", async ({ page, checkForErrors, context }) => {
-  await page.goto("/files/files/");
+  await page.goto("/files/exclude/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
 
   const shareHash = await page.evaluate(() => localStorage.getItem('shareHash'));

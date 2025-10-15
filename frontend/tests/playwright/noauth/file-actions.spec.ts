@@ -53,7 +53,7 @@ test("2x copy from listing to new folder", async({ page, checkForErrors, context
   await expect(page.locator('li[aria-selected="true"]')).toHaveCount(1);
   await page.locator('button[aria-label="Copy"]').click();
   await expect(page.locator('#popup-notification-content')).toHaveText("Resources copied successfully");
-  await page.goto("/files/myfolder/");
+  await page.goto("/files/exclude/myfolder/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - myfolder");
   // verify exists and copy again
   await page.locator('a[aria-label="copyme.txt"]').waitFor({ state: 'visible' });
@@ -103,7 +103,7 @@ test("delete file", async({ page, checkForErrors, context }) => {
 })
 
 test("delete nested file prompt", async({ page, checkForErrors, context }) => {
-  await page.goto("/files/files/folder%23hash/");
+  await page.goto("/files/exclude/files/folder%23hash/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - folder#hash");
   await page.locator('a[aria-label="file#.sh"]').waitFor({ state: 'visible' });
   await page.locator('a[aria-label="file#.sh"]').click({ button: "right" });

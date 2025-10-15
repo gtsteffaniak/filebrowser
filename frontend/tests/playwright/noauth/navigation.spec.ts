@@ -15,7 +15,7 @@ test("navigate with hash in file name", async({ page, checkForErrors, context })
 })
 
 test("breadcrumbs navigation checks", async({ page, checkForErrors, context }) => {
-  await page.goto("/files/myfolder");
+  await page.goto("/files/exclude/myfolder");
   await page.waitForSelector('#breadcrumbs');
   let spanChildrenCount = await page.locator('#breadcrumbs > ul > li.item').count();
   spanChildrenCount = await page.locator('#breadcrumbs > ul > li.item').count();
@@ -23,7 +23,7 @@ test("breadcrumbs navigation checks", async({ page, checkForErrors, context }) =
   let breadCrumbLink = page.locator('a[aria-label="breadcrumb-link-myfolder"]')
   await expect(breadCrumbLink).toHaveText("myfolder");
 
-  await page.goto("/files/myfolder/testdata");
+  await page.goto("/files/exclude/myfolder/testdata");
   await page.waitForSelector('#breadcrumbs');
   spanChildrenCount = await page.locator('#breadcrumbs > ul > li.item').count();
   expect(spanChildrenCount).toBe(2);

@@ -152,7 +152,7 @@ func (idx *Index) RunIndexing(origin string, quick bool) {
 	startTime := time.Now()
 	idx.FilesChangedDuringIndexing = false
 	// Perform the indexing operation
-	config := &actionConfig{
+	config := actionConfig{
 		Quick:         quick,
 		Recursive:     true,
 		IsRoutineScan: idx.wasIndexed, // This is a routine scan if we already have an index
