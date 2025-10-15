@@ -783,7 +783,7 @@ func modifyExcludeInclude(config *Source) {
 	// These match against baseName, so no leading slash
 	normalizeName := func(value string) string {
 		// Just trim slashes - names shouldn't have slashes
-		return strings.TrimSuffix(strings.TrimPrefix(value, "/"), "/")
+		return strings.Trim(value, "/")
 	}
 
 	// Normalize []ConditionalIndexConfig slices for full paths

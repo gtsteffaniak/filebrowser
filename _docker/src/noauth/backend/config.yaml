@@ -18,14 +18,14 @@ server:
       config:
         defaultEnabled: true
         conditionals:
-          folderPaths:
+          rules:
             - includeRootItem: "myfolder"
-            - includeRootItem: "subfolderExclusion"
-            - filePath: "/subfolderExclusion/exclusionlist.sh"
-            - folderPath: "/subfolderExclusion/folderItem"
+            - includeRootItem: "subfolderExclusions"
+            - filePath: "/subfolderExclusions/exclusionlist.sh"
+            - folderPath: "/subfolderExclusions/folderItem"
               viewable: true
             - fileStartsWith: "startsWith"
-            - fileEndsWith: "Folder"
+            - folderEndsWith: "Folder"
 
 auth:
   methods:

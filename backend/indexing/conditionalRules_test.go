@@ -206,15 +206,15 @@ func TestShouldSkip_FolderPaths(t *testing.T) {
 			fullPath:    "/graham/", // Full index path
 			baseName:    "graham",   // Base name
 			shouldSkip:  true,
-			description: "Exact path match should be skipped",
+			description: "Exact path match should be skipped (O(1) lookup)",
 		},
 		{
-			name:        "Don't skip subfolder (no prefix matching)",
+			name:        "Skip subfolder with prefix matching",
 			ruleValue:   "/graham/",
 			fullPath:    "/graham/subfolder/",
 			baseName:    "subfolder",
-			shouldSkip:  false,
-			description: "FolderPaths does exact matching, not prefix matching",
+			shouldSkip:  true,
+			description: "FolderPaths now does prefix matching for child folders",
 		},
 		{
 			name:        "Don't skip unrelated path",
@@ -225,12 +225,12 @@ func TestShouldSkip_FolderPaths(t *testing.T) {
 			description: "Unrelated path should not be skipped",
 		},
 		{
-			name:        "Skip exact nested path",
+			name:        "Skip nested path and its children",
 			ruleValue:   "/projects/old/",
-			fullPath:    "/projects/old/",
-			baseName:    "old",
+			fullPath:    "/projects/old/backup/",
+			baseName:    "backup",
 			shouldSkip:  true,
-			description: "Exact nested path match should be skipped",
+			description: "Nested path under rule should be skipped",
 		},
 	}
 
@@ -362,15 +362,15 @@ func TestShouldSkip_FilePaths(t *testing.T) {
 			fullPath:    "/config.txt",
 			baseName:    "config.txt",
 			shouldSkip:  true,
-			description: "Exact file path match should be skipped",
+			description: "Exact file path match should be skipped (O(1) lookup)",
 		},
 		{
-			name:        "Don't skip file in subfolder (no prefix matching)",
+			name:        "Skip file in excluded folder with prefix matching",
 			ruleValue:   "/logs",
 			fullPath:    "/logs/app.log",
 			baseName:    "app.log",
-			shouldSkip:  false,
-			description: "FilePaths does exact matching, not prefix matching",
+			shouldSkip:  true,
+			description: "FilePaths now does prefix matching for files in excluded folders",
 		},
 		{
 			name:        "Don't skip file in different folder",
@@ -400,12 +400,11 @@ func TestShouldSkip_FilePaths(t *testing.T) {
 }
 
 func TestShouldSkip_FileInExcludedFolderPath(t *testing.T) {
-	// Since FolderPaths does exact matching, not prefix matching,
-	// files in subfolders won't be automatically skipped
-	// This test verifies the expected behavior
+	// Test that files in excluded folder paths are also skipped
+	// Uses FilePaths rule which applies to both the folder and its files via prefix matching
 	idx := setupConditionalTestIndex(settings.ConditionalFilter{
 		ItemRules: []settings.ConditionalIndexConfig{
-			{FolderPath: "/graham/"},
+			{FilePath: "/graham/"},
 		},
 	})
 
@@ -415,9 +414,9 @@ func TestShouldSkip_FileInExcludedFolderPath(t *testing.T) {
 		shouldSkip bool
 		reason     string
 	}{
-		{"/graham/file.txt", "file.txt", false, "FolderPath doesn't affect file skipping"},
-		{"/graham/subfolder/file.txt", "file.txt", false, "No prefix matching on paths"},
-		{"/other/file.txt", "file.txt", false, "Different path"},
+		{"/graham/file.txt", "file.txt", true, "File in excluded folder should be skipped"},
+		{"/graham/subfolder/file.txt", "file.txt", true, "File in subfolder of excluded folder should be skipped"},
+		{"/other/file.txt", "file.txt", false, "File in different folder should not be skipped"},
 	}
 
 	for _, tt := range tests {

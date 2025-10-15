@@ -23,7 +23,7 @@ test("navigate folder -- item should be visible", async ({ page, checkForErrors,
 
 test("navigate subfolderExclusions -- item should be visible", async ({ page, checkForErrors, context }) => {
     await page.goto("/files/include");
-    await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
+    await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files2");
     // excludedButVisible folder should show up in list
     await expect(page.locator('a[aria-label="subfolderExclusions"]')).toHaveCount(1);
     await page.goto("/files/include/subfolderExclusions");
@@ -33,7 +33,7 @@ test("navigate subfolderExclusions -- item should be visible", async ({ page, ch
 
 test("navigate subfolderExclusions -- subfolder items rules should be applied", async ({ page, checkForErrors, context }) => {
     await page.goto("/files/include/subfolderExclusions");
-    await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
+    await expect(page).toHaveTitle("Graham's Filebrowser - Files - subfolderExclusions");
 
     // should show
     await expect(page.locator('a[aria-label="shouldshow"]')).toHaveCount(1);

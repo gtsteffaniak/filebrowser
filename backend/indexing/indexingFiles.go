@@ -634,11 +634,24 @@ func (idx *Index) shouldSkip(isDir bool, isHidden bool, fullCombined, baseName s
 	}
 
 	if isDir {
-		if _, ok := rules.FolderNames[baseName]; ok {
+		if rule, ok := rules.FolderNames[baseName]; ok {
+			if _, ok := rules.FolderPaths[fullCombined]; !ok {
+				// create a rule so sub folders can be skipped
+				rules.FolderPaths[fullCombined] = rule
+			}
 			return true
 		}
+
+		// Check FolderPaths: Two-stage check for performance
+		// Stage 1: O(1) exact match (fast path for the folder itself)
 		if _, ok := rules.FolderPaths[fullCombined]; ok {
 			return true
+		}
+		// Stage 2: O(n) prefix match (for child folders)
+		for path := range rules.FolderPaths {
+			if strings.HasPrefix(fullCombined, path) {
+				return true
+			}
 		}
 
 		// Check FolderEndsWith (suffix match on base name) - use original slice
@@ -659,9 +672,19 @@ func (idx *Index) shouldSkip(isDir bool, isHidden bool, fullCombined, baseName s
 		if _, ok := rules.FileNames[baseName]; ok {
 			return true
 		}
+
+		// Check FilePaths: Two-stage check for performance
+		// Stage 1: O(1) exact match (fast path for the file itself)
 		if _, ok := rules.FilePaths[fullCombined]; ok {
 			return true
 		}
+		// Stage 2: O(n) prefix match (for files in excluded folders)
+		for path := range rules.FilePaths {
+			if strings.HasPrefix(fullCombined, path) {
+				return true
+			}
+		}
+
 		for _, rule := range rules.FileEndsWith {
 			if hasSuffix := strings.HasSuffix(baseName, rule.FileEndsWith); hasSuffix {
 				return true
