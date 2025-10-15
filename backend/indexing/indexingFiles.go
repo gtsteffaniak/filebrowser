@@ -302,16 +302,13 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 		}
 		// Skip logic based on mode
 		if config.CheckViewable {
-			fmt.Println("checking viewable", file.Name())
 			// When checking viewable items: skip if shouldSkip=true AND not viewable
 			if idx.shouldSkip(isDir, hidden, fullCombined, baseName, config) && !idx.IsViewable(isDir, fullCombined) {
-				fmt.Println("skipping viewable", file.Name())
 				continue
 			}
 		} else {
 			// Normal indexing mode: skip if shouldSkip=true
 			if idx.shouldSkip(isDir, hidden, fullCombined, baseName, config) {
-				fmt.Println("skipping", file.Name())
 				continue
 			}
 		}
@@ -330,13 +327,11 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 					if exists {
 						itemInfo.Size = realDirInfo.Size
 					}
-					fmt.Println("skipping never watch", file.Name())
 					continue
 				}
 			}
 			// skip non-indexable dirs.
 			if omitList[file.Name()] {
-				fmt.Println("skipping omit list", file.Name())
 				continue
 			}
 

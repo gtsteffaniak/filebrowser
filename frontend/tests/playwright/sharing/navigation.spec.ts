@@ -10,7 +10,7 @@ test("share folder breadcrumbs navigation checks", async ({ page, checkForErrors
     await expect(breadCrumbLink).toHaveText("share");
 
     // click breadcrumb link
-    breadCrumbLink.click()
+    await breadCrumbLink.click()
     await expect(page).toHaveTitle("Graham's Filebrowser - Files - share");
     await page.waitForSelector('#breadcrumbs');
     spanChildrenCount = await page.locator('#breadcrumbs > ul > li.item').count();

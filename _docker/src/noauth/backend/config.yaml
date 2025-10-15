@@ -20,6 +20,12 @@ server:
         conditionals:
           folderPaths:
             - includeRootItem: "myfolder"
+            - includeRootItem: "subfolderExclusion"
+            - filePath: "/subfolderExclusion/exclusionlist.sh"
+            - folderPath: "/subfolderExclusion/folderItem"
+              viewable: true
+            - fileStartsWith: "startsWith"
+            - fileEndsWith: "Folder"
 
 auth:
   methods:
