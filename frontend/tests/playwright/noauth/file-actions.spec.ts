@@ -49,11 +49,11 @@ test("2x copy from listing to new folder", async({ page, checkForErrors, context
   await page.locator('button[aria-label="Copy file"]').click();
   await expect(page.locator('div[aria-label="filelist-path"]')).toHaveText('Path: /');
   await expect(page.locator('li[aria-selected="true"]')).toHaveCount(0);
-  await page.locator('li[aria-label="myfolder"]').click();
-  await expect(page.locator('li[aria-selected="true"]')).toHaveCount(1);
+  await page.locator('li[aria-label="myfolder"]').dblclick();
+  await expect(page.locator('div[aria-label="filelist-path"]')).toHaveText('Path: /myfolder/');
   await page.locator('button[aria-label="Copy"]').click();
   await expect(page.locator('#popup-notification-content')).toHaveText("Resources copied successfully");
-  await page.goto("/files/myfolder/");
+  await page.goto("/files/files/exclude/myfolder/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - myfolder");
   // verify exists and copy again
   await page.locator('a[aria-label="copyme.txt"]').waitFor({ state: 'visible' });
@@ -76,10 +76,11 @@ test("2x copy from listing to new folder", async({ page, checkForErrors, context
   await expect(page.locator('.selected-count-header')).toHaveText('1');
   await page.locator('button[aria-label="Copy file"]').click();
   await expect(page.locator('div[aria-label="filelist-path"]')).toHaveText('Path: /myfolder/');
-  await page.locator('li[aria-label="newfolder"]').click();
+  await page.locator('li[aria-label="newfolder"]').dblclick();
+  await expect(page.locator('div[aria-label="filelist-path"]')).toHaveText('Path: /myfolder/newfolder/');
   await page.locator('button[aria-label="Copy"]').click();
   await expect(page.locator('#popup-notification-content')).toHaveText("Resources copied successfully");
-  await page.goto("/files/myfolder/newfolder/");
+  await page.goto("/files/files/exclude/myfolder/newfolder/");
   await expect(page).toHaveTitle(/.* - newfolder/);
   checkForErrors();
 })
@@ -103,7 +104,7 @@ test("delete file", async({ page, checkForErrors, context }) => {
 })
 
 test("delete nested file prompt", async({ page, checkForErrors, context }) => {
-  await page.goto("/files/files/folder%23hash/");
+  await page.goto("/files/files/exclude/folder%23hash/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - folder#hash");
   await page.locator('a[aria-label="file#.sh"]').waitFor({ state: 'visible' });
   await page.locator('a[aria-label="file#.sh"]').click({ button: "right" });

@@ -20,7 +20,7 @@ func setupTestIndex(t *testing.T) (*Index, string, func()) {
 				DisableIndexing: false,
 			},
 		},
-		hasIndex:          true,
+		wasIndexed:        true,
 		mock:              true, // Enable mock mode
 		Directories:       make(map[string]*iteminfo.FileInfo),
 		DirectoriesLedger: make(map[string]struct{}),

@@ -27,22 +27,21 @@ server:
         disabled: false                   # disable the source, this is useful so you don't need to remove it from the config file
         indexingIntervalMinutes: 0        # optional manual overide interval in minutes to re-index the source
         disableIndexing: false            # disable the indexing of this source
-        maxWatchers: 0                    # number of concurrent watchers to use for this source, currently not supported
-        neverWatchPaths:                  # paths that get initially once. Useful for folders that rarely change contents (without source path prefix)
-        exclude:                          # exclude files and folders from indexing, if include is not set
+        conditionals:                     # conditional rules to apply when indexing to include/exclude certain items
           hidden: false                   # exclude hidden files and folders.
           ignoreZeroSizeFolders: false    # ignore folders with 0 size
-          filePaths:                      # list of filepaths Eg. "folder1" or "file1.txt" or "folder1/file1.txt" (without source path prefix)
-          folderPaths:                    # (filepath) list of folder names to include/exclude. Eg. "folder1" or "folder1/subfolder" (do not include source path, just the subpaths from the source path)
-          fileNames:                      # (global) list of file names to include/exclude. Eg. "a.jpg"
-          folderNames:                    # (global) list of folder names to include/exclude. Eg. "@eadir" or ".thumbnails"
-          fileEndsWith:                   # (global) exclude files that end with these suffixes. Eg. ".jpg" or ".txt"
-          folderEndsWith:                 # (global) exclude folders that end with these suffixes. Eg. ".thumbnails" or ".git"
-          fileStartsWith:                 # (global) exclude files that start with these prefixes. Eg. "archive-" or "backup-"
-          folderStartsWith:               # (global) exclude folders that start with these prefixes. Eg. "archive-" or "backup-"
-        include:                          # include files and folders from indexing, if exclude is not set
-          rootFolders:                    # list of root folders to include, relative to the source path (eg. "folder1")
-          rootFiles:                      # list of root files to include, relative to the source path (eg. "file1.txt")
+          rules:                          # list of item rules to apply to specific paths
+            - neverWatchPath: ""          # index the folder in the first pass to get included in search, but never re-indexed.
+              includeRootItem: ""         # include only these items at root folder level
+              fileStartsWith: ""          # (global) exclude files that start with these prefixes. Eg. "archive-" or "backup-"
+              folderStartsWith: ""        # (global) exclude folders that start with these prefixes. Eg. "archive-" or "backup-"
+              fileEndsWith: ""            # (global) exclude files that end with these suffixes. Eg. ".jpg" or ".txt"
+              folderEndsWith: ""          # (global) exclude folders that end with these suffixes. Eg. ".thumbnails" or ".git"
+              folderPath: ""              # (global) exclude folders that match this path. Eg. "/path/to/folder" or "/path/to/folder/subfolder"
+              filePath: ""                # (global) exclude files that match this path. Eg. "/path/to/file.txt" or "/path/to/file.txt/subfile.txt"
+              fileNames: ""               # (global) exclude files that match these names. Eg. "file.txt" or "test.csv"
+              folderNames: ""             # (global) exclude folders that match these names. Eg. "folder" or "subfolder"
+              viewable: false             # Enable viewing in UI but exclude from indexing
         defaultUserScope: "/"             # default "/" should match folders under path
         defaultEnabled: true              # should be added as a default source for new users?
         createUserDir: false              # create a user directory for each user

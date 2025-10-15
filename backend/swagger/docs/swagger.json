@@ -2822,6 +2822,75 @@
                 }
             }
         },
+        "settings.ConditionalFilter": {
+            "type": "object",
+            "properties": {
+                "hidden": {
+                    "description": "exclude hidden files and folders.",
+                    "type": "boolean"
+                },
+                "ignoreZeroSizeFolders": {
+                    "description": "ignore folders with 0 size",
+                    "type": "boolean"
+                },
+                "rules": {
+                    "description": "list of item rules to apply to specific paths",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/settings.ConditionalIndexConfig"
+                    }
+                }
+            }
+        },
+        "settings.ConditionalIndexConfig": {
+            "type": "object",
+            "properties": {
+                "fileEndsWith": {
+                    "description": "(global) exclude files that end with these suffixes. Eg. \".jpg\" or \".txt\"",
+                    "type": "string"
+                },
+                "fileNames": {
+                    "description": "(global) exclude files that match these names. Eg. \"file.txt\" or \"test.csv\"",
+                    "type": "string"
+                },
+                "filePath": {
+                    "description": "(global) exclude files that match this path. Eg. \"/path/to/file.txt\" or \"/path/to/file.txt/subfile.txt\"",
+                    "type": "string"
+                },
+                "fileStartsWith": {
+                    "description": "(global) exclude files that start with these prefixes. Eg. \"archive-\" or \"backup-\"",
+                    "type": "string"
+                },
+                "folderEndsWith": {
+                    "description": "(global) exclude folders that end with these suffixes. Eg. \".thumbnails\" or \".git\"",
+                    "type": "string"
+                },
+                "folderNames": {
+                    "description": "(global) exclude folders that match these names. Eg. \"folder\" or \"subfolder\"",
+                    "type": "string"
+                },
+                "folderPath": {
+                    "description": "(global) exclude folders that match this path. Eg. \"/path/to/folder\" or \"/path/to/folder/subfolder\"",
+                    "type": "string"
+                },
+                "folderStartsWith": {
+                    "description": "(global) exclude folders that start with these prefixes. Eg. \"archive-\" or \"backup-\"",
+                    "type": "string"
+                },
+                "includeRootItem": {
+                    "description": "include only these items at root folder level",
+                    "type": "string"
+                },
+                "neverWatchPath": {
+                    "description": "index the folder in the first pass to get included in search, but never re-indexed.",
+                    "type": "string"
+                },
+                "viewable": {
+                    "description": "Enable viewing in UI but exclude from indexing",
+                    "type": "boolean"
+                }
+            }
+        },
         "settings.CustomTheme": {
             "type": "object",
             "properties": {
@@ -2832,75 +2901,6 @@
                 "description": {
                     "description": "The description of the theme to display in the UI.",
                     "type": "string"
-                }
-            }
-        },
-        "settings.ExcludeIndexFilter": {
-            "type": "object",
-            "properties": {
-                "fileEndsWith": {
-                    "description": "(global) exclude files that end with these suffixes. Eg. \".jpg\" or \".txt\"",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "fileNames": {
-                    "description": "(global) list of file names to include/exclude. Eg. \"a.jpg\"",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "filePaths": {
-                    "description": "list of filepaths Eg. \"folder1\" or \"file1.txt\" or \"folder1/file1.txt\" (without source path prefix)",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "fileStartsWith": {
-                    "description": "(global) exclude files that start with these prefixes. Eg. \"archive-\" or \"backup-\"",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "folderEndsWith": {
-                    "description": "(global) exclude folders that end with these suffixes. Eg. \".thumbnails\" or \".git\"",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "folderNames": {
-                    "description": "(global) list of folder names to include/exclude. Eg. \"@eadir\" or \".thumbnails\"",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "folderPaths": {
-                    "description": "(filepath) list of folder names to include/exclude. Eg. \"folder1\" or \"folder1/subfolder\" (do not include source path, just the subpaths from the source path)",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "folderStartsWith": {
-                    "description": "(global) exclude folders that start with these prefixes. Eg. \"archive-\" or \"backup-\"",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "hidden": {
-                    "description": "exclude hidden files and folders.",
-                    "type": "boolean"
-                },
-                "ignoreZeroSizeFolders": {
-                    "description": "ignore folders with 0 size",
-                    "type": "boolean"
                 }
             }
         },
@@ -2996,25 +2996,6 @@
                 },
                 "styling": {
                     "$ref": "#/definitions/settings.StylingConfig"
-                }
-            }
-        },
-        "settings.IncludeIndexFilter": {
-            "type": "object",
-            "properties": {
-                "rootFiles": {
-                    "description": "list of root files to include, relative to the source path (eg. \"file1.txt\")",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "rootFolders": {
-                    "description": "list of root folders to include, relative to the source path (eg. \"folder1\")",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
                 }
             }
         },
@@ -3376,6 +3357,14 @@
         "settings.SourceConfig": {
             "type": "object",
             "properties": {
+                "conditionals": {
+                    "description": "conditional rules to apply when indexing to include/exclude certain items",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.ConditionalFilter"
+                        }
+                    ]
+                },
                 "createUserDir": {
                     "description": "create a user directory for each user",
                     "type": "boolean"
@@ -3400,40 +3389,9 @@
                     "description": "disable the source, this is useful so you don't need to remove it from the config file",
                     "type": "boolean"
                 },
-                "exclude": {
-                    "description": "exclude files and folders from indexing, if include is not set",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/settings.ExcludeIndexFilter"
-                        }
-                    ]
-                },
-                "include": {
-                    "description": "include files and folders from indexing, if exclude is not set",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/settings.IncludeIndexFilter"
-                        }
-                    ]
-                },
-                "indexAlbumArt": {
-                    "description": "deprecated: always enabled since 0.8.6",
-                    "type": "boolean"
-                },
                 "indexingIntervalMinutes": {
                     "description": "optional manual overide interval in minutes to re-index the source",
                     "type": "integer"
-                },
-                "maxWatchers": {
-                    "description": "number of concurrent watchers to use for this source, currently not supported",
-                    "type": "integer"
-                },
-                "neverWatchPaths": {
-                    "description": "paths that get initially once. Useful for folders that rarely change contents (without source path prefix)",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
                 },
                 "private": {
                     "description": "designate as source as private -- currently just means no sharing permitted.",
