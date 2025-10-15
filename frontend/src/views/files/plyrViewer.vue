@@ -1339,7 +1339,7 @@ export default {
 }
 
 /* For small screens in landscape orientation (Like a phone) */
-@media (max-height: 800px) and (orientation: landscape) {
+@media (max-height: 600px) and (orientation: landscape) {
 
     .audio-player-container {
         justify-content: center;
