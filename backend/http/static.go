@@ -106,6 +106,19 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 			shareProps["shareType"] = utils.Ternary(d.share.ShareType == "", "normal", d.share.ShareType)
 			shareProps["perUserDownloadLimit"] = d.share.PerUserDownloadLimit
 			shareProps["extractEmbeddedSubtitles"] = d.share.ExtractEmbeddedSubtitles
+			shareProps["disableDownload"] = d.share.DisableDownload
+			shareProps["allowCreate"] = d.share.AllowCreate
+			shareProps["allowUpload"] = d.share.AllowUpload
+			shareProps["allowModify"] = d.share.AllowModify
+			shareProps["allowDelete"] = d.share.AllowDelete
+			shareProps["allowReplacements"] = d.share.AllowReplacements
+			shareProps["downloadsLimit"] = d.share.DownloadsLimit
+			shareProps["shareTheme"] = d.share.ShareTheme
+			shareProps["disableAnonymous"] = d.share.DisableAnonymous
+			shareProps["maxBandwidth"] = d.share.MaxBandwidth
+			shareProps["keepAfterExpiration"] = d.share.KeepAfterExpiration
+			shareProps["allowedUsernames"] = d.share.AllowedUsernames
+			shareProps["hideNavButtons"] = d.share.HideNavButtons
 
 			// Additional computed properties from extended.go
 			shareProps["hasPassword"] = d.share.HasPassword()

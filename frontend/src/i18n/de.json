@@ -284,7 +284,9 @@
       "share": "Datei teilen",
       "admin": "Verwalter",
       "api": "Erstellen und Verwalten von API-Schlüsseln mit langer Lebensdauer",
-      "realtime": "Verbindungen und Aktualisierungen in Echtzeit ermöglichen"
+      "realtime": "Verbindungen und Aktualisierungen in Echtzeit ermöglichen",
+      "create": "Dateien erstellen",
+      "delete": "Dateien löschen"
     },
     "permissions-name": "Berechtigungen",
     "permissionsHelp": "Sie können einem Benutzer Administratorrechte einräumen oder die Berechtigunen individuell festlegen.  Wenn Sie \"Administrator\" auswählen, werden alle anderen Rechte automatisch vergeben. Die Nutzerverwaltung kann nur durch einen Administrator erfolgen.\n",
@@ -432,7 +434,17 @@
     "perUserDownloadLimitDescription": "Wenn diese Option aktiviert ist, wird das Download-Limit auf jeden Benutzer angewendet. Anonyme Benutzer können keine Dateien von dieser Freigabe herunterladen.",
     "descriptionUploadDefault": "Sie haben eine Freigabe zum Hochladen von Dateien erhalten.",
     "extractEmbeddedSubtitles": "Eingebettete Untertitel extrahieren",
-    "extractEmbeddedSubtitlesDescription": "Extrahieren von eingebetteten Untertiteln aus Mediendateien beim Laden - dies kann bei großen Dateien langsam sein."
+    "extractEmbeddedSubtitlesDescription": "Extrahieren von eingebetteten Untertiteln aus Mediendateien beim Laden - dies kann bei großen Dateien langsam sein.",
+    "disableDownload": "Herunterladen von Dateien deaktivieren",
+    "disableDownloadDescription": "Wenn diese Funktion aktiviert ist, können Benutzer keine Dateien herunterladen oder den Inhalt einer Datei anzeigen.",
+    "allowModify": "Bearbeitung von Dateien zulassen",
+    "allowModifyDescription": "Wenn diese Option aktiviert ist, können authentifizierte Benutzer Dateien in dieser Freigabe bearbeiten. Erfordert Benutzerauthentifizierung.",
+    "allowDelete": "Löschen von Dateien zulassen",
+    "allowDeleteDescription": "Wenn diese Option aktiviert ist, können authentifizierte Benutzer Dateien und Ordner von dieser Freigabe löschen. Erfordert Benutzerauthentifizierung.",
+    "allowCreate": "Erlauben Sie das Erstellen von Dateien und Ordnern",
+    "allowCreateDescription": "Wenn diese Option aktiviert ist, können authentifizierte Benutzer neue Dateien und Ordner in dieser Freigabe erstellen. Erfordert Benutzerauthentifizierung.",
+    "allowUpload": "Hochladen von Dateien zulassen",
+    "allowUploadDescription": "Wenn diese Option aktiviert ist, können Benutzer Dateien auf diese Upload-Freigabe hochladen."
   },
   "api": {
     "title": "API-Schlüssel:",

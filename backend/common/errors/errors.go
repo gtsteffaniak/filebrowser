@@ -23,4 +23,6 @@ var (
 	ErrUnauthorized         = errors.New("user unauthorized")
 	ErrNotIndexed           = errors.New("directory or item excluded from indexing")
 	ErrWrongLoginMethod     = errors.New("user attempted to login with wrong login method")
+	ErrDownloadNotAllowed   = errors.New("downloads are not allowed for this share")
+	ErrUploadNotAllowed     = errors.New("upload permission not allowed for this share")
 )

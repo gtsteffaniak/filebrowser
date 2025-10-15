@@ -285,7 +285,9 @@
       "share": "Compartir archivos",
       "admin": "Administrador",
       "api": "Claves API",
-      "realtime": "Actualizaciones en tiempo real"
+      "realtime": "Actualizaciones en tiempo real",
+      "create": "Crear archivos",
+      "delete": "Eliminar archivos"
     },
     "permissions-name": "Permisos",
     "permissionsHelp": "Puedes elegir permisos individualmente. Si seleccionas \"Administrador\", todas las demás opciones serán activadas, y los usuarios con ese permiso podrán modificar a otros usuarios.\n",
@@ -432,7 +434,17 @@
     "perUserDownloadLimitDescription": "Cuando se activa, el límite de descargas se aplicará a cada usuario. Los usuarios anónimos no podrán descargar ningún archivo de este recurso compartido.",
     "descriptionUploadDefault": "Se le ha enviado una acción para cargar archivos.",
     "extractEmbeddedSubtitles": "Extraer subtítulos incrustados",
-    "extractEmbeddedSubtitlesDescription": "Extrae los subtítulos incrustados de los archivos multimedia al cargarlos -- esto puede ser lento para archivos grandes."
+    "extractEmbeddedSubtitlesDescription": "Extrae los subtítulos incrustados de los archivos multimedia al cargarlos -- esto puede ser lento para archivos grandes.",
+    "disableDownload": "Desactivar la descarga de archivos",
+    "disableDownloadDescription": "Si está activada, los usuarios no podrán descargar archivos ni ver su contenido.",
+    "allowModify": "Permitir la edición de archivos",
+    "allowModifyDescription": "Cuando se activa, los usuarios autenticados pueden editar archivos en este recurso compartido. Requiere autenticación de usuario.",
+    "allowDelete": "Permitir la eliminación de archivos",
+    "allowDeleteDescription": "Cuando está activada, los usuarios autenticados pueden eliminar archivos y carpetas de este recurso compartido. Requiere autenticación de usuario.",
+    "allowCreate": "Permitir la creación de archivos y carpetas",
+    "allowCreateDescription": "Cuando está activada, los usuarios autenticados pueden crear nuevos archivos y carpetas en este recurso compartido. Requiere autenticación de usuario.",
+    "allowUpload": "Permitir la carga de archivos",
+    "allowUploadDescription": "Cuando se activa, los usuarios pueden subir archivos a este recurso compartido."
   },
   "api": {
     "title": "Gestión de claves API",

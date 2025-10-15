@@ -280,7 +280,9 @@
       "share": "Dosyaları paylaş",
       "admin": "Yönetici",
       "api": "Uzun ömürlü API anahtarları oluşturma ve yönetme",
-      "realtime": "Gerçek zamanlı bağlantıları ve güncellemeleri etkinleştirin"
+      "realtime": "Gerçek zamanlı bağlantıları ve güncellemeleri etkinleştirin",
+      "create": "Dosya oluşturma",
+      "delete": "Dosyaları sil"
     },
     "permissions-name": "İzinler",
     "permissionsHelp": "Kullanıcıyı yönetici olarak ayarlayabilir veya izinleri ayrı ayrı seçebilirsiniz. \"Yönetici\"yi seçerseniz, diğer tüm seçenekler otomatik olarak kontrol edilecektir. Kullanıcıların yönetimi, bir yöneticinin yetkisi olarak kalır.\n",
@@ -432,7 +434,17 @@
     "perUserDownloadLimitDescription": "Etkinleştirildiğinde, indirme sınırı her kullanıcıya uygulanacaktır. Anonim kullanıcılar bu paylaşımdan herhangi bir dosya indiremeyecektir.",
     "descriptionUploadDefault": "Dosyaları yüklemeniz için size bir paylaşım gönderildi.",
     "extractEmbeddedSubtitles": "Gömülü altyazıları çıkarma",
-    "extractEmbeddedSubtitlesDescription": "Yüklenen medya dosyalarından gömülü altyazıları ayıklayın -- bu işlem büyük dosyalar için yavaş olabilir."
+    "extractEmbeddedSubtitlesDescription": "Yüklenen medya dosyalarından gömülü altyazıları ayıklayın -- bu işlem büyük dosyalar için yavaş olabilir.",
+    "disableDownload": "Dosya indirmeyi devre dışı bırak",
+    "disableDownloadDescription": "Etkinleştirildiğinde, kullanıcılar dosya indiremez veya bir dosyanın içeriğini görüntüleyemez.",
+    "allowModify": "Dosyaları düzenlemeye izin ver",
+    "allowModifyDescription": "Etkinleştirildiğinde, kimliği doğrulanmış kullanıcılar bu paylaşımdaki dosyaları düzenleyebilir. Kullanıcı kimlik doğrulaması gerektirir.",
+    "allowDelete": "Dosyaların silinmesine izin ver",
+    "allowDeleteDescription": "Etkinleştirildiğinde, kimliği doğrulanmış kullanıcılar bu paylaşımdan dosya ve klasörleri silebilir. Kullanıcı kimlik doğrulaması gerektirir.",
+    "allowCreate": "Dosya ve klasör oluşturmaya izin ver",
+    "allowCreateDescription": "Etkinleştirildiğinde, kimliği doğrulanmış kullanıcılar bu paylaşımda yeni dosyalar ve klasörler oluşturabilir. Kullanıcı kimlik doğrulaması gerektirir.",
+    "allowUpload": "Dosya yüklemeye izin ver",
+    "allowUploadDescription": "Etkinleştirildiğinde, kullanıcılar bu yükleme paylaşımına dosya yükleyebilir."
   },
   "api": {
     "title": "API Anahtarları:",

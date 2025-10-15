@@ -281,7 +281,9 @@
       "share": "分享文件",
       "admin": "管理员",
       "api": "创建和管理长效 API 密钥",
-      "realtime": "实现实时连接和更新"
+      "realtime": "实现实时连接和更新",
+      "create": "创建文件",
+      "delete": "删除文件"
     },
     "permissions-name": "权限",
     "permissionsHelp": "您可以将该用户设置为管理员或单独选择各项权限。如果您选择了“管理员”，则其他的选项会被自动选中，同时该用户可以管理其他用户。\n",
@@ -432,7 +434,17 @@
     "perUserDownloadLimitDescription": "启用后，下载限制将应用于每个用户。匿名用户将无法从该共享下载任何文件。",
     "descriptionUploadDefault": "已为您发送了上传文件的共享。",
     "extractEmbeddedSubtitles": "提取嵌入式字幕",
-    "extractEmbeddedSubtitlesDescription": "在加载时从媒体文件中提取内嵌字幕--这对于大文件来说可能会比较慢。"
+    "extractEmbeddedSubtitlesDescription": "在加载时从媒体文件中提取内嵌字幕--这对于大文件来说可能会比较慢。",
+    "disableDownload": "禁止下载文件",
+    "disableDownloadDescription": "启用后，用户将无法下载文件或查看文件内容。",
+    "allowModify": "允许编辑文件",
+    "allowModifyDescription": "启用后，通过身份验证的用户可以编辑该共享中的文件。需要用户身份验证。",
+    "allowDelete": "允许删除文件",
+    "allowDeleteDescription": "启用后，通过身份验证的用户可以删除此共享中的文件和文件夹。需要用户身份验证。",
+    "allowCreate": "允许创建文件和文件夹",
+    "allowCreateDescription": "启用后，通过身份验证的用户可在此共享中创建新文件和文件夹。需要用户身份验证。",
+    "allowUpload": "允许上传文件",
+    "allowUploadDescription": "启用后，用户可将文件上传到此上传共享。"
   },
   "api": {
     "title": "应用程序接口密钥",

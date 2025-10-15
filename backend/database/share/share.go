@@ -3,9 +3,6 @@ package share
 import "sync"
 
 type CommonShare struct {
-	//AllowEdit           bool   `json:"allowEdit,omitempty"`
-	AllowUpload              bool     `json:"allowUpload,omitempty"`
-	DisableFileViewer        bool     `json:"disableFileViewer,omitempty"`
 	DownloadsLimit           int      `json:"downloadsLimit,omitempty"`
 	ShareTheme               string   `json:"shareTheme,omitempty"`
 	DisableAnonymous         bool     `json:"disableAnonymous,omitempty"`
@@ -32,6 +29,13 @@ type CommonShare struct {
 	ShareType                string   `json:"shareType"` // type of share: normal, upload, max
 	PerUserDownloadLimit     bool     `json:"perUserDownloadLimit,omitempty"`
 	ExtractEmbeddedSubtitles bool     `json:"extractEmbeddedSubtitles,omitempty"` // can be io intensive for large files and take 10-30 seconds.
+	AllowDelete              bool     `json:"allowDelete,omitempty"`
+	AllowCreate              bool     `json:"allowCreate,omitempty"`       // allow creating files
+	AllowUpload              bool     `json:"allowUpload,omitempty"`       // allow uploading files
+	AllowModify              bool     `json:"allowModify,omitempty"`       // allow modifying files
+	DisableFileViewer        bool     `json:"disableFileViewer,omitempty"` // don't allow viewing files
+	DisableDownload          bool     `json:"disableDownload,omitempty"`   // don't allow downloading files
+	AllowReplacements        bool     `json:"allowReplacements,omitempty"` // allow replacements of files
 }
 type CreateBody struct {
 	CommonShare

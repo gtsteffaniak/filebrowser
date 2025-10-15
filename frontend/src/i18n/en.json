@@ -205,7 +205,19 @@
     "perUserDownloadLimit": "Apply the downloads limit to each user",
     "perUserDownloadLimitDescription": "When enabled, the downloads limit will be applied to each user. Anonymous users will not be able to download any files from this share.",
     "extractEmbeddedSubtitles": "Extract embedded subtitles",
-    "extractEmbeddedSubtitlesDescription": "Extract embedded subtitles from media files on load -- this can be slow for large files."
+    "extractEmbeddedSubtitlesDescription": "Extract embedded subtitles from media files on load -- this can be slow for large files.",
+    "disableDownload": "Disable downloading files",
+    "disableDownloadDescription": "When enabled, users won't be able to download files or view a file's content.",
+    "allowModify": "Allow editing files",
+    "allowModifyDescription": "When enabled, authenticated users can edit files in this share. Requires user authentication.",
+    "allowDelete": "Allow deleting files",
+    "allowDeleteDescription": "When enabled, authenticated users can delete files and folders from this share. Requires user authentication.",
+    "allowCreate": "Allow creating files and folders",
+    "allowCreateDescription": "When enabled, authenticated users can create new files and folders in this share. Requires user authentication.",
+    "allowUpload": "Allow uploading files",
+    "allowUploadDescription": "When enabled, users can upload files to this upload share.",
+    "allowReplacements": "Allow file replacements",
+    "allowReplacementsDescription": "When enabled, authenticated users can replace existing files when uploading files with the same name. Requires user authentication."
   },
   "prompts": {
     "operationInProgress": "Operation in progress, please wait...",
@@ -436,7 +448,9 @@
       "modify": "Edit files",
       "share": "Share files",
       "api": "Create and manage long-live API keys",
-      "realtime": "Enable real-time connections and updates"
+      "realtime": "Enable real-time connections and updates",
+      "create": "Create files",
+      "delete": "Delete files"
     },
     "permissions-name": "Permissions",
     "permissionsHelp": "You can set the user to be an administrator or choose the permissions individually. If you select \"Administrator\", all of the other options will be automatically checked. The management of users remains a privilege of an administrator.\n",

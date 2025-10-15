@@ -16,7 +16,7 @@
           <i aria-label="settings" class="material-icons">settings</i>
         </button>
       </div>
-      <div v-else-if="user.username === 'anonymous' && canLogout" @click="navigateToLogin" class="inner-card">
+      <div v-else-if="user.username === 'anonymous'" @click="navigateToLogin" class="inner-card">
         <button class="person-button action">
           <i class="material-symbols-outlined">login</i> {{ $t("sidebar.login") }}
         </button>

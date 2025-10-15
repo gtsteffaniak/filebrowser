@@ -280,7 +280,9 @@
       "share": "Udostępnianie plików",
       "admin": "Administrator",
       "api": "Tworzenie i zarządzanie kluczami API o długiej żywotności",
-      "realtime": "Połączenia i aktualizacje w czasie rzeczywistym"
+      "realtime": "Połączenia i aktualizacje w czasie rzeczywistym",
+      "create": "Tworzenie plików",
+      "delete": "Usuwanie plików"
     },
     "permissions-name": "Uprawnienia",
     "permissionsHelp": "Możesz uczynić użytkownika administratorem, lub wybrać uprawnienia indywidualnie. Jeśli zaznaczysz opcję \"Administrator\", wszystkie pozostałe opcje zostaną automatycznie zaznaczone. Zarządzanie użytkownikami pozostaje przywilejem administratora.\n",
@@ -432,7 +434,17 @@
     "perUserDownloadLimitDescription": "Po włączeniu limit pobrań zostanie zastosowany do każdego użytkownika. Anonimowi użytkownicy nie będą mogli pobierać żadnych plików z tego folderu udostępnionego.",
     "descriptionUploadDefault": "Udział został wysłany w celu przesłania plików.",
     "extractEmbeddedSubtitles": "Wyodrębnianie osadzonych napisów",
-    "extractEmbeddedSubtitlesDescription": "Wyodrębnianie osadzonych napisów z plików multimedialnych podczas ładowania - może to być powolne w przypadku dużych plików."
+    "extractEmbeddedSubtitlesDescription": "Wyodrębnianie osadzonych napisów z plików multimedialnych podczas ładowania - może to być powolne w przypadku dużych plików.",
+    "disableDownload": "Wyłącz pobieranie plików",
+    "disableDownloadDescription": "Po włączeniu tej opcji użytkownicy nie będą mogli pobierać plików ani wyświetlać ich zawartości.",
+    "allowModify": "Zezwalaj na edycję plików",
+    "allowModifyDescription": "Po włączeniu tej opcji uwierzytelnieni użytkownicy mogą edytować pliki w tym udziale. Wymaga uwierzytelnienia użytkownika.",
+    "allowDelete": "Zezwalaj na usuwanie plików",
+    "allowDeleteDescription": "Po włączeniu tej opcji uwierzytelnieni użytkownicy mogą usuwać pliki i foldery z tego folderu udostępnionego. Wymaga uwierzytelnienia użytkownika.",
+    "allowCreate": "Zezwalaj na tworzenie plików i folderów",
+    "allowCreateDescription": "Po włączeniu tej opcji uwierzytelnieni użytkownicy mogą tworzyć nowe pliki i foldery w tym udziale. Wymaga uwierzytelnienia użytkownika.",
+    "allowUpload": "Zezwalaj na przesyłanie plików",
+    "allowUploadDescription": "Po włączeniu tej opcji użytkownicy mogą przesyłać pliki do tego folderu udostępnionego."
   },
   "api": {
     "title": "Klucze API:",

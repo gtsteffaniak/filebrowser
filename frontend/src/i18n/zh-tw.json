@@ -280,7 +280,9 @@
       "share": "分享檔案",
       "admin": "管理員",
       "api": "建立與管理長效 API 金鑰",
-      "realtime": "啟用即時連線與更新"
+      "realtime": "啟用即時連線與更新",
+      "create": "建立檔案",
+      "delete": "刪除檔案"
     },
     "permissions-name": "權限",
     "permissionsHelp": "您可以將該使用者設置為管理員，也可以單獨選擇各項權限。如果選擇了「管理員」，則其他的選項會被自動勾上，同時該使用者可以管理其他使用者。",
@@ -432,7 +434,17 @@
     "perUserDownloadLimitDescription": "啟用時，下載限制會套用至每位使用者。匿名使用者將無法從此共用下載任何檔案。",
     "descriptionUploadDefault": "已傳送共用給您上傳檔案。",
     "extractEmbeddedSubtitles": "擷取內嵌字幕",
-    "extractEmbeddedSubtitlesDescription": "在載入時從媒體檔案中萃取內嵌的字幕 -- 這對於大檔案來說可能會很慢。"
+    "extractEmbeddedSubtitlesDescription": "在載入時從媒體檔案中萃取內嵌的字幕 -- 這對於大檔案來說可能會很慢。",
+    "disableDownload": "停用下載檔案",
+    "disableDownloadDescription": "啟用後，使用者將無法下載檔案或檢視檔案內容。",
+    "allowModify": "允許編輯檔案",
+    "allowModifyDescription": "啟用時，已驗證的使用者可以編輯此共用中的檔案。需要使用者驗證。",
+    "allowDelete": "允許刪除檔案",
+    "allowDeleteDescription": "啟用時，已驗證的使用者可以從此共用刪除檔案和資料夾。需要使用者驗證。",
+    "allowCreate": "允許建立檔案和資料夾",
+    "allowCreateDescription": "啟用時，已驗證的使用者可以在此共用中建立新檔案和資料夾。需要使用者驗證。",
+    "allowUpload": "允許上傳檔案",
+    "allowUploadDescription": "啟用時，使用者可以將檔案上傳到此上傳共用。"
   },
   "api": {
     "title": "API 金鑰",

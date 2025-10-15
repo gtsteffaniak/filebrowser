@@ -282,7 +282,9 @@
       "share": "Fájlok megosztása",
       "admin": "Adminisztrátor",
       "api": "Hosszú élettartamú API-kulcsok létrehozása és kezelése",
-      "realtime": "Valós idejű kapcsolatok és frissítések engedélyezése"
+      "realtime": "Valós idejű kapcsolatok és frissítések engedélyezése",
+      "create": "Fájlok létrehozása",
+      "delete": "Fájlok törlése"
     },
     "permissions-name": "Jogosultságok",
     "permissionsHelp": "A felhasználót beállíthatja rendszergazdának, vagy egyénileg is kiválaszthatja a jogosultságokat. Ha a \"Rendszergazda\" lehetőséget választja, az összes többi opció automatikusan be lesz jelölve. A felhasználók kezelése továbbra is a rendszergazda kiváltsága marad.\n",
@@ -432,7 +434,17 @@
     "perUserDownloadLimitDescription": "Ha engedélyezve van, a letöltési limit minden egyes felhasználóra vonatkozik. A névtelen felhasználók nem tölthetnek le fájlokat erről a megosztásról.",
     "descriptionUploadDefault": "Megosztást küldtek Önnek fájlok feltöltéséhez.",
     "extractEmbeddedSubtitles": "Beágyazott feliratok kivonása",
-    "extractEmbeddedSubtitlesDescription": "Beágyazott feliratok kivonása a médiafájlokból betöltéskor -- ez nagy fájlok esetén lassú lehet."
+    "extractEmbeddedSubtitlesDescription": "Beágyazott feliratok kivonása a médiafájlokból betöltéskor -- ez nagy fájlok esetén lassú lehet.",
+    "disableDownload": "Letiltja a fájlok letöltését",
+    "disableDownloadDescription": "Ha engedélyezve van, a felhasználók nem tudnak fájlokat letölteni vagy a fájlok tartalmát megtekinteni.",
+    "allowModify": "Fájlok szerkesztésének engedélyezése",
+    "allowModifyDescription": "Ha engedélyezve van, a hitelesített felhasználók szerkeszthetik a fájlokat ezen a megosztáson. Felhasználói hitelesítést igényel.",
+    "allowDelete": "Fájlok törlésének engedélyezése",
+    "allowDeleteDescription": "Ha engedélyezve van, a hitelesített felhasználók törölhetnek fájlokat és mappákat erről a megosztásról. Felhasználói hitelesítést igényel.",
+    "allowCreate": "Fájlok és mappák létrehozásának engedélyezése",
+    "allowCreateDescription": "Ha engedélyezve van, a hitelesített felhasználók új fájlokat és mappákat hozhatnak létre ezen a megosztáson. Felhasználói hitelesítést igényel.",
+    "allowUpload": "Fájlok feltöltésének engedélyezése",
+    "allowUploadDescription": "Ha engedélyezve van, a felhasználók fájlokat tölthetnek fel erre a feltöltési megosztásra."
   },
   "api": {
     "title": "API-kulcsok:",

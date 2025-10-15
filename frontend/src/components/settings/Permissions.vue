@@ -15,6 +15,8 @@
       v-model="permissions.realtime"
       :name="$t('settings.permissions.realtime')"
     />
+    <ToggleSwitch class="item" v-model="permissions.create" :name="$t('settings.permissions.create')" />
+    <ToggleSwitch class="item" v-model="permissions.delete" :name="$t('settings.permissions.delete')" />
   </div>
 </template>
 

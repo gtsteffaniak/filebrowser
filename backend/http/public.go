@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/go-logger/logger"
@@ -35,6 +36,11 @@ import (
 func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	if d.share.ShareType == "upload" {
 		return http.StatusNotImplemented, fmt.Errorf("downloads are disabled for upload shares")
+	}
+
+	// Check AllowDownload permission for normal shares
+	if d.share.DisableDownload {
+		return http.StatusForbidden, fmt.Errorf("downloads are not allowed for this share")
 	}
 
 	// Check global download limit (if not using per-user limits)
@@ -103,6 +109,9 @@ func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	var status int
 	status, err = rawFilesHandler(w, r, d, fileList)
 	if err != nil {
+		if err == errors.ErrDownloadNotAllowed {
+			return http.StatusForbidden, errors.ErrDownloadNotAllowed
+		}
 		logger.Errorf("public share handler: error processing filelist: '%v' with error %v", f, err)
 		return status, fmt.Errorf("error processing filelist: %v", f)
 	}
@@ -152,6 +161,15 @@ func publicGetResourceHandler(w http.ResponseWriter, r *http.Request, d *request
 func publicUploadHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	if d.share.ShareType != "upload" {
 		return http.StatusNotImplemented, fmt.Errorf("uploading is disabled for non-upload shares")
+	}
+
+	// Check AllowUpload permission for upload shares
+	if !d.share.AllowUpload {
+		return http.StatusForbidden, errors.ErrUploadNotAllowed
+	}
+
+	if !d.share.AllowReplacements && r.URL.Query().Get("action") == "override" {
+		return http.StatusForbidden, fmt.Errorf("cannot overwrite files for this share")
 	}
 
 	fullPath := filepath.Join(d.share.Path, r.URL.Query().Get("targetPath"))
@@ -215,15 +233,20 @@ func publicPreviewHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 
 	// Restore source name from share for preview generation
 	// The middleware clears file.Source for security, but we need it for index lookups
-	if d.fileInfo.Source == "" && d.share != nil {
-		sourceInfo, ok := settings.Config.Server.SourceMap[d.share.Source]
-		if !ok {
-			// Don't expose internal errors to share users
-			return http.StatusNotFound, fmt.Errorf("resource not available")
-		}
-		d.fileInfo.Source = sourceInfo.Name
+	sourceInfo, ok := settings.Config.Server.SourceMap[d.share.Source]
+	if !ok {
+		// Don't expose internal errors to share users
+		return http.StatusNotFound, fmt.Errorf("resource not available")
 	}
-
+	fileInfo, err := FileInfoFasterFunc(utils.FileOptions{
+		Path:     utils.JoinPathAsUnix(d.share.Path, d.fileInfo.Path),
+		Source:   sourceInfo.Name,
+		Metadata: true,
+	}, nil)
+	if err != nil {
+		return http.StatusNotFound, fmt.Errorf("resource not available")
+	}
+	d.fileInfo = *fileInfo
 	status, err := previewHelperFunc(w, r, d)
 	if err != nil {
 		// Obfuscate errors for shares to prevent information leakage

@@ -142,11 +142,14 @@ userDefaults:
     defaultMediaPlayer: false             # disable html5 media player and use the default media player
     folder: false                         # show thumbnail preview image for folder files
   permissions:
-    api: false
-    admin: false
-    modify: false
-    share: false
-    realtime: false
+    api: false                            # allow api access
+    admin: false                          # allow admin access
+    modify: false                         # allow modifying files
+    share: false                          # allow sharing files
+    realtime: false                       # allow realtime updates
+    delete: false                         # allow deleting files
+    create: false                         # allow creating or uploading files
+    download: false                       # allow downloading files
   loginMethod: "password"                 # login method to use: eg. password, proxy, oidc
   disableUpdateNotifications: false       # disable update notifications banner for admin users
   deleteWithoutConfirming: false          # delete files without confirmation

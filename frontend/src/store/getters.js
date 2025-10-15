@@ -45,11 +45,12 @@ export const getters = {
     if (!state.user || state.user?.username == "") {
       return "normal";
     }
+    const userViewmode = getters.displayPreference()?.viewMode || state.user.viewMode
     // If user is anonymous and on a share, check for defaultViewMode override
-    if (getters.isShare() && state.user?.username === 'anonymous' && shareInfo.viewMode) {
+    if (state.user?.username === 'anonymous' && !userViewmode) {
       return shareInfo.viewMode;
     }
-    return getters.displayPreference()?.viewMode || state.user.viewMode || "normal";
+    return userViewmode || "normal";
   },
   sorting: () => {
     return getters.displayPreference()?.sorting || state.user.sorting || { by: "name", asc: true };
@@ -360,6 +361,15 @@ export const getters = {
     return files.sort((a, b) => a.progress - b.progress)
   },
   fileViewingDisabled: filename => {
+    if (getters.isShare()) {
+      if (shareInfo.disableFileViewer || shareInfo.shareType == "upload" || shareInfo.disableDownload) {
+        return true
+      }
+    } else {
+      if (!state.user.permissions.download) {
+        return true
+      }
+    }
     const ext = ' ' + getFileExtension(filename)
     if (state.user.disableViewingExt) {
       const disabledExts = ' ' + state.user.disableViewingExt.toLowerCase()

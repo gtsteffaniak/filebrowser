@@ -280,7 +280,9 @@
       "share": "Partilhar ficheiros",
       "admin": "Administrador",
       "api": "Criar e gerir chaves de API de longa duração",
-      "realtime": "Permitir ligações e actualizações em tempo real"
+      "realtime": "Permitir ligações e actualizações em tempo real",
+      "create": "Criar ficheiros",
+      "delete": "Eliminar ficheiros"
     },
     "permissions-name": "Permissões",
     "permissionsHelp": "Pode definir o utilizador como administrador ou escolher as permissões manualmente. Se selecionar a opção \"Administrador\", todas as outras opções serão automaticamente selecionadas. A gestão dos utilizadores é um privilégio restringido aos administradores.\n",
@@ -432,7 +434,17 @@
     "perUserDownloadLimitDescription": "Quando ativado, o limite de transferências será aplicado a cada utilizador. Os utilizadores anónimos não poderão descarregar quaisquer ficheiros desta partilha.",
     "descriptionUploadDefault": "Foi-lhe enviada uma partilha para carregar ficheiros.",
     "extractEmbeddedSubtitles": "Extrair legendas incorporadas",
-    "extractEmbeddedSubtitlesDescription": "Extrair legendas incorporadas de ficheiros multimédia ao carregar -- isto pode ser lento para ficheiros grandes."
+    "extractEmbeddedSubtitlesDescription": "Extrair legendas incorporadas de ficheiros multimédia ao carregar -- isto pode ser lento para ficheiros grandes.",
+    "disableDownload": "Desativar a transferência de ficheiros",
+    "disableDownloadDescription": "Quando ativado, os utilizadores não poderão descarregar ficheiros ou ver o conteúdo de um ficheiro.",
+    "allowModify": "Permitir a edição de ficheiros",
+    "allowModifyDescription": "Quando ativado, os utilizadores autenticados podem editar ficheiros nesta partilha. Requer autenticação do utilizador.",
+    "allowDelete": "Permitir a eliminação de ficheiros",
+    "allowDeleteDescription": "Quando ativado, os utilizadores autenticados podem eliminar ficheiros e pastas desta partilha. Requer autenticação do utilizador.",
+    "allowCreate": "Permitir a criação de ficheiros e pastas",
+    "allowCreateDescription": "Quando ativado, os utilizadores autenticados podem criar novos ficheiros e pastas nesta partilha. Requer autenticação do utilizador.",
+    "allowUpload": "Permitir o carregamento de ficheiros",
+    "allowUploadDescription": "Quando ativado, os utilizadores podem carregar ficheiros para esta partilha de carregamento."
   },
   "api": {
     "title": "Chaves da API",

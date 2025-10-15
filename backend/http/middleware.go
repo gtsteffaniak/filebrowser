@@ -103,7 +103,6 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		file, err := FileInfoFasterFunc(utils.FileOptions{
 			Path:                     utils.JoinPathAsUnix(link.Path, path),
 			Source:                   link.Source,
-			Modify:                   false,
 			Expand:                   true,
 			Content:                  getContent,
 			ExtractEmbeddedSubtitles: settings.Config.Integrations.Media.ExtractEmbeddedSubtitles && link.ExtractEmbeddedSubtitles,

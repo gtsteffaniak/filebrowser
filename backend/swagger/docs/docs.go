@@ -3564,8 +3564,23 @@ const docTemplate = `{
         "share.CreateBody": {
             "type": "object",
             "properties": {
+                "allowCreate": {
+                    "description": "allow creating files",
+                    "type": "boolean"
+                },
+                "allowDelete": {
+                    "type": "boolean"
+                },
+                "allowModify": {
+                    "description": "allow modifying files",
+                    "type": "boolean"
+                },
+                "allowReplacements": {
+                    "description": "allow replacements of files",
+                    "type": "boolean"
+                },
                 "allowUpload": {
-                    "description": "AllowEdit           bool   ` + "`" + `json:\"allowEdit,omitempty\"` + "`" + `",
+                    "description": "allow uploading files",
                     "type": "boolean"
                 },
                 "allowedUsernames": {
@@ -3583,7 +3598,12 @@ const docTemplate = `{
                 "disableAnonymous": {
                     "type": "boolean"
                 },
+                "disableDownload": {
+                    "description": "don't allow downloading files",
+                    "type": "boolean"
+                },
                 "disableFileViewer": {
+                    "description": "don't allow viewing files",
                     "type": "boolean"
                 },
                 "disableShareCard": {
@@ -3674,8 +3694,23 @@ const docTemplate = `{
         "share.Link": {
             "type": "object",
             "properties": {
+                "allowCreate": {
+                    "description": "allow creating files",
+                    "type": "boolean"
+                },
+                "allowDelete": {
+                    "type": "boolean"
+                },
+                "allowModify": {
+                    "description": "allow modifying files",
+                    "type": "boolean"
+                },
+                "allowReplacements": {
+                    "description": "allow replacements of files",
+                    "type": "boolean"
+                },
                 "allowUpload": {
-                    "description": "AllowEdit           bool   ` + "`" + `json:\"allowEdit,omitempty\"` + "`" + `",
+                    "description": "allow uploading files",
                     "type": "boolean"
                 },
                 "allowedUsernames": {
@@ -3693,7 +3728,12 @@ const docTemplate = `{
                 "disableAnonymous": {
                     "type": "boolean"
                 },
+                "disableDownload": {
+                    "description": "don't allow downloading files",
+                    "type": "boolean"
+                },
                 "disableFileViewer": {
+                    "description": "don't allow viewing files",
                     "type": "boolean"
                 },
                 "disableShareCard": {
@@ -3842,18 +3882,35 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "admin": {
+                    "description": "allow admin access",
                     "type": "boolean"
                 },
                 "api": {
+                    "description": "allow api access",
+                    "type": "boolean"
+                },
+                "create": {
+                    "description": "allow creating or uploading files",
+                    "type": "boolean"
+                },
+                "delete": {
+                    "description": "allow deleting files",
+                    "type": "boolean"
+                },
+                "download": {
+                    "description": "allow downloading files",
                     "type": "boolean"
                 },
                 "modify": {
+                    "description": "allow modifying files",
                     "type": "boolean"
                 },
                 "realtime": {
+                    "description": "allow realtime updates",
                     "type": "boolean"
                 },
                 "share": {
+                    "description": "allow sharing files",
                     "type": "boolean"
                 }
             }
@@ -4087,6 +4144,9 @@ const docTemplate = `{
                 },
                 "username": {
                     "type": "string"
+                },
+                "version": {
+                    "type": "integer"
                 },
                 "viewMode": {
                     "description": "view mode to use: eg. normal, list, grid, or compact",

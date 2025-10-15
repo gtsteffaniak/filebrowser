@@ -280,7 +280,9 @@
       "share": "Dela filer",
       "admin": "Administratör",
       "api": "Skapa och hantera API-nycklar med lång livslängd",
-      "realtime": "Möjliggör anslutningar och uppdateringar i realtid"
+      "realtime": "Möjliggör anslutningar och uppdateringar i realtid",
+      "create": "Skapa filer",
+      "delete": "Radera filer"
     },
     "permissions-name": "Rättigheter",
     "permissionsHelp": "Du kan ange att användaren ska vara administratör eller välja behörigheterna individuellt. Om du väljer \"administratör \" kommer alla andra alternativ att kontrolleras automatiskt. Hanteringen av användare är fortfarande ett privilegium för en administratör.\n",
@@ -432,7 +434,17 @@
     "perUserDownloadLimitDescription": "När den är aktiverad kommer nedladdningsgränsen att tillämpas på varje användare. Anonyma användare kan inte ladda ner några filer från den här delningen.",
     "descriptionUploadDefault": "En andel har skickats till dig för att ladda upp filer.",
     "extractEmbeddedSubtitles": "Extrahera inbäddade undertexter",
-    "extractEmbeddedSubtitlesDescription": "Extrahera inbäddade undertexter från mediefiler vid laddning - detta kan vara långsamt för stora filer."
+    "extractEmbeddedSubtitlesDescription": "Extrahera inbäddade undertexter från mediefiler vid laddning - detta kan vara långsamt för stora filer.",
+    "disableDownload": "Inaktivera nedladdning av filer",
+    "disableDownloadDescription": "När den är aktiverad kan användarna inte ladda ner filer eller visa innehållet i en fil.",
+    "allowModify": "Tillåt redigering av filer",
+    "allowModifyDescription": "När detta är aktiverat kan autentiserade användare redigera filer i denna andel. Kräver autentisering av användare.",
+    "allowDelete": "Tillåt radering av filer",
+    "allowDeleteDescription": "När funktionen är aktiverad kan autentiserade användare radera filer och mappar från den här resursen. Kräver autentisering av användare.",
+    "allowCreate": "Tillåt skapande av filer och mappar",
+    "allowCreateDescription": "När den är aktiverad kan autentiserade användare skapa nya filer och mappar i den här resursen. Kräver autentisering av användare.",
+    "allowUpload": "Tillåt uppladdning av filer",
+    "allowUploadDescription": "När den är aktiverad kan användare ladda upp filer till den här uppladdningsdelningen."
   },
   "api": {
     "title": "API-nycklar",

@@ -280,7 +280,9 @@
       "share": "Zdieľať súbory",
       "admin": "Správca",
       "api": "Vytváranie a správa kľúčov API s dlhou životnosťou",
-      "realtime": "Povolenie pripojení a aktualizácií v reálnom čase"
+      "realtime": "Povolenie pripojení a aktualizácií v reálnom čase",
+      "create": "Vytvorenie súborov",
+      "delete": "Odstránenie súborov"
     },
     "permissions-name": "Práva",
     "permissionsHelp": "Môžete nastaviť používateľa, aby bol administrátorom alebo vybrať práva jednotlivo. Ak zvolíte \"Administrator\", všetky ďalšie budú automaticky zaškrtnuté. Manažment používateľov ostáva v správe administrátora.\n",
@@ -432,7 +434,17 @@
     "perUserDownloadLimitDescription": "Ak je táto možnosť povolená, limit stiahnutí sa uplatní na každého používateľa. Anonymní používatelia nebudú môcť z tejto zdieľanej zložky sťahovať žiadne súbory.",
     "descriptionUploadDefault": "Bola vám odoslaná akcia na nahratie súborov.",
     "extractEmbeddedSubtitles": "Výpis vložených titulkov",
-    "extractEmbeddedSubtitlesDescription": "Extrahovať vložené titulky z mediálnych súborov pri načítaní - pri veľkých súboroch to môže byť pomalé."
+    "extractEmbeddedSubtitlesDescription": "Extrahovať vložené titulky z mediálnych súborov pri načítaní - pri veľkých súboroch to môže byť pomalé.",
+    "disableDownload": "Zakázať preberanie súborov",
+    "disableDownloadDescription": "Ak je táto možnosť povolená, používatelia nebudú môcť sťahovať súbory ani zobrazovať ich obsah.",
+    "allowModify": "Povolenie úprav súborov",
+    "allowModifyDescription": "Ak je táto možnosť povolená, overení používatelia môžu upravovať súbory v tejto zdieľanej zložke. Vyžaduje overenie používateľa.",
+    "allowDelete": "Povolenie odstraňovania súborov",
+    "allowDeleteDescription": "Ak je táto možnosť povolená, overení používatelia môžu z tejto zdieľanej zložky odstraňovať súbory a priečinky. Vyžaduje overenie používateľa.",
+    "allowCreate": "Umožniť vytváranie súborov a priečinkov",
+    "allowCreateDescription": "Ak je táto možnosť povolená, overení používatelia môžu v tejto zdieľanej zložke vytvárať nové súbory a priečinky. Vyžaduje overenie používateľa.",
+    "allowUpload": "Povolenie nahrávania súborov",
+    "allowUploadDescription": "Ak je táto možnosť povolená, používatelia môžu do tejto zdieľanej zložky odosielať súbory."
   },
   "api": {
     "title": "Kľúče API:",

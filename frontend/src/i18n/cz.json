@@ -205,7 +205,17 @@
     "perUserDownloadLimitDescription": "Pokud je tato možnost povolena, bude limit stahování platit pro každého uživatele. Anonymní uživatelé nebudou moci z této sdílené složky stahovat žádné soubory.",
     "descriptionUploadDefault": "Byla vám zaslána sdílená složka pro nahrávání souborů.",
     "extractEmbeddedSubtitles": "Výpis vložených titulků",
-    "extractEmbeddedSubtitlesDescription": "Extrahovat vložené titulky z mediálních souborů při načítání - u velkých souborů to může být pomalé."
+    "extractEmbeddedSubtitlesDescription": "Extrahovat vložené titulky z mediálních souborů při načítání - u velkých souborů to může být pomalé.",
+    "disableDownload": "Zakázat stahování souborů",
+    "disableDownloadDescription": "Pokud je tato možnost povolena, uživatelé nebudou moci stahovat soubory ani zobrazovat jejich obsah.",
+    "allowModify": "Povolení úprav souborů",
+    "allowModifyDescription": "Pokud je tato možnost povolena, mohou ověření uživatelé upravovat soubory v této sdílené složce. Vyžaduje ověření uživatele.",
+    "allowDelete": "Povolit mazání souborů",
+    "allowDeleteDescription": "Pokud je tato možnost povolena, mohou ověření uživatelé mazat soubory a složky z této sdílené složky. Vyžaduje ověření uživatele.",
+    "allowCreate": "Povolit vytváření souborů a složek",
+    "allowCreateDescription": "Pokud je tato možnost povolena, mohou ověření uživatelé vytvářet nové soubory a složky v této sdílené složce. Vyžaduje ověření uživatele.",
+    "allowUpload": "Povolit nahrávání souborů",
+    "allowUploadDescription": "Pokud je tato možnost povolena, mohou uživatelé do této sdílené složky nahrávat soubory."
   },
   "prompts": {
     "copy": "Kopírovat",
@@ -423,7 +433,9 @@
       "modify": "Upravit soubory",
       "share": "Sdílet soubory",
       "api": "Vytvářet a spravovat dlouhodobé API klíče",
-      "realtime": "Povolit real-time připojení a aktualizace"
+      "realtime": "Povolit real-time připojení a aktualizace",
+      "create": "Vytvořit soubory",
+      "delete": "Odstranění souborů"
     },
     "permissions-name": "Oprávnění",
     "permissionsHelp": "Uživatele můžete nastavit jako administrátora nebo vybrat jednotlivá oprávnění. Pokud zvolíte \"Administrátor\", ostatní možnosti budou automaticky zaškrtnuty. Správa uživatelů zůstává pouze výsadou administrátora.\n",

@@ -280,7 +280,9 @@
       "share": "Distribuie fișiere",
       "admin": "Administrator",
       "api": "Crearea și gestionarea cheilor API cu durată lungă de viață",
-      "realtime": "Permite conexiuni și actualizări în timp real"
+      "realtime": "Permite conexiuni și actualizări în timp real",
+      "create": "Creați fișiere",
+      "delete": "Ștergeți fișierele"
     },
     "permissions-name": "Permisiuni",
     "permissionsHelp": "Poți alege ca un utilizator să fie administrator sau să-i alegi permisiunile individual. Dacă alegi \"Administrator\", toate celelalte opțiuni vor fi bifate automat. Gestionarea utilizatorilor rămâne un privilegiu exclusiv al administratorilor.\n",
@@ -432,7 +434,17 @@
     "perUserDownloadLimitDescription": "Atunci când este activată, limita de descărcări va fi aplicată fiecărui utilizator. Utilizatorii anonimi nu vor putea descărca niciun fișier din această partajare.",
     "descriptionUploadDefault": "V-a fost trimisă o partajare pentru a încărca fișiere.",
     "extractEmbeddedSubtitles": "Extragerea subtitrărilor încorporate",
-    "extractEmbeddedSubtitlesDescription": "Extragerea subtitrărilor încorporate din fișierele media la încărcare - acest lucru poate fi lent pentru fișierele mari."
+    "extractEmbeddedSubtitlesDescription": "Extragerea subtitrărilor încorporate din fișierele media la încărcare - acest lucru poate fi lent pentru fișierele mari.",
+    "disableDownload": "Dezactivați descărcarea fișierelor",
+    "disableDownloadDescription": "Atunci când este activată, utilizatorii nu vor putea să descarce fișiere sau să vizualizeze conținutul unui fișier.",
+    "allowModify": "Permiteți editarea fișierelor",
+    "allowModifyDescription": "Atunci când este activat, utilizatorii autentificați pot edita fișiere în această partajare. Necesită autentificarea utilizatorului.",
+    "allowDelete": "Permiteți ștergerea fișierelor",
+    "allowDeleteDescription": "Atunci când este activat, utilizatorii autentificați pot șterge fișiere și foldere din acest partaj. Necesită autentificarea utilizatorului.",
+    "allowCreate": "Permiteți crearea de fișiere și foldere",
+    "allowCreateDescription": "Atunci când este activat, utilizatorii autentificați pot crea noi fișiere și foldere în această partajare. Necesită autentificarea utilizatorului.",
+    "allowUpload": "Permiteți încărcarea fișierelor",
+    "allowUploadDescription": "Atunci când este activat, utilizatorii pot încărca fișiere în acest partaj de încărcare."
   },
   "api": {
     "title": "Chei API:",

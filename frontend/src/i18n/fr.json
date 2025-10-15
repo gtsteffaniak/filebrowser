@@ -281,7 +281,9 @@
       "share": "Partager des fichiers",
       "admin": "Administrateur",
       "api": "Créer et gérer des clés API à longue durée de vie",
-      "realtime": "Permettre des connexions et des mises à jour en temps réel"
+      "realtime": "Permettre des connexions et des mises à jour en temps réel",
+      "create": "Créer des fichiers",
+      "delete": "Supprimer des fichiers"
     },
     "permissions-name": "Permissions",
     "permissionsHelp": "Vous pouvez définir l'utilisateur comme étant un administrateur ou encore choisir les permissions individuellement. Si vous sélectionnez \"Administrateur\", toutes les autres options seront automatiquement activées. La gestion des utilisateurs est un privilège que seul l'administrateur possède.\n",
@@ -432,7 +434,17 @@
     "perUserDownloadLimitDescription": "Lorsque cette option est activée, la limite de téléchargements est appliquée à chaque utilisateur. Les utilisateurs anonymes ne pourront pas télécharger de fichiers à partir de ce partage.",
     "descriptionUploadDefault": "Un partage vous a été envoyé pour télécharger des fichiers.",
     "extractEmbeddedSubtitles": "Extraire les sous-titres intégrés",
-    "extractEmbeddedSubtitlesDescription": "Extraire les sous-titres intégrés des fichiers multimédias lors du chargement - cette opération peut s'avérer lente pour les fichiers volumineux."
+    "extractEmbeddedSubtitlesDescription": "Extraire les sous-titres intégrés des fichiers multimédias lors du chargement - cette opération peut s'avérer lente pour les fichiers volumineux.",
+    "disableDownload": "Désactiver le téléchargement de fichiers",
+    "disableDownloadDescription": "Si cette option est activée, les utilisateurs ne pourront pas télécharger de fichiers ni en afficher le contenu.",
+    "allowModify": "Permettre l'édition de fichiers",
+    "allowModifyDescription": "Lorsque cette option est activée, les utilisateurs authentifiés peuvent modifier les fichiers de ce partage. L'authentification de l'utilisateur est requise.",
+    "allowDelete": "Autoriser la suppression de fichiers",
+    "allowDeleteDescription": "Lorsque cette option est activée, les utilisateurs authentifiés peuvent supprimer des fichiers et des dossiers de ce partage. L'authentification de l'utilisateur est requise.",
+    "allowCreate": "Permettre la création de fichiers et de dossiers",
+    "allowCreateDescription": "Lorsque cette option est activée, les utilisateurs authentifiés peuvent créer de nouveaux fichiers et dossiers dans ce partage. L'authentification de l'utilisateur est requise.",
+    "allowUpload": "Autoriser le téléchargement de fichiers",
+    "allowUploadDescription": "Lorsque cette option est activée, les utilisateurs peuvent télécharger des fichiers vers ce partage de téléchargement."
   },
   "api": {
     "title": "Clés API :",

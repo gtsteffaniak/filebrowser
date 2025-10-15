@@ -17,7 +17,7 @@
       <div class="context-menu-header">
         <div
           class="action button clickable"
-          v-if="!isSearchActive && userPerms.modify && !isShare"
+          v-if="!isSearchActive && permissions.create && !isShare"
           @click="toggleShowCreate"
         >
           <i v-if="!showCreate" class="material-icons">add</i>
@@ -34,19 +34,19 @@
       </div>
       <hr class="divider">
       <action
-        v-if="showCreate && !isSearchActive && userPerms.modify"
+        v-if="showCreate && !isSearchActive && permissions.create"
         icon="create_new_folder"
         :label="$t('sidebar.newFolder')"
         @action="showHover('newDir')"
       />
       <action
-        v-if="showCreate && userPerms.modify && !isSearchActive"
+        v-if="showCreate && permissions.create && !isSearchActive"
         icon="note_add"
         :label="$t('sidebar.newFile')"
         @action="showHover('newFile')"
       />
       <action
-        v-if="showCreate && userPerms.modify && !isSearchActive"
+        v-if="showCreate && permissions.create && !isSearchActive"
         icon="file_upload"
         :label="$t('buttons.upload')"
         @action="uploadFunc"
@@ -59,7 +59,7 @@
       />
 
       <action
-        v-if="(!showCreate && selectedCount > 0)"
+        v-if="(!showCreate && permissions.download && selectedCount > 0)"
         icon="file_download"
         :label="$t('buttons.download')"
         @action="startDownload"
@@ -72,13 +72,13 @@
         @action="showShareHover"
       />
       <action
-        v-if="!showCreate && selectedCount == 1 && userPerms.modify && !isSearchActive"
+        v-if="!showCreate && selectedCount == 1 && permissions.modify && !isSearchActive"
         icon="mode_edit"
         :label="$t('buttons.rename')"
         @action="showRenameHover"
       />
       <action
-        v-if="!showCreate && selectedCount > 0 && userPerms.modify"
+        v-if="!showCreate && selectedCount > 0 && permissions.modify"
         icon="content_copy"
         :label="$t('buttons.copyFile')"
         show="copy"
@@ -90,7 +90,7 @@
         @action="openParentFolder"
       />
       <action
-        v-if="!showCreate && selectedCount > 0 && userPerms.modify"
+        v-if="!showCreate && selectedCount > 0 && permissions.modify"
         icon="forward"
         :label="$t('buttons.moveFile')"
         show="move"
@@ -140,7 +140,7 @@
     >
       <action v-if="showGoToRaw" icon="open_in_new" :label="$t('buttons.openFile')" @action="goToRaw()" />
       <action v-if="shouldShowParentFolder()" icon="folder" :label="$t('buttons.openParentFolder')" @action="openParentFolder" />
-      <action v-if="hasDownload" icon="file_download" :label="$t('buttons.download')" @action="startDownload" />
+      <action v-if="hasDownload && permissions.download" icon="file_download" :label="$t('buttons.download')" @action="startDownload" />
       <action v-if="showEdit" icon="edit" :label="$t('buttons.edit')" @action="edit()" />
       <action v-if="showSave" icon="save" :label="$t('buttons.save')" @action="save()" />
       <action v-if="showDelete" icon="delete" :label="$t('buttons.delete')" show="delete" />
@@ -152,7 +152,7 @@
 import downloadFiles from "@/utils/download";
 import { state, getters, mutations } from "@/store";
 import Action from "@/components/Action.vue";
-import { globalVars } from "@/utils/constants.js";
+import { globalVars, shareInfo } from "@/utils/constants.js";
 import buttons from "@/utils/buttons";
 import { notify } from "@/notify";
 import { eventBus } from "@/store/eventBus";
@@ -206,19 +206,14 @@ export default {
     },
     showEdit() {
       const cv = getters.currentView();
-      if (getters.isShare()) {
-        // TODO: add support for editing shared files
-        return false;
-      }
-      return cv == "markdownViewer" && state.user?.permissions?.modify;
+      return cv == "markdownViewer" && this.permissions.modify;
     },
     showDelete() {
-      const cv = getters.currentView();
-      if (getters.isShare() || !state.user?.permissions?.modify) {
-        // TODO: add support for deleting shared files
+      if (this.selectedCount == 0) {
         return false;
       }
-      const showDelete = cv != "settings" && !this.showCreate && this.selectedCount > 0 && !this.isSearchActive;
+      const cv = getters.currentView();
+      const showDelete = cv != "settings" && !this.isSearchActive && this.permissions.delete;
       return showDelete;
     },
     hasDownload() {
@@ -240,19 +235,22 @@ export default {
         // TODO: add support for saving shared files
         return false;
       }
-      return getters.currentView() == "editor" && state.user?.permissions?.modify;
+      return getters.currentView() == "editor" && this.permissions.modify;
     },
     showOverflow() {
       return getters.currentPromptName() == "OverflowMenu";
     },
     showAccess() {
-      return state.user?.permissions?.admin && this.showCreate;
+      if (getters.isShare()) {
+        return false;
+      }
+      return this.permissions.admin && this.showCreate;
     },
     showShare() {
       if (getters.isShare()) {
         return false;
       }
-      return state.user?.permissions?.share;
+      return this.permissions.share;
     },
     showContext() {
       return getters.currentPromptName() == "ContextMenu";
@@ -281,11 +279,22 @@ export default {
     selectedCount() {
       return getters.selectedCount();
     },
-    userPerms() {
+    permissions() {
+      if (getters.isShare()) {
+        return {
+          upload: shareInfo.allowUpload,
+          share: false,
+          modify: shareInfo.allowModify,
+          create: shareInfo.allowCreate,
+          delete: shareInfo.allowDelete,
+        };
+      }
       return {
-        upload: state.user?.permissions?.modify && state.selected.length > 0,
+        upload: state.user?.permissions?.create,
         share: state.user?.permissions?.share,
         modify: state.user?.permissions?.modify,
+        create: state.user?.permissions?.create,
+        delete: state.user?.permissions?.delete,
       };
     },
     currentPrompt() {
