@@ -260,7 +260,6 @@ export default {
   font-size: 0.8rem;
   font-weight: 600;
   vertical-align: middle;
-  margin-left: 5px;
 }
 
 .card-content {
