@@ -259,10 +259,12 @@ export default {
   padding: 2px 8px;
   font-size: 0.8rem;
   font-weight: 600;
+  vertical-align: middle;
+  margin-left: 5px;
 }
 
 .card-content {
-  overflow: hidden;
+  overflow: hidden !important;
   margin-top: 0;
   flex-direction: column;
   padding-left: 15px;
@@ -273,6 +275,14 @@ export default {
 .card-action {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+}
+
+.card-action .button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
 }
 
 .mode-info {
