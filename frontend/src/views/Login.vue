@@ -204,7 +204,6 @@ export default {
           if (!landingPage.startsWith("/")) {
             landingPage = "/" + landingPage;
           }
-          console.log("landingPage:", landingPage);
           // Prevent redirect loop if landing page is the login page
           if (!landingPage.includes("/login")) {
             redirect = landingPage;

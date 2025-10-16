@@ -90,7 +90,8 @@
     "sortByLastModified": "Güncelleme tarihine göre sırala",
     "sortByName": "İsme göre sırala",
     "sortBySize": "Boyuta göre sırala",
-    "noPreview": "Bu dosya için önizleme aktif değil"
+    "noPreview": "Bu dosya için önizleme aktif değil",
+    "noDownloadAccess": "İndirme mevcut değil."
   },
   "help": {
     "click": "dosya veya klasör seçin",
@@ -282,7 +283,8 @@
       "api": "Uzun ömürlü API anahtarları oluşturma ve yönetme",
       "realtime": "Gerçek zamanlı bağlantıları ve güncellemeleri etkinleştirin",
       "create": "Dosya oluşturma",
-      "delete": "Dosyaları sil"
+      "delete": "Dosyaları sil",
+      "download": "Dosyaları indirin"
     },
     "permissions-name": "İzinler",
     "permissionsHelp": "Kullanıcıyı yönetici olarak ayarlayabilir veya izinleri ayrı ayrı seçebilirsiniz. \"Yönetici\"yi seçerseniz, diğer tüm seçenekler otomatik olarak kontrol edilecektir. Kullanıcıların yönetimi, bir yöneticinin yetkisi olarak kalır.\n",
@@ -436,15 +438,17 @@
     "extractEmbeddedSubtitles": "Gömülü altyazıları çıkarma",
     "extractEmbeddedSubtitlesDescription": "Yüklenen medya dosyalarından gömülü altyazıları ayıklayın -- bu işlem büyük dosyalar için yavaş olabilir.",
     "disableDownload": "Dosya indirmeyi devre dışı bırak",
-    "disableDownloadDescription": "Etkinleştirildiğinde, kullanıcılar dosya indiremez veya bir dosyanın içeriğini görüntüleyemez.",
+    "disableDownloadDescription": "Hiç kimse dosya indiremeyecek veya bir dosyanın içeriğini görüntüleyemeyecektir.",
     "allowModify": "Dosyaları düzenlemeye izin ver",
-    "allowModifyDescription": "Etkinleştirildiğinde, kimliği doğrulanmış kullanıcılar bu paylaşımdaki dosyaları düzenleyebilir. Kullanıcı kimlik doğrulaması gerektirir.",
+    "allowModifyDescription": "Bu paylaşımdaki dosyaları herkes düzenleyebilir.",
     "allowDelete": "Dosyaların silinmesine izin ver",
-    "allowDeleteDescription": "Etkinleştirildiğinde, kimliği doğrulanmış kullanıcılar bu paylaşımdan dosya ve klasörleri silebilir. Kullanıcı kimlik doğrulaması gerektirir.",
+    "allowDeleteDescription": "Herkes bu paylaşımdan dosya ve klasörleri silebilir.",
     "allowCreate": "Dosya ve klasör oluşturmaya izin ver",
-    "allowCreateDescription": "Etkinleştirildiğinde, kimliği doğrulanmış kullanıcılar bu paylaşımda yeni dosyalar ve klasörler oluşturabilir. Kullanıcı kimlik doğrulaması gerektirir.",
+    "allowCreateDescription": "Herkes bu paylaşımda yeni dosyalar ve klasörler oluşturabilir.",
     "allowUpload": "Dosya yüklemeye izin ver",
-    "allowUploadDescription": "Etkinleştirildiğinde, kullanıcılar bu yükleme paylaşımına dosya yükleyebilir."
+    "allowUploadDescription": "Bu yükleme paylaşımına herkes dosya yükleyebilir.",
+    "allowReplacements": "Dosya değiştirmelerine izin ver",
+    "allowReplacementsDescription": "Aynı ada sahip dosyaları yüklerken herkes mevcut dosyaları değiştirebilir."
   },
   "api": {
     "title": "API Anahtarları:",

@@ -37,7 +37,7 @@
                     <i class="material-icons">feedback</i>
                     {{ $t("files.noPreview") }}
                 </div>
-                <div>
+                <div v-if="permissions.download">
                     <a target="_blank" :href="downloadUrl" class="button button--flat">
                         <div>
                             <i class="material-icons">file_download</i>{{ $t("buttons.download") }}
@@ -48,6 +48,9 @@
                             <i class="material-icons">open_in_new</i>{{ $t("buttons.openFile") }}
                         </div>
                     </a>
+                </div>
+                <div v-else>
+                    <p> {{ $t("files.noDownloadAccess") }} </p>
                 </div>
                 <p> {{ req.name }} </p>
             </div>
@@ -84,6 +87,9 @@ export default {
         };
     },
     computed: {
+        permissions() {
+            return state.user.permissions;
+        },
         showImage() {
             return this.previewType == 'image' || this.pdfConvertable || this.heicConvertable;
         },

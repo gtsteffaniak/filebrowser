@@ -38,7 +38,7 @@ func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		return http.StatusNotImplemented, fmt.Errorf("downloads are disabled for upload shares")
 	}
 
-	// Check AllowDownload permission for normal shares
+	// Check DisableDownload permission for normal shares
 	if d.share.DisableDownload {
 		return http.StatusForbidden, fmt.Errorf("downloads are not allowed for this share")
 	}

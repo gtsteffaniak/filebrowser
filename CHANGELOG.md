@@ -10,7 +10,12 @@ All notable changes to this project will be documented in this file. For commit 
  - Add a "select all" toggle in the menu #974
  - Save on exit text editor -- thanks @srini-abhiram #1334 #1241
  - Disabled indexing for subfolders but allow browsing  #783
- - Added more granular create/upload, delete, and download permission #1200
+ - Added more granular create/upload, delete, and download (includes viewing content) permission #1200 #1199
+ - Updated shares
+   - `disableDownload` to disable download and (content viewing).
+   - `allowReplacements` to share permission -- prohibits replacing files on conflict #661
+   - normal shares can create/upload files
+ - Add
 
  **Notes**:
  - Optimized font and icon loading.

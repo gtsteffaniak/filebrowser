@@ -90,7 +90,8 @@
     "sortByLastModified": "Trier par date de dernière modification",
     "sortByName": "Trier par nom",
     "sortBySize": "Trier par taille",
-    "noPreview": "Il n'y a pas de prévisualisation pour ce fichier."
+    "noPreview": "Il n'y a pas de prévisualisation pour ce fichier.",
+    "noDownloadAccess": "Le téléchargement n'est pas disponible."
   },
   "help": {
     "click": "Sélectionner un élément",
@@ -283,7 +284,8 @@
       "api": "Créer et gérer des clés API à longue durée de vie",
       "realtime": "Permettre des connexions et des mises à jour en temps réel",
       "create": "Créer des fichiers",
-      "delete": "Supprimer des fichiers"
+      "delete": "Supprimer des fichiers",
+      "download": "Télécharger les fichiers"
     },
     "permissions-name": "Permissions",
     "permissionsHelp": "Vous pouvez définir l'utilisateur comme étant un administrateur ou encore choisir les permissions individuellement. Si vous sélectionnez \"Administrateur\", toutes les autres options seront automatiquement activées. La gestion des utilisateurs est un privilège que seul l'administrateur possède.\n",
@@ -436,15 +438,17 @@
     "extractEmbeddedSubtitles": "Extraire les sous-titres intégrés",
     "extractEmbeddedSubtitlesDescription": "Extraire les sous-titres intégrés des fichiers multimédias lors du chargement - cette opération peut s'avérer lente pour les fichiers volumineux.",
     "disableDownload": "Désactiver le téléchargement de fichiers",
-    "disableDownloadDescription": "Si cette option est activée, les utilisateurs ne pourront pas télécharger de fichiers ni en afficher le contenu.",
+    "disableDownloadDescription": "Personne ne pourra télécharger des fichiers ou en visualiser le contenu.",
     "allowModify": "Permettre l'édition de fichiers",
-    "allowModifyDescription": "Lorsque cette option est activée, les utilisateurs authentifiés peuvent modifier les fichiers de ce partage. L'authentification de l'utilisateur est requise.",
+    "allowModifyDescription": "Tout le monde peut modifier les fichiers de ce partage.",
     "allowDelete": "Autoriser la suppression de fichiers",
-    "allowDeleteDescription": "Lorsque cette option est activée, les utilisateurs authentifiés peuvent supprimer des fichiers et des dossiers de ce partage. L'authentification de l'utilisateur est requise.",
+    "allowDeleteDescription": "N'importe qui peut supprimer des fichiers et des dossiers de ce partage.",
     "allowCreate": "Permettre la création de fichiers et de dossiers",
-    "allowCreateDescription": "Lorsque cette option est activée, les utilisateurs authentifiés peuvent créer de nouveaux fichiers et dossiers dans ce partage. L'authentification de l'utilisateur est requise.",
+    "allowCreateDescription": "Tout le monde peut créer de nouveaux fichiers et dossiers dans ce partage.",
     "allowUpload": "Autoriser le téléchargement de fichiers",
-    "allowUploadDescription": "Lorsque cette option est activée, les utilisateurs peuvent télécharger des fichiers vers ce partage de téléchargement."
+    "allowUploadDescription": "Tout le monde peut télécharger des fichiers vers ce partage de téléchargement.",
+    "allowReplacements": "Autoriser les remplacements de fichiers",
+    "allowReplacementsDescription": "Toute personne peut remplacer des fichiers existants lorsqu'elle télécharge des fichiers portant le même nom."
   },
   "api": {
     "title": "Clés API :",

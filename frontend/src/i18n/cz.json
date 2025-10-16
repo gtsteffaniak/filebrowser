@@ -93,7 +93,8 @@
     "sortByLastModified": "Řadit podle poslední změny",
     "sortByName": "Řadit podle názvu",
     "sortBySize": "Řadit podle velikosti",
-    "noPreview": "Náhled pro tento soubor není dostupný."
+    "noPreview": "Náhled pro tento soubor není dostupný.",
+    "noDownloadAccess": "Stahování není k dispozici."
   },
   "help": {
     "click": "označit soubor nebo složku",
@@ -207,15 +208,17 @@
     "extractEmbeddedSubtitles": "Výpis vložených titulků",
     "extractEmbeddedSubtitlesDescription": "Extrahovat vložené titulky z mediálních souborů při načítání - u velkých souborů to může být pomalé.",
     "disableDownload": "Zakázat stahování souborů",
-    "disableDownloadDescription": "Pokud je tato možnost povolena, uživatelé nebudou moci stahovat soubory ani zobrazovat jejich obsah.",
+    "disableDownloadDescription": "Nikdo nebude moci stahovat soubory ani prohlížet jejich obsah.",
     "allowModify": "Povolení úprav souborů",
-    "allowModifyDescription": "Pokud je tato možnost povolena, mohou ověření uživatelé upravovat soubory v této sdílené složce. Vyžaduje ověření uživatele.",
+    "allowModifyDescription": "Soubory v tomto sdíleném souboru může upravovat kdokoli.",
     "allowDelete": "Povolit mazání souborů",
-    "allowDeleteDescription": "Pokud je tato možnost povolena, mohou ověření uživatelé mazat soubory a složky z této sdílené složky. Vyžaduje ověření uživatele.",
+    "allowDeleteDescription": "Soubory a složky může z této sdílené složky odstranit kdokoli.",
     "allowCreate": "Povolit vytváření souborů a složek",
-    "allowCreateDescription": "Pokud je tato možnost povolena, mohou ověření uživatelé vytvářet nové soubory a složky v této sdílené složce. Vyžaduje ověření uživatele.",
+    "allowCreateDescription": "V této sdílené složce může kdokoli vytvářet nové soubory a složky.",
     "allowUpload": "Povolit nahrávání souborů",
-    "allowUploadDescription": "Pokud je tato možnost povolena, mohou uživatelé do této sdílené složky nahrávat soubory."
+    "allowUploadDescription": "Do této sdílené složky může nahrávat soubory kdokoli.",
+    "allowReplacements": "Povolení nahrazení souborů",
+    "allowReplacementsDescription": "Při nahrávání souborů se stejným názvem může kdokoli nahradit stávající soubory."
   },
   "prompts": {
     "copy": "Kopírovat",
@@ -435,7 +438,8 @@
       "api": "Vytvářet a spravovat dlouhodobé API klíče",
       "realtime": "Povolit real-time připojení a aktualizace",
       "create": "Vytvořit soubory",
-      "delete": "Odstranění souborů"
+      "delete": "Odstranění souborů",
+      "download": "Soubory ke stažení"
     },
     "permissions-name": "Oprávnění",
     "permissionsHelp": "Uživatele můžete nastavit jako administrátora nebo vybrat jednotlivá oprávnění. Pokud zvolíte \"Administrátor\", ostatní možnosti budou automaticky zaškrtnuty. Správa uživatelů zůstává pouze výsadou administrátora.\n",

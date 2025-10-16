@@ -40,3 +40,8 @@ frontend:
 userDefaults:
   permissions:
    realtime: true
+
+userDefaults:
+  permissions:
+    download: true
+    create: true

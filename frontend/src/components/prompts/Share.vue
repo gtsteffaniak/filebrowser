@@ -619,7 +619,7 @@ export default {
       this.allowModify = link.allowModify || false;
       this.allowDelete = link.allowDelete || false;
       this.allowCreate = link.allowCreate || false;
-      this.allowUpload = link.allowUpload !== undefined ? link.allowUpload : true;
+      this.allowUpload = link.allowUpload || false;
       this.allowReplacements = link.allowReplacements || false;
       this.downloadsLimit = link.downloadsLimit ? String(link.downloadsLimit) : "";
       this.perUserDownloadLimit = link.perUserDownloadLimit || false;

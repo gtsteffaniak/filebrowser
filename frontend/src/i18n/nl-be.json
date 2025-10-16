@@ -90,7 +90,8 @@
     "sortByLastModified": "Sorteren op laatst bewerkt",
     "sortByName": "Sorteren op naam",
     "sortBySize": "Sorteren op grootte",
-    "noPreview": "Preview is niet beschikbaar voor dit bestand."
+    "noPreview": "Preview is niet beschikbaar voor dit bestand.",
+    "noDownloadAccess": "Download is niet beschikbaar."
   },
   "help": {
     "click": "selecteer bestand of map",
@@ -282,7 +283,8 @@
       "api": "Langlevende API-sleutels maken en beheren",
       "realtime": "Real-time verbindingen en updates mogelijk maken",
       "create": "Bestanden maken",
-      "delete": "Bestanden verwijderen"
+      "delete": "Bestanden verwijderen",
+      "download": "Bestanden downloaden"
     },
     "permissions-name": "Permissies",
     "permissionsHelp": "U kunt de gebruiker instellen als beheerder of de machtigingen afzonderlijk kiezen. Als u \"Beheerder\" selecteert, worden alle andere opties automatisch gecontroleerd. Het beheer van gebruikers blijft een privilege van een beheerder.\n",
@@ -436,15 +438,17 @@
     "extractEmbeddedSubtitles": "Ingesloten ondertitels uitpakken",
     "extractEmbeddedSubtitlesDescription": "Ingesloten ondertitels uit mediabestanden halen tijdens het laden -- dit kan traag zijn voor grote bestanden.",
     "disableDownload": "Het downloaden van bestanden uitschakelen",
-    "disableDownloadDescription": "Als deze optie is ingeschakeld, kunnen gebruikers geen bestanden downloaden of de inhoud van een bestand bekijken.",
+    "disableDownloadDescription": "Iedereen kan geen bestanden downloaden of de inhoud van een bestand bekijken.",
     "allowModify": "Bestanden bewerken toestaan",
-    "allowModifyDescription": "Indien ingeschakeld, kunnen geauthenticeerde gebruikers bestanden bewerken in deze share. Vereist gebruikersauthenticatie.",
+    "allowModifyDescription": "Iedereen kan bestanden bewerken in deze share.",
     "allowDelete": "Bestanden verwijderen toestaan",
-    "allowDeleteDescription": "Indien ingeschakeld, kunnen geverifieerde gebruikers bestanden en mappen verwijderen van deze share. Vereist gebruikersauthenticatie.",
+    "allowDeleteDescription": "Iedereen kan bestanden en mappen van deze share verwijderen.",
     "allowCreate": "Bestanden en mappen maken",
-    "allowCreateDescription": "Indien ingeschakeld, kunnen geverifieerde gebruikers nieuwe bestanden en mappen aanmaken in deze share. Vereist gebruikersauthenticatie.",
+    "allowCreateDescription": "Iedereen kan nieuwe bestanden en mappen aanmaken in deze share.",
     "allowUpload": "Bestanden uploaden toestaan",
-    "allowUploadDescription": "Indien ingeschakeld, kunnen gebruikers bestanden uploaden naar deze uploadshare."
+    "allowUploadDescription": "Iedereen kan bestanden uploaden naar deze upload share.",
+    "allowReplacements": "Bestandsvervangingen toestaan",
+    "allowReplacementsDescription": "Iedereen kan bestaande bestanden vervangen door bestanden met dezelfde naam te uploaden."
   },
   "api": {
     "title": "API-sleutels",

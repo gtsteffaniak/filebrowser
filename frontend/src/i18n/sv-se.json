@@ -90,7 +90,8 @@
     "sortByLastModified": "Sortera på senast ändrad",
     "sortByName": "Sortera på namn",
     "sortBySize": "Sortera på storlek",
-    "noPreview": "Förhandsgranskning är inte tillgänglig för den här filen."
+    "noPreview": "Förhandsgranskning är inte tillgänglig för den här filen.",
+    "noDownloadAccess": "Nedladdning är inte tillgänglig."
   },
   "help": {
     "click": "välj fil eller mapp",
@@ -282,7 +283,8 @@
       "api": "Skapa och hantera API-nycklar med lång livslängd",
       "realtime": "Möjliggör anslutningar och uppdateringar i realtid",
       "create": "Skapa filer",
-      "delete": "Radera filer"
+      "delete": "Radera filer",
+      "download": "Ladda ner filer"
     },
     "permissions-name": "Rättigheter",
     "permissionsHelp": "Du kan ange att användaren ska vara administratör eller välja behörigheterna individuellt. Om du väljer \"administratör \" kommer alla andra alternativ att kontrolleras automatiskt. Hanteringen av användare är fortfarande ett privilegium för en administratör.\n",
@@ -436,15 +438,17 @@
     "extractEmbeddedSubtitles": "Extrahera inbäddade undertexter",
     "extractEmbeddedSubtitlesDescription": "Extrahera inbäddade undertexter från mediefiler vid laddning - detta kan vara långsamt för stora filer.",
     "disableDownload": "Inaktivera nedladdning av filer",
-    "disableDownloadDescription": "När den är aktiverad kan användarna inte ladda ner filer eller visa innehållet i en fil.",
+    "disableDownloadDescription": "Vem som helst kommer inte att kunna ladda ner filer eller visa innehållet i en fil.",
     "allowModify": "Tillåt redigering av filer",
-    "allowModifyDescription": "När detta är aktiverat kan autentiserade användare redigera filer i denna andel. Kräver autentisering av användare.",
+    "allowModifyDescription": "Vem som helst kan redigera filer i den här delen.",
     "allowDelete": "Tillåt radering av filer",
-    "allowDeleteDescription": "När funktionen är aktiverad kan autentiserade användare radera filer och mappar från den här resursen. Kräver autentisering av användare.",
+    "allowDeleteDescription": "Vem som helst kan radera filer och mappar från denna delning.",
     "allowCreate": "Tillåt skapande av filer och mappar",
-    "allowCreateDescription": "När den är aktiverad kan autentiserade användare skapa nya filer och mappar i den här resursen. Kräver autentisering av användare.",
+    "allowCreateDescription": "Vem som helst kan skapa nya filer och mappar i den här delen.",
     "allowUpload": "Tillåt uppladdning av filer",
-    "allowUploadDescription": "När den är aktiverad kan användare ladda upp filer till den här uppladdningsdelningen."
+    "allowUploadDescription": "Vem som helst kan ladda upp filer till denna uppladdningsandel.",
+    "allowReplacements": "Tillåt filbyten",
+    "allowReplacementsDescription": "Vem som helst kan ersätta befintliga filer när de laddar upp filer med samma namn."
   },
   "api": {
     "title": "API-nycklar",

@@ -90,7 +90,8 @@
     "sortByLastModified": "Nach Änderungsdatum sortieren",
     "sortByName": "Nach Namen sortieren",
     "sortBySize": "Nach Größe sortieren",
-    "noPreview": "Für diese Datei ist keine Vorschau verfügbar."
+    "noPreview": "Für diese Datei ist keine Vorschau verfügbar.",
+    "noDownloadAccess": "Der Download ist nicht verfügbar."
   },
   "help": {
     "click": "Wähle Datei oder Ordner",
@@ -286,7 +287,8 @@
       "api": "Erstellen und Verwalten von API-Schlüsseln mit langer Lebensdauer",
       "realtime": "Verbindungen und Aktualisierungen in Echtzeit ermöglichen",
       "create": "Dateien erstellen",
-      "delete": "Dateien löschen"
+      "delete": "Dateien löschen",
+      "download": "Dateien herunterladen"
     },
     "permissions-name": "Berechtigungen",
     "permissionsHelp": "Sie können einem Benutzer Administratorrechte einräumen oder die Berechtigunen individuell festlegen.  Wenn Sie \"Administrator\" auswählen, werden alle anderen Rechte automatisch vergeben. Die Nutzerverwaltung kann nur durch einen Administrator erfolgen.\n",
@@ -436,15 +438,17 @@
     "extractEmbeddedSubtitles": "Eingebettete Untertitel extrahieren",
     "extractEmbeddedSubtitlesDescription": "Extrahieren von eingebetteten Untertiteln aus Mediendateien beim Laden - dies kann bei großen Dateien langsam sein.",
     "disableDownload": "Herunterladen von Dateien deaktivieren",
-    "disableDownloadDescription": "Wenn diese Funktion aktiviert ist, können Benutzer keine Dateien herunterladen oder den Inhalt einer Datei anzeigen.",
+    "disableDownloadDescription": "Niemand wird in der Lage sein, Dateien herunterzuladen oder den Inhalt einer Datei einzusehen.",
     "allowModify": "Bearbeitung von Dateien zulassen",
-    "allowModifyDescription": "Wenn diese Option aktiviert ist, können authentifizierte Benutzer Dateien in dieser Freigabe bearbeiten. Erfordert Benutzerauthentifizierung.",
+    "allowModifyDescription": "Jeder kann Dateien in dieser Freigabe bearbeiten.",
     "allowDelete": "Löschen von Dateien zulassen",
-    "allowDeleteDescription": "Wenn diese Option aktiviert ist, können authentifizierte Benutzer Dateien und Ordner von dieser Freigabe löschen. Erfordert Benutzerauthentifizierung.",
+    "allowDeleteDescription": "Jeder kann Dateien und Ordner von dieser Freigabe löschen.",
     "allowCreate": "Erlauben Sie das Erstellen von Dateien und Ordnern",
-    "allowCreateDescription": "Wenn diese Option aktiviert ist, können authentifizierte Benutzer neue Dateien und Ordner in dieser Freigabe erstellen. Erfordert Benutzerauthentifizierung.",
+    "allowCreateDescription": "Jeder kann neue Dateien und Ordner in dieser Freigabe erstellen.",
     "allowUpload": "Hochladen von Dateien zulassen",
-    "allowUploadDescription": "Wenn diese Option aktiviert ist, können Benutzer Dateien auf diese Upload-Freigabe hochladen."
+    "allowUploadDescription": "Jeder kann Dateien auf diese Upload-Freigabe hochladen.",
+    "allowReplacements": "Ersetzen von Dateien zulassen",
+    "allowReplacementsDescription": "Jeder kann beim Hochladen von Dateien mit demselben Namen bestehende Dateien ersetzen."
   },
   "api": {
     "title": "API-Schlüssel:",

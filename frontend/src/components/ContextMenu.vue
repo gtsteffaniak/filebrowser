@@ -34,19 +34,19 @@
       </div>
       <hr class="divider">
       <action
-        v-if="showCreate && !isSearchActive && permissions.create"
+        v-if="showCreate && !isSearchActive"
         icon="create_new_folder"
         :label="$t('sidebar.newFolder')"
         @action="showHover('newDir')"
       />
       <action
-        v-if="showCreate && permissions.create && !isSearchActive"
+        v-if="showCreate && !isSearchActive"
         icon="note_add"
         :label="$t('sidebar.newFile')"
         @action="showHover('newFile')"
       />
       <action
-        v-if="showCreate && permissions.create && !isSearchActive"
+        v-if="showCreate && !isSearchActive"
         icon="file_upload"
         :label="$t('buttons.upload')"
         @action="uploadFunc"
@@ -140,7 +140,7 @@
     >
       <action v-if="showGoToRaw" icon="open_in_new" :label="$t('buttons.openFile')" @action="goToRaw()" />
       <action v-if="shouldShowParentFolder()" icon="folder" :label="$t('buttons.openParentFolder')" @action="openParentFolder" />
-      <action v-if="hasDownload && permissions.download" icon="file_download" :label="$t('buttons.download')" @action="startDownload" />
+      <action v-if="hasDownload" icon="file_download" :label="$t('buttons.download')" @action="startDownload" />
       <action v-if="showEdit" icon="edit" :label="$t('buttons.edit')" @action="edit()" />
       <action v-if="showSave" icon="save" :label="$t('buttons.save')" @action="save()" />
       <action v-if="showDelete" icon="delete" :label="$t('buttons.delete')" show="delete" />
@@ -179,6 +179,9 @@ export default {
     },
   },
   computed: {
+    permissions() {
+      return getters.permissions();
+    },
     req() {
       return state.req;
     },
@@ -201,6 +204,9 @@ export default {
       return this.showEdit || this.showDelete || this.showSave || this.showGoToRaw || this.hasDownload;
     },
     showGoToRaw() {
+      if (!this.permissions.download) {
+        return false;
+      }
       const cv = getters.currentView();
       return cv == "preview" || cv == "markdownViewer" || cv == "editor";
     },
@@ -217,7 +223,7 @@ export default {
       return showDelete;
     },
     hasDownload() {
-      return this.selectedCount > 0;
+      return this.selectedCount > 0 && this.permissions.download;
     },
     isPreview() {
       const cv = getters.currentView();
@@ -279,24 +285,6 @@ export default {
     selectedCount() {
       return getters.selectedCount();
     },
-    permissions() {
-      if (getters.isShare()) {
-        return {
-          upload: shareInfo.allowUpload,
-          share: false,
-          modify: shareInfo.allowModify,
-          create: shareInfo.allowCreate,
-          delete: shareInfo.allowDelete,
-        };
-      }
-      return {
-        upload: state.user?.permissions?.create,
-        share: state.user?.permissions?.share,
-        modify: state.user?.permissions?.modify,
-        create: state.user?.permissions?.create,
-        delete: state.user?.permissions?.delete,
-      };
-    },
     currentPrompt() {
       return getters.currentPrompt();
     },
@@ -340,6 +328,10 @@ export default {
       });
     },
     toggleShowCreate() {
+      if (!this.permissions.create) {
+        this.showCreate = false;
+        return;
+      }
       this.showCreate = !this.showCreate;
     },
     shouldShowParentFolder() {
@@ -417,7 +409,7 @@ export default {
       }, 300);
     },
     startShowCreate() {
-      if (getters.isShare()) {
+      if (!this.permissions.create) {
         return;
       }
       this.showCreate = true;
@@ -450,7 +442,7 @@ export default {
     },
     initializeCreateState() {
       // Only set initial showCreate state, don't override user choices
-      if (state.selected.length > 0 || getters.isShare()) {
+      if (state.selected.length > 0 || !this.permissions.create) {
         this.showCreate = false;
       } else {
         this.showCreate = true;

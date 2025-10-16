@@ -90,7 +90,8 @@
     "sortByLastModified": "Ordonează dup ultima modificare",
     "sortByName": "Ordonează după nume",
     "sortBySize": "Ordonează după dimensiune",
-    "noPreview": "Previzualizarea nu este disponibilă pentru acest fișier."
+    "noPreview": "Previzualizarea nu este disponibilă pentru acest fișier.",
+    "noDownloadAccess": "Descărcarea nu este disponibilă."
   },
   "help": {
     "click": "alege fișier sau director",
@@ -282,7 +283,8 @@
       "api": "Crearea și gestionarea cheilor API cu durată lungă de viață",
       "realtime": "Permite conexiuni și actualizări în timp real",
       "create": "Creați fișiere",
-      "delete": "Ștergeți fișierele"
+      "delete": "Ștergeți fișierele",
+      "download": "Descărcați fișiere"
     },
     "permissions-name": "Permisiuni",
     "permissionsHelp": "Poți alege ca un utilizator să fie administrator sau să-i alegi permisiunile individual. Dacă alegi \"Administrator\", toate celelalte opțiuni vor fi bifate automat. Gestionarea utilizatorilor rămâne un privilegiu exclusiv al administratorilor.\n",
@@ -436,15 +438,17 @@
     "extractEmbeddedSubtitles": "Extragerea subtitrărilor încorporate",
     "extractEmbeddedSubtitlesDescription": "Extragerea subtitrărilor încorporate din fișierele media la încărcare - acest lucru poate fi lent pentru fișierele mari.",
     "disableDownload": "Dezactivați descărcarea fișierelor",
-    "disableDownloadDescription": "Atunci când este activată, utilizatorii nu vor putea să descarce fișiere sau să vizualizeze conținutul unui fișier.",
+    "disableDownloadDescription": "Oricine nu va putea să descarce fișiere sau să vizualizeze conținutul unui fișier.",
     "allowModify": "Permiteți editarea fișierelor",
-    "allowModifyDescription": "Atunci când este activat, utilizatorii autentificați pot edita fișiere în această partajare. Necesită autentificarea utilizatorului.",
+    "allowModifyDescription": "Oricine poate edita fișiere în această partajare.",
     "allowDelete": "Permiteți ștergerea fișierelor",
-    "allowDeleteDescription": "Atunci când este activat, utilizatorii autentificați pot șterge fișiere și foldere din acest partaj. Necesită autentificarea utilizatorului.",
+    "allowDeleteDescription": "Oricine poate șterge fișiere și foldere din această partajare.",
     "allowCreate": "Permiteți crearea de fișiere și foldere",
-    "allowCreateDescription": "Atunci când este activat, utilizatorii autentificați pot crea noi fișiere și foldere în această partajare. Necesită autentificarea utilizatorului.",
+    "allowCreateDescription": "Oricine poate crea noi fișiere și foldere în această partajare.",
     "allowUpload": "Permiteți încărcarea fișierelor",
-    "allowUploadDescription": "Atunci când este activat, utilizatorii pot încărca fișiere în acest partaj de încărcare."
+    "allowUploadDescription": "Oricine poate încărca fișiere în acest share de încărcare.",
+    "allowReplacements": "Permiteți înlocuirea fișierelor",
+    "allowReplacementsDescription": "Oricine poate înlocui fișierele existente atunci când încarcă fișiere cu același nume."
   },
   "api": {
     "title": "Chei API:",

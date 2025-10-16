@@ -90,7 +90,8 @@
     "sortByLastModified": "Zoradiť podľa dátumu",
     "sortByName": "Zoradiť podľa názvu",
     "sortBySize": "Zoradiť podľa veľkosti",
-    "noPreview": "Pre tento súbor nie je dostupný náhľad."
+    "noPreview": "Pre tento súbor nie je dostupný náhľad.",
+    "noDownloadAccess": "Stiahnutie nie je k dispozícii."
   },
   "help": {
     "click": "vyberie súbor alebo priečinok",
@@ -282,7 +283,8 @@
       "api": "Vytváranie a správa kľúčov API s dlhou životnosťou",
       "realtime": "Povolenie pripojení a aktualizácií v reálnom čase",
       "create": "Vytvorenie súborov",
-      "delete": "Odstránenie súborov"
+      "delete": "Odstránenie súborov",
+      "download": "Stiahnite si súbory"
     },
     "permissions-name": "Práva",
     "permissionsHelp": "Môžete nastaviť používateľa, aby bol administrátorom alebo vybrať práva jednotlivo. Ak zvolíte \"Administrator\", všetky ďalšie budú automaticky zaškrtnuté. Manažment používateľov ostáva v správe administrátora.\n",
@@ -436,15 +438,17 @@
     "extractEmbeddedSubtitles": "Výpis vložených titulkov",
     "extractEmbeddedSubtitlesDescription": "Extrahovať vložené titulky z mediálnych súborov pri načítaní - pri veľkých súboroch to môže byť pomalé.",
     "disableDownload": "Zakázať preberanie súborov",
-    "disableDownloadDescription": "Ak je táto možnosť povolená, používatelia nebudú môcť sťahovať súbory ani zobrazovať ich obsah.",
+    "disableDownloadDescription": "Nikto nebude môcť sťahovať súbory ani zobrazovať ich obsah.",
     "allowModify": "Povolenie úprav súborov",
-    "allowModifyDescription": "Ak je táto možnosť povolená, overení používatelia môžu upravovať súbory v tejto zdieľanej zložke. Vyžaduje overenie používateľa.",
+    "allowModifyDescription": "Súbory v tejto zdieľanej zložke môže upravovať ktokoľvek.",
     "allowDelete": "Povolenie odstraňovania súborov",
-    "allowDeleteDescription": "Ak je táto možnosť povolená, overení používatelia môžu z tejto zdieľanej zložky odstraňovať súbory a priečinky. Vyžaduje overenie používateľa.",
+    "allowDeleteDescription": "Súbory a priečinky z tejto zdieľanej zložky môže vymazať ktokoľvek.",
     "allowCreate": "Umožniť vytváranie súborov a priečinkov",
-    "allowCreateDescription": "Ak je táto možnosť povolená, overení používatelia môžu v tejto zdieľanej zložke vytvárať nové súbory a priečinky. Vyžaduje overenie používateľa.",
+    "allowCreateDescription": "V tejto zdieľanej zložke môže ktokoľvek vytvárať nové súbory a priečinky.",
     "allowUpload": "Povolenie nahrávania súborov",
-    "allowUploadDescription": "Ak je táto možnosť povolená, používatelia môžu do tejto zdieľanej zložky odosielať súbory."
+    "allowUploadDescription": "Do tejto zdieľanej zložky môže nahrávať súbory ktokoľvek.",
+    "allowReplacements": "Povolenie výmeny súborov",
+    "allowReplacementsDescription": "Pri nahrávaní súborov s rovnakým názvom môže ktokoľvek nahradiť existujúce súbory."
   },
   "api": {
     "title": "Kľúče API:",

@@ -90,7 +90,8 @@
     "sortByLastModified": "Sortuj wg. daty modyfikacji",
     "sortByName": "Sortuj wg. nazwy",
     "sortBySize": "Sortuj wg. rozmiaru",
-    "noPreview": "Podgląd nie jest dostępny dla tego pliku."
+    "noPreview": "Podgląd nie jest dostępny dla tego pliku.",
+    "noDownloadAccess": "Pobieranie nie jest dostępne."
   },
   "help": {
     "click": "wybierz plik lub foler",
@@ -282,7 +283,8 @@
       "api": "Tworzenie i zarządzanie kluczami API o długiej żywotności",
       "realtime": "Połączenia i aktualizacje w czasie rzeczywistym",
       "create": "Tworzenie plików",
-      "delete": "Usuwanie plików"
+      "delete": "Usuwanie plików",
+      "download": "Pobieranie plików"
     },
     "permissions-name": "Uprawnienia",
     "permissionsHelp": "Możesz uczynić użytkownika administratorem, lub wybrać uprawnienia indywidualnie. Jeśli zaznaczysz opcję \"Administrator\", wszystkie pozostałe opcje zostaną automatycznie zaznaczone. Zarządzanie użytkownikami pozostaje przywilejem administratora.\n",
@@ -436,15 +438,17 @@
     "extractEmbeddedSubtitles": "Wyodrębnianie osadzonych napisów",
     "extractEmbeddedSubtitlesDescription": "Wyodrębnianie osadzonych napisów z plików multimedialnych podczas ładowania - może to być powolne w przypadku dużych plików.",
     "disableDownload": "Wyłącz pobieranie plików",
-    "disableDownloadDescription": "Po włączeniu tej opcji użytkownicy nie będą mogli pobierać plików ani wyświetlać ich zawartości.",
+    "disableDownloadDescription": "Nikt nie będzie mógł pobierać plików ani przeglądać ich zawartości.",
     "allowModify": "Zezwalaj na edycję plików",
-    "allowModifyDescription": "Po włączeniu tej opcji uwierzytelnieni użytkownicy mogą edytować pliki w tym udziale. Wymaga uwierzytelnienia użytkownika.",
+    "allowModifyDescription": "Każdy może edytować pliki w tym udziale.",
     "allowDelete": "Zezwalaj na usuwanie plików",
-    "allowDeleteDescription": "Po włączeniu tej opcji uwierzytelnieni użytkownicy mogą usuwać pliki i foldery z tego folderu udostępnionego. Wymaga uwierzytelnienia użytkownika.",
+    "allowDeleteDescription": "Każdy może usuwać pliki i foldery z tego udziału.",
     "allowCreate": "Zezwalaj na tworzenie plików i folderów",
-    "allowCreateDescription": "Po włączeniu tej opcji uwierzytelnieni użytkownicy mogą tworzyć nowe pliki i foldery w tym udziale. Wymaga uwierzytelnienia użytkownika.",
+    "allowCreateDescription": "Każdy może tworzyć nowe pliki i foldery w tym udziale.",
     "allowUpload": "Zezwalaj na przesyłanie plików",
-    "allowUploadDescription": "Po włączeniu tej opcji użytkownicy mogą przesyłać pliki do tego folderu udostępnionego."
+    "allowUploadDescription": "Każdy może przesyłać pliki do tego folderu udostępnionego.",
+    "allowReplacements": "Zezwalaj na zastępowanie plików",
+    "allowReplacementsDescription": "Każdy może zastąpić istniejące pliki podczas przesyłania plików o tej samej nazwie."
   },
   "api": {
     "title": "Klucze API:",

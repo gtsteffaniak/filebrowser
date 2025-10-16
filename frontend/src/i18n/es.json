@@ -90,7 +90,8 @@
     "sortByLastModified": "Ordenar por fecha de modificación",
     "sortByName": "Ordenar por nombre",
     "sortBySize": "Ordenar por tamaño",
-    "noPreview": "Vista previa no disponible"
+    "noPreview": "Vista previa no disponible",
+    "noDownloadAccess": "La descarga no está disponible."
   },
   "help": {
     "click": "Selecciona un archivo o carpeta",
@@ -287,7 +288,8 @@
       "api": "Claves API",
       "realtime": "Actualizaciones en tiempo real",
       "create": "Crear archivos",
-      "delete": "Eliminar archivos"
+      "delete": "Eliminar archivos",
+      "download": "Descargar archivos"
     },
     "permissions-name": "Permisos",
     "permissionsHelp": "Puedes elegir permisos individualmente. Si seleccionas \"Administrador\", todas las demás opciones serán activadas, y los usuarios con ese permiso podrán modificar a otros usuarios.\n",
@@ -436,15 +438,17 @@
     "extractEmbeddedSubtitles": "Extraer subtítulos incrustados",
     "extractEmbeddedSubtitlesDescription": "Extrae los subtítulos incrustados de los archivos multimedia al cargarlos -- esto puede ser lento para archivos grandes.",
     "disableDownload": "Desactivar la descarga de archivos",
-    "disableDownloadDescription": "Si está activada, los usuarios no podrán descargar archivos ni ver su contenido.",
+    "disableDownloadDescription": "Nadie podrá descargar archivos ni ver su contenido.",
     "allowModify": "Permitir la edición de archivos",
-    "allowModifyDescription": "Cuando se activa, los usuarios autenticados pueden editar archivos en este recurso compartido. Requiere autenticación de usuario.",
+    "allowModifyDescription": "Cualquiera puede editar archivos en este recurso compartido.",
     "allowDelete": "Permitir la eliminación de archivos",
-    "allowDeleteDescription": "Cuando está activada, los usuarios autenticados pueden eliminar archivos y carpetas de este recurso compartido. Requiere autenticación de usuario.",
+    "allowDeleteDescription": "Cualquiera puede borrar archivos y carpetas de este recurso compartido.",
     "allowCreate": "Permitir la creación de archivos y carpetas",
-    "allowCreateDescription": "Cuando está activada, los usuarios autenticados pueden crear nuevos archivos y carpetas en este recurso compartido. Requiere autenticación de usuario.",
+    "allowCreateDescription": "Cualquiera puede crear nuevos archivos y carpetas en este recurso compartido.",
     "allowUpload": "Permitir la carga de archivos",
-    "allowUploadDescription": "Cuando se activa, los usuarios pueden subir archivos a este recurso compartido."
+    "allowUploadDescription": "Cualquiera puede subir archivos a este recurso compartido.",
+    "allowReplacements": "Permitir la sustitución de archivos",
+    "allowReplacementsDescription": "Cualquiera puede sustituir archivos existentes al cargar archivos con el mismo nombre."
   },
   "api": {
     "title": "Gestión de claves API",

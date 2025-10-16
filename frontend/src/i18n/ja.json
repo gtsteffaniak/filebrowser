@@ -90,7 +90,8 @@
     "sortByLastModified": "最終変更日付によるソート",
     "sortByName": "名前によるソート",
     "sortBySize": "サイズによるソート",
-    "noPreview": "このファイルではプレビューは利用できません。"
+    "noPreview": "このファイルではプレビューは利用できません。",
+    "noDownloadAccess": "ダウンロードはできません。"
   },
   "help": {
     "click": "ファイルやディレクトリを選択",
@@ -282,7 +283,8 @@
       "api": "長期間有効なAPIキーの作成と管理",
       "realtime": "リアルタイム接続と更新を有効にする",
       "create": "ファイル作成",
-      "delete": "ファイルの削除"
+      "delete": "ファイルの削除",
+      "download": "ファイルのダウンロード"
     },
     "permissions-name": "権限",
     "permissionsHelp": "ユーザーを管理者に設定するか、権限を個別に設定できます。「管理者」を選択した場合、その他のすべての選択肢は自動的に設定されます。ユーザーの管理は管理者の権限として保持されます。",
@@ -436,15 +438,17 @@
     "extractEmbeddedSubtitles": "埋め込み字幕の抽出",
     "extractEmbeddedSubtitlesDescription": "読み込み時にメディアファイルから埋め込まれたサブタイトルを抽出する。",
     "disableDownload": "ファイルのダウンロードを無効にする",
-    "disableDownloadDescription": "有効にすると、ユーザーはファイルをダウンロードしたり、ファイルの内容を見たりすることができなくなります。",
+    "disableDownloadDescription": "誰でもファイルをダウンロードしたり、ファイルの内容を見たりすることができなくなる。",
     "allowModify": "ファイルの編集を許可する",
-    "allowModifyDescription": "有効にすると、認証されたユーザーはこの共有内のファイルを編集できます。ユーザー認証が必要です。",
+    "allowModifyDescription": "誰でもこの共有内のファイルを編集することができます。",
     "allowDelete": "ファイルの削除を許可する",
-    "allowDeleteDescription": "有効にすると、認証されたユーザーはこの共有からファイルやフォルダを削除できます。ユーザー認証が必要です。",
+    "allowDeleteDescription": "誰でもこの共有からファイルやフォルダを削除することができます。",
     "allowCreate": "ファイルとフォルダの作成を許可する",
-    "allowCreateDescription": "有効にすると、認証されたユーザーはこの共有に新しいファイルやフォルダを作成できます。ユーザー認証が必要です。",
+    "allowCreateDescription": "誰でもこの共有に新しいファイルやフォルダを作成することができます。",
     "allowUpload": "ファイルのアップロードを許可する",
-    "allowUploadDescription": "有効にすると、ユーザーはこのアップロード共有にファイルをアップロードできます。"
+    "allowUploadDescription": "誰でもこのアップロード共有にファイルをアップロードすることができます。",
+    "allowReplacements": "ファイルの置き換えを許可する",
+    "allowReplacementsDescription": "同じ名前のファイルをアップロードすれば、誰でも既存のファイルを置き換えることができます。"
   },
   "api": {
     "title": "APIキー：",

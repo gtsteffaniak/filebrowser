@@ -50,6 +50,9 @@ export default {
     };
   },
   computed: {
+    permissions() {
+      return getters.permissions();
+    },
     isDarkMode() {
       return getters.isDarkMode();
     },
@@ -73,11 +76,9 @@ export default {
       if (this.viewerMode) {
         return this.content || "";
       }
-      
       if (!this.isStateSynced) {
         return ""; // Show blank content until synced
       }
-      
       return this.req.content === "empty-file-x6OlSil" ? "" : (this.req.content || "");
     },
     // Editor mode/language
@@ -85,27 +86,26 @@ export default {
       if (this.viewerMode) {
         return this.getAceMode(this.editorMode);
       }
-      
       if (!this.isStateSynced || !this.req) {
         return "ace/mode/text";
       }
-      
+
       return modelist.getModeForPath(this.req.name).mode;
     },
     // Editor read-only state
     editorReadOnly() {
+      if (!this.permissions.modify) {
+        return true;
+      }
       if (this.readOnly !== null) {
         return this.readOnly;
       }
-      
       if (this.viewerMode) {
         return true;
       }
-      
       if (!this.isStateSynced) {
         return true; // Read-only until synced
       }
-      
       return this.req.type === "textImmutable";
     },
   },
@@ -128,11 +128,11 @@ export default {
         this.originalReq = newReq;
         this.isDirty = false; // Reset dirty flag for new file
         mutations.setEditorDirty(false);
-        
+
         // Lock saves temporarily
         this.saveLocked = true;
         this.currentReqPath = newReq.path;
-        
+
         // Unlock after content loads
         setTimeout(() => {
           if (this.req.path === this.currentReqPath) {
@@ -203,6 +203,10 @@ export default {
     window.removeEventListener("keydown", this.keyEvent);
     window.removeEventListener("beforeunload", this.beforeUnloadHandler);
 
+    if (this.readOnly) {
+      return;
+    }
+
     // Clear navigation guard
     if (this.navigationGuard) {
       this.navigationGuard();
@@ -211,7 +215,7 @@ export default {
     // Clear dirty state and save handler when leaving editor
     mutations.setEditorDirty(false);
     mutations.setEditorSaveHandler(null);
-    
+
     if (this.editor) {
       this.editor.destroy();
     }
@@ -219,7 +223,7 @@ export default {
   mounted: function () {
     this.initializeEditor();
     this.originalReq = this.req;
-    
+
     // Register save handler so other components can trigger save
     mutations.setEditorSaveHandler(() => this.handleEditorValueRequest());
   },
@@ -247,12 +251,12 @@ export default {
       }
 
       let directoryPath = url.removeLastDir(this.req.path);
-      
+
       // If directoryPath is empty, the file is in root - use '/' as the directory
       if (!directoryPath || directoryPath === '') {
         directoryPath = '/';
       }
-      
+
       let listing = null;
 
       if (this.req.items) {
@@ -368,9 +372,9 @@ export default {
 
       // Filename protection - ensure state is synced before saving
       if (!this.isStateSynced) {
-        const errorMsg = this.$t("editor.saveAbortedMessage", { 
-          activeFile: this.originalReq?.name || "unknown", 
-          tryingToSave: this.routeFilename || "unknown" 
+        const errorMsg = this.$t("editor.saveAbortedMessage", {
+          activeFile: this.originalReq?.name || "unknown",
+          tryingToSave: this.routeFilename || "unknown"
         });
         notify.showError(errorMsg);
         throw new Error(errorMsg);
@@ -416,7 +420,7 @@ export default {
     },
     setupNavigationGuard() {
       if (this.viewerMode) return;
-      
+
       this.navigationGuard = this.$router.beforeEach((to, from, next) => {
         // If prompt is already open, block any new navigation attempts
         if (this.isPromptOpen) {
@@ -426,7 +430,7 @@ export default {
 
         // Check if we are navigating to a different route
         const isDifferentRoute = to.path !== from.path || to.hash !== from.hash;
-        
+
         if (this.isDirty && !this.viewerMode && isDifferentRoute) {
           if (this.req) {
             this.pendingNavigation = { to, from, next };

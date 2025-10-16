@@ -90,7 +90,8 @@
     "sortByLastModified": "Ordenar pela última alteração",
     "sortByName": "Ordenar pelo nome",
     "sortBySize": "Ordenar pelo tamanho",
-    "noPreview": "A pré-visualização não está disponível para este ficheiro."
+    "noPreview": "A pré-visualização não está disponível para este ficheiro.",
+    "noDownloadAccess": "A transferência não está disponível."
   },
   "help": {
     "click": "selecionar pasta ou ficheiro",
@@ -282,7 +283,8 @@
       "api": "Criar e gerir chaves de API de longa duração",
       "realtime": "Permitir ligações e actualizações em tempo real",
       "create": "Criar ficheiros",
-      "delete": "Eliminar ficheiros"
+      "delete": "Eliminar ficheiros",
+      "download": "Descarregar ficheiros"
     },
     "permissions-name": "Permissões",
     "permissionsHelp": "Pode definir o utilizador como administrador ou escolher as permissões manualmente. Se selecionar a opção \"Administrador\", todas as outras opções serão automaticamente selecionadas. A gestão dos utilizadores é um privilégio restringido aos administradores.\n",
@@ -436,15 +438,17 @@
     "extractEmbeddedSubtitles": "Extrair legendas incorporadas",
     "extractEmbeddedSubtitlesDescription": "Extrair legendas incorporadas de ficheiros multimédia ao carregar -- isto pode ser lento para ficheiros grandes.",
     "disableDownload": "Desativar a transferência de ficheiros",
-    "disableDownloadDescription": "Quando ativado, os utilizadores não poderão descarregar ficheiros ou ver o conteúdo de um ficheiro.",
+    "disableDownloadDescription": "Qualquer pessoa não poderá descarregar ficheiros ou ver o conteúdo de um ficheiro.",
     "allowModify": "Permitir a edição de ficheiros",
-    "allowModifyDescription": "Quando ativado, os utilizadores autenticados podem editar ficheiros nesta partilha. Requer autenticação do utilizador.",
+    "allowModifyDescription": "Qualquer pessoa pode editar ficheiros nesta partilha.",
     "allowDelete": "Permitir a eliminação de ficheiros",
-    "allowDeleteDescription": "Quando ativado, os utilizadores autenticados podem eliminar ficheiros e pastas desta partilha. Requer autenticação do utilizador.",
+    "allowDeleteDescription": "Qualquer pessoa pode eliminar ficheiros e pastas desta partilha.",
     "allowCreate": "Permitir a criação de ficheiros e pastas",
-    "allowCreateDescription": "Quando ativado, os utilizadores autenticados podem criar novos ficheiros e pastas nesta partilha. Requer autenticação do utilizador.",
+    "allowCreateDescription": "Qualquer pessoa pode criar novos ficheiros e pastas nesta partilha.",
     "allowUpload": "Permitir o carregamento de ficheiros",
-    "allowUploadDescription": "Quando ativado, os utilizadores podem carregar ficheiros para esta partilha de carregamento."
+    "allowUploadDescription": "Qualquer pessoa pode carregar ficheiros para esta partilha de carregamento.",
+    "allowReplacements": "Permitir substituições de ficheiros",
+    "allowReplacementsDescription": "Qualquer pessoa pode substituir ficheiros existentes ao carregar ficheiros com o mesmo nome."
   },
   "api": {
     "title": "Chaves da API",

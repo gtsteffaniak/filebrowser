@@ -474,4 +474,24 @@ export const getters = {
   isValidShare: () => {
     return getters.isShare() && shareInfo.isValid;
   },
+  permissions: () => {
+    if (getters.isShare()) {
+      return {
+        upload: shareInfo.allowUpload,
+        share: false,
+        modify: shareInfo.allowModify,
+        create: shareInfo.allowCreate,
+        delete: shareInfo.allowDelete,
+        download: shareInfo.disableDownload,
+      };
+    }
+    return {
+      upload: state.user?.permissions?.create,
+      share: state.user?.permissions?.share,
+      modify: state.user?.permissions?.modify,
+      create: state.user?.permissions?.create,
+      delete: state.user?.permissions?.delete,
+      download: state.user?.permissions?.download,
+    };
+  }
 };

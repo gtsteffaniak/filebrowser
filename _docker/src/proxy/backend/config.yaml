@@ -36,3 +36,5 @@ userDefaults:
     modify: true
     share: true
     api: false
+    download: true
+    create: true
