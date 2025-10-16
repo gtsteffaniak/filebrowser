@@ -16,6 +16,7 @@ export default {
   data() {
     return {
       content: "",
+      keyboardHandler: null,
     };
   },
   methods: {
@@ -207,7 +208,23 @@ export default {
       // Set initial content. The `watch` will trigger the first highlight.
       const fileContent = state.req.content == "empty-file-x6OlSil" ? "" : state.req.content || "";
       this.content = fileContent;
-    }
+    },
+    setupKeyboardShortcuts() {
+      this.keyboardHandler = (event) => {
+        const { key, ctrlKey, metaKey } = event;
+        // Ctrl+E for quick edit
+        if ((ctrlKey || metaKey) && key.toLowerCase() === 'e') {
+          event.preventDefault();
+          this.quickEdit();
+        }
+      };
+      window.addEventListener('keydown', this.keyboardHandler);
+    },
+    quickEdit() {
+      if (window.location.hash !== '#edit') {
+        window.location.hash = "#edit";
+      }
+    },
   },
   watch: {
     // We now watch the `content` property.
@@ -249,12 +266,16 @@ export default {
   },
   mounted() {
     this.reinit();
+    this.setupKeyboardShortcuts();
   },
   unmounted() {
     // Cleanup logic is correct and remains.
     const link = document.getElementById('highlight-theme-link');
     if (link) {
       document.head.removeChild(link);
+    }
+    if (this.keyboardHandler) {
+      window.removeEventListener('keydown', this.keyboardHandler);
     }
   }
 };

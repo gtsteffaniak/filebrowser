@@ -44,6 +44,9 @@ export default {
       originalReq: null,
       saveLocked: false, // Lock saves during req transitions
       currentReqPath: null, // Track current path for transition detection
+      navigationGuard: null, // Navigation guard to prevent navigation with unsaved changes
+      isPromptOpen: false, // Track if prompt is currently open for avoid navigation
+      pendingNavigation: null, // Store pending navigation while prompt is open
     };
   },
   computed: {
@@ -177,6 +180,16 @@ export default {
   created() {
     window.addEventListener("keydown", this.keyEvent);
     eventBus.on("handleEditorValueRequest", this.handleEditorValueRequest);
+
+    // Show generic browser dialog if the user closes the tab, or try to close the browser with unsaved changes
+    this.beforeUnloadHandler = (event) => {
+      if (this.isDirty && !this.viewerMode) {
+        event.preventDefault();
+      }
+    };
+    window.addEventListener("beforeunload", this.beforeUnloadHandler);
+
+    this.setupNavigationGuard();
   },
   beforeRouteLeave(to, from, next) {
     // Only show prompt if there are unsaved changes and not in viewer mode
@@ -188,7 +201,13 @@ export default {
   },
   beforeUnmount() {
     window.removeEventListener("keydown", this.keyEvent);
-    
+    window.removeEventListener("beforeunload", this.beforeUnloadHandler);
+
+    // Clear navigation guard
+    if (this.navigationGuard) {
+      this.navigationGuard();
+    }
+
     // Clear dirty state and save handler when leaving editor
     mutations.setEditorDirty(false);
     mutations.setEditorSaveHandler(null);
@@ -395,7 +414,31 @@ export default {
         this.handleEditorValueRequest();
       }
     },
-    showSaveBeforeExitPrompt(next) {
+    setupNavigationGuard() {
+      if (this.viewerMode) return;
+      
+      this.navigationGuard = this.$router.beforeEach((to, from, next) => {
+        // If prompt is already open, block any new navigation attempts
+        if (this.isPromptOpen) {
+          next(false);
+          return;
+        }
+
+        // Check if we are navigating to a different route
+        const isDifferentRoute = to.path !== from.path || to.hash !== from.hash;
+        
+        if (this.isDirty && !this.viewerMode && isDifferentRoute) {
+          if (this.req) {
+            this.pendingNavigation = { to, from, next };
+            this.showSaveBeforeExitPrompt();
+            return;
+          }
+        }
+        next();
+      });
+    },
+    showSaveBeforeExitPrompt() {
+      this.isPromptOpen = true;
       mutations.showHover({
         name: "SaveBeforeExit",
         confirm: async () => {
@@ -404,7 +447,7 @@ export default {
             await this.handleEditorValueRequest();
             this.isDirty = false;
             mutations.setEditorDirty(false);
-            next(); // Allow navigation
+            this.executePendingNavigation();
           } catch (error) {
             // If save fails, call next(false) to prevent navigation
             next(false);
@@ -416,13 +459,27 @@ export default {
           // Discard changes and exit
           this.isDirty = false;
           mutations.setEditorDirty(false);
-          next(); // Allow navigation
+          this.executePendingNavigation();
         },
         cancel: () => {
           // Keep editing - block navigation
-          next(false);
+          this.cancelPendingNavigation();
         },
       });
+    },
+    executePendingNavigation() {
+      this.isPromptOpen = false;
+      if (this.pendingNavigation && typeof this.pendingNavigation.next === 'function') {
+        this.pendingNavigation.next();
+      }
+      this.pendingNavigation = null;
+    },
+    cancelPendingNavigation() {
+      this.isPromptOpen = false;
+      if (this.pendingNavigation && typeof this.pendingNavigation.next === 'function') {
+        this.pendingNavigation.next(false);
+      }
+      this.pendingNavigation = null;
     },
   },
 };
