@@ -208,7 +208,6 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	path := r.URL.Query().Get("path")
 	source := r.URL.Query().Get("source")
-	override := r.URL.Query().Get("override") == "true"
 	var err error
 	// decode url encoded source name
 	source, err = url.QueryUnescape(source)
