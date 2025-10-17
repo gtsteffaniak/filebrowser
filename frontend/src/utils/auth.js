@@ -15,15 +15,15 @@ export async function validateLogin() {
       "sessionId": state.sessionId,
     }
   });
-  
+
   if (res.status !== 200) {
     throw new Error(`{"status":${res.status},"message":"${await res.text()}"}`);
   }
-  
+
   const userInfo = await res.json();
   mutations.setCurrentUser(userInfo);
   getters.isLoggedIn()
-  
+
   if (state.user.loginMethod == "proxy") {
     let apiPath = getApiPath("api/auth/login")
     const res = await fetch(apiPath, {
