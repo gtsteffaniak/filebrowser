@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v0.8.9-beta
 
+> [!CAUTION]
+> If you have indexing rules -- such as [maxWatchers](https://github.com/gtsteffaniak/filebrowser/blob/39514169f17ed9586d587dd496257588ded6e532/frontend/public/config.generated.yaml#L30), [neverWatchPaths](https://github.com/gtsteffaniak/filebrowser/blob/39514169f17ed9586d587dd496257588ded6e532/frontend/public/config.generated.yaml#L31C9-L31C24), [exclude](https://github.com/gtsteffaniak/filebrowser/blob/39514169f17ed9586d587dd496257588ded6e532/frontend/public/config.generated.yaml#L32C9-L32C16) rules, [include](https://github.com/gtsteffaniak/filebrowser/blob/39514169f17ed9586d587dd496257588ded6e532/frontend/public/config.generated.yaml#L43) rules, see [the migration guide](https://filebrowserquantum.com/en/docs/user-guides/general-configuration/exclusion-rules/) for help.
+
  **New Features**:
  - Playback Queue for media -- thanks @Kurami32 #1339
  - Ctrl+b Shortcut to toggle sidebar, open settings, search #1172
