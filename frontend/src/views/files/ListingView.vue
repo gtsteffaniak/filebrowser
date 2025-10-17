@@ -639,20 +639,20 @@ export default {
           case "c":
           case "x":
             this.copyCut(event, charKey);
-            break;
+            return;
           case "v":
             this.paste(event);
-            break;
+            return;
           case "a":
             event.preventDefault();
             this.selectAll();
-            break;
+            return;
           case "d":
             event.preventDefault();
             downloadFiles(state.selected);
-            break;
+            return;
         }
-        return;
+        // Don't return here - allow other modifier key combinations to propagate
       }
 
       // Handle key events using a switch statement

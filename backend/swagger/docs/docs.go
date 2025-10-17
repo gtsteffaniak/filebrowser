@@ -3664,10 +3664,6 @@ const docTemplate = `{
                     "description": "allow replacements of files",
                     "type": "boolean"
                 },
-                "allowUpload": {
-                    "description": "allow uploading files",
-                    "type": "boolean"
-                },
                 "allowedUsernames": {
                     "type": "array",
                     "items": {
@@ -3792,10 +3788,6 @@ const docTemplate = `{
                 },
                 "allowReplacements": {
                     "description": "allow replacements of files",
-                    "type": "boolean"
-                },
-                "allowUpload": {
-                    "description": "allow uploading files",
                     "type": "boolean"
                 },
                 "allowedUsernames": {
