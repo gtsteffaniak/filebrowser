@@ -619,7 +619,6 @@
     "uninitialized": "Impossibile inizializzare l'editor. Ricaricare.",
     "saveFailed": "Impossibile salvare il file. Riprovare.",
     "saveAborted": "Salvataggio interrotto. Il nome del file non corrisponde al file attivo.",
-    "saveDisabled": "Il salvataggio di file condivisi non è supportato.",
     "saveAbortedMessage": "Operazione di salvataggio interrotta. Il file attivo dell'applicazione ({activeFile}) non corrisponde al file che si sta cercando di salvare ({tryingToSave}).",
     "syncFailed": "non è riuscito a sincronizzare lo stato con il percorso per \"{filename}\" dopo 5 tentativi. Interruzione dell'impostazione dell'editor per evitare la corruzione dei dati."
   },

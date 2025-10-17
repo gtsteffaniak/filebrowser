@@ -619,7 +619,6 @@
     "uninitialized": "Error al iniciar el editor, inténtelo de nuevo",
     "saveFailed": "No se ha podido guardar el archivo. Por favor, inténtelo de nuevo.",
     "saveAborted": "No se ha podido guardar el archivo. El nombre del archivo no coincide con el que estás editando.",
-    "saveDisabled": "No es posible guardar archivos compartidos.",
     "saveAbortedMessage": "Operación de guardado abortada. El archivo activo de la aplicación ({activeFile}) no coincide con el archivo que está intentando guardar ({tryingToSave}).",
     "syncFailed": "No se ha podido sincronizar el estado con la ruta para \"{filename}\" después de 5 intentos. Abortar la configuración del editor para evitar la corrupción de datos."
   },

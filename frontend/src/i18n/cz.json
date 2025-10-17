@@ -619,7 +619,6 @@
     "uninitialized": "Nepodařilo se inicializovat editor. Prosím, načtěte jej znovu.",
     "saveFailed": "Soubor se nepodařilo uložit. Zkuste to prosím znovu.",
     "saveAborted": "Uložení přerušeno. Název souboru neodpovídá aktivnímu souboru.",
-    "saveDisabled": "Ukládání sdílených souborů není podporováno.",
     "saveAbortedMessage": "Operace ukládání byla přerušena. Aktivní soubor aplikace ({activeFile}) neodpovídá souboru, který se pokoušíte uložit ({tryingToSave}).",
     "syncFailed": "po 5 pokusech se nepodařilo synchronizovat stav s trasou pro \"{filename}\". Přerušení nastavení editoru, aby se zabránilo poškození dat."
   },

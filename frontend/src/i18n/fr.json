@@ -619,7 +619,6 @@
     "uninitialized": "Échec de l'initialisation de l'éditeur. Veuillez recharger.",
     "saveFailed": "Échec de l'enregistrement du fichier. Veuillez réessayer.",
     "saveAborted": "Sauvegarde interrompue. Le nom du fichier ne correspond pas au fichier actif.",
-    "saveDisabled": "L'enregistrement de fichiers partagés n'est pas possible.",
     "saveAbortedMessage": "L'opération d'enregistrement a été interrompue. Le fichier actif de l'application ({activeFile}) ne correspond pas au fichier que vous essayez d'enregistrer ({tryingToSave}).",
     "syncFailed": "n'a pas réussi à synchroniser l'état avec l'itinéraire pour \"{filename}\" après 5 tentatives. Abandon de la configuration de l'éditeur pour éviter la corruption des données."
   },

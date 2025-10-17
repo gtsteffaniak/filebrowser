@@ -619,7 +619,6 @@
     "uninitialized": "Nem sikerült inicializálni a szerkesztőt. Kérjük, töltse újra.",
     "saveFailed": "A fájl mentése sikertelen. Kérjük, próbálja újra.",
     "saveAborted": "A mentés megszakadt. A fájl neve nem egyezik az aktív fájléval.",
-    "saveDisabled": "A megosztott fájlok mentése nem támogatott.",
     "saveAbortedMessage": "A mentési művelet megszakadt. Az alkalmazás aktív fájlja ({activeFile}) nem egyezik meg a menteni kívánt fájllal ({tryingToSave}).",
     "syncFailed": "5 próbálkozás után nem sikerült szinkronizálni az állapotot a \"{filename}\" útvonallal. A szerkesztő beállításának megszakítása az adatok sérülésének elkerülése érdekében."
   },

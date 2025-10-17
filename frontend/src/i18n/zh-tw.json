@@ -619,7 +619,6 @@
     "uninitialized": "編輯器初始化失敗。請重新載入。",
     "saveFailed": "儲存檔案失敗。請重試。",
     "saveAborted": "儲存中止。檔案名稱與使用中的檔案不符。",
-    "saveDisabled": "不支援儲存共用檔案。",
     "saveAbortedMessage": "儲存作業中止。應用程式的作用中檔案 ({activeFile}) 與您試圖儲存的檔案 ({tryingToSave}) 不匹配。",
     "syncFailed": "經過 5 次嘗試後，未能與 \"{filename}\" 的路由同步狀態。中止編輯器設定以防止資料損毀。"
   },

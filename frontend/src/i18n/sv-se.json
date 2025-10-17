@@ -619,7 +619,6 @@
     "uninitialized": "Redigeraren kunde inte initieras. Vänligen ladda om.",
     "saveFailed": "Misslyckades med att spara filen. Vänligen försök igen.",
     "saveAborted": "Spara avbröts. Filnamnet stämmer inte överens med den aktiva filen.",
-    "saveDisabled": "Sparande av delade filer stöds inte.",
     "saveAbortedMessage": "Spara åtgärden avbröts. Programmets aktiva fil ({activeFile}) stämmer inte överens med den fil du försöker spara ({tryingToSave}).",
     "syncFailed": "lyckades inte synkronisera tillstånd med rutten för \"{filename}\" efter 5 försök. Avbryter redigeringsinställningen för att förhindra datakorruption."
   },

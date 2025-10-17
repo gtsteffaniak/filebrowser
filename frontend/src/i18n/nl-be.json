@@ -619,7 +619,6 @@
     "uninitialized": "Het is niet gelukt de editor te initialiseren. Gelieve opnieuw te laden.",
     "saveFailed": "Het is niet gelukt om het bestand op te slaan. Probeer het opnieuw.",
     "saveAborted": "Opslaan afgebroken. De bestandsnaam komt niet overeen met het actieve bestand.",
-    "saveDisabled": "Het opslaan van gedeelde bestanden wordt niet ondersteund.",
     "saveAbortedMessage": "Opslaan afgebroken. Het actieve bestand van de toepassing ({activeFile}) komt niet overeen met het bestand dat u probeert op te slaan ({tryingToSave}).",
     "syncFailed": "Na 5 pogingen is het niet gelukt om de status te synchroniseren met de route voor \"{filename}\". Installatie van editor afgebroken om gegevensbeschadiging te voorkomen."
   },

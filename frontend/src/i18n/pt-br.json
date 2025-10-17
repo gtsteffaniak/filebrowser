@@ -619,7 +619,6 @@
     "uninitialized": "Falha ao inicializar o editor. Favor recarregar.",
     "saveFailed": "Falha ao salvar o arquivo. Tente novamente.",
     "saveAborted": "Salvamento abortado. O nome do arquivo não corresponde ao arquivo ativo.",
-    "saveDisabled": "Não há suporte para o salvamento de arquivos compartilhados.",
     "saveAbortedMessage": "Operação de salvamento abortada. O arquivo ativo do aplicativo ({activeFile}) não corresponde ao arquivo que você está tentando salvar ({tryingToSave}).",
     "syncFailed": "Falha ao sincronizar o estado com a rota para \"{filename}\" após 5 tentativas. Abortar a configuração do editor para evitar a corrupção de dados."
   },
