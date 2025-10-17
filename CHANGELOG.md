@@ -77,6 +77,9 @@ All notable changes to this project will be documented in this file. For commit 
  - console errors during login/logout
  - fix scoped user share creation issue #1309
  - share close button and navigation issues.
+ - OnlyOffice source not found when opening shared file #1285
+ - user scoped onlyoffice error saving files with Onlyoffice #1068
+
 
 ## v0.8.7-beta
 
