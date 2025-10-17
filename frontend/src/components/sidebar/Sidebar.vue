@@ -50,15 +50,17 @@ export default {
   mounted() {
     // Ensure the sidebar is initialized correctly
     mutations.setSeenUpdate(localStorage.getItem("seenUpdate"));
-    
     // Add keyboard event listener for Ctrl+B to toggle sidebar
     this.handleKeydown = (event) => {
-      if (event.ctrlKey && event.key === 'b') {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'b') {
+        console.log("sticky sidebar", state.user.stickySidebar);
         event.preventDefault();
+        if (state.user.stickySidebar) {
+          mutations.updateCurrentUser({ stickySidebar: false });
+        }
         mutations.toggleSidebar();
       }
     };
-    
     document.addEventListener('keydown', this.handleKeydown);
   },
   beforeUnmount() {

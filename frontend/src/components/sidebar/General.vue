@@ -230,13 +230,11 @@ export default {
         const pathParts = path.replace('/files/', '').split('/');
         const source = pathParts[0];
         const filePath = '/' + pathParts.slice(1).join('/');
-        
         const previousHistoryItem = {
           name: state.req.name,
           source: state.req.source,
           path: state.req.path,
         };
-        
         url.goToItem(source, filePath, previousHistoryItem);
         mutations.closeHovers();
       } else {

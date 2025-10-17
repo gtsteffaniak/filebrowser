@@ -242,7 +242,6 @@ export default {
 
       mutations.resetSelected();
       mutations.setMultiple(false);
-      mutations.closeHovers();
 
       if (shareInfo.singleFileShare) {
         mutations.setSidebarVisible(true);

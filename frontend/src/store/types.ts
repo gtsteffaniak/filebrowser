@@ -58,7 +58,6 @@ export interface UserObject {
     email: string;
     avatarUrl: string;
   };
-  
   // Optional properties that may be added dynamically
   disableViewingExt?: string[];
   displayNames?: string[];

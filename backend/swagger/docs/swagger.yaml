@@ -733,9 +733,6 @@ definitions:
       allowReplacements:
         description: allow replacements of files
         type: boolean
-      allowUpload:
-        description: allow uploading files
-        type: boolean
       allowedUsernames:
         items:
           type: string
@@ -823,9 +820,6 @@ definitions:
         type: boolean
       allowReplacements:
         description: allow replacements of files
-        type: boolean
-      allowUpload:
-        description: allow uploading files
         type: boolean
       allowedUsernames:
         items:
