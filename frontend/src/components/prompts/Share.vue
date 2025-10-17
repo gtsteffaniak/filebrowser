@@ -102,7 +102,6 @@
         <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="allowModify" :name="$t('share.allowModify')" :description="$t('share.allowModifyDescription')" />
         <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="allowDelete" :name="$t('share.allowDelete')" :description="$t('share.allowDeleteDescription')" />
         <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="allowCreate" :name="$t('share.allowCreate')" :description="$t('share.allowCreateDescription')" />
-        <ToggleSwitch v-if="shareType != 'upload'" class="item" v-model="allowUpload" :name="$t('share.allowUpload')" :description="$t('share.allowUploadDescription')" />
         <ToggleSwitch v-if="createAllowed" class="item" v-model="allowReplacements" :name="$t('share.allowReplacements')" :description="$t('share.allowReplacementsDescription')" />
         <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="disableFileViewer" :name="$t('share.disableFileViewer')" />
         <ToggleSwitch
@@ -344,7 +343,6 @@ export default {
       disableDownload: false,
       allowDelete: false,
       allowCreate: false,
-      allowUpload: true,
       allowReplacements: false,
       downloadsLimit: "",
       perUserDownloadLimit: false,
@@ -378,7 +376,7 @@ export default {
   },
   computed: {
     createAllowed() {
-      return this.allowCreate || this.allowUpload;
+      return this.allowCreate;
     },
     displayPath() {
       // When editing, use the link's path; otherwise use the item's path
@@ -448,7 +446,6 @@ export default {
           this.allowModify = this.link.allowModify || false;
           this.allowDelete = this.link.allowDelete || false;
           this.allowCreate = this.link.allowCreate || false;
-          this.allowUpload = this.link.allowUpload || false;
           this.allowReplacements = this.link.allowReplacements || false;
           this.downloadsLimit = this.link.downloadsLimit ? String(this.link.downloadsLimit) : "";
           this.perUserDownloadLimit = this.link.perUserDownloadLimit || false;
@@ -543,7 +540,6 @@ export default {
           allowModify: this.allowModify,
           allowDelete: this.allowDelete,
           allowCreate: this.allowCreate,
-          allowUpload: this.allowUpload,
           allowReplacements: this.allowReplacements,
           maxBandwidth: this.maxBandwidth ? parseInt(this.maxBandwidth) : 0,
           downloadsLimit: this.downloadsLimit ? parseInt(this.downloadsLimit) : 0,
@@ -619,7 +615,6 @@ export default {
       this.allowModify = link.allowModify || false;
       this.allowDelete = link.allowDelete || false;
       this.allowCreate = link.allowCreate || false;
-      this.allowUpload = link.allowUpload || false;
       this.allowReplacements = link.allowReplacements || false;
       this.downloadsLimit = link.downloadsLimit ? String(link.downloadsLimit) : "";
       this.perUserDownloadLimit = link.perUserDownloadLimit || false;

@@ -443,12 +443,10 @@
     "allowModifyDescription": "Każdy może edytować pliki w tym udziale.",
     "allowDelete": "Zezwalaj na usuwanie plików",
     "allowDeleteDescription": "Każdy może usuwać pliki i foldery z tego udziału.",
-    "allowCreate": "Zezwalaj na tworzenie plików i folderów",
-    "allowCreateDescription": "Każdy może tworzyć nowe pliki i foldery w tym udziale.",
-    "allowUpload": "Zezwalaj na przesyłanie plików",
-    "allowUploadDescription": "Każdy może przesyłać pliki do tego folderu udostępnionego.",
     "allowReplacements": "Zezwalaj na zastępowanie plików",
-    "allowReplacementsDescription": "Każdy może zastąpić istniejące pliki podczas przesyłania plików o tej samej nazwie."
+    "allowReplacementsDescription": "Każdy może zastąpić istniejące pliki podczas przesyłania plików o tej samej nazwie.",
+    "allowCreate": "Zezwalanie na tworzenie i przesyłanie plików i folderów",
+    "allowCreateDescription": "Każdy może tworzyć i przesyłać nowe pliki i foldery w tym udziale."
   },
   "api": {
     "title": "Klucze API:",

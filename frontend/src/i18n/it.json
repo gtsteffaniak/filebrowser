@@ -443,12 +443,10 @@
     "allowModifyDescription": "Chiunque può modificare i file in questa condivisione.",
     "allowDelete": "Consentire l'eliminazione dei file",
     "allowDeleteDescription": "Chiunque può eliminare file e cartelle da questa condivisione.",
-    "allowCreate": "Consentire la creazione di file e cartelle",
-    "allowCreateDescription": "Chiunque può creare nuovi file e cartelle in questa condivisione.",
-    "allowUpload": "Consentire il caricamento di file",
-    "allowUploadDescription": "Chiunque può caricare file su questa condivisione di upload.",
     "allowReplacements": "Consentire la sostituzione dei file",
-    "allowReplacementsDescription": "Chiunque può sostituire i file esistenti quando carica file con lo stesso nome."
+    "allowReplacementsDescription": "Chiunque può sostituire i file esistenti quando carica file con lo stesso nome.",
+    "allowCreate": "Consente la creazione e il caricamento di file e cartelle.",
+    "allowCreateDescription": "Chiunque può creare e caricare nuovi file e cartelle in questa condivisione."
   },
   "api": {
     "title": "Chiavi API:",

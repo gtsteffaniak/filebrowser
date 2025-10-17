@@ -443,12 +443,10 @@
     "allowModifyDescription": "Qualquer pessoa pode editar ficheiros nesta partilha.",
     "allowDelete": "Permitir a eliminação de ficheiros",
     "allowDeleteDescription": "Qualquer pessoa pode eliminar ficheiros e pastas desta partilha.",
-    "allowCreate": "Permitir a criação de ficheiros e pastas",
-    "allowCreateDescription": "Qualquer pessoa pode criar novos ficheiros e pastas nesta partilha.",
-    "allowUpload": "Permitir o carregamento de ficheiros",
-    "allowUploadDescription": "Qualquer pessoa pode carregar ficheiros para esta partilha de carregamento.",
     "allowReplacements": "Permitir substituições de ficheiros",
-    "allowReplacementsDescription": "Qualquer pessoa pode substituir ficheiros existentes ao carregar ficheiros com o mesmo nome."
+    "allowReplacementsDescription": "Qualquer pessoa pode substituir ficheiros existentes ao carregar ficheiros com o mesmo nome.",
+    "allowCreate": "Permitir a criação e o carregamento de ficheiros e pastas",
+    "allowCreateDescription": "Qualquer pessoa pode criar e carregar novos ficheiros e pastas nesta partilha."
   },
   "api": {
     "title": "Chaves da API",

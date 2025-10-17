@@ -429,7 +429,7 @@ export const getters = {
       disablePreviewExt: "",
       fileLoading: {
         maxConcurrent: 1,
-        chunkSizeMb: 15,
+        chunkSizeMb: 5,
       }
     }
   },
@@ -477,7 +477,6 @@ export const getters = {
   permissions: () => {
     if (getters.isShare()) {
       return {
-        upload: shareInfo.allowUpload,
         share: false,
         modify: shareInfo.allowModify,
         create: shareInfo.allowCreate,
@@ -486,7 +485,6 @@ export const getters = {
       };
     }
     return {
-      upload: state.user?.permissions?.create,
       share: state.user?.permissions?.share,
       modify: state.user?.permissions?.modify,
       create: state.user?.permissions?.create,

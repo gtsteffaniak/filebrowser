@@ -443,12 +443,10 @@
     "allowModifyDescription": "任何人都可以編輯此共用中的檔案。",
     "allowDelete": "允許刪除檔案",
     "allowDeleteDescription": "任何人都可以從此共用中刪除檔案和資料夾。",
-    "allowCreate": "允許建立檔案和資料夾",
-    "allowCreateDescription": "任何人都可以在此共用中建立新的檔案和資料夾。",
-    "allowUpload": "允許上傳檔案",
-    "allowUploadDescription": "任何人都可以將檔案上傳到此上傳共用。",
     "allowReplacements": "允許檔案替換",
-    "allowReplacementsDescription": "任何人在上傳具有相同名稱的檔案時，都可以取代現有檔案。"
+    "allowReplacementsDescription": "任何人在上傳具有相同名稱的檔案時，都可以取代現有檔案。",
+    "allowCreate": "允許建立和上傳檔案與資料夾",
+    "allowCreateDescription": "任何人都可以在此共用中建立和上傳新檔案和資料夾。"
   },
   "api": {
     "title": "API 金鑰",

@@ -443,12 +443,10 @@
     "allowModifyDescription": "任何人都可以编辑该共享中的文件。",
     "allowDelete": "允许删除文件",
     "allowDeleteDescription": "任何人都可以删除该共享中的文件和文件夹。",
-    "allowCreate": "允许创建文件和文件夹",
-    "allowCreateDescription": "任何人都可以在此共享中创建新文件和文件夹。",
-    "allowUpload": "允许上传文件",
-    "allowUploadDescription": "任何人都可以将文件上传到此上传共享。",
     "allowReplacements": "允许文件替换",
-    "allowReplacementsDescription": "上传同名文件时，任何人都可以替换现有文件。"
+    "allowReplacementsDescription": "上传同名文件时，任何人都可以替换现有文件。",
+    "allowCreate": "允许创建和上传文件和文件夹",
+    "allowCreateDescription": "任何人都可以在此共享中创建和上传新文件和文件夹。"
   },
   "api": {
     "title": "应用程序接口密钥",

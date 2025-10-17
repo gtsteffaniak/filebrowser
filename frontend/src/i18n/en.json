@@ -213,10 +213,8 @@
     "allowModifyDescription": "Anyone can edit files in this share.",
     "allowDelete": "Allow deleting files",
     "allowDeleteDescription": "Anyone can delete files and folders from this share.",
-    "allowCreate": "Allow creating files and folders",
-    "allowCreateDescription": "Anyone can create new files and folders in this share.",
-    "allowUpload": "Allow uploading files",
-    "allowUploadDescription": "Anyone can upload files to this upload share.",
+    "allowCreate": "Allow creating and uploading files and folders",
+    "allowCreateDescription": "Anyone can create and upload new files and folders in this share.",
     "allowReplacements": "Allow file replacements",
     "allowReplacementsDescription": "Anyone can replace existing files when uploading files with the same name."
   },

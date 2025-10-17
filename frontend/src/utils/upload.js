@@ -218,7 +218,16 @@ class UploadManager {
     const hasNoActiveOrPending = this.activeUploads === 0 && !this.hasPending();
     if (this.hadActiveUploads && hasNoActiveOrPending) {
       console.log("all uploads processed  ", this.queue);
-      mutations.setReload(true);
+      
+      // Only reload if there are no errors or conflicts - keep prompt open so users can see and retry
+      const hasErrorsOrConflicts = this.queue.some((item) => 
+        item.status === "error" || item.status === "conflict"
+      );
+      
+      if (!hasErrorsOrConflicts) {
+        mutations.setReload(true);
+      }
+      
       this.hadActiveUploads = false; // Reset the flag
       this.overwriteAll = null; // Reset for next batch of uploads
     }
@@ -268,8 +277,15 @@ class UploadManager {
     this.hadActiveUploads = true; // Mark that we've had active uploads
     upload.status = "uploading";
 
-    const chunkSize = (state.user.fileLoading?.uploadChunkSizeMb ?? 5) * 1024 * 1024;
-    if (chunkSize === 0) {
+    // Get chunk size in MB, default to 5 if not set or if 0
+    let chunkSizeMb = state.user.fileLoading?.uploadChunkSizeMb ?? 5;
+    if (chunkSizeMb === 0) {
+      chunkSizeMb = 5;
+    }
+    const chunkSize = chunkSizeMb * 1024 * 1024;
+
+    // Use non-chunked upload if file size is less than chunk size
+    if (upload.size < chunkSize) {
       const progress = (percent) => {
         upload.progress = percent;
       };
@@ -423,16 +439,23 @@ class UploadManager {
   }
 
   clearCompleted() {
+    let hadCompleted = false;
     for (let i = this.queue.length - 1; i >= 0; i--) {
       const status = this.queue[i].status;
       if (status === "completed") {
         this.queue.splice(i, 1);
+        hadCompleted = true;
       }
       if (state.user.fileLoading?.clearAll) {
         if (status === "error" || status === "conflict" || status === "paused") {
           this.queue.splice(i, 1);
         }
       }
+    }
+    
+    // If we had completed uploads and the queue is now empty, trigger reload
+    if (hadCompleted && this.queue.length === 0) {
+      mutations.setReload(true);
     }
   }
 

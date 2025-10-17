@@ -108,7 +108,6 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 			shareProps["extractEmbeddedSubtitles"] = d.share.ExtractEmbeddedSubtitles
 			shareProps["disableDownload"] = d.share.DisableDownload
 			shareProps["allowCreate"] = d.share.AllowCreate
-			shareProps["allowUpload"] = d.share.AllowUpload
 			shareProps["allowModify"] = d.share.AllowModify
 			shareProps["allowDelete"] = d.share.AllowDelete
 			shareProps["allowReplacements"] = d.share.AllowReplacements

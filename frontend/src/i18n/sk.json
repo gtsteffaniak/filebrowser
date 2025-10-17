@@ -443,12 +443,10 @@
     "allowModifyDescription": "Súbory v tejto zdieľanej zložke môže upravovať ktokoľvek.",
     "allowDelete": "Povolenie odstraňovania súborov",
     "allowDeleteDescription": "Súbory a priečinky z tejto zdieľanej zložky môže vymazať ktokoľvek.",
-    "allowCreate": "Umožniť vytváranie súborov a priečinkov",
-    "allowCreateDescription": "V tejto zdieľanej zložke môže ktokoľvek vytvárať nové súbory a priečinky.",
-    "allowUpload": "Povolenie nahrávania súborov",
-    "allowUploadDescription": "Do tejto zdieľanej zložky môže nahrávať súbory ktokoľvek.",
     "allowReplacements": "Povolenie výmeny súborov",
-    "allowReplacementsDescription": "Pri nahrávaní súborov s rovnakým názvom môže ktokoľvek nahradiť existujúce súbory."
+    "allowReplacementsDescription": "Pri nahrávaní súborov s rovnakým názvom môže ktokoľvek nahradiť existujúce súbory.",
+    "allowCreate": "Umožniť vytváranie a nahrávanie súborov a priečinkov",
+    "allowCreateDescription": "V tomto zdieľanom úložisku môže ktokoľvek vytvárať a nahrávať nové súbory a priečinky."
   },
   "api": {
     "title": "Kľúče API:",

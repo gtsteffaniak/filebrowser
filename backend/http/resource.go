@@ -87,9 +87,6 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	userscope = strings.TrimRight(userscope, "/")
 	scopePath := utils.JoinPathAsUnix(userscope, path)
 	getContent := r.URL.Query().Get("content") == "true"
-	if d.share != nil && d.share.DisableFileViewer {
-		getContent = false
-	}
 	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
 		Username:                 d.user.Username,
 		Path:                     scopePath,
@@ -145,16 +142,6 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/resources [delete]
 func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	// Check share permissions first if this is a share request
-	if d.share != nil && d.share.Hash != "" {
-		if !d.share.AllowDelete {
-			return http.StatusForbidden, fmt.Errorf("delete permission not allowed for this share")
-		}
-		// Share operations also require authentication (not anonymous)
-		if d.user.Username == "anonymous" {
-			return http.StatusForbidden, fmt.Errorf("delete operations require authentication")
-		}
-	}
 
 	if !d.user.Permissions.Delete {
 		return http.StatusForbidden, fmt.Errorf("user is not allowed to delete")
@@ -221,7 +208,6 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	path := r.URL.Query().Get("path")
 	source := r.URL.Query().Get("source")
-	override := r.URL.Query().Get("override") == "true"
 	var err error
 	// decode url encoded source name
 	source, err = url.QueryUnescape(source)
@@ -234,36 +220,9 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		logger.Debugf("invalid path encoding: %v", err)
 		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}
-	shareUpload := false
-	if d.share != nil {
-		if d.share.ShareType == "upload" {
-			shareUpload = true
-			// Check AllowUpload permission for upload shares
-			if !d.share.AllowUpload {
-				return http.StatusForbidden, fmt.Errorf("upload permission not allowed for this share")
-			}
-		} else if d.share.ShareType == "normal" {
-			// For normal shares, check AllowCreate permission
-			if !d.share.AllowCreate {
-				return http.StatusForbidden, fmt.Errorf("create permission not allowed for this share")
-			}
-			// Share create operations also require authentication (not anonymous)
-			if d.user.Username == "anonymous" {
-				return http.StatusForbidden, fmt.Errorf("create operations require authentication")
-			}
-		}
-		if !d.share.AllowReplacements && override {
-			return http.StatusForbidden, fmt.Errorf("cannot overwrite files for this share")
-		}
-		if !shareUpload && !d.share.AllowCreate {
-			return http.StatusForbidden, fmt.Errorf("user is not allowed to create or modify")
-		}
-	} else {
-		if !d.user.Permissions.Create {
-			return http.StatusForbidden, fmt.Errorf("user is not allowed to create or modify")
-		}
+	if !d.user.Permissions.Create {
+		return http.StatusForbidden, fmt.Errorf("user is not allowed to create or modify")
 	}
-
 	// Determine if this is a directory or file based on trailing slash
 	isDir := strings.HasSuffix(path, "/")
 	// Strip trailing slash from userscope to prevent double slashes

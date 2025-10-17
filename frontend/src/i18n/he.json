@@ -443,12 +443,10 @@
     "allowModifyDescription": "כל אחד יכול לערוך קבצים בשיתוף זה.",
     "allowDelete": "אפשר מחיקת קבצים",
     "allowDeleteDescription": "כל אחד יכול למחוק קבצים ותיקיות משיתוף זה.",
-    "allowCreate": "אפשר יצירת קבצים ותיקיות",
-    "allowCreateDescription": "כל אחד יכול ליצור קבצים ותיקיות חדשים בשיתוף זה.",
-    "allowUpload": "אפשר העלאת קבצים",
-    "allowUploadDescription": "כל אחד יכול להעלות קבצים לשיתוף זה.",
     "allowReplacements": "אפשר החלפת קבצים",
-    "allowReplacementsDescription": "כל אחד יכול להחליף קבצים קיימים בעת העלאת קבצים עם אותו שם."
+    "allowReplacementsDescription": "כל אחד יכול להחליף קבצים קיימים בעת העלאת קבצים עם אותו שם.",
+    "allowCreate": "אפשר ליצור ולהעלות קבצים ותיקיות",
+    "allowCreateDescription": "כל אחד יכול ליצור ולהעלות קבצים ותיקיות חדשים בשיתוף זה."
   },
   "api": {
     "title": "מפתחות API",

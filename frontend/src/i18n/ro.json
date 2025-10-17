@@ -443,12 +443,10 @@
     "allowModifyDescription": "Oricine poate edita fișiere în această partajare.",
     "allowDelete": "Permiteți ștergerea fișierelor",
     "allowDeleteDescription": "Oricine poate șterge fișiere și foldere din această partajare.",
-    "allowCreate": "Permiteți crearea de fișiere și foldere",
-    "allowCreateDescription": "Oricine poate crea noi fișiere și foldere în această partajare.",
-    "allowUpload": "Permiteți încărcarea fișierelor",
-    "allowUploadDescription": "Oricine poate încărca fișiere în acest share de încărcare.",
     "allowReplacements": "Permiteți înlocuirea fișierelor",
-    "allowReplacementsDescription": "Oricine poate înlocui fișierele existente atunci când încarcă fișiere cu același nume."
+    "allowReplacementsDescription": "Oricine poate înlocui fișierele existente atunci când încarcă fișiere cu același nume.",
+    "allowCreate": "Permiteți crearea și încărcarea de fișiere și foldere",
+    "allowCreateDescription": "Oricine poate crea și încărca fișiere și foldere noi în această partajare."
   },
   "api": {
     "title": "Chei API:",
