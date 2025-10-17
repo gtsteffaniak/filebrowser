@@ -167,7 +167,7 @@ export default {
             <button class="button tooltip-close-button" onclick="window.closeTooltip()" >x</button>
           </div>
 
-          <div style="margin-bottom: 15px; padding: 10px; background: #f5f5f5; border-radius: 4px;">
+          <div style="margin-bottom: 15px; padding: 10px; border-radius: 4px;">
             <strong>Configuration:</strong><br/>
             OnlyOffice URL: ${this.onlyOfficeUrl}<br/>
             Internal URL: ${this.getInternalUrlInfo().message}<br/>
@@ -220,7 +220,7 @@ export default {
         const downloadDomain = doc.url ? new URL(doc.url).origin : 'N/A';
 
         configDetailsHtml = `
-          <div style="margin-bottom: 15px; padding: 10px; background: #e3f2fd; border-radius: 4px;">
+          <div style="margin-bottom: 15px; padding: 10px; border-radius: 4px;">
             <strong>OnlyOffice Configuration Details:</strong><br/>
             Document Key: ${doc.key}<br/>
             File Type: ${doc.fileType}<br/>
@@ -263,7 +263,7 @@ export default {
             <button class="button tooltip-close-button" onclick="window.closeTooltip()" >x</button>
           </div>
 
-          <div style="margin-bottom: 15px; padding: 10px; background: #f5f5f5; border-radius: 4px;">
+          <div style="margin-bottom: 15px; padding: 10px; border-radius: 4px;">
             <strong>Basic Configuration:</strong><br/>
             OnlyOffice URL: ${this.onlyOfficeUrl}<br/>
             Internal URL: ${internalUrlInfo.message}<br/>

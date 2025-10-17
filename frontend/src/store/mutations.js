@@ -25,6 +25,17 @@ export const mutations = {
     state.contextMenuHasItems = value;
     emitStateChanged();
   },
+  setEditorDirty: (value) => {
+    if (value == state.editorDirty) {
+      return;
+    }
+    state.editorDirty = value;
+    emitStateChanged();
+  },
+  setEditorSaveHandler: (handler) => {
+    state.editorSaveHandler = handler;
+    emitStateChanged();
+  },
   setDeletedItem: (value) => {
     if (value == state.deletedItem) {
       return;
@@ -215,6 +226,8 @@ export const mutations = {
         confirm: value?.confirm,
         action: value?.action,
         props: value?.props,
+        discard: value?.discard,
+        cancel: value?.cancel,
       });
     } else {
       state.prompts.push({
@@ -222,6 +235,8 @@ export const mutations = {
         confirm: value?.confirm,
         action: value?.action,
         props: value?.props,
+        discard: value?.discard,
+        cancel: value?.cancel,
       });
     }
     emitStateChanged();
@@ -288,7 +303,7 @@ export const mutations = {
       state.displayPreferences = allPreferences[state.user.username] || {};
 
     } catch (error) {
-      console.log(error);
+      // Silently ignore errors when loading preferences
     }
     emitStateChanged();
   },
@@ -431,6 +446,13 @@ export const mutations = {
     })
 
     state.req = value;
+    emitStateChanged();
+  },
+  clearRequest: () => {
+    // Set req to null to prevent API calls with empty paths
+    // Components should check for null req before accessing
+    state.req = null;
+    state.selected = [];
     emitStateChanged();
   },
   setRoute: (value) => {
@@ -673,6 +695,45 @@ export const mutations = {
     state.navigation.previousRaw = "";
     state.navigation.nextRaw = "";
     mutations.clearNavigationTimeout();
+    emitStateChanged();
+  },
+  setNavigationTransitioning: (isTransitioning) => {
+    state.navigation.isTransitioning = isTransitioning;
+    if (isTransitioning) {
+      state.navigation.transitionStartTime = Date.now();
+      // Safety timeout: if transition takes more than 5 seconds, clear it
+      setTimeout(() => {
+        if (state.navigation.isTransitioning && 
+            state.navigation.transitionStartTime && 
+            Date.now() - state.navigation.transitionStartTime > 5000) {
+          mutations.setNavigationTransitioning(false);
+        }
+      }, 5500);
+    } else {
+      state.navigation.transitionStartTime = null;
+    }
+    emitStateChanged();
+  },
+  setPlaybackQueue: (payload) => {
+    state.playbackQueue.queue = payload.queue || [];
+    state.playbackQueue.currentIndex = payload.currentIndex ?? -1;
+    state.playbackQueue.mode = payload.mode || 'single';
+    emitStateChanged();
+  },
+  setPlaybackState: (isPlaying) => {
+    state.playbackQueue.isPlaying = isPlaying;
+    emitStateChanged();
+  },
+  navigateToQueueIndex: (index) => {
+    if (index < 0 || index >= state.playbackQueue.queue.length) return;
+    const item = state.playbackQueue.queue[index];
+    state.playbackQueue.currentIndex = index;
+    // Update the current request to trigger navigation
+    mutations.replaceRequest(item);
+    emitStateChanged();
+  },
+  togglePlayPause: () => {
+    state.playbackQueue.shouldTogglePlayPause = !state.playbackQueue.shouldTogglePlayPause;
     emitStateChanged();
   },
 };

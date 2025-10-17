@@ -57,7 +57,11 @@
     "galleryView": "ギャラリービュー",
     "uploadFiles": "ファイルのアップロード",
     "uploadFolder": "フォルダのアップロード",
-    "openUploadViewer": "アップロードマネージャーを開く"
+    "openUploadViewer": "アップロードマネージャーを開く",
+    "selectAll": "すべて選択",
+    "discardAndExit": "破棄と終了",
+    "saveAndExit": "保存して終了する",
+    "keepEditing": "編集を続ける"
   },
   "download": {
     "downloadFile": "ファイルをダウンロード",
@@ -86,13 +90,19 @@
     "sortByLastModified": "最終変更日付によるソート",
     "sortByName": "名前によるソート",
     "sortBySize": "サイズによるソート",
-    "noPreview": "このファイルではプレビューは利用できません。"
+    "noPreview": "このファイルではプレビューは利用できません。",
+    "noDownloadAccess": "ダウンロードはできません。"
   },
   "help": {
     "click": "ファイルやディレクトリを選択",
     "ctrl": {
       "click": "複数のファイルやディレクトリを選択",
-      "d": "ダウンロード"
+      "d": "ダウンロード",
+      "b": "トグル・サイドバー",
+      "comma": "設定に進む",
+      "c": "選択した項目をコピーする",
+      "v": "コピー/カットした項目を貼り付ける",
+      "x": "選択された項目をカット"
     },
     "del": "選択した項目を削除",
     "esc": "選択をクリアーまたはプロンプトを閉じる",
@@ -100,7 +110,8 @@
     "help": "ヘルプ",
     "f1": "ヘルプ画面を表示する",
     "description": "基本的なナビゲーションオプションは以下の通りです。その他の情報については",
-    "wiki": "ファイルブラウザ ドキュメント"
+    "slash": "検索をアクティブにする",
+    "wiki": "FileBrowser Quantum 公式ドキュメント"
   },
   "languages": {
     "he": "עברית",
@@ -202,7 +213,14 @@
     "uploadSettingsNoChunk": "最大同時アップロード数：{maxConcurrentUpload}、チャンクアップロード無効",
     "lastModified": "最終更新日{suffix}",
     "size": "サイズ{suffix}",
-    "operationInProgress": "操作中です、しばらくお待ちください..."
+    "operationInProgress": "操作中です、しばらくお待ちください...",
+    "saveBeforeExit": "未保存の変更",
+    "saveBeforeExitMessage": "エディタに未保存の変更があります。どうしますか？",
+    "copyPasteConfirm": "コピー・ペースト確認",
+    "copyItemQuestion": "このアイテムを新しい場所にコピーしますか？",
+    "moveItemQuestion": "このアイテムを新しい場所に移動しますか？",
+    "sourcePath": "ソース",
+    "destinationPath": "目的地だ："
   },
   "search": {
     "images": "画像",
@@ -271,7 +289,10 @@
       "share": "ファイルを共有",
       "admin": "管理者",
       "api": "長期間有効なAPIキーの作成と管理",
-      "realtime": "リアルタイム接続と更新を有効にする"
+      "realtime": "リアルタイム接続と更新を有効にする",
+      "create": "ファイル作成",
+      "delete": "ファイルの削除",
+      "download": "ファイルのダウンロード"
     },
     "permissions-name": "権限",
     "permissionsHelp": "ユーザーを管理者に設定するか、権限を個別に設定できます。「管理者」を選択した場合、その他のすべての選択肢は自動的に設定されます。ユーザーの管理は管理者の権限として保持されます。",
@@ -423,7 +444,17 @@
     "perUserDownloadLimitDescription": "有効にすると、各ユーザーにダウンロード制限が適用されます。匿名ユーザーはこの共有からファイルをダウンロードできません。",
     "descriptionUploadDefault": "ファイルをアップロードするための共有が送信されました。",
     "extractEmbeddedSubtitles": "埋め込み字幕の抽出",
-    "extractEmbeddedSubtitlesDescription": "読み込み時にメディアファイルから埋め込まれたサブタイトルを抽出する。"
+    "extractEmbeddedSubtitlesDescription": "読み込み時にメディアファイルから埋め込まれたサブタイトルを抽出する。",
+    "disableDownload": "ファイルのダウンロードを無効にする",
+    "disableDownloadDescription": "誰でもファイルをダウンロードしたり、ファイルの内容を見たりすることができなくなる。",
+    "allowModify": "ファイルの編集を許可する",
+    "allowModifyDescription": "誰でもこの共有内のファイルを編集することができます。",
+    "allowDelete": "ファイルの削除を許可する",
+    "allowDeleteDescription": "誰でもこの共有からファイルやフォルダを削除することができます。",
+    "allowReplacements": "ファイルの置き換えを許可する",
+    "allowReplacementsDescription": "同じ名前のファイルをアップロードすれば、誰でも既存のファイルを置き換えることができます。",
+    "allowCreate": "ファイルやフォルダの作成とアップロードが可能",
+    "allowCreateDescription": "誰でもこの共有に新しいファイルやフォルダを作成し、アップロードすることができます。"
   },
   "api": {
     "title": "APIキー：",
@@ -594,7 +625,6 @@
     "uninitialized": "エディタの初期化に失敗しました。再読み込みしてください。",
     "saveFailed": "ファイルの保存に失敗しました。もう一度お試しください。",
     "saveAborted": "保存が中止されました。ファイル名がアクティブなファイルと一致しません。",
-    "saveDisabled": "共有ファイルの保存はサポートされていません。",
     "saveAbortedMessage": "保存操作が中断されました。アプリケーションのアクティブファイル（{activeFile}）と保存しようとしているファイル（{tryingToSave}）が一致しません。",
     "syncFailed": "\"{filename}\"のルートとステートの同期に失敗しました。データの破損を防ぐためにエディタのセットアップを中止しています。"
   },
@@ -603,6 +633,11 @@
     "LoopDisabled": "ループ無効",
     "PlayAllOncePlayback": "すべて一度再生",
     "ShuffleAllPlayback": "すべてシャッフル再生",
-    "PlayAllLoopedPlayback": "すべてループ再生"
+    "PlayAllLoopedPlayback": "すべてループ再生",
+    "QueueButtonHint": "再生キューを表示",
+    "QueuePlayback": "再生キュー",
+    "changePlaybackMode": "再生モードを変更",
+    "changePlaybackModeHint": "再生モードを変更してより多くのファイルを表示",
+    "emptyQueue": "キューは空です"
   }
 }

@@ -57,7 +57,11 @@
     "galleryView": "Vizualizare galerie",
     "uploadFiles": "Încărcați fișiere",
     "uploadFolder": "Încărcați dosarul",
-    "openUploadViewer": "Deschideți Managerul de încărcare"
+    "openUploadViewer": "Deschideți Managerul de încărcare",
+    "selectAll": "Selectați toate",
+    "discardAndExit": "Renunțare și ieșire",
+    "saveAndExit": "Salvare și ieșire",
+    "keepEditing": "Continuă editarea"
   },
   "download": {
     "downloadFile": "Descarcă fișier",
@@ -86,13 +90,19 @@
     "sortByLastModified": "Ordonează dup ultima modificare",
     "sortByName": "Ordonează după nume",
     "sortBySize": "Ordonează după dimensiune",
-    "noPreview": "Previzualizarea nu este disponibilă pentru acest fișier."
+    "noPreview": "Previzualizarea nu este disponibilă pentru acest fișier.",
+    "noDownloadAccess": "Descărcarea nu este disponibilă."
   },
   "help": {
     "click": "alege fișier sau director",
     "ctrl": {
       "click": "alege multiple fișiere sau directoare",
-      "d": "descărcați elementele selectate"
+      "d": "descărcați elementele selectate",
+      "b": "comutare bară laterală",
+      "comma": "mergeți la setări",
+      "c": "copiați elementele selectate",
+      "v": "lipiți elementele copiate/tăiate",
+      "x": "tăiați articolele selectate"
     },
     "del": "șterge elementele selectate",
     "esc": "elibereaza selecția și/sau închide fereastra",
@@ -100,7 +110,8 @@
     "help": "Ajutor",
     "f1": "arată ajutor prompt",
     "description": "Puteți vizualiza mai jos opțiunile de navigație de bază. Pentru informații suplimentare, vă rugăm să vizitați",
-    "wiki": "FileBrowser Quantum Wiki"
+    "slash": "activați căutarea",
+    "wiki": "FileBrowser Quantum Documente oficiale"
   },
   "languages": {
     "he": "עברית",
@@ -202,7 +213,14 @@
     "copySuccess": "Fișiere copiate cu succes!",
     "lastModified": "Ultima modificare{suffix}",
     "size": "Mărime{suffix}",
-    "operationInProgress": "Operațiune în curs, vă rugăm să așteptați..."
+    "operationInProgress": "Operațiune în curs, vă rugăm să așteptați...",
+    "saveBeforeExit": "Modificări nesalvate",
+    "saveBeforeExitMessage": "Aveți modificări nesalvate în editor. Ce doriți să faceți?",
+    "copyPasteConfirm": "Confirmare copiere/lipire",
+    "copyItemQuestion": "Copiați acest element în noua locație?",
+    "moveItemQuestion": "Mutați acest element în noua locație?",
+    "sourcePath": "Sursă:",
+    "destinationPath": "Destinație:"
   },
   "search": {
     "images": "Imagini",
@@ -271,7 +289,10 @@
       "share": "Distribuie fișiere",
       "admin": "Administrator",
       "api": "Crearea și gestionarea cheilor API cu durată lungă de viață",
-      "realtime": "Permite conexiuni și actualizări în timp real"
+      "realtime": "Permite conexiuni și actualizări în timp real",
+      "create": "Creați fișiere",
+      "delete": "Ștergeți fișierele",
+      "download": "Descărcați fișiere"
     },
     "permissions-name": "Permisiuni",
     "permissionsHelp": "Poți alege ca un utilizator să fie administrator sau să-i alegi permisiunile individual. Dacă alegi \"Administrator\", toate celelalte opțiuni vor fi bifate automat. Gestionarea utilizatorilor rămâne un privilegiu exclusiv al administratorilor.\n",
@@ -423,7 +444,17 @@
     "perUserDownloadLimitDescription": "Atunci când este activată, limita de descărcări va fi aplicată fiecărui utilizator. Utilizatorii anonimi nu vor putea descărca niciun fișier din această partajare.",
     "descriptionUploadDefault": "V-a fost trimisă o partajare pentru a încărca fișiere.",
     "extractEmbeddedSubtitles": "Extragerea subtitrărilor încorporate",
-    "extractEmbeddedSubtitlesDescription": "Extragerea subtitrărilor încorporate din fișierele media la încărcare - acest lucru poate fi lent pentru fișierele mari."
+    "extractEmbeddedSubtitlesDescription": "Extragerea subtitrărilor încorporate din fișierele media la încărcare - acest lucru poate fi lent pentru fișierele mari.",
+    "disableDownload": "Dezactivați descărcarea fișierelor",
+    "disableDownloadDescription": "Oricine nu va putea să descarce fișiere sau să vizualizeze conținutul unui fișier.",
+    "allowModify": "Permiteți editarea fișierelor",
+    "allowModifyDescription": "Oricine poate edita fișiere în această partajare.",
+    "allowDelete": "Permiteți ștergerea fișierelor",
+    "allowDeleteDescription": "Oricine poate șterge fișiere și foldere din această partajare.",
+    "allowReplacements": "Permiteți înlocuirea fișierelor",
+    "allowReplacementsDescription": "Oricine poate înlocui fișierele existente atunci când încarcă fișiere cu același nume.",
+    "allowCreate": "Permiteți crearea și încărcarea de fișiere și foldere",
+    "allowCreateDescription": "Oricine poate crea și încărca fișiere și foldere noi în această partajare."
   },
   "api": {
     "title": "Chei API:",
@@ -594,7 +625,6 @@
     "uninitialized": "Nu s-a reușit inițializarea editorului. Vă rugăm să reîncărcați.",
     "saveFailed": "Nu ați reușit să salvați fișierul. Vă rugăm să încercați din nou.",
     "saveAborted": "Salvare întreruptă. Numele fișierului nu corespunde fișierului activ.",
-    "saveDisabled": "Salvarea fișierelor partajate nu este acceptată.",
     "saveAbortedMessage": "Operațiunea de salvare a fost întreruptă. Fișierul activ al aplicației ({activeFile}) nu corespunde cu fișierul pe care încercați să îl salvați ({tryingToSave}).",
     "syncFailed": "nu a reușit să sincronizeze starea cu ruta pentru \"{filename}\" după 5 încercări. Întreruperea configurării editorului pentru a preveni coruperea datelor."
   },
@@ -603,6 +633,11 @@
     "LoopDisabled": "Buclă dezactivată",
     "PlayAllOncePlayback": "Redă toate o dată",
     "ShuffleAllPlayback": "Redare aleatoare a tuturor",
-    "PlayAllLoopedPlayback": "Redă toate în buclă"
+    "PlayAllLoopedPlayback": "Redă toate în buclă",
+    "QueueButtonHint": "Afișează coada de redare",
+    "QueuePlayback": "Coadă de Redare",
+    "changePlaybackMode": "Schimbă modul de redare",
+    "changePlaybackModeHint": "Schimbă modul de redare pentru a vedea mai multe fișiere",
+    "emptyQueue": "Coada este goală"
   }
 }

@@ -9,7 +9,11 @@
 
   <link rel="icon" type="image/png" sizes="256x256" href="{{ .htmlVars.favicon }}">
 
-  <!--<link href="https://fonts.googleapis.com/css?family=Material+Icons|Material+Symbols+Outlined" rel="stylesheet">-->
+  <!-- Preload critical fonts for optimal performance -->
+  <link rel="preload" href="{{ .htmlVars.staticURL }}/fonts/roboto-normal-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="{{ .htmlVars.staticURL }}/fonts/roboto-medium-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="{{ .htmlVars.staticURL }}/fonts/roboto-bold-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="{{ .htmlVars.staticURL }}/fonts/material-icons.woff2" as="font" type="font/woff2" crossorigin>
 
   <!-- Add to home screen for Android and modern mobile browsers -->
   <link rel="manifest" id="manifestPlaceholder" crossorigin="use-credentials">
@@ -26,10 +30,10 @@
 
   <meta name="description" content="{{ .htmlVars.description }}">
   <link rel="canonical" href="https://github.com/gtsteffaniak/filebrowser">
-  <link rel="canonical" href="https://github.com/gtsteffaniak">
   <link rel="canonical" href="https://github.com/quantumx-apps">
+  <link rel="canonical" href="https://filebrowserquantum.com">
 
-  <!-- Inject Some Variables and generate the manifest json -->
+  <!-- Injected variables come from backend server -->
   <script>
     window.globalVars = {{ .globalVars }};
     window.shareVars = {{ .shareVars }};

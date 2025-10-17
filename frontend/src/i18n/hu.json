@@ -57,7 +57,11 @@
     "galleryView": "Galéria nézet",
     "uploadFiles": "Fájlok feltöltése",
     "uploadFolder": "Mappa feltöltése",
-    "openUploadViewer": "Nyissa meg a Feltöltéskezelőt"
+    "openUploadViewer": "Nyissa meg a Feltöltéskezelőt",
+    "selectAll": "Válasszon ki mindent",
+    "discardAndExit": "Dobás és kilépés",
+    "saveAndExit": "Mentés és kilépés",
+    "keepEditing": "Szerkesztés folytatása"
   },
   "download": {
     "downloadFile": "Fájl letöltése",
@@ -86,13 +90,19 @@
     "sortByLastModified": "Rendezés utolsó módosítás szerint",
     "sortByName": "Rendezés név szerint",
     "sortBySize": "Rendezés méret szerint",
-    "noPreview": "Ehhez a fájlhoz nincs előnézet."
+    "noPreview": "Ehhez a fájlhoz nincs előnézet.",
+    "noDownloadAccess": "A letöltés nem elérhető."
   },
   "help": {
     "click": "mappa vagy fájl kijelölése",
     "ctrl": {
       "click": "több mappa vagy fájl kijelölése",
-      "d": "kiválasztott elemek letöltése"
+      "d": "kiválasztott elemek letöltése",
+      "b": "oldalsáv átkapcsolása",
+      "comma": "menj a beállításokhoz",
+      "c": "kiválasztott elemek másolása",
+      "v": "másolt/kivágott elemek beillesztése",
+      "x": "kiválasztott tételek kivágása"
     },
     "del": "kijelölt elemek törlése",
     "esc": "kijelölés törlése és/vagy parancssor bezárása",
@@ -100,7 +110,8 @@
     "help": "Súgó",
     "f1": "show help prompt",
     "description": "Az alábbiakban megtekintheti az alapvető navigációs lehetőségeket. További információkért kérjük, látogasson el a következő weboldalra",
-    "wiki": "FileBrowser Quantum Wiki"
+    "slash": "keresés aktiválása",
+    "wiki": "FileBrowser Quantum hivatalos dokumentumok"
   },
   "languages": {
     "he": "עברית",
@@ -202,7 +213,14 @@
     "copySuccess": "A fájlok másolása sikeres volt!",
     "lastModified": "Utoljára módosítva{suffix}",
     "size": "Méret{suffix}",
-    "operationInProgress": "Művelet folyamatban, kérjük várjon..."
+    "operationInProgress": "Művelet folyamatban, kérjük várjon...",
+    "saveBeforeExit": "Nem mentett változtatások",
+    "saveBeforeExitMessage": "A szerkesztőben elmentetlen módosítások vannak. Mit szeretne tenni?",
+    "copyPasteConfirm": "Másolás/beillesztés megerősítés",
+    "copyItemQuestion": "Másolja ezt az elemet az új helyre?",
+    "moveItemQuestion": "Áthelyezni ezt az elemet az új helyre?",
+    "sourcePath": "Forrás:",
+    "destinationPath": "Úti cél:"
   },
   "search": {
     "images": "Képek",
@@ -273,7 +291,10 @@
       "share": "Fájlok megosztása",
       "admin": "Adminisztrátor",
       "api": "Hosszú élettartamú API-kulcsok létrehozása és kezelése",
-      "realtime": "Valós idejű kapcsolatok és frissítések engedélyezése"
+      "realtime": "Valós idejű kapcsolatok és frissítések engedélyezése",
+      "create": "Fájlok létrehozása",
+      "delete": "Fájlok törlése",
+      "download": "Fájlok letöltése"
     },
     "permissions-name": "Jogosultságok",
     "permissionsHelp": "A felhasználót beállíthatja rendszergazdának, vagy egyénileg is kiválaszthatja a jogosultságokat. Ha a \"Rendszergazda\" lehetőséget választja, az összes többi opció automatikusan be lesz jelölve. A felhasználók kezelése továbbra is a rendszergazda kiváltsága marad.\n",
@@ -423,7 +444,17 @@
     "perUserDownloadLimitDescription": "Ha engedélyezve van, a letöltési limit minden egyes felhasználóra vonatkozik. A névtelen felhasználók nem tölthetnek le fájlokat erről a megosztásról.",
     "descriptionUploadDefault": "Megosztást küldtek Önnek fájlok feltöltéséhez.",
     "extractEmbeddedSubtitles": "Beágyazott feliratok kivonása",
-    "extractEmbeddedSubtitlesDescription": "Beágyazott feliratok kivonása a médiafájlokból betöltéskor -- ez nagy fájlok esetén lassú lehet."
+    "extractEmbeddedSubtitlesDescription": "Beágyazott feliratok kivonása a médiafájlokból betöltéskor -- ez nagy fájlok esetén lassú lehet.",
+    "disableDownload": "Letiltja a fájlok letöltését",
+    "disableDownloadDescription": "Senki nem lesz képes letölteni fájlokat vagy megtekinteni egy fájl tartalmát.",
+    "allowModify": "Fájlok szerkesztésének engedélyezése",
+    "allowModifyDescription": "Ezen a megosztáson bárki szerkesztheti a fájlokat.",
+    "allowDelete": "Fájlok törlésének engedélyezése",
+    "allowDeleteDescription": "Bárki törölhet fájlokat és mappákat erről a megosztásról.",
+    "allowReplacements": "Fájlok cseréjének engedélyezése",
+    "allowReplacementsDescription": "Az azonos nevű fájlok feltöltésekor bárki helyettesítheti a meglévő fájlokat.",
+    "allowCreate": "Fájlok és mappák létrehozásának és feltöltésének lehetővé tétele",
+    "allowCreateDescription": "Bárki létrehozhat és feltölthet új fájlokat és mappákat ezen a megosztáson."
   },
   "api": {
     "title": "API-kulcsok:",
@@ -594,7 +625,6 @@
     "uninitialized": "Nem sikerült inicializálni a szerkesztőt. Kérjük, töltse újra.",
     "saveFailed": "A fájl mentése sikertelen. Kérjük, próbálja újra.",
     "saveAborted": "A mentés megszakadt. A fájl neve nem egyezik az aktív fájléval.",
-    "saveDisabled": "A megosztott fájlok mentése nem támogatott.",
     "saveAbortedMessage": "A mentési művelet megszakadt. Az alkalmazás aktív fájlja ({activeFile}) nem egyezik meg a menteni kívánt fájllal ({tryingToSave}).",
     "syncFailed": "5 próbálkozás után nem sikerült szinkronizálni az állapotot a \"{filename}\" útvonallal. A szerkesztő beállításának megszakítása az adatok sérülésének elkerülése érdekében."
   },
@@ -603,6 +633,11 @@
     "LoopDisabled": "Hurok letiltva",
     "PlayAllOncePlayback": "Összes lejátszása egyszer",
     "ShuffleAllPlayback": "Összes keverése",
-    "PlayAllLoopedPlayback": "Összes lejátszása hurkokban"
+    "PlayAllLoopedPlayback": "Összes lejátszása hurkokban",
+    "QueueButtonHint": "Lejátszási sor megjelenítése",
+    "QueuePlayback": "Lejátszási Sor",
+    "changePlaybackMode": "Lejátszási mód változtatása",
+    "changePlaybackModeHint": "Változtasd meg a lejátszási módot, hogy több fájlt láss",
+    "emptyQueue": "A sor üres"
   }
 }

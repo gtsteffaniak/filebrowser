@@ -103,7 +103,6 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		file, err := FileInfoFasterFunc(utils.FileOptions{
 			Path:                     utils.JoinPathAsUnix(link.Path, path),
 			Source:                   link.Source,
-			Modify:                   false,
 			Expand:                   true,
 			Content:                  getContent,
 			ExtractEmbeddedSubtitles: settings.Config.Integrations.Media.ExtractEmbeddedSubtitles && link.ExtractEmbeddedSubtitles,
@@ -115,7 +114,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		file.Token = link.Token
 		file.Source = ""
 		file.Hash = link.Hash
-		if !link.EnableOnlyOffice || !link.DisableFileViewer || reachedDownloadsLimit {
+		if !link.EnableOnlyOffice || link.DisableFileViewer || reachedDownloadsLimit {
 			file.OnlyOfficeId = ""
 		}
 		if getContent && file.Content != "" {

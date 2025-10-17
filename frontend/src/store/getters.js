@@ -45,11 +45,12 @@ export const getters = {
     if (!state.user || state.user?.username == "") {
       return "normal";
     }
+    const userViewmode = getters.displayPreference()?.viewMode || state.user.viewMode
     // If user is anonymous and on a share, check for defaultViewMode override
-    if (getters.isShare() && state.user?.username === 'anonymous' && shareInfo.viewMode) {
+    if (state.user?.username === 'anonymous' && !userViewmode) {
       return shareInfo.viewMode;
     }
-    return getters.displayPreference()?.viewMode || state.user.viewMode || "normal";
+    return userViewmode || "normal";
   },
   sorting: () => {
     return getters.displayPreference()?.sorting || state.user.sorting || { by: "name", asc: true };
@@ -99,7 +100,7 @@ export const getters = {
   },
   isAdmin: () => state.user.permissions?.admin == true,
   isFiles: () => state.route.name === 'Files',
-  isListing: () => getters.isFiles() && state.req.type === 'directory',
+  isListing: () => getters.isFiles() || getters.isShare() && state.req.type === 'directory',
   selectedCount: () =>
     Array.isArray(state.selected) ? state.selected.length : 0,
   getFirstSelected: () => typeof(state.selected[0]) == 'number' ? state.req.items[state.selected[0]] : state.selected[0],
@@ -360,6 +361,15 @@ export const getters = {
     return files.sort((a, b) => a.progress - b.progress)
   },
   fileViewingDisabled: filename => {
+    if (getters.isShare()) {
+      if (shareInfo.disableFileViewer || shareInfo.shareType == "upload" || shareInfo.disableDownload) {
+        return true
+      }
+    } else {
+      if (!state.user.permissions.download) {
+        return true
+      }
+    }
     const ext = ' ' + getFileExtension(filename)
     if (state.user.disableViewingExt) {
       const disabledExts = ' ' + state.user.disableViewingExt.toLowerCase()
@@ -419,7 +429,7 @@ export const getters = {
       disablePreviewExt: "",
       fileLoading: {
         maxConcurrent: 1,
-        chunkSizeMb: 15,
+        chunkSizeMb: 5,
       }
     }
   },
@@ -464,4 +474,22 @@ export const getters = {
   isValidShare: () => {
     return getters.isShare() && shareInfo.isValid;
   },
+  permissions: () => {
+    if (getters.isShare()) {
+      return {
+        share: false,
+        modify: shareInfo.allowModify,
+        create: shareInfo.allowCreate,
+        delete: shareInfo.allowDelete,
+        download: !shareInfo.disableDownload,
+      };
+    }
+    return {
+      share: state.user?.permissions?.share,
+      modify: state.user?.permissions?.modify,
+      create: state.user?.permissions?.create,
+      delete: state.user?.permissions?.delete,
+      download: state.user?.permissions?.download,
+    };
+  }
 };

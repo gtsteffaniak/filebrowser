@@ -2320,6 +2320,91 @@ const docTemplate = `{
             }
         },
         "/public/api/resources": {
+            "put": {
+                "description": "Updates the content of a file in a public share.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Shares"
+                ],
+                "summary": "Update a file in a public share",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Share hash for authentication",
+                        "name": "hash",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Path to the file to update",
+                        "name": "path",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "description": "New content for the file",
+                        "name": "content",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "File updated successfully",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request or parameters",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Share unavailable or update not allowed",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Share not found or file not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
             "post": {
                 "description": "Handles file and directory uploads to an upload-only public share. Supports chunked uploads, conflict resolution (override), and directory creation.",
                 "consumes": [
@@ -2833,6 +2918,75 @@ const docTemplate = `{
                 }
             }
         },
+        "settings.ConditionalFilter": {
+            "type": "object",
+            "properties": {
+                "hidden": {
+                    "description": "exclude hidden files and folders.",
+                    "type": "boolean"
+                },
+                "ignoreZeroSizeFolders": {
+                    "description": "ignore folders with 0 size",
+                    "type": "boolean"
+                },
+                "rules": {
+                    "description": "list of item rules to apply to specific paths",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/settings.ConditionalIndexConfig"
+                    }
+                }
+            }
+        },
+        "settings.ConditionalIndexConfig": {
+            "type": "object",
+            "properties": {
+                "fileEndsWith": {
+                    "description": "(global) exclude files that end with these suffixes. Eg. \".jpg\" or \".txt\"",
+                    "type": "string"
+                },
+                "fileNames": {
+                    "description": "(global) exclude files that match these names. Eg. \"file.txt\" or \"test.csv\"",
+                    "type": "string"
+                },
+                "filePath": {
+                    "description": "(global) exclude files that match this path. Eg. \"/path/to/file.txt\" or \"/path/to/file.txt/subfile.txt\"",
+                    "type": "string"
+                },
+                "fileStartsWith": {
+                    "description": "(global) exclude files that start with these prefixes. Eg. \"archive-\" or \"backup-\"",
+                    "type": "string"
+                },
+                "folderEndsWith": {
+                    "description": "(global) exclude folders that end with these suffixes. Eg. \".thumbnails\" or \".git\"",
+                    "type": "string"
+                },
+                "folderNames": {
+                    "description": "(global) exclude folders that match these names. Eg. \"folder\" or \"subfolder\"",
+                    "type": "string"
+                },
+                "folderPath": {
+                    "description": "(global) exclude folders that match this path. Eg. \"/path/to/folder\" or \"/path/to/folder/subfolder\"",
+                    "type": "string"
+                },
+                "folderStartsWith": {
+                    "description": "(global) exclude folders that start with these prefixes. Eg. \"archive-\" or \"backup-\"",
+                    "type": "string"
+                },
+                "includeRootItem": {
+                    "description": "include only these items at root folder level",
+                    "type": "string"
+                },
+                "neverWatchPath": {
+                    "description": "index the folder in the first pass to get included in search, but never re-indexed.",
+                    "type": "string"
+                },
+                "viewable": {
+                    "description": "Enable viewing in UI but exclude from indexing",
+                    "type": "boolean"
+                }
+            }
+        },
         "settings.CustomTheme": {
             "type": "object",
             "properties": {
@@ -2843,75 +2997,6 @@ const docTemplate = `{
                 "description": {
                     "description": "The description of the theme to display in the UI.",
                     "type": "string"
-                }
-            }
-        },
-        "settings.ExcludeIndexFilter": {
-            "type": "object",
-            "properties": {
-                "fileEndsWith": {
-                    "description": "(global) exclude files that end with these suffixes. Eg. \".jpg\" or \".txt\"",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "fileNames": {
-                    "description": "(global) list of file names to include/exclude. Eg. \"a.jpg\"",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "filePaths": {
-                    "description": "list of filepaths Eg. \"folder1\" or \"file1.txt\" or \"folder1/file1.txt\" (without source path prefix)",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "fileStartsWith": {
-                    "description": "(global) exclude files that start with these prefixes. Eg. \"archive-\" or \"backup-\"",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "folderEndsWith": {
-                    "description": "(global) exclude folders that end with these suffixes. Eg. \".thumbnails\" or \".git\"",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "folderNames": {
-                    "description": "(global) list of folder names to include/exclude. Eg. \"@eadir\" or \".thumbnails\"",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "folderPaths": {
-                    "description": "(filepath) list of folder names to include/exclude. Eg. \"folder1\" or \"folder1/subfolder\" (do not include source path, just the subpaths from the source path)",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "folderStartsWith": {
-                    "description": "(global) exclude folders that start with these prefixes. Eg. \"archive-\" or \"backup-\"",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "hidden": {
-                    "description": "exclude hidden files and folders.",
-                    "type": "boolean"
-                },
-                "ignoreZeroSizeFolders": {
-                    "description": "ignore folders with 0 size",
-                    "type": "boolean"
                 }
             }
         },
@@ -3007,25 +3092,6 @@ const docTemplate = `{
                 },
                 "styling": {
                     "$ref": "#/definitions/settings.StylingConfig"
-                }
-            }
-        },
-        "settings.IncludeIndexFilter": {
-            "type": "object",
-            "properties": {
-                "rootFiles": {
-                    "description": "list of root files to include, relative to the source path (eg. \"file1.txt\")",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "rootFolders": {
-                    "description": "list of root folders to include, relative to the source path (eg. \"folder1\")",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
                 }
             }
         },
@@ -3387,6 +3453,14 @@ const docTemplate = `{
         "settings.SourceConfig": {
             "type": "object",
             "properties": {
+                "conditionals": {
+                    "description": "conditional rules to apply when indexing to include/exclude certain items",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.ConditionalFilter"
+                        }
+                    ]
+                },
                 "createUserDir": {
                     "description": "create a user directory for each user",
                     "type": "boolean"
@@ -3411,40 +3485,9 @@ const docTemplate = `{
                     "description": "disable the source, this is useful so you don't need to remove it from the config file",
                     "type": "boolean"
                 },
-                "exclude": {
-                    "description": "exclude files and folders from indexing, if include is not set",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/settings.ExcludeIndexFilter"
-                        }
-                    ]
-                },
-                "include": {
-                    "description": "include files and folders from indexing, if exclude is not set",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/settings.IncludeIndexFilter"
-                        }
-                    ]
-                },
-                "indexAlbumArt": {
-                    "description": "deprecated: always enabled since 0.8.6",
-                    "type": "boolean"
-                },
                 "indexingIntervalMinutes": {
                     "description": "optional manual overide interval in minutes to re-index the source",
                     "type": "integer"
-                },
-                "maxWatchers": {
-                    "description": "number of concurrent watchers to use for this source, currently not supported",
-                    "type": "integer"
-                },
-                "neverWatchPaths": {
-                    "description": "paths that get initially once. Useful for folders that rarely change contents (without source path prefix)",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
                 },
                 "private": {
                     "description": "designate as source as private -- currently just means no sharing permitted.",
@@ -3606,8 +3649,19 @@ const docTemplate = `{
         "share.CreateBody": {
             "type": "object",
             "properties": {
-                "allowUpload": {
-                    "description": "AllowEdit           bool   ` + "`" + `json:\"allowEdit,omitempty\"` + "`" + `",
+                "allowCreate": {
+                    "description": "allow creating files",
+                    "type": "boolean"
+                },
+                "allowDelete": {
+                    "type": "boolean"
+                },
+                "allowModify": {
+                    "description": "allow modifying files",
+                    "type": "boolean"
+                },
+                "allowReplacements": {
+                    "description": "allow replacements of files",
                     "type": "boolean"
                 },
                 "allowedUsernames": {
@@ -3625,7 +3679,12 @@ const docTemplate = `{
                 "disableAnonymous": {
                     "type": "boolean"
                 },
+                "disableDownload": {
+                    "description": "don't allow downloading files",
+                    "type": "boolean"
+                },
                 "disableFileViewer": {
+                    "description": "don't allow viewing files",
                     "type": "boolean"
                 },
                 "disableShareCard": {
@@ -3716,8 +3775,19 @@ const docTemplate = `{
         "share.Link": {
             "type": "object",
             "properties": {
-                "allowUpload": {
-                    "description": "AllowEdit           bool   ` + "`" + `json:\"allowEdit,omitempty\"` + "`" + `",
+                "allowCreate": {
+                    "description": "allow creating files",
+                    "type": "boolean"
+                },
+                "allowDelete": {
+                    "type": "boolean"
+                },
+                "allowModify": {
+                    "description": "allow modifying files",
+                    "type": "boolean"
+                },
+                "allowReplacements": {
+                    "description": "allow replacements of files",
                     "type": "boolean"
                 },
                 "allowedUsernames": {
@@ -3735,7 +3805,12 @@ const docTemplate = `{
                 "disableAnonymous": {
                     "type": "boolean"
                 },
+                "disableDownload": {
+                    "description": "don't allow downloading files",
+                    "type": "boolean"
+                },
                 "disableFileViewer": {
+                    "description": "don't allow viewing files",
                     "type": "boolean"
                 },
                 "disableShareCard": {
@@ -3884,18 +3959,35 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "admin": {
+                    "description": "allow admin access",
                     "type": "boolean"
                 },
                 "api": {
+                    "description": "allow api access",
+                    "type": "boolean"
+                },
+                "create": {
+                    "description": "allow creating or uploading files",
+                    "type": "boolean"
+                },
+                "delete": {
+                    "description": "allow deleting files",
+                    "type": "boolean"
+                },
+                "download": {
+                    "description": "allow downloading files",
                     "type": "boolean"
                 },
                 "modify": {
+                    "description": "allow modifying files",
                     "type": "boolean"
                 },
                 "realtime": {
+                    "description": "allow realtime updates",
                     "type": "boolean"
                 },
                 "share": {
+                    "description": "allow sharing files",
                     "type": "boolean"
                 }
             }
@@ -4129,6 +4221,9 @@ const docTemplate = `{
                 },
                 "username": {
                     "type": "string"
+                },
+                "version": {
+                    "type": "integer"
                 },
                 "viewMode": {
                     "description": "view mode to use: eg. normal, list, grid, or compact",

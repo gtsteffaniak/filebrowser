@@ -29,10 +29,9 @@
   </div>
 </template>
 <script>
-import { filesApi } from "@/api";
-import { mutations, state } from "@/store";
+import { filesApi, publicApi } from "@/api";
+import { mutations, state, getters } from "@/store";
 import { notify } from "@/notify";
-
 export default {
   name: "rename",
   props: {
@@ -118,7 +117,11 @@ export default {
           toSource: this.item.source,
         }];
 
-        await filesApi.moveCopy(items, "move");
+        if (getters.isShare()) {
+          await publicApi.moveCopy(items, "move");
+        } else {
+          await filesApi.moveCopy(items, "move");
+        }
         mutations.closeHovers();
       } catch (error) {
         notify.showError(error);

@@ -166,7 +166,7 @@ export default {
       return true;
     },
     thumbnailUrl() {
-      if (!globalVars.enableThumbs) {
+      if (!globalVars.enableThumbs || !state.req.path || !this.name) {
         return "";
       }
       const previewPath = url.joinPath(state.req.path, this.name);
@@ -305,13 +305,16 @@ export default {
     },
     /** @param {DragEvent} event */
     async drop(event) {
-      event.preventDefault();
-      event.stopPropagation();
       this.isDraggedOver = false;
 
       if (!this.canDrop) {
+        // Don't prevent default or stop propagation - let the parent ListingView handle it
         return;
       }
+
+      // Only stop propagation if we're actually going to handle this drop (moving files into a folder)
+      event.preventDefault();
+      event.stopPropagation();
 
       let items = [];
       for (let i of state.selected) {
@@ -326,11 +329,15 @@ export default {
         });
       }
 
-      const conflict = upload.checkConflict(
-        items,
-        // @ts-ignore
-        (await filesApi.fetchFiles(this.source, this.path)).items || []
-      );
+      let checkAction = async () => {
+        if (getters.isShare()) {
+          return await publicApi.fetchPub(this.path, shareInfo.hash);
+        } else {
+          return await filesApi.fetchFiles(this.source, this.path);
+        }
+      }
+      const response = await checkAction();
+      const conflict = upload.checkConflict(items, response?.items || [] );
 
       /**
        * @param {boolean} overwrite
@@ -346,7 +353,11 @@ export default {
         });
 
         try {
-          await filesApi.moveCopy(items, "move", overwrite, rename);
+          if (getters.isShare()) {
+            await publicApi.moveCopy(items, "move", overwrite, rename);
+          } else {
+            await filesApi.moveCopy(items, "move", overwrite, rename);
+          }
           // Close the prompt after successful operation
           mutations.closeHovers();
         } catch (error) {

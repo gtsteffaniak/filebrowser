@@ -10,7 +10,7 @@
     <search v-if="showSearch" />
     <title v-else class="topTitle">{{ getTopTitle }}</title>
     <action
-      v-if="!disableNavButtons"
+      v-if="isListingView && !disableNavButtons"
       class="menu-button"
       :icon="viewIcon"
       :label="$t('buttons.switchView')"
@@ -39,7 +39,6 @@
 import router from "@/router";
 import buttons from "@/utils/buttons";
 import { notify } from "@/notify";
-import { eventBus } from "@/store/eventBus";
 import { getters, state, mutations } from "@/store";
 import Action from "@/components/Action.vue";
 import Search from "@/components/Search.vue";
@@ -142,12 +141,20 @@ export default {
       const button = "save";
       buttons.loading("save");
       try {
-        eventBus.emit("handleEditorValueRequest", "data");
-        buttons.success(button);
-        notify.showSuccess("File Saved!");
+        // Call the editor's save handler directly
+        if (state.editorSaveHandler) {
+          await state.editorSaveHandler();
+          buttons.success(button);
+          // Note: Success notification is shown by the editor
+        } else {
+          const errorMsg = "No editor save handler registered";
+          notify.showError(errorMsg);
+          throw new Error(errorMsg);
+        }
       } catch (e) {
         buttons.done(button);
-        notify.showError("Error saving file: ", e);
+        // Note: Error notification is already shown by the editor
+        throw e; // Re-throw so caller knows save failed
       }
     },
     toggleOverflow() {
@@ -167,6 +174,16 @@ export default {
     },
     multiAction() {
       const cv = getters.currentView();
+      
+      // Check for unsaved editor changes before navigation
+      if (cv === "editor" && state.editorDirty) {
+        this.showSaveBeforeExitPrompt(() => this.performNavigation(cv));
+        return;
+      }
+      
+      this.performNavigation(cv);
+    },
+    performNavigation(cv) {
       if (cv == "listingView" || ( getters.isShare() && !getters.multibuttonState() === "close")) {
         mutations.toggleSidebar();
       } else if (cv == "settings" && state.isMobile) {
@@ -175,7 +192,7 @@ export default {
         mutations.closeHovers();
         if (cv === "settings") {
           if (state.previousHistoryItem?.name) {
-            url.goToItem(state.previousHistoryItem.source, state.previousHistoryItem.path, {});
+            url.goToItem(state.previousHistoryItem.source, state.previousHistoryItem.path, state.previousHistoryItem);
             return;
           }
           router.push({ path: "/files" });
@@ -183,7 +200,7 @@ export default {
         }
         if (getters.isPreviewView()) {
           if (state.previousHistoryItem?.name) {
-            url.goToItem(state.previousHistoryItem.source, state.previousHistoryItem.path, {});
+            url.goToItem(state.previousHistoryItem.source, state.previousHistoryItem.path, state.previousHistoryItem);
             return;
           } else {
             // navigate to parent directory of current url
@@ -195,6 +212,26 @@ export default {
 
         router.go(-1);
       }
+    },
+    showSaveBeforeExitPrompt(onConfirmAction) {
+      mutations.showHover({
+        name: "SaveBeforeExit",
+        confirm: async () => {
+          // Save and exit - trigger the save action
+          // If save fails, this will throw and be caught by SaveBeforeExit component
+          await this.save();
+          mutations.setEditorDirty(false);
+          onConfirmAction();
+        },
+        discard: () => {
+          // Discard changes and exit
+          mutations.setEditorDirty(false);
+          onConfirmAction();
+        },
+        cancel: () => {
+          // Keep editing - do nothing
+        },
+      });
     },
   },
 };

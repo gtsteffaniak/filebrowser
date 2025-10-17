@@ -1,5 +1,5 @@
 <template>
-    <div class="plyr-viewer" :key="`${previewType}-${raw}`">
+    <div class="plyr-viewer">
         <!-- Audio with plyr -->
         <div v-if="previewType == 'audio' && !useDefaultMediaPlayer" class="audio-player-container">
             <div class="audio-player-content">
@@ -47,41 +47,54 @@
         </div>
 
         <!-- Video with plyr -->
-        <vue-plyr v-else-if="previewType == 'video' && !useDefaultMediaPlayer" ref="videoPlayer"
-            :options="plyrOptions">
-            <video :src="raw" :autoplay="shouldAutoPlay" @play="handlePlay">
+        <div v-else-if="previewType == 'video' && !useDefaultMediaPlayer" class="video-player-container">
+            <vue-plyr ref="videoPlayer" :options="plyrOptions">
+                <video :src="raw" :autoplay="shouldAutoPlay" @play="handlePlay">
+                    <track kind="captions" v-for="(sub, index) in subtitlesList" :key="index" :src="sub.src"
+                        :label="'Subtitle ' + sub.name" :default="index === 0" />
+                </video>
+            </vue-plyr>
+        </div>
+
+        <!-- Default HTML5 Audio -->
+        <div v-else-if="previewType == 'audio' && useDefaultMediaPlayer" class="audio-player-container">
+            <audio ref="defaultAudioPlayer" :src="raw"
+                controls :autoplay="shouldAutoPlay" @play="handlePlay">
+            </audio>
+        </div>
+
+        <!-- Default HTML5 Video -->
+        <div v-else-if="previewType == 'video' && useDefaultMediaPlayer" class="video-player-container">
+            <video ref="defaultVideoPlayer" :src="raw"
+                controls :autoplay="shouldAutoPlay" @play="handlePlay">
                 <track kind="captions" v-for="(sub, index) in subtitlesList" :key="index" :src="sub.src"
                     :label="'Subtitle ' + sub.name" :default="index === 0" />
             </video>
-        </vue-plyr>
+        </div>
 
-        <!-- Default HTML5 Audio -->
-        <audio v-else-if="previewType == 'audio' && useDefaultMediaPlayer" ref="defaultAudioPlayer" :src="raw"
-            controls :autoplay="shouldAutoPlay" @play="handlePlay"></audio>
-
-        <!-- Default HTML5 Video -->
-        <video v-else-if="previewType == 'video' && useDefaultMediaPlayer" ref="defaultVideoPlayer" :src="raw"
-            controls :autoplay="shouldAutoPlay" @play="handlePlay">
-            <track kind="captions" v-for="(sub, index) in subtitlesList" :key="index" :src="sub.src"
-                :label="'Subtitle ' + sub.name" :default="index === 0" />
-        </video>
+        <button
+            v-if="showQueueButton"
+            @click="showQueuePrompt"
+            class="queue-button floating"
+            :class="{
+                'dark-mode': darkMode,
+            }"
+            :aria-label="$t('player.QueueButtonHint')"
+            :title="$t('player.QueueButtonHint')"
+        >
+            <i class="material-icons">queue_music</i>
+            <span v-if="queueCount > 0" class="queue-count">{{ queueCount }}</span>
+        </button>
 
         <!-- Toast that shows when you press "P" or "L" on the media player -->
         <div :class="['loop-toast', toastVisible ? 'visible' : '']">
             <!-- Loop icon for "single playback", "loop single file" and "loop all files" -->
-            <svg v-if="playbackMode === 'single' || playbackMode === 'loop-single' || playbackMode === 'loop-all'" class="loop-icon" viewBox="0 0 24 24">
-                <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46A7.93 7.93 0 0020 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74A7.93 7.93 0 004 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z" />
-            </svg>
-
-            <!-- Shuffle icon for "shuffle playback" -->
-            <svg v-else-if="playbackMode === 'shuffle'" class="shuffle-icon" viewBox="0 0 24 24">
-                <path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/>
-            </svg>
-
-            <!-- List icon for "sequential playback" -->
-            <svg v-else class="sequential-icon" viewBox="0 0 24 24">
-                <path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/>
-            </svg>
+            <i v-if="playbackMode === 'single' || playbackMode === 'loop-single' || playbackMode === 'loop-all'" class="material-icons loop-icon">
+                <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
+                {{ playbackMode === 'loop-single' ? 'repeat_one' : 'repeat' }}
+            </i>
+            <i v-else-if="playbackMode === 'shuffle'" class="material-icons shuffle-icon">shuffle</i>
+            <i v-else class="material-icons sequential-icon">playlist_play</i>
 
             <span>{{
                 playbackMode === 'sequential' ? $t('player.PlayAllOncePlayback') :
@@ -94,7 +107,6 @@
             <span v-if="playbackMode === 'single' || playbackMode === 'loop-single'" :class="[
                 'status-indicator', playbackMode === 'loop-single' ? 'status-on' : 'status-off',]"></span>
         </div>
-
     </div>
 </template>
 
@@ -132,21 +144,15 @@ export default {
     emits: ['play'],
     data() {
         return {
-            loopEnabled: false, // The toast on the media player
             toastVisible: false,
             toastTimeout: null,
             audioMetadata: null, // Null by default, will be loaded from the audio file.
             albumArtUrl: null,
-            albumArt: null,
-            metadataId: 0,
             albumArtSize: 25, // Default size in em
             isHovering: false, // Track hover state
             // Playback settings
-            playbackMode: 'single', // 'single', 'sequential', 'shuffle', 'loop-single', 'loop-all'
             playbackMenuInitialized: false,
             lastAppliedMode: null,
-            playbackQueue: [],
-            currentQueueIndex: 0,
             isNavigating: false,
             // Plyr options
             plyrOptions: {
@@ -181,7 +187,6 @@ export default {
                 autoplay: false, // The users will manage this from their profile settings
                 clickToPlay: true,
                 resetOnEnd: true,
-                toggleInvert: false,
                 preload: 'none',
             },
         };
@@ -189,6 +194,7 @@ export default {
     watch: {
         req() {
             console.log('req changed, updating media');
+            this.cleanupAlbumArt();
             this.updateMedia();
             this.playbackMenuInitialized = false;
             this.lastAppliedMode = null;
@@ -196,57 +202,34 @@ export default {
             // Re-hook event listeners after media source changes
             // This is critical - without this, the 'ended' event won't fire for the new video!
             this.$nextTick(() => {
-                console.log('Re-hooking events after source change');
                 this.hookEvents();
-                this.setupPlaybackQueue();
+
+                // Update queue index to match current file
+                this.updateCurrentQueueIndex();
 
                 // Re-setup custom settings for the Plyr player
                 if (!this.useDefaultMediaPlayer) {
-                    console.log('Re-setting up custom playback settings after source change');
-                    // Wait for Plyr to re-initialize its UI after source change
-                    // Try multiple times with increasing delays to ensure Plyr is ready
-                    const trySetupSettings = (attempt = 0) => {
-                        const playerRef = this.getCurrentPlayer();
-                        console.log('Attempt', attempt, 'to re-setup settings, playerRef:', playerRef);
-
-                        if (playerRef && playerRef.player) {
-                            const player = playerRef.player;
-
-                            // Check if Plyr's settings are ready
-                            if (player.elements && player.elements.settings && player.elements.settings.buttons) {
-                                console.log('Plyr settings elements are ready, applying custom settings');
-                                // Call applyCustomPlaybackSettings directly (not setupCustomPlaybackSettings)
-                                // because the 'ready' event won't fire again after source change
-                                this.applyCustomPlaybackSettings(player);
-                            } else if (attempt < 5) {
-                                // Retry if settings not ready yet
-                                console.log('Plyr settings not ready yet, retrying...');
-                                setTimeout(() => trySetupSettings(attempt + 1), 200);
-                            } else {
-                                console.error('Failed to set up custom settings after', attempt, 'attempts');
-                            }
-                        } else if (attempt < 5) {
-                            // Retry if player not ready yet
-                            console.log('Player not ready yet, retrying...');
-                            setTimeout(() => trySetupSettings(attempt + 1), 200);
-                        }
-                    };
-
-                    // Start trying after a small initial delay
-                    setTimeout(() => trySetupSettings(0), 300);
+                    this.settingsSetup();
                 }
             });
         },
         playbackMode: {
             handler(newMode, oldMode) {
                 if (newMode !== oldMode) {
+                    const forceReshuffle = newMode === 'shuffle';
+                    this.setupPlaybackQueue(forceReshuffle);
                     this.$nextTick(() => {
                         this.ensurePlaybackModeApplied();
                     });
                 }
             },
             immediate: true
-        }
+        },
+        shouldTogglePlayPause(newVal, oldVal) {
+            if (newVal !== oldVal) {
+            this.togglePlayPause();
+            }
+        },
     },
     computed: {
         darkMode() {
@@ -256,29 +239,87 @@ export default {
             // Use the autoPlayEnabled prop from parent
             return this.autoPlayEnabled;
         },
+        showQueueButton() {
+            return state.req && (state.req.type?.startsWith('audio/') || state.req.type?.startsWith('video/')) && 
+            state.navigation.enabled;
+        },
+        queueCount() {
+            return state.playbackQueue?.queue?.length || 0;
+        },
+        shouldTogglePlayPause() {
+        return state.playbackQueue?.shouldTogglePlayPause || false;
+        },
+        playbackQueue() {
+            return state.playbackQueue?.queue || [];
+        },
+        currentQueueIndex() {
+            return state.playbackQueue?.currentIndex ?? -1;
+        },
+        playbackMode() {
+            return state.playbackQueue?.mode || 'single';
+        },
+        isPlaying() {
+            return state.playbackQueue?.isPlaying || false;
+        },
     },
     mounted() {
-        console.log('PlyrViewer mounted, previewType:', this.previewType);
-        console.log('Plyr options:', this.plyrOptions);
-        console.log('Use default media player:', this.useDefaultMediaPlayer);
-
         this.updateMedia();
         this.hookEvents();
+        this.$nextTick(() => {
+            this.setupPlaybackQueue();
+        });
         document.addEventListener('keydown', this.handleKeydown);
     },
     beforeUnmount() {
         if (this.toastTimeout) {
             clearTimeout(this.toastTimeout);
         }
-        if (this.albumArt) {
-            try {
-                URL.revokeObjectURL(this.albumArt);
-            } catch (e) {Error;}
-            this.albumArt = null;
+        this.cleanupAlbumArt();
+        // Clean up media players
+        if (this.$refs.videoPlayer && this.$refs.videoPlayer.player) {
+            this.$refs.videoPlayer.player.destroy();
+        }
+        if (this.$refs.audioPlayer && this.$refs.audioPlayer.player) {
+            this.$refs.audioPlayer.player.destroy();
         }
         document.removeEventListener('keydown', this.handleKeydown);
     },
     methods: {
+        settingsSetup(attempt = 0) {
+            // Wait for Plyr to re-initialize its UI after source change
+            const playerRef = this.getCurrentPlayer();
+            
+            if (playerRef?.player?.elements?.settings) {
+                console.log('Player settings ready, applying custom settings');
+                this.applyCustomPlaybackSettings(playerRef.player);
+            } else if (attempt < 3) {
+                // Try multiple times with delays to ensure Plyr is ready
+                setTimeout(() => this.settingsSetup(attempt + 1), 200);
+            }
+        },
+        showQueuePrompt() {
+            mutations.showHover({
+                name: "PlaybackQueue",
+            });
+        },
+        togglePlayPause() {
+            const player = this.getCurrentPlayer();
+            if (!player) return;
+            if (this.useDefaultMediaPlayer) {
+                if (player.paused) {
+                    player.play();
+                } else {
+                    player.pause();
+                }
+            } else {
+                const plyrInstance = player.player;
+                if (plyrInstance.playing) {
+                    plyrInstance.pause();
+                } else {
+                    plyrInstance.play();
+                }
+            }
+        },
         handlePlay() {
             this.$emit('play');
         },
@@ -309,57 +350,19 @@ export default {
                 console.error('Error ensuring playback mode applied:', error);
             }
         },
-        focusPlayer() {
-            this.$nextTick(() => {
-                if (this.useDefaultMediaPlayer) {
-                    // Focus default HTML5 players
-                    const playerElement = this.previewType === 'video'
-                        ? this.$refs.defaultVideoPlayer
-                        : this.$refs.defaultAudioPlayer;
-
-                    if (playerElement) {
-                        playerElement.focus();
-                        console.log('Focused default media player');
-                    }
-                } else {
-                    // Focus Plyr players
-                    const playerRef = this.previewType === 'video'
-                        ? this.$refs.videoPlayer
-                        : this.$refs.audioPlayer;
-
-                    if (playerRef && playerRef.player && playerRef.player.elements.container) {
-                        const container = playerRef.player.elements.container;
-                        container.focus();
-
-                        // Also try to focus the progress bar specifically
-                        const progressContainer = container.querySelector('.plyr__progress__container');
-                        if (progressContainer) {
-                            progressContainer.focus();
-                        }
-                    }
-                }
-            });
-        },
         toggleLoop() {
-            // Always use our custom loop instead of Plyr's default
-            this.loopEnabled = !this.loopEnabled;
-
-            // Update playback mode based on custom loop state
-            if (this.loopEnabled) {
-                this.playbackMode = 'loop-single';
-            } else {
-                this.playbackMode = 'single';
-            }
-
-            // Update playback queue to reflect the new mode
-            this.setupPlaybackQueue();
-            this.showToast();
-
-            // Sync the actual media element's loop state
+            const newMode = this.playbackMode === 'loop-single' ? 'single' : 'loop-single';
+            this.updatePlaybackMode(newMode);
+        },
+        updatePlaybackMode(newMode, forceReshuffle = false) {
+            mutations.setPlaybackQueue({
+                queue: this.playbackQueue,
+                currentIndex: this.currentQueueIndex,
+                mode: newMode
+            });
+            this.setupPlaybackQueue(forceReshuffle);
             this.syncMediaLoopState();
-
-            // Ensure player is focused and UI is updated
-            this.focusPlayer();
+            this.showToast();
             this.$nextTick(() => {
                 this.ensurePlaybackModeApplied();
             });
@@ -367,7 +370,6 @@ export default {
         handleKeydown(event) {
             // Handle 'P' and 'L' keys for loop and change playback
             if (event.key.toLowerCase() === 'p' || event.key.toLowerCase() === 'l') {
-                event.preventDefault();
                 event.stopPropagation();
 
                 // Use requestAnimationFrame to ensure UI updates
@@ -379,41 +381,21 @@ export default {
                     }
                 });
             }
+            // "Q" key for open the queue prompt
+            if (event.key.toLowerCase() === 'q' && 
+                state.prompts.length === 0) { // Only open if no other prompts are open
+                event.stopPropagation();
+                event.preventDefault();
+                this.showQueuePrompt();
+            }
         },
         cyclePlaybackModes() {
             // cycle order (excluding single and loop-single cuz they are handled by the "L" key)
-            const modeCycle = ['sequential', 'shuffle', 'loop-all'];
-
-            // Find current mode index in the cycle
+            const modeCycle = ['loop-all', 'shuffle', 'sequential'];
             const currentIndex = modeCycle.indexOf(this.playbackMode);
-
-            // Next mode index
-            let nextIndex;
-            if (currentIndex === -1) {
-                // If current mode is not in cycle (single or loop-single), start from beginning
-                nextIndex = 0;
-            } else {
-                nextIndex = (currentIndex + 1) % modeCycle.length;
-            }
-
-            // Set the new playback mode
-            const newMode = modeCycle[nextIndex];
-            this.playbackMode = newMode;
-
-            console.log(`Playback mode changed to: ${newMode}`);
-
-            // Update playback queue
-            this.setupPlaybackQueue();
-
-            // Sync the actual media element's loop state
-            this.syncMediaLoopState();
-
-            // Show toast
-            this.showToast();
-            this.focusPlayer();
-            this.$nextTick(() => {
-                this.ensurePlaybackModeApplied();
-            });
+            const nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % modeCycle.length;
+            const newMode = modeCycle[nextIndex];           
+            this.updatePlaybackMode(newMode, newMode === 'shuffle');
         },
         showToast() {
             if (this.toastTimeout) {
@@ -425,69 +407,34 @@ export default {
             }, 2000);
         },
         async updateMedia() {
-            // Try to autoplay media, handle browser restrictions
-            if (
-                this.autoPlayEnabled &&
-                (this.previewType === "video" || this.previewType === "audio")
-            ) {
-                this.$nextTick(() => {
-                    if (this.useDefaultMediaPlayer) {
-                        // Handle default HTML5 players
-                        let playerRef =
-                            this.previewType === "video"
-                                ? this.$refs.defaultVideoPlayer
-                                : this.$refs.defaultAudioPlayer;
-
-                        if (playerRef) {
-                            // Ensure player is not muted before attempting autoplay
-                            playerRef.muted = false;
-                            const playPromise = playerRef.play();
-                            if (playPromise !== undefined) {
-                                playPromise.catch((error) => {
-                                    console.log("autoplay failed", error);
-                                    // Don't force muted playback - let user manually start
-                                });
-                            }
-                        }
-                    } else {
-                        // Handle vue-plyr players
-                        let playerRef =
-                            this.previewType === "video"
-                                ? this.$refs.videoPlayer
-                                : this.$refs.audioPlayer;
-
-                        if (playerRef && playerRef.player) {
-                            // Ensure player is not muted before attempting autoplay
-                            playerRef.player.muted = false;
-                            const playPromise = playerRef.player.play();
-                            if (playPromise !== undefined) {
-                                playPromise.catch((error) => {
-                                    console.log("autoplay failed", error);
-                                    // Don't force muted playback - let user manually start
-                                });
-                            }
-                        }
-                    }
-                });
-            }
-            if (this.albumArt) {
-                try {
-                    URL.revokeObjectURL(this.albumArt);
-                } catch (e) {Error;}
-                this.albumArt = null;
-            }
-            this.albumArtUrl = null;
+            this.cleanupAlbumArt();
             this.audioMetadata = null;
-            this.metadataId = (this.metadataId || 0) + 1;
-
+            
+            await this.handleAutoPlay();
+            
             if (this.previewType === "audio") {
                 this.loadAudioMetadata();
             }
-            this.$nextTick(() => {
-                setTimeout(() => {
-                    this.focusPlayer();
-                }, 300);
-            });
+        },
+        async handleAutoPlay() {
+            if (!this.autoPlayEnabled || !this.shouldAutoPlay) return;
+
+            try {
+                const player = this.getCurrentPlayer();
+                if (!player) return;
+
+                if (this.useDefaultMediaPlayer) {
+                    // Ensure player is not muted before attempting autoplay
+                    player.muted = false;
+                    await player.play();
+                } else if (player.player) {
+                    player.player.muted = false;
+                    await player.player.play();
+                }
+            } catch (error) {
+                console.log("Autoplay failed", error);
+                // Don't force muted playback - let user manually start
+            }
         },
         // Album art hover and scroll handlers
         onAlbumArtHover() {
@@ -511,16 +458,13 @@ export default {
         async loadAudioMetadata() {
             if (this.previewType !== "audio") {
                 this.audioMetadata = null;
-                this.albumArtUrl = null;
+                this.cleanupAlbumArt();
                 return;
             }
 
             try {
                 // Clean up previous album art
-                if (this.albumArt) {
-                    URL.revokeObjectURL(this.albumArt);
-                    this.albumArt = null;
-                }
+                this.cleanupAlbumArt();
 
                 // Check if metadata is already provided by the backend
                 if (this.req.audioMeta) {
@@ -546,102 +490,78 @@ export default {
                             this.albumArtUrl = this.albumArt;
                         } catch (error) {
                             console.error("Failed to decode album art:", error);
-                            this.albumArtUrl = null;
+                            this.cleanupAlbumArt();
                         }
                     } else {
-                        this.albumArtUrl = null;
+                        this.cleanupAlbumArt();
                     }
                 } else {
                     this.audioMetadata = null;
-                    this.albumArtUrl = null;
+                    this.cleanupAlbumArt();
                 }
             } catch (error) {
                 this.audioMetadata = null;
-                this.albumArtUrl = null;
+                this.cleanupAlbumArt();
             }
         },
+
+        cleanupAlbumArt() {
+            const cleanupUrl = (url) => {
+                if (url && url.startsWith('blob:')) {
+                    try {
+                        URL.revokeObjectURL(url);
+                        console.log('Cleaned up album art object URL');
+                    } catch (e) {
+                        console.warn('Error revoking album art URL:', e);
+                    }
+                }
+            };
+            cleanupUrl(this.albumArtUrl);
+            cleanupUrl(this.albumArt);
+            this.albumArtUrl = null;
+            this.albumArt = null;
+        },
+        
         hookEvents() {
-            if (!this.useDefaultMediaPlayer && this.$refs.videoPlayer && this.$refs.videoPlayer.player) {
-                const player = this.$refs.videoPlayer.player;
+            const player = this.getCurrentPlayer();
+            if (!player) return;
 
-                // Debug: Log player settings
-                console.log('Plyr player initialized:', player);
-                console.log('Plyr settings:', player.settings);
-                console.log('Plyr controls:', player.config.controls);
-                console.log('Plyr settings array:', player.config.settings);
+            if (this.useDefaultMediaPlayer) {
+                // HTML5 Player
+                this.setupDefaultPlayerEvents(player);
+            } else if (player.player) {
+                // Plyr Player
+                this.setupPlyrEvents(player.player, this.previewType);
+            }
+        },
+        setupPlyrEvents(player, playerType) {
+            if (!player) return;
 
-                // Attach handlers only if the screen.orientation API is available.
+            player.on('ended', this.handleMediaEnd);
+            player.on('play', () => {
+                mutations.setPlaybackState(true);
+            });
+            player.on('pause', () => {
+                mutations.setPlaybackState(false);
+            });
+            if (playerType === 'video') {
                 if (screen.orientation) {
                     player.on('enterfullscreen', this.onFullscreenEnter);
                     player.on('exitfullscreen', this.onFullscreenExit);
                 }
-
-                // Add media end event
-                player.on('ended', this.handleMediaEnd);
-
-                // Set up custom playback settings
-                this.setupCustomPlaybackSettings(player);
-                player.on('controlsshown', () => {
-                    this.$nextTick(() => {
-                        this.ensurePlaybackModeApplied();
-                    });
-                });
-                player.on('play', () => {
-                    this.focusPlayer();
-                });
-
-                player.on('ready', () => {
-                    console.log('Video player ready, focusing');
-                    this.focusPlayer();
-                });
             }
-
-            // Also debug audio player
-            if (!this.useDefaultMediaPlayer && this.$refs.audioPlayer && this.$refs.audioPlayer.player) {
-                const player = this.$refs.audioPlayer.player;
-                console.log('Plyr audio player initialized:', player);
-                console.log('Plyr audio settings:', player.settings);
-                console.log('Plyr audio controls:', player.config.controls);
-                console.log('Plyr audio settings array:', player.config.settings);
-
-                // Add media end event
-                player.on('ended', this.handleMediaEnd);
-
-                // Set up custom playback settings
-                this.setupCustomPlaybackSettings(player);
-                player.on('controlsshown', () => {
-                    this.$nextTick(() => {
-                        this.ensurePlaybackModeApplied();
-                    });
-                });
-                player.on('play', () => {
-                    this.focusPlayer();
-                });
-
-                player.on('ready', () => {
-                    console.log('Audio player ready, focusing');
-                    this.focusPlayer();
-                });
-            }
-
-            // Handle default HTML5 players
-            if (this.useDefaultMediaPlayer) {
-                const videoElement = this.$refs.defaultVideoPlayer;
-                const audioElement = this.$refs.defaultAudioPlayer;
-
-                if (videoElement) {
-                    videoElement.addEventListener('ended', this.handleMediaEnd);
-                    videoElement.addEventListener('play', () => {
-                        this.focusPlayer();
-                    });
-                }
-                if (audioElement) {
-                    audioElement.addEventListener('ended', this.handleMediaEnd);
-                    audioElement.addEventListener('play', () => {
-                        this.focusPlayer();
-                    });
-                }
-            }
+            this.setupCustomPlaybackSettings(player);
+        },
+        setupDefaultPlayerEvents(element) {
+            if (!element) return;
+            
+            element.addEventListener('ended', this.handleMediaEnd);
+            element.addEventListener('play', () => {
+                mutations.setPlaybackState(true);
+            });
+            element.addEventListener('pause', () => {
+                mutations.setPlaybackState(false);
+            });
         },
         async onFullscreenEnter() {
             // Allow free rotation when video enters full screen mode. This works even if the device's orientation is currently locked.
@@ -658,13 +578,12 @@ export default {
             screen.orientation.unlock();
         },
         // Playback methods
-        async setupPlaybackQueue() {
+        async setupPlaybackQueue(forceReshuffle = false) {
             console.log('Setting up playback queue on mode:', this.playbackMode);
             console.log('Current req path:', this.req.path);
 
             // Get the current directory listing from the navigation state
             const listing = state.navigation?.listing || [];
-            console.log('Current listing count:', listing.length);
 
             // Filter only audio/video files
             const mediaFiles = listing.filter(item => {
@@ -677,65 +596,78 @@ export default {
 
             if (mediaFiles.length === 0) {
                 console.log('No media files found in current directory');
-                this.playbackQueue = [];
-                this.currentQueueIndex = -1;
+                mutations.setPlaybackQueue({
+                queue: [],
+                currentIndex: -1,
+                mode: this.playbackMode
+                });
                 return;
             }
 
-            // Sort the media alphabetically by name
-            const sortedFiles = [...mediaFiles].sort((a, b) => a.name.localeCompare(b.name));
-
             // Find current file index of the file opened
-            const currentIndex = sortedFiles.findIndex(item => item.path === this.req.path);
+            const currentIndex = mediaFiles.findIndex(item => item.path === this.req.path);
             console.log('Current file index in media files:', currentIndex);
+
+            let finalQueue = [];
+            let finalIndex = 0;
 
             switch (this.playbackMode) {
                 case 'single':
                 case 'loop-single':
                     // When playing the same file (single modes), the queue only contains only the current file
-                    this.playbackQueue = currentIndex !== -1 ? [sortedFiles[currentIndex]] : [];
-                    this.currentQueueIndex = 0;
+                    finalQueue = currentIndex !== -1 ? [mediaFiles[currentIndex]] : [];
+                    finalIndex = 0;
                     break;
 
                 case 'sequential':
-                case 'loop-all':
-                    // For sequential and loop-all, we'll use alphabetical order starting from current file
+                case 'loop-all': {
+                    // For sequential and loop-all, we'll use alphabetical order without rearranging
+                    // On sequential mode will start playing from the file opened and find its place on the queue by the current index (you can see this on UI queue)
+                    // Loop-all will do the same, but if the queue ends, will restart from the first file of the current folder (alphabetically) 
+                    const sortedFiles = [...mediaFiles].sort((a, b) => a.name.localeCompare(b.name));
+                    finalQueue = sortedFiles;
+                    
+                    // Find the current file position in the queue
                     if (currentIndex !== -1) {
-                        // Create queue starting from current file, then wrap around
-                        this.playbackQueue = [
-                            ...sortedFiles.slice(currentIndex),
-                            ...sortedFiles.slice(0, currentIndex)
-                        ];
-                        this.currentQueueIndex = 0;
+                        const currentFile = mediaFiles[currentIndex];
+                        finalIndex = sortedFiles.findIndex(item => item.path === currentFile.path);
+
                     } else {
-                        this.playbackQueue = sortedFiles;
-                        this.currentQueueIndex = 0;
+                        finalIndex = 0;
                     }
                     break;
+                }
 
-                case 'shuffle':
-                    // For shuffle, include all files but ensure current file is first on the queue
+                case 'shuffle': {
+                    // For shuffle, include all files on random order and only reshuffle if forced (by cycling modes again)
+                    // This is for preserve the current queue and don't lose it when is changed to the next file
+                    if (forceReshuffle || this.playbackQueue.length === 0) {
+                        const shuffledFiles = this.shuffleArray([...mediaFiles]);
+                        finalQueue = shuffledFiles;
+                        } else {
+                            // Use the existing queue when not forcing reshuffle
+                            finalQueue = this.playbackQueue;
+                        } 
+                    
+                    // Find the current file position in the queue
                     if (currentIndex !== -1) {
-                        const currentFile = sortedFiles[currentIndex];
-                        const otherFiles = sortedFiles.filter((_, index) => index !== currentIndex);
-
-                        // Shuffle other files
-                        const shuffledOthers = this.shuffleArray([...otherFiles]);
-                        this.playbackQueue = [currentFile, ...shuffledOthers];
-                        this.currentQueueIndex = 0;
+                        const currentFile = mediaFiles[currentIndex];
+                        finalIndex = finalQueue.findIndex(item => item.path === currentFile.path);
                     } else {
-                        this.playbackQueue = this.shuffleArray([...sortedFiles]);
-                        this.currentQueueIndex = 0;
+                        finalIndex = 0;
                     }
                     break;
+                }
             }
 
-            console.log('Final playback queue length:', this.playbackQueue.length);
-            console.log('Current queue index:', this.currentQueueIndex);
+            console.log('Playback queue length:', finalQueue.length);
+            console.log('Current place on the queue:', finalIndex);
 
-            // Log the paths for debugging
-            this.playbackQueue.forEach((item, index) => {
-                console.log(`Queue[${index}]:`, item.name, item.path);
+            // After the queue is set up, update the store
+            mutations.setPlaybackQueue({
+                queue: finalQueue,
+                currentIndex: finalIndex,
+                mode: this.playbackMode
             });
         },
         shuffleArray(array) {
@@ -746,9 +678,25 @@ export default {
             }
             return shuffled;
         },
-        async playNext() {
-            console.log('Playing next, mode:', this.playbackMode, 'queue length:', this.playbackQueue.length, 'current index:', this.currentQueueIndex);
+        updateCurrentQueueIndex() {
+            if (this.playbackQueue.length === 0) {
+                this.setupPlaybackQueue();
+                return;
+            }
 
+            // Find current file in the existing queue
+            const currentIndex = this.playbackQueue.findIndex(item => item.path === this.req.path);
+            if (currentIndex !== -1) {
+                mutations.setPlaybackQueue({
+                queue: this.playbackQueue,
+                currentIndex: currentIndex,
+                mode: this.playbackMode
+                });
+            } else {
+                this.setupPlaybackQueue(true);
+            }
+        },
+        async playNext() {
             if (this.isNavigating || this.playbackQueue.length === 0) {
                 console.log('Cannot play next: navigating or empty queue');
                 return;
@@ -761,12 +709,19 @@ export default {
 
             // Handle end of queue based on mode
             if (nextIndex >= this.playbackQueue.length) {
-                if (this.playbackMode === 'loop-all') {
-                    // Loop back to beginning for continuous playback
-                    console.log('Reached end of queue, looping back to start of the queue');
-                    nextIndex = 0;
+                if (this.playbackMode === 'loop-all' || this.playbackMode === 'shuffle') {
+                    // For shuffle mode, reshuffle the entire queue when we reach the end
+                    if (this.playbackMode === 'shuffle') {
+                        // Reshuffle the entire directory listing again
+                        await this.setupPlaybackQueue(true); // Force reshuffle
+                        nextIndex = 0;
+                    } else {
+                        // Loop back to beginning for loop-all mode
+                        console.log('Reached end of queue, looping back to start');
+                        nextIndex = 0;
+                    }
                 } else {
-                    // Stop at end for sequential and shuffle modes
+                    // Stop at end for sequential mode
                     console.log('Reached end of queue, stopping playback');
                     this.isNavigating = false;
                     return;
@@ -778,10 +733,17 @@ export default {
 
             try {
                 // Update current index
-                this.currentQueueIndex = nextIndex;
+                mutations.setPlaybackQueue({
+                queue: this.playbackQueue,
+                currentIndex: nextIndex,
+                mode: this.playbackMode
+                });
 
                 // Build the proper URL for browser history
                 const nextItemUrl = url.buildItemUrl(nextItem.source || this.req.source, nextItem.path);
+
+                // Store the expected path before making changes
+                const expectedPath = nextItem.path; 
 
                 // Update state.req with the next item's data FIRST
                 // This will trigger the watcher on req prop and update the media source
@@ -796,27 +758,24 @@ export default {
                     }
                 });
 
-                // Wait for the media to load and then play
-                this.$nextTick(() => {
-                    setTimeout(() => {
-                        const player = this.getCurrentPlayer();
-                        if (player) {
-                            let playPromise;
-                            if (this.useDefaultMediaPlayer) {
-                                playPromise = player.play();
-                            } else if (player.player) {
-                                playPromise = player.player.play();
-                            }
+                // Wait for state.req to be updated
+                await this.waitForReqUpdate(expectedPath); 
 
-                            if (playPromise !== undefined) {
-                                playPromise.catch((error) => {
-                                    console.log("Auto-play prevented:", error);
-                                });
-                            }
-                        }
-                        this.isNavigating = false;
-                    }, 300); // Small delay for media to load
-                });
+                const player = this.getCurrentPlayer();
+                if (player) {
+                    let playPromise;
+                    if (this.useDefaultMediaPlayer) {
+                        playPromise = player.play();
+                    } else if (player.player) {
+                        playPromise = player.player.play();
+                    }
+                    
+                    if (playPromise !== undefined) {
+                        playPromise.catch((error) => {
+                            console.log("Auto-play prevented:", error);
+                        });
+                    }
+                }
 
                 // Reset navigation flag
                 this.isNavigating = false;
@@ -825,54 +784,24 @@ export default {
                 this.isNavigating = false;
             }
         },
-        playPrevious() {
-            if (this.isNavigating || this.playbackQueue.length === 0) return;
 
-            this.isNavigating = true;
-
-            let prevIndex = this.currentQueueIndex - 1;
-
-            // Handle start of queue
-            if (prevIndex < 0) {
-                if (this.playbackMode === 'loop-all') {
-                    prevIndex = this.playbackQueue.length - 1;
-                } else {
-                    this.isNavigating = false;
+        waitForReqUpdate(expectedPath) {
+            return new Promise((resolve) => {
+                if (state.req.path === expectedPath) {
+                    resolve();
                     return;
                 }
-            }
 
-            const prevItem = this.playbackQueue[prevIndex];
-            this.currentQueueIndex = prevIndex;
-
-            const prevItemUrl = url.buildItemUrl(prevItem.source || this.req.source, prevItem.path);
-            mutations.replaceRequest(prevItem);
-
-            this.$router.replace({ path: prevItemUrl }).catch(err => {
-                if (err.name !== 'NavigationDuplicated') {
-                    console.error('Router navigation error:', err);
-                }
-            });
-
-            this.$nextTick(() => {
-                setTimeout(() => {
-                    const player = this.getCurrentPlayer();
-                    if (player) {
-                        let playPromise;
-                        if (this.useDefaultMediaPlayer) {
-                            playPromise = player.play();
-                        } else if (player.player) {
-                            playPromise = player.player.play();
+                const unwatch = this.$watch(
+                    () => state.req.path,
+                    (newPath) => {
+                        if (newPath === expectedPath) {
+                            unwatch();
+                            resolve();
                         }
-
-                        if (playPromise !== undefined) {
-                            playPromise.catch((error) => {
-                                console.log("Auto-play prevented:", error);
-                            });
-                        }
-                    }
-                    this.isNavigating = false;
-                }, 300); // Small delay for media to load
+                    },
+                    { immediate: false }
+                );
             });
         },
 
@@ -906,25 +835,18 @@ export default {
             }
         },
         handleMediaEnd() {
-            console.log('Media ended on playback mode:');
-
-            switch (this.playbackMode) {
-                case 'single':
-                    // Stop playback - do nothing
-                    console.log('Play Once - stopping playback');
-                    break;
-
-                case 'loop-single':
-                    console.log('Loop Current - restarting current file');
-                    this.restartCurrentFile();
-                    break;
-
-                case 'sequential':
-                case 'shuffle':
-                case 'loop-all':
-                    console.log('Moving to next file in queue');
-                    this.playNext();
-                    break;
+            const modeActions = {
+                'single': () => {}, // Do nothing
+                'loop-single': () => this.restartCurrentFile(),
+                'sequential': () => this.playNext(),
+                'shuffle': () => this.playNext(),
+                'loop-all': () => this.playNext()
+            };
+            
+            const action = modeActions[this.playbackMode];
+            if (action) {
+                console.log(`Media ended - ${this.playbackMode} mode`);
+                action();
             }
         },
         applyCustomPlaybackSettings(player) {
@@ -968,7 +890,6 @@ export default {
                     const menu = playbackPanel.querySelector('div[role="menu"]');
 
                     if (!this.playbackMenuInitialized || modeChanged) {
-                        console.log('Creating/recreating playback menu buttons with mode:', this.playbackMode);
 
                         // Create the menu options
                         menu.innerHTML = `
@@ -1000,21 +921,27 @@ export default {
                                 buttons.forEach(btn => btn.setAttribute('aria-checked', 'false'));
                                 event.currentTarget.setAttribute('aria-checked', 'true');
 
-                                // Update our state
-                                this.playbackMode = value;
-
                                 // Update button text
-                                const currentMode = modeLabels[this.playbackMode] || 'Play Once';
+                                const currentMode = modeLabels[value] || 'Play Once';
                                 playbackBtn.querySelector('span').innerHTML = `Playback: <span class="plyr__menu__value">${currentMode}</span>`;
 
-                                // Set up playback queue
-                                this.setupPlaybackQueue();
+                                // Update the global state with the new mode
+                                mutations.setPlaybackQueue({
+                                    queue: this.playbackQueue,
+                                    currentIndex: this.currentQueueIndex,
+                                    mode: value
+                                });
+
+                                // Set up playback queue (this will trigger via the watcher)
+                                const forceReshuffle = value === 'shuffle';
+                                this.setupPlaybackQueue(forceReshuffle);
+
+                                // Sync media loop state
+                                this.syncMediaLoopState();
 
                                 // Show toast
                                 this.showToast();
 
-                                // Ensure player stays focused and UI is updated
-                                this.focusPlayer();
                             });
                         });
 
@@ -1072,25 +999,11 @@ export default {
             console.log('Loop state:', shouldLoop ? 'ON' : 'OFF');
         },
     },
-    expose: ['toggleLoop'],
 };
 </script>
 
 <style >
 @import url("plyr/dist/plyr.css");
-
-.clickable:hover,
-.plyr .plyr__control:hover,
-button:hover,
-.action:hover,
-.listing-item.drag-hover {
-    box-shadow:
-        inset 0 -3em 3em rgba(217, 217, 217, 0.211),
-        0 0 0 2px var(--alt-background) !important;
-    /* Adjust shadow values as needed */
-    transform: scale(1.02);
-    /* Slightly enlarges the element */
-}
 
 .plyr-background {
     background: radial-gradient(#3b3b3b, black);
@@ -1126,6 +1039,7 @@ button:hover,
     border-radius: 12px;
     overflow: visible;
     background-color: rgb(216 216 216);
+
 }
 
 .plyr__controls {
@@ -1149,7 +1063,6 @@ button:hover,
     flex-direction: row;
     gap: 8px;
     background-color: transparent;
-    color: white;
 }
 
 .audio-controls-container.dark-mode .plyr .plyr__controls {
@@ -1224,14 +1137,13 @@ button:hover,
 *** VIDEO ***
 ************/
 
-/* Video settings (like rounded corners to the video itself) */
-.plyr video {
-    border-radius: 12px;
+/* Video container size */
+.video-player-container {
     width: 100%;
     height: 100%;
 }
 
-/* Video container size */
+/* Video size in the container */
 .plyr.plyr--video {
     width: 100%;
     height: 100%;
@@ -1427,7 +1339,7 @@ button:hover,
 }
 
 /* For small screens in landscape orientation (Like a phone) */
-@media (max-height: 500px) and (orientation: landscape) {
+@media (max-height: 600px) and (orientation: landscape) {
 
     .audio-player-container {
         justify-content: center;
@@ -1475,6 +1387,66 @@ button:hover,
     }
 }
 
+/*******************
+*** QUEUE BUTTON ***
+*******************/
+
+.queue-button {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    border: none;
+    border-radius: 50%;
+    background: var(--background);
+    color: var(--textPrimary);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    outline: none;
+    z-index: 9998; /* Make sure it's below prompts but above other content */
+}
+
+.queue-button.dark-mode {
+    background: var(--surfacePrimary);
+}
+
+.queue-button:hover {
+    background: var(--primaryColor);
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 8px 25px rgba(var(--primaryColor-rgb), 0.3), 0 4px 12px rgba(0, 0, 0, 0.2);
+    color: white;
+}
+
+.queue-button i.material-icons {
+    font-size: 24px;
+    transition: transform 0.2s ease;
+}
+
+.queue-button:hover i.material-icons {
+    transform: scale(1.1);
+}
+
+.queue-count {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: var(--accentColor);
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
 /*****************
 *** LOOP TOAST ***
 *****************/
@@ -1504,17 +1476,14 @@ button:hover,
     opacity: 1;
 }
 
-.loop-icon {
+.loop-toast .material-icons {
+    font-size: 24px;
+    color: white;
     width: 24px;
     height: 24px;
-    fill: white;
-}
-
-.shuffle-icon,
-.sequential-icon {
-    width: 24px;
-    height: 24px;
-    fill: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .status-indicator {

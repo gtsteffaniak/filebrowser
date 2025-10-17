@@ -3,9 +3,6 @@ package share
 import "sync"
 
 type CommonShare struct {
-	//AllowEdit           bool   `json:"allowEdit,omitempty"`
-	AllowUpload              bool     `json:"allowUpload,omitempty"`
-	DisableFileViewer        bool     `json:"disableFileViewer,omitempty"`
 	DownloadsLimit           int      `json:"downloadsLimit,omitempty"`
 	ShareTheme               string   `json:"shareTheme,omitempty"`
 	DisableAnonymous         bool     `json:"disableAnonymous,omitempty"`
@@ -32,6 +29,12 @@ type CommonShare struct {
 	ShareType                string   `json:"shareType"` // type of share: normal, upload, max
 	PerUserDownloadLimit     bool     `json:"perUserDownloadLimit,omitempty"`
 	ExtractEmbeddedSubtitles bool     `json:"extractEmbeddedSubtitles,omitempty"` // can be io intensive for large files and take 10-30 seconds.
+	AllowDelete              bool     `json:"allowDelete,omitempty"`
+	AllowCreate              bool     `json:"allowCreate,omitempty"`       // allow creating files
+	AllowModify              bool     `json:"allowModify,omitempty"`       // allow modifying files
+	DisableFileViewer        bool     `json:"disableFileViewer,omitempty"` // don't allow viewing files
+	DisableDownload          bool     `json:"disableDownload,omitempty"`   // don't allow downloading files
+	AllowReplacements        bool     `json:"allowReplacements,omitempty"` // allow replacements of files
 }
 type CreateBody struct {
 	CommonShare
@@ -44,15 +47,17 @@ type CreateBody struct {
 // Link is the information needed to build a shareable link.
 type Link struct {
 	CommonShare
-	Mu            sync.Mutex     `json:"-"`
-	Downloads     int            `json:"downloads"`
-	UserDownloads map[string]int `json:"-"` // Track downloads per username (not persisted)
-	Hash          string         `json:"hash" storm:"id,index"`
-	UserID        uint           `json:"userID"`
-	Expire        int64          `json:"expire"`
-	PasswordHash  string         `json:"password_hash,omitempty"`
+	Downloads    int    `json:"downloads"`
+	Hash         string `json:"hash" storm:"id,index"`
+	UserID       uint   `json:"userID"`
+	Expire       int64  `json:"expire"`
+	PasswordHash string `json:"password_hash,omitempty"`
 	// Token is a random value that will only be set when PasswordHash is set. It is
 	// URL-Safe and is used to download links in password-protected shares via a
 	// query arg.
 	Token string `json:"token,omitempty"`
+
+	Mu            sync.Mutex     `json:"-"`
+	UserDownloads map[string]int `json:"-"` // Track downloads per username (not persisted)
+
 }

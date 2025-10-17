@@ -59,7 +59,7 @@ export default {
     async createFile(overwrite = false) {
       try {
         await filesApi.post(state.req.source, url.joinPath(state.req.path, this.name), "", overwrite);
-        url.goToItem(state.req.source, url.joinPath(state.req.path, this.name));
+        url.goToItem(state.req.source, url.joinPath(state.req.path, this.name), {});
         mutations.closeHovers();
       } catch (error) {
         if (error.message === "conflict") {
@@ -80,7 +80,7 @@ export default {
                     try {
                       const newName = counter === 1 ? `${originalName} (1)` : `${originalName} (${counter})`;
                       await filesApi.post(state.req.source, url.joinPath(state.req.path, newName), "", false);
-                      url.goToItem(state.req.source, url.joinPath(state.req.path, newName));
+                      url.goToItem(state.req.source, url.joinPath(state.req.path, newName), {});
                       mutations.closeHovers();
                       success = true;
                     } catch (renameError) {

@@ -57,7 +57,11 @@
     "galleryView": "Galerie-Ansicht",
     "uploadFiles": "Dateien hochladen",
     "uploadFolder": "Upload-Ordner",
-    "openUploadViewer": "Upload-Manager öffnen"
+    "openUploadViewer": "Upload-Manager öffnen",
+    "selectAll": "Alle auswählen",
+    "discardAndExit": "Verwerfen und Beenden",
+    "saveAndExit": "Speichern und Beenden",
+    "keepEditing": "Weiter bearbeiten"
   },
   "download": {
     "downloadFile": "Datei herunterladen",
@@ -69,7 +73,7 @@
     "internal": "Etwas ist schief gelaufen.",
     "notFound": "Dieser Ort kann nicht angezeigt werden.",
     "connection": "Der Server ist nicht erreichbar.",
-    "shareNotFound": "Ungültige oder abgelaufene Aktie."
+    "shareNotFound": "Ungültige oder abgelaufene Freigabe."
   },
   "files": {
     "body": "Body",
@@ -86,13 +90,19 @@
     "sortByLastModified": "Nach Änderungsdatum sortieren",
     "sortByName": "Nach Namen sortieren",
     "sortBySize": "Nach Größe sortieren",
-    "noPreview": "Für diese Datei ist keine Vorschau verfügbar."
+    "noPreview": "Für diese Datei ist keine Vorschau verfügbar.",
+    "noDownloadAccess": "Der Download ist nicht verfügbar."
   },
   "help": {
     "click": "Wähle Datei oder Ordner",
     "ctrl": {
       "click": "Markiere mehrere Dateien oder Ordner",
-      "d": "ausgewählte Artikel herunterladen"
+      "d": "ausgewählte Artikel herunterladen",
+      "b": "Seitenleiste umklappen",
+      "comma": "zu den Einstellungen gehen",
+      "c": "ausgewählte Elemente kopieren",
+      "v": "Kopierte/ausgeschnittene Elemente einfügen",
+      "x": "ausgewählte Artikel ausschneiden"
     },
     "del": "Löscht die ausgewählten Elemente",
     "esc": "Auswahl zurücksetzen und/oder Dialog schließen",
@@ -100,7 +110,8 @@
     "help": "Hilfe",
     "f1": "Hilfeprompt anzeigen",
     "description": "Nachstehend finden Sie die grundlegenden Navigationsoptionen. Für zusätzliche Informationen besuchen Sie bitte",
-    "wiki": "FileBrowser Quantum Wiki"
+    "slash": "Suche aktivieren",
+    "wiki": "FileBrowser Quantum Offizielle Dokumente"
   },
   "languages": {
     "he": "עברית",
@@ -202,7 +213,14 @@
     "copySuccess": "Dateien erfolgreich kopiert!",
     "lastModified": "Zuletzt modifiziert{suffix}",
     "size": "Größe{suffix}",
-    "operationInProgress": "Operation im Gange, bitte warten..."
+    "operationInProgress": "Operation im Gange, bitte warten...",
+    "saveBeforeExit": "Nicht gespeicherte Änderungen",
+    "saveBeforeExitMessage": "Sie haben ungespeicherte Änderungen im Editor. Was würden Sie gerne tun?",
+    "copyPasteConfirm": "Kopieren/Einfügen-Bestätigung",
+    "copyItemQuestion": "Dieses Element an den neuen Ort kopieren?",
+    "moveItemQuestion": "Diesen Artikel an den neuen Ort verschieben?",
+    "sourcePath": "Quelle:",
+    "destinationPath": "Zielort:"
   },
   "search": {
     "images": "Bilder",
@@ -275,7 +293,10 @@
       "share": "Datei teilen",
       "admin": "Verwalter",
       "api": "Erstellen und Verwalten von API-Schlüsseln mit langer Lebensdauer",
-      "realtime": "Verbindungen und Aktualisierungen in Echtzeit ermöglichen"
+      "realtime": "Verbindungen und Aktualisierungen in Echtzeit ermöglichen",
+      "create": "Dateien erstellen",
+      "delete": "Dateien löschen",
+      "download": "Dateien herunterladen"
     },
     "permissions-name": "Berechtigungen",
     "permissionsHelp": "Sie können einem Benutzer Administratorrechte einräumen oder die Berechtigunen individuell festlegen.  Wenn Sie \"Administrator\" auswählen, werden alle anderen Rechte automatisch vergeben. Die Nutzerverwaltung kann nur durch einen Administrator erfolgen.\n",
@@ -388,7 +409,7 @@
     "shareDurationDescription": "Dauer, bevor die Freigabe abläuft. Für eine dauerhafte Freigabe leer lassen.",
     "passwordDescription": "Optionales Kennwort, das für den Zugriff auf diese Freigabe erforderlich ist, einschließlich authentifizierter Benutzer.",
     "allowedUsernamesListDescription": "Durch Kommata getrennte Benutzernamen, die auf die Freigabe zugreifen können (wenn aktiviert).",
-    "shareThemeColorDescription": "CSS-Farbwert, der auf das Thema der Aktie angewendet wird (z. B. rot, #0ea5e9, rgb(14,165,233)).",
+    "shareThemeColorDescription": "CSS-Farbwert, der auf das Thema der Freigabe angewendet wird (z. B. rot, #0ea5e9, rgb(14,165,233)).",
     "shareTitleDescription": "Benutzerdefinierter Seitentitel, der auf der Freigabeseite angezeigt wird.",
     "shareDescriptionHelp": "Kurze Beschreibung, die auf der Freigabeseite angezeigt wird (kann in Meta-Tags verwendet werden).",
     "shareLogoDescription": "Logo-Bild-URL oder -Pfad, auf den der Client zugreifen kann - es wird entweder ein absoluter oder ein Indexpfad akzeptiert: z. B. \"https://domain.com/logo.png\" oder \"/pfad/zu/logo.png\".",
@@ -397,7 +418,7 @@
     "hideNavButtons": "Navigationsschaltflächen ausblenden",
     "hideNavButtonsDescription": "Blenden Sie die Navigationsschaltflächen auf der Navigationsleiste in der Freigabe aus, um ein minimalistisches Aussehen zu erzielen.",
     "viewModeDescription": "Standardlayout für die gemeinsame Seite.",
-    "descriptionDefault": "Sie haben eine Aktie zur Ansicht oder zum Download erhalten.",
+    "descriptionDefault": "Sie haben eine Freigabe zur Ansicht oder zum Download erhalten.",
     "disableShareCard": "Freigabekarte deaktivieren",
     "disableShareCardDescription": "Deaktivieren Sie die Freigabekarte auf der freigegebenen Seite in der Seitenleiste oder oben auf der Seite auf dem Handy.",
     "disableSidebar": "Seitenleiste deaktivieren",
@@ -415,7 +436,7 @@
     "defaultViewMode": "Standard-Ansichtsmodus",
     "defaultViewModeDescription": "Legen Sie den Standardanzeigemodus für anonyme Benutzer fest, die diese Freigabe anzeigen. Angemeldete Benutzer können ihre Ansichtseinstellungen immer noch ändern.",
     "disableFileViewer": "Dateibetrachter deaktivieren",
-    "shareType": "Typ der Aktie",
+    "shareType": "Typ der Freigabe",
     "shareTypeDescription": "Der Typ der zu erstellenden Freigabe. Normale Freigaben ermöglichen das Anzeigen und Herunterladen von Dateien. Upload-Freigaben ermöglichen das Hochladen von Dateien in die Freigabe.",
     "normalShare": "Normal",
     "uploadShare": "Nur hochladen",
@@ -423,7 +444,17 @@
     "perUserDownloadLimitDescription": "Wenn diese Option aktiviert ist, wird das Download-Limit auf jeden Benutzer angewendet. Anonyme Benutzer können keine Dateien von dieser Freigabe herunterladen.",
     "descriptionUploadDefault": "Sie haben eine Freigabe zum Hochladen von Dateien erhalten.",
     "extractEmbeddedSubtitles": "Eingebettete Untertitel extrahieren",
-    "extractEmbeddedSubtitlesDescription": "Extrahieren von eingebetteten Untertiteln aus Mediendateien beim Laden - dies kann bei großen Dateien langsam sein."
+    "extractEmbeddedSubtitlesDescription": "Extrahieren von eingebetteten Untertiteln aus Mediendateien beim Laden - dies kann bei großen Dateien langsam sein.",
+    "disableDownload": "Herunterladen von Dateien deaktivieren",
+    "disableDownloadDescription": "Niemand wird in der Lage sein, Dateien herunterzuladen oder den Inhalt einer Datei einzusehen.",
+    "allowModify": "Bearbeitung von Dateien zulassen",
+    "allowModifyDescription": "Jeder kann Dateien in dieser Freigabe bearbeiten.",
+    "allowDelete": "Löschen von Dateien zulassen",
+    "allowDeleteDescription": "Jeder kann Dateien und Ordner von dieser Freigabe löschen.",
+    "allowReplacements": "Ersetzen von Dateien zulassen",
+    "allowReplacementsDescription": "Jeder kann beim Hochladen von Dateien mit demselben Namen bestehende Dateien ersetzen.",
+    "allowCreate": "Ermöglicht das Erstellen und Hochladen von Dateien und Ordnern",
+    "allowCreateDescription": "Jeder kann neue Dateien und Ordner in dieser Freigabe erstellen und hochladen."
   },
   "api": {
     "title": "API-Schlüssel:",
@@ -594,15 +625,19 @@
     "uninitialized": "Der Editor konnte nicht initialisiert werden. Bitte neu laden.",
     "saveFailed": "Datei konnte nicht gespeichert werden. Bitte versuchen Sie es erneut.",
     "saveAborted": "Speichern abgebrochen. Der Dateiname stimmt nicht mit der aktiven Datei überein.",
-    "saveDisabled": "Das Speichern von gemeinsam genutzten Dateien wird nicht unterstützt.",
     "saveAbortedMessage": "Der Speichervorgang wurde abgebrochen. Die aktive Datei der Anwendung ({activeFile}) stimmt nicht mit der Datei überein, die Sie zu speichern versuchen ({tryingToSave}).",
     "syncFailed": "Nach 5 Versuchen ist es nicht gelungen, den Status mit der Route für \"{filename}\" zu synchronisieren. Abbruch der Editor-Einrichtung, um Datenbeschädigung zu vermeiden."
   },
   "player": {
-    "LoopEnabled": "Schleife aktiviert",
-    "LoopDisabled": "Schleife deaktiviert",
-    "PlayAllOncePlayback": "Alle auf einmal abspielen",
-    "ShuffleAllPlayback": "Alle mischen",
-    "PlayAllLoopedPlayback": "Alle in Schleife abspielen"
+    "LoopEnabled": "Wiederholung aktiviert",
+    "LoopDisabled": "Wiederholung deaktiviert",
+    "PlayAllOncePlayback": "Alle einmal abspielen",
+    "ShuffleAllPlayback": "Alles zufällig abspielen",
+    "PlayAllLoopedPlayback": "Alle in Wiederholung abspielen",
+    "QueueButtonHint": "Wiedergabeliste anzeigen",
+    "QueuePlayback": "Wiedergabeliste",
+    "changePlaybackMode": "Wiedergabemodus ändern",
+    "changePlaybackModeHint": "Ändern Sie den Wiedergabemodus, um mehr Dateien zu sehen",
+    "emptyQueue": "Warteschlange ist leer"
   }
 }

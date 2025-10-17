@@ -57,7 +57,11 @@
     "galleryView": "Widok galerii",
     "uploadFiles": "Przesyłanie plików",
     "uploadFolder": "Folder przesyłania",
-    "openUploadViewer": "Otwórz Menedżera przesyłania"
+    "openUploadViewer": "Otwórz Menedżera przesyłania",
+    "selectAll": "Wybierz wszystko",
+    "discardAndExit": "Odrzuć i wyjdź",
+    "saveAndExit": "Zapisz i wyjdź",
+    "keepEditing": "Kontynuuj edycję"
   },
   "download": {
     "downloadFile": "Pobierz plik",
@@ -86,13 +90,19 @@
     "sortByLastModified": "Sortuj wg. daty modyfikacji",
     "sortByName": "Sortuj wg. nazwy",
     "sortBySize": "Sortuj wg. rozmiaru",
-    "noPreview": "Podgląd nie jest dostępny dla tego pliku."
+    "noPreview": "Podgląd nie jest dostępny dla tego pliku.",
+    "noDownloadAccess": "Pobieranie nie jest dostępne."
   },
   "help": {
     "click": "wybierz plik lub foler",
     "ctrl": {
       "click": "wybierz wiele plików lub folderów",
-      "d": "Pobierz wybrane elementy"
+      "d": "Pobierz wybrane elementy",
+      "b": "przełączanie paska bocznego",
+      "comma": "przejdź do ustawień",
+      "c": "kopiowanie wybranych elementów",
+      "v": "wklejanie skopiowanych/wyciętych elementów",
+      "x": "wycinanie wybranych elementów"
     },
     "del": "usuń zaznaczone",
     "esc": "wyczyść zaznaczenie i/lub zamknij okno z powiadomieniem",
@@ -100,7 +110,8 @@
     "help": "Pomoc",
     "f1": "pokaż monit pomocy",
     "description": "Poniżej znajdują się podstawowe opcje nawigacji. Dodatkowe informacje można znaleźć na stronie",
-    "wiki": "FileBrowser Quantum Wiki"
+    "slash": "aktywuj wyszukiwanie",
+    "wiki": "Oficjalne dokumenty FileBrowser Quantum"
   },
   "languages": {
     "he": "עברית",
@@ -202,7 +213,14 @@
     "copySuccess": "Pliki zostały skopiowane pomyślnie!",
     "lastModified": "Ostatnia modyfikacja{suffix}",
     "size": "Rozmiar{suffix}",
-    "operationInProgress": "Operacja w toku, proszę czekać..."
+    "operationInProgress": "Operacja w toku, proszę czekać...",
+    "saveBeforeExit": "Niezapisane zmiany",
+    "saveBeforeExitMessage": "Masz niezapisane zmiany w edytorze. Co chcesz zrobić?",
+    "copyPasteConfirm": "Potwierdzenie kopiowania/wklejania",
+    "copyItemQuestion": "Skopiować ten element do nowej lokalizacji?",
+    "moveItemQuestion": "Przenieść ten element do nowej lokalizacji?",
+    "sourcePath": "Źródło:",
+    "destinationPath": "Miejsce docelowe:"
   },
   "search": {
     "images": "Zdjęcia",
@@ -271,7 +289,10 @@
       "share": "Udostępnianie plików",
       "admin": "Administrator",
       "api": "Tworzenie i zarządzanie kluczami API o długiej żywotności",
-      "realtime": "Połączenia i aktualizacje w czasie rzeczywistym"
+      "realtime": "Połączenia i aktualizacje w czasie rzeczywistym",
+      "create": "Tworzenie plików",
+      "delete": "Usuwanie plików",
+      "download": "Pobieranie plików"
     },
     "permissions-name": "Uprawnienia",
     "permissionsHelp": "Możesz uczynić użytkownika administratorem, lub wybrać uprawnienia indywidualnie. Jeśli zaznaczysz opcję \"Administrator\", wszystkie pozostałe opcje zostaną automatycznie zaznaczone. Zarządzanie użytkownikami pozostaje przywilejem administratora.\n",
@@ -423,7 +444,17 @@
     "perUserDownloadLimitDescription": "Po włączeniu limit pobrań zostanie zastosowany do każdego użytkownika. Anonimowi użytkownicy nie będą mogli pobierać żadnych plików z tego folderu udostępnionego.",
     "descriptionUploadDefault": "Udział został wysłany w celu przesłania plików.",
     "extractEmbeddedSubtitles": "Wyodrębnianie osadzonych napisów",
-    "extractEmbeddedSubtitlesDescription": "Wyodrębnianie osadzonych napisów z plików multimedialnych podczas ładowania - może to być powolne w przypadku dużych plików."
+    "extractEmbeddedSubtitlesDescription": "Wyodrębnianie osadzonych napisów z plików multimedialnych podczas ładowania - może to być powolne w przypadku dużych plików.",
+    "disableDownload": "Wyłącz pobieranie plików",
+    "disableDownloadDescription": "Nikt nie będzie mógł pobierać plików ani przeglądać ich zawartości.",
+    "allowModify": "Zezwalaj na edycję plików",
+    "allowModifyDescription": "Każdy może edytować pliki w tym udziale.",
+    "allowDelete": "Zezwalaj na usuwanie plików",
+    "allowDeleteDescription": "Każdy może usuwać pliki i foldery z tego udziału.",
+    "allowReplacements": "Zezwalaj na zastępowanie plików",
+    "allowReplacementsDescription": "Każdy może zastąpić istniejące pliki podczas przesyłania plików o tej samej nazwie.",
+    "allowCreate": "Zezwalanie na tworzenie i przesyłanie plików i folderów",
+    "allowCreateDescription": "Każdy może tworzyć i przesyłać nowe pliki i foldery w tym udziale."
   },
   "api": {
     "title": "Klucze API:",
@@ -594,7 +625,6 @@
     "uninitialized": "Nie udało się zainicjować edytora. Przeładuj ponownie.",
     "saveFailed": "Nie udało się zapisać pliku. Spróbuj ponownie.",
     "saveAborted": "Zapisywanie przerwane. Nazwa pliku nie pasuje do aktywnego pliku.",
-    "saveDisabled": "Zapisywanie udostępnionych plików nie jest obsługiwane.",
     "saveAbortedMessage": "Operacja zapisywania została przerwana. Aktywny plik aplikacji ({activeFile}) nie jest zgodny z plikiem, który próbujesz zapisać ({tryingToSave}).",
     "syncFailed": "Nie udało się zsynchronizować stanu z trasą dla \"{filename}\" po 5 próbach. Przerwano konfigurację edytora, aby zapobiec uszkodzeniu danych."
   },
@@ -603,6 +633,11 @@
     "LoopDisabled": "Pętla wyłączona",
     "PlayAllOncePlayback": "Odtwórz wszystkie raz",
     "ShuffleAllPlayback": "Losowe odtwarzanie wszystkich",
-    "PlayAllLoopedPlayback": "Odtwórz wszystkie w pętli"
+    "PlayAllLoopedPlayback": "Odtwórz wszystkie w pętli",
+    "QueueButtonHint": "Pokaż kolejkę odtwarzania",
+    "QueuePlayback": "Kolejka Odtwarzania",
+    "changePlaybackMode": "Zmień tryb odtwarzania",
+    "changePlaybackModeHint": "Zmień tryb odtwarzania, aby zobaczyć więcej plików",
+    "emptyQueue": "Kolejka jest pusta"
   }
 }

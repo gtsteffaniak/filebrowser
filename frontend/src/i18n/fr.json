@@ -57,7 +57,11 @@
     "galleryView": "Vue de la galerie",
     "uploadFiles": "Téléchargement de fichiers",
     "uploadFolder": "Télécharger le dossier",
-    "openUploadViewer": "Ouvrir le gestionnaire de téléchargement"
+    "openUploadViewer": "Ouvrir le gestionnaire de téléchargement",
+    "selectAll": "Sélectionner tout",
+    "discardAndExit": "Rejeter et quitter",
+    "saveAndExit": "Sauvegarder et quitter",
+    "keepEditing": "Continuer à éditer"
   },
   "download": {
     "downloadFile": "Télécharger le fichier",
@@ -86,13 +90,19 @@
     "sortByLastModified": "Trier par date de dernière modification",
     "sortByName": "Trier par nom",
     "sortBySize": "Trier par taille",
-    "noPreview": "Il n'y a pas de prévisualisation pour ce fichier."
+    "noPreview": "Il n'y a pas de prévisualisation pour ce fichier.",
+    "noDownloadAccess": "Le téléchargement n'est pas disponible."
   },
   "help": {
     "click": "Sélectionner un élément",
     "ctrl": {
       "click": "Sélectionner plusieurs éléments",
-      "d": "télécharger les éléments sélectionnés"
+      "d": "télécharger les éléments sélectionnés",
+      "b": "barre latérale à bascule",
+      "comma": "accéder aux paramètres",
+      "c": "copier les éléments sélectionnés",
+      "v": "coller les éléments copiés/coupés",
+      "x": "couper les articles sélectionnés"
     },
     "del": "Supprimer les éléments sélectionnés",
     "esc": "Désélectionner et/ou fermer la boîte de dialogue",
@@ -100,7 +110,8 @@
     "help": "Aide",
     "f1": "show help prompt",
     "description": "Vous pouvez consulter les options de navigation de base ci-dessous. Pour plus d'informations, veuillez consulter le site",
-    "wiki": "Wiki FileBrowser Quantum"
+    "slash": "activer la recherche",
+    "wiki": "Documents officiels de FileBrowser Quantum"
   },
   "languages": {
     "he": "עברית",
@@ -202,7 +213,14 @@
     "copySuccess": "Les fichiers ont été copiés avec succès !",
     "lastModified": "Dernière modification{suffix}",
     "size": "Taille{suffix}",
-    "operationInProgress": "Opération en cours, veuillez patienter..."
+    "operationInProgress": "Opération en cours, veuillez patienter...",
+    "saveBeforeExit": "Modifications non sauvegardées",
+    "saveBeforeExitMessage": "Vous avez des modifications non enregistrées dans l'éditeur. Que souhaitez-vous faire ?",
+    "copyPasteConfirm": "Confirmation du copier/coller",
+    "copyItemQuestion": "Copier cet élément vers le nouvel emplacement ?",
+    "moveItemQuestion": "Déplacer cet élément vers le nouvel emplacement ?",
+    "sourcePath": "Source :",
+    "destinationPath": "Destination :"
   },
   "search": {
     "images": "Images",
@@ -272,7 +290,10 @@
       "share": "Partager des fichiers",
       "admin": "Administrateur",
       "api": "Créer et gérer des clés API à longue durée de vie",
-      "realtime": "Permettre des connexions et des mises à jour en temps réel"
+      "realtime": "Permettre des connexions et des mises à jour en temps réel",
+      "create": "Créer des fichiers",
+      "delete": "Supprimer des fichiers",
+      "download": "Télécharger les fichiers"
     },
     "permissions-name": "Permissions",
     "permissionsHelp": "Vous pouvez définir l'utilisateur comme étant un administrateur ou encore choisir les permissions individuellement. Si vous sélectionnez \"Administrateur\", toutes les autres options seront automatiquement activées. La gestion des utilisateurs est un privilège que seul l'administrateur possède.\n",
@@ -423,7 +444,17 @@
     "perUserDownloadLimitDescription": "Lorsque cette option est activée, la limite de téléchargements est appliquée à chaque utilisateur. Les utilisateurs anonymes ne pourront pas télécharger de fichiers à partir de ce partage.",
     "descriptionUploadDefault": "Un partage vous a été envoyé pour télécharger des fichiers.",
     "extractEmbeddedSubtitles": "Extraire les sous-titres intégrés",
-    "extractEmbeddedSubtitlesDescription": "Extraire les sous-titres intégrés des fichiers multimédias lors du chargement - cette opération peut s'avérer lente pour les fichiers volumineux."
+    "extractEmbeddedSubtitlesDescription": "Extraire les sous-titres intégrés des fichiers multimédias lors du chargement - cette opération peut s'avérer lente pour les fichiers volumineux.",
+    "disableDownload": "Désactiver le téléchargement de fichiers",
+    "disableDownloadDescription": "Personne ne pourra télécharger des fichiers ou en visualiser le contenu.",
+    "allowModify": "Permettre l'édition de fichiers",
+    "allowModifyDescription": "Tout le monde peut modifier les fichiers de ce partage.",
+    "allowDelete": "Autoriser la suppression de fichiers",
+    "allowDeleteDescription": "N'importe qui peut supprimer des fichiers et des dossiers de ce partage.",
+    "allowReplacements": "Autoriser les remplacements de fichiers",
+    "allowReplacementsDescription": "Toute personne peut remplacer des fichiers existants lorsqu'elle télécharge des fichiers portant le même nom.",
+    "allowCreate": "Permettre la création et le téléchargement de fichiers et de dossiers",
+    "allowCreateDescription": "Tout le monde peut créer et télécharger de nouveaux fichiers et dossiers dans ce partage."
   },
   "api": {
     "title": "Clés API :",
@@ -594,7 +625,6 @@
     "uninitialized": "Échec de l'initialisation de l'éditeur. Veuillez recharger.",
     "saveFailed": "Échec de l'enregistrement du fichier. Veuillez réessayer.",
     "saveAborted": "Sauvegarde interrompue. Le nom du fichier ne correspond pas au fichier actif.",
-    "saveDisabled": "L'enregistrement de fichiers partagés n'est pas possible.",
     "saveAbortedMessage": "L'opération d'enregistrement a été interrompue. Le fichier actif de l'application ({activeFile}) ne correspond pas au fichier que vous essayez d'enregistrer ({tryingToSave}).",
     "syncFailed": "n'a pas réussi à synchroniser l'état avec l'itinéraire pour \"{filename}\" après 5 tentatives. Abandon de la configuration de l'éditeur pour éviter la corruption des données."
   },
@@ -603,6 +633,11 @@
     "LoopDisabled": "Boucle désactivée",
     "PlayAllOncePlayback": "Lire tout une fois",
     "ShuffleAllPlayback": "Lecture aléatoire de tout",
-    "PlayAllLoopedPlayback": "Lire tout en boucle"
+    "PlayAllLoopedPlayback": "Lire tout en boucle",
+    "QueueButtonHint": "Afficher la file de lecture",
+    "QueuePlayback": "File de Lecture",
+    "changePlaybackMode": "Changer le mode de lecture",
+    "changePlaybackModeHint": "Changez le mode de lecture pour voir plus de fichiers",
+    "emptyQueue": "La file est vide"
   }
 }

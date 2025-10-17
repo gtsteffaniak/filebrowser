@@ -5,11 +5,27 @@ server:
     - levels: "info|error|debug"
   sources:
     - path: "../frontend/tests/playwright-files"
+      name: "exclude"
       config:
         defaultEnabled: true
-        exclude:
-          folderPaths:
-            - "excluded"
+        conditionals:
+          rules:
+            - folderPath: "excluded"
+            - folderPath: "excludedButVisible"
+              viewable: true
+    - path: "../frontend/tests/playwright-files2"
+      name: "include"
+      config:
+        defaultEnabled: true
+        conditionals:
+          rules:
+            - includeRootItem: "myfolder"
+            - includeRootItem: "subfolderExclusions"
+            - filePath: "/subfolderExclusions/exclusionlist.sh"
+            - folderPath: "/subfolderExclusions/folderItem"
+              viewable: true
+            - fileStartsWith: "startsWith"
+            - folderEndsWith: "Folder"
 
 auth:
   methods:
@@ -24,3 +40,8 @@ frontend:
 userDefaults:
   permissions:
    realtime: true
+
+userDefaults:
+  permissions:
+    download: true
+    create: true

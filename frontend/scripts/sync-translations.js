@@ -225,7 +225,6 @@ async function syncAllTranslations() {
     if (fileExisted) {
       try {
         targetContent = await fs.readJson(targetFile);
-        console.log(`\nProcessing target language: ${targetLangCode} (from ${targetFile})`);
       } catch (e) {
         console.warn(`Warning: Could not parse ${targetFile}. Starting fresh. Error: ${e.message}`);
         targetContent = {};
@@ -264,7 +263,7 @@ async function syncAllTranslations() {
 
   if (checkOnly) {
     if (hasMeaningfulChanges) {
-      console.log(`\n⚠️  Found ${meaningfulChanges} meaningful translation changes needed.`);
+      console.log(`\n⚠️  Found ${meaningfulChanges} meaningful translation changes needed. -- update via "make sync-translations"`);
       return 1; // Exit code 1 for meaningful changes needed
     } else {
       console.log('\n✅ No meaningful translation changes needed.');

@@ -169,7 +169,6 @@
 <script>
 import downloadFiles from "@/utils/download";
 import { filesApi } from "@/api";
-import { notify } from "@/notify";
 import { router } from "@/router";
 import * as upload from "@/utils/upload";
 import throttle from "@/utils/throttle";
@@ -194,6 +193,7 @@ export default {
       lastSelected: {}, // Add this to track the currently focused item
       contextTimeout: null, // added for safari context menu
       ctrKeyPressed: false,
+      clipboard: { items: [] }, // Initialize clipboard to prevent errors
     };
   },
   watch: {
@@ -640,20 +640,20 @@ export default {
           case "c":
           case "x":
             this.copyCut(event, charKey);
-            break;
+            return;
           case "v":
             this.paste(event);
-            break;
+            return;
           case "a":
             event.preventDefault();
             this.selectAll();
-            break;
+            return;
           case "d":
             event.preventDefault();
             downloadFiles(state.selected);
-            break;
+            return;
         }
-        return;
+        // Don't return here - allow other modifier key combinations to propagate
       }
 
       // Handle key events using a switch statement
@@ -774,7 +774,7 @@ export default {
 
       let items = state.selected.map((i) => ({
         from: state.req.items[i].path,
-        fromSource: state.req.items[i].source,
+        fromSource: state.req.source,
         name: state.req.items[i].name,
       }));
 
@@ -793,60 +793,74 @@ export default {
         return;
       }
 
+      if (!this.clipboard || !this.clipboard.items || this.clipboard.items.length === 0) {
+        return;
+      }
+
+      // Construct destination path properly (without URL prefix)
+      const destPath = state.req.path.endsWith('/') ? state.req.path : state.req.path + '/';
+
       let items = this.clipboard.items.map((item) => ({
         from: item.from,
         fromSource: item.fromSource,
-        to: state.route.path + item.name,
-        toSource: item.toSource
+        to: destPath + item.name,
+        toSource: state.req.source
       }));
 
-      if (items.length === 0) {
-        return;
-      }
-      mutations.setLoading("listing", true);
-      if (getters.isShare()) {
-        // Shared files don't support move/copy operations
-        mutations.setLoading("listing", false);
-        notify.showError("Move/copy operations are not supported for shared files.");
-        return;
-      }
+      const operation = this.clipboard.key === "x" ? "move" : "copy";
 
-      let action = async (overwrite, rename) => {
-        await filesApi.moveCopy(items, "copy", overwrite, rename);
-        mutations.setLoading("listing", false);
-      };
+      // Show confirmation prompt first
+      mutations.showHover({
+        name: "CopyPasteConfirm",
+        props: {
+          operation: operation,
+          items: items,
+          onConfirm: async () => {
+            mutations.setLoading("listing", true);
 
-      if (this.clipboard.key === "x") {
-        action = async (overwrite, rename) => {
-          await filesApi.moveCopy(items, "move", overwrite, rename);
-          this.clipboard = {};
-          mutations.setLoading("listing", false);
-        };
-      }
+            let action = async (overwrite, rename) => {
+              try {
+              if (getters.isShare()) {
+                await publicApi.moveCopy(items, operation, overwrite, rename);
+                } else {
+                  await filesApi.moveCopy(items, operation, overwrite, rename);
+                }
+                if (operation === "move") {
+                  this.clipboard = { items: [] };
+                }
+                mutations.setLoading("listing", false);
+              } catch (error) {
+                console.error("Error moving/copying items:", error);
+              } finally {
+                mutations.setLoading("listing", false);
+              }
+            };
 
-      if (this.clipboard.path === state.route.path) {
-        action(false, true);
-        return;
-      }
+            if (this.clipboard.path === state.route.path) {
+              action(false, true);
+              return;
+            }
 
-      const conflict = upload.checkConflict(items, state.req.items);
+            const conflict = upload.checkConflict(items, state.req.items);
 
-      if (conflict) {
-        this.currentPrompt = {
-          name: "replace-rename",
-          confirm: (event, option) => {
-            const overwrite = option === "overwrite";
-            const rename = option === "rename";
+            if (conflict) {
+              mutations.showHover({
+                name: "replace-rename",
+                confirm: (event, option) => {
+                  const overwrite = option === "overwrite";
+                  const rename = option === "rename";
+                  event.preventDefault();
+                  mutations.closeHovers();
+                  action(overwrite, rename);
+                },
+              });
+              return;
+            }
 
-            event.preventDefault();
-            mutations.closeHovers();
-            action(overwrite, rename);
+            action(false, false);
           },
-        };
-        return;
-      }
-
-      action(false, false);
+        },
+      });
     },
     colunmsResize() {
       document.documentElement.style.setProperty(
@@ -893,6 +907,7 @@ export default {
       this.dragCounter--;
     },
     async drop(event) {
+      event.preventDefault();
       const isInternal = Array.from(event.dataTransfer.types).includes(
         "application/x-filebrowser-internal-drag"
       );

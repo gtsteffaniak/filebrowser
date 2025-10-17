@@ -57,7 +57,11 @@
     "galleryView": "Zobrazenie galérie",
     "uploadFiles": "Nahrávanie súborov",
     "uploadFolder": "Odoslanie priečinka",
-    "openUploadViewer": "Otvoriť Správcu nahrávania"
+    "openUploadViewer": "Otvoriť Správcu nahrávania",
+    "selectAll": "Vyberte všetky",
+    "discardAndExit": "Vyradenie a ukončenie",
+    "saveAndExit": "Uložiť a ukončiť",
+    "keepEditing": "Pokračujte v úpravách"
   },
   "download": {
     "downloadFile": "Stiahnuť súbor",
@@ -86,13 +90,19 @@
     "sortByLastModified": "Zoradiť podľa dátumu",
     "sortByName": "Zoradiť podľa názvu",
     "sortBySize": "Zoradiť podľa veľkosti",
-    "noPreview": "Pre tento súbor nie je dostupný náhľad."
+    "noPreview": "Pre tento súbor nie je dostupný náhľad.",
+    "noDownloadAccess": "Stiahnutie nie je k dispozícii."
   },
   "help": {
     "click": "vyberie súbor alebo priečinok",
     "ctrl": {
       "click": "vyberie viac súborov alebo priečinkov",
-      "d": "stiahnuť vybrané položky"
+      "d": "stiahnuť vybrané položky",
+      "b": "prepínanie bočného panela",
+      "comma": "prejsť na nastavenia",
+      "c": "kopírovať vybrané položky",
+      "v": "vložiť skopírované/vyrezané položky",
+      "x": "rezanie vybraných položiek"
     },
     "del": "odstráni vybraté položky",
     "esc": "zruší výber a/alebo zavrie okno",
@@ -100,7 +110,8 @@
     "help": "Pomoc",
     "f1": "zobraziť výzvu na pomoc",
     "description": "Základné možnosti navigácie si môžete pozrieť nižšie. Ďalšie informácie nájdete na stránke",
-    "wiki": "FileBrowser Quantum Wiki"
+    "slash": "aktivovať vyhľadávanie",
+    "wiki": "Oficiálne dokumenty FileBrowser Quantum"
   },
   "languages": {
     "he": "עברית",
@@ -202,7 +213,14 @@
     "copySuccess": "Súbory boli úspešne skopírované!",
     "lastModified": "Posledná úprava{suffix}",
     "size": "Veľkosť{suffix}",
-    "operationInProgress": "Operácia prebieha, počkajte, prosím..."
+    "operationInProgress": "Operácia prebieha, počkajte, prosím...",
+    "saveBeforeExit": "Neuložené zmeny",
+    "saveBeforeExitMessage": "V editore máte neuložené zmeny. Čo by ste chceli urobiť?",
+    "copyPasteConfirm": "Potvrdenie kopírovania/vkladania",
+    "copyItemQuestion": "Skopírovať túto položku na nové miesto?",
+    "moveItemQuestion": "Presunúť túto položku na nové miesto?",
+    "sourcePath": "Zdroj:",
+    "destinationPath": "Cieľová destinácia:"
   },
   "search": {
     "images": "Obrázky",
@@ -271,7 +289,10 @@
       "share": "Zdieľať súbory",
       "admin": "Správca",
       "api": "Vytváranie a správa kľúčov API s dlhou životnosťou",
-      "realtime": "Povolenie pripojení a aktualizácií v reálnom čase"
+      "realtime": "Povolenie pripojení a aktualizácií v reálnom čase",
+      "create": "Vytvorenie súborov",
+      "delete": "Odstránenie súborov",
+      "download": "Stiahnite si súbory"
     },
     "permissions-name": "Práva",
     "permissionsHelp": "Môžete nastaviť používateľa, aby bol administrátorom alebo vybrať práva jednotlivo. Ak zvolíte \"Administrator\", všetky ďalšie budú automaticky zaškrtnuté. Manažment používateľov ostáva v správe administrátora.\n",
@@ -423,7 +444,17 @@
     "perUserDownloadLimitDescription": "Ak je táto možnosť povolená, limit stiahnutí sa uplatní na každého používateľa. Anonymní používatelia nebudú môcť z tejto zdieľanej zložky sťahovať žiadne súbory.",
     "descriptionUploadDefault": "Bola vám odoslaná akcia na nahratie súborov.",
     "extractEmbeddedSubtitles": "Výpis vložených titulkov",
-    "extractEmbeddedSubtitlesDescription": "Extrahovať vložené titulky z mediálnych súborov pri načítaní - pri veľkých súboroch to môže byť pomalé."
+    "extractEmbeddedSubtitlesDescription": "Extrahovať vložené titulky z mediálnych súborov pri načítaní - pri veľkých súboroch to môže byť pomalé.",
+    "disableDownload": "Zakázať preberanie súborov",
+    "disableDownloadDescription": "Nikto nebude môcť sťahovať súbory ani zobrazovať ich obsah.",
+    "allowModify": "Povolenie úprav súborov",
+    "allowModifyDescription": "Súbory v tejto zdieľanej zložke môže upravovať ktokoľvek.",
+    "allowDelete": "Povolenie odstraňovania súborov",
+    "allowDeleteDescription": "Súbory a priečinky z tejto zdieľanej zložky môže vymazať ktokoľvek.",
+    "allowReplacements": "Povolenie výmeny súborov",
+    "allowReplacementsDescription": "Pri nahrávaní súborov s rovnakým názvom môže ktokoľvek nahradiť existujúce súbory.",
+    "allowCreate": "Umožniť vytváranie a nahrávanie súborov a priečinkov",
+    "allowCreateDescription": "V tomto zdieľanom úložisku môže ktokoľvek vytvárať a nahrávať nové súbory a priečinky."
   },
   "api": {
     "title": "Kľúče API:",
@@ -594,7 +625,6 @@
     "uninitialized": "Nepodarilo sa inicializovať editor. Prosím, načítajte ho znova.",
     "saveFailed": "Nepodarilo sa uložiť súbor. Skúste to prosím znova.",
     "saveAborted": "Uloženie prerušené. Názov súboru sa nezhoduje s aktívnym súborom.",
-    "saveDisabled": "Ukladanie zdieľaných súborov nie je podporované.",
     "saveAbortedMessage": "Operácia uloženia sa prerušila. Aktívny súbor aplikácie ({activeFile}) sa nezhoduje so súborom, ktorý sa pokúšate uložiť ({tryingToSave}).",
     "syncFailed": "sa nepodarilo synchronizovať stav s trasou pre \"{filename}\" po 5 pokusoch. Prerušenie nastavenia editora, aby sa zabránilo poškodeniu údajov."
   },
@@ -603,6 +633,11 @@
     "LoopDisabled": "Slučka zakázaná",
     "PlayAllOncePlayback": "Prehrať všetko raz",
     "ShuffleAllPlayback": "Náhodné prehrávanie všetkého",
-    "PlayAllLoopedPlayback": "Prehrať všetko v slučke"
+    "PlayAllLoopedPlayback": "Prehrať všetko v slučke",
+    "QueueButtonHint": "Zobraziť front prehrávania",
+    "QueuePlayback": "Front Prehrávania",
+    "changePlaybackMode": "Zmeniť režim prehrávania",
+    "changePlaybackModeHint": "Zmeňte režim prehrávania, aby ste videli viac súborov",
+    "emptyQueue": "Front je prázdny"
   }
 }

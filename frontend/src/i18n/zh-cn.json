@@ -57,7 +57,11 @@
     "galleryView": "图库浏览",
     "uploadFiles": "上传文件",
     "uploadFolder": "上传文件夹",
-    "openUploadViewer": "打开上传管理器"
+    "openUploadViewer": "打开上传管理器",
+    "selectAll": "选择所有",
+    "discardAndExit": "丢弃和退出",
+    "saveAndExit": "保存并退出",
+    "keepEditing": "继续编辑"
   },
   "download": {
     "downloadFile": "下载文件",
@@ -86,13 +90,19 @@
     "sortByLastModified": "按最后修改时间排序",
     "sortByName": "按名称排序",
     "sortBySize": "按大小排序",
-    "noPreview": "此文件无法预览。"
+    "noPreview": "此文件无法预览。",
+    "noDownloadAccess": "无法下载。"
   },
   "help": {
     "click": "选择文件或目录",
     "ctrl": {
       "click": "选择多个文件或目录",
-      "d": "下载所选项目"
+      "d": "下载所选项目",
+      "b": "切换侧栏",
+      "comma": "进入设置",
+      "c": "复制选定项目",
+      "v": "粘贴复制/剪切的项目",
+      "x": "删减"
     },
     "del": "删除所选的文件/文件夹",
     "esc": "清除已选项或关闭提示信息",
@@ -100,7 +110,8 @@
     "help": "帮助",
     "f1": "显示帮助提示",
     "description": "您可以查看下面的基本导航选项。有关其他信息，请访问",
-    "wiki": "文件浏览器量子维基"
+    "slash": "启动搜索",
+    "wiki": "FileBrowser Quantum 官方文档"
   },
   "languages": {
     "he": "עברית",
@@ -202,7 +213,14 @@
     "copySuccess": "文件复制成功！",
     "lastModified": "最后修改{suffix}",
     "size": "尺寸{suffix}",
-    "operationInProgress": "操作正在进行中，请稍候..."
+    "operationInProgress": "操作正在进行中，请稍候...",
+    "saveBeforeExit": "未保存的更改",
+    "saveBeforeExitMessage": "编辑器中还有未保存的更改。您想怎么做？",
+    "copyPasteConfirm": "复制/粘贴确认",
+    "copyItemQuestion": "将此项目复制到新位置？",
+    "moveItemQuestion": "将此项目移至新位置？",
+    "sourcePath": "资料来源",
+    "destinationPath": "目的地"
   },
   "search": {
     "images": "图像",
@@ -272,7 +290,10 @@
       "share": "分享文件",
       "admin": "管理员",
       "api": "创建和管理长效 API 密钥",
-      "realtime": "实现实时连接和更新"
+      "realtime": "实现实时连接和更新",
+      "create": "创建文件",
+      "delete": "删除文件",
+      "download": "下载文件"
     },
     "permissions-name": "权限",
     "permissionsHelp": "您可以将该用户设置为管理员或单独选择各项权限。如果您选择了“管理员”，则其他的选项会被自动选中，同时该用户可以管理其他用户。\n",
@@ -423,7 +444,17 @@
     "perUserDownloadLimitDescription": "启用后，下载限制将应用于每个用户。匿名用户将无法从该共享下载任何文件。",
     "descriptionUploadDefault": "已为您发送了上传文件的共享。",
     "extractEmbeddedSubtitles": "提取嵌入式字幕",
-    "extractEmbeddedSubtitlesDescription": "在加载时从媒体文件中提取内嵌字幕--这对于大文件来说可能会比较慢。"
+    "extractEmbeddedSubtitlesDescription": "在加载时从媒体文件中提取内嵌字幕--这对于大文件来说可能会比较慢。",
+    "disableDownload": "禁止下载文件",
+    "disableDownloadDescription": "任何人都无法下载文件或查看文件内容。",
+    "allowModify": "允许编辑文件",
+    "allowModifyDescription": "任何人都可以编辑该共享中的文件。",
+    "allowDelete": "允许删除文件",
+    "allowDeleteDescription": "任何人都可以删除该共享中的文件和文件夹。",
+    "allowReplacements": "允许文件替换",
+    "allowReplacementsDescription": "上传同名文件时，任何人都可以替换现有文件。",
+    "allowCreate": "允许创建和上传文件和文件夹",
+    "allowCreateDescription": "任何人都可以在此共享中创建和上传新文件和文件夹。"
   },
   "api": {
     "title": "应用程序接口密钥",
@@ -594,7 +625,6 @@
     "uninitialized": "编辑器初始化失败。请重新加载。",
     "saveFailed": "保存文件失败。请重试。",
     "saveAborted": "保存失败。文件名与活动文件不匹配。",
-    "saveDisabled": "不支持保存共享文件。",
     "saveAbortedMessage": "保存操作中止。应用程序的活动文件 ({activeFile}) 与您要保存的文件 ({tryingToSave}) 不匹配。",
     "syncFailed": "经过 5 次尝试后，未能将 \"{filename}\" 的状态与路由同步。终止编辑器设置，以防数据损坏。"
   },
@@ -603,6 +633,11 @@
     "LoopDisabled": "循环已禁用",
     "PlayAllOncePlayback": "播放全部一次",
     "ShuffleAllPlayback": "随机播放全部",
-    "PlayAllLoopedPlayback": "循环播放全部"
+    "PlayAllLoopedPlayback": "循环播放全部",
+    "QueueButtonHint": "显示播放队列",
+    "QueuePlayback": "播放队列",
+    "changePlaybackMode": "更改播放模式",
+    "changePlaybackModeHint": "更改播放模式以查看更多文件",
+    "emptyQueue": "队列为空"
   }
 }

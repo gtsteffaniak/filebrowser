@@ -1,27 +1,9 @@
 server:
-  port: 80
-  baseURL:  "/"
-  logging:
-    - levels: "info|error|debug"
-  sources:
-    - path: "../frontend/tests/playwright-files"
-      name: "playwright + files"
-      config:
-        defaultEnabled: true
-    - path: "."
-      name: "docker"
-      config:
-        disableIndexing: true
-        defaultEnabled: true
+  <<: *server-main
 frontend:
-  name: "Graham's Filebrowser"
-  disableDefaultLinks: true
-  styling:
-    customThemes:
-      no-rounded:
-        description: "No rounded corners" # The description of the theme to display in the UI.
-        css: "no-rounded.css" # The css file path and filename to use for the theme.
-  externalLinks:
-    - text: "A playwright test"
-      url: "https://playwright.dev/"
-      title: "Playwright"
+  <<: *frontend-main
+
+userDefaults:
+  permissions:
+    download: true
+    create: true

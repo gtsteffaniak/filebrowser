@@ -249,6 +249,16 @@ export default {
       // For other browsers, use regular contextmenu
       this.$el.addEventListener("contextmenu", this.openContext);
     }
+    
+    // Add keyboard event listener for "/" to activate search
+    this.handleKeydown = (event) => {
+      if (event.key === '/' && !state.isSearchActive) {
+        event.preventDefault();
+        this.open();
+      }
+    };
+    
+    document.addEventListener('keydown', this.handleKeydown);
   },
   beforeUnmount() {
     // If Safari, remove touchstart listener
@@ -260,6 +270,11 @@ export default {
       this.$el.removeEventListener("touchmove", this.handleTouchMove);
     } else {
       this.$el.removeEventListener("contextmenu", this.openContext);
+    }
+    
+    // Clean up keyboard event listener
+    if (this.handleKeydown) {
+      document.removeEventListener('keydown', this.handleKeydown);
     }
   },
   computed: {

@@ -31,7 +31,10 @@ import buttons from "@/utils/buttons";
 import Totp from "./Totp.vue";
 import Access from "./Access.vue";
 import Password from "./Password.vue";
+import PlaybackQueue from "./PlaybackQueue.vue";
 import FileList from "./FileList.vue";
+import SaveBeforeExit from "./SaveBeforeExit.vue";
+import CopyPasteConfirm from "./CopyPasteConfirm.vue";
 import { state, getters, mutations } from "@/store"; // Import your custom store
 
 export default {
@@ -59,7 +62,10 @@ export default {
     ActionApi,
     Access,
     Password,
+    PlaybackQueue,
     "file-list": FileList,
+    SaveBeforeExit,
+    CopyPasteConfirm,
   },
   data() {
     return {
@@ -96,6 +102,9 @@ export default {
             break;
           case "replace":
             prompt.showConfirm(event);
+            break;
+          case "CopyPasteConfirm":
+            prompt.confirm();
             break;
         }
       }

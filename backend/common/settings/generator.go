@@ -705,6 +705,13 @@ func GenerateYaml() {
 	Config.Server.Sources = []*Source{
 		{
 			Path: ".",
+			Config: SourceConfig{
+				Conditionals: ConditionalFilter{
+					ItemRules: []ConditionalIndexConfig{
+						{}, // Add empty sample rule to show all fields in generated YAML
+					},
+				},
+			},
 		},
 	}
 
@@ -719,6 +726,7 @@ func GenerateYaml() {
 
 	setupSources(true)
 	setupUrls()
+	setupVideoPreview()
 	setupFrontend(true)
 
 	// Restore original paths so the YAML output has the correct paths, not the placeholder

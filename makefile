@@ -75,6 +75,9 @@ check-all: lint test check-translations
 check-translations:
 	cd frontend && npm run i18n:check
 
+sync-translations:
+	cd frontend && npm run i18n:sync
+
 test-backend:
 	cd backend && go test -race -timeout=10s ./...
 
@@ -83,11 +86,11 @@ test-frontend:
 
 test-playwright: build-frontend
 	cd backend && GOOS=linux go build -o filebrowser .
+	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-noauth .
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-no-config .
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-settings .
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-general .
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-sharing .
-	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-noauth .
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-proxy .
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-oidc .
 

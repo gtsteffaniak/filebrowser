@@ -27,6 +27,8 @@ export const state = reactive({
   displayPreferences: {},
   usages: {},
   editor: null,
+  editorDirty: false,
+  editorSaveHandler: null, // Function to save editor content
   serverHasMultipleSources: false,
   realtimeActive: undefined,
   realtimeDownCount: 0,
@@ -137,6 +139,14 @@ export const state = reactive({
     nextRaw: "",
     timeout: null,
     enabled: false,
+    isTransitioning: false,
+    transitionStartTime: null,
+  },
+  playbackQueue: {
+    queue: [],
+    currentIndex: -1,
+    mode: 'single', // 'single', 'sequential', 'shuffle', 'loop-single', 'loop-all'
+    isPlaying: false
   },
 });
 

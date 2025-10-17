@@ -103,7 +103,9 @@ func validateOidcAuth() error {
 	ctx := context.Background()
 
 	// Create a custom HTTP client with proper User-Agent to avoid being blocked by bot protection
-	transport := &http.Transport{}
+	transport := &http.Transport{
+		Proxy: http.ProxyFromEnvironment, // Respect HTTP_PROXY, HTTPS_PROXY, and NO_PROXY environment variables
+	}
 
 	// If disableVerifyTLS is true, disable TLS verification
 	if oidcCfg.DisableVerifyTLS {
