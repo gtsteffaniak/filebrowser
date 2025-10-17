@@ -99,7 +99,10 @@
       "click": "vyberie viac súborov alebo priečinkov",
       "d": "stiahnuť vybrané položky",
       "b": "prepínanie bočného panela",
-      "comma": "prejsť na nastavenia"
+      "comma": "prejsť na nastavenia",
+      "c": "kopírovať vybrané položky",
+      "v": "vložiť skopírované/vyrezané položky",
+      "x": "rezanie vybraných položiek"
     },
     "del": "odstráni vybraté položky",
     "esc": "zruší výber a/alebo zavrie okno",
@@ -107,8 +110,8 @@
     "help": "Pomoc",
     "f1": "zobraziť výzvu na pomoc",
     "description": "Základné možnosti navigácie si môžete pozrieť nižšie. Ďalšie informácie nájdete na stránke",
-    "wiki": "FileBrowser Quantum Wiki",
-    "slash": "aktivovať vyhľadávanie"
+    "slash": "aktivovať vyhľadávanie",
+    "wiki": "Oficiálne dokumenty FileBrowser Quantum"
   },
   "languages": {
     "he": "עברית",
@@ -212,7 +215,12 @@
     "size": "Veľkosť{suffix}",
     "operationInProgress": "Operácia prebieha, počkajte, prosím...",
     "saveBeforeExit": "Neuložené zmeny",
-    "saveBeforeExitMessage": "V editore máte neuložené zmeny. Čo by ste chceli urobiť?"
+    "saveBeforeExitMessage": "V editore máte neuložené zmeny. Čo by ste chceli urobiť?",
+    "copyPasteConfirm": "Potvrdenie kopírovania/vkladania",
+    "copyItemQuestion": "Skopírovať túto položku na nové miesto?",
+    "moveItemQuestion": "Presunúť túto položku na nové miesto?",
+    "sourcePath": "Zdroj:",
+    "destinationPath": "Cieľová destinácia:"
   },
   "search": {
     "images": "Obrázky",

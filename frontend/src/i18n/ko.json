@@ -99,7 +99,10 @@
       "click": "여러 개의 파일이나 디렉토리를 선택해주세요.",
       "d": "선택한 항목 다운로드",
       "b": "사이드바 토글",
-      "comma": "설정으로 이동"
+      "comma": "설정으로 이동",
+      "c": "선택한 항목 복사",
+      "v": "복사/잘라낸 항목 붙여넣기",
+      "x": "선택한 항목 잘라내기"
     },
     "del": "선택된 파일 삭제",
     "esc": "선택 취소/프롬프트 닫기",
@@ -107,8 +110,8 @@
     "help": "도움말",
     "f1": "도움말 프롬프트 표시",
     "description": "아래에서 기본 탐색 옵션을 확인할 수 있습니다. 자세한 내용은 다음을 참조하세요.",
-    "wiki": "파일브라우저 퀀텀 위키",
-    "slash": "검색 활성화"
+    "slash": "검색 활성화",
+    "wiki": "FileBrowser 퀀텀 공식 문서"
   },
   "languages": {
     "he": "עברית",
@@ -212,7 +215,12 @@
     "size": "크기{suffix}",
     "operationInProgress": "작업이 진행 중입니다 잠시만 기다려주세요...",
     "saveBeforeExit": "저장되지 않은 변경 사항",
-    "saveBeforeExitMessage": "편집기에 저장되지 않은 변경 내용이 있습니다. 어떻게 하시겠습니까?"
+    "saveBeforeExitMessage": "편집기에 저장되지 않은 변경 내용이 있습니다. 어떻게 하시겠습니까?",
+    "copyPasteConfirm": "복사/붙여넣기 확인",
+    "copyItemQuestion": "이 항목을 새 위치로 복사하시겠습니까?",
+    "moveItemQuestion": "이 항목을 새 위치로 옮기시겠습니까?",
+    "sourcePath": "출처:",
+    "destinationPath": "목적지:"
   },
   "search": {
     "images": "이미지",

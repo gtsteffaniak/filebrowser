@@ -99,7 +99,10 @@
       "click": "selecionar várias pastas e ficheiros",
       "d": "descarregar itens selecionados",
       "b": "alternar a barra lateral",
-      "comma": "ir para as definições"
+      "comma": "ir para as definições",
+      "c": "copiar itens selecionados",
+      "v": "colar itens copiados/cortados",
+      "x": "cortar itens selecionados"
     },
     "del": "eliminar os ficheiros selecionados",
     "esc": "limpar seleção e/ou fechar menu",
@@ -107,8 +110,8 @@
     "help": "Ajuda",
     "f1": "mostrar prompt de ajuda",
     "description": "Pode ver as opções básicas de navegação abaixo. Para obter informações adicionais, visite",
-    "wiki": "Wiki do FileBrowser Quantum",
-    "slash": "ativar a pesquisa"
+    "slash": "ativar a pesquisa",
+    "wiki": "Documentos oficiais do FileBrowser Quantum"
   },
   "languages": {
     "he": "עברית",
@@ -212,7 +215,12 @@
     "size": "Tamanho{suffix}",
     "operationInProgress": "Operação em curso, aguarde...",
     "saveBeforeExit": "Alterações não guardadas",
-    "saveBeforeExitMessage": "Tem alterações não guardadas no editor. O que é que gostaria de fazer?"
+    "saveBeforeExitMessage": "Tem alterações não guardadas no editor. O que é que gostaria de fazer?",
+    "copyPasteConfirm": "Confirmação de copiar/colar",
+    "copyItemQuestion": "Copiar este item para a nova localização?",
+    "moveItemQuestion": "Mover este item para a nova localização?",
+    "sourcePath": "Fonte:",
+    "destinationPath": "Destino:"
   },
   "search": {
     "images": "Imagens",

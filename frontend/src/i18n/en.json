@@ -100,6 +100,9 @@
     "click": "select file or directory",
     "ctrl": {
       "click": "select multiple files or directories",
+      "c": "copy selected items",
+      "v": "paste copied/cut items",
+      "x": "cut selected items",
       "d": "download selected items",
       "b": "toggle sidebar",
       "comma": "go to settings"
@@ -111,7 +114,7 @@
     "slash": "activate search",
     "help": "Help",
     "description": "You can view the basic naviagation options below. For additional information, please visit",
-    "wiki": "FileBrowser Quantum Wiki"
+    "wiki": "FileBrowser Quantum Official Docs"
   },
   "languages": {
     "he": "עברית",
@@ -280,7 +283,12 @@
     "optionalPasswordHelp": "If set, users must enter this password to view the shared content.",
     "typeName": "Type:",
     "deleted": "Deleted successfully!",
-    "conflictsDetected": "Conflicts detected"
+    "conflictsDetected": "Conflicts detected",
+    "copyPasteConfirm": "Copy/Paste Confirmation",
+    "copyItemQuestion": "Copy this item to the new location?",
+    "moveItemQuestion": "Move this item to the new location?",
+    "sourcePath": "Source:",
+    "destinationPath": "Destination:"
   },
   "search": {
     "searchContext": "Search Context: {context}",

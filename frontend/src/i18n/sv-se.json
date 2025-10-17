@@ -99,7 +99,10 @@
       "click": "välj flera filer eller mappar",
       "d": "ladda ner valda artiklar",
       "b": "växla sidofält",
-      "comma": "gå till inställningar"
+      "comma": "gå till inställningar",
+      "c": "kopiera valda objekt",
+      "v": "klistra in kopierade/avklippta objekt",
+      "x": "kapa valda artiklar"
     },
     "del": "ta bort valda objekt",
     "esc": "Rensa markeringen och/eller stänga prompten",
@@ -107,8 +110,8 @@
     "help": "Hjälp",
     "f1": "visa hjälp prompt",
     "description": "Du kan se de grundläggande navigeringsalternativen nedan. För ytterligare information, vänligen besök",
-    "wiki": "FileBrowser Quantum Wiki",
-    "slash": "aktivera sökning"
+    "slash": "aktivera sökning",
+    "wiki": "FileBrowser Quantum officiella dokument"
   },
   "languages": {
     "he": "עברית",
@@ -212,7 +215,12 @@
     "size": "Storlek{suffix}",
     "operationInProgress": "Operation pågår, vänligen vänta...",
     "saveBeforeExit": "Osparade ändringar",
-    "saveBeforeExitMessage": "Du har osparade ändringar i redigeringsverktyget. Vad skulle du vilja göra?"
+    "saveBeforeExitMessage": "Du har osparade ändringar i redigeringsverktyget. Vad skulle du vilja göra?",
+    "copyPasteConfirm": "Kopiera/klistra in bekräftelse",
+    "copyItemQuestion": "Kopiera det här objektet till den nya platsen?",
+    "moveItemQuestion": "Flytta det här objektet till den nya platsen?",
+    "sourcePath": "Källa:",
+    "destinationPath": "Destination:"
   },
   "search": {
     "images": "Bilder",

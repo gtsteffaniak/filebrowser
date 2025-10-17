@@ -122,6 +122,7 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		} else if err != nil {
 			return http.StatusInternalServerError, err
 		}
+		fileInfo.Checksums = make(map[string]string)
 		fileInfo.Checksums[algo] = checksum
 	}
 	return renderJSON(w, r, fileInfo)

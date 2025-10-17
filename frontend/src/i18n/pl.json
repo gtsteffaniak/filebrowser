@@ -99,7 +99,10 @@
       "click": "wybierz wiele plików lub folderów",
       "d": "Pobierz wybrane elementy",
       "b": "przełączanie paska bocznego",
-      "comma": "przejdź do ustawień"
+      "comma": "przejdź do ustawień",
+      "c": "kopiowanie wybranych elementów",
+      "v": "wklejanie skopiowanych/wyciętych elementów",
+      "x": "wycinanie wybranych elementów"
     },
     "del": "usuń zaznaczone",
     "esc": "wyczyść zaznaczenie i/lub zamknij okno z powiadomieniem",
@@ -107,8 +110,8 @@
     "help": "Pomoc",
     "f1": "pokaż monit pomocy",
     "description": "Poniżej znajdują się podstawowe opcje nawigacji. Dodatkowe informacje można znaleźć na stronie",
-    "wiki": "FileBrowser Quantum Wiki",
-    "slash": "aktywuj wyszukiwanie"
+    "slash": "aktywuj wyszukiwanie",
+    "wiki": "Oficjalne dokumenty FileBrowser Quantum"
   },
   "languages": {
     "he": "עברית",
@@ -212,7 +215,12 @@
     "size": "Rozmiar{suffix}",
     "operationInProgress": "Operacja w toku, proszę czekać...",
     "saveBeforeExit": "Niezapisane zmiany",
-    "saveBeforeExitMessage": "Masz niezapisane zmiany w edytorze. Co chcesz zrobić?"
+    "saveBeforeExitMessage": "Masz niezapisane zmiany w edytorze. Co chcesz zrobić?",
+    "copyPasteConfirm": "Potwierdzenie kopiowania/wklejania",
+    "copyItemQuestion": "Skopiować ten element do nowej lokalizacji?",
+    "moveItemQuestion": "Przenieść ten element do nowej lokalizacji?",
+    "sourcePath": "Źródło:",
+    "destinationPath": "Miejsce docelowe:"
   },
   "search": {
     "images": "Zdjęcia",
