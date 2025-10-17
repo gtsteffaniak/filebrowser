@@ -102,7 +102,10 @@
       "click": "označit více souborů nebo složek",
       "d": "stáhnout vybrané položky",
       "b": "přepínání postranního panelu",
-      "comma": "přejít do nastavení"
+      "comma": "přejít do nastavení",
+      "c": "kopírování vybraných položek",
+      "v": "vložit zkopírované/vyjmuté položky",
+      "x": "řezání vybraných položek"
     },
     "del": "smazat označené položky",
     "esc": "zrušit označení a/nebo zavřít dialog",
@@ -110,8 +113,8 @@
     "help": "Nápověda",
     "f1": "zobrazit výzvu nápovědy",
     "description": "Základní možnosti navigace si můžete prohlédnout níže. Další informace naleznete na adrese",
-    "wiki": "FileBrowser Quantum Wiki",
-    "slash": "aktivovat vyhledávání"
+    "slash": "aktivovat vyhledávání",
+    "wiki": "Oficiální dokumenty k aplikaci FileBrowser Quantum"
   },
   "languages": {
     "he": "עברית",
@@ -280,7 +283,12 @@
     "size": "Velikost{suffix}",
     "operationInProgress": "Probíhá operace, vyčkejte prosím...",
     "saveBeforeExit": "Neuložené změny",
-    "saveBeforeExitMessage": "V editoru máte neuložené změny. Co byste chtěli udělat?"
+    "saveBeforeExitMessage": "V editoru máte neuložené změny. Co byste chtěli udělat?",
+    "copyPasteConfirm": "Potvrzení o kopírování/vkládání",
+    "copyItemQuestion": "Zkopírovat tuto položku do nového umístění?",
+    "moveItemQuestion": "Přesunout tuto položku na nové místo?",
+    "sourcePath": "Zdroj:",
+    "destinationPath": "Cílová destinace:"
   },
   "search": {
     "images": "Obrázky",

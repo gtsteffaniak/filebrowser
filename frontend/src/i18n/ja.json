@@ -99,7 +99,10 @@
       "click": "複数のファイルやディレクトリを選択",
       "d": "ダウンロード",
       "b": "トグル・サイドバー",
-      "comma": "設定に進む"
+      "comma": "設定に進む",
+      "c": "選択した項目をコピーする",
+      "v": "コピー/カットした項目を貼り付ける",
+      "x": "選択された項目をカット"
     },
     "del": "選択した項目を削除",
     "esc": "選択をクリアーまたはプロンプトを閉じる",
@@ -107,8 +110,8 @@
     "help": "ヘルプ",
     "f1": "ヘルプ画面を表示する",
     "description": "基本的なナビゲーションオプションは以下の通りです。その他の情報については",
-    "wiki": "ファイルブラウザ ドキュメント",
-    "slash": "検索をアクティブにする"
+    "slash": "検索をアクティブにする",
+    "wiki": "FileBrowser Quantum 公式ドキュメント"
   },
   "languages": {
     "he": "עברית",
@@ -212,7 +215,12 @@
     "size": "サイズ{suffix}",
     "operationInProgress": "操作中です、しばらくお待ちください...",
     "saveBeforeExit": "未保存の変更",
-    "saveBeforeExitMessage": "エディタに未保存の変更があります。どうしますか？"
+    "saveBeforeExitMessage": "エディタに未保存の変更があります。どうしますか？",
+    "copyPasteConfirm": "コピー・ペースト確認",
+    "copyItemQuestion": "このアイテムを新しい場所にコピーしますか？",
+    "moveItemQuestion": "このアイテムを新しい場所に移動しますか？",
+    "sourcePath": "ソース",
+    "destinationPath": "目的地だ："
   },
   "search": {
     "images": "画像",

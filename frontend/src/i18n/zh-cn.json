@@ -99,7 +99,10 @@
       "click": "选择多个文件或目录",
       "d": "下载所选项目",
       "b": "切换侧栏",
-      "comma": "进入设置"
+      "comma": "进入设置",
+      "c": "复制选定项目",
+      "v": "粘贴复制/剪切的项目",
+      "x": "删减"
     },
     "del": "删除所选的文件/文件夹",
     "esc": "清除已选项或关闭提示信息",
@@ -107,8 +110,8 @@
     "help": "帮助",
     "f1": "显示帮助提示",
     "description": "您可以查看下面的基本导航选项。有关其他信息，请访问",
-    "wiki": "文件浏览器量子维基",
-    "slash": "启动搜索"
+    "slash": "启动搜索",
+    "wiki": "FileBrowser Quantum 官方文档"
   },
   "languages": {
     "he": "עברית",
@@ -212,7 +215,12 @@
     "size": "尺寸{suffix}",
     "operationInProgress": "操作正在进行中，请稍候...",
     "saveBeforeExit": "未保存的更改",
-    "saveBeforeExitMessage": "编辑器中还有未保存的更改。您想怎么做？"
+    "saveBeforeExitMessage": "编辑器中还有未保存的更改。您想怎么做？",
+    "copyPasteConfirm": "复制/粘贴确认",
+    "copyItemQuestion": "将此项目复制到新位置？",
+    "moveItemQuestion": "将此项目移至新位置？",
+    "sourcePath": "资料来源",
+    "destinationPath": "目的地"
   },
   "search": {
     "images": "图像",

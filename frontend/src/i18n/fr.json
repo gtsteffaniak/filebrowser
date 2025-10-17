@@ -99,7 +99,10 @@
       "click": "Sélectionner plusieurs éléments",
       "d": "télécharger les éléments sélectionnés",
       "b": "barre latérale à bascule",
-      "comma": "accéder aux paramètres"
+      "comma": "accéder aux paramètres",
+      "c": "copier les éléments sélectionnés",
+      "v": "coller les éléments copiés/coupés",
+      "x": "couper les articles sélectionnés"
     },
     "del": "Supprimer les éléments sélectionnés",
     "esc": "Désélectionner et/ou fermer la boîte de dialogue",
@@ -107,8 +110,8 @@
     "help": "Aide",
     "f1": "show help prompt",
     "description": "Vous pouvez consulter les options de navigation de base ci-dessous. Pour plus d'informations, veuillez consulter le site",
-    "wiki": "Wiki FileBrowser Quantum",
-    "slash": "activer la recherche"
+    "slash": "activer la recherche",
+    "wiki": "Documents officiels de FileBrowser Quantum"
   },
   "languages": {
     "he": "עברית",
@@ -212,7 +215,12 @@
     "size": "Taille{suffix}",
     "operationInProgress": "Opération en cours, veuillez patienter...",
     "saveBeforeExit": "Modifications non sauvegardées",
-    "saveBeforeExitMessage": "Vous avez des modifications non enregistrées dans l'éditeur. Que souhaitez-vous faire ?"
+    "saveBeforeExitMessage": "Vous avez des modifications non enregistrées dans l'éditeur. Que souhaitez-vous faire ?",
+    "copyPasteConfirm": "Confirmation du copier/coller",
+    "copyItemQuestion": "Copier cet élément vers le nouvel emplacement ?",
+    "moveItemQuestion": "Déplacer cet élément vers le nouvel emplacement ?",
+    "sourcePath": "Source :",
+    "destinationPath": "Destination :"
   },
   "search": {
     "images": "Images",
