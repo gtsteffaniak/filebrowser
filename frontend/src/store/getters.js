@@ -482,7 +482,7 @@ export const getters = {
         modify: shareInfo.allowModify,
         create: shareInfo.allowCreate,
         delete: shareInfo.allowDelete,
-        download: shareInfo.disableDownload,
+        download: !shareInfo.disableDownload,
       };
     }
     return {
