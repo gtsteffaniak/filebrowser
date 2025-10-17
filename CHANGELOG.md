@@ -9,20 +9,33 @@ All notable changes to this project will be documented in this file. For commit 
  - Shortcut to toggle sidebar, open settings, search #1172
  - Add a "select all" toggle in the menu #974
  - Save on exit text editor -- thanks @srini-abhiram #1334 #1241
+ - Disabled indexing for subfolders but allow browsing #783
+ - Added more granular create/upload, delete, and download (includes viewing content) permission #1200 #1199
+ - Updated shares
+   - `disableDownload` to disable download and (content viewing).
+   - `allowReplacements` to share permission -- prohibits replacing files on conflict #661
+   - normal shares can create/upload files if given permission
 
  **Notes**:
  - Optimized font and icon loading.
  - the next/previous buttons will follow media queue order if playback mode has a queue.
+ - All new exclude rules -- see [full config example](https://github.com/gtsteffaniak/filebrowser/wiki/Full-Config-Example)
+ - The order of sources will strictly match order in config.yaml. Default landing page is root first source unless otherwise configured in profile settings.
+ - Uploading changes #1371
+   - Chunked uploading can no longer be explicitly disabled, defaults to 5MB chunks
+   - Automatic chunked/non-chunked uploads based on size. If an item exceeds the chunk size, chunked uploading will occur. If its less than chunk size, no chunked upload.
+   - To "disable" chunked upload, you an set your chunk size very large -- 0 chunk size will be reset to 5MB.
 
  **BugFixes**:
  - Remember the previous location after closing a preview #1336
- - fixed issue related to multi-config parsing 
- - Cannot save text files, missing button #1326
+ - fixed issue related to multi-config parsing #1267
+ - Cannot save text files, missing button #1326 #1367
  - Files are being overwritten and/or content disappears #1312
- - moving between items using next/previous will reset the req and show a responsive loading spinner -- fixing several state related issues. 
+ - moving between items using next/previous will reset the req and show a responsive loading spinner -- fixing several state related issues.
  - access management: child folders accessible stopped showing up #1332
  - Make source inaccessible if directory does not exist rather than exiting on start #1264
  - HTTP Proxy environment gets ignored since version v0.8.6-beta #1324
+ - album artwork preview not showing on shares
 
 ## v0.8.8-beta
 

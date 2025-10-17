@@ -37,8 +37,24 @@ async function resourceAction(source, path, method, content) {
     if (content) {
       opts.body = content
     }
-    const res = await fetchURL(apiPath, opts)
-    return res
+
+    const response = await fetchURL(apiPath, opts)
+    if (!response.ok) {
+      const error = new Error(response.statusText);
+      // attempt to marshal json response
+      let data = null;
+      try {
+        data = await response.json()
+      } catch (e) {
+        // ignore
+      }
+      if (data) {
+        error.message = data.message;
+      }
+      (/** @type {any} */ (error)).status = response.status;
+      throw error;
+    }
+    return response
   } catch (err) {
     notify.showError(err.message || 'Error performing resource action')
     throw err

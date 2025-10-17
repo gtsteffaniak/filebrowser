@@ -224,6 +224,9 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		body.Path = s.Path
 		body.Source = s.Source
 		s.CommonShare = body.CommonShare
+		if s.ShareType == "upload" && !body.AllowCreate {
+			s.AllowCreate = true
+		}
 
 		// Reset download counts if limit settings changed
 		if shouldResetCounts {
@@ -280,6 +283,9 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		if !exists {
 			return http.StatusForbidden, fmt.Errorf("path not found: %s", body.Path)
 		}
+	}
+	if body.ShareType == "upload" && !body.AllowCreate {
+		body.AllowCreate = true
 	}
 	body.Source = source.Path // backend source is path
 	s = &share.Link{

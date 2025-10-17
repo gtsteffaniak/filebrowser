@@ -17,7 +17,7 @@
       <div class="context-menu-header">
         <div
           class="action button clickable"
-          v-if="!isSearchActive && userPerms.modify && !isShare"
+          v-if="!isSearchActive && permissions.create && !isShare"
           @click="toggleShowCreate"
         >
           <i v-if="!showCreate" class="material-icons">add</i>
@@ -34,19 +34,19 @@
       </div>
       <hr class="divider">
       <action
-        v-if="showCreate && !isSearchActive && userPerms.modify"
+        v-if="showCreate && !isSearchActive"
         icon="create_new_folder"
         :label="$t('sidebar.newFolder')"
         @action="showHover('newDir')"
       />
       <action
-        v-if="showCreate && userPerms.modify && !isSearchActive"
+        v-if="showCreate && !isSearchActive"
         icon="note_add"
         :label="$t('sidebar.newFile')"
         @action="showHover('newFile')"
       />
       <action
-        v-if="showCreate && userPerms.modify && !isSearchActive"
+        v-if="showCreate && !isSearchActive"
         icon="file_upload"
         :label="$t('buttons.upload')"
         @action="uploadFunc"
@@ -59,7 +59,7 @@
       />
 
       <action
-        v-if="(!showCreate && selectedCount > 0)"
+        v-if="(!showCreate && permissions.download && selectedCount > 0)"
         icon="file_download"
         :label="$t('buttons.download')"
         @action="startDownload"
@@ -72,13 +72,13 @@
         @action="showShareHover"
       />
       <action
-        v-if="!showCreate && selectedCount == 1 && userPerms.modify && !isSearchActive"
+        v-if="!showCreate && selectedCount == 1 && permissions.modify && !isSearchActive"
         icon="mode_edit"
         :label="$t('buttons.rename')"
         @action="showRenameHover"
       />
       <action
-        v-if="!showCreate && selectedCount > 0 && userPerms.modify"
+        v-if="!showCreate && selectedCount > 0 && permissions.modify"
         icon="content_copy"
         :label="$t('buttons.copyFile')"
         show="copy"
@@ -90,7 +90,7 @@
         @action="openParentFolder"
       />
       <action
-        v-if="!showCreate && selectedCount > 0 && userPerms.modify"
+        v-if="!showCreate && selectedCount > 0 && permissions.modify"
         icon="forward"
         :label="$t('buttons.moveFile')"
         show="move"
@@ -179,6 +179,9 @@ export default {
     },
   },
   computed: {
+    permissions() {
+      return getters.permissions();
+    },
     req() {
       return state.req;
     },
@@ -201,28 +204,26 @@ export default {
       return this.showEdit || this.showDelete || this.showSave || this.showGoToRaw || this.hasDownload;
     },
     showGoToRaw() {
+      if (!this.permissions.download) {
+        return false;
+      }
       const cv = getters.currentView();
       return cv == "preview" || cv == "markdownViewer" || cv == "editor";
     },
     showEdit() {
       const cv = getters.currentView();
-      if (getters.isShare()) {
-        // TODO: add support for editing shared files
-        return false;
-      }
-      return cv == "markdownViewer" && state.user?.permissions?.modify;
+      return cv == "markdownViewer" && this.permissions.modify;
     },
     showDelete() {
-      const cv = getters.currentView();
-      if (getters.isShare() || !state.user?.permissions?.modify) {
-        // TODO: add support for deleting shared files
+      if (this.selectedCount == 0) {
         return false;
       }
-      const showDelete = cv != "settings" && !this.showCreate && this.selectedCount > 0 && !this.isSearchActive;
+      const cv = getters.currentView();
+      const showDelete = cv != "settings" && !this.isSearchActive && this.permissions.delete;
       return showDelete;
     },
     hasDownload() {
-      return this.selectedCount > 0;
+      return this.selectedCount > 0 && this.permissions.download;
     },
     isPreview() {
       const cv = getters.currentView();
@@ -240,19 +241,22 @@ export default {
         // TODO: add support for saving shared files
         return false;
       }
-      return getters.currentView() == "editor" && state.user?.permissions?.modify;
+      return getters.currentView() == "editor" && this.permissions.modify;
     },
     showOverflow() {
       return getters.currentPromptName() == "OverflowMenu";
     },
     showAccess() {
-      return state.user?.permissions?.admin && this.showCreate;
+      if (getters.isShare()) {
+        return false;
+      }
+      return this.permissions.admin && this.showCreate;
     },
     showShare() {
       if (getters.isShare()) {
         return false;
       }
-      return state.user?.permissions?.share;
+      return this.permissions.share;
     },
     showContext() {
       return getters.currentPromptName() == "ContextMenu";
@@ -280,13 +284,6 @@ export default {
     },
     selectedCount() {
       return getters.selectedCount();
-    },
-    userPerms() {
-      return {
-        upload: state.user?.permissions?.modify && state.selected.length > 0,
-        share: state.user?.permissions?.share,
-        modify: state.user?.permissions?.modify,
-      };
     },
     currentPrompt() {
       return getters.currentPrompt();
@@ -331,6 +328,10 @@ export default {
       });
     },
     toggleShowCreate() {
+      if (!this.permissions.create) {
+        this.showCreate = false;
+        return;
+      }
       this.showCreate = !this.showCreate;
     },
     shouldShowParentFolder() {
@@ -408,7 +409,7 @@ export default {
       }, 300);
     },
     startShowCreate() {
-      if (getters.isShare()) {
+      if (!this.permissions.create) {
         return;
       }
       this.showCreate = true;
@@ -441,7 +442,7 @@ export default {
     },
     initializeCreateState() {
       // Only set initial showCreate state, don't override user choices
-      if (state.selected.length > 0 || getters.isShare()) {
+      if (state.selected.length > 0 || !this.permissions.create) {
         this.showCreate = false;
       } else {
         this.showCreate = true;

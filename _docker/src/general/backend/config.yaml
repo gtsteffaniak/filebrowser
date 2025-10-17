@@ -2,3 +2,8 @@ server:
   <<: *server-main
 frontend:
   <<: *frontend-main
+
+userDefaults:
+  permissions:
+    download: true
+    create: true

@@ -90,7 +90,8 @@
     "sortByLastModified": "Nach Änderungsdatum sortieren",
     "sortByName": "Nach Namen sortieren",
     "sortBySize": "Nach Größe sortieren",
-    "noPreview": "Für diese Datei ist keine Vorschau verfügbar."
+    "noPreview": "Für diese Datei ist keine Vorschau verfügbar.",
+    "noDownloadAccess": "Der Download ist nicht verfügbar."
   },
   "help": {
     "click": "Wähle Datei oder Ordner",
@@ -284,7 +285,10 @@
       "share": "Datei teilen",
       "admin": "Verwalter",
       "api": "Erstellen und Verwalten von API-Schlüsseln mit langer Lebensdauer",
-      "realtime": "Verbindungen und Aktualisierungen in Echtzeit ermöglichen"
+      "realtime": "Verbindungen und Aktualisierungen in Echtzeit ermöglichen",
+      "create": "Dateien erstellen",
+      "delete": "Dateien löschen",
+      "download": "Dateien herunterladen"
     },
     "permissions-name": "Berechtigungen",
     "permissionsHelp": "Sie können einem Benutzer Administratorrechte einräumen oder die Berechtigunen individuell festlegen.  Wenn Sie \"Administrator\" auswählen, werden alle anderen Rechte automatisch vergeben. Die Nutzerverwaltung kann nur durch einen Administrator erfolgen.\n",
@@ -432,7 +436,17 @@
     "perUserDownloadLimitDescription": "Wenn diese Option aktiviert ist, wird das Download-Limit auf jeden Benutzer angewendet. Anonyme Benutzer können keine Dateien von dieser Freigabe herunterladen.",
     "descriptionUploadDefault": "Sie haben eine Freigabe zum Hochladen von Dateien erhalten.",
     "extractEmbeddedSubtitles": "Eingebettete Untertitel extrahieren",
-    "extractEmbeddedSubtitlesDescription": "Extrahieren von eingebetteten Untertiteln aus Mediendateien beim Laden - dies kann bei großen Dateien langsam sein."
+    "extractEmbeddedSubtitlesDescription": "Extrahieren von eingebetteten Untertiteln aus Mediendateien beim Laden - dies kann bei großen Dateien langsam sein.",
+    "disableDownload": "Herunterladen von Dateien deaktivieren",
+    "disableDownloadDescription": "Niemand wird in der Lage sein, Dateien herunterzuladen oder den Inhalt einer Datei einzusehen.",
+    "allowModify": "Bearbeitung von Dateien zulassen",
+    "allowModifyDescription": "Jeder kann Dateien in dieser Freigabe bearbeiten.",
+    "allowDelete": "Löschen von Dateien zulassen",
+    "allowDeleteDescription": "Jeder kann Dateien und Ordner von dieser Freigabe löschen.",
+    "allowReplacements": "Ersetzen von Dateien zulassen",
+    "allowReplacementsDescription": "Jeder kann beim Hochladen von Dateien mit demselben Namen bestehende Dateien ersetzen.",
+    "allowCreate": "Ermöglicht das Erstellen und Hochladen von Dateien und Ordnern",
+    "allowCreateDescription": "Jeder kann neue Dateien und Ordner in dieser Freigabe erstellen und hochladen."
   },
   "api": {
     "title": "API-Schlüssel:",
@@ -603,7 +617,6 @@
     "uninitialized": "Der Editor konnte nicht initialisiert werden. Bitte neu laden.",
     "saveFailed": "Datei konnte nicht gespeichert werden. Bitte versuchen Sie es erneut.",
     "saveAborted": "Speichern abgebrochen. Der Dateiname stimmt nicht mit der aktiven Datei überein.",
-    "saveDisabled": "Das Speichern von gemeinsam genutzten Dateien wird nicht unterstützt.",
     "saveAbortedMessage": "Der Speichervorgang wurde abgebrochen. Die aktive Datei der Anwendung ({activeFile}) stimmt nicht mit der Datei überein, die Sie zu speichern versuchen ({tryingToSave}).",
     "syncFailed": "Nach 5 Versuchen ist es nicht gelungen, den Status mit der Route für \"{filename}\" zu synchronisieren. Abbruch der Editor-Einrichtung, um Datenbeschädigung zu vermeiden."
   },

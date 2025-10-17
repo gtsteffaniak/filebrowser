@@ -44,9 +44,15 @@ export default {
       originalReq: null,
       saveLocked: false, // Lock saves during req transitions
       currentReqPath: null, // Track current path for transition detection
+      navigationGuard: null, // Navigation guard to prevent navigation with unsaved changes
+      isPromptOpen: false, // Track if prompt is currently open for avoid navigation
+      pendingNavigation: null, // Store pending navigation while prompt is open
     };
   },
   computed: {
+    permissions() {
+      return getters.permissions();
+    },
     isDarkMode() {
       return getters.isDarkMode();
     },
@@ -70,11 +76,9 @@ export default {
       if (this.viewerMode) {
         return this.content || "";
       }
-      
       if (!this.isStateSynced) {
         return ""; // Show blank content until synced
       }
-      
       return this.req.content === "empty-file-x6OlSil" ? "" : (this.req.content || "");
     },
     // Editor mode/language
@@ -82,27 +86,26 @@ export default {
       if (this.viewerMode) {
         return this.getAceMode(this.editorMode);
       }
-      
       if (!this.isStateSynced || !this.req) {
         return "ace/mode/text";
       }
-      
+
       return modelist.getModeForPath(this.req.name).mode;
     },
     // Editor read-only state
     editorReadOnly() {
+      if (!this.permissions.modify) {
+        return true;
+      }
       if (this.readOnly !== null) {
         return this.readOnly;
       }
-      
       if (this.viewerMode) {
         return true;
       }
-      
       if (!this.isStateSynced) {
         return true; // Read-only until synced
       }
-      
       return this.req.type === "textImmutable";
     },
   },
@@ -125,11 +128,11 @@ export default {
         this.originalReq = newReq;
         this.isDirty = false; // Reset dirty flag for new file
         mutations.setEditorDirty(false);
-        
+
         // Lock saves temporarily
         this.saveLocked = true;
         this.currentReqPath = newReq.path;
-        
+
         // Unlock after content loads
         setTimeout(() => {
           if (this.req.path === this.currentReqPath) {
@@ -177,6 +180,16 @@ export default {
   created() {
     window.addEventListener("keydown", this.keyEvent);
     eventBus.on("handleEditorValueRequest", this.handleEditorValueRequest);
+
+    // Show generic browser dialog if the user closes the tab, or try to close the browser with unsaved changes
+    this.beforeUnloadHandler = (event) => {
+      if (this.isDirty && !this.viewerMode) {
+        event.preventDefault();
+      }
+    };
+    window.addEventListener("beforeunload", this.beforeUnloadHandler);
+
+    this.setupNavigationGuard();
   },
   beforeRouteLeave(to, from, next) {
     // Only show prompt if there are unsaved changes and not in viewer mode
@@ -188,11 +201,21 @@ export default {
   },
   beforeUnmount() {
     window.removeEventListener("keydown", this.keyEvent);
-    
+    window.removeEventListener("beforeunload", this.beforeUnloadHandler);
+
+    if (this.readOnly) {
+      return;
+    }
+
+    // Clear navigation guard
+    if (this.navigationGuard) {
+      this.navigationGuard();
+    }
+
     // Clear dirty state and save handler when leaving editor
     mutations.setEditorDirty(false);
     mutations.setEditorSaveHandler(null);
-    
+
     if (this.editor) {
       this.editor.destroy();
     }
@@ -200,7 +223,7 @@ export default {
   mounted: function () {
     this.initializeEditor();
     this.originalReq = this.req;
-    
+
     // Register save handler so other components can trigger save
     mutations.setEditorSaveHandler(() => this.handleEditorValueRequest());
   },
@@ -228,12 +251,12 @@ export default {
       }
 
       let directoryPath = url.removeLastDir(this.req.path);
-      
+
       // If directoryPath is empty, the file is in root - use '/' as the directory
       if (!directoryPath || directoryPath === '') {
         directoryPath = '/';
       }
-      
+
       let listing = null;
 
       if (this.req.items) {
@@ -349,9 +372,9 @@ export default {
 
       // Filename protection - ensure state is synced before saving
       if (!this.isStateSynced) {
-        const errorMsg = this.$t("editor.saveAbortedMessage", { 
-          activeFile: this.originalReq?.name || "unknown", 
-          tryingToSave: this.routeFilename || "unknown" 
+        const errorMsg = this.$t("editor.saveAbortedMessage", {
+          activeFile: this.originalReq?.name || "unknown",
+          tryingToSave: this.routeFilename || "unknown"
         });
         notify.showError(errorMsg);
         throw new Error(errorMsg);
@@ -365,14 +388,13 @@ export default {
 
       try {
         if (getters.isShare()) {
-          // TODO: add support for saving shared files
-          const errorMsg = this.$t("share.saveDisabled");
-          notify.showError(errorMsg);
-          throw new Error(errorMsg);
+          // Save the file
+          await publicApi.put(this.originalReq.path, this.editor.getValue());
+        } else {
+          // Save the file
+          await filesApi.put(this.originalReq.source, this.originalReq.path, this.editor.getValue());
         }
 
-        // Save the file
-        await filesApi.put(this.originalReq.source, this.originalReq.path, this.editor.getValue());
         notify.showSuccess(`${this.originalReq.name} saved successfully.`);
         this.isDirty = false;
         mutations.setEditorDirty(false);
@@ -395,7 +417,31 @@ export default {
         this.handleEditorValueRequest();
       }
     },
-    showSaveBeforeExitPrompt(next) {
+    setupNavigationGuard() {
+      if (this.viewerMode) return;
+
+      this.navigationGuard = this.$router.beforeEach((to, from, next) => {
+        // If prompt is already open, block any new navigation attempts
+        if (this.isPromptOpen) {
+          next(false);
+          return;
+        }
+
+        // Check if we are navigating to a different route
+        const isDifferentRoute = to.path !== from.path || to.hash !== from.hash;
+
+        if (this.isDirty && !this.viewerMode && isDifferentRoute) {
+          if (this.req) {
+            this.pendingNavigation = { to, from, next };
+            this.showSaveBeforeExitPrompt();
+            return;
+          }
+        }
+        next();
+      });
+    },
+    showSaveBeforeExitPrompt() {
+      this.isPromptOpen = true;
       mutations.showHover({
         name: "SaveBeforeExit",
         confirm: async () => {
@@ -404,7 +450,7 @@ export default {
             await this.handleEditorValueRequest();
             this.isDirty = false;
             mutations.setEditorDirty(false);
-            next(); // Allow navigation
+            this.executePendingNavigation();
           } catch (error) {
             // If save fails, call next(false) to prevent navigation
             next(false);
@@ -416,13 +462,27 @@ export default {
           // Discard changes and exit
           this.isDirty = false;
           mutations.setEditorDirty(false);
-          next(); // Allow navigation
+          this.executePendingNavigation();
         },
         cancel: () => {
           // Keep editing - block navigation
-          next(false);
+          this.cancelPendingNavigation();
         },
       });
+    },
+    executePendingNavigation() {
+      this.isPromptOpen = false;
+      if (this.pendingNavigation && typeof this.pendingNavigation.next === 'function') {
+        this.pendingNavigation.next();
+      }
+      this.pendingNavigation = null;
+    },
+    cancelPendingNavigation() {
+      this.isPromptOpen = false;
+      if (this.pendingNavigation && typeof this.pendingNavigation.next === 'function') {
+        this.pendingNavigation.next(false);
+      }
+      this.pendingNavigation = null;
     },
   },
 };

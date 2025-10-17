@@ -20,8 +20,7 @@ frontend/tsconfig.tsbuildinfo
 /frontend/package-lock.json
 /backend/vendor
 /backend/*.cov
-/backend/test_config.yaml
-/backend/test-*.yaml
+/backend/*test_config.yaml
 /backend/generated.yaml
 /backend/srv
 /backend/http/dist

@@ -8,8 +8,12 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
+	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/indexing"
+	"github.com/gtsteffaniak/filebrowser/backend/preview"
 	"github.com/gtsteffaniak/go-logger/logger"
 
 	_ "github.com/gtsteffaniak/filebrowser/backend/swagger/docs"
@@ -35,6 +39,11 @@ import (
 func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	if d.share.ShareType == "upload" {
 		return http.StatusNotImplemented, fmt.Errorf("downloads are disabled for upload shares")
+	}
+
+	// Check DisableDownload permission for normal shares
+	if d.share.DisableDownload {
+		return http.StatusForbidden, fmt.Errorf("downloads are not allowed for this share")
 	}
 
 	// Check global download limit (if not using per-user limits)
@@ -103,6 +112,9 @@ func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	var status int
 	status, err = rawFilesHandler(w, r, d, fileList)
 	if err != nil {
+		if err == errors.ErrDownloadNotAllowed {
+			return http.StatusForbidden, errors.ErrDownloadNotAllowed
+		}
 		logger.Errorf("public share handler: error processing filelist: '%v' with error %v", f, err)
 		return status, fmt.Errorf("error processing filelist: %v", f)
 	}
@@ -150,8 +162,12 @@ func publicGetResourceHandler(w http.ResponseWriter, r *http.Request, d *request
 // @Failure 501 {object} map[string]string "Uploading disabled for non-upload shares"
 // @Router /public/api/resources [post]
 func publicUploadHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	if d.share.ShareType != "upload" {
-		return http.StatusNotImplemented, fmt.Errorf("uploading is disabled for non-upload shares")
+	if d.share.ShareType != "upload" && !d.share.AllowCreate {
+		return http.StatusForbidden, fmt.Errorf("uploading is disabled for this share")
+	}
+
+	if !d.share.AllowReplacements && r.URL.Query().Get("action") == "override" {
+		return http.StatusForbidden, fmt.Errorf("cannot overwrite files for this share")
 	}
 
 	fullPath := filepath.Join(d.share.Path, r.URL.Query().Get("targetPath"))
@@ -165,7 +181,7 @@ func publicUploadHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 
 	status, err := resourcePostHandler(w, r, d)
 	if err != nil {
-		logger.Errorf("public upload handler: error uploading: '%v' with error %v", d.fileInfo, err)
+		logger.Errorf("public upload handler: error uploading with error %v", err)
 		return http.StatusInternalServerError, fmt.Errorf("upload failure occured on backend")
 	}
 	return status, err
@@ -215,19 +231,182 @@ func publicPreviewHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 
 	// Restore source name from share for preview generation
 	// The middleware clears file.Source for security, but we need it for index lookups
-	if d.fileInfo.Source == "" && d.share != nil {
-		sourceInfo, ok := settings.Config.Server.SourceMap[d.share.Source]
-		if !ok {
-			// Don't expose internal errors to share users
-			return http.StatusNotFound, fmt.Errorf("resource not available")
-		}
-		d.fileInfo.Source = sourceInfo.Name
+	source, err := d.share.GetSourceName()
+	if err != nil {
+		return http.StatusNotFound, fmt.Errorf("source not available")
 	}
-
+	fileInfo, err := FileInfoFasterFunc(utils.FileOptions{
+		Path:     utils.JoinPathAsUnix(d.share.Path, d.fileInfo.Path),
+		Source:   source,
+		Metadata: true,
+	}, nil)
+	if err != nil {
+		return http.StatusNotFound, fmt.Errorf("resource not available")
+	}
+	d.fileInfo = *fileInfo
 	status, err := previewHelperFunc(w, r, d)
 	if err != nil {
 		// Obfuscate errors for shares to prevent information leakage
 		return http.StatusNotFound, fmt.Errorf("preview not available for this item")
 	}
 	return status, err
+}
+
+// publicPutHandler handles the PUT request for a public share.
+// @Summary Update a file in a public share
+// @Description Updates the content of a file in a public share.
+// @Tags Public Shares
+// @Accept json
+// @Produce json
+// @Param hash query string true "Share hash for authentication"
+// @Param path query string true "Path to the file to update"
+// @Param content body string true "New content for the file"
+// @Success 200 {object} map[string]string "File updated successfully"
+// @Failure 400 {object} map[string]string "Invalid request or parameters"
+// @Failure 403 {object} map[string]string "Share unavailable or update not allowed"
+// @Failure 404 {object} map[string]string "Share not found or file not found"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /public/api/resources [put]
+func publicPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	// update path to be the source path
+	if !d.share.AllowModify {
+		return http.StatusForbidden, fmt.Errorf("create is not allowed for this share")
+	}
+	source, err := d.share.GetSourceName()
+	if err != nil {
+		return http.StatusNotFound, fmt.Errorf("source not available")
+	}
+
+	if !d.share.AllowModify {
+		return http.StatusForbidden, fmt.Errorf("edit permission not allowed for this share")
+	}
+	path := r.URL.Query().Get("path")
+
+	// Decode the URL-encoded path
+	path, err = url.QueryUnescape(path)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
+	}
+	fileOpts := utils.FileOptions{
+		Username: d.user.Username,
+		Path:     utils.JoinPathAsUnix(d.share.Path, path),
+		Source:   source,
+		Expand:   false,
+	}
+	err = files.WriteFile(fileOpts, r.Body)
+	return errToStatus(err), err
+}
+
+func publicDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	if !d.share.AllowDelete {
+		return http.StatusForbidden, fmt.Errorf("delete is not allowed for this share")
+	}
+
+	// TODO source := r.URL.Query().Get("source")
+	encodedPath := r.URL.Query().Get("path")
+
+	// Decode the URL-encoded path
+	path, err := url.QueryUnescape(encodedPath)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
+	}
+	indexPath := utils.JoinPathAsUnix(d.share.Path, path)
+	source, err := d.share.GetSourceName()
+	if err != nil {
+		return http.StatusNotFound, fmt.Errorf("source not available")
+	}
+
+	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
+		Username: d.user.Username,
+		Path:     indexPath,
+		Source:   source,
+		Expand:   false,
+	}, nil)
+	if err != nil {
+		return http.StatusNotFound, fmt.Errorf("resource not available")
+	}
+
+	// delete thumbnails
+	preview.DelThumbs(r.Context(), *fileInfo)
+
+	err = files.DeleteFiles(source, fileInfo.RealPath, filepath.Dir(fileInfo.RealPath))
+	if err != nil {
+		return http.StatusInternalServerError, fmt.Errorf("an error occured while deleting the resource")
+	}
+	return http.StatusOK, nil
+}
+
+func publicPatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	if !d.share.AllowModify {
+		return http.StatusForbidden, fmt.Errorf("edit permission not allowed for this share")
+	}
+	// The middleware clears file.Source for security, but we need it for index lookups
+	source, err := d.share.GetSourceName()
+	if err != nil {
+		return http.StatusNotFound, fmt.Errorf("source not available")
+	}
+	action := r.URL.Query().Get("action")
+	encodedFrom := r.URL.Query().Get("from")
+	// Decode the URL-encoded path
+	src, err := url.QueryUnescape(encodedFrom)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
+	}
+	dst := r.URL.Query().Get("destination")
+	dst, err = url.QueryUnescape(dst)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
+	}
+
+	idx := indexing.GetIndex(source)
+	if idx == nil {
+		return http.StatusNotFound, fmt.Errorf("source for share not found")
+	}
+
+	// get full paths for both locations
+	srcFullPath := utils.JoinPathAsUnix(d.share.Path, src)
+	if srcFullPath == "/" {
+		return http.StatusForbidden, fmt.Errorf("an error occured accessing the share")
+	}
+	dstFullPath := utils.JoinPathAsUnix(d.share.Path, dst)
+	if dstFullPath == "/" {
+		return http.StatusForbidden, fmt.Errorf("an error occured accessing the share")
+	}
+
+	// get real source and isDir
+	realSrc, isSrcDir, err := idx.GetRealPath(srcFullPath)
+	if err != nil {
+		return http.StatusNotFound, err
+	}
+	// get real destination and isDir parent
+	parentRealDest, _, err := idx.GetRealPath(filepath.Dir(dstFullPath))
+	if err != nil {
+		return http.StatusNotFound, err
+	}
+	dstFullPath = parentRealDest + "/" + filepath.Base(dst)
+	rename := r.URL.Query().Get("rename") == "true"
+	if rename {
+		dstFullPath = addVersionSuffix(dstFullPath)
+	}
+	// Validate move/rename operation to prevent circular references
+	if action == "rename" || action == "move" {
+		err = validateMoveOperation(realSrc, dstFullPath, isSrcDir)
+		if err != nil {
+			return http.StatusBadRequest, fmt.Errorf("invalid move or rename operation")
+		}
+	}
+	err = patchAction(r.Context(), patchActionParams{
+		action:   action,
+		srcIndex: source,
+		dstIndex: source,
+		src:      realSrc,
+		dst:      dstFullPath,
+		d:        d,
+		isSrcDir: isSrcDir,
+	})
+	if err != nil {
+		logger.Debugf("Could not run patch action. src=%v dst=%v err=%v", realSrc, dstFullPath, err)
+		return http.StatusInternalServerError, fmt.Errorf("an error occured while processing the request")
+	}
+	return http.StatusOK, nil
 }

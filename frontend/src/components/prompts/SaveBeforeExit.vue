@@ -8,23 +8,23 @@
   </div>
 
   <div class="card-action">
-    <button 
-      class="button button--flat button--grey" 
-      @click="discardAndExit" 
-      :aria-label="$t('buttons.discardAndExit')"
-      :title="$t('buttons.discardAndExit')">
-      {{ $t("buttons.discardAndExit") }}
-    </button>
-    <button 
-      class="button button--flat button--blue" 
-      @click="keepEditing" 
+    <button
+      class="button button--flat button--grey"
+      @click="keepEditing"
       :aria-label="$t('buttons.keepEditing')"
       :title="$t('buttons.keepEditing')">
       {{ $t("buttons.keepEditing") }}
     </button>
-    <button 
-      class="button button--flat" 
-      @click="saveAndExit" 
+    <button
+      class="button button--flat button--blue"
+      @click="discardAndExit"
+      :aria-label="$t('buttons.discardAndExit')"
+      :title="$t('buttons.discardAndExit')">
+      {{ $t("buttons.discardAndExit") }}
+    </button>
+    <button
+      class="button button--flat"
+      @click="saveAndExit"
       :aria-label="$t('buttons.saveAndExit')"
       :title="$t('buttons.saveAndExit')">
       {{ $t("buttons.saveAndExit") }}

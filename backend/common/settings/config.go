@@ -1,6 +1,7 @@
 package settings
 
 import (
+	"bytes"
 	"fmt"
 	"log"
 	"os"
@@ -155,16 +156,12 @@ func setupVideoPreview() {
 	}
 }
 
-func getRealPath(path string) string {
-	realPath, err := filepath.Abs(path)
-	if err != nil {
-		logger.Fatalf("could not find configured source path: %v", err)
-	}
+func checkPathExists(realPath string) error {
 	// check path exists
-	if _, err = os.Stat(realPath); os.IsNotExist(err) {
-		logger.Warningf("configured source path is currently not available: %v", realPath)
+	if _, err := os.Stat(realPath); os.IsNotExist(err) {
+		return fmt.Errorf("source path %v is currently not available", realPath)
 	}
-	return realPath
+	return nil
 }
 
 func setupSources(generate bool) {
@@ -175,7 +172,14 @@ func setupSources(generate bool) {
 			if source.Config.Disabled {
 				continue
 			}
-			realPath := getRealPath(source.Path)
+			realPath, err := filepath.Abs(source.Path)
+			if err != nil {
+				logger.Fatalf("error getting real path for source %v: %v", source.Path, err)
+			}
+			err = checkPathExists(realPath)
+			if err != nil {
+				logger.Warningf("error checking path exists: %v", err)
+			}
 			name := filepath.Base(realPath)
 			if name == "\\" {
 				name = strings.Split(realPath, ":")[0]
@@ -194,6 +198,7 @@ func setupSources(generate bool) {
 				}
 			}
 			modifyExcludeInclude(source)
+			setConditionals(source)
 			if source.Config.DefaultUserScope == "" {
 				source.Config.DefaultUserScope = "/"
 			}
@@ -209,14 +214,12 @@ func setupSources(generate bool) {
 		Config.Server.Sources[0].Config.DefaultEnabled = true
 	}
 	for _, sourcePathOnly := range Config.Server.Sources {
-		var realPath string
+		absPath := sourcePathOnly.Path
 		if generate {
 			// When generating, skip path validation and use the already-set path
-			realPath = sourcePathOnly.Path
-		} else {
-			realPath = getRealPath(sourcePathOnly.Path)
+			absPath = sourcePathOnly.Path
 		}
-		source, ok := Config.Server.SourceMap[realPath]
+		source, ok := Config.Server.SourceMap[absPath]
 		if ok && !slices.Contains(allSourceNames, source.Name) {
 			sourceList = append(sourceList, source)
 			if source.Config.DefaultEnabled {
@@ -343,8 +346,40 @@ func loadConfigWithDefaults(configFile string, generate bool) error {
 		return fmt.Errorf("failed to combine YAML files: %v", err)
 	}
 
-	// Decode the combined YAML
-	err = yaml.Unmarshal(combinedYAML, &Config)
+	// First pass: Unmarshal into a generic map to resolve all anchors and aliases
+	// This allows YAML anchors defined in auxiliary files to be properly merged
+	var rawConfig map[string]interface{}
+	err = yaml.Unmarshal(combinedYAML, &rawConfig)
+	if err != nil {
+		return fmt.Errorf("error parsing YAML data: %v", err)
+	}
+
+	// Filter to only keep valid top-level Settings struct fields
+	// This removes anchor definitions that are just templates (e.g., "test_server: &test_server")
+	validFields := map[string]bool{
+		"server":       true,
+		"auth":         true,
+		"integrations": true,
+		"frontend":     true,
+		"userDefaults": true,
+	}
+
+	filteredConfig := make(map[string]interface{})
+	for key, value := range rawConfig {
+		if validFields[key] {
+			filteredConfig[key] = value
+		}
+	}
+
+	// Marshal the filtered config back to YAML
+	filteredYAML, err := yaml.Marshal(filteredConfig)
+	if err != nil {
+		return fmt.Errorf("error re-marshaling filtered YAML: %v", err)
+	}
+
+	// Second pass: Decode with strict validation (disallow unknown fields within valid sections)
+	decoder := yaml.NewDecoder(bytes.NewReader(filteredYAML), yaml.DisallowUnknownField())
+	err = decoder.Decode(&Config)
 	if err != nil {
 		return fmt.Errorf("error unmarshaling YAML data: %v", err)
 	}
@@ -614,11 +649,15 @@ func GetScopeFromSourcePath(scopes []users.SourceScope, sourcePath string) (stri
 // assumes backend style scopes
 func GetSources(u *users.User) []string {
 	sources := []string{}
-	for _, scope := range u.Scopes {
-		source, ok := Config.Server.SourceMap[scope.Name]
-		if ok {
-			sources = append(sources, source.Name)
+
+	// preserves order of sources
+	for _, source := range Config.Server.Sources {
+		_, err := GetScopeFromSourcePath(u.Scopes, source.Path)
+		if err != nil {
+			logger.Warningf("could not get scope for source %v: %v", source.Path, err)
+			continue
 		}
+		sources = append(sources, source.Name)
 	}
 	return sources
 }
@@ -671,27 +710,94 @@ func loadCustomFavicon() {
 	logger.Infof("Successfully validated custom favicon at '%v' (%d bytes, %s)", faviconPath, stat.Size(), ext)
 }
 
-func modifyExcludeInclude(config *Source) {
-	normalize := func(s []string, checkExists bool) {
-		for i, v := range s {
-			s[i] = "/" + strings.Trim(v, "/")
-			// check if file/folder exists
-			if checkExists {
-				realPath, err := filepath.Abs(config.Path + s[i])
-				if err != nil {
-					logger.Warningf("could not get absolute path for %v: %v", s[i], err)
-					continue
-				}
-				if _, err := os.Stat(realPath); os.IsNotExist(err) {
-					logger.Warningf("configured exclude/include path %v does not exist", realPath)
-				}
-			}
-		}
+// setConditionalsMap builds optimized map structures from conditional rules for O(1) lookups
+func setConditionals(config *Source) {
+	rules := config.Config.Conditionals.ItemRules
+
+	// Initialize the maps structure (only exact match maps for Names)
+	resolved := &ResolvedConditionalsConfig{
+		FileNames:        make(map[string]ConditionalIndexConfig),
+		FolderNames:      make(map[string]ConditionalIndexConfig),
+		FilePaths:        make(map[string]ConditionalIndexConfig),
+		FolderPaths:      make(map[string]ConditionalIndexConfig),
+		FileEndsWith:     make([]ConditionalIndexConfig, 0),
+		FolderEndsWith:   make([]ConditionalIndexConfig, 0),
+		FileStartsWith:   make([]ConditionalIndexConfig, 0),
+		FolderStartsWith: make([]ConditionalIndexConfig, 0),
+		NeverWatchPaths:  make(map[string]struct{}),
+		IncludeRootItems: make(map[string]struct{}),
 	}
 
-	normalize(config.Config.Exclude.FolderPaths, true)
-	normalize(config.Config.Exclude.FilePaths, true)
-	normalize(config.Config.Include.RootFolders, true)
-	normalize(config.Config.Include.RootFiles, true)
-	normalize(config.Config.NeverWatchPaths, true)
+	for _, rule := range rules {
+		if rule.FileEndsWith != "" {
+			resolved.FileEndsWith = append(resolved.FileEndsWith, rule)
+		}
+		if rule.FolderEndsWith != "" {
+			resolved.FolderEndsWith = append(resolved.FolderEndsWith, rule)
+		}
+		if rule.FileStartsWith != "" {
+			resolved.FileStartsWith = append(resolved.FileStartsWith, rule)
+		}
+		if rule.FolderStartsWith != "" {
+			resolved.FolderStartsWith = append(resolved.FolderStartsWith, rule)
+		}
+		if rule.FilePath != "" {
+			resolved.FilePaths[rule.FilePath] = rule
+		}
+		if rule.FolderPath != "" {
+			resolved.FolderPaths[rule.FolderPath] = rule
+		}
+		if rule.NeverWatchPath != "" {
+			resolved.NeverWatchPaths[rule.NeverWatchPath] = struct{}{}
+		}
+		if rule.IncludeRootItem != "" {
+			resolved.IncludeRootItems[rule.IncludeRootItem] = struct{}{}
+		}
+	}
+	config.Config.ResolvedConditionals = resolved
+}
+
+func modifyExcludeInclude(config *Source) {
+	// Helper to normalize a full path value (FilePaths, FolderPaths)
+	// These always start with "/" and match against full index paths
+	normalizeFullPath := func(value string, checkExists bool) string {
+		if value == "" {
+			return ""
+		}
+		normalized := "/" + strings.Trim(value, "/")
+		// check if file/folder exists
+		if checkExists {
+			realPath, err := filepath.Abs(config.Path + normalized)
+			if err != nil {
+				logger.Warningf("could not get absolute path for %v: %v", normalized, err)
+				return normalized
+			}
+			if _, err := os.Stat(realPath); os.IsNotExist(err) {
+				logger.Warningf("configured exclude/include path %v does not exist", realPath)
+			}
+		}
+		return normalized
+	}
+
+	// Helper to normalize a name-based value (FileNames, FolderNames, StartsWith, EndsWith)
+	// These match against baseName, so no leading slash
+	normalizeName := func(value string) string {
+		// Just trim slashes - names shouldn't have slashes
+		return strings.Trim(value, "/")
+	}
+
+	// Normalize []ConditionalIndexConfig slices for full paths
+	for i, rule := range config.Config.Conditionals.ItemRules {
+
+		// normalize full paths
+		config.Config.Conditionals.ItemRules[i].FilePath = normalizeFullPath(rule.FilePath, true)
+		config.Config.Conditionals.ItemRules[i].FolderPath = normalizeFullPath(rule.FolderPath, true)
+		config.Config.Conditionals.ItemRules[i].NeverWatchPath = normalizeFullPath(rule.NeverWatchPath, true)
+		config.Config.Conditionals.ItemRules[i].IncludeRootItem = normalizeFullPath(rule.IncludeRootItem, true)
+
+		// normalize names
+		config.Config.Conditionals.ItemRules[i].FileNames = normalizeName(rule.FileNames)
+		config.Config.Conditionals.ItemRules[i].FolderNames = normalizeName(rule.FolderNames)
+	}
+
 }

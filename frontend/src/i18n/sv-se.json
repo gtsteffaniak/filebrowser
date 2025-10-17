@@ -90,7 +90,8 @@
     "sortByLastModified": "Sortera på senast ändrad",
     "sortByName": "Sortera på namn",
     "sortBySize": "Sortera på storlek",
-    "noPreview": "Förhandsgranskning är inte tillgänglig för den här filen."
+    "noPreview": "Förhandsgranskning är inte tillgänglig för den här filen.",
+    "noDownloadAccess": "Nedladdning är inte tillgänglig."
   },
   "help": {
     "click": "välj fil eller mapp",
@@ -280,7 +281,10 @@
       "share": "Dela filer",
       "admin": "Administratör",
       "api": "Skapa och hantera API-nycklar med lång livslängd",
-      "realtime": "Möjliggör anslutningar och uppdateringar i realtid"
+      "realtime": "Möjliggör anslutningar och uppdateringar i realtid",
+      "create": "Skapa filer",
+      "delete": "Radera filer",
+      "download": "Ladda ner filer"
     },
     "permissions-name": "Rättigheter",
     "permissionsHelp": "Du kan ange att användaren ska vara administratör eller välja behörigheterna individuellt. Om du väljer \"administratör \" kommer alla andra alternativ att kontrolleras automatiskt. Hanteringen av användare är fortfarande ett privilegium för en administratör.\n",
@@ -432,7 +436,17 @@
     "perUserDownloadLimitDescription": "När den är aktiverad kommer nedladdningsgränsen att tillämpas på varje användare. Anonyma användare kan inte ladda ner några filer från den här delningen.",
     "descriptionUploadDefault": "En andel har skickats till dig för att ladda upp filer.",
     "extractEmbeddedSubtitles": "Extrahera inbäddade undertexter",
-    "extractEmbeddedSubtitlesDescription": "Extrahera inbäddade undertexter från mediefiler vid laddning - detta kan vara långsamt för stora filer."
+    "extractEmbeddedSubtitlesDescription": "Extrahera inbäddade undertexter från mediefiler vid laddning - detta kan vara långsamt för stora filer.",
+    "disableDownload": "Inaktivera nedladdning av filer",
+    "disableDownloadDescription": "Vem som helst kommer inte att kunna ladda ner filer eller visa innehållet i en fil.",
+    "allowModify": "Tillåt redigering av filer",
+    "allowModifyDescription": "Vem som helst kan redigera filer i den här delen.",
+    "allowDelete": "Tillåt radering av filer",
+    "allowDeleteDescription": "Vem som helst kan radera filer och mappar från denna delning.",
+    "allowReplacements": "Tillåt filbyten",
+    "allowReplacementsDescription": "Vem som helst kan ersätta befintliga filer när de laddar upp filer med samma namn.",
+    "allowCreate": "Tillåt skapande och uppladdning av filer och mappar",
+    "allowCreateDescription": "Vem som helst kan skapa och ladda upp nya filer och mappar i den här delen."
   },
   "api": {
     "title": "API-nycklar",
@@ -603,7 +617,6 @@
     "uninitialized": "Redigeraren kunde inte initieras. Vänligen ladda om.",
     "saveFailed": "Misslyckades med att spara filen. Vänligen försök igen.",
     "saveAborted": "Spara avbröts. Filnamnet stämmer inte överens med den aktiva filen.",
-    "saveDisabled": "Sparande av delade filer stöds inte.",
     "saveAbortedMessage": "Spara åtgärden avbröts. Programmets aktiva fil ({activeFile}) stämmer inte överens med den fil du försöker spara ({tryingToSave}).",
     "syncFailed": "lyckades inte synkronisera tillstånd med rutten för \"{filename}\" efter 5 försök. Avbryter redigeringsinställningen för att förhindra datakorruption."
   },

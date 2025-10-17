@@ -167,6 +167,65 @@ definitions:
         description: 'secret: secret used to encrypt TOTP secrets'
         type: string
     type: object
+  settings.ConditionalFilter:
+    properties:
+      hidden:
+        description: exclude hidden files and folders.
+        type: boolean
+      ignoreZeroSizeFolders:
+        description: ignore folders with 0 size
+        type: boolean
+      rules:
+        description: list of item rules to apply to specific paths
+        items:
+          $ref: '#/definitions/settings.ConditionalIndexConfig'
+        type: array
+    type: object
+  settings.ConditionalIndexConfig:
+    properties:
+      fileEndsWith:
+        description: (global) exclude files that end with these suffixes. Eg. ".jpg"
+          or ".txt"
+        type: string
+      fileNames:
+        description: (global) exclude files that match these names. Eg. "file.txt"
+          or "test.csv"
+        type: string
+      filePath:
+        description: (global) exclude files that match this path. Eg. "/path/to/file.txt"
+          or "/path/to/file.txt/subfile.txt"
+        type: string
+      fileStartsWith:
+        description: (global) exclude files that start with these prefixes. Eg. "archive-"
+          or "backup-"
+        type: string
+      folderEndsWith:
+        description: (global) exclude folders that end with these suffixes. Eg. ".thumbnails"
+          or ".git"
+        type: string
+      folderNames:
+        description: (global) exclude folders that match these names. Eg. "folder"
+          or "subfolder"
+        type: string
+      folderPath:
+        description: (global) exclude folders that match this path. Eg. "/path/to/folder"
+          or "/path/to/folder/subfolder"
+        type: string
+      folderStartsWith:
+        description: (global) exclude folders that start with these prefixes. Eg.
+          "archive-" or "backup-"
+        type: string
+      includeRootItem:
+        description: include only these items at root folder level
+        type: string
+      neverWatchPath:
+        description: index the folder in the first pass to get included in search,
+          but never re-indexed.
+        type: string
+      viewable:
+        description: Enable viewing in UI but exclude from indexing
+        type: boolean
+    type: object
   settings.CustomTheme:
     properties:
       css:
@@ -175,63 +234,6 @@ definitions:
       description:
         description: The description of the theme to display in the UI.
         type: string
-    type: object
-  settings.ExcludeIndexFilter:
-    properties:
-      fileEndsWith:
-        description: (global) exclude files that end with these suffixes. Eg. ".jpg"
-          or ".txt"
-        items:
-          type: string
-        type: array
-      fileNames:
-        description: (global) list of file names to include/exclude. Eg. "a.jpg"
-        items:
-          type: string
-        type: array
-      filePaths:
-        description: list of filepaths Eg. "folder1" or "file1.txt" or "folder1/file1.txt"
-          (without source path prefix)
-        items:
-          type: string
-        type: array
-      fileStartsWith:
-        description: (global) exclude files that start with these prefixes. Eg. "archive-"
-          or "backup-"
-        items:
-          type: string
-        type: array
-      folderEndsWith:
-        description: (global) exclude folders that end with these suffixes. Eg. ".thumbnails"
-          or ".git"
-        items:
-          type: string
-        type: array
-      folderNames:
-        description: (global) list of folder names to include/exclude. Eg. "@eadir"
-          or ".thumbnails"
-        items:
-          type: string
-        type: array
-      folderPaths:
-        description: (filepath) list of folder names to include/exclude. Eg. "folder1"
-          or "folder1/subfolder" (do not include source path, just the subpaths from
-          the source path)
-        items:
-          type: string
-        type: array
-      folderStartsWith:
-        description: (global) exclude folders that start with these prefixes. Eg.
-          "archive-" or "backup-"
-        items:
-          type: string
-        type: array
-      hidden:
-        description: exclude hidden files and folders.
-        type: boolean
-      ignoreZeroSizeFolders:
-        description: ignore folders with 0 size
-        type: boolean
     type: object
   settings.ExternalLink:
     properties:
@@ -301,21 +303,6 @@ definitions:
         type: string
       styling:
         $ref: '#/definitions/settings.StylingConfig'
-    type: object
-  settings.IncludeIndexFilter:
-    properties:
-      rootFiles:
-        description: list of root files to include, relative to the source path (eg.
-          "file1.txt")
-        items:
-          type: string
-        type: array
-      rootFolders:
-        description: list of root folders to include, relative to the source path
-          (eg. "folder1")
-        items:
-          type: string
-        type: array
     type: object
   settings.Integrations:
     properties:
@@ -582,6 +569,11 @@ definitions:
     type: object
   settings.SourceConfig:
     properties:
+      conditionals:
+        allOf:
+        - $ref: '#/definitions/settings.ConditionalFilter'
+        description: conditional rules to apply when indexing to include/exclude certain
+          items
       createUserDir:
         description: create a user directory for each user
         type: boolean
@@ -601,30 +593,9 @@ definitions:
         description: disable the source, this is useful so you don't need to remove
           it from the config file
         type: boolean
-      exclude:
-        allOf:
-        - $ref: '#/definitions/settings.ExcludeIndexFilter'
-        description: exclude files and folders from indexing, if include is not set
-      include:
-        allOf:
-        - $ref: '#/definitions/settings.IncludeIndexFilter'
-        description: include files and folders from indexing, if exclude is not set
-      indexAlbumArt:
-        description: 'deprecated: always enabled since 0.8.6'
-        type: boolean
       indexingIntervalMinutes:
         description: optional manual overide interval in minutes to re-index the source
         type: integer
-      maxWatchers:
-        description: number of concurrent watchers to use for this source, currently
-          not supported
-        type: integer
-      neverWatchPaths:
-        description: paths that get initially once. Useful for folders that rarely
-          change contents (without source path prefix)
-        items:
-          type: string
-        type: array
       private:
         description: designate as source as private -- currently just means no sharing
           permitted.
@@ -751,8 +722,16 @@ definitions:
     type: object
   share.CreateBody:
     properties:
-      allowUpload:
-        description: AllowEdit           bool   `json:"allowEdit,omitempty"`
+      allowCreate:
+        description: allow creating files
+        type: boolean
+      allowDelete:
+        type: boolean
+      allowModify:
+        description: allow modifying files
+        type: boolean
+      allowReplacements:
+        description: allow replacements of files
         type: boolean
       allowedUsernames:
         items:
@@ -764,7 +743,11 @@ definitions:
         type: string
       disableAnonymous:
         type: boolean
+      disableDownload:
+        description: don't allow downloading files
+        type: boolean
       disableFileViewer:
+        description: don't allow viewing files
         type: boolean
       disableShareCard:
         type: boolean
@@ -827,8 +810,16 @@ definitions:
     type: object
   share.Link:
     properties:
-      allowUpload:
-        description: AllowEdit           bool   `json:"allowEdit,omitempty"`
+      allowCreate:
+        description: allow creating files
+        type: boolean
+      allowDelete:
+        type: boolean
+      allowModify:
+        description: allow modifying files
+        type: boolean
+      allowReplacements:
+        description: allow replacements of files
         type: boolean
       allowedUsernames:
         items:
@@ -840,7 +831,11 @@ definitions:
         type: string
       disableAnonymous:
         type: boolean
+      disableDownload:
+        description: don't allow downloading files
+        type: boolean
       disableFileViewer:
+        description: don't allow viewing files
         type: boolean
       disableShareCard:
         type: boolean
@@ -946,14 +941,28 @@ definitions:
   users.Permissions:
     properties:
       admin:
+        description: allow admin access
         type: boolean
       api:
+        description: allow api access
+        type: boolean
+      create:
+        description: allow creating or uploading files
+        type: boolean
+      delete:
+        description: allow deleting files
+        type: boolean
+      download:
+        description: allow downloading files
         type: boolean
       modify:
+        description: allow modifying files
         type: boolean
       realtime:
+        description: allow realtime updates
         type: boolean
       share:
+        description: allow sharing files
         type: boolean
     type: object
   users.Preview:
@@ -1122,6 +1131,8 @@ definitions:
         type: string
       username:
         type: string
+      version:
+        type: integer
       viewMode:
         description: 'view mode to use: eg. normal, list, grid, or compact'
         type: string
@@ -2769,6 +2780,63 @@ paths:
               type: string
             type: object
       summary: Upload files to a public upload share
+      tags:
+      - Public Shares
+    put:
+      consumes:
+      - application/json
+      description: Updates the content of a file in a public share.
+      parameters:
+      - description: Share hash for authentication
+        in: query
+        name: hash
+        required: true
+        type: string
+      - description: Path to the file to update
+        in: query
+        name: path
+        required: true
+        type: string
+      - description: New content for the file
+        in: body
+        name: content
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: File updated successfully
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Invalid request or parameters
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Share unavailable or update not allowed
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Share not found or file not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update a file in a public share
       tags:
       - Public Shares
   /public/api/share:

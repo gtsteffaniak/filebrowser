@@ -163,7 +163,7 @@ export default {
           mutations.closeHovers();
           try {
             shareApi.remove(item.hash);
-            this.links = this.links.filter((item) => item.hash !== item.hash);
+            this.links = this.links.filter((link) => link.hash !== item.hash);
             notify.showSuccess(this.$t("settings.shareDeleted"));
           } catch (e) {
             notify.showError(e);

@@ -169,7 +169,6 @@
 <script>
 import downloadFiles from "@/utils/download";
 import { filesApi } from "@/api";
-import { notify } from "@/notify";
 import { router } from "@/router";
 import * as upload from "@/utils/upload";
 import throttle from "@/utils/throttle";
@@ -640,20 +639,20 @@ export default {
           case "c":
           case "x":
             this.copyCut(event, charKey);
-            break;
+            return;
           case "v":
             this.paste(event);
-            break;
+            return;
           case "a":
             event.preventDefault();
             this.selectAll();
-            break;
+            return;
           case "d":
             event.preventDefault();
             downloadFiles(state.selected);
-            break;
+            return;
         }
-        return;
+        // Don't return here - allow other modifier key combinations to propagate
       }
 
       // Handle key events using a switch statement
@@ -804,24 +803,32 @@ export default {
         return;
       }
       mutations.setLoading("listing", true);
-      if (getters.isShare()) {
-        // Shared files don't support move/copy operations
-        mutations.setLoading("listing", false);
-        notify.showError("Move/copy operations are not supported for shared files.");
-        return;
-      }
 
       let action = async (overwrite, rename) => {
         await filesApi.moveCopy(items, "copy", overwrite, rename);
         mutations.setLoading("listing", false);
       };
 
-      if (this.clipboard.key === "x") {
-        action = async (overwrite, rename) => {
-          await filesApi.moveCopy(items, "move", overwrite, rename);
-          this.clipboard = {};
+      if (getters.isShare()) {
+          action = async (overwrite, rename) => {
+          await publicApi.moveCopy(items, "copy", overwrite, rename);
           mutations.setLoading("listing", false);
         };
+      }
+
+      if (this.clipboard.key === "x") {
+        if (getters.isShare()) {
+          action = async (overwrite, rename) => {
+            await publicApi.moveCopy(items, "move", overwrite, rename);
+            mutations.setLoading("listing", false);
+          };
+        } else {
+          action = async (overwrite, rename) => {
+            await filesApi.moveCopy(items, "move", overwrite, rename);
+            this.clipboard = {};
+            mutations.setLoading("listing", false);
+          };
+        }
       }
 
       if (this.clipboard.path === state.route.path) {
@@ -837,7 +844,6 @@ export default {
           confirm: (event, option) => {
             const overwrite = option === "overwrite";
             const rename = option === "rename";
-
             event.preventDefault();
             mutations.closeHovers();
             action(overwrite, rename);
@@ -893,6 +899,7 @@ export default {
       this.dragCounter--;
     },
     async drop(event) {
+      event.preventDefault();
       const isInternal = Array.from(event.dataTransfer.types).includes(
         "application/x-filebrowser-internal-drag"
       );

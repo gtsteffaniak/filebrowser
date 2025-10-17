@@ -9,7 +9,7 @@
       <i class="material-icons spin">sync</i>
       <p class="loading-text">{{ $t("prompts.operationInProgress") }}</p>
     </div>
-    <div v-else>  
+    <div v-else>
       <file-list  ref="fileList" @update:selected="updateDestination">
       </file-list>
     </div>
@@ -35,14 +35,15 @@
 </template>
 
 <script>
-import { mutations, state } from "@/store";
+import { mutations, state, getters } from "@/store";
 import FileList from "./FileList.vue";
-import { filesApi } from "@/api";
+import { filesApi, publicApi } from "@/api";
 import buttons from "@/utils/buttons";
 import * as upload from "@/utils/upload";
 import { url } from "@/utils";
 import { notify } from "@/notify";
 import { goToItem } from "@/utils/url";
+import { shareInfo } from "@/utils/constants";
 
 export default {
   name: "move-copy",
@@ -73,12 +74,10 @@ export default {
       if (!this.destPath) {
         return false; // If dest is not set, we can't check containment
       }
-      
       // Add null checks to prevent undefined errors
       if (!this.items || this.items.length === 0) {
         return false;
       }
-      
       const itemPath = this.items[0]?.from;
       if (!itemPath) {
         return false; // If itemPath is undefined, we can't check containment
@@ -159,14 +158,20 @@ export default {
             item.toSource = this.destSource;
           }
           buttons.loading(this.operation);
-          await filesApi.moveCopy(this.items, this.operation, overwrite, rename);
+          if (getters.isShare()) {
+            await publicApi.moveCopy(this.items, this.operation, overwrite, rename);
+          } else {
+            await filesApi.moveCopy(this.items, this.operation, overwrite, rename);
+          }
         };
-        // Fetch destination files
-        let dstResp = await filesApi.fetchFiles(
-          this.destSource,
-          this.destPath
-        );
-        let conflict = upload.checkConflict(this.items, dstResp.items);
+        let conflict = false;
+        let dstResp = null;
+        if (getters.isShare()) {
+          dstResp = await publicApi.fetchPub(this.destPath, shareInfo.hash);
+        } else {
+          dstResp = await filesApi.fetchFiles(this.destSource, this.destPath);
+        }
+        conflict = upload.checkConflict(this.items, dstResp.items);
         let overwrite = false;
         let rename = false;
 

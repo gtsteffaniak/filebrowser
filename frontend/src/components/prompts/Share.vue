@@ -98,10 +98,11 @@
       </select>
 
       <div class="settings-items" style="margin-top: 0.5em;">
-        <!--
-        <ToggleSwitch class="item" v-model="allowEdit" :name="'Allow modifications'" />
-        <ToggleSwitch class="item" v-model="allowUpload" :name="'Allow uploading'" />
-        -->
+        <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="disableDownload" :name="$t('share.disableDownload')" :description="$t('share.disableDownloadDescription')" />
+        <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="allowModify" :name="$t('share.allowModify')" :description="$t('share.allowModifyDescription')" />
+        <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="allowDelete" :name="$t('share.allowDelete')" :description="$t('share.allowDeleteDescription')" />
+        <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="allowCreate" :name="$t('share.allowCreate')" :description="$t('share.allowCreateDescription')" />
+        <ToggleSwitch v-if="createAllowed" class="item" v-model="allowReplacements" :name="$t('share.allowReplacements')" :description="$t('share.allowReplacementsDescription')" />
         <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="disableFileViewer" :name="$t('share.disableFileViewer')" />
         <ToggleSwitch
           v-if="shareType === 'normal'"
@@ -338,12 +339,15 @@ export default {
       clip: null,
       password: "",
       listing: true,
-      allowEdit: false,
+      allowModify: false,
+      disableDownload: false,
+      allowDelete: false,
+      allowCreate: false,
+      allowReplacements: false,
       downloadsLimit: "",
       perUserDownloadLimit: false,
       shareTheme: "default",
       disableAnonymous: false,
-      allowUpload: false,
       maxBandwidth: "",
       disableFileViewer: false,
       disableThumbnails: false,
@@ -371,6 +375,9 @@ export default {
     };
   },
   computed: {
+    createAllowed() {
+      return this.allowCreate;
+    },
     displayPath() {
       // When editing, use the link's path; otherwise use the item's path
       return this.isEditMode ? this.link.path : this.item.path;
@@ -435,6 +442,11 @@ export default {
             : "0";
           this.unit = "hours";
           this.password = "";
+          this.disableDownload = this.link.disableDownload || false;
+          this.allowModify = this.link.allowModify || false;
+          this.allowDelete = this.link.allowDelete || false;
+          this.allowCreate = this.link.allowCreate || false;
+          this.allowReplacements = this.link.allowReplacements || false;
           this.downloadsLimit = this.link.downloadsLimit ? String(this.link.downloadsLimit) : "";
           this.perUserDownloadLimit = this.link.perUserDownloadLimit || false;
           this.maxBandwidth = this.link.maxBandwidth ? String(this.link.maxBandwidth) : "";
@@ -524,7 +536,11 @@ export default {
           expires: isPermanent ? "" : this.time.toString(),
           unit: this.unit,
           disableAnonymous: this.disableAnonymous,
-          allowUpload: this.allowUpload,
+          disableDownload: this.disableDownload,
+          allowModify: this.allowModify,
+          allowDelete: this.allowDelete,
+          allowCreate: this.allowCreate,
+          allowReplacements: this.allowReplacements,
           maxBandwidth: this.maxBandwidth ? parseInt(this.maxBandwidth) : 0,
           downloadsLimit: this.downloadsLimit ? parseInt(this.downloadsLimit) : 0,
           perUserDownloadLimit: this.perUserDownloadLimit,
@@ -595,6 +611,11 @@ export default {
         : "0";
       this.unit = "hours";
       this.password = "";
+      this.disableDownload = link.disableDownload || false;
+      this.allowModify = link.allowModify || false;
+      this.allowDelete = link.allowDelete || false;
+      this.allowCreate = link.allowCreate || false;
+      this.allowReplacements = link.allowReplacements || false;
       this.downloadsLimit = link.downloadsLimit ? String(link.downloadsLimit) : "";
       this.perUserDownloadLimit = link.perUserDownloadLimit || false;
       this.maxBandwidth = link.maxBandwidth ? String(link.maxBandwidth) : "";

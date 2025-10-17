@@ -90,7 +90,8 @@
     "sortByLastModified": "Güncelleme tarihine göre sırala",
     "sortByName": "İsme göre sırala",
     "sortBySize": "Boyuta göre sırala",
-    "noPreview": "Bu dosya için önizleme aktif değil"
+    "noPreview": "Bu dosya için önizleme aktif değil",
+    "noDownloadAccess": "İndirme mevcut değil."
   },
   "help": {
     "click": "dosya veya klasör seçin",
@@ -280,7 +281,10 @@
       "share": "Dosyaları paylaş",
       "admin": "Yönetici",
       "api": "Uzun ömürlü API anahtarları oluşturma ve yönetme",
-      "realtime": "Gerçek zamanlı bağlantıları ve güncellemeleri etkinleştirin"
+      "realtime": "Gerçek zamanlı bağlantıları ve güncellemeleri etkinleştirin",
+      "create": "Dosya oluşturma",
+      "delete": "Dosyaları sil",
+      "download": "Dosyaları indirin"
     },
     "permissions-name": "İzinler",
     "permissionsHelp": "Kullanıcıyı yönetici olarak ayarlayabilir veya izinleri ayrı ayrı seçebilirsiniz. \"Yönetici\"yi seçerseniz, diğer tüm seçenekler otomatik olarak kontrol edilecektir. Kullanıcıların yönetimi, bir yöneticinin yetkisi olarak kalır.\n",
@@ -432,7 +436,17 @@
     "perUserDownloadLimitDescription": "Etkinleştirildiğinde, indirme sınırı her kullanıcıya uygulanacaktır. Anonim kullanıcılar bu paylaşımdan herhangi bir dosya indiremeyecektir.",
     "descriptionUploadDefault": "Dosyaları yüklemeniz için size bir paylaşım gönderildi.",
     "extractEmbeddedSubtitles": "Gömülü altyazıları çıkarma",
-    "extractEmbeddedSubtitlesDescription": "Yüklenen medya dosyalarından gömülü altyazıları ayıklayın -- bu işlem büyük dosyalar için yavaş olabilir."
+    "extractEmbeddedSubtitlesDescription": "Yüklenen medya dosyalarından gömülü altyazıları ayıklayın -- bu işlem büyük dosyalar için yavaş olabilir.",
+    "disableDownload": "Dosya indirmeyi devre dışı bırak",
+    "disableDownloadDescription": "Hiç kimse dosya indiremeyecek veya bir dosyanın içeriğini görüntüleyemeyecektir.",
+    "allowModify": "Dosyaları düzenlemeye izin ver",
+    "allowModifyDescription": "Bu paylaşımdaki dosyaları herkes düzenleyebilir.",
+    "allowDelete": "Dosyaların silinmesine izin ver",
+    "allowDeleteDescription": "Herkes bu paylaşımdan dosya ve klasörleri silebilir.",
+    "allowReplacements": "Dosya değiştirmelerine izin ver",
+    "allowReplacementsDescription": "Aynı ada sahip dosyaları yüklerken herkes mevcut dosyaları değiştirebilir.",
+    "allowCreate": "Dosya ve klasör oluşturmaya ve yüklemeye izin ver",
+    "allowCreateDescription": "Herkes bu paylaşımda yeni dosyalar ve klasörler oluşturabilir ve yükleyebilir."
   },
   "api": {
     "title": "API Anahtarları:",
@@ -603,7 +617,6 @@
     "uninitialized": "Düzenleyici başlatılamadı. Lütfen yeniden yükleyin.",
     "saveFailed": "Dosya kaydedilemedi. Lütfen tekrar deneyin.",
     "saveAborted": "Kaydetme işlemi iptal edildi. Dosya adı etkin dosyayla eşleşmiyor.",
-    "saveDisabled": "Paylaşılan dosyaların kaydedilmesi desteklenmez.",
     "saveAbortedMessage": "Kaydetme işlemi iptal edildi. Uygulamanın etkin dosyası ({activeFile}) kaydetmeye çalıştığınız dosyayla ({tryingToSave}) eşleşmiyor.",
     "syncFailed": "\"{filename}\" için 5 denemeden sonra rota ile durum senkronize edilemedi. Veri bozulmasını önlemek için düzenleyici kurulumu iptal ediliyor."
   },

@@ -39,7 +39,6 @@
 import router from "@/router";
 import buttons from "@/utils/buttons";
 import { notify } from "@/notify";
-import { eventBus } from "@/store/eventBus";
 import { getters, state, mutations } from "@/store";
 import Action from "@/components/Action.vue";
 import Search from "@/components/Search.vue";

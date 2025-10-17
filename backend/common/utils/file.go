@@ -48,7 +48,6 @@ type FileOptions struct {
 	Path                     string // realpath
 	Source                   string
 	IsDir                    bool
-	Modify                   bool
 	Expand                   bool
 	ReadHeader               bool
 	Content                  bool

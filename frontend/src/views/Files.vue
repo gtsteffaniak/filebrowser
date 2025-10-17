@@ -242,7 +242,6 @@ export default {
 
       mutations.resetSelected();
       mutations.setMultiple(false);
-      mutations.closeHovers();
 
       if (shareInfo.singleFileShare) {
         mutations.setSidebarVisible(true);
@@ -267,20 +266,16 @@ export default {
       if (file.type != "directory") {
         const content = !getters.fileViewingDisabled(file.name);
         let directoryPath = url.removeLastDir(this.shareSubPath);
-        
         // If directoryPath is empty, the file is in root - use '/' as the directory
         if (!directoryPath || directoryPath === '') {
           directoryPath = '/';
         }
-        
         // Fetch parent directory unless it's the same as the file path
         const shouldFetchParent = directoryPath !== this.shareSubPath;
-
         // Run both fetches in parallel to minimize total API calls
         const promises = [
           publicApi.fetchPub(this.shareSubPath, this.shareHash, this.sharePassword, content)
         ];
-        
           if (shouldFetchParent) {
             promises.push(
               publicApi.fetchPub(directoryPath, this.shareHash, this.sharePassword, false).catch(() => null)
@@ -328,7 +323,7 @@ export default {
       }
 
       const result = extractSourceFromPath(getters.routePath());
-      
+
       if (result.source === "") {
         // No sources available - show a more graceful message instead of error popup
         this.error = { message: $t("index.noSources") };
@@ -350,7 +345,7 @@ export default {
         if (res.type != "directory" && !res.type.startsWith("image")) {
           const content = !getters.fileViewingDisabled(res.name);
           let directoryPath = url.removeLastDir(res.path);
-          
+
           // If directoryPath is empty, the file is in root - use '/' as the directory
           if (!directoryPath || directoryPath === '') {
             directoryPath = '/';
@@ -363,7 +358,7 @@ export default {
           const promises = [
             filesApi.fetchFiles(res.source, res.path, content)
           ];
-          
+
           if (shouldFetchParent) {
             promises.push(
               filesApi.fetchFiles(res.source, directoryPath).catch(() => null)
@@ -372,7 +367,7 @@ export default {
 
           const results = await Promise.all(promises);
           res = results[0];
-          
+
           // Store the parent directory items for Preview to use
           if (shouldFetchParent && results[1] && results[1].items) {
             res.parentDirItems = results[1].items;

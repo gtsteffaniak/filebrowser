@@ -172,17 +172,14 @@ export default {
     },
     uploadSettingsDescription() {
       const maxConcurrentUpload = state.user.fileLoading?.maxConcurrentUpload || 3;
-      const uploadChunkSizeMb = state.user.fileLoading?.uploadChunkSizeMb || 0;
-      if (uploadChunkSizeMb > 0) {
-        return this.$t("prompts.uploadSettingsChunked", {
-          maxConcurrentUpload,
-          uploadChunkSizeMb
-        });
-      } else {
-        return this.$t("prompts.uploadSettingsNoChunk", {
-          maxConcurrentUpload
-        });
+      let uploadChunkSizeMb = state.user.fileLoading?.uploadChunkSizeMb || 5;
+      if (uploadChunkSizeMb === 0) {
+        uploadChunkSizeMb = 5;
       }
+      return this.$t("prompts.uploadSettingsChunked", {
+        maxConcurrentUpload,
+        uploadChunkSizeMb
+      });
     }
   },
   setup(props) {
@@ -197,7 +194,10 @@ export default {
 
     // Upload settings
     const maxConcurrentUpload = ref(state.user.fileLoading?.maxConcurrentUpload || 3);
-    const uploadChunkSizeMb = ref(state.user.fileLoading?.uploadChunkSizeMb || 0);
+    const uploadChunkSizeMb = ref(state.user.fileLoading?.uploadChunkSizeMb || 5);
+    if (uploadChunkSizeMb.value === 0) {
+      uploadChunkSizeMb.value = 5;
+    }
     const clearAll = ref(state.user.fileLoading?.clearAll || false);
 
     const showTooltip = (event, text) => {
