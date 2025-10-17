@@ -14,6 +14,8 @@ func errToStatus(err error) int {
 		return http.StatusOK
 	case os.IsPermission(err):
 		return http.StatusForbidden
+	case errors.Is(err, libErrors.ErrAccessDenied):
+		return http.StatusForbidden
 	case os.IsNotExist(err), err == libErrors.ErrNotExist:
 		return http.StatusNotFound
 	case os.IsExist(err), err == libErrors.ErrExist:
