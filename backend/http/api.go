@@ -49,6 +49,8 @@ func createApiKeyHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		Api:      strings.Contains(permissionsStr, "api") && d.user.Permissions.Api,
 		Admin:    strings.Contains(permissionsStr, "admin") && d.user.Permissions.Admin,
 		Modify:   strings.Contains(permissionsStr, "modify") && d.user.Permissions.Modify,
+		Delete:   strings.Contains(permissionsStr, "delete") && d.user.Permissions.Delete,
+		Create:   strings.Contains(permissionsStr, "create") && d.user.Permissions.Create,
 		Share:    strings.Contains(permissionsStr, "share") && d.user.Permissions.Share,
 		Realtime: strings.Contains(permissionsStr, "realtime") && d.user.Permissions.Realtime,
 	}

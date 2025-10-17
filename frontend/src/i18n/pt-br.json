@@ -90,7 +90,8 @@
     "sortByLastModified": "Ordenar pela última modificação",
     "sortByName": "Ordenar pelo nome",
     "sortBySize": "Ordenar pelo tamanho",
-    "noPreview": "Pré-visualização não disponível para este arquivo."
+    "noPreview": "Pré-visualização não disponível para este arquivo.",
+    "noDownloadAccess": "O download não está disponível."
   },
   "help": {
     "click": "selecionar pasta ou arquivo",
@@ -283,7 +284,10 @@
       "share": "Compartilhar arquivos",
       "admin": "Administrador",
       "api": "Criar e gerenciar chaves de API de longa duração",
-      "realtime": "Permitir conexões e atualizações em tempo real"
+      "realtime": "Permitir conexões e atualizações em tempo real",
+      "create": "Criar arquivos",
+      "delete": "Excluir arquivos",
+      "download": "Baixar arquivos"
     },
     "permissions-name": "Permissões",
     "permissionsHelp": "Pode definir o usuário como administrador ou escolher as permissões manualmente. Se selecionar a opção \"Administrador\", todas as outras opções serão automaticamente selecionadas. A gestão dos usuários é um privilégio restringido aos administradores.\n",
@@ -432,7 +436,19 @@
     "perUserDownloadLimitDescription": "Quando ativado, o limite de downloads será aplicado a cada usuário. Os usuários anônimos não poderão fazer download de nenhum arquivo desse compartilhamento.",
     "descriptionUploadDefault": "Um compartilhamento foi enviado a você para carregar arquivos.",
     "extractEmbeddedSubtitles": "Extrair legendas incorporadas",
-    "extractEmbeddedSubtitlesDescription": "Extrair legendas incorporadas de arquivos de mídia ao carregar - isso pode ser lento em arquivos grandes."
+    "extractEmbeddedSubtitlesDescription": "Extrair legendas incorporadas de arquivos de mídia ao carregar - isso pode ser lento em arquivos grandes.",
+    "disableDownload": "Desativar o download de arquivos",
+    "disableDownloadDescription": "Qualquer pessoa não poderá fazer download de arquivos ou visualizar o conteúdo de um arquivo.",
+    "allowModify": "Permitir a edição de arquivos",
+    "allowModifyDescription": "Qualquer pessoa pode editar arquivos nesse compartilhamento.",
+    "allowDelete": "Permitir a exclusão de arquivos",
+    "allowDeleteDescription": "Qualquer pessoa pode excluir arquivos e pastas desse compartilhamento.",
+    "allowCreate": "Permitir a criação de arquivos e pastas",
+    "allowCreateDescription": "Qualquer pessoa pode criar novos arquivos e pastas nesse compartilhamento.",
+    "allowUpload": "Permitir o upload de arquivos",
+    "allowUploadDescription": "Qualquer pessoa pode fazer upload de arquivos para esse compartilhamento de upload.",
+    "allowReplacements": "Permitir substituições de arquivos",
+    "allowReplacementsDescription": "Qualquer pessoa pode substituir arquivos existentes ao fazer upload de arquivos com o mesmo nome."
   },
   "api": {
     "title": "Chaves de API:",
@@ -603,7 +619,6 @@
     "uninitialized": "Falha ao inicializar o editor. Favor recarregar.",
     "saveFailed": "Falha ao salvar o arquivo. Tente novamente.",
     "saveAborted": "Salvamento abortado. O nome do arquivo não corresponde ao arquivo ativo.",
-    "saveDisabled": "Não há suporte para o salvamento de arquivos compartilhados.",
     "saveAbortedMessage": "Operação de salvamento abortada. O arquivo ativo do aplicativo ({activeFile}) não corresponde ao arquivo que você está tentando salvar ({tryingToSave}).",
     "syncFailed": "Falha ao sincronizar o estado com a rota para \"{filename}\" após 5 tentativas. Abortar a configuração do editor para evitar a corrupção de dados."
   },

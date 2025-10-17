@@ -10,6 +10,12 @@ All notable changes to this project will be documented in this file. For commit 
  - Add a "select all" toggle in the menu #974
  - Save on exit text editor -- thanks @srini-abhiram #1334 #1241
  - Disabled indexing for subfolders but allow browsing  #783
+ - Added more granular create/upload, delete, and download (includes viewing content) permission #1200 #1199
+ - Updated shares
+   - `disableDownload` to disable download and (content viewing).
+   - `allowReplacements` to share permission -- prohibits replacing files on conflict #661
+   - normal shares can create/upload files if given permission
+ - Add
 
  **Notes**:
  - Optimized font and icon loading.
@@ -26,6 +32,7 @@ All notable changes to this project will be documented in this file. For commit 
  - access management: child folders accessible stopped showing up #1332
  - Make source inaccessible if directory does not exist rather than exiting on start #1264
  - HTTP Proxy environment gets ignored since version v0.8.6-beta #1324
+ - album artwork preview not showing on shares
 
 ## v0.8.8-beta
 

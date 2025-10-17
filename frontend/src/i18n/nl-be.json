@@ -90,7 +90,8 @@
     "sortByLastModified": "Sorteren op laatst bewerkt",
     "sortByName": "Sorteren op naam",
     "sortBySize": "Sorteren op grootte",
-    "noPreview": "Preview is niet beschikbaar voor dit bestand."
+    "noPreview": "Preview is niet beschikbaar voor dit bestand.",
+    "noDownloadAccess": "Download is niet beschikbaar."
   },
   "help": {
     "click": "selecteer bestand of map",
@@ -280,7 +281,10 @@
       "share": "Bestanden delen",
       "admin": "Beheerder",
       "api": "Langlevende API-sleutels maken en beheren",
-      "realtime": "Real-time verbindingen en updates mogelijk maken"
+      "realtime": "Real-time verbindingen en updates mogelijk maken",
+      "create": "Bestanden maken",
+      "delete": "Bestanden verwijderen",
+      "download": "Bestanden downloaden"
     },
     "permissions-name": "Permissies",
     "permissionsHelp": "U kunt de gebruiker instellen als beheerder of de machtigingen afzonderlijk kiezen. Als u \"Beheerder\" selecteert, worden alle andere opties automatisch gecontroleerd. Het beheer van gebruikers blijft een privilege van een beheerder.\n",
@@ -432,7 +436,19 @@
     "perUserDownloadLimitDescription": "Indien ingeschakeld, wordt de downloadlimiet toegepast op elke gebruiker. Anonieme gebruikers kunnen geen bestanden downloaden van deze share.",
     "descriptionUploadDefault": "Je hebt een share ontvangen om bestanden te uploaden.",
     "extractEmbeddedSubtitles": "Ingesloten ondertitels uitpakken",
-    "extractEmbeddedSubtitlesDescription": "Ingesloten ondertitels uit mediabestanden halen tijdens het laden -- dit kan traag zijn voor grote bestanden."
+    "extractEmbeddedSubtitlesDescription": "Ingesloten ondertitels uit mediabestanden halen tijdens het laden -- dit kan traag zijn voor grote bestanden.",
+    "disableDownload": "Het downloaden van bestanden uitschakelen",
+    "disableDownloadDescription": "Iedereen kan geen bestanden downloaden of de inhoud van een bestand bekijken.",
+    "allowModify": "Bestanden bewerken toestaan",
+    "allowModifyDescription": "Iedereen kan bestanden bewerken in deze share.",
+    "allowDelete": "Bestanden verwijderen toestaan",
+    "allowDeleteDescription": "Iedereen kan bestanden en mappen van deze share verwijderen.",
+    "allowCreate": "Bestanden en mappen maken",
+    "allowCreateDescription": "Iedereen kan nieuwe bestanden en mappen aanmaken in deze share.",
+    "allowUpload": "Bestanden uploaden toestaan",
+    "allowUploadDescription": "Iedereen kan bestanden uploaden naar deze upload share.",
+    "allowReplacements": "Bestandsvervangingen toestaan",
+    "allowReplacementsDescription": "Iedereen kan bestaande bestanden vervangen door bestanden met dezelfde naam te uploaden."
   },
   "api": {
     "title": "API-sleutels",
@@ -603,7 +619,6 @@
     "uninitialized": "Het is niet gelukt de editor te initialiseren. Gelieve opnieuw te laden.",
     "saveFailed": "Het is niet gelukt om het bestand op te slaan. Probeer het opnieuw.",
     "saveAborted": "Opslaan afgebroken. De bestandsnaam komt niet overeen met het actieve bestand.",
-    "saveDisabled": "Het opslaan van gedeelde bestanden wordt niet ondersteund.",
     "saveAbortedMessage": "Opslaan afgebroken. Het actieve bestand van de toepassing ({activeFile}) komt niet overeen met het bestand dat u probeert op te slaan ({tryingToSave}).",
     "syncFailed": "Na 5 pogingen is het niet gelukt om de status te synchroniseren met de route voor \"{filename}\". Installatie van editor afgebroken om gegevensbeschadiging te voorkomen."
   },

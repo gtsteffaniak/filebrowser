@@ -93,7 +93,8 @@
     "sortByLastModified": "Sort by last modified",
     "sortByName": "Sort by name",
     "sortBySize": "Sort by size",
-    "noPreview": "Preview is not available for this file."
+    "noPreview": "Preview is not available for this file.",
+    "noDownloadAccess": "Download is not available."
   },
   "help": {
     "click": "select file or directory",
@@ -205,7 +206,19 @@
     "perUserDownloadLimit": "Apply the downloads limit to each user",
     "perUserDownloadLimitDescription": "When enabled, the downloads limit will be applied to each user. Anonymous users will not be able to download any files from this share.",
     "extractEmbeddedSubtitles": "Extract embedded subtitles",
-    "extractEmbeddedSubtitlesDescription": "Extract embedded subtitles from media files on load -- this can be slow for large files."
+    "extractEmbeddedSubtitlesDescription": "Extract embedded subtitles from media files on load -- this can be slow for large files.",
+    "disableDownload": "Disable downloading files",
+    "disableDownloadDescription": "Anyone won't be able to download files or view a file's content.",
+    "allowModify": "Allow editing files",
+    "allowModifyDescription": "Anyone can edit files in this share.",
+    "allowDelete": "Allow deleting files",
+    "allowDeleteDescription": "Anyone can delete files and folders from this share.",
+    "allowCreate": "Allow creating files and folders",
+    "allowCreateDescription": "Anyone can create new files and folders in this share.",
+    "allowUpload": "Allow uploading files",
+    "allowUploadDescription": "Anyone can upload files to this upload share.",
+    "allowReplacements": "Allow file replacements",
+    "allowReplacementsDescription": "Anyone can replace existing files when uploading files with the same name."
   },
   "prompts": {
     "operationInProgress": "Operation in progress, please wait...",
@@ -436,7 +449,10 @@
       "modify": "Edit files",
       "share": "Share files",
       "api": "Create and manage long-live API keys",
-      "realtime": "Enable real-time connections and updates"
+      "realtime": "Enable real-time connections and updates",
+      "create": "Create files",
+      "delete": "Delete files",
+      "download": "Download files"
     },
     "permissions-name": "Permissions",
     "permissionsHelp": "You can set the user to be an administrator or choose the permissions individually. If you select \"Administrator\", all of the other options will be automatically checked. The management of users remains a privilege of an administrator.\n",
@@ -603,7 +619,6 @@
     "uninitialized":"Failed to initialize the editor. Please reload.",
     "saveFailed":"Failed to save file. Please try again.",
     "saveAborted":"Save aborted. The file name does not match the active file.",
-    "saveDisabled":"Saving shared files is not supported.",
     "saveAbortedMessage":"Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
     "syncFailed":"failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
   },

@@ -282,7 +282,7 @@ func validateMoveDestination(src, dst string, isSrcDir bool) error {
 	return nil
 }
 
-func MoveResource(isSrcDir, isDestDir bool, sourceIndex, destIndex, realsrc, realdst string, s *share.Storage) error {
+func MoveResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string, s *share.Storage) error {
 	// Validate the move operation before executing
 	if err := validateMoveDestination(realsrc, realdst, isSrcDir); err != nil {
 		return err
@@ -344,7 +344,7 @@ func MoveResource(isSrcDir, isDestDir bool, sourceIndex, destIndex, realsrc, rea
 	return nil
 }
 
-func CopyResource(isSrcDir, isDestDir bool, sourceIndex, destIndex, realsrc, realdst string) error {
+func CopyResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string) error {
 	// Validate the copy operation before executing
 	if err := validateMoveDestination(realsrc, realdst, isSrcDir); err != nil {
 		return err
@@ -371,14 +371,12 @@ func CopyResource(isSrcDir, isDestDir bool, sourceIndex, destIndex, realsrc, rea
 
 	// Refresh destination (parent directory if it's a file)
 	dstRefreshPath := realdst
-	dstRefreshIsDir := isDestDir
 	if !isSrcDir {
 		// If copying a file (regardless of destination), refresh the parent directory
 		dstRefreshPath = filepath.Dir(realdst)
-		dstRefreshIsDir = true
 	}
 
-	go RefreshIndex(destIndex, dstRefreshPath, dstRefreshIsDir, true) //nolint:errcheck
+	go RefreshIndex(destIndex, dstRefreshPath, true, true) //nolint:errcheck
 
 	return nil
 }

@@ -90,7 +90,8 @@
     "sortByLastModified": "Ordenar por fecha de modificación",
     "sortByName": "Ordenar por nombre",
     "sortBySize": "Ordenar por tamaño",
-    "noPreview": "Vista previa no disponible"
+    "noPreview": "Vista previa no disponible",
+    "noDownloadAccess": "La descarga no está disponible."
   },
   "help": {
     "click": "Selecciona un archivo o carpeta",
@@ -285,7 +286,10 @@
       "share": "Compartir archivos",
       "admin": "Administrador",
       "api": "Claves API",
-      "realtime": "Actualizaciones en tiempo real"
+      "realtime": "Actualizaciones en tiempo real",
+      "create": "Crear archivos",
+      "delete": "Eliminar archivos",
+      "download": "Descargar archivos"
     },
     "permissions-name": "Permisos",
     "permissionsHelp": "Puedes elegir permisos individualmente. Si seleccionas \"Administrador\", todas las demás opciones serán activadas, y los usuarios con ese permiso podrán modificar a otros usuarios.\n",
@@ -432,7 +436,19 @@
     "perUserDownloadLimitDescription": "Cuando se activa, el límite de descargas se aplicará a cada usuario. Los usuarios anónimos no podrán descargar ningún archivo de este recurso compartido.",
     "descriptionUploadDefault": "Se le ha enviado una acción para cargar archivos.",
     "extractEmbeddedSubtitles": "Extraer subtítulos incrustados",
-    "extractEmbeddedSubtitlesDescription": "Extrae los subtítulos incrustados de los archivos multimedia al cargarlos -- esto puede ser lento para archivos grandes."
+    "extractEmbeddedSubtitlesDescription": "Extrae los subtítulos incrustados de los archivos multimedia al cargarlos -- esto puede ser lento para archivos grandes.",
+    "disableDownload": "Desactivar la descarga de archivos",
+    "disableDownloadDescription": "Nadie podrá descargar archivos ni ver su contenido.",
+    "allowModify": "Permitir la edición de archivos",
+    "allowModifyDescription": "Cualquiera puede editar archivos en este recurso compartido.",
+    "allowDelete": "Permitir la eliminación de archivos",
+    "allowDeleteDescription": "Cualquiera puede borrar archivos y carpetas de este recurso compartido.",
+    "allowCreate": "Permitir la creación de archivos y carpetas",
+    "allowCreateDescription": "Cualquiera puede crear nuevos archivos y carpetas en este recurso compartido.",
+    "allowUpload": "Permitir la carga de archivos",
+    "allowUploadDescription": "Cualquiera puede subir archivos a este recurso compartido.",
+    "allowReplacements": "Permitir la sustitución de archivos",
+    "allowReplacementsDescription": "Cualquiera puede sustituir archivos existentes al cargar archivos con el mismo nombre."
   },
   "api": {
     "title": "Gestión de claves API",
@@ -603,7 +619,6 @@
     "uninitialized": "Error al iniciar el editor, inténtelo de nuevo",
     "saveFailed": "No se ha podido guardar el archivo. Por favor, inténtelo de nuevo.",
     "saveAborted": "No se ha podido guardar el archivo. El nombre del archivo no coincide con el que estás editando.",
-    "saveDisabled": "No es posible guardar archivos compartidos.",
     "saveAbortedMessage": "Operación de guardado abortada. El archivo activo de la aplicación ({activeFile}) no coincide con el archivo que está intentando guardar ({tryingToSave}).",
     "syncFailed": "No se ha podido sincronizar el estado con la ruta para \"{filename}\" después de 5 intentos. Abortar la configuración del editor para evitar la corrupción de datos."
   },

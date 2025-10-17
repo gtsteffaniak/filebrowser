@@ -89,7 +89,6 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 		logger.Debugf("OnlyOffice user request: resolved path=%s", indexPath)
 		fileInfo, err := files.FileInfoFaster(utils.FileOptions{
 			Path:   indexPath,
-			Modify: d.user.Permissions.Modify,
 			Source: source,
 			Expand: false,
 		}, store.Access)
@@ -116,8 +115,12 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 	canEdit := iteminfo.CanEditOnlyOffice(d.user.Permissions.Modify, fileType)
 	canEditMode := utils.Ternary(canEdit, "edit", "view")
 	if d.fileInfo.Hash != "" {
-		if d.share.EnableOnlyOfficeEditing {
-			canEditMode = "edit"
+		// For shares, check both EnableOnlyOfficeEditing and AllowEdit permissions
+		if d.share.EnableOnlyOfficeEditing && d.share.AllowModify {
+			// Editing also requires authentication (not anonymous)
+			if d.user.Username != "anonymous" {
+				canEditMode = "edit"
+			}
 		}
 	}
 	// For shares, we need to keep track of the original relative path for the callback URL
@@ -302,6 +305,19 @@ func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *reques
 	// Handle document save operations
 	if data.Status == onlyOfficeStatusDocumentClosedWithChanges ||
 		data.Status == onlyOfficeStatusForceSaveWhileDocumentStillOpen {
+
+		// Check share permissions first if this is a share request
+		if d.fileInfo.Hash != "" {
+			if !d.share.AllowModify {
+				logger.Warningf("OnlyOffice callback: edit permission not allowed for this share")
+				return http.StatusForbidden, fmt.Errorf("edit permission not allowed for this share")
+			}
+			// Share edit operations also require authentication (not anonymous)
+			if d.user.Username == "anonymous" {
+				logger.Warningf("OnlyOffice callback: edit operations require authentication")
+				return http.StatusForbidden, fmt.Errorf("edit operations require authentication")
+			}
+		}
 
 		// Verify user has modify permissions
 		if !d.user.Permissions.Modify {

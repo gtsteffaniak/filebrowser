@@ -2320,6 +2320,91 @@ const docTemplate = `{
             }
         },
         "/public/api/resources": {
+            "put": {
+                "description": "Updates the content of a file in a public share.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Shares"
+                ],
+                "summary": "Update a file in a public share",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Share hash for authentication",
+                        "name": "hash",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Path to the file to update",
+                        "name": "path",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "description": "New content for the file",
+                        "name": "content",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "File updated successfully",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request or parameters",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Share unavailable or update not allowed",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Share not found or file not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
             "post": {
                 "description": "Handles file and directory uploads to an upload-only public share. Supports chunked uploads, conflict resolution (override), and directory creation.",
                 "consumes": [
@@ -3564,8 +3649,23 @@ const docTemplate = `{
         "share.CreateBody": {
             "type": "object",
             "properties": {
+                "allowCreate": {
+                    "description": "allow creating files",
+                    "type": "boolean"
+                },
+                "allowDelete": {
+                    "type": "boolean"
+                },
+                "allowModify": {
+                    "description": "allow modifying files",
+                    "type": "boolean"
+                },
+                "allowReplacements": {
+                    "description": "allow replacements of files",
+                    "type": "boolean"
+                },
                 "allowUpload": {
-                    "description": "AllowEdit           bool   ` + "`" + `json:\"allowEdit,omitempty\"` + "`" + `",
+                    "description": "allow uploading files",
                     "type": "boolean"
                 },
                 "allowedUsernames": {
@@ -3583,7 +3683,12 @@ const docTemplate = `{
                 "disableAnonymous": {
                     "type": "boolean"
                 },
+                "disableDownload": {
+                    "description": "don't allow downloading files",
+                    "type": "boolean"
+                },
                 "disableFileViewer": {
+                    "description": "don't allow viewing files",
                     "type": "boolean"
                 },
                 "disableShareCard": {
@@ -3674,8 +3779,23 @@ const docTemplate = `{
         "share.Link": {
             "type": "object",
             "properties": {
+                "allowCreate": {
+                    "description": "allow creating files",
+                    "type": "boolean"
+                },
+                "allowDelete": {
+                    "type": "boolean"
+                },
+                "allowModify": {
+                    "description": "allow modifying files",
+                    "type": "boolean"
+                },
+                "allowReplacements": {
+                    "description": "allow replacements of files",
+                    "type": "boolean"
+                },
                 "allowUpload": {
-                    "description": "AllowEdit           bool   ` + "`" + `json:\"allowEdit,omitempty\"` + "`" + `",
+                    "description": "allow uploading files",
                     "type": "boolean"
                 },
                 "allowedUsernames": {
@@ -3693,7 +3813,12 @@ const docTemplate = `{
                 "disableAnonymous": {
                     "type": "boolean"
                 },
+                "disableDownload": {
+                    "description": "don't allow downloading files",
+                    "type": "boolean"
+                },
                 "disableFileViewer": {
+                    "description": "don't allow viewing files",
                     "type": "boolean"
                 },
                 "disableShareCard": {
@@ -3842,18 +3967,35 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "admin": {
+                    "description": "allow admin access",
                     "type": "boolean"
                 },
                 "api": {
+                    "description": "allow api access",
+                    "type": "boolean"
+                },
+                "create": {
+                    "description": "allow creating or uploading files",
+                    "type": "boolean"
+                },
+                "delete": {
+                    "description": "allow deleting files",
+                    "type": "boolean"
+                },
+                "download": {
+                    "description": "allow downloading files",
                     "type": "boolean"
                 },
                 "modify": {
+                    "description": "allow modifying files",
                     "type": "boolean"
                 },
                 "realtime": {
+                    "description": "allow realtime updates",
                     "type": "boolean"
                 },
                 "share": {
+                    "description": "allow sharing files",
                     "type": "boolean"
                 }
             }
@@ -4087,6 +4229,9 @@ const docTemplate = `{
                 },
                 "username": {
                     "type": "string"
+                },
+                "version": {
+                    "type": "integer"
                 },
                 "viewMode": {
                     "description": "view mode to use: eg. normal, list, grid, or compact",

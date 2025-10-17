@@ -190,7 +190,7 @@ export function getTypeInfo(mimeType) {
     ) {
         return {
             classes: "gray-icons material-symbols-outlined",
-            materialIcon: "deployed_code",
+            materialIcon: "album",
             simpleType: "binary",
         };
     }

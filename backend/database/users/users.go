@@ -27,11 +27,14 @@ type AuthToken struct {
 }
 
 type Permissions struct {
-	Api      bool `json:"api"`
-	Admin    bool `json:"admin"`
-	Modify   bool `json:"modify"`
-	Share    bool `json:"share"`
-	Realtime bool `json:"realtime"`
+	Api      bool `json:"api"`      // allow api access
+	Admin    bool `json:"admin"`    // allow admin access
+	Modify   bool `json:"modify"`   // allow modifying files
+	Share    bool `json:"share"`    // allow sharing files
+	Realtime bool `json:"realtime"` // allow realtime updates
+	Delete   bool `json:"delete"`   // allow deleting files
+	Create   bool `json:"create"`   // allow creating or uploading files
+	Download bool `json:"download"` // allow downloading files
 }
 
 // SortingSettings represents the sorting settings.
@@ -69,7 +72,8 @@ type User struct {
 	LoginMethod     LoginMethod          `json:"loginMethod"`
 	OtpEnabled      bool                 `json:"otpEnabled"` // true if TOTP is enabled, false otherwise
 	// legacy for migration purposes... og filebrowser has perm attribute
-	Perm Permissions `json:"perm,omitzero"`
+	Perm    Permissions `json:"perm,omitzero"`
+	Version int         `json:"version"`
 }
 
 type SourceScope struct {

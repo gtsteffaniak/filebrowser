@@ -90,7 +90,8 @@
     "sortByLastModified": "按最后修改时间排序",
     "sortByName": "按名称排序",
     "sortBySize": "按大小排序",
-    "noPreview": "此文件无法预览。"
+    "noPreview": "此文件无法预览。",
+    "noDownloadAccess": "无法下载。"
   },
   "help": {
     "click": "选择文件或目录",
@@ -281,7 +282,10 @@
       "share": "分享文件",
       "admin": "管理员",
       "api": "创建和管理长效 API 密钥",
-      "realtime": "实现实时连接和更新"
+      "realtime": "实现实时连接和更新",
+      "create": "创建文件",
+      "delete": "删除文件",
+      "download": "下载文件"
     },
     "permissions-name": "权限",
     "permissionsHelp": "您可以将该用户设置为管理员或单独选择各项权限。如果您选择了“管理员”，则其他的选项会被自动选中，同时该用户可以管理其他用户。\n",
@@ -432,7 +436,19 @@
     "perUserDownloadLimitDescription": "启用后，下载限制将应用于每个用户。匿名用户将无法从该共享下载任何文件。",
     "descriptionUploadDefault": "已为您发送了上传文件的共享。",
     "extractEmbeddedSubtitles": "提取嵌入式字幕",
-    "extractEmbeddedSubtitlesDescription": "在加载时从媒体文件中提取内嵌字幕--这对于大文件来说可能会比较慢。"
+    "extractEmbeddedSubtitlesDescription": "在加载时从媒体文件中提取内嵌字幕--这对于大文件来说可能会比较慢。",
+    "disableDownload": "禁止下载文件",
+    "disableDownloadDescription": "任何人都无法下载文件或查看文件内容。",
+    "allowModify": "允许编辑文件",
+    "allowModifyDescription": "任何人都可以编辑该共享中的文件。",
+    "allowDelete": "允许删除文件",
+    "allowDeleteDescription": "任何人都可以删除该共享中的文件和文件夹。",
+    "allowCreate": "允许创建文件和文件夹",
+    "allowCreateDescription": "任何人都可以在此共享中创建新文件和文件夹。",
+    "allowUpload": "允许上传文件",
+    "allowUploadDescription": "任何人都可以将文件上传到此上传共享。",
+    "allowReplacements": "允许文件替换",
+    "allowReplacementsDescription": "上传同名文件时，任何人都可以替换现有文件。"
   },
   "api": {
     "title": "应用程序接口密钥",
@@ -603,7 +619,6 @@
     "uninitialized": "编辑器初始化失败。请重新加载。",
     "saveFailed": "保存文件失败。请重试。",
     "saveAborted": "保存失败。文件名与活动文件不匹配。",
-    "saveDisabled": "不支持保存共享文件。",
     "saveAbortedMessage": "保存操作中止。应用程序的活动文件 ({activeFile}) 与您要保存的文件 ({tryingToSave}) 不匹配。",
     "syncFailed": "经过 5 次尝试后，未能将 \"{filename}\" 的状态与路由同步。终止编辑器设置，以防数据损坏。"
   },

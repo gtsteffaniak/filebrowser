@@ -722,8 +722,19 @@ definitions:
     type: object
   share.CreateBody:
     properties:
+      allowCreate:
+        description: allow creating files
+        type: boolean
+      allowDelete:
+        type: boolean
+      allowModify:
+        description: allow modifying files
+        type: boolean
+      allowReplacements:
+        description: allow replacements of files
+        type: boolean
       allowUpload:
-        description: AllowEdit           bool   `json:"allowEdit,omitempty"`
+        description: allow uploading files
         type: boolean
       allowedUsernames:
         items:
@@ -735,7 +746,11 @@ definitions:
         type: string
       disableAnonymous:
         type: boolean
+      disableDownload:
+        description: don't allow downloading files
+        type: boolean
       disableFileViewer:
+        description: don't allow viewing files
         type: boolean
       disableShareCard:
         type: boolean
@@ -798,8 +813,19 @@ definitions:
     type: object
   share.Link:
     properties:
+      allowCreate:
+        description: allow creating files
+        type: boolean
+      allowDelete:
+        type: boolean
+      allowModify:
+        description: allow modifying files
+        type: boolean
+      allowReplacements:
+        description: allow replacements of files
+        type: boolean
       allowUpload:
-        description: AllowEdit           bool   `json:"allowEdit,omitempty"`
+        description: allow uploading files
         type: boolean
       allowedUsernames:
         items:
@@ -811,7 +837,11 @@ definitions:
         type: string
       disableAnonymous:
         type: boolean
+      disableDownload:
+        description: don't allow downloading files
+        type: boolean
       disableFileViewer:
+        description: don't allow viewing files
         type: boolean
       disableShareCard:
         type: boolean
@@ -917,14 +947,28 @@ definitions:
   users.Permissions:
     properties:
       admin:
+        description: allow admin access
         type: boolean
       api:
+        description: allow api access
+        type: boolean
+      create:
+        description: allow creating or uploading files
+        type: boolean
+      delete:
+        description: allow deleting files
+        type: boolean
+      download:
+        description: allow downloading files
         type: boolean
       modify:
+        description: allow modifying files
         type: boolean
       realtime:
+        description: allow realtime updates
         type: boolean
       share:
+        description: allow sharing files
         type: boolean
     type: object
   users.Preview:
@@ -1093,6 +1137,8 @@ definitions:
         type: string
       username:
         type: string
+      version:
+        type: integer
       viewMode:
         description: 'view mode to use: eg. normal, list, grid, or compact'
         type: string
@@ -2740,6 +2786,63 @@ paths:
               type: string
             type: object
       summary: Upload files to a public upload share
+      tags:
+      - Public Shares
+    put:
+      consumes:
+      - application/json
+      description: Updates the content of a file in a public share.
+      parameters:
+      - description: Share hash for authentication
+        in: query
+        name: hash
+        required: true
+        type: string
+      - description: Path to the file to update
+        in: query
+        name: path
+        required: true
+        type: string
+      - description: New content for the file
+        in: body
+        name: content
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: File updated successfully
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Invalid request or parameters
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Share unavailable or update not allowed
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Share not found or file not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update a file in a public share
       tags:
       - Public Shares
   /public/api/share:

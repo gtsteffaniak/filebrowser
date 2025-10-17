@@ -5,7 +5,7 @@
   </div>
   <div class="card-content">
     <!-- Source Selection Dropdown (only show if multiple sources available and not in display mode) -->
-    <div v-if="availableSources.length > 1 && !isDisplayMode" class="source-selector" style="margin-bottom: 1rem;">
+    <div v-if="showSourceSelector" class="source-selector" style="margin-bottom: 1rem;">
       <label for="destinationSource" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">
         {{ $t("prompts.destinationSource") }}
       </label>
@@ -42,10 +42,11 @@
 </template>
 
 <script>
-import { state, mutations } from "@/store";
+import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
-import { filesApi } from "@/api";
+import { filesApi, publicApi } from "@/api";
 import Icon from "@/components/files/Icon.vue";
+import { shareInfo } from "@/utils/constants";
 
 export default {
   name: "file-list",
@@ -93,6 +94,9 @@ export default {
       return this.title || this.$t("general.files");
     },
     sourcePath() {
+      if (getters.isShare()) {
+        return { source: this.source, path: this.path };
+      }
       return { source: this.source, path: this.path };
     },
     effectiveSource() {
@@ -105,6 +109,9 @@ export default {
     isDisplayMode() {
       // Display mode when fileList prop is provided (drag-triggered navigation)
       return this.fileList !== null;
+    },
+    showSourceSelector() {
+      return this.availableSources.length > 1 && !this.isDisplayMode && !getters.isShare();
     },
   },
   watch: {
@@ -199,8 +206,13 @@ export default {
       let clickedItem = this.items.find(item => item.path === path);
       let sourceToUse = clickedItem ? clickedItem.source : this.source;
       this.path = path;
-      this.source = sourceToUse;
-      filesApi.fetchFiles(sourceToUse, path).then(this.fillOptions);
+      if (getters.isShare()) {
+        publicApi.fetchPub(path, shareInfo.hash).then(this.fillOptions);
+      } else {
+        this.source = sourceToUse;
+        filesApi.fetchFiles(sourceToUse, path).then(this.fillOptions);
+      }
+
     },
     touchstart(event) {
       let url = event.currentTarget.dataset.path;

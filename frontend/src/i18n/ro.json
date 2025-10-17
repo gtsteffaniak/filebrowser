@@ -90,7 +90,8 @@
     "sortByLastModified": "Ordonează dup ultima modificare",
     "sortByName": "Ordonează după nume",
     "sortBySize": "Ordonează după dimensiune",
-    "noPreview": "Previzualizarea nu este disponibilă pentru acest fișier."
+    "noPreview": "Previzualizarea nu este disponibilă pentru acest fișier.",
+    "noDownloadAccess": "Descărcarea nu este disponibilă."
   },
   "help": {
     "click": "alege fișier sau director",
@@ -280,7 +281,10 @@
       "share": "Distribuie fișiere",
       "admin": "Administrator",
       "api": "Crearea și gestionarea cheilor API cu durată lungă de viață",
-      "realtime": "Permite conexiuni și actualizări în timp real"
+      "realtime": "Permite conexiuni și actualizări în timp real",
+      "create": "Creați fișiere",
+      "delete": "Ștergeți fișierele",
+      "download": "Descărcați fișiere"
     },
     "permissions-name": "Permisiuni",
     "permissionsHelp": "Poți alege ca un utilizator să fie administrator sau să-i alegi permisiunile individual. Dacă alegi \"Administrator\", toate celelalte opțiuni vor fi bifate automat. Gestionarea utilizatorilor rămâne un privilegiu exclusiv al administratorilor.\n",
@@ -432,7 +436,19 @@
     "perUserDownloadLimitDescription": "Atunci când este activată, limita de descărcări va fi aplicată fiecărui utilizator. Utilizatorii anonimi nu vor putea descărca niciun fișier din această partajare.",
     "descriptionUploadDefault": "V-a fost trimisă o partajare pentru a încărca fișiere.",
     "extractEmbeddedSubtitles": "Extragerea subtitrărilor încorporate",
-    "extractEmbeddedSubtitlesDescription": "Extragerea subtitrărilor încorporate din fișierele media la încărcare - acest lucru poate fi lent pentru fișierele mari."
+    "extractEmbeddedSubtitlesDescription": "Extragerea subtitrărilor încorporate din fișierele media la încărcare - acest lucru poate fi lent pentru fișierele mari.",
+    "disableDownload": "Dezactivați descărcarea fișierelor",
+    "disableDownloadDescription": "Oricine nu va putea să descarce fișiere sau să vizualizeze conținutul unui fișier.",
+    "allowModify": "Permiteți editarea fișierelor",
+    "allowModifyDescription": "Oricine poate edita fișiere în această partajare.",
+    "allowDelete": "Permiteți ștergerea fișierelor",
+    "allowDeleteDescription": "Oricine poate șterge fișiere și foldere din această partajare.",
+    "allowCreate": "Permiteți crearea de fișiere și foldere",
+    "allowCreateDescription": "Oricine poate crea noi fișiere și foldere în această partajare.",
+    "allowUpload": "Permiteți încărcarea fișierelor",
+    "allowUploadDescription": "Oricine poate încărca fișiere în acest share de încărcare.",
+    "allowReplacements": "Permiteți înlocuirea fișierelor",
+    "allowReplacementsDescription": "Oricine poate înlocui fișierele existente atunci când încarcă fișiere cu același nume."
   },
   "api": {
     "title": "Chei API:",
@@ -603,7 +619,6 @@
     "uninitialized": "Nu s-a reușit inițializarea editorului. Vă rugăm să reîncărcați.",
     "saveFailed": "Nu ați reușit să salvați fișierul. Vă rugăm să încercați din nou.",
     "saveAborted": "Salvare întreruptă. Numele fișierului nu corespunde fișierului activ.",
-    "saveDisabled": "Salvarea fișierelor partajate nu este acceptată.",
     "saveAbortedMessage": "Operațiunea de salvare a fost întreruptă. Fișierul activ al aplicației ({activeFile}) nu corespunde cu fișierul pe care încercați să îl salvați ({tryingToSave}).",
     "syncFailed": "nu a reușit să sincronizeze starea cu ruta pentru \"{filename}\" după 5 încercări. Întreruperea configurării editorului pentru a preveni coruperea datelor."
   },

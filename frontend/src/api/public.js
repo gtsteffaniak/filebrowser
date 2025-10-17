@@ -1,8 +1,8 @@
 import { adjustedData } from "./utils";
 import { notify } from "@/notify";
 import { getApiPath, getPublicApiPath, encodedPath, doubleEncode } from "@/utils/url.js";
-import { globalVars } from "@/utils/constants";
-import { state } from "@/store";
+import { globalVars,shareInfo } from "@/utils/constants";
+import { state, mutations } from "@/store";
 
 // ============================================================================
 // PUBLIC API ENDPOINTS (hash-based authentication)
@@ -176,5 +176,112 @@ export function post(
     notify.showError(err.message || "Error posting resource");
     // We are returning a promise, so we should return a rejected promise on error.
     return Promise.reject(err);
+  }
+}
+
+async function resourceAction(path, method, content) {
+  if (!shareInfo.isValid) {
+    throw new Error('invalid share')
+  }
+  try {
+    path = doubleEncode(path)
+    const apiPath = getPublicApiPath('resources', { path, hash: shareInfo.hash, token: shareInfo.token })
+    const response = await fetch(apiPath, {
+      method,
+      body: content,
+    });
+    if (!response.ok) {
+      const error = new Error(response.statusText);
+      // attempt to marshal json response
+      let data = null;
+      try {
+        data = await response.json()
+      } catch (e) {
+        // ignore
+      }
+      if (data) {
+        error.message = data.message;
+      }
+      (/** @type {any} */ (error)).status = response.status;
+      throw error;
+    }
+    return response;
+  } catch (err) {
+    notify.showError(err.message || 'Error performing resource action')
+    throw err
+  }
+}
+
+export async function remove(path) {
+  if (!shareInfo.isValid) {
+    throw new Error('invalid share')
+  }
+  try {
+    return await resourceAction(path, 'DELETE')
+  } catch (err) {
+    notify.showError(err.message || 'Error deleting resource')
+    throw err
+  }
+}
+
+export async function put(path, content = '') {
+  if (!shareInfo.isValid) {
+    throw new Error('invalid share')
+  }
+  try {
+    return await resourceAction(path, 'PUT', content)
+  } catch (err) {
+    notify.showError(err.message || 'Error putting resource')
+    throw err
+  }
+}
+
+export async function moveCopy(
+  items,
+  action = 'copy',
+  overwrite = false,
+  rename = false
+) {
+  let params = {
+    overwrite: overwrite,
+    action: action,
+    rename: rename,
+    hash: shareInfo.hash
+  }
+  try {
+    // Create an array of fetch calls
+    let promises = items.map(item => {
+      let localParams = {
+        ...params,
+        destination: doubleEncode(item.to),
+        from: doubleEncode(item.from)
+      }
+      const apiPath = getPublicApiPath('resources', localParams)
+
+      return fetch(apiPath, { method: 'PATCH' }).then(response => {
+        if (!response.ok) {
+          return response.text().then(text => {
+            throw new Error(
+              `Failed to move/copy: ${text || response.statusText}`
+            )
+          })
+        }
+        return response
+      })
+    })
+
+    // Await all promises and ensure errors propagate
+    await Promise.all(promises)
+    setTimeout(() => {
+      notify.showSuccess(
+        action === 'copy' ? 'Resources copied successfully' : 'Resources moved successfully'
+      )
+    }, 125);
+    setTimeout(() => {
+      mutations.setReload(true);
+    }, 125);
+  } catch (err) {
+    notify.showError(err.message || 'Error moving/copying resources')
+    throw err // Re-throw the error to propagate it back to the caller
   }
 }

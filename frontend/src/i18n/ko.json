@@ -90,7 +90,8 @@
     "sortByLastModified": "수정시간순 정렬",
     "sortByName": "이름순",
     "sortBySize": "크기순",
-    "noPreview": "이 파일에는 미리 보기를 사용할 수 없습니다."
+    "noPreview": "이 파일에는 미리 보기를 사용할 수 없습니다.",
+    "noDownloadAccess": "다운로드할 수 없습니다."
   },
   "help": {
     "click": "파일이나 디렉토리를 선택해주세요.",
@@ -280,7 +281,10 @@
       "share": "파일 공유하기",
       "admin": "관리자",
       "api": "긴 수명의 API 키 생성 및 관리",
-      "realtime": "실시간 연결 및 업데이트 사용"
+      "realtime": "실시간 연결 및 업데이트 사용",
+      "create": "파일 만들기",
+      "delete": "파일 삭제",
+      "download": "파일 다운로드"
     },
     "permissions-name": "권한",
     "permissionsHelp": "사용자를 관리자로 만들거나 권한을 부여할 수 있습니다. 관리자를 선택하면, 모든 옵션이 자동으로 선택됩니다. 사용자 관리는 현재 관리자만 할 수 있습니다.\n",
@@ -432,7 +436,19 @@
     "perUserDownloadLimitDescription": "이 기능을 활성화하면 각 사용자에게 다운로드 제한이 적용됩니다. 익명 사용자는 이 공유에서 어떤 파일도 다운로드할 수 없습니다.",
     "descriptionUploadDefault": "파일을 업로드할 수 있는 공유가 전송되었습니다.",
     "extractEmbeddedSubtitles": "임베디드 자막 추출",
-    "extractEmbeddedSubtitlesDescription": "로드 시 미디어 파일에서 임베디드 자막을 추출 - 대용량 파일의 경우 속도가 느려질 수 있습니다."
+    "extractEmbeddedSubtitlesDescription": "로드 시 미디어 파일에서 임베디드 자막을 추출 - 대용량 파일의 경우 속도가 느려질 수 있습니다.",
+    "disableDownload": "파일 다운로드 비활성화",
+    "disableDownloadDescription": "누구도 파일을 다운로드하거나 파일의 콘텐츠를 볼 수 없습니다.",
+    "allowModify": "파일 편집 허용",
+    "allowModifyDescription": "누구나 이 공유에서 파일을 편집할 수 있습니다.",
+    "allowDelete": "파일 삭제 허용",
+    "allowDeleteDescription": "누구나 이 공유 폴더에서 파일과 폴더를 삭제할 수 있습니다.",
+    "allowCreate": "파일 및 폴더 만들기 허용",
+    "allowCreateDescription": "누구나 이 공유 폴더에 새 파일과 폴더를 만들 수 있습니다.",
+    "allowUpload": "파일 업로드 허용",
+    "allowUploadDescription": "누구나 이 업로드 공유에 파일을 업로드할 수 있습니다.",
+    "allowReplacements": "파일 교체 허용",
+    "allowReplacementsDescription": "같은 이름의 파일을 업로드할 때 누구나 기존 파일을 대체할 수 있습니다."
   },
   "api": {
     "title": "API 키:",
@@ -603,7 +619,6 @@
     "uninitialized": "편집기를 초기화하지 못했습니다. 다시 로드하세요.",
     "saveFailed": "파일을 저장하지 못했습니다. 다시 시도하세요.",
     "saveAborted": "저장이 중단되었습니다. 파일 이름이 활성 파일과 일치하지 않습니다.",
-    "saveDisabled": "공유 파일 저장은 지원되지 않습니다.",
     "saveAbortedMessage": "저장 작업이 중단되었습니다. 애플리케이션의 활성 파일({activeFile})이 저장하려는 파일({tryingToSave})과 일치하지 않습니다.",
     "syncFailed": "5번 시도 후 \"{filename}\"의 경로와 상태를 동기화하지 못했습니다. 데이터 손상을 방지하기 위해 편집기 설정을 중단합니다."
   },

@@ -1,8 +1,11 @@
 package share
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
+
+	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 )
 
 // IsSingleFileShare determines if this share is for a single file (not a directory).
@@ -139,4 +142,12 @@ func (l *Link) HasReachedUserLimit(username string) bool {
 	}
 	count := l.GetUserDownloadCount(username)
 	return count >= l.DownloadsLimit
+}
+
+func (l *Link) GetSourceName() (string, error) {
+	sourceInfo, ok := settings.Config.Server.SourceMap[l.Source]
+	if !ok {
+		return "", fmt.Errorf("source not found")
+	}
+	return sourceInfo.Name, nil
 }

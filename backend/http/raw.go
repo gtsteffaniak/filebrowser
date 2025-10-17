@@ -110,12 +110,20 @@ func addFile(path string, d *requestContext, tarWriter *tar.Writer, zipWriter *z
 	if idx == nil {
 		return fmt.Errorf("source %s is not available", source)
 	}
-	_, err = files.FileInfoFaster(utils.FileOptions{
-		Username: d.user.Username,
-		Path:     path,
-		Source:   source,
-		Expand:   false,
-	}, store.Access)
+	if d.share != nil {
+		_, err = files.FileInfoFaster(utils.FileOptions{
+			Path:   path,
+			Source: source,
+			Expand: false,
+		}, nil)
+	} else {
+		_, err = files.FileInfoFaster(utils.FileOptions{
+			Username: d.user.Username,
+			Path:     path,
+			Source:   source,
+			Expand:   false,
+		}, store.Access)
+	}
 	if err != nil {
 		return err
 	}
@@ -232,6 +240,9 @@ func addSingleFile(realPath, archivePath string, zipWriter *zip.Writer, tarWrite
 }
 
 func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, fileList []string) (int, error) {
+	if !d.user.Permissions.Download && d.share == nil {
+		return http.StatusForbidden, fmt.Errorf("user is not allowed to download")
+	}
 	splitFile := strings.Split(fileList[0], "::")
 	if len(splitFile) != 2 {
 		return http.StatusBadRequest, fmt.Errorf("invalid file in files request: %v", fileList[0])

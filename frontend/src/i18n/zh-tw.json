@@ -90,7 +90,8 @@
     "sortByLastModified": "按最後修改時間排序",
     "sortByName": "按名稱排序",
     "sortBySize": "按大小排序",
-    "noPreview": "此檔案無法預覽。"
+    "noPreview": "此檔案無法預覽。",
+    "noDownloadAccess": "無法下載。"
   },
   "help": {
     "click": "選擇檔案或目錄",
@@ -280,7 +281,10 @@
       "share": "分享檔案",
       "admin": "管理員",
       "api": "建立與管理長效 API 金鑰",
-      "realtime": "啟用即時連線與更新"
+      "realtime": "啟用即時連線與更新",
+      "create": "建立檔案",
+      "delete": "刪除檔案",
+      "download": "下載檔案"
     },
     "permissions-name": "權限",
     "permissionsHelp": "您可以將該使用者設置為管理員，也可以單獨選擇各項權限。如果選擇了「管理員」，則其他的選項會被自動勾上，同時該使用者可以管理其他使用者。",
@@ -432,7 +436,19 @@
     "perUserDownloadLimitDescription": "啟用時，下載限制會套用至每位使用者。匿名使用者將無法從此共用下載任何檔案。",
     "descriptionUploadDefault": "已傳送共用給您上傳檔案。",
     "extractEmbeddedSubtitles": "擷取內嵌字幕",
-    "extractEmbeddedSubtitlesDescription": "在載入時從媒體檔案中萃取內嵌的字幕 -- 這對於大檔案來說可能會很慢。"
+    "extractEmbeddedSubtitlesDescription": "在載入時從媒體檔案中萃取內嵌的字幕 -- 這對於大檔案來說可能會很慢。",
+    "disableDownload": "停用下載檔案",
+    "disableDownloadDescription": "任何人都無法下載檔案或檢視檔案內容。",
+    "allowModify": "允許編輯檔案",
+    "allowModifyDescription": "任何人都可以編輯此共用中的檔案。",
+    "allowDelete": "允許刪除檔案",
+    "allowDeleteDescription": "任何人都可以從此共用中刪除檔案和資料夾。",
+    "allowCreate": "允許建立檔案和資料夾",
+    "allowCreateDescription": "任何人都可以在此共用中建立新的檔案和資料夾。",
+    "allowUpload": "允許上傳檔案",
+    "allowUploadDescription": "任何人都可以將檔案上傳到此上傳共用。",
+    "allowReplacements": "允許檔案替換",
+    "allowReplacementsDescription": "任何人在上傳具有相同名稱的檔案時，都可以取代現有檔案。"
   },
   "api": {
     "title": "API 金鑰",
@@ -603,7 +619,6 @@
     "uninitialized": "編輯器初始化失敗。請重新載入。",
     "saveFailed": "儲存檔案失敗。請重試。",
     "saveAborted": "儲存中止。檔案名稱與使用中的檔案不符。",
-    "saveDisabled": "不支援儲存共用檔案。",
     "saveAbortedMessage": "儲存作業中止。應用程式的作用中檔案 ({activeFile}) 與您試圖儲存的檔案 ({tryingToSave}) 不匹配。",
     "syncFailed": "經過 5 次嘗試後，未能與 \"{filename}\" 的路由同步狀態。中止編輯器設定以防止資料損毀。"
   },

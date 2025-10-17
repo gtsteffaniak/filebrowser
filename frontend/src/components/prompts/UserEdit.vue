@@ -9,7 +9,6 @@
 
   <div class="card-content">
     <errors v-if="error" :errorCode="error.status" />
-    
     <h2
       class="message"
       v-if="user.loginMethod != 'password' && !stateUser.permissions.admin"
@@ -17,7 +16,6 @@
       <i class="material-icons">sentiment_dissatisfied</i>
       <span>{{ $t("files.lonely") }}</span>
     </h2>
-    
     <div v-if="user.loginMethod == 'password' && globalVars.passwordAvailable && !isNew">
       <label for="password">{{ $t("settings.password") }}</label>
       <div class="form-flex-group">
@@ -63,7 +61,6 @@
       </div>
       <hr />
     </div>
-    
     <div v-if="stateUser.permissions.admin">
       <p v-if="isNew">
         <label for="username">{{ $t("settings.username") }}</label>
@@ -333,7 +330,7 @@ export default {
           if (this.globalVars.passwordAvailable) validMethods.push("password");
           if (this.globalVars.oidcAvailable) validMethods.push("oidc");
           if (this.globalVars.proxyAvailable) validMethods.push("proxy");
-          
+
           if (!this.user.loginMethod || !validMethods.includes(this.user.loginMethod)) {
             this.user.loginMethod = this.firstAvailableLoginMethod;
           }
@@ -349,7 +346,7 @@ export default {
           if (this.globalVars.passwordAvailable) validMethods.push("password");
           if (this.globalVars.oidcAvailable) validMethods.push("oidc");
           if (this.globalVars.proxyAvailable) validMethods.push("proxy");
-          
+
           if (!this.user.loginMethod || !validMethods.includes(this.user.loginMethod)) {
             this.user.loginMethod = this.firstAvailableLoginMethod;
           }
@@ -499,9 +496,9 @@ export default {
       if (this.globalVars.passwordAvailable) validMethods.push("password");
       if (this.globalVars.oidcAvailable) validMethods.push("oidc");
       if (this.globalVars.proxyAvailable) validMethods.push("proxy");
-      
+
       const isValidMethod = validMethods.includes(this.user.loginMethod);
-      
+
       if (!this.user.loginMethod || this.user.loginMethod === null || !isValidMethod) {
         this.user.loginMethod = this.firstAvailableLoginMethod;
       }

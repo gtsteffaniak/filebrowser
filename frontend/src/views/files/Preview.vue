@@ -8,7 +8,6 @@
                 <div class="bounce3"></div>
             </div>
         </div>
-        
         <div class="preview" :class="{'plyr-background': previewType == 'audio' && !useDefaultMediaPlayer, 'transitioning': isTransitioning}" v-if="!isDeleted">
             <ExtendedImage v-if="showImage && !isTransitioning" :src="raw" @navigate-previous="navigatePrevious" @navigate-next="navigateNext"/>
 
@@ -38,7 +37,7 @@
                     <i class="material-icons">feedback</i>
                     {{ $t("files.noPreview") }}
                 </div>
-                <div>
+                <div v-if="permissions.download">
                     <a target="_blank" :href="downloadUrl" class="button button--flat">
                         <div>
                             <i class="material-icons">file_download</i>{{ $t("buttons.download") }}
@@ -49,6 +48,9 @@
                             <i class="material-icons">open_in_new</i>{{ $t("buttons.openFile") }}
                         </div>
                     </a>
+                </div>
+                <div v-else>
+                    <p> {{ $t("files.noDownloadAccess") }} </p>
                 </div>
                 <p> {{ req.name }} </p>
             </div>
@@ -85,6 +87,9 @@ export default {
         };
     },
     computed: {
+        permissions() {
+            return state.user.permissions;
+        },
         showImage() {
             return this.previewType == 'image' || this.pdfConvertable || this.heicConvertable;
         },
@@ -130,6 +135,9 @@ export default {
             return getters.isSidebarVisible();
         },
         previewType() {
+            if (getters.fileViewingDisabled(state.req.name)) {
+                return "preview";
+            }
             return getters.previewType();
         },
         raw() {
@@ -218,7 +226,7 @@ export default {
             if (!getters.isLoggedIn()) {
                 return;
             }
-            
+
             this.isDeleted = false;
             this.updatePreview();
             mutations.resetSelected();
@@ -316,12 +324,12 @@ export default {
         },
         async updatePreview() {
             let directoryPath = url.removeLastDir(state.req.path);
-            
+
             // If directoryPath is empty, the file is in root - use '/' as the directory
             if (!directoryPath || directoryPath === '') {
                 directoryPath = '/';
             }
-            
+
             if (!this.listing || this.listing == "undefined") {
                 // Try to use pre-fetched parent directory items first
                 if (state.req.parentDirItems) {
@@ -354,7 +362,7 @@ export default {
                     this.listing = [state.req];
                 }
             }
-            
+
             if (!this.listing) {
                 this.listing = [state.req];
             }

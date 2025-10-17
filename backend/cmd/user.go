@@ -107,7 +107,11 @@ func updateUserScopes(user *users.User) bool {
 
 // func to convert legacy user with perm key to permissions
 func updatePermissions(user *users.User) bool {
-	updateUser := false
+	if user.Version == 1 {
+		return false
+	}
+	updateUser := true
+	user.Permissions.Download = true
 	// if any keys are true, set the permissions to true
 	if user.Perm.Api {
 		user.Permissions.Api = true
@@ -129,6 +133,27 @@ func updatePermissions(user *users.User) bool {
 		user.Perm.Share = false
 		updateUser = true
 	}
+	if user.Perm.Create {
+		user.Permissions.Create = true
+		user.Perm.Create = false
+		updateUser = true
+	}
+	if user.Perm.Create {
+		user.Permissions.Create = true
+		user.Perm.Create = false
+		updateUser = true
+	}
+	if user.Perm.Download {
+		user.Permissions.Download = true
+		user.Perm.Download = false
+		updateUser = true
+	}
+	if user.Permissions.Modify {
+		user.Permissions.Create = true
+		user.Permissions.Delete = true
+		updateUser = true
+	}
+	user.Version = 1
 	if updateUser {
 		createBackup = append(createBackup, true)
 	}

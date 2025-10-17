@@ -5,19 +5,21 @@ import VueI18nPlugin from "@intlify/unplugin-vue-i18n/vite";
 import { compression } from "vite-plugin-compression2";
 import checker from "vite-plugin-checker";
 
+const isDevBuild = process.env.DEV_BUILD === "true";
+
 const plugins = [
   vue(),
   VueI18nPlugin({
     include: [path.resolve(__dirname, "./src/i18n/**/*.json")],
   }),
-  compression({
+  // Only compress in production builds
+  !isDevBuild && compression({
     include: /\.(js|woff2|woff)(\?.*)?$/i,
     deleteOriginalAssets: true,
   }),
-  checker({
-    typescript: {
-      buildMode: true,
-    },
+  // Disable checker in watch mode to prevent task failures
+  !isDevBuild && checker({
+    typescript: false, // Disable redundant check
     vueTsc: {
       tsconfigPath: "./tsconfig.json",
     },
@@ -25,7 +27,7 @@ const plugins = [
       lintCommand: 'eslint "./src/**/*.{js,vue,ts}"',
     },
   }),
-];
+].filter(Boolean);
 
 const resolve = {
   alias: {
@@ -40,6 +42,13 @@ export default defineConfig(({ command }) => {
     resolve,
     base: "",
     build: {
+      // Optimize for watch mode stability
+      watch: isDevBuild ? {
+        // Add buildDelay to batch multiple changes
+        buildDelay: 500,
+      } : null,
+      // Reduce chunk size limit warnings in dev mode
+      chunkSizeWarningLimit: isDevBuild ? 5000 : 500,
       rollupOptions: {
         input: {
           index: path.resolve(__dirname, "./public/index.html"),
@@ -50,6 +59,14 @@ export default defineConfig(({ command }) => {
               return "i18n";
             }
           },
+        },
+        // Better error handling in watch mode
+        onwarn(warning, warn) {
+          // Suppress certain warnings in dev mode
+          if (isDevBuild && warning.code === 'UNUSED_EXTERNAL_IMPORT') {
+            return;
+          }
+          warn(warning);
         },
       },
     },
