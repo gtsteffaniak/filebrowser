@@ -102,6 +102,13 @@ export default {
       redirect = globalVars.baseURL + redirect;
     }
     this.loginURL += `?redirect=${encodeURIComponent(redirect)}`;
+    
+    // If password auth is disabled and OIDC is available, auto-redirect
+    if (!globalVars.passwordAvailable && globalVars.oidcAvailable) {
+      window.location.href = this.loginURL;
+      return;
+    }
+    
     if (!globalVars.recaptcha) return;
     window.globalVars.recaptcha.ready(function () {
       window.globalVars.recaptcha.render("globalVars.recaptcha", {

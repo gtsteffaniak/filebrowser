@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **New Features**:
  - Playback Queue for media -- thanks @Kurami32 #1339
- - Shortcut to toggle sidebar, open settings, search #1172
+ - Ctrl+b Shortcut to toggle sidebar, open settings, search #1172
  - Add a "select all" toggle in the menu #974
  - Save on exit text editor -- thanks @srini-abhiram #1334 #1241
  - Disabled indexing for subfolders but allow browsing #783
@@ -36,6 +36,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Make source inaccessible if directory does not exist rather than exiting on start #1264
  - HTTP Proxy environment gets ignored since version v0.8.6-beta #1324
  - album artwork preview not showing on shares
+ - fixed OIDC logout causing a loop #995 #1361
 
 ## v0.8.8-beta
 
@@ -79,7 +80,6 @@ All notable changes to this project will be documented in this file. For commit 
  - share close button and navigation issues.
  - OnlyOffice source not found when opening shared file #1285
  - user scoped onlyoffice error saving files with Onlyoffice #1068
-
 
 ## v0.8.7-beta
 
