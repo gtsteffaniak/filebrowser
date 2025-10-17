@@ -14,7 +14,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Updated shares
    - `disableDownload` to disable download and (content viewing).
    - `allowReplacements` to share permission -- prohibits replacing files on conflict #661
-   - normal shares can create/upload files
+   - normal shares can create/upload files if given permission
  - Add
 
  **Notes**:

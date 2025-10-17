@@ -388,14 +388,13 @@ export default {
 
       try {
         if (getters.isShare()) {
-          // TODO: add support for saving shared files
-          const errorMsg = this.$t("share.saveDisabled");
-          notify.showError(errorMsg);
-          throw new Error(errorMsg);
+          // Save the file
+          await publicApi.put(this.originalReq.path, this.editor.getValue());
+        } else {
+          // Save the file
+          await filesApi.put(this.originalReq.source, this.originalReq.path, this.editor.getValue());
         }
 
-        // Save the file
-        await filesApi.put(this.originalReq.source, this.originalReq.path, this.editor.getValue());
         notify.showSuccess(`${this.originalReq.name} saved successfully.`);
         this.isDirty = false;
         mutations.setEditorDirty(false);

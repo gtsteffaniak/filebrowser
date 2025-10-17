@@ -451,20 +451,6 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/resources [put]
 func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	// Check share permissions first if this is a share request
-	if d.share != nil && d.share.Hash != "" {
-		if d.share.ShareType == "upload" {
-			return http.StatusForbidden, fmt.Errorf("editing is not allowed for upload shares")
-		}
-		if !d.share.AllowModify {
-			return http.StatusForbidden, fmt.Errorf("edit permission not allowed for this share")
-		}
-		// Share edit operations also require authentication (not anonymous)
-		if d.user.Username == "anonymous" {
-			return http.StatusForbidden, fmt.Errorf("edit operations require authentication")
-		}
-	}
-
 	source := r.URL.Query().Get("source")
 	var err error
 	// decode url encoded source name
@@ -472,9 +458,7 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid source encoding: %v", err)
 	}
-	if !d.user.Permissions.Create {
-		return http.StatusForbidden, fmt.Errorf("user is not allowed to create or modify")
-	}
+
 	encodedPath := r.URL.Query().Get("path")
 
 	// Decode the URL-encoded path
@@ -532,20 +516,6 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/resources [patch]
 func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	// Check share permissions first if this is a share request
-	if d.share != nil && d.share.Hash != "" {
-		if d.share.ShareType == "upload" {
-			return http.StatusForbidden, fmt.Errorf("move/rename operations not allowed for upload shares")
-		}
-		if !d.share.AllowModify {
-			return http.StatusForbidden, fmt.Errorf("edit permission not allowed for this share")
-		}
-		// Share operations also require authentication (not anonymous)
-		if d.user.Username == "anonymous" {
-			return http.StatusForbidden, fmt.Errorf("move/rename operations require authentication")
-		}
-	}
-
 	action := r.URL.Query().Get("action")
 	if !d.user.Permissions.Modify {
 		return http.StatusForbidden, fmt.Errorf("user is not allowed to create or modify")
@@ -598,7 +568,7 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		return http.StatusNotFound, fmt.Errorf("source %s not found", dstIndex)
 	}
 	// check target dir exists
-	parentDir, isDstDir, err := idx.GetRealPath(userscopeDst, filepath.Dir(dst))
+	parentDir, _, err := idx.GetRealPath(userscopeDst, filepath.Dir(dst))
 	if err != nil {
 		logger.Debugf("Could not get real path for parent dir: %v %v %v", userscopeDst, filepath.Dir(dst), err)
 		return http.StatusNotFound, err
@@ -646,7 +616,6 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		dst:      realDest,
 		d:        d,
 		isSrcDir: isSrcDir,
-		isDstDir: isDstDir,
 	})
 	if err != nil {
 		logger.Debugf("Could not run patch action. src=%v dst=%v err=%v", realSrc, realDest, err)
@@ -678,13 +647,12 @@ type patchActionParams struct {
 	dst      string
 	d        *requestContext
 	isSrcDir bool
-	isDstDir bool
 }
 
 func patchAction(ctx context.Context, params patchActionParams) error {
 	switch params.action {
 	case "copy":
-		err := files.CopyResource(params.isSrcDir, params.isDstDir, params.srcIndex, params.dstIndex, params.src, params.dst)
+		err := files.CopyResource(params.isSrcDir, params.srcIndex, params.dstIndex, params.src, params.dst)
 		return err
 	case "rename", "move":
 		idx := indexing.GetIndex(params.srcIndex)
@@ -705,7 +673,7 @@ func patchAction(ctx context.Context, params patchActionParams) error {
 
 		// delete thumbnails
 		preview.DelThumbs(ctx, *fileInfo)
-		return files.MoveResource(params.isSrcDir, params.isDstDir, params.srcIndex, params.dstIndex, params.src, params.dst, store.Share)
+		return files.MoveResource(params.isSrcDir, params.srcIndex, params.dstIndex, params.src, params.dst, store.Share)
 	default:
 		return fmt.Errorf("unsupported action %s: %w", params.action, errors.ErrInvalidRequestParams)
 	}

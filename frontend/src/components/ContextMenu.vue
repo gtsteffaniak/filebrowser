@@ -152,7 +152,7 @@
 import downloadFiles from "@/utils/download";
 import { state, getters, mutations } from "@/store";
 import Action from "@/components/Action.vue";
-import { globalVars, shareInfo } from "@/utils/constants.js";
+import { globalVars } from "@/utils/constants.js";
 import buttons from "@/utils/buttons";
 import { notify } from "@/notify";
 import { eventBus } from "@/store/eventBus";

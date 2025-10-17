@@ -23,7 +23,7 @@
 </template>
 
 <script>
-import { filesApi } from "@/api";
+import { filesApi, publicApi } from "@/api";
 import buttons from "@/utils/buttons";
 import { state, getters, mutations } from "@/store";
 import { notify } from "@/notify";
@@ -70,7 +70,11 @@ export default {
       try {
         const currentView = getters.currentView()
         if (state.isSearchActive || currentView == "preview") {
-          await filesApi.remove(state.selected[0].source, state.selected[0].path);
+          if (getters.isShare()) {
+            await publicApi.remove(state.selected[0].path);
+          } else {
+            await filesApi.remove(state.selected[0].source, state.selected[0].path);
+          }
           buttons.success("delete");
           notify.showSuccess("Deleted item successfully");
           mutations.closeHovers();
@@ -79,11 +83,13 @@ export default {
           return;
         }
         if (!this.isListing) {
-          await filesApi.remove(state.req.items.source, state.req.items[state.selected[0]].path);
+          if (getters.isShare()) {
+            await publicApi.remove(state.req.items[state.selected[0]].path);
+          } else {
+            await filesApi.remove(state.req.items.source, state.req.items[state.selected[0]].path);
+          }
           buttons.success("delete");
           notify.showSuccess("Deleted item successfully");
-
-          this.currentPrompt?.confirm();
           mutations.closeHovers();
           return;
         }
@@ -96,7 +102,11 @@ export default {
 
         let promises = [];
         for (let index of state.selected) {
-          promises.push(filesApi.remove(state.req.source, state.req.items[index].path));
+          if (getters.isShare()) {
+            promises.push(publicApi.remove(state.req.items[index].path));
+          } else {
+            promises.push(filesApi.remove(state.req.source, state.req.items[index].path));
+          }
         }
         mutations.resetSelected();
         await Promise.all(promises);

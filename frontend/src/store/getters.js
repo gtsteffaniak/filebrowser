@@ -100,7 +100,7 @@ export const getters = {
   },
   isAdmin: () => state.user.permissions?.admin == true,
   isFiles: () => state.route.name === 'Files',
-  isListing: () => getters.isFiles() && state.req.type === 'directory',
+  isListing: () => getters.isFiles() || getters.isShare() && state.req.type === 'directory',
   selectedCount: () =>
     Array.isArray(state.selected) ? state.selected.length : 0,
   getFirstSelected: () => typeof(state.selected[0]) == 'number' ? state.req.items[state.selected[0]] : state.selected[0],
