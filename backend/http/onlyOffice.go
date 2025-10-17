@@ -91,9 +91,10 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 		path = utils.JoinPathAsUnix(userScope, path)
 		logger.Debugf("OnlyOffice user request: resolved path=%s", path)
 		fileInfo, err := files.FileInfoFaster(utils.FileOptions{
-			Path:   indexPath,
-			Source: source,
-			Expand: false,
+			Username: d.user.Username,
+			Path:     path,
+			Source:   source,
+			Expand:   false,
 		}, store.Access)
 		if err != nil {
 			logger.Errorf("OnlyOffice: failed to get file info for source=%s, path=%s: %v", source, path, err)
@@ -257,9 +258,9 @@ func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *reques
 	var sourceInfo *settings.Source
 	var ok bool
 	if d.fileInfo.Hash != "" {
-		sourceInfo, ok = settings.Config.Server.SourceMap[source]
+		sourceInfo, ok = settings.Config.Server.SourceMap[d.share.Source]
 		if !ok {
-			logger.Error("OnlyOffice: source not found")
+			logger.Error("OnlyOffice: share source not found")
 			return http.StatusInternalServerError, fmt.Errorf("source not found")
 		}
 	} else {
@@ -339,7 +340,6 @@ func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *reques
 			}
 			resolvedPath = utils.JoinPathAsUnix(userScope, path)
 		}
-
 		// Write the updated document
 		fileOpts := utils.FileOptions{
 			Path:   resolvedPath,
@@ -350,7 +350,6 @@ func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *reques
 			logger.Errorf("OnlyOffice callback: failed to write updated document: %v", writeErr)
 			return http.StatusInternalServerError, writeErr
 		}
-
 	}
 
 	// Return success response to OnlyOffice server

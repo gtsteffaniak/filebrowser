@@ -114,7 +114,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		file.Token = link.Token
 		file.Source = ""
 		file.Hash = link.Hash
-		if !link.EnableOnlyOffice || !link.DisableFileViewer || reachedDownloadsLimit {
+		if !link.EnableOnlyOffice || link.DisableFileViewer || reachedDownloadsLimit {
 			file.OnlyOfficeId = ""
 		}
 		if getContent && file.Content != "" {
