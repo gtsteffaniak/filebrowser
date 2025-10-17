@@ -54,18 +54,19 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 
 	// Extract clean parameters from request
 	source := r.URL.Query().Get("source")
-	path := r.URL.Query().Get("path")
+	providedPath := r.URL.Query().Get("path")
+	hash := r.URL.Query().Get("hash")
 
 	// Validate required parameters
-	if (path == "" || source == "") && d.fileInfo.Hash == "" {
-		logger.Errorf("OnlyOffice callback missing required parameters: source=%s, path=%s", source, path)
+	if (providedPath == "" || source == "") && hash == "" {
+		logger.Errorf("OnlyOffice callback missing required parameters: source=%s, path=%s", source, providedPath)
 		return http.StatusBadRequest, errors.New("missing required parameters: path + source/hash are required")
 	}
 	themeMode := utils.Ternary(d.user.DarkMode, "dark", "light")
 	var sourceInfo *settings.Source
 	var ok bool
-	if d.fileInfo.Hash != "" {
-		sourceInfo, ok = settings.Config.Server.SourceMap[source]
+	if hash != "" {
+		sourceInfo, ok = settings.Config.Server.SourceMap[d.share.Source]
 		if !ok {
 			logger.Error("OnlyOffice: source not found")
 			return http.StatusInternalServerError, fmt.Errorf("source not found")
@@ -77,7 +78,9 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 			return http.StatusInternalServerError, fmt.Errorf("source not found")
 		}
 	}
-	if d.fileInfo.Hash == "" {
+	source = sourceInfo.Name
+	path := providedPath
+	if hash == "" {
 		// Build file info based on whether this is a share or regular request
 		// Regular user request - need to resolve scope
 		userScope, scopeErr := settings.GetScopeFromSourceName(d.user.Scopes, source)
@@ -85,23 +88,22 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 			logger.Errorf("OnlyOffice: source %s not available for user %s: %v", source, d.user.Username, scopeErr)
 			return http.StatusForbidden, fmt.Errorf("source %s is not available", source)
 		}
-		indexPath := utils.JoinPathAsUnix(userScope, path)
-		logger.Debugf("OnlyOffice user request: resolved path=%s", indexPath)
+		path = utils.JoinPathAsUnix(userScope, path)
+		logger.Debugf("OnlyOffice user request: resolved path=%s", path)
 		fileInfo, err := files.FileInfoFaster(utils.FileOptions{
-			Path:   indexPath,
+			Path:   path,
 			Modify: d.user.Permissions.Modify,
 			Source: source,
 			Expand: false,
 		}, store.Access)
 		if err != nil {
-			logger.Errorf("OnlyOffice: failed to get file info for source=%s, path=%s: %v", source, indexPath, err)
+			logger.Errorf("OnlyOffice: failed to get file info for source=%s, path=%s: %v", source, path, err)
 			return errToStatus(err), err
 		}
 		d.fileInfo = *fileInfo
 	} else {
-		source = sourceInfo.Name
 		// path is index path, so we build from share path
-		path = utils.JoinPathAsUnix(d.share.Path, path)
+		path = utils.JoinPathAsUnix(d.share.Path, providedPath)
 		if d.share.EnforceDarkLightMode == "dark" {
 			themeMode = "dark"
 		}
@@ -120,15 +122,6 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 			canEditMode = "edit"
 		}
 	}
-	// For shares, we need to keep track of the original relative path for the callback URL
-	var callbackPath string
-	if d.fileInfo.Hash != "" {
-		// For shares, use the original path parameter (relative to share)
-		callbackPath = r.URL.Query().Get("path")
-	} else {
-		// For regular requests, use the processed path
-		callbackPath = path
-	}
 
 	// Generate document ID for OnlyOffice
 	documentId, err := getOnlyOfficeId(d.fileInfo.RealPath)
@@ -138,10 +131,10 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 	}
 
 	// Build download URL that OnlyOffice server will use
-	downloadURL := buildOnlyOfficeDownloadURL(source, callbackPath, d.fileInfo.Hash, d.token)
+	downloadURL := buildOnlyOfficeDownloadURL(source, providedPath, d.fileInfo.Hash, d.token)
 
 	// Build callback URL for OnlyOffice to notify us of changes
-	callbackURL := buildOnlyOfficeCallbackURL(source, callbackPath, d.fileInfo.Hash, d.token)
+	callbackURL := buildOnlyOfficeCallbackURL(source, providedPath, d.fileInfo.Hash, d.token)
 
 	// Build OnlyOffice client configuration
 	clientConfig := map[string]interface{}{
