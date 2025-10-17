@@ -383,19 +383,16 @@ func publicPatchHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	if err != nil {
 		return http.StatusNotFound, err
 	}
-
+	dstFullPath = parentRealDest + "/" + filepath.Base(dst)
 	rename := r.URL.Query().Get("rename") == "true"
 	if rename {
 		dstFullPath = addVersionSuffix(dstFullPath)
 	}
-
-	realDest := parentRealDest + "/" + filepath.Base(dst)
-
 	// Validate move/rename operation to prevent circular references
 	if action == "rename" || action == "move" {
-		err = validateMoveOperation(realSrc, realDest, isSrcDir)
+		err = validateMoveOperation(realSrc, dstFullPath, isSrcDir)
 		if err != nil {
-			return http.StatusBadRequest, fmt.Errorf("invalid move/rename operation:")
+			return http.StatusBadRequest, fmt.Errorf("invalid move or rename operation")
 		}
 	}
 	err = patchAction(r.Context(), patchActionParams{
@@ -403,12 +400,12 @@ func publicPatchHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		srcIndex: source,
 		dstIndex: source,
 		src:      realSrc,
-		dst:      realDest,
+		dst:      dstFullPath,
 		d:        d,
 		isSrcDir: isSrcDir,
 	})
 	if err != nil {
-		logger.Debugf("Could not run patch action. src=%v dst=%v err=%v", realSrc, realDest, err)
+		logger.Debugf("Could not run patch action. src=%v dst=%v err=%v", realSrc, dstFullPath, err)
 		return http.StatusInternalServerError, fmt.Errorf("an error occured while processing the request")
 	}
 	return http.StatusOK, nil
