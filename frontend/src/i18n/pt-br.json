@@ -443,12 +443,10 @@
     "allowModifyDescription": "Qualquer pessoa pode editar arquivos nesse compartilhamento.",
     "allowDelete": "Permitir a exclusão de arquivos",
     "allowDeleteDescription": "Qualquer pessoa pode excluir arquivos e pastas desse compartilhamento.",
-    "allowCreate": "Permitir a criação de arquivos e pastas",
-    "allowCreateDescription": "Qualquer pessoa pode criar novos arquivos e pastas nesse compartilhamento.",
-    "allowUpload": "Permitir o upload de arquivos",
-    "allowUploadDescription": "Qualquer pessoa pode fazer upload de arquivos para esse compartilhamento de upload.",
     "allowReplacements": "Permitir substituições de arquivos",
-    "allowReplacementsDescription": "Qualquer pessoa pode substituir arquivos existentes ao fazer upload de arquivos com o mesmo nome."
+    "allowReplacementsDescription": "Qualquer pessoa pode substituir arquivos existentes ao fazer upload de arquivos com o mesmo nome.",
+    "allowCreate": "Permitir a criação e o upload de arquivos e pastas",
+    "allowCreateDescription": "Qualquer pessoa pode criar e carregar novos arquivos e pastas nesse compartilhamento."
   },
   "api": {
     "title": "Chaves de API:",

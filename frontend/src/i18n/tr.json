@@ -443,12 +443,10 @@
     "allowModifyDescription": "Bu paylaşımdaki dosyaları herkes düzenleyebilir.",
     "allowDelete": "Dosyaların silinmesine izin ver",
     "allowDeleteDescription": "Herkes bu paylaşımdan dosya ve klasörleri silebilir.",
-    "allowCreate": "Dosya ve klasör oluşturmaya izin ver",
-    "allowCreateDescription": "Herkes bu paylaşımda yeni dosyalar ve klasörler oluşturabilir.",
-    "allowUpload": "Dosya yüklemeye izin ver",
-    "allowUploadDescription": "Bu yükleme paylaşımına herkes dosya yükleyebilir.",
     "allowReplacements": "Dosya değiştirmelerine izin ver",
-    "allowReplacementsDescription": "Aynı ada sahip dosyaları yüklerken herkes mevcut dosyaları değiştirebilir."
+    "allowReplacementsDescription": "Aynı ada sahip dosyaları yüklerken herkes mevcut dosyaları değiştirebilir.",
+    "allowCreate": "Dosya ve klasör oluşturmaya ve yüklemeye izin ver",
+    "allowCreateDescription": "Herkes bu paylaşımda yeni dosyalar ve klasörler oluşturabilir ve yükleyebilir."
   },
   "api": {
     "title": "API Anahtarları:",

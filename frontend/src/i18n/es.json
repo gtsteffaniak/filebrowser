@@ -443,12 +443,10 @@
     "allowModifyDescription": "Cualquiera puede editar archivos en este recurso compartido.",
     "allowDelete": "Permitir la eliminación de archivos",
     "allowDeleteDescription": "Cualquiera puede borrar archivos y carpetas de este recurso compartido.",
-    "allowCreate": "Permitir la creación de archivos y carpetas",
-    "allowCreateDescription": "Cualquiera puede crear nuevos archivos y carpetas en este recurso compartido.",
-    "allowUpload": "Permitir la carga de archivos",
-    "allowUploadDescription": "Cualquiera puede subir archivos a este recurso compartido.",
     "allowReplacements": "Permitir la sustitución de archivos",
-    "allowReplacementsDescription": "Cualquiera puede sustituir archivos existentes al cargar archivos con el mismo nombre."
+    "allowReplacementsDescription": "Cualquiera puede sustituir archivos existentes al cargar archivos con el mismo nombre.",
+    "allowCreate": "Permitir crear y cargar archivos y carpetas",
+    "allowCreateDescription": "Cualquiera puede crear y cargar nuevos archivos y carpetas en este recurso compartido."
   },
   "api": {
     "title": "Gestión de claves API",

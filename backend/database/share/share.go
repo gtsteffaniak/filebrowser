@@ -31,7 +31,6 @@ type CommonShare struct {
 	ExtractEmbeddedSubtitles bool     `json:"extractEmbeddedSubtitles,omitempty"` // can be io intensive for large files and take 10-30 seconds.
 	AllowDelete              bool     `json:"allowDelete,omitempty"`
 	AllowCreate              bool     `json:"allowCreate,omitempty"`       // allow creating files
-	AllowUpload              bool     `json:"allowUpload,omitempty"`       // allow uploading files
 	AllowModify              bool     `json:"allowModify,omitempty"`       // allow modifying files
 	DisableFileViewer        bool     `json:"disableFileViewer,omitempty"` // don't allow viewing files
 	DisableDownload          bool     `json:"disableDownload,omitempty"`   // don't allow downloading files

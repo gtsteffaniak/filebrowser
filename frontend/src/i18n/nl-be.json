@@ -443,12 +443,10 @@
     "allowModifyDescription": "Iedereen kan bestanden bewerken in deze share.",
     "allowDelete": "Bestanden verwijderen toestaan",
     "allowDeleteDescription": "Iedereen kan bestanden en mappen van deze share verwijderen.",
-    "allowCreate": "Bestanden en mappen maken",
-    "allowCreateDescription": "Iedereen kan nieuwe bestanden en mappen aanmaken in deze share.",
-    "allowUpload": "Bestanden uploaden toestaan",
-    "allowUploadDescription": "Iedereen kan bestanden uploaden naar deze upload share.",
     "allowReplacements": "Bestandsvervangingen toestaan",
-    "allowReplacementsDescription": "Iedereen kan bestaande bestanden vervangen door bestanden met dezelfde naam te uploaden."
+    "allowReplacementsDescription": "Iedereen kan bestaande bestanden vervangen door bestanden met dezelfde naam te uploaden.",
+    "allowCreate": "Bestanden en mappen maken en uploaden",
+    "allowCreateDescription": "Iedereen kan nieuwe bestanden en mappen aanmaken en uploaden in deze share."
   },
   "api": {
     "title": "API-sleutels",

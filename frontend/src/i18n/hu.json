@@ -443,12 +443,10 @@
     "allowModifyDescription": "Ezen a megosztáson bárki szerkesztheti a fájlokat.",
     "allowDelete": "Fájlok törlésének engedélyezése",
     "allowDeleteDescription": "Bárki törölhet fájlokat és mappákat erről a megosztásról.",
-    "allowCreate": "Fájlok és mappák létrehozásának engedélyezése",
-    "allowCreateDescription": "Ezen a megosztáson bárki létrehozhat új fájlokat és mappákat.",
-    "allowUpload": "Fájlok feltöltésének engedélyezése",
-    "allowUploadDescription": "Bárki feltölthet fájlokat erre a feltöltési megosztásra.",
     "allowReplacements": "Fájlok cseréjének engedélyezése",
-    "allowReplacementsDescription": "Az azonos nevű fájlok feltöltésekor bárki helyettesítheti a meglévő fájlokat."
+    "allowReplacementsDescription": "Az azonos nevű fájlok feltöltésekor bárki helyettesítheti a meglévő fájlokat.",
+    "allowCreate": "Fájlok és mappák létrehozásának és feltöltésének lehetővé tétele",
+    "allowCreateDescription": "Bárki létrehozhat és feltölthet új fájlokat és mappákat ezen a megosztáson."
   },
   "api": {
     "title": "API-kulcsok:",

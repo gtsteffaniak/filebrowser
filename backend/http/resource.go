@@ -145,16 +145,6 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/resources [delete]
 func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	// Check share permissions first if this is a share request
-	if d.share != nil && d.share.Hash != "" {
-		if !d.share.AllowDelete {
-			return http.StatusForbidden, fmt.Errorf("delete permission not allowed for this share")
-		}
-		// Share operations also require authentication (not anonymous)
-		if d.user.Username == "anonymous" {
-			return http.StatusForbidden, fmt.Errorf("delete operations require authentication")
-		}
-	}
 
 	if !d.user.Permissions.Delete {
 		return http.StatusForbidden, fmt.Errorf("user is not allowed to delete")
@@ -239,7 +229,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		if d.share.ShareType == "upload" {
 			shareUpload = true
 			// Check AllowUpload permission for upload shares
-			if !d.share.AllowUpload {
+			if !d.share.AllowCreate {
 				return http.StatusForbidden, fmt.Errorf("upload permission not allowed for this share")
 			}
 		} else if d.share.ShareType == "normal" {

@@ -213,12 +213,10 @@
     "allowModifyDescription": "Soubory v tomto sdíleném souboru může upravovat kdokoli.",
     "allowDelete": "Povolit mazání souborů",
     "allowDeleteDescription": "Soubory a složky může z této sdílené složky odstranit kdokoli.",
-    "allowCreate": "Povolit vytváření souborů a složek",
-    "allowCreateDescription": "V této sdílené složce může kdokoli vytvářet nové soubory a složky.",
-    "allowUpload": "Povolit nahrávání souborů",
-    "allowUploadDescription": "Do této sdílené složky může nahrávat soubory kdokoli.",
     "allowReplacements": "Povolení nahrazení souborů",
-    "allowReplacementsDescription": "Při nahrávání souborů se stejným názvem může kdokoli nahradit stávající soubory."
+    "allowReplacementsDescription": "Při nahrávání souborů se stejným názvem může kdokoli nahradit stávající soubory.",
+    "allowCreate": "Umožnit vytváření a nahrávání souborů a složek",
+    "allowCreateDescription": "V této sdílené složce může kdokoli vytvářet a nahrávat nové soubory a složky."
   },
   "prompts": {
     "copy": "Kopírovat",

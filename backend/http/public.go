@@ -162,7 +162,7 @@ func publicGetResourceHandler(w http.ResponseWriter, r *http.Request, d *request
 // @Failure 501 {object} map[string]string "Uploading disabled for non-upload shares"
 // @Router /public/api/resources [post]
 func publicUploadHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	if d.share.ShareType != "upload" && !d.share.AllowUpload {
+	if d.share.ShareType != "upload" && !d.share.AllowCreate {
 		return http.StatusForbidden, fmt.Errorf("uploading is disabled for this share")
 	}
 

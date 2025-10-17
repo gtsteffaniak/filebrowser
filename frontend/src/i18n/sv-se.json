@@ -443,12 +443,10 @@
     "allowModifyDescription": "Vem som helst kan redigera filer i den här delen.",
     "allowDelete": "Tillåt radering av filer",
     "allowDeleteDescription": "Vem som helst kan radera filer och mappar från denna delning.",
-    "allowCreate": "Tillåt skapande av filer och mappar",
-    "allowCreateDescription": "Vem som helst kan skapa nya filer och mappar i den här delen.",
-    "allowUpload": "Tillåt uppladdning av filer",
-    "allowUploadDescription": "Vem som helst kan ladda upp filer till denna uppladdningsandel.",
     "allowReplacements": "Tillåt filbyten",
-    "allowReplacementsDescription": "Vem som helst kan ersätta befintliga filer när de laddar upp filer med samma namn."
+    "allowReplacementsDescription": "Vem som helst kan ersätta befintliga filer när de laddar upp filer med samma namn.",
+    "allowCreate": "Tillåt skapande och uppladdning av filer och mappar",
+    "allowCreateDescription": "Vem som helst kan skapa och ladda upp nya filer och mappar i den här delen."
   },
   "api": {
     "title": "API-nycklar",

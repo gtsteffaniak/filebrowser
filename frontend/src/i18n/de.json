@@ -443,12 +443,10 @@
     "allowModifyDescription": "Jeder kann Dateien in dieser Freigabe bearbeiten.",
     "allowDelete": "Löschen von Dateien zulassen",
     "allowDeleteDescription": "Jeder kann Dateien und Ordner von dieser Freigabe löschen.",
-    "allowCreate": "Erlauben Sie das Erstellen von Dateien und Ordnern",
-    "allowCreateDescription": "Jeder kann neue Dateien und Ordner in dieser Freigabe erstellen.",
-    "allowUpload": "Hochladen von Dateien zulassen",
-    "allowUploadDescription": "Jeder kann Dateien auf diese Upload-Freigabe hochladen.",
     "allowReplacements": "Ersetzen von Dateien zulassen",
-    "allowReplacementsDescription": "Jeder kann beim Hochladen von Dateien mit demselben Namen bestehende Dateien ersetzen."
+    "allowReplacementsDescription": "Jeder kann beim Hochladen von Dateien mit demselben Namen bestehende Dateien ersetzen.",
+    "allowCreate": "Ermöglicht das Erstellen und Hochladen von Dateien und Ordnern",
+    "allowCreateDescription": "Jeder kann neue Dateien und Ordner in dieser Freigabe erstellen und hochladen."
   },
   "api": {
     "title": "API-Schlüssel:",

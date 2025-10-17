@@ -443,12 +443,10 @@
     "allowModifyDescription": "누구나 이 공유에서 파일을 편집할 수 있습니다.",
     "allowDelete": "파일 삭제 허용",
     "allowDeleteDescription": "누구나 이 공유 폴더에서 파일과 폴더를 삭제할 수 있습니다.",
-    "allowCreate": "파일 및 폴더 만들기 허용",
-    "allowCreateDescription": "누구나 이 공유 폴더에 새 파일과 폴더를 만들 수 있습니다.",
-    "allowUpload": "파일 업로드 허용",
-    "allowUploadDescription": "누구나 이 업로드 공유에 파일을 업로드할 수 있습니다.",
     "allowReplacements": "파일 교체 허용",
-    "allowReplacementsDescription": "같은 이름의 파일을 업로드할 때 누구나 기존 파일을 대체할 수 있습니다."
+    "allowReplacementsDescription": "같은 이름의 파일을 업로드할 때 누구나 기존 파일을 대체할 수 있습니다.",
+    "allowCreate": "파일 및 폴더 생성 및 업로드 허용",
+    "allowCreateDescription": "누구나 이 공유 폴더에 새 파일과 폴더를 만들고 업로드할 수 있습니다."
   },
   "api": {
     "title": "API 키:",

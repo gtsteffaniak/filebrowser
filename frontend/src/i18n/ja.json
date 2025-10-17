@@ -443,12 +443,10 @@
     "allowModifyDescription": "誰でもこの共有内のファイルを編集することができます。",
     "allowDelete": "ファイルの削除を許可する",
     "allowDeleteDescription": "誰でもこの共有からファイルやフォルダを削除することができます。",
-    "allowCreate": "ファイルとフォルダの作成を許可する",
-    "allowCreateDescription": "誰でもこの共有に新しいファイルやフォルダを作成することができます。",
-    "allowUpload": "ファイルのアップロードを許可する",
-    "allowUploadDescription": "誰でもこのアップロード共有にファイルをアップロードすることができます。",
     "allowReplacements": "ファイルの置き換えを許可する",
-    "allowReplacementsDescription": "同じ名前のファイルをアップロードすれば、誰でも既存のファイルを置き換えることができます。"
+    "allowReplacementsDescription": "同じ名前のファイルをアップロードすれば、誰でも既存のファイルを置き換えることができます。",
+    "allowCreate": "ファイルやフォルダの作成とアップロードが可能",
+    "allowCreateDescription": "誰でもこの共有に新しいファイルやフォルダを作成し、アップロードすることができます。"
   },
   "api": {
     "title": "APIキー：",
