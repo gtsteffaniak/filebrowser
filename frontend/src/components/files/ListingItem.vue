@@ -19,6 +19,7 @@
     :data-dir="isDir"
     :data-type="type"
     :data-name="name"
+    :data-index="index"
     :aria-label="name"
     :aria-selected="isSelected"
     @contextmenu="onRightClick"
