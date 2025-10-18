@@ -25,7 +25,7 @@
 
 ## About
 
-FileBrowser Quantum provides an easy way to access and manage your files from the web. It has has a modern responsive interface that has many advanced features to manage users, access, sharing, and file preview and editing.
+FileBrowser Quantum provides an easy way to access and manage your files from the web. It has a modern responsive interface that has many advanced features to manage users, access, sharing, and file preview and editing.
 
 This version is called "Quantum" because it packs tons of advanced features into a tiny easy to run file. Unlike the majority of alternative options, FileBrowser Quantum is simple to install and easy to configure.
 
