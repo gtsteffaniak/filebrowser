@@ -32,7 +32,7 @@ This version is called "Quantum" because it packs tons of advanced features into
 
 The goal for this repo is to become the best open-source self-hosted file browsing application that exists -- **all for free**. This repo will always be free and open-source.
 
-Ready to try it out? See [Getting Started Wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Getting-Started).
+Ready to try it out? See [Getting Started Docs](https://filebrowserquantum.com/en/docs/getting-started/).
 
 ## How its different
 
