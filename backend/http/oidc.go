@@ -339,15 +339,17 @@ func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string, 
 		return http.StatusInternalServerError, fmt.Errorf("failed to generate authentication token for user %s: %v", username, err)
 	}
 
+	expires := time.Now().Add(time.Hour * time.Duration(config.Auth.TokenExpirationHours))
 	// Set the authentication token as an HTTP cookie
 	cookie := &http.Cookie{
-		Name:   "auth",                        // The name of your auth cookie
-		Value:  signed.Key,                    // The generated token value
-		Domain: strings.Split(r.Host, ":")[0], // Set domain to the host without port
-		Path:   "/",                           // Make the cookie available to the whole site
-		// Secure: true, // Recommended: Set to true in production with HTTPS
-		// HttpOnly: true, // Recommended: Set to true to prevent client-side script access
-		Expires: time.Now().Add(time.Hour * time.Duration(config.Auth.TokenExpirationHours)), // Set cookie expiration
+		Name:     "auth",                        // The name of your auth cookie
+		Value:    signed.Key,                    // The generated token value
+		Domain:   strings.Split(r.Host, ":")[0], // Set domain to the host without port
+		Path:     "/",                           // Make the cookie available to the whole site
+		SameSite: http.SameSiteLaxMode,          // Lax mode allows cookie on navigation from OIDC provider
+		Expires:  expires,                       // Set cookie expiration
+		// HttpOnly: true, // Cannot use HttpOnly since frontend needs to read cookie for renew operations
+		// Secure: true, // Enable this in production with HTTPS
 	}
 	http.SetCookie(w, cookie)
 
