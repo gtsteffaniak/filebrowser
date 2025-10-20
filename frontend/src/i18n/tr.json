@@ -99,7 +99,10 @@
       "click": "çoklu dosya ve klasör seçin",
       "d": "seçili öğeleri indirin",
       "b": "kenar çubuğunu değiştir",
-      "comma": "ayarlara git"
+      "comma": "ayarlara git",
+      "c": "seçili öğeleri kopyala",
+      "v": "kopyalanan/kesilen öğeleri yapıştırma",
+      "x": "seçili öğeleri kes"
     },
     "del": "seçilileri sil",
     "esc": "seçimi temizle veya kapatın",
@@ -107,8 +110,8 @@
     "help": "Yardım",
     "f1": "yardım istemini göster",
     "description": "Temel navigasyon seçeneklerini aşağıda görüntüleyebilirsiniz. Ek bilgi için lütfen şu adresi ziyaret edin",
-    "wiki": "FileBrowser Quantum Wiki",
-    "slash": "aramayı etkinleştir"
+    "slash": "aramayı etkinleştir",
+    "wiki": "FileBrowser Quantum Resmi Dokümanları"
   },
   "languages": {
     "he": "עברית",
@@ -212,7 +215,12 @@
     "size": "Boyut{suffix}",
     "operationInProgress": "İşlem devam ediyor, lütfen bekleyin...",
     "saveBeforeExit": "Kaydedilmemiş Değişiklikler",
-    "saveBeforeExitMessage": "Düzenleyicide kaydedilmemiş değişiklikleriniz var. Ne yapmak istiyorsunuz?"
+    "saveBeforeExitMessage": "Düzenleyicide kaydedilmemiş değişiklikleriniz var. Ne yapmak istiyorsunuz?",
+    "copyPasteConfirm": "Kopyala/Yapıştır Onayı",
+    "copyItemQuestion": "Bu öğeyi yeni konuma kopyalayayım mı?",
+    "moveItemQuestion": "Bu öğeyi yeni konuma taşıyın mı?",
+    "sourcePath": "Kaynak:",
+    "destinationPath": "Varış yeri:"
   },
   "search": {
     "images": "Görseller",

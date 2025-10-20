@@ -99,7 +99,10 @@
       "click": "Markiere mehrere Dateien oder Ordner",
       "d": "ausgewählte Artikel herunterladen",
       "b": "Seitenleiste umklappen",
-      "comma": "zu den Einstellungen gehen"
+      "comma": "zu den Einstellungen gehen",
+      "c": "ausgewählte Elemente kopieren",
+      "v": "Kopierte/ausgeschnittene Elemente einfügen",
+      "x": "ausgewählte Artikel ausschneiden"
     },
     "del": "Löscht die ausgewählten Elemente",
     "esc": "Auswahl zurücksetzen und/oder Dialog schließen",
@@ -107,8 +110,8 @@
     "help": "Hilfe",
     "f1": "Hilfeprompt anzeigen",
     "description": "Nachstehend finden Sie die grundlegenden Navigationsoptionen. Für zusätzliche Informationen besuchen Sie bitte",
-    "wiki": "FileBrowser Quantum Wiki",
-    "slash": "Suche aktivieren"
+    "slash": "Suche aktivieren",
+    "wiki": "FileBrowser Quantum Offizielle Dokumente"
   },
   "languages": {
     "he": "עברית",
@@ -212,7 +215,12 @@
     "size": "Größe{suffix}",
     "operationInProgress": "Operation im Gange, bitte warten...",
     "saveBeforeExit": "Nicht gespeicherte Änderungen",
-    "saveBeforeExitMessage": "Sie haben ungespeicherte Änderungen im Editor. Was würden Sie gerne tun?"
+    "saveBeforeExitMessage": "Sie haben ungespeicherte Änderungen im Editor. Was würden Sie gerne tun?",
+    "copyPasteConfirm": "Kopieren/Einfügen-Bestätigung",
+    "copyItemQuestion": "Dieses Element an den neuen Ort kopieren?",
+    "moveItemQuestion": "Diesen Artikel an den neuen Ort verschieben?",
+    "sourcePath": "Quelle:",
+    "destinationPath": "Zielort:"
   },
   "search": {
     "images": "Bilder",

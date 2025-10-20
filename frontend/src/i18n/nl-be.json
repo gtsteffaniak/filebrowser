@@ -99,7 +99,10 @@
       "click": "selecteer meerdere bestanden of mappen",
       "d": "geselecteerde items downloaden",
       "b": "naar zijbalk wisselen",
-      "comma": "ga naar instellingen"
+      "comma": "ga naar instellingen",
+      "c": "geselecteerde items kopiëren",
+      "v": "gekopieerde/afgesneden items plakken",
+      "x": "geselecteerde items knippen"
     },
     "del": "verwijder geselecteerde items",
     "esc": "Wis selectie en/of sluit de prompt",
@@ -107,8 +110,8 @@
     "help": "Help",
     "f1": "help prompt tonen",
     "description": "Je kunt de basisnavigatieopties hieronder bekijken. Ga voor aanvullende informatie naar",
-    "wiki": "FileBrowser Quantum Wiki",
-    "slash": "Zoeken activeren"
+    "slash": "Zoeken activeren",
+    "wiki": "FileBrowser Quantum Officiële documenten"
   },
   "languages": {
     "he": "עברית",
@@ -212,7 +215,12 @@
     "size": "Maat{suffix}",
     "operationInProgress": "Werking bezig, even geduld a.u.b...",
     "saveBeforeExit": "Niet-opgeslagen wijzigingen",
-    "saveBeforeExitMessage": "U hebt niet-opgeslagen wijzigingen in de editor. Wat wilt u doen?"
+    "saveBeforeExitMessage": "U hebt niet-opgeslagen wijzigingen in de editor. Wat wilt u doen?",
+    "copyPasteConfirm": "Bevestiging kopiëren/plakken",
+    "copyItemQuestion": "Dit item kopiëren naar de nieuwe locatie?",
+    "moveItemQuestion": "Dit item verplaatsen naar de nieuwe locatie?",
+    "sourcePath": "Bron:",
+    "destinationPath": "Bestemming:"
   },
   "search": {
     "images": "Afbeeldingen",

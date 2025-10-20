@@ -99,7 +99,10 @@
       "click": "選擇多個檔案或目錄",
       "d": "下載所選項目",
       "b": "切換側邊欄",
-      "comma": "前往設定"
+      "comma": "前往設定",
+      "c": "複製選取的項目",
+      "v": "貼上已複製/剪下的項目",
+      "x": "切選"
     },
     "del": "刪除所選的檔案/資料夾",
     "esc": "清除已選項或關閉提示資訊",
@@ -107,8 +110,8 @@
     "help": "幫助",
     "f1": "顯示幫助提示",
     "description": "您可以查看以下的基本導航選項。如需其他資訊，請造訪",
-    "wiki": "FileBrowser Quantum Wiki",
-    "slash": "啟動搜尋"
+    "slash": "啟動搜尋",
+    "wiki": "FileBrowser Quantum 官方文件"
   },
   "languages": {
     "he": "עברית",
@@ -212,7 +215,12 @@
     "size": "尺寸{suffix}",
     "operationInProgress": "操作正在進行中，請稍候...",
     "saveBeforeExit": "未儲存的變更",
-    "saveBeforeExitMessage": "您在編輯器中有未儲存的變更。您想做什麼？"
+    "saveBeforeExitMessage": "您在編輯器中有未儲存的變更。您想做什麼？",
+    "copyPasteConfirm": "複製/貼上確認",
+    "copyItemQuestion": "將此項目複製到新位置？",
+    "moveItemQuestion": "將此項目移至新位置？",
+    "sourcePath": "來源",
+    "destinationPath": "目的地："
   },
   "search": {
     "images": "影像",

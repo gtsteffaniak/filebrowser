@@ -99,7 +99,10 @@
       "click": "alege multiple fișiere sau directoare",
       "d": "descărcați elementele selectate",
       "b": "comutare bară laterală",
-      "comma": "mergeți la setări"
+      "comma": "mergeți la setări",
+      "c": "copiați elementele selectate",
+      "v": "lipiți elementele copiate/tăiate",
+      "x": "tăiați articolele selectate"
     },
     "del": "șterge elementele selectate",
     "esc": "elibereaza selecția și/sau închide fereastra",
@@ -107,8 +110,8 @@
     "help": "Ajutor",
     "f1": "arată ajutor prompt",
     "description": "Puteți vizualiza mai jos opțiunile de navigație de bază. Pentru informații suplimentare, vă rugăm să vizitați",
-    "wiki": "FileBrowser Quantum Wiki",
-    "slash": "activați căutarea"
+    "slash": "activați căutarea",
+    "wiki": "FileBrowser Quantum Documente oficiale"
   },
   "languages": {
     "he": "עברית",
@@ -212,7 +215,12 @@
     "size": "Mărime{suffix}",
     "operationInProgress": "Operațiune în curs, vă rugăm să așteptați...",
     "saveBeforeExit": "Modificări nesalvate",
-    "saveBeforeExitMessage": "Aveți modificări nesalvate în editor. Ce doriți să faceți?"
+    "saveBeforeExitMessage": "Aveți modificări nesalvate în editor. Ce doriți să faceți?",
+    "copyPasteConfirm": "Confirmare copiere/lipire",
+    "copyItemQuestion": "Copiați acest element în noua locație?",
+    "moveItemQuestion": "Mutați acest element în noua locație?",
+    "sourcePath": "Sursă:",
+    "destinationPath": "Destinație:"
   },
   "search": {
     "images": "Imagini",

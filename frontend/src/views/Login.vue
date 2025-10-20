@@ -105,7 +105,6 @@ export default {
         return;
       }
     }
-
     if (!globalVars.recaptcha) return;
     window.globalVars.recaptcha.ready(function () {
       window.globalVars.recaptcha.render("globalVars.recaptcha", {

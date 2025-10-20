@@ -99,7 +99,10 @@
       "click": "több mappa vagy fájl kijelölése",
       "d": "kiválasztott elemek letöltése",
       "b": "oldalsáv átkapcsolása",
-      "comma": "menj a beállításokhoz"
+      "comma": "menj a beállításokhoz",
+      "c": "kiválasztott elemek másolása",
+      "v": "másolt/kivágott elemek beillesztése",
+      "x": "kiválasztott tételek kivágása"
     },
     "del": "kijelölt elemek törlése",
     "esc": "kijelölés törlése és/vagy parancssor bezárása",
@@ -107,8 +110,8 @@
     "help": "Súgó",
     "f1": "show help prompt",
     "description": "Az alábbiakban megtekintheti az alapvető navigációs lehetőségeket. További információkért kérjük, látogasson el a következő weboldalra",
-    "wiki": "FileBrowser Quantum Wiki",
-    "slash": "keresés aktiválása"
+    "slash": "keresés aktiválása",
+    "wiki": "FileBrowser Quantum hivatalos dokumentumok"
   },
   "languages": {
     "he": "עברית",
@@ -212,7 +215,12 @@
     "size": "Méret{suffix}",
     "operationInProgress": "Művelet folyamatban, kérjük várjon...",
     "saveBeforeExit": "Nem mentett változtatások",
-    "saveBeforeExitMessage": "A szerkesztőben elmentetlen módosítások vannak. Mit szeretne tenni?"
+    "saveBeforeExitMessage": "A szerkesztőben elmentetlen módosítások vannak. Mit szeretne tenni?",
+    "copyPasteConfirm": "Másolás/beillesztés megerősítés",
+    "copyItemQuestion": "Másolja ezt az elemet az új helyre?",
+    "moveItemQuestion": "Áthelyezni ezt az elemet az új helyre?",
+    "sourcePath": "Forrás:",
+    "destinationPath": "Úti cél:"
   },
   "search": {
     "images": "Képek",
