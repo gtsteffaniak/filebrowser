@@ -21,10 +21,7 @@
 ## Pinned
 
 :loudspeaker: [Stable Release & 0.9.0 Update](https://github.com/gtsteffaniak/filebrowser/discussions/1293)
-<<<<<<< HEAD
-=======
 
->>>>>>> dev/v0.8.10
 :pushpin: [Read The Official Docs](https://filebrowserquantum.com/) (currently english-only)
 
 ## About
@@ -98,11 +95,7 @@ a pop-up menu.
 
 ## Official Docs
 
-<<<<<<< HEAD
-See the [Official Docs](https://filebrowserquantum.com/). Contributions or welcome and encouraged! See [FilebrowserDocs Github](https://github.com/quantumx-apps/filebrowserDocs).
-=======
 See the [Official Docs](https://filebrowserquantum.com/). Contributions are welcome and encouraged! See [FilebrowserDocs Github](https://github.com/quantumx-apps/filebrowserDocs).
->>>>>>> dev/v0.8.10
 
 ## Comparison Chart
 
