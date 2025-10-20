@@ -156,30 +156,27 @@ router.beforeResolve(async (to, from, next) => {
     to.matched.some((record) => record.meta.requiresAuth) ||
     to.matched.some((record) => record.meta.optionalAuth)
   ) {
-    // Always try to validate login to catch expired tokens
-    try {
-      await validateLogin();
-    } catch (error) {
-      // Validation failed - clear state
-      mutations.setCurrentUser(null);
-      mutations.setJWT("");
-      // For optional auth routes, allow anonymous access
-      if (to.matched.some((record) => record.meta.optionalAuth)) {
+    if (state?.user?.username) {
+      // do nothing, user is already set
+    } else {
+      try {
+        await validateLogin();
+      } catch (error) {
         mutations.setCurrentUser(getters.anonymous());
-      } else {
-        // For required auth routes, clear cookies and redirect to login
-        document.cookie = "auth=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/";
-        if (globalVars.passwordAvailable) {
-          next({ path: "/login", query: { redirect: to.fullPath } });
-          return;
-        }
-        if (globalVars.oidcAvailable) {
-          const modifiedPath = encodeURIComponent(globalVars.baseURL+removeLeadingSlash(to.fullPath))
-          window.location.href = globalVars.baseURL+`api/auth/oidc/login?redirect=${modifiedPath}`;
-          return;
-        }
-        // No auth method available - fail gracefully
-        next({ path: "/403" });
+      }
+    }
+
+    if (getters.isLoggedIn() || to.matched.some((record) => record.meta.optionalAuth)) {
+      // do nothing
+    } else {
+      if (globalVars.passwordAvailable && !globalVars.proxyAvailable) {
+        next({ path: "/login", query: { redirect: to.fullPath } });
+        return;
+      }
+
+      if (globalVars.oidcAvailable) {
+        const modifiedPath = encodeURIComponent(globalVars.baseURL+removeLeadingSlash(to.fullPath))
+        window.location.href = globalVars.baseURL+`api/auth/oidc/login?redirect=${modifiedPath}`;
         return;
       }
     }
@@ -198,19 +195,12 @@ router.beforeResolve(async (to, from, next) => {
       }
     }
   }
-  // If going to /login but user is logged in, redirect to files
-  // This check is safe because /login doesn't have auth meta, so we skip validation above
-  // But we should verify the user is actually logged in (not just stale state)
-  if (to.path.endsWith("/login")) {
-    if (getters.isLoggedIn()) {
-      // Check if we actually have a valid cookie, not just stale state
-      const authCookie = document.cookie.split('; ').find(row => row.startsWith('auth='));
-      if (authCookie) {
-        next({ path: "/files/" });
-        return;
-      }
-    }
+
+  if (to.path.endsWith("/login") && getters.isLoggedIn()) {
+    next({ path: "/files/" });
+    return;
   }
+
   next();
 });
 
