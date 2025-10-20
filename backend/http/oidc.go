@@ -329,8 +329,9 @@ func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string, 
 	if err = store.Access.SyncUserGroups(username, groups); err != nil {
 		logger.Warningf("failed to sync oidc user %s groups: %v", username, err)
 	}
+	expires := time.Hour * time.Duration(config.Auth.TokenExpirationHours)
 	// Generate a signed token for the user
-	signed, err2 := makeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), time.Hour*time.Duration(config.Auth.TokenExpirationHours), user.Permissions)
+	signed, err2 := makeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), expires, user.Permissions)
 	if err2 != nil {
 		// Handle potential errors during token generation
 		if strings.Contains(err2.Error(), "key already exists with same name") {
@@ -339,7 +340,8 @@ func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string, 
 		return http.StatusInternalServerError, fmt.Errorf("failed to generate authentication token for user %s: %v", username, err)
 	}
 
-	expires := time.Now().Add(time.Hour * time.Duration(config.Auth.TokenExpirationHours))
+	// add 30 minutes so expired token doesn't get automatically deleted by the browser and the backend can see who's making a new request
+	expiresTime := time.Now().Add(expires).Add(time.Minute * 30)
 	// Set the authentication token as an HTTP cookie
 	cookie := &http.Cookie{
 		Name:     "auth",                        // The name of your auth cookie
@@ -347,7 +349,7 @@ func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string, 
 		Domain:   strings.Split(r.Host, ":")[0], // Set domain to the host without port
 		Path:     "/",                           // Make the cookie available to the whole site
 		SameSite: http.SameSiteLaxMode,          // Lax mode allows cookie on navigation from OIDC provider
-		Expires:  expires,                       // Set cookie expiration
+		Expires:  expiresTime,                   // Set cookie expiration
 		// HttpOnly: true, // Cannot use HttpOnly since frontend needs to read cookie for renew operations
 		// Secure: true, // Enable this in production with HTTPS
 	}
