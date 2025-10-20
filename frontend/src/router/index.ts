@@ -169,7 +169,10 @@ router.beforeResolve(async (to, from, next) => {
     if (getters.isLoggedIn() || to.matched.some((record) => record.meta.optionalAuth)) {
       // do nothing
     } else {
-      if (globalVars.passwordAvailable && !globalVars.proxyAvailable) {
+      // Validation failed - clear state
+      mutations.setCurrentUser(null);
+      mutations.setJWT("");
+      if (globalVars.passwordAvailable) {
         next({ path: "/login", query: { redirect: to.fullPath } });
         return;
       }
