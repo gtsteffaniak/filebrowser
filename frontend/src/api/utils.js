@@ -11,6 +11,7 @@ export async function fetchURL(url, opts, auth = true) {
   let res;
   try {
     res = await fetch(url, {
+      credentials: 'same-origin', // Ensure cookies are sent with all API requests
       headers: {
         "sessionId": state.sessionId,
         ...headers,
