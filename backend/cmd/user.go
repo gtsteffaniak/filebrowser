@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 	"reflect"
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
@@ -44,7 +45,8 @@ func validateUserInfo() {
 			changePass = true
 		}
 		if updateUser {
-			if len(createBackup) == 1 {
+			skipCreateBackup := os.Getenv("FILEBROWSER_DISABLE_AUTOMATIC_BACKUP") == "true"
+			if len(createBackup) == 1 && !skipCreateBackup {
 				logger.Warning("Incompatible user settings detected, creating backup of database before converting.")
 				err = fileutils.CopyFile(settings.Config.Server.Database, fmt.Sprintf("%s.bak", settings.Config.Server.Database))
 				if err != nil {
