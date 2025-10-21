@@ -154,7 +154,7 @@ export default {
     },
     canDrop() {
       if (!this.isDir || this.readOnly !== undefined) return false;
-      
+
       // Check if any selected item is the same as the drop target
       for (const i of this.selected) {
         if (
@@ -165,7 +165,7 @@ export default {
         ) {
           return false;
         }
-        
+
         // Also check if we're trying to drop an item onto itself
         // @ts-ignore
         if (state.req.items[i].index === this.index) {
@@ -309,14 +309,14 @@ export default {
     /** @param {DragEvent} event */
     dragOver(event) {
       if (!this.canDrop) return;
-      
+
       // Only allow internal drags (from filebrowser items), not external files from desktop
       const isInternal = Array.from(event.dataTransfer.types).includes(
         "application/x-filebrowser-internal-drag"
       );
-      
+
       if (!isInternal) return;
-      
+
       event.preventDefault();
       this.isDraggedOver = true;
     },
@@ -333,7 +333,7 @@ export default {
       const isInternal = Array.from(event.dataTransfer.types).includes(
         "application/x-filebrowser-internal-drag"
       );
-      
+
       if (!isInternal) {
         // Don't handle external drags - let the parent ListingView handle them
         return;
