@@ -51,9 +51,10 @@
         class="file-icons"
       >
         <!-- Rectangle selection overlay -->
-        <div class="selection-rectangle"
+        <div class="selection-rectangle" 
           :style="rectangleStyle"
         ></div>
+        
         <div>
           <div class="header card" :class="{ 'dark-mode-item-header': isDarkMode }">
             <p
@@ -119,6 +120,7 @@
             v-bind:path="item.path"
             v-bind:reducedOpacity="item.hidden || isDragging"
             v-bind:hash="shareInfo.hash"
+            :readOnly="isShare ? true : undefined"
             v-bind:hasPreview="item.hasPreview"
           />
         </div>
@@ -371,10 +373,12 @@ export default {
     },
     rectangleStyle() {
       if (!this.isRectangleSelecting) return { display: 'none' };
+      
       const left = Math.min(this.rectangleStart.x, this.rectangleEnd.x);
       const top = Math.min(this.rectangleStart.y, this.rectangleEnd.y);
       const width = Math.abs(this.rectangleStart.x - this.rectangleEnd.x);
       const height = Math.abs(this.rectangleStart.y - this.rectangleEnd.y);
+      
       return {
         left: left + 'px',
         top: top + 'px',
@@ -411,15 +415,13 @@ export default {
     }
 
     // if safari , make sure click and hold opens context menu, but not for any other browser
-    if (state.user.permissions?.modify || shareInfo.allowCreate) {
-      this.$el.addEventListener("dragenter", this.dragEnter);
-      this.$el.addEventListener("dragleave", this.dragLeave);
-      this.$el.addEventListener("drop", this.drop);
-      this.$el.addEventListener('mousedown', this.startRectangleSelection);
-      document.addEventListener('mousemove', this.updateRectangleSelection);
-      document.addEventListener('mouseup', this.endRectangleSelection);
-    }
-
+    if (!state.user.permissions?.modify) return;
+    this.$el.addEventListener("dragenter", this.dragEnter);
+    this.$el.addEventListener("dragleave", this.dragLeave);
+    this.$el.addEventListener("drop", this.drop);
+    this.$el.addEventListener('mousedown', this.startRectangleSelection);
+    document.addEventListener('mousemove', this.updateRectangleSelection);
+    document.addEventListener('mouseup', this.endRectangleSelection);
   },
   beforeUnmount() {
     // Remove event listeners before destroying this page.
@@ -441,7 +443,7 @@ export default {
     }
 
     // Also clean up drag/drop listeners on the component's root element
-    if (state.user && state.user?.permissions?.modify || shareInfo.allowCreate) {
+    if (state.user && state.user?.permissions?.modify) {
       this.$el.removeEventListener("dragenter", this.dragEnter);
       this.$el.removeEventListener("dragleave", this.dragLeave);
       this.$el.removeEventListener("drop", this.drop);
@@ -917,6 +919,9 @@ export default {
       if (isInternal) {
         return;
       }
+      
+      // Only increment drag counter for external drags (desktop files)
+      // This will show the dropping class for external drags
       this.dragCounter++;
     },
     dragLeave(event) {
@@ -930,6 +935,8 @@ export default {
       if (isInternal) {
         return;
       }
+      
+      // Only decrement drag counter for external drags (desktop files)
       if (this.dragCounter == 0) {
         return;
       }
@@ -1035,12 +1042,12 @@ export default {
       if (event.target.closest('.item') || event.target.closest('.header')) {
         return;
       }
-
+      
       // Don't start if it's a right click, this for avoid some weird issue with the context menu.
       if (event.button !== 0) return;
-
+      
       this.isRectangleSelecting = true;
-
+      
       // Get the position to the listing view container
       const listingRect = this.$refs.listingView.getBoundingClientRect();
       this.rectangleStart = {
@@ -1051,38 +1058,38 @@ export default {
         x: event.clientX - listingRect.left,
         y: event.clientY - listingRect.top
       };
-
+      
       // Store the current selection state when starting rectangle
       this.initialSelectionState = [...state.selected];
-
+      
       // Only clear selection when CTRL is not holded
       const hasModifier = event.ctrlKey || event.metaKey;
       if (!hasModifier) {
         mutations.resetSelected();
       }
-
+      
       event.preventDefault();
     },
-
+    
     updateRectangleSelection(event) {
       if (!this.isRectangleSelecting) return;
-
+      
       // Get the position to the listing view container
       const listingRect = this.$refs.listingView.getBoundingClientRect();
       this.rectangleEnd = {
         x: event.clientX - listingRect.left,
         y: event.clientY - listingRect.top
       };
-
+      
       this.updateSelectedItemsInRectangle(event.ctrlKey || event.metaKey);
     },
-
+    
     endRectangleSelection(event) {
       if (!this.isRectangleSelecting) return;
-
+      
       this.isRectangleSelecting = false;
       this.updateSelectedItemsInRectangle(event.ctrlKey || event.metaKey);
-
+      
       // Clear rectangle after a short delay
       setTimeout(() => {
         this.rectangleStart = { x: 0, y: 0 };
@@ -1090,10 +1097,10 @@ export default {
         this.initialSelectionState = [];
       }, 100);
     },
-
+    
     updateSelectedItemsInRectangle(isAdditive) {
       if (!this.isRectangleSelecting) return;
-
+      
       const listingRect = this.$refs.listingView.getBoundingClientRect();
       const rect = {
         left: Math.min(this.rectangleStart.x, this.rectangleEnd.x),
@@ -1101,15 +1108,15 @@ export default {
         right: Math.max(this.rectangleStart.x, this.rectangleEnd.x),
         bottom: Math.max(this.rectangleStart.y, this.rectangleEnd.y)
       };
-
+      
       const rectangleSelectedIndexes = [];
-
+      
       // Get all item elements
       const itemElements = this.$el.querySelectorAll('.item');
-
+      
       itemElements.forEach((element) => {
         const elementRect = element.getBoundingClientRect();
-
+        
         // Convert element position to be relative to listing view, this allows selection while scrolling
         const elementRelativeRect = {
           left: elementRect.left - listingRect.left,
@@ -1117,7 +1124,7 @@ export default {
           right: elementRect.right - listingRect.left,
           bottom: elementRect.bottom - listingRect.top
         };
-
+        
         // Check if the item intersects with the rectangle
         if (
           elementRelativeRect.left < rect.right &&
@@ -1131,7 +1138,7 @@ export default {
           }
         }
       });
-
+      
       // Update selection based on modifier keys (ctrl/meta)
       if (isAdditive) {
         // only add more items to the current selection without reset selection
@@ -1141,7 +1148,7 @@ export default {
             newSelection.push(index);
           }
         });
-
+        
         mutations.resetSelected();
         newSelection.forEach(index => mutations.addSelected(index));
       } else {
@@ -1178,6 +1185,22 @@ export default {
 #listingView.dropping {
   transform: scale(0.97);
   box-shadow: var(--primaryColor) 0 0 1em;
+}
+
+/* Visual indicator for external drags (desktop files) */
+#listingView.dropping::before {
+  content: "Drop files here to upload";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--primaryColor);
+  color: white;
+  padding: 1em 2em;
+  border-radius: 8px;
+  font-weight: bold;
+  z-index: 1000;
+  pointer-events: none;
 }
 
 #listingView {

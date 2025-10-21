@@ -452,7 +452,6 @@ class UploadManager {
         }
       }
     }
-    
     // If we had completed uploads and the queue is now empty, trigger reload
     if (hadCompleted && this.queue.length === 0) {
       mutations.setReload(true);
