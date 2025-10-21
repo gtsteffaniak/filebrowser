@@ -72,12 +72,24 @@
             </video>
         </div>
 
+        <!-- Mouse detection zone for top-left corner -->
+        <div
+            v-if="showQueueButton"
+            class="queue-zone"
+            @mousemove="toggleQueueButton"
+            @mouseover="setHoverQueue(true)"
+            @mouseleave="setHoverQueue(false)"
+        ></div>
+
         <button
             v-if="showQueueButton"
             @click="showQueuePrompt"
+            @mouseover="setHoverQueue(true)"
+            @mouseleave="setHoverQueue(false)"
             class="queue-button floating"
             :class="{
                 'dark-mode': darkMode,
+                'hidden': !showQueueButtonVisible,
             }"
             :aria-label="$t('player.QueueButtonHint')"
             :title="$t('player.QueueButtonHint')"
@@ -154,6 +166,10 @@ export default {
             playbackMenuInitialized: false,
             lastAppliedMode: null,
             isNavigating: false,
+            // Queue button visibility state
+            queueButtonVisible: false,
+            hoverQueue: false,
+            queueTimeout: null,
             // Plyr options
             plyrOptions: {
                 controls: [
@@ -235,12 +251,15 @@ export default {
         darkMode() {
             return state.user.darkMode;
         },
+        showQueueButtonVisible() {
+            return this.queueButtonVisible || this.hoverQueue;
+        },
         shouldAutoPlay() {
             // Use the autoPlayEnabled prop from parent
             return this.autoPlayEnabled;
         },
         showQueueButton() {
-            return state.req && (state.req.type?.startsWith('audio/') || state.req.type?.startsWith('video/')) && 
+            return state.req && (state.req.type?.startsWith('audio/') || state.req.type?.startsWith('video/')) &&
             state.navigation.enabled;
         },
         queueCount() {
@@ -267,6 +286,10 @@ export default {
         this.hookEvents();
         this.$nextTick(() => {
             this.setupPlaybackQueue();
+            // Show queue button initially if it should be shown
+            if (this.showQueueButton) {
+                this.showQueueButtonMethod();
+            }
         });
         document.addEventListener('keydown', this.handleKeydown);
     },
@@ -274,6 +297,7 @@ export default {
         if (this.toastTimeout) {
             clearTimeout(this.toastTimeout);
         }
+        this.clearQueueTimeout();
         this.cleanupAlbumArt();
         // Clean up media players
         if (this.$refs.videoPlayer && this.$refs.videoPlayer.player) {
@@ -288,7 +312,7 @@ export default {
         settingsSetup(attempt = 0) {
             // Wait for Plyr to re-initialize its UI after source change
             const playerRef = this.getCurrentPlayer();
-            
+
             if (playerRef?.player?.elements?.settings) {
                 console.log('Player settings ready, applying custom settings');
                 this.applyCustomPlaybackSettings(playerRef.player);
@@ -301,6 +325,32 @@ export default {
             mutations.showHover({
                 name: "PlaybackQueue",
             });
+        },
+        toggleQueueButton() {
+            if (!this.showQueueButton) {
+                return;
+            }
+            this.showQueueButtonMethod();
+        },
+        showQueueButtonMethod() {
+            this.queueButtonVisible = true;
+            this.clearQueueTimeout();
+
+            this.queueTimeout = setTimeout(() => {
+                if (!this.hoverQueue) {
+                    this.queueButtonVisible = false;
+                }
+                this.queueTimeout = null;
+            }, 3000); // Show for 3 seconds
+        },
+        setHoverQueue(value) {
+            this.hoverQueue = value;
+        },
+        clearQueueTimeout() {
+            if (this.queueTimeout) {
+                clearTimeout(this.queueTimeout);
+                this.queueTimeout = null;
+            }
         },
         togglePlayPause() {
             const player = this.getCurrentPlayer();
@@ -382,7 +432,7 @@ export default {
                 });
             }
             // "Q" key for open the queue prompt
-            if (event.key.toLowerCase() === 'q' && 
+            if (event.key.toLowerCase() === 'q' &&
                 state.prompts.length === 0) { // Only open if no other prompts are open
                 event.stopPropagation();
                 event.preventDefault();
@@ -394,7 +444,7 @@ export default {
             const modeCycle = ['loop-all', 'shuffle', 'sequential'];
             const currentIndex = modeCycle.indexOf(this.playbackMode);
             const nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % modeCycle.length;
-            const newMode = modeCycle[nextIndex];           
+            const newMode = modeCycle[nextIndex];
             this.updatePlaybackMode(newMode, newMode === 'shuffle');
         },
         showToast() {
@@ -409,9 +459,7 @@ export default {
         async updateMedia() {
             this.cleanupAlbumArt();
             this.audioMetadata = null;
-            
             await this.handleAutoPlay();
-            
             if (this.previewType === "audio") {
                 this.loadAudioMetadata();
             }
@@ -521,7 +569,6 @@ export default {
             this.albumArtUrl = null;
             this.albumArt = null;
         },
-        
         hookEvents() {
             const player = this.getCurrentPlayer();
             if (!player) return;
@@ -554,7 +601,6 @@ export default {
         },
         setupDefaultPlayerEvents(element) {
             if (!element) return;
-            
             element.addEventListener('ended', this.handleMediaEnd);
             element.addEventListener('play', () => {
                 mutations.setPlaybackState(true);
@@ -623,10 +669,9 @@ export default {
                 case 'loop-all': {
                     // For sequential and loop-all, we'll use alphabetical order without rearranging
                     // On sequential mode will start playing from the file opened and find its place on the queue by the current index (you can see this on UI queue)
-                    // Loop-all will do the same, but if the queue ends, will restart from the first file of the current folder (alphabetically) 
+                    // Loop-all will do the same, but if the queue ends, will restart from the first file of the current folder (alphabetically)
                     const sortedFiles = [...mediaFiles].sort((a, b) => a.name.localeCompare(b.name));
                     finalQueue = sortedFiles;
-                    
                     // Find the current file position in the queue
                     if (currentIndex !== -1) {
                         const currentFile = mediaFiles[currentIndex];
@@ -647,8 +692,7 @@ export default {
                         } else {
                             // Use the existing queue when not forcing reshuffle
                             finalQueue = this.playbackQueue;
-                        } 
-                    
+                        }
                     // Find the current file position in the queue
                     if (currentIndex !== -1) {
                         const currentFile = mediaFiles[currentIndex];
@@ -743,7 +787,7 @@ export default {
                 const nextItemUrl = url.buildItemUrl(nextItem.source || this.req.source, nextItem.path);
 
                 // Store the expected path before making changes
-                const expectedPath = nextItem.path; 
+                const expectedPath = nextItem.path;
 
                 // Update state.req with the next item's data FIRST
                 // This will trigger the watcher on req prop and update the media source
@@ -759,7 +803,7 @@ export default {
                 });
 
                 // Wait for state.req to be updated
-                await this.waitForReqUpdate(expectedPath); 
+                await this.waitForReqUpdate(expectedPath);
 
                 const player = this.getCurrentPlayer();
                 if (player) {
@@ -769,7 +813,6 @@ export default {
                     } else if (player.player) {
                         playPromise = player.player.play();
                     }
-                    
                     if (playPromise !== undefined) {
                         playPromise.catch((error) => {
                             console.log("Auto-play prevented:", error);
@@ -842,7 +885,6 @@ export default {
                 'shuffle': () => this.playNext(),
                 'loop-all': () => this.playNext()
             };
-            
             const action = modeActions[this.playbackMode];
             if (action) {
                 console.log(`Media ended - ${this.playbackMode} mode`);
@@ -1391,6 +1433,18 @@ export default {
 *** QUEUE BUTTON ***
 *******************/
 
+/* Queue detection zone for top-right corner */
+.queue-zone {
+    position: fixed;
+    top: 4em; /* Account for header bar */
+    right: 0;
+    width: 5em;
+    height: 5em;
+    pointer-events: auto;
+    z-index: 1000;
+    background: transparent;
+}
+
 .queue-button {
     position: fixed;
     top: 80px;
@@ -1445,6 +1499,29 @@ export default {
     align-items: center;
     justify-content: center;
     font-weight: bold;
+}
+
+.queue-button.hidden {
+    opacity: 0;
+    transform: translateY(-2px) scale(0.9);
+    pointer-events: none !important;
+    z-index: -1;
+}
+
+/* Smooth show animation for better UX */
+.queue-button:not(.hidden) {
+    animation: queue-button-show 0.4s ease-out;
+}
+
+@keyframes queue-button-show {
+    0% {
+        opacity: 0;
+        transform: translateY(-2px) scale(0.8);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(-2px) scale(1);
+    }
 }
 
 /*****************
