@@ -95,7 +95,8 @@ body.rtl #listingView {
 #listingView.gallery .item,
 #listingView.compact .item,
 #listingView.normal .item,
-#listingView.list .item {
+#listingView.list .item, 
+#listingView.icons .item {
   margin: .5em;
   padding: 0.5em;
   box-shadow: rgba(0, 0, 0, 0.06) 0px 1px 3px, rgba(0, 0, 0, 0.12) 0px 1px 2px;
@@ -119,7 +120,8 @@ body.rtl #listingView {
   width: 100%;
 }
 
-#listingView.gallery .item {
+#listingView.gallery .item,
+#listingView.icons .item {
   display: flex;
   flex-direction: column;
   align-content: center;
@@ -134,7 +136,8 @@ body.rtl #listingView {
 }
 
 #listingView.normal .item,
-#listingView.gallery .item {
+#listingView.gallery .item, 
+#listingView.icons .item {
   transition: width 0.25s, height 0.25s, box-shadow 0.2s ease-in-out, transform 0.1s ease-in-out;
 }
 
@@ -324,7 +327,8 @@ body.rtl #listingView {
 
 #listingView.compact .item[aria-selected=true],
 #listingView.normal .item[aria-selected=true],
-#listingView.list .item[aria-selected=true] {
+#listingView.list .item[aria-selected=true],
+#listingView.icons .item[aria-selected=true] {
   background: var(--primaryColor) !important;
   color: var(--item-selected) !important;
 }
@@ -339,8 +343,10 @@ body.rtl #listingView {
 }
 
 #listingView.gallery .item .size,
-#listingView.gallery .item .modified {
-  opacity: 0;
+#listingView.gallery .item .modified,
+#listingView.icons .item .size,
+#listingView.icons .item .modified {
+  display: none !important;
 }
 
 #listingView.list .item div:first-of-type {
@@ -373,7 +379,8 @@ body.rtl #listingView {
 
 #listingView.list .header i,
 #listingView.normal .header i,
-#listingView.gallery .header i {
+#listingView.gallery .header i,
+#listingView.icons .header i {
   font-size: 1.5em;
   vertical-align: middle;
   margin-left: .2em;
@@ -445,4 +452,63 @@ body.rtl #listingView {
 
 .half-selected {
   border-color: var(--primaryColor) !important;
+}
+
+#listingView.icons .item {
+  justify-content: flex-start;
+  padding: 0.5em;
+  margin: 0.25em;
+}
+
+#listingView.icons .item .text {
+  display: block !important;
+  width: 100%;
+  margin-top: 0.3em;
+  padding: 0;
+  flex: 1;
+  text-align: center;
+}
+
+#listingView.icons .item i {
+  height: var(--icons-view-icon-size, 80px);
+  width: var(--icons-view-icon-size, 80px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#listingView.icons .item img {
+  width: var(--icons-view-icon-size, 80px);
+  height: var(--icons-view-icon-size, 80px);
+  max-width: var(--icons-view-icon-size, 80px);
+  min-width: var(--icons-view-icon-size, 80px);
+  border-radius: 0.3em;
+  margin: 0;
+}
+
+/* Mobile styles */
+@media (max-width: 800px) {
+  #listingView.icons .folder-items,
+  #listingView.icons .file-items {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5em;
+    padding: 0.5em;
+    width: 100%;
+  }
+  
+  #listingView.icons .item i,
+  #listingView.icons .item img {
+    font-size: 2.5em !important;
+    height: 65px !important;
+    width: 65px !important;
+    max-width: 65px !important;
+    min-width: 65px !important;
+  }
+  
+  
+  #listingView.icons .item .text {
+    margin-top: 0.5em;
+  }
 }

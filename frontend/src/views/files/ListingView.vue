@@ -285,6 +285,17 @@ export default {
       if (!elem) {
         return 1;
       }
+      if (getters.viewMode() === 'icons') {
+        const containerSize = 70 + (state.user.gallerySize * 15); // 85px to 190px range
+        let columns = Math.floor(elem.offsetWidth / containerSize);
+        if (columns === 0) columns = 1;
+
+        const minColumns = 3;
+        const maxColumns = 12;
+        columns = Math.max(minColumns, Math.min(columns, maxColumns));
+        return columns;
+      }
+      // Rest of views
       let columns = Math.floor(elem.offsetWidth / this.columnWidth);
       if (columns === 0) columns = 1;
       return columns;
@@ -892,17 +903,31 @@ export default {
       });
     },
     colunmsResize() {
-      document.documentElement.style.setProperty(
-        "--item-width",
-        `calc(${100 / this.numColumns}% - 1em)`
-      );
-
-      if (getters.viewMode() == "gallery") {
+      if (getters.viewMode() == "icons") {
+        // Use gallery size to determine both width and height - will be used by the size slider too
+        const baseSize = 60 + (state.user.gallerySize * 10); // 70px to 140px
+        document.documentElement.style.setProperty(
+          "--item-width",
+          `calc(${100 / this.numColumns}% - 0.5em)`
+        );
+        document.documentElement.style.setProperty(
+          "--item-height",
+          "auto" // Let content determine height
+        );
+        document.documentElement.style.setProperty(
+          "--icons-view-icon-size",
+          `${baseSize}px`
+        );
+      } else if (getters.viewMode() == "gallery") {
         document.documentElement.style.setProperty(
           "--item-height",
           `calc(${this.columnWidth / 20}em)`
         );
       } else {
+        document.documentElement.style.setProperty(
+          "--item-width",
+          `calc(${100 / this.numColumns}% - 1em)`
+        );
         document.documentElement.style.setProperty("--item-height", `auto`);
       }
     },
