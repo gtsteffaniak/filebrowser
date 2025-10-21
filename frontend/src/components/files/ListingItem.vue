@@ -154,12 +154,7 @@ export default {
     },
     canDrop() {
       if (!this.isDir || this.readOnly !== undefined) return false;
-<<<<<<< HEAD
 
-      // Check if any selected item is the same as the drop target
-=======
-      
->>>>>>> c5d2958efcda884bd9b650a6985a97eac02cfffc
       for (const i of this.selected) {
         if (
           // @ts-ignore
