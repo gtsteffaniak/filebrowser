@@ -156,10 +156,7 @@ export default {
       return this.readOnly == undefined && state.user.permissions?.modify || shareInfo.allowCreate;
     },
     canDrop() {
-      if (!this.isDir || this.readOnly !== undefined || !shareInfo.allowCreate) return false;
-
-      // Only allow drops if there are selected items (internal drag)
-      if (this.selected.length === 0) return false;
+      if (!this.isDir || this.readOnly !== undefined) return false;
 
       for (const i of this.selected) {
         if (
@@ -168,6 +165,12 @@ export default {
           // @ts-ignore
           state.req.source === this.source
         ) {
+          return false;
+        }
+
+        // Also check if we're trying to drop an item onto itself
+        // @ts-ignore
+        if (state.req.items[i].index === this.index) {
           return false;
         }
       }
@@ -314,11 +317,15 @@ export default {
     },
     /** @param {DragEvent} event */
     dragOver(event) {
-      // Only handle internal drags (filebrowser to filebrowser)
+      if (!this.canDrop) return;
+
+      // Only allow internal drags (from filebrowser items), not external files from desktop
       const isInternal = Array.from(event.dataTransfer.types).includes(
         "application/x-filebrowser-internal-drag"
       );
-      if (!isInternal || !this.canDrop) return;
+
+      if (!isInternal) return;
+
       event.preventDefault();
       this.isDraggedOver = true;
     },
@@ -326,13 +333,13 @@ export default {
     async drop(event) {
       this.isDraggedOver = false;
 
-      // Only handle internal drags (filebrowser to filebrowser)
+      // Only allow internal drags (from filebrowser items), not external files from desktop
       const isInternal = Array.from(event.dataTransfer.types).includes(
         "application/x-filebrowser-internal-drag"
       );
 
-      if (!isInternal || !this.canDrop) {
-        // Don't prevent default or stop propagation - let the parent ListingView handle it
+      if (!isInternal) {
+        // Don't handle external drags - let the parent ListingView handle them
         return;
       }
 
