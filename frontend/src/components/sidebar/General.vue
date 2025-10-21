@@ -147,7 +147,6 @@ import ProgressBar from "@/components/ProgressBar.vue";
 import { state, getters, mutations } from "@/store"; // Import your custom store
 import { getHumanReadableFilesize } from "@/utils/filesizes.js";
 import { fromNow } from "@/utils/moment";
-import * as url from "@/utils/url";
 
 export default {
   name: "SidebarGeneral",
@@ -224,29 +223,13 @@ export default {
       mutations.updateCurrentUser({ stickySidebar: !state.user.stickySidebar });
     },
     navigateTo(path,hash) {
-      // Check if this is a file system navigation (starts with /files/)
-      if (path.startsWith('/files/')) {
-        // Extract source and path from the /files/ URL
-        const pathParts = path.replace('/files/', '').split('/');
-        const source = pathParts[0];
-        const filePath = '/' + pathParts.slice(1).join('/');
-        const previousHistoryItem = {
-          name: state.req.name,
-          source: state.req.source,
-          path: state.req.path,
-        };
-        url.goToItem(source, filePath, previousHistoryItem);
-        mutations.closeHovers();
-      } else {
-        // For non-file system navigation (like settings), use the original method
-        mutations.setPreviousHistoryItem({
-          name: state.req.name,
-          source: state.req.source,
-          path: state.req.path,
-        });
-        this.$router.push({ path: path, hash: hash });
-        mutations.closeHovers();
-      }
+      mutations.setPreviousHistoryItem({
+        name: state.req.name,
+        source: state.req.source,
+        path: state.req.path,
+      });
+      this.$router.push({ path: path, hash: hash });
+      mutations.closeHovers();
     },
     navigateToLogin() {
       this.$router.push({ path: "/login", query: { redirect: this.$route.path } });

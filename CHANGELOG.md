@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.8.10-beta
+
+ **New Features**:
+ - Add marquee selection to listing view -- thanks @Kurami32 #1388
+
+ **Notes**:
+ - More changes to login auth flow
+
+ **BugFixes**:
+ - Fix material outline styling
+ - "feels lonely here" when clicking at source tab #1387
+
 ## v0.8.9-beta
 
 > [!CAUTION]

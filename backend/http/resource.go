@@ -221,7 +221,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		logger.Debugf("invalid path encoding: %v", err)
 		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}
-	if !d.user.Permissions.Create {
+	if !d.user.Permissions.Create && d.share == nil {
 		return http.StatusForbidden, fmt.Errorf("user is not allowed to create or modify")
 	}
 	// Determine if this is a directory or file based on trailing slash
@@ -477,7 +477,7 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 // @Router /api/resources [patch]
 func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	action := r.URL.Query().Get("action")
-	if !d.user.Permissions.Modify {
+	if !d.user.Permissions.Modify && d.share == nil {
 		return http.StatusForbidden, fmt.Errorf("user is not allowed to create or modify")
 	}
 
