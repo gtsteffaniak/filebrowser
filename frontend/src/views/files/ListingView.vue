@@ -919,9 +919,6 @@ export default {
       if (isInternal) {
         return;
       }
-      
-      // Only increment drag counter for external drags (desktop files)
-      // This will show the dropping class for external drags
       this.dragCounter++;
     },
     dragLeave(event) {
@@ -935,8 +932,6 @@ export default {
       if (isInternal) {
         return;
       }
-      
-      // Only decrement drag counter for external drags (desktop files)
       if (this.dragCounter == 0) {
         return;
       }
@@ -1185,22 +1180,6 @@ export default {
 #listingView.dropping {
   transform: scale(0.97);
   box-shadow: var(--primaryColor) 0 0 1em;
-}
-
-/* Visual indicator for external drags (desktop files) */
-#listingView.dropping::before {
-  content: "Drop files here to upload";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: var(--primaryColor);
-  color: white;
-  padding: 1em 2em;
-  border-radius: 8px;
-  font-weight: bold;
-  z-index: 1000;
-  pointer-events: none;
 }
 
 #listingView {
