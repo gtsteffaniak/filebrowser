@@ -150,12 +150,16 @@ export default {
     },
     isDraggable() {
       // @ts-ignore
-      return this.readOnly == undefined && state.user.permissions?.modify;
+      return this.readOnly == undefined && state.user.permissions?.modify || shareInfo.allowCreate;
     },
     canDrop() {
       if (!this.isDir || this.readOnly !== undefined) return false;
+<<<<<<< HEAD
 
       // Check if any selected item is the same as the drop target
+=======
+      
+>>>>>>> c5d2958efcda884bd9b650a6985a97eac02cfffc
       for (const i of this.selected) {
         if (
           // @ts-ignore
@@ -289,8 +293,15 @@ export default {
       // @ts-ignore
       return getters.getTime(this.modified);
     },
-    dragLeave() {
-      this.isDraggedOver = false;
+    /** @param {DragEvent} event */
+    dragLeave(event) {
+      // Only reset visual state for internal drags
+      const isInternal = Array.from(event.dataTransfer.types).includes(
+        "application/x-filebrowser-internal-drag"
+      );
+      if (isInternal) {
+        this.isDraggedOver = false;
+      }
     },
     /** @param {DragEvent} event */
     dragStart(event) {
@@ -323,11 +334,6 @@ export default {
     /** @param {DragEvent} event */
     async drop(event) {
       this.isDraggedOver = false;
-
-      if (!this.canDrop) {
-        // Don't prevent default or stop propagation - let the parent ListingView handle it
-        return;
-      }
 
       // Only allow internal drags (from filebrowser items), not external files from desktop
       const isInternal = Array.from(event.dataTransfer.types).includes(
