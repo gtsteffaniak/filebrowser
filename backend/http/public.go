@@ -169,8 +169,12 @@ func publicUploadHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	if !d.share.AllowReplacements && r.URL.Query().Get("action") == "override" {
 		return http.StatusForbidden, fmt.Errorf("cannot overwrite files for this share")
 	}
-
-	fullPath := filepath.Join(d.share.Path, r.URL.Query().Get("targetPath"))
+	path, err := url.QueryUnescape(r.URL.Query().Get("targetPath"))
+	if err != nil {
+		logger.Debugf("invalid path encoding: %v", err)
+		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
+	}
+	fullPath := filepath.Join(d.share.Path, path)
 	source := config.Server.SourceMap[d.share.Source].Name
 	// adjust query params to match resourcePostHandler
 	q := r.URL.Query()

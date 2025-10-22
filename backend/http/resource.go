@@ -226,24 +226,24 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 			logger.Debugf("invalid path encoding: %v", err)
 			return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 		}
+		if !d.user.Permissions.Create {
+			return http.StatusForbidden, fmt.Errorf("user is not allowed to create or modify")
+		}
+		// Determine if this is a directory or file based on trailing slash
+		// Strip trailing slash from userscope to prevent double slashes
+		userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, source)
+		if err != nil {
+			logger.Debugf("error getting scope from source name: %v", err)
+			return http.StatusForbidden, err
+		}
+		userscope = strings.TrimRight(userscope, "/")
+		path = utils.JoinPathAsUnix(userscope, path)
 	}
 
-	if !d.user.Permissions.Create && d.share == nil {
-		return http.StatusForbidden, fmt.Errorf("user is not allowed to create or modify")
-	}
-	// Determine if this is a directory or file based on trailing slash
 	isDir := strings.HasSuffix(path, "/")
-	// Strip trailing slash from userscope to prevent double slashes
-	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, source)
-	if err != nil {
-		logger.Debugf("error getting scope from source name: %v", err)
-		return http.StatusForbidden, err
-	}
-	userscope = strings.TrimRight(userscope, "/")
-
 	fileOpts := utils.FileOptions{
 		Username: d.user.Username,
-		Path:     utils.JoinPathAsUnix(userscope, path),
+		Path:     path,
 		Source:   source,
 		Expand:   false,
 	}
@@ -252,7 +252,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		logger.Debugf("source %s not found", source)
 		return http.StatusNotFound, fmt.Errorf("source %s not found", source)
 	}
-	realPath, _, _ := idx.GetRealPath(userscope, path)
+	realPath, _, _ := idx.GetRealPath(path)
 
 	// Check access control for the target path
 	if accessStore != nil && !accessStore.Permitted(idx.Path, path, d.user.Username) {
