@@ -221,7 +221,7 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 
 	// Proceed to log the user in with the OIDC data
 	// userdata struct now contains info from either verified ID token or UserInfo endpoint
-	return loginWithOidcUser(w, r, loginUsername, userInfo.Groups)
+	return loginWithOidcUser(w, r, loginUsername, userdata.Groups)
 }
 
 // loginWithOidcUser extracts the username from the user claims (userInfo)
