@@ -698,7 +698,7 @@ func (idx *Index) shouldSkip(isDir bool, isHidden bool, fullCombined, baseName s
 
 	}
 
-	if idx.Config.Conditionals.Hidden && isHidden {
+	if idx.Config.Conditionals.IgnoreHidden && isHidden {
 		return true
 	}
 

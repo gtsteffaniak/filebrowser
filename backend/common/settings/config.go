@@ -724,8 +724,14 @@ func loadCustomFavicon() {
 
 // setConditionalsMap builds optimized map structures from conditional rules for O(1) lookups
 func setConditionals(config *Source) {
-	rules := config.Config.Conditionals.ItemRules
 
+	// backwards compatibility
+	if config.Config.Conditionals.Hidden {
+		logger.Warning("conditionals.hidden is deprecated, use conditionals.ignoreHidden instead")
+		config.Config.Conditionals.IgnoreHidden = true
+	}
+
+	rules := config.Config.Conditionals.ItemRules
 	// Initialize the maps structure (only exact match maps for Names)
 	resolved := &ResolvedConditionalsConfig{
 		FileNames:        make(map[string]ConditionalIndexConfig),
