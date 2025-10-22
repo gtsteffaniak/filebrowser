@@ -74,8 +74,6 @@ body.rtl #listingView {
   vertical-align: bottom;
 }
 
-
-
 .message {
   text-align: center;
   font-size: 2em;
@@ -120,7 +118,18 @@ body.rtl #listingView {
   width: 100%;
 }
 
-#listingView.gallery .item,
+#listingView.gallery .item {
+  display: inline-block;
+  flex-direction: column;
+  align-content: center;
+  overflow: hidden;
+  justify-content: center;
+  padding: 0;
+  position: relative;
+  width: 100%;
+  height: auto;
+}
+
 #listingView.icons .item {
   display: flex;
   flex-direction: column;
@@ -148,7 +157,10 @@ body.rtl #listingView {
   font-weight: 700;
   position: absolute;
   z-index: 1;
-  transform: translateY(6em);
+  bottom: 0;
+  padding: 1em 0.5em 0.5em;
+  transform: none;
+  background: linear-gradient(transparent, rgba(0,0,0,0.7));
 }
 
 #listingView.gallery .item .text .name {
@@ -160,9 +172,14 @@ body.rtl #listingView {
 }
 
 #listingView.gallery .item i {
-  margin: auto;
-  font-size: 8em;
+  margin: 0.5em 0;
+  font-size: 4em;
   background: none;
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
 }
 
 #listingView.gallery .item span {
@@ -177,8 +194,7 @@ body.rtl #listingView {
 #listingView.gallery .item img {
   width: 100%;
   max-width: 100%;
-  height: 100%;
-  border-radius: 0.5em;
+  height: auto;
 }
 
 #listingView.compact {
@@ -325,21 +341,20 @@ body.rtl #listingView {
   border-top: 0;
 }
 
-#listingView.compact .item[aria-selected=true],
+
 #listingView.normal .item[aria-selected=true],
-#listingView.list .item[aria-selected=true],
 #listingView.icons .item[aria-selected=true] {
-  background: var(--primaryColor) !important;
-  color: var(--item-selected) !important;
+  background-color: color-mix(in srgb, var(--primaryColor) 65%, transparent) !important;
+  border: 0.2em solid var(--primaryColor) !important;
+}
+
+#listingView.compact .item[aria-selected=true],
+#listingView.list .item[aria-selected=true] {
+  background-color: color-mix(in srgb, var(--primaryColor) 65%, transparent) !important;
 }
 
 #listingView.gallery .item[aria-selected=true] {
-  border: 1em solid var(--primaryColor) !important;
-  padding: 0;
-}
-
-#listingView.gallery .item[aria-selected=true] .text {
-  padding: 0;
+  border: 0.2em solid var(--primaryColor) !important;
 }
 
 #listingView.gallery .item .size,
@@ -470,7 +485,7 @@ body.rtl #listingView {
 }
 
 #listingView.icons .item i {
-  height: var(--icons-view-icon-size, 80px);
+  height: var(--icons-view-icon-size, 50px);
   width: var(--icons-view-icon-size, 80px);
   display: flex;
   align-items: center;
@@ -478,37 +493,18 @@ body.rtl #listingView {
 }
 
 #listingView.icons .item img {
-  width: var(--icons-view-icon-size, 80px);
-  height: var(--icons-view-icon-size, 80px);
+  width: var(--icons-view-icon-size, 50px);
+  height: var(--icons-view-icon-size, 60px);
   max-width: var(--icons-view-icon-size, 80px);
   min-width: var(--icons-view-icon-size, 80px);
   border-radius: 0.3em;
   margin: 0;
 }
 
-/* Mobile styles */
-@media (max-width: 800px) {
-  #listingView.icons .folder-items,
-  #listingView.icons .file-items {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-    grid-template-columns: repeat(4, 1fr);
-    gap: 0.5em;
-    padding: 0.5em;
-    width: 100%;
-  }
-  
-  #listingView.icons .item i,
-  #listingView.icons .item img {
-    font-size: 2.5em !important;
-    height: 65px !important;
-    width: 65px !important;
-    max-width: 65px !important;
-    min-width: 65px !important;
-  }
-  
-  
-  #listingView.icons .item .text {
-    margin-top: 0.5em;
-  }
+#listingView.gallery .folder-items,
+#listingView.gallery .file-items {
+  display: block;
+  column-width: var(--item-width);
+  column-gap: 1em;
+  padding: 0.5em;
 }

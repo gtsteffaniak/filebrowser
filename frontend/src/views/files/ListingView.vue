@@ -919,9 +919,16 @@ export default {
           `${baseSize}px`
         );
       } else if (getters.viewMode() == "gallery") {
+        // For gallery masonry - slider controls column width only
+        const baseSize = 150 + (state.user.gallerySize * 50); // 200px to 550px range
+        
+        document.documentElement.style.setProperty(
+          "--item-width",
+          `${baseSize}px`
+        );
         document.documentElement.style.setProperty(
           "--item-height",
-          `calc(${this.columnWidth / 20}em)`
+          "auto"
         );
       } else {
         document.documentElement.style.setProperty(
