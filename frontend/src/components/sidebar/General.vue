@@ -41,7 +41,7 @@
     </div>
 
     <div v-if="!disableQuickToggles" class="card-wrapper" @mouseleave="hideTooltip">
-      <div class="quick-toggles">
+      <div class="quick-toggles" :class="{ 'extra-padding': !hasCreateOptions }">
         <div
           class="clickable"
           :class="{ active: user?.singleClick }"
@@ -157,10 +157,18 @@ export default {
     return {};
   },
   computed: {
+    hasCreateOptions() {
+      if (getters.isShare()) {
+        return shareInfo.allowCreate
+      }
+      return state.user.permissions.create || state.user.permissions.share || state.user.permissions.admin;
+    },
     shareInfo: () => shareInfo,
     disableQuickToggles: () => state.user?.disableQuickToggles,
     hasSourceInfo: () => state.sources.hasSourceInfo,
-    hideSidebarFileActions: () => state.user?.hideSidebarFileActions || getters.isInvalidShare(),
+    hideSidebarFileActions() {
+      return state.user?.hideSidebarFileActions || getters.isInvalidShare() || !this.hasCreateOptions;
+    },
     settingsAllowed: () => !state.user?.disableSettings,
     isSettings: () => getters.isSettings(),
     isStickySidebar: () => getters.isStickySidebar(),
@@ -194,6 +202,7 @@ export default {
     },
   },
   methods: {
+
     openContextMenu() {
       mutations.resetSelected();
       mutations.showHover({
@@ -539,5 +548,7 @@ button.action {
   opacity: 0;
 }
 
-
+.extra-padding {
+  padding-bottom: 0.5em !important;
+}
 </style>

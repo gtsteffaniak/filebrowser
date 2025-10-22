@@ -9,10 +9,15 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Notes**:
  - More changes to login auth flow
+ - respects `FILEBROWSER_DISABLE_AUTOMATIC_BACKUP='true'` env var #1398
 
  **BugFixes**:
  - Fix material outline styling
  - "feels lonely here" when clicking at source tab #1387
+ - Anonymous upload bug 0.8.9 #1383
+ - changing previews between documents in onlyoffice #1410
+ - onlyoffice should display user language #1061
+ - Filebrowser will hard fail when OIDC provider is not found #733
 
 ## v0.8.9-beta
 

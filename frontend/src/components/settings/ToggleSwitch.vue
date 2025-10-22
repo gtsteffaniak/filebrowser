@@ -12,7 +12,7 @@
       </i>
     </div>
     <label class="switch">
-      <input type="checkbox" :checked="modelValue" @change="updateValue" />
+      <input type="checkbox" :checked="modelValue" @change="updateValue" :aria-label="ariaLabel" />
       <span class="slider round"></span>
     </label>
   </div>
@@ -33,6 +33,11 @@ export default {
       required: true,
     },
     description: {
+      type: String,
+      required: false,
+      default: "",
+    },
+    ariaLabel: {
       type: String,
       required: false,
       default: "",

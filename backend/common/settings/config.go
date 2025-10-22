@@ -65,6 +65,18 @@ func setupFs() {
 		dirPermOctal, _ = strconv.ParseUint("755", 8, 32)
 	}
 	fileutils.SetFsPermissions(os.FileMode(filePermOctal), os.FileMode(dirPermOctal))
+
+	// try writing to cache dir
+	absCacheDir, err := filepath.Abs(Config.Server.CacheDir)
+	if err != nil {
+		logger.Errorf("error getting absolute path for 'server.cacheDir: %v': %v", Config.Server.CacheDir, err)
+	}
+	cacheDir := filepath.Join(absCacheDir, "init_test")
+	err = os.MkdirAll(cacheDir, fileutils.PermDir)
+	if err != nil {
+		logger.Errorf("Unable to write to 'server.cacheDir: %v', please ensure the cache directory is writable: %v", absCacheDir, err)
+	}
+
 }
 
 func setupFrontend(generate bool) {
