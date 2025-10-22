@@ -64,6 +64,7 @@ export async function login(username, password, recaptcha, otp) {
   let apiPath = getApiPath('api/auth/login', params);
   const res = await fetch(apiPath, {
     method: 'POST',
+    credentials: 'same-origin', // Ensure cookies can be set during login
     headers: {
       'X-Password': password,
       'X-Secret': otp,

@@ -19,6 +19,7 @@
     :data-dir="isDir"
     :data-type="type"
     :data-name="name"
+    :data-index="index"
     :aria-label="name"
     :aria-selected="isSelected"
     @contextmenu="onRightClick"
@@ -149,10 +150,11 @@ export default {
     },
     isDraggable() {
       // @ts-ignore
-      return this.readOnly == undefined && state.user.permissions?.modify;
+      return this.readOnly == undefined && state.user.permissions?.modify || shareInfo.allowCreate;
     },
     canDrop() {
       if (!this.isDir || this.readOnly !== undefined) return false;
+
       for (const i of this.selected) {
         if (
           // @ts-ignore
@@ -160,6 +162,12 @@ export default {
           // @ts-ignore
           state.req.source === this.source
         ) {
+          return false;
+        }
+
+        // Also check if we're trying to drop an item onto itself
+        // @ts-ignore
+        if (state.req.items[i].index === this.index) {
           return false;
         }
       }
@@ -280,8 +288,15 @@ export default {
       // @ts-ignore
       return getters.getTime(this.modified);
     },
-    dragLeave() {
-      this.isDraggedOver = false;
+    /** @param {DragEvent} event */
+    dragLeave(event) {
+      // Only reset visual state for internal drags
+      const isInternal = Array.from(event.dataTransfer.types).includes(
+        "application/x-filebrowser-internal-drag"
+      );
+      if (isInternal) {
+        this.isDraggedOver = false;
+      }
     },
     /** @param {DragEvent} event */
     dragStart(event) {
@@ -300,6 +315,14 @@ export default {
     /** @param {DragEvent} event */
     dragOver(event) {
       if (!this.canDrop) return;
+
+      // Only allow internal drags (from filebrowser items), not external files from desktop
+      const isInternal = Array.from(event.dataTransfer.types).includes(
+        "application/x-filebrowser-internal-drag"
+      );
+
+      if (!isInternal) return;
+
       event.preventDefault();
       this.isDraggedOver = true;
     },
@@ -307,8 +330,13 @@ export default {
     async drop(event) {
       this.isDraggedOver = false;
 
-      if (!this.canDrop) {
-        // Don't prevent default or stop propagation - let the parent ListingView handle it
+      // Only allow internal drags (from filebrowser items), not external files from desktop
+      const isInternal = Array.from(event.dataTransfer.types).includes(
+        "application/x-filebrowser-internal-drag"
+      );
+
+      if (!isInternal) {
+        // Don't handle external drags - let the parent ListingView handle them
         return;
       }
 

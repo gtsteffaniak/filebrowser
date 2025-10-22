@@ -152,7 +152,7 @@ export default {
       const mode = state.playbackQueue?.mode || 'single';
       const queueLength = state.playbackQueue?.queue?.length || 0;
       const hasQueue = queueLength > 1;
-      
+
       // Use media queue when in media view, NOT in single/loop-single mode, and have a queue
       return isMediaView && mode !== 'single' && mode !== 'loop-single' && hasQueue;
     }
@@ -335,11 +335,9 @@ export default {
     prev() {
       if (this.hasPrevious) {
         this.hoverNav = false;
-        
         // Set transitioning state - keeps old req visible until new one loads
         // Editor and other components check isTransitioning to prevent saves
         mutations.setNavigationTransitioning(true);
-        
         if (this.isMediaQueueMode) {
           this.navigateMediaPrevious();
         } else {
@@ -350,11 +348,11 @@ export default {
     next() {
       if (this.hasNext) {
         this.hoverNav = false;
-        
+
         // Set transitioning state - keeps old req visible until new one loads
         // Editor and other components check isTransitioning to prevent saves
         mutations.setNavigationTransitioning(true);
-        
+
         if (this.isMediaQueueMode) {
           this.navigateMediaNext();
         } else {
@@ -366,12 +364,12 @@ export default {
       const queue = state.playbackQueue?.queue || [];
       const currentIndex = state.playbackQueue?.currentIndex ?? -1;
       const mode = state.playbackQueue?.mode || 'single';
-      
+
       if (queue.length <= 1 || currentIndex < 0) return false;
-      
+
       // For sequential mode, no previous if at start
       if (mode === 'sequential' && currentIndex === 0) return false;
-      
+
       // For loop-all and shuffle, always have previous (wraps around)
       return true;
     },
@@ -379,12 +377,12 @@ export default {
       const queue = state.playbackQueue?.queue || [];
       const currentIndex = state.playbackQueue?.currentIndex ?? -1;
       const mode = state.playbackQueue?.mode || 'single';
-      
+
       if (queue.length <= 1 || currentIndex < 0) return false;
-      
+
       // For sequential mode, no next if at end
       if (mode === 'sequential' && currentIndex >= queue.length - 1) return false;
-      
+
       // For loop-all and shuffle, always have next (wraps around)
       return true;
     },
@@ -392,13 +390,13 @@ export default {
       const queue = state.playbackQueue?.queue || [];
       const currentIndex = state.playbackQueue?.currentIndex ?? -1;
       const mode = state.playbackQueue?.mode || 'single';
-      
+
       if (queue.length === 0 || currentIndex < 0) {
         return;
       }
-      
+
       let prevIndex = currentIndex - 1;
-      
+
       // Handle wrapping
       if (prevIndex < 0) {
         if (mode === 'loop-all' || mode === 'shuffle') {
@@ -407,19 +405,19 @@ export default {
           return;
         }
       }
-      
+
       const prevItem = queue[prevIndex];
       if (!prevItem) {
         return;
       }
-      
+
       // Update queue index
       mutations.setPlaybackQueue({
         queue: queue,
         currentIndex: prevIndex,
         mode: mode
       });
-      
+
       // Navigate
       const prevItemUrl = url.buildItemUrl(prevItem.source || state.req.source, prevItem.path);
       mutations.replaceRequest(prevItem);
@@ -433,13 +431,13 @@ export default {
       const queue = state.playbackQueue?.queue || [];
       const currentIndex = state.playbackQueue?.currentIndex ?? -1;
       const mode = state.playbackQueue?.mode || 'single';
-      
+
       if (queue.length === 0 || currentIndex < 0) {
         return;
       }
-      
+
       let nextIndex = currentIndex + 1;
-      
+
       // Handle wrapping
       if (nextIndex >= queue.length) {
         if (mode === 'loop-all' || mode === 'shuffle') {
@@ -448,19 +446,19 @@ export default {
           return;
         }
       }
-      
+
       const nextItem = queue[nextIndex];
       if (!nextItem) {
         return;
       }
-      
+
       // Update queue index
       mutations.setPlaybackQueue({
         queue: queue,
         currentIndex: nextIndex,
         mode: mode
       });
-      
+
       // Navigate
       const nextItemUrl = url.buildItemUrl(nextItem.source || state.req.source, nextItem.path);
       mutations.replaceRequest(nextItem);
@@ -479,14 +477,14 @@ export default {
      // Check if any media element is currently playing
      const mediaElements = document.querySelectorAll('audio, video');
      let mediaActive = false;
-  
+
      mediaElements.forEach(media => {
-       if (!media.paused || 
+       if (!media.paused ||
            document.activeElement === media) {
          mediaActive = true;
        }
      });
-  
+
      // If media is playing don't handle arrow keys and let use fastfoward and rewind of the player
      if (mediaActive) {
        return;
@@ -554,13 +552,13 @@ export default {
     isClickInLeftZone(event) {
       const zoneWidth = 3 * parseFloat(getComputedStyle(document.documentElement).fontSize); // 3em in pixels
       const sidebarOffset = this.moveWithSidebar ? 20 * parseFloat(getComputedStyle(document.documentElement).fontSize) : 0; // 20em in pixels
-      
+
       return event.clientX >= sidebarOffset && event.clientX <= (sidebarOffset + zoneWidth);
     },
     isClickInRightZone(event) {
       const viewportWidth = window.innerWidth;
       const zoneWidth = 3 * parseFloat(getComputedStyle(document.documentElement).fontSize); // 3em in pixels
-      
+
       return event.clientX >= (viewportWidth - zoneWidth) && event.clientX <= viewportWidth;
     },
     showNavigation() {
@@ -615,7 +613,7 @@ export default {
             tapTimeout: null,
             triggered: false
           };
-          
+
           // Set a longer timeout to allow for drag intent detection
           this.touchState.tapTimeout = setTimeout(() => {
             // If we haven't moved significantly and not dragging, treat as tap
@@ -656,13 +654,13 @@ export default {
       // Check if user has moved enough to start dragging
       if (deltaX > movementThreshold || deltaY > movementThreshold) {
         this.touchState.hasMoved = true;
-        
+
         // Cancel tap timeout since user is dragging
         if (this.touchState.tapTimeout) {
           clearTimeout(this.touchState.tapTimeout);
           this.touchState.tapTimeout = null;
         }
-        
+
         // Initialize drag state if not already dragging
         if (!this.dragState.isDragging) {
           // Calculate 10em threshold in pixels if not set
@@ -670,7 +668,7 @@ export default {
             const emSize = parseFloat(getComputedStyle(document.documentElement).fontSize);
             this.dragState.threshold = 10 * emSize;
           }
-          
+
           this.dragState = {
             isDragging: true,
             type: this.touchState.buttonType,
@@ -683,12 +681,12 @@ export default {
             triggered: false,
           };
         }
-        
+
         // Update drag position - implement drag logic directly
         if (this.dragState.isDragging) {
           let dragDeltaX = touch.clientX - this.dragState.startX;
           const maxDrag = this.dragState.threshold; // 10em
-          
+
           // Constrain drag to correct direction and max distance
           if (this.dragState.type === 'previous') {
             // Left button: only allow rightward drag (positive deltaX)
@@ -699,7 +697,7 @@ export default {
           }
 
           this.dragState.deltaX = dragDeltaX;
-          
+
           // Check if we've reached the full extent
           const atFullExtent = Math.abs(dragDeltaX) >= maxDrag;
           this.dragState.atFullExtent = atFullExtent;
@@ -710,21 +708,21 @@ export default {
       // Handle touch end for buttons
       if (this.touchState.isButtonTouch) {
         const touchDuration = Date.now() - this.touchState.startTime;
-        
+
         // If it was a short touch without movement, and we haven't already navigated, treat as tap
         if (!this.touchState.hasMoved && touchDuration < 300 && this.touchState.tapTimeout) {
           clearTimeout(this.touchState.tapTimeout);
           this.touchState.tapTimeout = null;
           this.handleButtonTap(this.touchState.buttonType);
         }
-        
+
         // Reset touch state
         this.resetTouchState();
       }
-      
+
       // Reset navigation swipe state
       this.isSwipe = false;
-      
+
       // Let endDrag handle the drag cleanup
       if (this.dragState.isDragging) {
         this.endDrag();
@@ -744,23 +742,23 @@ export default {
       if (this.touchState.triggered) {
         return;
       }
-      
+
       // Clear any pending timeouts
       if (this.touchState.tapTimeout) {
         clearTimeout(this.touchState.tapTimeout);
         this.touchState.tapTimeout = null;
       }
-      
+
       // Mark as triggered to prevent double navigation
       this.touchState.triggered = true;
-      
+
       // Navigate immediately on tap
       if (buttonType === 'previous' && this.hasPrevious) {
         this.prev();
       } else if (buttonType === 'next' && this.hasNext) {
         this.next();
       }
-      
+
       // Reset touch state
       this.resetTouchState();
     },

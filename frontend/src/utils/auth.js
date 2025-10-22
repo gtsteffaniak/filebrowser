@@ -1,6 +1,7 @@
 import { mutations, getters,state } from "@/store";
 import { getApiPath, getPublicApiPath } from "@/utils/url.js";
 import { globalVars } from "@/utils/constants";
+import { getCookie } from "@/utils/cookie.js";
 
 export async function setNewToken(token) {
   document.cookie = `auth=${token}; path=/`;
@@ -11,6 +12,7 @@ export async function validateLogin() {
   // Use direct fetch to avoid automatic logout on 401
   let apiPath = getPublicApiPath('users', { id: 'self' });
   const res = await fetch(apiPath, {
+    credentials: 'same-origin', // Ensure cookies are sent with the request
     headers: {
       "sessionId": state.sessionId,
     }
@@ -34,6 +36,14 @@ export async function validateLogin() {
       await setNewToken(body);
     } else {
       throw new Error(body);
+    }
+  } else if (state.user.loginMethod == "oidc") {
+    // For OIDC users, sync the cookie to state
+    // This ensures that after OIDC callback sets a new cookie,
+    // the frontend state is updated with the new token
+    const authCookie = getCookie("auth");
+    if (authCookie && authCookie !== state.jwt) {
+      mutations.setJWT(authCookie);
     }
   }
   return

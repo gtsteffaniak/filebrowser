@@ -494,7 +494,7 @@ func TestShouldSkip_ViewableStillSkips(t *testing.T) {
 
 func TestShouldSkip_HiddenFiles(t *testing.T) {
 	idx := setupConditionalTestIndex(settings.ConditionalFilter{
-		Hidden: true, // Skip hidden files
+		IgnoreHidden: true, // Skip hidden files
 	})
 
 	tests := []struct {
