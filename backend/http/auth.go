@@ -108,7 +108,7 @@ func setupProxyUser(r *http.Request, data *requestContext, proxyUser string) (*u
 // @Success 200 {string} string "JWT token for authentication"
 // @Failure 403 {object} map[string]string "Forbidden - authentication failed"
 // @Failure 500 {object} map[string]string "Internal server error"
-// @Router /api/login [post]
+// @Router /api/auth/login [post]
 func loginHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	passwordUser := d.user.LoginMethod == users.LoginMethodPassword
 	enforcedOtp := config.Auth.Methods.PasswordAuth.EnforcedOtp
@@ -176,7 +176,7 @@ type signupBody struct {
 // @Failure 405 {object} map[string]string "Method not allowed - signup is disabled"
 // @Failure 409 {object} map[string]string "Conflict - user already exists"
 // @Failure 500 {object} map[string]string "Internal server error"
-// @Router /api/signup [post]
+// @Router /api/auth/signup [post]
 func signupHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	if !settings.Config.Auth.Methods.PasswordAuth.Signup {
 		return http.StatusMethodNotAllowed, fmt.Errorf("signup is disabled")

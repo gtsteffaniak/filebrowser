@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file. For commit 
  - changing previews between documents in onlyoffice #1410
  - onlyoffice should display user language #1061
  - Filebrowser will hard fail when OIDC provider is not found #733
+ - some API endpoints always return 404 #849
 
 ## v0.8.9-beta
 
