@@ -200,8 +200,8 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 			return http.StatusInternalServerError, fmt.Errorf("failed to fetch user info: %v", err)
 		}
 		if err := userInfoResp.Claims(userInfoUnmarshaller); err != nil {
-			logger.Errorf("failed to decode user info: %v", err)
-			return http.StatusInternalServerError, fmt.Errorf("failed to decode user info: %v", err)
+			logger.Errorf("failed to decode user info from endpoint: %v", err)
+			return http.StatusInternalServerError, fmt.Errorf("failed to decode user info from endpoint: %v", err)
 		}
 	}
 
@@ -219,23 +219,9 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		return http.StatusInternalServerError, fmt.Errorf("no valid username found for identifier '%v'", oidcCfg.UserIdentifier)
 	}
 
-	// Extract groups if available
-	var groups []string
-	if g, ok := userdata["groups"]; ok {
-		if arr, ok := g.([]string); ok {
-			groups = arr
-		} else if generic, ok := g.([]interface{}); ok {
-			for _, v := range generic {
-				if s, ok := v.(string); ok {
-					groups = append(groups, s)
-				}
-			}
-		}
-	}
-
 	// Proceed to log the user in with the OIDC data
 	// userdata struct now contains info from either verified ID token or UserInfo endpoint
-	return loginWithOidcUser(w, r, loginUsername, groups)
+	return loginWithOidcUser(w, r, loginUsername, userInfo.Groups)
 }
 
 // loginWithOidcUser extracts the username from the user claims (userInfo)
