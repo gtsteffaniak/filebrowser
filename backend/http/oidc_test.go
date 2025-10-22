@@ -18,8 +18,11 @@ func TestUserInfoUnmarshaller(t *testing.T) {
 			jsonData:    `{"name":"John","email":"john@example.com","groups":["admin","users"]}`,
 			groupsClaim: "groups",
 			expected: userInfo{
-				Name:   "John",
-				Email:  "john@example.com",
+				Claims: map[string]interface{}{
+					"name": "John", 
+					"email": "john@example.com",
+					"groups": []interface{}{"admin","users"},
+				},
 				Groups: []string{"admin", "users"},
 			},
 		},
@@ -28,8 +31,11 @@ func TestUserInfoUnmarshaller(t *testing.T) {
 			jsonData:    `{"name":"Jane","email":"jane@example.com","roles":["admin","users"]}`,
 			groupsClaim: "roles",
 			expected: userInfo{
-				Name:   "Jane",
-				Email:  "jane@example.com",
+				Claims: map[string]interface{}{
+					"name": "Jane", 
+					"email": "jane@example.com",
+					"roles": []interface{}{"admin","users"},
+				},
 				Groups: []string{"admin", "users"},
 			},
 		},
@@ -38,8 +44,11 @@ func TestUserInfoUnmarshaller(t *testing.T) {
 			jsonData:    `{"name":"Bob","email":"bob@example.com","groups":"admin, users, guests"}`,
 			groupsClaim: "groups",
 			expected: userInfo{
-				Name:   "Bob",
-				Email:  "bob@example.com",
+				Claims: map[string]interface{}{
+					"name": "Bob", 
+					"email": "bob@example.com",
+					"groups": "admin, users, guests",
+				},
 				Groups: []string{"admin", "users", "guests"},
 			},
 		},
@@ -48,8 +57,10 @@ func TestUserInfoUnmarshaller(t *testing.T) {
 			jsonData:    `{"name":"Alice","email":"alice@example.com"}`,
 			groupsClaim: "groups",
 			expected: userInfo{
-				Name:   "Alice",
-				Email:  "alice@example.com",
+				Claims: map[string]interface{}{
+					"name": "Alice", 
+					"email": "alice@example.com",
+				},
 				Groups: nil,
 			},
 		},
@@ -58,8 +69,11 @@ func TestUserInfoUnmarshaller(t *testing.T) {
 			jsonData:    `{"name":"Charlie","email":"charlie@example.com","groups":[]}`,
 			groupsClaim: "groups",
 			expected: userInfo{
-				Name:   "Charlie",
-				Email:  "charlie@example.com",
+				Claims: map[string]interface{}{
+					"name": "Charlie", 
+					"email": "charlie@example.com",
+					"groups": []interface{}{},
+				},
 				Groups: []string{},
 			},
 		},
