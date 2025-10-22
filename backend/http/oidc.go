@@ -162,6 +162,7 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	// accessToken := token.AccessToken // Access token is needed for UserInfo, already in 'token'
 
 	var userdata userInfo      // Declare userdata here to be populated by either source
+	claimsFromIDToken := false // Flag to track if we successfully got claims from ID token
 	loginUsername := ""        // Variable to hold the login username
 
 	// Create custom unmarshaller for userInfo
@@ -176,10 +177,10 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 
 		// Verify the ID token
 		// This uses the verifier initialized with the provider's JWKS endpoint and client ID
-		idToken, err := oidcCfg.Verifier.Verify(ctx, rawIDToken)
-		if err != nil {
+		idToken, verify_err := oidcCfg.Verifier.Verify(ctx, rawIDToken)
+		if verify_err != nil {
 			// this might not be necessary for certain providers like authentik
-			logger.Debugf("failed to verify ID token: %v. This might be expected, falling back to UserInfo endpoint.", err)
+			logger.Debugf("failed to verify ID token: %v. This might be expected, falling back to UserInfo endpoint.", verify_err)
 			// Verification failed, claimsFromIDToken remains false
 		} else {
 			// Decode the ID token claims using custom unmarshaller
@@ -190,17 +191,29 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 			} else {
 				// Successfully verified and decoded ID token claims
 				logger.Debugf("ID Token verified and claims decoded: %+v", userdata)
+
+				// Decide if we rely on ID token claims or still need UserInfo
+				// Even if parsing succeeded, if essential claims are missing, use UserInfo
+				if _, ok := userdata.Claims[oidcCfg.UserIdentifier]; ok {
+					claimsFromIDToken = true
+				}
 			}
-			logger.Debugf("Failed to verify ID token: %v", err)
+			logger.Debugf("Failed to verify ID token: %v", verify_err)
 		}
+
+	} else {
+		logger.Debug("No ID token found in token response or it was empty. Falling back to UserInfo endpoint.")
+		// claimsFromIDToken remains false
 	}
 
-	// --- Fallback to UserInfo endpoint if needed ---
-	if loginUsername == "" && len(userdata.Claims) == 0 {
+	// --- Fallback to UserInfo endpoint if ID token processing did not provide essential claims ---
+	if !claimsFromIDToken {
+		// Use the access token obtained from the initial exchange
+		// oauth2Config.TokenSource creates a token source that uses the provided token.
 		userInfoResp, err := oidcCfg.Provider.UserInfo(ctx, oauth2Config.TokenSource(ctx, token))
 		if err != nil {
-			logger.Errorf("failed to fetch user info: %v", err)
-			return http.StatusInternalServerError, fmt.Errorf("failed to fetch user info: %v", err)
+			logger.Errorf("failed to fetch user info from endpoint: %v", err)
+			return http.StatusInternalServerError, fmt.Errorf("failed to fetch user info from endpoint: %v", err)
 		}
 		// Decode the UserInfo response using custom unmarshaller
 		// The UserInfo endpoint is expected to return standard JSON
