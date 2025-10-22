@@ -20,8 +20,11 @@ import (
 	"golang.org/x/oauth2"
 )
 
-// userInfo holds all claims dynamically.
-type userInfo map[string]interface{}
+// userInfo holds all claims dynamically, plus pre-parsed Groups.
+type userInfo struct {
+	Claims map[string]interface{}
+	Groups []string
+}
 
 // userInfoUnmarshaller handles unmarshalling all claims dynamically,
 // while optionally parsing a configurable groups claim.
@@ -48,20 +51,20 @@ func (u *userInfoUnmarshaller) UnmarshalJSON(data []byte) error {
 						groups[i] = strings.TrimSpace(s)
 					}
 				}
-				raw["groups"] = groups
+				u.userInfo.Groups = groups
 			case string:
 				if val != "" {
 					parts := strings.Split(val, ",")
 					for i := range parts {
 						parts[i] = strings.TrimSpace(parts[i])
 					}
-					raw["groups"] = parts
+					u.userInfo.Groups = parts
 				}
 			}
 		}
 	}
 
-	*u.userInfo = raw
+	u.userInfo.Claims = raw
 	return nil
 }
 
@@ -193,12 +196,14 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	}
 
 	// --- Fallback to UserInfo endpoint if needed ---
-	if loginUsername == "" && len(userdata) == 0 {
+	if loginUsername == "" && len(userdata.Claims) == 0 {
 		userInfoResp, err := oidcCfg.Provider.UserInfo(ctx, oauth2Config.TokenSource(ctx, token))
 		if err != nil {
 			logger.Errorf("failed to fetch user info: %v", err)
 			return http.StatusInternalServerError, fmt.Errorf("failed to fetch user info: %v", err)
 		}
+		// Decode the UserInfo response using custom unmarshaller
+		// The UserInfo endpoint is expected to return standard JSON
 		if err := userInfoResp.Claims(userInfoUnmarshaller); err != nil {
 			logger.Errorf("failed to decode user info from endpoint: %v", err)
 			return http.StatusInternalServerError, fmt.Errorf("failed to decode user info from endpoint: %v", err)
@@ -206,7 +211,7 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	}
 
 	// --- Determine login username dynamically ---
-	if val, ok := userdata[oidcCfg.UserIdentifier]; ok {
+	if val, ok := userdata.Claims[oidcCfg.UserIdentifier]; ok {
 		switch v := val.(type) {
 		case string:
 			loginUsername = v
