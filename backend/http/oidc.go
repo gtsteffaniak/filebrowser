@@ -20,18 +20,11 @@ import (
 	"golang.org/x/oauth2"
 )
 
-// userInfo struct to hold user claims from either UserInfo or ID token
-type userInfo struct {
-	Name              string   `json:"name"`
-	PreferredUsername string   `json:"preferred_username"`
-	Username          string   `json:"username"`
-	Email             string   `json:"email"`
-	Sub               string   `json:"sub"`
-	Phone             string   `json:"phone_number"`
-	Groups            []string `json:"-"` // Handled manually by userInfoUnmarshaller
-}
+// userInfo holds all claims dynamically.
+type userInfo map[string]interface{}
 
-// userInfoUnmarshaller is a custom unmarshaller that handles configurable groups claim
+// userInfoUnmarshaller handles unmarshalling all claims dynamically,
+// while optionally parsing a configurable groups claim.
 type userInfoUnmarshaller struct {
 	userInfo    *userInfo
 	groupsClaim string
@@ -39,41 +32,36 @@ type userInfoUnmarshaller struct {
 
 // UnmarshalJSON implements the json.Unmarshaler interface
 func (u *userInfoUnmarshaller) UnmarshalJSON(data []byte) error {
-	// First, unmarshal the basic userInfo fields
-	if err := json.Unmarshal(data, u.userInfo); err != nil {
+	var raw map[string]interface{}
+	if err := json.Unmarshal(data, &raw); err != nil {
 		return err
 	}
 
-	// Parse the JSON to access the groups claim field
-	var rawData map[string]interface{}
-	if err := json.Unmarshal(data, &rawData); err != nil {
-		return err
-	}
-
-	// Look for the groups claim using the configured field name
-	if groupsValue, exists := rawData[u.groupsClaim]; exists {
-		switch v := groupsValue.(type) {
-		case []interface{}:
-			// It's already an array, convert to []string
-			groups := make([]string, len(v))
-			for i, group := range v {
-				if str, ok := group.(string); ok {
-					groups[i] = str
+	// Extract groups if configured
+	if u.groupsClaim != "" {
+		if v, ok := raw[u.groupsClaim]; ok {
+			switch val := v.(type) {
+			case []interface{}:
+				groups := make([]string, len(val))
+				for i, g := range val {
+					if s, ok := g.(string); ok {
+						groups[i] = strings.TrimSpace(s)
+					}
 				}
-			}
-			u.userInfo.Groups = groups
-		case string:
-			// It's a string, split by commas
-			if v != "" {
-				u.userInfo.Groups = strings.Split(v, ",")
-				// Trim whitespace from each group
-				for i, group := range u.userInfo.Groups {
-					u.userInfo.Groups[i] = strings.TrimSpace(group)
+				raw["groups"] = groups
+			case string:
+				if val != "" {
+					parts := strings.Split(val, ",")
+					for i := range parts {
+						parts[i] = strings.TrimSpace(parts[i])
+					}
+					raw["groups"] = parts
 				}
 			}
 		}
 	}
 
+	*u.userInfo = raw
 	return nil
 }
 
@@ -100,7 +88,7 @@ func oidcLoginHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		ClientSecret: oidcCfg.ClientSecret,
 		Endpoint:     oidcCfg.Provider.Endpoint(),
 		RedirectURL:  fmt.Sprintf("%s%sapi/auth/oidc/callback", origin, config.Server.BaseURL),
-		Scopes:       strings.Split(oidcCfg.Scopes, " "),
+		Scopes:       strings.Fields(oidcCfg.Scopes),
 	}
 
 	nonce := utils.InsecureRandomIdentifier(16)
@@ -157,7 +145,7 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		ClientSecret: oidcCfg.ClientSecret,
 		Endpoint:     oidcCfg.Provider.Endpoint(), // Use endpoint from discovered provider
 		RedirectURL:  redirectURL,                 // Use the dynamically determined redirect URL
-		Scopes:       strings.Split(oidcCfg.Scopes, " "),
+		Scopes:       strings.Fields(oidcCfg.Scopes),
 	}
 
 	// Exchange the authorization code for tokens
@@ -171,7 +159,6 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	// accessToken := token.AccessToken // Access token is needed for UserInfo, already in 'token'
 
 	var userdata userInfo      // Declare userdata here to be populated by either source
-	claimsFromIDToken := false // Flag to track if we successfully got claims from ID token
 	loginUsername := ""        // Variable to hold the login username
 
 	// Create custom unmarshaller for userInfo
@@ -200,74 +187,55 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 			} else {
 				// Successfully verified and decoded ID token claims
 				logger.Debugf("ID Token verified and claims decoded: %+v", userdata)
-
-				// Decide if we rely on ID token claims or still need UserInfo
-				// Even if parsing succeeded, if essential claims are missing, use UserInfo
-				switch oidcCfg.UserIdentifier {
-				case "email":
-					if userdata.Email != "" {
-						claimsFromIDToken = true
-						loginUsername = userdata.Email
-					}
-				case "username":
-					if userdata.Username != "" {
-						claimsFromIDToken = true
-						loginUsername = userdata.Username
-					}
-				case "preferred_username":
-					if userdata.PreferredUsername != "" {
-						claimsFromIDToken = true
-						loginUsername = userdata.PreferredUsername
-					}
-				case "phone":
-					if userdata.Phone != "" {
-						claimsFromIDToken = true
-						loginUsername = userdata.Phone
-					}
-				}
 			}
+			logger.Debugf("Failed to verify ID token: %v", err)
 		}
-	} else {
-		logger.Debug("No ID token found in token response or it was empty. Falling back to UserInfo endpoint.")
-		// claimsFromIDToken remains false
 	}
 
-	// --- Fallback to UserInfo endpoint if ID token processing did not provide essential claims ---
-	if !claimsFromIDToken {
-		// Use the access token obtained from the initial exchange
-		// oauth2Config.TokenSource creates a token source that uses the provided token.
+	// --- Fallback to UserInfo endpoint if needed ---
+	if loginUsername == "" && len(userdata) == 0 {
 		userInfoResp, err := oidcCfg.Provider.UserInfo(ctx, oauth2Config.TokenSource(ctx, token))
 		if err != nil {
-			logger.Errorf("failed to fetch user info from endpoint: %v", err)
-			return http.StatusInternalServerError, fmt.Errorf("failed to fetch user info from endpoint: %v", err)
+			logger.Errorf("failed to fetch user info: %v", err)
+			return http.StatusInternalServerError, fmt.Errorf("failed to fetch user info: %v", err)
 		}
-		// Decode the UserInfo response using custom unmarshaller
-		// The UserInfo endpoint is expected to return standard JSON
 		if err := userInfoResp.Claims(userInfoUnmarshaller); err != nil {
-			logger.Errorf("failed to decode user info from endpoint: %v", err)
-			return http.StatusInternalServerError, fmt.Errorf("failed to decode user info from endpoint: %v", err)
+			logger.Errorf("failed to decode user info: %v", err)
+			return http.StatusInternalServerError, fmt.Errorf("failed to decode user info: %v", err)
 		}
-		// Decide if we rely on ID token claims or still need UserInfo
-		// Even if parsing succeeded, if essential claims are missing, use UserInfo
-		switch oidcCfg.UserIdentifier {
-		case "email":
-			loginUsername = userdata.Email
-		case "username":
-			loginUsername = userdata.Username
-		case "preferred_username":
-			loginUsername = userdata.PreferredUsername
-		case "phone":
-			loginUsername = userdata.Phone
+	}
+
+	// --- Determine login username dynamically ---
+	if val, ok := userdata[oidcCfg.UserIdentifier]; ok {
+		switch v := val.(type) {
+		case string:
+			loginUsername = v
+		default:
+			loginUsername = fmt.Sprintf("%v", v)
 		}
 	}
 	if loginUsername == "" {
-		logger.Errorf("No valid username found for identifier '%v' in ID token or UserInfo response.", oidcCfg.UserIdentifier)
-		return http.StatusInternalServerError, fmt.Errorf("no valid username found in ID token or UserInfo response from claims")
+		logger.Errorf("No valid username found for identifier '%v' in claims.", oidcCfg.UserIdentifier)
+		return http.StatusInternalServerError, fmt.Errorf("no valid username found for identifier '%v'", oidcCfg.UserIdentifier)
+	}
+
+	// Extract groups if available
+	var groups []string
+	if g, ok := userdata["groups"]; ok {
+		if arr, ok := g.([]string); ok {
+			groups = arr
+		} else if generic, ok := g.([]interface{}); ok {
+			for _, v := range generic {
+				if s, ok := v.(string); ok {
+					groups = append(groups, s)
+				}
+			}
+		}
 	}
 
 	// Proceed to log the user in with the OIDC data
 	// userdata struct now contains info from either verified ID token or UserInfo endpoint
-	return loginWithOidcUser(w, r, loginUsername, userdata.Groups)
+	return loginWithOidcUser(w, r, loginUsername, groups)
 }
 
 // loginWithOidcUser extracts the username from the user claims (userInfo)
