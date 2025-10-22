@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file. For commit 
  **Notes**:
  - More changes to login auth flow
  - respects `FILEBROWSER_DISABLE_AUTOMATIC_BACKUP='true'` env var #1398
+ - Deprecating `conditionals.hidden` instead use `conditionals.ignoreHidden`
 
  **BugFixes**:
  - Fix material outline styling
