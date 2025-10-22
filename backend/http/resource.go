@@ -210,6 +210,11 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	path := r.URL.Query().Get("path")
 	source := r.URL.Query().Get("source")
 	var err error
+	accessStore := store.Access
+	// if share is not nil, then set accessStore to nil
+	if d.share != nil {
+		accessStore = nil
+	}
 	// decode url encoded source name
 	source, err = url.QueryUnescape(source)
 	if err != nil {
@@ -248,7 +253,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	realPath, _, _ := idx.GetRealPath(userscope, path)
 
 	// Check access control for the target path
-	if store.Access != nil && !store.Access.Permitted(idx.Path, path, d.user.Username) {
+	if accessStore != nil && !accessStore.Permitted(idx.Path, path, d.user.Username) {
 		return http.StatusForbidden, fmt.Errorf("access denied to path %s", path)
 	}
 
@@ -306,7 +311,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 			}
 
 			var fileInfo *iteminfo.ExtendedFileInfo
-			fileInfo, err = files.FileInfoFaster(fileOpts, store.Access)
+			fileInfo, err = files.FileInfoFaster(fileOpts, accessStore)
 			if err == nil { // File exists
 				if r.URL.Query().Get("override") != "true" {
 					logger.Debugf("resource already exists: %v", fileInfo.RealPath)
@@ -379,12 +384,11 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		}
 	}
 
-	fileInfo, err := files.FileInfoFaster(fileOpts, store.Access)
+	fileInfo, err := files.FileInfoFaster(fileOpts, accessStore)
 	if err == nil {
 		if r.URL.Query().Get("override") != "true" {
 			return http.StatusConflict, nil
 		}
-
 		preview.DelThumbs(r.Context(), *fileInfo)
 	}
 	err = files.WriteFile(fileOpts, r.Body)

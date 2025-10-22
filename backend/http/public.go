@@ -172,13 +172,11 @@ func publicUploadHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 
 	fullPath := filepath.Join(d.share.Path, r.URL.Query().Get("targetPath"))
 	source := config.Server.SourceMap[d.share.Source].Name
-	logger.Infof("public upload handler: fullPath: '%v' for share: '%v' with source: '%v'", fullPath, d.share.Source, source)
 	// adjust query params to match resourcePostHandler
 	q := r.URL.Query()
 	q.Set("source", source)
 	q.Set("path", fullPath)
 	r.URL.RawQuery = q.Encode()
-
 	status, err := resourcePostHandler(w, r, d)
 	if err != nil {
 		logger.Errorf("public upload handler: error uploading with error %v", err)
