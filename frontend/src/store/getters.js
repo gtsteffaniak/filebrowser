@@ -230,6 +230,9 @@ export const getters = {
     return false
   },
   currentView: () => {
+    if (state.navigation.isTransitioning) {
+      return 'loading'
+    }
     let listingView = ''
     const pathname = getters.routePath()
     if (!state.user || state.user?.username == "") {
