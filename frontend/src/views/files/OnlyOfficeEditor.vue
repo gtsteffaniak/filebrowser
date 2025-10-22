@@ -16,6 +16,7 @@ import { globalVars } from "@/utils/constants";
 import { state, getters, mutations } from "@/store";
 import { removeLastDir } from "@/utils/url";
 import { filesApi } from "@/api";
+import { toStandardLocale } from "@/i18n";
 
 const wikiLink = "https://github.com/gtsteffaniak/filebrowser/wiki/Office-Support#onlyoffice-integration-troubleshooting-guide"
 const wikiLinkText = "📖 View Troubleshooting Guide"
@@ -79,6 +80,11 @@ export default {
       configData.type = state.isMobile ? "mobile" : "desktop";
       this.clientConfig = configData;
       console.log("OnlyOffice client config received:", this.clientConfig);
+
+      // if language is not en , set it to the current language
+      if (state.user.locale !== "en") {
+        this.clientConfig.editorConfig.lang = toStandardLocale(state.user.locale);
+      }
 
       if (this.debugMode) {
         this.updateDebugStatus("✅ OnlyOffice Server Connection - Config Sent");

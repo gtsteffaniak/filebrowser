@@ -20,7 +20,8 @@ const previewViews = [
   'epubViewer',
   'docViewer',
   'onlyOfficeEditor',
-  'editor'
+  'editor',
+  'loading'
 ];
 
 export {

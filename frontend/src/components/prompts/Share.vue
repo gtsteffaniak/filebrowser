@@ -98,10 +98,10 @@
       </select>
 
       <div class="settings-items" style="margin-top: 0.5em;">
-        <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="disableDownload" :name="$t('share.disableDownload')" :description="$t('share.disableDownloadDescription')" />
-        <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="allowModify" :name="$t('share.allowModify')" :description="$t('share.allowModifyDescription')" />
-        <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="allowDelete" :name="$t('share.allowDelete')" :description="$t('share.allowDeleteDescription')" />
-        <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="allowCreate" :name="$t('share.allowCreate')" :description="$t('share.allowCreateDescription')" />
+        <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="disableDownload" :name="$t('share.disableDownload')" :description="$t('share.disableDownloadDescription')" aria-label="disable downloading files toggle" />
+        <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="allowModify" :name="$t('share.allowModify')" :description="$t('share.allowModifyDescription')" aria-label="allow editing files toggle" />
+        <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="allowDelete" :name="$t('share.allowDelete')" :description="$t('share.allowDeleteDescription')" aria-label="allow deleting files toggle" />
+        <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="allowCreate" :name="$t('share.allowCreate')" :description="$t('share.allowCreateDescription')" aria-label="allow creating and uploading files and folders toggle" />
         <ToggleSwitch v-if="createAllowed" class="item" v-model="allowReplacements" :name="$t('share.allowReplacements')" :description="$t('share.allowReplacementsDescription')" />
         <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="disableFileViewer" :name="$t('share.disableFileViewer')" />
         <ToggleSwitch

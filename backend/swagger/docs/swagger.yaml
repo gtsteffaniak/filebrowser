@@ -1398,6 +1398,33 @@ paths:
       summary: Get all groups or groups for a user
       tags:
       - Access
+  /api/auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate a user with a username and password.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: JWT token for authentication
+          schema:
+            type: string
+        "403":
+          description: Forbidden - authentication failed
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: User login
+      tags:
+      - Auth
   /api/auth/logout:
     post:
       description: Returns a logout URL for the frontend to redirect to.
@@ -1519,6 +1546,52 @@ paths:
       summary: Verify OTP
       tags:
       - OTP
+  /api/auth/signup:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user account with a username and password.
+      parameters:
+      - description: User signup details
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/http.signupBody'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: User created successfully
+          schema:
+            type: string
+        "400":
+          description: Bad request - invalid input
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "405":
+          description: Method not allowed - signup is disabled
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict - user already exists
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: User signup
+      tags:
+      - Auth
   /api/auth/token:
     delete:
       consumes:
@@ -1673,33 +1746,6 @@ paths:
       summary: Get jobs info
       tags:
       - Jobs
-  /api/login:
-    post:
-      consumes:
-      - application/json
-      description: Authenticate a user with a username and password.
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: JWT token for authentication
-          schema:
-            type: string
-        "403":
-          description: Forbidden - authentication failed
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal server error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: User login
-      tags:
-      - Auth
   /api/media/subtitles:
     get:
       consumes:
@@ -2311,6 +2357,64 @@ paths:
       summary: Create a share link
       tags:
       - Shares
+  /api/share/direct:
+    get:
+      consumes:
+      - application/json
+      description: Creates a direct download link for a specific file with configurable
+        duration, download count, and speed limits. If a share already exists with
+        matching parameters, the existing share will be reused.
+      parameters:
+      - description: File path to create download link for
+        in: query
+        name: path
+        required: true
+        type: string
+      - description: Source name for the file
+        in: query
+        name: source
+        required: true
+        type: string
+      - description: 'Duration in minutes for link validity (default: 60)'
+        in: query
+        name: duration
+        type: string
+      - description: 'Maximum number of downloads allowed (default: unlimited)'
+        in: query
+        name: count
+        type: string
+      - description: 'Download speed limit in kbps (default: unlimited)'
+        in: query
+        name: speed
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Direct download link created
+          schema:
+            $ref: '#/definitions/http.DirectDownloadResponse'
+        "400":
+          description: Bad request - invalid parameters or path is not a file
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden - access denied
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create direct download link
+      tags:
+      - Shares
   /api/shares:
     delete:
       consumes:
@@ -2365,52 +2469,6 @@ paths:
       summary: List share links
       tags:
       - Shares
-  /api/signup:
-    post:
-      consumes:
-      - application/json
-      description: Register a new user account with a username and password.
-      parameters:
-      - description: User signup details
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/http.signupBody'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: User created successfully
-          schema:
-            type: string
-        "400":
-          description: Bad request - invalid input
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "405":
-          description: Method not allowed - signup is disabled
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "409":
-          description: Conflict - user already exists
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal server error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: User signup
-      tags:
-      - Auth
   /api/users:
     delete:
       consumes:
@@ -2890,62 +2948,4 @@ paths:
       summary: Get file/directory information from a public share
       tags:
       - Public Shares
-  /public/share/direct:
-    get:
-      consumes:
-      - application/json
-      description: Creates a direct download link for a specific file with configurable
-        duration, download count, and speed limits. If a share already exists with
-        matching parameters, the existing share will be reused.
-      parameters:
-      - description: File path to create download link for
-        in: query
-        name: path
-        required: true
-        type: string
-      - description: Source name for the file
-        in: query
-        name: source
-        required: true
-        type: string
-      - description: 'Duration in minutes for link validity (default: 60)'
-        in: query
-        name: duration
-        type: string
-      - description: 'Maximum number of downloads allowed (default: unlimited)'
-        in: query
-        name: count
-        type: string
-      - description: 'Download speed limit in kbps (default: unlimited)'
-        in: query
-        name: speed
-        type: string
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Direct download link created
-          schema:
-            $ref: '#/definitions/http.DirectDownloadResponse'
-        "400":
-          description: Bad request - invalid parameters or path is not a file
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "403":
-          description: Forbidden - access denied
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal server error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Create direct download link
-      tags:
-      - Shares
 swagger: "2.0"
