@@ -45,7 +45,8 @@ async function globalSetup() {
   await page.locator('button[aria-label="Share"]').click();
   await expect(page.locator('div[aria-label="share-path"]')).toHaveText('Path: /1file1.txt');
   // Toggle "Allow creating and uploading files and folders" setting
-  await page.locator('span:has-text("Allow creating and uploading files and folders")').locator('..').locator('input[type="checkbox"]').click();
+  await page.locator('input[aria-label="allow creating and uploading files and folders toggle"]').waitFor({ state: 'attached' });
+  await page.locator('input[aria-label="allow creating and uploading files and folders toggle"] + .slider').click();
   await page.locator('button[aria-label="Share-Confirm"]').click();
   await expect(page.locator("div[aria-label='share-prompt'] .card-content table tbody tr:not(:has(th))")).toHaveCount(1);
   const shareHashFile = await page.locator("div[aria-label='share-prompt'] .card-content table tbody tr:not(:has(th)) td").first().textContent();
