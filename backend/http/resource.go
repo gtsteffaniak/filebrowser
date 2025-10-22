@@ -208,6 +208,7 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 // @Router /api/resources [post]
 func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	path := r.URL.Query().Get("path")
+	unescapedPath := path
 	source := r.URL.Query().Get("source")
 	var err error
 	accessStore := store.Access
@@ -221,7 +222,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 			logger.Debugf("invalid source encoding: %v", err)
 			return http.StatusBadRequest, fmt.Errorf("invalid source encoding: %v", err)
 		}
-		path, err = url.QueryUnescape(path)
+		unescapedPath, err = url.QueryUnescape(path)
 		if err != nil {
 			logger.Debugf("invalid path encoding: %v", err)
 			return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
@@ -238,10 +239,10 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 			return http.StatusForbidden, err
 		}
 		userscope = strings.TrimRight(userscope, "/")
-		path = utils.JoinPathAsUnix(userscope, path)
+		path = utils.JoinPathAsUnix(userscope, unescapedPath)
 	}
 
-	isDir := strings.HasSuffix(path, "/")
+	isDir := strings.HasSuffix(unescapedPath, "/")
 	fileOpts := utils.FileOptions{
 		Username: d.user.Username,
 		Path:     path,
