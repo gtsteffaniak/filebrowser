@@ -94,7 +94,7 @@ test("share file creation", async ({ page, checkForErrors, openContextMenu }) =>
   await page.locator('input[aria-label="FileName Field"]').waitFor({ state: 'visible' });
   await page.locator('input[aria-label="FileName Field"]').fill('dfsaf.txt');
   await page.locator('button[aria-label="Create"]').click();
-  await expect(page).toHaveTitle("Graham's Filebrowser - les - dfsaf.txt");
+  await expect(page).toHaveTitle("Graham's Filebrowser - lSharees - dfsaf.txt");
   await page.locator(".ace_content").click();
   await page.keyboard.type("test content");
   await page.locator(".overflow-menu-button").click();

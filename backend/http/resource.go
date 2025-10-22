@@ -229,9 +229,10 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		if !d.user.Permissions.Create {
 			return http.StatusForbidden, fmt.Errorf("user is not allowed to create or modify")
 		}
+		userscope := ""
 		// Determine if this is a directory or file based on trailing slash
 		// Strip trailing slash from userscope to prevent double slashes
-		userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, source)
+		userscope, err = settings.GetScopeFromSourceName(d.user.Scopes, source)
 		if err != nil {
 			logger.Debugf("error getting scope from source name: %v", err)
 			return http.StatusForbidden, err
@@ -267,6 +268,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 
 		// If type mismatch (file vs folder or folder vs file) and not overriding
 		if existingIsDir != requestingDir && r.URL.Query().Get("override") != "true" {
+			logger.Debugf("Type conflict detected in chunked: existing is dir=%v, requesting dir=%v at path=%v", existingIsDir, requestingDir, realPath)
 			return http.StatusConflict, nil
 		}
 	}
@@ -317,7 +319,6 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 			if err == nil { // File exists
 				if r.URL.Query().Get("override") != "true" {
 					logger.Debugf("resource already exists: %v", fileInfo.RealPath)
-					logger.Debugf("Resource already exists: %v", fileInfo.RealPath)
 					return http.StatusConflict, nil
 				}
 				// If overriding, delete existing thumbnails
@@ -375,29 +376,14 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		return http.StatusOK, nil
 	}
 
-	// Check for file/folder conflicts for non-chunked uploads
-	if stat, statErr := os.Stat(realPath); statErr == nil {
-		existingIsDir := stat.IsDir()
-		requestingDir := false // Files are never directories
-
-		// If type mismatch (existing dir vs requesting file) and not overriding
-		if existingIsDir != requestingDir && r.URL.Query().Get("override") != "true" {
-			return http.StatusConflict, nil
-		}
-	}
-
 	fileInfo, err := files.FileInfoFaster(fileOpts, accessStore)
-	if err == nil {
-		if r.URL.Query().Get("override") != "true" {
-			return http.StatusConflict, nil
-		}
+	if err != nil {
 		preview.DelThumbs(r.Context(), *fileInfo)
 	}
 	err = files.WriteFile(fileOpts, r.Body)
 	if err != nil {
 		logger.Debugf("error writing file: %v", err)
 		return errToStatus(err), err
-
 	}
 	return http.StatusOK, nil
 }
