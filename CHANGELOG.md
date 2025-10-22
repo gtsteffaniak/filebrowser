@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.8.10-beta
+
+ **New Features**:
+ - Add marquee selection to listing view -- thanks @Kurami32 #1388
+
+ **Notes**:
+ - More changes to login auth flow
+ - respects `FILEBROWSER_DISABLE_AUTOMATIC_BACKUP='true'` env var #1398
+ - Deprecating `conditionals.hidden` instead use `conditionals.ignoreHidden`
+
+ **BugFixes**:
+ - Fix material outline styling
+ - "feels lonely here" when clicking at source tab #1387
+ - Anonymous upload bug 0.8.9 #1383
+ - changing previews between documents in onlyoffice #1410
+ - onlyoffice should display user language #1061
+ - Filebrowser will hard fail when OIDC provider is not found #733
+ - some API endpoints always return 404 #849
+
 ## v0.8.9-beta
 
 > [!CAUTION]

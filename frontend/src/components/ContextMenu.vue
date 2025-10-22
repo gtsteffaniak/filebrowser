@@ -152,7 +152,7 @@
 import downloadFiles from "@/utils/download";
 import { state, getters, mutations } from "@/store";
 import Action from "@/components/Action.vue";
-import { globalVars } from "@/utils/constants.js";
+import { globalVars, shareInfo } from "@/utils/constants.js";
 import buttons from "@/utils/buttons";
 import { notify } from "@/notify";
 import { eventBus } from "@/store/eventBus";
@@ -237,11 +237,8 @@ export default {
       );
     },
     showSave() {
-      if (getters.isShare()) {
-        // TODO: add support for saving shared files
-        return false;
-      }
-      return getters.currentView() == "editor" && this.permissions.modify;
+      const allowEdit = this.permissions.modify || (getters.isShare() && shareInfo.allowEdit);
+      return getters.currentView() == "editor" && allowEdit;
     },
     showOverflow() {
       return getters.currentPromptName() == "OverflowMenu";

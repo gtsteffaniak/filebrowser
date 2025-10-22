@@ -21,12 +21,12 @@
   </div>
 </template>
 <script>
-import { filesApi } from "@/api";
+import { filesApi, publicApi } from "@/api";
 import { getters, mutations, state } from "@/store"; // Import your custom store
 import { notify } from "@/notify";
 import { goToItem } from "@/utils/url";
 import { url } from "@/utils";
-
+import { shareInfo } from "@/utils/constants";
 export default {
   name: "new-dir",
   props: {
@@ -68,6 +68,12 @@ export default {
 
     async createDirectory(overwrite = false) {
       try {
+        if (getters.isShare()) {
+          await publicApi.post(shareInfo.hash, url.joinPath(state.req.path, this.name) + "/", "", overwrite);
+          goToItem(state.req.source, url.joinPath(state.req.path, this.name), {});
+          mutations.closeHovers();
+          return;
+        }
         await filesApi.post(state.req.source, url.joinPath(state.req.path, this.name) + "/", "", overwrite);
         goToItem(state.req.source, url.joinPath(state.req.path, this.name), {});
         mutations.closeHovers();
@@ -89,6 +95,13 @@ export default {
                   for (let counter = 1; counter <= maxAttempts && !success; counter++) {
                     try {
                       const newName = counter === 1 ? `${originalName} (1)` : `${originalName} (${counter})`;
+                      if (getters.isShare()) {
+                        await publicApi.post(shareInfo.hash, url.joinPath(state.req.path, newName) + "/", "", false);
+                        goToItem(state.req.source, url.joinPath(state.req.path, newName), {});
+                        mutations.closeHovers();
+                        success = true;
+                        return;
+                      }
                       await filesApi.post(state.req.source, joinPath(state.req.path, newName) + "/", "", false);
                       goToItem(state.req.source, joinPath(state.req.path, newName), {});
                       mutations.closeHovers();

@@ -26,15 +26,15 @@ export function setupErrorTracking(page: Page) {
     if (message.type() === "error") {
       const errorText = message.text();
       const args = message.args();
-      
+
       // Try to extract more detailed error information
       let detailedError = errorText;
-      
+
       if (args.length > 0) {
         try {
           // Get the first argument which usually contains the error object
           const firstArg = await args[0].jsonValue().catch(() => null);
-          
+
           if (firstArg && typeof firstArg === 'object') {
             if (firstArg.stack) {
               // If we have a stack trace, use it
@@ -61,7 +61,7 @@ export function setupErrorTracking(page: Page) {
                 }
               })
             );
-            
+
             const combinedArgs = argsText.join(' ');
             if (combinedArgs.trim() && combinedArgs !== errorText) {
               detailedError = combinedArgs;
@@ -72,7 +72,7 @@ export function setupErrorTracking(page: Page) {
           }
         }
       }
-      
+
       consoleErrors.push(detailedError);
     }
   });

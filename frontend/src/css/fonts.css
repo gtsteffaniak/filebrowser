@@ -127,7 +127,7 @@
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url(/fonts/material-icons.woff2) format('woff2');
+  src: url(/fonts/material-symbols-outlined.woff2) format('woff2');
 }
 
 .material-icons {

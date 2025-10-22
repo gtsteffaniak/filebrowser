@@ -51,18 +51,19 @@ async function testEventsEndpoint() {
   try {
     const response = await fetch(url, {
       method: 'GET',
+      credentials: 'same-origin', // Ensure cookies are sent for SSE authentication
       headers: {
         'Accept': 'text/event-stream',
         'Cache-Control': 'no-cache'
       }
     })
-    
+
     if (response.status === 401) {
       console.log('🚫 Events endpoint returned 401, authentication failed')
       authenticationFailed = true
       return false
     }
-    
+
     // Close the test connection immediately
     response.body?.cancel()
     return true

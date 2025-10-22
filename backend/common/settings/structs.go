@@ -174,7 +174,8 @@ type SourceConfig struct {
 }
 
 type ConditionalFilter struct {
-	Hidden          bool                     `json:"hidden"`                // exclude hidden files and folders.
+	Hidden          bool                     `json:"hidden"`                // deprecated: use ignoreHidden instead to exclude hidden files and folders.
+	IgnoreHidden    bool                     `json:"ignoreHidden"`          // exclude hidden files and folders.
 	ZeroSizeFolders bool                     `json:"ignoreZeroSizeFolders"` // ignore folders with 0 size
 	ItemRules       []ConditionalIndexConfig `json:"rules"`                 // list of item rules to apply to specific paths
 }
