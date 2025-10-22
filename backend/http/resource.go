@@ -214,18 +214,20 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	// if share is not nil, then set accessStore to nil
 	if d.share != nil {
 		accessStore = nil
+	} else {
+		// decode url encoded source name
+		source, err = url.QueryUnescape(source)
+		if err != nil {
+			logger.Debugf("invalid source encoding: %v", err)
+			return http.StatusBadRequest, fmt.Errorf("invalid source encoding: %v", err)
+		}
+		path, err = url.QueryUnescape(path)
+		if err != nil {
+			logger.Debugf("invalid path encoding: %v", err)
+			return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
+		}
 	}
-	// decode url encoded source name
-	source, err = url.QueryUnescape(source)
-	if err != nil {
-		logger.Debugf("invalid source encoding: %v", err)
-		return http.StatusBadRequest, fmt.Errorf("invalid source encoding: %v", err)
-	}
-	path, err = url.QueryUnescape(path)
-	if err != nil {
-		logger.Debugf("invalid path encoding: %v", err)
-		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
-	}
+
 	if !d.user.Permissions.Create && d.share == nil {
 		return http.StatusForbidden, fmt.Errorf("user is not allowed to create or modify")
 	}
