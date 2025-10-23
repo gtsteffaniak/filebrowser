@@ -14,16 +14,6 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v0.8.10-beta
 
- **Notes**:
- - Removed share setting `enableOnlyOfficeEditing` -- uses value from `allowEditing`
- - Anonymous users can now edit if a share has edit permissions enabled.
-
- **BugFixes**:
- - Fixed issue editing onlyoffice on shares
- - Added proper and robust logging/errorhandling for the onlyoffice callback.
-
-## v0.8.10-beta
-
  **New Features**:
  - Add marquee selection to listing view -- thanks @Kurami32 #1388
 
