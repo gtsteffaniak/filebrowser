@@ -92,6 +92,7 @@ type OnlyOfficeLogContext struct {
 	FilePath   string
 	Source     string
 	ShareHash  string
+	isAdmin    bool
 	StartTime  time.Time
 }
 
@@ -112,7 +113,7 @@ var onlyOfficeContexts = make(map[string]*OnlyOfficeLogContext)
 var onlyOfficeContextsMutex sync.RWMutex
 
 // Helper functions for OnlyOffice log context management
-func createOnlyOfficeLogContext(username, sessionID, documentID, filePath, source, shareHash string) *OnlyOfficeLogContext {
+func createOnlyOfficeLogContext(username, sessionID, documentID, filePath, source, shareHash string, isAdmin bool) *OnlyOfficeLogContext {
 	return &OnlyOfficeLogContext{
 		Username:   username,
 		SessionID:  sessionID,
@@ -121,6 +122,7 @@ func createOnlyOfficeLogContext(username, sessionID, documentID, filePath, sourc
 		Source:     source,
 		ShareHash:  shareHash,
 		StartTime:  time.Now(),
+		isAdmin:    isAdmin,
 	}
 }
 
@@ -144,6 +146,9 @@ func removeOnlyOfficeLogContext(documentID string) {
 
 func sendOnlyOfficeLogEvent(context *OnlyOfficeLogContext, level, component, message string) {
 	if context == nil {
+		return
+	}
+	if !context.isAdmin {
 		return
 	}
 
