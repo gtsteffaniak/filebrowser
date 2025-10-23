@@ -94,7 +94,9 @@
     "sortByName": "Sort by name",
     "sortBySize": "Sort by size",
     "noPreview": "Preview is not available for this file.",
-    "noDownloadAccess": "Download is not available."
+    "noDownloadAccess": "Download is not available.",
+    "itemSelected": "item selected",
+    "itemsSelected": "items selected"
   },
   "help": {
     "click": "select file or directory",
@@ -575,7 +577,9 @@
     "signup": "Signup",
     "password": "Password",
     "username": "Username",
+    "file": "File",
     "files": "Files",
+    "folder": "Folder",
     "folders": "Folders",
     "exit": "Exit",
     "permanent": "Permanent",

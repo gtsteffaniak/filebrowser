@@ -57,8 +57,7 @@ export const getters = {
   },
   previewType: () => getTypeInfo(state.req.type).simpleType,
   isCardView: () =>
-    (getters.viewMode() == 'gallery' || getters.viewMode() == 'normal' || getters.viewMode() == 'icons') &&
-    getters.currentView() == 'listingView',
+    (getters.viewMode() == 'gallery' || getters.viewMode() == 'normal' || getters.viewMode() == 'icons' || getters.currentView() == 'listingView'),
   currentHash: () => shareInfo.hash,
   isMobile: () => state.isMobile,
   isLoading: () => Object.keys(state.loading).length > 0,

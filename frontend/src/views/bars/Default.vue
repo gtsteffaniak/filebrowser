@@ -53,7 +53,7 @@ export default {
   },
   data() {
     return {
-      viewModes: ["list", "compact", "normal", "gallery", "icons"],
+      viewModes: ["list", "compact", "normal", "icons"],
     };
   },
   computed: {
@@ -92,7 +92,6 @@ export default {
         compact: "table_rows_narrow",
         normal: "view_module",
         gallery: "grid_view",
-        icons: "view_comfy",
       };
       return icons[getters.viewMode()] || "grid_view";
     },

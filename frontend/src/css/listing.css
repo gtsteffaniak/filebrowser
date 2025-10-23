@@ -135,8 +135,9 @@ body.rtl #listingView {
   flex-direction: column;
   align-content: center;
   overflow: hidden;
-  justify-content: center;
-  padding: 0;
+  justify-content: flex-start;
+  padding: 0.5em;
+  margin: 0.25em;
   position: relative;
 }
 
@@ -149,7 +150,6 @@ body.rtl #listingView {
 #listingView.icons .item {
   transition: width 0.25s, height 0.25s, box-shadow 0.2s ease-in-out, transform 0.1s ease-in-out;
 }
-
 
 #listingView.gallery .item .text {
   text-shadow: 0 0 2px white;
@@ -341,16 +341,11 @@ body.rtl #listingView {
   border-top: 0;
 }
 
-
+#listingView.compact .item[aria-selected=true],
+#listingView.list .item[aria-selected=true],
 #listingView.normal .item[aria-selected=true],
 #listingView.icons .item[aria-selected=true] {
-  background-color: color-mix(in srgb, var(--primaryColor) 65%, transparent) !important;
-  border: 0.2em solid var(--primaryColor) !important;
-}
-
-#listingView.compact .item[aria-selected=true],
-#listingView.list .item[aria-selected=true] {
-  background-color: color-mix(in srgb, var(--primaryColor) 65%, transparent) !important;
+  background-color: color-mix(in srgb, var(--primaryColor) 80%, transparent) !important;
 }
 
 #listingView.gallery .item[aria-selected=true] {
@@ -467,12 +462,6 @@ body.rtl #listingView {
 
 .half-selected {
   border-color: var(--primaryColor) !important;
-}
-
-#listingView.icons .item {
-  justify-content: flex-start;
-  padding: 0.5em;
-  margin: 0.25em;
 }
 
 #listingView.icons .item .text {

@@ -161,6 +161,7 @@
           multiple
         />
       </div>
+      <StatusBar />
     </div>
   </div>
 
@@ -182,12 +183,14 @@ import { shareInfo } from "@/utils/constants";
 
 import Item from "@/components/files/ListingItem.vue";
 import Upload from "@/components/prompts/Upload.vue";
+import StatusBar from "@/components/StatusBar.vue";
 
 export default {
   name: "listingView",
   components: {
     Item,
     Upload,
+    StatusBar,
   },
   data() {
     return {
@@ -921,7 +924,6 @@ export default {
       } else if (getters.viewMode() == "gallery") {
         // For gallery masonry - slider controls column width only
         const baseSize = 150 + (state.user.gallerySize * 50); // 200px to 550px range
-        
         document.documentElement.style.setProperty(
           "--item-width",
           `${baseSize}px`
@@ -1064,7 +1066,7 @@ export default {
     },
     startRectangleSelection(event) {
       // Start rectangle selection when clicking on empty space
-      if (event.target.closest('.item') || event.target.closest('.header')) {
+      if (event.target.closest('.item') || event.target.closest('.header') || event.target.closest('#status-bar')) {
         return;
       }
 
