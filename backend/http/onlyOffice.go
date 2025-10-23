@@ -22,18 +22,36 @@ import (
 )
 
 const (
+	onlyOfficeStatusDocumentBeingEdited             = 1
 	onlyOfficeStatusDocumentClosedWithChanges       = 2
+	onlyOfficeStatusDocumentSavingError             = 3
 	onlyOfficeStatusDocumentClosedWithNoChanges     = 4
 	onlyOfficeStatusForceSaveWhileDocumentStillOpen = 6
+	onlyOfficeStatusForceSaveError                  = 7
 )
 
 type OnlyOfficeCallback struct {
-	ChangesURL string   `json:"changesurl,omitempty"`
-	Key        string   `json:"key,omitempty"`
-	Status     int      `json:"status,omitempty"`
-	URL        string   `json:"url,omitempty"`
-	Users      []string `json:"users,omitempty"`
-	UserData   string   `json:"userdata,omitempty"`
+	Actions       []OnlyOfficeAction `json:"actions,omitempty"`
+	ChangesURL    string             `json:"changesurl,omitempty"`
+	FileType      string             `json:"filetype,omitempty"`
+	ForceSaveType int                `json:"forcesavetype,omitempty"`
+	FormsDataURL  string             `json:"formsdataurl,omitempty"`
+	History       *OnlyOfficeHistory `json:"history,omitempty"`
+	Key           string             `json:"key,omitempty"`
+	Status        int                `json:"status,omitempty"`
+	URL           string             `json:"url,omitempty"`
+	UserData      string             `json:"userdata,omitempty"`
+	Users         []string           `json:"users,omitempty"`
+}
+
+type OnlyOfficeAction struct {
+	Type   int    `json:"type"`
+	UserID string `json:"userid"`
+}
+
+type OnlyOfficeHistory struct {
+	Changes       interface{} `json:"changes"`
+	ServerVersion string      `json:"serverVersion"`
 }
 
 // OnlyOfficeJWTPayload represents the JWT payload structure for OnlyOffice callbacks
@@ -115,7 +133,19 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 
 	// Determine file type and editing permissions
 	fileType := strings.TrimPrefix(filepath.Ext(d.fileInfo.Name), ".")
-	modifyPerms := utils.Ternary(d.fileInfo.Hash != "", d.share.AllowModify, d.user.Permissions.Modify)
+
+	// Determine modify permissions based on whether this is a share or regular request
+	var modifyPerms bool
+	if d.fileInfo.Hash != "" && d.share != nil {
+		// Share request - check share permissions
+		modifyPerms = d.share.AllowModify
+		logger.Debugf("OnlyOffice: share request, modifyPerms=%v", modifyPerms)
+	} else {
+		// Regular user request - check user permissions
+		modifyPerms = d.user.Permissions.Modify
+		logger.Debugf("OnlyOffice: regular user request, modifyPerms=%v", modifyPerms)
+	}
+
 	canEdit := iteminfo.CanEditOnlyOffice(modifyPerms, fileType)
 	canEditMode := utils.Ternary(canEdit, "edit", "view")
 	// Generate document ID for OnlyOffice
@@ -287,9 +317,59 @@ func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *reques
 		deleteOfficeId(source, path)
 	}
 
-	// Handle document save operations
+	// Handle document being edited (status 1) - just log for now
+	if data.Status == onlyOfficeStatusDocumentBeingEdited {
+		logger.Debugf("OnlyOffice callback: document being edited, key=%s, users=%v", data.Key, data.Users)
+		// Handle actions if present
+		for _, action := range data.Actions {
+			switch action.Type {
+			case 0: // User disconnects
+				logger.Debugf("OnlyOffice callback: user ID %s disconnected from document", action.UserID)
+			case 1: // New user connects
+				logger.Debugf("OnlyOffice callback: user ID %s connected to document", action.UserID)
+			case 2: // User clicked forcesave button
+				logger.Debugf("OnlyOffice callback: user ID %s clicked forcesave button", action.UserID)
+			default:
+				logger.Debugf("OnlyOffice callback: unknown action type %d for user ID %s", action.Type, action.UserID)
+			}
+		}
+	}
+
+	// Handle document save operations (status 2, 3, 6, 7)
 	if data.Status == onlyOfficeStatusDocumentClosedWithChanges ||
-		data.Status == onlyOfficeStatusForceSaveWhileDocumentStillOpen {
+		data.Status == onlyOfficeStatusDocumentSavingError ||
+		data.Status == onlyOfficeStatusForceSaveWhileDocumentStillOpen ||
+		data.Status == onlyOfficeStatusForceSaveError {
+
+		// Log the save operation details
+		statusDesc := ""
+		switch data.Status {
+		case onlyOfficeStatusDocumentClosedWithChanges:
+			statusDesc = "document closed with changes"
+		case onlyOfficeStatusDocumentSavingError:
+			statusDesc = "document saving error"
+		case onlyOfficeStatusForceSaveWhileDocumentStillOpen:
+			statusDesc = "force save while document still open"
+		case onlyOfficeStatusForceSaveError:
+			statusDesc = "force save error"
+		}
+
+		logger.Debugf("OnlyOffice callback: processing save operation - %s, key=%s, url=%s, forcesavetype=%d",
+			statusDesc, data.Key, data.URL, data.ForceSaveType)
+
+		// Handle history and changes URL if present
+		if data.History != nil {
+			logger.Debugf("OnlyOffice callback: received history data with serverVersion=%s", data.History.ServerVersion)
+		}
+		if data.ChangesURL != "" {
+			logger.Debugf("OnlyOffice callback: received changes URL: %s", data.ChangesURL)
+		}
+
+		// For status 3 (saving error), don't attempt to save the file
+		if data.Status == onlyOfficeStatusDocumentSavingError {
+			logger.Warningf("OnlyOffice callback: document saving error occurred, not attempting to save")
+			return returnOnlyOfficeSuccess(w, r)
+		}
 
 		// Check share permissions first if this is a share request
 		if d.fileInfo.Hash != "" {
