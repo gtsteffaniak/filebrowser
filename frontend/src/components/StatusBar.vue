@@ -86,15 +86,15 @@ export default {
     sliderConfig() {
       if (this.isListingViewMode) {
         return {
-          min: 0,
+          min: 1,
           max: 2,
           step: 1,
           values: { 0: 'compact', 2: 'list' }
         };
       } else {
         return {
-          min: 0,
-          max: 9,
+          min: 1,
+          max: 8,
           step: 1,
           values: null // Normal gallery size
         };

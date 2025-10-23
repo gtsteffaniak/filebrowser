@@ -53,7 +53,7 @@ export default {
   },
   data() {
     return {
-      viewModes: ["list", "compact", "normal", "icons"],
+      viewModes: ["list", "normal", "gallery"],
     };
   },
   computed: {

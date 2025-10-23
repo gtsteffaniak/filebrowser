@@ -907,32 +907,54 @@ export default {
     },
     colunmsResize() {
       if (getters.viewMode() == "icons") {
-        // Use gallery size to determine both width and height - will be used by the size slider too
         const baseSize = 60 + (state.user.gallerySize * 10); // 70px to 140px
+        let columns;
+        
+        if (state.isMobile) {
+          // On mobile, map gallerySize (1-8) to columns (3-4)
+          // Level 1-4: 3 columns, Level 5-8: 4 columns
+          columns = state.user.gallerySize <= 4 ? 3 : 4;
+        } else {
+          // Icons view - desktop
+          const containerSize = 70 + (state.user.gallerySize * 15);
+          columns = Math.floor(document.querySelector("#main")?.offsetWidth / containerSize) || 1;
+          columns = Math.max(3, Math.min(columns, 12));
+        }
         document.documentElement.style.setProperty(
           "--item-width",
-          `calc(${100 / this.numColumns}% - 0.5em)`
+          `calc(${100 / columns}% - 0.5em)`
         );
         document.documentElement.style.setProperty(
           "--item-height",
-          "auto" // Let content determine height
+          "auto"
         );
         document.documentElement.style.setProperty(
           "--icons-view-icon-size",
           `${baseSize}px`
         );
       } else if (getters.viewMode() == "gallery") {
-        // For gallery masonry - slider controls column width only
         const baseSize = 150 + (state.user.gallerySize * 50); // 200px to 550px range
-        document.documentElement.style.setProperty(
-          "--item-width",
-          `${baseSize}px`
-        );
+        if (state.isMobile) {
+          // Mobile - Level 1-4 = 2 columns, level 5-8 = 1 column
+          let columns = state.user.gallerySize <= 4 ? 2 : 1;
+          
+          document.documentElement.style.setProperty(
+            "--item-width",
+            `calc(${100 / columns}% - 0.5em)`
+          );
+        } else {
+          // Gallery view - desktop
+          document.documentElement.style.setProperty(
+            "--item-width",
+            `${baseSize}px`
+          );
+        }
         document.documentElement.style.setProperty(
           "--item-height",
           "auto"
         );
       } else {
+        // Normal and List views - mobile and desktop
         document.documentElement.style.setProperty(
           "--item-width",
           `calc(${100 / this.numColumns}% - 1em)`
