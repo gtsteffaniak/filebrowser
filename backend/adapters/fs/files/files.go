@@ -420,12 +420,12 @@ func WriteDirectory(opts utils.FileOptions) error {
 	return RefreshIndex(idx.Name, opts.Path, true, true)
 }
 
-func WriteFile(opts utils.FileOptions, in io.Reader) error {
-	idx := indexing.GetIndex(opts.Source)
+func WriteFile(source, path string, in io.Reader) error {
+	idx := indexing.GetIndex(source)
 	if idx == nil {
-		return fmt.Errorf("could not get index: %v ", opts.Source)
+		return fmt.Errorf("could not get index: %v ", source)
 	}
-	realPath, _, _ := idx.GetRealPath(opts.Path)
+	realPath, _, _ := idx.GetRealPath(path)
 	// Strip trailing slash from realPath if it's meant to be a file
 	realPath = strings.TrimRight(realPath, "/")
 	// Ensure the parent directories exist
@@ -466,7 +466,7 @@ func WriteFile(opts utils.FileOptions, in io.Reader) error {
 		return err
 	}
 
-	return RefreshIndex(opts.Source, opts.Path, false, false)
+	return RefreshIndex(source, path, false, false)
 }
 
 // getContent reads and returns the file content if it's considered an editable text file.

@@ -28,7 +28,7 @@ server:
         indexingIntervalMinutes: 0        # optional manual overide interval in minutes to re-index the source
         disableIndexing: false            # disable the indexing of this source
         conditionals:                     # conditional rules to apply when indexing to include/exclude certain items
-          hidden: false                   # exclude hidden files and folders.
+          ignoreHidden: false             # exclude hidden files and folders.
           ignoreZeroSizeFolders: false    # ignore folders with 0 size
           rules:                          # list of item rules to apply to specific paths
             - neverWatchPath: ""          # index the folder in the first pass to get included in search, but never re-indexed.

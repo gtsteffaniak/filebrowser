@@ -431,8 +431,6 @@
     "light": "Claro",
     "enableOnlyOffice": "Activar el visor de OnlyOffice",
     "enableOnlyOfficeDescription": "Permitir la visualización de archivos de oficina utilizando OnlyOffice en este recurso compartido.",
-    "enableOnlyOfficeEditing": "Habilitar editor de OnlyOffice",
-    "enableOnlyOfficeEditingDescription": "Permitir la edición de archivos de oficina utilizando OnlyOffice en este recurso compartido.",
     "titleDefault": "Archivos compartidos - {title}",
     "defaultViewMode": "Modo de visualización",
     "defaultViewModeDescription": "Establece el modo de visualización predeterminado para los usuarios anónimos que vean esta acción. Los usuarios registrados pueden cambiar su preferencia de visualización.",

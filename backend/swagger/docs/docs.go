@@ -2922,6 +2922,10 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "hidden": {
+                    "description": "deprecated: use ignoreHidden instead to exclude hidden files and folders.",
+                    "type": "boolean"
+                },
+                "ignoreHidden": {
                     "description": "exclude hidden files and folders.",
                     "type": "boolean"
                 },
@@ -3705,9 +3709,6 @@ const docTemplate = `{
                 "enableOnlyOffice": {
                     "type": "boolean"
                 },
-                "enableOnlyOfficeEditing": {
-                    "type": "boolean"
-                },
                 "enforceDarkLightMode": {
                     "description": "\"dark\" or \"light\"",
                     "type": "string"
@@ -3832,9 +3833,6 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "enableOnlyOffice": {
-                    "type": "boolean"
-                },
-                "enableOnlyOfficeEditing": {
                     "type": "boolean"
                 },
                 "enforceDarkLightMode": {
