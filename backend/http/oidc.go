@@ -225,11 +225,8 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 
 	// --- Determine login username dynamically ---
 	if val, ok := userdata.Claims[oidcCfg.UserIdentifier]; ok {
-		switch v := val.(type) {
-		case string:
+		if v, ok := val.(string); ok {
 			loginUsername = v
-		default:
-			loginUsername = fmt.Sprintf("%v", v)
 		}
 	}
 	if loginUsername == "" {
