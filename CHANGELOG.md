@@ -2,15 +2,15 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
-## v0.8.10-beta
+## v0.8.11-beta
 
  **Notes**:
  - Removed share setting `enableOnlyOfficeEditing` -- uses value from `allowEditing`
  - Anonymous users can now edit if a share has edit permissions enabled.
 
  **BugFixes**:
- - Fixed issue editing onlyoffice on shares
- - Added proper and robust logging/errorhandling for the onlyoffice callback.
+ - Fixed issue editing onlyoffice on shares #1397
+ - Added proper and robust logging / error handling for the onlyoffice callback. #1422 #1068
 
 ## v0.8.10-beta
 
