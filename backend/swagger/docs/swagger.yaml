@@ -170,6 +170,10 @@ definitions:
   settings.ConditionalFilter:
     properties:
       hidden:
+        description: 'deprecated: use ignoreHidden instead to exclude hidden files
+          and folders.'
+        type: boolean
+      ignoreHidden:
         description: exclude hidden files and folders.
         type: boolean
       ignoreZeroSizeFolders:
@@ -761,8 +765,6 @@ definitions:
         type: integer
       enableOnlyOffice:
         type: boolean
-      enableOnlyOfficeEditing:
-        type: boolean
       enforceDarkLightMode:
         description: '"dark" or "light"'
         type: string
@@ -850,8 +852,6 @@ definitions:
       downloadsLimit:
         type: integer
       enableOnlyOffice:
-        type: boolean
-      enableOnlyOfficeEditing:
         type: boolean
       enforceDarkLightMode:
         description: '"dark" or "light"'

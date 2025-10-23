@@ -2911,6 +2911,10 @@
             "type": "object",
             "properties": {
                 "hidden": {
+                    "description": "deprecated: use ignoreHidden instead to exclude hidden files and folders.",
+                    "type": "boolean"
+                },
+                "ignoreHidden": {
                     "description": "exclude hidden files and folders.",
                     "type": "boolean"
                 },
@@ -3694,9 +3698,6 @@
                 "enableOnlyOffice": {
                     "type": "boolean"
                 },
-                "enableOnlyOfficeEditing": {
-                    "type": "boolean"
-                },
                 "enforceDarkLightMode": {
                     "description": "\"dark\" or \"light\"",
                     "type": "string"
@@ -3821,9 +3822,6 @@
                     "type": "integer"
                 },
                 "enableOnlyOffice": {
-                    "type": "boolean"
-                },
-                "enableOnlyOfficeEditing": {
                     "type": "boolean"
                 },
                 "enforceDarkLightMode": {

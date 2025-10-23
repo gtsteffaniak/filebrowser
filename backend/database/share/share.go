@@ -25,7 +25,6 @@ type CommonShare struct {
 	EnforceDarkLightMode     string   `json:"enforceDarkLightMode,omitempty"` // "dark" or "light"
 	ViewMode                 string   `json:"viewMode,omitempty"`             // default view mode for anonymous users: "list", "compact", "normal", "gallery"
 	EnableOnlyOffice         bool     `json:"enableOnlyOffice,omitempty"`
-	EnableOnlyOfficeEditing  bool     `json:"enableOnlyOfficeEditing,omitempty"`
 	ShareType                string   `json:"shareType"` // type of share: normal, upload, max
 	PerUserDownloadLimit     bool     `json:"perUserDownloadLimit,omitempty"`
 	ExtractEmbeddedSubtitles bool     `json:"extractEmbeddedSubtitles,omitempty"` // can be io intensive for large files and take 10-30 seconds.

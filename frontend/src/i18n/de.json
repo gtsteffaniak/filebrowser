@@ -430,8 +430,6 @@
     "light": "Licht",
     "enableOnlyOffice": "OnlyOffice viewer aktivieren",
     "enableOnlyOfficeDescription": "Erlauben Sie die Anzeige von Office-Dateien mit OnlyOffice in dieser Freigabe.",
-    "enableOnlyOfficeEditing": "OnlyOffice-Bearbeitung aktivieren",
-    "enableOnlyOfficeEditingDescription": "Erlauben Sie die Bearbeitung von Office-Dateien mit OnlyOffice in dieser Freigabe.",
     "titleDefault": "Gemeinsame Dateien - {title}",
     "defaultViewMode": "Standard-Ansichtsmodus",
     "defaultViewModeDescription": "Legen Sie den Standardanzeigemodus für anonyme Benutzer fest, die diese Freigabe anzeigen. Angemeldete Benutzer können ihre Ansichtseinstellungen immer noch ändern.",

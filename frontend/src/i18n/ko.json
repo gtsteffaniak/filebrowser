@@ -430,8 +430,6 @@
     "light": "빛",
     "enableOnlyOffice": "Office 뷰어만 사용",
     "enableOnlyOfficeDescription": "이 공유에서 OnlyOffice를 사용하여 Office 파일을 볼 수 있도록 허용합니다.",
-    "enableOnlyOfficeEditing": "Office 편집만 사용",
-    "enableOnlyOfficeEditingDescription": "이 공유에서 OnlyOffice를 사용하여 Office 파일을 편집할 수 있도록 허용합니다.",
     "titleDefault": "공유 파일 - {title}",
     "defaultViewMode": "기본 보기 모드",
     "defaultViewModeDescription": "이 공유를 보는 익명 사용자의 기본 보기 모드를 설정합니다. 로그인한 사용자는 여전히 보기 기본 설정을 변경할 수 있습니다.",

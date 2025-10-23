@@ -430,8 +430,6 @@
     "light": "燈光",
     "enableOnlyOffice": "啟用 OnlyOffice 檢視器",
     "enableOnlyOfficeDescription": "允許在此共用中使用 OnlyOffice 檢視辦公室檔案。",
-    "enableOnlyOfficeEditing": "啟用 OnlyOffice 編輯",
-    "enableOnlyOfficeEditingDescription": "允許在此共用中使用 OnlyOffice 編輯辦公室檔案。",
     "titleDefault": "共用檔案 -{title}",
     "defaultViewMode": "預設檢視模式",
     "defaultViewModeDescription": "設定匿名使用者檢視此分享的預設檢視模式。登入的使用者仍可變更檢視偏好。",

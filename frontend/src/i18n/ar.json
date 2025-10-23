@@ -430,8 +430,6 @@
     "light": "خفيف",
     "enableOnlyOffice": "تمكين عارض OnlyOffice فقط",
     "enableOnlyOfficeDescription": "السماح بعرض ملفات المكتب باستخدام OnlyOffice في هذه المشاركة.",
-    "enableOnlyOfficeEditing": "تمكين التحرير في المكتب فقط",
-    "enableOnlyOfficeEditingDescription": "السماح بتحرير الملفات المكتبية باستخدام OnlyOffice في هذه الحصة.",
     "titleDefault": "الملفات المشتركة - {title}",
     "defaultViewMode": "وضع العرض الافتراضي",
     "defaultViewModeDescription": "تعيين وضع العرض الافتراضي للمستخدمين المجهولين الذين يشاهدون هذه المشاركة. لا يزال بإمكان المستخدمين المسجلين الدخول تغيير تفضيلات العرض الخاصة بهم.",
