@@ -428,8 +428,6 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	if err != nil {
 		return http.StatusForbidden, err
 	}
-	userscope = strings.TrimRight(userscope, "/")
-
 	// Check access control for the target path
 	idx := indexing.GetIndex(source)
 	if idx == nil {
@@ -440,7 +438,7 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		return http.StatusForbidden, fmt.Errorf("access denied to path %s", path)
 	}
 
-	err = files.WriteFile(source, path, r.Body)
+	err = files.WriteFile(source, utils.JoinPathAsUnix(userscope, path), r.Body)
 	return errToStatus(err), err
 }
 
