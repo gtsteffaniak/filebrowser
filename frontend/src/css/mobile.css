@@ -51,6 +51,53 @@
     margin-right: unset;
   }
 
+  #listingView.icons .folder-items,
+  #listingView.icons .file-items {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(var(--item-width), 1fr));
+    gap: 0.5em;
+    padding: 0.25em;
+    width: 100%;
+  }
+  
+  #listingView.icons .item i,
+  #listingView.icons .item img {
+    font-size: 2.5em !important;
+    height: 65px !important;
+    width: 65px !important;
+    max-width: 65px !important;
+    min-width: 65px !important;
+  }
+
+  #listingView.gallery .folder-items,
+  #listingView.gallery .file-items {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(var(--item-width), 1fr));
+    gap: 0.5em;
+    padding: 0.25em;
+  }
+  
+  #listingView.gallery .item {
+    margin-bottom: 0.5em;
+    aspect-ratio: 1;
+  }
+  
+  #listingView.gallery .item img {
+    aspect-ratio: 1;
+    object-fit: cover;
+  }
+
+  #listingView.gallery .item .text {
+    padding: 1em 0.3em 0.3em;
+  }
+  
+  #listingView.gallery .item .text .name {
+    font-size: 0.9em;
+  }
+  
+  #listingView.gallery .item i {
+    font-size: 3em;
+  }
 }
 
 
