@@ -133,7 +133,19 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 
 	// Determine file type and editing permissions
 	fileType := strings.TrimPrefix(filepath.Ext(d.fileInfo.Name), ".")
-	modifyPerms := utils.Ternary(d.fileInfo.Hash != "", d.share.AllowModify, d.user.Permissions.Modify)
+
+	// Determine modify permissions based on whether this is a share or regular request
+	var modifyPerms bool
+	if d.fileInfo.Hash != "" && d.share != nil {
+		// Share request - check share permissions
+		modifyPerms = d.share.AllowModify
+		logger.Debugf("OnlyOffice: share request, modifyPerms=%v", modifyPerms)
+	} else {
+		// Regular user request - check user permissions
+		modifyPerms = d.user.Permissions.Modify
+		logger.Debugf("OnlyOffice: regular user request, modifyPerms=%v", modifyPerms)
+	}
+
 	canEdit := iteminfo.CanEditOnlyOffice(modifyPerms, fileType)
 	canEditMode := utils.Ternary(canEdit, "edit", "view")
 	// Generate document ID for OnlyOffice
@@ -312,11 +324,13 @@ func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *reques
 		for _, action := range data.Actions {
 			switch action.Type {
 			case 0: // User disconnects
-				logger.Debugf("OnlyOffice callback: user %s disconnected from document", action.UserID)
+				logger.Debugf("OnlyOffice callback: user ID %s disconnected from document", action.UserID)
 			case 1: // New user connects
-				logger.Debugf("OnlyOffice callback: user %s connected to document", action.UserID)
+				logger.Debugf("OnlyOffice callback: user ID %s connected to document", action.UserID)
 			case 2: // User clicked forcesave button
-				logger.Debugf("OnlyOffice callback: user %s clicked forcesave button", action.UserID)
+				logger.Debugf("OnlyOffice callback: user ID %s clicked forcesave button", action.UserID)
+			default:
+				logger.Debugf("OnlyOffice callback: unknown action type %d for user ID %s", action.Type, action.UserID)
 			}
 		}
 	}
