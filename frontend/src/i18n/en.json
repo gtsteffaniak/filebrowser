@@ -200,8 +200,6 @@
     "light": "Light",
     "enableOnlyOffice": "Enable OnlyOffice viewer",
     "enableOnlyOfficeDescription": "Allow viewing office files using OnlyOffice in this share.",
-    "enableOnlyOfficeEditing": "Enable OnlyOffice editing",
-    "enableOnlyOfficeEditingDescription": "Allow editing of office files using OnlyOffice in this share.",
     "shareType": "Share type",
     "shareTypeDescription": "The type of share to create. Normal shares allow viewing and downloading files. Upload shares allow uploading files to the share.",
     "normalShare": "Normal",

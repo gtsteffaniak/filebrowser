@@ -430,8 +430,6 @@
     "light": "Światło",
     "enableOnlyOffice": "Włącz przeglądarkę OnlyOffice",
     "enableOnlyOfficeDescription": "Zezwalaj na wyświetlanie plików biurowych przy użyciu OnlyOffice w tym udziale.",
-    "enableOnlyOfficeEditing": "Włącz edycję OnlyOffice",
-    "enableOnlyOfficeEditingDescription": "Zezwalaj na edycję plików biurowych za pomocą OnlyOffice w tym udziale.",
     "titleDefault": "Udostępnione pliki - {title}",
     "defaultViewMode": "Domyślny tryb widoku",
     "defaultViewModeDescription": "Ustawia domyślny tryb widoku dla anonimowych użytkowników przeglądających ten folder udostępniony. Zalogowani użytkownicy mogą nadal zmieniać swoje preferencje widoku.",

@@ -430,8 +430,6 @@
     "light": "Ljus",
     "enableOnlyOffice": "Aktivera OnlyOffice-visningsprogram",
     "enableOnlyOfficeDescription": "Tillåt visning av kontorsfiler med OnlyOffice i denna delning.",
-    "enableOnlyOfficeEditing": "Aktivera redigering av OnlyOffice",
-    "enableOnlyOfficeEditingDescription": "Tillåt redigering av kontorsfiler med hjälp av OnlyOffice i denna andel.",
     "titleDefault": "Delade filer {title}",
     "defaultViewMode": "Standardläge för visning",
     "defaultViewModeDescription": "Ange standardvisningsläge för anonyma användare som visar den här andelen. Inloggade användare kan fortfarande ändra sina visningspreferenser.",

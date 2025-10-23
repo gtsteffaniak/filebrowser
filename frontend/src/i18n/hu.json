@@ -430,8 +430,6 @@
     "light": "Fény",
     "enableOnlyOffice": "OnlyOffice megjelenítő engedélyezése",
     "enableOnlyOfficeDescription": "Engedélyezze az irodai fájlok megtekintését az OnlyOffice használatával ezen a megosztáson.",
-    "enableOnlyOfficeEditing": "Engedélyezze az OnlyOffice szerkesztést",
-    "enableOnlyOfficeEditingDescription": "Engedélyezze az irodai fájlok szerkesztését az OnlyOffice használatával ezen a megosztáson.",
     "titleDefault": "Megosztott fájlok - {title}",
     "defaultViewMode": "Alapértelmezett nézetmód",
     "defaultViewModeDescription": "A megosztást megtekintő névtelen felhasználók alapértelmezett megtekintési módjának beállítása. A bejelentkezett felhasználók továbbra is módosíthatják a nézeti beállításaikat.",

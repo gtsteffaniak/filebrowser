@@ -430,8 +430,6 @@
     "light": "Світло",
     "enableOnlyOffice": "Увімкнути переглядач OnlyOffice",
     "enableOnlyOfficeDescription": "Дозволити перегляд офісних файлів за допомогою OnlyOffice у цьому ресурсі.",
-    "enableOnlyOfficeEditing": "Увімкнути редагування OnlyOffice",
-    "enableOnlyOfficeEditingDescription": "Дозволити редагування офісних файлів за допомогою OnlyOffice у цьому ресурсі.",
     "titleDefault": "Спільні файли - {title}",
     "defaultViewMode": "Режим перегляду за замовчуванням",
     "defaultViewModeDescription": "Встановити режим перегляду за замовчуванням для анонімних користувачів, які переглядають цей ресурс. Користувачі, що увійшли в систему, можуть змінити режим перегляду.",

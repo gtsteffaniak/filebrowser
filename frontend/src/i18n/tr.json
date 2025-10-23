@@ -430,8 +430,6 @@
     "light": "Işık",
     "enableOnlyOffice": "OnlyOffice görüntüleyiciyi etkinleştirin",
     "enableOnlyOfficeDescription": "Bu paylaşımda OnlyOffice kullanarak ofis dosyalarının görüntülenmesine izin verin.",
-    "enableOnlyOfficeEditing": "OnlyOffice düzenlemesini etkinleştirin",
-    "enableOnlyOfficeEditingDescription": "Bu paylaşımda OnlyOffice kullanarak ofis dosyalarının düzenlenmesine izin verin.",
     "titleDefault": "Paylaşılan dosyalar - {title}",
     "defaultViewMode": "Varsayılan görünüm modu",
     "defaultViewModeDescription": "Bu paylaşımı görüntüleyen anonim kullanıcılar için varsayılan görünüm modunu ayarlayın. Oturum açmış kullanıcılar yine de görünüm tercihlerini değiştirebilirler.",
