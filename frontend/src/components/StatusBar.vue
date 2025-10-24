@@ -94,7 +94,7 @@ export default {
       return getters.viewMode() === "list" ? "view_list" : "table_rows_narrow";
     },
     totalDirectorySize() {
-      if (!state.req?.items || !Array.isArray(state.req.items)) return 0;
+      if (!Array.isArray(state.req?.items)) return 0;
       return state.req.items.reduce((total, item) => total + (item.size || 0), 0);
     },
     // Calculate total size of selected items
