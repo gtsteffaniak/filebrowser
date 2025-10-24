@@ -165,6 +165,17 @@ async function eventRouter (eventType, message) {
       mutations.setRealtimeActive(true)
       break
 
+    case 'onlyOfficeLog':
+      // Dispatch custom event for OnlyOffice logs
+      try {
+        // message is already a parsed object, not a JSON string
+        const logData = message
+        window.dispatchEvent(new CustomEvent('onlyOfficeLogEvent', { detail: logData }))
+      } catch (error) {
+        console.error('Error dispatching OnlyOffice log event:', error)
+      }
+      break
+
     default:
       console.log('Unknown SSE event:', eventType, message)
   }

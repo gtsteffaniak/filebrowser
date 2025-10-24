@@ -67,6 +67,9 @@ export default {
       this.monitorCallbackIssues();
     }
 
+    // Setup OnlyOffice log streaming early to catch events
+    this.setupOnlyOfficeLogStreaming();
+
     // Perform the setup and update the config with simplified API parameters
     try {
       // Update debug info
@@ -88,11 +91,7 @@ export default {
       // Extract document ID for log streaming
       if (this.clientConfig.document && this.clientConfig.document.key) {
         this.documentId = this.clientConfig.document.key;
-
-        // Setup SSE connection for OnlyOffice logs if debug mode is enabled
-        if (this.debugMode) {
-          this.setupOnlyOfficeLogStreaming();
-        }
+        // Note: setupOnlyOfficeLogStreaming() is already called in mounted() for early setup
       }
 
       // if language is not en , set it to the current language
@@ -132,6 +131,9 @@ export default {
       this.sseConnection.close();
       this.sseConnection = null;
     }
+
+    // Clean up global SSE event listener
+    window.removeEventListener('onlyOfficeLogEvent', this.handleOnlyOfficeLogEvent);
   },
   methods: {
     getInternalUrlInfo() {
@@ -318,7 +320,7 @@ export default {
                 <strong class="debug-section-title-logs">📋 Backend Logs</strong>
                 <span class="debug-section-counter">${this.onlyOfficeLogs.length} entries</span>
               </div>
-              ${this.onlyOfficeLogs.slice(-10).map(log => 
+              ${this.onlyOfficeLogs.slice(-10).map(log =>
                 `<div class="debug-log-entry">
                   <span class="debug-log-level" style="color: ${this.getLogLevelColor(log.level)};">[${log.level}]</span>
                   <span class="debug-log-timestamp">${new Date(log.timestamp).toLocaleTimeString()}</span>
@@ -327,7 +329,7 @@ export default {
                 </div>`
               ).join('')}
             </div>
-          ` : 'Backend logs are not available -- user must be admin to view backendlogs'}
+          ` : 'Backend logs are not available -- user must be admin to view backend logs'}
 
           ${overallStatus}
         </div>
@@ -719,49 +721,42 @@ export default {
     },
     // Setup SSE connection for OnlyOffice logs
     setupOnlyOfficeLogStreaming() {
-      //if (!state.user.permissions.admin) {
-      //  console.log("OnlyOffice debug: User is not admin, skipping log streaming");
-      //  return;
-      //}
-      if (!this.documentId) {
-        console.warn("OnlyOffice debug: No document ID available for log streaming");
+      // Allow log streaming for admin users or when in debug mode
+      if (!state.user.permissions.admin && !this.debugMode) {
         return;
       }
+      
+      // Setup the global SSE listener (documentId will be set later if not available yet)
+      this.setupGlobalSSEListener();
+    },
 
-      const sseUrl = `${globalVars.baseURL}api/events?sessionId=${state.sessionId}`;
-      this.sseConnection = new EventSource(sseUrl);
+    // Setup listener for global SSE events
+    setupGlobalSSEListener() {
+      // Bind the event handler to this component instance
+      this.handleOnlyOfficeLogEvent = this.handleOnlyOfficeLogEvent.bind(this);
+      
+      // Listen for custom events that we'll dispatch from the global SSE system
+      window.addEventListener('onlyOfficeLogEvent', this.handleOnlyOfficeLogEvent);
+    },
 
-      this.sseConnection.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-
-          // Filter for OnlyOffice log events
-          if (data.eventType === "onlyOfficeLog") {
-            // data.message is already the parsed object, not a JSON string
-            const logData = data.message;
-
-            console.log("OnlyOffice debug: Received log event:", logData);
-            console.log("OnlyOffice debug: Current documentId:", this.documentId);
-            console.log("OnlyOffice debug: Log documentId:", logData.documentId);
-
-            // Filter logs for this document
-            if (logData.documentId === this.documentId) {
-              console.log("OnlyOffice debug: Document ID matches, adding log");
-              this.addOnlyOfficeLog(logData);
-            } else {
-              console.log("OnlyOffice debug: Document ID mismatch, ignoring log");
-            }
-          }
-        } catch (error) {
-          console.error("OnlyOffice debug: Error parsing SSE message:", error, "Data:", event.data);
-        }
-      };
-
+    // Handle OnlyOffice log events from global SSE system
+    handleOnlyOfficeLogEvent(event) {
+      const logData = event.detail;
+      
+      // If documentId is not set yet, store the log for later (this can happen during early setup)
+      if (!this.documentId) {
+        this.addOnlyOfficeLog(logData);
+        return;
+      }
+      
+      // Filter logs for this document
+      if (logData.documentId === this.documentId) {
+        this.addOnlyOfficeLog(logData);
+      }
     },
 
     // Add OnlyOffice log to the display
     addOnlyOfficeLog(logData) {
-      console.log("OnlyOffice debug: Adding log:", logData);
 
       const logEntry = {
         id: Date.now() + Math.random(),

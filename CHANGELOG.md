@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v0.8.11-beta
 
+ **New Features**:
+ - OnlyOffice debugger now shows backend logs as well for admin users.
+
  **Notes**:
  - Removed share setting `enableOnlyOfficeEditing` -- uses value from `allowEditing`
  - Anonymous users can now edit if a share has edit permissions enabled.
@@ -11,6 +14,7 @@ All notable changes to this project will be documented in this file. For commit 
  **BugFixes**:
  - Fixed issue editing onlyoffice on shares #1397
  - Added proper and robust logging / error handling for the onlyoffice callback. #1422 #1068
+ - If a file was moved/renamed/deleted onlyoffice would re-save the original file without error, now it gives error the file doesn't exist anymore.
 
 ## v0.8.10-beta
 
