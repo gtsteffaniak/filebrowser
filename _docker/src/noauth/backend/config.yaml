@@ -42,6 +42,12 @@ userDefaults:
    realtime: true
 
 userDefaults:
+  preview:
+    image: true
+    popup: true
+    video: true
+    office: true
+    highQuality: true
   permissions:
     download: true
     create: true
