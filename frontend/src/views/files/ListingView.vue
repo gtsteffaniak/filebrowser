@@ -909,7 +909,6 @@ export default {
       if (getters.viewMode() == "icons") {
         const baseSize = 60 + (state.user.gallerySize * 10); // 70px to 140px
         let columns;
-        
         if (state.isMobile) {
           // On mobile, map gallerySize (1-8) to columns (3-4)
           // Level 1-4: 3 columns, Level 5-8: 4 columns
@@ -937,7 +936,6 @@ export default {
         if (state.isMobile) {
           // Mobile - Level 1-4 = 2 columns, level 5-8 = 1 column
           let columns = state.user.gallerySize <= 4 ? 2 : 1;
-          
           document.documentElement.style.setProperty(
             "--item-width",
             `calc(${100 / columns}% - 0.5em)`
@@ -953,8 +951,21 @@ export default {
           "--item-height",
           "auto"
         );
+      } else if (getters.viewMode() == "list" || getters.viewMode() == "compact") {
+        // List/Compact views - start at original heights and change the size based on the slider
+        const baseHeight = getters.viewMode() == "compact" 
+          ? 40 + (state.user.gallerySize * 2)  // 40px to 56px - compact
+          : 50 + (state.user.gallerySize * 3); // 50px to 74px - list
+        document.documentElement.style.setProperty(
+          "--item-width",
+          `calc(${100 / this.numColumns}% - 1em)`
+        );
+        document.documentElement.style.setProperty(
+          "--item-height",
+          `${baseHeight}px`
+        );
       } else {
-        // Normal and List views - mobile and desktop
+        // Normal view
         document.documentElement.style.setProperty(
           "--item-width",
           `calc(${100 / this.numColumns}% - 1em)`

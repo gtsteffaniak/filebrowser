@@ -12,17 +12,23 @@
           {{ numFiles }} {{ $t(numFiles === 1 ? 'general.file' : 'general.files') }} ({{ displayTotalSize }})
         </span>
       </div>
-
       <div class="status-controls">
         <div v-if="showGalleryToggle" class="gallery-toggle">
           <action
             class="menu-button"
-            icon="grid_view"
+            :icon="galleryViewIcon"
             :title="$t('buttons.switchView')"
             @action="toggleGalleryView"
           />
         </div>
-
+        <div v-if="showListViewToggle" class="list-toggle">
+          <action
+            class="menu-button"
+            :icon="listViewIcon"
+            :title="$t('buttons.switchView')"
+            @action="toggleListView"
+          />
+        </div>
         <div v-if="showGallerySize" class="gallery-size-control">
           <span class="size-label">{{ $t("files.size") }}</span>
           <input
@@ -33,7 +39,6 @@
             min="1"
             max="8"
             @input="updateGallerySize"
-            @change="commitGallerySize"
           />
         </div>
       </div>
@@ -73,43 +78,22 @@ export default {
       return getters.reqNumFiles();
     },
     showGallerySize() {
-      return getters.isCardView() || getters.isListingViewMode() && state.req?.items?.length > 0;
+      return getters.isCardView() && state.req?.items?.length > 0;
     },
     showGalleryToggle() {
       const viewMode = getters.viewMode();
       return viewMode === "gallery" || viewMode === "icons";
     },
-    isListingViewMode() {
+    showListViewToggle() {
       const viewMode = getters.viewMode();
       return viewMode === "list" || viewMode === "compact";
     },
-    sliderConfig() {
-      if (this.isListingViewMode) {
-        return {
-          min: 1,
-          max: 2,
-          step: 1,
-          values: { 0: 'compact', 2: 'list' }
-        };
-      } else {
-        return {
-          min: 1,
-          max: 8,
-          step: 1,
-          values: null // Normal gallery size
-        };
-      }
+    galleryViewIcon() {
+      return getters.viewMode() === "gallery" ? "grid_view" : "view_comfy";
     },
-    currentSliderValue() {
-      if (this.isListingViewMode) {
-        // Map view mode to slider value
-        return getters.viewMode() === 'compact' ? 0 : 2;
-      } else {
-        // Normal gallery size
-        return state.user.gallerySize;
-      }
+    listViewIcon() {
+      return getters.viewMode() === "list" ? "view_list" : "table_rows_narrow";
     },
-    // Calculate total size of current directory
     totalDirectorySize() {
       if (!state.req?.items) return 0;
       return state.req.items.reduce((total, item) => total + (item.size || 0), 0);
@@ -136,24 +120,18 @@ export default {
   methods: {
     updateGallerySize(event) {
       const newValue = parseInt(event.target.value, 10);
-      
-      if (this.isListingViewMode) {
-        // Switch between list and compact views
-        const newViewMode = newValue === 1 ? "compact" : "list";
-        mutations.updateDisplayPreferences({ viewMode: newViewMode });
-        mutations.updateCurrentUser({ viewMode: newViewMode });
-      } else {
-        // Normal gallery size behavior
-        this.gallerySize = newValue;
-        mutations.setGallerySize(newValue);
-      }
-    },
-    commitGallerySize() {
-      mutations.setGallerySize(this.gallerySize);
+      this.gallerySize = newValue;
+      mutations.setGallerySize(newValue);
     },
     toggleGalleryView() {
       const currentMode = getters.viewMode();
       const newMode = currentMode === "gallery" ? "icons" : "gallery";
+      mutations.updateDisplayPreferences({ viewMode: newMode });
+      mutations.updateCurrentUser({ viewMode: newMode });
+    },
+    toggleListView() {
+      const currentMode = getters.viewMode();
+      const newMode = currentMode === "list" ? "compact" : "list";
       mutations.updateDisplayPreferences({ viewMode: newMode });
       mutations.updateCurrentUser({ viewMode: newMode });
     },
@@ -175,6 +153,7 @@ export default {
   right: 0;
   z-index: 10;
   border-radius: 2px;
+  overflow: hidden;
 }
 
 .status-content {
@@ -203,7 +182,8 @@ export default {
   gap: 1.5em;
 }
 
-.gallery-toggle .menu-button {
+.gallery-toggle .menu-button,
+.list-toggle .menu-button {
   width: 2em;
   height: 2em;
   padding: 0;
@@ -212,7 +192,8 @@ export default {
   justify-content: center;
 }
 
-.gallery-toggle .menu-button i {
+.gallery-toggle .menu-button i,
+.list-toggle .menu-button i {
   font-size: 1.2em;
   margin: 0;
   padding: 0;
@@ -269,12 +250,14 @@ input[type="range"] {
     height: 1.5em; /* For better touch */
   }
   
-  .gallery-toggle .menu-button {
+  .gallery-toggle .menu-button,
+  .list-toggle .menu-button {
     width: 2.2em;
     height: 2.2em;
   }
   
-  .gallery-toggle .menu-button i {
+  .gallery-toggle .menu-button i,
+  .list-toggle .menu-button i {
     font-size: 1.3em;
   }
   

@@ -8,14 +8,39 @@
   #listingView.list .item div:last-of-type{
     display:block;
     width:100%;
+    display: flex !important;
+    align-items: center;
+    flex-wrap: nowrap !important;
+  }
+
+  #listingView.list .item .name,
+  #listingView.list .item .size,
+  #listingView.list .item .modified {
+    display: inline-block !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  #listingView.list .item .size {
+    width: 25% !important;
+    font-size: 0.85em;
+    opacity: 0.8;
+  }
+
+  #listingView.list .item .modified {
+    width: 25% !important;
+    font-size: 0.85em;
+    opacity: 0.8;
   }
 
   body {
     padding-bottom: 5em;
   }
 
-  #listingView.list .item .name {
-    width: 60%;
+  #listingView.list .item .name,
+  #listingView.compact .item .name {
+    width: 45% !important;
   }
 
   #more {
@@ -41,7 +66,6 @@
   body.rtl #listingView {
     margin-right: unset;
   }
-
 
   body.rtl #nav .wrapper {
     margin-right: unset;
@@ -102,7 +126,6 @@
 
 
 @media (max-width: 450px) {
-
   #listingView.list .item .name {
     width: 100%;
   }
