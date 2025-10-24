@@ -110,6 +110,9 @@ func setupProxyUser(r *http.Request, data *requestContext, proxyUser string) (*u
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/auth/login [post]
 func loginHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	if d.user.LoginMethod == users.LoginMethodProxy {
+		return printToken(w, r, d.user)
+	}
 	passwordUser := d.user.LoginMethod == users.LoginMethodPassword
 	enforcedOtp := config.Auth.Methods.PasswordAuth.EnforcedOtp
 	missingOtp := d.user.TOTPSecret == ""

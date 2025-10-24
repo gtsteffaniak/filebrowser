@@ -7,6 +7,7 @@ setup:
 	fi
 	echo "installing backend tooling..."
 	cd backend && go get tool
+	cd backend/http && mkdir embed || true && touch embed/.gitignore
 	echo "installing npm requirements for frontend..."
 	cd frontend && npm i
 

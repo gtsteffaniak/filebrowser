@@ -24,7 +24,7 @@ frontend/tsconfig.tsbuildinfo
 /backend/generated.yaml
 /backend/srv
 /backend/http/dist
-/backend/http/embed/*
+/backend/http/embed
 
 .DS_Store
 node_modules
