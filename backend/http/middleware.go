@@ -157,15 +157,6 @@ func extractUserFromExpiredToken(r *http.Request, data *requestContext) *users.U
 		return user
 	}
 
-	proxyUser := r.Header.Get(config.Auth.Methods.ProxyAuth.Header)
-	if config.Auth.Methods.ProxyAuth.Enabled && proxyUser != "" {
-		user, err := setupProxyUser(r, data, proxyUser)
-		if err != nil {
-			return nil
-		}
-		return user
-	}
-
 	keyFunc := func(token *jwt.Token) (interface{}, error) {
 		return []byte(config.Auth.Key), nil
 	}
@@ -304,14 +295,7 @@ func userWithoutOTPhelper(fn handleFunc) handleFunc {
 		// Call the actual handler function with the updated context
 		username := r.URL.Query().Get("username")
 		password := r.Header.Get("X-Password")
-		proxyUser := r.Header.Get(config.Auth.Methods.ProxyAuth.Header)
-		if config.Auth.Methods.ProxyAuth.Enabled && proxyUser != "" {
-			user, err := setupProxyUser(r, &requestContext{}, proxyUser)
-			if err != nil {
-				return 401, errors.ErrUnauthorized
-			}
-			d.user = user
-		} else if username == "" || password == "" {
+		if username == "" || password == "" {
 			return withUserHelper(fn)(w, r, d)
 		} else {
 			if !config.Auth.Methods.PasswordAuth.Enabled {
@@ -353,35 +337,30 @@ func withUserHelper(fn handleFunc) handleFunc {
 			return fn(w, r, data)
 		}
 		proxyUser := r.Header.Get(config.Auth.Methods.ProxyAuth.Header)
-		if config.Auth.Methods.ProxyAuth.Enabled && proxyUser != "" {
-			user, err := setupProxyUser(r, data, proxyUser)
-			if err != nil {
-				return http.StatusForbidden, err
-			}
-			data.user = user
-			setUserInResponseWriter(w, data.user)
-			if fn == nil {
-				return http.StatusOK, nil
-			}
-			return fn(w, r, data)
-		}
+		isProxyUser := config.Auth.Methods.ProxyAuth.Enabled && proxyUser != ""
 		keyFunc := func(token *jwt.Token) (interface{}, error) {
 			return []byte(config.Auth.Key), nil
 		}
 		tokenString, err := extractToken(r)
-		if err != nil {
+		if err != nil && !isProxyUser {
 			return http.StatusUnauthorized, err
 		}
 		data.token = tokenString
 		var tk users.AuthToken
 		token, err := jwt.ParseWithClaims(tokenString, &tk, keyFunc)
 		if err != nil {
+			if isProxyUser {
+				return getProxyUser(w, r, data, fn, proxyUser)
+			}
 			return http.StatusUnauthorized, fmt.Errorf("error processing token, %v", err)
 		}
 		if !token.Valid {
 			return http.StatusUnauthorized, fmt.Errorf("invalid token")
 		}
 		if auth.IsRevokedApiKey(data.token) || tk.Expires < time.Now().Unix() {
+			if isProxyUser {
+				return getProxyUser(w, r, data, fn, proxyUser)
+			}
 			return http.StatusUnauthorized, fmt.Errorf("token expired or revoked")
 		}
 		// Check if the token is about to expire and send a header to renew it
@@ -403,6 +382,24 @@ func withUserHelper(fn handleFunc) handleFunc {
 		}
 		return fn(w, r, data)
 	}
+}
+
+func getProxyUser(w http.ResponseWriter, r *http.Request, data *requestContext, fn handleFunc, proxyUser string) (int, error) {
+	// proxy user logic
+	user, err := setupProxyUser(r, data, proxyUser)
+	if err != nil {
+		return http.StatusForbidden, err
+	}
+	data.user = user
+	setUserInResponseWriter(w, data.user)
+	if data.user.Username == "" {
+		return http.StatusForbidden, errors.ErrUnauthorized
+	}
+	// Call the handler function, passing in the context (or return OK if no handler)
+	if fn == nil {
+		return http.StatusOK, nil
+	}
+	return fn(w, r, data)
 }
 
 // Middleware to ensure the user is either the requested user or an admin

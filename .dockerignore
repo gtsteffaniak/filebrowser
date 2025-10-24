@@ -3,7 +3,8 @@ backend/tmp
 backend/dist
 backend/backend*
 backend/http/dist/**
-backend/http/embed/*()
 backend/vendor/**
+
 frontend/dist/**
 frontend/node_modules/**
+frontend/pkg/**
