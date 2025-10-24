@@ -139,11 +139,9 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 	if d.fileInfo.Hash != "" && d.share != nil {
 		// Share request - check share permissions
 		modifyPerms = d.share.AllowModify
-		logger.Debugf("OnlyOffice: share request, modifyPerms=%v", modifyPerms)
 	} else {
 		// Regular user request - check user permissions
 		modifyPerms = d.user.Permissions.Modify
-		logger.Debugf("OnlyOffice: regular user request, modifyPerms=%v", modifyPerms)
 	}
 
 	canEdit := iteminfo.CanEditOnlyOffice(modifyPerms, fileType)
@@ -173,6 +171,7 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 		path,
 		source,
 		shareHash,
+		d.user.Permissions.Admin,
 	)
 	storeOnlyOfficeLogContext(documentId, logContext)
 
@@ -476,6 +475,25 @@ func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *reques
 
 		logger.Debugf("OnlyOffice callback: saving document to path=%s, source=%s, user=%s",
 			resolvedPath, source, d.user.Username)
+
+		// CRITICAL: Validate that the original file still exists before saving
+		// This prevents creating duplicate files if the original was renamed/moved
+		_, err = files.FileInfoFaster(utils.FileOptions{
+			Source: source,
+			Path:   resolvedPath,
+		}, nil)
+		if err != nil {
+			logger.Errorf("OnlyOffice callback: original file no longer exists at path=%s, source=%s: %v",
+				resolvedPath, source, err)
+
+			// Send error log event
+			if logContext := getOnlyOfficeLogContext(data.Key); logContext != nil {
+				sendOnlyOfficeLogEvent(logContext, "ERROR", "callback",
+					fmt.Sprintf("Original file no longer exists: %v -- was it renamed or moved?", err))
+			}
+
+			return returnOnlyOfficeError(w, r, 404, "original file no longer exists - it may have been renamed or moved")
+		}
 
 		writeErr := files.WriteFile(source, resolvedPath, doc.Body)
 		if writeErr != nil {
