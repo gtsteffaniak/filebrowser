@@ -9,14 +9,23 @@ userDefaults:
   preview:
     image: true
     popup: true
-    video: false
-    office: false
-    highQuality: false
+    video: true
+    office: true
+    highQuality: true
+  permissions:
+    download: true
   darkMode: true
   disableSettings: false
   singleClick: false
-  permissions:
-    admin: false
-    modify: false
-    share: false
-    api: false
+  hideSidebarFileActions: false
+  stickySidebar: true
+  disableSearchOptions: false
+  disableQuickToggles: false
+  darkMode: true
+  viewMode: list
+  showHidden: false
+  dateFormat: false
+  gallerySize: 3
+  themeColor: var(--blue)
+  quickDownload: false
+  lockPassword: false
