@@ -89,7 +89,9 @@
     "sortByLastModified": "Raða eftir síðustu breytingu",
     "sortByName": "Raða eftir nafni",
     "sortBySize": "Raða eftir stærð",
-    "noPreview": "Forskoðun er ekki í boði fyrir þessa skrá."
+    "noPreview": "Forskoðun er ekki í boði fyrir þessa skrá.",
+    "itemSelected": "atriði valið",
+    "itemsSelected": "atriði valin"
   },
   "help": {
     "click": "velja skrá eða möppu",

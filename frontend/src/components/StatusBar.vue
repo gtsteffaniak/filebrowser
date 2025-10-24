@@ -7,9 +7,9 @@
           {{ selectedCount }} {{ $t(selectedCount === 1 ? 'files.itemSelected' : 'files.itemsSelected') }} ({{ displayTotalSize }})
         </span>
         <span v-else class="directory-info">
-          {{ numDirs }} {{ $t(numDirs === 1 ? 'general.folder' : 'general.folders') }}
+          {{ numDirs }} {{ $t(numDirs === 1 ? 'buttons.folder' : 'general.folders') }}
           <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
-          {{ numFiles }} {{ $t(numFiles === 1 ? 'general.file' : 'general.files') }} ({{ displayTotalSize }})
+          | {{ numFiles }} {{ $t(numFiles === 1 ? 'buttons.file' : 'general.files') }} ({{ displayTotalSize }})
         </span>
       </div>
       <div class="status-controls">

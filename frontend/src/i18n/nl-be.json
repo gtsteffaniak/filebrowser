@@ -91,7 +91,9 @@
     "sortByName": "Sorteren op naam",
     "sortBySize": "Sorteren op grootte",
     "noPreview": "Preview is niet beschikbaar voor dit bestand.",
-    "noDownloadAccess": "Download is niet beschikbaar."
+    "noDownloadAccess": "Download is niet beschikbaar.",
+    "itemSelected": "item geselecteerd",
+    "itemsSelected": "items geselecteerd"
   },
   "help": {
     "click": "selecteer bestand of map",
