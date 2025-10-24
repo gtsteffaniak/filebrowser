@@ -53,6 +53,7 @@
           <i class="material-icons">ads_click</i>
         </div>
         <div
+          aria-label="Toggle Theme"
           v-if="darkModeTogglePossible"
           class="clickable"
           :class="{ active: user?.darkMode }"

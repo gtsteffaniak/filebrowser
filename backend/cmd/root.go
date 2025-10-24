@@ -108,7 +108,7 @@ func StartFilebrowser() {
 	for _, source := range settings.Config.Server.SourceMap {
 		go indexing.Initialize(source, false)
 	}
-	validateUserInfo()
+	validateUserInfo(!dbExists)
 	validateOfficeIntegration()
 	validateAccessRules()
 	// Start the rootCMD in a goroutine

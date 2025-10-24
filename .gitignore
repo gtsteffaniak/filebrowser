@@ -10,11 +10,14 @@ rice-box.go
 /backend/filebrowser.exe
 frontend/tsconfig.tsbuildinfo
 /backend/backend.exe
+/backend/playwright-files.db
 /backend/tmp
 /backend/dist
 /frontend/dist
 /frontend/pkg
 /frontend/test-results
+/frontend/playwright-files
+/frontend/screenshots
 /frontend/tests/playwright-files/demo*
 /frontend/loginAuth.json
 /frontend/package-lock.json
