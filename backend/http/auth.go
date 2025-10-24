@@ -81,6 +81,9 @@ func setupProxyUser(r *http.Request, data *requestContext, proxyUser string) (*u
 				Username:    proxyUser,
 			}
 			settings.ApplyUserDefaults(&user)
+			if user.Username == config.Auth.AdminUsername {
+				user.Permissions.Admin = true
+			}
 			err = storage.CreateUser(user)
 			if err != nil {
 				return nil, err
@@ -95,6 +98,13 @@ func setupProxyUser(r *http.Request, data *requestContext, proxyUser string) (*u
 	}
 	if data.user.LoginMethod != users.LoginMethodProxy {
 		return nil, errors.ErrWrongLoginMethod
+	}
+	if data.user.Username == config.Auth.AdminUsername && !data.user.Permissions.Admin {
+		data.user.Permissions.Admin = true
+		err = store.Users.Update(data.user, true, "Permissions")
+		if err != nil {
+			return nil, err
+		}
 	}
 	return data.user, nil
 }

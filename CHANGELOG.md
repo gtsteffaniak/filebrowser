@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **New Features**:
  - OnlyOffice debugger now shows backend logs as well for admin users.
+ - If proxy auth based `username` equals `auth.adminUsername`, the user will be promoted to admin.
 
  **Notes**:
  - Removed share setting `enableOnlyOfficeEditing` -- uses value from `allowEditing`
@@ -15,6 +16,8 @@ All notable changes to this project will be documented in this file. For commit 
  - Fixed issue editing onlyoffice on shares #1397
  - Added proper and robust logging / error handling for the onlyoffice callback. #1422 #1068
  - If a file was moved/renamed/deleted onlyoffice would re-save the original file without error, now it gives error the file doesn't exist anymore.
+ - OnlyOffice integration does not work behind proxy authentication #1422
+ - proxy-based authentication with docker does not work unless set up with password-based login first #1226
 
 ## v0.8.10-beta
 
