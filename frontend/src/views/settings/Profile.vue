@@ -5,7 +5,7 @@
   <div class="card-content">
     <form>
       <div class="card-content">
-        <SettingsItem :title="$t('settings.listingOptions')" :collapsable="true"
+        <SettingsItem aria-label="listingOptions" :title="$t('settings.listingOptions')" :collapsable="true"
           :force-collapsed="isSectionCollapsed('listingOptions')" @toggle="handleSectionToggle('listingOptions')">
           <div class="settings-items">
             <ToggleSwitch class="item" v-model="localuser.deleteWithoutConfirming" @change="updateSettings"
@@ -60,7 +60,7 @@
             </div>
           </div>
         </SettingsItem>
-        <SettingsItem :title="$t('profileSettings.sidebarOptions')" :collapsable="true" :start-collapsed="true"
+        <SettingsItem aria-label="sidebarOptions" :title="$t('profileSettings.sidebarOptions')" :collapsable="true" :start-collapsed="true"
           :force-collapsed="isSectionCollapsed('sidebarOptions')" @toggle="handleSectionToggle('sidebarOptions')">
           <div class="settings-items">
             <ToggleSwitch class="item" v-model="localuser.disableQuickToggles" @change="updateSettings"
@@ -73,7 +73,7 @@
               :name="$t('profileSettings.hideSidebarFileActions')" />
           </div>
         </SettingsItem>
-        <SettingsItem :title="$t('settings.searchOptions')" :collapsable="true" :start-collapsed="true"
+        <SettingsItem aria-label="searchOptions" :title="$t('settings.searchOptions')" :collapsable="true" :start-collapsed="true"
           :force-collapsed="isSectionCollapsed('searchOptions')" @toggle="handleSectionToggle('searchOptions')">
           <div class="settings-items">
             <ToggleSwitch class="item" v-model="localuser.disableSearchOptions" @change="updateSettings"
@@ -81,7 +81,7 @@
               :description="$t('profileSettings.disableSearchOptionsDescription')" />
           </div>
         </SettingsItem>
-        <SettingsItem :title="$t('profileSettings.fileViewerOptions')" :collapsable="true" :start-collapsed="true"
+        <SettingsItem aria-label="fileViewerOptions" :title="$t('profileSettings.fileViewerOptions')" :collapsable="true" :start-collapsed="true"
           :force-collapsed="isSectionCollapsed('fileViewerOptions')" @toggle="handleSectionToggle('fileViewerOptions')">
           <div class="settings-items">
             <ToggleSwitch class="item" v-model="localuser.preview.defaultMediaPlayer" @change="updateSettings"

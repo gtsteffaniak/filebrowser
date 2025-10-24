@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file. For commit 
  **Notes**:
  - Removed share setting `enableOnlyOfficeEditing` -- uses value from `allowEditing`
  - Anonymous users can now edit if a share has edit permissions enabled.
+ - No "Incompatible user settings detected" message if its first setup
 
  **BugFixes**:
  - Fixed issue editing onlyoffice on shares #1397

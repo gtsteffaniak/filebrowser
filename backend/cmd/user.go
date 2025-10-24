@@ -11,9 +11,9 @@ import (
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
-var createBackup = []bool{}
+var createBackup = false
 
-func validateUserInfo() {
+func validateUserInfo(newDB bool) {
 	// update source info for users if names/sources/paths might have changed
 	usersList, err := store.Users.Gets()
 	if err != nil {
@@ -45,8 +45,8 @@ func validateUserInfo() {
 			changePass = true
 		}
 		if updateUser {
-			skipCreateBackup := os.Getenv("FILEBROWSER_DISABLE_AUTOMATIC_BACKUP") == "true"
-			if len(createBackup) == 1 && !skipCreateBackup {
+			skipCreateBackup := os.Getenv("FILEBROWSER_DISABLE_AUTOMATIC_BACKUP") == "true" || newDB
+			if createBackup && !skipCreateBackup {
 				logger.Warning("Incompatible user settings detected, creating backup of database before converting.")
 				err = fileutils.CopyFile(settings.Config.Server.Database, fmt.Sprintf("%s.bak", settings.Config.Server.Database))
 				if err != nil {
@@ -157,7 +157,7 @@ func updatePermissions(user *users.User) bool {
 	}
 	user.Version = 1
 	if updateUser {
-		createBackup = append(createBackup, true)
+		createBackup = true
 	}
 	return updateUser
 }
