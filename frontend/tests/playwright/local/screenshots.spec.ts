@@ -134,13 +134,13 @@ test("text file editor -- text", async ({ page, checkForErrors, context, theme }
 
 
 test("text file editor -- javascript", async ({ page, checkForErrors, context, theme }) => {
-  await page.goto("/files/text-files/example.js");
+  await page.goto("/files/text-files/javascript.js");
   await page.waitForTimeout(500);
-  await page.screenshot({ path: `./screenshots/editor/example.js-${theme}.jpg`, quality: jpgQuality });
+  await page.screenshot({ path: `./screenshots/editor/javascript.js-${theme}.jpg`, quality: jpgQuality });
 });
 
 test("text file editor -- bash", async ({ page, checkForErrors, context, theme }) => {
-  await page.goto("/files/text-files/example.sh");
+  await page.goto("/files/text-files/bash.sh");
   await page.waitForTimeout(500);
-  await page.screenshot({ path: `./screenshots/editor/example.sh-${theme}.jpg`, quality: jpgQuality });
+  await page.screenshot({ path: `./screenshots/editor/bash.sh-${theme}.jpg`, quality: jpgQuality });
 });
