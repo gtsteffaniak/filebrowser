@@ -13,6 +13,7 @@ server:
       config:
         private: true
         defaultEnabled: true
+
 frontend:
   name: "Graham's Filebrowser"
   disableDefaultLinks: true

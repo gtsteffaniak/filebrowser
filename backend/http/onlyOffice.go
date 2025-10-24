@@ -139,11 +139,9 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 	if d.fileInfo.Hash != "" && d.share != nil {
 		// Share request - check share permissions
 		modifyPerms = d.share.AllowModify
-		logger.Debugf("OnlyOffice: share request, modifyPerms=%v", modifyPerms)
 	} else {
 		// Regular user request - check user permissions
 		modifyPerms = d.user.Permissions.Modify
-		logger.Debugf("OnlyOffice: regular user request, modifyPerms=%v", modifyPerms)
 	}
 
 	canEdit := iteminfo.CanEditOnlyOffice(modifyPerms, fileType)
@@ -154,6 +152,31 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 		logger.Errorf("OnlyOffice: failed to generate document ID for source=%s, path=%s: %v", source, path, err)
 		return http.StatusNotFound, fmt.Errorf("failed to generate document ID: %v", err)
 	}
+
+	// Create and store log context for this OnlyOffice session
+	sessionID := r.URL.Query().Get("sessionId")
+	if sessionID == "" {
+		sessionID = "unknown"
+	}
+
+	shareHash := ""
+	if d.fileInfo.Hash != "" {
+		shareHash = d.fileInfo.Hash
+	}
+
+	logContext := createOnlyOfficeLogContext(
+		d.user.Username,
+		sessionID,
+		documentId,
+		path,
+		source,
+		shareHash,
+		d.user.Permissions.Admin,
+	)
+	storeOnlyOfficeLogContext(documentId, logContext)
+
+	// Send initial log event
+	sendOnlyOfficeLogEvent(logContext, "INFO", "config", fmt.Sprintf("OnlyOffice session started for document: %s", d.fileInfo.Name))
 
 	// Build download URL that OnlyOffice server will use
 	downloadURL := buildOnlyOfficeDownloadURL(source, providedPath, d.fileInfo.Hash, d.token)
@@ -315,22 +338,48 @@ func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *reques
 		// When the document is fully closed by all editors,
 		// the document key should no longer be re-used.
 		deleteOfficeId(source, path)
+
+		// Send log event for document closure and clean up log context
+		if logContext := getOnlyOfficeLogContext(data.Key); logContext != nil {
+			statusMsg := "Document closed with changes"
+			if data.Status == onlyOfficeStatusDocumentClosedWithNoChanges {
+				statusMsg = "Document closed with no changes"
+			}
+			sendOnlyOfficeLogEvent(logContext, "INFO", "callback", statusMsg)
+			removeOnlyOfficeLogContext(data.Key)
+		}
 	}
 
 	// Handle document being edited (status 1) - just log for now
 	if data.Status == onlyOfficeStatusDocumentBeingEdited {
 		logger.Debugf("OnlyOffice callback: document being edited, key=%s, users=%v", data.Key, data.Users)
+
+		// Send log event for document being edited
+		if logContext := getOnlyOfficeLogContext(data.Key); logContext != nil {
+			sendOnlyOfficeLogEvent(logContext, "DEBUG", "callback", fmt.Sprintf("Document being edited, users: %v", data.Users))
+		}
+
 		// Handle actions if present
 		for _, action := range data.Actions {
+			actionMsg := ""
 			switch action.Type {
 			case 0: // User disconnects
+				actionMsg = fmt.Sprintf("User ID %s disconnected from document", action.UserID)
 				logger.Debugf("OnlyOffice callback: user ID %s disconnected from document", action.UserID)
 			case 1: // New user connects
+				actionMsg = fmt.Sprintf("User ID %s connected to document", action.UserID)
 				logger.Debugf("OnlyOffice callback: user ID %s connected to document", action.UserID)
 			case 2: // User clicked forcesave button
+				actionMsg = fmt.Sprintf("User ID %s clicked forcesave button", action.UserID)
 				logger.Debugf("OnlyOffice callback: user ID %s clicked forcesave button", action.UserID)
 			default:
+				actionMsg = fmt.Sprintf("Unknown action type %d for user ID %s", action.Type, action.UserID)
 				logger.Debugf("OnlyOffice callback: unknown action type %d for user ID %s", action.Type, action.UserID)
+			}
+
+			// Send log event for action
+			if logContext := getOnlyOfficeLogContext(data.Key); logContext != nil {
+				sendOnlyOfficeLogEvent(logContext, "DEBUG", "callback", actionMsg)
 			}
 		}
 	}
@@ -357,12 +406,23 @@ func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *reques
 		logger.Debugf("OnlyOffice callback: processing save operation - %s, key=%s, url=%s, forcesavetype=%d",
 			statusDesc, data.Key, data.URL, data.ForceSaveType)
 
+		// Send log event for save operation
+		if logContext := getOnlyOfficeLogContext(data.Key); logContext != nil {
+			sendOnlyOfficeLogEvent(logContext, "INFO", "callback", fmt.Sprintf("Processing save operation: %s", statusDesc))
+		}
+
 		// Handle history and changes URL if present
 		if data.History != nil {
 			logger.Debugf("OnlyOffice callback: received history data with serverVersion=%s", data.History.ServerVersion)
+			if logContext := getOnlyOfficeLogContext(data.Key); logContext != nil {
+				sendOnlyOfficeLogEvent(logContext, "DEBUG", "callback", fmt.Sprintf("Received history data with serverVersion=%s", data.History.ServerVersion))
+			}
 		}
 		if data.ChangesURL != "" {
 			logger.Debugf("OnlyOffice callback: received changes URL: %s", data.ChangesURL)
+			if logContext := getOnlyOfficeLogContext(data.Key); logContext != nil {
+				sendOnlyOfficeLogEvent(logContext, "DEBUG", "callback", "Received changes URL for document history")
+			}
 		}
 
 		// For status 3 (saving error), don't attempt to save the file
@@ -416,15 +476,45 @@ func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *reques
 		logger.Debugf("OnlyOffice callback: saving document to path=%s, source=%s, user=%s",
 			resolvedPath, source, d.user.Username)
 
+		// CRITICAL: Validate that the original file still exists before saving
+		// This prevents creating duplicate files if the original was renamed/moved
+		_, err = files.FileInfoFaster(utils.FileOptions{
+			Source: source,
+			Path:   resolvedPath,
+		}, nil)
+		if err != nil {
+			logger.Errorf("OnlyOffice callback: original file no longer exists at path=%s, source=%s: %v",
+				resolvedPath, source, err)
+
+			// Send error log event
+			if logContext := getOnlyOfficeLogContext(data.Key); logContext != nil {
+				sendOnlyOfficeLogEvent(logContext, "ERROR", "callback",
+					fmt.Sprintf("Original file no longer exists: %v -- was it renamed or moved?", err))
+			}
+
+			return returnOnlyOfficeError(w, r, 404, "original file no longer exists - it may have been renamed or moved")
+		}
+
 		writeErr := files.WriteFile(source, resolvedPath, doc.Body)
 		if writeErr != nil {
 			logger.Errorf("OnlyOffice callback: failed to write updated document to path=%s, source=%s: %v",
 				resolvedPath, source, writeErr)
+
+			// Send error log event
+			if logContext := getOnlyOfficeLogContext(data.Key); logContext != nil {
+				sendOnlyOfficeLogEvent(logContext, "ERROR", "callback", fmt.Sprintf("Failed to save document: %v", writeErr))
+			}
+
 			return returnOnlyOfficeError(w, r, 500, "failed to save document")
 		}
 
 		logger.Infof("OnlyOffice callback: successfully saved document to path=%s, source=%s",
 			resolvedPath, source)
+
+		// Send success log event
+		if logContext := getOnlyOfficeLogContext(data.Key); logContext != nil {
+			sendOnlyOfficeLogEvent(logContext, "INFO", "callback", "Document saved successfully")
+		}
 	}
 
 	// Return success response to OnlyOffice server
