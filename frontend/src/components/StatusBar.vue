@@ -100,7 +100,7 @@ export default {
     // Calculate total size of selected items
     totalSelectedSize() {
       if (this.selectedCount === 0) return 0;
-      if (!state.req || !state.req.items || !Array.isArray(state.req.items)) {
+      if (!Array.isArray(state.req?.items)) {
         return 0;
       }
       let total = 0;
