@@ -74,8 +74,6 @@ body.rtl #listingView {
   vertical-align: bottom;
 }
 
-
-
 .message {
   text-align: center;
   font-size: 2em;
@@ -95,7 +93,8 @@ body.rtl #listingView {
 #listingView.gallery .item,
 #listingView.compact .item,
 #listingView.normal .item,
-#listingView.list .item {
+#listingView.list .item, 
+#listingView.icons .item {
   margin: .5em;
   padding: 0.5em;
   box-shadow: rgba(0, 0, 0, 0.06) 0px 1px 3px, rgba(0, 0, 0, 0.12) 0px 1px 2px;
@@ -124,32 +123,58 @@ body.rtl #listingView {
   flex-direction: column;
   align-content: center;
   overflow: hidden;
-  justify-content: center;
+  justify-content: flex-start;
   padding: 0;
+  position: relative;
+  width: 100%;
+  height: auto;
+  break-inside: avoid;
+}
+
+#listingView.icons .item {
+  display: flex;
+  flex-direction: column;
+  align-content: center;
+  overflow: hidden;
+  justify-content: flex-start;
+  padding: 0.5em;
+  margin: 0.25em;
   position: relative;
 }
 
 #listingView.gallery .item .gallery-div {
-  display: contents;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 1;
 }
 
 #listingView.normal .item,
-#listingView.gallery .item {
+#listingView.gallery .item, 
+#listingView.icons .item {
   transition: width 0.25s, height 0.25s, box-shadow 0.2s ease-in-out, transform 0.1s ease-in-out;
 }
 
-
 #listingView.gallery .item .text {
-  text-shadow: 0 0 2px white;
+  color: white;
+  text-shadow: 0 0 2px black;
   pointer-events: none;
   font-weight: 700;
   position: absolute;
   z-index: 1;
-  transform: translateY(6em);
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 1em 0.5em 0.5em;
+  background: linear-gradient(transparent, rgba(0,0,0,0.7));
 }
 
 #listingView.gallery .item .text .name {
   text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 #listingView.gallery .item[data-type=image] div:last-of-type {
@@ -157,9 +182,15 @@ body.rtl #listingView {
 }
 
 #listingView.gallery .item i {
-  margin: auto;
-  font-size: 8em;
+  margin: 0.5em 0;
+  font-size: 4em;
   background: none;
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  aspect-ratio: 1;
 }
 
 #listingView.gallery .item span {
@@ -173,11 +204,11 @@ body.rtl #listingView {
 
 #listingView.gallery .item img {
   width: 100%;
+  height: auto;
   max-width: 100%;
-  height: 100%;
-  border-radius: 0.5em;
+  aspect-ratio: 1;
+  object-fit: cover;
 }
-
 #listingView.compact {
   flex-direction: column;
   width: 100%;
@@ -323,24 +354,21 @@ body.rtl #listingView {
 }
 
 #listingView.compact .item[aria-selected=true],
+#listingView.list .item[aria-selected=true],
 #listingView.normal .item[aria-selected=true],
-#listingView.list .item[aria-selected=true] {
-  background: var(--primaryColor) !important;
-  color: var(--item-selected) !important;
+#listingView.icons .item[aria-selected=true] {
+  background-color: color-mix(in srgb, var(--primaryColor) 80%, transparent) !important;
 }
 
 #listingView.gallery .item[aria-selected=true] {
-  border: 1em solid var(--primaryColor) !important;
-  padding: 0;
-}
-
-#listingView.gallery .item[aria-selected=true] .text {
-  padding: 0;
+  border: 0.2em solid var(--primaryColor) !important;
 }
 
 #listingView.gallery .item .size,
-#listingView.gallery .item .modified {
-  opacity: 0;
+#listingView.gallery .item .modified,
+#listingView.icons .item .size,
+#listingView.icons .item .modified {
+  display: none !important;
 }
 
 #listingView.list .item div:first-of-type {
@@ -373,7 +401,8 @@ body.rtl #listingView {
 
 #listingView.list .header i,
 #listingView.normal .header i,
-#listingView.gallery .header i {
+#listingView.gallery .header i,
+#listingView.icons .header i {
   font-size: 1.5em;
   vertical-align: middle;
   margin-left: .2em;
@@ -445,4 +474,39 @@ body.rtl #listingView {
 
 .half-selected {
   border-color: var(--primaryColor) !important;
+}
+
+#listingView.icons .item .text {
+  display: block !important;
+  width: 100%;
+  margin-top: 0.3em;
+  padding: 0;
+  flex: 1;
+  text-align: center;
+}
+
+#listingView.icons .item i {
+  height: var(--icons-view-icon-size, 50px);
+  width: var(--icons-view-icon-size, 80px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#listingView.icons .item img {
+  width: var(--icons-view-icon-size, 50px);
+  height: var(--icons-view-icon-size, 60px);
+  max-width: var(--icons-view-icon-size, 80px);
+  min-width: var(--icons-view-icon-size, 80px);
+  border-radius: 0.3em;
+  margin: 0;
+}
+
+#listingView.gallery .folder-items,
+#listingView.gallery .file-items {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--item-width), 1fr));
+  grid-auto-rows: min-content;
+  gap: 1em;
+  padding: 0.5em;
 }

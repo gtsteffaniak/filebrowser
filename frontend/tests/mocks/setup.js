@@ -18,7 +18,7 @@ vi.mock('@/store', () => {
       },
       editor: null,
       user: {
-        gallarySize: 0,
+        gallerySize: 0,
         stickySidebar: false,
         locale: "en",
         viewMode: "normal",

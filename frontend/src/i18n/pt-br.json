@@ -91,7 +91,9 @@
     "sortByName": "Ordenar pelo nome",
     "sortBySize": "Ordenar pelo tamanho",
     "noPreview": "Pré-visualização não disponível para este arquivo.",
-    "noDownloadAccess": "O download não está disponível."
+    "noDownloadAccess": "O download não está disponível.",
+    "itemSelected": "item selecionado",
+    "itemsSelected": "itens selecionados"
   },
   "help": {
     "click": "selecionar pasta ou arquivo",

@@ -29,7 +29,7 @@
     @touchend="cancelContext"
     @mouseup="cancelContext"
   >
-    <div :class="{ 'gallery-div': galleryView }">
+    <div :class="{ 'gallery-div': galleryView || iconsView }">
       <Icon
         :mimetype="type"
         :active="isSelected"
@@ -113,6 +113,9 @@ export default {
   computed: {
     galleryView() {
       return getters.viewMode() === "gallery";
+    },
+    iconsView() {
+      return getters.viewMode() === 'icons';
     },
     quickDownloadEnabled() {
       // @ts-ignore

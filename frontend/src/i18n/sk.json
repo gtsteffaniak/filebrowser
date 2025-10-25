@@ -91,7 +91,9 @@
     "sortByName": "Zoradiť podľa názvu",
     "sortBySize": "Zoradiť podľa veľkosti",
     "noPreview": "Pre tento súbor nie je dostupný náhľad.",
-    "noDownloadAccess": "Stiahnutie nie je k dispozícii."
+    "noDownloadAccess": "Stiahnutie nie je k dispozícii.",
+    "itemSelected": "položka vybraná",
+    "itemsSelected": "položky vybrané"
   },
   "help": {
     "click": "vyberie súbor alebo priečinok",
