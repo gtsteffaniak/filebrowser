@@ -435,9 +435,13 @@ export default {
       // @ts-ignore
       this.contextTimeout = setTimeout(() => {
         if (!this.isSwipe) {
-          mutations.resetSelected();
-          // @ts-ignore
-          mutations.addSelected(this.index);
+          // Only reset selection if this item is not already selected
+          // This prevents resetting selection when trying to open context menu on selected item
+          if (!this.isSelected) {
+            mutations.resetSelected();
+            // @ts-ignore
+            mutations.addSelected(this.index);
+          }
         }
       }, 500);
     },

@@ -20,6 +20,7 @@ All notable changes to this project will be documented in this file. For commit 
  - If a file was moved/renamed/deleted onlyoffice would re-save the original file without error, now it gives error the file doesn't exist anymore.
  - OnlyOffice integration does not work behind proxy authentication #1422
  - proxy-based authentication with docker does not work unless set up with password-based login first #1226
+ - Select all bug on safari mobile #1421
 
 ## v0.8.10-beta
 
