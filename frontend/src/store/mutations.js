@@ -122,7 +122,11 @@ export const mutations = {
     } else {
       state.realtimeDownCount = 0;
     }
+    if (value === state.realtimeActive) {
+      return;
+    }
     state.realtimeActive = value;
+    emitStateChanged();
   },
   setSources: (user) => {
     state.serverHasMultipleSources = serverHasMultipleSources;
@@ -173,7 +177,11 @@ export const mutations = {
     emitStateChanged();
   },
   setMobile() {
-    state.isMobile = window.innerWidth <= 800
+    const newValue = window.innerWidth <= 800;
+    if (newValue === state.isMobile) {
+      return;
+    }
+    state.isMobile = newValue;
     emitStateChanged();
   },
   toggleDarkMode() {
@@ -192,11 +200,10 @@ export const mutations = {
     emitStateChanged();
   },
   setSidebarVisible(value) {
+    if (value === state.showSidebar) {
+      return;
+    }
     state.showSidebar = value;
-    emitStateChanged();
-  },
-  setUpload(value) {
-    state.upload = value;
     emitStateChanged();
   },
   setIsUploading(value) {
@@ -235,7 +242,6 @@ export const mutations = {
       });
       return;
     }
-    
     // Normal close behavior
     state.prompts = [];
     if (!state.stickySidebar) {
@@ -348,7 +354,11 @@ export const mutations = {
     emitStateChanged();
   },
   setShareData: (shareData) => {
-    state.share = { ...state.share, ...shareData };
+    const newShare = { ...state.share, ...shareData };
+    if (JSON.stringify(newShare) === JSON.stringify(state.share)) {
+      return;
+    }
+    state.share = newShare;
     emitStateChanged();
   },
   clearShareData: () => {
@@ -393,10 +403,16 @@ export const mutations = {
     emitStateChanged();
   },
   setLastSelectedIndex: (index) => {
+    if (index === state.lastSelectedIndex) {
+      return;
+    }
     state.lastSelectedIndex = index;
     emitStateChanged();
   },
   setRaw: (value) => {
+    if (value === state.previewRaw) {
+      return;
+    }
     state.previewRaw = value;
     emitStateChanged();
   },
@@ -489,6 +505,9 @@ export const mutations = {
     emitStateChanged();
   },
   setRoute: (value) => {
+    if (value === state.route) {
+      return;
+    }
     state.route = value;
     emitStateChanged();
   },
@@ -504,6 +523,11 @@ export const mutations = {
     emitStateChanged();
   },
   updateClipboard: (value) => {
+    if (value.key === state.clipboard.key && 
+        JSON.stringify(value.items) === JSON.stringify(state.clipboard.items) && 
+        value.path === state.clipboard.path) {
+      return;
+    }
     state.clipboard.key = value.key;
     state.clipboard.items = value.items;
     state.clipboard.path = value.path;
@@ -515,6 +539,9 @@ export const mutations = {
     emitStateChanged();
   },
   setSharePassword: (value) => {
+    if (value === state.sharePassword) {
+      return;
+    }
     state.sharePassword = value;
     emitStateChanged();
   },
@@ -548,6 +575,9 @@ export const mutations = {
   setMaxConcurrentUpload: (value) => {
     if (!state.user.fileLoading) {
       state.user.fileLoading = {};
+    }
+    if (value === state.user.fileLoading.maxConcurrentUpload) {
+      return;
     }
     state.user.fileLoading.maxConcurrentUpload = value;
     emitStateChanged();
@@ -731,6 +761,9 @@ export const mutations = {
     emitStateChanged();
   },
   setNavigationTransitioning: (isTransitioning) => {
+    if (isTransitioning === state.navigation.isTransitioning) {
+      return;
+    }
     state.navigation.isTransitioning = isTransitioning;
     if (isTransitioning) {
       state.navigation.transitionStartTime = Date.now();
@@ -754,6 +787,9 @@ export const mutations = {
     emitStateChanged();
   },
   setPlaybackState: (isPlaying) => {
+    if (isPlaying === state.playbackQueue.isPlaying) {
+      return;
+    }
     state.playbackQueue.isPlaying = isPlaying;
     emitStateChanged();
   },
