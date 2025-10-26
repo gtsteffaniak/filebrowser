@@ -26,7 +26,7 @@
 </template>
 
 <script>
-import { getters, mutations } from "@/store";
+import { getters } from "@/store";
 
 export default {
   name: "closeWithActiveUploads",
