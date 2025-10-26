@@ -61,7 +61,9 @@
     "selectAll": "모두 선택",
     "discardAndExit": "삭제 및 종료",
     "saveAndExit": "저장 및 종료",
-    "keepEditing": "계속 편집"
+    "keepEditing": "계속 편집",
+    "stayOnPrompt": "Stay",
+    "closeAnyway": "어쨌든 닫기"
   },
   "download": {
     "downloadFile": "파일 다운로드",
@@ -220,7 +222,9 @@
     "copyItemQuestion": "이 항목을 새 위치로 복사하시겠습니까?",
     "moveItemQuestion": "이 항목을 새 위치로 옮기시겠습니까?",
     "sourcePath": "출처:",
-    "destinationPath": "목적지:"
+    "destinationPath": "목적지:",
+    "closeWithActiveUploadsMessage": "경고: 업로드가 진행 중이며 업로드 프롬프트를 닫으면 완료되지 않은 업로드가 발생할 수 있습니다. 어떻게 하시겠습니까?",
+    "closeWithActiveUploads": "활성 업로드"
   },
   "search": {
     "images": "이미지",

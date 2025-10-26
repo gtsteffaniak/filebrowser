@@ -330,6 +330,8 @@ export const getters = {
     return lastPrompt.name
   },
 
+  isUploading: () => state.upload.isUploading,
+
   filesInUpload: () => {
     // Ensure state.upload.uploads is an object and state.upload.sizes is an array
     if (

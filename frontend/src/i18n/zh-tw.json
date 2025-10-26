@@ -61,7 +61,9 @@
     "selectAll": "全部選取",
     "discardAndExit": "丟棄與退出",
     "saveAndExit": "儲存並離開",
-    "keepEditing": "繼續編輯"
+    "keepEditing": "繼續編輯",
+    "stayOnPrompt": "停留",
+    "closeAnyway": "無論如何關閉"
   },
   "download": {
     "downloadFile": "下載檔案",
@@ -220,7 +222,9 @@
     "copyItemQuestion": "將此項目複製到新位置？",
     "moveItemQuestion": "將此項目移至新位置？",
     "sourcePath": "來源",
-    "destinationPath": "目的地："
+    "destinationPath": "目的地：",
+    "closeWithActiveUploadsMessage": "警告：您有進行中的上傳，關閉上傳提示可能會導致未完成的上傳。您想做什麼？",
+    "closeWithActiveUploads": "有效上傳"
   },
   "search": {
     "images": "影像",
