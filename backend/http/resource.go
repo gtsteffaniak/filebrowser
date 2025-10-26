@@ -369,7 +369,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 			err = fileutils.MoveFile(tempFilePath, realPath)
 			if err != nil {
 				logger.Debugf("could not move file from %v to %v: %v", tempFilePath, realPath, err)
-				return http.StatusInternalServerError, fmt.Errorf("could not move file from chunked folder to destination: %v %v", tempFilePath, realPath, err)
+				return http.StatusInternalServerError, fmt.Errorf("could not move file from chunked folder to destination: %v", err)
 			}
 			go files.RefreshIndex(source, realPath, false, false) //nolint:errcheck
 		}
