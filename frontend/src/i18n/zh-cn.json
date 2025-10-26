@@ -61,7 +61,9 @@
     "selectAll": "选择所有",
     "discardAndExit": "丢弃和退出",
     "saveAndExit": "保存并退出",
-    "keepEditing": "继续编辑"
+    "keepEditing": "继续编辑",
+    "stayOnPrompt": "停留",
+    "closeAnyway": "无论如何关闭"
   },
   "download": {
     "downloadFile": "下载文件",
@@ -220,7 +222,9 @@
     "copyItemQuestion": "将此项目复制到新位置？",
     "moveItemQuestion": "将此项目移至新位置？",
     "sourcePath": "资料来源",
-    "destinationPath": "目的地"
+    "destinationPath": "目的地",
+    "closeWithActiveUploadsMessage": "警告：您正在上传，关闭上传提示可能会导致上传未完成。您想做什么？",
+    "closeWithActiveUploads": "主动上传"
   },
   "search": {
     "images": "图像",

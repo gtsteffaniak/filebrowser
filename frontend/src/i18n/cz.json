@@ -61,7 +61,9 @@
     "selectAll": "Vyberte vše",
     "discardAndExit": "Vyřazení a ukončení",
     "saveAndExit": "Uložit a ukončit",
-    "keepEditing": "Pokračovat v úpravách"
+    "keepEditing": "Pokračovat v úpravách",
+    "stayOnPrompt": "Zůstaňte na",
+    "closeAnyway": "Stejně zavřít"
   },
   "download": {
     "downloadFile": "Stáhnout soubor",
@@ -286,7 +288,9 @@
     "copyItemQuestion": "Zkopírovat tuto položku do nového umístění?",
     "moveItemQuestion": "Přesunout tuto položku na nové místo?",
     "sourcePath": "Zdroj:",
-    "destinationPath": "Cílová destinace:"
+    "destinationPath": "Cílová destinace:",
+    "closeWithActiveUploadsMessage": "Varování: Upozornění: Máte aktivní nahrávání a zavření výzvy k nahrávání by mohlo vést k nedokončenému nahrávání. Co byste chtěli udělat?",
+    "closeWithActiveUploads": "Aktivní nahrávání"
   },
   "search": {
     "images": "Obrázky",

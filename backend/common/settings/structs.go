@@ -189,9 +189,12 @@ type ConditionalIndexConfig struct {
 	FolderEndsWith   string `json:"folderEndsWith"`   // (global) exclude folders that end with these suffixes. Eg. ".thumbnails" or ".git"
 	FolderPath       string `json:"folderPath"`       // (global) exclude folders that match this path. Eg. "/path/to/folder" or "/path/to/folder/subfolder"
 	FilePath         string `json:"filePath"`         // (global) exclude files that match this path. Eg. "/path/to/file.txt" or "/path/to/file.txt/subfile.txt"
-	FileNames        string `json:"fileNames"`        // (global) exclude files that match these names. Eg. "file.txt" or "test.csv"
-	FolderNames      string `json:"folderNames"`      // (global) exclude folders that match these names. Eg. "folder" or "subfolder"
-	Viewable         bool   `json:"viewable"`         // Enable viewing in UI but exclude from indexing
+	FileNames        string `json:"fileNames"`        // deprecated: exclude files that match these names. Eg. "file.txt" or "test.csv"
+	FolderNames      string `json:"folderNames"`      // deprecated: exclude folders that match these names. Eg. "folder" or "subfolder"
+	FileName         string `json:"fileName"`         // (global) exclude files that match these names. Eg. "file.txt" or "test.csv"
+	FolderName       string `json:"folderName"`       // (global) exclude folders that match these names. Eg. "folder" or "subfolder"
+
+	Viewable bool `json:"viewable"` // Enable viewing in UI but exclude from indexing
 }
 
 // ConditionalMaps provides O(1) lookup performance for conditional rules

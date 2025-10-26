@@ -61,7 +61,9 @@
     "selectAll": "Seleccionar todo",
     "discardAndExit": "Descartar y salir",
     "saveAndExit": "Guardar y salir",
-    "keepEditing": "Seguir editando"
+    "keepEditing": "Seguir editando",
+    "stayOnPrompt": "Permanezca en",
+    "closeAnyway": "Cerrar De todos modos"
   },
   "download": {
     "downloadFile": "Descargar archivo",
@@ -220,7 +222,9 @@
     "copyItemQuestion": "¿Copiar este elemento en la nueva ubicación?",
     "moveItemQuestion": "¿Mover este elemento a la nueva ubicación?",
     "sourcePath": "Fuente:",
-    "destinationPath": "Destino:"
+    "destinationPath": "Destino:",
+    "closeWithActiveUploadsMessage": "Advertencia: Tienes subidas activas y si cierras el aviso de subidas, podrían quedar subidas inacabadas. ¿Qué desea hacer?",
+    "closeWithActiveUploads": "Cargas activas"
   },
   "search": {
     "images": "Imágenes",

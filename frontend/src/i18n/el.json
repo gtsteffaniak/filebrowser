@@ -61,7 +61,9 @@
     "selectAll": "Επιλέξτε όλα",
     "discardAndExit": "Απόρριψη και έξοδος",
     "saveAndExit": "Αποθήκευση και έξοδος",
-    "keepEditing": "Συνεχίστε την επεξεργασία"
+    "keepEditing": "Συνεχίστε την επεξεργασία",
+    "stayOnPrompt": "Μείνετε",
+    "closeAnyway": "Κλείστε Ούτως ή άλλως"
   },
   "download": {
     "downloadFile": "Λήψη αρχείου",
@@ -223,7 +225,9 @@
     "copyItemQuestion": "Αντιγράψτε αυτό το στοιχείο στη νέα θέση;",
     "moveItemQuestion": "Μετακινήστε αυτό το στοιχείο στη νέα θέση;",
     "sourcePath": "Πηγή:",
-    "destinationPath": "Προορισμός:"
+    "destinationPath": "Προορισμός:",
+    "closeWithActiveUploadsMessage": "Προειδοποίηση: Το κλείσιμο της προτροπής μεταφόρτωσης μπορεί να οδηγήσει σε ημιτελείς μεταφορτώσεις. Τι θα θέλατε να κάνετε;",
+    "closeWithActiveUploads": "Ενεργές μεταφορτώσεις"
   },
   "search": {
     "images": "Εικόνες",

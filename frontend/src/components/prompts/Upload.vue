@@ -315,11 +315,7 @@ export default {
       }
     };
 
-    const isUploading = computed(() =>
-      files.value.some(
-        (file) => file.status === "pending" || file.status === "uploading"
-      )
-    );
+    const isUploading = computed(() => state.upload.isUploading);
 
     watch(isUploading, (active) => {
       if (active) {
@@ -359,6 +355,7 @@ export default {
     );
 
     const close = () => {
+      // closeHovers will automatically check isUploading and show warning if needed
       mutations.closeHovers();
     };
 
@@ -369,6 +366,16 @@ export default {
     const handleVisibilityChange = async () => {
       if (document.visibilityState === "visible" && isUploading.value) {
         acquireWakeLock();
+      }
+    };
+
+    const handleBeforeUnload = (event) => {
+      // Warn user if they try to leave/refresh the page while uploads are active
+      if (isUploading.value) {
+        event.preventDefault();
+        // Chrome requires returnValue to be set
+        event.returnValue = '';
+        return '';
       }
     };
 
@@ -392,6 +399,7 @@ export default {
 
     onMounted(async () => {
       document.addEventListener("visibilitychange", handleVisibilityChange);
+      window.addEventListener("beforeunload", handleBeforeUnload);
       uploadManager.setOnConflict(handleConflict);
       if (props.initialItems) {
         await processItems(props.initialItems);
@@ -400,6 +408,7 @@ export default {
 
     onUnmounted(() => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
       uploadManager.setOnConflict(() => {}); // cleanup
       releaseWakeLock();
     });

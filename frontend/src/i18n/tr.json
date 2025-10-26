@@ -61,7 +61,9 @@
     "selectAll": "Tümünü seçin",
     "discardAndExit": "At ve Çık",
     "saveAndExit": "Kaydet ve Çık",
-    "keepEditing": "Düzenlemeye Devam Et"
+    "keepEditing": "Düzenlemeye Devam Et",
+    "stayOnPrompt": "Kalmak",
+    "closeAnyway": "Her Neyse Kapat"
   },
   "download": {
     "downloadFile": "Dosyayı indir",
@@ -220,7 +222,9 @@
     "copyItemQuestion": "Bu öğeyi yeni konuma kopyalayayım mı?",
     "moveItemQuestion": "Bu öğeyi yeni konuma taşıyın mı?",
     "sourcePath": "Kaynak:",
-    "destinationPath": "Varış yeri:"
+    "destinationPath": "Varış yeri:",
+    "closeWithActiveUploadsMessage": "Uyarı: Aktif yüklemeleriniz var ve yükleme istemini kapatmak tamamlanmamış yüklemelere neden olabilir. Ne yapmak istiyorsunuz?",
+    "closeWithActiveUploads": "Aktif yüklemeler"
   },
   "search": {
     "images": "Görseller",

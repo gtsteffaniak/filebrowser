@@ -61,7 +61,9 @@
     "selectAll": "Selectați toate",
     "discardAndExit": "Renunțare și ieșire",
     "saveAndExit": "Salvare și ieșire",
-    "keepEditing": "Continuă editarea"
+    "keepEditing": "Continuă editarea",
+    "stayOnPrompt": "Ședere",
+    "closeAnyway": "Închide oricum"
   },
   "download": {
     "downloadFile": "Descarcă fișier",
@@ -220,7 +222,9 @@
     "copyItemQuestion": "Copiați acest element în noua locație?",
     "moveItemQuestion": "Mutați acest element în noua locație?",
     "sourcePath": "Sursă:",
-    "destinationPath": "Destinație:"
+    "destinationPath": "Destinație:",
+    "closeWithActiveUploadsMessage": "Atenție: Aveți încărcări active și închiderea solicitării de încărcare ar putea duce la încărcări neterminate. Ce ați dori să faceți?",
+    "closeWithActiveUploads": "Încărcări active"
   },
   "search": {
     "images": "Imagini",

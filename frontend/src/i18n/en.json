@@ -61,7 +61,9 @@
     "openUploadViewer": "Open Upload Manager",
     "discardAndExit": "Discard and Exit",
     "saveAndExit": "Save and Exit",
-    "keepEditing": "Keep Editing"
+    "keepEditing": "Keep Editing",
+    "stayOnPrompt": "Stay",
+    "closeAnyway": "Close Anyways"
   },
   "download": {
     "downloadFile": "Download File",
@@ -286,7 +288,9 @@
     "copyItemQuestion": "Copy this item to the new location?",
     "moveItemQuestion": "Move this item to the new location?",
     "sourcePath": "Source:",
-    "destinationPath": "Destination:"
+    "destinationPath": "Destination:",
+    "closeWithActiveUploads": "Active uploads",
+    "closeWithActiveUploadsMessage": "Warning: You have active uploads and closing the upload prompt could result in unfinished uploads. What would you like to do?"
   },
   "search": {
     "searchContext": "Search Context: {context}",
