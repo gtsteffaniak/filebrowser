@@ -61,7 +61,9 @@
     "selectAll": "Välj alla",
     "discardAndExit": "Kassera och avsluta",
     "saveAndExit": "Spara och avsluta",
-    "keepEditing": "Fortsätt redigera"
+    "keepEditing": "Fortsätt redigera",
+    "stayOnPrompt": "Stanna kvar",
+    "closeAnyway": "Stäng i alla fall"
   },
   "download": {
     "downloadFile": "Ladda ner fil",
@@ -220,7 +222,9 @@
     "copyItemQuestion": "Kopiera det här objektet till den nya platsen?",
     "moveItemQuestion": "Flytta det här objektet till den nya platsen?",
     "sourcePath": "Källa:",
-    "destinationPath": "Destination:"
+    "destinationPath": "Destination:",
+    "closeWithActiveUploadsMessage": "Varning för uppladdning: Du har aktiva uppladdningar och om du stänger uppladdningsprompten kan det leda till oavslutade uppladdningar. Vad skulle du vilja göra?",
+    "closeWithActiveUploads": "Aktiva uppladdningar"
   },
   "search": {
     "images": "Bilder",
@@ -430,8 +434,6 @@
     "light": "Ljus",
     "enableOnlyOffice": "Aktivera OnlyOffice-visningsprogram",
     "enableOnlyOfficeDescription": "Tillåt visning av kontorsfiler med OnlyOffice i denna delning.",
-    "enableOnlyOfficeEditing": "Aktivera redigering av OnlyOffice",
-    "enableOnlyOfficeEditingDescription": "Tillåt redigering av kontorsfiler med hjälp av OnlyOffice i denna andel.",
     "titleDefault": "Delade filer {title}",
     "defaultViewMode": "Standardläge för visning",
     "defaultViewModeDescription": "Ange standardvisningsläge för anonyma användare som visar den här andelen. Inloggade användare kan fortfarande ändra sina visningspreferenser.",

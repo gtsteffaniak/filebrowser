@@ -61,7 +61,9 @@
     "selectAll": "Выбрать все",
     "discardAndExit": "Выброс и выход",
     "saveAndExit": "Сохранить и выйти",
-    "keepEditing": "Продолжайте редактировать"
+    "keepEditing": "Продолжайте редактировать",
+    "stayOnPrompt": "Оставайтесь",
+    "closeAnyway": "Близко в любом случае"
   },
   "download": {
     "downloadFile": "Скачать файл",
@@ -220,7 +222,9 @@
     "copyItemQuestion": "Скопировать этот элемент в новое место?",
     "moveItemQuestion": "Переместить этот предмет на новое место?",
     "sourcePath": "Источник:",
-    "destinationPath": "Пункт назначения:"
+    "destinationPath": "Пункт назначения:",
+    "closeWithActiveUploadsMessage": "Предупреждение: У вас есть активные загрузки, и закрытие окна загрузки может привести к незавершенным загрузкам. Что бы вы хотели сделать?",
+    "closeWithActiveUploads": "Активные загрузки"
   },
   "search": {
     "images": "Изображения",
@@ -430,8 +434,6 @@
     "light": "Свет",
     "enableOnlyOffice": "Включите программу просмотра OnlyOffice",
     "enableOnlyOfficeDescription": "Разрешите просмотр офисных файлов с помощью OnlyOffice в этом ресурсе.",
-    "enableOnlyOfficeEditing": "Включить редактирование OnlyOffice",
-    "enableOnlyOfficeEditingDescription": "Разрешите редактирование офисных файлов с помощью OnlyOffice в этом ресурсе.",
     "titleDefault": "Общие файлы - {title}",
     "defaultViewMode": "Режим просмотра по умолчанию",
     "defaultViewModeDescription": "Установите режим просмотра по умолчанию для анонимных пользователей, просматривающих этот ресурс. Пользователи, вошедшие в систему, могут изменить свой режим просмотра.",

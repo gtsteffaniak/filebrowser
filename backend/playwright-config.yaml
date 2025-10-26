@@ -1,10 +1,13 @@
 server:
-  port: 80
+  port: 8080
   baseURL:  "/"
+  database: "playwright-files.db"
   logging:
-    - levels: "info|warning|error"
+    - levels: "info|warning|debug|error"
   sources:
-    - path: "/srv"
+    - path: "../frontend/playwright-files"
+      config:
+        defaultEnabled: true
 userDefaults:
   editorQuickSave: false                  # show quick save button in editor
   hideSidebarFileActions: false           # hide the file actions in the sidebar
@@ -48,3 +51,7 @@ userDefaults:
   disableOnlyOfficeExt: ".md .txt .pdf"   # list of file extensions to disable onlyoffice editor for
   showSelectMultiple: false               # show select multiple files on desktop
   defaultLandingPage: ""                  # default landing page to use if no redirect is specified: eg. /files/mysource/mysubpath, /settings, etc.
+
+#office:
+#  url: "http://localhost:9052"
+#  secret: "6H1H7GzUk2alRkNxAPav0W02g8JS5oUd"

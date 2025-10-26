@@ -61,7 +61,9 @@
     "selectAll": "Seleziona tutti",
     "discardAndExit": "Scartare e uscire",
     "saveAndExit": "Salvare e uscire",
-    "keepEditing": "Continuare a modificare"
+    "keepEditing": "Continuare a modificare",
+    "stayOnPrompt": "Soggiorno",
+    "closeAnyway": "Chiudere comunque"
   },
   "download": {
     "downloadFile": "Scarica file",
@@ -220,7 +222,9 @@
     "copyItemQuestion": "Copiare questo elemento nella nuova posizione?",
     "moveItemQuestion": "Spostare questo elemento nella nuova posizione?",
     "sourcePath": "Fonte:",
-    "destinationPath": "Destinazione:"
+    "destinationPath": "Destinazione:",
+    "closeWithActiveUploadsMessage": "Attenzione: Ci sono caricamenti attivi e la chiusura del prompt di caricamento potrebbe causare caricamenti non completati. Cosa si desidera fare?",
+    "closeWithActiveUploads": "Carichi attivi"
   },
   "search": {
     "images": "Immagini",
@@ -430,8 +434,6 @@
     "light": "Luce",
     "enableOnlyOffice": "Abilitate il visualizzatore OnlyOffice",
     "enableOnlyOfficeDescription": "Consente di visualizzare i file di Office utilizzando OnlyOffice in questa condivisione.",
-    "enableOnlyOfficeEditing": "Abilita la modifica di OnlyOffice",
-    "enableOnlyOfficeEditingDescription": "Consentire la modifica dei file di Office utilizzando OnlyOffice in questa condivisione.",
     "titleDefault": "File condivisi - {title}",
     "defaultViewMode": "Modalità di visualizzazione predefinita",
     "defaultViewModeDescription": "Imposta la modalità di visualizzazione predefinita per gli utenti anonimi che visualizzano questa condivisione. Gli utenti registrati possono comunque modificare le loro preferenze di visualizzazione.",

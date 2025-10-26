@@ -61,7 +61,9 @@
     "selectAll": "Επιλέξτε όλα",
     "discardAndExit": "Απόρριψη και έξοδος",
     "saveAndExit": "Αποθήκευση και έξοδος",
-    "keepEditing": "Συνεχίστε την επεξεργασία"
+    "keepEditing": "Συνεχίστε την επεξεργασία",
+    "stayOnPrompt": "Μείνετε",
+    "closeAnyway": "Κλείστε Ούτως ή άλλως"
   },
   "download": {
     "downloadFile": "Λήψη αρχείου",
@@ -223,7 +225,9 @@
     "copyItemQuestion": "Αντιγράψτε αυτό το στοιχείο στη νέα θέση;",
     "moveItemQuestion": "Μετακινήστε αυτό το στοιχείο στη νέα θέση;",
     "sourcePath": "Πηγή:",
-    "destinationPath": "Προορισμός:"
+    "destinationPath": "Προορισμός:",
+    "closeWithActiveUploadsMessage": "Προειδοποίηση: Το κλείσιμο της προτροπής μεταφόρτωσης μπορεί να οδηγήσει σε ημιτελείς μεταφορτώσεις. Τι θα θέλατε να κάνετε;",
+    "closeWithActiveUploads": "Ενεργές μεταφορτώσεις"
   },
   "search": {
     "images": "Εικόνες",
@@ -430,8 +434,6 @@
     "light": "Φως",
     "enableOnlyOffice": "Ενεργοποίηση της προβολής OnlyOffice",
     "enableOnlyOfficeDescription": "Επιτρέψτε την προβολή αρχείων γραφείου χρησιμοποιώντας το OnlyOffice σε αυτό το κοινόχρηστο χώρο.",
-    "enableOnlyOfficeEditing": "Ενεργοποίηση της επεξεργασίας OnlyOffice",
-    "enableOnlyOfficeEditingDescription": "Επιτρέψτε την επεξεργασία αρχείων γραφείου χρησιμοποιώντας το OnlyOffice σε αυτό το κοινόχρηστο χώρο.",
     "titleDefault": "Κοινόχρηστα αρχεία - {title}",
     "defaultViewMode": "Προεπιλεγμένη λειτουργία προβολής",
     "defaultViewModeDescription": "Ορίστε την προεπιλεγμένη λειτουργία προβολής για τους ανώνυμους χρήστες που προβάλλουν αυτή την κοινή χρήση. Οι συνδεδεμένοι χρήστες μπορούν ακόμα να αλλάξουν τις προτιμήσεις προβολής τους.",

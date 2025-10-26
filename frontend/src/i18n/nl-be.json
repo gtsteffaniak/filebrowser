@@ -61,7 +61,9 @@
     "selectAll": "Alles selecteren",
     "discardAndExit": "Weggooien en afsluiten",
     "saveAndExit": "Opslaan en afsluiten",
-    "keepEditing": "Blijven bewerken"
+    "keepEditing": "Blijven bewerken",
+    "stayOnPrompt": "Blijf",
+    "closeAnyway": "Sluiten"
   },
   "download": {
     "downloadFile": "Bestand downloaden",
@@ -220,7 +222,9 @@
     "copyItemQuestion": "Dit item kopiëren naar de nieuwe locatie?",
     "moveItemQuestion": "Dit item verplaatsen naar de nieuwe locatie?",
     "sourcePath": "Bron:",
-    "destinationPath": "Bestemming:"
+    "destinationPath": "Bestemming:",
+    "closeWithActiveUploadsMessage": "Waarschuwing: U hebt actieve uploads en het sluiten van de uploadprompt kan resulteren in onvoltooide uploads. Wat wilt u doen?",
+    "closeWithActiveUploads": "Actieve uploads"
   },
   "search": {
     "images": "Afbeeldingen",
@@ -430,8 +434,6 @@
     "light": "Licht",
     "enableOnlyOffice": "OnlyOffice viewer inschakelen",
     "enableOnlyOfficeDescription": "Sta het bekijken van Office-bestanden toe met OnlyOffice in deze share.",
-    "enableOnlyOfficeEditing": "Bewerken met OnlyOffice inschakelen",
-    "enableOnlyOfficeEditingDescription": "Laat het bewerken van Office-bestanden met OnlyOffice toe in deze share.",
     "titleDefault": "Gedeelde bestanden - {title}",
     "defaultViewMode": "Standaard weergavemodus",
     "defaultViewModeDescription": "Stel de standaard weergavemodus in voor anonieme gebruikers die deze share bekijken. Aangemelde gebruikers kunnen nog steeds hun weergavevoorkeur wijzigen.",

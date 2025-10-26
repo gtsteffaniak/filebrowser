@@ -170,6 +170,10 @@ definitions:
   settings.ConditionalFilter:
     properties:
       hidden:
+        description: 'deprecated: use ignoreHidden instead to exclude hidden files
+          and folders.'
+        type: boolean
+      ignoreHidden:
         description: exclude hidden files and folders.
         type: boolean
       ignoreZeroSizeFolders:
@@ -187,9 +191,13 @@ definitions:
         description: (global) exclude files that end with these suffixes. Eg. ".jpg"
           or ".txt"
         type: string
-      fileNames:
+      fileName:
         description: (global) exclude files that match these names. Eg. "file.txt"
           or "test.csv"
+        type: string
+      fileNames:
+        description: 'deprecated: exclude files that match these names. Eg. "file.txt"
+          or "test.csv"'
         type: string
       filePath:
         description: (global) exclude files that match this path. Eg. "/path/to/file.txt"
@@ -203,9 +211,13 @@ definitions:
         description: (global) exclude folders that end with these suffixes. Eg. ".thumbnails"
           or ".git"
         type: string
-      folderNames:
+      folderName:
         description: (global) exclude folders that match these names. Eg. "folder"
           or "subfolder"
+        type: string
+      folderNames:
+        description: 'deprecated: exclude folders that match these names. Eg. "folder"
+          or "subfolder"'
         type: string
       folderPath:
         description: (global) exclude folders that match this path. Eg. "/path/to/folder"
@@ -761,8 +773,6 @@ definitions:
         type: integer
       enableOnlyOffice:
         type: boolean
-      enableOnlyOfficeEditing:
-        type: boolean
       enforceDarkLightMode:
         description: '"dark" or "light"'
         type: string
@@ -850,8 +860,6 @@ definitions:
       downloadsLimit:
         type: integer
       enableOnlyOffice:
-        type: boolean
-      enableOnlyOfficeEditing:
         type: boolean
       enforceDarkLightMode:
         description: '"dark" or "light"'

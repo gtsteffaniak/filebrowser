@@ -110,6 +110,7 @@ export const state = reactive({
     queue: [],
     progress: [],
     sizes: [],
+    isUploading: false,
   },
   prompts: [],
   show: null,

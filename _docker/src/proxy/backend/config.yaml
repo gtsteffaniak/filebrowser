@@ -28,6 +28,12 @@ auth:
       logoutRedirectUrl: "https://localhost/api/auth/logout2"
 
 userDefaults:
+  preview:
+    image: true
+    popup: true
+    video: true
+    office: true
+    highQuality: true
   darkMode: true
   disableSettings: false
   singleClick: false

@@ -61,7 +61,9 @@
     "openUploadViewer": "Open Upload Manager",
     "discardAndExit": "Discard and Exit",
     "saveAndExit": "Save and Exit",
-    "keepEditing": "Keep Editing"
+    "keepEditing": "Keep Editing",
+    "stayOnPrompt": "Stay",
+    "closeAnyway": "Close Anyways"
   },
   "download": {
     "downloadFile": "Download File",
@@ -200,8 +202,6 @@
     "light": "Light",
     "enableOnlyOffice": "Enable OnlyOffice viewer",
     "enableOnlyOfficeDescription": "Allow viewing office files using OnlyOffice in this share.",
-    "enableOnlyOfficeEditing": "Enable OnlyOffice editing",
-    "enableOnlyOfficeEditingDescription": "Allow editing of office files using OnlyOffice in this share.",
     "shareType": "Share type",
     "shareTypeDescription": "The type of share to create. Normal shares allow viewing and downloading files. Upload shares allow uploading files to the share.",
     "normalShare": "Normal",
@@ -288,7 +288,9 @@
     "copyItemQuestion": "Copy this item to the new location?",
     "moveItemQuestion": "Move this item to the new location?",
     "sourcePath": "Source:",
-    "destinationPath": "Destination:"
+    "destinationPath": "Destination:",
+    "closeWithActiveUploads": "Active uploads",
+    "closeWithActiveUploadsMessage": "Warning: You have active uploads and closing the upload prompt could result in unfinished uploads. What would you like to do?"
   },
   "search": {
     "searchContext": "Search Context: {context}",

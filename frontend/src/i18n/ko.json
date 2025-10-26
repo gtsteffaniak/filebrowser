@@ -61,7 +61,9 @@
     "selectAll": "모두 선택",
     "discardAndExit": "삭제 및 종료",
     "saveAndExit": "저장 및 종료",
-    "keepEditing": "계속 편집"
+    "keepEditing": "계속 편집",
+    "stayOnPrompt": "Stay",
+    "closeAnyway": "어쨌든 닫기"
   },
   "download": {
     "downloadFile": "파일 다운로드",
@@ -220,7 +222,9 @@
     "copyItemQuestion": "이 항목을 새 위치로 복사하시겠습니까?",
     "moveItemQuestion": "이 항목을 새 위치로 옮기시겠습니까?",
     "sourcePath": "출처:",
-    "destinationPath": "목적지:"
+    "destinationPath": "목적지:",
+    "closeWithActiveUploadsMessage": "경고: 업로드가 진행 중이며 업로드 프롬프트를 닫으면 완료되지 않은 업로드가 발생할 수 있습니다. 어떻게 하시겠습니까?",
+    "closeWithActiveUploads": "활성 업로드"
   },
   "search": {
     "images": "이미지",
@@ -430,8 +434,6 @@
     "light": "빛",
     "enableOnlyOffice": "Office 뷰어만 사용",
     "enableOnlyOfficeDescription": "이 공유에서 OnlyOffice를 사용하여 Office 파일을 볼 수 있도록 허용합니다.",
-    "enableOnlyOfficeEditing": "Office 편집만 사용",
-    "enableOnlyOfficeEditingDescription": "이 공유에서 OnlyOffice를 사용하여 Office 파일을 편집할 수 있도록 허용합니다.",
     "titleDefault": "공유 파일 - {title}",
     "defaultViewMode": "기본 보기 모드",
     "defaultViewModeDescription": "이 공유를 보는 익명 사용자의 기본 보기 모드를 설정합니다. 로그인한 사용자는 여전히 보기 기본 설정을 변경할 수 있습니다.",

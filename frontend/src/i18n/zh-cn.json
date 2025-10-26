@@ -61,7 +61,9 @@
     "selectAll": "选择所有",
     "discardAndExit": "丢弃和退出",
     "saveAndExit": "保存并退出",
-    "keepEditing": "继续编辑"
+    "keepEditing": "继续编辑",
+    "stayOnPrompt": "停留",
+    "closeAnyway": "无论如何关闭"
   },
   "download": {
     "downloadFile": "下载文件",
@@ -220,7 +222,9 @@
     "copyItemQuestion": "将此项目复制到新位置？",
     "moveItemQuestion": "将此项目移至新位置？",
     "sourcePath": "资料来源",
-    "destinationPath": "目的地"
+    "destinationPath": "目的地",
+    "closeWithActiveUploadsMessage": "警告：您正在上传，关闭上传提示可能会导致上传未完成。您想做什么？",
+    "closeWithActiveUploads": "主动上传"
   },
   "search": {
     "images": "图像",
@@ -430,8 +434,6 @@
     "light": "灯光",
     "enableOnlyOffice": "启用 OnlyOffice 查看器",
     "enableOnlyOfficeDescription": "允许在此共享中使用 OnlyOffice 查看办公文件。",
-    "enableOnlyOfficeEditing": "启用 OnlyOffice 编辑功能",
-    "enableOnlyOfficeEditingDescription": "允许在此共享中使用 OnlyOffice 编辑办公文件。",
     "titleDefault": "共享文件{title}",
     "defaultViewMode": "默认视图模式",
     "defaultViewModeDescription": "设置匿名用户查看此共享的默认视图模式。已登录的用户仍可更改其查看首选项。",

@@ -3,6 +3,7 @@ import { test as base, expect, Page } from "@playwright/test";
 export const test = base.extend<{
   checkForErrors: (expectedConsoleErrors?: number, expectedApiErrors?: number) => void;
   openContextMenu: () => Promise<void>;
+  theme: 'light' | 'dark';
 }>({
   checkForErrors: async ({ page }, use) => {
     const { checkForErrors } = setupErrorTracking(page);
@@ -13,7 +14,11 @@ export const test = base.extend<{
       await page.locator('button[aria-label="File-Actions"]').waitFor({ state: 'visible' });
       await page.locator('button[aria-label="File-Actions"]').click();
     });
-  }
+  },
+  theme: async ({}, use, testInfo) => {
+    const theme = (testInfo.project.use as any).theme || 'dark';
+    await use(theme);
+  },
 });
 
 // Error tracking function

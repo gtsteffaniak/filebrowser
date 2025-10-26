@@ -214,6 +214,10 @@ class UploadManager {
       }
     }
 
+    // Update isUploading state based on whether there are active or pending uploads
+    const hasActiveOrPending = this.activeUploads > 0 || this.hasPending();
+    mutations.setIsUploading(hasActiveOrPending);
+
     // Only reload when we transition from having active uploads to having none
     const hasNoActiveOrPending = this.activeUploads === 0 && !this.hasPending();
     if (this.hadActiveUploads && hasNoActiveOrPending) {

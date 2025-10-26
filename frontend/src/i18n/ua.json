@@ -61,7 +61,9 @@
     "selectAll": "Вибрати все",
     "discardAndExit": "Викидання та вихід",
     "saveAndExit": "Зберегти та вийти",
-    "keepEditing": "Продовжуйте редагувати"
+    "keepEditing": "Продовжуйте редагувати",
+    "stayOnPrompt": "Залишайся.",
+    "closeAnyway": "Все одно зачиняй."
   },
   "download": {
     "downloadFile": "Завантажити файл",
@@ -220,7 +222,9 @@
     "copyItemQuestion": "Скопіювати цей елемент на нове місце?",
     "moveItemQuestion": "Перемістити цей елемент на нове місце?",
     "sourcePath": "Джерело:",
-    "destinationPath": "Пункт призначення:"
+    "destinationPath": "Пункт призначення:",
+    "closeWithActiveUploadsMessage": "Попередження: У вас є активні завантаження, і закриття запиту на завантаження може призвести до незавершених завантажень. Що ви хочете зробити?",
+    "closeWithActiveUploads": "Активні завантаження"
   },
   "search": {
     "images": "Зображення",
@@ -430,8 +434,6 @@
     "light": "Світло",
     "enableOnlyOffice": "Увімкнути переглядач OnlyOffice",
     "enableOnlyOfficeDescription": "Дозволити перегляд офісних файлів за допомогою OnlyOffice у цьому ресурсі.",
-    "enableOnlyOfficeEditing": "Увімкнути редагування OnlyOffice",
-    "enableOnlyOfficeEditingDescription": "Дозволити редагування офісних файлів за допомогою OnlyOffice у цьому ресурсі.",
     "titleDefault": "Спільні файли - {title}",
     "defaultViewMode": "Режим перегляду за замовчуванням",
     "defaultViewModeDescription": "Встановити режим перегляду за замовчуванням для анонімних користувачів, які переглядають цей ресурс. Користувачі, що увійшли в систему, можуть змінити режим перегляду.",

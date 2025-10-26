@@ -61,7 +61,9 @@
     "selectAll": "Alle auswählen",
     "discardAndExit": "Verwerfen und Beenden",
     "saveAndExit": "Speichern und Beenden",
-    "keepEditing": "Weiter bearbeiten"
+    "keepEditing": "Weiter bearbeiten",
+    "stayOnPrompt": "Bleiben Sie",
+    "closeAnyway": "Jedenfalls schließen"
   },
   "download": {
     "downloadFile": "Datei herunterladen",
@@ -220,7 +222,9 @@
     "copyItemQuestion": "Dieses Element an den neuen Ort kopieren?",
     "moveItemQuestion": "Diesen Artikel an den neuen Ort verschieben?",
     "sourcePath": "Quelle:",
-    "destinationPath": "Zielort:"
+    "destinationPath": "Zielort:",
+    "closeWithActiveUploadsMessage": "Warnung: Sie haben aktive Uploads und das Schließen der Upload-Aufforderung könnte zu unvollendeten Uploads führen. Was würden Sie gerne tun?",
+    "closeWithActiveUploads": "Aktive Uploads"
   },
   "search": {
     "images": "Bilder",
@@ -430,8 +434,6 @@
     "light": "Licht",
     "enableOnlyOffice": "OnlyOffice viewer aktivieren",
     "enableOnlyOfficeDescription": "Erlauben Sie die Anzeige von Office-Dateien mit OnlyOffice in dieser Freigabe.",
-    "enableOnlyOfficeEditing": "OnlyOffice-Bearbeitung aktivieren",
-    "enableOnlyOfficeEditingDescription": "Erlauben Sie die Bearbeitung von Office-Dateien mit OnlyOffice in dieser Freigabe.",
     "titleDefault": "Gemeinsame Dateien - {title}",
     "defaultViewMode": "Standard-Ansichtsmodus",
     "defaultViewModeDescription": "Legen Sie den Standardanzeigemodus für anonyme Benutzer fest, die diese Freigabe anzeigen. Angemeldete Benutzer können ihre Ansichtseinstellungen immer noch ändern.",

@@ -816,6 +816,8 @@ func modifyExcludeInclude(config *Source) {
 		// normalize names
 		config.Config.Conditionals.ItemRules[i].FileNames = normalizeName(rule.FileNames)
 		config.Config.Conditionals.ItemRules[i].FolderNames = normalizeName(rule.FolderNames)
+		config.Config.Conditionals.ItemRules[i].FileName = normalizeName(rule.FileName)
+		config.Config.Conditionals.ItemRules[i].FolderName = normalizeName(rule.FolderName)
 	}
 
 }

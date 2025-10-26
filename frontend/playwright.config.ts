@@ -12,7 +12,7 @@ import { defineConfig, devices } from "@playwright/test";
 export default defineConfig({
   globalSetup: "./tests/playwright/local-setup",
   timeout: 5000,
-  testDir: "./tests/playwright/copy",
+  testDir: "./tests/playwright/local",
   /* Run tests in files in parallel */
   fullyParallel: false,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
@@ -20,7 +20,6 @@ export default defineConfig({
   /* Retry on CI only */
   retries: 2,
   /* Opt out of parallel tests on CI. */
-  workers: 1,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: "line",
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
@@ -40,8 +39,22 @@ export default defineConfig({
   /* Configure projects for major browsers */
   projects: [
     {
-      name: "firefox",
-      use: { ...devices["Desktop Firefox"] },
+      name: "dark-screenshots",
+      use: {
+        ...devices["Desktop Firefox"],
+        theme: 'dark',
+      },
+      testMatch: /.*screenshots.spec.ts/,
+      retries: 0,
+    },
+    {
+      name: "light-screenshots",
+      use: {
+        ...devices["Desktop Firefox"],
+        theme: 'light',
+      },
+      testMatch: /.*screenshots.spec.ts/,
+      retries: 0,
     },
   ],
 });

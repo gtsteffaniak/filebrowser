@@ -6,7 +6,7 @@ async function localSetup() {
   const context = await browser.newContext();
   const page: Page = await context.newPage();
 
-  await page.goto("http://localhost:8080/login");
+  await page.goto("http://127.0.0.1/login");
   await page.getByPlaceholder("Username").fill("admin");
   await page.getByPlaceholder("Password").fill("admin");
   await page.getByRole("button", { name: "Login" }).click();
