@@ -1,0 +1,46 @@
+server:
+  port: 8080
+  baseURL:  "/subpath"
+  logging:
+    - levels: "info|error|debug"
+  sources:
+    - path: "../frontend/tests/playwright-files"
+      config:
+        defaultEnabled: true
+        createUserDir: true
+
+frontend:
+  name: "Graham's Filebrowser"
+  disableDefaultLinks: true
+  externalLinks:
+    - text: "A playwright test"
+      url: "https://playwright.dev/"
+      title: "Playwright"
+
+auth:
+  methods:
+    password:
+      enabled: false
+    proxy:
+      enabled: true
+      header: "X-Username"
+      createUser: true
+      logoutRedirectUrl: "https://localhost/api/auth/logout2"
+
+userDefaults:
+  preview:
+    image: true
+    popup: true
+    video: true
+    office: true
+    highQuality: true
+  darkMode: true
+  disableSettings: false
+  singleClick: false
+  permissions:
+    admin: false
+    modify: true
+    share: true
+    api: false
+    download: true
+    create: true
