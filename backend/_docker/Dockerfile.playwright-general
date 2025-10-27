@@ -1,0 +1,19 @@
+FROM ghcr.io/gtsteffaniak/playwright-base:latest
+WORKDIR /app
+
+# Copy setup scripts first to leverage caching
+COPY [ "./_docker/src/general/", "./" ]
+
+WORKDIR /app/frontend
+COPY [ "./_docker/src/general/frontend/", "./" ]
+COPY [ "./frontend/tests/", "./tests" ]
+
+WORKDIR /app/backend/
+COPY [ "./backend/filebrowser*", "./"]
+COPY [ "./backend/reduce-rounded-corners.css", "./no-rounded.css" ]
+RUN mkdir -p ./http/dist
+COPY [ "./backend/http/embed/", "./http/dist/"]
+
+# Run tests
+RUN ./filebrowser set -u testuser1,testuser1
+RUN ./filebrowser & sleep 2 && cd ../frontend && npx playwright test

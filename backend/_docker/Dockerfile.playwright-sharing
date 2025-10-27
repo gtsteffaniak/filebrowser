@@ -1,0 +1,17 @@
+FROM ghcr.io/gtsteffaniak/playwright-base:latest
+WORKDIR /app
+
+# Copy setup scripts first to leverage caching
+COPY [ "./_docker/src/sharing/", "./" ]
+
+WORKDIR /app/frontend
+COPY [ "./_docker/src/sharing/frontend/", "./" ]
+COPY [ "./frontend/tests/", "./tests" ]
+
+WORKDIR /app/backend/
+COPY [ "./backend/filebrowser*", "./"]
+RUN mkdir -p ./http/dist
+COPY [ "./backend/http/embed/", "./http/dist/"]
+
+# Run tests
+RUN ./filebrowser & sleep 2 && cd ../frontend && npx playwright test

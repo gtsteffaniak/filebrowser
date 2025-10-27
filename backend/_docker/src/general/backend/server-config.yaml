@@ -1,0 +1,15 @@
+server-main: &server-main
+  port: 80
+  baseURL:  "/"
+  logging:
+    - levels: "info|error|debug"
+  sources:
+    - path: "../frontend/tests/playwright-files"
+      name: "playwright + files"
+      config:
+        defaultEnabled: true
+    - path: "."
+      name: "docker"
+      config:
+        disableIndexing: true
+        defaultEnabled: true
