@@ -17,7 +17,6 @@ test("Create first new file with basic auth", async ({  page, checkForErrors, co
   await page.locator('button[aria-label="Close"]').click();
   await expect(page.locator('#listingView .file-items')).toHaveCount(1);
 
-
   // clear basic auth credentials from browser headers for public routes
   await page.setExtraHTTPHeaders({});
 

@@ -162,9 +162,7 @@ router.beforeResolve(async (to, from, next) => {
       try {
         await validateLogin();
       } catch (error) {
-        // Login validation failed - set to null, not anonymous
-        // This ensures the redirect logic below will trigger
-        mutations.setCurrentUser(null);
+        mutations.setCurrentUser(getters.anonymous());
       }
     }
 
