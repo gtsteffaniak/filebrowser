@@ -58,6 +58,7 @@ import { initAuth } from "@/utils/auth";
 import { removeLeadingSlash } from "@/utils/url";
 import { globalVars, logoURL } from "@/utils/constants";
 import Tooltip from "@/components/Tooltip.vue";
+import { getCookie } from "@/utils/cookie.js";
 
 export default {
   name: "login",
@@ -92,7 +93,29 @@ export default {
       inProgress: false,
     };
   },
-  mounted() {
+  async mounted() {
+    // Check if there's an existing JWT cookie before auto-redirecting to OIDC
+    // This prevents the authentication loop when cookie is set but state is stale
+    const existingCookie = getCookie("filebrowser_quantum_jwt");
+    if (existingCookie) {
+      console.log("Found existing JWT cookie, attempting to validate before redirecting to OIDC");
+      // No need to sync to state - cookie is automatically sent with requests
+      try {
+        // Try to validate the existing session
+        await initAuth();
+        // If we get here, the cookie is valid - redirect to intended destination
+        let redirect = state.route.query.redirect;
+        if (!redirect || redirect === "" || redirect === null) {
+          redirect = "/files/";
+        }
+        router.push({ path: redirect });
+        return;
+      } catch (e) {
+        console.log("Existing cookie is invalid, proceeding with OIDC login", e);
+        // Cookie is invalid/expired, continue with OIDC flow below
+      }
+    }
+
     let redirect = state.route.query.redirect;
     if (redirect) {
       redirect = removeLeadingSlash(redirect);

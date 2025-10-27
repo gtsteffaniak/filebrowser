@@ -13,6 +13,11 @@ All notable changes to this project will be documented in this file. For commit 
  - Removed share setting `enableOnlyOfficeEditing` -- uses value from `allowEditing`
  - Anonymous users can now edit if a share has edit permissions enabled.
  - No "Incompatible user settings detected" message if its first setup
+ - cookie handling revamped
+   - fully backend managed
+   - `auth` cookie name changed to `filebrowser_quantum_jwt`
+   - auth cookie for password users no longer session based #1439
+   - removed state jwt state variable -- 100% cookie based.
 
  **BugFixes**:
  - Fixed issue editing onlyoffice on shares #1397

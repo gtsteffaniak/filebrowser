@@ -98,7 +98,6 @@ export const state = reactive({
     key: "",
     items: [],
   },
-  jwt: "",
   sharePassword: "",
   loading: [],
   reload: false,
