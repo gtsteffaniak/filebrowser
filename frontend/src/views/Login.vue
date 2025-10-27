@@ -92,7 +92,7 @@ export default {
       inProgress: false,
     };
   },
-  async mounted() {
+  mounted() {
     let redirect = state.route.query.redirect;
     if (redirect) {
       redirect = removeLeadingSlash(redirect);
