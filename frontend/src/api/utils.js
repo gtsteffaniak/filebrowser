@@ -28,7 +28,8 @@ export async function fetchURL(url, opts, auth = true) {
   }
 
   if (auth && res.headers.get("X-Renew-Token") === "true") {
-    await renew(state.jwt);
+    // Cookie is automatically sent, no need to pass JWT from state
+    await renew();
   }
 
   if (res.status < 200 || res.status > 299) {

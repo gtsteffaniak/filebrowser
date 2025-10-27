@@ -9,7 +9,7 @@ export interface ReqObject {
   items: any[];
   numDirs: number;
   numFiles: number;
-  
+
   // File-specific properties (added dynamically)
   name?: string;
   path?: string;
@@ -19,7 +19,7 @@ export interface ReqObject {
   content?: string;
   modified?: string;
   subtitles?: any[];
-  
+
   // Directory listing properties
   listing?: any[];
 }
@@ -136,7 +136,6 @@ export interface StoreState {
     key: string;
     items: any[];
   };
-  jwt: string;
   sharePassword: string;
   loading: any[];
   reload: boolean;

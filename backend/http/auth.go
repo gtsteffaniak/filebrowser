@@ -28,7 +28,7 @@ import (
 // then checks for query parameter
 func extractToken(r *http.Request) (string, error) {
 	hasToken := false
-	tokenObj, err := r.Cookie("auth")
+	tokenObj, err := r.Cookie("filebrowser_quantum_jwt")
 	if err == nil {
 		hasToken = true
 		token := tokenObj.Value
@@ -142,6 +142,19 @@ func loginHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (in
 // @Router /api/auth/logout [post]
 func logoutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	defer auth.RevokeAPIKey(d.token)
+
+	// Clear the authentication cookie by setting it to expire in the past
+	cookie := &http.Cookie{
+		Name:     "filebrowser_quantum_jwt",
+		Value:    "",
+		Domain:   strings.Split(r.Host, ":")[0],
+		Path:     "/",
+		SameSite: http.SameSiteLaxMode,
+		Expires:  time.Unix(0, 0), // Expire immediately
+		MaxAge:   -1,              // Delete cookie
+	}
+	http.SetCookie(w, cookie)
+
 	logoutUrl := fmt.Sprintf("%vlogin", config.Server.BaseURL) // Default fallback
 	if d.user != nil && d.user.LoginMethod == users.LoginMethodProxy {
 		proxyRedirectUrl := config.Auth.Methods.ProxyAuth.LogoutRedirectUrl
@@ -234,14 +247,34 @@ func renewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (in
 	return printToken(w, r, d.user)
 }
 
-func printToken(w http.ResponseWriter, _ *http.Request, user *users.User) (int, error) {
-	signed, err := makeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), time.Hour*time.Duration(config.Auth.TokenExpirationHours), user.Permissions)
+func printToken(w http.ResponseWriter, r *http.Request, user *users.User) (int, error) {
+	expires := time.Hour * time.Duration(config.Auth.TokenExpirationHours)
+	signed, err := makeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), expires, user.Permissions)
 	if err != nil {
 		if strings.Contains(err.Error(), "key already exists with same name") {
 			return http.StatusConflict, err
 		}
 		return 401, errors.ErrUnauthorized
 	}
+
+	// Add 30 minutes buffer so expired token doesn't get automatically deleted by the browser
+	// This allows backend to identify expired sessions and provide better user feedback
+	expiresTime := time.Now().Add(expires).Add(time.Minute * 30)
+
+	// Set the authentication token as an HTTP cookie
+	cookie := &http.Cookie{
+		Name:     "filebrowser_quantum_jwt",
+		Value:    signed.Key,
+		Domain:   strings.Split(r.Host, ":")[0], // Set domain to the host without port
+		Path:     "/",
+		SameSite: http.SameSiteLaxMode,
+		Expires:  expiresTime,
+		// HttpOnly: true, // Cannot use HttpOnly since frontend needs to read cookie for renew operations
+		// Secure: true, // Enable this in production with HTTPS
+	}
+	http.SetCookie(w, cookie)
+
+	// Still return token in body for backward compatibility and state management
 	w.Header().Set("Content-Type", "text/plain")
 	if _, err := w.Write([]byte(signed.Key)); err != nil {
 		return 401, errors.ErrUnauthorized

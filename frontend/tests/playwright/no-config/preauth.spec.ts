@@ -28,12 +28,12 @@ test("logout", async ({ browser }) => {
   await expect(page.locator("div.wrong")).toBeHidden();
   await expect(page).toHaveTitle(/FileBrowser Quantum - Files - backend/);
   let cookies = await context.cookies();
-  expect(cookies.find((c) => c.name == "auth")?.value).toBeDefined();
+  expect(cookies.find((c) => c.name == "filebrowser_quantum_jwt")?.value).toBeDefined();
   await page.locator('button[aria-label="logout-button"]').click();
   await page.waitForURL("**/login", { timeout: 2000 });
   await expect(page).toHaveTitle("FileBrowser Quantum - Login");
   cookies = await context.cookies();
-  expect(cookies.find((c) => c.name == "auth")?.value).toBeUndefined();
+  expect(cookies.find((c) => c.name == "filebrowser_quantum_jwt")?.value).toBeUndefined();
 
   await context.close();
 });

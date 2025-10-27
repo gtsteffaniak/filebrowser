@@ -13,7 +13,7 @@ async function globalSetup() {
   await page.waitForURL("**/files/", { timeout: 1000 });
 
   const cookies = await context.cookies();
-  expect(cookies.find((c) => c.name === "auth")?.value).toBeDefined();
+  expect(cookies.find((c) => c.name === "filebrowser_quantum_jwt")?.value).toBeDefined();
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
 
   await page.waitForURL("**/files/playwright%20+%20files", { timeout: 1000 });

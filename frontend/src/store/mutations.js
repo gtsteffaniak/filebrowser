@@ -222,7 +222,7 @@ export const mutations = {
     const hasActiveUploads = state.upload.isUploading;
     const hasUploadPrompt = state.prompts.some(p => p.name === "upload");
     const hasWarningPrompt = state.prompts.some(p => p.name === "CloseWithActiveUploads");
-    
+
     if (hasActiveUploads && hasUploadPrompt && !hasWarningPrompt) {
       // Show warning prompt instead of closing
       mutations.showHover({
@@ -344,13 +344,6 @@ export const mutations = {
     } catch (error) {
       // Silently ignore errors when loading preferences
     }
-    emitStateChanged();
-  },
-  setJWT: (value) => {
-    if (value == state.jwt) {
-      return;
-    }
-    state.jwt = value;
     emitStateChanged();
   },
   setShareData: (shareData) => {
@@ -523,8 +516,8 @@ export const mutations = {
     emitStateChanged();
   },
   updateClipboard: (value) => {
-    if (value.key === state.clipboard.key && 
-        JSON.stringify(value.items) === JSON.stringify(state.clipboard.items) && 
+    if (value.key === state.clipboard.key &&
+        JSON.stringify(value.items) === JSON.stringify(state.clipboard.items) &&
         value.path === state.clipboard.path) {
       return;
     }
@@ -695,7 +688,7 @@ export const mutations = {
     }
 
     emitStateChanged();
-    
+
     // Auto-show navigation when it's first set up
     if (state.navigation.enabled && (state.navigation.previousLink || state.navigation.nextLink)) {
       mutations.setNavigationShow(true);
@@ -769,8 +762,8 @@ export const mutations = {
       state.navigation.transitionStartTime = Date.now();
       // Safety timeout: if transition takes more than 5 seconds, clear it
       setTimeout(() => {
-        if (state.navigation.isTransitioning && 
-            state.navigation.transitionStartTime && 
+        if (state.navigation.isTransitioning &&
+            state.navigation.transitionStartTime &&
             Date.now() - state.navigation.transitionStartTime > 5000) {
           mutations.setNavigationTransitioning(false);
         }

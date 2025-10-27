@@ -53,7 +53,7 @@ export const getters = {
     return userViewmode || "normal";
   },
   sorting: () => {
-    return getters.displayPreference()?.sorting || state.user.sorting || { by: "name", asc: true };
+    return getters.displayPreference()?.sorting || state.user?.sorting || { by: "name", asc: true };
   },
   previewType: () => getTypeInfo(state.req.type).simpleType,
   isCardView: () =>
