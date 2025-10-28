@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file. For commit 
  - OnlyOffice debugger now shows backend logs as well for admin users.
  - If proxy auth based `username` equals `auth.adminUsername`, the user will be promoted to admin.
  - Guard against accidently cancelling uploads #1419
+ - Added a quirky halloween theme that automatically applies on october 31st -- you can disable this from happening by setting `frontend.styling.disableEventThemes`
 
  **Notes**:
  - Removed share setting `enableOnlyOfficeEditing` -- uses value from `allowEditing`

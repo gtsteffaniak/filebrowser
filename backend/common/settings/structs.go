@@ -231,11 +231,12 @@ type Frontend struct {
 }
 
 type StylingConfig struct {
-	CustomCSS       string                 `json:"customCSS"`       // if a valid path to a css file is provided, it will be applied for all users. (eg. "reduce-rounded-corners.css")
-	CustomCSSRaw    string                 `json:"-"`               // The css raw content to use for the custom css.
-	LightBackground string                 `json:"lightBackground"` // specify a valid CSS color property value to use as the background color in light mode
-	DarkBackground  string                 `json:"darkBackground"`  // Specify a valid CSS color property value to use as the background color in dark mode
-	CustomThemes    map[string]CustomTheme `json:"customThemes"`    // A list of custom css files that each user can select to override the default styling. if "default" is key name then it will be the default option.
+	DisableEventBasedThemes bool                   `json:"disableEventThemes"` // disable the event based themes,
+	CustomCSS               string                 `json:"customCSS"`          // if a valid path to a css file is provided, it will be applied for all users. (eg. "reduce-rounded-corners.css")
+	CustomCSSRaw            string                 `json:"-"`                  // The css raw content to use for the custom css.
+	LightBackground         string                 `json:"lightBackground"`    // specify a valid CSS color property value to use as the background color in light mode
+	DarkBackground          string                 `json:"darkBackground"`     // Specify a valid CSS color property value to use as the background color in dark mode
+	CustomThemes            map[string]CustomTheme `json:"customThemes"`       // A list of custom css files that each user can select to override the default styling. if "default" is key name then it will be the default option.
 	// In-memory (not exposed to config)
 	CustomThemeOptions map[string]CustomTheme `json:"-"` // not exposed
 }

@@ -63,7 +63,9 @@
     "saveAndExit": "الحفظ والخروج",
     "keepEditing": "استمر في التحرير",
     "stayOnPrompt": "ابق في مكانك",
-    "closeAnyway": "إغلاق على أي حال"
+    "closeAnyway": "إغلاق على أي حال",
+    "disable": "تعطيل",
+    "confirm": "تأكيد"
   },
   "download": {
     "downloadFile": "Download File",
@@ -641,5 +643,9 @@
     "changePlaybackMode": "تغيير وضع التشغيل",
     "changePlaybackModeHint": "غير وضع التشغيل لرؤية المزيد من الملفات",
     "emptyQueue": "قائمة التشغيل فارغة"
+  },
+  "halloween": {
+    "title": "عيد هالوين سعيد!",
+    "body": "تم تطبيق سمة الهالوين. يمكنك تعطيله إذا لم يعجبك، أو تعطيله بشكل دائم في إعدادات الملف الشخصي عن طريق تحديد أي سمة أخرى."
   }
 }

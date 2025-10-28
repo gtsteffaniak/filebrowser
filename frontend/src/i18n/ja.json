@@ -63,7 +63,9 @@
     "saveAndExit": "保存して終了する",
     "keepEditing": "編集を続ける",
     "stayOnPrompt": "滞在",
-    "closeAnyway": "とにかく閉じる"
+    "closeAnyway": "とにかく閉じる",
+    "disable": "無効",
+    "confirm": "確認"
   },
   "download": {
     "downloadFile": "ファイルをダウンロード",
@@ -641,5 +643,9 @@
     "changePlaybackMode": "再生モードを変更",
     "changePlaybackModeHint": "再生モードを変更してより多くのファイルを表示",
     "emptyQueue": "キューは空です"
+  },
+  "halloween": {
+    "title": "ハッピー・ハロウィーン",
+    "body": "ハロウィーンのテーマが適用されました。気に入らなければ無効にするか、プロフィール設定で他のテーマを選択して永久に無効にすることができます。"
   }
 }

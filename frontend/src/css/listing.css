@@ -42,6 +42,9 @@ body.rtl #listingView {
   width: var(--item-width);
   height: var(--item-height);
   border-radius: 1em;
+  background: var(--item-secondary);
+  color: var(--textPrimary);
+  border-color: var(--divider);
 }
 
 #listingView .item div:last-of-type {

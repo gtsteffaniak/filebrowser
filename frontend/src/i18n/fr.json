@@ -63,7 +63,9 @@
     "saveAndExit": "Sauvegarder et quitter",
     "keepEditing": "Continuer à éditer",
     "stayOnPrompt": "Séjour",
-    "closeAnyway": "Fermer Quoi qu'il en soit"
+    "closeAnyway": "Fermer Quoi qu'il en soit",
+    "disable": "Désactiver",
+    "confirm": "Confirmer"
   },
   "download": {
     "downloadFile": "Télécharger le fichier",
@@ -641,5 +643,9 @@
     "changePlaybackMode": "Changer le mode de lecture",
     "changePlaybackModeHint": "Changez le mode de lecture pour voir plus de fichiers",
     "emptyQueue": "La file est vide"
+  },
+  "halloween": {
+    "title": "Joyeux Halloween !",
+    "body": "Le thème Halloween a été appliqué. Vous pouvez le désactiver si vous ne l'aimez pas, ou le désactiver définitivement dans les paramètres du profil en sélectionnant un autre thème."
   }
 }

@@ -99,6 +99,7 @@ frontend:
       url: "help prompt"                  # the url to link to  validate:required
   disableNavButtons: false                # disable the nav buttons in the sidebar
   styling:
+    disableEventThemes: false             # disable the event based themes,
     customCSS: ""                         # if a valid path to a css file is provided, it will be applied for all users. (eg. "reduce-rounded-corners.css")
     lightBackground: "#f5f5f5"            # specify a valid CSS color property value to use as the background color in light mode
     darkBackground: "#141D24"             # Specify a valid CSS color property value to use as the background color in dark mode

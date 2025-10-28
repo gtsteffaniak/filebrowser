@@ -22,6 +22,7 @@
     }
   },
   "rules": {
+    "no-unreachable": "off",
     // vue-i18n rules:
     // This rule will check if the key used in $t() exists in your locale messages.
     // By default, it checks against all locales. We want it to primarily use 'en.json'

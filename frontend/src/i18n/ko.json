@@ -63,7 +63,9 @@
     "saveAndExit": "저장 및 종료",
     "keepEditing": "계속 편집",
     "stayOnPrompt": "Stay",
-    "closeAnyway": "어쨌든 닫기"
+    "closeAnyway": "어쨌든 닫기",
+    "disable": "비활성화",
+    "confirm": "확인"
   },
   "download": {
     "downloadFile": "파일 다운로드",
@@ -641,5 +643,9 @@
     "changePlaybackMode": "재생 모드 변경",
     "changePlaybackModeHint": "더 많은 파일을 보려면 재생 모드를 변경하세요",
     "emptyQueue": "대기열이 비어 있습니다"
+  },
+  "halloween": {
+    "title": "해피 할로윈!",
+    "body": "할로윈 테마가 적용되었습니다. 마음에 들지 않으면 비활성화하거나 프로필 설정에서 다른 테마를 선택하여 영구적으로 비활성화할 수 있습니다."
   }
 }

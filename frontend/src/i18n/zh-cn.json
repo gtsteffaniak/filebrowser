@@ -63,7 +63,9 @@
     "saveAndExit": "保存并退出",
     "keepEditing": "继续编辑",
     "stayOnPrompt": "停留",
-    "closeAnyway": "无论如何关闭"
+    "closeAnyway": "无论如何关闭",
+    "disable": "禁用",
+    "confirm": "确认"
   },
   "download": {
     "downloadFile": "下载文件",
@@ -641,5 +643,9 @@
     "changePlaybackMode": "更改播放模式",
     "changePlaybackModeHint": "更改播放模式以查看更多文件",
     "emptyQueue": "队列为空"
+  },
+  "halloween": {
+    "title": "万圣节快乐",
+    "body": "万圣节主题已应用。如果不喜欢，可以将其禁用，或者在个人档案设置中选择其他主题将其永久禁用。"
   }
 }

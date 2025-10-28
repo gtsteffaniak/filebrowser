@@ -125,7 +125,6 @@ func setupFrontend(generate bool) {
 	if !ok {
 		addCustomTheme("default", "The default theme", "")
 	}
-
 	// Load custom favicon if configured
 	loadCustomFavicon()
 }

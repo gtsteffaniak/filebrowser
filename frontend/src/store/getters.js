@@ -8,6 +8,22 @@ import { fromNow } from '@/utils/moment'
 import * as i18n from '@/i18n'
 
 export const getters = {
+  eventTheme: () => {
+    if (getters.isShare()) {
+      return "";
+    }
+    if (!globalVars.eventBasedThemes) {
+      return ""
+    }
+    if (state.disableEventThemes) {
+      return ""
+    }
+    // if date is halloween october 31st, return halloween
+    if (new Date().getMonth() === 9 && new Date().getDate() === 31) {
+      return "halloween";
+    }
+    return "";
+  },
   getTime: timestamp => {
     if (state.user.dateFormat) {
       // Truncate the fractional seconds to 3 digits (milliseconds)
@@ -69,6 +85,9 @@ export const getters = {
     }
     if (shareInfo.enforceDarkLightMode == "light") {
       return false
+    }
+    if (!getters.isShare() && getters.eventTheme() == "halloween") {
+      return true
     }
     if (state.user == null) {
       return true

@@ -63,7 +63,9 @@
     "saveAndExit": "Save and Exit",
     "keepEditing": "Keep Editing",
     "stayOnPrompt": "Stay",
-    "closeAnyway": "Close Anyways"
+    "closeAnyway": "Close Anyways",
+    "disable": "Disable",
+    "confirm": "Confirm"
   },
   "download": {
     "downloadFile": "Download File",
@@ -641,5 +643,9 @@
     "changePlaybackMode": "Change playback mode",
     "changePlaybackModeHint": "Change playback mode to see more files",
     "emptyQueue": "Queue is empty"
+  },
+  "halloween": {
+    "title": "Happy Halloween!",
+    "body": "The Halloween theme has been applied. You can disable it if you don't like it, or permanently disable it in profile settings by selecting any other theme."
   }
 }

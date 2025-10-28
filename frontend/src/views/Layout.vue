@@ -44,7 +44,6 @@ import { filesApi } from "@/api";
 import { state, getters, mutations } from "@/store";
 import { events } from "@/notify";
 import { generateRandomCode } from "@/utils/auth";
-import { shareInfo } from "@/utils/constants";
 
 export default {
   name: "layout",
@@ -68,8 +67,8 @@ export default {
   },
   mounted() {
     window.addEventListener("resize", this.updateIsMobile);
-    if (shareInfo.themeColor != "") {
-      document.documentElement.style.setProperty("--primaryColor", shareInfo.themeColor);
+    if (getters.eventTheme() == "halloween") {
+      document.documentElement.style.setProperty("--primaryColor", "var(--icon-orange)");
     } else if (state.user.themeColor) {
       document.documentElement.style.setProperty("--primaryColor", state.user.themeColor);
     }
@@ -133,7 +132,8 @@ export default {
       }
       const currentView = getters.currentView()
       mutations.setMultiple(false);
-      if (getters.currentPromptName() !== "success") {
+      const currentPrompt = getters.currentPromptName();
+      if (currentPrompt !== "success" && currentPrompt !== "generic") {
         mutations.closeHovers();
       }
       if (window.location.hash == "" && currentView == "listingView") {

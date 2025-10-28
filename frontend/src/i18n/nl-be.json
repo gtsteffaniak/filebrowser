@@ -63,7 +63,9 @@
     "saveAndExit": "Opslaan en afsluiten",
     "keepEditing": "Blijven bewerken",
     "stayOnPrompt": "Blijf",
-    "closeAnyway": "Sluiten"
+    "closeAnyway": "Sluiten",
+    "disable": "uitschakelen",
+    "confirm": "Bevestig"
   },
   "download": {
     "downloadFile": "Bestand downloaden",
@@ -641,5 +643,9 @@
     "changePlaybackMode": "Afspeelmodus wijzigen",
     "changePlaybackModeHint": "Wijzig afspeelmodus om meer bestanden te zien",
     "emptyQueue": "Wachtrij is leeg"
+  },
+  "halloween": {
+    "title": "Gelukkig Halloween!",
+    "body": "Het Halloween-thema is toegepast. Je kunt het uitschakelen als je het niet leuk vindt, of permanent uitschakelen in de profielinstellingen door een ander thema te selecteren."
   }
 }

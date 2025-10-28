@@ -63,7 +63,9 @@
     "saveAndExit": "Kaydet ve Çık",
     "keepEditing": "Düzenlemeye Devam Et",
     "stayOnPrompt": "Kalmak",
-    "closeAnyway": "Her Neyse Kapat"
+    "closeAnyway": "Her Neyse Kapat",
+    "disable": "Devre dışı bırak",
+    "confirm": "Onaylayın"
   },
   "download": {
     "downloadFile": "Dosyayı indir",
@@ -641,5 +643,9 @@
     "changePlaybackMode": "Oynatma modunu değiştir",
     "changePlaybackModeHint": "Daha fazla dosya görmek için oynatma modunu değiştirin",
     "emptyQueue": "Kuyruk boş"
+  },
+  "halloween": {
+    "title": "Mutlu Cadılar Bayramı!",
+    "body": "Cadılar Bayramı teması uygulanmıştır. Beğenmediyseniz devre dışı bırakabilir veya profil ayarlarından başka bir tema seçerek kalıcı olarak devre dışı bırakabilirsiniz."
   }
 }

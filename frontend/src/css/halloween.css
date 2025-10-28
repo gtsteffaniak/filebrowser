@@ -1,0 +1,759 @@
+/* Halloween Theme Styles - Only apply when halloween-theme class is present */
+
+/* Halloween-specific CSS variables */
+.halloween-theme {
+    --primaryColor: var(--icon-orange) !important;
+    --halloween-dark-orange: #ff6600;
+    --halloween-black: #1a1a1a;
+    --halloween-gray: #cccccc;
+}
+
+body.halloween-theme,
+.scroll-wrapper.halloween-theme,
+#login.halloween-theme {
+    background: black !important;
+    background-color: black !important;
+}
+
+/* Tiled Halloween pattern background for scroll wrapper */
+.scroll-wrapper.halloween-theme {
+    background-image: url("../assets/halloween-pattern.svg") !important;
+    background-repeat: repeat !important;
+}
+
+#login.halloween-theme {
+    position: relative;
+    overflow: hidden;
+}
+
+/* Halloween Background */
+.halloween-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    background: radial-gradient(circle at center, rgba(0, 0, 0, .5) 0%, #000000 70%);
+}
+
+/* Tombstone Shape for Login Card */
+.login-card.tombstone {
+    position: relative;
+    /* Updated background for more subtle levels of detail/texture */
+    background:
+        /* Subtle rock grain/texture */
+        radial-gradient(ellipse at 50% 50%, rgba(0, 0, 0, 0.05) 0%, transparent 80%),
+        /* Light gray moss/ageing */
+        linear-gradient(170deg, rgba(168, 168, 168, 0.05) 5%, transparent 60%),
+        linear-gradient(135deg, rgba(0, 0, 0, 0.1) 0%, transparent 100%),
+        linear-gradient(225deg, rgba(0, 0, 0, 0.1) 0%, transparent 100%),
+        linear-gradient(180deg, #e8e8e8 0%, #c0c0c0 50%, #a8a8a8 100%) !important;
+    border: 4px solid #888 !important;
+    border-radius: 0 0 20px 20px !important;
+    box-shadow:
+        0 15px 50px rgba(255, 140, 0, 0.6),
+        inset 0 2px 20px rgba(0, 0, 0, 0.3),
+        inset 3px 3px 10px rgba(255, 255, 255, 0.2),
+        0 0 40px rgba(255, 140, 0, 0.4) !important;
+    padding: 2.5em 2em 2em 2em !important;
+    z-index: 10;
+    position: relative;
+    overflow: visible;
+}
+
+/* Tombstone rounded top */
+.login-card.tombstone::before {
+    content: '';
+    position: absolute;
+    top: -70px;
+    left: -4px;
+    right: -4px;
+    height: 70px;
+    background:
+        linear-gradient(135deg, rgba(0, 0, 0, 0.1) 0%, transparent 100%),
+        linear-gradient(225deg, rgba(0, 0, 0, 0.1) 0%, transparent 100%),
+        linear-gradient(180deg, #e8e8e8 0%, #c0c0c0 100%);
+    border: 4px solid #888;
+    border-bottom: none;
+    border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+    box-shadow:
+        inset 0 2px 20px rgba(0, 0, 0, 0.3),
+        inset 3px 3px 10px rgba(255, 255, 255, 0.2);
+}
+
+/* R.I.P. text */
+.login-card.tombstone::after {
+    content: 'R.I.P.';
+    position: absolute;
+    top: -55px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Times New Roman', serif;
+    font-size: 2.2em;
+    font-weight: bold;
+    color: #333;
+    text-shadow:
+        2px 2px 4px rgba(0, 0, 0, 0.5),
+        inset -1px -1px 2px rgba(255, 255, 255, 0.3);
+    letter-spacing: 0.3em;
+    z-index: 1;
+    font-style: italic;
+}
+
+/* Cracks in the tombstone - Increased detail */
+.halloween-theme .login-card.tombstone {
+    background-image:
+        /* Fine, subtle cracks */
+        linear-gradient(45deg, transparent 30%, rgba(0, 0, 0, 0.15) 30.2%, transparent 30.5%),
+        linear-gradient(135deg, transparent 60%, rgba(0, 0, 0, 0.12) 60.3%, transparent 60.6%),
+        linear-gradient(75deg, transparent 45%, rgba(0, 0, 0, 0.1) 45.1%, transparent 45.2%),
+        linear-gradient(165deg, transparent 70%, rgba(0, 0, 0, 0.08) 70.4%, transparent 70.8%),
+        /* Deeper, more noticeable crack */
+        linear-gradient(-30deg, transparent 55%, rgba(0, 0, 0, 0.3) 55.5%, transparent 56.5%),
+        linear-gradient(150deg, transparent 35%, rgba(0, 0, 0, 0.35) 35.5%, transparent 36.5%),
+        /* Original background gradients */
+        linear-gradient(135deg, rgba(0, 0, 0, 0.1) 0%, transparent 100%),
+        linear-gradient(225deg, rgba(0, 0, 0, 0.1) 0%, transparent 100%),
+        linear-gradient(180deg, #e8e8e8 0%, #c0c0c0 50%, #a8a8a8 100%);
+}
+
+/* Tombstone Field Labels */
+.tombstone-field {
+    position: relative;
+    margin-bottom: 1.8em;
+}
+
+.tombstone-label {
+    display: block;
+    font-family: 'Times New Roman', serif;
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #444;
+    text-transform: uppercase;
+    letter-spacing: 0.25em;
+    margin-bottom: 0.6em;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    font-style: italic;
+}
+
+.tombstone-field:first-of-type .tombstone-label::before {
+    content: '⚰ BORN ⚰';
+    display: block;
+    font-size: 0.9em;
+}
+
+.tombstone-field:last-of-type .tombstone-label::before {
+    content: '† DIED †';
+    display: block;
+    font-size: 0.9em;
+}
+
+.tombstone-field .input {
+    background: rgba(0, 0, 0, 0.7) !important;
+    border: 3px solid #ff8c00 !important;
+    color: #ff8c00 !important;
+    text-shadow: 0 0 8px rgba(255, 140, 0, 0.6);
+    font-weight: 500;
+}
+
+.tombstone-field .input:focus {
+    border-color: #ff6600 !important;
+    box-shadow: 0 0 20px rgba(255, 140, 0, 0.8) !important;
+    background: rgba(0, 0, 0, 0.8) !important;
+}
+
+.tombstone-field .input::placeholder {
+    color: #666 !important;
+}
+
+/* Floating Clouds - Twice as big and with light coming from them */
+.cloud {
+    position: absolute;
+    background: rgba(40, 40, 40, 0.7);
+    border-radius: 400px;
+    opacity: 0.9;
+    animation: float-cloud linear infinite;
+    filter: blur(5px);
+    box-shadow:
+        0 0 10px rgba(255, 140, 0, 0.2),
+        0 0 60px rgba(255, 255, 255, 0.3),
+        0 0 30px rgba(40, 40, 40, 0.6);
+    transform: scale(2);
+}
+
+.cloud::before,
+.cloud::after {
+    content: '';
+    position: absolute;
+    background: rgba(40, 40, 40, 0.7);
+    border-radius: 400px;
+    filter: blur(4px);
+}
+
+/* --- CLOUD START POSITIONS ADJUSTED FOR RANDOMNESS --- */
+
+.cloud-1 {
+    width: 250px;
+    height: 80px;
+    /* Adjusted top and left for scatter */
+    top: 15%;
+    left: 40%;
+    /* Starts visible on the screen */
+    animation-duration: 80s;
+}
+
+.cloud-1::before {
+    width: 120px;
+    height: 100px;
+    top: -50px;
+    left: 40px;
+}
+
+.cloud-1::after {
+    width: 140px;
+    height: 90px;
+    top: -40px;
+    right: 30px;
+}
+
+.cloud-2 {
+    width: 300px;
+    height: 100px;
+    /* Adjusted top and left for scatter */
+    top: 50%;
+    left: -150px;
+    /* Starts slightly off-screen to the left */
+    animation-duration: 100s;
+    animation-delay: 20s;
+}
+
+.cloud-2::before {
+    width: 140px;
+    height: 120px;
+    top: -60px;
+    left: 50px;
+}
+
+.cloud-2::after {
+    width: 160px;
+    height: 110px;
+    top: -50px;
+    right: 40px;
+}
+
+.cloud-3 {
+    width: 200px;
+    height: 70px;
+    /* Adjusted top and left for scatter */
+    top: 75%;
+    left: 80%;
+    /* Starts visible on the screen far to the right */
+    animation-duration: 70s;
+    animation-delay: 40s;
+}
+
+.cloud-3::before {
+    width: 100px;
+    height: 80px;
+    top: -40px;
+    left: 30px;
+}
+
+.cloud-3::after {
+    width: 110px;
+    height: 76px;
+    top: -36px;
+    right: 25px;
+}
+
+@keyframes float-cloud {
+    0% {
+        transform: translateX(0) scale(2);
+    }
+
+    100% {
+        /* Kept the final position far to the right so they all eventually move off-screen */
+        transform: translateX(calc(100vw + 400px)) scale(2);
+    }
+}
+
+/* Lightning Flash Effect - Adjusted to match cloud light */
+.lightning-flash {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* Made light more focused, simulating it coming from above/clouds */
+    background: radial-gradient(circle at 50% 10%, rgba(255, 255, 255, 0.95), rgba(255, 220, 100, 0.8) 15%, transparent 50%);
+    opacity: 0;
+    animation: lightning-flash-animation 12s infinite;
+    pointer-events: none;
+}
+
+@keyframes lightning-flash-animation {
+    0%, 10%, 100% {
+        opacity: 0;
+    }
+
+    10.1% {
+        opacity: 0.9;
+    }
+
+    10.15% {
+        opacity: 0.4;
+    }
+
+    10.2%, 10.35% {
+        opacity: 0;
+    }
+
+    10.4% {
+        opacity: 1;
+    }
+
+    10.5% {
+        opacity: 0;
+    }
+}
+
+/* Lightning Bolts */
+.lightning-bolt {
+    position: absolute;
+    width: 50px;
+    height: 250px;
+    opacity: 0;
+    filter: drop-shadow(0 0 15px #fff) drop-shadow(0 0 30px #ffd700) drop-shadow(0 0 45px #ff8c00);
+    z-index: 100;
+}
+
+.lightning-1 {
+    top: 8%;
+    left: 30%;
+    animation: lightning-strike 12s infinite;
+}
+
+.lightning-2 {
+    top: 10%;
+    right: 25%;
+    animation: lightning-strike 12s infinite;
+    animation-delay: 0.05s;
+}
+
+@keyframes lightning-strike {
+    0%, 10%, 100% {
+        opacity: 0;
+        transform: scaleY(0);
+        transform-origin: top;
+    }
+
+    10.1% {
+        opacity: 1;
+        transform: scaleY(1);
+    }
+
+    10.15% {
+        opacity: 0.6;
+    }
+
+    10.2%, 10.35% {
+        opacity: 0;
+        transform: scaleY(0.8);
+    }
+
+    10.4% {
+        opacity: 1;
+        transform: scaleY(1);
+    }
+
+    10.5% {
+        opacity: 0;
+        transform: scaleY(0);
+    }
+}
+
+.lightning-bolt path {
+    fill: #fff;
+    animation: bolt-flicker 12s infinite;
+}
+
+@keyframes bolt-flicker {
+    0%, 10%, 100% {
+        opacity: 0;
+    }
+
+    10.1% {
+        opacity: 1;
+        fill: #fff;
+    }
+
+    10.15% {
+        opacity: 0.7;
+        fill: #ffd700;
+    }
+
+    10.2%, 10.35% {
+        opacity: 0;
+    }
+
+    10.4% {
+        opacity: 1;
+        fill: #fff;
+    }
+
+    10.5% {
+        opacity: 0;
+    }
+}
+
+/* Halloween Decorations Container */
+.halloween-decorations {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 5;
+}
+
+/* Spooky Cat */
+.halloween-cat {
+    position: absolute;
+    bottom: 5%;
+    left: 8%;
+    width: 180px;
+    height: 200px;
+    filter: drop-shadow(0 0 20px rgba(255, 140, 0, 0.5));
+    animation: cat-tail-swish 3s ease-in-out infinite;
+    z-index: 6;
+}
+
+@keyframes cat-tail-swish {
+    0%, 100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-5px);
+    }
+}
+
+.halloween-cat .cat-eye {
+    animation: cat-blink 5s infinite;
+}
+
+@keyframes cat-blink {
+    0%, 96%, 100% {
+        opacity: 1;
+    }
+
+    97%, 99% {
+        opacity: 0.1;
+    }
+}
+
+/* Skeleton */
+.halloween-skeleton {
+    position: absolute;
+    bottom: 3%;
+    right: 8%;
+    width: 160px;
+    height: 240px;
+    filter: drop-shadow(0 0 20px rgba(255, 140, 0, 0.4));
+    animation: skeleton-wobble 3s ease-in-out infinite;
+    z-index: 6;
+}
+
+@keyframes skeleton-wobble {
+    0%, 100% {
+        transform: translateY(0) rotate(-5deg);
+    }
+
+    50% {
+        transform: translateY(-15px) rotate(5deg);
+    }
+}
+
+/* Skeleton head bob */
+.halloween-skeleton .skeleton-head {
+    animation: head-bob 2s ease-in-out infinite;
+    transform-origin: center bottom;
+}
+
+@keyframes head-bob {
+    0%, 100% {
+        transform: rotate(-5deg);
+    }
+
+    50% {
+        transform: rotate(5deg);
+    }
+}
+
+/* Additional Effects for Login Card in Halloween Theme */
+.halloween-theme .login-card.tombstone .button {
+    background: linear-gradient(135deg, #1a1a1a 0%, #000000 100%) !important;
+    border: 3px solid #ff8c00 !important;
+    color: #ff8c00 !important;
+    font-weight: bold;
+    text-shadow: 0 0 10px rgba(255, 140, 0, 0.8);
+    box-shadow: 0 4px 20px rgba(255, 140, 0, 0.5) !important;
+    transition: all 0.3s ease;
+}
+
+.halloween-theme .login-card.tombstone .button:hover {
+    background: linear-gradient(135deg, #ff8c00 0%, #ff6600 100%) !important;
+    border-color: #ffa500 !important;
+    color: #000 !important;
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.9);
+    box-shadow: 0 6px 30px rgba(255, 140, 0, 0.8) !important;
+    transform: translateY(-2px);
+}
+
+/* Brand Icon Glow */
+.halloween-theme .login-brand i {
+    color: #ff8c00 !important;
+    filter: drop-shadow(0 0 20px rgba(255, 140, 0, 0.8));
+    animation: icon-pulse 3s ease-in-out infinite;
+}
+
+@keyframes icon-pulse {
+    0%, 100% {
+        filter: drop-shadow(0 0 20px rgba(255, 140, 0, 0.8));
+    }
+
+    50% {
+        filter: drop-shadow(0 0 35px rgba(255, 69, 0, 1));
+    }
+}
+
+/* Brand Text */
+.halloween-theme .brand-text h3 {
+    color: #ff8c00 !important;
+    text-shadow:
+        2px 2px 4px rgba(0, 0, 0, 0.8),
+        0 0 15px rgba(255, 140, 0, 0.6);
+    font-family: 'Courier New', monospace;
+    letter-spacing: 0.1em;
+}
+
+/* Error Message */
+.halloween-theme .wrong-login {
+    background: rgba(0, 0, 0, 0.8) !important;
+    border: 2px solid #ff8c00 !important;
+    color: #ff8c00 !important;
+    box-shadow: 0 0 20px rgba(255, 140, 0, 0.5);
+}
+
+/* Loading Spinner */
+.halloween-theme .loading-spinner i {
+    color: #ff8c00 !important;
+    filter: drop-shadow(0 0 10px rgba(255, 140, 0, 0.8));
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .halloween-cat {
+        width: 80px;
+        height: 80px;
+        bottom: 5%;
+        left: 5%;
+    }
+
+    .halloween-skeleton {
+        width: 100px;
+        height: 150px;
+        bottom: 3%;
+        right: 5%;
+    }
+
+    .login-card.tombstone::after {
+        font-size: 1.4em;
+        top: -40px;
+    }
+}
+
+@media (max-width: 480px) {
+    .halloween-cat {
+        width: 60px;
+        height: 60px;
+    }
+
+    .halloween-skeleton {
+        width: 70px;
+        height: 110px;
+    }
+
+    .cloud {
+        /* Adjusted scale for mobile to compensate for the overall increase */
+        transform: scale(1.4);
+    }
+
+    @keyframes float-cloud {
+        0% {
+            transform: translateX(0) scale(1.4);
+        }
+
+        100% {
+            transform: translateX(calc(100vw + 400px)) scale(1.4);
+        }
+    }
+}
+
+
+#search-input {
+    /* ... existing search-input styles ... */
+    background-color: rgba(100, 100, 100, 0.2);
+    display: flex;
+    height: 100%;
+    padding: 0em 0.75em;
+    border-style: solid;
+    border-radius: 1em;
+    border-style: unset;
+    border-width: 1px;
+    align-items: center;
+    height: 3em;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* --- HALLOWEEN EYES STYLES --- */
+
+  .halloween-eyes {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+  }
+
+  /* Position the input field above the eyes */
+  .main-input.halloween-theme {
+    position: relative;
+    z-index: 3 !important;
+    background-color: transparent !important;
+  }
+
+  #halloween-eyes {
+    position: fixed;
+    width: 100%;
+    height: 30%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1em;
+    pointer-events: none;
+    z-index: 0;
+    box-sizing: border-box;
+  }
+
+  .eye {
+    width: 45%;
+    height: 80%;
+    background: var(--icon-orange);
+    border-radius: 50% / 60% 60% 40% 40%;
+    position: relative;
+    overflow: hidden; /* Ensure eyelids don't overflow when moving */
+    box-shadow:
+      0 0 10px var(--icon-orange),
+      0 0 30px rgba(255, 255, 0, 0.8),
+      inset 0 0 10px rgba(0,0,0,0.3);
+    /* Removed 'eye-blink' from here, will use pseudo-elements for blink */
+    animation:
+      eye-look 4s infinite alternate ease-in-out;
+  }
+
+  /* NEW: Eyelids using pseudo-elements */
+  .eye::before,
+  .eye::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 50%; /* Half the eye height for each lid */
+    background: #1a1a1a; /* Black for the eyelid */
+    z-index: 1; /* Above the pupil, below the main input */
+    /* Cat-eye shape for eyelids */
+    border-radius: 50% / 60% 60% 40% 40%;
+    transform-origin: center center;
+    animation: lid-blink 5s infinite; /* Eyelid blink animation */
+  }
+
+  .eye::before { /* Top eyelid */
+    top: 0;
+    /* Mask out the bottom half of the eyelid to blend */
+    clip-path: inset(0 0 50% 0);
+    transform: translateY(-100%) scaleY(1.2); /* Start fully open, slightly above eye */
+    /* Ensure the rounded top of the lid is visible */
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  .eye::after { /* Bottom eyelid */
+    bottom: 0;
+    /* Mask out the top half of the eyelid to blend */
+    clip-path: inset(50% 0 0 0);
+    transform: translateY(100%) scaleY(1.2); /* Start fully open, slightly below eye */
+    /* Ensure the rounded bottom of the lid is visible */
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+  }
+
+
+  /* Adjust animation delay for the right eye to be slightly desynced */
+  .eye.right {
+    animation-delay: 0.1s;
+  }
+  .eye.right .pupil {
+    animation-delay: 0.3s;
+  }
+  .eye.right::before, .eye.right::after {
+    animation-delay: 0.2s; /* Slightly delay eyelid blink */
+  }
+
+  .pupil {
+    width: 10%;
+    height: 70%;
+    background: #1a1a1a;
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    animation: pupil-look 4s infinite alternate ease-in-out;
+  }
+
+  /* Adjust pupil movement for cat eyes */
+  @keyframes pupil-look {
+    0% { transform: translate(-100%, -50%); }
+    50% { transform: translate(0%, -50%); }
+    75% { transform: translate(-50%, -50%); }
+    100% { transform: translate(-100%, -50%); }
+  }
+
+  /* NEW: Eyelid blinking animation */
+  @keyframes lid-blink-top {
+    0%, 20%, 40%, 60%, 80%, 100% {
+      /* Top lid is up and open */
+      transform: translateY(-100%) scaleY(1.2);
+    }
+    18%, 22%, 38%, 42%, 58%, 62%, 78%, 82% {
+      /* Top lid moves down to cover the eye */
+      transform: translateY(0%) scaleY(1.2);
+    }
+  }
+  @keyframes lid-blink-bottom {
+    0%, 20%, 40%, 60%, 80%, 100% {
+      /* Bottom lid is down and open */
+      transform: translateY(100%) scaleY(1.2);
+    }
+    18%, 22%, 38%, 42%, 58%, 62%, 78%, 82% {
+      /* Bottom lid moves up to cover the eye */
+      transform: translateY(0%) scaleY(1.2);
+    }
+  }

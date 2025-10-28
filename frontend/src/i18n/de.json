@@ -63,7 +63,9 @@
     "saveAndExit": "Speichern und Beenden",
     "keepEditing": "Weiter bearbeiten",
     "stayOnPrompt": "Bleiben Sie",
-    "closeAnyway": "Jedenfalls schließen"
+    "closeAnyway": "Jedenfalls schließen",
+    "disable": "Deaktivieren Sie",
+    "confirm": "Bestätigen Sie"
   },
   "download": {
     "downloadFile": "Datei herunterladen",
@@ -641,5 +643,9 @@
     "changePlaybackMode": "Wiedergabemodus ändern",
     "changePlaybackModeHint": "Ändern Sie den Wiedergabemodus, um mehr Dateien zu sehen",
     "emptyQueue": "Warteschlange ist leer"
+  },
+  "halloween": {
+    "title": "Fröhliches Halloween!",
+    "body": "Das Halloween-Thema wurde angewendet. Sie können es deaktivieren, wenn es Ihnen nicht gefällt, oder es in den Profileinstellungen dauerhaft deaktivieren, indem Sie ein anderes Thema auswählen."
   }
 }

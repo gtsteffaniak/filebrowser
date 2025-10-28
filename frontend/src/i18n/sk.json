@@ -63,7 +63,9 @@
     "saveAndExit": "Uložiť a ukončiť",
     "keepEditing": "Pokračujte v úpravách",
     "stayOnPrompt": "Zostaňte na",
-    "closeAnyway": "Zavrieť Tak či onak"
+    "closeAnyway": "Zavrieť Tak či onak",
+    "disable": "Zakázať",
+    "confirm": "Potvrďte"
   },
   "download": {
     "downloadFile": "Stiahnuť súbor",
@@ -641,5 +643,9 @@
     "changePlaybackMode": "Zmeniť režim prehrávania",
     "changePlaybackModeHint": "Zmeňte režim prehrávania, aby ste videli viac súborov",
     "emptyQueue": "Front je prázdny"
+  },
+  "halloween": {
+    "title": "Šťastný Halloween!",
+    "body": "Bola použitá téma Halloween. Ak sa vám nepáči, môžete ju vypnúť, alebo ju natrvalo zakázať v nastaveniach profilu výberom akejkoľvek inej témy."
   }
 }
