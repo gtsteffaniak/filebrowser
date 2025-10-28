@@ -357,6 +357,31 @@ export default {
         });
       }
 
+      // Filter out items being dropped onto themselves or into their own subdirectories
+      items = items.filter(item => {
+        // Skip if source and destination are the same
+        if (item.from === item.to) {
+          return false;
+        }
+
+        // Skip if trying to move a directory into itself
+        // Check if the destination path would be within the source path
+        const fromPath = item.from;
+        const destinationDir = this.path;
+
+        // If destination dir is the same as or contains the source path, skip
+        if (fromPath === destinationDir || fromPath.startsWith(destinationDir + '/')) {
+          return false;
+        }
+
+        return true;
+      });
+
+      // If all items were filtered out, silently skip the operation
+      if (items.length === 0) {
+        return;
+      }
+
       let checkAction = async () => {
         if (getters.isShare()) {
           return await publicApi.fetchPub(this.path, shareInfo.hash);
