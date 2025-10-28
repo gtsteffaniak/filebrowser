@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v1.0.0
+
+ **Notes**:
+
+ **BugFixes**:
+ - cookie host is set using x-Forwarded-Host to better support reverse proxies.
+
 ## v0.8.11-beta
 
  **New Features**:

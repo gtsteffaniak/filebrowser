@@ -144,10 +144,15 @@ func logoutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 	defer auth.RevokeAPIKey(d.token)
 
 	// Clear the authentication cookie by setting it to expire in the past
+	// Get the correct domain for cookie - prefer X-Forwarded-Host from reverse proxy
+	host := r.Header.Get("X-Forwarded-Host")
+	if host == "" {
+		host = r.Host
+	}
 	cookie := &http.Cookie{
 		Name:     "filebrowser_quantum_jwt",
 		Value:    "",
-		Domain:   strings.Split(r.Host, ":")[0],
+		Domain:   strings.Split(host, ":")[0],
 		Path:     "/",
 		SameSite: http.SameSiteLaxMode,
 		Expires:  time.Unix(0, 0), // Expire immediately
@@ -262,10 +267,15 @@ func printToken(w http.ResponseWriter, r *http.Request, user *users.User) (int, 
 	expiresTime := time.Now().Add(expires).Add(time.Minute * 30)
 
 	// Set the authentication token as an HTTP cookie
+	// Get the correct domain for cookie - prefer X-Forwarded-Host from reverse proxy
+	host := r.Header.Get("X-Forwarded-Host")
+	if host == "" {
+		host = r.Host
+	}
 	cookie := &http.Cookie{
 		Name:     "filebrowser_quantum_jwt",
 		Value:    signed.Key,
-		Domain:   strings.Split(r.Host, ":")[0], // Set domain to the host without port
+		Domain:   strings.Split(host, ":")[0], // Set domain to the host without port
 		Path:     "/",
 		SameSite: http.SameSiteLaxMode,
 		Expires:  expiresTime,
