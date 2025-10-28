@@ -208,6 +208,7 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 	hasher := md5.New()
 	_, _ = hasher.Write([]byte(CacheKey(fileMD5, previewSize, seekPercentage)))
 	hash := hex.EncodeToString(hasher.Sum(nil))
+	convertHEIC := strings.HasPrefix(file.Type, "image/heic") && settings.Config.Integrations.Media.Convert.ImagePreview[settings.HEICImagePreview]
 	// Generate an image from office document
 	if iteminfo.HasDocConvertableExtension(file.Name, file.Type) {
 		tempFilePath := filepath.Join(settings.Config.Server.CacheDir, "thumbnails", "docs", hash) + ".txt"
@@ -220,7 +221,7 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 		if err != nil {
 			return nil, fmt.Errorf("failed to create image for office file: %w", err)
 		}
-	} else if strings.HasPrefix(file.Type, "image/heic") {
+	} else if convertHEIC {
 		// HEIC files need FFmpeg conversion to JPEG with proper size/quality handling
 		imageBytes, err = service.convertHEICToJPEGWithFFmpeg(ctx, file.RealPath, previewSize)
 		if err != nil {
