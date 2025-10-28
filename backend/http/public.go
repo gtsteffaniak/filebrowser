@@ -289,13 +289,8 @@ func publicPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}
-	fileOpts := utils.FileOptions{
-		Username: d.user.Username,
-		Path:     utils.JoinPathAsUnix(d.share.Path, path),
-		Source:   source,
-		Expand:   false,
-	}
-	err = files.WriteFile(fileOpts, r.Body)
+	resolvedPath := utils.JoinPathAsUnix(d.share.Path, path)
+	err = files.WriteFile(source, resolvedPath, r.Body)
 	return errToStatus(err), err
 }
 

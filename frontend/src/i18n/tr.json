@@ -61,7 +61,11 @@
     "selectAll": "Tümünü seçin",
     "discardAndExit": "At ve Çık",
     "saveAndExit": "Kaydet ve Çık",
-    "keepEditing": "Düzenlemeye Devam Et"
+    "keepEditing": "Düzenlemeye Devam Et",
+    "stayOnPrompt": "Kalmak",
+    "closeAnyway": "Her Neyse Kapat",
+    "disable": "Devre dışı bırak",
+    "confirm": "Onaylayın"
   },
   "download": {
     "downloadFile": "Dosyayı indir",
@@ -220,7 +224,9 @@
     "copyItemQuestion": "Bu öğeyi yeni konuma kopyalayayım mı?",
     "moveItemQuestion": "Bu öğeyi yeni konuma taşıyın mı?",
     "sourcePath": "Kaynak:",
-    "destinationPath": "Varış yeri:"
+    "destinationPath": "Varış yeri:",
+    "closeWithActiveUploadsMessage": "Uyarı: Aktif yüklemeleriniz var ve yükleme istemini kapatmak tamamlanmamış yüklemelere neden olabilir. Ne yapmak istiyorsunuz?",
+    "closeWithActiveUploads": "Aktif yüklemeler"
   },
   "search": {
     "images": "Görseller",
@@ -430,8 +436,6 @@
     "light": "Işık",
     "enableOnlyOffice": "OnlyOffice görüntüleyiciyi etkinleştirin",
     "enableOnlyOfficeDescription": "Bu paylaşımda OnlyOffice kullanarak ofis dosyalarının görüntülenmesine izin verin.",
-    "enableOnlyOfficeEditing": "OnlyOffice düzenlemesini etkinleştirin",
-    "enableOnlyOfficeEditingDescription": "Bu paylaşımda OnlyOffice kullanarak ofis dosyalarının düzenlenmesine izin verin.",
     "titleDefault": "Paylaşılan dosyalar - {title}",
     "defaultViewMode": "Varsayılan görünüm modu",
     "defaultViewModeDescription": "Bu paylaşımı görüntüleyen anonim kullanıcılar için varsayılan görünüm modunu ayarlayın. Oturum açmış kullanıcılar yine de görünüm tercihlerini değiştirebilirler.",
@@ -639,5 +643,9 @@
     "changePlaybackMode": "Oynatma modunu değiştir",
     "changePlaybackModeHint": "Daha fazla dosya görmek için oynatma modunu değiştirin",
     "emptyQueue": "Kuyruk boş"
+  },
+  "halloween": {
+    "title": "Mutlu Cadılar Bayramı!",
+    "body": "Cadılar Bayramı teması uygulanmıştır. Beğenmediyseniz devre dışı bırakabilir veya profil ayarlarından başka bir tema seçerek kalıcı olarak devre dışı bırakabilirsiniz."
   }
 }

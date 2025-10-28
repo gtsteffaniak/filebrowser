@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.8.11-beta
+
+ **New Features**:
+ - OnlyOffice debugger now shows backend logs as well for admin users.
+ - If proxy auth based `username` equals `auth.adminUsername`, the user will be promoted to admin.
+ - Guard against accidently cancelling uploads #1419
+ - Added a quirky halloween theme that automatically applies on october 31st -- you can disable this from happening by setting `frontend.styling.disableEventThemes`
+
+ **Notes**:
+ - Removed share setting `enableOnlyOfficeEditing` -- uses value from `allowEditing`
+ - Anonymous users can now edit if a share has edit permissions enabled.
+ - No "Incompatible user settings detected" message if its first setup
+ - cookie handling revamped
+   - fully backend managed
+   - `auth` cookie name changed to `filebrowser_quantum_jwt`
+   - auth cookie for password users no longer session based #1439
+   - removed state jwt state variable -- 100% cookie based.
+
+ **BugFixes**:
+ - Fixed issue editing onlyoffice on shares #1397
+ - Added proper and robust logging / error handling for the onlyoffice callback. #1422 #1068
+ - If a file was moved/renamed/deleted onlyoffice would re-save the original file without error, now it gives error the file doesn't exist anymore.
+ - OnlyOffice integration does not work behind proxy authentication #1422
+ - proxy-based authentication with docker does not work unless set up with password-based login first #1226
+ - Select all bug on safari mobile #1421
+ - Dragging a item into itself #1446
+
 ## v0.8.10-beta
 
  **New Features**:

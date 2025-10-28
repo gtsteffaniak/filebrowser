@@ -35,6 +35,8 @@ import PlaybackQueue from "./PlaybackQueue.vue";
 import FileList from "./FileList.vue";
 import SaveBeforeExit from "./SaveBeforeExit.vue";
 import CopyPasteConfirm from "./CopyPasteConfirm.vue";
+import CloseWithActiveUploads from "./CloseWithActiveUploads.vue";
+import Generic from "./Generic.vue";
 import { state, getters, mutations } from "@/store"; // Import your custom store
 
 export default {
@@ -66,6 +68,8 @@ export default {
     "file-list": FileList,
     SaveBeforeExit,
     CopyPasteConfirm,
+    CloseWithActiveUploads,
+    generic: Generic,
   },
   data() {
     return {
@@ -102,6 +106,9 @@ export default {
             break;
           case "replace":
             prompt.showConfirm(event);
+            break;
+          case "generic":
+            prompt.submit();
             break;
           case "CopyPasteConfirm":
             prompt.confirm();

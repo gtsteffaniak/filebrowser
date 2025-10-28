@@ -189,9 +189,12 @@ type ConditionalIndexConfig struct {
 	FolderEndsWith   string `json:"folderEndsWith"`   // (global) exclude folders that end with these suffixes. Eg. ".thumbnails" or ".git"
 	FolderPath       string `json:"folderPath"`       // (global) exclude folders that match this path. Eg. "/path/to/folder" or "/path/to/folder/subfolder"
 	FilePath         string `json:"filePath"`         // (global) exclude files that match this path. Eg. "/path/to/file.txt" or "/path/to/file.txt/subfile.txt"
-	FileNames        string `json:"fileNames"`        // (global) exclude files that match these names. Eg. "file.txt" or "test.csv"
-	FolderNames      string `json:"folderNames"`      // (global) exclude folders that match these names. Eg. "folder" or "subfolder"
-	Viewable         bool   `json:"viewable"`         // Enable viewing in UI but exclude from indexing
+	FileNames        string `json:"fileNames"`        // deprecated: exclude files that match these names. Eg. "file.txt" or "test.csv"
+	FolderNames      string `json:"folderNames"`      // deprecated: exclude folders that match these names. Eg. "folder" or "subfolder"
+	FileName         string `json:"fileName"`         // (global) exclude files that match these names. Eg. "file.txt" or "test.csv"
+	FolderName       string `json:"folderName"`       // (global) exclude folders that match these names. Eg. "folder" or "subfolder"
+
+	Viewable bool `json:"viewable"` // Enable viewing in UI but exclude from indexing
 }
 
 // ConditionalMaps provides O(1) lookup performance for conditional rules
@@ -228,11 +231,12 @@ type Frontend struct {
 }
 
 type StylingConfig struct {
-	CustomCSS       string                 `json:"customCSS"`       // if a valid path to a css file is provided, it will be applied for all users. (eg. "reduce-rounded-corners.css")
-	CustomCSSRaw    string                 `json:"-"`               // The css raw content to use for the custom css.
-	LightBackground string                 `json:"lightBackground"` // specify a valid CSS color property value to use as the background color in light mode
-	DarkBackground  string                 `json:"darkBackground"`  // Specify a valid CSS color property value to use as the background color in dark mode
-	CustomThemes    map[string]CustomTheme `json:"customThemes"`    // A list of custom css files that each user can select to override the default styling. if "default" is key name then it will be the default option.
+	DisableEventBasedThemes bool                   `json:"disableEventThemes"` // disable the event based themes,
+	CustomCSS               string                 `json:"customCSS"`          // if a valid path to a css file is provided, it will be applied for all users. (eg. "reduce-rounded-corners.css")
+	CustomCSSRaw            string                 `json:"-"`                  // The css raw content to use for the custom css.
+	LightBackground         string                 `json:"lightBackground"`    // specify a valid CSS color property value to use as the background color in light mode
+	DarkBackground          string                 `json:"darkBackground"`     // Specify a valid CSS color property value to use as the background color in dark mode
+	CustomThemes            map[string]CustomTheme `json:"customThemes"`       // A list of custom css files that each user can select to override the default styling. if "default" is key name then it will be the default option.
 	// In-memory (not exposed to config)
 	CustomThemeOptions map[string]CustomTheme `json:"-"` // not exposed
 }

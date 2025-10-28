@@ -21,7 +21,7 @@ async function globalSetup() {
   await expect(page).toHaveURL(finalUrl);
 
   const cookies = await context.cookies();
-  expect(cookies.find((c) => c.name === "auth")?.value).toBeDefined();
+  expect(cookies.find((c) => c.name === "filebrowser_quantum_jwt")?.value).toBeDefined();
 
   await context.storageState({ path: "./loginAuth.json" });
   await browser.close();

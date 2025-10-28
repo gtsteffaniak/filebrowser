@@ -36,6 +36,10 @@ export default {
       debugMode: false,
       hasErrors: false,
       onlyOfficeServerCheck: "pending",
+      // OnlyOffice log streaming
+      onlyOfficeLogs: [],
+      documentId: null,
+      sseConnection: null,
     };
   },
   computed: {
@@ -63,6 +67,9 @@ export default {
       this.monitorCallbackIssues();
     }
 
+    // Setup OnlyOffice log streaming early to catch events
+    this.setupOnlyOfficeLogStreaming();
+
     // Perform the setup and update the config with simplified API parameters
     try {
       // Update debug info
@@ -80,6 +87,12 @@ export default {
       configData.type = state.isMobile ? "mobile" : "desktop";
       this.clientConfig = configData;
       console.log("OnlyOffice client config received:", this.clientConfig);
+
+      // Extract document ID for log streaming
+      if (this.clientConfig.document && this.clientConfig.document.key) {
+        this.documentId = this.clientConfig.document.key;
+        // Note: setupOnlyOfficeLogStreaming() is already called in mounted() for early setup
+      }
 
       // if language is not en , set it to the current language
       if (state.user.locale !== "en") {
@@ -111,6 +124,16 @@ export default {
       }
       // TODO: Show user-friendly error message
     }
+  },
+  beforeUnmount() {
+    // Clean up SSE connection
+    if (this.sseConnection) {
+      this.sseConnection.close();
+      this.sseConnection = null;
+    }
+
+    // Clean up global SSE event listener
+    window.removeEventListener('onlyOfficeLogEvent', this.handleOnlyOfficeLogEvent);
   },
   methods: {
     getInternalUrlInfo() {
@@ -226,8 +249,10 @@ export default {
         const downloadDomain = doc.url ? new URL(doc.url).origin : 'N/A';
 
         configDetailsHtml = `
-          <div style="margin-bottom: 15px; padding: 10px; border-radius: 4px;">
-            <strong>OnlyOffice Configuration Details:</strong><br/>
+          <div class="debug-section debug-section-config">
+            <div class="debug-section-header">
+              <strong class="debug-section-title">🔧 OnlyOffice Configuration Details</strong>
+            </div>
             Document Key: ${doc.key}<br/>
             File Type: ${doc.fileType}<br/>
             Edit Mode: ${editor ? editor.mode : 'N/A'}<br/>
@@ -245,32 +270,34 @@ export default {
       let overallStatus = "";
       if (this.hasErrors) {
         overallStatus = `
-          <div style="margin-top: 15px; padding: 10px; background: #ffebee; border-radius: 4px; color: #c62828;">
+          <div class="debug-status-error">
             <strong>❌ Error Detected</strong><br/>
             OnlyOffice integration failed. Check the failed steps above.<br/>
-            <a href="${wikiLink}" target="_blank" style="color: #1976d2;">
+            <a href="${wikiLink}" target="_blank">
               ${wikiLinkText}
             </a>
           </div>
         `;
       } else if (this.debugInfo.includes("🎉") && !this.hasErrors) {
         overallStatus = `
-          <div style="margin-top: 15px; padding: 10px; background: #e8f5e8; border-radius: 4px; color: #2e7d32;">
-            <strong>🎉 Success!</strong><br/>
-            OnlyOffice integration completed successfully. No issues found!
+          <div class="debug-status-success">
+            <strong>🎉 Document Initialized</strong><br/>
+            OnlyOffice integration intialized successfully. Monitor backend logs for any issues.
           </div>
         `;
       }
 
       let content = `
-        <div style="font-family: monospace; font-size: 11px; line-height: 1.4;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <h3 style="margin: 0; color: #2196F3;">🔧 OnlyOffice Debug Trace</h3>
+        <div class="debug-tooltip">
+          <div class="debug-header">
+            <h3 class="debug-title">🔧 OnlyOffice Debug Trace</h3>
             <button class="button tooltip-close-button" onclick="window.closeTooltip()" >x</button>
           </div>
 
-          <div style="margin-bottom: 15px; padding: 10px; border-radius: 4px;">
-            <strong>Basic Configuration:</strong><br/>
+          <div class="debug-section debug-section-basic">
+            <div class="debug-section-header">
+              <strong class="debug-section-title">⚙️ Basic Configuration</strong>
+            </div>
             OnlyOffice URL: ${this.onlyOfficeUrl}<br/>
             Internal URL: ${internalUrlInfo.message}<br/>
             Base URL: ${globalVars.baseURL}<br/>
@@ -286,6 +313,23 @@ export default {
             <strong>Process Steps:</strong><br/>
             ${this.debugInfo}
           </div>
+
+          ${this.onlyOfficeLogs.length > 0 ? `
+            <div class="debug-section debug-section-logs">
+              <div class="debug-section-header-logs">
+                <strong class="debug-section-title-logs">📋 Backend Logs</strong>
+                <span class="debug-section-counter">${this.onlyOfficeLogs.length} entries</span>
+              </div>
+              ${this.onlyOfficeLogs.slice(-10).map(log =>
+                `<div class="debug-log-entry">
+                  <span class="debug-log-level" style="color: ${this.getLogLevelColor(log.level)};">[${log.level}]</span>
+                  <span class="debug-log-timestamp">${new Date(log.timestamp).toLocaleTimeString()}</span>
+                  <span class="debug-log-component">[${log.component}]</span>
+                  <span class="debug-log-message">${log.message}</span>
+                </div>`
+              ).join('')}
+            </div>
+          ` : 'Backend logs are not available -- user must be admin to view backend logs'}
 
           ${overallStatus}
         </div>
@@ -384,9 +428,6 @@ export default {
           if (!this.hasErrors && !detectedNetworkError) {
             this.updateDebugStatus("✅ Document Download - Complete");
             this.updateDebugStatus("🎉 Editor Initialization - Success! All steps completed.");
-
-            // Start monitoring for server-to-server communication issues
-            this.monitorServerToServerCommunication();
           }
         }, 4000);
 
@@ -678,54 +719,85 @@ export default {
         getStats: () => ({ documentOpened, saveAttempts, lastSaveAttempt })
       };
     },
+    // Setup SSE connection for OnlyOffice logs
+    setupOnlyOfficeLogStreaming() {
+      // Allow log streaming for admin users or when in debug mode
+      if (!state.user.permissions.admin && !this.debugMode) {
+        return;
+      }
+      
+      // Setup the global SSE listener (documentId will be set later if not available yet)
+      this.setupGlobalSSEListener();
+    },
 
-    // Monitor for server-to-server communication issues (OnlyOffice server → FileBrowser API)
-    monitorServerToServerCommunication() {
-      if (!this.debugMode) return;
+    // Setup listener for global SSE events
+    setupGlobalSSEListener() {
+      // Bind the event handler to this component instance
+      this.handleOnlyOfficeLogEvent = this.handleOnlyOfficeLogEvent.bind(this);
+      
+      // Listen for custom events that we'll dispatch from the global SSE system
+      window.addEventListener('onlyOfficeLogEvent', this.handleOnlyOfficeLogEvent);
+    },
 
-      // Instead of testing the download URL (which fails due to hostname resolution),
-      // we'll monitor for actual callback success/failure patterns
-      this.updateDebugStatus("🔄 Monitoring OnlyOffice server → FileBrowser API communication...");
+    // Handle OnlyOffice log events from global SSE system
+    handleOnlyOfficeLogEvent(event) {
+      const logData = event.detail;
+      
+      // If documentId is not set yet, store the log for later (this can happen during early setup)
+      if (!this.documentId) {
+        this.addOnlyOfficeLog(logData);
+        return;
+      }
+      
+      // Filter logs for this document
+      if (logData.documentId === this.documentId) {
+        this.addOnlyOfficeLog(logData);
+      }
+    },
 
-      // Set up a timer to check if callbacks are working
-      let callbackCount = 0;
+    // Add OnlyOffice log to the display
+    addOnlyOfficeLog(logData) {
 
-      // Monitor for successful callbacks in the network tab
-      const originalFetch = window.fetch;
-      window.fetch = (...args) => {
-        return originalFetch.apply(window, args).then(response => {
-          if (response.url.includes('onlyoffice/callback') && response.status === 200) {
-            callbackCount++;
-            this.updateDebugStatus(`✅ OnlyOffice callback #${callbackCount} received successfully`);
-          }
-          return response;
-        });
+      const logEntry = {
+        id: Date.now() + Math.random(),
+        timestamp: logData.timestamp,
+        level: logData.logLevel,
+        component: logData.component,
+        message: logData.message,
+        username: logData.username,
+        sessionId: logData.sessionId
       };
 
-      // Check after 10 seconds if we've seen any callbacks
-      setTimeout(() => {
-        window.fetch = originalFetch; // Restore original fetch
+      this.onlyOfficeLogs.push(logEntry);
+      console.log("OnlyOffice debug: Total logs now:", this.onlyOfficeLogs.length);
 
-        if (callbackCount > 0) {
-          this.updateDebugStatus(`✅ OnlyOffice server → FileBrowser API communication confirmed (${callbackCount} callbacks received)`);
-        } else {
-          // Only show warning if we haven't seen any callbacks and document was opened
-          if (this.clientConfig && this.clientConfig.document) {
-            this.updateDebugStatus(`
-              ⚠️ No OnlyOffice callbacks detected yet<br/>
-              <strong>Note:</strong> This is normal if you haven't made changes to the document<br/>
-              <strong>Expected:</strong> Callbacks will appear when you edit and save the document<br/>
-              <strong>If editing fails:</strong> Check OnlyOffice server logs for callback errors<br/>
-            `);
-          }
-        }
-      }, 10000);
+      // Keep only last 50 logs to prevent memory issues
+      if (this.onlyOfficeLogs.length > 50) {
+        this.onlyOfficeLogs = this.onlyOfficeLogs.slice(-50);
+      }
+
+      // Note: Log display is handled by the dedicated Backend Logs section
+      // No need to add to Process Steps section
+
+      // Force update the debug tooltip to show the new logs
+      this.updateDebugTooltip();
+    },
+
+    // Get color for log level
+    getLogLevelColor(level) {
+      switch (level) {
+        case 'ERROR': return '#f44336';
+        case 'WARN': return '#ff9800';
+        case 'INFO': return '#4caf50';
+        case 'DEBUG': return '#2196f3';
+        default: return '#666';
+      }
     },
   },
 };
 </script>
 
-<style scoped>
+<style >
 .floating-close {
   position: fixed;
   left: 50%;
@@ -748,4 +820,124 @@ export default {
   padding-left: 1em;
 }
 
+/* Debug tooltip styles */
+.debug-tooltip {
+  font-family: monospace;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.debug-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.debug-title {
+  margin: 0;
+  color: #2196F3;
+}
+
+.debug-section {
+  margin-bottom: 15px;
+  padding: 10px;
+  border-radius: 4px;
+}
+
+.debug-section-basic {
+  background: #424242;
+  color: white;
+}
+
+.debug-section-config {
+  background: #424242;
+  color: white;
+}
+
+.debug-section-logs {
+  background: #f5f5f5;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.debug-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid rgba(255,255,255,0.3);
+}
+
+.debug-section-header-logs {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid #ddd;
+}
+
+.debug-section-title {
+  color: white;
+}
+
+.debug-section-title-logs {
+  color: #2196F3;
+}
+
+.debug-section-counter {
+  font-size: 10px;
+  color: #666;
+}
+
+.debug-log-entry {
+  margin: 2px 0;
+  font-size: 10px;
+  font-family: monospace;
+  padding: 2px 4px;
+  border-radius: 2px;
+  background: rgba(255,255,255,0.5);
+  color: #000;
+}
+
+.debug-log-level {
+  font-weight: bold;
+}
+
+.debug-log-timestamp {
+  color: #666;
+  margin-left: 4px;
+}
+
+.debug-log-component {
+  color: #2196F3;
+  margin-left: 4px;
+}
+
+.debug-log-message {
+  color: #000;
+  margin-left: 4px;
+}
+
+.debug-status-success {
+  margin-top: 15px;
+  padding: 10px;
+  background: #e8f5e8;
+  border-radius: 4px;
+  color: #2e7d32;
+}
+
+.debug-status-error {
+  margin-top: 15px;
+  padding: 10px;
+  background: #ffebee;
+  border-radius: 4px;
+  color: #c62828;
+}
+
+.debug-status-error a {
+  color: #1976d2;
+}
 </style>

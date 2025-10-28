@@ -61,7 +61,11 @@
     "selectAll": "Selecionar tudo",
     "discardAndExit": "Descartar e sair",
     "saveAndExit": "Guardar e sair",
-    "keepEditing": "Continuar a editar"
+    "keepEditing": "Continuar a editar",
+    "stayOnPrompt": "Ficar",
+    "closeAnyway": "Fechar de qualquer maneira",
+    "disable": "Desativar",
+    "confirm": "Confirmar"
   },
   "download": {
     "downloadFile": "Descarregar ficheiro",
@@ -220,7 +224,9 @@
     "copyItemQuestion": "Copiar este item para a nova localização?",
     "moveItemQuestion": "Mover este item para a nova localização?",
     "sourcePath": "Fonte:",
-    "destinationPath": "Destino:"
+    "destinationPath": "Destino:",
+    "closeWithActiveUploadsMessage": "Aviso: Tem carregamentos activos e fechar a janela de carregamento pode resultar em carregamentos inacabados. O que é que gostaria de fazer?",
+    "closeWithActiveUploads": "Carregamentos activos"
   },
   "search": {
     "images": "Imagens",
@@ -430,8 +436,6 @@
     "light": "Luz",
     "enableOnlyOffice": "Ativar o visualizador OnlyOffice",
     "enableOnlyOfficeDescription": "Permitir a visualização de ficheiros de escritório utilizando o OnlyOffice nesta partilha.",
-    "enableOnlyOfficeEditing": "Ativar a edição OnlyOffice",
-    "enableOnlyOfficeEditingDescription": "Permitir a edição de ficheiros do Office utilizando o OnlyOffice nesta partilha.",
     "titleDefault": "Ficheiros partilhados - {title}",
     "defaultViewMode": "Modo de visualização predefinido",
     "defaultViewModeDescription": "Define o modo de visualização predefinido para os utilizadores anónimos que visualizam esta partilha. Os utilizadores com sessão iniciada ainda podem alterar a sua preferência de visualização.",
@@ -639,5 +643,9 @@
     "changePlaybackMode": "Alterar modo de reprodução",
     "changePlaybackModeHint": "Altere o modo de reprodução para ver mais arquivos",
     "emptyQueue": "A fila está vazia"
+  },
+  "halloween": {
+    "title": "Feliz Dia das Bruxas!",
+    "body": "O tema do Dia das Bruxas foi aplicado. Pode desactivá-lo se não gostar dele, ou desactivá-lo permanentemente nas definições do perfil, selecionando qualquer outro tema."
   }
 }

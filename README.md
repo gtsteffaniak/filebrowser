@@ -8,7 +8,7 @@
 
   [![Donate](https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif)](https://github.com/gtsteffaniak/filebrowser/wiki/Q&A#is-there-a-way-to-donate-or-support-this-project)
 
-  <img width="150" src="https://github.com/user-attachments/assets/59986a2a-f960-4536-aa35-4a9a7c98ad48" title="Logo">
+  <img width="150" src="https://github.com/user-attachments/assets/c40b22c9-33da-47b7-bc4c-ce69bb5cc174" title="Logo">
   <h3>FileBrowser Quantum</h3>
   The best free self-hosted web-based file manager.
   <br/><br/>
@@ -20,7 +20,7 @@
 
 ## Pinned
 
-:loudspeaker: [Stable Release & 0.9.0 Update](https://github.com/gtsteffaniak/filebrowser/discussions/1293)
+:loudspeaker: [Stable Release & v1.0.0 Update](https://github.com/gtsteffaniak/filebrowser/discussions/1293)
 
 :pushpin: [Read The Official Docs](https://filebrowserquantum.com/) (currently english-only)
 
@@ -98,8 +98,7 @@ a pop-up menu.
 See the [Official Docs](https://filebrowserquantum.com/). Contributions are welcome and encouraged! See [FilebrowserDocs Github](https://github.com/quantumx-apps/filebrowserDocs).
 
 ## Comparison Chart
-
-Application Name | <img width="48" src="https://github.com/user-attachments/assets/59986a2a-f960-4536-aa35-4a9a7c98ad48" > Quantum | <img width="48" src="https://github.com/filebrowser/filebrowser/blob/master/frontend/public/img/logo.svg" > Filebrowser | <img width="48" src="https://github.com/mickael-kerjean/filestash/blob/master/public/assets/logo/app_icon.png?raw=true" > Filestash | <img width="48" src="https://avatars.githubusercontent.com/u/19211038?s=200&v=4" >  Nextcloud | <img width="48" src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Google_Drive_logo.png/480px-Google_Drive_logo.png" > Google_Drive | <img width="48" src="https://avatars.githubusercontent.com/u/6422152?v=4" > FileRun
+Application Name | <img width="48" src="https://github.com/user-attachments/assets/c40b22c9-33da-47b7-bc4c-ce69bb5cc174" > Quantum | <img width="48" src="https://github.com/filebrowser/filebrowser/blob/master/frontend/public/img/logo.svg" > Filebrowser | <img width="48" src="https://github.com/mickael-kerjean/filestash/blob/master/public/assets/logo/app_icon.png?raw=true" > Filestash | <img width="48" src="https://avatars.githubusercontent.com/u/19211038?s=200&v=4" >  Nextcloud | <img width="48" src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Google_Drive_logo.png/480px-Google_Drive_logo.png" > Google_Drive | <img width="48" src="https://avatars.githubusercontent.com/u/6422152?v=4" > FileRun
 --- | --- | --- | --- | --- | --- | --- |
 Filesystem support            | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ |
 Linux                         | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |

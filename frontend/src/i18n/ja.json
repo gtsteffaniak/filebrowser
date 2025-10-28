@@ -61,7 +61,11 @@
     "selectAll": "すべて選択",
     "discardAndExit": "破棄と終了",
     "saveAndExit": "保存して終了する",
-    "keepEditing": "編集を続ける"
+    "keepEditing": "編集を続ける",
+    "stayOnPrompt": "滞在",
+    "closeAnyway": "とにかく閉じる",
+    "disable": "無効",
+    "confirm": "確認"
   },
   "download": {
     "downloadFile": "ファイルをダウンロード",
@@ -220,7 +224,9 @@
     "copyItemQuestion": "このアイテムを新しい場所にコピーしますか？",
     "moveItemQuestion": "このアイテムを新しい場所に移動しますか？",
     "sourcePath": "ソース",
-    "destinationPath": "目的地だ："
+    "destinationPath": "目的地だ：",
+    "closeWithActiveUploadsMessage": "警告アクティブなアップロードがあり、アップロードプロンプトを閉じるとアップロードが未完了になる可能性があります。どうしますか？",
+    "closeWithActiveUploads": "アクティブなアップロード"
   },
   "search": {
     "images": "画像",
@@ -430,10 +436,8 @@
     "light": "ライト",
     "enableOnlyOffice": "OnlyOfficeビューアを有効にする",
     "enableOnlyOfficeDescription": "この共有でOnlyOfficeを使用したオフィスファイルの閲覧を許可する",
-    "enableOnlyOfficeEditing": "OnlyOffice編集を有効にする",
     "defaultViewMode": "デフォルトの表示モード",
     "defaultViewModeDescription": "匿名ユーザーがこの共有を閲覧する際のデフォルトの表示モードを設定します。ログインしているユーザーは、表示モードを変更することができます。",
-    "enableOnlyOfficeEditingDescription": "この共有でOnlyOfficeを使ったオフィスファイルの編集を許可する",
     "titleDefault": "共有ファイル{title}",
     "disableFileViewer": "ファイルビューアを無効にする",
     "shareType": "シェアタイプ",
@@ -639,5 +643,9 @@
     "changePlaybackMode": "再生モードを変更",
     "changePlaybackModeHint": "再生モードを変更してより多くのファイルを表示",
     "emptyQueue": "キューは空です"
+  },
+  "halloween": {
+    "title": "ハッピー・ハロウィーン",
+    "body": "ハロウィーンのテーマが適用されました。気に入らなければ無効にするか、プロフィール設定で他のテーマを選択して永久に無効にすることができます。"
   }
 }

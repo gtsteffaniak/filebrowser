@@ -61,7 +61,11 @@
     "selectAll": "Selecionar tudo",
     "discardAndExit": "Descartar e sair",
     "saveAndExit": "Salvar e sair",
-    "keepEditing": "Continuar editando"
+    "keepEditing": "Continuar editando",
+    "stayOnPrompt": "Permanecer",
+    "closeAnyway": "Fechar de qualquer maneira",
+    "disable": "Desativar",
+    "confirm": "Confirmar"
   },
   "download": {
     "downloadFile": "Baixar arquivo",
@@ -220,7 +224,9 @@
     "copyItemQuestion": "Copiar esse item para o novo local?",
     "moveItemQuestion": "Mover esse item para o novo local?",
     "sourcePath": "Fonte:",
-    "destinationPath": "Destino:"
+    "destinationPath": "Destino:",
+    "closeWithActiveUploadsMessage": "Aviso: Você tem uploads ativos e fechar o prompt de upload pode resultar em uploads inacabados. O que você gostaria de fazer?",
+    "closeWithActiveUploads": "Uploads ativos"
   },
   "search": {
     "images": "Imagens",
@@ -430,8 +436,6 @@
     "light": "Luz",
     "enableOnlyOffice": "Ativar o visualizador do OnlyOffice",
     "enableOnlyOfficeDescription": "Permitir a visualização de arquivos do Office usando o OnlyOffice nesse compartilhamento.",
-    "enableOnlyOfficeEditing": "Ativar a edição do OnlyOffice",
-    "enableOnlyOfficeEditingDescription": "Permitir a edição de arquivos do Office usando o OnlyOffice nesse compartilhamento.",
     "titleDefault": "Arquivos compartilhados - {title}",
     "defaultViewMode": "Modo de exibição padrão",
     "defaultViewModeDescription": "Define o modo de exibição padrão para usuários anônimos que visualizam esse compartilhamento. Os usuários conectados ainda podem alterar sua preferência de visualização.",
@@ -639,5 +643,9 @@
     "changePlaybackMode": "Alterar modo de reprodução",
     "changePlaybackModeHint": "Altere o modo de reprodução para ver mais arquivos",
     "emptyQueue": "A fila está vazia"
+  },
+  "halloween": {
+    "title": "Feliz Dia das Bruxas!",
+    "body": "O tema Halloween foi aplicado. Você pode desativá-lo se não gostar dele ou desativá-lo permanentemente nas configurações de perfil, selecionando qualquer outro tema."
   }
 }

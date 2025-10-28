@@ -61,7 +61,11 @@
     "selectAll": "Válasszon ki mindent",
     "discardAndExit": "Dobás és kilépés",
     "saveAndExit": "Mentés és kilépés",
-    "keepEditing": "Szerkesztés folytatása"
+    "keepEditing": "Szerkesztés folytatása",
+    "stayOnPrompt": "Maradj",
+    "closeAnyway": "Egyébként bezárni",
+    "disable": "A  letiltása",
+    "confirm": "Megerősítés"
   },
   "download": {
     "downloadFile": "Fájl letöltése",
@@ -220,7 +224,9 @@
     "copyItemQuestion": "Másolja ezt az elemet az új helyre?",
     "moveItemQuestion": "Áthelyezni ezt az elemet az új helyre?",
     "sourcePath": "Forrás:",
-    "destinationPath": "Úti cél:"
+    "destinationPath": "Úti cél:",
+    "closeWithActiveUploadsMessage": "Figyelmeztetés: A feltöltési prompt bezárása befejezetlen feltöltéseket eredményezhet. Mit szeretne tenni?",
+    "closeWithActiveUploads": "Aktív feltöltések"
   },
   "search": {
     "images": "Képek",
@@ -430,8 +436,6 @@
     "light": "Fény",
     "enableOnlyOffice": "OnlyOffice megjelenítő engedélyezése",
     "enableOnlyOfficeDescription": "Engedélyezze az irodai fájlok megtekintését az OnlyOffice használatával ezen a megosztáson.",
-    "enableOnlyOfficeEditing": "Engedélyezze az OnlyOffice szerkesztést",
-    "enableOnlyOfficeEditingDescription": "Engedélyezze az irodai fájlok szerkesztését az OnlyOffice használatával ezen a megosztáson.",
     "titleDefault": "Megosztott fájlok - {title}",
     "defaultViewMode": "Alapértelmezett nézetmód",
     "defaultViewModeDescription": "A megosztást megtekintő névtelen felhasználók alapértelmezett megtekintési módjának beállítása. A bejelentkezett felhasználók továbbra is módosíthatják a nézeti beállításaikat.",
@@ -639,5 +643,9 @@
     "changePlaybackMode": "Lejátszási mód változtatása",
     "changePlaybackModeHint": "Változtasd meg a lejátszási módot, hogy több fájlt láss",
     "emptyQueue": "A sor üres"
+  },
+  "halloween": {
+    "title": "Boldog Halloweent!",
+    "body": "A Halloween témát alkalmazták. Ha nem tetszik, letilthatja, vagy véglegesen letilthatja a profilbeállításokban bármely más téma kiválasztásával."
   }
 }

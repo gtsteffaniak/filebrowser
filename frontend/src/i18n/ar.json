@@ -61,7 +61,11 @@
     "selectAll": "اختر الكل",
     "discardAndExit": "التخلص والخروج",
     "saveAndExit": "الحفظ والخروج",
-    "keepEditing": "استمر في التحرير"
+    "keepEditing": "استمر في التحرير",
+    "stayOnPrompt": "ابق في مكانك",
+    "closeAnyway": "إغلاق على أي حال",
+    "disable": "تعطيل",
+    "confirm": "تأكيد"
   },
   "download": {
     "downloadFile": "Download File",
@@ -220,7 +224,9 @@
     "copyItemQuestion": "نسخ هذا العنصر إلى الموقع الجديد؟",
     "moveItemQuestion": "نقل هذا العنصر إلى الموقع الجديد؟",
     "sourcePath": "المصدر:",
-    "destinationPath": "الوجهة"
+    "destinationPath": "الوجهة",
+    "closeWithActiveUploadsMessage": "تحذير: لديك تحميلات نشطة وقد يؤدي إغلاق مطالبة التحميل إلى تحميلات غير مكتملة. ماذا تريد أن تفعل؟",
+    "closeWithActiveUploads": "التحميلات النشطة"
   },
   "search": {
     "images": "الصور",
@@ -430,8 +436,6 @@
     "light": "خفيف",
     "enableOnlyOffice": "تمكين عارض OnlyOffice فقط",
     "enableOnlyOfficeDescription": "السماح بعرض ملفات المكتب باستخدام OnlyOffice في هذه المشاركة.",
-    "enableOnlyOfficeEditing": "تمكين التحرير في المكتب فقط",
-    "enableOnlyOfficeEditingDescription": "السماح بتحرير الملفات المكتبية باستخدام OnlyOffice في هذه الحصة.",
     "titleDefault": "الملفات المشتركة - {title}",
     "defaultViewMode": "وضع العرض الافتراضي",
     "defaultViewModeDescription": "تعيين وضع العرض الافتراضي للمستخدمين المجهولين الذين يشاهدون هذه المشاركة. لا يزال بإمكان المستخدمين المسجلين الدخول تغيير تفضيلات العرض الخاصة بهم.",
@@ -639,5 +643,9 @@
     "changePlaybackMode": "تغيير وضع التشغيل",
     "changePlaybackModeHint": "غير وضع التشغيل لرؤية المزيد من الملفات",
     "emptyQueue": "قائمة التشغيل فارغة"
+  },
+  "halloween": {
+    "title": "عيد هالوين سعيد!",
+    "body": "تم تطبيق سمة الهالوين. يمكنك تعطيله إذا لم يعجبك، أو تعطيله بشكل دائم في إعدادات الملف الشخصي عن طريق تحديد أي سمة أخرى."
   }
 }

@@ -117,7 +117,6 @@
           <input class="input" type="text" v-model.trim="allowedUsernames" :placeholder="$t('share.allowedUsernamesPlaceholder')" />
         </div>
         <ToggleSwitch v-if="shareType === 'normal' && onlyOfficeAvailable" class="item" v-model="enableOnlyOffice" :name="$t('share.enableOnlyOffice')" :description="$t('share.enableOnlyOfficeDescription')" />
-        <ToggleSwitch v-if="shareType === 'normal' && onlyOfficeAvailable" class="item" v-model="enableOnlyOfficeEditing" :name="$t('share.enableOnlyOfficeEditing')" :description="$t('share.enableOnlyOfficeEditingDescription')" />
         <p>
           {{ $t("share.enforceDarkLightMode") }}
           <i
@@ -365,8 +364,7 @@ export default {
       disableSidebar: false,
       enforceDarkLightMode: "default",
       viewMode: "normal",
-      enableOnlyOffice: false,
-      enableOnlyOfficeEditing: false,
+      enableOnlyOffice: false,  
       shareType: "normal",
       extractEmbeddedSubtitles: false,
       /** @type {Share | null} */
@@ -469,7 +467,6 @@ export default {
           this.enforceDarkLightMode = this.link.enforceDarkLightMode || "default";
           this.viewMode = this.link.viewMode || "normal";
           this.enableOnlyOffice = this.link.enableOnlyOffice || false;
-          this.enableOnlyOfficeEditing = this.link.enableOnlyOfficeEditing || false;
           this.shareType = this.link.shareType || "normal";
           this.extractEmbeddedSubtitles = this.link.extractEmbeddedSubtitles || false;
           //this.viewMode = this.link.viewMode || "normal";
@@ -562,7 +559,6 @@ export default {
           enforceDarkLightMode: this.enforceDarkLightMode,
           viewMode: this.viewMode,
           enableOnlyOffice: this.enableOnlyOffice,
-          enableOnlyOfficeEditing: this.enableOnlyOfficeEditing,
           shareType: this.shareType,
           extractEmbeddedSubtitles: this.extractEmbeddedSubtitles,
         };
@@ -638,7 +634,6 @@ export default {
       this.enforceDarkLightMode = link.enforceDarkLightMode || "default";
       this.viewMode = link.viewMode || "normal";
       this.enableOnlyOffice = link.enableOnlyOffice || false;
-      this.enableOnlyOfficeEditing = link.enableOnlyOfficeEditing || false;
       this.shareType = link.shareType || "normal";
       this.extractEmbeddedSubtitles = link.extractEmbeddedSubtitles || false;
       // Store the link being edited

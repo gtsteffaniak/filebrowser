@@ -1,5 +1,5 @@
 <template>
-  <div class="scroll-wrapper" ref="wrapper">
+  <div class="scroll-wrapper" :class="{ 'halloween-theme': eventTheme === 'halloween' }" ref="wrapper">
     <slot />
     <div
       class="custom-scrollbar"
@@ -52,6 +52,9 @@ export default {
     };
   },
   computed: {
+    eventTheme() {
+      return getters.eventTheme();
+    },
     isScrollable() {
       return getters.isScrollable();
     },

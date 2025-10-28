@@ -61,7 +61,11 @@
     "selectAll": "Wybierz wszystko",
     "discardAndExit": "Odrzuć i wyjdź",
     "saveAndExit": "Zapisz i wyjdź",
-    "keepEditing": "Kontynuuj edycję"
+    "keepEditing": "Kontynuuj edycję",
+    "stayOnPrompt": "Zostań",
+    "closeAnyway": "W każdym razie blisko",
+    "disable": "Wyłącz",
+    "confirm": "Potwierdzenie"
   },
   "download": {
     "downloadFile": "Pobierz plik",
@@ -220,7 +224,9 @@
     "copyItemQuestion": "Skopiować ten element do nowej lokalizacji?",
     "moveItemQuestion": "Przenieść ten element do nowej lokalizacji?",
     "sourcePath": "Źródło:",
-    "destinationPath": "Miejsce docelowe:"
+    "destinationPath": "Miejsce docelowe:",
+    "closeWithActiveUploadsMessage": "Ostrzeżenie: Masz aktywne przesyłanie, a zamknięcie monitu o przesłanie może spowodować niedokończone przesyłanie. Co chcesz zrobić?",
+    "closeWithActiveUploads": "Aktywne przesyłanie"
   },
   "search": {
     "images": "Zdjęcia",
@@ -430,8 +436,6 @@
     "light": "Światło",
     "enableOnlyOffice": "Włącz przeglądarkę OnlyOffice",
     "enableOnlyOfficeDescription": "Zezwalaj na wyświetlanie plików biurowych przy użyciu OnlyOffice w tym udziale.",
-    "enableOnlyOfficeEditing": "Włącz edycję OnlyOffice",
-    "enableOnlyOfficeEditingDescription": "Zezwalaj na edycję plików biurowych za pomocą OnlyOffice w tym udziale.",
     "titleDefault": "Udostępnione pliki - {title}",
     "defaultViewMode": "Domyślny tryb widoku",
     "defaultViewModeDescription": "Ustawia domyślny tryb widoku dla anonimowych użytkowników przeglądających ten folder udostępniony. Zalogowani użytkownicy mogą nadal zmieniać swoje preferencje widoku.",
@@ -639,5 +643,9 @@
     "changePlaybackMode": "Zmień tryb odtwarzania",
     "changePlaybackModeHint": "Zmień tryb odtwarzania, aby zobaczyć więcej plików",
     "emptyQueue": "Kolejka jest pusta"
+  },
+  "halloween": {
+    "title": "Wesołego Halloween!",
+    "body": "Motyw Halloween został zastosowany. Możesz go wyłączyć, jeśli Ci się nie podoba, lub wyłączyć go na stałe w ustawieniach profilu, wybierając inny motyw."
   }
 }

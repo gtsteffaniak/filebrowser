@@ -4,7 +4,6 @@
     v-if="enabled && hasPrevious"
     class="nav-zone nav-zone-left"
     :class="{ moveWithSidebar: moveWithSidebar }"
-    @mousemove="toggleNavigation"
     @touchstart="(e) => { handleTouchStart(e); toggleNavigation(e); }"
     @touchmove="handleTouchMove"
   ></div>
@@ -13,7 +12,6 @@
   <div
     v-if="enabled && hasNext"
     class="nav-zone nav-zone-right"
-    @mousemove="toggleNavigation"
     @touchstart="(e) => { handleTouchStart(e); toggleNavigation(e); }"
     @touchmove="handleTouchMove"
   ></div>
@@ -213,6 +211,7 @@ export default {
     window.addEventListener("touchmove", this.handleDrag, { passive: false });
     window.addEventListener("touchend", this.endDrag);
     document.addEventListener("click", this.handleDocumentClick);
+    window.addEventListener("mousemove", this.handleGlobalMouseMove);
 
     // Calculate 10em threshold in pixels
     const emSize = parseFloat(getComputedStyle(document.documentElement).fontSize);
@@ -238,6 +237,7 @@ export default {
     window.removeEventListener("touchmove", this.handleDrag);
     window.removeEventListener("touchend", this.endDrag);
     document.removeEventListener("click", this.handleDocumentClick);
+    window.removeEventListener("mousemove", this.handleGlobalMouseMove);
 
     // Clear our local timeout
     if (this.navigationTimeout) {
@@ -254,6 +254,48 @@ export default {
     updateNavigationEnabled() {
       const shouldEnable = previewViews.includes(this.currentView);
       mutations.setNavigationEnabled(shouldEnable);
+    },
+    async checkForUnsavedChanges() {
+      // Check if editor has unsaved changes
+      const editorDirty = state.editorDirty || false;
+      if (!editorDirty) {
+        return true; // No unsaved changes, allow navigation
+      }
+
+      // There are unsaved changes - show prompt
+      return new Promise((resolve) => {
+        mutations.showHover({
+          name: "SaveBeforeExit",
+          confirm: async () => {
+            // Save and proceed
+            try {
+              const saveHandler = state.editorSaveHandler;
+              if (saveHandler && typeof saveHandler === 'function') {
+                await saveHandler();
+              }
+              // Close the prompt after successful save
+              mutations.closeTopHover();
+              resolve(true); // Allow navigation
+            } catch (error) {
+              // Save failed - keep prompt open by not resolving
+              resolve(false); // Block navigation
+            }
+          },
+          discard: () => {
+            // Discard changes and proceed
+            mutations.setEditorDirty(false);
+            // Close the prompt
+            mutations.closeTopHover();
+            resolve(true); // Allow navigation
+          },
+          cancel: () => {
+            // Cancel navigation
+            // Close the prompt
+            mutations.closeTopHover();
+            resolve(false); // Block navigation
+          },
+        });
+      });
     },
     async setupNavigationForCurrentItem() {
       if (!this.enabled || !state.req || state.req.type === 'directory') {
@@ -332,9 +374,15 @@ export default {
         }, 3000);
       }
     },
-    prev() {
+    async prev() {
       if (this.hasPrevious) {
         this.hoverNav = false;
+        
+        // Check for unsaved changes in editor before navigating
+        if (!await this.checkForUnsavedChanges()) {
+          return; // Navigation blocked
+        }
+        
         // Set transitioning state - keeps old req visible until new one loads
         // Editor and other components check isTransitioning to prevent saves
         mutations.setNavigationTransitioning(true);
@@ -345,9 +393,14 @@ export default {
         }
       }
     },
-    next() {
+    async next() {
       if (this.hasNext) {
         this.hoverNav = false;
+        
+        // Check for unsaved changes in editor before navigating
+        if (!await this.checkForUnsavedChanges()) {
+          return; // Navigation blocked
+        }
 
         // Set transitioning state - keeps old req visible until new one loads
         // Editor and other components check isTransitioning to prevent saves
@@ -945,7 +998,37 @@ export default {
         isDirectory: item.type === 'directory',
         originalItem: item
       }));
-    }
+    },
+    handleGlobalMouseMove(event) {
+      // Check if mouse is in the nav zone areas to show navigation buttons
+      if (!this.enabled) return;
+
+      const emSize = parseFloat(getComputedStyle(document.documentElement).fontSize);
+      const zoneWidth = 5 * emSize; // 5em in pixels
+
+      // Check left zone
+      const sidebarOffset = this.moveWithSidebar ? 20 * emSize : 0; // Account for sidebar
+      if (this.hasPrevious && event.clientX >= sidebarOffset && event.clientX <= (sidebarOffset + zoneWidth)) {
+        const viewportHeight = window.innerHeight;
+        const zoneTop = viewportHeight * 0.25; // 25% from top
+        const zoneBottom = viewportHeight * 0.75; // 25% from bottom (75% of height)
+
+        if (event.clientY >= zoneTop && event.clientY <= zoneBottom) {
+          this.toggleNavigation();
+        }
+      }
+
+      // Check right zone
+      if (this.hasNext && event.clientX >= window.innerWidth - zoneWidth) {
+        const viewportHeight = window.innerHeight;
+        const zoneTop = viewportHeight * 0.25; // 25% from top
+        const zoneBottom = viewportHeight * 0.75; // 25% from bottom (75% of height)
+
+        if (event.clientY >= zoneTop && event.clientY <= zoneBottom) {
+          this.toggleNavigation();
+        }
+      }
+    },
   },
 };
 </script>
@@ -957,8 +1040,8 @@ export default {
   top: 25%; /* Start at 25% from top */
   bottom: 25%; /* End at 25% from bottom (so middle 50%) */
   width: 5em;
-  pointer-events: none; /* Allow clicks to pass through to content behind */
-  z-index: -1; /* Negative z-index to ensure content appears above */
+  pointer-events: none; /* Allow clicks and interactions to pass through */
+  z-index: -1; /* Behind content, only used for geometric detection */
   background: transparent; /* Invisible zones for mouse/touch detection */
 }
 

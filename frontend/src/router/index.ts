@@ -8,7 +8,6 @@ import { globalVars } from "@/utils/constants";
 import { getters, state } from "@/store";
 import { mutations } from "@/store";
 import { validateLogin } from "@/utils/auth";
-import { removeLeadingSlash } from "@/utils/url";
 import i18n from "@/i18n";
 
 const titles = {
@@ -169,19 +168,11 @@ router.beforeResolve(async (to, from, next) => {
     if (getters.isLoggedIn() || to.matched.some((record) => record.meta.optionalAuth)) {
       // do nothing
     } else {
-      // Validation failed - clear state
+      // Validation failed - clear state and redirect to login
       mutations.setCurrentUser(null);
-      mutations.setJWT("");
-      if (globalVars.passwordAvailable) {
-        next({ path: "/login", query: { redirect: to.fullPath } });
-        return;
-      }
-
-      if (globalVars.oidcAvailable) {
-        const modifiedPath = encodeURIComponent(globalVars.baseURL+removeLeadingSlash(to.fullPath))
-        window.location.href = globalVars.baseURL+`api/auth/oidc/login?redirect=${modifiedPath}`;
-        return;
-      }
+      // Always redirect to login when not authenticated
+      next({ path: "/login", query: { redirect: to.fullPath } });
+      return;
     }
 
     if (to.matched.some((record) => record.meta.requiresAdmin)) {

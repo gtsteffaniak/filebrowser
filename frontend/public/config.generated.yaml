@@ -28,7 +28,7 @@ server:
         indexingIntervalMinutes: 0        # optional manual overide interval in minutes to re-index the source
         disableIndexing: false            # disable the indexing of this source
         conditionals:                     # conditional rules to apply when indexing to include/exclude certain items
-          hidden: false                   # exclude hidden files and folders.
+          ignoreHidden: false             # exclude hidden files and folders.
           ignoreZeroSizeFolders: false    # ignore folders with 0 size
           rules:                          # list of item rules to apply to specific paths
             - neverWatchPath: ""          # index the folder in the first pass to get included in search, but never re-indexed.
@@ -39,8 +39,8 @@ server:
               folderEndsWith: ""          # (global) exclude folders that end with these suffixes. Eg. ".thumbnails" or ".git"
               folderPath: ""              # (global) exclude folders that match this path. Eg. "/path/to/folder" or "/path/to/folder/subfolder"
               filePath: ""                # (global) exclude files that match this path. Eg. "/path/to/file.txt" or "/path/to/file.txt/subfile.txt"
-              fileNames: ""               # (global) exclude files that match these names. Eg. "file.txt" or "test.csv"
-              folderNames: ""             # (global) exclude folders that match these names. Eg. "folder" or "subfolder"
+              fileName: ""                # (global) exclude files that match these names. Eg. "file.txt" or "test.csv"
+              folderName: ""              # (global) exclude folders that match these names. Eg. "folder" or "subfolder"
               viewable: false             # Enable viewing in UI but exclude from indexing
         defaultUserScope: "/"             # default "/" should match folders under path
         defaultEnabled: true              # should be added as a default source for new users?
@@ -99,6 +99,7 @@ frontend:
       url: "help prompt"                  # the url to link to  validate:required
   disableNavButtons: false                # disable the nav buttons in the sidebar
   styling:
+    disableEventThemes: false             # disable the event based themes,
     customCSS: ""                         # if a valid path to a css file is provided, it will be applied for all users. (eg. "reduce-rounded-corners.css")
     lightBackground: "#f5f5f5"            # specify a valid CSS color property value to use as the background color in light mode
     darkBackground: "#141D24"             # Specify a valid CSS color property value to use as the background color in dark mode

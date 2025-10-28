@@ -2922,6 +2922,10 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "hidden": {
+                    "description": "deprecated: use ignoreHidden instead to exclude hidden files and folders.",
+                    "type": "boolean"
+                },
+                "ignoreHidden": {
                     "description": "exclude hidden files and folders.",
                     "type": "boolean"
                 },
@@ -2945,8 +2949,12 @@ const docTemplate = `{
                     "description": "(global) exclude files that end with these suffixes. Eg. \".jpg\" or \".txt\"",
                     "type": "string"
                 },
-                "fileNames": {
+                "fileName": {
                     "description": "(global) exclude files that match these names. Eg. \"file.txt\" or \"test.csv\"",
+                    "type": "string"
+                },
+                "fileNames": {
+                    "description": "deprecated: exclude files that match these names. Eg. \"file.txt\" or \"test.csv\"",
                     "type": "string"
                 },
                 "filePath": {
@@ -2961,8 +2969,12 @@ const docTemplate = `{
                     "description": "(global) exclude folders that end with these suffixes. Eg. \".thumbnails\" or \".git\"",
                     "type": "string"
                 },
-                "folderNames": {
+                "folderName": {
                     "description": "(global) exclude folders that match these names. Eg. \"folder\" or \"subfolder\"",
+                    "type": "string"
+                },
+                "folderNames": {
+                    "description": "deprecated: exclude folders that match these names. Eg. \"folder\" or \"subfolder\"",
                     "type": "string"
                 },
                 "folderPath": {
@@ -3513,6 +3525,10 @@ const docTemplate = `{
                     "description": "Specify a valid CSS color property value to use as the background color in dark mode",
                     "type": "string"
                 },
+                "disableEventThemes": {
+                    "description": "disable the event based themes,",
+                    "type": "boolean"
+                },
                 "lightBackground": {
                     "description": "specify a valid CSS color property value to use as the background color in light mode",
                     "type": "string"
@@ -3705,9 +3721,6 @@ const docTemplate = `{
                 "enableOnlyOffice": {
                     "type": "boolean"
                 },
-                "enableOnlyOfficeEditing": {
-                    "type": "boolean"
-                },
                 "enforceDarkLightMode": {
                     "description": "\"dark\" or \"light\"",
                     "type": "string"
@@ -3832,9 +3845,6 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "enableOnlyOffice": {
-                    "type": "boolean"
-                },
-                "enableOnlyOfficeEditing": {
                     "type": "boolean"
                 },
                 "enforceDarkLightMode": {

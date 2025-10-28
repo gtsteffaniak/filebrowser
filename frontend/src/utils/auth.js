@@ -1,12 +1,6 @@
 import { mutations, getters,state } from "@/store";
 import { getApiPath, getPublicApiPath } from "@/utils/url.js";
 import { globalVars } from "@/utils/constants";
-import { getCookie } from "@/utils/cookie.js";
-
-export async function setNewToken(token) {
-  document.cookie = `auth=${token}; path=/`;
-  mutations.setJWT(token);
-}
 
 export async function validateLogin() {
   // Use direct fetch to avoid automatic logout on 401
@@ -25,42 +19,32 @@ export async function validateLogin() {
   const userInfo = await res.json();
   mutations.setCurrentUser(userInfo);
   getters.isLoggedIn()
-
   if (state.user.loginMethod == "proxy") {
     let apiPath = getApiPath("api/auth/login")
     const res = await fetch(apiPath, {
       method: "POST",
+      credentials: 'same-origin', // Ensure cookies are sent and can be set
     });
     const body = await res.text();
-    if (res.status === 200) {
-      await setNewToken(body);
-    } else {
+    if (res.status !== 200) {
       throw new Error(body);
-    }
-  } else if (state.user.loginMethod == "oidc") {
-    // For OIDC users, sync the cookie to state
-    // This ensures that after OIDC callback sets a new cookie,
-    // the frontend state is updated with the new token
-    const authCookie = getCookie("auth");
-    if (authCookie && authCookie !== state.jwt) {
-      mutations.setJWT(authCookie);
     }
   }
   return
 }
 
-export async function renew(jwt) {
+export async function renew() {
+  // Cookie-based renewal - no JWT parameter needed
+  // Backend reads cookie, validates, and sets new cookie
   let apiPath = getApiPath("api/auth/renew")
   const res = await fetch(apiPath, {
     method: "POST",
-    headers: {
-      "X-Auth": jwt,
-    },
+    credentials: 'same-origin', // Cookie is sent automatically, backend renews it
   });
   const body = await res.text();
   if (res.status === 200) {
     mutations.setSession(generateRandomCode(8));
-    await setNewToken(body);
+    // Backend sets the new cookie, no state management needed
   } else {
     throw new Error(body);
   }
@@ -79,13 +63,17 @@ export function generateRandomCode(length) {
 
 export async function logout() {
   try {
-    const res = await fetch(getApiPath("api/auth/logout"), { method: "POST" });
+    const res = await fetch(getApiPath("api/auth/logout"), {
+      method: "POST",
+      credentials: 'same-origin'
+    });
     if (res.ok) {
       const data = await res.json();
       let logoutUrl = data.logoutUrl;
-      document.cookie = "auth=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/";
+      // Backend clears the cookie, but frontend does it as fail-safe cleanup
+      document.cookie = "filebrowser_quantum_jwt=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/";
       mutations.setCurrentUser(null);
-      mutations.setJWT("");
+      // No need to clear state.jwt - cookie is the source of truth
       if (!logoutUrl) {
         logoutUrl = globalVars.baseURL+"login";
       }

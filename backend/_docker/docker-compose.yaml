@@ -1,0 +1,17 @@
+services:
+  nginx-proxy-auth:
+    image: nginx
+    container_name: nginx-proxy-auth
+    ports:
+      - "80:80"
+    volumes:
+      - ./src/proxy/backend/default.conf:/etc/nginx/conf.d/default.conf
+      - ./src/proxy/backend/.htpasswd:/etc/nginx/conf.d/.htpasswd
+  filebrowser:
+    hostname: filebrowser
+    volumes:
+      - '../frontend:/home/frontend'
+      - "./src/proxy/backend/config.yaml:/home/filebrowser/config.yaml"
+    build:
+      context: ../
+      dockerfile: ./_docker/Dockerfile.slim

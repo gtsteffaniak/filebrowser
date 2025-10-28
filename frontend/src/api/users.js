@@ -1,7 +1,6 @@
 import { fetchURL, fetchJSON } from '@/api/utils'
 import { getApiPath, getPublicApiPath } from '@/utils/url.js'
 import { notify } from '@/notify' // Import notify for error handling
-import { setNewToken } from '@/utils/auth.js' // Import setNewToken for token management
 export async function getAllUsers() {
   try {
     const apiPath = getApiPath('api/users')
@@ -80,13 +79,9 @@ export async function login(username, password, recaptcha, otp) {
     body = { message: bodyText };
   }
 
-  if (res.status === 200) {
-    await setNewToken(bodyText);
-  } else if (res.status === 403) {
+  if (res.status != 200) {
     const msg = body.message || 'Forbidden';
     throw new Error(msg);
-  } else {
-    throw new Error(body.message || bodyText || 'Failed to login');
   }
 }
 export async function get(id) {

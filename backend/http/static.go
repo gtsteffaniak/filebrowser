@@ -102,7 +102,6 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 			shareProps["enforceDarkLightMode"] = d.share.EnforceDarkLightMode
 			shareProps["viewMode"] = d.share.ViewMode
 			shareProps["enableOnlyOffice"] = d.share.EnableOnlyOffice
-			shareProps["enableOnlyOfficeEditing"] = d.share.EnableOnlyOfficeEditing
 			shareProps["shareType"] = utils.Ternary(d.share.ShareType == "", "normal", d.share.ShareType)
 			shareProps["perUserDownloadLimit"] = d.share.PerUserDownloadLimit
 			shareProps["extractEmbeddedSubtitles"] = d.share.ExtractEmbeddedSubtitles
@@ -189,6 +188,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"disableNavButtons":    disableNavButtons,
 		"userSelectableThemes": config.Frontend.Styling.CustomThemeOptions,
 		"enableHeicConversion": config.Integrations.Media.Convert.ImagePreview[settings.HEICImagePreview],
+		"eventBasedThemes":     !config.Frontend.Styling.DisableEventBasedThemes,
 	}
 
 	// Marshal each variable to JSON strings for direct template usage

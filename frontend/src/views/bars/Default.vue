@@ -174,13 +174,13 @@ export default {
     },
     multiAction() {
       const cv = getters.currentView();
-      
+
       // Check for unsaved editor changes before navigation
       if (cv === "editor" && state.editorDirty) {
         this.showSaveBeforeExitPrompt(() => this.performNavigation(cv));
         return;
       }
-      
+
       this.performNavigation(cv);
     },
     performNavigation(cv) {

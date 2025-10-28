@@ -61,7 +61,11 @@
     "selectAll": "Vyberte vše",
     "discardAndExit": "Vyřazení a ukončení",
     "saveAndExit": "Uložit a ukončit",
-    "keepEditing": "Pokračovat v úpravách"
+    "keepEditing": "Pokračovat v úpravách",
+    "stayOnPrompt": "Zůstaňte na",
+    "closeAnyway": "Stejně zavřít",
+    "disable": "Zakázat",
+    "confirm": "Potvrďte"
   },
   "download": {
     "downloadFile": "Stáhnout soubor",
@@ -195,8 +199,6 @@
     "light": "Světlo",
     "enableOnlyOffice": "Povolení prohlížeče OnlyOffice",
     "enableOnlyOfficeDescription": "Povolit prohlížení kancelářských souborů pomocí OnlyOffice v této sdílené složce.",
-    "enableOnlyOfficeEditing": "Povolení úprav OnlyOffice",
-    "enableOnlyOfficeEditingDescription": "Povolit úpravy kancelářských souborů pomocí OnlyOffice v této sdílené složce.",
     "titleDefault": "Sdílené soubory - {title}",
     "defaultViewMode": "Výchozí režim zobrazení",
     "defaultViewModeDescription": "Nastavení výchozího režimu zobrazení pro anonymní uživatele prohlížející tuto sdílenou složku. Přihlášení uživatelé mohou stále měnit předvolby zobrazení.",
@@ -288,7 +290,9 @@
     "copyItemQuestion": "Zkopírovat tuto položku do nového umístění?",
     "moveItemQuestion": "Přesunout tuto položku na nové místo?",
     "sourcePath": "Zdroj:",
-    "destinationPath": "Cílová destinace:"
+    "destinationPath": "Cílová destinace:",
+    "closeWithActiveUploadsMessage": "Varování: Upozornění: Máte aktivní nahrávání a zavření výzvy k nahrávání by mohlo vést k nedokončenému nahrávání. Co byste chtěli udělat?",
+    "closeWithActiveUploads": "Aktivní nahrávání"
   },
   "search": {
     "images": "Obrázky",
@@ -639,5 +643,9 @@
     "changePlaybackMode": "Změnit režim přehrávání",
     "changePlaybackModeHint": "Změňte režim přehrávání, abyste viděli více souborů",
     "emptyQueue": "Fronta je prázdná"
+  },
+  "halloween": {
+    "title": "Šťastný Halloween!",
+    "body": "Bylo použito téma Halloween. Pokud se vám nelíbí, můžete jej vypnout nebo trvale zakázat v nastavení profilu výběrem jiného motivu."
   }
 }

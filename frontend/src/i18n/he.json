@@ -61,7 +61,11 @@
     "selectAll": "בחר הכל",
     "discardAndExit": "מחק וצא",
     "saveAndExit": "שמור וצא",
-    "keepEditing": "המשך עריכה"
+    "keepEditing": "המשך עריכה",
+    "stayOnPrompt": "הישאר",
+    "closeAnyway": "סגור בכל מקרה",
+    "disable": "השבת",
+    "confirm": "אשר"
   },
   "download": {
     "downloadFile": "הורד קובץ",
@@ -220,7 +224,9 @@
     "copyItemQuestion": "האם להעתיק פריט זה למיקום החדש?",
     "moveItemQuestion": "האם להעביר פריט זה למיקום החדש?",
     "sourcePath": "מקור:",
-    "destinationPath": "יעד:"
+    "destinationPath": "יעד:",
+    "closeWithActiveUploadsMessage": "אזהרה: יש לך העלאות פעילות וסגירת חלון ההעלאה עלולה לגרום להשלמת העלאות לא גמורות. מה ברצונך לעשות?",
+    "closeWithActiveUploads": "העלאות פעילות"
   },
   "search": {
     "images": "תמונות",
@@ -430,8 +436,6 @@
     "light": "אור",
     "enableOnlyOffice": "הפעל את תוכנת הצפייה OnlyOffice",
     "enableOnlyOfficeDescription": "אפשר צפייה בקבצי Office באמצעות OnlyOffice בשיתוף זה.",
-    "enableOnlyOfficeEditing": "אפשר עריכה ב-OnlyOffice",
-    "enableOnlyOfficeEditingDescription": "אפשר עריכת קבצי Office באמצעות OnlyOffice בשיתוף זה.",
     "titleDefault": "קבצים משותפים - {title}",
     "defaultViewMode": "מצב תצוגה ברירת מחדל",
     "defaultViewModeDescription": "הגדר את מצב התצוגה המוגדר כברירת מחדל עבור משתמשים אנונימיים הצופים בשיתוף זה. משתמשים מחוברים עדיין יכולים לשנות את העדפות התצוגה שלהם.",
@@ -639,5 +643,9 @@
     "changePlaybackMode": "שנה מצב ניגון",
     "changePlaybackModeHint": "שנה מצב ניגון כדי לראות יותר קבצים",
     "emptyQueue": "התור ריק"
+  },
+  "halloween": {
+    "title": "חג ליל כל הקדושים שמח!",
+    "body": "נושא ליל כל הקדושים הוחל. ניתן להשבית אותו אם אינו מוצא חן בעיניך, או להשבית אותו לצמיתות בהגדרות הפרופיל על ידי בחירת נושא אחר."
   }
 }

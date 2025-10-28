@@ -29,14 +29,14 @@ func MoveFile(src, dst string) error {
 	// fallback
 	err = CopyFile(src, dst)
 	if err != nil {
-		logger.Errorf("CopyFile failed %v %v %v ", src, dst, err)
+		logger.Errorf("CopyFile failed %v", err)
 		return err
 	}
 
 	go func() {
 		err = os.RemoveAll(src)
 		if err != nil {
-			logger.Errorf("os.Remove failed %v %v ", src, err)
+			logger.Errorf("os.Remove failed %v", err)
 		}
 	}()
 

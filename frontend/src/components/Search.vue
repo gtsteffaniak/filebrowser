@@ -5,7 +5,15 @@
     @click="clearContext"
   >
     <!-- Search input section -->
-    <div id="search-input" @click="open">
+    <div id="search-input" @click="open" :class="{'halloween-eyes': eventTheme === 'halloween'}">
+      <div id="halloween-eyes" v-if="eventTheme=== 'halloween' && active">
+        <div class="eye left">
+          <div class="pupil"></div>
+        </div>
+        <div class="eye right">
+          <div class="pupil"></div>
+        </div>
+      </div>
       <!-- Close button visible when search is active -->
       <button
         v-if="active"
@@ -22,6 +30,7 @@
       <input
         id="main-input"
         class="main-input"
+        :class="{ 'halloween-theme': eventTheme === 'halloween' }"
         type="text"
         @keyup.exact="keyup"
         @input="submit"
@@ -34,7 +43,7 @@
     </div>
 
     <!-- Search results for desktop -->
-    <div v-show="active" id="results" class="fb-shadow" ref="result">
+    <div v-show="active"  id="results" class="fb-shadow" ref="result">
       <div class="inputWrapper" style="display: flex">
         <select
           v-if="multipleSources"
@@ -249,7 +258,7 @@ export default {
       // For other browsers, use regular contextmenu
       this.$el.addEventListener("contextmenu", this.openContext);
     }
-    
+
     // Add keyboard event listener for "/" to activate search
     this.handleKeydown = (event) => {
       if (event.key === '/' && !state.isSearchActive) {
@@ -257,7 +266,7 @@ export default {
         this.open();
       }
     };
-    
+
     document.addEventListener('keydown', this.handleKeydown);
   },
   beforeUnmount() {
@@ -271,13 +280,16 @@ export default {
     } else {
       this.$el.removeEventListener("contextmenu", this.openContext);
     }
-    
+
     // Clean up keyboard event listener
     if (this.handleKeydown) {
       document.removeEventListener('keydown', this.handleKeydown);
     }
   },
   computed: {
+    eventTheme() {
+      return getters.eventTheme();
+    },
     disableSearchOptions() {
       return state.user.disableSearchOptions;
     },

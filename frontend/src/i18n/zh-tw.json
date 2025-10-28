@@ -61,7 +61,11 @@
     "selectAll": "全部選取",
     "discardAndExit": "丟棄與退出",
     "saveAndExit": "儲存並離開",
-    "keepEditing": "繼續編輯"
+    "keepEditing": "繼續編輯",
+    "stayOnPrompt": "停留",
+    "closeAnyway": "無論如何關閉",
+    "disable": "停用",
+    "confirm": "確認"
   },
   "download": {
     "downloadFile": "下載檔案",
@@ -220,7 +224,9 @@
     "copyItemQuestion": "將此項目複製到新位置？",
     "moveItemQuestion": "將此項目移至新位置？",
     "sourcePath": "來源",
-    "destinationPath": "目的地："
+    "destinationPath": "目的地：",
+    "closeWithActiveUploadsMessage": "警告：您有進行中的上傳，關閉上傳提示可能會導致未完成的上傳。您想做什麼？",
+    "closeWithActiveUploads": "有效上傳"
   },
   "search": {
     "images": "影像",
@@ -430,8 +436,6 @@
     "light": "燈光",
     "enableOnlyOffice": "啟用 OnlyOffice 檢視器",
     "enableOnlyOfficeDescription": "允許在此共用中使用 OnlyOffice 檢視辦公室檔案。",
-    "enableOnlyOfficeEditing": "啟用 OnlyOffice 編輯",
-    "enableOnlyOfficeEditingDescription": "允許在此共用中使用 OnlyOffice 編輯辦公室檔案。",
     "titleDefault": "共用檔案 -{title}",
     "defaultViewMode": "預設檢視模式",
     "defaultViewModeDescription": "設定匿名使用者檢視此分享的預設檢視模式。登入的使用者仍可變更檢視偏好。",
@@ -639,5 +643,9 @@
     "changePlaybackMode": "變更播放模式",
     "changePlaybackModeHint": "變更播放模式以查看更多檔案",
     "emptyQueue": "佇列為空"
+  },
+  "halloween": {
+    "title": "萬聖節快樂",
+    "body": "萬聖節主題已套用。如果您不喜歡，可以將其停用，或在個人資料設定中選擇任何其他主題，將其永久停用。"
   }
 }
