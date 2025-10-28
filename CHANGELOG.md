@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **BugFixes**:
  - cookie host is set using x-Forwarded-Host to better support reverse proxies.
+ - HEIC conversion not working #1460
 
 ## v0.8.11-beta
 
