@@ -63,7 +63,9 @@
     "saveAndExit": "Salvare și ieșire",
     "keepEditing": "Continuă editarea",
     "stayOnPrompt": "Ședere",
-    "closeAnyway": "Închide oricum"
+    "closeAnyway": "Închide oricum",
+    "disable": "Dezactivare",
+    "confirm": "Confirmați"
   },
   "download": {
     "downloadFile": "Descarcă fișier",
@@ -641,5 +643,9 @@
     "changePlaybackMode": "Schimbă modul de redare",
     "changePlaybackModeHint": "Schimbă modul de redare pentru a vedea mai multe fișiere",
     "emptyQueue": "Coada este goală"
+  },
+  "halloween": {
+    "title": "Halloween fericit!",
+    "body": "Tema Halloween a fost aplicată. Puteți să o dezactivați dacă nu vă place sau să o dezactivați permanent în setările profilului selectând orice altă temă."
   }
 }

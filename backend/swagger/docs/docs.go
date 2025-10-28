@@ -3525,7 +3525,7 @@ const docTemplate = `{
                     "description": "Specify a valid CSS color property value to use as the background color in dark mode",
                     "type": "string"
                 },
-                "disableEventBasedThemes": {
+                "disableEventThemes": {
                     "description": "disable the event based themes,",
                     "type": "boolean"
                 },

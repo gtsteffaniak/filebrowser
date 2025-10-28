@@ -63,7 +63,9 @@
     "saveAndExit": "Guardar e sair",
     "keepEditing": "Continuar a editar",
     "stayOnPrompt": "Ficar",
-    "closeAnyway": "Fechar de qualquer maneira"
+    "closeAnyway": "Fechar de qualquer maneira",
+    "disable": "Desativar",
+    "confirm": "Confirmar"
   },
   "download": {
     "downloadFile": "Descarregar ficheiro",
@@ -641,5 +643,9 @@
     "changePlaybackMode": "Alterar modo de reprodução",
     "changePlaybackModeHint": "Altere o modo de reprodução para ver mais arquivos",
     "emptyQueue": "A fila está vazia"
+  },
+  "halloween": {
+    "title": "Feliz Dia das Bruxas!",
+    "body": "O tema do Dia das Bruxas foi aplicado. Pode desactivá-lo se não gostar dele, ou desactivá-lo permanentemente nas definições do perfil, selecionando qualquer outro tema."
   }
 }

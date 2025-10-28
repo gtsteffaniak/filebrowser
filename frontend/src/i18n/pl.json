@@ -63,7 +63,9 @@
     "saveAndExit": "Zapisz i wyjdź",
     "keepEditing": "Kontynuuj edycję",
     "stayOnPrompt": "Zostań",
-    "closeAnyway": "W każdym razie blisko"
+    "closeAnyway": "W każdym razie blisko",
+    "disable": "Wyłącz",
+    "confirm": "Potwierdzenie"
   },
   "download": {
     "downloadFile": "Pobierz plik",
@@ -641,5 +643,9 @@
     "changePlaybackMode": "Zmień tryb odtwarzania",
     "changePlaybackModeHint": "Zmień tryb odtwarzania, aby zobaczyć więcej plików",
     "emptyQueue": "Kolejka jest pusta"
+  },
+  "halloween": {
+    "title": "Wesołego Halloween!",
+    "body": "Motyw Halloween został zastosowany. Możesz go wyłączyć, jeśli Ci się nie podoba, lub wyłączyć go na stałe w ustawieniach profilu, wybierając inny motyw."
   }
 }

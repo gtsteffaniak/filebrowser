@@ -63,7 +63,9 @@
     "saveAndExit": "儲存並離開",
     "keepEditing": "繼續編輯",
     "stayOnPrompt": "停留",
-    "closeAnyway": "無論如何關閉"
+    "closeAnyway": "無論如何關閉",
+    "disable": "停用",
+    "confirm": "確認"
   },
   "download": {
     "downloadFile": "下載檔案",
@@ -641,5 +643,9 @@
     "changePlaybackMode": "變更播放模式",
     "changePlaybackModeHint": "變更播放模式以查看更多檔案",
     "emptyQueue": "佇列為空"
+  },
+  "halloween": {
+    "title": "萬聖節快樂",
+    "body": "萬聖節主題已套用。如果您不喜歡，可以將其停用，或在個人資料設定中選擇任何其他主題，將其永久停用。"
   }
 }

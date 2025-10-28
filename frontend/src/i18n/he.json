@@ -63,7 +63,9 @@
     "saveAndExit": "שמור וצא",
     "keepEditing": "המשך עריכה",
     "stayOnPrompt": "הישאר",
-    "closeAnyway": "סגור בכל מקרה"
+    "closeAnyway": "סגור בכל מקרה",
+    "disable": "השבת",
+    "confirm": "אשר"
   },
   "download": {
     "downloadFile": "הורד קובץ",
@@ -641,5 +643,9 @@
     "changePlaybackMode": "שנה מצב ניגון",
     "changePlaybackModeHint": "שנה מצב ניגון כדי לראות יותר קבצים",
     "emptyQueue": "התור ריק"
+  },
+  "halloween": {
+    "title": "חג ליל כל הקדושים שמח!",
+    "body": "נושא ליל כל הקדושים הוחל. ניתן להשבית אותו אם אינו מוצא חן בעיניך, או להשבית אותו לצמיתות בהגדרות הפרופיל על ידי בחירת נושא אחר."
   }
 }

@@ -63,7 +63,9 @@
     "saveAndExit": "Mentés és kilépés",
     "keepEditing": "Szerkesztés folytatása",
     "stayOnPrompt": "Maradj",
-    "closeAnyway": "Egyébként bezárni"
+    "closeAnyway": "Egyébként bezárni",
+    "disable": "A  letiltása",
+    "confirm": "Megerősítés"
   },
   "download": {
     "downloadFile": "Fájl letöltése",
@@ -641,5 +643,9 @@
     "changePlaybackMode": "Lejátszási mód változtatása",
     "changePlaybackModeHint": "Változtasd meg a lejátszási módot, hogy több fájlt láss",
     "emptyQueue": "A sor üres"
+  },
+  "halloween": {
+    "title": "Boldog Halloweent!",
+    "body": "A Halloween témát alkalmazták. Ha nem tetszik, letilthatja, vagy véglegesen letilthatja a profilbeállításokban bármely más téma kiválasztásával."
   }
 }
