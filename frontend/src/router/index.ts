@@ -8,7 +8,6 @@ import { globalVars } from "@/utils/constants";
 import { getters, state } from "@/store";
 import { mutations } from "@/store";
 import { validateLogin } from "@/utils/auth";
-import { removeLeadingSlash } from "@/utils/url";
 import i18n from "@/i18n";
 
 const titles = {

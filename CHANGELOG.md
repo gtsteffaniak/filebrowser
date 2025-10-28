@@ -26,6 +26,7 @@ All notable changes to this project will be documented in this file. For commit 
  - OnlyOffice integration does not work behind proxy authentication #1422
  - proxy-based authentication with docker does not work unless set up with password-based login first #1226
  - Select all bug on safari mobile #1421
+ - Dragging a item into itself #1446
 
 ## v0.8.10-beta
 
