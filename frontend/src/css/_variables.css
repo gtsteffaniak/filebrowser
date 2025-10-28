@@ -5,10 +5,11 @@
   --dark-red: #D32F2F;
   --moon-grey: #f2f2f2;
   --icon-red: #da4453;
-  --icon-orange: #f47750;
+  --icon-orange: #ff8c00;
   --icon-yellow: #fdbc4b;
   --icon-green: #2ecc71;
   --icon-blue: #1d99f3;
   --icon-violet: #9b59b6;
   --primaryColor: var(--blue);
+  --divider: lightgray;
 }

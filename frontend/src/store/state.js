@@ -2,6 +2,7 @@ import { reactive } from 'vue';
 import { detectLocale } from "@/i18n";
 
 export const state = reactive({
+  disableEventThemes: eventTheme(),
   tooltip: {
     show: false,
     content: "",
@@ -153,4 +154,9 @@ export const state = reactive({
 function stickyStartup() {
   const stickyStatus = localStorage.getItem("stickySidebar");
   return stickyStatus == "true"
+}
+
+function eventTheme() {
+  const disableEventThemes = localStorage.getItem("disableEventThemes");
+  return disableEventThemes == "true"
 }

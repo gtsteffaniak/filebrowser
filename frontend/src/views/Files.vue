@@ -103,7 +103,35 @@ export default {
     },
   },
   created() {
+    if (getters.eventTheme() === "halloween" && !localStorage.getItem("seenHalloweenMessage")) {
+
+      mutations.showHover({
+        name: "generic",
+        props: {
+          title: this.$t("halloween.title"),
+          body: this.$t("halloween.body"),
+          buttons: [
+            {
+              label: this.$t("buttons.close"),
+              action: () => {
+                localStorage.setItem("seenHalloweenMessage", "true");
+              },
+            },
+            {
+              label: this.$t("buttons.disable"),
+              action: () => {
+                mutations.disableEventThemes();
+                localStorage.setItem("seenHalloweenMessage", "true");
+              },
+              primary: true,
+            },
+          ],
+        },
+      });
+    }
+
     this.fetchData();
+
   },
   watch: {
     $route: "fetchData",

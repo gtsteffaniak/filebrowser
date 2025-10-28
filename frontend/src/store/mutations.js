@@ -11,6 +11,21 @@ import { getTypeInfo } from "@/utils/mimetype";
 import { filesApi, publicApi } from "@/api";
 
 export const mutations = {
+  disableEventThemes: () => {
+    if (state.disableEventThemes) {
+      return;
+    }
+    localStorage.setItem("disableEventThemes", "true");
+    state.disableEventThemes = true;
+    // Set theme color back to user's preference or default
+    if (state.user.themeColor) {
+      document.documentElement.style.setProperty("--primaryColor", state.user.themeColor);
+    } else {
+      // Remove the override to use the default CSS variable
+      document.documentElement.style.removeProperty("--primaryColor");
+    }
+    emitStateChanged();
+  },
   setPreviousHistoryItem: (value) => {
     if (value == state.previousHistoryItem) {
       return;

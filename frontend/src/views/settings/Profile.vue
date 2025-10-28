@@ -187,7 +187,7 @@
 <script>
 import { notify } from "@/notify";
 import { globalVars } from "@/utils/constants.js";
-import { state, mutations } from "@/store";
+import { state, mutations, getters } from "@/store";
 import { usersApi } from "@/api";
 import Languages from "@/components/settings/Languages.vue";
 import ButtonGroup from "@/components/ButtonGroup.vue";
@@ -255,6 +255,9 @@ export default {
   },
   mounted() {
     this.localuser = { ...state.user };
+    if (getters.eventTheme() === "halloween" && !state.disableEventThemes) {
+      this.localuser.themeColor = "";
+    }
     this.formDefaultLandingPage = this.localuser.defaultLandingPage;
     this.formDisablePreviews = this.localuser.disablePreviewExt;
     this.formDisabledViewing = this.localuser.disableViewingExt;
@@ -307,6 +310,9 @@ export default {
       this.updateSettings();
     },
     setColor(string) {
+      if (getters.eventTheme() === "halloween" && !state.disableEventThemes) {
+        mutations.disableEventThemes();
+      }
       this.localuser.themeColor = string;
       this.updateSettings();
     },
