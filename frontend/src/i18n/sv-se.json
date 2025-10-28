@@ -95,7 +95,9 @@
     "sortByName": "Sortera på namn",
     "sortBySize": "Sortera på storlek",
     "noPreview": "Förhandsgranskning är inte tillgänglig för den här filen.",
-    "noDownloadAccess": "Nedladdning är inte tillgänglig."
+    "noDownloadAccess": "Nedladdning är inte tillgänglig.",
+    "itemSelected": "objekt valt",
+    "itemsSelected": "objekt valda"
   },
   "help": {
     "click": "välj fil eller mapp",

@@ -95,7 +95,9 @@
     "sortByName": "Sortuj wg. nazwy",
     "sortBySize": "Sortuj wg. rozmiaru",
     "noPreview": "Podgląd nie jest dostępny dla tego pliku.",
-    "noDownloadAccess": "Pobieranie nie jest dostępne."
+    "noDownloadAccess": "Pobieranie nie jest dostępne.",
+    "itemSelected": "element wybrany",
+    "itemsSelected": "elementy wybrane"
   },
   "help": {
     "click": "wybierz plik lub foler",

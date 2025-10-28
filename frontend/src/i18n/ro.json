@@ -95,7 +95,9 @@
     "sortByName": "Ordonează după nume",
     "sortBySize": "Ordonează după dimensiune",
     "noPreview": "Previzualizarea nu este disponibilă pentru acest fișier.",
-    "noDownloadAccess": "Descărcarea nu este disponibilă."
+    "noDownloadAccess": "Descărcarea nu este disponibilă.",
+    "itemSelected": "element selectat",
+    "itemsSelected": "elemente selectate"
   },
   "help": {
     "click": "alege fișier sau director",

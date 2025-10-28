@@ -95,7 +95,9 @@
     "sortByName": "מיין לפי שם",
     "sortBySize": "מיין לפי גודל",
     "noPreview": "תצוגה מקדימה לא זמינה לקובץ זה",
-    "noDownloadAccess": "ההורדה אינה זמינה."
+    "noDownloadAccess": "ההורדה אינה זמינה.",
+    "itemSelected": "פריט נבחר",
+    "itemsSelected": "פריטים נבחרים"
   },
   "help": {
     "click": "בחר קובץ או תקייה",

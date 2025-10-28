@@ -161,6 +161,7 @@
           multiple
         />
       </div>
+      <StatusBar />
     </div>
   </div>
 
@@ -182,12 +183,14 @@ import { shareInfo } from "@/utils/constants";
 
 import Item from "@/components/files/ListingItem.vue";
 import Upload from "@/components/prompts/Upload.vue";
+import StatusBar from "@/components/StatusBar.vue";
 
 export default {
   name: "listingView",
   components: {
     Item,
     Upload,
+    StatusBar,
   },
   data() {
     return {
@@ -285,6 +288,17 @@ export default {
       if (!elem) {
         return 1;
       }
+      if (getters.viewMode() === 'icons') {
+        const containerSize = 70 + (state.user.gallerySize * 15); // 85px to 190px range
+        let columns = Math.floor(elem.offsetWidth / containerSize);
+        if (columns === 0) columns = 1;
+
+        const minColumns = 3;
+        const maxColumns = 12;
+        columns = Math.max(minColumns, Math.min(columns, maxColumns));
+        return columns;
+      }
+      // Rest of views
       let columns = Math.floor(elem.offsetWidth / this.columnWidth);
       if (columns === 0) columns = 1;
       return columns;
@@ -892,17 +906,70 @@ export default {
       });
     },
     colunmsResize() {
-      document.documentElement.style.setProperty(
-        "--item-width",
-        `calc(${100 / this.numColumns}% - 1em)`
-      );
-
-      if (getters.viewMode() == "gallery") {
+      if (getters.viewMode() == "icons") {
+        const baseSize = 60 + (state.user.gallerySize * 10); // 70px to 140px
+        let columns;
+        if (state.isMobile) {
+          // On mobile, map gallerySize (1-8) to columns (3-4)
+          // Level 1-4: 3 columns, Level 5-8: 4 columns
+          columns = state.user.gallerySize <= 4 ? 3 : 4;
+        } else {
+          // Icons view - desktop
+          const containerSize = 70 + (state.user.gallerySize * 15);
+          columns = Math.floor(document.querySelector("#main")?.offsetWidth / containerSize) || 1;
+          columns = Math.max(3, Math.min(columns, 12));
+        }
+        document.documentElement.style.setProperty(
+          "--item-width",
+          `calc(${100 / columns}% - 0.5em)`
+        );
         document.documentElement.style.setProperty(
           "--item-height",
-          `calc(${this.columnWidth / 20}em)`
+          "auto"
+        );
+        document.documentElement.style.setProperty(
+          "--icons-view-icon-size",
+          `${baseSize}px`
+        );
+      } else if (getters.viewMode() == "gallery") {
+        const baseSize = 150 + (state.user.gallerySize * 50); // 200px to 550px range
+        if (state.isMobile) {
+          // Mobile - Level 1-4 = 2 columns, level 5-8 = 1 column
+          let columns = state.user.gallerySize <= 4 ? 2 : 1;
+          document.documentElement.style.setProperty(
+            "--item-width",
+            `calc(${100 / columns}% - 0.5em)`
+          );
+        } else {
+          // Gallery view - desktop
+          document.documentElement.style.setProperty(
+            "--item-width",
+            `${baseSize}px`
+          );
+        }
+        document.documentElement.style.setProperty(
+          "--item-height",
+          "auto"
+        );
+      } else if (getters.viewMode() == "list" || getters.viewMode() == "compact") {
+        // List/Compact views - start at original heights and change the size based on the slider
+        const baseHeight = getters.viewMode() == "compact" 
+          ? 40 + (state.user.gallerySize * 2)  // 40px to 56px - compact
+          : 50 + (state.user.gallerySize * 3); // 50px to 74px - list
+        document.documentElement.style.setProperty(
+          "--item-width",
+          `calc(${100 / this.numColumns}% - 1em)`
+        );
+        document.documentElement.style.setProperty(
+          "--item-height",
+          `${baseHeight}px`
         );
       } else {
+        // Normal view
+        document.documentElement.style.setProperty(
+          "--item-width",
+          `calc(${100 / this.numColumns}% - 1em)`
+        );
         document.documentElement.style.setProperty("--item-height", `auto`);
       }
     },
@@ -1032,7 +1099,7 @@ export default {
     },
     startRectangleSelection(event) {
       // Start rectangle selection when clicking on empty space
-      if (event.target.closest('.item') || event.target.closest('.header')) {
+      if (event.target.closest('.item') || event.target.closest('.header') || event.target.closest('#status-bar')) {
         return;
       }
 

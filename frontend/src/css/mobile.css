@@ -8,14 +8,39 @@
   #listingView.list .item div:last-of-type{
     display:block;
     width:100%;
+    display: flex !important;
+    align-items: center;
+    flex-wrap: nowrap !important;
+  }
+
+  #listingView.list .item .name,
+  #listingView.list .item .size,
+  #listingView.list .item .modified {
+    display: inline-block !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  #listingView.list .item .size {
+    width: 25% !important;
+    font-size: 0.85em;
+    opacity: 0.8;
+  }
+
+  #listingView.list .item .modified {
+    width: 25% !important;
+    font-size: 0.85em;
+    opacity: 0.8;
   }
 
   body {
     padding-bottom: 5em;
   }
 
-  #listingView.list .item .name {
-    width: 60%;
+  #listingView.list .item .name,
+  #listingView.compact .item .name {
+    width: 45% !important;
   }
 
   #more {
@@ -42,7 +67,6 @@
     margin-right: unset;
   }
 
-
   body.rtl #nav .wrapper {
     margin-right: unset;
   }
@@ -51,11 +75,57 @@
     margin-right: unset;
   }
 
+  #listingView.icons .folder-items,
+  #listingView.icons .file-items {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(var(--item-width), 1fr));
+    gap: 0.5em;
+    padding: 0.25em;
+    width: 100%;
+  }
+  
+  #listingView.icons .item i,
+  #listingView.icons .item img {
+    font-size: 2.5em !important;
+    height: 65px !important;
+    width: 65px !important;
+    max-width: 65px !important;
+    min-width: 65px !important;
+  }
+
+  #listingView.gallery .folder-items,
+  #listingView.gallery .file-items {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(var(--item-width), 1fr));
+    gap: 0.5em;
+    padding: 0.25em;
+  }
+  
+  #listingView.gallery .item {
+    margin-bottom: 0.5em;
+    aspect-ratio: 1;
+  }
+  
+  #listingView.gallery .item img {
+    aspect-ratio: 1;
+    object-fit: cover;
+  }
+
+  #listingView.gallery .item .text {
+    padding: 1em 0.3em 0.3em;
+  }
+  
+  #listingView.gallery .item .text .name {
+    font-size: 0.9em;
+  }
+  
+  #listingView.gallery .item i {
+    font-size: 3em;
+  }
 }
 
 
 @media (max-width: 450px) {
-
   #listingView.list .item .name {
     width: 100%;
   }
