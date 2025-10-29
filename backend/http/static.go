@@ -138,7 +138,6 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 			if d.share.ShareTheme != "" {
 				theme, ok := config.Frontend.Styling.CustomThemeOptions[d.share.ShareTheme]
 				if ok {
-					fmt.Println("theme: ", theme)
 					userSelectedTheme = theme.CssRaw
 				}
 			}
