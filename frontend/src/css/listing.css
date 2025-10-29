@@ -42,7 +42,7 @@ body.rtl #listingView {
   width: var(--item-width);
   height: var(--item-height);
   border-radius: 1em;
-  background: var(--item-secondary);
+  background: color-mix(in srgb, var(--item-secondary) 70%, transparent);
   color: var(--textPrimary);
   border-color: var(--divider);
 }
@@ -126,12 +126,11 @@ body.rtl #listingView {
   flex-direction: column;
   align-content: center;
   overflow: hidden;
-  justify-content: flex-start;
+  justify-content: center;
   padding: 0;
   position: relative;
   width: 100%;
   height: auto;
-  break-inside: avoid;
 }
 
 #listingView.icons .item {
@@ -185,15 +184,9 @@ body.rtl #listingView {
 }
 
 #listingView.gallery .item i {
-  margin: 0.5em 0;
-  font-size: 4em;
+  margin: auto;
+  font-size: 8em;
   background: none;
-  display: flex;
-  flex: 1;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  aspect-ratio: 1;
 }
 
 #listingView.gallery .item span {
@@ -360,7 +353,7 @@ body.rtl #listingView {
 #listingView.list .item[aria-selected=true],
 #listingView.normal .item[aria-selected=true],
 #listingView.icons .item[aria-selected=true] {
-  background-color: color-mix(in srgb, var(--primaryColor) 80%, transparent) !important;
+  background-color: color-mix(in srgb, var(--primaryColor) 50%, transparent) !important;
 }
 
 #listingView.gallery .item[aria-selected=true] {

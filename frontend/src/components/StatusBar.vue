@@ -62,7 +62,7 @@ export default {
   },
   computed: {
     showStatusBar() {
-      return getters.currentView() === "listingView" && !getters.isShare();
+      return getters.currentView() === "listingView";
     },
     isDarkMode() {
       return getters.isDarkMode();
