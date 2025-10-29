@@ -226,7 +226,22 @@
     "sourcePath": "Źródło:",
     "destinationPath": "Miejsce docelowe:",
     "closeWithActiveUploadsMessage": "Ostrzeżenie: Masz aktywne przesyłanie, a zamknięcie monitu o przesłanie może spowodować niedokończone przesyłanie. Co chcesz zrobić?",
-    "closeWithActiveUploads": "Aktywne przesyłanie"
+    "closeWithActiveUploads": "Aktywne przesyłanie",
+    "basicInfo": "Podstawowe informacje",
+    "directoryInfo": "Informacje katalogowe",
+    "additionalInfo": "Dodatkowe informacje",
+    "hidden": "Ukryty",
+    "hasPreview": "Ma podgląd",
+    "checksums": "Sumy kontrolne",
+    "hashAlgorithm": "Algorytm Hash",
+    "hashValue": "Wartość skrótu",
+    "selectHashAlgorithm": "Wybór algorytmu skrótu",
+    "generate": "Generowanie",
+    "errorGeneratingHash": "Błąd generowania skrótu",
+    "hashCopied": "Hash skopiowany do schowka",
+    "errorCopyingHash": "Błąd kopiowania skrótu",
+    "token": "Token",
+    "onlyOfficeId": "OnlyOffice ID"
   },
   "search": {
     "images": "Zdjęcia",

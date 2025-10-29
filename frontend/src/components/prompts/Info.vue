@@ -3,56 +3,137 @@
     <h2>{{ $t("prompts.fileInfo") }}</h2>
   </div>
 
-  <div class="card-content">
-    <p v-if="selected.length > 1">
+  <div class="card-content info-content">
+    <p v-if="selected.length > 1" class="info-description">
       {{ $t("prompts.filesSelected", { count: selected.length }) }}
     </p>
 
-    <p class="break-word" v-if="selected.length < 2">
-      <strong>{{ $t("prompts.displayName") }}</strong> {{ name }}
-    </p>
-    <p v-if="!dir || selected.length > 1">
-      <strong>{{ $t("prompts.size") }}:</strong> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-      <span id="content_length"></span> {{ humanSize }}
-    </p>
-    <p v-if="!dir || selected.length > 1">
-      <strong>{{ $t('prompts.typeName') }}</strong>
-      <span id="content_length"></span> {{ type }}
-    </p>
-    <p v-if="selected.length < 2" :title="modTime">
-      <strong>{{ $t("prompts.lastModified", { suffix: ":" }) }}</strong>
-      <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-    </p>
+    <div class="info-grid">
+      <!-- Basic Information Section -->
+      <div class="info-section">
+        <h3 class="section-title">{{ $t("prompts.basicInfo") }}</h3>
+        
+        <div class="info-item">
+          <strong>{{ $t("prompts.displayName") }}</strong>
+          <span>{{ displayName }}</span>
+        </div>
 
-    <template v-if="dir && selected.length === 0">
-      <p>
-        <strong>{{ $t("prompts.numberFiles", { suffix: ":" }) }}</strong> {{ req.numFiles }}
-        <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-      </p>
-      <p>
-        <strong>{{ $t("prompts.numberDirs", { suffix: ":" }) }}</strong> {{ req.numDirs }}
-        <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-      </p>
-    </template>
+        <div class="info-item">
+          <strong>{{ $t("prompts.size") }}</strong>
+          <span>{{ humanSize }}</span>
+        </div>
+        
+        <div class="info-item">
+          <strong>{{ $t("prompts.typeName") }}</strong>
+          <span>{{ type }}</span>
+        </div>
+        
+        <div class="info-item" v-if="selected.length < 2 && humanTime">
+          <strong>{{ $t("prompts.lastModified") }}</strong>
+          <span :title="modTime">{{ humanTime }}</span>
+        </div>
+        
+        <div class="info-item" v-if="selected.length < 2 && source">
+          <strong>{{ $t("prompts.source") }}</strong>
+          <span>{{ source }}</span>
+        </div>
+        
+        <div class="info-item" v-if="selected.length < 2 && filePath">
+          <strong>{{ $t("general.path") }}</strong>
+          <span class="break-word">{{ filePath }}</span>
+        </div>
+        
+        <div class="info-item" v-if="hidden !== undefined">
+          <strong>{{ $t("prompts.hidden") }}</strong>
+          <span>{{ hidden ? "✓" : "✗" }}</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->  
+        </div>
+        
+        <div class="info-item" v-if="hasPreview !== undefined">
+          <strong>{{ $t("prompts.hasPreview") }}</strong>
+          <span>{{ hasPreview ? "✓" : "✗" }}</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+        </div>
+      </div>
 
-    <template v-if="!dir">
-      <p>
-        <strong>MD5: </strong> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-        <code><a @click="checksum($event, 'md5')">{{ $t("prompts.show") }}</a></code>
-      </p>
-      <p>
-        <strong>SHA1: </strong> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-        <code><a @click="checksum($event, 'sha1')">{{ $t("prompts.show") }}</a></code>
-      </p>
-      <p>
-        <strong>SHA256: </strong> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-        <code><a @click="checksum($event, 'sha256')">{{ $t("prompts.show") }}</a></code>
-      </p>
-      <p>
-        <strong>SHA512: </strong> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-        <code><a @click="checksum($event, 'sha512')">{{ $t("prompts.show") }}</a></code>
-      </p>
-    </template>
+      <!-- Directory Information Section -->
+      <div class="info-section" v-if="dir && selected.length === 0">
+        <h3 class="section-title">{{ $t("prompts.directoryInfo") }}</h3>
+        
+        <div class="info-item">
+          <strong>{{ $t("prompts.numberFiles") }}</strong>
+          <span>{{ req.numFiles }}</span>
+        </div>
+        
+        <div class="info-item">
+          <strong>{{ $t("prompts.numberDirs") }}</strong>
+          <span>{{ req.numDirs }}</span>
+        </div>
+      </div>
+
+      <!-- Hash Generator Section -->
+      <div class="info-section" v-if="!dir">
+        <h3 class="section-title">{{ $t("prompts.checksums") }}</h3>
+        
+        <div class="hash-generator">
+          <div class="hash-select">
+            <label for="hash-algo">{{ $t("prompts.hashAlgorithm") }}</label>
+            <div class="form-flex-group">
+              <select id="hash-algo" class="input form-form flat-right" v-model="selectedHashAlgo">
+                <option value="md5">MD5</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+                <option value="sha1">SHA1</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+                <option value="sha256">SHA256</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+                <option value="sha512">SHA512</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+              </select>
+              <button 
+                type="button"
+                class="button form-button flat-left" 
+                @click="generateHash"
+                :title="$t('prompts.generate')"
+                :aria-label="$t('prompts.generate')"
+              >
+                {{ $t("prompts.generate") }}
+              </button>
+            </div>
+          </div>
+          
+          <div class="hash-result">
+            <label for="hash-result">{{ $t("prompts.hashValue") }}</label>
+            <div class="form-flex-group">
+              <input 
+                style="height: 100%"
+                id="hash-result" 
+                class="input form-form flat-right" 
+                type="text" 
+                :value="hashResult" 
+                readonly 
+                :placeholder="$t('prompts.selectHashAlgorithm')"
+              />
+              <button 
+                class="button form-button flat-left" 
+                @click="copyToClipboard"
+                :disabled="!hashResult"
+                :title="$t('buttons.copyToClipboard')"
+                :aria-label="$t('buttons.copyToClipboard')"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Additional Information Section -->
+      <div class="info-section" v-if="additionalInfo.length > 0">
+        <h3 class="section-title">{{ $t("prompts.additionalInfo") }}</h3>
+        
+        <div class="info-item" v-for="info in additionalInfo" :key="info.key">
+          <strong>{{ info.label }}</strong>
+          <span>{{ info.value }}</span>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="card-action">
@@ -66,10 +147,18 @@
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { formatTimestamp } from "@/utils/moment";
 import { filesApi } from "@/api";
-import { state, getters, mutations } from "@/store"; // Import your custom store
+import { state, getters, mutations } from "@/store";
+import { notify } from "@/notify";
 
 export default {
   name: "info",
+  data() {
+    return {
+      selectedHashAlgo: "md5",
+      hashResult: "",
+      generatingHash: false,
+    };
+  },
   computed: {
     closeHovers() {
       return mutations.closeHovers;
@@ -104,21 +193,31 @@ export default {
     },
     humanTime() {
       if (state.isSearchActive) {
-        return "unknown";
+        return "";
       }
-      if (getters.selectedCount() === 0) {
-        return formatTimestamp(state.req.modified, state.user.locale);
+      const modifiedDate = getters.selectedCount() === 0
+        ? state.req.modified
+        : state.req.items[this.selected[0]]?.modified;
+      
+      if (!modifiedDate) {
+        return "";
       }
-      return formatTimestamp(
-        state.req.items[this.selected[0]].modified,
-        state.user.locale
-      );
+      
+      return formatTimestamp(modifiedDate, state.user.locale);
     },
     modTime() {
       if (state.isSearchActive) {
         return "";
       }
-      return new Date(Date.parse(state.req.modified)).toLocaleString();
+      const modifiedDate = getters.selectedCount() === 0
+        ? state.req.modified
+        : state.req.items[this.selected[0]]?.modified;
+      
+      if (!modifiedDate) {
+        return "";
+      }
+      
+      return new Date(Date.parse(modifiedDate)).toLocaleString();
     },
     name() {
       if (state.isSearchActive) {
@@ -136,6 +235,12 @@ export default {
         ? state.req.type
         : state.req.items[this.selected[0]].type;
     },
+    displayName() {
+      if (this.selected.length > 1) {
+        return this.$t("prompts.fileInfo");
+      }
+      return this.name;
+    },
     dir() {
       if (state.isSearchActive) {
         return state.selected[0].type === "directory";
@@ -147,25 +252,211 @@ export default {
           : state.req.items[this.selected[0]].type == "directory")
       );
     },
+    source() {
+      if (state.isSearchActive) {
+        return state.selected[0].source;
+      }
+      const currentSource = state.sources.current;
+      if (!currentSource || currentSource === "") {
+        return "";
+      }
+      return currentSource;
+    },
+    filePath() {
+      if (state.isSearchActive) {
+        return state.selected[0].path;
+      }
+      if (getters.selectedCount() === 0) {
+        return state.route.path;
+      }
+      return state.req.items[this.selected[0]]?.path || "";
+    },
+    hidden() {
+      if (state.isSearchActive) {
+        return state.selected[0].hidden;
+      }
+      if (getters.selectedCount() === 0) {
+        return state.req.hidden;
+      }
+      return state.req.items[this.selected[0]]?.hidden;
+    },
+    hasPreview() {
+      if (state.isSearchActive) {
+        return state.selected[0].hasPreview;
+      }
+      if (getters.selectedCount() === 0) {
+        return state.req.hasPreview;
+      }
+      return state.req.items[this.selected[0]]?.hasPreview;
+    },
+    additionalInfo() {
+      const info = [];
+      
+      // Add more info fields here if needed
+      if (state.req.token) {
+        info.push({ key: "token", label: this.$t("prompts.token"), value: state.req.token });
+      }
+      if (state.req.hash) {
+        info.push({ key: "hash", label: this.$t("general.hash"), value: state.req.hash });
+      }
+      if (state.req.onlyOfficeId) {
+        info.push({ key: "onlyOfficeId", label: this.$t("prompts.onlyOfficeId"), value: state.req.onlyOfficeId });
+      }
+      
+      return info;
+    },
   },
   methods: {
-    async checksum(event, algo) {
-      event.preventDefault();
-      let link;
-      if (state.isSearchActive) {
-        const hash = await filesApi.checksum(state.selected[0].source, state.selected[0].path, algo);
-        event.target.innerHTML = hash;
-        return;
+    async generateHash() {
+      if (this.generatingHash) return;
+      
+      this.hashResult = "";
+      this.generatingHash = true;
+      
+      try {
+        let source, path;
+        
+        if (state.isSearchActive) {
+          source = state.selected[0].source;
+          path = state.selected[0].path;
+        } else if (getters.selectedCount()) {
+          source = state.sources.current;
+          path = state.req.items[this.selected[0]].path;
+        } else {
+          source = state.sources.current;
+          path = state.route.path;
+        }
+        
+        const hash = await filesApi.checksum(source, path, this.selectedHashAlgo);
+        this.hashResult = hash;
+      } catch (err) {
+        this.hashResult = this.$t("prompts.errorGeneratingHash");
+        notify.showError(err.message || "Error generating hash");
+      } finally {
+        this.generatingHash = false;
       }
-      if (getters.selectedCount()) {
-        link = state.req.items[this.selected[0]].path;
-      } else {
-        link = state.route.path;
+    },
+    async copyToClipboard() {
+      if (!this.hashResult) return;
+      
+      try {
+        await navigator.clipboard.writeText(this.hashResult);
+        notify.showSuccess(this.$t("prompts.hashCopied"));
+      } catch (err) {
+        // Fallback for older browsers
+        const textArea = document.createElement("textarea");
+        textArea.value = this.hashResult;
+        textArea.style.position = "fixed";
+        textArea.style.opacity = "0";
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+          document.execCommand("copy");
+          notify.showSuccess(this.$t("prompts.hashCopied"));
+        } catch (e) {
+          notify.showError(this.$t("prompts.errorCopyingHash"));
+        }
+        document.body.removeChild(textArea);
       }
-
-      const hash = await filesApi.checksum(state.sources.current, link, algo);
-      event.target.innerHTML = hash;
     },
   },
 };
 </script>
+
+<style scoped>
+.info-content {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.info-description {
+  margin-bottom: 1.5em;
+  color: var(--textSecondary);
+  line-height: 1.5;
+  text-align: center;
+}
+
+.info-grid {
+  display: grid;
+  gap: 1.5em;
+}
+
+.info-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}
+
+.section-title {
+  font-size: 0.95em;
+  font-weight: 600;
+  color: var(--textPrimary);
+  margin: 0 0 0.75em 0;
+  padding-bottom: 0.5em;
+  border-bottom: 1px solid var(--divider);
+}
+
+.info-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75em;
+  padding: 0.5em;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.info-item:hover {
+  background-color: var(--surfaceSecondary);
+}
+
+.info-item strong {
+  min-width: 120px;
+  font-weight: 600;
+  color: var(--textPrimary);
+}
+
+.info-item span {
+  flex: 1;
+  color: var(--textSecondary);
+  word-break: break-word;
+}
+
+.break-word {
+  word-break: break-word;
+}
+
+.hash-generator {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+}
+
+.hash-select,
+.hash-result {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}
+
+.hash-select label,
+.hash-result label {
+  font-weight: 600;
+  font-size: 0.9em;
+  color: var(--textPrimary);
+}
+
+#hash-result {
+  font-family: monospace;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .info-item strong {
+    min-width: 100px;
+  }
+}
+</style>

@@ -226,7 +226,22 @@
     "sourcePath": "Fuente:",
     "destinationPath": "Destino:",
     "closeWithActiveUploadsMessage": "Advertencia: Tienes subidas activas y si cierras el aviso de subidas, podrían quedar subidas inacabadas. ¿Qué desea hacer?",
-    "closeWithActiveUploads": "Cargas activas"
+    "closeWithActiveUploads": "Cargas activas",
+    "basicInfo": "Información básica",
+    "directoryInfo": "Información del directorio",
+    "additionalInfo": "Información adicional",
+    "hidden": "Oculto",
+    "hasPreview": "Tiene Vista Previa",
+    "checksums": "Sumas de control",
+    "hashAlgorithm": "Algoritmo Hash",
+    "hashValue": "Valor Hash",
+    "selectHashAlgorithm": "Seleccione un algoritmo hash",
+    "generate": "Genere",
+    "errorGeneratingHash": "Error al generar el hash",
+    "hashCopied": "Hash copiado en el portapapeles",
+    "errorCopyingHash": "Error al copiar el hash",
+    "token": "Ficha",
+    "onlyOfficeId": "OnlyOffice ID"
   },
   "search": {
     "images": "Imágenes",

@@ -226,7 +226,22 @@
     "sourcePath": "Zdroj:",
     "destinationPath": "Cieľová destinácia:",
     "closeWithActiveUploadsMessage": "Varovanie: Upozornenie: Máte aktívne nahrávanie a zatvorenie výzvy na nahrávanie by mohlo viesť k nedokončenému nahrávaniu. Čo by ste chceli urobiť?",
-    "closeWithActiveUploads": "Aktívne nahrávanie"
+    "closeWithActiveUploads": "Aktívne nahrávanie",
+    "basicInfo": "Základné informácie",
+    "directoryInfo": "Informácie o adresári",
+    "additionalInfo": "Ďalšie informácie",
+    "hidden": "Skryté",
+    "hasPreview": "Má náhľad",
+    "checksums": "Kontrolné súčty",
+    "hashAlgorithm": "Algoritmus Hash",
+    "hashValue": "Hodnota Hash",
+    "selectHashAlgorithm": "Výber algoritmu hash",
+    "generate": "Generovať",
+    "errorGeneratingHash": "Chyba pri generovaní hash",
+    "hashCopied": "Hash skopírovaný do schránky",
+    "errorCopyingHash": "Chyba pri kopírovaní hash",
+    "token": "Token",
+    "onlyOfficeId": "IbaOffice ID"
   },
   "search": {
     "images": "Obrázky",

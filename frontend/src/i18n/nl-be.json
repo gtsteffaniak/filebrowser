@@ -226,7 +226,22 @@
     "sourcePath": "Bron:",
     "destinationPath": "Bestemming:",
     "closeWithActiveUploadsMessage": "Waarschuwing: U hebt actieve uploads en het sluiten van de uploadprompt kan resulteren in onvoltooide uploads. Wat wilt u doen?",
-    "closeWithActiveUploads": "Actieve uploads"
+    "closeWithActiveUploads": "Actieve uploads",
+    "basicInfo": "Basisinformatie",
+    "directoryInfo": "Adresboekinformatie",
+    "additionalInfo": "Aanvullende informatie",
+    "hidden": "Verborgen",
+    "hasPreview": "Voorbeeld",
+    "checksums": "Controlesommen",
+    "hashAlgorithm": "Hash-algoritme",
+    "hashValue": "Hashwaarde",
+    "selectHashAlgorithm": "Selecteer een hash-algoritme",
+    "generate": "genereren",
+    "errorGeneratingHash": "Fout bij het genereren van hash",
+    "hashCopied": "Hash gekopieerd naar klembord",
+    "errorCopyingHash": "Fout bij het kopiëren van hash",
+    "token": "Penning",
+    "onlyOfficeId": "Alleen kantoor-ID"
   },
   "search": {
     "images": "Afbeeldingen",

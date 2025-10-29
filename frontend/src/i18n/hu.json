@@ -226,7 +226,22 @@
     "sourcePath": "Forrás:",
     "destinationPath": "Úti cél:",
     "closeWithActiveUploadsMessage": "Figyelmeztetés: A feltöltési prompt bezárása befejezetlen feltöltéseket eredményezhet. Mit szeretne tenni?",
-    "closeWithActiveUploads": "Aktív feltöltések"
+    "closeWithActiveUploads": "Aktív feltöltések",
+    "basicInfo": "Alapvető információk",
+    "directoryInfo": "Címtár információk",
+    "additionalInfo": "További információk",
+    "hidden": "Rejtett",
+    "hasPreview": "Van előnézet",
+    "checksums": "Ellenőrző összegek",
+    "hashAlgorithm": "Hash algoritmus",
+    "hashValue": "Hash érték",
+    "selectHashAlgorithm": "Válasszon ki egy hash algoritmust",
+    "generate": "Generálja",
+    "errorGeneratingHash": "Hiba generáló hash",
+    "hashCopied": "Hash másolva a vágólapra",
+    "errorCopyingHash": "Hiba a hash másolásában",
+    "token": "Token",
+    "onlyOfficeId": "OnlyOffice ID"
   },
   "search": {
     "images": "Képek",

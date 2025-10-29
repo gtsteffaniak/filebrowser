@@ -9,7 +9,6 @@
 @import "./dashboard.css";
 @import "./login.css";
 @import "./mobile.css";
-@import "./halloween.css";
 
 .link {
     color: var(--blue);

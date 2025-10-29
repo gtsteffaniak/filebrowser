@@ -226,7 +226,22 @@
     "sourcePath": "ソース",
     "destinationPath": "目的地だ：",
     "closeWithActiveUploadsMessage": "警告アクティブなアップロードがあり、アップロードプロンプトを閉じるとアップロードが未完了になる可能性があります。どうしますか？",
-    "closeWithActiveUploads": "アクティブなアップロード"
+    "closeWithActiveUploads": "アクティブなアップロード",
+    "basicInfo": "基本情報",
+    "directoryInfo": "ディレクトリ情報",
+    "additionalInfo": "追加情報",
+    "hidden": "ヒドゥン",
+    "hasPreview": "プレビュー",
+    "checksums": "チェックサム",
+    "hashAlgorithm": "ハッシュ・アルゴリズム",
+    "hashValue": "ハッシュ値",
+    "selectHashAlgorithm": "ハッシュアルゴリズムの選択",
+    "generate": "生成する",
+    "errorGeneratingHash": "ハッシュ生成エラー",
+    "hashCopied": "クリップボードにコピーされたハッシュ",
+    "errorCopyingHash": "ハッシュのコピーエラー",
+    "token": "トークン",
+    "onlyOfficeId": "オンリーオフィスID"
   },
   "search": {
     "images": "画像",

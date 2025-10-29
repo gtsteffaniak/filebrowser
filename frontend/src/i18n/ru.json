@@ -226,7 +226,22 @@
     "sourcePath": "Источник:",
     "destinationPath": "Пункт назначения:",
     "closeWithActiveUploadsMessage": "Предупреждение: У вас есть активные загрузки, и закрытие окна загрузки может привести к незавершенным загрузкам. Что бы вы хотели сделать?",
-    "closeWithActiveUploads": "Активные загрузки"
+    "closeWithActiveUploads": "Активные загрузки",
+    "basicInfo": "Основная информация",
+    "directoryInfo": "Справочная информация",
+    "additionalInfo": "Дополнительная информация",
+    "hidden": "Скрытый",
+    "hasPreview": "Предварительный просмотр",
+    "checksums": "Контрольные суммы",
+    "hashAlgorithm": "Хеш-алгоритм",
+    "hashValue": "Хеш-значение",
+    "selectHashAlgorithm": "Выберите алгоритм хэширования",
+    "generate": "Создать",
+    "errorGeneratingHash": "Ошибка при генерации хэша",
+    "hashCopied": "Хэш копируется в буфер обмена",
+    "errorCopyingHash": "Ошибка при копировании хэша",
+    "token": "Токен",
+    "onlyOfficeId": "Идентификатор OnlyOffice"
   },
   "search": {
     "images": "Изображения",
