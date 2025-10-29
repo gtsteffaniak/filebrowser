@@ -12,67 +12,54 @@
       <!-- Basic Information Section -->
       <div class="info-section">
         <h3 class="section-title">{{ $t("prompts.basicInfo") }}</h3>
-        
         <div class="info-item">
           <strong>{{ $t("prompts.displayName") }}</strong>
-          <span>{{ displayName }}</span>
+          <span aria-label="info display name">{{ displayName }}</span>
         </div>
-
         <div class="info-item">
           <strong>{{ $t("prompts.size") }}</strong>
-          <span>{{ humanSize }}</span>
+          <span aria-label="info size">{{ humanSize }}</span>
         </div>
-        
         <div class="info-item">
           <strong>{{ $t("prompts.typeName") }}</strong>
-          <span>{{ type }}</span>
+          <span aria-label="info type">{{ type }}</span>
         </div>
-        
         <div class="info-item" v-if="selected.length < 2 && humanTime">
           <strong>{{ $t("prompts.lastModified") }}</strong>
-          <span :title="modTime">{{ humanTime }}</span>
+          <span aria-label="info last modified" :title="modTime">{{ humanTime }}</span>
         </div>
-        
         <div class="info-item" v-if="selected.length < 2 && source">
           <strong>{{ $t("prompts.source") }}</strong>
-          <span>{{ source }}</span>
+          <span aria-label="info source">{{ source }}</span>
         </div>
-        
         <div class="info-item" v-if="selected.length < 2 && filePath">
           <strong>{{ $t("general.path") }}</strong>
-          <span class="break-word">{{ filePath }}</span>
+          <span aria-label="info path" class="break-word">{{ filePath }}</span>
         </div>
-        
         <div class="info-item" v-if="hidden !== undefined">
           <strong>{{ $t("prompts.hidden") }}</strong>
-          <span>{{ hidden ? "✓" : "✗" }}</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->  
+          <span aria-label="info hidden">{{ hidden ? "✓" : "✗" }}</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
         </div>
-        
         <div class="info-item" v-if="hasPreview !== undefined">
           <strong>{{ $t("prompts.hasPreview") }}</strong>
-          <span>{{ hasPreview ? "✓" : "✗" }}</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <span aria-label="info has preview">{{ hasPreview ? "✓" : "✗" }}</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
         </div>
       </div>
-
       <!-- Directory Information Section -->
       <div class="info-section" v-if="dir && selected.length === 0">
         <h3 class="section-title">{{ $t("prompts.directoryInfo") }}</h3>
-        
         <div class="info-item">
           <strong>{{ $t("prompts.numberFiles") }}</strong>
           <span>{{ req.numFiles }}</span>
         </div>
-        
         <div class="info-item">
           <strong>{{ $t("prompts.numberDirs") }}</strong>
           <span>{{ req.numDirs }}</span>
         </div>
       </div>
-
       <!-- Hash Generator Section -->
       <div class="info-section" v-if="!dir">
         <h3 class="section-title">{{ $t("prompts.checksums") }}</h3>
-        
         <div class="hash-generator">
           <div class="hash-select">
             <label for="hash-algo">{{ $t("prompts.hashAlgorithm") }}</label>
@@ -83,9 +70,9 @@
                 <option value="sha256">SHA256</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
                 <option value="sha512">SHA512</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
               </select>
-              <button 
+              <button
                 type="button"
-                class="button form-button flat-left" 
+                class="button form-button flat-left"
                 @click="generateHash"
                 :title="$t('prompts.generate')"
                 :aria-label="$t('prompts.generate')"
@@ -94,21 +81,21 @@
               </button>
             </div>
           </div>
-          
+
           <div class="hash-result">
             <label for="hash-result">{{ $t("prompts.hashValue") }}</label>
             <div class="form-flex-group">
-              <input 
+              <input
                 style="height: 100%"
-                id="hash-result" 
-                class="input form-form flat-right" 
-                type="text" 
-                :value="hashResult" 
-                readonly 
+                id="hash-result"
+                class="input form-form flat-right"
+                type="text"
+                :value="hashResult"
+                readonly
                 :placeholder="$t('prompts.selectHashAlgorithm')"
               />
-              <button 
-                class="button form-button flat-left" 
+              <button
+                class="button form-button flat-left"
                 @click="copyToClipboard"
                 :disabled="!hashResult"
                 :title="$t('buttons.copyToClipboard')"
@@ -127,7 +114,6 @@
       <!-- Additional Information Section -->
       <div class="info-section" v-if="additionalInfo.length > 0">
         <h3 class="section-title">{{ $t("prompts.additionalInfo") }}</h3>
-        
         <div class="info-item" v-for="info in additionalInfo" :key="info.key">
           <strong>{{ info.label }}</strong>
           <span>{{ info.value }}</span>
@@ -198,11 +184,11 @@ export default {
       const modifiedDate = getters.selectedCount() === 0
         ? state.req.modified
         : state.req.items[this.selected[0]]?.modified;
-      
+
       if (!modifiedDate) {
         return "";
       }
-      
+
       return formatTimestamp(modifiedDate, state.user.locale);
     },
     modTime() {
@@ -212,11 +198,11 @@ export default {
       const modifiedDate = getters.selectedCount() === 0
         ? state.req.modified
         : state.req.items[this.selected[0]]?.modified;
-      
+
       if (!modifiedDate) {
         return "";
       }
-      
+
       return new Date(Date.parse(modifiedDate)).toLocaleString();
     },
     name() {
@@ -291,7 +277,7 @@ export default {
     },
     additionalInfo() {
       const info = [];
-      
+
       // Add more info fields here if needed
       if (state.req.token) {
         info.push({ key: "token", label: this.$t("prompts.token"), value: state.req.token });
@@ -302,20 +288,20 @@ export default {
       if (state.req.onlyOfficeId) {
         info.push({ key: "onlyOfficeId", label: this.$t("prompts.onlyOfficeId"), value: state.req.onlyOfficeId });
       }
-      
+
       return info;
     },
   },
   methods: {
     async generateHash() {
       if (this.generatingHash) return;
-      
+
       this.hashResult = "";
       this.generatingHash = true;
-      
+
       try {
         let source, path;
-        
+
         if (state.isSearchActive) {
           source = state.selected[0].source;
           path = state.selected[0].path;
@@ -326,7 +312,7 @@ export default {
           source = state.sources.current;
           path = state.route.path;
         }
-        
+
         const hash = await filesApi.checksum(source, path, this.selectedHashAlgo);
         this.hashResult = hash;
       } catch (err) {
@@ -338,7 +324,7 @@ export default {
     },
     async copyToClipboard() {
       if (!this.hashResult) return;
-      
+
       try {
         await navigator.clipboard.writeText(this.hashResult);
         notify.showSuccess(this.$t("prompts.hashCopied"));
