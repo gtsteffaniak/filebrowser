@@ -42,7 +42,7 @@ export interface UserObject {
   loginType: string;
   username: string;
   quickDownloadEnabled: boolean;
-  gallarySize: number;
+  gallerySize: number;
   singleClick: boolean;
   stickySidebar: boolean;
   locale: string;

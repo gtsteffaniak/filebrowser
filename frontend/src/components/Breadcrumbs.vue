@@ -18,31 +18,17 @@
         </router-link>
       </li>
     </ul>
-    <div v-if="showGallerySize" class="gallery-size card">
-      {{ $t("files.size") }}<span class="sr-only">:</span>  <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-      <input
-        v-model="gallerySize"
-        type="range"
-        id="gallery-size"
-        name="gallery-size"
-        min="1"
-        max="8"
-        @input="updateGallerySize"
-        @change="commitGallerySize"
-      />
-    </div>
   </div>
 </template>
 
 <script>
-import { state, mutations, getters } from "@/store";
+import { state, getters } from "@/store";
 import { encodedPath } from "@/utils/url.js";
 
 export default {
   name: "breadcrumbs",
   data() {
     return {
-      gallerySize: state.user.gallerySize,
       base: "/files/",
       path: "",
     };
@@ -68,9 +54,6 @@ export default {
     },
     addPadding() {
       return getters.isStickySidebar() || getters.isShare();
-    },
-    showGallerySize() {
-      return getters.isCardView() && state.req?.items?.length > 0;
     },
     items() {
       const req = state.req;
@@ -123,12 +106,6 @@ export default {
           this.base = `/files/${state.req.source}/`;
         }
       }
-    },
-    updateGallerySize(event) {
-      this.gallerySize = parseInt(event.target.value, 10);
-    },
-    commitGallerySize() {
-      mutations.setGallerySize(this.gallerySize);
     },
   },
 };
@@ -224,12 +201,6 @@ export default {
   filter: contrast(0.8) hue-rotate(200deg) saturate(1);
 }
 
-.gallery-size {
-  display: flex;
-  width: fit-content;
-  padding: 0.5em;
-  margin-bottom: 0.5em;
-}
 input[type="range"] {
   accent-color: var(--primaryColor);
 }

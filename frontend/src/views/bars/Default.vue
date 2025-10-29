@@ -53,7 +53,7 @@ export default {
   },
   data() {
     return {
-      viewModes: ["list", "compact", "normal", "gallery"],
+      viewModes: ["list", "normal", "icons"],
     };
   },
   computed: {
@@ -89,7 +89,7 @@ export default {
     viewIcon() {
       const icons = {
         list: "view_list",
-        compact: "table_rows_narrow",
+        compact: "view_list",
         normal: "view_module",
         gallery: "grid_view",
       };

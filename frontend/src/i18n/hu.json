@@ -95,7 +95,9 @@
     "sortByName": "Rendezés név szerint",
     "sortBySize": "Rendezés méret szerint",
     "noPreview": "Ehhez a fájlhoz nincs előnézet.",
-    "noDownloadAccess": "A letöltés nem elérhető."
+    "noDownloadAccess": "A letöltés nem elérhető.",
+    "itemSelected": "kiválasztott elem",
+    "itemsSelected": "kiválasztott elemek"
   },
   "help": {
     "click": "mappa vagy fájl kijelölése",

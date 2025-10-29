@@ -91,8 +91,9 @@ over
 }
 
 .main-padding {
-  padding: 0.5em;
+  padding: 0.3em;
   padding-top: 4em;
+  padding-bottom: 0;
 }
 
 

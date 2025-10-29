@@ -56,7 +56,7 @@ export const state = reactive({
     loginType: "",
     username: "",
     quickDownloadEnabled: false,
-    gallarySize: 0,
+    gallerySize: 0,
     singleClick: false,
     stickySidebar: stickyStartup(),
     locale: detectLocale(), // Default to the locale from moment
