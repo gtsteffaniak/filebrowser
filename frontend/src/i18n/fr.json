@@ -226,7 +226,22 @@
     "sourcePath": "Source :",
     "destinationPath": "Destination :",
     "closeWithActiveUploadsMessage": "Attention : Vous avez des téléchargements actifs et la fermeture de l'invite de téléchargement pourrait entraîner des téléchargements inachevés. Que voulez-vous faire ?",
-    "closeWithActiveUploads": "Téléchargements actifs"
+    "closeWithActiveUploads": "Téléchargements actifs",
+    "basicInfo": "Informations de base",
+    "directoryInfo": "Informations sur l'annuaire",
+    "additionalInfo": "Informations complémentaires",
+    "hidden": "Caché",
+    "hasPreview": "Avant-première",
+    "checksums": "Sommes de contrôle",
+    "hashAlgorithm": "Algorithme de hachage",
+    "hashValue": "Valeur de hachage",
+    "selectHashAlgorithm": "Sélectionner un algorithme de hachage",
+    "generate": "Générer",
+    "errorGeneratingHash": "Erreur dans la génération du hachage",
+    "hashCopied": "Hash copié dans le presse-papiers",
+    "errorCopyingHash": "Erreur de copie du hachage",
+    "token": "Jeton",
+    "onlyOfficeId": "OnlyOffice ID"
   },
   "search": {
     "images": "Images",

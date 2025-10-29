@@ -229,7 +229,22 @@
     "sourcePath": "Πηγή:",
     "destinationPath": "Προορισμός:",
     "closeWithActiveUploadsMessage": "Προειδοποίηση: Το κλείσιμο της προτροπής μεταφόρτωσης μπορεί να οδηγήσει σε ημιτελείς μεταφορτώσεις. Τι θα θέλατε να κάνετε;",
-    "closeWithActiveUploads": "Ενεργές μεταφορτώσεις"
+    "closeWithActiveUploads": "Ενεργές μεταφορτώσεις",
+    "basicInfo": "Βασικές πληροφορίες",
+    "directoryInfo": "Πληροφορίες καταλόγου",
+    "additionalInfo": "Πρόσθετες πληροφορίες",
+    "hidden": "Κρυφό",
+    "hasPreview": "Έχει προεπισκόπηση",
+    "checksums": "Αθροίσματα ελέγχου",
+    "hashAlgorithm": "Αλγόριθμος Hash",
+    "hashValue": "Αξία κατακερματισμού",
+    "selectHashAlgorithm": "Επιλέξτε έναν αλγόριθμο κατακερματισμού",
+    "generate": "Δημιουργία",
+    "errorGeneratingHash": "Σφάλμα δημιουργίας hash",
+    "hashCopied": "Αντιγραφή κατακερματισμού στο πρόχειρο",
+    "errorCopyingHash": "Σφάλμα αντιγραφής hash",
+    "token": "Token",
+    "onlyOfficeId": "ΜόνοΤαυτότητα γραφείου"
   },
   "search": {
     "images": "Εικόνες",

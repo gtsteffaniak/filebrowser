@@ -226,7 +226,22 @@
     "sourcePath": "출처:",
     "destinationPath": "목적지:",
     "closeWithActiveUploadsMessage": "경고: 업로드가 진행 중이며 업로드 프롬프트를 닫으면 완료되지 않은 업로드가 발생할 수 있습니다. 어떻게 하시겠습니까?",
-    "closeWithActiveUploads": "활성 업로드"
+    "closeWithActiveUploads": "활성 업로드",
+    "basicInfo": "기본 정보",
+    "directoryInfo": "디렉토리 정보",
+    "additionalInfo": "추가 정보",
+    "hidden": "숨겨진",
+    "hasPreview": "미리보기 있음",
+    "checksums": "체크섬",
+    "hashAlgorithm": "해시 알고리즘",
+    "hashValue": "해시 값",
+    "selectHashAlgorithm": "해시 알고리즘 선택",
+    "generate": "생성",
+    "errorGeneratingHash": "해시 생성 오류",
+    "hashCopied": "클립보드에 해시 복사",
+    "errorCopyingHash": "해시 복사 오류",
+    "token": "토큰",
+    "onlyOfficeId": "OnlyOffice ID"
   },
   "search": {
     "images": "이미지",

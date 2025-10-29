@@ -4,12 +4,17 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v1.0.0
 
+ **Notes**:
+ - Enhanced onlyoffice debugger with more wholistic backend logs
+ - Updated info prompt styling
+
  **BugFixes**:
  - cookie host is set using x-Forwarded-Host to better support reverse proxies.
  - HEIC conversion not working #1460
  - 'Prevent user changing their password' also prevents admins changing the users password. #1365
- - OnlyOffice write problem #1397
+ - OnlyOffice write problem #1397 #1068
  - Conditionals starting with a . seem to not work. #1455
+ - Last modified in file info is empty #1443
 
 ## v0.8.11-beta
 

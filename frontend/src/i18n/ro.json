@@ -226,7 +226,22 @@
     "sourcePath": "Sursă:",
     "destinationPath": "Destinație:",
     "closeWithActiveUploadsMessage": "Atenție: Aveți încărcări active și închiderea solicitării de încărcare ar putea duce la încărcări neterminate. Ce ați dori să faceți?",
-    "closeWithActiveUploads": "Încărcări active"
+    "closeWithActiveUploads": "Încărcări active",
+    "basicInfo": "Informații de bază",
+    "directoryInfo": "Informații din director",
+    "additionalInfo": "Informații suplimentare",
+    "hidden": "Ascunse",
+    "hasPreview": "Are Previzualizare",
+    "checksums": "Verificări",
+    "hashAlgorithm": "Algoritmul Hash",
+    "hashValue": "Valoare Hash",
+    "selectHashAlgorithm": "Selectați un algoritm hash",
+    "generate": "Generați",
+    "errorGeneratingHash": "Eroare în generarea hash-ului",
+    "hashCopied": "Hash copiat în clipboard",
+    "errorCopyingHash": "Eroare copiere hash",
+    "token": "Token",
+    "onlyOfficeId": "NumaiOffice ID"
   },
   "search": {
     "images": "Imagini",

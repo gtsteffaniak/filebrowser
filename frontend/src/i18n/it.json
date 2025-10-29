@@ -226,7 +226,22 @@
     "sourcePath": "Fonte:",
     "destinationPath": "Destinazione:",
     "closeWithActiveUploadsMessage": "Attenzione: Ci sono caricamenti attivi e la chiusura del prompt di caricamento potrebbe causare caricamenti non completati. Cosa si desidera fare?",
-    "closeWithActiveUploads": "Carichi attivi"
+    "closeWithActiveUploads": "Carichi attivi",
+    "basicInfo": "Informazioni di base",
+    "directoryInfo": "Informazioni sull'elenco",
+    "additionalInfo": "Informazioni aggiuntive",
+    "hidden": "Nascosto",
+    "hasPreview": "Ha Anteprima",
+    "checksums": "Checksum",
+    "hashAlgorithm": "Algoritmo Hash",
+    "hashValue": "Valore Hash",
+    "selectHashAlgorithm": "Selezionare un algoritmo di hash",
+    "generate": "Generare",
+    "errorGeneratingHash": "Errore nella generazione dell'hash",
+    "hashCopied": "Hash copiato negli appunti",
+    "errorCopyingHash": "Errore nella copia dell'hash",
+    "token": "Gettone",
+    "onlyOfficeId": "Solo ID ufficio"
   },
   "search": {
     "images": "Immagini",
