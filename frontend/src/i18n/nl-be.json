@@ -98,6 +98,10 @@
     "noDownloadAccess": "Download is niet beschikbaar."
   },
   "help": {
+    "functionKeys": "Functietoetsen",
+    "mouseActions": "Muisacties",
+    "fileOprations": "Bestandsbewerkingen",
+    "navigation": "Navigatie",
     "click": "selecteer bestand of map",
     "ctrl": {
       "click": "selecteer meerdere bestanden of mappen",

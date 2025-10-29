@@ -98,6 +98,10 @@
     "noDownloadAccess": "Descărcarea nu este disponibilă."
   },
   "help": {
+    "functionKeys": "Taste Funcție",
+    "mouseActions": "Acțiuni Mouse",
+    "fileOprations": "Operații Fișiere",
+    "navigation": "Navigare",
     "click": "alege fișier sau director",
     "ctrl": {
       "click": "alege multiple fișiere sau directoare",

@@ -101,6 +101,10 @@
     "noDownloadAccess": "Download is not available."
   },
   "help": {
+    "functionKeys": "Function Keys",
+    "mouseActions": "Mouse Actions",
+    "fileOprations": "File Operations",
+    "navigation": "Navigation",
     "click": "select file or directory",
     "ctrl": {
       "click": "select multiple files or directories",

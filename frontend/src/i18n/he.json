@@ -98,6 +98,10 @@
     "noDownloadAccess": "ההורדה אינה זמינה."
   },
   "help": {
+    "functionKeys": "מקשי פונקציה",
+    "mouseActions": "פעולות עכבר",
+    "fileOprations": "פעולות קבצים",
+    "navigation": "ניווט",
     "click": "בחר קובץ או תקייה",
     "ctrl": {
       "click": "בחר מספר קבצים או תקיות",

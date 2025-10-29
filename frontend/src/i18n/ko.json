@@ -98,6 +98,10 @@
     "noDownloadAccess": "다운로드할 수 없습니다."
   },
   "help": {
+    "functionKeys": "기능 키",
+    "mouseActions": "마우스 작업",
+    "fileOprations": "파일 작업",
+    "navigation": "탐색",
     "click": "파일이나 디렉토리를 선택해주세요.",
     "ctrl": {
       "click": "여러 개의 파일이나 디렉토리를 선택해주세요.",

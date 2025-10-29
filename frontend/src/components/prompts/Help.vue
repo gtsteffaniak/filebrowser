@@ -14,7 +14,7 @@
     <div class="shortcuts-grid">
       <!-- Function Keys Section -->
       <div class="shortcut-section">
-        <h3 class="section-title">Function Keys</h3> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+        <h3 class="section-title">{{ $t("help.functionKeys") }}</h3>
         <div class="shortcut-item">
           <kbd>F1</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           <span>{{ $t("help.f1") }}</span>
@@ -39,7 +39,7 @@
 
       <!-- Mouse Actions Section -->
       <div class="shortcut-section">
-        <h3 class="section-title">Mouse Actions</h3> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+        <h3 class="section-title">{{ $t("help.mouseActions") }}</h3>
         <div class="shortcut-item">
           <kbd>Click</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           <span>{{ $t("help.click") }}</span>
@@ -52,7 +52,7 @@
 
       <!-- File Operations Section -->
       <div class="shortcut-section">
-        <h3 class="section-title">File Operations</h3> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+        <h3 class="section-title">{{ $t("help.fileOperations") }}</h3>
         <div class="shortcut-item">
           <kbd>CTRL + C</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           <span>{{ $t("help.ctrl.c") }}</span>
@@ -73,7 +73,7 @@
 
       <!-- Navigation Section -->
       <div class="shortcut-section">
-        <h3 class="section-title">Navigation</h3> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+        <h3 class="section-title">{{ $t("help.navigation") }}</h3>
         <div class="shortcut-item">
           <kbd>CTRL + B</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           <span>{{ $t("help.ctrl.b") }}</span>

@@ -98,6 +98,10 @@
     "noDownloadAccess": "Stiahnutie nie je k dispozícii."
   },
   "help": {
+    "functionKeys": "Funkčné Klávesy",
+    "mouseActions": "Akcie Myši",
+    "fileOprations": "Operácie so Súbormi",
+    "navigation": "Navigácia",
     "click": "vyberie súbor alebo priečinok",
     "ctrl": {
       "click": "vyberie viac súborov alebo priečinkov",

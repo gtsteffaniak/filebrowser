@@ -98,6 +98,10 @@
     "noDownloadAccess": "A transferência não está disponível."
   },
   "help": {
+    "functionKeys": "Teclas de Função",
+    "mouseActions": "Ações do Rato",
+    "fileOprations": "Operações de Ficheiros",
+    "navigation": "Navegação",
     "click": "selecionar pasta ou ficheiro",
     "ctrl": {
       "click": "selecionar várias pastas e ficheiros",

@@ -98,6 +98,10 @@
     "noDownloadAccess": "A letöltés nem elérhető."
   },
   "help": {
+    "functionKeys": "Funkcióbillentyűk",
+    "mouseActions": "Egérműveletek",
+    "fileOprations": "Fájlműveletek",
+    "navigation": "Navigáció",
     "click": "mappa vagy fájl kijelölése",
     "ctrl": {
       "click": "több mappa vagy fájl kijelölése",
