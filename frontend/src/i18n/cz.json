@@ -103,7 +103,7 @@
   "help": {
     "functionKeys": "Funkční Klávesy",
     "mouseActions": "Akce Myši",
-    "fileOprations": "Operace se Soubory",
+    "fileOperations": "Operace se Soubory",
     "navigation": "Navigace",
     "click": "označit soubor nebo složku",
     "ctrl": {

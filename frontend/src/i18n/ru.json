@@ -100,7 +100,7 @@
   "help": {
     "functionKeys": "Функциональные Клавиши",
     "mouseActions": "Действия Мыши",
-    "fileOprations": "Операции с Файлами",
+    "fileOperations": "Операции с Файлами",
     "navigation": "Навигация",
     "click": "выбрать файл или папку",
     "ctrl": {

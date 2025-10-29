@@ -100,7 +100,7 @@
   "help": {
     "functionKeys": "Tasti Funzione",
     "mouseActions": "Azioni del Mouse",
-    "fileOprations": "Operazioni sui File",
+    "fileOperations": "Operazioni sui File",
     "navigation": "Navigazione",
     "click": "seleziona un file o una cartella",
     "ctrl": {

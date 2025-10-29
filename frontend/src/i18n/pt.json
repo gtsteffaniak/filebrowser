@@ -100,7 +100,7 @@
   "help": {
     "functionKeys": "Teclas de Função",
     "mouseActions": "Ações do Rato",
-    "fileOprations": "Operações de Ficheiros",
+    "fileOperations": "Operações de Ficheiros",
     "navigation": "Navegação",
     "click": "selecionar pasta ou ficheiro",
     "ctrl": {

@@ -100,7 +100,7 @@
   "help": {
     "functionKeys": "ファンクションキー",
     "mouseActions": "マウス操作",
-    "fileOprations": "ファイル操作",
+    "fileOperations": "ファイル操作",
     "navigation": "ナビゲーション",
     "click": "ファイルやディレクトリを選択",
     "ctrl": {
