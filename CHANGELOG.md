@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file. For commit 
  - HEIC conversion not working #1460
  - 'Prevent user changing their password' also prevents admins changing the users password. #1365
  - OnlyOffice write problem #1397
+ - Conditionals starting with a . seem to not work. #1455
 
 ## v0.8.11-beta
 
