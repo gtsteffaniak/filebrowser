@@ -93,11 +93,8 @@ export default {
         showImage() {
             if (state.req.type == "image/heic" || state.req.type == "image/heif") {
                 if (this.isHeicAndViewable) {
-                    console.log("this.isHeicAndViewable", this.isHeicAndViewable)
                     return true;
                 }
-                console.log("not this.isHeicAndViewable", this.isHeicAndViewable)
-
                 return false;
             }
             return this.previewType == 'image' || this.pdfConvertable;

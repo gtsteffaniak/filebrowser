@@ -4,12 +4,11 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v1.0.0
 
- **Notes**:
-
  **BugFixes**:
  - cookie host is set using x-Forwarded-Host to better support reverse proxies.
  - HEIC conversion not working #1460
  - 'Prevent user changing their password' also prevents admins changing the users password. #1365
+ - OnlyOffice write problem #1397
 
 ## v0.8.11-beta
 
