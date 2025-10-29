@@ -770,6 +770,18 @@ func setConditionals(config *Source) {
 		if rule.IncludeRootItem != "" {
 			resolved.IncludeRootItems[rule.IncludeRootItem] = struct{}{}
 		}
+		if rule.FileNames != "" {
+			resolved.FileNames[rule.FileNames] = rule
+		}
+		if rule.FolderNames != "" {
+			resolved.FolderNames[rule.FolderNames] = rule
+		}
+		if rule.FileName != "" {
+			resolved.FileNames[rule.FileName] = rule
+		}
+		if rule.FolderName != "" {
+			resolved.FolderNames[rule.FolderName] = rule
+		}
 	}
 	config.Config.ResolvedConditionals = resolved
 }
