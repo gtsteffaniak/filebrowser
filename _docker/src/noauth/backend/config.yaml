@@ -26,10 +26,17 @@ server:
               viewable: true
             - fileStartsWith: "startsWith"
             - folderEndsWith: "Folder"
+            - folderNames: 'folderNames'
+            - fileNames: 'fileNames'
+            - folderName: 'folderName'
+            - fileName: 'fileName'
+            - folderName: '.hiddenDir'
+            - fileName: '.hidden'
 
 auth:
   methods:
     noauth: true
+
 frontend:
   name: "Graham's Filebrowser"
   disableDefaultLinks: true
@@ -37,11 +44,9 @@ frontend:
     - text: "A playwright test"
       url: "https://playwright.dev/"
       title: "Playwright"
-userDefaults:
-  permissions:
-   realtime: true
 
 userDefaults:
+  showHidden: true
   preview:
     image: true
     popup: true
