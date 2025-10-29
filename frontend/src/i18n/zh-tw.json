@@ -98,6 +98,10 @@
     "noDownloadAccess": "無法下載。"
   },
   "help": {
+    "functionKeys": "功能鍵",
+    "mouseActions": "滑鼠操作",
+    "fileOperations": "檔案操作",
+    "navigation": "導航",
     "click": "選擇檔案或目錄",
     "ctrl": {
       "click": "選擇多個檔案或目錄",

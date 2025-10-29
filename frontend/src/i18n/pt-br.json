@@ -98,6 +98,10 @@
     "noDownloadAccess": "O download não está disponível."
   },
   "help": {
+    "functionKeys": "Teclas de Função",
+    "mouseActions": "Ações do Mouse",
+    "fileOperations": "Operações de Arquivos",
+    "navigation": "Navegação",
     "click": "selecionar pasta ou arquivo",
     "ctrl": {
       "click": "selecionar várias pastas e arquivos",

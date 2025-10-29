@@ -98,6 +98,10 @@
     "noDownloadAccess": "التنزيل غير متاح."
   },
   "help": {
+    "functionKeys": "مفاتيح الوظائف",
+    "mouseActions": "إجراءات الفأرة",
+    "fileOperations": "عمليات الملفات",
+    "navigation": "التنقل",
     "click": "حدد الملف أو المجلد",
     "ctrl": {
       "click": "حدد أكثر من ملف او مجلد",

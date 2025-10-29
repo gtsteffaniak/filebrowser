@@ -101,6 +101,10 @@
     "noDownloadAccess": "Stahování není k dispozici."
   },
   "help": {
+    "functionKeys": "Funkční Klávesy",
+    "mouseActions": "Akce Myši",
+    "fileOperations": "Operace se Soubory",
+    "navigation": "Navigace",
     "click": "označit soubor nebo složku",
     "ctrl": {
       "click": "označit více souborů nebo složek",

@@ -98,6 +98,10 @@
     "noDownloadAccess": "İndirme mevcut değil."
   },
   "help": {
+    "functionKeys": "Fonksiyon Tuşları",
+    "mouseActions": "Fare İşlemleri",
+    "fileOperations": "Dosya İşlemleri",
+    "navigation": "Gezinme",
     "click": "dosya veya klasör seçin",
     "ctrl": {
       "click": "çoklu dosya ve klasör seçin",

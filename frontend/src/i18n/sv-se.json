@@ -98,6 +98,10 @@
     "noDownloadAccess": "Nedladdning är inte tillgänglig."
   },
   "help": {
+    "functionKeys": "Funktionstangenter",
+    "mouseActions": "Musåtgärder",
+    "fileOperations": "Filoperationer",
+    "navigation": "Navigering",
     "click": "välj fil eller mapp",
     "ctrl": {
       "click": "välj flera filer eller mappar",
