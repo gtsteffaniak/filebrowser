@@ -235,9 +235,7 @@ func (s *ImageService) ConvertHEICToJPEG(ctx context.Context, heicPath string, t
 		return nil, ctx.Err()
 	}
 	// Create temporary directory for tile processing
-	outputDir := s.cacheDir
-	tempDir := filepath.Join(outputDir, fmt.Sprintf("heic_tiles_%d", os.Getpid()))
-	err := os.MkdirAll(tempDir, fileutils.PermDir)
+	tempDir, err := os.MkdirTemp(s.cacheDir, "heic_convert")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create temp directory: %w", err)
 	}
