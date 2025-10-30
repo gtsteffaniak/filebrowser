@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file. For commit 
  **Notes**:
  - Enhanced onlyoffice debugger with more wholistic backend logs
  - Updated info prompt styling
+ - share qr code links to externalUrl for entire share if exists #1329
 
  **BugFixes**:
  - cookie host is set using x-Forwarded-Host to better support reverse proxies.
