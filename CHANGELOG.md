@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v1.0.1
+
+ **Notes**:
+ - build requirement change -- from node 18 > node 20 with npm 9.0.0+
+ - update makefile linker flags to properly set version and sha #1474
+
+ **BugFixes**:
+ - Generating multiple HEIC previews in parallel fails #1470
+
 ## v1.0.0
 
  **Notes**:
