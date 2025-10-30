@@ -20,7 +20,7 @@ build:
 	docker build --build-arg="VERSION=testing" --build-arg="REVISION=n/a" -t gtstef/filebrowser -f _docker/Dockerfile .
 
 build-backend:
-	cd backend && go build -o filebrowser --ldflags="-w -s -X 'github.com/gtsteffaniak/filebrowser/backend/version.CommitSHA=testingCommit' -X 'github.com/gtsteffaniak/filebrowser/backend/version.Version=testing'"
+	cd backend && go build -o filebrowser --ldflags="-w -s -X 'github.com/gtsteffaniak/filebrowser/backend/common/version.CommitSHA=testingCommit' -X 'github.com/gtsteffaniak/filebrowser/backend/common/version.Version=testing'"
 
 # New dev target with hot-reloading for frontend and backend
 dev:
@@ -49,7 +49,7 @@ run: build-frontend generate-config
 		sed -i '/func init/,+3d' ./swagger/docs/docs.go; \
 	fi && \
 	CGO_ENABLED=1 FILEBROWSER_DEVMODE=true go run --tags=mupdf \
-	--ldflags="-w -s -X 'github.com/gtsteffaniak/filebrowser/backend/version.CommitSHA=testingCommit' -X 'github.com/gtsteffaniak/filebrowser/backend/version.Version=testing'" . -c test_config.yaml
+	--ldflags="-w -s -X 'github.com/gtsteffaniak/filebrowser/backend/common/version.CommitSHA=testingCommit' -X 'github.com/gtsteffaniak/filebrowser/backend/common/version.Version=testing'" . -c test_config.yaml
 
 generate-config:
 	cd backend && FILEBROWSER_GENERATE_CONFIG=true go run .
