@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file. For commit 
  **Notes**:
  - Enhanced onlyoffice debugger with more wholistic backend logs
  - Updated info prompt styling
+ - share qr code links to externalUrl for entire share if exists #1329
 
  **BugFixes**:
  - cookie host is set using x-Forwarded-Host to better support reverse proxies.
@@ -15,6 +16,7 @@ All notable changes to this project will be documented in this file. For commit 
  - OnlyOffice write problem #1397 #1068
  - Conditionals starting with a . seem to not work. #1455
  - Last modified in file info is empty #1443
+ - Share links: 'Default View Mode' does not apply to subfolders. #1463
 
 ## v0.8.11-beta
 

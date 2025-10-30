@@ -1,6 +1,8 @@
 package settings
 
 import (
+	"errors"
+	"fmt"
 	"os"
 	"regexp"
 	"strings"
@@ -83,7 +85,13 @@ func addCustomTheme(name, description, cssFilePath string) {
 	// Load CSS content for runtime use (frontend consumption)
 	cssContent := ""
 	if cssFilePath != "" {
-		cssContent = readCustomCSS(cssFilePath)
+		var err error
+		cssContent, err = readCustomCSS(cssFilePath)
+		if err != nil {
+			logger.Warning(err.Error())
+			return
+		}
+
 	}
 	Config.Frontend.Styling.CustomThemeOptions[name] = CustomTheme{
 		Description: description,
@@ -92,22 +100,20 @@ func addCustomTheme(name, description, cssFilePath string) {
 	}
 }
 
-func readCustomCSS(path string) string {
+func readCustomCSS(path string) (string, error) {
 	if path == "" {
-		return ""
+		return "", errors.New("path is empty")
 	}
 	content, err := os.ReadFile(path)
 	if err != nil {
-		// Only log if the file exists but cannot be read (e.g., permission error)
-		if !os.IsNotExist(err) {
-			logger.Warningf("Could not read custom CSS file %s: %v", path, err)
-			return ""
-		}
+		return "", fmt.Errorf("could not read custom CSS file: %v", err)
 	}
 	if len(content) > 128*1024 {
-		logger.Warningf("Custom CSS file %s is too large (%d bytes), ignoring", path, len(content))
-		return ""
+		return "", fmt.Errorf("custom CSS file is too large (%d bytes)", len(content))
+	}
+	if len(content) == 0 {
+		return "", fmt.Errorf("custom CSS file is empty: %s", path)
 	}
 	logger.Debugf("Loaded custom CSS from: %s (%d bytes)", path, len(content))
-	return string(content)
+	return string(content), nil
 }
