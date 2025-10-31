@@ -1,4 +1,5 @@
 SHELL := /bin/bash
+# Detect the operating system
 
 .SILENT:
 setup:
@@ -22,7 +23,7 @@ build:
 build-backend:
 	cd backend && go build -o filebrowser --ldflags="-w -s -X 'github.com/gtsteffaniak/filebrowser/backend/common/version.CommitSHA=testingCommit' -X 'github.com/gtsteffaniak/filebrowser/backend/common/version.Version=testing'"
 
-AIR_CONFIG ?= .air.toml
+
 # New dev target with hot-reloading for frontend and backend
 dev:
 	@echo "NOTE: Run 'make setup' if you haven't already."
@@ -39,11 +40,13 @@ dev:
 	@echo "Starting dev servers... Press Ctrl+C to stop."
 	@trap 'echo "Stopping servers..."; kill -TERM 0' INT TERM
 	cd frontend && DEV_BUILD=true npm run watch & \
-	cd backend && FILEBROWSER_DEVMODE=true go tool air -c $(AIR_CONFIG) & \
+	cd backend && FILEBROWSER_DEVMODE=true \
+	if [ "$(shell uname)" = "Windows_NT" ]; then \
+		AIR_CONFIG=.air.windows.toml go tool air; \
+	else \
+		go tool air; \
+	fi & \
 	wait
-
-dev-windows:
-	FILEBROWSER_CONFIG=http/dist/config.generated.yaml AIR_CONFIG=.air.windows.toml make dev
 
 run: build-frontend generate-config
 	cd backend && go tool swag init --output swagger/docs && \
