@@ -245,7 +245,11 @@
     "hashCopied": "Hash skopírovaný do schránky",
     "errorCopyingHash": "Chyba pri kopírovaní hash",
     "token": "Token",
-    "onlyOfficeId": "IbaOffice ID"
+    "onlyOfficeId": "IbaOffice ID",
+    "firstLoadTitle": "Vitajte v programe FileBrowser Quantum!",
+    "halloweenTitle": "Šťastný Halloween!",
+    "halloweenBody": "Bola použitá téma Halloween. Ak sa vám nepáči, môžete ju vypnúť, alebo ju natrvalo zakázať v nastaveniach profilu výberom akejkoľvek inej témy.",
+    "firstLoadBody": "Pri spustení bola vytvorená nová databáza. Ak to nie je to, čo ste očakávali, dvakrát skontrolujte konfiguračný súbor pre cestu `server.database` a uistite sa, že existuje. V dockeri môže byť cesta k databáze `./data/database.db` alebo `./database.db`."
   },
   "search": {
     "images": "Obrázky",
@@ -662,9 +666,5 @@
     "changePlaybackMode": "Zmeniť režim prehrávania",
     "changePlaybackModeHint": "Zmeňte režim prehrávania, aby ste videli viac súborov",
     "emptyQueue": "Front je prázdny"
-  },
-  "halloween": {
-    "title": "Šťastný Halloween!",
-    "body": "Bola použitá téma Halloween. Ak sa vám nepáči, môžete ju vypnúť, alebo ju natrvalo zakázať v nastaveniach profilu výberom akejkoľvek inej témy."
   }
 }

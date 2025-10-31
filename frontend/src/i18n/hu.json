@@ -245,7 +245,11 @@
     "hashCopied": "Hash másolva a vágólapra",
     "errorCopyingHash": "Hiba a hash másolásában",
     "token": "Token",
-    "onlyOfficeId": "OnlyOffice ID"
+    "onlyOfficeId": "OnlyOffice ID",
+    "firstLoadTitle": "Üdvözöljük a FileBrowser Quantum-on!",
+    "halloweenTitle": "Boldog Halloweent!",
+    "halloweenBody": "A Halloween témát alkalmazták. Ha nem tetszik, letilthatja, vagy véglegesen letilthatja a profilbeállításokban bármely más téma kiválasztásával.",
+    "firstLoadBody": "Az indításkor új adatbázis jött létre. Ha ez nem az, amire számított, kérjük, ellenőrizze kétszer is a konfigurációs fájlban a `server.database` elérési útvonalát, és győződjön meg róla, hogy létezik. Dockeren az adatbázis elérési útja lehet `./data/database.db` vagy `./database.db`."
   },
   "search": {
     "images": "Képek",
@@ -662,9 +666,5 @@
     "changePlaybackMode": "Lejátszási mód változtatása",
     "changePlaybackModeHint": "Változtasd meg a lejátszási módot, hogy több fájlt láss",
     "emptyQueue": "A sor üres"
-  },
-  "halloween": {
-    "title": "Boldog Halloweent!",
-    "body": "A Halloween témát alkalmazták. Ha nem tetszik, letilthatja, vagy véglegesen letilthatja a profilbeállításokban bármely más téma kiválasztásával."
   }
 }

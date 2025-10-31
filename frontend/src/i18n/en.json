@@ -63,7 +63,7 @@
     "saveAndExit": "Save and Exit",
     "keepEditing": "Keep Editing",
     "stayOnPrompt": "Stay",
-    "closeAnyway": "Close Anyways", 
+    "closeAnyway": "Close Anyways",
     "disable": "Disable",
     "confirm": "Confirm"
   },
@@ -311,7 +311,11 @@
     "hashCopied": "Hash copied to clipboard",
     "errorCopyingHash": "Error copying hash",
     "token": "Token",
-    "onlyOfficeId": "OnlyOffice ID"
+    "onlyOfficeId": "OnlyOffice ID",
+    "firstLoadTitle": "Welcome to FileBrowser Quantum!",
+    "firstLoadBody": "A new database was created on startup. If this is not what you expected, please double check your configuration file for `server.database` path and ensure it exists. On docker, database path could be `./data/database.db` or `./database.db`.",
+    "halloweenTitle": "Happy Halloween!",
+    "halloweenBody": "The Halloween theme has been applied. You can disable it if you don't like it, or permanently disable it in profile settings by selecting any other theme."
   },
   "search": {
     "searchContext": "Search Context: {context}",
@@ -662,9 +666,5 @@
     "changePlaybackMode": "Change playback mode",
     "changePlaybackModeHint": "Change playback mode to see more files",
     "emptyQueue": "Queue is empty"
-  },
-  "halloween": {
-    "title": "Happy Halloween!",
-    "body": "The Halloween theme has been applied. You can disable it if you don't like it, or permanently disable it in profile settings by selecting any other theme."
   }
 }

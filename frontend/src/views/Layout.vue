@@ -1,26 +1,18 @@
 <template>
   <div>
-    <div
-      v-show="showOverlay"
-      @contextmenu.prevent="onOverlayRightClick"
-      @click="resetPrompts"
-      class="overlay"
-    ></div>
+    <div v-show="showOverlay" @contextmenu.prevent="onOverlayRightClick" @click="resetPrompts" class="overlay"></div>
     <div v-if="progress" class="progress">
       <div v-bind:style="{ width: this.progress + '%' }"></div>
     </div>
     <defaultBar :class="{ 'dark-mode-header': isDarkMode }"></defaultBar>
     <sidebar></sidebar>
-    <Scrollbar
-      id="main"
-      :class="{
-        'dark-mode': isDarkMode,
-        moveWithSidebar: moveWithSidebar,
-        'remove-padding-top': isOnlyOffice,
-        'main-padding': showPadding,
-        scrollable: scrollable,
-      }"
-    >
+    <Scrollbar id="main" :class="{
+      'dark-mode': isDarkMode,
+      moveWithSidebar: moveWithSidebar,
+      'remove-padding-top': isOnlyOffice,
+      'main-padding': showPadding,
+      scrollable: scrollable,
+    }">
       <router-view />
     </Scrollbar>
     <prompts :class="{ 'dark-mode': isDarkMode }"></prompts>
@@ -154,6 +146,24 @@ export default {
         if (maxUploads > 10 || maxUploads < 1) {
           mutations.setMaxConcurrentUpload(1);
         }
+        const hideFirstLoad = localStorage.getItem("hideFirstLoad");
+        if (globalVars.firstLoad && state.user.permissions.admin && !hideFirstLoad) {
+          mutations.showHover({
+            name: "generic",
+            props: {
+              title: this.$t("prompts.firstLoadTitle"),
+              body: this.$t("prompts.firstLoadBody"),
+              buttons: [
+                {
+                  label: this.$t("buttons.close"),
+                  action: () => {
+                    localStorage.setItem("hideFirstLoad", "true");
+                  },
+                },
+              ],
+            },
+          });
+        }
       }
     },
     updateIsMobile() {
@@ -197,7 +207,7 @@ export default {
   /* Safari and Chrome */
 }
 
-#main > div {
+#main>div {
   height: 100%;
 }
 </style>

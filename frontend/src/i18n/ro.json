@@ -245,7 +245,11 @@
     "hashCopied": "Hash copiat în clipboard",
     "errorCopyingHash": "Eroare copiere hash",
     "token": "Token",
-    "onlyOfficeId": "NumaiOffice ID"
+    "onlyOfficeId": "NumaiOffice ID",
+    "firstLoadTitle": "Bine ați venit la FileBrowser Quantum!",
+    "halloweenTitle": "Halloween fericit!",
+    "halloweenBody": "Tema Halloween a fost aplicată. Puteți să o dezactivați dacă nu vă place sau să o dezactivați permanent în setările profilului selectând orice altă temă.",
+    "firstLoadBody": "O nouă bază de date a fost creată la pornire. Dacă acest lucru nu este ceea ce vă așteptați, vă rugăm să verificați fișierul de configurare pentru calea `server.database` și asigurați-vă că există. Pe docker, calea bazei de date poate fi `./data/database.db` sau `./database.db`."
   },
   "search": {
     "images": "Imagini",
@@ -662,9 +666,5 @@
     "changePlaybackMode": "Schimbă modul de redare",
     "changePlaybackModeHint": "Schimbă modul de redare pentru a vedea mai multe fișiere",
     "emptyQueue": "Coada este goală"
-  },
-  "halloween": {
-    "title": "Halloween fericit!",
-    "body": "Tema Halloween a fost aplicată. Puteți să o dezactivați dacă nu vă place sau să o dezactivați permanent în setările profilului selectând orice altă temă."
   }
 }

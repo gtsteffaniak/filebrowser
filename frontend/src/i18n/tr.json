@@ -245,7 +245,11 @@
     "hashCopied": "Panoya kopyalanan karma",
     "errorCopyingHash": "Karma kopyalama hatası",
     "token": "Jeton",
-    "onlyOfficeId": "SadeceOfis Kimliği"
+    "onlyOfficeId": "SadeceOfis Kimliği",
+    "firstLoadTitle": "FileBrowser Quantum'a hoş geldiniz!",
+    "halloweenTitle": "Mutlu Cadılar Bayramı!",
+    "halloweenBody": "Cadılar Bayramı teması uygulanmıştır. Beğenmediyseniz devre dışı bırakabilir veya profil ayarlarından başka bir tema seçerek kalıcı olarak devre dışı bırakabilirsiniz.",
+    "firstLoadBody": "Başlangıçta yeni bir veritabanı oluşturuldu. Beklediğiniz bu değilse, lütfen `server.database` yolu için yapılandırma dosyanızı iki kez kontrol edin ve var olduğundan emin olun. Docker üzerinde, veritabanı yolu `./data/database.db` veya `./database.db` olabilir."
   },
   "search": {
     "images": "Görseller",
@@ -662,9 +666,5 @@
     "changePlaybackMode": "Oynatma modunu değiştir",
     "changePlaybackModeHint": "Daha fazla dosya görmek için oynatma modunu değiştirin",
     "emptyQueue": "Kuyruk boş"
-  },
-  "halloween": {
-    "title": "Mutlu Cadılar Bayramı!",
-    "body": "Cadılar Bayramı teması uygulanmıştır. Beğenmediyseniz devre dışı bırakabilir veya profil ayarlarından başka bir tema seçerek kalıcı olarak devre dışı bırakabilirsiniz."
   }
 }

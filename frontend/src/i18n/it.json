@@ -245,7 +245,11 @@
     "hashCopied": "Hash copiato negli appunti",
     "errorCopyingHash": "Errore nella copia dell'hash",
     "token": "Gettone",
-    "onlyOfficeId": "Solo ID ufficio"
+    "onlyOfficeId": "Solo ID ufficio",
+    "firstLoadTitle": "Benvenuti a FileBrowser Quantum!",
+    "halloweenTitle": "Buon Halloween!",
+    "halloweenBody": "Il tema di Halloween è stato applicato. È possibile disattivarlo se non piace, oppure disattivarlo definitivamente nelle impostazioni del profilo selezionando un altro tema.",
+    "firstLoadBody": "All'avvio è stato creato un nuovo database. Se questo non è quello che ci si aspettava, controllare due volte il file di configurazione per il percorso `server.database` e assicurarsi che esista. Su docker, il percorso del database può essere `./data/database.db` o `./database.db`."
   },
   "search": {
     "images": "Immagini",
@@ -662,9 +666,5 @@
     "changePlaybackMode": "Cambia modalità di riproduzione",
     "changePlaybackModeHint": "Cambia modalità di riproduzione per vedere più file",
     "emptyQueue": "La coda è vuota"
-  },
-  "halloween": {
-    "title": "Buon Halloween!",
-    "body": "Il tema di Halloween è stato applicato. È possibile disattivarlo se non piace, oppure disattivarlo definitivamente nelle impostazioni del profilo selezionando un altro tema."
   }
 }

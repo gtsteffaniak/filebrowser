@@ -111,8 +111,8 @@ export default {
       mutations.showHover({
         name: "generic",
         props: {
-          title: this.$t("halloween.title"),
-          body: this.$t("halloween.body"),
+          title: this.$t("prompts.halloweenTitle"),
+          body: this.$t("prompts.halloweenBody"),
           buttons: [
             {
               label: this.$t("buttons.close"),

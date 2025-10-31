@@ -245,7 +245,11 @@
     "hashCopied": "ה-hash הועתק ללוח",
     "errorCopyingHash": "שגיאה בהעתקת hash",
     "token": "אסימון",
-    "onlyOfficeId": "מזהה OnlyOffice"
+    "onlyOfficeId": "מזהה OnlyOffice",
+    "firstLoadTitle": "ברוכים הבאים ל-FileBrowser Quantum!",
+    "halloweenTitle": "חג ליל כל הקדושים שמח!",
+    "halloweenBody": "נושא ליל כל הקדושים הוחל. ניתן להשבית אותו אם אינו מוצא חן בעיניך, או להשבית אותו לצמיתות בהגדרות הפרופיל על ידי בחירת נושא אחר.",
+    "firstLoadBody": "במהלך ההפעלה נוצר מסד נתונים חדש. אם זה לא מה שציפית, אנא בדוק שוב את קובץ התצורה שלך עבור הנתיב `server.database` וודא שהוא קיים. ב-docker, נתיב מסד הנתונים יכול להיות `./data/database.db` או `./database.db`."
   },
   "search": {
     "images": "תמונות",
@@ -662,9 +666,5 @@
     "changePlaybackMode": "שנה מצב ניגון",
     "changePlaybackModeHint": "שנה מצב ניגון כדי לראות יותר קבצים",
     "emptyQueue": "התור ריק"
-  },
-  "halloween": {
-    "title": "חג ליל כל הקדושים שמח!",
-    "body": "נושא ליל כל הקדושים הוחל. ניתן להשבית אותו אם אינו מוצא חן בעיניך, או להשבית אותו לצמיתות בהגדרות הפרופיל על ידי בחירת נושא אחר."
   }
 }

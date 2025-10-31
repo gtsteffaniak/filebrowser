@@ -245,7 +245,11 @@
     "hashCopied": "Hash skopiowany do schowka",
     "errorCopyingHash": "Błąd kopiowania skrótu",
     "token": "Token",
-    "onlyOfficeId": "OnlyOffice ID"
+    "onlyOfficeId": "OnlyOffice ID",
+    "firstLoadTitle": "Witamy w FileBrowser Quantum!",
+    "halloweenTitle": "Wesołego Halloween!",
+    "halloweenBody": "Motyw Halloween został zastosowany. Możesz go wyłączyć, jeśli Ci się nie podoba, lub wyłączyć go na stałe w ustawieniach profilu, wybierając inny motyw.",
+    "firstLoadBody": "Nowa baza danych została utworzona podczas uruchamiania. Jeśli nie jest to to, czego oczekiwałeś, sprawdź dokładnie plik konfiguracyjny pod kątem ścieżki `server.database` i upewnij się, że istnieje. W dockerze ścieżka bazy danych może być `./data/database.db` lub `./database.db`."
   },
   "search": {
     "images": "Zdjęcia",
@@ -662,9 +666,5 @@
     "changePlaybackMode": "Zmień tryb odtwarzania",
     "changePlaybackModeHint": "Zmień tryb odtwarzania, aby zobaczyć więcej plików",
     "emptyQueue": "Kolejka jest pusta"
-  },
-  "halloween": {
-    "title": "Wesołego Halloween!",
-    "body": "Motyw Halloween został zastosowany. Możesz go wyłączyć, jeśli Ci się nie podoba, lub wyłączyć go na stałe w ustawieniach profilu, wybierając inny motyw."
   }
 }

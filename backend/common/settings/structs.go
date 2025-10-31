@@ -45,6 +45,7 @@ type Server struct {
 	NameToSource   map[string]*Source `json:"-" validate:"omitempty"` // uses name as key
 	MuPdfAvailable bool               `json:"-"`                      // used internally if compiled with mupdf support
 	EmbeddedFs     bool               `json:"-"`                      // used internally if compiled with embedded fs support
+	IsFirstLoad    bool               `json:"-"`                      // used internally to track if this is the first load of the application
 }
 
 type Filesystem struct {

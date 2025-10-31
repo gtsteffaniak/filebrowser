@@ -499,6 +499,14 @@ func setDefaults(generate bool) Settings {
 	database := os.Getenv("FILEBROWSER_DATABASE")
 	if database == "" {
 		database = "database.db"
+	} else {
+		// check if database file exists
+		if _, err := os.Stat(database); os.IsNotExist(err) {
+			database = "database.db"
+		}
+	}
+	if _, err := os.Stat(database); os.IsNotExist(err) {
+		logger.Warning("database file could not be found, please check your configuration file for `server.database` path and ensure it exists. On docker, database path could be `./data/database.db` or `./database.db`.")
 	}
 	s := Settings{
 		Server: Server{
