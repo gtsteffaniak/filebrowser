@@ -93,7 +93,8 @@ export function getApiPath(path, params = {}) {
     if (params[key] === undefined) {
       continue;
     }
-    path += `${key}=${params[key]}&`;
+    // Properly encode both key and value to handle special characters
+    path += `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}&`;
   }
   // remove trailing &
   if (path.endsWith("&")) {

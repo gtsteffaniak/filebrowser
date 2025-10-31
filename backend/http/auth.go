@@ -190,11 +190,6 @@ func logoutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 	return http.StatusOK, nil
 }
 
-type signupBody struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-
 // signupHandler registers a new user account.
 // @Summary User signup
 // @Description Register a new user account with a username and password.
@@ -212,27 +207,29 @@ func signupHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 	if !settings.Config.Auth.Methods.PasswordAuth.Signup {
 		return http.StatusMethodNotAllowed, fmt.Errorf("signup is disabled")
 	}
-	if r.Body == nil {
-		return http.StatusBadRequest, fmt.Errorf("no post body provided")
+
+	// Get credentials from query parameters
+	username := r.URL.Query().Get("username")
+	password := r.URL.Query().Get("password")
+
+	// Validate that we have both username and password
+	if username == "" || password == "" {
+		return http.StatusBadRequest, fmt.Errorf("username and password are required")
 	}
-	info := &signupBody{}
-	err := json.NewDecoder(r.Body).Decode(info)
-	if err != nil {
-		return http.StatusBadRequest, fmt.Errorf("invalid request body: %v", err)
-	}
+
 	user := users.User{
-		Username: info.Username,
+		Username: username,
 		NonAdminEditable: users.NonAdminEditable{
-			Password: info.Password,
+			Password: password,
 		},
 		LoginMethod: users.LoginMethodPassword,
 	}
 	user.Permissions = settings.Config.UserDefaults.Permissions
-	err = storage.CreateUser(user)
+	err := storage.CreateUser(user)
 	if err != nil {
 		logger.Debug(err.Error())
-		w.WriteHeader(http.StatusConflict)
-		return http.StatusConflict, fmt.Errorf("user already exists")
+		// Return the actual error message instead of a generic one
+		return http.StatusBadRequest, err
 	}
 	return 201, nil
 }
