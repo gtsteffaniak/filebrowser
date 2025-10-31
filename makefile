@@ -37,7 +37,7 @@ dev:
 	cd frontend && npm run build
 	@echo "Starting dev servers... Press Ctrl+C to stop."
 	@trap 'echo "Stopping servers..."; kill -TERM 0' INT TERM
-	cd frontend && npm run watch & \
+	cd frontend && DEV_BUILD=true npm run watch & \
 	cd backend && FILEBROWSER_DEVMODE=true go tool air & \
 	wait
 
