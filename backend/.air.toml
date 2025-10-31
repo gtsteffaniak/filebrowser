@@ -7,9 +7,6 @@ tmp_dir = "tmp"
   full_bin = "FILEBROWSER_DEVMODE=true CGO_ENABLED=1 ./tmp/filebrowser -c test_config.yaml"
   include_ext = ["go", "tpl", "tmpl", "html"]
   exclude_dir = ["tmp", "vendor", "http/dist", "http/embed", "swagger/docs"]
-  exclude_regex = ["http/(dist|embed)"]
-  exclude_unchanged = true
-  follow_symlink = false
   log = "air.log"
   delay = 1000 # ms
 
