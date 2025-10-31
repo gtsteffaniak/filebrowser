@@ -46,6 +46,11 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 	versionString := ""
 	commitSHAString := ""
 	externalLinks := config.Frontend.ExternalLinks
+	playwrightTest := os.Getenv("FILEBROWSER_PLAYWRIGHT_TEST") == "true"
+	if playwrightTest {
+		versionString = version.Version
+		commitSHAString = version.CommitSHA
+	}
 	if d.user != nil && d.user.Username != "anonymous" {
 		theme, ok := config.Frontend.Styling.CustomThemeOptions[d.user.CustomTheme]
 		if ok {
@@ -53,7 +58,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		}
 		versionString = version.Version
 		commitSHAString = version.CommitSHA
-	} else if os.Getenv("FILEBROWSER_PLAYWRIGHT_TEST") != "true" {
+	} else if !playwrightTest {
 		newExternalLinks := []settings.ExternalLink{}
 		// remove version and commit SHA from external links
 		for _, link := range externalLinks {
@@ -209,7 +214,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"userSelectableThemes": config.Frontend.Styling.CustomThemeOptions,
 		"enableHeicConversion": config.Integrations.Media.Convert.ImagePreview[settings.HEICImagePreview],
 		"eventBasedThemes":     !config.Frontend.Styling.DisableEventBasedThemes,
-		"firstLoad":            config.Server.IsFirstLoad && os.Getenv("FILEBROWSER_PLAYWRIGHT_TEST") != "true",
+		"firstLoad":            config.Server.IsFirstLoad,
 	}
 
 	// Marshal each variable to JSON strings for direct template usage

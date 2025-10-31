@@ -76,7 +76,9 @@ func StartFilebrowser() {
 	database := fmt.Sprintf("Using existing database  : %v", settings.Config.Server.Database)
 	if !dbExists {
 		database = fmt.Sprintf("Creating new database    : %v", settings.Config.Server.Database)
-		settings.Config.Server.IsFirstLoad = true
+		if os.Getenv("FILEBROWSER_PLAYWRIGHT_TEST") != "true" {
+			settings.Config.Server.IsFirstLoad = true
+		}
 	}
 
 	// Dev mode enables development features like template hot-reloading
