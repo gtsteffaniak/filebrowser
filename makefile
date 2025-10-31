@@ -42,6 +42,9 @@ dev:
 	cd backend && FILEBROWSER_DEVMODE=true go tool air -c $(AIR_CONFIG) & \
 	wait
 
+dev-windows:
+	AIR_CONFIG=.air.windows.toml make dev
+
 run: build-frontend generate-config
 	cd backend && go tool swag init --output swagger/docs && \
 	if [ "$(shell uname)" = "Darwin" ]; then \
