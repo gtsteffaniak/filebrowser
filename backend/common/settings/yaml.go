@@ -49,6 +49,7 @@ func combineYAMLFiles(configFilePath string) ([]byte, error) {
 	}
 
 	var yamlFiles []string
+	var mainConfigContent []byte
 
 	for _, entry := range entries {
 		if entry.IsDir() {
@@ -99,6 +100,11 @@ func combineYAMLFiles(configFilePath string) ([]byte, error) {
 		}
 		combined.Write(content)
 		combined.WriteString("\n") // Add newline between files
+	}
+
+	// Finally, add the main config file (this typically contains the references)
+	if mainConfigContent != nil {
+		combined.Write(mainConfigContent)
 	}
 
 	return []byte(combined.String()), nil
