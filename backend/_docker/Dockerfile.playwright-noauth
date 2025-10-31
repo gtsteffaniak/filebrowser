@@ -14,4 +14,4 @@ RUN mkdir -p ./http/dist
 COPY [ "./backend/http/embed/", "./http/dist/"]
 
 # Run tests
-#RUN ./filebrowser & sleep 2 && cd ../frontend && npx playwright test
+RUN ./filebrowser & sleep 2 && cd ../frontend && npx playwright test
