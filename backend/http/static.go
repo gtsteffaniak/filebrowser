@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/fs"
 	"net/http"
+	"os"
 	"strings"
 	"text/template"
 
@@ -52,7 +53,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		}
 		versionString = version.Version
 		commitSHAString = version.CommitSHA
-	} else {
+	} else if os.Getenv("FILEBROWSER_PLAYWRIGHT_TEST") != "true" {
 		newExternalLinks := []settings.ExternalLink{}
 		// remove version and commit SHA from external links
 		for _, link := range externalLinks {
@@ -208,7 +209,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"userSelectableThemes": config.Frontend.Styling.CustomThemeOptions,
 		"enableHeicConversion": config.Integrations.Media.Convert.ImagePreview[settings.HEICImagePreview],
 		"eventBasedThemes":     !config.Frontend.Styling.DisableEventBasedThemes,
-		"firstLoad":            config.Server.IsFirstLoad,
+		"firstLoad":            config.Server.IsFirstLoad && os.Getenv("FILEBROWSER_PLAYWRIGHT_TEST") != "true",
 	}
 
 	// Marshal each variable to JSON strings for direct template usage

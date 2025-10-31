@@ -8,6 +8,8 @@ RUN mkdir -p ./http/dist
 COPY [ "./_docker/src/oidc/backend/", "./"]
 COPY ["./backend/filebrowser", "./"]
 COPY [ "./backend/http/embed/", "./http/dist/"]
+
+ENV FILEBROWSER_PLAYWRIGHT_TEST=true
 # Run tests
 WORKDIR /app/frontend
 RUN node mock-oidc-server.js & sleep 2 && cd ../backend/ && ./filebrowser & sleep 2 && cd ../frontend && npx playwright test
