@@ -10,6 +10,8 @@ All notable changes to this project will be documented in this file. For commit 
 
  **BugFixes**:
  - Generating multiple HEIC previews in parallel fails #1470
+ - ? in path not always encoded right #1447
+ - fixed some condition that the halloween background doesn't load properly
 
 ## v1.0.0
 
