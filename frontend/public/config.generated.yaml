@@ -83,16 +83,16 @@ auth:
       adminGroup: ""                      # if set, users in this group will be granted admin privileges.
       groupsClaim: "groups"               # the JSON field name to read groups from. Default is "groups"
   key: ""                                 # secret: the key used to sign the JWT tokens. If not set, a random key will be generated.
-  adminUsername: "**hidden**"             # secret: the username of the admin user. If not set, the default is "admin".
-  adminPassword: "**hidden**"             # secret: the password of the admin user. If not set, the default is "admin".
+  adminUsername: "admin"                  # secret: the username of the admin user. If not set, the default is "admin".
+  adminPassword: "admin"                  # secret: the password of the admin user. If not set, the default is "admin".
   totpSecret: ""                          # secret: secret used to encrypt TOTP secrets
 frontend:
   name: "FileBrowser Quantum"             # display name
   disableDefaultLinks: false              # disable default links in the sidebar
   disableUsedPercentage: false            # disable used percentage for the sources in the sidebar
   externalLinks:
-    - text: "(testing)"                   # the text to display on the link  validate:required
-      title: "testingCommit"              # the title to display on hover
+    - text: "(untracked)"                 # the text to display on the link  validate:required
+      title: "untracked"                  # the title to display on hover
       url: "https://github.com/gtsteffaniak/filebrowser/releases/" # the url to link to  validate:required
     - text: "Help"                        # the text to display on the link  validate:required
       title: ""                           # the title to display on hover
