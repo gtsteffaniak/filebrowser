@@ -3,6 +3,7 @@ package http
 import (
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 )
@@ -59,16 +60,36 @@ func settingsConfigHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 	var err error
 	var yamlConfig string
 
+	// Try to read the generated YAML file for comments (should always exist)
+	var embeddedYaml []byte
+	var readErr error
+
 	if config.Server.EmbeddedFs {
-		embeddedYaml, readErr := assets.ReadFile("embed/config.generated.yaml")
-		if readErr != nil {
-			return http.StatusInternalServerError, fmt.Errorf("error reading embedded YAML: %v", readErr)
+		embeddedYaml, readErr = assets.ReadFile("embed/config.generated.yaml")
+	} else {
+		// Try to read from the generated file in various locations
+		paths := []string{
+			"frontend/public/config.generated.yaml",
+			"../frontend/public/config.generated.yaml",
+			"http/dist/config.generated.yaml",
+			"dist/config.generated.yaml",
 		}
+		for _, path := range paths {
+			embeddedYaml, readErr = os.ReadFile(path)
+			if readErr == nil {
+				break
+			}
+		}
+	}
+
+	// If we successfully read the generated YAML, use it as the comment source
+	if readErr == nil && len(embeddedYaml) > 0 {
 		yamlConfig, err = settings.GenerateConfigYamlWithEmbedded(config, showComments, showFull, false, string(embeddedYaml))
 		if err != nil {
 			return http.StatusInternalServerError, fmt.Errorf("error generating YAML: %v", err)
 		}
 	} else {
+		// Fallback to Go source parsing if generated YAML doesn't exist
 		yamlConfig, err = settings.GenerateConfigYaml(config, showComments, showFull, false)
 		if err != nil {
 			return http.StatusInternalServerError, fmt.Errorf("error generating YAML: %v", err)
