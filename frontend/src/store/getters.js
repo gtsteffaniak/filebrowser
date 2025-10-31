@@ -12,7 +12,6 @@ export const getters = {
     if (getters.isShare()) {
       return "";
     }
-    console.log("eventTheme", globalVars.eventBasedThemes, state.disableEventThemes);
     if (!globalVars.eventBasedThemes) {
       return ""
     }
