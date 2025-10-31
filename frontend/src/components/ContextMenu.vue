@@ -138,6 +138,7 @@
       class="button no-select fb-shadow"
       :class="{ 'dark-mode': isDarkMode }"
     >
+      <action icon="info" :label="$t('buttons.info')" show="info" />
       <action v-if="showGoToRaw" icon="open_in_new" :label="$t('buttons.openFile')" @action="goToRaw()" />
       <action v-if="shouldShowParentFolder()" icon="folder" :label="$t('buttons.openParentFolder')" @action="openParentFolder" />
       <action v-if="hasDownload" icon="file_download" :label="$t('buttons.download')" @action="startDownload" />
