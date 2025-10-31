@@ -48,12 +48,7 @@ func combineYAMLFiles(configFilePath string) ([]byte, error) {
 		return nil, fmt.Errorf("failed to read config directory: %v", err)
 	}
 
-	fmt.Printf("=== SCANNING DIRECTORY: %s ===\n", configDir)
-	fmt.Printf("=== LOOKING FOR MAIN FILE: %s ===\n", configFileName)
-	fmt.Printf("=== PATTERN FOR AUXILIARY FILES: *%s ===\n", pattern)
-
 	var yamlFiles []string
-	var mainConfigContent []byte
 
 	for _, entry := range entries {
 		if entry.IsDir() {
@@ -104,15 +99,6 @@ func combineYAMLFiles(configFilePath string) ([]byte, error) {
 		}
 		combined.Write(content)
 		combined.WriteString("\n") // Add newline between files
-	}
-
-	// Finally, add the main config file (this typically contains the references)
-	if mainConfigContent != nil {
-		// DEBUG: Print main config content
-		fmt.Println("=== MAIN CONFIG FILE CONTENT ===")
-		fmt.Println(string(mainConfigContent))
-		fmt.Println("=== END MAIN CONFIG FILE ===")
-		combined.Write(mainConfigContent)
 	}
 
 	return []byte(combined.String()), nil
