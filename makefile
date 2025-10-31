@@ -43,7 +43,7 @@ dev:
 	wait
 
 dev-windows:
-	AIR_CONFIG=.air.windows.toml make dev
+	FILEBROWSER_CONFIG=http/dist/config.generated.yaml AIR_CONFIG=.air.windows.toml make dev
 
 run: build-frontend generate-config
 	cd backend && go tool swag init --output swagger/docs && \
