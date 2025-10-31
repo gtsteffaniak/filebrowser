@@ -25,7 +25,7 @@ type SearchResult struct {
 	Size int64  `json:"size"`
 }
 
-func (idx *Index) Search(search string, scope string, sourceSession string) []SearchResult {
+func (idx *Index) Search(search string, scope string, sourceSession string, largest bool) []SearchResult {
 	// Ensure scope has consistent trailing slash for directory matching
 	if scope != "" && !strings.HasSuffix(scope, "/") {
 		scope = scope + "/"
@@ -46,8 +46,12 @@ func (idx *Index) Search(search string, scope string, sourceSession string) []Se
 		directories = idx.getDirsInScope(scope)
 		SearchResultsCache.Set(idx.Path+scope, directories)
 	}
+	// When largest=true and no search terms, ensure we run at least once
+	if largest && len(searchOptions.Terms) == 0 {
+		searchOptions.Terms = []string{""}
+	}
 	for _, searchTerm := range searchOptions.Terms {
-		if searchTerm == "" {
+		if searchTerm == "" && !largest {
 			continue
 		}
 		if count > maxSearchResults {
@@ -67,7 +71,18 @@ func (idx *Index) Search(search string, scope string, sourceSession string) []Se
 				Type: "directory",
 				Size: dir.Size,
 			}
-			matches := reducedDir.ContainsSearchTerm(searchTerm, searchOptions)
+			var matches bool
+			if largest {
+				// When largest=true, check size and type conditions, skip name matching
+				largerThan := int64(searchOptions.LargerThan) * 1024 * 1024
+				sizeMatches := largerThan == 0 || reducedDir.Size > largerThan
+				// Check if directories should be excluded (when type:file is specified)
+				dirCondition, hasDirCondition := searchOptions.Conditions["dir"]
+				typeMatches := !hasDirCondition || (hasDirCondition && dirCondition)
+				matches = sizeMatches && typeMatches
+			} else {
+				matches = reducedDir.ContainsSearchTerm(searchTerm, searchOptions)
+			}
 			if matches {
 				results[dirName] = SearchResult{Path: dirName, Type: "directory", Size: dir.Size}
 				count++
@@ -83,7 +98,19 @@ func (idx *Index) Search(search string, scope string, sourceSession string) []Se
 				if count > maxSearchResults {
 					break
 				}
-				matches := item.ContainsSearchTerm(searchTerm, searchOptions)
+				var matches bool
+				if largest {
+					// When largest=true, check size and type conditions, skip name matching
+					largerThan := int64(searchOptions.LargerThan) * 1024 * 1024
+					sizeMatches := largerThan == 0 || item.Size > largerThan
+					// Check if only files should be included (when type:file is specified)
+					dirCondition, hasDirCondition := searchOptions.Conditions["dir"]
+					// For files: include if no dir condition, or if dir condition is false (type:file)
+					typeMatches := !hasDirCondition || (hasDirCondition && !dirCondition)
+					matches = sizeMatches && typeMatches
+				} else {
+					matches = item.ContainsSearchTerm(searchTerm, searchOptions)
+				}
 				if matches {
 					results[fullPath] = SearchResult{Path: fullPath, Type: item.Type, Size: item.Size}
 					count++

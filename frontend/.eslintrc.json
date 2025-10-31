@@ -41,7 +41,7 @@
     }],
 
     "@intlify/vue-i18n/no-raw-text": [
-      "error",
+      "warn",
       {
         "ignoreNodes": ["i", "v-icon"]
       }

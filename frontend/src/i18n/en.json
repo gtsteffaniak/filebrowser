@@ -528,6 +528,7 @@
     "sources": "Sources",
     "signup": "Signup",
     "siteSettings": "Site Settings",
+    "tools": "Tools",
     "updateIsAvailable": "An update is available!",
     "fileActions": "File actions"
   },
@@ -540,6 +541,9 @@
     "minutes": "Minutes",
     "seconds": "Seconds",
     "unit": "Time Unit"
+  },
+  "tools": {
+    "sizeViewer": "File Size Analyzer"
   },
   "api": {
     "title": "API Keys",

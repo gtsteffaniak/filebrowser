@@ -146,12 +146,13 @@ func GetIndex(name string) *Index {
 		source, ok := settings.Config.Server.SourceMap[name]
 		if !ok {
 			logger.Errorf("index %s not found", name)
+			return nil
 		}
 		index, ok = indexes[source.Name]
 		if !ok {
 			logger.Errorf("index %s not found", name)
+			return nil
 		}
-
 	}
 	return index
 }

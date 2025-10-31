@@ -4,6 +4,8 @@ import Layout from "@/views/Layout.vue";
 import Files from "@/views/Files.vue";
 import Settings from "@/views/Settings.vue";
 import Errors from "@/views/Errors.vue";
+import Tools from "@/views/tools/Tools.vue";
+import SizeViewer from "@/views/tools/SizeViewer.vue";
 import { globalVars } from "@/utils/constants";
 import { getters, state } from "@/store";
 import { mutations } from "@/store";
@@ -15,6 +17,8 @@ const titles = {
   Share: "buttons.share",
   PublicShare: "buttons.share",
   Files: "general.files",
+  Tools: "sidebar.tools",
+  SizeViewer: "tools.sizeViewer",
   Settings: "sidebar.settings",
   ProfileSettings: "settings.profileSettings",
   Shares: "settings.shareManagement",
@@ -69,6 +73,25 @@ const routes: RouteRecordRaw[] = [
         path: ":path*",
         name: "Files",
         component: Files,
+      },
+    ],
+  },
+  {
+    path: "/tools",
+    component: Layout,
+    meta: {
+      requiresAuth: true,
+    },
+    children: [
+      {
+        path: "",
+        name: "Tools",
+        component: Tools,
+      },
+      {
+        path: "sizeViewer",
+        name: "SizeViewer",
+        component: SizeViewer,
       },
     ],
   },
