@@ -87,7 +87,7 @@ test-frontend:
 
 test-playwright: build-frontend
 	cd backend && GOOS=linux go build -o filebrowser .
-	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-noauth .
+	docker build --no-cache -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-noauth .
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-no-config .
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-settings .
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-general .
