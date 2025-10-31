@@ -63,7 +63,7 @@
     "saveAndExit": "Save and Exit",
     "keepEditing": "Keep Editing",
     "stayOnPrompt": "Stay",
-    "closeAnyway": "Close Anyways",
+    "closeAnyway": "Close Anyways", 
     "disable": "Disable",
     "confirm": "Confirm"
   },
@@ -101,6 +101,10 @@
     "noDownloadAccess": "Download is not available."
   },
   "help": {
+    "functionKeys": "Function Keys",
+    "mouseActions": "Mouse Actions",
+    "fileOperations": "File Operations",
+    "navigation": "Navigation",
     "click": "select file or directory",
     "ctrl": {
       "click": "select multiple files or directories",
@@ -283,7 +287,7 @@
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
     "optionalPassword": "Optional password",
     "optionalPasswordHelp": "If set, users must enter this password to view the shared content.",
-    "typeName": "Type:",
+    "typeName": "Type",
     "deleted": "Deleted successfully!",
     "conflictsDetected": "Conflicts detected",
     "copyPasteConfirm": "Copy/Paste Confirmation",
@@ -292,7 +296,22 @@
     "sourcePath": "Source:",
     "destinationPath": "Destination:",
     "closeWithActiveUploads": "Active uploads",
-    "closeWithActiveUploadsMessage": "Warning: You have active uploads and closing the upload prompt could result in unfinished uploads. What would you like to do?"
+    "closeWithActiveUploadsMessage": "Warning: You have active uploads and closing the upload prompt could result in unfinished uploads. What would you like to do?",
+    "basicInfo": "Basic Information",
+    "directoryInfo": "Directory Information",
+    "additionalInfo": "Additional Information",
+    "hidden": "Hidden",
+    "hasPreview": "Has Preview",
+    "checksums": "Checksums",
+    "hashAlgorithm": "Hash Algorithm",
+    "hashValue": "Hash Value",
+    "selectHashAlgorithm": "Select a hash algorithm",
+    "generate": "Generate",
+    "errorGeneratingHash": "Error generating hash",
+    "hashCopied": "Hash copied to clipboard",
+    "errorCopyingHash": "Error copying hash",
+    "token": "Token",
+    "onlyOfficeId": "OnlyOffice ID"
   },
   "search": {
     "searchContext": "Search Context: {context}",

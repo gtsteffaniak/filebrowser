@@ -162,7 +162,7 @@ export default {
       if (getters.isShare()) {
         return shareInfo.allowCreate
       }
-      return state.user.permissions.create || state.user.permissions.share || state.user.permissions.admin;
+      return state.user?.permissions?.create || state.user?.permissions?.share || state.user?.permissions?.admin;
     },
     shareInfo: () => shareInfo,
     disableQuickToggles: () => state.user?.disableQuickToggles,

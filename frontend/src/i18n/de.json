@@ -98,6 +98,10 @@
     "noDownloadAccess": "Der Download ist nicht verfügbar."
   },
   "help": {
+    "functionKeys": "Funktionstasten",
+    "mouseActions": "Mausaktionen",
+    "fileOperations": "Dateioperationen",
+    "navigation": "Navigation",
     "click": "Wähle Datei oder Ordner",
     "ctrl": {
       "click": "Markiere mehrere Dateien oder Ordner",
@@ -226,7 +230,22 @@
     "sourcePath": "Quelle:",
     "destinationPath": "Zielort:",
     "closeWithActiveUploadsMessage": "Warnung: Sie haben aktive Uploads und das Schließen der Upload-Aufforderung könnte zu unvollendeten Uploads führen. Was würden Sie gerne tun?",
-    "closeWithActiveUploads": "Aktive Uploads"
+    "closeWithActiveUploads": "Aktive Uploads",
+    "basicInfo": "Grundlegende Informationen",
+    "directoryInfo": "Verzeichnis-Informationen",
+    "additionalInfo": "Zusätzliche Informationen",
+    "hidden": "Versteckt",
+    "hasPreview": "Hat Vorschau",
+    "checksums": "Prüfsummen",
+    "hashAlgorithm": "Hash-Algorithmus",
+    "hashValue": "Hash-Wert",
+    "selectHashAlgorithm": "Wählen Sie einen Hash-Algorithmus",
+    "generate": "Erzeugen Sie",
+    "errorGeneratingHash": "Fehler bei der Hash-Erzeugung",
+    "hashCopied": "Hash in Zwischenablage kopiert",
+    "errorCopyingHash": "Fehler beim Kopieren des Hashes",
+    "token": "Token",
+    "onlyOfficeId": "OnlyOffice ID"
   },
   "search": {
     "images": "Bilder",

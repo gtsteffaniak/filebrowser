@@ -99,7 +99,13 @@ func setupFrontend(generate bool) {
 	}
 	Config.Frontend.Styling.LightBackground = FallbackColor(Config.Frontend.Styling.LightBackground, "#f5f5f5")
 	Config.Frontend.Styling.DarkBackground = FallbackColor(Config.Frontend.Styling.DarkBackground, "#141D24")
-	Config.Frontend.Styling.CustomCSSRaw = readCustomCSS(Config.Frontend.Styling.CustomCSS)
+	var err error
+	if Config.Frontend.Styling.CustomCSS != "" {
+		Config.Frontend.Styling.CustomCSSRaw, err = readCustomCSS(Config.Frontend.Styling.CustomCSS)
+		if err != nil {
+			logger.Warning(err.Error())
+		}
+	}
 	Config.Frontend.Styling.CustomThemeOptions = map[string]CustomTheme{}
 	if Config.Frontend.Styling.CustomThemes == nil {
 		Config.Frontend.Styling.CustomThemes = map[string]CustomTheme{}
@@ -769,6 +775,18 @@ func setConditionals(config *Source) {
 		}
 		if rule.IncludeRootItem != "" {
 			resolved.IncludeRootItems[rule.IncludeRootItem] = struct{}{}
+		}
+		if rule.FileNames != "" {
+			resolved.FileNames[rule.FileNames] = rule
+		}
+		if rule.FolderNames != "" {
+			resolved.FolderNames[rule.FolderNames] = rule
+		}
+		if rule.FileName != "" {
+			resolved.FileNames[rule.FileName] = rule
+		}
+		if rule.FolderName != "" {
+			resolved.FolderNames[rule.FolderName] = rule
 		}
 	}
 	config.Config.ResolvedConditionals = resolved

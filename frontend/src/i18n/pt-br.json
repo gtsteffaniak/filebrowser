@@ -98,6 +98,10 @@
     "noDownloadAccess": "O download não está disponível."
   },
   "help": {
+    "functionKeys": "Teclas de Função",
+    "mouseActions": "Ações do Mouse",
+    "fileOperations": "Operações de Arquivos",
+    "navigation": "Navegação",
     "click": "selecionar pasta ou arquivo",
     "ctrl": {
       "click": "selecionar várias pastas e arquivos",
@@ -226,7 +230,22 @@
     "sourcePath": "Fonte:",
     "destinationPath": "Destino:",
     "closeWithActiveUploadsMessage": "Aviso: Você tem uploads ativos e fechar o prompt de upload pode resultar em uploads inacabados. O que você gostaria de fazer?",
-    "closeWithActiveUploads": "Uploads ativos"
+    "closeWithActiveUploads": "Uploads ativos",
+    "basicInfo": "Informações básicas",
+    "directoryInfo": "Informações de diretório",
+    "additionalInfo": "Informações adicionais",
+    "hidden": "Oculto",
+    "hasPreview": "Tem Prévia",
+    "checksums": "Checksums",
+    "hashAlgorithm": "Algoritmo de hash",
+    "hashValue": "Valor Hash",
+    "selectHashAlgorithm": "Selecione um algoritmo de hash",
+    "generate": "Gerar",
+    "errorGeneratingHash": "Erro ao gerar hash",
+    "hashCopied": "Hash copiado para a área de transferência",
+    "errorCopyingHash": "Erro ao copiar o hash",
+    "token": "Token",
+    "onlyOfficeId": "ID do OnlyOffice"
   },
   "search": {
     "images": "Imagens",

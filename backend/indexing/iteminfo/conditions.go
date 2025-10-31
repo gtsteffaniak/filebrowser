@@ -52,6 +52,8 @@ var ResizableImageTypes = map[string]bool{
 	".png":   true,
 	".gif":   true,
 	".bmp":   true,
+	".heic":  true,
+	".heif":  true,
 	".other": false,
 }
 

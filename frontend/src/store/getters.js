@@ -61,12 +61,21 @@ export const getters = {
     if (!state.user || state.user?.username == "") {
       return "normal";
     }
-    const userViewmode = getters.displayPreference()?.viewMode || state.user.viewMode
-    // If user is anonymous and on a share, check for defaultViewMode override
-    if (state.user?.username === 'anonymous' && !userViewmode) {
+    const isShare = getters.isShare();
+    const displayPref = getters.displayPreference();
+    
+    // Priority 1: If there's a saved display preference for this specific share/path, use it
+    if (displayPref?.viewMode) {
+      return displayPref.viewMode;
+    }
+    
+    // Priority 2: If it's a share and shareInfo.viewMode is set, use that as the default
+    if (isShare && shareInfo.viewMode) {
       return shareInfo.viewMode;
     }
-    return userViewmode || "normal";
+    
+    // Priority 3: Use user's default viewMode
+    return state.user.viewMode || "normal";
   },
   sorting: () => {
     return getters.displayPreference()?.sorting || state.user?.sorting || { by: "name", asc: true };

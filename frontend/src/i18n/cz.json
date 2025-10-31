@@ -101,6 +101,10 @@
     "noDownloadAccess": "Stahování není k dispozici."
   },
   "help": {
+    "functionKeys": "Funkční Klávesy",
+    "mouseActions": "Akce Myši",
+    "fileOperations": "Operace se Soubory",
+    "navigation": "Navigace",
     "click": "označit soubor nebo složku",
     "ctrl": {
       "click": "označit více souborů nebo složek",
@@ -292,7 +296,22 @@
     "sourcePath": "Zdroj:",
     "destinationPath": "Cílová destinace:",
     "closeWithActiveUploadsMessage": "Varování: Upozornění: Máte aktivní nahrávání a zavření výzvy k nahrávání by mohlo vést k nedokončenému nahrávání. Co byste chtěli udělat?",
-    "closeWithActiveUploads": "Aktivní nahrávání"
+    "closeWithActiveUploads": "Aktivní nahrávání",
+    "basicInfo": "Základní informace",
+    "directoryInfo": "Informace o adresáři",
+    "additionalInfo": "Další informace",
+    "hidden": "Skryté stránky",
+    "hasPreview": "Má náhled",
+    "checksums": "Kontrolní součty",
+    "hashAlgorithm": "Algoritmus Hash",
+    "hashValue": "Hodnota Hash",
+    "selectHashAlgorithm": "Výběr algoritmu hash",
+    "generate": "Generovat",
+    "errorGeneratingHash": "Chyba při generování hash",
+    "hashCopied": "Hash zkopírovaný do schránky",
+    "errorCopyingHash": "Chyba při kopírování hash",
+    "token": "Token",
+    "onlyOfficeId": "OnlyOffice ID"
   },
   "search": {
     "images": "Obrázky",

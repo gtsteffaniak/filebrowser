@@ -98,6 +98,10 @@
     "noDownloadAccess": "ההורדה אינה זמינה."
   },
   "help": {
+    "functionKeys": "מקשי פונקציה",
+    "mouseActions": "פעולות עכבר",
+    "fileOperations": "פעולות קבצים",
+    "navigation": "ניווט",
     "click": "בחר קובץ או תקייה",
     "ctrl": {
       "click": "בחר מספר קבצים או תקיות",
@@ -226,7 +230,22 @@
     "sourcePath": "מקור:",
     "destinationPath": "יעד:",
     "closeWithActiveUploadsMessage": "אזהרה: יש לך העלאות פעילות וסגירת חלון ההעלאה עלולה לגרום להשלמת העלאות לא גמורות. מה ברצונך לעשות?",
-    "closeWithActiveUploads": "העלאות פעילות"
+    "closeWithActiveUploads": "העלאות פעילות",
+    "basicInfo": "מידע בסיסי",
+    "directoryInfo": "מידע על ספריות",
+    "additionalInfo": "מידע נוסף",
+    "hidden": "נסתר",
+    "hasPreview": "יש תצוגה מקדימה",
+    "checksums": "סכומים מבוקרים",
+    "hashAlgorithm": "אלגוריתם hash",
+    "hashValue": "ערך hash",
+    "selectHashAlgorithm": "בחר אלגוריתם hash",
+    "generate": "ליצור",
+    "errorGeneratingHash": "שגיאה ביצירת hash",
+    "hashCopied": "ה-hash הועתק ללוח",
+    "errorCopyingHash": "שגיאה בהעתקת hash",
+    "token": "אסימון",
+    "onlyOfficeId": "מזהה OnlyOffice"
   },
   "search": {
     "images": "תמונות",

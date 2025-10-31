@@ -98,6 +98,10 @@
     "noDownloadAccess": "無法下載。"
   },
   "help": {
+    "functionKeys": "功能鍵",
+    "mouseActions": "滑鼠操作",
+    "fileOperations": "檔案操作",
+    "navigation": "導航",
     "click": "選擇檔案或目錄",
     "ctrl": {
       "click": "選擇多個檔案或目錄",
@@ -226,7 +230,22 @@
     "sourcePath": "來源",
     "destinationPath": "目的地：",
     "closeWithActiveUploadsMessage": "警告：您有進行中的上傳，關閉上傳提示可能會導致未完成的上傳。您想做什麼？",
-    "closeWithActiveUploads": "有效上傳"
+    "closeWithActiveUploads": "有效上傳",
+    "basicInfo": "基本資訊",
+    "directoryInfo": "目錄資訊",
+    "additionalInfo": "其他資訊",
+    "hidden": "隱藏",
+    "hasPreview": "已預覽",
+    "checksums": "校驗和",
+    "hashAlgorithm": "切細值演算法",
+    "hashValue": "雜湊值",
+    "selectHashAlgorithm": "選擇散列演算法",
+    "generate": "產生",
+    "errorGeneratingHash": "錯誤產生切細值",
+    "hashCopied": "Hash 複製到剪貼簿",
+    "errorCopyingHash": "複製散列出錯",
+    "token": "代幣",
+    "onlyOfficeId": "OnlyOffice ID"
   },
   "search": {
     "images": "影像",

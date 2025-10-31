@@ -9,7 +9,7 @@ test("info from listing", async({ page, checkForErrors, context }) => {
   await page.locator('.selected-count-header').waitFor({ state: 'visible' });
   await expect(page.locator('.selected-count-header')).toHaveText('1');
   await page.locator('button[aria-label="Info"]').click();
-  await expect(page.locator('.break-word')).toHaveText('Display Name: file.tar.gz');
+  await expect(page.locator('span[aria-label="info display name"]')).toHaveText('file.tar.gz');
   checkForErrors();
 });
 
@@ -23,7 +23,7 @@ test("info from search", async({ page, checkForErrors, context }) => {
   await page.locator('.selected-count-header').waitFor({ state: 'visible' });
   await expect(page.locator('.selected-count-header')).toHaveText('1');
   await page.locator('button[aria-label="Info"]').click();
-  await expect(page.locator('.break-word')).toHaveText('Display Name: file.tar.gz');
+  await expect(page.locator('span[aria-label="info display name"]')).toHaveText('file.tar.gz');
   checkForErrors();
 })
 

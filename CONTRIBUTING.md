@@ -5,7 +5,7 @@ Thank you for your interest in contributing to FileBrowser Quantum! This guide w
 ## Prerequisites
 
 - **Go 1.25+** (see `backend/go.mod`)
-- **Node.js 18.0.0+** with npm 7.0.0+ (see `frontend/package.json`)
+- **Node.js 20.0.0+** with npm 9.0.0+ (see `frontend/package.json`)
 - **Docker** (optional, for containerized development)
 - **Git**
 

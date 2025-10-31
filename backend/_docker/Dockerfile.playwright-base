@@ -1,4 +1,0 @@
-FROM node:22-slim
-WORKDIR /app/frontend
-RUN npm i @playwright/test oauth2-mock-server @types/node
-RUN npx playwright install --with-deps firefox

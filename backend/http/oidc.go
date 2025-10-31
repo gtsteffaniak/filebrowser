@@ -346,10 +346,15 @@ func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string, 
 	expiresTime := time.Now().Add(expires).Add(time.Minute * 30)
 
 	// Set the authentication token as an HTTP cookie
+	// Get the correct domain for cookie - prefer X-Forwarded-Host from reverse proxy
+	host := r.Header.Get("X-Forwarded-Host")
+	if host == "" {
+		host = r.Host
+	}
 	cookie := &http.Cookie{
 		Name:     "filebrowser_quantum_jwt",
 		Value:    signed.Key,
-		Domain:   strings.Split(r.Host, ":")[0], // Set domain to the host without port
+		Domain:   strings.Split(host, ":")[0], // Set domain to the host without port
 		Path:     "/",
 		SameSite: http.SameSiteLaxMode, // Lax mode allows cookie on navigation from OIDC provider
 		Expires:  expiresTime,

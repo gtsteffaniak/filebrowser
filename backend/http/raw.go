@@ -19,6 +19,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
+	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 	"github.com/gtsteffaniak/go-logger/logger"
 	"golang.org/x/time/rate"
 )
@@ -254,9 +255,31 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 	var err error
 	var userscope string
 	fileName := filepath.Base(firstFilePath)
+
+	// Check if this is an OnlyOffice file early for error logging
+	isOnlyOffice := isOnlyOfficeCompatibleFile(fileName) && config.Integrations.OnlyOffice.Url != ""
+	var documentId string
+	var logContext *OnlyOfficeLogContext
+
 	if d.share == nil {
 		userscope, err = settings.GetScopeFromSourceName(d.user.Scopes, firstFileSource)
 		if err != nil {
+			// Send OnlyOffice error log if this was an OnlyOffice file
+			if isOnlyOffice {
+				// Try to get document ID for error logging
+				idx := indexing.GetIndex(firstFileSource)
+				if idx != nil {
+					tempPath := utils.JoinPathAsUnix(userscope, firstFilePath)
+					if realPath, _, realErr := idx.GetRealPath(tempPath); realErr == nil {
+						if docId, _ := getOnlyOfficeId(realPath); docId != "" {
+							if ctx := getOnlyOfficeLogContext(docId); ctx != nil {
+								sendOnlyOfficeLogEvent(ctx, "ERROR", "download",
+									fmt.Sprintf("OnlyOffice download failed - source not available: %s - %v", firstFilePath, err))
+							}
+						}
+					}
+				}
+			}
 			return http.StatusForbidden, err
 		}
 		firstFilePath = utils.JoinPathAsUnix(userscope, firstFilePath)
@@ -264,10 +287,24 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 	// For shares, the path is already correctly resolved by publicRawHandler
 	idx := indexing.GetIndex(firstFileSource)
 	if idx == nil {
+		// Send OnlyOffice error log if this was an OnlyOffice file
+		if isOnlyOffice {
+			sendOnlyOfficeLogEvent(logContext, "ERROR", "download",
+				fmt.Sprintf("OnlyOffice download failed - source index not available: %s", firstFileSource))
+		}
 		return http.StatusInternalServerError, fmt.Errorf("source %s is not available", firstFileSource)
 	}
 	realPath, isDir, err := idx.GetRealPath(firstFilePath)
 	if err != nil {
+		// Send OnlyOffice error log if this was an OnlyOffice file
+		if isOnlyOffice {
+			if docId, _ := getOnlyOfficeId(realPath); docId != "" {
+				if ctx := getOnlyOfficeLogContext(docId); ctx != nil {
+					sendOnlyOfficeLogEvent(ctx, "ERROR", "download",
+						fmt.Sprintf("OnlyOffice download failed - could not resolve path: %s - %v", firstFilePath, err))
+				}
+			}
+		}
 		return http.StatusInternalServerError, err
 	}
 	// Compute estimated download size
@@ -277,8 +314,21 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 	}
 	// ** Single file download with Content-Length **
 	if len(fileList) == 1 && !isDir {
+		// Get document ID and log context for OnlyOffice downloads
+		if isOnlyOffice {
+			documentId, _ = getOnlyOfficeId(realPath)
+			if documentId != "" {
+				logContext = getOnlyOfficeLogContext(documentId)
+			}
+		}
+
 		fd, err2 := os.Open(realPath)
 		if err2 != nil {
+			// Send OnlyOffice error log if this was an OnlyOffice download
+			if isOnlyOffice && logContext != nil {
+				sendOnlyOfficeLogEvent(logContext, "ERROR", "download",
+					fmt.Sprintf("OnlyOffice download failed - could not open file: %s - %v", firstFilePath, err2))
+			}
 			return http.StatusInternalServerError, err2
 		}
 		defer fd.Close()
@@ -286,7 +336,21 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 		// Get file size
 		fileInfo, err2 := fd.Stat()
 		if err2 != nil {
+			// Send OnlyOffice error log if this was an OnlyOffice download
+			if isOnlyOffice && logContext != nil {
+				sendOnlyOfficeLogEvent(logContext, "ERROR", "download",
+					fmt.Sprintf("OnlyOffice download failed - could not get file info: %s - %v", firstFilePath, err2))
+			}
 			return http.StatusInternalServerError, err2
+		}
+
+		// Send success log for OnlyOffice downloads
+		if isOnlyOffice && logContext != nil {
+			logger.Infof("OnlyOffice Server is downloading file: %s (documentId: %s)",
+				firstFilePath, documentId)
+
+			sendOnlyOfficeLogEvent(logContext, "INFO", "download",
+				fmt.Sprintf("OnlyOffice Server downloading file: %s", firstFilePath))
 		}
 
 		// Set headers
@@ -477,4 +541,9 @@ func createTarGz(d *requestContext, tmpDirPath string, filenames ...string) erro
 	}
 
 	return nil
+}
+
+// isOnlyOfficeCompatibleFile checks if a file extension is supported by OnlyOffice
+func isOnlyOfficeCompatibleFile(fileName string) bool {
+	return iteminfo.IsOnlyOffice(fileName)
 }

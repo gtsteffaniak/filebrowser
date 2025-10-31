@@ -97,7 +97,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 			shareProps["disableFileViewer"] = d.share.DisableFileViewer
 			shareProps["disableShareCard"] = d.share.DisableShareCard
 			shareProps["disableSidebar"] = d.share.DisableSidebar
-			shareProps["isPasswordProtected"] = d.share.PasswordHash != ""
+			shareProps["isPasswordProtected"] = d.share.HasPassword()
 			shareProps["downloadURL"] = getDownloadURL(r, d.share.Hash)
 			shareProps["enforceDarkLightMode"] = d.share.EnforceDarkLightMode
 			shareProps["viewMode"] = d.share.ViewMode
@@ -119,7 +119,6 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 			shareProps["hideNavButtons"] = d.share.HideNavButtons
 
 			// Additional computed properties from extended.go
-			shareProps["hasPassword"] = d.share.HasPassword()
 			shareProps["isPermanent"] = d.share.IsPermanent()
 			shareProps["fileExtension"] = d.share.GetFileExtension()
 			shareProps["fileName"] = d.share.GetFileName()
@@ -135,6 +134,12 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 			}
 			if d.share.Title != "" {
 				data["title"] = d.share.Title
+			}
+			if d.share.ShareTheme != "" {
+				theme, ok := config.Frontend.Styling.CustomThemeOptions[d.share.ShareTheme]
+				if ok {
+					userSelectedTheme = theme.CssRaw
+				}
 			}
 		}
 

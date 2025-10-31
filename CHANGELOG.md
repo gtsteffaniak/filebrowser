@@ -2,6 +2,34 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v1.0.1
+
+ **Notes**:
+ - build requirement change -- from node 18 > node 20 with npm 9.0.0+
+ - update makefile linker flags to properly set version and sha #1474
+
+ **BugFixes**:
+ - Generating multiple HEIC previews in parallel fails #1470
+ - ? in path not always encoded right #1447
+ - fixed some condition that the halloween background doesn't load properly
+ - some comments not showing up on config viewer in settings
+
+## v1.0.0
+
+ **Notes**:
+ - Enhanced onlyoffice debugger with more wholistic backend logs
+ - Updated info prompt styling
+ - share qr code links to externalUrl for entire share if exists #1329
+
+ **BugFixes**:
+ - cookie host is set using x-Forwarded-Host to better support reverse proxies.
+ - HEIC conversion not working #1460
+ - 'Prevent user changing their password' also prevents admins changing the users password. #1365
+ - OnlyOffice write problem #1397 #1068
+ - Conditionals starting with a . seem to not work. #1455
+ - Last modified in file info is empty #1443
+ - Share links: 'Default View Mode' does not apply to subfolders. #1463
+
 ## v0.8.11-beta
 
  **New Features**:

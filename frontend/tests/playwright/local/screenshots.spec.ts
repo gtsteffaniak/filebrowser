@@ -64,7 +64,7 @@ test("info from search", async ({ page, checkForErrors, context, theme }) => {
   await expect(page.locator('.selected-count-header')).toHaveText('1');
   await page.screenshot({ path: `./screenshots/search/right-click-${theme}.jpg`, quality: jpgQuality });
   await page.locator('button[aria-label="Info"]').click();
-  await expect(page.locator('.break-word')).toHaveText('Display Name: file.tar.gz');
+  await expect(page.locator('span[aria-label="info display name"]')).toHaveText('Display Name: file.tar.gz');
   await page.waitForTimeout(500);
   await page.screenshot({ path: `./screenshots/file-no-preview/file.tar.gz-${theme}.jpg`, quality: jpgQuality });
 })
