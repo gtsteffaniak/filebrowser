@@ -67,18 +67,9 @@ func settingsConfigHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 	if config.Server.EmbeddedFs {
 		embeddedYaml, readErr = assets.ReadFile("embed/config.generated.yaml")
 	} else {
-		// Try to read from the generated file in various locations
-		paths := []string{
-			"frontend/public/config.generated.yaml",
-			"../frontend/public/config.generated.yaml",
-			"http/dist/config.generated.yaml",
-			"dist/config.generated.yaml",
-		}
-		for _, path := range paths {
-			embeddedYaml, readErr = os.ReadFile(path)
-			if readErr == nil {
-				break
-			}
+		embeddedYaml, readErr = os.ReadFile("http/dist/config.generated.yaml")
+		if readErr != nil {
+			return http.StatusInternalServerError, fmt.Errorf("error reading generated YAML: %v", readErr)
 		}
 	}
 
