@@ -186,7 +186,8 @@ export function getTypeInfo(mimeType) {
     if (
         mimeType === "application/x-disk-image" ||
         mimeType === "application/x-iso-image" ||
-        mimeType === "application/x-apple-diskimage"
+        mimeType === "application/x-apple-diskimage" ||
+        mimeType === "application/x-cd-image"
     ) {
         return {
             classes: "gray-icons material-symbols-outlined",
