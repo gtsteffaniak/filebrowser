@@ -11,4 +11,5 @@ RUN apt update && apt install nginx -y
 RUN mv default.conf /etc/nginx/conf.d/default.conf
 RUN mv .htpasswd /etc/nginx/conf.d/.htpasswd
 RUN sed -i 's/filebrowser/localhost/g' /etc/nginx/conf.d/default.conf
-RUN nginx & FILEBROWSER_PLAYWRIGHT_TEST=true ./filebrowser & sleep 2 && cd ../frontend && npx playwright test
+ENV FILEBROWSER_PLAYWRIGHT_TEST=true
+RUN nginx & ./filebrowser & sleep 2 && cd ../frontend && npx playwright test

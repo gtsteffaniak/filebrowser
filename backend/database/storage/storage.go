@@ -105,6 +105,7 @@ func quickSetup(store *bolt.BoltStore) {
 // create new user
 func CreateUser(userInfo users.User) error {
 	newUser := &userInfo
+	newUser.ShowFirstLogin = settings.Config.Env.IsFirstLoad && newUser.Permissions.Admin
 	if userInfo.LoginMethod == "password" {
 		if userInfo.Password == "" {
 			return fmt.Errorf("password is required to create a password login user")

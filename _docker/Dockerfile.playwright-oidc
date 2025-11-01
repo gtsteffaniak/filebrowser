@@ -11,4 +11,5 @@ COPY [ "./backend/http/embed/", "./http/dist/"]
 
 # Run tests
 WORKDIR /app/frontend
-RUN node mock-oidc-server.js & sleep 2 && cd ../backend/ && FILEBROWSER_PLAYWRIGHT_TEST=true ./filebrowser & sleep 2 && cd ../frontend && npx playwright test
+ENV FILEBROWSER_PLAYWRIGHT_TEST=true
+RUN node mock-oidc-server.js & sleep 2 && cd ../backend/ && ./filebrowser & sleep 2 && cd ../frontend && npx playwright test
