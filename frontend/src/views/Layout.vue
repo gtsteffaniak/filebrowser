@@ -146,8 +146,7 @@ export default {
         if (maxUploads > 10 || maxUploads < 1) {
           mutations.setMaxConcurrentUpload(1);
         }
-        const hideFirstLoad = localStorage.getItem("hideFirstLoad");
-        if (globalVars.firstLoad && state.user.permissions.admin && !hideFirstLoad) {
+        if ( state.user.showFirstLogin) {
           mutations.showHover({
             name: "generic",
             props: {
@@ -157,7 +156,9 @@ export default {
                 {
                   label: this.$t("buttons.close"),
                   action: () => {
-                    localStorage.setItem("hideFirstLoad", "true");
+                    mutations.updateCurrentUser({
+                      showFirstLogin: false,
+                    });
                   },
                 },
               ],

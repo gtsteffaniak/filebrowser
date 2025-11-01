@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/fs"
 	"net/http"
-	"os"
 	"strings"
 	"text/template"
 
@@ -46,8 +45,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 	versionString := ""
 	commitSHAString := ""
 	externalLinks := config.Frontend.ExternalLinks
-	playwrightTest := os.Getenv("FILEBROWSER_PLAYWRIGHT_TEST") == "true"
-	if playwrightTest {
+	if config.Env.IsPlaywright {
 		versionString = version.Version
 		commitSHAString = version.CommitSHA
 	}
@@ -58,7 +56,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		}
 		versionString = version.Version
 		commitSHAString = version.CommitSHA
-	} else if !playwrightTest {
+	} else if !config.Env.IsPlaywright {
 		newExternalLinks := []settings.ExternalLink{}
 		// remove version and commit SHA from external links
 		for _, link := range externalLinks {
@@ -214,7 +212,6 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"userSelectableThemes": config.Frontend.Styling.CustomThemeOptions,
 		"enableHeicConversion": config.Integrations.Media.Convert.ImagePreview[settings.HEICImagePreview],
 		"eventBasedThemes":     !config.Frontend.Styling.DisableEventBasedThemes,
-		"firstLoad":            config.Server.IsFirstLoad,
 	}
 
 	// Marshal each variable to JSON strings for direct template usage

@@ -196,7 +196,6 @@ func logoutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 // @Tags Auth
 // @Accept json
 // @Produce json
-// @Param body body signupBody true "User signup details"
 // @Success 201 {string} string "User created successfully"
 // @Failure 400 {object} map[string]string "Bad request - invalid input"
 // @Failure 405 {object} map[string]string "Method not allowed - signup is disabled"

@@ -72,8 +72,9 @@ type User struct {
 	LoginMethod     LoginMethod          `json:"loginMethod"`
 	OtpEnabled      bool                 `json:"otpEnabled"` // true if TOTP is enabled, false otherwise
 	// legacy for migration purposes... og filebrowser has perm attribute
-	Perm    Permissions `json:"perm,omitzero"`
-	Version int         `json:"version"`
+	Perm           Permissions `json:"perm,omitzero"`
+	Version        int         `json:"version"`
+	ShowFirstLogin bool        `json:"showFirstLogin"`
 }
 
 type SourceScope struct {

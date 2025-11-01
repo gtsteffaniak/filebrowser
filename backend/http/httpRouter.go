@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io/fs"
 	"net/http"
-	"os"
 	"text/template"
 	"time"
 
@@ -64,14 +63,12 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 			return string(a), err
 		},
 	})
-
-	devMode := os.Getenv("FILEBROWSER_DEVMODE") == "true"
-	if !devMode {
+	if !config.Env.IsDevMode {
 		templates = template.Must(templates.ParseFS(assetFs, "public/index.html"))
 	}
 	templateRenderer = &TemplateRenderer{
 		templates: templates,
-		devMode:   devMode,
+		devMode:   config.Env.IsDevMode,
 	}
 
 	router := http.NewServeMux()

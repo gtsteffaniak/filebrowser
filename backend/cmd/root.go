@@ -76,16 +76,12 @@ func StartFilebrowser() {
 	database := fmt.Sprintf("Using existing database  : %v", settings.Config.Server.Database)
 	if !dbExists {
 		database = fmt.Sprintf("Creating new database    : %v", settings.Config.Server.Database)
-		if os.Getenv("FILEBROWSER_PLAYWRIGHT_TEST") != "true" {
-			settings.Config.Server.IsFirstLoad = true
-		}
 	}
 
 	// Dev mode enables development features like template hot-reloading
-	devMode := os.Getenv("FILEBROWSER_DEVMODE") == "true"
 	_, err := os.Stat("http/dist")
 	// In dev mode, always use filesystem assets. Otherwise, check if http/dist exists
-	if !devMode {
+	if !settings.Config.Env.IsDevMode {
 		settings.Config.Server.EmbeddedFs = os.IsNotExist(err)
 	}
 
