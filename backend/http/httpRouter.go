@@ -45,14 +45,20 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	config = &settings.Config
 	var err error
 	// --- START: ADD THIS DECRYPTION LOGIC ---
-	if settings.Config.Server.EmbeddedFs {
+	if settings.Config.Env.EmbeddedFs {
 		// Embedded mode: Serve files from the embedded assets
 		assetFs, err = fs.Sub(assets, "embed")
 		if err != nil {
 			logger.Fatal("Could not embed frontend. Does dist exist?")
 		}
+		if config.Frontend.LoginIcon == "" {
+			config.Frontend.LoginIcon = "embed/public/img/icons/favicon.svg"
+		}
 	} else {
 		assetFs = dirFS{Dir: http.Dir("http/dist")}
+		if config.Frontend.LoginIcon == "" {
+			config.Frontend.LoginIcon = "http/dist/img/icons/favicon.svg"
+		}
 	}
 
 	// In development mode, we want to reload the templates on each request.
@@ -177,6 +183,7 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	staticPrefix := config.Server.BaseURL + "static/"
 	router.Handle(staticPrefix, http.StripPrefix(staticPrefix, http.HandlerFunc(staticFilesHandler)))
 	publicRoutes.Handle("GET /static/", http.StripPrefix("/static/", http.HandlerFunc(staticFilesHandler)))
+	publicRoutes.HandleFunc("GET /static/loginIcon", http.HandlerFunc(loginIconHandler))
 
 	router.HandleFunc(config.Server.BaseURL, withOrWithoutUser(indexHandler))
 	router.HandleFunc(fmt.Sprintf("GET %vhealth", config.Server.BaseURL), healthHandler)

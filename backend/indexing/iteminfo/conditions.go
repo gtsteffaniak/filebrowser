@@ -350,7 +350,7 @@ func hasBundleExtension(name string) bool {
 }
 
 func HasDocConvertableExtension(name, mimetype string) bool {
-	if !settings.Config.Server.MuPdfAvailable {
+	if !settings.Config.Env.MuPdfAvailable {
 		return false
 	}
 	if strings.HasPrefix(mimetype, "text") {

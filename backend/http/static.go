@@ -172,6 +172,9 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		data["winIcon"] = staticURL + "/img/icons/mstile-144x144.png"
 		data["appIcon"] = staticURL + "/img/icons/android-chrome-256x256.png"
 	}
+	// Set login icon URL
+	loginIcon := staticURL + "/loginIcon"
+
 	data["htmlVars"] = map[string]interface{}{
 		"title":             config.Frontend.Name,
 		"customCSS":         config.Frontend.Styling.CustomCSSRaw,
@@ -181,6 +184,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"staticURL":         staticURL,
 		"baseURL":           config.Server.BaseURL,
 		"favicon":           favicon,
+		"loginIcon":         loginIcon,
 		"color":             defaultThemeColor,
 		"winIcon":           staticURL + "/img/icons/mstile-144x144.png",
 		"appIcon":           staticURL + "/img/icons/android-chrome-256x256.png",
@@ -206,12 +210,13 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"proxyAvailable":       config.Auth.Methods.ProxyAuth.Enabled,
 		"passwordAvailable":    config.Auth.Methods.PasswordAuth.Enabled,
 		"mediaAvailable":       config.Integrations.Media.FfmpegPath != "",
-		"muPdfAvailable":       config.Server.MuPdfAvailable,
+		"muPdfAvailable":       config.Env.MuPdfAvailable,
 		"updateAvailable":      utils.GetUpdateAvailableUrl(),
 		"disableNavButtons":    disableNavButtons,
 		"userSelectableThemes": config.Frontend.Styling.CustomThemeOptions,
 		"enableHeicConversion": config.Integrations.Media.Convert.ImagePreview[settings.HEICImagePreview],
 		"eventBasedThemes":     !config.Frontend.Styling.DisableEventBasedThemes,
+		"loginIcon":            loginIcon,
 	}
 
 	// Marshal each variable to JSON strings for direct template usage
@@ -233,6 +238,39 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		return http.StatusInternalServerError, err
 	}
 	return http.StatusOK, nil
+}
+
+func loginIconHandler(w http.ResponseWriter, r *http.Request) {
+	const maxAge = 86400 // 1 day
+	w.Header().Set("Cache-Control", fmt.Sprintf("public, max-age=%v", maxAge))
+
+	// Handle custom login icon if configured
+	if config.Frontend.LoginIcon != "" {
+		// Check if it's a file path (not embedded)
+		if _, err := fs.Stat(assetFs, config.Frontend.LoginIcon); err == nil {
+			// Serve from embedded/dist filesystem
+			fileContents, err := fs.ReadFile(assetFs, config.Frontend.LoginIcon)
+			if err == nil {
+				// Set content type based on file extension
+				if strings.HasSuffix(config.Frontend.LoginIcon, ".svg") {
+					w.Header().Set("Content-Type", "image/svg+xml")
+				} else if strings.HasSuffix(config.Frontend.LoginIcon, ".png") {
+					w.Header().Set("Content-Type", "image/png")
+				} else if strings.HasSuffix(config.Frontend.LoginIcon, ".jpg") || strings.HasSuffix(config.Frontend.LoginIcon, ".jpeg") {
+					w.Header().Set("Content-Type", "image/jpeg")
+				}
+				w.Write(fileContents)
+				return
+			}
+		} else {
+			// Try serving as a custom file from filesystem
+			http.ServeFile(w, r, config.Frontend.LoginIcon)
+			return
+		}
+	}
+
+	// Fallback to default favicon if login icon not found
+	http.NotFound(w, r)
 }
 
 func staticFilesHandler(w http.ResponseWriter, r *http.Request) {

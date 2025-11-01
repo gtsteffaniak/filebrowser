@@ -42,7 +42,11 @@ func InitializeDb(path string) (*bolt.BoltStore, bool, error) {
 		return nil, exists, err
 	}
 	if !exists {
-		settings.Config.Env.IsFirstLoad = !settings.Config.Env.IsPlaywright
+		if settings.Config.Env.IsPlaywright || settings.Config.Env.IsDevMode {
+			settings.Config.Env.IsFirstLoad = false
+		} else {
+			settings.Config.Env.IsFirstLoad = true
+		}
 		quickSetup(store)
 	}
 

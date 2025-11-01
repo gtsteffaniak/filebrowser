@@ -22,9 +22,11 @@ type Settings struct {
 }
 
 type Env struct {
-	IsPlaywright bool `json:"-"`
-	IsDevMode    bool `json:"-"`
-	IsFirstLoad  bool `json:"-"` // used internally to track if this is the first load of the application
+	IsPlaywright   bool `json:"-"`
+	IsDevMode      bool `json:"-"`
+	IsFirstLoad    bool `json:"-"` // used internally to track if this is the first load of the application
+	MuPdfAvailable bool `json:"-"` // used internally if compiled with mupdf support
+	EmbeddedFs     bool `json:"-"` // used internally if compiled with embedded fs support
 }
 
 type Server struct {
@@ -48,10 +50,8 @@ type Server struct {
 	MaxArchiveSizeGB             int64       `json:"maxArchiveSize"` // max pre-archive combined size of files/folder that are allowed to be archived (in GB)
 	Filesystem                   Filesystem  `json:"filesystem"`     // filesystem settings
 	// not exposed to config
-	SourceMap      map[string]*Source `json:"-" validate:"omitempty"` // uses realpath as key
-	NameToSource   map[string]*Source `json:"-" validate:"omitempty"` // uses name as key
-	MuPdfAvailable bool               `json:"-"`                      // used internally if compiled with mupdf support
-	EmbeddedFs     bool               `json:"-"`                      // used internally if compiled with embedded fs support
+	SourceMap    map[string]*Source `json:"-" validate:"omitempty"` // uses realpath as key
+	NameToSource map[string]*Source `json:"-" validate:"omitempty"` // uses name as key
 }
 
 type Filesystem struct {
@@ -235,6 +235,7 @@ type Frontend struct {
 	Styling               StylingConfig  `json:"styling"`
 	Favicon               string         `json:"favicon"`     // path to a favicon to use for the frontend
 	Description           string         `json:"description"` // description that shows up in html head meta description
+	LoginIcon             string         `json:"loginIcon"`   // path to a icon to use for the login page
 }
 
 type StylingConfig struct {
