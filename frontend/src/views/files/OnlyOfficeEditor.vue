@@ -127,22 +127,35 @@ export default {
     }
   },
   beforeUnmount() {
-    // Clean up SSE connection
-    if (this.sseConnection) {
-      this.sseConnection.close();
-      this.sseConnection = null;
-    }
-
-    // Clean up global SSE event listener
-    window.removeEventListener('onlyOfficeLogEvent', this.handleOnlyOfficeLogEvent);
-
-    // Clean up SSE connection if it was started for OnlyOffice admin users
-    if (state.user.permissions.admin && !state.user.permissions.realtime) {
-      console.log('🔌 Cleaning up OnlyOffice SSE connection');
-      events.stopSSE();
-    }
+    this.destroyOnlyOffice();
   },
   methods: {
+    // Clean up any existing OnlyOffice instances
+    destroyOnlyOffice() {
+      console.log('Cleaning up OnlyOffice...');
+      // Remove all iframes
+      const iframes = document.querySelectorAll('iframe');
+      iframes.forEach(iframe => {
+        if (iframe.src && iframe.src.includes('onlyoffice')) {
+          iframe.remove();
+        }
+      });
+      // Clean up global objects
+      if (window.DocsAPI) delete window.DocsAPI;
+      // Clean up SSE connection
+      if (this.sseConnection) {
+        this.sseConnection.close();
+        this.sseConnection = null;
+      }
+      // Clean up global SSE event listener
+      window.removeEventListener('onlyOfficeLogEvent', this.handleOnlyOfficeLogEvent);
+
+      // Clean up SSE connection if it was started for OnlyOffice admin users
+      if (state.user.permissions.admin && !state.user.permissions.realtime) {
+        console.log('🔌 Cleaning up OnlyOffice SSE connection');
+        events.stopSSE();
+      }
+    },
     getInternalUrlInfo() {
       if (this.clientConfig && this.clientConfig.document && this.clientConfig.document.url) {
         try {
