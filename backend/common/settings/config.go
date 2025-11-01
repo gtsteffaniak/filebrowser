@@ -88,6 +88,13 @@ func setupFs() {
 }
 
 func setupFrontend(generate bool) {
+	if Config.Frontend.LoginIcon != "" {
+		// check if file exists
+		if _, err := os.Stat(Config.Frontend.LoginIcon); os.IsNotExist(err) {
+			logger.Warningf("login icon file '%v' does not exist", Config.Frontend.LoginIcon)
+			Config.Frontend.LoginIcon = ""
+		}
+	}
 	if Config.Server.MinSearchLength == 0 {
 		Config.Server.MinSearchLength = 3
 	}

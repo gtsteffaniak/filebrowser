@@ -89,8 +89,8 @@ func NewPreviewGenerator(concurrencyLimit int, ffmpegPath string, cacheDir strin
 	}
 	logger.Debugf("Media Enabled            : %v", ffmpegMainPath != "" && ffprobePath != "")
 	logger.Debugf("FFmpeg Concurrency Limit : %d", ffmpegConcurrencyLimit)
-	settings.Config.Server.MuPdfAvailable = docEnabled()
-	logger.Debugf("MuPDF Enabled            : %v", settings.Config.Server.MuPdfAvailable)
+	settings.Config.Env.MuPdfAvailable = docEnabled()
+	logger.Debugf("MuPDF Enabled            : %v", settings.Config.Env.MuPdfAvailable)
 
 	// Create shared ffmpeg services
 	var videoService *ffmpeg.VideoService

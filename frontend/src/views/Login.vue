@@ -22,7 +22,7 @@
 
     <form class="card login-card" :class="{ 'tombstone': eventTheme === 'halloween' }" @submit="submit">
       <div class="login-brand">
-        <Icon mimetype="directory" />
+        <img :src="loginIconUrl" alt="Login Icon" class="login-icon" />
       </div>
       <div v-if="!inProgress" class="login-brand brand-text">
         <h3>{{ loginName }}</h3>
@@ -197,7 +197,6 @@
 import router from "@/router";
 import { mutations, state, getters } from "@/store";
 import Prompts from "@/components/prompts/Prompts.vue";
-import Icon from "@/components/files/Icon.vue";
 import { usersApi } from "@/api";
 import { initAuth } from "@/utils/auth";
 import { removeLeadingSlash } from "@/utils/url";
@@ -207,7 +206,6 @@ import Tooltip from "@/components/Tooltip.vue";
 export default {
   name: "login",
   components: {
-    Icon,
     Prompts,
     Tooltip,
   },
@@ -219,6 +217,7 @@ export default {
     passwordAvailable: () => globalVars.passwordAvailable,
     name: () => globalVars.name || "FileBrowser Quantum",
     logoURL: () => logoURL,
+    loginIconUrl: () => globalVars.loginIcon || (globalVars.baseURL + "public/static/loginIcon"),
     isDarkMode() {
       return globalVars.darkMode;
     },
@@ -437,6 +436,12 @@ export default {
   font-size: 5em !important;
   padding-top: 0em !important;
   padding-bottom: 0em !important;
+}
+
+.login-icon {
+  width: 5em;
+  height: 5em;
+  object-fit: contain;
 }
 
 .password-entry {

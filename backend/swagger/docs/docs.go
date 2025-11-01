@@ -3076,6 +3076,10 @@ const docTemplate = `{
                     "description": "path to a favicon to use for the frontend",
                     "type": "string"
                 },
+                "loginIcon": {
+                    "description": "path to a icon to use for the login page",
+                    "type": "string"
+                },
                 "name": {
                     "description": "display name",
                     "type": "string"

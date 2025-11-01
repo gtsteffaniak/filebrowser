@@ -82,7 +82,7 @@ func StartFilebrowser() {
 	_, err := os.Stat("http/dist")
 	// In dev mode, always use filesystem assets. Otherwise, check if http/dist exists
 	if !settings.Config.Env.IsDevMode {
-		settings.Config.Server.EmbeddedFs = os.IsNotExist(err)
+		settings.Config.Env.EmbeddedFs = os.IsNotExist(err)
 	}
 
 	sourceList := []string{}
@@ -94,7 +94,7 @@ func StartFilebrowser() {
 	logger.Infof("Auth Methods             : %v", settings.Config.Auth.AuthMethods)
 	logger.Info(database)
 	logger.Infof("Sources                  : %v", sourceList)
-	logger.Debugf("Using Embedded FS        : %v", settings.Config.Server.EmbeddedFs)
+	logger.Debugf("Using Embedded FS        : %v", settings.Config.Env.EmbeddedFs)
 
 	serverConfig := settings.Config.Server
 	swagInfo := docs.SwaggerInfo

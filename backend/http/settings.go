@@ -64,7 +64,7 @@ func settingsConfigHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 	var embeddedYaml []byte
 	var readErr error
 
-	if config.Server.EmbeddedFs {
+	if config.Env.EmbeddedFs {
 		embeddedYaml, readErr = assets.ReadFile("embed/config.generated.yaml")
 	} else {
 		embeddedYaml, readErr = os.ReadFile("http/dist/config.generated.yaml")
