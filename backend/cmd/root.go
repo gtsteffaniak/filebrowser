@@ -79,10 +79,9 @@ func StartFilebrowser() {
 	}
 
 	// Dev mode enables development features like template hot-reloading
-	devMode := os.Getenv("FILEBROWSER_DEVMODE") == "true"
 	_, err := os.Stat("http/dist")
 	// In dev mode, always use filesystem assets. Otherwise, check if http/dist exists
-	if !devMode {
+	if !settings.Config.Env.IsDevMode {
 		settings.Config.Server.EmbeddedFs = os.IsNotExist(err)
 	}
 

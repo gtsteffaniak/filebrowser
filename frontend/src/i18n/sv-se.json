@@ -245,7 +245,11 @@
     "hashCopied": "Hash kopieras till urklipp",
     "errorCopyingHash": "Fel vid kopiering av hash",
     "token": "Token",
-    "onlyOfficeId": "OnlyOffice ID"
+    "onlyOfficeId": "OnlyOffice ID",
+    "firstLoadTitle": "Välkommen till FileBrowser Quantum!",
+    "halloweenTitle": "Glad Halloween!",
+    "halloweenBody": "Halloween-temat har lagts till. Du kan inaktivera det om du inte gillar det, eller inaktivera det permanent i profilinställningarna genom att välja ett annat tema.",
+    "firstLoadBody": "En ny databas skapades vid uppstart. Om detta inte är vad du förväntade dig, vänligen dubbelkolla din konfigurationsfil för `server.database` sökväg och se till att den finns. På docker kan databassökvägen vara `./data/database.db` eller `./database.db`."
   },
   "search": {
     "images": "Bilder",
@@ -662,9 +666,5 @@
     "changePlaybackMode": "Ändra uppspelningsläge",
     "changePlaybackModeHint": "Ändra uppspelningsläge för att se fler filer",
     "emptyQueue": "Kön är tom"
-  },
-  "halloween": {
-    "title": "Glad Halloween!",
-    "body": "Halloween-temat har lagts till. Du kan inaktivera det om du inte gillar det, eller inaktivera det permanent i profilinställningarna genom att välja ett annat tema."
   }
 }

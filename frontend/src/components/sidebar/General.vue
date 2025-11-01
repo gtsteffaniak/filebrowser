@@ -182,8 +182,6 @@ export default {
     currentPrompt: () => getters.currentPrompt(),
     active: () => getters.isSidebarVisible(),
     signup: () => globalVars.signup,
-    version: () => globalVars.version,
-    commitSHA: () => globalVars.commitSHA,
     disableExternal: () => globalVars.disableExternal,
     canLogout: () => !globalVars.noAuth && state.user?.username !== 'anonymous',
     route: () => state.route,

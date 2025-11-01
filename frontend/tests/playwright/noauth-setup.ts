@@ -9,6 +9,8 @@ async function globalSetup() {
   await page.goto("http://127.0.0.1/files/");
   await page.waitForURL("**/files/", { timeout: 1000 });
 
+  await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
+
   // Create a share of folder
   await page.locator('a[aria-label="myfolder"]').waitFor({ state: 'visible' });
   await page.locator('a[aria-label="myfolder"]').click({ button: "right" });

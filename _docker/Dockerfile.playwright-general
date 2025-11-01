@@ -15,5 +15,6 @@ RUN mkdir -p ./http/dist
 COPY [ "./backend/http/embed/", "./http/dist/"]
 
 # Run tests
+ENV FILEBROWSER_PLAYWRIGHT_TEST=true
 RUN ./filebrowser set -u testuser1,testuser1
 RUN ./filebrowser & sleep 2 && cd ../frontend && npx playwright test

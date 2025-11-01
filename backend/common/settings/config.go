@@ -43,6 +43,14 @@ func Initialize(configFile string) {
 		time.Sleep(5 * time.Second) // allow sleep time before exiting to give docker/kubernetes time before restarting
 		logger.Fatal(err.Error())
 	}
+	Config.Env.IsPlaywright = os.Getenv("FILEBROWSER_PLAYWRIGHT_TEST") == "true"
+	if Config.Env.IsPlaywright {
+		logger.Warning("Running in playwright test mode. This is not recommended for production.")
+	}
+	Config.Env.IsDevMode = os.Getenv("FILEBROWSER_DEVMODE") == "true"
+	if Config.Env.IsDevMode {
+		logger.Warning("Running in dev mode. This is not recommended for production.")
+	}
 	setupFs()
 	setupLogging()
 	setupAuth(false)
@@ -320,7 +328,7 @@ func setupLogging() {
 	for _, logConfig := range Config.Server.Logging {
 		// Enable debug logging automatically in dev mode
 		levels := logConfig.Levels
-		if os.Getenv("FILEBROWSER_DEVMODE") == "true" {
+		if Config.Env.IsDevMode {
 			levels = "info|warning|error|debug"
 		}
 
@@ -499,6 +507,14 @@ func setDefaults(generate bool) Settings {
 	database := os.Getenv("FILEBROWSER_DATABASE")
 	if database == "" {
 		database = "database.db"
+	} else {
+		// check if database file exists
+		if _, err := os.Stat(database); os.IsNotExist(err) {
+			database = "database.db"
+		}
+	}
+	if _, err := os.Stat(database); os.IsNotExist(err) {
+		logger.Warning("database file could not be found. If this is unexpected, the default path is `./database.db`, but it can be configured in the config file under `server.database`.")
 	}
 	s := Settings{
 		Server: Server{

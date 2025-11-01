@@ -41,13 +41,31 @@ func (t *TemplateRenderer) Render(w http.ResponseWriter, name string, data inter
 
 func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestContext, file, contentType string) (int, error) {
 	w.Header().Set("Content-Type", contentType)
-
 	userSelectedTheme := ""
-	if d.user != nil {
+	versionString := ""
+	commitSHAString := ""
+	externalLinks := config.Frontend.ExternalLinks
+	if config.Env.IsPlaywright {
+		versionString = version.Version
+		commitSHAString = version.CommitSHA
+	}
+	if d.user != nil && d.user.Username != "anonymous" {
 		theme, ok := config.Frontend.Styling.CustomThemeOptions[d.user.CustomTheme]
 		if ok {
 			userSelectedTheme = theme.CssRaw
 		}
+		versionString = version.Version
+		commitSHAString = version.CommitSHA
+	} else if !config.Env.IsPlaywright {
+		newExternalLinks := []settings.ExternalLink{}
+		// remove version and commit SHA from external links
+		for _, link := range externalLinks {
+			if link.Title == version.CommitSHA {
+				continue
+			}
+			newExternalLinks = append(newExternalLinks, link)
+		}
+		externalLinks = newExternalLinks
 	}
 
 	defaultThemeColor := "#455a64"
@@ -175,12 +193,12 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"disableExternal":      config.Frontend.DisableDefaultLinks,
 		"darkMode":             settings.Config.UserDefaults.DarkMode,
 		"baseURL":              config.Server.BaseURL,
-		"version":              version.Version,
-		"commitSHA":            version.CommitSHA,
+		"version":              versionString,
+		"commitSHA":            commitSHAString,
 		"signup":               settings.Config.Auth.Methods.PasswordAuth.Signup,
 		"noAuth":               config.Auth.Methods.NoAuth,
 		"enableThumbs":         !config.Server.DisablePreviews,
-		"externalLinks":        config.Frontend.ExternalLinks,
+		"externalLinks":        externalLinks,
 		"externalUrl":          strings.TrimSuffix(config.Server.ExternalUrl, "/"),
 		"onlyOfficeUrl":        settings.Config.Integrations.OnlyOffice.Url,
 		"sourceCount":          len(config.Server.SourceMap),

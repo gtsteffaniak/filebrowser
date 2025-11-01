@@ -13,11 +13,18 @@ const (
 )
 
 type Settings struct {
+	Env          Env          `json:"-"`
 	Server       Server       `json:"server"`
 	Auth         Auth         `json:"auth"`
 	Frontend     Frontend     `json:"frontend"`
 	UserDefaults UserDefaults `json:"userDefaults"`
 	Integrations Integrations `json:"integrations"`
+}
+
+type Env struct {
+	IsPlaywright bool `json:"-"`
+	IsDevMode    bool `json:"-"`
+	IsFirstLoad  bool `json:"-"` // used internally to track if this is the first load of the application
 }
 
 type Server struct {

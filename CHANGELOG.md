@@ -6,8 +6,14 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Notes**:
  - build requirement change -- from node 18 > node 20 with npm 9.0.0+
+ - version is not shown for unauthenticated users #1444
+ - fixed signup login #1444
  - update makefile linker flags to properly set version and sha #1474
  - better windows build support -- `make setup` and `make dev` work as long as git is installed on windows
+ - added better first initilization detection
+   - If filebrowser initialized and does not detect a database, a new warning message in server logs appears.
+   - If theres no database on start, any admin user's first login will see a welcome message in the ui.
+   - For docker, it defaults to ./data/database.db, but will also fallback to ./database.db without any additional configuration.
 
  **BugFixes**:
  - Generating multiple HEIC previews in parallel fails #1470
