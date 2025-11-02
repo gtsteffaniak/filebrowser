@@ -3077,7 +3077,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "loginIcon": {
-                    "description": "path to a icon to use for the login page",
+                    "description": "path to an image file for the login page icon",
                     "type": "string"
                 },
                 "name": {
