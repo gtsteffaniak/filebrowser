@@ -22,7 +22,7 @@
 
     <form class="card login-card" :class="{ 'tombstone': eventTheme === 'halloween' }" @submit="submit">
       <div class="login-brand">
-        <Icon mimetype="directory" />
+        <img :src="loginIconUrl" alt="Login Icon" class="login-icon" />
       </div>
       <div v-if="!inProgress" class="login-brand brand-text">
         <h3>{{ loginName }}</h3>
@@ -49,7 +49,7 @@
             <div v-if="globalVars.recaptcha" id="globalVars.recaptcha"></div>
             <input class="button button--block" type="submit"
               :value="createMode ? $t('general.signup') : $t('login.submit')" />
-            <p @click="toggleMode" v-if="signup">
+            <p @click="toggleMode" v-if="signup" aria-label="sign up toggle">
               {{ createMode ? $t("login.loginInstead") : $t("login.createAnAccount") }}
             </p>
           </div>
@@ -197,7 +197,6 @@
 import router from "@/router";
 import { mutations, state, getters } from "@/store";
 import Prompts from "@/components/prompts/Prompts.vue";
-import Icon from "@/components/files/Icon.vue";
 import { usersApi } from "@/api";
 import { initAuth } from "@/utils/auth";
 import { removeLeadingSlash } from "@/utils/url";
@@ -207,7 +206,6 @@ import Tooltip from "@/components/Tooltip.vue";
 export default {
   name: "login",
   components: {
-    Icon,
     Prompts,
     Tooltip,
   },
@@ -219,6 +217,7 @@ export default {
     passwordAvailable: () => globalVars.passwordAvailable,
     name: () => globalVars.name || "FileBrowser Quantum",
     logoURL: () => logoURL,
+    loginIconUrl: () => globalVars.loginIcon || (globalVars.baseURL + "public/static/loginIcon"),
     isDarkMode() {
       return globalVars.darkMode;
     },
@@ -439,6 +438,12 @@ export default {
   padding-bottom: 0em !important;
 }
 
+.login-icon {
+  width: 5em;
+  height: 5em;
+  object-fit: contain;
+}
+
 .password-entry {
   padding: 0em !important;
   width: 100%;
@@ -505,4 +510,65 @@ export default {
   height: 0;
   opacity: 0;
 }
+
+#login {
+  background: var(--background);
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+#login h1 {
+  text-align: center;
+  font-size: 2.5em;
+  margin: .4em 0 .67em;
+}
+
+#login form {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  max-width: 16em;
+  width: 90%;
+}
+
+#login.recaptcha form {
+  min-width: 304px;
+}
+
+#login #recaptcha {
+  margin: .5em 0 0;
+}
+
+.wrong-login {
+  background: var(--red) !important;
+  color: #fff;
+  padding: .5em;
+  text-align: center;
+  animation: .2s opac forwards;
+  margin-bottom: 0.5em;
+}
+
+@keyframes opac {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+#login p {
+  cursor: pointer;
+  text-align: right;
+  color: var(--primaryColor);
+  text-transform: lowercase;
+  font-weight: 500;
+  font-size: 0.9rem;
+  margin: .5rem 0;
+}
+
 </style>

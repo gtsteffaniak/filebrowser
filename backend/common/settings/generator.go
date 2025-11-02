@@ -577,7 +577,8 @@ func buildNodeWithDefaults(v reflect.Value, comm CommentsMap, defaults reflect.V
 			// Check if this field should be redacted as a secret
 			var valNode *yaml.Node
 			var err error
-			if secrets[typeName][sf.Name] {
+			generateConfig := os.Getenv("FILEBROWSER_GENERATE_CONFIG") == "true"
+			if secrets[typeName][sf.Name] && !generateConfig {
 				// Check if the secret value is empty
 				fieldValue := currentField.Interface()
 				if str, ok := fieldValue.(string); ok && str == "" {

@@ -27,13 +27,13 @@
           </div>
 
           <div v-if="!shareInfo.disableDownload" class="share__box__element share__box__center">
-            <button class="button button--flat clickable" @click="goToLink()"> {{ $t("buttons.download") }} </button>
+            <button class="button button--flat clickable" @click="goToDownload()"> {{ $t("buttons.download") }} </button>
           </div>
         </div>
 
       </div>
       <div v-if="req.type" class="share__box__element share__box__center">
-        <qrcode-vue class="qrcode" :value="getLink(false)" size="200" level="M"></qrcode-vue>
+        <qrcode-vue class="qrcode" :value="getShareLink()" size="200" level="M"></qrcode-vue>
       </div>
     </div>
   </div>
@@ -114,16 +114,19 @@ export default {
     },
   },
   methods: {
-    goToLink() {
-      window.open(this.getLink(false), "_blank");
-    },
-    getLink(inline = false) {
-      return publicApi.getDownloadURL({
+    goToDownload() {
+      const downloadLink = publicApi.getDownloadURL({
         path: "/",
         hash: state.share.hash,
         token: state.share.token,
-        inline: inline,
+        inline: false,
       }, [state.req.path]);
+      window.open(downloadLink, "_blank");
+    },
+    getShareLink() {
+      return publicApi.getShareURL({
+        hash: state.share.hash,
+      });
     },
   },
 };

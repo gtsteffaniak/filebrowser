@@ -59,8 +59,8 @@ jobs:
           target_commitish: ${{ github.sha }}
           token: ${{ secrets.PAT }}
           tag_name: ${{ steps.extract_branch.outputs.tag_name }}
-          prerelease: false # change this to false when stable gets released
-          make_latest: true # change this to false when stable gets released
+          prerelease: false
+          make_latest: false
           draft: false
           generate_release_notes: true
           name: ${{ steps.extract_branch.outputs.tag_name }}

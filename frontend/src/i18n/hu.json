@@ -98,6 +98,10 @@
     "noDownloadAccess": "A letöltés nem elérhető."
   },
   "help": {
+    "functionKeys": "Funkcióbillentyűk",
+    "mouseActions": "Egérműveletek",
+    "fileOperations": "Fájlműveletek",
+    "navigation": "Navigáció",
     "click": "mappa vagy fájl kijelölése",
     "ctrl": {
       "click": "több mappa vagy fájl kijelölése",
@@ -226,7 +230,26 @@
     "sourcePath": "Forrás:",
     "destinationPath": "Úti cél:",
     "closeWithActiveUploadsMessage": "Figyelmeztetés: A feltöltési prompt bezárása befejezetlen feltöltéseket eredményezhet. Mit szeretne tenni?",
-    "closeWithActiveUploads": "Aktív feltöltések"
+    "closeWithActiveUploads": "Aktív feltöltések",
+    "basicInfo": "Alapvető információk",
+    "directoryInfo": "Címtár információk",
+    "additionalInfo": "További információk",
+    "hidden": "Rejtett",
+    "hasPreview": "Van előnézet",
+    "checksums": "Ellenőrző összegek",
+    "hashAlgorithm": "Hash algoritmus",
+    "hashValue": "Hash érték",
+    "selectHashAlgorithm": "Válasszon ki egy hash algoritmust",
+    "generate": "Generálja",
+    "errorGeneratingHash": "Hiba generáló hash",
+    "hashCopied": "Hash másolva a vágólapra",
+    "errorCopyingHash": "Hiba a hash másolásában",
+    "token": "Token",
+    "onlyOfficeId": "OnlyOffice ID",
+    "firstLoadTitle": "Üdvözöljük a FileBrowser Quantum-on!",
+    "halloweenTitle": "Boldog Halloweent!",
+    "halloweenBody": "A Halloween témát alkalmazták. Ha nem tetszik, letilthatja, vagy véglegesen letilthatja a profilbeállításokban bármely más téma kiválasztásával.",
+    "firstLoadBody": "Az indításkor új adatbázis jött létre. Ha ez nem az, amire számított, kérjük, ellenőrizze kétszer is a konfigurációs fájlban a `server.database` elérési útvonalát, és győződjön meg róla, hogy létezik. Dockeren az adatbázis elérési útja lehet `./data/database.db` vagy `./database.db`."
   },
   "search": {
     "images": "Képek",
@@ -643,9 +666,5 @@
     "changePlaybackMode": "Lejátszási mód változtatása",
     "changePlaybackModeHint": "Változtasd meg a lejátszási módot, hogy több fájlt láss",
     "emptyQueue": "A sor üres"
-  },
-  "halloween": {
-    "title": "Boldog Halloweent!",
-    "body": "A Halloween témát alkalmazták. Ha nem tetszik, letilthatja, vagy véglegesen letilthatja a profilbeállításokban bármely más téma kiválasztásával."
   }
 }

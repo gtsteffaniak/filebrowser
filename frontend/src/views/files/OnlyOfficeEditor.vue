@@ -17,6 +17,7 @@ import { state, getters, mutations } from "@/store";
 import { removeLastDir } from "@/utils/url";
 import { filesApi } from "@/api";
 import { toStandardLocale } from "@/i18n";
+import { events } from "@/notify";
 
 const wikiLink = "https://github.com/gtsteffaniak/filebrowser/wiki/Office-Support#onlyoffice-integration-troubleshooting-guide"
 const wikiLinkText = "📖 View Troubleshooting Guide"
@@ -126,16 +127,35 @@ export default {
     }
   },
   beforeUnmount() {
-    // Clean up SSE connection
-    if (this.sseConnection) {
-      this.sseConnection.close();
-      this.sseConnection = null;
-    }
-
-    // Clean up global SSE event listener
-    window.removeEventListener('onlyOfficeLogEvent', this.handleOnlyOfficeLogEvent);
+    this.destroyOnlyOffice();
   },
   methods: {
+    // Clean up any existing OnlyOffice instances
+    destroyOnlyOffice() {
+      console.log('Cleaning up OnlyOffice...');
+      // Remove all iframes
+      const iframes = document.querySelectorAll('iframe');
+      iframes.forEach(iframe => {
+        if (iframe.src && iframe.src.includes('onlyoffice')) {
+          iframe.remove();
+        }
+      });
+      // Clean up global objects
+      if (window.DocsAPI) delete window.DocsAPI;
+      // Clean up SSE connection
+      if (this.sseConnection) {
+        this.sseConnection.close();
+        this.sseConnection = null;
+      }
+      // Clean up global SSE event listener
+      window.removeEventListener('onlyOfficeLogEvent', this.handleOnlyOfficeLogEvent);
+
+      // Clean up SSE connection if it was started for OnlyOffice admin users
+      if (state.user.permissions.admin && !state.user.permissions.realtime) {
+        console.log('🔌 Cleaning up OnlyOffice SSE connection');
+        events.stopSSE();
+      }
+    },
     getInternalUrlInfo() {
       if (this.clientConfig && this.clientConfig.document && this.clientConfig.document.url) {
         try {
@@ -287,6 +307,8 @@ export default {
         `;
       }
 
+      const noLogsMessage = !state.user.permissions.admin ? "Backend logs are not available -- user must be admin to view backend logs" : "Waiting for backend logs...";
+
       let content = `
         <div class="debug-tooltip">
           <div class="debug-header">
@@ -329,7 +351,7 @@ export default {
                 </div>`
               ).join('')}
             </div>
-          ` : 'Backend logs are not available -- user must be admin to view backend logs'}
+          ` : noLogsMessage}
 
           ${overallStatus}
         </div>
@@ -725,7 +747,13 @@ export default {
       if (!state.user.permissions.admin && !this.debugMode) {
         return;
       }
-      
+
+      // Start SSE connection for admin users even if they don't have realtime permissions
+      if (state.user.permissions.admin && !state.user.permissions.realtime) {
+        console.log('🔗 Starting SSE connection for OnlyOffice admin user');
+        events.startOnlyOfficeSSE();
+      }
+
       // Setup the global SSE listener (documentId will be set later if not available yet)
       this.setupGlobalSSEListener();
     },
@@ -734,7 +762,7 @@ export default {
     setupGlobalSSEListener() {
       // Bind the event handler to this component instance
       this.handleOnlyOfficeLogEvent = this.handleOnlyOfficeLogEvent.bind(this);
-      
+
       // Listen for custom events that we'll dispatch from the global SSE system
       window.addEventListener('onlyOfficeLogEvent', this.handleOnlyOfficeLogEvent);
     },
@@ -742,13 +770,13 @@ export default {
     // Handle OnlyOffice log events from global SSE system
     handleOnlyOfficeLogEvent(event) {
       const logData = event.detail;
-      
+
       // If documentId is not set yet, store the log for later (this can happen during early setup)
       if (!this.documentId) {
         this.addOnlyOfficeLog(logData);
         return;
       }
-      
+
       // Filter logs for this document
       if (logData.documentId === this.documentId) {
         this.addOnlyOfficeLog(logData);

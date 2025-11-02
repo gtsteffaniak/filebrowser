@@ -87,7 +87,7 @@ func (st usersBackend) Update(user *users.User, actorIsAdmin bool, fields ...str
 	if !slices.Contains(fields, "Password") {
 		user.Password = existingUser.Password
 	} else {
-		if existingUser.LockPassword {
+		if existingUser.LockPassword && !actorIsAdmin {
 			return fmt.Errorf("password cannot be changed when lock password is enabled")
 		}
 	}

@@ -637,17 +637,6 @@ const docTemplate = `{
                     "Auth"
                 ],
                 "summary": "User signup",
-                "parameters": [
-                    {
-                        "description": "User signup details",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/http.signupBody"
-                        }
-                    }
-                ],
                 "responses": {
                     "201": {
                         "description": "User created successfully",
@@ -2738,17 +2727,6 @@ const docTemplate = `{
                 }
             }
         },
-        "http.signupBody": {
-            "type": "object",
-            "properties": {
-                "password": {
-                    "type": "string"
-                },
-                "username": {
-                    "type": "string"
-                }
-            }
-        },
         "indexing.IndexStatus": {
             "type": "string",
             "enum": [
@@ -3096,6 +3074,10 @@ const docTemplate = `{
                 },
                 "favicon": {
                     "description": "path to a favicon to use for the frontend",
+                    "type": "string"
+                },
+                "loginIcon": {
+                    "description": "path to an image file for the login page icon",
                     "type": "string"
                 },
                 "name": {
@@ -4199,6 +4181,9 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/users.SourceScope"
                     }
+                },
+                "showFirstLogin": {
+                    "type": "boolean"
                 },
                 "showHidden": {
                     "description": "show hidden files in the UI. On windows this includes files starting with a dot and windows hidden files",

@@ -144,10 +144,15 @@ func logoutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 	defer auth.RevokeAPIKey(d.token)
 
 	// Clear the authentication cookie by setting it to expire in the past
+	// Get the correct domain for cookie - prefer X-Forwarded-Host from reverse proxy
+	host := r.Header.Get("X-Forwarded-Host")
+	if host == "" {
+		host = r.Host
+	}
 	cookie := &http.Cookie{
 		Name:     "filebrowser_quantum_jwt",
 		Value:    "",
-		Domain:   strings.Split(r.Host, ":")[0],
+		Domain:   strings.Split(host, ":")[0],
 		Path:     "/",
 		SameSite: http.SameSiteLaxMode,
 		Expires:  time.Unix(0, 0), // Expire immediately
@@ -185,18 +190,12 @@ func logoutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 	return http.StatusOK, nil
 }
 
-type signupBody struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-
 // signupHandler registers a new user account.
 // @Summary User signup
 // @Description Register a new user account with a username and password.
 // @Tags Auth
 // @Accept json
 // @Produce json
-// @Param body body signupBody true "User signup details"
 // @Success 201 {string} string "User created successfully"
 // @Failure 400 {object} map[string]string "Bad request - invalid input"
 // @Failure 405 {object} map[string]string "Method not allowed - signup is disabled"
@@ -207,27 +206,29 @@ func signupHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 	if !settings.Config.Auth.Methods.PasswordAuth.Signup {
 		return http.StatusMethodNotAllowed, fmt.Errorf("signup is disabled")
 	}
-	if r.Body == nil {
-		return http.StatusBadRequest, fmt.Errorf("no post body provided")
+
+	// Get credentials from query parameters
+	username := r.URL.Query().Get("username")
+	password := r.URL.Query().Get("password")
+
+	// Validate that we have both username and password
+	if username == "" || password == "" {
+		return http.StatusBadRequest, fmt.Errorf("username and password are required")
 	}
-	info := &signupBody{}
-	err := json.NewDecoder(r.Body).Decode(info)
-	if err != nil {
-		return http.StatusBadRequest, fmt.Errorf("invalid request body: %v", err)
-	}
+
 	user := users.User{
-		Username: info.Username,
+		Username: username,
 		NonAdminEditable: users.NonAdminEditable{
-			Password: info.Password,
+			Password: password,
 		},
 		LoginMethod: users.LoginMethodPassword,
 	}
 	user.Permissions = settings.Config.UserDefaults.Permissions
-	err = storage.CreateUser(user)
+	err := storage.CreateUser(user)
 	if err != nil {
 		logger.Debug(err.Error())
-		w.WriteHeader(http.StatusConflict)
-		return http.StatusConflict, fmt.Errorf("user already exists")
+		// Return the actual error message instead of a generic one
+		return http.StatusBadRequest, err
 	}
 	return 201, nil
 }
@@ -262,10 +263,15 @@ func printToken(w http.ResponseWriter, r *http.Request, user *users.User) (int, 
 	expiresTime := time.Now().Add(expires).Add(time.Minute * 30)
 
 	// Set the authentication token as an HTTP cookie
+	// Get the correct domain for cookie - prefer X-Forwarded-Host from reverse proxy
+	host := r.Header.Get("X-Forwarded-Host")
+	if host == "" {
+		host = r.Host
+	}
 	cookie := &http.Cookie{
 		Name:     "filebrowser_quantum_jwt",
 		Value:    signed.Key,
-		Domain:   strings.Split(r.Host, ":")[0], // Set domain to the host without port
+		Domain:   strings.Split(host, ":")[0], // Set domain to the host without port
 		Path:     "/",
 		SameSite: http.SameSiteLaxMode,
 		Expires:  expiresTime,

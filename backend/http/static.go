@@ -41,13 +41,31 @@ func (t *TemplateRenderer) Render(w http.ResponseWriter, name string, data inter
 
 func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestContext, file, contentType string) (int, error) {
 	w.Header().Set("Content-Type", contentType)
-
 	userSelectedTheme := ""
-	if d.user != nil {
+	versionString := ""
+	commitSHAString := ""
+	externalLinks := config.Frontend.ExternalLinks
+	if config.Env.IsPlaywright {
+		versionString = version.Version
+		commitSHAString = version.CommitSHA
+	}
+	if d.user != nil && d.user.Username != "anonymous" {
 		theme, ok := config.Frontend.Styling.CustomThemeOptions[d.user.CustomTheme]
 		if ok {
 			userSelectedTheme = theme.CssRaw
 		}
+		versionString = version.Version
+		commitSHAString = version.CommitSHA
+	} else if !config.Env.IsPlaywright {
+		newExternalLinks := []settings.ExternalLink{}
+		// remove version and commit SHA from external links
+		for _, link := range externalLinks {
+			if link.Title == version.CommitSHA {
+				continue
+			}
+			newExternalLinks = append(newExternalLinks, link)
+		}
+		externalLinks = newExternalLinks
 	}
 
 	defaultThemeColor := "#455a64"
@@ -97,7 +115,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 			shareProps["disableFileViewer"] = d.share.DisableFileViewer
 			shareProps["disableShareCard"] = d.share.DisableShareCard
 			shareProps["disableSidebar"] = d.share.DisableSidebar
-			shareProps["isPasswordProtected"] = d.share.PasswordHash != ""
+			shareProps["isPasswordProtected"] = d.share.HasPassword()
 			shareProps["downloadURL"] = getDownloadURL(r, d.share.Hash)
 			shareProps["enforceDarkLightMode"] = d.share.EnforceDarkLightMode
 			shareProps["viewMode"] = d.share.ViewMode
@@ -119,7 +137,6 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 			shareProps["hideNavButtons"] = d.share.HideNavButtons
 
 			// Additional computed properties from extended.go
-			shareProps["hasPassword"] = d.share.HasPassword()
 			shareProps["isPermanent"] = d.share.IsPermanent()
 			shareProps["fileExtension"] = d.share.GetFileExtension()
 			shareProps["fileName"] = d.share.GetFileName()
@@ -136,6 +153,12 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 			if d.share.Title != "" {
 				data["title"] = d.share.Title
 			}
+			if d.share.ShareTheme != "" {
+				theme, ok := config.Frontend.Styling.CustomThemeOptions[d.share.ShareTheme]
+				if ok {
+					userSelectedTheme = theme.CssRaw
+				}
+			}
 		}
 
 		// base url could be different for routes behind proxy
@@ -149,6 +172,9 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		data["winIcon"] = staticURL + "/img/icons/mstile-144x144.png"
 		data["appIcon"] = staticURL + "/img/icons/android-chrome-256x256.png"
 	}
+	// Set login icon URL
+	loginIcon := staticURL + "/loginIcon"
+
 	data["htmlVars"] = map[string]interface{}{
 		"title":             config.Frontend.Name,
 		"customCSS":         config.Frontend.Styling.CustomCSSRaw,
@@ -158,6 +184,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"staticURL":         staticURL,
 		"baseURL":           config.Server.BaseURL,
 		"favicon":           favicon,
+		"loginIcon":         loginIcon,
 		"color":             defaultThemeColor,
 		"winIcon":           staticURL + "/img/icons/mstile-144x144.png",
 		"appIcon":           staticURL + "/img/icons/android-chrome-256x256.png",
@@ -170,12 +197,12 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"disableExternal":      config.Frontend.DisableDefaultLinks,
 		"darkMode":             settings.Config.UserDefaults.DarkMode,
 		"baseURL":              config.Server.BaseURL,
-		"version":              version.Version,
-		"commitSHA":            version.CommitSHA,
+		"version":              versionString,
+		"commitSHA":            commitSHAString,
 		"signup":               settings.Config.Auth.Methods.PasswordAuth.Signup,
 		"noAuth":               config.Auth.Methods.NoAuth,
 		"enableThumbs":         !config.Server.DisablePreviews,
-		"externalLinks":        config.Frontend.ExternalLinks,
+		"externalLinks":        externalLinks,
 		"externalUrl":          strings.TrimSuffix(config.Server.ExternalUrl, "/"),
 		"onlyOfficeUrl":        settings.Config.Integrations.OnlyOffice.Url,
 		"sourceCount":          len(config.Server.SourceMap),
@@ -183,12 +210,13 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"proxyAvailable":       config.Auth.Methods.ProxyAuth.Enabled,
 		"passwordAvailable":    config.Auth.Methods.PasswordAuth.Enabled,
 		"mediaAvailable":       config.Integrations.Media.FfmpegPath != "",
-		"muPdfAvailable":       config.Server.MuPdfAvailable,
+		"muPdfAvailable":       config.Env.MuPdfAvailable,
 		"updateAvailable":      utils.GetUpdateAvailableUrl(),
 		"disableNavButtons":    disableNavButtons,
 		"userSelectableThemes": config.Frontend.Styling.CustomThemeOptions,
 		"enableHeicConversion": config.Integrations.Media.Convert.ImagePreview[settings.HEICImagePreview],
 		"eventBasedThemes":     !config.Frontend.Styling.DisableEventBasedThemes,
+		"loginIcon":            loginIcon,
 	}
 
 	// Marshal each variable to JSON strings for direct template usage
@@ -212,6 +240,117 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 	return http.StatusOK, nil
 }
 
+func loginIconHandler(w http.ResponseWriter, r *http.Request) {
+	const maxAge = 86400 // 1 day
+	w.Header().Set("Cache-Control", fmt.Sprintf("public, max-age=%v", maxAge))
+
+	// Handle custom login icon if configured
+	if config.Frontend.LoginIcon != "" {
+		// Check if it's a file path (not embedded)
+		if _, err := fs.Stat(assetFs, config.Frontend.LoginIcon); err == nil {
+			// Serve from embedded/dist filesystem
+			fileContents, err := fs.ReadFile(assetFs, config.Frontend.LoginIcon)
+			if err == nil {
+				// Set content type based on file extension
+				lowerPath := strings.ToLower(config.Frontend.LoginIcon)
+				if strings.HasSuffix(lowerPath, ".svg") {
+					w.Header().Set("Content-Type", "image/svg+xml")
+				} else if strings.HasSuffix(lowerPath, ".png") {
+					w.Header().Set("Content-Type", "image/png")
+				} else if strings.HasSuffix(lowerPath, ".jpg") || strings.HasSuffix(lowerPath, ".jpeg") {
+					w.Header().Set("Content-Type", "image/jpeg")
+				} else if strings.HasSuffix(lowerPath, ".gif") {
+					w.Header().Set("Content-Type", "image/gif")
+				} else if strings.HasSuffix(lowerPath, ".webp") {
+					w.Header().Set("Content-Type", "image/webp")
+				} else if strings.HasSuffix(lowerPath, ".ico") {
+					w.Header().Set("Content-Type", "image/x-icon")
+				}
+				_, err = w.Write(fileContents)
+				if err != nil {
+					http.NotFound(w, r)
+				}
+				return
+			}
+		}
+	}
+
+	// Fallback to default favicon icon if custom login icon not found
+	// Try both paths to support embedded and dev modes
+	defaultIconPaths := []string{
+		"img/icons/favicon-256x256.png",        // Dev mode path
+		"public/img/icons/favicon-256x256.png", // Embedded mode path
+	}
+
+	for _, defaultIconPath := range defaultIconPaths {
+		fileContents, err := fs.ReadFile(assetFs, defaultIconPath)
+		if err == nil {
+			w.Header().Set("Content-Type", "image/png")
+			_, err = w.Write(fileContents)
+			if err != nil {
+				http.NotFound(w, r)
+			}
+			return
+		}
+	}
+
+	// If even default icon fails, return 404
+	http.NotFound(w, r)
+}
+
+func faviconHandler(w http.ResponseWriter, r *http.Request) {
+	const maxAge = 86400 // 1 day
+	w.Header().Set("Cache-Control", fmt.Sprintf("public, max-age=%v", maxAge))
+
+	// Try to serve custom favicon if configured
+	if config.Frontend.Favicon != "" {
+		http.ServeFile(w, r, config.Frontend.Favicon)
+		return
+	}
+
+	// Serve default favicon.ico using path set at startup
+	iconPath := assetPathPrefix + "favicon.ico"
+	fileContents, err := fs.ReadFile(assetFs, iconPath)
+	if err == nil {
+		w.Header().Set("Content-Type", "image/x-icon")
+		_, err = w.Write(fileContents)
+		if err != nil {
+			http.NotFound(w, r)
+		}
+		return
+	}
+
+	http.NotFound(w, r)
+}
+
+func manifestHandler(w http.ResponseWriter, r *http.Request) {
+	const maxAge = 86400 // 1 day
+	w.Header().Set("Cache-Control", fmt.Sprintf("public, max-age=%v", maxAge))
+	w.Header().Set("Content-Type", "application/manifest+json")
+
+	// Read manifest using path set at startup
+	manifestPath := assetPathPrefix + "site.webmanifest"
+	fileContents, err := fs.ReadFile(assetFs, manifestPath)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	// Replace relative paths with baseURL-aware paths
+	manifestStr := string(fileContents)
+	baseURL := config.Server.BaseURL
+	staticURL := baseURL + "public/static/"
+
+	// Update the manifest to use the correct baseURL
+	manifestStr = strings.ReplaceAll(manifestStr, `"start_url": "/"`, fmt.Sprintf(`"start_url": "%s"`, baseURL))
+	manifestStr = strings.ReplaceAll(manifestStr, `"src": "img/icons/`, fmt.Sprintf(`"src": "%simg/icons/`, staticURL))
+
+	_, err = w.Write([]byte(manifestStr))
+	if err != nil {
+		http.NotFound(w, r)
+	}
+}
+
 func staticFilesHandler(w http.ResponseWriter, r *http.Request) {
 	const maxAge = 86400 // 1 day
 	w.Header().Set("Cache-Control", fmt.Sprintf("public, max-age=%v", maxAge))
@@ -221,6 +360,11 @@ func staticFilesHandler(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == "favicon" && config.Frontend.Favicon != "" {
 		http.ServeFile(w, r, config.Frontend.Favicon)
 		return
+	}
+
+	// Handle site.webmanifest with proper content type
+	if strings.HasSuffix(r.URL.Path, "site.webmanifest") || strings.HasSuffix(r.URL.Path, "manifest.json") {
+		w.Header().Set("Content-Type", "application/manifest+json")
 	}
 
 	adjustedCompressed := r.URL.Path + ".gz"

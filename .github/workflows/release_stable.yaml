@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   test_playwright:
-    name: Test Playwright
+    name: Test Playwright - regular
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -60,6 +60,7 @@ jobs:
           token: ${{ secrets.PAT }}
           tag_name: ${{ steps.extract_branch.outputs.tag_name }}
           prerelease: false
+          make_latest: true
           draft: false
           generate_release_notes: true
           name: ${{ steps.extract_branch.outputs.tag_name }}

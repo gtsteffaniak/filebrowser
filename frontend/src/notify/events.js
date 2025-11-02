@@ -139,6 +139,16 @@ export function startSSE () {
   setupSSE()
 }
 
+export function startOnlyOfficeSSE () {
+  // Reset authentication failure flag when starting SSE
+  authenticationFailed = false
+  setupSSE()
+}
+
+export function stopSSE () {
+  cleanup()
+}
+
 async function eventRouter (eventType, message) {
   switch (eventType) {
     case 'notification':
@@ -180,3 +190,4 @@ async function eventRouter (eventType, message) {
       console.log('Unknown SSE event:', eventType, message)
   }
 }
+
