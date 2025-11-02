@@ -298,6 +298,59 @@ func loginIconHandler(w http.ResponseWriter, r *http.Request) {
 	http.NotFound(w, r)
 }
 
+func faviconHandler(w http.ResponseWriter, r *http.Request) {
+	const maxAge = 86400 // 1 day
+	w.Header().Set("Cache-Control", fmt.Sprintf("public, max-age=%v", maxAge))
+
+	// Try to serve custom favicon if configured
+	if config.Frontend.Favicon != "" {
+		http.ServeFile(w, r, config.Frontend.Favicon)
+		return
+	}
+
+	// Serve default favicon.ico using path set at startup
+	iconPath := assetPathPrefix + "favicon.ico"
+	fileContents, err := fs.ReadFile(assetFs, iconPath)
+	if err == nil {
+		w.Header().Set("Content-Type", "image/x-icon")
+		_, err = w.Write(fileContents)
+		if err != nil {
+			http.NotFound(w, r)
+		}
+		return
+	}
+
+	http.NotFound(w, r)
+}
+
+func manifestHandler(w http.ResponseWriter, r *http.Request) {
+	const maxAge = 86400 // 1 day
+	w.Header().Set("Cache-Control", fmt.Sprintf("public, max-age=%v", maxAge))
+	w.Header().Set("Content-Type", "application/manifest+json")
+
+	// Read manifest using path set at startup
+	manifestPath := assetPathPrefix + "site.webmanifest"
+	fileContents, err := fs.ReadFile(assetFs, manifestPath)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	// Replace relative paths with baseURL-aware paths
+	manifestStr := string(fileContents)
+	baseURL := config.Server.BaseURL
+	staticURL := baseURL + "public/static/"
+
+	// Update the manifest to use the correct baseURL
+	manifestStr = strings.ReplaceAll(manifestStr, `"start_url": "/"`, fmt.Sprintf(`"start_url": "%s"`, baseURL))
+	manifestStr = strings.ReplaceAll(manifestStr, `"src": "img/icons/`, fmt.Sprintf(`"src": "%simg/icons/`, staticURL))
+
+	_, err = w.Write([]byte(manifestStr))
+	if err != nil {
+		http.NotFound(w, r)
+	}
+}
+
 func staticFilesHandler(w http.ResponseWriter, r *http.Request) {
 	const maxAge = 86400 // 1 day
 	w.Header().Set("Cache-Control", fmt.Sprintf("public, max-age=%v", maxAge))
@@ -307,6 +360,11 @@ func staticFilesHandler(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == "favicon" && config.Frontend.Favicon != "" {
 		http.ServeFile(w, r, config.Frontend.Favicon)
 		return
+	}
+
+	// Handle site.webmanifest with proper content type
+	if strings.HasSuffix(r.URL.Path, "site.webmanifest") || strings.HasSuffix(r.URL.Path, "manifest.json") {
+		w.Header().Set("Content-Type", "application/manifest+json")
 	}
 
 	adjustedCompressed := r.URL.Path + ".gz"
