@@ -4,9 +4,14 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v1.0.1
 
+ **New Features**:
+ - login icon support added via `frontend.loginIcon` config path variable
+
  **Notes**:
+ - updated default login icon
  - build requirement change -- from node 18 > node 20 with npm 9.0.0+
  - version is not shown for unauthenticated users #1444
+ - adjusted how static assets are served to better handle icon standards
  - fixed signup login #1444
  - update makefile linker flags to properly set version and sha #1474
  - better windows build support -- `make setup` and `make dev` work as long as git is installed on windows
