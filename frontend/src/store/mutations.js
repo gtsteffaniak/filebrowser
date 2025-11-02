@@ -461,6 +461,7 @@ export const mutations = {
           "sorting",
           "gallerySize",
           "viewMode",
+          "showFirstLogin",
         ].includes(key)
       );
       value.id = state.user.id;

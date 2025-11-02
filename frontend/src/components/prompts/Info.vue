@@ -172,7 +172,8 @@ export default {
       let sum = 0;
 
       for (let selected of this.selected) {
-        sum += state.req.items[selected].size;
+        const item = typeof(selected) === 'number' ? state.req.items[selected] : selected;
+        sum += item.size;
       }
 
       return getHumanReadableFilesize(sum);
@@ -183,7 +184,7 @@ export default {
       }
       const modifiedDate = getters.selectedCount() === 0
         ? state.req.modified
-        : state.req.items[this.selected[0]]?.modified;
+        : getters.getFirstSelected()?.modified;
 
       if (!modifiedDate) {
         return "";
@@ -197,7 +198,7 @@ export default {
       }
       const modifiedDate = getters.selectedCount() === 0
         ? state.req.modified
-        : state.req.items[this.selected[0]]?.modified;
+        : getters.getFirstSelected()?.modified;
 
       if (!modifiedDate) {
         return "";
@@ -211,7 +212,7 @@ export default {
       }
       return getters.selectedCount() === 0
         ? state.req.name
-        : state.req.items[this.selected[0]].name;
+        : getters.getFirstSelected().name;
     },
     type() {
       if (state.isSearchActive) {
@@ -219,7 +220,13 @@ export default {
       }
       return getters.selectedCount() === 0
         ? state.req.type
-        : state.req.items[this.selected[0]].type;
+        : getters.getFirstSelected().type;
+    },
+    displayName() {
+      if (this.selected.length > 1) {
+        return this.$t("prompts.fileInfo");
+      }
+      return this.name;
     },
     displayName() {
       if (this.selected.length > 1) {
@@ -235,7 +242,7 @@ export default {
         getters.selectedCount() > 1 ||
         (getters.selectedCount() === 0
           ? state.req.type == "directory"
-          : state.req.items[this.selected[0]].type == "directory")
+          : getters.getFirstSelected().type == "directory")
       );
     },
     source() {
@@ -255,7 +262,7 @@ export default {
       if (getters.selectedCount() === 0) {
         return state.route.path;
       }
-      return state.req.items[this.selected[0]]?.path || "";
+      return getters.getFirstSelected()?.path || "";
     },
     hidden() {
       if (state.isSearchActive) {
@@ -264,7 +271,7 @@ export default {
       if (getters.selectedCount() === 0) {
         return state.req.hidden;
       }
-      return state.req.items[this.selected[0]]?.hidden;
+      return getters.getFirstSelected()?.hidden;
     },
     hasPreview() {
       if (state.isSearchActive) {
@@ -273,7 +280,7 @@ export default {
       if (getters.selectedCount() === 0) {
         return state.req.hasPreview;
       }
-      return state.req.items[this.selected[0]]?.hasPreview;
+      return getters.getFirstSelected()?.hasPreview;
     },
     additionalInfo() {
       const info = [];
@@ -307,7 +314,7 @@ export default {
           path = state.selected[0].path;
         } else if (getters.selectedCount()) {
           source = state.sources.current;
-          path = state.req.items[this.selected[0]].path;
+          path = getters.getFirstSelected().path;
         } else {
           source = state.sources.current;
           path = state.route.path;

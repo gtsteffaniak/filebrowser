@@ -43,8 +43,13 @@ func Initialize(configFile string) {
 		time.Sleep(5 * time.Second) // allow sleep time before exiting to give docker/kubernetes time before restarting
 		logger.Fatal(err.Error())
 	}
-	setupFs()
+	Config.Env.IsPlaywright = os.Getenv("FILEBROWSER_PLAYWRIGHT_TEST") == "true"
+	if Config.Env.IsPlaywright {
+		logger.Warning("Running in playwright test mode. This is not recommended for production.")
+	}
+	// setup logging first to ensure we log any errors
 	setupLogging()
+	setupFs()
 	setupAuth(false)
 	setupSources(false)
 	setupUrls()
@@ -80,6 +85,28 @@ func setupFs() {
 }
 
 func setupFrontend(generate bool) {
+	if Config.Frontend.LoginIcon != "" {
+		// check if file exists
+		if _, err := os.Stat(Config.Frontend.LoginIcon); os.IsNotExist(err) {
+			logger.Warningf("login icon file '%v' does not exist", Config.Frontend.LoginIcon)
+			Config.Frontend.LoginIcon = ""
+		} else {
+			// validate image type
+			validExtensions := []string{".svg", ".png", ".jpg", ".jpeg", ".gif", ".webp", ".ico"}
+			isValid := false
+			lowerPath := strings.ToLower(Config.Frontend.LoginIcon)
+			for _, ext := range validExtensions {
+				if strings.HasSuffix(lowerPath, ext) {
+					isValid = true
+					break
+				}
+			}
+			if !isValid {
+				logger.Warningf("login icon file '%v' is not a valid image type (supported: svg, png, jpg, jpeg, gif, webp, ico)", Config.Frontend.LoginIcon)
+				Config.Frontend.LoginIcon = ""
+			}
+		}
+	}
 	if Config.Server.MinSearchLength == 0 {
 		Config.Server.MinSearchLength = 3
 	}
@@ -320,7 +347,7 @@ func setupLogging() {
 	for _, logConfig := range Config.Server.Logging {
 		// Enable debug logging automatically in dev mode
 		levels := logConfig.Levels
-		if os.Getenv("FILEBROWSER_DEVMODE") == "true" {
+		if Config.Env.IsDevMode {
 			levels = "info|warning|error|debug"
 		}
 
@@ -337,6 +364,10 @@ func setupLogging() {
 		if err != nil {
 			log.Println("[ERROR] Failed to set up logger:", err)
 		}
+	}
+	Config.Env.IsDevMode = os.Getenv("FILEBROWSER_DEVMODE") == "true"
+	if Config.Env.IsDevMode {
+		logger.Warning("Running in dev mode. This is not recommended for production.")
 	}
 }
 
@@ -499,6 +530,14 @@ func setDefaults(generate bool) Settings {
 	database := os.Getenv("FILEBROWSER_DATABASE")
 	if database == "" {
 		database = "database.db"
+	} else {
+		// check if database file exists
+		if _, err := os.Stat(database); os.IsNotExist(err) {
+			database = "database.db"
+		}
+	}
+	if _, err := os.Stat(database); os.IsNotExist(err) {
+		logger.Warning("database file could not be found. If this is unexpected, the default path is `./database.db`, but it can be configured in the config file under `server.database`.")
 	}
 	s := Settings{
 		Server: Server{

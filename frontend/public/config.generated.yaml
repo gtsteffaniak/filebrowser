@@ -83,8 +83,8 @@ auth:
       adminGroup: ""                      # if set, users in this group will be granted admin privileges.
       groupsClaim: "groups"               # the JSON field name to read groups from. Default is "groups"
   key: ""                                 # secret: the key used to sign the JWT tokens. If not set, a random key will be generated.
-  adminUsername: "**hidden**"             # secret: the username of the admin user. If not set, the default is "admin".
-  adminPassword: "**hidden**"             # secret: the password of the admin user. If not set, the default is "admin".
+  adminUsername: "admin"                  # secret: the username of the admin user. If not set, the default is "admin".
+  adminPassword: "admin"                  # secret: the password of the admin user. If not set, the default is "admin".
   totpSecret: ""                          # secret: secret used to encrypt TOTP secrets
 frontend:
   name: "FileBrowser Quantum"             # display name
@@ -112,6 +112,7 @@ frontend:
         css: ""                           # The css file path and filename to use for the theme.
   favicon: ""                             # path to a favicon to use for the frontend
   description: "FileBrowser Quantum is a file manager for the web which can be used to manage files on your server" # description that shows up in html head meta description
+  loginIcon: ""                           # path to an image file for the login page icon
 userDefaults:
   editorQuickSave: false                  # show quick save button in editor
   hideSidebarFileActions: false           # hide the file actions in the sidebar

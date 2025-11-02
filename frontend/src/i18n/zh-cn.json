@@ -98,10 +98,6 @@
     "noDownloadAccess": "无法下载。"
   },
   "help": {
-    "functionKeys": "功能键",
-    "mouseActions": "鼠标操作",
-    "fileOperations": "文件操作",
-    "navigation": "导航",
     "click": "选择文件或目录",
     "ctrl": {
       "click": "选择多个文件或目录",
@@ -230,22 +226,7 @@
     "sourcePath": "资料来源",
     "destinationPath": "目的地",
     "closeWithActiveUploadsMessage": "警告：您正在上传，关闭上传提示可能会导致上传未完成。您想做什么？",
-    "closeWithActiveUploads": "主动上传",
-    "basicInfo": "基本信息",
-    "directoryInfo": "目录信息",
-    "additionalInfo": "其他信息",
-    "hidden": "隐藏",
-    "hasPreview": "预览",
-    "checksums": "校验和",
-    "hashAlgorithm": "哈希算法",
-    "hashValue": "哈希值",
-    "selectHashAlgorithm": "选择散列算法",
-    "generate": "生成",
-    "errorGeneratingHash": "错误生成哈希值",
-    "hashCopied": "哈希值复制到剪贴板",
-    "errorCopyingHash": "复制哈希值出错",
-    "token": "代币",
-    "onlyOfficeId": "唯一办公室 ID"
+    "closeWithActiveUploads": "主动上传"
   },
   "search": {
     "images": "图像",

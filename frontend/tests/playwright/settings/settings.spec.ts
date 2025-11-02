@@ -30,6 +30,7 @@ test("choose custom theme", async({ page, checkForErrors, context }) => {
   await page.locator('i[aria-label="settings"]').click();
   await expect(page).toHaveTitle("Graham's Filebrowser - Settings");
   await page.locator('div[aria-label="themeLanguage"]').click();
+  // a custom no-rounded.css theme file added to docker that should exist and be selectable
   await page.locator('select[aria-label="themeOptions"]').selectOption('no-rounded');
   const popup = page.locator('#popup-notification-content');
   await popup.waitFor({ state: 'visible' });

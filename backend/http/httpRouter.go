@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io/fs"
 	"net/http"
-	"os"
 	"text/template"
 	"time"
 
@@ -36,24 +35,34 @@ func (d dirFS) Open(name string) (fs.File, error) {
 }
 
 var (
-	store   *bolt.BoltStore
-	config  *settings.Settings
-	assetFs fs.FS
+	store           *bolt.BoltStore
+	config          *settings.Settings
+	assetFs         fs.FS
+	assetPathPrefix string // "img/icons/" for dev, "public/img/icons/" for embedded
 )
 
 func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete chan struct{}) {
 	store = storage
 	config = &settings.Config
 	var err error
-	// --- START: ADD THIS DECRYPTION LOGIC ---
-	if settings.Config.Server.EmbeddedFs {
+	// Determine filesystem mode and set asset paths
+	if settings.Config.Env.EmbeddedFs {
 		// Embedded mode: Serve files from the embedded assets
 		assetFs, err = fs.Sub(assets, "embed")
 		if err != nil {
 			logger.Fatal("Could not embed frontend. Does dist exist?")
 		}
+		assetPathPrefix = "public/img/icons/"
+		if config.Frontend.LoginIcon == "" {
+			config.Frontend.LoginIcon = "embed/public/img/icons/favicon.svg"
+		}
 	} else {
+		// Dev mode: Serve files from http/dist directory
 		assetFs = dirFS{Dir: http.Dir("http/dist")}
+		assetPathPrefix = "img/icons/"
+		if config.Frontend.LoginIcon == "" {
+			config.Frontend.LoginIcon = "http/dist/img/icons/favicon.svg"
+		}
 	}
 
 	// In development mode, we want to reload the templates on each request.
@@ -64,14 +73,12 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 			return string(a), err
 		},
 	})
-
-	devMode := os.Getenv("FILEBROWSER_DEVMODE") == "true"
-	if !devMode {
+	if !config.Env.IsDevMode {
 		templates = template.Must(templates.ParseFS(assetFs, "public/index.html"))
 	}
 	templateRenderer = &TemplateRenderer{
 		templates: templates,
-		devMode:   devMode,
+		devMode:   config.Env.IsDevMode,
 	}
 
 	router := http.NewServeMux()
@@ -180,6 +187,12 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	staticPrefix := config.Server.BaseURL + "static/"
 	router.Handle(staticPrefix, http.StripPrefix(staticPrefix, http.HandlerFunc(staticFilesHandler)))
 	publicRoutes.Handle("GET /static/", http.StripPrefix("/static/", http.HandlerFunc(staticFilesHandler)))
+	publicRoutes.HandleFunc("GET /static/loginIcon", http.HandlerFunc(loginIconHandler))
+
+	// Standard browser favicon and manifest routes
+	router.HandleFunc("GET /favicon.ico", http.HandlerFunc(faviconHandler))
+	router.HandleFunc("GET /site.webmanifest", http.HandlerFunc(manifestHandler))
+	router.HandleFunc("GET /manifest.json", http.HandlerFunc(manifestHandler))
 
 	router.HandleFunc(config.Server.BaseURL, withOrWithoutUser(indexHandler))
 	router.HandleFunc(fmt.Sprintf("GET %vhealth", config.Server.BaseURL), healthHandler)

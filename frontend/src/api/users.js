@@ -115,7 +115,17 @@ export async function signupLogin (username, password, otp) {
   })
 
   if (res.status !== 201) {
-    throw new Error(res.status)
+    // Parse the error response body to get the actual error message
+    let errorMessage = res.status
+    try {
+      const errorData = await res.json()
+      if (errorData.message) {
+        errorMessage = errorData.message
+      }
+    } catch (parseError) {
+      // If parsing fails, keep the status code as error message
+    }
+    throw new Error(errorMessage)
   }
 }
 

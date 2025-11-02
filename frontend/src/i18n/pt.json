@@ -98,10 +98,6 @@
     "noDownloadAccess": "A transferência não está disponível."
   },
   "help": {
-    "functionKeys": "Teclas de Função",
-    "mouseActions": "Ações do Rato",
-    "fileOperations": "Operações de Ficheiros",
-    "navigation": "Navegação",
     "click": "selecionar pasta ou ficheiro",
     "ctrl": {
       "click": "selecionar várias pastas e ficheiros",
@@ -230,22 +226,7 @@
     "sourcePath": "Fonte:",
     "destinationPath": "Destino:",
     "closeWithActiveUploadsMessage": "Aviso: Tem carregamentos activos e fechar a janela de carregamento pode resultar em carregamentos inacabados. O que é que gostaria de fazer?",
-    "closeWithActiveUploads": "Carregamentos activos",
-    "basicInfo": "Informações básicas",
-    "directoryInfo": "Informações sobre o diretório",
-    "additionalInfo": "Informações adicionais",
-    "hidden": "Oculto",
-    "hasPreview": "Tem Pré-visualização",
-    "checksums": "Somas de controlo",
-    "hashAlgorithm": "Algoritmo de Hash",
-    "hashValue": "Valor de hash",
-    "selectHashAlgorithm": "Selecionar um algoritmo de hash",
-    "generate": "Gerar",
-    "errorGeneratingHash": "Erro ao gerar hash",
-    "hashCopied": "Hash copiado para a área de transferência",
-    "errorCopyingHash": "Erro ao copiar o hash",
-    "token": "Ficha",
-    "onlyOfficeId": "ID do OnlyOffice"
+    "closeWithActiveUploads": "Carregamentos activos"
   },
   "search": {
     "images": "Imagens",

@@ -56,9 +56,6 @@ export default {
       ];
     },
   },
-  created() {
-    console.log("Generic component created");
-  },
   methods: {
     handleButtonClick(button) {
       // Execute the button's action
@@ -67,7 +64,7 @@ export default {
       }
       // Close the prompt unless the button specifies to keep it open
       if (button.keepOpen !== true) {
-        mutations.closeHovers();
+        mutations.closeTopHover();
       }
     },
     getButtonClass(button) {

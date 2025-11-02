@@ -98,10 +98,6 @@
     "noDownloadAccess": "التنزيل غير متاح."
   },
   "help": {
-    "functionKeys": "مفاتيح الوظائف",
-    "mouseActions": "إجراءات الفأرة",
-    "fileOperations": "عمليات الملفات",
-    "navigation": "التنقل",
     "click": "حدد الملف أو المجلد",
     "ctrl": {
       "click": "حدد أكثر من ملف او مجلد",
@@ -230,22 +226,7 @@
     "sourcePath": "المصدر:",
     "destinationPath": "الوجهة",
     "closeWithActiveUploadsMessage": "تحذير: لديك تحميلات نشطة وقد يؤدي إغلاق مطالبة التحميل إلى تحميلات غير مكتملة. ماذا تريد أن تفعل؟",
-    "closeWithActiveUploads": "التحميلات النشطة",
-    "basicInfo": "معلومات أساسية",
-    "directoryInfo": "معلومات الدليل",
-    "additionalInfo": "معلومات إضافية",
-    "hidden": "مخفي",
-    "hasPreview": "لديه معاينة",
-    "checksums": "خانات الشيكات",
-    "hashAlgorithm": "خوارزمية التجزئة",
-    "hashValue": "قيمة التجزئة",
-    "selectHashAlgorithm": "تحديد خوارزمية تجزئة",
-    "generate": "توليد",
-    "errorGeneratingHash": "خطأ في توليد التجزئة",
-    "hashCopied": "التجزئة المنسوخة إلى الحافظة",
-    "errorCopyingHash": "خطأ في نسخ تجزئة التجزئة",
-    "token": "الرمز المميز",
-    "onlyOfficeId": "معرّف المكتب فقط"
+    "closeWithActiveUploads": "التحميلات النشطة"
   },
   "search": {
     "images": "الصور",

@@ -14,4 +14,8 @@ RUN mkdir -p ./http/dist
 COPY [ "./backend/http/embed/", "./http/dist/"]
 
 # Run tests
+<<<<<<< HEAD
+=======
+ENV FILEBROWSER_PLAYWRIGHT_TEST=true
+>>>>>>> origin/dev/v1.1.0
 RUN ./filebrowser & sleep 2 && cd ../frontend && npx playwright test

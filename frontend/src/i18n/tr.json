@@ -98,10 +98,6 @@
     "noDownloadAccess": "İndirme mevcut değil."
   },
   "help": {
-    "functionKeys": "Fonksiyon Tuşları",
-    "mouseActions": "Fare İşlemleri",
-    "fileOperations": "Dosya İşlemleri",
-    "navigation": "Gezinme",
     "click": "dosya veya klasör seçin",
     "ctrl": {
       "click": "çoklu dosya ve klasör seçin",
@@ -230,22 +226,7 @@
     "sourcePath": "Kaynak:",
     "destinationPath": "Varış yeri:",
     "closeWithActiveUploadsMessage": "Uyarı: Aktif yüklemeleriniz var ve yükleme istemini kapatmak tamamlanmamış yüklemelere neden olabilir. Ne yapmak istiyorsunuz?",
-    "closeWithActiveUploads": "Aktif yüklemeler",
-    "basicInfo": "Temel Bilgiler",
-    "directoryInfo": "Dizin Bilgileri",
-    "additionalInfo": "Ek Bilgi",
-    "hidden": "Gizli",
-    "hasPreview": "Has Önizleme",
-    "checksums": "Checksumlar",
-    "hashAlgorithm": "Hash Algoritması",
-    "hashValue": "Hash Değeri",
-    "selectHashAlgorithm": "Bir karma algoritma seçin",
-    "generate": "Oluşturmak",
-    "errorGeneratingHash": "Hash oluştururken hata oluştu",
-    "hashCopied": "Panoya kopyalanan karma",
-    "errorCopyingHash": "Karma kopyalama hatası",
-    "token": "Jeton",
-    "onlyOfficeId": "SadeceOfis Kimliği"
+    "closeWithActiveUploads": "Aktif yüklemeler"
   },
   "search": {
     "images": "Görseller",

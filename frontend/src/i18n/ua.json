@@ -98,10 +98,6 @@
     "noDownloadAccess": "Завантаження недоступне."
   },
   "help": {
-    "functionKeys": "Функціональні Клавіші",
-    "mouseActions": "Дії Миші",
-    "fileOperations": "Операції з Файлами",
-    "navigation": "Навігація",
     "click": "вибрати файл чи каталог",
     "ctrl": {
       "click": "вибрати кілька файлів чи каталогів",
@@ -230,22 +226,7 @@
     "sourcePath": "Джерело:",
     "destinationPath": "Пункт призначення:",
     "closeWithActiveUploadsMessage": "Попередження: У вас є активні завантаження, і закриття запиту на завантаження може призвести до незавершених завантажень. Що ви хочете зробити?",
-    "closeWithActiveUploads": "Активні завантаження",
-    "basicInfo": "Основна інформація",
-    "directoryInfo": "Інформація про каталог",
-    "additionalInfo": "Додаткова інформація",
-    "hidden": "Приховано",
-    "hasPreview": "Має попередній перегляд",
-    "checksums": "Контрольні суми",
-    "hashAlgorithm": "Алгоритм хешування",
-    "hashValue": "Хеш-значення",
-    "selectHashAlgorithm": "Виберіть алгоритм хешування",
-    "generate": "Згенерувати",
-    "errorGeneratingHash": "Хеш, що генерує помилки",
-    "hashCopied": "Хеш скопійовано до буфера обміну",
-    "errorCopyingHash": "Помилка копіювання хешу",
-    "token": "Токен.",
-    "onlyOfficeId": "OnlyOffice ID"
+    "closeWithActiveUploads": "Активні завантаження"
   },
   "search": {
     "images": "Зображення",

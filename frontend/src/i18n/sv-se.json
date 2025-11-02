@@ -98,10 +98,6 @@
     "noDownloadAccess": "Nedladdning är inte tillgänglig."
   },
   "help": {
-    "functionKeys": "Funktionstangenter",
-    "mouseActions": "Musåtgärder",
-    "fileOperations": "Filoperationer",
-    "navigation": "Navigering",
     "click": "välj fil eller mapp",
     "ctrl": {
       "click": "välj flera filer eller mappar",
@@ -230,22 +226,7 @@
     "sourcePath": "Källa:",
     "destinationPath": "Destination:",
     "closeWithActiveUploadsMessage": "Varning för uppladdning: Du har aktiva uppladdningar och om du stänger uppladdningsprompten kan det leda till oavslutade uppladdningar. Vad skulle du vilja göra?",
-    "closeWithActiveUploads": "Aktiva uppladdningar",
-    "basicInfo": "Grundläggande information",
-    "directoryInfo": "Kataloginformation",
-    "additionalInfo": "Ytterligare information",
-    "hidden": "Dolda",
-    "hasPreview": "Har förhandsgranskning",
-    "checksums": "Kontrollsummor",
-    "hashAlgorithm": "Hash-algoritm",
-    "hashValue": "Hash-värde",
-    "selectHashAlgorithm": "Välj en hashalgoritm",
-    "generate": "Generera",
-    "errorGeneratingHash": "Fel vid generering av hash",
-    "hashCopied": "Hash kopieras till urklipp",
-    "errorCopyingHash": "Fel vid kopiering av hash",
-    "token": "Token",
-    "onlyOfficeId": "OnlyOffice ID"
+    "closeWithActiveUploads": "Aktiva uppladdningar"
   },
   "search": {
     "images": "Bilder",
