@@ -98,6 +98,7 @@ func addCustomTheme(name, description, cssFilePath string) {
 		CSS:         cssFilePath,
 		CssRaw:      cssContent, // Store loaded content
 	}
+	logger.Debugf("Added custom theme: %s", name)
 }
 
 func readCustomCSS(path string) (string, error) {

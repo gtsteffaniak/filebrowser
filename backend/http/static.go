@@ -252,25 +252,103 @@ func loginIconHandler(w http.ResponseWriter, r *http.Request) {
 			fileContents, err := fs.ReadFile(assetFs, config.Frontend.LoginIcon)
 			if err == nil {
 				// Set content type based on file extension
-				if strings.HasSuffix(config.Frontend.LoginIcon, ".svg") {
+				lowerPath := strings.ToLower(config.Frontend.LoginIcon)
+				if strings.HasSuffix(lowerPath, ".svg") {
 					w.Header().Set("Content-Type", "image/svg+xml")
-				} else if strings.HasSuffix(config.Frontend.LoginIcon, ".png") {
+				} else if strings.HasSuffix(lowerPath, ".png") {
 					w.Header().Set("Content-Type", "image/png")
-				} else if strings.HasSuffix(config.Frontend.LoginIcon, ".jpg") || strings.HasSuffix(config.Frontend.LoginIcon, ".jpeg") {
+				} else if strings.HasSuffix(lowerPath, ".jpg") || strings.HasSuffix(lowerPath, ".jpeg") {
 					w.Header().Set("Content-Type", "image/jpeg")
+				} else if strings.HasSuffix(lowerPath, ".gif") {
+					w.Header().Set("Content-Type", "image/gif")
+				} else if strings.HasSuffix(lowerPath, ".webp") {
+					w.Header().Set("Content-Type", "image/webp")
+				} else if strings.HasSuffix(lowerPath, ".ico") {
+					w.Header().Set("Content-Type", "image/x-icon")
 				}
-				w.Write(fileContents)
+				_, err = w.Write(fileContents)
+				if err != nil {
+					http.NotFound(w, r)
+				}
 				return
 			}
-		} else {
-			// Try serving as a custom file from filesystem
-			http.ServeFile(w, r, config.Frontend.LoginIcon)
+		}
+	}
+
+	// Fallback to default favicon icon if custom login icon not found
+	// Try both paths to support embedded and dev modes
+	defaultIconPaths := []string{
+		"img/icons/favicon-256x256.png",        // Dev mode path
+		"public/img/icons/favicon-256x256.png", // Embedded mode path
+	}
+
+	for _, defaultIconPath := range defaultIconPaths {
+		fileContents, err := fs.ReadFile(assetFs, defaultIconPath)
+		if err == nil {
+			w.Header().Set("Content-Type", "image/png")
+			_, err = w.Write(fileContents)
+			if err != nil {
+				http.NotFound(w, r)
+			}
 			return
 		}
 	}
 
-	// Fallback to default favicon if login icon not found
+	// If even default icon fails, return 404
 	http.NotFound(w, r)
+}
+
+func faviconHandler(w http.ResponseWriter, r *http.Request) {
+	const maxAge = 86400 // 1 day
+	w.Header().Set("Cache-Control", fmt.Sprintf("public, max-age=%v", maxAge))
+
+	// Try to serve custom favicon if configured
+	if config.Frontend.Favicon != "" {
+		http.ServeFile(w, r, config.Frontend.Favicon)
+		return
+	}
+
+	// Serve default favicon.ico using path set at startup
+	iconPath := assetPathPrefix + "favicon.ico"
+	fileContents, err := fs.ReadFile(assetFs, iconPath)
+	if err == nil {
+		w.Header().Set("Content-Type", "image/x-icon")
+		_, err = w.Write(fileContents)
+		if err != nil {
+			http.NotFound(w, r)
+		}
+		return
+	}
+
+	http.NotFound(w, r)
+}
+
+func manifestHandler(w http.ResponseWriter, r *http.Request) {
+	const maxAge = 86400 // 1 day
+	w.Header().Set("Cache-Control", fmt.Sprintf("public, max-age=%v", maxAge))
+	w.Header().Set("Content-Type", "application/manifest+json")
+
+	// Read manifest using path set at startup
+	manifestPath := assetPathPrefix + "site.webmanifest"
+	fileContents, err := fs.ReadFile(assetFs, manifestPath)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	// Replace relative paths with baseURL-aware paths
+	manifestStr := string(fileContents)
+	baseURL := config.Server.BaseURL
+	staticURL := baseURL + "public/static/"
+
+	// Update the manifest to use the correct baseURL
+	manifestStr = strings.ReplaceAll(manifestStr, `"start_url": "/"`, fmt.Sprintf(`"start_url": "%s"`, baseURL))
+	manifestStr = strings.ReplaceAll(manifestStr, `"src": "img/icons/`, fmt.Sprintf(`"src": "%simg/icons/`, staticURL))
+
+	_, err = w.Write([]byte(manifestStr))
+	if err != nil {
+		http.NotFound(w, r)
+	}
 }
 
 func staticFilesHandler(w http.ResponseWriter, r *http.Request) {
@@ -282,6 +360,11 @@ func staticFilesHandler(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == "favicon" && config.Frontend.Favicon != "" {
 		http.ServeFile(w, r, config.Frontend.Favicon)
 		return
+	}
+
+	// Handle site.webmanifest with proper content type
+	if strings.HasSuffix(r.URL.Path, "site.webmanifest") || strings.HasSuffix(r.URL.Path, "manifest.json") {
+		w.Header().Set("Content-Type", "application/manifest+json")
 	}
 
 	adjustedCompressed := r.URL.Path + ".gz"

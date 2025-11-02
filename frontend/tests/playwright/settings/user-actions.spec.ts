@@ -26,7 +26,7 @@ test('create, check settings, and delete testuser2', async ({
     await expect(page.locator('tr.item', { hasText: 'testuser2' })).toBeVisible();
 
     // Now, click the edit button for testuser2
-    await page.locator('tr.item', { hasText: 'testuser2' }).getByLabel('Edit User').click();
+    await page.locator('tr.item', { hasText: 'testuser2' }).locator('td[aria-label="Edit User"] .clickable').click();
 
     // Now on the edit page, toggle the settings
     await expect(page.locator('.card.floating')).toBeVisible();
@@ -52,7 +52,7 @@ test('create, check settings, and delete testuser2', async ({
     await expect(modal).not.toBeVisible();
 
     // Re-open the modal to check the settings
-    await page.locator('tr.item', { hasText: 'testuser2' }).getByLabel('Edit User').click();
+    await page.locator('tr.item', { hasText: 'testuser2' }).locator('td[aria-label="Edit User"] .clickable').click();
     await expect(page.locator('.card.floating')).toBeVisible();
 
     for (const settingName of settingsToToggle) {
@@ -76,7 +76,7 @@ test("two factor auth check", async ({ page, checkForErrors, context }) => {
     await page.locator('#users-sidebar').click();
     // click the edit button for testuser
     const userRow = page.locator('tr.item', { hasText: 'admin' })
-    await userRow.getByLabel('Edit User').click();
+    await userRow.locator('td[aria-label="Edit User"] .clickable').click();
     await expect(page.locator('.card.floating')).toBeVisible();
 
     const modal = page.locator('.card.floating');
@@ -112,8 +112,14 @@ test.describe("User Settings Persistence", () => {
         const modal = page.locator('.card.floating');
 
         // --- Open modal and check initial state (should be OFF) ---
-        // Now, click the edit button for testuser1
-        await userRow.getByLabel('Edit User').click()
+        // Debug: Check if the user row exists
+        await expect(userRow).toBeVisible({ timeout: 5000 });
+        
+        // Debug: Take a screenshot before clicking
+        await page.screenshot({ path: `debug-before-click-${settingName.replace(/\s+/g, '-')}.png` });
+        
+        // Click the edit button - use the clickable div inside the td with aria-label
+        await userRow.locator('td[aria-label="Edit User"] .clickable').click()
 
         await expect(modal).toBeVisible();
         const checkbox = modal.locator(`.toggle-container:has-text("${settingName}") input[type="checkbox"]`);
@@ -126,7 +132,7 @@ test.describe("User Settings Persistence", () => {
         await expect(modal).not.toBeVisible();
 
         // --- Re-open and check persisted state (should be ON) ---
-        await userRow.getByLabel('Edit User').click();
+        await userRow.locator('td[aria-label="Edit User"] .clickable').click();
         await expect(modal).toBeVisible();
         const checkboxOn = modal.locator(`.toggle-container:has-text("${settingName}") input[type="checkbox"]`);
         await expect(checkboxOn).toBeChecked();
@@ -138,7 +144,7 @@ test.describe("User Settings Persistence", () => {
         await expect(modal).not.toBeVisible();
 
         // --- Re-open and check state is restored (should be OFF) ---
-        await userRow.getByLabel('Edit User').click();
+        await userRow.locator('td[aria-label="Edit User"] .clickable').click();
         await expect(modal).toBeVisible();
         const checkboxOff = modal.locator(`.toggle-container:has-text("${settingName}") input[type="checkbox"]`);
         await expect(checkboxOff).not.toBeChecked();
@@ -171,33 +177,9 @@ test.describe("User Settings Persistence", () => {
         await checkTogglePersistence(page, "Enable real-time connections and updates");
     });
 
-//    test('should persist "allowed login method" setting', async ({ page }) => {
-//        const userRow = page.locator("tr.item", { hasText: username });
-//        await userRow.getByLabel('Edit User').click();
-//        const modal = page.locator('.card.floating');
-//        await expect(modal).toBeVisible();
-//
-//        const loginMethodSelector = modal.locator("#loginMethod");
-//        await expect(loginMethodSelector).toHaveValue("password");
-//
-//        await loginMethodSelector.selectOption({ label: "Proxy" });
-//        await modal.locator('button[aria-label="Save"]').click();
-//        await expect(modal).not.toBeVisible();
-//
-//        await userRow.getByLabel('Edit User').click();
-//        await expect(modal).toBeVisible();
-//
-//        await expect(modal.locator("#loginMethod")).toHaveValue("proxy");
-//
-//        // Revert change
-//        const loginMethodSelector2 = modal.locator("#loginMethod");
-//        await loginMethodSelector2.selectOption({ label: "Password" });
-//        await modal.locator('button[aria-label="Save"]').click();
-//        await expect(modal).not.toBeVisible();
-//    });
     test('should persist "allowed login method" setting', async ({ page, checkForErrors }) => {
         const userRow = page.locator("tr.item", { hasText: username });
-        await userRow.getByLabel('Edit User').click();
+        await userRow.locator('td[aria-label="Edit User"] .clickable').click();
         const modal = page.locator('.card.floating');
         await expect(modal).toBeVisible();
 
