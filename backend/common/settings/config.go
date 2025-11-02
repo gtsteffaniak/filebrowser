@@ -90,8 +90,6 @@ func setupFrontend(generate bool) {
 		if _, err := os.Stat(Config.Frontend.LoginIcon); os.IsNotExist(err) {
 			logger.Warningf("login icon file '%v' does not exist", Config.Frontend.LoginIcon)
 			Config.Frontend.LoginIcon = ""
-<<<<<<< HEAD
-=======
 		} else {
 			// validate image type
 			validExtensions := []string{".svg", ".png", ".jpg", ".jpeg", ".gif", ".webp", ".ico"}
@@ -107,7 +105,6 @@ func setupFrontend(generate bool) {
 				logger.Warningf("login icon file '%v' is not a valid image type (supported: svg, png, jpg, jpeg, gif, webp, ico)", Config.Frontend.LoginIcon)
 				Config.Frontend.LoginIcon = ""
 			}
->>>>>>> e0d9ff25da60f1f04150952eadc9bd9327c0aa69
 		}
 	}
 	if Config.Server.MinSearchLength == 0 {
