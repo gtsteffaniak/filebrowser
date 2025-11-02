@@ -47,12 +47,9 @@ func Initialize(configFile string) {
 	if Config.Env.IsPlaywright {
 		logger.Warning("Running in playwright test mode. This is not recommended for production.")
 	}
-	Config.Env.IsDevMode = os.Getenv("FILEBROWSER_DEVMODE") == "true"
-	if Config.Env.IsDevMode {
-		logger.Warning("Running in dev mode. This is not recommended for production.")
-	}
-	setupFs()
+	// setup logging first to ensure we log any errors
 	setupLogging()
+	setupFs()
 	setupAuth(false)
 	setupSources(false)
 	setupUrls()
@@ -93,6 +90,21 @@ func setupFrontend(generate bool) {
 		if _, err := os.Stat(Config.Frontend.LoginIcon); os.IsNotExist(err) {
 			logger.Warningf("login icon file '%v' does not exist", Config.Frontend.LoginIcon)
 			Config.Frontend.LoginIcon = ""
+		} else {
+			// validate image type
+			validExtensions := []string{".svg", ".png", ".jpg", ".jpeg", ".gif", ".webp", ".ico"}
+			isValid := false
+			lowerPath := strings.ToLower(Config.Frontend.LoginIcon)
+			for _, ext := range validExtensions {
+				if strings.HasSuffix(lowerPath, ext) {
+					isValid = true
+					break
+				}
+			}
+			if !isValid {
+				logger.Warningf("login icon file '%v' is not a valid image type (supported: svg, png, jpg, jpeg, gif, webp, ico)", Config.Frontend.LoginIcon)
+				Config.Frontend.LoginIcon = ""
+			}
 		}
 	}
 	if Config.Server.MinSearchLength == 0 {
@@ -352,6 +364,10 @@ func setupLogging() {
 		if err != nil {
 			log.Println("[ERROR] Failed to set up logger:", err)
 		}
+	}
+	Config.Env.IsDevMode = os.Getenv("FILEBROWSER_DEVMODE") == "true"
+	if Config.Env.IsDevMode {
+		logger.Warning("Running in dev mode. This is not recommended for production.")
 	}
 }
 

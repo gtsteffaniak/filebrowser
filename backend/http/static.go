@@ -252,24 +252,49 @@ func loginIconHandler(w http.ResponseWriter, r *http.Request) {
 			fileContents, err := fs.ReadFile(assetFs, config.Frontend.LoginIcon)
 			if err == nil {
 				// Set content type based on file extension
-				if strings.HasSuffix(config.Frontend.LoginIcon, ".svg") {
+				lowerPath := strings.ToLower(config.Frontend.LoginIcon)
+				if strings.HasSuffix(lowerPath, ".svg") {
 					w.Header().Set("Content-Type", "image/svg+xml")
-				} else if strings.HasSuffix(config.Frontend.LoginIcon, ".png") {
+				} else if strings.HasSuffix(lowerPath, ".png") {
 					w.Header().Set("Content-Type", "image/png")
-				} else if strings.HasSuffix(config.Frontend.LoginIcon, ".jpg") || strings.HasSuffix(config.Frontend.LoginIcon, ".jpeg") {
+				} else if strings.HasSuffix(lowerPath, ".jpg") || strings.HasSuffix(lowerPath, ".jpeg") {
 					w.Header().Set("Content-Type", "image/jpeg")
+				} else if strings.HasSuffix(lowerPath, ".gif") {
+					w.Header().Set("Content-Type", "image/gif")
+				} else if strings.HasSuffix(lowerPath, ".webp") {
+					w.Header().Set("Content-Type", "image/webp")
+				} else if strings.HasSuffix(lowerPath, ".ico") {
+					w.Header().Set("Content-Type", "image/x-icon")
 				}
-				w.Write(fileContents)
+				_, err = w.Write(fileContents)
+				if err != nil {
+					http.NotFound(w, r)
+				}
 				return
 			}
-		} else {
-			// Try serving as a custom file from filesystem
-			http.ServeFile(w, r, config.Frontend.LoginIcon)
+		}
+	}
+
+	// Fallback to default favicon icon if custom login icon not found
+	// Try both paths to support embedded and dev modes
+	defaultIconPaths := []string{
+		"img/icons/favicon-256x256.png",        // Dev mode path
+		"public/img/icons/favicon-256x256.png", // Embedded mode path
+	}
+
+	for _, defaultIconPath := range defaultIconPaths {
+		fileContents, err := fs.ReadFile(assetFs, defaultIconPath)
+		if err == nil {
+			w.Header().Set("Content-Type", "image/png")
+			_, err = w.Write(fileContents)
+			if err != nil {
+				http.NotFound(w, r)
+			}
 			return
 		}
 	}
 
-	// Fallback to default favicon if login icon not found
+	// If even default icon fails, return 404
 	http.NotFound(w, r)
 }
 
