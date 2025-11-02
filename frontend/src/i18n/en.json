@@ -101,6 +101,10 @@
     "noDownloadAccess": "Download is not available."
   },
   "help": {
+    "functionKeys": "Function Keys",
+    "mouseActions": "Mouse Actions",
+    "fileOperations": "File Operations",
+    "navigation": "Navigation",
     "click": "select file or directory",
     "ctrl": {
       "click": "select multiple files or directories",
@@ -236,7 +240,6 @@
     "shareLogo": "Share logo URL",
     "shareBanner": "Share banner URL",
     "shareFavicon": "Share favicon URL",
-    "source": "Source{suffix}",
     "destinationSource": "Destination Source:",
     "copy": "Copy",
     "copyMessage": "Choose the place to copy your files:",
@@ -283,7 +286,7 @@
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
     "optionalPassword": "Optional password",
     "optionalPasswordHelp": "If set, users must enter this password to view the shared content.",
-    "typeName": "Type:",
+    "typeName": "Type",
     "deleted": "Deleted successfully!",
     "conflictsDetected": "Conflicts detected",
     "copyPasteConfirm": "Copy/Paste Confirmation",
@@ -292,7 +295,26 @@
     "sourcePath": "Source:",
     "destinationPath": "Destination:",
     "closeWithActiveUploads": "Active uploads",
-    "closeWithActiveUploadsMessage": "Warning: You have active uploads and closing the upload prompt could result in unfinished uploads. What would you like to do?"
+    "closeWithActiveUploadsMessage": "Warning: You have active uploads and closing the upload prompt could result in unfinished uploads. What would you like to do?",
+    "basicInfo": "Basic Information",
+    "directoryInfo": "Directory Information",
+    "additionalInfo": "Additional Information",
+    "hidden": "Hidden",
+    "hasPreview": "Has Preview",
+    "checksums": "Checksums",
+    "hashAlgorithm": "Hash Algorithm",
+    "hashValue": "Hash Value",
+    "selectHashAlgorithm": "Select a hash algorithm",
+    "generate": "Generate",
+    "errorGeneratingHash": "Error generating hash",
+    "hashCopied": "Hash copied to clipboard",
+    "errorCopyingHash": "Error copying hash",
+    "token": "Token",
+    "onlyOfficeId": "OnlyOffice ID",
+    "firstLoadTitle": "Welcome to FileBrowser Quantum!",
+    "firstLoadBody": "A new database was created on startup. If this is not what you expected, please double check your configuration file for `server.database` path and ensure it exists. On docker, database path could be `./data/database.db` or `./database.db`.",
+    "halloweenTitle": "Happy Halloween!",
+    "halloweenBody": "The Halloween theme has been applied. You can disable it if you don't like it, or permanently disable it in profile settings by selecting any other theme."
   },
   "search": {
     "searchContext": "Search Context: {context}",
@@ -453,7 +475,6 @@
     "newUserHintSubFolder": "eg '/subfolder' - blank for default",
     "password": "Password",
     "passwordUpdated": "Password updated!",
-    "path": "Path",
     "permissions": {
       "admin": "Administrator",
       "modify": "Edit files",
@@ -584,7 +605,8 @@
     "exit": "Exit",
     "permanent": "Permanent",
     "hash": "Hash",
-    "of": "of"
+    "of": "of",
+    "source": "Source{suffix}"
   },
   "access": {
     "all": "Deny All",
@@ -644,8 +666,36 @@
     "changePlaybackModeHint": "Change playback mode to see more files",
     "emptyQueue": "Queue is empty"
   },
-  "halloween": {
-    "title": "Happy Halloween!",
-    "body": "The Halloween theme has been applied. You can disable it if you don't like it, or permanently disable it in profile settings by selecting any other theme."
+  "sizeViewer": {
+    "title": "Size Viewer",
+    "path": "Path",
+    "source": "Source",
+    "largerThan": "Larger Than (MB)",
+    "includeFolders": "Include Folders",
+    "includeFoldersDescription": "Include directories in the analysis",
+    "analyze": "Analyze",
+    "results": "Results",
+    "totalFiles": "Total Files: ",
+    "totalSize": "Total Size: ",
+    "fileTypes": "File Types",
+    "emptyState": "Enter search criteria and click Analyze to visualize file sizes"
+  },
+  "fileTypes": {
+    "video": "Video",
+    "image": "Image",
+    "audio": "Audio",
+    "archive": "Archive",
+    "document": "Document",
+    "binary": "Binary",
+    "directory": "Directory",
+    "other": "Other"
+  },
+  "tools": {
+    "title": "Tools",
+    "description": "Utilities and analysis tools for your files",
+    "sizeAnalyzer": {
+      "name": "File Size Analyzer",
+      "description": "Visualize large files and directories with an interactive treemap"
+    }
   }
 }

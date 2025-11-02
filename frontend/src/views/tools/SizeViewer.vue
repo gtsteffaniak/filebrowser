@@ -2,28 +2,28 @@
   <div class="size-viewer">
     <div class="card size-viewer-config">
       <div class="card-title">
-        <h2>{{ $t('tools.sizeViewer') }}</h2>
+        <h2>{{ $t('sizeViewer.title') }}</h2>
       </div>
       <div class="card-content">
-        <h3>Path</h3>
+        <h3>{{ $t('sizeViewer.path') }}</h3>
         <input v-model="searchPath" type="text" placeholder="/" class="input" />
 
-        <h3>Source</h3>
+        <h3>{{ $t('sizeViewer.source') }}</h3>
         <select v-model="selectedSource" class="input">
           <option v-for="(info, name) in sourceInfo" :key="name" :value="name">
             {{ name }}
           </option>
         </select>
 
-        <h3>Larger Than (MB)</h3>
+        <h3>{{ $t('sizeViewer.largerThan') }}</h3>
         <input v-model.number="largerThan" type="number" min="0" placeholder="100" class="input" />
 
-        <ToggleSwitch v-model="includeFolders" name="Include Folders" description="Include directories in the analysis"
+        <ToggleSwitch v-model="includeFolders" :name="$t('sizeViewer.includeFolders')" :description="$t('sizeViewer.includeFoldersDescription')"
           aria-label="Include folders toggle" />
 
         <button @click="fetchData" class="button" :disabled="loading">
           <i v-if="loading" class="material-icons spin">autorenew</i>
-          <span v-else>Analyze</span>
+          <span v-else>{{ $t('sizeViewer.analyze') }}</span>
         </button>
       </div>
     </div>
@@ -35,12 +35,12 @@
 
       <div v-if="results.length > 0">
         <div class="card-title">
-          <h2>Results</h2>
+          <h2>{{ $t('sizeViewer.results') }}</h2>
         </div>
         <div class="card-content">
           <div class="stats">
-            <span>Total Files: <strong>{{ results.length }}</strong></span>
-            <span>Total Size: <strong>{{ humanSize(totalSize) }}</strong></span>
+            <span>{{ $t('sizeViewer.totalFiles') }}<strong>{{ results.length }}</strong></span>
+            <span>{{ $t('sizeViewer.totalSize') }}<strong>{{ humanSize(totalSize) }}</strong></span>
           </div>
 
           <div class="treemap" ref="treemap">
@@ -55,39 +55,39 @@
             </div>
           </div>
 
-          <h4>File Types</h4>
+          <h4>{{ $t('sizeViewer.fileTypes') }}</h4>
           <div class="legend">
             <div class="legend-item">
               <span class="legend-color type-video"></span>
-              <span>Video</span>
+              <span>{{ $t('fileTypes.video') }}</span>
             </div>
             <div class="legend-item">
               <span class="legend-color type-image"></span>
-              <span>Image</span>
+              <span>{{ $t('fileTypes.image') }}</span>
             </div>
             <div class="legend-item">
               <span class="legend-color type-audio"></span>
-              <span>Audio</span>
+              <span>{{ $t('fileTypes.audio') }}</span>
             </div>
             <div class="legend-item">
               <span class="legend-color type-archive"></span>
-              <span>Archive</span>
+              <span>{{ $t('fileTypes.archive') }}</span>
             </div>
             <div class="legend-item">
               <span class="legend-color type-document"></span>
-              <span>Document</span>
+              <span>{{ $t('fileTypes.document') }}</span>
             </div>
             <div class="legend-item">
               <span class="legend-color type-binary"></span>
-              <span>Binary</span>
+              <span>{{ $t('fileTypes.binary') }}</span>
             </div>
             <div v-if="includeFolders" class="legend-item">
               <span class="legend-color type-directory"></span>
-              <span>Directory</span>
+              <span>{{ $t('fileTypes.directory') }}</span>
             </div>
             <div class="legend-item">
               <span class="legend-color type-other"></span>
-              <span>Other</span>
+              <span>{{ $t('fileTypes.other') }}</span>
             </div>
           </div>
         </div>
@@ -95,7 +95,7 @@
 
       <div v-else-if="!loading" class="empty-state">
         <i class="material-icons">analytics</i>
-        <p>Enter search criteria and click Analyze to visualize file sizes</p>
+        <p>{{ $t('sizeViewer.emptyState') }}</p>
       </div>
     </div>
   </div>

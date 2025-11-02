@@ -101,6 +101,10 @@
     "noDownloadAccess": "Stahování není k dispozici."
   },
   "help": {
+    "functionKeys": "Funkční Klávesy",
+    "mouseActions": "Akce Myši",
+    "fileOperations": "Operace se Soubory",
+    "navigation": "Navigace",
     "click": "označit soubor nebo složku",
     "ctrl": {
       "click": "označit více souborů nebo složek",
@@ -292,7 +296,26 @@
     "sourcePath": "Zdroj:",
     "destinationPath": "Cílová destinace:",
     "closeWithActiveUploadsMessage": "Varování: Upozornění: Máte aktivní nahrávání a zavření výzvy k nahrávání by mohlo vést k nedokončenému nahrávání. Co byste chtěli udělat?",
-    "closeWithActiveUploads": "Aktivní nahrávání"
+    "closeWithActiveUploads": "Aktivní nahrávání",
+    "basicInfo": "Základní informace",
+    "directoryInfo": "Informace o adresáři",
+    "additionalInfo": "Další informace",
+    "hidden": "Skryté stránky",
+    "hasPreview": "Má náhled",
+    "checksums": "Kontrolní součty",
+    "hashAlgorithm": "Algoritmus Hash",
+    "hashValue": "Hodnota Hash",
+    "selectHashAlgorithm": "Výběr algoritmu hash",
+    "generate": "Generovat",
+    "errorGeneratingHash": "Chyba při generování hash",
+    "hashCopied": "Hash zkopírovaný do schránky",
+    "errorCopyingHash": "Chyba při kopírování hash",
+    "token": "Token",
+    "onlyOfficeId": "OnlyOffice ID",
+    "firstLoadTitle": "Vítejte v aplikaci FileBrowser Quantum!",
+    "halloweenTitle": "Šťastný Halloween!",
+    "halloweenBody": "Bylo použito téma Halloween. Pokud se vám nelíbí, můžete jej vypnout nebo trvale zakázat v nastavení profilu výběrem jiného motivu.",
+    "firstLoadBody": "Při spuštění byla vytvořena nová databáze. Pokud to není to, co jste očekávali, překontrolujte prosím konfigurační soubor pro cestu `server.database` a ujistěte se, že existuje. V dockeru může být cesta k databázi `./data/database.db` nebo `./database.db`."
   },
   "search": {
     "images": "Obrázky",
@@ -643,9 +666,5 @@
     "changePlaybackMode": "Změnit režim přehrávání",
     "changePlaybackModeHint": "Změňte režim přehrávání, abyste viděli více souborů",
     "emptyQueue": "Fronta je prázdná"
-  },
-  "halloween": {
-    "title": "Šťastný Halloween!",
-    "body": "Bylo použito téma Halloween. Pokud se vám nelíbí, můžete jej vypnout nebo trvale zakázat v nastavení profilu výběrem jiného motivu."
   }
 }

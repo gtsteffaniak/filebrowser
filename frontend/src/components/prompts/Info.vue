@@ -228,12 +228,6 @@ export default {
       }
       return this.name;
     },
-    displayName() {
-      if (this.selected.length > 1) {
-        return this.$t("prompts.fileInfo");
-      }
-      return this.name;
-    },
     dir() {
       if (state.isSearchActive) {
         return state.selected[0].type === "directory";

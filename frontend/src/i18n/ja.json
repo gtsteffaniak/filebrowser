@@ -98,6 +98,10 @@
     "noDownloadAccess": "ダウンロードはできません。"
   },
   "help": {
+    "functionKeys": "ファンクションキー",
+    "mouseActions": "マウス操作",
+    "fileOperations": "ファイル操作",
+    "navigation": "ナビゲーション",
     "click": "ファイルやディレクトリを選択",
     "ctrl": {
       "click": "複数のファイルやディレクトリを選択",
@@ -226,7 +230,26 @@
     "sourcePath": "ソース",
     "destinationPath": "目的地だ：",
     "closeWithActiveUploadsMessage": "警告アクティブなアップロードがあり、アップロードプロンプトを閉じるとアップロードが未完了になる可能性があります。どうしますか？",
-    "closeWithActiveUploads": "アクティブなアップロード"
+    "closeWithActiveUploads": "アクティブなアップロード",
+    "basicInfo": "基本情報",
+    "directoryInfo": "ディレクトリ情報",
+    "additionalInfo": "追加情報",
+    "hidden": "ヒドゥン",
+    "hasPreview": "プレビュー",
+    "checksums": "チェックサム",
+    "hashAlgorithm": "ハッシュ・アルゴリズム",
+    "hashValue": "ハッシュ値",
+    "selectHashAlgorithm": "ハッシュアルゴリズムの選択",
+    "generate": "生成する",
+    "errorGeneratingHash": "ハッシュ生成エラー",
+    "hashCopied": "クリップボードにコピーされたハッシュ",
+    "errorCopyingHash": "ハッシュのコピーエラー",
+    "token": "トークン",
+    "onlyOfficeId": "オンリーオフィスID",
+    "firstLoadTitle": "FileBrowser Quantumへようこそ！",
+    "halloweenTitle": "ハッピー・ハロウィーン",
+    "halloweenBody": "ハロウィーンのテーマが適用されました。気に入らなければ無効にするか、プロフィール設定で他のテーマを選択して永久に無効にすることができます。",
+    "firstLoadBody": "起動時に新しいデータベースが作成されました。これが期待したものでない場合は、設定ファイルの `server.database` パスを再確認し、それが存在することを確認してください。docker では、データベースのパスは `./data/database.db` または `./database.db` になります。"
   },
   "search": {
     "images": "画像",
@@ -643,9 +666,5 @@
     "changePlaybackMode": "再生モードを変更",
     "changePlaybackModeHint": "再生モードを変更してより多くのファイルを表示",
     "emptyQueue": "キューは空です"
-  },
-  "halloween": {
-    "title": "ハッピー・ハロウィーン",
-    "body": "ハロウィーンのテーマが適用されました。気に入らなければ無効にするか、プロフィール設定で他のテーマを選択して永久に無効にすることができます。"
   }
 }

@@ -98,6 +98,10 @@
     "noDownloadAccess": "İndirme mevcut değil."
   },
   "help": {
+    "functionKeys": "Fonksiyon Tuşları",
+    "mouseActions": "Fare İşlemleri",
+    "fileOperations": "Dosya İşlemleri",
+    "navigation": "Gezinme",
     "click": "dosya veya klasör seçin",
     "ctrl": {
       "click": "çoklu dosya ve klasör seçin",
@@ -226,7 +230,26 @@
     "sourcePath": "Kaynak:",
     "destinationPath": "Varış yeri:",
     "closeWithActiveUploadsMessage": "Uyarı: Aktif yüklemeleriniz var ve yükleme istemini kapatmak tamamlanmamış yüklemelere neden olabilir. Ne yapmak istiyorsunuz?",
-    "closeWithActiveUploads": "Aktif yüklemeler"
+    "closeWithActiveUploads": "Aktif yüklemeler",
+    "basicInfo": "Temel Bilgiler",
+    "directoryInfo": "Dizin Bilgileri",
+    "additionalInfo": "Ek Bilgi",
+    "hidden": "Gizli",
+    "hasPreview": "Has Önizleme",
+    "checksums": "Checksumlar",
+    "hashAlgorithm": "Hash Algoritması",
+    "hashValue": "Hash Değeri",
+    "selectHashAlgorithm": "Bir karma algoritma seçin",
+    "generate": "Oluşturmak",
+    "errorGeneratingHash": "Hash oluştururken hata oluştu",
+    "hashCopied": "Panoya kopyalanan karma",
+    "errorCopyingHash": "Karma kopyalama hatası",
+    "token": "Jeton",
+    "onlyOfficeId": "SadeceOfis Kimliği",
+    "firstLoadTitle": "FileBrowser Quantum'a hoş geldiniz!",
+    "halloweenTitle": "Mutlu Cadılar Bayramı!",
+    "halloweenBody": "Cadılar Bayramı teması uygulanmıştır. Beğenmediyseniz devre dışı bırakabilir veya profil ayarlarından başka bir tema seçerek kalıcı olarak devre dışı bırakabilirsiniz.",
+    "firstLoadBody": "Başlangıçta yeni bir veritabanı oluşturuldu. Beklediğiniz bu değilse, lütfen `server.database` yolu için yapılandırma dosyanızı iki kez kontrol edin ve var olduğundan emin olun. Docker üzerinde, veritabanı yolu `./data/database.db` veya `./database.db` olabilir."
   },
   "search": {
     "images": "Görseller",
@@ -643,9 +666,5 @@
     "changePlaybackMode": "Oynatma modunu değiştir",
     "changePlaybackModeHint": "Daha fazla dosya görmek için oynatma modunu değiştirin",
     "emptyQueue": "Kuyruk boş"
-  },
-  "halloween": {
-    "title": "Mutlu Cadılar Bayramı!",
-    "body": "Cadılar Bayramı teması uygulanmıştır. Beğenmediyseniz devre dışı bırakabilir veya profil ayarlarından başka bir tema seçerek kalıcı olarak devre dışı bırakabilirsiniz."
   }
 }

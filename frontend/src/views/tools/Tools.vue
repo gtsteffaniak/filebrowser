@@ -1,8 +1,8 @@
 <template>
   <div class="tools-container">
     <div class="tools-header">
-      <h1>Tools</h1>
-      <p class="description">Utilities and analysis tools for your files</p>
+      <h1>{{ $t('tools.title') }}</h1>
+      <p class="description">{{ $t('tools.description') }}</p>
     </div>
 
     <div class="tools-grid">
@@ -16,8 +16,8 @@
           <i class="material-icons">{{ tool.icon }}</i>
         </div>
         <div class="tool-content">
-          <h3>{{ tool.name }}</h3>
-          <p>{{ tool.description }}</p>
+          <h3>{{ $t(tool.name) }}</h3>
+          <p>{{ $t(tool.description) }}</p>
         </div>
         <div class="tool-arrow">
           <i class="material-icons">arrow_forward</i>
@@ -34,15 +34,15 @@ export default {
     return {
       tools: [
         {
-          name: "File Size Analyzer",
-          description: "Visualize large files and directories with an interactive treemap",
+          name: "tools.sizeAnalyzer.name",
+          description: "tools.sizeAnalyzer.description",
           icon: "analytics",
           path: "/tools/sizeViewer",
         },
         // Add more tools here in the future
         // {
-        //   name: "Duplicate Finder",
-        //   description: "Find and manage duplicate files",
+        //   name: "tools.duplicateFinder.name",
+        //   description: "tools.duplicateFinder.description",
         //   icon: "content_copy",
         //   path: "/tools/duplicateFinder",
         // },
