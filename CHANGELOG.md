@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Notes**:
  - updated default login icon
+ - stopped publishing rolling `dev` docker tag.
  - build requirement change -- from node 18 > node 20 with npm 9.0.0+
  - version is not shown for unauthenticated users #1444
  - adjusted how static assets are served to better handle icon standards
