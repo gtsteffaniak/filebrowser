@@ -65,7 +65,8 @@
     "stayOnPrompt": "停留",
     "closeAnyway": "無論如何關閉",
     "disable": "停用",
-    "confirm": "確認"
+    "confirm": "確認",
+    "goToItem": "前往項目"
   },
   "download": {
     "downloadFile": "下載檔案",
@@ -251,7 +252,8 @@
     "halloweenTitle": "萬聖節快樂",
     "halloweenBody": "萬聖節主題已套用。如果您不喜歡，可以將其停用，或在個人資料設定中選擇任何其他主題，將其永久停用。",
     "firstLoadBody": "啟動時已建立新資料庫。如果這與您的預期不同，請仔細檢查您的設定檔中的 `server.database` 路徑，並確認它存在。在 docker 上，資料庫路徑可以是 `./data/database.db` 或 `./database.db`。",
-    "selectPath": "選擇路徑"
+    "selectPath": "選擇路徑",
+    "renameSuccess": "項目已成功重新命名！"
   },
   "search": {
     "images": "影像",

@@ -65,7 +65,8 @@
     "stayOnPrompt": "Stanna kvar",
     "closeAnyway": "Stäng i alla fall",
     "disable": "Avaktivera",
-    "confirm": "Bekräfta"
+    "confirm": "Bekräfta",
+    "goToItem": "Gå till artikel"
   },
   "download": {
     "downloadFile": "Ladda ner fil",
@@ -251,7 +252,8 @@
     "halloweenTitle": "Glad Halloween!",
     "halloweenBody": "Halloween-temat har lagts till. Du kan inaktivera det om du inte gillar det, eller inaktivera det permanent i profilinställningarna genom att välja ett annat tema.",
     "firstLoadBody": "En ny databas skapades vid uppstart. Om detta inte är vad du förväntade dig, vänligen dubbelkolla din konfigurationsfil för `server.database` sökväg och se till att den finns. På docker kan databassökvägen vara `./data/database.db` eller `./database.db`.",
-    "selectPath": "Välj sökväg"
+    "selectPath": "Välj sökväg",
+    "renameSuccess": "Objektet har bytt namn framgångsrikt!"
   },
   "search": {
     "images": "Bilder",

@@ -65,7 +65,8 @@
     "stayOnPrompt": "Zostaňte na",
     "closeAnyway": "Zavrieť Tak či onak",
     "disable": "Zakázať",
-    "confirm": "Potvrďte"
+    "confirm": "Potvrďte",
+    "goToItem": "Prejsť na položku"
   },
   "download": {
     "downloadFile": "Stiahnuť súbor",
@@ -251,7 +252,8 @@
     "halloweenTitle": "Šťastný Halloween!",
     "halloweenBody": "Bola použitá téma Halloween. Ak sa vám nepáči, môžete ju vypnúť, alebo ju natrvalo zakázať v nastaveniach profilu výberom akejkoľvek inej témy.",
     "firstLoadBody": "Pri spustení bola vytvorená nová databáza. Ak to nie je to, čo ste očakávali, dvakrát skontrolujte konfiguračný súbor pre cestu `server.database` a uistite sa, že existuje. V dockeri môže byť cesta k databáze `./data/database.db` alebo `./database.db`.",
-    "selectPath": "Vyberte cestu"
+    "selectPath": "Vyberte cestu",
+    "renameSuccess": "Položka bola úspešne premenovaná!"
   },
   "search": {
     "images": "Obrázky",

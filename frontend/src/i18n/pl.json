@@ -65,7 +65,8 @@
     "stayOnPrompt": "Zostań",
     "closeAnyway": "W każdym razie blisko",
     "disable": "Wyłącz",
-    "confirm": "Potwierdzenie"
+    "confirm": "Potwierdzenie",
+    "goToItem": "Przejdź do pozycji"
   },
   "download": {
     "downloadFile": "Pobierz plik",
@@ -251,7 +252,8 @@
     "halloweenTitle": "Wesołego Halloween!",
     "halloweenBody": "Motyw Halloween został zastosowany. Możesz go wyłączyć, jeśli Ci się nie podoba, lub wyłączyć go na stałe w ustawieniach profilu, wybierając inny motyw.",
     "firstLoadBody": "Nowa baza danych została utworzona podczas uruchamiania. Jeśli nie jest to to, czego oczekiwałeś, sprawdź dokładnie plik konfiguracyjny pod kątem ścieżki `server.database` i upewnij się, że istnieje. W dockerze ścieżka bazy danych może być `./data/database.db` lub `./database.db`.",
-    "selectPath": "Wybierz ścieżkę"
+    "selectPath": "Wybierz ścieżkę",
+    "renameSuccess": "Nazwa elementu została zmieniona pomyślnie!"
   },
   "search": {
     "images": "Zdjęcia",

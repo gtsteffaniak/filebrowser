@@ -65,7 +65,8 @@
     "stayOnPrompt": "Séjour",
     "closeAnyway": "Fermer Quoi qu'il en soit",
     "disable": "Désactiver",
-    "confirm": "Confirmer"
+    "confirm": "Confirmer",
+    "goToItem": "Aller à l'article"
   },
   "download": {
     "downloadFile": "Télécharger le fichier",
@@ -251,7 +252,8 @@
     "halloweenTitle": "Joyeux Halloween !",
     "halloweenBody": "Le thème Halloween a été appliqué. Vous pouvez le désactiver si vous ne l'aimez pas, ou le désactiver définitivement dans les paramètres du profil en sélectionnant un autre thème.",
     "firstLoadBody": "Une nouvelle base de données a été créée au démarrage. Si ce n'est pas ce que vous attendiez, vérifiez que le chemin `server.database` existe dans votre fichier de configuration. Sur docker, le chemin de la base de données peut être `./data/database.db` ou `./database.db`.",
-    "selectPath": "Sélectionner un chemin"
+    "selectPath": "Sélectionner un chemin",
+    "renameSuccess": "L'élément a été renommé avec succès !"
   },
   "search": {
     "images": "Images",
