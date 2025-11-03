@@ -65,7 +65,8 @@
     "stayOnPrompt": "Bleiben Sie",
     "closeAnyway": "Jedenfalls schließen",
     "disable": "Deaktivieren Sie",
-    "confirm": "Bestätigen Sie"
+    "confirm": "Bestätigen Sie",
+    "goToItem": "Weiter zu Artikel"
   },
   "download": {
     "downloadFile": "Datei herunterladen",
@@ -251,7 +252,8 @@
     "halloweenTitle": "Fröhliches Halloween!",
     "halloweenBody": "Das Halloween-Thema wurde angewendet. Sie können es deaktivieren, wenn es Ihnen nicht gefällt, oder es in den Profileinstellungen dauerhaft deaktivieren, indem Sie ein anderes Thema auswählen.",
     "firstLoadBody": "Beim Starten wurde eine neue Datenbank erstellt. Wenn dies nicht das ist, was Sie erwartet haben, überprüfen Sie bitte Ihre Konfigurationsdatei auf den Pfad `server.database` und stellen Sie sicher, dass er existiert. Bei Docker kann der Datenbankpfad `./data/database.db` oder `./database.db` sein.",
-    "selectPath": "Pfad auswählen"
+    "selectPath": "Pfad auswählen",
+    "renameSuccess": "Artikel erfolgreich umbenannt!"
   },
   "search": {
     "images": "Bilder",

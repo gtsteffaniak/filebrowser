@@ -1,4 +1,4 @@
-import { test, expect } from "../test-setup";
+import { test, expect, checkForNotification } from "../test-setup";
 
 test("sidebar links", async({ page, checkForErrors, context }) => {
   await page.goto("/files/");
@@ -34,8 +34,7 @@ test("adjusting theme colors", async({ page, checkForErrors, context }) => {
   await expect(page).toHaveTitle("Graham's Filebrowser - Settings");
   await page.locator('div[aria-label="themeLanguage"]').click();
   await page.locator('button', { hasText: 'violet' }).click();
-  const popup = page.locator('#popup-notification-content');
-  await popup.waitFor({ state: 'visible' });
+  const popup = await checkForNotification(page, 'Settings updated!');
   await expect(popup).toHaveText('Settings updated!');
   const newPrimaryColor = await page.evaluate(() => {
     return getComputedStyle(document.documentElement).getPropertyValue('--primaryColor').trim();

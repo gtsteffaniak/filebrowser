@@ -65,7 +65,8 @@
     "stayOnPrompt": "Zůstaňte na",
     "closeAnyway": "Stejně zavřít",
     "disable": "Zakázat",
-    "confirm": "Potvrďte"
+    "confirm": "Potvrďte",
+    "goToItem": "Přejít na položku"
   },
   "download": {
     "downloadFile": "Stáhnout soubor",
@@ -99,7 +100,7 @@
     "sortBySize": "Řadit podle velikosti",
     "noPreview": "Náhled pro tento soubor není dostupný.",
     "noDownloadAccess": "Stahování není k dispozici.",
-    "itemSelected": "položka vybrána", 
+    "itemSelected": "položka vybrána",
     "itemsSelected": "položky vybrány"
   },
   "help": {
@@ -317,7 +318,8 @@
     "halloweenTitle": "Šťastný Halloween!",
     "halloweenBody": "Bylo použito téma Halloween. Pokud se vám nelíbí, můžete jej vypnout nebo trvale zakázat v nastavení profilu výběrem jiného motivu.",
     "firstLoadBody": "Při spuštění byla vytvořena nová databáze. Pokud to není to, co jste očekávali, překontrolujte prosím konfigurační soubor pro cestu `server.database` a ujistěte se, že existuje. V dockeru může být cesta k databázi `./data/database.db` nebo `./database.db`.",
-    "selectPath": "Vybrat cestu"
+    "selectPath": "Vybrat cestu",
+    "renameSuccess": "Položka byla úspěšně přejmenována!"
   },
   "search": {
     "images": "Obrázky",

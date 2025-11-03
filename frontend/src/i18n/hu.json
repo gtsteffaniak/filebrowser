@@ -65,7 +65,8 @@
     "stayOnPrompt": "Maradj",
     "closeAnyway": "Egyébként bezárni",
     "disable": "A  letiltása",
-    "confirm": "Megerősítés"
+    "confirm": "Megerősítés",
+    "goToItem": "Tovább a tételhez"
   },
   "download": {
     "downloadFile": "Fájl letöltése",
@@ -251,7 +252,8 @@
     "halloweenTitle": "Boldog Halloweent!",
     "halloweenBody": "A Halloween témát alkalmazták. Ha nem tetszik, letilthatja, vagy véglegesen letilthatja a profilbeállításokban bármely más téma kiválasztásával.",
     "firstLoadBody": "Az indításkor új adatbázis jött létre. Ha ez nem az, amire számított, kérjük, ellenőrizze kétszer is a konfigurációs fájlban a `server.database` elérési útvonalát, és győződjön meg róla, hogy létezik. Dockeren az adatbázis elérési útja lehet `./data/database.db` vagy `./database.db`.",
-    "selectPath": "Útvonal kiválasztása"
+    "selectPath": "Útvonal kiválasztása",
+    "renameSuccess": "Az elem átnevezése sikeres volt!"
   },
   "search": {
     "images": "Képek",

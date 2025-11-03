@@ -65,7 +65,8 @@
     "stayOnPrompt": "滞在",
     "closeAnyway": "とにかく閉じる",
     "disable": "無効",
-    "confirm": "確認"
+    "confirm": "確認",
+    "goToItem": "アイテムへ"
   },
   "download": {
     "downloadFile": "ファイルをダウンロード",
@@ -251,7 +252,8 @@
     "halloweenTitle": "ハッピー・ハロウィーン",
     "halloweenBody": "ハロウィーンのテーマが適用されました。気に入らなければ無効にするか、プロフィール設定で他のテーマを選択して永久に無効にすることができます。",
     "firstLoadBody": "起動時に新しいデータベースが作成されました。これが期待したものでない場合は、設定ファイルの `server.database` パスを再確認し、それが存在することを確認してください。docker では、データベースのパスは `./data/database.db` または `./database.db` になります。",
-    "selectPath": "パスを選択"
+    "selectPath": "パスを選択",
+    "renameSuccess": "アイテム名の変更に成功しました！"
   },
   "search": {
     "images": "画像",

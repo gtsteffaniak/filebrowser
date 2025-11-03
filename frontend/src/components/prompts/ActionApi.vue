@@ -86,7 +86,7 @@ export default {
         notify.showSuccess("API key deleted!");
         mutations.closeHovers();
       } catch (error) {
-        notify.showError(error);
+        console.error(error);
       }
     },
   },

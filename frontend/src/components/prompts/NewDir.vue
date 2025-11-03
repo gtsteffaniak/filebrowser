@@ -23,7 +23,6 @@
 <script>
 import { filesApi, publicApi } from "@/api";
 import { getters, mutations, state } from "@/store"; // Import your custom store
-import { notify } from "@/notify";
 import { goToItem } from "@/utils/url";
 import { url } from "@/utils";
 import { shareInfo } from "@/utils/constants";
@@ -62,7 +61,7 @@ export default {
         if (this.name === "") return;
         await this.createDirectory(false);
       } catch (error) {
-        notify.showError(error);
+        console.error(error);
       }
     },
 
@@ -120,7 +119,7 @@ export default {
                   }
                 }
               } catch (retryError) {
-                notify.showError(retryError);
+                console.error(retryError);
               }
             },
           });

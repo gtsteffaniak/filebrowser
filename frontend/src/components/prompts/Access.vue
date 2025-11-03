@@ -184,7 +184,7 @@ export default {
         const response = await accessApi.getGroups();
         this.groups = response.groups;
       } catch (e) {
-        notify.showError(e);
+        this.groups = [];
       }
     },
     async fetchRule() {
@@ -194,7 +194,6 @@ export default {
         this.rule = response;
         this.sourceDenyDefault = response.sourceDenyDefault || false;
       } catch (e) {
-        notify.showError(e);
         this.rule = { denyAll: false, deny: { users: [], groups: [] }, allow: { users: [], groups: [] } };
         this.sourceDenyDefault = false;
       }
@@ -215,7 +214,7 @@ export default {
         // Emit event to refresh access rules list
         eventBus.emit('accessRulesChanged');
       } catch (e) {
-        notify.showError(e);
+        console.error(e);
       }
     },
     async submitAdd() {
@@ -240,7 +239,7 @@ export default {
         // Emit event to refresh access rules list
         eventBus.emit('accessRulesChanged');
       } catch (e) {
-        notify.showError(e);
+        console.error(e);
       }
     },
     closePrompt() {

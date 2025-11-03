@@ -198,17 +198,32 @@ export default {
         }
         mutations.closeHovers();
         mutations.setSearch(false);
+
+        // Store destination info for the button action
+        const destSource = this.destSource;
+        const destPath = this.destPath;
+
+        // Show success notification with optional button to navigate to destination
+        const buttonAction = () => {
+          if (destSource && destPath) {
+            goToItem(destSource, destPath, {});
+          }
+        };
+        const buttonProps = {
+            icon: "folder",
+            buttons: destSource && destPath ? [
+          {
+            label: this.$t("buttons.goToItem"),
+            primary: true,
+            action: buttonAction
+          }
+        ] : undefined
+          };
         if (this.operation === "move") {
-          notify.showSuccess(this.$t(`prompts.moveSuccess`));
+          notify.showSuccess(this.$t(`prompts.moveSuccess`), buttonProps);
         } else {
-          notify.showSuccess(this.$t(`prompts.copySuccess`));
+          notify.showSuccess(this.$t(`prompts.copySuccess`), buttonProps);
         }
-        // Navigate to the destination folder after successful operation
-        if (this.destSource && this.destPath) {
-          goToItem(this.destSource, this.destPath, {});
-        }
-      } catch (error) {
-        notify.showError(error);
       } finally {
         this.isLoading = false; // Hide loading spinner
       }

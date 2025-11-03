@@ -65,7 +65,8 @@
     "stayOnPrompt": "Kalmak",
     "closeAnyway": "Her Neyse Kapat",
     "disable": "Devre dışı bırak",
-    "confirm": "Onaylayın"
+    "confirm": "Onaylayın",
+    "goToItem": "Öğeye git"
   },
   "download": {
     "downloadFile": "Dosyayı indir",
@@ -251,7 +252,8 @@
     "halloweenTitle": "Mutlu Cadılar Bayramı!",
     "halloweenBody": "Cadılar Bayramı teması uygulanmıştır. Beğenmediyseniz devre dışı bırakabilir veya profil ayarlarından başka bir tema seçerek kalıcı olarak devre dışı bırakabilirsiniz.",
     "firstLoadBody": "Başlangıçta yeni bir veritabanı oluşturuldu. Beklediğiniz bu değilse, lütfen `server.database` yolu için yapılandırma dosyanızı iki kez kontrol edin ve var olduğundan emin olun. Docker üzerinde, veritabanı yolu `./data/database.db` veya `./database.db` olabilir.",
-    "selectPath": "Yol Seçin"
+    "selectPath": "Yol Seçin",
+    "renameSuccess": "Öğe başarıyla yeniden adlandırıldı!"
   },
   "search": {
     "images": "Görseller",
