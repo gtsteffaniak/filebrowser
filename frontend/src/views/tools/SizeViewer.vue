@@ -2,28 +2,30 @@
   <div class="size-viewer">
     <div class="card size-viewer-config">
       <div class="card-title">
-        <h2>{{ $t('sizeViewer.title') }}</h2>
+        <h2>{{ $t('fileSizeAnalyzer.title') }}</h2>
       </div>
       <div class="card-content">
-        <h3>{{ $t('sizeViewer.path') }}</h3>
-        <input v-model="searchPath" type="text" placeholder="/" class="input" />
-
-        <h3>{{ $t('sizeViewer.source') }}</h3>
+        <h3>{{ $t('general.source', { suffix: '' }) }}</h3>
         <select v-model="selectedSource" class="input">
           <option v-for="(info, name) in sourceInfo" :key="name" :value="name">
             {{ name }}
           </option>
         </select>
 
-        <h3>{{ $t('sizeViewer.largerThan') }}</h3>
-        <input v-model.number="largerThan" type="number" min="0" placeholder="100" class="input" />
+        <h3>{{ $t('general.path', { suffix: '' }) }}</h3>
+        <div aria-label="size-viewer-path" class="searchContext clickable button" @click="openPathPicker">
+          {{ $t('search.path') }} {{ searchPath }}
+        </div>
 
-        <ToggleSwitch v-model="includeFolders" :name="$t('sizeViewer.includeFolders')" :description="$t('sizeViewer.includeFoldersDescription')"
-          aria-label="Include folders toggle" />
+        <h3>{{ $t('fileSizeAnalyzer.largerThan') }}</h3>
+        <input v-model.number="largerThanValue" type="number" min="0" placeholder="100" class="input" />
+
+        <ToggleSwitch v-model="includeFoldersValue" :name="$t('fileSizeAnalyzer.includeFolders')"
+          :description="$t('fileSizeAnalyzer.includeFoldersDescription')" aria-label="Include folders toggle" />
 
         <button @click="fetchData" class="button" :disabled="loading">
           <i v-if="loading" class="material-icons spin">autorenew</i>
-          <span v-else>{{ $t('sizeViewer.analyze') }}</span>
+          <span v-else>{{ $t('fileSizeAnalyzer.analyze') }}</span>
         </button>
       </div>
     </div>
@@ -35,27 +37,74 @@
 
       <div v-if="results.length > 0">
         <div class="card-title">
-          <h2>{{ $t('sizeViewer.results') }}</h2>
+          <h2>{{ $t('fileSizeAnalyzer.results') }}</h2>
         </div>
         <div class="card-content">
           <div class="stats">
-            <span>{{ $t('sizeViewer.totalFiles') }}<strong>{{ results.length }}</strong></span>
-            <span>{{ $t('sizeViewer.totalSize') }}<strong>{{ humanSize(totalSize) }}</strong></span>
+            <span>{{ $t('fileSizeAnalyzer.totalFiles', { suffix: ': ' }) }}<strong>{{ results.length }}</strong></span>
+            <span>{{ $t('fileSizeAnalyzer.totalSize', { suffix: ': ' }) }}<strong>{{ humanSize(totalSize) }}</strong></span>
           </div>
 
-          <div class="treemap" ref="treemap">
-            <div v-for="(rect, index) in treemapRects" :key="index"
-              :class="['treemap-item', getTypeClass(rect.item.type), { 'small-item': isSmallItem(rect.item) }]"
-              :style="getRectStyle(rect)" :title="`${rect.item.path}\n${humanSize(rect.item.size)}`"
-              @click="handleItemClick(rect.item)">
-              <div class="item-content" v-if="!isSmallItem(rect.item)">
-                <div class="item-path">{{ getDisplayPath(rect.item.path) }}</div>
-                <div class="item-size">{{ humanSize(rect.item.size) }}</div>
+          <div v-if="results.length < 100" class="success-message">
+            <i class="material-icons">check_circle</i>
+            <div>
+              <strong>{{ $t('fileSizeAnalyzer.completeResults') }}</strong>
+            </div>
+          </div>
+          <div v-else class="warning-message">
+            <i class="material-icons">warning</i>
+            <div>
+              <strong>{{ $t('fileSizeAnalyzer.incompleteResults') }}</strong> {{ $t('fileSizeAnalyzer.incompleteResultsDetails') }}
+            </div>
+          </div>
+
+          <div class="treemap" ref="treemap" :class="{ 'has-hover': hoveredItem !== null }">
+            <div v-for="(rect, index) in treemapRects" :key="index">
+              <!-- Invisible hit area at original position - handles mouse events -->
+              <div :class="['treemap-hit-area', { 'active': hoveredItem === rect.item }]" :style="getRectStyle(rect)"
+                @mouseenter="handleMouseEnter(rect.item)" @mouseleave="handleMouseLeave"
+                @click="handleItemClick(rect.item)">
+              </div>
+
+              <!-- Visual item - moves to center when hovered -->
+              <div :class="['treemap-item', getTypeClass(rect.item.type), {
+                'small-item': isSmallItem(rect.item),
+                'hovered': hoveredItem === rect.item,
+                'dimmed': hoveredItem !== null && hoveredItem !== rect.item
+              }]" :style="getRectStyle(rect)">
+                <div class="item-content" v-if="!isSmallItem(rect.item)">
+                  <div class="item-name">{{ getDisplayPath(rect.item.path) }}</div>
+                  <div class="item-size">{{ humanSize(rect.item.size) }}</div>
+                  <div class="item-percentage">{{ $t('fileSizeAnalyzer.percentageOfResults', { percentage: getPercentage(rect.item.size) }) }}</div>
+                </div>
+                <!-- Expanded hover content - shows when hovered after delay -->
+                <div class="item-expanded" v-if="hoveredItem === rect.item">
+                  <div class="expanded-field">
+                    <span class="field-label">{{ $t('general.name', { suffix: ':' }) }}</span>
+                    <span class="field-value">{{ getDisplayPath(rect.item.path) }}</span>
+                  </div>
+                  <div class="expanded-field">
+                    <span class="field-label">{{ $t('general.path', { suffix: ':' }) }}</span>
+                    <span class="field-value">{{ getFullPath(rect.item.path) }}</span>
+                  </div>
+                  <div class="expanded-field">
+                    <span class="field-label">{{ $t('general.size', { suffix: ':' }) }}</span>
+                    <span class="field-value">{{ humanSize(rect.item.size) }}</span>
+                  </div>
+                  <div class="expanded-field">
+                    <span class="field-label">{{ $t('general.type', { suffix: ':' }) }}</span>
+                    <span class="field-value">{{ getTypeLabel(rect.item.type) }}</span>
+                  </div>
+                  <div class="expanded-field">
+                    <span class="field-label">{{ $t('fileSizeAnalyzer.relativePercentage', { suffix: ':' }) }}</span>
+                    <span class="field-value">{{ $t('general.percentage', { percentage: getPercentage(rect.item.size) }) }}</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
-          <h4>{{ $t('sizeViewer.fileTypes') }}</h4>
+          <h4>{{ $t('search.types') }}</h4>
           <div class="legend">
             <div class="legend-item">
               <span class="legend-color type-video"></span>
@@ -81,7 +130,7 @@
               <span class="legend-color type-binary"></span>
               <span>{{ $t('fileTypes.binary') }}</span>
             </div>
-            <div v-if="includeFolders" class="legend-item">
+            <div v-if="includeFoldersValue" class="legend-item">
               <span class="legend-color type-directory"></span>
               <span>{{ $t('fileTypes.directory') }}</span>
             </div>
@@ -95,7 +144,7 @@
 
       <div v-else-if="!loading" class="empty-state">
         <i class="material-icons">analytics</i>
-        <p>{{ $t('sizeViewer.emptyState') }}</p>
+        <p>{{ $t('fileSizeAnalyzer.emptyState') }}</p>
       </div>
     </div>
   </div>
@@ -103,25 +152,47 @@
 
 <script>
 import { search } from "@/api";
-import { state } from "@/store";
+import { state, mutations } from "@/store";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { getTypeInfo } from "@/utils/mimetype";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
+import { eventBus } from "@/store/eventBus";
 
 export default {
   name: "SizeViewer",
   components: {
     ToggleSwitch,
   },
+  props: {
+    path: {
+      type: String,
+      default: "/",
+    },
+    source: {
+      type: String,
+      default: "",
+    },
+    largerThan: {
+      type: Number,
+      default: 100,
+    },
+    includeFolders: {
+      type: Boolean,
+      default: false,
+    },
+  },
   data() {
     return {
       searchPath: "/",
       selectedSource: "",
-      largerThan: 100,
-      includeFolders: false,
+      largerThanValue: 100,
+      includeFoldersValue: false,
       loading: false,
       error: null,
       results: [],
+      isInitializing: true,
+      hoveredItem: null,
+      hoverTimeout: null,
     };
   },
   computed: {
@@ -143,22 +214,89 @@ export default {
       return this.squarify(this.sortedResults, { x: 0, y: 0, width, height });
     },
   },
+  watch: {
+    searchPath() {
+      if (!this.isInitializing) {
+        this.updateUrl();
+      }
+    },
+    selectedSource() {
+      if (!this.isInitializing) {
+        this.updateUrl();
+      }
+    },
+    largerThanValue() {
+      if (!this.isInitializing) {
+        this.updateUrl();
+      }
+    },
+    includeFoldersValue() {
+      if (!this.isInitializing) {
+        this.updateUrl();
+      }
+    },
+    // Watch route query params in case URL changes externally
+    '$route.query'() {
+      if (!this.isInitializing) {
+        this.initializeFromQuery();
+      }
+    },
+  },
   mounted() {
-    // Set default source
-    if (state.sources.current) {
-      this.selectedSource = state.sources.current;
-    } else if (Object.keys(this.sourceInfo).length > 0) {
-      this.selectedSource = Object.keys(this.sourceInfo)[0];
+    this.initializeFromQuery();
+    // Set default source if not provided via props or query
+    if (!this.selectedSource) {
+      if (state.sources.current) {
+        this.selectedSource = state.sources.current;
+      } else if (Object.keys(this.sourceInfo).length > 0) {
+        this.selectedSource = Object.keys(this.sourceInfo)[0];
+      }
     }
+    // Mark initialization as complete and sync URL
+    this.isInitializing = false;
+    this.updateUrl();
+
+    // Listen for path selection from FileList picker
+    eventBus.on('pathSelected', this.handlePathSelected);
+  },
+  beforeUnmount() {
+    // Clean up timeout
+    if (this.hoverTimeout) {
+      clearTimeout(this.hoverTimeout);
+      this.hoverTimeout = null;
+    }
+    // Clean up event listener
+    eventBus.off('pathSelected', this.handlePathSelected);
   },
   methods: {
+    openPathPicker() {
+      // Open FileList picker to select path and source
+      mutations.showHover({
+        name: "pathPicker",
+        props: {
+          currentPath: this.searchPath,
+          currentSource: this.selectedSource,
+        }
+      });
+    },
+    handlePathSelected(data) {
+      // Handle path selection from FileList picker
+      if (data && data.path !== undefined) {
+        this.searchPath = data.path;
+      }
+      if (data && data.source !== undefined) {
+        this.selectedSource = data.source;
+      }
+      // Close the picker
+      mutations.closeHovers();
+    },
     async fetchData() {
       this.loading = true;
       this.error = null;
 
       try {
-        let query = `type:largerThan=${this.largerThan}`;
-        if (!this.includeFolders) {
+        let query = `type:largerThan=${this.largerThanValue}`;
+        if (!this.includeFoldersValue) {
           query += " type:file";
         }
         this.results = await search(
@@ -173,6 +311,91 @@ export default {
       } finally {
         this.loading = false;
       }
+    },
+    initializeFromQuery() {
+      // Priority: URL query params > props > defaults
+      const query = this.$route.query;
+
+      // Initialize searchPath: query > prop > default
+      if (query.path !== undefined && query.path !== null) {
+        this.searchPath = String(query.path);
+      } else if (this.path) {
+        this.searchPath = this.path;
+      }
+
+      // Initialize selectedSource: query > prop > default
+      if (query.source !== undefined && query.source !== null) {
+        this.selectedSource = String(query.source);
+      } else if (this.source) {
+        this.selectedSource = this.source;
+      }
+
+      // Initialize largerThanValue: query > prop > default
+      if (query.largerThan !== undefined && query.largerThan !== null) {
+        const parsed = parseInt(String(query.largerThan), 10);
+        if (!isNaN(parsed)) {
+          this.largerThanValue = parsed;
+        }
+      } else if (this.largerThan !== undefined) {
+        this.largerThanValue = this.largerThan;
+      }
+
+      // Initialize includeFoldersValue: query > prop > default
+      if (query.includeFolders !== undefined && query.includeFolders !== null) {
+        const value = String(query.includeFolders);
+        this.includeFoldersValue = value === 'true' || value === '1';
+      } else if (this.includeFolders !== undefined) {
+        this.includeFoldersValue = this.includeFolders;
+      }
+    },
+    updateUrl() {
+      // Use nextTick to avoid triggering updates during component lifecycle
+      this.$nextTick(() => {
+        // Update URL query parameters to reflect current state
+        // This ensures refreshing the page will restore the same configuration
+        const query = {};
+
+        // Include path if it's not the default "/"
+        if (this.searchPath && this.searchPath !== "/") {
+          query.path = this.searchPath;
+        }
+
+        // Include source if set
+        if (this.selectedSource) {
+          query.source = this.selectedSource;
+        }
+
+        // Include largerThan if not the default value of 100
+        if (this.largerThanValue !== 100) {
+          query.largerThan = String(this.largerThanValue);
+        }
+
+        // Include includeFolders if true
+        if (this.includeFoldersValue) {
+          query.includeFolders = 'true';
+        }
+
+        // Build query string for comparison
+        const newQueryString = new URLSearchParams(query).toString();
+        const currentQuery = this.$route.query || {};
+        const currentQueryString = new URLSearchParams(
+          Object.entries(currentQuery).reduce((acc, [key, value]) => {
+            if (value !== null && value !== undefined) {
+              acc[key] = String(value);
+            }
+            return acc;
+          }, {})
+        ).toString();
+
+        if (newQueryString !== currentQueryString) {
+          this.$router.replace({
+            path: this.$route.path,
+            query: Object.keys(query).length > 0 ? query : undefined,
+          }).catch(() => {
+            // Ignore navigation errors (e.g., if navigating to same route)
+          });
+        }
+      });
     },
     isSmallItem(item) {
       // Calculate if item is too small to display text
@@ -332,22 +555,95 @@ export default {
     humanSize(size) {
       return getHumanReadableFilesize(size);
     },
+    getFullPath(itemPath) {
+      // Combine searchPath with the item's relative path
+      let basePath = this.searchPath || "/";
+
+      // Ensure basePath ends with / if it's not root
+      if (basePath !== "/" && !basePath.endsWith("/")) {
+        basePath += "/";
+      }
+
+      // Remove leading slash from itemPath if present (it's relative)
+      let relativePath = itemPath.startsWith("/") ? itemPath.slice(1) : itemPath;
+
+      // Combine paths
+      let fullPath = basePath === "/" ? "/" + relativePath : basePath + relativePath;
+
+      // Normalize: remove double slashes and ensure it starts with /
+      fullPath = fullPath.replace(/\/+/g, "/");
+      if (!fullPath.startsWith("/")) {
+        fullPath = "/" + fullPath;
+      }
+
+      return fullPath;
+    },
     handleItemClick(item) {
-      // Navigate to the file/directory
-      const path = item.path.startsWith("/") ? item.path : "/" + item.path;
-      const route = `/files${path}`;
+      // Navigate to the file/directory using full path
+      const fullPath = this.getFullPath(item.path);
+      const route = `/files${fullPath}`;
       this.$router.push(route);
+    },
+    handleMouseEnter(item) {
+      // Clear any existing timeout
+      if (this.hoverTimeout) {
+        clearTimeout(this.hoverTimeout);
+        this.hoverTimeout = null;
+      }
+
+      // Set timeout to show hover after 500ms
+      this.hoverTimeout = setTimeout(() => {
+        this.hoveredItem = item;
+        this.hoverTimeout = null;
+      }, 500);
+    },
+    handleMouseLeave() {
+      // Clear timeout and hover state
+      if (this.hoverTimeout) {
+        clearTimeout(this.hoverTimeout);
+        this.hoverTimeout = null;
+      }
+      this.hoveredItem = null;
+    },
+    getPercentage(size) {
+      if (this.totalSize === 0) return 0;
+      const percentage = (size / this.totalSize) * 100;
+      // Round to 1 decimal place, but show as integer if whole number
+      return percentage < 0.1 ? percentage.toFixed(2) : percentage.toFixed(1).replace(/\.0$/, '');
+    },
+    getTypeLabel(type) {
+      const typeInfo = getTypeInfo(type);
+      const simpleType = typeInfo.simpleType;
+
+      // Map simple types to labels
+      const labels = {
+        "directory": this.$t('fileTypes.directory'),
+        "video": this.$t('fileTypes.video'),
+        "image": this.$t('fileTypes.image'),
+        "audio": this.$t('fileTypes.audio'),
+        "archive": this.$t('fileTypes.archive'),
+        "pdf": this.$t('fileTypes.document'),
+        "document": this.$t('fileTypes.document'),
+        "text": this.$t('fileTypes.document'),
+        "binary": this.$t('fileTypes.binary'),
+        "font": this.$t('fileTypes.other'),
+      };
+
+      return labels[simpleType] || this.$t('fileTypes.other');
     },
   },
 };
 </script>
 
 <style scoped>
-
 .size-viewer {
   padding: 2rem;
   max-width: 100%;
   margin: 0 auto;
+}
+
+.searchContext {
+  margin-bottom: 1em;
 }
 
 .size-viewer-results {
@@ -355,6 +651,7 @@ export default {
   max-width: 1000px;
   margin-bottom: 2em;
 }
+
 .button {
   margin-top: 1rem;
   display: flex;
@@ -375,6 +672,52 @@ export default {
   border: 1px solid #fcc;
 }
 
+.warning-message {
+  background: #fff3cd;
+  color: #856404;
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  border: 1px solid #ffc107;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.warning-message .material-icons {
+  font-size: 1.5rem;
+  color: #f57c00;
+  flex-shrink: 0;
+}
+
+.warning-message strong {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.success-message {
+  background: #d4edda;
+  color: #155724;
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  border: 1px solid #28a745;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.success-message .material-icons {
+  font-size: 1.5rem;
+  color: #28a745;
+  flex-shrink: 0;
+}
+
+.success-message strong {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
 .stats {
   display: flex;
   gap: 2rem;
@@ -391,25 +734,59 @@ export default {
   overflow: hidden;
 }
 
+.treemap.has-hover {
+  overflow: visible;
+}
+
+/* Invisible hit area that stays at original position */
+.treemap-hit-area {
+  position: absolute;
+  z-index: 200;
+  cursor: pointer;
+  pointer-events: auto;
+  background: transparent;
+  border: none;
+  outline: none;
+}
+
 .treemap-item {
   border: 1px solid rgba(0, 0, 0, 0.1);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1), z-index 0s;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
+  overflow: visible;
   box-sizing: border-box;
+  position: absolute;
+  pointer-events: none;
 }
 
 .treemap-item.small-item {
   padding: 0;
 }
 
-.treemap-item:hover {
+.treemap-item.dimmed {
+  opacity: 0.3;
+  filter: brightness(0.5);
+}
+
+.treemap-item.hovered {
+  z-index: 100;
+  /* Fixed size: 50% of treemap width, centered */
+  width: 50% !important;
+  height: 50% !important;
+  left: 25% !important;
+  top: 25% !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7);
+  border: 2px solid rgba(255, 255, 255, 0.9);
+}
+
+.treemap-item:not(.hovered):hover {
   z-index: 10;
-  border: 2px solid rgba(255, 255, 255, 0.8);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .item-content {
@@ -424,9 +801,16 @@ export default {
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  transition: opacity 0.2s ease;
 }
 
-.item-path {
+.treemap-item.hovered .item-content {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.item-name {
   font-size: 0.85rem;
   margin-bottom: 0.25rem;
   overflow: hidden;
@@ -439,6 +823,82 @@ export default {
   font-size: 0.75rem;
   opacity: 0.95;
   white-space: nowrap;
+}
+
+.item-percentage {
+  font-size: 0.7rem;
+  opacity: 0.85;
+  margin-top: 0.2rem;
+  white-space: nowrap;
+}
+
+/* Expanded hover content */
+.item-expanded {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.4rem;
+  opacity: 0;
+  transform: scale(0.9);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  pointer-events: none;
+}
+
+.treemap-item.hovered .item-expanded {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+
+.expanded-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  text-align: left;
+}
+
+.field-label {
+  font-size: 0.65rem;
+  opacity: 0.85;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: white;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.field-value {
+  font-size: 0.8rem;
+  color: white;
+  font-weight: 500;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  word-break: break-word;
+  overflow-wrap: break-word;
+  max-height: 3em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  line-clamp: 2;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.expanded-field:first-child .field-value {
+  max-height: 1.5em;
+  line-clamp: 1;
+  -webkit-line-clamp: 1;
+}
+
+.expanded-field:nth-child(2) .field-value {
+  max-height: 4em;
+  line-clamp: 3;
+  -webkit-line-clamp: 3;
 }
 
 /* Type colors - solid colors for utilitarian look */
@@ -545,6 +1005,21 @@ export default {
   .stats {
     flex-direction: column;
     gap: 0.5rem;
+  }
+
+  .treemap-item.hovered {
+    width: 50% !important;
+    height: 50% !important;
+    left: 25% !important;
+    top: 25% !important;
+  }
+
+  .field-label {
+    font-size: 0.6rem;
+  }
+
+  .field-value {
+    font-size: 0.75rem;
   }
 }
 </style>

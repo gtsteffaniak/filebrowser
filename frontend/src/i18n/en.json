@@ -241,6 +241,7 @@
     "shareBanner": "Share banner URL",
     "shareFavicon": "Share favicon URL",
     "destinationSource": "Destination Source:",
+    "selectPath": "Select Path",
     "copy": "Copy",
     "copyMessage": "Choose the place to copy your files:",
     "deleteMessageMultiple": "Are you sure you want to delete {count} file(s)?",
@@ -593,8 +594,8 @@
     "generationFailed": "Generation Failed"
   },
   "general": {
-    "name": "Name",
-    "path": "Path",
+    "name": "Name{suffix}",
+    "path": "Path{suffix}",
     "user": "User",
     "group": "Group",
     "signup": "Signup",
@@ -606,7 +607,10 @@
     "permanent": "Permanent",
     "hash": "Hash",
     "of": "of",
-    "source": "Source{suffix}"
+    "source": "Source{suffix}",
+    "percentage": "{percentage}%",
+    "type": "Type{suffix}",
+    "size": "Size{suffix}"
   },
   "access": {
     "all": "Deny All",
@@ -666,19 +670,23 @@
     "changePlaybackModeHint": "Change playback mode to see more files",
     "emptyQueue": "Queue is empty"
   },
-  "sizeViewer": {
-    "title": "Size Viewer",
-    "path": "Path",
-    "source": "Source",
+  "fileSizeAnalyzer": {
+    "title": "File Size Analyzer",
+    "searchLocation": "Search Location",
+    "selectPath": "Select search location",
     "largerThan": "Larger Than (MB)",
     "includeFolders": "Include Folders",
     "includeFoldersDescription": "Include directories in the analysis",
     "analyze": "Analyze",
     "results": "Results",
-    "totalFiles": "Total Files: ",
-    "totalSize": "Total Size: ",
-    "fileTypes": "File Types",
-    "emptyState": "Enter search criteria and click Analyze to visualize file sizes"
+    "totalFiles": "Total Files{suffix}",
+    "totalSize": "Total Size{suffix}",
+    "emptyState": "Enter search criteria and click Analyze to visualize file sizes",
+    "completeResults": "Complete results shown!",
+    "incompleteResults": "Results may be incomplete",
+    "incompleteResultsDetails": "Showing max results (100). Try narrowing your search to get more results under 100.",
+    "relativePercentage": "Relative Percentage{suffix}",
+    "percentageOfResults": "{percentage}% of results"
   },
   "fileTypes": {
     "video": "Video",

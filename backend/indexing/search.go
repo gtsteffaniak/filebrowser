@@ -30,6 +30,7 @@ func (idx *Index) Search(search string, scope string, sourceSession string, larg
 	if scope != "" && !strings.HasSuffix(scope, "/") {
 		scope = scope + "/"
 	}
+	originalScope := scope // Preserve original scope for largest mode exclusion check
 	if search == "" {
 		scope = ""
 	}
@@ -54,7 +55,7 @@ func (idx *Index) Search(search string, scope string, sourceSession string, larg
 		if searchTerm == "" && !largest {
 			continue
 		}
-		if count > maxSearchResults {
+		if count >= maxSearchResults {
 			break
 		}
 		idx.mu.Lock()
@@ -63,29 +64,32 @@ func (idx *Index) Search(search string, scope string, sourceSession string, larg
 			if !found {
 				continue
 			}
-			if count > maxSearchResults {
+			if count >= maxSearchResults {
 				break
 			}
-			reducedDir := iteminfo.ItemInfo{
-				Name: filepath.Base(dirName),
-				Type: "directory",
-				Size: dir.Size,
-			}
-			var matches bool
-			if largest {
-				// When largest=true, check size and type conditions, skip name matching
-				largerThan := int64(searchOptions.LargerThan) * 1024 * 1024
-				sizeMatches := largerThan == 0 || reducedDir.Size > largerThan
-				// Check if directories should be excluded (when type:file is specified)
-				dirCondition, hasDirCondition := searchOptions.Conditions["dir"]
-				typeMatches := !hasDirCondition || (hasDirCondition && dirCondition)
-				matches = sizeMatches && typeMatches
-			} else {
-				matches = reducedDir.ContainsSearchTerm(searchTerm, searchOptions)
-			}
-			if matches {
-				results[dirName] = SearchResult{Path: dirName, Type: "directory", Size: dir.Size}
-				count++
+			// Skip the scope directory itself when largest=true (only search sub-items)
+			if !(largest && dirName == originalScope) {
+				reducedDir := iteminfo.ItemInfo{
+					Name: filepath.Base(dirName),
+					Type: "directory",
+					Size: dir.Size,
+				}
+				var matches bool
+				if largest {
+					// When largest=true, check size and type conditions, skip name matching
+					largerThan := int64(searchOptions.LargerThan) * 1024 * 1024
+					sizeMatches := largerThan == 0 || reducedDir.Size > largerThan
+					// Check if directories should be excluded (when type:file is specified)
+					dirCondition, hasDirCondition := searchOptions.Conditions["dir"]
+					typeMatches := !hasDirCondition || (hasDirCondition && dirCondition)
+					matches = sizeMatches && typeMatches
+				} else {
+					matches = reducedDir.ContainsSearchTerm(searchTerm, searchOptions)
+				}
+				if matches {
+					results[dirName] = SearchResult{Path: dirName, Type: "directory", Size: dir.Size}
+					count++
+				}
 			}
 			// search files first
 			for _, item := range dir.Files {
@@ -95,7 +99,7 @@ func (idx *Index) Search(search string, scope string, sourceSession string, larg
 					idx.mu.Unlock()
 					return []SearchResult{}
 				}
-				if count > maxSearchResults {
+				if count >= maxSearchResults {
 					break
 				}
 				var matches bool

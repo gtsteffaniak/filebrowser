@@ -33,6 +33,7 @@ import Access from "./Access.vue";
 import Password from "./Password.vue";
 import PlaybackQueue from "./PlaybackQueue.vue";
 import FileList from "./FileList.vue";
+import PathPicker from "./PathPicker.vue";
 import SaveBeforeExit from "./SaveBeforeExit.vue";
 import CopyPasteConfirm from "./CopyPasteConfirm.vue";
 import CloseWithActiveUploads from "./CloseWithActiveUploads.vue";
@@ -66,6 +67,7 @@ export default {
     Password,
     PlaybackQueue,
     "file-list": FileList,
+    PathPicker,
     SaveBeforeExit,
     CopyPasteConfirm,
     CloseWithActiveUploads,

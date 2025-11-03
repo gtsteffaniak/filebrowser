@@ -18,7 +18,7 @@ const titles = {
   PublicShare: "buttons.share",
   Files: "general.files",
   Tools: "sidebar.tools",
-  SizeViewer: "tools.sizeViewer",
+  SizeViewer: "tools.sizeAnalyzer.name",
   Settings: "sidebar.settings",
   ProfileSettings: "settings.profileSettings",
   Shares: "settings.shareManagement",
@@ -160,7 +160,13 @@ const router = createRouter({
 
 // Helper function to check if a route resolves to itself
 function isSameRoute(to: RouteLocation, from: RouteLocation) {
-  return to.path === from.path && to.hash === from.hash;
+  // Allow query parameter changes - they don't count as same route
+  const toQuery = JSON.stringify(to.query || {});
+  const fromQuery = JSON.stringify(from.query || {});
+
+  return to.path === from.path &&
+    to.hash === from.hash &&
+    toQuery === fromQuery;
 }
 
 router.beforeResolve(async (to, from, next) => {
