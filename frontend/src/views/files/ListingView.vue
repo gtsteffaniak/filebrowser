@@ -408,6 +408,9 @@ export default {
     window.addEventListener("click", this.clickClear);
     window.addEventListener("keyup", this.clearCtrKey);
     window.addEventListener("dragover", this.preventDefault);
+    document.addEventListener('mousemove', this.updateRectangleSelection);
+    document.addEventListener('mouseup', this.endRectangleSelection);
+    this.$el.addEventListener('mousedown', this.startRectangleSelection);
     this.$el.addEventListener("touchmove", this.handleTouchMove);
 
     this.$el.addEventListener("contextmenu", this.openContext);
@@ -429,9 +432,6 @@ export default {
       this.$el.addEventListener("dragenter", this.dragEnter);
       this.$el.addEventListener("dragleave", this.dragLeave);
       this.$el.addEventListener("drop", this.drop);
-      this.$el.addEventListener('mousedown', this.startRectangleSelection);
-      document.addEventListener('mousemove', this.updateRectangleSelection);
-      document.addEventListener('mouseup', this.endRectangleSelection);
     }
 
   },
@@ -442,6 +442,9 @@ export default {
     window.removeEventListener("click", this.clickClear);
     window.removeEventListener("keyup", this.clearCtrKey);
     window.removeEventListener("dragover", this.preventDefault);
+    document.removeEventListener('mousemove', this.updateRectangleSelection);
+    document.removeEventListener('mouseup', this.endRectangleSelection);
+    this.$el.removeEventListener('mousedown', this.startRectangleSelection);
 
     this.$el.removeEventListener("touchmove", this.handleTouchMove);
     this.$el.removeEventListener("contextmenu", this.openContext);
@@ -459,9 +462,6 @@ export default {
       this.$el.removeEventListener("dragenter", this.dragEnter);
       this.$el.removeEventListener("dragleave", this.dragLeave);
       this.$el.removeEventListener("drop", this.drop);
-      this.$el.removeEventListener('mousedown', this.startRectangleSelection);
-      document.removeEventListener('mousemove', this.updateRectangleSelection);
-      document.removeEventListener('mouseup', this.endRectangleSelection);
     }
   },
   methods: {
@@ -1088,12 +1088,12 @@ export default {
       }
     },
     startRectangleSelection(event) {
-      // Start rectangle selection when clicking on empty space
+      // Start rectangle selection when clicking on empty space - don't start if the click was in the status bar, an item or the header
       if (event.target.closest('.item') || event.target.closest('.header') || event.target.closest('#status-bar')) {
         return;
       }
 
-      // Don't start if it's a right click, this for avoid some weird issue with the context menu.
+      // Don't start if it's a right click, this for avoid some issues with the context menu.
       if (event.button !== 0) return;
 
       this.isRectangleSelecting = true;
