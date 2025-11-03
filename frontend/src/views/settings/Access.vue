@@ -4,7 +4,7 @@
     <h2>{{ $t("access.accessManagement") }}</h2>
     <button class="button" @click="addAccess">{{ $t("buttons.new") }}</button>
     <div class="form-flex-group">
-      <label for="source-select">{{ $t("prompts.source",{suffix: ":"})  }}</label>
+      <label for="source-select">{{ $t("general.source",{suffix: ":"})  }}</label>
       <select class="input" id="source-select" v-model="selectedSource" @change="fetchRules">
         <option v-for="source in availableSources" :key="source" :value="source">
           {{ source }}

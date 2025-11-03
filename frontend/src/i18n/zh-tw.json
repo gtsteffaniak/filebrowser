@@ -208,7 +208,6 @@
     "viewMode": "檢視模式",
     "renameMessage": "輸入新名稱：",
     "renameMessageInvalid": "檔案不能包含\"/「或」\\\"",
-    "source": "來源{suffix}",
     "deleteMessageMultiple": "您確定要刪除{count} 檔案嗎？",
     "deleteMessageShare": "您確定要刪除此共用嗎？ {path} ?",
     "numberDirs": "目錄數量{suffix}",
@@ -249,7 +248,8 @@
     "firstLoadTitle": "歡迎來到 FileBrowser Quantum！",
     "halloweenTitle": "萬聖節快樂",
     "halloweenBody": "萬聖節主題已套用。如果您不喜歡，可以將其停用，或在個人資料設定中選擇任何其他主題，將其永久停用。",
-    "firstLoadBody": "啟動時已建立新資料庫。如果這與您的預期不同，請仔細檢查您的設定檔中的 `server.database` 路徑，並確認它存在。在 docker 上，資料庫路徑可以是 `./data/database.db` 或 `./database.db`。"
+    "firstLoadBody": "啟動時已建立新資料庫。如果這與您的預期不同，請仔細檢查您的設定檔中的 `server.database` 路徑，並確認它存在。在 docker 上，資料庫路徑可以是 `./data/database.db` 或 `./database.db`。",
+    "selectPath": "選擇路徑"
   },
   "search": {
     "images": "影像",
@@ -312,7 +312,6 @@
     "newUser": "建立使用者",
     "password": "密碼",
     "passwordUpdated": "密碼已更新！",
-    "path": "路徑",
     "permissions": {
       "modify": "編輯檔案",
       "share": "分享檔案",
@@ -625,7 +624,11 @@
     "exit": "離開",
     "permanent": "長期",
     "hash": "散列",
-    "of": "的"
+    "of": "的",
+    "source": "來源{suffix}",
+    "percentage": "{percentage}%",
+    "type": "類型{suffix}",
+    "size": "尺寸{suffix}"
   },
   "access": {
     "rules": "存取規則",
@@ -666,5 +669,41 @@
     "changePlaybackMode": "變更播放模式",
     "changePlaybackModeHint": "變更播放模式以查看更多檔案",
     "emptyQueue": "佇列為空"
+  },
+  "fileSizeAnalyzer": {
+    "title": "檔案大小分析器",
+    "searchLocation": "搜尋位置",
+    "selectPath": "選擇搜尋位置",
+    "largerThan": "大於 (MB)",
+    "includeFolders": "包含資料夾",
+    "includeFoldersDescription": "在分析中包含目錄",
+    "analyze": "分析",
+    "results": "結果",
+    "totalFiles": "檔案總數{suffix}",
+    "totalSize": "總尺寸{suffix}",
+    "emptyState": "輸入搜尋準則，然後按一下「分析」以顯示檔案大小",
+    "completeResults": "顯示完整結果！",
+    "incompleteResults": "結果可能不完整",
+    "incompleteResultsDetails": "顯示最大結果 (100)。請嘗試縮小搜尋範圍，以獲得更多低於 100 的結果。",
+    "relativePercentage": "相對百分比{suffix}",
+    "percentageOfResults": "{percentage}結果百分比"
+  },
+  "fileTypes": {
+    "video": "視訊",
+    "image": "圖片",
+    "audio": "音訊",
+    "archive": "存檔",
+    "document": "文件",
+    "binary": "二進制",
+    "directory": "目錄",
+    "other": "其他"
+  },
+  "tools": {
+    "title": "工具",
+    "description": "適用於您檔案的公用程式和分析工具",
+    "sizeAnalyzer": {
+      "name": "檔案大小分析器",
+      "description": "使用互動式樹狀地圖可視化大型檔案和目錄"
+    }
   }
 }

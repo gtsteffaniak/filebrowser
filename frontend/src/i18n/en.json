@@ -240,8 +240,8 @@
     "shareLogo": "Share logo URL",
     "shareBanner": "Share banner URL",
     "shareFavicon": "Share favicon URL",
-    "source": "Source{suffix}",
     "destinationSource": "Destination Source:",
+    "selectPath": "Select Path",
     "copy": "Copy",
     "copyMessage": "Choose the place to copy your files:",
     "deleteMessageMultiple": "Are you sure you want to delete {count} file(s)?",
@@ -476,7 +476,6 @@
     "newUserHintSubFolder": "eg '/subfolder' - blank for default",
     "password": "Password",
     "passwordUpdated": "Password updated!",
-    "path": "Path",
     "permissions": {
       "admin": "Administrator",
       "modify": "Edit files",
@@ -595,8 +594,8 @@
     "generationFailed": "Generation Failed"
   },
   "general": {
-    "name": "Name",
-    "path": "Path",
+    "name": "Name{suffix}",
+    "path": "Path{suffix}",
     "user": "User",
     "group": "Group",
     "signup": "Signup",
@@ -607,7 +606,11 @@
     "exit": "Exit",
     "permanent": "Permanent",
     "hash": "Hash",
-    "of": "of"
+    "of": "of",
+    "source": "Source{suffix}",
+    "percentage": "{percentage}%",
+    "type": "Type{suffix}",
+    "size": "Size{suffix}"
   },
   "access": {
     "all": "Deny All",
@@ -666,5 +669,41 @@
     "changePlaybackMode": "Change playback mode",
     "changePlaybackModeHint": "Change playback mode to see more files",
     "emptyQueue": "Queue is empty"
+  },
+  "fileSizeAnalyzer": {
+    "title": "File Size Analyzer",
+    "searchLocation": "Search Location",
+    "selectPath": "Select search location",
+    "largerThan": "Larger Than (MB)",
+    "includeFolders": "Include Folders",
+    "includeFoldersDescription": "Include directories in the analysis",
+    "analyze": "Analyze",
+    "results": "Results",
+    "totalFiles": "Total Files{suffix}",
+    "totalSize": "Total Size{suffix}",
+    "emptyState": "Enter search criteria and click Analyze to visualize file sizes",
+    "completeResults": "Complete results shown!",
+    "incompleteResults": "Results may be incomplete",
+    "incompleteResultsDetails": "Showing max results (100). Try narrowing your search to get more results under 100.",
+    "relativePercentage": "Relative Percentage{suffix}",
+    "percentageOfResults": "{percentage}% of results"
+  },
+  "fileTypes": {
+    "video": "Video",
+    "image": "Image",
+    "audio": "Audio",
+    "archive": "Archive",
+    "document": "Document",
+    "binary": "Binary",
+    "directory": "Directory",
+    "other": "Other"
+  },
+  "tools": {
+    "title": "Tools",
+    "description": "Utilities and analysis tools for your files",
+    "sizeAnalyzer": {
+      "name": "File Size Analyzer",
+      "description": "Visualize large files and directories with an interactive treemap"
+    }
   }
 }

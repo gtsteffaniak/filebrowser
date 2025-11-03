@@ -208,7 +208,6 @@
     "viewMode": "وضع العرض",
     "renameMessage": "أدخل اسماً جديداً:",
     "renameMessageInvalid": "لا يمكن أن يحتوي الملف على \"/\" أو \"\\\"",
-    "source": "المصدر{suffix}",
     "deleteMessageMultiple": "هل تريد بالتأكيد حذف الملف (الملفات) {count} ؟",
     "deleteMessageShare": "هل أنت متأكد أنك تريد حذف هذه المشاركة؟ {path} ?",
     "numberDirs": "عدد الدلائل{suffix}",
@@ -249,7 +248,8 @@
     "firstLoadTitle": "مرحبًا بك في متصفح الملفات الكمي!",
     "halloweenTitle": "عيد هالوين سعيد!",
     "halloweenBody": "تم تطبيق سمة الهالوين. يمكنك تعطيله إذا لم يعجبك، أو تعطيله بشكل دائم في إعدادات الملف الشخصي عن طريق تحديد أي سمة أخرى.",
-    "firstLoadBody": "تم إنشاء قاعدة بيانات جديدة عند بدء التشغيل. إذا لم يكن هذا هو ما كنت تتوقعه، يرجى التحقق مرة أخرى من ملف التكوين الخاص بك لمسار 'server.database' والتأكد من وجوده. في docker، يمكن أن يكون مسار قاعدة البيانات \"./data/database.db\" أو \"./database.db\"."
+    "firstLoadBody": "تم إنشاء قاعدة بيانات جديدة عند بدء التشغيل. إذا لم يكن هذا هو ما كنت تتوقعه، يرجى التحقق مرة أخرى من ملف التكوين الخاص بك لمسار 'server.database' والتأكد من وجوده. في docker، يمكن أن يكون مسار قاعدة البيانات \"./data/database.db\" أو \"./database.db\".",
+    "selectPath": "تحديد المسار"
   },
   "search": {
     "images": "الصور",
@@ -312,7 +312,6 @@
     "newUser": "مستخدم جديد",
     "password": "كلمة المرور",
     "passwordUpdated": "تم تغيير كلمة المرور",
-    "path": "المسار",
     "permissions": {
       "modify": "Edit files",
       "share": "Share files",
@@ -545,7 +544,11 @@
     "exit": "الخروج",
     "permanent": "دائم",
     "hash": "تجزئة",
-    "of": "من"
+    "of": "من",
+    "source": "المصدر{suffix}",
+    "percentage": "{percentage}%",
+    "type": "النوع{suffix}",
+    "size": "الحجم{suffix}"
   },
   "access": {
     "rules": "قواعد الوصول",
@@ -666,5 +669,41 @@
     "changePlaybackMode": "تغيير وضع التشغيل",
     "changePlaybackModeHint": "غير وضع التشغيل لرؤية المزيد من الملفات",
     "emptyQueue": "قائمة التشغيل فارغة"
+  },
+  "fileSizeAnalyzer": {
+    "title": "محلل حجم الملف",
+    "searchLocation": "موقع البحث",
+    "selectPath": "تحديد موقع البحث",
+    "largerThan": "أكبر من (ميغابايت)",
+    "includeFolders": "تضمين المجلدات",
+    "includeFoldersDescription": "تضمين الدلائل في التحليل",
+    "analyze": "تحليل",
+    "results": "النتائج",
+    "totalFiles": "إجمالي الملفات{suffix}",
+    "totalSize": "الحجم الإجمالي{suffix}",
+    "emptyState": "أدخل معايير البحث وانقر فوق تحليل لتصور أحجام الملفات",
+    "completeResults": "النتائج الكاملة المعروضة!",
+    "incompleteResults": "قد تكون النتائج غير مكتملة",
+    "incompleteResultsDetails": "عرض الحد الأقصى للنتائج (100). حاول تضييق نطاق البحث للحصول على المزيد من النتائج أقل من 100.",
+    "relativePercentage": "النسبة المئوية النسبية{suffix}",
+    "percentageOfResults": "{percentage}النسبة المئوية للنتائج"
+  },
+  "fileTypes": {
+    "video": "فيديو",
+    "image": "الصورة",
+    "audio": "الصوت",
+    "archive": "الأرشيف",
+    "document": "المستند",
+    "binary": "ثنائي",
+    "directory": "الدليل",
+    "other": "أخرى"
+  },
+  "tools": {
+    "title": "الأدوات",
+    "description": "الأدوات المساعدة وأدوات التحليل لملفاتك",
+    "sizeAnalyzer": {
+      "name": "محلل حجم الملف",
+      "description": "تصور الملفات والأدلة الكبيرة باستخدام خريطة ثلاثية تفاعلية"
+    }
   }
 }

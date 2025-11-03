@@ -208,7 +208,6 @@
     "viewMode": "Mod de vizualizare",
     "renameMessage": "Introduceți un nume nou:",
     "renameMessageInvalid": "Un fișier nu poate conține \"/\" sau \"\\\"",
-    "source": "Sursa{suffix}",
     "deleteMessageMultiple": "Sunteți sigur că doriți să eliminați fișierul (fișierele) {count}?",
     "deleteMessageShare": "Sunteți sigur că doriți să ștergeți această partajare: {path} ?",
     "numberDirs": "Număr de directoare{suffix}",
@@ -249,7 +248,8 @@
     "firstLoadTitle": "Bine ați venit la FileBrowser Quantum!",
     "halloweenTitle": "Halloween fericit!",
     "halloweenBody": "Tema Halloween a fost aplicată. Puteți să o dezactivați dacă nu vă place sau să o dezactivați permanent în setările profilului selectând orice altă temă.",
-    "firstLoadBody": "O nouă bază de date a fost creată la pornire. Dacă acest lucru nu este ceea ce vă așteptați, vă rugăm să verificați fișierul de configurare pentru calea `server.database` și asigurați-vă că există. Pe docker, calea bazei de date poate fi `./data/database.db` sau `./database.db`."
+    "firstLoadBody": "O nouă bază de date a fost creată la pornire. Dacă acest lucru nu este ceea ce vă așteptați, vă rugăm să verificați fișierul de configurare pentru calea `server.database` și asigurați-vă că există. Pe docker, calea bazei de date poate fi `./data/database.db` sau `./database.db`.",
+    "selectPath": "Selectați calea"
   },
   "search": {
     "images": "Imagini",
@@ -312,7 +312,6 @@
     "newUser": "Utilizator nou",
     "password": "Parola",
     "passwordUpdated": "Parola actualizată!",
-    "path": "Calea",
     "permissions": {
       "modify": "Modifică fișiere",
       "share": "Distribuie fișiere",
@@ -545,7 +544,11 @@
     "exit": "Ieșire",
     "permanent": "Permanent",
     "hash": "Hash",
-    "of": "de"
+    "of": "de",
+    "source": "Sursa{suffix}",
+    "percentage": "{percentage}%",
+    "type": "Tip{suffix}",
+    "size": "Mărime{suffix}"
   },
   "access": {
     "rules": "Reguli de acces",
@@ -666,5 +669,41 @@
     "changePlaybackMode": "Schimbă modul de redare",
     "changePlaybackModeHint": "Schimbă modul de redare pentru a vedea mai multe fișiere",
     "emptyQueue": "Coada este goală"
+  },
+  "fileSizeAnalyzer": {
+    "title": "Analizor dimensiune fișier",
+    "searchLocation": "Locație de căutare",
+    "selectPath": "Selectați locația de căutare",
+    "largerThan": "Mai mare decât (MB)",
+    "includeFolders": "Includeți foldere",
+    "includeFoldersDescription": "Includerea directoarelor în analiză",
+    "analyze": "Analizați",
+    "results": "Rezultate",
+    "totalFiles": "Total fișiere{suffix}",
+    "totalSize": "Dimensiune totală{suffix}",
+    "emptyState": "Introduceți criteriile de căutare și faceți clic pe Analiză pentru a vizualiza dimensiunile fișierelor",
+    "completeResults": "Rezultatele complete sunt afișate!",
+    "incompleteResults": "Rezultatele pot fi incomplete",
+    "incompleteResultsDetails": "Afișarea rezultatelor maxime (100). Încercați să restrângeți căutarea pentru a obține mai multe rezultate sub 100.",
+    "relativePercentage": "Procentaj relativ{suffix}",
+    "percentageOfResults": "{percentage}% din rezultate"
+  },
+  "fileTypes": {
+    "video": "Video",
+    "image": "Imagine",
+    "audio": "Audio",
+    "archive": "Arhiva",
+    "document": "Document",
+    "binary": "Binare",
+    "directory": "Director",
+    "other": "Altele"
+  },
+  "tools": {
+    "title": "Instrumente",
+    "description": "Utilități și instrumente de analiză pentru fișierele dvs.",
+    "sizeAnalyzer": {
+      "name": "Analizor dimensiune fișier",
+      "description": "Vizualizați fișiere și directoare mari cu o hartă interactivă"
+    }
   }
 }

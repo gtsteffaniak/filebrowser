@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v1.1.0
 
+ **New Features**:
+ - new size analyzer tool
+ - Dynamic scopes for OIDC #1414 #1363
+
  **Notes**:
  - more efficient user update actions. Successful PUT actions return only 204 if successful.
 

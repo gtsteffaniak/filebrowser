@@ -208,7 +208,6 @@
     "viewMode": "Nézet mód",
     "renameMessage": "Adjon meg egy új nevet:",
     "renameMessageInvalid": "Egy fájl nem tartalmazhat \"/\" vagy \"\\\" konténert.",
-    "source": "Forrás{suffix}",
     "deleteMessageMultiple": "Biztos, hogy törölni szeretné a {count} fájl(ok)at?",
     "deleteMessageShare": "Biztos, hogy törölni szeretné ezt a megosztást: {path} ?",
     "numberDirs": "A könyvtárak száma{suffix}",
@@ -249,7 +248,8 @@
     "firstLoadTitle": "Üdvözöljük a FileBrowser Quantum-on!",
     "halloweenTitle": "Boldog Halloweent!",
     "halloweenBody": "A Halloween témát alkalmazták. Ha nem tetszik, letilthatja, vagy véglegesen letilthatja a profilbeállításokban bármely más téma kiválasztásával.",
-    "firstLoadBody": "Az indításkor új adatbázis jött létre. Ha ez nem az, amire számított, kérjük, ellenőrizze kétszer is a konfigurációs fájlban a `server.database` elérési útvonalát, és győződjön meg róla, hogy létezik. Dockeren az adatbázis elérési útja lehet `./data/database.db` vagy `./database.db`."
+    "firstLoadBody": "Az indításkor új adatbázis jött létre. Ha ez nem az, amire számított, kérjük, ellenőrizze kétszer is a konfigurációs fájlban a `server.database` elérési útvonalát, és győződjön meg róla, hogy létezik. Dockeren az adatbázis elérési útja lehet `./data/database.db` vagy `./database.db`.",
+    "selectPath": "Útvonal kiválasztása"
   },
   "search": {
     "images": "Képek",
@@ -314,7 +314,6 @@
     "newUser": "Új felhasználó",
     "password": "Jelszó",
     "passwordUpdated": "Jelszó frissítve!",
-    "path": "Elérési útvonal",
     "permissions": {
       "modify": "Fájlok szerkesztése",
       "share": "Fájlok megosztása",
@@ -545,7 +544,11 @@
     "exit": "Kilépés",
     "permanent": "Állandó",
     "hash": "Hash",
-    "of": "a"
+    "of": "a",
+    "source": "Forrás{suffix}",
+    "percentage": "{percentage}%",
+    "type": "Típus{suffix}",
+    "size": "Méret{suffix}"
   },
   "access": {
     "rules": "Hozzáférési szabályok",
@@ -666,5 +669,41 @@
     "changePlaybackMode": "Lejátszási mód változtatása",
     "changePlaybackModeHint": "Változtasd meg a lejátszási módot, hogy több fájlt láss",
     "emptyQueue": "A sor üres"
+  },
+  "fileSizeAnalyzer": {
+    "title": "Fájlméret elemző",
+    "searchLocation": "Keresés helye",
+    "selectPath": "Keresés helyének kiválasztása",
+    "largerThan": "Nagyobb, mint (MB)",
+    "includeFolders": "Mappák felvétele",
+    "includeFoldersDescription": "Könyvtárak bevonása az elemzésbe",
+    "analyze": "Elemezze",
+    "results": "Eredmények",
+    "totalFiles": "Fájlok összesen{suffix}",
+    "totalSize": "Teljes méret{suffix}",
+    "emptyState": "Adja meg a keresési feltételeket, és kattintson az Elemzés gombra a fájlméretek megjelenítéséhez.",
+    "completeResults": "Teljes körű eredmények megjelenítése!",
+    "incompleteResults": "Az eredmények hiányosak lehetnek",
+    "incompleteResultsDetails": "Maximális eredmények megjelenítése (100). Próbálja szűkíteni a keresést, hogy több eredményt kapjon 100 alatt.",
+    "relativePercentage": "Relatív százalékos arány{suffix}",
+    "percentageOfResults": "{percentage}% az eredményekből"
+  },
+  "fileTypes": {
+    "video": "Videó",
+    "image": "Kép",
+    "audio": "Audio",
+    "archive": "Archívum",
+    "document": "Dokumentum",
+    "binary": "Bináris",
+    "directory": "Címtár",
+    "other": "Egyéb"
+  },
+  "tools": {
+    "title": "Eszközök",
+    "description": "Segédprogramok és elemzőeszközök a fájlok számára",
+    "sizeAnalyzer": {
+      "name": "Fájlméret elemző",
+      "description": "Nagyméretű fájlok és könyvtárak megjelenítése interaktív falistával"
+    }
   }
 }

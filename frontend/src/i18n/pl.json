@@ -208,7 +208,6 @@
     "viewMode": "Tryb widoku",
     "renameMessage": "Wprowadź nową nazwę:",
     "renameMessageInvalid": "Plik nie może być kontenerem \"/\" lub \"\\\"",
-    "source": "Źródło{suffix}",
     "deleteMessageMultiple": "Czy na pewno chcesz usunąć plik(i) {count}?",
     "deleteMessageShare": "Czy na pewno chcesz usunąć ten udział: {path} ?",
     "numberDirs": "Liczba katalogów{suffix}",
@@ -249,7 +248,8 @@
     "firstLoadTitle": "Witamy w FileBrowser Quantum!",
     "halloweenTitle": "Wesołego Halloween!",
     "halloweenBody": "Motyw Halloween został zastosowany. Możesz go wyłączyć, jeśli Ci się nie podoba, lub wyłączyć go na stałe w ustawieniach profilu, wybierając inny motyw.",
-    "firstLoadBody": "Nowa baza danych została utworzona podczas uruchamiania. Jeśli nie jest to to, czego oczekiwałeś, sprawdź dokładnie plik konfiguracyjny pod kątem ścieżki `server.database` i upewnij się, że istnieje. W dockerze ścieżka bazy danych może być `./data/database.db` lub `./database.db`."
+    "firstLoadBody": "Nowa baza danych została utworzona podczas uruchamiania. Jeśli nie jest to to, czego oczekiwałeś, sprawdź dokładnie plik konfiguracyjny pod kątem ścieżki `server.database` i upewnij się, że istnieje. W dockerze ścieżka bazy danych może być `./data/database.db` lub `./database.db`.",
+    "selectPath": "Wybierz ścieżkę"
   },
   "search": {
     "images": "Zdjęcia",
@@ -312,7 +312,6 @@
     "newUser": "Nowy Użytkownik",
     "password": "Hasło",
     "passwordUpdated": "Hasło zostało zapisane!",
-    "path": "Ścieżka",
     "permissions": {
       "modify": "Edycja plików",
       "share": "Udostępnianie plików",
@@ -545,7 +544,11 @@
     "exit": "Wyjście",
     "permanent": "Na stałe",
     "hash": "Hash",
-    "of": "z"
+    "of": "z",
+    "source": "Źródło{suffix}",
+    "percentage": "{percentage}%",
+    "type": "Typ{suffix}",
+    "size": "Rozmiar{suffix}"
   },
   "access": {
     "rules": "Zasady dostępu",
@@ -666,5 +669,41 @@
     "changePlaybackMode": "Zmień tryb odtwarzania",
     "changePlaybackModeHint": "Zmień tryb odtwarzania, aby zobaczyć więcej plików",
     "emptyQueue": "Kolejka jest pusta"
+  },
+  "fileSizeAnalyzer": {
+    "title": "Analizator rozmiaru plików",
+    "searchLocation": "Lokalizacja wyszukiwania",
+    "selectPath": "Wybierz lokalizację wyszukiwania",
+    "largerThan": "Większy niż (MB)",
+    "includeFolders": "Dołącz foldery",
+    "includeFoldersDescription": "Uwzględnienie katalogów w analizie",
+    "analyze": "Analiza",
+    "results": "Wyniki",
+    "totalFiles": "Pliki ogółem{suffix}",
+    "totalSize": "Całkowity rozmiar{suffix}",
+    "emptyState": "Wprowadź kryteria wyszukiwania i kliknij przycisk Analizuj, aby wyświetlić rozmiary plików.",
+    "completeResults": "Wyświetlono pełne wyniki!",
+    "incompleteResults": "Wyniki mogą być niekompletne",
+    "incompleteResultsDetails": "Wyświetlanie maksymalnych wyników (100). Spróbuj zawęzić wyszukiwanie, aby uzyskać więcej wyników poniżej 100.",
+    "relativePercentage": "Procent względny{suffix}",
+    "percentageOfResults": "{percentage}% wyników"
+  },
+  "fileTypes": {
+    "video": "Wideo",
+    "image": "Obraz",
+    "audio": "Audio",
+    "archive": "Archiwum",
+    "document": "Dokument",
+    "binary": "Binarny",
+    "directory": "Katalog",
+    "other": "Inne"
+  },
+  "tools": {
+    "title": "Narzędzia",
+    "description": "Narzędzia i narzędzia do analizy plików",
+    "sizeAnalyzer": {
+      "name": "Analizator rozmiaru plików",
+      "description": "Wizualizacja dużych plików i katalogów za pomocą interaktywnej mapy drzewa"
+    }
   }
 }

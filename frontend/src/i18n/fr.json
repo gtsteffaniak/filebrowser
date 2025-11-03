@@ -208,7 +208,6 @@
     "viewMode": "Mode d'affichage",
     "renameMessage": "Saisissez un nouveau nom :",
     "renameMessageInvalid": "Un fichier ne peut pas contenir \"/\" ou \"\\\"",
-    "source": "Source{suffix}",
     "deleteMessageMultiple": "Êtes-vous sûr de vouloir supprimer le(s) fichier(s) {count}?",
     "deleteMessageShare": "Êtes-vous sûr de vouloir supprimer ce partage : {path} ?",
     "numberDirs": "Nombre de répertoires{suffix}",
@@ -249,7 +248,8 @@
     "firstLoadTitle": "Bienvenue à FileBrowser Quantum !",
     "halloweenTitle": "Joyeux Halloween !",
     "halloweenBody": "Le thème Halloween a été appliqué. Vous pouvez le désactiver si vous ne l'aimez pas, ou le désactiver définitivement dans les paramètres du profil en sélectionnant un autre thème.",
-    "firstLoadBody": "Une nouvelle base de données a été créée au démarrage. Si ce n'est pas ce que vous attendiez, vérifiez que le chemin `server.database` existe dans votre fichier de configuration. Sur docker, le chemin de la base de données peut être `./data/database.db` ou `./database.db`."
+    "firstLoadBody": "Une nouvelle base de données a été créée au démarrage. Si ce n'est pas ce que vous attendiez, vérifiez que le chemin `server.database` existe dans votre fichier de configuration. Sur docker, le chemin de la base de données peut être `./data/database.db` ou `./database.db`.",
+    "selectPath": "Sélectionner un chemin"
   },
   "search": {
     "images": "Images",
@@ -313,7 +313,6 @@
     "newUser": "Nouvel utilisateur",
     "password": "Mot de passe",
     "passwordUpdated": "Mot de passe mis à jour !",
-    "path": "Chemin",
     "permissions": {
       "modify": "Modifier des fichiers",
       "share": "Partager des fichiers",
@@ -545,7 +544,11 @@
     "exit": "Sortie",
     "permanent": "Permanent",
     "hash": "Hachures",
-    "of": "de"
+    "of": "de",
+    "source": "Source{suffix}",
+    "percentage": "{percentage}%",
+    "type": "Type{suffix}",
+    "size": "Taille{suffix}"
   },
   "access": {
     "rules": "Règles d'accès",
@@ -666,5 +669,41 @@
     "changePlaybackMode": "Changer le mode de lecture",
     "changePlaybackModeHint": "Changez le mode de lecture pour voir plus de fichiers",
     "emptyQueue": "La file est vide"
+  },
+  "fileSizeAnalyzer": {
+    "title": "Analyseur de taille de fichier",
+    "searchLocation": "Lieu de recherche",
+    "selectPath": "Sélectionner le lieu de recherche",
+    "largerThan": "Plus grand que (MB)",
+    "includeFolders": "Inclure les dossiers",
+    "includeFoldersDescription": "Inclure les répertoires dans l'analyse",
+    "analyze": "Analyser",
+    "results": "Résultats",
+    "totalFiles": "Total des dossiers{suffix}",
+    "totalSize": "Taille totale{suffix}",
+    "emptyState": "Saisissez des critères de recherche et cliquez sur Analyser pour visualiser la taille des fichiers.",
+    "completeResults": "Résultats complets affichés !",
+    "incompleteResults": "Les résultats peuvent être incomplets",
+    "incompleteResultsDetails": "Résultats maximums (100). Essayez d'affiner votre recherche pour obtenir plus de résultats en dessous de 100.",
+    "relativePercentage": "Pourcentage relatif{suffix}",
+    "percentageOfResults": "{percentage}% de résultats"
+  },
+  "fileTypes": {
+    "video": "Vidéo",
+    "image": "Image",
+    "audio": "Audio",
+    "archive": "Archives",
+    "document": "Document",
+    "binary": "Binaire",
+    "directory": "Annuaire",
+    "other": "Autres"
+  },
+  "tools": {
+    "title": "Outils",
+    "description": "Utilitaires et outils d'analyse pour vos fichiers",
+    "sizeAnalyzer": {
+      "name": "Analyseur de taille de fichier",
+      "description": "Visualisez les fichiers et les répertoires volumineux grâce à une arborescence interactive"
+    }
   }
 }
