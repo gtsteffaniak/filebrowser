@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v1.1.0
+
+ **Notes**:
+ - more efficient user update actions. Successful PUT actions return only 204 if successful.
+
 ## v1.0.1
 
  **New Features**:

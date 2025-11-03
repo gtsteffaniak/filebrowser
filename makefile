@@ -8,6 +8,9 @@ else
     SHELL := /bin/bash
 endif
 
+# git checkout remote branch PR
+# git fetch origin pull/####/head:pr-####
+
 .SILENT:
 setup:
 	echo "creating ./backend/test_config.yaml for local testing..."
