@@ -5,11 +5,14 @@ All notable changes to this project will be documented in this file. For commit 
 ## v1.1.0
 
  **New Features**:
- - new size analyzer tool
+ - size analyzer tool
+ - Status bar for listing view #1459
  - Dynamic scopes for OIDC #1414 #1363
+ - Enhanced notifications, buttons persistence. #1331
 
  **Notes**:
  - more efficient user update actions. Successful PUT actions return only 204 if successful.
+ - Do not enter directory on "New Folder" action #1343
 
 ## v1.0.1
 
