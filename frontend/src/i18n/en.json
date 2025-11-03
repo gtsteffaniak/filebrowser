@@ -65,7 +65,8 @@
     "stayOnPrompt": "Stay",
     "closeAnyway": "Close Anyways",
     "disable": "Disable",
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "goToItem": "Go to Item"
   },
   "download": {
     "downloadFile": "Download File",
