@@ -208,7 +208,6 @@
     "viewMode": "Visa läge",
     "renameMessage": "Ange ett nytt namn:",
     "renameMessageInvalid": "En fil kan inte innehålla \"/\" eller \"\\\"",
-    "source": "Källa{suffix}",
     "deleteMessageMultiple": "Är du säker att du vill ta bort {count} fil(er)?",
     "deleteMessageShare": "Är du säker på att du vill ta bort den här aktien: {path} ?",
     "numberDirs": "Antal kataloger{suffix}",
@@ -249,7 +248,8 @@
     "firstLoadTitle": "Välkommen till FileBrowser Quantum!",
     "halloweenTitle": "Glad Halloween!",
     "halloweenBody": "Halloween-temat har lagts till. Du kan inaktivera det om du inte gillar det, eller inaktivera det permanent i profilinställningarna genom att välja ett annat tema.",
-    "firstLoadBody": "En ny databas skapades vid uppstart. Om detta inte är vad du förväntade dig, vänligen dubbelkolla din konfigurationsfil för `server.database` sökväg och se till att den finns. På docker kan databassökvägen vara `./data/database.db` eller `./database.db`."
+    "firstLoadBody": "En ny databas skapades vid uppstart. Om detta inte är vad du förväntade dig, vänligen dubbelkolla din konfigurationsfil för `server.database` sökväg och se till att den finns. På docker kan databassökvägen vara `./data/database.db` eller `./database.db`.",
+    "selectPath": "Välj sökväg"
   },
   "search": {
     "images": "Bilder",
@@ -312,7 +312,6 @@
     "newUser": "Ny användare",
     "password": "Lösenord",
     "passwordUpdated": "Lösenord uppdaterat",
-    "path": "Väg",
     "permissions": {
       "modify": "Ändra fil",
       "share": "Dela filer",
@@ -625,7 +624,11 @@
     "exit": "Avsluta",
     "permanent": "Permanent",
     "hash": "Hash",
-    "of": "av"
+    "of": "av",
+    "source": "Källa{suffix}",
+    "percentage": "{percentage}%",
+    "type": "Typ{suffix}",
+    "size": "Storlek{suffix}"
   },
   "access": {
     "rules": "Regler för åtkomst",
@@ -666,5 +669,41 @@
     "changePlaybackMode": "Ändra uppspelningsläge",
     "changePlaybackModeHint": "Ändra uppspelningsläge för att se fler filer",
     "emptyQueue": "Kön är tom"
+  },
+  "fileSizeAnalyzer": {
+    "title": "Analysator för filstorlek",
+    "searchLocation": "Sök plats",
+    "selectPath": "Välj sökplats",
+    "largerThan": "Större än (MB)",
+    "includeFolders": "Inkludera mappar",
+    "includeFoldersDescription": "Inkludera kataloger i analysen",
+    "analyze": "Analysera",
+    "results": "Resultat",
+    "totalFiles": "Totalt antal filer{suffix}",
+    "totalSize": "Total storlek{suffix}",
+    "emptyState": "Ange sökkriterier och klicka på Analyze för att visualisera filstorlekar",
+    "completeResults": "Fullständiga resultat visas!",
+    "incompleteResults": "Resultaten kan vara ofullständiga",
+    "incompleteResultsDetails": "Visar max resultat (100). Försök att begränsa din sökning för att få fler resultat under 100.",
+    "relativePercentage": "Relativ procentandel{suffix}",
+    "percentageOfResults": "{percentage}% av resultat"
+  },
+  "fileTypes": {
+    "video": "Video",
+    "image": "Bild",
+    "audio": "Ljud",
+    "archive": "Arkiv",
+    "document": "Dokument",
+    "binary": "Binär",
+    "directory": "Katalog",
+    "other": "Övriga"
+  },
+  "tools": {
+    "title": "Verktyg",
+    "description": "Verktyg och analysverktyg för dina filer",
+    "sizeAnalyzer": {
+      "name": "Analysator för filstorlek",
+      "description": "Visualisera stora filer och kataloger med en interaktiv trädkarta"
+    }
   }
 }

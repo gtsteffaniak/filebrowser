@@ -208,7 +208,6 @@
     "viewMode": "Modalità di visualizzazione",
     "renameMessage": "Inserire un nuovo nome:",
     "renameMessageInvalid": "Un file non può contenere \"/\" o \"\\\".",
-    "source": "Fonte{suffix}",
     "deleteMessageMultiple": "Siete sicuri di voler eliminare i file {count}?",
     "deleteMessageShare": "Sei sicuro di voler eliminare questa condivisione: {path} ?",
     "numberDirs": "Numero di directory{suffix}",
@@ -249,7 +248,8 @@
     "firstLoadTitle": "Benvenuti a FileBrowser Quantum!",
     "halloweenTitle": "Buon Halloween!",
     "halloweenBody": "Il tema di Halloween è stato applicato. È possibile disattivarlo se non piace, oppure disattivarlo definitivamente nelle impostazioni del profilo selezionando un altro tema.",
-    "firstLoadBody": "All'avvio è stato creato un nuovo database. Se questo non è quello che ci si aspettava, controllare due volte il file di configurazione per il percorso `server.database` e assicurarsi che esista. Su docker, il percorso del database può essere `./data/database.db` o `./database.db`."
+    "firstLoadBody": "All'avvio è stato creato un nuovo database. Se questo non è quello che ci si aspettava, controllare due volte il file di configurazione per il percorso `server.database` e assicurarsi che esista. Su docker, il percorso del database può essere `./data/database.db` o `./database.db`.",
+    "selectPath": "Selezionare il percorso"
   },
   "search": {
     "images": "Immagini",
@@ -312,7 +312,6 @@
     "newUser": "Nuovo utente",
     "password": "Password",
     "passwordUpdated": "Password aggiornata!",
-    "path": "Percorso",
     "permissions": {
       "modify": "Modificare file",
       "share": "Condividere file",
@@ -545,7 +544,11 @@
     "exit": "Uscita",
     "permanent": "Permanente",
     "hash": "Hash",
-    "of": "di"
+    "of": "di",
+    "source": "Fonte{suffix}",
+    "percentage": "{percentage}%",
+    "type": "Tipo{suffix}",
+    "size": "Dimensione{suffix}"
   },
   "access": {
     "rules": "Regole di accesso",
@@ -666,5 +669,41 @@
     "changePlaybackMode": "Cambia modalità di riproduzione",
     "changePlaybackModeHint": "Cambia modalità di riproduzione per vedere più file",
     "emptyQueue": "La coda è vuota"
+  },
+  "fileSizeAnalyzer": {
+    "title": "Analizzatore delle dimensioni dei file",
+    "searchLocation": "Posizione di ricerca",
+    "selectPath": "Selezionare la posizione di ricerca",
+    "largerThan": "Più grande di (MB)",
+    "includeFolders": "Includere le cartelle",
+    "includeFoldersDescription": "Includere le directory nell'analisi",
+    "analyze": "Analizzare",
+    "results": "Risultati",
+    "totalFiles": "Totale file{suffix}",
+    "totalSize": "Dimensione totale{suffix}",
+    "emptyState": "Immettere i criteri di ricerca e fare clic su Analizza per visualizzare le dimensioni dei file.",
+    "completeResults": "Mostra i risultati completi!",
+    "incompleteResults": "I risultati possono essere incompleti",
+    "incompleteResultsDetails": "Risultati massimi (100). Provi a restringere la ricerca per ottenere più risultati al di sotto di 100.",
+    "relativePercentage": "Percentuale relativa{suffix}",
+    "percentageOfResults": "{percentage}% dei risultati"
+  },
+  "fileTypes": {
+    "video": "Video",
+    "image": "Immagine",
+    "audio": "Audio",
+    "archive": "Archivio",
+    "document": "Documento",
+    "binary": "Binario",
+    "directory": "Elenco",
+    "other": "Altro"
+  },
+  "tools": {
+    "title": "Strumenti",
+    "description": "Utilità e strumenti di analisi per i vostri file",
+    "sizeAnalyzer": {
+      "name": "Analizzatore delle dimensioni dei file",
+      "description": "Visualizzate file e directory di grandi dimensioni con una mappa interattiva a forma di albero"
+    }
   }
 }

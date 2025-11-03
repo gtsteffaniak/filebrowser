@@ -208,7 +208,6 @@
     "viewMode": "表示モード",
     "renameMessage": "新しい名前を入力してください：",
     "renameMessageInvalid": "ファイル名に\"/\"や\"\\\"を含めることはできません。",
-    "source": "送信元{suffix}",
     "deleteMessageMultiple": "本当に{count}個のファイルを削除しますか？",
     "deleteMessageShare": "この共有を削除してもよろしいですか？ {path}",
     "numberDirs": "ディレクトリ数{suffix}",
@@ -249,7 +248,8 @@
     "firstLoadTitle": "FileBrowser Quantumへようこそ！",
     "halloweenTitle": "ハッピー・ハロウィーン",
     "halloweenBody": "ハロウィーンのテーマが適用されました。気に入らなければ無効にするか、プロフィール設定で他のテーマを選択して永久に無効にすることができます。",
-    "firstLoadBody": "起動時に新しいデータベースが作成されました。これが期待したものでない場合は、設定ファイルの `server.database` パスを再確認し、それが存在することを確認してください。docker では、データベースのパスは `./data/database.db` または `./database.db` になります。"
+    "firstLoadBody": "起動時に新しいデータベースが作成されました。これが期待したものでない場合は、設定ファイルの `server.database` パスを再確認し、それが存在することを確認してください。docker では、データベースのパスは `./data/database.db` または `./database.db` になります。",
+    "selectPath": "パスを選択"
   },
   "search": {
     "images": "画像",
@@ -312,7 +312,6 @@
     "newUser": "新しいユーザー",
     "password": "パスワード",
     "passwordUpdated": "パスワードが更新されました！",
-    "path": "パス",
     "permissions": {
       "modify": "ファイルを編集",
       "share": "ファイルを共有",
@@ -545,7 +544,11 @@
     "exit": "終了",
     "permanent": "永続",
     "hash": "ハッシュ",
-    "of": "の"
+    "of": "の",
+    "source": "ソース{suffix}",
+    "percentage": "{percentage}%",
+    "type": "タイプ{suffix}",
+    "size": "サイズ{suffix}"
   },
   "access": {
     "rules": "アクセスルール",
@@ -666,5 +669,41 @@
     "changePlaybackMode": "再生モードを変更",
     "changePlaybackModeHint": "再生モードを変更してより多くのファイルを表示",
     "emptyQueue": "キューは空です"
+  },
+  "fileSizeAnalyzer": {
+    "title": "ファイル・サイズ・アナライザー",
+    "searchLocation": "検索場所",
+    "selectPath": "検索場所を選択",
+    "largerThan": "より大きい (MB)",
+    "includeFolders": "フォルダを含む",
+    "includeFoldersDescription": "分析にディレクトリを含める",
+    "analyze": "分析する",
+    "results": "結果",
+    "totalFiles": "ファイル数{suffix}",
+    "totalSize": "合計サイズ{suffix}",
+    "emptyState": "検索条件を入力し、「分析」をクリックするとファイルサイズが可視化されます。",
+    "completeResults": "完全な結果を示す！",
+    "incompleteResults": "結果は不完全かもしれない",
+    "incompleteResultsDetails": "最大結果(100)を表示しています。検索結果を100件以下に絞り込んでください。",
+    "relativePercentage": "相対パーセンテージ{suffix}",
+    "percentageOfResults": "{percentage}結果の割合"
+  },
+  "fileTypes": {
+    "video": "ビデオ",
+    "image": "画像",
+    "audio": "オーディオ",
+    "archive": "アーカイブ",
+    "document": "ドキュメント",
+    "binary": "バイナリ",
+    "directory": "ディレクトリ",
+    "other": "その他"
+  },
+  "tools": {
+    "title": "ツール",
+    "description": "ファイルのユーティリティと分析ツール",
+    "sizeAnalyzer": {
+      "name": "ファイル・サイズ・アナライザー",
+      "description": "大規模なファイルやディレクトリをインタラクティブなツリーマップで視覚化"
+    }
   }
 }

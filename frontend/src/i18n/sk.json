@@ -208,7 +208,6 @@
     "viewMode": "Režim zobrazenia",
     "renameMessage": "Zadajte nový názov:",
     "renameMessageInvalid": "Súbor nemôže obsahovať \"/\" alebo \"\\\"",
-    "source": "Zdroj{suffix}",
     "deleteMessageMultiple": "Ste si istí, že chcete odstrániť súbor(y) {count}?",
     "deleteMessageShare": "Ste si istí, že chcete odstrániť toto zdieľanie: {path} ?",
     "numberDirs": "Počet adresárov{suffix}",
@@ -249,7 +248,8 @@
     "firstLoadTitle": "Vitajte v programe FileBrowser Quantum!",
     "halloweenTitle": "Šťastný Halloween!",
     "halloweenBody": "Bola použitá téma Halloween. Ak sa vám nepáči, môžete ju vypnúť, alebo ju natrvalo zakázať v nastaveniach profilu výberom akejkoľvek inej témy.",
-    "firstLoadBody": "Pri spustení bola vytvorená nová databáza. Ak to nie je to, čo ste očakávali, dvakrát skontrolujte konfiguračný súbor pre cestu `server.database` a uistite sa, že existuje. V dockeri môže byť cesta k databáze `./data/database.db` alebo `./database.db`."
+    "firstLoadBody": "Pri spustení bola vytvorená nová databáza. Ak to nie je to, čo ste očakávali, dvakrát skontrolujte konfiguračný súbor pre cestu `server.database` a uistite sa, že existuje. V dockeri môže byť cesta k databáze `./data/database.db` alebo `./database.db`.",
+    "selectPath": "Vyberte cestu"
   },
   "search": {
     "images": "Obrázky",
@@ -312,7 +312,6 @@
     "newUser": "Nový používateľ",
     "password": "Heslo",
     "passwordUpdated": "Heslo zmenené!",
-    "path": "Cesta",
     "permissions": {
       "modify": "Upravovať súbory",
       "share": "Zdieľať súbory",
@@ -545,7 +544,11 @@
     "exit": "Exit",
     "permanent": "Trvalé",
     "hash": "Hash",
-    "of": "z"
+    "of": "z",
+    "source": "Zdroj{suffix}",
+    "percentage": "{percentage}%",
+    "type": "Typ{suffix}",
+    "size": "Veľkosť{suffix}"
   },
   "access": {
     "rules": "Pravidlá prístupu",
@@ -666,5 +669,41 @@
     "changePlaybackMode": "Zmeniť režim prehrávania",
     "changePlaybackModeHint": "Zmeňte režim prehrávania, aby ste videli viac súborov",
     "emptyQueue": "Front je prázdny"
+  },
+  "fileSizeAnalyzer": {
+    "title": "Analyzátor veľkosti súborov",
+    "searchLocation": "Vyhľadávanie umiestnenia",
+    "selectPath": "Vyberte miesto vyhľadávania",
+    "largerThan": "Väčšie ako (MB)",
+    "includeFolders": "Zahrnúť priečinky",
+    "includeFoldersDescription": "Zahrnutie adresárov do analýzy",
+    "analyze": "Analyzujte",
+    "results": "Výsledky",
+    "totalFiles": "Celkové súbory{suffix}",
+    "totalSize": "Celková veľkosť{suffix}",
+    "emptyState": "Zadajte kritériá vyhľadávania a kliknutím na tlačidlo Analyzovať zobrazte veľkosti súborov",
+    "completeResults": "Zobrazené kompletné výsledky!",
+    "incompleteResults": "Výsledky môžu byť neúplné",
+    "incompleteResultsDetails": "Zobrazené maximálne výsledky (100). Skúste zúžiť vyhľadávanie, aby ste získali viac výsledkov pod 100.",
+    "relativePercentage": "Relatívne percento{suffix}",
+    "percentageOfResults": "{percentage}% výsledkov"
+  },
+  "fileTypes": {
+    "video": "Video",
+    "image": "Obrázok",
+    "audio": "Audio",
+    "archive": "Archív",
+    "document": "Dokument",
+    "binary": "Binárne",
+    "directory": "Adresár",
+    "other": "Iné"
+  },
+  "tools": {
+    "title": "Nástroje",
+    "description": "Nástroje a nástroje na analýzu vašich súborov",
+    "sizeAnalyzer": {
+      "name": "Analyzátor veľkosti súborov",
+      "description": "Vizualizácia veľkých súborov a adresárov pomocou interaktívnej mapy stromov"
+    }
   }
 }

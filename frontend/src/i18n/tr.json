@@ -208,7 +208,6 @@
     "viewMode": "Görünüm modu",
     "renameMessage": "Yeni bir ad girin:",
     "renameMessageInvalid": "Bir dosya \"/\" veya \"\\\" içeremez",
-    "source": "Kaynak{suffix}",
     "deleteMessageMultiple": "{count} dosya(lar)ını silmek istediğinizden emin misiniz?",
     "deleteMessageShare": "Bu paylaşımı silmek istediğinizden emin misiniz? {path} ?",
     "numberDirs": "Dizin sayısı{suffix}",
@@ -249,7 +248,8 @@
     "firstLoadTitle": "FileBrowser Quantum'a hoş geldiniz!",
     "halloweenTitle": "Mutlu Cadılar Bayramı!",
     "halloweenBody": "Cadılar Bayramı teması uygulanmıştır. Beğenmediyseniz devre dışı bırakabilir veya profil ayarlarından başka bir tema seçerek kalıcı olarak devre dışı bırakabilirsiniz.",
-    "firstLoadBody": "Başlangıçta yeni bir veritabanı oluşturuldu. Beklediğiniz bu değilse, lütfen `server.database` yolu için yapılandırma dosyanızı iki kez kontrol edin ve var olduğundan emin olun. Docker üzerinde, veritabanı yolu `./data/database.db` veya `./database.db` olabilir."
+    "firstLoadBody": "Başlangıçta yeni bir veritabanı oluşturuldu. Beklediğiniz bu değilse, lütfen `server.database` yolu için yapılandırma dosyanızı iki kez kontrol edin ve var olduğundan emin olun. Docker üzerinde, veritabanı yolu `./data/database.db` veya `./database.db` olabilir.",
+    "selectPath": "Yol Seçin"
   },
   "search": {
     "images": "Görseller",
@@ -312,7 +312,6 @@
     "newUser": "Yeni Kullanıcı",
     "password": "Şifre",
     "passwordUpdated": "Şifre güncellendi",
-    "path": "Yol",
     "permissions": {
       "modify": "Dosyaları değiştir",
       "share": "Dosyaları paylaş",
@@ -545,7 +544,11 @@
     "exit": "Çıkış",
     "permanent": "Daimi",
     "hash": "Hash",
-    "of": "."
+    "of": ".",
+    "source": "Kaynak{suffix}",
+    "percentage": "{percentage}%",
+    "type": "Tip{suffix}",
+    "size": "Boyut{suffix}"
   },
   "access": {
     "rules": "Erişim kuralları",
@@ -666,5 +669,41 @@
     "changePlaybackMode": "Oynatma modunu değiştir",
     "changePlaybackModeHint": "Daha fazla dosya görmek için oynatma modunu değiştirin",
     "emptyQueue": "Kuyruk boş"
+  },
+  "fileSizeAnalyzer": {
+    "title": "Dosya Boyutu Analizörü",
+    "searchLocation": "Arama Konumu",
+    "selectPath": "Arama konumunu seçin",
+    "largerThan": "Daha Büyük (MB)",
+    "includeFolders": "Klasörleri Dahil Et",
+    "includeFoldersDescription": "Dizinleri analize dahil edin",
+    "analyze": "Analiz",
+    "results": "Sonuçlar",
+    "totalFiles": "Toplam Dosya{suffix}",
+    "totalSize": "Toplam Boyut{suffix}",
+    "emptyState": "Arama kriterlerini girin ve dosya boyutlarını görselleştirmek için Analiz Et'e tıklayın",
+    "completeResults": "Tam sonuçlar gösterilmektedir!",
+    "incompleteResults": "Sonuçlar eksik olabilir",
+    "incompleteResultsDetails": "Maksimum sonuç gösteriliyor (100). 100'ün altında daha fazla sonuç almak için aramanızı daraltmayı deneyin.",
+    "relativePercentage": "Göreceli Yüzde{suffix}",
+    "percentageOfResults": "{percentage}Sonuçların %'si"
+  },
+  "fileTypes": {
+    "video": "Video",
+    "image": "Resim",
+    "audio": "Ses",
+    "archive": "Arşiv",
+    "document": "Belge",
+    "binary": "İkili",
+    "directory": "Rehber",
+    "other": "Diğer"
+  },
+  "tools": {
+    "title": "Araçlar",
+    "description": "Dosyalarınız için yardımcı programlar ve analiz araçları",
+    "sizeAnalyzer": {
+      "name": "Dosya Boyutu Analizörü",
+      "description": "Etkileşimli ağaç haritası ile büyük dosya ve dizinleri görselleştirin"
+    }
   }
 }

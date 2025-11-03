@@ -208,7 +208,6 @@
     "viewMode": "Cambiar modo de vista",
     "renameMessage": "Introduce un nuevo nombre:",
     "renameMessageInvalid": "El archivo no puede tener \"/\" o \"\\\"",
-    "source": "Fuente{suffix}",
     "deleteMessageMultiple": "¿Quieres borrar estos {count} archivos?",
     "deleteMessageShare": "¿Estás seguro que quieres borrar \"{path}\" de los recursos compartidos?",
     "numberDirs": "Número de carpetas {suffix}",
@@ -249,7 +248,8 @@
     "firstLoadTitle": "¡Bienvenido a FileBrowser Quantum!",
     "halloweenTitle": "¡Feliz Halloween!",
     "halloweenBody": "Se ha aplicado el tema de Halloween. Puedes desactivarlo si no te gusta, o desactivarlo permanentemente en los ajustes del perfil seleccionando cualquier otro tema.",
-    "firstLoadBody": "Se ha creado una nueva base de datos al iniciar. Si esto no es lo que esperaba, por favor, compruebe su archivo de configuración para la ruta `server.database` y asegúrese de que existe. En docker, la ruta de la base de datos puede ser `./data/database.db` o `./database.db`."
+    "firstLoadBody": "Se ha creado una nueva base de datos al iniciar. Si esto no es lo que esperaba, por favor, compruebe su archivo de configuración para la ruta `server.database` y asegúrese de que existe. En docker, la ruta de la base de datos puede ser `./data/database.db` o `./database.db`.",
+    "selectPath": "Seleccionar ruta"
   },
   "search": {
     "images": "Imágenes",
@@ -317,7 +317,6 @@
     "newUserHintSubFolder": "ej: '/subfolder' - vacio para predeterminado",
     "password": "Contraseña",
     "passwordUpdated": "¡Contraseña actualizada!",
-    "path": "Ruta",
     "permissions": {
       "modify": "Editar archivos",
       "share": "Compartir archivos",
@@ -545,7 +544,11 @@
     "exit": "Salir",
     "permanent": "Permanente",
     "hash": "Hash",
-    "of": "de"
+    "of": "de",
+    "source": "Fuente{suffix}",
+    "percentage": "{percentage}%",
+    "type": "Tipo{suffix}",
+    "size": "Talla{suffix}"
   },
   "access": {
     "rules": "Normas de acceso",
@@ -666,5 +669,41 @@
     "changePlaybackMode": "Cambiar modo de Reproducción",
     "changePlaybackModeHint": "Cambia el modo de reproducción para ver más",
     "emptyQueue": "La cola de reproducción está vacia..."
+  },
+  "fileSizeAnalyzer": {
+    "title": "Analizador de tamaño de archivos",
+    "searchLocation": "Buscar ubicación",
+    "selectPath": "Seleccione el lugar de búsqueda",
+    "largerThan": "Mayor que (MB)",
+    "includeFolders": "Incluir carpetas",
+    "includeFoldersDescription": "Incluir directorios en el análisis",
+    "analyze": "Analice",
+    "results": "Resultados",
+    "totalFiles": "Archivos totales{suffix}",
+    "totalSize": "Tamaño total{suffix}",
+    "emptyState": "Introduzca los criterios de búsqueda y haga clic en Analizar para visualizar el tamaño de los archivos",
+    "completeResults": "Resultados completos",
+    "incompleteResults": "Los resultados pueden ser incompletos",
+    "incompleteResultsDetails": "Mostrando resultados máximos (100). Intenta restringir la búsqueda para obtener más resultados por debajo de 100.",
+    "relativePercentage": "Porcentaje relativo{suffix}",
+    "percentageOfResults": "{percentage}% de resultados"
+  },
+  "fileTypes": {
+    "video": "Vídeo",
+    "image": "Imagen",
+    "audio": "Audio",
+    "archive": "Archivo",
+    "document": "Documento",
+    "binary": "Binario",
+    "directory": "Directorio",
+    "other": "Otros"
+  },
+  "tools": {
+    "title": "Herramientas",
+    "description": "Utilidades y herramientas de análisis para sus archivos",
+    "sizeAnalyzer": {
+      "name": "Analizador de tamaño de archivos",
+      "description": "Visualice archivos y directorios de gran tamaño con un mapa de árbol interactivo"
+    }
   }
 }

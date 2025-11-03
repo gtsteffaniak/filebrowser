@@ -208,7 +208,6 @@
     "viewMode": "Modo de visualização",
     "renameMessage": "Introduzir um novo nome:",
     "renameMessageInvalid": "Um ficheiro não pode conter \"/\" ou \"\\\"",
-    "source": "Fonte{suffix}",
     "deleteMessageMultiple": "Tem a certeza de que pretende apagar o(s) ficheiro(s) {count}?",
     "deleteMessageShare": "Tem a certeza de que pretende apagar esta partilha: {path} ?",
     "numberDirs": "Número de diretórios{suffix}",
@@ -249,7 +248,8 @@
     "firstLoadTitle": "Bem-vindo ao FileBrowser Quantum!",
     "halloweenTitle": "Feliz Dia das Bruxas!",
     "halloweenBody": "O tema do Dia das Bruxas foi aplicado. Pode desactivá-lo se não gostar dele, ou desactivá-lo permanentemente nas definições do perfil, selecionando qualquer outro tema.",
-    "firstLoadBody": "Foi criada uma nova base de dados no arranque. Se isso não for o que você esperava, verifique novamente seu arquivo de configuração para o caminho `server.database` e certifique-se de que ele existe. No docker, o caminho do banco de dados pode ser `./data/database.db` ou `./database.db`."
+    "firstLoadBody": "Foi criada uma nova base de dados no arranque. Se isso não for o que você esperava, verifique novamente seu arquivo de configuração para o caminho `server.database` e certifique-se de que ele existe. No docker, o caminho do banco de dados pode ser `./data/database.db` ou `./database.db`.",
+    "selectPath": "Selecionar caminho"
   },
   "search": {
     "images": "Imagens",
@@ -312,7 +312,6 @@
     "newUser": "Novo utilizador",
     "password": "Palavra-passe",
     "passwordUpdated": "Palavra-passe atualizada!",
-    "path": "Caminho",
     "permissions": {
       "modify": "Editar ficheiros",
       "share": "Partilhar ficheiros",
@@ -625,7 +624,11 @@
     "exit": "Sair",
     "permanent": "Permanente",
     "hash": "Haxixe",
-    "of": "de"
+    "of": "de",
+    "source": "Fonte{suffix}",
+    "percentage": "{percentage}%",
+    "type": "Tipo{suffix}",
+    "size": "Tamanho{suffix}"
   },
   "access": {
     "rules": "Regras de acesso",
@@ -666,5 +669,41 @@
     "changePlaybackMode": "Alterar modo de reprodução",
     "changePlaybackModeHint": "Altere o modo de reprodução para ver mais arquivos",
     "emptyQueue": "A fila está vazia"
+  },
+  "fileSizeAnalyzer": {
+    "title": "Analisador de tamanho de ficheiro",
+    "searchLocation": "Localização da pesquisa",
+    "selectPath": "Selecionar o local de pesquisa",
+    "largerThan": "Maior do que (MB)",
+    "includeFolders": "Incluir pastas",
+    "includeFoldersDescription": "Incluir diretórios na análise",
+    "analyze": "Analisar",
+    "results": "Resultados",
+    "totalFiles": "Total de ficheiros{suffix}",
+    "totalSize": "Tamanho total{suffix}",
+    "emptyState": "Introduza os critérios de pesquisa e clique em Analisar para visualizar os tamanhos dos ficheiros",
+    "completeResults": "Resultados completos apresentados!",
+    "incompleteResults": "Os resultados podem ser incompletos",
+    "incompleteResultsDetails": "Mostrar resultados máximos (100). Tente restringir a sua pesquisa para obter mais resultados abaixo de 100.",
+    "relativePercentage": "Percentagem relativa{suffix}",
+    "percentageOfResults": "{percentage}% de resultados"
+  },
+  "fileTypes": {
+    "video": "Vídeo",
+    "image": "Imagem",
+    "audio": "Áudio",
+    "archive": "Arquivo",
+    "document": "Documento",
+    "binary": "Binário",
+    "directory": "Diretório",
+    "other": "Outros"
+  },
+  "tools": {
+    "title": "Ferramentas",
+    "description": "Utilitários e ferramentas de análise para os seus ficheiros",
+    "sizeAnalyzer": {
+      "name": "Analisador de tamanho de ficheiro",
+      "description": "Visualize ficheiros e diretórios grandes com um mapa em árvore interativo"
+    }
   }
 }
