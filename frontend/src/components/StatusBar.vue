@@ -15,7 +15,7 @@
         <div v-if="showGalleryToggle" class="gallery-toggle">
           <action
             class="menu-button"
-            :icon="galleryViewIcon"
+            :icon="switchViewIcon"
             :title="$t('buttons.switchView')"
             @action="toggleGalleryView"
           />
@@ -23,7 +23,7 @@
         <div v-if="showListViewToggle" class="list-toggle">
           <action
             class="menu-button"
-            :icon="listViewIcon"
+            :icon="switchViewIcon"
             :title="$t('buttons.switchView')"
             @action="toggleListView"
           />
@@ -87,11 +87,8 @@ export default {
       const viewMode = getters.viewMode();
       return viewMode === "list" || viewMode === "compact";
     },
-    galleryViewIcon() {
-      return getters.viewMode() === "gallery" ? "grid_view" : "view_comfy";
-    },
-    listViewIcon() {
-      return getters.viewMode() === "list" ? "view_list" : "table_rows_narrow";
+    switchViewIcon() {
+      return "change_circle";
     },
     totalDirectorySize() {
       if (!Array.isArray(state.req?.items)) return 0;
@@ -150,13 +147,20 @@ export default {
   height: 2.5em;
   display: flex;
   align-items: center;
-  position: sticky;
+  position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
   z-index: 10;
   border-radius: 2px;
   overflow: hidden;
+  margin: 0;
+  padding: 0;
+  transition: 0.5s ease;
+}
+
+#main.moveWithSidebar #status-bar {
+  left: 22.7em;
 }
 
 .status-content {
