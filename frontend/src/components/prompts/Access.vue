@@ -7,7 +7,7 @@
       <file-list @update:selected="updateTempPath" :browse-source="sourceName"></file-list>
     </div>
     <div v-else>
-      <p>{{ $t("prompts.source", { suffix: ":" }) }} {{ currentSource }}</p>
+      <p>{{ $t("general.source", { suffix: ":" }) }} {{ currentSource }}</p>
       <div aria-label="access-path" class="searchContext clickable button" @click="startPathEdit">
         {{ $t("search.path") }} {{ currentPath }}
       </div>
@@ -49,7 +49,7 @@
           <tr>
             <th>{{ $t("access.allowDeny") }}</th>
             <th>{{ $t("access.userGroup") }}</th>
-            <th>{{ $t("general.name") }}</th>
+            <th>{{ $t("general.name", { suffix: '' }) }}</th>
             <th>{{ $t("buttons.edit") }}</th>
           </tr>
           <tr v-for="entry in entries" :key="entry.type + '-' + entry.name">

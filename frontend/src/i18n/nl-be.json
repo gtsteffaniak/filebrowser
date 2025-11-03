@@ -208,7 +208,6 @@
     "viewMode": "Weergavemodus",
     "renameMessage": "Voer een nieuwe naam in:",
     "renameMessageInvalid": "Een bestand kan geen \"/\" of \"\\\" bevatten.",
-    "source": "Bron{suffix}",
     "deleteMessageMultiple": "Weet je zeker dat je {count} bestand(en) wilt verwijderen?",
     "deleteMessageShare": "Weet je zeker dat je deze share wilt verwijderen: {path} ?",
     "numberDirs": "Aantal mappen{suffix}",
@@ -249,7 +248,8 @@
     "firstLoadTitle": "Welkom bij FileBrowser Quantum!",
     "halloweenTitle": "Gelukkig Halloween!",
     "halloweenBody": "Het Halloween-thema is toegepast. Je kunt het uitschakelen als je het niet leuk vindt, of permanent uitschakelen in de profielinstellingen door een ander thema te selecteren.",
-    "firstLoadBody": "Er is een nieuwe database aangemaakt bij het opstarten. Als dit niet is wat je verwachtte, controleer dan je configuratiebestand voor het `server.database` pad en zorg ervoor dat het bestaat. Op docker kan het databasepad `./data/database.db` of `./database.db` zijn."
+    "firstLoadBody": "Er is een nieuwe database aangemaakt bij het opstarten. Als dit niet is wat je verwachtte, controleer dan je configuratiebestand voor het `server.database` pad en zorg ervoor dat het bestaat. Op docker kan het databasepad `./data/database.db` of `./database.db` zijn.",
+    "selectPath": "Pad kiezen"
   },
   "search": {
     "images": "Afbeeldingen",
@@ -312,7 +312,6 @@
     "newUser": "Nieuwe gebruiker",
     "password": "Wachtwoord",
     "passwordUpdated": "Wachtwoord bijgewerkt!",
-    "path": "Pad",
     "permissions": {
       "modify": "Bestanden aanpassen",
       "share": "Bestanden delen",
@@ -625,7 +624,11 @@
     "exit": "Ga naar",
     "permanent": "Permanent",
     "hash": "Hash",
-    "of": "van"
+    "of": "van",
+    "source": "Bron{suffix}",
+    "percentage": "{percentage}%",
+    "type": "Type{suffix}",
+    "size": "Maat{suffix}"
   },
   "access": {
     "rules": "Toegangsregels",
@@ -666,5 +669,41 @@
     "changePlaybackMode": "Afspeelmodus wijzigen",
     "changePlaybackModeHint": "Wijzig afspeelmodus om meer bestanden te zien",
     "emptyQueue": "Wachtrij is leeg"
+  },
+  "fileSizeAnalyzer": {
+    "title": "Bestandsgrootte analyzer",
+    "searchLocation": "Locatie zoeken",
+    "selectPath": "Zoeklocatie selecteren",
+    "largerThan": "Groter dan (MB)",
+    "includeFolders": "Mappen opnemen",
+    "includeFoldersDescription": "Directories opnemen in de analyse",
+    "analyze": "Analyseren",
+    "results": "Resultaten",
+    "totalFiles": "Totaal Bestanden{suffix}",
+    "totalSize": "Totale grootte{suffix}",
+    "emptyState": "Voer zoekcriteria in en klik op Analyseren om bestandsgroottes te visualiseren",
+    "completeResults": "Volledige resultaten getoond!",
+    "incompleteResults": "Resultaten kunnen onvolledig zijn",
+    "incompleteResultsDetails": "Max. resultaten (100). Probeer je zoekopdracht te verfijnen om meer resultaten onder de 100 te krijgen.",
+    "relativePercentage": "Relatief percentage{suffix}",
+    "percentageOfResults": "{percentage}% resultaten"
+  },
+  "fileTypes": {
+    "video": "Video",
+    "image": "Afbeelding",
+    "audio": "Audio",
+    "archive": "Archief",
+    "document": "Document",
+    "binary": "Binair",
+    "directory": "Directory",
+    "other": "Andere"
+  },
+  "tools": {
+    "title": "Gereedschap",
+    "description": "Hulpprogramma's en analysetools voor je bestanden",
+    "sizeAnalyzer": {
+      "name": "Bestandsgrootte analyzer",
+      "description": "Visualiseer grote bestanden en mappen met een interactieve treemap"
+    }
   }
 }

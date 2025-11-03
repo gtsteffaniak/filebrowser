@@ -24,7 +24,7 @@ func BenchmarkSearchAllIndexes(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		// Execute the SearchAllIndexes function
 		for _, term := range searchTerms {
-			idx.Search(term, "/", "test")
+			idx.Search(term, "/", "test", false)
 		}
 	}
 }
@@ -84,7 +84,7 @@ func TestSearchWhileIndexing(t *testing.T) {
 	for i := 0; i < 5; i++ {
 		go idx.CreateMockData(100, 100) // Creating mock data concurrently
 		for _, term := range searchTerms {
-			go idx.Search(term, "/", "test") // Search concurrently
+			go idx.Search(term, "/", "test", false) // Search concurrently
 		}
 	}
 }
@@ -292,8 +292,110 @@ func TestSearchIndexes(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.search, func(t *testing.T) {
-			result := index.Search(tt.search, tt.scope, "")
+			result := index.Search(tt.search, tt.scope, "", false)
 			assert.ElementsMatch(t, tt.expectedResult, result)
 		})
 	}
+}
+
+func TestSearchLargestModeExcludesRoot(t *testing.T) {
+	index := Index{
+		Directories: map[string]*iteminfo.FileInfo{
+			"/": {
+				Files: []iteminfo.ItemInfo{
+					{Name: "root-file.txt", Type: "text", Size: 100},
+				},
+				ItemInfo: iteminfo.ItemInfo{
+					Size: 3209322496, // Large root directory size
+				},
+			},
+			"/subdir/": {
+				Files: []iteminfo.ItemInfo{
+					{Name: "sub-file.txt", Type: "text", Size: 200},
+				},
+				ItemInfo: iteminfo.ItemInfo{
+					Size: 5 * 1024 * 1024, // 5MB subdirectory
+				},
+			},
+			"/another-dir/": {
+				Files: []iteminfo.ItemInfo{
+					{Name: "large-file.bin", Type: "binary", Size: 10 * 1024 * 1024}, // 10MB file
+				},
+				ItemInfo: iteminfo.ItemInfo{
+					Size: 10 * 1024 * 1024,
+				},
+			},
+		},
+	}
+
+	// Test that when largest=true and scope="/", the root directory "/" is NOT included
+	result := index.Search("", "/", "test-session", true)
+
+	// Verify that "/" is NOT in the results
+	rootFound := false
+	for _, r := range result {
+		if r.Path == "/" {
+			rootFound = true
+			t.Errorf("Root directory '/' should not be included in results when largest=true, but found: %+v", r)
+		}
+	}
+
+	if rootFound {
+		t.Error("Root directory was incorrectly included in results")
+	}
+
+	// The test passes if root is excluded
+	// (subdirectories and files may or may not be included depending on size filtering logic)
+}
+
+func TestSearchLargestModeExcludesScopeDirectory(t *testing.T) {
+	index := Index{
+		Directories: map[string]*iteminfo.FileInfo{
+			"/": {
+				Files: []iteminfo.ItemInfo{
+					{Name: "root-file.txt", Type: "text", Size: 50},
+				},
+				ItemInfo: iteminfo.ItemInfo{
+					Size: 100,
+				},
+			},
+			"/test/": {
+				Files: []iteminfo.ItemInfo{
+					{Name: "file1.txt", Type: "text", Size: 100},
+				},
+				ItemInfo: iteminfo.ItemInfo{
+					Size: 2 * 1024 * 1024, // 2MB directory
+				},
+			},
+			"/test/subdir/": {
+				Files: []iteminfo.ItemInfo{
+					{Name: "file2.txt", Type: "text", Size: 200},
+				},
+				ItemInfo: iteminfo.ItemInfo{
+					Size: 3 * 1024 * 1024, // 3MB subdirectory
+				},
+			},
+		},
+	}
+
+	// Test that when largest=true and scope="/test/", the scope directory "/test/" is NOT included
+	result := index.Search("", "/test/", "test-session", true)
+
+	// Verify that "/test/" is NOT in the results
+	scopeDirFound := false
+	for _, r := range result {
+		if r.Path == "/test/" {
+			scopeDirFound = true
+			t.Errorf("Scope directory '/test/' should not be included in results when largest=true, but found: %+v", r)
+		}
+	}
+
+	if scopeDirFound {
+		t.Error("Scope directory was incorrectly included in results")
+	}
+
+	// The main assertion: scope directory should be excluded
+	// Note: When search is empty, scope gets cleared, so we search all directories
+	// but still exclude the original scope directory "/test/" from results
+	// Files and subdirectories may or may not be included depending on size/type filtering
 }

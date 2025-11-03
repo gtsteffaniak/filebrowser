@@ -8,7 +8,7 @@
 
     <div class="path-info">
       <div class="path-section">
-        <strong>{{ $t("prompts.sourcePath") }}</strong>
+        <strong>{{ $t("general.path", { suffix: '' }) }}</strong>
         <div class="path-display">
           <span class="path-item" v-for="(item, index) in sourceItems" :key="index">
             {{ item }}

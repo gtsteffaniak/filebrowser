@@ -63,17 +63,14 @@ export const getters = {
     }
     const isShare = getters.isShare();
     const displayPref = getters.displayPreference();
-
     // Priority 1: If there's a saved display preference for this specific share/path, use it
     if (displayPref?.viewMode) {
       return displayPref.viewMode;
     }
-
     // Priority 2: If it's a share and shareInfo.viewMode is set, use that as the default
     if (isShare && shareInfo.viewMode) {
       return shareInfo.viewMode;
     }
-
     // Priority 3: Use user's default viewMode
     return state.user.viewMode || "normal";
   },
@@ -268,6 +265,8 @@ export const getters = {
     }
     if (pathname.startsWith(`/settings`)) {
       listingView = 'settings'
+    } else if (pathname.startsWith(`/tools`)) {
+      listingView = 'tools'
     } else {
       if (state.req.type !== undefined) {
         const ext = "." + state.req.name.split(".").pop().toLowerCase(); // Ensure lowercase and dot

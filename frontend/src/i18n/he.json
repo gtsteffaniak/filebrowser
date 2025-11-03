@@ -208,7 +208,6 @@
     "viewMode": "מצב תצוגה",
     "renameMessage": "הזן שם חדש:",
     "renameMessageInvalid": "קובץ לא יכול להכיל את התווים \"/\" או \"\\\"",
-    "source": "מקור{suffix}",
     "deleteMessageMultiple": "האם אתה בטוח שברצונך למחוק את הקובץ/ים {count}?",
     "deleteMessageShare": "האם אתה בטוח שברצונך למחוק שיתוף זה: {path}?",
     "numberDirs": "מספר הספריות{suffix}",
@@ -249,7 +248,8 @@
     "firstLoadTitle": "ברוכים הבאים ל-FileBrowser Quantum!",
     "halloweenTitle": "חג ליל כל הקדושים שמח!",
     "halloweenBody": "נושא ליל כל הקדושים הוחל. ניתן להשבית אותו אם אינו מוצא חן בעיניך, או להשבית אותו לצמיתות בהגדרות הפרופיל על ידי בחירת נושא אחר.",
-    "firstLoadBody": "במהלך ההפעלה נוצר מסד נתונים חדש. אם זה לא מה שציפית, אנא בדוק שוב את קובץ התצורה שלך עבור הנתיב `server.database` וודא שהוא קיים. ב-docker, נתיב מסד הנתונים יכול להיות `./data/database.db` או `./database.db`."
+    "firstLoadBody": "במהלך ההפעלה נוצר מסד נתונים חדש. אם זה לא מה שציפית, אנא בדוק שוב את קובץ התצורה שלך עבור הנתיב `server.database` וודא שהוא קיים. ב-docker, נתיב מסד הנתונים יכול להיות `./data/database.db` או `./database.db`.",
+    "selectPath": "בחר נתיב"
   },
   "search": {
     "images": "תמונות",
@@ -314,7 +314,6 @@
     "newUser": "משתמש חדש",
     "password": "סיסמא",
     "passwordUpdated": "הסיסמא עודכנה!",
-    "path": "נתיב",
     "permissions": {
       "modify": "עריכת קבצים קבצים",
       "share": "שיתוף קבצים",
@@ -545,7 +544,11 @@
     "exit": "יציאה",
     "permanent": "קבוע",
     "hash": "חשיש",
-    "of": "של"
+    "of": "של",
+    "source": "מקור{suffix}",
+    "percentage": "{percentage}%",
+    "type": "סוג{suffix}",
+    "size": "גודל{suffix}"
   },
   "access": {
     "rules": "כללי גישה",
@@ -666,5 +669,41 @@
     "changePlaybackMode": "שנה מצב ניגון",
     "changePlaybackModeHint": "שנה מצב ניגון כדי לראות יותר קבצים",
     "emptyQueue": "התור ריק"
+  },
+  "fileSizeAnalyzer": {
+    "title": "מנתח גודל קובץ",
+    "searchLocation": "חיפוש מיקום",
+    "selectPath": "בחר מיקום חיפוש",
+    "largerThan": "גדול מ- (MB)",
+    "includeFolders": "כלול תיקיות",
+    "includeFoldersDescription": "כלול ספריות בניתוח",
+    "analyze": "לנתח",
+    "results": "תוצאות",
+    "totalFiles": "סך הקבצים{suffix}",
+    "totalSize": "גודל כולל{suffix}",
+    "emptyState": "הזן את קריטריוני החיפוש ולחץ על \"Analyze\" (נתח) כדי להציג את גודל הקבצים",
+    "completeResults": "תוצאות מלאות מוצגות!",
+    "incompleteResults": "התוצאות עשויות להיות חלקיות",
+    "incompleteResultsDetails": "הצגת תוצאות מקסימליות (100). נסה לצמצם את החיפוש כדי לקבל יותר מ-100 תוצאות.",
+    "relativePercentage": "אחוז יחסי{suffix}",
+    "percentageOfResults": "{percentage}אחוז התוצאות"
+  },
+  "fileTypes": {
+    "video": "וידאו",
+    "image": "תמונה",
+    "audio": "אודיו",
+    "archive": "ארכיון",
+    "document": "מסמך",
+    "binary": "בינארי",
+    "directory": "ספרייה",
+    "other": "אחר"
+  },
+  "tools": {
+    "title": "כלים",
+    "description": "כלי עזר וכלי ניתוח לקבצים שלך",
+    "sizeAnalyzer": {
+      "name": "מנתח גודל קובץ",
+      "description": "הצג קבצים גדולים וספריות באמצעות מפת עץ אינטראקטיבית"
+    }
   }
 }

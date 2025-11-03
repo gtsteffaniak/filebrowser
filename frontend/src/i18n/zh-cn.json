@@ -208,7 +208,6 @@
     "viewMode": "查看模式",
     "renameMessage": "输入新名称：",
     "renameMessageInvalid": "文件不能包含\"/\"或\"\\\"。",
-    "source": "资料来源{suffix}",
     "deleteMessageMultiple": "您确定要删除{count} 文件吗？",
     "deleteMessageShare": "您确定要删除此共享？ {path} ?",
     "numberDirs": "目录数量{suffix}",
@@ -249,7 +248,8 @@
     "firstLoadTitle": "欢迎访问 FileBrowser Quantum！",
     "halloweenTitle": "万圣节快乐",
     "halloweenBody": "万圣节主题已应用。如果不喜欢，可以将其禁用，或者在个人档案设置中选择其他主题将其永久禁用。",
-    "firstLoadBody": "启动时创建了一个新数据库。如果这与您的预期不符，请仔细检查配置文件中的 `server.database` 路径并确保其存在。在 docker 上，数据库路径可以是 `./data/database.db` 或 `./database.db`。"
+    "firstLoadBody": "启动时创建了一个新数据库。如果这与您的预期不符，请仔细检查配置文件中的 `server.database` 路径并确保其存在。在 docker 上，数据库路径可以是 `./data/database.db` 或 `./database.db`。",
+    "selectPath": "选择路径"
   },
   "search": {
     "images": "图像",
@@ -313,7 +313,6 @@
     "newUser": "新建用户",
     "password": "密码",
     "passwordUpdated": "密码已更新！",
-    "path": "路径",
     "permissions": {
       "modify": "编辑",
       "share": "分享文件",
@@ -625,7 +624,11 @@
     "exit": "退出",
     "permanent": "永久性",
     "hash": "散列",
-    "of": "的"
+    "of": "的",
+    "source": "资料来源{suffix}",
+    "percentage": "{percentage}%",
+    "type": "类型{suffix}",
+    "size": "尺寸{suffix}"
   },
   "access": {
     "rules": "访问规则",
@@ -666,5 +669,41 @@
     "changePlaybackMode": "更改播放模式",
     "changePlaybackModeHint": "更改播放模式以查看更多文件",
     "emptyQueue": "队列为空"
+  },
+  "fileSizeAnalyzer": {
+    "title": "文件大小分析器",
+    "searchLocation": "搜索地点",
+    "selectPath": "选择搜索位置",
+    "largerThan": "大于 (MB)",
+    "includeFolders": "包括文件夹",
+    "includeFoldersDescription": "将目录纳入分析",
+    "analyze": "分析",
+    "results": "成果",
+    "totalFiles": "文件总数{suffix}",
+    "totalSize": "总面积{suffix}",
+    "emptyState": "输入搜索条件并点击分析，即可直观查看文件大小",
+    "completeResults": "显示完整结果！",
+    "incompleteResults": "结果可能不完整",
+    "incompleteResultsDetails": "显示最多结果 (100)。请尝试缩小搜索范围，以获得更多低于 100 的结果。",
+    "relativePercentage": "相对百分比{suffix}",
+    "percentageOfResults": "{percentage}结果百分比"
+  },
+  "fileTypes": {
+    "video": "视频",
+    "image": "图片",
+    "audio": "音频",
+    "archive": "档案",
+    "document": "文件",
+    "binary": "二进制",
+    "directory": "目录",
+    "other": "其他"
+  },
+  "tools": {
+    "title": "工具",
+    "description": "文件实用工具和分析工具",
+    "sizeAnalyzer": {
+      "name": "文件大小分析器",
+      "description": "利用交互式树形图可视化大型文件和目录"
+    }
   }
 }

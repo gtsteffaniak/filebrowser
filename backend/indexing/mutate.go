@@ -153,7 +153,6 @@ func GetIndex(name string) *Index {
 			logger.Errorf("index %s not found", name)
 			return nil
 		}
-
 	}
 	return index
 }
