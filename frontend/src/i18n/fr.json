@@ -95,7 +95,9 @@
     "sortByName": "Trier par nom",
     "sortBySize": "Trier par taille",
     "noPreview": "Il n'y a pas de prévisualisation pour ce fichier.",
-    "noDownloadAccess": "Le téléchargement n'est pas disponible."
+    "noDownloadAccess": "Le téléchargement n'est pas disponible.",
+    "itemSelected": "élément sélectionné",
+    "itemsSelected": "éléments sélectionnés"
   },
   "help": {
     "functionKeys": "Touches de Fonction",
