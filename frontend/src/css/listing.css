@@ -5,7 +5,7 @@
   transition: width 0.25s, height 0.25s, box-shadow 0.2s ease-in-out, transform 0.1s ease-in-out;
   user-select: none;
   min-height: 75vh;
-  padding-bottom: 0.5em;
+  padding-bottom: 2.25em; /* Space for status bar - this prevents items from going behind */
 }
 
 body.rtl #listingView {
