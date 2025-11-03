@@ -15,9 +15,6 @@ func validateAccessRules() {
 	if store.Access == nil {
 		return
 	}
-
-	logger.Info("Validating and migrating access rules to new format...")
-
 	// Get all sources
 	for sourcePath := range settings.Config.Server.SourceMap {
 		// Clear cache before migration to ensure we get fresh data
@@ -50,8 +47,6 @@ func validateAccessRules() {
 				// Create the new path with trailing slash
 				newPath := oldPath + "/"
 
-				logger.Debugf("Migrating access rule from '%s' to '%s'", oldPath, newPath)
-
 				// Migrate the rule to the new path
 				if err := migrateAccessRule(sourcePath, oldPath, newPath, rule); err != nil {
 					logger.Errorf("Failed to migrate rule from %s to %s: %v", oldPath, newPath, err)
@@ -74,8 +69,6 @@ func validateAccessRules() {
 			logger.Infof("Migrated %d access rules for source %s", migratedCount, sourcePath)
 		}
 	}
-
-	logger.Info("Access rules validation completed")
 }
 
 // migrateAccessRule creates a new access rule with the new path format

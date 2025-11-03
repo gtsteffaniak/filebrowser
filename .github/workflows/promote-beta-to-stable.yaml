@@ -86,25 +86,3 @@ jobs:
           git push origin "$STABLE_BRANCH"
 
           echo "✅ Successfully merged '$BETA_BRANCH' into '$STABLE_BRANCH'."
-
-#      - name: Delete beta branch after successful merge
-#        run: |
-#          VERSION="${{ github.event.inputs.version }}"
-#          BETA_BRANCH="beta/v$VERSION"
-#
-#          # Delete beta branch locally and remotely
-#          git branch -d "$BETA_BRANCH"
-#          git push origin --delete "$BETA_BRANCH"
-#
-#          echo "✅ Successfully deleted '$BETA_BRANCH'."
-
-      - name: Create Pull Request to Main
-        uses: peter-evans/create-pull-request@v6
-        with:
-          token: ${{ secrets.PAT }}
-          commit-message: "Promote stable/v${{ github.event.inputs.version }} to main"
-          title: "Promote stable/v${{ github.event.inputs.version }} to main"
-          body: "This PR promotes stable/v${{ github.event.inputs.version }} to the main branch."
-          base: main
-          branch: stable/v${{ github.event.inputs.version }}
-          delete-branch: false

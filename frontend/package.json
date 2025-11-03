@@ -4,14 +4,14 @@
   "private": true,
   "type": "module",
   "engines": {
-    "npm": ">=7.0.0",
-    "node": ">=18.0.0"
+    "npm": ">=9.0.0",
+    "node": ">=20.0.0"
   },
   "scripts": {
     "build": "rm -rf ../backend/http/dist/* && rm -rf ../backend/http/embed/* && vite build --outDir ../backend/http/dist && cp -r ../backend/http/dist/* ../backend/http/embed",
     "build:windows": "vite build --outDir ../backend/http/dist && robocopy ../backend/http/dist ../backend/http/embed /e",
     "build:docker": "vite build",
-    "watch": "DEV_BUILD=true vite build --watch --outDir ../backend/http/dist",
+    "watch": "vite build --watch --outDir ../backend/http/dist",
     "typecheck": "vue-tsc -p ./tsconfig.json --noEmit",
     "lint": "eslint --ext .js,.vue,ts src",
     "lint:fix": "eslint --fix src/",

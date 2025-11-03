@@ -100,6 +100,10 @@
     "itemsSelected": "عناصر محددة"
   },
   "help": {
+    "functionKeys": "مفاتيح الوظائف",
+    "mouseActions": "إجراءات الفأرة",
+    "fileOperations": "عمليات الملفات",
+    "navigation": "التنقل",
     "click": "حدد الملف أو المجلد",
     "ctrl": {
       "click": "حدد أكثر من ملف او مجلد",
@@ -228,7 +232,26 @@
     "sourcePath": "المصدر:",
     "destinationPath": "الوجهة",
     "closeWithActiveUploadsMessage": "تحذير: لديك تحميلات نشطة وقد يؤدي إغلاق مطالبة التحميل إلى تحميلات غير مكتملة. ماذا تريد أن تفعل؟",
-    "closeWithActiveUploads": "التحميلات النشطة"
+    "closeWithActiveUploads": "التحميلات النشطة",
+    "basicInfo": "معلومات أساسية",
+    "directoryInfo": "معلومات الدليل",
+    "additionalInfo": "معلومات إضافية",
+    "hidden": "مخفي",
+    "hasPreview": "لديه معاينة",
+    "checksums": "خانات الشيكات",
+    "hashAlgorithm": "خوارزمية التجزئة",
+    "hashValue": "قيمة التجزئة",
+    "selectHashAlgorithm": "تحديد خوارزمية تجزئة",
+    "generate": "توليد",
+    "errorGeneratingHash": "خطأ في توليد التجزئة",
+    "hashCopied": "التجزئة المنسوخة إلى الحافظة",
+    "errorCopyingHash": "خطأ في نسخ تجزئة التجزئة",
+    "token": "الرمز المميز",
+    "onlyOfficeId": "معرّف المكتب فقط",
+    "firstLoadTitle": "مرحبًا بك في متصفح الملفات الكمي!",
+    "halloweenTitle": "عيد هالوين سعيد!",
+    "halloweenBody": "تم تطبيق سمة الهالوين. يمكنك تعطيله إذا لم يعجبك، أو تعطيله بشكل دائم في إعدادات الملف الشخصي عن طريق تحديد أي سمة أخرى.",
+    "firstLoadBody": "تم إنشاء قاعدة بيانات جديدة عند بدء التشغيل. إذا لم يكن هذا هو ما كنت تتوقعه، يرجى التحقق مرة أخرى من ملف التكوين الخاص بك لمسار 'server.database' والتأكد من وجوده. في docker، يمكن أن يكون مسار قاعدة البيانات \"./data/database.db\" أو \"./database.db\"."
   },
   "search": {
     "images": "الصور",
@@ -645,9 +668,5 @@
     "changePlaybackMode": "تغيير وضع التشغيل",
     "changePlaybackModeHint": "غير وضع التشغيل لرؤية المزيد من الملفات",
     "emptyQueue": "قائمة التشغيل فارغة"
-  },
-  "halloween": {
-    "title": "عيد هالوين سعيد!",
-    "body": "تم تطبيق سمة الهالوين. يمكنك تعطيله إذا لم يعجبك، أو تعطيله بشكل دائم في إعدادات الملف الشخصي عن طريق تحديد أي سمة أخرى."
   }
 }

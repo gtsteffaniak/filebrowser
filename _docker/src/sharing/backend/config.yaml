@@ -21,3 +21,5 @@ frontend:
     - text: "A playwright test"
       url: "https://playwright.dev/"
       title: "Playwright"
+  styling:
+    disableEventThemes: true

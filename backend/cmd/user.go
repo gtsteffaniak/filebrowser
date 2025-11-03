@@ -34,6 +34,9 @@ func validateUserInfo(newDB bool) {
 		if updateLoginType(user) {
 			updateUser = true
 		}
+		if updateShowFirstLogin(user) {
+			updateUser = true
+		}
 		adminUser := settings.Config.Auth.AdminUsername
 		adminPass := settings.Config.Auth.AdminPassword
 		passwordEnabled := settings.Config.Auth.Methods.PasswordAuth.Enabled
@@ -105,6 +108,14 @@ func updateUserScopes(user *users.User) bool {
 	changed := !reflect.DeepEqual(user.Scopes, newScopes)
 	user.Scopes = newScopes
 	return changed
+}
+
+func updateShowFirstLogin(user *users.User) bool {
+	if user.ShowFirstLogin && !settings.Config.Env.IsFirstLoad {
+		user.ShowFirstLogin = false
+		return true
+	}
+	return false
 }
 
 // func to convert legacy user with perm key to permissions

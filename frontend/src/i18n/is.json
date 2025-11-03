@@ -94,6 +94,10 @@
     "itemsSelected": "atriði valin"
   },
   "help": {
+    "functionKeys": "Virknislyklar",
+    "mouseActions": "Músaraðgerðir",
+    "fileOperations": "Skráaðgerðir",
+    "navigation": "Flakk",
     "click": "velja skrá eða möppu",
     "ctrl": {
       "click": "velja margar skrár eða möppur",

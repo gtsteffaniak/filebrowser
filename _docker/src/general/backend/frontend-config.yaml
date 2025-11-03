@@ -2,6 +2,7 @@ frontend-main: &frontend-main
   name: "Graham's Filebrowser"
   disableDefaultLinks: true
   styling:
+    disableEventThemes: true
     customThemes:
       no-rounded:
         description: "No rounded corners" # The description of the theme to display in the UI.

@@ -11,7 +11,7 @@
 
     <breadcrumbs v-if="showBreadCrumbs" :base="isShare ? `/share/${shareHash}` : undefined" />
     <errors v-if="error && !(isShare && error.status === 401)" :errorCode="error.status" />
-    <component v-else-if="currentViewLoaded" :is="currentView" :key="componentKey"></component>
+    <component v-else-if="currentViewLoaded" :is="currentView"></component>
     <div v-else>
       <h2 class="message delayed">
         <div class="spinner">
@@ -101,9 +101,6 @@ export default {
     reload() {
       return state.reload;
     },
-    componentKey() {
-      return state.req?.onlyOfficeId
-    },
   },
   created() {
     if (getters.eventTheme() === "halloween" && !localStorage.getItem("seenHalloweenMessage")) {
@@ -111,8 +108,8 @@ export default {
       mutations.showHover({
         name: "generic",
         props: {
-          title: this.$t("halloween.title"),
-          body: this.$t("halloween.body"),
+          title: this.$t("prompts.halloweenTitle"),
+          body: this.$t("prompts.halloweenBody"),
           buttons: [
             {
               label: this.$t("buttons.close"),

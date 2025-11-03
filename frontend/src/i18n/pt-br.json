@@ -100,6 +100,10 @@
     "itemsSelected": "itens selecionados"
   },
   "help": {
+    "functionKeys": "Teclas de Função",
+    "mouseActions": "Ações do Mouse",
+    "fileOperations": "Operações de Arquivos",
+    "navigation": "Navegação",
     "click": "selecionar pasta ou arquivo",
     "ctrl": {
       "click": "selecionar várias pastas e arquivos",
@@ -228,7 +232,26 @@
     "sourcePath": "Fonte:",
     "destinationPath": "Destino:",
     "closeWithActiveUploadsMessage": "Aviso: Você tem uploads ativos e fechar o prompt de upload pode resultar em uploads inacabados. O que você gostaria de fazer?",
-    "closeWithActiveUploads": "Uploads ativos"
+    "closeWithActiveUploads": "Uploads ativos",
+    "basicInfo": "Informações básicas",
+    "directoryInfo": "Informações de diretório",
+    "additionalInfo": "Informações adicionais",
+    "hidden": "Oculto",
+    "hasPreview": "Tem Prévia",
+    "checksums": "Checksums",
+    "hashAlgorithm": "Algoritmo de hash",
+    "hashValue": "Valor Hash",
+    "selectHashAlgorithm": "Selecione um algoritmo de hash",
+    "generate": "Gerar",
+    "errorGeneratingHash": "Erro ao gerar hash",
+    "hashCopied": "Hash copiado para a área de transferência",
+    "errorCopyingHash": "Erro ao copiar o hash",
+    "token": "Token",
+    "onlyOfficeId": "ID do OnlyOffice",
+    "firstLoadTitle": "Bem-vindo ao FileBrowser Quantum!",
+    "halloweenTitle": "Feliz Dia das Bruxas!",
+    "halloweenBody": "O tema Halloween foi aplicado. Você pode desativá-lo se não gostar dele ou desativá-lo permanentemente nas configurações de perfil, selecionando qualquer outro tema.",
+    "firstLoadBody": "Um novo banco de dados foi criado na inicialização. Se isso não for o que você esperava, verifique novamente em seu arquivo de configuração o caminho `server.database` e certifique-se de que ele exista. No docker, o caminho do banco de dados pode ser `./data/database.db` ou `./database.db`."
   },
   "search": {
     "images": "Imagens",
@@ -645,9 +668,5 @@
     "changePlaybackMode": "Alterar modo de reprodução",
     "changePlaybackModeHint": "Altere o modo de reprodução para ver mais arquivos",
     "emptyQueue": "A fila está vazia"
-  },
-  "halloween": {
-    "title": "Feliz Dia das Bruxas!",
-    "body": "O tema Halloween foi aplicado. Você pode desativá-lo se não gostar dele ou desativá-lo permanentemente nas configurações de perfil, selecionando qualquer outro tema."
   }
 }

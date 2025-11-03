@@ -86,14 +86,3 @@ jobs:
           git push origin "$BETA_BRANCH"
 
           echo "✅ Successfully merged '$DEV_BRANCH' into '$BETA_BRANCH'."
-
-#      - name: Delete dev branch after successful merge
-#        run: |
-#          VERSION="${{ github.event.inputs.version }}"
-#          DEV_BRANCH="dev/v$VERSION"
-#
-#          # Delete dev branch locally and remotely
-#          git branch -d "$DEV_BRANCH"
-#          git push origin --delete "$DEV_BRANCH"
-#
-#          echo "✅ Successfully deleted '$DEV_BRANCH'."

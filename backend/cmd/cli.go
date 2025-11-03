@@ -350,8 +350,7 @@ func createConfig(configpath string) {
 
 func generateYaml() {
 	generateConfig := os.Getenv("FILEBROWSER_GENERATE_CONFIG") == "true"
-	devMode := os.Getenv("FILEBROWSER_DEVMODE") == "true"
-	if generateConfig || devMode {
+	if generateConfig || settings.Config.Env.IsDevMode {
 		logger.Info("Generating config.yaml")
 		settings.GenerateYaml()
 	}

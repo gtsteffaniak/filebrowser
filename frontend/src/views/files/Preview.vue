@@ -91,7 +91,13 @@ export default {
             return state.user.permissions;
         },
         showImage() {
-            return this.previewType == 'image' || this.pdfConvertable || this.heicConvertable;
+            if (state.req.type == "image/heic" || state.req.type == "image/heif") {
+                if (this.isHeicAndViewable) {
+                    return true;
+                }
+                return false;
+            }
+            return this.previewType == 'image' || this.pdfConvertable;
         },
         autoPlay() {
             return state.user.preview.autoplayMedia;
@@ -106,8 +112,11 @@ export default {
             const isSafari = /^((?!chrome|android).)*safari/i.test(userAgent);
             return isIOS && isSafari;
         },
-        heicConvertable() {
-            return globalVars.enableHeicConversion && state.req.type == "image/heic";
+        isHeicAndViewable() {
+            if (globalVars.enableHeicConversion || state.isSafari) {
+                return true;
+            }
+            return false;
         },
         pdfConvertable() {
             if (!globalVars.muPdfAvailable) {

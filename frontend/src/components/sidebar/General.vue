@@ -162,7 +162,7 @@ export default {
       if (getters.isShare()) {
         return shareInfo.allowCreate
       }
-      return state.user.permissions.create || state.user.permissions.share || state.user.permissions.admin;
+      return state.user?.permissions?.create || state.user?.permissions?.share || state.user?.permissions?.admin;
     },
     shareInfo: () => shareInfo,
     disableQuickToggles: () => state.user?.disableQuickToggles,
@@ -182,8 +182,6 @@ export default {
     currentPrompt: () => getters.currentPrompt(),
     active: () => getters.isSidebarVisible(),
     signup: () => globalVars.signup,
-    version: () => globalVars.version,
-    commitSHA: () => globalVars.commitSHA,
     disableExternal: () => globalVars.disableExternal,
     canLogout: () => !globalVars.noAuth && state.user?.username !== 'anonymous',
     route: () => state.route,

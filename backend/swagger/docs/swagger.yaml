@@ -37,13 +37,6 @@ definitions:
       token:
         type: string
     type: object
-  http.signupBody:
-    properties:
-      password:
-        type: string
-      username:
-        type: string
-    type: object
   indexing.IndexStatus:
     enum:
     - ready
@@ -309,6 +302,9 @@ definitions:
         type: array
       favicon:
         description: path to a favicon to use for the frontend
+        type: string
+      loginIcon:
+        description: path to an image file for the login page icon
         type: string
       name:
         description: display name
@@ -1116,6 +1112,8 @@ definitions:
         items:
           $ref: '#/definitions/users.SourceScope'
         type: array
+      showFirstLogin:
+        type: boolean
       showHidden:
         description: show hidden files in the UI. On windows this includes files starting
           with a dot and windows hidden files
@@ -1562,13 +1560,6 @@ paths:
       consumes:
       - application/json
       description: Register a new user account with a username and password.
-      parameters:
-      - description: User signup details
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/http.signupBody'
       produces:
       - application/json
       responses:

@@ -100,6 +100,10 @@
     "itemsSelected": "項目已選擇"
   },
   "help": {
+    "functionKeys": "功能鍵",
+    "mouseActions": "滑鼠操作",
+    "fileOperations": "檔案操作",
+    "navigation": "導航",
     "click": "選擇檔案或目錄",
     "ctrl": {
       "click": "選擇多個檔案或目錄",
@@ -228,7 +232,26 @@
     "sourcePath": "來源",
     "destinationPath": "目的地：",
     "closeWithActiveUploadsMessage": "警告：您有進行中的上傳，關閉上傳提示可能會導致未完成的上傳。您想做什麼？",
-    "closeWithActiveUploads": "有效上傳"
+    "closeWithActiveUploads": "有效上傳",
+    "basicInfo": "基本資訊",
+    "directoryInfo": "目錄資訊",
+    "additionalInfo": "其他資訊",
+    "hidden": "隱藏",
+    "hasPreview": "已預覽",
+    "checksums": "校驗和",
+    "hashAlgorithm": "切細值演算法",
+    "hashValue": "雜湊值",
+    "selectHashAlgorithm": "選擇散列演算法",
+    "generate": "產生",
+    "errorGeneratingHash": "錯誤產生切細值",
+    "hashCopied": "Hash 複製到剪貼簿",
+    "errorCopyingHash": "複製散列出錯",
+    "token": "代幣",
+    "onlyOfficeId": "OnlyOffice ID",
+    "firstLoadTitle": "歡迎來到 FileBrowser Quantum！",
+    "halloweenTitle": "萬聖節快樂",
+    "halloweenBody": "萬聖節主題已套用。如果您不喜歡，可以將其停用，或在個人資料設定中選擇任何其他主題，將其永久停用。",
+    "firstLoadBody": "啟動時已建立新資料庫。如果這與您的預期不同，請仔細檢查您的設定檔中的 `server.database` 路徑，並確認它存在。在 docker 上，資料庫路徑可以是 `./data/database.db` 或 `./database.db`。"
   },
   "search": {
     "images": "影像",
@@ -645,9 +668,5 @@
     "changePlaybackMode": "變更播放模式",
     "changePlaybackModeHint": "變更播放模式以查看更多檔案",
     "emptyQueue": "佇列為空"
-  },
-  "halloween": {
-    "title": "萬聖節快樂",
-    "body": "萬聖節主題已套用。如果您不喜歡，可以將其停用，或在個人資料設定中選擇任何其他主題，將其永久停用。"
   }
 }

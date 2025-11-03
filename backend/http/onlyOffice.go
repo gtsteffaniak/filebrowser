@@ -175,8 +175,8 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 	)
 	storeOnlyOfficeLogContext(documentId, logContext)
 
-	// Send initial log event
-	sendOnlyOfficeLogEvent(logContext, "INFO", "config", fmt.Sprintf("OnlyOffice session started for document: %s", d.fileInfo.Name))
+	// Send initial log event with detailed path information
+	sendOnlyOfficeLogEvent(logContext, "INFO", "config", fmt.Sprintf("OnlyOffice session started for document: %s ", path))
 
 	// Build download URL that OnlyOffice server will use
 	downloadURL := buildOnlyOfficeDownloadURL(source, providedPath, d.fileInfo.Hash, d.token)
@@ -440,8 +440,8 @@ func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *reques
 		} else {
 			// Verify user has modify permissions
 			if !d.user.Permissions.Modify {
-				logger.Errorf("OnlyOffice callback: user %s lacks modify permissions for source=%s, path=%s",
-					d.user.Username, source, path)
+				logger.Errorf("OnlyOffice callback: user %s lacks modify permissions for path=%s",
+					d.user.Username, path)
 				return returnOnlyOfficeError(w, r, 403, "user lacks modify permissions")
 			}
 		}
@@ -460,60 +460,52 @@ func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *reques
 			return returnOnlyOfficeError(w, r, 500, "failed to download document from OnlyOffice server")
 		}
 
-		// Resolve file path for writing (same logic as in config handler)
-		resolvedPath := path
-		if d.fileInfo.Hash == "" {
-			// Regular user request - need to resolve scope
-			userScope, scopeErr := settings.GetScopeFromSourceName(d.user.Scopes, source)
-			if scopeErr != nil {
-				logger.Errorf("OnlyOffice callback: source %s not available for user %s: %v",
-					source, d.user.Username, scopeErr)
-				return returnOnlyOfficeError(w, r, 403, "source not available")
-			}
-			resolvedPath = utils.JoinPathAsUnix(userScope, path)
-		}
+		logger.Debugf("OnlyOffice callback: saving document to path=%s",
+			path)
 
-		logger.Debugf("OnlyOffice callback: saving document to path=%s, source=%s, user=%s",
-			resolvedPath, source, d.user.Username)
+		// Send detailed log event for file saving with path information
+		if logContext := getOnlyOfficeLogContext(data.Key); logContext != nil {
+			sendOnlyOfficeLogEvent(logContext, "INFO", "callback", fmt.Sprintf("Saving document to path: %s", path))
+		}
 
 		// CRITICAL: Validate that the original file still exists before saving
 		// This prevents creating duplicate files if the original was renamed/moved
 		_, err = files.FileInfoFaster(utils.FileOptions{
 			Source: source,
-			Path:   resolvedPath,
+			Path:   path,
 		}, nil)
 		if err != nil {
-			logger.Errorf("OnlyOffice callback: original file no longer exists at path=%s, source=%s: %v",
-				resolvedPath, source, err)
+			logger.Errorf("OnlyOffice callback: original file no longer exists at path=%s: %v",
+				path, err)
 
-			// Send error log event
+			// Send error log event with path information
 			if logContext := getOnlyOfficeLogContext(data.Key); logContext != nil {
 				sendOnlyOfficeLogEvent(logContext, "ERROR", "callback",
-					fmt.Sprintf("Original file no longer exists: %v -- was it renamed or moved?", err))
+					fmt.Sprintf("Original file no longer exists at path: %s - %v -- was it renamed or moved?", path, err))
 			}
 
 			return returnOnlyOfficeError(w, r, 404, "original file no longer exists - it may have been renamed or moved")
 		}
 
-		writeErr := files.WriteFile(source, resolvedPath, doc.Body)
+		writeErr := files.WriteFile(source, path, doc.Body)
 		if writeErr != nil {
-			logger.Errorf("OnlyOffice callback: failed to write updated document to path=%s, source=%s: %v",
-				resolvedPath, source, writeErr)
+			logger.Errorf("OnlyOffice callback: failed to write updated document to path=%s: %v",
+				path, writeErr)
 
-			// Send error log event
+			// Send error log event with path information
 			if logContext := getOnlyOfficeLogContext(data.Key); logContext != nil {
-				sendOnlyOfficeLogEvent(logContext, "ERROR", "callback", fmt.Sprintf("Failed to save document: %v", writeErr))
+				sendOnlyOfficeLogEvent(logContext, "ERROR", "callback", fmt.Sprintf("Failed to save document to path: %s - %v", path, writeErr))
 			}
 
 			return returnOnlyOfficeError(w, r, 500, "failed to save document")
 		}
 
-		logger.Infof("OnlyOffice callback: successfully saved document to path=%s, source=%s",
-			resolvedPath, source)
+		logger.Infof("OnlyOffice callback: successfully saved document to path=%s",
+			path)
 
-		// Send success log event
+		// Send success log event with detailed path information
 		if logContext := getOnlyOfficeLogContext(data.Key); logContext != nil {
-			sendOnlyOfficeLogEvent(logContext, "INFO", "callback", "Document saved successfully")
+			sendOnlyOfficeLogEvent(logContext, "INFO", "callback", fmt.Sprintf("Document saved successfully to path: %s", path))
 		}
 	}
 
