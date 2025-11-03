@@ -95,7 +95,9 @@
     "sortByName": "名前によるソート",
     "sortBySize": "サイズによるソート",
     "noPreview": "このファイルではプレビューは利用できません。",
-    "noDownloadAccess": "ダウンロードはできません。"
+    "noDownloadAccess": "ダウンロードはできません。",
+    "itemSelected": "項目選択済み",
+    "itemsSelected": "項目選択済み"
   },
   "help": {
     "functionKeys": "ファンクションキー",

@@ -95,7 +95,9 @@
     "sortByName": "الترتيب بالإسم",
     "sortBySize": "الترتيب بالحجم",
     "noPreview": "المعاينة غير متوفرة لهذا الملف.",
-    "noDownloadAccess": "التنزيل غير متاح."
+    "noDownloadAccess": "التنزيل غير متاح.",
+    "itemSelected": "عنصر محدد",
+    "itemsSelected": "عناصر محددة"
   },
   "help": {
     "functionKeys": "مفاتيح الوظائف",

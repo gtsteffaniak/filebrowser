@@ -95,7 +95,9 @@
     "sortByName": "按名称排序",
     "sortBySize": "按大小排序",
     "noPreview": "此文件无法预览。",
-    "noDownloadAccess": "无法下载。"
+    "noDownloadAccess": "无法下载。",
+    "itemSelected": "项目已选择",
+    "itemsSelected": "项目已选择"
   },
   "help": {
     "functionKeys": "功能键",
