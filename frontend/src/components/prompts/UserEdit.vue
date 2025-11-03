@@ -352,7 +352,6 @@ export default {
           }
         }
       } catch (e) {
-        notify.showError(e);
         this.error = e;
       } finally {
         mutations.setLoading("users", false);
@@ -409,7 +408,7 @@ export default {
           mutations.closeHovers();
         }
       } catch (e) {
-        notify.showError(e);
+        console.error(e);
       }
     },
     newOTP() {

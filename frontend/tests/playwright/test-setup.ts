@@ -4,6 +4,7 @@ export const test = base.extend<{
   checkForErrors: (expectedConsoleErrors?: number, expectedApiErrors?: number) => void;
   openContextMenu: () => Promise<void>;
   theme: 'light' | 'dark';
+  checkForNotification: (message: string | RegExp) => Promise<import('@playwright/test').Locator>;
 }>({
   checkForErrors: async ({ page }, use) => {
     const { checkForErrors } = setupErrorTracking(page);
@@ -18,6 +19,11 @@ export const test = base.extend<{
   theme: async ({}, use, testInfo) => {
     const theme = (testInfo.project.use as any).theme || 'dark';
     await use(theme);
+  },
+  checkForNotification: async ({ page }, use) => {
+    await use(async (message: string | RegExp) => {
+      return await checkForNotification(page, message);
+    });
   },
 });
 
@@ -119,5 +125,84 @@ export function setupErrorTracking(page: Page) {
 }
 
 
+
+/**
+ * Helper function to check for a notification with the given message
+ * @param page - Playwright page object
+ * @param message - Expected message text (string or RegExp)
+ * @returns Locator for the matching notification message
+ */
+export async function checkForNotification(page: Page, message: string | RegExp): Promise<import('@playwright/test').Locator> {
+  // Use Playwright's built-in waiting mechanism with a locator filter
+  // This will automatically retry until the notification appears or timeout
+  const notificationMessage = page.locator('.notification-message');
+
+  try {
+    // Wait for a notification containing the message to appear
+    // Use Playwright's filter to find the matching notification
+    let matchingNotification: import('@playwright/test').Locator | null = null;
+
+    if (typeof message === 'string') {
+      // For string matching, use text content filter
+      matchingNotification = notificationMessage.filter({ hasText: message }).first();
+    } else {
+      // For RegExp, we need to check all and find the match
+      // Wait for at least one notification first
+      await notificationMessage.first().waitFor({ state: 'visible', timeout: 5000 });
+
+      // Then check all notifications
+      const count = await notificationMessage.count();
+      for (let i = 0; i < count; i++) {
+        const notification = notificationMessage.nth(i);
+        const text = await notification.textContent();
+        if (text && message.test(text)) {
+          matchingNotification = notification;
+          break;
+        }
+      }
+    }
+
+    if (matchingNotification) {
+      // Wait for it to be visible (with retry logic)
+      await matchingNotification.waitFor({ state: 'visible', timeout: 5000 });
+      return matchingNotification;
+    }
+
+    // If no match found, get all messages for error reporting
+    const allMessages = await notificationMessage.allTextContents();
+    const errorMessage = `Notification with message "${message}" not found. Current notifications: ${JSON.stringify(allMessages)}`;
+    throw new Error(errorMessage);
+
+  } catch (error: any) {
+    // Handle page closed/navigation errors gracefully
+    if (error.message && (error.message.includes('Target page') || error.message.includes('closed'))) {
+      // Try to get current notifications before page closed
+      try {
+        const allMessages = await notificationMessage.allTextContents();
+        throw new Error(`Notification check failed: page was closed or navigated. Expected message: "${message}". Found notifications before page closed: ${JSON.stringify(allMessages)}`);
+      } catch {
+        throw new Error(`Notification check failed: page was closed or navigated before notification could be checked. Expected message: "${message}"`);
+      }
+    }
+
+    // If no notifications found, provide helpful error
+    if (error.message && error.message.includes('waiting for')) {
+      try {
+        const allMessages = await notificationMessage.allTextContents();
+        const errorMessage = allMessages.length === 0
+          ? 'No notifications found on the page.'
+          : `No notifications found. Current notifications: ${JSON.stringify(allMessages)}`;
+        throw new Error(`Notification with message "${message}" not found. ${errorMessage}`);
+      } catch (countError: any) {
+        if (countError.message && (countError.message.includes('Target page') || countError.message.includes('closed'))) {
+          throw error;
+        }
+        throw countError;
+      }
+    }
+
+    throw error;
+  }
+}
 
 export { expect };

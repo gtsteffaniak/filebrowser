@@ -2,7 +2,7 @@ import { adjustedData } from "./utils";
 import { notify } from "@/notify";
 import { getApiPath, getPublicApiPath, encodedPath, doubleEncode } from "@/utils/url.js";
 import { globalVars,shareInfo } from "@/utils/constants";
-import { state, mutations } from "@/store";
+import { state } from "@/store";
 
 // ============================================================================
 // PUBLIC API ENDPOINTS (hash-based authentication)
@@ -272,16 +272,8 @@ export async function moveCopy(
 
     // Await all promises and ensure errors propagate
     await Promise.all(promises)
-    setTimeout(() => {
-      notify.showSuccess(
-        action === 'copy' ? 'Resources copied successfully' : 'Resources moved successfully'
-      )
-    }, 125);
-    setTimeout(() => {
-      mutations.setReload(true);
-    }, 125);
   } catch (err) {
-    notify.showError(err.message || 'Error moving/copying resources')
+    console.error(err.message || 'Error moving/copying resources')
     throw err // Re-throw the error to propagate it back to the caller
   }
 }

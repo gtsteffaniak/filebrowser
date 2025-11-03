@@ -1,35 +1,62 @@
 import { mutations, state } from '@/store'
 
-let active = false
-/** @type {ReturnType<typeof setTimeout> | null} */
-let closeTimeout // Store timeout ID
+/**
+ * @typedef {Object} NotificationButton
+ * @property {string} label
+ * @property {() => void} action
+ * @property {boolean} [keepOpen]
+ * @property {boolean} [primary]
+ * @property {string} [className]
+ */
 
 /**
- * Show a popup notification
- * @param {'success' | 'error' | 'action'} type
- * @param {unknown} message
- * @param {boolean} [autoclose=true]
+ * @typedef {Object} Notification
+ * @property {string} id
+ * @property {'success' | 'error' | 'action'} type
+ * @property {string} message
+ * @property {string} [icon]
+ * @property {NotificationButton[]} [buttons]
+ * @property {boolean} [autoclose]
+ * @property {ReturnType<typeof setTimeout> | null} [timeoutId]
  */
-export function showPopup(type, message, autoclose = true) {
-  if (active) {
-    if (closeTimeout) clearTimeout(closeTimeout) // Clear the existing timeout
+
+/** @type {Notification[]} */
+let notifications = []
+
+/** @type {((notifications: Notification[]) => void) | null} */
+let updateCallback = null
+
+/**
+ * Set the callback function to be called when notifications change
+ * @param {(notifications: Notification[]) => void} callback
+ */
+export function setUpdateCallback(callback) {
+  updateCallback = callback
+}
+
+/**
+ * Generate a unique ID for a notification
+ * @returns {string}
+ */
+function generateId() {
+  return `notification-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+}
+
+/**
+ * Notify listeners that notifications have changed
+ */
+function notifyUpdate() {
+  if (updateCallback) {
+    updateCallback([...notifications])
   }
+}
 
-  const [popup, popupContent] = getElements()
-  if (popup == null || popupContent == null) {
-    return
-  }
-  /** @type {HTMLElement} */
-  // @ts-ignore - narrow Element to HTMLElement after null check
-  const popupEl = popup
-  /** @type {HTMLElement} */
-  // @ts-ignore - narrow Element to HTMLElement after null check
-  const popupContentEl = popupContent
-
-  popupEl.classList.remove('success', 'error') // Clear previous types
-  popupEl.classList.add(type)
-  active = true
-
+/**
+ * Parse message to extract display text
+ * @param {unknown} message
+ * @returns {string}
+ */
+function parseMessage(message) {
   try {
     // Normalize message to a string first to avoid calling string methods on non-strings
     const normalizedMessage =
@@ -52,11 +79,10 @@ export function showPopup(type, message, autoclose = true) {
       Object.prototype.hasOwnProperty.call(apiMessage, 'status') &&
       Object.prototype.hasOwnProperty.call(apiMessage, 'message')
     ) {
-      popupContentEl.textContent =
-        apiMessage.status + ': ' + apiMessage.message
+      return apiMessage.status + ': ' + apiMessage.message
     } else {
       // Fallback to showing the normalized message if it is not an API error shape
-      popupContentEl.textContent = normalizedMessage
+      return normalizedMessage
     }
   } catch (error) {
     // Fallback to a safe string representation
@@ -66,76 +92,125 @@ export function showPopup(type, message, autoclose = true) {
         : typeof message === 'string'
           ? message
           : JSON.stringify(message)
-    popupContentEl.textContent = fallback
+    return fallback
   }
-
-  popupEl.style.right = '0em'
-
-  // Don't auto-hide for 'action' type popups
-  if (type === 'action') {
-    popup.classList.add('success')
-    return
-  }
-
-  if (!autoclose || !active) {
-    return
-  }
-
-  // Set a new timeout for closing
-  closeTimeout = setTimeout(() => {
-    if (active) {
-      closePopUp()
-    }
-  }, 5000)
 }
 
-export function closePopUp() {
-  active = false
-  const [popup, popupContent] = getElements()
-  if (popup == null || popupContent == null) {
+/**
+ * Show a popup notification
+ * @param {'success' | 'error' | 'action'} type
+ * @param {unknown} message
+ * @param {Object} [options]
+ * @param {boolean} [options.autoclose=true]
+ * @param {string} [options.icon]
+ * @param {NotificationButton[]} [options.buttons]
+ */
+export function showPopup(type, message, options = {}) {
+  const {
+    autoclose = type !== 'action',
+    icon,
+    buttons
+  } = options
+
+  const notificationId = generateId()
+  const parsedMessage = parseMessage(message)
+
+  /** @type {Notification} */
+  const notification = {
+    id: notificationId,
+    type,
+    message: parsedMessage,
+    icon,
+    buttons,
+    autoclose,
+    timeoutId: null
+  }
+
+  notifications.push(notification)
+  notifyUpdate()
+
+  // Handle special case for multiple selection
+  if (parsedMessage === 'Multiple Selection Enabled' && state.multiple) {
+    // This will be handled in closeNotification
+  }
+
+  // Set auto-close timeout if applicable
+  if (autoclose && type !== 'action') {
+    notification.timeoutId = setTimeout(() => {
+      closeNotification(notificationId)
+    }, 5000)
+  }
+}
+
+/**
+ * Close a specific notification by ID
+ * @param {string} notificationId
+ */
+export function closeNotification(notificationId) {
+  const index = notifications.findIndex(n => n.id === notificationId)
+  if (index === -1) {
     return
   }
-  /** @type {HTMLElement} */
-  // @ts-ignore - narrow Element to HTMLElement after null check
-  const popupEl = popup
-  /** @type {HTMLElement} */
-  // @ts-ignore - narrow Element to HTMLElement after null check
-  const popupContentEl = popupContent
+
+  const notification = notifications[index]
+
+  // Clear timeout if exists
+  if (notification.timeoutId) {
+    clearTimeout(notification.timeoutId)
+  }
+
+  // Handle special case for multiple selection
   if (
-    popupContentEl.textContent == 'Multiple Selection Enabled' &&
+    notification.message === 'Multiple Selection Enabled' &&
     state.multiple
   ) {
     mutations.setMultiple(false)
   }
-  popupEl.style.right = '-50em' // Slide out
-  popupContentEl.textContent = 'no content'
+
+  // Remove from array
+  notifications.splice(index, 1)
+  notifyUpdate()
 }
 
 /**
- * @returns {[Element | null, Element | null]}
+ * Close all notifications
  */
-function getElements() {
-  const popup = document.getElementById('popup-notification')
-  if (!popup) {
-    return [null, null]
-  }
+export function closePopUp() {
+  notifications.forEach(notification => {
+    if (notification.timeoutId) {
+      clearTimeout(notification.timeoutId)
+    }
+  })
 
-  const popupContent = popup.querySelector('#popup-notification-content')
-  if (!popupContent) {
-    return [null, null]
+  // Handle multiple selection special case
+  if (state.multiple) {
+    const multipleNotification = notifications.find(
+      n => n.message === 'Multiple Selection Enabled'
+    )
+    if (multipleNotification) {
+      mutations.setMultiple(false)
+    }
   }
+  notifications = []
+  notifyUpdate()
+}
 
-  return [popup, popupContent]
+/**
+ * Get all active notifications
+ * @returns {Notification[]}
+ */
+export function getNotifications() {
+  return [...notifications]
 }
 
 /** @param {unknown} message */
-export function showSuccess(message) {
-  showPopup('success', message)
+export function showSuccess(message, options = {}) {
+  showPopup('success', message, options)
 }
 
 /** @param {unknown} message */
-export function showError(message) {
-  showPopup('error', message)
+export function showError(message, options = {}) {
+  showPopup('error', message, options)
   console.error(message)
 }
 

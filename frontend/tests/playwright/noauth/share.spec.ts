@@ -1,5 +1,5 @@
 
-import { test, expect } from "../test-setup";
+import { test, expect, checkForNotification } from "../test-setup";
 
 test("breadcrumbs navigation checks for shares", async ({ page, checkForErrors, context }) => {
   await page.goto("/files/exclude/");
@@ -59,8 +59,6 @@ test("share download single file", async ({ page, checkForErrors, context }) => 
   await page.locator('a[aria-label="gray-sample.jpg"]').click({ button: "right" });
   await page.locator('button[aria-label="Download"]').waitFor({ state: 'visible' });
   await page.locator('button[aria-label="Download"]').click();
-  const popup = page.locator('#popup-notification-content');
-  await popup.waitFor({ state: 'visible' });
-  await expect(popup).toHaveText("Downloading...");
+  await checkForNotification(page, "Downloading...");
   checkForErrors(0,1); // redirect errors are expected
 });

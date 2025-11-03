@@ -52,7 +52,7 @@ export default {
         if (this.name === "") return;
         await this.createFile(false);
       } catch (error) {
-        notify.showError(error);
+        console.error(error);
       }
     },
 

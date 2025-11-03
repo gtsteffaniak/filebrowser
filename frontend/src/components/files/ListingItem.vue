@@ -412,6 +412,7 @@ export default {
             await filesApi.moveCopy(items, "move", overwrite, rename);
           }
           // Close the prompt after successful operation
+          notify.showSuccess(this.$t("prompts.moveSuccess"));
           mutations.closeHovers();
         } catch (error) {
           // Close the prompt and let error handling continue

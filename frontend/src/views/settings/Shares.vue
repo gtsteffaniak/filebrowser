@@ -137,7 +137,7 @@ export default {
         this.error = null; // Clear any previous errors
       } catch (e) {
         this.error = e;
-        notify.showError(e);
+        console.error(e);
       } finally {
         mutations.setLoading("shares", false);
       }
@@ -166,7 +166,7 @@ export default {
             this.links = this.links.filter((link) => link.hash !== item.hash);
             notify.showSuccess(this.$t("settings.shareDeleted"));
           } catch (e) {
-            notify.showError(e);
+            console.error(e);
           }
         },
       });

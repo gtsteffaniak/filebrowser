@@ -122,9 +122,10 @@ export default {
         } else {
           await filesApi.moveCopy(items, "move");
         }
+        notify.showSuccess(this.$t("prompts.renameSuccess"));
         mutations.closeHovers();
       } catch (error) {
-        notify.showError(error);
+        console.error(error);
       }
     },
   },

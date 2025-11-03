@@ -1,4 +1,4 @@
-import { test, expect } from "../test-setup";
+import { test, expect, checkForNotification } from "../test-setup";
 
 test("breadcrumbs navigation checks", async ({ page, checkForErrors, context }) => {
   await page.goto("/files/");
@@ -58,9 +58,7 @@ test("share download single file", async ({ page, checkForErrors, context }) => 
   await page.locator('a[aria-label="gray-sample.jpg"]').click({ button: "right" });
   await page.locator('button[aria-label="Download"]').waitFor({ state: 'visible' });
   await page.locator('button[aria-label="Download"]').click();
-  const popup = page.locator('#popup-notification-content');
-  await popup.waitFor({ state: 'visible' });
-  await expect(popup).toHaveText("Downloading...");
+  await checkForNotification(page, "Downloading...");
   checkForErrors(0,1);
 });
 
@@ -73,9 +71,7 @@ test("share private source", async ({ page, checkForErrors, openContextMenu }) =
    await expect(page.locator('div[aria-label="share-path"]')).toHaveText('Path: /');
    await page.locator('button[aria-label="Share-Confirm"]').click();
   await expect(page.locator("div[aria-label='share-prompt'] .card-content table tbody tr:not(:has(th))")).toHaveCount(0);
-  const popup = page.locator('#popup-notification-content');
-  await popup.waitFor({ state: 'visible' });
-  await expect(popup).toHaveText("403: the target source is private, sharing is not permitted");
+  await checkForNotification(page, "403: the target source is private, sharing is not permitted");
   checkForErrors(1,1); // 1 error is expected for the private source
 });
 
@@ -99,8 +95,6 @@ test("share file creation", async ({ page, checkForErrors, openContextMenu }) =>
   await page.keyboard.type("test content");
   await page.locator(".overflow-menu-button").click();
   await page.locator('button[aria-label="Save"]').click();
-  const popup = page.locator('#popup-notification-content');
-  await popup.waitFor({ state: 'visible' });
-  await expect(popup).toHaveText("dfsaf.txt saved successfully.");
+  await checkForNotification(page, "dfsaf.txt saved successfully.");
   checkForErrors();
 });

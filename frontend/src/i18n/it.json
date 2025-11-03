@@ -65,7 +65,8 @@
     "stayOnPrompt": "Soggiorno",
     "closeAnyway": "Chiudere comunque",
     "disable": "Disattivare",
-    "confirm": "Confermare"
+    "confirm": "Confermare",
+    "goToItem": "Vai all'articolo"
   },
   "download": {
     "downloadFile": "Scarica file",
@@ -251,7 +252,8 @@
     "halloweenTitle": "Buon Halloween!",
     "halloweenBody": "Il tema di Halloween è stato applicato. È possibile disattivarlo se non piace, oppure disattivarlo definitivamente nelle impostazioni del profilo selezionando un altro tema.",
     "firstLoadBody": "All'avvio è stato creato un nuovo database. Se questo non è quello che ci si aspettava, controllare due volte il file di configurazione per il percorso `server.database` e assicurarsi che esista. Su docker, il percorso del database può essere `./data/database.db` o `./database.db`.",
-    "selectPath": "Selezionare il percorso"
+    "selectPath": "Selezionare il percorso",
+    "renameSuccess": "Articolo rinominato con successo!"
   },
   "search": {
     "images": "Immagini",
