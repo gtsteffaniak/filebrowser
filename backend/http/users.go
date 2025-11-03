@@ -178,11 +178,10 @@ func usersPostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 // @Description Updates the details of a user identified by ID.
 // @Tags Users
 // @Accept json
-// @Produce json
 // @Param id query string false "user ID to update"
 // @Param id query string false "usename to update"
 // @Param data body users.User true "User data to update"
-// @Success 200 {object} users.User "Updated user details"
+// @Success 204 "No Content - User updated successfully"
 // @Failure 400 {object} map[string]string "Bad Request"
 // @Failure 403 {object} map[string]string "Forbidden"
 // @Failure 500 {object} map[string]string "Internal Server Error"
@@ -234,7 +233,5 @@ func userPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		return http.StatusBadRequest, err
 	}
 
-	// Return the updated user (with the password hidden) as JSON response
-	req.User.Password = ""
-	return renderJSON(w, r, req.User)
+	return http.StatusNoContent, nil
 }
