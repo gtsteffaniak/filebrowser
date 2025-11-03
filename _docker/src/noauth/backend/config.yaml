@@ -44,11 +44,8 @@ frontend:
     - text: "A playwright test"
       url: "https://playwright.dev/"
       title: "Playwright"
-<<<<<<< HEAD
-=======
   styling:
     disableEventThemes: true
->>>>>>> origin/dev/v1.1.0
 
 userDefaults:
   showHidden: true
