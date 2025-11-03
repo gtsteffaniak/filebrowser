@@ -1,4 +1,4 @@
-import { test, expect } from '../test-setup'
+import { test, expect, checkForNotification } from '../test-setup'
 
 test("adjusting theme colors", async({ page, checkForErrors, context }) => {
   await page.goto("/files/");
@@ -13,9 +13,7 @@ test("adjusting theme colors", async({ page, checkForErrors, context }) => {
   await expect(page).toHaveTitle("Graham's Filebrowser - Settings");
   await page.locator('div[aria-label="themeLanguage"]').click();
   await page.locator('button', { hasText: 'violet' }).click();
-  const popup = page.locator('#popup-notification-content');
-  await popup.waitFor({ state: 'visible' });
-  await expect(popup).toHaveText('Settings updated!');
+  await checkForNotification(page, 'Settings updated!');
   const newPrimaryColor = await page.evaluate(() => {
     return getComputedStyle(document.documentElement).getPropertyValue('--primaryColor').trim();
   });
@@ -32,9 +30,7 @@ test("choose custom theme", async({ page, checkForErrors, context }) => {
   await page.locator('div[aria-label="themeLanguage"]').click();
   // a custom no-rounded.css theme file added to docker that should exist and be selectable
   await page.locator('select[aria-label="themeOptions"]').selectOption('no-rounded');
-  const popup = page.locator('#popup-notification-content');
-  await popup.waitFor({ state: 'visible' });
-  await expect(popup).toHaveText('Settings updated!');
+  await checkForNotification(page, 'Settings updated!');
   // Check for console errors
   checkForErrors();
 });

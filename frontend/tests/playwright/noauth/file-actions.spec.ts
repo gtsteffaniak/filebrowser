@@ -1,4 +1,4 @@
-import { test, expect } from "../test-setup";
+import { test, expect, checkForNotification } from "../test-setup";
 
 
 test("info from listing", async({ page, checkForErrors, context }) => {
@@ -52,7 +52,7 @@ test("2x copy from listing to new folder", async({ page, checkForErrors, context
   await page.locator('li[aria-label="myfolder"]').dblclick();
   await expect(page.locator('div[aria-label="filelist-path"]')).toHaveText('Path: /myfolder/');
   await page.locator('button[aria-label="Copy"]').click();
-  await expect(page.locator('#popup-notification-content')).toHaveText("Resources copied successfully");
+  await checkForNotification(page, "Resources copied successfully");
   await page.goto("/files/files/exclude/myfolder/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - myfolder");
   // verify exists and copy again
@@ -79,7 +79,7 @@ test("2x copy from listing to new folder", async({ page, checkForErrors, context
   await page.locator('li[aria-label="newfolder"]').dblclick();
   await expect(page.locator('div[aria-label="filelist-path"]')).toHaveText('Path: /myfolder/newfolder/');
   await page.locator('button[aria-label="Copy"]').click();
-  await expect(page.locator('#popup-notification-content')).toHaveText("Resources copied successfully");
+  await checkForNotification(page, "Resources copied successfully");
   await page.goto("/files/files/exclude/myfolder/newfolder/");
   await expect(page).toHaveTitle(/.* - newfolder/);
   checkForErrors();
@@ -96,9 +96,7 @@ test("delete file", async({ page, checkForErrors, context }) => {
   await expect( page.locator('.card-content')).toHaveText('Are you sure you want to delete this file/folder?/deleteme.txt');
   await expect(page.locator('div[aria-label="delete-path"]')).toHaveText('/deleteme.txt');
   await page.locator('button[aria-label="Confirm-Delete"]').click();
-  const popup = page.locator('#popup-notification-content');
-  await popup.waitFor({ state: 'visible' });
-  await expect(popup).toHaveText("Deleted successfully!");
+  await checkForNotification(page, "Deleted successfully!");
   checkForErrors();
 
 })
