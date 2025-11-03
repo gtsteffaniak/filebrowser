@@ -921,25 +921,27 @@ export default {
       } else if (getters.viewMode() == "gallery") {
         const baseSize = 150 + (state.user.gallerySize * 50); // 200px to 550px range
         if (state.isMobile) {
-          // Mobile - Level 1-4 = 2 columns, level 5-8 = 1 column
-          let columns = state.user.gallerySize <= 4 ? 2 : 1;
+          let columns;
+          if (state.user.gallerySize <= 2) columns = 3;
+          else if (state.user.gallerySize <= 5) columns = 2;
+          else columns = 1;
           document.documentElement.style.setProperty(
-            "--item-width",
-            `calc(${100 / columns}% - 0.5em)`
+            "--gallery-mobile-columns",
+            columns.toString()
           );
         } else {
-          // Gallery view - desktop
+          // Desktop gallery view
           document.documentElement.style.setProperty(
             "--item-width",
             `${baseSize}px`
           );
+          document.documentElement.style.setProperty(
+            "--item-height",
+            "auto"
+          );
         }
-        document.documentElement.style.setProperty(
-          "--item-height",
-          "auto"
-        );
       } else if (getters.viewMode() == "list" || getters.viewMode() == "compact") {
-        // List/Compact views - start at original heights and change the size based on the slider
+        // List/Compact views - Change size based in slider levels
         const baseHeight = getters.viewMode() == "compact" 
           ? 40 + (state.user.gallerySize * 2)  // 40px to 56px - compact
           : 50 + (state.user.gallerySize * 3); // 50px to 74px - list
@@ -1027,6 +1029,7 @@ export default {
     windowsResize: throttle(function () {
       this.colunmsResize();
       this.width = window.innerWidth;
+      mutations.setMobile();
       // Listing element is not displayed
       if (this.$refs.listingView == null) return;
     }, 100),

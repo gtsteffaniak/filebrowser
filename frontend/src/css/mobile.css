@@ -78,31 +78,39 @@
   #listingView.gallery .folder-items,
   #listingView.gallery .file-items {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(calc(var(--icons-view-cell-size, 100px) * 0.8), 1fr));
-    gap: 0.5em;
-    padding: 0.25em;
+    grid-template-columns: repeat(var(--gallery-mobile-columns, 3), 1fr);
+    gap: 0;
+    padding: 0;
+    width: 100%;
   }
 
   #listingView.gallery .item {
-    margin-bottom: 0.5em;
-    aspect-ratio: 1;
+    border-radius: 0;
+    box-shadow: none;
+    border: 1px solid var(--divider);
   }
-  
+
   #listingView.gallery .item img {
-    aspect-ratio: 1;
-    object-fit: cover;
+    border-radius: 0;
   }
 
   #listingView.gallery .item .text {
-    padding: 1em 0.3em 0.3em;
+    padding: 0.5em 0.3em 0.3em;
+    font-size: 0.9em;
   }
-  
+
   #listingView.gallery .item .text .name {
     font-size: 0.9em;
   }
-  
+
   #listingView.gallery .item i {
     font-size: 3em;
+  }
+
+  #listingView.icons .folder-items,
+  #listingView.icons .file-items {
+    grid-template-columns: repeat(auto-fill, minmax(calc(var(--icons-view-cell-size, 100px) * 0.8), 1fr));
+    gap: 0.4em;
   }
 }
 

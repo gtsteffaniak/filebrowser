@@ -5,7 +5,7 @@
   transition: width 0.25s, height 0.25s, box-shadow 0.2s ease-in-out, transform 0.1s ease-in-out;
   user-select: none;
   min-height: 75vh;
-  padding-bottom: 2.25em; /* Space for status bar - this prevents items from going behind */
+  padding-bottom: 2.5em; /* Space for status bar - this prevents items from going behind */
 }
 
 body.rtl #listingView {
@@ -127,6 +127,7 @@ body.rtl #listingView {
   align-content: center;
   overflow: hidden;
   justify-content: center;
+  margin: 0;
   padding: 0;
   position: relative;
   width: 100%;
@@ -180,6 +181,7 @@ body.rtl #listingView {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-weight: 600;
 }
 
 #listingView.gallery .item[data-type=image] div:last-of-type {
@@ -499,6 +501,15 @@ body.rtl #listingView {
   min-width: var(--icons-view-icon-size, 80px);
   border-radius: 0.3em;
   margin: 0;
+}
+
+#listingView.gallery .folder-items,
+#listingView.gallery .file-items {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--item-width), 1fr));
+  grid-auto-rows: min-content;
+  gap: 1em;
+  padding: 0.5em;
 }
 
 #listingView.icons .folder-items,
