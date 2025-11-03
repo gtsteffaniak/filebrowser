@@ -95,7 +95,9 @@
     "sortByName": "按名稱排序",
     "sortBySize": "按大小排序",
     "noPreview": "此檔案無法預覽。",
-    "noDownloadAccess": "無法下載。"
+    "noDownloadAccess": "無法下載。",
+    "itemSelected": "項目已選擇",
+    "itemsSelected": "項目已選擇"
   },
   "help": {
     "functionKeys": "功能鍵",

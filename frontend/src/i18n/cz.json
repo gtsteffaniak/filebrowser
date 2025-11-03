@@ -98,7 +98,9 @@
     "sortByName": "Řadit podle názvu",
     "sortBySize": "Řadit podle velikosti",
     "noPreview": "Náhled pro tento soubor není dostupný.",
-    "noDownloadAccess": "Stahování není k dispozici."
+    "noDownloadAccess": "Stahování není k dispozici.",
+    "itemSelected": "položka vybrána", 
+    "itemsSelected": "položky vybrány"
   },
   "help": {
     "functionKeys": "Funkční Klávesy",

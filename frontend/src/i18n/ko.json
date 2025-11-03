@@ -95,7 +95,9 @@
     "sortByName": "이름순",
     "sortBySize": "크기순",
     "noPreview": "이 파일에는 미리 보기를 사용할 수 없습니다.",
-    "noDownloadAccess": "다운로드할 수 없습니다."
+    "noDownloadAccess": "다운로드할 수 없습니다.",
+    "itemSelected": "항목 선택됨",
+    "itemsSelected": "항목 선택됨"
   },
   "help": {
     "functionKeys": "기능 키",
