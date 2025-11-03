@@ -226,7 +226,7 @@ export default {
         await usersApi.update(data, ["fileLoading"]);
         notify.showSuccess("Upload settings updated");
       } catch (e) {
-        notify.showError(e);
+        console.error(e);
       }
     };
 
@@ -289,7 +289,7 @@ export default {
         }
         mutations.closeTopHover(); // Only close the rename prompt, return to upload prompt
       } catch (error) {
-        notify.showError(error);
+        console.error(error);
       }
     };
 

@@ -138,7 +138,7 @@ export function showPopup(type, message, options = {}) {
   if (autoclose && type !== 'action') {
     notification.timeoutId = setTimeout(() => {
       closeNotification(notificationId)
-    }, 50000)
+    }, 5000)
   }
 }
 

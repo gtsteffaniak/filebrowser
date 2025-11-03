@@ -224,8 +224,6 @@ export default {
         } else {
           notify.showSuccess(this.$t(`prompts.copySuccess`), buttonProps);
         }
-      } catch (error) {
-        notify.showError(error);
       } finally {
         this.isLoading = false; // Hide loading spinner
       }

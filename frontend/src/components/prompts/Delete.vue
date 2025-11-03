@@ -115,7 +115,7 @@ export default {
         mutations.setReload(true); // Handle reload as neededs
       } catch (e) {
         buttons.done("delete");
-        notify.showError(e);
+        console.error(e);
         if (this.isListing) mutations.setReload(true); // Handle reload as needed
       }
     },

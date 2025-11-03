@@ -52,7 +52,7 @@ test("2x copy from listing to new folder", async({ page, checkForErrors, context
   await page.locator('li[aria-label="myfolder"]').dblclick();
   await expect(page.locator('div[aria-label="filelist-path"]')).toHaveText('Path: /myfolder/');
   await page.locator('button[aria-label="Copy"]').click();
-  await checkForNotification(page, "Resources copied successfully");
+  await checkForNotification(page, "Files copied successfully!");
   await page.goto("/files/files/exclude/myfolder/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - myfolder");
   // verify exists and copy again
@@ -79,7 +79,7 @@ test("2x copy from listing to new folder", async({ page, checkForErrors, context
   await page.locator('li[aria-label="newfolder"]').dblclick();
   await expect(page.locator('div[aria-label="filelist-path"]')).toHaveText('Path: /myfolder/newfolder/');
   await page.locator('button[aria-label="Copy"]').click();
-  await checkForNotification(page, "Resources copied successfully");
+  await checkForNotification(page, "Files copied successfully!");
   await page.goto("/files/files/exclude/myfolder/newfolder/");
   await expect(page).toHaveTitle(/.* - newfolder/);
   checkForErrors();

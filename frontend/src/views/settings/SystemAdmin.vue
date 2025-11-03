@@ -86,7 +86,7 @@ export default {
         ]);
         notify.showSuccess(this.$t("settings.settingsUpdated"));
       } catch (e) {
-        notify.showError(e);
+        console.error(e);
       }
     },
     async fetchConfig() {
@@ -98,7 +98,7 @@ export default {
         );
         this.configContent = await response.text();
       } catch (e) {
-        notify.showError(e);
+        console.error(e);
         const errorMessage = (e && typeof e === 'object' && 'message' in e) ? String(e.message) : 'Unknown error';
         this.configContent = 'Error loading config: ' + errorMessage;
       } finally {

@@ -28,7 +28,6 @@
 
 <script>
 import { filesApi, publicApi } from "@/api";
-import { notify } from "@/notify";
 import Breadcrumbs from "@/components/Breadcrumbs.vue";
 import Errors from "@/views/Errors.vue";
 import Preview from "@/views/files/Preview.vue";
@@ -217,11 +216,6 @@ export default {
           await this.fetchFilesData();
         }
       } catch (e) {
-        if (e.message) {
-          notify.showError(e.message);
-        } else {
-          notify.showError(e);
-        }
         this.error = e;
         mutations.replaceRequest({});
         if (e.status === 404) {
@@ -408,7 +402,6 @@ export default {
         }
         document.title = `${document.title} - ${res.name}`;
       } catch (e) {
-        notify.showError(e);
         this.error = e;
         mutations.replaceRequest({});
       } finally {

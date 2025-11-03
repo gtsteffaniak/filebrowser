@@ -274,6 +274,7 @@
     "numberDirs": "Number of directories{suffix}",
     "numberFiles": "Number of files{suffix}",
     "rename": "Rename",
+    "renameSuccess": "Item renamed successfully!",
     "renameMessageConflict": "An item named \"{filename}\" already exists!",
     "renameMessage": "Enter a new name:",
     "renameMessageInvalid": "A file can't container \"/\" or \"\\\"",

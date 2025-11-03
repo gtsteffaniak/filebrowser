@@ -483,7 +483,7 @@ export default {
       const links = await shareApi.get(this.item.path, this.item.source);
       this.links = links;
     } catch (err) {
-      notify.showError(err);
+      console.error(err);
       return;
     }
     this.sort();
@@ -594,7 +594,7 @@ export default {
 
         this.listing = true;
       } catch (err) {
-        notify.showError(err);
+        console.error(err);
       }
     },
     /**
@@ -654,7 +654,7 @@ export default {
           this.listing = false;
         }
       } catch (err) {
-        notify.showError(err);
+        console.error(err);
       }
     },
     /**

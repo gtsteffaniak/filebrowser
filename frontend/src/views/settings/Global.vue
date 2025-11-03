@@ -64,7 +64,7 @@ export default {
         await settingsApi.update(state.settings);
         notify.showSuccess(this.$t("settings.settingsUpdated"));
       } catch (e) {
-        notify.showError(e);
+        console.error(e);
       }
     },
   },

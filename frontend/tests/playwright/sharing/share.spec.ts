@@ -95,6 +95,6 @@ test("share file creation", async ({ page, checkForErrors, openContextMenu }) =>
   await page.keyboard.type("test content");
   await page.locator(".overflow-menu-button").click();
   await page.locator('button[aria-label="Save"]').click();
-  checkForNotification(page, "dfsaf.txt saved successfully.");
+  await checkForNotification(page, "dfsaf.txt saved successfully.");
   checkForErrors();
 });

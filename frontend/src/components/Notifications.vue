@@ -150,7 +150,6 @@ export default {
 .notification-item > .material-icons:first-child {
   cursor: pointer;
   font-size: 1.75em;
-  margin-right: 0.5em;
   opacity: 0.8;
 }
 
@@ -180,7 +179,8 @@ canvas.notification-spinner {
 }
 
 .notification-leave-active {
-  transition: right 1s ease;
+  transition: right 0.3s ease, max-height 0.2s ease, padding 0.2s ease, margin 0.2s ease, opacity 0.2s ease;
+  overflow: hidden;
 }
 
 .notification-enter-from {
@@ -193,10 +193,17 @@ canvas.notification-spinner {
 
 .notification-leave-from {
   right: 0em;
+  max-height: 500px;
+  opacity: 1;
 }
 
 .notification-leave-to {
   right: -50em;
+  max-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  margin: 0;
+  opacity: 0;
 }
 
 .notification-move {

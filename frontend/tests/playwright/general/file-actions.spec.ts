@@ -102,7 +102,7 @@ test("2x copy from listing to new folder", async({ page, checkForErrors, context
   await expect(page.locator('div[aria-label="filelist-path"]')).toHaveText('Path: /myfolder/');
   await page.locator('li[aria-label="newfolder"]').click();
   await page.locator('button[aria-label="Copy"]').click();
-  checkForNotification(page, "Resources copied successfully");
+  await checkForNotification(page, "Files copied successfully!");
   await page.goto("/files/playwright%20%2B%20files/myfolder/newfolder/");
   await expect(page).toHaveTitle(/.* - newfolder/);
   checkForErrors();
