@@ -50,7 +50,11 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 		// Embedded mode: Serve files from the embedded assets
 		assetFs, err = fs.Sub(assets, "embed")
 		if err != nil {
-			logger.Fatal("Could not embed frontend. Does dist exist?")
+			logger.Fatalf("fs.Sub failed: %v", err)
+		}
+		entries, err := fs.ReadDir(assetFs, ".")
+		if err != nil || len(entries) == 0 {
+			logger.Fatalf("Could not embed frontend. Does dist exist? %v", err)
 		}
 		assetPathPrefix = "public/img/icons/"
 		if config.Frontend.LoginIcon == "" {
