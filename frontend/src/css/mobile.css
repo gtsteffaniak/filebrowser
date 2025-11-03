@@ -75,32 +75,14 @@
     margin-right: unset;
   }
 
-  #listingView.icons .folder-items,
-  #listingView.icons .file-items {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(var(--item-width), 1fr));
-    gap: 0.5em;
-    padding: 0.25em;
-    width: 100%;
-  }
-  
-  #listingView.icons .item i,
-  #listingView.icons .item img {
-    font-size: 2.5em !important;
-    height: 65px !important;
-    width: 65px !important;
-    max-width: 65px !important;
-    min-width: 65px !important;
-  }
-
   #listingView.gallery .folder-items,
   #listingView.gallery .file-items {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(var(--item-width), 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(calc(var(--icons-view-cell-size, 100px) * 0.8), 1fr));
     gap: 0.5em;
     padding: 0.25em;
   }
-  
+
   #listingView.gallery .item {
     margin-bottom: 0.5em;
     aspect-ratio: 1;
@@ -123,7 +105,6 @@
     font-size: 3em;
   }
 }
-
 
 @media (max-width: 450px) {
   #listingView.list .item .name {

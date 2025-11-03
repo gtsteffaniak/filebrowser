@@ -142,6 +142,9 @@ body.rtl #listingView {
   padding: 0.5em;
   margin: 0.25em;
   position: relative;
+  width: 100%;
+  height: auto;
+  min-height: 80px;
 }
 
 #listingView.gallery .item .gallery-div {
@@ -498,11 +501,17 @@ body.rtl #listingView {
   margin: 0;
 }
 
-#listingView.gallery .folder-items,
-#listingView.gallery .file-items {
+#listingView.icons .folder-items,
+#listingView.icons .file-items {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(var(--item-width), 1fr));
-  grid-auto-rows: min-content;
-  gap: 1em;
-  padding: 0.5em;
+  grid-template-columns: repeat(auto-fill, minmax(var(--icons-view-cell-size, 100px), 1fr));
+  gap: 0.5em;
+  padding: 0.25em;
+  width: 100%;
+}
+
+/* Account space when sidebar is active - this give the columns a cleaner look */
+#main.moveWithSidebar #listingView.icons .folder-items,
+#main.moveWithSidebar #listingView.icons .file-items {
+  grid-template-columns: repeat(auto-fill, minmax(calc(var(--icons-view-cell-size, 100px) * 0.9), 1fr));
 }
