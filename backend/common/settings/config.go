@@ -33,6 +33,8 @@ func Initialize(configFile string) {
 		time.Sleep(5 * time.Second) // allow sleep time before exiting to give docker/kubernetes time before restarting
 		logger.Fatal(err.Error())
 	}
+	// setup logging first to ensure we log any errors
+	setupLogging()
 	err = ValidateConfig(Config)
 	if err != nil {
 		errmsg := "The provided config file failed validation. "
@@ -47,8 +49,6 @@ func Initialize(configFile string) {
 	if Config.Env.IsPlaywright {
 		logger.Warning("Running in playwright test mode. This is not recommended for production.")
 	}
-	// setup logging first to ensure we log any errors
-	setupLogging()
 	setupFs()
 	setupAuth(false)
 	setupSources(false)

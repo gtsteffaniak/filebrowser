@@ -183,12 +183,23 @@ export async function update(user, which = ['all']) {
   if (user.username === 'anonymous') {
     return
   }
+  // If which is not ["all"], filter user data to only include specified keys
+  let userData = user
+  if (which.length !== 1 || which[0] !== 'all') {
+    userData = {}
+    which.forEach(key => {
+      if (key in user) {
+        userData[key] = user[key]
+      }
+    })
+  }
+
   const apiPath = getApiPath('api/users', { id: user.id })
   await fetchURL(apiPath, {
     method: 'PUT',
     body: JSON.stringify({
       which: which,
-      data: user
+      data: userData
     })
   })
 }
