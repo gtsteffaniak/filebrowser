@@ -2030,9 +2030,6 @@ const docTemplate = `{
                 "consumes": [
                     "application/json"
                 ],
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Users"
                 ],
@@ -2061,11 +2058,8 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "Updated user details",
-                        "schema": {
-                            "$ref": "#/definitions/users.User"
-                        }
+                    "204": {
+                        "description": "No Content - User updated successfully"
                     },
                     "400": {
                         "description": "Bad Request",
