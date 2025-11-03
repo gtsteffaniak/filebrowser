@@ -45,7 +45,6 @@ dev:
 	fi
 	@echo "Generating frontend config..."
 	cd backend && FILEBROWSER_GENERATE_CONFIG=true go run --tags=mupdf .
-	cd frontend && npm run build
 	@echo "Starting dev servers... Press Ctrl+C to stop."
 	@cd frontend && DEV_BUILD=true npm run watch & \
 	FRONTEND_PID=$$!; \

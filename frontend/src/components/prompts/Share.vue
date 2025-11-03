@@ -594,7 +594,10 @@ export default {
 
         this.listing = true;
       } catch (err) {
-        console.error(err);
+        if (!err.message) {
+          // didn't come from api, show error to user
+          notify.showError(err);
+        }
       }
     },
     /**

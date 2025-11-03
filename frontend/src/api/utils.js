@@ -1,6 +1,5 @@
 import { state } from "@/store";
 import { renew } from "@/utils/auth";
-import { notify } from "@/notify";
 
 export async function fetchURL(url, opts, auth = true) {
   opts = opts || {};
@@ -46,7 +45,6 @@ export async function fetchJSON(url, opts) {
   if (res.status < 300) {
     return res.json();
   } else {
-    notify.showError("received status: "+res.status+" on url " + url);
     throw new Error(res.status);
   }
 }
