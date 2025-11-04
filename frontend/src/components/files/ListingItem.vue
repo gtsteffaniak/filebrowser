@@ -29,7 +29,7 @@
     @touchend="cancelContext"
     @mouseup="cancelContext"
   >
-    <div :class="{ 'gallery-div': galleryView}">
+    <div :class="{ 'gallery-div': galleryView }">
       <Icon
         :mimetype="type"
         :active="isSelected"

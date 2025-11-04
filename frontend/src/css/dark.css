@@ -72,7 +72,7 @@
 
 /* Listing items */
 .dark-mode #listingView .item {
-  background: color-mix(in srgb, var(--surfacePrimary) 70%, transparent);
+  background: var(--surfacePrimary);
   color: var(--textPrimary);
   border-color: var(--divider);
 }
@@ -217,10 +217,3 @@
   background: var(--background);
   color: var(--textPrimary);
 }
-
-/* Header */
-.dark-mode-header {
-  color: white;
-  background-color: #283136;
-}
-
