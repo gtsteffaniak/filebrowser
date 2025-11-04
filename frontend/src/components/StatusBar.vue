@@ -12,22 +12,6 @@
         </span>
       </div>
       <div class="status-controls">
-        <div v-if="showGalleryToggle" class="gallery-toggle">
-          <action
-            class="menu-button"
-            :icon="switchViewIcon"
-            :title="$t('buttons.switchView')"
-            @action="toggleGalleryView"
-          />
-        </div>
-        <div v-if="showListViewToggle" class="list-toggle">
-          <action
-            class="menu-button"
-            :icon="switchViewIcon"
-            :title="$t('buttons.switchView')"
-            @action="toggleListView"
-          />
-        </div>
         <div v-if="showGallerySize" class="gallery-size-control">
           <span class="size-label">{{ $t("files.size") }}</span>
           <input
@@ -48,14 +32,10 @@
 
 <script>
 import { state, getters, mutations } from "@/store";
-import Action from "@/components/Action.vue";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 
 export default {
   name: "StatusBar",
-  components: {
-    Action,
-  },
   data() {
     return {
       gallerySize: state.user.gallerySize,
@@ -79,17 +59,6 @@ export default {
     },
     showGallerySize() {
       return getters.isCardView() && state.req?.items?.length > 0;
-    },
-    showGalleryToggle() {
-      const viewMode = getters.viewMode();
-      return viewMode === "gallery" || viewMode === "icons";
-    },
-    showListViewToggle() {
-      const viewMode = getters.viewMode();
-      return viewMode === "list" || viewMode === "compact";
-    },
-    switchViewIcon() {
-      return "change_circle";
     },
     totalDirectorySize() {
       if (!Array.isArray(state.req?.items)) return 0;
@@ -125,18 +94,37 @@ export default {
     },
     commitGallerySize() {
       mutations.setGallerySize(this.gallerySize);
+      // Automatically adjust view mode based on gallery size
+      this.adjustViewMode();
     },
-    toggleGalleryView() {
+    adjustViewMode() {
       const currentMode = getters.viewMode();
-      const newMode = currentMode === "gallery" ? "icons" : "gallery";
-      mutations.updateDisplayPreferences({ viewMode: newMode });
-      mutations.updateCurrentUser({ viewMode: newMode });
-    },
-    toggleListView() {
-      const currentMode = getters.viewMode();
-      const newMode = currentMode === "list" ? "compact" : "list";
-      mutations.updateDisplayPreferences({ viewMode: newMode });
-      mutations.updateCurrentUser({ viewMode: newMode });
+      let newMode = currentMode;
+      const size = this.gallerySize;
+
+      // Gallery/Icons family - switch based on size
+      if (currentMode === "gallery" || currentMode === "icons") {
+        if (size <= 4) {
+          newMode = "icons";
+        } else {
+          newMode = "gallery";
+        }
+      }
+
+      // List/Compact family - switch based on size
+      if (currentMode === "list" || currentMode === "compact") {
+        if (size <= 2) {
+          newMode = "compact";
+        } else {
+          newMode = "list";
+        }
+      }
+
+      // Only update if the mode actually changed
+      if (newMode !== currentMode) {
+        mutations.updateDisplayPreferences({ viewMode: newMode });
+        mutations.updateCurrentUser({ viewMode: newMode });
+      }
     },
   },
 };
@@ -192,28 +180,6 @@ export default {
   gap: 1.5em;
 }
 
-.gallery-toggle .menu-button,
-.list-toggle .menu-button {
-  width: 2em;
-  height: 2em;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.gallery-toggle .menu-button i,
-.list-toggle .menu-button i {
-  font-size: 1.2em;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-}
-
 .gallery-size-control {
   display: flex;
   align-items: center;
@@ -260,17 +226,6 @@ input[type="range"] {
   input[type="range"] {
     width: 7em;
     height: 1.5em; /* For better touch */
-  }
-
-  .gallery-toggle .menu-button,
-  .list-toggle .menu-button {
-    width: 2.2em;
-    height: 2.2em;
-  }
-
-  .gallery-toggle .menu-button i,
-  .list-toggle .menu-button i {
-    font-size: 1.3em;
   }
 
   .status-info {

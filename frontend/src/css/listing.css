@@ -238,13 +238,15 @@ body.rtl #listingView {
 }
 
 #listingView.compact .item div:first-of-type i {
-  font-size: 2em;
+  font-size: var(--list-icon-font-size, 2em);
+  transition: font-size 0.25s ease-out;
 }
 
 #listingView.compact .item div:first-of-type img {
-  width: 1.5em;
-  height: 1.5em;
+  width: var(--list-icon-image-size, 1.5em);
+  height: var(--list-icon-image-size, 1.5em);
   border-radius: .25em;
+  transition: width 0.25s ease-out, height 0.25s ease-out;
 }
 
 #listingView.compact .item div:last-of-type {
@@ -361,7 +363,8 @@ body.rtl #listingView {
 #listingView.list .item[aria-selected=true],
 #listingView.normal .item[aria-selected=true],
 #listingView.icons .item[aria-selected=true] {
-  background-color: var(--primaryColor) !important;
+  background-color: color-mix(in srgb, var(--primaryColor) 75%, transparent) !important;
+  color: var(--item-selected) !important;
 }
 
 #listingView.gallery .item[aria-selected=true] {
@@ -380,13 +383,15 @@ body.rtl #listingView {
 }
 
 #listingView.list .item div:first-of-type i {
-  font-size: 2em;
+  font-size: var(--list-icon-font-size, 2em);
+  transition: font-size 0.25s ease-out;
 }
 
 #listingView.list .item div:first-of-type img {
-  width: 1.5em;
-  height: 1.5em;
+  width: var(--list-icon-image-size, 1.5em);
+  height: var(--list-icon-image-size, 1.5em);
   border-radius: 0.2em;
+  transition: width 0.25s ease-out, height 0.25s ease-out;
 }
 
 #listingView.list .item div:last-of-type {

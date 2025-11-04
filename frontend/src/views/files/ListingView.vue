@@ -409,7 +409,7 @@ export default {
         styles['--icons-view-cell-size'] = `${cellSize}px`;
       } else if (viewMode === 'gallery') {
         // Use column width and percentage-based sizing for smooth animations
-        const baseSize = 150 + (state.user.gallerySize * 50); // 200px to 550px range
+        const baseSize = 100 + (state.user.gallerySize * 35); // 135px to 415px range
         if (state.isMobile) {
           let columns;
           if (state.user.gallerySize <= 2) columns = 3;
@@ -426,8 +426,15 @@ export default {
         const baseHeight = viewMode === 'compact' 
           ? 40 + (state.user.gallerySize * 2)  // 40px to 56px - compact
           : 50 + (state.user.gallerySize * 3); // 50px to 74px - list
+        
+        // Scale icons with gallery size - icon fonts: 1.6em to 2.4em, images: 1.2em to 1.8em
+        const iconFontSize = 1.6 + (state.user.gallerySize * 0.1); // 1.7em to 2.5em
+        const iconImageSize = 1.2 + (state.user.gallerySize * 0.075); // 1.275em to 1.875em
+        
         styles['--item-width'] = `calc(${100 / this.numColumns}% - 1em)`;
         styles['--item-height'] = `${baseHeight}px`;
+        styles['--list-icon-font-size'] = `${iconFontSize}em`;
+        styles['--list-icon-image-size'] = `${iconImageSize}em`;
       } else {
         // Normal view
         styles['--item-width'] = `calc(${100 / this.numColumns}% - 1em)`;
