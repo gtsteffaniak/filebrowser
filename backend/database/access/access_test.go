@@ -1215,21 +1215,22 @@ func TestRemoveUserCascade_OnlyRemovesSpecificList(t *testing.T) {
 	}
 
 	// Set up rules: alice has both allow and deny rules on different paths
-	if err := s.AllowUser("mnt/storage", "/docs/", "alice"); err != nil {
+	if err = s.AllowUser("mnt/storage", "/docs/", "alice"); err != nil {
 		t.Fatalf("AllowUser failed: %v", err)
 	}
-	if err := s.AllowUser("mnt/storage", "/docs/public/", "alice"); err != nil {
+	if err = s.AllowUser("mnt/storage", "/docs/public/", "alice"); err != nil {
 		t.Fatalf("AllowUser failed: %v", err)
 	}
-	if err := s.DenyUser("mnt/storage", "/docs/", "alice"); err != nil {
+	if err = s.DenyUser("mnt/storage", "/docs/", "alice"); err != nil {
 		t.Fatalf("DenyUser failed: %v", err)
 	}
-	if err := s.DenyUser("mnt/storage", "/docs/private/", "alice"); err != nil {
+	if err = s.DenyUser("mnt/storage", "/docs/private/", "alice"); err != nil {
 		t.Fatalf("DenyUser failed: %v", err)
 	}
 
 	// Cascade delete only allow rules
-	count, err := s.RemoveUserCascade("mnt/storage", "/docs/", "alice", true)
+	var count int
+	count, err = s.RemoveUserCascade("mnt/storage", "/docs/", "alice", true)
 	if err != nil {
 		t.Fatalf("RemoveUserCascade failed: %v", err)
 	}
@@ -1271,21 +1272,22 @@ func TestRemoveUserCascade_DenyRules(t *testing.T) {
 	}
 
 	// Set up both allow and deny rules
-	if err := s.AllowUser("mnt/storage", "/projects/", "bob"); err != nil {
+	if err = s.AllowUser("mnt/storage", "/projects/", "bob"); err != nil {
 		t.Fatalf("AllowUser failed: %v", err)
 	}
-	if err := s.AllowUser("mnt/storage", "/projects/team/", "bob"); err != nil {
+	if err = s.AllowUser("mnt/storage", "/projects/team/", "bob"); err != nil {
 		t.Fatalf("AllowUser failed: %v", err)
 	}
-	if err := s.DenyUser("mnt/storage", "/projects/", "bob"); err != nil {
+	if err = s.DenyUser("mnt/storage", "/projects/", "bob"); err != nil {
 		t.Fatalf("DenyUser failed: %v", err)
 	}
-	if err := s.DenyUser("mnt/storage", "/projects/secret/", "bob"); err != nil {
+	if err = s.DenyUser("mnt/storage", "/projects/secret/", "bob"); err != nil {
 		t.Fatalf("DenyUser failed: %v", err)
 	}
 
 	// Cascade delete only deny rules
-	count, err := s.RemoveUserCascade("mnt/storage", "/projects/", "bob", false)
+	var count int
+	count, err = s.RemoveUserCascade("mnt/storage", "/projects/", "bob", false)
 	if err != nil {
 		t.Fatalf("RemoveUserCascade failed: %v", err)
 	}
@@ -1339,13 +1341,14 @@ func TestRemoveUserCascade_MultipleSubpaths(t *testing.T) {
 	}
 
 	for _, path := range paths {
-		if err := s.AllowUser("mnt/storage", path, "carol"); err != nil {
+		if err = s.AllowUser("mnt/storage", path, "carol"); err != nil {
 			t.Fatalf("AllowUser failed for %s: %v", path, err)
 		}
 	}
 
 	// Cascade delete from /data/2024/ should remove all 2024 subpaths
-	count, err := s.RemoveUserCascade("mnt/storage", "/data/2024/", "carol", true)
+	var count int
+	count, err = s.RemoveUserCascade("mnt/storage", "/data/2024/", "carol", true)
 	if err != nil {
 		t.Fatalf("RemoveUserCascade failed: %v", err)
 	}
@@ -1385,21 +1388,21 @@ func TestRemoveGroupCascade_OnlyRemovesSpecificList(t *testing.T) {
 	}
 
 	// Create a group
-	if err := s.AddUserToGroup("editors", "alice"); err != nil {
+	if err = s.AddUserToGroup("editors", "alice"); err != nil {
 		t.Fatalf("AddUserToGroup failed: %v", err)
 	}
 
 	// Set up both allow and deny rules for the group
-	if err := s.AllowGroup("mnt/storage", "/content/", "editors"); err != nil {
+	if err = s.AllowGroup("mnt/storage", "/content/", "editors"); err != nil {
 		t.Fatalf("AllowGroup failed: %v", err)
 	}
-	if err := s.AllowGroup("mnt/storage", "/content/articles/", "editors"); err != nil {
+	if err = s.AllowGroup("mnt/storage", "/content/articles/", "editors"); err != nil {
 		t.Fatalf("AllowGroup failed: %v", err)
 	}
-	if err := s.DenyGroup("mnt/storage", "/content/", "editors"); err != nil {
+	if err = s.DenyGroup("mnt/storage", "/content/", "editors"); err != nil {
 		t.Fatalf("DenyGroup failed: %v", err)
 	}
-	if err := s.DenyGroup("mnt/storage", "/content/drafts/", "editors"); err != nil {
+	if err = s.DenyGroup("mnt/storage", "/content/drafts/", "editors"); err != nil {
 		t.Fatalf("DenyGroup failed: %v", err)
 	}
 
@@ -1442,26 +1445,27 @@ func TestRemoveGroupCascade_DenyRules(t *testing.T) {
 	}
 
 	// Create a group
-	if err := s.AddUserToGroup("contractors", "alice"); err != nil {
+	if err = s.AddUserToGroup("contractors", "alice"); err != nil {
 		t.Fatalf("AddUserToGroup failed: %v", err)
 	}
 
 	// Set up both allow and deny rules for the group
-	if err := s.AllowGroup("mnt/storage", "/work/", "contractors"); err != nil {
+	if err = s.AllowGroup("mnt/storage", "/work/", "contractors"); err != nil {
 		t.Fatalf("AllowGroup failed: %v", err)
 	}
-	if err := s.AllowGroup("mnt/storage", "/work/public/", "contractors"); err != nil {
+	if err = s.AllowGroup("mnt/storage", "/work/public/", "contractors"); err != nil {
 		t.Fatalf("AllowGroup failed: %v", err)
 	}
-	if err := s.DenyGroup("mnt/storage", "/work/", "contractors"); err != nil {
+	if err = s.DenyGroup("mnt/storage", "/work/", "contractors"); err != nil {
 		t.Fatalf("DenyGroup failed: %v", err)
 	}
-	if err := s.DenyGroup("mnt/storage", "/work/confidential/", "contractors"); err != nil {
+	if err = s.DenyGroup("mnt/storage", "/work/confidential/", "contractors"); err != nil {
 		t.Fatalf("DenyGroup failed: %v", err)
 	}
 
 	// Cascade delete only deny rules
-	count, err := s.RemoveGroupCascade("mnt/storage", "/work/", "contractors", false)
+	var count int
+	count, err = s.RemoveGroupCascade("mnt/storage", "/work/", "contractors", false)
 	if err != nil {
 		t.Fatalf("RemoveGroupCascade failed: %v", err)
 	}
@@ -1503,7 +1507,8 @@ func TestRemoveUserCascade_EmptyResult(t *testing.T) {
 	}
 
 	// Try to cascade delete when no rules exist
-	count, err := s.RemoveUserCascade("mnt/storage", "/nonexistent/", "dave", true)
+	var count int
+	count, err = s.RemoveUserCascade("mnt/storage", "/nonexistent/", "dave", true)
 	if err != nil {
 		t.Fatalf("RemoveUserCascade should not error on nonexistent rules: %v", err)
 	}
@@ -1525,12 +1530,13 @@ func TestRemoveUserCascade_ExactPathOnly(t *testing.T) {
 	}
 
 	// Add rule only on exact path, no subpaths
-	if err := s.AllowUser("mnt/storage", "/single/", "eve"); err != nil {
+	if err = s.AllowUser("mnt/storage", "/single/", "eve"); err != nil {
 		t.Fatalf("AllowUser failed: %v", err)
 	}
 
 	// Cascade delete should remove the exact path rule
-	count, err := s.RemoveUserCascade("mnt/storage", "/single/", "eve", true)
+	var count int
+	count, err = s.RemoveUserCascade("mnt/storage", "/single/", "eve", true)
 	if err != nil {
 		t.Fatalf("RemoveUserCascade failed: %v", err)
 	}
@@ -1558,13 +1564,13 @@ func TestRemoveUserCascade_DoesNotAffectParentPaths(t *testing.T) {
 	}
 
 	// Set up rules on parent and child paths
-	if err := s.AllowUser("mnt/storage", "/parent/", "frank"); err != nil {
+	if err = s.AllowUser("mnt/storage", "/parent/", "frank"); err != nil {
 		t.Fatalf("AllowUser failed: %v", err)
 	}
-	if err := s.AllowUser("mnt/storage", "/parent/child/", "frank"); err != nil {
+	if err = s.AllowUser("mnt/storage", "/parent/child/", "frank"); err != nil {
 		t.Fatalf("AllowUser failed: %v", err)
 	}
-	if err := s.AllowUser("mnt/storage", "/parent/child/grandchild/", "frank"); err != nil {
+	if err = s.AllowUser("mnt/storage", "/parent/child/grandchild/", "frank"); err != nil {
 		t.Fatalf("AllowUser failed: %v", err)
 	}
 
@@ -1603,10 +1609,10 @@ func TestRemoveUserCascade_CleanupEmptyRules(t *testing.T) {
 	}
 
 	// Add only allow rule (no deny rules)
-	if err := s.AllowUser("mnt/storage", "/temp/", "grace"); err != nil {
+	if err = s.AllowUser("mnt/storage", "/temp/", "grace"); err != nil {
 		t.Fatalf("AllowUser failed: %v", err)
 	}
-	if err := s.AllowUser("mnt/storage", "/temp/files/", "grace"); err != nil {
+	if err = s.AllowUser("mnt/storage", "/temp/files/", "grace"); err != nil {
 		t.Fatalf("AllowUser failed: %v", err)
 	}
 
@@ -1620,7 +1626,8 @@ func TestRemoveUserCascade_CleanupEmptyRules(t *testing.T) {
 	}
 
 	// Cascade delete - should remove rules and cleanup empty rule objects
-	count, err := s.RemoveUserCascade("mnt/storage", "/temp/", "grace", true)
+	var count int
+	count, err = s.RemoveUserCascade("mnt/storage", "/temp/", "grace", true)
 	if err != nil {
 		t.Fatalf("RemoveUserCascade failed: %v", err)
 	}
@@ -1655,21 +1662,22 @@ func TestRemoveUserCascade_MixedUsers(t *testing.T) {
 	}
 
 	// Add rules for both users on same paths
-	if err := s.AllowUser("mnt/storage", "/shared/", "henry"); err != nil {
+	if err = s.AllowUser("mnt/storage", "/shared/", "henry"); err != nil {
 		t.Fatalf("AllowUser failed: %v", err)
 	}
-	if err := s.AllowUser("mnt/storage", "/shared/", "iris"); err != nil {
+	if err = s.AllowUser("mnt/storage", "/shared/", "iris"); err != nil {
 		t.Fatalf("AllowUser failed: %v", err)
 	}
-	if err := s.AllowUser("mnt/storage", "/shared/docs/", "henry"); err != nil {
+	if err = s.AllowUser("mnt/storage", "/shared/docs/", "henry"); err != nil {
 		t.Fatalf("AllowUser failed: %v", err)
 	}
-	if err := s.AllowUser("mnt/storage", "/shared/docs/", "iris"); err != nil {
+	if err = s.AllowUser("mnt/storage", "/shared/docs/", "iris"); err != nil {
 		t.Fatalf("AllowUser failed: %v", err)
 	}
 
 	// Cascade delete only henry's rules
-	count, err := s.RemoveUserCascade("mnt/storage", "/shared/", "henry", true)
+	var count int
+	count, err = s.RemoveUserCascade("mnt/storage", "/shared/", "henry", true)
 	if err != nil {
 		t.Fatalf("RemoveUserCascade failed: %v", err)
 	}
