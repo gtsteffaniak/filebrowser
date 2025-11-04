@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 )
 
 func BenchmarkFillIndex(b *testing.B) {
@@ -50,6 +51,80 @@ func TestGetIndex(t *testing.T) {
 			}
 		})
 	}
+}
+
+// TestMultiScannerMutex verifies that only one scanner can run at a time
+func TestMultiScannerMutex(t *testing.T) {
+	// Create a mock index with multi-scanner support
+	idx := &Index{
+		Source: settings.Source{
+			Name: "test-multiscanner",
+			Path: "/tmp/test",
+			Config: settings.SourceConfig{
+				DisableIndexing: false,
+			},
+		},
+		mock:              true,
+		Directories:       make(map[string]*iteminfo.FileInfo),
+		DirectoriesLedger: make(map[string]struct{}),
+		processedInodes:   make(map[uint64]struct{}),
+		FoundHardLinks:    make(map[string]uint64),
+		scanners:          make(map[string]*Scanner),
+	}
+
+	// Create multiple scanners
+	scanner1 := idx.createRootScanner()
+	scanner2 := idx.createChildScanner("/test1/")
+	scanner3 := idx.createChildScanner("/test2/")
+
+	idx.scanners["/"] = scanner1
+	idx.scanners["/test1/"] = scanner2
+	idx.scanners["/test2/"] = scanner3
+
+	// Verify scanners were created
+	if len(idx.scanners) != 3 {
+		t.Errorf("Expected 3 scanners, got %d", len(idx.scanners))
+	}
+
+	// Verify scanner properties
+	if !scanner1.isRoot {
+		t.Error("Scanner 1 should be root scanner")
+	}
+	if scanner2.isRoot || scanner3.isRoot {
+		t.Error("Child scanners should not be root")
+	}
+
+	// Test that GetScannerStatus works
+	status := idx.GetScannerStatus()
+	if status["totalScanners"] != 3 {
+		t.Errorf("Expected totalScanners=3, got %v", status["totalScanners"])
+	}
+	if status["activeScanner"] != "" {
+		t.Errorf("Expected no active scanner, got %v", status["activeScanner"])
+	}
+	if status["isScanning"] != false {
+		t.Error("Expected isScanning=false")
+	}
+
+	// Verify scanner counters can be updated
+	idx.activeScannerPath = "/test1/"
+	idx.incrementScannerDirs()
+	idx.incrementScannerFiles()
+
+	if scanner2.numDirs != 1 {
+		t.Errorf("Expected scanner2 numDirs=1, got %d", scanner2.numDirs)
+	}
+	if scanner2.numFiles != 1 {
+		t.Errorf("Expected scanner2 numFiles=1, got %d", scanner2.numFiles)
+	}
+
+	// Verify markFilesChanged works
+	idx.markFilesChanged()
+	if !scanner2.filesChanged {
+		t.Error("Expected scanner2.filesChanged=true")
+	}
+
+	t.Log("Multi-scanner mutex test passed")
 }
 
 func TestMakeIndexPath(t *testing.T) {
