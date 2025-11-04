@@ -40,10 +40,8 @@ type Scanner struct {
 func (s *Scanner) start() {
 	// Do initial scan for all scanners
 	// Wait a bit to stagger child scanner initial scans (root goes first)
-	if s.isRoot {
+	if !s.isRoot {
 		time.Sleep(500 * time.Millisecond)
-	} else {
-		time.Sleep(2 * time.Second)
 	}
 	s.tryAcquireAndScan()
 
@@ -72,6 +70,20 @@ func (s *Scanner) start() {
 
 // tryAcquireAndScan attempts to acquire the global scan mutex and run a scan
 func (s *Scanner) tryAcquireAndScan() {
+	// Child scanners must wait for root scanner to go first each round
+	if !s.isRoot {
+		s.idx.mu.RLock()
+		lastRootScan := s.idx.lastRootScanTime
+		myLastScan := s.lastScanned
+		s.idx.mu.RUnlock()
+
+		// If we've scanned more recently than the root, skip this cycle
+		if !myLastScan.IsZero() && myLastScan.After(lastRootScan) {
+			logger.Debugf("Scanner [%s] waiting for root scanner to go first", s.scanPath)
+			return
+		}
+	}
+
 	s.idx.scanMutex.Lock()
 
 	// Mark which scanner is active (for status/logging)
@@ -91,6 +103,13 @@ func (s *Scanner) tryAcquireAndScan() {
 
 	// Update this scanner's schedule based on results
 	s.updateSchedule()
+
+	// If this is the root scanner, update the last root scan time
+	if s.isRoot {
+		s.idx.mu.Lock()
+		s.idx.lastRootScanTime = time.Now()
+		s.idx.mu.Unlock()
+	}
 
 	// Clear active scanner
 	s.idx.mu.Lock()
@@ -124,7 +143,15 @@ func (s *Scanner) runRootScan(quick bool) {
 		IsRoutineScan: s.idx.wasIndexed,
 	}
 
+	// Reset counters for full scan
+	if !quick {
+		s.numDirs = 0
+		s.numFiles = 0
+	}
+
+	s.filesChanged = false
 	startTime := time.Now()
+
 	err := s.idx.indexDirectory("/", config)
 	if err != nil {
 		logger.Errorf("Root scanner error: %v", err)
@@ -135,6 +162,7 @@ func (s *Scanner) runRootScan(quick bool) {
 		s.quickScanTime = scanDuration
 	} else {
 		s.fullScanTime = scanDuration
+		s.updateAssessment()
 	}
 
 	// Check for new top-level directories and create scanners for them
@@ -339,7 +367,7 @@ func (s *Scanner) updateAssessment() {
 		s.smartModifier = 0
 	}
 
-	logger.Debugf("Scanner [%s] assessment: complexity=%v dirs=%v files=%v modifier=%v",
+	logger.Debugf("Scanner [%s] complexity=%v dirs=%v files=%v modifier=%v",
 		s.scanPath, s.assessment, s.numDirs, s.numFiles, s.smartModifier)
 }
 
@@ -358,7 +386,7 @@ func (s *Scanner) removeSelf() {
 	defer s.idx.mu.Unlock()
 
 	delete(s.idx.scanners, s.scanPath)
-	logger.Debugf("Removed scanner [%s] from active scanners", s.scanPath)
+	logger.Infof("Removed scanner [%s] from active scanners", s.scanPath)
 
 	// Trigger stats aggregation to update overall index
 	go s.idx.aggregateStatsFromScanners()

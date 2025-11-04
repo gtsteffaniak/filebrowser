@@ -75,6 +75,7 @@ type Index struct {
 	scanMutex           sync.Mutex          `json:"-"` // Global scan mutex - only one scanner runs at a time
 	activeScannerPath   string              `json:"-"` // Which scanner is currently running (for logging/status)
 	runningScannerCount int                 `json:"-"` // Tracks active scanners
+	lastRootScanTime    time.Time           `json:"-"` // Last time root scanner completed - child scanners wait for this
 
 	// Control
 	mock       bool
