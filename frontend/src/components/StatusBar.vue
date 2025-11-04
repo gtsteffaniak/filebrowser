@@ -12,22 +12,6 @@
         </span>
       </div>
       <div class="status-controls">
-        <div v-if="showGalleryToggle" class="gallery-toggle">
-          <action
-            class="menu-button"
-            :icon="switchViewIcon"
-            :title="$t('buttons.switchView')"
-            @action="toggleGalleryView"
-          />
-        </div>
-        <div v-if="showListViewToggle" class="list-toggle">
-          <action
-            class="menu-button"
-            :icon="switchViewIcon"
-            :title="$t('buttons.switchView')"
-            @action="toggleListView"
-          />
-        </div>
         <div v-if="showGallerySize" class="gallery-size-control">
           <span class="size-label">{{ $t("files.size") }}</span>
           <input
@@ -36,8 +20,9 @@
             id="gallery-size"
             name="gallery-size"
             min="1"
-            max="8"
+            max="9"
             @input="updateGallerySize"
+            @change="commitGallerySize"
           />
         </div>
       </div>
@@ -47,14 +32,10 @@
 
 <script>
 import { state, getters, mutations } from "@/store";
-import Action from "@/components/Action.vue";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 
 export default {
   name: "StatusBar",
-  components: {
-    Action,
-  },
   data() {
     return {
       gallerySize: state.user.gallerySize,
@@ -78,17 +59,6 @@ export default {
     },
     showGallerySize() {
       return getters.isCardView() && state.req?.items?.length > 0;
-    },
-    showGalleryToggle() {
-      const viewMode = getters.viewMode();
-      return viewMode === "gallery" || viewMode === "icons";
-    },
-    showListViewToggle() {
-      const viewMode = getters.viewMode();
-      return viewMode === "list" || viewMode === "compact";
-    },
-    switchViewIcon() {
-      return "change_circle";
     },
     totalDirectorySize() {
       if (!Array.isArray(state.req?.items)) return 0;
@@ -121,19 +91,40 @@ export default {
     updateGallerySize(event) {
       const newValue = parseInt(event.target.value, 10);
       this.gallerySize = newValue;
-      mutations.setGallerySize(newValue);
     },
-    toggleGalleryView() {
-      const currentMode = getters.viewMode();
-      const newMode = currentMode === "gallery" ? "icons" : "gallery";
-      mutations.updateDisplayPreferences({ viewMode: newMode });
-      mutations.updateCurrentUser({ viewMode: newMode });
+    commitGallerySize() {
+      mutations.setGallerySize(this.gallerySize);
+      // Automatically adjust view mode based on gallery size
+      this.adjustViewMode();
     },
-    toggleListView() {
+    adjustViewMode() {
       const currentMode = getters.viewMode();
-      const newMode = currentMode === "list" ? "compact" : "list";
-      mutations.updateDisplayPreferences({ viewMode: newMode });
-      mutations.updateCurrentUser({ viewMode: newMode });
+      let newMode = currentMode;
+      const size = this.gallerySize;
+
+      // Gallery/Icons family - switch based on size
+      if (currentMode === "gallery" || currentMode === "icons") {
+        if (size <= 4) {
+          newMode = "icons";
+        } else {
+          newMode = "gallery";
+        }
+      }
+
+      // List/Compact family - switch based on size
+      if (currentMode === "list" || currentMode === "compact") {
+        if (size <= 2) {
+          newMode = "compact";
+        } else {
+          newMode = "list";
+        }
+      }
+
+      // Only update if the mode actually changed
+      if (newMode !== currentMode) {
+        mutations.updateDisplayPreferences({ viewMode: newMode });
+        mutations.updateCurrentUser({ viewMode: newMode });
+      }
     },
   },
 };
@@ -141,9 +132,8 @@ export default {
 
 <style scoped>
 #status-bar {
-  background-color: var(--alt-background);
+  background-color: rgb(37 49 55 / 5%) !important;
   border-top: 1px solid var(--divider);
-  font-size: 0.875em;
   height: 2.5em;
   display: flex;
   align-items: center;
@@ -160,7 +150,7 @@ export default {
 }
 
 #main.moveWithSidebar #status-bar {
-  left: 22.7em;
+  margin-left: 20em;
 }
 
 .status-content {
@@ -170,6 +160,7 @@ export default {
   width: 100%;
   padding: 0 1em;
   height: 100%;
+  font-size: 0.85em;
 }
 
 .status-info {
@@ -179,36 +170,10 @@ export default {
   font-weight: 500;
 }
 
-.selection-info {
-  color: var(--primaryColor);
-}
-
 .status-controls {
   display: flex;
   align-items: center;
   gap: 1.5em;
-}
-
-.gallery-toggle .menu-button,
-.list-toggle .menu-button {
-  width: 2em;
-  height: 2em;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.gallery-toggle .menu-button i,
-.list-toggle .menu-button i {
-  font-size: 1.2em;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
 }
 
 .gallery-size-control {
@@ -232,7 +197,9 @@ input[type="range"] {
 @supports (backdrop-filter: none) {
   #status-bar {
     backdrop-filter: blur(16px) invert(0.1);
-    background-color: rgb(37 49 55 / 5%) !important;
+  }
+  #status-bar.dark-mode-header {
+    background-color: rgb(37 49 55 / 33%) !important;
   }
 }
 
@@ -243,35 +210,24 @@ input[type="range"] {
     font-size: 0.9em;
     box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
   }
-  
+
   .status-content {
     padding: 0 0.8em;
   }
-  
+
   .status-controls {
     gap: 1.2em;
   }
-  
+
   input[type="range"] {
     width: 7em;
     height: 1.5em; /* For better touch */
   }
-  
-  .gallery-toggle .menu-button,
-  .list-toggle .menu-button {
-    width: 2.2em;
-    height: 2.2em;
-  }
-  
-  .gallery-toggle .menu-button i,
-  .list-toggle .menu-button i {
-    font-size: 1.3em;
-  }
-  
+
   .status-info {
     font-size: 1em;
   }
-  
+
   .size-label {
     font-size: 0.9em;
   }
