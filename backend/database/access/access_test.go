@@ -1203,3 +1203,505 @@ func TestHasAnyVisibleItems(t *testing.T) {
 
 	t.Log("✓ HasAnyVisibleItems correctly checks access permissions for items")
 }
+
+// TestRemoveUserCascade_OnlyRemovesSpecificList tests that cascade delete only removes from the specified list
+func TestRemoveUserCascade_OnlyRemovesSpecificList(t *testing.T) {
+	setupTestSources()
+	s, userStore := createTestStorage(t)
+	createTestUser(t, userStore, "alice")
+	err := s.LoadFromDB()
+	if err != nil && err != storm.ErrNotFound {
+		t.Errorf("unexpected error loading from DB: %v", err)
+	}
+
+	// Set up rules: alice has both allow and deny rules on different paths
+	if err := s.AllowUser("mnt/storage", "/docs/", "alice"); err != nil {
+		t.Fatalf("AllowUser failed: %v", err)
+	}
+	if err := s.AllowUser("mnt/storage", "/docs/public/", "alice"); err != nil {
+		t.Fatalf("AllowUser failed: %v", err)
+	}
+	if err := s.DenyUser("mnt/storage", "/docs/", "alice"); err != nil {
+		t.Fatalf("DenyUser failed: %v", err)
+	}
+	if err := s.DenyUser("mnt/storage", "/docs/private/", "alice"); err != nil {
+		t.Fatalf("DenyUser failed: %v", err)
+	}
+
+	// Cascade delete only allow rules
+	count, err := s.RemoveUserCascade("mnt/storage", "/docs/", "alice", true)
+	if err != nil {
+		t.Fatalf("RemoveUserCascade failed: %v", err)
+	}
+	if count != 2 {
+		t.Errorf("Expected 2 allow rules removed, got %d", count)
+	}
+
+	// Verify allow rules are gone
+	rule, ok := s.GetFrontendRules("mnt/storage", "/docs/")
+	if ok && len(rule.Allow.Users) != 0 {
+		t.Error("Allow rule should be removed from /docs/")
+	}
+	rule, ok = s.GetFrontendRules("mnt/storage", "/docs/public/")
+	if ok && len(rule.Allow.Users) != 0 {
+		t.Error("Allow rule should be removed from /docs/public/")
+	}
+
+	// Verify deny rules are still present
+	rule, ok = s.GetFrontendRules("mnt/storage", "/docs/")
+	if !ok || len(rule.Deny.Users) == 0 {
+		t.Error("Deny rule should still exist on /docs/")
+	}
+	rule, ok = s.GetFrontendRules("mnt/storage", "/docs/private/")
+	if !ok || len(rule.Deny.Users) == 0 {
+		t.Error("Deny rule should still exist on /docs/private/")
+	}
+
+	t.Log("✓ Cascade delete correctly removes only allow rules, leaving deny rules intact")
+}
+
+// TestRemoveUserCascade_DenyRules tests cascade delete for deny rules specifically
+func TestRemoveUserCascade_DenyRules(t *testing.T) {
+	setupTestSources()
+	s, userStore := createTestStorage(t)
+	createTestUser(t, userStore, "bob")
+	err := s.LoadFromDB()
+	if err != nil && err != storm.ErrNotFound {
+		t.Errorf("unexpected error loading from DB: %v", err)
+	}
+
+	// Set up both allow and deny rules
+	if err := s.AllowUser("mnt/storage", "/projects/", "bob"); err != nil {
+		t.Fatalf("AllowUser failed: %v", err)
+	}
+	if err := s.AllowUser("mnt/storage", "/projects/team/", "bob"); err != nil {
+		t.Fatalf("AllowUser failed: %v", err)
+	}
+	if err := s.DenyUser("mnt/storage", "/projects/", "bob"); err != nil {
+		t.Fatalf("DenyUser failed: %v", err)
+	}
+	if err := s.DenyUser("mnt/storage", "/projects/secret/", "bob"); err != nil {
+		t.Fatalf("DenyUser failed: %v", err)
+	}
+
+	// Cascade delete only deny rules
+	count, err := s.RemoveUserCascade("mnt/storage", "/projects/", "bob", false)
+	if err != nil {
+		t.Fatalf("RemoveUserCascade failed: %v", err)
+	}
+	if count != 2 {
+		t.Errorf("Expected 2 deny rules removed, got %d", count)
+	}
+
+	// Verify deny rules are gone
+	rule, ok := s.GetFrontendRules("mnt/storage", "/projects/")
+	if !ok || len(rule.Deny.Users) != 0 {
+		t.Error("Deny rule should be removed from /projects/")
+	}
+	rule, ok = s.GetFrontendRules("mnt/storage", "/projects/secret/")
+	if ok && len(rule.Deny.Users) != 0 {
+		t.Error("Deny rule should be removed from /projects/secret/")
+	}
+
+	// Verify allow rules are still present
+	rule, ok = s.GetFrontendRules("mnt/storage", "/projects/")
+	if !ok || len(rule.Allow.Users) == 0 {
+		t.Error("Allow rule should still exist on /projects/")
+	}
+	rule, ok = s.GetFrontendRules("mnt/storage", "/projects/team/")
+	if !ok || len(rule.Allow.Users) == 0 {
+		t.Error("Allow rule should still exist on /projects/team/")
+	}
+
+	t.Log("✓ Cascade delete correctly removes only deny rules, leaving allow rules intact")
+}
+
+// TestRemoveUserCascade_MultipleSubpaths tests cascade delete across multiple subpath levels
+func TestRemoveUserCascade_MultipleSubpaths(t *testing.T) {
+	setupTestSources()
+	s, userStore := createTestStorage(t)
+	createTestUser(t, userStore, "carol")
+	err := s.LoadFromDB()
+	if err != nil && err != storm.ErrNotFound {
+		t.Errorf("unexpected error loading from DB: %v", err)
+	}
+
+	// Set up a deep hierarchy of allow rules
+	paths := []string{
+		"/data/",
+		"/data/2024/",
+		"/data/2024/q1/",
+		"/data/2024/q1/jan/",
+		"/data/2024/q1/feb/",
+		"/data/2024/q2/",
+		"/data/2024/q2/apr/",
+		"/data/2025/",
+	}
+
+	for _, path := range paths {
+		if err := s.AllowUser("mnt/storage", path, "carol"); err != nil {
+			t.Fatalf("AllowUser failed for %s: %v", path, err)
+		}
+	}
+
+	// Cascade delete from /data/2024/ should remove all 2024 subpaths
+	count, err := s.RemoveUserCascade("mnt/storage", "/data/2024/", "carol", true)
+	if err != nil {
+		t.Fatalf("RemoveUserCascade failed: %v", err)
+	}
+	if count != 6 {
+		t.Errorf("Expected 6 rules removed (2024 + 5 subpaths), got %d", count)
+	}
+
+	// Verify 2024 paths are gone
+	for _, path := range []string{"/data/2024/", "/data/2024/q1/", "/data/2024/q1/jan/", "/data/2024/q1/feb/", "/data/2024/q2/", "/data/2024/q2/apr/"} {
+		rule, ok := s.GetFrontendRules("mnt/storage", path)
+		if ok && len(rule.Allow.Users) > 0 {
+			t.Errorf("Rule should be removed from %s", path)
+		}
+	}
+
+	// Verify other paths still exist
+	rule, ok := s.GetFrontendRules("mnt/storage", "/data/")
+	if !ok || len(rule.Allow.Users) == 0 {
+		t.Error("Rule should still exist on /data/")
+	}
+	rule, ok = s.GetFrontendRules("mnt/storage", "/data/2025/")
+	if !ok || len(rule.Allow.Users) == 0 {
+		t.Error("Rule should still exist on /data/2025/")
+	}
+
+	t.Log("✓ Cascade delete correctly removes rules from all subpath levels")
+}
+
+// TestRemoveGroupCascade_OnlyRemovesSpecificList tests cascade delete for groups
+func TestRemoveGroupCascade_OnlyRemovesSpecificList(t *testing.T) {
+	setupTestSources()
+	s, userStore := createTestStorage(t)
+	createTestUser(t, userStore, "alice")
+	err := s.LoadFromDB()
+	if err != nil && err != storm.ErrNotFound {
+		t.Errorf("unexpected error loading from DB: %v", err)
+	}
+
+	// Create a group
+	if err := s.AddUserToGroup("editors", "alice"); err != nil {
+		t.Fatalf("AddUserToGroup failed: %v", err)
+	}
+
+	// Set up both allow and deny rules for the group
+	if err := s.AllowGroup("mnt/storage", "/content/", "editors"); err != nil {
+		t.Fatalf("AllowGroup failed: %v", err)
+	}
+	if err := s.AllowGroup("mnt/storage", "/content/articles/", "editors"); err != nil {
+		t.Fatalf("AllowGroup failed: %v", err)
+	}
+	if err := s.DenyGroup("mnt/storage", "/content/", "editors"); err != nil {
+		t.Fatalf("DenyGroup failed: %v", err)
+	}
+	if err := s.DenyGroup("mnt/storage", "/content/drafts/", "editors"); err != nil {
+		t.Fatalf("DenyGroup failed: %v", err)
+	}
+
+	// Cascade delete only allow rules
+	count, err := s.RemoveGroupCascade("mnt/storage", "/content/", "editors", true)
+	if err != nil {
+		t.Fatalf("RemoveGroupCascade failed: %v", err)
+	}
+	if count != 2 {
+		t.Errorf("Expected 2 allow rules removed, got %d", count)
+	}
+
+	// Verify allow rules are gone
+	rule, ok := s.GetFrontendRules("mnt/storage", "/content/")
+	if !ok || len(rule.Allow.Groups) != 0 {
+		t.Error("Allow rule should be removed from /content/")
+	}
+
+	// Verify deny rules are still present
+	rule, ok = s.GetFrontendRules("mnt/storage", "/content/")
+	if !ok || len(rule.Deny.Groups) == 0 {
+		t.Error("Deny rule should still exist on /content/")
+	}
+	rule, ok = s.GetFrontendRules("mnt/storage", "/content/drafts/")
+	if !ok || len(rule.Deny.Groups) == 0 {
+		t.Error("Deny rule should still exist on /content/drafts/")
+	}
+
+	t.Log("✓ Cascade delete for groups correctly removes only allow rules")
+}
+
+// TestRemoveGroupCascade_DenyRules tests cascade delete for group deny rules specifically
+func TestRemoveGroupCascade_DenyRules(t *testing.T) {
+	setupTestSources()
+	s, userStore := createTestStorage(t)
+	createTestUser(t, userStore, "alice")
+	err := s.LoadFromDB()
+	if err != nil && err != storm.ErrNotFound {
+		t.Errorf("unexpected error loading from DB: %v", err)
+	}
+
+	// Create a group
+	if err := s.AddUserToGroup("contractors", "alice"); err != nil {
+		t.Fatalf("AddUserToGroup failed: %v", err)
+	}
+
+	// Set up both allow and deny rules for the group
+	if err := s.AllowGroup("mnt/storage", "/work/", "contractors"); err != nil {
+		t.Fatalf("AllowGroup failed: %v", err)
+	}
+	if err := s.AllowGroup("mnt/storage", "/work/public/", "contractors"); err != nil {
+		t.Fatalf("AllowGroup failed: %v", err)
+	}
+	if err := s.DenyGroup("mnt/storage", "/work/", "contractors"); err != nil {
+		t.Fatalf("DenyGroup failed: %v", err)
+	}
+	if err := s.DenyGroup("mnt/storage", "/work/confidential/", "contractors"); err != nil {
+		t.Fatalf("DenyGroup failed: %v", err)
+	}
+
+	// Cascade delete only deny rules
+	count, err := s.RemoveGroupCascade("mnt/storage", "/work/", "contractors", false)
+	if err != nil {
+		t.Fatalf("RemoveGroupCascade failed: %v", err)
+	}
+	if count != 2 {
+		t.Errorf("Expected 2 deny rules removed, got %d", count)
+	}
+
+	// Verify deny rules are gone
+	rule, ok := s.GetFrontendRules("mnt/storage", "/work/")
+	if ok && len(rule.Deny.Groups) != 0 {
+		t.Error("Deny rule should be removed from /work/")
+	}
+	rule, ok = s.GetFrontendRules("mnt/storage", "/work/confidential/")
+	if ok && len(rule.Deny.Groups) != 0 {
+		t.Error("Deny rule should be removed from /work/confidential/")
+	}
+
+	// Verify allow rules are still present
+	rule, ok = s.GetFrontendRules("mnt/storage", "/work/")
+	if !ok || len(rule.Allow.Groups) == 0 {
+		t.Error("Allow rule should still exist on /work/")
+	}
+	rule, ok = s.GetFrontendRules("mnt/storage", "/work/public/")
+	if !ok || len(rule.Allow.Groups) == 0 {
+		t.Error("Allow rule should still exist on /work/public/")
+	}
+
+	t.Log("✓ Cascade delete for groups correctly removes only deny rules, leaving allow rules intact")
+}
+
+// TestRemoveUserCascade_EmptyResult tests cascade delete when no rules exist
+func TestRemoveUserCascade_EmptyResult(t *testing.T) {
+	setupTestSources()
+	s, userStore := createTestStorage(t)
+	createTestUser(t, userStore, "dave")
+	err := s.LoadFromDB()
+	if err != nil && err != storm.ErrNotFound {
+		t.Errorf("unexpected error loading from DB: %v", err)
+	}
+
+	// Try to cascade delete when no rules exist
+	count, err := s.RemoveUserCascade("mnt/storage", "/nonexistent/", "dave", true)
+	if err != nil {
+		t.Fatalf("RemoveUserCascade should not error on nonexistent rules: %v", err)
+	}
+	if count != 0 {
+		t.Errorf("Expected 0 rules removed, got %d", count)
+	}
+
+	t.Log("✓ Cascade delete correctly returns 0 when no rules exist")
+}
+
+// TestRemoveUserCascade_ExactPathOnly tests that exact path is included in cascade
+func TestRemoveUserCascade_ExactPathOnly(t *testing.T) {
+	setupTestSources()
+	s, userStore := createTestStorage(t)
+	createTestUser(t, userStore, "eve")
+	err := s.LoadFromDB()
+	if err != nil && err != storm.ErrNotFound {
+		t.Errorf("unexpected error loading from DB: %v", err)
+	}
+
+	// Add rule only on exact path, no subpaths
+	if err := s.AllowUser("mnt/storage", "/single/", "eve"); err != nil {
+		t.Fatalf("AllowUser failed: %v", err)
+	}
+
+	// Cascade delete should remove the exact path rule
+	count, err := s.RemoveUserCascade("mnt/storage", "/single/", "eve", true)
+	if err != nil {
+		t.Fatalf("RemoveUserCascade failed: %v", err)
+	}
+	if count != 1 {
+		t.Errorf("Expected 1 rule removed, got %d", count)
+	}
+
+	// Verify rule is gone
+	rule, ok := s.GetFrontendRules("mnt/storage", "/single/")
+	if ok && len(rule.Allow.Users) > 0 {
+		t.Error("Rule should be removed from /single/")
+	}
+
+	t.Log("✓ Cascade delete correctly removes the exact path rule")
+}
+
+// TestRemoveUserCascade_DoesNotAffectParentPaths tests that parent paths are not affected
+func TestRemoveUserCascade_DoesNotAffectParentPaths(t *testing.T) {
+	setupTestSources()
+	s, userStore := createTestStorage(t)
+	createTestUser(t, userStore, "frank")
+	err := s.LoadFromDB()
+	if err != nil && err != storm.ErrNotFound {
+		t.Errorf("unexpected error loading from DB: %v", err)
+	}
+
+	// Set up rules on parent and child paths
+	if err := s.AllowUser("mnt/storage", "/parent/", "frank"); err != nil {
+		t.Fatalf("AllowUser failed: %v", err)
+	}
+	if err := s.AllowUser("mnt/storage", "/parent/child/", "frank"); err != nil {
+		t.Fatalf("AllowUser failed: %v", err)
+	}
+	if err := s.AllowUser("mnt/storage", "/parent/child/grandchild/", "frank"); err != nil {
+		t.Fatalf("AllowUser failed: %v", err)
+	}
+
+	// Cascade delete from child path
+	count, err := s.RemoveUserCascade("mnt/storage", "/parent/child/", "frank", true)
+	if err != nil {
+		t.Fatalf("RemoveUserCascade failed: %v", err)
+	}
+	if count != 2 {
+		t.Errorf("Expected 2 rules removed (child + grandchild), got %d", count)
+	}
+
+	// Verify parent rule still exists
+	rule, ok := s.GetFrontendRules("mnt/storage", "/parent/")
+	if !ok || len(rule.Allow.Users) == 0 {
+		t.Error("Parent rule should still exist")
+	}
+
+	// Verify child rules are gone
+	rule, ok = s.GetFrontendRules("mnt/storage", "/parent/child/")
+	if ok && len(rule.Allow.Users) > 0 {
+		t.Error("Child rule should be removed")
+	}
+
+	t.Log("✓ Cascade delete does not affect parent paths")
+}
+
+// TestRemoveUserCascade_CleanupEmptyRules tests that empty rules are cleaned up
+func TestRemoveUserCascade_CleanupEmptyRules(t *testing.T) {
+	setupTestSources()
+	s, userStore := createTestStorage(t)
+	createTestUser(t, userStore, "grace")
+	err := s.LoadFromDB()
+	if err != nil && err != storm.ErrNotFound {
+		t.Errorf("unexpected error loading from DB: %v", err)
+	}
+
+	// Add only allow rule (no deny rules)
+	if err := s.AllowUser("mnt/storage", "/temp/", "grace"); err != nil {
+		t.Fatalf("AllowUser failed: %v", err)
+	}
+	if err := s.AllowUser("mnt/storage", "/temp/files/", "grace"); err != nil {
+		t.Fatalf("AllowUser failed: %v", err)
+	}
+
+	// Verify rules exist
+	allRules, err := s.GetAllRules("mnt/storage")
+	if err != nil {
+		t.Fatalf("GetAllRules failed: %v", err)
+	}
+	if len(allRules) < 2 {
+		t.Error("Expected at least 2 rules to exist")
+	}
+
+	// Cascade delete - should remove rules and cleanup empty rule objects
+	count, err := s.RemoveUserCascade("mnt/storage", "/temp/", "grace", true)
+	if err != nil {
+		t.Fatalf("RemoveUserCascade failed: %v", err)
+	}
+	if count != 2 {
+		t.Errorf("Expected 2 rules removed, got %d", count)
+	}
+
+	// Verify rules are completely gone (not just empty)
+	allRules, err = s.GetAllRules("mnt/storage")
+	if err != nil {
+		t.Fatalf("GetAllRules failed: %v", err)
+	}
+	if _, exists := allRules["/temp/"]; exists {
+		t.Error("Empty rule should be cleaned up from /temp/")
+	}
+	if _, exists := allRules["/temp/files/"]; exists {
+		t.Error("Empty rule should be cleaned up from /temp/files/")
+	}
+
+	t.Log("✓ Cascade delete correctly cleans up empty rules")
+}
+
+// TestRemoveUserCascade_MixedUsers tests that cascade delete only affects the specified user
+func TestRemoveUserCascade_MixedUsers(t *testing.T) {
+	setupTestSources()
+	s, userStore := createTestStorage(t)
+	createTestUser(t, userStore, "henry")
+	createTestUser(t, userStore, "iris")
+	err := s.LoadFromDB()
+	if err != nil && err != storm.ErrNotFound {
+		t.Errorf("unexpected error loading from DB: %v", err)
+	}
+
+	// Add rules for both users on same paths
+	if err := s.AllowUser("mnt/storage", "/shared/", "henry"); err != nil {
+		t.Fatalf("AllowUser failed: %v", err)
+	}
+	if err := s.AllowUser("mnt/storage", "/shared/", "iris"); err != nil {
+		t.Fatalf("AllowUser failed: %v", err)
+	}
+	if err := s.AllowUser("mnt/storage", "/shared/docs/", "henry"); err != nil {
+		t.Fatalf("AllowUser failed: %v", err)
+	}
+	if err := s.AllowUser("mnt/storage", "/shared/docs/", "iris"); err != nil {
+		t.Fatalf("AllowUser failed: %v", err)
+	}
+
+	// Cascade delete only henry's rules
+	count, err := s.RemoveUserCascade("mnt/storage", "/shared/", "henry", true)
+	if err != nil {
+		t.Fatalf("RemoveUserCascade failed: %v", err)
+	}
+	if count != 2 {
+		t.Errorf("Expected 2 rules removed for henry, got %d", count)
+	}
+
+	// Verify henry's rules are gone
+	rule, ok := s.GetFrontendRules("mnt/storage", "/shared/")
+	if !ok {
+		t.Fatal("Rule should still exist (iris's rule)")
+	}
+	hasHenry := false
+	for _, user := range rule.Allow.Users {
+		if user == "henry" {
+			hasHenry = true
+		}
+	}
+	if hasHenry {
+		t.Error("henry should be removed from allow list")
+	}
+
+	// Verify iris's rules still exist
+	hasIris := false
+	for _, user := range rule.Allow.Users {
+		if user == "iris" {
+			hasIris = true
+		}
+	}
+	if !hasIris {
+		t.Error("iris should still be in allow list")
+	}
+
+	t.Log("✓ Cascade delete only affects the specified user")
+}
