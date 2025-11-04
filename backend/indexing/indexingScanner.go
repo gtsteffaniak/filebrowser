@@ -245,10 +245,6 @@ func (s *Scanner) getTopLevelDirs() []string {
 		dirs = append(dirs, dirPath)
 	}
 
-	if len(dirs) > 0 {
-		logger.Debugf("Found %d directories to create scanners for", len(dirs))
-	}
-
 	return dirs
 }
 
@@ -314,9 +310,4 @@ func (s *Scanner) updateAssessment() {
 
 	logger.Debugf("Scanner [%s] assessment: complexity=%v dirs=%v files=%v modifier=%v",
 		s.scanPath, s.assessment, s.numDirs, s.numFiles, s.smartModifier)
-}
-
-// stop gracefully stops the scanner
-func (s *Scanner) stop() {
-	close(s.stopChan)
 }

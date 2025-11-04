@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file. For commit 
  **Notes**:
  - more efficient user update actions. Successful PUT actions return only 204 if successful.
  - Do not enter directory on "New Folder" action #1343
+ - Individual scanners per directory at root -- improves scanning impact.
 
 ## v1.0.1
 

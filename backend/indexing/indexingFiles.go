@@ -58,14 +58,9 @@ type Index struct {
 
 	// Scanner management (new multi-scanner system)
 	scanners            map[string]*Scanner `json:"-"` // path -> scanner
-	scanMutex           sync.Mutex          `json:"-"` // 🔑 Global scan mutex - only one scanner runs at a time
+	scanMutex           sync.Mutex          `json:"-"` // Global scan mutex - only one scanner runs at a time
 	activeScannerPath   string              `json:"-"` // Which scanner is currently running (for logging/status)
-	runningScannerCount int                 `json:"-"` // Legacy field, kept for compatibility
-
-	// Deprecated per-Index scheduling fields (moved to Scanner)
-	CurrentSchedule            int           `json:"-"` // Deprecated: now per-scanner
-	SmartModifier              time.Duration `json:"-"` // Deprecated: now per-scanner
-	FilesChangedDuringIndexing bool          `json:"-"` // Deprecated: now per-scanner
+	runningScannerCount int                 `json:"-"` // Tracks active scanners
 
 	// Control
 	mock       bool
@@ -115,9 +110,8 @@ func Initialize(source *settings.Source, mock bool) {
 	indexes[newIndex.Name] = &newIndex
 	indexesMutex.Unlock()
 	if !newIndex.Config.DisableIndexing {
-		time.Sleep(time.Second)
 		logger.Infof("initializing index: [%v]", newIndex.Name)
-		newIndex.RunIndexing("/", false)
+		// Start multi-scanner system (each scanner will do its own initial scan)
 		go newIndex.setupIndexingScanners()
 	} else {
 		newIndex.Status = "ready"
