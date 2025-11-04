@@ -50,7 +50,7 @@ func (s *Scanner) start() {
 	for {
 		// Check if directory still exists (for non-root scanners)
 		if !s.isRoot && !s.directoryExists() {
-			logger.Infof("Scanner [%s] stopping: directory no longer exists", s.scanPath)
+			logger.Debugf("Scanner [%s] stopping: directory no longer exists", s.scanPath)
 			s.removeSelf()
 			return
 		}
@@ -199,7 +199,7 @@ func (s *Scanner) checkForNewChildDirectories() {
 	// Check for deleted directories and stop their scanners
 	for path, scanner := range existingScanners {
 		if !currentDirsMap[path] {
-			logger.Infof("Directory [%s] no longer exists, stopping scanner", path)
+			logger.Debugf("Directory [%s] no longer exists, stopping scanner", path)
 			scanner.stop()
 		}
 	}
@@ -208,7 +208,7 @@ func (s *Scanner) checkForNewChildDirectories() {
 	for _, dirPath := range currentDirs {
 		_, exists := existingScanners[dirPath]
 		if !exists && dirPath != "/" {
-			logger.Infof("Detected new directory, creating scanner: [%s]", dirPath)
+			logger.Debugf("Detected new directory, creating scanner: [%s]", dirPath)
 			newScanner := s.idx.createChildScanner(dirPath)
 
 			s.idx.mu.Lock()
@@ -313,8 +313,8 @@ func (s *Scanner) updateSchedule() {
 	}
 
 	// Cap simple assessments at schedule 3
-	if s.assessment == "simple" && s.currentSchedule > 3 {
-		s.currentSchedule = 3
+	if s.assessment == "simple" && s.currentSchedule > 4 {
+		s.currentSchedule = 4
 	}
 
 	// Ensure currentSchedule stays within bounds
@@ -358,7 +358,7 @@ func (s *Scanner) removeSelf() {
 	defer s.idx.mu.Unlock()
 
 	delete(s.idx.scanners, s.scanPath)
-	logger.Infof("Removed scanner [%s] from active scanners", s.scanPath)
+	logger.Debugf("Removed scanner [%s] from active scanners", s.scanPath)
 
 	// Trigger stats aggregation to update overall index
 	go s.idx.aggregateStatsFromScanners()
