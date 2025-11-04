@@ -2,9 +2,10 @@
   <div v-if="showStatusBar" id="status-bar" :class="{ 'dark-mode-header': isDarkMode }">
     <div class="status-content">
       <div class="status-info">
-        <span v-if="selectedCount > 0" class="selection-info">
+        <span v-if="selectedCount > 0">
+          <span class="selected-badge">{{ selectedCount }}</span>
           <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
-          {{ selectedCount }} {{ $t(selectedCount === 1 ? 'files.itemSelected' : 'files.itemsSelected') }} ({{ displayTotalSize }})
+          {{ $t(selectedCount === 1 ? 'files.itemSelected' : 'files.itemsSelected') }} ({{ displayTotalSize }})
         </span>
         <span v-else class="directory-info">
           <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
@@ -170,8 +171,20 @@ export default {
   font-weight: 500;
 }
 
-.selection-info {
-  color: var(--primaryColor)
+.selected-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--primaryColor);
+  color: white;
+  border-radius: 12px;
+  min-width: 1.8em;
+  height: 1.8em;
+  padding: 0 0.5em;
+  font-size: 0.8em;
+  font-weight: bold;
+  margin-right: 0.5em;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .status-controls {
