@@ -47,19 +47,30 @@ type ReducedIndex struct {
 }
 type Index struct {
 	ReducedIndex
-	CurrentSchedule            int `json:"-"`
-	settings.Source            `json:"-"`
-	Directories                map[string]*iteminfo.FileInfo `json:"-"`
-	DirectoriesLedger          map[string]struct{}           `json:"-"`
-	runningScannerCount        int                           `json:"-"`
-	SmartModifier              time.Duration                 `json:"-"`
-	FilesChangedDuringIndexing bool                          `json:"-"`
-	mock                       bool
-	mu                         sync.RWMutex
-	wasIndexed                 bool
-	FoundHardLinks             map[string]uint64   `json:"-"` // hardlink path -> size
-	processedInodes            map[uint64]struct{} `json:"-"`
-	totalSize                  uint64              `json:"-"`
+	settings.Source `json:"-"`
+
+	// Shared state (protected by mu)
+	Directories       map[string]*iteminfo.FileInfo `json:"-"`
+	DirectoriesLedger map[string]struct{}           `json:"-"`
+	FoundHardLinks    map[string]uint64             `json:"-"` // hardlink path -> size
+	processedInodes   map[uint64]struct{}           `json:"-"`
+	totalSize         uint64                        `json:"-"`
+
+	// Scanner management (new multi-scanner system)
+	scanners            map[string]*Scanner `json:"-"` // path -> scanner
+	scanMutex           sync.Mutex          `json:"-"` // 🔑 Global scan mutex - only one scanner runs at a time
+	activeScannerPath   string              `json:"-"` // Which scanner is currently running (for logging/status)
+	runningScannerCount int                 `json:"-"` // Legacy field, kept for compatibility
+
+	// Deprecated per-Index scheduling fields (moved to Scanner)
+	CurrentSchedule            int           `json:"-"` // Deprecated: now per-scanner
+	SmartModifier              time.Duration `json:"-"` // Deprecated: now per-scanner
+	FilesChangedDuringIndexing bool          `json:"-"` // Deprecated: now per-scanner
+
+	// Control
+	mock       bool
+	mu         sync.RWMutex
+	wasIndexed bool
 }
 
 var (
@@ -169,9 +180,8 @@ func (idx *Index) indexDirectory(adjustedPath string, config actionConfig) error
 	// recursively check cached dirs for mod time changes as well
 	if config.Recursive {
 		if modChange {
-			idx.mu.Lock()
-			idx.FilesChangedDuringIndexing = true
-			idx.mu.Unlock()
+			// Mark files as changed in the active scanner
+			idx.markFilesChanged()
 		} else if config.Quick {
 			for _, item := range cacheDirItems {
 				subConfig := actionConfig{
@@ -355,6 +365,8 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 			dirInfos = append(dirInfos, *itemInfo)
 			if config.Recursive {
 				idx.NumDirs++
+				// Also update the active scanner's counter
+				idx.incrementScannerDirs()
 			}
 		} else {
 			size, shouldCountSize := idx.handleFile(file, fullCombined)
@@ -388,6 +400,8 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 			}
 			if config.Recursive {
 				idx.NumFiles++
+				// Also update the active scanner's counter
+				idx.incrementScannerFiles()
 			}
 		}
 	}
