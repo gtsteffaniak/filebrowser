@@ -183,8 +183,7 @@ export default {
   padding: 0 0.5em;
   font-size: 0.8em;
   font-weight: bold;
-  margin-right: 0.5em;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  margin-right: 0.12em;
 }
 
 .status-controls {
