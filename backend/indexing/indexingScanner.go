@@ -38,12 +38,14 @@ type Scanner struct {
 
 // start begins the scanner's main loop
 func (s *Scanner) start() {
-	// Initial scan for child scanners (root scanner will trigger this through setupMultiScanner)
-	if !s.isRoot {
-		// Wait a bit to stagger initial scans
+	// Do initial scan for all scanners
+	// Wait a bit to stagger child scanner initial scans (root goes first)
+	if s.isRoot {
+		time.Sleep(500 * time.Millisecond)
+	} else {
 		time.Sleep(2 * time.Second)
-		s.tryAcquireAndScan()
 	}
+	s.tryAcquireAndScan()
 
 	for {
 		// Calculate sleep based on this scanner's schedule
@@ -70,7 +72,9 @@ func (s *Scanner) tryAcquireAndScan() {
 	s.idx.mu.Unlock()
 
 	// Determine if quick or full scan
-	quick := s.fullScanCounter < 5
+	// First scan (fullScanCounter=0) is always full
+	// Scans 1-4 are quick, scan 5 is full, then repeat
+	quick := s.fullScanCounter > 0 && s.fullScanCounter < 5
 	s.fullScanCounter++
 	if s.fullScanCounter >= 5 {
 		s.fullScanCounter = 0
@@ -86,6 +90,9 @@ func (s *Scanner) tryAcquireAndScan() {
 	s.idx.mu.Unlock()
 
 	s.idx.scanMutex.Unlock()
+
+	// Aggregate stats to Index level and update status (after releasing active scanner)
+	s.idx.aggregateStatsFromScanners()
 }
 
 // runIndexing performs the actual indexing work
@@ -296,10 +303,10 @@ func (s *Scanner) updateSchedule() {
 
 // updateAssessment calculates the complexity assessment for this scanner's directory
 func (s *Scanner) updateAssessment() {
-	if s.fullScanTime < 3 || s.numDirs < 10000 {
+	if s.fullScanTime < 2 || s.numDirs < 1000 {
 		s.assessment = "simple"
 		s.smartModifier = 4 * time.Minute
-	} else if s.fullScanTime > 120 || s.numDirs > 500000 {
+	} else if s.fullScanTime > 20 || s.numDirs > 100000 {
 		s.assessment = "complex"
 		modifier := s.fullScanTime / 10 // seconds
 		s.smartModifier = time.Duration(modifier) * time.Minute

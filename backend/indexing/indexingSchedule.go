@@ -131,10 +131,7 @@ func (idx *Index) setupMultiScanner() {
 	idx.mu.Unlock()
 	go rootScanner.start()
 
-	// Wait a moment for root scanner to do initial scan and discover directories
-	time.Sleep(3 * time.Second)
-
-	// Discover existing top-level directories
+	// Discover existing top-level directories (root scanner will create scanners for new ones dynamically)
 	topLevelDirs := rootScanner.getTopLevelDirs()
 
 	// Create child scanner for each top-level directory
@@ -181,6 +178,77 @@ func (idx *Index) createChildScanner(dirPath string) *Scanner {
 func (idx *Index) setupIndexingScanners() {
 	// Use new multi-scanner system
 	idx.setupMultiScanner()
+}
+
+// aggregateStatsFromScanners aggregates stats from all scanners to Index-level stats
+func (idx *Index) aggregateStatsFromScanners() {
+	idx.mu.Lock()
+	defer idx.mu.Unlock()
+
+	if len(idx.scanners) == 0 {
+		return
+	}
+
+	// Aggregate stats from all scanners
+	var totalDirs uint64 = 0
+	var totalFiles uint64 = 0
+	var totalQuickScanTime int = 0
+	var totalFullScanTime int = 0
+	var mostRecentScan time.Time
+	var oldestAssessment string = "unknown"
+	allScannedAtLeastOnce := true
+
+	for _, scanner := range idx.scanners {
+		totalDirs += scanner.numDirs
+		totalFiles += scanner.numFiles
+		totalQuickScanTime += scanner.quickScanTime
+		totalFullScanTime += scanner.fullScanTime
+
+		// Track most recent scan
+		if scanner.lastScanned.After(mostRecentScan) {
+			mostRecentScan = scanner.lastScanned
+		}
+
+		// Check if all scanners have scanned at least once
+		if scanner.lastScanned.IsZero() {
+			allScannedAtLeastOnce = false
+		}
+
+		// Use most complex assessment
+		if scanner.assessment == "complex" {
+			oldestAssessment = "complex"
+		} else if scanner.assessment == "normal" && oldestAssessment != "complex" {
+			oldestAssessment = "normal"
+		} else if scanner.assessment == "simple" && oldestAssessment == "unknown" {
+			oldestAssessment = "simple"
+		}
+	}
+
+	// Update Index-level stats
+	idx.NumDirs = totalDirs
+	idx.NumFiles = totalFiles
+	idx.QuickScanTime = totalQuickScanTime
+	idx.FullScanTime = totalFullScanTime
+	idx.Assessment = oldestAssessment
+
+	// Update last indexed time
+	if !mostRecentScan.IsZero() {
+		idx.LastIndexed = mostRecentScan
+		idx.LastIndexedUnix = mostRecentScan.Unix()
+		idx.wasIndexed = true
+	}
+
+	// Update status: if all scanners have completed at least one scan, mark as READY
+	if allScannedAtLeastOnce && idx.activeScannerPath == "" {
+		idx.Status = READY
+	} else if idx.activeScannerPath != "" {
+		idx.Status = INDEXING
+	}
+
+	// Send update event to notify clients
+	idx.mu.Unlock()
+	idx.SendSourceUpdateEvent()
+	idx.mu.Lock()
 }
 
 // GetScannerStatus returns detailed information about all active scanners
