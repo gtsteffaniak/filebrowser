@@ -412,8 +412,8 @@ export default {
         const baseSize = 100 + (state.user.gallerySize * 35); // 135px to 415px range
         if (state.isMobile) {
           let columns;
-          if (state.user.gallerySize <= 2) columns = 3;
-          else if (state.user.gallerySize <= 5) columns = 2;
+          if (state.user.gallerySize <= 7) columns = 3;
+          else if (state.user.gallerySize <= 8) columns = 2;
           else columns = 1;
           styles['--gallery-mobile-columns'] = columns.toString();
         } else {

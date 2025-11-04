@@ -170,6 +170,10 @@ export default {
   font-weight: 500;
 }
 
+.selection-info {
+  color: var(--primaryColor)
+}
+
 .status-controls {
   display: flex;
   align-items: center;
