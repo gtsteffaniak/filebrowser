@@ -653,7 +653,10 @@
     "accessManagement": "Gestão do acesso",
     "all": "Recusar tudo",
     "defaultBehaviorDescription": "Isto mostra o que acontece quando um utilizador tenta aceder a um caminho onde não existem regras de acesso específicas. \"Permitir\" significa que os utilizadores podem aceder por predefinição, \"Negar\" significa que os utilizadores são bloqueados por predefinição, a menos que sejam explicitamente autorizados.",
-    "defaultBehavior": "Ação por defeito{suffix}"
+    "defaultBehavior": "Ação por defeito{suffix}",
+    "deletedCascade": "Regras de acesso eliminadas do caminho e de todos os subcaminhos!",
+    "cascadeDelete": "Eliminação recursiva",
+    "cascadeDeleteDescription": "Quando activada, a eliminação de uma regra de acesso também a removerá de todos os subdirectórios. Isto permite-lhe remover completamente um utilizador ou grupo de toda a árvore de diretórios."
   },
   "editor": {
     "uninitialized": "Falha ao inicializar o editor. Por favor, recarregue.",

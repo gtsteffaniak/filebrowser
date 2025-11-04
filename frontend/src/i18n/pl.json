@@ -573,7 +573,10 @@
     "totalAllowed": "Dozwolone",
     "all": "Odmów wszystkim",
     "defaultBehaviorDescription": "To pokazuje, co się dzieje, gdy użytkownik próbuje uzyskać dostęp do ścieżki, dla której nie istnieją określone reguły dostępu. \"Zezwól\" oznacza, że użytkownicy mogą uzyskać dostęp domyślnie, \"Odmów\" oznacza, że użytkownicy są domyślnie blokowani, chyba że wyraźnie na to zezwolono.",
-    "defaultBehavior": "Działanie domyślne{suffix}"
+    "defaultBehavior": "Działanie domyślne{suffix}",
+    "deletedCascade": "Reguły dostępu usunięte ze ścieżki i wszystkich podścieżek!",
+    "cascadeDelete": "Usuwanie rekursywne",
+    "cascadeDeleteDescription": "Po włączeniu tej opcji usunięcie reguły dostępu spowoduje również usunięcie jej ze wszystkich podkatalogów. Pozwala to na całkowite usunięcie użytkownika lub grupy z całego drzewa katalogów."
   },
   "fileLoading": {
     "title": "Przesyłanie i pobieranie",

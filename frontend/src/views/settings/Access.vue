@@ -20,7 +20,7 @@
     <table v-else aria-label="Access Rules">
       <thead>
         <tr>
-          <th>{{$t('settings.path')}}</th>
+          <th>{{$t('general.path')}}</th>
           <th>{{$t('access.totalDenied')}}</th>
           <th>{{$t('access.totalAllowed')}}</th>
           <th>{{$t('buttons.edit') }}</th>

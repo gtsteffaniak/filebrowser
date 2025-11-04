@@ -44,6 +44,12 @@
           <i class="material-icons">add</i>
         </button>
       </div>
+      <!-- Cascade Delete Toggle -->
+      <div v-if="entries.length > 0" class="cascade-toggle-section">
+        <ToggleSwitch v-model="cascadeDelete" 
+          :name="$t('access.cascadeDelete')"
+          :description="$t('access.cascadeDeleteDescription')" />
+      </div>
       <table v-if="entries.length > 0">
         <tbody>
           <tr>
@@ -90,11 +96,12 @@ import { notify } from "@/notify";
 import { accessApi } from "@/api";
 import { mutations } from "@/store";
 import FileList from "./FileList.vue";
+import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import { eventBus } from "@/store/eventBus";
 
 export default {
   name: "access",
-  components: { FileList },
+  components: { FileList, ToggleSwitch },
   props: {
     sourceName: { type: String, required: true },
     path: { type: String, required: true, default: "/" }
@@ -111,7 +118,8 @@ export default {
       addType: "user",
       addListType: "deny",
       addName: "",
-      groups: []
+      groups: [],
+      cascadeDelete: false
     };
   },
   computed: {
@@ -207,9 +215,13 @@ export default {
           allow: entry.allow,
           ruleCategory: entry.type,
           value: entry.type === 'all' ? '' : entry.name,
+          cascade: this.cascadeDelete && entry.type !== 'all'
         };
         await accessApi.del(this.currentSource, this.currentPath, body);
-        notify.showSuccess(this.$t("access.deleted"));
+        const message = this.cascadeDelete && entry.type !== 'all' 
+          ? this.$t("access.deletedCascade") 
+          : this.$t("access.deleted");
+        notify.showSuccess(message);
         await this.fetchRule();
         // Emit event to refresh access rules list
         eventBus.emit('accessRulesChanged');
@@ -277,6 +289,11 @@ export default {
 }
 
 .searchContext {
+  margin-bottom: 1em;
+}
+
+.cascade-toggle-section {
+  margin-top: 1em;
   margin-bottom: 1em;
 }
 </style>

@@ -653,7 +653,10 @@
     "accessManagement": "Správa přístupu",
     "all": "Odmítnout vše",
     "defaultBehaviorDescription": "To ukazuje, co se stane, když se uživatel pokusí získat přístup k cestě, kde neexistují žádná specifická pravidla přístupu. \"Povolit\" znamená, že uživatelé mají ve výchozím nastavení přístup, \"Odmítnout\" znamená, že uživatelé jsou ve výchozím nastavení blokováni, pokud není výslovně povoleno.",
-    "defaultBehavior": "Výchozí akce{suffix}"
+    "defaultBehavior": "Výchozí akce{suffix}",
+    "deletedCascade": "Přístupová pravidla odstraněna z cesty a všech podcest!",
+    "cascadeDelete": "Rekurzivní mazání",
+    "cascadeDeleteDescription": "Pokud je tato možnost povolena, odstraní se pravidlo přístupu také ze všech podadresářů. To umožňuje zcela odstranit uživatele nebo skupinu z celého adresářového stromu."
   },
   "editor": {
     "uninitialized": "Nepodařilo se inicializovat editor. Prosím, načtěte jej znovu.",
