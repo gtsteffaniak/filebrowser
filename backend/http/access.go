@@ -133,7 +133,7 @@ func accessPostHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 
 // accessDeleteHandler deletes a single user or group from a rule.
 // @Summary Delete access rule entry
-// @Description Delete a user or group from an allow or deny list for a sourcePath and indexPath.
+// @Description Delete a user or group from an allow or deny list for a sourcePath and indexPath. When cascade=true, removes the user/group from the specified path and all subpaths.
 // @Tags Access
 // @Accept json
 // @Produce json
@@ -142,6 +142,7 @@ func accessPostHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 // @Param ruleType query string true "Rule type (allow or deny)"
 // @Param ruleCategory query string true "Rule category (user or group)"
 // @Param value query string true "Username or groupname to remove"
+// @Param cascade query boolean false "Cascade delete to all subpaths (default: false)"
 // @Success 200 {object} map[string]string "Rule entry deleted"
 // @Failure 404 {object} map[string]string "Not found"
 // @Failure 400 {object} map[string]string "Bad request"
@@ -158,12 +159,47 @@ func accessDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	ruleType := r.URL.Query().Get("ruleType")
 	ruleCategory := r.URL.Query().Get("ruleCategory")
 	value := r.URL.Query().Get("value")
+	cascade := r.URL.Query().Get("cascade") == "true"
 	allow := ruleType == "allow"
 
 	if indexPath == "" || ruleCategory == "" || (ruleCategory != "all" && value == "") {
 		return http.StatusBadRequest, fmt.Errorf("path, ruleCategory, and value are required, unless ruleCategory is 'all'")
 	}
 
+	// Handle cascade delete
+	if cascade {
+		if ruleCategory == "all" {
+			return http.StatusBadRequest, fmt.Errorf("cascade delete is not supported for 'all' rule category")
+		}
+
+		var count int
+		var err error
+
+		switch ruleCategory {
+		case "user":
+			count, err = store.Access.RemoveUserCascade(index.Path, indexPath, value, allow)
+		case "group":
+			count, err = store.Access.RemoveGroupCascade(index.Path, indexPath, value, allow)
+		default:
+			return http.StatusBadRequest, fmt.Errorf("invalid ruleCategory for cascade delete: must be 'user' or 'group'")
+		}
+
+		if err != nil {
+			logger.Errorf("failed to cascade delete rule entry: %v", err)
+			return http.StatusInternalServerError, fmt.Errorf("failed to cascade delete rule entry: %w", err)
+		}
+
+		if count == 0 {
+			return http.StatusNotFound, fmt.Errorf("no entries found in rule hierarchy")
+		}
+
+		return renderJSON(w, r, map[string]interface{}{
+			"message": "rule entries deleted",
+			"count":   count,
+		})
+	}
+
+	// Handle non-cascade delete (original behavior)
 	var found bool
 	var err error
 	if allow {

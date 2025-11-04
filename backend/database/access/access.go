@@ -1116,3 +1116,121 @@ func (s *Storage) HasAnyVisibleItems(sourcePath, parentPath string, itemNames []
 
 	return false
 }
+
+// RemoveUserCascade removes a user from either the allow or deny list for a given path and all its subpaths.
+// This is used for cascade delete operations when deleting user access from a directory tree.
+// The allow parameter determines which list to remove from: true for allow list, false for deny list.
+func (s *Storage) RemoveUserCascade(sourcePath, indexPath, username string, allow bool) (int, error) {
+	s.mux.Lock()
+	defer s.mux.Unlock()
+
+	normalizedPath := normalizeRulePath(indexPath)
+	rulesBySource, ok := s.AllRules[sourcePath]
+	if !ok {
+		return 0, nil
+	}
+
+	changed := false
+	removedCount := 0
+
+	// Iterate through all rules for this source
+	for rulePath, rule := range rulesBySource {
+		// Check if this rule path matches or is a subpath of the target path
+		if rulePath == normalizedPath || strings.HasPrefix(rulePath, normalizedPath) {
+			if allow {
+				// Remove user from allow list only
+				if _, exists := rule.Allow.Users[username]; exists {
+					delete(rule.Allow.Users, username)
+					changed = true
+					removedCount++
+				}
+			} else {
+				// Remove user from deny list only
+				if _, exists := rule.Deny.Users[username]; exists {
+					delete(rule.Deny.Users, username)
+					changed = true
+					removedCount++
+				}
+			}
+
+			// If rule is now empty, mark it for deletion
+			if len(rule.Allow.Users) == 0 && len(rule.Allow.Groups) == 0 &&
+				len(rule.Deny.Users) == 0 && len(rule.Deny.Groups) == 0 && !rule.DenyAll {
+				delete(s.AllRules[sourcePath], rulePath)
+			}
+		}
+	}
+
+	// If no rules left for this source, remove the source entry
+	if len(s.AllRules[sourcePath]) == 0 {
+		delete(s.AllRules, sourcePath)
+	}
+
+	if changed {
+		s.incrementSourceVersion(sourcePath)
+		accessCache.Set(accessChangedKey+sourcePath, "false")
+		rulesCache.Delete(accessChangedKey + sourcePath)
+		return removedCount, s.SaveToDB()
+	}
+
+	return 0, nil
+}
+
+// RemoveGroupCascade removes a group from either the allow or deny list for a given path and all its subpaths.
+// This is used for cascade delete operations when deleting group access from a directory tree.
+// The allow parameter determines which list to remove from: true for allow list, false for deny list.
+func (s *Storage) RemoveGroupCascade(sourcePath, indexPath, groupname string, allow bool) (int, error) {
+	s.mux.Lock()
+	defer s.mux.Unlock()
+
+	normalizedPath := normalizeRulePath(indexPath)
+	rulesBySource, ok := s.AllRules[sourcePath]
+	if !ok {
+		return 0, nil
+	}
+
+	changed := false
+	removedCount := 0
+
+	// Iterate through all rules for this source
+	for rulePath, rule := range rulesBySource {
+		// Check if this rule path matches or is a subpath of the target path
+		if rulePath == normalizedPath || strings.HasPrefix(rulePath, normalizedPath) {
+			if allow {
+				// Remove group from allow list only
+				if _, exists := rule.Allow.Groups[groupname]; exists {
+					delete(rule.Allow.Groups, groupname)
+					changed = true
+					removedCount++
+				}
+			} else {
+				// Remove group from deny list only
+				if _, exists := rule.Deny.Groups[groupname]; exists {
+					delete(rule.Deny.Groups, groupname)
+					changed = true
+					removedCount++
+				}
+			}
+
+			// If rule is now empty, mark it for deletion
+			if len(rule.Allow.Users) == 0 && len(rule.Allow.Groups) == 0 &&
+				len(rule.Deny.Users) == 0 && len(rule.Deny.Groups) == 0 && !rule.DenyAll {
+				delete(s.AllRules[sourcePath], rulePath)
+			}
+		}
+	}
+
+	// If no rules left for this source, remove the source entry
+	if len(s.AllRules[sourcePath]) == 0 {
+		delete(s.AllRules, sourcePath)
+	}
+
+	if changed {
+		s.incrementSourceVersion(sourcePath)
+		accessCache.Set(accessChangedKey+sourcePath, "false")
+		rulesCache.Delete(accessChangedKey + sourcePath)
+		return removedCount, s.SaveToDB()
+	}
+
+	return 0, nil
+}

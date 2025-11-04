@@ -653,7 +653,10 @@
     "accessManagement": "存取管理",
     "all": "全部拒絕",
     "defaultBehaviorDescription": "這顯示使用者嘗試存取沒有特定存取規則的路徑時會發生的情況。允許」表示使用者預設可以存取，「拒絕」表示使用者預設會被阻擋，除非明確允許。",
-    "defaultBehavior": "預設動作{suffix}"
+    "defaultBehavior": "預設動作{suffix}",
+    "deletedCascade": "從路徑和所有子路徑刪除存取規則！",
+    "cascadeDelete": "遞歸刪除",
+    "cascadeDeleteDescription": "啟用時，刪除存取規則也會從所有子目錄中移除該規則。這可讓您從整個目錄樹中完全移除使用者或群組。"
   },
   "editor": {
     "uninitialized": "編輯器初始化失敗。請重新載入。",

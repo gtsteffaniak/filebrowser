@@ -160,7 +160,7 @@ const docTemplate = `{
                 }
             },
             "delete": {
-                "description": "Delete a user or group from an allow or deny list for a sourcePath and indexPath.",
+                "description": "Delete a user or group from an allow or deny list for a sourcePath and indexPath. When cascade=true, removes the user/group from the specified path and all subpaths.",
                 "consumes": [
                     "application/json"
                 ],
@@ -206,6 +206,12 @@ const docTemplate = `{
                         "name": "value",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Cascade delete to all subpaths (default: false)",
+                        "name": "cascade",
+                        "in": "query"
                     }
                 ],
                 "responses": {

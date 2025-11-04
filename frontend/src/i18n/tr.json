@@ -573,7 +573,10 @@
     "totalAllowed": "İzin verildi",
     "all": "Tümünü Reddet",
     "defaultBehaviorDescription": "Bu, bir kullanıcı belirli erişim kurallarının bulunmadığı bir yola erişmeye çalıştığında ne olacağını gösterir. 'Allow' kullanıcıların varsayılan olarak erişebileceği anlamına gelir, 'Deny' ise açıkça izin verilmediği sürece kullanıcıların varsayılan olarak engellendiği anlamına gelir.",
-    "defaultBehavior": "Varsayılan eylem{suffix}"
+    "defaultBehavior": "Varsayılan eylem{suffix}",
+    "deletedCascade": "Erişim kuralları yoldan ve tüm alt yollardan silindi!",
+    "cascadeDelete": "Yinelemeli Silme",
+    "cascadeDeleteDescription": "Etkinleştirildiğinde, bir erişim kuralı silindiğinde tüm alt dizinlerden de kaldırılır. Bu, bir kullanıcıyı veya grubu tüm dizin ağacından tamamen kaldırmanıza olanak tanır."
   },
   "fileLoading": {
     "title": "Yüklemeler & İndirmeler",

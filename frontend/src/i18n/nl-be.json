@@ -653,7 +653,10 @@
     "accessManagement": "Toegangsbeheer",
     "all": "Alles weigeren",
     "defaultBehaviorDescription": "Dit laat zien wat er gebeurt als een gebruiker toegang probeert te krijgen tot een pad waarvoor geen specifieke toegangsregels bestaan. Toestaan' betekent dat gebruikers standaard toegang hebben, 'Weigeren' betekent dat gebruikers standaard worden geblokkeerd tenzij ze expliciet toestemming krijgen.",
-    "defaultBehavior": "Standaardactie{suffix}"
+    "defaultBehavior": "Standaardactie{suffix}",
+    "deletedCascade": "Toegangsregels verwijderd van pad en alle subpaden!",
+    "cascadeDelete": "Recursief verwijderen",
+    "cascadeDeleteDescription": "Indien ingeschakeld, zal het verwijderen van een toegangsregel deze ook verwijderen uit alle submappen. Hierdoor kun je een gebruiker of groep volledig verwijderen uit de hele mappenstructuur."
   },
   "editor": {
     "uninitialized": "Het is niet gelukt de editor te initialiseren. Gelieve opnieuw te laden.",

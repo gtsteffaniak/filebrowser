@@ -573,7 +573,10 @@
     "totalAllowed": "Permitido",
     "all": "Denegar todo",
     "defaultBehaviorDescription": "Muestra lo que ocurre cuando un usuario intenta acceder a una ruta en la que no existen reglas de acceso específicas -- \"Permitir\" significa que los usuarios pueden acceder (por defecto), \"Denegar\" significa que los usuarios están bloqueados (por defecto) a menos que se les permita explícitamente.",
-    "defaultBehavior": "Acción por defecto {suffix}"
+    "defaultBehavior": "Acción por defecto {suffix}",
+    "deletedCascade": "Reglas de acceso eliminadas de la ruta y de todas las sub-rutas.",
+    "cascadeDelete": "Supresión recursiva",
+    "cascadeDeleteDescription": "Cuando está activada, la eliminación de una regla de acceso también la eliminará de todos los subdirectorios. Esto permite eliminar completamente un usuario o grupo de todo el árbol de directorios."
   },
   "fileLoading": {
     "title": "Subir archivos",

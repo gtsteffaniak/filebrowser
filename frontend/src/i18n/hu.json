@@ -573,7 +573,10 @@
     "totalAllowed": "Engedélyezett",
     "all": "Mindent megtagadni",
     "defaultBehaviorDescription": "Ez azt mutatja, hogy mi történik, ha egy felhasználó megpróbál hozzáférni egy olyan elérési útvonalhoz, ahol nincsenek speciális hozzáférési szabályok. Az 'Allow' azt jelenti, hogy a felhasználók alapértelmezés szerint hozzáférhetnek, a 'Deny' azt jelenti, hogy a felhasználók alapértelmezés szerint blokkolva vannak, kivéve, ha kifejezetten engedélyezik.",
-    "defaultBehavior": "Alapértelmezett cselekvés{suffix}"
+    "defaultBehavior": "Alapértelmezett cselekvés{suffix}",
+    "deletedCascade": "Hozzáférési szabályok törlése az elérési útvonalból és az összes alútvonalból!",
+    "cascadeDelete": "Rekurzív törlés",
+    "cascadeDeleteDescription": "Ha engedélyezve van, egy hozzáférési szabály törlése az összes alkönyvtárból is eltávolítja azt. Ez lehetővé teszi egy felhasználó vagy csoport teljes eltávolítását a teljes könyvtárfából."
   },
   "fileLoading": {
     "title": "Feltöltések és letöltések",

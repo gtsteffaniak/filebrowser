@@ -1154,7 +1154,8 @@ paths:
       consumes:
       - application/json
       description: Delete a user or group from an allow or deny list for a sourcePath
-        and indexPath.
+        and indexPath. When cascade=true, removes the user/group from the specified
+        path and all subpaths.
       parameters:
       - description: Source path prefix (e.g. mnt/storage)
         in: query
@@ -1181,6 +1182,10 @@ paths:
         name: value
         required: true
         type: string
+      - description: 'Cascade delete to all subpaths (default: false)'
+        in: query
+        name: cascade
+        type: boolean
       produces:
       - application/json
       responses:

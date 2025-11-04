@@ -573,7 +573,10 @@
     "totalAllowed": "허용됨",
     "all": "모두 거부",
     "defaultBehaviorDescription": "사용자가 특정 액세스 규칙이 없는 경로에 액세스하려고 할 때 어떤 일이 발생하는지 보여줍니다. '허용'은 사용자가 기본적으로 액세스할 수 있음을 의미하며, '거부'는 명시적으로 허용되지 않는 한 기본적으로 차단됨을 의미합니다.",
-    "defaultBehavior": "기본 작업{suffix}"
+    "defaultBehavior": "기본 작업{suffix}",
+    "deletedCascade": "경로 및 모든 하위 경로에서 액세스 규칙이 삭제되었습니다!",
+    "cascadeDelete": "재귀적 삭제",
+    "cascadeDeleteDescription": "이 기능을 활성화하면 액세스 규칙을 삭제하면 모든 하위 디렉터리에서도 해당 규칙이 제거됩니다. 이렇게 하면 전체 디렉터리 트리에서 사용자 또는 그룹을 완전히 제거할 수 있습니다."
   },
   "fileLoading": {
     "title": "업로드 및 다운로드",

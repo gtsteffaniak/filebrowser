@@ -653,7 +653,10 @@
     "accessManagement": "Hantering av åtkomst",
     "all": "Avvisa alla",
     "defaultBehaviorDescription": "Detta visar vad som händer när en användare försöker komma åt en sökväg där det inte finns några specifika åtkomstregler. \"Allow\" innebär att användare kan komma åt som standard, \"Deny\" innebär att användare blockeras som standard om de inte uttryckligen tillåts.",
-    "defaultBehavior": "Standardåtgärd{suffix}"
+    "defaultBehavior": "Standardåtgärd{suffix}",
+    "deletedCascade": "Åtkomstregler raderade från sökvägen och alla undervägar!",
+    "cascadeDelete": "Rekursiv radering",
+    "cascadeDeleteDescription": "Om funktionen är aktiverad tas en åtkomstregel även bort från alla underkataloger. På så sätt kan du helt ta bort en användare eller grupp från hela katalogträdet."
   },
   "editor": {
     "uninitialized": "Redigeraren kunde inte initieras. Vänligen ladda om.",

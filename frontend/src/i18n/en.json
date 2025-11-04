@@ -631,11 +631,14 @@
     "userGroup": "User/Group",
     "enterName": "Enter user or group name",
     "deleted": "Access rule deleted!",
+    "deletedCascade": "Access rules deleted from path and all subpaths!",
     "added": "Access rule added!",
     "name": "Name",
     "accessManagement": "Access Management",
     "defaultBehavior": "Default action{suffix}",
-    "defaultBehaviorDescription": "This shows what happens when a user tries to access a path where no specific access rules exist. 'Allow' means users can access by default, 'Deny' means users are blocked by default unless explicitly allowed."
+    "defaultBehaviorDescription": "This shows what happens when a user tries to access a path where no specific access rules exist. 'Allow' means users can access by default, 'Deny' means users are blocked by default unless explicitly allowed.",
+    "cascadeDelete": "Recursive Delete",
+    "cascadeDeleteDescription": "When enabled, deleting an access rule will also remove it from all subdirectories. This allows you to completely remove a user or group from the entire directory tree."
   },
   "fileLoading": {
     "title": "Uploads & Downloads",

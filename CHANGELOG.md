@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Status bar for listing view #1459
  - Dynamic scopes for OIDC #1414 #1363
  - Enhanced notifications, buttons persistence. #1331
+ - Cascade delete access in Access Management when deleting a User #1347
 
  **Notes**:
  - more efficient user update actions. Successful PUT actions return only 204 if successful.

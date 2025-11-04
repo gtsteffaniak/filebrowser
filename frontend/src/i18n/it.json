@@ -573,7 +573,10 @@
     "totalAllowed": "Consentito",
     "all": "Rifiuta tutto",
     "defaultBehaviorDescription": "Questo mostra cosa succede quando un utente cerca di accedere a un percorso per il quale non esistono regole di accesso specifiche. 'Consenti' significa che gli utenti possono accedere per impostazione predefinita, 'Rifiuta' significa che gli utenti sono bloccati per impostazione predefinita, a meno che non siano esplicitamente autorizzati.",
-    "defaultBehavior": "Azione predefinita{suffix}"
+    "defaultBehavior": "Azione predefinita{suffix}",
+    "deletedCascade": "Regole di accesso cancellate dal percorso e da tutti i sottopercorsi!",
+    "cascadeDelete": "Eliminazione ricorsiva",
+    "cascadeDeleteDescription": "Se abilitata, l'eliminazione di una regola di accesso la rimuove anche da tutte le sottodirectory. In questo modo è possibile rimuovere completamente un utente o un gruppo dall'intera struttura delle directory."
   },
   "fileLoading": {
     "title": "Caricamenti e download",
