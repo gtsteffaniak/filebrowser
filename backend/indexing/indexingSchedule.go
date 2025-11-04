@@ -192,10 +192,10 @@ func (idx *Index) aggregateStatsFromScanners() {
 	// Aggregate stats from all scanners
 	var totalDirs uint64 = 0
 	var totalFiles uint64 = 0
-	var totalQuickScanTime int = 0
-	var totalFullScanTime int = 0
+	var totalQuickScanTime = 0
+	var totalFullScanTime = 0
 	var mostRecentScan time.Time
-	var oldestAssessment string = "unknown"
+	var oldestAssessment = "unknown"
 	allScannedAtLeastOnce := true
 
 	for _, scanner := range idx.scanners {
@@ -241,14 +241,17 @@ func (idx *Index) aggregateStatsFromScanners() {
 	// Update status: if all scanners have completed at least one scan, mark as READY
 	if allScannedAtLeastOnce && idx.activeScannerPath == "" {
 		idx.Status = READY
+		// Send update event to notify clients
+		idx.mu.Unlock()
+		err := idx.SendSourceUpdateEvent()
+		idx.mu.Lock()
+		if err != nil {
+			logger.Errorf("Error sending source update event: %v", err)
+		}
 	} else if idx.activeScannerPath != "" {
 		idx.Status = INDEXING
 	}
 
-	// Send update event to notify clients
-	idx.mu.Unlock()
-	idx.SendSourceUpdateEvent()
-	idx.mu.Lock()
 }
 
 // GetScannerStatus returns detailed information about all active scanners
