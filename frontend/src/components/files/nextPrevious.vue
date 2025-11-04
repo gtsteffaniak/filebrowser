@@ -377,12 +377,12 @@ export default {
     async prev() {
       if (this.hasPrevious) {
         this.hoverNav = false;
-        
+
         // Check for unsaved changes in editor before navigating
         if (!await this.checkForUnsavedChanges()) {
           return; // Navigation blocked
         }
-        
+
         // Set transitioning state - keeps old req visible until new one loads
         // Editor and other components check isTransitioning to prevent saves
         mutations.setNavigationTransitioning(true);
@@ -396,7 +396,7 @@ export default {
     async next() {
       if (this.hasNext) {
         this.hoverNav = false;
-        
+
         // Check for unsaved changes in editor before navigating
         if (!await this.checkForUnsavedChanges()) {
           return; // Navigation blocked

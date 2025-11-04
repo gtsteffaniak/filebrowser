@@ -36,8 +36,9 @@
             id="gallery-size"
             name="gallery-size"
             min="1"
-            max="8"
+            max="9"
             @input="updateGallerySize"
+            @change="commitGallerySize"
           />
         </div>
       </div>
@@ -121,7 +122,9 @@ export default {
     updateGallerySize(event) {
       const newValue = parseInt(event.target.value, 10);
       this.gallerySize = newValue;
-      mutations.setGallerySize(newValue);
+    },
+    commitGallerySize() {
+      mutations.setGallerySize(this.gallerySize);
     },
     toggleGalleryView() {
       const currentMode = getters.viewMode();
@@ -141,9 +144,8 @@ export default {
 
 <style scoped>
 #status-bar {
-  background-color: var(--alt-background);
+  background-color: rgb(37 49 55 / 33%);
   border-top: 1px solid var(--divider);
-  font-size: 0.875em;
   height: 2.5em;
   display: flex;
   align-items: center;
@@ -160,7 +162,7 @@ export default {
 }
 
 #main.moveWithSidebar #status-bar {
-  left: 22.7em;
+  margin-left: 20em;
 }
 
 .status-content {
@@ -170,6 +172,7 @@ export default {
   width: 100%;
   padding: 0 1em;
   height: 100%;
+  font-size: 0.85em;
 }
 
 .status-info {
@@ -232,7 +235,9 @@ input[type="range"] {
 @supports (backdrop-filter: none) {
   #status-bar {
     backdrop-filter: blur(16px) invert(0.1);
-    background-color: rgb(37 49 55 / 5%) !important;
+  }
+  #status-bar.dark-mode {
+    background-color: rgb(37 49 55 / 33%) !important;
   }
 }
 
@@ -243,35 +248,35 @@ input[type="range"] {
     font-size: 0.9em;
     box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
   }
-  
+
   .status-content {
     padding: 0 0.8em;
   }
-  
+
   .status-controls {
     gap: 1.2em;
   }
-  
+
   input[type="range"] {
     width: 7em;
     height: 1.5em; /* For better touch */
   }
-  
+
   .gallery-toggle .menu-button,
   .list-toggle .menu-button {
     width: 2.2em;
     height: 2.2em;
   }
-  
+
   .gallery-toggle .menu-button i,
   .list-toggle .menu-button i {
     font-size: 1.3em;
   }
-  
+
   .status-info {
     font-size: 1em;
   }
-  
+
   .size-label {
     font-size: 0.9em;
   }

@@ -1,5 +1,5 @@
 <template>
-  <div class="scroll-wrapper" :class="{ 'halloween-theme': eventTheme === 'halloween' }" ref="wrapper">
+  <div class="scroll-wrapper" ref="wrapper">
     <slot />
     <div
       class="custom-scrollbar"
@@ -36,7 +36,8 @@
 <script>
 import { state, mutations, getters } from "@/store";
 
-const offsetFromBottom = 75;
+const offsetFromBottomListing = 110;
+const offsetFromBottomFull = 75;
 
 export default {
   name: "Scrollbar",
@@ -52,9 +53,6 @@ export default {
     };
   },
   computed: {
-    eventTheme() {
-      return getters.eventTheme();
-    },
     isScrollable() {
       return getters.isScrollable();
     },
@@ -120,7 +118,7 @@ export default {
 
       const scrollRatio = scrollTop / (content.scrollHeight - content.clientHeight);
       const thumbHeight = thumb.clientHeight;
-      const maxThumbTop = scrollbar.clientHeight - thumbHeight - offsetFromBottom;
+      const maxThumbTop = scrollbar.clientHeight - thumbHeight - (this.isNotListing ? offsetFromBottomFull : offsetFromBottomListing);
       const thumbPosition = scrollRatio * maxThumbTop;
 
       thumb.style.transform = `translateY(${thumbPosition}px)`;

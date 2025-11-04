@@ -42,7 +42,7 @@ body.rtl #listingView {
   width: var(--item-width);
   height: var(--item-height);
   border-radius: 1em;
-  background: color-mix(in srgb, var(--item-secondary) 70%, transparent);
+  background: var(--item-secondary);
   color: var(--textPrimary);
   border-color: var(--divider);
 }
@@ -96,7 +96,7 @@ body.rtl #listingView {
 #listingView.gallery .item,
 #listingView.compact .item,
 #listingView.normal .item,
-#listingView.list .item, 
+#listingView.list .item,
 #listingView.icons .item {
   margin: .5em;
   padding: 0.5em;
@@ -157,7 +157,7 @@ body.rtl #listingView {
 }
 
 #listingView.normal .item,
-#listingView.gallery .item, 
+#listingView.gallery .item,
 #listingView.icons .item {
   transition: width 0.25s, height 0.25s, box-shadow 0.2s ease-in-out, transform 0.1s ease-in-out;
 }
@@ -172,8 +172,7 @@ body.rtl #listingView {
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 1em 0.5em 0.5em;
-  background: linear-gradient(transparent, rgba(0,0,0,0.7));
+  padding: 1em;
 }
 
 #listingView.gallery .item .text .name {
@@ -358,7 +357,7 @@ body.rtl #listingView {
 #listingView.list .item[aria-selected=true],
 #listingView.normal .item[aria-selected=true],
 #listingView.icons .item[aria-selected=true] {
-  background-color: color-mix(in srgb, var(--primaryColor) 50%, transparent) !important;
+  background-color: var(--primaryColor) !important;
 }
 
 #listingView.gallery .item[aria-selected=true] {
