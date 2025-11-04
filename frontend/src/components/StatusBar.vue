@@ -113,7 +113,7 @@ export default {
 
       // List/Compact family - switch based on size
       if (currentMode === "list" || currentMode === "compact") {
-        if (size <= 2) {
+        if (size <= 3) {
           newMode = "compact";
         } else {
           newMode = "list";
