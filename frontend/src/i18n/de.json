@@ -573,7 +573,10 @@
     "totalAllowed": "Erlaubt",
     "all": "Alle ablehnen",
     "defaultBehaviorDescription": "Dies zeigt, was passiert, wenn ein Benutzer versucht, auf einen Pfad zuzugreifen, für den keine spezifischen Zugriffsregeln bestehen. Zulassen\" bedeutet, dass Benutzer standardmäßig Zugang haben, \"Verweigern\" bedeutet, dass Benutzer standardmäßig blockiert werden, wenn sie nicht ausdrücklich zugelassen sind.",
-    "defaultBehavior": "Standard-Aktion{suffix}"
+    "defaultBehavior": "Standard-Aktion{suffix}",
+    "deletedCascade": "Zugriffsregeln aus Pfad und allen Unterpfaden gelöscht!",
+    "cascadeDelete": "Rekursives Löschen",
+    "cascadeDeleteDescription": "Wenn diese Funktion aktiviert ist, wird beim Löschen einer Zugriffsregel diese auch aus allen Unterverzeichnissen entfernt. Auf diese Weise können Sie einen Benutzer oder eine Gruppe vollständig aus dem gesamten Verzeichnisbaum entfernen."
   },
   "fileLoading": {
     "title": "Uploads & Downloads",

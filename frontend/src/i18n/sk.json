@@ -573,7 +573,10 @@
     "totalAllowed": "Povolené",
     "all": "Odmietnuť všetko",
     "defaultBehaviorDescription": "Toto ukazuje, čo sa stane, keď sa používateľ pokúsi získať prístup k ceste, kde neexistujú žiadne špecifické pravidlá prístupu. \"Allow\" (Povoliť) znamená, že používatelia majú predvolený prístup, \"Deny\" (Odmietnuť) znamená, že používatelia sú predvolene blokovaní, pokiaľ to nie je výslovne povolené.",
-    "defaultBehavior": "Predvolená akcia{suffix}"
+    "defaultBehavior": "Predvolená akcia{suffix}",
+    "deletedCascade": "Prístupové pravidlá odstránené z cesty a všetkých podcestí!",
+    "cascadeDelete": "Rekurzívne vymazanie",
+    "cascadeDeleteDescription": "Ak je táto možnosť povolená, odstránením pravidla prístupu sa odstráni aj zo všetkých podadresárov. To umožňuje úplne odstrániť používateľa alebo skupinu z celého stromu adresárov."
   },
   "fileLoading": {
     "title": "Nahrávanie a sťahovanie",

@@ -573,7 +573,10 @@
     "totalAllowed": "Permise",
     "all": "Refuzați toate",
     "defaultBehaviorDescription": "Aceasta arată ce se întâmplă atunci când un utilizator încearcă să acceseze o cale unde nu există reguli specifice de acces. \"Allow\" înseamnă că utilizatorii pot accesa în mod implicit, \"Deny\" înseamnă că utilizatorii sunt blocați în mod implicit dacă nu li se permite în mod explicit.",
-    "defaultBehavior": "Acțiune implicită{suffix}"
+    "defaultBehavior": "Acțiune implicită{suffix}",
+    "deletedCascade": "Reguli de acces șterse din traseu și din toate subtratamentele!",
+    "cascadeDelete": "Ștergere recursivă",
+    "cascadeDeleteDescription": "Atunci când este activată, ștergerea unei reguli de acces o va elimina și din toate subdirectoarele. Acest lucru vă permite să eliminați complet un utilizator sau un grup din întregul arbore de directoare."
   },
   "fileLoading": {
     "title": "Încărcări și descărcări",

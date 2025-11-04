@@ -573,7 +573,10 @@
     "totalAllowed": "Permitido",
     "all": "Negar tudo",
     "defaultBehaviorDescription": "Isso mostra o que acontece quando um usuário tenta acessar um caminho em que não existem regras de acesso específicas. \"Permitir\" significa que os usuários podem acessar por padrão, \"Negar\" significa que os usuários são bloqueados por padrão, a menos que sejam explicitamente permitidos.",
-    "defaultBehavior": "Ação padrão{suffix}"
+    "defaultBehavior": "Ação padrão{suffix}",
+    "deletedCascade": "Regras de acesso excluídas do caminho e de todos os subcaminhos!",
+    "cascadeDelete": "Exclusão recursiva",
+    "cascadeDeleteDescription": "Quando ativada, a exclusão de uma regra de acesso também a removerá de todos os subdiretórios. Isso permite remover completamente um usuário ou grupo de toda a árvore de diretórios."
   },
   "fileLoading": {
     "title": "Uploads e downloads",
