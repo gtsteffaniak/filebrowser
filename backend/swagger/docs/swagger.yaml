@@ -65,11 +65,36 @@ definitions:
         type: integer
       quickScanDurationSeconds:
         type: integer
+      scanners:
+        items:
+          $ref: '#/definitions/indexing.ScannerInfo'
+        type: array
       status:
         $ref: '#/definitions/indexing.IndexStatus'
       total:
         type: integer
       used:
+        type: integer
+    type: object
+  indexing.ScannerInfo:
+    properties:
+      assessment:
+        type: string
+      currentSchedule:
+        type: integer
+      fullScanTime:
+        type: integer
+      isRoot:
+        type: boolean
+      lastScanned:
+        type: string
+      numDirs:
+        type: integer
+      numFiles:
+        type: integer
+      path:
+        type: string
+      quickScanTime:
         type: integer
     type: object
   indexing.SearchResult:

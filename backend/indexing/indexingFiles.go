@@ -30,20 +30,34 @@ type actionConfig struct {
 	IsRoutineScan bool // whether this is a routine/scheduled scan (vs initial indexing)
 }
 
+// ScannerInfo is the exposed scanner information for the client
+type ScannerInfo struct {
+	Path            string    `json:"path"`
+	IsRoot          bool      `json:"isRoot"`
+	LastScanned     time.Time `json:"lastScanned"`
+	Assessment      string    `json:"assessment"`
+	CurrentSchedule int       `json:"currentSchedule"`
+	QuickScanTime   int       `json:"quickScanTime"`
+	FullScanTime    int       `json:"fullScanTime"`
+	NumDirs         uint64    `json:"numDirs"`
+	NumFiles        uint64    `json:"numFiles"`
+}
+
 // reduced index is json exposed to the client
 type ReducedIndex struct {
-	IdxName         string      `json:"name"`
-	DiskUsed        uint64      `json:"used"`
-	DiskTotal       uint64      `json:"total"`
-	Status          IndexStatus `json:"status"`
-	NumDirs         uint64      `json:"numDirs"`
-	NumFiles        uint64      `json:"numFiles"`
-	NumDeleted      uint64      `json:"numDeleted"`
-	LastIndexed     time.Time   `json:"-"`
-	LastIndexedUnix int64       `json:"lastIndexedUnixTime"`
-	QuickScanTime   int         `json:"quickScanDurationSeconds"`
-	FullScanTime    int         `json:"fullScanDurationSeconds"`
-	Assessment      string      `json:"assessment"`
+	IdxName         string         `json:"name"`
+	DiskUsed        uint64         `json:"used"`
+	DiskTotal       uint64         `json:"total"`
+	Status          IndexStatus    `json:"status"`
+	NumDirs         uint64         `json:"numDirs"`
+	NumFiles        uint64         `json:"numFiles"`
+	NumDeleted      uint64         `json:"numDeleted"`
+	LastIndexed     time.Time      `json:"-"`
+	LastIndexedUnix int64          `json:"lastIndexedUnixTime"`
+	QuickScanTime   int            `json:"quickScanDurationSeconds"`
+	FullScanTime    int            `json:"fullScanDurationSeconds"`
+	Assessment      string         `json:"assessment"`
+	Scanners        []*ScannerInfo `json:"scanners,omitempty"`
 }
 type Index struct {
 	ReducedIndex

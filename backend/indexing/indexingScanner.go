@@ -48,11 +48,19 @@ func (s *Scanner) start() {
 	s.tryAcquireAndScan()
 
 	for {
+		// Check if directory still exists (for non-root scanners)
+		if !s.isRoot && !s.directoryExists() {
+			logger.Infof("Scanner [%s] stopping: directory no longer exists", s.scanPath)
+			s.removeSelf()
+			return
+		}
+
 		// Calculate sleep based on this scanner's schedule
 		sleepTime := s.calculateSleepTime()
 
 		select {
 		case <-s.stopChan:
+			logger.Debugf("Scanner [%s] received stop signal", s.scanPath)
 			return
 
 		case <-time.After(sleepTime):
@@ -165,6 +173,7 @@ func (s *Scanner) runChildScan(quick bool) {
 }
 
 // checkForNewChildDirectories detects new top-level directories and creates scanners for them
+// Also detects deleted directories and signals their scanners to stop
 func (s *Scanner) checkForNewChildDirectories() {
 	if !s.isRoot {
 		return
@@ -172,18 +181,33 @@ func (s *Scanner) checkForNewChildDirectories() {
 
 	// Get current top-level directories from filesystem (already filtered by exclusion rules)
 	currentDirs := s.getTopLevelDirs()
+	currentDirsMap := make(map[string]bool)
+	for _, dir := range currentDirs {
+		currentDirsMap[dir] = true
+	}
 
 	// Check which scanners already exist
 	s.idx.mu.RLock()
-	existingScanners := make(map[string]bool)
-	for path := range s.idx.scanners {
-		existingScanners[path] = true
+	existingScanners := make(map[string]*Scanner)
+	for path, scanner := range s.idx.scanners {
+		if path != "/" { // Don't check root scanner
+			existingScanners[path] = scanner
+		}
 	}
 	s.idx.mu.RUnlock()
 
+	// Check for deleted directories and stop their scanners
+	for path, scanner := range existingScanners {
+		if !currentDirsMap[path] {
+			logger.Infof("Directory [%s] no longer exists, stopping scanner", path)
+			scanner.stop()
+		}
+	}
+
 	// Create scanner for any new directories (getTopLevelDirs already filtered excluded dirs)
 	for _, dirPath := range currentDirs {
-		if !existingScanners[dirPath] && dirPath != "/" {
+		_, exists := existingScanners[dirPath]
+		if !exists && dirPath != "/" {
 			logger.Infof("Detected new directory, creating scanner: [%s]", dirPath)
 			newScanner := s.idx.createChildScanner(dirPath)
 
@@ -317,4 +341,30 @@ func (s *Scanner) updateAssessment() {
 
 	logger.Debugf("Scanner [%s] assessment: complexity=%v dirs=%v files=%v modifier=%v",
 		s.scanPath, s.assessment, s.numDirs, s.numFiles, s.smartModifier)
+}
+
+// directoryExists checks if the scanner's directory still exists
+func (s *Scanner) directoryExists() bool {
+	realPath := strings.TrimRight(s.idx.Path, "/") + s.scanPath
+	realPath = strings.TrimSuffix(realPath, "/")
+
+	_, err := os.Stat(realPath)
+	return err == nil
+}
+
+// removeSelf removes this scanner from the index's scanner map
+func (s *Scanner) removeSelf() {
+	s.idx.mu.Lock()
+	defer s.idx.mu.Unlock()
+
+	delete(s.idx.scanners, s.scanPath)
+	logger.Infof("Removed scanner [%s] from active scanners", s.scanPath)
+
+	// Trigger stats aggregation to update overall index
+	go s.idx.aggregateStatsFromScanners()
+}
+
+// stop gracefully stops the scanner
+func (s *Scanner) stop() {
+	close(s.stopChan)
 }

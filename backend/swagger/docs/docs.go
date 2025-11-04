@@ -2767,6 +2767,12 @@ const docTemplate = `{
                 "quickScanDurationSeconds": {
                     "type": "integer"
                 },
+                "scanners": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/indexing.ScannerInfo"
+                    }
+                },
                 "status": {
                     "$ref": "#/definitions/indexing.IndexStatus"
                 },
@@ -2774,6 +2780,38 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "used": {
+                    "type": "integer"
+                }
+            }
+        },
+        "indexing.ScannerInfo": {
+            "type": "object",
+            "properties": {
+                "assessment": {
+                    "type": "string"
+                },
+                "currentSchedule": {
+                    "type": "integer"
+                },
+                "fullScanTime": {
+                    "type": "integer"
+                },
+                "isRoot": {
+                    "type": "boolean"
+                },
+                "lastScanned": {
+                    "type": "string"
+                },
+                "numDirs": {
+                    "type": "integer"
+                },
+                "numFiles": {
+                    "type": "integer"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "quickScanTime": {
                     "type": "integer"
                 }
             }
