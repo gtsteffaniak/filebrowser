@@ -327,7 +327,7 @@ func (s *Scanner) updateSchedule() {
 
 // updateAssessment calculates the complexity assessment for this scanner's directory
 func (s *Scanner) updateAssessment() {
-	if s.fullScanTime < 2 || s.numDirs < 1000 {
+	if s.fullScanTime == 0 || s.numDirs < 1000 {
 		s.assessment = "simple"
 		s.smartModifier = 4 * time.Minute
 	} else if s.fullScanTime > 20 || s.numDirs > 100000 {
