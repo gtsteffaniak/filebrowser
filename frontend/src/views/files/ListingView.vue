@@ -428,16 +428,16 @@ export default {
           : 50 + (state.user.gallerySize * 3); // 50px to 74px - list
         
         // Scale icons with gallery size - icon fonts: 1.6em to 2.4em, images: 1.2em to 1.8em
-        const iconFontSize = 1.6 + (state.user.gallerySize * 0.1); // 1.7em to 2.5em
-        const iconImageSize = 1.2 + (state.user.gallerySize * 0.075); // 1.275em to 1.875em
+        const iconFontSize = (1.6 + (state.user.gallerySize * 0.1)).toFixed(2); // 1.7em to 2.5em
+        const iconImageSize = (1.2 + (state.user.gallerySize * 0.075)).toFixed(3); // 1.275em to 1.875em
         
-        styles['--item-width'] = `calc(${100 / this.numColumns}% - 1em)`;
+        styles['--item-width'] = `calc(${(100 / this.numColumns).toFixed(2)}% - 1em)`;
         styles['--item-height'] = `${baseHeight}px`;
         styles['--list-icon-font-size'] = `${iconFontSize}em`;
         styles['--list-icon-image-size'] = `${iconImageSize}em`;
       } else {
         // Normal view
-        styles['--item-width'] = `calc(${100 / this.numColumns}% - 1em)`;
+        styles['--item-width'] = `calc(${(100 / this.numColumns).toFixed(2)}% - 1em)`;
         styles['--item-height'] = 'auto';
       }
 
