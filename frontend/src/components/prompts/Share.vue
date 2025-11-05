@@ -165,7 +165,6 @@
           <select class="input" v-model="viewMode">
             <option value="normal">{{ $t("buttons.normalView") }}</option>
             <option value="list">{{ $t("buttons.listView") }}</option>
-            <option value="compact">{{ $t("buttons.compactView") }}</option>
             <option value="gallery">{{ $t("buttons.galleryView") }}</option>
           </select>
         </div>

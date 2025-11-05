@@ -217,3 +217,7 @@
   background: var(--background);
   color: var(--textPrimary);
 }
+
+.dark-mode-header {
+  color: white;
+}

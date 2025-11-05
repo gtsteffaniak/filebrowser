@@ -2,9 +2,10 @@
   <div v-if="showStatusBar" id="status-bar" :class="{ 'dark-mode-header': isDarkMode }" @contextmenu.prevent.stop @touchstart.stop @touchend.stop>
     <div class="status-content" @contextmenu.prevent.stop @touchstart.stop @touchend.stop>
       <div class="status-info">
-        <span v-if="selectedCount > 0" class="selection-info">
+        <span v-if="selectedCount > 0">
+          <span class="button">{{ selectedCount }}</span>
           <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
-          {{ selectedCount }} {{ $t(selectedCount === 1 ? 'files.itemSelected' : 'files.itemsSelected') }} ({{ displayTotalSize }})
+          {{ $t(selectedCount === 1 ? 'files.itemSelected' : 'files.itemsSelected') }} ({{ displayTotalSize }})
         </span>
         <span v-else class="directory-info">
           <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
@@ -113,7 +114,7 @@ export default {
 
       // List/Compact family - switch based on size
       if (currentMode === "list" || currentMode === "compact") {
-        if (size <= 2) {
+        if (size <= 3) {
           newMode = "compact";
         } else {
           newMode = "list";
@@ -168,6 +169,20 @@ export default {
   align-items: center;
   color: var(--textSecondary);
   font-weight: 500;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--primaryColor);
+  color: white;
+  min-width: 1.8em;
+  height: 1.8em;
+  padding: 0 0.5em;
+  font-size: 0.8em;
+  font-weight: bold;
+  margin-right: 0.12em;
 }
 
 .status-controls {
