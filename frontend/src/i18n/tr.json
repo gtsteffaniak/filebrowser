@@ -531,7 +531,6 @@
     "metadata": "Metadata{suffix}",
     "loading": "Yükleniyor{suffix}",
     "add": "Ekle{suffix}",
-    "stayOnPrompt": "Kalmak",
     "cancel": "İptal{suffix}",
     "verify": "Doğrulama{suffix}",
     "close": "Kapat{suffix}",
@@ -564,7 +563,8 @@
     "resume": "Özgeçmiş{suffix}",
     "retry": "Yeniden Dene{suffix}",
     "disable": "Devre dışı bırak{suffix}",
-    "confirm": "Onaylayın{suffix}"
+    "confirm": "Onaylayın{suffix}",
+    "stay": "Kalmak{suffix}"
   },
   "access": {
     "rules": "Erişim kuralları",

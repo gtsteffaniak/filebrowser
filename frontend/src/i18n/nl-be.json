@@ -611,7 +611,6 @@
     "metadata": "Metagegevens{suffix}",
     "loading": "Laden{suffix}",
     "add": "Voeg  toe{suffix}",
-    "stayOnPrompt": "Blijf",
     "cancel": "Annuleren{suffix}",
     "verify": "Controleer{suffix}",
     "close": "Sluit{suffix}",
@@ -644,7 +643,8 @@
     "resume": "CV{suffix}",
     "retry": "Opnieuw proberen{suffix}",
     "disable": "uitschakelen{suffix}",
-    "confirm": "Bevestig{suffix}"
+    "confirm": "Bevestig{suffix}",
+    "stay": "Blijf{suffix}"
   },
   "access": {
     "rules": "Toegangsregels",

@@ -531,7 +531,6 @@
     "metadata": "Metadaten{suffix}",
     "loading": "Laden{suffix}",
     "add": "hinzufügen{suffix}",
-    "stayOnPrompt": "Bleiben Sie",
     "cancel": "Abbrechen{suffix}",
     "verify": "Überprüfen Sie{suffix}",
     "close": "Schließen Sie{suffix}",
@@ -564,7 +563,8 @@
     "resume": "Lebenslauf{suffix}",
     "retry": "Wiederholung{suffix}",
     "disable": "Deaktivieren Sie{suffix}",
-    "confirm": "Bestätigen Sie{suffix}"
+    "confirm": "Bestätigen Sie{suffix}",
+    "stay": "Bleiben Sie{suffix}"
   },
   "access": {
     "rules": "Zugangsregeln",

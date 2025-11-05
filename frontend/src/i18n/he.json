@@ -531,7 +531,6 @@
     "metadata": "מטא-נתונים{suffix}",
     "loading": "טוען{suffix}",
     "add": "הוסף{suffix}",
-    "stayOnPrompt": "הישאר",
     "cancel": "ביטול{suffix}",
     "verify": "אמת{suffix}",
     "close": "סגור{suffix}",
@@ -564,7 +563,8 @@
     "resume": "קורות חיים{suffix}",
     "retry": "נסה שוב{suffix}",
     "disable": "השבת{suffix}",
-    "confirm": "אשר{suffix}"
+    "confirm": "אשר{suffix}",
+    "stay": "הישאר{suffix}"
   },
   "access": {
     "rules": "כללי גישה",

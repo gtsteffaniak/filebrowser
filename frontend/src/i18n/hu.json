@@ -531,7 +531,6 @@
     "metadata": "Metaadatok{suffix}",
     "loading": "Betöltés{suffix}",
     "add": "Add{suffix}",
-    "stayOnPrompt": "Maradj",
     "cancel": "Törölje{suffix}",
     "verify": "Ellenőrizze a  címet.{suffix}",
     "close": "Zárja be a{suffix}",
@@ -564,7 +563,8 @@
     "resume": "Önéletrajz{suffix}",
     "retry": "Retry{suffix}",
     "disable": "A  letiltása{suffix}",
-    "confirm": "Megerősítés{suffix}"
+    "confirm": "Megerősítés{suffix}",
+    "stay": "Maradj{suffix}"
   },
   "access": {
     "rules": "Hozzáférési szabályok",

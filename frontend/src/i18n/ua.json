@@ -611,7 +611,6 @@
     "metadata": "Метадані{suffix}",
     "loading": "Завантаження{suffix}",
     "add": "Додати{suffix}",
-    "stayOnPrompt": "Залишайся.",
     "cancel": "Скасувати{suffix}",
     "verify": "Підтвердити{suffix}",
     "close": "Закрити{suffix}",
@@ -644,7 +643,8 @@
     "resume": "Резюме{suffix}",
     "retry": "Спробуйте ще раз.{suffix}",
     "disable": "Вимкнути{suffix}",
-    "confirm": "Підтвердити{suffix}"
+    "confirm": "Підтвердити{suffix}",
+    "stay": "Залишайся.{suffix}"
   },
   "access": {
     "rules": "Правила доступу",

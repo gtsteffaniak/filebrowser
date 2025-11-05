@@ -531,7 +531,6 @@
     "metadata": "메타데이터{suffix}",
     "loading": "로드 중{suffix}",
     "add": "추가{suffix}",
-    "stayOnPrompt": "Stay",
     "cancel": "취소{suffix}",
     "verify": "확인{suffix}",
     "close": "닫기{suffix}",
@@ -564,7 +563,8 @@
     "resume": "이력서{suffix}",
     "retry": "다시 시도{suffix}",
     "disable": "비활성화{suffix}",
-    "confirm": "확인{suffix}"
+    "confirm": "확인{suffix}",
+    "stay": "Stay{suffix}"
   },
   "access": {
     "rules": "액세스 규칙",

@@ -531,7 +531,6 @@
     "metadata": "Μεταδεδομένα{suffix}",
     "loading": "Φόρτωση{suffix}",
     "add": "Προσθέστε{suffix}",
-    "stayOnPrompt": "Μείνετε",
     "cancel": "Ακύρωση{suffix}",
     "verify": "Επαλήθευση{suffix}",
     "close": "Κλείστε το{suffix}",
@@ -564,7 +563,8 @@
     "resume": "Βιογραφικό σημείωμα{suffix}",
     "retry": "Επανάληψη{suffix}",
     "disable": "Απενεργοποίηση{suffix}",
-    "confirm": "Επιβεβαίωση{suffix}"
+    "confirm": "Επιβεβαίωση{suffix}",
+    "stay": "Μείνετε{suffix}"
   },
   "access": {
     "rules": "Κανόνες πρόσβασης",

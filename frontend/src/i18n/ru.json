@@ -531,7 +531,6 @@
     "metadata": "Метаданные{suffix}",
     "loading": "Загрузка{suffix}",
     "add": "Добавить{suffix}",
-    "stayOnPrompt": "Оставайтесь",
     "cancel": "Отмена{suffix}",
     "verify": "Проверьте{suffix}",
     "close": "Закрыть{suffix}",
@@ -564,7 +563,8 @@
     "resume": "Резюме{suffix}",
     "retry": "Повторная попытка{suffix}",
     "disable": "Отключить{suffix}",
-    "confirm": "Подтвердите{suffix}"
+    "confirm": "Подтвердите{suffix}",
+    "stay": "Оставайтесь{suffix}"
   },
   "access": {
     "rules": "Правила доступа",

@@ -611,7 +611,6 @@
     "metadata": "元資料{suffix}",
     "loading": "載入中{suffix}",
     "add": "新增{suffix}",
-    "stayOnPrompt": "停留",
     "cancel": "取消{suffix}",
     "verify": "驗證{suffix}",
     "close": "關閉{suffix}",
@@ -644,7 +643,8 @@
     "resume": "簡歷{suffix}",
     "retry": "重試{suffix}",
     "disable": "停用{suffix}",
-    "confirm": "確認{suffix}"
+    "confirm": "確認{suffix}",
+    "stay": "停留{suffix}"
   },
   "access": {
     "rules": "存取規則",

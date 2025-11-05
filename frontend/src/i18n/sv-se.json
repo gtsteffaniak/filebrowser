@@ -611,7 +611,6 @@
     "metadata": "Metadata{suffix}",
     "loading": "Lastning{suffix}",
     "add": "Lägg till{suffix}",
-    "stayOnPrompt": "Stanna kvar",
     "cancel": "Avbryt{suffix}",
     "verify": "Verifiera{suffix}",
     "close": "Nära{suffix}",
@@ -644,7 +643,8 @@
     "resume": "Meritförteckning{suffix}",
     "retry": "Försök igen{suffix}",
     "disable": "Avaktivera{suffix}",
-    "confirm": "Bekräfta{suffix}"
+    "confirm": "Bekräfta{suffix}",
+    "stay": "Stanna kvar{suffix}"
   },
   "access": {
     "rules": "Regler för åtkomst",

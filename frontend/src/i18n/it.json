@@ -531,7 +531,6 @@
     "metadata": "Metadati{suffix}",
     "loading": "Caricamento{suffix}",
     "add": "Aggiungi{suffix}",
-    "stayOnPrompt": "Soggiorno",
     "cancel": "Annullamento{suffix}",
     "verify": "Verifica{suffix}",
     "close": "Chiudere{suffix}",
@@ -564,7 +563,8 @@
     "resume": "Il curriculum{suffix}",
     "retry": "Riprova{suffix}",
     "disable": "Disattivare{suffix}",
-    "confirm": "Confermare{suffix}"
+    "confirm": "Confermare{suffix}",
+    "stay": "Soggiorno{suffix}"
   },
   "access": {
     "rules": "Regole di accesso",

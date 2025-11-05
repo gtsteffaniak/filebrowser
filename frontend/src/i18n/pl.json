@@ -531,7 +531,6 @@
     "metadata": "Metadane{suffix}",
     "loading": "Ładowanie{suffix}",
     "add": "Dodaj{suffix}",
-    "stayOnPrompt": "Zostań",
     "cancel": "Anuluj{suffix}",
     "verify": "Weryfikacja{suffix}",
     "close": "Zamknij{suffix}",
@@ -564,7 +563,8 @@
     "resume": "Wznowienie{suffix}",
     "retry": "Ponów próbę{suffix}",
     "disable": "Wyłącz{suffix}",
-    "confirm": "Potwierdzenie{suffix}"
+    "confirm": "Potwierdzenie{suffix}",
+    "stay": "Zostań{suffix}"
   },
   "access": {
     "rules": "Zasady dostępu",

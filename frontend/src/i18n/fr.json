@@ -531,7 +531,6 @@
     "metadata": "Métadonnées{suffix}",
     "loading": "Chargement{suffix}",
     "add": "Ajouter{suffix}",
-    "stayOnPrompt": "Séjour",
     "cancel": "Annuler{suffix}",
     "verify": "Vérifier{suffix}",
     "close": "Fermer{suffix}",
@@ -564,7 +563,8 @@
     "resume": "Curriculum vitae{suffix}",
     "retry": "Réessayer{suffix}",
     "disable": "Désactiver{suffix}",
-    "confirm": "Confirmer{suffix}"
+    "confirm": "Confirmer{suffix}",
+    "stay": "Séjour{suffix}"
   },
   "access": {
     "rules": "Règles d'accès",

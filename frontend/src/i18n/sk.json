@@ -531,7 +531,6 @@
     "metadata": "Metadáta{suffix}",
     "loading": "Načítanie{suffix}",
     "add": "Pridať{suffix}",
-    "stayOnPrompt": "Zostaňte na",
     "cancel": "Zrušiť{suffix}",
     "verify": "Overiť{suffix}",
     "close": "Zatvoriť{suffix}",
@@ -564,7 +563,8 @@
     "resume": "Životopis{suffix}",
     "retry": "Opakovanie{suffix}",
     "disable": "Zakázať{suffix}",
-    "confirm": "Potvrďte{suffix}"
+    "confirm": "Potvrďte{suffix}",
+    "stay": "Zostaňte na{suffix}"
   },
   "access": {
     "rules": "Pravidlá prístupu",

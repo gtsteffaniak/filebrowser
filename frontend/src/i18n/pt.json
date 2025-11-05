@@ -611,7 +611,6 @@
     "metadata": "Metadados{suffix}",
     "loading": "Carregamento{suffix}",
     "add": "Adicionar{suffix}",
-    "stayOnPrompt": "Ficar",
     "cancel": "Cancelar{suffix}",
     "verify": "Verificar{suffix}",
     "close": "Fechar{suffix}",
@@ -644,7 +643,8 @@
     "resume": "Currículo{suffix}",
     "retry": "Repetir{suffix}",
     "disable": "Desativar{suffix}",
-    "confirm": "Confirmar{suffix}"
+    "confirm": "Confirmar{suffix}",
+    "stay": "Ficar{suffix}"
   },
   "access": {
     "rules": "Regras de acesso",

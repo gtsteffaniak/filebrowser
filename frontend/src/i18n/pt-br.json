@@ -531,7 +531,6 @@
     "metadata": "Metadados{suffix}",
     "loading": "Carregamento{suffix}",
     "add": "Adicionar{suffix}",
-    "stayOnPrompt": "Permanecer",
     "cancel": "Cancelar{suffix}",
     "verify": "Verificar{suffix}",
     "close": "Fechar{suffix}",
@@ -564,7 +563,8 @@
     "resume": "Currículo{suffix}",
     "retry": "Repetir{suffix}",
     "disable": "Desativar{suffix}",
-    "confirm": "Confirmar{suffix}"
+    "confirm": "Confirmar{suffix}",
+    "stay": "Permanecer{suffix}"
   },
   "access": {
     "rules": "Regras de acesso",

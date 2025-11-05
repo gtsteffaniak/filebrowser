@@ -531,7 +531,6 @@
     "metadata": "Metadate{suffix}",
     "loading": "Încărcare{suffix}",
     "add": "Adaugă{suffix}",
-    "stayOnPrompt": "Ședere",
     "cancel": "Anulează{suffix}",
     "verify": "Verificare{suffix}",
     "close": "Închidere{suffix}",
@@ -564,7 +563,8 @@
     "resume": "CV{suffix}",
     "retry": "Reîncercare{suffix}",
     "disable": "Dezactivare{suffix}",
-    "confirm": "Confirmați{suffix}"
+    "confirm": "Confirmați{suffix}",
+    "stay": "Ședere{suffix}"
   },
   "access": {
     "rules": "Reguli de acces",

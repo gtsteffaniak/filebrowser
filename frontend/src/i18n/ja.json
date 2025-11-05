@@ -531,7 +531,6 @@
     "metadata": "メタデータ{suffix}",
     "loading": "ローディング{suffix}",
     "add": "追加{suffix}",
-    "stayOnPrompt": "滞在",
     "cancel": "キャンセル{suffix}",
     "verify": "ベリファイ{suffix}",
     "close": "閉じる{suffix}",
@@ -564,7 +563,8 @@
     "resume": "履歴書{suffix}",
     "retry": "リトライ{suffix}",
     "disable": "無効{suffix}",
-    "confirm": "確認{suffix}"
+    "confirm": "確認{suffix}",
+    "stay": "滞在{suffix}"
   },
   "access": {
     "rules": "アクセスルール",

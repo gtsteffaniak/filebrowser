@@ -611,7 +611,6 @@
     "metadata": "元数据{suffix}",
     "loading": "加载中{suffix}",
     "add": "添加{suffix}",
-    "stayOnPrompt": "停留",
     "cancel": "取消{suffix}",
     "verify": "验证{suffix}",
     "close": "关闭{suffix}",
@@ -644,7 +643,8 @@
     "resume": "简历{suffix}",
     "retry": "重试{suffix}",
     "disable": "禁用{suffix}",
-    "confirm": "确认{suffix}"
+    "confirm": "确认{suffix}",
+    "stay": "停留{suffix}"
   },
   "access": {
     "rules": "访问规则",

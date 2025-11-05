@@ -531,7 +531,6 @@
     "metadata": "البيانات الوصفية{suffix}",
     "loading": "التحميل{suffix}",
     "add": "إضافة{suffix}",
-    "stayOnPrompt": "ابق في مكانك",
     "cancel": "إلغاء{suffix}",
     "verify": "تحقق{suffix}",
     "close": "إغلاق{suffix}",
@@ -564,7 +563,8 @@
     "resume": "السيرة الذاتية{suffix}",
     "retry": "إعادة المحاولة{suffix}",
     "disable": "تعطيل{suffix}",
-    "confirm": "تأكيد{suffix}"
+    "confirm": "تأكيد{suffix}",
+    "stay": "ابق في مكانك{suffix}"
   },
   "access": {
     "rules": "قواعد الوصول",
