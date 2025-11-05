@@ -1035,8 +1035,13 @@ export default {
 <style >
 @import url("plyr/dist/plyr.css");
 
-.plyr-background {
+/* Bakcground styles for the audio player */
+.plyr-background-dark {
     background: radial-gradient(#3b3b3b, black);
+}
+
+.plyr-background-light {
+    background: radial-gradient(#727272, #e2e2e2);
 }
 
 /**********************************
@@ -1074,13 +1079,15 @@ export default {
 
 .plyr__controls {
     color: black;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
 }
 
 .audio-controls-container.dark-mode .plyr {
     background-color: rgb(37 49 55 / 33%);
     color: white;
 }
-/* sidebar with backdrop-filter support */
+
+/* Backdrop-filter support for plyr */
 @supports (backdrop-filter: none) {
   .plyr {
     backdrop-filter: blur(16px) invert(0.1);
