@@ -1,6 +1,6 @@
 <template>
-  <div v-if="showStatusBar" id="status-bar" :class="{ 'dark-mode-header': isDarkMode }">
-    <div class="status-content">
+  <div v-if="showStatusBar" id="status-bar" :class="{ 'dark-mode-header': isDarkMode }" @contextmenu.prevent.stop @touchstart.stop @touchend.stop>
+    <div class="status-content" @contextmenu.prevent.stop @touchstart.stop @touchend.stop>
       <div class="status-info">
         <span v-if="selectedCount > 0" class="selection-info">
           <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->

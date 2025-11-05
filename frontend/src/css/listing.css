@@ -129,7 +129,7 @@ body.rtl #listingView {
   margin: 0;
   padding: 0;
   position: relative;
-  width: var(--item-width);
+  width: 100%;
   height: var(--item-height);
   flex-shrink: 0;
 }
@@ -515,11 +515,12 @@ body.rtl #listingView {
 
 #listingView.gallery .folder-items,
 #listingView.gallery .file-items {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--item-width, 200px), 1fr));
   gap: 1em;
   padding: 0.5em;
-  justify-content: flex-start;
+  width: 100%;
+  transition: grid-template-columns 0.25s ease-out;
 }
 
 #listingView.icons .folder-items,

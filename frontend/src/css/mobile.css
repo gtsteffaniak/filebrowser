@@ -8,39 +8,14 @@
   #listingView.list .item div:last-of-type{
     display:block;
     width:100%;
-    display: flex !important;
-    align-items: center;
-    flex-wrap: nowrap !important;
-  }
-
-  #listingView.list .item .name,
-  #listingView.list .item .size,
-  #listingView.list .item .modified {
-    display: inline-block !important;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  #listingView.list .item .size {
-    width: 25% !important;
-    font-size: 0.85em;
-    opacity: 0.8;
-  }
-
-  #listingView.list .item .modified {
-    width: 25% !important;
-    font-size: 0.85em;
-    opacity: 0.8;
   }
 
   body {
     padding-bottom: 5em;
   }
 
-  #listingView.list .item .name,
-  #listingView.compact .item .name {
-    width: 45% !important;
+  #listingView.list .item .name {
+    width: 60%;
   }
 
   #more {
@@ -60,12 +35,23 @@
   #listingView {
     margin-bottom: 5em;
   }
-  #listingView .item {
+  /* Don't override width for gallery and icons views - they use CSS variables */
+  #listingView.list .item,
+  #listingView.compact .item,
+  #listingView.normal .item {
     width: 100%
   }
+  
+  /* Gallery mode on mobile - use simple column-based grid */
+  #listingView.gallery .folder-items,
+  #listingView.gallery .file-items {
+    grid-template-columns: repeat(var(--gallery-mobile-columns, 2), 1fr);
+  }
+  
   body.rtl #listingView {
     margin-right: unset;
   }
+
 
   body.rtl #nav .wrapper {
     margin-right: unset;
@@ -75,46 +61,11 @@
     margin-right: unset;
   }
 
-  #listingView.gallery .folder-items,
-  #listingView.gallery .file-items {
-    display: grid;
-    grid-template-columns: repeat(var(--gallery-mobile-columns, 3), 1fr);
-    gap: 0;
-    padding: 0;
-    width: 100%;
-  }
-
-  #listingView.gallery .item {
-    border-radius: 0;
-    box-shadow: none;
-    border: 1px solid var(--divider);
-  }
-
-  #listingView.gallery .item img {
-    border-radius: 0;
-  }
-
-  #listingView.gallery .item .text {
-    padding: 0.5em 0.3em 0.3em;
-    font-size: 0.9em;
-  }
-
-  #listingView.gallery .item .text .name {
-    font-size: 0.9em;
-  }
-
-  #listingView.gallery .item i {
-    font-size: 3em;
-  }
-
-  #listingView.icons .folder-items,
-  #listingView.icons .file-items {
-    grid-template-columns: repeat(auto-fill, minmax(calc(var(--icons-view-cell-size, 100px) * 0.8), 1fr));
-    gap: 0.4em;
-  }
 }
 
+
 @media (max-width: 450px) {
+
   #listingView.list .item .name {
     width: 100%;
   }
