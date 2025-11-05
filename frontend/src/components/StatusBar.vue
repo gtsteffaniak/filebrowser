@@ -3,7 +3,7 @@
     <div class="status-content">
       <div class="status-info">
         <span v-if="selectedCount > 0">
-          <span class="selected-badge">{{ selectedCount }}</span>
+          <span class="button">{{ selectedCount }}</span>
           <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
           {{ $t(selectedCount === 1 ? 'files.itemSelected' : 'files.itemsSelected') }} ({{ displayTotalSize }})
         </span>
@@ -171,13 +171,12 @@ export default {
   font-weight: 500;
 }
 
-.selected-badge {
+.button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   background-color: var(--primaryColor);
   color: white;
-  border-radius: 12px;
   min-width: 1.8em;
   height: 1.8em;
   padding: 0 0.5em;
