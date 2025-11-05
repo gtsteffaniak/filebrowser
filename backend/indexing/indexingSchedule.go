@@ -243,8 +243,9 @@ func (idx *Index) aggregateStatsFromScanners() {
 	// Log first complete scan round (once)
 	if allScannedAtLeastOnce && !idx.hasLoggedInitialScan {
 		totalDuration := time.Since(idx.initialScanStartTime)
-		logger.Infof("Initial scan complete for [%s]: %d scanners completed first round in %v (%.2f seconds)",
-			idx.Name, len(idx.scanners), totalDuration, totalDuration.Seconds())
+		truncatedToSecond := totalDuration.Truncate(time.Second)
+		logger.Infof("Initial scan complete for [%v]: duration: %v seconds",
+			idx.Name, truncatedToSecond)
 		idx.hasLoggedInitialScan = true
 	}
 

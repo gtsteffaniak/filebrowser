@@ -67,7 +67,7 @@ generate-config:
 	cd backend && FILEBROWSER_GENERATE_CONFIG=true go run .
 
 build-frontend:
-	cd frontend && npm run $$([ "$(OS)" = "Windows_NT" ] && echo "build:windows" || echo "build")
+	cd frontend && npm run build
 
 lint-frontend:
 	cd frontend && npm run lint

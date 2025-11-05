@@ -374,7 +374,7 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 			totalSize += itemInfo.Size
 			itemInfo.Type = "directory"
 			dirInfos = append(dirInfos, *itemInfo)
-			if config.Recursive {
+			if config.IsRoutineScan {
 				idx.NumDirs++
 				// Also update the active scanner's counter
 				idx.incrementScannerDirs()
