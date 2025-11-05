@@ -139,8 +139,8 @@ func (s *Scanner) runIndexing(quick bool) {
 func (s *Scanner) runRootScan(quick bool) {
 	config := actionConfig{
 		Quick:         quick,
-		Recursive:     false, // 🔑 KEY: Don't recurse into child directories
-		IsRoutineScan: s.idx.wasIndexed,
+		Recursive:     false,
+		IsRoutineScan: true,
 	}
 
 	// Reset counters for full scan
@@ -173,8 +173,8 @@ func (s *Scanner) runRootScan(quick bool) {
 func (s *Scanner) runChildScan(quick bool) {
 	config := actionConfig{
 		Quick:         quick,
-		Recursive:     true, // 🔑 Full recursive scan
-		IsRoutineScan: s.idx.wasIndexed,
+		Recursive:     true,
+		IsRoutineScan: true,
 	}
 
 	// Reset counters for full scan
@@ -292,11 +292,7 @@ func (s *Scanner) getTopLevelDirs() []string {
 
 		// Check if this directory should be excluded from indexing (respects exclusion rules)
 		hidden := isHidden(file, s.idx.Path+dirPath)
-		if s.idx.shouldSkip(true, hidden, dirPath, baseName, actionConfig{
-			Quick:         false,
-			Recursive:     true,
-			IsRoutineScan: false,
-		}) {
+		if s.idx.shouldSkip(true, hidden, dirPath, baseName, actionConfig{}) {
 			logger.Debugf("Skipping scanner creation for excluded directory: %s", dirPath)
 			continue
 		}
