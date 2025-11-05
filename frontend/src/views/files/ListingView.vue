@@ -403,24 +403,31 @@ export default {
       const styles = {};
 
       if (viewMode === 'icons') {
-        const baseSize = 60 + (state.user.gallerySize * 10); // 70px to 140px
+        const baseSize = 60 + (state.user.gallerySize * 15); // 60px to 135px - increased scaling
         const cellSize = baseSize + 30;
         styles['--icons-view-icon-size'] = `${baseSize}px`;
         styles['--icons-view-cell-size'] = `${cellSize}px`;
       } else if (viewMode === 'gallery') {
         // Use column width and percentage-based sizing for smooth animations
-        const baseSize = 100 + (state.user.gallerySize * 35); // 135px to 415px range
+        // Keep size 5 at 205px, then scale more aggressively above that
+        const baseCalc = 80 + (state.user.gallerySize * 25);
+        const extraScaling = Math.max(0, state.user.gallerySize - 5) * 15; // Additional 15px per level above 5
+        const baseSize = baseCalc + extraScaling; // Size 5: 205px, Size 9: 345px
         if (state.isMobile) {
           let columns;
           if (state.user.gallerySize <= 2) columns = 3;
           else if (state.user.gallerySize <= 5) columns = 2;
           else columns = 1;
           styles['--gallery-mobile-columns'] = columns.toString();
+          // On mobile, scale height with gallery size for smooth animations
+          const mobileHeight = 120 + (state.user.gallerySize * 20); // 120px to 300px range
+          styles['--item-width'] = '150px'; // Minimum size for mobile grid
+          styles['--item-height'] = `${mobileHeight}px`;
         } else {
-          // Use fixed pixel size for minmax in grid
+          // Use pixel size for grid's minmax - items will stretch and animate smoothly
+          // Make height 20% larger than width for better proportions
           styles['--item-width'] = `${baseSize}px`;
-          // Set a calculated height for smooth transitions
-          styles['--item-height'] = `${baseSize}px`;
+          styles['--item-height'] = `${Math.round(baseSize * 1.2)}px`;
         }
       } else if (viewMode === 'list' || viewMode === 'compact') {
         const baseHeight = viewMode === 'compact' 
