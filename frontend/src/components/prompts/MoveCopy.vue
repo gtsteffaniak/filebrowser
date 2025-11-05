@@ -16,15 +16,15 @@
   </div>
   <div v-if="!isLoading" class="card-action" style="display: flex; align-items: center; justify-content: space-between">
     <template v-if="user.permissions.modify">
-      <button class="button button--flat" @click="$refs.fileList.createDir()" :aria-label="$t('sidebar.newFolder')"
-        :title="$t('sidebar.newFolder')" style="justify-self: left">
-        <span>{{ $t("sidebar.newFolder") }}</span>
+      <button class="button button--flat" @click="$refs.fileList.createDir()" :aria-label="$t('general.newFolder')"
+        :title="$t('general.newFolder')" style="justify-self: left">
+        <span>{{ $t("general.newFolder") }}</span>
       </button>
     </template>
     <div>
-      <button class="button button--flat button--grey" @click="closeHovers" :aria-label="$t('buttons.cancel')"
-        :title="$t('buttons.cancel')">
-        {{ $t("buttons.cancel") }}
+      <button class="button button--flat button--grey" @click="closeHovers" :aria-label="$t('general.cancel')"
+        :title="$t('general.cancel')">
+        {{ $t("general.cancel") }}
       </button>
       <button :disabled="destContainsSrc" class="button button--flat" @click="performOperation"
         :aria-label="$t(`buttons.${operation}`)" :title="$t(`buttons.${operation}`)">

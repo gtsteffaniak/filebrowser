@@ -26,7 +26,7 @@
            :disabled="configLoading"
            aria-label="loadConfig"
             style="margin-bottom: 1em;">
-            {{ configLoading ? $t('files.loading') : $t('settings.configViewerLoadConfig') }}
+            {{ configLoading ? $t('general.loading') : $t('settings.configViewerLoadConfig') }}
           </button>
         </div>
         <div class="config-editor-container">

@@ -3,7 +3,7 @@
         <div v-if="showSidebarLinks" class="sidebar-scroll-list">
             <div class="sidebar-links card">
                 <div class="sidebar-links-header">
-                    <span>{{ hasCustomLinks ? $t("sidebar.links") : $t("sidebar.sources") }}</span>
+                    <span>{{ hasCustomLinks ? $t("general.links") : $t("general.sources") }}</span>
                     <button class="action edit-icon" @click="openSidebarLinksPrompt"
                         @mouseenter="showTooltip($event, $t('sidebar.customizeLinks'))" @mouseleave="hideTooltip">
                         <i class="material-icons no-padding">edit</i>
@@ -117,7 +117,7 @@ export default {
     isLinkAccessible(link) {
       // Check if link is accessible
       if (link.category === 'source') {
-        for (const [name, info] of Object.entries(this.sourceInfo || {})) {
+        for (const [name] of Object.entries(this.sourceInfo || {})) {
           if (name === link.name) {
             return true;
           }
@@ -234,7 +234,7 @@ export default {
           </thead>
           <tbody>
             <tr>
-              <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${this.$t("index.status")}</td>
+              <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${this.$t("general.status")}</td>
               <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${info.status || 'unknown'}</td>
             </tr>
             <tr>

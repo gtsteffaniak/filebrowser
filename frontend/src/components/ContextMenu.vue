@@ -36,45 +36,45 @@
       <action
         v-if="showCreate && !isSearchActive"
         icon="create_new_folder"
-        :label="$t('sidebar.newFolder')"
+        :label="$t('general.newFolder')"
         @action="showHover('newDir')"
       />
       <action
         v-if="showCreate && !isSearchActive"
         icon="note_add"
-        :label="$t('sidebar.newFile')"
+        :label="$t('general.newFile')"
         @action="showHover('newFile')"
       />
       <action
         v-if="showCreate && !isSearchActive"
         icon="file_upload"
-        :label="$t('buttons.upload')"
+        :label="$t('general.upload')"
         @action="uploadFunc"
       />
       <action
         v-if="!showCreate && selectedCount == 1"
         icon="info"
-        :label="$t('buttons.info')"
+        :label="$t('general.info')"
         show="info"
       />
 
       <action
         v-if="(!showCreate && permissions.download && selectedCount > 0)"
         icon="file_download"
-        :label="$t('buttons.download')"
+        :label="$t('general.download')"
         @action="startDownload"
         :counter="selectedCount"
       />
       <action
         v-if="(showCreate || selectedCount == 1) && showShare"
         icon="share"
-        :label="$t('buttons.share')"
+        :label="$t('general.share')"
         @action="showShareHover"
       />
       <action
         v-if="!showCreate && selectedCount == 1 && permissions.modify && !isSearchActive"
         icon="mode_edit"
-        :label="$t('buttons.rename')"
+        :label="$t('general.rename')"
         @action="showRenameHover"
       />
       <action
@@ -104,7 +104,7 @@
       <action
         v-if="showDelete"
         icon="delete"
-        :label="$t('buttons.delete')"
+        :label="$t('general.delete')"
         show="delete"
       />
       <action
@@ -138,13 +138,13 @@
       class="button no-select fb-shadow"
       :class="{ 'dark-mode': isDarkMode }"
     >
-      <action icon="info" :label="$t('buttons.info')" show="info" />
-      <action v-if="showGoToRaw" icon="open_in_new" :label="$t('buttons.openFile')" @action="goToRaw()" />
+      <action icon="info" :label="$t('general.info')" show="info" />
+      <action v-if="showGoToRaw" icon="open_in_new" :label="$t('general.openFile')" @action="goToRaw()" />
       <action v-if="shouldShowParentFolder()" icon="folder" :label="$t('buttons.openParentFolder')" @action="openParentFolder" />
-      <action v-if="hasDownload" icon="file_download" :label="$t('buttons.download')" @action="startDownload" />
-      <action v-if="showEdit" icon="edit" :label="$t('buttons.edit')" @action="edit()" />
-      <action v-if="showSave" icon="save" :label="$t('buttons.save')" @action="save()" />
-      <action v-if="showDelete" icon="delete" :label="$t('buttons.delete')" show="delete" />
+      <action v-if="hasDownload" icon="file_download" :label="$t('general.download')" @action="startDownload" />
+      <action v-if="showEdit" icon="edit" :label="$t('general.edit')" @action="edit()" />
+      <action v-if="showSave" icon="save" :label="$t('general.save')" @action="save()" />
+      <action v-if="showDelete" icon="delete" :label="$t('general.delete')" show="delete" />
     </div>
   </transition>
 </template>

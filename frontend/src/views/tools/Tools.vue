@@ -1,7 +1,7 @@
 <template>
   <div class="tools-container">
     <div class="tools-header">
-      <h1>{{ $t('tools.title') }}</h1>
+      <h1>{{ $t('tools.description') }}</h1>
       <p class="description">{{ $t('tools.description') }}</p>
     </div>
 

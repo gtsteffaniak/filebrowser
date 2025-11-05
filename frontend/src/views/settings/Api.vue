@@ -4,7 +4,7 @@
     <h2>{{ $t("api.title") }}</h2>
     <div>
       <button @click.prevent="createPrompt" class="button">
-        {{ $t("buttons.new") }}
+        {{ $t("general.new") }}
       </button>
     </div>
   </div>

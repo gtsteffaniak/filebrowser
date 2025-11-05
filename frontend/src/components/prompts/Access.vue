@@ -9,7 +9,7 @@
     <div v-else>
       <p>{{ $t("general.source", { suffix: ":" }) }} {{ currentSource }}</p>
       <div aria-label="access-path" class="searchContext clickable button" @click="startPathEdit">
-        {{ $t("search.path") }} {{ currentPath }}
+        {{ $t("general.path") }} {{ currentPath }}
       </div>
       <!-- Default behavior banner -->
       <div class="card item">
@@ -56,7 +56,7 @@
             <th>{{ $t("access.allowDeny") }}</th>
             <th>{{ $t("access.userGroup") }}</th>
             <th>{{ $t("general.name", { suffix: '' }) }}</th>
-            <th>{{ $t("buttons.edit") }}</th>
+            <th>{{ $t("general.edit") }}</th>
           </tr>
           <tr v-for="entry in entries" :key="entry.type + '-' + entry.name">
             <td>{{ entry.allow ? $t("access.allow") : $t("access.deny") }}</td>
@@ -64,8 +64,8 @@
               $t('access.all')) }}</td>
             <td>{{ entry.name }}</td>
             <td>
-              <button @click="deleteAccess(entry)" class="action" :aria-label="$t('buttons.delete')"
-                :title="$t('buttons.delete')">
+              <button @click="deleteAccess(entry)" class="action" :aria-label="$t('general.delete')"
+                :title="$t('general.delete')">
                 <i class="material-icons">delete</i>
               </button>
             </td>
@@ -76,16 +76,16 @@
   </div>
   <div class="card-action">
     <template v-if="isEditingPath">
-      <button class="button button--flat" @click="cancelPathChange" :aria-label="$t('buttons.cancel')" :title="$t('buttons.cancel')">
-        {{ $t("buttons.cancel") }}
+      <button class="button button--flat" @click="cancelPathChange" :aria-label="$t('general.cancel')" :title="$t('general.cancel')">
+        {{ $t("general.cancel") }}
       </button>
-      <button class="button button--flat" @click="confirmPathChange" :aria-label="$t('buttons.ok')" :title="$t('buttons.ok')">
-        {{ $t("buttons.ok") }}
+      <button class="button button--flat" @click="confirmPathChange" :aria-label="$t('general.ok')" :title="$t('general.ok')">
+        {{ $t("general.ok") }}
       </button>
     </template>
     <template v-else>
-      <button @click="closeHovers" class="button button--flat button--grey" :aria-label="$t('buttons.close')" :title="$t('buttons.close')">
-        {{ $t("buttons.close") }}
+      <button @click="closeHovers" class="button button--flat button--grey" :aria-label="$t('general.close')" :title="$t('general.close')">
+        {{ $t("general.close") }}
       </button>
     </template>
   </div>

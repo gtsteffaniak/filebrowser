@@ -16,7 +16,7 @@
       </select>
     </div>
 
-    <div v-if="!isDisplayMode" aria-label="filelist-path" class="searchContext button clickable">{{ $t('search.path') }}
+    <div v-if="!isDisplayMode" aria-label="filelist-path" class="searchContext button clickable">{{ $t('general.path') }}
       {{ sourcePath.path }}</div>
 
     <ul class="file-list">
@@ -33,9 +33,9 @@
 
   <!-- Cancel/Close button for display mode -->
   <div v-if="isDisplayMode" class="card-action">
-    <button @click="closeModal" class="button button--flat" :aria-label="$t('buttons.cancel')"
-      :title="$t('buttons.cancel')">
-      {{ $t('buttons.cancel') }}
+    <button @click="closeModal" class="button button--flat" :aria-label="$t('general.cancel')"
+      :title="$t('general.cancel')">
+      {{ $t('general.cancel') }}
     </button>
   </div>
 

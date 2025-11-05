@@ -19,7 +19,7 @@
       </div>
       <div v-else-if="user.username === 'anonymous'" @click="navigateToLogin" class="inner-card">
         <button class="person-button action button">
-          <i class="material-symbols-outlined">login</i> {{ $t("sidebar.login") }}
+          <i class="material-symbols-outlined">login</i> {{ $t("general.login") }}
         </button>
       </div>
       <div v-else class="inner-card">
@@ -33,7 +33,7 @@
         <button
           aria-label="logout-button"
           class="logout-button action button"
-          @mouseenter="showTooltip($event, $t('index.logout'))"
+          @mouseenter="showTooltip($event, $t('general.logout'))"
           @mouseleave="hideTooltip"
         >
           <i class="material-icons">exit_to_app</i>
@@ -267,7 +267,7 @@ export default {
             </thead>
             <tbody>
               <tr>
-                <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${this.$t("index.status")}</td>
+                <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${this.$t("general.status")}</td>
                 <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${info.status || 'unknown'}</td>
               </tr>
               <tr>

@@ -37,8 +37,8 @@
       'media-mode': isMediaQueueMode,
   }"
     :style="dragState.type === 'previous' ? { transform: `translateY(-50%) translate(${dragState.deltaX}px, 0)` } : {}"
-    :aria-label="$t('buttons.previous')"
-    :title="$t('buttons.previous')"
+    :aria-label="$t('general.previous')"
+    :title="$t('general.previous')"
   >
     <i class="material-icons">
       {{ dragState.type === 'previous' && dragState.atFullExtent ? 'list_alt' : 'chevron_left' }} <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
@@ -58,8 +58,8 @@
     class="nav-button nav-next"
     :class="{ hidden: !showNav, dragging: dragState.type === 'next', active: dragState.atFullExtent && dragState.type === 'next','dark-mode': isDarkMode, 'media-mode': isMediaQueueMode}"
     :style="dragState.type === 'next' ? { transform: `translateY(-50%) translate(${dragState.deltaX}px, 0)` } : {}"
-    :aria-label="$t('buttons.next')"
-    :title="$t('buttons.next')"
+    :aria-label="$t('general.next')"
+    :title="$t('general.next')"
   >
     <i class="material-icons">
       {{ dragState.type === 'next' && dragState.atFullExtent ? 'list_alt' : 'chevron_right' }} <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->

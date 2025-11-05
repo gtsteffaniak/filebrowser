@@ -34,7 +34,7 @@
                         <span class="link-category">{{ getCategoryLabel(link.category) }}</span>
                     </div>
                     <button class="action input" @click="removeLink(index)"
-                        :aria-label="$t('buttons.delete')">
+                        :aria-label="$t('general.delete')">
                         <i class="material-icons">delete</i>
                     </button>
                 </div>
@@ -56,8 +56,8 @@
                 <p>{{ $t('sidebar.linkType') }}</p>
                 <select v-model="newLink.category" @change="handleCategoryChange" class="input">
                     <option value="">{{ $t('sidebar.selectLinkType') }}</option>
-                    <option value="source">{{ $t('sidebar.source') }}</option>
-                    <option value="tool">{{ $t('sidebar.tool') }}</option>
+                    <option value="source">{{ $t('general.source') }}</option>
+                    <option value="tool">{{ $t('general.tool') }}</option>
                     <option value="custom">{{ $t('sidebar.customLink') }}</option>
                 </select>
 
@@ -101,10 +101,10 @@
                 <!-- Add/Cancel Buttons for Form -->
                 <div class="form-actions">
                     <button @click="cancelAddLink" class="button button--flat button--grey">
-                        {{ $t('buttons.cancel') }}
+                        {{ $t('general.cancel') }}
                     </button>
                     <button @click="addLink" class="button button--flat button--blue" :disabled="!isNewLinkValid">
-                        {{ $t('buttons.add') }}
+                        {{ $t('general.add') }}
                     </button>
                 </div>
             </div>
@@ -112,12 +112,12 @@
     </div>
 
     <div class="card-action">
-        <button @click="closeHovers" class="button button--flat button--grey" :aria-label="$t('buttons.cancel')"
-            :title="$t('buttons.cancel')">
-            {{ $t("buttons.cancel") }}
+        <button @click="closeHovers" class="button button--flat button--grey" :aria-label="$t('general.cancel')"
+            :title="$t('general.cancel')">
+            {{ $t("general.cancel") }}
         </button>
-        <button class="button button--flat button--blue" @click="saveLinks" :title="$t('buttons.save')">
-            {{ $t("buttons.save") }}
+        <button class="button button--flat button--blue" @click="saveLinks" :title="$t('general.save')">
+            {{ $t("general.save") }}
         </button>
     </div>
 </template>
@@ -199,8 +199,8 @@ export default {
     },
     getCategoryLabel(category) {
       const labels = {
-        source: this.$t('sidebar.source'),
-        tool: this.$t('sidebar.tool'),
+        source: this.$t('general.source'),
+        tool: this.$t('general.tool'),
         custom: this.$t('sidebar.customLink'),
       };
       return labels[category] || category;
@@ -214,11 +214,8 @@ export default {
     handleSourceChange() {
       if (this.newLink.target) {
         const sourceName = this.newLink.target;
-        const sourceInfo = this.availableSources[sourceName];
         this.newLink.name = sourceName;
         this.newLink.icon = "folder";
-        // Store the actual source name as target temporarily
-        // It will be converted to the proper path in addLink
       }
     },
     handleToolChange() {
@@ -343,7 +340,7 @@ export default {
         this.draggingIndex = index; // Update to new position
       }
     },
-    handleDrop(event, dropIndex) {
+    handleDrop(event) {
       event.preventDefault();
 
       // The array is already in the correct order from handleDragOver

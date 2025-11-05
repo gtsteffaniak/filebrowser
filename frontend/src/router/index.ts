@@ -17,7 +17,7 @@ const titles = {
   Share: "buttons.share",
   PublicShare: "buttons.share",
   Files: "general.files",
-  Tools: "sidebar.tools",
+  Tools: "general.tools",
   SizeViewer: "tools.sizeAnalyzer.name",
   Settings: "sidebar.settings",
   ProfileSettings: "settings.profileSettings",

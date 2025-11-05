@@ -154,7 +154,7 @@ export default {
               body: this.$t("prompts.firstLoadBody"),
               buttons: [
                 {
-                  label: this.$t("buttons.close"),
+                  label: this.$t("general.close"),
                   action: () => {
                     mutations.updateCurrentUser({
                       showFirstLogin: false,

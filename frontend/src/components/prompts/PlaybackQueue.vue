@@ -55,8 +55,8 @@
         <i class="material-icons">swap_vert</i> {{ $t('player.changePlaybackMode') }}
       </button>
 
-      <button @click="closeModal" class="button button--flat" :aria-label="$t('buttons.close')"
-      :title="$t('buttons.close')"> {{ $t('buttons.close') }}
+      <button @click="closeModal" class="button button--flat" :aria-label="$t('general.close')"
+      :title="$t('general.close')"> {{ $t('general.close') }}
       </button>
     </div>
 </template>

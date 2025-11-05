@@ -13,7 +13,7 @@
       </div>
       <div class="status-controls">
         <div v-if="showGallerySize" class="gallery-size-control">
-          <span class="size-label">{{ $t("files.size") }}</span>
+          <span class="size-label">{{ $t("general.size") }}</span>
           <input
             v-model="gallerySize"
             type="range"

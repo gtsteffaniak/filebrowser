@@ -7,7 +7,7 @@
           <div class="bounce2"></div>
           <div class="bounce3"></div>
         </div>
-        <span>{{ $t("files.loading") }}</span>
+        <span>{{ $t("general.loading") }}</span>
       </h2>
     </div>
     <div v-else>
@@ -66,7 +66,7 @@
               :title="$t('files.sortByName')"
               :aria-label="$t('files.sortByName')"
             >
-              <span>{{ $t("files.name") }}</span>
+              <span>{{ $t("general.name") }}</span>
               <i class="material-icons">{{ nameIcon }}</i>
             </p>
 
@@ -79,7 +79,7 @@
               :title="$t('files.sortBySize')"
               :aria-label="$t('files.sortBySize')"
             >
-              <span>{{ $t("files.size") }}</span>
+              <span>{{ $t("general.size") }}</span>
               <i class="material-icons">{{ sizeIcon }}</i>
             </p>
             <p

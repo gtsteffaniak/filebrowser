@@ -48,7 +48,7 @@
 
             <div v-if="globalVars.recaptcha" id="globalVars.recaptcha"></div>
             <input class="button button--block" type="submit"
-              :value="createMode ? $t('general.signup') : $t('login.submit')" />
+              :value="createMode ? $t('general.signup') : $t('general.submit')" />
             <p @click="toggleMode" v-if="signup" aria-label="sign up toggle">
               {{ createMode ? $t("login.loginInstead") : $t("login.createAnAccount") }}
             </p>
