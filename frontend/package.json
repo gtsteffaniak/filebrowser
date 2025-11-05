@@ -9,7 +9,6 @@
   },
   "scripts": {
     "build": "rm -rf ../backend/http/dist/* && rm -rf ../backend/http/embed/* && vite build --outDir ../backend/http/dist && cp -r ../backend/http/dist/* ../backend/http/embed",
-    "build:windows": "vite build --outDir ../backend/http/dist && robocopy ../backend/http/dist ../backend/http/embed /e",
     "build:docker": "vite build",
     "watch": "vite build --watch --outDir ../backend/http/dist",
     "typecheck": "vue-tsc -p ./tsconfig.json --noEmit",

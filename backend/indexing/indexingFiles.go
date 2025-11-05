@@ -30,20 +30,34 @@ type actionConfig struct {
 	IsRoutineScan bool // whether this is a routine/scheduled scan (vs initial indexing)
 }
 
+// ScannerInfo is the exposed scanner information for the client
+type ScannerInfo struct {
+	Path            string    `json:"path"`
+	IsRoot          bool      `json:"isRoot"`
+	LastScanned     time.Time `json:"lastScanned"`
+	Assessment      string    `json:"assessment"`
+	CurrentSchedule int       `json:"currentSchedule"`
+	QuickScanTime   int       `json:"quickScanTime"`
+	FullScanTime    int       `json:"fullScanTime"`
+	NumDirs         uint64    `json:"numDirs"`
+	NumFiles        uint64    `json:"numFiles"`
+}
+
 // reduced index is json exposed to the client
 type ReducedIndex struct {
-	IdxName         string      `json:"name"`
-	DiskUsed        uint64      `json:"used"`
-	DiskTotal       uint64      `json:"total"`
-	Status          IndexStatus `json:"status"`
-	NumDirs         uint64      `json:"numDirs"`
-	NumFiles        uint64      `json:"numFiles"`
-	NumDeleted      uint64      `json:"numDeleted"`
-	LastIndexed     time.Time   `json:"-"`
-	LastIndexedUnix int64       `json:"lastIndexedUnixTime"`
-	QuickScanTime   int         `json:"quickScanDurationSeconds"`
-	FullScanTime    int         `json:"fullScanDurationSeconds"`
-	Assessment      string      `json:"assessment"`
+	IdxName         string         `json:"name"`
+	DiskUsed        uint64         `json:"used"`
+	DiskTotal       uint64         `json:"total"`
+	Status          IndexStatus    `json:"status"`
+	NumDirs         uint64         `json:"numDirs"`
+	NumFiles        uint64         `json:"numFiles"`
+	NumDeleted      uint64         `json:"numDeleted"`
+	LastIndexed     time.Time      `json:"-"`
+	LastIndexedUnix int64          `json:"lastIndexedUnixTime"`
+	QuickScanTime   int            `json:"quickScanDurationSeconds"`
+	FullScanTime    int            `json:"fullScanDurationSeconds"`
+	Assessment      string         `json:"assessment"`
+	Scanners        []*ScannerInfo `json:"scanners,omitempty"`
 }
 type Index struct {
 	ReducedIndex
@@ -57,10 +71,13 @@ type Index struct {
 	totalSize         uint64                        `json:"-"`
 
 	// Scanner management (new multi-scanner system)
-	scanners            map[string]*Scanner `json:"-"` // path -> scanner
-	scanMutex           sync.Mutex          `json:"-"` // Global scan mutex - only one scanner runs at a time
-	activeScannerPath   string              `json:"-"` // Which scanner is currently running (for logging/status)
-	runningScannerCount int                 `json:"-"` // Tracks active scanners
+	scanners             map[string]*Scanner `json:"-"` // path -> scanner
+	scanMutex            sync.Mutex          `json:"-"` // Global scan mutex - only one scanner runs at a time
+	activeScannerPath    string              `json:"-"` // Which scanner is currently running (for logging/status)
+	runningScannerCount  int                 `json:"-"` // Tracks active scanners
+	lastRootScanTime     time.Time           `json:"-"` // Last time root scanner completed - child scanners wait for this
+	initialScanStartTime time.Time           `json:"-"` // When initial multi-scanner indexing started
+	hasLoggedInitialScan bool                `json:"-"` // Whether we've logged the first complete round
 
 	// Control
 	mock       bool
@@ -357,7 +374,7 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 			totalSize += itemInfo.Size
 			itemInfo.Type = "directory"
 			dirInfos = append(dirInfos, *itemInfo)
-			if config.Recursive {
+			if config.IsRoutineScan {
 				idx.NumDirs++
 				// Also update the active scanner's counter
 				idx.incrementScannerDirs()
@@ -392,7 +409,7 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 			if shouldCountSize {
 				totalSize += itemInfo.Size
 			}
-			if config.Recursive {
+			if config.IsRoutineScan {
 				idx.NumFiles++
 				// Also update the active scanner's counter
 				idx.incrementScannerFiles()
