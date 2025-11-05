@@ -204,7 +204,6 @@ export default {
                 clickToPlay: true,
                 resetOnEnd: true,
                 preload: 'none',
-                tooltips: { controls: true, seek: true },
             },
         };
     },
