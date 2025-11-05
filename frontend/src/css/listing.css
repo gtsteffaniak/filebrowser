@@ -129,8 +129,9 @@ body.rtl #listingView {
   margin: 0;
   padding: 0;
   position: relative;
-  width: auto;
+  width: 100%;
   height: var(--item-height);
+  flex-shrink: 0;
 }
 
 #listingView.icons .item {
@@ -174,7 +175,6 @@ body.rtl #listingView {
   left: 0;
   right: 0;
   padding: 1em;
-  background: linear-gradient(transparent, rgba(0,0,0,0.7));
 }
 
 #listingView.gallery .item .text .name {
@@ -516,10 +516,11 @@ body.rtl #listingView {
 #listingView.gallery .folder-items,
 #listingView.gallery .file-items {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(var(--item-width), 1fr));
-  grid-auto-rows: min-content;
+  grid-template-columns: repeat(auto-fill, minmax(var(--item-width, 200px), 1fr));
   gap: 1em;
   padding: 0.5em;
+  width: 100%;
+  transition: grid-template-columns 0.25s ease-out;
 }
 
 #listingView.icons .folder-items,
