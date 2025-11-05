@@ -172,17 +172,9 @@ export default {
 }
 
 .button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background-color: var(--primaryColor);
-  color: white;
-  min-width: 1.8em;
-  height: 1.8em;
   padding: 0 0.5em;
-  font-size: 0.8em;
+  font-size: 0.9em;
   font-weight: bold;
-  margin-right: 0.12em;
 }
 
 .status-controls {
