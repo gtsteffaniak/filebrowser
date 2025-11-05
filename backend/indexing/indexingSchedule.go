@@ -122,6 +122,8 @@ func (idx *Index) setupMultiScanner() {
 
 	idx.mu.Lock()
 	idx.scanners = make(map[string]*Scanner)
+	idx.initialScanStartTime = time.Now()
+	idx.hasLoggedInitialScan = false
 	idx.mu.Unlock()
 
 	// Create and start root scanner
@@ -236,6 +238,14 @@ func (idx *Index) aggregateStatsFromScanners() {
 		idx.LastIndexed = mostRecentScan
 		idx.LastIndexedUnix = mostRecentScan.Unix()
 		idx.wasIndexed = true
+	}
+
+	// Log first complete scan round (once)
+	if allScannedAtLeastOnce && !idx.hasLoggedInitialScan {
+		totalDuration := time.Since(idx.initialScanStartTime)
+		truncatedToSecond := totalDuration.Truncate(time.Second)
+		logger.Debugf("Time spent indexing [%v]: %v seconds", idx.Name, truncatedToSecond)
+		idx.hasLoggedInitialScan = true
 	}
 
 	// Update status: if all scanners have completed at least one scan, mark as READY

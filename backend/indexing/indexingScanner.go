@@ -40,19 +40,25 @@ type Scanner struct {
 func (s *Scanner) start() {
 	// Do initial scan for all scanners
 	// Wait a bit to stagger child scanner initial scans (root goes first)
-	if s.isRoot {
+	if !s.isRoot {
 		time.Sleep(500 * time.Millisecond)
-	} else {
-		time.Sleep(2 * time.Second)
 	}
 	s.tryAcquireAndScan()
 
 	for {
+		// Check if directory still exists (for non-root scanners)
+		if !s.isRoot && !s.directoryExists() {
+			logger.Debugf("Scanner [%s] stopping: directory no longer exists", s.scanPath)
+			s.removeSelf()
+			return
+		}
+
 		// Calculate sleep based on this scanner's schedule
 		sleepTime := s.calculateSleepTime()
 
 		select {
 		case <-s.stopChan:
+			logger.Debugf("Scanner [%s] received stop signal", s.scanPath)
 			return
 
 		case <-time.After(sleepTime):
@@ -64,6 +70,20 @@ func (s *Scanner) start() {
 
 // tryAcquireAndScan attempts to acquire the global scan mutex and run a scan
 func (s *Scanner) tryAcquireAndScan() {
+	// Child scanners must wait for root scanner to go first each round
+	if !s.isRoot {
+		s.idx.mu.RLock()
+		lastRootScan := s.idx.lastRootScanTime
+		myLastScan := s.lastScanned
+		s.idx.mu.RUnlock()
+
+		// If we've scanned more recently than the root, skip this cycle
+		if !myLastScan.IsZero() && myLastScan.After(lastRootScan) {
+			logger.Debugf("Scanner [%s] waiting for root scanner to go first", s.scanPath)
+			return
+		}
+	}
+
 	s.idx.scanMutex.Lock()
 
 	// Mark which scanner is active (for status/logging)
@@ -83,6 +103,13 @@ func (s *Scanner) tryAcquireAndScan() {
 
 	// Update this scanner's schedule based on results
 	s.updateSchedule()
+
+	// If this is the root scanner, update the last root scan time
+	if s.isRoot {
+		s.idx.mu.Lock()
+		s.idx.lastRootScanTime = time.Now()
+		s.idx.mu.Unlock()
+	}
 
 	// Clear active scanner
 	s.idx.mu.Lock()
@@ -112,11 +139,19 @@ func (s *Scanner) runIndexing(quick bool) {
 func (s *Scanner) runRootScan(quick bool) {
 	config := actionConfig{
 		Quick:         quick,
-		Recursive:     false, // 🔑 KEY: Don't recurse into child directories
-		IsRoutineScan: s.idx.wasIndexed,
+		Recursive:     false,
+		IsRoutineScan: true,
 	}
 
+	// Reset counters for full scan
+	if !quick {
+		s.numDirs = 0
+		s.numFiles = 0
+	}
+
+	s.filesChanged = false
 	startTime := time.Now()
+
 	err := s.idx.indexDirectory("/", config)
 	if err != nil {
 		logger.Errorf("Root scanner error: %v", err)
@@ -127,6 +162,7 @@ func (s *Scanner) runRootScan(quick bool) {
 		s.quickScanTime = scanDuration
 	} else {
 		s.fullScanTime = scanDuration
+		s.updateAssessment()
 	}
 
 	// Check for new top-level directories and create scanners for them
@@ -137,8 +173,8 @@ func (s *Scanner) runRootScan(quick bool) {
 func (s *Scanner) runChildScan(quick bool) {
 	config := actionConfig{
 		Quick:         quick,
-		Recursive:     true, // 🔑 Full recursive scan
-		IsRoutineScan: s.idx.wasIndexed,
+		Recursive:     true,
+		IsRoutineScan: true,
 	}
 
 	// Reset counters for full scan
@@ -165,6 +201,7 @@ func (s *Scanner) runChildScan(quick bool) {
 }
 
 // checkForNewChildDirectories detects new top-level directories and creates scanners for them
+// Also detects deleted directories and signals their scanners to stop
 func (s *Scanner) checkForNewChildDirectories() {
 	if !s.isRoot {
 		return
@@ -172,19 +209,34 @@ func (s *Scanner) checkForNewChildDirectories() {
 
 	// Get current top-level directories from filesystem (already filtered by exclusion rules)
 	currentDirs := s.getTopLevelDirs()
+	currentDirsMap := make(map[string]bool)
+	for _, dir := range currentDirs {
+		currentDirsMap[dir] = true
+	}
 
 	// Check which scanners already exist
 	s.idx.mu.RLock()
-	existingScanners := make(map[string]bool)
-	for path := range s.idx.scanners {
-		existingScanners[path] = true
+	existingScanners := make(map[string]*Scanner)
+	for path, scanner := range s.idx.scanners {
+		if path != "/" { // Don't check root scanner
+			existingScanners[path] = scanner
+		}
 	}
 	s.idx.mu.RUnlock()
 
+	// Check for deleted directories and stop their scanners
+	for path, scanner := range existingScanners {
+		if !currentDirsMap[path] {
+			logger.Debugf("Directory [%s] no longer exists, stopping scanner", path)
+			scanner.stop()
+		}
+	}
+
 	// Create scanner for any new directories (getTopLevelDirs already filtered excluded dirs)
 	for _, dirPath := range currentDirs {
-		if !existingScanners[dirPath] && dirPath != "/" {
-			logger.Infof("Detected new directory, creating scanner: [%s]", dirPath)
+		_, exists := existingScanners[dirPath]
+		if !exists && dirPath != "/" {
+			logger.Debugf("Detected new directory, creating scanner: [%s]", dirPath)
 			newScanner := s.idx.createChildScanner(dirPath)
 
 			s.idx.mu.Lock()
@@ -240,11 +292,7 @@ func (s *Scanner) getTopLevelDirs() []string {
 
 		// Check if this directory should be excluded from indexing (respects exclusion rules)
 		hidden := isHidden(file, s.idx.Path+dirPath)
-		if s.idx.shouldSkip(true, hidden, dirPath, baseName, actionConfig{
-			Quick:         false,
-			Recursive:     true,
-			IsRoutineScan: false,
-		}) {
+		if s.idx.shouldSkip(true, hidden, dirPath, baseName, actionConfig{}) {
 			logger.Debugf("Skipping scanner creation for excluded directory: %s", dirPath)
 			continue
 		}
@@ -289,8 +337,8 @@ func (s *Scanner) updateSchedule() {
 	}
 
 	// Cap simple assessments at schedule 3
-	if s.assessment == "simple" && s.currentSchedule > 3 {
-		s.currentSchedule = 3
+	if s.assessment == "simple" && s.currentSchedule > 4 {
+		s.currentSchedule = 4
 	}
 
 	// Ensure currentSchedule stays within bounds
@@ -303,7 +351,7 @@ func (s *Scanner) updateSchedule() {
 
 // updateAssessment calculates the complexity assessment for this scanner's directory
 func (s *Scanner) updateAssessment() {
-	if s.fullScanTime < 2 || s.numDirs < 1000 {
+	if s.fullScanTime == 0 || s.numDirs < 1000 {
 		s.assessment = "simple"
 		s.smartModifier = 4 * time.Minute
 	} else if s.fullScanTime > 20 || s.numDirs > 100000 {
@@ -315,6 +363,32 @@ func (s *Scanner) updateAssessment() {
 		s.smartModifier = 0
 	}
 
-	logger.Debugf("Scanner [%s] assessment: complexity=%v dirs=%v files=%v modifier=%v",
+	logger.Debugf("Scanner [%s] complexity=%v dirs=%v files=%v modifier=%v",
 		s.scanPath, s.assessment, s.numDirs, s.numFiles, s.smartModifier)
+}
+
+// directoryExists checks if the scanner's directory still exists
+func (s *Scanner) directoryExists() bool {
+	realPath := strings.TrimRight(s.idx.Path, "/") + s.scanPath
+	realPath = strings.TrimSuffix(realPath, "/")
+
+	_, err := os.Stat(realPath)
+	return err == nil
+}
+
+// removeSelf removes this scanner from the index's scanner map
+func (s *Scanner) removeSelf() {
+	s.idx.mu.Lock()
+	defer s.idx.mu.Unlock()
+
+	delete(s.idx.scanners, s.scanPath)
+	logger.Infof("Removed scanner [%s] from active scanners", s.scanPath)
+
+	// Trigger stats aggregation to update overall index
+	go s.idx.aggregateStatsFromScanners()
+}
+
+// stop gracefully stops the scanner
+func (s *Scanner) stop() {
+	close(s.stopChan)
 }
