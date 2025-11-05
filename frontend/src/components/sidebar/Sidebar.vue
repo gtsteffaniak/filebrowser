@@ -153,13 +153,12 @@ body.rtl nav {
   right: 0;
 }
 
-#sidebar .action {
+#sidebar .button {
   width: 100%;
   display: block;
   white-space: nowrap;
   height: 100%;
   overflow: hidden;
-  padding: 0.5em;
   text-overflow: ellipsis;
 }
 

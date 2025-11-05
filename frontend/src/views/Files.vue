@@ -320,6 +320,7 @@ export default {
     },
 
     async fetchFilesData() {
+
       if (!getters.isLoggedIn()) {
         return;
       }

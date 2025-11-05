@@ -66,7 +66,8 @@
     "closeAnyway": "Close Anyways",
     "disable": "Disable",
     "confirm": "Confirm",
-    "goToItem": "Go to Item"
+    "goToItem": "Go to Item",
+    "add": "Add"
   },
   "download": {
     "downloadFile": "Download File",
@@ -536,7 +537,31 @@
     "signup": "Signup",
     "siteSettings": "Site Settings",
     "updateIsAvailable": "An update is available!",
-    "fileActions": "File actions"
+    "fileActions": "File actions",
+    "links": "Links",
+    "customizeLinks": "Customize Sidebar Links",
+    "customizeLinksDescription": "Customize the links shown in your sidebar. Drag and drop to reorder.",
+    "currentLinks": "Current Links",
+    "addNewLink": "Add New Link",
+    "linkType": "Link Type",
+    "selectLinkType": "Select a link type",
+    "source": "Source",
+    "tool": "Tool",
+    "customLink": "Custom Link",
+    "selectSource": "Select Source",
+    "chooseSource": "Choose a source",
+    "selectTool": "Select Tool",
+    "chooseTool": "Choose a tool",
+    "linkName": "Link Name",
+    "linkNamePlaceholder": "Enter link name",
+    "linkUrl": "Link URL",
+    "linkUrlPlaceholder": "Enter URL or path (e.g., /files/path or https://example.com)",
+    "linkIcon": "Link Icon",
+    "linkIconPlaceholder": "Enter material icon name (e.g., folder, settings, link)",
+    "linksUpdatedSuccess": "Sidebar links updated successfully!",
+    "linksUpdateFailed": "Failed to update sidebar links",
+    "sourceNotAccessible": "This source is no longer accessible to you",
+    "noLinksYet": "No links configured yet. Add your first link below."
   },
   "success": {
     "linkCopied": "Link copied!"

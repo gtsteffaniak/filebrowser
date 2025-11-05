@@ -91,6 +91,7 @@ func prepForFrontend(u *users.User) {
 	u.TOTPSecret = ""
 	u.TOTPNonce = ""
 	u.Scopes = settings.ConvertToFrontendScopes(u.Scopes)
+	u.SidebarLinks = settings.ConvertToFrontendSidebarLinks(u.SidebarLinks)
 }
 
 // userDeleteHandler deletes a user by ID.
