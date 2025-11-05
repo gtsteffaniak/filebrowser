@@ -94,6 +94,7 @@ func ConvertToBackendSidebarLinks(links []users.SidebarLink) ([]users.SidebarLin
 	newLinks := []users.SidebarLink{}
 	for _, link := range links {
 		if link.Category != "source" {
+			newLinks = append(newLinks, link)
 			continue
 		}
 		source, ok := Config.Server.NameToSource[link.Name]
