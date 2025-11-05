@@ -71,11 +71,13 @@ type Index struct {
 	totalSize         uint64                        `json:"-"`
 
 	// Scanner management (new multi-scanner system)
-	scanners            map[string]*Scanner `json:"-"` // path -> scanner
-	scanMutex           sync.Mutex          `json:"-"` // Global scan mutex - only one scanner runs at a time
-	activeScannerPath   string              `json:"-"` // Which scanner is currently running (for logging/status)
-	runningScannerCount int                 `json:"-"` // Tracks active scanners
-	lastRootScanTime    time.Time           `json:"-"` // Last time root scanner completed - child scanners wait for this
+	scanners             map[string]*Scanner `json:"-"` // path -> scanner
+	scanMutex            sync.Mutex          `json:"-"` // Global scan mutex - only one scanner runs at a time
+	activeScannerPath    string              `json:"-"` // Which scanner is currently running (for logging/status)
+	runningScannerCount  int                 `json:"-"` // Tracks active scanners
+	lastRootScanTime     time.Time           `json:"-"` // Last time root scanner completed - child scanners wait for this
+	initialScanStartTime time.Time           `json:"-"` // When initial multi-scanner indexing started
+	hasLoggedInitialScan bool                `json:"-"` // Whether we've logged the first complete round
 
 	// Control
 	mock       bool
@@ -407,7 +409,7 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 			if shouldCountSize {
 				totalSize += itemInfo.Size
 			}
-			if config.Recursive {
+			if config.IsRoutineScan {
 				idx.NumFiles++
 				// Also update the active scanner's counter
 				idx.incrementScannerFiles()
