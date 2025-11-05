@@ -244,8 +244,7 @@ func (idx *Index) aggregateStatsFromScanners() {
 	if allScannedAtLeastOnce && !idx.hasLoggedInitialScan {
 		totalDuration := time.Since(idx.initialScanStartTime)
 		truncatedToSecond := totalDuration.Truncate(time.Second)
-		logger.Infof("Initial scan complete for [%v]: duration: %v seconds",
-			idx.Name, truncatedToSecond)
+		logger.Debugf("Time spent indexing [%v]: %v seconds", idx.Name, truncatedToSecond)
 		idx.hasLoggedInitialScan = true
 	}
 
