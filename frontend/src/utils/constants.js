@@ -24,6 +24,22 @@ const previewViews = [
   'loading'
 ];
 
+const tools = [
+  {
+    name: "tools.sizeAnalyzer.name",
+    description: "tools.sizeAnalyzer.description",
+    icon: "analytics",
+    path: "/tools/sizeViewer",
+  },
+  // Add more tools here in the future
+  // {
+  //   name: "tools.duplicateFinder.name",
+  //   description: "tools.duplicateFinder.description",
+  //   icon: "content_copy",
+  //   path: "/tools/duplicateFinder",
+  // },
+];
+
 export {
   globalVars,
   shareInfo,
@@ -32,4 +48,5 @@ export {
   origin,
   settings,
   previewViews,
+  tools,
 };
