@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/version"
 	"github.com/gtsteffaniak/go-logger/logger"
 	"golang.org/x/mod/semver"
@@ -30,7 +31,7 @@ func CheckForUpdates() (updateInfo, error) {
 	repoOwner := "gtsteffaniak"
 	repoName := "filebrowser"
 	currentVersion := version.Version
-	if currentVersion == "untracked" || currentVersion == "testing" || currentVersion == "" {
+	if currentVersion == "untracked" || currentVersion == "testing" || currentVersion == "" || settings.Config.Env.IsDevMode {
 		return updateInfo{}, nil
 	}
 	splitVersion := strings.Split(currentVersion, "-")
