@@ -55,7 +55,10 @@
     "noPreview": "Попередній перегляд для цього файлу недоступний.",
     "noDownloadAccess": "Завантаження недоступне.",
     "itemSelected": "елемент вибрано",
-    "itemsSelected": "елементи вибрано"
+    "itemsSelected": "елементи вибрано",
+    "myFiles": "Мої файли.{suffix}",
+    "newFile": "Новий файл{suffix}",
+    "newFolder": "Нова папка{suffix}"
   },
   "help": {
     "functionKeys": "Функціональні Клавіші",
@@ -567,9 +570,6 @@
     "help": "Допоможіть!{suffix}",
     "login": "Логін{suffix}",
     "logout": "Вийти з системи{suffix}",
-    "myFiles": "Мої файли.{suffix}",
-    "newFile": "Новий файл{suffix}",
-    "newFolder": "Нова папка{suffix}",
     "preview": "Попередній перегляд{suffix}",
     "settings": "Налаштування{suffix}",
     "sources": "Джерела{suffix}",
@@ -580,8 +580,6 @@
     "analyze": "Проаналізуйте{suffix}",
     "results": "Результати{suffix}",
     "users": "Користувачі{suffix}",
-    "userScopes": "Сфери застосування{suffix}",
-    "userCommands": "Команди{suffix}",
     "photos": "Фотографії",
     "audio": "Аудіо{suffix}",
     "videos": "Відео{suffix}",
@@ -644,7 +642,12 @@
     "retry": "Спробуйте ще раз.{suffix}",
     "disable": "Вимкнути{suffix}",
     "confirm": "Підтвердити{suffix}",
-    "stay": "Залишайся.{suffix}"
+    "stay": "Залишайся.{suffix}",
+    "scopes": "Сфери застосування{suffix}",
+    "commands": "Команди{suffix}",
+    "uploading": "Завантаження{suffix}",
+    "paused": "Призупинився.{suffix}",
+    "conflict": "Конфлікт{suffix}"
   },
   "access": {
     "rules": "Правила доступу",

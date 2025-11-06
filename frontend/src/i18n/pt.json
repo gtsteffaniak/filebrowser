@@ -55,7 +55,10 @@
     "noPreview": "A pré-visualização não está disponível para este ficheiro.",
     "noDownloadAccess": "A transferência não está disponível.",
     "itemSelected": "item selecionado",
-    "itemsSelected": "itens selecionados"
+    "itemsSelected": "itens selecionados",
+    "myFiles": "Os meus ficheiros{suffix}",
+    "newFile": "Novo ficheiro{suffix}",
+    "newFolder": "Nova pasta{suffix}"
   },
   "help": {
     "functionKeys": "Teclas de Função",
@@ -567,9 +570,6 @@
     "help": "Ajuda{suffix}",
     "login": "Iniciar sessão{suffix}",
     "logout": "Terminar sessão{suffix}",
-    "myFiles": "Os meus ficheiros{suffix}",
-    "newFile": "Novo ficheiro{suffix}",
-    "newFolder": "Nova pasta{suffix}",
     "preview": "Pré-visualização{suffix}",
     "settings": "Definições{suffix}",
     "sources": "Fontes{suffix}",
@@ -580,8 +580,6 @@
     "analyze": "Analisar{suffix}",
     "results": "Resultados{suffix}",
     "users": "Utilizadores{suffix}",
-    "userScopes": "Escopos{suffix}",
-    "userCommands": "Comandos{suffix}",
     "photos": "Fotos",
     "audio": "Áudio{suffix}",
     "videos": "Vídeos{suffix}",
@@ -644,7 +642,12 @@
     "retry": "Repetir{suffix}",
     "disable": "Desativar{suffix}",
     "confirm": "Confirmar{suffix}",
-    "stay": "Ficar{suffix}"
+    "stay": "Ficar{suffix}",
+    "scopes": "Escopos{suffix}",
+    "commands": "Comandos{suffix}",
+    "uploading": "Carregamento{suffix}",
+    "paused": "Em pausa{suffix}",
+    "conflict": "Conflito{suffix}"
   },
   "access": {
     "rules": "Regras de acesso",

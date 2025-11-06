@@ -36,13 +36,13 @@
       <action
         v-if="showCreate && !isSearchActive"
         icon="create_new_folder"
-        :label="$t('general.newFolder')"
+        :label="$t('files.newFolder')"
         @action="showHover('newDir')"
       />
       <action
         v-if="showCreate && !isSearchActive"
         icon="note_add"
-        :label="$t('general.newFile')"
+        :label="$t('files.newFile')"
         @action="showHover('newFile')"
       />
       <action

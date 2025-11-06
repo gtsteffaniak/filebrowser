@@ -55,7 +55,10 @@
     "noPreview": "Предварительный просмотр для этого файла недоступен.",
     "noDownloadAccess": "Загрузка недоступна.",
     "itemSelected": "элемент выбран",
-    "itemsSelected": "элементы выбраны"
+    "itemsSelected": "элементы выбраны",
+    "myFiles": "Мои файлы{suffix}",
+    "newFile": "Новый файл{suffix}",
+    "newFolder": "Новая папка{suffix}"
   },
   "help": {
     "functionKeys": "Функциональные Клавиши",
@@ -487,9 +490,6 @@
     "help": "Помощь{suffix}",
     "login": "Вход в систему{suffix}",
     "logout": "Выход из системы{suffix}",
-    "myFiles": "Мои файлы{suffix}",
-    "newFile": "Новый файл{suffix}",
-    "newFolder": "Новая папка{suffix}",
     "preview": "Предварительный просмотр{suffix}",
     "settings": "Настройки{suffix}",
     "sources": "Источники{suffix}",
@@ -500,8 +500,6 @@
     "analyze": "Анализируйте{suffix}",
     "results": "Результаты{suffix}",
     "users": "Пользователи{suffix}",
-    "userScopes": "Прицелы{suffix}",
-    "userCommands": "Команды{suffix}",
     "photos": "Фотографии",
     "audio": "Аудио{suffix}",
     "videos": "Видео{suffix}",
@@ -564,7 +562,12 @@
     "retry": "Повторная попытка{suffix}",
     "disable": "Отключить{suffix}",
     "confirm": "Подтвердите{suffix}",
-    "stay": "Оставайтесь{suffix}"
+    "stay": "Оставайтесь{suffix}",
+    "scopes": "Прицелы{suffix}",
+    "commands": "Команды{suffix}",
+    "uploading": "Загрузка{suffix}",
+    "paused": "Пауза{suffix}",
+    "conflict": "Конфликт{suffix}"
   },
   "access": {
     "rules": "Правила доступа",

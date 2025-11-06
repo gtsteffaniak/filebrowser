@@ -55,7 +55,10 @@
     "noPreview": "Für diese Datei ist keine Vorschau verfügbar.",
     "noDownloadAccess": "Der Download ist nicht verfügbar.",
     "itemSelected": "Element ausgewählt",
-    "itemsSelected": "Elemente ausgewählt"
+    "itemsSelected": "Elemente ausgewählt",
+    "myFiles": "Meine Dateien{suffix}",
+    "newFile": "Neue Datei{suffix}",
+    "newFolder": "Neuer Ordner{suffix}"
   },
   "help": {
     "functionKeys": "Funktionstasten",
@@ -487,9 +490,6 @@
     "help": "Hilfe{suffix}",
     "login": "Anmeldung{suffix}",
     "logout": "Abmeldung{suffix}",
-    "myFiles": "Meine Dateien{suffix}",
-    "newFile": "Neue Datei{suffix}",
-    "newFolder": "Neuer Ordner{suffix}",
     "preview": "Vorschau{suffix}",
     "settings": "Einstellungen{suffix}",
     "sources": "Quellen{suffix}",
@@ -500,8 +500,6 @@
     "analyze": "Analysieren Sie{suffix}",
     "results": "Ergebnisse{suffix}",
     "users": "Benutzer{suffix}",
-    "userScopes": "Geltungsbereiche{suffix}",
-    "userCommands": "Befehle{suffix}",
     "photos": "Fotos",
     "audio": "Audio{suffix}",
     "videos": "Videos{suffix}",
@@ -564,7 +562,12 @@
     "retry": "Wiederholung{suffix}",
     "disable": "Deaktivieren Sie{suffix}",
     "confirm": "Bestätigen Sie{suffix}",
-    "stay": "Bleiben Sie{suffix}"
+    "stay": "Bleiben Sie{suffix}",
+    "scopes": "Geltungsbereiche{suffix}",
+    "commands": "Befehle{suffix}",
+    "uploading": "Hochladen{suffix}",
+    "paused": "Pausiert{suffix}",
+    "conflict": "Konflikt{suffix}"
   },
   "access": {
     "rules": "Zugangsregeln",

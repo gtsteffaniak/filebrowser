@@ -55,7 +55,10 @@
     "noPreview": "이 파일에는 미리 보기를 사용할 수 없습니다.",
     "noDownloadAccess": "다운로드할 수 없습니다.",
     "itemSelected": "항목 선택됨",
-    "itemsSelected": "항목 선택됨"
+    "itemsSelected": "항목 선택됨",
+    "myFiles": "내 파일{suffix}",
+    "newFile": "새 파일{suffix}",
+    "newFolder": "새 폴더{suffix}"
   },
   "help": {
     "functionKeys": "기능 키",
@@ -487,9 +490,6 @@
     "help": "도움말{suffix}",
     "login": "로그인{suffix}",
     "logout": "로그아웃{suffix}",
-    "myFiles": "내 파일{suffix}",
-    "newFile": "새 파일{suffix}",
-    "newFolder": "새 폴더{suffix}",
     "preview": "미리 보기{suffix}",
     "settings": "설정{suffix}",
     "sources": "출처{suffix}",
@@ -500,8 +500,6 @@
     "analyze": "분석{suffix}",
     "results": "결과{suffix}",
     "users": "사용자{suffix}",
-    "userScopes": "범위{suffix}",
-    "userCommands": "명령{suffix}",
     "photos": "사진",
     "audio": "오디오{suffix}",
     "videos": "동영상{suffix}",
@@ -564,7 +562,12 @@
     "retry": "다시 시도{suffix}",
     "disable": "비활성화{suffix}",
     "confirm": "확인{suffix}",
-    "stay": "Stay{suffix}"
+    "stay": "Stay{suffix}",
+    "scopes": "범위{suffix}",
+    "commands": "명령{suffix}",
+    "uploading": "업로드{suffix}",
+    "paused": "일시 중지됨{suffix}",
+    "conflict": "충돌{suffix}"
   },
   "access": {
     "rules": "액세스 규칙",

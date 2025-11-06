@@ -55,7 +55,10 @@
     "noPreview": "المعاينة غير متوفرة لهذا الملف.",
     "noDownloadAccess": "التنزيل غير متاح.",
     "itemSelected": "عنصر محدد",
-    "itemsSelected": "عناصر محددة"
+    "itemsSelected": "عناصر محددة",
+    "myFiles": "ملفاتي{suffix}",
+    "newFile": "ملف جديد{suffix}",
+    "newFolder": "مجلد جديد{suffix}"
   },
   "help": {
     "functionKeys": "مفاتيح الوظائف",
@@ -487,9 +490,6 @@
     "help": "المساعدة{suffix}",
     "login": "تسجيل الدخول{suffix}",
     "logout": "تسجيل الخروج{suffix}",
-    "myFiles": "ملفاتي{suffix}",
-    "newFile": "ملف جديد{suffix}",
-    "newFolder": "مجلد جديد{suffix}",
     "preview": "معاينة{suffix}",
     "settings": "الإعدادات{suffix}",
     "sources": "المصادر{suffix}",
@@ -500,8 +500,6 @@
     "analyze": "تحليل{suffix}",
     "results": "النتائج{suffix}",
     "users": "المستخدمون{suffix}",
-    "userScopes": "النطاقات{suffix}",
-    "userCommands": "الأوامر{suffix}",
     "photos": "الصور",
     "audio": "الصوت{suffix}",
     "videos": "مقاطع الفيديو{suffix}",
@@ -564,7 +562,12 @@
     "retry": "إعادة المحاولة{suffix}",
     "disable": "تعطيل{suffix}",
     "confirm": "تأكيد{suffix}",
-    "stay": "ابق في مكانك{suffix}"
+    "stay": "ابق في مكانك{suffix}",
+    "scopes": "النطاقات{suffix}",
+    "commands": "الأوامر{suffix}",
+    "uploading": "التحميل{suffix}",
+    "paused": "متوقف مؤقتاً{suffix}",
+    "conflict": "التعارض{suffix}"
   },
   "access": {
     "rules": "قواعد الوصول",

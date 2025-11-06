@@ -55,7 +55,10 @@
     "noPreview": "Vista previa no disponible",
     "noDownloadAccess": "La descarga no está disponible.",
     "itemSelected": "elemento seleccionado",
-    "itemsSelected": "elementos seleccionados"
+    "itemsSelected": "elementos seleccionados",
+    "myFiles": "Mis archivos{suffix}",
+    "newFile": "Nuevo archivo{suffix}",
+    "newFolder": "Nueva carpeta{suffix}"
   },
   "help": {
     "functionKeys": "Teclas de función",
@@ -487,9 +490,6 @@
     "help": "Ayuda{suffix}",
     "login": "Inicio de sesión{suffix}",
     "logout": "Cierre de sesión{suffix}",
-    "myFiles": "Mis archivos{suffix}",
-    "newFile": "Nuevo archivo{suffix}",
-    "newFolder": "Nueva carpeta{suffix}",
     "preview": "Vista previa{suffix}",
     "settings": "Ajustes{suffix}",
     "sources": "Fuentes{suffix}",
@@ -500,8 +500,6 @@
     "analyze": "Analice{suffix}",
     "results": "Resultados{suffix}",
     "users": "Usuarios{suffix}",
-    "userScopes": "Visores{suffix}",
-    "userCommands": "Comandos{suffix}",
     "photos": "Fotos",
     "audio": "Audio{suffix}",
     "videos": "Vídeos{suffix}",
@@ -564,7 +562,12 @@
     "retry": "Reintentar{suffix}",
     "disable": "Desactivar{suffix}",
     "confirm": "Confirme{suffix}",
-    "stay": "Permanezca en{suffix}"
+    "stay": "Permanezca en{suffix}",
+    "scopes": "Visores{suffix}",
+    "commands": "Comandos{suffix}",
+    "uploading": "Cargar{suffix}",
+    "paused": "En pausa{suffix}",
+    "conflict": "Conflicto{suffix}"
   },
   "access": {
     "rules": "Normas de acceso",

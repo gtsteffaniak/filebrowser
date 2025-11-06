@@ -58,7 +58,10 @@
     "noPreview": "Náhled pro tento soubor není dostupný.",
     "noDownloadAccess": "Stahování není k dispozici.",
     "itemSelected": "položka vybrána",
-    "itemsSelected": "položky vybrány"
+    "itemsSelected": "položky vybrány",
+    "myFiles": "Moje soubory{suffix}",
+    "newFile": "Nový soubor{suffix}",
+    "newFolder": "Nová složka{suffix}"
   },
   "help": {
     "functionKeys": "Funkční Klávesy",
@@ -567,9 +570,6 @@
     "help": "Nápověda{suffix}",
     "login": "Přihlášení{suffix}",
     "logout": "Odhlášení{suffix}",
-    "myFiles": "Moje soubory{suffix}",
-    "newFile": "Nový soubor{suffix}",
-    "newFolder": "Nová složka{suffix}",
     "preview": "Náhled{suffix}",
     "settings": "Nastavení{suffix}",
     "sources": "Zdroje{suffix}",
@@ -580,8 +580,6 @@
     "analyze": "Analýza{suffix}",
     "results": "Výsledky{suffix}",
     "users": "Uživatelé{suffix}",
-    "userScopes": "Rozsahy{suffix}",
-    "userCommands": "Příkazy{suffix}",
     "photos": "Fotografie",
     "audio": "Audio{suffix}",
     "videos": "Videa{suffix}",
@@ -644,7 +642,12 @@
     "retry": "Opakování{suffix}",
     "disable": "Zakázat{suffix}",
     "confirm": "Potvrďte{suffix}",
-    "stay": "Zůstaňte na{suffix}"
+    "stay": "Zůstaňte na{suffix}",
+    "scopes": "Rozsahy{suffix}",
+    "commands": "Příkazy{suffix}",
+    "uploading": "Nahrávání{suffix}",
+    "paused": "Pauza{suffix}",
+    "conflict": "Konflikt{suffix}"
   },
   "access": {
     "rules": "Pravidla přístupu",

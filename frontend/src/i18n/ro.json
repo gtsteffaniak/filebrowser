@@ -55,7 +55,10 @@
     "noPreview": "Previzualizarea nu este disponibilă pentru acest fișier.",
     "noDownloadAccess": "Descărcarea nu este disponibilă.",
     "itemSelected": "element selectat",
-    "itemsSelected": "elemente selectate"
+    "itemsSelected": "elemente selectate",
+    "myFiles": "Fișierele mele{suffix}",
+    "newFile": "Fișier nou{suffix}",
+    "newFolder": "Dosar nou{suffix}"
   },
   "help": {
     "functionKeys": "Taste Funcție",
@@ -487,9 +490,6 @@
     "help": "Ajutor{suffix}",
     "login": "Autentificare{suffix}",
     "logout": "Ieșire{suffix}",
-    "myFiles": "Fișierele mele{suffix}",
-    "newFile": "Fișier nou{suffix}",
-    "newFolder": "Dosar nou{suffix}",
     "preview": "Previzualizare{suffix}",
     "settings": "Setări{suffix}",
     "sources": "Surse{suffix}",
@@ -500,8 +500,6 @@
     "analyze": "Analizați{suffix}",
     "results": "Rezultate{suffix}",
     "users": "Utilizatori{suffix}",
-    "userScopes": "Scopuri{suffix}",
-    "userCommands": "Comenzi{suffix}",
     "photos": "Fotografii",
     "audio": "Audio{suffix}",
     "videos": "Video{suffix}",
@@ -564,7 +562,12 @@
     "retry": "Reîncercare{suffix}",
     "disable": "Dezactivare{suffix}",
     "confirm": "Confirmați{suffix}",
-    "stay": "Ședere{suffix}"
+    "stay": "Ședere{suffix}",
+    "scopes": "Scopuri{suffix}",
+    "commands": "Comenzi{suffix}",
+    "uploading": "Încărcare{suffix}",
+    "paused": "Pauză{suffix}",
+    "conflict": "Conflict{suffix}"
   },
   "access": {
     "rules": "Reguli de acces",

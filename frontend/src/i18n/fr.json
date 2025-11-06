@@ -55,7 +55,10 @@
     "noPreview": "Il n'y a pas de prévisualisation pour ce fichier.",
     "noDownloadAccess": "Le téléchargement n'est pas disponible.",
     "itemSelected": "élément sélectionné",
-    "itemsSelected": "éléments sélectionnés"
+    "itemsSelected": "éléments sélectionnés",
+    "myFiles": "Mes dossiers{suffix}",
+    "newFile": "Nouveau dossier{suffix}",
+    "newFolder": "Nouveau dossier{suffix}"
   },
   "help": {
     "functionKeys": "Touches de Fonction",
@@ -487,9 +490,6 @@
     "help": "Aide{suffix}",
     "login": "Connexion{suffix}",
     "logout": "Déconnexion{suffix}",
-    "myFiles": "Mes dossiers{suffix}",
-    "newFile": "Nouveau dossier{suffix}",
-    "newFolder": "Nouveau dossier{suffix}",
     "preview": "Avant-première{suffix}",
     "settings": "Paramètres{suffix}",
     "sources": "Sources d'information{suffix}",
@@ -500,8 +500,6 @@
     "analyze": "Analyser{suffix}",
     "results": "Résultats{suffix}",
     "users": "Utilisateurs{suffix}",
-    "userScopes": "Scopes{suffix}",
-    "userCommands": "Commandes{suffix}",
     "photos": "Photos",
     "audio": "Audio{suffix}",
     "videos": "Vidéos{suffix}",
@@ -564,7 +562,12 @@
     "retry": "Réessayer{suffix}",
     "disable": "Désactiver{suffix}",
     "confirm": "Confirmer{suffix}",
-    "stay": "Séjour{suffix}"
+    "stay": "Séjour{suffix}",
+    "scopes": "Scopes{suffix}",
+    "commands": "Commandes{suffix}",
+    "uploading": "Téléchargement{suffix}",
+    "paused": "En pause{suffix}",
+    "conflict": "Conflit{suffix}"
   },
   "access": {
     "rules": "Règles d'accès",

@@ -1,6 +1,6 @@
 <template>
   <div class="card-title">
-    <h2>{{ $t(`prompts.${operation}`) }}</h2>
+    <h2>{{ operation === 'move' ? $t('prompts.move') : $t('prompts.copy') }}</h2>
   </div>
 
   <div class="card-content">
@@ -16,9 +16,9 @@
   </div>
   <div v-if="!isLoading" class="card-action" style="display: flex; align-items: center; justify-content: space-between">
     <template v-if="user.permissions.modify">
-      <button class="button button--flat" @click="$refs.fileList.createDir()" :aria-label="$t('general.newFolder')"
-        :title="$t('general.newFolder')" style="justify-self: left">
-        <span>{{ $t("general.newFolder") }}</span>
+      <button class="button button--flat" @click="$refs.fileList.createDir()" :aria-label="$t('files.newFolder')"
+        :title="$t('files.newFolder')" style="justify-self: left">
+        <span>{{ $t("files.newFolder") }}</span>
       </button>
     </template>
     <div>
@@ -27,8 +27,9 @@
         {{ $t("general.cancel") }}
       </button>
       <button :disabled="destContainsSrc" class="button button--flat" @click="performOperation"
-        :aria-label="$t(`buttons.${operation}`)" :title="$t(`buttons.${operation}`)">
-        {{ $t(`buttons.${operation}`) }}
+        :aria-label="operation === 'move' ? $t('general.move') : $t('general.copy')" 
+        :title="operation === 'move' ? $t('general.move') : $t('general.copy')">
+        {{ operation === 'move' ? $t('general.move') : $t('general.copy') }}
       </button>
     </div>
   </div>
@@ -220,9 +221,9 @@ export default {
         ] : undefined
           };
         if (this.operation === "move") {
-          notify.showSuccess(this.$t(`prompts.moveSuccess`), buttonProps);
+          notify.showSuccess(this.$t("prompts.moveSuccess"), buttonProps);
         } else {
-          notify.showSuccess(this.$t(`prompts.copySuccess`), buttonProps);
+          notify.showSuccess(this.$t("prompts.copySuccess"), buttonProps);
         }
       } finally {
         this.isLoading = false; // Hide loading spinner

@@ -14,7 +14,7 @@
           <th>{{ $t("general.username") }}</th>
           <th>{{ $t("settings.loginMethod") }}</th>
           <th>{{ $t("general.admin") }}</th>
-          <th>{{ $t("general.userScopes") }}</th>
+          <th>{{ $t("general.scopes") }}</th>
           <th></th>
         </tr>
       </thead>

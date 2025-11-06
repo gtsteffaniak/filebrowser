@@ -55,7 +55,10 @@
     "noPreview": "תצוגה מקדימה לא זמינה לקובץ זה",
     "noDownloadAccess": "ההורדה אינה זמינה.",
     "itemSelected": "פריט נבחר",
-    "itemsSelected": "פריטים נבחרים"
+    "itemsSelected": "פריטים נבחרים",
+    "myFiles": "הקבצים שלי{suffix}",
+    "newFile": "קובץ חדש{suffix}",
+    "newFolder": "תיקיה חדשה{suffix}"
   },
   "help": {
     "functionKeys": "מקשי פונקציה",
@@ -487,9 +490,6 @@
     "help": "עזרה{suffix}",
     "login": "התחבר{suffix}",
     "logout": "התנתק{suffix}",
-    "myFiles": "הקבצים שלי{suffix}",
-    "newFile": "קובץ חדש{suffix}",
-    "newFolder": "תיקיה חדשה{suffix}",
     "preview": "תצוגה מקדימה{suffix}",
     "settings": "הגדרות{suffix}",
     "sources": "מקורות{suffix}",
@@ -500,8 +500,6 @@
     "analyze": "לנתח{suffix}",
     "results": "תוצאות{suffix}",
     "users": "משתמשים{suffix}",
-    "userScopes": "סקופים{suffix}",
-    "userCommands": "פקודות{suffix}",
     "photos": "תמונות",
     "audio": "אודיו{suffix}",
     "videos": "סרטונים{suffix}",
@@ -564,7 +562,12 @@
     "retry": "נסה שוב{suffix}",
     "disable": "השבת{suffix}",
     "confirm": "אשר{suffix}",
-    "stay": "הישאר{suffix}"
+    "stay": "הישאר{suffix}",
+    "scopes": "סקופים{suffix}",
+    "commands": "פקודות{suffix}",
+    "uploading": "העלאה{suffix}",
+    "paused": "בהשהיה{suffix}",
+    "conflict": "סכסוך{suffix}"
   },
   "access": {
     "rules": "כללי גישה",

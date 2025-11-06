@@ -58,7 +58,10 @@
     "noPreview": "Η προεπισκόπηση δεν είναι διαθέσιμη για αυτό το αρχείο.",
     "noDownloadAccess": "Η λήψη δεν είναι διαθέσιμη.",
     "itemSelected": "στοιχείο επιλεγμένο",
-    "itemsSelected": "στοιχεία επιλεγμένα"
+    "itemsSelected": "στοιχεία επιλεγμένα",
+    "myFiles": "Τα αρχεία μου{suffix}",
+    "newFile": "Νέο αρχείο{suffix}",
+    "newFolder": "Νέος φάκελος{suffix}"
   },
   "help": {
     "functionKeys": "Πλήκτρα Λειτουργιών",
@@ -487,9 +490,6 @@
     "help": "Βοήθεια{suffix}",
     "login": "Σύνδεση{suffix}",
     "logout": "Αποσύνδεση{suffix}",
-    "myFiles": "Τα αρχεία μου{suffix}",
-    "newFile": "Νέο αρχείο{suffix}",
-    "newFolder": "Νέος φάκελος{suffix}",
     "preview": "Προεπισκόπηση{suffix}",
     "settings": "Ρυθμίσεις{suffix}",
     "sources": "Πηγές{suffix}",
@@ -500,8 +500,6 @@
     "analyze": "Αναλύστε το{suffix}",
     "results": "Αποτελέσματα{suffix}",
     "users": "Χρήστες{suffix}",
-    "userScopes": "Πεδία{suffix}",
-    "userCommands": "Εντολές{suffix}",
     "photos": "Φωτογραφίες",
     "audio": "Ήχος{suffix}",
     "videos": "Βίντεο{suffix}",
@@ -564,7 +562,12 @@
     "retry": "Επανάληψη{suffix}",
     "disable": "Απενεργοποίηση{suffix}",
     "confirm": "Επιβεβαίωση{suffix}",
-    "stay": "Μείνετε{suffix}"
+    "stay": "Μείνετε{suffix}",
+    "scopes": "Πεδία{suffix}",
+    "commands": "Εντολές{suffix}",
+    "uploading": "Ανέβασμα{suffix}",
+    "paused": "Παύση{suffix}",
+    "conflict": "Σύγκρουση{suffix}"
   },
   "access": {
     "rules": "Κανόνες πρόσβασης",

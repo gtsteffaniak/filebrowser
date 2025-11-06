@@ -55,7 +55,10 @@
     "noPreview": "Preview is niet beschikbaar voor dit bestand.",
     "noDownloadAccess": "Download is niet beschikbaar.",
     "itemSelected": "item geselecteerd",
-    "itemsSelected": "items geselecteerd"
+    "itemsSelected": "items geselecteerd",
+    "myFiles": "Mijn bestanden{suffix}",
+    "newFile": "Nieuw bestand{suffix}",
+    "newFolder": "Nieuwe map{suffix}"
   },
   "help": {
     "functionKeys": "Functietoetsen",
@@ -567,9 +570,6 @@
     "help": "Help{suffix}",
     "login": "Inloggen{suffix}",
     "logout": "Afmelden{suffix}",
-    "myFiles": "Mijn bestanden{suffix}",
-    "newFile": "Nieuw bestand{suffix}",
-    "newFolder": "Nieuwe map{suffix}",
     "preview": "Voorbeeld{suffix}",
     "settings": "Instellingen{suffix}",
     "sources": "Bronnen{suffix}",
@@ -580,8 +580,6 @@
     "analyze": "Analyseren{suffix}",
     "results": "Resultaten{suffix}",
     "users": "Gebruikers{suffix}",
-    "userScopes": "Richtkijkers{suffix}",
-    "userCommands": "Opdrachten{suffix}",
     "photos": "Foto's",
     "audio": "Audio{suffix}",
     "videos": "Video's{suffix}",
@@ -644,7 +642,12 @@
     "retry": "Opnieuw proberen{suffix}",
     "disable": "uitschakelen{suffix}",
     "confirm": "Bevestig{suffix}",
-    "stay": "Blijf{suffix}"
+    "stay": "Blijf{suffix}",
+    "scopes": "Richtkijkers{suffix}",
+    "commands": "Opdrachten{suffix}",
+    "uploading": "uploaden{suffix}",
+    "paused": "Gepauzeerd{suffix}",
+    "conflict": "Conflict{suffix}"
   },
   "access": {
     "rules": "Toegangsregels",

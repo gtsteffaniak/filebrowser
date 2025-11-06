@@ -55,7 +55,10 @@
     "noPreview": "Ehhez a fájlhoz nincs előnézet.",
     "noDownloadAccess": "A letöltés nem elérhető.",
     "itemSelected": "kiválasztott elem",
-    "itemsSelected": "kiválasztott elemek"
+    "itemsSelected": "kiválasztott elemek",
+    "myFiles": "Az én fájljaim{suffix}",
+    "newFile": "Új fájl{suffix}",
+    "newFolder": "Új mappa{suffix}"
   },
   "help": {
     "functionKeys": "Funkcióbillentyűk",
@@ -487,9 +490,6 @@
     "help": "Segítség{suffix}",
     "login": "Bejelentkezés{suffix}",
     "logout": "Kijelentkezés{suffix}",
-    "myFiles": "Az én fájljaim{suffix}",
-    "newFile": "Új fájl{suffix}",
-    "newFolder": "Új mappa{suffix}",
     "preview": "Előnézet{suffix}",
     "settings": "Beállítások{suffix}",
     "sources": "Források{suffix}",
@@ -500,8 +500,6 @@
     "analyze": "Elemezze{suffix}",
     "results": "Eredmények{suffix}",
     "users": "Felhasználók{suffix}",
-    "userScopes": "Területek{suffix}",
-    "userCommands": "Parancsok{suffix}",
     "photos": "Fotók",
     "audio": "Audio{suffix}",
     "videos": "Videók{suffix}",
@@ -564,7 +562,12 @@
     "retry": "Retry{suffix}",
     "disable": "A  letiltása{suffix}",
     "confirm": "Megerősítés{suffix}",
-    "stay": "Maradj{suffix}"
+    "stay": "Maradj{suffix}",
+    "scopes": "Területek{suffix}",
+    "commands": "Parancsok{suffix}",
+    "uploading": "A  feltöltése{suffix}",
+    "paused": "Paused{suffix}",
+    "conflict": "Konfliktus{suffix}"
   },
   "access": {
     "rules": "Hozzáférési szabályok",

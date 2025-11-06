@@ -55,7 +55,10 @@
     "noPreview": "Bu dosya için önizleme aktif değil",
     "noDownloadAccess": "İndirme mevcut değil.",
     "itemSelected": "öge seçildi",
-    "itemsSelected": "öge seçildi"
+    "itemsSelected": "öge seçildi",
+    "myFiles": "Benim dosyalarım{suffix}",
+    "newFile": "Yeni dosya{suffix}",
+    "newFolder": "Yeni klasör{suffix}"
   },
   "help": {
     "functionKeys": "Fonksiyon Tuşları",
@@ -487,9 +490,6 @@
     "help": "Yardım{suffix}",
     "login": "Giriş{suffix}",
     "logout": "Oturum Kapatma{suffix}",
-    "myFiles": "Benim dosyalarım{suffix}",
-    "newFile": "Yeni dosya{suffix}",
-    "newFolder": "Yeni klasör{suffix}",
     "preview": "Önizleme{suffix}",
     "settings": "Ayarlar{suffix}",
     "sources": "Kaynaklar{suffix}",
@@ -500,8 +500,6 @@
     "analyze": "Analiz{suffix}",
     "results": "Sonuçlar{suffix}",
     "users": "Kullanıcılar{suffix}",
-    "userScopes": "Dürbünler{suffix}",
-    "userCommands": "Komutlar{suffix}",
     "photos": "Fotoğraflar",
     "audio": "Ses{suffix}",
     "videos": "Videolar{suffix}",
@@ -564,7 +562,12 @@
     "retry": "Yeniden Dene{suffix}",
     "disable": "Devre dışı bırak{suffix}",
     "confirm": "Onaylayın{suffix}",
-    "stay": "Kalmak{suffix}"
+    "stay": "Kalmak{suffix}",
+    "scopes": "Dürbünler{suffix}",
+    "commands": "Komutlar{suffix}",
+    "uploading": "Yükleme{suffix}",
+    "paused": "Duraklatıldı{suffix}",
+    "conflict": "Çatışma{suffix}"
   },
   "access": {
     "rules": "Erişim kuralları",

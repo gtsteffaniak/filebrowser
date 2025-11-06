@@ -55,7 +55,10 @@
     "noPreview": "このファイルではプレビューは利用できません。",
     "noDownloadAccess": "ダウンロードはできません。",
     "itemSelected": "項目選択済み",
-    "itemsSelected": "項目選択済み"
+    "itemsSelected": "項目選択済み",
+    "myFiles": "私のファイル{suffix}",
+    "newFile": "新規ファイル{suffix}",
+    "newFolder": "新しいフォルダ{suffix}"
   },
   "help": {
     "functionKeys": "ファンクションキー",
@@ -487,9 +490,6 @@
     "help": "ヘルプ{suffix}",
     "login": "ログイン{suffix}",
     "logout": "ログアウト{suffix}",
-    "myFiles": "私のファイル{suffix}",
-    "newFile": "新規ファイル{suffix}",
-    "newFolder": "新しいフォルダ{suffix}",
     "preview": "プレビュー{suffix}",
     "settings": "設定{suffix}",
     "sources": "情報源{suffix}",
@@ -500,8 +500,6 @@
     "analyze": "分析する{suffix}",
     "results": "結果{suffix}",
     "users": "ユーザー{suffix}",
-    "userScopes": "スコープ{suffix}",
-    "userCommands": "コマンド{suffix}",
     "photos": "写真",
     "audio": "オーディオ{suffix}",
     "videos": "ビデオ{suffix}",
@@ -564,7 +562,12 @@
     "retry": "リトライ{suffix}",
     "disable": "無効{suffix}",
     "confirm": "確認{suffix}",
-    "stay": "滞在{suffix}"
+    "stay": "滞在{suffix}",
+    "scopes": "スコープ{suffix}",
+    "commands": "コマンド{suffix}",
+    "uploading": "アップロード{suffix}",
+    "paused": "休止{suffix}",
+    "conflict": "紛争{suffix}"
   },
   "access": {
     "rules": "アクセスルール",

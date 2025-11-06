@@ -84,7 +84,7 @@
             :help-text="file.status === 'error' && file.errorDetails ? file.errorDetails : ''">
           </progress-bar>
           <div v-else class="status-label">
-            <span>{{ $t(`prompts.${file.status}`) }}</span>
+            <span>{{ getStatusText(file.status) }}</span>
           </div>
         </div>
         <div class="file-actions">
@@ -148,6 +148,7 @@ import ProgressBar from "@/components/ProgressBar.vue";
 import SettingsItem from "@/components/settings/SettingsItem.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import { shareInfo } from "@/utils/constants";
+import i18n from "@/i18n";
 
 export default {
   name: "UploadFiles",
@@ -530,6 +531,23 @@ export default {
       uploadManager.cancel(id);
     };
 
+    const getStatusText = (status) => {
+      switch (status) {
+        case 'uploading':
+          return i18n.global.t('general.uploading', { suffix: '...' });
+        case 'completed':
+          return i18n.global.t('prompts.completed');
+        case 'error':
+          return i18n.global.t('prompts.error');
+        case 'paused':
+          return i18n.global.t('general.paused');
+        case 'conflict':
+          return i18n.global.t('general.conflict');
+        default:
+          return status;
+      }
+    };
+
     return {
       triggerFilePicker,
       triggerFolderPicker,
@@ -561,6 +579,7 @@ export default {
       clearAll,
       showTooltip,
       hideTooltip,
+      getStatusText,
       updateUploadSettings,
     };
   },

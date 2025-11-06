@@ -55,7 +55,10 @@
     "noPreview": "Förhandsgranskning är inte tillgänglig för den här filen.",
     "noDownloadAccess": "Nedladdning är inte tillgänglig.",
     "itemSelected": "objekt valt",
-    "itemsSelected": "objekt valda"
+    "itemsSelected": "objekt valda",
+    "myFiles": "Mina filer{suffix}",
+    "newFile": "Ny fil{suffix}",
+    "newFolder": "Ny folder{suffix}"
   },
   "help": {
     "functionKeys": "Funktionstangenter",
@@ -567,9 +570,6 @@
     "help": "Hjälp{suffix}",
     "login": "Logga in{suffix}",
     "logout": "Logga ut{suffix}",
-    "myFiles": "Mina filer{suffix}",
-    "newFile": "Ny fil{suffix}",
-    "newFolder": "Ny folder{suffix}",
     "preview": "Förhandsgranskning{suffix}",
     "settings": "Inställningar{suffix}",
     "sources": "Källor{suffix}",
@@ -580,8 +580,6 @@
     "analyze": "Analysera{suffix}",
     "results": "Resultat{suffix}",
     "users": "Användare{suffix}",
-    "userScopes": "Omfattningar{suffix}",
-    "userCommands": "Kommandon{suffix}",
     "photos": "Bilder",
     "audio": "Ljud{suffix}",
     "videos": "Videor{suffix}",
@@ -644,7 +642,12 @@
     "retry": "Försök igen{suffix}",
     "disable": "Avaktivera{suffix}",
     "confirm": "Bekräfta{suffix}",
-    "stay": "Stanna kvar{suffix}"
+    "stay": "Stanna kvar{suffix}",
+    "scopes": "Omfattningar{suffix}",
+    "commands": "Kommandon{suffix}",
+    "uploading": "Uppladdning{suffix}",
+    "paused": "Pausad{suffix}",
+    "conflict": "Konflikt{suffix}"
   },
   "access": {
     "rules": "Regler för åtkomst",

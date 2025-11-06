@@ -37,8 +37,8 @@
         ref="input"
         :autofocus="active"
         v-model.trim="value"
-        :aria-label="$t('general.search')"
-        :placeholder="$t('general.search')"
+        aria-label="search input"
+        :placeholder="$t('general.search', { suffix: '...' })"
       />
     </div>
 

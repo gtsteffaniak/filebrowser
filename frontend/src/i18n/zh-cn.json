@@ -55,7 +55,10 @@
     "noPreview": "此文件无法预览。",
     "noDownloadAccess": "无法下载。",
     "itemSelected": "项目已选择",
-    "itemsSelected": "项目已选择"
+    "itemsSelected": "项目已选择",
+    "myFiles": "我的文件{suffix}",
+    "newFile": "新文件{suffix}",
+    "newFolder": "新文件夹{suffix}"
   },
   "help": {
     "functionKeys": "功能键",
@@ -567,9 +570,6 @@
     "help": "帮助{suffix}",
     "login": "登录{suffix}",
     "logout": "注销{suffix}",
-    "myFiles": "我的文件{suffix}",
-    "newFile": "新文件{suffix}",
-    "newFolder": "新文件夹{suffix}",
     "preview": "预览{suffix}",
     "settings": "设置{suffix}",
     "sources": "资料来源{suffix}",
@@ -580,8 +580,6 @@
     "analyze": "分析{suffix}",
     "results": "成果{suffix}",
     "users": "用户{suffix}",
-    "userScopes": "瞄准镜{suffix}",
-    "userCommands": "命令{suffix}",
     "photos": "照片",
     "audio": "音频{suffix}",
     "videos": "视频{suffix}",
@@ -644,7 +642,12 @@
     "retry": "重试{suffix}",
     "disable": "禁用{suffix}",
     "confirm": "确认{suffix}",
-    "stay": "停留{suffix}"
+    "stay": "停留{suffix}",
+    "scopes": "瞄准镜{suffix}",
+    "commands": "命令{suffix}",
+    "uploading": "上传{suffix}",
+    "paused": "暂停{suffix}",
+    "conflict": "冲突{suffix}"
   },
   "access": {
     "rules": "访问规则",

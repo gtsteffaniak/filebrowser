@@ -23,9 +23,6 @@
     "help": "Help{suffix}",
     "login": "Login{suffix}",
     "logout": "Logout{suffix}",
-    "myFiles": "My files{suffix}",
-    "newFile": "New file{suffix}",
-    "newFolder": "New folder{suffix}",
     "preview": "Preview{suffix}",
     "settings": "Settings{suffix}",
     "sources": "Sources{suffix}",
@@ -36,8 +33,8 @@
     "analyze": "Analyze{suffix}",
     "results": "Results{suffix}",
     "users": "Users{suffix}",
-    "userScopes": "Scopes{suffix}",
-    "userCommands": "Commands{suffix}",
+    "scopes": "Scopes{suffix}",
+    "commands": "Commands{suffix}",
     "photos": "Photos",
     "audio": "Audio{suffix}",
     "videos": "Videos{suffix}",
@@ -100,7 +97,10 @@
     "resume": "Resume{suffix}",
     "retry": "Retry{suffix}",
     "disable": "Disable{suffix}",
-    "confirm": "Confirm{suffix}"
+    "confirm": "Confirm{suffix}",
+    "uploading": "Uploading{suffix}",
+    "paused": "Paused{suffix}",
+    "conflict": "Conflict{suffix}"
   },
   "buttons": {
     "generateNewOtp": "Reset and generate new two-factor code",
@@ -161,7 +161,10 @@
     "noPreview": "Preview is not available for this file.",
     "noDownloadAccess": "Download is not available.",
     "itemSelected": "item selected",
-    "itemsSelected": "items selected"
+    "itemsSelected": "items selected",
+    "myFiles": "My files{suffix}",
+    "newFile": "New file{suffix}",
+    "newFolder": "New folder{suffix}"
   },
   "help": {
     "functionKeys": "Function Keys",

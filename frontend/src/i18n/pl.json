@@ -55,7 +55,10 @@
     "noPreview": "Podgląd nie jest dostępny dla tego pliku.",
     "noDownloadAccess": "Pobieranie nie jest dostępne.",
     "itemSelected": "element wybrany",
-    "itemsSelected": "elementy wybrane"
+    "itemsSelected": "elementy wybrane",
+    "myFiles": "Moje pliki{suffix}",
+    "newFile": "Nowy plik{suffix}",
+    "newFolder": "Nowy folder{suffix}"
   },
   "help": {
     "functionKeys": "Klawisze Funkcji",
@@ -487,9 +490,6 @@
     "help": "Pomoc{suffix}",
     "login": "Logowanie{suffix}",
     "logout": "Wylogowanie{suffix}",
-    "myFiles": "Moje pliki{suffix}",
-    "newFile": "Nowy plik{suffix}",
-    "newFolder": "Nowy folder{suffix}",
     "preview": "Podgląd{suffix}",
     "settings": "Ustawienia{suffix}",
     "sources": "Źródła{suffix}",
@@ -500,8 +500,6 @@
     "analyze": "Analiza{suffix}",
     "results": "Wyniki{suffix}",
     "users": "Użytkownicy{suffix}",
-    "userScopes": "Lunety{suffix}",
-    "userCommands": "Polecenia{suffix}",
     "photos": "Zdjęcia",
     "audio": "Audio{suffix}",
     "videos": "Filmy{suffix}",
@@ -564,7 +562,12 @@
     "retry": "Ponów próbę{suffix}",
     "disable": "Wyłącz{suffix}",
     "confirm": "Potwierdzenie{suffix}",
-    "stay": "Zostań{suffix}"
+    "stay": "Zostań{suffix}",
+    "scopes": "Lunety{suffix}",
+    "commands": "Polecenia{suffix}",
+    "uploading": "Przesyłanie{suffix}",
+    "paused": "Wstrzymane{suffix}",
+    "conflict": "Konflikt{suffix}"
   },
   "access": {
     "rules": "Zasady dostępu",

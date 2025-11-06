@@ -55,7 +55,10 @@
     "noPreview": "L'anteprima non è disponibile per questo file.",
     "noDownloadAccess": "Il download non è disponibile.",
     "itemSelected": "elemento selezionato",
-    "itemsSelected": "elementi selezionati"
+    "itemsSelected": "elementi selezionati",
+    "myFiles": "I miei file{suffix}",
+    "newFile": "Nuovo file{suffix}",
+    "newFolder": "Nuova cartella{suffix}"
   },
   "help": {
     "functionKeys": "Tasti Funzione",
@@ -487,9 +490,6 @@
     "help": "Aiuto{suffix}",
     "login": "Accesso{suffix}",
     "logout": "Disconnessione{suffix}",
-    "myFiles": "I miei file{suffix}",
-    "newFile": "Nuovo file{suffix}",
-    "newFolder": "Nuova cartella{suffix}",
     "preview": "Anteprima{suffix}",
     "settings": "Impostazioni{suffix}",
     "sources": "Fonti{suffix}",
@@ -500,8 +500,6 @@
     "analyze": "Analizzare{suffix}",
     "results": "Risultati{suffix}",
     "users": "Utenti{suffix}",
-    "userScopes": "Cannocchiali{suffix}",
-    "userCommands": "Comandi{suffix}",
     "photos": "Foto",
     "audio": "Audio{suffix}",
     "videos": "Video{suffix}",
@@ -564,7 +562,12 @@
     "retry": "Riprova{suffix}",
     "disable": "Disattivare{suffix}",
     "confirm": "Confermare{suffix}",
-    "stay": "Soggiorno{suffix}"
+    "stay": "Soggiorno{suffix}",
+    "scopes": "Cannocchiali{suffix}",
+    "commands": "Comandi{suffix}",
+    "uploading": "Caricamento{suffix}",
+    "paused": "In pausa{suffix}",
+    "conflict": "Conflitto{suffix}"
   },
   "access": {
     "rules": "Regole di accesso",

@@ -55,7 +55,10 @@
     "noPreview": "此檔案無法預覽。",
     "noDownloadAccess": "無法下載。",
     "itemSelected": "項目已選擇",
-    "itemsSelected": "項目已選擇"
+    "itemsSelected": "項目已選擇",
+    "myFiles": "我的檔案{suffix}",
+    "newFile": "新檔案{suffix}",
+    "newFolder": "新資料夾{suffix}"
   },
   "help": {
     "functionKeys": "功能鍵",
@@ -567,9 +570,6 @@
     "help": "說明{suffix}",
     "login": "登入{suffix}",
     "logout": "登出{suffix}",
-    "myFiles": "我的檔案{suffix}",
-    "newFile": "新檔案{suffix}",
-    "newFolder": "新資料夾{suffix}",
     "preview": "預覽{suffix}",
     "settings": "設定{suffix}",
     "sources": "來源{suffix}",
@@ -580,8 +580,6 @@
     "analyze": "分析{suffix}",
     "results": "結果{suffix}",
     "users": "使用者{suffix}",
-    "userScopes": "範圍{suffix}",
-    "userCommands": "指令{suffix}",
     "photos": "圖片",
     "audio": "音訊{suffix}",
     "videos": "影片{suffix}",
@@ -644,7 +642,12 @@
     "retry": "重試{suffix}",
     "disable": "停用{suffix}",
     "confirm": "確認{suffix}",
-    "stay": "停留{suffix}"
+    "stay": "停留{suffix}",
+    "scopes": "範圍{suffix}",
+    "commands": "指令{suffix}",
+    "uploading": "上傳{suffix}",
+    "paused": "已暫停{suffix}",
+    "conflict": "衝突{suffix}"
   },
   "access": {
     "rules": "存取規則",
