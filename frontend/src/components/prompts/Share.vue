@@ -3,7 +3,7 @@
     <h2>{{ $t("general.share") }}</h2>
   </div>
   <div class="card-content">
-    <div aria-label="share-path" class="searchContext button"> {{ $t('general.path') }} {{ displayPath }}</div>
+    <div aria-label="share-path" class="searchContext button"> {{ $t('general.path', { suffix: ':' }) }} {{ displayPath }}</div>
     <p> {{ $t('share.notice') }} </p>
 
     <div v-if="listing">

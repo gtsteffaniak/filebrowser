@@ -29,11 +29,11 @@
           <span aria-label="info last modified" :title="modTime">{{ humanTime }}</span>
         </div>
         <div class="info-item" v-if="selected.length < 2 && source">
-          <strong>{{ $t("general.source", { suffix: '' }) }}</strong>
+          <strong>{{ $t("general.source", ) }}</strong>
           <span aria-label="info source">{{ source }}</span>
         </div>
         <div class="info-item" v-if="selected.length < 2 && filePath">
-          <strong>{{ $t("general.path", { suffix: '' }) }}</strong>
+          <strong>{{ $t("general.path") }}</strong>
           <span aria-label="info path" class="break-word">{{ filePath }}</span>
         </div>
         <div class="info-item" v-if="hidden !== undefined">

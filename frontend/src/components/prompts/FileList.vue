@@ -16,7 +16,7 @@
       </select>
     </div>
 
-    <div v-if="!isDisplayMode" aria-label="filelist-path" class="searchContext button clickable">{{ $t('general.path') }}
+    <div v-if="!isDisplayMode" aria-label="filelist-path" class="searchContext button clickable">{{ $t('general.path', { suffix: ':' }) }}
       {{ sourcePath.path }}</div>
 
     <ul class="file-list">

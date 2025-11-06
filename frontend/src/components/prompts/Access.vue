@@ -9,7 +9,7 @@
     <div v-else>
       <p>{{ $t("general.source", { suffix: ":" }) }} {{ currentSource }}</p>
       <div aria-label="access-path" class="searchContext clickable button" @click="startPathEdit">
-        {{ $t("general.path") }} {{ currentPath }}
+        {{ $t("general.path", { suffix: ":" }) }} {{ currentPath }}
       </div>
       <!-- Default behavior banner -->
       <div class="card item">

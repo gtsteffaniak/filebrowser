@@ -5,16 +5,16 @@
         <h2>{{ $t('fileSizeAnalyzer.title') }}</h2>
       </div>
       <div class="card-content">
-        <h3>{{ $t('general.source', { suffix: '' }) }}</h3>
+        <h3>{{ $t('general.source') }}</h3>
         <select v-model="selectedSource" class="input">
           <option v-for="(info, name) in sourceInfo" :key="name" :value="name">
             {{ name }}
           </option>
         </select>
 
-        <h3>{{ $t('general.path', { suffix: '' }) }}</h3>
+        <h3>{{ $t('general.path') }}</h3>
         <div aria-label="size-viewer-path" class="searchContext clickable button" @click="openPathPicker">
-          {{ $t('general.path') }} {{ searchPath }}
+          {{ $t('general.path', { suffix: ':' }) }} {{ searchPath }}
         </div>
 
         <h3>{{ $t('fileSizeAnalyzer.largerThan') }}</h3>

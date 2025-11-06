@@ -13,22 +13,22 @@ import { validateLogin } from "@/utils/auth";
 import i18n from "@/i18n";
 
 const titles = {
-  Login: "sidebar.login",
-  Share: "buttons.share",
-  PublicShare: "buttons.share",
-  Files: "general.files",
-  Tools: "general.tools",
-  SizeViewer: "tools.sizeAnalyzer.name",
-  Settings: "sidebar.settings",
-  ProfileSettings: "settings.profileSettings",
-  Shares: "settings.shareManagement",
-  GlobalSettings: "settings.globalSettings",
-  Users: "settings.users",
-  User: "settings.user",
-  Forbidden: "errors.forbidden",
-  NotFound: "errors.notFound",
-  ShareNotFound: "errors.shareNotFound",
-  InternalServerError: "errors.internal",
+  Login: i18n.global.t("general.login"),
+  Share: i18n.global.t("general.share"),
+  PublicShare: i18n.global.t("general.share"),
+  Files: i18n.global.t("general.files"),
+  Tools: i18n.global.t("general.tool"),
+  SizeViewer: i18n.global.t("tools.sizeAnalyzer.name"),
+  Settings: i18n.global.t("general.settings"),
+  ProfileSettings: i18n.global.t("settings.profileSettings"),
+  Shares: i18n.global.t("settings.shareManagement"),
+  GlobalSettings: i18n.global.t("settings.globalSettings"),
+  Users: i18n.global.t("general.users"),
+  User: i18n.global.t("general.user"),
+  Forbidden: i18n.global.t("errors.forbidden"),
+  NotFound: i18n.global.t("errors.notFound"),
+  ShareNotFound: i18n.global.t("errors.shareNotFound"),
+  InternalServerError: i18n.global.t("errors.internal"),
 };
 
 const routes: RouteRecordRaw[] = [

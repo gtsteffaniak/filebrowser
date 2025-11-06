@@ -3,7 +3,7 @@
   <DocumentEditor v-if="ready" id="docEditor" :documentServerUrl="globalVars.onlyOfficeUrl" :config="clientConfig"
     :onLoadComponentError="onLoadComponentError" />
   <div v-else>
-    <p>{{ $t("general.loading") }}</p>
+    <p>{{ $t("general.loading", { suffix: "..." }) }}</p>
   </div>
   <div @click="close" class="floating-close button" :class="{ 'float-in': floatIn }">
     <i class="material-icons">close</i>
