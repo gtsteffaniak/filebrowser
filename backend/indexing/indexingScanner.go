@@ -362,9 +362,6 @@ func (s *Scanner) updateAssessment() {
 		s.assessment = "normal"
 		s.smartModifier = 0
 	}
-
-	logger.Debugf("Scanner [%s] complexity=%v dirs=%v files=%v modifier=%v",
-		s.scanPath, s.assessment, s.numDirs, s.numFiles, s.smartModifier)
 }
 
 // directoryExists checks if the scanner's directory still exists

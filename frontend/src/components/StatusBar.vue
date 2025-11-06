@@ -146,7 +146,6 @@ export default {
   overflow: hidden;
   margin: 0;
   padding: 0;
-  padding-right: 3em; /* Make room for scrollbar */
   transition: 0.5s ease;
 }
 

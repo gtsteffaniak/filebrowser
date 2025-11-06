@@ -65,7 +65,7 @@ export default {
   },
   beforeUnmount() {
     // Clean up event listener
-    eventBus.removeEventListener('usersChanged', this.reloadUsers);
+    eventBus.off('usersChanged', this.reloadUsers);
   },
   computed: {
     settings() {

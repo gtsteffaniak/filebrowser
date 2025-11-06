@@ -723,5 +723,12 @@
       "name": "Dosya Boyutu Analizörü",
       "description": "Etkileşimli ağaç haritası ile büyük dosya ve dizinleri görselleştirin"
     }
+  },
+  "messages": {
+    "pathNotFound": "Yol dosya sisteminde mevcut değil",
+    "pathNotFoundMessage": "Bunun yolu artık dosya sisteminde mevcut değil. Taşınmış veya silinmiş olabilir.",
+    "reassignPath": "Yolu Yeniden Atayın",
+    "pathReassigned": "Yol başarıyla güncellendi!",
+    "pathReassignFailed": "Yol güncellenemedi. Lütfen tekrar deneyin."
   }
 }

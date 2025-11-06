@@ -301,3 +301,46 @@ func groupDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	}
 	return http.StatusOK, nil
 }
+
+// accessPatchHandler updates an access rule's path.
+// @Summary Update access rule path
+// @Description Updates the path for a specific access rule
+// @Tags Access
+// @Accept json
+// @Produce json
+// @Param body body object{source=string,oldPath=string,newPath=string} true "Source, old path, and new path"
+// @Success 200 {object} map[string]string "Rule path updated successfully"
+// @Failure 400 {object} map[string]string "Bad request - missing or invalid parameters"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/access [patch]
+func accessPatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	var body struct {
+		Source  string `json:"source"`
+		OldPath string `json:"oldPath"`
+		NewPath string `json:"newPath"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		return http.StatusBadRequest, fmt.Errorf("failed to decode body: %w", err)
+	}
+	defer r.Body.Close()
+
+	if body.Source == "" || body.OldPath == "" || body.NewPath == "" {
+		return http.StatusBadRequest, fmt.Errorf("source, oldPath, and newPath are required")
+	}
+
+	// Get the index for the source
+	index := indexing.GetIndex(body.Source)
+	if index == nil {
+		return http.StatusBadRequest, fmt.Errorf("source not found: %s", body.Source)
+	}
+
+	// Update the access rule path
+	err := store.Access.UpdateRulePath(index.Path, body.OldPath, body.NewPath)
+	if err != nil {
+		logger.Errorf("failed to update rule path: %v", err)
+		return http.StatusInternalServerError, fmt.Errorf("failed to update rule path: %w", err)
+	}
+
+	return renderJSON(w, r, map[string]string{"message": "rule path updated"})
+}

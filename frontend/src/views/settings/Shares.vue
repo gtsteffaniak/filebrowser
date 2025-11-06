@@ -17,6 +17,7 @@
           <th></th>
           <th></th>
           <th></th>
+          <th></th>
         </tr>
       </thead>
       <tbody class="settings-items">
@@ -34,6 +35,9 @@
             <template v-else>{{ item.downloads }}</template>
           </td>
           <td>{{ item.username }}</td>
+          <td class="small">
+            <i v-if="!item.pathExists" class="material-icons warning-icon" :title="$t('messages.pathNotFound')">warning</i>
+          </td>
           <td class="small">
             <button class="action" @click="editLink(item)" :aria-label="$t('general.edit')"
               :title="$t('general.edit')">
@@ -108,7 +112,7 @@ export default {
   beforeUnmount() {
     this.clip.destroy();
     // Clean up event listener
-    eventBus.removeEventListener('sharesChanged', this.reloadShares);
+    eventBus.off('sharesChanged', this.reloadShares);
   },
   computed: {
     settings() {

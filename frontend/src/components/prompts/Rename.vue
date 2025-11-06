@@ -123,6 +123,7 @@ export default {
           await filesApi.moveCopy(items, "move");
         }
         notify.showSuccess(this.$t("prompts.renameSuccess"));
+        mutations.setReload(true);
         mutations.closeHovers();
       } catch (error) {
         console.error(error);

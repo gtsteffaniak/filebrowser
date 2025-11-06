@@ -723,5 +723,12 @@
       "name": "Analysator för filstorlek",
       "description": "Visualisera stora filer och kataloger med en interaktiv trädkarta"
     }
+  },
+  "messages": {
+    "pathNotFound": "Sökvägen finns inte i filsystemet",
+    "pathNotFoundMessage": "Sökvägen för detta finns inte längre på filsystemet. Den kan ha flyttats eller tagits bort.",
+    "reassignPath": "Omfördela sökväg",
+    "pathReassigned": "Sökvägen har uppdaterats!",
+    "pathReassignFailed": "Misslyckades med att uppdatera sökvägen. Vänligen försök igen."
   }
 }

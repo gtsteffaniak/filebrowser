@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	math "math/rand"
+	"os"
 	"path/filepath"
 	"reflect"
 	"runtime"
@@ -127,4 +128,24 @@ func Ternary[T any](cond bool, vtrue, vfalse T) T {
 		return vtrue
 	}
 	return vfalse
+}
+
+// NormalizeRulePath ensures directory paths have trailing slashes for consistent rule storage
+func AddTrailingSlashIfNotExists(indexPath string) string {
+	// Root path stays as "/"
+	if indexPath == "/" {
+		return "/"
+	}
+	// For all other paths, ensure they have trailing slashes
+	if !strings.HasSuffix(indexPath, "/") {
+		return indexPath + "/"
+	}
+	return indexPath
+}
+
+func CheckPathExists(realPath string) bool {
+	if _, err := os.Stat(realPath); os.IsNotExist(err) {
+		return false
+	}
+	return true
 }
