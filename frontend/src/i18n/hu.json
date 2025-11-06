@@ -723,5 +723,12 @@
       "name": "Fájlméret elemző",
       "description": "Nagyméretű fájlok és könyvtárak megjelenítése interaktív falistával"
     }
+  },
+  "messages": {
+    "pathNotFound": "Az elérési útvonal nem létezik a fájlrendszerben",
+    "pathNotFoundMessage": "A fájlrendszerben már nem létezik az elérési útvonal. Lehet, hogy áthelyezték vagy törölték.",
+    "reassignPath": "Útvonal újbóli kijelölése",
+    "pathReassigned": "Az útvonal sikeresen frissült!",
+    "pathReassignFailed": "Nem sikerült frissíteni az elérési utat. Kérjük, próbálja újra."
   }
 }

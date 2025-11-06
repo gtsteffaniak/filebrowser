@@ -3,6 +3,15 @@
     <h2>{{ $t("access.accessManagement") }}</h2>
   </div>
   <div class="card-content">
+    <!-- Warning banner for missing path -->
+    <div v-if="!pathExists && !isEditingPath" class="warning-banner">
+      <i class="material-icons">warning</i>
+      <span>{{ $t("messages.pathNotFoundMessage") }}</span>
+      <button class="button button--flat button--blue" @click="startPathReassignment">
+        {{ $t("messages.reassignPath") }}
+      </button>
+    </div>
+
     <div v-if="isEditingPath">
       <file-list @update:selected="updateTempPath" :browse-source="sourceName"></file-list>
     </div>
@@ -109,12 +118,15 @@ export default {
   data() {
     return {
       isEditingPath: false,
+      isReassigningPath: false,
       tempPath: this.path,
       currentPath: this.path,
       currentSource: this.sourceName,
       tempSource: this.sourceName,
+      originalPath: this.path,
       rule: { denyAll: false, deny: { users: [], groups: [] }, allow: { users: [], groups: [] } },
       sourceDenyDefault: false,
+      pathExists: true,
       addType: "user",
       addListType: "deny",
       addName: "",
@@ -178,14 +190,40 @@ export default {
         this.tempSource = pathOrData.source;
       }
     },
-    confirmPathChange() {
-      this.currentPath = this.tempPath;
-      this.currentSource = this.tempSource;
-      this.isEditingPath = false;
-      this.fetchRule();
+    async confirmPathChange() {
+      if (this.isReassigningPath) {
+        // Reassigning path - call API to update
+        try {
+          await accessApi.updatePath(this.currentSource, this.originalPath, this.tempPath);
+          notify.showSuccess(this.$t("messages.pathReassigned"));
+          this.originalPath = this.tempPath;
+          this.currentPath = this.tempPath;
+          this.currentSource = this.tempSource;
+          this.isEditingPath = false;
+          this.isReassigningPath = false;
+          await this.fetchRule();
+          // Emit event to refresh access rules list
+          eventBus.emit('accessRulesChanged');
+        } catch (e) {
+          notify.showError(this.$t("messages.pathReassignFailed"));
+          console.error(e);
+        }
+      } else {
+        // Just viewing a different path
+        this.currentPath = this.tempPath;
+        this.currentSource = this.tempSource;
+        this.isEditingPath = false;
+        await this.fetchRule();
+      }
     },
     cancelPathChange() {
       this.isEditingPath = false;
+      this.isReassigningPath = false;
+    },
+    startPathReassignment() {
+      this.isReassigningPath = true;
+      this.tempPath = this.currentPath;
+      this.isEditingPath = true;
     },
     async fetchGroups() {
       try {
@@ -201,9 +239,11 @@ export default {
         // Handle new API response structure - now sourceDenyDefault is part of the rule
         this.rule = response;
         this.sourceDenyDefault = response.sourceDenyDefault || false;
+        this.pathExists = response.pathExists !== false;
       } catch (e) {
         this.rule = { denyAll: false, deny: { users: [], groups: [] }, allow: { users: [], groups: [] } };
         this.sourceDenyDefault = false;
+        this.pathExists = true;
       }
     },
     /**
@@ -296,4 +336,5 @@ export default {
   margin-top: 1em;
   margin-bottom: 1em;
 }
+
 </style>

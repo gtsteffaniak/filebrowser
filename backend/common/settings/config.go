@@ -15,6 +15,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/goccy/go-yaml"
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
+	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/common/version"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/go-logger/logger"
@@ -200,14 +201,6 @@ func setupVideoPreview() {
 	}
 }
 
-func checkPathExists(realPath string) error {
-	// check path exists
-	if _, err := os.Stat(realPath); os.IsNotExist(err) {
-		return fmt.Errorf("source path %v is currently not available", realPath)
-	}
-	return nil
-}
-
 func setupSources(generate bool) {
 	if len(Config.Server.Sources) == 0 {
 		logger.Fatal("There are no `server.sources` configured. If you have `server.root` configured, please update the config and add at least one `server.sources` with a `path` configured.")
@@ -220,9 +213,9 @@ func setupSources(generate bool) {
 			if err != nil {
 				logger.Fatalf("error getting real path for source %v: %v", source.Path, err)
 			}
-			err = checkPathExists(realPath)
-			if err != nil {
-				logger.Warningf("error checking path exists: %v", err)
+			exists := utils.CheckPathExists(realPath)
+			if !exists {
+				logger.Warningf("source path %v is currently not available", realPath)
 			}
 			name := filepath.Base(realPath)
 			if name == "\\" {

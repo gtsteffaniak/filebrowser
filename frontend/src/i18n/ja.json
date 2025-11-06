@@ -723,5 +723,12 @@
       "name": "ファイル・サイズ・アナライザー",
       "description": "大規模なファイルやディレクトリをインタラクティブなツリーマップで視覚化"
     }
+  },
+  "messages": {
+    "pathNotFound": "パスがファイルシステムに存在しない",
+    "pathNotFoundMessage": "このパスはファイルシステム上に存在しません。移動または削除された可能性があります。",
+    "reassignPath": "パスの再割り当て",
+    "pathReassigned": "パスは正常に更新されました！",
+    "pathReassignFailed": "パスの更新に失敗しました。再試行してください。"
   }
 }

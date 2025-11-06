@@ -723,5 +723,12 @@
       "name": "Analizzatore delle dimensioni dei file",
       "description": "Visualizzate file e directory di grandi dimensioni con una mappa interattiva a forma di albero"
     }
+  },
+  "messages": {
+    "pathNotFound": "Il percorso non esiste nel filesystem",
+    "pathNotFoundMessage": "Il percorso di questo file non esiste più nel filesystem. Potrebbe essere stato spostato o cancellato.",
+    "reassignPath": "Riassegnare il percorso",
+    "pathReassigned": "Il percorso è stato aggiornato con successo!",
+    "pathReassignFailed": "Non è stato possibile aggiornare il percorso. Riprovare."
   }
 }

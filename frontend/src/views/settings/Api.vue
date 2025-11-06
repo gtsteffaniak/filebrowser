@@ -95,7 +95,7 @@ export default {
   },
   beforeUnmount() {
     // Clean up event listener
-    eventBus.removeEventListener('apiKeysChanged', this.reloadApiKeys);
+    eventBus.off('apiKeysChanged', this.reloadApiKeys);
     this.clip.destroy();
   },
   computed: {

@@ -723,5 +723,12 @@
       "name": "Dateigrößen-Analysator",
       "description": "Visualisieren Sie große Dateien und Verzeichnisse mit einer interaktiven Baumstruktur"
     }
+  },
+  "messages": {
+    "pathNotFound": "Pfad existiert nicht im Dateisystem",
+    "pathNotFoundMessage": "Der Pfad hierfür existiert nicht mehr im Dateisystem. Er kann verschoben oder gelöscht worden sein.",
+    "reassignPath": "Pfad neu zuweisen",
+    "pathReassigned": "Pfad erfolgreich aktualisiert!",
+    "pathReassignFailed": "Der Pfad konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut."
   }
 }

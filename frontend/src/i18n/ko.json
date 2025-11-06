@@ -723,5 +723,12 @@
       "name": "파일 크기 분석기",
       "description": "대화형 트리맵으로 대용량 파일과 디렉터리 시각화하기"
     }
+  },
+  "messages": {
+    "pathNotFound": "파일 시스템에 경로가 없습니다.",
+    "pathNotFoundMessage": "이 경로가 더 이상 파일 시스템에 존재하지 않습니다. 이동되었거나 삭제되었을 수 있습니다.",
+    "reassignPath": "경로 재할당",
+    "pathReassigned": "경로가 성공적으로 업데이트되었습니다!",
+    "pathReassignFailed": "경로를 업데이트하지 못했습니다. 다시 시도하세요."
   }
 }

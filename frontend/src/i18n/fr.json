@@ -723,5 +723,12 @@
       "name": "Analyseur de taille de fichier",
       "description": "Visualisez les fichiers et les répertoires volumineux grâce à une arborescence interactive"
     }
+  },
+  "messages": {
+    "pathNotFound": "Le chemin n'existe pas dans le système de fichiers",
+    "pathNotFoundMessage": "Le chemin d'accès n'existe plus dans le système de fichiers. Il peut avoir été déplacé ou supprimé.",
+    "reassignPath": "Réaffecter le chemin",
+    "pathReassigned": "Mise à jour du chemin d'accès réussie !",
+    "pathReassignFailed": "Échec de la mise à jour du chemin d'accès. Veuillez réessayer."
   }
 }

@@ -72,6 +72,26 @@ export async function create(bodyObj = {}) {
   }
 }
 
+// Update share path
+/**
+ * @param {string} hash
+ * @param {string} newPath
+ * @returns {Promise<Share>}
+ */
+export async function updatePath(hash, newPath) {
+  try {
+    const apiPath = getApiPath("api/share");
+    return await fetchJSON(apiPath, {
+      method: "PATCH",
+      body: JSON.stringify({ hash, path: newPath }),
+      headers: { 'Content-Type': 'application/json' }
+    });
+  } catch (/** @type {any} */ err) {
+    notify.showError(err.message || "Error updating share path");
+    throw err;
+  }
+}
+
 /**
  * @typedef {object} Share
  * @property {string} hash

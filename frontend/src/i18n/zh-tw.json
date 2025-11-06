@@ -723,5 +723,12 @@
       "name": "檔案大小分析器",
       "description": "使用互動式樹狀地圖可視化大型檔案和目錄"
     }
+  },
+  "messages": {
+    "pathNotFound": "檔案系統中不存在路徑",
+    "pathNotFoundMessage": "檔案系統中已不存在此路徑。它可能已被移動或刪除。",
+    "reassignPath": "重新指定路徑",
+    "pathReassigned": "路徑已成功更新！",
+    "pathReassignFailed": "更新路徑失敗。請再試一次。"
   }
 }
