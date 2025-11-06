@@ -723,5 +723,12 @@
       "name": "Analisador de tamanho de ficheiro",
       "description": "Visualize ficheiros e diretórios grandes com um mapa em árvore interativo"
     }
+  },
+  "messages": {
+    "pathNotFound": "O caminho não existe no sistema de ficheiros",
+    "pathNotFoundMessage": "O caminho para isto já não existe no sistema de ficheiros. Pode ter sido movido ou eliminado.",
+    "reassignPath": "Reatribuir trajetória",
+    "pathReassigned": "Caminho atualizado com sucesso!",
+    "pathReassignFailed": "Falha ao atualizar o caminho. Por favor, tente novamente."
   }
 }

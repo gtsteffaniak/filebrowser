@@ -356,10 +356,7 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		return http.StatusForbidden, err
 	}
 	scopePath := utils.JoinPathAsUnix(userscope, body.Path)
-	// filepath.Join removes trailing slashes, but we need to preserve them for directories
-	if !strings.HasSuffix(scopePath, "/") {
-		scopePath = scopePath + "/"
-	}
+	scopePath = utils.AddTrailingSlashIfNotExists(scopePath)
 	body.Path = scopePath
 	// validate path exists as file or folder
 	_, exists := idx.GetReducedMetadata(body.Path, true) // true to check if it exists

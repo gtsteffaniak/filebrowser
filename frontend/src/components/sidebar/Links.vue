@@ -349,12 +349,6 @@ a.sidebar-link-button {
   transform: none !important;
 }
 
-.warning-icon {
-    color: var(--orange);
-    font-size: 1.2em;
-    margin-left: auto;
-}
-
 .expand-enter-active,
 .expand-leave-active {
     transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);

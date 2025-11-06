@@ -723,5 +723,12 @@
       "name": "Bestandsgrootte analyzer",
       "description": "Visualiseer grote bestanden en mappen met een interactieve treemap"
     }
+  },
+  "messages": {
+    "pathNotFound": "Pad bestaat niet op bestandssysteem",
+    "pathNotFoundMessage": "Het pad hiervoor bestaat niet meer op het bestandssysteem. Het kan verplaatst of verwijderd zijn.",
+    "reassignPath": "Pad opnieuw toewijzen",
+    "pathReassigned": "Pad succesvol bijgewerkt!",
+    "pathReassignFailed": "Het bijwerken van het pad is mislukt. Probeer het opnieuw."
   }
 }

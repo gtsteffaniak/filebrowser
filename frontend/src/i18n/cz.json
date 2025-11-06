@@ -723,5 +723,12 @@
       "name": "Analyzátor velikosti souborů",
       "description": "Vizualizace velkých souborů a adresářů pomocí interaktivní mapy stromů"
     }
+  },
+  "messages": {
+    "pathNotFound": "Cesta v souborovém systému neexistuje",
+    "pathNotFoundMessage": "Cesta k němu již v souborovém systému neexistuje. Mohla být přesunuta nebo odstraněna.",
+    "reassignPath": "Změna přiřazení cesty",
+    "pathReassigned": "Cesta byla úspěšně aktualizována!",
+    "pathReassignFailed": "Nepodařilo se aktualizovat cestu. Zkuste to prosím znovu."
   }
 }

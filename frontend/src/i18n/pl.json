@@ -723,5 +723,12 @@
       "name": "Analizator rozmiaru plików",
       "description": "Wizualizacja dużych plików i katalogów za pomocą interaktywnej mapy drzewa"
     }
+  },
+  "messages": {
+    "pathNotFound": "Ścieżka nie istnieje w systemie plików",
+    "pathNotFoundMessage": "Ścieżka do tego pliku nie istnieje już w systemie plików. Mogła zostać przeniesiona lub usunięta.",
+    "reassignPath": "Ponowne przypisanie ścieżki",
+    "pathReassigned": "Ścieżka została pomyślnie zaktualizowana!",
+    "pathReassignFailed": "Nie udało się zaktualizować ścieżki. Spróbuj ponownie."
   }
 }

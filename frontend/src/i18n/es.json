@@ -723,5 +723,12 @@
       "name": "Analizador de tamaño de archivos",
       "description": "Visualice archivos y directorios de gran tamaño con un mapa de árbol interactivo"
     }
+  },
+  "messages": {
+    "pathNotFound": "La ruta no existe en el sistema de archivos",
+    "pathNotFoundMessage": "La ruta para esto ya no existe en el sistema de archivos. Puede que se haya movido o borrado.",
+    "reassignPath": "Reasignar ruta",
+    "pathReassigned": "¡Ruta actualizada correctamente!",
+    "pathReassignFailed": "No se ha podido actualizar la ruta. Inténtelo de nuevo."
   }
 }

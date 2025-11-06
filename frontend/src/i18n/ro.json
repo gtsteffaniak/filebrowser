@@ -723,5 +723,12 @@
       "name": "Analizor dimensiune fișier",
       "description": "Vizualizați fișiere și directoare mari cu o hartă interactivă"
     }
+  },
+  "messages": {
+    "pathNotFound": "Calea nu există pe sistemul de fișiere",
+    "pathNotFoundMessage": "Calea pentru acest lucru nu mai există pe sistemul de fișiere. Este posibil să fi fost mutat sau șters.",
+    "reassignPath": "Reatribuiți calea",
+    "pathReassigned": "Calea a fost actualizată cu succes!",
+    "pathReassignFailed": "A eșuat actualizarea căii. Vă rugăm să încercați din nou."
   }
 }

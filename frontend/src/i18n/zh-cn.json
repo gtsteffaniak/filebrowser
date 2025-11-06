@@ -723,5 +723,12 @@
       "name": "文件大小分析器",
       "description": "利用交互式树形图可视化大型文件和目录"
     }
+  },
+  "messages": {
+    "pathNotFound": "文件系统中不存在路径",
+    "pathNotFoundMessage": "文件系统中已不存在此路径。可能已被移动或删除。",
+    "reassignPath": "重新分配路径",
+    "pathReassigned": "路径更新成功！",
+    "pathReassignFailed": "更新路径失败。请重试。"
   }
 }
