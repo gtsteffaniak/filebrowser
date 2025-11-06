@@ -160,6 +160,7 @@ export default {
 
       const deltaY = clientY - this.startY;
       const scrollableHeight = content.scrollHeight - content.clientHeight;
+      const offsetFromBottom = this.isNotListing ? offsetFromBottomFull : offsetFromBottomListing;
       const scrollbarHeight =
         scrollbar.clientHeight - thumb.clientHeight - offsetFromBottom;
       const scrollRatio = scrollableHeight / scrollbarHeight;
@@ -244,6 +245,7 @@ export default {
   justify-content: center;
   align-items: center;
   transition: right 0.25s ease, opacity 0.2s;
+  z-index: 1001;
 }
 
 @supports (backdrop-filter: none) {
@@ -283,6 +285,7 @@ export default {
   transition: opacity 0.2s;
   position: fixed;
   display: none;
+  z-index: 1001;
 }
 
 .custom-scrollbar.visible .thumb-section-id {
