@@ -18,8 +18,8 @@
           v-if="item.url === 'help prompt'"
           href="#"
           @click.prevent="help"
-          :title="$t('sidebar.help')"
-          >{{ $t("sidebar.help") }}</a
+          :title="$t('general.help')"
+          >{{ $t("general.help") }}</a
         >
         <a v-else :href="item.url" target="_blank" :title="item.title">{{
           item.text
@@ -153,13 +153,12 @@ body.rtl nav {
   right: 0;
 }
 
-#sidebar .action {
+#sidebar .button {
   width: 100%;
   display: block;
   white-space: nowrap;
   height: 100%;
   overflow: hidden;
-  padding: 0.5em;
   text-overflow: ellipsis;
 }
 

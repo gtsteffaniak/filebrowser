@@ -1,6 +1,6 @@
 <template>
   <div class="card-title">
-    <h2>{{ $t("help.help") }}</h2>
+    <h2>{{ $t("general.help") }}</h2>
   </div>
 
   <div class="card-content help-content">
@@ -73,7 +73,7 @@
 
       <!-- Navigation Section -->
       <div class="shortcut-section">
-        <h3 class="section-title">{{ $t("help.navigation") }}</h3>
+        <h3 class="section-title">{{ $t("general.navigation") }}</h3>
         <div class="shortcut-item">
           <kbd>CTRL + B</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           <span>{{ $t("help.ctrl.b") }}</span>
@@ -87,9 +87,9 @@
   </div>
 
   <div class="card-action">
-    <button type="submit" @click="closeHovers" class="button button--flat" :aria-label="$t('buttons.ok')"
-      :title="$t('buttons.ok')">
-      {{ $t("buttons.ok") }}
+    <button type="submit" @click="closeHovers" class="button button--flat" :aria-label="$t('general.ok')"
+      :title="$t('general.ok')">
+      {{ $t("general.ok") }}
     </button>
   </div>
 </template>

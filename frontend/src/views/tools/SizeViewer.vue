@@ -5,16 +5,16 @@
         <h2>{{ $t('fileSizeAnalyzer.title') }}</h2>
       </div>
       <div class="card-content">
-        <h3>{{ $t('general.source', { suffix: '' }) }}</h3>
+        <h3>{{ $t('general.source') }}</h3>
         <select v-model="selectedSource" class="input">
           <option v-for="(info, name) in sourceInfo" :key="name" :value="name">
             {{ name }}
           </option>
         </select>
 
-        <h3>{{ $t('general.path', { suffix: '' }) }}</h3>
+        <h3>{{ $t('general.path') }}</h3>
         <div aria-label="size-viewer-path" class="searchContext clickable button" @click="openPathPicker">
-          {{ $t('search.path') }} {{ searchPath }}
+          {{ $t('general.path', { suffix: ':' }) }} {{ searchPath }}
         </div>
 
         <h3>{{ $t('fileSizeAnalyzer.largerThan') }}</h3>
@@ -25,7 +25,7 @@
 
         <button @click="fetchData" class="button" :disabled="loading">
           <i v-if="loading" class="material-icons spin">autorenew</i>
-          <span v-else>{{ $t('fileSizeAnalyzer.analyze') }}</span>
+          <span v-else>{{ $t('general.analyze') }}</span>
         </button>
       </div>
     </div>
@@ -37,7 +37,7 @@
 
       <div v-if="results.length > 0">
         <div class="card-title">
-          <h2>{{ $t('fileSizeAnalyzer.results') }}</h2>
+          <h2>{{ $t('general.results') }}</h2>
         </div>
         <div class="card-content">
           <div class="stats">
@@ -104,7 +104,7 @@
             </div>
           </div>
 
-          <h4>{{ $t('search.types') }}</h4>
+          <h4>{{ $t('general.types') }}</h4>
           <div class="legend">
             <div class="legend-item">
               <span class="legend-color type-video"></span>

@@ -2,7 +2,7 @@
   <div id="breadcrumbs" :class="{ 'add-padding': addPadding }">
     <ul v-if="items.length > 0">
       <li>
-        <router-link :to="base" :aria-label="$t('files.home')" :title="$t('files.home')">
+        <router-link :to="base" :aria-label="$t('general.home')" :title="$t('general.home')">
           <i class="material-icons">home</i>
         </router-link>
       </li>

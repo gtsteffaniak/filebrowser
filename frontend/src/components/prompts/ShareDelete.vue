@@ -3,13 +3,13 @@
     <p>{{ $t("prompts.deleteMessageShare", { path }) }}</p>
   </div>
   <div class="card-action">
-    <button @click="closeHovers" class="button button--flat button--grey" :aria-label="$t('buttons.cancel')"
-      :title="$t('buttons.cancel')">
-      {{ $t("buttons.cancel") }}
+    <button @click="closeHovers" class="button button--flat button--grey" :aria-label="$t('general.cancel')"
+      :title="$t('general.cancel')">
+      {{ $t("general.cancel") }}
     </button>
-    <button @click="submit" class="button button--flat button--red" :aria-label="$t('buttons.delete')"
-      :title="$t('buttons.delete')">
-      {{ $t("buttons.delete") }}
+    <button @click="submit" class="button button--flat button--red" :aria-label="$t('general.delete')"
+      :title="$t('general.delete')">
+      {{ $t("general.delete") }}
     </button>
   </div>
 </template>

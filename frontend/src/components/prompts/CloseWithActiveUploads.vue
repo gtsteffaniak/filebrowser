@@ -11,9 +11,9 @@
     <button
       class="button button--flat button--grey"
       @click="stayOnPrompt"
-      :aria-label="$t('buttons.stayOnPrompt')"
-      :title="$t('buttons.stayOnPrompt')">
-      {{ $t("buttons.stayOnPrompt") }}
+      :aria-label="$t('general.stay')"
+      :title="$t('general.stay')">
+      {{ $t("general.stay") }}
     </button>
     <button
       class="button button--flat button--red"

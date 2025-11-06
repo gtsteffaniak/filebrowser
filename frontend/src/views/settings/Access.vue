@@ -2,7 +2,7 @@
   <errors v-if="error" :errorCode="error.status" />
   <div class="card-title">
     <h2>{{ $t("access.accessManagement") }}</h2>
-    <button class="button" @click="addAccess">{{ $t("buttons.new") }}</button>
+    <button class="button" @click="addAccess">{{ $t("general.new") }}</button>
     <div class="form-flex-group">
       <label for="source-select">{{ $t("general.source",{suffix: ":"})  }}</label>
       <select class="input" id="source-select" v-model="selectedSource" @change="fetchRules">
@@ -23,7 +23,7 @@
           <th>{{$t('general.path')}}</th>
           <th>{{$t('access.totalDenied')}}</th>
           <th>{{$t('access.totalAllowed')}}</th>
-          <th>{{$t('buttons.edit') }}</th>
+          <th>{{$t('general.edit') }}</th>
         </tr>
       </thead>
       <tbody class="settings-items">
@@ -32,8 +32,8 @@
           <td>{{ (rule.deny.users.length + rule.deny.groups.length) + (rule.denyAll ? 1 : 0) }}</td>
           <td>{{ rule.allow.users.length + rule.allow.groups.length }}</td>
           <td class="small">
-            <button class="action" @click="editAccess(path)" :aria-label="$t('buttons.edit')"
-              :title="$t('buttons.edit')">
+            <button class="action" @click="editAccess(path)" :aria-label="$t('general.edit')"
+              :title="$t('general.edit')">
               <i class="material-icons">edit</i>
             </button>
           </td>

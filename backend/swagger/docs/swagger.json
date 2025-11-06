@@ -4056,6 +4056,27 @@
                 }
             }
         },
+        "users.SidebarLink": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "description": "Category type: \"source\", \"tool\", or \"custom\"",
+                    "type": "string"
+                },
+                "icon": {
+                    "description": "Material icon name",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Display name of the link",
+                    "type": "string"
+                },
+                "target": {
+                    "description": "Target path/URL for the link",
+                    "type": "string"
+                }
+            }
+        },
         "users.Sorting": {
             "type": "object",
             "properties": {
@@ -4219,6 +4240,13 @@
                 "showSelectMultiple": {
                     "description": "show select multiple files on desktop",
                     "type": "boolean"
+                },
+                "sidebarLinks": {
+                    "description": "customizable sidebar links",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/users.SidebarLink"
+                    }
                 },
                 "singleClick": {
                     "description": "open directory on single click, also enables middle click to open in new tab",

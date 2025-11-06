@@ -4,11 +4,11 @@
   </div>
   <div class="card-action">
     <button class="button button--flat button--grey" @click="closeHovers" v-focus aria-label="Cancel"
-      :title="$t('buttons.cancel')">
-      {{ $t("buttons.cancel") }}
+      :title="$t('general.cancel')">
+      {{ $t("general.cancel") }}
     </button>
     <button class="button button--flat" aria-label="Confirm Delete" @click="deleteUser">
-      {{ $t("buttons.delete") }}
+      {{ $t("general.delete") }}
     </button>
   </div>
 </template>

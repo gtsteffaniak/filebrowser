@@ -33,17 +33,17 @@
       <button
         class="button button--flat button--grey"
         @click="closeHovers"
-        :aria-label="$t('buttons.close')"
-        :title="$t('buttons.close')"
+        :aria-label="$t('general.close')"
+        :title="$t('general.close')"
       >
-        {{ $t('buttons.close') }}
+        {{ $t('general.close') }}
       </button>
       <button
         class="button button--flat button--red"
         @click="deleteApi"
-        :title="$t('buttons.delete')"
+        :title="$t('general.delete')"
       >
-        {{ $t('buttons.delete') }}
+        {{ $t('general.delete') }}
       </button>
     </div>
 </template>

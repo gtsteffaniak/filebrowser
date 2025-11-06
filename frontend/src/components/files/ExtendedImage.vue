@@ -1,7 +1,7 @@
 <template>
   <div class="image-ex-container" ref="container" @touchstart="touchStart" @touchmove="touchMove" @touchend="touchEnd" @dblclick="zoomAuto"
     @mousedown="mousedownStart" @mousemove="mouseMove" @mouseup="mouseUp" @wheel="wheelMove">
-    <div v-if="!isLoaded">{{ $t('files.loading') }}</div>
+    <div v-if="!isLoaded">{{ $t('general.loading', { suffix: "..." }) }}</div>
 
     <img v-if="!isTiff && isLoaded" :src="src" class="image-ex-img" ref="imgex" @load="onLoad" />
     <canvas v-else-if="isLoaded" ref="imgex" class="image-ex-img"></canvas>

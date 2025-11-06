@@ -3,7 +3,7 @@
     <action
       v-if="!disableNavButtons"
       icon="close_back"
-      :label="$t('buttons.close')"
+      :label="$t('general.close')"
       :disabled="isDisabledMultiAction"
       @action="multiAction"
     />
@@ -29,7 +29,7 @@
       v-else-if="showQuickSave"
       id="save-button"
       icon="save"
-      :label="$t('buttons.save')"
+      :label="$t('general.save')"
       @action="save()"
     />
   </header>
@@ -59,7 +59,7 @@ export default {
   computed: {
     getTopTitle() {
       if (getters.isSettings()) {
-        return this.$t("sidebar.settings");
+        return this.$t("general.settings");
       }
       if (getters.isShare() && shareInfo.title && state.req.type === "directory") {
         return shareInfo.title;

@@ -1,9 +1,9 @@
 <template>
   <errors v-if="error" :errorCode="error.status" />
   <div class="card-title">
-    <h2>{{ $t("settings.users") }}</h2>
+    <h2>{{ $t("general.users") }}</h2>
       <button @click="openPrompt(null)" v-if="isAdmin" class="button" aria-label="Add New User">
-        {{ $t("buttons.new") }}
+        {{ $t("general.new") }}
       </button>
   </div>
 
@@ -11,10 +11,10 @@
     <table aria-label="Users">
       <thead>
         <tr>
-          <th>{{ $t("settings.username") }}</th>
+          <th>{{ $t("general.username") }}</th>
           <th>{{ $t("settings.loginMethod") }}</th>
-          <th>{{ $t("settings.admin") }}</th>
-          <th>{{ $t("settings.userScopes") }}</th>
+          <th>{{ $t("general.admin") }}</th>
+          <th>{{ $t("general.scopes") }}</th>
           <th></th>
         </tr>
       </thead>
