@@ -197,6 +197,7 @@ export default {
   scrollbar-width: none;
   /* Firefox */
   transition: 0.5s ease;
+  padding-bottom: 2.5em; /* Account for status bar */
 }
 
 #main.moveWithSidebar {
