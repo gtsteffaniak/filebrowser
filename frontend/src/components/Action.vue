@@ -26,7 +26,7 @@
     v-else
     :disabled="isDisabled"
     @click="action"
-    aria-label="label"
+    :aria-label="label"
     :title="label"
     class="action no-select"
   >
