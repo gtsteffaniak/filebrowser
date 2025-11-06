@@ -887,7 +887,7 @@ export default {
             const modeActions = {
                 'single': () => {}, // Do nothing
                 'loop-single': () => this.restartCurrentFile(),
-                'sequential': this.playNext(),
+                'sequential': () => this.playNext(),
                 'shuffle': handleShortQueue,
                 'loop-all': handleShortQueue,
             };
@@ -1034,13 +1034,13 @@ export default {
 <style >
 @import url("plyr/dist/plyr.css");
 
-/* Bakcground styles for the audio player */
+/* Background styles for the audio player */
 .plyr-background-dark {
     background: radial-gradient(#3b3b3b, black);
 }
 
 .plyr-background-light {
-    background: radial-gradient(#727272, #e2e2e2);
+    background: radial-gradient(#262626, #e2e2e2);
 }
 
 /**********************************
@@ -1073,12 +1073,11 @@ export default {
     border-radius: 12px;
     overflow: visible;
     background-color: rgb(216 216 216);
-
+    box-shadow: 0 2px 6px rgba(88, 88, 88, 0.45);
 }
 
 .plyr__controls {
     color: black;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
 }
 
 .audio-controls-container.dark-mode .plyr {
