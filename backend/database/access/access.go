@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"maps"
+	"os"
+	"path/filepath"
 	"slices"
 	"sort"
 	"strings"
@@ -63,6 +65,7 @@ type FrontendAccessRule struct {
 	Deny              FrontendRuleSet `json:"deny"`
 	Allow             FrontendRuleSet `json:"allow"`
 	SourceDenyDefault bool            `json:"sourceDenyDefault"`
+	PathExists        bool            `json:"pathExists"`
 }
 
 // GroupMap maps group names to a set of usernames.
@@ -140,6 +143,16 @@ func NewStorage(db *storm.DB, usersStore *users.Storage) *Storage {
 		Users:    usersStore,
 	}
 	return s
+}
+
+// checkPathExists checks if a path exists on the filesystem given a source path and index path
+func checkPathExists(sourcePath, indexPath string) bool {
+	// Construct the full filesystem path
+	fullPath := filepath.Join(sourcePath, indexPath)
+
+	// Check if the path exists
+	_, err := os.Stat(fullPath)
+	return err == nil
 }
 
 // ClearCache clears the access cache (useful for testing)
@@ -471,8 +484,12 @@ func (s *Storage) GetFrontendRules(sourcePath, indexPath string) (FrontendAccess
 		sourceDenyDefault = sourceInfo.Config.DenyByDefault
 	}
 
+	// Check if path exists on filesystem
+	pathExists := checkPathExists(sourcePath, indexPath)
+
 	frontendRules := FrontendAccessRule{
 		SourceDenyDefault: sourceDenyDefault,
+		PathExists:        pathExists,
 		Deny: FrontendRuleSet{
 			Users:  make([]string, 0),
 			Groups: make([]string, 0),
@@ -532,10 +549,14 @@ func (s *Storage) GetAllRules(sourcePath string) (map[string]FrontendAccessRule,
 		// This ensures consistency between internal storage and frontend display
 		frontendPath := indexPath
 
+		// Check if path exists on filesystem
+		pathExists := checkPathExists(sourcePath, indexPath)
+
 		// Convert AccessRule to FrontendAccessRule
 		frontendRules[frontendPath] = FrontendAccessRule{
 			DenyAll:           rule.DenyAll,
 			SourceDenyDefault: sourceDenyDefault,
+			PathExists:        pathExists,
 			Deny: FrontendRuleSet{
 				Users:  utils.NonNilSlice(slices.Collect(maps.Keys(rule.Deny.Users))),
 				Groups: utils.NonNilSlice(slices.Collect(maps.Keys(rule.Deny.Groups))),
@@ -1233,4 +1254,36 @@ func (s *Storage) RemoveGroupCascade(sourcePath, indexPath, groupname string, al
 	}
 
 	return 0, nil
+}
+
+// UpdateRulePath updates the path for a specific access rule
+func (s *Storage) UpdateRulePath(sourcePath, oldPath, newPath string) error {
+	s.mux.Lock()
+	defer s.mux.Unlock()
+
+	// Normalize paths
+	oldNormalized := normalizeRulePath(oldPath)
+	newNormalized := normalizeRulePath(newPath)
+
+	rulesBySource, ok := s.AllRules[sourcePath]
+	if !ok {
+		return fmt.Errorf("no rules found for source: %s", sourcePath)
+	}
+
+	rule, ok := rulesBySource[oldNormalized]
+	if !ok {
+		return fmt.Errorf("no rule found for path: %s", oldPath)
+	}
+
+	// Remove the old rule and add it with the new path
+	delete(rulesBySource, oldNormalized)
+	rulesBySource[newNormalized] = rule
+
+	// Invalidate caches
+	s.incrementSourceVersion(sourcePath)
+	accessCache.Set(accessChangedKey+sourcePath, "false")
+	rulesCache.Delete(accessChangedKey + sourcePath)
+
+	logger.Debugf("access rule path updated: source=%s, fromPath=%s, toPath=%s", sourcePath, oldPath, newPath)
+	return s.SaveToDB()
 }

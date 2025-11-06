@@ -265,6 +265,31 @@ func (s *Storage) UpdateShares(oldSource, oldPath, newSource, newPath string) (i
 	return updated, nil
 }
 
+// UpdateSharePath updates the path for a specific share identified by hash
+func (s *Storage) UpdateSharePath(hash, newPath string) error {
+	link, err := s.GetByHash(hash)
+	if err != nil {
+		return err
+	}
+
+	oldPath := link.Path
+	link.Path = newPath
+
+	if err := s.back.Save(link); err != nil {
+		logger.Error("failed to save updated share", "hash", hash, "error", err)
+		return err
+	}
+
+	s.mu.Lock()
+	if existing, ok := s.shareCache[hash]; ok && existing != nil {
+		existing.Path = newPath
+	}
+	s.mu.Unlock()
+
+	logger.Debug("share path updated", "hash", hash, "fromPath", oldPath, "toPath", newPath)
+	return nil
+}
+
 // Save wraps StorageBackend.Save
 func (s *Storage) Save(l *Link) error {
 	if err := s.back.Save(l); err != nil {

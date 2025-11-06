@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -26,6 +28,17 @@ type ShareResponse struct {
 	*share.Link
 	Username    string `json:"username,omitempty"`
 	DownloadURL string `json:"downloadURL,omitempty"`
+	PathExists  bool   `json:"pathExists"`
+}
+
+// checkPathExists checks if a path exists on the filesystem given a source path and index path
+func checkPathExists(sourcePath, indexPath string) bool {
+	// Construct the full filesystem path
+	fullPath := filepath.Join(sourcePath, indexPath)
+
+	// Check if the path exists
+	_, err := os.Stat(fullPath)
+	return err == nil
 }
 
 // convertToShareResponse converts shares to response format with usernames
@@ -37,10 +50,15 @@ func convertToShareResponse(r *http.Request, shares []*share.Link) ([]*ShareResp
 		if err == nil {
 			username = user.Username
 		}
+
+		// Check if the path exists on the filesystem
+		pathExists := checkPathExists(s.Source, s.Path)
+
 		responses[i] = &ShareResponse{
 			Link:        s,
 			Username:    username,
 			DownloadURL: getDownloadURL(r, s.Hash),
+			PathExists:  pathExists,
 		}
 	}
 	return responses, nil
@@ -141,6 +159,53 @@ func shareDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	}
 
 	return errToStatus(err), err
+}
+
+// sharePatchHandler updates a share link's path.
+// @Summary Update share link path
+// @Description Updates the path for a specific share link identified by hash
+// @Tags Shares
+// @Accept json
+// @Produce json
+// @Param body body object{hash=string,path=string} true "Hash and new path"
+// @Success 200 {object} ShareResponse "Updated share link"
+// @Failure 400 {object} map[string]string "Bad request - missing or invalid parameters"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/share/path [patch]
+func sharePatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	var body struct {
+		Hash string `json:"hash"`
+		Path string `json:"path"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		return http.StatusBadRequest, fmt.Errorf("failed to decode body: %w", err)
+	}
+	defer r.Body.Close()
+
+	if body.Hash == "" || body.Path == "" {
+		return http.StatusBadRequest, fmt.Errorf("hash and path are required")
+	}
+
+	// Update the share path
+	err := store.Share.UpdateSharePath(body.Hash, body.Path)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	// Get the updated share
+	updatedShare, err := store.Share.GetByHash(body.Hash)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	// Convert to response format
+	sharesWithUsernames, err := convertToShareResponse(r, []*share.Link{updatedShare})
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	return renderJSON(w, r, sharesWithUsernames[0])
 }
 
 // sharePostHandler creates a new share link.

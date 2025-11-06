@@ -513,6 +513,9 @@ export const getters = {
         create: shareInfo.allowCreate,
         delete: shareInfo.allowDelete,
         download: !shareInfo.disableDownload,
+        admin: false,
+        api: false,
+        realtime: false,
       };
     }
     return {
@@ -521,6 +524,8 @@ export const getters = {
       create: state.user?.permissions?.create,
       delete: state.user?.permissions?.delete,
       download: state.user?.permissions?.download,
+      admin: state.user?.permissions?.admin,
+      api: state.user?.permissions?.api,
     };
   }
 };

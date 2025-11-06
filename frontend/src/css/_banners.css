@@ -1,0 +1,19 @@
+.warning-banner {
+    background-color: var(--alt-background);
+    border: 1px solid var(--icon-orange);
+    border-radius: 4px;
+    padding: 1em;
+    margin-bottom: 1em;
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+}
+
+.warning-banner i {
+    color: var(--icon-orange);
+    font-size: 24px;
+}
+
+.warning-banner span {
+    flex: 1;
+}

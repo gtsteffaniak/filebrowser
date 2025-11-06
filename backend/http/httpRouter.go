@@ -127,6 +127,7 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	// Access routes
 	api.HandleFunc("GET /access", withAdmin(accessGetHandler))
 	api.HandleFunc("POST /access", withAdmin(accessPostHandler))
+	api.HandleFunc("PATCH /access/path", withAdmin(accessPatchHandler))
 	api.HandleFunc("DELETE /access", withAdmin(accessDeleteHandler))
 	api.HandleFunc("GET /access/groups", withAdmin(groupGetHandler))
 	api.HandleFunc("POST /access/group", withAdmin(groupPostHandler))
@@ -137,6 +138,7 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	api.HandleFunc("GET /share/direct", withPermShare(shareDirectDownloadHandler))
 	api.HandleFunc("GET /share", withPermShare(shareGetHandler))
 	api.HandleFunc("POST /share", withPermShare(sharePostHandler))
+	api.HandleFunc("PATCH /share/path", withPermShare(sharePatchHandler))
 	api.HandleFunc("DELETE /share", withPermShare(shareDeleteHandler))
 
 	// Create API sub-router for public API endpoints

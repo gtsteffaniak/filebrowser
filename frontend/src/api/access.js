@@ -57,3 +57,17 @@ export async function del(source, path, body) {
     method: 'DELETE'
   });
 }
+/**
+ * @param {string} source
+ * @param {string} oldPath
+ * @param {string} newPath
+ * @returns {Promise<any>}
+ */
+export async function updatePath(source, oldPath, newPath) {
+  const apiPath = getApiPath('api/access/path');
+  return fetchJSON(apiPath, {
+    method: 'PATCH',
+    body: JSON.stringify({ source, oldPath, newPath }),
+    headers: { 'Content-Type': 'application/json' }
+  });
+}

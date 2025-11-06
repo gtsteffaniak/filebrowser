@@ -23,6 +23,7 @@
           <th>{{$t('general.path')}}</th>
           <th>{{$t('access.totalDenied')}}</th>
           <th>{{$t('access.totalAllowed')}}</th>
+          <th></th>
           <th>{{$t('general.edit') }}</th>
         </tr>
       </thead>
@@ -31,6 +32,9 @@
           <td>{{ path }}</td>
           <td>{{ (rule.deny.users.length + rule.deny.groups.length) + (rule.denyAll ? 1 : 0) }}</td>
           <td>{{ rule.allow.users.length + rule.allow.groups.length }}</td>
+          <td class="small">
+            <i v-if="!rule.pathExists" class="material-icons warning-icon" :title="$t('messages.pathNotFound')">warning</i>
+          </td>
           <td class="small">
             <button class="action" @click="editAccess(path)" :aria-label="$t('general.edit')"
               :title="$t('general.edit')">
@@ -121,3 +125,10 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.warning-icon {
+  color: #ff9800;
+  font-size: 20px;
+}
+</style>

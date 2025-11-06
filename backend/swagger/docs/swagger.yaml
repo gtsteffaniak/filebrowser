@@ -37,6 +37,104 @@ definitions:
       token:
         type: string
     type: object
+  http.ShareResponse:
+    properties:
+      allowCreate:
+        description: allow creating files
+        type: boolean
+      allowDelete:
+        type: boolean
+      allowModify:
+        description: allow modifying files
+        type: boolean
+      allowReplacements:
+        description: allow replacements of files
+        type: boolean
+      allowedUsernames:
+        items:
+          type: string
+        type: array
+      banner:
+        type: string
+      description:
+        type: string
+      disableAnonymous:
+        type: boolean
+      disableDownload:
+        description: don't allow downloading files
+        type: boolean
+      disableFileViewer:
+        description: don't allow viewing files
+        type: boolean
+      disableShareCard:
+        type: boolean
+      disableSidebar:
+        type: boolean
+      disableThumbnails:
+        type: boolean
+      downloadURL:
+        type: string
+      downloads:
+        type: integer
+      downloadsLimit:
+        type: integer
+      enableOnlyOffice:
+        type: boolean
+      enforceDarkLightMode:
+        description: '"dark" or "light"'
+        type: string
+      expire:
+        type: integer
+      extractEmbeddedSubtitles:
+        description: can be io intensive for large files and take 10-30 seconds.
+        type: boolean
+      favicon:
+        type: string
+      hash:
+        type: string
+      hideNavButtons:
+        type: boolean
+      keepAfterExpiration:
+        type: boolean
+      maxBandwidth:
+        type: integer
+      password_hash:
+        type: string
+      path:
+        type: string
+      pathExists:
+        type: boolean
+      perUserDownloadLimit:
+        type: boolean
+      quickDownload:
+        type: boolean
+      shareTheme:
+        type: string
+      shareType:
+        description: 'type of share: normal, upload, max'
+        type: string
+      source:
+        description: backend source is path to maintain between name changes
+        type: string
+      themeColor:
+        type: string
+      title:
+        type: string
+      token:
+        description: |-
+          Token is a random value that will only be set when PasswordHash is set. It is
+          URL-Safe and is used to download links in password-protected shares via a
+          query arg.
+        type: string
+      userID:
+        type: integer
+      username:
+        type: string
+      viewMode:
+        description: 'default view mode for anonymous users: "list", "compact", "normal",
+          "gallery"'
+        type: string
+    type: object
   indexing.IndexStatus:
     enum:
     - ready
@@ -1457,6 +1555,49 @@ paths:
       summary: Get all groups or groups for a user
       tags:
       - Access
+  /api/access/path:
+    patch:
+      consumes:
+      - application/json
+      description: Updates the path for a specific access rule
+      parameters:
+      - description: Source, old path, and new path
+        in: body
+        name: body
+        required: true
+        schema:
+          properties:
+            newPath:
+              type: string
+            oldPath:
+              type: string
+            source:
+              type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Rule path updated successfully
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad request - missing or invalid parameters
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update access rule path
+      tags:
+      - Access
   /api/auth/login:
     post:
       consumes:
@@ -2465,6 +2606,45 @@ paths:
               type: string
             type: object
       summary: Create direct download link
+      tags:
+      - Shares
+  /api/share/path:
+    patch:
+      consumes:
+      - application/json
+      description: Updates the path for a specific share link identified by hash
+      parameters:
+      - description: Hash and new path
+        in: body
+        name: body
+        required: true
+        schema:
+          properties:
+            hash:
+              type: string
+            path:
+              type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated share link
+          schema:
+            $ref: '#/definitions/http.ShareResponse'
+        "400":
+          description: Bad request - missing or invalid parameters
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update share link path
       tags:
       - Shares
   /api/shares:
