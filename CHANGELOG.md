@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file. For commit 
  **New Features**:
  - size analyzer tool
  - Status bar for listing view #1459
+ - Customizable sidebar links -- reorder sources and add custom links.
  - Dynamic scopes for OIDC #1414 #1363
  - Enhanced notifications, buttons persistence. #1331
  - Cascade delete access in Access Management when deleting a User #1347

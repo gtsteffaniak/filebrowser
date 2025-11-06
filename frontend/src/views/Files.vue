@@ -19,7 +19,7 @@
           <div class="bounce2"></div>
           <div class="bounce3"></div>
         </div>
-        <span>{{ $t("files.loading") }}</span>
+        <span>{{ $t("general.loading", { suffix: "..." }) }}</span>
       </h2>
     </div>
   </div>
@@ -111,13 +111,13 @@ export default {
           body: this.$t("prompts.halloweenBody"),
           buttons: [
             {
-              label: this.$t("buttons.close"),
+              label: this.$t("general.close"),
               action: () => {
                 localStorage.setItem("seenHalloweenMessage", "true");
               },
             },
             {
-              label: this.$t("buttons.disable"),
+              label: this.$t("general.disable"),
               action: () => {
                 mutations.disableEventThemes();
                 localStorage.setItem("seenHalloweenMessage", "true");
@@ -320,6 +320,7 @@ export default {
     },
 
     async fetchFilesData() {
+
       if (!getters.isLoggedIn()) {
         return;
       }

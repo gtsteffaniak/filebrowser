@@ -17,13 +17,13 @@
 
   <div class="card-action">
     <button @click="closeHovers" class="button button--flat button--grey"
-      :aria-label="succeeded ? $t('buttons.close') : $t('buttons.cancel')"
-      :title="succeeded ? $t('buttons.close') : $t('buttons.cancel')">
-      {{ succeeded ? $t('buttons.close') : $t('buttons.cancel') }}
+      :aria-label="succeeded ? $t('general.close') : $t('general.cancel')"
+      :title="succeeded ? $t('general.close') : $t('general.cancel')">
+      {{ succeeded ? $t('general.close') : $t('general.cancel') }}
     </button>
     <button v-if="!succeeded" class="button button--flat button--blue" @click="verifyCode"
-      :title="$t('buttons.verify')">
-      {{ $t("buttons.verify") }}
+      :title="$t('general.verify')">
+      {{ $t("general.verify") }}
     </button>
   </div>
 </template>

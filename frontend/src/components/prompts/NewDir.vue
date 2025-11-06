@@ -10,13 +10,13 @@
   </div>
 
   <div class="card-action">
-    <button class="button button--flat button--grey" @click="closeHovers" :aria-label="$t('buttons.cancel')"
-      :title="$t('buttons.cancel')">
-      {{ $t("buttons.cancel") }}
+    <button class="button button--flat button--grey" @click="closeHovers" :aria-label="$t('general.cancel')"
+      :title="$t('general.cancel')">
+      {{ $t("general.cancel") }}
     </button>
-    <button class="button button--flat" :aria-label="$t('buttons.create')" :title="$t('buttons.create')"
+    <button class="button button--flat" :aria-label="$t('general.create')" :title="$t('general.create')"
       @click="submit">
-      {{ $t("buttons.create") }}
+      {{ $t("general.create") }}
     </button>
   </div>
 </template>

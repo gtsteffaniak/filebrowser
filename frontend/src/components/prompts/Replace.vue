@@ -8,13 +8,13 @@
   </div>
 
   <div class="card-action">
-    <button class="button button--flat button--grey" @click="closeTopHover" :aria-label="$t('buttons.cancel')"
-      :title="$t('buttons.cancel')">
-      {{ $t("buttons.cancel") }}
+    <button class="button button--flat button--grey" @click="closeTopHover" :aria-label="$t('general.cancel')"
+      :title="$t('general.cancel')">
+      {{ $t("general.cancel") }}
     </button>
-    <button class="button button--flat button--red" @click="currentPrompt.confirm" :aria-label="$t('buttons.replace')"
-      :title="$t('buttons.replace')">
-      {{ $t("buttons.replace") }}
+    <button class="button button--flat button--red" @click="currentPrompt.confirm" :aria-label="$t('general.replace')"
+      :title="$t('general.replace')">
+      {{ $t("general.replace") }}
     </button>
   </div>
 </template>

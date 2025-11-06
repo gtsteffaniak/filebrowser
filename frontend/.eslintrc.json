@@ -11,34 +11,24 @@
   ],
   "settings": {
     "vue-i18n": {
-      // Path to your locale message directory or a glob pattern.
-      // The plugin will use these files to determine available keys.
-      // Make sure 'en.json' is present here.
-      "localeDir": "./src/i18n/*.json"
-
-      // If your i18n instance is initialized with a fallbackLocale,
-      // the linter might use that. Ensure 'en' is effectively the master.
-      // fallbackLocale: 'en', // This might be part of your i18n setup, not ESLint settings
+      "localeDir": "./src/i18n/en.json",
+      "messageSyntaxVersion": "^9.0.0"
     }
   },
   "rules": {
     "no-unreachable": "off",
     // vue-i18n rules:
     // This rule will check if the key used in $t() exists in your locale messages.
-    // By default, it checks against all locales. We want it to primarily use 'en.json'
-    // as the source of truth. The plugin often infers this from your i18n setup,
-    // but we want to be explicit or ensure our sync script makes 'en.json' the master.
+    // The localeDir setting above points to en.json as the single source of truth.
     "@intlify/vue-i18n/no-missing-keys": "error",
-    // Optional: Warn about unused keys in your 'en.json'
-    // This requires configuring the `localeDir` setting below.
-    "@intlify/vue-i18n/no-unused-keys": ["error", {
-      "src": "./src", // Path to your source files
-      "extensions": [".js", ".vue"]
-      // Important: This tells the rule to check unused keys specifically in en.json
-      // by making it the single source of truth for what "should" exist.
-      // However, the rule usually checks keys NOT used in your Vue code.
-      // The primary goal is `no-missing-keys` for keys used in the template.
-    }],
+    // Check for unused keys in en.json (keys that exist but are never used in code)
+    "@intlify/vue-i18n/no-unused-keys": [
+      "error",
+      {
+        "src": "./src",
+        "extensions": [".js", ".vue", ".ts"]
+      }
+    ],
 
     "@intlify/vue-i18n/no-raw-text": [
       "error",

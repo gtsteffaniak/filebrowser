@@ -25,6 +25,7 @@ import ShareDelete from "./ShareDelete.vue";
 import DeleteUser from "./DeleteUser.vue";
 import CreateApi from "./CreateApi.vue";
 import ActionApi from "./ActionApi.vue";
+import SidebarLinks from "./SidebarLinks.vue";
 import Sidebar from "../sidebar/Sidebar.vue";
 import UserEdit from "./UserEdit.vue";
 import buttons from "@/utils/buttons";
@@ -63,6 +64,7 @@ export default {
     DeleteUser,
     CreateApi,
     ActionApi,
+    SidebarLinks,
     Access,
     Password,
     PlaybackQueue,

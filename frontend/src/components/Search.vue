@@ -19,8 +19,8 @@
         v-if="active"
         class="action"
         @click="close"
-        :aria-label="$t('buttons.close')"
-        :title="$t('buttons.close')"
+        :aria-label="$t('general.close')"
+        :title="$t('general.close')"
       >
         <i class="material-icons">close</i>
       </button>
@@ -37,8 +37,8 @@
         ref="input"
         :autofocus="active"
         v-model.trim="value"
-        :aria-label="$t('search.search')"
-        :placeholder="$t('search.search')"
+        aria-label="search input"
+        :placeholder="$t('general.search', { suffix: '...' })"
       />
     </div>
 
@@ -96,7 +96,7 @@
                     v-model="smallerThan"
                     type="number"
                     min="0"
-                    :placeholder="$t('search.number')"
+                    :placeholder="$t('general.number')"
                   /><p>MB</p> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
                 </div>
                 <div class="sizeInputWrapper">
@@ -105,7 +105,7 @@
                     class="sizeInput"
                     v-model="largerThan"
                     type="number"
-                    :placeholder="$t('search.number')"
+                    :placeholder="$t('general.number')"
                   /><p>MB</p> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
                 </div>
               </div>
@@ -119,7 +119,7 @@
         <!-- Message when no results are found -->
         <div class="searchPrompt" v-show="isEmpty && !isRunning">
           <p>{{ noneMessage }}</p>
-          <div class="helpButton" @click="toggleHelp()">{{ $t("sidebar.help") }}</div>
+          <div class="helpButton" @click="toggleHelp()">{{ $t("general.help") }}</div>
         </div>
         <!-- Help text section -->
         <div class="helpText" v-if="showHelp">
@@ -187,11 +187,11 @@ export default {
         { label: this.$t("search.onlyFiles"), value: "type:file" },
       ],
       typeSelect: [
-        { label: this.$t("search.photos"), value: "type:image" },
-        { label: this.$t("search.audio"), value: "type:audio" },
-        { label: this.$t("search.videos"), value: "type:video" },
-        { label: this.$t("search.documents"), value: "type:doc" },
-        { label: this.$t("search.archives"), value: "type:archive" },
+        { label: this.$t("general.photos"), value: "type:image" },
+        { label: this.$t("general.audio"), value: "type:audio" },
+        { label: this.$t("general.videos"), value: "type:video" },
+        { label: this.$t("general.documents"), value: "type:doc" },
+        { label: this.$t("general.archives"), value: "type:archive" },
       ],
       toggleOptionButton: [{ label: this.$t("search.showOptions") }],
       value: "",

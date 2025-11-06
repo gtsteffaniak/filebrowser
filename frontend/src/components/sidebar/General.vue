@@ -3,26 +3,27 @@
     <div class="card-wrapper user-card">
       <div
         v-if="settingsAllowed"
-        @click="navigateTo('/settings','#profile-main')"
         class="inner-card"
       >
-        <button
-          class="person-button action"
+        <a
+          href="/settings#profile-main"
+          class="person-button action button"
+          @click.prevent="navigateTo('/settings','#profile-main')"
           @mouseenter="showTooltip($event, $t('index.settingsHover'))"
           @mouseleave="hideTooltip"
         >
           <i class="material-icons">person</i>
           {{ user.username }}
           <i aria-label="settings" class="material-icons">settings</i>
-        </button>
+        </a>
       </div>
       <div v-else-if="user.username === 'anonymous'" @click="navigateToLogin" class="inner-card">
-        <button class="person-button action">
-          <i class="material-symbols-outlined">login</i> {{ $t("sidebar.login") }}
+        <button class="person-button action button">
+          <i class="material-symbols-outlined">login</i> {{ $t("general.login") }}
         </button>
       </div>
       <div v-else class="inner-card">
-        <button class="person-button action">
+        <button class="person-button action button">
           <i class="material-icons">person</i>
           {{ user.username }}
         </button>
@@ -31,8 +32,8 @@
       <div class="inner-card" v-if="canLogout" @click="logout">
         <button
           aria-label="logout-button"
-          class="logout-button action"
-          @mouseenter="showTooltip($event, $t('index.logout'))"
+          class="logout-button action button"
+          @mouseenter="showTooltip($event, $t('general.logout'))"
           @mouseleave="hideTooltip"
         >
           <i class="material-icons">exit_to_app</i>
@@ -92,67 +93,22 @@
       </div>
     </transition>
   </div>
-  <!-- Section for logged-in users -->
-  <transition
-    name="expand"
-    @before-enter="beforeEnter"
-    @enter="enter"
-    @leave="leave"
-  >
-    <div v-if="showSources" class="sidebar-scroll-list">
-      <div class="sources card">
-        <span> {{ $t("sidebar.sources") }}</span>
-        <transition-group name="expand" tag="div" class="inner-card">
-          <button
-            v-for="(info, name) in sourceInfo"
-            :key="name"
-            class="action source-button"
-            :class="{ active: activeSource == name }"
-            @click="navigateTo('/files/' + info.pathPrefix)"
-            :aria-label="$t('sidebar.myFiles')"
-          >
-            <div class="source-container">
-              <svg
-                class="realtime-pulse"
-                :class="{
-                  active: realtimeActive,
-                  danger: info.status != 'indexing' && info.status != 'ready',
-                  warning: info.status == 'indexing',
-                  ready: info.status == 'ready',
-                }"
-              >
-                <circle class="center" cx="50%" cy="50%" r="7px"></circle>
-                <circle class="pulse" cx="50%" cy="50%" r="10px"></circle>
-              </svg>
-              <span>{{ name }}</span>
-              <i class="no-select material-symbols-outlined tooltip-info-icon"
-                @mouseenter="showSourceTooltip($event, info)"
-                @mouseleave="hideTooltip">
-                info <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-              </i>
-            </div>
-            <div v-if="hasSourceInfo" class="usage-info">
-              <ProgressBar :val="info.used" :max="info.total" unit="bytes"></ProgressBar>
-            </div>
-          </button>
-        </transition-group>
-      </div>
-    </div>
-  </transition>
+
+  <!-- Sidebar Links Component (replaces sources) -->
+  <SidebarLinks />
 </template>
 
 <script>
 import * as auth from "@/utils/auth";
 import { globalVars, shareInfo } from "@/utils/constants";
-import ProgressBar from "@/components/ProgressBar.vue";
-import { state, getters, mutations } from "@/store"; // Import your custom store
-import { getHumanReadableFilesize } from "@/utils/filesizes.js";
+import { state, getters, mutations } from "@/store";
 import { fromNow } from "@/utils/moment";
+import SidebarLinks from "./Links.vue";
 
 export default {
   name: "SidebarGeneral",
   components: {
-    ProgressBar,
+    SidebarLinks,
   },
   data() {
     return {};
@@ -185,8 +141,6 @@ export default {
     disableExternal: () => globalVars.disableExternal,
     canLogout: () => !globalVars.noAuth && state.user?.username !== 'anonymous',
     route: () => state.route,
-    sourceInfo: () => state.sources.info,
-    activeSource: () => state.sources.current,
     realtimeActive: () => state.realtimeActive,
     darkModeTogglePossible: () => shareInfo.enforceDarkLightMode != "dark" && shareInfo.enforceDarkLightMode != "light",
   },
@@ -210,9 +164,6 @@ export default {
           showCentered: true,
         },
       });
-    },
-    getHumanReadableFilesize(size) {
-      return getHumanReadableFilesize(size);
     },
     checkLogin() {
       return getters.isLoggedIn() && !getters.routePath().startsWith("/share");
@@ -316,7 +267,7 @@ export default {
             </thead>
             <tbody>
               <tr>
-                <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${this.$t("index.status")}</td>
+                <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${this.$t("general.status")}</td>
                 <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${info.status || 'unknown'}</td>
               </tr>
               <tr>
@@ -423,86 +374,6 @@ button.action {
   padding: 0px !important;
 }
 
-.source-button {
-  margin-top: 0.5em !important;
-}
-
-.source-button.active {
-  background: var(--alt-background);
-}
-
-.source-icon {
-  padding: 0.1em !important;
-}
-
-.logout-button,
-.person-button {
-  padding: 0 !important;
-}
-
-.realtime-pulse > .pulse {
-  display: none;
-  fill-opacity: 0;
-  transform-origin: 50% 50%;
-  animation: pulse 10s infinite backwards;
-}
-
-.realtime-pulse.active > .pulse {
-  display: block;
-}
-
-.realtime-pulse.ready > .pulse {
-  fill: #21d721;
-  stroke: #21d721;
-}
-
-.realtime-pulse.danger > .pulse {
-  fill: rgb(190, 147, 147);
-  stroke: rgb(235, 55, 55);
-}
-
-.realtime-pulse.warning > .pulse {
-  fill: rgb(255, 157, 0);
-  stroke: rgb(255, 157, 0);
-}
-
-@keyframes pulse {
-  from {
-    stroke-width: 3px;
-    stroke-opacity: 1;
-    transform: scale(0.3);
-  }
-  to {
-    stroke-width: 0;
-    stroke-opacity: 0;
-    transform: scale(1.5);
-  }
-}
-
-.source-container {
-  display: flex;
-  flex-direction: row;
-  color: var(--textPrimary);
-  align-content: center;
-  align-items: center;
-}
-
-.realtime-pulse {
-  width: 2em;
-  height: 2em;
-}
-
-.realtime-pulse.ready > .center {
-  fill: #21d721;
-}
-
-.realtime-pulse.danger > .center {
-  fill: rgb(235, 55, 55);
-}
-
-.realtime-pulse.warning > .center {
-  fill: rgb(255, 157, 0);
-}
 
 .card-wrapper {
   display: flex !important;
@@ -522,6 +393,11 @@ button.action {
 .person-button {
   max-width: 13em;
   padding-right: 1em !important;
+}
+
+a.person-button {
+  text-decoration: none;
+  cursor: pointer;
 }
 
 .file-actions {

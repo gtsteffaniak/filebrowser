@@ -1,9 +1,9 @@
 <template>
   <div class="card-title">
-    <h2>{{ $t("buttons.share") }}</h2>
+    <h2>{{ $t("general.share") }}</h2>
   </div>
   <div class="card-content">
-    <div aria-label="share-path" class="searchContext button"> {{ $t('search.path') }} {{ displayPath }}</div>
+    <div aria-label="share-path" class="searchContext button"> {{ $t('general.path', { suffix: ':' }) }} {{ displayPath }}</div>
     <p> {{ $t('share.notice') }} </p>
 
     <div v-if="listing">
@@ -11,7 +11,7 @@
         <tbody>
           <tr>
             <th>#</th> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-            <th>{{ $t("settings.shareDuration") }}</th>
+            <th>{{ $t("time.unit") }}</th>
             <th></th>
             <th></th>
             <th></th>
@@ -24,8 +24,8 @@
               <template v-else>{{ $t("general.permanent") }}</template>
             </td>
             <td class="small">
-              <button class="action" @click="editLink(link)" :aria-label="$t('buttons.edit')"
-                :title="$t('buttons.edit')">
+              <button class="action" @click="editLink(link)" :aria-label="$t('general.edit')"
+                :title="$t('general.edit')">
                 <i class="material-icons">edit</i>
               </button>
             </td>
@@ -43,8 +43,8 @@
               </button>
             </td>
             <td class="small">
-              <button class="action" @click="deleteLink($event, link)" :aria-label="$t('buttons.delete')"
-                :title="$t('buttons.delete')">
+              <button class="action" @click="deleteLink($event, link)" :aria-label="$t('general.delete')"
+                :title="$t('general.delete')">
                 <i class="material-icons">delete</i>
               </button>
             </td>
@@ -54,7 +54,7 @@
     </div>
     <div v-else>
       <p>
-        {{ $t("settings.shareDuration") }}
+        {{ $t("time.unit") }}
         <i
           class="no-select material-symbols-outlined tooltip-info-icon"
           @mouseenter="showTooltip($event, $t('share.shareDurationDescription'))"
@@ -270,22 +270,22 @@
   </div>
 
   <div class="card-action">
-    <button v-if="listing" class="button button--flat button--grey" @click="closeHovers" :aria-label="$t('buttons.close')"
-      :title="$t('buttons.close')">
-      {{ $t("buttons.close") }}
+    <button v-if="listing" class="button button--flat button--grey" @click="closeHovers" :aria-label="$t('general.close')"
+      :title="$t('general.close')">
+      {{ $t("general.close") }}
     </button>
-    <button v-if="listing" class="button button--flat button--blue" @click="() => switchListing()" :aria-label="$t('buttons.new')"
-      :title="$t('buttons.new')">
-      {{ $t("buttons.new") }}
+    <button v-if="listing" class="button button--flat button--blue" @click="() => switchListing()" :aria-label="$t('general.new')"
+      :title="$t('general.new')">
+      {{ $t("general.new") }}
     </button>
 
-    <button v-if="!listing" class="button button--flat button--grey" @click="() => switchListing()" :aria-label="$t('buttons.cancel')"
-      :title="$t('buttons.cancel')">
-      {{ $t("buttons.cancel") }}
+    <button v-if="!listing" class="button button--flat button--grey" @click="() => switchListing()" :aria-label="$t('general.cancel')"
+      :title="$t('general.cancel')">
+      {{ $t("general.cancel") }}
     </button>
     <button v-if="!listing" class="button button--flat button--blue" @click="submit" aria-label="Share-Confirm"
-      :title="$t('buttons.share')">
-      {{ $t("buttons.share") }}
+      :title="$t('general.share')">
+      {{ $t("general.share") }}
     </button>
   </div>
 </template>
