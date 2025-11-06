@@ -112,7 +112,7 @@ export default {
   beforeUnmount() {
     this.clip.destroy();
     // Clean up event listener
-    eventBus.removeEventListener('sharesChanged', this.reloadShares);
+    eventBus.off('sharesChanged', this.reloadShares);
   },
   computed: {
     settings() {
@@ -204,10 +204,5 @@ export default {
 tr > td,
 tr > th {
   text-align: center;
-}
-
-.warning-icon {
-  color: #ff9800;
-  font-size: 20px;
 }
 </style>

@@ -248,7 +248,6 @@ export default {
       if (getters.isShare()) {
         return false;
       }
-      console.log(this.permissions.admin, this.showCreate);
       return this.permissions.admin && this.showCreate;
     },
     showShare() {

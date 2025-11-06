@@ -80,7 +80,7 @@ export async function create(bodyObj = {}) {
  */
 export async function updatePath(hash, newPath) {
   try {
-    const apiPath = getApiPath("api/share/path");
+    const apiPath = getApiPath("api/share");
     return await fetchJSON(apiPath, {
       method: "PATCH",
       body: JSON.stringify({ hash, path: newPath }),

@@ -17,3 +17,8 @@
 .warning-banner span {
     flex: 1;
 }
+
+.warning-icon {
+    color: var(--icon-orange);
+    font-size: 20px;
+}

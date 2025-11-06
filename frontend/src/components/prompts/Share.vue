@@ -292,7 +292,7 @@
     </div>
   </div>
 
-  <div class="card-action">
+  <div v-if="!isEditingPath" class="card-action">
     <button v-if="listing" class="button button--flat button--grey" @click="closeHovers" :aria-label="$t('general.close')"
       :title="$t('general.close')">
       {{ $t("general.close") }}

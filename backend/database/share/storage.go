@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
+	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/crud"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/go-logger/logger"
@@ -220,45 +221,53 @@ func (s *Storage) GetBySourcePath(path, source string) ([]*Link, error) {
 	return filtered, nil
 }
 
-// UpdateShares updates all shares that exactly match oldSource and oldPath
-// to point to newSource and newPath. Returns the number of updated shares.
+// UpdateShares updates all shares that match oldSource and oldPath to point to newSource and newPath.
+// Handles both exact matches and subdirectories, regardless of trailing slashes.
 func (s *Storage) UpdateShares(oldSource, oldPath, newSource, newPath string) (int, error) {
 	links, err := s.back.All()
 	if err != nil && err != errors.ErrNotExist {
 		logger.Error("failed to list shares", "error", err)
 		return 0, err
 	}
+
+	// Normalize paths for comparison (remove trailing slashes)
+	oldPath = utils.AddTrailingSlashIfNotExists(oldPath)
+	newPath = utils.AddTrailingSlashIfNotExists(newPath)
+
 	updated := 0
 	for _, l := range links {
-		if l == nil {
+		if l == nil || l.Source != oldSource {
 			continue
 		}
-		if l.Source != oldSource {
-			continue
-		}
+		l.Path = utils.AddTrailingSlashIfNotExists(l.Path)
+
 		pos := strings.Index(l.Path, oldPath)
 		if pos < 0 {
 			continue
 		}
+
 		oldFullPath := l.Path
 		l.Source = newSource
-		l.Path = oldFullPath[:pos] + newPath + oldFullPath[pos+len(oldPath):]
+		l.Path = newPath
+
 		if err := s.back.Save(l); err != nil {
 			logger.Error("failed to save updated share", "hash", l.Hash, "error", err)
 			return updated, err
 		}
+
 		s.mu.Lock()
 		if existing, ok := s.shareCache[l.Hash]; ok && existing != nil {
-			// update existing cached pointer fields
 			existing.Source = l.Source
 			existing.Path = l.Path
 		} else {
 			s.shareCache[l.Hash] = l
 		}
 		s.mu.Unlock()
+
 		logger.Info("share updated", "hash", l.Hash, "fromPath", oldFullPath, "toPath", l.Path)
 		updated++
 	}
+
 	if updated == 0 {
 		logger.Warning("no matching shares to update for provided source/path")
 	}

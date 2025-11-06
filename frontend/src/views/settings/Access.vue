@@ -81,7 +81,7 @@ export default {
   },
   beforeUnmount() {
     // Clean up event listener
-    eventBus.removeEventListener('accessRulesChanged', this.fetchRules);
+    eventBus.off('accessRulesChanged', this.fetchRules);
   },
   computed: {
     /*loading() {
@@ -125,10 +125,3 @@ export default {
   },
 };
 </script>
-
-<style scoped>
-.warning-icon {
-  color: #ff9800;
-  font-size: 20px;
-}
-</style>

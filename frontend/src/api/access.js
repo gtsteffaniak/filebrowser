@@ -64,7 +64,7 @@ export async function del(source, path, body) {
  * @returns {Promise<any>}
  */
 export async function updatePath(source, oldPath, newPath) {
-  const apiPath = getApiPath('api/access/path');
+  const apiPath = getApiPath('api/access');
   return fetchJSON(apiPath, {
     method: 'PATCH',
     body: JSON.stringify({ source, oldPath, newPath }),

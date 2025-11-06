@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -21,45 +20,56 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 // ShareResponse represents a share with computed username field and download URL
 type ShareResponse struct {
 	*share.Link
+	Source      string `json:"source"` // Override embedded field to show source name
 	Username    string `json:"username,omitempty"`
 	DownloadURL string `json:"downloadURL,omitempty"`
 	PathExists  bool   `json:"pathExists"`
 }
 
-// checkPathExists checks if a path exists on the filesystem given a source path and index path
-func checkPathExists(sourcePath, indexPath string) bool {
-	// Construct the full filesystem path
-	fullPath := filepath.Join(sourcePath, indexPath)
-
-	// Check if the path exists
-	_, err := os.Stat(fullPath)
-	return err == nil
-}
-
-// convertToShareResponse converts shares to response format with usernames
-func convertToShareResponse(r *http.Request, shares []*share.Link) ([]*ShareResponse, error) {
-	responses := make([]*ShareResponse, len(shares))
-	for i, s := range shares {
+// convertToFrontendShareResponse converts shares to response format with usernames
+func convertToFrontendShareResponse(r *http.Request, shares []*share.Link) ([]*ShareResponse, error) {
+	responses := make([]*ShareResponse, 0, len(shares))
+	for _, s := range shares {
 		user, err := store.Users.Get(s.UserID)
 		username := ""
 		if err == nil {
 			username = user.Username
 		}
 
-		// Check if the path exists on the filesystem
-		pathExists := checkPathExists(s.Source, s.Path)
+		// Get source info to convert path to name for frontend
+		sourceInfo, ok := config.Server.SourceMap[s.Source]
+		if !ok {
+			// Source not found - likely corrupted data. Try to find by name as fallback
+			sourceInfo, ok = config.Server.NameToSource[s.Source]
+			if !ok {
+				// Still not found - this share is invalid, skip it and delete it
+				logger.Error("Invalid share - deleting", "hash", s.Hash, "source", s.Source)
+				_ = store.Share.Delete(s.Hash) // Best effort delete
+				continue
+			}
+			// Found by name - this is corrupted data, fix it
+			logger.Warning("Share has corrupted source - fixing", "hash", s.Hash, "from", s.Source, "to", sourceInfo.Path)
+			s.Source = sourceInfo.Path
+			_ = store.Share.Save(s) // Best effort fix
+		}
 
-		responses[i] = &ShareResponse{
+		// Check if the path exists on the filesystem
+		pathExists := utils.CheckPathExists(filepath.Join(sourceInfo.Path, s.Path))
+
+		// Create response with source name (overrides the embedded Link's source field)
+		responses = append(responses, &ShareResponse{
 			Link:        s,
+			Source:      sourceInfo.Name, // Override to show source name instead of backend path
 			Username:    username,
 			DownloadURL: getDownloadURL(r, s.Hash),
 			PathExists:  pathExists,
-		}
+		})
 	}
 	return responses, nil
 }
@@ -85,7 +95,10 @@ func shareListHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		return http.StatusInternalServerError, err
 	}
 	shares = utils.NonNilSlice(shares)
-	sharesWithUsernames, err := convertToShareResponse(r, shares)
+	for _, share := range shares {
+		fmt.Println("1share source = ", share.Source)
+	}
+	sharesWithUsernames, err := convertToFrontendShareResponse(r, shares)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -124,11 +137,15 @@ func shareGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) 
 	if err == errors.ErrNotExist || len(s) == 0 {
 		return renderJSON(w, r, []*ShareResponse{})
 	}
-	// DownloadURL will be set in convertToShareResponse
+	// DownloadURL will be set in convertToFrontendShareResponse
+
 	if err != nil {
 		return http.StatusInternalServerError, fmt.Errorf("error getting share info from server")
 	}
-	sharesWithUsernames, err := convertToShareResponse(r, s)
+	for _, share := range s {
+		fmt.Println("2share source = ", share.Source)
+	}
+	sharesWithUsernames, err := convertToFrontendShareResponse(r, s)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -171,7 +188,7 @@ func shareDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 // @Success 200 {object} ShareResponse "Updated share link"
 // @Failure 400 {object} map[string]string "Bad request - missing or invalid parameters"
 // @Failure 500 {object} map[string]string "Internal server error"
-// @Router /api/share/path [patch]
+// @Router /api/share [patch]
 func sharePatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	var body struct {
 		Hash string `json:"hash"`
@@ -200,7 +217,7 @@ func sharePatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 	}
 
 	// Convert to response format
-	sharesWithUsernames, err := convertToShareResponse(r, []*share.Link{updatedShare})
+	sharesWithUsernames, err := convertToFrontendShareResponse(r, []*share.Link{updatedShare})
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -339,6 +356,10 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		return http.StatusForbidden, err
 	}
 	scopePath := utils.JoinPathAsUnix(userscope, body.Path)
+	// filepath.Join removes trailing slashes, but we need to preserve them for directories
+	if !strings.HasSuffix(scopePath, "/") {
+		scopePath = scopePath + "/"
+	}
 	body.Path = scopePath
 	// validate path exists as file or folder
 	_, exists := idx.GetReducedMetadata(body.Path, true) // true to check if it exists
@@ -364,7 +385,7 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	if err = store.Share.Save(s); err != nil {
 		return http.StatusInternalServerError, err
 	}
-	sharesWithUsernames, err := convertToShareResponse(r, []*share.Link{s})
+	sharesWithUsernames, err := convertToFrontendShareResponse(r, []*share.Link{s})
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}

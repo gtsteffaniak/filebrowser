@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
-	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/version"
 	"github.com/gtsteffaniak/go-logger/logger"
 	"golang.org/x/mod/semver"
@@ -31,7 +31,8 @@ func CheckForUpdates() (updateInfo, error) {
 	repoOwner := "gtsteffaniak"
 	repoName := "filebrowser"
 	currentVersion := version.Version
-	if currentVersion == "untracked" || currentVersion == "testing" || currentVersion == "" || settings.Config.Env.IsDevMode {
+	isDevMode := os.Getenv("FILEBROWSER_DEVMODE") == "true"
+	if currentVersion == "untracked" || currentVersion == "testing" || currentVersion == "" || isDevMode {
 		return updateInfo{}, nil
 	}
 	splitVersion := strings.Split(currentVersion, "-")

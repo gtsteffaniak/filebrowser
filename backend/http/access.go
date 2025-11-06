@@ -312,7 +312,7 @@ func groupDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 // @Success 200 {object} map[string]string "Rule path updated successfully"
 // @Failure 400 {object} map[string]string "Bad request - missing or invalid parameters"
 // @Failure 500 {object} map[string]string "Internal server error"
-// @Router /api/access/path [patch]
+// @Router /api/access [patch]
 func accessPatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	var body struct {
 		Source  string `json:"source"`

@@ -282,7 +282,7 @@ func validateMoveDestination(src, dst string, isSrcDir bool) error {
 	return nil
 }
 
-func MoveResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string, s *share.Storage) error {
+func MoveResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string, s *share.Storage, a *access.Storage) error {
 	// Validate the move operation before executing
 	if err := validateMoveDestination(realsrc, realdst, isSrcDir); err != nil {
 		return err
@@ -340,6 +340,15 @@ func MoveResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string
 
 	// Use backend source paths to match how shares are stored
 	go s.UpdateShares(srcIdx.Path, srcIdx.MakeIndexPath(realsrc), dstIdx.Path, dstIdx.MakeIndexPath(realdst)) //nolint:errcheck
+
+	// Update access rules for the moved path
+	if a != nil {
+		// If moving within the same source, update the rules
+		if srcIdx.Path == dstIdx.Path {
+			go a.UpdateRules(srcIdx.Path, srcIdx.MakeIndexPath(realsrc), dstIdx.MakeIndexPath(realdst)) //nolint:errcheck
+		}
+		// Cross-source moves don't preserve access rules (they're source-specific)
+	}
 
 	return nil
 }

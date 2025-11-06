@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"maps"
-	"os"
 	"path/filepath"
 	"slices"
 	"sort"
@@ -145,16 +144,6 @@ func NewStorage(db *storm.DB, usersStore *users.Storage) *Storage {
 	return s
 }
 
-// checkPathExists checks if a path exists on the filesystem given a source path and index path
-func checkPathExists(sourcePath, indexPath string) bool {
-	// Construct the full filesystem path
-	fullPath := filepath.Join(sourcePath, indexPath)
-
-	// Check if the path exists
-	_, err := os.Stat(fullPath)
-	return err == nil
-}
-
 // ClearCache clears the access cache (useful for testing)
 func ClearCache() {
 	// Recreate the caches to clear them
@@ -210,24 +199,11 @@ func (s *Storage) RemoveRuleByPath(sourcePath, indexPath string) {
 	}
 }
 
-// normalizeRulePath ensures directory paths have trailing slashes for consistent rule storage
-func normalizeRulePath(indexPath string) string {
-	// Root path stays as "/"
-	if indexPath == "/" {
-		return "/"
-	}
-	// For all other paths, ensure they have trailing slashes
-	if !strings.HasSuffix(indexPath, "/") {
-		return indexPath + "/"
-	}
-	return indexPath
-}
-
 // getOrCreateRuleNL ensures a rule exists for the given source and index path.
 // The caller must hold the lock.
 func (s *Storage) getOrCreateRuleNL(sourcePath, indexPath string) *AccessRule {
 	// Normalize the path to ensure consistent rule storage
-	normalizedPath := normalizeRulePath(indexPath)
+	normalizedPath := utils.AddTrailingSlashIfNotExists(indexPath)
 	if _, ok := s.AllRules[sourcePath]; !ok {
 		s.AllRules[sourcePath] = make(RuleMap)
 	}
@@ -425,7 +401,7 @@ func (s *Storage) getRuleAtExactPath(sourcePath, indexPath string) (*AccessRule,
 		return nil, false
 	}
 	// Normalize the path to ensure consistent rule lookup
-	normalizedPath := normalizeRulePath(indexPath)
+	normalizedPath := utils.AddTrailingSlashIfNotExists(indexPath)
 	rule, ok := rulesBySource[normalizedPath]
 	return rule, ok
 }
@@ -485,7 +461,7 @@ func (s *Storage) GetFrontendRules(sourcePath, indexPath string) (FrontendAccess
 	}
 
 	// Check if path exists on filesystem
-	pathExists := checkPathExists(sourcePath, indexPath)
+	pathExists := utils.CheckPathExists(filepath.Join(sourcePath, indexPath))
 
 	frontendRules := FrontendAccessRule{
 		SourceDenyDefault: sourceDenyDefault,
@@ -550,7 +526,7 @@ func (s *Storage) GetAllRules(sourcePath string) (map[string]FrontendAccessRule,
 		frontendPath := indexPath
 
 		// Check if path exists on filesystem
-		pathExists := checkPathExists(sourcePath, indexPath)
+		pathExists := utils.CheckPathExists(filepath.Join(sourcePath, indexPath))
 
 		// Convert AccessRule to FrontendAccessRule
 		frontendRules[frontendPath] = FrontendAccessRule{
@@ -674,7 +650,7 @@ func (s *Storage) RemoveUserFromGroup(group, username string) error {
 func (s *Storage) RemoveAllowUser(sourcePath, indexPath, username string) (bool, error) {
 	s.mux.Lock()
 	defer s.mux.Unlock()
-	normalizedPath := normalizeRulePath(indexPath)
+	normalizedPath := utils.AddTrailingSlashIfNotExists(indexPath)
 	rule, ok := s.AllRules[sourcePath][normalizedPath]
 	if !ok {
 		return false, nil
@@ -707,7 +683,7 @@ func (s *Storage) RemoveAllowUser(sourcePath, indexPath, username string) (bool,
 func (s *Storage) RemoveAllowGroup(sourcePath, indexPath, groupname string) (bool, error) {
 	s.mux.Lock()
 	defer s.mux.Unlock()
-	normalizedPath := normalizeRulePath(indexPath)
+	normalizedPath := utils.AddTrailingSlashIfNotExists(indexPath)
 	rule, ok := s.AllRules[sourcePath][normalizedPath]
 	if !ok {
 		return false, nil
@@ -740,7 +716,7 @@ func (s *Storage) RemoveAllowGroup(sourcePath, indexPath, groupname string) (boo
 func (s *Storage) RemoveDenyUser(sourcePath, indexPath, username string) (bool, error) {
 	s.mux.Lock()
 	defer s.mux.Unlock()
-	normalizedPath := normalizeRulePath(indexPath)
+	normalizedPath := utils.AddTrailingSlashIfNotExists(indexPath)
 	rule, ok := s.AllRules[sourcePath][normalizedPath]
 	if !ok {
 		return false, nil
@@ -773,7 +749,7 @@ func (s *Storage) RemoveDenyUser(sourcePath, indexPath, username string) (bool, 
 func (s *Storage) RemoveDenyGroup(sourcePath, indexPath, groupname string) (bool, error) {
 	s.mux.Lock()
 	defer s.mux.Unlock()
-	normalizedPath := normalizeRulePath(indexPath)
+	normalizedPath := utils.AddTrailingSlashIfNotExists(indexPath)
 	rule, ok := s.AllRules[sourcePath][normalizedPath]
 	if !ok {
 		return false, nil
@@ -806,7 +782,7 @@ func (s *Storage) RemoveDenyGroup(sourcePath, indexPath, groupname string) (bool
 func (s *Storage) RemoveDenyAll(sourcePath, indexPath string) (bool, error) {
 	s.mux.Lock()
 	defer s.mux.Unlock()
-	normalizedPath := normalizeRulePath(indexPath)
+	normalizedPath := utils.AddTrailingSlashIfNotExists(indexPath)
 	rule, ok := s.AllRules[sourcePath][normalizedPath]
 	if !ok {
 		return false, nil
@@ -1145,7 +1121,7 @@ func (s *Storage) RemoveUserCascade(sourcePath, indexPath, username string, allo
 	s.mux.Lock()
 	defer s.mux.Unlock()
 
-	normalizedPath := normalizeRulePath(indexPath)
+	normalizedPath := utils.AddTrailingSlashIfNotExists(indexPath)
 	rulesBySource, ok := s.AllRules[sourcePath]
 	if !ok {
 		return 0, nil
@@ -1204,7 +1180,7 @@ func (s *Storage) RemoveGroupCascade(sourcePath, indexPath, groupname string, al
 	s.mux.Lock()
 	defer s.mux.Unlock()
 
-	normalizedPath := normalizeRulePath(indexPath)
+	normalizedPath := utils.AddTrailingSlashIfNotExists(indexPath)
 	rulesBySource, ok := s.AllRules[sourcePath]
 	if !ok {
 		return 0, nil
@@ -1256,28 +1232,81 @@ func (s *Storage) RemoveGroupCascade(sourcePath, indexPath, groupname string, al
 	return 0, nil
 }
 
-// UpdateRulePath updates the path for a specific access rule
+// UpdateRules updates all access rules that match oldPath to point to newPath.
+// Handles both exact matches and subdirectories. Similar to share.Storage.UpdateShares.
+func (s *Storage) UpdateRules(sourcePath, oldPath, newPath string) (int, error) {
+	s.mux.Lock()
+	defer s.mux.Unlock()
+
+	rulesBySource, ok := s.AllRules[sourcePath]
+	if !ok {
+		return 0, nil // No rules for this source, not an error
+	}
+
+	// Normalize paths (always add trailing slash for access rules)
+	oldPath = utils.AddTrailingSlashIfNotExists(oldPath)
+	newPath = utils.AddTrailingSlashIfNotExists(newPath)
+
+	updated := 0
+	rulesToUpdate := make(map[string]string) // old path -> new path
+
+	// Find all rules that need to be updated
+	for rulePath := range rulesBySource {
+		if rulePath == oldPath {
+			// Exact match
+			rulesToUpdate[rulePath] = newPath
+		} else if strings.HasPrefix(rulePath, oldPath) {
+			// Subdirectory - replace prefix
+			newRulePath := newPath + strings.TrimPrefix(rulePath, oldPath)
+			rulesToUpdate[rulePath] = newRulePath
+		}
+	}
+
+	// Update all matched rules
+	for oldRulePath, newRulePath := range rulesToUpdate {
+		rule := rulesBySource[oldRulePath]
+		delete(rulesBySource, oldRulePath)
+		rulesBySource[newRulePath] = rule
+		logger.Info("access rule updated", "source", sourcePath, "fromPath", oldRulePath, "toPath", newRulePath)
+		updated++
+	}
+
+	if updated > 0 {
+		// Invalidate caches
+		s.incrementSourceVersion(sourcePath)
+		accessCache.Set(accessChangedKey+sourcePath, "false")
+		rulesCache.Delete(accessChangedKey + sourcePath)
+
+		if err := s.SaveToDB(); err != nil {
+			return updated, err
+		}
+	}
+
+	return updated, nil
+}
+
+// UpdateRulePath updates the path for a specific access rule (used by PATCH API endpoint).
 func (s *Storage) UpdateRulePath(sourcePath, oldPath, newPath string) error {
 	s.mux.Lock()
 	defer s.mux.Unlock()
 
 	// Normalize paths
-	oldNormalized := normalizeRulePath(oldPath)
-	newNormalized := normalizeRulePath(newPath)
+	oldPath = utils.AddTrailingSlashIfNotExists(oldPath)
+	newPath = utils.AddTrailingSlashIfNotExists(newPath)
 
 	rulesBySource, ok := s.AllRules[sourcePath]
 	if !ok {
 		return fmt.Errorf("no rules found for source: %s", sourcePath)
 	}
 
-	rule, ok := rulesBySource[oldNormalized]
+	rule, ok := rulesBySource[oldPath]
 	if !ok {
 		return fmt.Errorf("no rule found for path: %s", oldPath)
 	}
 
 	// Remove the old rule and add it with the new path
-	delete(rulesBySource, oldNormalized)
-	rulesBySource[newNormalized] = rule
+	delete(rulesBySource, oldPath)
+	rulesBySource[newPath] = rule
 
 	// Invalidate caches
 	s.incrementSourceVersion(sourcePath)

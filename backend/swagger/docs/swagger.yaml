@@ -114,7 +114,7 @@ definitions:
         description: 'type of share: normal, upload, max'
         type: string
       source:
-        description: backend source is path to maintain between name changes
+        description: Override embedded field to show source name
         type: string
       themeColor:
         type: string
@@ -1405,6 +1405,48 @@ paths:
       summary: List access rules
       tags:
       - Access
+    patch:
+      consumes:
+      - application/json
+      description: Updates the path for a specific access rule
+      parameters:
+      - description: Source, old path, and new path
+        in: body
+        name: body
+        required: true
+        schema:
+          properties:
+            newPath:
+              type: string
+            oldPath:
+              type: string
+            source:
+              type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Rule path updated successfully
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad request - missing or invalid parameters
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update access rule path
+      tags:
+      - Access
     post:
       consumes:
       - application/json
@@ -1553,49 +1595,6 @@ paths:
               type: string
             type: object
       summary: Get all groups or groups for a user
-      tags:
-      - Access
-  /api/access/path:
-    patch:
-      consumes:
-      - application/json
-      description: Updates the path for a specific access rule
-      parameters:
-      - description: Source, old path, and new path
-        in: body
-        name: body
-        required: true
-        schema:
-          properties:
-            newPath:
-              type: string
-            oldPath:
-              type: string
-            source:
-              type: string
-          type: object
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Rule path updated successfully
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "400":
-          description: Bad request - missing or invalid parameters
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal server error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Update access rule path
       tags:
       - Access
   /api/auth/login:
@@ -2516,6 +2515,44 @@ paths:
       summary: Get share links by path
       tags:
       - Shares
+    patch:
+      consumes:
+      - application/json
+      description: Updates the path for a specific share link identified by hash
+      parameters:
+      - description: Hash and new path
+        in: body
+        name: body
+        required: true
+        schema:
+          properties:
+            hash:
+              type: string
+            path:
+              type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated share link
+          schema:
+            $ref: '#/definitions/http.ShareResponse'
+        "400":
+          description: Bad request - missing or invalid parameters
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update share link path
+      tags:
+      - Shares
     post:
       consumes:
       - application/json
@@ -2606,45 +2643,6 @@ paths:
               type: string
             type: object
       summary: Create direct download link
-      tags:
-      - Shares
-  /api/share/path:
-    patch:
-      consumes:
-      - application/json
-      description: Updates the path for a specific share link identified by hash
-      parameters:
-      - description: Hash and new path
-        in: body
-        name: body
-        required: true
-        schema:
-          properties:
-            hash:
-              type: string
-            path:
-              type: string
-          type: object
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Updated share link
-          schema:
-            $ref: '#/definitions/http.ShareResponse'
-        "400":
-          description: Bad request - missing or invalid parameters
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal server error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Update share link path
       tags:
       - Shares
   /api/shares:

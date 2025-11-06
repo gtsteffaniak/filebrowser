@@ -10,6 +10,9 @@ All notable changes to this project will be documented in this file. For commit 
  - Customizable sidebar links -- reorder sources and add custom links.
  - Dynamic scopes for OIDC #1414 #1363
  - Enhanced notifications, buttons persistence. #1331
+ - Share and Access Rules validation
+   - If a file/path is moved/renamed in UI its rules and shares will always follow.
+   - If a file/path is moved/renamed outside UI, a warning message will show and ability to associate to new path
  - Cascade delete access in Access Management when deleting a User #1347
 
  **Notes**:

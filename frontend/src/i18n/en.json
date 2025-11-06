@@ -1,7 +1,7 @@
 {
   "messages": {
     "pathNotFound": "Path does not exist on filesystem",
-    "pathNotFoundMessage": "The path for this access rule no longer exists on the filesystem. It may have been moved or deleted.",
+    "pathNotFoundMessage": "The path for this no longer exists on the filesystem. It may have been moved or deleted.",
     "reassignPath": "Reassign Path",
     "pathReassigned": "Path successfully updated!",
     "pathReassignFailed": "Failed to update path. Please try again."
