@@ -126,6 +126,7 @@
 import { state, mutations } from "@/store";
 import { notify } from "@/notify";
 import { usersApi } from "@/api";
+import { tools } from "@/utils/constants";
 
 export default {
   name: "SidebarLinks",
@@ -143,13 +144,7 @@ export default {
       dragOverIndex: null,
       linkItemRefs: {},
       originalLinks: null, // Store original order in case drag is cancelled
-      availableTools: [
-        {
-          name: "tools.sizeAnalyzer.name",
-          path: "/tools/sizeViewer",
-          icon: "analytics",
-        },
-      ],
+      availableTools: tools,
     };
   },
   computed: {

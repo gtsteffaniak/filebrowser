@@ -25,25 +25,13 @@
 </template>
 
 <script>
+import { tools } from "@/utils/constants";
+
 export default {
   name: "Tools",
   data() {
     return {
-      tools: [
-        {
-          name: "tools.sizeAnalyzer.name",
-          description: "tools.sizeAnalyzer.description",
-          icon: "analytics",
-          path: "/tools/sizeViewer",
-        },
-        // Add more tools here in the future
-        // {
-        //   name: "tools.duplicateFinder.name",
-        //   description: "tools.duplicateFinder.description",
-        //   icon: "content_copy",
-        //   path: "/tools/duplicateFinder",
-        // },
-      ],
+      tools,
     };
   },
 };
