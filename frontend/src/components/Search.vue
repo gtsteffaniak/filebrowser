@@ -261,7 +261,7 @@ export default {
 
     // Add keyboard event listener for "/" to activate search
     this.handleKeydown = (event) => {
-      if (event.key === '/' && !state.isSearchActive) {
+      if (event.key === '/' && !state.isSearchActive && getters.currentPrompt() === null) {
         event.preventDefault();
         this.open();
       }

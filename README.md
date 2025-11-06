@@ -15,9 +15,6 @@
   <img width="800" src="https://github.com/user-attachments/assets/162d7a95-33b7-49bd-976c-dd6822c0d22b">
 </div>
 
-> [!WARNING]
-> There is no stable version -- :construction: coming very soon!
-
 ## Pinned
 
 :loudspeaker: [Stable Release & v1.0.0 Update](https://github.com/gtsteffaniak/filebrowser/discussions/1293)

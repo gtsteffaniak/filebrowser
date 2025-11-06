@@ -87,6 +87,10 @@ func (st usersBackend) Update(user *users.User, actorIsAdmin bool, fields ...str
 		return err
 	}
 
+	if user.LoginMethod == "" {
+		user.LoginMethod = existingUser.LoginMethod
+	}
+
 	if !slices.Contains(fields, "Password") {
 		user.Password = existingUser.Password
 	} else {
