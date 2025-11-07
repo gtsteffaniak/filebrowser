@@ -122,9 +122,9 @@ func TestGetFileMetadata(t *testing.T) {
 func TestUpdateFileMetadata(t *testing.T) {
 	info := &iteminfo.FileInfo{
 		Path: "/testpath/",
-		Files: []iteminfo.ItemInfo{
-			{Name: "testfile.txt"},
-			{Name: "anotherfile.txt"},
+		Files: []iteminfo.ExtendedItemInfo{
+			{ItemInfo: iteminfo.ItemInfo{Name: "testfile.txt"}},
+			{ItemInfo: iteminfo.ItemInfo{Name: "anotherfile.txt"}},
 		},
 	}
 
@@ -169,9 +169,9 @@ func TestSetDirectoryInfo(t *testing.T) {
 					Name: "testpath",
 					Type: "directory",
 				},
-				Files: []iteminfo.ItemInfo{
-					{Name: "testfile.txt"},
-					{Name: "anotherfile.txt"},
+				Files: []iteminfo.ExtendedItemInfo{
+					{ItemInfo: iteminfo.ItemInfo{Name: "testfile.txt"}},
+					{ItemInfo: iteminfo.ItemInfo{Name: "anotherfile.txt"}},
 				},
 			},
 		},
@@ -182,8 +182,8 @@ func TestSetDirectoryInfo(t *testing.T) {
 			Name: "newPath",
 			Type: "directory",
 		},
-		Files: []iteminfo.ItemInfo{
-			{Name: "testfile.txt"},
+		Files: []iteminfo.ExtendedItemInfo{
+			{ItemInfo: iteminfo.ItemInfo{Name: "testfile.txt"}},
 		},
 	}
 	index.UpdateMetadata(dir)
@@ -211,9 +211,9 @@ func init() {
 					Name: "testpath",
 					Type: "directory",
 				},
-				Files: []iteminfo.ItemInfo{
-					{Name: "testfile.txt", Size: 100},
-					{Name: "anotherfile.txt", Size: 100},
+				Files: []iteminfo.ExtendedItemInfo{
+					{ItemInfo: iteminfo.ItemInfo{Name: "testfile.txt", Size: 100}},
+					{ItemInfo: iteminfo.ItemInfo{Name: "anotherfile.txt", Size: 100}},
 				},
 			},
 			"/anotherpath/": {
@@ -222,8 +222,8 @@ func init() {
 					Name: "anotherpath",
 					Type: "directory",
 				},
-				Files: []iteminfo.ItemInfo{
-					{Name: "afile.txt", Size: 100},
+				Files: []iteminfo.ExtendedItemInfo{
+					{ItemInfo: iteminfo.ItemInfo{Name: "afile.txt", Size: 100}},
 				},
 				Folders: []iteminfo.ItemInfo{
 					{Name: "directory", Type: "directory", Size: 100},

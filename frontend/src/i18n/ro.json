@@ -58,7 +58,9 @@
     "itemsSelected": "elemente selectate",
     "myFiles": "Fișierele mele{suffix}",
     "newFile": "Fișier nou{suffix}",
-    "newFolder": "Dosar nou{suffix}"
+    "newFolder": "Dosar nou{suffix}",
+    "duration": "Durată{suffix}",
+    "sortByDuration": "Sortare după durată"
   },
   "help": {
     "functionKeys": "Taste Funcție",

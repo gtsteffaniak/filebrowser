@@ -58,7 +58,9 @@
     "itemsSelected": "objekt valda",
     "myFiles": "Mina filer{suffix}",
     "newFile": "Ny fil{suffix}",
-    "newFolder": "Ny folder{suffix}"
+    "newFolder": "Ny folder{suffix}",
+    "duration": "Varaktighet{suffix}",
+    "sortByDuration": "Sortera efter varaktighet"
   },
   "help": {
     "functionKeys": "Funktionstangenter",

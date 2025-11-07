@@ -58,7 +58,9 @@
     "itemsSelected": "éléments sélectionnés",
     "myFiles": "Mes dossiers{suffix}",
     "newFile": "Nouveau dossier{suffix}",
-    "newFolder": "Nouveau dossier{suffix}"
+    "newFolder": "Nouveau dossier{suffix}",
+    "duration": "Durée de l'accord{suffix}",
+    "sortByDuration": "Trier par durée"
   },
   "help": {
     "functionKeys": "Touches de Fonction",

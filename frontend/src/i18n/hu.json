@@ -58,7 +58,9 @@
     "itemsSelected": "kiválasztott elemek",
     "myFiles": "Az én fájljaim{suffix}",
     "newFile": "Új fájl{suffix}",
-    "newFolder": "Új mappa{suffix}"
+    "newFolder": "Új mappa{suffix}",
+    "duration": "Időtartam{suffix}",
+    "sortByDuration": "Rendezés időtartam szerint"
   },
   "help": {
     "functionKeys": "Funkcióbillentyűk",

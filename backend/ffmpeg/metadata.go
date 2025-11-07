@@ -28,7 +28,7 @@ func (s *FFmpegService) GetMediaDuration(ctx context.Context, mediaPath string) 
 	}
 	defer MetadataCache.Set(cacheKey, duration)
 	// Acquire semaphore slot for concurrency control
-	if err := s.Acquire(ctx); err != nil {
+	if err = s.Acquire(ctx); err != nil {
 		return 0, err
 	}
 	defer s.Release()

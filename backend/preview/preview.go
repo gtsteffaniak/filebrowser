@@ -29,8 +29,6 @@ var (
 )
 
 type Service struct {
-	ffmpegPath   string
-	ffprobePath  string
 	fileCache    diskcache.Interface
 	debug        bool
 	docGenMutex  sync.Mutex    // Mutex to serialize access to doc generation
