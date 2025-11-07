@@ -46,7 +46,7 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	config = &settings.Config
 	var err error
 	// Determine filesystem mode and set asset paths
-	if settings.Config.Env.EmbeddedFs {
+	if settings.Env.EmbeddedFs {
 		// Embedded mode: Serve files from the embedded assets
 		assetFs, err = fs.Sub(assets, "embed")
 		if err != nil {
@@ -77,12 +77,12 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 			return string(a), err
 		},
 	})
-	if !config.Env.IsDevMode {
+	if !settings.Env.IsDevMode {
 		templates = template.Must(templates.ParseFS(assetFs, "public/index.html"))
 	}
 	templateRenderer = &TemplateRenderer{
 		templates: templates,
-		devMode:   config.Env.IsDevMode,
+		devMode:   settings.Env.IsDevMode,
 	}
 
 	router := http.NewServeMux()

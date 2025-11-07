@@ -515,19 +515,20 @@ export default {
                 this.cleanupAlbumArt();
 
                 // Check if metadata is already provided by the backend
-                if (this.req.audioMeta) {
+                if (this.req.metadata) {
                     this.audioMetadata = {
-                        title: this.req.audioMeta.title || null,
-                        artist: this.req.audioMeta.artist || null,
-                        album: this.req.audioMeta.album || null,
-                        year: this.req.audioMeta.year || null,
+                        title: this.req.metadata.title || null,
+                        artist: this.req.metadata.artist || null,
+                        album: this.req.metadata.album || null,
+                        year: this.req.metadata.year || null,
+                        duration: this.req.metadata.duration || null,
                     };
 
                     // Handle base64 encoded album art from backend
-                    if (this.req.audioMeta.albumArt) {
+                    if (this.req.metadata.albumArt) {
                         try {
                             // Decode base64 album art
-                            const byteCharacters = atob(this.req.audioMeta.albumArt);
+                            const byteCharacters = atob(this.req.metadata.albumArt);
                             const byteNumbers = new Array(byteCharacters.length);
                             for (let i = 0; i < byteCharacters.length; i++) {
                                 byteNumbers[i] = byteCharacters.charCodeAt(i);

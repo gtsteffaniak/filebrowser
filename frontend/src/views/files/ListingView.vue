@@ -94,6 +94,19 @@
               <span>{{ $t("files.lastModified") }}</span>
               <i class="material-icons">{{ modifiedIcon }}</i>
             </p>
+            <p
+              v-if="hasDuration"
+              :class="{ active: durationSorted }"
+              class="duration"
+              role="button"
+              tabindex="0"
+              @click="sort('duration')"
+              :title="$t('files.sortByDuration')"
+              :aria-label="$t('files.sortByDuration')"
+            >
+              <span>{{ $t("files.duration") }}</span>
+              <i class="material-icons">{{ durationIcon }}</i>
+            </p>
           </div>
         </div>
         <div v-if="numDirs > 0">
@@ -143,6 +156,8 @@
             v-bind:reducedOpacity="item.hidden || isDragging"
             v-bind:hash="shareInfo.hash"
             v-bind:hasPreview="item.hasPreview"
+            v-bind:metadata="item.metadata"
+            v-bind:hasDuration="hasDuration"
           />
         </div>
 
@@ -324,8 +339,15 @@ export default {
     modifiedSorted() {
       return getters.sorting().by === "modified";
     },
+    durationSorted() {
+      return getters.sorting().by === "duration";
+    },
     ascOrdered() {
       return getters.sorting().asc;
+    },
+    hasDuration() {
+      // Check if any file has duration metadata
+      return this.files.some(file => file.metadata && file.metadata.duration);
     },
     items() {
       return getters.reqItems();
@@ -358,6 +380,13 @@ export default {
     },
     modifiedIcon() {
       if (this.modifiedSorted && this.ascOrdered) {
+        return "arrow_downward";
+      }
+
+      return "arrow_upward";
+    },
+    durationIcon() {
+      if (this.durationSorted && this.ascOrdered) {
         return "arrow_downward";
       }
 

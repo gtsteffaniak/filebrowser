@@ -160,11 +160,13 @@
   "files": {
     "closePreview": "Close preview",
     "lastModified": "Last modified{suffix}",
+    "duration": "Duration{suffix}",
     "lonely": "It feels lonely here...",
     "multipleSelectionEnabled": "Multiple selection enabled",
     "sortByLastModified": "Sort by last modified",
     "sortByName": "Sort by name",
     "sortBySize": "Sort by size",
+    "sortByDuration": "Sort by duration",
     "noPreview": "Preview is not available for this file.",
     "noDownloadAccess": "Download is not available.",
     "itemSelected": "item selected",

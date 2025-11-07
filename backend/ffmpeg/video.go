@@ -13,46 +13,13 @@ import (
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
-// VideoService handles video preview operations with ffmpeg
-type VideoService struct {
-	ffmpegPath    string
-	ffprobePath   string
-	debug         bool
-	semaphore     chan struct{}
-	maxConcurrent int // For logging purposes
-}
-
-// NewVideoService creates a new video service instance
-func NewVideoService(ffmpegPath, ffprobePath string, maxConcurrent int, debug bool) *VideoService {
-	return &VideoService{
-		ffmpegPath:    ffmpegPath,
-		ffprobePath:   ffprobePath,
-		debug:         debug,
-		semaphore:     make(chan struct{}, maxConcurrent),
-		maxConcurrent: maxConcurrent,
-	}
-}
-
-func (s *VideoService) acquire(ctx context.Context) error {
-	select {
-	case s.semaphore <- struct{}{}:
-		return nil
-	case <-ctx.Done():
-		return ctx.Err()
-	}
-}
-
-func (s *VideoService) release() {
-	<-s.semaphore
-}
-
 // GenerateVideoPreviewStreaming generates a video preview and streams it directly to a writer
 // This is more memory efficient for large previews as it doesn't load the entire file into memory
-func (s *VideoService) GenerateVideoPreviewStreaming(ctx context.Context, videoPath string, percentageSeek int, writer io.Writer) error {
-	if err := s.acquire(ctx); err != nil {
+func (s *FFmpegService) GenerateVideoPreviewStreaming(ctx context.Context, videoPath string, percentageSeek int, writer io.Writer) error {
+	if err := s.Acquire(ctx); err != nil {
 		return err
 	}
-	defer s.release()
+	defer s.Release()
 
 	// Check if context is cancelled before starting
 	if ctx.Err() != nil {
@@ -144,30 +111,4 @@ func (s *VideoService) GenerateVideoPreviewStreaming(ctx context.Context, videoP
 		return fmt.Errorf("ffmpeg command failed on file '%v' : %w", videoPath, err)
 	}
 	return nil
-}
-
-// GetVideoDuration extracts the duration of a video file using ffprobe
-func GetVideoDuration(ffprobePath string, videoPath string) (float64, error) {
-	cmd := exec.Command(ffprobePath,
-		"-v", "error",
-		"-show_entries", "format=duration",
-		"-of", "default=noprint_wrappers=1:nokey=1",
-		videoPath)
-
-	output, err := cmd.Output()
-	if err != nil {
-		return 0, fmt.Errorf("ffprobe failed: %w", err)
-	}
-
-	durationStr := strings.TrimSpace(string(output))
-	if durationStr == "" || durationStr == "N/A" {
-		return 0, fmt.Errorf("could not determine video duration")
-	}
-
-	duration, err := strconv.ParseFloat(durationStr, 64)
-	if err != nil {
-		return 0, fmt.Errorf("invalid duration: %v", err)
-	}
-
-	return duration, nil
 }

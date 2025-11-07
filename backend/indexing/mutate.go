@@ -113,7 +113,7 @@ func (idx *Index) GetReducedMetadata(target string, isDir bool) (*iteminfo.FileI
 			}
 			return &iteminfo.FileInfo{
 				Path:     fp,
-				ItemInfo: item,
+				ItemInfo: item.ItemInfo,
 			}, true
 		}
 	}

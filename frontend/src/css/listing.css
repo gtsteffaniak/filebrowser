@@ -57,7 +57,8 @@ body.rtl #listingView {
 }
 
 #listingView .item .size,
-#listingView .item .modified {
+#listingView .item .modified,
+#listingView .item .duration {
   font-size: 0.9em;
 }
 
@@ -269,6 +270,12 @@ body.rtl #listingView {
   width: 25%;
 }
 
+#listingView .header .duration,
+#listingView.list .item .duration,
+#listingView.compact .item .duration {
+  margin: auto;
+}
+
 #listingView.list .item .size.adjustment,
 #listingView.compact .item .size.adjustment {
   width: calc(25% + 1em) !important;
@@ -373,8 +380,10 @@ body.rtl #listingView {
 
 #listingView.gallery .item .size,
 #listingView.gallery .item .modified,
+#listingView.gallery .item .duration,
 #listingView.icons .item .size,
-#listingView.icons .item .modified {
+#listingView.icons .item .modified,
+#listingView.icons .item .duration {
   display: none !important;
 }
 

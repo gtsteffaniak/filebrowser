@@ -42,10 +42,10 @@ func InitializeDb(path string) (*bolt.BoltStore, bool, error) {
 		return nil, exists, err
 	}
 	if !exists {
-		if settings.Config.Env.IsPlaywright || settings.Config.Env.IsDevMode {
-			settings.Config.Env.IsFirstLoad = false
+		if settings.Env.IsPlaywright || settings.Env.IsDevMode {
+			settings.Env.IsFirstLoad = false
 		} else {
-			settings.Config.Env.IsFirstLoad = true
+			settings.Env.IsFirstLoad = true
 		}
 		quickSetup(store)
 	}
@@ -99,7 +99,7 @@ func quickSetup(store *bolt.BoltStore) {
 		}
 		user.LockPassword = false
 		user.Permissions = settings.AdminPerms()
-		user.ShowFirstLogin = settings.Config.Env.IsFirstLoad && user.Permissions.Admin
+		user.ShowFirstLogin = settings.Env.IsFirstLoad && user.Permissions.Admin
 		logger.Debugf("Creating user as admin: %v %v", user.Username, user.Password)
 		err = store.Users.Save(user, true, true)
 		utils.CheckErr("store.Users.Save", err)
@@ -109,7 +109,7 @@ func quickSetup(store *bolt.BoltStore) {
 // create new user
 func CreateUser(userInfo users.User) error {
 	newUser := &userInfo
-	newUser.ShowFirstLogin = settings.Config.Env.IsFirstLoad && newUser.Permissions.Admin
+	newUser.ShowFirstLogin = settings.Env.IsFirstLoad && newUser.Permissions.Admin
 	if userInfo.LoginMethod == "password" {
 		if userInfo.Password == "" {
 			return fmt.Errorf("password is required to create a password login user")

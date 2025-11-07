@@ -6,6 +6,8 @@ import (
 
 type AllowedMethods string
 
+var Env Environment
+
 const (
 	ProxyAuth    AllowedMethods = "proxyAuth"
 	NoAuth       AllowedMethods = "noAuth"
@@ -13,7 +15,6 @@ const (
 )
 
 type Settings struct {
-	Env          Env          `json:"-"`
 	Server       Server       `json:"server"`
 	Auth         Auth         `json:"auth"`
 	Frontend     Frontend     `json:"frontend"`
@@ -21,12 +22,14 @@ type Settings struct {
 	Integrations Integrations `json:"integrations"`
 }
 
-type Env struct {
-	IsPlaywright   bool `json:"-"`
-	IsDevMode      bool `json:"-"`
-	IsFirstLoad    bool `json:"-"` // used internally to track if this is the first load of the application
-	MuPdfAvailable bool `json:"-"` // used internally if compiled with mupdf support
-	EmbeddedFs     bool `json:"-"` // used internally if compiled with embedded fs support
+type Environment struct {
+	IsPlaywright   bool   `json:"-"`
+	IsDevMode      bool   `json:"-"`
+	IsFirstLoad    bool   `json:"-"` // used internally to track if this is the first load of the application
+	MuPdfAvailable bool   `json:"-"` // used internally if compiled with mupdf support
+	EmbeddedFs     bool   `json:"-"` // used internally if compiled with embedded fs support
+	FFmpegPath     string `json:"-"`
+	FFprobePath    string `json:"-"`
 }
 
 type Server struct {

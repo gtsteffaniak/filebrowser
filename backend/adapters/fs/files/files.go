@@ -1,17 +1,17 @@
 package files
 
 import (
+	"context"
 	"encoding/base64"
 	"fmt"
 	"io"
-	"unicode"
-	"unicode/utf8"
-
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
+	"unicode/utf8"
 
 	"github.com/dhowden/tag"
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
@@ -19,6 +19,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/access"
 	"github.com/gtsteffaniak/filebrowser/backend/database/share"
+	"github.com/gtsteffaniak/filebrowser/backend/ffmpeg"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 	"github.com/gtsteffaniak/go-logger/logger"
@@ -80,9 +81,55 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.E
 			return response, err
 		}
 	}
-	if opts.Content || opts.Metadata {
+
+	// For directories, populate metadata for audio/video files ONLY if explicitly requested
+	// This avoids expensive ffprobe calls on every directory listing
+	if isDir && opts.Metadata {
+		startTime := time.Now()
+		metadataCount := 0
+
+		for i := range response.Files {
+			fileItem := &response.Files[i]
+			isItemAudio := strings.HasPrefix(fileItem.Type, "audio")
+			isItemVideo := strings.HasPrefix(fileItem.Type, "video")
+
+			if isItemAudio || isItemVideo {
+				// Get the real path for this file
+				itemRealPath, _, _ := index.GetRealPath(opts.Path, fileItem.Name)
+
+				// Extract metadata for audio files (without album art for performance)
+				if isItemAudio {
+					err := extractAudioMetadata(context.Background(), fileItem, itemRealPath, false, opts.Metadata)
+					if err != nil {
+						logger.Debugf("failed to extract metadata for file: "+fileItem.Name, err)
+					} else {
+						metadataCount++
+					}
+				} else if isItemVideo {
+					// Extract duration for video files
+					err := extractVideoMetadata(context.Background(), fileItem, itemRealPath)
+					if err != nil {
+						logger.Debugf("failed to extract video metadata for file: "+fileItem.Name, err)
+					} else {
+						metadataCount++
+					}
+				}
+			}
+		}
+
+		if metadataCount > 0 {
+			elapsed := time.Since(startTime)
+			logger.Debugf("Extracted metadata for %d audio/video files in %v (avg: %v per file)",
+				metadataCount, elapsed, elapsed/time.Duration(metadataCount))
+		}
+	}
+
+	// Extract content/metadata when explicitly requested OR for single file audio/video requests
+	isAudioVideo := strings.HasPrefix(info.Type, "audio") || strings.HasPrefix(info.Type, "video")
+	if opts.Content || opts.Metadata || (!isDir && isAudioVideo) {
 		processContent(response, index, opts)
 	}
+
 	if settings.Config.Integrations.OnlyOffice.Secret != "" && info.Type != "directory" && iteminfo.IsOnlyOffice(info.Name) {
 		response.OnlyOfficeId = generateOfficeId(realPath)
 	}
@@ -99,6 +146,18 @@ func processContent(info *iteminfo.ExtendedFileInfo, idx *indexing.Index, opts u
 	}
 
 	if isVideo {
+		// Extract duration for video
+		extItem := &iteminfo.ExtendedItemInfo{
+			ItemInfo: info.ItemInfo,
+		}
+		err := extractVideoMetadata(context.Background(), extItem, info.RealPath)
+		if err != nil {
+			logger.Debugf("failed to extract video metadata for file: "+info.RealPath, info.Name, err)
+		} else {
+			info.Metadata = extItem.Metadata
+		}
+
+		// Handle subtitles if requested
 		if opts.ExtractEmbeddedSubtitles {
 			parentPath := filepath.Dir(info.Path)
 			parentInfo, exists := idx.GetReducedMetadata(parentPath, true)
@@ -114,11 +173,17 @@ func processContent(info *iteminfo.ExtendedFileInfo, idx *indexing.Index, opts u
 	}
 
 	if isAudio {
-		err := extractAudioMetadata(info)
+		// Create an ExtendedItemInfo to hold the metadata
+		extItem := &iteminfo.ExtendedItemInfo{
+			ItemInfo: info.ItemInfo,
+		}
+		err := extractAudioMetadata(context.Background(), extItem, info.RealPath, opts.AlbumArt || opts.Content, opts.Metadata || opts.Content)
 		if err != nil {
 			logger.Debugf("failed to extract audio metadata for file: "+info.RealPath, info.Name, err)
 		} else {
-			info.HasPreview = info.AudioMeta.AlbumArt != ""
+			// Copy metadata to ExtendedFileInfo
+			info.Metadata = extItem.Metadata
+			info.HasPreview = extItem.Metadata != nil && extItem.Metadata.AlbumArt != ""
 		}
 		return
 	}
@@ -148,8 +213,9 @@ func generateOfficeId(realPath string) string {
 }
 
 // extractAudioMetadata extracts metadata from an audio file using dhowden/tag
-func extractAudioMetadata(item *iteminfo.ExtendedFileInfo) error {
-	file, err := os.Open(item.RealPath)
+// and optionally extracts duration using the ffmpeg service with concurrency control
+func extractAudioMetadata(ctx context.Context, item *iteminfo.ExtendedItemInfo, realPath string, getArt bool, getDuration bool) error {
+	file, err := os.Open(realPath)
 	if err != nil {
 		return err
 	}
@@ -172,7 +238,7 @@ func extractAudioMetadata(item *iteminfo.ExtendedFileInfo) error {
 		return err
 	}
 
-	item.AudioMeta = &iteminfo.AudioMetadata{
+	item.Metadata = &iteminfo.MediaMetadata{
 		Title:  m.Title(),
 		Artist: m.Artist(),
 		Album:  m.Album(),
@@ -182,18 +248,55 @@ func extractAudioMetadata(item *iteminfo.ExtendedFileInfo) error {
 
 	// Extract track number
 	track, _ := m.Track()
-	item.AudioMeta.Track = track
+	item.Metadata.Track = track
+
+	// Extract duration ONLY if explicitly requested using the ffmpeg VideoService
+	// This respects concurrency limits and gracefully handles missing ffmpeg
+	if getDuration {
+		ffmpegService := ffmpeg.NewFFmpegService(10, false, "")
+		if ffmpegService != nil {
+			startTime := time.Now()
+			if duration, err := ffmpegService.GetMediaDuration(ctx, realPath); err == nil {
+				item.Metadata.Duration = int(duration)
+				elapsed := time.Since(startTime)
+				if elapsed > 50*time.Millisecond {
+					logger.Debugf("Duration extraction took %v for file: %s", elapsed, item.Name)
+				}
+			}
+		}
+	}
+
+	if !getArt {
+		return nil
+	}
 
 	// Extract album art and encode as base64 with strict size limits
 	if picture := m.Picture(); picture != nil && picture.Data != nil {
 		// More aggressive size limit to prevent memory issues (max 5MB)
 		if len(picture.Data) <= 5*1024*1024 {
-			item.AudioMeta.AlbumArt = base64.StdEncoding.EncodeToString(picture.Data)
+			item.Metadata.AlbumArt = base64.StdEncoding.EncodeToString(picture.Data)
 		} else {
-			logger.Debugf("Skipping album art for %s: too large (%d bytes)", item.RealPath, len(picture.Data))
+			logger.Debugf("Skipping album art for %s: too large (%d bytes)", realPath, len(picture.Data))
 		}
 	}
 
+	return nil
+}
+
+// extractVideoMetadata extracts duration from video files using ffprobe
+func extractVideoMetadata(ctx context.Context, item *iteminfo.ExtendedItemInfo, realPath string) error {
+	// Extract duration using the ffmpeg VideoService with concurrency control
+	videoService := ffmpeg.NewFFmpegService(10, false, "")
+	if videoService != nil {
+		duration, err := videoService.GetMediaDuration(ctx, realPath)
+		if err != nil {
+			return err
+		}
+		item.Metadata = &iteminfo.MediaMetadata{
+			Duration: int(duration),
+		}
+		return nil
+	}
 	return nil
 }
 

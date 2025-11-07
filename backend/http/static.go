@@ -45,7 +45,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 	versionString := ""
 	commitSHAString := ""
 	externalLinks := config.Frontend.ExternalLinks
-	if config.Env.IsPlaywright {
+	if settings.Env.IsPlaywright {
 		versionString = version.Version
 		commitSHAString = version.CommitSHA
 	}
@@ -56,7 +56,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		}
 		versionString = version.Version
 		commitSHAString = version.CommitSHA
-	} else if !config.Env.IsPlaywright {
+	} else if !settings.Env.IsPlaywright {
 		newExternalLinks := []settings.ExternalLink{}
 		// remove version and commit SHA from external links
 		for _, link := range externalLinks {
@@ -210,7 +210,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"proxyAvailable":       config.Auth.Methods.ProxyAuth.Enabled,
 		"passwordAvailable":    config.Auth.Methods.PasswordAuth.Enabled,
 		"mediaAvailable":       config.Integrations.Media.FfmpegPath != "",
-		"muPdfAvailable":       config.Env.MuPdfAvailable,
+		"muPdfAvailable":       settings.Env.MuPdfAvailable,
 		"updateAvailable":      utils.GetUpdateAvailableUrl(),
 		"disableNavButtons":    disableNavButtons,
 		"userSelectableThemes": config.Frontend.Styling.CustomThemeOptions,
