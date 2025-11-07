@@ -85,4 +85,57 @@ describe('testSort', () => {
     expect(sortedItems(input, "date")).toEqual(expected);
   });
 
+  it('sort items by duration correctly (ascending)', () => {
+    const input = [
+      { name: "video3.mp4", metadata: { duration: 300.5 } },
+      { name: "video1.mp4", metadata: { duration: 120.0 } },
+      { name: "video2.mp4", metadata: { duration: 240.75 } },
+      { name: "video4.mp4", metadata: { duration: 60.25 } },
+      { name: "audio.mp3", metadata: { duration: 180.5 } },
+    ]
+    const expected = [
+      { name: "video4.mp4", metadata: { duration: 60.25 } },
+      { name: "video1.mp4", metadata: { duration: 120.0 } },
+      { name: "audio.mp3", metadata: { duration: 180.5 } },
+      { name: "video2.mp4", metadata: { duration: 240.75 } },
+      { name: "video3.mp4", metadata: { duration: 300.5 } },
+    ]
+    expect(sortedItems(input, "duration", true)).toEqual(expected);
+  });
+
+  it('sort items by duration correctly (descending)', () => {
+    const input = [
+      { name: "video3.mp4", metadata: { duration: 300.5 } },
+      { name: "video1.mp4", metadata: { duration: 120.0 } },
+      { name: "video2.mp4", metadata: { duration: 240.75 } },
+      { name: "video4.mp4", metadata: { duration: 60.25 } },
+      { name: "audio.mp3", metadata: { duration: 180.5 } },
+    ]
+    const expected = [
+      { name: "video3.mp4", metadata: { duration: 300.5 } },
+      { name: "video2.mp4", metadata: { duration: 240.75 } },
+      { name: "audio.mp3", metadata: { duration: 180.5 } },
+      { name: "video1.mp4", metadata: { duration: 120.0 } },
+      { name: "video4.mp4", metadata: { duration: 60.25 } },
+    ]
+    expect(sortedItems(input, "duration", false)).toEqual(expected);
+  });
+
+  it('sort items by duration with missing metadata', () => {
+    const input = [
+      { name: "video2.mp4", metadata: { duration: 240.75 } },
+      { name: "image.jpg" }, // no metadata
+      { name: "video1.mp4", metadata: { duration: 120.0 } },
+      { name: "document.pdf", metadata: {} }, // metadata but no duration
+    ]
+    const result = sortedItems(input, "duration", true);
+    
+    // Items with no duration (treated as 0) should come first
+    expect(result[0].metadata?.duration ?? 0).toBe(0);
+    expect(result[1].metadata?.duration ?? 0).toBe(0);
+    // Then items with actual duration values in ascending order
+    expect(result[2]).toEqual({ name: "video1.mp4", metadata: { duration: 120.0 } });
+    expect(result[3]).toEqual({ name: "video2.mp4", metadata: { duration: 240.75 } });
+  });
+
 });

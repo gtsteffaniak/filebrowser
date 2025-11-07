@@ -58,7 +58,9 @@
     "itemsSelected": "项目已选择",
     "myFiles": "我的文件{suffix}",
     "newFile": "新文件{suffix}",
-    "newFolder": "新文件夹{suffix}"
+    "newFolder": "新文件夹{suffix}",
+    "duration": "持续时间{suffix}",
+    "sortByDuration": "按持续时间排序"
   },
   "help": {
     "functionKeys": "功能键",

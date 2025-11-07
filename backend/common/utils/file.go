@@ -54,4 +54,5 @@ type FileOptions struct {
 	Recursive                bool // whether to recursively index directories
 	Metadata                 bool // whether to get metadata
 	ExtractEmbeddedSubtitles bool // whether to extract embedded subtitles from media files
+	AlbumArt                 bool // whether to get album art from media files
 }

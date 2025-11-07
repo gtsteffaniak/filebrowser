@@ -34,8 +34,9 @@ func Initialize(configFile string) {
 		time.Sleep(5 * time.Second) // allow sleep time before exiting to give docker/kubernetes time before restarting
 		logger.Fatal(err.Error())
 	}
-	// setup logging first to ensure we log any errors
 	setupLogging()
+	// setup logging first to ensure we log any errors
+	setupEnv()
 	err = ValidateConfig(Config)
 	if err != nil {
 		errmsg := "The provided config file failed validation. "
@@ -46,16 +47,23 @@ func Initialize(configFile string) {
 		time.Sleep(5 * time.Second) // allow sleep time before exiting to give docker/kubernetes time before restarting
 		logger.Fatal(err.Error())
 	}
-	Config.Env.IsPlaywright = os.Getenv("FILEBROWSER_PLAYWRIGHT_TEST") == "true"
-	if Config.Env.IsPlaywright {
-		logger.Warning("Running in playwright test mode. This is not recommended for production.")
-	}
 	setupFs()
 	setupAuth(false)
 	setupSources(false)
 	setupUrls()
 	setupFrontend(false)
 	setupVideoPreview()
+}
+
+func setupEnv() {
+	Env.IsPlaywright = os.Getenv("FILEBROWSER_PLAYWRIGHT_TEST") == "true"
+	if Env.IsPlaywright {
+		logger.Warning("Running in playwright test mode. This is not recommended for production.")
+	}
+	Env.IsDevMode = os.Getenv("FILEBROWSER_DEVMODE") == "true"
+	if Env.IsDevMode {
+		logger.Warning("Running in dev mode. This is not recommended for production.")
+	}
 }
 
 func setupFs() {
@@ -340,7 +348,7 @@ func setupLogging() {
 	for _, logConfig := range Config.Server.Logging {
 		// Enable debug logging automatically in dev mode
 		levels := logConfig.Levels
-		if Config.Env.IsDevMode {
+		if os.Getenv("FILEBROWSER_DEVMODE") == "true" {
 			levels = "info|warning|error|debug"
 		}
 
@@ -357,10 +365,6 @@ func setupLogging() {
 		if err != nil {
 			log.Println("[ERROR] Failed to set up logger:", err)
 		}
-	}
-	Config.Env.IsDevMode = os.Getenv("FILEBROWSER_DEVMODE") == "true"
-	if Config.Env.IsDevMode {
-		logger.Warning("Running in dev mode. This is not recommended for production.")
 	}
 }
 

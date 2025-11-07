@@ -58,7 +58,9 @@
     "itemsSelected": "itens selecionados",
     "myFiles": "Os meus ficheiros{suffix}",
     "newFile": "Novo ficheiro{suffix}",
-    "newFolder": "Nova pasta{suffix}"
+    "newFolder": "Nova pasta{suffix}",
+    "duration": "Duração{suffix}",
+    "sortByDuration": "Ordenar por duração"
   },
   "help": {
     "functionKeys": "Teclas de Função",

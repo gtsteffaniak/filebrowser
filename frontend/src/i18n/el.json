@@ -61,7 +61,9 @@
     "itemsSelected": "στοιχεία επιλεγμένα",
     "myFiles": "Τα αρχεία μου{suffix}",
     "newFile": "Νέο αρχείο{suffix}",
-    "newFolder": "Νέος φάκελος{suffix}"
+    "newFolder": "Νέος φάκελος{suffix}",
+    "duration": "Διάρκεια{suffix}",
+    "sortByDuration": "Ταξινόμηση κατά διάρκεια"
   },
   "help": {
     "functionKeys": "Πλήκτρα Λειτουργιών",

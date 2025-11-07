@@ -58,7 +58,9 @@
     "itemsSelected": "פריטים נבחרים",
     "myFiles": "הקבצים שלי{suffix}",
     "newFile": "קובץ חדש{suffix}",
-    "newFolder": "תיקיה חדשה{suffix}"
+    "newFolder": "תיקיה חדשה{suffix}",
+    "duration": "משך{suffix}",
+    "sortByDuration": "מיין לפי משך"
   },
   "help": {
     "functionKeys": "מקשי פונקציה",

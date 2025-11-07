@@ -13,41 +13,8 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
 )
 
-// ImageService handles image operations with ffmpeg
-type ImageService struct {
-	ffmpegPath  string
-	ffprobePath string
-	debug       bool
-	cacheDir    string
-	semaphore   chan struct{}
-}
-
-// NewImageService creates a new image service instance
-func NewImageService(ffmpegPath, ffprobePath string, maxConcurrent int, debug bool, cacheDir string) *ImageService {
-	return &ImageService{
-		ffmpegPath:  ffmpegPath,
-		ffprobePath: ffprobePath,
-		debug:       debug,
-		cacheDir:    cacheDir,
-		semaphore:   make(chan struct{}, maxConcurrent),
-	}
-}
-
-func (s *ImageService) Acquire(ctx context.Context) error {
-	select {
-	case s.semaphore <- struct{}{}:
-		return nil
-	case <-ctx.Done():
-		return ctx.Err()
-	}
-}
-
-func (s *ImageService) Release() {
-	<-s.semaphore
-}
-
 // GetImageOrientation extracts the EXIF orientation from an image file using exiftool
-func (s *ImageService) GetImageOrientation(imagePath string) (string, error) {
+func (s *FFmpegService) GetImageOrientation(imagePath string) (string, error) {
 	// Use exiftool to get orientation information
 	cmd := exec.Command("exiftool", "-Orientation", "-s3", imagePath)
 	var out bytes.Buffer
@@ -67,7 +34,7 @@ func (s *ImageService) GetImageOrientation(imagePath string) (string, error) {
 }
 
 // GetOrientationFilter converts EXIF orientation to FFmpeg filter
-func (s *ImageService) GetOrientationFilter(orientation string) string {
+func (s *FFmpegService) GetOrientationFilter(orientation string) string {
 	switch orientation {
 	// Text-based EXIF orientation values (from exiftool)
 	case "Rotate 90 CW", "Right-top":
@@ -111,7 +78,7 @@ func (s *ImageService) GetOrientationFilter(orientation string) string {
 }
 
 // GetImageDimensions extracts the dimensions of an image file using ffprobe
-func (s *ImageService) GetImageDimensions(imagePath string) (width, height int, err error) {
+func (s *FFmpegService) GetImageDimensions(imagePath string) (width, height int, err error) {
 
 	// Get HEIC dimensions (fallback to individual stream dimensions for nowe re
 	probeCmd := exec.Command(
@@ -161,7 +128,7 @@ func (s *ImageService) GetImageDimensions(imagePath string) (width, height int, 
 }
 
 // ConvertHEICToJPEGDirect converts a HEIC file to JPEG using direct FFmpeg conversion (fast method)
-func (s *ImageService) ConvertHEICToJPEGDirect(ctx context.Context, heicPath string, targetWidth, targetHeight int, quality string) ([]byte, error) {
+func (s *FFmpegService) ConvertHEICToJPEGDirect(ctx context.Context, heicPath string, targetWidth, targetHeight int, quality string) ([]byte, error) {
 	// Check if context is cancelled before starting
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
@@ -229,7 +196,7 @@ func (s *ImageService) ConvertHEICToJPEGDirect(ctx context.Context, heicPath str
 }
 
 // ConvertHEICToJPEG converts a HEIC file to JPEG with specified dimensions and quality using proper tile extraction
-func (s *ImageService) ConvertHEICToJPEG(ctx context.Context, heicPath string, targetWidth, targetHeight int, quality string) ([]byte, error) {
+func (s *FFmpegService) ConvertHEICToJPEG(ctx context.Context, heicPath string, targetWidth, targetHeight int, quality string) ([]byte, error) {
 	// Check if context is cancelled before starting
 	if ctx.Err() != nil {
 		return nil, ctx.Err()

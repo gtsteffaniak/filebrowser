@@ -107,7 +107,7 @@ func updateUserScopes(user *users.User) bool {
 }
 
 func updateShowFirstLogin(user *users.User) bool {
-	if user.ShowFirstLogin && !settings.Config.Env.IsFirstLoad {
+	if user.ShowFirstLogin && !settings.Env.IsFirstLoad {
 		user.ShowFirstLogin = false
 		return true
 	}

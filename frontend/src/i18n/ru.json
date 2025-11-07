@@ -58,7 +58,9 @@
     "itemsSelected": "элементы выбраны",
     "myFiles": "Мои файлы{suffix}",
     "newFile": "Новый файл{suffix}",
-    "newFolder": "Новая папка{suffix}"
+    "newFolder": "Новая папка{suffix}",
+    "duration": "Продолжительность{suffix}",
+    "sortByDuration": "Сортировать по продолжительности"
   },
   "help": {
     "functionKeys": "Функциональные Клавиши",

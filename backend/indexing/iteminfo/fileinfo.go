@@ -15,25 +15,32 @@ type ItemInfo struct {
 	HasPreview bool      `json:"hasPreview"` // whether the file has a thumbnail preview
 }
 
+// ExtendedItemInfo extends ItemInfo with optional metadata that's only populated on-demand
+// This avoids adding memory overhead to indexed items
+type ExtendedItemInfo struct {
+	ItemInfo
+	Metadata *MediaMetadata `json:"metadata,omitempty"` // optional media metadata (audio/video only)
+}
+
 // FileInfo describes a file.
 // reduced item is non-recursive reduced "Items", used to pass flat items array
 type FileInfo struct {
 	ItemInfo
-	Files   []ItemInfo `json:"files"`   // files in the directory
-	Folders []ItemInfo `json:"folders"` // folders in the directory
-	Path    string     `json:"path"`    // path scoped to the associated index
+	Files   []ExtendedItemInfo `json:"files,omitempty"`   // files in the directory with optional metadata
+	Folders []ItemInfo         `json:"folders,omitempty"` // folders in the directory
+	Path    string             `json:"path,omitempty"`    // path scoped to the associated index
 }
 
-// AudioMetadata contains metadata extracted from audio files
-type AudioMetadata struct {
-	Title    string `json:"title,omitempty"`    // track title
+// MediaMetadata contains metadata extracted from audio and video files
+type MediaMetadata struct {
+	Title    string `json:"title,omitempty"`    // track/video title
 	Artist   string `json:"artist,omitempty"`   // track artist
 	Album    string `json:"album,omitempty"`    // album name
 	Year     int    `json:"year,omitempty"`     // release year
-	Genre    string `json:"genre,omitempty"`    // music genre
+	Genre    string `json:"genre,omitempty"`    // music/video genre
 	Track    int    `json:"track,omitempty"`    // track number
 	Duration int    `json:"duration,omitempty"` // duration in seconds
-	AlbumArt string `json:"albumArt,omitempty"` // base64 encoded album art
+	AlbumArt string `json:"albumArt,omitempty"` // base64 encoded album art / video thumbnail
 }
 
 // for efficiency, a response will be a pointer to the data
@@ -42,7 +49,7 @@ type ExtendedFileInfo struct {
 	FileInfo
 	Content      string                 `json:"content,omitempty"`      // text content of a file, if requested
 	Subtitles    []ffmpeg.SubtitleTrack `json:"subtitles,omitempty"`    // subtitles for video files
-	AudioMeta    *AudioMetadata         `json:"audioMeta,omitempty"`    // audio metadata for audio files
+	Metadata     *MediaMetadata         `json:"metadata,omitempty"`     // media metadata for audio/video files (includes duration)
 	Checksums    map[string]string      `json:"checksums,omitempty"`    // checksums for the file
 	Token        string                 `json:"token,omitempty"`        // token for the file -- used for sharing
 	OnlyOfficeId string                 `json:"onlyOfficeId,omitempty"` // id for onlyoffice files

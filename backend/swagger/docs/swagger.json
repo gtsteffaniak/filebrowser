@@ -3077,14 +3077,51 @@
                 }
             }
         },
+        "iteminfo.ExtendedItemInfo": {
+            "type": "object",
+            "properties": {
+                "hasPreview": {
+                    "description": "whether the file has a thumbnail preview",
+                    "type": "boolean"
+                },
+                "hidden": {
+                    "description": "whether the file is hidden",
+                    "type": "boolean"
+                },
+                "metadata": {
+                    "description": "optional media metadata (audio/video only)",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/iteminfo.MediaMetadata"
+                        }
+                    ]
+                },
+                "modified": {
+                    "description": "modification time",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "name of the file",
+                    "type": "string"
+                },
+                "size": {
+                    "description": "length in bytes for regular files",
+                    "type": "integer"
+                },
+                "type": {
+                    "description": "type of the file, either \"directory\" or a file mimetype",
+                    "type": "string"
+                }
+            }
+        },
         "iteminfo.FileInfo": {
             "type": "object",
             "properties": {
                 "files": {
-                    "description": "files in the directory",
+                    "description": "files in the directory with optional metadata",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/iteminfo.ItemInfo"
+                        "$ref": "#/definitions/iteminfo.ExtendedItemInfo"
                     }
                 },
                 "folders": {
@@ -3150,6 +3187,43 @@
                 "type": {
                     "description": "type of the file, either \"directory\" or a file mimetype",
                     "type": "string"
+                }
+            }
+        },
+        "iteminfo.MediaMetadata": {
+            "type": "object",
+            "properties": {
+                "album": {
+                    "description": "album name",
+                    "type": "string"
+                },
+                "albumArt": {
+                    "description": "base64 encoded album art / video thumbnail",
+                    "type": "string"
+                },
+                "artist": {
+                    "description": "track artist",
+                    "type": "string"
+                },
+                "duration": {
+                    "description": "duration in seconds",
+                    "type": "integer"
+                },
+                "genre": {
+                    "description": "music/video genre",
+                    "type": "string"
+                },
+                "title": {
+                    "description": "track/video title",
+                    "type": "string"
+                },
+                "track": {
+                    "description": "track number",
+                    "type": "integer"
+                },
+                "year": {
+                    "description": "release year",
+                    "type": "integer"
                 }
             }
         },

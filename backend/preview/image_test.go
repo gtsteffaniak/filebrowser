@@ -276,7 +276,7 @@ func TestService_Resize(t *testing.T) {
 
 	for name, test := range testCases {
 		t.Run(name, func(t *testing.T) {
-			svc := NewPreviewGenerator(1, "", "")
+			svc := NewPreviewGenerator(1, "")
 			source := test.source(t)
 			defer source.Close()
 
@@ -434,7 +434,7 @@ func TestService_FormatFromExtension(t *testing.T) {
 
 	for name, test := range testCases {
 		t.Run(name, func(t *testing.T) {
-			svc := NewPreviewGenerator(1, "", "")
+			svc := NewPreviewGenerator(1, "")
 			got, err := svc.FormatFromExtension(test.ext)
 			require.Truef(t, errors.Is(err, test.wantErr), "error = %v, wantErr %v", err, test.wantErr)
 			if err != nil {

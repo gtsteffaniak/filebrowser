@@ -58,7 +58,9 @@
     "itemsSelected": "items geselecteerd",
     "myFiles": "Mijn bestanden{suffix}",
     "newFile": "Nieuw bestand{suffix}",
-    "newFolder": "Nieuwe map{suffix}"
+    "newFolder": "Nieuwe map{suffix}",
+    "duration": "Duur{suffix}",
+    "sortByDuration": "Sorteren op duur"
   },
   "help": {
     "functionKeys": "Functietoetsen",

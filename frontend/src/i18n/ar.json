@@ -58,7 +58,9 @@
     "itemsSelected": "عناصر محددة",
     "myFiles": "ملفاتي{suffix}",
     "newFile": "ملف جديد{suffix}",
-    "newFolder": "مجلد جديد{suffix}"
+    "newFolder": "مجلد جديد{suffix}",
+    "duration": "المدة{suffix}",
+    "sortByDuration": "فرز حسب المدة"
   },
   "help": {
     "functionKeys": "مفاتيح الوظائف",

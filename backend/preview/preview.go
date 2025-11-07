@@ -9,9 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -31,18 +29,16 @@ var (
 )
 
 type Service struct {
-	ffmpegPath   string
-	ffprobePath  string
 	fileCache    diskcache.Interface
 	debug        bool
 	docGenMutex  sync.Mutex    // Mutex to serialize access to doc generation
 	docSemaphore chan struct{} // Semaphore for document generation
 	officeSem    chan struct{} // Semaphore for office document processing
-	videoService *ffmpeg.VideoService
-	imageService *ffmpeg.ImageService
+	videoService *ffmpeg.FFmpegService
+	imageService *ffmpeg.FFmpegService
 }
 
-func NewPreviewGenerator(concurrencyLimit int, ffmpegPath string, cacheDir string) *Service {
+func NewPreviewGenerator(concurrencyLimit int, cacheDir string) *Service {
 	if concurrencyLimit < 1 {
 		concurrencyLimit = 1
 	}
@@ -76,37 +72,16 @@ func NewPreviewGenerator(concurrencyLimit int, ffmpegPath string, cacheDir strin
 	if err != nil {
 		logger.Error(err)
 	}
-	ffmpegMainPath, err := CheckValidFFmpeg(ffmpegPath)
-	if err != nil && ffmpegPath != "" {
-		logger.Fatalf("the configured ffmpeg path does not contain a valid ffmpeg binary %s, err: %v", ffmpegPath, err)
-	}
-	ffprobePath, errprobe := CheckValidFFprobe(ffmpegPath)
-	if errprobe != nil && ffmpegPath != "" {
-		logger.Fatalf("the configured ffmpeg path is not a valid ffprobe binary %s, err: %v", ffmpegPath, err)
-	}
-	if errprobe == nil && err == nil {
-		settings.Config.Integrations.Media.FfmpegPath = filepath.Base(ffmpegMainPath)
-	}
-	logger.Debugf("Media Enabled            : %v", ffmpegMainPath != "" && ffprobePath != "")
-	logger.Debugf("FFmpeg Concurrency Limit : %d", ffmpegConcurrencyLimit)
-	settings.Config.Env.MuPdfAvailable = docEnabled()
-	logger.Debugf("MuPDF Enabled            : %v", settings.Config.Env.MuPdfAvailable)
 
-	// Create shared ffmpeg services
-	var videoService *ffmpeg.VideoService
-	var imageService *ffmpeg.ImageService
+	videoService := ffmpeg.NewFFmpegService(ffmpegConcurrencyLimit, settings.Config.Integrations.Media.Debug, "")
+	imageService := ffmpeg.NewFFmpegService(concurrencyLimit, settings.Config.Integrations.Media.Debug, filepath.Join(settings.Config.Server.CacheDir, "heic"))
 
-	if ffmpegMainPath != "" && ffprobePath != "" {
-		videoService = ffmpeg.NewVideoService(ffmpegMainPath, ffprobePath, ffmpegConcurrencyLimit, settings.Config.Integrations.Media.Debug)
-		imageService = ffmpeg.NewImageService(ffmpegMainPath, ffprobePath, concurrencyLimit, settings.Config.Integrations.Media.Debug, filepath.Join(settings.Config.Server.CacheDir, "heic"))
-	}
+	settings.Env.MuPdfAvailable = docEnabled()
+	logger.Debugf("MuPDF Enabled            : %v", settings.Env.MuPdfAvailable)
 
 	return &Service{
-		ffmpegPath:  ffmpegMainPath,
-		ffprobePath: ffprobePath,
-		fileCache:   fileCache,
-		debug:       settings.Config.Integrations.Media.Debug,
-		// CGo library (go-fitz) is NOT thread-safe - only 1 concurrent operation allowed
+		fileCache:    fileCache,
+		debug:        settings.Config.Integrations.Media.Debug,
 		docSemaphore: make(chan struct{}, 1),
 		officeSem:    make(chan struct{}, concurrencyLimit),
 		videoService: videoService,
@@ -142,11 +117,11 @@ func (s *Service) releaseOffice() {
 	<-s.officeSem
 }
 
-func StartPreviewGenerator(concurrencyLimit int, ffmpegPath, cacheDir string) error {
+func StartPreviewGenerator(concurrencyLimit int, cacheDir string) error {
 	if service != nil {
 		logger.Errorf("WARNING: StartPreviewGenerator called multiple times! This will create multiple semaphores!")
 	}
-	service = NewPreviewGenerator(concurrencyLimit, ffmpegPath, cacheDir)
+	service = NewPreviewGenerator(concurrencyLimit, cacheDir)
 	return nil
 }
 
@@ -162,10 +137,10 @@ func GetPreviewForFile(ctx context.Context, file iteminfo.ExtendedFileInfo, prev
 
 	// Generate fast cache key based on file metadata
 	var cacheHash string
-	if file.AudioMeta != nil && file.AudioMeta.AlbumArt != "" {
+	if file.Metadata != nil && file.Metadata.AlbumArt != "" {
 		// For audio with album art, hash the album art content
 		hasher := md5.New()
-		_, _ = hasher.Write([]byte(file.AudioMeta.AlbumArt))
+		_, _ = hasher.Write([]byte(file.Metadata.AlbumArt))
 		cacheHash = hex.EncodeToString(hasher.Sum(nil))
 	} else {
 		// For all other files, use fast metadata-based hash
@@ -255,8 +230,8 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 		}
 	} else if strings.HasPrefix(file.Type, "audio") {
 		// Extract album artwork from audio files
-		if file.AudioMeta != nil && file.AudioMeta.AlbumArt != "" {
-			imageBytes, err = base64.StdEncoding.DecodeString(file.AudioMeta.AlbumArt)
+		if file.Metadata != nil && file.Metadata.AlbumArt != "" {
+			imageBytes, err = base64.StdEncoding.DecodeString(file.Metadata.AlbumArt)
 			if err != nil {
 				return nil, fmt.Errorf("failed to decode album artwork: %w", err)
 			}
@@ -357,46 +332,4 @@ func DelThumbs(ctx context.Context, file iteminfo.ExtendedFileInfo) {
 			logger.Debugf("Could not delete thumbnail: %v", file.Name)
 		}
 	}
-}
-
-// CheckValidFFmpeg checks for a valid ffmpeg executable.
-// If a path is provided, it looks there. Otherwise, it searches the system's PATH.
-func CheckValidFFmpeg(path string) (string, error) {
-	return checkExecutable(path, "ffmpeg")
-}
-
-// CheckValidFFprobe checks for a valid ffprobe executable.
-// If a path is provided, it looks there. Otherwise, it searches the system's PATH.
-func CheckValidFFprobe(path string) (string, error) {
-	return checkExecutable(path, "ffprobe")
-}
-
-// checkExecutable is an internal helper function to find and validate an executable.
-// It checks a specific path if provided, otherwise falls back to searching the system PATH.
-func checkExecutable(providedPath, execName string) (string, error) {
-	// Add .exe extension for Windows systems
-	if runtime.GOOS == "windows" {
-		execName += ".exe"
-	}
-
-	var finalPath string
-	var err error
-
-	if providedPath != "" {
-		// A path was provided, so we'll use it.
-		finalPath = filepath.Join(providedPath, execName)
-	} else {
-		// No path was provided, so search the system's PATH for the executable.
-		finalPath, err = exec.LookPath(execName)
-		if err != nil {
-			// The executable was not found in the system's PATH.
-			return "", err
-		}
-	}
-
-	// Verify the executable is valid by running the "-version" command.
-	cmd := exec.Command(finalPath, "-version")
-	err = cmd.Run()
-
-	return finalPath, err
 }
