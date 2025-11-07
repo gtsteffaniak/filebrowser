@@ -51,6 +51,7 @@
       <p class="modified">
         <time :datetime="modified">{{ getTime() }}</time>
       </p>
+      <p v-if="hasDuration" class="duration">{{ getDuration() }}</p>
     </div>
     <Icon
       @click.stop="downloadFile"
@@ -109,6 +110,8 @@ export default {
     "reducedOpacity",
     "hash",
     "hasPreview",
+    "metadata",
+    "hasDuration",
   ],
   computed: {
     galleryView() {
@@ -287,6 +290,19 @@ export default {
     getTime() {
       // @ts-ignore
       return getters.getTime(this.modified);
+    },
+    getDuration() {
+      if (!this.metadata || !this.metadata.duration) {
+        return "";
+      }
+      const seconds = this.metadata.duration;
+      const hours = Math.floor(seconds / 3600);
+      const minutes = Math.floor((seconds % 3600) / 60);
+      const secs = Math.floor(seconds % 60);
+      if (hours > 0) {
+        return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+      }
+      return `${minutes}:${secs.toString().padStart(2, '0')}`;
     },
     /** @param {DragEvent} event */
     dragLeave(event) {

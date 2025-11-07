@@ -276,7 +276,7 @@ func (idx *Index) GetFsDirInfo(adjustedPath string) (*iteminfo.FileInfo, error) 
 				filePath := strings.TrimSuffix(adjustedPath, "/") + "/" + item.Name
 				response = &iteminfo.FileInfo{
 					Path:     filePath,
-					ItemInfo: item,
+					ItemInfo: item.ItemInfo,
 				}
 				found = true
 				continue
@@ -300,7 +300,7 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 		return nil, err
 	}
 	var totalSize int64
-	fileInfos := []iteminfo.ItemInfo{}
+	fileInfos := []iteminfo.ExtendedItemInfo{}
 	dirInfos := []iteminfo.ItemInfo{}
 	hasPreview := false
 	if !config.Recursive {
@@ -405,7 +405,11 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 				hasPreview = true
 			}
 
-			fileInfos = append(fileInfos, *itemInfo)
+			// Wrap ItemInfo in ExtendedItemInfo for files array
+			extItemInfo := iteminfo.ExtendedItemInfo{
+				ItemInfo: *itemInfo,
+			}
+			fileInfos = append(fileInfos, extItemInfo)
 			if shouldCountSize {
 				totalSize += itemInfo.Size
 			}

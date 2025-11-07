@@ -116,7 +116,7 @@ func getDirectoryPreview(r *http.Request, d *requestContext, accessStore *access
 	for _, item := range d.fileInfo.Files {
 		// Only use files that should bubble up to folder previews (images, videos, audio)
 		// Exclude text files, office documents, and PDFs
-		if !item.HasPreview || !iteminfo.ShouldBubbleUpToFolderPreview(item) {
+		if !item.HasPreview || !iteminfo.ShouldBubbleUpToFolderPreview(item.ItemInfo) {
 			continue
 		}
 

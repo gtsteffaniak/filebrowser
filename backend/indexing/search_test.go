@@ -92,41 +92,41 @@ func TestSearchWhileIndexing(t *testing.T) {
 func TestSearchIndexes(t *testing.T) {
 	index := Index{
 		Directories: map[string]*iteminfo.FileInfo{
-			"/":           {Files: []iteminfo.ItemInfo{{Name: "audio-one.wav", Type: "audio"}}},
-			"/test/":      {Files: []iteminfo.ItemInfo{{Name: "audio-one.wav", Type: "audio"}}},
-			"/test/path/": {Files: []iteminfo.ItemInfo{{Name: "file.txt", Type: "text"}}},
-			"/new/test/": {Files: []iteminfo.ItemInfo{
-				{Name: "audio.wav", Type: "audio"},
-				{Name: "video.mp4", Type: "video"},
-				{Name: "video.MP4", Type: "video"},
+			"/":           {Files: []iteminfo.ExtendedItemInfo{{ItemInfo: iteminfo.ItemInfo{Name: "audio-one.wav", Type: "audio"}}}},
+			"/test/":      {Files: []iteminfo.ExtendedItemInfo{{ItemInfo: iteminfo.ItemInfo{Name: "audio-one.wav", Type: "audio"}}}},
+			"/test/path/": {Files: []iteminfo.ExtendedItemInfo{{ItemInfo: iteminfo.ItemInfo{Name: "file.txt", Type: "text"}}}},
+			"/new/test/": {Files: []iteminfo.ExtendedItemInfo{
+				{ItemInfo: iteminfo.ItemInfo{Name: "audio.wav", Type: "audio"}},
+				{ItemInfo: iteminfo.ItemInfo{Name: "video.mp4", Type: "video"}},
+				{ItemInfo: iteminfo.ItemInfo{Name: "video.MP4", Type: "video"}},
 			}},
 			"/first Dir/": {
-				Files: []iteminfo.ItemInfo{
-					{Name: "space jam.zip", Size: 100, Type: "archive"},
+				Files: []iteminfo.ExtendedItemInfo{
+					{ItemInfo: iteminfo.ItemInfo{Name: "space jam.zip", Size: 100, Type: "archive"}},
 				},
 			},
-			"/new/test/path/": {Files: []iteminfo.ItemInfo{{Name: "archive.zip", Type: "archive"}}},
+			"/new/test/path/": {Files: []iteminfo.ExtendedItemInfo{{ItemInfo: iteminfo.ItemInfo{Name: "archive.zip", Type: "archive"}}}},
 			"/firstDir/": {
-				Files: []iteminfo.ItemInfo{
-					{Name: "archive.zip", Size: 100, Type: "archive"},
+				Files: []iteminfo.ExtendedItemInfo{
+					{ItemInfo: iteminfo.ItemInfo{Name: "archive.zip", Size: 100, Type: "archive"}},
 				},
 				Folders: []iteminfo.ItemInfo{
 					{Name: "thisIsDir", Type: "directory", Size: 2 * 1024 * 1024},
 				},
 			},
 			"/firstDir/thisIsDir/": {
-				Files: []iteminfo.ItemInfo{
-					{Name: "hi.txt", Type: "text"},
+				Files: []iteminfo.ExtendedItemInfo{
+					{ItemInfo: iteminfo.ItemInfo{Name: "hi.txt", Type: "text"}},
 				},
 				ItemInfo: iteminfo.ItemInfo{
 					Size: 2 * 1024 * 1024,
 				},
 			},
 			"/new+folder/Pictures/": {
-				Files: []iteminfo.ItemInfo{
-					{Name: "consoletest.mp4", Size: 196091904, Type: "video/mp4"},
-					{Name: "playwright.gif", Size: 2416640, Type: "image/gif"},
-					{Name: "toggle.gif", Size: 65536, Type: "image/gif"},
+				Files: []iteminfo.ExtendedItemInfo{
+					{ItemInfo: iteminfo.ItemInfo{Name: "consoletest.mp4", Size: 196091904, Type: "video/mp4"}},
+					{ItemInfo: iteminfo.ItemInfo{Name: "playwright.gif", Size: 2416640, Type: "image/gif"}},
+					{ItemInfo: iteminfo.ItemInfo{Name: "toggle.gif", Size: 65536, Type: "image/gif"}},
 				},
 			},
 		},
@@ -302,24 +302,24 @@ func TestSearchLargestModeExcludesRoot(t *testing.T) {
 	index := Index{
 		Directories: map[string]*iteminfo.FileInfo{
 			"/": {
-				Files: []iteminfo.ItemInfo{
-					{Name: "root-file.txt", Type: "text", Size: 100},
+				Files: []iteminfo.ExtendedItemInfo{
+					{ItemInfo: iteminfo.ItemInfo{Name: "root-file.txt", Type: "text", Size: 100}},
 				},
 				ItemInfo: iteminfo.ItemInfo{
 					Size: 3209322496, // Large root directory size
 				},
 			},
 			"/subdir/": {
-				Files: []iteminfo.ItemInfo{
-					{Name: "sub-file.txt", Type: "text", Size: 200},
+				Files: []iteminfo.ExtendedItemInfo{
+					{ItemInfo: iteminfo.ItemInfo{Name: "sub-file.txt", Type: "text", Size: 200}},
 				},
 				ItemInfo: iteminfo.ItemInfo{
 					Size: 5 * 1024 * 1024, // 5MB subdirectory
 				},
 			},
 			"/another-dir/": {
-				Files: []iteminfo.ItemInfo{
-					{Name: "large-file.bin", Type: "binary", Size: 10 * 1024 * 1024}, // 10MB file
+				Files: []iteminfo.ExtendedItemInfo{
+					{ItemInfo: iteminfo.ItemInfo{Name: "large-file.bin", Type: "binary", Size: 10 * 1024 * 1024}}, // 10MB file
 				},
 				ItemInfo: iteminfo.ItemInfo{
 					Size: 10 * 1024 * 1024,
@@ -352,24 +352,24 @@ func TestSearchLargestModeExcludesScopeDirectory(t *testing.T) {
 	index := Index{
 		Directories: map[string]*iteminfo.FileInfo{
 			"/": {
-				Files: []iteminfo.ItemInfo{
-					{Name: "root-file.txt", Type: "text", Size: 50},
+				Files: []iteminfo.ExtendedItemInfo{
+					{ItemInfo: iteminfo.ItemInfo{Name: "root-file.txt", Type: "text", Size: 50}},
 				},
 				ItemInfo: iteminfo.ItemInfo{
 					Size: 100,
 				},
 			},
 			"/test/": {
-				Files: []iteminfo.ItemInfo{
-					{Name: "file1.txt", Type: "text", Size: 100},
+				Files: []iteminfo.ExtendedItemInfo{
+					{ItemInfo: iteminfo.ItemInfo{Name: "file1.txt", Type: "text", Size: 100}},
 				},
 				ItemInfo: iteminfo.ItemInfo{
 					Size: 2 * 1024 * 1024, // 2MB directory
 				},
 			},
 			"/test/subdir/": {
-				Files: []iteminfo.ItemInfo{
-					{Name: "file2.txt", Type: "text", Size: 200},
+				Files: []iteminfo.ExtendedItemInfo{
+					{ItemInfo: iteminfo.ItemInfo{Name: "file2.txt", Type: "text", Size: 200}},
 				},
 				ItemInfo: iteminfo.ItemInfo{
 					Size: 3 * 1024 * 1024, // 3MB subdirectory

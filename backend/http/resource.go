@@ -93,6 +93,7 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		Source:                   source,
 		Expand:                   true,
 		Content:                  getContent,
+		Metadata:                 true,
 		ExtractEmbeddedSubtitles: settings.Config.Integrations.Media.ExtractEmbeddedSubtitles,
 	}, store.Access)
 	if err != nil {

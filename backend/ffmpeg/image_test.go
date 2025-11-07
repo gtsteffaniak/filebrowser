@@ -8,7 +8,7 @@ import (
 )
 
 func TestGetOrientationFilter(t *testing.T) {
-	service := &ImageService{}
+	service := &FFmpegService{}
 
 	tests := []struct {
 		name        string
@@ -125,7 +125,7 @@ func TestGetImageOrientation(t *testing.T) {
 	}
 	defer os.RemoveAll(tempDir)
 
-	service := NewImageService("ffmpeg", "ffprobe", 2, false, tempDir)
+	service := NewFFmpegService(2, false, "/tmp/test_cache")
 
 	t.Run("Non-existent file", func(t *testing.T) {
 		nonExistentFile := filepath.Join(tempDir, "non_existent.heic")
@@ -154,19 +154,20 @@ func TestGetImageOrientation(t *testing.T) {
 }
 
 func TestNewImageService(t *testing.T) {
-	ffmpegPath := "/usr/bin/ffmpeg"
-	ffprobePath := "/usr/bin/ffprobe"
+	// Note: NewFFmpegService returns nil if FFmpeg paths are not configured in settings.Env
+	// This test verifies the constructor initializes fields correctly when paths are available
+	maxConcurrent := 2
 	debug := true
 	cacheDir := "/tmp/test_cache"
 
-	service := NewImageService(ffmpegPath, ffprobePath, 2, debug, cacheDir)
+	service := NewFFmpegService(maxConcurrent, debug, cacheDir)
 
-	if service.ffmpegPath != ffmpegPath {
-		t.Errorf("Expected ffmpegPath %q, got %q", ffmpegPath, service.ffmpegPath)
+	// If FFmpeg is not installed or configured, service will be nil
+	if service == nil {
+		t.Skip("Skipping test: FFmpeg not available or not configured in environment")
+		return
 	}
-	if service.ffprobePath != ffprobePath {
-		t.Errorf("Expected ffprobePath %q, got %q", ffprobePath, service.ffprobePath)
-	}
+
 	if service.debug != debug {
 		t.Errorf("Expected debug %v, got %v", debug, service.debug)
 	}
@@ -189,7 +190,7 @@ func TestConvertHEICToJPEGDirect_OrientationHandling(t *testing.T) {
 	}
 	defer os.RemoveAll(tempDir)
 
-	service := NewImageService("ffmpeg", "ffprobe", 2, true, tempDir)
+	service := NewFFmpegService(2, true, "/tmp/test_cache")
 
 	t.Run("Direct conversion with orientation detection", func(t *testing.T) {
 		// This test requires actual HEIC files to work properly
@@ -240,7 +241,7 @@ func TestConvertHEICToJPEGDirect_OrientationHandling(t *testing.T) {
 
 // Benchmark the orientation filter generation
 func BenchmarkGetOrientationFilter(b *testing.B) {
-	service := &ImageService{}
+	service := &FFmpegService{}
 	orientations := []string{
 		"Horizontal (normal)",
 		"Rotate 90 CW",
@@ -258,7 +259,7 @@ func BenchmarkGetOrientationFilter(b *testing.B) {
 
 // Test table for all EXIF orientation values
 func TestGetOrientationFilter_AllEXIFValues(t *testing.T) {
-	service := &ImageService{}
+	service := &FFmpegService{}
 
 	// Test all possible EXIF orientation values according to EXIF spec
 	exifTests := []struct {

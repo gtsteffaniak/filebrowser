@@ -58,7 +58,9 @@
     "itemsSelected": "항목 선택됨",
     "myFiles": "내 파일{suffix}",
     "newFile": "새 파일{suffix}",
-    "newFolder": "새 폴더{suffix}"
+    "newFolder": "새 폴더{suffix}",
+    "duration": "기간{suffix}",
+    "sortByDuration": "기간별로 정렬"
   },
   "help": {
     "functionKeys": "기능 키",

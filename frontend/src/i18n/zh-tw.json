@@ -58,7 +58,9 @@
     "itemsSelected": "項目已選擇",
     "myFiles": "我的檔案{suffix}",
     "newFile": "新檔案{suffix}",
-    "newFolder": "新資料夾{suffix}"
+    "newFolder": "新資料夾{suffix}",
+    "duration": "時間長度{suffix}",
+    "sortByDuration": "依時間長短排序"
   },
   "help": {
     "functionKeys": "功能鍵",

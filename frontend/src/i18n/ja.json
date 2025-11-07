@@ -58,7 +58,9 @@
     "itemsSelected": "項目選択済み",
     "myFiles": "私のファイル{suffix}",
     "newFile": "新規ファイル{suffix}",
-    "newFolder": "新しいフォルダ{suffix}"
+    "newFolder": "新しいフォルダ{suffix}",
+    "duration": "期間{suffix}",
+    "sortByDuration": "期間順"
   },
   "help": {
     "functionKeys": "ファンクションキー",

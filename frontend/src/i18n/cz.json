@@ -61,7 +61,9 @@
     "itemsSelected": "položky vybrány",
     "myFiles": "Moje soubory{suffix}",
     "newFile": "Nový soubor{suffix}",
-    "newFolder": "Nová složka{suffix}"
+    "newFolder": "Nová složka{suffix}",
+    "duration": "Doba trvání{suffix}",
+    "sortByDuration": "Třídit podle doby trvání"
   },
   "help": {
     "functionKeys": "Funkční Klávesy",

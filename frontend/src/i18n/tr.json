@@ -58,7 +58,9 @@
     "itemsSelected": "öge seçildi",
     "myFiles": "Benim dosyalarım{suffix}",
     "newFile": "Yeni dosya{suffix}",
-    "newFolder": "Yeni klasör{suffix}"
+    "newFolder": "Yeni klasör{suffix}",
+    "duration": "Süre{suffix}",
+    "sortByDuration": "Süreye göre sırala"
   },
   "help": {
     "functionKeys": "Fonksiyon Tuşları",

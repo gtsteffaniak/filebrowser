@@ -58,7 +58,9 @@
     "itemsSelected": "elementi selezionati",
     "myFiles": "I miei file{suffix}",
     "newFile": "Nuovo file{suffix}",
-    "newFolder": "Nuova cartella{suffix}"
+    "newFolder": "Nuova cartella{suffix}",
+    "duration": "Durata{suffix}",
+    "sortByDuration": "Ordina per durata"
   },
   "help": {
     "functionKeys": "Tasti Funzione",
