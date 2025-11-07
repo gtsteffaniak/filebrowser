@@ -292,8 +292,10 @@ func extractVideoMetadata(ctx context.Context, item *iteminfo.ExtendedItemInfo, 
 		if err != nil {
 			return err
 		}
-		item.Metadata = &iteminfo.MediaMetadata{
-			Duration: int(duration),
+		if duration > 0 {
+			item.Metadata = &iteminfo.MediaMetadata{
+				Duration: int(duration),
+			}
 		}
 		return nil
 	}

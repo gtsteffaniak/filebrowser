@@ -18,15 +18,15 @@ func (s *FFmpegService) GetMediaDuration(ctx context.Context, mediaPath string) 
 	if err != nil {
 		return 0, fmt.Errorf("failed to stat file: %w", err)
 	}
-
+	duration := float64(0)
+	found := false
 	// Create cache key from path and modification time
 	cacheKey := fmt.Sprintf("%s:%d", mediaPath, fileInfo.ModTime().Unix())
-
 	// Check cache first
-	if duration, found := MetadataCache.Get(cacheKey); found {
+	if duration, found = MetadataCache.Get(cacheKey); found {
 		return duration, nil
 	}
-
+	defer MetadataCache.Set(cacheKey, duration)
 	// Acquire semaphore slot for concurrency control
 	if err := s.Acquire(ctx); err != nil {
 		return 0, err
@@ -57,12 +57,10 @@ func (s *FFmpegService) GetMediaDuration(ctx context.Context, mediaPath string) 
 		return 0, fmt.Errorf("could not determine media duration")
 	}
 
-	duration, err := strconv.ParseFloat(durationStr, 64)
+	duration, err = strconv.ParseFloat(durationStr, 64)
 	if err != nil {
 		return 0, fmt.Errorf("invalid duration: %v", err)
 	}
-
-	MetadataCache.Set(cacheKey, duration)
 
 	return duration, nil
 }
