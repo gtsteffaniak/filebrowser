@@ -415,8 +415,8 @@ export default {
         const baseSize = baseCalc + extraScaling; // Size 5: 205px, Size 9: 345px
         if (state.isMobile) {
           let columns;
-          if (state.user.gallerySize <= 2) columns = 3;
-          else if (state.user.gallerySize <= 5) columns = 2;
+          if (state.user.gallerySize <= 7) columns = 2;
+          else if (state.user.gallerySize <= 9) columns = 1;
           else columns = 1;
           styles['--gallery-mobile-columns'] = columns.toString();
           // On mobile, scale height with gallery size for smooth animations
