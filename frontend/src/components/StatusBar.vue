@@ -175,6 +175,7 @@ export default {
   padding: 0 0.5em;
   font-size: 0.9em;
   font-weight: bold;
+  cursor: unset;
 }
 
 .status-controls {

@@ -370,7 +370,7 @@ body.rtl #listingView {
 #listingView.list .item[aria-selected=true],
 #listingView.normal .item[aria-selected=true],
 #listingView.icons .item[aria-selected=true] {
-  background-color: color-mix(in srgb, var(--primaryColor) 75%, transparent) !important;
+  background-color: color-mix(in srgb, var(--primaryColor) 85%, transparent) !important;
   color: var(--item-selected) !important;
 }
 

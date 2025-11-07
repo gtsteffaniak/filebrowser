@@ -1040,7 +1040,8 @@ export default {
       if (
         (field === "name" && this.nameIcon === "arrow_upward") ||
         (field === "size" && this.sizeIcon === "arrow_upward") ||
-        (field === "modified" && this.modifiedIcon === "arrow_upward")
+        (field === "modified" && this.modifiedIcon === "arrow_upward") ||
+        (field === "duration" && this.durationIcon === "arrow_upward")
       ) {
         asc = true;
       }
