@@ -8,7 +8,10 @@
                 <div class="bounce3"></div>
             </div>
         </div>
-        <div class="preview" :class="{'plyr-background': previewType == 'audio' && !useDefaultMediaPlayer, 'transitioning': isTransitioning}" v-if="!isDeleted">
+        <div class="preview" :class="{
+            'plyr-background-light': !isDarkMode && previewType == 'audio' && !useDefaultMediaPlayer,
+            'plyr-background-dark': isDarkMode && previewType == 'audio' && !useDefaultMediaPlayer,
+            'transitioning': isTransitioning }" v-if="!isDeleted">
             <ExtendedImage v-if="showImage && !isTransitioning" :src="raw" @navigate-previous="navigatePrevious" @navigate-next="navigateNext"/>
 
             <!-- Media Player Component -->
