@@ -48,10 +48,10 @@
       >
         {{ humanSize() }}
       </p>
-      <p v-if="hasDuration" class="duration">{{ getDuration() }}</p>
       <p class="modified">
         <time :datetime="modified">{{ getTime() }}</time>
       </p>
+      <p v-if="hasDuration" class="duration">{{ getDuration() }}</p>
     </div>
     <Icon
       @click.stop="downloadFile"
