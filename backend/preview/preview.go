@@ -78,7 +78,7 @@ func NewPreviewGenerator(concurrencyLimit int, cacheDir string) *Service {
 
 	settings.Env.MuPdfAvailable = docEnabled()
 	logger.Debugf("MuPDF Enabled            : %v", settings.Env.MuPdfAvailable)
-
+	logger.Debugf("Media Enabled            : %v", settings.Env.FFmpegPath != "" && settings.Env.FFprobePath != "")
 	return &Service{
 		fileCache:    fileCache,
 		debug:        settings.Config.Integrations.Media.Debug,

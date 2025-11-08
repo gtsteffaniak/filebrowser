@@ -209,7 +209,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"oidcAvailable":        config.Auth.Methods.OidcAuth.Enabled,
 		"proxyAvailable":       config.Auth.Methods.ProxyAuth.Enabled,
 		"passwordAvailable":    config.Auth.Methods.PasswordAuth.Enabled,
-		"mediaAvailable":       config.Integrations.Media.FfmpegPath != "",
+		"mediaAvailable":       settings.Env.FFmpegPath != "" && settings.Env.FFprobePath != "",
 		"muPdfAvailable":       settings.Env.MuPdfAvailable,
 		"updateAvailable":      utils.GetUpdateAvailableUrl(),
 		"disableNavButtons":    disableNavButtons,
