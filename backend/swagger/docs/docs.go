@@ -3046,7 +3046,12 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "assessment": {
+                    "description": "Derived from complexity for backward compatibility",
                     "type": "string"
+                },
+                "complexity": {
+                    "description": "0-9 scale: 0=simple, 1-5=normal, 6-9=complex",
+                    "type": "integer"
                 },
                 "currentSchedule": {
                     "type": "integer"
