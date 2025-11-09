@@ -158,7 +158,7 @@ func (idx *Index) createRootScanner() *Scanner {
 		stopChan:        make(chan struct{}),
 		currentSchedule: 0,
 		fullScanCounter: 0,
-		assessment:      "unknown",
+		complexity:      0, // 0 = unknown until first full scan completes
 	}
 }
 
@@ -170,7 +170,7 @@ func (idx *Index) createChildScanner(dirPath string) *Scanner {
 		stopChan:        make(chan struct{}),
 		currentSchedule: 0,
 		fullScanCounter: 0,
-		assessment:      "unknown",
+		complexity:      0, // 0 = unknown until first full scan completes
 	}
 }
 
@@ -195,7 +195,7 @@ func (idx *Index) aggregateStatsFromScanners() {
 	var totalQuickScanTime = 0
 	var totalFullScanTime = 0
 	var mostRecentScan time.Time
-	var oldestAssessment = "unknown"
+	var maxComplexity uint = 0 // Start at 0 (unknown)
 	allScannedAtLeastOnce := true
 
 	for _, scanner := range idx.scanners {
@@ -213,15 +213,18 @@ func (idx *Index) aggregateStatsFromScanners() {
 		if scanner.lastScanned.IsZero() {
 			allScannedAtLeastOnce = false
 		}
-
-		// Use most complex assessment
-		if scanner.assessment == "complex" {
-			oldestAssessment = "complex"
-		} else if scanner.assessment == "normal" && oldestAssessment != "complex" {
-			oldestAssessment = "normal"
-		} else if scanner.assessment == "simple" && oldestAssessment == "unknown" {
-			oldestAssessment = "simple"
+		if !allScannedAtLeastOnce {
+			continue
 		}
+
+		// Track highest complexity (most conservative assessment)
+		// Only consider scanners that have been assessed (complexity > 0)
+		if scanner.complexity > 0 && scanner.complexity > maxComplexity {
+			maxComplexity = scanner.complexity
+		}
+	}
+	if allScannedAtLeastOnce && idx.FullScanTime == 0 {
+		maxComplexity = 1 // assess as simple because it took 0 seconds total
 	}
 
 	// Update Index-level stats
@@ -229,7 +232,7 @@ func (idx *Index) aggregateStatsFromScanners() {
 	idx.NumFiles = totalFiles
 	idx.QuickScanTime = totalQuickScanTime
 	idx.FullScanTime = totalFullScanTime
-	idx.Assessment = oldestAssessment
+	idx.Complexity = maxComplexity
 
 	// Update last indexed time
 	if !mostRecentScan.IsZero() {
@@ -279,7 +282,7 @@ func (idx *Index) GetScannerStatus() map[string]interface{} {
 		scannerInfo := map[string]interface{}{
 			"path":            path,
 			"lastScanned":     scanner.lastScanned.Format(time.RFC3339),
-			"assessment":      scanner.assessment,
+			"complexity":      scanner.complexity,
 			"currentSchedule": scanner.currentSchedule,
 			"quickScanTime":   scanner.quickScanTime,
 			"fullScanTime":    scanner.fullScanTime,

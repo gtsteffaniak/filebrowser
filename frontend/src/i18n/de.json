@@ -455,7 +455,16 @@
     "toggleClick": "Einzelklick umschalten",
     "toggleDark": "Dunkelmodus umschalten",
     "toggleSticky": "Sticky-Modus umschalten",
-    "noSources": "Für diesen Benutzer sind keine Quellen verfügbar. Entweder eine Quelle für diesen Benutzer hinzufügen oder eine Quelle mit defaultEnabled: true konfigurieren"
+    "noSources": "Für diesen Benutzer sind keine Quellen verfügbar. Entweder eine Quelle für diesen Benutzer hinzufügen oder eine Quelle mit defaultEnabled: true konfigurieren",
+    "unknown": "Unbekannt",
+    "simple": "Einfach",
+    "normal": "Normal",
+    "complex": "Komplexe",
+    "highlyComplex": "Hochkomplex",
+    "ready": "Bereit",
+    "indexing": "Indizierung",
+    "unavailable": "Nicht verfügbar",
+    "error": "Fehler"
   },
   "otp": {
     "name": "Zwei-Faktoren-Authentifizierung",

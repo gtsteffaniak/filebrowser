@@ -455,7 +455,16 @@
     "toggleClick": "클릭 한 번으로 토글",
     "toggleDark": "다크 모드 전환",
     "toggleSticky": "고정 모드 토글",
-    "noSources": "이 사용자에 대해 사용할 수 있는 소스가 없습니다. 이 사용자에 대한 소스를 추가하거나 defaultEnabled: true로 소스를 구성하세요."
+    "noSources": "이 사용자에 대해 사용할 수 있는 소스가 없습니다. 이 사용자에 대한 소스를 추가하거나 defaultEnabled: true로 소스를 구성하세요.",
+    "unknown": "알 수 없음",
+    "simple": "Simple",
+    "normal": "보통",
+    "complex": "복잡한",
+    "highlyComplex": "매우 복잡한",
+    "ready": "준비",
+    "indexing": "인덱싱",
+    "unavailable": "사용 불가",
+    "error": "오류"
   },
   "otp": {
     "name": "2단계 인증",

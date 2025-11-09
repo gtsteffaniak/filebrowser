@@ -455,7 +455,16 @@
     "toggleClick": "Tek Tıklamayı Değiştir",
     "toggleDark": "Karanlık Modu Aç / Kapat",
     "toggleSticky": "Yapışkan Modunu Değiştir",
-    "noSources": "Bu kullanıcı için kullanılabilir kaynak yok. Ya bu kullanıcı için bir kaynak ekleyin ya da defaultEnabled: true ile bir kaynak yapılandırın"
+    "noSources": "Bu kullanıcı için kullanılabilir kaynak yok. Ya bu kullanıcı için bir kaynak ekleyin ya da defaultEnabled: true ile bir kaynak yapılandırın",
+    "unknown": "Bilinmiyor",
+    "simple": "Basit",
+    "normal": "Normal",
+    "complex": "Kompleks",
+    "highlyComplex": "Son Derece Karmaşık",
+    "ready": "Hazır",
+    "indexing": "İndeksleme",
+    "unavailable": "Kullanılamıyor",
+    "error": "Hata"
   },
   "otp": {
     "name": "İki Faktörlü Kimlik Doğrulama",

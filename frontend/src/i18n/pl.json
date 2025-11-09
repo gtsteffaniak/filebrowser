@@ -455,7 +455,16 @@
     "toggleClick": "Przełączanie jednym kliknięciem",
     "toggleDark": "Przełączanie trybu ciemnego",
     "toggleSticky": "Przełączanie trybu samoprzylepnego",
-    "noSources": "Brak dostępnych źródeł dla tego użytkownika. Dodaj źródło dla tego użytkownika lub skonfiguruj źródło z defaultEnabled: true."
+    "noSources": "Brak dostępnych źródeł dla tego użytkownika. Dodaj źródło dla tego użytkownika lub skonfiguruj źródło z defaultEnabled: true.",
+    "unknown": "Nieznany",
+    "simple": "Prosty",
+    "normal": "Normalny",
+    "complex": "Kompleks",
+    "highlyComplex": "Wysoka złożoność",
+    "ready": "Gotowy",
+    "indexing": "Indeksowanie",
+    "unavailable": "Niedostępne",
+    "error": "Błąd"
   },
   "otp": {
     "name": "Uwierzytelnianie dwuskładnikowe",

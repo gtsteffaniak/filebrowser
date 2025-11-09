@@ -455,7 +455,16 @@
     "toggleClick": "Toggle Enkelklick",
     "toggleDark": "Växla till mörkt läge",
     "toggleSticky": "Växla klisterläge",
-    "noSources": "Inga källor tillgängliga för den här användaren. Lägg antingen till en källa för den här användaren eller konfigurera en källa med defaultEnabled: true"
+    "noSources": "Inga källor tillgängliga för den här användaren. Lägg antingen till en källa för den här användaren eller konfigurera en källa med defaultEnabled: true",
+    "unknown": "Okänd",
+    "simple": "Enkel",
+    "normal": "Normal",
+    "complex": "Komplex",
+    "highlyComplex": "Mycket komplex",
+    "ready": "Redo",
+    "indexing": "Indexering",
+    "unavailable": "Ej tillgänglig",
+    "error": "Fel"
   },
   "otp": {
     "name": "Tvåfaktorsautentisering",
