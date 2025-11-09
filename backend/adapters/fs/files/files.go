@@ -253,7 +253,7 @@ func extractAudioMetadata(ctx context.Context, item *iteminfo.ExtendedItemInfo, 
 	// Extract duration ONLY if explicitly requested using the ffmpeg VideoService
 	// This respects concurrency limits and gracefully handles missing ffmpeg
 	if getDuration {
-		ffmpegService := ffmpeg.NewFFmpegService(10, false, "")
+		ffmpegService := ffmpeg.NewFFmpegService(5, false, "")
 		if ffmpegService != nil {
 			startTime := time.Now()
 			if duration, err := ffmpegService.GetMediaDuration(ctx, realPath); err == nil {
