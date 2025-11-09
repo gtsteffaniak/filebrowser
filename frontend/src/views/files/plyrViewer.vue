@@ -14,7 +14,7 @@
                      @mouseenter="onAlbumArtHover"
                      @mouseleave="onAlbumArtLeave"
                      @wheel="onAlbumArtScroll">
-                    <img v-if="albumArtUrl" :src="albumArtUrl" :alt="audioMetadata.album || 'Album art'"
+                    <img v-if="albumArtUrl" :src="albumArtUrl" :alt="metadata.album || 'Album art'"
                         class="album-art" />
                     <div v-else class="album-art-fallback">
                         <i class="material-icons">music_note</i>
@@ -22,18 +22,18 @@
                 </div>
 
                 <!-- Metadata info -->
-                <div class="metadata-info" v-if="audioMetadata">
+                <div class="metadata-info" v-if="metadata">
                     <div class="audio-title">
-                        {{ audioMetadata.title || req.name }}
+                        {{ metadata.title || req.name }}
                     </div>
-                    <div class="audio-artist" v-if="audioMetadata.artist">
-                        {{ audioMetadata.artist }}
+                    <div class="audio-artist" v-if="metadata.artist">
+                        {{ metadata.artist }}
                     </div>
-                    <div class="audio-album" v-if="audioMetadata.album">
-                        {{ audioMetadata.album }}
+                    <div class="audio-album" v-if="metadata.album">
+                        {{ metadata.album }}
                     </div>
-                    <div class="audio-year" v-if="audioMetadata.album">
-                        {{ audioMetadata.year }}
+                    <div class="audio-year" v-if="metadata.album">
+                        {{ metadata.year }}
                     </div>
                 </div>
             </div>
@@ -157,7 +157,7 @@ export default {
         return {
             toastVisible: false,
             toastTimeout: null,
-            audioMetadata: null, // Null by default, will be loaded from the audio file.
+            metadata: null, // Null by default, will be loaded from the audio file.
             albumArtUrl: null,
             albumArtSize: 25, // Default size in em
             isHovering: false, // Track hover state
@@ -213,7 +213,7 @@ export default {
                 // Skip to avoid trigger double navigation when changing to another file/media
                 // We already update the files via mutations.replaceRequest()
                 // $router.replace (in playNext) is still needed to update the URL
-                console.log('Skipping req update during navigation');
+                console.log('Skipping duplicate req update during navigation');
                 return;
             }
             console.log('req changed, updating media');
@@ -510,16 +510,15 @@ export default {
             try {
                 // Clean up previous album art and metadata (if any)
                 this.cleanupAlbumArt();
-                this.audioMetadata = null;
+                this.metadata = null;
 
                 // Check if metadata is already provided by the backend
                 if (this.req.metadata) {
-                    this.audioMetadata = {
-                        title: this.req.audioMeta.title || this.req.name, // Fallback to filename
+                    this.metadata = {
+                        title: this.req.metadata.title || this.req.name, // Fallback to filename
                         artist: this.req.metadata.artist || null,
                         album: this.req.metadata.album || null,
-                        year: this.req.metadata.year || null,
-                        duration: this.req.metadata.duration || null
+                        year: this.req.metadata.year || null
                     };
 
                     // Handle base64 encoded album art from backend
@@ -541,7 +540,7 @@ export default {
                         }
                     }
                 } else {
-                    this.audioMetadata = {
+                    this.metadata = {
                         title: this.req.name,
                         artist: null,
                         album: null,
@@ -550,7 +549,7 @@ export default {
                     this.cleanupAlbumArt();
                 }
             } catch (error) {
-                this.audioMetadata = null;
+                this.metadata = null;
                 this.cleanupAlbumArt();
             }
         },
@@ -652,7 +651,6 @@ export default {
 
             // Find current file index of the file opened
             const currentIndex = mediaFiles.findIndex(item => item.path === this.req.path);
-            console.log('Current file index in media files:', currentIndex);
 
             let finalQueue = [];
             let finalIndex = 0;
