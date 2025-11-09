@@ -3001,8 +3001,9 @@ const docTemplate = `{
         "indexing.ReducedIndex": {
             "type": "object",
             "properties": {
-                "assessment": {
-                    "type": "string"
+                "complexity": {
+                    "description": "0-10 scale: 0=unknown, 1=simple, 2-6=normal, 7-9=complex, 10=highlyComplex",
+                    "type": "integer"
                 },
                 "fullScanDurationSeconds": {
                     "type": "integer"
@@ -3046,7 +3047,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "complexity": {
-                    "description": "0-10 scale: 0=unknown, 1=simple, 2-6=normal, 7-10=complex",
+                    "description": "0-10 scale: 0=unknown, 1=simple, 2-6=normal, 7-9=complex, 10=highlyComplex",
                     "type": "integer"
                 },
                 "currentSchedule": {

@@ -125,7 +125,7 @@ export const mutations = {
           state.sources.info[k].lastIndex = source.lastIndexedUnixTime || 0;
           state.sources.info[k].quickScanDurationSeconds = source.quickScanDurationSeconds || 0;
           state.sources.info[k].fullScanDurationSeconds = source.fullScanDurationSeconds || 0;
-          state.sources.info[k].assessment = source.assessment || "unknown";
+          state.sources.info[k].complexity = source.complexity || 0;
           state.sources.info[k].scanners = source.scanners || [];
         }
       }
@@ -161,7 +161,7 @@ export const mutations = {
         lastIndex: 0,
         quickScanDurationSeconds: 0,
         fullScanDurationSeconds: 0,
-        assessment: "unknown",
+        complexity: 0,
         scanners: [],
       };
     }

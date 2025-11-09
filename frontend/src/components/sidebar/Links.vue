@@ -132,21 +132,15 @@ export default {
       if (link.category !== 'source') return {};
       return this.sourceInfo && link.name ? this.sourceInfo[link.name] || {} : {};
     },
-    getAssessmentLabel(assessment) {
-      // Translate assessment string to i18n label
-      switch (assessment) {
-        case "simple":
-          return this.$t("index.simple");
-        case "normal":
-          return this.$t("index.normal");
-        case "complex":
-          return this.$t("index.complex");
-        case "highlyComplex":
-          return this.$t("index.highlyComplex");
-        case "unknown":
-        default:
-          return this.$t("index.unknown");
-      }
+    getComplexityLabel(complexity) {
+      // Translate complexity integer to i18n label
+      // Frontend interprets: 0=unknown, 1=simple, 2-6=normal, 7-9=complex, 10=highlyComplex
+      if (complexity === 0) return this.$t("index.unknown");
+      if (complexity === 1) return this.$t("index.simple");
+      if (complexity >= 2 && complexity <= 6) return this.$t("index.normal");
+      if (complexity >= 7 && complexity <= 9) return this.$t("index.complex");
+      if (complexity === 10) return this.$t("index.highlyComplex");
+      return this.$t("index.unknown");
     },
     getStatusLabel(status) {
       // Translate status string to i18n label
@@ -271,7 +265,7 @@ export default {
             </tr>
             <tr>
               <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${this.$t("index.assessment")}</td>
-              <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${this.getAssessmentLabel(info.assessment)}</td>
+              <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${this.getComplexityLabel(info.complexity || 0)}</td>
             </tr>
             <tr>
               <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${this.$t("general.files")}</td>

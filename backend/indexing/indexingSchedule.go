@@ -213,6 +213,9 @@ func (idx *Index) aggregateStatsFromScanners() {
 		if scanner.lastScanned.IsZero() {
 			allScannedAtLeastOnce = false
 		}
+		if !allScannedAtLeastOnce {
+			continue
+		}
 
 		// Track highest complexity (most conservative assessment)
 		// Only consider scanners that have been assessed (complexity > 0)
@@ -220,7 +223,7 @@ func (idx *Index) aggregateStatsFromScanners() {
 			maxComplexity = scanner.complexity
 		}
 	}
-	if idx.FullScanTime == 0 {
+	if allScannedAtLeastOnce && idx.FullScanTime == 0 {
 		maxComplexity = 1 // assess as simple because it took 0 seconds total
 	}
 
@@ -229,13 +232,7 @@ func (idx *Index) aggregateStatsFromScanners() {
 	idx.NumFiles = totalFiles
 	idx.QuickScanTime = totalQuickScanTime
 	idx.FullScanTime = totalFullScanTime
-
-	// Only set assessment if all scanners have completed at least one scan
-	if allScannedAtLeastOnce {
-		idx.Assessment = complexityToAssessment(maxComplexity)
-	} else {
-		idx.Assessment = "unknown"
-	}
+	idx.Complexity = maxComplexity
 
 	// Update last indexed time
 	if !mostRecentScan.IsZero() {

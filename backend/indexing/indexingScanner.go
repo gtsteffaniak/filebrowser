@@ -9,7 +9,7 @@ import (
 )
 
 // complexityModifier defines time adjustments based on complexity level (0-10)
-// 0: unknown (not yet scanned), 1: simple, 2-5: normal, 6-9: complex, 10: highlyComplex
+// 0: unknown (not yet scanned), 1: simple, 2-6: normal, 7-9: complex, 10: highlyComplex
 // Each level gets progressively more aggressive with scan timing adjustments
 var complexityModifier = map[uint]time.Duration{
 	0:  0 * time.Minute,  // unknown: no modifier
@@ -22,26 +22,7 @@ var complexityModifier = map[uint]time.Duration{
 	7:  4 * time.Minute, // complex (lightest)
 	8:  8 * time.Minute,
 	9:  12 * time.Minute,
-	10: 16 * time.Minute, // complex (heaviest): scan less frequently
-}
-
-// complexityToAssessment converts a complexity level (0-10) to a string assessment
-// for backward compatibility with existing APIs
-func complexityToAssessment(complexity uint) string {
-	switch {
-	case complexity == 0:
-		return "unknown" // Not yet scanned
-	case complexity == 1:
-		return "simple"
-	case complexity >= 2 && complexity <= 5:
-		return "normal"
-	case complexity >= 6 && complexity <= 9:
-		return "complex"
-	case complexity == 10:
-		return "highlyComplex"
-	default:
-		return "unknown" // fallback
-	}
+	10: 16 * time.Minute, // highlyComplex: scan less frequently
 }
 
 // Scanner represents an independent scanner for a specific directory path
@@ -53,7 +34,7 @@ type Scanner struct {
 	// Per-scanner scheduling (not shared between scanners)
 	currentSchedule int
 	smartModifier   time.Duration
-	complexity      uint // 0-10 scale: 0=unknown, 1=simple, 2-5=normal, 6-9=complex, 10=highlyComplex
+	complexity      uint // 0-10 scale: 0=unknown, 1=simple, 2-6=normal, 7-9=complex, 10=highlyComplex
 	fullScanCounter int  // every 5th scan is a full scan
 
 	// Per-scanner stats (not shared)
@@ -384,7 +365,7 @@ func (s *Scanner) updateSchedule() {
 }
 
 // updateComplexity calculates the complexity level (1-10) for this scanner's directory
-// 0: unknown, 1: simple, 2-5: normal, 6-9: complex, 10: highlyComplex
+// 0: unknown, 1: simple, 2-6: normal, 7-9: complex, 10: highlyComplex
 func (s *Scanner) updateComplexity() {
 	// Calculate complexity based on both scan time and directory count
 	timeScore := s.calculateTimeScore()

@@ -35,7 +35,7 @@ type ScannerInfo struct {
 	Path            string    `json:"path"`
 	IsRoot          bool      `json:"isRoot"`
 	LastScanned     time.Time `json:"lastScanned"`
-	Complexity      uint      `json:"complexity"` // 0-10 scale: 0=unknown, 1=simple, 2-5=normal, 6-9=complex, 10=highlyComplex
+	Complexity      uint      `json:"complexity"` // 0-10 scale: 0=unknown, 1=simple, 2-6=normal, 7-9=complex, 10=highlyComplex
 	CurrentSchedule int       `json:"currentSchedule"`
 	QuickScanTime   int       `json:"quickScanTime"`
 	FullScanTime    int       `json:"fullScanTime"`
@@ -56,7 +56,7 @@ type ReducedIndex struct {
 	LastIndexedUnix int64          `json:"lastIndexedUnixTime"`
 	QuickScanTime   int            `json:"quickScanDurationSeconds"`
 	FullScanTime    int            `json:"fullScanDurationSeconds"`
-	Assessment      string         `json:"assessment"`
+	Complexity      uint           `json:"complexity"` // 0-10 scale: 0=unknown, 1=simple, 2-6=normal, 7-9=complex, 10=highlyComplex
 	Scanners        []*ScannerInfo `json:"scanners,omitempty"`
 }
 type Index struct {
@@ -122,7 +122,7 @@ func Initialize(source *settings.Source, mock bool) {
 	newIndex.ReducedIndex = ReducedIndex{
 		Status:     "indexing",
 		IdxName:    source.Name,
-		Assessment: "unknown", // Unknown until first scan completes
+		Complexity: 0, // 0 = unknown until first scan completes
 	}
 	indexes[newIndex.Name] = &newIndex
 	indexesMutex.Unlock()
