@@ -77,14 +77,16 @@ export default {
     closeHovers() {
       mutations.closeHovers();
     },
-    deleteApi() {
+    async deleteApi() {
       // Dummy delete function, to be filled in later
       try {
         usersApi.deleteApiKey({ name: this.name });
         // Emit event to refresh API keys list
-        eventBus.emit('apiKeysChanged');
-        notify.showSuccess("API key deleted!");
-        mutations.closeHovers();
+        setTimeout(() => {
+          eventBus.emit('apiKeysChanged');
+          notify.showSuccess("API key deleted!");
+          mutations.closeHovers();
+        }, 100);
       } catch (error) {
         console.error(error);
       }

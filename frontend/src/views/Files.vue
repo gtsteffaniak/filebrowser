@@ -179,6 +179,10 @@ export default {
       } else if (state.previousHistoryItem.name && state.previousHistoryItem.path === state.req.path && state.previousHistoryItem.source === state.req.source) {
         scrollToId = url.base64Encode(encodeURIComponent(state.previousHistoryItem.name));
       }
+      // Don't call getElementById with empty string
+      if (!scrollToId || scrollToId.trim() === '') {
+        return;
+      }
       const element = document.getElementById(scrollToId);
         if (element) {
           element.scrollIntoView({
