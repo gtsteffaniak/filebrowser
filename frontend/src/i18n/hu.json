@@ -455,7 +455,16 @@
     "toggleClick": "Egyetlen kattintás kapcsolása",
     "toggleDark": "Sötét üzemmód átkapcsolása",
     "toggleSticky": "Ragadós mód átkapcsolása",
-    "noSources": "Ehhez a felhasználóhoz nem állnak rendelkezésre források. Vagy adjon hozzá egy forrást ehhez a felhasználóhoz, vagy konfiguráljon egy forrást a defaultEnabled: true beállítással."
+    "noSources": "Ehhez a felhasználóhoz nem állnak rendelkezésre források. Vagy adjon hozzá egy forrást ehhez a felhasználóhoz, vagy konfiguráljon egy forrást a defaultEnabled: true beállítással.",
+    "unknown": "Ismeretlen",
+    "simple": "Egyszerű",
+    "normal": "Normál",
+    "complex": "Komplex",
+    "highlyComplex": "Nagyon összetett",
+    "ready": "Kész",
+    "indexing": "Indexelés",
+    "unavailable": "Nem elérhető",
+    "error": "Hiba"
   },
   "otp": {
     "name": "Kétfaktoros hitelesítés",

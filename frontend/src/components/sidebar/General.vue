@@ -168,6 +168,38 @@ export default {
     checkLogin() {
       return getters.isLoggedIn() && !getters.routePath().startsWith("/share");
     },
+    getAssessmentLabel(assessment) {
+      // Translate assessment string to i18n label
+      switch (assessment) {
+        case "simple":
+          return this.$t("index.simple");
+        case "normal":
+          return this.$t("index.normal");
+        case "complex":
+          return this.$t("index.complex");
+        case "highlyComplex":
+          return this.$t("index.highlyComplex");
+        case "unknown":
+        default:
+          return this.$t("index.unknown");
+      }
+    },
+    getStatusLabel(status) {
+      // Translate status string to i18n label
+      switch (status) {
+        case "ready":
+          return this.$t("index.ready");
+        case "indexing":
+          return this.$t("index.indexing");
+        case "unavailable":
+          return this.$t("index.unavailable");
+        case "error":
+          return this.$t("index.error");
+        case "unknown":
+        default:
+          return this.$t("index.unknown");
+      }
+    },
     toggleClick() {
       mutations.updateCurrentUser({ singleClick: !state.user.singleClick });
     },
@@ -268,11 +300,11 @@ export default {
             <tbody>
               <tr>
                 <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${this.$t("general.status")}</td>
-                <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${info.status || 'unknown'}</td>
+                <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${this.getStatusLabel(info.status)}</td>
               </tr>
               <tr>
                 <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${this.$t("index.assessment")}</td>
-                <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${info.assessment || 'unknown'}</td>
+                <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${this.getAssessmentLabel(info.assessment)}</td>
               </tr>
               <tr>
                 <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${this.$t("general.files")}</td>

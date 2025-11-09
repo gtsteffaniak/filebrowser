@@ -35,8 +35,7 @@ type ScannerInfo struct {
 	Path            string    `json:"path"`
 	IsRoot          bool      `json:"isRoot"`
 	LastScanned     time.Time `json:"lastScanned"`
-	Complexity      uint      `json:"complexity"` // 0-10 scale: 0=unknown, 1=simple, 2-6=normal, 7-10=complex
-	Assessment      string    `json:"assessment"` // Derived from complexity for backward compatibility
+	Complexity      uint      `json:"complexity"` // 0-10 scale: 0=unknown, 1=simple, 2-5=normal, 6-9=complex, 10=highlyComplex
 	CurrentSchedule int       `json:"currentSchedule"`
 	QuickScanTime   int       `json:"quickScanTime"`
 	FullScanTime    int       `json:"fullScanTime"`

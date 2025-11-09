@@ -455,7 +455,16 @@
     "toggleClick": "切換單擊",
     "toggleDark": "切換黑暗模式",
     "toggleSticky": "切換黏貼模式",
-    "noSources": "此使用者沒有可用的來源。請為此使用者新增來源，或設定預設啟用：true 的來源。"
+    "noSources": "此使用者沒有可用的來源。請為此使用者新增來源，或設定預設啟用：true 的來源。",
+    "unknown": "未知",
+    "simple": "簡單",
+    "normal": "正常",
+    "complex": "複雜",
+    "highlyComplex": "高度複雜",
+    "ready": "準備就緒",
+    "indexing": "索引",
+    "unavailable": "無法使用",
+    "error": "錯誤"
   },
   "profileSettings": {
     "setDateFormat": "設定精確的日期格式",

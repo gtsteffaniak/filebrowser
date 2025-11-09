@@ -455,7 +455,16 @@
     "toggleClick": "单击切换",
     "toggleDark": "切换黑暗模式",
     "toggleSticky": "切换粘贴模式",
-    "noSources": "该用户没有可用的信息源。要么为该用户添加一个信息源，要么配置一个默认为 true 的信息源。"
+    "noSources": "该用户没有可用的信息源。要么为该用户添加一个信息源，要么配置一个默认为 true 的信息源。",
+    "unknown": "未知",
+    "simple": "简单",
+    "normal": "正常",
+    "complex": "复杂",
+    "highlyComplex": "高度复杂",
+    "ready": "准备就绪",
+    "indexing": "索引",
+    "unavailable": "不可用",
+    "error": "错误"
   },
   "otp": {
     "name": "双因素验证",

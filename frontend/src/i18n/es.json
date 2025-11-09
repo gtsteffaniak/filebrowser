@@ -455,7 +455,16 @@
     "toggleClick": "Abrir con un solo clic",
     "toggleDark": "Activar modo oscuro",
     "toggleSticky": "Cambiar visibilidad del panel lateral",
-    "noSources": "No hay fuentes disponibles. Añada una o active \"defaultEnabled: true\" en el archivo de configuración."
+    "noSources": "No hay fuentes disponibles. Añada una o active \"defaultEnabled: true\" en el archivo de configuración.",
+    "unknown": "Desconocido",
+    "simple": "Simple",
+    "normal": "Normal",
+    "complex": "Complejo",
+    "highlyComplex": "Alta complejidad",
+    "ready": "Listo",
+    "indexing": "Indexación",
+    "unavailable": "No disponible",
+    "error": "Error"
   },
   "otp": {
     "name": "Autenticación de dos factores (2FA)",

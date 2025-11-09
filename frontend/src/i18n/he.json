@@ -455,7 +455,16 @@
     "toggleClick": "החלף לחיצה אחת",
     "toggleDark": "הפעל מצב כהה",
     "toggleSticky": "הפעל/כבה מצב דביק",
-    "noSources": "אין מקורות זמינים עבור משתמש זה. הוסף מקור עבור משתמש זה או הגדר מקור עם defaultEnabled: true"
+    "noSources": "אין מקורות זמינים עבור משתמש זה. הוסף מקור עבור משתמש זה או הגדר מקור עם defaultEnabled: true",
+    "unknown": "לא ידוע",
+    "simple": "פשוט",
+    "normal": "רגיל",
+    "complex": "מורכב",
+    "highlyComplex": "מורכב ביותר",
+    "ready": "מוכן",
+    "indexing": "אינדקס",
+    "unavailable": "לא זמין",
+    "error": "שגיאה"
   },
   "otp": {
     "name": "אימות דו-גורמי",

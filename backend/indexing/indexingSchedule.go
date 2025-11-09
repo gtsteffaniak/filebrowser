@@ -286,7 +286,6 @@ func (idx *Index) GetScannerStatus() map[string]interface{} {
 			"path":            path,
 			"lastScanned":     scanner.lastScanned.Format(time.RFC3339),
 			"complexity":      scanner.complexity,
-			"assessment":      complexityToAssessment(scanner.complexity),
 			"currentSchedule": scanner.currentSchedule,
 			"quickScanTime":   scanner.quickScanTime,
 			"fullScanTime":    scanner.fullScanTime,

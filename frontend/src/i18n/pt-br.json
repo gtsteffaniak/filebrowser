@@ -455,7 +455,16 @@
     "toggleClick": "Alternar clique único",
     "toggleDark": "Alternar o modo escuro",
     "toggleSticky": "Alternar o modo de aderência",
-    "noSources": "Não há fontes disponíveis para esse usuário. Adicione uma fonte para esse usuário ou configure uma fonte com defaultEnabled: true"
+    "noSources": "Não há fontes disponíveis para esse usuário. Adicione uma fonte para esse usuário ou configure uma fonte com defaultEnabled: true",
+    "unknown": "Desconhecido",
+    "simple": "Simples",
+    "normal": "Normal",
+    "complex": "Complexo",
+    "highlyComplex": "Altamente complexo",
+    "ready": "Pronto",
+    "indexing": "Indexação",
+    "unavailable": "Não disponível",
+    "error": "Erro"
   },
   "otp": {
     "name": "Autenticação de dois fatores",

@@ -517,7 +517,16 @@
     "toggleClick": "Přepnout jedno kliknutí",
     "toggleDark": "Přepnout tmavý režim",
     "toggleSticky": "Přepnout sticky režim",
-    "noSources": "Pro tohoto uživatele nejsou dostupné žádné zdroje. Přidejte zdroj pro uživatele nebo nastavte zdroj s defaultEnabled: true"
+    "noSources": "Pro tohoto uživatele nejsou dostupné žádné zdroje. Přidejte zdroj pro uživatele nebo nastavte zdroj s defaultEnabled: true",
+    "unknown": "Neznámý",
+    "simple": "Jednoduché",
+    "normal": "Normální",
+    "complex": "Komplexní",
+    "highlyComplex": "Vysoce komplexní",
+    "ready": "Připraveno",
+    "indexing": "Indexování",
+    "unavailable": "Nedostupné",
+    "error": "Chyba"
   },
   "otp": {
     "name": "Dvoufázové ověření",
