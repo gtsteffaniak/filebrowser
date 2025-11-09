@@ -168,6 +168,32 @@ export default {
     checkLogin() {
       return getters.isLoggedIn() && !getters.routePath().startsWith("/share");
     },
+    getComplexityLabel(complexity) {
+      // Translate complexity integer to i18n label
+      // Frontend interprets: 0=unknown, 1=simple, 2-6=normal, 7-9=complex, 10=highlyComplex
+      if (complexity === 0) return this.$t("index.unknown");
+      if (complexity === 1) return this.$t("index.simple");
+      if (complexity >= 2 && complexity <= 6) return this.$t("index.normal");
+      if (complexity >= 7 && complexity <= 9) return this.$t("index.complex");
+      if (complexity === 10) return this.$t("index.highlyComplex");
+      return this.$t("index.unknown");
+    },
+    getStatusLabel(status) {
+      // Translate status string to i18n label
+      switch (status) {
+        case "ready":
+          return this.$t("index.ready");
+        case "indexing":
+          return this.$t("index.indexing");
+        case "unavailable":
+          return this.$t("index.unavailable");
+        case "error":
+          return this.$t("index.error");
+        case "unknown":
+        default:
+          return this.$t("index.unknown");
+      }
+    },
     toggleClick() {
       mutations.updateCurrentUser({ singleClick: !state.user.singleClick });
     },
@@ -268,11 +294,11 @@ export default {
             <tbody>
               <tr>
                 <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${this.$t("general.status")}</td>
-                <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${info.status || 'unknown'}</td>
+                <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${this.getStatusLabel(info.status)}</td>
               </tr>
               <tr>
                 <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${this.$t("index.assessment")}</td>
-                <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${info.assessment || 'unknown'}</td>
+                <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${this.getComplexityLabel(info.complexity || 0)}</td>
               </tr>
               <tr>
                 <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${this.$t("general.files")}</td>

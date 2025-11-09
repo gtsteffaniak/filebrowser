@@ -185,7 +185,7 @@ func GetIndexInfo(sourceName string) (ReducedIndex, error) {
 		scannerInfos = append(scannerInfos, &ScannerInfo{
 			Path:            scanner.scanPath,
 			LastScanned:     scanner.lastScanned,
-			Assessment:      scanner.assessment,
+			Complexity:      scanner.complexity,
 			CurrentSchedule: scanner.currentSchedule,
 			QuickScanTime:   scanner.quickScanTime,
 			FullScanTime:    scanner.fullScanTime,

@@ -455,7 +455,16 @@
     "toggleClick": "Schakelen Enkele klik",
     "toggleDark": "Donkere modus inschakelen",
     "toggleSticky": "Kleefmodus schakelen",
-    "noSources": "Geen bronnen beschikbaar voor deze gebruiker. Voeg een bron toe voor deze gebruiker of configureer een bron met defaultEnabled: true"
+    "noSources": "Geen bronnen beschikbaar voor deze gebruiker. Voeg een bron toe voor deze gebruiker of configureer een bron met defaultEnabled: true",
+    "unknown": "Onbekend",
+    "simple": "Eenvoudig",
+    "normal": "Normaal",
+    "complex": "Complex",
+    "highlyComplex": "Zeer complex",
+    "ready": "Klaar",
+    "indexing": "Indexering",
+    "unavailable": "Niet beschikbaar",
+    "error": "Fout"
   },
   "otp": {
     "name": "Authenticatie met twee factoren",

@@ -455,7 +455,16 @@
     "toggleClick": "シングルクリックモードの切り替え",
     "toggleDark": "ダークモードの切り替え",
     "toggleSticky": "スティッキーモードの切り替え",
-    "noSources": "このユーザーが使用できるソースはありません。このユーザーのソースを追加するか、defaultEnabled: trueでソースを設定してください。"
+    "noSources": "このユーザーが使用できるソースはありません。このユーザーのソースを追加するか、defaultEnabled: trueでソースを設定してください。",
+    "unknown": "不明",
+    "simple": "シンプル",
+    "normal": "ノーマル",
+    "complex": "コンプレックス",
+    "highlyComplex": "非常に複雑",
+    "ready": "準備完了",
+    "indexing": "インデックス作成",
+    "unavailable": "使用不可",
+    "error": "エラー"
   },
   "otp": {
     "name": "二要素認証",

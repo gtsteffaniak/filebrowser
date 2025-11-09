@@ -455,7 +455,16 @@
     "toggleClick": "Activation du mode simple clic",
     "toggleDark": "Mode sombre/clair",
     "toggleSticky": "Activer/Désactiver le mode persistent",
-    "noSources": "Aucune source n'est disponible pour cet utilisateur. Ajoutez une source pour cet utilisateur ou configurez une source avec defaultEnabled : true"
+    "noSources": "Aucune source n'est disponible pour cet utilisateur. Ajoutez une source pour cet utilisateur ou configurez une source avec defaultEnabled : true",
+    "unknown": "Inconnu",
+    "simple": "Simple",
+    "normal": "Normal",
+    "complex": "Complexe",
+    "highlyComplex": "Très complexe",
+    "ready": "Prêt",
+    "indexing": "Indexation",
+    "unavailable": "Indisponible",
+    "error": "Erreur"
   },
   "otp": {
     "name": "Authentification à deux facteurs",

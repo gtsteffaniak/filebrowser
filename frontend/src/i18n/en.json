@@ -619,7 +619,16 @@
     "disabled": "Disabled"
   },
   "index": {
+    "unknown": "Unknown",
+    "simple": "Simple",
+    "normal": "Normal",
+    "complex": "Complex",
+    "highlyComplex": "Highly Complex",
     "assessment": "Assessment",
+    "ready": "Ready",
+    "indexing": "Indexing",
+    "unavailable": "Unavailable",
+    "error": "Error",
     "lastScanned": "Last Scanned",
     "quickScan": "Quick Scan Seconds",
     "fullScan": "Full Scan Seconds",

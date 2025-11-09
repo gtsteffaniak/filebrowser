@@ -3,7 +3,7 @@
         <div v-if="showSidebarLinks" class="sidebar-scroll-list">
             <div class="sidebar-links card">
                 <div class="sidebar-links-header">
-                    <span>{{ hasCustomLinks ? $t("general.links") : $t("general.sources") }}</span>
+                    <span>{{ $t("general.links") }}</span>
                     <button class="action edit-icon" @click="openSidebarLinksPrompt"
                         @mouseenter="showTooltip($event, $t('sidebar.customizeLinks'))" @mouseleave="hideTooltip">
                         <i class="material-icons no-padding">edit</i>
@@ -132,6 +132,32 @@ export default {
       if (link.category !== 'source') return {};
       return this.sourceInfo && link.name ? this.sourceInfo[link.name] || {} : {};
     },
+    getComplexityLabel(complexity) {
+      // Translate complexity integer to i18n label
+      // Frontend interprets: 0=unknown, 1=simple, 2-6=normal, 7-9=complex, 10=highlyComplex
+      if (complexity === 0) return this.$t("index.unknown");
+      if (complexity === 1) return this.$t("index.simple");
+      if (complexity >= 2 && complexity <= 6) return this.$t("index.normal");
+      if (complexity >= 7 && complexity <= 9) return this.$t("index.complex");
+      if (complexity === 10) return this.$t("index.highlyComplex");
+      return this.$t("index.unknown");
+    },
+    getStatusLabel(status) {
+      // Translate status string to i18n label
+      switch (status) {
+        case "ready":
+          return this.$t("index.ready");
+        case "indexing":
+          return this.$t("index.indexing");
+        case "unavailable":
+          return this.$t("index.unavailable");
+        case "error":
+          return this.$t("index.error");
+        case "unknown":
+        default:
+          return this.$t("index.unknown");
+      }
+    },
     isLinkActive(link) {
       // Check if the current route matches this link
       if (link.category === 'source') {
@@ -235,11 +261,11 @@ export default {
           <tbody>
             <tr>
               <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${this.$t("general.status")}</td>
-              <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${info.status || 'unknown'}</td>
+              <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${this.getStatusLabel(info.status)}</td>
             </tr>
             <tr>
               <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${this.$t("index.assessment")}</td>
-              <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${info.assessment || 'unknown'}</td>
+              <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${this.getComplexityLabel(info.complexity || 0)}</td>
             </tr>
             <tr>
               <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${this.$t("general.files")}</td>

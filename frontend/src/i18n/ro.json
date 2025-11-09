@@ -455,7 +455,16 @@
     "toggleClick": "Comutare clic unic",
     "toggleDark": "Comutarea modului întunecat",
     "toggleSticky": "Schimbarea modului lipicios",
-    "noSources": "Nu există surse disponibile pentru acest utilizator. Adăugați o sursă pentru acest utilizator sau configurați o sursă cu defaultEnabled: true"
+    "noSources": "Nu există surse disponibile pentru acest utilizator. Adăugați o sursă pentru acest utilizator sau configurați o sursă cu defaultEnabled: true",
+    "unknown": "Necunoscut",
+    "simple": "Simplu",
+    "normal": "Normal",
+    "complex": "Complex",
+    "highlyComplex": "Foarte complex",
+    "ready": "Gata",
+    "indexing": "Indexare",
+    "unavailable": "Nu este disponibil",
+    "error": "Eroare"
   },
   "otp": {
     "name": "Autentificare cu doi factori",

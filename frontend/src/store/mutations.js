@@ -115,17 +115,18 @@ export const mutations = {
           } else {
             state.sources.hasSourceInfo = true
           }
-          state.sources.info[k].used = source.used;
-          state.sources.info[k].total = source.total;
-          state.sources.info[k].usedPercentage = Math.round((source.used / source.total) * 100);
-          state.sources.info[k].status = source.status;
-          state.sources.info[k].name = source.name;
-          state.sources.info[k].files = source.numFiles;
-          state.sources.info[k].folders = source.numDirs;
-          state.sources.info[k].lastIndex = source.lastIndexedUnixTime;
-          state.sources.info[k].quickScanDurationSeconds = source.quickScanDurationSeconds;
-          state.sources.info[k].fullScanDurationSeconds = source.fullScanDurationSeconds;
-          state.sources.info[k].assessment = source.assessment;
+          state.sources.info[k].used = source.used || 0;
+          state.sources.info[k].total = source.total || 0;
+          state.sources.info[k].usedPercentage = source.total ? Math.round((source.used / source.total) * 100) : 0;
+          state.sources.info[k].status = source.status || "unknown";
+          state.sources.info[k].name = source.name || k;
+          state.sources.info[k].files = source.numFiles || 0;
+          state.sources.info[k].folders = source.numDirs || 0;
+          state.sources.info[k].lastIndex = source.lastIndexedUnixTime || 0;
+          state.sources.info[k].quickScanDurationSeconds = source.quickScanDurationSeconds || 0;
+          state.sources.info[k].fullScanDurationSeconds = source.fullScanDurationSeconds || 0;
+          state.sources.info[k].complexity = source.complexity || 0;
+          state.sources.info[k].scanners = source.scanners || [];
         }
       }
     }
@@ -153,6 +154,15 @@ export const mutations = {
         used: 0,
         total: 0,
         usedPercentage: 0,
+        status: "unknown",
+        name: source.name,
+        files: 0,
+        folders: 0,
+        lastIndex: 0,
+        quickScanDurationSeconds: 0,
+        fullScanDurationSeconds: 0,
+        complexity: 0,
+        scanners: [],
       };
     }
     state.sources = sources;
