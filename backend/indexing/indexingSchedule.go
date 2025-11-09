@@ -154,7 +154,6 @@ func (idx *Index) setupMultiScanner() {
 func (idx *Index) createRootScanner() *Scanner {
 	return &Scanner{
 		scanPath:        "/",
-		isRoot:          true,
 		idx:             idx,
 		stopChan:        make(chan struct{}),
 		currentSchedule: 0,
@@ -167,7 +166,6 @@ func (idx *Index) createRootScanner() *Scanner {
 func (idx *Index) createChildScanner(dirPath string) *Scanner {
 	return &Scanner{
 		scanPath:        dirPath,
-		isRoot:          false,
 		idx:             idx,
 		stopChan:        make(chan struct{}),
 		currentSchedule: 0,
@@ -280,7 +278,6 @@ func (idx *Index) GetScannerStatus() map[string]interface{} {
 	for path, scanner := range idx.scanners {
 		scannerInfo := map[string]interface{}{
 			"path":            path,
-			"isRoot":          scanner.isRoot,
 			"lastScanned":     scanner.lastScanned.Format(time.RFC3339),
 			"assessment":      scanner.assessment,
 			"currentSchedule": scanner.currentSchedule,

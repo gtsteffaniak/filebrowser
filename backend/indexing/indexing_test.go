@@ -87,10 +87,10 @@ func TestMultiScannerMutex(t *testing.T) {
 	}
 
 	// Verify scanner properties
-	if !scanner1.isRoot {
+	if scanner1.scanPath != "/" {
 		t.Error("Scanner 1 should be root scanner")
 	}
-	if scanner2.isRoot || scanner3.isRoot {
+	if scanner2.scanPath == "/" || scanner3.scanPath == "/" {
 		t.Error("Child scanners should not be root")
 	}
 

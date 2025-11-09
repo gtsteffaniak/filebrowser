@@ -184,7 +184,6 @@ func GetIndexInfo(sourceName string) (ReducedIndex, error) {
 	for _, scanner := range idx.scanners {
 		scannerInfos = append(scannerInfos, &ScannerInfo{
 			Path:            scanner.scanPath,
-			IsRoot:          scanner.isRoot,
 			LastScanned:     scanner.lastScanned,
 			Assessment:      scanner.assessment,
 			CurrentSchedule: scanner.currentSchedule,

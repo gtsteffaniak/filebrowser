@@ -151,9 +151,16 @@ func getDirectoryPreview(r *http.Request, d *requestContext, accessStore *access
 		cancel()
 
 		if previewErr != nil {
-			// File might be corrupted, try next one
-			logger.Debugf("Skipping corrupted preview file in directory '%s': %s (error: %v)",
-				d.fileInfo.Name, item.Name, previewErr)
+			// Skip context errors (timeout or cancellation) - they're not corruption issues
+			if !errors.Is(previewErr, context.Canceled) && !errors.Is(previewErr, context.DeadlineExceeded) {
+				// File might be corrupted, try next one
+				logger.Debugf("Skipping preview file in directory '%s': %s (error: %v)",
+					d.fileInfo.Name, item.Name, previewErr)
+			} else {
+				// if it is a context error, return the error
+				// don't keep trying
+				return nil, previewErr
+			}
 			lastErr = previewErr
 			continue
 		}

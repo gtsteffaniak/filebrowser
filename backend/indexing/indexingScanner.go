@@ -13,7 +13,6 @@ import (
 type Scanner struct {
 	// Identity
 	scanPath string // "/" for root scanner, "/Documents/" for child scanners
-	isRoot   bool   // true if this is the root scanner (non-recursive)
 
 	// Per-scanner scheduling (not shared between scanners)
 	currentSchedule int
@@ -40,14 +39,14 @@ type Scanner struct {
 func (s *Scanner) start() {
 	// Do initial scan for all scanners
 	// Wait a bit to stagger child scanner initial scans (root goes first)
-	if !s.isRoot {
+	if s.scanPath != "/" {
 		time.Sleep(500 * time.Millisecond)
 	}
 	s.tryAcquireAndScan()
 
 	for {
 		// Check if directory still exists (for non-root scanners)
-		if !s.isRoot && !s.directoryExists() {
+		if s.scanPath != "/" && !s.directoryExists() {
 			logger.Debugf("Scanner [%s] stopping: directory no longer exists", s.scanPath)
 			s.removeSelf()
 			return
@@ -71,7 +70,7 @@ func (s *Scanner) start() {
 // tryAcquireAndScan attempts to acquire the global scan mutex and run a scan
 func (s *Scanner) tryAcquireAndScan() {
 	// Child scanners must wait for root scanner to go first each round
-	if !s.isRoot {
+	if s.scanPath != "/" {
 		s.idx.mu.RLock()
 		lastRootScan := s.idx.lastRootScanTime
 		myLastScan := s.lastScanned
@@ -105,7 +104,7 @@ func (s *Scanner) tryAcquireAndScan() {
 	s.updateSchedule()
 
 	// If this is the root scanner, update the last root scan time
-	if s.isRoot {
+	if s.scanPath == "/" {
 		s.idx.mu.Lock()
 		s.idx.lastRootScanTime = time.Now()
 		s.idx.mu.Unlock()
@@ -124,7 +123,7 @@ func (s *Scanner) tryAcquireAndScan() {
 
 // runIndexing performs the actual indexing work
 func (s *Scanner) runIndexing(quick bool) {
-	if s.isRoot {
+	if s.scanPath == "/" {
 		// ROOT SCANNER: Non-recursive, just scan root directory itself
 		s.runRootScan(quick)
 	} else {
@@ -203,7 +202,7 @@ func (s *Scanner) runChildScan(quick bool) {
 // checkForNewChildDirectories detects new top-level directories and creates scanners for them
 // Also detects deleted directories and signals their scanners to stop
 func (s *Scanner) checkForNewChildDirectories() {
-	if !s.isRoot {
+	if s.scanPath != "/" {
 		return
 	}
 
