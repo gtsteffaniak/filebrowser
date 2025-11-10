@@ -157,7 +157,7 @@ export default {
         notify.showSuccess(this.$t("success.linkCopied"));
       });
       this.clip.on("error", () => {
-        notify.showError(this.$t("errors.copyFailed"));
+        console.log("Failed to copy link to the clipboard", e);
       });
     },
     editLink(item) {
