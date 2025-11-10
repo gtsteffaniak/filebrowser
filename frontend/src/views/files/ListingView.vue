@@ -967,9 +967,6 @@ export default {
       mutations.setMultiple(val == true);
       showMultipleSelection();
     },
-    openSearch() {
-      this.currentPrompt = "search";
-    },
     windowsResize: throttle(function () {
       this.colunmsResize();
       this.width = window.innerWidth;
