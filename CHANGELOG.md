@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Anonymous Share link with optional password does not allow downloads #1553
  - Share options should go in the meta tags #1511
  - Unable to select compression format when downloading multiple files/dir via Share link (v1.0.0) #1557
+ - fixed sidebar clipping on some browsers like safari
 
 ## v1.0.1-beta & v1.0.0-stable
 
