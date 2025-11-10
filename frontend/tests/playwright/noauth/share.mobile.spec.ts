@@ -25,6 +25,7 @@ test("share download multiple files", async ({ page, checkForErrors, context }) 
 
   await page.locator('button[aria-label="Download"]').waitFor({ state: 'visible' });
   await page.locator('button[aria-label="Download"]').click();
+  await page.locator('button[aria-label="Download as zip"]').click();
   await checkForNotification(page, "Downloading...");
   checkForErrors(0,1);
 });

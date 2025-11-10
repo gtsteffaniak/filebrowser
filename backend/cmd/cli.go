@@ -112,7 +112,7 @@ func runCLI() bool {
 				}
 				newUser.Permissions = settings.Config.UserDefaults.Permissions
 				newUser.Permissions.Admin = asAdmin
-				err = storage.CreateUser(newUser)
+				err = storage.CreateUser(newUser, newUser.Permissions)
 				if err != nil {
 					logger.Errorf("could not create user: %v", err)
 				}

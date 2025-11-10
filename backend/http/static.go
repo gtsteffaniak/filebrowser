@@ -70,6 +70,8 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 
 	defaultThemeColor := "#455a64"
 	staticURL := config.Server.BaseURL + "public/static"
+	description := config.Frontend.Description
+	title := config.Frontend.Name
 
 	// Use custom favicon if configured and validated, otherwise fall back to default
 	var favicon string
@@ -148,10 +150,10 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 				}
 			}
 			if d.share.Description != "" {
-				data["description"] = d.share.Description
+				description = d.share.Description
 			}
 			if d.share.Title != "" {
-				data["title"] = d.share.Title
+				title = d.share.Title
 			}
 			if d.share.ShareTheme != "" {
 				theme, ok := config.Frontend.Styling.CustomThemeOptions[d.share.ShareTheme]
@@ -176,7 +178,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 	loginIcon := staticURL + "/loginIcon"
 
 	data["htmlVars"] = map[string]interface{}{
-		"title":             config.Frontend.Name,
+		"title":             title,
 		"customCSS":         config.Frontend.Styling.CustomCSSRaw,
 		"userSelectedTheme": userSelectedTheme,
 		"lightBackground":   config.Frontend.Styling.LightBackground,
@@ -188,7 +190,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"color":             defaultThemeColor,
 		"winIcon":           staticURL + "/img/icons/mstile-144x144.png",
 		"appIcon":           staticURL + "/img/icons/android-chrome-256x256.png",
-		"description":       config.Frontend.Description,
+		"description":       description,
 	}
 	// variables consumed by frontend as json
 	data["globalVars"] = map[string]interface{}{
