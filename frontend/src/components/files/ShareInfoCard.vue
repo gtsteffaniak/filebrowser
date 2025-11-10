@@ -27,7 +27,8 @@
           </div>
 
           <div v-if="!shareInfo.disableDownload" class="share__box__element share__box__center">
-            <button class="button button--flat clickable" @click="goToDownload()"> {{ $t("buttons.download") }} </button>
+            <button class="button button--flat clickable" @click="goToDownload()"> {{ $t("buttons.download") }}
+            </button>
           </div>
         </div>
 
@@ -41,7 +42,7 @@
 
 <script>
 import { publicApi } from "@/api";
-import { state, getters } from "@/store";
+import { state, getters, mutations } from "@/store";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { getTypeInfo } from "@/utils/mimetype";
 import QrcodeVue from "qrcode.vue";
@@ -115,13 +116,29 @@ export default {
   },
   methods: {
     goToDownload() {
-      const downloadLink = publicApi.getDownloadURL({
-        path: "/",
-        hash: state.share.hash,
-        token: state.share.token,
-        inline: false,
-      }, [state.req.path]);
-      window.open(downloadLink, "_blank");
+      if (state.req.items.length > 1) {
+        mutations.showHover({
+          name: "download",
+          confirm: (format) => {
+            mutations.closeHovers();
+            const downloadLink = publicApi.getDownloadURL({
+              path: "/",
+              hash: state.share.hash,
+              token: state.share.token,
+              inline: false,
+            }, [state.req.path]);
+            window.open(downloadLink + "&format=" + format, "_blank");
+          },
+        });
+      } else {
+        const downloadLink = publicApi.getDownloadURL({
+          path: "/",
+          hash: state.share.hash,
+          token: state.share.token,
+          inline: false,
+        }, [state.req.path]);
+        window.open(downloadLink, "_blank");
+      }
     },
     getShareLink() {
       return publicApi.getShareURL({
