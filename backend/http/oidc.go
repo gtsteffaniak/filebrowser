@@ -269,7 +269,7 @@ func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string, 
 			if isAdmin {
 				user.Permissions.Admin = true
 			}
-			err = storage.CreateUser(*user)
+			err = storage.CreateUser(*user, user.Permissions)
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}

@@ -13,13 +13,23 @@ export default function downloadFiles(items) {
   }
   if (getters.isShare()) {
     // Perform download without opening a new window
-    startDownload(null, items, state.share.hash);
+    if (getters.isSingleFileSelected()) {
+      startDownload(null, items, state.share.hash);
+    } else {
+      // Multiple files download with user confirmation
+      mutations.showHover({
+        name: "download",
+        confirm: (format) => {
+          mutations.closeHovers();
+          startDownload(format, items, state.share.hash);
+        },
+      });
+    }
     return;
   }
 
   if (getters.isSingleFileSelected()) {
     startDownload(null, items);
-    return;
   } else {
       // Multiple files download with user confirmation
     mutations.showHover({

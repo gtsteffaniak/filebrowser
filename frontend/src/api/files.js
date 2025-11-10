@@ -1,5 +1,6 @@
 import { fetchURL, adjustedData } from './utils'
 import { getApiPath, doubleEncode, getPublicApiPath } from '@/utils/url.js'
+import { state } from '@/store'
 import { notify } from '@/notify'
 import { globalVars } from '@/utils/constants'
 
@@ -100,7 +101,8 @@ export function download(format, files, shareHash = "") {
   const apiPath = getApiPath(shareHash == "" ? 'api/raw' : 'public/api/raw', {
     files: fileargs,
     algo: format,
-    hash: shareHash
+    hash: shareHash,
+    ...(state.share.token && { token: state.share.token })
   })
   const url = window.origin + apiPath
 

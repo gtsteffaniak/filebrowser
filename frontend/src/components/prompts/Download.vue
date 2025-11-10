@@ -9,6 +9,7 @@
         v-for="(ext, format) in formats"
         :key="format"
         class="button button--block"
+        :aria-label="`Download as ${format}`"
         @click="currentPrompt.confirm(format)"
         v-focus
       >

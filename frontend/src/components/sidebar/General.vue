@@ -411,9 +411,7 @@ button.action {
 }
 
 .headline-card {
-  padding: 1em;
-  overflow: hidden !important;
-  min-height: fit-content;
+  padding: 0.5em;
 }
 
 .person-button {
