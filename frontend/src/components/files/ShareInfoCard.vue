@@ -116,6 +116,7 @@ export default {
   },
   methods: {
     goToDownload() {
+<<<<<<< HEAD
       if (state.req.items.length > 1) {
         mutations.showHover({
           name: "download",
@@ -143,6 +144,19 @@ export default {
     getShareLink() {
       return publicApi.getShareURL({
         hash: state.share.hash,
+=======
+      const downloadLink = publicApi.getDownloadURL({
+        path: "/",
+        hash: state.share.hash,
+        token: state.share.token,
+        inline: false,
+      }, [state.req.path]);
+      window.open(downloadLink, "_blank");
+    },
+    getShareLink() {
+      return publicApi.getShareURL({
+        hash: state.share.hash,
+>>>>>>> main
       });
     },
   },

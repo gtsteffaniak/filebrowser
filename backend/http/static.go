@@ -161,6 +161,12 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 					userSelectedTheme = theme.CssRaw
 				}
 			}
+			if d.share.ShareTheme != "" {
+				theme, ok := config.Frontend.Styling.CustomThemeOptions[d.share.ShareTheme]
+				if ok {
+					userSelectedTheme = theme.CssRaw
+				}
+			}
 		}
 
 		// base url could be different for routes behind proxy
