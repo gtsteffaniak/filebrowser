@@ -13,7 +13,7 @@ RUN go build -tags mupdf,musl -ldflags="-w -s \
   -o filebrowser .
 RUN upx filebrowser
 
-FROM node:lts-slim AS nbuild
+FROM node:jod-slim AS nbuild
 WORKDIR /app
 COPY ./frontend/package.json ./
 RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates \

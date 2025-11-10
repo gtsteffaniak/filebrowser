@@ -84,7 +84,7 @@ func setupProxyUser(r *http.Request, data *requestContext, proxyUser string) (*u
 			if user.Username == config.Auth.AdminUsername {
 				user.Permissions.Admin = true
 			}
-			err = storage.CreateUser(user)
+			err = storage.CreateUser(user, user.Permissions)
 			if err != nil {
 				return nil, err
 			}
@@ -223,8 +223,7 @@ func signupHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 		},
 		LoginMethod: users.LoginMethodPassword,
 	}
-	user.Permissions = settings.Config.UserDefaults.Permissions
-	err := storage.CreateUser(user)
+	err := storage.CreateUser(user, settings.Config.UserDefaults.Permissions)
 	if err != nil {
 		logger.Debug(err.Error())
 		// Return the actual error message instead of a generic one
