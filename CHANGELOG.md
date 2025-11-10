@@ -2,11 +2,15 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
-<<<<<<< HEAD
+## v1.0.1-stable
+
+ **BugFixes**:
+ - UserDefault always applies to newly created users #1518
+ - Updating user's own password sometimes doesn't work
+ - Anonymous Share link with optional password does not allow downloads #1553
+ - Share options should go in the meta tags #1511
+
 ## v1.0.1-beta & v1.0.0-stable
-=======
-## v1.0.1
->>>>>>> f5dfa610d148290290e6ada04a094472e08cf0ca
 
  **New Features**:
  - login icon support added via `frontend.loginIcon` config path variable
@@ -31,11 +35,7 @@ All notable changes to this project will be documented in this file. For commit 
  - fixed some condition that the halloween background doesn't load properly
  - some comments not showing up on config viewer in settings
 
-<<<<<<< HEAD
 ## v1.0.0-beta
-=======
-## v1.0.0
->>>>>>> f5dfa610d148290290e6ada04a094472e08cf0ca
 
  **Notes**:
  - Enhanced onlyoffice debugger with more wholistic backend logs
