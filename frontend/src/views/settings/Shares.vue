@@ -107,7 +107,10 @@ export default {
     eventBus.on('sharesChanged', this.reloadShares);
   },
   beforeUnmount() {
-    this.clip.destroy();
+    // Clean up clipboard
+    if (this.clip) {
+      this.clip.destroy();
+    }
     // Clean up event listener
     eventBus.off('sharesChanged', this.reloadShares);
   },

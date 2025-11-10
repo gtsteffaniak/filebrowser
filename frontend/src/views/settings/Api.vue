@@ -125,8 +125,8 @@ export default {
       try {
         // Fetch the API keys from the specified endpoint
         this.links = await usersApi.getApiKeys();
-        this.error = null; // Clear any previous errors
-      // REINITIALIZE CLIPBOARD AFTER DATA CHANGES
+        this.error = null; // Clear errors
+      // Reinitialize clipboard after data changes
       this.$nextTick(() => {
         this.initClipboard();
       });
