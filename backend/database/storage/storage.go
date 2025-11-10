@@ -107,7 +107,7 @@ func quickSetup(store *bolt.BoltStore) {
 }
 
 // create new user
-func CreateUser(userInfo users.User) error {
+func CreateUser(userInfo users.User, permissions users.Permissions) error {
 	newUser := &userInfo
 	newUser.ShowFirstLogin = settings.Config.Env.IsFirstLoad && newUser.Permissions.Admin
 	if userInfo.LoginMethod == "password" {
@@ -125,6 +125,8 @@ func CreateUser(userInfo users.User) error {
 	if userInfo.Username == "" {
 		return fmt.Errorf("username is required to create a user")
 	}
+	settings.ApplyUserDefaults(newUser)
+	newUser.Permissions = permissions
 	logger.Debugf("Creating user: %v %v", userInfo.Username, userInfo.Scopes)
 	// create new home directories
 	err := userStore.Save(newUser, true, false)

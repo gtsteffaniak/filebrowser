@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
-## v1.0.1
+## v1.0.1-beta & v1.0.0-stable
 
  **New Features**:
  - login icon support added via `frontend.loginIcon` config path variable
@@ -27,7 +27,7 @@ All notable changes to this project will be documented in this file. For commit 
  - fixed some condition that the halloween background doesn't load properly
  - some comments not showing up on config viewer in settings
 
-## v1.0.0
+## v1.0.0-beta
 
  **Notes**:
  - Enhanced onlyoffice debugger with more wholistic backend logs
