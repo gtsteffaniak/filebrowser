@@ -394,6 +394,7 @@ button:hover,
 
 .form-button {
     height: auto !important;
+    white-space: nowrap;
 }
 
 .form-invalid {
