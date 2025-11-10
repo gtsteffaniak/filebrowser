@@ -7,7 +7,7 @@
   <div class="card-content"> {{ $t('settings.emptyGlobal') }} </div>
 
   <div class="card-action">
-    <input class="button button--flat" type="submit" :value="$t('buttons.update')" />
+    <input class="button button--flat" type="submit" :value="$t('general.update')" />
   </div>
 </template>
 
@@ -64,7 +64,7 @@ export default {
         await settingsApi.update(state.settings);
         notify.showSuccess(this.$t("settings.settingsUpdated"));
       } catch (e) {
-        notify.showError(e);
+        console.error(e);
       }
     },
   },

@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v1.1.0-beta
+
+ **New Features**:
+ - size analyzer tool
+ - Status bar for listing view #1459
+ - Customizable sidebar links -- reorder sources and add custom links.
+ - Dynamic scopes for OIDC #1414 #1363
+ - Enhanced notifications, buttons persistence. #1331
+ - Share and Access Rules validation
+   - If a file/path is moved/renamed in UI its rules and shares will always follow.
+   - If a file/path is moved/renamed outside UI, a warning message will show and ability to associate to new path
+ - Cascade delete access in Access Management when deleting a User #1347
+
+ **Notes**:
+ - more efficient user update actions. Successful PUT actions return only 204 if successful.
+ - Do not enter directory on "New Folder" action #1343
+ - Individual scanners per directory at root -- improves scanning impact.
+
 ## v1.0.1-stable
 
  **BugFixes**:

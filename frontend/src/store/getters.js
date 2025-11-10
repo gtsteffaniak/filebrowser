@@ -63,17 +63,14 @@ export const getters = {
     }
     const isShare = getters.isShare();
     const displayPref = getters.displayPreference();
-
     // Priority 1: If there's a saved display preference for this specific share/path, use it
     if (displayPref?.viewMode) {
       return displayPref.viewMode;
     }
-
     // Priority 2: If it's a share and shareInfo.viewMode is set, use that as the default
     if (isShare && shareInfo.viewMode) {
       return shareInfo.viewMode;
     }
-
     // Priority 3: Use user's default viewMode
     return state.user.viewMode || "normal";
   },
@@ -82,8 +79,7 @@ export const getters = {
   },
   previewType: () => getTypeInfo(state.req.type).simpleType,
   isCardView: () =>
-    (getters.viewMode() == 'gallery' || getters.viewMode() == 'normal') &&
-    getters.currentView() == 'listingView',
+    (getters.viewMode() == 'gallery' || getters.viewMode() == 'normal' || getters.viewMode() == 'icons' || getters.currentView() == 'listingView'),
   currentHash: () => shareInfo.hash,
   isMobile: () => state.isMobile,
   isLoading: () => Object.keys(state.loading).length > 0,
@@ -268,6 +264,8 @@ export const getters = {
     }
     if (pathname.startsWith(`/settings`)) {
       listingView = 'settings'
+    } else if (pathname.startsWith(`/tools`)) {
+      listingView = 'tools'
     } else {
       if (state.req.type !== undefined) {
         const ext = "." + state.req.name.split(".").pop().toLowerCase(); // Ensure lowercase and dot
@@ -515,6 +513,9 @@ export const getters = {
         create: shareInfo.allowCreate,
         delete: shareInfo.allowDelete,
         download: !shareInfo.disableDownload,
+        admin: false,
+        api: false,
+        realtime: false,
       };
     }
     return {
@@ -523,6 +524,8 @@ export const getters = {
       create: state.user?.permissions?.create,
       delete: state.user?.permissions?.delete,
       download: state.user?.permissions?.download,
+      admin: state.user?.permissions?.admin,
+      api: state.user?.permissions?.api,
     };
   }
 };

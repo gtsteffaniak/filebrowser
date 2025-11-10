@@ -19,7 +19,7 @@
           <div class="bounce2"></div>
           <div class="bounce3"></div>
         </div>
-        <span>{{ $t("files.loading") }}</span>
+        <span>{{ $t("general.loading", { suffix: "..." }) }}</span>
       </h2>
     </div>
   </div>

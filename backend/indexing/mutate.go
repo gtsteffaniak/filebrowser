@@ -153,7 +153,6 @@ func GetIndex(name string) *Index {
 			logger.Errorf("index %s not found", name)
 			return nil
 		}
-
 	}
 	return index
 }
@@ -178,5 +177,26 @@ func GetIndexInfo(sourceName string) (ReducedIndex, error) {
 		idx.SetUsage(totalBytes)
 		utils.DiskUsageCache.Set(cacheKey, true)
 	}
-	return idx.ReducedIndex, nil
+
+	// Build scanner info for client
+	idx.mu.RLock()
+	scannerInfos := make([]*ScannerInfo, 0, len(idx.scanners))
+	for _, scanner := range idx.scanners {
+		scannerInfos = append(scannerInfos, &ScannerInfo{
+			Path:            scanner.scanPath,
+			IsRoot:          scanner.isRoot,
+			LastScanned:     scanner.lastScanned,
+			Assessment:      scanner.assessment,
+			CurrentSchedule: scanner.currentSchedule,
+			QuickScanTime:   scanner.quickScanTime,
+			FullScanTime:    scanner.fullScanTime,
+			NumDirs:         scanner.numDirs,
+			NumFiles:        scanner.numFiles,
+		})
+	}
+	idx.mu.RUnlock()
+
+	reducedIdx := idx.ReducedIndex
+	reducedIdx.Scanners = scannerInfos
+	return reducedIdx, nil
 }

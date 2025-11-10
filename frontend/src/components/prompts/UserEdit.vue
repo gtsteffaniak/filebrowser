@@ -17,7 +17,7 @@
       <span>{{ $t("files.lonely") }}</span>
     </h2>
     <div v-if="user.loginMethod == 'password' && globalVars.passwordAvailable && !isNew">
-      <label for="password">{{ $t("settings.password") }}</label>
+      <label for="password">{{ $t("general.password") }}</label>
       <div class="form-flex-group">
         <input
           class="input form-form"
@@ -46,7 +46,7 @@
           class="button form-button flat-left"
           @click="submitUpdatePassword"
         >
-          {{ $t("buttons.update") }}
+          {{ $t("general.update") }}
         </button>
       </div>
       <div
@@ -63,7 +63,7 @@
     </div>
     <div v-if="stateUser.permissions.admin">
       <p v-if="isNew">
-        <label for="username">{{ $t("settings.username") }}</label>
+        <label for="username">{{ $t("general.username") }}</label>
         <input
           class="input"
           type="text"
@@ -74,7 +74,7 @@
       </p>
 
       <div v-if="user.loginMethod == 'password' && globalVars.passwordAvailable && isNew">
-        <label for="password">{{ $t("settings.password") }}</label>
+        <label for="password">{{ $t("general.password") }}</label>
         <div class="form-flex-group">
           <input
             class="input form-form"
@@ -102,7 +102,7 @@
             class="button form-button flat-left"
             @click="submitUpdatePassword"
           >
-            {{ $t("buttons.update") }}
+            {{ $t("general.update") }}
           </button>
         </div>
       </div>
@@ -169,7 +169,7 @@
       </div>
 
       <p v-if="stateUser.username !== user.username">
-        <label for="locale">{{ $t("settings.language") }}</label>
+        <label for="locale">{{ $t("general.language") }}</label>
         <languages
           class="input"
           id="locale"
@@ -190,16 +190,16 @@
   </div>
 
   <div class="card-action">
-    <button class="button button--flat button--grey" @click="closeHovers" :aria-label="$t('buttons.cancel')"
-      :title="$t('buttons.cancel')">
-      {{ $t("buttons.cancel") }}
+    <button class="button button--flat button--grey" @click="closeHovers" :aria-label="$t('general.cancel')"
+      :title="$t('general.cancel')">
+      {{ $t("general.cancel") }}
     </button>
     <button v-if="!isNew" @click.prevent="deletePrompt" type="button" class="button button--flat button--red"
-      aria-label="Delete User" :title="$t('buttons.delete')">
-      {{ $t("buttons.delete") }}
+      aria-label="Delete User" :title="$t('general.delete')">
+      {{ $t("general.delete") }}
     </button>
-    <button @click="save" class="button button--flat" :aria-label="$t('buttons.save')" :title="$t('buttons.save')">
-      {{ $t("buttons.save") }}
+    <button @click="save" class="button button--flat" :aria-label="$t('general.save')" :title="$t('general.save')">
+      {{ $t("general.save") }}
     </button>
   </div>
 </template>
@@ -352,7 +352,6 @@ export default {
           }
         }
       } catch (e) {
-        notify.showError(e);
         this.error = e;
       } finally {
         mutations.setLoading("users", false);
@@ -409,7 +408,7 @@ export default {
           mutations.closeHovers();
         }
       } catch (e) {
-        notify.showError(e);
+        console.error(e);
       }
     },
     newOTP() {

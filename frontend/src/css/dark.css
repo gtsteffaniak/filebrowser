@@ -217,10 +217,3 @@
   background: var(--background);
   color: var(--textPrimary);
 }
-
-/* Header */
-.dark-mode-header {
-  color: white;
-  background-color: #283136;
-}
-

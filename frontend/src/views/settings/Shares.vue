@@ -9,10 +9,11 @@
       <thead>
         <tr>
           <th>{{ $t("general.hash") }}</th>
-          <th>{{ $t("settings.path") }}</th>
-          <th>{{ $t("settings.shareDuration") }}</th>
-          <th>{{ $t("settings.downloads") }}</th>
-          <th>{{ $t("settings.username") }}</th>
+          <th>{{ $t("general.path") }}</th>
+          <th>{{ $t("time.unit") }}</th>
+          <th>{{ $t("general.downloads") }}</th>
+          <th>{{ $t("general.username") }}</th>
+          <th></th>
           <th></th>
           <th></th>
           <th></th>
@@ -35,14 +36,17 @@
           </td>
           <td>{{ item.username }}</td>
           <td class="small">
-            <button class="action" @click="editLink(item)" :aria-label="$t('buttons.edit')"
-              :title="$t('buttons.edit')">
+            <i v-if="!item.pathExists" class="material-icons warning-icon" :title="$t('messages.pathNotFound')">warning</i>
+          </td>
+          <td class="small">
+            <button class="action" @click="editLink(item)" :aria-label="$t('general.edit')"
+              :title="$t('general.edit')">
               <i class="material-icons">edit</i>
             </button>
           </td>
           <td class="small">
-            <button class="action" @click="deleteLink($event, item)" :aria-label="$t('buttons.delete')"
-              :title="$t('buttons.delete')">
+            <button class="action" @click="deleteLink($event, item)" :aria-label="$t('general.delete')"
+              :title="$t('general.delete')">
               <i class="material-icons">delete</i>
             </button>
           </td>
@@ -108,7 +112,7 @@ export default {
   beforeUnmount() {
     this.clip.destroy();
     // Clean up event listener
-    eventBus.removeEventListener('sharesChanged', this.reloadShares);
+    eventBus.off('sharesChanged', this.reloadShares);
   },
   computed: {
     settings() {
@@ -137,7 +141,7 @@ export default {
         this.error = null; // Clear any previous errors
       } catch (e) {
         this.error = e;
-        notify.showError(e);
+        console.error(e);
       } finally {
         mutations.setLoading("shares", false);
       }
@@ -166,7 +170,7 @@ export default {
             this.links = this.links.filter((link) => link.hash !== item.hash);
             notify.showSuccess(this.$t("settings.shareDeleted"));
           } catch (e) {
-            notify.showError(e);
+            console.error(e);
           }
         },
       });

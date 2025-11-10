@@ -2,9 +2,9 @@
   <errors v-if="error" :errorCode="error.status" />
   <div class="card-title">
     <h2>{{ $t("access.accessManagement") }}</h2>
-    <button class="button" @click="addAccess">{{ $t("buttons.new") }}</button>
+    <button class="button" @click="addAccess">{{ $t("general.new") }}</button>
     <div class="form-flex-group">
-      <label for="source-select">{{ $t("prompts.source",{suffix: ":"})  }}</label>
+      <label for="source-select">{{ $t("general.source",{suffix: ":"})  }}</label>
       <select class="input" id="source-select" v-model="selectedSource" @change="fetchRules">
         <option v-for="source in availableSources" :key="source" :value="source">
           {{ source }}
@@ -20,10 +20,11 @@
     <table v-else aria-label="Access Rules">
       <thead>
         <tr>
-          <th>{{$t('settings.path')}}</th>
+          <th>{{$t('general.path')}}</th>
           <th>{{$t('access.totalDenied')}}</th>
           <th>{{$t('access.totalAllowed')}}</th>
-          <th>{{$t('buttons.edit') }}</th>
+          <th></th>
+          <th>{{$t('general.edit') }}</th>
         </tr>
       </thead>
       <tbody class="settings-items">
@@ -32,8 +33,11 @@
           <td>{{ (rule.deny.users.length + rule.deny.groups.length) + (rule.denyAll ? 1 : 0) }}</td>
           <td>{{ rule.allow.users.length + rule.allow.groups.length }}</td>
           <td class="small">
-            <button class="action" @click="editAccess(path)" :aria-label="$t('buttons.edit')"
-              :title="$t('buttons.edit')">
+            <i v-if="!rule.pathExists" class="material-icons warning-icon" :title="$t('messages.pathNotFound')">warning</i>
+          </td>
+          <td class="small">
+            <button class="action" @click="editAccess(path)" :aria-label="$t('general.edit')"
+              :title="$t('general.edit')">
               <i class="material-icons">edit</i>
             </button>
           </td>
@@ -77,7 +81,7 @@ export default {
   },
   beforeUnmount() {
     // Clean up event listener
-    eventBus.removeEventListener('accessRulesChanged', this.fetchRules);
+    eventBus.off('accessRulesChanged', this.fetchRules);
   },
   computed: {
     /*loading() {

@@ -3,7 +3,7 @@
     <action
       v-if="!disableNavButtons"
       icon="close_back"
-      :label="$t('buttons.close')"
+      :label="$t('general.close')"
       :disabled="isDisabledMultiAction"
       @action="multiAction"
     />
@@ -29,7 +29,7 @@
       v-else-if="showQuickSave"
       id="save-button"
       icon="save"
-      :label="$t('buttons.save')"
+      :label="$t('general.save')"
       @action="save()"
     />
   </header>
@@ -53,13 +53,13 @@ export default {
   },
   data() {
     return {
-      viewModes: ["list", "compact", "normal", "gallery"],
+      viewModes: ["list", "normal", "icons"],
     };
   },
   computed: {
     getTopTitle() {
       if (getters.isSettings()) {
-        return this.$t("sidebar.settings");
+        return this.$t("general.settings");
       }
       if (getters.isShare() && shareInfo.title && state.req.type === "directory") {
         return shareInfo.title;
@@ -89,7 +89,7 @@ export default {
     viewIcon() {
       const icons = {
         list: "view_list",
-        compact: "table_rows_narrow",
+        compact: "view_list",
         normal: "view_module",
         gallery: "grid_view",
       };

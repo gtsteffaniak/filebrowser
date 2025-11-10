@@ -3,13 +3,22 @@
     <h2>{{ $t("access.accessManagement") }}</h2>
   </div>
   <div class="card-content">
+    <!-- Warning banner for missing path -->
+    <div v-if="!pathExists && !isEditingPath" class="warning-banner">
+      <i class="material-icons">warning</i>
+      <span>{{ $t("messages.pathNotFoundMessage") }}</span>
+      <button class="button button--flat button--blue" @click="startPathReassignment">
+        {{ $t("messages.reassignPath") }}
+      </button>
+    </div>
+
     <div v-if="isEditingPath">
       <file-list @update:selected="updateTempPath" :browse-source="sourceName"></file-list>
     </div>
     <div v-else>
-      <p>{{ $t("prompts.source", { suffix: ":" }) }} {{ currentSource }}</p>
+      <p>{{ $t("general.source", { suffix: ":" }) }} {{ currentSource }}</p>
       <div aria-label="access-path" class="searchContext clickable button" @click="startPathEdit">
-        {{ $t("search.path") }} {{ currentPath }}
+        {{ $t("general.path", { suffix: ":" }) }} {{ currentPath }}
       </div>
       <!-- Default behavior banner -->
       <div class="card item">
@@ -44,13 +53,19 @@
           <i class="material-icons">add</i>
         </button>
       </div>
+      <!-- Cascade Delete Toggle -->
+      <div v-if="entries.length > 0" class="cascade-toggle-section">
+        <ToggleSwitch v-model="cascadeDelete" 
+          :name="$t('access.cascadeDelete')"
+          :description="$t('access.cascadeDeleteDescription')" />
+      </div>
       <table v-if="entries.length > 0">
         <tbody>
           <tr>
             <th>{{ $t("access.allowDeny") }}</th>
             <th>{{ $t("access.userGroup") }}</th>
-            <th>{{ $t("general.name") }}</th>
-            <th>{{ $t("buttons.edit") }}</th>
+            <th>{{ $t("general.name", { suffix: '' }) }}</th>
+            <th>{{ $t("general.edit") }}</th>
           </tr>
           <tr v-for="entry in entries" :key="entry.type + '-' + entry.name">
             <td>{{ entry.allow ? $t("access.allow") : $t("access.deny") }}</td>
@@ -58,8 +73,8 @@
               $t('access.all')) }}</td>
             <td>{{ entry.name }}</td>
             <td>
-              <button @click="deleteAccess(entry)" class="action" :aria-label="$t('buttons.delete')"
-                :title="$t('buttons.delete')">
+              <button @click="deleteAccess(entry)" class="action" :aria-label="$t('general.delete')"
+                :title="$t('general.delete')">
                 <i class="material-icons">delete</i>
               </button>
             </td>
@@ -70,16 +85,16 @@
   </div>
   <div class="card-action">
     <template v-if="isEditingPath">
-      <button class="button button--flat" @click="cancelPathChange" :aria-label="$t('buttons.cancel')" :title="$t('buttons.cancel')">
-        {{ $t("buttons.cancel") }}
+      <button class="button button--flat" @click="cancelPathChange" :aria-label="$t('general.cancel')" :title="$t('general.cancel')">
+        {{ $t("general.cancel") }}
       </button>
-      <button class="button button--flat" @click="confirmPathChange" :aria-label="$t('buttons.ok')" :title="$t('buttons.ok')">
-        {{ $t("buttons.ok") }}
+      <button class="button button--flat" @click="confirmPathChange" :aria-label="$t('general.ok')" :title="$t('general.ok')">
+        {{ $t("general.ok") }}
       </button>
     </template>
     <template v-else>
-      <button @click="closeHovers" class="button button--flat button--grey" :aria-label="$t('buttons.close')" :title="$t('buttons.close')">
-        {{ $t("buttons.close") }}
+      <button @click="closeHovers" class="button button--flat button--grey" :aria-label="$t('general.close')" :title="$t('general.close')">
+        {{ $t("general.close") }}
       </button>
     </template>
   </div>
@@ -90,11 +105,12 @@ import { notify } from "@/notify";
 import { accessApi } from "@/api";
 import { mutations } from "@/store";
 import FileList from "./FileList.vue";
+import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import { eventBus } from "@/store/eventBus";
 
 export default {
   name: "access",
-  components: { FileList },
+  components: { FileList, ToggleSwitch },
   props: {
     sourceName: { type: String, required: true },
     path: { type: String, required: true, default: "/" }
@@ -102,16 +118,20 @@ export default {
   data() {
     return {
       isEditingPath: false,
+      isReassigningPath: false,
       tempPath: this.path,
       currentPath: this.path,
       currentSource: this.sourceName,
       tempSource: this.sourceName,
+      originalPath: this.path,
       rule: { denyAll: false, deny: { users: [], groups: [] }, allow: { users: [], groups: [] } },
       sourceDenyDefault: false,
+      pathExists: true,
       addType: "user",
       addListType: "deny",
       addName: "",
-      groups: []
+      groups: [],
+      cascadeDelete: false
     };
   },
   computed: {
@@ -170,21 +190,47 @@ export default {
         this.tempSource = pathOrData.source;
       }
     },
-    confirmPathChange() {
-      this.currentPath = this.tempPath;
-      this.currentSource = this.tempSource;
-      this.isEditingPath = false;
-      this.fetchRule();
+    async confirmPathChange() {
+      if (this.isReassigningPath) {
+        // Reassigning path - call API to update
+        try {
+          await accessApi.updatePath(this.currentSource, this.originalPath, this.tempPath);
+          notify.showSuccess(this.$t("messages.pathReassigned"));
+          this.originalPath = this.tempPath;
+          this.currentPath = this.tempPath;
+          this.currentSource = this.tempSource;
+          this.isEditingPath = false;
+          this.isReassigningPath = false;
+          await this.fetchRule();
+          // Emit event to refresh access rules list
+          eventBus.emit('accessRulesChanged');
+        } catch (e) {
+          notify.showError(this.$t("messages.pathReassignFailed"));
+          console.error(e);
+        }
+      } else {
+        // Just viewing a different path
+        this.currentPath = this.tempPath;
+        this.currentSource = this.tempSource;
+        this.isEditingPath = false;
+        await this.fetchRule();
+      }
     },
     cancelPathChange() {
       this.isEditingPath = false;
+      this.isReassigningPath = false;
+    },
+    startPathReassignment() {
+      this.isReassigningPath = true;
+      this.tempPath = this.currentPath;
+      this.isEditingPath = true;
     },
     async fetchGroups() {
       try {
         const response = await accessApi.getGroups();
         this.groups = response.groups;
       } catch (e) {
-        notify.showError(e);
+        this.groups = [];
       }
     },
     async fetchRule() {
@@ -193,10 +239,11 @@ export default {
         // Handle new API response structure - now sourceDenyDefault is part of the rule
         this.rule = response;
         this.sourceDenyDefault = response.sourceDenyDefault || false;
+        this.pathExists = response.pathExists !== false;
       } catch (e) {
-        notify.showError(e);
         this.rule = { denyAll: false, deny: { users: [], groups: [] }, allow: { users: [], groups: [] } };
         this.sourceDenyDefault = false;
+        this.pathExists = true;
       }
     },
     /**
@@ -208,14 +255,18 @@ export default {
           allow: entry.allow,
           ruleCategory: entry.type,
           value: entry.type === 'all' ? '' : entry.name,
+          cascade: this.cascadeDelete && entry.type !== 'all'
         };
         await accessApi.del(this.currentSource, this.currentPath, body);
-        notify.showSuccess(this.$t("access.deleted"));
+        const message = this.cascadeDelete && entry.type !== 'all' 
+          ? this.$t("access.deletedCascade") 
+          : this.$t("access.deleted");
+        notify.showSuccess(message);
         await this.fetchRule();
         // Emit event to refresh access rules list
         eventBus.emit('accessRulesChanged');
       } catch (e) {
-        notify.showError(e);
+        console.error(e);
       }
     },
     async submitAdd() {
@@ -240,7 +291,7 @@ export default {
         // Emit event to refresh access rules list
         eventBus.emit('accessRulesChanged');
       } catch (e) {
-        notify.showError(e);
+        console.error(e);
       }
     },
     closePrompt() {
@@ -280,4 +331,10 @@ export default {
 .searchContext {
   margin-bottom: 1em;
 }
+
+.cascade-toggle-section {
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+
 </style>

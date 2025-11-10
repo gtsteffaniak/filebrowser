@@ -1,7 +1,7 @@
 <template>
   <div class="epub-container">
     <div v-if="!isReady" class="loading-indicator">
-      <p>{{ $t("files.loading") }}</p>
+      <p>{{ $t("general.loading", { suffix: "..." }) }}</p>
     </div>
 
     <div id="viewer" :class="{ ready: isReady }"></div>

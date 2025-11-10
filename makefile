@@ -8,6 +8,9 @@ else
     SHELL := /bin/bash
 endif
 
+# git checkout remote branch PR
+# git fetch origin pull/####/head:pr-####
+
 .SILENT:
 setup:
 	echo "creating ./backend/test_config.yaml for local testing..."
@@ -42,7 +45,6 @@ dev:
 	fi
 	@echo "Generating frontend config..."
 	cd backend && FILEBROWSER_GENERATE_CONFIG=true go run --tags=mupdf .
-	cd frontend && npm run build
 	@echo "Starting dev servers... Press Ctrl+C to stop."
 	@cd frontend && DEV_BUILD=true npm run watch & \
 	FRONTEND_PID=$$!; \
@@ -65,7 +67,7 @@ generate-config:
 	cd backend && FILEBROWSER_GENERATE_CONFIG=true go run .
 
 build-frontend:
-	cd frontend && npm run $$([ "$(OS)" = "Windows_NT" ] && echo "build:windows" || echo "build")
+	cd frontend && npm run build
 
 lint-frontend:
 	cd frontend && npm run lint
@@ -93,6 +95,8 @@ test-frontend:
 
 test-playwright: build-frontend
 	cd backend && GOOS=linux go build -o filebrowser .
+	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-noauth .
+	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-no-config .
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-settings .
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-general .
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-sharing .

@@ -7,7 +7,7 @@
           <div class="bounce2"></div>
           <div class="bounce3"></div>
         </div>
-        <span>{{ $t("files.loading") }}</span>
+        <span>{{ $t("general.loading", { suffix: "..." }) }}</span>
       </h2>
     </div>
     <div v-else>
@@ -48,6 +48,7 @@
           dropping: isDragging,
           'rectangle-selecting': isRectangleSelecting
         }"
+        :style="itemStyles"
         class="file-icons"
       >
         <!-- Rectangle selection overlay -->
@@ -65,7 +66,7 @@
               :title="$t('files.sortByName')"
               :aria-label="$t('files.sortByName')"
             >
-              <span>{{ $t("files.name") }}</span>
+              <span>{{ $t("general.name") }}</span>
               <i class="material-icons">{{ nameIcon }}</i>
             </p>
 
@@ -78,7 +79,7 @@
               :title="$t('files.sortBySize')"
               :aria-label="$t('files.sortBySize')"
             >
-              <span>{{ $t("files.size") }}</span>
+              <span>{{ $t("general.size") }}</span>
               <i class="material-icons">{{ sizeIcon }}</i>
             </p>
             <p
@@ -161,6 +162,7 @@
           multiple
         />
       </div>
+      <StatusBar />
     </div>
   </div>
 
@@ -182,12 +184,14 @@ import { shareInfo } from "@/utils/constants";
 
 import Item from "@/components/files/ListingItem.vue";
 import Upload from "@/components/prompts/Upload.vue";
+import StatusBar from "@/components/StatusBar.vue";
 
 export default {
   name: "listingView",
   components: {
     Item,
     Upload,
+    StatusBar,
   },
   data() {
     return {
@@ -202,6 +206,7 @@ export default {
       rectangleStart: { x: 0, y: 0 },
       rectangleEnd: { x: 0, y: 0 },
       rectangleSelection: [],
+      cssVariables: {},
     };
   },
   watch: {
@@ -285,6 +290,17 @@ export default {
       if (!elem) {
         return 1;
       }
+      if (getters.viewMode() === 'icons') {
+        const containerSize = 70 + (state.user.gallerySize * 15); // 85px to 190px range
+        let columns = Math.floor(elem.offsetWidth / containerSize);
+        if (columns === 0) columns = 1;
+
+        const minColumns = 3;
+        const maxColumns = 12;
+        columns = Math.max(minColumns, Math.min(columns, maxColumns));
+        return columns;
+      }
+      // Rest of views
       let columns = Math.floor(elem.offsetWidth / this.columnWidth);
       if (columns === 0) columns = 1;
       return columns;
@@ -382,6 +398,58 @@ export default {
         height: height + 'px',
       };
     },
+    itemStyles() {
+      const viewMode = getters.viewMode();
+      const styles = {};
+
+      if (viewMode === 'icons') {
+        const baseSize = 60 + (state.user.gallerySize * 15); // 60px to 135px - increased scaling
+        const cellSize = baseSize + 30;
+        styles['--icons-view-icon-size'] = `${baseSize}px`;
+        styles['--icons-view-cell-size'] = `${cellSize}px`;
+      } else if (viewMode === 'gallery') {
+        // Use column width and percentage-based sizing for smooth animations
+        // Keep size 5 at 205px, then scale more aggressively above that
+        const baseCalc = 80 + (state.user.gallerySize * 25);
+        const extraScaling = Math.max(0, state.user.gallerySize - 5) * 15; // Additional 15px per level above 5
+        const baseSize = baseCalc + extraScaling; // Size 5: 205px, Size 9: 345px
+        if (state.isMobile) {
+          let columns;
+          if (state.user.gallerySize <= 2) columns = 3;
+          else if (state.user.gallerySize <= 5) columns = 2;
+          else columns = 1;
+          styles['--gallery-mobile-columns'] = columns.toString();
+          // On mobile, scale height with gallery size for smooth animations
+          const mobileHeight = 120 + (state.user.gallerySize * 20); // 120px to 300px range
+          styles['--item-width'] = '150px'; // Minimum size for mobile grid
+          styles['--item-height'] = `${mobileHeight}px`;
+        } else {
+          // Use pixel size for grid's minmax - items will stretch and animate smoothly
+          // Make height 20% larger than width for better proportions
+          styles['--item-width'] = `${baseSize}px`;
+          styles['--item-height'] = `${Math.round(baseSize * 1.2)}px`;
+        }
+      } else if (viewMode === 'list' || viewMode === 'compact') {
+        const baseHeight = viewMode === 'compact' 
+          ? 40 + (state.user.gallerySize * 2)  // 40px to 56px - compact
+          : 50 + (state.user.gallerySize * 3); // 50px to 74px - list
+        
+        // Scale icons with gallery size - icon fonts: 1.6em to 2.4em, images: 1.2em to 1.8em
+        const iconFontSize = (1.6 + (state.user.gallerySize * 0.1)).toFixed(2); // 1.7em to 2.5em
+        const iconImageSize = (1.2 + (state.user.gallerySize * 0.075)).toFixed(3); // 1.275em to 1.875em
+        
+        styles['--item-width'] = `calc(${(100 / this.numColumns).toFixed(2)}% - 1em)`;
+        styles['--item-height'] = `${baseHeight}px`;
+        styles['--list-icon-font-size'] = `${iconFontSize}em`;
+        styles['--list-icon-image-size'] = `${iconImageSize}em`;
+      } else {
+        // Normal view
+        styles['--item-width'] = `calc(${(100 / this.numColumns).toFixed(2)}% - 1em)`;
+        styles['--item-height'] = 'auto';
+      }
+
+      return styles;
+    },
   },
   mounted() {
     mutations.setSearch(false);
@@ -394,6 +462,9 @@ export default {
     window.addEventListener("click", this.clickClear);
     window.addEventListener("keyup", this.clearCtrKey);
     window.addEventListener("dragover", this.preventDefault);
+    document.addEventListener('mousemove', this.updateRectangleSelection);
+    document.addEventListener('mouseup', this.endRectangleSelection);
+    this.$el.addEventListener('mousedown', this.startRectangleSelection);
     this.$el.addEventListener("touchmove", this.handleTouchMove);
 
     this.$el.addEventListener("contextmenu", this.openContext);
@@ -415,9 +486,6 @@ export default {
       this.$el.addEventListener("dragenter", this.dragEnter);
       this.$el.addEventListener("dragleave", this.dragLeave);
       this.$el.addEventListener("drop", this.drop);
-      this.$el.addEventListener('mousedown', this.startRectangleSelection);
-      document.addEventListener('mousemove', this.updateRectangleSelection);
-      document.addEventListener('mouseup', this.endRectangleSelection);
     }
 
   },
@@ -428,6 +496,9 @@ export default {
     window.removeEventListener("click", this.clickClear);
     window.removeEventListener("keyup", this.clearCtrKey);
     window.removeEventListener("dragover", this.preventDefault);
+    document.removeEventListener('mousemove', this.updateRectangleSelection);
+    document.removeEventListener('mouseup', this.endRectangleSelection);
+    this.$el.removeEventListener('mousedown', this.startRectangleSelection);
 
     this.$el.removeEventListener("touchmove", this.handleTouchMove);
     this.$el.removeEventListener("contextmenu", this.openContext);
@@ -445,9 +516,6 @@ export default {
       this.$el.removeEventListener("dragenter", this.dragEnter);
       this.$el.removeEventListener("dragleave", this.dragLeave);
       this.$el.removeEventListener("drop", this.drop);
-      this.$el.removeEventListener('mousedown', this.startRectangleSelection);
-      document.removeEventListener('mousemove', this.updateRectangleSelection);
-      document.removeEventListener('mouseup', this.endRectangleSelection);
     }
   },
   methods: {
@@ -892,19 +960,8 @@ export default {
       });
     },
     colunmsResize() {
-      document.documentElement.style.setProperty(
-        "--item-width",
-        `calc(${100 / this.numColumns}% - 1em)`
-      );
-
-      if (getters.viewMode() == "gallery") {
-        document.documentElement.style.setProperty(
-          "--item-height",
-          `calc(${this.columnWidth / 20}em)`
-        );
-      } else {
-        document.documentElement.style.setProperty("--item-height", `auto`);
-      }
+      // No longer needed - CSS variables are now handled reactively via itemStyles computed property
+      // Kept for backwards compatibility with any remaining callers
     },
     dragEnter(event) {
       // If in upload share mode, let the embedded Upload component handle it
@@ -970,6 +1027,7 @@ export default {
     windowsResize: throttle(function () {
       this.colunmsResize();
       this.width = window.innerWidth;
+      mutations.setMobile();
       // Listing element is not displayed
       if (this.$refs.listingView == null) return;
     }, 100),
@@ -1028,12 +1086,12 @@ export default {
       }
     },
     startRectangleSelection(event) {
-      // Start rectangle selection when clicking on empty space
-      if (event.target.closest('.item') || event.target.closest('.header')) {
+      // Start rectangle selection when clicking on empty space - don't start if the click was in the status bar, an item or the header
+      if (event.target.closest('.item') || event.target.closest('.header') || event.target.closest('#status-bar')) {
         return;
       }
 
-      // Don't start if it's a right click, this for avoid some weird issue with the context menu.
+      // Don't start if it's a right click, this for avoid some issues with the context menu.
       if (event.button !== 0) return;
 
       this.isRectangleSelecting = true;

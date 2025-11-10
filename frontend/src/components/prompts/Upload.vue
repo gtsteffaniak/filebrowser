@@ -42,10 +42,10 @@
       <p v-if="files.length === 0">{{ $t("prompts.dragAndDrop") }}</p>
       <div class="button-group">
         <button @click="triggerFilePicker" class="button button--flat">
-          {{ $t("buttons.file") }}
+          {{ $t("general.file") }}
         </button>
         <button style="margin-left: 1em" @click="triggerFolderPicker" class="button button--flat">
-          {{ $t("buttons.folder") }}
+          {{ $t("general.folder") }}
         </button>
       </div>
     </div>
@@ -58,10 +58,10 @@
         </div>
         <div class="card-actions">
           <button @click="resolveConflict(false)" class="button button--flat button--grey">
-            {{ $t("buttons.cancel") }}
+            {{ $t("general.cancel") }}
           </button>
           <button @click="resolveConflict(true)" class="button button--flat button--red">
-            {{ $t("buttons.replace") }}
+            {{ $t("general.replace") }}
           </button>
         </div>
       </div>
@@ -84,28 +84,28 @@
             :help-text="file.status === 'error' && file.errorDetails ? file.errorDetails : ''">
           </progress-bar>
           <div v-else class="status-label">
-            <span>{{ $t(`prompts.${file.status}`) }}</span>
+            <span>{{ getStatusText(file.status) }}</span>
           </div>
         </div>
         <div class="file-actions">
           <button v-if="file.status === 'uploading'" @click="uploadManager.pause(file.id)" class="action"
-            :aria-label="$t('buttons.pause')" :title="$t('buttons.pause')">
+            :aria-label="$t('general.pause')" :title="$t('general.pause')">
             <i class="material-icons">pause</i>
           </button>
           <button v-if="file.status === 'paused'" @click="uploadManager.resume(file.id)" class="action"
-            :aria-label="$t('buttons.resume')" :title="$t('buttons.resume')">
+            :aria-label="$t('general.resume')" :title="$t('general.resume')">
             <i class="material-icons">play_arrow</i>
           </button>
           <button v-if="file.status === 'error'" @click="uploadManager.retry(file.id)" class="action"
-            :aria-label="$t('buttons.retry')" :title="$t('buttons.retry')">
+            :aria-label="$t('general.retry')" :title="$t('general.retry')">
             <i class="material-icons">replay</i>
           </button>
           <button v-if="file.status === 'conflict'" @click="handleConflictAction(file)" class="action"
-            :aria-label="$t('buttons.replace')" :title="$t('buttons.replace')">
+            :aria-label="$t('general.replace')" :title="$t('general.replace')">
             <i class="material-icons">sync_problem</i>
           </button>
-          <button @click="cancelUpload(file.id)" class="action" :aria-label="$t('buttons.cancel')"
-            :title="$t('buttons.cancel')">
+          <button @click="cancelUpload(file.id)" class="action" :aria-label="$t('general.cancel')"
+            :title="$t('general.cancel')">
             <i class="material-icons">close</i>
           </button>
         </div>
@@ -114,9 +114,9 @@
   </div>
 
   <div class="card-actions">
-    <button v-if="shareInfo.shareType !== 'upload'"  @click="close" class="button button--flat button--grey" :aria-label="$t('buttons.cancel')"
-      :title="$t('buttons.cancel')">
-      {{ $t("buttons.close") }}
+    <button v-if="shareInfo.shareType !== 'upload'"  @click="close" class="button button--flat button--grey" :aria-label="$t('general.cancel')"
+      :title="$t('general.cancel')">
+      {{ $t("general.close") }}
     </button>
     <div class="spacer"></div>
     <button v-if="canPauseAll" @click="uploadManager.pauseAll" class="button button--flat"
@@ -148,6 +148,7 @@ import ProgressBar from "@/components/ProgressBar.vue";
 import SettingsItem from "@/components/settings/SettingsItem.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import { shareInfo } from "@/utils/constants";
+import i18n from "@/i18n";
 
 export default {
   name: "UploadFiles",
@@ -226,7 +227,7 @@ export default {
         await usersApi.update(data, ["fileLoading"]);
         notify.showSuccess("Upload settings updated");
       } catch (e) {
-        notify.showError(e);
+        console.error(e);
       }
     };
 
@@ -289,7 +290,7 @@ export default {
         }
         mutations.closeTopHover(); // Only close the rename prompt, return to upload prompt
       } catch (error) {
-        notify.showError(error);
+        console.error(error);
       }
     };
 
@@ -530,6 +531,23 @@ export default {
       uploadManager.cancel(id);
     };
 
+    const getStatusText = (status) => {
+      switch (status) {
+        case 'uploading':
+          return i18n.global.t('general.uploading', { suffix: '...' });
+        case 'completed':
+          return i18n.global.t('prompts.completed');
+        case 'error':
+          return i18n.global.t('prompts.error');
+        case 'paused':
+          return i18n.global.t('general.paused');
+        case 'conflict':
+          return i18n.global.t('general.conflict');
+        default:
+          return status;
+      }
+    };
+
     return {
       triggerFilePicker,
       triggerFolderPicker,
@@ -561,6 +579,7 @@ export default {
       clearAll,
       showTooltip,
       hideTooltip,
+      getStatusText,
       updateUploadSettings,
     };
   },

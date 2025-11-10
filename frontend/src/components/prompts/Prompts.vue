@@ -25,6 +25,7 @@ import ShareDelete from "./ShareDelete.vue";
 import DeleteUser from "./DeleteUser.vue";
 import CreateApi from "./CreateApi.vue";
 import ActionApi from "./ActionApi.vue";
+import SidebarLinks from "./SidebarLinks.vue";
 import Sidebar from "../sidebar/Sidebar.vue";
 import UserEdit from "./UserEdit.vue";
 import buttons from "@/utils/buttons";
@@ -33,6 +34,7 @@ import Access from "./Access.vue";
 import Password from "./Password.vue";
 import PlaybackQueue from "./PlaybackQueue.vue";
 import FileList from "./FileList.vue";
+import PathPicker from "./PathPicker.vue";
 import SaveBeforeExit from "./SaveBeforeExit.vue";
 import CopyPasteConfirm from "./CopyPasteConfirm.vue";
 import CloseWithActiveUploads from "./CloseWithActiveUploads.vue";
@@ -62,10 +64,12 @@ export default {
     DeleteUser,
     CreateApi,
     ActionApi,
+    SidebarLinks,
     Access,
     Password,
     PlaybackQueue,
     "file-list": FileList,
+    PathPicker,
     SaveBeforeExit,
     CopyPasteConfirm,
     CloseWithActiveUploads,

@@ -1,6 +1,6 @@
 <template>
   <div class="card-title">
-    <h2>{{ $t(`prompts.${operation}`) }}</h2>
+    <h2>{{ operation === 'move' ? $t('prompts.move') : $t('prompts.copy') }}</h2>
   </div>
 
   <div class="card-content">
@@ -16,19 +16,20 @@
   </div>
   <div v-if="!isLoading" class="card-action" style="display: flex; align-items: center; justify-content: space-between">
     <template v-if="user.permissions.modify">
-      <button class="button button--flat" @click="$refs.fileList.createDir()" :aria-label="$t('sidebar.newFolder')"
-        :title="$t('sidebar.newFolder')" style="justify-self: left">
-        <span>{{ $t("sidebar.newFolder") }}</span>
+      <button class="button button--flat" @click="$refs.fileList.createDir()" :aria-label="$t('files.newFolder')"
+        :title="$t('files.newFolder')" style="justify-self: left">
+        <span>{{ $t("files.newFolder") }}</span>
       </button>
     </template>
     <div>
-      <button class="button button--flat button--grey" @click="closeHovers" :aria-label="$t('buttons.cancel')"
-        :title="$t('buttons.cancel')">
-        {{ $t("buttons.cancel") }}
+      <button class="button button--flat button--grey" @click="closeHovers" :aria-label="$t('general.cancel')"
+        :title="$t('general.cancel')">
+        {{ $t("general.cancel") }}
       </button>
       <button :disabled="destContainsSrc" class="button button--flat" @click="performOperation"
-        :aria-label="$t(`buttons.${operation}`)" :title="$t(`buttons.${operation}`)">
-        {{ $t(`buttons.${operation}`) }}
+        :aria-label="operation === 'move' ? $t('general.move') : $t('general.copy')" 
+        :title="operation === 'move' ? $t('general.move') : $t('general.copy')">
+        {{ operation === 'move' ? $t('general.move') : $t('general.copy') }}
       </button>
     </div>
   </div>
@@ -198,17 +199,32 @@ export default {
         }
         mutations.closeHovers();
         mutations.setSearch(false);
+
+        // Store destination info for the button action
+        const destSource = this.destSource;
+        const destPath = this.destPath;
+
+        // Show success notification with optional button to navigate to destination
+        const buttonAction = () => {
+          if (destSource && destPath) {
+            goToItem(destSource, destPath, {});
+          }
+        };
+        const buttonProps = {
+            icon: "folder",
+            buttons: destSource && destPath ? [
+          {
+            label: this.$t("buttons.goToItem"),
+            primary: true,
+            action: buttonAction
+          }
+        ] : undefined
+          };
         if (this.operation === "move") {
-          notify.showSuccess(this.$t(`prompts.moveSuccess`));
+          notify.showSuccess(this.$t("prompts.moveSuccess"), buttonProps);
         } else {
-          notify.showSuccess(this.$t(`prompts.copySuccess`));
+          notify.showSuccess(this.$t("prompts.copySuccess"), buttonProps);
         }
-        // Navigate to the destination folder after successful operation
-        if (this.destSource && this.destPath) {
-          goToItem(this.destSource, this.destPath, {});
-        }
-      } catch (error) {
-        notify.showError(error);
       } finally {
         this.isLoading = false; // Hide loading spinner
       }

@@ -11,13 +11,13 @@
       </div>
     </div>
     <div class="card-action">
-      <button @click="closeHovers" class="button button--flat button--grey" :aria-label="$t('buttons.cancel')"
-        :title="$t('buttons.cancel')">
-        {{ $t("buttons.cancel") }}
+      <button @click="closeHovers" class="button button--flat button--grey" :aria-label="$t('general.cancel')"
+        :title="$t('general.cancel')">
+        {{ $t("general.cancel") }}
       </button>
       <button @click="submit" class="button button--flat button--red" aria-label="Confirm-Delete"
-        :title="$t('buttons.delete')">
-        {{ $t("buttons.delete") }}
+        :title="$t('general.delete')">
+        {{ $t("general.delete") }}
       </button>
     </div>
 </template>
@@ -115,7 +115,7 @@ export default {
         mutations.setReload(true); // Handle reload as neededs
       } catch (e) {
         buttons.done("delete");
-        notify.showError(e);
+        console.error(e);
         if (this.isListing) mutations.setReload(true); // Handle reload as needed
       }
     },

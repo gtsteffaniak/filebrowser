@@ -42,14 +42,32 @@ export async function add(source, path, body) {
 /**
  * @param {string} source
  * @param {string} path
- * @param {{ allow: boolean; ruleCategory: string; value: string; }} body
+ * @param {{ allow: boolean; ruleCategory: string; value: string; cascade?: boolean; }} body
  * @returns {Promise<any>}
  */
 export async function del(source, path, body) {
   const ruleType = body.allow ? 'allow' : 'deny';
-  const { ruleCategory, value } = body;
-  const apiPath = getApiPath('api/access', { source, path, ruleType, ruleCategory, value });
+  const { ruleCategory, value, cascade } = body;
+  const params = { source, path, ruleType, ruleCategory, value };
+  if (cascade) {
+    params.cascade = 'true';
+  }
+  const apiPath = getApiPath('api/access', params);
   return fetchJSON(apiPath, {
     method: 'DELETE'
+  });
+}
+/**
+ * @param {string} source
+ * @param {string} oldPath
+ * @param {string} newPath
+ * @returns {Promise<any>}
+ */
+export async function updatePath(source, oldPath, newPath) {
+  const apiPath = getApiPath('api/access');
+  return fetchJSON(apiPath, {
+    method: 'PATCH',
+    body: JSON.stringify({ source, oldPath, newPath }),
+    headers: { 'Content-Type': 'application/json' }
   });
 }

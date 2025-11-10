@@ -160,7 +160,7 @@ const docTemplate = `{
                 }
             },
             "delete": {
-                "description": "Delete a user or group from an allow or deny list for a sourcePath and indexPath.",
+                "description": "Delete a user or group from an allow or deny list for a sourcePath and indexPath. When cascade=true, removes the user/group from the specified path and all subpaths.",
                 "consumes": [
                     "application/json"
                 ],
@@ -206,6 +206,12 @@ const docTemplate = `{
                         "name": "value",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Cascade delete to all subpaths (default: false)",
+                        "name": "cascade",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -229,6 +235,70 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "description": "Updates the path for a specific access rule",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Access"
+                ],
+                "summary": "Update access rule path",
+                "parameters": [
+                    {
+                        "description": "Source, old path, and new path",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "newPath": {
+                                    "type": "string"
+                                },
+                                "oldPath": {
+                                    "type": "string"
+                                },
+                                "source": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Rule path updated successfully",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - missing or invalid parameters",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -1802,6 +1872,64 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "patch": {
+                "description": "Updates the path for a specific share link identified by hash",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Shares"
+                ],
+                "summary": "Update share link path",
+                "parameters": [
+                    {
+                        "description": "Hash and new path",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "hash": {
+                                    "type": "string"
+                                },
+                                "path": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Updated share link",
+                        "schema": {
+                            "$ref": "#/definitions/http.ShareResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - missing or invalid parameters",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
             }
         },
         "/api/share/direct": {
@@ -2030,9 +2158,6 @@ const docTemplate = `{
                 "consumes": [
                     "application/json"
                 ],
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Users"
                 ],
@@ -2061,11 +2186,8 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "Updated user details",
-                        "schema": {
-                            "$ref": "#/definitions/users.User"
-                        }
+                    "204": {
+                        "description": "No Content - User updated successfully"
                     },
                     "400": {
                         "description": "Bad Request",
@@ -2727,6 +2849,142 @@ const docTemplate = `{
                 }
             }
         },
+        "http.ShareResponse": {
+            "type": "object",
+            "properties": {
+                "allowCreate": {
+                    "description": "allow creating files",
+                    "type": "boolean"
+                },
+                "allowDelete": {
+                    "type": "boolean"
+                },
+                "allowModify": {
+                    "description": "allow modifying files",
+                    "type": "boolean"
+                },
+                "allowReplacements": {
+                    "description": "allow replacements of files",
+                    "type": "boolean"
+                },
+                "allowedUsernames": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "banner": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "disableAnonymous": {
+                    "type": "boolean"
+                },
+                "disableDownload": {
+                    "description": "don't allow downloading files",
+                    "type": "boolean"
+                },
+                "disableFileViewer": {
+                    "description": "don't allow viewing files",
+                    "type": "boolean"
+                },
+                "disableShareCard": {
+                    "type": "boolean"
+                },
+                "disableSidebar": {
+                    "type": "boolean"
+                },
+                "disableThumbnails": {
+                    "type": "boolean"
+                },
+                "downloadURL": {
+                    "type": "string"
+                },
+                "downloads": {
+                    "type": "integer"
+                },
+                "downloadsLimit": {
+                    "type": "integer"
+                },
+                "enableOnlyOffice": {
+                    "type": "boolean"
+                },
+                "enforceDarkLightMode": {
+                    "description": "\"dark\" or \"light\"",
+                    "type": "string"
+                },
+                "expire": {
+                    "type": "integer"
+                },
+                "extractEmbeddedSubtitles": {
+                    "description": "can be io intensive for large files and take 10-30 seconds.",
+                    "type": "boolean"
+                },
+                "favicon": {
+                    "type": "string"
+                },
+                "hash": {
+                    "type": "string"
+                },
+                "hideNavButtons": {
+                    "type": "boolean"
+                },
+                "keepAfterExpiration": {
+                    "type": "boolean"
+                },
+                "maxBandwidth": {
+                    "type": "integer"
+                },
+                "password_hash": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "pathExists": {
+                    "type": "boolean"
+                },
+                "perUserDownloadLimit": {
+                    "type": "boolean"
+                },
+                "quickDownload": {
+                    "type": "boolean"
+                },
+                "shareTheme": {
+                    "type": "string"
+                },
+                "shareType": {
+                    "description": "type of share: normal, upload, max",
+                    "type": "string"
+                },
+                "source": {
+                    "description": "Override embedded field to show source name",
+                    "type": "string"
+                },
+                "themeColor": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "token": {
+                    "description": "Token is a random value that will only be set when PasswordHash is set. It is\nURL-Safe and is used to download links in password-protected shares via a\nquery arg.",
+                    "type": "string"
+                },
+                "userID": {
+                    "type": "integer"
+                },
+                "username": {
+                    "type": "string"
+                },
+                "viewMode": {
+                    "description": "default view mode for anonymous users: \"list\", \"compact\", \"normal\", \"gallery\"",
+                    "type": "string"
+                }
+            }
+        },
         "indexing.IndexStatus": {
             "type": "string",
             "enum": [
@@ -2767,6 +3025,12 @@ const docTemplate = `{
                 "quickScanDurationSeconds": {
                     "type": "integer"
                 },
+                "scanners": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/indexing.ScannerInfo"
+                    }
+                },
                 "status": {
                     "$ref": "#/definitions/indexing.IndexStatus"
                 },
@@ -2774,6 +3038,38 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "used": {
+                    "type": "integer"
+                }
+            }
+        },
+        "indexing.ScannerInfo": {
+            "type": "object",
+            "properties": {
+                "assessment": {
+                    "type": "string"
+                },
+                "currentSchedule": {
+                    "type": "integer"
+                },
+                "fullScanTime": {
+                    "type": "integer"
+                },
+                "isRoot": {
+                    "type": "boolean"
+                },
+                "lastScanned": {
+                    "type": "string"
+                },
+                "numDirs": {
+                    "type": "integer"
+                },
+                "numFiles": {
+                    "type": "integer"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "quickScanTime": {
                     "type": "integer"
                 }
             }
@@ -4029,6 +4325,27 @@ const docTemplate = `{
                 }
             }
         },
+        "users.SidebarLink": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "description": "Category type: \"source\", \"tool\", or \"custom\"",
+                    "type": "string"
+                },
+                "icon": {
+                    "description": "Material icon name",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Display name of the link",
+                    "type": "string"
+                },
+                "target": {
+                    "description": "Target path/URL for the link",
+                    "type": "string"
+                }
+            }
+        },
         "users.Sorting": {
             "type": "object",
             "properties": {
@@ -4192,6 +4509,13 @@ const docTemplate = `{
                 "showSelectMultiple": {
                     "description": "show select multiple files on desktop",
                     "type": "boolean"
+                },
+                "sidebarLinks": {
+                    "description": "customizable sidebar links",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/users.SidebarLink"
+                    }
                 },
                 "singleClick": {
                     "description": "open directory on single click, also enables middle click to open in new tab",

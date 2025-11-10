@@ -4,7 +4,7 @@
     <h2>{{ $t("api.title") }}</h2>
     <div>
       <button @click.prevent="createPrompt" class="button">
-        {{ $t("buttons.new") }}
+        {{ $t("general.new") }}
       </button>
     </div>
   </div>
@@ -95,7 +95,7 @@ export default {
   },
   beforeUnmount() {
     // Clean up event listener
-    eventBus.removeEventListener('apiKeysChanged', this.reloadApiKeys);
+    eventBus.off('apiKeysChanged', this.reloadApiKeys);
     this.clip.destroy();
   },
   computed: {

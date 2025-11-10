@@ -19,7 +19,7 @@
           <div class="bounce2"></div>
           <div class="bounce3"></div>
         </div>
-        <span>{{ $t("files.loading") }}</span>
+        <span>{{ $t("general.loading", { suffix: "..." }) }}</span>
       </h2>
     </div>
   </div>
@@ -28,7 +28,6 @@
 
 <script>
 import { filesApi, publicApi } from "@/api";
-import { notify } from "@/notify";
 import Breadcrumbs from "@/components/Breadcrumbs.vue";
 import Errors from "@/views/Errors.vue";
 import Preview from "@/views/files/Preview.vue";
@@ -112,13 +111,13 @@ export default {
           body: this.$t("prompts.halloweenBody"),
           buttons: [
             {
-              label: this.$t("buttons.close"),
+              label: this.$t("general.close"),
               action: () => {
                 localStorage.setItem("seenHalloweenMessage", "true");
               },
             },
             {
-              label: this.$t("buttons.disable"),
+              label: this.$t("general.disable"),
               action: () => {
                 mutations.disableEventThemes();
                 localStorage.setItem("seenHalloweenMessage", "true");
@@ -217,11 +216,6 @@ export default {
           await this.fetchFilesData();
         }
       } catch (e) {
-        if (e.message) {
-          notify.showError(e.message);
-        } else {
-          notify.showError(e);
-        }
         this.error = e;
         mutations.replaceRequest({});
         if (e.status === 404) {
@@ -326,6 +320,7 @@ export default {
     },
 
     async fetchFilesData() {
+
       if (!getters.isLoggedIn()) {
         return;
       }
@@ -408,7 +403,6 @@ export default {
         }
         document.title = `${document.title} - ${res.name}`;
       } catch (e) {
-        notify.showError(e);
         this.error = e;
         mutations.replaceRequest({});
       } finally {

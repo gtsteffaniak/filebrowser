@@ -29,7 +29,7 @@
           <span aria-label="info last modified" :title="modTime">{{ humanTime }}</span>
         </div>
         <div class="info-item" v-if="selected.length < 2 && source">
-          <strong>{{ $t("prompts.source") }}</strong>
+          <strong>{{ $t("general.source", ) }}</strong>
           <span aria-label="info source">{{ source }}</span>
         </div>
         <div class="info-item" v-if="selected.length < 2 && filePath">
@@ -123,9 +123,9 @@
   </div>
 
   <div class="card-action">
-    <button type="submit" @click="closeHovers" class="button button--flat" :aria-label="$t('buttons.close')"
-      :title="$t('buttons.close')">
-      {{ $t("buttons.close") }}
+    <button type="submit" @click="closeHovers" class="button button--flat" :aria-label="$t('general.close')"
+      :title="$t('general.close')">
+      {{ $t("general.close") }}
     </button>
   </div>
 </template>

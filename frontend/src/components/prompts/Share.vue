@@ -1,17 +1,39 @@
 <template>
   <div class="card-title">
-    <h2>{{ $t("buttons.share") }}</h2>
+    <h2>{{ $t("general.share") }}</h2>
   </div>
   <div class="card-content">
-    <div aria-label="share-path" class="searchContext button"> {{ $t('search.path') }} {{ displayPath }}</div>
-    <p> {{ $t('share.notice') }} </p>
+    <!-- Warning banner for missing path when editing a share -->
+    <div v-if="!pathExists && isEditMode && !isEditingPath" class="warning-banner">
+      <i class="material-icons">warning</i>
+      <span>{{ $t("messages.pathNotFoundMessage") }}</span>
+      <button class="button button--flat button--blue" @click="startPathReassignment">
+        {{ $t("messages.reassignPath") }}
+      </button>
+    </div>
 
-    <div v-if="listing">
+    <div v-if="isEditingPath">
+      <file-list @update:selected="updateTempPath" :browse-source="displaySource"></file-list>
+      <div class="card-action">
+        <button class="button button--flat" @click="cancelPathChange" :aria-label="$t('general.cancel')" :title="$t('general.cancel')">
+          {{ $t("general.cancel") }}
+        </button>
+        <button class="button button--flat button--blue" @click="confirmPathChange" :aria-label="$t('general.ok')" :title="$t('general.ok')">
+          {{ $t("general.ok") }}
+        </button>
+      </div>
+    </div>
+
+    <div v-else>
+      <div aria-label="share-path" class="searchContext button"> {{ $t('general.path', { suffix: ':' }) }} {{ displayPath }}</div>
+      <p> {{ $t('share.notice') }} </p>
+
+      <div v-if="listing">
       <table>
         <tbody>
           <tr>
             <th>#</th> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-            <th>{{ $t("settings.shareDuration") }}</th>
+            <th>{{ $t("time.unit") }}</th>
             <th></th>
             <th></th>
             <th></th>
@@ -24,8 +46,8 @@
               <template v-else>{{ $t("general.permanent") }}</template>
             </td>
             <td class="small">
-              <button class="action" @click="editLink(link)" :aria-label="$t('buttons.edit')"
-                :title="$t('buttons.edit')">
+              <button class="action" @click="editLink(link)" :aria-label="$t('general.edit')"
+                :title="$t('general.edit')">
                 <i class="material-icons">edit</i>
               </button>
             </td>
@@ -43,8 +65,8 @@
               </button>
             </td>
             <td class="small">
-              <button class="action" @click="deleteLink($event, link)" :aria-label="$t('buttons.delete')"
-                :title="$t('buttons.delete')">
+              <button class="action" @click="deleteLink($event, link)" :aria-label="$t('general.delete')"
+                :title="$t('general.delete')">
                 <i class="material-icons">delete</i>
               </button>
             </td>
@@ -54,7 +76,7 @@
     </div>
     <div v-else>
       <p>
-        {{ $t("settings.shareDuration") }}
+        {{ $t("time.unit") }}
         <i
           class="no-select material-symbols-outlined tooltip-info-icon"
           @mouseenter="showTooltip($event, $t('share.shareDurationDescription'))"
@@ -266,26 +288,27 @@
         </p>
         <input class="input" type="text" v-model.trim="favicon" />
       </SettingsItem>
+      </div>
     </div>
   </div>
 
-  <div class="card-action">
-    <button v-if="listing" class="button button--flat button--grey" @click="closeHovers" :aria-label="$t('buttons.close')"
-      :title="$t('buttons.close')">
-      {{ $t("buttons.close") }}
+  <div v-if="!isEditingPath" class="card-action">
+    <button v-if="listing" class="button button--flat button--grey" @click="closeHovers" :aria-label="$t('general.close')"
+      :title="$t('general.close')">
+      {{ $t("general.close") }}
     </button>
-    <button v-if="listing" class="button button--flat button--blue" @click="() => switchListing()" :aria-label="$t('buttons.new')"
-      :title="$t('buttons.new')">
-      {{ $t("buttons.new") }}
+    <button v-if="listing" class="button button--flat button--blue" @click="() => switchListing()" :aria-label="$t('general.new')"
+      :title="$t('general.new')">
+      {{ $t("general.new") }}
     </button>
 
-    <button v-if="!listing" class="button button--flat button--grey" @click="() => switchListing()" :aria-label="$t('buttons.cancel')"
-      :title="$t('buttons.cancel')">
-      {{ $t("buttons.cancel") }}
+    <button v-if="!listing" class="button button--flat button--grey" @click="() => switchListing()" :aria-label="$t('general.cancel')"
+      :title="$t('general.cancel')">
+      {{ $t("general.cancel") }}
     </button>
     <button v-if="!listing" class="button button--flat button--blue" @click="submit" aria-label="Share-Confirm"
-      :title="$t('buttons.share')">
-      {{ $t("buttons.share") }}
+      :title="$t('general.share')">
+      {{ $t("general.share") }}
     </button>
   </div>
 </template>
@@ -298,6 +321,7 @@ import { fromNow } from "@/utils/moment";
 import { buildItemUrl, fixDownloadURL } from "@/utils/url";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import SettingsItem from "@/components/settings/SettingsItem.vue";
+import FileList from "./FileList.vue";
 import { globalVars } from "@/utils/constants";
 import { eventBus } from "@/store/eventBus";
 //import ViewMode from "@/components/settings/ViewMode.vue";
@@ -307,6 +331,7 @@ export default {
   components: {
     ToggleSwitch,
     SettingsItem,
+    FileList,
     //ViewMode,
   },
   props: {
@@ -369,6 +394,11 @@ export default {
       extractEmbeddedSubtitles: false,
       /** @type {Share | null} */
       editingLink: null,
+      isEditingPath: false,
+      isReassigningPath: false,
+      tempPath: "",
+      tempSource: "",
+      pathExists: true,
       //viewMode: "normal",
     };
   },
@@ -435,6 +465,8 @@ export default {
       handler(isEditMode) {
         if (isEditMode) {
           this.listing = false;
+          // Check if path exists
+          this.pathExists = this.link.pathExists !== false;
           this.time = this.link.expire
             ? String(Math.round((new Date(this.link.expire * 1000).getTime() - new Date().getTime()) / 3600000))
             : "0";
@@ -483,7 +515,7 @@ export default {
       const links = await shareApi.get(this.item.path, this.item.source);
       this.links = links;
     } catch (err) {
-      notify.showError(err);
+      console.error(err);
       return;
     }
     this.sort();
@@ -594,7 +626,10 @@ export default {
 
         this.listing = true;
       } catch (err) {
-        notify.showError(err);
+        if (!err.message) {
+          // didn't come from api, show error to user
+          notify.showError(err);
+        }
       }
     },
     /**
@@ -654,7 +689,7 @@ export default {
           this.listing = false;
         }
       } catch (err) {
-        notify.showError(err);
+        console.error(err);
       }
     },
     /**
@@ -711,6 +746,43 @@ export default {
     fixDownloadURL(downloadUrl) {
       return fixDownloadURL(downloadUrl);
     },
+    /**
+     * @param {{path: string, source: string}} pathOrData
+     */
+    updateTempPath(pathOrData) {
+      if (pathOrData && pathOrData.path) {
+        this.tempPath = pathOrData.path;
+        this.tempSource = pathOrData.source;
+      }
+    },
+    async confirmPathChange() {
+      if (this.isReassigningPath && this.link) {
+        // Reassigning path - call API to update
+        try {
+          await shareApi.updatePath(this.link.hash, this.tempPath);
+          notify.showSuccess(this.$t("messages.pathReassigned"));
+          this.link.path = this.tempPath;
+          this.pathExists = true;
+          this.isEditingPath = false;
+          this.isReassigningPath = false;
+          // Emit event to reload shares in settings view
+          eventBus.emit('sharesChanged');
+        } catch (e) {
+          notify.showError(this.$t("messages.pathReassignFailed"));
+          console.error(e);
+        }
+      }
+    },
+    cancelPathChange() {
+      this.isEditingPath = false;
+      this.isReassigningPath = false;
+    },
+    startPathReassignment() {
+      this.isReassigningPath = true;
+      this.tempPath = this.displayPath;
+      this.tempSource = this.displaySource;
+      this.isEditingPath = true;
+    },
   },
 };
 </script>
@@ -734,4 +806,5 @@ export default {
 .input {
   height: auto;
 }
+
 </style>

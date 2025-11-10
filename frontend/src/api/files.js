@@ -1,6 +1,6 @@
 import { fetchURL, adjustedData } from './utils'
 import { getApiPath, doubleEncode, getPublicApiPath } from '@/utils/url.js'
-import { mutations,state } from '@/store'
+import { state } from '@/store'
 import { notify } from '@/notify'
 import { globalVars } from '@/utils/constants'
 
@@ -223,14 +223,6 @@ export async function moveCopy(
 
     // Await all promises and ensure errors propagate
     await Promise.all(promises)
-    setTimeout(() => {
-      notify.showSuccess(
-        action === 'copy' ? 'Resources copied successfully' : 'Resources moved successfully'
-      )
-    }, 125);
-    setTimeout(() => {
-      mutations.setReload(true);
-    }, 125);
   } catch (err) {
     notify.showError(err.message || 'Error moving/copying resources')
     throw err // Re-throw the error to propagate it back to the caller

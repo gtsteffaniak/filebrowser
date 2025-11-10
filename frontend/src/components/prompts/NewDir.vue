@@ -10,20 +10,19 @@
   </div>
 
   <div class="card-action">
-    <button class="button button--flat button--grey" @click="closeHovers" :aria-label="$t('buttons.cancel')"
-      :title="$t('buttons.cancel')">
-      {{ $t("buttons.cancel") }}
+    <button class="button button--flat button--grey" @click="closeHovers" :aria-label="$t('general.cancel')"
+      :title="$t('general.cancel')">
+      {{ $t("general.cancel") }}
     </button>
-    <button class="button button--flat" :aria-label="$t('buttons.create')" :title="$t('buttons.create')"
+    <button class="button button--flat" :aria-label="$t('general.create')" :title="$t('general.create')"
       @click="submit">
-      {{ $t("buttons.create") }}
+      {{ $t("general.create") }}
     </button>
   </div>
 </template>
 <script>
 import { filesApi, publicApi } from "@/api";
 import { getters, mutations, state } from "@/store"; // Import your custom store
-import { notify } from "@/notify";
 import { goToItem } from "@/utils/url";
 import { url } from "@/utils";
 import { shareInfo } from "@/utils/constants";
@@ -62,7 +61,7 @@ export default {
         if (this.name === "") return;
         await this.createDirectory(false);
       } catch (error) {
-        notify.showError(error);
+        console.error(error);
       }
     },
 
@@ -120,7 +119,7 @@ export default {
                   }
                 }
               } catch (retryError) {
-                notify.showError(retryError);
+                console.error(retryError);
               }
             },
           });

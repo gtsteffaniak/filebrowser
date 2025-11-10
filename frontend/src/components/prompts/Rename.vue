@@ -18,13 +18,13 @@
   </div>
 
   <div class="card-action">
-    <button class="button button--flat button--grey" @click="closeHovers" :aria-label="$t('buttons.cancel')"
-      :title="$t('buttons.cancel')">
-      {{ $t("buttons.cancel") }}
+    <button class="button button--flat button--grey" @click="closeHovers" :aria-label="$t('general.cancel')"
+      :title="$t('general.cancel')">
+      {{ $t("general.cancel") }}
     </button>
     <button @click="submit" class="button button--flat" :disabled="!validation.valid || name.length === 0"
-      type="submit" :aria-label="$t('buttons.rename')" :title="$t('buttons.rename')">
-      {{ $t("buttons.rename") }}
+      type="submit" :aria-label="$t('general.rename')" :title="$t('general.rename')">
+      {{ $t("general.rename") }}
     </button>
   </div>
 </template>
@@ -122,9 +122,11 @@ export default {
         } else {
           await filesApi.moveCopy(items, "move");
         }
+        notify.showSuccess(this.$t("prompts.renameSuccess"));
+        mutations.setReload(true);
         mutations.closeHovers();
       } catch (error) {
-        notify.showError(error);
+        console.error(error);
       }
     },
   },

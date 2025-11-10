@@ -14,7 +14,7 @@
         </div>
         <div>
           <input v-model.number="localuser.fileLoading.maxConcurrentUpload" type="range" min="1" max="10"
-            :placeholder="$t('search.number')" />
+            :placeholder="$t('general.number')" />
           <span class="range-value">{{ localuser.fileLoading.maxConcurrentUpload }}</span>
         </div>
       </div>
@@ -28,7 +28,7 @@
         </div>
         <div class="no-padding">
           <input class="sizeInput input" v-model.number="localuser.fileLoading.uploadChunkSizeMb" type="number" min="0"
-            :placeholder="$t('search.number')" />
+            :placeholder="$t('general.number')" />
         </div>
       </div>
       <ToggleSwitch class="item" v-model="localuser.fileLoading.clearAll" @change="updateSettings"
@@ -36,7 +36,7 @@
         :description="$t('fileLoading.clearAllDescription')" />
     </div>
     <div class="card-action">
-      <button class="button button--flat" @click="updateSettings">{{ $t("buttons.save") }}</button>
+      <button class="button button--flat" @click="updateSettings">{{ $t("general.save") }}</button>
     </div>
   </div>
 </template>
@@ -90,7 +90,7 @@ export default {
         await usersApi.update(data, ["fileLoading"]);
         notify.showSuccess(this.$t("settings.settingsUpdated"));
       } catch (e) {
-        notify.showError(e);
+        console.error(e);
       }
     },
   },

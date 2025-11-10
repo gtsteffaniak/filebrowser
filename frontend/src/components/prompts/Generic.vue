@@ -48,7 +48,7 @@ export default {
       // Otherwise, return a default close button
       return [
         {
-          label: this.$t('buttons.close'),
+          label: this.$t('general.close'),
           action: () => {
             // Just close the prompt
           },

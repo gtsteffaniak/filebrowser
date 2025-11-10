@@ -55,7 +55,7 @@
                 :placeholder="$t('profileSettings.defaultLandingPageDescription')" id="defaultLandingPage"
                 v-model="formDefaultLandingPage" />
               <button type="button" class="button form-button flat-left" @click="submitDefaultLandingPageChange">
-                {{ $t("buttons.save") }}
+                {{ $t("general.save") }}
               </button>
             </div>
           </div>
@@ -109,7 +109,7 @@
                 :placeholder="$t('profileSettings.disableFileExtensions')" id="disablePreviews"
                 v-model="formDisablePreviews" />
               <button type="button" class="button form-button flat-left" @click="submitDisablePreviewsChange">
-                {{ $t("buttons.save") }}
+                {{ $t("general.save") }}
               </button>
             </div>
           </div>
@@ -128,7 +128,7 @@
                 :placeholder="$t('profileSettings.disableFileExtensions')" id="disableViewing"
                 v-model="formDisabledViewing" />
               <button type="button" class="button form-button flat-left" @click="submitDisabledViewingChange">
-                {{ $t("buttons.save") }}
+                {{ $t("general.save") }}
               </button>
             </div>
           </div>
@@ -147,7 +147,7 @@
                 :placeholder="$t('profileSettings.disableFileExtensions')" id="disableOfficePreview"
                 v-model="formDisableOfficePreview" />
               <button type="button" class="button form-button flat-left" @click="submitDisableOfficePreviewChange">
-                {{ $t("buttons.save") }}
+                {{ $t("general.save") }}
               </button>
             </div>
             <div class="settings-items">
@@ -175,7 +175,7 @@
             </select>
           </div>
 
-          <h4>{{ $t('settings.language') }}</h4>
+          <h4>{{ $t('general.language') }}</h4>
           <Languages class="input" :locale="localuser.locale" @update:locale="updateLocale"></Languages>
         </SettingsItem>
       </div>
@@ -356,7 +356,7 @@ export default {
         notify.showSuccess(this.$t("settings.settingsUpdated"));
 
       } catch (e) {
-        notify.showError(e);
+        console.error(e);
       }
     },
     updateLocale(updatedLocale) {

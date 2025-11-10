@@ -1,4 +1,4 @@
-import { test, expect } from "../test-setup";
+import { test, expect, checkForNotification } from "../test-setup";
 
 test("navigate folder -- item should not be visible", async ({ page, checkForErrors, context }) => {
     await page.goto("/files/");
@@ -7,7 +7,7 @@ test("navigate folder -- item should not be visible", async ({ page, checkForErr
     await expect(page.locator('a[aria-label="excluded"]')).toHaveCount(0);
     await page.goto("/files/exclude/excluded");
     const msg = "500: path not accessible: directory or item excluded from indexing"
-    await expect(page.locator('#popup-notification-content')).toHaveText(msg);
+    await checkForNotification(page, msg);
     checkForErrors(1,1); // expect error not indexed
 });
 

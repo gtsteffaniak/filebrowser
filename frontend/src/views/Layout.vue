@@ -154,7 +154,7 @@ export default {
               body: this.$t("prompts.firstLoadBody"),
               buttons: [
                 {
-                  label: this.$t("buttons.close"),
+                  label: this.$t("general.close"),
                   action: () => {
                     mutations.updateCurrentUser({
                       showFirstLogin: false,
@@ -197,6 +197,7 @@ export default {
   scrollbar-width: none;
   /* Firefox */
   transition: 0.5s ease;
+  padding-bottom: 2.5em; /* Account for status bar */
 }
 
 #main.moveWithSidebar {
