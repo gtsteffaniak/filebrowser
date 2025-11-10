@@ -80,11 +80,13 @@ export default {
     async deleteApi() {
       // Dummy delete function, to be filled in later
       try {
-        await usersApi.deleteApiKey({ name: this.name });
+        usersApi.deleteApiKey({ name: this.name });
         // Emit event to refresh API keys list
-        eventBus.emit('apiKeysChanged');
-        notify.showSuccess("API key deleted!");
-        mutations.closeHovers();
+        setTimeout(() => {
+          eventBus.emit('apiKeysChanged');
+          notify.showSuccess("API key deleted!");
+          mutations.closeHovers();
+        }, 5);
       } catch (error) {
         console.error(error);
       }
