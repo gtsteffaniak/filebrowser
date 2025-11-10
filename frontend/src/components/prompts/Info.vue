@@ -86,7 +86,6 @@
             <label for="hash-result">{{ $t("prompts.hashValue") }}</label>
             <div class="form-flex-group">
               <input
-                style="height: 100%; padding: 0.75em;"
                 id="hash-result"
                 class="input form-form flat-right"
                 type="text"
