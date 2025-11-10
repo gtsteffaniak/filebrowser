@@ -101,7 +101,7 @@
                 :title="$t('buttons.copyToClipboard')"
                 :aria-label="$t('buttons.copyToClipboard')"
               >
-              <i class="material-icons" style="font-size: 25px;">content_copy</i>
+              <i class="material-icons" style="font-size: 16px;">content_copy</i>
               </button>
             </div>
           </div>
