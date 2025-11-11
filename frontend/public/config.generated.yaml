@@ -25,8 +25,8 @@ server:
         denyByDefault: false              # deny access unless an "allow" access rule was specifically created.
         private: false                    # designate as source as private -- currently just means no sharing permitted.
         disabled: false                   # disable the source, this is useful so you don't need to remove it from the config file
-        indexingIntervalMinutes: 0        # optional manual overide interval in minutes to re-index the source
-        disableIndexing: false            # disable the indexing of this source
+        indexingIntervalMinutes: 0        # (optional) not recommended: manual overide interval in minutes to re-index the source
+        disableIndexing: false            # (optional) not recommended: disable the indexing of this source
         conditionals:                     # conditional rules to apply when indexing to include/exclude certain items
           ignoreHidden: false             # exclude hidden files and folders.
           ignoreZeroSizeFolders: false    # ignore folders with 0 size
@@ -42,9 +42,9 @@ server:
               fileName: ""                # (global) exclude files that match these names. Eg. "file.txt" or "test.csv"
               folderName: ""              # (global) exclude folders that match these names. Eg. "folder" or "subfolder"
               viewable: false             # Enable viewing in UI but exclude from indexing
-        defaultUserScope: "/"             # default "/" should match folders under path
+        defaultUserScope: "/"             # defaults to root of index "/" should match folders under path
         defaultEnabled: true              # should be added as a default source for new users?
-        createUserDir: false              # create a user directory for each user
+        createUserDir: false              # create a user directory for each user under defaultUserScope + username
   externalUrl: ""                         # used by share links if set (eg. http://mydomain.com)
   internalUrl: ""                         # used by integrations if set, this is the base domain that an integration service will use to communicate with filebrowser (eg. http://localhost:8080)
   cacheDir: "tmp"                         # path to the cache directory, used for thumbnails and other cached files
@@ -119,7 +119,7 @@ userDefaults:
   disableQuickToggles: false              # disable the quick toggles in the sidebar
   disableSearchOptions: false             # disable the search options in the search bar
   stickySidebar: true                     # keep sidebar open when navigating
-  darkMode: true                          # should dark mode be enabled (defaults to true if not set)
+  darkMode: true                          # should dark mode be enabled
   locale: "en"                            # language to use: eg. de, en, or fr
   viewMode: "normal"                      # view mode to use: eg. normal, list, grid, or compact
   singleClick: false                      # open directory on single click, also enables middle click to open in new tab
@@ -133,16 +133,16 @@ userDefaults:
   lockPassword: false                     # disable the user from changing their password
   disableSettings: false                  # disable the user from viewing the settings page
   preview:
-    disableHideSidebar: false             # disable the hide sidebar preview for previews and editors
-    highQuality: true                     # generate high quality thumbnail preview images (defaults to true if not set)
-    image: true                           # show thumbnail preview image for image files (defaults to true if not set)
-    video: true                           # show thumbnail preview image for video files (defaults to true if not set)
-    motionVideoPreview: true              # show multiple frames for videos in thumbnail preview when hovering (defaults to true if not set)
-    office: true                          # show thumbnail preview image for office files (defaults to true if not set)
-    popup: true                           # show larger popup preview when hovering over thumbnail (defaults to true if not set)
-    autoplayMedia: true                   # autoplay media files in preview (defaults to true if not set)
-    defaultMediaPlayer: false             # disable html5 media player and use the default media player
-    folder: true                          # show thumbnail preview image for folder files (defaults to true if not set)
+    disableHideSidebar: false             # keep sidebar open when previewing files
+    highQuality: true                     # use high quality thumbnails
+    image: true                           # show thumbnails for image files
+    video: true                           # show thumbnails for video files
+    motionVideoPreview: true              # show multiple frames for videos in thumbnail preview when hovering
+    office: true                          # show thumbnails for office files
+    popup: true                           # show larger popup preview when hovering over thumbnail
+    autoplayMedia: true                   # autoplay media files in preview
+    defaultMediaPlayer: false             # disable the styled feature-rich media player for browser default
+    folder: true                          # show thumbnails for folders that have previewable contents
   permissions:
     api: false                            # allow api access
     admin: false                          # allow admin access
@@ -151,7 +151,7 @@ userDefaults:
     realtime: false                       # allow realtime updates
     delete: false                         # allow deleting files
     create: false                         # allow creating or uploading files
-    download: true                        # allow downloading files (defaults to true if not set)
+    download: true                        # allow downloading files
   loginMethod: "password"                 # login method to use: eg. password, proxy, oidc
   disableUpdateNotifications: false       # disable update notifications banner for admin users
   deleteWithoutConfirming: false          # delete files without confirmation

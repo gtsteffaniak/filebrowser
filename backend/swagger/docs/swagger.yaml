@@ -773,26 +773,28 @@ definitions:
         description: conditional rules to apply when indexing to include/exclude certain
           items
       createUserDir:
-        description: create a user directory for each user
+        description: create a user directory for each user under defaultUserScope
+          + username
         type: boolean
       defaultEnabled:
         description: should be added as a default source for new users?
         type: boolean
       defaultUserScope:
-        description: default "/" should match folders under path
+        description: defaults to root of index "/" should match folders under path
         type: string
       denyByDefault:
         description: deny access unless an "allow" access rule was specifically created.
         type: boolean
       disableIndexing:
-        description: disable the indexing of this source
+        description: '(optional) not recommended: disable the indexing of this source'
         type: boolean
       disabled:
         description: disable the source, this is useful so you don't need to remove
           it from the config file
         type: boolean
       indexingIntervalMinutes:
-        description: optional manual overide interval in minutes to re-index the source
+        description: '(optional) not recommended: manual overide interval in minutes
+          to re-index the source'
         type: integer
       private:
         description: designate as source as private -- currently just means no sharing
@@ -830,7 +832,7 @@ definitions:
         description: Name of theme to use chosen from custom themes config.
         type: string
       darkMode:
-        description: should dark mode be enabled (defaults to true if not set)
+        description: should dark mode be enabled
         type: boolean
       dateFormat:
         description: when false, the date is relative, when true, the date is an exact
@@ -936,7 +938,7 @@ definitions:
         description: allow deleting files
         type: boolean
       download:
-        description: allow downloading files (defaults to true if not set)
+        description: allow downloading files
         type: boolean
       modify:
         description: allow modifying files
@@ -951,41 +953,34 @@ definitions:
   settings.UserDefaultsPreview:
     properties:
       autoplayMedia:
-        description: autoplay media files in preview (defaults to true if not set)
+        description: autoplay media files in preview
         type: boolean
       defaultMediaPlayer:
-        description: disable html5 media player and use the default media player
+        description: disable the styled feature-rich media player for browser default
         type: boolean
       disableHideSidebar:
-        description: disable the hide sidebar preview for previews and editors
+        description: keep sidebar open when previewing files
         type: boolean
       folder:
-        description: show thumbnail preview image for folder files (defaults to true
-          if not set)
+        description: show thumbnails for folders that have previewable contents
         type: boolean
       highQuality:
-        description: generate high quality thumbnail preview images (defaults to true
-          if not set)
+        description: use high quality thumbnails
         type: boolean
       image:
-        description: show thumbnail preview image for image files (defaults to true
-          if not set)
+        description: show thumbnails for image files
         type: boolean
       motionVideoPreview:
         description: show multiple frames for videos in thumbnail preview when hovering
-          (defaults to true if not set)
         type: boolean
       office:
-        description: show thumbnail preview image for office files (defaults to true
-          if not set)
+        description: show thumbnails for office files
         type: boolean
       popup:
-        description: show larger popup preview when hovering over thumbnail (defaults
-          to true if not set)
+        description: show larger popup preview when hovering over thumbnail
         type: boolean
       video:
-        description: show thumbnail preview image for video files (defaults to true
-          if not set)
+        description: show thumbnails for video files
         type: boolean
     type: object
   share.CommonShare:

@@ -3877,7 +3877,7 @@ const docTemplate = `{
                     ]
                 },
                 "createUserDir": {
-                    "description": "create a user directory for each user",
+                    "description": "create a user directory for each user under defaultUserScope + username",
                     "type": "boolean"
                 },
                 "defaultEnabled": {
@@ -3885,7 +3885,7 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "defaultUserScope": {
-                    "description": "default \"/\" should match folders under path",
+                    "description": "defaults to root of index \"/\" should match folders under path",
                     "type": "string"
                 },
                 "denyByDefault": {
@@ -3893,7 +3893,7 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "disableIndexing": {
-                    "description": "disable the indexing of this source",
+                    "description": "(optional) not recommended: disable the indexing of this source",
                     "type": "boolean"
                 },
                 "disabled": {
@@ -3901,7 +3901,7 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "indexingIntervalMinutes": {
-                    "description": "optional manual overide interval in minutes to re-index the source",
+                    "description": "(optional) not recommended: manual overide interval in minutes to re-index the source",
                     "type": "integer"
                 },
                 "private": {
@@ -3946,7 +3946,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "darkMode": {
-                    "description": "should dark mode be enabled (defaults to true if not set)",
+                    "description": "should dark mode be enabled",
                     "type": "boolean"
                 },
                 "dateFormat": {
@@ -4085,7 +4085,7 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "download": {
-                    "description": "allow downloading files (defaults to true if not set)",
+                    "description": "allow downloading files",
                     "type": "boolean"
                 },
                 "modify": {
@@ -4106,43 +4106,43 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "autoplayMedia": {
-                    "description": "autoplay media files in preview (defaults to true if not set)",
+                    "description": "autoplay media files in preview",
                     "type": "boolean"
                 },
                 "defaultMediaPlayer": {
-                    "description": "disable html5 media player and use the default media player",
+                    "description": "disable the styled feature-rich media player for browser default",
                     "type": "boolean"
                 },
                 "disableHideSidebar": {
-                    "description": "disable the hide sidebar preview for previews and editors",
+                    "description": "keep sidebar open when previewing files",
                     "type": "boolean"
                 },
                 "folder": {
-                    "description": "show thumbnail preview image for folder files (defaults to true if not set)",
+                    "description": "show thumbnails for folders that have previewable contents",
                     "type": "boolean"
                 },
                 "highQuality": {
-                    "description": "generate high quality thumbnail preview images (defaults to true if not set)",
+                    "description": "use high quality thumbnails",
                     "type": "boolean"
                 },
                 "image": {
-                    "description": "show thumbnail preview image for image files (defaults to true if not set)",
+                    "description": "show thumbnails for image files",
                     "type": "boolean"
                 },
                 "motionVideoPreview": {
-                    "description": "show multiple frames for videos in thumbnail preview when hovering (defaults to true if not set)",
+                    "description": "show multiple frames for videos in thumbnail preview when hovering",
                     "type": "boolean"
                 },
                 "office": {
-                    "description": "show thumbnail preview image for office files (defaults to true if not set)",
+                    "description": "show thumbnails for office files",
                     "type": "boolean"
                 },
                 "popup": {
-                    "description": "show larger popup preview when hovering over thumbnail (defaults to true if not set)",
+                    "description": "show larger popup preview when hovering over thumbnail",
                     "type": "boolean"
                 },
                 "video": {
-                    "description": "show thumbnail preview image for video files (defaults to true if not set)",
+                    "description": "show thumbnails for video files",
                     "type": "boolean"
                 }
             }
