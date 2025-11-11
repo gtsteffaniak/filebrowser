@@ -35,7 +35,7 @@ Ready to try it out? See [Getting Started Docs](https://filebrowserquantum.com/e
 
 FileBrowser Quantum is a massive fork of the file browser open-source project with the following changes:
 
-  1. ✅ Multiple sources support
+  1. ✅ Add and configure multiple sources
   2. ✅ Login support for OIDC, password + 2FA, and proxy.
   3. ✅ Beautiful, Responsive, and Customizable user interface.
   4. ✅ Simplified configuration via `config.yaml` config file.
