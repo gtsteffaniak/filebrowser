@@ -272,13 +272,36 @@ export default {
     showLargeIcon() {
       this.updateImageTargetSrc();
     },
-    // UPDATED: Added a check for hasPreviewImage
+    // UPDATED: Load image when URL changes, let hasPreviewImage control display
     imageTargetSrc: {
       handler(newSrc) {
-        // ONLY trigger the image loader if the component is meant to show a preview.
-        if (this.hasPreviewImage) {
-          this.loadImage(newSrc);
+        // Check all conditions EXCEPT imageState to avoid circular dependency
+        if (!this.hasPreview || !this.thumbnailUrl) {
+          return;
         }
+        if (shareInfo.disableThumbnails) {
+          return;
+        }
+        const simpleType = this.getIconForType().simpleType;
+        // Check user preview settings
+        if (simpleType === "video" && !state.user.preview?.video) {
+          return;
+        }
+        if (simpleType === "image" && !state.user.preview?.image) {
+          return;
+        }
+        if ((simpleType === "document" || simpleType === "text") && !state.user.preview?.office) {
+          return;
+        }
+        if (!state.user.preview.folder && this.mimetype === "directory") {
+          return;
+        }
+        if (this.disablePreviewExt || this.officeFileDisabled) {
+          return;
+        }
+        
+        // All checks passed, load the image
+        this.loadImage(newSrc);
       },
       immediate: true, // Run this watcher on component mount
     },

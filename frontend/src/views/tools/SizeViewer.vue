@@ -1,9 +1,6 @@
 <template>
   <div class="size-viewer">
     <div class="card size-viewer-config">
-      <div class="card-title">
-        <h2>{{ $t('fileSizeAnalyzer.title') }}</h2>
-      </div>
       <div class="card-content">
         <h3>{{ $t('general.source') }}</h3>
         <select v-model="selectedSource" class="input">
@@ -157,6 +154,7 @@ import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { getTypeInfo } from "@/utils/mimetype";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import { eventBus } from "@/store/eventBus";
+import { goToItem } from "@/utils/url";
 
 export default {
   name: "SizeViewer",
@@ -581,8 +579,7 @@ export default {
     handleItemClick(item) {
       // Navigate to the file/directory using full path
       const fullPath = this.getFullPath(item.path);
-      const route = `/files${fullPath}`;
-      this.$router.push(route);
+      goToItem(this.selectedSource, fullPath);
     },
     handleMouseEnter(item) {
       // Clear any existing timeout
@@ -638,8 +635,12 @@ export default {
 <style scoped>
 .size-viewer {
   padding: 2rem;
-  max-width: 100%;
-  margin: 0 auto;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.toggle-container {
+  padding: 1em;
 }
 
 .searchContext {
@@ -647,7 +648,6 @@ export default {
 }
 
 .size-viewer-results {
-  width: 80vw;
   max-width: 1000px;
   margin-bottom: 2em;
 }

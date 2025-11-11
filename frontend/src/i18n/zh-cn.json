@@ -733,6 +733,11 @@
     "sizeAnalyzer": {
       "name": "文件大小分析器",
       "description": "利用交互式树形图可视化大型文件和目录"
+    },
+    "title": "工具",
+    "duplicateFinder": {
+      "name": "重复文件查找器",
+      "description": "查找和管理重复文件，回收存储空间"
     }
   },
   "messages": {
@@ -741,5 +746,17 @@
     "reassignPath": "重新分配路径",
     "pathReassigned": "路径更新成功！",
     "pathReassignFailed": "更新路径失败。请重试。"
+  },
+  "duplicateFinder": {
+    "title": "重复文件查找器",
+    "minSize": "最小大小（MB）{suffix}",
+    "minSizeHint": "只分析大于此大小（单位：兆字节）的文件",
+    "useChecksums": "比较文件内容",
+    "useChecksumsDescription": "在比较中还包括文件内容。如果不这样做，文件将根据大小和文件名的相似性进行匹配。",
+    "findDuplicates": "查找重复",
+    "groupsFound": "发现重复组{suffix}",
+    "totalWastedSpace": "浪费空间总计{suffix}",
+    "wasted": "浪费{suffix}",
+    "emptyState": "输入搜索条件，然后单击查找重复文件，以识别重复文件"
   }
 }

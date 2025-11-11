@@ -135,12 +135,12 @@ func TestSearchIndexes(t *testing.T) {
 	tests := []struct {
 		search         string
 		scope          string
-		expectedResult []SearchResult
+		expectedResult []*SearchResult
 	}{
 		{
 			search: "audio",
 			scope:  "/new/",
-			expectedResult: []SearchResult{
+			expectedResult: []*SearchResult{
 				{
 					Path: "/new/test/audio.wav",
 					Type: "audio",
@@ -151,7 +151,7 @@ func TestSearchIndexes(t *testing.T) {
 		{
 			search: "test",
 			scope:  "/",
-			expectedResult: []SearchResult{
+			expectedResult: []*SearchResult{
 				{
 					Path: "/test/",
 					Type: "directory",
@@ -172,7 +172,7 @@ func TestSearchIndexes(t *testing.T) {
 		{
 			search: "archive",
 			scope:  "/",
-			expectedResult: []SearchResult{
+			expectedResult: []*SearchResult{
 				{
 					Path: "/firstDir/archive.zip",
 					Type: "archive",
@@ -188,7 +188,7 @@ func TestSearchIndexes(t *testing.T) {
 		{
 			search: "arch",
 			scope:  "/firstDir/",
-			expectedResult: []SearchResult{
+			expectedResult: []*SearchResult{
 				{
 					Path: "/firstDir/archive.zip",
 					Type: "archive",
@@ -199,7 +199,7 @@ func TestSearchIndexes(t *testing.T) {
 		{
 			search: "space jam",
 			scope:  "/first Dir/",
-			expectedResult: []SearchResult{
+			expectedResult: []*SearchResult{
 				{
 					Path: "/first Dir/space jam.zip",
 					Type: "archive",
@@ -210,7 +210,7 @@ func TestSearchIndexes(t *testing.T) {
 		{
 			search: "isdir",
 			scope:  "/",
-			expectedResult: []SearchResult{
+			expectedResult: []*SearchResult{
 				{
 					Path: "/firstDir/thisIsDir/",
 					Type: "directory",
@@ -221,7 +221,7 @@ func TestSearchIndexes(t *testing.T) {
 		{
 			search: "IsDir type:largerThan=1",
 			scope:  "/",
-			expectedResult: []SearchResult{
+			expectedResult: []*SearchResult{
 				{
 					Path: "/firstDir/thisIsDir/",
 					Type: "directory",
@@ -232,7 +232,7 @@ func TestSearchIndexes(t *testing.T) {
 		{
 			search: "video",
 			scope:  "/",
-			expectedResult: []SearchResult{
+			expectedResult: []*SearchResult{
 				{
 					Path: "/new/test/video.MP4",
 					Type: "video",
@@ -248,7 +248,7 @@ func TestSearchIndexes(t *testing.T) {
 		{
 			search: "audio",
 			scope:  "/",
-			expectedResult: []SearchResult{
+			expectedResult: []*SearchResult{
 				{
 					Path: "/audio-one.wav",
 					Type: "audio",
@@ -269,7 +269,7 @@ func TestSearchIndexes(t *testing.T) {
 		{
 			search: "cons",
 			scope:  "/new+folder/Pictures/",
-			expectedResult: []SearchResult{
+			expectedResult: []*SearchResult{
 				{
 					Path: "/new+folder/Pictures/consoletest.mp4",
 					Type: "video/mp4",
@@ -280,7 +280,7 @@ func TestSearchIndexes(t *testing.T) {
 		{
 			search: "toggle",
 			scope:  "/new+folder/Pictures/",
-			expectedResult: []SearchResult{
+			expectedResult: []*SearchResult{
 				{
 					Path: "/new+folder/Pictures/toggle.gif",
 					Type: "image/gif",
@@ -293,7 +293,16 @@ func TestSearchIndexes(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.search, func(t *testing.T) {
 			result := index.Search(tt.search, tt.scope, "", false)
-			assert.ElementsMatch(t, tt.expectedResult, result)
+			// Convert results to comparable format (without Modified field)
+			expected := make([]SearchResult, len(tt.expectedResult))
+			for i, r := range tt.expectedResult {
+				expected[i] = SearchResult{Path: r.Path, Type: r.Type, Size: r.Size}
+			}
+			actual := make([]SearchResult, len(result))
+			for i, r := range result {
+				actual[i] = SearchResult{Path: r.Path, Type: r.Type, Size: r.Size}
+			}
+			assert.ElementsMatch(t, expected, actual)
 		})
 	}
 }

@@ -733,6 +733,11 @@
     "sizeAnalyzer": {
       "name": "Fájlméret elemző",
       "description": "Nagyméretű fájlok és könyvtárak megjelenítése interaktív falistával"
+    },
+    "title": "Eszközök",
+    "duplicateFinder": {
+      "name": "Duplikátum fájl kereső",
+      "description": "Duplikált fájlok keresése és kezelése a tárhely visszanyerése érdekében"
     }
   },
   "messages": {
@@ -741,5 +746,17 @@
     "reassignPath": "Útvonal újbóli kijelölése",
     "pathReassigned": "Az útvonal sikeresen frissült!",
     "pathReassignFailed": "Nem sikerült frissíteni az elérési utat. Kérjük, próbálja újra."
+  },
+  "duplicateFinder": {
+    "title": "Duplikátum fájl kereső",
+    "minSize": "Minimális méret (MB){suffix}",
+    "minSizeHint": "Csak a megadott méretnél (megabájtban) nagyobb fájlokat elemzi.",
+    "useChecksums": "Fájlok tartalmának összehasonlítása",
+    "useChecksumsDescription": "Az összehasonlításba a fájlok tartalmát is bevonja. Enélkül a fájlok összehasonlítása a méret és a fájlnév hasonlósága alapján történik.",
+    "findDuplicates": "Duplikátumok keresése",
+    "groupsFound": "Duplikált csoportokat találtak{suffix}",
+    "totalWastedSpace": "Teljes elpazarolt hely{suffix}",
+    "wasted": "Elpazarolt{suffix}",
+    "emptyState": "Adja meg a keresési feltételeket, és kattintson a Duplikátumok keresése gombra a duplikált fájlok azonosításához."
   }
 }

@@ -733,6 +733,11 @@
     "sizeAnalyzer": {
       "name": "Dosya Boyutu Analizörü",
       "description": "Etkileşimli ağaç haritası ile büyük dosya ve dizinleri görselleştirin"
+    },
+    "title": "Araçlar",
+    "duplicateFinder": {
+      "name": "Yinelenen Dosya Bulucu",
+      "description": "Depolama alanını geri kazanmak için yinelenen dosyaları bulun ve yönetin"
     }
   },
   "messages": {
@@ -741,5 +746,17 @@
     "reassignPath": "Yolu Yeniden Atayın",
     "pathReassigned": "Yol başarıyla güncellendi!",
     "pathReassignFailed": "Yol güncellenemedi. Lütfen tekrar deneyin."
+  },
+  "duplicateFinder": {
+    "title": "Yinelenen Dosya Bulucu",
+    "minSize": "Minimum Boyut (MB){suffix}",
+    "minSizeHint": "Yalnızca bu boyuttan (megabayt cinsinden) büyük dosyaları analiz edin",
+    "useChecksums": "Dosya içeriklerini karşılaştırın",
+    "useChecksumsDescription": "Karşılaştırmaya dosya içeriklerini de dahil edin. Bu olmadan, dosyalar boyut ve dosya adı benzerliğine göre eşleştirilir.",
+    "findDuplicates": "Kopyaları Bul",
+    "groupsFound": "Yinelenen Gruplar Bulundu{suffix}",
+    "totalWastedSpace": "Toplam Boşa Harcanan Alan{suffix}",
+    "wasted": "Ziyan{suffix}",
+    "emptyState": "Yinelenen dosyaları belirlemek için arama kriterlerini girin ve Yinelenenleri Bul'a tıklayın"
   }
 }

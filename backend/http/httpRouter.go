@@ -174,6 +174,7 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	api.HandleFunc("GET /onlyoffice/callback", withUser(onlyofficeCallbackHandler))
 
 	api.HandleFunc("GET /search", withUser(searchHandler))
+	api.HandleFunc("GET /duplicates", withUser(duplicatesHandler))
 	// Mount the public API sub-router
 	publicRoutes.Handle("/api/", http.StripPrefix("/api", publicAPI))
 

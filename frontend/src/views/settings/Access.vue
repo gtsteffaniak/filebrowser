@@ -1,8 +1,8 @@
 <template>
+  <button class="button floating-action-button" @click="addAccess">{{ $t("general.new") }}</button>
   <errors v-if="error" :errorCode="error.status" />
   <div class="card-title">
     <h2>{{ $t("access.accessManagement") }}</h2>
-    <button class="button" @click="addAccess">{{ $t("general.new") }}</button>
     <div class="form-flex-group">
       <label for="source-select">{{ $t("general.source",{suffix: ":"})  }}</label>
       <select class="input" id="source-select" v-model="selectedSource" @change="fetchRules">

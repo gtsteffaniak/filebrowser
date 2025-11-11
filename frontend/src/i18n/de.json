@@ -733,6 +733,11 @@
     "sizeAnalyzer": {
       "name": "Dateigrößen-Analysator",
       "description": "Visualisieren Sie große Dateien und Verzeichnisse mit einer interaktiven Baumstruktur"
+    },
+    "title": "Werkzeuge",
+    "duplicateFinder": {
+      "name": "Duplicate File Finder",
+      "description": "Finden und Verwalten doppelter Dateien, um Speicherplatz zurückzugewinnen"
     }
   },
   "messages": {
@@ -741,5 +746,17 @@
     "reassignPath": "Pfad neu zuweisen",
     "pathReassigned": "Pfad erfolgreich aktualisiert!",
     "pathReassignFailed": "Der Pfad konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut."
+  },
+  "duplicateFinder": {
+    "title": "Duplicate File Finder",
+    "minSize": "Mindestgröße (MB){suffix}",
+    "minSizeHint": "Nur Dateien analysieren, die größer sind als diese Größe (in Megabyte)",
+    "useChecksums": "Dateiinhalte vergleichen",
+    "useChecksumsDescription": "Beziehen Sie auch den Dateiinhalt in den Vergleich ein. Andernfalls werden die Dateien nach Größe und Ähnlichkeit des Dateinamens verglichen.",
+    "findDuplicates": "Duplikate finden",
+    "groupsFound": "Doppelte Gruppen gefunden{suffix}",
+    "totalWastedSpace": "Insgesamt verschwendeter Platz{suffix}",
+    "wasted": "Vergeudet{suffix}",
+    "emptyState": "Geben Sie Suchkriterien ein und klicken Sie auf Duplikate suchen, um doppelte Dateien zu identifizieren"
   }
 }
