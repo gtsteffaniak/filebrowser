@@ -100,7 +100,7 @@
 
 <script>
 import * as auth from "@/utils/auth";
-import { globalVars, shareInfo } from "@/utils/constants";
+import { globalVars } from "@/utils/constants";
 import { state, getters, mutations } from "@/store";
 import { fromNow } from "@/utils/moment";
 import SidebarLinks from "./Links.vue";
@@ -116,11 +116,11 @@ export default {
   computed: {
     hasCreateOptions() {
       if (getters.isShare()) {
-        return shareInfo.allowCreate
+        return state.shareInfo?.allowCreate
       }
       return state.user?.permissions?.create || state.user?.permissions?.share || state.user?.permissions?.admin;
     },
-    shareInfo: () => shareInfo,
+    shareInfo: () => state.shareInfo,
     disableQuickToggles: () => state.user?.disableQuickToggles,
     hasSourceInfo: () => state.sources.hasSourceInfo,
     hideSidebarFileActions() {
@@ -142,14 +142,14 @@ export default {
     canLogout: () => !globalVars.noAuth && state.user?.username !== 'anonymous',
     route: () => state.route,
     realtimeActive: () => state.realtimeActive,
-    darkModeTogglePossible: () => shareInfo.enforceDarkLightMode != "dark" && shareInfo.enforceDarkLightMode != "light",
+    darkModeTogglePossible: () => state.shareInfo?.enforceDarkLightMode != "dark" && state.shareInfo?.enforceDarkLightMode != "light",
   },
   watch: {
     route() {
       if (!getters.isLoggedIn()) {
         return;
       }
-      if (!this.isStickySidebar && !shareInfo.singleFileShare) {
+      if (!this.isStickySidebar && !state.shareInfo?.singleFileShare) {
         mutations.closeSidebar();
       }
     },

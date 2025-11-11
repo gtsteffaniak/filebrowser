@@ -921,6 +921,84 @@ definitions:
         description: 'view mode to use: eg. normal, list, grid, or compact'
         type: string
     type: object
+  share.CommonShare:
+    properties:
+      allowCreate:
+        description: allow creating files
+        type: boolean
+      allowDelete:
+        type: boolean
+      allowModify:
+        description: allow modifying files
+        type: boolean
+      allowReplacements:
+        description: allow replacements of files
+        type: boolean
+      allowedUsernames:
+        items:
+          type: string
+        type: array
+      banner:
+        type: string
+      description:
+        type: string
+      disableAnonymous:
+        type: boolean
+      disableDownload:
+        description: don't allow downloading files
+        type: boolean
+      disableFileViewer:
+        description: don't allow viewing files
+        type: boolean
+      disableShareCard:
+        type: boolean
+      disableSidebar:
+        type: boolean
+      disableThumbnails:
+        type: boolean
+      downloadURL:
+        type: string
+      downloadsLimit:
+        type: integer
+      enableOnlyOffice:
+        type: boolean
+      enforceDarkLightMode:
+        description: '"dark" or "light"'
+        type: string
+      extractEmbeddedSubtitles:
+        description: can be io intensive for large files and take 10-30 seconds.
+        type: boolean
+      favicon:
+        type: string
+      hideNavButtons:
+        type: boolean
+      keepAfterExpiration:
+        type: boolean
+      maxBandwidth:
+        type: integer
+      path:
+        type: string
+      perUserDownloadLimit:
+        type: boolean
+      quickDownload:
+        type: boolean
+      shareTheme:
+        type: string
+      shareType:
+        description: 'type of share: normal, upload, max'
+        type: string
+      source:
+        description: backend source is path to maintain between name changes
+        type: string
+      themeColor:
+        type: string
+      title:
+        type: string
+      viewMode:
+        description: 'default view mode for anonymous users: "list", "compact", "normal",
+          "gallery"'
+        type: string
+    type: object
   share.CreateBody:
     properties:
       allowCreate:
@@ -3237,51 +3315,28 @@ paths:
     get:
       consumes:
       - application/json
-      description: Returns metadata for files or directories accessible via a public
-        share link. Browsing is disabled for upload-only shares.
+      description: Returns information about a share link based on its hash. This
+        endpoint is publicly accessible and can be used with or without authentication.
       parameters:
-      - description: Share hash for authentication
+      - description: Hash of the share link
         in: query
         name: hash
         required: true
-        type: string
-      - description: Path within the share to retrieve information for. Defaults to
-          share root.
-        in: query
-        name: path
         type: string
       produces:
       - application/json
       responses:
         "200":
-          description: File or directory metadata
+          description: Share information
           schema:
-            $ref: '#/definitions/iteminfo.FileInfo'
-        "403":
-          description: Share unavailable or access denied
-          schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/share.CommonShare'
         "404":
-          description: Share not found or file not found
+          description: Share hash not found
           schema:
             additionalProperties:
               type: string
             type: object
-        "500":
-          description: Internal server error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "501":
-          description: Browsing disabled for upload shares
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Get file/directory information from a public share
+      summary: Get share information by hash
       tags:
-      - Public Shares
+      - Shares
 swagger: "2.0"

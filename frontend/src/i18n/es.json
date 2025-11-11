@@ -688,7 +688,9 @@
     "saveFailed": "No se ha podido guardar el archivo. Por favor, inténtelo de nuevo.",
     "saveAborted": "No se ha podido guardar el archivo. El nombre del archivo no coincide con el que estás editando.",
     "saveAbortedMessage": "Operación de guardado abortada. El archivo activo ({activeFile}) no coincide con el que estas intentando guardar ({tryingToSave}).",
-    "syncFailed": "No se ha podido sincronizar el estado con la ruta para \"{filename}\" después de 5 intentos - Se abortará la configuración del editor para evitar la corrupción de datos."
+    "syncFailed": "No se ha podido sincronizar el estado con la ruta para \"{filename}\" después de 5 intentos - Se abortará la configuración del editor para evitar la corrupción de datos.",
+    "fileSaved": "¡Fichero guardado!",
+    "errorSavingFile": "Error al guardar el archivo: {error}"
   },
   "player": {
     "LoopEnabled": "Bucle activado",

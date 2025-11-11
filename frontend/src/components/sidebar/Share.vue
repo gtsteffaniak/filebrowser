@@ -13,7 +13,7 @@
 
 <script>
 import ShareInfoCard from "@/components/files/ShareInfoCard.vue";
-import { shareInfo } from "@/utils/constants";
+import {state} from "@/store";
 
 export default {
   name: "SidebarShare",
@@ -36,7 +36,7 @@ export default {
   },
   computed: {
     disableShareCard() {
-      return shareInfo.disableShareCard;
+      return state.shareInfo?.disableShareCard;
     },
   },
 };

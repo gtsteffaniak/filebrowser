@@ -17,6 +17,7 @@ type StorageBackend interface {
 	All() ([]*Link, error)
 	FindByUserID(id uint) ([]*Link, error)
 	GetByHash(hash string) (*Link, error)
+	GetCommonShareByHash(hash string) (*CommonShare, error)
 	GetPermanent(path, source string, id uint) (*Link, error)
 	GetBySourcePath(path, source string) ([]*Link, error)
 	Gets(path, source string, id uint) ([]*Link, error)
@@ -354,4 +355,9 @@ func (s *Storage) filterExpired(links []*Link) ([]*Link, error) {
 		filtered = append(filtered, link)
 	}
 	return filtered, nil
+}
+
+// GetCommonShareByHash retrieves only the CommonShare attributes for a given hash
+func (s *Storage) GetCommonShareByHash(hash string) (*CommonShare, error) {
+	return s.back.GetCommonShareByHash(hash)
 }

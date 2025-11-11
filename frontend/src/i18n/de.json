@@ -688,7 +688,9 @@
     "saveFailed": "Datei konnte nicht gespeichert werden. Bitte versuchen Sie es erneut.",
     "saveAborted": "Speichern abgebrochen. Der Dateiname stimmt nicht mit der aktiven Datei überein.",
     "saveAbortedMessage": "Der Speichervorgang wurde abgebrochen. Die aktive Datei der Anwendung ({activeFile}) stimmt nicht mit der Datei überein, die Sie zu speichern versuchen ({tryingToSave}).",
-    "syncFailed": "Nach 5 Versuchen ist es nicht gelungen, den Status mit der Route für \"{filename}\" zu synchronisieren. Abbruch der Editor-Einrichtung, um Datenbeschädigung zu vermeiden."
+    "syncFailed": "Nach 5 Versuchen ist es nicht gelungen, den Status mit der Route für \"{filename}\" zu synchronisieren. Abbruch der Editor-Einrichtung, um Datenbeschädigung zu vermeiden.",
+    "fileSaved": "Datei gespeichert!",
+    "errorSavingFile": "Fehler beim Speichern der Datei: {error}"
   },
   "player": {
     "LoopEnabled": "Wiederholung aktiviert",

@@ -688,7 +688,9 @@
     "saveFailed": "A fájl mentése sikertelen. Kérjük, próbálja újra.",
     "saveAborted": "A mentés megszakadt. A fájl neve nem egyezik az aktív fájléval.",
     "saveAbortedMessage": "A mentési művelet megszakadt. Az alkalmazás aktív fájlja ({activeFile}) nem egyezik meg a menteni kívánt fájllal ({tryingToSave}).",
-    "syncFailed": "5 próbálkozás után nem sikerült szinkronizálni az állapotot a \"{filename}\" útvonallal. A szerkesztő beállításának megszakítása az adatok sérülésének elkerülése érdekében."
+    "syncFailed": "5 próbálkozás után nem sikerült szinkronizálni az állapotot a \"{filename}\" útvonallal. A szerkesztő beállításának megszakítása az adatok sérülésének elkerülése érdekében.",
+    "fileSaved": "Fájl mentve!",
+    "errorSavingFile": "Hiba a fájl mentésében: {error}"
   },
   "player": {
     "LoopEnabled": "Hurok engedélyezve",

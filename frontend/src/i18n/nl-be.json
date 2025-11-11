@@ -688,7 +688,9 @@
     "saveFailed": "Het is niet gelukt om het bestand op te slaan. Probeer het opnieuw.",
     "saveAborted": "Opslaan afgebroken. De bestandsnaam komt niet overeen met het actieve bestand.",
     "saveAbortedMessage": "Opslaan afgebroken. Het actieve bestand van de toepassing ({activeFile}) komt niet overeen met het bestand dat u probeert op te slaan ({tryingToSave}).",
-    "syncFailed": "Na 5 pogingen is het niet gelukt om de status te synchroniseren met de route voor \"{filename}\". Installatie van editor afgebroken om gegevensbeschadiging te voorkomen."
+    "syncFailed": "Na 5 pogingen is het niet gelukt om de status te synchroniseren met de route voor \"{filename}\". Installatie van editor afgebroken om gegevensbeschadiging te voorkomen.",
+    "fileSaved": "Bestand opgeslagen!",
+    "errorSavingFile": "Fout bij het opslaan van bestand: {error}"
   },
   "player": {
     "LoopEnabled": "Herhaling ingeschakeld",
