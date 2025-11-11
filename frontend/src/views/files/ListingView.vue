@@ -703,7 +703,7 @@ export default {
         this.selectItem(newSelected);
         setTimeout(() => {
           // Find the element with class "item" and aria-selected="true"
-          const element = document.querySelector('.item[aria-selected="true"]');
+          const element = document.querySelector('.listing-item[aria-selected="true"]');
           // Scroll the element into view if it exists
           if (element) {
             element.scrollIntoView({
@@ -1129,7 +1129,7 @@ export default {
     },
     startRectangleSelection(event) {
       // Start rectangle selection when clicking on empty space - don't start if the click was in the status bar, an item or the header
-      if (event.target.closest('.listing-item') || event.target.closest('.item') || event.target.closest('.header') || event.target.closest('#status-bar')) {
+      if (event.target.closest('.listing-item') || event.target.closest('.header') || event.target.closest('#status-bar')) {
         return;
       }
 

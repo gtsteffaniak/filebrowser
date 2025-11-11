@@ -1,21 +1,16 @@
 @media (max-width: 800px) {
   #listingView .header .name,
-  #listingView.list .item .name,
-  #listingView.compact .item .name {
+  #listingView.compact .listing-item .name {
     width: 50%;
-  }
-
-  #listingView.list .item div:last-of-type{
-    display:block;
-    width:100%;
   }
 
   body {
     padding-bottom: 5em;
   }
 
-  #listingView.list .item .name {
-    width: 60%;
+  #listingView.list .listing-item .name {
+    padding-left: 0.5em;
+    width: 45%;
   }
 
   #more {
@@ -35,10 +30,11 @@
   #listingView {
     margin-bottom: 5em;
   }
+
   /* Don't override width for gallery and icons views - they use CSS variables */
-  #listingView.list .item,
-  #listingView.compact .item,
-  #listingView.normal .item {
+  #listingView.list .listing-item,
+  #listingView.compact .listing-item,
+  #listingView.normal .listing-item {
     width: 100%
   }
   
@@ -52,22 +48,12 @@
     margin-right: unset;
   }
 
-
   body.rtl #nav .wrapper {
     margin-right: unset;
   }
 
   body.rtl .dashboard .row {
     margin-right: unset;
-  }
-
-}
-
-
-@media (max-width: 450px) {
-
-  #listingView.list .item .name {
-    width: 100%;
   }
 }
 

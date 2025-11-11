@@ -595,7 +595,7 @@ export default {
   font-size: 0.5em;
 }
 
-.item {
+.listing-item {
   -webkit-touch-callout: none; /* Disable the default long press preview */
 }
 

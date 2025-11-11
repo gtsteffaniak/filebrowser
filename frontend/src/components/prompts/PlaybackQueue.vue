@@ -21,7 +21,7 @@
         <div
           v-for="(item, index) in formattedQueue"
           :key="`${item.path}-${index}`"
-          class="listing-item file"
+          class="item"
           :class="{ 'current': index === currentQueueIndex }"
           @click="navigateToItem(index)"
         >
@@ -127,7 +127,6 @@ export default {
       handler(newVal) {
         if (newVal) {
           // Prompt just became visible, scroll to current item
-          console.log('PlaybackQueue prompt became visible, scrolling to current item');
           this.$nextTick(() => {
             setTimeout(() => {
               this.scrollToCurrentItem();
@@ -225,7 +224,7 @@ export default {
     scrollToCurrentItem() {
       this.$nextTick(() => {
         const list = this.$refs.QueueList;
-        const currentItem = list.querySelector('.listing-item.current');
+        const currentItem = list.querySelector('.item.current');
         if (currentItem) {
           // Calculate the scroll position to center the current item
           const itemTop = currentItem.offsetTop;
@@ -306,7 +305,7 @@ export default {
   border-radius: 12px;
 }
 
-.listing-item {
+.item {
   display: flex;
   align-items: center;
   text-align: center;
@@ -317,17 +316,17 @@ export default {
   border-radius: 12px;
 }
 
-.listing-item:hover {
+.item:hover {
   background: var(--surfaceSecondary);
 }
 
-.listing-item.current {
+.item.current {
   background: var(--primaryColor);
   color: white;
 }
 
-.listing-item.current .item-icon i,
-.listing-item.current .current-indicator {
+.item.current .item-icon i,
+.item.current .current-indicator {
   color: white;
 }
 
