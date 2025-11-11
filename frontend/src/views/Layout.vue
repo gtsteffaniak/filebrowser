@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div >
     <div v-show="showOverlay" @contextmenu.prevent="onOverlayRightClick" @click="resetPrompts" class="overlay"></div>
     <div v-if="progress" class="progress">
       <div v-bind:style="{ width: this.progress + '%' }"></div>
@@ -216,5 +216,7 @@ export default {
   display: none;
   /* Safari and Chrome */
 }
-
+#main>div {
+  height: 100%;
+}
 </style>

@@ -1073,8 +1073,14 @@ export default {
       });
     },
     clickClear(event) {
+      // Only process clicks if we're on the listing view
+      if (getters.currentView() !== 'listingView') {
+        return;
+      }
+
       const targetClasses = event.target.className;
-      if (targetClasses.includes('listing-item')) {
+
+      if (typeof targetClasses === 'string' && targetClasses.includes('listing-item')) {
         return;
       }
 
