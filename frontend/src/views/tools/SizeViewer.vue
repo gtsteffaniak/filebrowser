@@ -154,6 +154,7 @@ import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { getTypeInfo } from "@/utils/mimetype";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import { eventBus } from "@/store/eventBus";
+import { goToItem } from "@/utils/url";
 
 export default {
   name: "SizeViewer",
@@ -578,8 +579,7 @@ export default {
     handleItemClick(item) {
       // Navigate to the file/directory using full path
       const fullPath = this.getFullPath(item.path);
-      const route = `/files${fullPath}`;
-      this.$router.push(route);
+      goToItem(this.selectedSource, fullPath);
     },
     handleMouseEnter(item) {
       // Clear any existing timeout
