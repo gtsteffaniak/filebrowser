@@ -736,10 +736,27 @@
     "other": "Other"
   },
   "tools": {
+    "title": "Tools",
     "description": "Utilities and analysis tools for your files",
     "sizeAnalyzer": {
       "name": "File Size Analyzer",
       "description": "Visualize large files and directories with an interactive treemap"
+    },
+    "duplicateFinder": {
+      "name": "Duplicate File Finder",
+      "description": "Find and manage duplicate files to reclaim storage space"
     }
+  },
+  "duplicateFinder": {
+    "title": "Duplicate File Finder",
+    "minSize": "Minimum Size (MB){suffix}",
+    "minSizeHint": "Only analyze files larger than this size (in megabytes)",
+    "useChecksums": "Compare file contents",
+    "useChecksumsDescription": "Also include file contents in the comparison. Without this, files are matched by size and filename similarity.",
+    "findDuplicates": "Find Duplicates",
+    "groupsFound": "Duplicate Groups Found{suffix}",
+    "totalWastedSpace": "Total Wasted Space{suffix}",
+    "wasted": "Wasted{suffix}",
+    "emptyState": "Enter search criteria and click Find Duplicates to identify duplicate files"
   }
 }

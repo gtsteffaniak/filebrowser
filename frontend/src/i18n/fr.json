@@ -733,6 +733,11 @@
     "sizeAnalyzer": {
       "name": "Analyseur de taille de fichier",
       "description": "Visualisez les fichiers et les répertoires volumineux grâce à une arborescence interactive"
+    },
+    "title": "Outils",
+    "duplicateFinder": {
+      "name": "Recherche de fichiers en double",
+      "description": "Recherche et gestion des fichiers en double pour récupérer de l'espace de stockage"
     }
   },
   "messages": {
@@ -741,5 +746,17 @@
     "reassignPath": "Réaffecter le chemin",
     "pathReassigned": "Mise à jour du chemin d'accès réussie !",
     "pathReassignFailed": "Échec de la mise à jour du chemin d'accès. Veuillez réessayer."
+  },
+  "duplicateFinder": {
+    "title": "Recherche de fichiers en double",
+    "minSize": "Taille minimale (MB){suffix}",
+    "minSizeHint": "Analyser uniquement les fichiers dont la taille est supérieure à cette valeur (en mégaoctets)",
+    "useChecksums": "Comparer le contenu des fichiers",
+    "useChecksumsDescription": "Inclure également le contenu des fichiers dans la comparaison. Sans cela, les fichiers sont comparés en fonction de leur taille et de la similitude de leur nom.",
+    "findDuplicates": "Recherche de doublons",
+    "groupsFound": "Groupes en double trouvés{suffix}",
+    "totalWastedSpace": "Total de l'espace perdu{suffix}",
+    "wasted": "Gaspillage{suffix}",
+    "emptyState": "Saisissez des critères de recherche et cliquez sur Rechercher les doublons pour identifier les fichiers en double."
   }
 }

@@ -5,7 +5,9 @@ All notable changes to this project will be documented in this file. For commit 
 ## v1.1.0-beta
 
  **New Features**:
- - size analyzer tool
+ - Added tools
+   - size analyzer -- quickly show largest files in interactive graphical chart
+   - duplicate finder -- find duplicate files larger than 1MB
  - Status bar for listing view #1459
  - Customizable sidebar links -- reorder sources and add custom links.
  - Dynamic scopes for OIDC #1414 #1363
@@ -19,6 +21,8 @@ All notable changes to this project will be documented in this file. For commit 
  - more efficient user update actions. Successful PUT actions return only 204 if successful.
  - Do not enter directory on "New Folder" action #1343
  - Individual scanners per directory at root -- improves scanning impact.
+ - Improved search memory efficiency
+ - Improved scrolling performance
 
 ## v1.0.1-stable
 

@@ -45,3 +45,10 @@
   opacity: .5;
   cursor: not-allowed;
 }
+
+.floating-action-button {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  z-index: 1000;
+}

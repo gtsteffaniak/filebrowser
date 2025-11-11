@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div >
     <div v-show="showOverlay" @contextmenu.prevent="onOverlayRightClick" @click="resetPrompts" class="overlay"></div>
     <div v-if="progress" class="progress">
       <div v-bind:style="{ width: this.progress + '%' }"></div>
@@ -21,6 +21,7 @@
   <ContextMenu></ContextMenu>
   <Tooltip />
   <NextPrevious />
+  <PopupPreview v-if="popupEnabled" />
 </template>
 
 <script>
@@ -32,6 +33,7 @@ import Notifications from "@/components/Notifications.vue";
 import Scrollbar from "@/components/files/Scrollbar.vue";
 import Tooltip from "@/components/Tooltip.vue";
 import NextPrevious from "@/components/files/nextPrevious.vue";
+import PopupPreview from "@/components/files/PopupPreview.vue";
 import { filesApi } from "@/api";
 import { state, getters, mutations } from "@/store";
 import { events } from "@/notify";
@@ -48,6 +50,7 @@ export default {
     Scrollbar,
     Tooltip,
     NextPrevious,
+    PopupPreview,
   },
   data() {
     return {
@@ -109,6 +112,12 @@ export default {
     },
     currentView() {
       return getters.currentView();
+    },
+    popupEnabled() {
+      if (!state.user || state.user?.username == "") {
+        return false;
+      }
+      return state.user.preview.popup;
     },
   },
   watch: {
@@ -207,7 +216,6 @@ export default {
   display: none;
   /* Safari and Chrome */
 }
-
 #main>div {
   height: 100%;
 }

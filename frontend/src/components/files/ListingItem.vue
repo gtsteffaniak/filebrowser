@@ -1,7 +1,7 @@
 <template>
   <a
     :href="getUrl()"
-    class="item listing-item clickable no-select"
+    class="listing-item clickable no-select"
     :class="{
       activebutton: isSelected,
       hiddenFile: isHiddenNotSelected && this && !this.isDraggedOver,
@@ -564,6 +564,7 @@ export default {
         !state.user.singleClick &&
         !event.ctrlKey &&
         !event.metaKey &&
+        !event.shiftKey &&
         !state.multiple
       ) {
         mutations.resetSelected();

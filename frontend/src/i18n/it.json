@@ -733,6 +733,11 @@
     "sizeAnalyzer": {
       "name": "Analizzatore delle dimensioni dei file",
       "description": "Visualizzate file e directory di grandi dimensioni con una mappa interattiva a forma di albero"
+    },
+    "title": "Strumenti",
+    "duplicateFinder": {
+      "name": "Trova file duplicati",
+      "description": "Trovare e gestire i file duplicati per recuperare spazio di archiviazione"
     }
   },
   "messages": {
@@ -741,5 +746,17 @@
     "reassignPath": "Riassegnare il percorso",
     "pathReassigned": "Il percorso è stato aggiornato con successo!",
     "pathReassignFailed": "Non è stato possibile aggiornare il percorso. Riprovare."
+  },
+  "duplicateFinder": {
+    "title": "Trova file duplicati",
+    "minSize": "Dimensione minima (MB){suffix}",
+    "minSizeHint": "Analizza solo i file di dimensioni superiori a questa grandezza (in megabyte)",
+    "useChecksums": "Confronto dei contenuti dei file",
+    "useChecksumsDescription": "Include anche il contenuto dei file nel confronto. In caso contrario, i file vengono confrontati in base alle dimensioni e alla somiglianza del nome del file.",
+    "findDuplicates": "Trova i duplicati",
+    "groupsFound": "Gruppi duplicati trovati{suffix}",
+    "totalWastedSpace": "Spazio totale sprecato{suffix}",
+    "wasted": "Sprecato{suffix}",
+    "emptyState": "Immettere i criteri di ricerca e fare clic su Trova duplicati per identificare i file duplicati."
   }
 }

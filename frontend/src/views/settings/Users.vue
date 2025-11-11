@@ -1,10 +1,10 @@
 <template>
+  <button @click="openPrompt(null)" v-if="isAdmin" class="button floating-action-button" aria-label="Add New User">
+        {{ $t("general.new") }}
+      </button>
   <errors v-if="error" :errorCode="error.status" />
   <div class="card-title">
     <h2>{{ $t("general.users") }}</h2>
-      <button @click="openPrompt(null)" v-if="isAdmin" class="button" aria-label="Add New User">
-        {{ $t("general.new") }}
-      </button>
   </div>
 
   <div class="card-content full">

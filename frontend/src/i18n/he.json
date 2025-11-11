@@ -733,6 +733,11 @@
     "sizeAnalyzer": {
       "name": "מנתח גודל קובץ",
       "description": "הצג קבצים גדולים וספריות באמצעות מפת עץ אינטראקטיבית"
+    },
+    "title": "כלים",
+    "duplicateFinder": {
+      "name": "מאתר קבצים כפולים",
+      "description": "מצא ונהל קבצים כפולים כדי לשחרר שטח אחסון"
     }
   },
   "messages": {
@@ -741,5 +746,17 @@
     "reassignPath": "הקצאת נתיב מחדש",
     "pathReassigned": "הנתיב עודכן בהצלחה!",
     "pathReassignFailed": "לא ניתן לעדכן את הנתיב. אנא נסה שוב."
+  },
+  "duplicateFinder": {
+    "title": "מאתר קבצים כפולים",
+    "minSize": "גודל מינימלי (MB){suffix}",
+    "minSizeHint": "לנתח רק קבצים שגודלם עולה על גודל זה (במגה-בייט)",
+    "useChecksums": "השוואת תוכן קבצים",
+    "useChecksumsDescription": "כלול גם את תוכן הקבצים בהשוואה. ללא זה, הקבצים יותאמו לפי גודל ודמיון שמות הקבצים.",
+    "findDuplicates": "מצא כפילויות",
+    "groupsFound": "נמצאו קבוצות כפולות{suffix}",
+    "totalWastedSpace": "סך השטח המבוזבז{suffix}",
+    "wasted": "מבוזבז{suffix}",
+    "emptyState": "הזן את קריטריוני החיפוש ולחץ על 'מצא כפילויות' כדי לזהות קבצים כפולים."
   }
 }

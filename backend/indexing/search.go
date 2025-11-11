@@ -20,12 +20,13 @@ var (
 )
 
 type SearchResult struct {
-	Path string `json:"path"`
-	Type string `json:"type"`
-	Size int64  `json:"size"`
+	Path     string `json:"path"`
+	Type     string `json:"type"`
+	Size     int64  `json:"size"`
+	Modified string `json:"modified,omitempty"`
 }
 
-func (idx *Index) Search(search string, scope string, sourceSession string, largest bool) []SearchResult {
+func (idx *Index) Search(search string, scope string, sourceSession string, largest bool) []*SearchResult {
 	// Ensure scope has consistent trailing slash for directory matching
 	if scope != "" && !strings.HasSuffix(scope, "/") {
 		scope = scope + "/"
@@ -37,7 +38,7 @@ func (idx *Index) Search(search string, scope string, sourceSession string, larg
 	runningHash := utils.InsecureRandomIdentifier(4)
 	sessionInProgress.Store(sourceSession, runningHash) // Store the value in the sync.Map
 	searchOptions := iteminfo.ParseSearch(search)
-	results := make(map[string]SearchResult, 0)
+	results := make(map[string]*SearchResult, 0)
 	count := 0
 	var directories []string
 	cachedDirs, ok := SearchResultsCache.Get(idx.Path + scope)
@@ -87,7 +88,12 @@ func (idx *Index) Search(search string, scope string, sourceSession string, larg
 					matches = reducedDir.ContainsSearchTerm(searchTerm, searchOptions)
 				}
 				if matches {
-					results[dirName] = SearchResult{Path: dirName, Type: "directory", Size: dir.Size}
+					results[dirName] = &SearchResult{
+						Path:     dirName,
+						Type:     "directory",
+						Size:     dir.Size,
+						Modified: dir.ModTime.Format(time.RFC3339),
+					}
 					count++
 				}
 			}
@@ -97,7 +103,7 @@ func (idx *Index) Search(search string, scope string, sourceSession string, larg
 				value, found := sessionInProgress.Load(sourceSession)
 				if !found || value != runningHash {
 					idx.mu.Unlock()
-					return []SearchResult{}
+					return []*SearchResult{}
 				}
 				if count >= maxSearchResults {
 					break
@@ -116,7 +122,12 @@ func (idx *Index) Search(search string, scope string, sourceSession string, larg
 					matches = item.ContainsSearchTerm(searchTerm, searchOptions)
 				}
 				if matches {
-					results[fullPath] = SearchResult{Path: fullPath, Type: item.Type, Size: item.Size}
+					results[fullPath] = &SearchResult{
+						Path:     fullPath,
+						Type:     item.Type,
+						Size:     item.Size,
+						Modified: item.ModTime.Format(time.RFC3339),
+					}
 					count++
 				}
 			}
@@ -125,7 +136,7 @@ func (idx *Index) Search(search string, scope string, sourceSession string, larg
 	}
 
 	// Sort keys based on the number of elements in the path after splitting by "/"
-	sortedKeys := make([]SearchResult, 0, len(results))
+	sortedKeys := make([]*SearchResult, 0, len(results))
 	for _, v := range results {
 		sortedKeys = append(sortedKeys, v)
 	}

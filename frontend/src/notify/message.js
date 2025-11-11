@@ -16,7 +16,7 @@ import { mutations, state } from '@/store'
  * @property {string} message
  * @property {string} [icon]
  * @property {NotificationButton[]} [buttons]
- * @property {boolean} [autoclose]
+ * @property {boolean} [autoclose] - For backward compatibility (inverse of persistent)
  * @property {ReturnType<typeof setTimeout> | null} [timeoutId]
  */
 
@@ -101,16 +101,30 @@ function parseMessage(message) {
  * @param {'success' | 'error' | 'action'} type
  * @param {unknown} message
  * @param {Object} [options]
- * @param {boolean} [options.autoclose=true]
+ * @param {boolean} [options.persistent=false] - If true, notification won't auto-close
+ * @param {boolean} [options.autoclose] - Deprecated, use persistent instead
  * @param {string} [options.icon]
  * @param {NotificationButton[]} [options.buttons]
  */
 export function showPopup(type, message, options = {}) {
   const {
-    autoclose = type !== 'action',
+    persistent = false,
+    autoclose,
     icon,
     buttons
   } = options
+
+  // Determine if notification should auto-close
+  // Priority: persistent option > autoclose option > default behavior
+  let shouldAutoClose
+  if (persistent) {
+    shouldAutoClose = false
+  } else if (autoclose !== undefined) {
+    shouldAutoClose = autoclose
+  } else {
+    // Default: action types don't auto-close, others do
+    shouldAutoClose = type !== 'action'
+  }
 
   const notificationId = generateId()
   const parsedMessage = parseMessage(message)
@@ -122,20 +136,15 @@ export function showPopup(type, message, options = {}) {
     message: parsedMessage,
     icon,
     buttons,
-    autoclose,
+    autoclose: !persistent, // Store the inverse for backward compatibility
     timeoutId: null
   }
 
   notifications.push(notification)
   notifyUpdate()
 
-  // Handle special case for multiple selection
-  if (parsedMessage === 'Multiple Selection Enabled' && state.multiple) {
-    // This will be handled in closeNotification
-  }
-
   // Set auto-close timeout if applicable
-  if (autoclose && type !== 'action') {
+  if (shouldAutoClose) {
     notification.timeoutId = setTimeout(() => {
       closeNotification(notificationId)
     }, 5000)
@@ -203,17 +212,31 @@ export function getNotifications() {
   return [...notifications]
 }
 
-/** @param {unknown} message */
+/**
+ * Show a success notification
+ * @param {unknown} message
+ * @param {Object} [options]
+ * @param {boolean} [options.persistent=false] - If true, notification won't auto-close
+ * @param {string} [options.icon]
+ * @param {NotificationButton[]} [options.buttons]
+ */
 export function showSuccess(message, options = {}) {
   showPopup('success', message, options)
 }
 
-/** @param {unknown} message */
+/**
+ * Show an error notification
+ * @param {unknown} message
+ * @param {Object} [options]
+ * @param {boolean} [options.persistent=false] - If true, notification won't auto-close
+ * @param {string} [options.icon]
+ * @param {NotificationButton[]} [options.buttons]
+ */
 export function showError(message, options = {}) {
   showPopup('error', message, options)
   console.error(message)
 }
 
 export function showMultipleSelection() {
-  showPopup('action', 'Multiple Selection Enabled')
+  showPopup('success', 'Multiple Selection Enabled', { persistent: true })
 }

@@ -733,6 +733,11 @@
     "sizeAnalyzer": {
       "name": "Analizator rozmiaru plików",
       "description": "Wizualizacja dużych plików i katalogów za pomocą interaktywnej mapy drzewa"
+    },
+    "title": "Narzędzia",
+    "duplicateFinder": {
+      "name": "Wyszukiwarka duplikatów plików",
+      "description": "Znajdowanie i zarządzanie zduplikowanymi plikami w celu odzyskania przestrzeni dyskowej"
     }
   },
   "messages": {
@@ -741,5 +746,17 @@
     "reassignPath": "Ponowne przypisanie ścieżki",
     "pathReassigned": "Ścieżka została pomyślnie zaktualizowana!",
     "pathReassignFailed": "Nie udało się zaktualizować ścieżki. Spróbuj ponownie."
+  },
+  "duplicateFinder": {
+    "title": "Wyszukiwarka duplikatów plików",
+    "minSize": "Minimalny rozmiar (MB){suffix}",
+    "minSizeHint": "Analizuj tylko pliki większe niż podany rozmiar (w megabajtach).",
+    "useChecksums": "Porównanie zawartości pliku",
+    "useChecksumsDescription": "Uwzględnia również zawartość pliku w porównaniu. Bez tego, pliki są dopasowywane według rozmiaru i podobieństwa nazwy pliku.",
+    "findDuplicates": "Znajdź duplikaty",
+    "groupsFound": "Znaleziono zduplikowane grupy{suffix}",
+    "totalWastedSpace": "Całkowita zmarnowana przestrzeń{suffix}",
+    "wasted": "Zmarnowany{suffix}",
+    "emptyState": "Wprowadź kryteria wyszukiwania i kliknij Znajdź duplikaty, aby zidentyfikować zduplikowane pliki."
   }
 }

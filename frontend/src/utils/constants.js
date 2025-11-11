@@ -1,3 +1,5 @@
+import i18n from '@/i18n';
+
 const globalVars = window.globalVars;
 const logoURL = `${globalVars.staticURL}/img/logo.png`;
 const serverHasMultipleSources = globalVars.sourceCount > 1;
@@ -24,21 +26,31 @@ const previewViews = [
   'loading'
 ];
 
-const tools = [
+// Function that returns tools array with i18n validation
+// This ensures the linter checks the translation keys
+const getTools = () => [
   {
-    name: "tools.sizeAnalyzer.name",
-    description: "tools.sizeAnalyzer.description",
+    name: i18n.global.t("tools.sizeAnalyzer.name"),
+    description: i18n.global.t("tools.sizeAnalyzer.description"),
     icon: "analytics",
     path: "/tools/sizeViewer",
   },
-  // Add more tools here in the future
-  // {
-  //   name: "tools.duplicateFinder.name",
-  //   description: "tools.duplicateFinder.description",
-  //   icon: "content_copy",
-  //   path: "/tools/duplicateFinder",
-  // },
+  {
+    name: i18n.global.t("tools.duplicateFinder.name"),
+    description: i18n.global.t("tools.duplicateFinder.description"),
+    icon: "content_copy",
+    path: "/tools/duplicateFinder",
+  },
 ];
+
+// Cache the tools array
+let toolsCache = null;
+const tools = () => {
+  if (!toolsCache) {
+    toolsCache = getTools();
+  }
+  return toolsCache;
+};
 
 export {
   globalVars,

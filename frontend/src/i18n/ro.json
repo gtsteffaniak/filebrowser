@@ -733,6 +733,11 @@
     "sizeAnalyzer": {
       "name": "Analizor dimensiune fișier",
       "description": "Vizualizați fișiere și directoare mari cu o hartă interactivă"
+    },
+    "title": "Instrumente",
+    "duplicateFinder": {
+      "name": "Duplicate fișier Finder",
+      "description": "Găsiți și gestionați fișierele duplicate pentru a recupera spațiul de stocare"
     }
   },
   "messages": {
@@ -741,5 +746,17 @@
     "reassignPath": "Reatribuiți calea",
     "pathReassigned": "Calea a fost actualizată cu succes!",
     "pathReassignFailed": "A eșuat actualizarea căii. Vă rugăm să încercați din nou."
+  },
+  "duplicateFinder": {
+    "title": "Duplicate fișier Finder",
+    "minSize": "Dimensiune minimă (MB){suffix}",
+    "minSizeHint": "Analizați numai fișiere mai mari decât această dimensiune (în megabytes)",
+    "useChecksums": "Comparați conținutul fișierelor",
+    "useChecksumsDescription": "Includeți și conținutul fișierelor în comparație. Fără aceasta, fișierele sunt comparate în funcție de dimensiunea și similaritatea numelui de fișier.",
+    "findDuplicates": "Găsiți duplicate",
+    "groupsFound": "Grupuri duplicate găsite{suffix}",
+    "totalWastedSpace": "Spațiu total irosit{suffix}",
+    "wasted": "irosit{suffix}",
+    "emptyState": "Introduceți criteriile de căutare și faceți clic pe Find Duplicates pentru a identifica fișierele duplicate"
   }
 }
