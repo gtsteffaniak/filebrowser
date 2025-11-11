@@ -221,16 +221,13 @@ class UploadManager {
     const hasNoActiveOrPending = this.activeUploads === 0 && !this.hasPending();
     if (this.hadActiveUploads && hasNoActiveOrPending) {
       console.log("all uploads processed  ", this.queue);
-      
       // Only reload if there are no errors or conflicts - keep prompt open so users can see and retry
-      const hasErrorsOrConflicts = this.queue.some((item) => 
+      const hasErrorsOrConflicts = this.queue.some((item) =>
         item.status === "error" || item.status === "conflict"
       );
-      
       if (!hasErrorsOrConflicts) {
         mutations.setReload(true);
       }
-      
       this.hadActiveUploads = false; // Reset the flag
       this.overwriteAll = null; // Reset for next batch of uploads
     }

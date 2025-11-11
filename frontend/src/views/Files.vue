@@ -191,7 +191,7 @@ export default {
         }
     },
     async fetchData() {
-      if (state.deletedItem || state.shareInfo?.shareType == "upload") {
+      if (state.deletedItem) {
         return
       }
 
@@ -208,7 +208,6 @@ export default {
 
       try {
         if (getters.isShare()) {
-          console.log("fetching share data");
           await this.fetchShareData();
         } else {
           await this.fetchFilesData();
@@ -255,6 +254,9 @@ export default {
       }
       shareInfo.hash = hash;
       mutations.setShareInfo(shareInfo);
+      if (shareInfo.shareType == "upload") {
+        return;
+      }
       // Parse share route
       let urlPath = getters.routePath('public/share')
       let parts = urlPath.split("/");

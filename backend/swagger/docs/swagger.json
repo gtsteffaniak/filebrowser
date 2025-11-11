@@ -2767,7 +2767,7 @@
         },
         "/public/api/share": {
             "get": {
-                "description": "Returns metadata for files or directories accessible via a public share link. Browsing is disabled for upload-only shares.",
+                "description": "Returns information about a share link based on its hash. This endpoint is publicly accessible and can be used with or without authentication.",
                 "consumes": [
                     "application/json"
                 ],
@@ -2775,60 +2775,27 @@
                     "application/json"
                 ],
                 "tags": [
-                    "Public Shares"
+                    "Shares"
                 ],
-                "summary": "Get file/directory information from a public share",
+                "summary": "Get share information by hash",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Share hash for authentication",
+                        "description": "Hash of the share link",
                         "name": "hash",
                         "in": "query",
                         "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Path within the share to retrieve information for. Defaults to share root.",
-                        "name": "path",
-                        "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "File or directory metadata",
+                        "description": "Share information",
                         "schema": {
-                            "$ref": "#/definitions/iteminfo.FileInfo"
-                        }
-                    },
-                    "403": {
-                        "description": "Share unavailable or access denied",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/share.CommonShare"
                         }
                     },
                     "404": {
-                        "description": "Share not found or file not found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "501": {
-                        "description": "Browsing disabled for upload shares",
+                        "description": "Share hash not found",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -4083,6 +4050,117 @@
                 },
                 "viewMode": {
                     "description": "view mode to use: eg. normal, list, grid, or compact",
+                    "type": "string"
+                }
+            }
+        },
+        "share.CommonShare": {
+            "type": "object",
+            "properties": {
+                "allowCreate": {
+                    "description": "allow creating files",
+                    "type": "boolean"
+                },
+                "allowDelete": {
+                    "type": "boolean"
+                },
+                "allowModify": {
+                    "description": "allow modifying files",
+                    "type": "boolean"
+                },
+                "allowReplacements": {
+                    "description": "allow replacements of files",
+                    "type": "boolean"
+                },
+                "allowedUsernames": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "banner": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "disableAnonymous": {
+                    "type": "boolean"
+                },
+                "disableDownload": {
+                    "description": "don't allow downloading files",
+                    "type": "boolean"
+                },
+                "disableFileViewer": {
+                    "description": "don't allow viewing files",
+                    "type": "boolean"
+                },
+                "disableShareCard": {
+                    "type": "boolean"
+                },
+                "disableSidebar": {
+                    "type": "boolean"
+                },
+                "disableThumbnails": {
+                    "type": "boolean"
+                },
+                "downloadURL": {
+                    "type": "string"
+                },
+                "downloadsLimit": {
+                    "type": "integer"
+                },
+                "enableOnlyOffice": {
+                    "type": "boolean"
+                },
+                "enforceDarkLightMode": {
+                    "description": "\"dark\" or \"light\"",
+                    "type": "string"
+                },
+                "extractEmbeddedSubtitles": {
+                    "description": "can be io intensive for large files and take 10-30 seconds.",
+                    "type": "boolean"
+                },
+                "favicon": {
+                    "type": "string"
+                },
+                "hideNavButtons": {
+                    "type": "boolean"
+                },
+                "keepAfterExpiration": {
+                    "type": "boolean"
+                },
+                "maxBandwidth": {
+                    "type": "integer"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "perUserDownloadLimit": {
+                    "type": "boolean"
+                },
+                "quickDownload": {
+                    "type": "boolean"
+                },
+                "shareTheme": {
+                    "type": "string"
+                },
+                "shareType": {
+                    "description": "type of share: normal, upload, max",
+                    "type": "string"
+                },
+                "source": {
+                    "description": "backend source is path to maintain between name changes",
+                    "type": "string"
+                },
+                "themeColor": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "viewMode": {
+                    "description": "default view mode for anonymous users: \"list\", \"compact\", \"normal\", \"gallery\"",
                     "type": "string"
                 }
             }
