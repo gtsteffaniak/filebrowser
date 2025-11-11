@@ -204,10 +204,11 @@ type UserDefaults struct {
 	sourcePath := tmpFile[:strings.LastIndex(tmpFile, "/")]
 
 	// Create a config with both default and non-default values
+	trueVal := true
 	config := &Settings{
 		UserDefaults: UserDefaults{
-			DarkMode: true, // This matches default
-			Locale:   "es", // This differs from default ("en")
+			DarkMode: &trueVal, // This matches default
+			Locale:   "es",     // This differs from default ("en")
 		},
 	}
 
@@ -278,10 +279,11 @@ func TestGenerateConfigYaml_CommentsOnOff(t *testing.T) {
 func TestGenerateConfigYaml_IntegrationTest(t *testing.T) {
 	reNumber := regexp.MustCompile(`^-?\d+(\.\d+)?$`)
 	// Comprehensive test with all features
+	trueVal := true
 	config := &Settings{
 		UserDefaults: UserDefaults{
 			Locale:                  "es",          // Non-default
-			DarkMode:                true,          // Default
+			DarkMode:                &trueVal,      // Default
 			DisableOfficePreviewExt: ".docx .xlsx", // This is deprecated
 		},
 		Auth: Auth{
@@ -433,8 +435,8 @@ func TestGenerateConfigYaml_EdgeCases(t *testing.T) {
 			name: "only_defaults",
 			config: &Settings{
 				UserDefaults: UserDefaults{
-					DarkMode: true, // default value
-					Locale:   "en", // default value
+					DarkMode: boolPtr(true), // default value
+					Locale:   "en",          // default value
 				},
 			},
 			desc: "Config with only default values",

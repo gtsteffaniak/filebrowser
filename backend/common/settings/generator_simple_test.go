@@ -9,10 +9,11 @@ import (
 func TestGenerateConfigYaml_Basic(t *testing.T) {
 	reNumber := regexp.MustCompile(`^-?\d+(\.\d+)?$`)
 	// Test using the actual source directory structure
+	trueVal := true
 	config := &Settings{
 		UserDefaults: UserDefaults{
 			Locale:                  "es",          // Non-default value
-			DarkMode:                true,          // Default value
+			DarkMode:                &trueVal,      // Default value
 			DisableOfficePreviewExt: ".docx .xlsx", // This field is deprecated
 		},
 		Auth: Auth{

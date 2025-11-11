@@ -3946,7 +3946,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "darkMode": {
-                    "description": "should dark mode be enabled",
+                    "description": "should dark mode be enabled (defaults to true if not set)",
                     "type": "boolean"
                 },
                 "dateFormat": {
@@ -4030,10 +4030,10 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "permissions": {
-                    "$ref": "#/definitions/users.Permissions"
+                    "$ref": "#/definitions/settings.UserDefaultsPermissions"
                 },
                 "preview": {
-                    "$ref": "#/definitions/users.Preview"
+                    "$ref": "#/definitions/settings.UserDefaultsPreview"
                 },
                 "quickDownload": {
                     "description": "show icon to download in one click",
@@ -4062,6 +4062,88 @@ const docTemplate = `{
                 "viewMode": {
                     "description": "view mode to use: eg. normal, list, grid, or compact",
                     "type": "string"
+                }
+            }
+        },
+        "settings.UserDefaultsPermissions": {
+            "type": "object",
+            "properties": {
+                "admin": {
+                    "description": "allow admin access",
+                    "type": "boolean"
+                },
+                "api": {
+                    "description": "allow api access",
+                    "type": "boolean"
+                },
+                "create": {
+                    "description": "allow creating or uploading files",
+                    "type": "boolean"
+                },
+                "delete": {
+                    "description": "allow deleting files",
+                    "type": "boolean"
+                },
+                "download": {
+                    "description": "allow downloading files (defaults to true if not set)",
+                    "type": "boolean"
+                },
+                "modify": {
+                    "description": "allow modifying files",
+                    "type": "boolean"
+                },
+                "realtime": {
+                    "description": "allow realtime updates",
+                    "type": "boolean"
+                },
+                "share": {
+                    "description": "allow sharing files",
+                    "type": "boolean"
+                }
+            }
+        },
+        "settings.UserDefaultsPreview": {
+            "type": "object",
+            "properties": {
+                "autoplayMedia": {
+                    "description": "autoplay media files in preview (defaults to true if not set)",
+                    "type": "boolean"
+                },
+                "defaultMediaPlayer": {
+                    "description": "disable html5 media player and use the default media player",
+                    "type": "boolean"
+                },
+                "disableHideSidebar": {
+                    "description": "disable the hide sidebar preview for previews and editors",
+                    "type": "boolean"
+                },
+                "folder": {
+                    "description": "show thumbnail preview image for folder files (defaults to true if not set)",
+                    "type": "boolean"
+                },
+                "highQuality": {
+                    "description": "generate high quality thumbnail preview images (defaults to true if not set)",
+                    "type": "boolean"
+                },
+                "image": {
+                    "description": "show thumbnail preview image for image files (defaults to true if not set)",
+                    "type": "boolean"
+                },
+                "motionVideoPreview": {
+                    "description": "show multiple frames for videos in thumbnail preview when hovering (defaults to true if not set)",
+                    "type": "boolean"
+                },
+                "office": {
+                    "description": "show thumbnail preview image for office files (defaults to true if not set)",
+                    "type": "boolean"
+                },
+                "popup": {
+                    "description": "show larger popup preview when hovering over thumbnail (defaults to true if not set)",
+                    "type": "boolean"
+                },
+                "video": {
+                    "description": "show thumbnail preview image for video files (defaults to true if not set)",
+                    "type": "boolean"
                 }
             }
         },

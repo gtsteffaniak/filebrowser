@@ -7,6 +7,33 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 )
 
+// boolPtr returns a pointer to a bool value
+func boolPtr(b bool) *bool {
+	return &b
+}
+
+// boolValueOrDefault returns the value of a bool pointer, or the default if nil
+func boolValueOrDefault(ptr *bool, defaultValue bool) bool {
+	if ptr != nil {
+		return *ptr
+	}
+	return defaultValue
+}
+
+// ConvertPermissionsToUsers converts UserDefaultsPermissions to users.Permissions
+func ConvertPermissionsToUsers(p UserDefaultsPermissions) users.Permissions {
+	return users.Permissions{
+		Api:      p.Api,
+		Admin:    p.Admin,
+		Modify:   p.Modify,
+		Share:    p.Share,
+		Realtime: p.Realtime,
+		Delete:   p.Delete,
+		Create:   p.Create,
+		Download: boolValueOrDefault(p.Download, true),
+	}
+}
+
 const DefaultUsersHomeBasePath = "/users"
 
 // AuthMethod describes an authentication method.
@@ -41,12 +68,36 @@ func AdminPerms() users.Permissions {
 func ApplyUserDefaults(u *users.User) {
 	u.StickySidebar = Config.UserDefaults.StickySidebar
 	u.DisableSettings = Config.UserDefaults.DisableSettings
-	u.DarkMode = Config.UserDefaults.DarkMode
+
+	// Handle DarkMode with default - dereference pointer from config
+	u.DarkMode = boolValueOrDefault(Config.UserDefaults.DarkMode, true)
+
 	u.Locale = Config.UserDefaults.Locale
 	u.ViewMode = Config.UserDefaults.ViewMode
 	u.SingleClick = Config.UserDefaults.SingleClick
-	u.Permissions = Config.UserDefaults.Permissions
-	u.Preview = Config.UserDefaults.Preview
+
+	// Handle Permissions - convert from pointer-based defaults to regular bools
+	u.Permissions.Api = Config.UserDefaults.Permissions.Api
+	u.Permissions.Admin = Config.UserDefaults.Permissions.Admin
+	u.Permissions.Modify = Config.UserDefaults.Permissions.Modify
+	u.Permissions.Share = Config.UserDefaults.Permissions.Share
+	u.Permissions.Realtime = Config.UserDefaults.Permissions.Realtime
+	u.Permissions.Delete = Config.UserDefaults.Permissions.Delete
+	u.Permissions.Create = Config.UserDefaults.Permissions.Create
+	u.Permissions.Download = boolValueOrDefault(Config.UserDefaults.Permissions.Download, true)
+
+	// Handle Preview - convert from pointer-based defaults to regular bools
+	u.Preview.DisableHideSidebar = Config.UserDefaults.Preview.DisableHideSidebar
+	u.Preview.HighQuality = boolValueOrDefault(Config.UserDefaults.Preview.HighQuality, true)
+	u.Preview.Image = boolValueOrDefault(Config.UserDefaults.Preview.Image, true)
+	u.Preview.Video = boolValueOrDefault(Config.UserDefaults.Preview.Video, true)
+	u.Preview.MotionVideoPreview = boolValueOrDefault(Config.UserDefaults.Preview.MotionVideoPreview, true)
+	u.Preview.Office = boolValueOrDefault(Config.UserDefaults.Preview.Office, true)
+	u.Preview.PopUp = boolValueOrDefault(Config.UserDefaults.Preview.PopUp, true)
+	u.Preview.AutoplayMedia = boolValueOrDefault(Config.UserDefaults.Preview.AutoplayMedia, true)
+	u.Preview.DefaultMediaPlayer = Config.UserDefaults.Preview.DefaultMediaPlayer
+	u.Preview.Folder = boolValueOrDefault(Config.UserDefaults.Preview.Folder, true)
+
 	u.ShowHidden = Config.UserDefaults.ShowHidden
 	u.DateFormat = Config.UserDefaults.DateFormat
 	u.DisableViewingExt = Config.UserDefaults.DisableViewingExt

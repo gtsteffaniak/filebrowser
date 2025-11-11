@@ -110,7 +110,7 @@ func runCLI() bool {
 				} else {
 					logger.Infof("Creating non-admin user: %s\n", username)
 				}
-				newUser.Permissions = settings.Config.UserDefaults.Permissions
+				newUser.Permissions = settings.ConvertPermissionsToUsers(settings.Config.UserDefaults.Permissions)
 				newUser.Permissions.Admin = asAdmin
 				err = storage.CreateUser(newUser, newUser.Permissions)
 				if err != nil {
