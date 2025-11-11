@@ -3377,6 +3377,57 @@ paths:
     get:
       consumes:
       - application/json
+      description: Returns metadata for files or directories accessible via a public
+        share link. Browsing is disabled for upload-only shares.
+      parameters:
+      - description: Share hash for authentication
+        in: query
+        name: hash
+        required: true
+        type: string
+      - description: Path within the share to retrieve information for. Defaults to
+          share root.
+        in: query
+        name: path
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: File or directory metadata
+          schema:
+            $ref: '#/definitions/iteminfo.FileInfo'
+        "403":
+          description: Share unavailable or access denied
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Share not found or file not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "501":
+          description: Browsing disabled for upload shares
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get file/directory information from a public share
+      tags:
+      - Public Shares
+  /public/api/shareinfo:
+    get:
+      consumes:
+      - application/json
       description: Returns information about a share link based on its hash. This
         endpoint is publicly accessible and can be used with or without authentication.
       parameters:

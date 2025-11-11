@@ -34,17 +34,7 @@ build-backend:
 	cd backend && go build -o filebrowser --ldflags="-w -s -X 'github.com/gtsteffaniak/filebrowser/backend/common/version.CommitSHA=testingCommit' -X 'github.com/gtsteffaniak/filebrowser/backend/common/version.Version=testing'"
 
 # New dev target with hot-reloading for frontend and backend
-dev:
-	@echo "NOTE: Run 'make setup' if you haven't already."
-	@echo "Generating swagger docs..."
-	cd backend && go tool swag init --output swagger/docs
-	@if [ "$$(uname)" = "Darwin" ]; then \
-		sed -i '' '/func init/,+3d' backend/swagger/docs/docs.go; \
-	else \
-		sed -i '/func init/,+3d' backend/swagger/docs/docs.go; \
-	fi
-	@echo "Generating frontend config..."
-	cd backend && FILEBROWSER_GENERATE_CONFIG=true go run --tags=mupdf .
+dev: generate-docs
 	@echo "Starting dev servers... Press Ctrl+C to stop."
 	@cd frontend && DEV_BUILD=true npm run watch & \
 	FRONTEND_PID=$$!; \
@@ -53,7 +43,7 @@ dev:
 	trap 'echo "Stopping..."; kill $$FRONTEND_PID $$BACKEND_PID 2>/dev/null; sleep 1; kill -9 $$FRONTEND_PID $$BACKEND_PID 2>/dev/null; exit 0' INT TERM; \
 	wait $$FRONTEND_PID $$BACKEND_PID 2>/dev/null || true
 
-run: build-frontend generate-config
+run: build-frontend generate-docs
 	cd backend && go tool swag init --output swagger/docs
 	@if [ "$$(uname)" = "Darwin" ]; then \
 		sed -i '' '/func init/,+3d' backend/swagger/docs/docs.go; \
@@ -63,7 +53,16 @@ run: build-frontend generate-config
 	cd backend && CGO_ENABLED=1 FILEBROWSER_DEVMODE=true go run --tags=mupdf \
 	--ldflags="-w -s -X 'github.com/gtsteffaniak/filebrowser/backend/common/version.CommitSHA=testingCommit' -X 'github.com/gtsteffaniak/filebrowser/backend/common/version.Version=testing'" . -c test_config.yaml
 
-generate-config:
+generate-docs:
+	@echo "NOTE: Run 'make setup' if you haven't already."
+	@echo "Generating swagger docs..."
+	cd backend && go tool swag init --output swagger/docs
+	@if [ "$$(uname)" = "Darwin" ]; then \
+		sed -i '' '/func init/,+3d' backend/swagger/docs/docs.go; \
+	else \
+		sed -i '/func init/,+3d' backend/swagger/docs/docs.go; \
+	fi
+	@echo "Generating frontend config..."
 	cd backend && FILEBROWSER_GENERATE_CONFIG=true go run .
 
 build-frontend:

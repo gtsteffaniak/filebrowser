@@ -268,7 +268,7 @@ export async function moveCopy(
 
 export async function getShareInfo(hash) {
   try {
-    const apiPath = getPublicApiPath('share', { hash: hash })
+    const apiPath = getPublicApiPath('shareinfo', { hash: hash })
     const response = await fetch(apiPath)
     return response.json()
   } catch (err) {

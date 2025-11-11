@@ -156,7 +156,7 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	publicAPI.HandleFunc("PUT /resources", withHashFile(publicPutHandler))
 	publicAPI.HandleFunc("DELETE /resources", withHashFile(publicDeleteHandler))
 	publicAPI.HandleFunc("PATCH /resources", withHashFile(publicPatchHandler))
-	publicAPI.HandleFunc("GET /share", withOrWithoutUser(shareInfoHandler))
+	publicAPI.HandleFunc("GET /shareinfo", withOrWithoutUser(shareInfoHandler))
 
 	// Settings routes
 	api.HandleFunc("GET /settings", withAdmin(settingsGetHandler))
