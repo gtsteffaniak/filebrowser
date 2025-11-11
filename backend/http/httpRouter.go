@@ -156,7 +156,7 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	publicAPI.HandleFunc("PUT /resources", withHashFile(publicPutHandler))
 	publicAPI.HandleFunc("DELETE /resources", withHashFile(publicDeleteHandler))
 	publicAPI.HandleFunc("PATCH /resources", withHashFile(publicPatchHandler))
-	publicAPI.HandleFunc("GET /shareinfo", withOrWithoutUser(shareInfoHandler))
+	publicAPI.HandleFunc("GET /share", withOrWithoutUser(shareInfoHandler))
 
 	// Settings routes
 	api.HandleFunc("GET /settings", withAdmin(settingsGetHandler))
@@ -184,9 +184,6 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	publicPath := config.Server.BaseURL + "public"
 	router.Handle(apiPath+"/", http.StripPrefix(apiPath, api))
 	router.Handle(publicPath+"/", http.StripPrefix(publicPath, publicRoutes))
-
-	// Frontend share route redirect (DEPRECATED - maintain for backwards compatibility)
-	router.HandleFunc(fmt.Sprintf("GET %vshare/", config.Server.BaseURL), withOrWithoutUser(redirectToShare))
 
 	// New frontend share route handler - handle share page and any subpaths
 	publicRoutes.HandleFunc("GET /share/", withOrWithoutUser(indexHandler))
