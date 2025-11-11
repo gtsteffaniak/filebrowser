@@ -688,7 +688,9 @@
     "saveFailed": "保存文件失败。请重试。",
     "saveAborted": "保存失败。文件名与活动文件不匹配。",
     "saveAbortedMessage": "保存操作中止。应用程序的活动文件 ({activeFile}) 与您要保存的文件 ({tryingToSave}) 不匹配。",
-    "syncFailed": "经过 5 次尝试后，未能将 \"{filename}\" 的状态与路由同步。终止编辑器设置，以防数据损坏。"
+    "syncFailed": "经过 5 次尝试后，未能将 \"{filename}\" 的状态与路由同步。终止编辑器设置，以防数据损坏。",
+    "fileSaved": "文件已保存！",
+    "errorSavingFile": "保存文件出错：{error}"
   },
   "player": {
     "LoopEnabled": "循环已启用",

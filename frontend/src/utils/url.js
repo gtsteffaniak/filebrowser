@@ -1,4 +1,4 @@
-import { globalVars, shareInfo } from "@/utils/constants.js";
+import { globalVars } from "@/utils/constants.js";
 import { state, mutations, getters } from "@/store";
 import { router } from "@/router";
 
@@ -161,7 +161,7 @@ export function extractSourceFromPath(url) {
 
 export function buildItemUrl(source, path) {
   if (getters.isShare()) {
-    return `/public/share/${shareInfo.hash}${path}`;
+    return `/public/share/${state.shareInfo.hash}${path}`;
   }
   if (state.serverHasMultipleSources) {
     return `/files/${source}${path}`;
@@ -190,7 +190,7 @@ export function goToItem(source, path, previousHistoryItem) {
   let newPath = encodedPath(path);
   let fullPath;
   if (getters.isShare()) {
-    fullPath = `/public/share/${shareInfo.hash}${newPath}`;
+    fullPath = `/public/share/${state.shareInfo?.hash}${newPath}`;
     router.push({ path: fullPath });
     return;
   }

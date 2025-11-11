@@ -45,6 +45,22 @@ func (s shareBackend) GetByHash(hash string) (*share.Link, error) {
 	return &v, err
 }
 
+func (s shareBackend) GetCommonShareByHash(hash string) (*share.CommonShare, error) {
+	var v share.Link
+	err := s.db.One("Hash", hash, &v)
+	if err == storm.ErrNotFound {
+		return nil, errors.ErrNotExist
+	}
+	if err != nil {
+		return nil, err
+	}
+	v.Source = ""
+	v.Path = ""
+	v.AllowedUsernames = nil
+	v.DownloadsLimit = 0
+	return &v.CommonShare, nil
+}
+
 func (s shareBackend) GetPermanent(path, source string, id uint) (*share.Link, error) {
 	var v share.Link
 	// TODO remove legacy and return notfound errors

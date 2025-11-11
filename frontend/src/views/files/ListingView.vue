@@ -195,7 +195,6 @@ import * as upload from "@/utils/upload";
 import throttle from "@/utils/throttle";
 import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
-import { shareInfo } from "@/utils/constants";
 
 import Item from "@/components/files/ListingItem.vue";
 import Upload from "@/components/prompts/Upload.vue";
@@ -270,7 +269,7 @@ export default {
   },
   computed: {
     shareInfo() {
-      return shareInfo;
+      return state.shareInfo;
     },
     state() {
       return state;
@@ -510,7 +509,7 @@ export default {
     }
 
     // if safari , make sure click and hold opens context menu, but not for any other browser
-    if (state.user.permissions?.modify || shareInfo.allowCreate) {
+    if (state.user.permissions?.modify || state.shareInfo?.allowCreate) {
       this.$el.addEventListener("dragenter", this.dragEnter);
       this.$el.addEventListener("dragleave", this.dragLeave);
       this.$el.addEventListener("drop", this.drop);
@@ -540,7 +539,7 @@ export default {
     }
 
     // Also clean up drag/drop listeners on the component's root element
-    if (state.user && state.user?.permissions?.modify || shareInfo.allowCreate) {
+    if (state.user && state.user?.permissions?.modify || state.shareInfo?.allowCreate) {
       this.$el.removeEventListener("dragenter", this.dragEnter);
       this.$el.removeEventListener("dragleave", this.dragLeave);
       this.$el.removeEventListener("drop", this.drop);
@@ -946,7 +945,7 @@ export default {
             let action = async (overwrite, rename) => {
               try {
               if (getters.isShare()) {
-                await publicApi.moveCopy(items, operation, overwrite, rename);
+                await publicApi.moveCopy(state.shareInfo.hash, items, operation, overwrite, rename);
                 } else {
                   await filesApi.moveCopy(items, operation, overwrite, rename);
                 }
@@ -993,7 +992,7 @@ export default {
     },
     dragEnter(event) {
       // If in upload share mode, let the embedded Upload component handle it
-      if (shareInfo.shareType === 'upload') {
+      if (state.shareInfo?.shareType === 'upload') {
         return;
       }
       const isInternal = Array.from(event.dataTransfer.types).includes(
@@ -1006,7 +1005,7 @@ export default {
     },
     dragLeave(event) {
       // If in upload share mode, let the embedded Upload component handle it
-      if (shareInfo.shareType === 'upload') {
+      if (state.shareInfo?.shareType === 'upload') {
         return;
       }
       const isInternal = Array.from(event.dataTransfer.types).includes(
@@ -1101,7 +1100,7 @@ export default {
 
       // If we're already in the embedded upload view, don't open a new prompt
       // The embedded Upload component will handle its own drops
-      if (shareInfo.shareType === 'upload') {
+      if (state.shareInfo?.shareType === 'upload') {
         return;
       }
 
@@ -1284,7 +1283,6 @@ export default {
 }
 
 .folder-items a {
-  border-color: #d1d1d1;
   border-style: solid;
 }
 

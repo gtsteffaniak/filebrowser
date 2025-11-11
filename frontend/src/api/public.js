@@ -1,7 +1,7 @@
 import { adjustedData } from "./utils";
 import { notify } from "@/notify";
 import { getApiPath, getPublicApiPath, encodedPath, doubleEncode } from "@/utils/url.js";
-import { globalVars,shareInfo } from "@/utils/constants";
+import { globalVars } from "@/utils/constants";
 import { state } from "@/store";
 
 // ============================================================================
@@ -179,13 +179,10 @@ export function post(
   }
 }
 
-async function resourceAction(path, method, content) {
-  if (!shareInfo.isValid) {
-    throw new Error('invalid share')
-  }
+async function resourceAction(hash, path, method, content, token = "") {
   try {
     path = doubleEncode(path)
-    const apiPath = getPublicApiPath('resources', { path, hash: shareInfo.hash, token: shareInfo.token })
+    const apiPath = getPublicApiPath('resources', { path, hash: hash, token: token })
     const response = await fetch(apiPath, {
       method,
       body: content,
@@ -212,31 +209,22 @@ async function resourceAction(path, method, content) {
   }
 }
 
-export async function remove(path) {
-  if (!shareInfo.isValid) {
-    throw new Error('invalid share')
-  }
+export async function remove(hash, path) {
   try {
-    return await resourceAction(path, 'DELETE')
+    return await resourceAction(hash, path, 'DELETE')
   } catch (err) {
     notify.showError(err.message || 'Error deleting resource')
     throw err
   }
 }
 
-export async function put(path, content = '') {
-  if (!shareInfo.isValid) {
-    throw new Error('invalid share')
-  }
-  try {
-    return await resourceAction(path, 'PUT', content)
-  } catch (err) {
-    notify.showError(err.message || 'Error putting resource')
-    throw err
-  }
+export async function put(hash, path, content = '') {
+  // resourceAction already handles error notification, just propagate
+  return await resourceAction(hash, path, 'PUT', content)
 }
 
 export async function moveCopy(
+  hash,
   items,
   action = 'copy',
   overwrite = false,
@@ -246,7 +234,7 @@ export async function moveCopy(
     overwrite: overwrite,
     action: action,
     rename: rename,
-    hash: shareInfo.hash
+    hash: hash
   }
   try {
     // Create an array of fetch calls
@@ -275,5 +263,16 @@ export async function moveCopy(
   } catch (err) {
     console.error(err.message || 'Error moving/copying resources')
     throw err // Re-throw the error to propagate it back to the caller
+  }
+}
+
+export async function getShareInfo(hash) {
+  try {
+    const apiPath = getPublicApiPath('share', { hash: hash })
+    const response = await fetch(apiPath)
+    return response.json()
+  } catch (err) {
+    notify.showError(err.message || 'Error getting share info')
+    throw err
   }
 }

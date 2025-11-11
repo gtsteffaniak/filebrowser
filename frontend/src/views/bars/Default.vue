@@ -42,7 +42,7 @@ import { notify } from "@/notify";
 import { getters, state, mutations } from "@/store";
 import Action from "@/components/Action.vue";
 import Search from "@/components/Search.vue";
-import { globalVars, shareInfo } from "@/utils/constants";
+import { globalVars } from "@/utils/constants";
 import { url } from "@/utils";
 
 export default {
@@ -61,8 +61,8 @@ export default {
       if (getters.isSettings()) {
         return this.$t("general.settings");
       }
-      if (getters.isShare() && shareInfo.title && state.req.type === "directory") {
-        return shareInfo.title;
+      if (getters.isShare() && state.shareInfo?.title && state.req.type === "directory") {
+        return state.shareInfo?.title;
       }
       const currentTool = getters.currentTool();
       if (currentTool) {
@@ -77,7 +77,7 @@ export default {
       return state.user.editorQuickSave;
     },
     disableNavButtons() {
-      return (globalVars.disableNavButtons && this.isListingView) || (getters.isShare() && shareInfo.disableNavButtons);
+      return (globalVars.disableNavButtons && this.isListingView) || (getters.isShare() && state.shareInfo?.disableNavButtons);
     },
     isOnlyOffice() {
       return getters.currentView() === "onlyOfficeEditor";
@@ -121,7 +121,7 @@ export default {
       return state.isSearchActive || getters.currentPromptName() != "";
     },
     isDisabledMultiAction() {
-      const shareDisabled = shareInfo.disableSidebar && getters.multibuttonState() === "menu";
+      const shareDisabled = state.shareInfo?.disableSidebar && getters.multibuttonState() === "menu";
       return this.isDisabled || (getters.isStickySidebar() && getters.multibuttonState() === "menu") || shareDisabled;
     },
     showSwitchView() {

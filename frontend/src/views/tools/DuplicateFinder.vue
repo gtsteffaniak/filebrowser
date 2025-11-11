@@ -224,8 +224,6 @@ export default {
           this.minSizeValue,
           this.useChecksumsValue
         );
-        console.log('[DuplicateFinder] Fetched duplicate groups:', this.duplicateGroups);
-        console.log('[DuplicateFinder] First file in first group:', this.duplicateGroups[0]?.files[0]);
       } catch (err) {
         this.error = err.message || "Failed to find duplicates";
         this.duplicateGroups = [];

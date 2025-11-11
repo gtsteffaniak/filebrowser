@@ -77,12 +77,8 @@ export async function put(source, path, content = '') {
   if (!source) {
     throw new Error('no source provided')
   }
-  try {
-    return await resourceAction(source, path, 'PUT', content)
-  } catch (err) {
-    notify.showError(err.message || 'Error putting resource')
-    throw err
-  }
+  // resourceAction already handles error notification, just propagate
+  return await resourceAction(source, path, 'PUT', content)
 }
 
 export function download(format, files, shareHash = "") {

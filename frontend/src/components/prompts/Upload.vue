@@ -147,7 +147,6 @@ import { usersApi } from "@/api";
 import ProgressBar from "@/components/ProgressBar.vue";
 import SettingsItem from "@/components/settings/SettingsItem.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
-import { shareInfo } from "@/utils/constants";
 import i18n from "@/i18n";
 
 export default {
@@ -169,7 +168,7 @@ export default {
   },
   computed: {
     shareInfo() {
-      return shareInfo;
+      return state.shareInfo;
     },
     uploadSettingsDescription() {
       const maxConcurrentUpload = state.user.fileLoading?.maxConcurrentUpload || 3;

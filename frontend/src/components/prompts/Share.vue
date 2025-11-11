@@ -388,7 +388,7 @@ export default {
       disableSidebar: false,
       enforceDarkLightMode: "default",
       viewMode: "normal",
-      enableOnlyOffice: false,  
+      enableOnlyOffice: false,
       shareType: "normal",
       extractEmbeddedSubtitles: false,
       /** @type {Share | null} */
@@ -540,7 +540,7 @@ export default {
       if (this.clip) {
         this.clip.destroy();
       }
-      
+
       // Create new clipboard instance
       this.clip = new Clipboard(".copy-clipboard");
       this.clip.on("success", () => {

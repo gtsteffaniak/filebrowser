@@ -688,7 +688,9 @@
     "saveFailed": "Dosya kaydedilemedi. Lütfen tekrar deneyin.",
     "saveAborted": "Kaydetme işlemi iptal edildi. Dosya adı etkin dosyayla eşleşmiyor.",
     "saveAbortedMessage": "Kaydetme işlemi iptal edildi. Uygulamanın etkin dosyası ({activeFile}) kaydetmeye çalıştığınız dosyayla ({tryingToSave}) eşleşmiyor.",
-    "syncFailed": "\"{filename}\" için 5 denemeden sonra rota ile durum senkronize edilemedi. Veri bozulmasını önlemek için düzenleyici kurulumu iptal ediliyor."
+    "syncFailed": "\"{filename}\" için 5 denemeden sonra rota ile durum senkronize edilemedi. Veri bozulmasını önlemek için düzenleyici kurulumu iptal ediliyor.",
+    "fileSaved": "Dosya kaydedildi!",
+    "errorSavingFile": "Dosya kaydedilirken hata oluştu: {error}"
   },
   "player": {
     "LoopEnabled": "Döngü Etkin",

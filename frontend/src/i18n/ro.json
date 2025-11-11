@@ -688,7 +688,9 @@
     "saveFailed": "Nu ați reușit să salvați fișierul. Vă rugăm să încercați din nou.",
     "saveAborted": "Salvare întreruptă. Numele fișierului nu corespunde fișierului activ.",
     "saveAbortedMessage": "Operațiunea de salvare a fost întreruptă. Fișierul activ al aplicației ({activeFile}) nu corespunde cu fișierul pe care încercați să îl salvați ({tryingToSave}).",
-    "syncFailed": "nu a reușit să sincronizeze starea cu ruta pentru \"{filename}\" după 5 încercări. Întreruperea configurării editorului pentru a preveni coruperea datelor."
+    "syncFailed": "nu a reușit să sincronizeze starea cu ruta pentru \"{filename}\" după 5 încercări. Întreruperea configurării editorului pentru a preveni coruperea datelor.",
+    "fileSaved": "Fișier salvat!",
+    "errorSavingFile": "Eroare la salvarea fișierului: {error}"
   },
   "player": {
     "LoopEnabled": "Buclă activată",

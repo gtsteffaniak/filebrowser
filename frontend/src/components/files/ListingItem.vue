@@ -70,7 +70,7 @@
 </template>
 
 <script>
-import { globalVars, serverHasMultipleSources, shareInfo } from "@/utils/constants";
+import { globalVars, serverHasMultipleSources } from "@/utils/constants";
 import downloadFiles from "@/utils/download";
 
 import { getHumanReadableFilesize } from "@/utils/filesizes";
@@ -121,7 +121,7 @@ export default {
       // @ts-ignore
       if (getters.isShare()) {
         // @ts-ignore
-        return shareInfo.quickDownload && !this.isDir;
+        return state.shareInfo?.quickDownload && !this.isDir;
       }
       // @ts-ignore
       return state.user?.quickDownload && !this.galleryView && !this.isDir;
@@ -153,7 +153,7 @@ export default {
     },
     isDraggable() {
       // @ts-ignore
-      return this.readOnly == undefined && state.user.permissions?.modify || shareInfo.allowCreate;
+      return this.readOnly == undefined && state.user.permissions?.modify || state.shareInfo.allowCreate;
     },
     canDrop() {
       if (!this.isDir || this.readOnly !== undefined) return false;
@@ -400,7 +400,7 @@ export default {
 
       let checkAction = async () => {
         if (getters.isShare()) {
-          return await publicApi.fetchPub(this.path, shareInfo.hash);
+          return await publicApi.fetchPub(this.path, state.shareInfo.hash);
         } else {
           return await filesApi.fetchFiles(this.source, this.path);
         }
@@ -423,7 +423,7 @@ export default {
 
         try {
           if (getters.isShare()) {
-            await publicApi.moveCopy(items, "move", overwrite, rename);
+            await publicApi.moveCopy(state.shareInfo.hash, items, "move", overwrite, rename);
           } else {
             await filesApi.moveCopy(items, "move", overwrite, rename);
           }

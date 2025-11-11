@@ -118,7 +118,7 @@ export default {
         }];
 
         if (getters.isShare()) {
-          await publicApi.moveCopy(items, "move");
+          await publicApi.moveCopy(state.shareInfo.hash, items, "move");
         } else {
           await filesApi.moveCopy(items, "move");
         }

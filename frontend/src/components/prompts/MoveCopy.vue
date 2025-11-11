@@ -44,7 +44,6 @@ import * as upload from "@/utils/upload";
 import { url } from "@/utils";
 import { notify } from "@/notify";
 import { goToItem } from "@/utils/url";
-import { shareInfo } from "@/utils/constants";
 
 export default {
   name: "move-copy",
@@ -160,7 +159,7 @@ export default {
           }
           buttons.loading(this.operation);
           if (getters.isShare()) {
-            await publicApi.moveCopy(this.items, this.operation, overwrite, rename);
+            await publicApi.moveCopy(state.shareInfo.hash, this.items, this.operation, overwrite, rename);
           } else {
             await filesApi.moveCopy(this.items, this.operation, overwrite, rename);
           }
@@ -168,7 +167,7 @@ export default {
         let conflict = false;
         let dstResp = null;
         if (getters.isShare()) {
-          dstResp = await publicApi.fetchPub(this.destPath, shareInfo.hash);
+          dstResp = await publicApi.fetchPub(this.destPath, state.shareInfo?.hash);
         } else {
           dstResp = await filesApi.fetchFiles(this.destSource, this.destPath);
         }

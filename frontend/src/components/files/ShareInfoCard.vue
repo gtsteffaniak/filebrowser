@@ -45,7 +45,6 @@ import { state, getters, mutations } from "@/store";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { getTypeInfo } from "@/utils/mimetype";
 import QrcodeVue from "qrcode.vue";
-import { shareInfo } from "@/utils/constants";
 
 export default {
   name: "ShareInfo",
@@ -68,22 +67,22 @@ export default {
   },
   computed: {
     showShareInfo() {
-      if (shareInfo.shareType !== 'normal') {
+      if (state.shareInfo?.shareType !== 'normal') {
         return false;
       }
-      if (!shareInfo.isPasswordProtected) {
+      if (!state.shareInfo?.isPasswordProtected) {
         return true
       }
       return state.share.passwordValid
     },
     getShareBanner() {
-      if (this.shareInfo.banner.startsWith("http")) {
-        return this.shareInfo.banner;
+      if (state.shareInfo?.banner.startsWith("http")) {
+        return state.shareInfo?.banner;
       }
-      return publicApi.getDownloadURL(state.share, [this.shareInfo.banner]);
+      return publicApi.getDownloadURL(state.share, [state.shareInfo?.banner]);
     },
     shareInfo() {
-      return shareInfo;
+      return state.shareInfo;
     },
     req() {
       return state.req;
