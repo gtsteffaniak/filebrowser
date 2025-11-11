@@ -2,7 +2,7 @@ import { removePrefix, buildItemUrl, removeLeadingSlash } from '@/utils/url.js'
 import { url } from '@/utils'
 import { getFileExtension } from '@/utils/files.js'
 import { state, mutations } from '@/store'
-import { globalVars, shareInfo, previewViews } from '@/utils/constants.js'
+import { globalVars, previewViews } from '@/utils/constants.js'
 import { getTypeInfo } from '@/utils/mimetype'
 import { fromNow } from '@/utils/moment'
 import { tools } from '@/utils/constants'
@@ -69,8 +69,8 @@ export const getters = {
       return displayPref.viewMode;
     }
     // Priority 2: If it's a share and shareInfo.viewMode is set, use that as the default
-    if (isShare && shareInfo.viewMode) {
-      return shareInfo.viewMode;
+    if (isShare && state.shareInfo?.viewMode) {
+      return state.shareInfo.viewMode;
     }
     // Priority 3: Use user's default viewMode
     return state.user.viewMode || "normal";
@@ -81,15 +81,15 @@ export const getters = {
   previewType: () => getTypeInfo(state.req.type).simpleType,
   isCardView: () =>
     (getters.viewMode() == 'gallery' || getters.viewMode() == 'normal' || getters.viewMode() == 'icons' || getters.currentView() == 'listingView'),
-  currentHash: () => shareInfo.hash,
+  currentHash: () => state.shareInfo?.hash,
   isMobile: () => state.isMobile,
   isLoading: () => Object.keys(state.loading).length > 0,
   isSettings: () => getters.currentView() === 'settings',
   isDarkMode: () => {
-    if (shareInfo.enforceDarkLightMode == "dark") {
+    if (state.shareInfo?.enforceDarkLightMode == "dark") {
       return true
     }
-    if (shareInfo.enforceDarkLightMode == "light") {
+    if (state.shareInfo?.enforceDarkLightMode == "light") {
       return false
     }
     if (!getters.isShare() && getters.eventTheme() == "halloween") {
@@ -188,7 +188,7 @@ export const getters = {
     return { dirs, files }
   },
   isSidebarVisible: () => {
-    if (shareInfo.disableSidebar) {
+    if (state.shareInfo?.disableSidebar) {
       return false
     }
     const cv = getters.currentView()
@@ -202,7 +202,7 @@ export const getters = {
     if (previewViews.includes(cv) && !state.user.preview?.disableHideSidebar) {
       visible = false
     }
-    if (shareInfo.singleFileShare) {
+    if (state.shareInfo?.singleFileShare) {
       visible = state.showSidebar
     }
     return visible
@@ -235,24 +235,36 @@ export const getters = {
     return removePrefix(state.route.path, trimModifier)
   },
   shareHash: () => {
-    return shareInfo.hash
+    if (!state.route.path.startsWith('/public/share')) {
+      return ""
+    }
+    let urlPath = getters.routePath('/public/share')
+    const urlPathParts = urlPath.split('/')
+    if (urlPathParts.length < 1) {
+      return ""
+    }
+    return urlPathParts[1]
   },
   sharePathBase: () => {
-    return '/public/share/' + shareInfo.hash + '/'
+    return '/public/share/' + getters.shareHash() + '/'
   },
   getSharePath: (subPath = "") => {
-    let urlPath = getters.routePath('public/share')
-    let path =  "/" + removeLeadingSlash(urlPath.split(shareInfo.hash)[1])
-    if (subPath != "") {
-      path = url.joinPath(path, removeLeadingSlash(subPath))
+    if (!state.route.path.startsWith('/public/share')) {
+      return ""
     }
-    return path
+    let urlPath = getters.routePath('/public/share')
+    if (urlPath == "/" || urlPath == "") {
+      return "";
+    }
+    // remove hash from path
+    urlPath = urlPath.split('/').slice(2).join('/')
+    if (subPath != "") {
+      urlPath = url.joinPath(urlPath, removeLeadingSlash(subPath))
+    }
+    return urlPath
   },
   isShare: () => {
-    if (shareInfo.isShare && state.route.path.startsWith('/public/share/' + shareInfo.hash)) {
-      return true
-    }
-    return false
+    return getters.shareHash() != ""
   },
   currentView: () => {
     if (state.navigation.isTransitioning) {
@@ -394,7 +406,7 @@ export const getters = {
   },
   fileViewingDisabled: filename => {
     if (getters.isShare()) {
-      if (shareInfo.disableFileViewer || shareInfo.shareType == "upload" || shareInfo.disableDownload) {
+      if (state.shareInfo?.disableFileViewer || state.shareInfo?.shareType == "upload" || state.shareInfo?.disableDownload) {
         return true
       }
     } else {
@@ -413,9 +425,9 @@ export const getters = {
   },
   officeViewingDisabled: filename => {
     const ext = ' ' + getFileExtension(filename)
-    const hasDisabled = shareInfo.disableOfficePreviewExt || state.user.disableOfficePreviewExt
+    const hasDisabled = state.shareInfo?.disableOfficePreviewExt || state.user.disableOfficePreviewExt
     if (hasDisabled) {
-      const disabledList = shareInfo.disableOfficePreviewExt + ' ' + state.user.disableOfficePreviewExt
+      const disabledList = state.shareInfo?.disableOfficePreviewExt + ' ' + state.user.disableOfficePreviewExt
       const disabledExts = ' ' + disabledList.toLowerCase()
       if (disabledExts.includes(ext.toLowerCase())) {
         return true
@@ -475,7 +487,7 @@ export const getters = {
         }
         return "close";
       }
-      if (cv == "listingView" || shareInfo.singleFileShare) {
+      if (cv == "listingView" || state.shareInfo?.singleFileShare) {
         if (state.user.stickySidebar) {
           return "menu";
         }
@@ -484,7 +496,7 @@ export const getters = {
       }
       return "close";
     }
-    if (shareInfo.singleFileShare) {
+    if (state.shareInfo?.singleFileShare) {
       return "menu";
     }
     if (cv == "settings") {
@@ -501,10 +513,10 @@ export const getters = {
     return "close";
   },
   isInvalidShare: () => {
-    return getters.isShare() && !shareInfo.isValid;
+    return getters.shareHash() != "" && !state.shareInfo?.hash;
   },
   isValidShare: () => {
-    return getters.isShare() && shareInfo.isValid;
+    return getters.shareHash() != "" && state.shareInfo?.hash;
   },
   currentTool: () => {
     if (getters.currentView() !== "tools") {
@@ -521,10 +533,10 @@ export const getters = {
     if (getters.isShare()) {
       return {
         share: false,
-        modify: shareInfo.allowModify,
-        create: shareInfo.allowCreate,
-        delete: shareInfo.allowDelete,
-        download: !shareInfo.disableDownload,
+        modify: state.shareInfo?.allowModify,
+        create: state.shareInfo?.allowCreate,
+        delete: state.shareInfo?.allowDelete,
+        download: !state.shareInfo?.disableDownload,
         admin: false,
         api: false,
         realtime: false,

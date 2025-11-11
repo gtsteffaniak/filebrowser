@@ -688,7 +688,9 @@
     "saveFailed": "Falha ao guardar o ficheiro. Por favor, tente novamente.",
     "saveAborted": "Gravação abortada. O nome do ficheiro não corresponde ao ficheiro ativo.",
     "saveAbortedMessage": "Operação de gravação abortada. O ficheiro ativo da aplicação ({activeFile}) não corresponde ao ficheiro que está a tentar guardar ({tryingToSave}).",
-    "syncFailed": "não conseguiu sincronizar o estado com a rota para \"{filename}\" após 5 tentativas. Abortar a configuração do editor para evitar a corrupção de dados."
+    "syncFailed": "não conseguiu sincronizar o estado com a rota para \"{filename}\" após 5 tentativas. Abortar a configuração do editor para evitar a corrupção de dados.",
+    "fileSaved": "Ficheiro guardado!",
+    "errorSavingFile": "Erro ao guardar o ficheiro: {error}"
   },
   "player": {
     "LoopEnabled": "Repetição ativada",

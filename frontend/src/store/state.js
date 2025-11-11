@@ -149,6 +149,17 @@ export const state = reactive({
     mode: 'single', // 'single', 'sequential', 'shuffle', 'loop-single', 'loop-all'
     isPlaying: false
   },
+  shareInfo: {
+    isShare: false,
+    disableThumbnails: false,
+    hash: "",
+    enforceDarkLightMode: "",
+    disableSidebar: false,
+    isValid: true,
+    shareType: "",
+    title: "",
+    description: "",
+  },
 });
 
 function stickyStartup() {

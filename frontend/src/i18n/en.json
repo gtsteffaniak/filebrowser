@@ -695,7 +695,9 @@
     "saveFailed":"Failed to save file. Please try again.",
     "saveAborted":"Save aborted. The file name does not match the active file.",
     "saveAbortedMessage":"Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
-    "syncFailed":"failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
+    "syncFailed":"failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption.",
+    "fileSaved":"File saved!",
+    "errorSavingFile":"Error saving file: {error}"
   },
   "player": {
     "LoopEnabled": "Loop Enabled",

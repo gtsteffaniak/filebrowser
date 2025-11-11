@@ -26,7 +26,6 @@ import { filesApi, publicApi } from "@/api";
 import { getters, mutations } from "@/store"; // Import your custom store
 import { notify } from "@/notify";
 import { url } from "@/utils";
-import { shareInfo } from "@/utils/constants";
 export default {
   name: "new-file",
   data() {
@@ -59,7 +58,7 @@ export default {
     async createFile(overwrite = false) {
       try {
         if (getters.isShare()) {
-          await publicApi.post(shareInfo.hash, url.joinPath(state.req.path, this.name), "", overwrite);
+          await publicApi.post(state.shareInfo?.hash, url.joinPath(state.req.path, this.name), "", overwrite);
           url.goToItem(state.req.source, url.joinPath(state.req.path, this.name), {});
           mutations.closeHovers();
           return;
@@ -86,7 +85,7 @@ export default {
                     try {
                       const newName = counter === 1 ? `${originalName} (1)` : `${originalName} (${counter})`;
                       if (getters.isShare()) {
-                        await publicApi.post(shareInfo.hash, url.joinPath(state.req.path, newName), "", false);
+                        await publicApi.post(state.shareInfo?.hash, url.joinPath(state.req.path, newName), "", false);
                         url.goToItem(state.req.source, url.joinPath(state.req.path, newName), {});
                         mutations.closeHovers();
                         success = true;

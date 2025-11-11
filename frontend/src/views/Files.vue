@@ -40,7 +40,7 @@ import MarkdownViewer from "./files/MarkdownViewer.vue";
 import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
 import router from "@/router";
-import { globalVars, shareInfo } from "@/utils/constants";
+import { globalVars } from "@/utils/constants";
 import PopupPreview from "@/components/files/PopupPreview.vue";
 import { extractSourceFromPath } from "@/utils/url";
 import ShareInfoCard from "@/components/files/ShareInfoCard.vue";
@@ -80,7 +80,7 @@ export default {
       return state.share;
     },
     showShareInfo() {
-      return getters.isShare() && state.isMobile && state.req.path == "/" && !shareInfo.disableShareCard;
+      return getters.isShare() && state.isMobile && state.req.path == "/" && !state.shareInfo?.disableShareCard;
     },
     popupEnabled() {
       if (!state.user || state.user?.username == "") {
@@ -143,13 +143,6 @@ export default {
   mounted() {
     window.addEventListener("hashchange", this.scrollToHash);
     window.addEventListener("keydown", this.keyEvent);
-    if (getters.isInvalidShare()) {
-      // show message that share is invalid and don't do anything else
-      this.error = {
-        status: "share404",
-        message: "errors.shareNotFound",
-      };
-    }
   },
   beforeUnmount() {
     window.removeEventListener("keydown", this.keyEvent);
@@ -198,7 +191,7 @@ export default {
         }
     },
     async fetchData() {
-      if (state.deletedItem || getters.isInvalidShare() || shareInfo.shareType == "upload") {
+      if (state.deletedItem || state.shareInfo?.shareType == "upload") {
         return
       }
 
@@ -215,6 +208,7 @@ export default {
 
       try {
         if (getters.isShare()) {
+          console.log("fetching share data");
           await this.fetchShareData();
         } else {
           await this.fetchFilesData();
@@ -250,6 +244,17 @@ export default {
     },
 
     async fetchShareData() {
+      const hash = getters.shareHash();
+      let shareInfo = await publicApi.getShareInfo(hash);
+      if (!shareInfo) {
+        // show message that share is invalid and don't do anything else
+        this.error = {
+          status: "share404",
+          message: "errors.shareNotFound",
+        };
+      }
+      shareInfo.hash = hash;
+      mutations.setShareInfo(shareInfo);
       // Parse share route
       let urlPath = getters.routePath('public/share')
       let parts = urlPath.split("/");
@@ -269,11 +274,11 @@ export default {
       mutations.resetSelected();
       mutations.setMultiple(false);
 
-      if (shareInfo.singleFileShare) {
+      if (state.shareInfo?.singleFileShare) {
         mutations.setSidebarVisible(true);
       }
       // Initialize password validation state for password-protected shares
-      if (shareInfo.isPasswordProtected) {
+      if (state.shareInfo?.isPasswordProtected) {
         mutations.setShareData({ passwordValid: false });
       }
       // Fetch share data

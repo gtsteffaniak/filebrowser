@@ -46,7 +46,6 @@ import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
 import { filesApi, publicApi } from "@/api";
 import Icon from "@/components/files/Icon.vue";
-import { shareInfo } from "@/utils/constants";
 
 export default {
   name: "file-list",
@@ -207,7 +206,7 @@ export default {
       let sourceToUse = clickedItem ? clickedItem.source : this.source;
       this.path = path;
       if (getters.isShare()) {
-        publicApi.fetchPub(path, shareInfo.hash).then(this.fillOptions);
+        publicApi.fetchPub(path, state.shareInfo?.hash).then(this.fillOptions);
       } else {
         this.source = sourceToUse;
         filesApi.fetchFiles(sourceToUse, path).then(this.fillOptions);

@@ -153,10 +153,9 @@
 import downloadFiles from "@/utils/download";
 import { state, getters, mutations } from "@/store";
 import Action from "@/components/Action.vue";
-import { globalVars, shareInfo } from "@/utils/constants.js";
+import { globalVars } from "@/utils/constants.js";
 import buttons from "@/utils/buttons";
 import { notify } from "@/notify";
-import { eventBus } from "@/store/eventBus";
 import { filesApi, publicApi } from "@/api";
 import { url } from "@/utils";
 export default {
@@ -238,7 +237,7 @@ export default {
       );
     },
     showSave() {
-      const allowEdit = this.permissions.modify || (getters.isShare() && shareInfo.allowEdit);
+      const allowEdit = this.permissions.modify || (getters.isShare() && state.shareInfo.allowEdit);
       return getters.currentView() == "editor" && allowEdit;
     },
     showOverflow() {
@@ -477,14 +476,18 @@ export default {
       const button = "save";
       buttons.loading("save");
       try {
-        eventBus.emit("handleEditorValueRequest", "data");
+        // Call the editor save handler directly and await completion
+        if (state.editorSaveHandler) {
+          await state.editorSaveHandler();
+        } else {
+          throw new Error("Editor save handler not found");
+        }
         buttons.success(button);
-        notify.showSuccess("File Saved!");
+        notify.showSuccess(this.$t("editor.fileSaved"));
       } catch (e) {
+        // Don't show error notification here - API layer already showed it
         buttons.done(button);
-        notify.showError(`Error saving file: ${e}`);
       }
-
       mutations.closeHovers();
     },
     showUpload() {

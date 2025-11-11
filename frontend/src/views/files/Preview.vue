@@ -70,7 +70,7 @@ import plyrViewer from "@/views/files/plyrViewer.vue";
 import { state, getters, mutations } from "@/store";
 import { getFileExtension } from "@/utils/files";
 import { convertToVTT } from "@/utils/subtitles";
-import { globalVars, shareInfo } from "@/utils/constants";
+import { globalVars } from "@/utils/constants";
 
 export default {
     name: "preview",
@@ -213,7 +213,7 @@ export default {
             return state.deletedItem;
         },
         disableFileViewer() {
-            return shareInfo.disableFileViewer;
+            return state.shareInfo?.disableFileViewer;
         },
     },
     watch: {
@@ -354,7 +354,7 @@ export default {
                             // Use public API for shared files
                             res = await publicApi.fetchPub(
                                 directoryPath,
-                                state.share.hash,
+                                state.shareInfo?.hash,
                             );
                         } else {
                             // Use regular files API for authenticated users
@@ -394,13 +394,13 @@ export default {
                     ? publicApi.getDownloadURL(
                           {
                               path: item.path,
-                              hash: state.share.hash,
+                              hash: state.shareInfo?.hash,
                               token: state.share.token,
                               inline: true,
                           },
                           [item.path],
                       )
-                    : publicApi.getPreviewURL(state.share.hash, item.path);
+                    : publicApi.getPreviewURL(state.shareInfo?.hash, item.path);
             }
             return this.fullSize
                 ? filesApi.getDownloadURL(state.req.source, item.path, true)

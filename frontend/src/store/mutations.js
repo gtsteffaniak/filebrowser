@@ -825,4 +825,11 @@ export const mutations = {
     state.playbackQueue.shouldTogglePlayPause = !state.playbackQueue.shouldTogglePlayPause;
     emitStateChanged();
   },
+  setShareInfo: (shareInfo) => {
+    if (state.shareInfo === shareInfo) {
+      return;
+    }
+    state.shareInfo = shareInfo;
+    emitStateChanged();
+  },
 };

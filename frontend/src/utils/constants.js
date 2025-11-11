@@ -3,7 +3,6 @@ import i18n from '@/i18n';
 const globalVars = window.globalVars;
 const logoURL = `${globalVars.staticURL}/img/logo.png`;
 const serverHasMultipleSources = globalVars.sourceCount > 1;
-const shareInfo = window.shareVars;
 const origin = window.location.origin;
 
 const settings = [
@@ -54,7 +53,6 @@ const tools = () => {
 
 export {
   globalVars,
-  shareInfo,
   serverHasMultipleSources,
   logoURL,
   origin,

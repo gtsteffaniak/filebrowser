@@ -30,7 +30,7 @@
 </template>
 
 <script>
-import { globalVars, shareInfo } from "@/utils/constants";
+import { globalVars } from "@/utils/constants";
 import { getTypeInfo } from "@/utils/mimetype";
 import { mutations, state, getters } from "@/store";
 
@@ -83,7 +83,7 @@ export default {
       return this.mimetype !== "directory";
     },
     hasPreviewImage() {
-      if (shareInfo.disableThumbnails) {
+      if (state.shareInfo?.disableThumbnails) {
         return false;
       }
       if (this.thumbnailUrl == "") {
@@ -279,7 +279,7 @@ export default {
         if (!this.hasPreview || !this.thumbnailUrl) {
           return;
         }
-        if (shareInfo.disableThumbnails) {
+        if (state.shareInfo?.disableThumbnails) {
           return;
         }
         const simpleType = this.getIconForType().simpleType;

@@ -574,6 +574,26 @@ func getDownloadURL(r *http.Request, hash string) string {
 	return downloadURL
 }
 
+// shareInfoHandler retrieves share information by hash.
+// @Summary Get share information by hash
+// @Description Returns information about a share link based on its hash. This endpoint is publicly accessible and can be used with or without authentication.
+// @Tags Shares
+// @Accept json
+// @Produce json
+// @Param hash query string true "Hash of the share link"
+// @Success 200 {object} share.CommonShare "Share information"
+// @Failure 404 {object} map[string]string "Share hash not found"
+// @Router /public/api/share [get]
+func shareInfoHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	hash := r.URL.Query().Get("hash")
+	// Get the file link by hash
+	commonShare, err := store.Share.GetCommonShareByHash(hash)
+	if err != nil {
+		return http.StatusNotFound, fmt.Errorf("share hash not found")
+	}
+	return renderJSON(w, r, commonShare)
+}
+
 func getSharePasswordHash(body share.CreateBody) (data []byte, statuscode int, err error) {
 	if body.Password == "" {
 		return nil, 0, nil

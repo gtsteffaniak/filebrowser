@@ -1,7 +1,6 @@
 import { reactive } from "vue";
 import { filesApi, publicApi } from "@/api";
 import { state,mutations } from "@/store";
-import { shareInfo } from "@/utils/constants";
 import { getters } from "@/store/getters";
 
 class UploadManager {
@@ -56,7 +55,7 @@ class UploadManager {
               try {
                 const testPath = `${basePath}${dirName}`;
                 if (getters.isShare()) {
-                  await publicApi.post(shareInfo.hash, testPath, new Blob([]), false);
+                  await publicApi.post(state.shareInfo?.hash, testPath, new Blob([]), false);
                 } else {
                   await filesApi.post(state.req?.source, testPath, new Blob([]), false);
                 }
@@ -261,7 +260,7 @@ class UploadManager {
 
     try {
       if (getters.isShare()) {
-        await publicApi.post(shareInfo.hash, upload.path, new Blob([]), upload.overwrite);
+        await publicApi.post(state.shareInfo?.hash, upload.path, new Blob([]), upload.overwrite);
       } else {
         await filesApi.post(upload.source, upload.path, new Blob([]), upload.overwrite);
       }
@@ -297,7 +296,7 @@ class UploadManager {
       try {
         let promise;
         if (getters.isShare()) {
-          promise = publicApi.post(shareInfo.hash, upload.path, upload.file, upload.overwrite, progress, {
+          promise = publicApi.post(state.shareInfo?.hash, upload.path, upload.file, upload.overwrite, progress, {
             "X-File-Total-Size": upload.size,
           });
         } else {
@@ -338,7 +337,7 @@ class UploadManager {
         let promise;
         if (getters.isShare()) {
           promise = publicApi.post(
-            shareInfo.hash,
+            state.shareInfo?.hash,
             upload.path,
             chunk,
             upload.overwrite,

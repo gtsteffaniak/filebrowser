@@ -71,7 +71,7 @@ export default {
         const currentView = getters.currentView()
         if (state.isSearchActive || currentView == "preview") {
           if (getters.isShare()) {
-            await publicApi.remove(state.selected[0].path);
+            await publicApi.remove(state.shareInfo.hash, state.selected[0].path);
           } else {
             await filesApi.remove(state.selected[0].source, state.selected[0].path);
           }
@@ -84,7 +84,7 @@ export default {
         }
         if (!this.isListing) {
           if (getters.isShare()) {
-            await publicApi.remove(state.req.items[state.selected[0]].path);
+            await publicApi.remove(state.shareInfo.hash, state.req.items[state.selected[0]].path);
           } else {
             await filesApi.remove(state.req.items.source, state.req.items[state.selected[0]].path);
           }
@@ -103,7 +103,7 @@ export default {
         let promises = [];
         for (let index of state.selected) {
           if (getters.isShare()) {
-            promises.push(publicApi.remove(state.req.items[index].path));
+            promises.push(publicApi.remove(state.shareInfo.hash, state.req.items[index].path));
           } else {
             promises.push(filesApi.remove(state.req.source, state.req.items[index].path));
           }

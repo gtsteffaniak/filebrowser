@@ -688,7 +688,9 @@
     "saveFailed": "파일을 저장하지 못했습니다. 다시 시도하세요.",
     "saveAborted": "저장이 중단되었습니다. 파일 이름이 활성 파일과 일치하지 않습니다.",
     "saveAbortedMessage": "저장 작업이 중단되었습니다. 애플리케이션의 활성 파일({activeFile})이 저장하려는 파일({tryingToSave})과 일치하지 않습니다.",
-    "syncFailed": "5번 시도 후 \"{filename}\"의 경로와 상태를 동기화하지 못했습니다. 데이터 손상을 방지하기 위해 편집기 설정을 중단합니다."
+    "syncFailed": "5번 시도 후 \"{filename}\"의 경로와 상태를 동기화하지 못했습니다. 데이터 손상을 방지하기 위해 편집기 설정을 중단합니다.",
+    "fileSaved": "파일이 저장되었습니다!",
+    "errorSavingFile": "파일 저장 중 오류가 발생했습니다: {error}"
   },
   "player": {
     "LoopEnabled": "반복 활성화",
