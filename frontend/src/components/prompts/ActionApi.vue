@@ -84,9 +84,9 @@ export default {
         // Emit event to refresh API keys list
         setTimeout(() => {
           eventBus.emit('apiKeysChanged');
-          notify.showSuccess("API key deleted!");
-          mutations.closeHovers();
-        }, 5);
+        }, 10);
+        mutations.closeHovers();
+        notify.showSuccess("API key deleted!");
       } catch (error) {
         console.error(error);
       }
