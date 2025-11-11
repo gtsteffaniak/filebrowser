@@ -88,15 +88,14 @@ export default {
   mounted() {
     // Listen for API key changes
     eventBus.on('apiKeysChanged', this.reloadApiKeys);
-    this.clip = new Clipboard(".copy-clipboard");
-    this.clip.on("success", () => {
-      notify.showSuccess("Copied API Key!");
-    });
+    this.initClipboard();
   },
   beforeUnmount() {
     // Clean up event listener
     eventBus.off('apiKeysChanged', this.reloadApiKeys);
-    this.clip.destroy();
+    if (this.clip) {
+      this.clip.destroy();
+    }
   },
   computed: {
     settings() {
@@ -110,12 +109,27 @@ export default {
     },
   },
   methods: {
+    initClipboard() {
+      // Destroy existing clipboard first
+      if (this.clip) {
+        this.clip.destroy();
+      }
+      // Create new clipboard instance
+      this.clip = new Clipboard(".copy-clipboard");
+      this.clip.on("success", () => {
+        notify.showSuccess(this.$t("success.linkCopied")); // Use consistent message
+      });
+    },
     async reloadApiKeys() {
       mutations.setLoading("api", true);
       try {
         // Fetch the API keys from the specified endpoint
         this.links = await usersApi.getApiKeys();
-        this.error = null; // Clear any previous errors
+        this.error = null; // Clear errors
+      // Reinitialize clipboard after data changes
+      this.$nextTick(() => {
+        this.initClipboard();
+      });
       } catch (e) {
         this.error = e;
       } finally {

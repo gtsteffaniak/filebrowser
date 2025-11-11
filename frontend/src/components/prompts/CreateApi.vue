@@ -90,7 +90,7 @@ export default {
         await usersApi.createApiKey(params);
         // Emit event to refresh API keys list
         eventBus.emit('apiKeysChanged');
-        notify.showSuccess($t("api.createKeySuccess"));
+        notify.showSuccess(this.$t("api.createKeySuccess"));
         mutations.closeHovers();
       } catch (error) {
         notify.showError($t("api.createKeyFailed"));

@@ -384,7 +384,7 @@ button:hover,
 .form-flex-group {
     display: flex;
     flex-direction: row;
-    align-items: center;
+    align-items: stretch;
 }
 
 .form-flex-group>.form-compact {
@@ -394,6 +394,7 @@ button:hover,
 
 .form-button {
     height: auto !important;
+    white-space: nowrap;
 }
 
 .form-invalid {
