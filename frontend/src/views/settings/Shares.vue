@@ -102,15 +102,15 @@ export default {
     await this.reloadShares();
   },
   mounted() {
-    this.clip = new Clipboard(".copy-clipboard");
-    this.clip.on("success", () => {
-      notify.showSuccess(this.$t("success.linkCopied"));
-    });
+    this.initClipboard();
     // Listen for share changes
     eventBus.on('sharesChanged', this.reloadShares);
   },
   beforeUnmount() {
-    this.clip.destroy();
+    // Clean up clipboard
+    if (this.clip) {
+      this.clip.destroy();
+    }
     // Clean up event listener
     eventBus.off('sharesChanged', this.reloadShares);
   },
@@ -139,12 +139,29 @@ export default {
         }
         this.links = links;
         this.error = null; // Clear any previous errors
+      this.$nextTick(() => {
+        this.initClipboard();
+      });
       } catch (e) {
         this.error = e;
         console.error(e);
       } finally {
         mutations.setLoading("shares", false);
       }
+    },
+    initClipboard() {
+      // First destroy any existing clipboard
+      if (this.clip) {
+        this.clip.destroy();
+      }
+      // Create new clipboard
+      this.clip = new Clipboard(".copy-clipboard");
+      this.clip.on("success", () => {
+        notify.showSuccess(this.$t("success.linkCopied"));
+      });
+      this.clip.on("error", () => {
+        console.log("Failed to copy link to the clipboard", e);
+      });
     },
     editLink(item) {
       mutations.showHover({

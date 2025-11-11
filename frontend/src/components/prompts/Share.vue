@@ -524,12 +524,29 @@ export default {
     }
   },
   mounted() {
-    this.clip = new Clipboard(".copy-clipboard");
-    this.clip.on("success", () => {
-      notify.showSuccess(this.$t("success.linkCopied"));
-    });
+    this.initClipboard();
+  },
+  beforeUnmount() {
+    // Clean up event listener
+    eventBus.off('apiKeysChanged', this.reloadApiKeys);
+    // Clean up clipboard
+    if (this.clip) {
+      this.clip.destroy();
+    }
   },
   methods: {
+    initClipboard() {
+      // Destroy existing clipboard first
+      if (this.clip) {
+        this.clip.destroy();
+      }
+      
+      // Create new clipboard instance
+      this.clip = new Clipboard(".copy-clipboard");
+      this.clip.on("success", () => {
+        notify.showSuccess(this.$t("success.linkCopied"));
+      });
+    },
     /**
      * @param {MouseEvent} event
      * @param {string} text
@@ -604,6 +621,10 @@ export default {
         if (!this.isEditMode && !this.editingLink) {
           this.links.push(res);
           this.sort();
+        // reinitialize the clipboard after adding a new link
+        this.$nextTick(() => {
+          this.initClipboard();
+        });
         } else if (this.editingLink) {
           // Update the link in the local list
           const index = this.links.findIndex(l => l.hash === this.editingLink.hash);
@@ -613,6 +634,10 @@ export default {
           this.editingLink = null;
           // emit event to reload shares in settings view
           eventBus.emit('sharesChanged');
+        // Reinitialize clipboard after edit the share
+        this.$nextTick(() => {
+          this.initClipboard();
+        });
         } else {
           // emit event to reload shares in settings view
           eventBus.emit('sharesChanged');
@@ -682,6 +707,10 @@ export default {
       try {
         await shareApi.remove(link.hash);
         this.links = this.links.filter((item) => item.hash !== link.hash);
+        // Reinitialize clipboard after deletion too
+        this.$nextTick(() => {
+          this.initClipboard();
+        });
         // emit event to reload shares in settings view
         eventBus.emit('sharesChanged');
         if (this.links.length === 0) {

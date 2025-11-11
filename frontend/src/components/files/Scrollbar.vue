@@ -50,6 +50,7 @@ export default {
       scrollTimeout: null,
       isReady: false,
       isVisible: false,
+      scrollFrame: null,
     };
   },
   computed: {
@@ -115,28 +116,33 @@ export default {
       const scrollbar = this.$refs.scrollbar;
       const thumb = this.$refs.thumb;
       const sectionId = this.$refs.sectionId;
-
       const scrollRatio = scrollTop / (content.scrollHeight - content.clientHeight);
       const thumbHeight = thumb.clientHeight;
       const maxThumbTop = scrollbar.clientHeight - thumbHeight - (this.isNotListing ? offsetFromBottomFull : offsetFromBottomListing);
       const thumbPosition = scrollRatio * maxThumbTop;
 
-      thumb.style.transform = `translateY(${thumbPosition}px)`;
-      sectionId.style.transform = `translateY(${thumbPosition}px)`;
+      // Use transform3d for better performance
+      thumb.style.transform = `translate3d(0, ${thumbPosition}px, 0)`;
+      sectionId.style.transform = `translate3d(0, ${thumbPosition}px, 0)`;
     },
     handleScroll() {
       if (!this.isReady) return;
-      const content = this.$refs.wrapper;
-      this.isVisible = true;
-      this.scheduleHide();
-      mutations.setPreviewSource("");
-      this.updateThumbPosition(content.scrollTop);
-      mutations.updateListing({
-        ...state.listing,
-        scrolling: true,
-        scrollRatio: Math.trunc(
-          (content.scrollTop / (content.scrollHeight - content.clientHeight)) * 100
-        ),
+      // Use requestAnimationFrame to throttle updates
+      if (this.scrollFrame) return;
+      this.pendingScrollAnimation = requestAnimationFrame(() => {
+        const content = this.$refs.wrapper;
+        this.isVisible = true;
+        this.scheduleHide();
+        mutations.setPreviewSource("");
+        this.updateThumbPosition(content.scrollTop);
+        mutations.updateListing({
+          ...state.listing,
+          scrolling: true,
+          scrollRatio: Math.trunc(
+            (content.scrollTop / (content.scrollHeight - content.clientHeight)) * 100
+          ),
+        });
+        this.scrollFrame = null;
       });
     },
     startDrag(e) {
@@ -191,6 +197,10 @@ export default {
     window.addEventListener("resize", this.handleResize);
   },
   beforeUnmount() {
+    // Cancel any pending animation frame
+    if (this.scrollFrame) {
+      cancelAnimationFrame(this.scrollFrame);
+    }
     window.removeEventListener("resize", this.handleResize);
     this.$refs.wrapper.removeEventListener("mousemove", this.handleMouseMove);
     this.$refs.wrapper.removeEventListener("scroll", this.handleScroll);
@@ -290,5 +300,12 @@ export default {
 
 .custom-scrollbar.visible .thumb-section-id {
   display: flex;
+}
+
+.thumb, .thumb-section-id {
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  perspective: 1000px;
 }
 </style>
