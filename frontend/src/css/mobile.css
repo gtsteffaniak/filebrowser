@@ -1,16 +1,16 @@
 @media (max-width: 800px) {
-  #listingView .header .name,
-  #listingView.compact .listing-item .name {
+  #listingView .header .name {
     width: 50%;
+  }
+
+  #listingView.compact .listing-item .name,
+  #listingView.list .listing-item .name {
+    width: 42%;
+    padding-left: 0.5em;
   }
 
   body {
     padding-bottom: 5em;
-  }
-
-  #listingView.list .listing-item .name {
-    padding-left: 0.5em;
-    width: 45%;
   }
 
   #more {
@@ -37,13 +37,13 @@
   #listingView.normal .listing-item {
     width: 100%
   }
-  
+
   /* Gallery mode on mobile - use simple column-based grid */
   #listingView.gallery .folder-items,
   #listingView.gallery .file-items {
     grid-template-columns: repeat(var(--gallery-mobile-columns, 2), 1fr);
   }
-  
+
   body.rtl #listingView {
     margin-right: unset;
   }
