@@ -185,6 +185,10 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	router.Handle(apiPath+"/", http.StripPrefix(apiPath, api))
 	router.Handle(publicPath+"/", http.StripPrefix(publicPath, publicRoutes))
 
+	// Frontend share route redirect (DEPRECATED - maintain for backwards compatibility)
+	// Playwright tests need updating to remove this redirect.
+	router.HandleFunc(fmt.Sprintf("GET %vshare/", config.Server.BaseURL), withOrWithoutUser(redirectToShare))
+
 	// New frontend share route handler - handle share page and any subpaths
 	publicRoutes.HandleFunc("GET /share/", withOrWithoutUser(indexHandler))
 

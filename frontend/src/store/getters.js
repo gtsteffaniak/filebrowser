@@ -124,8 +124,8 @@ export const getters = {
     return false
   },
   isAdmin: () => state.user.permissions?.admin == true,
-  isFiles: () => state.route.name === 'Files',
-  isListing: () => getters.isFiles() || getters.isShare() && state.req.type === 'directory',
+  isFiles: () => state.route.path.startsWith('/files'),
+  isListing: () => getters.isFiles() || (getters.isShare() && state.req.type === 'directory'),
   selectedCount: () =>
     Array.isArray(state.selected) ? state.selected.length : 0,
   getFirstSelected: () => typeof(state.selected[0]) == 'number' ? state.req.items[state.selected[0]] : state.selected[0],
