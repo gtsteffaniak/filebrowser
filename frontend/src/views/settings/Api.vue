@@ -1,62 +1,64 @@
 <template>
+  <button @click.prevent="createPrompt" class="button floating-action-button">
+    {{ $t("general.new") }}
+  </button>
   <errors v-if="error" :errorCode="error.status" />
   <div class="card-title">
     <h2>{{ $t("api.title") }}</h2>
-    <div>
-      <button @click.prevent="createPrompt" class="button">
-        {{ $t("general.new") }}
-      </button>
+  </div>
+
+  <div class="card-content full">
+
+
+    <div v-if="Object.keys(links).length > 0">
+      <p>
+        {{ $t("api.description") }}
+        <a class="link" href="swagger/index.html">{{ $t("api.swaggerLinkText") }}</a>
+      </p>
+
+      <table aria-label="API Keys">
+        <thead>
+          <tr>
+            <th>{{ $t("api.name") }}</th>
+            <th>{{ $t("api.created") }}</th>
+            <th>{{ $t("api.expires") }}</th>
+            <th>{{ $t("settings.permissions-name") }}</th>
+            <th>{{ $t("api.actions") }}</th>
+          </tr>
+        </thead>
+        <tbody class="settings-items">
+          <tr class="item" v-for="(link, name) in links" :key="name">
+            <td>{{ name }}</td>
+            <td>{{ formatTime(link.created) }}</td>
+            <td>{{ formatTime(link.expires) }}</td>
+            <td>
+              <span v-for="(value, permission) in link.Permissions" :key="permission"
+                :title="`${permission}: ${value ? $t('api.enabled') : $t('api.disabled')}`" class="clickable"
+                @click.prevent="infoPrompt(name, link)">
+                {{ showResult(value) }}
+              </span>
+            </td>
+            <td class="small">
+              <button class="action" @click.prevent="infoPrompt(name, link)">
+                <i class="material-icons">info</i>
+              </button>
+            </td>
+            <td class="small">
+              <button class="action copy-clipboard" :data-clipboard-text="link.key"
+                :aria-label="$t('buttons.copyToClipboard')" :title="$t('buttons.copyToClipboard')">
+                <i class="material-icons">content_paste</i>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
+    <h2 class="message" v-else-if="!loading">
+      <i class="material-icons">sentiment_dissatisfied</i>
+      <span>{{ $t("files.lonely") }}</span>
+    </h2>
   </div>
 
-  <div class="card-content full" v-if="Object.keys(links).length > 0">
-    <p>
-      {{ $t("api.description") }}
-      <a class="link" href="swagger/index.html">{{ $t("api.swaggerLinkText") }}</a>
-    </p>
-
-    <table aria-label="API Keys">
-      <thead>
-        <tr>
-          <th>{{ $t("api.name") }}</th>
-          <th>{{ $t("api.created") }}</th>
-          <th>{{ $t("api.expires") }}</th>
-          <th>{{ $t("settings.permissions-name") }}</th>
-          <th>{{ $t("api.actions") }}</th>
-        </tr>
-      </thead>
-      <tbody class="settings-items">
-        <tr class="item" v-for="(link, name) in links" :key="name">
-          <td>{{ name }}</td>
-          <td>{{ formatTime(link.created) }}</td>
-          <td>{{ formatTime(link.expires) }}</td>
-          <td>
-            <span v-for="(value, permission) in link.Permissions" :key="permission"
-              :title="`${permission}: ${value ? $t('api.enabled') : $t('api.disabled')}`" class="clickable"
-              @click.prevent="infoPrompt(name, link)">
-              {{ showResult(value) }}
-            </span>
-          </td>
-          <td class="small">
-            <button class="action" @click.prevent="infoPrompt(name, link)">
-              <i class="material-icons">info</i>
-            </button>
-          </td>
-          <td class="small">
-            <button class="action copy-clipboard" :data-clipboard-text="link.key"
-              :aria-label="$t('buttons.copyToClipboard')" :title="$t('buttons.copyToClipboard')">
-              <i class="material-icons">content_paste</i>
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <h2 class="message" v-else-if="!loading">
-    <i class="material-icons">sentiment_dissatisfied</i>
-    <span>{{ $t("files.lonely") }}</span>
-  </h2>
 </template>
 
 <script>
