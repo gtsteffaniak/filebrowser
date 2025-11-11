@@ -11,10 +11,6 @@ import (
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
-func boolPtr(b bool) *bool {
-	return &b
-}
-
 var createBackup = false
 
 func validateUserInfo(newDB bool) {

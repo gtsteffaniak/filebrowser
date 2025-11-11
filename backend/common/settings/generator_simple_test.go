@@ -105,6 +105,11 @@ func TestGenerateConfigYaml_Basic(t *testing.T) {
 							continue
 						}
 
+						// Check if it's null (should NOT be quoted - it's a YAML literal for nil)
+						if value == "null" {
+							continue
+						}
+
 						// Everything else should be a quoted string
 						if !strings.HasPrefix(value, "\"") || !strings.HasSuffix(value, "\"") {
 							// Add debug info to see what's wrong

@@ -20,7 +20,7 @@ test("breadcrumbs navigation checks for shares", async ({ page, checkForErrors, 
   let spanChildrenCount = await page.locator('#breadcrumbs > ul > li.item').count();
   expect(spanChildrenCount).toBe(1);
 
-  checkForErrors(0,1); // redirect errors are expected
+  checkForErrors(0,2); // redirect errors are expected and 404 image preview for blank file
 });
 
 test("root share path is valid", async ({ page, checkForErrors, openContextMenu, context }) => {

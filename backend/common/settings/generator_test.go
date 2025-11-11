@@ -108,6 +108,11 @@ type Auth struct {
 					continue
 				}
 
+				// Check if it's null (should NOT be quoted - it's a YAML literal for nil)
+				if value == "null" {
+					continue
+				}
+
 				// Everything else should be a quoted string
 				if !strings.HasPrefix(value, "\"") || !strings.HasSuffix(value, "\"") {
 					t.Errorf("String value should be quoted: %s (value: '%s')", line, value)
@@ -402,8 +407,8 @@ func TestGenerateConfigYaml_IntegrationTest(t *testing.T) {
 							continue
 						}
 
-						// Skip arrays, objects, and empty values
-						if value == "" || strings.HasPrefix(value, "[") || strings.HasPrefix(value, "{") || strings.Contains(value, ":") {
+						// Skip arrays, objects, empty values, and null
+						if value == "" || value == "null" || strings.HasPrefix(value, "[") || strings.HasPrefix(value, "{") || strings.Contains(value, ":") {
 							continue
 						}
 

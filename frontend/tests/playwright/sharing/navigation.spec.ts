@@ -18,5 +18,5 @@ test("share folder breadcrumbs navigation checks", async ({ page, checkForErrors
     breadCrumbLink = page.locator('a[aria-label="breadcrumb-link-share"]')
     await expect(breadCrumbLink).toHaveText("share");
 
-    checkForErrors();
+    checkForErrors(0,1); // 404 image preview for blank file
 });
