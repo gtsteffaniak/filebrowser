@@ -1073,8 +1073,27 @@ export default {
       });
     },
     clickClear(event) {
+      // Don't clear selection if clicking on anything with a specific class or role
+      // Only clear when clicking on the #listingView background itself
+      const targetClasses = event.target.className;
+      
+      // If clicking on an item or any interactive element, don't clear
+      if (targetClasses && typeof targetClasses === 'string' && 
+          (targetClasses.includes('listing-item') || 
+           targetClasses.includes('item') ||
+           targetClasses.includes('clickable') ||
+           targetClasses.includes('text') ||
+           targetClasses.includes('name') ||
+           targetClasses.includes('size') ||
+           targetClasses.includes('modified'))) {
+        return;
+      }
+      
       // if control or shift is pressed, do not clear the selection
-      if (this.ctrKeyPressed || event.shiftKey) return;
+      if (this.ctrKeyPressed || event.shiftKey) {
+        return;
+      }
+      
       const sameAsBefore = state.selected == this.lastSelected;
       if (sameAsBefore && !state.multiple && getters.currentPromptName() == "") {
         mutations.resetSelected();
@@ -1116,7 +1135,7 @@ export default {
     },
     startRectangleSelection(event) {
       // Start rectangle selection when clicking on empty space - don't start if the click was in the status bar, an item or the header
-      if (event.target.closest('.item') || event.target.closest('.header') || event.target.closest('#status-bar')) {
+      if (event.target.closest('.listing-item') || event.target.closest('.item') || event.target.closest('.header') || event.target.closest('#status-bar')) {
         return;
       }
 
@@ -1189,7 +1208,7 @@ export default {
       const rectangleSelectedIndexes = [];
 
       // Get all item elements
-      const itemElements = this.$el.querySelectorAll('.item');
+      const itemElements = this.$el.querySelectorAll('.listing-item');
 
       itemElements.forEach((element) => {
         const elementRect = element.getBoundingClientRect();
@@ -1296,7 +1315,7 @@ export default {
   user-select: none;
 }
 
-#listingView.rectangle-selecting .item {
+#listingView.rectangle-selecting .listing-item {
   pointer-events: none;
 }
 

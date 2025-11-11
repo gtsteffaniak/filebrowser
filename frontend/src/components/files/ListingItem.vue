@@ -564,6 +564,7 @@ export default {
         !state.user.singleClick &&
         !event.ctrlKey &&
         !event.metaKey &&
+        !event.shiftKey &&
         !state.multiple
       ) {
         mutations.resetSelected();

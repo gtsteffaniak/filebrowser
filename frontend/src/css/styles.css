@@ -64,7 +64,6 @@
  * * * * * * * * * * * * * * * */
 
 .action {
-    display: inline-block;
     cursor: pointer;
     transition: 0.2s ease all;
     border: 0;
