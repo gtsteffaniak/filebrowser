@@ -733,6 +733,11 @@
     "sizeAnalyzer": {
       "name": "Analisador de tamanho de ficheiro",
       "description": "Visualize ficheiros e diretórios grandes com um mapa em árvore interativo"
+    },
+    "title": "Ferramentas",
+    "duplicateFinder": {
+      "name": "Localizador de ficheiros duplicados",
+      "description": "Localizar e gerir ficheiros duplicados para recuperar espaço de armazenamento"
     }
   },
   "messages": {
@@ -741,5 +746,17 @@
     "reassignPath": "Reatribuir trajetória",
     "pathReassigned": "Caminho atualizado com sucesso!",
     "pathReassignFailed": "Falha ao atualizar o caminho. Por favor, tente novamente."
+  },
+  "duplicateFinder": {
+    "title": "Localizador de ficheiros duplicados",
+    "minSize": "Tamanho mínimo (MB){suffix}",
+    "minSizeHint": "Analisar apenas ficheiros maiores do que este tamanho (em megabytes)",
+    "useChecksums": "Comparar o conteúdo dos ficheiros",
+    "useChecksumsDescription": "Incluir também o conteúdo do ficheiro na comparação. Sem isto, os ficheiros são comparados por semelhança de tamanho e nome de ficheiro.",
+    "findDuplicates": "Procurar duplicados",
+    "groupsFound": "Grupos duplicados encontrados{suffix}",
+    "totalWastedSpace": "Total de espaço desperdiçado{suffix}",
+    "wasted": "Desperdiçado{suffix}",
+    "emptyState": "Introduza os critérios de pesquisa e clique em Encontrar Duplicados para identificar ficheiros duplicados"
   }
 }

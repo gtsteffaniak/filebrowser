@@ -18,7 +18,7 @@ body.rtl #listingView {
   font-weight: 500;
 }
 
-#listingView .item div:last-of-type * {
+.listing-item div:last-of-type * {
   text-overflow: ellipsis;
   overflow: hidden;
 }
@@ -29,7 +29,7 @@ body.rtl #listingView {
   justify-content: flex-start;
 }
 
-#listingView .item {
+.listing-item {
   display: flex;
   flex-wrap: nowrap;
   color: #6f6f6f;
@@ -44,30 +44,31 @@ body.rtl #listingView {
   background: var(--item-secondary);
   color: var(--textPrimary);
   border-color: var(--divider);
+  background: var(--surfacePrimary)
 }
 
-#listingView .item div:last-of-type {
+.listing-item div:last-of-type {
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
 }
 
-#listingView .item p {
+.listing-item p {
   margin: 0;
 }
 
-#listingView .item .size,
-#listingView .item .modified,
-#listingView .item .duration {
+.listing-item .size,
+.listing-item .modified,
+.listing-item .duration {
   font-size: 0.9em;
 }
 
-#listingView .item i {
+.listing-item i {
   font-size: 4em;
   vertical-align: bottom;
 }
 
-#listingView .item img {
+.listing-item img {
   padding: 0;
   height: 3.2em;
   min-width: 3.2em;
@@ -93,35 +94,35 @@ body.rtl #listingView {
   display: block;
 }
 
-#listingView.gallery .item,
-#listingView.compact .item,
-#listingView.normal .item,
-#listingView.list .item,
-#listingView.icons .item {
+#listingView.gallery .listing-item,
+#listingView.compact .listing-item,
+#listingView.normal .listing-item,
+#listingView.list .listing-item,
+#listingView.icons .listing-item {
   margin: .5em;
   padding: 0.5em;
   box-shadow: rgba(0, 0, 0, 0.06) 0px 1px 3px, rgba(0, 0, 0, 0.12) 0px 1px 2px;
 }
 
-#listingView.compact .item:hover,
-#listingView.list .item:hover,
+#listingView.compact .listing-item:hover,
+#listingView.list .listing-item:hover,
 .search-entry:hover {
   width: 98% !important;
   margin-left: 1% !important;
   padding-left: 0.5em !important;
 }
 
-#listingView.list .item,
-#listingView.compact .item {
+#listingView.list .listing-item,
+#listingView.compact .listing-item {
   max-width: 100%;
   border-radius: 0em;
 }
 
-#listingView .item div:last-of-type {
+.listing-item div:last-of-type {
   width: 100%;
 }
 
-#listingView.gallery .item {
+#listingView.gallery .listing-item {
   display: flex;
   flex-direction: column;
   align-content: center;
@@ -135,7 +136,7 @@ body.rtl #listingView {
   flex-shrink: 0;
 }
 
-#listingView.icons .item {
+#listingView.icons .listing-item {
   display: flex;
   flex-direction: column;
   align-content: center;
@@ -149,7 +150,7 @@ body.rtl #listingView {
   min-height: calc(var(--icons-view-icon-size, 60px) + 2em);
 }
 
-#listingView.gallery .item .gallery-div {
+#listingView.gallery .listing-item .gallery-div {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -159,13 +160,13 @@ body.rtl #listingView {
   transition: all 0.25s ease-out;
 }
 
-#listingView.normal .item,
-#listingView.gallery .item,
-#listingView.icons .item {
+#listingView.normal .listing-item,
+#listingView.gallery .listing-item,
+#listingView.icons .listing-item {
   transition: width 0.25s ease-out, height 0.25s ease-out, box-shadow 0.2s ease-in-out, transform 0.1s ease-in-out;
 }
 
-#listingView.gallery .item .text {
+#listingView.gallery .listing-item .text {
   color: white;
   text-shadow: 0 0 2px black;
   pointer-events: none;
@@ -178,7 +179,7 @@ body.rtl #listingView {
   padding: 1em;
 }
 
-#listingView.gallery .item .text .name {
+#listingView.gallery .listing-item .text .name {
   text-align: center;
   white-space: nowrap;
   overflow: hidden;
@@ -186,26 +187,26 @@ body.rtl #listingView {
   font-weight: 600;
 }
 
-#listingView.gallery .item[data-type=image] div:last-of-type {
+#listingView.gallery .listing-item[data-type=image] div:last-of-type {
   color: white;
 }
 
-#listingView.gallery .item i {
+#listingView.gallery .listing-item i {
   margin: auto;
   font-size: 8em;
   background: none;
 }
 
-#listingView.gallery .item span {
+#listingView.gallery .listing-item span {
   display: flex;
 }
 
-#listingView.list .item img,
-#listingView.compact .item img {
+#listingView.list .listing-item img,
+#listingView.compact .listing-item img {
   min-width: unset;
 }
 
-#listingView.gallery .item img {
+#listingView.gallery .listing-item img {
   width: 100%;
   height: 100%;
   max-width: 100%;
@@ -221,7 +222,7 @@ body.rtl #listingView {
   margin: 0;
 }
 
-#listingView.compact .item {
+#listingView.compact .listing-item {
   width: 100%;
   margin: 0;
   border: 1px solid rgba(0, 0, 0, 0.1);
@@ -234,23 +235,23 @@ body.rtl #listingView {
   display: none;
 }
 
-#listingView.compact .item div:first-of-type {
+#listingView.compact .listing-item div:first-of-type {
   width: 3em;
 }
 
-#listingView.compact .item div:first-of-type i {
+#listingView.compact .listing-item div:first-of-type i {
   font-size: var(--list-icon-font-size, 2em);
   transition: font-size 0.25s ease-out;
 }
 
-#listingView.compact .item div:first-of-type img {
+#listingView.compact .listing-item div:first-of-type img {
   width: var(--list-icon-image-size, 1.5em);
   height: var(--list-icon-image-size, 1.5em);
   border-radius: .25em;
   transition: width 0.25s ease-out, height 0.25s ease-out;
 }
 
-#listingView.compact .item div:last-of-type {
+#listingView.compact .listing-item div:last-of-type {
   display: flex;
   align-items: center;
 }
@@ -265,35 +266,35 @@ body.rtl #listingView {
 }
 
 #listingView .header .size,
-#listingView.list .item .size,
-#listingView.compact .item .size {
+#listingView.list .listing-item .size,
+#listingView.compact .listing-item .size {
   width: 25%;
 }
 
 #listingView .header .duration,
-#listingView.list .item .duration,
-#listingView.compact .item .duration {
+#listingView.list .listing-item .duration,
+#listingView.compact .listing-item .duration {
   margin: auto;
 }
 
-#listingView.list .item .size.adjustment,
-#listingView.compact .item .size.adjustment {
+#listingView.list .listing-item .size.adjustment,
+#listingView.compact .listing-item .size.adjustment {
   width: calc(25% + 1em) !important;
 }
 
 
 #listingView .header .name,
-#listingView.list .item .name,
-#listingView.compact .item .name {
+#listingView.list .listing-item .name,
+#listingView.compact .listing-item .name {
   width: 50%;
 }
 
-#listingView.list .item .name.adjustment,
-#listingView.compact .item .name.adjustment {
+#listingView.list .listing-item .name.adjustment,
+#listingView.compact .listing-item .name.adjustment {
   width: calc(50% + 1em) !important;
 }
 
-#listingView.normal .item .text {
+#listingView.normal .listing-item .text {
   padding-left: 0.3em;
 }
 
@@ -311,7 +312,7 @@ body.rtl #listingView {
   border-bottom-right-radius: 0px;
 }
 
-#listingView.compact .item:first-child {
+#listingView.compact .listing-item:first-child {
   border-top: 1px solid rgba(0, 0, 0, 0.1);
 }
 
@@ -358,7 +359,7 @@ body.rtl #listingView {
   margin: 0;
 }
 
-#listingView.list .item {
+#listingView.list .listing-item {
   width: 100%;
   margin: 0;
   border: 1px solid rgba(0, 0, 0, 0.1);
@@ -366,44 +367,44 @@ body.rtl #listingView {
   border-top: 0;
 }
 
-#listingView.compact .item[aria-selected=true],
-#listingView.list .item[aria-selected=true],
-#listingView.normal .item[aria-selected=true],
-#listingView.icons .item[aria-selected=true] {
+#listingView.compact .listing-item[aria-selected=true],
+#listingView.list .listing-item[aria-selected=true],
+#listingView.normal .listing-item[aria-selected=true],
+#listingView.icons .listing-item[aria-selected=true] {
   background-color: color-mix(in srgb, var(--primaryColor) 85%, transparent) !important;
   color: var(--item-selected) !important;
 }
 
-#listingView.gallery .item[aria-selected=true] {
+#listingView.gallery .listing-item[aria-selected=true] {
   border: 0.2em solid var(--primaryColor) !important;
 }
 
-#listingView.gallery .item .size,
-#listingView.gallery .item .modified,
-#listingView.gallery .item .duration,
-#listingView.icons .item .size,
-#listingView.icons .item .modified,
-#listingView.icons .item .duration {
+#listingView.gallery .listing-item .size,
+#listingView.gallery .listing-item .modified,
+#listingView.gallery .listing-item .duration,
+#listingView.icons .listing-item .size,
+#listingView.icons .listing-item .modified,
+#listingView.icons .listing-item .duration {
   display: none !important;
 }
 
-#listingView.list .item div:first-of-type {
+#listingView.list .listing-item div:first-of-type {
   width: 3em;
 }
 
-#listingView.list .item div:first-of-type i {
+#listingView.list .listing-item div:first-of-type i {
   font-size: var(--list-icon-font-size, 2em);
   transition: font-size 0.25s ease-out;
 }
 
-#listingView.list .item div:first-of-type img {
+#listingView.list .listing-item div:first-of-type img {
   width: var(--list-icon-image-size, 1.5em);
   height: var(--list-icon-image-size, 1.5em);
   border-radius: 0.2em;
   transition: width 0.25s ease-out, height 0.25s ease-out;
 }
 
-#listingView.list .item div:last-of-type {
+#listingView.list .listing-item div:last-of-type {
   display: flex;
   align-items: center;
 }
@@ -433,7 +434,7 @@ body.rtl #listingView {
   border: unset;
 }
 
-#listingView.list .item:first-child {
+#listingView.list .listing-item:first-child {
   margin-top: .5em;
   border-top-left-radius: 1em;
   border-top-right-radius: 1em;
@@ -444,12 +445,12 @@ body.rtl #listingView {
   border-bottom-right-radius: 1em;
 }
 
-#listingView.list .item:last-child {
+#listingView.list .listing-item:last-child {
   border-bottom-left-radius: 1em;
   border-bottom-right-radius: 1em;
 }
 
-#listingView.list .item:last-child {
+#listingView.list .listing-item:last-child {
   margin-bottom: .5em;
 }
 
@@ -494,7 +495,7 @@ body.rtl #listingView {
   border-color: var(--primaryColor) !important;
 }
 
-#listingView.icons .item .text {
+#listingView.icons .listing-item .text {
   display: block !important;
   width: 100%;
   margin-top: 0.3em;
@@ -503,7 +504,7 @@ body.rtl #listingView {
   text-align: center;
 }
 
-#listingView.icons .item i {
+#listingView.icons .listing-item i {
   height: var(--icons-view-icon-size, 50px);
   width: var(--icons-view-icon-size, 80px);
   display: flex;
@@ -512,7 +513,7 @@ body.rtl #listingView {
   transition: width 0.25s ease-out, height 0.25s ease-out;
 }
 
-#listingView.icons .item img {
+#listingView.icons .listing-item img {
   width: var(--icons-view-icon-size, 50px);
   height: var(--icons-view-icon-size, 60px);
   max-width: var(--icons-view-icon-size, 80px);

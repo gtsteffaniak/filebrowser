@@ -79,11 +79,11 @@ func searchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 
 	// Perform the search using the provided query and user scope
 	response := index.Search(searchOptions.query, searchOptions.combinedPath, searchOptions.sessionId, searchOptions.largest)
-	for i := range response {
-		// Remove the user scope from the path
-		response[i].Path = strings.TrimPrefix(response[i].Path, searchOptions.combinedPath)
-		if response[i].Path == "" {
-			response[i].Path = "/"
+	// Remove the user scope from the path (modifying in place is safe - these are fresh allocations)
+	for _, result := range response {
+		result.Path = strings.TrimPrefix(result.Path, searchOptions.combinedPath)
+		if result.Path == "" {
+			result.Path = "/"
 		}
 	}
 	return renderJSON(w, r, response)

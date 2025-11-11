@@ -733,6 +733,11 @@
     "sizeAnalyzer": {
       "name": "Analyzátor velikosti souborů",
       "description": "Vizualizace velkých souborů a adresářů pomocí interaktivní mapy stromů"
+    },
+    "title": "Nástroje",
+    "duplicateFinder": {
+      "name": "Vyhledávač duplicitních souborů",
+      "description": "Vyhledávání a správa duplicitních souborů pro obnovu úložného prostoru"
     }
   },
   "messages": {
@@ -741,5 +746,17 @@
     "reassignPath": "Změna přiřazení cesty",
     "pathReassigned": "Cesta byla úspěšně aktualizována!",
     "pathReassignFailed": "Nepodařilo se aktualizovat cestu. Zkuste to prosím znovu."
+  },
+  "duplicateFinder": {
+    "title": "Vyhledávač duplicitních souborů",
+    "minSize": "Minimální velikost (MB){suffix}",
+    "minSizeHint": "Analyzovat pouze soubory větší než tato velikost (v megabajtech).",
+    "useChecksums": "Porovnání obsahu souboru",
+    "useChecksumsDescription": "Do porovnání zahrňte také obsah souboru. Bez tohoto nastavení jsou soubory porovnávány podle velikosti a podobnosti názvů souborů.",
+    "findDuplicates": "Vyhledání duplicit",
+    "groupsFound": "Nalezeny duplicitní skupiny{suffix}",
+    "totalWastedSpace": "Celkový promarněný prostor{suffix}",
+    "wasted": "Promarněné{suffix}",
+    "emptyState": "Zadejte kritéria vyhledávání a kliknutím na tlačítko Najít duplikáty identifikujte duplicitní soubory."
   }
 }

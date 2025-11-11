@@ -64,6 +64,10 @@ export default {
       if (getters.isShare() && shareInfo.title && state.req.type === "directory") {
         return shareInfo.title;
       }
+      const currentTool = getters.currentTool();
+      if (currentTool) {
+        return currentTool.name;
+      }
       return state.req.name;
     },
     showQuickSave() {

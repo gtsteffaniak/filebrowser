@@ -1,9 +1,6 @@
 <template>
   <div class="size-viewer">
     <div class="card size-viewer-config">
-      <div class="card-title">
-        <h2>{{ $t('fileSizeAnalyzer.title') }}</h2>
-      </div>
       <div class="card-content">
         <h3>{{ $t('general.source') }}</h3>
         <select v-model="selectedSource" class="input">
@@ -638,8 +635,12 @@ export default {
 <style scoped>
 .size-viewer {
   padding: 2rem;
-  max-width: 100%;
-  margin: 0 auto;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.toggle-container {
+  padding: 1em;
 }
 
 .searchContext {
@@ -647,7 +648,6 @@ export default {
 }
 
 .size-viewer-results {
-  width: 80vw;
   max-width: 1000px;
   margin-bottom: 2em;
 }

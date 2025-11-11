@@ -733,6 +733,11 @@
     "sizeAnalyzer": {
       "name": "파일 크기 분석기",
       "description": "대화형 트리맵으로 대용량 파일과 디렉터리 시각화하기"
+    },
+    "title": "도구",
+    "duplicateFinder": {
+      "name": "중복 파일 찾기",
+      "description": "중복 파일을 찾아 관리하여 저장 공간을 확보하세요."
     }
   },
   "messages": {
@@ -741,5 +746,17 @@
     "reassignPath": "경로 재할당",
     "pathReassigned": "경로가 성공적으로 업데이트되었습니다!",
     "pathReassignFailed": "경로를 업데이트하지 못했습니다. 다시 시도하세요."
+  },
+  "duplicateFinder": {
+    "title": "중복 파일 찾기",
+    "minSize": "최소 크기(MB){suffix}",
+    "minSizeHint": "이 크기(메가바이트)보다 큰 파일만 분석합니다.",
+    "useChecksums": "파일 내용 비교",
+    "useChecksumsDescription": "또한 파일 내용도 비교에 포함하세요. 이 기능이 없으면 파일은 크기와 파일 이름 유사성을 기준으로 비교됩니다.",
+    "findDuplicates": "중복 찾기",
+    "groupsFound": "중복 그룹 발견{suffix}",
+    "totalWastedSpace": "낭비되는 총 공간{suffix}",
+    "wasted": "낭비{suffix}",
+    "emptyState": "검색 기준을 입력하고 중복 파일 찾기를 클릭하여 중복 파일을 식별합니다."
   }
 }

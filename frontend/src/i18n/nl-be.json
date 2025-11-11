@@ -733,6 +733,11 @@
     "sizeAnalyzer": {
       "name": "Bestandsgrootte analyzer",
       "description": "Visualiseer grote bestanden en mappen met een interactieve treemap"
+    },
+    "title": "Gereedschap",
+    "duplicateFinder": {
+      "name": "Duplicaat bestand zoeken",
+      "description": "Dubbele bestanden vinden en beheren om opslagruimte terug te winnen"
     }
   },
   "messages": {
@@ -741,5 +746,17 @@
     "reassignPath": "Pad opnieuw toewijzen",
     "pathReassigned": "Pad succesvol bijgewerkt!",
     "pathReassignFailed": "Het bijwerken van het pad is mislukt. Probeer het opnieuw."
+  },
+  "duplicateFinder": {
+    "title": "Duplicaat bestand zoeken",
+    "minSize": "Minimale grootte (MB){suffix}",
+    "minSizeHint": "Alleen bestanden analyseren die groter zijn dan deze grootte (in megabytes)",
+    "useChecksums": "Bestandsinhoud vergelijken",
+    "useChecksumsDescription": "Neem ook de inhoud van bestanden op in de vergelijking. Zonder dit worden bestanden vergeleken op basis van grootte en bestandsnaam overeenkomst.",
+    "findDuplicates": "Duplicaten zoeken",
+    "groupsFound": "Dubbele groepen gevonden{suffix}",
+    "totalWastedSpace": "Totale verspilde ruimte{suffix}",
+    "wasted": "Verspild{suffix}",
+    "emptyState": "Voer zoekcriteria in en klik op Duplicaten zoeken om dubbele bestanden te identificeren"
   }
 }

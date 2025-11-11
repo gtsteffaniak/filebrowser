@@ -5,6 +5,7 @@ import { state, mutations } from '@/store'
 import { globalVars, shareInfo, previewViews } from '@/utils/constants.js'
 import { getTypeInfo } from '@/utils/mimetype'
 import { fromNow } from '@/utils/moment'
+import { tools } from '@/utils/constants'
 import * as i18n from '@/i18n'
 
 export const getters = {
@@ -504,6 +505,17 @@ export const getters = {
   },
   isValidShare: () => {
     return getters.isShare() && shareInfo.isValid;
+  },
+  currentTool: () => {
+    if (getters.currentView() !== "tools") {
+      return null;
+    }
+    // Match by path instead of route name
+    const tool = tools().find(t => t.path === state.route.path);
+    if (tool === undefined) {
+      return { name: "Tools" };
+    }
+    return tool;
   },
   permissions: () => {
     if (getters.isShare()) {

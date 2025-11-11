@@ -272,11 +272,12 @@ export default {
     showLargeIcon() {
       this.updateImageTargetSrc();
     },
-    // UPDATED: Added a check for hasPreviewImage
+    // UPDATED: Load image when URL changes, let hasPreviewImage control display
     imageTargetSrc: {
       handler(newSrc) {
-        // ONLY trigger the image loader if the component is meant to show a preview.
-        if (this.hasPreviewImage) {
+        // If we have a thumbnailUrl and hasPreview is true, try to load it
+        // Don't check hasPreviewImage here as it depends on imageState (circular dependency)
+        if (this.hasPreview && this.thumbnailUrl) {
           this.loadImage(newSrc);
         }
       },

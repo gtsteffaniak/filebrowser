@@ -733,6 +733,11 @@
     "sizeAnalyzer": {
       "name": "檔案大小分析器",
       "description": "使用互動式樹狀地圖可視化大型檔案和目錄"
+    },
+    "title": "工具",
+    "duplicateFinder": {
+      "name": "重複檔案搜尋器",
+      "description": "尋找和管理重複檔案以回收儲存空間"
     }
   },
   "messages": {
@@ -741,5 +746,17 @@
     "reassignPath": "重新指定路徑",
     "pathReassigned": "路徑已成功更新！",
     "pathReassignFailed": "更新路徑失敗。請再試一次。"
+  },
+  "duplicateFinder": {
+    "title": "重複檔案搜尋器",
+    "minSize": "最小大小 (MB){suffix}",
+    "minSizeHint": "只分析大於此大小 (以 MB 為單位) 的檔案",
+    "useChecksums": "比較檔案內容",
+    "useChecksumsDescription": "在比較中也包含檔案內容。如果不這樣做，檔案會依大小和檔案名稱相似度來比較。",
+    "findDuplicates": "尋找重複",
+    "groupsFound": "發現重複群組{suffix}",
+    "totalWastedSpace": "總浪費空間{suffix}",
+    "wasted": "浪費{suffix}",
+    "emptyState": "輸入搜尋準則，然後按一下「尋找重複檔案」以識別重複檔案"
   }
 }

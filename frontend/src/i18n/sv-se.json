@@ -733,6 +733,11 @@
     "sizeAnalyzer": {
       "name": "Analysator för filstorlek",
       "description": "Visualisera stora filer och kataloger med en interaktiv trädkarta"
+    },
+    "title": "Verktyg",
+    "duplicateFinder": {
+      "name": "Hitta duplicerade filer",
+      "description": "Hitta och hantera dubbletter av filer för att återfå lagringsutrymme"
     }
   },
   "messages": {
@@ -741,5 +746,17 @@
     "reassignPath": "Omfördela sökväg",
     "pathReassigned": "Sökvägen har uppdaterats!",
     "pathReassignFailed": "Misslyckades med att uppdatera sökvägen. Vänligen försök igen."
+  },
+  "duplicateFinder": {
+    "title": "Hitta duplicerade filer",
+    "minSize": "Minsta storlek (MB){suffix}",
+    "minSizeHint": "Analysera endast filer som är större än denna storlek (i megabyte)",
+    "useChecksums": "Jämför filinnehåll",
+    "useChecksumsDescription": "Inkludera även filinnehåll i jämförelsen. Utan detta matchas filerna efter storlek och likhet i filnamn.",
+    "findDuplicates": "Hitta dubbletter",
+    "groupsFound": "Duplicerade grupper hittades{suffix}",
+    "totalWastedSpace": "Totalt bortkastat utrymme{suffix}",
+    "wasted": "Bortkastad{suffix}",
+    "emptyState": "Ange sökkriterier och klicka på Find Duplicates för att identifiera dubbletter av filer"
   }
 }

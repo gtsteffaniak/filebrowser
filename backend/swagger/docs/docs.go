@@ -932,6 +932,68 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/duplicates": {
+            "get": {
+                "description": "Finds duplicate files based on size and verification method (fuzzy filename or partial checksum)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Duplicates"
+                ],
+                "summary": "Find Duplicate Files",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Source name for the desired source",
+                        "name": "source",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "path within user scope to search",
+                        "name": "scope",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Minimum file size in megabytes (default: 1)",
+                        "name": "minSizeMb",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Use partial MD5 checksum for verification (default: false, uses fuzzy filename matching)",
+                        "name": "useChecksum",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of duplicate file groups",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/http.duplicateGroup"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/jobs/{action}/{target}": {
             "get": {
                 "description": "Returns job info for the user.",
@@ -2985,6 +3047,23 @@ const docTemplate = `{
                 }
             }
         },
+        "http.duplicateGroup": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "files": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/indexing.SearchResult"
+                    }
+                },
+                "size": {
+                    "type": "integer"
+                }
+            }
+        },
         "indexing.IndexStatus": {
             "type": "string",
             "enum": [
@@ -3079,6 +3158,9 @@ const docTemplate = `{
         "indexing.SearchResult": {
             "type": "object",
             "properties": {
+                "modified": {
+                    "type": "string"
+                },
                 "path": {
                     "type": "string"
                 },

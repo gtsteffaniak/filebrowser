@@ -135,6 +135,17 @@ definitions:
           "gallery"'
         type: string
     type: object
+  http.duplicateGroup:
+    properties:
+      count:
+        type: integer
+      files:
+        items:
+          $ref: '#/definitions/indexing.SearchResult'
+        type: array
+      size:
+        type: integer
+    type: object
   indexing.IndexStatus:
     enum:
     - ready
@@ -199,6 +210,8 @@ definitions:
     type: object
   indexing.SearchResult:
     properties:
+      modified:
+        type: string
       path:
         type: string
       size:
@@ -1958,6 +1971,49 @@ paths:
       summary: List API keys
       tags:
       - API Keys
+  /api/duplicates:
+    get:
+      consumes:
+      - application/json
+      description: Finds duplicate files based on size and verification method (fuzzy
+        filename or partial checksum)
+      parameters:
+      - description: Source name for the desired source
+        in: query
+        name: source
+        required: true
+        type: string
+      - description: path within user scope to search
+        in: query
+        name: scope
+        type: string
+      - description: 'Minimum file size in megabytes (default: 1)'
+        in: query
+        name: minSizeMb
+        type: integer
+      - description: 'Use partial MD5 checksum for verification (default: false, uses
+          fuzzy filename matching)'
+        in: query
+        name: useChecksum
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of duplicate file groups
+          schema:
+            items:
+              $ref: '#/definitions/http.duplicateGroup'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Find Duplicate Files
+      tags:
+      - Duplicates
   /api/jobs/{action}/{target}:
     get:
       consumes:

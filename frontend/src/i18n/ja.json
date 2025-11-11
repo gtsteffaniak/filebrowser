@@ -733,6 +733,11 @@
     "sizeAnalyzer": {
       "name": "ファイル・サイズ・アナライザー",
       "description": "大規模なファイルやディレクトリをインタラクティブなツリーマップで視覚化"
+    },
+    "title": "ツール",
+    "duplicateFinder": {
+      "name": "重複ファイルファインダー",
+      "description": "重複ファイルを検索・管理し、ストレージスペースを取り戻す"
     }
   },
   "messages": {
@@ -741,5 +746,17 @@
     "reassignPath": "パスの再割り当て",
     "pathReassigned": "パスは正常に更新されました！",
     "pathReassignFailed": "パスの更新に失敗しました。再試行してください。"
+  },
+  "duplicateFinder": {
+    "title": "重複ファイルファインダー",
+    "minSize": "最小サイズ (MB){suffix}",
+    "minSizeHint": "このサイズ（メガバイト単位）以上のファイルのみを分析する。",
+    "useChecksums": "ファイルの内容を比較する",
+    "useChecksumsDescription": "ファイルの内容も比較に含める。これをしないと、ファイルはサイズとファイル名の類似性でマッチングされる。",
+    "findDuplicates": "重複検索",
+    "groupsFound": "重複グループが見つかりました{suffix}",
+    "totalWastedSpace": "無駄なスペース{suffix}",
+    "wasted": "無駄{suffix}",
+    "emptyState": "検索条件を入力し、「重複ファイルの検索」をクリックすると、重複ファイルが特定されます。"
   }
 }
