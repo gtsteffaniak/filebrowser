@@ -9,10 +9,11 @@ import (
 func TestGenerateConfigYaml_Basic(t *testing.T) {
 	reNumber := regexp.MustCompile(`^-?\d+(\.\d+)?$`)
 	// Test using the actual source directory structure
+	trueVal := true
 	config := &Settings{
 		UserDefaults: UserDefaults{
 			Locale:                  "es",          // Non-default value
-			DarkMode:                true,          // Default value
+			DarkMode:                &trueVal,      // Default value
 			DisableOfficePreviewExt: ".docx .xlsx", // This field is deprecated
 		},
 		Auth: Auth{
@@ -101,6 +102,11 @@ func TestGenerateConfigYaml_Basic(t *testing.T) {
 							if strings.HasPrefix(value, "\"") {
 								t.Errorf("Boolean value should not be quoted in line: %s (value: '%s')", line, value)
 							}
+							continue
+						}
+
+						// Check if it's null (should NOT be quoted - it's a YAML literal for nil)
+						if value == "null" {
 							continue
 						}
 

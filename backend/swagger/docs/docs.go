@@ -2577,6 +2577,78 @@ const docTemplate = `{
             }
         },
         "/public/api/resources": {
+            "get": {
+                "description": "Returns metadata for files or directories accessible via a public share link. Browsing is disabled for upload-only shares.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Shares"
+                ],
+                "summary": "Get file/directory information from a public share",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Share hash for authentication",
+                        "name": "hash",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Path within the share to retrieve information for. Defaults to share root.",
+                        "name": "path",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "File or directory metadata",
+                        "schema": {
+                            "$ref": "#/definitions/iteminfo.FileInfo"
+                        }
+                    },
+                    "403": {
+                        "description": "Share unavailable or access denied",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Share not found or file not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "501": {
+                        "description": "Browsing disabled for upload shares",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
             "put": {
                 "description": "Updates the content of a file in a public share.",
                 "consumes": [
@@ -2776,7 +2848,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/public/api/share": {
+        "/public/api/shareinfo": {
             "get": {
                 "description": "Returns information about a share link based on its hash. This endpoint is publicly accessible and can be used with or without authentication.",
                 "consumes": [
@@ -3877,7 +3949,7 @@ const docTemplate = `{
                     ]
                 },
                 "createUserDir": {
-                    "description": "create a user directory for each user",
+                    "description": "create a user directory for each user under defaultUserScope + username",
                     "type": "boolean"
                 },
                 "defaultEnabled": {
@@ -3885,7 +3957,7 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "defaultUserScope": {
-                    "description": "default \"/\" should match folders under path",
+                    "description": "defaults to root of index \"/\" should match folders under path",
                     "type": "string"
                 },
                 "denyByDefault": {
@@ -3893,7 +3965,7 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "disableIndexing": {
-                    "description": "disable the indexing of this source",
+                    "description": "(optional) not recommended: disable the indexing of this source",
                     "type": "boolean"
                 },
                 "disabled": {
@@ -3901,7 +3973,7 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "indexingIntervalMinutes": {
-                    "description": "optional manual overide interval in minutes to re-index the source",
+                    "description": "(optional) not recommended: manual overide interval in minutes to re-index the source",
                     "type": "integer"
                 },
                 "private": {
@@ -4030,10 +4102,10 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "permissions": {
-                    "$ref": "#/definitions/users.Permissions"
+                    "$ref": "#/definitions/settings.UserDefaultsPermissions"
                 },
                 "preview": {
-                    "$ref": "#/definitions/users.Preview"
+                    "$ref": "#/definitions/settings.UserDefaultsPreview"
                 },
                 "quickDownload": {
                     "description": "show icon to download in one click",
@@ -4062,6 +4134,88 @@ const docTemplate = `{
                 "viewMode": {
                     "description": "view mode to use: eg. normal, list, grid, or compact",
                     "type": "string"
+                }
+            }
+        },
+        "settings.UserDefaultsPermissions": {
+            "type": "object",
+            "properties": {
+                "admin": {
+                    "description": "allow admin access",
+                    "type": "boolean"
+                },
+                "api": {
+                    "description": "allow api access",
+                    "type": "boolean"
+                },
+                "create": {
+                    "description": "allow creating or uploading files",
+                    "type": "boolean"
+                },
+                "delete": {
+                    "description": "allow deleting files",
+                    "type": "boolean"
+                },
+                "download": {
+                    "description": "allow downloading files",
+                    "type": "boolean"
+                },
+                "modify": {
+                    "description": "allow modifying files",
+                    "type": "boolean"
+                },
+                "realtime": {
+                    "description": "allow realtime updates",
+                    "type": "boolean"
+                },
+                "share": {
+                    "description": "allow sharing files",
+                    "type": "boolean"
+                }
+            }
+        },
+        "settings.UserDefaultsPreview": {
+            "type": "object",
+            "properties": {
+                "autoplayMedia": {
+                    "description": "autoplay media files in preview",
+                    "type": "boolean"
+                },
+                "defaultMediaPlayer": {
+                    "description": "disable the styled feature-rich media player for browser default",
+                    "type": "boolean"
+                },
+                "disableHideSidebar": {
+                    "description": "keep sidebar open when previewing files",
+                    "type": "boolean"
+                },
+                "folder": {
+                    "description": "show thumbnails for folders that have previewable contents",
+                    "type": "boolean"
+                },
+                "highQuality": {
+                    "description": "use high quality thumbnails",
+                    "type": "boolean"
+                },
+                "image": {
+                    "description": "show thumbnails for image files",
+                    "type": "boolean"
+                },
+                "motionVideoPreview": {
+                    "description": "show multiple frames for videos in thumbnail preview when hovering",
+                    "type": "boolean"
+                },
+                "office": {
+                    "description": "show thumbnails for office files",
+                    "type": "boolean"
+                },
+                "popup": {
+                    "description": "show larger popup preview when hovering over thumbnail",
+                    "type": "boolean"
+                },
+                "video": {
+                    "description": "show thumbnails for video files",
+                    "type": "boolean"
                 }
             }
         },

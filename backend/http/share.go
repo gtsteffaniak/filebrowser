@@ -133,6 +133,7 @@ func shareGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) 
 		return http.StatusForbidden, err
 	}
 	scopePath := utils.JoinPathAsUnix(userscope, path)
+	scopePath = utils.AddTrailingSlashIfNotExists(scopePath)
 	s, err := store.Share.Gets(scopePath, sourceInfo.Path, d.user.ID)
 	if err == errors.ErrNotExist || len(s) == 0 {
 		return renderJSON(w, r, []*ShareResponse{})
@@ -583,7 +584,7 @@ func getDownloadURL(r *http.Request, hash string) string {
 // @Param hash query string true "Hash of the share link"
 // @Success 200 {object} share.CommonShare "Share information"
 // @Failure 404 {object} map[string]string "Share hash not found"
-// @Router /public/api/share [get]
+// @Router /public/api/shareinfo [get]
 func shareInfoHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	hash := r.URL.Query().Get("hash")
 	// Get the file link by hash

@@ -156,7 +156,7 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	publicAPI.HandleFunc("PUT /resources", withHashFile(publicPutHandler))
 	publicAPI.HandleFunc("DELETE /resources", withHashFile(publicDeleteHandler))
 	publicAPI.HandleFunc("PATCH /resources", withHashFile(publicPatchHandler))
-	publicAPI.HandleFunc("GET /share", withOrWithoutUser(shareInfoHandler))
+	publicAPI.HandleFunc("GET /shareinfo", withOrWithoutUser(shareInfoHandler))
 
 	// Settings routes
 	api.HandleFunc("GET /settings", withAdmin(settingsGetHandler))
@@ -186,6 +186,7 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	router.Handle(publicPath+"/", http.StripPrefix(publicPath, publicRoutes))
 
 	// Frontend share route redirect (DEPRECATED - maintain for backwards compatibility)
+	// Playwright tests need updating to remove this redirect.
 	router.HandleFunc(fmt.Sprintf("GET %vshare/", config.Server.BaseURL), withOrWithoutUser(redirectToShare))
 
 	// New frontend share route handler - handle share page and any subpaths

@@ -108,6 +108,11 @@ type Auth struct {
 					continue
 				}
 
+				// Check if it's null (should NOT be quoted - it's a YAML literal for nil)
+				if value == "null" {
+					continue
+				}
+
 				// Everything else should be a quoted string
 				if !strings.HasPrefix(value, "\"") || !strings.HasSuffix(value, "\"") {
 					t.Errorf("String value should be quoted: %s (value: '%s')", line, value)
@@ -204,10 +209,11 @@ type UserDefaults struct {
 	sourcePath := tmpFile[:strings.LastIndex(tmpFile, "/")]
 
 	// Create a config with both default and non-default values
+	trueVal := true
 	config := &Settings{
 		UserDefaults: UserDefaults{
-			DarkMode: true, // This matches default
-			Locale:   "es", // This differs from default ("en")
+			DarkMode: &trueVal, // This matches default
+			Locale:   "es",     // This differs from default ("en")
 		},
 	}
 
@@ -278,10 +284,11 @@ func TestGenerateConfigYaml_CommentsOnOff(t *testing.T) {
 func TestGenerateConfigYaml_IntegrationTest(t *testing.T) {
 	reNumber := regexp.MustCompile(`^-?\d+(\.\d+)?$`)
 	// Comprehensive test with all features
+	trueVal := true
 	config := &Settings{
 		UserDefaults: UserDefaults{
 			Locale:                  "es",          // Non-default
-			DarkMode:                true,          // Default
+			DarkMode:                &trueVal,      // Default
 			DisableOfficePreviewExt: ".docx .xlsx", // This is deprecated
 		},
 		Auth: Auth{
@@ -400,8 +407,8 @@ func TestGenerateConfigYaml_IntegrationTest(t *testing.T) {
 							continue
 						}
 
-						// Skip arrays, objects, and empty values
-						if value == "" || strings.HasPrefix(value, "[") || strings.HasPrefix(value, "{") || strings.Contains(value, ":") {
+						// Skip arrays, objects, empty values, and null
+						if value == "" || value == "null" || strings.HasPrefix(value, "[") || strings.HasPrefix(value, "{") || strings.Contains(value, ":") {
 							continue
 						}
 
@@ -433,8 +440,8 @@ func TestGenerateConfigYaml_EdgeCases(t *testing.T) {
 			name: "only_defaults",
 			config: &Settings{
 				UserDefaults: UserDefaults{
-					DarkMode: true, // default value
-					Locale:   "en", // default value
+					DarkMode: boolPtr(true), // default value
+					Locale:   "en",          // default value
 				},
 			},
 			desc: "Config with only default values",

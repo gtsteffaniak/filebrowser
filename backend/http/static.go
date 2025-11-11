@@ -193,11 +193,15 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"description":       description,
 	}
 	// variables consumed by frontend as json
+	darkModeDefault := false
+	if settings.Config.UserDefaults.DarkMode != nil {
+		darkModeDefault = *settings.Config.UserDefaults.DarkMode
+	}
 	data["globalVars"] = map[string]interface{}{
 		"name":                 config.Frontend.Name,
 		"minSearchLength":      config.Server.MinSearchLength,
 		"disableExternal":      config.Frontend.DisableDefaultLinks,
-		"darkMode":             settings.Config.UserDefaults.DarkMode,
+		"darkMode":             darkModeDefault,
 		"baseURL":              config.Server.BaseURL,
 		"version":              versionString,
 		"commitSHA":            commitSHAString,

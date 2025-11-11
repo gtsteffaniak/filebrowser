@@ -173,12 +173,12 @@ type SourceConfig struct {
 	DenyByDefault    bool              `json:"denyByDefault,omitempty"`           // deny access unless an "allow" access rule was specifically created.
 	Private          bool              `json:"private"`                           // designate as source as private -- currently just means no sharing permitted.
 	Disabled         bool              `json:"disabled,omitempty"`                // disable the source, this is useful so you don't need to remove it from the config file
-	IndexingInterval uint32            `json:"indexingIntervalMinutes,omitempty"` // optional manual overide interval in minutes to re-index the source
-	DisableIndexing  bool              `json:"disableIndexing,omitempty"`         // disable the indexing of this source
+	IndexingInterval uint32            `json:"indexingIntervalMinutes,omitempty"` // (optional) not recommended: manual overide interval in minutes to re-index the source
+	DisableIndexing  bool              `json:"disableIndexing,omitempty"`         // (optional) not recommended: disable the indexing of this source
 	Conditionals     ConditionalFilter `json:"conditionals"`                      // conditional rules to apply when indexing to include/exclude certain items
-	DefaultUserScope string            `json:"defaultUserScope"`                  // default "/" should match folders under path
+	DefaultUserScope string            `json:"defaultUserScope"`                  // defaults to root of index "/" should match folders under path
 	DefaultEnabled   bool              `json:"defaultEnabled"`                    // should be added as a default source for new users?
-	CreateUserDir    bool              `json:"createUserDir"`                     // create a user directory for each user
+	CreateUserDir    bool              `json:"createUserDir"`                     // create a user directory for each user under defaultUserScope + username
 	// hidden but used internally - optimized map lookups for conditional rules
 	ResolvedConditionals *ResolvedConditionalsConfig `json:"-"`
 }
@@ -264,38 +264,64 @@ type ExternalLink struct {
 	Url   string `json:"url" validate:"required"`  // the url to link to
 }
 
+// UserDefaultsPreview holds preview settings with pointer types for defaults
+type UserDefaultsPreview struct {
+	DisableHideSidebar bool  `json:"disableHideSidebar"` // keep sidebar open when previewing files
+	HighQuality        *bool `json:"highQuality"`        // use high quality thumbnails
+	Image              *bool `json:"image"`              // show thumbnails for image files
+	Video              *bool `json:"video"`              // show thumbnails for video files
+	MotionVideoPreview *bool `json:"motionVideoPreview"` // show multiple frames for videos in thumbnail preview when hovering
+	Office             *bool `json:"office"`             // show thumbnails for office files
+	PopUp              *bool `json:"popup"`              // show larger popup preview when hovering over thumbnail
+	AutoplayMedia      *bool `json:"autoplayMedia"`      // autoplay media files in preview
+	DefaultMediaPlayer bool  `json:"defaultMediaPlayer"` // disable the styled feature-rich media player for browser default
+	Folder             *bool `json:"folder"`             // show thumbnails for folders that have previewable contents
+}
+
+// UserDefaultsPermissions holds permission settings with pointer types for defaults
+type UserDefaultsPermissions struct {
+	Api      bool  `json:"api"`      // allow api access
+	Admin    bool  `json:"admin"`    // allow admin access
+	Modify   bool  `json:"modify"`   // allow modifying files
+	Share    bool  `json:"share"`    // allow sharing files
+	Realtime bool  `json:"realtime"` // allow realtime updates
+	Delete   bool  `json:"delete"`   // allow deleting files
+	Create   bool  `json:"create"`   // allow creating or uploading files
+	Download *bool `json:"download"` // allow downloading files
+}
+
 // UserDefaults is a type that holds the default values
 // for some fields on User.
 type UserDefaults struct {
-	EditorQuickSave            bool                `json:"editorQuickSave"`           // show quick save button in editor
-	HideSidebarFileActions     bool                `json:"hideSidebarFileActions"`    // hide the file actions in the sidebar
-	DisableQuickToggles        bool                `json:"disableQuickToggles"`       // disable the quick toggles in the sidebar
-	DisableSearchOptions       bool                `json:"disableSearchOptions"`      // disable the search options in the search bar
-	StickySidebar              bool                `json:"stickySidebar"`             // keep sidebar open when navigating
-	DarkMode                   bool                `json:"darkMode"`                  // should dark mode be enabled
-	Locale                     string              `json:"locale"`                    // language to use: eg. de, en, or fr
-	ViewMode                   string              `json:"viewMode"`                  // view mode to use: eg. normal, list, grid, or compact
-	SingleClick                bool                `json:"singleClick"`               // open directory on single click, also enables middle click to open in new tab
-	ShowHidden                 bool                `json:"showHidden"`                // show hidden files in the UI. On windows this includes files starting with a dot and windows hidden files
-	DateFormat                 bool                `json:"dateFormat"`                // when false, the date is relative, when true, the date is an exact timestamp
-	GallerySize                int                 `json:"gallerySize"`               // 0-9 - the size of the gallery thumbnails
-	ThemeColor                 string              `json:"themeColor"`                // theme color to use: eg. #ff0000, or var(--red), var(--purple), etc
-	QuickDownload              bool                `json:"quickDownload"`             // show icon to download in one click
-	DisablePreviewExt          string              `json:"disablePreviewExt"`         // space separated list of file extensions to disable preview for
-	DisableViewingExt          string              `json:"disableViewingExt"`         // space separated list of file extensions to disable viewing for
-	LockPassword               bool                `json:"lockPassword"`              // disable the user from changing their password
-	DisableSettings            bool                `json:"disableSettings,omitempty"` // disable the user from viewing the settings page
-	Preview                    users.Preview       `json:"preview"`
-	DefaultScopes              []users.SourceScope `json:"-"`
-	Permissions                users.Permissions   `json:"permissions"`
-	LoginMethod                string              `json:"loginMethod,omitempty"`      // login method to use: eg. password, proxy, oidc
-	DisableUpdateNotifications bool                `json:"disableUpdateNotifications"` // disable update notifications banner for admin users
-	DeleteWithoutConfirming    bool                `json:"deleteWithoutConfirming"`    // delete files without confirmation
-	FileLoading                users.FileLoading   `json:"fileLoading"`                // upload and download settings
-	DisableOfficePreviewExt    string              `json:"disableOfficePreviewExt"`    // deprecated: use disablePreviewExt instead
-	DisableOnlyOfficeExt       string              `json:"disableOnlyOfficeExt"`       // list of file extensions to disable onlyoffice editor for
-	CustomTheme                string              `json:"customTheme"`                // Name of theme to use chosen from custom themes config.
-	ShowSelectMultiple         bool                `json:"showSelectMultiple"`         // show select multiple files on desktop
-	DebugOffice                bool                `json:"debugOffice"`                // debug onlyoffice editor
-	DefaultLandingPage         string              `json:"defaultLandingPage"`         // default landing page to use if no redirect is specified: eg. /files/mysource/mysubpath, /settings, etc.
+	EditorQuickSave            bool                    `json:"editorQuickSave"`           // show quick save button in editor
+	HideSidebarFileActions     bool                    `json:"hideSidebarFileActions"`    // hide the file actions in the sidebar
+	DisableQuickToggles        bool                    `json:"disableQuickToggles"`       // disable the quick toggles in the sidebar
+	DisableSearchOptions       bool                    `json:"disableSearchOptions"`      // disable the search options in the search bar
+	StickySidebar              bool                    `json:"stickySidebar"`             // keep sidebar open when navigating
+	DarkMode                   *bool                   `json:"darkMode"`                  // should dark mode be enabled
+	Locale                     string                  `json:"locale"`                    // language to use: eg. de, en, or fr
+	ViewMode                   string                  `json:"viewMode"`                  // view mode to use: eg. normal, list, grid, or compact
+	SingleClick                bool                    `json:"singleClick"`               // open directory on single click, also enables middle click to open in new tab
+	ShowHidden                 bool                    `json:"showHidden"`                // show hidden files in the UI. On windows this includes files starting with a dot and windows hidden files
+	DateFormat                 bool                    `json:"dateFormat"`                // when false, the date is relative, when true, the date is an exact timestamp
+	GallerySize                int                     `json:"gallerySize"`               // 0-9 - the size of the gallery thumbnails
+	ThemeColor                 string                  `json:"themeColor"`                // theme color to use: eg. #ff0000, or var(--red), var(--purple), etc
+	QuickDownload              bool                    `json:"quickDownload"`             // show icon to download in one click
+	DisablePreviewExt          string                  `json:"disablePreviewExt"`         // space separated list of file extensions to disable preview for
+	DisableViewingExt          string                  `json:"disableViewingExt"`         // space separated list of file extensions to disable viewing for
+	LockPassword               bool                    `json:"lockPassword"`              // disable the user from changing their password
+	DisableSettings            bool                    `json:"disableSettings,omitempty"` // disable the user from viewing the settings page
+	Preview                    UserDefaultsPreview     `json:"preview"`
+	DefaultScopes              []users.SourceScope     `json:"-"`
+	Permissions                UserDefaultsPermissions `json:"permissions"`
+	LoginMethod                string                  `json:"loginMethod,omitempty"`      // login method to use: eg. password, proxy, oidc
+	DisableUpdateNotifications bool                    `json:"disableUpdateNotifications"` // disable update notifications banner for admin users
+	DeleteWithoutConfirming    bool                    `json:"deleteWithoutConfirming"`    // delete files without confirmation
+	FileLoading                users.FileLoading       `json:"fileLoading"`                // upload and download settings
+	DisableOfficePreviewExt    string                  `json:"disableOfficePreviewExt"`    // deprecated: use disablePreviewExt instead
+	DisableOnlyOfficeExt       string                  `json:"disableOnlyOfficeExt"`       // list of file extensions to disable onlyoffice editor for
+	CustomTheme                string                  `json:"customTheme"`                // Name of theme to use chosen from custom themes config.
+	ShowSelectMultiple         bool                    `json:"showSelectMultiple"`         // show select multiple files on desktop
+	DebugOffice                bool                    `json:"debugOffice"`                // debug onlyoffice editor
+	DefaultLandingPage         string                  `json:"defaultLandingPage"`         // default landing page to use if no redirect is specified: eg. /files/mysource/mysubpath, /settings, etc.
 }

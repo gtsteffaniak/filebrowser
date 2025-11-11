@@ -773,26 +773,28 @@ definitions:
         description: conditional rules to apply when indexing to include/exclude certain
           items
       createUserDir:
-        description: create a user directory for each user
+        description: create a user directory for each user under defaultUserScope
+          + username
         type: boolean
       defaultEnabled:
         description: should be added as a default source for new users?
         type: boolean
       defaultUserScope:
-        description: default "/" should match folders under path
+        description: defaults to root of index "/" should match folders under path
         type: string
       denyByDefault:
         description: deny access unless an "allow" access rule was specifically created.
         type: boolean
       disableIndexing:
-        description: disable the indexing of this source
+        description: '(optional) not recommended: disable the indexing of this source'
         type: boolean
       disabled:
         description: disable the source, this is useful so you don't need to remove
           it from the config file
         type: boolean
       indexingIntervalMinutes:
-        description: optional manual overide interval in minutes to re-index the source
+        description: '(optional) not recommended: manual overide interval in minutes
+          to re-index the source'
         type: integer
       private:
         description: designate as source as private -- currently just means no sharing
@@ -893,9 +895,9 @@ definitions:
         description: 'login method to use: eg. password, proxy, oidc'
         type: string
       permissions:
-        $ref: '#/definitions/users.Permissions'
+        $ref: '#/definitions/settings.UserDefaultsPermissions'
       preview:
-        $ref: '#/definitions/users.Preview'
+        $ref: '#/definitions/settings.UserDefaultsPreview'
       quickDownload:
         description: show icon to download in one click
         type: boolean
@@ -920,6 +922,66 @@ definitions:
       viewMode:
         description: 'view mode to use: eg. normal, list, grid, or compact'
         type: string
+    type: object
+  settings.UserDefaultsPermissions:
+    properties:
+      admin:
+        description: allow admin access
+        type: boolean
+      api:
+        description: allow api access
+        type: boolean
+      create:
+        description: allow creating or uploading files
+        type: boolean
+      delete:
+        description: allow deleting files
+        type: boolean
+      download:
+        description: allow downloading files
+        type: boolean
+      modify:
+        description: allow modifying files
+        type: boolean
+      realtime:
+        description: allow realtime updates
+        type: boolean
+      share:
+        description: allow sharing files
+        type: boolean
+    type: object
+  settings.UserDefaultsPreview:
+    properties:
+      autoplayMedia:
+        description: autoplay media files in preview
+        type: boolean
+      defaultMediaPlayer:
+        description: disable the styled feature-rich media player for browser default
+        type: boolean
+      disableHideSidebar:
+        description: keep sidebar open when previewing files
+        type: boolean
+      folder:
+        description: show thumbnails for folders that have previewable contents
+        type: boolean
+      highQuality:
+        description: use high quality thumbnails
+        type: boolean
+      image:
+        description: show thumbnails for image files
+        type: boolean
+      motionVideoPreview:
+        description: show multiple frames for videos in thumbnail preview when hovering
+        type: boolean
+      office:
+        description: show thumbnails for office files
+        type: boolean
+      popup:
+        description: show larger popup preview when hovering over thumbnail
+        type: boolean
+      video:
+        description: show thumbnails for video files
+        type: boolean
     type: object
   share.CommonShare:
     properties:
@@ -3175,6 +3237,56 @@ paths:
       tags:
       - Public Shares
   /public/api/resources:
+    get:
+      consumes:
+      - application/json
+      description: Returns metadata for files or directories accessible via a public
+        share link. Browsing is disabled for upload-only shares.
+      parameters:
+      - description: Share hash for authentication
+        in: query
+        name: hash
+        required: true
+        type: string
+      - description: Path within the share to retrieve information for. Defaults to
+          share root.
+        in: query
+        name: path
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: File or directory metadata
+          schema:
+            $ref: '#/definitions/iteminfo.FileInfo'
+        "403":
+          description: Share unavailable or access denied
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Share not found or file not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "501":
+          description: Browsing disabled for upload shares
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get file/directory information from a public share
+      tags:
+      - Public Shares
     post:
       consumes:
       - multipart/form-data
@@ -3311,7 +3423,7 @@ paths:
       summary: Update a file in a public share
       tags:
       - Public Shares
-  /public/api/share:
+  /public/api/shareinfo:
     get:
       consumes:
       - application/json

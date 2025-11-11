@@ -11,7 +11,7 @@ userDefaults:
   disableQuickToggles: false              # disable the quick toggles in the sidebar
   disableSearchOptions: false             # disable the search options in the search bar
   stickySidebar: true                     # keep sidebar open when navigating
-  darkMode: true                          # should dark mode be enabled
+  darkMode: true                          # should dark mode be enabled (defaults to true if not set)
   viewMode: "normal"                      # view mode to use: eg. normal, list, grid, or compact
   singleClick: false                      # open directory on single click, also enables middle click to open in new tab
   showHidden: false                       # show hidden files in the UI. On windows this includes files starting with a dot and windows hidden files
@@ -24,16 +24,16 @@ userDefaults:
   lockPassword: false                     # disable the user from changing their password
   disableSettings: false                  # disable the user from viewing the settings page
   preview:
-    disableHideSidebar: true             # disable the hide sidebar preview for previews and editors
-    highQuality: true                    # generate high quality thumbnail preview images
-    image: true                          # show thumbnail preview image for image files
-    video: true                          # show thumbnail preview image for video files
-    motionVideoPreview: true             # show multiple frames for videos in thumbnail preview when hovering
-    office: true                         # show thumbnail preview image for office files
-    popup: true                          # show larger popup preview when hovering over thumbnail
-    autoplayMedia: true                  # autoplay media files in preview
-    defaultMediaPlayer: true             # disable html5 media player and use the default media player
-    folder: true                         # show thumbnail preview image for folder files
+    disableHideSidebar: false             # disable the hide sidebar preview for previews and editors
+    highQuality: true                     # generate high quality thumbnail preview images (defaults to true if not set)
+    image: true                           # show thumbnail preview image for image files (defaults to true if not set)
+    video: true                           # show thumbnail preview image for video files (defaults to true if not set)
+    motionVideoPreview: true              # show multiple frames for videos in thumbnail preview when hovering (defaults to true if not set)
+    office: true                          # show thumbnail preview image for office files (defaults to true if not set)
+    popup: true                           # show larger popup preview when hovering over thumbnail (defaults to true if not set)
+    autoplayMedia: true                   # autoplay media files in preview (defaults to true if not set)
+    defaultMediaPlayer: false             # disable html5 media player and use the default media player
+    folder: true                          # show thumbnail preview image for folder files (defaults to true if not set)
   permissions:
     api: false                            # allow api access
     admin: false                          # allow admin access
@@ -42,9 +42,11 @@ userDefaults:
     realtime: false                       # allow realtime updates
     delete: false                         # allow deleting files
     create: false                         # allow creating or uploading files
-    download: true                        # allow downloading files
+    download: true                        # allow downloading files (defaults to true if not set)
   disableUpdateNotifications: false       # disable update notifications banner for admin users
   deleteWithoutConfirming: false          # delete files without confirmation
   disableOnlyOfficeExt: ".md .txt .pdf"   # list of file extensions to disable onlyoffice editor for
+  customTheme: ""                         # Name of theme to use chosen from custom themes config.
   showSelectMultiple: false               # show select multiple files on desktop
+  debugOffice: false                      # debug onlyoffice editor
   defaultLandingPage: ""                  # default landing page to use if no redirect is specified: eg. /files/mysource/mysubpath, /settings, etc.
