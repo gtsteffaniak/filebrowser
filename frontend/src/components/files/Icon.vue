@@ -401,7 +401,7 @@ export default {
   color: white;
 }
 
-#listingView.gallery .item i.white-icons,
+#listingView.gallery .listing-item i.white-icons,
 .active.white-icons {
   color: var(--activeWhiteIcon);
 }

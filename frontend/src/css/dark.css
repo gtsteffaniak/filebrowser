@@ -71,18 +71,18 @@
 }
 
 /* Listing items */
-.dark-mode #listingView .item {
+.dark-mode #listingView .listing-item {
   background: var(--surfacePrimary);
   color: var(--textPrimary);
   border-color: var(--divider);
 }
 
-.dark-mode #listingView.gallery .item .text {
+.dark-mode #listingView.gallery .listing-item .text {
   text-shadow: 0 0 2px black;
 }
 
 /* Listing item modified text */
-.dark-mode #listingView .item .modified {
+.dark-mode #listingView .listing-item .modified {
   color: var(--textSecondary);
 }
 
