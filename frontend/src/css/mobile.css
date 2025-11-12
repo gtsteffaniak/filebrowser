@@ -5,6 +5,10 @@
     width: 50%;
   }
 
+  .compact .listing-item div:first-of-type  {
+    width: unset !important;
+  }
+
   .list .listing-item .text {
     flex-direction: column;
     align-items: flex-start !important;
