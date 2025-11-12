@@ -247,7 +247,10 @@ func staticAssetHandler(w http.ResponseWriter, r *http.Request) {
 			// Gzipped version exists, serve it
 			setContentType(w, assetPath)
 			w.Header().Set("Content-Encoding", "gzip")
-			w.Write(fileContents)
+			_, err = w.Write(fileContents)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+			}
 			return
 		}
 	}
@@ -259,7 +262,11 @@ func staticAssetHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	setContentType(w, assetPath)
-	w.Write(fileContents)
+	_, err = w.Write(fileContents)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
