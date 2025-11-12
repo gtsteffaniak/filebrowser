@@ -200,7 +200,7 @@ import Prompts from "@/components/prompts/Prompts.vue";
 import { usersApi } from "@/api";
 import { initAuth } from "@/utils/auth";
 import { removeLeadingSlash } from "@/utils/url";
-import { globalVars, logoURL } from "@/utils/constants";
+import { globalVars } from "@/utils/constants";
 import Tooltip from "@/components/Tooltip.vue";
 
 export default {
@@ -216,8 +216,7 @@ export default {
     oidcAvailable: () => globalVars.oidcAvailable,
     passwordAvailable: () => globalVars.passwordAvailable,
     name: () => globalVars.name || "FileBrowser Quantum",
-    logoURL: () => logoURL,
-    loginIconUrl: () => globalVars.loginIcon || (globalVars.baseURL + "public/static/loginIcon"),
+    loginIconUrl: () => globalVars.loginIcon,
     isDarkMode() {
       return globalVars.darkMode;
     },
@@ -512,7 +511,6 @@ export default {
 }
 
 #login {
-  background: var(--background);
   position: fixed;
   top: 0;
   left: 0;

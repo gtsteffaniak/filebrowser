@@ -12,6 +12,11 @@ endif
 # git fetch origin pull/####/head:pr-####
 
 .SILENT:
+
+.PHONY: setup update build build-docker build-backend build-frontend dev run generate-docs
+.PHONY: lint-frontend lint-backend lint test test-backend test-frontend check-all
+.PHONY: check-translations sync-translations test-playwright run-proxy screenshots
+
 setup:
 	echo "creating ./backend/test_config.yaml for local testing..."
 	if [ ! -f backend/test_config.yaml ]; then \
@@ -27,11 +32,16 @@ update:
 	cd backend && go get -u ./... && go mod tidy
 	cd frontend && npm update
 
-build:
+build: build-frontend build-backend
+
+
+build-docker:
 	docker build --build-arg="VERSION=testing" --build-arg="REVISION=n/a" -t gtstef/filebrowser -f _docker/Dockerfile.slim .
 
 build-backend:
+	@echo "Building backend..."
 	cd backend && go build -o filebrowser --ldflags="-w -s -X 'github.com/gtsteffaniak/filebrowser/backend/common/version.CommitSHA=testingCommit' -X 'github.com/gtsteffaniak/filebrowser/backend/common/version.Version=testing'"
+	@echo "✓ Backend built successfully"
 
 # New dev target with hot-reloading for frontend and backend
 dev: generate-docs
@@ -66,7 +76,9 @@ generate-docs:
 	cd backend && FILEBROWSER_GENERATE_CONFIG=true go run .
 
 build-frontend:
+	@echo "Building frontend..."
 	cd frontend && npm run build
+	@echo "✓ Frontend built successfully"
 
 lint-frontend:
 	cd frontend && npm run lint
