@@ -663,7 +663,7 @@ func loadCustomFavicon() {
 
 func loadLoginIcon() {
 	const imageName = "login icon"
-	const maxSize = 5 * 1024 * 1024 // 5MB
+	const maxSize = 1024 * 1024 // 1MB
 	allowedFormats := []string{".svg", ".png", ".jpg", ".jpeg", ".gif", ".webp", ".ico"}
 
 	// Set default embedded icon path based on dark mode preference

@@ -112,7 +112,7 @@ frontend:
         css: ""                           # The css file path and filename to use for the theme.
   favicon: ""                             # path to a favicon to use for the frontend
   description: "FileBrowser Quantum is a file manager for the web which can be used to manage files on your server" # description that shows up in html head meta description
-  loginIcon: ""                           # path to an image file for the login page icon (config only)
+  loginIcon: ""                           # path to an image file for the login page icon
 userDefaults:
   editorQuickSave: false                  # show quick save button in editor
   hideSidebarFileActions: false           # hide the file actions in the sidebar
