@@ -23,13 +23,19 @@ type Settings struct {
 }
 
 type Environment struct {
-	IsPlaywright   bool   `json:"-"`
-	IsDevMode      bool   `json:"-"`
-	IsFirstLoad    bool   `json:"-"` // used internally to track if this is the first load of the application
-	MuPdfAvailable bool   `json:"-"` // used internally if compiled with mupdf support
-	EmbeddedFs     bool   `json:"-"` // used internally if compiled with embedded fs support
-	FFmpegPath     string `json:"-"`
-	FFprobePath    string `json:"-"`
+	IsPlaywright          bool   `json:"-"`
+	IsDevMode             bool   `json:"-"`
+	IsFirstLoad           bool   `json:"-"` // used internally to track if this is the first load of the application
+	MuPdfAvailable        bool   `json:"-"` // used internally if compiled with mupdf support
+	EmbeddedFs            bool   `json:"-"` // used internally if compiled with embedded fs support
+	FFmpegPath            string `json:"-"`
+	FFprobePath           string `json:"-"`
+	LoginIconPath         string `json:"-"` // resolved login icon path (filesystem or embedded)
+	LoginIconIsCustom     bool   `json:"-"` // true if login icon is from custom filesystem path
+	LoginIconEmbeddedPath string `json:"-"` // embedded asset path for default icon
+	FaviconPath           string `json:"-"` // resolved favicon path (filesystem or embedded)
+	FaviconIsCustom       bool   `json:"-"` // true if favicon is from custom filesystem path
+	FaviconEmbeddedPath   string `json:"-"` // embedded asset path for default favicon
 }
 
 type Server struct {

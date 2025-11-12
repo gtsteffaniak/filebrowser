@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/fs"
 	"net/http"
+	"path/filepath"
 	"strings"
 	"text/template"
 
@@ -74,109 +75,38 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 	title := config.Frontend.Name
 
 	// Use custom favicon if configured and validated, otherwise fall back to default
-	var favicon string
-	if config.Frontend.Favicon != "" {
-		favicon = staticURL + "/favicon"
-	} else {
-		// Default favicon
-		favicon = staticURL + "/img/icons/favicon-256x256.png"
-	}
+	favicon := staticURL + "/favicon"
 	data := make(map[string]interface{})
-	shareProps := map[string]interface{}{
-		"isShare":             false,
-		"isValid":             false,
-		"banner":              "",
-		"title":               "",
-		"quickDownload":       false,
-		"description":         "",
-		"themeColor":          "",
-		"disableThumbnails":   false,
-		"viewMode":            "list",
-		"disableFileViewer":   false,
-		"disableShareCard":    false,
-		"disableSidebar":      false,
-		"isPasswordProtected": false,
-		"hash":                "",
-	}
 	disableNavButtons := settings.Config.Frontend.DisableNavButtons
-	if d.share != nil {
-		shareProps["isShare"] = true
-		shareProps["isValid"] = d.shareValid
-		shareProps["hash"] = d.share.Hash
-
-		if d.shareValid {
-			shareProps["singleFileShare"] = d.share.IsSingleFileShare()
-			disableNavButtons = disableNavButtons || d.share.HideNavButtons
-			shareProps["viewMode"] = d.share.ViewMode
-			shareProps["banner"] = d.share.Banner
-			shareProps["title"] = d.share.Title
-			shareProps["description"] = d.share.Description
-			shareProps["themeColor"] = d.share.ThemeColor
-			shareProps["quickDownload"] = d.share.QuickDownload
-			shareProps["disableThumbnails"] = d.share.DisableThumbnails
-			shareProps["disableFileViewer"] = d.share.DisableFileViewer
-			shareProps["disableShareCard"] = d.share.DisableShareCard
-			shareProps["disableSidebar"] = d.share.DisableSidebar
-			shareProps["isPasswordProtected"] = d.share.HasPassword()
-			shareProps["downloadURL"] = getDownloadURL(r, d.share.Hash)
-			shareProps["enforceDarkLightMode"] = d.share.EnforceDarkLightMode
-			shareProps["viewMode"] = d.share.ViewMode
-			shareProps["enableOnlyOffice"] = d.share.EnableOnlyOffice
-			shareProps["shareType"] = utils.Ternary(d.share.ShareType == "", "normal", d.share.ShareType)
-			shareProps["perUserDownloadLimit"] = d.share.PerUserDownloadLimit
-			shareProps["extractEmbeddedSubtitles"] = d.share.ExtractEmbeddedSubtitles
-			shareProps["disableDownload"] = d.share.DisableDownload
-			shareProps["allowCreate"] = d.share.AllowCreate
-			shareProps["allowModify"] = d.share.AllowModify
-			shareProps["allowDelete"] = d.share.AllowDelete
-			shareProps["allowReplacements"] = d.share.AllowReplacements
-			shareProps["downloadsLimit"] = d.share.DownloadsLimit
-			shareProps["shareTheme"] = d.share.ShareTheme
-			shareProps["disableAnonymous"] = d.share.DisableAnonymous
-			shareProps["maxBandwidth"] = d.share.MaxBandwidth
-			shareProps["keepAfterExpiration"] = d.share.KeepAfterExpiration
-			shareProps["allowedUsernames"] = d.share.AllowedUsernames
-			shareProps["hideNavButtons"] = d.share.HideNavButtons
-
-			// Additional computed properties from extended.go
-			shareProps["isPermanent"] = d.share.IsPermanent()
-			shareProps["fileExtension"] = d.share.GetFileExtension()
-			shareProps["fileName"] = d.share.GetFileName()
-			if d.share.Favicon != "" {
-				if strings.HasPrefix(d.share.Favicon, "http") {
-					data["favicon"] = d.share.Favicon
-				} else {
-					data["favicon"] = staticURL + "/" + d.share.Favicon
-				}
-			}
-			if d.share.Description != "" {
-				description = d.share.Description
-			}
-			if d.share.Title != "" {
-				title = d.share.Title
-			}
-			if d.share.ShareTheme != "" {
-				theme, ok := config.Frontend.Styling.CustomThemeOptions[d.share.ShareTheme]
-				if ok {
-					userSelectedTheme = theme.CssRaw
-				}
+	if d.share != nil && d.shareValid {
+		if d.share.Favicon != "" {
+			if strings.HasPrefix(d.share.Favicon, "http") {
+				favicon = d.share.Favicon
+			} else {
+				favicon = staticURL + "/" + d.share.Favicon
 			}
 		}
-
-		// base url could be different for routes behind proxy
-		data["staticURL"] = staticURL
-		// Use custom favicon for shares too if configured
-		if config.Frontend.Favicon != "" {
-			data["favicon"] = staticURL + "/favicon"
-		} else {
-			data["favicon"] = staticURL + "/img/icons/favicon-256x256.png"
+		if d.share.Description != "" {
+			description = d.share.Description
 		}
-		data["winIcon"] = staticURL + "/img/icons/mstile-144x144.png"
-		data["appIcon"] = staticURL + "/img/icons/android-chrome-256x256.png"
+		if d.share.Title != "" {
+			title = d.share.Title
+		}
+		if d.share.ShareTheme != "" {
+			theme, ok := config.Frontend.Styling.CustomThemeOptions[d.share.ShareTheme]
+			if ok {
+				userSelectedTheme = theme.CssRaw
+			}
+		}
+		if d.share.ShareTheme != "" {
+			theme, ok := config.Frontend.Styling.CustomThemeOptions[d.share.ShareTheme]
+			if ok {
+				userSelectedTheme = theme.CssRaw
+			}
+		}
 	}
 	// Set login icon URL
 	loginIcon := staticURL + "/loginIcon"
-
 	data["htmlVars"] = map[string]interface{}{
 		"title":             title,
 		"customCSS":         config.Frontend.Styling.CustomCSSRaw,
@@ -193,15 +123,11 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"description":       description,
 	}
 	// variables consumed by frontend as json
-	darkModeDefault := false
-	if settings.Config.UserDefaults.DarkMode != nil {
-		darkModeDefault = *settings.Config.UserDefaults.DarkMode
-	}
 	data["globalVars"] = map[string]interface{}{
 		"name":                 config.Frontend.Name,
 		"minSearchLength":      config.Server.MinSearchLength,
 		"disableExternal":      config.Frontend.DisableDefaultLinks,
-		"darkMode":             darkModeDefault,
+		"darkMode":             settings.Config.UserDefaults.DarkMode,
 		"baseURL":              config.Server.BaseURL,
 		"version":              versionString,
 		"commitSHA":            commitSHAString,
@@ -215,7 +141,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"oidcAvailable":        config.Auth.Methods.OidcAuth.Enabled,
 		"proxyAvailable":       config.Auth.Methods.ProxyAuth.Enabled,
 		"passwordAvailable":    config.Auth.Methods.PasswordAuth.Enabled,
-		"mediaAvailable":       settings.Env.FFmpegPath != "" && settings.Env.FFprobePath != "",
+		"mediaAvailable":       config.Integrations.Media.FfmpegPath != "",
 		"muPdfAvailable":       settings.Env.MuPdfAvailable,
 		"updateAvailable":      utils.GetUpdateAvailableUrl(),
 		"disableNavButtons":    disableNavButtons,
@@ -230,14 +156,9 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 	if err != nil {
 		return http.StatusInternalServerError, fmt.Errorf("error marshaling globalVars: %w", err)
 	}
-	shareVarsJSON, err := json.Marshal(shareProps)
-	if err != nil {
-		return http.StatusInternalServerError, fmt.Errorf("error marshaling shareVars: %w", err)
-	}
 
 	// Replace with JSON strings for direct template usage
 	data["globalVars"] = string(globalVarsJSON)
-	data["shareVars"] = string(shareVarsJSON)
 
 	// Render the template with global variables
 	if err := templateRenderer.Render(w, file, data); err != nil {
@@ -246,148 +167,105 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 	return http.StatusOK, nil
 }
 
-func loginIconHandler(w http.ResponseWriter, r *http.Request) {
+// setContentType sets the appropriate Content-Type header based on file extension
+func setContentType(w http.ResponseWriter, path string) {
+	ext := strings.ToLower(filepath.Ext(path))
+	switch ext {
+	case ".js":
+		w.Header().Set("Content-Type", "application/javascript; charset=utf-8")
+	case ".css":
+		w.Header().Set("Content-Type", "text/css; charset=utf-8")
+	case ".svg":
+		w.Header().Set("Content-Type", "image/svg+xml")
+	case ".png":
+		w.Header().Set("Content-Type", "image/png")
+	case ".jpg", ".jpeg":
+		w.Header().Set("Content-Type", "image/jpeg")
+	case ".gif":
+		w.Header().Set("Content-Type", "image/gif")
+	case ".webp":
+		w.Header().Set("Content-Type", "image/webp")
+	case ".ico":
+		w.Header().Set("Content-Type", "image/x-icon")
+	case ".woff2":
+		w.Header().Set("Content-Type", "font/woff2")
+	case ".webmanifest":
+		w.Header().Set("Content-Type", "application/manifest+json")
+	case ".json":
+		w.Header().Set("Content-Type", "application/json")
+	}
+}
+
+// staticAssetHandler serves static assets exactly as the frontend build produces them
+func staticAssetHandler(w http.ResponseWriter, r *http.Request) {
 	const maxAge = 86400 // 1 day
 	w.Header().Set("Cache-Control", fmt.Sprintf("public, max-age=%v", maxAge))
+	w.Header().Set("Content-Security-Policy", `default-src 'self'; style-src 'unsafe-inline';`)
 
-	// Handle custom login icon if configured
-	if config.Frontend.LoginIcon != "" {
-		// Check if it's a file path (not embedded)
-		if _, err := fs.Stat(assetFs, config.Frontend.LoginIcon); err == nil {
-			// Serve from embedded/dist filesystem
-			fileContents, err := fs.ReadFile(assetFs, config.Frontend.LoginIcon)
-			if err == nil {
-				// Set content type based on file extension
-				lowerPath := strings.ToLower(config.Frontend.LoginIcon)
-				if strings.HasSuffix(lowerPath, ".svg") {
-					w.Header().Set("Content-Type", "image/svg+xml")
-				} else if strings.HasSuffix(lowerPath, ".png") {
-					w.Header().Set("Content-Type", "image/png")
-				} else if strings.HasSuffix(lowerPath, ".jpg") || strings.HasSuffix(lowerPath, ".jpeg") {
-					w.Header().Set("Content-Type", "image/jpeg")
-				} else if strings.HasSuffix(lowerPath, ".gif") {
-					w.Header().Set("Content-Type", "image/gif")
-				} else if strings.HasSuffix(lowerPath, ".webp") {
-					w.Header().Set("Content-Type", "image/webp")
-				} else if strings.HasSuffix(lowerPath, ".ico") {
-					w.Header().Set("Content-Type", "image/x-icon")
-				}
-				_, err = w.Write(fileContents)
-				if err != nil {
-					http.NotFound(w, r)
-				}
-				return
-			}
+	// Strip baseURL and /static/ prefix to get clean asset path
+	path := r.URL.Path
+	path = strings.TrimPrefix(path, config.Server.BaseURL) // Remove /testing/ or other baseURL
+	path = strings.TrimPrefix(path, "/")                   // Remove leading slash FIRST
+	path = strings.TrimPrefix(path, "static/")             // Then remove static/ prefix
+
+	// Handle special routes that need path mapping
+	var assetPath string
+	switch path {
+	case "favicon.ico", "favicon":
+		// Handle custom favicon from filesystem
+		if settings.Env.FaviconIsCustom {
+			http.ServeFile(w, r, settings.Env.FaviconPath)
+			return
 		}
+		// Use embedded default
+		assetPath = settings.Env.FaviconEmbeddedPath
+	case "manifest.json":
+		assetPath = "img/icons/manifest.json"
+	case "site.webmanifest":
+		assetPath = "img/icons/site.webmanifest"
+	case "loginIcon":
+		// Handle custom login icon from filesystem
+		if settings.Env.LoginIconIsCustom {
+			http.ServeFile(w, r, settings.Env.LoginIconPath)
+			return
+		}
+		// Use embedded default
+		assetPath = settings.Env.LoginIconEmbeddedPath
+	default:
+		assetPath = path
 	}
 
-	// Fallback to default favicon icon if custom login icon not found
-	// Try both paths to support embedded and dev modes
-	defaultIconPaths := []string{
-		"img/icons/favicon-256x256.png",        // Dev mode path
-		"public/img/icons/favicon-256x256.png", // Embedded mode path
-	}
+	// Try gzipped version first for files that may be compressed
+	var fileContents []byte
+	var err error
 
-	for _, defaultIconPath := range defaultIconPaths {
-		fileContents, err := fs.ReadFile(assetFs, defaultIconPath)
+	// Check if gzipped version exists
+	if strings.HasSuffix(assetPath, ".js") || strings.HasSuffix(assetPath, ".woff2") {
+		gzPath := assetPath + ".gz"
+		fileContents, err = fs.ReadFile(assetFs, gzPath)
 		if err == nil {
-			w.Header().Set("Content-Type", "image/png")
+			// Gzipped version exists, serve it
+			setContentType(w, assetPath)
+			w.Header().Set("Content-Encoding", "gzip")
 			_, err = w.Write(fileContents)
 			if err != nil {
-				http.NotFound(w, r)
+				http.Error(w, err.Error(), http.StatusInternalServerError)
 			}
 			return
 		}
 	}
 
-	// If even default icon fails, return 404
-	http.NotFound(w, r)
-}
-
-func faviconHandler(w http.ResponseWriter, r *http.Request) {
-	const maxAge = 86400 // 1 day
-	w.Header().Set("Cache-Control", fmt.Sprintf("public, max-age=%v", maxAge))
-
-	// Try to serve custom favicon if configured
-	if config.Frontend.Favicon != "" {
-		http.ServeFile(w, r, config.Frontend.Favicon)
-		return
-	}
-
-	// Serve default favicon.ico using path set at startup
-	iconPath := assetPathPrefix + "favicon.ico"
-	fileContents, err := fs.ReadFile(assetFs, iconPath)
-	if err == nil {
-		w.Header().Set("Content-Type", "image/x-icon")
-		_, err = w.Write(fileContents)
-		if err != nil {
-			http.NotFound(w, r)
-		}
-		return
-	}
-
-	http.NotFound(w, r)
-}
-
-func manifestHandler(w http.ResponseWriter, r *http.Request) {
-	const maxAge = 86400 // 1 day
-	w.Header().Set("Cache-Control", fmt.Sprintf("public, max-age=%v", maxAge))
-	w.Header().Set("Content-Type", "application/manifest+json")
-
-	// Read manifest using path set at startup
-	manifestPath := assetPathPrefix + "site.webmanifest"
-	fileContents, err := fs.ReadFile(assetFs, manifestPath)
+	// Serve uncompressed version
+	fileContents, err = fs.ReadFile(assetFs, assetPath)
 	if err != nil {
 		http.NotFound(w, r)
 		return
 	}
-
-	// Replace relative paths with baseURL-aware paths
-	manifestStr := string(fileContents)
-	baseURL := config.Server.BaseURL
-	staticURL := baseURL + "public/static/"
-
-	// Update the manifest to use the correct baseURL
-	manifestStr = strings.ReplaceAll(manifestStr, `"start_url": "/"`, fmt.Sprintf(`"start_url": "%s"`, baseURL))
-	manifestStr = strings.ReplaceAll(manifestStr, `"src": "img/icons/`, fmt.Sprintf(`"src": "%simg/icons/`, staticURL))
-
-	_, err = w.Write([]byte(manifestStr))
+	setContentType(w, assetPath)
+	_, err = w.Write(fileContents)
 	if err != nil {
-		http.NotFound(w, r)
-	}
-}
-
-func staticFilesHandler(w http.ResponseWriter, r *http.Request) {
-	const maxAge = 86400 // 1 day
-	w.Header().Set("Cache-Control", fmt.Sprintf("public, max-age=%v", maxAge))
-	w.Header().Set("Content-Security-Policy", `default-src 'self'; style-src 'unsafe-inline';`)
-
-	// Handle custom favicon if configured and requested
-	if r.URL.Path == "favicon" && config.Frontend.Favicon != "" {
-		http.ServeFile(w, r, config.Frontend.Favicon)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
-	}
-
-	// Handle site.webmanifest with proper content type
-	if strings.HasSuffix(r.URL.Path, "site.webmanifest") || strings.HasSuffix(r.URL.Path, "manifest.json") {
-		w.Header().Set("Content-Type", "application/manifest+json")
-	}
-
-	adjustedCompressed := r.URL.Path + ".gz"
-	if strings.HasSuffix(r.URL.Path, ".js") {
-		w.Header().Set("Content-Type", "application/javascript; charset=utf-8") // Set the correct MIME type for JavaScript files
-	}
-	// Check if the gzipped version of the file exists
-	fileContents, err := fs.ReadFile(assetFs, adjustedCompressed)
-	if err == nil {
-		w.Header().Set("Content-Encoding", "gzip") // Let the browser know the file is compressed
-		status, err := w.Write(fileContents)       // Write the gzipped file content to the response
-		if err != nil {
-			http.Error(w, http.StatusText(status), status)
-		}
-	} else {
-		// Otherwise, serve the regular file
-		http.FileServer(http.FS(assetFs)).ServeHTTP(w, r)
 	}
 }
 
