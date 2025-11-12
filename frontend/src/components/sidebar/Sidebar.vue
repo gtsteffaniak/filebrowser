@@ -199,7 +199,8 @@ body.rtl .action {
 
 .release-banner {
   background-color: var(--primarColor);
-  display: flex;
+  display: flex !important;
+  height: fit-content !important;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1em;

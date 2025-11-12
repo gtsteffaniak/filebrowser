@@ -3060,6 +3060,13 @@ const docTemplate = `{
                     "description": "type of share: normal, upload, max",
                     "type": "string"
                 },
+                "sidebarLinks": {
+                    "description": "customizable sidebar links",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/users.SidebarLink"
+                    }
+                },
                 "source": {
                     "description": "Override embedded field to show source name",
                     "type": "string"
@@ -3570,7 +3577,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "loginIcon": {
-                    "description": "path to an image file for the login page icon",
+                    "description": "path to an image file for the login page icon (config only)",
                     "type": "string"
                 },
                 "name": {
@@ -4314,6 +4321,13 @@ const docTemplate = `{
                     "description": "type of share: normal, upload, max",
                     "type": "string"
                 },
+                "sidebarLinks": {
+                    "description": "customizable sidebar links",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/users.SidebarLink"
+                    }
+                },
                 "source": {
                     "description": "backend source is path to maintain between name changes",
                     "type": "string"
@@ -4433,6 +4447,13 @@ const docTemplate = `{
                 "shareType": {
                     "description": "type of share: normal, upload, max",
                     "type": "string"
+                },
+                "sidebarLinks": {
+                    "description": "customizable sidebar links",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/users.SidebarLink"
+                    }
                 },
                 "source": {
                     "description": "backend source is path to maintain between name changes",
@@ -4559,6 +4580,13 @@ const docTemplate = `{
                 "shareType": {
                     "description": "type of share: normal, upload, max",
                     "type": "string"
+                },
+                "sidebarLinks": {
+                    "description": "customizable sidebar links",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/users.SidebarLink"
+                    }
                 },
                 "source": {
                     "description": "backend source is path to maintain between name changes",

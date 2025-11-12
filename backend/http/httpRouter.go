@@ -35,10 +35,9 @@ func (d dirFS) Open(name string) (fs.File, error) {
 }
 
 var (
-	store           *bolt.BoltStore
-	config          *settings.Settings
-	assetFs         fs.FS
-	assetPathPrefix string // "img/icons/" for dev, "public/img/icons/" for embedded
+	store   *bolt.BoltStore
+	config  *settings.Settings
+	assetFs fs.FS
 )
 
 func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete chan struct{}) {
@@ -56,17 +55,9 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 		if err != nil || len(entries) == 0 {
 			logger.Fatalf("Could not embed frontend. Does dist exist? %v", err)
 		}
-		assetPathPrefix = "public/img/icons/"
-		if config.Frontend.LoginIcon == "" {
-			config.Frontend.LoginIcon = "embed/public/img/icons/favicon.svg"
-		}
 	} else {
 		// Dev mode: Serve files from http/dist directory
 		assetFs = dirFS{Dir: http.Dir("http/dist")}
-		assetPathPrefix = "img/icons/"
-		if config.Frontend.LoginIcon == "" {
-			config.Frontend.LoginIcon = "http/dist/img/icons/favicon.svg"
-		}
 	}
 
 	// In development mode, we want to reload the templates on each request.
@@ -194,14 +185,13 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 
 	// Static and index file handlers
 	staticPrefix := config.Server.BaseURL + "static/"
-	router.Handle(staticPrefix, http.StripPrefix(staticPrefix, http.HandlerFunc(staticFilesHandler)))
-	publicRoutes.Handle("GET /static/", http.StripPrefix("/static/", http.HandlerFunc(staticFilesHandler)))
-	publicRoutes.HandleFunc("GET /static/loginIcon", http.HandlerFunc(loginIconHandler))
+	router.Handle(staticPrefix, http.HandlerFunc(staticAssetHandler))
+	publicRoutes.Handle("GET /static/", http.HandlerFunc(staticAssetHandler))
 
 	// Standard browser favicon and manifest routes
-	router.HandleFunc("GET /favicon.ico", http.HandlerFunc(faviconHandler))
-	router.HandleFunc("GET /site.webmanifest", http.HandlerFunc(manifestHandler))
-	router.HandleFunc("GET /manifest.json", http.HandlerFunc(manifestHandler))
+	router.HandleFunc("GET /favicon.ico", http.HandlerFunc(staticAssetHandler))
+	router.HandleFunc("GET /site.webmanifest", http.HandlerFunc(staticAssetHandler))
+	router.HandleFunc("GET /manifest.json", http.HandlerFunc(staticAssetHandler))
 
 	router.HandleFunc(config.Server.BaseURL, withOrWithoutUser(indexHandler))
 	router.HandleFunc(fmt.Sprintf("GET %vhealth", config.Server.BaseURL), healthHandler)

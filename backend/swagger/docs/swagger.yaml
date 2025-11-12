@@ -113,6 +113,11 @@ definitions:
       shareType:
         description: 'type of share: normal, upload, max'
         type: string
+      sidebarLinks:
+        description: customizable sidebar links
+        items:
+          $ref: '#/definitions/users.SidebarLink'
+        type: array
       source:
         description: Override embedded field to show source name
         type: string
@@ -494,7 +499,7 @@ definitions:
         description: path to a favicon to use for the frontend
         type: string
       loginIcon:
-        description: path to an image file for the login page icon
+        description: path to an image file for the login page icon (config only)
         type: string
       name:
         description: display name
@@ -1049,6 +1054,11 @@ definitions:
       shareType:
         description: 'type of share: normal, upload, max'
         type: string
+      sidebarLinks:
+        description: customizable sidebar links
+        items:
+          $ref: '#/definitions/users.SidebarLink'
+        type: array
       source:
         description: backend source is path to maintain between name changes
         type: string
@@ -1133,6 +1143,11 @@ definitions:
       shareType:
         description: 'type of share: normal, upload, max'
         type: string
+      sidebarLinks:
+        description: customizable sidebar links
+        items:
+          $ref: '#/definitions/users.SidebarLink'
+        type: array
       source:
         description: backend source is path to maintain between name changes
         type: string
@@ -1221,6 +1236,11 @@ definitions:
       shareType:
         description: 'type of share: normal, upload, max'
         type: string
+      sidebarLinks:
+        description: customizable sidebar links
+        items:
+          $ref: '#/definitions/users.SidebarLink'
+        type: array
       source:
         description: backend source is path to maintain between name changes
         type: string

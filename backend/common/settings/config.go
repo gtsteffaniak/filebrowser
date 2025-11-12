@@ -94,28 +94,8 @@ func setupFs() {
 }
 
 func setupFrontend(generate bool) {
-	if Config.Frontend.LoginIcon != "" {
-		// check if file exists
-		if _, err := os.Stat(Config.Frontend.LoginIcon); os.IsNotExist(err) {
-			logger.Warningf("login icon file '%v' does not exist", Config.Frontend.LoginIcon)
-			Config.Frontend.LoginIcon = ""
-		} else {
-			// validate image type
-			validExtensions := []string{".svg", ".png", ".jpg", ".jpeg", ".gif", ".webp", ".ico"}
-			isValid := false
-			lowerPath := strings.ToLower(Config.Frontend.LoginIcon)
-			for _, ext := range validExtensions {
-				if strings.HasSuffix(lowerPath, ext) {
-					isValid = true
-					break
-				}
-			}
-			if !isValid {
-				logger.Warningf("login icon file '%v' is not a valid image type (supported: svg, png, jpg, jpeg, gif, webp, ico)", Config.Frontend.LoginIcon)
-				Config.Frontend.LoginIcon = ""
-			}
-		}
-	}
+	// Load login icon configuration at startup
+	loadLoginIcon()
 	if Config.Server.MinSearchLength == 0 {
 		Config.Server.MinSearchLength = 3
 	}
@@ -614,52 +594,106 @@ func setDefaults(generate bool) Settings {
 	return s
 }
 
+// validateCustomImage validates a custom image file path and returns the absolute path or error
+func validateCustomImage(configPath, imageName string, maxSize int64, allowedFormats []string) (absolutePath string, err error) {
+	// Get absolute path
+	absolutePath, err = filepath.Abs(configPath)
+	if err != nil {
+		return "", fmt.Errorf("could not resolve path: %w", err)
+	}
+
+	// Check if file exists
+	stat, err := os.Stat(absolutePath)
+	if err != nil {
+		return "", fmt.Errorf("could not access file: %w", err)
+	}
+
+	// Check file size
+	if stat.Size() > maxSize {
+		return "", fmt.Errorf("file too large (%d bytes), maximum allowed is %d bytes", stat.Size(), maxSize)
+	}
+
+	// Validate file format
+	ext := strings.ToLower(filepath.Ext(absolutePath))
+	validFormat := false
+	for _, format := range allowedFormats {
+		if ext == format {
+			validFormat = true
+			break
+		}
+	}
+	if !validFormat {
+		return "", fmt.Errorf("unsupported format '%s', supported formats: %v", ext, allowedFormats)
+	}
+
+	return absolutePath, nil
+}
+
 func loadCustomFavicon() {
+	const imageName = "favicon"
+	const maxSize = 1024 * 1024 // 1MB
+	allowedFormats := []string{".ico", ".png", ".svg"}
+
+	// Set default embedded favicon path
+	Env.FaviconEmbeddedPath = "img/icons/favicon.ico"
+
 	// Check if a custom favicon path is configured
 	if Config.Frontend.Favicon == "" {
-		logger.Debug("No custom favicon configured, using default")
+		Env.FaviconPath = Env.FaviconEmbeddedPath
+		Env.FaviconIsCustom = false
 		return
 	}
 
-	// Get absolute path for the favicon
-	faviconPath, err := filepath.Abs(Config.Frontend.Favicon)
+	// Validate custom favicon
+	validatedPath, err := validateCustomImage(Config.Frontend.Favicon, imageName, maxSize, allowedFormats)
 	if err != nil {
-		logger.Warningf("Could not resolve favicon path '%v': %v", Config.Frontend.Favicon, err)
-		Config.Frontend.Favicon = "" // Unset invalid path
+		logger.Warningf("Custom favicon validation failed: %v, using default", err)
+		Config.Frontend.Favicon = ""
+		Env.FaviconPath = Env.FaviconEmbeddedPath
+		Env.FaviconIsCustom = false
 		return
 	}
 
-	// Check if the favicon file exists and get info
-	stat, err := os.Stat(faviconPath)
+	// Update to validated path and mark as custom
+	Config.Frontend.Favicon = validatedPath
+	Env.FaviconPath = validatedPath
+	Env.FaviconIsCustom = true
+	logger.Infof("Using custom favicon: %s", Env.FaviconPath)
+}
+
+func loadLoginIcon() {
+	const imageName = "login icon"
+	const maxSize = 5 * 1024 * 1024 // 5MB
+	allowedFormats := []string{".svg", ".png", ".jpg", ".jpeg", ".gif", ".webp", ".ico"}
+
+	// Set default embedded icon path based on dark mode preference
+	isDarkMode := Config.UserDefaults.DarkMode != nil && *Config.UserDefaults.DarkMode
+	if isDarkMode {
+		Env.LoginIconEmbeddedPath = "img/icons/favicon.svg" // Dark mode: dark background
+	} else {
+		Env.LoginIconEmbeddedPath = "img/icons/favicon-light.svg" // Light mode: light background
+	}
+
+	// Check if a custom login icon path is configured
+	if Config.Frontend.LoginIcon == "" {
+		Env.LoginIconPath = Env.LoginIconEmbeddedPath
+		Env.LoginIconIsCustom = false
+		return
+	}
+
+	// Validate custom login icon
+	validatedPath, err := validateCustomImage(Config.Frontend.LoginIcon, imageName, maxSize, allowedFormats)
 	if err != nil {
-		logger.Warningf("Could not access custom favicon file '%v': %v", faviconPath, err)
-		Config.Frontend.Favicon = "" // Unset invalid path
+		logger.Warningf("Custom login icon validation failed: %v, using default", err)
+		Env.LoginIconPath = Env.LoginIconEmbeddedPath
+		Env.LoginIconIsCustom = false
 		return
 	}
 
-	// Check file size (limit to 1MB for security)
-	const maxFaviconSize = 1024 * 1024 // 1MB
-	if stat.Size() > maxFaviconSize {
-		logger.Warningf("Favicon file '%v' is too large (%d bytes), maximum allowed is %d bytes", faviconPath, stat.Size(), maxFaviconSize)
-		Config.Frontend.Favicon = "" // Unset invalid path
-		return
-	}
-
-	// Validate file format based on extension
-	ext := strings.ToLower(filepath.Ext(faviconPath))
-	switch ext {
-	case ".ico", ".png", ".svg":
-		// Valid favicon formats
-	default:
-		logger.Warningf("Unsupported favicon format '%v', supported formats: .ico, .png, .svg", ext)
-		Config.Frontend.Favicon = "" // Unset invalid path
-		return
-	}
-
-	// Update to absolute path and mark as valid
-	Config.Frontend.Favicon = faviconPath
-
-	logger.Infof("Successfully validated custom favicon at '%v' (%d bytes, %s)", faviconPath, stat.Size(), ext)
+	// Update to validated path and mark as custom
+	Env.LoginIconPath = validatedPath
+	Env.LoginIconIsCustom = true
+	logger.Infof("Using custom login icon: %s", Env.LoginIconPath)
 }
 
 // setConditionalsMap builds optimized map structures from conditional rules for O(1) lookups
