@@ -23,7 +23,6 @@ All notable changes to this project will be documented in this file. For commit 
  - Individual scanners per directory at root -- improves scanning impact.
  - Improved search memory efficiency
  - Improved scrolling performance
- - Removed legacy share redirect functionality for shares created before v0.8.0 (shares still work with /public path)
 
 ## v1.0.1-stable
 
