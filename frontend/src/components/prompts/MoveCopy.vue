@@ -123,9 +123,9 @@ export default {
     canCreateFolder() {
       // Detect correct permission for shares for show the new folder button.
       if (getters.isShare()) {
-        return state.shareInfo?.allowCreate || false;
+        return state.shareInfo?.allowCreate;
       } else {
-        return state.user?.permissions?.modify || false;
+        return state.user?.permissions?.modify;
       }
     },
     closeHovers() {
