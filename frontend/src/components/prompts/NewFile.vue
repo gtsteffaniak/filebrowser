@@ -59,14 +59,12 @@ export default {
       try {
         if (getters.isShare()) {
           await publicApi.post(state.shareInfo?.hash, url.joinPath(state.req.path, this.name), "", overwrite);
-          // url.goToItem(state.req.source, url.joinPath(state.req.path, this.name), {});
-          mutations.setReload(true);
+          url.goToItem(state.req.source, url.joinPath(state.req.path, this.name), {});
           mutations.closeHovers();
           return;
         }
         await filesApi.post(state.req.source, url.joinPath(state.req.path, this.name), "", overwrite);
-        //url.goToItem(state.req.source, url.joinPath(state.req.path, this.name), {});
-        mutations.setReload(true);
+        url.goToItem(state.req.source, url.joinPath(state.req.path, this.name), {});
         mutations.closeHovers();
       } catch (error) {
         if (error.message === "conflict") {
@@ -88,15 +86,13 @@ export default {
                       const newName = counter === 1 ? `${originalName} (1)` : `${originalName} (${counter})`;
                       if (getters.isShare()) {
                         await publicApi.post(state.shareInfo?.hash, url.joinPath(state.req.path, newName), "", false);
-                        //url.goToItem(state.req.source, url.joinPath(state.req.path, newName), {});
-                        mutations.setReload(true);
+                        url.goToItem(state.req.source, url.joinPath(state.req.path, newName), {});
                         mutations.closeHovers();
                         success = true;
                         return;
                       }
                       await filesApi.post(state.req.source, url.joinPath(state.req.path, newName), "", false);
-                      //url.goToItem(state.req.source, url.joinPath(state.req.path, newName), {});
-                      mutations.setReload(true);
+                      url.goToItem(state.req.source, url.joinPath(state.req.path, newName), {});
                       mutations.closeHovers();
                       success = true;
                     } catch (renameError) {
