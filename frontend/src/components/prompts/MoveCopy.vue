@@ -5,33 +5,54 @@
 
   <div class="card-content">
     <!-- Loading spinner overlay -->
-    <div v-if="isLoading" class="loading-content">
+     <!-- changed to v-show (for keep the loading spinner), otherwise the path showed in the prompt will be always "/" -->
+    <div v-show="isLoading" class="loading-content">
       <i class="material-icons spin">sync</i>
       <p class="loading-text">{{ $t("prompts.operationInProgress") }}</p>
     </div>
-    <div v-else>
       <file-list  ref="fileList" @update:selected="updateDestination">
       </file-list>
     </div>
+  <div>
   </div>
   <div v-if="!isLoading" class="card-action" style="display: flex; align-items: center; justify-content: space-between">
-    <template v-if="user.permissions.modify">
-      <button class="button button--flat" @click="$refs.fileList.createDir()" :aria-label="$t('files.newFolder')"
+    <template v-if="!showNewDirInput">
+      <button v-if="canCreateFolder" class="button button--flat" @click="createNewDir" :aria-label="$t('files.newFolder')"
         :title="$t('files.newFolder')" style="justify-self: left">
         <span>{{ $t("files.newFolder") }}</span>
       </button>
+      <div>
+        <button class="button button--flat button--grey" @click="closeHovers" :aria-label="$t('general.cancel')"
+          :title="$t('general.cancel')">
+          {{ $t("general.cancel") }}
+        </button>
+        <button :disabled="destContainsSrc" class="button button--flat" @click="performOperation"
+          :aria-label="operation === 'move' ? $t('general.move') : $t('general.copy')"
+          :title="operation === 'move' ? $t('general.move') : $t('general.copy')">
+          {{ operation === 'move' ? $t('general.move') : $t('general.copy') }}
+        </button>
+      </div>
     </template>
-    <div>
-      <button class="button button--flat button--grey" @click="closeHovers" :aria-label="$t('general.cancel')"
-        :title="$t('general.cancel')">
-        {{ $t("general.cancel") }}
-      </button>
-      <button :disabled="destContainsSrc" class="button button--flat" @click="performOperation"
-        :aria-label="operation === 'move' ? $t('general.move') : $t('general.copy')" 
-        :title="operation === 'move' ? $t('general.move') : $t('general.copy')">
-        {{ operation === 'move' ? $t('general.move') : $t('general.copy') }}
-      </button>
-    </div>
+
+    <template v-else>
+      <div style="width: 100%;">
+        <div style="display: flex; gap: 0.3rem;">
+          <input
+            ref="newDirInput"
+            class="input"
+            v-model.trim="newDirName"
+            style="justify-self: left"
+            :placeholder="$t('prompts.newDirMessage')"
+          />
+          <button class="button button--flat button--grey" @click="cancelNewDir">
+            {{ $t("general.cancel") }}
+          </button>
+          <button class="button button--flat" @click="createDirectory" :disabled="!newDirName">
+            {{ $t("general.create") }}
+          </button>
+        </div>
+      </div>
+    </template>
   </div>
 </template>
 
@@ -67,6 +88,8 @@ export default {
       destSource: null, // Will be set by FileList component
       items: [],
       isLoading: false, // Track loading state for spinner
+      showNewDirInput: false, // When true will replace the new folder button with a input field
+      newDirName: "",
     };
   },
   computed: {
@@ -82,6 +105,10 @@ export default {
       if (!itemPath) {
         return false; // If itemPath is undefined, we can't check containment
       }
+      // For different sources, allow move to root path
+      if (this.destSource !== this.items[0]?.fromSource) {
+        return false;
+      }
       // For move, prevent moving to the same directory, but for copy allow it.
       if (this.operation === "move") {
         const parentDir = url.removeLastDir(itemPath) + "/";
@@ -93,8 +120,13 @@ export default {
       // Prevent move/copy into itself or subdirectories (into itself too)
       return this.destPath.startsWith(itemPath + "/") || this.destPath === itemPath;
     },
-    user() {
-      return state.user;
+    canCreateFolder() {
+      // Detect correct permission for shares for show the new folder button.
+      if (getters.isShare()) {
+        return state.shareInfo?.allowCreate || false;
+      } else {
+        return state.user?.permissions?.modify || false;
+      }
     },
     closeHovers() {
       return mutations.closeHovers();
@@ -132,6 +164,50 @@ export default {
     }
   },
   methods: {
+    createNewDir() {
+      this.showNewDirInput = true;
+      this.newDirName = "";
+      // Focus the new dir input automatically
+      this.$nextTick(() => {
+        this.$refs.newDirInput.focus();
+      });
+    },
+    cancelNewDir() {
+      // Clicking cancel will return the buttons to their normal state
+      this.showNewDirInput = false;
+      this.newDirName = "";
+    },
+    async createDirectory() {
+      if (!this.newDirName) return;
+      try {
+        this.isLoading = true;
+        // Get current navigation from FileList
+        const currentPath = this.$refs.fileList.path;
+        const currentSource = this.$refs.fileList.source;
+        const fullPath = currentPath.endsWith('/') ? currentPath + this.newDirName + '/' : currentPath + '/' + this.newDirName + '/';
+        if (getters.isShare()) {
+          await publicApi.post(state.shareInfo?.hash, fullPath, "", false);
+        } else {
+          await filesApi.post(currentSource, fullPath, "", false);
+        }
+        // Refresh the file list while keeping the current navigation that we did in the prompt
+        if (getters.isShare()) {
+          publicApi.fetchPub(currentPath, state.shareInfo?.hash)
+            .then((req) => this.$refs.fileList.fillOptions(req, true));
+        } else {
+          filesApi.fetchFiles(currentSource, currentPath)
+            .then((req) => this.$refs.fileList.fillOptions(req, true));
+        }
+        // Clicking create will also return the buttons to their normal state
+        mutations.setReload(true);
+        this.showNewDirInput = false;
+        this.newDirName = "";
+      } catch (error) {
+        console.error('Error creating directory:', error);
+      } finally {
+        this.isLoading = false;
+      }
+    },
     updateDestination(pathOrData) {
       // Handle both old format (just path) and new format (object with path and source)
       if (typeof pathOrData === 'string') {
@@ -196,6 +272,7 @@ export default {
           // Await the action call for non-conflicting cases
           await action(overwrite, rename);
         }
+        mutations.setReload(true);
         mutations.closeHovers();
         mutations.setSearch(false);
 
