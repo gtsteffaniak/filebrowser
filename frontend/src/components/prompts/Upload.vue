@@ -224,7 +224,7 @@ export default {
         };
         mutations.updateCurrentUser(data);
         await usersApi.update(data, ["fileLoading"]);
-        notify.showSuccess("Upload settings updated");
+        notify.showSuccessToast("Upload settings updated");
       } catch (e) {
         console.error(e);
       }

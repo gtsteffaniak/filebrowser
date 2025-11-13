@@ -42,7 +42,8 @@
     "internal": "内部エラーが発生しました。",
     "notFound": "リソースが見つかりませんでした。",
     "connection": "サーバーにアクセスできません。",
-    "shareNotFound": "無効または期限切れの共有です。"
+    "shareNotFound": "無効または期限切れの共有です。",
+    "failedToConnectToServer": "サーバーへの接続に失敗しました。"
   },
   "files": {
     "closePreview": "プレビューを閉じる",
@@ -340,11 +341,23 @@
     "linkUrl": "リンクURL",
     "linkUrlPlaceholder": "URLまたはパスを入力してください（例：/files/pathまたはhttps://example.com）。",
     "linkIcon": "リンクアイコン",
-    "linkIconPlaceholder": "素材アイコン名を入力（例：フォルダ、設定、リンク）",
     "linksUpdatedSuccess": "サイドバーのリンクが正常に更新されました！",
     "linksUpdateFailed": "サイドバーリンクの更新に失敗しました",
     "sourceNotAccessible": "このソースにはもうアクセスできません",
-    "noLinksYet": "まだリンクは設定されていません。以下に最初のリンクを追加してください。"
+    "noLinksYet": "まだリンクは設定されていません。以下に最初のリンクを追加してください。",
+    "customizeShareLinks": "共有サイドバーリンクのカスタマイズ",
+    "customizeShareLinksDescription": "この共有のサイドバーに表示されるリンクをカスタマイズします。ドラッグ＆ドロップで並び替えができます。",
+    "editLink": "リンクの編集",
+    "selectShare": "シェアを選択",
+    "chooseShare": "シェアを選ぶ",
+    "selectSharePath": "共有内のパス (オプション)",
+    "sharePathPlaceholder": "例：/subfolder、rootの場合は空のまま",
+    "browseIcons": "アイコンを見る",
+    "pickIcon": "アイコンを選ぶ",
+    "pickIconDescription": "マテリアル・アイコン・ライブラリからアイコンを検索して選択します。",
+    "shareLinksUpdatedSuccess": "サイドバーの共有リンクが正常に更新されました！",
+    "shareHome": "シェア・ホーム",
+    "linkIconPlaceholder": "素材アイコンを入力するか、アイコンボタンをクリックしてブラウズする。"
   },
   "success": {
     "linkCopied": "リンクがコピーされました！"
@@ -420,7 +433,12 @@
     "allowReplacements": "ファイルの置き換えを許可する",
     "allowReplacementsDescription": "同じ名前のファイルをアップロードすれば、誰でも既存のファイルを置き換えることができます。",
     "allowCreate": "ファイルやフォルダの作成とアップロードが可能",
-    "allowCreateDescription": "誰でもこの共有に新しいファイルやフォルダを作成し、アップロードすることができます。"
+    "allowCreateDescription": "誰でもこの共有に新しいファイルやフォルダを作成し、アップロードすることができます。",
+    "customizeSidebarLinks": "サイドバーリンクのカスタマイズ",
+    "customizeSidebarLinksButton": "リンクのカスタマイズ",
+    "shareInfo": "QRコードと情報を共有する",
+    "shareInfoDescription": "このリンクは、タイトル、説明、バナー、QRコードなどの共有情報をポップアップで表示します。",
+    "downloadDescription": "このリンクをクリックすると、共有コンテンツ全体を圧縮ファイルとしてダウンロードできます。"
   },
   "api": {
     "title": "APIキー：",
@@ -444,7 +462,8 @@
     "expires": "有効期限",
     "actions": "操作",
     "enabled": "有効",
-    "disabled": "無効"
+    "disabled": "無効",
+    "apiKeyDeleted": "APIキーが削除されました！"
   },
   "index": {
     "assessment": "評価",
@@ -740,7 +759,24 @@
     "duplicateFinder": {
       "name": "重複ファイルファインダー",
       "description": "重複ファイルを検索・管理し、ストレージスペースを取り戻す"
-    }
+    },
+    "materialIconPicker": {
+      "name": "素材アイコンピッカー",
+      "description": "ライブプレビューでマテリアルアイコンを閲覧・検索",
+      "searchPlaceholder": "検索アイコン...",
+      "browseFullLibrary": "フルアイコンライブラリを見る",
+      "popularIcons": "{count} 人気のアイコンを表示",
+      "showingResults": "{count} の結果を表示",
+      "noResults": "アイコンが見つかりません",
+      "tryDifferentSearch": "別の検索語を試す",
+      "copiedToClipboard": "{name}' をクリップボードにコピー！",
+      "copyFailed": "クリップボードへのコピーに失敗しました",
+      "custom": "カスタム",
+      "useCustomIcon": "カスタムアイコンを使用する：{name}",
+      "iconLibraryUrl": "fonts.google.com/icons"
+    },
+    "toolNotFound": "ツールが見つかりません",
+    "backToTools": "ツールに戻る"
   },
   "messages": {
     "pathNotFound": "パスがファイルシステムに存在しない",
@@ -760,5 +796,19 @@
     "totalWastedSpace": "無駄なスペース{suffix}",
     "wasted": "無駄{suffix}",
     "emptyState": "検索条件を入力し、「重複ファイルの検索」をクリックすると、重複ファイルが特定されます。"
+  },
+  "notifications": {
+    "title": "お知らせ",
+    "description": "現在のセッションのすべての通知を表示する",
+    "empty": "まだ通知なし",
+    "clearAll": "すべてクリア",
+    "clearConfirm": "通知履歴をすべて消去してもよろしいですか？",
+    "total": "{count} 通知"
+  },
+  "events": {
+    "serverShutdown": "サーバーはシャットダウンされた。",
+    "authenticationFailed": "認証に失敗しました。ページを更新して再度ログインしてください。",
+    "reconnected": "サーバーに再接続しました。",
+    "connectionLost": "サーバーへの接続が失われました。再接続を試みます..."
   }
 }

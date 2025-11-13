@@ -42,7 +42,8 @@
     "internal": "Valami nagyon elromlott.",
     "notFound": "Ez a hely nem érhető el.",
     "connection": "A kiszolgáló nem érhető el.",
-    "shareNotFound": "Érvénytelen vagy lejárt részvény."
+    "shareNotFound": "Érvénytelen vagy lejárt részvény.",
+    "failedToConnectToServer": "Nem sikerült csatlakozni a szerverhez, még mindig fut?"
   },
   "files": {
     "closePreview": "Előnézet bezárása",
@@ -340,11 +341,23 @@
     "linkUrl": "Link URL",
     "linkUrlPlaceholder": "Adja meg az URL-címet vagy elérési utat (pl. /files/path vagy https://example.com).",
     "linkIcon": "Link ikon",
-    "linkIconPlaceholder": "Adja meg az anyag ikon nevét (pl. mappa, beállítások, link)",
     "linksUpdatedSuccess": "Oldalsáv linkek sikeresen frissítve!",
     "linksUpdateFailed": "Nem sikerült frissíteni az oldalsáv linkjeit",
     "sourceNotAccessible": "Ez a forrás már nem elérhető az Ön számára",
-    "noLinksYet": "Még nincsenek linkek konfigurálva. Adja hozzá az első linket alább."
+    "noLinksYet": "Még nincsenek linkek konfigurálva. Adja hozzá az első linket alább.",
+    "customizeShareLinks": "Megosztás oldalsáv linkek testreszabása",
+    "customizeShareLinksDescription": "Az oldalsávban megjelenő linkek testreszabása ehhez a megosztáshoz. Húzza és ejtse át a sorrend átrendezéséhez.",
+    "editLink": "Link szerkesztése",
+    "selectShare": "Megosztás kiválasztása",
+    "chooseShare": "Válasszon részesedést",
+    "selectSharePath": "A megosztáson belüli elérési útvonal (opcionális)",
+    "sharePathPlaceholder": "pl. /subfolder vagy hagyja üresen a root esetében",
+    "browseIcons": "Ikonok böngészése",
+    "pickIcon": "Válasszon egy ikont",
+    "pickIconDescription": "Keressen és válasszon ki egy ikont az Anyagi ikonok könyvtárból.",
+    "shareLinksUpdatedSuccess": "Megosztás oldalsáv linkek sikeresen frissítve!",
+    "shareHome": "Megosztás",
+    "linkIconPlaceholder": "Adja meg az anyag ikonját, vagy kattintson az ikon gombra a böngészéshez."
   },
   "success": {
     "linkCopied": "Link másolva!"
@@ -420,7 +433,12 @@
     "allowReplacements": "Fájlok cseréjének engedélyezése",
     "allowReplacementsDescription": "Az azonos nevű fájlok feltöltésekor bárki helyettesítheti a meglévő fájlokat.",
     "allowCreate": "Fájlok és mappák létrehozásának és feltöltésének lehetővé tétele",
-    "allowCreateDescription": "Bárki létrehozhat és feltölthet új fájlokat és mappákat ezen a megosztáson."
+    "allowCreateDescription": "Bárki létrehozhat és feltölthet új fájlokat és mappákat ezen a megosztáson.",
+    "customizeSidebarLinks": "Oldalsávos hivatkozások testreszabása",
+    "customizeSidebarLinksButton": "Linkek testreszabása",
+    "shareInfo": "QR-kód és információ megosztása",
+    "shareInfoDescription": "Ez a link megjeleníti a megosztás adatait, beleértve a címet, a leírást, a bannert és a QR-kódot egy felugró ablakban.",
+    "downloadDescription": "Ez a link lehetővé teszi a teljes megosztás tartalmának tömörített fájlként történő letöltését."
   },
   "api": {
     "title": "API-kulcsok:",
@@ -444,7 +462,8 @@
     "expires": "Lejárat:",
     "actions": "Tevékenységek",
     "enabled": "Engedélyezve",
-    "disabled": "Mozgáskorlátozottak"
+    "disabled": "Mozgáskorlátozottak",
+    "apiKeyDeleted": "API kulcs törölve!"
   },
   "index": {
     "assessment": "Értékelés",
@@ -740,7 +759,24 @@
     "duplicateFinder": {
       "name": "Duplikátum fájl kereső",
       "description": "Duplikált fájlok keresése és kezelése a tárhely visszanyerése érdekében"
-    }
+    },
+    "materialIconPicker": {
+      "name": "Anyag ikon kiválasztó",
+      "description": "Böngésszen és keressen Material Icons élő előnézetben",
+      "searchPlaceholder": "Keresés ikonok...",
+      "browseFullLibrary": "Teljes ikonkönyvtár böngészése:",
+      "popularIcons": "{count} népszerű ikonok megjelenítése",
+      "showingResults": "{count} eredmények megjelenítése",
+      "noResults": "Nem talált ikonok",
+      "tryDifferentSearch": "Próbáljon ki egy másik kereső kifejezést",
+      "copiedToClipboard": "Másolt '{name}' a vágólapra!",
+      "copyFailed": "Nem sikerült a vágólapra másolni",
+      "custom": "Custom",
+      "useCustomIcon": "Egyéni ikon használata: {name}",
+      "iconLibraryUrl": "fonts.google.com/icons"
+    },
+    "toolNotFound": "Eszköz nem található",
+    "backToTools": "Vissza az Eszközökhöz"
   },
   "messages": {
     "pathNotFound": "Az elérési útvonal nem létezik a fájlrendszerben",
@@ -760,5 +796,19 @@
     "totalWastedSpace": "Teljes elpazarolt hely{suffix}",
     "wasted": "Elpazarolt{suffix}",
     "emptyState": "Adja meg a keresési feltételeket, és kattintson a Duplikátumok keresése gombra a duplikált fájlok azonosításához."
+  },
+  "notifications": {
+    "title": "Értesítések",
+    "description": "Az aktuális munkamenet összes értesítésének megtekintése",
+    "empty": "Még nincsenek értesítések",
+    "clearAll": "Mindent törölni",
+    "clearConfirm": "Biztos, hogy törölni szeretné az összes értesítési előzményt?",
+    "total": "{count} értesítések"
+  },
+  "events": {
+    "serverShutdown": "A kiszolgálót leállították.",
+    "authenticationFailed": "A hitelesítés sikertelen. Kérjük, frissítse az oldalt az újbóli bejelentkezéshez.",
+    "reconnected": "Újra csatlakozott a kiszolgálóhoz.",
+    "connectionLost": "Megszakadt a kapcsolat a kiszolgálóval. Próbáljuk újracsatlakoztatni..."
   }
 }

@@ -155,7 +155,8 @@
     "internal": "Something really went wrong.",
     "notFound": "This location can't be reached.",
     "connection": "The server can't be reached.",
-    "shareNotFound": "Invalid or expired share."
+    "shareNotFound": "Invalid or expired share.",
+    "failedToConnectToServer": "Failed to connect to the server, is it still running?"
   },
   "files": {
     "closePreview": "Close preview",
@@ -288,6 +289,8 @@
     "perUserDownloadLimitDescription": "When enabled, the downloads limit will be applied to each user. Anonymous users will not be able to download any files from this share.",
     "extractEmbeddedSubtitles": "Extract embedded subtitles",
     "extractEmbeddedSubtitlesDescription": "Extract embedded subtitles from media files on load -- this can be slow for large files.",
+    "customizeSidebarLinks": "Customize Sidebar Links",
+    "customizeSidebarLinksButton": "Customize Links",
     "disableDownload": "Disable downloading files",
     "disableDownloadDescription": "Anyone won't be able to download files or view a file's content.",
     "allowModify": "Allow editing files",
@@ -297,7 +300,10 @@
     "allowCreate": "Allow creating and uploading files and folders",
     "allowCreateDescription": "Anyone can create and upload new files and folders in this share.",
     "allowReplacements": "Allow file replacements",
-    "allowReplacementsDescription": "Anyone can replace existing files when uploading files with the same name."
+    "allowReplacementsDescription": "Anyone can replace existing files when uploading files with the same name.",
+    "shareInfo": "Share QR Code and Info",
+    "shareInfoDescription": "This link displays the share's information, including title, description, banner, and QR code in a popup.",
+    "downloadDescription": "This link allows downloading the entire share content as a compressed file."
   },
   "prompts": {
     "operationInProgress": "Operation in progress, please wait...",
@@ -564,13 +570,20 @@
     "fileActions": "File actions",
     "customizeLinks": "Customize Sidebar Links",
     "customizeLinksDescription": "Customize the links shown in your sidebar. Drag and drop to reorder.",
+    "customizeShareLinks": "Customize Share Sidebar Links",
+    "customizeShareLinksDescription": "Customize the links shown in the sidebar for this share. Drag and drop to reorder.",
     "currentLinks": "Current Links",
     "addNewLink": "Add New Link",
+    "editLink": "Edit Link",
     "linkType": "Link Type",
     "selectLinkType": "Select a link type",
     "customLink": "Custom Link",
     "selectSource": "Select Source",
     "chooseSource": "Choose a source",
+    "selectShare": "Select Share",
+    "chooseShare": "Choose a share",
+    "selectSharePath": "Path within share (optional)",
+    "sharePathPlaceholder": "e.g., /subfolder or leave empty for root",
     "selectTool": "Select Tool",
     "chooseTool": "Choose a tool",
     "linkName": "Link Name",
@@ -578,11 +591,16 @@
     "linkUrl": "Link URL",
     "linkUrlPlaceholder": "Enter URL or path (e.g., /files/path or https://example.com)",
     "linkIcon": "Link Icon",
-    "linkIconPlaceholder": "Enter material icon name (e.g., folder, settings, link)",
+    "linkIconPlaceholder": "Enter material icon or or click icon button to browse",
+    "browseIcons": "Browse Icons",
+    "pickIcon": "Pick an Icon",
+    "pickIconDescription": "Search and select an icon from the Material Icons library",
     "linksUpdatedSuccess": "Sidebar links updated successfully!",
+    "shareLinksUpdatedSuccess": "Share sidebar links updated successfully!",
     "linksUpdateFailed": "Failed to update sidebar links",
     "sourceNotAccessible": "This source is no longer accessible to you",
-    "noLinksYet": "No links configured yet. Add your first link below."
+    "noLinksYet": "No links configured yet. Add your first link below.",
+    "shareHome": "Share Home"
   },
   "success": {
     "linkCopied": "Link copied!"
@@ -609,6 +627,7 @@
     "permissionNote": "Choose at least one permission for the key. Your user must also have the permission.",
     "createKeyFailed": "Failed to create API key.",
     "createKeySuccess": "API key created successfully.",
+    "apiKeyDeleted": "API key deleted!",
     "description": "API keys are based on the user that creates them. See",
     "swaggerLinkText": "swagger page",
     "name": "Name",
@@ -747,7 +766,32 @@
     "duplicateFinder": {
       "name": "Duplicate File Finder",
       "description": "Find and manage duplicate files to reclaim storage space"
-    }
+    },
+    "materialIconPicker": {
+      "name": "Material Icon Picker",
+      "description": "Browse and search Material Icons with live preview",
+      "searchPlaceholder": "Search icons...",
+      "browseFullLibrary": "Browse full icon library:",
+      "iconLibraryUrl": "fonts.google.com/icons",
+      "popularIcons": "Showing {count} popular icons",
+      "showingResults": "Showing {count} results",
+      "noResults": "No icons found",
+      "tryDifferentSearch": "Try a different search term",
+      "copiedToClipboard": "Copied '{name}' to clipboard!",
+      "copyFailed": "Failed to copy to clipboard",
+      "custom": "Custom",
+      "useCustomIcon": "Use custom icon: {name}"
+    },
+    "toolNotFound": "Tool not found",
+    "backToTools": "Back to Tools"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "description": "View all notifications from your current session",
+    "empty": "No notifications yet",
+    "clearAll": "Clear All",
+    "clearConfirm": "Are you sure you want to clear all notification history?",
+    "total": "{count} notifications"
   },
   "duplicateFinder": {
     "title": "Duplicate File Finder",
@@ -760,5 +804,11 @@
     "totalWastedSpace": "Total Wasted Space{suffix}",
     "wasted": "Wasted{suffix}",
     "emptyState": "Enter search criteria and click Find Duplicates to identify duplicate files"
+  },
+  "events": {
+    "serverShutdown": "The server was shutdown.",
+    "authenticationFailed": "Authentication failed. Please refresh the page to log in again.",
+    "reconnected": "Reconnected to server.",
+    "connectionLost": "The connection to server was lost. Trying to reconnect..."
   }
 }

@@ -119,7 +119,7 @@ export default {
       // Create new clipboard instance
       this.clip = new Clipboard(".copy-clipboard");
       this.clip.on("success", () => {
-        notify.showSuccess(this.$t("success.linkCopied")); // Use consistent message
+        notify.showSuccessToast(this.$t("success.linkCopied")); // Use consistent message
       });
     },
     async reloadApiKeys() {

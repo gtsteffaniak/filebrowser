@@ -15,172 +15,168 @@
     <div v-if="isEditingPath">
       <file-list @update:selected="updateTempPath" :browse-source="displaySource"></file-list>
       <div class="card-action">
-        <button class="button button--flat" @click="cancelPathChange" :aria-label="$t('general.cancel')" :title="$t('general.cancel')">
+        <button class="button button--flat" @click="cancelPathChange" :aria-label="$t('general.cancel')"
+          :title="$t('general.cancel')">
           {{ $t("general.cancel") }}
         </button>
-        <button class="button button--flat button--blue" @click="confirmPathChange" :aria-label="$t('general.ok')" :title="$t('general.ok')">
+        <button class="button button--flat button--blue" @click="confirmPathChange" :aria-label="$t('general.ok')"
+          :title="$t('general.ok')">
           {{ $t("general.ok") }}
         </button>
       </div>
     </div>
 
     <div v-else>
-      <div aria-label="share-path" class="searchContext button"> {{ $t('general.path', { suffix: ':' }) }} {{ displayPath }}</div>
+      <div aria-label="share-path" class="searchContext button"> {{ $t('general.path', { suffix: ':' }) }} {{
+        displayPath }}</div>
       <p> {{ $t('share.notice') }} </p>
 
       <div v-if="listing">
-      <table>
-        <tbody>
-          <tr>
-            <th>#</th> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-            <th>{{ $t("time.unit") }}</th>
-            <th></th>
-            <th></th>
-            <th></th>
-          </tr>
+        <table>
+          <tbody>
+            <tr>
+              <th>#</th> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+              <th>{{ $t("time.unit") }}</th>
+              <th></th>
+              <th></th>
+              <th></th>
+            </tr>
 
-          <tr v-for="link in links" :key="link.hash">
-            <td>{{ link.hash }}</td>
-            <td>
-              <template v-if="link.expire !== 0">{{ humanTime(link.expire) }}</template>
-              <template v-else>{{ $t("general.permanent") }}</template>
-            </td>
-            <td class="small">
-              <button class="action" @click="editLink(link)" :aria-label="$t('general.edit')"
-                :title="$t('general.edit')">
-                <i class="material-icons">edit</i>
-              </button>
-            </td>
-            <td class="small">
-              <button class="action copy-clipboard" :data-clipboard-text="buildLink(link)"
-                :aria-label="$t('buttons.copyToClipboard')" :title="$t('buttons.copyToClipboard')">
-                <i class="material-icons">content_paste</i>
-              </button>
-            </td>
-            <td class="small" v-if="hasDownloadLink()">
-              <button :disabled="link.shareType == 'upload'" class="action copy-clipboard" :data-clipboard-text="buildDownloadLink(link)"
-                :aria-label="$t('buttons.copyDownloadLinkToClipboard')"
-                :title="$t('buttons.copyDownloadLinkToClipboard')">
-                <i class="material-icons">content_paste_go</i>
-              </button>
-            </td>
-            <td class="small">
-              <button class="action" @click="deleteLink($event, link)" :aria-label="$t('general.delete')"
-                :title="$t('general.delete')">
-                <i class="material-icons">delete</i>
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <div v-else>
-      <p>
-        {{ $t("time.unit") }}
-        <i
-          class="no-select material-symbols-outlined tooltip-info-icon"
-          @mouseenter="showTooltip($event, $t('share.shareDurationDescription'))"
-          @mouseleave="hideTooltip"
-        >
-          help
-        </i>
-      </p>
-      <div class="form-flex-group">
-        <input class="form-grow input flat-right" v-focus type="number" max="2147483647" min="0" @keyup.enter="submit" v-model.trim="time" />
-        <select class="flat-left input form-dropdown" v-model="unit" :aria-label="$t('time.unit')">
-          <option value="minutes">{{ $t("time.minutes") }}</option>
-          <option value="hours">{{ $t("time.hours") }}</option>
-          <option value="days">{{ $t("time.days") }}</option>
-        </select>
+            <tr v-for="link in links" :key="link.hash">
+              <td>{{ link.hash }}</td>
+              <td>
+                <template v-if="link.expire !== 0">{{ humanTime(link.expire) }}</template>
+                <template v-else>{{ $t("general.permanent") }}</template>
+              </td>
+              <td class="small">
+                <button class="action" @click="editLink(link)" :aria-label="$t('general.edit')"
+                  :title="$t('general.edit')">
+                  <i class="material-icons">edit</i>
+                </button>
+              </td>
+              <td class="small">
+                <button class="action copy-clipboard" :data-clipboard-text="buildLink(link)"
+                  :aria-label="$t('buttons.copyToClipboard')" :title="$t('buttons.copyToClipboard')">
+                  <i class="material-icons">content_paste</i>
+                </button>
+              </td>
+              <td class="small" v-if="hasDownloadLink()">
+                <button :disabled="link.shareType == 'upload'" class="action copy-clipboard"
+                  :data-clipboard-text="buildDownloadLink(link)" :aria-label="$t('buttons.copyDownloadLinkToClipboard')"
+                  :title="$t('buttons.copyDownloadLinkToClipboard')">
+                  <i class="material-icons">content_paste_go</i>
+                </button>
+              </td>
+              <td class="small">
+                <button class="action" @click="deleteLink($event, link)" :aria-label="$t('general.delete')"
+                  :title="$t('general.delete')">
+                  <i class="material-icons">delete</i>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-      <p>
-        {{ $t("prompts.optionalPassword") }}
-        <i
-          class="no-select material-symbols-outlined tooltip-info-icon"
-          @mouseenter="showTooltip($event, $t('share.passwordDescription'))"
-          @mouseleave="hideTooltip"
-        >
-          help
-        </i>
-      </p>
-      <input class="input" type="password" autocomplete="new-password" v-model.trim="password" />
-      <p>
-        {{ $t("share.shareType") }}
-        <i
-          class="no-select material-symbols-outlined tooltip-info-icon"
-          @mouseenter="showTooltip($event, $t('share.shareTypeDescription'))"
-          @mouseleave="hideTooltip"
-        >
-          help
-        </i>
-      </p>
-      <select class="input" v-model="shareType">
-        <option value="normal">{{ $t("share.normalShare") }}</option>
-        <option value="upload">{{ $t("share.uploadShare") }}</option>
-      </select>
-
-      <div class="settings-items" style="margin-top: 0.5em;">
-        <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="disableDownload" :name="$t('share.disableDownload')" :description="$t('share.disableDownloadDescription')" aria-label="disable downloading files toggle" />
-        <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="allowModify" :name="$t('share.allowModify')" :description="$t('share.allowModifyDescription')" aria-label="allow editing files toggle" />
-        <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="allowDelete" :name="$t('share.allowDelete')" :description="$t('share.allowDeleteDescription')" aria-label="allow deleting files toggle" />
-        <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="allowCreate" :name="$t('share.allowCreate')" :description="$t('share.allowCreateDescription')" aria-label="allow creating and uploading files and folders toggle" />
-        <ToggleSwitch v-if="createAllowed" class="item" v-model="allowReplacements" :name="$t('share.allowReplacements')" :description="$t('share.allowReplacementsDescription')" />
-        <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="disableFileViewer" :name="$t('share.disableFileViewer')" />
-        <ToggleSwitch
-          v-if="shareType === 'normal'"
-          class="item"
-          v-model="quickDownload"
-          :name="$t('profileSettings.showQuickDownload')"
-          :description="$t('profileSettings.showQuickDownloadDescription')"
-        />
-        <ToggleSwitch class="item" v-model="disableAnonymous" :name="$t('share.disableAnonymous')" :description="$t('share.disableAnonymousDescription')" />
-        <ToggleSwitch class="item" v-model="enableAllowedUsernames" :name="$t('share.enableAllowedUsernames')" :description="$t('share.enableAllowedUsernamesDescription')" />
-        <div v-if="enableAllowedUsernames" class="item">
-          <input class="input" type="text" v-model.trim="allowedUsernames" :placeholder="$t('share.allowedUsernamesPlaceholder')" />
-        </div>
-        <ToggleSwitch v-if="shareType === 'normal' && onlyOfficeAvailable" class="item" v-model="enableOnlyOffice" :name="$t('share.enableOnlyOffice')" :description="$t('share.enableOnlyOfficeDescription')" />
+      <div v-else>
         <p>
-          {{ $t("share.enforceDarkLightMode") }}
-          <i
-            class="no-select material-symbols-outlined tooltip-info-icon"
-            @mouseenter="showTooltip($event, $t('share.enforceDarkLightModeDescription'))"
-            @mouseleave="hideTooltip"
-          >
+          {{ $t("time.unit") }}
+          <i class="no-select material-symbols-outlined tooltip-info-icon"
+            @mouseenter="showTooltip($event, $t('share.shareDurationDescription'))" @mouseleave="hideTooltip">
             help
           </i>
         </p>
-        <select class="input" v-model="enforceDarkLightMode">
-          <option value="default">{{ $t("share.default") }}</option>
-          <option value="dark">{{ $t("share.dark") }}</option>
-          <option value="light">{{ $t("share.light") }}</option>
+        <div class="form-flex-group">
+          <input class="form-grow input flat-right" v-focus type="number" max="2147483647" min="0" @keyup.enter="submit"
+            v-model.trim="time" />
+          <select class="flat-left input form-dropdown" v-model="unit" :aria-label="$t('time.unit')">
+            <option value="minutes">{{ $t("time.minutes") }}</option>
+            <option value="hours">{{ $t("time.hours") }}</option>
+            <option value="days">{{ $t("time.days") }}</option>
+          </select>
+        </div>
+        <p>
+          {{ $t("prompts.optionalPassword") }}
+          <i class="no-select material-symbols-outlined tooltip-info-icon"
+            @mouseenter="showTooltip($event, $t('share.passwordDescription'))" @mouseleave="hideTooltip">
+            help
+          </i>
+        </p>
+        <input class="input" type="password" autocomplete="new-password" v-model.trim="password" />
+        <p>
+          {{ $t("share.shareType") }}
+          <i class="no-select material-symbols-outlined tooltip-info-icon"
+            @mouseenter="showTooltip($event, $t('share.shareTypeDescription'))" @mouseleave="hideTooltip">
+            help
+          </i>
+        </p>
+        <select class="input" v-model="shareType">
+          <option value="normal">{{ $t("share.normalShare") }}</option>
+          <option value="upload">{{ $t("share.uploadShare") }}</option>
         </select>
-      </div>
+
+        <div class="settings-items" style="margin-top: 0.5em;">
+          <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="disableDownload"
+            :name="$t('share.disableDownload')" :description="$t('share.disableDownloadDescription')"
+            aria-label="disable downloading files toggle" />
+          <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="allowModify" :name="$t('share.allowModify')"
+            :description="$t('share.allowModifyDescription')" aria-label="allow editing files toggle" />
+          <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="allowDelete" :name="$t('share.allowDelete')"
+            :description="$t('share.allowDeleteDescription')" aria-label="allow deleting files toggle" />
+          <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="allowCreate" :name="$t('share.allowCreate')"
+            :description="$t('share.allowCreateDescription')"
+            aria-label="allow creating and uploading files and folders toggle" />
+          <ToggleSwitch v-if="createAllowed" class="item" v-model="allowReplacements"
+            :name="$t('share.allowReplacements')" :description="$t('share.allowReplacementsDescription')" />
+          <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="disableFileViewer"
+            :name="$t('share.disableFileViewer')" />
+          <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="quickDownload"
+            :name="$t('profileSettings.showQuickDownload')"
+            :description="$t('profileSettings.showQuickDownloadDescription')" />
+          <ToggleSwitch class="item" v-model="disableAnonymous" :name="$t('share.disableAnonymous')"
+            :description="$t('share.disableAnonymousDescription')" />
+          <ToggleSwitch class="item" v-model="enableAllowedUsernames" :name="$t('share.enableAllowedUsernames')"
+            :description="$t('share.enableAllowedUsernamesDescription')" />
+          <div v-if="enableAllowedUsernames" class="item">
+            <input class="input" type="text" v-model.trim="allowedUsernames"
+              :placeholder="$t('share.allowedUsernamesPlaceholder')" />
+          </div>
+          <ToggleSwitch v-if="shareType === 'normal' && onlyOfficeAvailable" class="item" v-model="enableOnlyOffice"
+            :name="$t('share.enableOnlyOffice')" :description="$t('share.enableOnlyOfficeDescription')" />
+          <p>
+            {{ $t("share.enforceDarkLightMode") }}
+            <i class="no-select material-symbols-outlined tooltip-info-icon"
+              @mouseenter="showTooltip($event, $t('share.enforceDarkLightModeDescription'))" @mouseleave="hideTooltip">
+              help
+            </i>
+          </p>
+          <select class="input" v-model="enforceDarkLightMode">
+            <option value="default">{{ $t("share.default") }}</option>
+            <option value="dark">{{ $t("share.dark") }}</option>
+            <option value="light">{{ $t("share.light") }}</option>
+          </select>
+        </div>
         <!-- <ViewMode :viewMode="viewMode" @update:viewMode="viewMode = $event" /> -->
         <p>
           {{ $t("prompts.shareTheme") }}
-          <i
-            class="no-select material-symbols-outlined tooltip-info-icon"
-            @mouseenter="showTooltip($event, $t('share.shareThemeDescription'))"
-            @mouseleave="hideTooltip"
-          >
+          <i class="no-select material-symbols-outlined tooltip-info-icon"
+            @mouseenter="showTooltip($event, $t('share.shareThemeDescription'))" @mouseleave="hideTooltip">
             help
           </i>
         </p>
         <div v-if="Object.keys(availableThemes).length > 0" class="form-flex-group">
           <select class="input" v-model="shareTheme">
             <option v-for="(theme, key) in availableThemes" :key="key" :value="key">
-              {{ String(key) === "default" ? $t("profileSettings.defaultThemeDescription") : `${key} - ${theme.description}` }}
+              {{ String(key) === "default" ? $t("profileSettings.defaultThemeDescription") : `${key} -
+              ${theme.description}`
+              }}
             </option>
           </select>
         </div>
         <div v-if="shareType === 'normal'">
           <p>
             {{ $t("share.defaultViewMode") }}
-            <i
-              class="no-select material-symbols-outlined tooltip-info-icon"
-              @mouseenter="showTooltip($event, $t('share.defaultViewModeDescription'))"
-              @mouseleave="hideTooltip"
-            >
+            <i class="no-select material-symbols-outlined tooltip-info-icon"
+              @mouseenter="showTooltip($event, $t('share.defaultViewModeDescription'))" @mouseleave="hideTooltip">
               help
             </i>
           </p>
@@ -189,120 +185,116 @@
             <option value="list">{{ $t("buttons.listView") }}</option>
             <option value="gallery">{{ $t("buttons.galleryView") }}</option>
           </select>
+          <!-- Sidebar Links Customization -->
+          <div v-if="shareType === 'normal' && !disableSidebar" class="item">
+            <p>{{ $t('share.customizeSidebarLinks') }}</p>
+            <button @click="openSidebarLinksCustomization" class="button button--flat button--blue"
+              style="width: 100%; margin-top: 0.5em;">
+              <i class="material-icons">link</i>
+              {{ $t('share.customizeSidebarLinksButton') }}
+            </button>
+          </div>
         </div>
-      <SettingsItem :title="$t('buttons.showMore')" :collapsable="true" :start-collapsed="true">
-        <div class="settings-items">
-          <ToggleSwitch class="item" v-model="keepAfterExpiration" :name="$t('share.keepAfterExpiration')" :description="$t('share.keepAfterExpirationDescription')" />
-          <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="disableThumbnails" :name="$t('share.disableThumbnails')" :description="$t('share.disableThumbnailsDescription')" />
-          <ToggleSwitch class="item" v-model="disableNavButtons" :name="$t('share.hideNavButtons')" :description="$t('share.hideNavButtonsDescription')" />
-          <ToggleSwitch class="item" v-model="disableShareCard" :name="$t('share.disableShareCard')" :description="$t('share.disableShareCardDescription')" />
-          <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="disableSidebar" :name="$t('share.disableSidebar')" :description="$t('share.disableSidebarDescription')" />
-          <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="perUserDownloadLimit" :name="$t('share.perUserDownloadLimit')" :description="$t('share.perUserDownloadLimitDescription')" />
-          <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="extractEmbeddedSubtitles" :name="$t('share.extractEmbeddedSubtitles')" :description="$t('share.extractEmbeddedSubtitlesDescription')" />
-        </div>
+        <SettingsItem :title="$t('buttons.showMore')" :collapsable="true" :start-collapsed="true">
+          <div class="settings-items">
+            <ToggleSwitch class="item" v-model="keepAfterExpiration" :name="$t('share.keepAfterExpiration')"
+              :description="$t('share.keepAfterExpirationDescription')" />
+            <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="disableThumbnails"
+              :name="$t('share.disableThumbnails')" :description="$t('share.disableThumbnailsDescription')" />
+            <ToggleSwitch class="item" v-model="disableNavButtons" :name="$t('share.hideNavButtons')"
+              :description="$t('share.hideNavButtonsDescription')" />
+            <ToggleSwitch class="item" v-model="disableShareCard" :name="$t('share.disableShareCard')"
+              :description="$t('share.disableShareCardDescription')" />
+            <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="disableSidebar"
+              :name="$t('share.disableSidebar')" :description="$t('share.disableSidebarDescription')" />
+            <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="perUserDownloadLimit"
+              :name="$t('share.perUserDownloadLimit')" :description="$t('share.perUserDownloadLimitDescription')" />
+            <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="extractEmbeddedSubtitles"
+              :name="$t('share.extractEmbeddedSubtitles')"
+              :description="$t('share.extractEmbeddedSubtitlesDescription')" />
+          </div>
 
-        <div v-if="shareType === 'normal'">
+          <div v-if="shareType === 'normal'">
+            <p>
+              {{ $t("prompts.downloadsLimit") }}
+              <i class="no-select material-symbols-outlined tooltip-info-icon"
+                @mouseenter="showTooltip($event, $t('share.downloadsLimitDescription'))" @mouseleave="hideTooltip">
+                help
+              </i>
+            </p>
+            <input class="input" type="number" min="0" v-model.number="downloadsLimit" />
+            <p>
+              {{ $t("prompts.maxBandwidth") }}
+              <i class="no-select material-symbols-outlined tooltip-info-icon"
+                @mouseenter="showTooltip($event, $t('share.maxBandwidthDescription'))" @mouseleave="hideTooltip">
+                help
+              </i>
+            </p>
+            <input class="input" type="number" min="0" v-model.number="maxBandwidth" />
+          </div>
+
+
           <p>
-            {{ $t("prompts.downloadsLimit") }}
-            <i
-              class="no-select material-symbols-outlined tooltip-info-icon"
-              @mouseenter="showTooltip($event, $t('share.downloadsLimitDescription'))"
-              @mouseleave="hideTooltip"
-            >
+            {{ $t("prompts.shareThemeColor") }}
+            <i class="no-select material-symbols-outlined tooltip-info-icon"
+              @mouseenter="showTooltip($event, $t('share.shareThemeColorDescription'))" @mouseleave="hideTooltip">
               help
             </i>
           </p>
-          <input class="input" type="number" min="0" v-model.number="downloadsLimit" />
+          <input class="input" type="text" v-model.trim="themeColor" />
+
           <p>
-            {{ $t("prompts.maxBandwidth") }}
-            <i
-              class="no-select material-symbols-outlined tooltip-info-icon"
-              @mouseenter="showTooltip($event, $t('share.maxBandwidthDescription'))"
-              @mouseleave="hideTooltip"
-            >
+            {{ $t("prompts.shareTitle") }}
+            <i class="no-select material-symbols-outlined tooltip-info-icon"
+              @mouseenter="showTooltip($event, $t('share.shareTitleDescription'))" @mouseleave="hideTooltip">
               help
             </i>
           </p>
-          <input class="input" type="number" min="0" v-model.number="maxBandwidth" />
-        </div>
+          <input class="input" type="text" v-model.trim="title" />
 
+          <p>
+            {{ $t("prompts.shareDescription") }}
+            <i class="no-select material-symbols-outlined tooltip-info-icon"
+              @mouseenter="showTooltip($event, $t('share.shareDescriptionHelp'))" @mouseleave="hideTooltip">
+              help
+            </i>
+          </p>
+          <textarea class="input" v-model.trim="description"></textarea>
 
-        <p>
-          {{ $t("prompts.shareThemeColor") }}
-          <i
-            class="no-select material-symbols-outlined tooltip-info-icon"
-            @mouseenter="showTooltip($event, $t('share.shareThemeColorDescription'))"
-            @mouseleave="hideTooltip"
-          >
-            help
-          </i>
-        </p>
-        <input class="input" type="text" v-model.trim="themeColor" />
+          <p>
+            {{ $t("prompts.shareBanner") }}
+            <i class="no-select material-symbols-outlined tooltip-info-icon"
+              @mouseenter="showTooltip($event, $t('share.shareBannerDescription'))" @mouseleave="hideTooltip">
+              help
+            </i>
+          </p>
+          <input class="input" type="text" v-model.trim="banner" />
 
-        <p>
-          {{ $t("prompts.shareTitle") }}
-          <i
-            class="no-select material-symbols-outlined tooltip-info-icon"
-            @mouseenter="showTooltip($event, $t('share.shareTitleDescription'))"
-            @mouseleave="hideTooltip"
-          >
-            help
-          </i>
-        </p>
-        <input class="input" type="text" v-model.trim="title" />
-
-        <p>
-          {{ $t("prompts.shareDescription") }}
-          <i
-            class="no-select material-symbols-outlined tooltip-info-icon"
-            @mouseenter="showTooltip($event, $t('share.shareDescriptionHelp'))"
-            @mouseleave="hideTooltip"
-          >
-            help
-          </i>
-        </p>
-        <textarea class="input" v-model.trim="description"></textarea>
-
-        <p>
-          {{ $t("prompts.shareBanner") }}
-          <i
-            class="no-select material-symbols-outlined tooltip-info-icon"
-            @mouseenter="showTooltip($event, $t('share.shareBannerDescription'))"
-            @mouseleave="hideTooltip"
-          >
-            help
-          </i>
-        </p>
-        <input class="input" type="text" v-model.trim="banner" />
-
-        <p>
-          {{ $t("prompts.shareFavicon") }}
-          <i
-            class="no-select material-symbols-outlined tooltip-info-icon"
-            @mouseenter="showTooltip($event, $t('share.shareFaviconDescription'))"
-            @mouseleave="hideTooltip"
-          >
-            help
-          </i>
-        </p>
-        <input class="input" type="text" v-model.trim="favicon" />
-      </SettingsItem>
+          <p>
+            {{ $t("prompts.shareFavicon") }}
+            <i class="no-select material-symbols-outlined tooltip-info-icon"
+              @mouseenter="showTooltip($event, $t('share.shareFaviconDescription'))" @mouseleave="hideTooltip">
+              help
+            </i>
+          </p>
+          <input class="input" type="text" v-model.trim="favicon" />
+        </SettingsItem>
       </div>
     </div>
   </div>
 
   <div v-if="!isEditingPath" class="card-action">
-    <button v-if="listing" class="button button--flat button--grey" @click="closeHovers" :aria-label="$t('general.close')"
-      :title="$t('general.close')">
+    <button v-if="listing" class="button button--flat button--grey" @click="closeHovers"
+      :aria-label="$t('general.close')" :title="$t('general.close')">
       {{ $t("general.close") }}
     </button>
-    <button v-if="listing" class="button button--flat button--blue" @click="() => switchListing()" :aria-label="$t('general.new')"
-      :title="$t('general.new')">
+    <button v-if="listing" class="button button--flat button--blue" @click="() => switchListing()"
+      :aria-label="$t('general.new')" :title="$t('general.new')">
       {{ $t("general.new") }}
     </button>
 
-    <button v-if="!listing" class="button button--flat button--grey" @click="() => switchListing()" :aria-label="$t('general.cancel')"
-      :title="$t('general.cancel')">
+    <button v-if="!listing" class="button button--flat button--grey" @click="() => switchListing()"
+      :aria-label="$t('general.cancel')" :title="$t('general.cancel')">
       {{ $t("general.cancel") }}
     </button>
     <button v-if="!listing" class="button button--flat button--blue" @click="submit" aria-label="Share-Confirm"
@@ -388,9 +380,10 @@ export default {
       disableSidebar: false,
       enforceDarkLightMode: "default",
       viewMode: "normal",
-      enableOnlyOffice: false,  
+      enableOnlyOffice: false,
       shareType: "normal",
       extractEmbeddedSubtitles: false,
+      sidebarLinks: [],
       /** @type {Share | null} */
       editingLink: null,
       isEditingPath: false,
@@ -500,6 +493,7 @@ export default {
           this.enableOnlyOffice = this.link.enableOnlyOffice || false;
           this.shareType = this.link.shareType || "normal";
           this.extractEmbeddedSubtitles = this.link.extractEmbeddedSubtitles || false;
+          this.sidebarLinks = Array.isArray(this.link.sidebarLinks) ? [...this.link.sidebarLinks] : [];
           //this.viewMode = this.link.viewMode || "normal";
         }
       },
@@ -525,10 +519,13 @@ export default {
   },
   mounted() {
     this.initClipboard();
+    // Listen for sidebar links updates from the SidebarLinks prompt
+    eventBus.on('shareSidebarLinksUpdated', this.handleSidebarLinksUpdate);
   },
   beforeUnmount() {
-    // Clean up event listener
+    // Clean up event listeners
     eventBus.off('apiKeysChanged', this.reloadApiKeys);
+    eventBus.off('shareSidebarLinksUpdated', this.handleSidebarLinksUpdate);
     // Clean up clipboard
     if (this.clip) {
       this.clip.destroy();
@@ -540,11 +537,11 @@ export default {
       if (this.clip) {
         this.clip.destroy();
       }
-      
+
       // Create new clipboard instance
       this.clip = new Clipboard(".copy-clipboard");
       this.clip.on("success", () => {
-        notify.showSuccess(this.$t("success.linkCopied"));
+        notify.showSuccessToast(this.$t("success.linkCopied"));
       });
     },
     /**
@@ -609,6 +606,7 @@ export default {
           enableOnlyOffice: this.enableOnlyOffice,
           shareType: this.shareType,
           extractEmbeddedSubtitles: this.extractEmbeddedSubtitles,
+          sidebarLinks: this.sidebarLinks,
         };
         if (this.isEditMode) {
           payload.hash = this.link.hash;
@@ -695,6 +693,7 @@ export default {
       this.enableOnlyOffice = link.enableOnlyOffice || false;
       this.shareType = link.shareType || "normal";
       this.extractEmbeddedSubtitles = link.extractEmbeddedSubtitles || false;
+      this.sidebarLinks = Array.isArray(link.sidebarLinks) ? [...link.sidebarLinks] : [];
       // Store the link being edited
       this.editingLink = link;
     },
@@ -788,7 +787,7 @@ export default {
         // Reassigning path - call API to update
         try {
           await shareApi.updatePath(this.link.hash, this.tempPath);
-          notify.showSuccess(this.$t("messages.pathReassigned"));
+          notify.showSuccessToast(this.$t("messages.pathReassigned"));
           this.link.path = this.tempPath;
           this.pathExists = true;
           this.isEditingPath = false;
@@ -811,12 +810,35 @@ export default {
       this.tempSource = this.displaySource;
       this.isEditingPath = true;
     },
+    handleSidebarLinksUpdate(data) {
+      // Update local sidebarLinks when the SidebarLinks prompt saves
+      if (data && data.sidebarLinks) {
+        this.sidebarLinks = [...data.sidebarLinks];
+      }
+    },
+    openSidebarLinksCustomization() {
+      // Prepare share data for the SidebarLinks component
+      const shareData = this.isEditMode ? this.link : this.editingLink || {
+        hash: this.$route.params.hash || 'new',
+        sidebarLinks: this.sidebarLinks,
+      };
+
+      mutations.showHover({
+        name: 'sidebarLinks',
+        props: {
+          context: 'share',
+          shareData: {
+            ...shareData,
+            sidebarLinks: this.sidebarLinks,
+          },
+        },
+      });
+    },
   },
 };
 </script>
 
 <style scoped>
-
 .setting-item {
   display: flex;
   justify-content: space-between;
@@ -834,5 +856,4 @@ export default {
 .input {
   height: auto;
 }
-
 </style>

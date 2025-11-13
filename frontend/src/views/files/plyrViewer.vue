@@ -22,7 +22,7 @@
                 </div>
 
                 <!-- Metadata info -->
-                <div class="metadata-info" v-if="metadata">
+                <div class="notification-info" v-if="metadata">
                     <div class="audio-title">
                         {{ metadata.title || req.name }}
                     </div>
@@ -1324,7 +1324,7 @@ export default {
     word-break: break-word;
 }
 
-.metadata-info {
+.notification-info {
    text-align: center;
    color: whitesmoke;
    box-sizing: border-box;
@@ -1354,7 +1354,7 @@ export default {
         padding-top: 1em;
     }
 
-    .metadata-info {
+    .notification-info {
         padding: 12px 15px;
     }
 
@@ -1393,7 +1393,7 @@ export default {
         margin: 0 auto;
     }
 
-    .metadata-info {
+    .notification-info {
         text-align: left;
         margin: 0;
         padding: 15px;

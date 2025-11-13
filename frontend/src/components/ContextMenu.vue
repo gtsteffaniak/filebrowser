@@ -483,7 +483,7 @@ export default {
           throw new Error("Editor save handler not found");
         }
         buttons.success(button);
-        notify.showSuccess(this.$t("editor.fileSaved"));
+        notify.showSuccessToast(this.$t("editor.fileSaved"));
       } catch (e) {
         // Don't show error notification here - API layer already showed it
         buttons.done(button);

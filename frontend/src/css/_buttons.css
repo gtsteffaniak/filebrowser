@@ -8,7 +8,6 @@
   border: 1px solid rgba(0, 0, 0, 0.05);
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.05);
   transition: .1s ease all;
-  border-radius: 1em;
 }
 
 .button--block {
@@ -51,4 +50,8 @@
   bottom: 1rem;
   right: 1rem;
   z-index: 1000;
+}
+
+.searchContext {
+  margin-bottom: 1em;
 }

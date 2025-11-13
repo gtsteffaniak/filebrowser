@@ -26,14 +26,8 @@
             <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           </div>
 
-          <div v-if="!shareInfo.disableDownload" class="share__box__element share__box__center">
-            <button class="button button--flat clickable" @click="goToDownload()"> {{ $t("general.download") }} </button>
-          </div>
         </div>
 
-      </div>
-      <div v-if="req.type" class="share__box__element share__box__center">
-        <qrcode-vue class="qrcode" :value="getShareLink()" size="200" level="M"></qrcode-vue>
       </div>
     </div>
   </div>
@@ -41,16 +35,12 @@
 
 <script>
 import { publicApi } from "@/api";
-import { state, getters, mutations } from "@/store";
+import { state, getters } from "@/store";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { getTypeInfo } from "@/utils/mimetype";
-import QrcodeVue from "qrcode.vue";
 
 export default {
   name: "ShareInfo",
-  components: {
-    QrcodeVue,
-  },
   props: {
     hash: {
       type: String,
@@ -67,6 +57,10 @@ export default {
   },
   computed: {
     showShareInfo() {
+      // Don't show file/folder info if req is not loaded or empty
+      if (!state.req || !state.req.name) {
+        return false;
+      }
       if (state.shareInfo?.shareType !== 'normal') {
         return false;
       }
@@ -88,17 +82,18 @@ export default {
       return state.req;
     },
     humanSize() {
-      if (!state.req.modified) return "";
+      if (!state.req || !state.req.modified) return "";
       if (state.req.type == "directory") {
         return state.req.items.length + " items (" + getHumanReadableFilesize(state.req.size) + ")";
       }
       return getHumanReadableFilesize(state.req.size);
     },
     humanTime() {
-      if (!state.req.modified) return "";
+      if (!state.req || !state.req.modified) return "";
       return getters.getTime(state.req.modified);
     },
     modTime() {
+      if (!state.req || !state.req.modified) return "";
       return new Date(Date.parse(state.req.modified)).toLocaleString();
     },
     isImage() {
@@ -113,36 +108,6 @@ export default {
     },
   },
   methods: {
-    goToDownload() {
-      if (state.req.items.length > 1) {
-        mutations.showHover({
-          name: "download",
-          confirm: (format) => {
-            mutations.closeHovers();
-            const downloadLink = publicApi.getDownloadURL({
-              path: "/",
-              hash: state.share.hash,
-              token: state.share.token,
-              inline: false,
-            }, [state.req.path]);
-            window.open(downloadLink + "&format=" + format, "_blank");
-          },
-        });
-      } else {
-        const downloadLink = publicApi.getDownloadURL({
-          path: "/",
-          hash: state.share.hash,
-          token: state.share.token,
-          inline: false,
-        }, [state.req.path]);
-        window.open(downloadLink, "_blank");
-      }
-    },
-    getShareLink() {
-      return publicApi.getShareURL({
-        hash: state.share.hash,
-      });
-    },
   },
 };
 </script>

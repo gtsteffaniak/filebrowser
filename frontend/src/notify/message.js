@@ -20,11 +20,26 @@ import { mutations, state } from '@/store'
  * @property {ReturnType<typeof setTimeout> | null} [timeoutId]
  */
 
+/**
+ * @typedef {Object} Toast
+ * @property {string} id
+ * @property {'success' | 'error' | 'info' | 'warning'} type
+ * @property {string} message
+ * @property {string} [icon]
+ * @property {ReturnType<typeof setTimeout> | null} [timeoutId]
+ */
+
 /** @type {Notification[]} */
 let notifications = []
 
+/** @type {Toast[]} */
+let toasts = []
+
 /** @type {((notifications: Notification[]) => void) | null} */
 let updateCallback = null
+
+/** @type {((toasts: Toast[]) => void) | null} */
+let toastUpdateCallback = null
 
 /**
  * Set the callback function to be called when notifications change
@@ -32,6 +47,14 @@ let updateCallback = null
  */
 export function setUpdateCallback(callback) {
   updateCallback = callback
+}
+
+/**
+ * Set the callback function to be called when toasts change
+ * @param {(toasts: Toast[]) => void} callback
+ */
+export function setToastUpdateCallback(callback) {
+  toastUpdateCallback = callback
 }
 
 /**
@@ -48,6 +71,15 @@ function generateId() {
 function notifyUpdate() {
   if (updateCallback) {
     updateCallback([...notifications])
+  }
+}
+
+/**
+ * Notify listeners that toasts have changed
+ */
+function notifyToastUpdate() {
+  if (toastUpdateCallback) {
+    toastUpdateCallback([...toasts])
   }
 }
 
@@ -142,6 +174,51 @@ export function showPopup(type, message, options = {}) {
 
   notifications.push(notification)
   notifyUpdate()
+
+  // Save to notification history with timestamp
+  // Serialize buttons to preserve action metadata
+  const serializedButtons = buttons ? buttons.map(button => ({
+    label: button.label,
+    className: button.className,
+    keepOpen: button.keepOpen,
+    primary: button.primary,
+    // Store action as metadata if it's a function
+    actionType: button.actionType || (typeof button.action === 'function' ? 'function' : null),
+    actionData: button.actionData || null,
+    // Keep the action function in memory for immediate use
+    _action: typeof button.action === 'function' ? button.action : null
+  })) : null
+
+  const historyEntry = {
+    id: notificationId,
+    type,
+    message: parsedMessage,
+    icon,
+    buttons: serializedButtons,
+    timestamp: Date.now(),
+    persistent: persistent
+  }
+  state.notificationHistory.push(historyEntry)
+
+  // Persist to sessionStorage (survives page refresh, cleared on tab close)
+  // Note: Functions can't be serialized, so _action will be lost, but actionType/actionData are preserved
+  try {
+    const serializableHistory = state.notificationHistory.map(entry => ({
+      ...entry,
+      buttons: entry.buttons ? entry.buttons.map(btn => ({
+        label: btn.label,
+        className: btn.className,
+        keepOpen: btn.keepOpen,
+        primary: btn.primary,
+        actionType: btn.actionType,
+        actionData: btn.actionData
+        // _action is intentionally omitted as it can't be serialized
+      })) : null
+    }))
+    sessionStorage.setItem('notificationHistory', JSON.stringify(serializableHistory))
+  } catch (error) {
+    console.error('Failed to save notification history:', error)
+  }
 
   // Set auto-close timeout if applicable
   if (shouldAutoClose) {
@@ -239,4 +316,145 @@ export function showError(message, options = {}) {
 
 export function showMultipleSelection() {
   showPopup('success', 'Multiple Selection Enabled', { persistent: true })
+}
+
+// ============================================================================
+// Toast Notifications
+// ============================================================================
+// Usage examples:
+//   import { notify } from "@/notify";
+//   
+//   notify.showSuccessToast("File saved!");
+//   notify.showErrorToast("Failed to save file");
+//   notify.showInfoToast("Processing...");
+//   notify.showWarningToast("Disk space is low");
+//   
+//   // With custom icon and duration:
+//   notify.showSuccessToast("Done!", { icon: "check", duration: 3000 });
+//   notify.showToast("info", "Custom message", { icon: "star", duration: 5000 });
+// ============================================================================
+
+/**
+ * Get all active toasts
+ * @returns {Toast[]}
+ */
+export function getToasts() {
+  return [...toasts]
+}
+
+/**
+ * Close a specific toast by ID
+ * @param {string} toastId
+ */
+export function closeToast(toastId) {
+  const index = toasts.findIndex(t => t.id === toastId)
+  if (index === -1) {
+    return
+  }
+
+  const toast = toasts[index]
+
+  // Clear timeout if exists
+  if (toast.timeoutId) {
+    clearTimeout(toast.timeoutId)
+  }
+
+  // Remove from array
+  toasts.splice(index, 1)
+  notifyToastUpdate()
+}
+
+/**
+ * Show a toast notification
+ * @param {'success' | 'error' | 'info' | 'warning'} type
+ * @param {string} message
+ * @param {Object} [options]
+ * @param {string} [options.icon] - Material icon name
+ * @param {number} [options.duration=2000] - Duration in milliseconds before auto-close
+ */
+export function showToast(type, message, options = {}) {
+  const {
+    icon = getDefaultToastIcon(type),
+    duration = 2000
+  } = options
+
+  const toastId = generateId()
+
+  /** @type {Toast} */
+  const toast = {
+    id: toastId,
+    type,
+    message,
+    icon,
+    timeoutId: null
+  }
+
+  toasts.push(toast)
+  notifyToastUpdate()
+
+  // Set auto-close timeout
+  if (duration > 0) {
+    toast.timeoutId = setTimeout(() => {
+      closeToast(toastId)
+    }, duration)
+  }
+}
+
+/**
+ * Get default icon for toast type
+ * @param {'success' | 'error' | 'info' | 'warning'} type
+ * @returns {string}
+ */
+function getDefaultToastIcon(type) {
+  const iconMap = {
+    success: 'check_circle',
+    error: 'error',
+    info: 'info',
+    warning: 'warning'
+  }
+  return iconMap[type] || 'info'
+}
+
+/**
+ * Show a success toast
+ * @param {string} message
+ * @param {Object} [options]
+ * @param {string} [options.icon]
+ * @param {number} [options.duration=2000]
+ */
+export function showSuccessToast(message, options = {}) {
+  showToast('success', message, options)
+}
+
+/**
+ * Show an error toast
+ * @param {string} message
+ * @param {Object} [options]
+ * @param {string} [options.icon]
+ * @param {number} [options.duration=3000]
+ */
+export function showErrorToast(message, options = {}) {
+  showToast('error', message, { duration: 3000, ...options })
+}
+
+/**
+ * Show an info toast
+ * @param {string} message
+ * @param {Object} [options]
+ * @param {string} [options.icon]
+ * @param {number} [options.duration=2000]
+ */
+export function showInfoToast(message, options = {}) {
+  showToast('info', message, options)
+}
+
+/**
+ * Show a warning toast
+ * @param {string} message
+ * @param {Object} [options]
+ * @param {string} [options.icon]
+ * @param {number} [options.duration=2500]
+ */
+export function showWarningToast(message, options = {}) {
+  showToast('warning', message, { duration: 2500, ...options })
 }

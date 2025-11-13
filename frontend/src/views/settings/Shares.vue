@@ -157,7 +157,7 @@ export default {
       // Create new clipboard
       this.clip = new Clipboard(".copy-clipboard");
       this.clip.on("success", () => {
-        notify.showSuccess(this.$t("success.linkCopied"));
+        notify.showSuccessToast(this.$t("success.linkCopied"));
       });
       this.clip.on("error", () => {
         console.log("Failed to copy link to the clipboard", e);
@@ -185,7 +185,7 @@ export default {
           try {
             shareApi.remove(item.hash);
             this.links = this.links.filter((link) => link.hash !== item.hash);
-            notify.showSuccess(this.$t("settings.shareDeleted"));
+            notify.showSuccessToast(this.$t("settings.shareDeleted"));
           } catch (e) {
             console.error(e);
           }

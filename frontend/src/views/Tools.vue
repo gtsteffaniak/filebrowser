@@ -1,9 +1,9 @@
 <template>
   <div class="tools-wrapper">
-    <!-- Show tools list when on the main /tools route -->
+    <!-- Show tools list when no tool is selected -->
     <div v-if="showToolsList" class="tools-list-container">
       <div class="tools-header">
-        <h1>{{ $t('tools.description') }}</h1>
+        <h1>{{ $t('tools.title') }}</h1>
         <p class="description">{{ $t('tools.description') }}</p>
       </div>
 
@@ -18,31 +18,56 @@
             <i class="material-icons">{{ tool.icon }}</i>
           </div>
           <div class="tool-content">
-            <h3 style="margin:0; padding:0;">{{ $t(tool.name) }}</h3>
-            <p>{{ $t(tool.description) }}</p>
+            <h3 style="margin:0; padding:0;">{{ tool.name }}</h3>
+            <p>{{ tool.description }}</p>
           </div>
         </router-link>
       </div>
     </div>
 
-    <!-- Render specific tool components -->
-    <router-view v-else />
+    <!-- Dynamically render the selected tool component -->
+    <component v-else-if="currentTool" :is="currentTool.component" />
+
+    <!-- Show error if tool not found -->
+    <div v-else class="tool-not-found">
+      <i class="material-icons">error_outline</i>
+      <h2>{{ $t('tools.toolNotFound') }}</h2>
+      <router-link to="/tools" class="button button--flat">{{ $t('tools.backToTools') }}</router-link>
+    </div>
   </div>
 </template>
 
 <script>
 import { tools } from "@/utils/constants";
+import SizeViewer from "@/views/tools/SizeViewer.vue";
+import DuplicateFinder from "@/views/tools/DuplicateFinder.vue";
+import MaterialIconPicker from "@/views/tools/MaterialIconPicker.vue";
 
 export default {
   name: "Tools",
+  components: {
+    SizeViewer,
+    DuplicateFinder,
+    MaterialIconPicker,
+  },
   computed: {
     tools() {
-      // Call the tools function to get the array
       return tools();
     },
+    toolName() {
+      return this.$route.params.toolName;
+    },
     showToolsList() {
-      // Show the tools list only when on the main /tools route
-      return this.$route.name === "Tools";
+      return !this.toolName;
+    },
+    currentTool() {
+      if (!this.toolName) return null;
+      return this.tools.find(tool => {
+        // Extract tool name from path (e.g., /tools/sizeViewer -> sizeViewer)
+        const pathSegments = tool.path.split('/');
+        const toolPathName = pathSegments[pathSegments.length - 1];
+        return toolPathName === this.toolName;
+      });
     },
   },
 };
@@ -54,10 +79,14 @@ export default {
 }
 
 .tools-wrapper {
+  max-width: 1000px;
+  margin: auto;
   width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
+}
+
+.tools-wrapper .tool {
+  padding: 1em;
+  width: 100%;
 }
 
 .tools-list-container {
@@ -70,5 +99,26 @@ export default {
 
 .tool-content {
   padding: 0.5em;
+}
+
+.tool-not-found {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4em 2em;
+  color: var(--textSecondary);
+  text-align: center;
+}
+
+.tool-not-found i {
+  font-size: 4em;
+  opacity: 0.5;
+  margin-bottom: 0.5em;
+}
+
+.tool-not-found h2 {
+  margin: 0.5em 0;
+  color: var(--textPrimary);
 }
 </style>

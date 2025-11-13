@@ -324,7 +324,7 @@ export default {
 
       try {
         await navigator.clipboard.writeText(this.hashResult);
-        notify.showSuccess(this.$t("prompts.hashCopied"));
+        notify.showSuccessToast(this.$t("prompts.hashCopied"));
       } catch (err) {
         // Fallback for older browsers
         const textArea = document.createElement("textarea");
@@ -335,7 +335,7 @@ export default {
         textArea.select();
         try {
           document.execCommand("copy");
-          notify.showSuccess(this.$t("prompts.hashCopied"));
+          notify.showSuccessToast(this.$t("prompts.hashCopied"));
         } catch (e) {
           notify.showError(this.$t("prompts.errorCopyingHash"));
         }

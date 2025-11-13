@@ -73,13 +73,6 @@ func duplicatesHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 	// Use largest=true to get files sorted by size, which bypasses the need for text matching
 	allFiles := index.Search(query, opts.combinedPath, "", true)
 
-	// Debug: log first file path to see format
-	if len(allFiles) > 0 {
-		fmt.Printf("[Debug] First file path from search: '%s'\n", allFiles[0].Path)
-		fmt.Printf("[Debug] combinedPath: '%s'\n", opts.combinedPath)
-		fmt.Printf("[Debug] index.Path (filesystem root): '%s'\n", index.Path)
-	}
-
 	// Group files by size first (efficient first pass)
 	// Using pointers reduces memory usage significantly when dealing with many files
 	sizeGroups := make(map[int64][]*indexing.SearchResult)
@@ -98,15 +91,10 @@ func duplicatesHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 		}
 
 		if opts.useChecksum {
-			// Group by partial checksum (fast sampling of file content for verification)
-			fmt.Printf("[Checksums] Processing %d files of size %d bytes\n", len(files), size)
 			// Pass the index to get its root path for filesystem access
 			checksumGroups := groupByPartialChecksum(files, index, size)
-			fmt.Printf("[Checksums] Found %d checksum groups\n", len(checksumGroups))
-			for checksum, group := range checksumGroups {
-				fmt.Printf("[Checksums]   Checksum %s: %d files\n", checksum[:8], len(group))
+			for _, group := range checksumGroups {
 				if len(group) >= 2 {
-					fmt.Printf("[Checksums]     -> Adding duplicate group with %d files\n", len(group))
 					// Remove the user scope from paths (modifying in place is safe)
 					for _, file := range group {
 						file.Path = strings.TrimPrefix(file.Path, opts.combinedPath)
@@ -202,13 +190,8 @@ func groupByPartialChecksum(files []*indexing.SearchResult, index *indexing.Inde
 		fullPath := filepath.Join(index.Path, file.Path)
 		checksum, err := computePartialChecksum(fullPath, fileSize)
 		if err != nil {
-			fmt.Printf("[Checksums]     Error reading %s\n", filepath.Base(fullPath))
-			fmt.Printf("[Checksums]       Index path: %s\n", file.Path)
-			fmt.Printf("[Checksums]       Full path: %s\n", fullPath)
-			fmt.Printf("[Checksums]       Error: %v\n", err)
 			continue
 		}
-		fmt.Printf("[Checksums]     ✓ %s -> checksum %s\n", filepath.Base(fullPath), checksum[:8])
 		checksumGroups[checksum] = append(checksumGroups[checksum], file)
 	}
 

@@ -9,8 +9,6 @@
     </div>
     <SidebarSettings v-if="isSettings"></SidebarSettings>
     <SidebarGeneral v-if="!isSettings"></SidebarGeneral>
-    <SidebarShare v-if="isValidShare"></SidebarShare>
-
     <div class="buffer"></div>
     <div v-if="!isSettings" class="credits">
       <span v-for="item in externalLinks" :key="item.title">
@@ -37,14 +35,12 @@ import { globalVars } from "@/utils/constants";
 import { getters, mutations, state } from "@/store"; // Import your custom store
 import SidebarGeneral from "./General.vue";
 import SidebarSettings from "./Settings.vue";
-import SidebarShare from "./Share.vue";
 
 export default {
   name: "sidebar",
   components: {
     SidebarGeneral,
     SidebarSettings,
-    SidebarShare,
   },
 
   mounted() {
@@ -77,7 +73,7 @@ export default {
     isLoggedIn: () => getters.isLoggedIn(),
     isSettings: () => getters.isSettings(),
     active: () => getters.isSidebarVisible(),
-    behindOverlay: () => state.isSearchActive,
+    behindOverlay: () => state.isSearchActive || (state.prompts && state.prompts.length > 0),
     shouldShow() {
       return (
         globalVars.updateAvailable != "" &&
@@ -114,7 +110,6 @@ export default {
   z-index: 4;
   left: -20em;
   height: 100%;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
   transition: 0.5s ease;
   top: 4em;
   padding-bottom: 4em;
@@ -155,10 +150,6 @@ body.rtl nav {
 
 #sidebar .button {
   width: 100%;
-  display: block;
-  white-space: nowrap;
-  height: 100%;
-  overflow: hidden;
   text-overflow: ellipsis;
 }
 

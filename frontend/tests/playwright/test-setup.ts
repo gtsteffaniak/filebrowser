@@ -127,78 +127,153 @@ export function setupErrorTracking(page: Page) {
 
 
 /**
- * Helper function to check for a notification with the given message
+ * Helper function to check for a notification or toast with the given message
  * @param page - Playwright page object
  * @param message - Expected message text (string or RegExp)
- * @returns Locator for the matching notification message
+ * @returns Locator for the matching notification or toast message
  */
 export async function checkForNotification(page: Page, message: string | RegExp): Promise<import('@playwright/test').Locator> {
-  // Use Playwright's built-in waiting mechanism with a locator filter
-  // This will automatically retry until the notification appears or timeout
+  // Check both notifications and toasts
   const notificationMessage = page.locator('.notification-message');
+  const toastMessage = page.locator('.toast-message');
+  const allMessages = page.locator('.notification-message, .toast-message');
 
   try {
-    // Wait for a notification containing the message to appear
-    // Use Playwright's filter to find the matching notification
-    let matchingNotification: import('@playwright/test').Locator | null = null;
+    // Wait for a notification or toast containing the message to appear
+    let matchingMessage: import('@playwright/test').Locator | null = null;
 
     if (typeof message === 'string') {
       // For string matching, use text content filter
-      matchingNotification = notificationMessage.filter({ hasText: message }).first();
+      matchingMessage = allMessages.filter({ hasText: message }).first();
     } else {
       // For RegExp, we need to check all and find the match
-      // Wait for at least one notification first
-      await notificationMessage.first().waitFor({ state: 'visible', timeout: 5000 });
+      // Wait for at least one notification or toast first
+      await allMessages.first().waitFor({ state: 'visible', timeout: 5000 });
 
-      // Then check all notifications
-      const count = await notificationMessage.count();
+      // Then check all messages
+      const count = await allMessages.count();
       for (let i = 0; i < count; i++) {
-        const notification = notificationMessage.nth(i);
-        const text = await notification.textContent();
+        const messageElement = allMessages.nth(i);
+        const text = await messageElement.textContent();
         if (text && message.test(text)) {
-          matchingNotification = notification;
+          matchingMessage = messageElement;
           break;
         }
       }
     }
 
-    if (matchingNotification) {
+    if (matchingMessage) {
       // Wait for it to be visible (with retry logic)
-      await matchingNotification.waitFor({ state: 'visible', timeout: 5000 });
-      return matchingNotification;
+      await matchingMessage.waitFor({ state: 'visible', timeout: 5000 });
+      return matchingMessage;
     }
 
     // If no match found, get all messages for error reporting
-    const allMessages = await notificationMessage.allTextContents();
-    const errorMessage = `Notification with message "${message}" not found. Current notifications: ${JSON.stringify(allMessages)}`;
+    const [notificationTexts, toastTexts] = await Promise.all([
+      notificationMessage.allTextContents(),
+      toastMessage.allTextContents(),
+    ]);
+    const allTexts = {
+      notifications: notificationTexts,
+      toasts: toastTexts,
+    };
+    const errorMessage = `Message "${message}" not found. Current messages: ${JSON.stringify(allTexts)}`;
     throw new Error(errorMessage);
 
   } catch (error: any) {
     // Handle page closed/navigation errors gracefully
     if (error.message && (error.message.includes('Target page') || error.message.includes('closed'))) {
-      // Try to get current notifications before page closed
+      // Try to get current messages before page closed
       try {
-        const allMessages = await notificationMessage.allTextContents();
-        throw new Error(`Notification check failed: page was closed or navigated. Expected message: "${message}". Found notifications before page closed: ${JSON.stringify(allMessages)}`);
+        const [notificationTexts, toastTexts] = await Promise.all([
+          notificationMessage.allTextContents(),
+          toastMessage.allTextContents(),
+        ]);
+        const allTexts = {
+          notifications: notificationTexts,
+          toasts: toastTexts,
+        };
+        throw new Error(`Message check failed: page was closed or navigated. Expected: "${message}". Found before page closed: ${JSON.stringify(allTexts)}`);
       } catch {
-        throw new Error(`Notification check failed: page was closed or navigated before notification could be checked. Expected message: "${message}"`);
+        throw new Error(`Message check failed: page was closed or navigated before message could be checked. Expected: "${message}"`);
       }
     }
 
-    // If no notifications found, provide helpful error
+    // If no messages found, provide helpful error
     if (error.message && error.message.includes('waiting for')) {
       try {
-        const allMessages = await notificationMessage.allTextContents();
-        const errorMessage = allMessages.length === 0
-          ? 'No notifications found on the page.'
-          : `No notifications found. Current notifications: ${JSON.stringify(allMessages)}`;
-        throw new Error(`Notification with message "${message}" not found. ${errorMessage}`);
+        const [notificationTexts, toastTexts] = await Promise.all([
+          notificationMessage.allTextContents(),
+          toastMessage.allTextContents(),
+        ]);
+        const allTexts = {
+          notifications: notificationTexts,
+          toasts: toastTexts,
+        };
+        const totalCount = notificationTexts.length + toastTexts.length;
+        const errorMessage = totalCount === 0
+          ? 'No notifications or toasts found on the page.'
+          : `No matching message found. Current messages: ${JSON.stringify(allTexts)}`;
+        throw new Error(`Message "${message}" not found. ${errorMessage}`);
       } catch (countError: any) {
         if (countError.message && (countError.message.includes('Target page') || countError.message.includes('closed'))) {
           throw error;
         }
         throw countError;
       }
+    }
+
+    throw error;
+  }
+}
+
+/**
+ * Helper function to check specifically for a toast message
+ * Use this when you want to verify that a toast (not a notification) was shown
+ * @param page - Playwright page object
+ * @param message - Expected message text (string or RegExp)
+ * @returns Locator for the matching toast message
+ */
+export async function checkForToast(page: Page, message: string | RegExp): Promise<import('@playwright/test').Locator> {
+  const toastMessage = page.locator('.toast-message');
+
+  try {
+    let matchingToast: import('@playwright/test').Locator | null = null;
+
+    if (typeof message === 'string') {
+      matchingToast = toastMessage.filter({ hasText: message }).first();
+    } else {
+      await toastMessage.first().waitFor({ state: 'visible', timeout: 5000 });
+      const count = await toastMessage.count();
+      for (let i = 0; i < count; i++) {
+        const toast = toastMessage.nth(i);
+        const text = await toast.textContent();
+        if (text && message.test(text)) {
+          matchingToast = toast;
+          break;
+        }
+      }
+    }
+
+    if (matchingToast) {
+      await matchingToast.waitFor({ state: 'visible', timeout: 5000 });
+      return matchingToast;
+    }
+
+    const allToasts = await toastMessage.allTextContents();
+    throw new Error(`Toast with message "${message}" not found. Current toasts: ${JSON.stringify(allToasts)}`);
+
+  } catch (error: any) {
+    if (error.message && (error.message.includes('Target page') || error.message.includes('closed'))) {
+      throw new Error(`Toast check failed: page was closed or navigated. Expected: "${message}"`);
+    }
+
+    if (error.message && error.message.includes('waiting for')) {
+      const allToasts = await toastMessage.allTextContents().catch(() => []);
+      const errorMessage = allToasts.length === 0
+        ? 'No toasts found on the page.'
+        : `No matching toast found. Current toasts: ${JSON.stringify(allToasts)}`;
+      throw new Error(`Toast with message "${message}" not found. ${errorMessage}`);
     }
 
     throw error;

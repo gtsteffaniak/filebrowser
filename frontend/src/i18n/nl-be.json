@@ -42,7 +42,8 @@
     "internal": "Er ging iets mis.",
     "notFound": "Deze locatie kan niet worden bereikt.",
     "connection": "De server kan niet worden bereikt.",
-    "shareNotFound": "Ongeldig of verlopen aandeel."
+    "shareNotFound": "Ongeldig of verlopen aandeel.",
+    "failedToConnectToServer": "Kan geen verbinding maken met de server, draait deze nog?"
   },
   "files": {
     "closePreview": "Voorvertoon sluiten",
@@ -340,11 +341,23 @@
     "linkUrl": "Link URL",
     "linkUrlPlaceholder": "Voer een URL of pad in (bijvoorbeeld /files/path of https://example.com)",
     "linkIcon": "Link pictogram",
-    "linkIconPlaceholder": "Voer de naam van het materiaalpictogram in (bijv. map, instellingen, link)",
     "linksUpdatedSuccess": "Zijbalk links succesvol bijgewerkt!",
     "linksUpdateFailed": "Het bijwerken van links in de zijbalk is mislukt",
     "sourceNotAccessible": "Deze bron is niet langer toegankelijk voor jou",
-    "noLinksYet": "Er zijn nog geen links geconfigureerd. Voeg hieronder uw eerste link toe."
+    "noLinksYet": "Er zijn nog geen links geconfigureerd. Voeg hieronder uw eerste link toe.",
+    "customizeShareLinks": "Zijbalkkoppelingen delen aanpassen",
+    "customizeShareLinksDescription": "Pas de links aan die worden weergegeven in de zijbalk voor deze share. Slepen en neerzetten om te herschikken.",
+    "editLink": "Link bewerken",
+    "selectShare": "Selecteer aandeel",
+    "chooseShare": "Kies een aandeel",
+    "selectSharePath": "Pad binnen share (optioneel)",
+    "sharePathPlaceholder": "bijvoorbeeld /submap of leeg laten voor root",
+    "browseIcons": "Bladeren door pictogrammen",
+    "pickIcon": "Kies een pictogram",
+    "pickIconDescription": "Zoek en selecteer een pictogram uit de bibliotheek met materiaalpictogrammen",
+    "shareLinksUpdatedSuccess": "Zijbalk links delen succesvol bijgewerkt!",
+    "shareHome": "Thuis delen",
+    "linkIconPlaceholder": "Voer het materiaalpictogram in of klik op de pictogramknop om te bladeren"
   },
   "success": {
     "linkCopied": "Link gekopieerd!"
@@ -420,7 +433,12 @@
     "allowReplacements": "Bestandsvervangingen toestaan",
     "allowReplacementsDescription": "Iedereen kan bestaande bestanden vervangen door bestanden met dezelfde naam te uploaden.",
     "allowCreate": "Bestanden en mappen maken en uploaden",
-    "allowCreateDescription": "Iedereen kan nieuwe bestanden en mappen aanmaken en uploaden in deze share."
+    "allowCreateDescription": "Iedereen kan nieuwe bestanden en mappen aanmaken en uploaden in deze share.",
+    "customizeSidebarLinks": "Zijbalk koppelingen aanpassen",
+    "customizeSidebarLinksButton": "Koppelingen aanpassen",
+    "shareInfo": "QR Code en info delen",
+    "shareInfoDescription": "Deze link toont de informatie van de share, inclusief titel, beschrijving, banner en QR code in een popup.",
+    "downloadDescription": "Met deze link kun je de volledige inhoud van de share downloaden als een gecomprimeerd bestand."
   },
   "api": {
     "title": "API-sleutels",
@@ -444,7 +462,8 @@
     "expires": "Verloopt op",
     "actions": "Acties",
     "enabled": "Ingeschakeld",
-    "disabled": "Uitgeschakeld"
+    "disabled": "Uitgeschakeld",
+    "apiKeyDeleted": "API-sleutel verwijderd!"
   },
   "index": {
     "assessment": "Beoordeling",
@@ -740,7 +759,24 @@
     "duplicateFinder": {
       "name": "Duplicaat bestand zoeken",
       "description": "Dubbele bestanden vinden en beheren om opslagruimte terug te winnen"
-    }
+    },
+    "materialIconPicker": {
+      "name": "Materiaal pictogrammenkiezer",
+      "description": "Bladeren en zoeken in materiële pictogrammen met live voorbeeld",
+      "searchPlaceholder": "Pictogrammen zoeken...",
+      "browseFullLibrary": "Blader door de volledige pictogrammenbibliotheek:",
+      "popularIcons": "Toon {count} populaire pictogrammen",
+      "showingResults": "Resultaten tonen {count} ",
+      "noResults": "Geen pictogrammen gevonden",
+      "tryDifferentSearch": "Probeer een andere zoekterm",
+      "copiedToClipboard": "Gekopieerd '{name}' naar klembord!",
+      "copyFailed": "Kopiëren naar klembord mislukt",
+      "custom": "Aangepast",
+      "useCustomIcon": "Gebruik een aangepast pictogram: {name}",
+      "iconLibraryUrl": "lettertypen.google.com/iconen"
+    },
+    "toolNotFound": "Gereedschap niet gevonden",
+    "backToTools": "Terug naar Gereedschap"
   },
   "messages": {
     "pathNotFound": "Pad bestaat niet op bestandssysteem",
@@ -760,5 +796,19 @@
     "totalWastedSpace": "Totale verspilde ruimte{suffix}",
     "wasted": "Verspild{suffix}",
     "emptyState": "Voer zoekcriteria in en klik op Duplicaten zoeken om dubbele bestanden te identificeren"
+  },
+  "notifications": {
+    "title": "Meldingen",
+    "description": "Alle meldingen van je huidige sessie bekijken",
+    "empty": "Nog geen meldingen",
+    "clearAll": "Alles wissen",
+    "clearConfirm": "Weet je zeker dat je alle meldingsgeschiedenis wilt wissen?",
+    "total": "{count} meldingen"
+  },
+  "events": {
+    "serverShutdown": "De server is uitgeschakeld.",
+    "authenticationFailed": "Authenticatie mislukt. Vernieuw de pagina om opnieuw in te loggen.",
+    "reconnected": "Opnieuw verbinding gemaakt met server.",
+    "connectionLost": "De verbinding met de server is verbroken. Probeer opnieuw verbinding te maken..."
   }
 }

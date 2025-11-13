@@ -28,7 +28,7 @@
           </td>
           <td>{{ formatScopes(user.scopes) }}</td>
           <td class="small" aria-label="Edit User">
-            <div @click="openPrompt(user.id)" class="clickable">
+            <div @click="openPrompt(user.id)" class="clickable action button">
               <i class="material-icons">mode_edit</i>
             </div>
           </td>
