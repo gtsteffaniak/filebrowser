@@ -597,7 +597,8 @@
     "commands": "Commandes{suffix}",
     "uploading": "Téléchargement{suffix}",
     "paused": "En pause{suffix}",
-    "conflict": "Conflit{suffix}"
+    "conflict": "Conflit{suffix}",
+    "change": "Changer{suffix}"
   },
   "access": {
     "rules": "Règles d'accès",

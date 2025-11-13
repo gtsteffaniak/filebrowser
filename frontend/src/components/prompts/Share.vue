@@ -79,7 +79,7 @@
       </div>
       <div v-else>
         <p>
-          {{ $t("time.unit") }}
+          {{ $t("files.duration") }}
           <i class="no-select material-symbols-outlined tooltip-info-icon"
             @mouseenter="showTooltip($event, $t('share.shareDurationDescription'))" @mouseleave="hideTooltip">
             help
@@ -101,7 +101,13 @@
             help
           </i>
         </p>
-        <input class="input" type="password" autocomplete="new-password" v-model.trim="password" />
+        <div v-if="hasExistingPassword && !isChangingPassword" class="password-change-section">
+          <button class="button button--flat button--blue" @click="isChangingPassword = true" style="width: 100%;">
+            <i class="material-icons">lock_reset</i>
+            {{ $t("general.change") }}
+          </button>
+        </div>
+        <input v-else class="input" type="password" autocomplete="new-password" v-model.trim="password" />
         <p>
           {{ $t("share.shareType") }}
           <i class="no-select material-symbols-outlined tooltip-info-icon"
@@ -391,6 +397,7 @@ export default {
       tempPath: "",
       tempSource: "",
       pathExists: true,
+      isChangingPassword: false,
       //viewMode: "normal",
     };
   },
@@ -444,12 +451,18 @@ export default {
     },
     isEditMode() {
       return this.editing && this.link && Object.keys(this.link).length > 0;
+    },
+    hasExistingPassword() {
+      // Check if we're editing a link and it has a password
+      const currentLink = this.isEditMode ? this.link : this.editingLink;
+      return currentLink && currentLink.hasPassword;
     }
   },
   watch: {
     listing(isListing) {
       if (!isListing) {
         this.password = "";
+        this.isChangingPassword = false;
       }
     },
     isEditMode: {
@@ -464,6 +477,7 @@ export default {
             : "0";
           this.unit = "hours";
           this.password = "";
+          this.isChangingPassword = false;
           this.disableDownload = this.link.disableDownload || false;
           this.allowModify = this.link.allowModify || false;
           this.allowDelete = this.link.allowDelete || false;
@@ -515,6 +529,8 @@ export default {
 
     if (this.links.length === 0) {
       this.listing = false;
+      // Set default sidebar links for new shares
+      this.setDefaultSidebarLinks();
     }
   },
   mounted() {
@@ -574,7 +590,6 @@ export default {
         const payload = {
           path: this.displayPath,
           source: this.displaySource,
-          password: this.password,
           expires: isPermanent ? "" : this.time.toString(),
           unit: this.unit,
           disableAnonymous: this.disableAnonymous,
@@ -608,6 +623,15 @@ export default {
           extractEmbeddedSubtitles: this.extractEmbeddedSubtitles,
           sidebarLinks: this.sidebarLinks,
         };
+
+        // Handle password inclusion logic:
+        // - Always include for new shares
+        // - For editing: only include if no existing password OR explicitly changing it
+        const isEditing = this.isEditMode || this.editingLink;
+        if (!isEditing || !this.hasExistingPassword || this.isChangingPassword) {
+          payload.password = this.password;
+        }
+
         if (this.isEditMode) {
           payload.hash = this.link.hash;
         } else if (this.editingLink) {
@@ -645,6 +669,7 @@ export default {
         this.time = "";
         this.unit = "hours";
         this.password = "";
+        this.isChangingPassword = false;
 
         this.listing = true;
       } catch (err) {
@@ -664,6 +689,7 @@ export default {
         : "0";
       this.unit = "hours";
       this.password = "";
+      this.isChangingPassword = false;
       this.disableDownload = link.disableDownload || false;
       this.allowModify = link.allowModify || false;
       this.allowDelete = link.allowDelete || false;
@@ -768,6 +794,31 @@ export default {
       // Clear editing link when switching back to listing
       if (this.listing) {
         this.editingLink = null;
+      } else {
+        // Clear editing link when switching to create new share
+        this.editingLink = null;
+        this.isChangingPassword = false;
+        // Set default sidebar links for new shares
+        this.setDefaultSidebarLinks();
+      }
+    },
+    setDefaultSidebarLinks() {
+      // Only set defaults if creating a new share (not editing) and no links are configured
+      if (!this.isEditMode && !this.editingLink && this.sidebarLinks.length === 0) {
+        this.sidebarLinks = [
+          {
+            name: "Share QR Code and Info",
+            category: "shareInfo",
+            target: "#",
+            icon: "qr_code"
+          },
+          {
+            name: "Download",
+            category: "download",
+            target: "#",
+            icon: "download"
+          }
+        ];
       }
     },
     fixDownloadURL(downloadUrl) {
@@ -855,5 +906,16 @@ export default {
 /* Prevent inputs from expanding to container height during expand transition */
 .input {
   height: auto;
+}
+
+.password-change-section {
+  margin-bottom: 1em;
+}
+
+.password-change-section button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
 }
 </style>

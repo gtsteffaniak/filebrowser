@@ -677,7 +677,8 @@
     "commands": "Kommandon{suffix}",
     "uploading": "Uppladdning{suffix}",
     "paused": "Pausad{suffix}",
-    "conflict": "Konflikt{suffix}"
+    "conflict": "Konflikt{suffix}",
+    "change": "Förändring{suffix}"
   },
   "access": {
     "rules": "Regler för åtkomst",

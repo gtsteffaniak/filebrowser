@@ -597,7 +597,8 @@
     "commands": "Komutlar{suffix}",
     "uploading": "Yükleme{suffix}",
     "paused": "Duraklatıldı{suffix}",
-    "conflict": "Çatışma{suffix}"
+    "conflict": "Çatışma{suffix}",
+    "change": "Değişim{suffix}"
   },
   "access": {
     "rules": "Erişim kuralları",
