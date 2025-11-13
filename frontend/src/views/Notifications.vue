@@ -1,18 +1,16 @@
 <template>
   <div class="notifications-view">
-    <div class="notifications-header">
-      <div class="header-top">
-        <h1>{{ $t("notifications.title") }}</h1>
-        <p class="notifications-description">{{ $t("notifications.description") }}</p>
-        <div v-if="sortedNotifications.length > 0" class="header-actions">
-          <button @click="clearHistory" class="button button--flat button--grey clear-button">
-            <i class="material-icons">delete_sweep</i>
-            {{ $t("notifications.clearAll") }}
-          </button>
-          <span class="notification-count">
-            {{ $t("notifications.total", { count: sortedNotifications.length }) }}
-          </span>
-        </div>
+    <div class="card-title">
+      <h1>{{ $t("notifications.title") }}</h1>
+      <p class="notifications-description">{{ $t("notifications.description") }}</p>
+      <div v-if="sortedNotifications.length > 0" class="header-actions">
+        <button @click="clearHistory" class="button button--flat button--grey clear-button">
+          <i class="material-icons">delete_sweep</i>
+          {{ $t("notifications.clearAll") }}
+        </button>
+        <span class="notification-count">
+          {{ $t("notifications.total", { count: sortedNotifications.length }) }}
+        </span>
       </div>
     </div>
 
@@ -35,8 +33,8 @@
               </div>
               <div v-if="notification.buttons && notification.buttons.length > 0" class="notification-buttons">
                 <button v-for="(button, btnIndex) in notification.buttons" :key="btnIndex"
-                  :class="['button', button.className]" @click="handleButtonClick(button)"
-                  :aria-label="button.label" :title="button.label">
+                  :class="['button', button.className]" @click="handleButtonClick(button)" :aria-label="button.label"
+                  :title="button.label">
                   {{ button.label }}
                 </button>
               </div>
@@ -65,7 +63,7 @@ export default {
     sortedNotifications() {
       // Return notifications sorted by timestamp (newest first)
       const history = [...state.notificationHistory];
-      
+
       // Try to restore button actions from active notifications if they still exist
       // This works for notifications that are still in memory (same session)
       const activeNotifications = notify.getNotifications();
@@ -84,7 +82,7 @@ export default {
           }
         }
       });
-      
+
       return history.sort((a, b) => b.timestamp - a.timestamp);
     },
   },

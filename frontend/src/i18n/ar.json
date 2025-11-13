@@ -462,7 +462,8 @@
     "expires": "تنتهي صلاحيتها",
     "actions": "الإجراءات",
     "enabled": "ممكّنة",
-    "disabled": "معاق"
+    "disabled": "معاق",
+    "apiKeyDeleted": "تم حذف مفتاح API!"
   },
   "index": {
     "assessment": "التقييم",
@@ -806,7 +807,6 @@
   },
   "events": {
     "serverShutdown": "تم إيقاف تشغيل الخادم.",
-    "serverShuttingDown": "تم إيقاف تشغيل الخادم. إعادة الاتصال...",
     "authenticationFailed": "فشلت المصادقة. يرجى تحديث الصفحة لتسجيل الدخول مرة أخرى.",
     "reconnected": "تمت إعادة الاتصال بالخادم.",
     "connectionLost": "فُقد الاتصال بالخادم. محاولة إعادة الاتصال..."

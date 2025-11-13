@@ -462,7 +462,8 @@
     "expires": "Expiration",
     "actions": "Actions",
     "enabled": "Activée",
-    "disabled": "Désactivée"
+    "disabled": "Désactivée",
+    "apiKeyDeleted": "Clé API supprimée !"
   },
   "index": {
     "assessment": "Évaluation",
@@ -806,7 +807,6 @@
   },
   "events": {
     "serverShutdown": "Le serveur a été arrêté.",
-    "serverShuttingDown": "Le serveur s'arrête. Reconnexion...",
     "authenticationFailed": "L'authentification a échoué. Veuillez actualiser la page pour vous reconnecter.",
     "reconnected": "Reconnexion au serveur.",
     "connectionLost": "La connexion au serveur a été perdue. Essayer de se reconnecter..."

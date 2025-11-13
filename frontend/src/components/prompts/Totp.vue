@@ -98,7 +98,7 @@ export default {
         mutations.updateCurrentUser({ otpEnabled: true });
         this.succeeded = true
         this.error = "";
-        notify.showSuccess(this.$t("otp.verificationSucceed"));
+        notify.showSuccessToast(this.$t("otp.verificationSucceed"));
       } catch (error) {
         this.error = this.$t("otp.verificationFailed");
         return;

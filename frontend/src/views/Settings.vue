@@ -166,10 +166,7 @@ export default {
 }
 
 .settings-views .card-title {
-  background: var(--primaryColor);
-  padding: 0.5em;
-  border-radius: 1em;
-  color: white;
+  color: var(--textPrimary);
 }
 
 .settings-views .card {

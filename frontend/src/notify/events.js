@@ -161,7 +161,6 @@ async function eventRouter (eventType, message) {
   switch (eventType) {
     case 'notification':
       if (message === 'the server is shutting down') {
-        notify.showErrorToast(i18n.global.t('events.serverShuttingDown'))
         mutations.setRealtimeActive(false)
         cleanup()
         scheduleReconnect()
@@ -178,7 +177,7 @@ async function eventRouter (eventType, message) {
 
     case 'acknowledge':
       if (!state.realtimeActive) {
-        notify.showSuccess(i18n.global.t('events.reconnected'))
+        notify.showSuccessToast(i18n.global.t('events.reconnected'))
       }
       mutations.setRealtimeActive(true)
       break

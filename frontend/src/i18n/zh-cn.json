@@ -462,7 +462,8 @@
     "expires": "到期",
     "actions": "行动",
     "enabled": "已启用",
-    "disabled": "残疾"
+    "disabled": "残疾",
+    "apiKeyDeleted": "API 密钥已删除！"
   },
   "index": {
     "assessment": "评估",
@@ -806,7 +807,6 @@
   },
   "events": {
     "serverShutdown": "服务器已关闭。",
-    "serverShuttingDown": "服务器正在关闭。重新连接...",
     "authenticationFailed": "验证失败。请刷新页面重新登录。",
     "reconnected": "重新连接服务器。",
     "connectionLost": "与服务器的连接丢失。尝试重新连接..."

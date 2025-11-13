@@ -627,6 +627,7 @@
     "permissionNote": "Choose at least one permission for the key. Your user must also have the permission.",
     "createKeyFailed": "Failed to create API key.",
     "createKeySuccess": "API key created successfully.",
+    "apiKeyDeleted": "API key deleted!",
     "description": "API keys are based on the user that creates them. See",
     "swaggerLinkText": "swagger page",
     "name": "Name",
@@ -806,7 +807,6 @@
   },
   "events": {
     "serverShutdown": "The server was shutdown.",
-    "serverShuttingDown": "Server is shutting down. Reconnecting...",
     "authenticationFailed": "Authentication failed. Please refresh the page to log in again.",
     "reconnected": "Reconnected to server.",
     "connectionLost": "The connection to server was lost. Trying to reconnect..."

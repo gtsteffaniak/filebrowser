@@ -462,7 +462,8 @@
     "expires": "Expiră",
     "actions": "Acțiuni",
     "enabled": "Activat",
-    "disabled": "Dezactivat"
+    "disabled": "Dezactivat",
+    "apiKeyDeleted": "Cheie API ștearsă!"
   },
   "index": {
     "assessment": "Evaluare",
@@ -806,7 +807,6 @@
   },
   "events": {
     "serverShutdown": "Serverul a fost închis.",
-    "serverShuttingDown": "Serverul se oprește. Reconectarea...",
     "authenticationFailed": "Autentificarea a eșuat. Vă rugăm să reîmprospătați pagina pentru a vă conecta din nou.",
     "reconnected": "Reconectat la server.",
     "connectionLost": "Conexiunea la server a fost pierdută. Încercați să vă reconectați..."

@@ -462,7 +462,8 @@
     "expires": "Wygasa",
     "actions": "Działania",
     "enabled": "Włączone",
-    "disabled": "Wyłączony"
+    "disabled": "Wyłączony",
+    "apiKeyDeleted": "Klucz API został usunięty!"
   },
   "index": {
     "assessment": "Ocena",
@@ -806,7 +807,6 @@
   },
   "events": {
     "serverShutdown": "Serwer został wyłączony.",
-    "serverShuttingDown": "Serwer jest zamykany. Ponowne połączenie...",
     "authenticationFailed": "Uwierzytelnianie nie powiodło się. Odśwież stronę, aby zalogować się ponownie.",
     "reconnected": "Ponowne połączenie z serwerem.",
     "connectionLost": "Połączenie z serwerem zostało utracone. Próba ponownego połączenia..."

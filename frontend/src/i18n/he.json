@@ -462,7 +462,8 @@
     "expires": "תוקף",
     "actions": "פעולות",
     "enabled": "מופעל",
-    "disabled": "נכה"
+    "disabled": "נכה",
+    "apiKeyDeleted": "מפתח API נמחק!"
   },
   "index": {
     "assessment": "הערכה",
@@ -806,7 +807,6 @@
   },
   "events": {
     "serverShutdown": "השרת כובה.",
-    "serverShuttingDown": "השרת נסגר. מתחבר מחדש...",
     "authenticationFailed": "האימות נכשל. אנא רענן את הדף כדי להתחבר שוב.",
     "reconnected": "התחבר מחדש לשרת.",
     "connectionLost": "החיבור לשרת אבד. מנסה להתחבר מחדש..."

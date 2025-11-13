@@ -462,7 +462,8 @@
     "expires": "Läuft ab",
     "actions": "Aktionen",
     "enabled": "Aktiviert",
-    "disabled": "Deaktiviert"
+    "disabled": "Deaktiviert",
+    "apiKeyDeleted": "API-Schlüssel gelöscht!"
   },
   "index": {
     "assessment": "Bewertung",
@@ -806,7 +807,6 @@
   },
   "events": {
     "serverShutdown": "Der Server wurde abgeschaltet.",
-    "serverShuttingDown": "Der Server wird heruntergefahren. Verbindung wiederherstellen...",
     "authenticationFailed": "Authentifizierung fehlgeschlagen. Bitte aktualisieren Sie die Seite, um sich erneut anzumelden.",
     "reconnected": "Die Verbindung zum Server wurde wiederhergestellt.",
     "connectionLost": "Die Verbindung zum Server wurde unterbrochen. Ich versuche, die Verbindung wiederherzustellen..."

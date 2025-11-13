@@ -462,7 +462,8 @@
     "expires": "Scadenza",
     "actions": "Azioni",
     "enabled": "Abilitato",
-    "disabled": "Disabili"
+    "disabled": "Disabili",
+    "apiKeyDeleted": "Chiave API cancellata!"
   },
   "index": {
     "assessment": "Valutazione",
@@ -806,7 +807,6 @@
   },
   "events": {
     "serverShutdown": "Il server è stato spento.",
-    "serverShuttingDown": "Il server si sta spegnendo. Riconnettersi...",
     "authenticationFailed": "Autenticazione fallita. Aggiornare la pagina per accedere nuovamente.",
     "reconnected": "Ricollegato al server.",
     "connectionLost": "La connessione al server è stata persa. Cerco di riconnettermi..."

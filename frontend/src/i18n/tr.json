@@ -462,7 +462,8 @@
     "expires": "Sona erdi",
     "actions": "Eylemler",
     "enabled": "Etkin",
-    "disabled": "Engelli"
+    "disabled": "Engelli",
+    "apiKeyDeleted": "API anahtarı silindi!"
   },
   "index": {
     "assessment": "Değerlendirme",
@@ -806,7 +807,6 @@
   },
   "events": {
     "serverShutdown": "Sunucu kapatıldı.",
-    "serverShuttingDown": "Sunucu kapanıyor. Yeniden bağlanılıyor...",
     "authenticationFailed": "Kimlik doğrulama başarısız oldu. Tekrar giriş yapmak için lütfen sayfayı yenileyin.",
     "reconnected": "Sunucuya yeniden bağlanıldı.",
     "connectionLost": "Sunucu ile bağlantı kesildi. Yeniden bağlanmaya çalışıyorum..."

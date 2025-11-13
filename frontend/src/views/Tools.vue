@@ -26,7 +26,7 @@
     </div>
 
     <!-- Dynamically render the selected tool component -->
-    <component v-else-if="currentToolComponent" :is="currentToolComponent" />
+    <component v-else-if="currentTool" :is="currentTool.component" />
 
     <!-- Show error if tool not found -->
     <div v-else class="tool-not-found">
@@ -38,11 +38,18 @@
 </template>
 
 <script>
-import { defineAsyncComponent } from 'vue';
 import { tools } from "@/utils/constants";
+import SizeViewer from "@/views/tools/SizeViewer.vue";
+import DuplicateFinder from "@/views/tools/DuplicateFinder.vue";
+import MaterialIconPicker from "@/views/tools/MaterialIconPicker.vue";
 
 export default {
   name: "Tools",
+  components: {
+    SizeViewer,
+    DuplicateFinder,
+    MaterialIconPicker,
+  },
   computed: {
     tools() {
       return tools();
@@ -53,17 +60,14 @@ export default {
     showToolsList() {
       return !this.toolName;
     },
-    currentToolComponent() {
+    currentTool() {
       if (!this.toolName) return null;
-
-      // Map tool names to their components
-      const toolComponents = {
-        'sizeViewer': defineAsyncComponent(() => import('@/views/tools/SizeViewer.vue')),
-        'duplicateFinder': defineAsyncComponent(() => import('@/views/tools/DuplicateFinder.vue')),
-        'materialIconPicker': defineAsyncComponent(() => import('@/views/tools/MaterialIconPicker.vue')),
-      };
-
-      return toolComponents[this.toolName] || null;
+      return this.tools.find(tool => {
+        // Extract tool name from path (e.g., /tools/sizeViewer -> sizeViewer)
+        const pathSegments = tool.path.split('/');
+        const toolPathName = pathSegments[pathSegments.length - 1];
+        return toolPathName === this.toolName;
+      });
     },
   },
 };
@@ -75,10 +79,14 @@ export default {
 }
 
 .tools-wrapper {
+  max-width: 1000px;
+  margin: auto;
   width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
+}
+
+.tools-wrapper .tool {
+  padding: 1em;
+  width: 100%;
 }
 
 .tools-list-container {

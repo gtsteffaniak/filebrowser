@@ -541,7 +541,7 @@ export default {
       // Create new clipboard instance
       this.clip = new Clipboard(".copy-clipboard");
       this.clip.on("success", () => {
-        notify.showSuccess(this.$t("success.linkCopied"));
+        notify.showSuccessToast(this.$t("success.linkCopied"));
       });
     },
     /**
@@ -787,7 +787,7 @@ export default {
         // Reassigning path - call API to update
         try {
           await shareApi.updatePath(this.link.hash, this.tempPath);
-          notify.showSuccess(this.$t("messages.pathReassigned"));
+          notify.showSuccessToast(this.$t("messages.pathReassigned"));
           this.link.path = this.tempPath;
           this.pathExists = true;
           this.isEditingPath = false;

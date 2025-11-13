@@ -8,8 +8,12 @@ All notable changes to this project will be documented in this file. For commit 
  - Added tools
    - size analyzer -- quickly show largest files in interactive graphical chart
    - duplicate finder -- find duplicate files larger than 1MB
- - Status bar for listing view #1459
- - More dynamic view modes with additional styling changes.
+   - material icon picker and previewer
+ - Listing View Style updates
+   - Status bar for listing view #1459
+   - Duration field shows up if media is shown with duration
+   - More dynamic view modes with additional styling changes
+   - Total display modes consolidated into 3 main groups: list, gallery, normal. "icon" and "compact" mode exist as views based on display size setting.
  - Customizable sidebar links
    - Logged in users can have their preferences saved and synced
    - Can rearrange, add custom links, and save your preferences.
@@ -21,10 +25,10 @@ All notable changes to this project will be documented in this file. For commit 
    - If a file/path is moved/renamed outside UI, a warning message will show and ability to associate to new path
  - Cascade delete access in Access Management when deleting a User #1347
  - Enhanced notifications
-   - Added toast notification type support
+   - Added "toast" notification type support -- most success messages show as toast now.
    - multiple stacked notifications possible
-   - notification button support
-   - notification history
+   - notification button support, such as click to open folder after moving file.
+   - notification history (not including toasts)
 
  **Notes**:
  - more efficient user update actions. Successful PUT actions return only 204 if successful.

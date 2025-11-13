@@ -34,18 +34,21 @@ const getTools = () => [
     description: i18n.global.t("tools.sizeAnalyzer.description"),
     icon: "analytics",
     path: "/tools/sizeViewer",
+    component: "SizeViewer",
   },
   {
     name: i18n.global.t("tools.duplicateFinder.name"),
     description: i18n.global.t("tools.duplicateFinder.description"),
     icon: "content_copy",
     path: "/tools/duplicateFinder",
+    component: "DuplicateFinder",
   },
   {
     name: i18n.global.t("tools.materialIconPicker.name"),
     description: i18n.global.t("tools.materialIconPicker.description"),
     icon: "interests",
     path: "/tools/materialIconPicker",
+    component: "MaterialIconPicker",
   },
 ];
 

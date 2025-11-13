@@ -1,6 +1,6 @@
 <template>
-  <div id="tool-material-icon-picker">
-    <div class="tool-header">
+  <div class="tool" >
+    <div class="card-title">
       <h1>{{ $t('tools.materialIconPicker.name') }}</h1>
       <p>{{ $t('tools.materialIconPicker.description') }}</p>
 
@@ -42,7 +42,7 @@
     </div>
 
     <!-- Icon Grid -->
-    <div class="icon-grid">
+    <div class="icon-grid" :key="searchQueryKey">
       <!-- Custom Icon Preview (if searching and doesn't exactly match existing) -->
       <div
         v-if="showCustomPreview"
@@ -59,8 +59,8 @@
 
       <!-- Popular Icons -->
       <div
-        v-for="iconName in visibleIcons"
-        :key="iconName"
+        v-for="(iconName, index) in visibleIcons"
+        :key="`${searchQueryKey}-${iconName}-${index}`"
         class="icon-card clickable"
         @click="copyIconName(iconName)"
         :title="iconName"
@@ -94,19 +94,32 @@ export default {
   data() {
     return {
       searchQuery: "",
-      allMaterialIcons,
     };
   },
   computed: {
+    allMaterialIcons() {
+      // Return the icon list as a computed property to avoid reactivity issues
+      return allMaterialIcons;
+    },
+    searchQueryKey() {
+      // Create a unique key based on search query to force re-render when search changes
+      return this.searchQuery.trim();
+    },
     filteredIcons() {
-      // Apply search filter
-      if (this.searchQuery.trim()) {
-        const query = this.searchQuery.toLowerCase();
-        return this.allMaterialIcons.filter((icon) =>
-          icon.toLowerCase().includes(query)
-        );
+      // Apply search filter - always return a new array to avoid caching issues
+      const query = this.searchQuery.trim().toLowerCase();
+      if (!query) {
+        return [...this.allMaterialIcons];
       }
-      return this.allMaterialIcons;
+      
+      // Create a fresh filtered array
+      const filtered = [];
+      for (const icon of this.allMaterialIcons) {
+        if (icon.toLowerCase().includes(query)) {
+          filtered.push(icon);
+        }
+      }
+      return filtered;
     },
     showCustomPreview() {
       // Show custom preview if:
@@ -123,8 +136,8 @@ export default {
       return !exactMatch;
     },
     visibleIcons() {
-      // Limit results for performance (show more in full-page view with smaller cards)
-      return this.filteredIcons.slice(0, 300);
+      // Always return the filtered icons array
+      return this.filteredIcons;
     },
   },
   methods: {
@@ -167,28 +180,6 @@ export default {
 </script>
 
 <style scoped>
-#tool-material-icon-picker {
-  padding: 2em;
-  max-width: 1400px;
-  margin: 0 auto;
-}
-
-/* Header */
-.tool-header {
-  margin-bottom: 2em;
-}
-
-.tool-header h1 {
-  font-size: 2em;
-  margin-bottom: 0.5em;
-  color: var(--textPrimary);
-}
-
-.tool-header p {
-  color: var(--textSecondary);
-  font-size: 1.1em;
-  margin-bottom: 1em;
-}
 
 /* External Link Banner */
 .external-link-banner {

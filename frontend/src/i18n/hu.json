@@ -462,7 +462,8 @@
     "expires": "Lejárat:",
     "actions": "Tevékenységek",
     "enabled": "Engedélyezve",
-    "disabled": "Mozgáskorlátozottak"
+    "disabled": "Mozgáskorlátozottak",
+    "apiKeyDeleted": "API kulcs törölve!"
   },
   "index": {
     "assessment": "Értékelés",
@@ -806,7 +807,6 @@
   },
   "events": {
     "serverShutdown": "A kiszolgálót leállították.",
-    "serverShuttingDown": "A szerver leáll. Újracsatlakozás...",
     "authenticationFailed": "A hitelesítés sikertelen. Kérjük, frissítse az oldalt az újbóli bejelentkezéshez.",
     "reconnected": "Újra csatlakozott a kiszolgálóhoz.",
     "connectionLost": "Megszakadt a kapcsolat a kiszolgálóval. Próbáljuk újracsatlakoztatni..."

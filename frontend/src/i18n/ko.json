@@ -462,7 +462,8 @@
     "expires": "만료",
     "actions": "작업",
     "enabled": "활성화됨",
-    "disabled": "장애인"
+    "disabled": "장애인",
+    "apiKeyDeleted": "API 키가 삭제되었습니다!"
   },
   "index": {
     "assessment": "평가",
@@ -806,7 +807,6 @@
   },
   "events": {
     "serverShutdown": "서버가 종료되었습니다.",
-    "serverShuttingDown": "서버가 종료됩니다. 다시 연결하는 중...",
     "authenticationFailed": "인증에 실패했습니다. 페이지를 새로고침하여 다시 로그인하세요.",
     "reconnected": "서버에 다시 연결되었습니다.",
     "connectionLost": "서버에 대한 연결이 끊어졌습니다. 다시 연결하려고 합니다..."

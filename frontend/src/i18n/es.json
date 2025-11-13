@@ -462,7 +462,8 @@
     "permissionNote": "Elije al menos un permiso - Tu usuario también debe tener ese permiso.",
     "createKeyFailed": "Hubo un error al crear la API",
     "createKeySuccess": "¡Clave API creada con exito!",
-    "description": "Las claves API solo podrán tener los permisos que tu usuario tenga. Para más info mira la"
+    "description": "Las claves API solo podrán tener los permisos que tu usuario tenga. Para más info mira la",
+    "apiKeyDeleted": "Clave API eliminada"
   },
   "index": {
     "assessment": "Tipo",
@@ -806,7 +807,6 @@
   },
   "events": {
     "serverShutdown": "El servidor se ha apagado.",
-    "serverShuttingDown": "El servidor se apaga. Reconectando...",
     "authenticationFailed": "Error de autenticación. Actualice la página para volver a iniciar sesión.",
     "reconnected": "Reconectado al servidor.",
     "connectionLost": "Se ha perdido la conexión con el servidor. Intentando reconectar..."

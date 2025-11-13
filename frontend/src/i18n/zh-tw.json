@@ -462,7 +462,8 @@
     "expires": "到期",
     "actions": "行動",
     "enabled": "已啟用",
-    "disabled": "殘障"
+    "disabled": "殘障",
+    "apiKeyDeleted": "API 金鑰已刪除！"
   },
   "index": {
     "assessment": "評估",
@@ -806,7 +807,6 @@
   },
   "events": {
     "serverShutdown": "伺服器被關閉。",
-    "serverShuttingDown": "伺服器正在關閉。重新連線...",
     "authenticationFailed": "驗證失敗。請刷新頁面重新登入。",
     "reconnected": "重新連線至伺服器。",
     "connectionLost": "與伺服器的連線中斷。嘗試重新連線..."

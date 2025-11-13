@@ -462,7 +462,8 @@
     "expires": "Platnosť končí na",
     "actions": "Činnosti",
     "enabled": "Povolené",
-    "disabled": "Bezbariérový"
+    "disabled": "Bezbariérový",
+    "apiKeyDeleted": "Kľúč API odstránený!"
   },
   "index": {
     "assessment": "Hodnotenie",
@@ -806,7 +807,6 @@
   },
   "events": {
     "serverShutdown": "Server bol vypnutý.",
-    "serverShuttingDown": "Server sa vypína. Opätovné pripojenie...",
     "authenticationFailed": "Autentifikácia zlyhala. Obnovte stránku a prihláste sa znova.",
     "reconnected": "Opätovné pripojenie k serveru.",
     "connectionLost": "Spojenie so serverom bolo stratené. Pri pokuse o opätovné pripojenie..."

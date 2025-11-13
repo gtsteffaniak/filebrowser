@@ -462,7 +462,8 @@
     "expires": "Verloopt op",
     "actions": "Acties",
     "enabled": "Ingeschakeld",
-    "disabled": "Uitgeschakeld"
+    "disabled": "Uitgeschakeld",
+    "apiKeyDeleted": "API-sleutel verwijderd!"
   },
   "index": {
     "assessment": "Beoordeling",
@@ -806,7 +807,6 @@
   },
   "events": {
     "serverShutdown": "De server is uitgeschakeld.",
-    "serverShuttingDown": "Server wordt afgesloten. Opnieuw verbinden...",
     "authenticationFailed": "Authenticatie mislukt. Vernieuw de pagina om opnieuw in te loggen.",
     "reconnected": "Opnieuw verbinding gemaakt met server.",
     "connectionLost": "De verbinding met de server is verbroken. Probeer opnieuw verbinding te maken..."

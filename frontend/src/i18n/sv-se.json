@@ -462,7 +462,8 @@
     "expires": "Upphör att gälla",
     "actions": "Åtgärder",
     "enabled": "Aktiverad",
-    "disabled": "Inaktiverad"
+    "disabled": "Inaktiverad",
+    "apiKeyDeleted": "API-nyckel raderad!"
   },
   "index": {
     "assessment": "Bedömning",
@@ -806,7 +807,6 @@
   },
   "events": {
     "serverShutdown": "Servern stängdes av.",
-    "serverShuttingDown": "Servern stängs ner. Återansluter...",
     "authenticationFailed": "Autentiseringen misslyckades. Uppdatera sidan för att logga in igen.",
     "reconnected": "Återansluten till servern.",
     "connectionLost": "Anslutningen till servern förlorades. Försöker återansluta..."

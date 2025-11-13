@@ -23,7 +23,6 @@
       </h2>
     </div>
   </div>
-  <PopupPreview v-if="popupEnabled" />
 </template>
 
 <script>
@@ -41,7 +40,6 @@ import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
 import router from "@/router";
 import { globalVars } from "@/utils/constants";
-import PopupPreview from "@/components/files/PopupPreview.vue";
 import { extractSourceFromPath } from "@/utils/url";
 import ShareInfoCard from "@/components/files/ShareInfoCard.vue";
 
@@ -57,7 +55,6 @@ export default {
     DocViewer,
     OnlyOfficeEditor,
     MarkdownViewer,
-    PopupPreview,
     ShareInfoCard,
   },
   data() {
@@ -81,12 +78,6 @@ export default {
     },
     showShareInfo() {
       return getters.isShare() && state.isMobile && state.req.path == "/" && !state.shareInfo?.disableShareCard;
-    },
-    popupEnabled() {
-      if (!state.user || state.user?.username == "") {
-        return false;
-      }
-      return state.user.preview.popup;
     },
     showBreadCrumbs() {
       return getters.showBreadCrumbs();

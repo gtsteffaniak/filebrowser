@@ -660,7 +660,7 @@ export default {
             sidebarLinks: this.links,
           });
 
-          notify.showSuccess(this.$t("sidebar.shareLinksUpdatedSuccess"));
+          notify.showSuccessToast(this.$t("sidebar.shareLinksUpdatedSuccess"));
         } else {
           // Save to user
           const updatedUser = {
@@ -674,7 +674,7 @@ export default {
           // Update the local state
           state.user.sidebarLinks = [...this.links];
 
-          notify.showSuccess(this.$t("sidebar.linksUpdatedSuccess"));
+          notify.showSuccessToast(this.$t("sidebar.linksUpdatedSuccess"));
         }
 
         // Close only this prompt, returning to the previous one (if any)

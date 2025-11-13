@@ -404,7 +404,7 @@ export default {
           if (state.user.permissions.admin && this.user.id !== state.user.id) {
             eventBus.emit('usersChanged');
           }
-          notify.showSuccess(this.$t("settings.userUpdated"));
+          notify.showSuccessToast(this.$t("settings.userUpdated"));
           mutations.closeHovers();
         }
       } catch (e) {
@@ -431,7 +431,7 @@ export default {
         if (state.user.permissions.admin && this.user.id !== state.user.id) {
           eventBus.emit('usersChanged');
         }
-        notify.showSuccess(this.$t("settings.userUpdated"));
+        notify.showSuccessToast(this.$t("settings.userUpdated"));
       } catch (e) {
         notify.showError(e);
       }

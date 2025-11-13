@@ -195,7 +195,7 @@ export default {
         // Reassigning path - call API to update
         try {
           await accessApi.updatePath(this.currentSource, this.originalPath, this.tempPath);
-          notify.showSuccess(this.$t("messages.pathReassigned"));
+          notify.showSuccessToast(this.$t("messages.pathReassigned"));
           this.originalPath = this.tempPath;
           this.currentPath = this.tempPath;
           this.currentSource = this.tempSource;
@@ -261,7 +261,7 @@ export default {
         const message = this.cascadeDelete && entry.type !== 'all' 
           ? this.$t("access.deletedCascade") 
           : this.$t("access.deleted");
-        notify.showSuccess(message);
+        notify.showSuccessToast(message);
         await this.fetchRule();
         // Emit event to refresh access rules list
         eventBus.emit('accessRulesChanged');
@@ -285,7 +285,7 @@ export default {
           this.currentPath,
           body
         );
-        notify.showSuccess(this.$t("access.added"));
+        notify.showSuccessToast(this.$t("access.added"));
         this.addName = "";
         await this.fetchRule();
         // Emit event to refresh access rules list

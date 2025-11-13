@@ -462,7 +462,8 @@
     "expires": "有効期限",
     "actions": "操作",
     "enabled": "有効",
-    "disabled": "無効"
+    "disabled": "無効",
+    "apiKeyDeleted": "APIキーが削除されました！"
   },
   "index": {
     "assessment": "評価",
@@ -806,7 +807,6 @@
   },
   "events": {
     "serverShutdown": "サーバーはシャットダウンされた。",
-    "serverShuttingDown": "サーバーがシャットダウンしています。再接続...",
     "authenticationFailed": "認証に失敗しました。ページを更新して再度ログインしてください。",
     "reconnected": "サーバーに再接続しました。",
     "connectionLost": "サーバーへの接続が失われました。再接続を試みます..."

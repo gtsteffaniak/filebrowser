@@ -524,7 +524,8 @@
     "expires": "Vyprší",
     "actions": "Akce",
     "enabled": "Povoleno",
-    "disabled": "Zakázáno"
+    "disabled": "Zakázáno",
+    "apiKeyDeleted": "Klíč API smazán!"
   },
   "index": {
     "assessment": "Vyhodnocení",
@@ -806,7 +807,6 @@
   },
   "events": {
     "serverShutdown": "Server byl vypnut.",
-    "serverShuttingDown": "Server se vypíná. Opětovné připojení...",
     "authenticationFailed": "Ověření se nezdařilo. Obnovte prosím stránku a přihlaste se znovu.",
     "reconnected": "Znovu se připojil k serveru.",
     "connectionLost": "Spojení se serverem bylo ztraceno. Při pokusu o obnovení připojení..."

@@ -462,7 +462,8 @@
     "expires": "Expirações",
     "actions": "Acções",
     "enabled": "Ativado",
-    "disabled": "Desativado"
+    "disabled": "Desativado",
+    "apiKeyDeleted": "Chave API eliminada!"
   },
   "index": {
     "assessment": "Avaliação",
@@ -806,7 +807,6 @@
   },
   "events": {
     "serverShutdown": "O servidor foi desligado.",
-    "serverShuttingDown": "O servidor está a encerrar. A ligação está a ser feita...",
     "authenticationFailed": "A autenticação falhou. Actualize a página para iniciar sessão novamente.",
     "reconnected": "Ligado novamente ao servidor.",
     "connectionLost": "A ligação ao servidor perdeu-se. Estou a tentar restabelecer a ligação..."
