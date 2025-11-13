@@ -51,7 +51,6 @@ export default {
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.05), 0 4px 12px rgba(0, 0, 0, 0.2);
   font-weight: 500;
   color: white;
-  pointer-events: auto;
   min-width: 250px;
   max-width: 500px;
   border: 1px solid rgba(0, 0, 0, 0.05);

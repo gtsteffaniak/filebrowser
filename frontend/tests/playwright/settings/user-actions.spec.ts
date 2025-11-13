@@ -147,7 +147,6 @@ test.describe("User Settings Persistence", () => {
         const checkboxOff = modal.locator(`.toggle-container:has-text("${settingName}") input[type="checkbox"]`);
         await expect(checkboxOff).not.toBeChecked();
 
-        // --- Close modal to finish ---
         await modal.locator('button[aria-label="Cancel"]').click();
     }
 
