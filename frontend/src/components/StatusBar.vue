@@ -1,5 +1,5 @@
 <template>
-  <div v-if="showStatusBar" id="status-bar" :class="{ 'dark-mode-header': isDarkMode }" @contextmenu.prevent.stop @touchstart.stop @touchend.stop>
+  <div id="status-bar" :class="{ 'dark-mode-header': isDarkMode, 'active': showStatusBar }" @contextmenu.prevent.stop @touchstart.stop @touchend.stop>
     <div class="status-content" @contextmenu.prevent.stop @touchstart.stop @touchend.stop>
       <div class="status-info">
         <span v-if="selectedCount > 0">
@@ -134,23 +134,28 @@ export default {
 <style scoped>
 #status-bar {
   background-color: rgb(37 49 55 / 5%) !important;
-  border-top: 1px solid var(--divider);
   height: 2.5em;
   display: flex;
   align-items: center;
   position: fixed;
-  bottom: 0;
+  bottom: -2.5em;
   left: 0;
   right: 0;
-  z-index: 10;
+  z-index: 2;
   border-radius: 2px;
   overflow: hidden;
   margin: 0;
   padding: 0;
-  transition: 0.5s ease;
+  transition: bottom 0.5s ease, margin-left 0.5s ease;
+  pointer-events: none;
 }
 
-#main.moveWithSidebar #status-bar {
+#status-bar.active {
+  bottom: 0;
+  pointer-events: auto;
+}
+
+#status-bar.moveWithSidebar {
   margin-left: 20em;
 }
 
@@ -215,8 +220,14 @@ input[type="range"] {
 @media (max-width: 800px) {
   #status-bar {
     height: 3em;
+    bottom: -3em;
     font-size: 0.9em;
     box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  #status-bar.active {
+    bottom: 0;
+    pointer-events: auto;
   }
 
   .status-content {

@@ -42,7 +42,8 @@
     "internal": "Pojawił się poważny problem.",
     "notFound": "Ten adres nie jest poprawny.",
     "connection": "Nie można uzyskać dostępu do serwera.",
-    "shareNotFound": "Nieprawidłowy lub wygasły udział."
+    "shareNotFound": "Nieprawidłowy lub wygasły udział.",
+    "failedToConnectToServer": "Nie udało się połączyć z serwerem, czy nadal działa?"
   },
   "files": {
     "closePreview": "Zamknij poprzednie",
@@ -340,11 +341,23 @@
     "linkUrl": "Link URL",
     "linkUrlPlaceholder": "Wprowadź adres URL lub ścieżkę (np. /files/path lub https://example.com).",
     "linkIcon": "Ikona łącza",
-    "linkIconPlaceholder": "Wprowadź nazwę ikony materiału (np. folderu, ustawień, łącza).",
     "linksUpdatedSuccess": "Linki na pasku bocznym zostały pomyślnie zaktualizowane!",
     "linksUpdateFailed": "Nie udało się zaktualizować linków paska bocznego",
     "sourceNotAccessible": "To źródło nie jest już dostępne",
-    "noLinksYet": "Nie skonfigurowano jeszcze żadnych linków. Dodaj swój pierwszy link poniżej."
+    "noLinksYet": "Nie skonfigurowano jeszcze żadnych linków. Dodaj swój pierwszy link poniżej.",
+    "customizeShareLinks": "Dostosuj łącza udostępniania na pasku bocznym",
+    "customizeShareLinksDescription": "Dostosuj łącza wyświetlane na pasku bocznym dla tego udziału. Przeciągnij i upuść, aby zmienić kolejność.",
+    "editLink": "Edytuj łącze",
+    "selectShare": "Wybierz udział",
+    "chooseShare": "Wybierz udział",
+    "selectSharePath": "Ścieżka w folderze udostępnionym (opcjonalnie)",
+    "sharePathPlaceholder": "np. /subfolder lub pozostawić puste dla roota",
+    "browseIcons": "Przeglądaj ikony",
+    "pickIcon": "Wybierz ikonę",
+    "pickIconDescription": "Wyszukaj i wybierz ikonę z biblioteki Material Icons",
+    "shareLinksUpdatedSuccess": "Linki do paska bocznego zostały pomyślnie zaktualizowane!",
+    "shareHome": "Share Home",
+    "linkIconPlaceholder": "Wprowadź ikonę materiału lub kliknij przycisk ikony, aby ją wyświetlić."
   },
   "success": {
     "linkCopied": "Link Skopiowany!"
@@ -420,7 +433,12 @@
     "allowReplacements": "Zezwalaj na zastępowanie plików",
     "allowReplacementsDescription": "Każdy może zastąpić istniejące pliki podczas przesyłania plików o tej samej nazwie.",
     "allowCreate": "Zezwalanie na tworzenie i przesyłanie plików i folderów",
-    "allowCreateDescription": "Każdy może tworzyć i przesyłać nowe pliki i foldery w tym udziale."
+    "allowCreateDescription": "Każdy może tworzyć i przesyłać nowe pliki i foldery w tym udziale.",
+    "customizeSidebarLinks": "Dostosowywanie linków paska bocznego",
+    "customizeSidebarLinksButton": "Dostosuj łącza",
+    "shareInfo": "Udostępnij kod QR i informacje",
+    "shareInfoDescription": "To łącze wyświetla informacje o udostępnieniu, w tym tytuł, opis, baner i kod QR w wyskakującym okienku.",
+    "downloadDescription": "Łącze to umożliwia pobranie całej zawartości folderu udostępnionego w postaci skompresowanego pliku."
   },
   "api": {
     "title": "Klucze API:",
@@ -740,7 +758,24 @@
     "duplicateFinder": {
       "name": "Wyszukiwarka duplikatów plików",
       "description": "Znajdowanie i zarządzanie zduplikowanymi plikami w celu odzyskania przestrzeni dyskowej"
-    }
+    },
+    "materialIconPicker": {
+      "name": "Selektor ikon materiałów",
+      "description": "Przeglądaj i wyszukuj ikony materiałów z podglądem na żywo",
+      "searchPlaceholder": "Ikony wyszukiwania...",
+      "browseFullLibrary": "Przeglądaj pełną bibliotekę ikon:",
+      "popularIcons": "Wyświetlanie {count} popularnych ikon",
+      "showingResults": "Wyświetlanie wyników {count} ",
+      "noResults": "Nie znaleziono ikon",
+      "tryDifferentSearch": "Wypróbuj inne wyszukiwane hasło",
+      "copiedToClipboard": "Skopiowano '{name}' do schowka!",
+      "copyFailed": "Nie udało się skopiować do schowka",
+      "custom": "Niestandardowe",
+      "useCustomIcon": "Użyj niestandardowej ikony: {name}",
+      "iconLibraryUrl": "fonts.google.com/icons"
+    },
+    "toolNotFound": "Nie znaleziono narzędzia",
+    "backToTools": "Powrót do Narzędzi"
   },
   "messages": {
     "pathNotFound": "Ścieżka nie istnieje w systemie plików",
@@ -760,5 +795,20 @@
     "totalWastedSpace": "Całkowita zmarnowana przestrzeń{suffix}",
     "wasted": "Zmarnowany{suffix}",
     "emptyState": "Wprowadź kryteria wyszukiwania i kliknij Znajdź duplikaty, aby zidentyfikować zduplikowane pliki."
+  },
+  "notifications": {
+    "title": "Powiadomienia",
+    "description": "Wyświetlanie wszystkich powiadomień z bieżącej sesji",
+    "empty": "Brak powiadomień",
+    "clearAll": "Wyczyść wszystko",
+    "clearConfirm": "Czy na pewno chcesz wyczyścić całą historię powiadomień?",
+    "total": "{count} powiadomienia"
+  },
+  "events": {
+    "serverShutdown": "Serwer został wyłączony.",
+    "serverShuttingDown": "Serwer jest zamykany. Ponowne połączenie...",
+    "authenticationFailed": "Uwierzytelnianie nie powiodło się. Odśwież stronę, aby zalogować się ponownie.",
+    "reconnected": "Ponowne połączenie z serwerem.",
+    "connectionLost": "Połączenie z serwerem zostało utracone. Próba ponownego połączenia..."
   }
 }

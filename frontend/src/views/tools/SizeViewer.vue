@@ -643,10 +643,6 @@ export default {
   padding: 1em;
 }
 
-.searchContext {
-  margin-bottom: 1em;
-}
-
 .size-viewer-results {
   max-width: 1000px;
   margin-bottom: 2em;

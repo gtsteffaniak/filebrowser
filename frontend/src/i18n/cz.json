@@ -45,7 +45,8 @@
     "internal": "Něco se opravdu pokazilo.",
     "notFound": "Tuto položku nelze najít.",
     "connection": "Nelze se připojit k serveru.",
-    "shareNotFound": "Neplatná nebo prošlá akcie."
+    "shareNotFound": "Neplatná nebo prošlá akcie.",
+    "failedToConnectToServer": "Nepodařilo se připojit k serveru, je stále spuštěn?"
   },
   "files": {
     "closePreview": "Zavřít náhled",
@@ -187,7 +188,12 @@
     "allowReplacements": "Povolení nahrazení souborů",
     "allowReplacementsDescription": "Při nahrávání souborů se stejným názvem může kdokoli nahradit stávající soubory.",
     "allowCreate": "Umožnit vytváření a nahrávání souborů a složek",
-    "allowCreateDescription": "V této sdílené složce může kdokoli vytvářet a nahrávat nové soubory a složky."
+    "allowCreateDescription": "V této sdílené složce může kdokoli vytvářet a nahrávat nové soubory a složky.",
+    "customizeSidebarLinks": "Přizpůsobení odkazů na bočním panelu",
+    "customizeSidebarLinksButton": "Přizpůsobení odkazů",
+    "shareInfo": "Sdílení kódu QR a informací",
+    "shareInfoDescription": "Tento odkaz zobrazí informace o sdílené složce včetně názvu, popisu, banneru a QR kódu ve vyskakovacím okně.",
+    "downloadDescription": "Tento odkaz umožňuje stáhnout celý obsah sdílené složky jako komprimovaný soubor."
   },
   "prompts": {
     "copy": "Kopírovat",
@@ -468,11 +474,23 @@
     "linkUrl": "Adresa URL odkazu",
     "linkUrlPlaceholder": "Zadejte adresu URL nebo cestu (např. /files/path nebo https://example.com).",
     "linkIcon": "Ikona odkazu",
-    "linkIconPlaceholder": "Zadejte název ikony materiálu (např. složka, nastavení, odkaz).",
     "linksUpdatedSuccess": "Odkazy na postranním panelu úspěšně aktualizovány!",
     "linksUpdateFailed": "Nepodařilo se aktualizovat odkazy na postranním panelu",
     "sourceNotAccessible": "Tento zdroj již není přístupný",
-    "noLinksYet": "Zatím nejsou nakonfigurovány žádné odkazy. Přidejte svůj první odkaz níže."
+    "noLinksYet": "Zatím nejsou nakonfigurovány žádné odkazy. Přidejte svůj první odkaz níže.",
+    "customizeShareLinks": "Přizpůsobení sdílených odkazů na postranním panelu",
+    "customizeShareLinksDescription": "Přizpůsobte si odkazy zobrazené v postranním panelu pro toto sdílení. Přetažením změníte pořadí.",
+    "editLink": "Upravit odkaz",
+    "selectShare": "Zvolte možnost Sdílet",
+    "chooseShare": "Výběr podílu",
+    "selectSharePath": "Cesta v rámci sdílené složky (nepovinné)",
+    "sharePathPlaceholder": "např. /subfolder nebo nechat prázdný pro kořenový adresář.",
+    "browseIcons": "Procházet ikony",
+    "pickIcon": "Výběr ikony",
+    "pickIconDescription": "Vyhledejte a vyberte ikonu z knihovny Material Icons.",
+    "shareLinksUpdatedSuccess": "Odkazy na sdílení postranního panelu byly úspěšně aktualizovány!",
+    "shareHome": "Sdílet Domů",
+    "linkIconPlaceholder": "Zadejte ikonu materiálu nebo klikněte na tlačítko ikony pro procházení"
   },
   "success": {
     "linkCopied": "Odkaz zkopírován!"
@@ -740,7 +758,24 @@
     "duplicateFinder": {
       "name": "Vyhledávač duplicitních souborů",
       "description": "Vyhledávání a správa duplicitních souborů pro obnovu úložného prostoru"
-    }
+    },
+    "materialIconPicker": {
+      "name": "Nástroj pro výběr ikony materiálu",
+      "description": "Procházení a vyhledávání ikon materiálu s živým náhledem",
+      "searchPlaceholder": "Hledat ikony...",
+      "browseFullLibrary": "Projděte si celou knihovnu ikon:",
+      "popularIcons": "Zobrazeno {count} populární ikony",
+      "showingResults": "Zobrazují se výsledky {count} ",
+      "noResults": "Nebyly nalezeny žádné ikony",
+      "tryDifferentSearch": "Zkuste použít jiný vyhledávací výraz",
+      "copiedToClipboard": "Zkopírováno '{name}' do schránky!",
+      "copyFailed": "Nepodařilo se zkopírovat do schránky",
+      "custom": "Vlastní",
+      "useCustomIcon": "Použití vlastní ikony: {name}",
+      "iconLibraryUrl": "fonts.google.com/icons"
+    },
+    "toolNotFound": "Nástroj nebyl nalezen",
+    "backToTools": "Zpět na Nástroje"
   },
   "messages": {
     "pathNotFound": "Cesta v souborovém systému neexistuje",
@@ -760,5 +795,20 @@
     "totalWastedSpace": "Celkový promarněný prostor{suffix}",
     "wasted": "Promarněné{suffix}",
     "emptyState": "Zadejte kritéria vyhledávání a kliknutím na tlačítko Najít duplikáty identifikujte duplicitní soubory."
+  },
+  "notifications": {
+    "title": "Oznámení",
+    "description": "Zobrazení všech oznámení z aktuální relace",
+    "empty": "Zatím žádná oznámení",
+    "clearAll": "Vymazat vše",
+    "clearConfirm": "Určitě chcete vymazat celou historii oznámení?",
+    "total": "{count} oznámení"
+  },
+  "events": {
+    "serverShutdown": "Server byl vypnut.",
+    "serverShuttingDown": "Server se vypíná. Opětovné připojení...",
+    "authenticationFailed": "Ověření se nezdařilo. Obnovte prosím stránku a přihlaste se znovu.",
+    "reconnected": "Znovu se připojil k serveru.",
+    "connectionLost": "Spojení se serverem bylo ztraceno. Při pokusu o obnovení připojení..."
   }
 }

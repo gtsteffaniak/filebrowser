@@ -42,7 +42,8 @@
     "internal": "Ceva nu a funcționat corect.",
     "notFound": "Aceasta locație nu poate fi accesată.",
     "connection": "Serverul nu poate fi accesat.",
-    "shareNotFound": "Acțiune invalidă sau expirată."
+    "shareNotFound": "Acțiune invalidă sau expirată.",
+    "failedToConnectToServer": "Nu a reușit să se conecteze la server, mai funcționează?"
   },
   "files": {
     "closePreview": "Închide previzualizarea",
@@ -340,11 +341,23 @@
     "linkUrl": "Link URL",
     "linkUrlPlaceholder": "Introduceți adresa URL sau calea (de exemplu, /files/path sau https://example.com)",
     "linkIcon": "Pictograma de legătură",
-    "linkIconPlaceholder": "Introduceți numele pictogramei materialului (de exemplu, folder, setări, link)",
     "linksUpdatedSuccess": "Legăturile din bara laterală au fost actualizate cu succes!",
     "linksUpdateFailed": "A eșuat actualizarea linkurilor din bara laterală",
     "sourceNotAccessible": "Această sursă nu vă mai este accesibilă",
-    "noLinksYet": "Nicio legătură configurată încă. Adăugați primul dvs. link mai jos."
+    "noLinksYet": "Nicio legătură configurată încă. Adăugați primul dvs. link mai jos.",
+    "customizeShareLinks": "Personalizați linkurile din bara laterală de partajare",
+    "customizeShareLinksDescription": "Personalizați linkurile afișate în bara laterală pentru această partajare. Glisați și fixați pentru a le reordona.",
+    "editLink": "Editare link",
+    "selectShare": "Selectați Partajare",
+    "chooseShare": "Alegeți o acțiune",
+    "selectSharePath": "Calea în cadrul partajului (opțional)",
+    "sharePathPlaceholder": "de exemplu, /subfolder sau lăsați gol pentru rădăcină",
+    "browseIcons": "Răsfoire icoane",
+    "pickIcon": "Alegeți o pictogramă",
+    "pickIconDescription": "Căutați și selectați o pictogramă din biblioteca Material Icons",
+    "shareLinksUpdatedSuccess": "Link-urile din bara laterală de partajare au fost actualizate cu succes!",
+    "shareHome": "Share Home",
+    "linkIconPlaceholder": "Introduceți pictograma materialului sau faceți clic pe butonul pictogramă pentru a naviga"
   },
   "success": {
     "linkCopied": "Legătură copiată!"
@@ -420,7 +433,12 @@
     "allowReplacements": "Permiteți înlocuirea fișierelor",
     "allowReplacementsDescription": "Oricine poate înlocui fișierele existente atunci când încarcă fișiere cu același nume.",
     "allowCreate": "Permiteți crearea și încărcarea de fișiere și foldere",
-    "allowCreateDescription": "Oricine poate crea și încărca fișiere și foldere noi în această partajare."
+    "allowCreateDescription": "Oricine poate crea și încărca fișiere și foldere noi în această partajare.",
+    "customizeSidebarLinks": "Personalizarea linkurilor din bara laterală",
+    "customizeSidebarLinksButton": "Personalizați linkurile",
+    "shareInfo": "Partajați codul QR și informații",
+    "shareInfoDescription": "Acest link afișează informațiile despre acțiune, inclusiv titlul, descrierea, bannerul și codul QR într-o fereastră pop-up.",
+    "downloadDescription": "Acest link permite descărcarea întregului conținut partajat ca fișier comprimat."
   },
   "api": {
     "title": "Chei API:",
@@ -740,7 +758,24 @@
     "duplicateFinder": {
       "name": "Duplicate fișier Finder",
       "description": "Găsiți și gestionați fișierele duplicate pentru a recupera spațiul de stocare"
-    }
+    },
+    "materialIconPicker": {
+      "name": "Picker de pictograme de materiale",
+      "description": "Răsfoiți și căutați Material Icons cu previzualizare live",
+      "searchPlaceholder": "Căutați pictograme...",
+      "browseFullLibrary": "Răsfoiți biblioteca completă de pictograme:",
+      "popularIcons": "Afișarea {count} pictograme populare",
+      "showingResults": "Afișarea rezultatelor {count} ",
+      "noResults": "Nu s-au găsit pictograme",
+      "tryDifferentSearch": "Încercați un alt termen de căutare",
+      "copiedToClipboard": "Copiat '{name}' în clipboard!",
+      "copyFailed": "A eșuat copierea în clipboard",
+      "custom": "Personalizat",
+      "useCustomIcon": "Utilizați pictograma personalizată: {name}",
+      "iconLibraryUrl": "fonts.google.com/icons"
+    },
+    "toolNotFound": "Instrumentul nu a fost găsit",
+    "backToTools": "Înapoi la Instrumente"
   },
   "messages": {
     "pathNotFound": "Calea nu există pe sistemul de fișiere",
@@ -760,5 +795,20 @@
     "totalWastedSpace": "Spațiu total irosit{suffix}",
     "wasted": "irosit{suffix}",
     "emptyState": "Introduceți criteriile de căutare și faceți clic pe Find Duplicates pentru a identifica fișierele duplicate"
+  },
+  "notifications": {
+    "title": "Notificări",
+    "description": "Vizualizați toate notificările din sesiunea curentă",
+    "empty": "Nu există încă notificări",
+    "clearAll": "Ștergeți tot",
+    "clearConfirm": "Sunteți sigur că doriți să ștergeți tot istoricul notificărilor?",
+    "total": "{count} notificări"
+  },
+  "events": {
+    "serverShutdown": "Serverul a fost închis.",
+    "serverShuttingDown": "Serverul se oprește. Reconectarea...",
+    "authenticationFailed": "Autentificarea a eșuat. Vă rugăm să reîmprospătați pagina pentru a vă conecta din nou.",
+    "reconnected": "Reconectat la server.",
+    "connectionLost": "Conexiunea la server a fost pierdută. Încercați să vă reconectați..."
   }
 }

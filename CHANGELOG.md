@@ -9,20 +9,30 @@ All notable changes to this project will be documented in this file. For commit 
    - size analyzer -- quickly show largest files in interactive graphical chart
    - duplicate finder -- find duplicate files larger than 1MB
  - Status bar for listing view #1459
- - Customizable sidebar links -- reorder sources and add custom links.
+ - More dynamic view modes with additional styling changes.
+ - Customizable sidebar links
+   - Logged in users can have their preferences saved and synced
+   - Can rearrange, add custom links, and save your preferences.
+   - Can customize shares with their own custom sidebar links.
  - Dynamic scopes for OIDC #1414 #1363
  - Enhanced notifications, buttons persistence. #1331
  - Share and Access Rules validation
    - If a file/path is moved/renamed in UI its rules and shares will always follow.
    - If a file/path is moved/renamed outside UI, a warning message will show and ability to associate to new path
  - Cascade delete access in Access Management when deleting a User #1347
+ - Enhanced notifications
+   - Added toast notification type support
+   - multiple stacked notifications possible
+   - notification button support
+   - notification history
 
  **Notes**:
  - more efficient user update actions. Successful PUT actions return only 204 if successful.
  - Do not enter directory on "New Folder" action #1343
- - Individual scanners per directory at root -- improves scanning impact.
+ - Improved indexing performance - individual scanners per directory at root.
  - Improved search memory efficiency
  - Improved scrolling performance
+ - Static file handling has been streamlined, could potentially see some changes from this.
 
 ## v1.0.1-stable
 

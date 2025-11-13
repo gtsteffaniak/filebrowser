@@ -42,7 +42,8 @@
     "internal": "Algo correu bastante mal.",
     "notFound": "Esta localização não é alcançável.",
     "connection": "O servidor não pode ser contactado.",
-    "shareNotFound": "Ação inválida ou expirada."
+    "shareNotFound": "Ação inválida ou expirada.",
+    "failedToConnectToServer": "Falha na ligação ao servidor, ainda está a funcionar?"
   },
   "files": {
     "closePreview": "Fechar pré-visualização",
@@ -340,11 +341,23 @@
     "linkUrl": "Ligação URL",
     "linkUrlPlaceholder": "Introduzir URL ou caminho (por exemplo, /files/path ou https://example.com)",
     "linkIcon": "Ícone de ligação",
-    "linkIconPlaceholder": "Introduzir o nome do ícone do material (por exemplo, pasta, definições, ligação)",
     "linksUpdatedSuccess": "Ligações da barra lateral actualizadas com sucesso!",
     "linksUpdateFailed": "Falha ao atualizar as ligações da barra lateral",
     "sourceNotAccessible": "Esta fonte já não está acessível para si",
-    "noLinksYet": "Ainda não existem ligações configuradas. Adicione a sua primeira ligação abaixo."
+    "noLinksYet": "Ainda não existem ligações configuradas. Adicione a sua primeira ligação abaixo.",
+    "customizeShareLinks": "Personalizar as ligações da barra lateral de partilha",
+    "customizeShareLinksDescription": "Personalize as ligações apresentadas na barra lateral para esta partilha. Arraste e largue para reordenar.",
+    "editLink": "Editar ligação",
+    "selectShare": "Selecionar Partilha",
+    "chooseShare": "Escolher uma ação",
+    "selectSharePath": "Caminho dentro da partilha (opcional)",
+    "sharePathPlaceholder": "por exemplo, /subpasta ou deixar vazio para a raiz",
+    "browseIcons": "Procurar ícones",
+    "pickIcon": "Escolher um ícone",
+    "pickIconDescription": "Procurar e selecionar um ícone na biblioteca de ícones de materiais",
+    "shareLinksUpdatedSuccess": "As ligações da barra lateral de partilha foram actualizadas com êxito!",
+    "shareHome": "Partilhar casa",
+    "linkIconPlaceholder": "Introduzir o ícone do material ou clicar no botão do ícone para procurar"
   },
   "success": {
     "linkCopied": "Link copiado!"
@@ -420,7 +433,12 @@
     "allowReplacements": "Permitir substituições de ficheiros",
     "allowReplacementsDescription": "Qualquer pessoa pode substituir ficheiros existentes ao carregar ficheiros com o mesmo nome.",
     "allowCreate": "Permitir a criação e o carregamento de ficheiros e pastas",
-    "allowCreateDescription": "Qualquer pessoa pode criar e carregar novos ficheiros e pastas nesta partilha."
+    "allowCreateDescription": "Qualquer pessoa pode criar e carregar novos ficheiros e pastas nesta partilha.",
+    "customizeSidebarLinks": "Personalizar ligações da barra lateral",
+    "customizeSidebarLinksButton": "Personalizar ligações",
+    "shareInfo": "Partilhar código QR e informações",
+    "shareInfoDescription": "Esta ligação apresenta as informações da partilha, incluindo o título, a descrição, o banner e o código QR num pop-up.",
+    "downloadDescription": "Esta ligação permite descarregar todo o conteúdo da partilha como um ficheiro comprimido."
   },
   "api": {
     "title": "Chaves da API",
@@ -740,7 +758,24 @@
     "duplicateFinder": {
       "name": "Localizador de ficheiros duplicados",
       "description": "Localizar e gerir ficheiros duplicados para recuperar espaço de armazenamento"
-    }
+    },
+    "materialIconPicker": {
+      "name": "Selecionador de ícones de materiais",
+      "description": "Navegue e procure ícones de materiais com pré-visualização em direto",
+      "searchPlaceholder": "Procurar ícones...",
+      "browseFullLibrary": "Navegue pela biblioteca completa de ícones:",
+      "popularIcons": "Mostrar {count} ícones populares",
+      "showingResults": "Mostrando {count} resultados",
+      "noResults": "Não foram encontrados ícones",
+      "tryDifferentSearch": "Experimente um termo de pesquisa diferente",
+      "copiedToClipboard": "Copiou '{name}' para a área de transferência!",
+      "copyFailed": "Falha ao copiar para a área de transferência",
+      "custom": "Personalizado",
+      "useCustomIcon": "Utilizar um ícone personalizado: {name}",
+      "iconLibraryUrl": "fonts.google.com/icons"
+    },
+    "toolNotFound": "Ferramenta não encontrada",
+    "backToTools": "Voltar a Ferramentas"
   },
   "messages": {
     "pathNotFound": "O caminho não existe no sistema de ficheiros",
@@ -760,5 +795,20 @@
     "totalWastedSpace": "Total de espaço desperdiçado{suffix}",
     "wasted": "Desperdiçado{suffix}",
     "emptyState": "Introduza os critérios de pesquisa e clique em Encontrar Duplicados para identificar ficheiros duplicados"
+  },
+  "notifications": {
+    "title": "Notificações",
+    "description": "Ver todas as notificações da sua sessão atual",
+    "empty": "Ainda não há notificações",
+    "clearAll": "Limpar tudo",
+    "clearConfirm": "Tem a certeza de que pretende limpar todo o histórico de notificações?",
+    "total": "{count} notificações"
+  },
+  "events": {
+    "serverShutdown": "O servidor foi desligado.",
+    "serverShuttingDown": "O servidor está a encerrar. A ligação está a ser feita...",
+    "authenticationFailed": "A autenticação falhou. Actualize a página para iniciar sessão novamente.",
+    "reconnected": "Ligado novamente ao servidor.",
+    "connectionLost": "A ligação ao servidor perdeu-se. Estou a tentar restabelecer a ligação..."
   }
 }

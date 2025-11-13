@@ -42,7 +42,8 @@
     "internal": "משהו השתבש",
     "notFound": "לא ניתן להגיע למיקום זה",
     "connection": "לא ניתן להגיע לשרת",
-    "shareNotFound": "שיתוף לא חוקי או פג תוקף."
+    "shareNotFound": "שיתוף לא חוקי או פג תוקף.",
+    "failedToConnectToServer": "לא הצלחת להתחבר לשרת, האם הוא עדיין פועל?"
   },
   "files": {
     "closePreview": "סגירת תצוגה מקדימה",
@@ -340,11 +341,23 @@
     "linkUrl": "כתובת URL של הקישור",
     "linkUrlPlaceholder": "הזן כתובת URL או נתיב (לדוגמה, /files/path או https://example.com)",
     "linkIcon": "סמל קישור",
-    "linkIconPlaceholder": "הזן את שם סמל החומר (לדוגמה, תיקייה, הגדרות, קישור)",
     "linksUpdatedSuccess": "קישורי הסרגל הצדדי עודכנו בהצלחה!",
     "linksUpdateFailed": "לא הצלחנו לעדכן את הקישורים בסרגל הצדדי",
     "sourceNotAccessible": "מקור זה אינו נגיש לך עוד",
-    "noLinksYet": "עדיין לא הוגדרו קישורים. הוסף את הקישור הראשון שלך למטה."
+    "noLinksYet": "עדיין לא הוגדרו קישורים. הוסף את הקישור הראשון שלך למטה.",
+    "customizeShareLinks": "התאמה אישית של קישורי סרגל הצד",
+    "customizeShareLinksDescription": "התאם אישית את הקישורים המוצגים בסרגל הצדדי עבור שיתוף זה. גרור ושחרר כדי לשנות את הסדר.",
+    "editLink": "ערוך קישור",
+    "selectShare": "בחר שיתוף",
+    "chooseShare": "בחר שיתוף",
+    "selectSharePath": "נתיב בתוך השיתוף (אופציונלי)",
+    "sharePathPlaceholder": "לדוגמה, /subfolder או השאר ריק עבור root",
+    "browseIcons": "עיון בסמלים",
+    "pickIcon": "בחר סמל",
+    "pickIconDescription": "חפש ובחר סמל מספריית Material Icons.",
+    "shareLinksUpdatedSuccess": "קישורי הסרגל הצדדי שותפו בהצלחה!",
+    "shareHome": "שתף בית",
+    "linkIconPlaceholder": "הזן סמל חומר או לחץ על כפתור הסמל כדי לדפדף"
   },
   "success": {
     "linkCopied": "הקישור הועתק!"
@@ -420,7 +433,12 @@
     "allowReplacements": "אפשר החלפת קבצים",
     "allowReplacementsDescription": "כל אחד יכול להחליף קבצים קיימים בעת העלאת קבצים עם אותו שם.",
     "allowCreate": "אפשר ליצור ולהעלות קבצים ותיקיות",
-    "allowCreateDescription": "כל אחד יכול ליצור ולהעלות קבצים ותיקיות חדשים בשיתוף זה."
+    "allowCreateDescription": "כל אחד יכול ליצור ולהעלות קבצים ותיקיות חדשים בשיתוף זה.",
+    "customizeSidebarLinks": "התאמה אישית של קישורי סרגל הצד",
+    "customizeSidebarLinksButton": "התאמה אישית של קישורים",
+    "shareInfo": "שתף קוד QR ומידע",
+    "shareInfoDescription": "קישור זה מציג את פרטי השיתוף, כולל כותרת, תיאור, באנר וקוד QR בחלון קופץ.",
+    "downloadDescription": "קישור זה מאפשר להוריד את כל תוכן השיתוף כקובץ דחוס."
   },
   "api": {
     "title": "מפתחות API",
@@ -740,7 +758,24 @@
     "duplicateFinder": {
       "name": "מאתר קבצים כפולים",
       "description": "מצא ונהל קבצים כפולים כדי לשחרר שטח אחסון"
-    }
+    },
+    "materialIconPicker": {
+      "name": "בוחר סמלי חומר",
+      "description": "עיין וחפש סמלי חומרים עם תצוגה מקדימה חיה",
+      "searchPlaceholder": "סמלי חיפוש...",
+      "browseFullLibrary": "עיין בספריית הסמלים המלאה:",
+      "popularIcons": "הצגת {count} אייקונים פופולריים",
+      "showingResults": "הצגת תוצאות {count} ",
+      "noResults": "לא נמצאו סמלים",
+      "tryDifferentSearch": "נסה מונח חיפוש אחר",
+      "copiedToClipboard": "הועתק '{name}' ללוח!",
+      "copyFailed": "לא ניתן להעתיק ללוח",
+      "custom": "מותאם אישית",
+      "useCustomIcon": "השתמש בסמל מותאם אישית: {name}",
+      "iconLibraryUrl": "fonts.google.com/icons"
+    },
+    "toolNotFound": "הכלי לא נמצא",
+    "backToTools": "חזרה לכלים"
   },
   "messages": {
     "pathNotFound": "הנתיב אינו קיים במערכת הקבצים",
@@ -760,5 +795,20 @@
     "totalWastedSpace": "סך השטח המבוזבז{suffix}",
     "wasted": "מבוזבז{suffix}",
     "emptyState": "הזן את קריטריוני החיפוש ולחץ על 'מצא כפילויות' כדי לזהות קבצים כפולים."
+  },
+  "notifications": {
+    "title": "הודעות",
+    "description": "הצג את כל ההודעות מהפעלה הנוכחית שלך",
+    "empty": "אין עדיין הודעות",
+    "clearAll": "נקה הכל",
+    "clearConfirm": "האם אתה בטוח שברצונך למחוק את כל היסטוריית ההודעות?",
+    "total": "{count} הודעות"
+  },
+  "events": {
+    "serverShutdown": "השרת כובה.",
+    "serverShuttingDown": "השרת נסגר. מתחבר מחדש...",
+    "authenticationFailed": "האימות נכשל. אנא רענן את הדף כדי להתחבר שוב.",
+    "reconnected": "התחבר מחדש לשרת.",
+    "connectionLost": "החיבור לשרת אבד. מנסה להתחבר מחדש..."
   }
 }

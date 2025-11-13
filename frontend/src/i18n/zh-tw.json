@@ -42,7 +42,8 @@
     "internal": "伺服器出了點問題。",
     "notFound": "找不到檔案。",
     "connection": "伺服器無法連線。",
-    "shareNotFound": "無效或過期的共享。"
+    "shareNotFound": "無效或過期的共享。",
+    "failedToConnectToServer": "連線至伺服器失敗，是否仍在執行？"
   },
   "files": {
     "closePreview": "關閉預覽",
@@ -340,11 +341,23 @@
     "linkUrl": "連結網址",
     "linkUrlPlaceholder": "輸入 URL 或路徑 (例如 /files/path 或 https://example.com)",
     "linkIcon": "連結圖示",
-    "linkIconPlaceholder": "輸入素材圖示名稱 (例如：資料夾、設定、連結)",
     "linksUpdatedSuccess": "側邊欄連結更新成功！",
     "linksUpdateFailed": "更新側邊欄連結失敗",
     "sourceNotAccessible": "您無法再存取此來源",
-    "noLinksYet": "尚未設定連結。請在下方新增您的第一個連結。"
+    "noLinksYet": "尚未設定連結。請在下方新增您的第一個連結。",
+    "customizeShareLinks": "自訂分享側邊欄連結",
+    "customizeShareLinksDescription": "自訂此分享側邊列中顯示的連結。拖放可重新排序。",
+    "editLink": "編輯連結",
+    "selectShare": "選擇分享",
+    "chooseShare": "選擇股份",
+    "selectSharePath": "共用內的路徑（可選）",
+    "sharePathPlaceholder": "例如，/subfolder 或留空表示 root",
+    "browseIcons": "瀏覽圖示",
+    "pickIcon": "選取圖示",
+    "pickIconDescription": "從 Material Icons 圖示庫搜尋並選取圖示",
+    "shareLinksUpdatedSuccess": "分享側邊欄連結更新成功！",
+    "shareHome": "分享首頁",
+    "linkIconPlaceholder": "輸入材料圖示或 或按一下圖示按鈕瀏覽"
   },
   "success": {
     "linkCopied": "連結已複製！"
@@ -420,7 +433,12 @@
     "allowReplacements": "允許檔案替換",
     "allowReplacementsDescription": "任何人在上傳具有相同名稱的檔案時，都可以取代現有檔案。",
     "allowCreate": "允許建立和上傳檔案與資料夾",
-    "allowCreateDescription": "任何人都可以在此共用中建立和上傳新檔案和資料夾。"
+    "allowCreateDescription": "任何人都可以在此共用中建立和上傳新檔案和資料夾。",
+    "customizeSidebarLinks": "自訂側邊欄連結",
+    "customizeSidebarLinksButton": "自訂連結",
+    "shareInfo": "分享 QR 代碼和資訊",
+    "shareInfoDescription": "此連結會在彈出式視窗中顯示分享資訊，包括標題、說明、橫幅和 QR 代碼。",
+    "downloadDescription": "此連結可將整個共用內容下載為壓縮檔。"
   },
   "api": {
     "title": "API 金鑰",
@@ -740,7 +758,24 @@
     "duplicateFinder": {
       "name": "重複檔案搜尋器",
       "description": "尋找和管理重複檔案以回收儲存空間"
-    }
+    },
+    "materialIconPicker": {
+      "name": "材料圖示選擇器",
+      "description": "使用即時預覽瀏覽和搜尋 Material Icons",
+      "searchPlaceholder": "搜尋圖示...",
+      "browseFullLibrary": "瀏覽完整圖示庫：",
+      "popularIcons": "顯示{count} 熱門圖示",
+      "showingResults": "顯示{count} 結果",
+      "noResults": "未找到圖示",
+      "tryDifferentSearch": "嘗試不同的搜尋字詞",
+      "copiedToClipboard": "將 '{name}' 複製到剪貼簿！",
+      "copyFailed": "複製到剪貼簿失敗",
+      "custom": "自訂",
+      "useCustomIcon": "使用自訂圖示：{name}",
+      "iconLibraryUrl": "fonts.google.com/icons"
+    },
+    "toolNotFound": "未找到工具",
+    "backToTools": "回到工具"
   },
   "messages": {
     "pathNotFound": "檔案系統中不存在路徑",
@@ -760,5 +795,20 @@
     "totalWastedSpace": "總浪費空間{suffix}",
     "wasted": "浪費{suffix}",
     "emptyState": "輸入搜尋準則，然後按一下「尋找重複檔案」以識別重複檔案"
+  },
+  "notifications": {
+    "title": "通知",
+    "description": "檢視目前會話的所有通知",
+    "empty": "尚未有通知",
+    "clearAll": "全部清除",
+    "clearConfirm": "您確定要清除所有通知記錄嗎？",
+    "total": "{count} 通知"
+  },
+  "events": {
+    "serverShutdown": "伺服器被關閉。",
+    "serverShuttingDown": "伺服器正在關閉。重新連線...",
+    "authenticationFailed": "驗證失敗。請刷新頁面重新登入。",
+    "reconnected": "重新連線至伺服器。",
+    "connectionLost": "與伺服器的連線中斷。嘗試重新連線..."
   }
 }

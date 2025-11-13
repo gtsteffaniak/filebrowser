@@ -42,7 +42,8 @@
     "internal": "Something really went wrong.",
     "notFound": "This location can't be reached.",
     "connection": "The server can't be reached.",
-    "shareNotFound": "Neplatná alebo neplatná akcia."
+    "shareNotFound": "Neplatná alebo neplatná akcia.",
+    "failedToConnectToServer": "Nepodarilo sa pripojiť k serveru, je stále spustený?"
   },
   "files": {
     "closePreview": "Zavrieť náhľad",
@@ -340,11 +341,23 @@
     "linkUrl": "Adresa URL prepojenia",
     "linkUrlPlaceholder": "Zadajte adresu URL alebo cestu (napr. /files/path alebo https://example.com).",
     "linkIcon": "Ikona prepojenia",
-    "linkIconPlaceholder": "Zadajte názov ikony materiálu (napr. priečinok, nastavenie, odkaz)",
     "linksUpdatedSuccess": "Odkazy na bočnom paneli úspešne aktualizované!",
     "linksUpdateFailed": "Nepodarilo sa aktualizovať odkazy na bočnom paneli",
     "sourceNotAccessible": "Tento zdroj už nie je prístupný",
-    "noLinksYet": "Zatiaľ nie sú nakonfigurované žiadne odkazy. Pridajte svoj prvý odkaz nižšie."
+    "noLinksYet": "Zatiaľ nie sú nakonfigurované žiadne odkazy. Pridajte svoj prvý odkaz nižšie.",
+    "customizeShareLinks": "Prispôsobenie zdieľania odkazov na bočnom paneli",
+    "customizeShareLinksDescription": "Prispôsobte si odkazy zobrazené na bočnom paneli pre túto akciu. Ťahaním a púšťaním môžete zmeniť poradie.",
+    "editLink": "Upraviť odkaz",
+    "selectShare": "Vyberte položku Zdieľať",
+    "chooseShare": "Vyberte si podiel",
+    "selectSharePath": "Cesta v rámci zdieľanej zložky (nepovinné)",
+    "sharePathPlaceholder": "napr. /subfolder alebo nechajte prázdny pre root",
+    "browseIcons": "Prehľadávať ikony",
+    "pickIcon": "Výber ikony",
+    "pickIconDescription": "Vyhľadajte a vyberte ikonu z knižnice Material Icons",
+    "shareLinksUpdatedSuccess": "Zdieľanie bočného panela odkazy úspešne aktualizované!",
+    "shareHome": "Zdieľať Domov",
+    "linkIconPlaceholder": "Zadajte ikonu materiálu alebo kliknite na tlačidlo ikony pre prehľadávanie"
   },
   "success": {
     "linkCopied": "Odkaz skopírovaný!"
@@ -420,7 +433,12 @@
     "allowReplacements": "Povolenie výmeny súborov",
     "allowReplacementsDescription": "Pri nahrávaní súborov s rovnakým názvom môže ktokoľvek nahradiť existujúce súbory.",
     "allowCreate": "Umožniť vytváranie a nahrávanie súborov a priečinkov",
-    "allowCreateDescription": "V tomto zdieľanom úložisku môže ktokoľvek vytvárať a nahrávať nové súbory a priečinky."
+    "allowCreateDescription": "V tomto zdieľanom úložisku môže ktokoľvek vytvárať a nahrávať nové súbory a priečinky.",
+    "customizeSidebarLinks": "Prispôsobenie odkazov na bočnom paneli",
+    "customizeSidebarLinksButton": "Prispôsobenie odkazov",
+    "shareInfo": "Zdieľanie kódu QR a informácií",
+    "shareInfoDescription": "Toto prepojenie zobrazí informácie o zdieľaní vrátane názvu, opisu, banneru a QR kódu vo vyskakovacom okne.",
+    "downloadDescription": "Toto prepojenie umožňuje stiahnuť celý obsah zdieľania ako komprimovaný súbor."
   },
   "api": {
     "title": "Kľúče API:",
@@ -740,7 +758,24 @@
     "duplicateFinder": {
       "name": "Vyhľadávač duplicitných súborov",
       "description": "Vyhľadávanie a správa duplicitných súborov na obnovu úložného priestoru"
-    }
+    },
+    "materialIconPicker": {
+      "name": "Výber ikony materiálu",
+      "description": "Prehľadávanie a vyhľadávanie ikon Material Icons so živým náhľadom",
+      "searchPlaceholder": "Vyhľadávanie ikon...",
+      "browseFullLibrary": "Prehľadajte celú knižnicu ikon:",
+      "popularIcons": "Zobrazuje sa {count} populárne ikony",
+      "showingResults": "Zobrazené výsledky {count} ",
+      "noResults": "Nenašli sa žiadne ikony",
+      "tryDifferentSearch": "Skúste použiť iný vyhľadávací výraz",
+      "copiedToClipboard": "Skopírované '{name}' do schránky!",
+      "copyFailed": "Nepodarilo sa skopírovať do schránky",
+      "custom": "Vlastné",
+      "useCustomIcon": "Použite vlastnú ikonu: {name}",
+      "iconLibraryUrl": "fonts.google.com/icons"
+    },
+    "toolNotFound": "Nástroj nebol nájdený",
+    "backToTools": "Späť na Nástroje"
   },
   "messages": {
     "pathNotFound": "Cesta neexistuje v súborovom systéme",
@@ -760,5 +795,20 @@
     "totalWastedSpace": "Celkový premrhaný priestor{suffix}",
     "wasted": "Plytvanie{suffix}",
     "emptyState": "Zadajte kritériá vyhľadávania a kliknite na tlačidlo Nájsť duplikáty, aby ste identifikovali duplicitné súbory"
+  },
+  "notifications": {
+    "title": "Oznámenia",
+    "description": "Zobrazenie všetkých oznámení z aktuálnej relácie",
+    "empty": "Zatiaľ žiadne oznámenia",
+    "clearAll": "Vymazať všetko",
+    "clearConfirm": "Ste si istí, že chcete vymazať celú históriu oznámení?",
+    "total": "{count} oznámenia"
+  },
+  "events": {
+    "serverShutdown": "Server bol vypnutý.",
+    "serverShuttingDown": "Server sa vypína. Opätovné pripojenie...",
+    "authenticationFailed": "Autentifikácia zlyhala. Obnovte stránku a prihláste sa znova.",
+    "reconnected": "Opätovné pripojenie k serveru.",
+    "connectionLost": "Spojenie so serverom bolo stratené. Pri pokuse o opätovné pripojenie..."
   }
 }

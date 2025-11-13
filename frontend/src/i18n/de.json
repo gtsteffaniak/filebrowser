@@ -42,7 +42,8 @@
     "internal": "Etwas ist schief gelaufen.",
     "notFound": "Dieser Ort kann nicht angezeigt werden.",
     "connection": "Der Server ist nicht erreichbar.",
-    "shareNotFound": "Ungültige oder abgelaufene Freigabe."
+    "shareNotFound": "Ungültige oder abgelaufene Freigabe.",
+    "failedToConnectToServer": "Verbindung zum Server fehlgeschlagen, läuft er noch?"
   },
   "files": {
     "closePreview": "Vorschau schließen",
@@ -340,11 +341,23 @@
     "linkUrl": "Link URL",
     "linkUrlPlaceholder": "URL oder Pfad eingeben (z. B. /files/path oder https://example.com)",
     "linkIcon": "Link-Symbol",
-    "linkIconPlaceholder": "Geben Sie den Namen des Materialsymbols ein (z. B. Ordner, Einstellungen, Link)",
     "linksUpdatedSuccess": "Links in der Seitenleiste erfolgreich aktualisiert!",
     "linksUpdateFailed": "Links in der Seitenleiste können nicht aktualisiert werden",
     "sourceNotAccessible": "Diese Quelle ist für Sie nicht mehr zugänglich",
-    "noLinksYet": "Noch keine Links konfiguriert. Fügen Sie unten Ihren ersten Link hinzu."
+    "noLinksYet": "Noch keine Links konfiguriert. Fügen Sie unten Ihren ersten Link hinzu.",
+    "customizeShareLinks": "Links in der Seitenleiste für die Freigabe anpassen",
+    "customizeShareLinksDescription": "Passen Sie die in der Seitenleiste angezeigten Links für diese Freigabe an. Durch Ziehen und Ablegen können Sie die Reihenfolge ändern.",
+    "editLink": "Link bearbeiten",
+    "selectShare": "Aktie auswählen",
+    "chooseShare": "Wählen Sie eine Aktie",
+    "selectSharePath": "Pfad innerhalb der Freigabe (optional)",
+    "sharePathPlaceholder": "z. B. /subfolder oder leer lassen für root",
+    "browseIcons": "Icons durchsuchen",
+    "pickIcon": "Wählen Sie eine Ikone",
+    "pickIconDescription": "Suchen und wählen Sie ein Symbol aus der Bibliothek der Materialsymbole",
+    "shareLinksUpdatedSuccess": "Links in der Seitenleiste erfolgreich aktualisiert!",
+    "shareHome": "Startseite teilen",
+    "linkIconPlaceholder": "Geben Sie das Materialsymbol ein oder klicken Sie zum Durchsuchen auf die Schaltfläche \"Symbol\"."
   },
   "success": {
     "linkCopied": "Link wurde kopiert!"
@@ -420,7 +433,12 @@
     "allowReplacements": "Ersetzen von Dateien zulassen",
     "allowReplacementsDescription": "Jeder kann beim Hochladen von Dateien mit demselben Namen bestehende Dateien ersetzen.",
     "allowCreate": "Ermöglicht das Erstellen und Hochladen von Dateien und Ordnern",
-    "allowCreateDescription": "Jeder kann neue Dateien und Ordner in dieser Freigabe erstellen und hochladen."
+    "allowCreateDescription": "Jeder kann neue Dateien und Ordner in dieser Freigabe erstellen und hochladen.",
+    "customizeSidebarLinks": "Links in der Seitenleiste anpassen",
+    "customizeSidebarLinksButton": "Anpassen von Links",
+    "shareInfo": "QR-Code und Informationen teilen",
+    "shareInfoDescription": "Dieser Link zeigt die Informationen zur Freigabe, einschließlich Titel, Beschreibung, Banner und QR-Code, in einem Popup-Fenster an.",
+    "downloadDescription": "Über diesen Link kann der gesamte Inhalt der Freigabe als komprimierte Datei heruntergeladen werden."
   },
   "api": {
     "title": "API-Schlüssel",
@@ -740,7 +758,24 @@
     "duplicateFinder": {
       "name": "Duplicate File Finder",
       "description": "Finden und Verwalten doppelter Dateien, um Speicherplatz zurückzugewinnen"
-    }
+    },
+    "materialIconPicker": {
+      "name": "Material-Symbol-Auswahl",
+      "description": "Durchsuchen und Suchen von Material Icons mit Live-Vorschau",
+      "searchPlaceholder": "Suchsymbole...",
+      "browseFullLibrary": "Vollständige Symbolbibliothek durchsuchen:",
+      "popularIcons": "Zeigt {count} beliebte Icons",
+      "showingResults": "{count} Ergebnisse anzeigen",
+      "noResults": "Keine Icons gefunden",
+      "tryDifferentSearch": "Versuchen Sie einen anderen Suchbegriff",
+      "copiedToClipboard": "Kopiert '{name}' in die Zwischenablage!",
+      "copyFailed": "Kopieren in die Zwischenablage fehlgeschlagen",
+      "custom": "Benutzerdefiniert",
+      "useCustomIcon": "Benutzerdefiniertes Symbol verwenden: {name}",
+      "iconLibraryUrl": "fonts.google.com/icons"
+    },
+    "toolNotFound": "Werkzeug nicht gefunden",
+    "backToTools": "Zurück zu Tools"
   },
   "messages": {
     "pathNotFound": "Pfad existiert nicht im Dateisystem",
@@ -760,5 +795,20 @@
     "totalWastedSpace": "Insgesamt verschwendeter Platz{suffix}",
     "wasted": "Vergeudet{suffix}",
     "emptyState": "Geben Sie Suchkriterien ein und klicken Sie auf Duplikate suchen, um doppelte Dateien zu identifizieren"
+  },
+  "notifications": {
+    "title": "Benachrichtigungen",
+    "description": "Alle Benachrichtigungen aus Ihrer aktuellen Sitzung anzeigen",
+    "empty": "Noch keine Benachrichtigungen",
+    "clearAll": "Alle löschen",
+    "clearConfirm": "Sind Sie sicher, dass Sie den gesamten Benachrichtigungsverlauf löschen möchten?",
+    "total": "{count} Benachrichtigungen"
+  },
+  "events": {
+    "serverShutdown": "Der Server wurde abgeschaltet.",
+    "serverShuttingDown": "Der Server wird heruntergefahren. Verbindung wiederherstellen...",
+    "authenticationFailed": "Authentifizierung fehlgeschlagen. Bitte aktualisieren Sie die Seite, um sich erneut anzumelden.",
+    "reconnected": "Die Verbindung zum Server wurde wiederhergestellt.",
+    "connectionLost": "Die Verbindung zum Server wurde unterbrochen. Ich versuche, die Verbindung wiederherzustellen..."
   }
 }

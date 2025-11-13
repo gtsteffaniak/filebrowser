@@ -328,10 +328,6 @@ export default {
   gap: 0.5em;
 }
 
-.searchContext {
-  margin-bottom: 1em;
-}
-
 .cascade-toggle-section {
   margin-top: 1em;
   margin-bottom: 1em;

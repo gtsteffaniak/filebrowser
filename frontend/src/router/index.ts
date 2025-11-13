@@ -3,10 +3,9 @@ import Login from "@/views/Login.vue";
 import Layout from "@/views/Layout.vue";
 import Files from "@/views/Files.vue";
 import Settings from "@/views/Settings.vue";
+import Notifications from "@/views/Notifications.vue";
 import Errors from "@/views/Errors.vue";
 import Tools from "@/views/Tools.vue";
-import SizeViewer from "@/views/tools/SizeViewer.vue";
-import DuplicateFinder from "@/views/tools/DuplicateFinder.vue";
 import { globalVars } from "@/utils/constants";
 import { getters, state } from "@/store";
 import { mutations } from "@/store";
@@ -19,9 +18,8 @@ const titles = {
   PublicShare: i18n.global.t("general.share"),
   Files: i18n.global.t("general.files"),
   Tools: i18n.global.t("general.tool"),
-  SizeViewer: i18n.global.t("tools.sizeAnalyzer.name"),
-  DuplicateFinder: i18n.global.t("tools.duplicateFinder.name"),
   Settings: i18n.global.t("general.settings"),
+  Notifications: i18n.global.t("notifications.title"),
   ProfileSettings: i18n.global.t("settings.profileSettings"),
   Shares: i18n.global.t("settings.shareManagement"),
   GlobalSettings: i18n.global.t("settings.globalSettings"),
@@ -79,7 +77,8 @@ const routes: RouteRecordRaw[] = [
     ],
   },
   {
-    path: "/tools",
+    path: "/tools/:toolName?",
+    name: "Tools",
     component: Layout,
     meta: {
       requiresAuth: true,
@@ -87,25 +86,9 @@ const routes: RouteRecordRaw[] = [
     children: [
       {
         path: "",
-        name: "Tools",
-        component: Tools, // Shows the tools list and wraps individual tools
+        name: "ToolsIndex",
+        component: Tools,
       },
-      {
-        path: "sizeViewer",
-        name: "SizeViewer",
-        component: SizeViewer,
-      },
-      {
-        path: "duplicateFinder",
-        name: "DuplicateFinder",
-        component: DuplicateFinder,
-      },
-      // Add new tools here:
-      // {
-      //   path: "yourNewTool",
-      //   name: "YourNewTool",
-      //   component: YourNewTool,
-      // },
     ],
   },
   {
@@ -125,6 +108,21 @@ const routes: RouteRecordRaw[] = [
         path: "users/:id",
         name: "User",
         component: Settings,
+      },
+    ],
+  },
+  {
+    path: "/notifications",
+    name: "Notifications",
+    component: Layout,
+    meta: {
+      requiresAuth: true,
+    },
+    children: [
+      {
+        path: "",
+        name: "NotificationsIndex",
+        component: Notifications,
       },
     ],
   },
@@ -188,8 +186,7 @@ router.beforeResolve(async (to, from, next) => {
     return next(false);
   }
 
-  // @ts-ignore - Temporary fix for type instantiation issue
-  const title = i18n.global.t(titles[to.name as keyof typeof titles]);
+  const title = titles[to.name as keyof typeof titles] || String(to.name || '');
   document.title = globalVars.name + " - " + title;
   mutations.setRoute(to);
 

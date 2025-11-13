@@ -42,7 +42,8 @@
     "internal": "Ops! Algum erro ocorreu.",
     "notFound": "Ops! Nada foi encontrado.",
     "connection": "O servidor não pode ser alcançado.",
-    "shareNotFound": "Compartilhamento inválido ou expirado."
+    "shareNotFound": "Compartilhamento inválido ou expirado.",
+    "failedToConnectToServer": "Falha ao conectar-se ao servidor, ele ainda está em execução?"
   },
   "files": {
     "closePreview": "Fechar pré-visualização",
@@ -340,11 +341,23 @@
     "linkUrl": "URL do link",
     "linkUrlPlaceholder": "Insira o URL ou o caminho (por exemplo, /files/path ou https://example.com)",
     "linkIcon": "Ícone de link",
-    "linkIconPlaceholder": "Digite o nome do ícone do material (por exemplo, pasta, configurações, link)",
     "linksUpdatedSuccess": "Os links da barra lateral foram atualizados com sucesso!",
     "linksUpdateFailed": "Falha ao atualizar os links da barra lateral",
     "sourceNotAccessible": "Essa fonte não está mais acessível para você",
-    "noLinksYet": "Ainda não há links configurados. Adicione seu primeiro link abaixo."
+    "noLinksYet": "Ainda não há links configurados. Adicione seu primeiro link abaixo.",
+    "customizeShareLinks": "Personalizar os links da barra lateral de compartilhamento",
+    "customizeShareLinksDescription": "Personalize os links mostrados na barra lateral para esse compartilhamento. Arraste e solte para reordenar.",
+    "editLink": "Editar link",
+    "selectShare": "Selecionar compartilhamento",
+    "chooseShare": "Escolha uma ação",
+    "selectSharePath": "Caminho dentro do compartilhamento (opcional)",
+    "sharePathPlaceholder": "Por exemplo, /subpasta ou deixar em branco para a raiz",
+    "browseIcons": "Procurar ícones",
+    "pickIcon": "Escolha um ícone",
+    "pickIconDescription": "Pesquise e selecione um ícone na biblioteca de ícones de materiais",
+    "shareLinksUpdatedSuccess": "Os links da barra lateral de compartilhamento foram atualizados com sucesso!",
+    "shareHome": "Compartilhar casa",
+    "linkIconPlaceholder": "Insira o ícone do material ou clique no botão do ícone para navegar"
   },
   "success": {
     "linkCopied": "Link copiado!"
@@ -420,7 +433,12 @@
     "allowReplacements": "Permitir substituições de arquivos",
     "allowReplacementsDescription": "Qualquer pessoa pode substituir arquivos existentes ao fazer upload de arquivos com o mesmo nome.",
     "allowCreate": "Permitir a criação e o upload de arquivos e pastas",
-    "allowCreateDescription": "Qualquer pessoa pode criar e carregar novos arquivos e pastas nesse compartilhamento."
+    "allowCreateDescription": "Qualquer pessoa pode criar e carregar novos arquivos e pastas nesse compartilhamento.",
+    "customizeSidebarLinks": "Personalizar links da barra lateral",
+    "customizeSidebarLinksButton": "Personalizar links",
+    "shareInfo": "Compartilhar código QR e informações",
+    "shareInfoDescription": "Esse link exibe as informações do compartilhamento, incluindo título, descrição, banner e código QR em um pop-up.",
+    "downloadDescription": "Esse link permite o download de todo o conteúdo do compartilhamento como um arquivo compactado."
   },
   "api": {
     "title": "Chaves de API:",
@@ -740,7 +758,24 @@
     "duplicateFinder": {
       "name": "Localizador de arquivos duplicados",
       "description": "Localize e gerencie arquivos duplicados para recuperar espaço de armazenamento"
-    }
+    },
+    "materialIconPicker": {
+      "name": "Seletor de ícones de materiais",
+      "description": "Navegue e pesquise ícones de materiais com visualização ao vivo",
+      "searchPlaceholder": "Pesquisar ícones...",
+      "browseFullLibrary": "Navegue pela biblioteca completa de ícones:",
+      "popularIcons": "Exibindo {count} ícones populares",
+      "showingResults": "Mostrando {count} resultados",
+      "noResults": "Nenhum ícone encontrado",
+      "tryDifferentSearch": "Tente um termo de pesquisa diferente",
+      "copiedToClipboard": "Copiou '{name}' para a área de transferência!",
+      "copyFailed": "Falha ao copiar para a área de transferência",
+      "custom": "Personalizado",
+      "useCustomIcon": "Usar ícone personalizado: {name}",
+      "iconLibraryUrl": "fonts.google.com/icons"
+    },
+    "toolNotFound": "Ferramenta não encontrada",
+    "backToTools": "Voltar para Ferramentas"
   },
   "messages": {
     "pathNotFound": "O caminho não existe no sistema de arquivos",
@@ -760,5 +795,20 @@
     "totalWastedSpace": "Total de espaço desperdiçado{suffix}",
     "wasted": "Desperdiçado{suffix}",
     "emptyState": "Insira os critérios de pesquisa e clique em Find Duplicates para identificar arquivos duplicados"
+  },
+  "notifications": {
+    "title": "Notificações",
+    "description": "Exibir todas as notificações de sua sessão atual",
+    "empty": "Ainda não há notificações",
+    "clearAll": "Limpar tudo",
+    "clearConfirm": "Tem certeza de que deseja limpar todo o histórico de notificações?",
+    "total": "{count} notificações"
+  },
+  "events": {
+    "serverShutdown": "O servidor foi desligado.",
+    "serverShuttingDown": "O servidor está sendo desligado. Reconectando...",
+    "authenticationFailed": "Falha na autenticação. Atualize a página para fazer login novamente.",
+    "reconnected": "Reconectado ao servidor.",
+    "connectionLost": "A conexão com o servidor foi perdida. Tentando se reconectar..."
   }
 }

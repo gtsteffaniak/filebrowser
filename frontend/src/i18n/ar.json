@@ -42,7 +42,8 @@
     "internal": "لقد حدث خطأ ما.",
     "notFound": "لا يمكن الوصول لهذا المحتوى.",
     "connection": "لا يمكن الوصول إلى الخادم",
-    "shareNotFound": "حصة غير صالحة أو منتهية الصلاحية."
+    "shareNotFound": "حصة غير صالحة أو منتهية الصلاحية.",
+    "failedToConnectToServer": "فشل الاتصال بالخادم، هل لا يزال يعمل؟"
   },
   "files": {
     "closePreview": "إغلاق العرض",
@@ -340,11 +341,23 @@
     "linkUrl": "رابط الرابط URL",
     "linkUrlPlaceholder": "أدخل عنوان URL أو المسار (على سبيل المثال، /ملفات/مسار أو https://example.com)",
     "linkIcon": "أيقونة الرابط",
-    "linkIconPlaceholder": "أدخل اسم رمز المادة (على سبيل المثال، مجلد، إعدادات، رابط)",
     "linksUpdatedSuccess": "تم تحديث روابط الشريط الجانبي بنجاح!",
     "linksUpdateFailed": "فشل في تحديث روابط الشريط الجانبي",
     "sourceNotAccessible": "لم يعد هذا المصدر متاحاً لك",
-    "noLinksYet": "لم يتم تكوين أي روابط حتى الآن. أضف الرابط الأول أدناه."
+    "noLinksYet": "لم يتم تكوين أي روابط حتى الآن. أضف الرابط الأول أدناه.",
+    "customizeShareLinks": "تخصيص روابط الشريط الجانبي للمشاركة",
+    "customizeShareLinksDescription": "قم بتخصيص الروابط المعروضة في الشريط الجانبي لهذه المشاركة. السحب والإفلات لإعادة الترتيب.",
+    "editLink": "تحرير الرابط",
+    "selectShare": "حدد المشاركة",
+    "chooseShare": "اختر حصة",
+    "selectSharePath": "المسار داخل المشاركة (اختياري)",
+    "sharePathPlaceholder": "على سبيل المثال، /مجلد فرعي أو تركه فارغًا للجذر",
+    "browseIcons": "تصفح الأيقونات",
+    "pickIcon": "اختر أيقونة",
+    "pickIconDescription": "بحث وتحديد أيقونة من مكتبة الأيقونات المادية",
+    "shareLinksUpdatedSuccess": "تم تحديث روابط الشريط الجانبي المشاركة بنجاح!",
+    "shareHome": "مشاركة الصفحة الرئيسية",
+    "linkIconPlaceholder": "أدخل أيقونة المادة أو انقر فوق زر الأيقونة للتصفح"
   },
   "success": {
     "linkCopied": "تم نسخ الملف"
@@ -420,7 +433,12 @@
     "allowReplacements": "السماح باستبدال الملفات",
     "allowReplacementsDescription": "يمكن لأي شخص استبدال الملفات الموجودة عند تحميل ملفات بنفس الاسم.",
     "allowCreate": "إتاحة إنشاء الملفات والمجلدات وتحميلها",
-    "allowCreateDescription": "يمكن لأي شخص إنشاء ملفات ومجلدات جديدة وتحميلها في هذه المشاركة."
+    "allowCreateDescription": "يمكن لأي شخص إنشاء ملفات ومجلدات جديدة وتحميلها في هذه المشاركة.",
+    "customizeSidebarLinks": "تخصيص روابط الشريط الجانبي",
+    "customizeSidebarLinksButton": "تخصيص الروابط",
+    "shareInfo": "مشاركة رمز الاستجابة السريعة والمعلومات",
+    "shareInfoDescription": "يعرض هذا الرابط معلومات المشاركة، بما في ذلك العنوان والوصف والشعار ورمز الاستجابة السريعة في نافذة منبثقة.",
+    "downloadDescription": "يتيح هذا الرابط تنزيل محتوى المشاركة بالكامل كملف مضغوط."
   },
   "api": {
     "title": "مفاتيح واجهة برمجة التطبيقات (API):",
@@ -740,7 +758,24 @@
     "duplicateFinder": {
       "name": "أداة البحث عن الملفات المكررة",
       "description": "البحث عن الملفات المكررة وإدارتها لاستعادة مساحة التخزين"
-    }
+    },
+    "materialIconPicker": {
+      "name": "منتقي أيقونة المواد",
+      "description": "استعراض أيقونات المواد والبحث فيها مع المعاينة المباشرة",
+      "searchPlaceholder": "أيقونات البحث...",
+      "browseFullLibrary": "تصفح مكتبة الأيقونات الكاملة:",
+      "popularIcons": "عرض {count} أيقونات شائعة ",
+      "showingResults": "عرض {count} النتائج ",
+      "noResults": "لم يتم العثور على أي أيقونات",
+      "tryDifferentSearch": "جرّب مصطلح بحث مختلف",
+      "copiedToClipboard": "نسخ \"{name}\" إلى الحافظة!",
+      "copyFailed": "فشل النسخ إلى الحافظة",
+      "custom": "مخصص",
+      "useCustomIcon": "استخدام أيقونة مخصصة: {name}",
+      "iconLibraryUrl": "fonts.google.com/icons"
+    },
+    "toolNotFound": "الأداة غير موجودة",
+    "backToTools": "العودة إلى الأدوات"
   },
   "messages": {
     "pathNotFound": "المسار غير موجود على نظام الملفات",
@@ -760,5 +795,20 @@
     "totalWastedSpace": "إجمالي المساحة المهدرة{suffix}",
     "wasted": "ضائع{suffix}",
     "emptyState": "أدخل معايير البحث وانقر فوق البحث عن التكرارات لتحديد الملفات المكررة"
+  },
+  "notifications": {
+    "title": "الإشعارات",
+    "description": "عرض جميع التنبيهات من جلستك الحالية",
+    "empty": "لا توجد إخطارات حتى الآن",
+    "clearAll": "مسح الكل",
+    "clearConfirm": "هل أنت متأكد من رغبتك في مسح كل سجل الإشعارات؟",
+    "total": "{count} الإخطارات"
+  },
+  "events": {
+    "serverShutdown": "تم إيقاف تشغيل الخادم.",
+    "serverShuttingDown": "تم إيقاف تشغيل الخادم. إعادة الاتصال...",
+    "authenticationFailed": "فشلت المصادقة. يرجى تحديث الصفحة لتسجيل الدخول مرة أخرى.",
+    "reconnected": "تمت إعادة الاتصال بالخادم.",
+    "connectionLost": "فُقد الاتصال بالخادم. محاولة إعادة الاتصال..."
   }
 }

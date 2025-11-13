@@ -1,4 +1,5 @@
 import i18n from '@/i18n';
+import { getIconClass } from './material-icons';
 
 const globalVars = window.globalVars;
 const serverHasMultipleSources = globalVars.sourceCount > 1;
@@ -7,6 +8,7 @@ const origin = window.location.origin;
 const settings = [
   { id: 'profile', label: 'settings.profileSettings', component: 'ProfileSettings' },
   { id: 'fileLoading', label: 'fileLoading.title', component: 'FileLoading' },
+  { id: 'notifications', label: 'notifications.title', component: 'NotificationsSettings' },
   { id: 'shares', label: 'settings.shareSettings', component: 'SharesSettings', permissions: { share: true } },
   { id: 'api', label: 'api.title', component: 'ApiKeys', permissions: { api: true }  },
   { id: 'users', label: 'settings.userManagement', component: 'UserManagement' },
@@ -39,8 +41,15 @@ const getTools = () => [
     icon: "content_copy",
     path: "/tools/duplicateFinder",
   },
+  {
+    name: i18n.global.t("tools.materialIconPicker.name"),
+    description: i18n.global.t("tools.materialIconPicker.description"),
+    icon: "interests",
+    path: "/tools/materialIconPicker",
+  },
 ];
 
+// Export tools as both a function and direct array for convenience
 // Cache the tools array
 let toolsCache = null;
 const tools = () => {
@@ -57,4 +66,5 @@ export {
   settings,
   previewViews,
   tools,
+  getIconClass, // Re-exported from material-icons.js for convenience
 };

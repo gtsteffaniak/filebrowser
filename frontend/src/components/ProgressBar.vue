@@ -71,7 +71,7 @@ export default {
     },
     "bar-border-radius": {
       type: Number,
-      default: 4,
+      default: 8, // ~0.5em at default font size
     },
     spacing: {
       type: Number,
@@ -294,7 +294,6 @@ export default {
 .tooltip-info-icon {
   font-size: 1rem;
   cursor: pointer;
-  margin-left: 0.3em;
   vertical-align: middle;
   opacity: 0.7;
 }

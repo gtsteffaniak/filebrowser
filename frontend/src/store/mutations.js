@@ -305,6 +305,13 @@ export const mutations = {
     }
     emitStateChanged();
   },
+  closeCurrentHover: () => {
+    // Close only the current (top) prompt, leaving others in the stack
+    if (state.prompts.length > 0) {
+      state.prompts.pop();
+    }
+    emitStateChanged();
+  },
   setLoading: (loadType, status) => {
     if (status === false) {
       delete state.loading[loadType];

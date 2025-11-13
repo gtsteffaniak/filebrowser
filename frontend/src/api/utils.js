@@ -1,5 +1,6 @@
 import { state } from "@/store";
 import { renew } from "@/utils/auth";
+import i18n from "@/i18n";
 
 export async function fetchURL(url, opts, auth = true) {
   opts = opts || {};
@@ -20,7 +21,7 @@ export async function fetchURL(url, opts, auth = true) {
   } catch (e) {
     let message = e;
     if (e == "TypeError: Failed to fetch") {
-      message = "Failed to connect to the server, is it still running?";
+      message = i18n.global.t("errors.failedToConnectToServer");
     }
     const error = new Error(message);
     throw error;

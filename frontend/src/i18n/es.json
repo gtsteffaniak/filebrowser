@@ -42,7 +42,8 @@
     "internal": "Error interno :(",
     "notFound": "No se encontró el directorio",
     "connection": "No se puede conectar al servidor.",
-    "shareNotFound": "No se encuentra lo que buscas, tal vez el enlace expiró."
+    "shareNotFound": "No se encuentra lo que buscas, tal vez el enlace expiró.",
+    "failedToConnectToServer": "No se ha podido conectar con el servidor, ¿sigue funcionando?"
   },
   "files": {
     "closePreview": "Cerrar vista previa",
@@ -340,11 +341,23 @@
     "linkUrl": "Enlace URL",
     "linkUrlPlaceholder": "Introduzca la URL o la ruta (por ejemplo, /archivos/ruta o https://example.com)",
     "linkIcon": "Icono de enlace",
-    "linkIconPlaceholder": "Introduzca el nombre del icono del material (por ejemplo, carpeta, configuración, enlace)",
     "linksUpdatedSuccess": "Los enlaces de la barra lateral se han actualizado correctamente.",
     "linksUpdateFailed": "Error al actualizar los enlaces de la barra lateral",
     "sourceNotAccessible": "Ya no puede acceder a esta fuente",
-    "noLinksYet": "Aún no hay enlaces configurados. Añada su primer enlace a continuación."
+    "noLinksYet": "Aún no hay enlaces configurados. Añada su primer enlace a continuación.",
+    "customizeShareLinks": "Personalizar los enlaces compartidos de la barra lateral",
+    "customizeShareLinksDescription": "Personalice los enlaces que aparecen en la barra lateral para esta acción. Arrastre y suelte para reordenar.",
+    "editLink": "Editar enlace",
+    "selectShare": "Seleccione Compartir",
+    "chooseShare": "Elija una acción",
+    "selectSharePath": "Ruta dentro del recurso compartido (opcional)",
+    "sharePathPlaceholder": "por ejemplo, /subcarpeta o dejar vacío para root",
+    "browseIcons": "Iconos de navegación",
+    "pickIcon": "Elija un icono",
+    "pickIconDescription": "Busque y seleccione un icono de la biblioteca Material Icons",
+    "shareLinksUpdatedSuccess": "Los enlaces de la barra lateral compartida se han actualizado correctamente.",
+    "shareHome": "Compartir",
+    "linkIconPlaceholder": "Introduzca el icono del material o haga clic en el botón de icono para buscar"
   },
   "success": {
     "linkCopied": "¡Enlace copiado!"
@@ -420,7 +433,12 @@
     "allowReplacements": "Permitir la sustitución de archivos",
     "allowReplacementsDescription": "Cualquiera podrá reemplazar archivos existentes al subir archivos con el mismo nombre.",
     "allowCreate": "Permitir crear/subir archivos y carpetas",
-    "allowCreateDescription": "Cualquiera puede crear/subir nuevos archivos y carpetas en este recurso compartido."
+    "allowCreateDescription": "Cualquiera puede crear/subir nuevos archivos y carpetas en este recurso compartido.",
+    "customizeSidebarLinks": "Personalizar los enlaces de la barra lateral",
+    "customizeSidebarLinksButton": "Personalizar enlaces",
+    "shareInfo": "Compartir código QR e información",
+    "shareInfoDescription": "Este enlace muestra la información de la acción, incluido el título, la descripción, el banner y el código QR en una ventana emergente.",
+    "downloadDescription": "Este enlace permite descargar todo el contenido compartido como archivo comprimido."
   },
   "api": {
     "title": "Gestión de claves API",
@@ -740,7 +758,24 @@
     "duplicateFinder": {
       "name": "Buscador de archivos duplicados",
       "description": "Encuentre y gestione los archivos duplicados para recuperar espacio de almacenamiento"
-    }
+    },
+    "materialIconPicker": {
+      "name": "Icono de selección de material",
+      "description": "Navega y busca Material Icons con vista previa en directo",
+      "searchPlaceholder": "Buscar iconos...",
+      "browseFullLibrary": "Consulta la biblioteca completa de iconos:",
+      "popularIcons": "Mostrar {count} iconos populares",
+      "showingResults": "Mostrando resultados de {count} ",
+      "noResults": "No se han encontrado iconos",
+      "tryDifferentSearch": "Pruebe con otro término de búsqueda",
+      "copiedToClipboard": "¡Copiado '{name}' al portapapeles!",
+      "copyFailed": "Error al copiar al portapapeles",
+      "custom": "A medida",
+      "useCustomIcon": "Utilizar icono personalizado: {name}",
+      "iconLibraryUrl": "fonts.google.com/icons"
+    },
+    "toolNotFound": "Herramienta no encontrada",
+    "backToTools": "Volver a Herramientas"
   },
   "messages": {
     "pathNotFound": "La ruta no existe en el sistema de archivos",
@@ -760,5 +795,20 @@
     "totalWastedSpace": "Espacio total desperdiciado{suffix}",
     "wasted": "Desperdiciado{suffix}",
     "emptyState": "Introduzca los criterios de búsqueda y haga clic en Buscar duplicados para identificar los archivos duplicados."
+  },
+  "notifications": {
+    "title": "Notificaciones",
+    "description": "Ver todas las notificaciones de la sesión actual",
+    "empty": "Aún no hay notificaciones",
+    "clearAll": "Borrar todo",
+    "clearConfirm": "¿Estás seguro de que quieres borrar todo el historial de notificaciones?",
+    "total": "{count} notificaciones"
+  },
+  "events": {
+    "serverShutdown": "El servidor se ha apagado.",
+    "serverShuttingDown": "El servidor se apaga. Reconectando...",
+    "authenticationFailed": "Error de autenticación. Actualice la página para volver a iniciar sesión.",
+    "reconnected": "Reconectado al servidor.",
+    "connectionLost": "Se ha perdido la conexión con el servidor. Intentando reconectar..."
   }
 }

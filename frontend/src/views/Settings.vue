@@ -37,6 +37,7 @@ import UserSettings from "@/views/settings/Users.vue";
 import FileLoading from "@/views/settings/FileLoading.vue";
 import ApiKeys from "@/views/settings/Api.vue";
 import SystemAdmin from "@/views/settings/SystemAdmin.vue";
+import NotificationsSettings from "@/views/Notifications.vue";
 export default {
   name: "settings",
   components: {
@@ -49,6 +50,7 @@ export default {
     FileLoading,
     UserSettings,
     SystemAdmin,
+    NotificationsSettings,
   },
   data() {
     return {
