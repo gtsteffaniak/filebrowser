@@ -42,7 +42,8 @@
     "internal": "Något gick fel",
     "notFound": "Det går inte att nå den här platsen.",
     "connection": "Det går inte att nå servern.",
-    "shareNotFound": "Ogiltig eller utgången andel."
+    "shareNotFound": "Ogiltig eller utgången andel.",
+    "failedToConnectToServer": "Det gick inte att ansluta till servern, är den fortfarande igång?"
   },
   "files": {
     "closePreview": "Stäng förhands granskningen",
@@ -340,11 +341,23 @@
     "linkUrl": "Länk URL",
     "linkUrlPlaceholder": "Ange URL eller sökväg (t.ex. /files/path eller https://example.com)",
     "linkIcon": "Länk-ikon",
-    "linkIconPlaceholder": "Ange namn på materialikon (t.ex. mapp, inställningar, länk)",
     "linksUpdatedSuccess": "Sidofältets länkar uppdaterades framgångsrikt!",
     "linksUpdateFailed": "Misslyckades med att uppdatera sidofältets länkar",
     "sourceNotAccessible": "Denna källa är inte längre tillgänglig för dig",
-    "noLinksYet": "Inga länkar konfigurerade ännu. Lägg till din första länk nedan."
+    "noLinksYet": "Inga länkar konfigurerade ännu. Lägg till din första länk nedan.",
+    "customizeShareLinks": "Anpassa sidofältets länkar för delning",
+    "customizeShareLinksDescription": "Anpassa länkarna som visas i sidofältet för den här aktien. Dra och släpp för att ändra ordning.",
+    "editLink": "Redigera länk",
+    "selectShare": "Välj Dela",
+    "chooseShare": "Välj en aktie",
+    "selectSharePath": "Väg inom andel (valfritt)",
+    "sharePathPlaceholder": "t.ex. /subfolder eller lämna tomt för root",
+    "browseIcons": "Bläddra i ikoner",
+    "pickIcon": "Välj en ikon",
+    "pickIconDescription": "Sök och välj en ikon från Material Icons-biblioteket",
+    "shareLinksUpdatedSuccess": "Dela sidofältets länkar uppdaterades framgångsrikt!",
+    "shareHome": "Dela hem",
+    "linkIconPlaceholder": "Ange materialikon eller eller klicka på ikonknappen för att bläddra"
   },
   "success": {
     "linkCopied": "Länk kopierad"
@@ -420,7 +433,12 @@
     "allowReplacements": "Tillåt filbyten",
     "allowReplacementsDescription": "Vem som helst kan ersätta befintliga filer när de laddar upp filer med samma namn.",
     "allowCreate": "Tillåt skapande och uppladdning av filer och mappar",
-    "allowCreateDescription": "Vem som helst kan skapa och ladda upp nya filer och mappar i den här delen."
+    "allowCreateDescription": "Vem som helst kan skapa och ladda upp nya filer och mappar i den här delen.",
+    "customizeSidebarLinks": "Anpassa länkar i sidofältet",
+    "customizeSidebarLinksButton": "Anpassa länkar",
+    "shareInfo": "Dela QR-kod och information",
+    "shareInfoDescription": "Den här länken visar information om aktien, inklusive titel, beskrivning, banner och QR-kod i en popup.",
+    "downloadDescription": "Den här länken gör det möjligt att ladda ner hela innehållet i aktien som en komprimerad fil."
   },
   "api": {
     "title": "API-nycklar",
@@ -444,7 +462,8 @@
     "expires": "Upphör att gälla",
     "actions": "Åtgärder",
     "enabled": "Aktiverad",
-    "disabled": "Inaktiverad"
+    "disabled": "Inaktiverad",
+    "apiKeyDeleted": "API-nyckel raderad!"
   },
   "index": {
     "assessment": "Bedömning",
@@ -740,7 +759,24 @@
     "duplicateFinder": {
       "name": "Hitta duplicerade filer",
       "description": "Hitta och hantera dubbletter av filer för att återfå lagringsutrymme"
-    }
+    },
+    "materialIconPicker": {
+      "name": "Väljare för materialikoner",
+      "description": "Bläddra bland och sök efter materialikoner med förhandsgranskning i realtid",
+      "searchPlaceholder": "Sök ikoner...",
+      "browseFullLibrary": "Bläddra igenom hela ikonbiblioteket:",
+      "popularIcons": "Visar {count} populära ikoner",
+      "showingResults": "Visar resultat från {count} ",
+      "noResults": "Inga ikoner hittades",
+      "tryDifferentSearch": "Försök med en annan sökterm",
+      "copiedToClipboard": "Kopierade '{name}' till urklipp!",
+      "copyFailed": "Misslyckades med att kopiera till klippbordet",
+      "custom": "Anpassad",
+      "useCustomIcon": "Använd anpassad ikon: {name}",
+      "iconLibraryUrl": "teckensnitt.google.com/ikoner"
+    },
+    "toolNotFound": "Verktyget hittades inte",
+    "backToTools": "Tillbaka till Verktyg"
   },
   "messages": {
     "pathNotFound": "Sökvägen finns inte i filsystemet",
@@ -760,5 +796,19 @@
     "totalWastedSpace": "Totalt bortkastat utrymme{suffix}",
     "wasted": "Bortkastad{suffix}",
     "emptyState": "Ange sökkriterier och klicka på Find Duplicates för att identifiera dubbletter av filer"
+  },
+  "notifications": {
+    "title": "Meddelanden",
+    "description": "Visa alla meddelanden från din aktuella session",
+    "empty": "Inga meddelanden ännu",
+    "clearAll": "Rensa alla",
+    "clearConfirm": "Är du säker på att du vill rensa all meddelandehistorik?",
+    "total": "{count} meddelanden"
+  },
+  "events": {
+    "serverShutdown": "Servern stängdes av.",
+    "authenticationFailed": "Autentiseringen misslyckades. Uppdatera sidan för att logga in igen.",
+    "reconnected": "Återansluten till servern.",
+    "connectionLost": "Anslutningen till servern förlorades. Försöker återansluta..."
   }
 }

@@ -160,7 +160,22 @@ export const state = reactive({
     title: "",
     description: "",
   },
+  notificationHistory: loadNotificationHistory(), // Session-based notification history (persists across refreshes)
 });
+
+/**
+ * Load notification history from sessionStorage
+ * @returns {Array}
+ */
+function loadNotificationHistory() {
+  try {
+    const stored = sessionStorage.getItem('notificationHistory');
+    return stored ? JSON.parse(stored) : [];
+  } catch (error) {
+    console.error('Failed to load notification history:', error);
+    return [];
+  }
+}
 
 function stickyStartup() {
   const stickyStatus = localStorage.getItem("stickySidebar");

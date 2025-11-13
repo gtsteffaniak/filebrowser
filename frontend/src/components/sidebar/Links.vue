@@ -1,70 +1,69 @@
 <template>
-    <transition name="expand" @before-enter="beforeEnter" @enter="enter" @leave="leave">
-        <div v-if="showSidebarLinks" class="sidebar-scroll-list">
-            <div class="sidebar-links card">
-                <div class="sidebar-links-header">
-                    <span>{{ $t("general.links") }}</span>
-                    <button class="action edit-icon" @click="openSidebarLinksPrompt"
-                        @mouseenter="showTooltip($event, $t('sidebar.customizeLinks'))" @mouseleave="hideTooltip">
-                        <i class="material-icons no-padding">edit</i>
-                    </button>
-                </div>
-                <transition-group name="expand" tag="div" class="inner-card">
-                    <template v-for="(link, index) in sidebarLinksToDisplay" :key="`link-${index}-${link.category}`">
-                        <!-- Source-type links: styled exactly like original sources -->
-                        <a v-if="link.category === 'source'" :href="link.target" class="action button source-button sidebar-link-button" :class="{
-                            active: isLinkActive(link),
-                            disabled: !isLinkAccessible(link)
-                        }" @click.prevent="handleLinkClick(link)" :aria-label="link.name">
-                            <div class="source-container">
-                                <svg v-if="isLinkAccessible(link)" class="realtime-pulse" :class="{
-                                    active: realtimeActive,
-                                    danger: getSourceInfo(link).status != 'indexing' && getSourceInfo(link).status != 'ready',
-                                    warning: getSourceInfo(link).status == 'indexing',
-                                    ready: getSourceInfo(link).status == 'ready',
-                                }">
-                                    <circle class="center" cx="50%" cy="50%" r="7px"></circle>
-                                    <circle class="pulse" cx="50%" cy="50%" r="10px"></circle>
-                                </svg>
-                                <i v-else class="material-icons warning-icon"
-                                    @mouseenter="showTooltip($event, $t('sidebar.sourceNotAccessible'))"
-                                    @mouseleave="hideTooltip">
-                                    warning
-                                </i>
-                                <span>{{ link.name }}</span>
-                                <i v-if="isLinkAccessible(link)"
-                                    class="no-select material-symbols-outlined tooltip-info-icon"
-                                    @mouseenter="showSourceTooltip($event, getSourceInfo(link))"
-                                    @mouseleave="hideTooltip">
-                                    info <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-                                </i>
-                            </div>
-                            <div v-if="hasSourceInfo && isLinkAccessible(link)" class="usage-info">
-                                <ProgressBar :val="getSourceInfo(link).used" :max="getSourceInfo(link).total"
-                                    unit="bytes"></ProgressBar>
-                            </div>
-                        </a>
-
-                        <!-- Non-source links: tool and custom links with simple icon style -->
-                        <a v-else :href="link.target" class="action button sidebar-link-button" :class="{ active: isLinkActive(link) }"
-                            @click.prevent="handleLinkClick(link)">
-                            <div class="link-container">
-                                <i class="material-icons link-icon">{{ link.icon }}</i>
-                                <span>{{ link.name }}</span>
-                            </div>
-                        </a>
-          </template>
-                </transition-group>
+  <transition name="expand" @before-enter="beforeEnter" @enter="enter" @leave="leave">
+    <div v-if="true" class="sidebar-links card">
+      <div class="sidebar-links-header">
+        <i @click="goHome()" class="material-icons action">home</i>
+        <span>{{ $t("general.links") }}</span>
+        <i @mouseenter="showTooltip($event, $t('sidebar.customizeLinks'))" @mouseleave="hideTooltip"
+          @click="openSidebarLinksPrompt" class="material-icons action">edit</i>
+      </div>
+      <transition-group name="expand" tag="div" class="inner-card">
+        <template v-for="(link, index) in sidebarLinksToDisplay" :key="`link-${index}-${link.category}`">
+          <!-- Source-type links: styled exactly like original sources -->
+          <a v-if="link.category === 'source'" :href="getLinkHref(link)"
+            class="action button source-button sidebar-link-button" :class="{
+              active: isLinkActive(link),
+              disabled: !isLinkAccessible(link)
+            }" @click.prevent="handleLinkClick(link)" :aria-label="link.name">
+            <div class="source-container">
+              <!-- Show custom icon if user has set one -->
+              <i v-if="link.icon" :class="getIconClass(link.icon) + ' link-icon'">{{ link.icon }}</i>
+              <!-- Otherwise show animated status indicator -->
+              <svg v-else-if="isLinkAccessible(link)" class="realtime-pulse" :class="{
+                active: realtimeActive,
+                danger: getSourceInfo(link).status != 'indexing' && getSourceInfo(link).status != 'ready',
+                warning: getSourceInfo(link).status == 'indexing',
+                ready: getSourceInfo(link).status == 'ready',
+              }">
+                <circle class="center" cx="50%" cy="50%" r="7px"></circle>
+                <circle class="pulse" cx="50%" cy="50%" r="10px"></circle>
+              </svg>
+              <i v-else class="material-icons warning-icon"
+                @mouseenter="showTooltip($event, $t('sidebar.sourceNotAccessible'))" @mouseleave="hideTooltip">
+                warning
+              </i>
+              <span>{{ link.name }}</span>
+              <i v-if="isLinkAccessible(link)" class="no-select material-symbols-outlined tooltip-info-icon"
+                @mouseenter="showSourceTooltip($event, getSourceInfo(link))" @mouseleave="hideTooltip">
+                info <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+              </i>
             </div>
-        </div>
-    </transition>
+            <div v-if="hasSourceInfo && isLinkAccessible(link)" class="usage-info">
+              <ProgressBar :val="getSourceInfo(link).used" :max="getSourceInfo(link).total" unit="bytes"></ProgressBar>
+            </div>
+          </a>
+
+          <!-- Non-source links: tool and custom links with simple icon style -->
+          <a v-else :href="getLinkHref(link)" class="action button sidebar-link-button"
+            :class="{ active: isLinkActive(link) }" @click.prevent="handleLinkClick(link)">
+            <div class="link-container">
+              <i :class="getIconClass(link.icon) + ' link-icon'">{{ link.icon }}</i>
+              <span>{{ link.name }}</span>
+            </div>
+          </a>
+        </template>
+      </transition-group>
+    </div>
+  </transition>
 </template>
 
 <script>
 import { state, getters, mutations } from "@/store";
-import { fromNow } from "@/utils/moment";
 import ProgressBar from "@/components/ProgressBar.vue";
 import { goToItem } from "@/utils/url";
+import { getIconClass } from "@/utils/material-icons";
+import { buildIndexInfoTooltipHTML } from "@/components/files/IndexInfo.vue";
+import { globalVars } from "@/utils/constants";
 
 export default {
   name: "SidebarLinks",
@@ -79,13 +78,18 @@ export default {
     hasSourceInfo: () => state.sources.hasSourceInfo,
     showSidebarLinks() {
       // Always show sidebar links section (replaces sources)
-      return !getters.isShare();
+      return true;
     },
     hasCustomLinks() {
       // Check if user has customized their links
       return this.user?.sidebarLinks && this.user.sidebarLinks.length > 0;
     },
     sidebarLinksToDisplay() {
+      // If viewing a share, use share's links
+      if (getters.isShare() && state.shareInfo?.sidebarLinks && state.shareInfo.sidebarLinks.length > 0) {
+        return state.shareInfo.sidebarLinks;
+      }
+
       // If user has custom links, use those
       if (this.hasCustomLinks) {
         return this.user.sidebarLinks;
@@ -96,6 +100,19 @@ export default {
     },
   },
   methods: {
+    getIconClass,
+    getLinkHref(link) {
+      // Add baseURL to target for href display
+      if (!link.target) return '#';
+      if (link.target.startsWith('http://') || link.target.startsWith('https://')) return link.target;
+
+      const baseURL = globalVars.baseURL || '';
+      const target = link.target.startsWith('/') ? link.target.substring(1) : link.target;
+      return baseURL + target;
+    },
+    goHome() {
+      this.$router.push('/');
+    },
     getDefaultLinks() {
       // Generate default links from sources
       const defaultLinks = [];
@@ -107,7 +124,7 @@ export default {
             name: sourceName,
             category: 'source',
             target: `/files/${info.pathPrefix}`,
-            icon: 'folder',
+            icon: '', // No icon by default - will show animated status indicator
           });
         });
       }
@@ -132,32 +149,6 @@ export default {
       if (link.category !== 'source') return {};
       return this.sourceInfo && link.name ? this.sourceInfo[link.name] || {} : {};
     },
-    getComplexityLabel(complexity) {
-      // Translate complexity integer to i18n label
-      // Frontend interprets: 0=unknown, 1=simple, 2-6=normal, 7-9=complex, 10=highlyComplex
-      if (complexity === 0) return this.$t("index.unknown");
-      if (complexity === 1) return this.$t("index.simple");
-      if (complexity >= 2 && complexity <= 6) return this.$t("index.normal");
-      if (complexity >= 7 && complexity <= 9) return this.$t("index.complex");
-      if (complexity === 10) return this.$t("index.highlyComplex");
-      return this.$t("index.unknown");
-    },
-    getStatusLabel(status) {
-      // Translate status string to i18n label
-      switch (status) {
-        case "ready":
-          return this.$t("index.ready");
-        case "indexing":
-          return this.$t("index.indexing");
-        case "unavailable":
-          return this.$t("index.unavailable");
-        case "error":
-          return this.$t("index.error");
-        case "unknown":
-        default:
-          return this.$t("index.unknown");
-      }
-    },
     isLinkActive(link) {
       // Check if the current route matches this link
       if (link.category === 'source') {
@@ -166,18 +157,59 @@ export default {
       return this.$route.path === link.target;
     },
     handleLinkClick(link) {
+      // Handle special share actions
+      if (link.category === 'shareInfo') {
+        mutations.showHover({ name: "ShareInfo" });
+        return;
+      }
+      if (link.category === 'download') {
+        this.goToDownload();
+        return;
+      }
+
       // Don't navigate if link is not accessible
       if (!this.isLinkAccessible(link)) {
         return;
       }
 
       if (link.category === 'source') {
-        goToItem(link.name, "/");
+        // Use sourcePath if available, otherwise default to root
+        const path = link.sourcePath || "/";
+        goToItem(link.sourceName || link.name, path);
         return;
       }
 
-      // Navigate to the link target
-      this.navigateTo(link.target);
+      // Navigate using target (router handles baseURL)
+      if (link.target) {
+        this.$router.push(link.target);
+        mutations.closeHovers();
+      }
+    },
+    goToDownload() {
+      const { publicApi } = require("@/api");
+      if (state.req.items.length > 1) {
+        mutations.showHover({
+          name: "download",
+          confirm: (format) => {
+            mutations.closeHovers();
+            const downloadLink = publicApi.getDownloadURL({
+              path: "/",
+              hash: state.share.hash,
+              token: state.share.token,
+              inline: false,
+            }, [state.req.path]);
+            window.open(downloadLink + "&format=" + format, "_blank");
+          },
+        });
+      } else {
+        const downloadLink = publicApi.getDownloadURL({
+          path: "/",
+          hash: state.share.hash,
+          token: state.share.token,
+          inline: false,
+        }, [state.req.path]);
+        window.open(downloadLink, "_blank");
+      }
     },
     navigateTo(path, hash) {
       mutations.setPreviousHistoryItem({
@@ -242,95 +274,66 @@ export default {
       }
     },
     buildSourceTooltipContent(info) {
-      const getHumanReadable = (lastIndex) => {
-        if (isNaN(Number(lastIndex))) return "";
-        let val = Number(lastIndex);
-        if (val === 0) {
-          return "now";
-        }
-        return fromNow(val, state.user.locale);
-      };
-
-      return `
-        <table style="border-collapse: collapse; text-align: left;">
-          <thead>
-            <tr>
-              <th colspan="2" style="text-align: center; font-weight: bold; font-size: 1.1em; padding-bottom: 0.3em; border-bottom: 1px solid #888;">${info.name || 'Source'}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${this.$t("general.status")}</td>
-              <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${this.getStatusLabel(info.status)}</td>
-            </tr>
-            <tr>
-              <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${this.$t("index.assessment")}</td>
-              <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${this.getComplexityLabel(info.complexity || 0)}</td>
-            </tr>
-            <tr>
-              <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${this.$t("general.files")}</td>
-              <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${info.files || 0}</td>
-            </tr>
-            <tr>
-              <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${this.$t("general.folders")}</td>
-              <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${info.folders || 0}</td>
-            </tr>
-            <tr>
-              <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${this.$t("index.lastScanned")}</td>
-              <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${getHumanReadable(info.lastIndex)}</td>
-            </tr>
-            <tr>
-              <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${this.$t("index.quickScan")}</td>
-              <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${isNaN(Number(info.quickScanDurationSeconds)) ? '' : Number(info.quickScanDurationSeconds)}</td>
-            </tr>
-            <tr>
-              <td style="padding: 0.2em 0.5em;">${this.$t("index.fullScan")}</td>
-              <td style="padding: 0.2em 0.5em;">${isNaN(Number(info.fullScanDurationSeconds)) ? '' : Number(info.fullScanDurationSeconds)}</td>
-            </tr>
-          </tbody>
-        </table>
-      `;
+      return buildIndexInfoTooltipHTML(info, this.$t, state.user.locale);
     },
   },
 };
 </script>
 
 <style scoped>
+
+.usage-info .vue-simple-progress {
+  border-style: solid;
+  border-color: var(--surfaceSecondary);
+}
+
 .sidebar-links {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    padding: 1em;
+  padding: 1em;
+  overflow: scroll;
+}
+
+.material-icons.action {
+  width: unset !important;
+  padding: 0.25em;
+  border-radius: 0.5em;
 }
 
 .sidebar-links .inner-card {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  width: 100%;
 }
 
 .sidebar-links-header {
-    display: flex;
-    justify-content: center;
-    padding: .25em;
-    padding-top: 0 !important;
-    align-items: center;
-    gap: 1em;
+  display: flex;
+  justify-content: space-between;
+  padding: .25em;
+  padding-top: 0 !important;
+  align-items: center;
+  gap: 1em;
 }
 
 .sidebar-links-header span {
-    font-weight: 500;
-    color: var(--textPrimary);
+  font-weight: 500;
+  color: var(--textPrimary);
+}
+
+.sidebar-link-action {
+  cursor: pointer;
+  padding: 0.5em;
 }
 
 /* Non-source link styles (tools, custom) */
 .sidebar-link-button {
-  margin-top: 0.5em;
-  text-decoration: none;
-  padding: 0.5em;
+  margin: 0;
+  margin-top: 0.25em;
+  padding: 0;
+}
+
+.sidebar-link-button:first-child {
+  margin-top: 0 !important;
 }
 
 .edit-icon {
@@ -350,16 +353,16 @@ a.sidebar-link-button {
 }
 
 .link-container {
-    display: flex;
-    flex-direction: row;
-    color: var(--textPrimary);
-    align-content: center;
-    align-items: center;
-    gap: 0.5em;
+  display: flex;
+  flex-direction: row;
+  color: var(--textPrimary);
+  align-content: center;
+  align-items: center;
+  gap: 0.5em;
 }
 
 .link-icon {
-    color: var(--primaryColor);
+  color: var(--primaryColor);
 }
 
 /* Warning icon for inaccessible sources */
@@ -377,100 +380,100 @@ a.sidebar-link-button {
 
 .expand-enter-active,
 .expand-leave-active {
-    transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    overflow: hidden;
+  transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
 }
 
 .expand-enter,
 .expand-leave-to {
-    height: 0 !important;
-    opacity: 0;
+  height: 0 !important;
+  opacity: 0;
 }
 
 
 .source-button {
-    margin-top: 0.5em !important;
+  margin-top: 0.5em !important;
 }
 
 .source-button.active {
-    background: var(--alt-background);
+  background: var(--alt-background);
 }
 
 .source-icon {
-    padding: 0.1em !important;
+  padding: 0.1em !important;
 }
 
 .logout-button,
 .person-button {
-    padding: 0 !important;
+  padding: 0 !important;
 }
 
 .realtime-pulse>.pulse {
-    display: none;
-    fill-opacity: 0;
-    transform-origin: 50% 50%;
-    animation: pulse 10s infinite backwards;
+  display: none;
+  fill-opacity: 0;
+  transform-origin: 50% 50%;
+  animation: pulse 10s infinite backwards;
 }
 
 .realtime-pulse.active>.pulse {
-    display: block;
+  display: block;
 }
 
 .realtime-pulse.ready>.pulse {
-    fill: #21d721;
-    stroke: #21d721;
+  fill: #21d721;
+  stroke: #21d721;
 }
 
 .realtime-pulse.danger>.pulse {
-    fill: rgb(190, 147, 147);
-    stroke: rgb(235, 55, 55);
+  fill: rgb(190, 147, 147);
+  stroke: rgb(235, 55, 55);
 }
 
 .realtime-pulse.warning>.pulse {
-    fill: rgb(255, 157, 0);
-    stroke: rgb(255, 157, 0);
+  fill: rgb(255, 157, 0);
+  stroke: rgb(255, 157, 0);
 }
 
 @keyframes pulse {
-    from {
-        stroke-width: 3px;
-        stroke-opacity: 1;
-        transform: scale(0.3);
-    }
+  from {
+    stroke-width: 3px;
+    stroke-opacity: 1;
+    transform: scale(0.3);
+  }
 
-    to {
-        stroke-width: 0;
-        stroke-opacity: 0;
-        transform: scale(1.5);
-    }
+  to {
+    stroke-width: 0;
+    stroke-opacity: 0;
+    transform: scale(1.5);
+  }
 }
 
 .disabled .source-container {
-    display: block;
+  display: block;
 }
 
 .source-container {
-    display: flex;
-    flex-direction: row;
-    color: var(--textPrimary);
-    align-content: center;
-    align-items: center;
+  display: flex;
+  flex-direction: row;
+  color: var(--textPrimary);
+  align-content: center;
+  align-items: center;
 }
 
 .realtime-pulse {
-    width: 2em;
-    height: 2em;
+  width: 2em;
+  height: 2em;
 }
 
 .realtime-pulse.ready>.center {
-    fill: #21d721;
+  fill: #21d721;
 }
 
 .realtime-pulse.danger>.center {
-    fill: rgb(235, 55, 55);
+  fill: rgb(235, 55, 55);
 }
 
 .realtime-pulse.warning>.center {
-    fill: rgb(255, 157, 0);
+  fill: rgb(255, 157, 0);
 }
 </style>

@@ -18,6 +18,8 @@
     <prompts :class="{ 'dark-mode': isDarkMode }"></prompts>
   </div>
   <Notifications />
+  <Toast :toasts="toasts" />
+  <StatusBar :class="{ moveWithSidebar: moveWithSidebar }" />
   <ContextMenu></ContextMenu>
   <Tooltip />
   <NextPrevious />
@@ -30,13 +32,15 @@ import Prompts from "@/components/prompts/Prompts.vue";
 import Sidebar from "@/components/sidebar/Sidebar.vue";
 import ContextMenu from "@/components/ContextMenu.vue";
 import Notifications from "@/components/Notifications.vue";
+import Toast from "@/components/Toast.vue";
+import StatusBar from "@/components/StatusBar.vue";
 import Scrollbar from "@/components/files/Scrollbar.vue";
 import Tooltip from "@/components/Tooltip.vue";
 import NextPrevious from "@/components/files/nextPrevious.vue";
 import PopupPreview from "@/components/files/PopupPreview.vue";
 import { filesApi } from "@/api";
 import { state, getters, mutations } from "@/store";
-import { events } from "@/notify";
+import { events, notify } from "@/notify";
 import { generateRandomCode } from "@/utils/auth";
 
 export default {
@@ -44,6 +48,8 @@ export default {
   components: {
     ContextMenu,
     Notifications,
+    Toast,
+    StatusBar,
     defaultBar,
     Sidebar,
     Prompts,
@@ -58,6 +64,7 @@ export default {
       dragCounter: 0,
       width: window.innerWidth,
       itemWeight: 0,
+      toasts: [],
     };
   },
   mounted() {
@@ -70,6 +77,10 @@ export default {
     if (!state.sessionId) {
       mutations.setSession(generateRandomCode(8));
     }
+    // Set up toast callback
+    notify.setToastUpdateCallback((toasts) => {
+      this.toasts = toasts;
+    });
     this.reEval()
     this.initialize();
   },

@@ -76,7 +76,7 @@ export default {
             await filesApi.remove(state.selected[0].source, state.selected[0].path);
           }
           buttons.success("delete");
-          notify.showSuccess("Deleted item successfully");
+          notify.showSuccessToast("Deleted item successfully");
           mutations.closeHovers();
           mutations.setDeletedItem(true);
           mutations.setReload(true);
@@ -89,7 +89,7 @@ export default {
             await filesApi.remove(state.req.items.source, state.req.items[state.selected[0]].path);
           }
           buttons.success("delete");
-          notify.showSuccess("Deleted item successfully");
+          notify.showSuccessToast("Deleted item successfully");
           mutations.closeHovers();
           return;
         }
@@ -111,7 +111,7 @@ export default {
         mutations.resetSelected();
         await Promise.all(promises);
         buttons.success("delete");
-        notify.showSuccess(this.$t('prompts.deleted'));
+        notify.showSuccessToast(this.$t('prompts.deleted'));
         mutations.setReload(true); // Handle reload as neededs
       } catch (e) {
         buttons.done("delete");

@@ -393,10 +393,6 @@ export default {
   margin: 0 auto;
 }
 
-.searchContext {
-  margin-bottom: 1em;
-}
-
 .duplicate-finder-results {
   max-width: 1200px;
   margin-bottom: 2em;

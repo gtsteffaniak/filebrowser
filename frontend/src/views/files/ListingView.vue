@@ -177,7 +177,6 @@
           multiple
         />
       </div>
-      <StatusBar />
     </div>
   </div>
 
@@ -198,14 +197,12 @@ import { url } from "@/utils";
 
 import Item from "@/components/files/ListingItem.vue";
 import Upload from "@/components/prompts/Upload.vue";
-import StatusBar from "@/components/StatusBar.vue";
 
 export default {
   name: "listingView",
   components: {
     Item,
     Upload,
-    StatusBar,
   },
   data() {
     return {

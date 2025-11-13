@@ -95,9 +95,6 @@ func shareListHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		return http.StatusInternalServerError, err
 	}
 	shares = utils.NonNilSlice(shares)
-	for _, share := range shares {
-		fmt.Println("1share source = ", share.Source)
-	}
 	sharesWithUsernames, err := convertToFrontendShareResponse(r, shares)
 	if err != nil {
 		return http.StatusInternalServerError, err
@@ -142,9 +139,6 @@ func shareGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) 
 
 	if err != nil {
 		return http.StatusInternalServerError, fmt.Errorf("error getting share info from server")
-	}
-	for _, share := range s {
-		fmt.Println("2share source = ", share.Source)
 	}
 	sharesWithUsernames, err := convertToFrontendShareResponse(r, s)
 	if err != nil {

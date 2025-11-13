@@ -23,7 +23,6 @@
       </h2>
     </div>
   </div>
-  <PopupPreview v-if="popupEnabled" />
 </template>
 
 <script>
@@ -41,7 +40,6 @@ import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
 import router from "@/router";
 import { globalVars } from "@/utils/constants";
-import PopupPreview from "@/components/files/PopupPreview.vue";
 import { extractSourceFromPath } from "@/utils/url";
 import ShareInfoCard from "@/components/files/ShareInfoCard.vue";
 
@@ -57,7 +55,6 @@ export default {
     DocViewer,
     OnlyOfficeEditor,
     MarkdownViewer,
-    PopupPreview,
     ShareInfoCard,
   },
   data() {
@@ -81,12 +78,6 @@ export default {
     },
     showShareInfo() {
       return getters.isShare() && state.isMobile && state.req.path == "/" && !state.shareInfo?.disableShareCard;
-    },
-    popupEnabled() {
-      if (!state.user || state.user?.username == "") {
-        return false;
-      }
-      return state.user.preview.popup;
     },
     showBreadCrumbs() {
       return getters.showBreadCrumbs();
@@ -156,7 +147,7 @@ export default {
       // scroll to previous item either from location hash or from previousItemHashId state
       // prefers location hash
       const noHashChange = window.location.hash === this.lastHash
-      if (noHashChange && state.previousHistoryItem.name === "") return;
+      if (noHashChange && state.previousHistoryItem?.name === "") return;
       this.lastHash = window.location.hash;
       if (window.location.hash) {
         const rawHash = window.location.hash.slice(1);
@@ -169,7 +160,7 @@ export default {
         }
         scrollToId = url.base64Encode(encodeURIComponent(decodedName));
 
-      } else if (state.previousHistoryItem.name && state.previousHistoryItem.path === state.req.path && state.previousHistoryItem.source === state.req.source) {
+      } else if (state.previousHistoryItem?.name && state.previousHistoryItem.path === state.req.path && state.previousHistoryItem.source === state.req.source) {
         scrollToId = url.base64Encode(encodeURIComponent(state.previousHistoryItem.name));
       }
       // Don't call getElementById with empty string

@@ -338,13 +338,11 @@ export const getters = {
     // Return progress as a percentage
     return Math.ceil((sum / totalSize) * 100)
   },
-
   filesInUploadCount: () => {
     const uploadsCount = state.upload.length
     const queueCount = state.queue.length
     return uploadsCount + queueCount
   },
-
   currentPrompt: () => {
     // Ensure state.prompts is an array
     if (!Array.isArray(state.prompts)) {
@@ -368,9 +366,7 @@ export const getters = {
     }
     return lastPrompt.name
   },
-
   isUploading: () => state.upload.isUploading,
-
   filesInUpload: () => {
     // Ensure state.upload.uploads is an object and state.upload.sizes is an array
     if (

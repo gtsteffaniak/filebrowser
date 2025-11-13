@@ -114,10 +114,8 @@ test.describe("User Settings Persistence", () => {
         // --- Open modal and check initial state (should be OFF) ---
         // Debug: Check if the user row exists
         await expect(userRow).toBeVisible({ timeout: 5000 });
-        
         // Debug: Take a screenshot before clicking
         await page.screenshot({ path: `debug-before-click-${settingName.replace(/\s+/g, '-')}.png` });
-        
         // Click the edit button - use the clickable div inside the td with aria-label
         await userRow.locator('td[aria-label="Edit User"] .clickable').click()
 
@@ -149,7 +147,6 @@ test.describe("User Settings Persistence", () => {
         const checkboxOff = modal.locator(`.toggle-container:has-text("${settingName}") input[type="checkbox"]`);
         await expect(checkboxOff).not.toBeChecked();
 
-        // --- Close modal to finish ---
         await modal.locator('button[aria-label="Cancel"]').click();
     }
 

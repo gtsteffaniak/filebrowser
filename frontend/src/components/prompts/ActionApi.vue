@@ -86,7 +86,7 @@ export default {
           eventBus.emit('apiKeysChanged');
         }, 10);
         mutations.closeHovers();
-        notify.showSuccess("API key deleted!");
+        notify.showSuccessToast(this.$t("api.apiKeyDeleted"));
       } catch (error) {
         console.error(error);
       }

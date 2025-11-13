@@ -62,7 +62,7 @@ export default {
       try {
         mutations.setSettings(this.selectedSettings);
         await settingsApi.update(state.settings);
-        notify.showSuccess(this.$t("settings.settingsUpdated"));
+        notify.showSuccessToast(this.$t("settings.settingsUpdated"));
       } catch (e) {
         console.error(e);
       }

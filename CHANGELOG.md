@@ -8,21 +8,35 @@ All notable changes to this project will be documented in this file. For commit 
  - Added tools
    - size analyzer -- quickly show largest files in interactive graphical chart
    - duplicate finder -- find duplicate files larger than 1MB
- - Status bar for listing view #1459
- - Customizable sidebar links -- reorder sources and add custom links.
+   - material icon picker and previewer
+ - Listing View Style updates
+   - Status bar for listing view #1459
+   - Duration field shows up if media is shown with duration
+   - More dynamic view modes with additional styling changes
+   - Total display modes consolidated into 3 main groups: list, gallery, normal. "icon" and "compact" mode exist as views based on display size setting.
+ - Customizable sidebar links
+   - Logged in users can have their preferences saved and synced
+   - Can rearrange, add custom links, and save your preferences.
+   - Can customize shares with their own custom sidebar links.
  - Dynamic scopes for OIDC #1414 #1363
  - Enhanced notifications, buttons persistence. #1331
  - Share and Access Rules validation
    - If a file/path is moved/renamed in UI its rules and shares will always follow.
    - If a file/path is moved/renamed outside UI, a warning message will show and ability to associate to new path
  - Cascade delete access in Access Management when deleting a User #1347
+ - Enhanced notifications
+   - Added "toast" notification type support -- most success messages show as toast now.
+   - multiple stacked notifications possible
+   - notification button support, such as click to open folder after moving file.
+   - notification history (not including toasts)
 
  **Notes**:
  - more efficient user update actions. Successful PUT actions return only 204 if successful.
  - Do not enter directory on "New Folder" action #1343
- - Individual scanners per directory at root -- improves scanning impact.
+ - Improved indexing performance - individual scanners per directory at root.
  - Improved search memory efficiency
  - Improved scrolling performance
+ - Static file handling has been streamlined, could potentially see some changes from this.
 
 ## v1.0.1-stable
 

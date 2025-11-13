@@ -94,6 +94,14 @@
     </transition>
   </div>
 
+  <!-- Share Info Card - only show when viewing a share -->
+  <ShareInfoCard
+    v-if="isShare && !disableShareCard"
+    :hash="hash"
+    :token="token"
+    :sub-path="subPath"
+  />
+
   <!-- Sidebar Links Component (replaces sources) -->
   <SidebarLinks />
 </template>
@@ -104,11 +112,13 @@ import { globalVars } from "@/utils/constants";
 import { state, getters, mutations } from "@/store";
 import { fromNow } from "@/utils/moment";
 import SidebarLinks from "./Links.vue";
+import ShareInfoCard from "@/components/files/ShareInfoCard.vue";
 
 export default {
   name: "SidebarGeneral",
   components: {
     SidebarLinks,
+    ShareInfoCard,
   },
   data() {
     return {};
@@ -134,6 +144,7 @@ export default {
     isListingView: () => getters.currentView() == "listingView",
     user: () => (state.user || {username: 'anonymous'}),
     isDarkMode: () => getters.isDarkMode(),
+    isShare: () => getters.isShare(),
     showSources: () => !getters.isShare(),
     currentPrompt: () => getters.currentPrompt(),
     active: () => getters.isSidebarVisible(),
@@ -143,6 +154,19 @@ export default {
     route: () => state.route,
     realtimeActive: () => state.realtimeActive,
     darkModeTogglePossible: () => state.shareInfo?.enforceDarkLightMode != "dark" && state.shareInfo?.enforceDarkLightMode != "light",
+    // Share info card props
+    disableShareCard() {
+      return state.shareInfo?.disableShareCard;
+    },
+    hash() {
+      return state.shareInfo?.hash || this.$route.params.hash || "";
+    },
+    token() {
+      return state.shareInfo?.token || this.$route.query.token || "";
+    },
+    subPath() {
+      return state.shareInfo?.path || "/";
+    },
   },
   watch: {
     route() {

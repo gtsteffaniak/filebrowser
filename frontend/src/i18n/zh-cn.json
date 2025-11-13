@@ -42,7 +42,8 @@
     "internal": "服务器出了点问题。",
     "notFound": "找不到文件。",
     "connection": "无法连接到服务器。",
-    "shareNotFound": "无效或过期共享。"
+    "shareNotFound": "无效或过期共享。",
+    "failedToConnectToServer": "连接服务器失败，服务器还在运行吗？"
   },
   "files": {
     "closePreview": "关闭预览",
@@ -340,11 +341,23 @@
     "linkUrl": "链接网址",
     "linkUrlPlaceholder": "输入 URL 或路径（如 /files/path 或 https://example.com）",
     "linkIcon": "链接图标",
-    "linkIconPlaceholder": "输入材料图标名称（例如文件夹、设置、链接）",
     "linksUpdatedSuccess": "侧边栏链接更新成功！",
     "linksUpdateFailed": "更新侧边栏链接失败",
     "sourceNotAccessible": "您已无法访问此信息源",
-    "noLinksYet": "尚未配置链接。请在下面添加您的第一个链接。"
+    "noLinksYet": "尚未配置链接。请在下面添加您的第一个链接。",
+    "customizeShareLinks": "自定义共享侧边栏链接",
+    "customizeShareLinksDescription": "自定义此分享侧边栏中显示的链接。拖放即可重新排序。",
+    "editLink": "编辑链接",
+    "selectShare": "选择共享",
+    "chooseShare": "选择份额",
+    "selectSharePath": "共享中的路径（可选）",
+    "sharePathPlaceholder": "例如，/子文件夹，或者根目录留空",
+    "browseIcons": "浏览图标",
+    "pickIcon": "选择图标",
+    "pickIconDescription": "从材质图标库中搜索并选择图标",
+    "shareLinksUpdatedSuccess": "共享侧边栏链接更新成功！",
+    "shareHome": "共享主页",
+    "linkIconPlaceholder": "输入材料图标或或点击图标按钮浏览"
   },
   "success": {
     "linkCopied": "链接已复制！"
@@ -420,7 +433,12 @@
     "allowReplacements": "允许文件替换",
     "allowReplacementsDescription": "上传同名文件时，任何人都可以替换现有文件。",
     "allowCreate": "允许创建和上传文件和文件夹",
-    "allowCreateDescription": "任何人都可以在此共享中创建和上传新文件和文件夹。"
+    "allowCreateDescription": "任何人都可以在此共享中创建和上传新文件和文件夹。",
+    "customizeSidebarLinks": "自定义侧边栏链接",
+    "customizeSidebarLinksButton": "自定义链接",
+    "shareInfo": "共享 QR 码和信息",
+    "shareInfoDescription": "此链接会在弹出式窗口中显示共享信息，包括标题、描述、横幅和 QR 代码。",
+    "downloadDescription": "通过该链接可以下载整个共享内容的压缩文件。"
   },
   "api": {
     "title": "应用程序接口密钥",
@@ -444,7 +462,8 @@
     "expires": "到期",
     "actions": "行动",
     "enabled": "已启用",
-    "disabled": "残疾"
+    "disabled": "残疾",
+    "apiKeyDeleted": "API 密钥已删除！"
   },
   "index": {
     "assessment": "评估",
@@ -740,7 +759,24 @@
     "duplicateFinder": {
       "name": "重复文件查找器",
       "description": "查找和管理重复文件，回收存储空间"
-    }
+    },
+    "materialIconPicker": {
+      "name": "材料图标选择器",
+      "description": "通过实时预览浏览和搜索材质图标",
+      "searchPlaceholder": "搜索图标...",
+      "browseFullLibrary": "浏览完整的图标库：",
+      "popularIcons": "显示{count} 流行图标",
+      "showingResults": "显示{count} 结果",
+      "noResults": "未找到图标",
+      "tryDifferentSearch": "尝试不同的搜索词",
+      "copiedToClipboard": "将 '{name}' 复制到剪贴板！",
+      "copyFailed": "复制到剪贴板失败",
+      "custom": "定制",
+      "useCustomIcon": "使用自定义图标：{name}",
+      "iconLibraryUrl": "fonts.google.com/icons"
+    },
+    "toolNotFound": "未找到工具",
+    "backToTools": "返回工具"
   },
   "messages": {
     "pathNotFound": "文件系统中不存在路径",
@@ -760,5 +796,19 @@
     "totalWastedSpace": "浪费空间总计{suffix}",
     "wasted": "浪费{suffix}",
     "emptyState": "输入搜索条件，然后单击查找重复文件，以识别重复文件"
+  },
+  "notifications": {
+    "title": "通知",
+    "description": "查看当前会话的所有通知",
+    "empty": "尚无通知",
+    "clearAll": "全部清除",
+    "clearConfirm": "您确定要清除所有通知历史记录吗？",
+    "total": "{count} 通知"
+  },
+  "events": {
+    "serverShutdown": "服务器已关闭。",
+    "authenticationFailed": "验证失败。请刷新页面重新登录。",
+    "reconnected": "重新连接服务器。",
+    "connectionLost": "与服务器的连接丢失。尝试重新连接..."
   }
 }

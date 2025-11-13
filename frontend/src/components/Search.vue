@@ -565,13 +565,14 @@ export default {
 }
 
 .searchContext {
+  margin-top: 0;
   width: 100%;
   padding: 0.5em 1em;
   background: var(--primaryColor);
   color: white;
-  border-left: 1px solid gray;
   border-right: 1px solid gray;
   word-wrap: break-word;
+  margin-bottom: 0 !important;
 }
 
 .searchContext.input {
@@ -582,6 +583,7 @@ export default {
   width: 25%;
   min-width: 7em;
   max-width: 15em;
+  height: 100%;
 }
 
 .searchContext.input option {

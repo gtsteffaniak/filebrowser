@@ -224,10 +224,6 @@ body.rtl .card-title>*:first-child {
   padding-bottom: 1.5em;
 }
 
-.card-title * {
-  margin: 0;
-}
-
 /* Apply flex behavior only to direct children of floating cards */
 .card.floating > .card-action {
   text-align: right;

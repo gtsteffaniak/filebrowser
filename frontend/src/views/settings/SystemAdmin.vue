@@ -84,7 +84,7 @@ export default {
         await usersApi.update(data, [
           "disableUpdateNotifications",
         ]);
-        notify.showSuccess(this.$t("settings.settingsUpdated"));
+        notify.showSuccessToast(this.$t("settings.settingsUpdated"));
       } catch (e) {
         console.error(e);
       }

@@ -42,7 +42,8 @@
     "internal": "Bir şeyler ters gitti.",
     "notFound": "Bu konuma ulaşılamıyor.",
     "connection": "Sunucuya ulaşılamıyor.",
-    "shareNotFound": "Geçersiz veya süresi dolmuş paylaşım."
+    "shareNotFound": "Geçersiz veya süresi dolmuş paylaşım.",
+    "failedToConnectToServer": "Sunucuya bağlanılamadı, hala çalışıyor mu?"
   },
   "files": {
     "closePreview": "Önizlemeyi kapat",
@@ -340,11 +341,23 @@
     "linkUrl": "Bağlantı URL'si",
     "linkUrlPlaceholder": "URL veya yol girin (örn. /files/path veya https://example.com)",
     "linkIcon": "Bağlantı Simgesi",
-    "linkIconPlaceholder": "Malzeme simgesi adını girin (örn. klasör, ayarlar, bağlantı)",
     "linksUpdatedSuccess": "Kenar çubuğu bağlantıları başarıyla güncellendi!",
     "linksUpdateFailed": "Kenar çubuğu bağlantıları güncellenemedi",
     "sourceNotAccessible": "Bu kaynak artık sizin için erişilebilir değil",
-    "noLinksYet": "Henüz yapılandırılmış bağlantı yok. İlk bağlantınızı aşağıya ekleyin."
+    "noLinksYet": "Henüz yapılandırılmış bağlantı yok. İlk bağlantınızı aşağıya ekleyin.",
+    "customizeShareLinks": "Paylaşım Kenar Çubuğu Bağlantılarını Özelleştirme",
+    "customizeShareLinksDescription": "Bu paylaşım için kenar çubuğunda gösterilen bağlantıları özelleştirin. Yeniden sıralamak için sürükleyip bırakın.",
+    "editLink": "Bağlantıyı Düzenle",
+    "selectShare": "Paylaşımı Seçin",
+    "chooseShare": "Bir paylaşım seçin",
+    "selectSharePath": "Paylaşım içindeki yol (isteğe bağlı)",
+    "sharePathPlaceholder": "örneğin, /subfolder veya root için boş bırakın",
+    "browseIcons": "Simgelere Gözat",
+    "pickIcon": "Bir Simge Seçin",
+    "pickIconDescription": "Materyal Simgeleri kitaplığından bir simge arayın ve seçin",
+    "shareLinksUpdatedSuccess": "Kenar çubuğu bağlantılarını paylaşma başarıyla güncellendi!",
+    "shareHome": "Ev Paylaşımı",
+    "linkIconPlaceholder": "Malzeme simgesini girin veya göz atmak için simge düğmesine tıklayın"
   },
   "success": {
     "linkCopied": "Link kopyalandı!"
@@ -420,7 +433,12 @@
     "allowReplacements": "Dosya değiştirmelerine izin ver",
     "allowReplacementsDescription": "Aynı ada sahip dosyaları yüklerken herkes mevcut dosyaları değiştirebilir.",
     "allowCreate": "Dosya ve klasör oluşturmaya ve yüklemeye izin ver",
-    "allowCreateDescription": "Herkes bu paylaşımda yeni dosyalar ve klasörler oluşturabilir ve yükleyebilir."
+    "allowCreateDescription": "Herkes bu paylaşımda yeni dosyalar ve klasörler oluşturabilir ve yükleyebilir.",
+    "customizeSidebarLinks": "Kenar Çubuğu Bağlantılarını Özelleştirme",
+    "customizeSidebarLinksButton": "Bağlantıları Özelleştir",
+    "shareInfo": "QR Kodunu ve Bilgilerini Paylaş",
+    "shareInfoDescription": "Bu bağlantı, başlık, açıklama, başlık ve QR kodu dahil olmak üzere paylaşımın bilgilerini bir açılır pencerede görüntüler.",
+    "downloadDescription": "Bu bağlantı, tüm paylaşım içeriğinin sıkıştırılmış bir dosya olarak indirilmesini sağlar."
   },
   "api": {
     "title": "API Anahtarları:",
@@ -444,7 +462,8 @@
     "expires": "Sona erdi",
     "actions": "Eylemler",
     "enabled": "Etkin",
-    "disabled": "Engelli"
+    "disabled": "Engelli",
+    "apiKeyDeleted": "API anahtarı silindi!"
   },
   "index": {
     "assessment": "Değerlendirme",
@@ -740,7 +759,24 @@
     "duplicateFinder": {
       "name": "Yinelenen Dosya Bulucu",
       "description": "Depolama alanını geri kazanmak için yinelenen dosyaları bulun ve yönetin"
-    }
+    },
+    "materialIconPicker": {
+      "name": "Malzeme Simge Seçici",
+      "description": "Canlı önizleme ile Materyal Simgelerine göz atın ve arayın",
+      "searchPlaceholder": "Arama simgeleri...",
+      "browseFullLibrary": "Tam simge kitaplığına göz atın:",
+      "popularIcons": "{count} popüler simgeler gösteriliyor",
+      "showingResults": "{count} sonuçları gösteriliyor",
+      "noResults": "Simge bulunamadı",
+      "tryDifferentSearch": "Farklı bir arama terimi deneyin",
+      "copiedToClipboard": "'{name}' panoya kopyalandı!",
+      "copyFailed": "Panoya kopyalanamadı",
+      "custom": "Özel",
+      "useCustomIcon": "Özel simge kullanın: {name}",
+      "iconLibraryUrl": "fonts.google.com/icons"
+    },
+    "toolNotFound": "Araç bulunamadı",
+    "backToTools": "Araçlara Geri Dön"
   },
   "messages": {
     "pathNotFound": "Yol dosya sisteminde mevcut değil",
@@ -760,5 +796,19 @@
     "totalWastedSpace": "Toplam Boşa Harcanan Alan{suffix}",
     "wasted": "Ziyan{suffix}",
     "emptyState": "Yinelenen dosyaları belirlemek için arama kriterlerini girin ve Yinelenenleri Bul'a tıklayın"
+  },
+  "notifications": {
+    "title": "Bildirimler",
+    "description": "Geçerli oturumunuzdaki tüm bildirimleri görüntüleyin",
+    "empty": "Henüz bildirim yok",
+    "clearAll": "Tümünü Temizle",
+    "clearConfirm": "Tüm bildirim geçmişini temizlemek istediğinizden emin misiniz?",
+    "total": "{count} BİLDİRİMLER"
+  },
+  "events": {
+    "serverShutdown": "Sunucu kapatıldı.",
+    "authenticationFailed": "Kimlik doğrulama başarısız oldu. Tekrar giriş yapmak için lütfen sayfayı yenileyin.",
+    "reconnected": "Sunucuya yeniden bağlanıldı.",
+    "connectionLost": "Sunucu ile bağlantı kesildi. Yeniden bağlanmaya çalışıyorum..."
   }
 }

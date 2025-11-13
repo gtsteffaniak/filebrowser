@@ -392,7 +392,7 @@ export default {
         await filesApi.put(this.originalReq.source, this.originalReq.path, this.editor.getValue());
       }
 
-      notify.showSuccess(`${this.originalReq.name} saved successfully.`);
+      notify.showSuccessToast(`${this.originalReq.name} saved successfully.`);
       this.isDirty = false;
       mutations.setEditorDirty(false);
     },

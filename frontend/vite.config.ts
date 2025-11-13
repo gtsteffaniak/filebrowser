@@ -47,8 +47,7 @@ export default defineConfig(({ command }) => {
         // Add buildDelay to batch multiple changes
         buildDelay: 500,
       } : null,
-      // Reduce chunk size limit warnings in dev mode
-      chunkSizeWarningLimit: isDevBuild ? 5000 : 500,
+      chunkSizeWarningLimit: 5000,
       rollupOptions: {
         input: {
           index: path.resolve(__dirname, "./public/index.html"),
@@ -73,7 +72,8 @@ export default defineConfig(({ command }) => {
     experimental: {
       renderBuiltUrl(filename, { hostType }) {
         if (hostType === "js") {
-          return { runtime: `window.__prependStaticUrl("${filename}")` };
+          // Use relative paths instead of runtime function
+          return { relative: true };
         } else if (hostType === "html") {
           return `{{ .htmlVars.staticURL }}/${filename}`;
         } else {

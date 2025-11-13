@@ -35,7 +35,7 @@ export default {
         await usersApi.remove(this.user.id);
         // Emit event to refresh user list
         eventBus.emit('usersChanged');
-        notify.showSuccess(this.$t("settings.userDeleted"));
+        notify.showSuccessToast(this.$t("settings.userDeleted"));
         mutations.closeHovers();
       } catch (e) {
         e.message === "403"
