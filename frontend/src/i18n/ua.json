@@ -677,7 +677,8 @@
     "commands": "Команди{suffix}",
     "uploading": "Завантаження{suffix}",
     "paused": "Призупинився.{suffix}",
-    "conflict": "Конфлікт{suffix}"
+    "conflict": "Конфлікт{suffix}",
+    "change": "Зміна{suffix}"
   },
   "access": {
     "rules": "Правила доступу",

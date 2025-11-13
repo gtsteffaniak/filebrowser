@@ -597,7 +597,8 @@
     "commands": "Команды{suffix}",
     "uploading": "Загрузка{suffix}",
     "paused": "Пауза{suffix}",
-    "conflict": "Конфликт{suffix}"
+    "conflict": "Конфликт{suffix}",
+    "change": "Изменить{suffix}"
   },
   "access": {
     "rules": "Правила доступа",

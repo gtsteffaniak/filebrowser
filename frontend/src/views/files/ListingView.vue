@@ -272,6 +272,9 @@ export default {
       return state;
     },
     isDragging() {
+      if (getters.isShare()) {
+        return state.shareInfo.allowCreate && this.dragCounter > 0;
+      }
       return this.dragCounter > 0;
     },
     scrolling() {
@@ -505,13 +508,13 @@ export default {
       this.$el.addEventListener("mouseup", this.cancelContext);
     }
 
+    console.log('state.shareInfo', state.shareInfo);
     // if safari , make sure click and hold opens context menu, but not for any other browser
-    if (state.user.permissions?.modify || state.shareInfo?.allowCreate) {
+    if (state.user.permissions?.modify || getters.isShare()) {
       this.$el.addEventListener("dragenter", this.dragEnter);
       this.$el.addEventListener("dragleave", this.dragLeave);
       this.$el.addEventListener("drop", this.drop);
     }
-
   },
   beforeUnmount() {
     // Remove event listeners before destroying this page.
@@ -536,7 +539,7 @@ export default {
     }
 
     // Also clean up drag/drop listeners on the component's root element
-    if (state.user && state.user?.permissions?.modify || state.shareInfo?.allowCreate) {
+    if (state.user && state.user?.permissions?.modify || getters.isShare()) {
       this.$el.removeEventListener("dragenter", this.dragEnter);
       this.$el.removeEventListener("dragleave", this.dragLeave);
       this.$el.removeEventListener("drop", this.drop);
@@ -1018,6 +1021,9 @@ export default {
     },
     async drop(event) {
       event.preventDefault();
+      if (getters.isShare() && !state.shareInfo.allowCreate) {
+        return
+      }
       const isInternal = Array.from(event.dataTransfer.types).includes(
         "application/x-filebrowser-internal-drag"
       );

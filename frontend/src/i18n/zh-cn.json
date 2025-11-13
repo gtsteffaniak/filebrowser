@@ -677,7 +677,8 @@
     "commands": "命令{suffix}",
     "uploading": "上传{suffix}",
     "paused": "暂停{suffix}",
-    "conflict": "冲突{suffix}"
+    "conflict": "冲突{suffix}",
+    "change": "改变{suffix}"
   },
   "access": {
     "rules": "访问规则",

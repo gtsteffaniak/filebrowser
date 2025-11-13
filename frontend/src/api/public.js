@@ -117,6 +117,10 @@ export function post(
   if (!hash || hash === undefined || hash === null) {
     throw new Error('no hash provided')
   }
+  let sharePassword = localStorage.getItem("sharepass:" + hash);
+  if (sharePassword) {
+    headers["X-SHARE-PASSWORD"] = sharePassword;
+  }
   try {
     const apiPath = getPublicApiPath("resources", {
       targetPath: doubleEncode(path),
@@ -130,7 +134,6 @@ export function post(
     for (const header in headers) {
       request.setRequestHeader(header, headers[header]);
     }
-
     if (typeof onupload === "function") {
       request.upload.onprogress = (event) => {
         if (event.lengthComputable) {
@@ -181,11 +184,17 @@ export function post(
 
 async function resourceAction(hash, path, method, content, token = "") {
   try {
+    let headers = {};
+    let sharePassword = localStorage.getItem("sharepass:" + hash);
+    if (sharePassword) {
+      headers["X-SHARE-PASSWORD"] = sharePassword;
+    }
     path = doubleEncode(path)
     const apiPath = getPublicApiPath('resources', { path, hash: hash, token: token })
     const response = await fetch(apiPath, {
       method,
       body: content,
+      headers,
     });
     if (!response.ok) {
       const error = new Error(response.statusText);

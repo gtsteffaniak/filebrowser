@@ -597,7 +597,8 @@
     "commands": "פקודות{suffix}",
     "uploading": "העלאה{suffix}",
     "paused": "בהשהיה{suffix}",
-    "conflict": "סכסוך{suffix}"
+    "conflict": "סכסוך{suffix}",
+    "change": "שינוי{suffix}"
   },
   "access": {
     "rules": "כללי גישה",

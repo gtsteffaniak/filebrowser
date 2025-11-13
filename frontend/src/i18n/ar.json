@@ -597,7 +597,8 @@
     "commands": "الأوامر{suffix}",
     "uploading": "التحميل{suffix}",
     "paused": "متوقف مؤقتاً{suffix}",
-    "conflict": "التعارض{suffix}"
+    "conflict": "التعارض{suffix}",
+    "change": "التغيير{suffix}"
   },
   "access": {
     "rules": "قواعد الوصول",

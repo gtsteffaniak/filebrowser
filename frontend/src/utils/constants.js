@@ -6,14 +6,14 @@ const serverHasMultipleSources = globalVars.sourceCount > 1;
 const origin = window.location.origin;
 
 const settings = [
-  { id: 'profile', label: 'settings.profileSettings', component: 'ProfileSettings' },
-  { id: 'fileLoading', label: 'fileLoading.title', component: 'FileLoading' },
-  { id: 'notifications', label: 'notifications.title', component: 'NotificationsSettings' },
-  { id: 'shares', label: 'settings.shareSettings', component: 'SharesSettings', permissions: { share: true } },
-  { id: 'api', label: 'api.title', component: 'ApiKeys', permissions: { api: true }  },
-  { id: 'users', label: 'settings.userManagement', component: 'UserManagement' },
-  { id: 'access', label: 'access.accessManagement', component: 'AccessSettings', permissions: { admin: true } },
-  { id: 'systemAdmin', label: 'settings.systemAdmin', component: 'SystemAdmin', permissions: { admin: true } },
+  { id: 'profile', label: 'settings.profileSettings', component: 'ProfileSettings', icon: 'person' },
+  { id: 'fileLoading', label: 'fileLoading.title', component: 'FileLoading', icon: 'cloud_download' },
+  { id: 'notifications', label: 'notifications.title', component: 'NotificationsSettings', icon: 'notifications' },
+  { id: 'shares', label: 'settings.shareSettings', component: 'SharesSettings', permissions: { share: true }, icon: 'share' },
+  { id: 'api', label: 'api.title', component: 'ApiKeys', permissions: { api: true }, icon: 'key' },
+  { id: 'users', label: 'settings.userManagement', component: 'UserManagement', icon: 'group' },
+  { id: 'access', label: 'access.accessManagement', component: 'AccessSettings', permissions: { admin: true }, icon: 'lock' },
+  { id: 'systemAdmin', label: 'settings.systemAdmin', component: 'SystemAdmin', permissions: { admin: true }, icon: 'admin_panel_settings' },
 ];
 
 const previewViews = [

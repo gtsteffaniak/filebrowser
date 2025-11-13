@@ -1069,7 +1069,6 @@ export default {
     --plyr-tooltip-color: #ffffff;
     --plyr-video-controls-background: linear-gradient(transparent,
             rgba(0, 0, 0, 0.7));
-    border-radius: 12px;
     overflow: visible;
     background-color: rgb(216 216 216);
     box-shadow: 0 2px 6px rgba(88, 88, 88, 0.45);

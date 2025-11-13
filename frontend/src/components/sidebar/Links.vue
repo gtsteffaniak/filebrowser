@@ -1,10 +1,10 @@
 <template>
   <transition name="expand" @before-enter="beforeEnter" @enter="enter" @leave="leave">
-    <div v-if="true" class="sidebar-links card">
-      <div class="sidebar-links-header">
-        <i @click="goHome()" class="material-icons action">home</i>
+    <div v-if="!isShare || hasLinks" class="sidebar-links card">
+      <div class="sidebar-links-header" :class="{ 'no-edit-options': isShare }">
+        <i v-if="!isShare" @click="goHome()" class="material-icons action">home</i>
         <span>{{ $t("general.links") }}</span>
-        <i @mouseenter="showTooltip($event, $t('sidebar.customizeLinks'))" @mouseleave="hideTooltip"
+        <i v-if="!isShare" @mouseenter="showTooltip($event, $t('sidebar.customizeLinks'))" @mouseleave="hideTooltip"
           @click="openSidebarLinksPrompt" class="material-icons action">edit</i>
       </div>
       <transition-group name="expand" tag="div" class="inner-card">
@@ -64,6 +64,7 @@ import { goToItem } from "@/utils/url";
 import { getIconClass } from "@/utils/material-icons";
 import { buildIndexInfoTooltipHTML } from "@/components/files/IndexInfo.vue";
 import { globalVars } from "@/utils/constants";
+import { publicApi } from "@/api";
 
 export default {
   name: "SidebarLinks",
@@ -71,6 +72,10 @@ export default {
     ProgressBar,
   },
   computed: {
+    isShare: () => getters.isShare(),
+    hasLinks() {
+      return this.sidebarLinksToDisplay?.length > 0;
+    },
     user: () => (state.user || {username: 'anonymous'}),
     sourceInfo: () => state.sources.info,
     activeSource: () => state.sources.current,
@@ -186,8 +191,10 @@ export default {
       }
     },
     goToDownload() {
-      const { publicApi } = require("@/api");
-      if (state.req.items.length > 1) {
+      // Check if we're in a directory with multiple items
+      const hasMultipleItems = state.req.items && state.req.items.length > 1;
+      if (hasMultipleItems) {
+        // Show format selector for directories with multiple items
         mutations.showHover({
           name: "download",
           confirm: (format) => {
@@ -202,6 +209,7 @@ export default {
           },
         });
       } else {
+        // Direct download for single files or directories
         const downloadLink = publicApi.getDownloadURL({
           path: "/",
           hash: state.share.hash,
@@ -282,6 +290,10 @@ export default {
 
 <style scoped>
 
+.no-edit-options {
+  justify-content: center !important;
+}
+
 .usage-info .vue-simple-progress {
   border-style: solid;
   border-color: var(--surfaceSecondary);
@@ -289,7 +301,7 @@ export default {
 
 .sidebar-links {
   padding: 1em;
-  overflow: scroll;
+  overflow: auto;
 }
 
 .material-icons.action {

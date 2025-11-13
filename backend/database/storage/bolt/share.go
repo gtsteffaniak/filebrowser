@@ -58,6 +58,7 @@ func (s shareBackend) GetCommonShareByHash(hash string) (*share.CommonShare, err
 	v.Path = ""
 	v.AllowedUsernames = nil
 	v.DownloadsLimit = 0
+	v.CommonShare.HasPassword = v.HasPassword()
 	return &v.CommonShare, nil
 }
 
