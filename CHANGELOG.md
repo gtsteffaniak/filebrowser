@@ -38,6 +38,10 @@ All notable changes to this project will be documented in this file. For commit 
  - Improved scrolling performance
  - Static file handling has been streamlined, could potentially see some changes from this.
 
+ **BugFixes**:
+ - uploading/editing/saving to password protected shares error
+ - updating a share with password protection without a password removed the password.
+
 ## v1.0.1-stable
 
  **BugFixes**:

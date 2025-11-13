@@ -13,6 +13,10 @@ const errors = {
     icon: "cloud_off",
     message: "errors.connection",
   },
+  401: {
+    icon: "error",
+    message: "errors.forbidden",
+  },
   403: {
     icon: "error",
     message: "errors.forbidden",

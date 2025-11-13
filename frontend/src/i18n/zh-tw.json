@@ -677,7 +677,8 @@
     "commands": "指令{suffix}",
     "uploading": "上傳{suffix}",
     "paused": "已暫停{suffix}",
-    "conflict": "衝突{suffix}"
+    "conflict": "衝突{suffix}",
+    "change": "變更{suffix}"
   },
   "access": {
     "rules": "存取規則",
