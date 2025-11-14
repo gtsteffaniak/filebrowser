@@ -213,7 +213,9 @@
     "halloweenBody": "O tema do Dia das Bruxas foi aplicado. Pode desactivá-lo se não gostar dele, ou desactivá-lo permanentemente nas definições do perfil, selecionando qualquer outro tema.",
     "firstLoadBody": "Foi criada uma nova base de dados no arranque. Se isso não for o que você esperava, verifique novamente seu arquivo de configuração para o caminho `server.database` e certifique-se de que ele existe. No docker, o caminho do banco de dados pode ser `./data/database.db` ou `./database.db`.",
     "selectPath": "Selecionar caminho",
-    "renameSuccess": "Item renomeado com sucesso!"
+    "renameSuccess": "Item renomeado com sucesso!",
+    "newFileSuccess": "Ficheiro criado com sucesso!",
+    "newDirSuccess": "Diretório criado com sucesso!"
   },
   "search": {
     "smallerThan": "Mais pequeno do que:",

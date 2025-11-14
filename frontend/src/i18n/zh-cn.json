@@ -213,7 +213,9 @@
     "halloweenBody": "万圣节主题已应用。如果不喜欢，可以将其禁用，或者在个人档案设置中选择其他主题将其永久禁用。",
     "firstLoadBody": "启动时创建了一个新数据库。如果这与您的预期不符，请仔细检查配置文件中的 `server.database` 路径并确保其存在。在 docker 上，数据库路径可以是 `./data/database.db` 或 `./database.db`。",
     "selectPath": "选择路径",
-    "renameSuccess": "项目重命名成功！"
+    "renameSuccess": "项目重命名成功！",
+    "newFileSuccess": "文件创建成功！",
+    "newDirSuccess": "目录创建成功！"
   },
   "search": {
     "smallerThan": "小于",

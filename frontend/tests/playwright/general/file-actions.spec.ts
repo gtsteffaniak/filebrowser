@@ -90,7 +90,9 @@ test("2x copy from listing to new folder", async({ page, checkForErrors, context
   await page.locator('input[aria-label="New Folder Name"]').waitFor({ state: 'visible' });
   await page.locator('input[aria-label="New Folder Name"]').fill('newfolder');
   await page.locator('button[aria-label="Create"]').click();
-
+  // Wait for notification and click "Go to item" button
+  await page.locator('.notification-buttons .button').waitFor({ state: 'visible' });
+  await page.locator('.notification-buttons .button').click();
   await expect(page).toHaveTitle(/.* - newfolder/);
   await page.goBack();
   await expect(page).toHaveTitle(/.* - myfolder/);

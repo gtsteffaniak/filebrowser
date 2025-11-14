@@ -213,7 +213,9 @@
     "halloweenBody": "Le thème Halloween a été appliqué. Vous pouvez le désactiver si vous ne l'aimez pas, ou le désactiver définitivement dans les paramètres du profil en sélectionnant un autre thème.",
     "firstLoadBody": "Une nouvelle base de données a été créée au démarrage. Si ce n'est pas ce que vous attendiez, vérifiez que le chemin `server.database` existe dans votre fichier de configuration. Sur docker, le chemin de la base de données peut être `./data/database.db` ou `./database.db`.",
     "selectPath": "Sélectionner un chemin",
-    "renameSuccess": "L'élément a été renommé avec succès !"
+    "renameSuccess": "L'élément a été renommé avec succès !",
+    "newFileSuccess": "Fichier créé avec succès !",
+    "newDirSuccess": "Répertoire créé avec succès !"
   },
   "search": {
     "smallerThan": "Plus petit que :",

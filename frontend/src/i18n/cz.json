@@ -284,7 +284,9 @@
     "halloweenBody": "Bylo použito téma Halloween. Pokud se vám nelíbí, můžete jej vypnout nebo trvale zakázat v nastavení profilu výběrem jiného motivu.",
     "firstLoadBody": "Při spuštění byla vytvořena nová databáze. Pokud to není to, co jste očekávali, překontrolujte prosím konfigurační soubor pro cestu `server.database` a ujistěte se, že existuje. V dockeru může být cesta k databázi `./data/database.db` nebo `./database.db`.",
     "selectPath": "Vybrat cestu",
-    "renameSuccess": "Položka byla úspěšně přejmenována!"
+    "renameSuccess": "Položka byla úspěšně přejmenována!",
+    "newFileSuccess": "Soubor byl úspěšně vytvořen!",
+    "newDirSuccess": "Adresář byl úspěšně vytvořen!"
   },
   "search": {
     "smallerThan": "Menší než:",
