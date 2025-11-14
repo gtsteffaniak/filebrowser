@@ -35,7 +35,7 @@ export default {
   },
   methods: {
     closeHovers() {
-      mutations.closeHovers();
+      mutations.closeTopHover();
     },
   },
 };

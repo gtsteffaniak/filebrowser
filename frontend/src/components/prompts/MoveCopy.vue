@@ -40,14 +40,16 @@
           <input
             ref="newDirInput"
             class="input"
+            :class="{ 'input-invalid': !isDirNameValid }"
             v-model.trim="newDirName"
             style="justify-self: left"
             :placeholder="$t('prompts.newDirMessage')"
+            @keydown.enter="handleEnter"
           />
           <button class="button button--flat button--grey" @click="cancelNewDir">
             {{ $t("general.cancel") }}
           </button>
-          <button class="button button--flat" @click="createDirectory" :disabled="!newDirName">
+          <button class="button button--flat" @click="createDirectory" :disabled="!newDirName || !isDirNameValid">
             {{ $t("general.create") }}
           </button>
         </div>
@@ -131,6 +133,9 @@ export default {
     closeHovers() {
       return mutations.closeHovers();
     },
+    isDirNameValid() {
+      return this.validateDirName(this.newDirName);
+    }
   },
   mounted() {
     // If operationInProgress is true, show loading immediately (for drag and drop)
@@ -172,13 +177,29 @@ export default {
         this.$refs.newDirInput.focus();
       });
     },
+    validateDirName(value) {
+      // Check if a folder with the same name already exists in current directory
+      if (this.$refs.fileList && this.$refs.fileList.items) {
+        const currentItems = this.$refs.fileList.items.filter(item => item.name !== '..');
+        return !currentItems.some(item => item.name.toLowerCase() === value.toLowerCase());
+      }
+      return true;
+    },
     cancelNewDir() {
       // Clicking cancel will return the buttons to their normal state
       this.showNewDirInput = false;
       this.newDirName = "";
     },
+    handleEnter(event) {
+      // Trigger create if you press enter instead of move/copy
+      event.stopPropagation();
+      event.preventDefault();
+      if (this.newDirName && this.isDirNameValid) {
+        this.createDirectory();
+      }
+    },
     async createDirectory() {
-      if (!this.newDirName) return;
+      if (!this.newDirName || !this.isDirNameValid) return;
       try {
         this.isLoading = true;
         // Get current navigation from FileList
@@ -338,5 +359,9 @@ export default {
 /* Make card-content position relative for absolute positioning of overlay */
 .card-content {
   position: relative;
+}
+
+.input-invalid {
+  border-color: var(--red) !important;
 }
 </style>
