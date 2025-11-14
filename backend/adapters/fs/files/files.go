@@ -303,34 +303,68 @@ func extractVideoMetadata(ctx context.Context, item *iteminfo.ExtendedItemInfo, 
 }
 
 func DeleteFiles(source, absPath string, absDirPath string, isDir bool) error {
-	err := os.RemoveAll(absPath)
-	if err != nil {
-		return err
-	}
 	index := indexing.GetIndex(source)
 	if index == nil {
 		return fmt.Errorf("could not get index: %v ", source)
 	}
-	if index.Config.DisableIndexing {
-		return nil
-	}
 
-	// Clear RealPathCache entries for the deleted path to prevent cache issues
-	// when a folder with the same name is created later
-	indexPath := index.MakeIndexPath(absPath)
-	realPath, _, err := index.GetRealPath(indexPath)
-	if err == nil {
-		// Clear both the path and the isdir cache entries
-		indexing.RealPathCache.Delete(realPath)
-		indexing.RealPathCache.Delete(realPath + ":isdir")
-	}
+	if !index.Config.DisableIndexing {
+		// BEFORE deletion: Capture the size of what we're about to delete for parent size updates
+		indexPath := index.MakeIndexPath(absPath)
+		var deletedSize int64
 
-	refreshConfig := utils.FileOptions{Path: index.MakeIndexPath(absDirPath), IsDir: true}
-	err = index.RefreshFileInfo(refreshConfig)
-	if err != nil {
+		if isDir {
+			// For directories, get the total size from index metadata
+			dirInfo, exists := index.GetMetadataInfo(indexPath, true)
+			if exists {
+				deletedSize = dirInfo.Size
+			}
+		} else {
+			// For files, get the file size from parent directory
+			parentIndexPath := index.MakeIndexPath(absDirPath)
+			parentInfo, exists := index.GetMetadataInfo(parentIndexPath, true)
+			if exists {
+				fileName := filepath.Base(absPath)
+				for _, file := range parentInfo.Files {
+					if file.Name == fileName {
+						deletedSize = file.Size
+						break
+					}
+				}
+			}
+		}
+
+		// Now perform the physical deletion
+		err := os.RemoveAll(absPath)
+		if err != nil {
+			return err
+		}
+
+		// Remove metadata from index
+		if isDir {
+			// Recursively remove directory and all subdirectories from index
+			index.DeleteMetadata(indexPath, true, true)
+		} else {
+			// Remove file from parent's file list
+			index.DeleteMetadata(indexPath, false, false)
+		}
+
+		// Update parent directory sizes recursively up the tree
+		if deletedSize > 0 {
+			updateParentSizesAfterDeletion(index, indexPath, isDir, deletedSize) //nolint:errcheck
+		}
+
+		// Refresh the parent directory to update counts and metadata
+		refreshConfig := utils.FileOptions{
+			Path:  index.MakeIndexPath(absDirPath),
+			IsDir: true,
+		}
+		err = index.RefreshFileInfo(refreshConfig)
 		return err
 	}
-	return nil
+
+	// Indexing disabled, just delete the file
+	return os.RemoveAll(absPath)
 }
 
 func RefreshIndex(source string, path string, isDir bool, recursive bool) error {
@@ -352,6 +386,21 @@ func RefreshIndex(source string, path string, isDir bool, recursive bool) error 
 	// Skip indexing for viewable paths (viewable: true means don't index, just allow FS access)
 	if idx.IsViewable(isDir, path) {
 		return nil
+	}
+
+	// For directories, check if the path exists on disk
+	// If it doesn't exist, remove it from the index
+	if isDir {
+		realPath, _, err := idx.GetRealPath(path)
+		if err == nil {
+			// Check if the directory exists on disk
+			if !Exists(realPath) {
+				// Directory no longer exists, remove it from the index
+				// This clears both Directories and DirectoriesLedger maps
+				idx.DeleteMetadata(path, true, false)
+				return nil
+			}
+		}
 	}
 
 	err := idx.RefreshFileInfo(utils.FileOptions{Path: path, IsDir: isDir, Recursive: recursive})
@@ -393,15 +442,6 @@ func MoveResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string
 		return err
 	}
 
-	err := fileutils.MoveFile(realsrc, realdst)
-	if err != nil {
-		return err
-	}
-
-	// For move operations:
-	// 1. Delete the source from the index (recursively if it's a directory)
-	// 2. Recursively index the destination to capture the entire moved tree
-
 	// Get indexes for deletion and refresh operations
 	srcIdx := indexing.GetIndex(sourceIndex)
 	if srcIdx == nil {
@@ -412,35 +452,77 @@ func MoveResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string
 		return fmt.Errorf("could not get destination index: %v", destIndex)
 	}
 
-	// Delete from source index (recursively for directories)
-	go srcIdx.DeleteMetadata(realsrc, isSrcDir, isSrcDir) //nolint:errcheck
-
-	// Clear RealPathCache entries for the moved path to prevent cache issues
-	// when a file/folder with the same name is created later
+	// BEFORE moving: Capture source metadata for size updates
+	var srcSize int64
 	srcIndexPath := srcIdx.MakeIndexPath(realsrc)
-	srcRealPath, _, err := srcIdx.GetRealPath(srcIndexPath)
-	if err == nil {
-		// Clear both the path and the isdir cache entries
-		indexing.RealPathCache.Delete(srcRealPath)
-		indexing.RealPathCache.Delete(srcRealPath + ":isdir")
+	srcParentPath := filepath.Dir(realsrc)
+
+	if !srcIdx.Config.DisableIndexing {
+		if isSrcDir {
+			// For directories, get the total size from index metadata
+			dirInfo, exists := srcIdx.GetMetadataInfo(srcIndexPath, true)
+			if exists {
+				srcSize = dirInfo.Size
+			}
+		} else {
+			// For files, get the file size from parent directory
+			parentIndexPath := srcIdx.MakeIndexPath(srcParentPath)
+			parentInfo, exists := srcIdx.GetMetadataInfo(parentIndexPath, true)
+			if exists {
+				fileName := filepath.Base(realsrc)
+				for _, file := range parentInfo.Files {
+					if file.Name == fileName {
+						srcSize = file.Size
+						break
+					}
+				}
+			}
+		}
 	}
 
-	// For move operations, refresh the moved item and its new parent directory
-	// Run all refresh operations in a goroutine to avoid blocking the API
-	if isSrcDir {
-		go func() {
-			// When moving a folder, refresh the folder itself recursively FIRST
-			// Must complete before parent refresh to avoid race condition
-			RefreshIndex(destIndex, realdst, true, true) //nolint:errcheck
+	// Perform the physical move
+	err := fileutils.MoveFile(realsrc, realdst)
+	if err != nil {
+		return err
+	}
 
-			// THEN refresh the parent directory so it sees the newly indexed child
+	// Handle SOURCE cleanup (treat as deletion)
+	if !srcIdx.Config.DisableIndexing {
+		// Remove metadata from source index
+		if isSrcDir {
+			// Recursively remove directory and all subdirectories from source index
+			srcIdx.DeleteMetadata(srcIndexPath, true, true)
+		} else {
+			// Remove file from source parent's file list
+			srcIdx.DeleteMetadata(srcIndexPath, false, false)
+		}
+
+		// Update source parent directory sizes recursively up the tree
+		if srcSize > 0 {
+			go updateParentSizesAfterDeletion(srcIdx, srcIndexPath, isSrcDir, srcSize) //nolint:errcheck
+		}
+
+		// Refresh the source parent directory to update counts
+		go RefreshIndex(sourceIndex, srcParentPath, true, false) //nolint:errcheck
+	}
+
+	// Handle DESTINATION indexing
+	if !dstIdx.Config.DisableIndexing {
+		if isSrcDir {
+			go func() {
+				// When moving a folder, refresh the folder itself recursively FIRST
+				// Must complete before parent refresh to avoid race condition
+				RefreshIndex(destIndex, realdst, true, true) //nolint:errcheck
+
+				// THEN refresh the parent directory so it sees the newly indexed child
+				parentDir := filepath.Dir(realdst)
+				RefreshIndex(destIndex, parentDir, true, false) //nolint:errcheck
+			}()
+		} else {
+			// If moving a file, just refresh the parent directory
 			parentDir := filepath.Dir(realdst)
-			RefreshIndex(destIndex, parentDir, true, false) //nolint:errcheck
-		}()
-	} else {
-		// If moving a file, just refresh the parent directory
-		parentDir := filepath.Dir(realdst)
-		go RefreshIndex(destIndex, parentDir, true, false) //nolint:errcheck
+			go RefreshIndex(destIndex, parentDir, true, false) //nolint:errcheck
+		}
 	}
 
 	// Use backend source paths to match how shares are stored
@@ -511,12 +593,6 @@ func WriteDirectory(opts utils.FileOptions) error {
 		if err != nil {
 			return fmt.Errorf("could not remove existing file to create directory: %v", err)
 		}
-		// Clear the cache for the removed file
-		realPath, _, err = idx.GetRealPath(opts.Path)
-		if err == nil {
-			indexing.RealPathCache.Delete(realPath)
-			indexing.RealPathCache.Delete(realPath + ":isdir")
-		}
 	}
 
 	// Ensure the parent directories exist
@@ -556,9 +632,6 @@ func WriteFile(source, path string, in io.Reader) error {
 		if err != nil {
 			return fmt.Errorf("could not remove existing directory to create file: %v", err)
 		}
-		// Clear the cache for the removed directory (use realPath without re-fetching)
-		indexing.RealPathCache.Delete(realPath)
-		indexing.RealPathCache.Delete(realPath + ":isdir")
 	}
 
 	// Open the file for writing (create if it doesn't exist, truncate if it does)
@@ -705,6 +778,48 @@ func getContent(realPath string) (string, error) {
 
 	// The file has passed all checks and is considered editable text.
 	return stringContent, nil
+}
+
+// updateParentSizesAfterDeletion updates parent directory sizes after a file/folder deletion
+// It captures the size before deletion and propagates the change up the directory tree
+func updateParentSizesAfterDeletion(idx *indexing.Index, indexPath string, isDir bool, deletedSize int64) error {
+	// Start with the parent of the deleted item
+	currentPath := indexPath
+	sizeDelta := -deletedSize // Negative because we're deleting
+
+	// Recursively update all parent directories up to root
+	for {
+		// Get parent path
+		parentPath := filepath.Dir(currentPath)
+		if parentPath == "." || parentPath == currentPath {
+			parentPath = "/"
+		} else {
+			parentPath = idx.MakeIndexPath(parentPath)
+		}
+
+		// Get parent info
+		parentInfo, exists := idx.GetMetadataInfo(parentPath, true)
+		if !exists || parentPath == "" {
+			// Reached root or non-existent parent
+			break
+		}
+
+		// Update parent size
+		newSize := parentInfo.Size + sizeDelta
+		if newSize < 0 {
+			newSize = 0 // Prevent negative sizes
+		}
+		parentInfo.Size = newSize
+		idx.UpdateMetadata(parentInfo)
+
+		// Move up to the next parent
+		if parentPath == "/" {
+			break
+		}
+		currentPath = parentPath
+	}
+
+	return nil
 }
 
 func IsNamedPipe(mode os.FileMode) bool {
