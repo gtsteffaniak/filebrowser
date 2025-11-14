@@ -273,9 +273,20 @@ export default {
 
         if (conflict) {
           this.isLoading = false;
+          // Check if any item is being copied/moved to itself
+          const isSameFile = this.items.some(item => {
+            const destPath = this.destPath.endsWith('/') ? this.destPath : this.destPath + '/';
+            const targetPath = destPath + item.name;
+            return item.from === targetPath && item.fromSource === this.destSource;
+          });
+          
           await new Promise((resolve, reject) => {
             mutations.showHover({
               name: "replace-rename",
+              props: {
+                isSameFile: isSameFile,
+                operation: this.operation
+              },
               confirm: async (event, option) => {
                 overwrite = option == "overwrite";
                 rename = option == "rename";
