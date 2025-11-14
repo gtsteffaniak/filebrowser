@@ -582,7 +582,6 @@ export default {
   padding: 0.5em 1em;
   background: var(--primaryColor);
   color: white;
-  border-right: 1px solid gray;
   word-wrap: break-word;
   margin-bottom: 0 !important;
 }
