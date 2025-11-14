@@ -303,21 +303,13 @@ func extractVideoMetadata(ctx context.Context, item *iteminfo.ExtendedItemInfo, 
 }
 
 func DeleteFiles(source, absPath string, absDirPath string, isDir bool) error {
-	// Check if the path is a directory before deletion
-	err := os.RemoveAll(absPath)
-	if err != nil {
-		return err
-	}
 	index := indexing.GetIndex(source)
 	if index == nil {
 		return fmt.Errorf("could not get index: %v ", source)
 	}
-	if index.Config.DisableIndexing {
-		return nil
-	}
 
-	// Clear RealPathCache entries for the deleted path to prevent cache issues
-	// when a folder with the same name is created later
+	// Clear RealPathCache entries BEFORE physical deletion
+	// This prevents cache issues when a folder with the same name is created later
 	indexPath := index.MakeIndexPath(absPath)
 	realPath, _, err := index.GetRealPath(indexPath)
 	if err == nil {
@@ -325,13 +317,25 @@ func DeleteFiles(source, absPath string, absDirPath string, isDir bool) error {
 		indexing.RealPathCache.Delete(realPath)
 		indexing.RealPathCache.Delete(realPath + ":isdir")
 	}
-	defer index.DeleteMetadata(absPath, isDir, isDir)
+
+	// Now perform the physical deletion
+	err = os.RemoveAll(absPath)
+	if err != nil {
+		return err
+	}
+
+	if index.Config.DisableIndexing {
+		return nil
+	}
 
 	refreshConfig := utils.FileOptions{Path: index.MakeIndexPath(absDirPath), IsDir: true}
 	err = index.RefreshFileInfo(refreshConfig)
 	if err != nil {
 		return err
 	}
+
+	// Delete metadata LAST (after refresh completes)
+	index.DeleteMetadata(absPath, isDir, isDir)
 	return nil
 }
 
