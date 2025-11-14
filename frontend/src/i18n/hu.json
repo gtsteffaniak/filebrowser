@@ -599,7 +599,8 @@
     "commands": "Parancsok{suffix}",
     "uploading": "A  feltöltése{suffix}",
     "paused": "Paused{suffix}",
-    "conflict": "Konfliktus{suffix}"
+    "conflict": "Konfliktus{suffix}",
+    "change": "Változás{suffix}"
   },
   "access": {
     "rules": "Hozzáférési szabályok",

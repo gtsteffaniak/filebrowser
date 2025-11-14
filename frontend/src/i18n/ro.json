@@ -599,7 +599,8 @@
     "commands": "Comenzi{suffix}",
     "uploading": "Încărcare{suffix}",
     "paused": "Pauză{suffix}",
-    "conflict": "Conflict{suffix}"
+    "conflict": "Conflict{suffix}",
+    "change": "Schimbare{suffix}"
   },
   "access": {
     "rules": "Reguli de acces",

@@ -599,7 +599,8 @@
     "commands": "명령{suffix}",
     "uploading": "업로드{suffix}",
     "paused": "일시 중지됨{suffix}",
-    "conflict": "충돌{suffix}"
+    "conflict": "충돌{suffix}",
+    "change": "변경{suffix}"
   },
   "access": {
     "rules": "액세스 규칙",

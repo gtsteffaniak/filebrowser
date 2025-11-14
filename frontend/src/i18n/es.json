@@ -599,7 +599,8 @@
     "commands": "Comandos{suffix}",
     "uploading": "Cargar{suffix}",
     "paused": "En pausa{suffix}",
-    "conflict": "Conflicto{suffix}"
+    "conflict": "Conflicto{suffix}",
+    "change": "Cambia{suffix}"
   },
   "access": {
     "rules": "Normas de acceso",

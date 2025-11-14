@@ -599,7 +599,8 @@
     "commands": "Befehle{suffix}",
     "uploading": "Hochladen{suffix}",
     "paused": "Pausiert{suffix}",
-    "conflict": "Konflikt{suffix}"
+    "conflict": "Konflikt{suffix}",
+    "change": "Ändern Sie{suffix}"
   },
   "access": {
     "rules": "Zugangsregeln",

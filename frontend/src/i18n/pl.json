@@ -599,7 +599,8 @@
     "commands": "Polecenia{suffix}",
     "uploading": "Przesyłanie{suffix}",
     "paused": "Wstrzymane{suffix}",
-    "conflict": "Konflikt{suffix}"
+    "conflict": "Konflikt{suffix}",
+    "change": "Zmiana{suffix}"
   },
   "access": {
     "rules": "Zasady dostępu",

@@ -679,7 +679,8 @@
     "commands": "Opdrachten{suffix}",
     "uploading": "uploaden{suffix}",
     "paused": "Gepauzeerd{suffix}",
-    "conflict": "Conflict{suffix}"
+    "conflict": "Conflict{suffix}",
+    "change": "Verander{suffix}"
   },
   "access": {
     "rules": "Toegangsregels",

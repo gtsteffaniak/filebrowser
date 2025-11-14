@@ -77,7 +77,7 @@ export default {
       return state.user.editorQuickSave;
     },
     disableNavButtons() {
-      return (globalVars.disableNavButtons && this.isListingView) || (getters.isShare() && state.shareInfo?.disableNavButtons);
+      return (globalVars.disableNavButtons && this.isListingView) || (getters.isShare() && state.shareInfo?.hideNavButtons && getters.currentView() == "listingView");
     },
     isOnlyOffice() {
       return getters.currentView() === "onlyOfficeEditor";

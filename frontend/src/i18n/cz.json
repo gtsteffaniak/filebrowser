@@ -679,7 +679,8 @@
     "commands": "Příkazy{suffix}",
     "uploading": "Nahrávání{suffix}",
     "paused": "Pauza{suffix}",
-    "conflict": "Konflikt{suffix}"
+    "conflict": "Konflikt{suffix}",
+    "change": "Změna{suffix}"
   },
   "access": {
     "rules": "Pravidla přístupu",

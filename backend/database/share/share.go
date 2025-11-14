@@ -39,6 +39,7 @@ type CommonShare struct {
 	DisableDownload          bool                `json:"disableDownload,omitempty"`   // don't allow downloading files
 	AllowReplacements        bool                `json:"allowReplacements,omitempty"` // allow replacements of files
 	SidebarLinks             []users.SidebarLink `json:"sidebarLinks"`                // customizable sidebar links
+	HasPassword              bool                `json:"hasPassword,omitempty"`
 }
 type CreateBody struct {
 	CommonShare
@@ -62,5 +63,6 @@ type Link struct {
 	Token string `json:"token,omitempty"`
 
 	Mu            sync.Mutex     `json:"-"`
-	UserDownloads map[string]int `json:"-"` // Track downloads per username (not persisted)
+	UserDownloads map[string]int `json:"userDownloads,omitempty"` // Track downloads per username
+	Version       int            `json:"version,omitempty"`
 }

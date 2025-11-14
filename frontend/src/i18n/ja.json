@@ -599,7 +599,8 @@
     "commands": "コマンド{suffix}",
     "uploading": "アップロード{suffix}",
     "paused": "休止{suffix}",
-    "conflict": "紛争{suffix}"
+    "conflict": "紛争{suffix}",
+    "change": "変更{suffix}"
   },
   "access": {
     "rules": "アクセスルール",

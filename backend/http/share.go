@@ -62,6 +62,8 @@ func convertToFrontendShareResponse(r *http.Request, shares []*share.Link) ([]*S
 		// Check if the path exists on the filesystem
 		pathExists := utils.CheckPathExists(filepath.Join(sourceInfo.Path, s.Path))
 
+		s.CommonShare.HasPassword = s.HasPassword()
+
 		// Create response with source name (overrides the embedded Link's source field)
 		responses = append(responses, &ShareResponse{
 			Link:        s,
@@ -373,6 +375,7 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		PasswordHash: stringHash,
 		Token:        token,
 		CommonShare:  body.CommonShare,
+		Version:      1, // Set version for new shares
 	}
 	if err = store.Share.Save(s); err != nil {
 		return http.StatusInternalServerError, err
@@ -515,9 +518,10 @@ func shareDirectDownloadHandler(w http.ResponseWriter, r *http.Request, d *reque
 
 	// No matching existing share found, create a new one
 	shareLink := &share.Link{
-		Expire: expire,
-		UserID: d.user.ID,
-		Hash:   secureHash,
+		Expire:  expire,
+		UserID:  d.user.ID,
+		Hash:    secureHash,
+		Version: 1, // Set version for new shares
 		CommonShare: share.CommonShare{
 			Path:           scopePath,
 			Source:         idx.Path,

@@ -73,6 +73,7 @@
     "add": "Add{suffix}",
     "stay": "Stay{suffix}",
     "cancel": "Cancel{suffix}",
+    "change": "Change{suffix}",
     "verify": "Verify{suffix}",
     "close": "Close{suffix}",
     "copy": "Copy{suffix}",

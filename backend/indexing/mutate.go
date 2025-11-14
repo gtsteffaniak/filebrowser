@@ -21,17 +21,22 @@ func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo) bool {
 
 // DeleteMetadata removes the specified path from the index.
 // If recursive is true and the path is a directory, it will also remove all subdirectories.
+// NOTE: path should already be an index path (with trailing slash for directories)
 func (idx *Index) DeleteMetadata(path string, isDir bool, recursive bool) bool {
 	idx.mu.Lock()
 	defer idx.mu.Unlock()
 
-	indexPath := idx.MakeIndexPath(path)
+	// Normalize the path - ensure trailing slash for directories
+	indexPath := path
+	if isDir {
+		indexPath = utils.AddTrailingSlashIfNotExists(path)
+	}
 
 	if !isDir {
 		// For files, remove from parent directory's Files slice
-		parentPath := idx.MakeIndexPath(filepath.Dir(path))
+		parentPath := utils.AddTrailingSlashIfNotExists(filepath.Dir(strings.TrimSuffix(path, "/")))
 		if parentDir, exists := idx.Directories[parentPath]; exists {
-			fileName := filepath.Base(path)
+			fileName := filepath.Base(strings.TrimSuffix(path, "/"))
 			for i, file := range parentDir.Files {
 				if file.Name == fileName {
 					// Remove file from slice
@@ -48,25 +53,26 @@ func (idx *Index) DeleteMetadata(path string, isDir bool, recursive bool) bool {
 		// Remove all subdirectories that start with this path
 		toDelete := []string{}
 		for dirPath := range idx.Directories {
-			if dirPath == indexPath || (len(dirPath) > len(indexPath) &&
-				dirPath[:len(indexPath)] == indexPath &&
-				(indexPath == "/" || dirPath[len(indexPath)] == '/')) {
+			// Match exact path or any subdirectory
+			if dirPath == indexPath || strings.HasPrefix(dirPath, indexPath) {
 				toDelete = append(toDelete, dirPath)
 			}
 		}
 		for _, dirPath := range toDelete {
 			delete(idx.Directories, dirPath)
+			delete(idx.DirectoriesLedger, dirPath)
 		}
 	} else {
 		// Just remove this specific directory
 		delete(idx.Directories, indexPath)
+		delete(idx.DirectoriesLedger, indexPath)
 	}
 
 	// Remove from parent directory's Folders slice
 	if indexPath != "/" {
-		parentPath := idx.MakeIndexPath(filepath.Dir(path))
+		parentPath := utils.AddTrailingSlashIfNotExists(filepath.Dir(strings.TrimSuffix(indexPath, "/")))
 		if parentDir, exists := idx.Directories[parentPath]; exists {
-			dirName := filepath.Base(path)
+			dirName := filepath.Base(strings.TrimSuffix(indexPath, "/"))
 			for i, folder := range parentDir.Folders {
 				if folder.Name == dirName {
 					// Remove folder from slice

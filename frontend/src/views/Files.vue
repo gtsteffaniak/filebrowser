@@ -10,7 +10,7 @@
     />
 
     <breadcrumbs v-if="showBreadCrumbs" :base="isShare ? `/share/${shareHash}` : undefined" />
-    <errors v-if="error && !(isShare && error.status === 401)" :errorCode="error.status" />
+    <errors v-if="error" :errorCode="error.status" />
     <component v-else-if="currentViewLoaded" :is="currentView"></component>
     <div v-else>
       <h2 class="message delayed">
@@ -248,6 +248,18 @@ export default {
       if (shareInfo.shareType == "upload") {
         return;
       }
+      if (shareInfo.themeColor) {
+        document.documentElement.style.setProperty("--primaryColor", shareInfo.themeColor);
+      }
+      if (shareInfo.hasPassword && this.sharePassword === "") {
+        console.log('shareInfo.hasPassword', shareInfo.hasPassword);
+        this.sharePassword = localStorage.getItem("sharepass:" + this.shareHash);
+        if (this.sharePassword === null || this.sharePassword === "") {
+          this.showPasswordPrompt();
+          return;
+        }
+      }
+
       // Parse share route
       let urlPath = getters.routePath('public/share')
       let parts = urlPath.split("/");

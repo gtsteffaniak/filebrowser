@@ -10,7 +10,10 @@
       hidden: !shouldShow(setting),
       'active-settings': active(setting.id + '-main'),
     }">
-    <span v-if="shouldShow(setting)" >{{ $t(setting.label) }}</span>
+    <span v-if="shouldShow(setting)" class="settings-item-content">
+      <span class="material-symbols-outlined settings-icon">{{ setting.icon }}</span>
+      {{ $t(setting.label) }}
+    </span>
   </div>
 </template>
 
@@ -63,5 +66,15 @@ export default {
   justify-content: center;
   overflow: unset !important;
   padding: 1em;
+}
+
+.settings-item-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+
+.settings-icon {
+  font-size: 1.2em;
 }
 </style>

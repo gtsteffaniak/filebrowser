@@ -599,7 +599,8 @@
     "commands": "Εντολές{suffix}",
     "uploading": "Ανέβασμα{suffix}",
     "paused": "Παύση{suffix}",
-    "conflict": "Σύγκρουση{suffix}"
+    "conflict": "Σύγκρουση{suffix}",
+    "change": "Αλλαγή{suffix}"
   },
   "access": {
     "rules": "Κανόνες πρόσβασης",
