@@ -100,6 +100,7 @@ func quickSetup(store *bolt.BoltStore) {
 		user.LockPassword = false
 		user.Permissions = settings.AdminPerms()
 		user.ShowFirstLogin = settings.Env.IsFirstLoad && user.Permissions.Admin
+		user.Version = 1 // Set version for new users
 		logger.Debugf("Creating user as admin: %v %v", user.Username, user.Password)
 		err = store.Users.Save(user, true, true)
 		utils.CheckErr("store.Users.Save", err)
@@ -127,6 +128,7 @@ func CreateUser(userInfo users.User, permissions users.Permissions) error {
 	}
 	settings.ApplyUserDefaults(newUser)
 	newUser.Permissions = permissions
+	newUser.Version = 1 // Set version for new users
 	logger.Debugf("Creating user: %v %v", userInfo.Username, userInfo.Scopes)
 	// create new home directories
 	err := userStore.Save(newUser, true, false)

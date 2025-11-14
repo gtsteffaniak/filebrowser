@@ -338,9 +338,9 @@ func (fi ItemInfo) ContainsSearchTerm(searchTerm string, options SearchOptions) 
 	var fileSize int64
 	extension := filepath.Ext(lowerFileName)
 
-	// Collect file types
+	// Collect file types using the actual detected MIME type, not just extension
 	for _, k := range AllFiletypeOptions {
-		if IsMatchingType(extension, k) {
+		if IsMatchingDetectedType(fi.Type, extension, k) {
 			fileTypes[k] = true
 		}
 	}

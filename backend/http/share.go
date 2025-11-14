@@ -375,6 +375,7 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		PasswordHash: stringHash,
 		Token:        token,
 		CommonShare:  body.CommonShare,
+		Version:      1, // Set version for new shares
 	}
 	if err = store.Share.Save(s); err != nil {
 		return http.StatusInternalServerError, err
@@ -517,9 +518,10 @@ func shareDirectDownloadHandler(w http.ResponseWriter, r *http.Request, d *reque
 
 	// No matching existing share found, create a new one
 	shareLink := &share.Link{
-		Expire: expire,
-		UserID: d.user.ID,
-		Hash:   secureHash,
+		Expire:  expire,
+		UserID:  d.user.ID,
+		Hash:    secureHash,
+		Version: 1, // Set version for new shares
 		CommonShare: share.CommonShare{
 			Path:           scopePath,
 			Source:         idx.Path,

@@ -128,6 +128,10 @@ func runCLI() bool {
 			if asAdmin {
 				user.Permissions.Admin = true
 			}
+			// Ensure version is set for existing users being updated
+			if user.Version == 0 {
+				user.Version = 1
+			}
 			err = store.Users.Save(user, true, false)
 			if err != nil {
 				logger.Errorf("could not update user: %v", err)

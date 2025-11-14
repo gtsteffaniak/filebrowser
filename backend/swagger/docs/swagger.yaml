@@ -90,6 +90,8 @@ definitions:
         type: boolean
       favicon:
         type: string
+      hasPassword:
+        type: boolean
       hash:
         type: string
       hideNavButtons:
@@ -1037,6 +1039,8 @@ definitions:
         type: boolean
       favicon:
         type: string
+      hasPassword:
+        type: boolean
       hideNavButtons:
         type: boolean
       keepAfterExpiration:
@@ -1122,6 +1126,8 @@ definitions:
         type: boolean
       favicon:
         type: string
+      hasPassword:
+        type: boolean
       hash:
         type: string
       hideNavButtons:
@@ -1215,6 +1221,8 @@ definitions:
         type: boolean
       favicon:
         type: string
+      hasPassword:
+        type: boolean
       hash:
         type: string
       hideNavButtons:

@@ -56,10 +56,12 @@ func (idx *Index) DeleteMetadata(path string, isDir bool, recursive bool) bool {
 		}
 		for _, dirPath := range toDelete {
 			delete(idx.Directories, dirPath)
+			delete(idx.DirectoriesLedger, dirPath)
 		}
 	} else {
 		// Just remove this specific directory
 		delete(idx.Directories, indexPath)
+		delete(idx.DirectoriesLedger, indexPath)
 	}
 
 	// Remove from parent directory's Folders slice

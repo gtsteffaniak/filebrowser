@@ -3026,6 +3026,9 @@ const docTemplate = `{
                 "favicon": {
                     "type": "string"
                 },
+                "hasPassword": {
+                    "type": "boolean"
+                },
                 "hash": {
                     "type": "string"
                 },
@@ -4296,6 +4299,9 @@ const docTemplate = `{
                 "favicon": {
                     "type": "string"
                 },
+                "hasPassword": {
+                    "type": "boolean"
+                },
                 "hideNavButtons": {
                     "type": "boolean"
                 },
@@ -4416,6 +4422,9 @@ const docTemplate = `{
                 },
                 "favicon": {
                     "type": "string"
+                },
+                "hasPassword": {
+                    "type": "boolean"
                 },
                 "hash": {
                     "type": "string"
@@ -4549,6 +4558,9 @@ const docTemplate = `{
                 },
                 "favicon": {
                     "type": "string"
+                },
+                "hasPassword": {
+                    "type": "boolean"
                 },
                 "hash": {
                     "type": "string"

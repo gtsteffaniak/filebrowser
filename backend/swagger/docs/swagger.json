@@ -3015,6 +3015,9 @@
                 "favicon": {
                     "type": "string"
                 },
+                "hasPassword": {
+                    "type": "boolean"
+                },
                 "hash": {
                     "type": "string"
                 },
@@ -4285,6 +4288,9 @@
                 "favicon": {
                     "type": "string"
                 },
+                "hasPassword": {
+                    "type": "boolean"
+                },
                 "hideNavButtons": {
                     "type": "boolean"
                 },
@@ -4405,6 +4411,9 @@
                 },
                 "favicon": {
                     "type": "string"
+                },
+                "hasPassword": {
+                    "type": "boolean"
                 },
                 "hash": {
                     "type": "string"
@@ -4538,6 +4547,9 @@
                 },
                 "favicon": {
                     "type": "string"
+                },
+                "hasPassword": {
+                    "type": "boolean"
                 },
                 "hash": {
                     "type": "string"

@@ -303,6 +303,13 @@ func extractVideoMetadata(ctx context.Context, item *iteminfo.ExtendedItemInfo, 
 }
 
 func DeleteFiles(source, absPath string, absDirPath string) error {
+	// Check if the path is a directory before deletion
+	isDir := false
+	info, statErr := os.Stat(absPath)
+	if statErr == nil {
+		isDir = info.IsDir()
+	}
+
 	err := os.RemoveAll(absPath)
 	if err != nil {
 		return err
@@ -314,6 +321,9 @@ func DeleteFiles(source, absPath string, absDirPath string) error {
 	if index.Config.DisableIndexing {
 		return nil
 	}
+
+	// Delete metadata from index (recursively for directories)
+	go index.DeleteMetadata(absPath, isDir, isDir) //nolint:errcheck
 
 	// Clear RealPathCache entries for the deleted path to prevent cache issues
 	// when a folder with the same name is created later
