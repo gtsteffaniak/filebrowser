@@ -27,17 +27,14 @@ func (idx *Index) DeleteMetadata(path string, isDir bool, recursive bool) bool {
 	defer idx.mu.Unlock()
 
 	// Normalize the path - ensure trailing slash for directories
-	indexPath := strings.TrimSuffix(path, "/")
+	indexPath := path
 	if isDir {
-		indexPath = indexPath + "/"
+		indexPath = utils.AddTrailingSlashIfNotExists(path)
 	}
 
 	if !isDir {
 		// For files, remove from parent directory's Files slice
-		parentPath := filepath.Dir(strings.TrimSuffix(path, "/")) + "/"
-		if parentPath == "./" {
-			parentPath = "/"
-		}
+		parentPath := utils.AddTrailingSlashIfNotExists(filepath.Dir(strings.TrimSuffix(path, "/")))
 		if parentDir, exists := idx.Directories[parentPath]; exists {
 			fileName := filepath.Base(strings.TrimSuffix(path, "/"))
 			for i, file := range parentDir.Files {
@@ -73,10 +70,7 @@ func (idx *Index) DeleteMetadata(path string, isDir bool, recursive bool) bool {
 
 	// Remove from parent directory's Folders slice
 	if indexPath != "/" {
-		parentPath := filepath.Dir(strings.TrimSuffix(indexPath, "/")) + "/"
-		if parentPath == "./" {
-			parentPath = "/"
-		}
+		parentPath := utils.AddTrailingSlashIfNotExists(filepath.Dir(strings.TrimSuffix(indexPath, "/")))
 		if parentDir, exists := idx.Directories[parentPath]; exists {
 			dirName := filepath.Base(strings.TrimSuffix(indexPath, "/"))
 			for i, folder := range parentDir.Folders {

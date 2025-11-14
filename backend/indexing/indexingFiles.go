@@ -143,10 +143,8 @@ func (idx *Index) indexDirectoryWithOptions(adjustedPath string, config actionCo
 
 // Define a function to recursively index files and directories
 func (idx *Index) indexDirectory(adjustedPath string, config actionConfig) error {
-	// Normalize path to always have trailing slash (except for root which is just "/")
-	if adjustedPath != "/" {
-		adjustedPath = strings.TrimSuffix(adjustedPath, "/") + "/"
-	}
+	// Normalize path to always have trailing slash
+	adjustedPath = utils.AddTrailingSlashIfNotExists(adjustedPath)
 	realPath := strings.TrimRight(idx.Path, "/") + adjustedPath
 	// Open the directory
 	dir, err := os.Open(realPath)
@@ -252,9 +250,7 @@ func (idx *Index) GetFsDirInfo(adjustedPath string) (*iteminfo.FileInfo, error) 
 	}
 
 	// Normalize directory path to always have trailing slash
-	if adjustedPath != "/" {
-		adjustedPath = strings.TrimSuffix(adjustedPath, "/") + "/"
-	}
+	adjustedPath = utils.AddTrailingSlashIfNotExists(adjustedPath)
 	// adjustedPath is already normalized with trailing slash
 	combinedPath := adjustedPath
 	var response *iteminfo.FileInfo
@@ -805,7 +801,7 @@ func (idx *Index) MakeIndexPath(path string) string {
 	}
 	path = strings.TrimPrefix(path, idx.Path)
 	path = idx.MakeIndexPathPlatform(path)
-	path = strings.TrimSuffix(path, "/") + "/"
+	path = utils.AddTrailingSlashIfNotExists(path)
 	return path
 }
 
