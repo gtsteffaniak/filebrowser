@@ -63,5 +63,6 @@ type Link struct {
 	Token string `json:"token,omitempty"`
 
 	Mu            sync.Mutex     `json:"-"`
-	UserDownloads map[string]int `json:"-"` // Track downloads per username (not persisted)
+	UserDownloads map[string]int `json:"userDownloads,omitempty"` // Track downloads per username
+	Version       int            `json:"version,omitempty"`
 }

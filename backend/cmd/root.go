@@ -111,6 +111,7 @@ func StartFilebrowser() {
 	validateUserInfo(!dbExists)
 	validateOfficeIntegration()
 	validateAccessRules()
+	validateShareInfo()
 	// Start the rootCMD in a goroutine
 	go func() {
 		if err := rootCMD(ctx, store, &serverConfig, shutdownComplete); err != nil {

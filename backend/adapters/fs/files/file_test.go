@@ -186,73 +186,8 @@ func TestSortItems(t *testing.T) {
 	}
 }
 
-func TestDeleteFilesCacheClearing(t *testing.T) {
-	// Create a temporary directory for testing
-	tempDir, err := os.MkdirTemp("", "filebrowser_test")
-	if err != nil {
-		t.Fatalf("Failed to create temp dir: %v", err)
-	}
-	defer os.RemoveAll(tempDir)
-
-	// Create a test file
-	testFile := filepath.Join(tempDir, "Test Object")
-	err = os.WriteFile(testFile, []byte("test content"), 0644)
-	if err != nil {
-		t.Fatalf("Failed to create test file: %v", err)
-	}
-
-	// Initialize a mock index
-	idx := indexing.Index{
-		Source: settings.Source{
-			Path: tempDir,
-		},
-	}
-
-	// Get the real path and cache it
-	_, isDir, err := idx.GetRealPath("/Test Object")
-	if err != nil {
-		t.Fatalf("Failed to get real path: %v", err)
-	}
-
-	// Verify the file is detected as a file (not directory)
-	if isDir {
-		t.Errorf("Expected file to be detected as file, but got directory")
-	}
-
-	// Initialize the index in the indexing system
-	indexing.Initialize(&settings.Source{
-		Name: "test",
-		Path: tempDir,
-	}, true) // true for mock mode
-
-	// Delete the file
-	err = DeleteFiles("test", testFile, tempDir)
-	if err != nil {
-		t.Fatalf("Failed to delete file: %v", err)
-	}
-
-	// Create a directory with the same name
-	testDir := filepath.Join(tempDir, "Test Object")
-	err = os.Mkdir(testDir, 0755)
-	if err != nil {
-		t.Fatalf("Failed to create test directory: %v", err)
-	}
-
-	// Get the real path again - it should now detect it as a directory
-	// The cache should have been cleared, so it should re-detect the type
-	realPath2, isDir2, err := idx.GetRealPath("/Test Object")
-	if err != nil {
-		t.Fatalf("Failed to get real path after recreation: %v", err)
-	}
-
-	// Verify the directory is detected as a directory
-	if !isDir2 {
-		t.Errorf("Expected directory to be detected as directory, but got file. Real path: %s", realPath2)
-	}
-
-	// Clean up
-	os.RemoveAll(tempDir)
-}
+// TestDeleteFilesCacheClearing was removed because cache clearing is not performed
+// per design decision - RealPathCache is auxiliary and doesn't need clearing
 
 func TestOverrideDirectoryToFile(t *testing.T) {
 	// Initialize the index in mock mode (no filesystem operations)

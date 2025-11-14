@@ -1,6 +1,6 @@
 <template>
   <div @click="preventDefaults" class="button-group">
-    <button v-if="isDisabled" >
+    <button v-if="isDisabled" disabled>
       {{ disableMessage }}
     </button>
     <template v-else>
@@ -48,13 +48,13 @@ export default {
       e.stopPropagation();
     },
     setActiveButton(index, value) {
-      if (value === "Only Folders" && this.activeButton !== index) {
+      if (value === "type:folder" && this.activeButton !== index) {
         this.$emit("disableAll");
       }
-      if (value === "Only Folders" && this.activeButton === index) {
+      if (value === "type:folder" && this.activeButton === index) {
         this.$emit("enableAll");
       }
-      if (value === "Only Files" && this.activeButton !== index) {
+      if (value === "type:file" && this.activeButton !== index) {
         this.$emit("enableAll");
       }
       // If the clicked button is already active, de-select it
