@@ -3084,11 +3084,21 @@ const docTemplate = `{
                     "description": "Token is a random value that will only be set when PasswordHash is set. It is\nURL-Safe and is used to download links in password-protected shares via a\nquery arg.",
                     "type": "string"
                 },
+                "userDownloads": {
+                    "description": "Track downloads per username",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "integer"
+                    }
+                },
                 "userID": {
                     "type": "integer"
                 },
                 "username": {
                     "type": "string"
+                },
+                "version": {
+                    "type": "integer"
                 },
                 "viewMode": {
                     "description": "default view mode for anonymous users: \"list\", \"compact\", \"normal\", \"gallery\"",
@@ -4614,7 +4624,17 @@ const docTemplate = `{
                     "description": "Token is a random value that will only be set when PasswordHash is set. It is\nURL-Safe and is used to download links in password-protected shares via a\nquery arg.",
                     "type": "string"
                 },
+                "userDownloads": {
+                    "description": "Track downloads per username",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "integer"
+                    }
+                },
                 "userID": {
+                    "type": "integer"
+                },
+                "version": {
                     "type": "integer"
                 },
                 "viewMode": {

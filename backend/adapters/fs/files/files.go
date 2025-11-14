@@ -316,9 +316,6 @@ func DeleteFiles(source, absPath string, absDirPath string, isDir bool) error {
 		return nil
 	}
 
-	// Delete metadata from index (recursively for directories)
-	go index.DeleteMetadata(absPath, isDir, isDir) //nolint:errcheck
-
 	// Clear RealPathCache entries for the deleted path to prevent cache issues
 	// when a folder with the same name is created later
 	indexPath := index.MakeIndexPath(absPath)
@@ -328,6 +325,7 @@ func DeleteFiles(source, absPath string, absDirPath string, isDir bool) error {
 		indexing.RealPathCache.Delete(realPath)
 		indexing.RealPathCache.Delete(realPath + ":isdir")
 	}
+	defer index.DeleteMetadata(absPath, isDir, isDir)
 
 	refreshConfig := utils.FileOptions{Path: index.MakeIndexPath(absDirPath), IsDir: true}
 	err = index.RefreshFileInfo(refreshConfig)
@@ -416,9 +414,6 @@ func MoveResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string
 		return fmt.Errorf("could not get destination index: %v", destIndex)
 	}
 
-	// Delete from source index (recursively for directories)
-	go srcIdx.DeleteMetadata(realsrc, isSrcDir, isSrcDir) //nolint:errcheck
-
 	// Clear RealPathCache entries for the moved path to prevent cache issues
 	// when a file/folder with the same name is created later
 	srcIndexPath := srcIdx.MakeIndexPath(realsrc)
@@ -459,6 +454,8 @@ func MoveResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string
 		// Cross-source moves don't preserve access rules (they're source-specific)
 	}
 
+	// Delete from source index (recursively for directories)
+	go srcIdx.DeleteMetadata(realsrc, isSrcDir, isSrcDir) //nolint:errcheck
 	return nil
 }
 
