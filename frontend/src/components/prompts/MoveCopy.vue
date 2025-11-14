@@ -39,10 +39,9 @@
         <div style="display: flex; gap: 0.3rem;">
           <input
             ref="newDirInput"
-            class="input"
-            :class="{ 'input-invalid': !isDirNameValid }"
+            class="input new-dir-input"
+            :class="{ 'form-invalid': !isDirNameValid }"
             v-model.trim="newDirName"
-            style="justify-self: left"
             :placeholder="$t('prompts.newDirMessage')"
             @keydown.enter="handleEnter"
           />
@@ -273,6 +272,7 @@ export default {
         let rename = false;
 
         if (conflict) {
+          this.isLoading = false;
           await new Promise((resolve, reject) => {
             mutations.showHover({
               name: "replace-rename",
@@ -281,10 +281,13 @@ export default {
                 rename = option == "rename";
                 event.preventDefault();
                 try {
+                  this.isLoading = true;
                   await action(overwrite, rename);
                   resolve(); // Resolve the promise if action succeeds
                 } catch (e) {
                   reject(e); // Reject the promise if an error occurs
+                } finally {
+                  this.isLoading = false;
                 }
               },
             });
@@ -361,7 +364,8 @@ export default {
   position: relative;
 }
 
-.input-invalid {
-  border-color: var(--red) !important;
+.new-dir-input {
+  justify-self: left
 }
+
 </style>
