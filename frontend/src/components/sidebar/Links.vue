@@ -302,6 +302,7 @@ export default {
 .sidebar-links {
   padding: 1em;
   overflow: auto;
+  min-height: 5em;
 }
 
 .material-icons.action {

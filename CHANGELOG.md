@@ -37,10 +37,12 @@ All notable changes to this project will be documented in this file. For commit 
  - Improved search memory efficiency
  - Improved scrolling performance
  - Static file handling has been streamlined, could potentially see some changes from this.
+ - No longer automatically publishing any dev builds to docker
 
  **BugFixes**:
  - uploading/editing/saving to password protected shares error
  - updating a share with password protection without a password removed the password.
+ - per-user download counts were not persistant accross restarts
 
 ## v1.0.1-stable
 

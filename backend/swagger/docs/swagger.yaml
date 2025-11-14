@@ -90,6 +90,8 @@ definitions:
         type: boolean
       favicon:
         type: string
+      hasPassword:
+        type: boolean
       hash:
         type: string
       hideNavButtons:
@@ -131,10 +133,17 @@ definitions:
           URL-Safe and is used to download links in password-protected shares via a
           query arg.
         type: string
+      userDownloads:
+        additionalProperties:
+          type: integer
+        description: Track downloads per username
+        type: object
       userID:
         type: integer
       username:
         type: string
+      version:
+        type: integer
       viewMode:
         description: 'default view mode for anonymous users: "list", "compact", "normal",
           "gallery"'
@@ -1037,6 +1046,8 @@ definitions:
         type: boolean
       favicon:
         type: string
+      hasPassword:
+        type: boolean
       hideNavButtons:
         type: boolean
       keepAfterExpiration:
@@ -1122,6 +1133,8 @@ definitions:
         type: boolean
       favicon:
         type: string
+      hasPassword:
+        type: boolean
       hash:
         type: string
       hideNavButtons:
@@ -1215,6 +1228,8 @@ definitions:
         type: boolean
       favicon:
         type: string
+      hasPassword:
+        type: boolean
       hash:
         type: string
       hideNavButtons:
@@ -1254,7 +1269,14 @@ definitions:
           URL-Safe and is used to download links in password-protected shares via a
           query arg.
         type: string
+      userDownloads:
+        additionalProperties:
+          type: integer
+        description: Track downloads per username
+        type: object
       userID:
+        type: integer
+      version:
         type: integer
       viewMode:
         description: 'default view mode for anonymous users: "list", "compact", "normal",

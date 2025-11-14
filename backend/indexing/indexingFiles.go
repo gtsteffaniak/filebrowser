@@ -143,10 +143,8 @@ func (idx *Index) indexDirectoryWithOptions(adjustedPath string, config actionCo
 
 // Define a function to recursively index files and directories
 func (idx *Index) indexDirectory(adjustedPath string, config actionConfig) error {
-	// Normalize path to always have trailing slash (except for root which is just "/")
-	if adjustedPath != "/" {
-		adjustedPath = strings.TrimSuffix(adjustedPath, "/") + "/"
-	}
+	// Normalize path to always have trailing slash
+	adjustedPath = utils.AddTrailingSlashIfNotExists(adjustedPath)
 	realPath := strings.TrimRight(idx.Path, "/") + adjustedPath
 	// Open the directory
 	dir, err := os.Open(realPath)
@@ -252,9 +250,7 @@ func (idx *Index) GetFsDirInfo(adjustedPath string) (*iteminfo.FileInfo, error) 
 	}
 
 	// Normalize directory path to always have trailing slash
-	if adjustedPath != "/" {
-		adjustedPath = strings.TrimSuffix(adjustedPath, "/") + "/"
-	}
+	adjustedPath = utils.AddTrailingSlashIfNotExists(adjustedPath)
 	// adjustedPath is already normalized with trailing slash
 	combinedPath := adjustedPath
 	var response *iteminfo.FileInfo
@@ -450,7 +446,9 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 	return dirFileInfo, nil
 }
 
-func (idx *Index) recursiveUpdateDirSizes(childInfo *iteminfo.FileInfo, previousSize int64) {
+// RecursiveUpdateDirSizes updates parent directory sizes recursively up the tree
+// childInfo should have the NEW size, previousSize should be the OLD size
+func (idx *Index) RecursiveUpdateDirSizes(childInfo *iteminfo.FileInfo, previousSize int64) {
 	parentDir := utils.GetParentDirectoryPath(childInfo.Path)
 
 	parentInfo, exists := idx.GetMetadataInfo(parentDir, true)
@@ -466,7 +464,7 @@ func (idx *Index) recursiveUpdateDirSizes(childInfo *iteminfo.FileInfo, previous
 	idx.UpdateMetadata(parentInfo)
 
 	// Recursively update grandparents
-	idx.recursiveUpdateDirSizes(parentInfo, previousParentSize)
+	idx.RecursiveUpdateDirSizes(parentInfo, previousParentSize)
 }
 
 func (idx *Index) GetRealPath(relativePath ...string) (string, bool, error) {
@@ -523,7 +521,7 @@ func (idx *Index) RefreshFileInfo(opts utils.FileOptions) error {
 
 	// If size changed, propagate to parents
 	if previousSize != newInfo.Size {
-		idx.recursiveUpdateDirSizes(newInfo, previousSize)
+		idx.RecursiveUpdateDirSizes(newInfo, previousSize)
 	}
 
 	return nil
@@ -805,7 +803,7 @@ func (idx *Index) MakeIndexPath(path string) string {
 	}
 	path = strings.TrimPrefix(path, idx.Path)
 	path = idx.MakeIndexPathPlatform(path)
-	path = strings.TrimSuffix(path, "/") + "/"
+	path = utils.AddTrailingSlashIfNotExists(path)
 	return path
 }
 

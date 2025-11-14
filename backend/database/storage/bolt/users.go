@@ -74,6 +74,7 @@ func (st usersBackend) Update(user *users.User, actorIsAdmin bool, fields ...str
 	if err != nil {
 		return err
 	}
+
 	passwordUser := existingUser.LoginMethod == users.LoginMethodPassword
 	enforcedOtp := settings.Config.Auth.Methods.PasswordAuth.EnforcedOtp
 	if passwordUser && enforcedOtp && !user.OtpEnabled {
