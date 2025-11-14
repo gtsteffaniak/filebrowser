@@ -303,26 +303,34 @@ func extractVideoMetadata(ctx context.Context, item *iteminfo.ExtendedItemInfo, 
 }
 
 func DeleteFiles(source, absPath string, absDirPath string, isDir bool) error {
-	index := indexing.GetIndex(source)
-	if index == nil {
-		return fmt.Errorf("could not get index: %v ", source)
-	}
-	// Now perform the physical deletion
 	err := os.RemoveAll(absPath)
 	if err != nil {
 		return err
 	}
-	// Clear both the path and the isdir cache entries
-	indexing.RealPathCache.Delete(absPath)
-	indexing.RealPathCache.Delete(absPath + ":isdir")
-	if !index.Config.DisableIndexing {
-		refreshConfig := utils.FileOptions{
-			Path:  index.MakeIndexPath(absDirPath),
-			IsDir: true,
-		}
-		err = index.RefreshFileInfo(refreshConfig)
+	index := indexing.GetIndex(source)
+	if index == nil {
+		return fmt.Errorf("could not get index: %v ", source)
 	}
-	return err
+	if index.Config.DisableIndexing {
+		return nil
+	}
+
+	// Clear RealPathCache entries for the deleted path to prevent cache issues
+	// when a folder with the same name is created later
+	indexPath := index.MakeIndexPath(absPath)
+	realPath, _, err := index.GetRealPath(indexPath)
+	if err == nil {
+		// Clear both the path and the isdir cache entries
+		indexing.RealPathCache.Delete(realPath)
+		indexing.RealPathCache.Delete(realPath + ":isdir")
+	}
+
+	refreshConfig := utils.FileOptions{Path: index.MakeIndexPath(absDirPath), IsDir: true}
+	err = index.RefreshFileInfo(refreshConfig)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func RefreshIndex(source string, path string, isDir bool, recursive bool) error {
@@ -404,6 +412,19 @@ func MoveResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string
 		return fmt.Errorf("could not get destination index: %v", destIndex)
 	}
 
+	// Delete from source index (recursively for directories)
+	go srcIdx.DeleteMetadata(realsrc, isSrcDir, isSrcDir) //nolint:errcheck
+
+	// Clear RealPathCache entries for the moved path to prevent cache issues
+	// when a file/folder with the same name is created later
+	srcIndexPath := srcIdx.MakeIndexPath(realsrc)
+	srcRealPath, _, err := srcIdx.GetRealPath(srcIndexPath)
+	if err == nil {
+		// Clear both the path and the isdir cache entries
+		indexing.RealPathCache.Delete(srcRealPath)
+		indexing.RealPathCache.Delete(srcRealPath + ":isdir")
+	}
+
 	// For move operations, refresh the moved item and its new parent directory
 	// Run all refresh operations in a goroutine to avoid blocking the API
 	if isSrcDir {
@@ -434,8 +455,6 @@ func MoveResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string
 		// Cross-source moves don't preserve access rules (they're source-specific)
 	}
 
-	// Delete from source index (recursively for directories)
-	go srcIdx.DeleteMetadata(realsrc, isSrcDir, isSrcDir) //nolint:errcheck
 	return nil
 }
 

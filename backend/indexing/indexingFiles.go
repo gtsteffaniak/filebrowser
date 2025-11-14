@@ -512,8 +512,6 @@ func (idx *Index) RefreshFileInfo(opts utils.FileOptions) error {
 	// Re-index the directory
 	err := idx.indexDirectoryWithOptions(targetPath, config)
 	if err != nil {
-		// delete metadata if indexing failed
-		go idx.DeleteMetadata(targetPath, opts.IsDir, opts.IsDir) //nolint:errcheck
 		return err
 	}
 
