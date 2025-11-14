@@ -351,7 +351,15 @@ func DeleteFiles(source, absPath string, absDirPath string, isDir bool) error {
 
 		// Update parent directory sizes recursively up the tree
 		if deletedSize > 0 {
-			updateParentSizesAfterDeletion(index, indexPath, isDir, deletedSize) //nolint:errcheck
+			// Create a virtual FileInfo representing the deleted item (size=0)
+			// RecursiveUpdateDirSizes will calculate: sizeDelta = 0 - deletedSize = -deletedSize
+			deletedItem := &iteminfo.FileInfo{
+				Path: indexPath,
+				ItemInfo: iteminfo.ItemInfo{
+					Size: 0, // Item is deleted, so new size is 0
+				},
+			}
+			index.RecursiveUpdateDirSizes(deletedItem, deletedSize)
 		}
 
 		// Refresh the parent directory to update counts and metadata
@@ -499,7 +507,17 @@ func MoveResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string
 
 		// Update source parent directory sizes recursively up the tree
 		if srcSize > 0 {
-			go updateParentSizesAfterDeletion(srcIdx, srcIndexPath, isSrcDir, srcSize) //nolint:errcheck
+			go func() {
+				// Create a virtual FileInfo representing the moved item (size=0 at source)
+				// RecursiveUpdateDirSizes will calculate: sizeDelta = 0 - srcSize = -srcSize
+				movedItem := &iteminfo.FileInfo{
+					Path: srcIndexPath,
+					ItemInfo: iteminfo.ItemInfo{
+						Size: 0, // Item is moved away, so new size at source is 0
+					},
+				}
+				srcIdx.RecursiveUpdateDirSizes(movedItem, srcSize)
+			}()
 		}
 
 		// Refresh the source parent directory to update counts
@@ -778,44 +796,6 @@ func getContent(realPath string) (string, error) {
 
 	// The file has passed all checks and is considered editable text.
 	return stringContent, nil
-}
-
-// updateParentSizesAfterDeletion updates parent directory sizes after a file/folder deletion
-// It uses the existing recursiveUpdateDirSizes infrastructure to propagate changes up the tree
-func updateParentSizesAfterDeletion(idx *indexing.Index, indexPath string, isDir bool, deletedSize int64) error {
-	// Get the immediate parent directory
-	parentPath := filepath.Dir(strings.TrimSuffix(indexPath, "/"))
-	if parentPath == "." || parentPath == "" {
-		parentPath = "/"
-	} else {
-		parentPath = idx.MakeIndexPath(parentPath)
-	}
-
-	// Get parent info
-	parentInfo, exists := idx.GetMetadataInfo(parentPath, true)
-	if !exists {
-		// Parent doesn't exist in index, nothing to update
-		return nil
-	}
-
-	// Store the previous parent size
-	previousParentSize := parentInfo.Size
-
-	// Calculate new parent size (subtract the deleted item's size)
-	newParentSize := previousParentSize - deletedSize
-	if newParentSize < 0 {
-		newParentSize = 0 // Prevent negative sizes
-	}
-
-	// Update parent with new size
-	parentInfo.Size = newParentSize
-	idx.UpdateMetadata(parentInfo)
-
-	// Use the existing recursiveUpdateDirSizes to propagate changes to grandparents
-	// This leverages the tested infrastructure already in place
-	idx.RecursiveUpdateDirSizes(parentInfo, previousParentSize)
-
-	return nil
 }
 
 func IsNamedPipe(mode os.FileMode) bool {
