@@ -163,7 +163,7 @@ func TestRecursiveSizeUpdate(t *testing.T) {
 	deepdirInfo.Size = 900 // 400 + 500
 
 	// Simulate the recursive size update by calling the method directly
-	idx.recursiveUpdateDirSizes(deepdirInfo, oldDeepdirSize)
+	idx.RecursiveUpdateDirSizes(deepdirInfo, oldDeepdirSize)
 
 	// Check that deepdir size updated
 	deepdirInfo, exists = idx.GetMetadataInfo("/subdir/deepdir/", true)
@@ -264,7 +264,7 @@ func TestRecursiveUpdateDirSizes(t *testing.T) {
 	deepdirInfo.Size = 900
 
 	// Call recursiveUpdateDirSizes
-	idx.recursiveUpdateDirSizes(deepdirInfo, previousSize)
+	idx.RecursiveUpdateDirSizes(deepdirInfo, previousSize)
 
 	// Check that subdir size updated
 	subdirInfo := idx.Directories["/subdir/"]
@@ -313,7 +313,7 @@ func TestSizeDecreasePropagate(t *testing.T) {
 	deepdirInfo.Size = 100
 
 	// Call recursiveUpdateDirSizes
-	idx.recursiveUpdateDirSizes(deepdirInfo, previousSize)
+	idx.RecursiveUpdateDirSizes(deepdirInfo, previousSize)
 
 	// Check that subdir size decreased
 	subdirInfo := idx.Directories["/subdir/"]

@@ -446,7 +446,9 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 	return dirFileInfo, nil
 }
 
-func (idx *Index) recursiveUpdateDirSizes(childInfo *iteminfo.FileInfo, previousSize int64) {
+// RecursiveUpdateDirSizes updates parent directory sizes recursively up the tree
+// childInfo should have the NEW size, previousSize should be the OLD size
+func (idx *Index) RecursiveUpdateDirSizes(childInfo *iteminfo.FileInfo, previousSize int64) {
 	parentDir := utils.GetParentDirectoryPath(childInfo.Path)
 
 	parentInfo, exists := idx.GetMetadataInfo(parentDir, true)
@@ -462,7 +464,7 @@ func (idx *Index) recursiveUpdateDirSizes(childInfo *iteminfo.FileInfo, previous
 	idx.UpdateMetadata(parentInfo)
 
 	// Recursively update grandparents
-	idx.recursiveUpdateDirSizes(parentInfo, previousParentSize)
+	idx.RecursiveUpdateDirSizes(parentInfo, previousParentSize)
 }
 
 func (idx *Index) GetRealPath(relativePath ...string) (string, bool, error) {
@@ -519,7 +521,7 @@ func (idx *Index) RefreshFileInfo(opts utils.FileOptions) error {
 
 	// If size changed, propagate to parents
 	if previousSize != newInfo.Size {
-		idx.recursiveUpdateDirSizes(newInfo, previousSize)
+		idx.RecursiveUpdateDirSizes(newInfo, previousSize)
 	}
 
 	return nil

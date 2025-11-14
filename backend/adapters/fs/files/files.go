@@ -781,43 +781,39 @@ func getContent(realPath string) (string, error) {
 }
 
 // updateParentSizesAfterDeletion updates parent directory sizes after a file/folder deletion
-// It captures the size before deletion and propagates the change up the directory tree
+// It uses the existing recursiveUpdateDirSizes infrastructure to propagate changes up the tree
 func updateParentSizesAfterDeletion(idx *indexing.Index, indexPath string, isDir bool, deletedSize int64) error {
-	// Start with the parent of the deleted item
-	currentPath := indexPath
-	sizeDelta := -deletedSize // Negative because we're deleting
-
-	// Recursively update all parent directories up to root
-	for {
-		// Get parent path
-		parentPath := filepath.Dir(currentPath)
-		if parentPath == "." || parentPath == currentPath {
-			parentPath = "/"
-		} else {
-			parentPath = idx.MakeIndexPath(parentPath)
-		}
-
-		// Get parent info
-		parentInfo, exists := idx.GetMetadataInfo(parentPath, true)
-		if !exists || parentPath == "" {
-			// Reached root or non-existent parent
-			break
-		}
-
-		// Update parent size
-		newSize := parentInfo.Size + sizeDelta
-		if newSize < 0 {
-			newSize = 0 // Prevent negative sizes
-		}
-		parentInfo.Size = newSize
-		idx.UpdateMetadata(parentInfo)
-
-		// Move up to the next parent
-		if parentPath == "/" {
-			break
-		}
-		currentPath = parentPath
+	// Get the immediate parent directory
+	parentPath := filepath.Dir(strings.TrimSuffix(indexPath, "/"))
+	if parentPath == "." || parentPath == "" {
+		parentPath = "/"
+	} else {
+		parentPath = idx.MakeIndexPath(parentPath)
 	}
+
+	// Get parent info
+	parentInfo, exists := idx.GetMetadataInfo(parentPath, true)
+	if !exists {
+		// Parent doesn't exist in index, nothing to update
+		return nil
+	}
+
+	// Store the previous parent size
+	previousParentSize := parentInfo.Size
+
+	// Calculate new parent size (subtract the deleted item's size)
+	newParentSize := previousParentSize - deletedSize
+	if newParentSize < 0 {
+		newParentSize = 0 // Prevent negative sizes
+	}
+
+	// Update parent with new size
+	parentInfo.Size = newParentSize
+	idx.UpdateMetadata(parentInfo)
+
+	// Use the existing recursiveUpdateDirSizes to propagate changes to grandparents
+	// This leverages the tested infrastructure already in place
+	idx.RecursiveUpdateDirSizes(parentInfo, previousParentSize)
 
 	return nil
 }
