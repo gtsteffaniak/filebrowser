@@ -226,7 +226,7 @@ func TestDeleteFilesCacheClearing(t *testing.T) {
 	}, true) // true for mock mode
 
 	// Delete the file
-	err = DeleteFiles("test", testFile, tempDir)
+	err = DeleteFiles("test", testFile, tempDir, true)
 	if err != nil {
 		t.Fatalf("Failed to delete file: %v", err)
 	}

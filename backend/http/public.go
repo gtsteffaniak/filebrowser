@@ -326,7 +326,7 @@ func publicDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	// delete thumbnails
 	preview.DelThumbs(r.Context(), *fileInfo)
 
-	err = files.DeleteFiles(source, fileInfo.RealPath, filepath.Dir(fileInfo.RealPath))
+	err = files.DeleteFiles(source, fileInfo.RealPath, filepath.Dir(fileInfo.RealPath), fileInfo.Type == "directory")
 	if err != nil {
 		return http.StatusInternalServerError, fmt.Errorf("an error occured while deleting the resource")
 	}

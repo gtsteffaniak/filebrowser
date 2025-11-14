@@ -302,14 +302,8 @@ func extractVideoMetadata(ctx context.Context, item *iteminfo.ExtendedItemInfo, 
 	return nil
 }
 
-func DeleteFiles(source, absPath string, absDirPath string) error {
+func DeleteFiles(source, absPath string, absDirPath string, isDir bool) error {
 	// Check if the path is a directory before deletion
-	isDir := false
-	info, statErr := os.Stat(absPath)
-	if statErr == nil {
-		isDir = info.IsDir()
-	}
-
 	err := os.RemoveAll(absPath)
 	if err != nil {
 		return err
