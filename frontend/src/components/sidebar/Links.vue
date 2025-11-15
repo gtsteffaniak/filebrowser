@@ -44,9 +44,9 @@
           </a>
 
           <!-- Non-source links: tool and custom links with simple icon style -->
-          <a v-else :href="getLinkHref(link)" class="action button sidebar-link-button"
+          <a v-else :aria-label="link.name" :href="getLinkHref(link)" class="action button sidebar-link-button"
             :class="{ active: isLinkActive(link) }" @click.prevent="handleLinkClick(link)">
-            <div class="link-container">
+            <div  class="link-container">
               <i :class="getIconClass(link.icon) + ' link-icon'">{{ link.icon }}</i>
               <span>{{ link.name }}</span>
             </div>
@@ -112,7 +112,23 @@ export default {
       if (link.target.startsWith('http://') || link.target.startsWith('https://')) return link.target;
 
       const baseURL = globalVars.baseURL || '';
-      const target = link.target.startsWith('/') ? link.target.substring(1) : link.target;
+      let fullPath = '';
+
+      // Construct full path based on link category
+      if (link.category === 'source') {
+        // For source links, use sourceName and relative target
+        if (!link.sourceName) return '#';
+        const sourceInfo = this.sourceInfo[link.sourceName];
+        if (!sourceInfo) return '#'; // Source not found
+        
+        const basePath = sourceInfo.pathPrefix ? `/files/${sourceInfo.pathPrefix}` : '/files/';
+        fullPath = link.target === '/' ? basePath : basePath + link.target.substring(1);
+      } else {
+        // For other links (tools, custom, share), use target as-is
+        fullPath = link.target;
+      }
+
+      const target = fullPath.startsWith('/') ? fullPath.substring(1) : fullPath;
       return baseURL + target;
     },
     goHome() {
@@ -124,12 +140,12 @@ export default {
 
       if (this.sourceInfo) {
         Object.keys(this.sourceInfo).forEach(sourceName => {
-          const info = this.sourceInfo[sourceName];
           defaultLinks.push({
             name: sourceName,
             category: 'source',
-            target: `/files/${info.pathPrefix}`,
+            target: '/', // Relative path to source root
             icon: '', // No icon by default - will show animated status indicator
+            sourceName: sourceName,
           });
         });
       }
@@ -139,8 +155,10 @@ export default {
     isLinkAccessible(link) {
       // Check if link is accessible
       if (link.category === 'source') {
+        // Use sourceName to check if the source is accessible
+        if (!link.sourceName) return false;
         for (const [name] of Object.entries(this.sourceInfo || {})) {
-          if (name === link.name) {
+          if (name === link.sourceName) {
             return true;
           }
         }
@@ -151,14 +169,16 @@ export default {
     },
     getSourceInfo(link) {
       // Get source info for a source link
-      if (link.category !== 'source') return {};
-      return this.sourceInfo && link.name ? this.sourceInfo[link.name] || {} : {};
+      if (link.category !== 'source' || !link.sourceName) return {};
+      return this.sourceInfo && link.sourceName ? this.sourceInfo[link.sourceName] || {} : {};
     },
     isLinkActive(link) {
       // Check if the current route matches this link
       if (link.category === 'source') {
-        return state.req.source === link.name
+        // Use sourceName to check if we're currently in this source
+        return link.sourceName && state.req.source === link.sourceName;
       }
+      // For all other links (tools, custom, share), compare target with route path
       return this.$route.path === link.target;
     },
     handleLinkClick(link) {
@@ -178,13 +198,14 @@ export default {
       }
 
       if (link.category === 'source') {
-        // Use sourcePath if available, otherwise default to root
-        const path = link.sourcePath || "/";
-        goToItem(link.sourceName || link.name, path);
+        // For source links, use sourceName and target (relative path)
+        if (!link.sourceName) return;
+        const path = link.target || "/";
+        goToItem(link.sourceName, path);
         return;
       }
 
-      // Navigate using target (router handles baseURL)
+      // For all other links (tools, custom, share), navigate using target directly
       if (link.target) {
         this.$router.push(link.target);
         mutations.closeHovers();

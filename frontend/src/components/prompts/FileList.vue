@@ -57,6 +57,10 @@ export default {
       type: String,
       default: null,
     },
+    browseShare: {
+      type: String,
+      default: null, // Share hash to browse
+    },
     fileList: {
       type: Array,
       default: null,
@@ -73,11 +77,12 @@ export default {
   data: function () {
     const initialSource = this.browseSource || state.req.source;
     // Use current path if browsing the same source as current, otherwise start at root
-    const initialPath = this.browseSource && this.browseSource !== state.req.source ? "/" : state.req.path;
+    const initialPath = (this.browseSource && this.browseSource !== state.req.source) || this.browseShare ? "/" : state.req.path;
     return {
       items: [],
       path: initialPath,
       source: initialSource,
+      shareHash: this.browseShare || null,
       touches: {
         id: "",
         count: 0,
@@ -110,7 +115,7 @@ export default {
       return this.fileList !== null;
     },
     showSourceSelector() {
-      return this.availableSources.length > 1 && !this.isDisplayMode && !getters.isShare();
+      return this.availableSources.length > 1 && !this.isDisplayMode && !getters.isShare() && !this.browseShare;
     },
   },
   watch: {
@@ -118,6 +123,11 @@ export default {
       if (newSource && newSource !== this.source) {
         this.currentSource = newSource;
         this.resetToSource(newSource);
+      }
+    },
+    browseShare(newHash) {
+      if (newHash && newHash !== this.shareHash) {
+        this.resetToShare(newHash);
       }
     },
     currentSource(newSource) {
@@ -130,6 +140,9 @@ export default {
     if (this.isDisplayMode) {
       // Display mode: use provided fileList
       this.fillOptionsFromList();
+    } else if (this.browseShare) {
+      // Browse a specific share
+      publicApi.fetchPub("/", this.browseShare).then(this.fillOptions);
     } else {
       // Normal browse mode: fetch files
       const sourceToUse = this.currentSource;
@@ -154,10 +167,21 @@ export default {
       // Reset to the appropriate path for the new source
       this.path = newPath;
       this.source = newSource;
+      this.shareHash = null;
       this.selected = null;
       this.selectedSource = null;
       // Fetch files for the new source
       filesApi.fetchFiles(newSource, newPath).then(this.fillOptions);
+    },
+    resetToShare(newHash) {
+      // Reset to the share root
+      this.path = "/";
+      this.shareHash = newHash;
+      this.source = null;
+      this.selected = null;
+      this.selectedSource = null;
+      // Fetch files for the share
+      publicApi.fetchPub("/", newHash).then(this.fillOptions);
     },
     fillOptions(req) {
       // Sets the current path and resets
@@ -205,8 +229,10 @@ export default {
       let clickedItem = this.items.find(item => item.path === path);
       let sourceToUse = clickedItem ? clickedItem.source : this.source;
       this.path = path;
-      if (getters.isShare()) {
-        publicApi.fetchPub(path, state.shareInfo?.hash).then(this.fillOptions);
+      if (this.browseShare || getters.isShare()) {
+        // Browsing a share - use public API
+        const hashToUse = this.browseShare || state.shareInfo?.hash;
+        publicApi.fetchPub(path, hashToUse).then(this.fillOptions);
       } else {
         this.source = sourceToUse;
         filesApi.fetchFiles(sourceToUse, path).then(this.fillOptions);

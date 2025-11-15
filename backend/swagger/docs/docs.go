@@ -3840,6 +3840,10 @@ const docTemplate = `{
                     "description": "path to the cache directory, used for thumbnails and other cached files",
                     "type": "string"
                 },
+                "cacheDirCleanup": {
+                    "description": "whether to automatically cleanup the cache directory (default: true)",
+                    "type": "boolean"
+                },
                 "database": {
                     "description": "path to the database file",
                     "type": "string"
@@ -3874,6 +3878,10 @@ const docTemplate = `{
                 },
                 "internalUrl": {
                     "description": "used by integrations if set, this is the base domain that an integration service will use to communicate with filebrowser (eg. http://localhost:8080)",
+                    "type": "string"
+                },
+                "listen": {
+                    "description": "address to listen on (default: 0.0.0.0)",
                     "type": "string"
                 },
                 "logging": {
@@ -4048,10 +4056,6 @@ const docTemplate = `{
                 "debugOffice": {
                     "description": "debug onlyoffice editor",
                     "type": "boolean"
-                },
-                "defaultLandingPage": {
-                    "description": "default landing page to use if no redirect is specified: eg. /files/mysource/mysubpath, /settings, etc.",
-                    "type": "string"
                 },
                 "deleteWithoutConfirming": {
                     "description": "delete files without confirmation",
@@ -4779,7 +4783,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "category": {
-                    "description": "Category type: \"source\", \"tool\", or \"custom\"",
+                    "description": "Category type: \"source\", \"share\", \"tool\", \"custom\", etc.",
                     "type": "string"
                 },
                 "icon": {
@@ -4790,8 +4794,16 @@ const docTemplate = `{
                     "description": "Display name of the link",
                     "type": "string"
                 },
+                "shareHash": {
+                    "description": "Share hash for share-type links",
+                    "type": "string"
+                },
+                "sourceName": {
+                    "description": "Source identifier for source-type links",
+                    "type": "string"
+                },
                 "target": {
-                    "description": "Target path/URL for the link",
+                    "description": "Target path/URL for the link (relative for source/share)",
                     "type": "string"
                 }
             }
@@ -4844,7 +4856,7 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "defaultLandingPage": {
-                    "description": "default landing page to use: eg. /files/mysource/mysubpath, /settings, etc.",
+                    "description": "deprecated: determined by sidebar link order instead",
                     "type": "string"
                 },
                 "deleteWithoutConfirming": {

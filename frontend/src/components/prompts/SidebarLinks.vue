@@ -56,9 +56,12 @@
 
         <!-- Add/Edit Link Form - replaces the list when active -->
         <div v-else class="add-link-form">
-            <!-- Path Browser for Source Links - shown when selecting path -->
+            <!-- Path Browser for Source/Share Links - shown when selecting path -->
             <div v-if="isSelectingPath">
-                <file-list ref="fileList" :browse-source="newLink.sourceName" @update:selected="updateSelectedPath"></file-list>
+                <file-list ref="fileList"
+                    :browse-source="newLink.category === 'source' ? newLink.sourceName : null"
+                    :browse-share="newLink.category === 'share' ? getShareHash(newLink.target) : null"
+                    @update:selected="updateSelectedPath"></file-list>
             </div>
 
             <!-- Form fields - hidden when selecting path -->
@@ -67,10 +70,10 @@
 
                 <!-- Link Type Selection -->
                 <p>{{ $t('sidebar.linkType') }}</p>
-                <select v-model="newLink.category" @change="handleCategoryChange" class="input">
+                <select aria-label="Link Type" v-model="newLink.category" @change="handleCategoryChange" class="input">
                     <option value="">{{ $t('sidebar.selectLinkType') }}</option>
                     <option v-if="context === 'user'" value="source">{{ $t('general.source') }}</option>
-                    <option v-if="context === 'user'" value="share">{{ $t('general.share') }}</option>
+                    <option value="share">{{ $t('general.share') }}</option>
                     <option v-if="context === 'user'" value="tool">{{ $t('general.tool') }}</option>
                     <option value="custom">{{ $t('sidebar.customLink') }}</option>
                     <option v-if="context === 'share'" value="shareInfo">{{ $t('share.shareInfo') }}</option>
@@ -87,9 +90,16 @@
                         </option>
                     </select>
 
+                    <!-- Custom Name for Source -->
+                    <div class="form-group" v-if="newLink.sourceName">
+                        <p>{{ $t('sidebar.linkName') }}</p>
+                        <input aria-label="Link Name" v-model="newLink.name" type="text" class="input"
+                            :placeholder="$t('sidebar.linkNamePlaceholder')" />
+                    </div>
+
                     <!-- Path Selection for Source - clickable path display -->
                     <div v-if="newLink.sourceName">
-                        <div class="searchContext clickable button" @click="openPathBrowser('source')" 
+                        <div class="searchContext clickable button" @click="openPathBrowser('source')"
                              aria-label="source-path">
                             {{ $t('general.path', { suffix: ':' }) }} {{ newLink.sourcePath || '/' }}
                         </div>
@@ -99,25 +109,26 @@
                 <!-- Share Selection -->
                 <div v-if="newLink.category === 'share'" class="form-group">
                     <p>{{ $t('sidebar.selectShare') }}</p>
-                    <select v-model="newLink.shareHash" @change="handleShareChange" class="input">
+                    <select v-model="newLink.target" @change="handleShareChange" class="input">
                         <option value="">{{ $t('sidebar.chooseShare') }}</option>
-                        <option v-for="share in availableShares" :key="share.hash" :value="share.hash">
+                        <option v-for="share in availableShares" :key="share.hash" :value="`/public/share/${share.hash}`">
                             {{ share.hash }} {{ $t('general.of') }} {{ share.path }}
                         </option>
                     </select>
 
                     <!-- Custom Name for Share -->
-                    <div class="form-group" v-if="newLink.shareHash">
+                    <div class="form-group" v-if="newLink.target">
                         <p>{{ $t('sidebar.linkName') }}</p>
-                        <input v-model="newLink.name" type="text" class="input"
+                        <input aria-label="Link Name" v-model="newLink.name" type="text" class="input"
                             :placeholder="$t('sidebar.linkNamePlaceholder')" />
                     </div>
 
-                    <!-- Path Selection for Share (subpath within the share) -->
-                    <div class="form-group" v-if="newLink.shareHash">
-                        <p>{{ $t('sidebar.selectSharePath') }}</p>
-                        <input v-model="newLink.sharePath" type="text" class="input"
-                            :placeholder="$t('sidebar.sharePathPlaceholder')" />
+                    <!-- Path Selection for Share (subpath within the share) - clickable path display -->
+                    <div v-if="newLink.target">
+                        <div class="searchContext clickable button" @click="openPathBrowser('share')" 
+                             aria-label="share-path">
+                            {{ $t('general.path', { suffix: ':' }) }} {{ getShareSubpath(newLink.target) }}
+                        </div>
                     </div>
                 </div>
 
@@ -130,6 +141,13 @@
                             {{ $t(tool.name) }}
                         </option>
                     </select>
+
+                    <!-- Custom Name for Tool -->
+                    <div class="form-group" v-if="newLink.target">
+                        <p>{{ $t('sidebar.linkName') }}</p>
+                        <input aria-label="Link Name" v-model="newLink.name" type="text" class="input"
+                            :placeholder="$t('sidebar.linkNamePlaceholder')" />
+                    </div>
                 </div>
 
                 <!-- Share Info Link - special type for shares -->
@@ -145,11 +163,11 @@
                 <!-- Custom Link Input -->
                 <div v-if="newLink.category === 'custom'" class="form-group">
                     <p>{{ $t('sidebar.linkName') }}</p>
-                    <input v-model="newLink.name" type="text" class="input"
+                    <input aria-label="Link Name" v-model="newLink.name" type="text" class="input"
                         :placeholder="$t('sidebar.linkNamePlaceholder')" />
 
                     <p>{{ $t('sidebar.linkUrl') }}</p>
-                    <input v-model="newLink.target" type="text" class="input"
+                    <input aria-label="Link Target" v-model="newLink.target" type="text" class="input"
                         :placeholder="$t('sidebar.linkUrlPlaceholder')" />
                 </div>
 
@@ -189,7 +207,7 @@
                 :title="$t('general.cancel')">
                 {{ $t("general.cancel") }}
             </button>
-            <button @click="addLink" class="button button--flat button--blue" :disabled="!isNewLinkValid"
+            <button aria-label="Add Link" @click="addLink" class="button button--flat button--blue" :disabled="!isNewLinkValid"
                 :title="editingIndex !== null ? $t('general.save') : $t('general.add')">
                 {{ editingIndex !== null ? $t('general.save') : $t('general.add') }}
             </button>
@@ -201,7 +219,7 @@
                 :title="$t('general.cancel')">
                 {{ $t("general.cancel") }}
             </button>
-            <button class="button button--flat button--blue" @click="saveLinks" :title="$t('general.save')">
+            <button aria-label="Save Links" class="button button--flat button--blue" @click="saveLinks" :title="$t('general.save')">
                 {{ $t("general.save") }}
             </button>
         </template>
@@ -242,9 +260,6 @@ export default {
         target: "",
         icon: "",
         sourceName: "",
-        sourcePath: "",
-        shareHash: "",
-        sharePath: "/",
       },
       draggingIndex: null,
       dragOverIndex: null,
@@ -285,7 +300,7 @@ export default {
       }
 
       if (this.newLink.category === "custom") {
-        return this.newLink.name && this.newLink.target && this.newLink.icon;
+        return this.newLink.name && this.newLink.target;
       }
 
       if (this.newLink.category === "source") {
@@ -293,7 +308,7 @@ export default {
       }
 
       if (this.newLink.category === "share") {
-        return this.newLink.shareHash && this.newLink.name;
+        return this.newLink.target && this.newLink.name;
       }
 
       return this.newLink.target && this.newLink.name;
@@ -317,6 +332,26 @@ export default {
   },
   methods: {
     getIconClass,
+    getShareHash(target) {
+      // Extract hash from /public/share/<hash> or /public/share/<hash>/path
+      if (!target) return '';
+      const parts = target.split('/');
+      // parts: ['', 'public', 'share', '<hash>', ...subpath]
+      if (parts.length >= 4 && parts[1] === 'public' && parts[2] === 'share') {
+        return parts[3];
+      }
+      return '';
+    },
+    getShareSubpath(target) {
+      // Extract subpath from /public/share/<hash>/subpath
+      if (!target) return '/';
+      const parts = target.split('/');
+      // parts: ['', 'public', 'share', '<hash>', ...subpath]
+      if (parts.length >= 4 && parts[1] === 'public' && parts[2] === 'share') {
+        return parts.length > 4 ? '/' + parts.slice(4).join('/') : '/';
+      }
+      return '/';
+    },
     closePrompt() {
       // Close only this prompt (SidebarLinks), returning to the previous one (Share)
       mutations.closeTopHover();
@@ -346,14 +381,12 @@ export default {
 
       if (this.availableSources) {
         Object.keys(this.availableSources).forEach(sourceName => {
-          const info = this.availableSources[sourceName];
           defaultLinks.push({
             name: sourceName,
             category: 'source',
-            target: `/files/${info.pathPrefix}`,
+            target: '/', // Relative path to source root
             icon: '', // No icon by default - will show animated status indicator
             sourceName: sourceName,
-            sourcePath: '/',
           });
         });
       }
@@ -399,8 +432,6 @@ export default {
       this.newLink.icon = "";
       this.newLink.sourceName = "";
       this.newLink.sourcePath = "";
-      this.newLink.shareHash = "";
-      this.newLink.sharePath = "/";
 
       // Set default name and icon for special share link types
       if (this.newLink.category === "shareInfo") {
@@ -413,34 +444,55 @@ export default {
     },
     handleSourceChange() {
       if (this.newLink.sourceName) {
-        const sourceName = this.newLink.sourceName;
-        this.newLink.name = sourceName;
-        this.newLink.icon = ""; // No icon by default - will show animated status indicator
+        // Only set default name if user hasn't entered one yet
+        if (!this.newLink.name) {
+          this.newLink.name = this.newLink.sourceName;
+        }
+        // No icon by default - will show animated status indicator
+        if (!this.newLink.icon) {
+          this.newLink.icon = "";
+        }
         this.newLink.sourcePath = "/";
       }
     },
     handleShareChange() {
-      if (this.newLink.shareHash) {
-        const share = this.availableShares.find(s => s.hash === this.newLink.shareHash);
+      if (this.newLink.target) {
+        const hash = this.getShareHash(this.newLink.target);
+        const share = this.availableShares.find(s => s.hash === hash);
         if (share) {
-          this.newLink.name = `Share: ${share.hash}`;
-          this.newLink.icon = "share";
-          this.newLink.sharePath = "/";
+          // Only set default name if user hasn't entered one yet
+          if (!this.newLink.name) {
+            this.newLink.name = `Share: ${share.hash}`;
+          }
+          // Suggest default icon if not set
+          if (!this.newLink.icon) {
+            this.newLink.icon = "share";
+          }
         }
       }
     },
     handleToolChange() {
       const tool = this.availableTools.find(t => t.path === this.newLink.target);
       if (tool) {
-        this.newLink.name = this.$t(tool.name);
-        this.newLink.icon = tool.icon;
+        // Only set default name and icon if user hasn't entered them yet
+        if (!this.newLink.name) {
+          this.newLink.name = this.$t(tool.name);
+        }
+        if (!this.newLink.icon) {
+          this.newLink.icon = tool.icon;
+        }
       }
     },
-    openPathBrowser() {
+    openPathBrowser(type) {
       // Show file list for path browsing
       this.isSelectingPath = true;
-      this.tempSelectedPath = this.newLink.sourcePath || '/';
-      this.tempSelectedSource = this.newLink.sourceName;
+      if (type === 'source') {
+        this.tempSelectedPath = this.newLink.sourcePath || '/';
+        this.tempSelectedSource = this.newLink.sourceName;
+      } else if (type === 'share') {
+        this.tempSelectedPath = this.getShareSubpath(this.newLink.target);
+        this.tempSelectedSource = '';
+      }
     },
     updateSelectedPath(pathOrData) {
       // Handle both old format (string) and new format (object with path and source)
@@ -452,8 +504,15 @@ export default {
       }
     },
     confirmPathSelection() {
-      // Apply the selected path to the link
-      this.newLink.sourcePath = this.tempSelectedPath;
+      // Apply the selected path to the link based on category
+      if (this.newLink.category === 'source') {
+        this.newLink.sourcePath = this.tempSelectedPath;
+      } else if (this.newLink.category === 'share') {
+        // Update target with new subpath
+        const hash = this.getShareHash(this.newLink.target);
+        const subpath = this.tempSelectedPath === '/' ? '' : this.tempSelectedPath;
+        this.newLink.target = `/public/share/${hash}${subpath}`;
+      }
       this.isSelectingPath = false;
     },
     cancelPathSelection() {
@@ -471,48 +530,40 @@ export default {
       this.newLink = {
         name: link.name,
         category: link.category,
-        target: link.target || "",
-        icon: link.icon,
+        target: (link.category === 'source') ? "" : (link.target || ""),
+        icon: link.icon || "",
         sourceName: link.sourceName || "",
-        sourcePath: link.sourcePath || "/",
-        shareHash: link.shareHash || "",
-        sharePath: link.sharePath || "/",
+        sourcePath: (link.category === 'source') ? (link.target || "/") : "/",
       };
     },
     addLink() {
       if (!this.isNewLinkValid) return;
 
       // Build the link object based on category
+      // Always include: name, category, target, icon, and conditionally sourceName/shareHash
       const linkData = {
         name: this.newLink.name,
         category: this.newLink.category,
         icon: this.newLink.icon,
+        target: "",
       };
 
-      // Process target based on category
+      // Process target and additional fields based on category
       if (this.newLink.category === "shareInfo") {
-        // ShareInfo is a special action link, no target needed
+        // ShareInfo is a special action link
         linkData.target = "#";
       } else if (this.newLink.category === "download") {
-        // Download is a special action link, no target needed
+        // Download is a special action link
         linkData.target = "#";
       } else if (this.newLink.category === "custom") {
         linkData.target = this.processCustomUrl(this.newLink.target);
       } else if (this.newLink.category === "source") {
-        // For sources, store both source name and path
+        // For sources: target is relative path, sourceName identifies the source
+        linkData.target = this.newLink.sourcePath || '/';
         linkData.sourceName = this.newLink.sourceName;
-        linkData.sourcePath = this.newLink.sourcePath || '/';
-        const sourceInfo = this.availableSources[this.newLink.sourceName];
-        // Build target path for navigation
-        const basePath = sourceInfo.pathPrefix ? `/files/${sourceInfo.pathPrefix}` : '/files/';
-        const fullPath = this.newLink.sourcePath === '/' ? basePath : basePath + this.newLink.sourcePath.substring(1);
-        linkData.target = fullPath;
       } else if (this.newLink.category === "share") {
-        // For shares, store hash and path
-        linkData.shareHash = this.newLink.shareHash;
-        linkData.sharePath = this.newLink.sharePath || '/';
-        // Build target for share navigation
-        linkData.target = `/public/share/${this.newLink.shareHash}${this.newLink.sharePath}`;
+        // For shares: target is already the full path /public/share/<hash>/<subpath>
+        linkData.target = this.newLink.target;
       } else if (this.newLink.category === "tool") {
         linkData.target = this.newLink.target;
       }
@@ -564,8 +615,6 @@ export default {
         icon: "",
         sourceName: "",
         sourcePath: "",
-        shareHash: "",
-        sharePath: "/",
       };
     },
     handleDragStart(event, index) {

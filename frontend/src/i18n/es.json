@@ -359,7 +359,7 @@
     "pickIconDescription": "Busque y seleccione un icono de la biblioteca Material Icons",
     "shareLinksUpdatedSuccess": "Los enlaces de la barra lateral compartida se han actualizado correctamente.",
     "shareHome": "Compartir",
-    "linkIconPlaceholder": "Introduzca el icono del material o haga clic en el botón de icono para buscar"
+    "linkIconPlaceholder": "Opcionalmente, especifique un nombre de icono de material"
   },
   "success": {
     "linkCopied": "¡Enlace copiado!"
@@ -701,9 +701,7 @@
     "fileViewerOptions": "Opciones del visor de archivos",
     "themeAndLanguage": "Tema e Idioma",
     "previewFolder": "Vista previa en miniatura para carpetas",
-    "previewFolderDescription": "Mostrar vistas previas en miniatura para las carpetas - Se usará el primer elemento como portada. (puede ser una imagen, o audio con imagen)",
-    "defaultLandingPage": "Página de inicio predeterminada",
-    "defaultLandingPageDescription": "Ej. '/files/miCarpeta/MiSubfolder' o '/settings' - la página por defecto es /files que va a la primera vista del listado de fuentes."
+    "previewFolderDescription": "Mostrar vistas previas en miniatura para las carpetas - Se usará el primer elemento como portada. (puede ser una imagen, o audio con imagen)"
   },
   "editor": {
     "uninitialized": "Hubo un error al iniciar el editor",

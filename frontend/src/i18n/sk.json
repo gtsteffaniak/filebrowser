@@ -359,7 +359,7 @@
     "pickIconDescription": "Vyhľadajte a vyberte ikonu z knižnice Material Icons",
     "shareLinksUpdatedSuccess": "Zdieľanie bočného panela odkazy úspešne aktualizované!",
     "shareHome": "Zdieľať Domov",
-    "linkIconPlaceholder": "Zadajte ikonu materiálu alebo kliknite na tlačidlo ikony pre prehľadávanie"
+    "linkIconPlaceholder": "Voliteľne zadajte názov ikony materiálu"
   },
   "success": {
     "linkCopied": "Odkaz skopírovaný!"
@@ -701,9 +701,7 @@
     "themeAndLanguage": "Téma a jazyk",
     "previewFolder": "Zobrazenie miniatúr priečinkov, ak sú k dispozícii",
     "previewFolderDescription": "Zobrazenie náhľadov miniatúr pre priečinky s prvou podriadenou položkou s miniatúrou ako obálkou.",
-    "disableFileExtensions": "Zadajte prípony súborov, ktoré chcete zakázať",
-    "defaultLandingPage": "Predvolená vstupná stránka",
-    "defaultLandingPageDescription": "napr. '/files/mysource/mysubpath' alebo '/settings' - predvolená stránka je /files, ktorá prechádza do prvého zobrazenia zoznamu zdrojov"
+    "disableFileExtensions": "Zadajte prípony súborov, ktoré chcete zakázať"
   },
   "editor": {
     "uninitialized": "Nepodarilo sa inicializovať editor. Prosím, načítajte ho znova.",

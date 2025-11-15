@@ -350,13 +350,22 @@ export default {
         routePath == "/";
 
       // lets redirect if multiple sources and user went to /files/
-      if (state.serverHasMultipleSources && rootRoute) {
-        const targetPath = `/files/${state.sources.current}`;
-        // Prevent infinite loop by checking if we're already at the target path
-        if (routePath !== targetPath) {
-          router.push(targetPath);
-          return;
+      if (rootRoute && state.serverHasMultipleSources) {
+        // Check if user has custom sidebar links with sources
+        let targetPath = `/files/${state.sources.current}`;
+        for (const link of state.user?.sidebarLinks || []) {
+          if (link.target.startsWith('/')) {
+            if (link.category === 'source') {
+              targetPath = `/files/${link.sourceName}${link.target}`;
+              break;
+            }
+            // For other links (tools, share, custom), use target directly
+            targetPath = link.target
+            break;
+          }
         }
+        router.push(targetPath)
+        return;
       }
 
       const result = extractSourceFromPath(getters.routePath());

@@ -49,15 +49,17 @@ type Server struct {
 	DisableResize                bool        `json:"disablePreviewResize"`                   // disable resizing of previews for faster loading over slow connections
 	DisableTypeDetectionByHeader bool        `json:"disableTypeDetectionByHeader"`           // disable type detection by header, useful if filesystem is slow.
 	Port                         int         `json:"port"`                                   // port to listen on
+	ListenAddress                string      `json:"listen"`                                 // address to listen on (default: 0.0.0.0)
 	BaseURL                      string      `json:"baseURL"`                                // base URL for the server, the subpath that the server is running on.
 	Logging                      []LogConfig `json:"logging" yaml:"logging"`
 	Database                     string      `json:"database"` // path to the database file
 	Sources                      []*Source   `json:"sources" validate:"required,dive"`
-	ExternalUrl                  string      `json:"externalUrl"`    // used by share links if set (eg. http://mydomain.com)
-	InternalUrl                  string      `json:"internalUrl"`    // used by integrations if set, this is the base domain that an integration service will use to communicate with filebrowser (eg. http://localhost:8080)
-	CacheDir                     string      `json:"cacheDir"`       // path to the cache directory, used for thumbnails and other cached files
-	MaxArchiveSizeGB             int64       `json:"maxArchiveSize"` // max pre-archive combined size of files/folder that are allowed to be archived (in GB)
-	Filesystem                   Filesystem  `json:"filesystem"`     // filesystem settings
+	ExternalUrl                  string      `json:"externalUrl"`     // used by share links if set (eg. http://mydomain.com)
+	InternalUrl                  string      `json:"internalUrl"`     // used by integrations if set, this is the base domain that an integration service will use to communicate with filebrowser (eg. http://localhost:8080)
+	CacheDir                     string      `json:"cacheDir"`        // path to the cache directory, used for thumbnails and other cached files
+	CacheDirCleanup              *bool       `json:"cacheDirCleanup"` // whether to automatically cleanup the cache directory (default: true)
+	MaxArchiveSizeGB             int64       `json:"maxArchiveSize"`  // max pre-archive combined size of files/folder that are allowed to be archived (in GB)
+	Filesystem                   Filesystem  `json:"filesystem"`      // filesystem settings
 	// not exposed to config
 	SourceMap    map[string]*Source `json:"-" validate:"omitempty"` // uses realpath as key
 	NameToSource map[string]*Source `json:"-" validate:"omitempty"` // uses name as key
@@ -329,5 +331,4 @@ type UserDefaults struct {
 	CustomTheme                string                  `json:"customTheme"`                // Name of theme to use chosen from custom themes config.
 	ShowSelectMultiple         bool                    `json:"showSelectMultiple"`         // show select multiple files on desktop
 	DebugOffice                bool                    `json:"debugOffice"`                // debug onlyoffice editor
-	DefaultLandingPage         string                  `json:"defaultLandingPage"`         // default landing page to use if no redirect is specified: eg. /files/mysource/mysubpath, /settings, etc.
 }

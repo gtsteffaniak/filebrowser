@@ -359,7 +359,7 @@
     "pickIconDescription": "Keressen és válasszon ki egy ikont az Anyagi ikonok könyvtárból.",
     "shareLinksUpdatedSuccess": "Megosztás oldalsáv linkek sikeresen frissítve!",
     "shareHome": "Megosztás",
-    "linkIconPlaceholder": "Adja meg az anyag ikonját, vagy kattintson az ikon gombra a böngészéshez."
+    "linkIconPlaceholder": "Opcionálisan megadhatja az anyag ikon nevét"
   },
   "success": {
     "linkCopied": "Link másolva!"
@@ -701,9 +701,7 @@
     "themeAndLanguage": "Téma és nyelv",
     "previewFolder": "A mappák miniatűrjeinek megjelenítése, ha rendelkezésre állnak",
     "previewFolderDescription": "Miniatűr előnézetek megjelenítése olyan mappákhoz, amelyekben az első gyermekelem miniatűrrel borítóképként szerepel.",
-    "disableFileExtensions": "Adja meg a letiltandó fájlkiterjesztéseket",
-    "defaultLandingPage": "Alapértelmezett céloldal",
-    "defaultLandingPageDescription": "pl. '/files/mysource/mysubpath' vagy '/settings' - az alapértelmezett oldal a /files, amely az első forráslistázó nézethez vezet."
+    "disableFileExtensions": "Adja meg a letiltandó fájlkiterjesztéseket"
   },
   "editor": {
     "uninitialized": "Nem sikerült inicializálni a szerkesztőt. Kérjük, töltse újra.",

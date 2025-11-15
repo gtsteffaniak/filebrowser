@@ -119,7 +119,10 @@
           <option value="normal">{{ $t("share.normalShare") }}</option>
           <option value="upload">{{ $t("share.uploadShare") }}</option>
         </select>
-
+        <button @click="openSidebarLinksCustomization" class="button button--flat customize-sidebar-links-button">
+          <i class="material-icons">link</i>
+          {{ $t('share.customizeSidebarLinksButton') }}
+        </button>
         <div class="settings-items" style="margin-top: 0.5em;">
           <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="disableDownload"
             :name="$t('share.disableDownload')" :description="$t('share.disableDownloadDescription')"
@@ -142,6 +145,7 @@
             :description="$t('share.disableAnonymousDescription')" />
           <ToggleSwitch class="item" v-model="enableAllowedUsernames" :name="$t('share.enableAllowedUsernames')"
             :description="$t('share.enableAllowedUsernamesDescription')" />
+
           <div v-if="enableAllowedUsernames" class="item">
             <input class="input" type="text" v-model.trim="allowedUsernames"
               :placeholder="$t('share.allowedUsernamesPlaceholder')" />
@@ -191,15 +195,6 @@
             <option value="list">{{ $t("buttons.listView") }}</option>
             <option value="gallery">{{ $t("buttons.galleryView") }}</option>
           </select>
-          <!-- Sidebar Links Customization -->
-          <div v-if="shareType === 'normal' && !disableSidebar" class="item">
-            <p>{{ $t('share.customizeSidebarLinks') }}</p>
-            <button @click="openSidebarLinksCustomization" class="button button--flat button--blue"
-              style="width: 100%; margin-top: 0.5em;">
-              <i class="material-icons">link</i>
-              {{ $t('share.customizeSidebarLinksButton') }}
-            </button>
-          </div>
         </div>
         <SettingsItem :title="$t('buttons.showMore')" :collapsable="true" :start-collapsed="true">
           <div class="settings-items">
@@ -890,6 +885,14 @@ export default {
 </script>
 
 <style scoped>
+.customize-sidebar-links-button {
+  width: 100%;
+  margin-top: 0.5em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .setting-item {
   display: flex;
   justify-content: space-between;

@@ -359,9 +359,7 @@
     "themeAndLanguage": "Téma a jazyk",
     "previewFolder": "Zobrazení miniatur složek, pokud jsou k dispozici",
     "previewFolderDescription": "Zobrazení náhledů miniatur pro složky s první podřízenou položkou s miniaturou jako obálkou.",
-    "disableFileExtensions": "Zadejte přípony souborů, které chcete zakázat",
-    "defaultLandingPage": "Výchozí vstupní stránka",
-    "defaultLandingPageDescription": "např. '/files/mysource/mysubpath' nebo '/settings' - výchozí stránka je /files, která přejde do prvního zobrazení seznamu zdrojů."
+    "disableFileExtensions": "Zadejte přípony souborů, které chcete zakázat"
   },
   "settings": {
     "enterPassword": "Zadejte heslo",
@@ -492,7 +490,7 @@
     "pickIconDescription": "Vyhledejte a vyberte ikonu z knihovny Material Icons.",
     "shareLinksUpdatedSuccess": "Odkazy na sdílení postranního panelu byly úspěšně aktualizovány!",
     "shareHome": "Sdílet Domů",
-    "linkIconPlaceholder": "Zadejte ikonu materiálu nebo klikněte na tlačítko ikony pro procházení"
+    "linkIconPlaceholder": "Volitelně zadejte název ikony materiálu"
   },
   "success": {
     "linkCopied": "Odkaz zkopírován!"
