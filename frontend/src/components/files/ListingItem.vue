@@ -70,7 +70,7 @@
 </template>
 
 <script>
-import { globalVars, serverHasMultipleSources } from "@/utils/constants";
+import { globalVars } from "@/utils/constants";
 import downloadFiles from "@/utils/download";
 
 import { getHumanReadableFilesize } from "@/utils/filesizes";
@@ -247,10 +247,7 @@ export default {
       if (this.hash) {
         return globalVars.baseURL + "public/share/" + this.hash + "/" + url.encodedPath(this.path);
       }
-      if (serverHasMultipleSources) {
-        return globalVars.baseURL + "files/" + encodeURIComponent(this.source) + url.encodedPath(this.path);
-      }
-      return globalVars.baseURL + "files" + url.encodedPath(this.path);
+      return globalVars.baseURL + "files/" + encodeURIComponent(this.source) + url.encodedPath(this.path);
     },
     /** @param {MouseEvent} event */
     onRightClick(event) {

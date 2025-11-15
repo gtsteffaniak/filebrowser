@@ -148,13 +148,8 @@ export function base64Encode(str) {
 export function extractSourceFromPath(url) {
   let source;
   let path = url;
-  if (state.serverHasMultipleSources) {
-    source = path.split('/')[2];
-    path = removePrefix(path, `/files/${source}`);
-  } else {
-    source = state.sources.current;
-    path = removePrefix(path, '/files');
-  }
+  source = path.split('/')[2];
+  path = removePrefix(path, `/files/${source}`);
 
   return { source, path };
 }
@@ -163,11 +158,7 @@ export function buildItemUrl(source, path) {
   if (getters.isShare()) {
     return `/public/share/${state.shareInfo.hash}${path}`;
   }
-  if (state.serverHasMultipleSources) {
-    return `/files/${source}${path}`;
-  } else {
-    return `/files${path}`;
-  }
+  return `/files/${source}${path}`;
 }
 
 export function encodedPath(path) {
@@ -194,11 +185,7 @@ export function goToItem(source, path, previousHistoryItem) {
     router.push({ path: fullPath });
     return;
   }
-  if (state.serverHasMultipleSources) {
-    fullPath = `/files/${encodeURIComponent(source)}${newPath}`;
-  } else {
-    fullPath = `/files${newPath}`;
-  }
+  fullPath = `/files/${encodeURIComponent(source)}${newPath}`;
   router.push({ path: fullPath });
   return
 }

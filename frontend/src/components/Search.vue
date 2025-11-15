@@ -159,7 +159,7 @@ import { getters, mutations, state } from "@/store";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { url } from "@/utils/";
 import Icon from "@/components/files/Icon.vue";
-import { globalVars, serverHasMultipleSources } from "@/utils/constants";
+import { globalVars } from "@/utils/constants";
 
 var boxes = {
   folder: { label: "folders", icon: "folder" },
@@ -225,9 +225,7 @@ export default {
         mutations.closeHovers();
         return;
       }
-      if (state.serverHasMultipleSources) {
-        this.selectedSource = state.sources.current;
-      }
+      this.selectedSource = state.sources.current;
       setTimeout(() => {
         resultList.classList.add("active");
         document.getElementById("main-input").focus();
@@ -241,9 +239,7 @@ export default {
     },
   },
   mounted() {
-    if (state.serverHasMultipleSources) {
-      this.selectedSource = state.sources.current;
-    }
+    this.selectedSource = state.sources.current;
     // Adjust contextmenu listener based on browser
     if (state.isSafari) {
       // For Safari, add touchstart or mousedown to open the context menu
@@ -420,11 +416,7 @@ export default {
       const context = url.removeTrailingSlash(this.getContext)
       const encodedPath = encodeURIComponent(context + "/" + path).replaceAll("%2F", "/");
       let fullpath = encodedPath;
-      if (serverHasMultipleSources) {
-        fullpath = globalVars.baseURL+"files/" + this.selectedSource + encodedPath;
-      } else {
-        fullpath = globalVars.baseURL+"files" + encodedPath;
-      }
+      fullpath = globalVars.baseURL+"files/" + this.selectedSource + encodedPath;
       return fullpath;
     },
     getIcon(mimetype) {

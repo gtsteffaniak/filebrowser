@@ -5,7 +5,6 @@ import { emitStateChanged } from './eventBus'; // Import the function from event
 import { usersApi } from "@/api";
 import { notify } from "@/notify";
 import { sortedItems } from "@/utils/sort.js";
-import { serverHasMultipleSources } from "@/utils/constants.js";
 import { url } from "@/utils";
 import { getTypeInfo } from "@/utils/mimetype";
 import { filesApi, publicApi } from "@/api";
@@ -145,7 +144,6 @@ export const mutations = {
     emitStateChanged();
   },
   setSources: (user) => {
-    state.serverHasMultipleSources = serverHasMultipleSources;
     const currentSource = user.scopes.length > 0 ? user.scopes[0].name : "";
     let sources = {info: {}, current: currentSource, count: user.scopes.length};
     for (const source of user.scopes) {
