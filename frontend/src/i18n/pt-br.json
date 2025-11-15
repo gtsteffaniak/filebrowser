@@ -213,7 +213,9 @@
     "halloweenBody": "O tema Halloween foi aplicado. Você pode desativá-lo se não gostar dele ou desativá-lo permanentemente nas configurações de perfil, selecionando qualquer outro tema.",
     "firstLoadBody": "Um novo banco de dados foi criado na inicialização. Se isso não for o que você esperava, verifique novamente em seu arquivo de configuração o caminho `server.database` e certifique-se de que ele exista. No docker, o caminho do banco de dados pode ser `./data/database.db` ou `./database.db`.",
     "selectPath": "Selecionar caminho",
-    "renameSuccess": "Item renomeado com sucesso!"
+    "renameSuccess": "Item renomeado com sucesso!",
+    "newFileSuccess": "Arquivo criado com sucesso!",
+    "newDirSuccess": "Diretório criado com sucesso!"
   },
   "search": {
     "smallerThan": "Menor que:",

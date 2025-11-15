@@ -213,7 +213,9 @@
     "halloweenBody": "ハロウィーンのテーマが適用されました。気に入らなければ無効にするか、プロフィール設定で他のテーマを選択して永久に無効にすることができます。",
     "firstLoadBody": "起動時に新しいデータベースが作成されました。これが期待したものでない場合は、設定ファイルの `server.database` パスを再確認し、それが存在することを確認してください。docker では、データベースのパスは `./data/database.db` または `./database.db` になります。",
     "selectPath": "パスを選択",
-    "renameSuccess": "アイテム名の変更に成功しました！"
+    "renameSuccess": "アイテム名の変更に成功しました！",
+    "newFileSuccess": "ファイルは正常に作成されました！",
+    "newDirSuccess": "ディレクトリは正常に作成されました！"
   },
   "search": {
     "smallerThan": "より小さい：",

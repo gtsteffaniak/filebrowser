@@ -23,8 +23,8 @@
 <script>
 import { filesApi, publicApi } from "@/api";
 import { getters, mutations, state } from "@/store"; // Import your custom store
-import { goToItem } from "@/utils/url";
 import { url } from "@/utils";
+import { notify } from "@/notify";
 export default {
   name: "new-dir",
   props: {
@@ -66,15 +66,32 @@ export default {
 
     async createDirectory(overwrite = false) {
       try {
+        const newPath = url.joinPath(state.req.path, this.name) + "/";
+        const source = state.req.source;
+
         if (getters.isShare()) {
-          await publicApi.post(state.shareInfo?.hash, url.joinPath(state.req.path, this.name) + "/", "", overwrite);
-          goToItem(state.req.source, url.joinPath(state.req.path, this.name), {});
+          await publicApi.post(state.shareInfo?.hash, newPath, "", overwrite);
+          mutations.setReload(true);
           mutations.closeHovers();
           return;
         }
-        await filesApi.post(state.req.source, url.joinPath(state.req.path, this.name) + "/", "", overwrite);
-        goToItem(state.req.source, url.joinPath(state.req.path, this.name), {});
+        await filesApi.post(source, newPath, "", overwrite);
+        mutations.setReload(true);
         mutations.closeHovers();
+
+        // Show success notification with "go to item" button
+        const buttonAction = () => {
+          url.goToItem(source, newPath, {});
+        };
+        const buttonProps = {
+          icon: "folder",
+          buttons: [{
+            label: this.$t("buttons.goToItem"),
+            primary: true,
+            action: buttonAction
+          }]
+        };
+        notify.showSuccess(this.$t("prompts.newDirSuccess"), buttonProps);
       } catch (error) {
         if (error.message === "conflict") {
           // Show replace-rename prompt for file/folder conflicts
@@ -93,17 +110,34 @@ export default {
                   for (let counter = 1; counter <= maxAttempts && !success; counter++) {
                     try {
                       const newName = counter === 1 ? `${originalName} (1)` : `${originalName} (${counter})`;
+                      const newPath = url.joinPath(state.req.path, newName) + "/";
+                      const source = state.req.source;
+
                       if (getters.isShare()) {
-                        await publicApi.post(state.shareInfo?.hash, url.joinPath(state.req.path, newName) + "/", "", false);
-                        goToItem(state.req.source, url.joinPath(state.req.path, newName), {});
+                        await publicApi.post(state.shareInfo?.hash, newPath, "", false);
+                        mutations.setReload(true);
                         mutations.closeHovers();
                         success = true;
                         return;
                       }
-                      await filesApi.post(state.req.source, joinPath(state.req.path, newName) + "/", "", false);
-                      goToItem(state.req.source, joinPath(state.req.path, newName), {});
+                      await filesApi.post(source, newPath, "", false);
+                      mutations.setReload(true);
                       mutations.closeHovers();
                       success = true;
+
+                      // Show success notification with "go to item" button
+                      const buttonAction = () => {
+                        url.goToItem(source, newPath, {});
+                      };
+                      const buttonProps = {
+                        icon: "folder",
+                        buttons: [{
+                          label: this.$t("buttons.goToItem"),
+                          primary: true,
+                          action: buttonAction
+                        }]
+                      };
+                      notify.showSuccess(this.$t("prompts.newDirSuccess"), buttonProps);
                     } catch (renameError) {
                       if (renameError.message === "conflict") {
                         // Continue to next iteration

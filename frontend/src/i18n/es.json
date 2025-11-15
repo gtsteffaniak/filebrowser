@@ -213,7 +213,9 @@
     "halloweenBody": "Se ha aplicado el tema de Halloween. Puedes desactivarlo si no te gusta, o desactivarlo permanentemente en los ajustes del perfil seleccionando cualquier otro tema.",
     "firstLoadBody": "Se ha creado una nueva base de datos al iniciar. Si esto no es lo que esperaba, por favor, compruebe su archivo de configuración para la ruta `server.database` y asegúrese de que existe. En docker, la ruta de la base de datos puede ser `./data/database.db` o `./database.db`.",
     "selectPath": "Seleccionar ruta",
-    "renameSuccess": "El cambio de nombre se ha realizado correctamente."
+    "renameSuccess": "El cambio de nombre se ha realizado correctamente.",
+    "newFileSuccess": "¡Fichero creado con éxito!",
+    "newDirSuccess": "¡Directorio creado con éxito!"
   },
   "search": {
     "smallerThan": "Menor que:",

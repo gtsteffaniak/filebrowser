@@ -90,6 +90,9 @@ test("share file creation", async ({ page, checkForErrors, openContextMenu }) =>
   await page.locator('input[aria-label="FileName Field"]').waitFor({ state: 'visible' });
   await page.locator('input[aria-label="FileName Field"]').fill('dfsaf.txt');
   await page.locator('button[aria-label="Create"]').click();
+  // Note: Share links don't show the "go to item" button, so no need to click notification
+  await expect(page).toHaveTitle("Graham's Filebrowser - Share - share");
+  await page.locator('a[aria-label="dfsaf.txt"]').dblclick();
   await expect(page).toHaveTitle("Graham's Filebrowser - Share - dfsaf.txt");
   await page.locator(".ace_content").click();
   await page.keyboard.type("test content");
