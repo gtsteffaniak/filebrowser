@@ -445,6 +445,11 @@ func validateMoveDestination(src, dst string, isSrcDir bool) error {
 }
 
 func MoveResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string, s *share.Storage, a *access.Storage) error {
+	// Check if source and destination are the same file
+	if realsrc == realdst {
+		return fmt.Errorf("cannot move a file to itself: %s", realsrc)
+	}
+
 	// Validate the move operation before executing
 	if err := validateMoveDestination(realsrc, realdst, isSrcDir); err != nil {
 		return err
@@ -559,6 +564,11 @@ func MoveResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string
 }
 
 func CopyResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string) error {
+	// Check if source and destination are the same file
+	if realsrc == realdst {
+		return fmt.Errorf("cannot copy a file to itself: %s", realsrc)
+	}
+
 	// Validate the copy operation before executing
 	if err := validateMoveDestination(realsrc, realdst, isSrcDir); err != nil {
 		return err

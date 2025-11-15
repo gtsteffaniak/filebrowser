@@ -213,7 +213,9 @@
     "halloweenBody": "Halloween-temat har lagts till. Du kan inaktivera det om du inte gillar det, eller inaktivera det permanent i profilinställningarna genom att välja ett annat tema.",
     "firstLoadBody": "En ny databas skapades vid uppstart. Om detta inte är vad du förväntade dig, vänligen dubbelkolla din konfigurationsfil för `server.database` sökväg och se till att den finns. På docker kan databassökvägen vara `./data/database.db` eller `./database.db`.",
     "selectPath": "Välj sökväg",
-    "renameSuccess": "Objektet har bytt namn framgångsrikt!"
+    "renameSuccess": "Objektet har bytt namn framgångsrikt!",
+    "newFileSuccess": "Filen skapades framgångsrikt!",
+    "newDirSuccess": "Katalog skapad framgångsrikt!"
   },
   "search": {
     "smallerThan": "Mindre än:",
