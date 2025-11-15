@@ -1,17 +1,10 @@
 <template>
   <div class="card headline-card">
     <div class="card-wrapper user-card">
-      <div
-        v-if="settingsAllowed"
-        class="inner-card"
-      >
-        <a
-          href="/settings#profile-main"
-          class="person-button action button"
-          @click.prevent="navigateTo('/settings','#profile-main')"
-          @mouseenter="showTooltip($event, $t('index.settingsHover'))"
-          @mouseleave="hideTooltip"
-        >
+      <div v-if="settingsAllowed" class="inner-card">
+        <a href="/settings#profile-main" class="person-button action button"
+          @click.prevent="navigateTo('/settings', '#profile-main')"
+          @mouseenter="showTooltip($event, $t('index.settingsHover'))" @mouseleave="hideTooltip">
           <i class="material-icons">person</i>
           {{ user.username }}
           <i aria-label="settings" class="material-icons">settings</i>
@@ -30,12 +23,8 @@
       </div>
 
       <div class="inner-card" v-if="canLogout" @click="logout">
-        <button
-          aria-label="logout-button"
-          class="logout-button action button"
-          @mouseenter="showTooltip($event, $t('general.logout'))"
-          @mouseleave="hideTooltip"
-        >
+        <button aria-label="logout-button" class="logout-button action button"
+          @mouseenter="showTooltip($event, $t('general.logout'))" @mouseleave="hideTooltip">
           <i class="material-icons">exit_to_app</i>
         </button>
       </div>
@@ -43,48 +32,25 @@
 
     <div v-if="!disableQuickToggles" class="card-wrapper" @mouseleave="hideTooltip">
       <div class="quick-toggles" :class="{ 'extra-padding': !hasCreateOptions }">
-        <div
-          class="clickable"
-          :class="{ active: user?.singleClick }"
-          @click="toggleClick"
-          @mouseenter="showTooltip($event, $t('index.toggleClick'))"
-          @mouseleave="hideTooltip"
-          v-if="!isInvalidShare"
-        >
+        <div class="clickable" :class="{ active: user?.singleClick }" @click="toggleClick"
+          @mouseenter="showTooltip($event, $t('index.toggleClick'))" @mouseleave="hideTooltip" v-if="!isInvalidShare">
           <i class="material-icons">ads_click</i>
         </div>
-        <div
-          aria-label="Toggle Theme"
-          v-if="darkModeTogglePossible"
-          class="clickable"
-          :class="{ active: user?.darkMode }"
-          @click="toggleDarkMode"
-          @mouseenter="showTooltip($event, $t('index.toggleDark'))"
-          @mouseleave="hideTooltip"
-        >
+        <div aria-label="Toggle Theme" v-if="darkModeTogglePossible" class="clickable"
+          :class="{ active: user?.darkMode }" @click="toggleDarkMode"
+          @mouseenter="showTooltip($event, $t('index.toggleDark'))" @mouseleave="hideTooltip">
           <i class="material-icons">dark_mode</i>
         </div>
-        <div
-          class="clickable"
-          :class="{ active: isStickySidebar }"
-          @click="toggleSticky"
-          @mouseenter="showTooltip($event, $t('index.toggleSticky'))"
-          @mouseleave="hideTooltip"
-          v-if="!isMobile"
-        >
+        <div class="clickable" :class="{ active: isStickySidebar }" @click="toggleSticky"
+          @mouseenter="showTooltip($event, $t('index.toggleSticky'))" @mouseleave="hideTooltip" v-if="!isMobile">
           <i class="material-icons">push_pin</i>
         </div>
       </div>
     </div>
 
     <!-- Sidebar file actions -->
-    <transition
-      v-if="shareInfo.shareType !== 'upload'"
-      name="expand"
-      @before-enter="beforeEnter"
-      @enter="enter"
-      @leave="leave"
-    >
+    <transition v-if="shareInfo.shareType !== 'upload'" name="expand" @before-enter="beforeEnter" @enter="enter"
+      @leave="leave">
       <div v-if="!hideSidebarFileActions && isListingView" class="card-wrapper">
         <button @click="openContextMenu" aria-label="File-Actions" class="action file-actions">
           <i class="material-icons">add</i>
@@ -95,12 +61,7 @@
   </div>
 
   <!-- Share Info Card - only show when viewing a share -->
-  <ShareInfoCard
-    v-if="isShare && !disableShareCard"
-    :hash="hash"
-    :token="token"
-    :sub-path="subPath"
-  />
+  <ShareInfoCard v-if="isShare && !disableShareCard" :hash="hash" :token="token" :sub-path="subPath" />
 
   <!-- Sidebar Links Component (replaces sources) -->
   <SidebarLinks />
@@ -353,7 +314,6 @@ export default {
 </script>
 
 <style>
-
 .user-card {
   flex-direction: row !important;
   justify-content: space-between !important;
@@ -440,7 +400,10 @@ button.action {
 
 .person-button {
   max-width: 13em;
+  display: flex;
   padding-right: 1em !important;
+  justify-content: center;
+  align-items: center;
 }
 
 a.person-button {
@@ -465,6 +428,7 @@ a.person-button {
   transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
 }
+
 .expand-enter,
 .expand-leave-to {
   height: 0 !important;
