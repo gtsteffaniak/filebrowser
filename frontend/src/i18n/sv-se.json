@@ -359,7 +359,7 @@
     "pickIconDescription": "Sök och välj en ikon från Material Icons-biblioteket",
     "shareLinksUpdatedSuccess": "Dela sidofältets länkar uppdaterades framgångsrikt!",
     "shareHome": "Dela hem",
-    "linkIconPlaceholder": "Ange materialikon eller eller klicka på ikonknappen för att bläddra"
+    "linkIconPlaceholder": "Ange eventuellt ett namn på materialikonen"
   },
   "success": {
     "linkCopied": "Länk kopierad"
@@ -574,9 +574,7 @@
     "themeAndLanguage": "Tema & språk",
     "previewFolder": "Visa miniatyrbilder för mappar om de är tillgängliga",
     "previewFolderDescription": "Visa förhandsvisningar av miniatyrbilder för mappar med första underordnade objekt med miniatyrbild som omslag.",
-    "disableFileExtensions": "Ange filändelser som ska inaktiveras",
-    "defaultLandingPage": "Standardlandningssida",
-    "defaultLandingPageDescription": "t.ex. \"/files/mysource/mysubpath\" eller \"/settings\" - standardsidan är /files som går till den första källförteckningsvyn"
+    "disableFileExtensions": "Ange filändelser som ska inaktiveras"
   },
   "general": {
     "name": "Namn",

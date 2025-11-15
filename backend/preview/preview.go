@@ -46,21 +46,14 @@ func NewPreviewGenerator(concurrencyLimit int, cacheDir string) *Service {
 	ffmpegConcurrencyLimit := (concurrencyLimit + 1) / 2
 	var fileCache diskcache.Interface
 	// Use file cache if cacheDir is specified
-	if cacheDir != "" {
-		var err error
-		fileCache, err = diskcache.NewFileCache(cacheDir)
-		if err != nil {
-			if cacheDir == "tmp" {
-				logger.Error("The cache dir could not be created. Make sure the user that you executed the program with has access to create directories in the local path. filebrowser is trying to use the default `server.cacheDir: tmp` , but you can change this location if you need to. Please see configuration wiki for more information about this error. https://github.com/gtsteffaniak/filebrowser/wiki/Configuration")
-			}
-			logger.Fatalf("failed to create file cache path, which is now require to run the server: %v", err)
-		}
-	} else {
-		// No-op cache if no cacheDir is specified
-		fileCache = diskcache.NewNoOp()
+	var err error
+	fileCache, err = diskcache.NewFileCache(cacheDir)
+	if err != nil {
+		logger.Error("The cache dir could not be created. Make sure the user that you executed the program with has access to create directories in the local path. See  ")
+		logger.Fatalf("failed to create file cache path, which is now require to run the server: %v", err)
 	}
 	// Create directories recursively
-	err := os.MkdirAll(filepath.Join(settings.Config.Server.CacheDir, "thumbnails", "docs"), fileutils.PermDir)
+	err = os.MkdirAll(filepath.Join(settings.Config.Server.CacheDir, "thumbnails", "docs"), fileutils.PermDir)
 	if err != nil {
 		logger.Error(err)
 	}
@@ -82,7 +75,7 @@ func NewPreviewGenerator(concurrencyLimit int, cacheDir string) *Service {
 	return &Service{
 		fileCache:    fileCache,
 		debug:        settings.Config.Integrations.Media.Debug,
-		docSemaphore: make(chan struct{}, 1),
+		docSemaphore: make(chan struct{}, 1), // must be 1 because cgo thread limit
 		officeSem:    make(chan struct{}, concurrencyLimit),
 		videoService: videoService,
 		imageService: imageService,

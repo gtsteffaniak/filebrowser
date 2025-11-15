@@ -359,7 +359,7 @@
     "pickIconDescription": "Cercare e selezionare un'icona dalla libreria Material Icons.",
     "shareLinksUpdatedSuccess": "I link della barra laterale di condivisione sono stati aggiornati con successo!",
     "shareHome": "Condividi Casa",
-    "linkIconPlaceholder": "Immettere l'icona del materiale o fare clic sul pulsante dell'icona per sfogliarla."
+    "linkIconPlaceholder": "Specificare facoltativamente il nome dell'icona del materiale"
   },
   "success": {
     "linkCopied": "Link copiato!"
@@ -701,9 +701,7 @@
     "themeAndLanguage": "Tema e linguaggio",
     "previewFolder": "Mostra le miniature delle cartelle, se disponibili.",
     "previewFolderDescription": "Mostra le anteprime per le cartelle con il primo elemento figlio con miniatura come copertina.",
-    "disableFileExtensions": "Immettere le estensioni dei file da disabilitare",
-    "defaultLandingPage": "Pagina di destinazione predefinita",
-    "defaultLandingPageDescription": "es. '/files/mysource/mysubpath' o '/settings' - la pagina predefinita è /files, che va alla prima vista dell'elenco delle sorgenti."
+    "disableFileExtensions": "Immettere le estensioni dei file da disabilitare"
   },
   "editor": {
     "uninitialized": "Impossibile inizializzare l'editor. Ricaricare.",

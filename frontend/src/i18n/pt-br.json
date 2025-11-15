@@ -359,7 +359,7 @@
     "pickIconDescription": "Pesquise e selecione um ícone na biblioteca de ícones de materiais",
     "shareLinksUpdatedSuccess": "Os links da barra lateral de compartilhamento foram atualizados com sucesso!",
     "shareHome": "Compartilhar casa",
-    "linkIconPlaceholder": "Insira o ícone do material ou clique no botão do ícone para navegar"
+    "linkIconPlaceholder": "Opcionalmente, especifique um nome de ícone de material"
   },
   "success": {
     "linkCopied": "Link copiado!"
@@ -701,9 +701,7 @@
     "themeAndLanguage": "Tema e linguagem",
     "previewFolder": "Mostrar miniaturas das pastas, se disponíveis",
     "previewFolderDescription": "Mostrar visualizações em miniatura para pastas com o primeiro item filho com miniatura como capa.",
-    "disableFileExtensions": "Digite as extensões de arquivo a serem desativadas",
-    "defaultLandingPage": "Página de destino padrão",
-    "defaultLandingPageDescription": "Por exemplo. '/files/mysource/mysubpath' ou '/settings' - a página padrão é /files, que vai para a primeira exibição de listagem de fontes"
+    "disableFileExtensions": "Digite as extensões de arquivo a serem desativadas"
   },
   "editor": {
     "uninitialized": "Falha ao inicializar o editor. Favor recarregar.",

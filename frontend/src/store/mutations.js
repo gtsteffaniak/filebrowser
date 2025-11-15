@@ -165,6 +165,16 @@ export const mutations = {
         scanners: [],
       };
     }
+    // Check if user has custom sidebar links with sources
+    let targetSource = sources.current;
+    if (state.user?.sidebarLinks && state.user.sidebarLinks.length > 0) {
+      // Find first source link in user's sidebar links
+      const firstSourceLink = state.user.sidebarLinks.find(link => link.category === 'source' && link.sourceName);
+      if (firstSourceLink) {
+        targetSource = firstSourceLink.sourceName;
+      }
+    }
+    sources.defaultSource = targetSource;
     state.sources = sources;
     emitStateChanged();
   },

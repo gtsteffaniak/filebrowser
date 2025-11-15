@@ -112,7 +112,7 @@ type NonAdminEditable struct {
 	ShowSelectMultiple         bool          `json:"showSelectMultiple"`         // show select multiple files on desktop
 	DebugOffice                bool          `json:"debugOffice"`                // debug onlyoffice editor
 	OtpEnabled                 bool          `json:"otpEnabled"`                 // allow non-admin users to disable their own OTP
-	DefaultLandingPage         string        `json:"defaultLandingPage"`         // default landing page to use: eg. /files/mysource/mysubpath, /settings, etc.
+	DefaultLandingPage         string        `json:"defaultLandingPage"`         // deprecated: determined by sidebar link order instead
 	SidebarLinks               []SidebarLink `json:"sidebarLinks"`               // customizable sidebar links
 }
 
@@ -124,10 +124,11 @@ type FileLoading struct {
 
 // SidebarLink represents a customizable link in the sidebar.
 type SidebarLink struct {
-	Name     string `json:"name"`     // Display name of the link
-	Category string `json:"category"` // Category type: "source", "tool", or "custom"
-	Target   string `json:"target"`   // Target path/URL for the link
-	Icon     string `json:"icon"`     // Material icon name
+	Name       string `json:"name"`                 // Display name of the link
+	Category   string `json:"category"`             // Category type: "source", "share", "tool", "custom", etc.
+	Target     string `json:"target"`               // Target path/URL for the link (relative for source/share)
+	Icon       string `json:"icon"`                 // Material icon name
+	SourceName string `json:"sourceName,omitempty"` // Source identifier for source-type links
 }
 
 func CleanUsername(s string) string {

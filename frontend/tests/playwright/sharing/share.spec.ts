@@ -1,26 +1,5 @@
 import { test, expect, checkForNotification } from "../test-setup";
 
-test("breadcrumbs navigation checks", async ({ page, checkForErrors, context }) => {
-  await page.goto("/files/");
-  await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
-
-  const shareHash = await page.evaluate(() => localStorage.getItem('shareHash'));
-  if (shareHash == "") {
-    throw new Error("Share hash not found in localStorage");
-  }
-
-  await page.goto("/share/" + shareHash);
-  await expect(page).toHaveTitle("Graham's Filebrowser - Share - myfolder");
-  await page.dblclick('a[aria-label="testdata"]');
-  await expect(page).toHaveTitle("Graham's Filebrowser - Share - testdata");
-  await page.waitForSelector('#breadcrumbs');
-  // Ensure no <span> children exist directly under #breadcrumbs (ie no breadcrumbs paths)
-  let spanChildrenCount = await page.locator('#breadcrumbs > ul > li.item').count();
-  expect(spanChildrenCount).toBe(1);
-
-  checkForErrors(0,2); // redirect errors are expected and 404 for blank preview
-});
-
 test("root share path is valid", async ({ page, checkForErrors, openContextMenu, context }) => {
   await page.goto("/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");

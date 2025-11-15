@@ -48,11 +48,18 @@ func Initialize(configFile string) {
 		logger.Fatal(err.Error())
 	}
 	setupFs()
+	setupServer()
 	setupAuth(false)
 	setupSources(false)
 	setupUrls()
 	setupFrontend(false)
 	setupVideoPreview()
+}
+
+func setupServer() {
+	if Config.Server.ListenAddress == "" {
+		Config.Server.ListenAddress = "0.0.0.0"
+	}
 }
 
 func setupEnv() {
@@ -526,6 +533,7 @@ func setDefaults(generate bool) Settings {
 			NameToSource:       map[string]*Source{},
 			MaxArchiveSizeGB:   50,
 			CacheDir:           "tmp",
+			CacheDirCleanup:    boolPtr(true),
 			Filesystem: Filesystem{
 				CreateFilePermission:      "644",
 				CreateDirectoryPermission: "755",

@@ -359,7 +359,7 @@
     "pickIconDescription": "חפש ובחר סמל מספריית Material Icons.",
     "shareLinksUpdatedSuccess": "קישורי הסרגל הצדדי שותפו בהצלחה!",
     "shareHome": "שתף בית",
-    "linkIconPlaceholder": "הזן סמל חומר או לחץ על כפתור הסמל כדי לדפדף"
+    "linkIconPlaceholder": "אפשר לציין שם סמל חומר"
   },
   "success": {
     "linkCopied": "הקישור הועתק!"
@@ -701,9 +701,7 @@
     "themeAndLanguage": "נושא ושפה",
     "previewFolder": "הצג תמונות ממוזערות של תיקיות, אם זמינות",
     "previewFolderDescription": "הצג תצוגה מקדימה של תמונות ממוזערות עבור תיקיות עם פריט משנה ראשון עם תמונה ממוזערת ככריכה.",
-    "disableFileExtensions": "הזן סיומות קבצים שיש להשבית",
-    "defaultLandingPage": "דף נחיתה ברירת מחדל",
-    "defaultLandingPageDescription": "לדוגמה, '/files/mysource/mysubpath' או '/settings' - הדף המוגדר כברירת מחדל הוא /files, המוביל לתצוגת רשימת המקורות הראשונה."
+    "disableFileExtensions": "הזן סיומות קבצים שיש להשבית"
   },
   "editor": {
     "uninitialized": "לא ניתן לאתחל את העורך. אנא טען מחדש.",
