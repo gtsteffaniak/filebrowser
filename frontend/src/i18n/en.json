@@ -468,9 +468,7 @@
     "disableOfficeEditorDescription": "A space-separated list of file extensions to disable the OnlyOffice editor and viewer for. (e.g., '.txt .html .pdf').",
     "disableOfficeEditor": "Disable office viewer for certain file extensions",
     "fileViewerOptions": "File Viewer Options",
-    "themeAndLanguage": "Theme & Language",
-    "defaultLandingPage": "Default landing page",
-    "defaultLandingPageDescription": "eg. '/files/mysource/mysubpath' or '/settings' - default page is /files which goes to the first source listing view"
+    "themeAndLanguage": "Theme & Language"
   },
   "settings": {
     "systemAdmin": "System & Admin",
@@ -592,7 +590,7 @@
     "linkUrl": "Link URL",
     "linkUrlPlaceholder": "Enter URL or path (e.g., /files/path or https://example.com)",
     "linkIcon": "Link Icon",
-    "linkIconPlaceholder": "Enter material icon or or click icon button to browse",
+    "linkIconPlaceholder": "Optionally specify a material icon name",
     "browseIcons": "Browse Icons",
     "pickIcon": "Pick an Icon",
     "pickIconDescription": "Search and select an icon from the Material Icons library",

@@ -207,8 +207,12 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	var scheme string
 	port := ""
 	srv := &http.Server{
-		Addr:    fmt.Sprintf(":%v", config.Server.Port),
+		Addr:    fmt.Sprintf("%v:%v", config.Server.ListenAddress, config.Server.Port),
 		Handler: muxWithMiddleware(router),
+	}
+	listenAddress := config.Server.ListenAddress
+	if listenAddress == "0.0.0.0" {
+		listenAddress = "localhost"
 	}
 	go func() {
 		// Determine whether to use HTTPS (TLS) or HTTP
@@ -232,7 +236,7 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 			}
 
 			// Build the full URL with host and port
-			fullURL := fmt.Sprintf("%s://localhost%s%s", scheme, port, config.Server.BaseURL)
+			fullURL := fmt.Sprintf("%s://%s%s%s", scheme, listenAddress, port, config.Server.BaseURL)
 			logger.Infof("Running at               : %s", fullURL)
 
 			// Create a TLS listener and serve
@@ -251,7 +255,7 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 			}
 
 			// Build the full URL with host and port
-			fullURL := fmt.Sprintf("%s://localhost%s%s", scheme, port, config.Server.BaseURL)
+			fullURL := fmt.Sprintf("%s://%s%s%s", scheme, listenAddress, port, config.Server.BaseURL)
 			logger.Infof("Running at               : %s", fullURL)
 
 			// Start HTTP server

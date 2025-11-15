@@ -357,7 +357,7 @@
     "pickIconDescription": "Materyal Simgeleri kitaplığından bir simge arayın ve seçin",
     "shareLinksUpdatedSuccess": "Kenar çubuğu bağlantılarını paylaşma başarıyla güncellendi!",
     "shareHome": "Ev Paylaşımı",
-    "linkIconPlaceholder": "Malzeme simgesini girin veya göz atmak için simge düğmesine tıklayın"
+    "linkIconPlaceholder": "İsteğe bağlı olarak bir malzeme simgesi adı belirtin"
   },
   "success": {
     "linkCopied": "Link kopyalandı!"
@@ -699,9 +699,7 @@
     "themeAndLanguage": "Tema ve Dil",
     "previewFolder": "Varsa klasörler için küçük resimleri göster",
     "previewFolderDescription": "Kapak olarak küçük resmi olan ilk alt öğeye sahip klasörler için küçük resim önizlemelerini gösterin.",
-    "disableFileExtensions": "Devre dışı bırakılacak dosya uzantılarını girin",
-    "defaultLandingPage": "Varsayılan açılış sayfası",
-    "defaultLandingPageDescription": "örn. '/files/mysource/mysubpath' veya '/settings' - varsayılan sayfa /files olup ilk kaynak listeleme görünümüne gider"
+    "disableFileExtensions": "Devre dışı bırakılacak dosya uzantılarını girin"
   },
   "editor": {
     "uninitialized": "Düzenleyici başlatılamadı. Lütfen yeniden yükleyin.",

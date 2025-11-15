@@ -357,7 +357,7 @@
     "pickIconDescription": "Zoek en selecteer een pictogram uit de bibliotheek met materiaalpictogrammen",
     "shareLinksUpdatedSuccess": "Zijbalk links delen succesvol bijgewerkt!",
     "shareHome": "Thuis delen",
-    "linkIconPlaceholder": "Voer het materiaalpictogram in of klik op de pictogramknop om te bladeren"
+    "linkIconPlaceholder": "Geef optioneel een materiaalpictogramnaam op"
   },
   "success": {
     "linkCopied": "Link gekopieerd!"
@@ -572,9 +572,7 @@
     "themeAndLanguage": "Thema & Taal",
     "previewFolder": "Toon miniaturen voor mappen indien beschikbaar",
     "previewFolderDescription": "Toon miniatuurafbeeldingen voor mappen met het eerste kinditem met miniatuurafbeelding als omslag.",
-    "disableFileExtensions": "Voer bestandsextensies in om uit te schakelen",
-    "defaultLandingPage": "Standaard landingspagina",
-    "defaultLandingPageDescription": "bijv. /files/mysource/mysubpath' of '/settings' - standaardpagina is /files die naar de eerste bronweergave gaat."
+    "disableFileExtensions": "Voer bestandsextensies in om uit te schakelen"
   },
   "general": {
     "name": "Naam",

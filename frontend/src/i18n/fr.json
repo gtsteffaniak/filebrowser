@@ -357,7 +357,7 @@
     "pickIconDescription": "Rechercher et sélectionner une icône dans la bibliothèque des icônes matérielles",
     "shareLinksUpdatedSuccess": "Les liens de la barre latérale de partage ont été mis à jour avec succès !",
     "shareHome": "Partager l'accueil",
-    "linkIconPlaceholder": "Saisissez l'icône du matériau ou cliquez sur le bouton de l'icône pour le parcourir."
+    "linkIconPlaceholder": "Spécifier éventuellement un nom d'icône de matériau"
   },
   "success": {
     "linkCopied": "Lien copié !"
@@ -699,9 +699,7 @@
     "themeAndLanguage": "Thème et langue",
     "previewFolder": "Afficher les vignettes des dossiers si elles sont disponibles",
     "previewFolderDescription": "Afficher des aperçus de vignettes pour les dossiers dont le premier élément enfant a une vignette comme couverture.",
-    "disableFileExtensions": "Saisir les extensions de fichiers à désactiver",
-    "defaultLandingPage": "Page d'atterrissage par défaut",
-    "defaultLandingPageDescription": "ex. '/files/mysource/mysubpath' ou '/settings' - la page par défaut est /files qui renvoie à la première vue de la liste des sources."
+    "disableFileExtensions": "Saisir les extensions de fichiers à désactiver"
   },
   "editor": {
     "uninitialized": "Échec de l'initialisation de l'éditeur. Veuillez recharger.",

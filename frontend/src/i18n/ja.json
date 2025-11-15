@@ -357,7 +357,7 @@
     "pickIconDescription": "マテリアル・アイコン・ライブラリからアイコンを検索して選択します。",
     "shareLinksUpdatedSuccess": "サイドバーの共有リンクが正常に更新されました！",
     "shareHome": "シェア・ホーム",
-    "linkIconPlaceholder": "素材アイコンを入力するか、アイコンボタンをクリックしてブラウズする。"
+    "linkIconPlaceholder": "オプションで素材アイコン名を指定"
   },
   "success": {
     "linkCopied": "リンクがコピーされました！"
@@ -699,9 +699,7 @@
     "themeAndLanguage": "テーマと言語",
     "previewFolder": "利用可能であれば、フォルダのサムネイルを表示する",
     "previewFolderDescription": "サムネイルを持つ最初の子アイテムをカバーとするフォルダのサムネイルプレビューを表示します。",
-    "disableFileExtensions": "無効にするファイル拡張子を入力",
-    "defaultLandingPage": "デフォルトのランディングページ",
-    "defaultLandingPageDescription": "例えばfiles/mysource/mysubpath'または'/settings' - デフォルトのページは/filesで、最初のソース・リスティング・ビューに移動します。"
+    "disableFileExtensions": "無効にするファイル拡張子を入力"
   },
   "editor": {
     "uninitialized": "エディタの初期化に失敗しました。再読み込みしてください。",

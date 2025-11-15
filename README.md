@@ -17,8 +17,6 @@
 
 ## Pinned
 
-:loudspeaker: [Stable Release & v1.0.0 Update](https://github.com/gtsteffaniak/filebrowser/discussions/1293)
-
 :pushpin: [Read The Official Docs](https://filebrowserquantum.com/) (currently english-only)
 
 ## About
@@ -38,23 +36,23 @@ FileBrowser Quantum is a massive fork of the file browser open-source project wi
   1. ✅ Add and configure multiple sources
   2. ✅ Login support for OIDC, password + 2FA, and proxy.
   3. ✅ Beautiful, Responsive, and Customizable user interface.
-  4. ✅ Simplified configuration via `config.yaml` config file.
+  4. ✅ Streamlined configuration via `config.yaml` config file.
   5. ✅ Ultra-efficient [indexing](https://github.com/gtsteffaniak/filebrowser/wiki/Indexing) and real-time updates
      - Real-time search results as you type.
      - Real-time monitoring and updates in the UI.
      - Search supports file and folder sizes, along with various filters.
   6. ✅ Better listing browsing
-     - More file type previews, such as **office** and **video** file previews
-     - Instantly switches view modes and sort order without reloading data.
-     - Folder sizes are displayed.
+     - Better thumbnail support including **office**, **video**, and **album artwork**
+     - Faster and more responsive views with animations.
+     - Folder sizes are displayed and support for thumbnails
      - Navigating remembers the last scroll position.
-  7. ✅ Highly configurable and customizable sharing options, incuding:
+  7. ✅ Highly configurable and customizable sharing options
      - share expiration time
      - users who can access share (including anonymous)
      - styling and themes
      - file viewing, editing, and uploading permissions
   8. ✅ Directory-level access control that can be scoped to user or group.
-  8. ✅ Developer API support
+  9. ✅ Developer API support
      - Ability to create long-lived API Tokens.
      - A helpful Swagger page is available at `/swagger` endpoint for API enabled users.
 
@@ -102,11 +100,11 @@ Linux                         | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
 Windows                       | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ |
 Mac                           | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ |
 Self hostable                 | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
-Has Stable Release?           | :construction: | ✅ | ✅ | ✅ | ✅ | ✅ |
+Has Stable Release?           | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 S3 support                    | ❌ | ❌ | ✅ | ✅ | ❌ | ❌ |
 webdav support                | ❌ | ❌ | ✅ | ✅ | ❌ | ✅ |
 FTP support                   | ❌ | ❌ | ✅ | ✅ | ❌ | ✅ |
-Dedicated docs site?          | :construction: | ✅ | ✅ | ✅ | ❌ | ✅ |
+Dedicated docs site?          | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
 Multiple sources at once      | ✅ | ❌ | ✅ | ✅ | ❌ | ✅ |
 Docker image size             | 180 MB (with ffmpeg) | 31 MB  | 240 MB (main image) | 250 MB | ❌ | > 2 GB |
 Min. Memory Requirements      | 256 MB | 128 MB | 128 MB (main image) | 512 MB | ❌ | 512 MB   |

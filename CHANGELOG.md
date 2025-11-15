@@ -29,6 +29,8 @@ All notable changes to this project will be documented in this file. For commit 
    - multiple stacked notifications possible
    - notification button support, such as click to open folder after moving file.
    - notification history (not including toasts)
+ - Choose different bind ip via `server.listen` #1573
+ - Allow disabling clearing cache each startup via `server.cacheDirCleanup: true` in config #1576
 
  **Notes**:
  - more efficient user update actions. Successful PUT actions return only 204 if successful.
@@ -38,6 +40,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Improved scrolling performance
  - Static file handling has been streamlined, could potentially see some changes from this.
  - No longer automatically publishing any dev builds to docker
+ - deprecated "DefaultLandingPage" option -- now determined by first link in sidebar.
 
  **BugFixes**:
  - uploading/editing/saving to password protected shares error

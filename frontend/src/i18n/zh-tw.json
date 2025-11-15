@@ -357,7 +357,7 @@
     "pickIconDescription": "從 Material Icons 圖示庫搜尋並選取圖示",
     "shareLinksUpdatedSuccess": "分享側邊欄連結更新成功！",
     "shareHome": "分享首頁",
-    "linkIconPlaceholder": "輸入材料圖示或 或按一下圖示按鈕瀏覽"
+    "linkIconPlaceholder": "可選擇指定材質圖示名稱"
   },
   "success": {
     "linkCopied": "連結已複製！"
@@ -543,9 +543,7 @@
     "themeAndLanguage": "主題與語言",
     "previewFolder": "顯示資料夾的縮圖（若有",
     "previewFolderDescription": "顯示資料夾的縮圖預覽，第一個子項目以縮圖為封面。",
-    "disableFileExtensions": "輸入要停用的檔案副檔名",
-    "defaultLandingPage": "預設登陸頁面",
-    "defaultLandingPageDescription": "例如/files/mysource/mysubpath「 或 」/settings' - 預設頁面為 /files，會進入第一個原始碼清單檢視。"
+    "disableFileExtensions": "輸入要停用的檔案副檔名"
   },
   "otp": {
     "name": "雙因素驗證",

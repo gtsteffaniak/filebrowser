@@ -357,7 +357,7 @@
     "pickIconDescription": "머티리얼 아이콘 라이브러리에서 아이콘을 검색하고 선택합니다.",
     "shareLinksUpdatedSuccess": "공유 사이드바 링크가 성공적으로 업데이트되었습니다!",
     "shareHome": "홈 공유",
-    "linkIconPlaceholder": "자료 아이콘을 입력하거나 아이콘 버튼을 클릭하여 찾아보기"
+    "linkIconPlaceholder": "선택적으로 머티리얼 아이콘 이름을 지정합니다."
   },
   "success": {
     "linkCopied": "링크가 복사되었습니다!"
@@ -699,9 +699,7 @@
     "themeAndLanguage": "테마 및 언어",
     "previewFolder": "가능한 경우 폴더의 썸네일 표시",
     "previewFolderDescription": "썸네일을 표지로 사용하는 첫 번째 하위 항목이 있는 폴더의 썸네일 미리 보기를 표시합니다.",
-    "disableFileExtensions": "비활성화할 파일 확장명을 입력합니다.",
-    "defaultLandingPage": "기본 랜딩 페이지",
-    "defaultLandingPageDescription": "예. '/파일/마이소스/마이서브경로' 또는 '/설정' - 기본 페이지는 첫 번째 소스 목록 보기로 이동하는 /파일입니다."
+    "disableFileExtensions": "비활성화할 파일 확장명을 입력합니다."
   },
   "editor": {
     "uninitialized": "편집기를 초기화하지 못했습니다. 다시 로드하세요.",

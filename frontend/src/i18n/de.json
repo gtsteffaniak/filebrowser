@@ -357,7 +357,7 @@
     "pickIconDescription": "Suchen und wählen Sie ein Symbol aus der Bibliothek der Materialsymbole",
     "shareLinksUpdatedSuccess": "Links in der Seitenleiste erfolgreich aktualisiert!",
     "shareHome": "Startseite teilen",
-    "linkIconPlaceholder": "Geben Sie das Materialsymbol ein oder klicken Sie zum Durchsuchen auf die Schaltfläche \"Symbol\"."
+    "linkIconPlaceholder": "Optional können Sie einen Materialsymbolnamen angeben"
   },
   "success": {
     "linkCopied": "Link wurde kopiert!"
@@ -699,9 +699,7 @@
     "themeAndLanguage": "Design und Sprache",
     "previewFolder": "Miniaturansichten für Ordner anzeigen, falls vorhanden",
     "previewFolderDescription": "Zeigen Sie Miniaturvorschauen für Ordner an, deren erstes untergeordnetes Element ein Miniaturbild als Cover hat.",
-    "disableFileExtensions": "Zu deaktivierende Dateierweiterungen eingeben",
-    "defaultLandingPage": "Standard-Landeseite",
-    "defaultLandingPageDescription": "z.B.. '/files/mysource/mysubpath' oder '/settings' - die Standardseite ist /files, die zur ersten Ansicht der Quellenliste führt"
+    "disableFileExtensions": "Zu deaktivierende Dateierweiterungen eingeben"
   },
   "editor": {
     "uninitialized": "Der Editor konnte nicht initialisiert werden. Bitte neu laden.",

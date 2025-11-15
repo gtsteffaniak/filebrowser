@@ -2,7 +2,7 @@
   <div class="tools-wrapper">
     <!-- Show tools list when no tool is selected -->
     <div v-if="showToolsList" class="tools-list-container">
-      <div class="tools-header">
+      <div class="card-title">
         <h1>{{ $t('tools.title') }}</h1>
         <p class="description">{{ $t('tools.description') }}</p>
       </div>

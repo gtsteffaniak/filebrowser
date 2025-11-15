@@ -357,7 +357,7 @@
     "pickIconDescription": "Căutați și selectați o pictogramă din biblioteca Material Icons",
     "shareLinksUpdatedSuccess": "Link-urile din bara laterală de partajare au fost actualizate cu succes!",
     "shareHome": "Share Home",
-    "linkIconPlaceholder": "Introduceți pictograma materialului sau faceți clic pe butonul pictogramă pentru a naviga"
+    "linkIconPlaceholder": "Opțional, specificați un nume de pictogramă de material"
   },
   "success": {
     "linkCopied": "Legătură copiată!"
@@ -699,9 +699,7 @@
     "themeAndLanguage": "Temă și limbaj",
     "previewFolder": "Afișați miniaturi pentru foldere, dacă sunt disponibile",
     "previewFolderDescription": "Afișează previzualizări ale miniaturilor pentru folderele cu primul element copil cu miniatură ca copertă.",
-    "disableFileExtensions": "Introduceți extensiile de fișier pe care doriți să le dezactivați",
-    "defaultLandingPage": "Pagina de destinație implicită",
-    "defaultLandingPageDescription": "de ex. \"/files/mysource/mysubpath\" sau \"/settings\" - pagina implicită este /files care duce la prima vizualizare a listei de surse"
+    "disableFileExtensions": "Introduceți extensiile de fișier pe care doriți să le dezactivați"
   },
   "editor": {
     "uninitialized": "Nu s-a reușit inițializarea editorului. Vă rugăm să reîncărcați.",

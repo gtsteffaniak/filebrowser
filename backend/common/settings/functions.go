@@ -74,17 +74,21 @@ func ConvertToFrontendScopes(scopes []users.SourceScope) []users.SourceScope {
 func ConvertToFrontendSidebarLinks(links []users.SidebarLink) []users.SidebarLink {
 	newLinks := []users.SidebarLink{}
 	for _, link := range links {
-		if link.Category != "source" {
-			newLinks = append(newLinks, link)
-			continue
+		// For source links, validate that the source still exists
+		if link.Category == "source" {
+			if link.SourceName == "" {
+				logger.Warningf("source link missing sourceName: %v", link.Name)
+				continue
+			}
+			// Check if source exists
+			_, ok := Config.Server.NameToSource[link.SourceName]
+			if !ok {
+				logger.Warningf("source not found: %v (link name: %v)", link.SourceName, link.Name)
+				continue
+			}
 		}
-		source, ok := Config.Server.SourceMap[link.Name]
-		if !ok {
-			logger.Warningf("source not found: %v", link.Name)
-			continue
-		}
-		link.Name = source.Name
-		link.Target = "" // name is sufficient
+		// For share links, just pass through (shares are validated separately)
+		// For all other links, pass through as-is
 		newLinks = append(newLinks, link)
 	}
 	return newLinks
@@ -93,16 +97,18 @@ func ConvertToFrontendSidebarLinks(links []users.SidebarLink) []users.SidebarLin
 func ConvertToBackendSidebarLinks(links []users.SidebarLink) ([]users.SidebarLink, error) {
 	newLinks := []users.SidebarLink{}
 	for _, link := range links {
-		if link.Category != "source" {
-			newLinks = append(newLinks, link)
-			continue
+		// For source links, validate that the source exists using SourceName
+		if link.Category == "source" {
+			if link.SourceName == "" {
+				return nil, fmt.Errorf("source link missing sourceName (link name: %v)", link.Name)
+			}
+			// Validate source exists
+			_, ok := Config.Server.NameToSource[link.SourceName]
+			if !ok {
+				return nil, fmt.Errorf("source not found: %v (link name: %v)", link.SourceName, link.Name)
+			}
 		}
-		source, ok := Config.Server.NameToSource[link.Name]
-		if !ok {
-			return nil, fmt.Errorf("source not found: %v", link.Name)
-		}
-		link.Name = source.Path
-		link.Target = "" // name is sufficient
+		// Store the link as-is with all fields preserved
 		newLinks = append(newLinks, link)
 	}
 	return newLinks, nil

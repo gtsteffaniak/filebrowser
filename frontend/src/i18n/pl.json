@@ -357,7 +357,7 @@
     "pickIconDescription": "Wyszukaj i wybierz ikonę z biblioteki Material Icons",
     "shareLinksUpdatedSuccess": "Linki do paska bocznego zostały pomyślnie zaktualizowane!",
     "shareHome": "Share Home",
-    "linkIconPlaceholder": "Wprowadź ikonę materiału lub kliknij przycisk ikony, aby ją wyświetlić."
+    "linkIconPlaceholder": "Opcjonalnie można określić nazwę ikony materiału"
   },
   "success": {
     "linkCopied": "Link Skopiowany!"
@@ -699,9 +699,7 @@
     "themeAndLanguage": "Temat i język",
     "previewFolder": "Wyświetlanie miniatur folderów, jeśli są dostępne.",
     "previewFolderDescription": "Wyświetlanie podglądu miniatur dla folderów z pierwszym elementem podrzędnym z miniaturą jako okładką.",
-    "disableFileExtensions": "Wprowadź rozszerzenia plików do wyłączenia",
-    "defaultLandingPage": "Domyślna strona docelowa",
-    "defaultLandingPageDescription": "np. '/files/mysource/mysubpath' lub '/settings' - domyślną stroną jest /files, która przechodzi do pierwszego widoku listy źródeł."
+    "disableFileExtensions": "Wprowadź rozszerzenia plików do wyłączenia"
   },
   "editor": {
     "uninitialized": "Nie udało się zainicjować edytora. Przeładuj ponownie.",

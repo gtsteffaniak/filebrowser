@@ -127,7 +127,9 @@ func StartFilebrowser() {
 	case <-done:
 		logger.Info("Server stopped unexpectedly. Shutting down...")
 	}
-	fileutils.ClearCacheDir(settings.Config.Server.CacheDir)
+	if !*settings.Config.Server.CacheDirCleanup {
+		fileutils.ClearCacheDir(settings.Config.Server.CacheDir)
+	}
 
 	<-shutdownComplete // Ensure we don't exit prematurely
 	// Wait for the server to stop
