@@ -34,7 +34,6 @@ vi.mock('@/utils/constants', () => {
       disableSidebar: false,
       isValid: true,
     },
-    serverHasMultipleSources: false,
     logoURL: "test-logo.png",
     origin: "http://localhost",
     settings: [],
@@ -81,7 +80,6 @@ describe('extractSourceFromPath', () => {
     vi.doMock("@/store", () => {
       return {
         state: {
-          serverHasMultipleSources: false,
           sources: {
             current: "default",
           }
@@ -109,7 +107,6 @@ describe('extractSourceFromPath2', () => {
     vi.doMock("@/store", () => {
       return {
         state: {
-          serverHasMultipleSources: true,
           sources: {
             current: "first",
             list: [

@@ -350,7 +350,7 @@ export default {
         routePath == "/";
 
       // lets redirect if multiple sources and user went to /files/
-      if (rootRoute && state.serverHasMultipleSources) {
+      if (rootRoute) {
         // Check if user has custom sidebar links with sources
         let targetPath = `/files/${state.sources.current}`;
         for (const link of state.user?.sidebarLinks || []) {

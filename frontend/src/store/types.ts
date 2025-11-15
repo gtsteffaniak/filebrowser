@@ -111,7 +111,6 @@ export interface StoreState {
   displayPreferences: any;
   usages: any;
   editor: any;
-  serverHasMultipleSources: boolean;
   realtimeActive: boolean | undefined;
   realtimeDownCount: number;
   popupPreviewSource: string;

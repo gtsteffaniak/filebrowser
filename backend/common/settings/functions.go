@@ -81,11 +81,12 @@ func ConvertToFrontendSidebarLinks(links []users.SidebarLink) []users.SidebarLin
 				continue
 			}
 			// Check if source exists
-			_, ok := Config.Server.NameToSource[link.SourceName]
+			sourceInfo, ok := Config.Server.NameToSource[link.SourceName]
 			if !ok {
 				logger.Warningf("source not found: %v (link name: %v)", link.SourceName, link.Name)
 				continue
 			}
+			link.SourceName = sourceInfo.Name
 		}
 		// For share links, just pass through (shares are validated separately)
 		// For all other links, pass through as-is
@@ -103,10 +104,11 @@ func ConvertToBackendSidebarLinks(links []users.SidebarLink) ([]users.SidebarLin
 				return nil, fmt.Errorf("source link missing sourceName (link name: %v)", link.Name)
 			}
 			// Validate source exists
-			_, ok := Config.Server.NameToSource[link.SourceName]
+			sourceInfo, ok := Config.Server.NameToSource[link.SourceName]
 			if !ok {
 				return nil, fmt.Errorf("source not found: %v (link name: %v)", link.SourceName, link.Name)
 			}
+			link.SourceName = sourceInfo.Path // if name chages keep link alive
 		}
 		// Store the link as-is with all fields preserved
 		newLinks = append(newLinks, link)
