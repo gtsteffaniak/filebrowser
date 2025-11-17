@@ -241,6 +241,7 @@ export default {
                     this.setupPlaybackQueue(forceReshuffle);
                     this.$nextTick(() => {
                         this.ensurePlaybackModeApplied();
+                        this.syncMediaLoopState();
                     });
                 }
             },
@@ -416,7 +417,7 @@ export default {
             // Handle 'P' and 'L' keys for loop and change playback
             if (event.key.toLowerCase() === 'p' || event.key.toLowerCase() === 'l') {
                 event.stopPropagation();
-
+                event.preventDefault();
                 // Use requestAnimationFrame to ensure UI updates
                 requestAnimationFrame(() => {
                     if (event.key.toLowerCase() === 'p') {
@@ -1191,6 +1192,10 @@ export default {
 /************
 *** AUDIO ***
 ************/
+
+.plyr.plyr--audio {
+    border-radius: 12px;
+}
 
 /* Hide some unnesary buttons on the audio player */
 .plyr--audio .plyr__control--overlaid,
