@@ -216,7 +216,8 @@
     "selectPath": "Sélectionner un chemin",
     "renameSuccess": "L'élément a été renommé avec succès !",
     "newFileSuccess": "Fichier créé avec succès !",
-    "newDirSuccess": "Répertoire créé avec succès !"
+    "newDirSuccess": "Répertoire créé avec succès !",
+    "copyToClipboardFailed": "Impossible de copier dans le presse-papiers"
   },
   "search": {
     "smallerThan": "Plus petit que :",

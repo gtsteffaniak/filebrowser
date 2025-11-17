@@ -216,7 +216,8 @@
     "selectPath": "Yol Seçin",
     "renameSuccess": "Öğe başarıyla yeniden adlandırıldı!",
     "newFileSuccess": "Dosya başarıyla oluşturuldu!",
-    "newDirSuccess": "Dizin başarıyla oluşturuldu!"
+    "newDirSuccess": "Dizin başarıyla oluşturuldu!",
+    "copyToClipboardFailed": "Panoya kopyalanamıyor"
   },
   "search": {
     "smallerThan": "Daha küçük:",

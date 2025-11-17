@@ -216,7 +216,8 @@
     "selectPath": "Selectați calea",
     "renameSuccess": "Element redenumit cu succes!",
     "newFileSuccess": "Fișier creat cu succes!",
-    "newDirSuccess": "Director creat cu succes!"
+    "newDirSuccess": "Director creat cu succes!",
+    "copyToClipboardFailed": "Imposibilitatea de a copia în clipboard"
   },
   "search": {
     "smallerThan": "Mai mic decât:",

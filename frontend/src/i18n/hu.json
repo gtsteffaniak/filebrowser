@@ -216,7 +216,8 @@
     "selectPath": "Útvonal kiválasztása",
     "renameSuccess": "Az elem átnevezése sikeres volt!",
     "newFileSuccess": "A fájl sikeresen létrehozva!",
-    "newDirSuccess": "A könyvtárat sikeresen létrehoztuk!"
+    "newDirSuccess": "A könyvtárat sikeresen létrehoztuk!",
+    "copyToClipboardFailed": "Nem lehet a vágólapra másolni"
   },
   "search": {
     "smallerThan": "Kisebb, mint:",

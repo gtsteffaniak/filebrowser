@@ -216,7 +216,8 @@
     "selectPath": "Виберіть шлях",
     "renameSuccess": "Елемент перейменовано успішно!",
     "newFileSuccess": "Файл успішно створено!",
-    "newDirSuccess": "Каталог створено успішно!"
+    "newDirSuccess": "Каталог створено успішно!",
+    "copyToClipboardFailed": "Неможливо скопіювати в буфер обміну"
   },
   "search": {
     "smallerThan": "Менше, ніж:",

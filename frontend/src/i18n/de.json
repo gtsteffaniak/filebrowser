@@ -216,7 +216,8 @@
     "selectPath": "Pfad auswählen",
     "renameSuccess": "Artikel erfolgreich umbenannt!",
     "newFileSuccess": "Datei erfolgreich erstellt!",
-    "newDirSuccess": "Verzeichnis erfolgreich erstellt!"
+    "newDirSuccess": "Verzeichnis erfolgreich erstellt!",
+    "copyToClipboardFailed": "Kopieren in die Zwischenablage nicht möglich"
   },
   "search": {
     "smallerThan": "Kleiner als:",

@@ -216,7 +216,8 @@
     "selectPath": "选择路径",
     "renameSuccess": "项目重命名成功！",
     "newFileSuccess": "文件创建成功！",
-    "newDirSuccess": "目录创建成功！"
+    "newDirSuccess": "目录创建成功！",
+    "copyToClipboardFailed": "无法复制到剪贴板"
   },
   "search": {
     "smallerThan": "小于",

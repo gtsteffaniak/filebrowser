@@ -216,7 +216,8 @@
     "selectPath": "Pad kiezen",
     "renameSuccess": "Item hernoemd succesvol!",
     "newFileSuccess": "Bestand succesvol aangemaakt!",
-    "newDirSuccess": "Directory succesvol aangemaakt!"
+    "newDirSuccess": "Directory succesvol aangemaakt!",
+    "copyToClipboardFailed": "Kan niet naar klembord kopiëren"
   },
   "search": {
     "smallerThan": "Kleiner dan:",

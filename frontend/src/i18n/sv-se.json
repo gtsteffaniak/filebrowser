@@ -216,7 +216,8 @@
     "selectPath": "Välj sökväg",
     "renameSuccess": "Objektet har bytt namn framgångsrikt!",
     "newFileSuccess": "Filen skapades framgångsrikt!",
-    "newDirSuccess": "Katalog skapad framgångsrikt!"
+    "newDirSuccess": "Katalog skapad framgångsrikt!",
+    "copyToClipboardFailed": "Det går inte att kopiera till urklipp"
   },
   "search": {
     "smallerThan": "Mindre än:",

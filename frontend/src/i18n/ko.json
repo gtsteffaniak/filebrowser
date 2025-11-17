@@ -216,7 +216,8 @@
     "selectPath": "경로 선택",
     "renameSuccess": "아이템 이름 변경에 성공했습니다!",
     "newFileSuccess": "파일이 성공적으로 생성되었습니다!",
-    "newDirSuccess": "디렉토리가 성공적으로 생성되었습니다!"
+    "newDirSuccess": "디렉토리가 성공적으로 생성되었습니다!",
+    "copyToClipboardFailed": "클립보드에 복사할 수 없습니다."
   },
   "search": {
     "smallerThan": "보다 작습니다:",

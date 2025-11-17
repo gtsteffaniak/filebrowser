@@ -216,7 +216,8 @@
     "selectPath": "Vyberte cestu",
     "renameSuccess": "Položka bola úspešne premenovaná!",
     "newFileSuccess": "Súbor bol úspešne vytvorený!",
-    "newDirSuccess": "Adresár bol úspešne vytvorený!"
+    "newDirSuccess": "Adresár bol úspešne vytvorený!",
+    "copyToClipboardFailed": "Nemožnosť kopírovania do schránky"
   },
   "search": {
     "smallerThan": "Menšie ako:",

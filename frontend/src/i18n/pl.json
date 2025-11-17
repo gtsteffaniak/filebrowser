@@ -216,7 +216,8 @@
     "selectPath": "Wybierz ścieżkę",
     "renameSuccess": "Nazwa elementu została zmieniona pomyślnie!",
     "newFileSuccess": "Plik został utworzony pomyślnie!",
-    "newDirSuccess": "Katalog utworzony pomyślnie!"
+    "newDirSuccess": "Katalog utworzony pomyślnie!",
+    "copyToClipboardFailed": "Nie można skopiować do schowka"
   },
   "search": {
     "smallerThan": "Mniejszy niż:",

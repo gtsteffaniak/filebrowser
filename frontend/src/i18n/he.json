@@ -216,7 +216,8 @@
     "selectPath": "בחר נתיב",
     "renameSuccess": "הפריט שונה בהצלחה!",
     "newFileSuccess": "הקובץ נוצר בהצלחה!",
-    "newDirSuccess": "הספרייה נוצרה בהצלחה!"
+    "newDirSuccess": "הספרייה נוצרה בהצלחה!",
+    "copyToClipboardFailed": "לא ניתן להעתיק ללוח"
   },
   "search": {
     "smallerThan": "קטן מ:",

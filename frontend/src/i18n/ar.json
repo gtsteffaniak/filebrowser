@@ -216,7 +216,8 @@
     "selectPath": "تحديد المسار",
     "renameSuccess": "تمت إعادة تسمية العنصر بنجاح!",
     "newFileSuccess": "تم إنشاء الملف بنجاح!",
-    "newDirSuccess": "تم إنشاء الدليل بنجاح!"
+    "newDirSuccess": "تم إنشاء الدليل بنجاح!",
+    "copyToClipboardFailed": "تعذر النسخ إلى الحافظة"
   },
   "search": {
     "smallerThan": "أصغر من:",

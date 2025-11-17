@@ -216,7 +216,8 @@
     "selectPath": "Seleccionar ruta",
     "renameSuccess": "El cambio de nombre se ha realizado correctamente.",
     "newFileSuccess": "¡Fichero creado con éxito!",
-    "newDirSuccess": "¡Directorio creado con éxito!"
+    "newDirSuccess": "¡Directorio creado con éxito!",
+    "copyToClipboardFailed": "No se puede copiar en el portapapeles"
   },
   "search": {
     "smallerThan": "Menor que:",

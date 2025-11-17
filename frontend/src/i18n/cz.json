@@ -287,7 +287,8 @@
     "selectPath": "Vybrat cestu",
     "renameSuccess": "Položka byla úspěšně přejmenována!",
     "newFileSuccess": "Soubor byl úspěšně vytvořen!",
-    "newDirSuccess": "Adresář byl úspěšně vytvořen!"
+    "newDirSuccess": "Adresář byl úspěšně vytvořen!",
+    "copyToClipboardFailed": "Nelze zkopírovat do schránky"
   },
   "search": {
     "smallerThan": "Menší než:",
