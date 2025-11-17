@@ -88,8 +88,8 @@ describe('extractSourceFromPath', () => {
     });
 
     const tests = [
-      { url: "/files/root/file1.txt", expected: { source: "default", path: "/root/file1.txt" } },
-      { url: "/files/root/folder1/file1.txt", expected: { source: "default", path: "/root/folder1/file1.txt" } },
+      { url: "/files/default/root/file1.txt", expected: { source: "default", path: "/root/file1.txt" } },
+      { url: "/files/default/root/folder1/file1.txt", expected: { source: "default", path: "/root/folder1/file1.txt" } },
     ];
 
     for (const test of tests) {
