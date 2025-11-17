@@ -198,7 +198,4 @@ export default {
   filter: contrast(0.8) hue-rotate(200deg) saturate(1);
 }
 
-input[type="range"] {
-  accent-color: var(--primaryColor);
-}
 </style>
