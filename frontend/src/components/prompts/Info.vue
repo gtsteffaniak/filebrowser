@@ -38,13 +38,11 @@
         </div>
         <div class="info-item" v-if="hidden !== undefined">
           <strong>{{ $t("prompts.hidden") }}</strong>
-          <span aria-label="info hidden">{{ hidden ? "✓" : "✗" }}</span>
-          <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <span aria-label="info hidden">{{ hidden ? "✓" : "✗" }}</span><!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
         </div>
         <div class="info-item" v-if="hasPreview !== undefined">
           <strong>{{ $t("prompts.hasPreview") }}</strong>
-          <span aria-label="info has preview">{{ hasPreview ? "✓" : "✗" }}</span>
-          <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <span aria-label="info has preview">{{ hasPreview ? "✓" : "✗" }}</span><!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
         </div>
       </div>
       <!-- Directory Information Section -->
