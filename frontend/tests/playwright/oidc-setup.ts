@@ -7,7 +7,7 @@ async function globalSetup() {
   const page: Page = await context.newPage();
 
   // The final URL we expect to land on after the login dance.
-  const finalUrl = "http://127.0.0.1/files/playwright-files/";
+  const finalUrl = "http://127.0.0.1/files/playwright-files";
   const oidcLoginUrl = `http://127.0.0.1/api/auth/oidc/login?redirect=${encodeURIComponent("/files")}`;
 
   // Go directly to the OIDC login URL. This will start the redirect chain.
