@@ -83,7 +83,8 @@
     "f1": "Abrir ventana de ayuda",
     "description": "Aquí puedes ver todos los atajos de teclado básicos. Si quieres saber más, visita la",
     "slash": "Activar búsqueda",
-    "wiki": "documentación oficial de FileBrowser Quantum"
+    "wiki": "documentación oficial de FileBrowser Quantum",
+    "marqueeSelect": "seleccionar varios archivos o directorios arrastrando sobre el espacio vacío"
   },
   "languages": {
     "he": "עברית",
@@ -765,7 +766,6 @@
       "name": "Icono de selección de material",
       "description": "Navega y busca Material Icons con vista previa en directo",
       "searchPlaceholder": "Buscar iconos...",
-      "browseFullLibrary": "Consulta la biblioteca completa de iconos:",
       "popularIcons": "Mostrar {count} iconos populares",
       "showingResults": "Mostrando resultados de {count} ",
       "noResults": "No se han encontrado iconos",
@@ -774,7 +774,8 @@
       "copyFailed": "Error al copiar al portapapeles",
       "custom": "A medida",
       "useCustomIcon": "Utilizar icono personalizado: {name}",
-      "iconLibraryUrl": "fonts.google.com/icons"
+      "iconLibraryUrl": "fonts.google.com/icons",
+      "browseFullLibrary": "Explorar la biblioteca completa de iconos"
     },
     "toolNotFound": "Herramienta no encontrada",
     "backToTools": "Volver a Herramientas"

@@ -83,7 +83,8 @@
     "f1": "yardım istemini göster",
     "description": "Temel navigasyon seçeneklerini aşağıda görüntüleyebilirsiniz. Ek bilgi için lütfen şu adresi ziyaret edin",
     "slash": "aramayı etkinleştir",
-    "wiki": "FileBrowser Quantum Resmi Dokümanları"
+    "wiki": "FileBrowser Quantum Resmi Dokümanları",
+    "marqueeSelect": "boş alana sürükleyerek birden fazla dosya veya dizin seçme"
   },
   "languages": {
     "he": "עברית",
@@ -765,7 +766,6 @@
       "name": "Malzeme Simge Seçici",
       "description": "Canlı önizleme ile Materyal Simgelerine göz atın ve arayın",
       "searchPlaceholder": "Arama simgeleri...",
-      "browseFullLibrary": "Tam simge kitaplığına göz atın:",
       "popularIcons": "{count} popüler simgeler gösteriliyor",
       "showingResults": "{count} sonuçları gösteriliyor",
       "noResults": "Simge bulunamadı",
@@ -774,7 +774,8 @@
       "copyFailed": "Panoya kopyalanamadı",
       "custom": "Özel",
       "useCustomIcon": "Özel simge kullanın: {name}",
-      "iconLibraryUrl": "fonts.google.com/icons"
+      "iconLibraryUrl": "fonts.google.com/icons",
+      "browseFullLibrary": "Simge kitaplığının tamamına göz atın"
     },
     "toolNotFound": "Araç bulunamadı",
     "backToTools": "Araçlara Geri Dön"

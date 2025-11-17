@@ -83,7 +83,8 @@
     "f1": "show help prompt",
     "description": "Az alábbiakban megtekintheti az alapvető navigációs lehetőségeket. További információkért kérjük, látogasson el a következő weboldalra",
     "slash": "keresés aktiválása",
-    "wiki": "FileBrowser Quantum hivatalos dokumentumok"
+    "wiki": "FileBrowser Quantum hivatalos dokumentumok",
+    "marqueeSelect": "több fájl vagy könyvtár kiválasztása üres helyre történő húzással"
   },
   "languages": {
     "he": "עברית",
@@ -765,7 +766,6 @@
       "name": "Anyag ikon kiválasztó",
       "description": "Böngésszen és keressen Material Icons élő előnézetben",
       "searchPlaceholder": "Keresés ikonok...",
-      "browseFullLibrary": "Teljes ikonkönyvtár böngészése:",
       "popularIcons": "{count} népszerű ikonok megjelenítése",
       "showingResults": "{count} eredmények megjelenítése",
       "noResults": "Nem talált ikonok",
@@ -774,7 +774,8 @@
       "copyFailed": "Nem sikerült a vágólapra másolni",
       "custom": "Custom",
       "useCustomIcon": "Egyéni ikon használata: {name}",
-      "iconLibraryUrl": "fonts.google.com/icons"
+      "iconLibraryUrl": "fonts.google.com/icons",
+      "browseFullLibrary": "Teljes ikonkönyvtár böngészése"
     },
     "toolNotFound": "Eszköz nem található",
     "backToTools": "Vissza az Eszközökhöz"

@@ -83,7 +83,8 @@
     "f1": "zobraziť výzvu na pomoc",
     "description": "Základné možnosti navigácie si môžete pozrieť nižšie. Ďalšie informácie nájdete na stránke",
     "slash": "aktivovať vyhľadávanie",
-    "wiki": "Oficiálne dokumenty FileBrowser Quantum"
+    "wiki": "Oficiálne dokumenty FileBrowser Quantum",
+    "marqueeSelect": "výber viacerých súborov alebo adresárov ťahaním na prázdne miesto"
   },
   "languages": {
     "he": "עברית",
@@ -765,7 +766,6 @@
       "name": "Výber ikony materiálu",
       "description": "Prehľadávanie a vyhľadávanie ikon Material Icons so živým náhľadom",
       "searchPlaceholder": "Vyhľadávanie ikon...",
-      "browseFullLibrary": "Prehľadajte celú knižnicu ikon:",
       "popularIcons": "Zobrazuje sa {count} populárne ikony",
       "showingResults": "Zobrazené výsledky {count} ",
       "noResults": "Nenašli sa žiadne ikony",
@@ -774,7 +774,8 @@
       "copyFailed": "Nepodarilo sa skopírovať do schránky",
       "custom": "Vlastné",
       "useCustomIcon": "Použite vlastnú ikonu: {name}",
-      "iconLibraryUrl": "fonts.google.com/icons"
+      "iconLibraryUrl": "fonts.google.com/icons",
+      "browseFullLibrary": "Prehľadávať celú knižnicu ikon"
     },
     "toolNotFound": "Nástroj nebol nájdený",
     "backToTools": "Späť na Nástroje"

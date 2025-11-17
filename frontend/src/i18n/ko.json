@@ -83,7 +83,8 @@
     "f1": "도움말 프롬프트 표시",
     "description": "아래에서 기본 탐색 옵션을 확인할 수 있습니다. 자세한 내용은 다음을 참조하세요.",
     "slash": "검색 활성화",
-    "wiki": "FileBrowser 퀀텀 공식 문서"
+    "wiki": "FileBrowser 퀀텀 공식 문서",
+    "marqueeSelect": "빈 공간에 드래그하여 여러 파일 또는 디렉토리를 선택합니다."
   },
   "languages": {
     "he": "עברית",
@@ -765,7 +766,6 @@
       "name": "머티리얼 아이콘 선택기",
       "description": "실시간 미리보기로 머티리얼 아이콘 찾아보기 및 검색하기",
       "searchPlaceholder": "검색 아이콘...",
-      "browseFullLibrary": "전체 아이콘 라이브러리 찾아보기:",
       "popularIcons": "{count} 인기 아이콘 표시",
       "showingResults": "{count} 결과 표시",
       "noResults": "아이콘을 찾을 수 없습니다.",
@@ -774,7 +774,8 @@
       "copyFailed": "클립보드에 복사하지 못했습니다.",
       "custom": "사용자 지정",
       "useCustomIcon": "사용자 지정 아이콘을 사용합니다: {name}",
-      "iconLibraryUrl": "fonts.google.com/icons"
+      "iconLibraryUrl": "fonts.google.com/icons",
+      "browseFullLibrary": "전체 아이콘 라이브러리 찾아보기"
     },
     "toolNotFound": "도구를 찾을 수 없습니다.",
     "backToTools": "도구로 돌아가기"

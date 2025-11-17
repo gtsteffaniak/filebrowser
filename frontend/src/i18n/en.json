@@ -182,6 +182,7 @@
     "mouseActions": "Mouse Actions",
     "fileOperations": "File Operations",
     "click": "select file or directory",
+    "marqueeSelect": "select multiple files or directories by dragging on empty space",
     "ctrl": {
       "click": "select multiple files or directories",
       "c": "copy selected items",
@@ -772,7 +773,7 @@
       "name": "Material Icon Picker",
       "description": "Browse and search Material Icons with live preview",
       "searchPlaceholder": "Search icons...",
-      "browseFullLibrary": "Browse full icon library:",
+      "browseFullLibrary": "Browse full icon library",
       "iconLibraryUrl": "fonts.google.com/icons",
       "popularIcons": "Showing {count} popular icons",
       "showingResults": "Showing {count} results",

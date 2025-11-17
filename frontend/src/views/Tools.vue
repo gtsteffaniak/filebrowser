@@ -7,12 +7,12 @@
         <p class="description">{{ $t('tools.description') }}</p>
       </div>
 
-      <div id="listingView" class="listing-view normal">
+      <div class="normal listing-view">
         <router-link
           v-for="tool in tools"
           :key="tool.path"
           :to="tool.path"
-          class="item listing-item clickable"
+          class="listing-item clickable"
         >
           <div class="tool-icon">
             <i class="material-icons">{{ tool.icon }}</i>
@@ -76,6 +76,8 @@ export default {
 <style scoped>
 .listing-item {
   padding: 1em !important;
+  margin-top: 1em;
+  max-width: 90vw;
 }
 
 .tools-wrapper {

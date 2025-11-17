@@ -83,7 +83,8 @@
     "f1": "visa hjälp prompt",
     "description": "Du kan se de grundläggande navigeringsalternativen nedan. För ytterligare information, vänligen besök",
     "slash": "aktivera sökning",
-    "wiki": "FileBrowser Quantum officiella dokument"
+    "wiki": "FileBrowser Quantum officiella dokument",
+    "marqueeSelect": "välj flera filer eller kataloger genom att dra på tomt utrymme"
   },
   "languages": {
     "he": "עברית",
@@ -765,7 +766,6 @@
       "name": "Väljare för materialikoner",
       "description": "Bläddra bland och sök efter materialikoner med förhandsgranskning i realtid",
       "searchPlaceholder": "Sök ikoner...",
-      "browseFullLibrary": "Bläddra igenom hela ikonbiblioteket:",
       "popularIcons": "Visar {count} populära ikoner",
       "showingResults": "Visar resultat från {count} ",
       "noResults": "Inga ikoner hittades",
@@ -774,7 +774,8 @@
       "copyFailed": "Misslyckades med att kopiera till klippbordet",
       "custom": "Anpassad",
       "useCustomIcon": "Använd anpassad ikon: {name}",
-      "iconLibraryUrl": "teckensnitt.google.com/ikoner"
+      "iconLibraryUrl": "teckensnitt.google.com/ikoner",
+      "browseFullLibrary": "Bläddra i hela ikonbiblioteket"
     },
     "toolNotFound": "Verktyget hittades inte",
     "backToTools": "Tillbaka till Verktyg"

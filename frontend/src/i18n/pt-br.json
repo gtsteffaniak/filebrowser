@@ -83,7 +83,8 @@
     "f1": "mostrar prompt de ajuda",
     "description": "Você pode ver as opções básicas de navegação abaixo. Para obter informações adicionais, visite",
     "slash": "ativar a pesquisa",
-    "wiki": "Documentos oficiais do FileBrowser Quantum"
+    "wiki": "Documentos oficiais do FileBrowser Quantum",
+    "marqueeSelect": "selecionar vários arquivos ou diretórios arrastando-os para o espaço vazio"
   },
   "languages": {
     "he": "עברית",
@@ -765,7 +766,6 @@
       "name": "Seletor de ícones de materiais",
       "description": "Navegue e pesquise ícones de materiais com visualização ao vivo",
       "searchPlaceholder": "Pesquisar ícones...",
-      "browseFullLibrary": "Navegue pela biblioteca completa de ícones:",
       "popularIcons": "Exibindo {count} ícones populares",
       "showingResults": "Mostrando {count} resultados",
       "noResults": "Nenhum ícone encontrado",
@@ -774,7 +774,8 @@
       "copyFailed": "Falha ao copiar para a área de transferência",
       "custom": "Personalizado",
       "useCustomIcon": "Usar ícone personalizado: {name}",
-      "iconLibraryUrl": "fonts.google.com/icons"
+      "iconLibraryUrl": "fonts.google.com/icons",
+      "browseFullLibrary": "Navegue pela biblioteca completa de ícones"
     },
     "toolNotFound": "Ferramenta não encontrada",
     "backToTools": "Voltar para Ferramentas"

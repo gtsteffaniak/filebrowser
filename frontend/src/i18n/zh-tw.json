@@ -83,7 +83,8 @@
     "f1": "顯示幫助提示",
     "description": "您可以查看以下的基本導航選項。如需其他資訊，請造訪",
     "slash": "啟動搜尋",
-    "wiki": "FileBrowser Quantum 官方文件"
+    "wiki": "FileBrowser Quantum 官方文件",
+    "marqueeSelect": "藉由在空白區域拖曳選取多個檔案或目錄"
   },
   "languages": {
     "he": "עברית",
@@ -765,7 +766,6 @@
       "name": "材料圖示選擇器",
       "description": "使用即時預覽瀏覽和搜尋 Material Icons",
       "searchPlaceholder": "搜尋圖示...",
-      "browseFullLibrary": "瀏覽完整圖示庫：",
       "popularIcons": "顯示{count} 熱門圖示",
       "showingResults": "顯示{count} 結果",
       "noResults": "未找到圖示",
@@ -774,7 +774,8 @@
       "copyFailed": "複製到剪貼簿失敗",
       "custom": "自訂",
       "useCustomIcon": "使用自訂圖示：{name}",
-      "iconLibraryUrl": "fonts.google.com/icons"
+      "iconLibraryUrl": "fonts.google.com/icons",
+      "browseFullLibrary": "瀏覽完整圖示庫"
     },
     "toolNotFound": "未找到工具",
     "backToTools": "回到工具"

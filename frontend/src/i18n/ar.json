@@ -83,7 +83,8 @@
     "f1": "إظهار موجه المساعدة",
     "description": "يمكنك عرض خيارات التنقل الأساسية أدناه. للحصول على معلومات إضافية، يرجى زيارة",
     "slash": "تفعيل البحث",
-    "wiki": "مستندات FileBrowser Quantum الرسمية"
+    "wiki": "مستندات FileBrowser Quantum الرسمية",
+    "marqueeSelect": "تحديد ملفات أو أدلة متعددة عن طريق السحب على مساحة فارغة"
   },
   "languages": {
     "he": "עברית",
@@ -765,7 +766,6 @@
       "name": "منتقي أيقونة المواد",
       "description": "استعراض أيقونات المواد والبحث فيها مع المعاينة المباشرة",
       "searchPlaceholder": "أيقونات البحث...",
-      "browseFullLibrary": "تصفح مكتبة الأيقونات الكاملة:",
       "popularIcons": "عرض {count} أيقونات شائعة ",
       "showingResults": "عرض {count} النتائج ",
       "noResults": "لم يتم العثور على أي أيقونات",
@@ -774,7 +774,8 @@
       "copyFailed": "فشل النسخ إلى الحافظة",
       "custom": "مخصص",
       "useCustomIcon": "استخدام أيقونة مخصصة: {name}",
-      "iconLibraryUrl": "fonts.google.com/icons"
+      "iconLibraryUrl": "fonts.google.com/icons",
+      "browseFullLibrary": "تصفح مكتبة الأيقونات الكاملة"
     },
     "toolNotFound": "الأداة غير موجودة",
     "backToTools": "العودة إلى الأدوات"
