@@ -160,7 +160,7 @@ export default {
         notify.showSuccessToast(this.$t("success.linkCopied"));
       });
       this.clip.on("error", () => {
-        console.log("Failed to copy link to the clipboard", e);
+        notify.showErrorToast(this.$t("errors.copyToClipboardFailed"));
       });
     },
     editLink(item) {

@@ -241,7 +241,6 @@ export default {
         document.documentElement.style.setProperty("--primaryColor", shareInfo.themeColor);
       }
       if (shareInfo.hasPassword && this.sharePassword === "") {
-        console.log('shareInfo.hasPassword', shareInfo.hasPassword);
         this.sharePassword = localStorage.getItem("sharepass:" + this.shareHash);
         if (this.sharePassword === null || this.sharePassword === "") {
           this.showPasswordPrompt();

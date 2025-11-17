@@ -112,7 +112,6 @@ func ConvertToBackendSidebarLinks(links []users.SidebarLink) ([]users.SidebarLin
 		}
 		// Store the link as-is with all fields preserved
 		newLinks = append(newLinks, link)
-		logger.Debugf("converted sidebar link: %v", link)
 	}
 	return newLinks, nil
 }
