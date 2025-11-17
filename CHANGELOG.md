@@ -19,18 +19,18 @@ All notable changes to this project will be documented in this file. For commit 
    - Can rearrange, add custom links, and save your preferences.
    - Can customize shares with their own custom sidebar links.
  - Dynamic scopes for OIDC #1414 #1363
- - Enhanced notifications, buttons persistence. #1331
  - Share and Access Rules validation
    - If a file/path is moved/renamed in UI its rules and shares will always follow.
    - If a file/path is moved/renamed outside UI, a warning message will show and ability to associate to new path
  - Cascade delete access in Access Management when deleting a User #1347
- - Enhanced notifications
+ - Enhanced notifications #1331
    - Added "toast" notification type support -- most success messages show as toast now.
    - multiple stacked notifications possible
    - notification button support, such as click to open folder after moving file.
    - notification history (not including toasts)
+   - Add swipe and visual timeout to notifications #1600
  - Choose different bind ip via `server.listen` #1573
- - Allow disabling clearing cache each startup via `server.cacheDirCleanup: true` in config #1576
+ - Allow disabling clearing cache each startup via `server.cacheDirCleanup: false` in config #1576
 
  **Notes**:
  - more efficient user update actions. Successful PUT actions return only 204 if successful.
