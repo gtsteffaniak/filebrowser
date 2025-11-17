@@ -120,9 +120,8 @@ export default {
         if (!link.sourceName) return '#';
         const sourceInfo = this.sourceInfo[link.sourceName];
         if (!sourceInfo) return '#'; // Source not found
-        
-        const basePath = sourceInfo.pathPrefix ? `/files/${sourceInfo.pathPrefix}` : '/files/';
-        fullPath = link.target === '/' ? basePath : basePath + link.target.substring(1);
+        const basePath = `/files/${link.sourceName}${sourceInfo.pathPrefix}`
+        fullPath = basePath + link.target;
       } else {
         // For other links (tools, custom, share), use target as-is
         fullPath = link.target;
@@ -318,6 +317,7 @@ export default {
 .usage-info .vue-simple-progress {
   border-style: solid;
   border-color: var(--surfaceSecondary);
+  border-radius: 1em !important;
 }
 
 .sidebar-links {

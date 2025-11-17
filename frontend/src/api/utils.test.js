@@ -26,7 +26,6 @@ vi.mock('@/utils/constants', () => {
       externalLinks: [],
       updateAvailable: "",
     },
-    serverHasMultipleSources: false,
     logoURL: "test-logo.png",
     origin: "http://localhost",
     settings: [],

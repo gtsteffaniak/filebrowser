@@ -101,11 +101,7 @@ export default {
 
       } else {
         this.path = encodedPath(state.req.path);
-        if (state.serverHasMultipleSources) {
-          this.base = `/files/${state.req.source}/`;
-        } else {
-          this.base = "/files/";
-        }
+        this.base = `/files/${state.req.source}/`;
       }
     },
   },

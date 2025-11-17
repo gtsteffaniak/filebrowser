@@ -4794,10 +4794,6 @@ const docTemplate = `{
                     "description": "Display name of the link",
                     "type": "string"
                 },
-                "shareHash": {
-                    "description": "Share hash for share-type links",
-                    "type": "string"
-                },
                 "sourceName": {
                     "description": "Source identifier for source-type links",
                     "type": "string"
