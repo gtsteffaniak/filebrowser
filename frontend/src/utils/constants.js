@@ -2,7 +2,6 @@ import i18n from '@/i18n';
 import { getIconClass } from './material-icons';
 
 const globalVars = window.globalVars;
-const serverHasMultipleSources = globalVars.sourceCount > 1;
 const origin = window.location.origin;
 
 const settings = [
@@ -64,7 +63,6 @@ const tools = () => {
 
 export {
   globalVars,
-  serverHasMultipleSources,
   origin,
   settings,
   previewViews,
