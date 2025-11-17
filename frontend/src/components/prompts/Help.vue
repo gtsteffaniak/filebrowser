@@ -31,10 +31,6 @@
           <kbd>ESC</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           <span>{{ $t("help.esc") }}</span>
         </div>
-        <div class="shortcut-item">
-          <kbd>/</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-          <span>{{ $t("help.slash") }}</span>
-        </div>
       </div>
 
       <!-- Mouse Actions Section -->
@@ -43,6 +39,10 @@
         <div class="shortcut-item">
           <kbd>Click</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           <span>{{ $t("help.click") }}</span>
+        </div>
+        <div class="shortcut-item">
+          <kbd>Click + Drag</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <span>{{ $t("help.marqueeSelect") }}</span>
         </div>
         <div class="shortcut-item">
           <kbd>CTRL + Click</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
@@ -81,6 +81,10 @@
         <div class="shortcut-item">
           <kbd>CTRL + ,</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           <span>{{ $t("help.ctrl.comma") }}</span>
+        </div>
+        <div class="shortcut-item">
+          <kbd>/</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <span>{{ $t("help.slash") }}</span>
         </div>
       </div>
     </div>

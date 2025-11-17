@@ -83,7 +83,8 @@
     "f1": "arată ajutor prompt",
     "description": "Puteți vizualiza mai jos opțiunile de navigație de bază. Pentru informații suplimentare, vă rugăm să vizitați",
     "slash": "activați căutarea",
-    "wiki": "FileBrowser Quantum Documente oficiale"
+    "wiki": "FileBrowser Quantum Documente oficiale",
+    "marqueeSelect": "selectați mai multe fișiere sau directoare prin glisarea pe spațiul gol"
   },
   "languages": {
     "he": "עברית",
@@ -215,7 +216,8 @@
     "selectPath": "Selectați calea",
     "renameSuccess": "Element redenumit cu succes!",
     "newFileSuccess": "Fișier creat cu succes!",
-    "newDirSuccess": "Director creat cu succes!"
+    "newDirSuccess": "Director creat cu succes!",
+    "copyToClipboardFailed": "Imposibilitatea de a copia în clipboard"
   },
   "search": {
     "smallerThan": "Mai mic decât:",
@@ -765,7 +767,6 @@
       "name": "Picker de pictograme de materiale",
       "description": "Răsfoiți și căutați Material Icons cu previzualizare live",
       "searchPlaceholder": "Căutați pictograme...",
-      "browseFullLibrary": "Răsfoiți biblioteca completă de pictograme:",
       "popularIcons": "Afișarea {count} pictograme populare",
       "showingResults": "Afișarea rezultatelor {count} ",
       "noResults": "Nu s-au găsit pictograme",
@@ -774,7 +775,8 @@
       "copyFailed": "A eșuat copierea în clipboard",
       "custom": "Personalizat",
       "useCustomIcon": "Utilizați pictograma personalizată: {name}",
-      "iconLibraryUrl": "fonts.google.com/icons"
+      "iconLibraryUrl": "fonts.google.com/icons",
+      "browseFullLibrary": "Răsfoiți biblioteca completă de pictograme"
     },
     "toolNotFound": "Instrumentul nu a fost găsit",
     "backToTools": "Înapoi la Instrumente"

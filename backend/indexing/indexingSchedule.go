@@ -22,6 +22,23 @@ var scanSchedule = map[int]time.Duration{
 	9: 12 * time.Hour,
 }
 
+// complexityModifier defines time adjustments based on complexity level (0-10)
+// 0: unknown (not yet scanned), 1: simple, 2-6: normal, 7-9: complex, 10: highlyComplex
+// Each level gets progressively more aggressive with scan timing adjustments
+var complexityModifier = map[uint]time.Duration{
+	0:  0 * time.Minute,  // unknown: no modifier
+	1:  -4 * time.Minute, // simple: scan more frequently
+	2:  -2 * time.Minute, // normal (lightest)
+	3:  -1 * time.Minute,
+	4:  0 * time.Minute, // baseline normal
+	5:  1 * time.Minute,
+	6:  2 * time.Minute, // normal (heaviest)
+	7:  4 * time.Minute, // complex (lightest)
+	8:  8 * time.Minute,
+	9:  12 * time.Minute,
+	10: 16 * time.Minute, // highlyComplex: scan less frequently
+}
+
 var fullScanAnchor = 3 // index of the schedule for a full scan
 
 // Removed: Old single-scanner implementation - replaced by multi-scanner system in indexingScanner.go
