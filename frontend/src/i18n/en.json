@@ -392,6 +392,7 @@
     "generate": "Generate",
     "errorGeneratingHash": "Error generating hash",
     "hashCopied": "Hash copied to clipboard",
+    "copyToClipboardFailed": "Unable to copy to clipboard",
     "errorCopyingHash": "Error copying hash",
     "token": "Token",
     "onlyOfficeId": "OnlyOffice ID",
