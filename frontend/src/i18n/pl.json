@@ -83,7 +83,8 @@
     "f1": "pokaż monit pomocy",
     "description": "Poniżej znajdują się podstawowe opcje nawigacji. Dodatkowe informacje można znaleźć na stronie",
     "slash": "aktywuj wyszukiwanie",
-    "wiki": "Oficjalne dokumenty FileBrowser Quantum"
+    "wiki": "Oficjalne dokumenty FileBrowser Quantum",
+    "marqueeSelect": "wybór wielu plików lub katalogów poprzez przeciągnięcie na puste miejsce"
   },
   "languages": {
     "he": "עברית",
@@ -215,7 +216,8 @@
     "selectPath": "Wybierz ścieżkę",
     "renameSuccess": "Nazwa elementu została zmieniona pomyślnie!",
     "newFileSuccess": "Plik został utworzony pomyślnie!",
-    "newDirSuccess": "Katalog utworzony pomyślnie!"
+    "newDirSuccess": "Katalog utworzony pomyślnie!",
+    "copyToClipboardFailed": "Nie można skopiować do schowka"
   },
   "search": {
     "smallerThan": "Mniejszy niż:",
@@ -765,7 +767,6 @@
       "name": "Selektor ikon materiałów",
       "description": "Przeglądaj i wyszukuj ikony materiałów z podglądem na żywo",
       "searchPlaceholder": "Ikony wyszukiwania...",
-      "browseFullLibrary": "Przeglądaj pełną bibliotekę ikon:",
       "popularIcons": "Wyświetlanie {count} popularnych ikon",
       "showingResults": "Wyświetlanie wyników {count} ",
       "noResults": "Nie znaleziono ikon",
@@ -774,7 +775,8 @@
       "copyFailed": "Nie udało się skopiować do schowka",
       "custom": "Niestandardowe",
       "useCustomIcon": "Użyj niestandardowej ikony: {name}",
-      "iconLibraryUrl": "fonts.google.com/icons"
+      "iconLibraryUrl": "fonts.google.com/icons",
+      "browseFullLibrary": "Przeglądaj pełną bibliotekę ikon"
     },
     "toolNotFound": "Nie znaleziono narzędzia",
     "backToTools": "Powrót do Narzędzi"

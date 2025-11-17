@@ -83,7 +83,8 @@
     "f1": "help prompt tonen",
     "description": "Je kunt de basisnavigatieopties hieronder bekijken. Ga voor aanvullende informatie naar",
     "slash": "Zoeken activeren",
-    "wiki": "FileBrowser Quantum Officiële documenten"
+    "wiki": "FileBrowser Quantum Officiële documenten",
+    "marqueeSelect": "meerdere bestanden of mappen selecteren door ze over lege ruimte te slepen"
   },
   "languages": {
     "he": "עברית",
@@ -215,7 +216,8 @@
     "selectPath": "Pad kiezen",
     "renameSuccess": "Item hernoemd succesvol!",
     "newFileSuccess": "Bestand succesvol aangemaakt!",
-    "newDirSuccess": "Directory succesvol aangemaakt!"
+    "newDirSuccess": "Directory succesvol aangemaakt!",
+    "copyToClipboardFailed": "Kan niet naar klembord kopiëren"
   },
   "search": {
     "smallerThan": "Kleiner dan:",
@@ -765,7 +767,6 @@
       "name": "Materiaal pictogrammenkiezer",
       "description": "Bladeren en zoeken in materiële pictogrammen met live voorbeeld",
       "searchPlaceholder": "Pictogrammen zoeken...",
-      "browseFullLibrary": "Blader door de volledige pictogrammenbibliotheek:",
       "popularIcons": "Toon {count} populaire pictogrammen",
       "showingResults": "Resultaten tonen {count} ",
       "noResults": "Geen pictogrammen gevonden",
@@ -774,7 +775,8 @@
       "copyFailed": "Kopiëren naar klembord mislukt",
       "custom": "Aangepast",
       "useCustomIcon": "Gebruik een aangepast pictogram: {name}",
-      "iconLibraryUrl": "lettertypen.google.com/iconen"
+      "iconLibraryUrl": "lettertypen.google.com/iconen",
+      "browseFullLibrary": "Blader door de volledige pictogrammenbibliotheek"
     },
     "toolNotFound": "Gereedschap niet gevonden",
     "backToTools": "Terug naar Gereedschap"

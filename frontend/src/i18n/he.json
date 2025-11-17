@@ -83,7 +83,8 @@
     "f1": "הצג עזרה",
     "description": "ניתן לצפות באפשרויות הניווט הבסיסיות להלן. למידע נוסף, בקרו בכתובת",
     "slash": "הפעל חיפוש",
-    "wiki": "מסמכים רשמיים של FileBrowser Quantum"
+    "wiki": "מסמכים רשמיים של FileBrowser Quantum",
+    "marqueeSelect": "בחר מספר קבצים או ספריות על ידי גרירה על שטח ריק"
   },
   "languages": {
     "he": "עברית",
@@ -215,7 +216,8 @@
     "selectPath": "בחר נתיב",
     "renameSuccess": "הפריט שונה בהצלחה!",
     "newFileSuccess": "הקובץ נוצר בהצלחה!",
-    "newDirSuccess": "הספרייה נוצרה בהצלחה!"
+    "newDirSuccess": "הספרייה נוצרה בהצלחה!",
+    "copyToClipboardFailed": "לא ניתן להעתיק ללוח"
   },
   "search": {
     "smallerThan": "קטן מ:",
@@ -765,7 +767,6 @@
       "name": "בוחר סמלי חומר",
       "description": "עיין וחפש סמלי חומרים עם תצוגה מקדימה חיה",
       "searchPlaceholder": "סמלי חיפוש...",
-      "browseFullLibrary": "עיין בספריית הסמלים המלאה:",
       "popularIcons": "הצגת {count} אייקונים פופולריים",
       "showingResults": "הצגת תוצאות {count} ",
       "noResults": "לא נמצאו סמלים",
@@ -774,7 +775,8 @@
       "copyFailed": "לא ניתן להעתיק ללוח",
       "custom": "מותאם אישית",
       "useCustomIcon": "השתמש בסמל מותאם אישית: {name}",
-      "iconLibraryUrl": "fonts.google.com/icons"
+      "iconLibraryUrl": "fonts.google.com/icons",
+      "browseFullLibrary": "עיין בספריית הסמלים המלאה"
     },
     "toolNotFound": "הכלי לא נמצא",
     "backToTools": "חזרה לכלים"

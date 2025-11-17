@@ -40,7 +40,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Improved scrolling performance
  - Static file handling has been streamlined, could potentially see some changes from this.
  - No longer automatically publishing any dev builds to docker
- - deprecated "DefaultLandingPage" option -- now determined by first link in sidebar.
+ - deprecated "DefaultLandingPage" option -- now determined by first source link in sidebar.
 
  **BugFixes**:
  - uploading/editing/saving to password protected shares error

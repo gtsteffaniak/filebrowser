@@ -331,4 +331,5 @@ type UserDefaults struct {
 	CustomTheme                string                  `json:"customTheme"`                // Name of theme to use chosen from custom themes config.
 	ShowSelectMultiple         bool                    `json:"showSelectMultiple"`         // show select multiple files on desktop
 	DebugOffice                bool                    `json:"debugOffice"`                // debug onlyoffice editor
+	DefaultLandingPage         string                  `json:"defaultLandingPage"`         // deprecated: determined by sidebar link order since 1.1.0
 }

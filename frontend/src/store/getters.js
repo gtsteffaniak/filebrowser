@@ -483,11 +483,13 @@ export const getters = {
         }
         return "close";
       }
+      if (state.isMobile) {
+        return "back";
+      }
       if (cv == "listingView" || state.shareInfo?.singleFileShare) {
         if (state.user.stickySidebar) {
           return "menu";
         }
-
         return "back";
       }
       return "close";
@@ -504,6 +506,7 @@ export const getters = {
       return "menu";
     }
     if (cv == "listingView") {
+
       return "menu";
     }
     return "close";

@@ -1,14 +1,5 @@
 <template>
   <div>
-    <!-- Share Info Component -->
-    <ShareInfoCard
-      v-if="showShareInfo"
-      class="share-info-component"
-      :hash="share?.hash"
-      :token="share?.token"
-      :subPath="share?.subPath"
-    />
-
     <breadcrumbs v-if="showBreadCrumbs" :base="isShare ? `/share/${shareHash}` : undefined" />
     <errors v-if="error" :errorCode="error.status" />
     <component v-else-if="currentViewLoaded" :is="currentView"></component>
@@ -41,7 +32,6 @@ import { url } from "@/utils";
 import router from "@/router";
 import { globalVars } from "@/utils/constants";
 import { extractSourceFromPath } from "@/utils/url";
-import ShareInfoCard from "@/components/files/ShareInfoCard.vue";
 
 export default {
   name: "files",
@@ -55,7 +45,6 @@ export default {
     DocViewer,
     OnlyOfficeEditor,
     MarkdownViewer,
-    ShareInfoCard,
   },
   data() {
     return {
@@ -252,7 +241,6 @@ export default {
         document.documentElement.style.setProperty("--primaryColor", shareInfo.themeColor);
       }
       if (shareInfo.hasPassword && this.sharePassword === "") {
-        console.log('shareInfo.hasPassword', shareInfo.hasPassword);
         this.sharePassword = localStorage.getItem("sharepass:" + this.shareHash);
         if (this.sharePassword === null || this.sharePassword === "") {
           this.showPasswordPrompt();
@@ -355,12 +343,10 @@ export default {
         let targetPath = `/files/${state.sources.current}`;
         for (const link of state.user?.sidebarLinks || []) {
           if (link.target.startsWith('/')) {
-            if (link.category === 'source') {
-              targetPath = `/files/${link.sourceName}${link.target}`;
-              break;
+            if (link.category !== 'source') {
+              continue;
             }
-            // For other links (tools, share, custom), use target directly
-            targetPath = link.target
+            targetPath = `/files/${link.sourceName}${link.target}`;
             break;
           }
         }

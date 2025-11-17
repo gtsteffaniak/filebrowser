@@ -83,7 +83,8 @@
     "f1": "Hilfeprompt anzeigen",
     "description": "Nachstehend finden Sie die grundlegenden Navigationsoptionen. Für zusätzliche Informationen besuchen Sie bitte das",
     "slash": "Suche aktivieren",
-    "wiki": "FileBrowser Quantum-Wiki"
+    "wiki": "FileBrowser Quantum-Wiki",
+    "marqueeSelect": "mehrere Dateien oder Verzeichnisse durch Ziehen auf leeren Raum auswählen"
   },
   "languages": {
     "he": "עברית",
@@ -215,7 +216,8 @@
     "selectPath": "Pfad auswählen",
     "renameSuccess": "Artikel erfolgreich umbenannt!",
     "newFileSuccess": "Datei erfolgreich erstellt!",
-    "newDirSuccess": "Verzeichnis erfolgreich erstellt!"
+    "newDirSuccess": "Verzeichnis erfolgreich erstellt!",
+    "copyToClipboardFailed": "Kopieren in die Zwischenablage nicht möglich"
   },
   "search": {
     "smallerThan": "Kleiner als:",
@@ -765,7 +767,6 @@
       "name": "Material-Symbol-Auswahl",
       "description": "Durchsuchen und Suchen von Material Icons mit Live-Vorschau",
       "searchPlaceholder": "Suchsymbole...",
-      "browseFullLibrary": "Vollständige Symbolbibliothek durchsuchen:",
       "popularIcons": "Zeigt {count} beliebte Icons",
       "showingResults": "{count} Ergebnisse anzeigen",
       "noResults": "Keine Icons gefunden",
@@ -774,7 +775,8 @@
       "copyFailed": "Kopieren in die Zwischenablage fehlgeschlagen",
       "custom": "Benutzerdefiniert",
       "useCustomIcon": "Benutzerdefiniertes Symbol verwenden: {name}",
-      "iconLibraryUrl": "fonts.google.com/icons"
+      "iconLibraryUrl": "fonts.google.com/icons",
+      "browseFullLibrary": "Vollständige Symbolbibliothek durchsuchen"
     },
     "toolNotFound": "Werkzeug nicht gefunden",
     "backToTools": "Zurück zu Tools"
