@@ -862,6 +862,9 @@ definitions:
       debugOffice:
         description: debug onlyoffice editor
         type: boolean
+      defaultLandingPage:
+        description: 'deprecated: determined by sidebar link order since 1.1.0'
+        type: string
       deleteWithoutConfirming:
         description: delete files without confirmation
         type: boolean
@@ -2605,6 +2608,10 @@ paths:
       - description: Override existing file if true
         in: query
         name: override
+        type: boolean
+      - description: Explicitly specify if the resource is a directory
+        in: query
+        name: isDir
         type: boolean
       produces:
       - application/json

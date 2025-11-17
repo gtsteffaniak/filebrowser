@@ -3,7 +3,6 @@ import Login from "@/views/Login.vue";
 import Layout from "@/views/Layout.vue";
 import Files from "@/views/Files.vue";
 import Settings from "@/views/Settings.vue";
-import Notifications from "@/views/Notifications.vue";
 import Errors from "@/views/Errors.vue";
 import Tools from "@/views/Tools.vue";
 import { globalVars } from "@/utils/constants";
@@ -19,7 +18,6 @@ const titles = {
   Files: i18n.global.t("general.files"),
   Tools: i18n.global.t("general.tool"),
   Settings: i18n.global.t("general.settings"),
-  Notifications: i18n.global.t("notifications.title"),
   ProfileSettings: i18n.global.t("settings.profileSettings"),
   Shares: i18n.global.t("settings.shareManagement"),
   GlobalSettings: i18n.global.t("settings.globalSettings"),
@@ -108,21 +106,6 @@ const routes: RouteRecordRaw[] = [
         path: "users/:id",
         name: "User",
         component: Settings,
-      },
-    ],
-  },
-  {
-    path: "/notifications",
-    name: "Notifications",
-    component: Layout,
-    meta: {
-      requiresAuth: true,
-    },
-    children: [
-      {
-        path: "",
-        name: "NotificationsIndex",
-        component: Notifications,
       },
     ],
   },
