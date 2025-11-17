@@ -18,6 +18,11 @@ import { mutations, state } from '@/store'
  * @property {NotificationButton[]} [buttons]
  * @property {boolean} [autoclose] - For backward compatibility (inverse of persistent)
  * @property {ReturnType<typeof setTimeout> | null} [timeoutId]
+ * @property {number} [timeoutStartTime] - When the timeout started
+ * @property {number} [timeoutDuration] - Total timeout duration
+ * @property {number} [timeoutRemaining] - Remaining time when paused (pauses when hovering)
+ * @property {number} [progress] - Current progress porcentage (0-100)
+ * @property {ReturnType<typeof setInterval> | null} [progressInterval] - Progress update interval
  */
 
 /**
@@ -169,7 +174,12 @@ export function showPopup(type, message, options = {}) {
     icon,
     buttons,
     autoclose: !persistent, // Store the inverse for backward compatibility
-    timeoutId: null
+    timeoutId: null,
+    timeoutStartTime: null,
+    timeoutDuration: null,
+    timeoutRemaining: null,
+    progress: 100, // Start at 100% - will decrease based in the remaining timeout
+    progressInterval: null // Interval ID
   }
 
   notifications.push(notification)
@@ -222,9 +232,39 @@ export function showPopup(type, message, options = {}) {
 
   // Set auto-close timeout if applicable
   if (shouldAutoClose) {
+    const timeoutDuration = 5000
+    notification.timeoutStartTime = Date.now()
+    notification.timeoutDuration = timeoutDuration
+    notification.timeoutRemaining = null
+    notification.progress = 100
+
+    // Start progress update interval
+    notification.progressInterval = setInterval(() => {
+      const notificationIndex = notifications.findIndex(n => n.id === notificationId)
+      if (notificationIndex === -1) {
+        clearInterval(notification.progressInterval)
+        return
+      }
+
+      const notif = notifications[notificationIndex]
+      // Update progress if the notification is active
+      if (notif.timeoutStartTime && !notif.timeoutRemaining) {
+        const elapsed = Date.now() - notif.timeoutStartTime
+        const progress = Math.max(0, 100 - (elapsed / timeoutDuration) * 100)
+        notif.progress = progress
+        notifyUpdate()
+        if (progress <= 0) {
+          clearInterval(notif.progressInterval)
+        }
+      }
+    }, 25) // Update every 25ms
+
     notification.timeoutId = setTimeout(() => {
+      if (notification.progressInterval) {
+        clearInterval(notification.progressInterval)
+      }
       closeNotification(notificationId)
-    }, 5000)
+    }, timeoutDuration)
   }
 }
 
@@ -243,6 +283,11 @@ export function closeNotification(notificationId) {
   // Clear timeout if exists
   if (notification.timeoutId) {
     clearTimeout(notification.timeoutId)
+  }
+
+  // Clear progress
+  if (notification.progressInterval) {
+    clearInterval(notification.progressInterval)
   }
 
   // Handle special case for multiple selection
@@ -265,6 +310,9 @@ export function closePopUp() {
   notifications.forEach(notification => {
     if (notification.timeoutId) {
       clearTimeout(notification.timeoutId)
+    }
+    if (notification.progressInterval) {
+      clearInterval(notification.progressInterval)
     }
   })
 
@@ -316,6 +364,80 @@ export function showError(message, options = {}) {
 
 export function showMultipleSelection() {
   showPopup('success', 'Multiple Selection Enabled', { persistent: true })
+}
+
+/**
+ * Pause auto-close (timeout) when we hover a notification - will only pause the current hover notification
+ * @param {string} notificationId
+ */
+export function pauseAutoClose(notificationId) {
+  const notification = notifications.find(n => n.id === notificationId)
+  if (notification && notification.timeoutId) {
+    // Calculate remaining time and clear the timeout
+    if (notification.timeoutStartTime && notification.timeoutDuration) {
+      const elapsed = Date.now() - notification.timeoutStartTime
+      notification.timeoutRemaining = Math.max(0, notification.timeoutDuration - elapsed)
+      // Freeze progress at current value
+      notification.progress = Math.max(0, 100 - (elapsed / notification.timeoutDuration) * 100)
+    }
+    clearTimeout(notification.timeoutId)
+    notification.timeoutId = null
+    // Clear the progress interval when paused (hover)
+    if (notification.progressInterval) {
+      clearInterval(notification.progressInterval)
+      notification.progressInterval = null
+    }
+    notifyUpdate()
+  }
+}
+
+/**
+ * Resume auto-close (timeout) when we stop hovering the notification
+ * @param {string} notificationId
+ */
+export function resumeAutoClose(notificationId) {
+  const notification = notifications.find(n => n.id === notificationId)
+  if (notification && notification.autoclose && !notification.timeoutId && notification.timeoutRemaining > 0) {
+    // Restart timeout with the remaining time
+    notification.timeoutStartTime = Date.now() - (notification.timeoutDuration - notification.timeoutRemaining)
+    notification.timeoutId = setTimeout(() => {
+      if (notification.progressInterval) {
+        clearInterval(notification.progressInterval)
+      }
+      closeNotification(notificationId)
+    }, notification.timeoutRemaining)
+    // Restart the progress interval
+    notification.progressInterval = setInterval(() => {
+      const notificationIndex = notifications.findIndex(n => n.id === notificationId)
+      if (notificationIndex === -1) {
+        clearInterval(notification.progressInterval)
+        return
+      }
+      const notif = notifications[notificationIndex]
+      // Update progress if notification is active (not paused)
+      if (notif.timeoutStartTime && !notif.timeoutRemaining) {
+        const elapsed = Date.now() - notif.timeoutStartTime
+        const progress = Math.max(0, 100 - (elapsed / notification.timeoutDuration) * 100)
+        notif.progress = progress
+        notifyUpdate()
+        if (progress <= 0) {
+          clearInterval(notif.progressInterval)
+        }
+      }
+    }, 25)
+    notification.timeoutRemaining = null
+    notifyUpdate()
+  }
+}
+
+/**
+ * Get progress information for the notification
+ * @param {string} notificationId
+ * @returns {number} Timeout progress porcentage
+ */
+export function getNotificationProgress(notificationId) {
+  const notification = notifications.find(n => n.id === notificationId)
+  return notification ? (notification.progress || 100) : 100
 }
 
 // ============================================================================

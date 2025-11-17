@@ -6,6 +6,9 @@ const notify = {
     closeNotification: messageFunctions.closeNotification,
     getNotifications: messageFunctions.getNotifications,
     setUpdateCallback: messageFunctions.setUpdateCallback,
+    pauseAutoClose: messageFunctions.pauseAutoClose,
+    resumeAutoClose: messageFunctions.resumeAutoClose,
+    getNotificationProgress: messageFunctions.getNotificationProgress,
     // Toast functions
     showToast: messageFunctions.showToast,
     showSuccessToast: messageFunctions.showSuccessToast,
