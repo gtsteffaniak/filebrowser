@@ -8,23 +8,6 @@ import (
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
-// complexityModifier defines time adjustments based on complexity level (0-10)
-// 0: unknown (not yet scanned), 1: simple, 2-6: normal, 7-9: complex, 10: highlyComplex
-// Each level gets progressively more aggressive with scan timing adjustments
-var complexityModifier = map[uint]time.Duration{
-	0:  0 * time.Minute,  // unknown: no modifier
-	1:  -4 * time.Minute, // simple: scan more frequently
-	2:  -2 * time.Minute, // normal (lightest)
-	3:  -1 * time.Minute,
-	4:  0 * time.Minute, // baseline normal
-	5:  1 * time.Minute,
-	6:  2 * time.Minute, // normal (heaviest)
-	7:  4 * time.Minute, // complex (lightest)
-	8:  8 * time.Minute,
-	9:  12 * time.Minute,
-	10: 16 * time.Minute, // highlyComplex: scan less frequently
-}
-
 // Scanner represents an independent scanner for a specific directory path
 // Each scanner has its own schedule and stats, but only one can run at a time (protected by Index.scanMutex)
 type Scanner struct {
@@ -50,6 +33,63 @@ type Scanner struct {
 
 	// Control
 	stopChan chan struct{}
+}
+
+// calculateTimeScore returns a 1-10 score based on full scan time
+func (s *Scanner) calculateTimeScore() uint {
+	if s.fullScanTime == 0 {
+		return 1 // No data yet, assume simple
+	}
+	// Time-based thresholds (in seconds)
+	switch {
+	case s.fullScanTime < 2:
+		return 1
+	case s.fullScanTime < 5:
+		return 2
+	case s.fullScanTime < 10:
+		return 3
+	case s.fullScanTime < 15:
+		return 4
+	case s.fullScanTime < 30:
+		return 5
+	case s.fullScanTime < 60:
+		return 6
+	case s.fullScanTime < 90:
+		return 7
+	case s.fullScanTime < 120:
+		return 8
+	case s.fullScanTime < 180:
+		return 9
+	default:
+		return 10
+	}
+}
+
+// calculateDirScore returns a 1-10 score based on directory count
+func (s *Scanner) calculateDirScore() uint {
+	// Directory-based thresholds
+	switch {
+	case s.numDirs < 2500:
+		return 1
+	case s.numDirs < 5000:
+		return 2
+	case s.numDirs < 10000:
+		return 3
+	case s.numDirs < 25000:
+		return 4
+	case s.numDirs < 50000:
+		return 5
+	case s.numDirs < 100000:
+		return 6
+	case s.numDirs < 250000:
+		return 7
+	case s.numDirs < 500000:
+		return 8
+	case s.numDirs < 1000000:
+		return 9
+	default:
+		return 10
+	}
 }
 
 // start begins the scanner's main loop
@@ -384,68 +424,6 @@ func (s *Scanner) updateComplexity() {
 		s.smartModifier = modifier
 	} else {
 		s.smartModifier = 0
-	}
-}
-
-// calculateTimeScore returns a 1-10 score based on full scan time
-func (s *Scanner) calculateTimeScore() uint {
-	if s.fullScanTime == 0 {
-		return 1 // No data yet, assume simple
-	}
-
-	// Time-based thresholds (in seconds)
-	// 1: 0-2s, 2: 2-4s, 3: 4-6s, 4: 6-10s, 5: 10-15s, 6: 15-25s
-	// 7: 25-40s, 8: 40-60s, 9: 60-100s, 10: 100+s
-	switch {
-	case s.fullScanTime < 2:
-		return 1
-	case s.fullScanTime < 4:
-		return 2
-	case s.fullScanTime < 6:
-		return 3
-	case s.fullScanTime < 10:
-		return 4
-	case s.fullScanTime < 15:
-		return 5
-	case s.fullScanTime < 25:
-		return 6
-	case s.fullScanTime < 40:
-		return 7
-	case s.fullScanTime < 60:
-		return 8
-	case s.fullScanTime < 100:
-		return 9
-	default:
-		return 10
-	}
-}
-
-// calculateDirScore returns a 1-10 score based on directory count
-func (s *Scanner) calculateDirScore() uint {
-	// Directory-based thresholds
-	// 1: 0-1k, 2: 1k-2.5k, 3: 2.5k-5k, 4: 5k-10k, 5: 10k-20k, 6: 20k-40k
-	// 7: 40k-70k, 8: 70k-120k, 9: 120k-200k, 10: 200k+
-	switch {
-	case s.numDirs < 2500:
-		return 1
-	case s.numDirs < 5000:
-		return 2
-	case s.numDirs < 10000:
-		return 3
-	case s.numDirs < 25000:
-		return 4
-	case s.numDirs < 50000:
-		return 5
-	case s.numDirs < 100000:
-		return 6
-	case s.numDirs < 250000:
-		return 7
-	case s.numDirs < 500000:
-		return 8
-	case s.numDirs < 1000000:
-		return 9
-	default:
-		return 10
 	}
 }
 

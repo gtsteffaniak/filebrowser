@@ -508,7 +508,6 @@ export default {
       this.$el.addEventListener("mouseup", this.cancelContext);
     }
 
-    console.log('state.shareInfo', state.shareInfo);
     // if safari , make sure click and hold opens context menu, but not for any other browser
     if (state.user.permissions?.modify || getters.isShare()) {
       this.$el.addEventListener("dragenter", this.dragEnter);

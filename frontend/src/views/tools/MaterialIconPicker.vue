@@ -1,30 +1,22 @@
 <template>
-  <div class="tool" >
+  <div class="tool">
     <div class="card-title">
       <h1>{{ $t('tools.materialIconPicker.name') }}</h1>
       <p>{{ $t('tools.materialIconPicker.description') }}</p>
 
       <!-- External Link Banner -->
-      <div class="external-link-banner">
+      <a class="button" href="https://fonts.google.com/icons" target="_blank" rel="noopener noreferrer">
         <i class="material-icons">open_in_new</i>
         <span>{{ $t('tools.materialIconPicker.browseFullLibrary') }}</span>
-        <a href="https://fonts.google.com/icons" target="_blank" rel="noopener noreferrer">
-          {{ $t('tools.materialIconPicker.iconLibraryUrl') }}
-        </a>
-      </div>
+      </a>
     </div>
 
     <!-- Search Controls -->
     <div class="controls">
       <div class="search-box">
         <i class="material-icons search-icon">search</i>
-        <input
-          v-model="searchQuery"
-          type="text"
-          :placeholder="$t('tools.materialIconPicker.searchPlaceholder')"
-          class="input"
-          style="padding-left: 2.5em;"
-        />
+        <input v-model="searchQuery" type="text" :placeholder="$t('tools.materialIconPicker.searchPlaceholder')"
+          class="input" style="padding-left: 2.5em;" />
         <button v-if="searchQuery" @click="searchQuery = ''" class="button button--flat clear-button">
           <i class="material-icons">close</i>
         </button>
@@ -44,12 +36,8 @@
     <!-- Icon Grid -->
     <div class="icon-grid" :key="searchQueryKey">
       <!-- Custom Icon Preview (if searching and doesn't exactly match existing) -->
-      <div
-        v-if="showCustomPreview"
-        class="icon-card clickable custom-icon"
-        @click="copyIconName(searchQuery.trim())"
-        :title="$t('tools.materialIconPicker.useCustomIcon', { name: searchQuery.trim() })"
-      >
+      <div v-if="showCustomPreview" class="icon-card clickable custom-icon" @click="copyIconName(searchQuery.trim())"
+        :title="$t('tools.materialIconPicker.useCustomIcon', { name: searchQuery.trim() })">
         <div class="icon-display">
           <i :class="getIconClass(searchQuery.trim())">{{ searchQuery.trim() }}</i>
         </div>
@@ -58,13 +46,8 @@
       </div>
 
       <!-- Popular Icons -->
-      <div
-        v-for="(iconName, index) in visibleIcons"
-        :key="`${searchQueryKey}-${iconName}-${index}`"
-        class="icon-card clickable"
-        @click="copyIconName(iconName)"
-        :title="iconName"
-      >
+      <div v-for="(iconName, index) in visibleIcons" :key="`${searchQueryKey}-${iconName}-${index}`"
+        class="icon-card clickable" @click="copyIconName(iconName)" :title="iconName">
         <div class="icon-display">
           <i :class="getIconClass(iconName)">{{ iconName }}</i>
         </div>
@@ -111,7 +94,7 @@ export default {
       if (!query) {
         return [...this.allMaterialIcons];
       }
-      
+
       // Create a fresh filtered array
       const filtered = [];
       for (const icon of this.allMaterialIcons) {
@@ -180,56 +163,30 @@ export default {
 </script>
 
 <style scoped>
-
 /* External Link Banner */
-.external-link-banner {
+a.button {
   display: flex;
   align-items: center;
-  gap: 0.75em;
-  padding: 0.5em 1em; /* Use button padding */
-  background: var(--surfaceSecondary);
-  border: 1px solid var(--borderColor);
-  border-radius: 1em; /* Use button border-radius */
-  font-size: 1em;
-  color: var(--textSecondary);
-  margin-top: 1.5em;
-}
-
-.external-link-banner .material-icons {
-  font-size: 1.5em;
-  color: var(--primaryColor);
-}
-
-.external-link-banner a {
-  color: var(--primaryColor);
-  text-decoration: none;
-  font-weight: 600;
-  margin-left: auto;
-  font-size: 1.05em;
-}
-
-.external-link-banner a:hover {
-  text-decoration: underline;
+  margin: auto;
+  width: 500px;
+  max-width: 100%;
+  justify-content: center;
 }
 
 /* Controls - uses .input class from _inputs.css */
 .controls {
-  margin-bottom: 1.5em;
+  margin: 1.5em;
 }
 
 .search-box {
   position: relative;
-  max-width: 600px;
   margin-bottom: 1em;
 }
 
 .search-box .search-icon {
   position: absolute;
-  left: 1em;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--textSecondary);
-  pointer-events: none;
+  left: 0.5em;
+  top: 0.25em;
 }
 
 .clear-button {
@@ -265,7 +222,8 @@ export default {
   padding: 1em 0.6em;
   background: var(--surfaceSecondary);
   border: 1px solid var(--borderColor);
-  border-radius: 1em; /* Use button border-radius */
+  border-radius: 1em;
+  /* Use button border-radius */
 }
 
 /* Custom Icon Styling */
@@ -299,7 +257,8 @@ export default {
   background: var(--primaryColor);
   color: white;
   padding: 0.25em 0.6em;
-  border-radius: 0.5em; /* Smaller rounded corners consistent with design */
+  border-radius: 0.5em;
+  /* Smaller rounded corners consistent with design */
   font-size: 0.7em;
   font-weight: 600;
   text-transform: uppercase;
@@ -348,4 +307,3 @@ export default {
   }
 }
 </style>
-

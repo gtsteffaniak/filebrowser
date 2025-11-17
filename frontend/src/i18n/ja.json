@@ -83,7 +83,8 @@
     "f1": "ヘルプ画面を表示する",
     "description": "基本的なナビゲーションオプションは以下の通りです。その他の情報については",
     "slash": "検索をアクティブにする",
-    "wiki": "FileBrowser Quantum 公式ドキュメント"
+    "wiki": "FileBrowser Quantum 公式ドキュメント",
+    "marqueeSelect": "空いているスペースにドラッグして、複数のファイルやディレクトリを選択する。"
   },
   "languages": {
     "he": "עברית",
@@ -215,7 +216,8 @@
     "selectPath": "パスを選択",
     "renameSuccess": "アイテム名の変更に成功しました！",
     "newFileSuccess": "ファイルは正常に作成されました！",
-    "newDirSuccess": "ディレクトリは正常に作成されました！"
+    "newDirSuccess": "ディレクトリは正常に作成されました！",
+    "copyToClipboardFailed": "クリップボードにコピーできない"
   },
   "search": {
     "smallerThan": "より小さい：",
@@ -765,7 +767,6 @@
       "name": "素材アイコンピッカー",
       "description": "ライブプレビューでマテリアルアイコンを閲覧・検索",
       "searchPlaceholder": "検索アイコン...",
-      "browseFullLibrary": "フルアイコンライブラリを見る",
       "popularIcons": "{count} 人気のアイコンを表示",
       "showingResults": "{count} の結果を表示",
       "noResults": "アイコンが見つかりません",
@@ -774,7 +775,8 @@
       "copyFailed": "クリップボードへのコピーに失敗しました",
       "custom": "カスタム",
       "useCustomIcon": "カスタムアイコンを使用する：{name}",
-      "iconLibraryUrl": "fonts.google.com/icons"
+      "iconLibraryUrl": "fonts.google.com/icons",
+      "browseFullLibrary": "アイコンライブラリをすべて見る"
     },
     "toolNotFound": "ツールが見つかりません",
     "backToTools": "ツールに戻る"

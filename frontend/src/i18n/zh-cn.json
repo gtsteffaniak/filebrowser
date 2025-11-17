@@ -83,7 +83,8 @@
     "f1": "显示帮助提示",
     "description": "您可以查看下面的基本导航选项。有关其他信息，请访问",
     "slash": "启动搜索",
-    "wiki": "FileBrowser Quantum 官方文档"
+    "wiki": "FileBrowser Quantum 官方文档",
+    "marqueeSelect": "在空白处拖动，选择多个文件或目录"
   },
   "languages": {
     "he": "עברית",
@@ -215,7 +216,8 @@
     "selectPath": "选择路径",
     "renameSuccess": "项目重命名成功！",
     "newFileSuccess": "文件创建成功！",
-    "newDirSuccess": "目录创建成功！"
+    "newDirSuccess": "目录创建成功！",
+    "copyToClipboardFailed": "无法复制到剪贴板"
   },
   "search": {
     "smallerThan": "小于",
@@ -765,7 +767,6 @@
       "name": "材料图标选择器",
       "description": "通过实时预览浏览和搜索材质图标",
       "searchPlaceholder": "搜索图标...",
-      "browseFullLibrary": "浏览完整的图标库：",
       "popularIcons": "显示{count} 流行图标",
       "showingResults": "显示{count} 结果",
       "noResults": "未找到图标",
@@ -774,7 +775,8 @@
       "copyFailed": "复制到剪贴板失败",
       "custom": "定制",
       "useCustomIcon": "使用自定义图标：{name}",
-      "iconLibraryUrl": "fonts.google.com/icons"
+      "iconLibraryUrl": "fonts.google.com/icons",
+      "browseFullLibrary": "浏览完整图标库"
     },
     "toolNotFound": "未找到工具",
     "backToTools": "返回工具"

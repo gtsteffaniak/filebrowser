@@ -86,7 +86,8 @@
     "f1": "zobrazit výzvu nápovědy",
     "description": "Základní možnosti navigace si můžete prohlédnout níže. Další informace naleznete na adrese",
     "slash": "aktivovat vyhledávání",
-    "wiki": "Oficiální dokumenty k aplikaci FileBrowser Quantum"
+    "wiki": "Oficiální dokumenty k aplikaci FileBrowser Quantum",
+    "marqueeSelect": "vybrat více souborů nebo adresářů přetažením na prázdné místo."
   },
   "languages": {
     "he": "עברית",
@@ -286,7 +287,8 @@
     "selectPath": "Vybrat cestu",
     "renameSuccess": "Položka byla úspěšně přejmenována!",
     "newFileSuccess": "Soubor byl úspěšně vytvořen!",
-    "newDirSuccess": "Adresář byl úspěšně vytvořen!"
+    "newDirSuccess": "Adresář byl úspěšně vytvořen!",
+    "copyToClipboardFailed": "Nelze zkopírovat do schránky"
   },
   "search": {
     "smallerThan": "Menší než:",
@@ -765,7 +767,6 @@
       "name": "Nástroj pro výběr ikony materiálu",
       "description": "Procházení a vyhledávání ikon materiálu s živým náhledem",
       "searchPlaceholder": "Hledat ikony...",
-      "browseFullLibrary": "Projděte si celou knihovnu ikon:",
       "popularIcons": "Zobrazeno {count} populární ikony",
       "showingResults": "Zobrazují se výsledky {count} ",
       "noResults": "Nebyly nalezeny žádné ikony",
@@ -774,7 +775,8 @@
       "copyFailed": "Nepodařilo se zkopírovat do schránky",
       "custom": "Vlastní",
       "useCustomIcon": "Použití vlastní ikony: {name}",
-      "iconLibraryUrl": "fonts.google.com/icons"
+      "iconLibraryUrl": "fonts.google.com/icons",
+      "browseFullLibrary": "Procházet celou knihovnu ikon"
     },
     "toolNotFound": "Nástroj nebyl nalezen",
     "backToTools": "Zpět na Nástroje"

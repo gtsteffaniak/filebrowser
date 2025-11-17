@@ -29,7 +29,7 @@
           <span aria-label="info last modified" :title="modTime">{{ humanTime }}</span>
         </div>
         <div class="info-item" v-if="selected.length < 2 && source">
-          <strong>{{ $t("general.source", ) }}</strong>
+          <strong>{{ $t("general.source") }}</strong>
           <span aria-label="info source">{{ source }}</span>
         </div>
         <div class="info-item" v-if="selected.length < 2 && filePath">
@@ -38,11 +38,11 @@
         </div>
         <div class="info-item" v-if="hidden !== undefined">
           <strong>{{ $t("prompts.hidden") }}</strong>
-          <span aria-label="info hidden">{{ hidden ? "✓" : "✗" }}</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <span aria-label="info hidden">{{ hidden ? "✓" : "✗" }}</span><!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
         </div>
         <div class="info-item" v-if="hasPreview !== undefined">
           <strong>{{ $t("prompts.hasPreview") }}</strong>
-          <span aria-label="info has preview">{{ hasPreview ? "✓" : "✗" }}</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <span aria-label="info has preview">{{ hasPreview ? "✓" : "✗" }}</span><!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
         </div>
       </div>
       <!-- Directory Information Section -->
@@ -55,6 +55,15 @@
         <div class="info-item">
           <strong>{{ $t("prompts.numberDirs") }}</strong>
           <span>{{ req.numDirs }}</span>
+        </div>
+      </div>
+
+      <!-- Additional Information Section -->
+      <div class="info-section" v-if="additionalInfo.length > 0">
+        <h3 class="section-title">{{ $t("prompts.additionalInfo") }}</h3>
+        <div class="info-item" v-for="info in additionalInfo" :key="info.key">
+          <strong>{{ info.label }}</strong>
+          <span>{{ info.value }}</span>
         </div>
       </div>
       <!-- Hash Generator Section -->
@@ -70,13 +79,8 @@
                 <option value="sha256">SHA256</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
                 <option value="sha512">SHA512</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
               </select>
-              <button
-                type="button"
-                class="button form-button flat-left"
-                @click="generateHash"
-                :title="$t('prompts.generate')"
-                :aria-label="$t('prompts.generate')"
-              >
+              <button type="button" class="button form-button flat-left" @click="generateHash"
+                :title="$t('prompts.generate')" :aria-label="$t('prompts.generate')">
                 {{ $t("prompts.generate") }}
               </button>
             </div>
@@ -85,34 +89,14 @@
           <div class="hash-result">
             <label for="hash-result">{{ $t("prompts.hashValue") }}</label>
             <div class="form-flex-group">
-              <input
-                id="hash-result"
-                class="input form-form flat-right"
-                type="text"
-                :value="hashResult"
-                readonly
-                :placeholder="$t('prompts.selectHashAlgorithm')"
-              />
-              <button
-                class="button form-button flat-left"
-                @click="copyToClipboard"
-                :disabled="!hashResult"
-                :title="$t('buttons.copyToClipboard')"
-                :aria-label="$t('buttons.copyToClipboard')"
-              >
-              <i class="material-icons" style="font-size: 16px;">content_copy</i>
+              <input id="hash-result" class="input form-form flat-right" type="text" :value="hashResult" readonly
+                :placeholder="$t('prompts.selectHashAlgorithm')" />
+              <button class="button form-button flat-left" @click="copyToClipboard" :disabled="!hashResult"
+                :title="$t('buttons.copyToClipboard')" :aria-label="$t('buttons.copyToClipboard')">
+                <i class="material-icons" style="font-size: 16px;">content_copy</i>
               </button>
             </div>
           </div>
-        </div>
-      </div>
-
-      <!-- Additional Information Section -->
-      <div class="info-section" v-if="additionalInfo.length > 0">
-        <h3 class="section-title">{{ $t("prompts.additionalInfo") }}</h3>
-        <div class="info-item" v-for="info in additionalInfo" :key="info.key">
-          <strong>{{ info.label }}</strong>
-          <span>{{ info.value }}</span>
         </div>
       </div>
     </div>

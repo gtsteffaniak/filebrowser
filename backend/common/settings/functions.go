@@ -81,7 +81,7 @@ func ConvertToFrontendSidebarLinks(links []users.SidebarLink) []users.SidebarLin
 				continue
 			}
 			// Check if source exists
-			sourceInfo, ok := Config.Server.NameToSource[link.SourceName]
+			sourceInfo, ok := Config.Server.SourceMap[link.SourceName]
 			if !ok {
 				logger.Warningf("source not found: %v (link name: %v)", link.SourceName, link.Name)
 				continue
