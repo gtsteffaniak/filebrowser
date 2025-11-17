@@ -23,9 +23,10 @@
       <li @click="itemClick" @touchstart="touchstart" @dblclick="next" role="button" tabindex="0"
         :aria-label="item.name" :aria-selected="selected == item.path" :key="item.name" v-for="item in items"
         :data-path="item.path" class="file-item">
-        <Icon v-if="isDisplayMode" :filename="item.name"
-          :mimetype="item.originalItem?.type || 'application/octet-stream'" :active="selected == item.path"
-          class="file-icon" />
+        <Icon :filename="item.name"
+          :mimetype="item.originalItem?.type || 'directory'"
+          class="file-icon" 
+        />
         <span class="file-name">{{ item.name }}</span>
       </li>
     </ul>
@@ -357,6 +358,7 @@ export default {
   align-items: center;
   padding: 0.5rem;
   cursor: pointer;
+  user-select: none;
 }
 
 .file-item:hover {
@@ -373,6 +375,7 @@ export default {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  user-select: none;
 }
 
 .file-list {
