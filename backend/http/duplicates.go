@@ -135,10 +135,6 @@ func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions) []dup
 	// Step 2: Process each size group to find duplicates
 	duplicateGroups := []duplicateGroup{}
 	totalFiles := 0
-<<<<<<< HEAD
-	const maxTotalFiles = 1000 // Limit total files across all groups to 1000
-=======
->>>>>>> e72a8fece06a2cbc0261751e78374b907b2e35bc
 
 	for size, locations := range sizeGroups {
 		if len(locations) < 2 {
@@ -147,48 +143,6 @@ func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions) []dup
 
 		var groups [][]fileLocation
 		if opts.useChecksum {
-<<<<<<< HEAD
-			// Pass the index to get its root path for filesystem access
-			checksumGroups := groupByPartialChecksum(files, index, size)
-			for _, group := range checksumGroups {
-				if len(group) >= 2 {
-					// Check if adding this group would exceed the limit
-					if totalFiles+len(group) > maxTotalFiles {
-						break
-					}
-
-					// Remove the user scope from paths (modifying in place is safe)
-					for _, file := range group {
-						file.Path = strings.TrimPrefix(file.Path, opts.combinedPath)
-						if file.Path == "" {
-							file.Path = "/"
-						}
-					}
-					duplicateGroups = append(duplicateGroups, duplicateGroup{
-						Size:  size,
-						Count: len(group),
-						Files: group,
-					})
-					totalFiles += len(group)
-				}
-			}
-		} else {
-			// Use fuzzy filename matching (faster than checksums, more accurate than size-only)
-			filenameGroups := groupByFuzzyFilename(files, opts.combinedPath)
-			for _, group := range filenameGroups {
-				if len(group) >= 2 {
-					// Check if adding this group would exceed the limit
-					if totalFiles+len(group) > maxTotalFiles {
-						break
-					}
-
-					// Remove the user scope from paths (modifying in place is safe)
-					for _, file := range group {
-						file.Path = strings.TrimPrefix(file.Path, opts.combinedPath)
-						if file.Path == "" {
-							file.Path = "/"
-						}
-=======
 			groups = groupLocationsByChecksum(locations, index, size)
 		} else {
 			groups = groupLocationsByFilename(locations, index, size)
@@ -232,7 +186,6 @@ func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions) []dup
 					adjustedPath := strings.TrimPrefix(fullPath, opts.combinedPath)
 					if adjustedPath == "" {
 						adjustedPath = "/"
->>>>>>> e72a8fece06a2cbc0261751e78374b907b2e35bc
 					}
 
 					resultGroup = append(resultGroup, &indexing.SearchResult{
@@ -242,7 +195,6 @@ func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions) []dup
 						Modified:   file.ModTime.Format(time.RFC3339),
 						HasPreview: file.HasPreview,
 					})
-					totalFiles += len(group)
 				}
 			})
 
@@ -255,15 +207,6 @@ func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions) []dup
 				totalFiles += len(resultGroup)
 			}
 		}
-<<<<<<< HEAD
-
-		// Stop processing more size groups if we've hit the limit
-		if totalFiles >= maxTotalFiles {
-			break
-		}
-	}
-=======
->>>>>>> e72a8fece06a2cbc0261751e78374b907b2e35bc
 
 		// Stop processing more size groups if we've hit the limit
 		if totalFiles >= maxTotalFiles {
@@ -320,24 +263,6 @@ func prepDuplicatesOptions(r *http.Request, d *requestContext) (*duplicatesOptio
 	}, nil
 }
 
-<<<<<<< HEAD
-// groupByPartialChecksum computes partial MD5 checksums by sampling key portions of files
-// This is much faster than full checksums while providing high accuracy
-// Uses pointers to avoid copying large structs during grouping
-func groupByPartialChecksum(files []*indexing.SearchResult, index *indexing.Index, fileSize int64) map[string][]*indexing.SearchResult {
-	checksumGroups := make(map[string][]*indexing.SearchResult)
-
-	for _, file := range files {
-		// CRITICAL: Ensure exact size match - safeguard against grouping different sized files
-		if file.Size != fileSize {
-			continue
-		}
-
-		// file.Path is relative to the index root, need to prepend index.Path
-		// index.Path is the absolute filesystem root for this index
-		fullPath := filepath.Join(index.Path, file.Path)
-		checksum, err := computePartialChecksum(fullPath, fileSize)
-=======
 // groupLocationsByChecksum groups file locations by partial checksum
 // Works with minimal fileLocation references instead of full SearchResult objects
 func groupLocationsByChecksum(locations []fileLocation, index *indexing.Index, fileSize int64) [][]fileLocation {
@@ -371,7 +296,6 @@ func groupLocationsByChecksum(locations []fileLocation, index *indexing.Index, f
 
 		filePath := filepath.Join(fullPath, fileName)
 		checksum, err := computePartialChecksum(filePath, fileSize)
->>>>>>> e72a8fece06a2cbc0261751e78374b907b2e35bc
 		if err != nil {
 			continue
 		}
@@ -484,13 +408,6 @@ func groupLocationsByFilename(locations []fileLocation, index *indexing.Index, e
 
 		group := []fileLocation{locations[i]}
 		used[i] = true
-<<<<<<< HEAD
-		baseSize := files[i].Size
-
-		baseName1 := filepath.Base(files[i].Path)
-		ext1 := strings.ToLower(filepath.Ext(baseName1))
-		filename1 := normalizeFilename(baseName1)
-=======
 		baseSize := metadata[i].size
 
 		baseName1 := metadata[i].name
@@ -509,31 +426,12 @@ func groupLocationsByFilename(locations []fileLocation, index *indexing.Index, e
 
 			baseName2 := metadata[j].name
 			ext2 := strings.ToLower(filepath.Ext(baseName2))
->>>>>>> e72a8fece06a2cbc0261751e78374b907b2e35bc
 
 			// CRITICAL: Extensions must match exactly (case-insensitive)
 			if ext1 != ext2 {
 				continue
 			}
 
-<<<<<<< HEAD
-			// CRITICAL: Ensure exact size match - this is a safeguard to prevent
-			// files with different sizes from being grouped together
-			if files[j].Size != baseSize {
-				continue
-			}
-
-			baseName2 := filepath.Base(files[j].Path)
-			ext2 := strings.ToLower(filepath.Ext(baseName2))
-
-			// CRITICAL: Extensions must match exactly (case-insensitive)
-			// Only fuzzy match the filename portion without extension
-			if ext1 != ext2 {
-				continue
-			}
-
-=======
->>>>>>> e72a8fece06a2cbc0261751e78374b907b2e35bc
 			filename2 := normalizeFilename(baseName2)
 
 			// Check if filenames are similar enough
