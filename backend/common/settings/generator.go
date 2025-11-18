@@ -727,7 +727,7 @@ func GenerateYaml() {
 
 	setupSources(true)
 	setupUrls()
-	setupVideoPreview()
+	setupMedia()
 	setupFrontend(true)
 
 	// Restore original paths so the YAML output has the correct paths, not the placeholder

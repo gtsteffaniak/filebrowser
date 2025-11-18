@@ -40,7 +40,7 @@
     </div>
 
     <div class="text">
-      <p :class="{ adjustment: quickDownloadEnabled }" class="name">{{ name }}</p>
+      <p :class="{ adjustment: quickDownloadEnabled }" class="name">{{ displayName }}</p>
       <p
         class="size"
         :class="{ adjustment: quickDownloadEnabled }"
@@ -112,8 +112,13 @@ export default {
     "hasPreview",
     "metadata",
     "hasDuration",
+    "displayFullPath",
   ],
   computed: {
+    displayName() {
+      // If displayFullPath is true, show the full path, otherwise just the name
+      return this.displayFullPath ? this.path : this.name;
+    },
     galleryView() {
       return getters.viewMode() === "gallery";
     },
@@ -177,15 +182,26 @@ export default {
       return true;
     },
     thumbnailUrl() {
-      if (!globalVars.enableThumbs || !state.req.path || !this.name) {
+      if (!globalVars.enableThumbs) {
         return "";
       }
-      const previewPath = url.joinPath(state.req.path, this.name);
+
+      // Use the path prop if available (e.g., in duplicate finder),
+      // otherwise construct from state.req.path + name (normal file listing)
+      let previewPath;
+      if (this.path) {
+        previewPath = this.path;
+      } else if (state.req.path && this.name) {
+        previewPath = url.joinPath(state.req.path, this.name);
+      } else {
+        return "";
+      }
+
       if (getters.isShare()) {
         return publicApi.getPreviewURL(previewPath);
       }
       // @ts-ignore
-      return filesApi.getPreviewURL(state.req.source, previewPath, this.modified);
+      return filesApi.getPreviewURL(this.source || state.req.source, previewPath, this.modified);
     },
     isThumbsEnabled() {
       return globalVars.enableThumbs;
@@ -570,11 +586,16 @@ export default {
       mutations.setLastSelectedIndex(this.index);
     },
     open() {
-      const previousHistoryItem = {
-        name: state.req.items[this.index].name,
-        source: state.req.source,
-        path: state.req.path,
-      };
+      // Check if state.req.items exists and has the item at this index
+      // This prevents errors when ListingItem is used outside of the main file listing (e.g., duplicate finder)
+      let previousHistoryItem = null;
+      if (state.req.items && state.req.items[this.index]) {
+        previousHistoryItem = {
+          name: state.req.items[this.index].name,
+          source: state.req.source,
+          path: state.req.path,
+        };
+      }
       url.goToItem(this.source, this.path, previousHistoryItem);
     },
   },

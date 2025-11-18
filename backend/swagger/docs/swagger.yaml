@@ -2165,8 +2165,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Finds duplicate files based on size and verification method (fuzzy
-        filename or partial checksum)
+      description: Finds duplicate files based on size and fuzzy filename matching
       parameters:
       - description: Source name for the desired source
         in: query
@@ -2181,11 +2180,6 @@ paths:
         in: query
         name: minSizeMb
         type: integer
-      - description: 'Use partial MD5 checksum for verification (default: false, uses
-          fuzzy filename matching)'
-        in: query
-        name: useChecksum
-        type: boolean
       produces:
       - application/json
       responses:

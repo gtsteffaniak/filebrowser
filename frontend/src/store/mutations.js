@@ -280,7 +280,7 @@ export const mutations = {
     if (!state.stickySidebar) {
       state.showSidebar = false;
     }
-    emitStateChanged();
+    mutations.hideTooltip(true)
   },
   closeTopHover: () => {
     state.prompts.pop();
@@ -289,7 +289,7 @@ export const mutations = {
         state.showSidebar = false;
       }
     }
-    emitStateChanged();
+    mutations.hideTooltip(true)
   },
   showHover: (value) => {
     if (typeof value === "object") {
@@ -311,7 +311,7 @@ export const mutations = {
         cancel: value?.cancel,
       });
     }
-    emitStateChanged();
+    mutations.hideTooltip(true)
   },
   setLoading: (loadType, status) => {
     if (status === false) {
@@ -593,8 +593,11 @@ export const mutations = {
     state.tooltip.show = true;
     emitStateChanged();
   },
-  hideTooltip() {
+  hideTooltip(force=false) {
     if (!state.tooltip.show) {
+      if (force) {
+        emitStateChanged();
+      }
       return;
     }
     state.tooltip.show = false;

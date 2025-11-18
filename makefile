@@ -34,8 +34,10 @@ update:
 
 build: build-frontend build-backend
 
-
 build-docker:
+	docker build --build-arg="VERSION=testing" --build-arg="REVISION=n/a" -t gtstef/filebrowser -f _docker/Dockerfile .
+
+build-docker-slim:
 	docker build --build-arg="VERSION=testing" --build-arg="REVISION=n/a" -t gtstef/filebrowser -f _docker/Dockerfile.slim .
 
 build-backend:

@@ -76,7 +76,7 @@ func searchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 	}
 
 	// Perform the search using the provided query and user scope
-	response := index.Search(searchOptions.query, searchOptions.combinedPath, searchOptions.sessionId, searchOptions.largest)
+	response := index.Search(searchOptions.query, searchOptions.combinedPath, searchOptions.sessionId, searchOptions.largest, indexing.DefaultSearchResults)
 	// Remove the user scope from the path (modifying in place is safe - these are fresh allocations)
 	for _, result := range response {
 		result.Path = strings.TrimPrefix(result.Path, searchOptions.combinedPath)

@@ -9,11 +9,21 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
+	"time"
 	"unicode"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
+	"github.com/gtsteffaniak/go-cache/cache"
 )
+
+// duplicateSearchMutex serializes duplicate searches to run one at a time
+// This is separate from the index's scanMutex to avoid conflicts with indexing
+var duplicateSearchMutex sync.Mutex
+
+// duplicateResultsCache caches duplicate search results for 15 seconds
+var duplicateResultsCache = cache.NewCache[[]duplicateGroup](15 * time.Second)
 
 type duplicateGroup struct {
 	Size  int64                    `json:"size"`
@@ -31,27 +41,22 @@ type duplicatesOptions struct {
 
 // duplicatesHandler handles requests to find duplicate files
 //
-// This endpoint finds files with the same size and uses different verification methods:
-// - useChecksum=false: Fuzzy filename matching (fast, good for renamed duplicates)
-// - useChecksum=true: Partial content checksums (very fast, high accuracy)
+// This endpoint finds files with the same size and uses fuzzy filename matching
+// to verify potential duplicates.
 //
 // It's optimized to handle large directories efficiently by:
 // 1. Filtering by minimum size first
 // 2. Grouping by size
-// 3. Verifying matches with either filename similarity or partial checksums
-//
-// Partial checksums sample ~24KB per file (start, middle, end) regardless of file size,
-// making it 10-100x faster than full file hashing while maintaining high accuracy.
+// 3. Verifying matches with fuzzy filename similarity
 //
 // @Summary Find Duplicate Files
-// @Description Finds duplicate files based on size and verification method (fuzzy filename or partial checksum)
+// @Description Finds duplicate files based on size and fuzzy filename matching
 // @Tags Duplicates
 // @Accept json
 // @Produce json
 // @Param source query string true "Source name for the desired source"
 // @Param scope query string false "path within user scope to search"
 // @Param minSizeMb query int false "Minimum file size in megabytes (default: 1)"
-// @Param useChecksum query bool false "Use partial MD5 checksum for verification (default: false, uses fuzzy filename matching)"
 // @Success 200 {array} duplicateGroup "List of duplicate file groups"
 // @Failure 400 {object} map[string]string "Bad Request"
 // @Router /api/duplicates [get]
@@ -66,12 +71,32 @@ func duplicatesHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 		return http.StatusBadRequest, fmt.Errorf("index not found for source %s", opts.source)
 	}
 
+	// Generate cache key from all input parameters that affect results
+	cacheKey := fmt.Sprintf("%s:%s:%d:%t", index.Path, opts.combinedPath, opts.minSize, opts.useChecksum)
+
+	// Check cache first (before acquiring mutex)
+	if cachedResults, ok := duplicateResultsCache.Get(cacheKey); ok {
+		return renderJSON(w, r, cachedResults)
+	}
+
+	// Reject concurrent requests
+	if !duplicateSearchMutex.TryLock() {
+		return http.StatusServiceUnavailable, fmt.Errorf("another duplicate search is currently running, please try again in a moment")
+	}
+	defer duplicateSearchMutex.Unlock()
+
+	// Check cache again after acquiring lock (another request might have just completed)
+	if cachedResults, ok := duplicateResultsCache.Get(cacheKey); ok {
+		return renderJSON(w, r, cachedResults)
+	}
+
 	// Get all files using largest=true to bypass text search
 	// We'll filter by minSize ourselves
 	query := fmt.Sprintf("type:largerThan=%d type:file", opts.minSize/(1024*1024))
 
-	// Use largest=true to get files sorted by size, which bypasses the need for text matching
-	allFiles := index.Search(query, opts.combinedPath, "", true)
+	// Use largest=true with limit=0 (unlimited) to get all files for consistent duplicate detection
+	// Empty session ID is fine since searches are serialized by duplicateSearchMutex
+	allFiles := index.Search(query, opts.combinedPath, "", true, 0)
 
 	// Group files by size first (efficient first pass)
 	// Using pointers reduces memory usage significantly when dealing with many files
@@ -131,6 +156,9 @@ func duplicatesHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 		}
 	}
 
+	// Cache the results before returning
+	duplicateResultsCache.Set(cacheKey, duplicateGroups)
+
 	return renderJSON(w, r, duplicateGroups)
 }
 
@@ -138,7 +166,9 @@ func prepDuplicatesOptions(r *http.Request, d *requestContext) (*duplicatesOptio
 	source := r.URL.Query().Get("source")
 	scope := r.URL.Query().Get("scope")
 	minSizeMbStr := r.URL.Query().Get("minSizeMb")
-	useChecksum := r.URL.Query().Get("useChecksum") == "true"
+	// Checksum feature disabled due to performance issues with large file systems
+	// Always use fuzzy filename matching instead
+	useChecksum := false // r.URL.Query().Get("useChecksum") == "true"
 
 	// Default minimum size: 1MB
 	minSizeMb := int64(1)

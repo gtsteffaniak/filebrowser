@@ -367,10 +367,7 @@ body.rtl #listingView {
   border-top: 0;
 }
 
-#listingView.compact .listing-item[aria-selected=true],
-#listingView.list .listing-item[aria-selected=true],
-#listingView.normal .listing-item[aria-selected=true],
-#listingView.icons .listing-item[aria-selected=true] {
+.listing-item[aria-selected=true] {
   background-color: color-mix(in srgb, var(--primaryColor) 85%, transparent) !important;
   color: var(--item-selected) !important;
 }
