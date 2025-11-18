@@ -79,7 +79,7 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		Username: d.user.Username,
 		Path:     utils.JoinPathAsUnix(userscope, path),
 		Source:   source,
-		Metadata: true,
+		AlbumArt: true, // Extract album art for audio previews
 	}, store.Access)
 	if err != nil {
 		return errToStatus(err), err
@@ -138,7 +138,7 @@ func getDirectoryPreview(r *http.Request, d *requestContext, accessStore *access
 				Username: d.user.Username,
 				Path:     path,
 				Source:   source,
-				Metadata: true,
+				AlbumArt: true, // Extract album art for audio previews
 			}, accessStore)
 		if err != nil {
 			lastErr = err
