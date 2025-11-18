@@ -69,7 +69,7 @@
                         :hasPreview="file.hasPreview"
                         :reducedOpacity="false"
                         :displayFullPath="true"
-                        @click.native="handleFileClick($event, file, index, fileIndex)"
+                        @click="handleFileClick($event, file, index, fileIndex)"
                       />
                     </div>
                   </div>
