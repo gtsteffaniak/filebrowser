@@ -65,7 +65,7 @@
                         :size="file.size"
                         :modified="file.modified"
                         :index="getUniqueIndex(index, fileIndex)"
-                        :path="ensureLeadingSlash(file.path)"
+                        :path="getFullPath(file.path)"
                         :hasPreview="file.hasPreview"
                         :reducedOpacity="false"
                         :displayFullPath="true"
@@ -318,6 +318,34 @@ export default {
       // Ensure path starts with / for proper URL generation in ListingItem
       return path.startsWith('/') ? path : '/' + path;
     },
+    getFullPath(filePath) {
+      // Ensure the file path includes the full path from root
+      // If searching in a subpath, the backend may return relative paths
+      const searchPath = this.searchPath || '/';
+      
+      // Normalize search path (ensure trailing slash is removed)
+      const normalizedSearchPath = searchPath === '/' || searchPath === '' 
+        ? '' 
+        : (searchPath.endsWith('/') ? searchPath.slice(0, -1) : searchPath);
+      
+      // Check if the path already includes the search path prefix
+      if (filePath.startsWith(normalizedSearchPath + '/') || 
+          filePath === normalizedSearchPath ||
+          (normalizedSearchPath === '' && filePath.startsWith('/'))) {
+        // Path already has full context, just ensure leading slash
+        return this.ensureLeadingSlash(filePath);
+      }
+      
+      // Path is relative to search path - prepend it
+      if (normalizedSearchPath === '') {
+        // Searching from root
+        return this.ensureLeadingSlash(filePath);
+      }
+      
+      // Remove leading slash from file path if present before combining
+      const cleanFilePath = filePath.startsWith('/') ? filePath.substring(1) : filePath;
+      return normalizedSearchPath + '/' + cleanFilePath;
+    },
     getUniqueIndex(groupIndex, fileIndex) {
       // Create a unique index for each file across all groups
       // This ensures selections work correctly even with multiple groups
@@ -384,8 +412,8 @@ export default {
         path: this.$route.path,
       };
       
-      // Ensure path has leading slash for proper URL generation
-      const filePath = this.ensureLeadingSlash(file.path);
+      // Get the full path including search path context
+      const filePath = this.getFullPath(file.path);
       url.goToItem(this.selectedSource, filePath, previousHistoryItem);
     },
   },
