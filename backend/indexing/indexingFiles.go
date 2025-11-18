@@ -379,19 +379,24 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 			size, shouldCountSize := idx.handleFile(file, fullCombined)
 			itemInfo.DetectType(realPath+"/"+file.Name(), false)
 			// Set HasPreview flags - use cached metadata optimization only when indexing is enabled
+			usedCachedPreview := false
 			if !idx.Config.DisableIndexing && config.Recursive {
 				// Optimization: For audio files during indexing, check if we can use cached album art info
 				simpleType := strings.Split(itemInfo.Type, "/")[0]
 				if simpleType == "audio" {
 					previousInfo, exists := idx.GetReducedMetadata(fullCombined, false)
 					if exists && time.Time.Equal(previousInfo.ModTime, file.ModTime()) {
-						// File unchanged - use cached album art info
+						// File unchanged - use cached album art info (whether true or false)
 						itemInfo.HasPreview = previousInfo.HasPreview
+						usedCachedPreview = true
 					}
 				}
 			}
 			// When indexing is disabled or CheckViewable mode, always check directly
-			setFilePreviewFlags(itemInfo, realPath+"/"+file.Name())
+			// Skip if we already used cached preview data (avoids redundant HasAlbumArt checks)
+			if !usedCachedPreview {
+				setFilePreviewFlags(itemInfo, realPath+"/"+file.Name())
+			}
 			itemInfo.Size = int64(size)
 			// Update parent folder preview status for images, videos, and audio with album art
 			// Use shared function to determine if this file type should bubble up to folder preview
@@ -558,8 +563,9 @@ func setFilePreviewFlags(fileInfo *iteminfo.ItemInfo, realPath string) {
 		fileInfo.HasPreview = settings.CanConvertVideo(ext)
 		return
 	case "audio":
-		ext := strings.TrimPrefix(strings.ToLower(filepath.Ext(fileInfo.Name)), ".")
-		fileInfo.HasPreview = iteminfo.HasAlbumArt(realPath, ext)
+		ext := strings.ToLower(filepath.Ext(fileInfo.Name))
+		hasArt := iteminfo.HasAlbumArt(realPath, ext)
+		fileInfo.HasPreview = hasArt
 		return
 	}
 	// Check for office docs and PDFs
