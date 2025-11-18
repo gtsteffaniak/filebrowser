@@ -25,6 +25,13 @@ var duplicateSearchMutex sync.Mutex
 // duplicateResultsCache caches duplicate search results for 15 seconds
 var duplicateResultsCache = cache.NewCache[[]duplicateGroup](15 * time.Second)
 
+// fileLocation is a minimal reference to a file in the index
+// Used during duplicate detection to avoid allocating full SearchResult objects
+type fileLocation struct {
+	dirPath string // path to directory in index
+	fileIdx int    // index in directory's Files slice
+}
+
 type duplicateGroup struct {
 	Size  int64                    `json:"size"`
 	Count int                      `json:"count"`
@@ -90,34 +97,57 @@ func duplicatesHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 		return renderJSON(w, r, cachedResults)
 	}
 
-	// Get all files using largest=true to bypass text search
-	// We'll filter by minSize ourselves
-	query := fmt.Sprintf("type:largerThan=%d type:file", opts.minSize/(1024*1024))
+	// Find duplicates using index-native approach to minimize memory allocation
+	// This avoids creating SearchResult objects until we know the final limited set
+	duplicateGroups := findDuplicatesInIndex(index, opts)
 
-	// Use largest=true with limit=0 (unlimited) to get all files for consistent duplicate detection
-	// Empty session ID is fine since searches are serialized by duplicateSearchMutex
-	allFiles := index.Search(query, opts.combinedPath, "", true, 0)
+	// Cache the results before returning
+	duplicateResultsCache.Set(cacheKey, duplicateGroups)
 
-	// Group files by size first (efficient first pass)
-	// Using pointers reduces memory usage significantly when dealing with many files
-	sizeGroups := make(map[int64][]*indexing.SearchResult)
-	for _, file := range allFiles {
-		if file.Size >= opts.minSize {
-			sizeGroups[file.Size] = append(sizeGroups[file.Size], file)
+	return renderJSON(w, r, duplicateGroups)
+}
+
+// findDuplicatesInIndex finds duplicates by working directly with index structures
+// This minimizes memory allocation by only creating SearchResult objects for final results
+func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions) []duplicateGroup {
+	const maxTotalFiles = 1000 // Limit total files across all groups
+
+	// Step 1: Group files by size, working directly with index structures
+	// Key: size, Value: list of (dirPath, fileIndex) minimal references
+	sizeGroups := make(map[int64][]fileLocation)
+
+	index.ReadOnlyOperation(func() {
+		for dirPath, dir := range index.GetDirectories() {
+			// Skip directories not in scope
+			if opts.combinedPath != "" && !strings.HasPrefix(dirPath, opts.combinedPath) {
+				continue
+			}
+
+			for i := range dir.Files {
+				file := &dir.Files[i]
+				if file.Size >= opts.minSize {
+					sizeGroups[file.Size] = append(sizeGroups[file.Size], fileLocation{dirPath, i})
+				}
+			}
 		}
-	}
+	})
 
-	// Find duplicates
+	// Step 2: Process each size group to find duplicates
 	duplicateGroups := []duplicateGroup{}
 	totalFiles := 0
+<<<<<<< HEAD
 	const maxTotalFiles = 1000 // Limit total files across all groups to 1000
+=======
+>>>>>>> e72a8fece06a2cbc0261751e78374b907b2e35bc
 
-	for size, files := range sizeGroups {
-		if len(files) < 2 {
-			continue // Skip files with no duplicates
+	for size, locations := range sizeGroups {
+		if len(locations) < 2 {
+			continue // Skip files with no potential duplicates
 		}
 
+		var groups [][]fileLocation
 		if opts.useChecksum {
+<<<<<<< HEAD
 			// Pass the index to get its root path for filesystem access
 			checksumGroups := groupByPartialChecksum(files, index, size)
 			for _, group := range checksumGroups {
@@ -158,16 +188,82 @@ func duplicatesHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 						if file.Path == "" {
 							file.Path = "/"
 						}
+=======
+			groups = groupLocationsByChecksum(locations, index, size)
+		} else {
+			groups = groupLocationsByFilename(locations, index, size)
+		}
+
+		// Step 3: Only now create SearchResult objects for actual duplicates
+		for _, locGroup := range groups {
+			if len(locGroup) < 2 {
+				continue
+			}
+
+			// Check if adding this group would exceed the limit
+			if totalFiles+len(locGroup) > maxTotalFiles {
+				break
+			}
+
+			// Create SearchResult objects only for these confirmed duplicates
+			resultGroup := make([]*indexing.SearchResult, 0, len(locGroup))
+			index.ReadOnlyOperation(func() {
+				dirs := index.GetDirectories()
+				for _, loc := range locGroup {
+					dir := dirs[loc.dirPath]
+					if dir == nil {
+						continue
 					}
-					duplicateGroups = append(duplicateGroups, duplicateGroup{
-						Size:  size,
-						Count: len(group),
-						Files: group,
+					if loc.fileIdx >= len(dir.Files) {
+						continue
+					}
+					file := &dir.Files[loc.fileIdx]
+
+					// CRITICAL: Verify size matches the expected size for this group
+					// Index could have changed between initial grouping and now
+					if file.Size != size {
+						continue
+					}
+
+					// Construct full path
+					fullPath := filepath.Join(loc.dirPath, file.Name)
+
+					// Remove the user scope from path
+					adjustedPath := strings.TrimPrefix(fullPath, opts.combinedPath)
+					if adjustedPath == "" {
+						adjustedPath = "/"
+>>>>>>> e72a8fece06a2cbc0261751e78374b907b2e35bc
+					}
+
+					resultGroup = append(resultGroup, &indexing.SearchResult{
+						Path:       adjustedPath,
+						Type:       file.Type,
+						Size:       file.Size,
+						Modified:   file.ModTime.Format(time.RFC3339),
+						HasPreview: file.HasPreview,
 					})
 					totalFiles += len(group)
 				}
+			})
+
+			if len(resultGroup) >= 2 {
+				duplicateGroups = append(duplicateGroups, duplicateGroup{
+					Size:  size,
+					Count: len(resultGroup),
+					Files: resultGroup,
+				})
+				totalFiles += len(resultGroup)
 			}
 		}
+<<<<<<< HEAD
+
+		// Stop processing more size groups if we've hit the limit
+		if totalFiles >= maxTotalFiles {
+			break
+		}
+	}
+=======
+>>>>>>> e72a8fece06a2cbc0261751e78374b907b2e35bc
 
 		// Stop processing more size groups if we've hit the limit
 		if totalFiles >= maxTotalFiles {
@@ -175,10 +271,7 @@ func duplicatesHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 		}
 	}
 
-	// Cache the results before returning
-	duplicateResultsCache.Set(cacheKey, duplicateGroups)
-
-	return renderJSON(w, r, duplicateGroups)
+	return duplicateGroups
 }
 
 func prepDuplicatesOptions(r *http.Request, d *requestContext) (*duplicatesOptions, error) {
@@ -227,6 +320,7 @@ func prepDuplicatesOptions(r *http.Request, d *requestContext) (*duplicatesOptio
 	}, nil
 }
 
+<<<<<<< HEAD
 // groupByPartialChecksum computes partial MD5 checksums by sampling key portions of files
 // This is much faster than full checksums while providing high accuracy
 // Uses pointers to avoid copying large structs during grouping
@@ -243,13 +337,56 @@ func groupByPartialChecksum(files []*indexing.SearchResult, index *indexing.Inde
 		// index.Path is the absolute filesystem root for this index
 		fullPath := filepath.Join(index.Path, file.Path)
 		checksum, err := computePartialChecksum(fullPath, fileSize)
+=======
+// groupLocationsByChecksum groups file locations by partial checksum
+// Works with minimal fileLocation references instead of full SearchResult objects
+func groupLocationsByChecksum(locations []fileLocation, index *indexing.Index, fileSize int64) [][]fileLocation {
+	checksumMap := make(map[string][]fileLocation)
+
+	// Build checksum groups
+	for _, loc := range locations {
+		// Construct filesystem path for checksum computation
+		// index.Path is the absolute filesystem root, loc.dirPath is index-relative
+		fullPath := filepath.Join(index.Path, loc.dirPath)
+
+		// Get the filename from the index and verify size still matches
+		var fileName string
+		var sizeMatches bool
+		index.ReadOnlyOperation(func() {
+			if dir := index.GetDirectories()[loc.dirPath]; dir != nil {
+				if loc.fileIdx < len(dir.Files) {
+					file := &dir.Files[loc.fileIdx]
+					// CRITICAL: Verify size matches expected size for this group
+					if file.Size == fileSize {
+						fileName = file.Name
+						sizeMatches = true
+					}
+				}
+			}
+		})
+
+		if fileName == "" || !sizeMatches {
+			continue
+		}
+
+		filePath := filepath.Join(fullPath, fileName)
+		checksum, err := computePartialChecksum(filePath, fileSize)
+>>>>>>> e72a8fece06a2cbc0261751e78374b907b2e35bc
 		if err != nil {
 			continue
 		}
-		checksumGroups[checksum] = append(checksumGroups[checksum], file)
+		checksumMap[checksum] = append(checksumMap[checksum], loc)
 	}
 
-	return checksumGroups
+	// Convert map to slice of groups
+	groups := make([][]fileLocation, 0, len(checksumMap))
+	for _, group := range checksumMap {
+		if len(group) >= 2 {
+			groups = append(groups, group)
+		}
+	}
+
+	return groups
 }
 
 // computePartialChecksum calculates MD5 hash by sampling key portions of a file
@@ -303,36 +440,83 @@ func computePartialChecksum(path string, size int64) (string, error) {
 	return fmt.Sprintf("%x", hash.Sum(nil)), nil
 }
 
-// groupByFuzzyFilename groups files with similar filenames
-// Uses fuzzy matching to avoid false positives from size-only matching
-// Uses pointers to avoid copying large structs during grouping
-func groupByFuzzyFilename(files []*indexing.SearchResult, basePath string) [][]*indexing.SearchResult {
-	if len(files) == 0 {
+// groupLocationsByFilename groups file locations by fuzzy filename matching
+// Works with minimal fileLocation references instead of full SearchResult objects
+func groupLocationsByFilename(locations []fileLocation, index *indexing.Index, expectedSize int64) [][]fileLocation {
+	if len(locations) == 0 {
 		return nil
 	}
 
-	groups := [][]*indexing.SearchResult{}
+	// First, fetch all file metadata we need for comparison in a single lock
+	type fileMetadata struct {
+		name string
+		size int64
+	}
+	metadata := make([]fileMetadata, len(locations))
+
+	index.ReadOnlyOperation(func() {
+		dirs := index.GetDirectories()
+		for i, loc := range locations {
+			if dir := dirs[loc.dirPath]; dir != nil {
+				if loc.fileIdx < len(dir.Files) {
+					file := &dir.Files[loc.fileIdx]
+					// CRITICAL: Only include files that match the expected size
+					// Index could have changed since locations were collected
+					if file.Size == expectedSize {
+						metadata[i] = fileMetadata{
+							name: file.Name,
+							size: file.Size,
+						}
+					}
+				}
+			}
+		}
+	})
+
+	// Now group by fuzzy filename matching without holding the lock
+	groups := [][]fileLocation{}
 	used := make(map[int]bool)
 
-	// Compare each file with every other file
-	for i := 0; i < len(files); i++ {
-		if used[i] {
+	for i := 0; i < len(locations); i++ {
+		if used[i] || metadata[i].name == "" {
 			continue
 		}
 
-		group := []*indexing.SearchResult{files[i]}
+		group := []fileLocation{locations[i]}
 		used[i] = true
+<<<<<<< HEAD
 		baseSize := files[i].Size
 
 		baseName1 := filepath.Base(files[i].Path)
 		ext1 := strings.ToLower(filepath.Ext(baseName1))
 		filename1 := normalizeFilename(baseName1)
+=======
+		baseSize := metadata[i].size
 
-		for j := i + 1; j < len(files); j++ {
-			if used[j] {
+		baseName1 := metadata[i].name
+		ext1 := strings.ToLower(filepath.Ext(baseName1))
+		filename1 := normalizeFilename(baseName1)
+
+		for j := i + 1; j < len(locations); j++ {
+			if used[j] || metadata[j].name == "" {
 				continue
 			}
 
+			// CRITICAL: Ensure exact size match
+			if metadata[j].size != baseSize {
+				continue
+			}
+
+			baseName2 := metadata[j].name
+			ext2 := strings.ToLower(filepath.Ext(baseName2))
+>>>>>>> e72a8fece06a2cbc0261751e78374b907b2e35bc
+
+			// CRITICAL: Extensions must match exactly (case-insensitive)
+			if ext1 != ext2 {
+				continue
+			}
+
+<<<<<<< HEAD
 			// CRITICAL: Ensure exact size match - this is a safeguard to prevent
 			// files with different sizes from being grouped together
 			if files[j].Size != baseSize {
@@ -348,11 +532,13 @@ func groupByFuzzyFilename(files []*indexing.SearchResult, basePath string) [][]*
 				continue
 			}
 
+=======
+>>>>>>> e72a8fece06a2cbc0261751e78374b907b2e35bc
 			filename2 := normalizeFilename(baseName2)
 
 			// Check if filenames are similar enough
 			if filenamesSimilar(filename1, filename2) {
-				group = append(group, files[j])
+				group = append(group, locations[j])
 				used[j] = true
 			}
 		}
