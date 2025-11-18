@@ -934,7 +934,7 @@ const docTemplate = `{
         },
         "/api/duplicates": {
             "get": {
-                "description": "Finds duplicate files based on size and verification method (fuzzy filename or partial checksum)",
+                "description": "Finds duplicate files based on size and fuzzy filename matching",
                 "consumes": [
                     "application/json"
                 ],
@@ -963,12 +963,6 @@ const docTemplate = `{
                         "type": "integer",
                         "description": "Minimum file size in megabytes (default: 1)",
                         "name": "minSizeMb",
-                        "in": "query"
-                    },
-                    {
-                        "type": "boolean",
-                        "description": "Use partial MD5 checksum for verification (default: false, uses fuzzy filename matching)",
-                        "name": "useChecksum",
                         "in": "query"
                     }
                 ],

@@ -21,8 +21,9 @@
         <input v-model.number="minSizeValue" type="number" min="0" placeholder="1" class="input" />
         <p class="hint">{{ $t('duplicateFinder.minSizeHint') }}</p>
 
-        <ToggleSwitch v-model="useChecksumsValue" :name="$t('duplicateFinder.useChecksums')"
-          :description="$t('duplicateFinder.useChecksumsDescription')" aria-label="Use checksums toggle" />
+        <!-- Checksum feature disabled due to performance issues with large file systems -->
+        <!-- <ToggleSwitch v-model="useChecksumsValue" :name="$t('duplicateFinder.useChecksums')"
+          :description="$t('duplicateFinder.useChecksumsDescription')" aria-label="Use checksums toggle" /> -->
 
         <button @click="fetchData" class="button" :disabled="loading">
           <i v-if="loading" class="material-icons spin">autorenew</i>
@@ -54,24 +55,22 @@
                       <span class="wasted-space">{{ $t('duplicateFinder.wasted', { suffix: ': ' }) }} {{ humanSize(group.size * (group.count - 1)) }}</span>
                     </div>
                     <div class="group-files">
-                      <div v-for="(file, fileIndex) in group.files" :key="fileIndex"
-                           class="item listing-item clickable"
-                           :class="{ 'last-item': fileIndex === group.files.length - 1 }"
-                           @click="handleFileClick(file)">
-                        <div>
-                          <Icon
-                            :mimetype="file.type"
-                            :filename="getFileName(file.path)"
-                            :hasPreview="true"
-                            :thumbnailUrl="getThumbnailUrl(file)"
-                          />
-                        </div>
-                        <div class="text">
-                          <p class="name">{{ getFileName(file.path) }}</p>
-                          <p class="size">{{ humanSize(file.size) }}</p>
-                          <p class="modified path-text">{{ getFullPath(file.path) }}</p>
-                        </div>
-                      </div>
+                      <ListingItem
+                        v-for="(file, fileIndex) in group.files"
+                        :key="`${index}-${fileIndex}`"
+                        :name="getFileName(file.path)"
+                        :isDir="file.type === 'directory'"
+                        :source="selectedSource"
+                        :type="file.type"
+                        :size="file.size"
+                        :modified="file.modified"
+                        :index="getUniqueIndex(index, fileIndex)"
+                        :path="ensureLeadingSlash(file.path)"
+                        :hasPreview="file.hasPreview"
+                        :reducedOpacity="false"
+                        :displayFullPath="true"
+                        @click.native="handleFileClick($event, file, index, fileIndex)"
+                      />
                     </div>
                   </div>
                 </div>
@@ -88,21 +87,16 @@
 
 <script>
 import { findDuplicates } from "@/api/search";
-import { filesApi } from "@/api";
 import { state, mutations } from "@/store";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
-import { getTypeInfo } from "@/utils/mimetype";
-import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import { eventBus } from "@/store/eventBus";
-import Icon from "@/components/files/Icon.vue";
-import { globalVars } from "@/utils/constants";
+import ListingItem from "@/components/files/ListingItem.vue";
 import * as url from "@/utils/url";
 
 export default {
   name: "DuplicateFinder",
   components: {
-    ToggleSwitch,
-    Icon,
+    ListingItem,
   },
   props: {
     path: {
@@ -127,16 +121,22 @@ export default {
       searchPath: "/",
       selectedSource: "",
       minSizeValue: 1,
-      useChecksumsValue: false,
+      useChecksumsValue: false, // Always false - checksum feature disabled for performance
       loading: false,
       error: null,
       duplicateGroups: [],
       isInitializing: true,
+      lastRequestTime: 0, // Track last request to prevent rapid-fire
+      clickTracker: {}, // Track clicks for double-click detection
     };
   },
   computed: {
     sourceInfo() {
       return state.sources.info || {};
+    },
+    selectedIndexes() {
+      // Force reactivity by accessing state.selected
+      return state.selected;
     },
     totalWastedSpace() {
       return this.duplicateGroups.reduce((sum, group) => {
@@ -158,11 +158,6 @@ export default {
       }
     },
     minSizeValue() {
-      if (!this.isInitializing) {
-        this.updateUrl();
-      }
-    },
-    useChecksumsValue() {
       if (!this.isInitializing) {
         this.updateUrl();
       }
@@ -213,17 +208,32 @@ export default {
       mutations.closeHovers();
     },
     async fetchData() {
+      // Prevent rapid-fire requests - require at least 1 second between requests
+      const now = Date.now();
+      if (this.loading) {
+        return; // Already loading
+      }
+      if (now - this.lastRequestTime < 1000) {
+        console.log("Duplicate search throttled - please wait before searching again");
+        return;
+      }
+
       this.loading = true;
       this.error = null;
+      this.lastRequestTime = now;
 
       try {
         // API now expects minSizeMb directly (in megabytes)
+        // Always use false for checksums due to performance issues
         this.duplicateGroups = await findDuplicates(
           this.searchPath,
           this.selectedSource,
           this.minSizeValue,
-          this.useChecksumsValue
+          false // Checksum disabled
         );
+        
+        // Reset selection when new results arrive
+        mutations.resetSelected();
       } catch (err) {
         this.error = err.message || "Failed to find duplicates";
         this.duplicateGroups = [];
@@ -255,12 +265,7 @@ export default {
         this.minSizeValue = this.minSize;
       }
 
-      if (query.useChecksums !== undefined && query.useChecksums !== null) {
-        const value = String(query.useChecksums);
-        this.useChecksumsValue = value === 'true' || value === '1';
-      } else if (this.useChecksums !== undefined) {
-        this.useChecksumsValue = this.useChecksums;
-      }
+      // Checksum feature removed - always false
     },
     updateUrl() {
       this.$nextTick(() => {
@@ -278,9 +283,7 @@ export default {
           query.minSize = String(this.minSizeValue);
         }
 
-        if (this.useChecksumsValue) {
-          query.useChecksums = 'true';
-        }
+        // Checksum feature removed
 
         const newQueryString = new URLSearchParams(query).toString();
         const currentQuery = this.$route.query || {};
@@ -304,84 +307,87 @@ export default {
     humanSize(size) {
       return getHumanReadableFilesize(size);
     },
-    getFullPath(itemPath) {
-      let basePath = this.searchPath || "/";
-
-      if (basePath !== "/" && !basePath.endsWith("/")) {
-        basePath += "/";
-      }
-
-      let relativePath = itemPath.startsWith("/") ? itemPath.slice(1) : itemPath;
-
-      let fullPath = basePath === "/" ? "/" + relativePath : basePath + relativePath;
-
-      fullPath = fullPath.replace(/\/+/g, "/");
-      if (!fullPath.startsWith("/")) {
-        fullPath = "/" + fullPath;
-      }
-
-      return fullPath;
-    },
-    handleFileClick(file) {
-      const previousHistoryItem = {
-        name: "Duplicate Finder",
-        source: this.selectedSource,
-        path: this.$route.path,
-      };
-      url.goToItem(this.selectedSource, file.path, previousHistoryItem);
-    },
-    canHavePreview(mimetype) {
-      // Check if this file type can have a preview/thumbnail
-      const typeInfo = getTypeInfo(mimetype);
-      const simpleType = typeInfo.simpleType;
-      
-      // Only these types can have previews
-      return simpleType === 'image' || 
-             simpleType === 'video' || 
-             simpleType === 'document' || 
-             simpleType === 'text' ||
-             simpleType === 'directory';
-    },
-    getFileIcon(type) {
-      const typeInfo = getTypeInfo(type);
-      const iconMap = {
-        "video": "movie",
-        "image": "image",
-        "audio": "audiotrack",
-        "archive": "archive",
-        "pdf": "picture_as_pdf",
-        "document": "description",
-        "text": "description",
-        "binary": "settings",
-        "font": "font_download",
-      };
-      return iconMap[typeInfo.simpleType] || "insert_drive_file";
-    },
     getGroupSizeText(group) {
       return `${this.humanSize(group.size)} × ${group.count} = ${this.humanSize(group.size * group.count)}`;
-    },
-    getFileMetaText(file) {
-      return `${this.humanSize(file.size)} • ${file.type}`;
     },
     getFileName(path) {
       const parts = path.split("/").filter(p => p);
       return parts[parts.length - 1] || path;
     },
-        getThumbnailUrl(file) {
-          if (!globalVars.enableThumbs) {
-            return "";
+    ensureLeadingSlash(path) {
+      // Ensure path starts with / for proper URL generation in ListingItem
+      return path.startsWith('/') ? path : '/' + path;
+    },
+    getUniqueIndex(groupIndex, fileIndex) {
+      // Create a unique index for each file across all groups
+      // This ensures selections work correctly even with multiple groups
+      return groupIndex * 1000 + fileIndex;
+    },
+    handleFileClick(event, file, groupIndex, fileIndex) {
+      // Prevent default ListingItem navigation since state.req isn't populated
+      event.preventDefault();
+      event.stopPropagation();
+      
+      // Respect single-click vs double-click setting
+      if (event.button === 0) {
+        const quickNav = state.user.singleClick && !state.multiple;
+        
+        if (quickNav) {
+          // Single-click navigation enabled - go immediately
+          this.navigateToFile(file);
+        } else {
+          // Double-click navigation - select on first click, navigate on second
+          
+          // First click always selects the item using state.selected for proper CSS styling
+          const uniqueIndex = this.getUniqueIndex(groupIndex, fileIndex);
+          mutations.resetSelected();
+          mutations.addSelected(uniqueIndex);
+          
+          // Track clicks for double-click detection
+          if (!this.clickTracker) {
+            this.clickTracker = {};
           }
-
-          // Don't generate URLs for files that can't have previews
-          if (!this.canHavePreview(file.type)) {
-            return "";
+          
+          const fileKey = file.path;
+          if (!this.clickTracker[fileKey]) {
+            this.clickTracker[fileKey] = { count: 0, timeout: null };
           }
-
-          // Use file.path directly - getPreviewURL expects path relative to source
-          // Don't use getFullPath which adds the source prefix
-          const url = filesApi.getPreviewURL(this.selectedSource, file.path, file.modified || new Date().toISOString());
-          return url;
-        },
+          
+          const tracker = this.clickTracker[fileKey];
+          tracker.count++;
+          
+          if (tracker.count >= 2) {
+            // Double-click detected - navigate
+            this.navigateToFile(file);
+            tracker.count = 0;
+            if (tracker.timeout) {
+              clearTimeout(tracker.timeout);
+              tracker.timeout = null;
+            }
+          } else {
+            // First click - wait for potential second click
+            if (tracker.timeout) {
+              clearTimeout(tracker.timeout);
+            }
+            tracker.timeout = setTimeout(() => {
+              tracker.count = 0;
+              tracker.timeout = null;
+            }, 500);
+          }
+        }
+      }
+    },
+    navigateToFile(file) {
+      const previousHistoryItem = {
+        name: "Duplicate Finder",
+        source: this.selectedSource,
+        path: this.$route.path,
+      };
+      
+      // Ensure path has leading slash for proper URL generation
+      const filePath = this.ensureLeadingSlash(file.path);
+      url.goToItem(this.selectedSource, filePath, previousHistoryItem);
+    },
   },
 };
 </script>

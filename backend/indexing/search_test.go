@@ -24,7 +24,7 @@ func BenchmarkSearchAllIndexes(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		// Execute the SearchAllIndexes function
 		for _, term := range searchTerms {
-			idx.Search(term, "/", "test", false)
+			idx.Search(term, "/", "test", false, DefaultSearchResults)
 		}
 	}
 }
@@ -84,7 +84,7 @@ func TestSearchWhileIndexing(t *testing.T) {
 	for i := 0; i < 5; i++ {
 		go idx.CreateMockData(100, 100) // Creating mock data concurrently
 		for _, term := range searchTerms {
-			go idx.Search(term, "/", "test", false) // Search concurrently
+			go idx.Search(term, "/", "test", false, DefaultSearchResults) // Search concurrently
 		}
 	}
 }
@@ -292,7 +292,7 @@ func TestSearchIndexes(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.search, func(t *testing.T) {
-			result := index.Search(tt.search, tt.scope, "", false)
+			result := index.Search(tt.search, tt.scope, "", false, DefaultSearchResults)
 			// Convert results to comparable format (without Modified field)
 			expected := make([]SearchResult, len(tt.expectedResult))
 			for i, r := range tt.expectedResult {
@@ -338,7 +338,7 @@ func TestSearchLargestModeExcludesRoot(t *testing.T) {
 	}
 
 	// Test that when largest=true and scope="/", the root directory "/" is NOT included
-	result := index.Search("", "/", "test-session", true)
+	result := index.Search("", "/", "test-session", true, DefaultSearchResults)
 
 	// Verify that "/" is NOT in the results
 	rootFound := false
@@ -388,7 +388,7 @@ func TestSearchLargestModeExcludesScopeDirectory(t *testing.T) {
 	}
 
 	// Test that when largest=true and scope="/test/", the scope directory "/test/" is NOT included
-	result := index.Search("", "/test/", "test-session", true)
+	result := index.Search("", "/test/", "test-session", true, DefaultSearchResults)
 
 	// Verify that "/test/" is NOT in the results
 	scopeDirFound := false

@@ -545,38 +545,33 @@ func isHidden(file os.FileInfo, srcPath string) bool {
 // This consolidates the logic used in both GetFsDirInfo and GetDirInfo
 func setFilePreviewFlags(fileInfo *iteminfo.ItemInfo, realPath string) {
 	simpleType := strings.Split(fileInfo.Type, "/")[0]
-	ext := strings.ToLower(filepath.Ext(fileInfo.Name))
-	extWithoutPeriod := strings.TrimPrefix(ext, ".")
-
-	// Check if it's an image
-	if simpleType == "image" {
-		fileInfo.HasPreview = true
-	}
-
 	// Check for HEIC/HEIF
-	switch extWithoutPeriod {
-	case "heic", "heif":
-		if settings.CanConvertImage(extWithoutPeriod) {
-			fileInfo.HasPreview = true
-		}
+	switch simpleType {
+	case "image/heic", "image/heif":
+		fileInfo.HasPreview = settings.CanConvertImage("heic")
+		return
 	}
-
-	// Check if it's a video
-	if simpleType == "video" && settings.CanConvertVideo(extWithoutPeriod) {
+	switch simpleType {
+	case "image":
 		fileInfo.HasPreview = true
-	}
-
-	// Check for audio with album art (always check, don't rely on cache)
-	if simpleType == "audio" {
+		return
+	case "video":
+		ext := strings.TrimPrefix(strings.ToLower(filepath.Ext(fileInfo.Name)), ".")
+		fileInfo.HasPreview = settings.CanConvertVideo(ext)
+		return
+	case "audio":
+		ext := strings.TrimPrefix(strings.ToLower(filepath.Ext(fileInfo.Name)), ".")
 		fileInfo.HasPreview = iteminfo.HasAlbumArt(realPath, ext)
+		return
 	}
-
 	// Check for office docs and PDFs
 	if settings.Config.Integrations.OnlyOffice.Secret != "" && iteminfo.IsOnlyOffice(fileInfo.Name) {
 		fileInfo.HasPreview = true
+		return
 	}
 	if iteminfo.HasDocConvertableExtension(fileInfo.Name, fileInfo.Type) {
 		fileInfo.HasPreview = true
+		return
 	}
 }
 
