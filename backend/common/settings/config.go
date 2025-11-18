@@ -53,7 +53,7 @@ func Initialize(configFile string) {
 	setupSources(false)
 	setupUrls()
 	setupFrontend(false)
-	setupVideoPreview()
+	setupMedia()
 }
 
 func setupServer() {
@@ -158,7 +158,7 @@ func setupFrontend(generate bool) {
 	loadCustomFavicon()
 }
 
-func setupVideoPreview() {
+func setupMedia() {
 	// If VideoPreview is not initialized, initialize with all types enabled
 	if Config.Integrations.Media.Convert.VideoPreview == nil {
 		Config.Integrations.Media.Convert.VideoPreview = make(map[VideoPreviewType]bool)
@@ -555,7 +555,7 @@ func setDefaults(generate bool) Settings {
 		},
 
 		UserDefaults: UserDefaults{
-			DisableOnlyOfficeExt: ".md .txt .pdf",
+			DisableOnlyOfficeExt: ".md .txt .pdf .html .xml",
 			StickySidebar:        true,
 			LockPassword:         false,
 			ShowHidden:           false,

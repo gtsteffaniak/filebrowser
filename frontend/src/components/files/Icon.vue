@@ -299,7 +299,6 @@ export default {
         if (this.disablePreviewExt || this.officeFileDisabled) {
           return;
         }
-        
         // All checks passed, load the image
         this.loadImage(newSrc);
       },

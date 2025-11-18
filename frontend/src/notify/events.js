@@ -22,10 +22,6 @@ async function updateSourceInfo () {
 function cleanup () {
   if (eventSrc) {
     isManuallyClosed = true
-    if (!hasShownShutdownMessage) {
-      notify.showErrorToast(i18n.global.t('events.serverShutdown'))
-      hasShownShutdownMessage = true
-    }
     eventSrc.close()
     eventSrc = null
   }
@@ -161,6 +157,10 @@ async function eventRouter (eventType, message) {
   switch (eventType) {
     case 'notification':
       if (message === 'the server is shutting down') {
+        if (!hasShownShutdownMessage) {
+          notify.showErrorToast(i18n.global.t('events.serverShutdown'))
+          hasShownShutdownMessage = true
+        }
         mutations.setRealtimeActive(false)
         cleanup()
         scheduleReconnect()

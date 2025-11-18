@@ -253,7 +253,10 @@ export default {
       dragOverIndex: null,
       linkItemRefs: {},
       originalLinks: null, // Store original order in case drag is cancelled
-      availableTools: tools(), // Call the function to get the tools array
+      availableTools: [
+        { name: 'tools.title', path: '/tools', icon: 'build' }, // Main tools page
+        ...tools() // Individual tools
+      ],
       availableShares: [],
       editingIndex: null,
       isSelectingPath: false,

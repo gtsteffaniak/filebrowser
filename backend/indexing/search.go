@@ -15,18 +15,19 @@ import (
 var SearchResultsCache = cache.NewCache[[]string](15 * time.Second)
 
 var (
-	sessionInProgress sync.Map
-	maxSearchResults  = 100
+	sessionInProgress    sync.Map
+	DefaultSearchResults = 100
 )
 
 type SearchResult struct {
-	Path     string `json:"path"`
-	Type     string `json:"type"`
-	Size     int64  `json:"size"`
-	Modified string `json:"modified,omitempty"`
+	Path       string `json:"path"`
+	Type       string `json:"type"`
+	Size       int64  `json:"size"`
+	Modified   string `json:"modified,omitempty"`
+	HasPreview bool   `json:"hasPreview"`
 }
 
-func (idx *Index) Search(search string, scope string, sourceSession string, largest bool) []*SearchResult {
+func (idx *Index) Search(search string, scope string, sourceSession string, largest bool, limit int) []*SearchResult {
 	// Ensure scope has consistent trailing slash for directory matching
 	if scope != "" && !strings.HasSuffix(scope, "/") {
 		scope = scope + "/"
@@ -56,7 +57,7 @@ func (idx *Index) Search(search string, scope string, sourceSession string, larg
 		if searchTerm == "" && !largest {
 			continue
 		}
-		if count >= maxSearchResults {
+		if limit > 0 && count >= limit {
 			break
 		}
 		idx.mu.Lock()
@@ -65,7 +66,7 @@ func (idx *Index) Search(search string, scope string, sourceSession string, larg
 			if !found {
 				continue
 			}
-			if count >= maxSearchResults {
+			if limit > 0 && count >= limit {
 				break
 			}
 			// Skip the scope directory itself when largest=true (only search sub-items)
@@ -89,10 +90,11 @@ func (idx *Index) Search(search string, scope string, sourceSession string, larg
 				}
 				if matches {
 					results[dirName] = &SearchResult{
-						Path:     dirName,
-						Type:     "directory",
-						Size:     dir.Size,
-						Modified: dir.ModTime.Format(time.RFC3339),
+						Path:       dirName,
+						Type:       "directory",
+						Size:       dir.Size,
+						Modified:   dir.ModTime.Format(time.RFC3339),
+						HasPreview: dir.HasPreview,
 					}
 					count++
 				}
@@ -105,7 +107,7 @@ func (idx *Index) Search(search string, scope string, sourceSession string, larg
 					idx.mu.Unlock()
 					return []*SearchResult{}
 				}
-				if count >= maxSearchResults {
+				if limit > 0 && count >= limit {
 					break
 				}
 				var matches bool
@@ -123,10 +125,11 @@ func (idx *Index) Search(search string, scope string, sourceSession string, larg
 				}
 				if matches {
 					results[fullPath] = &SearchResult{
-						Path:     fullPath,
-						Type:     item.Type,
-						Size:     item.Size,
-						Modified: item.ModTime.Format(time.RFC3339),
+						Path:       fullPath,
+						Type:       item.Type,
+						Size:       item.Size,
+						Modified:   item.ModTime.Format(time.RFC3339),
+						HasPreview: item.HasPreview,
 					}
 					count++
 				}
