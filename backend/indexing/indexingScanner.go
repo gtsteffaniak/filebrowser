@@ -135,7 +135,6 @@ func (s *Scanner) tryAcquireAndScan() {
 
 		// If we've scanned more recently than the root, skip this cycle
 		if !myLastScan.IsZero() && myLastScan.After(lastRootScan) {
-			logger.Debugf("Scanner [%s] waiting for root scanner to go first", s.scanPath)
 			return
 		}
 	}

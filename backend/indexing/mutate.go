@@ -163,6 +163,20 @@ func GetIndex(name string) *Index {
 	return index
 }
 
+// ReadOnlyOperation executes a function with read-only access to the index
+// This provides a safe way to access index data without exposing internal structures
+func (idx *Index) ReadOnlyOperation(fn func()) {
+	idx.mu.RLock()
+	defer idx.mu.RUnlock()
+	fn()
+}
+
+// GetDirectories returns the directories map for read-only access
+// Should only be called within ReadOnlyOperation
+func (idx *Index) GetDirectories() map[string]*iteminfo.FileInfo {
+	return idx.Directories
+}
+
 func GetIndexInfo(sourceName string) (ReducedIndex, error) {
 	idx, ok := indexes[sourceName]
 	if !ok {

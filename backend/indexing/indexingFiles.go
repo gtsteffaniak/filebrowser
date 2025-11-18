@@ -392,9 +392,7 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 			}
 			// When indexing is disabled or CheckViewable mode, always check directly
 			setFilePreviewFlags(itemInfo, realPath+"/"+file.Name())
-
 			itemInfo.Size = int64(size)
-
 			// Update parent folder preview status for images, videos, and audio with album art
 			// Use shared function to determine if this file type should bubble up to folder preview
 			if itemInfo.HasPreview && iteminfo.ShouldBubbleUpToFolderPreview(*itemInfo) {
@@ -546,7 +544,7 @@ func isHidden(file os.FileInfo, srcPath string) bool {
 func setFilePreviewFlags(fileInfo *iteminfo.ItemInfo, realPath string) {
 	simpleType := strings.Split(fileInfo.Type, "/")[0]
 	// Check for HEIC/HEIF
-	switch simpleType {
+	switch fileInfo.Type {
 	case "image/heic", "image/heif":
 		fileInfo.HasPreview = settings.CanConvertImage("heic")
 		return
