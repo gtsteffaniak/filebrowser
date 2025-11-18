@@ -206,9 +206,9 @@ export default {
         const currentSource = this.$refs.fileList.source;
         const fullPath = currentPath.endsWith('/') ? currentPath + this.newDirName + '/' : currentPath + '/' + this.newDirName + '/';
         if (getters.isShare()) {
-          await publicApi.post(state.shareInfo?.hash, fullPath, "", false);
+          await publicApi.post(state.shareInfo?.hash, fullPath, "", false, undefined, {}, true);
         } else {
-          await filesApi.post(currentSource, fullPath, "", false);
+          await filesApi.post(currentSource, fullPath, "", false, undefined, {}, true);
         }
         // Refresh the file list while keeping the current navigation that we did in the prompt
         if (getters.isShare()) {

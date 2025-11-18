@@ -70,12 +70,12 @@ export default {
         const source = state.req.source;
 
         if (getters.isShare()) {
-          await publicApi.post(state.shareInfo?.hash, newPath, "", overwrite);
+          await publicApi.post(state.shareInfo?.hash, newPath, "", overwrite, undefined, {}, true);
           mutations.setReload(true);
           mutations.closeHovers();
           return;
         }
-        await filesApi.post(source, newPath, "", overwrite);
+        await filesApi.post(source, newPath, "", overwrite, undefined, {}, true);
         mutations.setReload(true);
         mutations.closeHovers();
 
@@ -114,13 +114,13 @@ export default {
                       const source = state.req.source;
 
                       if (getters.isShare()) {
-                        await publicApi.post(state.shareInfo?.hash, newPath, "", false);
+                        await publicApi.post(state.shareInfo?.hash, newPath, "", false, undefined, {}, true);
                         mutations.setReload(true);
                         mutations.closeHovers();
                         success = true;
                         return;
                       }
-                      await filesApi.post(source, newPath, "", false);
+                      await filesApi.post(source, newPath, "", false, undefined, {}, true);
                       mutations.setReload(true);
                       mutations.closeHovers();
                       success = true;
