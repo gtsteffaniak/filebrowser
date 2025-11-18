@@ -21,6 +21,11 @@ gif
 tiff
 bmp
 heic
+webp
+pbm
+pgm
+ppm
+pam
 )
 */
 type Format int
@@ -39,6 +44,16 @@ func (x Format) toImaging() imaging.Format {
 		return imaging.BMP
 	case FormatHeic:
 		return imaging.JPEG
+	case FormatWebp:
+		return imaging.WEBP
+	case FormatPbm:
+		return imaging.PBM
+	case FormatPgm:
+		return imaging.PGM
+	case FormatPpm:
+		return imaging.PPM
+	case FormatPam:
+		return imaging.PAM
 	default:
 		return imaging.JPEG
 	}
@@ -96,6 +111,16 @@ func (s *Service) FormatFromExtension(ext string) (Format, error) {
 		return FormatTiff, nil
 	case imaging.BMP:
 		return FormatBmp, nil
+	case imaging.WEBP:
+		return FormatWebp, nil
+	case imaging.PBM:
+		return FormatPbm, nil
+	case imaging.PGM:
+		return FormatPgm, nil
+	case imaging.PPM:
+		return FormatPpm, nil
+	case imaging.PAM:
+		return FormatPam, nil
 	default:
 		return -1, ErrUnsupportedFormat
 	}
@@ -166,9 +191,25 @@ func (s *Service) Resize(in io.Reader, width, height int, out io.Writer, options
 	}
 
 	// For HEIC files, try without AutoOrientation first since it might not work properly
+	// Try decoding with default settings (auto color space conversion)
 	img, err := imaging.Decode(wrappedReader)
 	if err != nil {
-		return fmt.Errorf("failed to decode image: %w", err)
+		// If decoding fails due to ICC profile issues (e.g., unsupported grayscale colorspace),
+		// retry with color space conversion disabled
+		if bytes.Contains([]byte(err.Error()), []byte("colorspace")) ||
+			bytes.Contains([]byte(err.Error()), []byte("ICC profile")) {
+			// Reset reader to beginning
+			if seeker, ok := wrappedReader.(io.Seeker); ok {
+				_, _ = seeker.Seek(0, io.SeekStart)
+			}
+			// Try again without color space conversion
+			img, err = imaging.Decode(wrappedReader, imaging.ColorSpace(imaging.NO_CHANGE_OF_COLORSPACE))
+			if err != nil {
+				return fmt.Errorf("failed to decode image: %w", err)
+			}
+		} else {
+			return fmt.Errorf("failed to decode image: %w", err)
+		}
 	}
 
 	// Note: For HEIC files processed via FFmpeg, orientation is handled automatically
