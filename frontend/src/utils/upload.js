@@ -55,9 +55,9 @@ class UploadManager {
               try {
                 const testPath = `${basePath}${dirName}`;
                 if (getters.isShare()) {
-                  await publicApi.post(state.shareInfo?.hash, testPath, new Blob([]), false);
+                  await publicApi.post(state.shareInfo?.hash, testPath, new Blob([]), false, undefined, {}, true);
                 } else {
-                  await filesApi.post(state.req?.source, testPath, new Blob([]), false);
+                  await filesApi.post(state.req?.source, testPath, new Blob([]), false, undefined, {}, true);
                 }
                 // No conflict - directory was created successfully
                 // Mark it so we can skip it later in the queue
@@ -257,9 +257,9 @@ class UploadManager {
 
     try {
       if (getters.isShare()) {
-        await publicApi.post(state.shareInfo?.hash, upload.path, new Blob([]), upload.overwrite);
+        await publicApi.post(state.shareInfo?.hash, upload.path, new Blob([]), upload.overwrite, undefined, {}, true);
       } else {
-        await filesApi.post(upload.source, upload.path, new Blob([]), upload.overwrite);
+        await filesApi.post(upload.source, upload.path, new Blob([]), upload.overwrite, undefined, {}, true);
       }
 
       upload.status = "completed";

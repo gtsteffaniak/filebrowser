@@ -117,7 +117,8 @@ export function post(
   content = "",
   overwrite = false,
   onupload,
-  headers = {}
+  headers = {},
+  isDir = false
 ) {
   if (!source || source === undefined || source === null) {
     throw new Error('no source provided')
@@ -127,6 +128,7 @@ export function post(
       path: doubleEncode(path),
       source: doubleEncode(source),
       override: overwrite,
+      ...(isDir && { isDir: 'true' })
     });
 
     const request = new XMLHttpRequest();

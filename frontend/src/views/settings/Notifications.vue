@@ -223,6 +223,8 @@ export default {
   padding: 1em;
   flex: 1;
   word-wrap: break-word;
+  user-select: text;
+  cursor: text;
 }
 
 .notification-icon {
@@ -269,16 +271,22 @@ export default {
   padding: 0.5em 1em;
   font-size: 0.875em;
   color: var(--textSecondary);
+  user-select: text;
+  cursor: text;
 }
 
 .notification-time {
   color: var(--textSecondary);
+  user-select: text;
+  cursor: text;
 }
 
 .notification-type {
   text-transform: uppercase;
   font-weight: 500;
   color: var(--textSecondary);
+  user-select: text;
+  cursor: text;
 }
 
 .clear-button {

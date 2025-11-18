@@ -85,7 +85,7 @@ const actions = {
       context.commit("moveJob");
 
       if (item.file.type == "directory") {
-        await filesApi.post(item.source, item.path);
+        await filesApi.post(item.source, item.path, "", false, undefined, {}, true);
       } else {
         let onUpload = throttle(
           (event) =>

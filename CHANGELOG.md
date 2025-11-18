@@ -46,6 +46,7 @@ All notable changes to this project will be documented in this file. For commit 
  - uploading/editing/saving to password protected shares error
  - updating a share with password protection without a password removed the password.
  - per-user download counts were not persistant accross restarts
+ - "Update" button in Chinese wraps incorrectely #1542
 
 ## v1.0.1-stable
 

@@ -1509,6 +1509,12 @@ const docTemplate = `{
                         "description": "Override existing file if true",
                         "name": "override",
                         "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Explicitly specify if the resource is a directory",
+                        "name": "isDir",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -4056,6 +4062,10 @@ const docTemplate = `{
                 "debugOffice": {
                     "description": "debug onlyoffice editor",
                     "type": "boolean"
+                },
+                "defaultLandingPage": {
+                    "description": "deprecated: determined by sidebar link order since 1.1.0",
+                    "type": "string"
                 },
                 "deleteWithoutConfirming": {
                     "description": "delete files without confirmation",

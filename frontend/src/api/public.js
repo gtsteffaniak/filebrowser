@@ -112,7 +112,8 @@ export function post(
   content = "",
   overwrite = false,
   onupload,
-  headers = {}
+  headers = {},
+  isDir = false
 ) {
   if (!hash || hash === undefined || hash === null) {
     throw new Error('no hash provided')
@@ -126,6 +127,7 @@ export function post(
       targetPath: doubleEncode(path),
       hash: hash,
       override: overwrite,
+      ...(isDir && { isDir: 'true' })
     });
 
     const request = new XMLHttpRequest();
