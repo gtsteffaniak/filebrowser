@@ -7,7 +7,7 @@
     <p>{{ $t("prompts.renameMessage") }}</p>
 
     <div v-if="item.type !== 'directory'" class="filename-inputs">
-      <input class="input" :class="{ 'form-invalid': !validation.valid }" v-focus type="text" @keyup.enter="submit"
+      <input class="input filename-input" :class="{ 'form-invalid': !validation.valid }" v-focus type="text" @keyup.enter="submit"
         v-model.trim="fileName" @input="updateFullName" />
       <span class="extension-separator">.</span> <!--eslint-disable-line @intlify/vue-i18n/no-raw-text-->
       <input class="input extension-input" type="text" @keyup.enter="submit" v-model.trim="fileExtension"
@@ -126,9 +126,7 @@ export default {
       for (const item of state.req.items) {
         if (item.path === this.item.path) continue;
         if (item.name.toLowerCase() === value.toLowerCase()) {
-          if (isFolder === (item.type === "directory")) {
-            return { valid: false, reason: 'conflict' };
-          }
+          return { valid: false, reason: 'conflict' };
         }
       }
 
