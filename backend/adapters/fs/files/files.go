@@ -309,32 +309,9 @@ func DeleteFiles(source, absPath string, absDirPath string, isDir bool) error {
 	}
 
 	if !index.Config.DisableIndexing {
-		// BEFORE deletion: Capture the size of what we're about to delete for parent size updates
 		indexPath := index.MakeIndexPath(absPath)
-		var deletedSize int64
 
-		if isDir {
-			// For directories, get the total size from index metadata
-			dirInfo, exists := index.GetMetadataInfo(indexPath, true)
-			if exists {
-				deletedSize = dirInfo.Size
-			}
-		} else {
-			// For files, get the file size from parent directory
-			parentIndexPath := index.MakeIndexPath(absDirPath)
-			parentInfo, exists := index.GetMetadataInfo(parentIndexPath, true)
-			if exists {
-				fileName := filepath.Base(absPath)
-				for _, file := range parentInfo.Files {
-					if file.Name == fileName {
-						deletedSize = file.Size
-						break
-					}
-				}
-			}
-		}
-
-		// Now perform the physical deletion
+		// Perform the physical deletion
 		err := os.RemoveAll(absPath)
 		if err != nil {
 			return err
@@ -349,20 +326,8 @@ func DeleteFiles(source, absPath string, absDirPath string, isDir bool) error {
 			index.DeleteMetadata(indexPath, false, false)
 		}
 
-		// Update parent directory sizes recursively up the tree
-		if deletedSize > 0 {
-			// Create a virtual FileInfo representing the deleted item (size=0)
-			// RecursiveUpdateDirSizes will calculate: sizeDelta = 0 - deletedSize = -deletedSize
-			deletedItem := &iteminfo.FileInfo{
-				Path: indexPath,
-				ItemInfo: iteminfo.ItemInfo{
-					Size: 0, // Item is deleted, so new size is 0
-				},
-			}
-			index.RecursiveUpdateDirSizes(deletedItem, deletedSize)
-		}
-
-		// Refresh the parent directory to update counts and metadata
+		// Refresh the parent directory to recalculate sizes and update counts
+		// This will traverse up the tree and update all parent sizes correctly
 		refreshConfig := utils.FileOptions{
 			Path:  index.MakeIndexPath(absDirPath),
 			IsDir: true,
@@ -465,33 +430,9 @@ func MoveResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string
 		return fmt.Errorf("could not get destination index: %v", destIndex)
 	}
 
-	// BEFORE moving: Capture source metadata for size updates
-	var srcSize int64
+	// Prepare paths for index operations
 	srcIndexPath := srcIdx.MakeIndexPath(realsrc)
 	srcParentPath := filepath.Dir(realsrc)
-
-	if !srcIdx.Config.DisableIndexing {
-		if isSrcDir {
-			// For directories, get the total size from index metadata
-			dirInfo, exists := srcIdx.GetMetadataInfo(srcIndexPath, true)
-			if exists {
-				srcSize = dirInfo.Size
-			}
-		} else {
-			// For files, get the file size from parent directory
-			parentIndexPath := srcIdx.MakeIndexPath(srcParentPath)
-			parentInfo, exists := srcIdx.GetMetadataInfo(parentIndexPath, true)
-			if exists {
-				fileName := filepath.Base(realsrc)
-				for _, file := range parentInfo.Files {
-					if file.Name == fileName {
-						srcSize = file.Size
-						break
-					}
-				}
-			}
-		}
-	}
 
 	// Perform the physical move
 	err := fileutils.MoveFile(realsrc, realdst)
@@ -510,22 +451,7 @@ func MoveResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string
 			srcIdx.DeleteMetadata(srcIndexPath, false, false)
 		}
 
-		// Update source parent directory sizes recursively up the tree
-		if srcSize > 0 {
-			go func() {
-				// Create a virtual FileInfo representing the moved item (size=0 at source)
-				// RecursiveUpdateDirSizes will calculate: sizeDelta = 0 - srcSize = -srcSize
-				movedItem := &iteminfo.FileInfo{
-					Path: srcIndexPath,
-					ItemInfo: iteminfo.ItemInfo{
-						Size: 0, // Item is moved away, so new size at source is 0
-					},
-				}
-				srcIdx.RecursiveUpdateDirSizes(movedItem, srcSize)
-			}()
-		}
-
-		// Refresh the source parent directory to update counts
+		// Refresh the source parent directory to recalculate sizes and update counts
 		go RefreshIndex(sourceIndex, srcParentPath, true, false) //nolint:errcheck
 	}
 
