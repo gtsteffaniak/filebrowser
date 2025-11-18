@@ -109,6 +109,8 @@ func duplicatesHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 
 	// Find duplicates
 	duplicateGroups := []duplicateGroup{}
+	totalFiles := 0
+	const maxTotalFiles = 1000 // Limit total files across all groups to 1000
 
 	for size, files := range sizeGroups {
 		if len(files) < 2 {
@@ -120,6 +122,11 @@ func duplicatesHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 			checksumGroups := groupByPartialChecksum(files, index, size)
 			for _, group := range checksumGroups {
 				if len(group) >= 2 {
+					// Check if adding this group would exceed the limit
+					if totalFiles+len(group) > maxTotalFiles {
+						break
+					}
+
 					// Remove the user scope from paths (modifying in place is safe)
 					for _, file := range group {
 						file.Path = strings.TrimPrefix(file.Path, opts.combinedPath)
@@ -132,6 +139,7 @@ func duplicatesHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 						Count: len(group),
 						Files: group,
 					})
+					totalFiles += len(group)
 				}
 			}
 		} else {
@@ -139,6 +147,11 @@ func duplicatesHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 			filenameGroups := groupByFuzzyFilename(files, opts.combinedPath)
 			for _, group := range filenameGroups {
 				if len(group) >= 2 {
+					// Check if adding this group would exceed the limit
+					if totalFiles+len(group) > maxTotalFiles {
+						break
+					}
+
 					// Remove the user scope from paths (modifying in place is safe)
 					for _, file := range group {
 						file.Path = strings.TrimPrefix(file.Path, opts.combinedPath)
@@ -151,8 +164,14 @@ func duplicatesHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 						Count: len(group),
 						Files: group,
 					})
+					totalFiles += len(group)
 				}
 			}
+		}
+
+		// Stop processing more size groups if we've hit the limit
+		if totalFiles >= maxTotalFiles {
+			break
 		}
 	}
 
@@ -215,6 +234,11 @@ func groupByPartialChecksum(files []*indexing.SearchResult, index *indexing.Inde
 	checksumGroups := make(map[string][]*indexing.SearchResult)
 
 	for _, file := range files {
+		// CRITICAL: Ensure exact size match - safeguard against grouping different sized files
+		if file.Size != fileSize {
+			continue
+		}
+
 		// file.Path is relative to the index root, need to prepend index.Path
 		// index.Path is the absolute filesystem root for this index
 		fullPath := filepath.Join(index.Path, file.Path)
@@ -298,15 +322,33 @@ func groupByFuzzyFilename(files []*indexing.SearchResult, basePath string) [][]*
 
 		group := []*indexing.SearchResult{files[i]}
 		used[i] = true
+		baseSize := files[i].Size
 
-		filename1 := normalizeFilename(filepath.Base(files[i].Path))
+		baseName1 := filepath.Base(files[i].Path)
+		ext1 := strings.ToLower(filepath.Ext(baseName1))
+		filename1 := normalizeFilename(baseName1)
 
 		for j := i + 1; j < len(files); j++ {
 			if used[j] {
 				continue
 			}
 
-			filename2 := normalizeFilename(filepath.Base(files[j].Path))
+			// CRITICAL: Ensure exact size match - this is a safeguard to prevent
+			// files with different sizes from being grouped together
+			if files[j].Size != baseSize {
+				continue
+			}
+
+			baseName2 := filepath.Base(files[j].Path)
+			ext2 := strings.ToLower(filepath.Ext(baseName2))
+
+			// CRITICAL: Extensions must match exactly (case-insensitive)
+			// Only fuzzy match the filename portion without extension
+			if ext1 != ext2 {
+				continue
+			}
+
+			filename2 := normalizeFilename(baseName2)
 
 			// Check if filenames are similar enough
 			if filenamesSimilar(filename1, filename2) {
