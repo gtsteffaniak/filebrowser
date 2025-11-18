@@ -224,6 +224,8 @@ definitions:
     type: object
   indexing.SearchResult:
     properties:
+      hasPreview:
+        type: boolean
       modified:
         type: string
       path:
