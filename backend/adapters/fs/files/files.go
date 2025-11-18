@@ -99,7 +99,7 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.E
 
 				// Extract metadata for audio files (without album art for performance)
 				if isItemAudio {
-					err := extractAudioMetadata(context.Background(), fileItem, itemRealPath, false, opts.Metadata)
+					err := extractAudioMetadata(context.Background(), fileItem, itemRealPath, opts.AlbumArt || opts.Content, opts.Metadata)
 					if err != nil {
 						logger.Debugf("failed to extract metadata for file: "+fileItem.Name, err)
 					} else {
