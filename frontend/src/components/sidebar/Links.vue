@@ -364,6 +364,7 @@ export default {
   margin: 0;
   margin-top: 0.25em;
   padding: 0;
+  border-radius: 0.5em;
 }
 
 .sidebar-link-button:first-child {

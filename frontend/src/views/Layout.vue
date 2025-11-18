@@ -20,7 +20,7 @@
   <Notifications />
   <Toast :toasts="toasts" />
   <StatusBar :class="{ moveWithSidebar: moveWithSidebar }" />
-  <ContextMenu></ContextMenu>
+  <ContextMenu v-if="showContextMenu"></ContextMenu>
   <Tooltip />
   <NextPrevious />
   <PopupPreview v-if="popupEnabled" />
@@ -123,6 +123,10 @@ export default {
     },
     currentView() {
       return getters.currentView();
+    },
+    showContextMenu() {
+      // for now lets disable for tools view
+      return getters.currentView() != "tools"
     },
     popupEnabled() {
       if (!state.user || state.user?.username == "") {
