@@ -4,12 +4,10 @@
       <div class="status-info">
         <span v-if="selectedCount > 0">
           <span class="button">{{ selectedCount }}</span>
-          <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
-          {{ $t(selectedCount === 1 ? 'files.itemSelected' : 'files.itemsSelected') }} ({{ displayTotalSize }})
+          {{ selectedItemsText }}
         </span>
         <span v-else class="directory-info">
-          <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
-          {{ numDirs }} {{ $t(numDirs === 1 ? 'buttons.folder' : 'general.folders') }} | {{ numFiles }} {{ $t(numFiles === 1 ? 'buttons.file' : 'general.files') }} ({{ displayTotalSize }})
+          {{ directoryInfoText }}
         </span>
       </div>
       <div class="status-controls">
@@ -86,6 +84,29 @@ export default {
     displayTotalSize() {
       const size = this.selectedCount > 0 ? this.totalSelectedSize : this.totalDirectorySize;
       return getHumanReadableFilesize(size);
+    },
+    // i18n labels with compile-time checked keys
+    itemsSelectedLabel() {
+      return this.selectedCount === 1
+        ? this.$t("files.itemSelected")
+        : this.$t("files.itemsSelected");
+    },
+    foldersLabel() {
+      return this.numDirs === 1
+        ? this.$t("general.folder")
+        : this.$t("general.folders");
+    },
+    filesLabel() {
+      return this.numFiles === 1
+        ? this.$t("general.file")
+        : this.$t("general.files");
+    },
+    // Complete text with raw characters moved from template
+    selectedItemsText() {
+      return `${this.itemsSelectedLabel} (${this.displayTotalSize})`;
+    },
+    directoryInfoText() {
+      return `${this.numDirs} ${this.foldersLabel} | ${this.numFiles} ${this.filesLabel} (${this.displayTotalSize})`;
     },
   },
   methods: {
