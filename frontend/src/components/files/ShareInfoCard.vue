@@ -26,7 +26,7 @@
             <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           </div>
           <div v-if="!shareInfo.disableDownload" class="share__box__element share__box__center">
-            <button class="button button--flat clickable" @click="goToDownload()"> {{ $t("buttons.download") }}
+            <button class="button button--flat clickable" @click="goToDownload()"> {{ $t("general.download") }}
             </button>
           </div>
         </div>
