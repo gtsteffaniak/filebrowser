@@ -14,7 +14,7 @@ require (
 	github.com/google/go-cmp v0.7.0
 	github.com/gtsteffaniak/go-cache v1.0.0
 	github.com/gtsteffaniak/go-logger v0.2.3
-	github.com/kovidgoyal/imaging v1.8.15
+	github.com/kovidgoyal/imaging v1.7.2
 	github.com/pquerna/otp v1.5.0
 	github.com/spf13/afero v1.15.0
 	github.com/stretchr/testify v1.11.1
@@ -161,7 +161,6 @@ require (
 	github.com/kisielk/errcheck v1.9.0 // indirect
 	github.com/kkHAIKE/contextcheck v1.1.6 // indirect
 	github.com/kovidgoyal/go-parallel v1.1.1 // indirect
-	github.com/kovidgoyal/go-shm v1.0.0 // indirect
 	github.com/kulti/thelper v0.7.1 // indirect
 	github.com/kunwardeep/paralleltest v1.0.15 // indirect
 	github.com/lasiar/canonicalheader v1.1.2 // indirect
