@@ -33,7 +33,7 @@
 
 <script>
 import { publicApi } from "@/api";
-import { state, getters, mutations } from "@/store";
+import { state, getters } from "@/store";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { getTypeInfo } from "@/utils/mimetype";
 
