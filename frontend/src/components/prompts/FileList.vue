@@ -16,16 +16,17 @@
       </select>
     </div>
 
-    <div v-if="!isDisplayMode" aria-label="filelist-path" class="searchContext button clickable">{{ $t('search.path') }}
+    <div v-if="!isDisplayMode" aria-label="filelist-path" class="searchContext button clickable">{{ $t('general.path', { suffix: ':' }) }}
       {{ sourcePath.path }}</div>
 
     <ul class="file-list">
       <li @click="itemClick" @touchstart="touchstart" @dblclick="next" role="button" tabindex="0"
         :aria-label="item.name" :aria-selected="selected == item.path" :key="item.name" v-for="item in items"
         :data-path="item.path" class="file-item">
-        <Icon v-if="isDisplayMode" :filename="item.name"
-          :mimetype="item.originalItem?.type || 'application/octet-stream'" :active="selected == item.path"
-          class="file-icon" />
+        <Icon :filename="item.name"
+          :mimetype="item.originalItem?.type || 'directory'"
+          class="file-icon" 
+        />
         <span class="file-name">{{ item.name }}</span>
       </li>
     </ul>
@@ -33,9 +34,9 @@
 
   <!-- Cancel/Close button for display mode -->
   <div v-if="isDisplayMode" class="card-action">
-    <button @click="closeModal" class="button button--flat" :aria-label="$t('buttons.cancel')"
-      :title="$t('buttons.cancel')">
-      {{ $t('buttons.cancel') }}
+    <button @click="closeModal" class="button button--flat" :aria-label="$t('general.cancel')"
+      :title="$t('general.cancel')">
+      {{ $t('general.cancel') }}
     </button>
   </div>
 
@@ -46,7 +47,6 @@ import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
 import { filesApi, publicApi } from "@/api";
 import Icon from "@/components/files/Icon.vue";
-import { shareInfo } from "@/utils/constants";
 
 export default {
   name: "file-list",
@@ -57,6 +57,10 @@ export default {
     browseSource: {
       type: String,
       default: null,
+    },
+    browseShare: {
+      type: String,
+      default: null, // Share hash to browse
     },
     fileList: {
       type: Array,
@@ -74,11 +78,12 @@ export default {
   data: function () {
     const initialSource = this.browseSource || state.req.source;
     // Use current path if browsing the same source as current, otherwise start at root
-    const initialPath = this.browseSource && this.browseSource !== state.req.source ? "/" : state.req.path;
+    const initialPath = (this.browseSource && this.browseSource !== state.req.source) || this.browseShare ? "/" : state.req.path;
     return {
       items: [],
       path: initialPath,
       source: initialSource,
+      shareHash: this.browseShare || null,
       touches: {
         id: "",
         count: 0,
@@ -111,7 +116,7 @@ export default {
       return this.fileList !== null;
     },
     showSourceSelector() {
-      return this.availableSources.length > 1 && !this.isDisplayMode && !getters.isShare();
+      return this.availableSources.length > 1 && !this.isDisplayMode && !getters.isShare() && !this.browseShare;
     },
   },
   watch: {
@@ -119,6 +124,11 @@ export default {
       if (newSource && newSource !== this.source) {
         this.currentSource = newSource;
         this.resetToSource(newSource);
+      }
+    },
+    browseShare(newHash) {
+      if (newHash && newHash !== this.shareHash) {
+        this.resetToShare(newHash);
       }
     },
     currentSource(newSource) {
@@ -131,6 +141,9 @@ export default {
     if (this.isDisplayMode) {
       // Display mode: use provided fileList
       this.fillOptionsFromList();
+    } else if (this.browseShare) {
+      // Browse a specific share
+      publicApi.fetchPub("/", this.browseShare).then(this.fillOptions);
     } else {
       // Normal browse mode: fetch files
       const sourceToUse = this.currentSource;
@@ -155,10 +168,21 @@ export default {
       // Reset to the appropriate path for the new source
       this.path = newPath;
       this.source = newSource;
+      this.shareHash = null;
       this.selected = null;
       this.selectedSource = null;
       // Fetch files for the new source
       filesApi.fetchFiles(newSource, newPath).then(this.fillOptions);
+    },
+    resetToShare(newHash) {
+      // Reset to the share root
+      this.path = "/";
+      this.shareHash = newHash;
+      this.source = null;
+      this.selected = null;
+      this.selectedSource = null;
+      // Fetch files for the share
+      publicApi.fetchPub("/", newHash).then(this.fillOptions);
     },
     fillOptions(req) {
       // Sets the current path and resets
@@ -206,8 +230,10 @@ export default {
       let clickedItem = this.items.find(item => item.path === path);
       let sourceToUse = clickedItem ? clickedItem.source : this.source;
       this.path = path;
-      if (getters.isShare()) {
-        publicApi.fetchPub(path, shareInfo.hash).then(this.fillOptions);
+      if (this.browseShare || getters.isShare()) {
+        // Browsing a share - use public API
+        const hashToUse = this.browseShare || state.shareInfo?.hash;
+        publicApi.fetchPub(path, hashToUse).then(this.fillOptions);
       } else {
         this.source = sourceToUse;
         filesApi.fetchFiles(sourceToUse, path).then(this.fillOptions);
@@ -332,6 +358,7 @@ export default {
   align-items: center;
   padding: 0.5rem;
   cursor: pointer;
+  user-select: none;
 }
 
 .file-item:hover {
@@ -348,6 +375,7 @@ export default {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  user-select: none;
 }
 
 .file-list {

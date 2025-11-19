@@ -57,7 +57,7 @@
   flex: 10 0 25em;
 }
 
-.share__box__items #listingView.list .item {
+.share__box__items #listingView.list .listing-item {
   cursor: pointer;
   border-left: 0;
   border-right: 0;
@@ -65,11 +65,11 @@
   border-top: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-.share__box__items #listingView.list .item .name {
+.share__box__items #listingView.list .listing-item .name {
   width: 50%;
 }
 
-.share__box__items #listingView.list .item .modified {
+.share__box__items #listingView.list .listing-item .modified {
   width: 25%;
 }
 

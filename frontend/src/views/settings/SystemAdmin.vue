@@ -26,7 +26,7 @@
            :disabled="configLoading"
            aria-label="loadConfig"
             style="margin-bottom: 1em;">
-            {{ configLoading ? $t('files.loading') : $t('settings.configViewerLoadConfig') }}
+            {{ configLoading ? $t('general.loading', { suffix: "..." }) : $t('settings.configViewerLoadConfig') }}
           </button>
         </div>
         <div class="config-editor-container">
@@ -84,9 +84,9 @@ export default {
         await usersApi.update(data, [
           "disableUpdateNotifications",
         ]);
-        notify.showSuccess(this.$t("settings.settingsUpdated"));
+        notify.showSuccessToast(this.$t("settings.settingsUpdated"));
       } catch (e) {
-        notify.showError(e);
+        console.error(e);
       }
     },
     async fetchConfig() {
@@ -98,7 +98,7 @@ export default {
         );
         this.configContent = await response.text();
       } catch (e) {
-        notify.showError(e);
+        console.error(e);
         const errorMessage = (e && typeof e === 'object' && 'message' in e) ? String(e.message) : 'Unknown error';
         this.configContent = 'Error loading config: ' + errorMessage;
       } finally {

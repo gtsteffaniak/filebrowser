@@ -24,7 +24,7 @@ func BenchmarkSearchAllIndexes(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		// Execute the SearchAllIndexes function
 		for _, term := range searchTerms {
-			idx.Search(term, "/", "test")
+			idx.Search(term, "/", "test", false, DefaultSearchResults)
 		}
 	}
 }
@@ -84,7 +84,7 @@ func TestSearchWhileIndexing(t *testing.T) {
 	for i := 0; i < 5; i++ {
 		go idx.CreateMockData(100, 100) // Creating mock data concurrently
 		for _, term := range searchTerms {
-			go idx.Search(term, "/", "test") // Search concurrently
+			go idx.Search(term, "/", "test", false, DefaultSearchResults) // Search concurrently
 		}
 	}
 }
@@ -92,41 +92,41 @@ func TestSearchWhileIndexing(t *testing.T) {
 func TestSearchIndexes(t *testing.T) {
 	index := Index{
 		Directories: map[string]*iteminfo.FileInfo{
-			"/":           {Files: []iteminfo.ItemInfo{{Name: "audio-one.wav", Type: "audio"}}},
-			"/test/":      {Files: []iteminfo.ItemInfo{{Name: "audio-one.wav", Type: "audio"}}},
-			"/test/path/": {Files: []iteminfo.ItemInfo{{Name: "file.txt", Type: "text"}}},
-			"/new/test/": {Files: []iteminfo.ItemInfo{
-				{Name: "audio.wav", Type: "audio"},
-				{Name: "video.mp4", Type: "video"},
-				{Name: "video.MP4", Type: "video"},
+			"/":           {Files: []iteminfo.ExtendedItemInfo{{ItemInfo: iteminfo.ItemInfo{Name: "audio-one.wav", Type: "audio"}}}},
+			"/test/":      {Files: []iteminfo.ExtendedItemInfo{{ItemInfo: iteminfo.ItemInfo{Name: "audio-one.wav", Type: "audio"}}}},
+			"/test/path/": {Files: []iteminfo.ExtendedItemInfo{{ItemInfo: iteminfo.ItemInfo{Name: "file.txt", Type: "text"}}}},
+			"/new/test/": {Files: []iteminfo.ExtendedItemInfo{
+				{ItemInfo: iteminfo.ItemInfo{Name: "audio.wav", Type: "audio"}},
+				{ItemInfo: iteminfo.ItemInfo{Name: "video.mp4", Type: "video"}},
+				{ItemInfo: iteminfo.ItemInfo{Name: "video.MP4", Type: "video"}},
 			}},
 			"/first Dir/": {
-				Files: []iteminfo.ItemInfo{
-					{Name: "space jam.zip", Size: 100, Type: "archive"},
+				Files: []iteminfo.ExtendedItemInfo{
+					{ItemInfo: iteminfo.ItemInfo{Name: "space jam.zip", Size: 100, Type: "archive"}},
 				},
 			},
-			"/new/test/path/": {Files: []iteminfo.ItemInfo{{Name: "archive.zip", Type: "archive"}}},
+			"/new/test/path/": {Files: []iteminfo.ExtendedItemInfo{{ItemInfo: iteminfo.ItemInfo{Name: "archive.zip", Type: "archive"}}}},
 			"/firstDir/": {
-				Files: []iteminfo.ItemInfo{
-					{Name: "archive.zip", Size: 100, Type: "archive"},
+				Files: []iteminfo.ExtendedItemInfo{
+					{ItemInfo: iteminfo.ItemInfo{Name: "archive.zip", Size: 100, Type: "archive"}},
 				},
 				Folders: []iteminfo.ItemInfo{
 					{Name: "thisIsDir", Type: "directory", Size: 2 * 1024 * 1024},
 				},
 			},
 			"/firstDir/thisIsDir/": {
-				Files: []iteminfo.ItemInfo{
-					{Name: "hi.txt", Type: "text"},
+				Files: []iteminfo.ExtendedItemInfo{
+					{ItemInfo: iteminfo.ItemInfo{Name: "hi.txt", Type: "text"}},
 				},
 				ItemInfo: iteminfo.ItemInfo{
 					Size: 2 * 1024 * 1024,
 				},
 			},
 			"/new+folder/Pictures/": {
-				Files: []iteminfo.ItemInfo{
-					{Name: "consoletest.mp4", Size: 196091904, Type: "video/mp4"},
-					{Name: "playwright.gif", Size: 2416640, Type: "image/gif"},
-					{Name: "toggle.gif", Size: 65536, Type: "image/gif"},
+				Files: []iteminfo.ExtendedItemInfo{
+					{ItemInfo: iteminfo.ItemInfo{Name: "consoletest.mp4", Size: 196091904, Type: "video/mp4"}},
+					{ItemInfo: iteminfo.ItemInfo{Name: "playwright.gif", Size: 2416640, Type: "image/gif"}},
+					{ItemInfo: iteminfo.ItemInfo{Name: "toggle.gif", Size: 65536, Type: "image/gif"}},
 				},
 			},
 		},
@@ -135,12 +135,12 @@ func TestSearchIndexes(t *testing.T) {
 	tests := []struct {
 		search         string
 		scope          string
-		expectedResult []SearchResult
+		expectedResult []*SearchResult
 	}{
 		{
 			search: "audio",
 			scope:  "/new/",
-			expectedResult: []SearchResult{
+			expectedResult: []*SearchResult{
 				{
 					Path: "/new/test/audio.wav",
 					Type: "audio",
@@ -151,7 +151,7 @@ func TestSearchIndexes(t *testing.T) {
 		{
 			search: "test",
 			scope:  "/",
-			expectedResult: []SearchResult{
+			expectedResult: []*SearchResult{
 				{
 					Path: "/test/",
 					Type: "directory",
@@ -172,7 +172,7 @@ func TestSearchIndexes(t *testing.T) {
 		{
 			search: "archive",
 			scope:  "/",
-			expectedResult: []SearchResult{
+			expectedResult: []*SearchResult{
 				{
 					Path: "/firstDir/archive.zip",
 					Type: "archive",
@@ -188,7 +188,7 @@ func TestSearchIndexes(t *testing.T) {
 		{
 			search: "arch",
 			scope:  "/firstDir/",
-			expectedResult: []SearchResult{
+			expectedResult: []*SearchResult{
 				{
 					Path: "/firstDir/archive.zip",
 					Type: "archive",
@@ -199,7 +199,7 @@ func TestSearchIndexes(t *testing.T) {
 		{
 			search: "space jam",
 			scope:  "/first Dir/",
-			expectedResult: []SearchResult{
+			expectedResult: []*SearchResult{
 				{
 					Path: "/first Dir/space jam.zip",
 					Type: "archive",
@@ -210,7 +210,7 @@ func TestSearchIndexes(t *testing.T) {
 		{
 			search: "isdir",
 			scope:  "/",
-			expectedResult: []SearchResult{
+			expectedResult: []*SearchResult{
 				{
 					Path: "/firstDir/thisIsDir/",
 					Type: "directory",
@@ -221,7 +221,7 @@ func TestSearchIndexes(t *testing.T) {
 		{
 			search: "IsDir type:largerThan=1",
 			scope:  "/",
-			expectedResult: []SearchResult{
+			expectedResult: []*SearchResult{
 				{
 					Path: "/firstDir/thisIsDir/",
 					Type: "directory",
@@ -232,7 +232,7 @@ func TestSearchIndexes(t *testing.T) {
 		{
 			search: "video",
 			scope:  "/",
-			expectedResult: []SearchResult{
+			expectedResult: []*SearchResult{
 				{
 					Path: "/new/test/video.MP4",
 					Type: "video",
@@ -248,7 +248,7 @@ func TestSearchIndexes(t *testing.T) {
 		{
 			search: "audio",
 			scope:  "/",
-			expectedResult: []SearchResult{
+			expectedResult: []*SearchResult{
 				{
 					Path: "/audio-one.wav",
 					Type: "audio",
@@ -269,7 +269,7 @@ func TestSearchIndexes(t *testing.T) {
 		{
 			search: "cons",
 			scope:  "/new+folder/Pictures/",
-			expectedResult: []SearchResult{
+			expectedResult: []*SearchResult{
 				{
 					Path: "/new+folder/Pictures/consoletest.mp4",
 					Type: "video/mp4",
@@ -280,7 +280,7 @@ func TestSearchIndexes(t *testing.T) {
 		{
 			search: "toggle",
 			scope:  "/new+folder/Pictures/",
-			expectedResult: []SearchResult{
+			expectedResult: []*SearchResult{
 				{
 					Path: "/new+folder/Pictures/toggle.gif",
 					Type: "image/gif",
@@ -292,8 +292,119 @@ func TestSearchIndexes(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.search, func(t *testing.T) {
-			result := index.Search(tt.search, tt.scope, "")
-			assert.ElementsMatch(t, tt.expectedResult, result)
+			result := index.Search(tt.search, tt.scope, "", false, DefaultSearchResults)
+			// Convert results to comparable format (without Modified field)
+			expected := make([]SearchResult, len(tt.expectedResult))
+			for i, r := range tt.expectedResult {
+				expected[i] = SearchResult{Path: r.Path, Type: r.Type, Size: r.Size}
+			}
+			actual := make([]SearchResult, len(result))
+			for i, r := range result {
+				actual[i] = SearchResult{Path: r.Path, Type: r.Type, Size: r.Size}
+			}
+			assert.ElementsMatch(t, expected, actual)
 		})
 	}
+}
+
+func TestSearchLargestModeExcludesRoot(t *testing.T) {
+	index := Index{
+		Directories: map[string]*iteminfo.FileInfo{
+			"/": {
+				Files: []iteminfo.ExtendedItemInfo{
+					{ItemInfo: iteminfo.ItemInfo{Name: "root-file.txt", Type: "text", Size: 100}},
+				},
+				ItemInfo: iteminfo.ItemInfo{
+					Size: 3209322496, // Large root directory size
+				},
+			},
+			"/subdir/": {
+				Files: []iteminfo.ExtendedItemInfo{
+					{ItemInfo: iteminfo.ItemInfo{Name: "sub-file.txt", Type: "text", Size: 200}},
+				},
+				ItemInfo: iteminfo.ItemInfo{
+					Size: 5 * 1024 * 1024, // 5MB subdirectory
+				},
+			},
+			"/another-dir/": {
+				Files: []iteminfo.ExtendedItemInfo{
+					{ItemInfo: iteminfo.ItemInfo{Name: "large-file.bin", Type: "binary", Size: 10 * 1024 * 1024}}, // 10MB file
+				},
+				ItemInfo: iteminfo.ItemInfo{
+					Size: 10 * 1024 * 1024,
+				},
+			},
+		},
+	}
+
+	// Test that when largest=true and scope="/", the root directory "/" is NOT included
+	result := index.Search("", "/", "test-session", true, DefaultSearchResults)
+
+	// Verify that "/" is NOT in the results
+	rootFound := false
+	for _, r := range result {
+		if r.Path == "/" {
+			rootFound = true
+			t.Errorf("Root directory '/' should not be included in results when largest=true, but found: %+v", r)
+		}
+	}
+
+	if rootFound {
+		t.Error("Root directory was incorrectly included in results")
+	}
+
+	// The test passes if root is excluded
+	// (subdirectories and files may or may not be included depending on size filtering logic)
+}
+
+func TestSearchLargestModeExcludesScopeDirectory(t *testing.T) {
+	index := Index{
+		Directories: map[string]*iteminfo.FileInfo{
+			"/": {
+				Files: []iteminfo.ExtendedItemInfo{
+					{ItemInfo: iteminfo.ItemInfo{Name: "root-file.txt", Type: "text", Size: 50}},
+				},
+				ItemInfo: iteminfo.ItemInfo{
+					Size: 100,
+				},
+			},
+			"/test/": {
+				Files: []iteminfo.ExtendedItemInfo{
+					{ItemInfo: iteminfo.ItemInfo{Name: "file1.txt", Type: "text", Size: 100}},
+				},
+				ItemInfo: iteminfo.ItemInfo{
+					Size: 2 * 1024 * 1024, // 2MB directory
+				},
+			},
+			"/test/subdir/": {
+				Files: []iteminfo.ExtendedItemInfo{
+					{ItemInfo: iteminfo.ItemInfo{Name: "file2.txt", Type: "text", Size: 200}},
+				},
+				ItemInfo: iteminfo.ItemInfo{
+					Size: 3 * 1024 * 1024, // 3MB subdirectory
+				},
+			},
+		},
+	}
+
+	// Test that when largest=true and scope="/test/", the scope directory "/test/" is NOT included
+	result := index.Search("", "/test/", "test-session", true, DefaultSearchResults)
+
+	// Verify that "/test/" is NOT in the results
+	scopeDirFound := false
+	for _, r := range result {
+		if r.Path == "/test/" {
+			scopeDirFound = true
+			t.Errorf("Scope directory '/test/' should not be included in results when largest=true, but found: %+v", r)
+		}
+	}
+
+	if scopeDirFound {
+		t.Error("Scope directory was incorrectly included in results")
+	}
+
+	// The main assertion: scope directory should be excluded
+	// Note: When search is empty, scope gets cleared, so we search all directories
+	// but still exclude the original scope directory "/test/" from results
+	// Files and subdirectories may or may not be included depending on size/type filtering
 }

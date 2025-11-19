@@ -1,6 +1,5 @@
 .button {
   outline: 0;
-  border: 0;
   padding: .5em 1em;
   border-radius: 1em;
   cursor: pointer;
@@ -44,4 +43,15 @@
 .button[disabled] {
   opacity: .5;
   cursor: not-allowed;
+}
+
+.floating-action-button {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  z-index: 1000;
+}
+
+.searchContext {
+  margin-bottom: 1em;
 }

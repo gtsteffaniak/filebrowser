@@ -1,5 +1,5 @@
 
-import { test, expect } from "../test-setup";
+import { test, expect, checkForNotification } from "../test-setup";
 
 test.use({viewport: { width: 750, height: 750 }}); // mobile viewport
 test("share download multiple files", async ({ page, checkForErrors, context }) => {
@@ -14,9 +14,7 @@ test("share download multiple files", async ({ page, checkForErrors, context }) 
   await page.locator('button[aria-label="Select multiple"]').waitFor({ state: 'visible' });
   await page.locator('button[aria-label="Select multiple"]').click();
 
-  const popup = page.locator('#popup-notification-content');
-  await popup.waitFor({ state: 'visible' });
-  await expect(popup).toHaveText("Multiple Selection Enabled");
+  await checkForNotification(page, "Multiple Selection Enabled");
 
   await page.locator('a[aria-label="20130612_142406.jpg"]').click();
   await page.locator('a[aria-label="IMG_2578.JPG"]').click();
@@ -27,8 +25,7 @@ test("share download multiple files", async ({ page, checkForErrors, context }) 
 
   await page.locator('button[aria-label="Download"]').waitFor({ state: 'visible' });
   await page.locator('button[aria-label="Download"]').click();
-  const popup2 = page.locator('#popup-notification-content');
-  await popup2.waitFor({ state: 'visible' });
-  await expect(popup2).toHaveText("Downloading...");
+  await page.locator('button[aria-label="Download as zip"]').click();
+  await checkForNotification(page, "Downloading...");
   checkForErrors(0,1);
 });

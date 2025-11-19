@@ -20,7 +20,6 @@ frontend/tsconfig.tsbuildinfo
 /frontend/screenshots
 /frontend/tests/playwright-files/demo*
 /frontend/loginAuth.json
-/frontend/package-lock.json
 /backend/vendor
 /backend/*.cov
 /backend/*test_config.yaml
@@ -53,3 +52,7 @@ bin/
 build/
 *__debug*
 backend/custom.css
+
+# Runtime cache directories created by tests/application
+backend/preview/heic/
+backend/preview/thumbnails/

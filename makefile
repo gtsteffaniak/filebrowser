@@ -8,7 +8,15 @@ else
     SHELL := /bin/bash
 endif
 
+# git checkout remote branch PR
+# git fetch origin pull/####/head:pr-####
+
 .SILENT:
+
+.PHONY: setup update build build-docker build-backend build-frontend dev run generate-docs
+.PHONY: lint-frontend lint-backend lint test test-backend test-frontend check-all
+.PHONY: check-translations sync-translations test-playwright run-proxy screenshots
+
 setup:
 	echo "creating ./backend/test_config.yaml for local testing..."
 	if [ ! -f backend/test_config.yaml ]; then \
@@ -24,25 +32,21 @@ update:
 	cd backend && go get -u ./... && go mod tidy
 	cd frontend && npm update
 
-build:
+build: build-frontend build-backend
+
+build-docker:
 	docker build --build-arg="VERSION=testing" --build-arg="REVISION=n/a" -t gtstef/filebrowser -f _docker/Dockerfile .
 
+build-docker-slim:
+	docker build --build-arg="VERSION=testing" --build-arg="REVISION=n/a" -t gtstef/filebrowser -f _docker/Dockerfile.slim .
+
 build-backend:
+	@echo "Building backend..."
 	cd backend && go build -o filebrowser --ldflags="-w -s -X 'github.com/gtsteffaniak/filebrowser/backend/common/version.CommitSHA=testingCommit' -X 'github.com/gtsteffaniak/filebrowser/backend/common/version.Version=testing'"
+	@echo "✓ Backend built successfully"
 
 # New dev target with hot-reloading for frontend and backend
-dev:
-	@echo "NOTE: Run 'make setup' if you haven't already."
-	@echo "Generating swagger docs..."
-	cd backend && go tool swag init --output swagger/docs
-	@if [ "$$(uname)" = "Darwin" ]; then \
-		sed -i '' '/func init/,+3d' backend/swagger/docs/docs.go; \
-	else \
-		sed -i '/func init/,+3d' backend/swagger/docs/docs.go; \
-	fi
-	@echo "Generating frontend config..."
-	cd backend && FILEBROWSER_GENERATE_CONFIG=true go run --tags=mupdf .
-	cd frontend && npm run build
+dev: generate-docs
 	@echo "Starting dev servers... Press Ctrl+C to stop."
 	@cd frontend && DEV_BUILD=true npm run watch & \
 	FRONTEND_PID=$$!; \
@@ -51,7 +55,7 @@ dev:
 	trap 'echo "Stopping..."; kill $$FRONTEND_PID $$BACKEND_PID 2>/dev/null; sleep 1; kill -9 $$FRONTEND_PID $$BACKEND_PID 2>/dev/null; exit 0' INT TERM; \
 	wait $$FRONTEND_PID $$BACKEND_PID 2>/dev/null || true
 
-run: build-frontend generate-config
+run: build-frontend generate-docs
 	cd backend && go tool swag init --output swagger/docs
 	@if [ "$$(uname)" = "Darwin" ]; then \
 		sed -i '' '/func init/,+3d' backend/swagger/docs/docs.go; \
@@ -61,11 +65,22 @@ run: build-frontend generate-config
 	cd backend && CGO_ENABLED=1 FILEBROWSER_DEVMODE=true go run --tags=mupdf \
 	--ldflags="-w -s -X 'github.com/gtsteffaniak/filebrowser/backend/common/version.CommitSHA=testingCommit' -X 'github.com/gtsteffaniak/filebrowser/backend/common/version.Version=testing'" . -c test_config.yaml
 
-generate-config:
+generate-docs:
+	@echo "NOTE: Run 'make setup' if you haven't already."
+	@echo "Generating swagger docs..."
+	cd backend && go tool swag init --output swagger/docs
+	@if [ "$$(uname)" = "Darwin" ]; then \
+		sed -i '' '/func init/,+3d' backend/swagger/docs/docs.go; \
+	else \
+		sed -i '/func init/,+3d' backend/swagger/docs/docs.go; \
+	fi
+	@echo "Generating frontend config..."
 	cd backend && FILEBROWSER_GENERATE_CONFIG=true go run .
 
 build-frontend:
-	cd frontend && npm run $$([ "$(OS)" = "Windows_NT" ] && echo "build:windows" || echo "build")
+	@echo "Building frontend..."
+	cd frontend && npm run build
+	@echo "✓ Frontend built successfully"
 
 lint-frontend:
 	cd frontend && npm run lint
@@ -93,6 +108,8 @@ test-frontend:
 
 test-playwright: build-frontend
 	cd backend && GOOS=linux go build -o filebrowser .
+	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-noauth .
+	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-no-config .
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-settings .
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-general .
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-sharing .

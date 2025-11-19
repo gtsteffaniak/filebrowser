@@ -37,9 +37,9 @@ func setupTestIndex(t *testing.T) (*Index, string, func()) {
 			Type: "directory",
 			Size: 1000, // Total logical size: 100 + 200 + 300 + 400
 		},
-		Files: []iteminfo.ItemInfo{
-			{Name: "file1.txt", Size: 100},
-			{Name: "file2.txt", Size: 200},
+		Files: []iteminfo.ExtendedItemInfo{
+			{ItemInfo: iteminfo.ItemInfo{Name: "file1.txt", Size: 100}},
+			{ItemInfo: iteminfo.ItemInfo{Name: "file2.txt", Size: 200}},
 		},
 		Folders: []iteminfo.ItemInfo{
 			{Name: "subdir", Type: "directory", Size: 700}, // 300 + 400
@@ -53,8 +53,8 @@ func setupTestIndex(t *testing.T) (*Index, string, func()) {
 			Type: "directory",
 			Size: 700, // 300 + 400
 		},
-		Files: []iteminfo.ItemInfo{
-			{Name: "file3.txt", Size: 300},
+		Files: []iteminfo.ExtendedItemInfo{
+			{ItemInfo: iteminfo.ItemInfo{Name: "file3.txt", Size: 300}},
 		},
 		Folders: []iteminfo.ItemInfo{
 			{Name: "deepdir", Type: "directory", Size: 400},
@@ -68,8 +68,8 @@ func setupTestIndex(t *testing.T) (*Index, string, func()) {
 			Type: "directory",
 			Size: 400,
 		},
-		Files: []iteminfo.ItemInfo{
-			{Name: "file4.txt", Size: 400},
+		Files: []iteminfo.ExtendedItemInfo{
+			{ItemInfo: iteminfo.ItemInfo{Name: "file4.txt", Size: 400}},
 		},
 	}
 
@@ -151,9 +151,11 @@ func TestRecursiveSizeUpdate(t *testing.T) {
 	// Simulate adding a new file to deepdir by updating the mock data
 	// Add file5.txt (500 bytes) to deepdir
 	deepdirInfo := idx.Directories["/subdir/deepdir/"]
-	deepdirInfo.Files = append(deepdirInfo.Files, iteminfo.ItemInfo{
-		Name: "file5.txt",
-		Size: 500,
+	deepdirInfo.Files = append(deepdirInfo.Files, iteminfo.ExtendedItemInfo{
+		ItemInfo: iteminfo.ItemInfo{
+			Name: "file5.txt",
+			Size: 500,
+		},
 	})
 
 	// Update deepdir size
@@ -161,7 +163,7 @@ func TestRecursiveSizeUpdate(t *testing.T) {
 	deepdirInfo.Size = 900 // 400 + 500
 
 	// Simulate the recursive size update by calling the method directly
-	idx.recursiveUpdateDirSizes(deepdirInfo, oldDeepdirSize)
+	idx.RecursiveUpdateDirSizes(deepdirInfo, oldDeepdirSize)
 
 	// Check that deepdir size updated
 	deepdirInfo, exists = idx.GetMetadataInfo("/subdir/deepdir/", true)
@@ -208,9 +210,11 @@ func TestNonRecursiveMetadataUpdate(t *testing.T) {
 	initialRootSize := rootInfo.Size
 
 	// Simulate adding a new file directly to root by updating mock data
-	rootInfo.Files = append(rootInfo.Files, iteminfo.ItemInfo{
-		Name: "file3.txt",
-		Size: 150,
+	rootInfo.Files = append(rootInfo.Files, iteminfo.ExtendedItemInfo{
+		ItemInfo: iteminfo.ItemInfo{
+			Name: "file3.txt",
+			Size: 150,
+		},
 	})
 
 	// Update root size (non-recursive - only direct files)
@@ -260,7 +264,7 @@ func TestRecursiveUpdateDirSizes(t *testing.T) {
 	deepdirInfo.Size = 900
 
 	// Call recursiveUpdateDirSizes
-	idx.recursiveUpdateDirSizes(deepdirInfo, previousSize)
+	idx.RecursiveUpdateDirSizes(deepdirInfo, previousSize)
 
 	// Check that subdir size updated
 	subdirInfo := idx.Directories["/subdir/"]
@@ -309,7 +313,7 @@ func TestSizeDecreasePropagate(t *testing.T) {
 	deepdirInfo.Size = 100
 
 	// Call recursiveUpdateDirSizes
-	idx.recursiveUpdateDirSizes(deepdirInfo, previousSize)
+	idx.RecursiveUpdateDirSizes(deepdirInfo, previousSize)
 
 	// Check that subdir size decreased
 	subdirInfo := idx.Directories["/subdir/"]
@@ -332,10 +336,12 @@ func TestPreviewDoesNotPropagateFromSubdirectories(t *testing.T) {
 
 	// Add an image file to subdir in mock data (should have preview)
 	subdirInfo := idx.Directories["/subdir/"]
-	subdirInfo.Files = append(subdirInfo.Files, iteminfo.ItemInfo{
-		Name:       "image.jpg",
-		Size:       100,
-		HasPreview: true, // Image files have preview
+	subdirInfo.Files = append(subdirInfo.Files, iteminfo.ExtendedItemInfo{
+		ItemInfo: iteminfo.ItemInfo{
+			Name:       "image.jpg",
+			Size:       100,
+			HasPreview: true, // Image files have preview
+		},
 	})
 	subdirInfo.HasPreview = true // Subdir now has preview
 
@@ -367,10 +373,12 @@ func TestPreviewPropagatesFromFiles(t *testing.T) {
 
 	// Add an image file to root in mock data (should propagate preview to root)
 	rootInfo := idx.Directories["/"]
-	rootInfo.Files = append(rootInfo.Files, iteminfo.ItemInfo{
-		Name:       "image.png",
-		Size:       100,
-		HasPreview: true, // Image files have preview
+	rootInfo.Files = append(rootInfo.Files, iteminfo.ExtendedItemInfo{
+		ItemInfo: iteminfo.ItemInfo{
+			Name:       "image.png",
+			Size:       100,
+			HasPreview: true, // Image files have preview
+		},
 	})
 	rootInfo.HasPreview = true // Root now has preview
 

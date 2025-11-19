@@ -37,6 +37,129 @@ definitions:
       token:
         type: string
     type: object
+  http.ShareResponse:
+    properties:
+      allowCreate:
+        description: allow creating files
+        type: boolean
+      allowDelete:
+        type: boolean
+      allowModify:
+        description: allow modifying files
+        type: boolean
+      allowReplacements:
+        description: allow replacements of files
+        type: boolean
+      allowedUsernames:
+        items:
+          type: string
+        type: array
+      banner:
+        type: string
+      description:
+        type: string
+      disableAnonymous:
+        type: boolean
+      disableDownload:
+        description: don't allow downloading files
+        type: boolean
+      disableFileViewer:
+        description: don't allow viewing files
+        type: boolean
+      disableShareCard:
+        type: boolean
+      disableSidebar:
+        type: boolean
+      disableThumbnails:
+        type: boolean
+      downloadURL:
+        type: string
+      downloads:
+        type: integer
+      downloadsLimit:
+        type: integer
+      enableOnlyOffice:
+        type: boolean
+      enforceDarkLightMode:
+        description: '"dark" or "light"'
+        type: string
+      expire:
+        type: integer
+      extractEmbeddedSubtitles:
+        description: can be io intensive for large files and take 10-30 seconds.
+        type: boolean
+      favicon:
+        type: string
+      hasPassword:
+        type: boolean
+      hash:
+        type: string
+      hideNavButtons:
+        type: boolean
+      keepAfterExpiration:
+        type: boolean
+      maxBandwidth:
+        type: integer
+      password_hash:
+        type: string
+      path:
+        type: string
+      pathExists:
+        type: boolean
+      perUserDownloadLimit:
+        type: boolean
+      quickDownload:
+        type: boolean
+      shareTheme:
+        type: string
+      shareType:
+        description: 'type of share: normal, upload, max'
+        type: string
+      sidebarLinks:
+        description: customizable sidebar links
+        items:
+          $ref: '#/definitions/users.SidebarLink'
+        type: array
+      source:
+        description: Override embedded field to show source name
+        type: string
+      themeColor:
+        type: string
+      title:
+        type: string
+      token:
+        description: |-
+          Token is a random value that will only be set when PasswordHash is set. It is
+          URL-Safe and is used to download links in password-protected shares via a
+          query arg.
+        type: string
+      userDownloads:
+        additionalProperties:
+          type: integer
+        description: Track downloads per username
+        type: object
+      userID:
+        type: integer
+      username:
+        type: string
+      version:
+        type: integer
+      viewMode:
+        description: 'default view mode for anonymous users: "list", "compact", "normal",
+          "gallery"'
+        type: string
+    type: object
+  http.duplicateGroup:
+    properties:
+      count:
+        type: integer
+      files:
+        items:
+          $ref: '#/definitions/indexing.SearchResult'
+        type: array
+      size:
+        type: integer
+    type: object
   indexing.IndexStatus:
     enum:
     - ready
@@ -49,8 +172,9 @@ definitions:
     - UNAVAILABLE
   indexing.ReducedIndex:
     properties:
-      assessment:
-        type: string
+      complexity:
+        description: '0-10 scale: 0=unknown, 1=simple, 2-6=normal, 7-9=complex, 10=highlyComplex'
+        type: integer
       fullScanDurationSeconds:
         type: integer
       lastIndexedUnixTime:
@@ -65,6 +189,10 @@ definitions:
         type: integer
       quickScanDurationSeconds:
         type: integer
+      scanners:
+        items:
+          $ref: '#/definitions/indexing.ScannerInfo'
+        type: array
       status:
         $ref: '#/definitions/indexing.IndexStatus'
       total:
@@ -72,8 +200,34 @@ definitions:
       used:
         type: integer
     type: object
+  indexing.ScannerInfo:
+    properties:
+      complexity:
+        description: '0-10 scale: 0=unknown, 1=simple, 2-6=normal, 7-9=complex, 10=highlyComplex'
+        type: integer
+      currentSchedule:
+        type: integer
+      fullScanTime:
+        type: integer
+      isRoot:
+        type: boolean
+      lastScanned:
+        type: string
+      numDirs:
+        type: integer
+      numFiles:
+        type: integer
+      path:
+        type: string
+      quickScanTime:
+        type: integer
+    type: object
   indexing.SearchResult:
     properties:
+      hasPreview:
+        type: boolean
+      modified:
+        type: string
       path:
         type: string
       size:
@@ -81,12 +235,37 @@ definitions:
       type:
         type: string
     type: object
+  iteminfo.ExtendedItemInfo:
+    properties:
+      hasPreview:
+        description: whether the file has a thumbnail preview
+        type: boolean
+      hidden:
+        description: whether the file is hidden
+        type: boolean
+      metadata:
+        allOf:
+        - $ref: '#/definitions/iteminfo.MediaMetadata'
+        description: optional media metadata (audio/video only)
+      modified:
+        description: modification time
+        type: string
+      name:
+        description: name of the file
+        type: string
+      size:
+        description: length in bytes for regular files
+        type: integer
+      type:
+        description: type of the file, either "directory" or a file mimetype
+        type: string
+    type: object
   iteminfo.FileInfo:
     properties:
       files:
-        description: files in the directory
+        description: files in the directory with optional metadata
         items:
-          $ref: '#/definitions/iteminfo.ItemInfo'
+          $ref: '#/definitions/iteminfo.ExtendedItemInfo'
         type: array
       folders:
         description: folders in the directory
@@ -135,6 +314,33 @@ definitions:
       type:
         description: type of the file, either "directory" or a file mimetype
         type: string
+    type: object
+  iteminfo.MediaMetadata:
+    properties:
+      album:
+        description: album name
+        type: string
+      albumArt:
+        description: base64 encoded album art / video thumbnail
+        type: string
+      artist:
+        description: track artist
+        type: string
+      duration:
+        description: duration in seconds
+        type: integer
+      genre:
+        description: music/video genre
+        type: string
+      title:
+        description: track/video title
+        type: string
+      track:
+        description: track number
+        type: integer
+      year:
+        description: release year
+        type: integer
     type: object
   settings.Auth:
     properties:
@@ -488,6 +694,10 @@ definitions:
         description: path to the cache directory, used for thumbnails and other cached
           files
         type: string
+      cacheDirCleanup:
+        description: 'whether to automatically cleanup the cache directory (default:
+          true)'
+        type: boolean
       database:
         description: path to the database file
         type: string
@@ -513,6 +723,9 @@ definitions:
       internalUrl:
         description: used by integrations if set, this is the base domain that an
           integration service will use to communicate with filebrowser (eg. http://localhost:8080)
+        type: string
+      listen:
+        description: 'address to listen on (default: 0.0.0.0)'
         type: string
       logging:
         items:
@@ -583,26 +796,28 @@ definitions:
         description: conditional rules to apply when indexing to include/exclude certain
           items
       createUserDir:
-        description: create a user directory for each user
+        description: create a user directory for each user under defaultUserScope
+          + username
         type: boolean
       defaultEnabled:
         description: should be added as a default source for new users?
         type: boolean
       defaultUserScope:
-        description: default "/" should match folders under path
+        description: defaults to root of index "/" should match folders under path
         type: string
       denyByDefault:
         description: deny access unless an "allow" access rule was specifically created.
         type: boolean
       disableIndexing:
-        description: disable the indexing of this source
+        description: '(optional) not recommended: disable the indexing of this source'
         type: boolean
       disabled:
         description: disable the source, this is useful so you don't need to remove
           it from the config file
         type: boolean
       indexingIntervalMinutes:
-        description: optional manual overide interval in minutes to re-index the source
+        description: '(optional) not recommended: manual overide interval in minutes
+          to re-index the source'
         type: integer
       private:
         description: designate as source as private -- currently just means no sharing
@@ -650,8 +865,7 @@ definitions:
         description: debug onlyoffice editor
         type: boolean
       defaultLandingPage:
-        description: 'default landing page to use if no redirect is specified: eg.
-          /files/mysource/mysubpath, /settings, etc.'
+        description: 'deprecated: determined by sidebar link order since 1.1.0'
         type: string
       deleteWithoutConfirming:
         description: delete files without confirmation
@@ -703,9 +917,9 @@ definitions:
         description: 'login method to use: eg. password, proxy, oidc'
         type: string
       permissions:
-        $ref: '#/definitions/users.Permissions'
+        $ref: '#/definitions/settings.UserDefaultsPermissions'
       preview:
-        $ref: '#/definitions/users.Preview'
+        $ref: '#/definitions/settings.UserDefaultsPreview'
       quickDownload:
         description: show icon to download in one click
         type: boolean
@@ -729,6 +943,151 @@ definitions:
         type: string
       viewMode:
         description: 'view mode to use: eg. normal, list, grid, or compact'
+        type: string
+    type: object
+  settings.UserDefaultsPermissions:
+    properties:
+      admin:
+        description: allow admin access
+        type: boolean
+      api:
+        description: allow api access
+        type: boolean
+      create:
+        description: allow creating or uploading files
+        type: boolean
+      delete:
+        description: allow deleting files
+        type: boolean
+      download:
+        description: allow downloading files
+        type: boolean
+      modify:
+        description: allow modifying files
+        type: boolean
+      realtime:
+        description: allow realtime updates
+        type: boolean
+      share:
+        description: allow sharing files
+        type: boolean
+    type: object
+  settings.UserDefaultsPreview:
+    properties:
+      autoplayMedia:
+        description: autoplay media files in preview
+        type: boolean
+      defaultMediaPlayer:
+        description: disable the styled feature-rich media player for browser default
+        type: boolean
+      disableHideSidebar:
+        description: keep sidebar open when previewing files
+        type: boolean
+      folder:
+        description: show thumbnails for folders that have previewable contents
+        type: boolean
+      highQuality:
+        description: use high quality thumbnails
+        type: boolean
+      image:
+        description: show thumbnails for image files
+        type: boolean
+      motionVideoPreview:
+        description: show multiple frames for videos in thumbnail preview when hovering
+        type: boolean
+      office:
+        description: show thumbnails for office files
+        type: boolean
+      popup:
+        description: show larger popup preview when hovering over thumbnail
+        type: boolean
+      video:
+        description: show thumbnails for video files
+        type: boolean
+    type: object
+  share.CommonShare:
+    properties:
+      allowCreate:
+        description: allow creating files
+        type: boolean
+      allowDelete:
+        type: boolean
+      allowModify:
+        description: allow modifying files
+        type: boolean
+      allowReplacements:
+        description: allow replacements of files
+        type: boolean
+      allowedUsernames:
+        items:
+          type: string
+        type: array
+      banner:
+        type: string
+      description:
+        type: string
+      disableAnonymous:
+        type: boolean
+      disableDownload:
+        description: don't allow downloading files
+        type: boolean
+      disableFileViewer:
+        description: don't allow viewing files
+        type: boolean
+      disableShareCard:
+        type: boolean
+      disableSidebar:
+        type: boolean
+      disableThumbnails:
+        type: boolean
+      downloadURL:
+        type: string
+      downloadsLimit:
+        type: integer
+      enableOnlyOffice:
+        type: boolean
+      enforceDarkLightMode:
+        description: '"dark" or "light"'
+        type: string
+      extractEmbeddedSubtitles:
+        description: can be io intensive for large files and take 10-30 seconds.
+        type: boolean
+      favicon:
+        type: string
+      hasPassword:
+        type: boolean
+      hideNavButtons:
+        type: boolean
+      keepAfterExpiration:
+        type: boolean
+      maxBandwidth:
+        type: integer
+      path:
+        type: string
+      perUserDownloadLimit:
+        type: boolean
+      quickDownload:
+        type: boolean
+      shareTheme:
+        type: string
+      shareType:
+        description: 'type of share: normal, upload, max'
+        type: string
+      sidebarLinks:
+        description: customizable sidebar links
+        items:
+          $ref: '#/definitions/users.SidebarLink'
+        type: array
+      source:
+        description: backend source is path to maintain between name changes
+        type: string
+      themeColor:
+        type: string
+      title:
+        type: string
+      viewMode:
+        description: 'default view mode for anonymous users: "list", "compact", "normal",
+          "gallery"'
         type: string
     type: object
   share.CreateBody:
@@ -782,6 +1141,8 @@ definitions:
         type: boolean
       favicon:
         type: string
+      hasPassword:
+        type: boolean
       hash:
         type: string
       hideNavButtons:
@@ -803,6 +1164,11 @@ definitions:
       shareType:
         description: 'type of share: normal, upload, max'
         type: string
+      sidebarLinks:
+        description: customizable sidebar links
+        items:
+          $ref: '#/definitions/users.SidebarLink'
+        type: array
       source:
         description: backend source is path to maintain between name changes
         type: string
@@ -870,6 +1236,8 @@ definitions:
         type: boolean
       favicon:
         type: string
+      hasPassword:
+        type: boolean
       hash:
         type: string
       hideNavButtons:
@@ -891,6 +1259,11 @@ definitions:
       shareType:
         description: 'type of share: normal, upload, max'
         type: string
+      sidebarLinks:
+        description: customizable sidebar links
+        items:
+          $ref: '#/definitions/users.SidebarLink'
+        type: array
       source:
         description: backend source is path to maintain between name changes
         type: string
@@ -904,7 +1277,14 @@ definitions:
           URL-Safe and is used to download links in password-protected shares via a
           query arg.
         type: string
+      userDownloads:
+        additionalProperties:
+          type: integer
+        description: Track downloads per username
+        type: object
       userID:
+        type: integer
+      version:
         type: integer
       viewMode:
         description: 'default view mode for anonymous users: "list", "compact", "normal",
@@ -1005,6 +1385,24 @@ definitions:
         description: show thumbnail preview image for video files
         type: boolean
     type: object
+  users.SidebarLink:
+    properties:
+      category:
+        description: 'Category type: "source", "share", "tool", "custom", etc.'
+        type: string
+      icon:
+        description: Material icon name
+        type: string
+      name:
+        description: Display name of the link
+        type: string
+      sourceName:
+        description: Source identifier for source-type links
+        type: string
+      target:
+        description: Target path/URL for the link (relative for source/share)
+        type: string
+    type: object
   users.Sorting:
     properties:
       asc:
@@ -1039,8 +1437,7 @@ definitions:
         description: debug onlyoffice editor
         type: boolean
       defaultLandingPage:
-        description: 'default landing page to use: eg. /files/mysource/mysubpath,
-          /settings, etc.'
+        description: 'deprecated: determined by sidebar link order instead'
         type: string
       deleteWithoutConfirming:
         description: delete files without confirmation
@@ -1121,6 +1518,11 @@ definitions:
       showSelectMultiple:
         description: show select multiple files on desktop
         type: boolean
+      sidebarLinks:
+        description: customizable sidebar links
+        items:
+          $ref: '#/definitions/users.SidebarLink'
+        type: array
       singleClick:
         description: open directory on single click, also enables middle click to
           open in new tab
@@ -1154,7 +1556,8 @@ paths:
       consumes:
       - application/json
       description: Delete a user or group from an allow or deny list for a sourcePath
-        and indexPath.
+        and indexPath. When cascade=true, removes the user/group from the specified
+        path and all subpaths.
       parameters:
       - description: Source path prefix (e.g. mnt/storage)
         in: query
@@ -1181,6 +1584,10 @@ paths:
         name: value
         required: true
         type: string
+      - description: 'Cascade delete to all subpaths (default: false)'
+        in: query
+        name: cascade
+        type: boolean
       produces:
       - application/json
       responses:
@@ -1255,6 +1662,48 @@ paths:
               type: string
             type: object
       summary: List access rules
+      tags:
+      - Access
+    patch:
+      consumes:
+      - application/json
+      description: Updates the path for a specific access rule
+      parameters:
+      - description: Source, old path, and new path
+        in: body
+        name: body
+        required: true
+        schema:
+          properties:
+            newPath:
+              type: string
+            oldPath:
+              type: string
+            source:
+              type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Rule path updated successfully
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad request - missing or invalid parameters
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update access rule path
       tags:
       - Access
     post:
@@ -1714,6 +2163,43 @@ paths:
       summary: List API keys
       tags:
       - API Keys
+  /api/duplicates:
+    get:
+      consumes:
+      - application/json
+      description: Finds duplicate files based on size and fuzzy filename matching
+      parameters:
+      - description: Source name for the desired source
+        in: query
+        name: source
+        required: true
+        type: string
+      - description: path within user scope to search
+        in: query
+        name: scope
+        type: string
+      - description: 'Minimum file size in megabytes (default: 1)'
+        in: query
+        name: minSizeMb
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of duplicate file groups
+          schema:
+            items:
+              $ref: '#/definitions/http.duplicateGroup'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Find Duplicate Files
+      tags:
+      - Duplicates
   /api/jobs/{action}/{target}:
     get:
       consumes:
@@ -2119,6 +2605,10 @@ paths:
         in: query
         name: override
         type: boolean
+      - description: Explicitly specify if the resource is a directory
+        in: query
+        name: isDir
+        type: boolean
       produces:
       - application/json
       responses:
@@ -2323,6 +2813,44 @@ paths:
               type: string
             type: object
       summary: Get share links by path
+      tags:
+      - Shares
+    patch:
+      consumes:
+      - application/json
+      description: Updates the path for a specific share link identified by hash
+      parameters:
+      - description: Hash and new path
+        in: body
+        name: body
+        required: true
+        schema:
+          properties:
+            hash:
+              type: string
+            path:
+              type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated share link
+          schema:
+            $ref: '#/definitions/http.ShareResponse'
+        "400":
+          description: Bad request - missing or invalid parameters
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update share link path
       tags:
       - Shares
     post:
@@ -2592,13 +3120,9 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/users.User'
-      produces:
-      - application/json
       responses:
-        "200":
-          description: Updated user details
-          schema:
-            $ref: '#/definitions/users.User'
+        "204":
+          description: No Content - User updated successfully
         "400":
           description: Bad Request
           schema:
@@ -2763,6 +3287,56 @@ paths:
       tags:
       - Public Shares
   /public/api/resources:
+    get:
+      consumes:
+      - application/json
+      description: Returns metadata for files or directories accessible via a public
+        share link. Browsing is disabled for upload-only shares.
+      parameters:
+      - description: Share hash for authentication
+        in: query
+        name: hash
+        required: true
+        type: string
+      - description: Path within the share to retrieve information for. Defaults to
+          share root.
+        in: query
+        name: path
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: File or directory metadata
+          schema:
+            $ref: '#/definitions/iteminfo.FileInfo'
+        "403":
+          description: Share unavailable or access denied
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Share not found or file not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "501":
+          description: Browsing disabled for upload shares
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get file/directory information from a public share
+      tags:
+      - Public Shares
     post:
       consumes:
       - multipart/form-data
@@ -2899,55 +3473,32 @@ paths:
       summary: Update a file in a public share
       tags:
       - Public Shares
-  /public/api/share:
+  /public/api/shareinfo:
     get:
       consumes:
       - application/json
-      description: Returns metadata for files or directories accessible via a public
-        share link. Browsing is disabled for upload-only shares.
+      description: Returns information about a share link based on its hash. This
+        endpoint is publicly accessible and can be used with or without authentication.
       parameters:
-      - description: Share hash for authentication
+      - description: Hash of the share link
         in: query
         name: hash
         required: true
-        type: string
-      - description: Path within the share to retrieve information for. Defaults to
-          share root.
-        in: query
-        name: path
         type: string
       produces:
       - application/json
       responses:
         "200":
-          description: File or directory metadata
+          description: Share information
           schema:
-            $ref: '#/definitions/iteminfo.FileInfo'
-        "403":
-          description: Share unavailable or access denied
-          schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/share.CommonShare'
         "404":
-          description: Share not found or file not found
+          description: Share hash not found
           schema:
             additionalProperties:
               type: string
             type: object
-        "500":
-          description: Internal server error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "501":
-          description: Browsing disabled for upload shares
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Get file/directory information from a public share
+      summary: Get share information by hash
       tags:
-      - Public Shares
+      - Shares
 swagger: "2.0"

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -19,29 +20,58 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 // ShareResponse represents a share with computed username field and download URL
 type ShareResponse struct {
 	*share.Link
+	Source      string `json:"source"` // Override embedded field to show source name
 	Username    string `json:"username,omitempty"`
 	DownloadURL string `json:"downloadURL,omitempty"`
+	PathExists  bool   `json:"pathExists"`
 }
 
-// convertToShareResponse converts shares to response format with usernames
-func convertToShareResponse(r *http.Request, shares []*share.Link) ([]*ShareResponse, error) {
-	responses := make([]*ShareResponse, len(shares))
-	for i, s := range shares {
+// convertToFrontendShareResponse converts shares to response format with usernames
+func convertToFrontendShareResponse(r *http.Request, shares []*share.Link) ([]*ShareResponse, error) {
+	responses := make([]*ShareResponse, 0, len(shares))
+	for _, s := range shares {
 		user, err := store.Users.Get(s.UserID)
 		username := ""
 		if err == nil {
 			username = user.Username
 		}
-		responses[i] = &ShareResponse{
+
+		// Get source info to convert path to name for frontend
+		sourceInfo, ok := config.Server.SourceMap[s.Source]
+		if !ok {
+			// Source not found - likely corrupted data. Try to find by name as fallback
+			sourceInfo, ok = config.Server.NameToSource[s.Source]
+			if !ok {
+				// Still not found - this share is invalid, skip it and delete it
+				logger.Error("Invalid share - deleting", "hash", s.Hash, "source", s.Source)
+				_ = store.Share.Delete(s.Hash) // Best effort delete
+				continue
+			}
+			// Found by name - this is corrupted data, fix it
+			logger.Warning("Share has corrupted source - fixing", "hash", s.Hash, "from", s.Source, "to", sourceInfo.Path)
+			s.Source = sourceInfo.Path
+			_ = store.Share.Save(s) // Best effort fix
+		}
+
+		// Check if the path exists on the filesystem
+		pathExists := utils.CheckPathExists(filepath.Join(sourceInfo.Path, s.Path))
+
+		s.CommonShare.HasPassword = s.HasPassword()
+
+		// Create response with source name (overrides the embedded Link's source field)
+		responses = append(responses, &ShareResponse{
 			Link:        s,
+			Source:      sourceInfo.Name, // Override to show source name instead of backend path
 			Username:    username,
 			DownloadURL: getDownloadURL(r, s.Hash),
-		}
+			PathExists:  pathExists,
+		})
 	}
 	return responses, nil
 }
@@ -67,7 +97,7 @@ func shareListHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		return http.StatusInternalServerError, err
 	}
 	shares = utils.NonNilSlice(shares)
-	sharesWithUsernames, err := convertToShareResponse(r, shares)
+	sharesWithUsernames, err := convertToFrontendShareResponse(r, shares)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -102,15 +132,17 @@ func shareGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) 
 		return http.StatusForbidden, err
 	}
 	scopePath := utils.JoinPathAsUnix(userscope, path)
+	scopePath = utils.AddTrailingSlashIfNotExists(scopePath)
 	s, err := store.Share.Gets(scopePath, sourceInfo.Path, d.user.ID)
 	if err == errors.ErrNotExist || len(s) == 0 {
 		return renderJSON(w, r, []*ShareResponse{})
 	}
-	// DownloadURL will be set in convertToShareResponse
+	// DownloadURL will be set in convertToFrontendShareResponse
+
 	if err != nil {
 		return http.StatusInternalServerError, fmt.Errorf("error getting share info from server")
 	}
-	sharesWithUsernames, err := convertToShareResponse(r, s)
+	sharesWithUsernames, err := convertToFrontendShareResponse(r, s)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -141,6 +173,53 @@ func shareDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	}
 
 	return errToStatus(err), err
+}
+
+// sharePatchHandler updates a share link's path.
+// @Summary Update share link path
+// @Description Updates the path for a specific share link identified by hash
+// @Tags Shares
+// @Accept json
+// @Produce json
+// @Param body body object{hash=string,path=string} true "Hash and new path"
+// @Success 200 {object} ShareResponse "Updated share link"
+// @Failure 400 {object} map[string]string "Bad request - missing or invalid parameters"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/share [patch]
+func sharePatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	var body struct {
+		Hash string `json:"hash"`
+		Path string `json:"path"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		return http.StatusBadRequest, fmt.Errorf("failed to decode body: %w", err)
+	}
+	defer r.Body.Close()
+
+	if body.Hash == "" || body.Path == "" {
+		return http.StatusBadRequest, fmt.Errorf("hash and path are required")
+	}
+
+	// Update the share path
+	err := store.Share.UpdateSharePath(body.Hash, body.Path)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	// Get the updated share
+	updatedShare, err := store.Share.GetByHash(body.Hash)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	// Convert to response format
+	sharesWithUsernames, err := convertToFrontendShareResponse(r, []*share.Link{updatedShare})
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	return renderJSON(w, r, sharesWithUsernames[0])
 }
 
 // sharePostHandler creates a new share link.
@@ -274,6 +353,7 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		return http.StatusForbidden, err
 	}
 	scopePath := utils.JoinPathAsUnix(userscope, body.Path)
+	scopePath = utils.AddTrailingSlashIfNotExists(scopePath)
 	body.Path = scopePath
 	// validate path exists as file or folder
 	_, exists := idx.GetReducedMetadata(body.Path, true) // true to check if it exists
@@ -295,11 +375,12 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		PasswordHash: stringHash,
 		Token:        token,
 		CommonShare:  body.CommonShare,
+		Version:      1, // Set version for new shares
 	}
 	if err = store.Share.Save(s); err != nil {
 		return http.StatusInternalServerError, err
 	}
-	sharesWithUsernames, err := convertToShareResponse(r, []*share.Link{s})
+	sharesWithUsernames, err := convertToFrontendShareResponse(r, []*share.Link{s})
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -437,9 +518,10 @@ func shareDirectDownloadHandler(w http.ResponseWriter, r *http.Request, d *reque
 
 	// No matching existing share found, create a new one
 	shareLink := &share.Link{
-		Expire: expire,
-		UserID: d.user.ID,
-		Hash:   secureHash,
+		Expire:  expire,
+		UserID:  d.user.ID,
+		Hash:    secureHash,
+		Version: 1, // Set version for new shares
 		CommonShare: share.CommonShare{
 			Path:           scopePath,
 			Source:         idx.Path,
@@ -489,6 +571,26 @@ func getDownloadURL(r *http.Request, hash string) string {
 		downloadURL = fmt.Sprintf("%s://%s%spublic/api/raw?hash=%s", scheme, host, config.Server.BaseURL, hash)
 	}
 	return downloadURL
+}
+
+// shareInfoHandler retrieves share information by hash.
+// @Summary Get share information by hash
+// @Description Returns information about a share link based on its hash. This endpoint is publicly accessible and can be used with or without authentication.
+// @Tags Shares
+// @Accept json
+// @Produce json
+// @Param hash query string true "Hash of the share link"
+// @Success 200 {object} share.CommonShare "Share information"
+// @Failure 404 {object} map[string]string "Share hash not found"
+// @Router /public/api/shareinfo [get]
+func shareInfoHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	hash := r.URL.Query().Get("hash")
+	// Get the file link by hash
+	commonShare, err := store.Share.GetCommonShareByHash(hash)
+	if err != nil {
+		return http.StatusNotFound, fmt.Errorf("share hash not found")
+	}
+	return renderJSON(w, r, commonShare)
 }
 
 func getSharePasswordHash(body share.CreateBody) (data []byte, statuscode int, err error) {

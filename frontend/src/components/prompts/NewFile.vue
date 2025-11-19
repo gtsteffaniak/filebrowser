@@ -10,13 +10,13 @@
   </div>
 
   <div class="card-action">
-    <button class="button button--flat button--grey" @click="closeHovers" :aria-label="$t('buttons.cancel')"
-      :title="$t('buttons.cancel')">
-      {{ $t("buttons.cancel") }}
+    <button class="button button--flat button--grey" @click="closeHovers" :aria-label="$t('general.cancel')"
+      :title="$t('general.cancel')">
+      {{ $t("general.cancel") }}
     </button>
-    <button class="button button--flat" @click="submit" :aria-label="$t('buttons.create')"
-      :title="$t('buttons.create')">
-      {{ $t("buttons.create") }}
+    <button class="button button--flat" @click="submit" :aria-label="$t('general.create')"
+      :title="$t('general.create')">
+      {{ $t("general.create") }}
     </button>
   </div>
 </template>
@@ -26,7 +26,6 @@ import { filesApi, publicApi } from "@/api";
 import { getters, mutations } from "@/store"; // Import your custom store
 import { notify } from "@/notify";
 import { url } from "@/utils";
-import { shareInfo } from "@/utils/constants";
 export default {
   name: "new-file",
   data() {
@@ -52,21 +51,38 @@ export default {
         if (this.name === "") return;
         await this.createFile(false);
       } catch (error) {
-        notify.showError(error);
+        console.error(error);
       }
     },
 
     async createFile(overwrite = false) {
       try {
+        const newPath = url.joinPath(state.req.path, this.name);
+        const source = state.req.source;
+
         if (getters.isShare()) {
-          await publicApi.post(shareInfo.hash, url.joinPath(state.req.path, this.name), "", overwrite);
-          url.goToItem(state.req.source, url.joinPath(state.req.path, this.name), {});
+          await publicApi.post(state.shareInfo?.hash, newPath, "", overwrite);
+          mutations.setReload(true);
           mutations.closeHovers();
           return;
         }
-        await filesApi.post(state.req.source, url.joinPath(state.req.path, this.name), "", overwrite);
-        url.goToItem(state.req.source, url.joinPath(state.req.path, this.name), {});
+        await filesApi.post(source, newPath, "", overwrite);
+        mutations.setReload(true);
         mutations.closeHovers();
+
+        // Show success notification with "go to item" button
+        const buttonAction = () => {
+          url.goToItem(source, newPath, {});
+        };
+        const buttonProps = {
+          icon: "insert_drive_file",
+          buttons: [{
+            label: this.$t("buttons.goToItem"),
+            primary: true,
+            action: buttonAction
+          }]
+        };
+        notify.showSuccess(this.$t("prompts.newFileSuccess"), buttonProps);
       } catch (error) {
         if (error.message === "conflict") {
           // Show replace-rename prompt for file/folder conflicts
@@ -85,17 +101,34 @@ export default {
                   for (let counter = 1; counter <= maxAttempts && !success; counter++) {
                     try {
                       const newName = counter === 1 ? `${originalName} (1)` : `${originalName} (${counter})`;
+                      const newPath = url.joinPath(state.req.path, newName);
+                      const source = state.req.source;
+
                       if (getters.isShare()) {
-                        await publicApi.post(shareInfo.hash, url.joinPath(state.req.path, newName), "", false);
-                        url.goToItem(state.req.source, url.joinPath(state.req.path, newName), {});
+                        await publicApi.post(state.shareInfo?.hash, newPath, "", false);
+                        mutations.setReload(true);
                         mutations.closeHovers();
                         success = true;
                         return;
                       }
-                      await filesApi.post(state.req.source, url.joinPath(state.req.path, newName), "", false);
-                      url.goToItem(state.req.source, url.joinPath(state.req.path, newName), {});
+                      await filesApi.post(source, newPath, "", false);
+                      mutations.setReload(true);
                       mutations.closeHovers();
                       success = true;
+
+                      // Show success notification with "go to item" button
+                      const buttonAction = () => {
+                        url.goToItem(source, newPath, {});
+                      };
+                      const buttonProps = {
+                        icon: "insert_drive_file",
+                        buttons: [{
+                          label: this.$t("buttons.goToItem"),
+                          primary: true,
+                          action: buttonAction
+                        }]
+                      };
+                      notify.showSuccess(this.$t("prompts.newFileSuccess"), buttonProps);
                     } catch (renameError) {
                       if (renameError.message === "conflict") {
                         // Continue to next iteration

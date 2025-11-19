@@ -5,7 +5,6 @@ import { emitStateChanged } from './eventBus'; // Import the function from event
 import { usersApi } from "@/api";
 import { notify } from "@/notify";
 import { sortedItems } from "@/utils/sort.js";
-import { serverHasMultipleSources } from "@/utils/constants.js";
 import { url } from "@/utils";
 import { getTypeInfo } from "@/utils/mimetype";
 import { filesApi, publicApi } from "@/api";
@@ -115,17 +114,18 @@ export const mutations = {
           } else {
             state.sources.hasSourceInfo = true
           }
-          state.sources.info[k].used = source.used;
-          state.sources.info[k].total = source.total;
-          state.sources.info[k].usedPercentage = Math.round((source.used / source.total) * 100);
-          state.sources.info[k].status = source.status;
-          state.sources.info[k].name = source.name;
-          state.sources.info[k].files = source.numFiles;
-          state.sources.info[k].folders = source.numDirs;
-          state.sources.info[k].lastIndex = source.lastIndexedUnixTime;
-          state.sources.info[k].quickScanDurationSeconds = source.quickScanDurationSeconds;
-          state.sources.info[k].fullScanDurationSeconds = source.fullScanDurationSeconds;
-          state.sources.info[k].assessment = source.assessment;
+          state.sources.info[k].used = source.used || 0;
+          state.sources.info[k].total = source.total || 0;
+          state.sources.info[k].usedPercentage = source.total ? Math.round((source.used / source.total) * 100) : 0;
+          state.sources.info[k].status = source.status || "unknown";
+          state.sources.info[k].name = source.name || k;
+          state.sources.info[k].files = source.numFiles || 0;
+          state.sources.info[k].folders = source.numDirs || 0;
+          state.sources.info[k].lastIndex = source.lastIndexedUnixTime || 0;
+          state.sources.info[k].quickScanDurationSeconds = source.quickScanDurationSeconds || 0;
+          state.sources.info[k].fullScanDurationSeconds = source.fullScanDurationSeconds || 0;
+          state.sources.info[k].complexity = source.complexity || 0;
+          state.sources.info[k].scanners = source.scanners || [];
         }
       }
     }
@@ -144,7 +144,6 @@ export const mutations = {
     emitStateChanged();
   },
   setSources: (user) => {
-    state.serverHasMultipleSources = serverHasMultipleSources;
     const currentSource = user.scopes.length > 0 ? user.scopes[0].name : "";
     let sources = {info: {}, current: currentSource, count: user.scopes.length};
     for (const source of user.scopes) {
@@ -153,8 +152,27 @@ export const mutations = {
         used: 0,
         total: 0,
         usedPercentage: 0,
+        status: "unknown",
+        name: source.name,
+        files: 0,
+        folders: 0,
+        lastIndex: 0,
+        quickScanDurationSeconds: 0,
+        fullScanDurationSeconds: 0,
+        complexity: 0,
+        scanners: [],
       };
     }
+    // Check if user has custom sidebar links with sources
+    let targetSource = sources.current;
+    if (state.user?.sidebarLinks && state.user.sidebarLinks.length > 0) {
+      // Find first source link in user's sidebar links
+      const firstSourceLink = state.user.sidebarLinks.find(link => link.category === 'source' && link.sourceName);
+      if (firstSourceLink) {
+        targetSource = firstSourceLink.sourceName;
+      }
+    }
+    sources.defaultSource = targetSource;
     state.sources = sources;
     emitStateChanged();
   },
@@ -262,7 +280,7 @@ export const mutations = {
     if (!state.stickySidebar) {
       state.showSidebar = false;
     }
-    emitStateChanged();
+    mutations.hideTooltip(true)
   },
   closeTopHover: () => {
     state.prompts.pop();
@@ -271,7 +289,7 @@ export const mutations = {
         state.showSidebar = false;
       }
     }
-    emitStateChanged();
+    mutations.hideTooltip(true)
   },
   showHover: (value) => {
     if (typeof value === "object") {
@@ -293,7 +311,7 @@ export const mutations = {
         cancel: value?.cancel,
       });
     }
-    emitStateChanged();
+    mutations.hideTooltip(true)
   },
   setLoading: (loadType, status) => {
     if (status === false) {
@@ -462,6 +480,7 @@ export const mutations = {
           "gallerySize",
           "viewMode",
           "showFirstLogin",
+          "sidebarLinks",
         ].includes(key)
       );
       value.id = state.user.id;
@@ -574,8 +593,11 @@ export const mutations = {
     state.tooltip.show = true;
     emitStateChanged();
   },
-  hideTooltip() {
+  hideTooltip(force=false) {
     if (!state.tooltip.show) {
+      if (force) {
+        emitStateChanged();
+      }
       return;
     }
     state.tooltip.show = false;
@@ -812,6 +834,13 @@ export const mutations = {
   },
   togglePlayPause: () => {
     state.playbackQueue.shouldTogglePlayPause = !state.playbackQueue.shouldTogglePlayPause;
+    emitStateChanged();
+  },
+  setShareInfo: (shareInfo) => {
+    if (state.shareInfo === shareInfo) {
+      return;
+    }
+    state.shareInfo = shareInfo;
     emitStateChanged();
   },
 };

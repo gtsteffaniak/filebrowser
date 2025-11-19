@@ -42,7 +42,7 @@ export interface UserObject {
   loginType: string;
   username: string;
   quickDownloadEnabled: boolean;
-  gallarySize: number;
+  gallerySize: number;
   singleClick: boolean;
   stickySidebar: boolean;
   locale: string;
@@ -111,7 +111,6 @@ export interface StoreState {
   displayPreferences: any;
   usages: any;
   editor: any;
-  serverHasMultipleSources: boolean;
   realtimeActive: boolean | undefined;
   realtimeDownCount: number;
   popupPreviewSource: string;

@@ -33,17 +33,17 @@
       <button
         class="button button--flat button--grey"
         @click="closeHovers"
-        :aria-label="$t('buttons.close')"
-        :title="$t('buttons.close')"
+        :aria-label="$t('general.close')"
+        :title="$t('general.close')"
       >
-        {{ $t('buttons.close') }}
+        {{ $t('general.close') }}
       </button>
       <button
         class="button button--flat button--red"
         @click="deleteApi"
-        :title="$t('buttons.delete')"
+        :title="$t('general.delete')"
       >
-        {{ $t('buttons.delete') }}
+        {{ $t('general.delete') }}
       </button>
     </div>
 </template>
@@ -77,16 +77,18 @@ export default {
     closeHovers() {
       mutations.closeHovers();
     },
-    deleteApi() {
+    async deleteApi() {
       // Dummy delete function, to be filled in later
       try {
         usersApi.deleteApiKey({ name: this.name });
         // Emit event to refresh API keys list
-        eventBus.emit('apiKeysChanged');
-        notify.showSuccess("API key deleted!");
+        setTimeout(() => {
+          eventBus.emit('apiKeysChanged');
+        }, 10);
         mutations.closeHovers();
+        notify.showSuccessToast(this.$t("api.apiKeyDeleted"));
       } catch (error) {
-        notify.showError(error);
+        console.error(error);
       }
     },
   },

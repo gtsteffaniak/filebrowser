@@ -84,41 +84,51 @@ type SourceScope struct {
 
 // json tags must match variable name with smaller case first letter
 type NonAdminEditable struct {
-	EditorQuickSave            bool        `json:"editorQuickSave"`         // show quick save button in editor
-	HideSidebarFileActions     bool        `json:"hideSidebarFileActions"`  // hide the file actions in the sidebar
-	DisableQuickToggles        bool        `json:"disableQuickToggles"`     // disable the quick toggles in the sidebar
-	DisableSearchOptions       bool        `json:"disableSearchOptions"`    // disable the search options in the search bar
-	DeleteWithoutConfirming    bool        `json:"deleteWithoutConfirming"` // delete files without confirmation
-	Preview                    Preview     `json:"preview"`
-	StickySidebar              bool        `json:"stickySidebar"` // keep sidebar open when navigating
-	DarkMode                   bool        `json:"darkMode"`      // should dark mode be enabled
-	Password                   string      `json:"password,omitempty"`
-	Locale                     string      `json:"locale"`      // language to use: eg. de, en, or fr
-	ViewMode                   string      `json:"viewMode"`    // view mode to use: eg. normal, list, grid, or compact
-	SingleClick                bool        `json:"singleClick"` // open directory on single click, also enables middle click to open in new tab
-	Sorting                    Sorting     `json:"sorting"`
-	ShowHidden                 bool        `json:"showHidden"`                 // show hidden files in the UI. On windows this includes files starting with a dot and windows hidden files
-	DateFormat                 bool        `json:"dateFormat"`                 // when false, the date is relative, when true, the date is an exact timestamp
-	GallerySize                int         `json:"gallerySize"`                // 0-9 - the size of the gallery thumbnails
-	ThemeColor                 string      `json:"themeColor"`                 // theme color to use: eg. #ff0000, or var(--red), var(--purple), etc
-	QuickDownload              bool        `json:"quickDownload"`              // show icon to download in one click
-	DisableUpdateNotifications bool        `json:"disableUpdateNotifications"` // disable update notifications
-	FileLoading                FileLoading `json:"fileLoading"`                // upload and download settings
-	DisableOfficePreviewExt    string      `json:"disableOfficePreviewExt"`    // deprecated
-	DisableOnlyOfficeExt       string      `json:"disableOnlyOfficeExt"`       // deprecated
-	DisablePreviewExt          string      `json:"disablePreviewExt"`          // space separated list of file extensions to disable preview for
-	DisableViewingExt          string      `json:"disableViewingExt"`          // space separated list of file extensions to disable viewing for
-	CustomTheme                string      `json:"customTheme"`                // Name of theme to use chosen from custom themes config.
-	ShowSelectMultiple         bool        `json:"showSelectMultiple"`         // show select multiple files on desktop
-	DebugOffice                bool        `json:"debugOffice"`                // debug onlyoffice editor
-	OtpEnabled                 bool        `json:"otpEnabled"`                 // allow non-admin users to disable their own OTP
-	DefaultLandingPage         string      `json:"defaultLandingPage"`         // default landing page to use: eg. /files/mysource/mysubpath, /settings, etc.
+	EditorQuickSave            bool          `json:"editorQuickSave"`         // show quick save button in editor
+	HideSidebarFileActions     bool          `json:"hideSidebarFileActions"`  // hide the file actions in the sidebar
+	DisableQuickToggles        bool          `json:"disableQuickToggles"`     // disable the quick toggles in the sidebar
+	DisableSearchOptions       bool          `json:"disableSearchOptions"`    // disable the search options in the search bar
+	DeleteWithoutConfirming    bool          `json:"deleteWithoutConfirming"` // delete files without confirmation
+	Preview                    Preview       `json:"preview"`
+	StickySidebar              bool          `json:"stickySidebar"` // keep sidebar open when navigating
+	DarkMode                   bool          `json:"darkMode"`      // should dark mode be enabled
+	Password                   string        `json:"password,omitempty"`
+	Locale                     string        `json:"locale"`      // language to use: eg. de, en, or fr
+	ViewMode                   string        `json:"viewMode"`    // view mode to use: eg. normal, list, grid, or compact
+	SingleClick                bool          `json:"singleClick"` // open directory on single click, also enables middle click to open in new tab
+	Sorting                    Sorting       `json:"sorting"`
+	ShowHidden                 bool          `json:"showHidden"`                 // show hidden files in the UI. On windows this includes files starting with a dot and windows hidden files
+	DateFormat                 bool          `json:"dateFormat"`                 // when false, the date is relative, when true, the date is an exact timestamp
+	GallerySize                int           `json:"gallerySize"`                // 0-9 - the size of the gallery thumbnails
+	ThemeColor                 string        `json:"themeColor"`                 // theme color to use: eg. #ff0000, or var(--red), var(--purple), etc
+	QuickDownload              bool          `json:"quickDownload"`              // show icon to download in one click
+	DisableUpdateNotifications bool          `json:"disableUpdateNotifications"` // disable update notifications
+	FileLoading                FileLoading   `json:"fileLoading"`                // upload and download settings
+	DisableOfficePreviewExt    string        `json:"disableOfficePreviewExt"`    // deprecated
+	DisableOnlyOfficeExt       string        `json:"disableOnlyOfficeExt"`       // deprecated
+	DisablePreviewExt          string        `json:"disablePreviewExt"`          // space separated list of file extensions to disable preview for
+	DisableViewingExt          string        `json:"disableViewingExt"`          // space separated list of file extensions to disable viewing for
+	CustomTheme                string        `json:"customTheme"`                // Name of theme to use chosen from custom themes config.
+	ShowSelectMultiple         bool          `json:"showSelectMultiple"`         // show select multiple files on desktop
+	DebugOffice                bool          `json:"debugOffice"`                // debug onlyoffice editor
+	OtpEnabled                 bool          `json:"otpEnabled"`                 // allow non-admin users to disable their own OTP
+	DefaultLandingPage         string        `json:"defaultLandingPage"`         // deprecated: determined by sidebar link order instead
+	SidebarLinks               []SidebarLink `json:"sidebarLinks"`               // customizable sidebar links
 }
 
 type FileLoading struct {
 	MaxConcurrent int  `json:"maxConcurrentUpload"`
 	ChunkSize     int  `json:"uploadChunkSizeMb"`
 	ClearAll      bool `json:"clearAll"`
+}
+
+// SidebarLink represents a customizable link in the sidebar.
+type SidebarLink struct {
+	Name       string `json:"name"`                 // Display name of the link
+	Category   string `json:"category"`             // Category type: "source", "share", "tool", "custom", etc.
+	Target     string `json:"target"`               // Target path/URL for the link (relative for source/share)
+	Icon       string `json:"icon"`                 // Material icon name
+	SourceName string `json:"sourceName,omitempty"` // Source identifier for source-type links
 }
 
 func CleanUsername(s string) string {

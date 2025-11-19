@@ -5,7 +5,6 @@
 </template>
 
 <script>
-import { eventBus } from "@/store/eventBus";
 import { state, getters, mutations } from "@/store";
 import { filesApi, publicApi } from "@/api";
 import { url } from "@/utils";
@@ -179,7 +178,6 @@ export default {
   },
   created() {
     window.addEventListener("keydown", this.keyEvent);
-    eventBus.on("handleEditorValueRequest", this.handleEditorValueRequest);
 
     // Show generic browser dialog if the user closes the tab, or try to close the browser with unsaved changes
     this.beforeUnloadHandler = (event) => {
@@ -386,24 +384,17 @@ export default {
         throw new Error(errorMsg);
       }
 
-      try {
-        if (getters.isShare()) {
-          // Save the file
-          await publicApi.put(this.originalReq.path, this.editor.getValue());
-        } else {
-          // Save the file
-          await filesApi.put(this.originalReq.source, this.originalReq.path, this.editor.getValue());
-        }
-
-        notify.showSuccess(`${this.originalReq.name} saved successfully.`);
-        this.isDirty = false;
-        mutations.setEditorDirty(false);
-      } catch (error) {
-        // Show error with more details if available
-        const errorMessage = error.message || this.$t("editor.saveFailed");
-        notify.showError(errorMessage);
-        throw error; // Re-throw to propagate to caller
+      if (getters.isShare()) {
+        // Save the file
+        await publicApi.put(state.shareInfo.hash, this.originalReq.path, this.editor.getValue());
+      } else {
+        // Save the file
+        await filesApi.put(this.originalReq.source, this.originalReq.path, this.editor.getValue());
       }
+
+      notify.showSuccessToast(`${this.originalReq.name} saved successfully.`);
+      this.isDirty = false;
+      mutations.setEditorDirty(false);
     },
     keyEvent(event) {
       const { key, ctrlKey, metaKey } = event;

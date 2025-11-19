@@ -15,28 +15,31 @@ import (
 var SearchResultsCache = cache.NewCache[[]string](15 * time.Second)
 
 var (
-	sessionInProgress sync.Map
-	maxSearchResults  = 100
+	sessionInProgress    sync.Map
+	DefaultSearchResults = 100
 )
 
 type SearchResult struct {
-	Path string `json:"path"`
-	Type string `json:"type"`
-	Size int64  `json:"size"`
+	Path       string `json:"path"`
+	Type       string `json:"type"`
+	Size       int64  `json:"size"`
+	Modified   string `json:"modified,omitempty"`
+	HasPreview bool   `json:"hasPreview"`
 }
 
-func (idx *Index) Search(search string, scope string, sourceSession string) []SearchResult {
+func (idx *Index) Search(search string, scope string, sourceSession string, largest bool, limit int) []*SearchResult {
 	// Ensure scope has consistent trailing slash for directory matching
 	if scope != "" && !strings.HasSuffix(scope, "/") {
 		scope = scope + "/"
 	}
+	originalScope := scope // Preserve original scope for largest mode exclusion check
 	if search == "" {
 		scope = ""
 	}
 	runningHash := utils.InsecureRandomIdentifier(4)
 	sessionInProgress.Store(sourceSession, runningHash) // Store the value in the sync.Map
 	searchOptions := iteminfo.ParseSearch(search)
-	results := make(map[string]SearchResult, 0)
+	results := make(map[string]*SearchResult, 0)
 	count := 0
 	var directories []string
 	cachedDirs, ok := SearchResultsCache.Get(idx.Path + scope)
@@ -46,11 +49,15 @@ func (idx *Index) Search(search string, scope string, sourceSession string) []Se
 		directories = idx.getDirsInScope(scope)
 		SearchResultsCache.Set(idx.Path+scope, directories)
 	}
+	// When largest=true and no search terms, ensure we run at least once
+	if largest && len(searchOptions.Terms) == 0 {
+		searchOptions.Terms = []string{""}
+	}
 	for _, searchTerm := range searchOptions.Terms {
-		if searchTerm == "" {
+		if searchTerm == "" && !largest {
 			continue
 		}
-		if count > maxSearchResults {
+		if limit > 0 && count >= limit {
 			break
 		}
 		idx.mu.Lock()
@@ -59,18 +66,38 @@ func (idx *Index) Search(search string, scope string, sourceSession string) []Se
 			if !found {
 				continue
 			}
-			if count > maxSearchResults {
+			if limit > 0 && count >= limit {
 				break
 			}
-			reducedDir := iteminfo.ItemInfo{
-				Name: filepath.Base(dirName),
-				Type: "directory",
-				Size: dir.Size,
-			}
-			matches := reducedDir.ContainsSearchTerm(searchTerm, searchOptions)
-			if matches {
-				results[dirName] = SearchResult{Path: dirName, Type: "directory", Size: dir.Size}
-				count++
+			// Skip the scope directory itself when largest=true (only search sub-items)
+			if !(largest && dirName == originalScope) {
+				reducedDir := iteminfo.ItemInfo{
+					Name: filepath.Base(dirName),
+					Type: "directory",
+					Size: dir.Size,
+				}
+				var matches bool
+				if largest {
+					// When largest=true, check size and type conditions, skip name matching
+					largerThan := int64(searchOptions.LargerThan) * 1024 * 1024
+					sizeMatches := largerThan == 0 || reducedDir.Size > largerThan
+					// Check if directories should be excluded (when type:file is specified)
+					dirCondition, hasDirCondition := searchOptions.Conditions["dir"]
+					typeMatches := !hasDirCondition || (hasDirCondition && dirCondition)
+					matches = sizeMatches && typeMatches
+				} else {
+					matches = reducedDir.ContainsSearchTerm(searchTerm, searchOptions)
+				}
+				if matches {
+					results[dirName] = &SearchResult{
+						Path:       dirName,
+						Type:       "directory",
+						Size:       dir.Size,
+						Modified:   dir.ModTime.Format(time.RFC3339),
+						HasPreview: dir.HasPreview,
+					}
+					count++
+				}
 			}
 			// search files first
 			for _, item := range dir.Files {
@@ -78,14 +105,32 @@ func (idx *Index) Search(search string, scope string, sourceSession string) []Se
 				value, found := sessionInProgress.Load(sourceSession)
 				if !found || value != runningHash {
 					idx.mu.Unlock()
-					return []SearchResult{}
+					return []*SearchResult{}
 				}
-				if count > maxSearchResults {
+				if limit > 0 && count >= limit {
 					break
 				}
-				matches := item.ContainsSearchTerm(searchTerm, searchOptions)
+				var matches bool
+				if largest {
+					// When largest=true, check size and type conditions, skip name matching
+					largerThan := int64(searchOptions.LargerThan) * 1024 * 1024
+					sizeMatches := largerThan == 0 || item.Size > largerThan
+					// Check if only files should be included (when type:file is specified)
+					dirCondition, hasDirCondition := searchOptions.Conditions["dir"]
+					// For files: include if no dir condition, or if dir condition is false (type:file)
+					typeMatches := !hasDirCondition || (hasDirCondition && !dirCondition)
+					matches = sizeMatches && typeMatches
+				} else {
+					matches = item.ContainsSearchTerm(searchTerm, searchOptions)
+				}
 				if matches {
-					results[fullPath] = SearchResult{Path: fullPath, Type: item.Type, Size: item.Size}
+					results[fullPath] = &SearchResult{
+						Path:       fullPath,
+						Type:       item.Type,
+						Size:       item.Size,
+						Modified:   item.ModTime.Format(time.RFC3339),
+						HasPreview: item.HasPreview,
+					}
 					count++
 				}
 			}
@@ -94,7 +139,7 @@ func (idx *Index) Search(search string, scope string, sourceSession string) []Se
 	}
 
 	// Sort keys based on the number of elements in the path after splitting by "/"
-	sortedKeys := make([]SearchResult, 0, len(results))
+	sortedKeys := make([]*SearchResult, 0, len(results))
 	for _, v := range results {
 		sortedKeys = append(sortedKeys, v)
 	}

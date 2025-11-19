@@ -76,27 +76,23 @@ func updateUserScopes(user *users.User) bool {
 
 	// Preserve order by using Config.Server.Sources
 	for _, src := range settings.Config.Server.Sources {
-		realsource, ok := settings.Config.Server.NameToSource[src.Name]
-		if !ok {
-			continue
-		}
-		existingScope, ok := existing[realsource.Path]
+		existingScope, ok := existing[src.Path]
 		if ok {
 			// If scope is empty and there's a default, apply default
 			if existingScope.Scope == "" {
 				existingScope.Scope = src.Config.DefaultUserScope
 			}
-		} else if realsource.Config.DefaultEnabled {
-			existingScope.Scope = realsource.Config.DefaultUserScope
+		} else if src.Config.DefaultEnabled {
+			existingScope.Scope = src.Config.DefaultUserScope
 		} else {
 			continue
 		}
 
 		newScopes = append(newScopes, users.SourceScope{
-			Name:  realsource.Path,
+			Name:  src.Path,
 			Scope: existingScope.Scope,
 		})
-		seen[realsource.Path] = struct{}{}
+		seen[src.Path] = struct{}{}
 	}
 
 	// Preserve user-defined scopes not matching current sources, append to end
@@ -111,7 +107,7 @@ func updateUserScopes(user *users.User) bool {
 }
 
 func updateShowFirstLogin(user *users.User) bool {
-	if user.ShowFirstLogin && !settings.Config.Env.IsFirstLoad {
+	if user.ShowFirstLogin && !settings.Env.IsFirstLoad {
 		user.ShowFirstLogin = false
 		return true
 	}

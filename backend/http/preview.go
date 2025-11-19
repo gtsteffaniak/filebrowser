@@ -79,7 +79,7 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		Username: d.user.Username,
 		Path:     utils.JoinPathAsUnix(userscope, path),
 		Source:   source,
-		Metadata: true,
+		AlbumArt: true, // Extract album art for audio previews
 	}, store.Access)
 	if err != nil {
 		return errToStatus(err), err
@@ -116,7 +116,7 @@ func getDirectoryPreview(r *http.Request, d *requestContext, accessStore *access
 	for _, item := range d.fileInfo.Files {
 		// Only use files that should bubble up to folder previews (images, videos, audio)
 		// Exclude text files, office documents, and PDFs
-		if !item.HasPreview || !iteminfo.ShouldBubbleUpToFolderPreview(item) {
+		if !item.HasPreview || !iteminfo.ShouldBubbleUpToFolderPreview(item.ItemInfo) {
 			continue
 		}
 
@@ -138,7 +138,7 @@ func getDirectoryPreview(r *http.Request, d *requestContext, accessStore *access
 				Username: d.user.Username,
 				Path:     path,
 				Source:   source,
-				Metadata: true,
+				AlbumArt: true, // Extract album art for audio previews
 			}, accessStore)
 		if err != nil {
 			lastErr = err
@@ -151,9 +151,16 @@ func getDirectoryPreview(r *http.Request, d *requestContext, accessStore *access
 		cancel()
 
 		if previewErr != nil {
-			// File might be corrupted, try next one
-			logger.Debugf("Skipping corrupted preview file in directory '%s': %s (error: %v)",
-				d.fileInfo.Name, item.Name, previewErr)
+			// Skip context errors (timeout or cancellation) - they're not corruption issues
+			if !errors.Is(previewErr, context.Canceled) && !errors.Is(previewErr, context.DeadlineExceeded) {
+				// File might be corrupted, try next one
+				logger.Debugf("Skipping preview file in directory '%s': %s (error: %v)",
+					d.fileInfo.Name, item.Name, previewErr)
+			} else {
+				// if it is a context error, return the error
+				// don't keep trying
+				return nil, previewErr
+			}
 			lastErr = previewErr
 			continue
 		}

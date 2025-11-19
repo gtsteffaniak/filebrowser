@@ -11,13 +11,13 @@
       </div>
     </div>
     <div class="card-action">
-      <button @click="closeHovers" class="button button--flat button--grey" :aria-label="$t('buttons.cancel')"
-        :title="$t('buttons.cancel')">
-        {{ $t("buttons.cancel") }}
+      <button @click="closeHovers" class="button button--flat button--grey" :aria-label="$t('general.cancel')"
+        :title="$t('general.cancel')">
+        {{ $t("general.cancel") }}
       </button>
       <button @click="submit" class="button button--flat button--red" aria-label="Confirm-Delete"
-        :title="$t('buttons.delete')">
-        {{ $t("buttons.delete") }}
+        :title="$t('general.delete')">
+        {{ $t("general.delete") }}
       </button>
     </div>
 </template>
@@ -71,12 +71,12 @@ export default {
         const currentView = getters.currentView()
         if (state.isSearchActive || currentView == "preview") {
           if (getters.isShare()) {
-            await publicApi.remove(state.selected[0].path);
+            await publicApi.remove(state.shareInfo.hash, state.selected[0].path);
           } else {
             await filesApi.remove(state.selected[0].source, state.selected[0].path);
           }
           buttons.success("delete");
-          notify.showSuccess("Deleted item successfully");
+          notify.showSuccessToast("Deleted item successfully");
           mutations.closeHovers();
           mutations.setDeletedItem(true);
           mutations.setReload(true);
@@ -84,12 +84,12 @@ export default {
         }
         if (!this.isListing) {
           if (getters.isShare()) {
-            await publicApi.remove(state.req.items[state.selected[0]].path);
+            await publicApi.remove(state.shareInfo.hash, state.req.items[state.selected[0]].path);
           } else {
             await filesApi.remove(state.req.items.source, state.req.items[state.selected[0]].path);
           }
           buttons.success("delete");
-          notify.showSuccess("Deleted item successfully");
+          notify.showSuccessToast("Deleted item successfully");
           mutations.closeHovers();
           return;
         }
@@ -103,7 +103,7 @@ export default {
         let promises = [];
         for (let index of state.selected) {
           if (getters.isShare()) {
-            promises.push(publicApi.remove(state.req.items[index].path));
+            promises.push(publicApi.remove(state.shareInfo.hash, state.req.items[index].path));
           } else {
             promises.push(filesApi.remove(state.req.source, state.req.items[index].path));
           }
@@ -111,11 +111,11 @@ export default {
         mutations.resetSelected();
         await Promise.all(promises);
         buttons.success("delete");
-        notify.showSuccess(this.$t('prompts.deleted'));
+        notify.showSuccessToast(this.$t('prompts.deleted'));
         mutations.setReload(true); // Handle reload as neededs
       } catch (e) {
         buttons.done("delete");
-        notify.showError(e);
+        console.error(e);
         if (this.isListing) mutations.setReload(true); // Handle reload as needed
       }
     },

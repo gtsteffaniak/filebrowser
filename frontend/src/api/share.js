@@ -9,8 +9,13 @@ import { getApiPath } from "@/utils/url.js";
 
 // List all shares
 export async function list() {
+  try {
   const apiPath = getApiPath("api/shares");
-  return fetchJSON(apiPath);
+    return await fetchJSON(apiPath);
+  } catch (/** @type {any} */ err) {
+    notify.showError(err.message || "Error listing shares");
+    throw err;
+  }
 }
 
 // Get share information
@@ -37,11 +42,16 @@ export async function get(path, source) {
  * @returns {Promise<void>}
  */
 export async function remove(hash) {
-  const params = { hash };
-  const apiPath = getApiPath("api/share", params);
-  await fetchURL(apiPath, {
-    method: "DELETE",
-  });
+  try {
+    const params = { hash };
+    const apiPath = getApiPath("api/share", params);
+    await fetchURL(apiPath, {
+      method: "DELETE",
+    });
+  } catch (/** @type {any} */ err) {
+    notify.showError(err.message || "Error deleting share");
+    throw err;
+  }
 }
 
 // Create a new share
@@ -50,11 +60,36 @@ export async function remove(hash) {
  * @returns {Promise<Share>}
  */
 export async function create(bodyObj = {}) {
-  const apiPath = getApiPath("api/share");
-  return fetchJSON(apiPath, {
+  try {
+    const apiPath = getApiPath("api/share");
+    return await fetchJSON(apiPath, {
     method: "POST",
     body: JSON.stringify(bodyObj || {}),
   });
+  } catch (/** @type {any} */ err) {
+    notify.showError(err.message || "Error creating share");
+    throw err;
+  }
+}
+
+// Update share path
+/**
+ * @param {string} hash
+ * @param {string} newPath
+ * @returns {Promise<Share>}
+ */
+export async function updatePath(hash, newPath) {
+  try {
+    const apiPath = getApiPath("api/share");
+    return await fetchJSON(apiPath, {
+      method: "PATCH",
+      body: JSON.stringify({ hash, path: newPath }),
+      headers: { 'Content-Type': 'application/json' }
+    });
+  } catch (/** @type {any} */ err) {
+    notify.showError(err.message || "Error updating share path");
+    throw err;
+  }
 }
 
 /**

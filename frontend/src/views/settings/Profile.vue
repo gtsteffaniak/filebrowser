@@ -42,22 +42,6 @@
             <ToggleSwitch class="item" v-model="localuser.preview.folder" @change="updateSettings"
               :name="$t('profileSettings.previewFolder')"
               :description="$t('profileSettings.previewFolderDescription')" />
-            <div class="form-flex-group">
-              <h3>{{ $t("profileSettings.defaultLandingPage") }}</h3>
-              <i class="no-select material-symbols-outlined tooltip-info-icon"
-                @mouseenter="showTooltip($event, $t('profileSettings.defaultLandingPageDescription'))"
-                @mouseleave="hideTooltip">
-                help
-              </i>
-            </div>
-            <div class="form-flex-group">
-              <input class="input form-form flat-right" type="text"
-                :placeholder="$t('profileSettings.defaultLandingPageDescription')" id="defaultLandingPage"
-                v-model="formDefaultLandingPage" />
-              <button type="button" class="button form-button flat-left" @click="submitDefaultLandingPageChange">
-                {{ $t("buttons.save") }}
-              </button>
-            </div>
           </div>
         </SettingsItem>
         <SettingsItem aria-label="sidebarOptions" :title="$t('profileSettings.sidebarOptions')" :collapsable="true" :start-collapsed="true"
@@ -109,7 +93,7 @@
                 :placeholder="$t('profileSettings.disableFileExtensions')" id="disablePreviews"
                 v-model="formDisablePreviews" />
               <button type="button" class="button form-button flat-left" @click="submitDisablePreviewsChange">
-                {{ $t("buttons.save") }}
+                {{ $t("general.save") }}
               </button>
             </div>
           </div>
@@ -128,7 +112,7 @@
                 :placeholder="$t('profileSettings.disableFileExtensions')" id="disableViewing"
                 v-model="formDisabledViewing" />
               <button type="button" class="button form-button flat-left" @click="submitDisabledViewingChange">
-                {{ $t("buttons.save") }}
+                {{ $t("general.save") }}
               </button>
             </div>
           </div>
@@ -147,7 +131,7 @@
                 :placeholder="$t('profileSettings.disableFileExtensions')" id="disableOfficePreview"
                 v-model="formDisableOfficePreview" />
               <button type="button" class="button form-button flat-left" @click="submitDisableOfficePreviewChange">
-                {{ $t("buttons.save") }}
+                {{ $t("general.save") }}
               </button>
             </div>
             <div class="settings-items">
@@ -175,7 +159,7 @@
             </select>
           </div>
 
-          <h4>{{ $t('settings.language') }}</h4>
+          <h4>{{ $t('general.language') }}</h4>
           <Languages class="input" :locale="localuser.locale" @update:locale="updateLocale"></Languages>
         </SettingsItem>
       </div>
@@ -205,7 +189,6 @@ export default {
   data() {
     return {
       localuser: { preview: {}, permissions: {} }, // Initialize localuser with empty objects to avoid undefined errors
-      formDefaultLandingPage: "", // holds temporary input before saving
       formDisablePreviews: "", // holds temporary input before saving
       formDisabledViewing: "", // holds temporary input before saving
       formDisableOfficePreview: "", // holds temporary input before saving
@@ -258,7 +241,6 @@ export default {
     if (getters.eventTheme() === "halloween" && !state.disableEventThemes) {
       this.localuser.themeColor = "";
     }
-    this.formDefaultLandingPage = this.localuser.defaultLandingPage;
     this.formDisablePreviews = this.localuser.disablePreviewExt;
     this.formDisabledViewing = this.localuser.disableViewingExt;
     this.formDisableOfficePreview = this.localuser.disableOfficePreviewExt;
@@ -280,10 +262,6 @@ export default {
       }
       const regex = /^\.\w+(?: \.\w+)*$/;
       return regex.test(value);
-    },
-    submitDefaultLandingPageChange() {
-      this.localuser.defaultLandingPage = this.formDefaultLandingPage;
-      this.updateSettings();
     },
     submitDisablePreviewsChange() {
       if (!this.validateExtensions(this.formDisablePreviews)) {
@@ -337,7 +315,6 @@ export default {
           "themeColor",
           "customTheme",
           "quickDownload",
-          "defaultLandingPage",
           "disablePreviewExt",
           "disableViewingExt",
           "disableOfficePreviewExt",
@@ -353,10 +330,12 @@ export default {
         if (themeChanged) {
           window.location.reload();
         }
-        notify.showSuccess(this.$t("settings.settingsUpdated"));
+        notify.showSuccessToast(
+          this.$t('settings.settingsUpdated')
+        );
 
       } catch (e) {
-        notify.showError(e);
+        console.error(e);
       }
     },
     updateLocale(updatedLocale) {

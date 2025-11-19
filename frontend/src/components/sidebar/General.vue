@@ -1,40 +1,30 @@
 <template>
   <div class="card headline-card">
     <div class="card-wrapper user-card">
-      <div
-        v-if="settingsAllowed"
-        @click="navigateTo('/settings','#profile-main')"
-        class="inner-card"
-      >
-        <button
-          class="person-button action"
-          @mouseenter="showTooltip($event, $t('index.settingsHover'))"
-          @mouseleave="hideTooltip"
-        >
+      <div v-if="settingsAllowed" class="inner-card">
+        <a href="/settings#profile-main" class="person-button action button"
+          @click.prevent="navigateTo('/settings', '#profile-main')"
+          @mouseenter="showTooltip($event, $t('index.settingsHover'))" @mouseleave="hideTooltip">
           <i class="material-icons">person</i>
           {{ user.username }}
           <i aria-label="settings" class="material-icons">settings</i>
-        </button>
+        </a>
       </div>
       <div v-else-if="user.username === 'anonymous'" @click="navigateToLogin" class="inner-card">
-        <button class="person-button action">
-          <i class="material-symbols-outlined">login</i> {{ $t("sidebar.login") }}
+        <button class="person-button action button">
+          <i class="material-symbols-outlined">login</i> {{ $t("general.login") }}
         </button>
       </div>
       <div v-else class="inner-card">
-        <button class="person-button action">
+        <button class="person-button action button">
           <i class="material-icons">person</i>
           {{ user.username }}
         </button>
       </div>
 
       <div class="inner-card" v-if="canLogout" @click="logout">
-        <button
-          aria-label="logout-button"
-          class="logout-button action"
-          @mouseenter="showTooltip($event, $t('index.logout'))"
-          @mouseleave="hideTooltip"
-        >
+        <button aria-label="logout-button" class="logout-button action button"
+          @mouseenter="showTooltip($event, $t('general.logout'))" @mouseleave="hideTooltip">
           <i class="material-icons">exit_to_app</i>
         </button>
       </div>
@@ -42,48 +32,25 @@
 
     <div v-if="!disableQuickToggles" class="card-wrapper" @mouseleave="hideTooltip">
       <div class="quick-toggles" :class="{ 'extra-padding': !hasCreateOptions }">
-        <div
-          class="clickable"
-          :class="{ active: user?.singleClick }"
-          @click="toggleClick"
-          @mouseenter="showTooltip($event, $t('index.toggleClick'))"
-          @mouseleave="hideTooltip"
-          v-if="!isInvalidShare"
-        >
+        <div class="clickable" :class="{ active: user?.singleClick }" @click="toggleClick"
+          @mouseenter="showTooltip($event, $t('index.toggleClick'))" @mouseleave="hideTooltip" v-if="!isInvalidShare">
           <i class="material-icons">ads_click</i>
         </div>
-        <div
-          aria-label="Toggle Theme"
-          v-if="darkModeTogglePossible"
-          class="clickable"
-          :class="{ active: user?.darkMode }"
-          @click="toggleDarkMode"
-          @mouseenter="showTooltip($event, $t('index.toggleDark'))"
-          @mouseleave="hideTooltip"
-        >
+        <div aria-label="Toggle Theme" v-if="darkModeTogglePossible" class="clickable"
+          :class="{ active: user?.darkMode }" @click="toggleDarkMode"
+          @mouseenter="showTooltip($event, $t('index.toggleDark'))" @mouseleave="hideTooltip">
           <i class="material-icons">dark_mode</i>
         </div>
-        <div
-          class="clickable"
-          :class="{ active: isStickySidebar }"
-          @click="toggleSticky"
-          @mouseenter="showTooltip($event, $t('index.toggleSticky'))"
-          @mouseleave="hideTooltip"
-          v-if="!isMobile"
-        >
+        <div class="clickable" :class="{ active: isStickySidebar }" @click="toggleSticky"
+          @mouseenter="showTooltip($event, $t('index.toggleSticky'))" @mouseleave="hideTooltip" v-if="!isMobile">
           <i class="material-icons">push_pin</i>
         </div>
       </div>
     </div>
 
     <!-- Sidebar file actions -->
-    <transition
-      v-if="shareInfo.shareType !== 'upload'"
-      name="expand"
-      @before-enter="beforeEnter"
-      @enter="enter"
-      @leave="leave"
-    >
+    <transition v-if="shareInfo.shareType !== 'upload'" name="expand" @before-enter="beforeEnter" @enter="enter"
+      @leave="leave">
       <div v-if="!hideSidebarFileActions && isListingView" class="card-wrapper">
         <button @click="openContextMenu" aria-label="File-Actions" class="action file-actions">
           <i class="material-icons">add</i>
@@ -92,67 +59,27 @@
       </div>
     </transition>
   </div>
-  <!-- Section for logged-in users -->
-  <transition
-    name="expand"
-    @before-enter="beforeEnter"
-    @enter="enter"
-    @leave="leave"
-  >
-    <div v-if="showSources" class="sidebar-scroll-list">
-      <div class="sources card">
-        <span> {{ $t("sidebar.sources") }}</span>
-        <transition-group name="expand" tag="div" class="inner-card">
-          <button
-            v-for="(info, name) in sourceInfo"
-            :key="name"
-            class="action source-button"
-            :class="{ active: activeSource == name }"
-            @click="navigateTo('/files/' + info.pathPrefix)"
-            :aria-label="$t('sidebar.myFiles')"
-          >
-            <div class="source-container">
-              <svg
-                class="realtime-pulse"
-                :class="{
-                  active: realtimeActive,
-                  danger: info.status != 'indexing' && info.status != 'ready',
-                  warning: info.status == 'indexing',
-                  ready: info.status == 'ready',
-                }"
-              >
-                <circle class="center" cx="50%" cy="50%" r="7px"></circle>
-                <circle class="pulse" cx="50%" cy="50%" r="10px"></circle>
-              </svg>
-              <span>{{ name }}</span>
-              <i class="no-select material-symbols-outlined tooltip-info-icon"
-                @mouseenter="showSourceTooltip($event, info)"
-                @mouseleave="hideTooltip">
-                info <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-              </i>
-            </div>
-            <div v-if="hasSourceInfo" class="usage-info">
-              <ProgressBar :val="info.used" :max="info.total" unit="bytes"></ProgressBar>
-            </div>
-          </button>
-        </transition-group>
-      </div>
-    </div>
-  </transition>
+
+  <!-- Share Info Card - only show when viewing a share -->
+  <ShareInfoCard v-if="isShare && !disableShareCard" :hash="hash" :token="token" :sub-path="subPath" />
+
+  <!-- Sidebar Links Component (replaces sources) -->
+  <SidebarLinks />
 </template>
 
 <script>
 import * as auth from "@/utils/auth";
-import { globalVars, shareInfo } from "@/utils/constants";
-import ProgressBar from "@/components/ProgressBar.vue";
-import { state, getters, mutations } from "@/store"; // Import your custom store
-import { getHumanReadableFilesize } from "@/utils/filesizes.js";
+import { globalVars } from "@/utils/constants";
+import { state, getters, mutations } from "@/store";
 import { fromNow } from "@/utils/moment";
+import SidebarLinks from "./Links.vue";
+import ShareInfoCard from "@/components/files/ShareInfoCard.vue";
 
 export default {
   name: "SidebarGeneral",
   components: {
-    ProgressBar,
+    SidebarLinks,
+    ShareInfoCard,
   },
   data() {
     return {};
@@ -160,11 +87,11 @@ export default {
   computed: {
     hasCreateOptions() {
       if (getters.isShare()) {
-        return shareInfo.allowCreate
+        return state.shareInfo?.allowCreate
       }
       return state.user?.permissions?.create || state.user?.permissions?.share || state.user?.permissions?.admin;
     },
-    shareInfo: () => shareInfo,
+    shareInfo: () => state.shareInfo,
     disableQuickToggles: () => state.user?.disableQuickToggles,
     hasSourceInfo: () => state.sources.hasSourceInfo,
     hideSidebarFileActions() {
@@ -178,6 +105,7 @@ export default {
     isListingView: () => getters.currentView() == "listingView",
     user: () => (state.user || {username: 'anonymous'}),
     isDarkMode: () => getters.isDarkMode(),
+    isShare: () => getters.isShare(),
     showSources: () => !getters.isShare(),
     currentPrompt: () => getters.currentPrompt(),
     active: () => getters.isSidebarVisible(),
@@ -185,17 +113,28 @@ export default {
     disableExternal: () => globalVars.disableExternal,
     canLogout: () => !globalVars.noAuth && state.user?.username !== 'anonymous',
     route: () => state.route,
-    sourceInfo: () => state.sources.info,
-    activeSource: () => state.sources.current,
     realtimeActive: () => state.realtimeActive,
-    darkModeTogglePossible: () => shareInfo.enforceDarkLightMode != "dark" && shareInfo.enforceDarkLightMode != "light",
+    darkModeTogglePossible: () => state.shareInfo?.enforceDarkLightMode != "dark" && state.shareInfo?.enforceDarkLightMode != "light",
+    // Share info card props
+    disableShareCard() {
+      return state.shareInfo?.disableShareCard;
+    },
+    hash() {
+      return state.shareInfo?.hash || this.$route.params.hash || "";
+    },
+    token() {
+      return state.shareInfo?.token || this.$route.query.token || "";
+    },
+    subPath() {
+      return state.shareInfo?.path || "/";
+    },
   },
   watch: {
     route() {
       if (!getters.isLoggedIn()) {
         return;
       }
-      if (!this.isStickySidebar && !shareInfo.singleFileShare) {
+      if (!this.isStickySidebar && !state.shareInfo?.singleFileShare) {
         mutations.closeSidebar();
       }
     },
@@ -211,11 +150,34 @@ export default {
         },
       });
     },
-    getHumanReadableFilesize(size) {
-      return getHumanReadableFilesize(size);
-    },
     checkLogin() {
       return getters.isLoggedIn() && !getters.routePath().startsWith("/share");
+    },
+    getComplexityLabel(complexity) {
+      // Translate complexity integer to i18n label
+      // Frontend interprets: 0=unknown, 1=simple, 2-6=normal, 7-9=complex, 10=highlyComplex
+      if (complexity === 0) return this.$t("index.unknown");
+      if (complexity === 1) return this.$t("index.simple");
+      if (complexity >= 2 && complexity <= 6) return this.$t("index.normal");
+      if (complexity >= 7 && complexity <= 9) return this.$t("index.complex");
+      if (complexity === 10) return this.$t("index.highlyComplex");
+      return this.$t("index.unknown");
+    },
+    getStatusLabel(status) {
+      // Translate status string to i18n label
+      switch (status) {
+        case "ready":
+          return this.$t("index.ready");
+        case "indexing":
+          return this.$t("index.indexing");
+        case "unavailable":
+          return this.$t("index.unavailable");
+        case "error":
+          return this.$t("index.error");
+        case "unknown":
+        default:
+          return this.$t("index.unknown");
+      }
     },
     toggleClick() {
       mutations.updateCurrentUser({ singleClick: !state.user.singleClick });
@@ -316,12 +278,12 @@ export default {
             </thead>
             <tbody>
               <tr>
-                <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${this.$t("index.status")}</td>
-                <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${info.status || 'unknown'}</td>
+                <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${this.$t("general.status")}</td>
+                <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${this.getStatusLabel(info.status)}</td>
               </tr>
               <tr>
                 <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${this.$t("index.assessment")}</td>
-                <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${info.assessment || 'unknown'}</td>
+                <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${this.getComplexityLabel(info.complexity || 0)}</td>
               </tr>
               <tr>
                 <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${this.$t("general.files")}</td>
@@ -352,7 +314,6 @@ export default {
 </script>
 
 <style>
-
 .user-card {
   flex-direction: row !important;
   justify-content: space-between !important;
@@ -423,86 +384,6 @@ button.action {
   padding: 0px !important;
 }
 
-.source-button {
-  margin-top: 0.5em !important;
-}
-
-.source-button.active {
-  background: var(--alt-background);
-}
-
-.source-icon {
-  padding: 0.1em !important;
-}
-
-.logout-button,
-.person-button {
-  padding: 0 !important;
-}
-
-.realtime-pulse > .pulse {
-  display: none;
-  fill-opacity: 0;
-  transform-origin: 50% 50%;
-  animation: pulse 10s infinite backwards;
-}
-
-.realtime-pulse.active > .pulse {
-  display: block;
-}
-
-.realtime-pulse.ready > .pulse {
-  fill: #21d721;
-  stroke: #21d721;
-}
-
-.realtime-pulse.danger > .pulse {
-  fill: rgb(190, 147, 147);
-  stroke: rgb(235, 55, 55);
-}
-
-.realtime-pulse.warning > .pulse {
-  fill: rgb(255, 157, 0);
-  stroke: rgb(255, 157, 0);
-}
-
-@keyframes pulse {
-  from {
-    stroke-width: 3px;
-    stroke-opacity: 1;
-    transform: scale(0.3);
-  }
-  to {
-    stroke-width: 0;
-    stroke-opacity: 0;
-    transform: scale(1.5);
-  }
-}
-
-.source-container {
-  display: flex;
-  flex-direction: row;
-  color: var(--textPrimary);
-  align-content: center;
-  align-items: center;
-}
-
-.realtime-pulse {
-  width: 2em;
-  height: 2em;
-}
-
-.realtime-pulse.ready > .center {
-  fill: #21d721;
-}
-
-.realtime-pulse.danger > .center {
-  fill: rgb(235, 55, 55);
-}
-
-.realtime-pulse.warning > .center {
-  fill: rgb(255, 157, 0);
-}
 
 .card-wrapper {
   display: flex !important;
@@ -514,12 +395,20 @@ button.action {
 }
 
 .headline-card {
-  padding: 0.5em;
+  padding: 1em;
 }
 
 .person-button {
   max-width: 13em;
+  display: flex;
   padding-right: 1em !important;
+  justify-content: center;
+  align-items: center;
+}
+
+a.person-button {
+  text-decoration: none;
+  cursor: pointer;
 }
 
 .file-actions {
@@ -539,6 +428,7 @@ button.action {
   transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
 }
+
 .expand-enter,
 .expand-leave-to {
   height: 0 !important;

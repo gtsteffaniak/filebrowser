@@ -133,7 +133,7 @@ func accessPostHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 
 // accessDeleteHandler deletes a single user or group from a rule.
 // @Summary Delete access rule entry
-// @Description Delete a user or group from an allow or deny list for a sourcePath and indexPath.
+// @Description Delete a user or group from an allow or deny list for a sourcePath and indexPath. When cascade=true, removes the user/group from the specified path and all subpaths.
 // @Tags Access
 // @Accept json
 // @Produce json
@@ -142,6 +142,7 @@ func accessPostHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 // @Param ruleType query string true "Rule type (allow or deny)"
 // @Param ruleCategory query string true "Rule category (user or group)"
 // @Param value query string true "Username or groupname to remove"
+// @Param cascade query boolean false "Cascade delete to all subpaths (default: false)"
 // @Success 200 {object} map[string]string "Rule entry deleted"
 // @Failure 404 {object} map[string]string "Not found"
 // @Failure 400 {object} map[string]string "Bad request"
@@ -158,12 +159,47 @@ func accessDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	ruleType := r.URL.Query().Get("ruleType")
 	ruleCategory := r.URL.Query().Get("ruleCategory")
 	value := r.URL.Query().Get("value")
+	cascade := r.URL.Query().Get("cascade") == "true"
 	allow := ruleType == "allow"
 
 	if indexPath == "" || ruleCategory == "" || (ruleCategory != "all" && value == "") {
 		return http.StatusBadRequest, fmt.Errorf("path, ruleCategory, and value are required, unless ruleCategory is 'all'")
 	}
 
+	// Handle cascade delete
+	if cascade {
+		if ruleCategory == "all" {
+			return http.StatusBadRequest, fmt.Errorf("cascade delete is not supported for 'all' rule category")
+		}
+
+		var count int
+		var err error
+
+		switch ruleCategory {
+		case "user":
+			count, err = store.Access.RemoveUserCascade(index.Path, indexPath, value, allow)
+		case "group":
+			count, err = store.Access.RemoveGroupCascade(index.Path, indexPath, value, allow)
+		default:
+			return http.StatusBadRequest, fmt.Errorf("invalid ruleCategory for cascade delete: must be 'user' or 'group'")
+		}
+
+		if err != nil {
+			logger.Errorf("failed to cascade delete rule entry: %v", err)
+			return http.StatusInternalServerError, fmt.Errorf("failed to cascade delete rule entry: %w", err)
+		}
+
+		if count == 0 {
+			return http.StatusNotFound, fmt.Errorf("no entries found in rule hierarchy")
+		}
+
+		return renderJSON(w, r, map[string]interface{}{
+			"message": "rule entries deleted",
+			"count":   count,
+		})
+	}
+
+	// Handle non-cascade delete (original behavior)
 	var found bool
 	var err error
 	if allow {
@@ -264,4 +300,47 @@ func groupDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		return http.StatusInternalServerError, err
 	}
 	return http.StatusOK, nil
+}
+
+// accessPatchHandler updates an access rule's path.
+// @Summary Update access rule path
+// @Description Updates the path for a specific access rule
+// @Tags Access
+// @Accept json
+// @Produce json
+// @Param body body object{source=string,oldPath=string,newPath=string} true "Source, old path, and new path"
+// @Success 200 {object} map[string]string "Rule path updated successfully"
+// @Failure 400 {object} map[string]string "Bad request - missing or invalid parameters"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/access [patch]
+func accessPatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	var body struct {
+		Source  string `json:"source"`
+		OldPath string `json:"oldPath"`
+		NewPath string `json:"newPath"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		return http.StatusBadRequest, fmt.Errorf("failed to decode body: %w", err)
+	}
+	defer r.Body.Close()
+
+	if body.Source == "" || body.OldPath == "" || body.NewPath == "" {
+		return http.StatusBadRequest, fmt.Errorf("source, oldPath, and newPath are required")
+	}
+
+	// Get the index for the source
+	index := indexing.GetIndex(body.Source)
+	if index == nil {
+		return http.StatusBadRequest, fmt.Errorf("source not found: %s", body.Source)
+	}
+
+	// Update the access rule path
+	err := store.Access.UpdateRulePath(index.Path, body.OldPath, body.NewPath)
+	if err != nil {
+		logger.Errorf("failed to update rule path: %v", err)
+		return http.StatusInternalServerError, fmt.Errorf("failed to update rule path: %w", err)
+	}
+
+	return renderJSON(w, r, map[string]string{"message": "rule path updated"})
 }

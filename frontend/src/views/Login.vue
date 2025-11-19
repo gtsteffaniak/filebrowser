@@ -48,7 +48,7 @@
 
             <div v-if="globalVars.recaptcha" id="globalVars.recaptcha"></div>
             <input class="button button--block" type="submit"
-              :value="createMode ? $t('general.signup') : $t('login.submit')" />
+              :value="createMode ? $t('general.signup') : $t('general.submit')" />
             <p @click="toggleMode" v-if="signup" aria-label="sign up toggle">
               {{ createMode ? $t("login.loginInstead") : $t("login.createAnAccount") }}
             </p>
@@ -200,7 +200,7 @@ import Prompts from "@/components/prompts/Prompts.vue";
 import { usersApi } from "@/api";
 import { initAuth } from "@/utils/auth";
 import { removeLeadingSlash } from "@/utils/url";
-import { globalVars, logoURL } from "@/utils/constants";
+import { globalVars } from "@/utils/constants";
 import Tooltip from "@/components/Tooltip.vue";
 
 export default {
@@ -216,8 +216,7 @@ export default {
     oidcAvailable: () => globalVars.oidcAvailable,
     passwordAvailable: () => globalVars.passwordAvailable,
     name: () => globalVars.name || "FileBrowser Quantum",
-    logoURL: () => logoURL,
-    loginIconUrl: () => globalVars.loginIcon || (globalVars.baseURL + "public/static/loginIcon"),
+    loginIconUrl: () => globalVars.loginIcon,
     isDarkMode() {
       return globalVars.darkMode;
     },
@@ -331,32 +330,6 @@ export default {
         }
         await usersApi.login(this.username, this.password, captcha);
         await initAuth();
-        if (state.user?.defaultLandingPage && state.user.defaultLandingPage !== "") {
-          let landingPage = state.user.defaultLandingPage;
-          // Remove protocol and domain if full URL was provided
-          if (landingPage.includes("://")) {
-            const protocolEnd = landingPage.indexOf("://");
-            const pathStart = landingPage.indexOf("/", protocolEnd + 3);
-            if (pathStart !== -1) {
-              landingPage = landingPage.substring(pathStart);
-            }
-          }
-          // Remove baseURL prefix if present
-          if (globalVars.baseURL !== "/" && landingPage.startsWith(globalVars.baseURL)) {
-            landingPage = landingPage.substring(globalVars.baseURL.length);
-          }
-          // Ensure single leading slash
-          while (landingPage.startsWith("//")) {
-            landingPage = landingPage.substring(1);
-          }
-          if (!landingPage.startsWith("/")) {
-            landingPage = "/" + landingPage;
-          }
-          // Prevent redirect loop if landing page is the login page
-          if (!landingPage.includes("/login")) {
-            redirect = landingPage;
-          }
-        }
         router.push({ path: redirect });
       } catch (e) {
         console.log(e);
@@ -512,7 +485,6 @@ export default {
 }
 
 #login {
-  background: var(--background);
   position: fixed;
   top: 0;
   left: 0;

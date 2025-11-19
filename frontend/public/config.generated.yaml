@@ -9,6 +9,7 @@ server:
   disablePreviewResize: false             # disable resizing of previews for faster loading over slow connections
   disableTypeDetectionByHeader: false     # disable type detection by header, useful if filesystem is slow.
   port: 80                                # port to listen on
+  listen: ""                              # address to listen on (default: 0.0.0.0)
   baseURL: "/"                            # base URL for the server, the subpath that the server is running on.
   logging:
     - levels: ""                          # separated list of log levels to enable. (eg. "info|warning|error|debug")
@@ -25,8 +26,8 @@ server:
         denyByDefault: false              # deny access unless an "allow" access rule was specifically created.
         private: false                    # designate as source as private -- currently just means no sharing permitted.
         disabled: false                   # disable the source, this is useful so you don't need to remove it from the config file
-        indexingIntervalMinutes: 0        # optional manual overide interval in minutes to re-index the source
-        disableIndexing: false            # disable the indexing of this source
+        indexingIntervalMinutes: 0        # (optional) not recommended: manual overide interval in minutes to re-index the source
+        disableIndexing: false            # (optional) not recommended: disable the indexing of this source
         conditionals:                     # conditional rules to apply when indexing to include/exclude certain items
           ignoreHidden: false             # exclude hidden files and folders.
           ignoreZeroSizeFolders: false    # ignore folders with 0 size
@@ -42,12 +43,13 @@ server:
               fileName: ""                # (global) exclude files that match these names. Eg. "file.txt" or "test.csv"
               folderName: ""              # (global) exclude folders that match these names. Eg. "folder" or "subfolder"
               viewable: false             # Enable viewing in UI but exclude from indexing
-        defaultUserScope: "/"             # default "/" should match folders under path
+        defaultUserScope: "/"             # defaults to root of index "/" should match folders under path
         defaultEnabled: true              # should be added as a default source for new users?
-        createUserDir: false              # create a user directory for each user
+        createUserDir: false              # create a user directory for each user under defaultUserScope + username
   externalUrl: ""                         # used by share links if set (eg. http://mydomain.com)
   internalUrl: ""                         # used by integrations if set, this is the base domain that an integration service will use to communicate with filebrowser (eg. http://localhost:8080)
   cacheDir: "tmp"                         # path to the cache directory, used for thumbnails and other cached files
+  cacheDirCleanup: true                   # whether to automatically cleanup the cache directory (default: true)
   maxArchiveSize: 50                      # max pre-archive combined size of files/folder that are allowed to be archived (in GB)
   filesystem:                             # filesystem settings
     createFilePermission: "644"           # Unix permissions like 644, 755, 2755 (default: 644)  validate:required,file_permission
@@ -133,16 +135,16 @@ userDefaults:
   lockPassword: false                     # disable the user from changing their password
   disableSettings: false                  # disable the user from viewing the settings page
   preview:
-    disableHideSidebar: false             # disable the hide sidebar preview for previews and editors
-    highQuality: false                    # generate high quality thumbnail preview images
-    image: false                          # show thumbnail preview image for image files
-    video: false                          # show thumbnail preview image for video files
-    motionVideoPreview: false             # show multiple frames for videos in thumbnail preview when hovering
-    office: false                         # show thumbnail preview image for office files
-    popup: false                          # show larger popup preview when hovering over thumbnail
-    autoplayMedia: false                  # autoplay media files in preview
-    defaultMediaPlayer: false             # disable html5 media player and use the default media player
-    folder: false                         # show thumbnail preview image for folder files
+    disableHideSidebar: false             # keep sidebar open when previewing files
+    highQuality: true                     # use high quality thumbnails
+    image: true                           # show thumbnails for image files
+    video: true                           # show thumbnails for video files
+    motionVideoPreview: true              # show multiple frames for videos in thumbnail preview when hovering
+    office: true                          # show thumbnails for office files
+    popup: true                           # show larger popup preview when hovering over thumbnail
+    autoplayMedia: true                   # autoplay media files in preview
+    defaultMediaPlayer: false             # disable the styled feature-rich media player for browser default
+    folder: true                          # show thumbnails for folders that have previewable contents
   permissions:
     api: false                            # allow api access
     admin: false                          # allow admin access
@@ -151,7 +153,7 @@ userDefaults:
     realtime: false                       # allow realtime updates
     delete: false                         # allow deleting files
     create: false                         # allow creating or uploading files
-    download: false                       # allow downloading files
+    download: true                        # allow downloading files
   loginMethod: "password"                 # login method to use: eg. password, proxy, oidc
   disableUpdateNotifications: false       # disable update notifications banner for admin users
   deleteWithoutConfirming: false          # delete files without confirmation
@@ -159,11 +161,10 @@ userDefaults:
     maxConcurrentUpload: 10
     uploadChunkSizeMb: 10
     clearAll: false
-  disableOnlyOfficeExt: ".md .txt .pdf"   # list of file extensions to disable onlyoffice editor for
+  disableOnlyOfficeExt: ".md .txt .pdf .html .xml" # list of file extensions to disable onlyoffice editor for
   customTheme: ""                         # Name of theme to use chosen from custom themes config.
   showSelectMultiple: false               # show select multiple files on desktop
   debugOffice: false                      # debug onlyoffice editor
-  defaultLandingPage: ""                  # default landing page to use if no redirect is specified: eg. /files/mysource/mysubpath, /settings, etc.
 integrations:
   office:                                 #  validate:omitempty
     url: ""                               # The URL to the OnlyOffice Document Server, needs to be accessible to the user.  validate:required

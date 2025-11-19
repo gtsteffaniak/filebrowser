@@ -7,18 +7,19 @@
     <p>{{ $t("prompts.replaceMessage") }}</p>
   </div>
   <div class="card-action">
-    <button class="button button--flat button--grey" @click="closeHovers" :aria-label="$t('buttons.cancel')"
-      :title="$t('buttons.cancel')" tabindex="3">
-      {{ $t("buttons.cancel") }}
+    <button class="button button--flat button--grey" @click="closeHovers" :aria-label="$t('general.cancel')"
+      :title="$t('general.cancel')" tabindex="3">
+      {{ $t("general.cancel") }}
     </button>
     <button class="button button--flat button--blue" @click="(event) => currentPrompt.confirm(event, 'rename')"
-      :aria-label="$t('buttons.rename')" :title="$t('buttons.rename')" tabindex="2">
-      {{ $t("buttons.rename") }}
+      :aria-label="$t('general.rename')" :title="$t('general.rename')" tabindex="2">
+      {{ $t("general.rename") }}
     </button>
     <button id="focus-prompt" class="button button--flat button--red"
-      @click="(event) => currentPrompt.confirm(event, 'overwrite')" :aria-label="$t('buttons.replace')"
-      :title="$t('buttons.replace')" tabindex="1">
-      {{ $t("buttons.replace") }}
+      :disabled="isSameFile"
+      @click="(event) => currentPrompt.confirm(event, 'overwrite')" :aria-label="$t('general.replace')"
+      :title="$t('general.replace')" tabindex="1">
+      {{ $t("general.replace") }}
     </button>
   </div>
 </template>
@@ -32,10 +33,14 @@ export default {
     currentPrompt() {
       return getters.currentPrompt(); // Access the getter directly from the store
     },
+    isSameFile() {
+      // Check if the current prompt has props indicating same file
+      return this.currentPrompt?.props?.isSameFile === true;
+    },
   },
   methods: {
     closeHovers() {
-      mutations.closeHovers();
+      mutations.closeTopHover();
     },
   },
 };

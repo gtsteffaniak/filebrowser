@@ -110,7 +110,7 @@ func runCLI() bool {
 				} else {
 					logger.Infof("Creating non-admin user: %s\n", username)
 				}
-				newUser.Permissions = settings.Config.UserDefaults.Permissions
+				newUser.Permissions = settings.ConvertPermissionsToUsers(settings.Config.UserDefaults.Permissions)
 				newUser.Permissions.Admin = asAdmin
 				err = storage.CreateUser(newUser, newUser.Permissions)
 				if err != nil {
@@ -127,6 +127,10 @@ func runCLI() bool {
 			user.LoginMethod = users.LoginMethodPassword
 			if asAdmin {
 				user.Permissions.Admin = true
+			}
+			// Ensure version is set for existing users being updated
+			if user.Version == 0 {
+				user.Version = 1
 			}
 			err = store.Users.Save(user, true, false)
 			if err != nil {
@@ -350,7 +354,7 @@ func createConfig(configpath string) {
 
 func generateYaml() {
 	generateConfig := os.Getenv("FILEBROWSER_GENERATE_CONFIG") == "true"
-	if generateConfig || settings.Config.Env.IsDevMode {
+	if generateConfig || settings.Env.IsDevMode {
 		logger.Info("Generating config.yaml")
 		settings.GenerateYaml()
 	}

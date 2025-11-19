@@ -9,8 +9,6 @@
     </div>
     <SidebarSettings v-if="isSettings"></SidebarSettings>
     <SidebarGeneral v-if="!isSettings"></SidebarGeneral>
-    <SidebarShare v-if="isValidShare"></SidebarShare>
-
     <div class="buffer"></div>
     <div v-if="!isSettings" class="credits">
       <span v-for="item in externalLinks" :key="item.title">
@@ -18,8 +16,8 @@
           v-if="item.url === 'help prompt'"
           href="#"
           @click.prevent="help"
-          :title="$t('sidebar.help')"
-          >{{ $t("sidebar.help") }}</a
+          :title="$t('general.help')"
+          >{{ $t("general.help") }}</a
         >
         <a v-else :href="item.url" target="_blank" :title="item.title">{{
           item.text
@@ -37,14 +35,12 @@ import { globalVars } from "@/utils/constants";
 import { getters, mutations, state } from "@/store"; // Import your custom store
 import SidebarGeneral from "./General.vue";
 import SidebarSettings from "./Settings.vue";
-import SidebarShare from "./Share.vue";
 
 export default {
   name: "sidebar",
   components: {
     SidebarGeneral,
     SidebarSettings,
-    SidebarShare,
   },
 
   mounted() {
@@ -77,7 +73,7 @@ export default {
     isLoggedIn: () => getters.isLoggedIn(),
     isSettings: () => getters.isSettings(),
     active: () => getters.isSidebarVisible(),
-    behindOverlay: () => state.isSearchActive,
+    behindOverlay: () => state.isSearchActive || (state.prompts && state.prompts.length > 0),
     shouldShow() {
       return (
         globalVars.updateAvailable != "" &&
@@ -114,7 +110,6 @@ export default {
   z-index: 4;
   left: -20em;
   height: 100%;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
   transition: 0.5s ease;
   top: 4em;
   padding-bottom: 4em;
@@ -153,13 +148,8 @@ body.rtl nav {
   right: 0;
 }
 
-#sidebar .action {
+#sidebar .button {
   width: 100%;
-  display: block;
-  white-space: nowrap;
-  height: 100%;
-  overflow: hidden;
-  padding: 0.5em;
   text-overflow: ellipsis;
 }
 
@@ -200,7 +190,8 @@ body.rtl .action {
 
 .release-banner {
   background-color: var(--primarColor);
-  display: flex;
+  display: flex !important;
+  height: fit-content !important;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1em;

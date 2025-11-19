@@ -1,9 +1,17 @@
 <template>
-   <div class="card floating fb-shadow" v-if="showOverlay" :aria-label="promptLabel">
+  <!-- Render all prompts in the hover stack, but only show the active one -->
+  <div
+    v-for="(prompt, index) in prompts"
+    :key="'prompt-' + index + '-' + prompt.name"
+    class="card floating fb-shadow"
+    :class="{ 'dark-mode': isDarkMode }"
+    v-show="index === prompts.length - 1"
+    :aria-label="prompt.name + '-prompt'"
+  >
     <component
-      :ref="currentPromptName"
-      :is="currentPromptName"
-      v-bind="currentPromptProps"
+      :ref="prompt.name"
+      :is="prompt.name"
+      v-bind="getPropsForPrompt(prompt)"
     />
   </div>
 </template>
@@ -25,6 +33,8 @@ import ShareDelete from "./ShareDelete.vue";
 import DeleteUser from "./DeleteUser.vue";
 import CreateApi from "./CreateApi.vue";
 import ActionApi from "./ActionApi.vue";
+import SidebarLinks from "./SidebarLinks.vue";
+import IconPicker from "./IconPicker.vue";
 import Sidebar from "../sidebar/Sidebar.vue";
 import UserEdit from "./UserEdit.vue";
 import buttons from "@/utils/buttons";
@@ -33,10 +43,12 @@ import Access from "./Access.vue";
 import Password from "./Password.vue";
 import PlaybackQueue from "./PlaybackQueue.vue";
 import FileList from "./FileList.vue";
+import PathPicker from "./PathPicker.vue";
 import SaveBeforeExit from "./SaveBeforeExit.vue";
 import CopyPasteConfirm from "./CopyPasteConfirm.vue";
 import CloseWithActiveUploads from "./CloseWithActiveUploads.vue";
 import Generic from "./Generic.vue";
+import ShareInfo from "./ShareInfo.vue";
 import { state, getters, mutations } from "@/store"; // Import your custom store
 
 export default {
@@ -62,14 +74,18 @@ export default {
     DeleteUser,
     CreateApi,
     ActionApi,
+    SidebarLinks,
+    IconPicker,
     Access,
     Password,
     PlaybackQueue,
     "file-list": FileList,
+    PathPicker,
     SaveBeforeExit,
     CopyPasteConfirm,
     CloseWithActiveUploads,
     generic: Generic,
+    ShareInfo,
   },
   data() {
     return {
@@ -86,6 +102,10 @@ export default {
       if (!currentPrompt) return;
 
       let prompt = this.$refs[currentPrompt.name];
+      // Handle array refs (Vue 3 style)
+      if (Array.isArray(prompt)) {
+        prompt = prompt[0];
+      }
 
       // Esc!
       if (event.keyCode === 27) {
@@ -95,7 +115,7 @@ export default {
         event.preventDefault();
       }
       // Enter
-      if (event.keyCode === 13) {
+      if (event.keyCode === 13 && prompt) {
         switch (currentPrompt.name) {
           case "delete":
             prompt.submit();
@@ -118,39 +138,27 @@ export default {
     });
   },
   computed: {
-    promptLabel() {
-      return getters.currentPromptName() + "-prompt";
-    },
-    currentPromptName() {
-      return getters.currentPromptName();
-    },
-    currentPrompt() {
-      if (!getters.currentPrompt()) {
-        return {
-          props: {},
-        };
-      }
-      return getters.currentPrompt();
-    },
-    currentPromptProps() {
-      const prompt = this.currentPrompt;
-      const promptName = this.currentPromptName;
-      // For move and copy prompts, add the operation prop
-      if (promptName === "move" || promptName === "copy") {
-        return {
-          ...prompt.props,
-          operation: promptName,
-        };
-      }
-      return prompt.props;
+    prompts() {
+      return state.prompts || [];
     },
     plugins() {
       return state.plugins;
     },
-    showOverlay() {
-      return getters.currentPromptName() !== "" && getters.currentPromptName() !== "ContextMenu" && getters.currentPromptName() !== "OverflowMenu";
+    isDarkMode() {
+      return getters.isDarkMode();
     },
   },
-  methods: {},
+  methods: {
+    getPropsForPrompt(prompt) {
+      // For move and copy prompts, add the operation prop
+      if (prompt.name === "move" || prompt.name === "copy") {
+        return {
+          ...prompt.props,
+          operation: prompt.name,
+        };
+      }
+      return prompt.props || {};
+    },
+  },
 };
 </script>

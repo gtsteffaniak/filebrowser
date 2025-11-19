@@ -1,6 +1,6 @@
 import { fetchURL, adjustedData } from './utils'
 import { getApiPath, doubleEncode, getPublicApiPath } from '@/utils/url.js'
-import { mutations,state } from '@/store'
+import { state } from '@/store'
 import { notify } from '@/notify'
 import { globalVars } from '@/utils/constants'
 
@@ -77,12 +77,8 @@ export async function put(source, path, content = '') {
   if (!source) {
     throw new Error('no source provided')
   }
-  try {
-    return await resourceAction(source, path, 'PUT', content)
-  } catch (err) {
-    notify.showError(err.message || 'Error putting resource')
-    throw err
-  }
+  // resourceAction already handles error notification, just propagate
+  return await resourceAction(source, path, 'PUT', content)
 }
 
 export function download(format, files, shareHash = "") {
@@ -121,7 +117,8 @@ export function post(
   content = "",
   overwrite = false,
   onupload,
-  headers = {}
+  headers = {},
+  isDir = false
 ) {
   if (!source || source === undefined || source === null) {
     throw new Error('no source provided')
@@ -131,6 +128,7 @@ export function post(
       path: doubleEncode(path),
       source: doubleEncode(source),
       override: overwrite,
+      ...(isDir && { isDir: 'true' })
     });
 
     const request = new XMLHttpRequest();
@@ -223,14 +221,6 @@ export async function moveCopy(
 
     // Await all promises and ensure errors propagate
     await Promise.all(promises)
-    setTimeout(() => {
-      notify.showSuccess(
-        action === 'copy' ? 'Resources copied successfully' : 'Resources moved successfully'
-      )
-    }, 125);
-    setTimeout(() => {
-      mutations.setReload(true);
-    }, 125);
   } catch (err) {
     notify.showError(err.message || 'Error moving/copying resources')
     throw err // Re-throw the error to propagate it back to the caller

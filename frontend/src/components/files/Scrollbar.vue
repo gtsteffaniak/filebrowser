@@ -1,5 +1,5 @@
 <template>
-  <div class="scroll-wrapper" :class="{ 'halloween-theme': eventTheme === 'halloween' }" ref="wrapper">
+  <div class="scroll-wrapper" ref="wrapper">
     <slot />
     <div
       class="custom-scrollbar"
@@ -36,7 +36,8 @@
 <script>
 import { state, mutations, getters } from "@/store";
 
-const offsetFromBottom = 75;
+const offsetFromBottomListing = 110;
+const offsetFromBottomFull = 75;
 
 export default {
   name: "Scrollbar",
@@ -49,12 +50,10 @@ export default {
       scrollTimeout: null,
       isReady: false,
       isVisible: false,
+      scrollFrame: null,
     };
   },
   computed: {
-    eventTheme() {
-      return getters.eventTheme();
-    },
     isScrollable() {
       return getters.isScrollable();
     },
@@ -117,28 +116,33 @@ export default {
       const scrollbar = this.$refs.scrollbar;
       const thumb = this.$refs.thumb;
       const sectionId = this.$refs.sectionId;
-
       const scrollRatio = scrollTop / (content.scrollHeight - content.clientHeight);
       const thumbHeight = thumb.clientHeight;
-      const maxThumbTop = scrollbar.clientHeight - thumbHeight - offsetFromBottom;
+      const maxThumbTop = scrollbar.clientHeight - thumbHeight - (this.isNotListing ? offsetFromBottomFull : offsetFromBottomListing);
       const thumbPosition = scrollRatio * maxThumbTop;
 
-      thumb.style.transform = `translateY(${thumbPosition}px)`;
-      sectionId.style.transform = `translateY(${thumbPosition}px)`;
+      // Use transform3d for better performance
+      thumb.style.transform = `translate3d(0, ${thumbPosition}px, 0)`;
+      sectionId.style.transform = `translate3d(0, ${thumbPosition}px, 0)`;
     },
     handleScroll() {
       if (!this.isReady) return;
-      const content = this.$refs.wrapper;
-      this.isVisible = true;
-      this.scheduleHide();
-      mutations.setPreviewSource("");
-      this.updateThumbPosition(content.scrollTop);
-      mutations.updateListing({
-        ...state.listing,
-        scrolling: true,
-        scrollRatio: Math.trunc(
-          (content.scrollTop / (content.scrollHeight - content.clientHeight)) * 100
-        ),
+      // Use requestAnimationFrame to throttle updates
+      if (this.scrollFrame) return;
+      this.pendingScrollAnimation = requestAnimationFrame(() => {
+        const content = this.$refs.wrapper;
+        this.isVisible = true;
+        this.scheduleHide();
+        mutations.setPreviewSource("");
+        this.updateThumbPosition(content.scrollTop);
+        mutations.updateListing({
+          ...state.listing,
+          scrolling: true,
+          scrollRatio: Math.trunc(
+            (content.scrollTop / (content.scrollHeight - content.clientHeight)) * 100
+          ),
+        });
+        this.scrollFrame = null;
       });
     },
     startDrag(e) {
@@ -162,6 +166,7 @@ export default {
 
       const deltaY = clientY - this.startY;
       const scrollableHeight = content.scrollHeight - content.clientHeight;
+      const offsetFromBottom = this.isNotListing ? offsetFromBottomFull : offsetFromBottomListing;
       const scrollbarHeight =
         scrollbar.clientHeight - thumb.clientHeight - offsetFromBottom;
       const scrollRatio = scrollableHeight / scrollbarHeight;
@@ -192,6 +197,10 @@ export default {
     window.addEventListener("resize", this.handleResize);
   },
   beforeUnmount() {
+    // Cancel any pending animation frame
+    if (this.scrollFrame) {
+      cancelAnimationFrame(this.scrollFrame);
+    }
     window.removeEventListener("resize", this.handleResize);
     this.$refs.wrapper.removeEventListener("mousemove", this.handleMouseMove);
     this.$refs.wrapper.removeEventListener("scroll", this.handleScroll);
@@ -246,6 +255,7 @@ export default {
   justify-content: center;
   align-items: center;
   transition: right 0.25s ease, opacity 0.2s;
+  z-index: 1001;
 }
 
 @supports (backdrop-filter: none) {
@@ -285,9 +295,17 @@ export default {
   transition: opacity 0.2s;
   position: fixed;
   display: none;
+  z-index: 1001;
 }
 
 .custom-scrollbar.visible .thumb-section-id {
   display: flex;
+}
+
+.thumb, .thumb-section-id {
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  perspective: 1000px;
 }
 </style>

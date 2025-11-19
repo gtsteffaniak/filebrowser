@@ -93,6 +93,7 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		Source:                   source,
 		Expand:                   true,
 		Content:                  getContent,
+		Metadata:                 true,
 		ExtractEmbeddedSubtitles: settings.Config.Integrations.Media.ExtractEmbeddedSubtitles,
 	}, store.Access)
 	if err != nil {
@@ -183,7 +184,7 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 	// delete thumbnails
 	preview.DelThumbs(r.Context(), *fileInfo)
 
-	err = files.DeleteFiles(source, fileInfo.RealPath, filepath.Dir(fileInfo.RealPath))
+	err = files.DeleteFiles(source, fileInfo.RealPath, filepath.Dir(fileInfo.RealPath), fileInfo.Type == "directory")
 	if err != nil {
 		return errToStatus(err), err
 	}
@@ -200,6 +201,7 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 // @Param path query string true "url encoded destination path where to place the files inside the destination source, a directory must end in / to create a directory"
 // @Param source query string true "Name for the desired filebrowser destination source name, default is used if not provided"
 // @Param override query bool false "Override existing file if true"
+// @Param isDir query bool false "Explicitly specify if the resource is a directory"
 // @Success 200 "Resource created successfully"
 // @Failure 403 {object} map[string]string "Forbidden"
 // @Failure 404 {object} map[string]string "Resource not found"
@@ -242,7 +244,9 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		path = utils.JoinPathAsUnix(userscope, unescapedPath)
 	}
 
-	isDir := strings.HasSuffix(unescapedPath, "/")
+	// Determine if this is a directory based on isDir query param or trailing slash (for backwards compatibility)
+	isDirParam := r.URL.Query().Get("isDir")
+	isDir := isDirParam == "true" || strings.HasSuffix(unescapedPath, "/")
 	fileOpts := utils.FileOptions{
 		Username: d.user.Username,
 		Path:     path,
@@ -617,7 +621,7 @@ func patchAction(ctx context.Context, params patchActionParams) error {
 
 		// delete thumbnails
 		preview.DelThumbs(ctx, *fileInfo)
-		return files.MoveResource(params.isSrcDir, params.srcIndex, params.dstIndex, params.src, params.dst, store.Share)
+		return files.MoveResource(params.isSrcDir, params.srcIndex, params.dstIndex, params.src, params.dst, store.Share, store.Access)
 	default:
 		return fmt.Errorf("unsupported action %s: %w", params.action, errors.ErrInvalidRequestParams)
 	}

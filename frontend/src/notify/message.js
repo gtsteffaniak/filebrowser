@@ -1,35 +1,99 @@
 import { mutations, state } from '@/store'
 
-let active = false
-/** @type {ReturnType<typeof setTimeout> | null} */
-let closeTimeout // Store timeout ID
+/**
+ * @typedef {Object} NotificationButton
+ * @property {string} label
+ * @property {() => void} action
+ * @property {boolean} [keepOpen]
+ * @property {boolean} [primary]
+ * @property {string} [className]
+ */
 
 /**
- * Show a popup notification
- * @param {'success' | 'error' | 'action'} type
- * @param {unknown} message
- * @param {boolean} [autoclose=true]
+ * @typedef {Object} Notification
+ * @property {string} id
+ * @property {'success' | 'error' | 'action'} type
+ * @property {string} message
+ * @property {string} [icon]
+ * @property {NotificationButton[]} [buttons]
+ * @property {boolean} [autoclose] - For backward compatibility (inverse of persistent)
+ * @property {ReturnType<typeof setTimeout> | null} [timeoutId]
+ * @property {number} [timeoutStartTime] - When the timeout started
+ * @property {number} [timeoutDuration] - Total timeout duration
+ * @property {number} [timeoutRemaining] - Remaining time when paused (pauses when hovering)
+ * @property {number} [progress] - Current progress porcentage (0-100)
+ * @property {ReturnType<typeof setInterval> | null} [progressInterval] - Progress update interval
  */
-export function showPopup(type, message, autoclose = true) {
-  if (active) {
-    if (closeTimeout) clearTimeout(closeTimeout) // Clear the existing timeout
+
+/**
+ * @typedef {Object} Toast
+ * @property {string} id
+ * @property {'success' | 'error' | 'info' | 'warning'} type
+ * @property {string} message
+ * @property {string} [icon]
+ * @property {ReturnType<typeof setTimeout> | null} [timeoutId]
+ */
+
+/** @type {Notification[]} */
+let notifications = []
+
+/** @type {Toast[]} */
+let toasts = []
+
+/** @type {((notifications: Notification[]) => void) | null} */
+let updateCallback = null
+
+/** @type {((toasts: Toast[]) => void) | null} */
+let toastUpdateCallback = null
+
+/**
+ * Set the callback function to be called when notifications change
+ * @param {(notifications: Notification[]) => void} callback
+ */
+export function setUpdateCallback(callback) {
+  updateCallback = callback
+}
+
+/**
+ * Set the callback function to be called when toasts change
+ * @param {(toasts: Toast[]) => void} callback
+ */
+export function setToastUpdateCallback(callback) {
+  toastUpdateCallback = callback
+}
+
+/**
+ * Generate a unique ID for a notification
+ * @returns {string}
+ */
+function generateId() {
+  return `notification-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+}
+
+/**
+ * Notify listeners that notifications have changed
+ */
+function notifyUpdate() {
+  if (updateCallback) {
+    updateCallback([...notifications])
   }
+}
 
-  const [popup, popupContent] = getElements()
-  if (popup == null || popupContent == null) {
-    return
+/**
+ * Notify listeners that toasts have changed
+ */
+function notifyToastUpdate() {
+  if (toastUpdateCallback) {
+    toastUpdateCallback([...toasts])
   }
-  /** @type {HTMLElement} */
-  // @ts-ignore - narrow Element to HTMLElement after null check
-  const popupEl = popup
-  /** @type {HTMLElement} */
-  // @ts-ignore - narrow Element to HTMLElement after null check
-  const popupContentEl = popupContent
+}
 
-  popupEl.classList.remove('success', 'error') // Clear previous types
-  popupEl.classList.add(type)
-  active = true
-
+/**
+ * Parse message to extract display text
+ * @param {unknown} message
+ * @returns {string}
+ */
+function parseMessage(message) {
   try {
     // Normalize message to a string first to avoid calling string methods on non-strings
     const normalizedMessage =
@@ -52,11 +116,10 @@ export function showPopup(type, message, autoclose = true) {
       Object.prototype.hasOwnProperty.call(apiMessage, 'status') &&
       Object.prototype.hasOwnProperty.call(apiMessage, 'message')
     ) {
-      popupContentEl.textContent =
-        apiMessage.status + ': ' + apiMessage.message
+      return apiMessage.status + ': ' + apiMessage.message
     } else {
       // Fallback to showing the normalized message if it is not an API error shape
-      popupContentEl.textContent = normalizedMessage
+      return normalizedMessage
     }
   } catch (error) {
     // Fallback to a safe string representation
@@ -66,79 +129,454 @@ export function showPopup(type, message, autoclose = true) {
         : typeof message === 'string'
           ? message
           : JSON.stringify(message)
-    popupContentEl.textContent = fallback
+    return fallback
   }
-
-  popupEl.style.right = '0em'
-
-  // Don't auto-hide for 'action' type popups
-  if (type === 'action') {
-    popup.classList.add('success')
-    return
-  }
-
-  if (!autoclose || !active) {
-    return
-  }
-
-  // Set a new timeout for closing
-  closeTimeout = setTimeout(() => {
-    if (active) {
-      closePopUp()
-    }
-  }, 5000)
 }
 
-export function closePopUp() {
-  active = false
-  const [popup, popupContent] = getElements()
-  if (popup == null || popupContent == null) {
+/**
+ * Show a popup notification
+ * @param {'success' | 'error' | 'action'} type
+ * @param {unknown} message
+ * @param {Object} [options]
+ * @param {boolean} [options.persistent=false] - If true, notification won't auto-close
+ * @param {boolean} [options.autoclose] - Deprecated, use persistent instead
+ * @param {string} [options.icon]
+ * @param {NotificationButton[]} [options.buttons]
+ */
+export function showPopup(type, message, options = {}) {
+  const {
+    persistent = false,
+    autoclose,
+    icon,
+    buttons
+  } = options
+
+  // Determine if notification should auto-close
+  // Priority: persistent option > autoclose option > default behavior
+  let shouldAutoClose
+  if (persistent) {
+    shouldAutoClose = false
+  } else if (autoclose !== undefined) {
+    shouldAutoClose = autoclose
+  } else {
+    // Default: action types don't auto-close, others do
+    shouldAutoClose = type !== 'action'
+  }
+
+  const notificationId = generateId()
+  const parsedMessage = parseMessage(message)
+
+  /** @type {Notification} */
+  const notification = {
+    id: notificationId,
+    type,
+    message: parsedMessage,
+    icon,
+    buttons,
+    autoclose: !persistent, // Store the inverse for backward compatibility
+    timeoutId: null,
+    timeoutStartTime: null,
+    timeoutDuration: null,
+    timeoutRemaining: null,
+    progress: 100, // Start at 100% - will decrease based in the remaining timeout
+    progressInterval: null // Interval ID
+  }
+
+  notifications.push(notification)
+  notifyUpdate()
+
+  // Save to notification history with timestamp
+  // Serialize buttons to preserve action metadata
+  const serializedButtons = buttons ? buttons.map(button => ({
+    label: button.label,
+    className: button.className,
+    keepOpen: button.keepOpen,
+    primary: button.primary,
+    // Store action as metadata if it's a function
+    actionType: button.actionType || (typeof button.action === 'function' ? 'function' : null),
+    actionData: button.actionData || null,
+    // Keep the action function in memory for immediate use
+    _action: typeof button.action === 'function' ? button.action : null
+  })) : null
+
+  const historyEntry = {
+    id: notificationId,
+    type,
+    message: parsedMessage,
+    icon,
+    buttons: serializedButtons,
+    timestamp: Date.now(),
+    persistent: persistent
+  }
+  state.notificationHistory.push(historyEntry)
+
+  // Persist to sessionStorage (survives page refresh, cleared on tab close)
+  // Note: Functions can't be serialized, so _action will be lost, but actionType/actionData are preserved
+  try {
+    const serializableHistory = state.notificationHistory.map(entry => ({
+      ...entry,
+      buttons: entry.buttons ? entry.buttons.map(btn => ({
+        label: btn.label,
+        className: btn.className,
+        keepOpen: btn.keepOpen,
+        primary: btn.primary,
+        actionType: btn.actionType,
+        actionData: btn.actionData
+        // _action is intentionally omitted as it can't be serialized
+      })) : null
+    }))
+    sessionStorage.setItem('notificationHistory', JSON.stringify(serializableHistory))
+  } catch (error) {
+    console.error('Failed to save notification history:', error)
+  }
+
+  // Set auto-close timeout if applicable
+  if (shouldAutoClose) {
+    const timeoutDuration = 5000
+    notification.timeoutStartTime = Date.now()
+    notification.timeoutDuration = timeoutDuration
+    notification.timeoutRemaining = null
+    notification.progress = 100
+
+    // Start progress update interval
+    notification.progressInterval = setInterval(() => {
+      const notificationIndex = notifications.findIndex(n => n.id === notificationId)
+      if (notificationIndex === -1) {
+        clearInterval(notification.progressInterval)
+        return
+      }
+
+      const notif = notifications[notificationIndex]
+      // Update progress if the notification is active
+      if (notif.timeoutStartTime && !notif.timeoutRemaining) {
+        const elapsed = Date.now() - notif.timeoutStartTime
+        const progress = Math.max(0, 100 - (elapsed / timeoutDuration) * 100)
+        notif.progress = progress
+        notifyUpdate()
+        if (progress <= 0) {
+          clearInterval(notif.progressInterval)
+        }
+      }
+    }, 25) // Update every 25ms
+
+    notification.timeoutId = setTimeout(() => {
+      if (notification.progressInterval) {
+        clearInterval(notification.progressInterval)
+      }
+      closeNotification(notificationId)
+    }, timeoutDuration)
+  }
+}
+
+/**
+ * Close a specific notification by ID
+ * @param {string} notificationId
+ */
+export function closeNotification(notificationId) {
+  const index = notifications.findIndex(n => n.id === notificationId)
+  if (index === -1) {
     return
   }
-  /** @type {HTMLElement} */
-  // @ts-ignore - narrow Element to HTMLElement after null check
-  const popupEl = popup
-  /** @type {HTMLElement} */
-  // @ts-ignore - narrow Element to HTMLElement after null check
-  const popupContentEl = popupContent
+
+  const notification = notifications[index]
+
+  // Clear timeout if exists
+  if (notification.timeoutId) {
+    clearTimeout(notification.timeoutId)
+  }
+
+  // Clear progress
+  if (notification.progressInterval) {
+    clearInterval(notification.progressInterval)
+  }
+
+  // Handle special case for multiple selection
   if (
-    popupContentEl.textContent == 'Multiple Selection Enabled' &&
+    notification.message === 'Multiple Selection Enabled' &&
     state.multiple
   ) {
     mutations.setMultiple(false)
   }
-  popupEl.style.right = '-50em' // Slide out
-  popupContentEl.textContent = 'no content'
+
+  // Remove from array
+  notifications.splice(index, 1)
+  notifyUpdate()
 }
 
 /**
- * @returns {[Element | null, Element | null]}
+ * Close all notifications
  */
-function getElements() {
-  const popup = document.getElementById('popup-notification')
-  if (!popup) {
-    return [null, null]
-  }
+export function closePopUp() {
+  notifications.forEach(notification => {
+    if (notification.timeoutId) {
+      clearTimeout(notification.timeoutId)
+    }
+    if (notification.progressInterval) {
+      clearInterval(notification.progressInterval)
+    }
+  })
 
-  const popupContent = popup.querySelector('#popup-notification-content')
-  if (!popupContent) {
-    return [null, null]
+  // Handle multiple selection special case
+  if (state.multiple) {
+    const multipleNotification = notifications.find(
+      n => n.message === 'Multiple Selection Enabled'
+    )
+    if (multipleNotification) {
+      mutations.setMultiple(false)
+    }
   }
-
-  return [popup, popupContent]
+  notifications = []
+  notifyUpdate()
 }
 
-/** @param {unknown} message */
-export function showSuccess(message) {
-  showPopup('success', message)
+/**
+ * Get all active notifications
+ * @returns {Notification[]}
+ */
+export function getNotifications() {
+  return [...notifications]
 }
 
-/** @param {unknown} message */
-export function showError(message) {
-  showPopup('error', message)
+/**
+ * Show a success notification
+ * @param {unknown} message
+ * @param {Object} [options]
+ * @param {boolean} [options.persistent=false] - If true, notification won't auto-close
+ * @param {string} [options.icon]
+ * @param {NotificationButton[]} [options.buttons]
+ */
+export function showSuccess(message, options = {}) {
+  showPopup('success', message, options)
+}
+
+/**
+ * Show an error notification
+ * @param {unknown} message
+ * @param {Object} [options]
+ * @param {boolean} [options.persistent=false] - If true, notification won't auto-close
+ * @param {string} [options.icon]
+ * @param {NotificationButton[]} [options.buttons]
+ */
+export function showError(message, options = {}) {
+  showPopup('error', message, options)
   console.error(message)
 }
 
 export function showMultipleSelection() {
-  showPopup('action', 'Multiple Selection Enabled')
+  showPopup('success', 'Multiple Selection Enabled', { persistent: true })
+}
+
+/**
+ * Pause auto-close (timeout) when we hover a notification - will only pause the current hover notification
+ * @param {string} notificationId
+ */
+export function pauseAutoClose(notificationId) {
+  const notification = notifications.find(n => n.id === notificationId)
+  if (notification && notification.timeoutId) {
+    // Calculate remaining time and clear the timeout
+    if (notification.timeoutStartTime && notification.timeoutDuration) {
+      const elapsed = Date.now() - notification.timeoutStartTime
+      notification.timeoutRemaining = Math.max(0, notification.timeoutDuration - elapsed)
+      // Freeze progress at current value
+      notification.progress = Math.max(0, 100 - (elapsed / notification.timeoutDuration) * 100)
+    }
+    clearTimeout(notification.timeoutId)
+    notification.timeoutId = null
+    // Clear the progress interval when paused (hover)
+    if (notification.progressInterval) {
+      clearInterval(notification.progressInterval)
+      notification.progressInterval = null
+    }
+    notifyUpdate()
+  }
+}
+
+/**
+ * Resume auto-close (timeout) when we stop hovering the notification
+ * @param {string} notificationId
+ */
+export function resumeAutoClose(notificationId) {
+  const notification = notifications.find(n => n.id === notificationId)
+  if (notification && notification.autoclose && !notification.timeoutId && notification.timeoutRemaining > 0) {
+    // Restart timeout with the remaining time
+    notification.timeoutStartTime = Date.now() - (notification.timeoutDuration - notification.timeoutRemaining)
+    notification.timeoutId = setTimeout(() => {
+      if (notification.progressInterval) {
+        clearInterval(notification.progressInterval)
+      }
+      closeNotification(notificationId)
+    }, notification.timeoutRemaining)
+    // Restart the progress interval
+    notification.progressInterval = setInterval(() => {
+      const notificationIndex = notifications.findIndex(n => n.id === notificationId)
+      if (notificationIndex === -1) {
+        clearInterval(notification.progressInterval)
+        return
+      }
+      const notif = notifications[notificationIndex]
+      // Update progress if notification is active (not paused)
+      if (notif.timeoutStartTime && !notif.timeoutRemaining) {
+        const elapsed = Date.now() - notif.timeoutStartTime
+        const progress = Math.max(0, 100 - (elapsed / notification.timeoutDuration) * 100)
+        notif.progress = progress
+        notifyUpdate()
+        if (progress <= 0) {
+          clearInterval(notif.progressInterval)
+        }
+      }
+    }, 25)
+    notification.timeoutRemaining = null
+    notifyUpdate()
+  }
+}
+
+/**
+ * Get progress information for the notification
+ * @param {string} notificationId
+ * @returns {number} Timeout progress porcentage
+ */
+export function getNotificationProgress(notificationId) {
+  const notification = notifications.find(n => n.id === notificationId)
+  return notification ? (notification.progress || 100) : 100
+}
+
+// ============================================================================
+// Toast Notifications
+// ============================================================================
+// Usage examples:
+//   import { notify } from "@/notify";
+//   
+//   notify.showSuccessToast("File saved!");
+//   notify.showErrorToast("Failed to save file");
+//   notify.showInfoToast("Processing...");
+//   notify.showWarningToast("Disk space is low");
+//   
+//   // With custom icon and duration:
+//   notify.showSuccessToast("Done!", { icon: "check", duration: 3000 });
+//   notify.showToast("info", "Custom message", { icon: "star", duration: 5000 });
+// ============================================================================
+
+/**
+ * Get all active toasts
+ * @returns {Toast[]}
+ */
+export function getToasts() {
+  return [...toasts]
+}
+
+/**
+ * Close a specific toast by ID
+ * @param {string} toastId
+ */
+export function closeToast(toastId) {
+  const index = toasts.findIndex(t => t.id === toastId)
+  if (index === -1) {
+    return
+  }
+
+  const toast = toasts[index]
+
+  // Clear timeout if exists
+  if (toast.timeoutId) {
+    clearTimeout(toast.timeoutId)
+  }
+
+  // Remove from array
+  toasts.splice(index, 1)
+  notifyToastUpdate()
+}
+
+/**
+ * Show a toast notification
+ * @param {'success' | 'error' | 'info' | 'warning'} type
+ * @param {string} message
+ * @param {Object} [options]
+ * @param {string} [options.icon] - Material icon name
+ * @param {number} [options.duration=2000] - Duration in milliseconds before auto-close
+ */
+export function showToast(type, message, options = {}) {
+  const {
+    icon = getDefaultToastIcon(type),
+    duration = 2000
+  } = options
+
+  const toastId = generateId()
+
+  /** @type {Toast} */
+  const toast = {
+    id: toastId,
+    type,
+    message,
+    icon,
+    timeoutId: null
+  }
+
+  toasts.push(toast)
+  notifyToastUpdate()
+
+  // Set auto-close timeout
+  if (duration > 0) {
+    toast.timeoutId = setTimeout(() => {
+      closeToast(toastId)
+    }, duration)
+  }
+}
+
+/**
+ * Get default icon for toast type
+ * @param {'success' | 'error' | 'info' | 'warning'} type
+ * @returns {string}
+ */
+function getDefaultToastIcon(type) {
+  const iconMap = {
+    success: 'check_circle',
+    error: 'error',
+    info: 'info',
+    warning: 'warning'
+  }
+  return iconMap[type] || 'info'
+}
+
+/**
+ * Show a success toast
+ * @param {string} message
+ * @param {Object} [options]
+ * @param {string} [options.icon]
+ * @param {number} [options.duration=2000]
+ */
+export function showSuccessToast(message, options = {}) {
+  showToast('success', message, options)
+}
+
+/**
+ * Show an error toast
+ * @param {string} message
+ * @param {Object} [options]
+ * @param {string} [options.icon]
+ * @param {number} [options.duration=3000]
+ */
+export function showErrorToast(message, options = {}) {
+  showToast('error', message, { duration: 3000, ...options })
+}
+
+/**
+ * Show an info toast
+ * @param {string} message
+ * @param {Object} [options]
+ * @param {string} [options.icon]
+ * @param {number} [options.duration=2000]
+ */
+export function showInfoToast(message, options = {}) {
+  showToast('info', message, options)
+}
+
+/**
+ * Show a warning toast
+ * @param {string} message
+ * @param {Object} [options]
+ * @param {string} [options.icon]
+ * @param {number} [options.duration=2500]
+ */
+export function showWarningToast(message, options = {}) {
+  showToast('warning', message, { duration: 2500, ...options })
 }

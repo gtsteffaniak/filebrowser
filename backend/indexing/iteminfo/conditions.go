@@ -52,6 +52,8 @@ var ResizableImageTypes = map[string]bool{
 	".png":   true,
 	".gif":   true,
 	".bmp":   true,
+	".tiff":  true,
+	".tif":   true,
 	".heic":  true,
 	".heif":  true,
 	".other": false,
@@ -308,6 +310,35 @@ func IsMatchingType(extension string, matchType string) bool {
 	return false
 }
 
+// IsMatchingDetectedType checks if the detected MIME type matches the search type.
+// This uses the actual detected type rather than just the extension, which is more accurate
+// for ambiguous extensions like .ts (TypeScript vs MPEG Transport Stream)
+func IsMatchingDetectedType(detectedType string, extension string, matchType string) bool {
+	// Check if the detected MIME type starts with the match type (e.g., "video/", "image/", "audio/")
+	// No need to strip charset since HasPrefix works with it
+	if strings.HasPrefix(detectedType, matchType+"/") {
+		return true
+	}
+
+	// For special categories that don't map directly to MIME type prefixes,
+	// use extension-based checking
+	switch matchType {
+	case "doc":
+		// Check if detected type is application/document or use extension check
+		if strings.HasPrefix(detectedType, "application/document") {
+			return true
+		}
+		return IsDoc(extension)
+	case "text":
+		// Already checked with HasPrefix above
+		return false
+	case "archive":
+		return IsArchive(extension)
+	}
+
+	return false
+}
+
 // DetectType detects the MIME type of a file and updates the ItemInfo struct.
 func (i *ItemInfo) DetectType(realPath string, saveContent bool) {
 	name := i.Name
@@ -350,7 +381,7 @@ func hasBundleExtension(name string) bool {
 }
 
 func HasDocConvertableExtension(name, mimetype string) bool {
-	if !settings.Config.Env.MuPdfAvailable {
+	if !settings.Env.MuPdfAvailable {
 		return false
 	}
 	if strings.HasPrefix(mimetype, "text") {

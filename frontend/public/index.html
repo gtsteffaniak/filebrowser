@@ -37,7 +37,6 @@
   <!-- Injected variables come from backend server -->
   <script>
     window.globalVars = {{ .globalVars }};
-    window.shareVars = {{ .shareVars }};
     var dynamicManifest = {
       "name": window.globalVars.name || 'FileBrowser Quantum',
       "icons": [
@@ -69,7 +68,7 @@
     :root {
       --background: {{ .htmlVars.lightBackground }};
       --alt-background: #ddd;
-      --surfacePrimary: gray;
+      --surfacePrimary: #ebebeb;
       --surfaceSecondary: lightgray;
       --textPrimary: #546e7a;
       --textSecondary: gray;

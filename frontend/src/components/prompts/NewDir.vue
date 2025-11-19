@@ -10,23 +10,21 @@
   </div>
 
   <div class="card-action">
-    <button class="button button--flat button--grey" @click="closeHovers" :aria-label="$t('buttons.cancel')"
-      :title="$t('buttons.cancel')">
-      {{ $t("buttons.cancel") }}
+    <button class="button button--flat button--grey" @click="closeHovers" :aria-label="$t('general.cancel')"
+      :title="$t('general.cancel')">
+      {{ $t("general.cancel") }}
     </button>
-    <button class="button button--flat" :aria-label="$t('buttons.create')" :title="$t('buttons.create')"
+    <button class="button button--flat" :aria-label="$t('general.create')" :title="$t('general.create')"
       @click="submit">
-      {{ $t("buttons.create") }}
+      {{ $t("general.create") }}
     </button>
   </div>
 </template>
 <script>
 import { filesApi, publicApi } from "@/api";
 import { getters, mutations, state } from "@/store"; // Import your custom store
-import { notify } from "@/notify";
-import { goToItem } from "@/utils/url";
 import { url } from "@/utils";
-import { shareInfo } from "@/utils/constants";
+import { notify } from "@/notify";
 export default {
   name: "new-dir",
   props: {
@@ -62,21 +60,38 @@ export default {
         if (this.name === "") return;
         await this.createDirectory(false);
       } catch (error) {
-        notify.showError(error);
+        console.error(error);
       }
     },
 
     async createDirectory(overwrite = false) {
       try {
+        const newPath = url.joinPath(state.req.path, this.name) + "/";
+        const source = state.req.source;
+
         if (getters.isShare()) {
-          await publicApi.post(shareInfo.hash, url.joinPath(state.req.path, this.name) + "/", "", overwrite);
-          goToItem(state.req.source, url.joinPath(state.req.path, this.name), {});
+          await publicApi.post(state.shareInfo?.hash, newPath, "", overwrite, undefined, {}, true);
+          mutations.setReload(true);
           mutations.closeHovers();
           return;
         }
-        await filesApi.post(state.req.source, url.joinPath(state.req.path, this.name) + "/", "", overwrite);
-        goToItem(state.req.source, url.joinPath(state.req.path, this.name), {});
+        await filesApi.post(source, newPath, "", overwrite, undefined, {}, true);
+        mutations.setReload(true);
         mutations.closeHovers();
+
+        // Show success notification with "go to item" button
+        const buttonAction = () => {
+          url.goToItem(source, newPath, {});
+        };
+        const buttonProps = {
+          icon: "folder",
+          buttons: [{
+            label: this.$t("buttons.goToItem"),
+            primary: true,
+            action: buttonAction
+          }]
+        };
+        notify.showSuccess(this.$t("prompts.newDirSuccess"), buttonProps);
       } catch (error) {
         if (error.message === "conflict") {
           // Show replace-rename prompt for file/folder conflicts
@@ -95,17 +110,34 @@ export default {
                   for (let counter = 1; counter <= maxAttempts && !success; counter++) {
                     try {
                       const newName = counter === 1 ? `${originalName} (1)` : `${originalName} (${counter})`;
+                      const newPath = url.joinPath(state.req.path, newName) + "/";
+                      const source = state.req.source;
+
                       if (getters.isShare()) {
-                        await publicApi.post(shareInfo.hash, url.joinPath(state.req.path, newName) + "/", "", false);
-                        goToItem(state.req.source, url.joinPath(state.req.path, newName), {});
+                        await publicApi.post(state.shareInfo?.hash, newPath, "", false, undefined, {}, true);
+                        mutations.setReload(true);
                         mutations.closeHovers();
                         success = true;
                         return;
                       }
-                      await filesApi.post(state.req.source, joinPath(state.req.path, newName) + "/", "", false);
-                      goToItem(state.req.source, joinPath(state.req.path, newName), {});
+                      await filesApi.post(source, newPath, "", false, undefined, {}, true);
+                      mutations.setReload(true);
                       mutations.closeHovers();
                       success = true;
+
+                      // Show success notification with "go to item" button
+                      const buttonAction = () => {
+                        url.goToItem(source, newPath, {});
+                      };
+                      const buttonProps = {
+                        icon: "folder",
+                        buttons: [{
+                          label: this.$t("buttons.goToItem"),
+                          primary: true,
+                          action: buttonAction
+                        }]
+                      };
+                      notify.showSuccess(this.$t("prompts.newDirSuccess"), buttonProps);
                     } catch (renameError) {
                       if (renameError.message === "conflict") {
                         // Continue to next iteration
@@ -120,7 +152,7 @@ export default {
                   }
                 }
               } catch (retryError) {
-                notify.showError(retryError);
+                console.error(retryError);
               }
             },
           });

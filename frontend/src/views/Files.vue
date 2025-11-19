@@ -1,16 +1,7 @@
 <template>
   <div>
-    <!-- Share Info Component -->
-    <ShareInfoCard
-      v-if="showShareInfo"
-      class="share-info-component"
-      :hash="share?.hash"
-      :token="share?.token"
-      :subPath="share?.subPath"
-    />
-
     <breadcrumbs v-if="showBreadCrumbs" :base="isShare ? `/share/${shareHash}` : undefined" />
-    <errors v-if="error && !(isShare && error.status === 401)" :errorCode="error.status" />
+    <errors v-if="error" :errorCode="error.status" />
     <component v-else-if="currentViewLoaded" :is="currentView"></component>
     <div v-else>
       <h2 class="message delayed">
@@ -19,16 +10,14 @@
           <div class="bounce2"></div>
           <div class="bounce3"></div>
         </div>
-        <span>{{ $t("files.loading") }}</span>
+        <span>{{ $t("general.loading", { suffix: "..." }) }}</span>
       </h2>
     </div>
   </div>
-  <PopupPreview v-if="popupEnabled" />
 </template>
 
 <script>
 import { filesApi, publicApi } from "@/api";
-import { notify } from "@/notify";
 import Breadcrumbs from "@/components/Breadcrumbs.vue";
 import Errors from "@/views/Errors.vue";
 import Preview from "@/views/files/Preview.vue";
@@ -41,10 +30,8 @@ import MarkdownViewer from "./files/MarkdownViewer.vue";
 import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
 import router from "@/router";
-import { globalVars, shareInfo } from "@/utils/constants";
-import PopupPreview from "@/components/files/PopupPreview.vue";
+import { globalVars } from "@/utils/constants";
 import { extractSourceFromPath } from "@/utils/url";
-import ShareInfoCard from "@/components/files/ShareInfoCard.vue";
 
 export default {
   name: "files",
@@ -58,8 +45,6 @@ export default {
     DocViewer,
     OnlyOfficeEditor,
     MarkdownViewer,
-    PopupPreview,
-    ShareInfoCard,
   },
   data() {
     return {
@@ -81,13 +66,7 @@ export default {
       return state.share;
     },
     showShareInfo() {
-      return getters.isShare() && state.isMobile && state.req.path == "/" && !shareInfo.disableShareCard;
-    },
-    popupEnabled() {
-      if (!state.user || state.user?.username == "") {
-        return false;
-      }
-      return state.user.preview.popup;
+      return getters.isShare() && state.isMobile && state.req.path == "/" && !state.shareInfo?.disableShareCard;
     },
     showBreadCrumbs() {
       return getters.showBreadCrumbs();
@@ -112,13 +91,13 @@ export default {
           body: this.$t("prompts.halloweenBody"),
           buttons: [
             {
-              label: this.$t("buttons.close"),
+              label: this.$t("general.close"),
               action: () => {
                 localStorage.setItem("seenHalloweenMessage", "true");
               },
             },
             {
-              label: this.$t("buttons.disable"),
+              label: this.$t("general.disable"),
               action: () => {
                 mutations.disableEventThemes();
                 localStorage.setItem("seenHalloweenMessage", "true");
@@ -144,13 +123,6 @@ export default {
   mounted() {
     window.addEventListener("hashchange", this.scrollToHash);
     window.addEventListener("keydown", this.keyEvent);
-    if (getters.isInvalidShare()) {
-      // show message that share is invalid and don't do anything else
-      this.error = {
-        status: "share404",
-        message: "errors.shareNotFound",
-      };
-    }
   },
   beforeUnmount() {
     window.removeEventListener("keydown", this.keyEvent);
@@ -164,7 +136,7 @@ export default {
       // scroll to previous item either from location hash or from previousItemHashId state
       // prefers location hash
       const noHashChange = window.location.hash === this.lastHash
-      if (noHashChange && state.previousHistoryItem.name === "") return;
+      if (noHashChange && state.previousHistoryItem?.name === "") return;
       this.lastHash = window.location.hash;
       if (window.location.hash) {
         const rawHash = window.location.hash.slice(1);
@@ -177,8 +149,12 @@ export default {
         }
         scrollToId = url.base64Encode(encodeURIComponent(decodedName));
 
-      } else if (state.previousHistoryItem.name && state.previousHistoryItem.path === state.req.path && state.previousHistoryItem.source === state.req.source) {
+      } else if (state.previousHistoryItem?.name && state.previousHistoryItem.path === state.req.path && state.previousHistoryItem.source === state.req.source) {
         scrollToId = url.base64Encode(encodeURIComponent(state.previousHistoryItem.name));
+      }
+      // Don't call getElementById with empty string
+      if (!scrollToId || scrollToId.trim() === '') {
+        return;
       }
       const element = document.getElementById(scrollToId);
         if (element) {
@@ -195,7 +171,7 @@ export default {
         }
     },
     async fetchData() {
-      if (state.deletedItem || getters.isInvalidShare() || shareInfo.shareType == "upload") {
+      if (state.deletedItem) {
         return
       }
 
@@ -217,11 +193,6 @@ export default {
           await this.fetchFilesData();
         }
       } catch (e) {
-        if (e.message) {
-          notify.showError(e.message);
-        } else {
-          notify.showError(e);
-        }
         this.error = e;
         mutations.replaceRequest({});
         if (e.status === 404) {
@@ -252,6 +223,31 @@ export default {
     },
 
     async fetchShareData() {
+      const hash = getters.shareHash();
+      let shareInfo = await publicApi.getShareInfo(hash);
+      if (!shareInfo) {
+        // show message that share is invalid and don't do anything else
+        this.error = {
+          status: "share404",
+          message: "errors.shareNotFound",
+        };
+      }
+      shareInfo.hash = hash;
+      mutations.setShareInfo(shareInfo);
+      if (shareInfo.shareType == "upload") {
+        return;
+      }
+      if (shareInfo.themeColor) {
+        document.documentElement.style.setProperty("--primaryColor", shareInfo.themeColor);
+      }
+      if (shareInfo.hasPassword && this.sharePassword === "") {
+        this.sharePassword = localStorage.getItem("sharepass:" + this.shareHash);
+        if (this.sharePassword === null || this.sharePassword === "") {
+          this.showPasswordPrompt();
+          return;
+        }
+      }
+
       // Parse share route
       let urlPath = getters.routePath('public/share')
       let parts = urlPath.split("/");
@@ -271,11 +267,11 @@ export default {
       mutations.resetSelected();
       mutations.setMultiple(false);
 
-      if (shareInfo.singleFileShare) {
+      if (state.shareInfo?.singleFileShare) {
         mutations.setSidebarVisible(true);
       }
       // Initialize password validation state for password-protected shares
-      if (shareInfo.isPasswordProtected) {
+      if (state.shareInfo?.isPasswordProtected) {
         mutations.setShareData({ passwordValid: false });
       }
       // Fetch share data
@@ -326,6 +322,7 @@ export default {
     },
 
     async fetchFilesData() {
+
       if (!getters.isLoggedIn()) {
         return;
       }
@@ -341,13 +338,20 @@ export default {
         routePath == "/";
 
       // lets redirect if multiple sources and user went to /files/
-      if (state.serverHasMultipleSources && rootRoute) {
-        const targetPath = `/files/${state.sources.current}`;
-        // Prevent infinite loop by checking if we're already at the target path
-        if (routePath !== targetPath) {
-          router.push(targetPath);
-          return;
+      if (rootRoute) {
+        // Check if user has custom sidebar links with sources
+        let targetPath = `/files/${state.sources.current}`;
+        for (const link of state.user?.sidebarLinks || []) {
+          if (link.target.startsWith('/')) {
+            if (link.category !== 'source') {
+              continue;
+            }
+            targetPath = `/files/${link.sourceName}${link.target}`;
+            break;
+          }
         }
+        router.push(targetPath)
+        return;
       }
 
       const result = extractSourceFromPath(getters.routePath());
@@ -408,7 +412,6 @@ export default {
         }
         document.title = `${document.title} - ${res.name}`;
       } catch (e) {
-        notify.showError(e);
         this.error = e;
         mutations.replaceRequest({});
       } finally {

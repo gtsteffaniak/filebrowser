@@ -29,7 +29,7 @@
           <span aria-label="info last modified" :title="modTime">{{ humanTime }}</span>
         </div>
         <div class="info-item" v-if="selected.length < 2 && source">
-          <strong>{{ $t("prompts.source") }}</strong>
+          <strong>{{ $t("general.source") }}</strong>
           <span aria-label="info source">{{ source }}</span>
         </div>
         <div class="info-item" v-if="selected.length < 2 && filePath">
@@ -38,11 +38,11 @@
         </div>
         <div class="info-item" v-if="hidden !== undefined">
           <strong>{{ $t("prompts.hidden") }}</strong>
-          <span aria-label="info hidden">{{ hidden ? "✓" : "✗" }}</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <span aria-label="info hidden">{{ hidden ? "✓" : "✗" }}</span><!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
         </div>
         <div class="info-item" v-if="hasPreview !== undefined">
           <strong>{{ $t("prompts.hasPreview") }}</strong>
-          <span aria-label="info has preview">{{ hasPreview ? "✓" : "✗" }}</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <span aria-label="info has preview">{{ hasPreview ? "✓" : "✗" }}</span><!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
         </div>
       </div>
       <!-- Directory Information Section -->
@@ -55,6 +55,15 @@
         <div class="info-item">
           <strong>{{ $t("prompts.numberDirs") }}</strong>
           <span>{{ req.numDirs }}</span>
+        </div>
+      </div>
+
+      <!-- Additional Information Section -->
+      <div class="info-section" v-if="additionalInfo.length > 0">
+        <h3 class="section-title">{{ $t("prompts.additionalInfo") }}</h3>
+        <div class="info-item" v-for="info in additionalInfo" :key="info.key">
+          <strong>{{ info.label }}</strong>
+          <span>{{ info.value }}</span>
         </div>
       </div>
       <!-- Hash Generator Section -->
@@ -70,13 +79,8 @@
                 <option value="sha256">SHA256</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
                 <option value="sha512">SHA512</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
               </select>
-              <button
-                type="button"
-                class="button form-button flat-left"
-                @click="generateHash"
-                :title="$t('prompts.generate')"
-                :aria-label="$t('prompts.generate')"
-              >
+              <button type="button" class="button form-button flat-left" @click="generateHash"
+                :title="$t('prompts.generate')" :aria-label="$t('prompts.generate')">
                 {{ $t("prompts.generate") }}
               </button>
             </div>
@@ -85,47 +89,23 @@
           <div class="hash-result">
             <label for="hash-result">{{ $t("prompts.hashValue") }}</label>
             <div class="form-flex-group">
-              <input
-                style="height: 100%"
-                id="hash-result"
-                class="input form-form flat-right"
-                type="text"
-                :value="hashResult"
-                readonly
-                :placeholder="$t('prompts.selectHashAlgorithm')"
-              />
-              <button
-                class="button form-button flat-left"
-                @click="copyToClipboard"
-                :disabled="!hashResult"
-                :title="$t('buttons.copyToClipboard')"
-                :aria-label="$t('buttons.copyToClipboard')"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                </svg>
+              <input id="hash-result" class="input form-form flat-right" type="text" :value="hashResult" readonly
+                :placeholder="$t('prompts.selectHashAlgorithm')" />
+              <button class="button form-button flat-left" @click="copyToClipboard" :disabled="!hashResult"
+                :title="$t('buttons.copyToClipboard')" :aria-label="$t('buttons.copyToClipboard')">
+                <i class="material-icons" style="font-size: 16px;">content_copy</i>
               </button>
             </div>
           </div>
-        </div>
-      </div>
-
-      <!-- Additional Information Section -->
-      <div class="info-section" v-if="additionalInfo.length > 0">
-        <h3 class="section-title">{{ $t("prompts.additionalInfo") }}</h3>
-        <div class="info-item" v-for="info in additionalInfo" :key="info.key">
-          <strong>{{ info.label }}</strong>
-          <span>{{ info.value }}</span>
         </div>
       </div>
     </div>
   </div>
 
   <div class="card-action">
-    <button type="submit" @click="closeHovers" class="button button--flat" :aria-label="$t('buttons.close')"
-      :title="$t('buttons.close')">
-      {{ $t("buttons.close") }}
+    <button type="submit" @click="closeHovers" class="button button--flat" :aria-label="$t('general.close')"
+      :title="$t('general.close')">
+      {{ $t("general.close") }}
     </button>
   </div>
 </template>
@@ -328,7 +308,7 @@ export default {
 
       try {
         await navigator.clipboard.writeText(this.hashResult);
-        notify.showSuccess(this.$t("prompts.hashCopied"));
+        notify.showSuccessToast(this.$t("prompts.hashCopied"));
       } catch (err) {
         // Fallback for older browsers
         const textArea = document.createElement("textarea");
@@ -339,7 +319,7 @@ export default {
         textArea.select();
         try {
           document.execCommand("copy");
-          notify.showSuccess(this.$t("prompts.hashCopied"));
+          notify.showSuccessToast(this.$t("prompts.hashCopied"));
         } catch (e) {
           notify.showError(this.$t("prompts.errorCopyingHash"));
         }

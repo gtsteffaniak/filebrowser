@@ -34,7 +34,6 @@ vi.mock('@/utils/constants', () => {
       disableSidebar: false,
       isValid: true,
     },
-    serverHasMultipleSources: false,
     logoURL: "test-logo.png",
     origin: "http://localhost",
     settings: [],
@@ -81,7 +80,6 @@ describe('extractSourceFromPath', () => {
     vi.doMock("@/store", () => {
       return {
         state: {
-          serverHasMultipleSources: false,
           sources: {
             current: "default",
           }
@@ -90,8 +88,8 @@ describe('extractSourceFromPath', () => {
     });
 
     const tests = [
-      { url: "/files/root/file1.txt", expected: { source: "default", path: "/root/file1.txt" } },
-      { url: "/files/root/folder1/file1.txt", expected: { source: "default", path: "/root/folder1/file1.txt" } },
+      { url: "/files/default/root/file1.txt", expected: { source: "default", path: "/root/file1.txt" } },
+      { url: "/files/default/root/folder1/file1.txt", expected: { source: "default", path: "/root/folder1/file1.txt" } },
     ];
 
     for (const test of tests) {
@@ -109,7 +107,6 @@ describe('extractSourceFromPath2', () => {
     vi.doMock("@/store", () => {
       return {
         state: {
-          serverHasMultipleSources: true,
           sources: {
             current: "first",
             list: [

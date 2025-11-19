@@ -223,7 +223,7 @@ func signupHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 		},
 		LoginMethod: users.LoginMethodPassword,
 	}
-	err := storage.CreateUser(user, settings.Config.UserDefaults.Permissions)
+	err := storage.CreateUser(user, settings.ConvertPermissionsToUsers(settings.Config.UserDefaults.Permissions))
 	if err != nil {
 		logger.Debug(err.Error())
 		// Return the actual error message instead of a generic one

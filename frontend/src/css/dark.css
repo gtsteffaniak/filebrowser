@@ -71,18 +71,18 @@
 }
 
 /* Listing items */
-.dark-mode #listingView .item {
+.dark-mode #listingView .listing-item {
   background: var(--surfacePrimary);
   color: var(--textPrimary);
   border-color: var(--divider);
 }
 
-.dark-mode #listingView.gallery .item .text {
+.dark-mode #listingView.gallery .listing-item .text {
   text-shadow: 0 0 2px black;
 }
 
 /* Listing item modified text */
-.dark-mode #listingView .item .modified {
+.dark-mode #listingView .listing-item .modified {
   color: var(--textSecondary);
 }
 
@@ -218,9 +218,17 @@
   color: var(--textPrimary);
 }
 
-/* Header */
 .dark-mode-header {
   color: white;
-  background-color: #283136;
 }
 
+/* Dark mode - lighter shadow for original look */
+.dark-mode .clickable:hover,
+.dark-mode .plyr .plyr__control:hover,
+.dark-mode button:hover,
+.dark-mode .action:hover,
+.dark-mode .listing-item.drag-hover {
+    box-shadow:
+        inset 0 -3em 3em rgba(217, 217, 217, 0.211),
+        0 0 0 2px var(--alt-background) !important;
+}

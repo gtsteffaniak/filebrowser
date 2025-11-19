@@ -1,4 +1,4 @@
-import { globalVars, shareInfo } from "@/utils/constants.js";
+import { globalVars } from "@/utils/constants.js";
 import { state, mutations, getters } from "@/store";
 import { router } from "@/router";
 
@@ -148,26 +148,17 @@ export function base64Encode(str) {
 export function extractSourceFromPath(url) {
   let source;
   let path = url;
-  if (state.serverHasMultipleSources) {
-    source = path.split('/')[2];
-    path = removePrefix(path, `/files/${source}`);
-  } else {
-    source = state.sources.current;
-    path = removePrefix(path, '/files');
-  }
+  source = path.split('/')[2];
+  path = removePrefix(path, `/files/${source}`);
 
   return { source, path };
 }
 
 export function buildItemUrl(source, path) {
   if (getters.isShare()) {
-    return `/public/share/${shareInfo.hash}${path}`;
+    return `/public/share/${state.shareInfo.hash}${path}`;
   }
-  if (state.serverHasMultipleSources) {
-    return `/files/${source}${path}`;
-  } else {
-    return `/files${path}`;
-  }
+  return `/files/${source}${path}`;
 }
 
 export function encodedPath(path) {
@@ -182,20 +173,19 @@ export function encodedPath(path) {
 
 // assume non-encoded input path and source
 export function goToItem(source, path, previousHistoryItem) {
+  if (source == state.sources.current && path == state.req.path) {
+    return;
+  }
   mutations.setPreviousHistoryItem(previousHistoryItem);
   mutations.resetAll()
   let newPath = encodedPath(path);
   let fullPath;
   if (getters.isShare()) {
-    fullPath = `/public/share/${shareInfo.hash}${newPath}`;
+    fullPath = `/public/share/${state.shareInfo?.hash}${newPath}`;
     router.push({ path: fullPath });
     return;
   }
-  if (state.serverHasMultipleSources) {
-    fullPath = `/files/${encodeURIComponent(source)}${newPath}`;
-  } else {
-    fullPath = `/files${newPath}`;
-  }
+  fullPath = `/files/${encodeURIComponent(source)}${newPath}`;
   router.push({ path: fullPath });
   return
 }

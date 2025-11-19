@@ -2,6 +2,7 @@
 @import "./_variables.css";
 @import "./_buttons.css";
 @import "./_inputs.css";
+@import "./_banners.css";
 @import "./fonts.css";
 @import "./base.css";
 @import "./header.css";
@@ -63,13 +64,11 @@
  * * * * * * * * * * * * * * * */
 
 .action {
-    display: inline-block;
     cursor: pointer;
     transition: 0.2s ease all;
     border: 0;
     margin: 0;
     color: #546e7a;
-    border-radius: 50%;
     background: transparent;
     padding: 0;
     box-shadow: none;
@@ -357,10 +356,9 @@ body.rtl .card-content .small+input {
 button:hover,
 .action:hover,
 .listing-item.drag-hover {
-    box-shadow:
-        inset 0 -3em 3em rgba(217, 217, 217, 0.211),
-        0 0 0 2px var(--alt-background) !important;
-    /* Adjust shadow values as needed */
+    box-shadow: inset 0 -3em 3em rgba(172, 172, 172, 0.211),
+    0 0 0 2px var(--alt-background) !important;
+    /* Darker shadow for better visibility in light mode */
     transform: scale(1.02);
     /* Slightly enlarges the element */
 }
@@ -384,7 +382,7 @@ button:hover,
 .form-flex-group {
     display: flex;
     flex-direction: row;
-    align-items: center;
+    align-items: stretch;
 }
 
 .form-flex-group>.form-compact {
@@ -394,6 +392,7 @@ button:hover,
 
 .form-button {
     height: auto !important;
+    white-space: nowrap;
 }
 
 .form-invalid {

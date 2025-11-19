@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gtsteffaniak/go-cache/cache"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
@@ -24,11 +23,6 @@ type SubtitleTrack struct {
 	Content  string `json:"content,omitempty"`  // subtitle content
 	IsFile   bool   `json:"isFile"`             // true for external files, false for embedded streams
 }
-
-var (
-	MediaCache           = cache.NewCache[[]SubtitleTrack](24 * time.Hour) // subtitles get cached for 24 hours
-	SubtitleContentCache = cache.NewCache[string](24 * time.Hour)          // subtitle content gets cached for 24 hours
-)
 
 // FFProbeOutput represents the JSON output from ffprobe
 type FFProbeOutput struct {

@@ -1,5 +1,5 @@
 
-import { test, expect } from "../test-setup";
+import { test, expect, checkForNotification } from "../test-setup";
 
 test("breadcrumbs navigation checks for shares", async ({ page, checkForErrors, context }) => {
   await page.goto("/files/exclude/");
@@ -20,7 +20,7 @@ test("breadcrumbs navigation checks for shares", async ({ page, checkForErrors, 
   let spanChildrenCount = await page.locator('#breadcrumbs > ul > li.item').count();
   expect(spanChildrenCount).toBe(1);
 
-  checkForErrors(0,1); // redirect errors are expected
+  checkForErrors(0,2); // redirect errors are expected and 404 image preview for blank file
 });
 
 test("root share path is valid", async ({ page, checkForErrors, openContextMenu, context }) => {
@@ -59,8 +59,6 @@ test("share download single file", async ({ page, checkForErrors, context }) => 
   await page.locator('a[aria-label="gray-sample.jpg"]').click({ button: "right" });
   await page.locator('button[aria-label="Download"]').waitFor({ state: 'visible' });
   await page.locator('button[aria-label="Download"]').click();
-  const popup = page.locator('#popup-notification-content');
-  await popup.waitFor({ state: 'visible' });
-  await expect(popup).toHaveText("Downloading...");
+  await checkForNotification(page, "Downloading...");
   checkForErrors(0,1); // redirect errors are expected
 });

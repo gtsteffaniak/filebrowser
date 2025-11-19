@@ -2,11 +2,13 @@ import { mutations, state } from '@/store'
 import { notify } from '@/notify'
 import { globalVars } from '@/utils/constants'
 import { filesApi } from '@/api'
+import i18n from '@/i18n'
 
 let eventSrc = null
 let reconnectTimeout = null
 let isManuallyClosed = false
 let authenticationFailed = false
+let hasShownShutdownMessage = false
 
 async function updateSourceInfo () {
   try {
@@ -81,7 +83,7 @@ async function setupSSE () {
     if (!isAuthenticated) {
       console.log('🚫 Authentication failed, not setting up EventSource')
       authenticationFailed = true
-      notify.showError('Authentication failed. Please refresh the page to log in again.')
+      notify.showError(i18n.global.t('events.authenticationFailed'))
       return
     }
   }
@@ -95,13 +97,15 @@ async function setupSSE () {
       console.log('✅ SSE connected')
     }
     if (state.realtimeDownCount > 1) {
-      notify.showSuccess('Reconnected to server.')
+      notify.showSuccessToast(i18n.global.t('events.reconnected'))
     }
     clearReconnect()
     mutations.setRealtimeActive(true)
     updateSourceInfo()
     // Reset authentication failure flag on successful connection
     authenticationFailed = false
+    // Reset shutdown message flag on successful reconnection
+    hasShownShutdownMessage = false
   }
 
   eventSrc.onmessage = event => {
@@ -127,7 +131,7 @@ async function setupSSE () {
 
     // Original notification logic - only show error after multiple failures
     if (state.realtimeDownCount == 2 && !isManuallyClosed) {
-      notify.showError('The connection to server was lost. Trying to reconnect...')
+      notify.showErrorToast(i18n.global.t('events.connectionLost'))
     }
     scheduleReconnect()
   }
@@ -153,7 +157,10 @@ async function eventRouter (eventType, message) {
   switch (eventType) {
     case 'notification':
       if (message === 'the server is shutting down') {
-        notify.showError('Server is shutting down. Reconnecting...')
+        if (!hasShownShutdownMessage) {
+          notify.showErrorToast(i18n.global.t('events.serverShutdown'))
+          hasShownShutdownMessage = true
+        }
         mutations.setRealtimeActive(false)
         cleanup()
         scheduleReconnect()
@@ -170,7 +177,7 @@ async function eventRouter (eventType, message) {
 
     case 'acknowledge':
       if (!state.realtimeActive) {
-        notify.showSuccess('Reconnected to server.')
+        notify.showSuccessToast(i18n.global.t('events.reconnected'))
       }
       mutations.setRealtimeActive(true)
       break

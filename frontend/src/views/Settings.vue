@@ -19,7 +19,7 @@
           <div class="bounce2"></div>
           <div class="bounce3"></div>
         </div>
-        <span>{{ $t("files.loading") }}</span>
+        <span>{{ $t("general.loading", { suffix: "..." }) }}</span>
       </h2>
     </div>
   </div>
@@ -37,6 +37,7 @@ import UserSettings from "@/views/settings/Users.vue";
 import FileLoading from "@/views/settings/FileLoading.vue";
 import ApiKeys from "@/views/settings/Api.vue";
 import SystemAdmin from "@/views/settings/SystemAdmin.vue";
+import NotificationsSettings from "@/views/settings/Notifications.vue";
 export default {
   name: "settings",
   components: {
@@ -49,6 +50,7 @@ export default {
     FileLoading,
     UserSettings,
     SystemAdmin,
+    NotificationsSettings,
   },
   data() {
     return {
@@ -164,10 +166,7 @@ export default {
 }
 
 .settings-views .card-title {
-  background: var(--surfacePrimary);
-  padding: 0.5em;
-  border-radius: 1em;
-  color: white;
+  color: var(--textPrimary);
 }
 
 .settings-views .card {

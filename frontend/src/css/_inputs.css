@@ -29,7 +29,6 @@
   background: #c9f2da;
 }
 
-
 /* Autofill hack to maintain style */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
@@ -38,4 +37,9 @@ input:-webkit-autofill:active {
   -webkit-box-shadow: 0 0 0px 1000px var(--surfaceSecondary) inset !important;
   -webkit-text-fill-color: var(--textPrimary) !important; /* Optional: Change text color to contrast */
   border-color: unset !important;
+}
+
+/* Style for input sliders */
+input[type="range"] {
+  accent-color: var(--primaryColor);
 }

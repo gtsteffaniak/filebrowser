@@ -9,10 +9,11 @@
       <thead>
         <tr>
           <th>{{ $t("general.hash") }}</th>
-          <th>{{ $t("settings.path") }}</th>
-          <th>{{ $t("settings.shareDuration") }}</th>
-          <th>{{ $t("settings.downloads") }}</th>
-          <th>{{ $t("settings.username") }}</th>
+          <th>{{ $t("general.path") }}</th>
+          <th>{{ $t("time.unit") }}</th>
+          <th>{{ $t("general.downloads") }}</th>
+          <th>{{ $t("general.username") }}</th>
+          <th></th>
           <th></th>
           <th></th>
           <th></th>
@@ -35,14 +36,17 @@
           </td>
           <td>{{ item.username }}</td>
           <td class="small">
-            <button class="action" @click="editLink(item)" :aria-label="$t('buttons.edit')"
-              :title="$t('buttons.edit')">
+            <i v-if="!item.pathExists" class="material-icons warning-icon" :title="$t('messages.pathNotFound')">warning</i>
+          </td>
+          <td class="small">
+            <button class="action" @click="editLink(item)" :aria-label="$t('general.edit')"
+              :title="$t('general.edit')">
               <i class="material-icons">edit</i>
             </button>
           </td>
           <td class="small">
-            <button class="action" @click="deleteLink($event, item)" :aria-label="$t('buttons.delete')"
-              :title="$t('buttons.delete')">
+            <button class="action" @click="deleteLink($event, item)" :aria-label="$t('general.delete')"
+              :title="$t('general.delete')">
               <i class="material-icons">delete</i>
             </button>
           </td>
@@ -98,17 +102,17 @@ export default {
     await this.reloadShares();
   },
   mounted() {
-    this.clip = new Clipboard(".copy-clipboard");
-    this.clip.on("success", () => {
-      notify.showSuccess(this.$t("success.linkCopied"));
-    });
+    this.initClipboard();
     // Listen for share changes
     eventBus.on('sharesChanged', this.reloadShares);
   },
   beforeUnmount() {
-    this.clip.destroy();
+    // Clean up clipboard
+    if (this.clip) {
+      this.clip.destroy();
+    }
     // Clean up event listener
-    eventBus.removeEventListener('sharesChanged', this.reloadShares);
+    eventBus.off('sharesChanged', this.reloadShares);
   },
   computed: {
     settings() {
@@ -135,12 +139,30 @@ export default {
         }
         this.links = links;
         this.error = null; // Clear any previous errors
+      this.$nextTick(() => {
+        this.initClipboard();
+      });
       } catch (e) {
         this.error = e;
-        notify.showError(e);
+        console.error(e);
       } finally {
         mutations.setLoading("shares", false);
       }
+    },
+    initClipboard() {
+      // First destroy any existing clipboard
+      if (this.clip) {
+        this.clip.destroy();
+      }
+      // Create new clipboard
+      this.clip = new Clipboard(".copy-clipboard");
+      this.clip.on("success", () => {
+        notify.showSuccessToast(this.$t("success.linkCopied"));
+      });
+      this.clip.on("error", () => {
+        notify.showErrorToast(this.$t("prompts.copyToClipboardFailed"));
+        console.log("Failed to copy link to the clipboard", e);
+      });
     },
     editLink(item) {
       mutations.showHover({
@@ -164,9 +186,9 @@ export default {
           try {
             shareApi.remove(item.hash);
             this.links = this.links.filter((link) => link.hash !== item.hash);
-            notify.showSuccess(this.$t("settings.shareDeleted"));
+            notify.showSuccessToast(this.$t("settings.shareDeleted"));
           } catch (e) {
-            notify.showError(e);
+            console.error(e);
           }
         },
       });

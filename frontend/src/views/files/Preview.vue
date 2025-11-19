@@ -8,7 +8,10 @@
                 <div class="bounce3"></div>
             </div>
         </div>
-        <div class="preview" :class="{'plyr-background': previewType == 'audio' && !useDefaultMediaPlayer, 'transitioning': isTransitioning}" v-if="!isDeleted">
+        <div class="preview" :class="{
+            'plyr-background-light': !isDarkMode && previewType == 'audio' && !useDefaultMediaPlayer,
+            'plyr-background-dark': isDarkMode && previewType == 'audio' && !useDefaultMediaPlayer,
+            'transitioning': isTransitioning }" v-if="!isDeleted">
             <ExtendedImage v-if="showImage && !isTransitioning" :src="raw" @navigate-previous="navigatePrevious" @navigate-next="navigateNext"/>
 
             <!-- Media Player Component -->
@@ -27,7 +30,7 @@
                 <iframe class="pdf" :src="raw"></iframe>
                 <a v-if="isMobileSafari" :href="raw" target="_blank" class="button button--flat floating-btn">
                     <div>
-                        <i class="material-icons">open_in_new</i>{{ $t("buttons.openFile") }}
+                        <i class="material-icons">open_in_new</i>{{ $t("general.openFile") }}
                     </div>
                 </a>
             </div>
@@ -40,12 +43,12 @@
                 <div v-if="permissions.download">
                     <a target="_blank" :href="downloadUrl" class="button button--flat">
                         <div>
-                            <i class="material-icons">file_download</i>{{ $t("buttons.download") }}
+                            <i class="material-icons">file_download</i>{{ $t("general.download") }}
                         </div>
                     </a>
                     <a target="_blank" :href="raw" class="button button--flat" v-if="req.type != 'directory'">
                         <div>
-                            <i class="material-icons">open_in_new</i>{{ $t("buttons.openFile") }}
+                            <i class="material-icons">open_in_new</i>{{ $t("general.openFile") }}
                         </div>
                     </a>
                 </div>
@@ -67,7 +70,7 @@ import plyrViewer from "@/views/files/plyrViewer.vue";
 import { state, getters, mutations } from "@/store";
 import { getFileExtension } from "@/utils/files";
 import { convertToVTT } from "@/utils/subtitles";
-import { globalVars, shareInfo } from "@/utils/constants";
+import { globalVars } from "@/utils/constants";
 
 export default {
     name: "preview",
@@ -210,7 +213,7 @@ export default {
             return state.deletedItem;
         },
         disableFileViewer() {
-            return shareInfo.disableFileViewer;
+            return state.shareInfo?.disableFileViewer;
         },
     },
     watch: {
@@ -351,7 +354,7 @@ export default {
                             // Use public API for shared files
                             res = await publicApi.fetchPub(
                                 directoryPath,
-                                state.share.hash,
+                                state.shareInfo?.hash,
                             );
                         } else {
                             // Use regular files API for authenticated users
@@ -391,13 +394,13 @@ export default {
                     ? publicApi.getDownloadURL(
                           {
                               path: item.path,
-                              hash: state.share.hash,
+                              hash: state.shareInfo?.hash,
                               token: state.share.token,
                               inline: true,
                           },
                           [item.path],
                       )
-                    : publicApi.getPreviewURL(state.share.hash, item.path);
+                    : publicApi.getPreviewURL(state.shareInfo?.hash, item.path);
             }
             return this.fullSize
                 ? filesApi.getDownloadURL(state.req.source, item.path, true)

@@ -1,6 +1,6 @@
 import { state } from "@/store";
 import { renew } from "@/utils/auth";
-import { notify } from "@/notify";
+import i18n from "@/i18n";
 
 export async function fetchURL(url, opts, auth = true) {
   opts = opts || {};
@@ -21,7 +21,7 @@ export async function fetchURL(url, opts, auth = true) {
   } catch (e) {
     let message = e;
     if (e == "TypeError: Failed to fetch") {
-      message = "Failed to connect to the server, is it still running?";
+      message = i18n.global.t("errors.failedToConnectToServer");
     }
     const error = new Error(message);
     throw error;
@@ -46,7 +46,6 @@ export async function fetchJSON(url, opts) {
   if (res.status < 300) {
     return res.json();
   } else {
-    notify.showError("received status: "+res.status+" on url " + url);
     throw new Error(res.status);
   }
 }

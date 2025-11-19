@@ -1,6 +1,6 @@
 <template>
   <div class="card-title">
-    <h2>{{ $t("help.help") }}</h2>
+    <h2>{{ $t("general.help") }}</h2>
   </div>
 
   <div class="card-content help-content">
@@ -31,10 +31,6 @@
           <kbd>ESC</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           <span>{{ $t("help.esc") }}</span>
         </div>
-        <div class="shortcut-item">
-          <kbd>/</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-          <span>{{ $t("help.slash") }}</span>
-        </div>
       </div>
 
       <!-- Mouse Actions Section -->
@@ -43,6 +39,10 @@
         <div class="shortcut-item">
           <kbd>Click</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           <span>{{ $t("help.click") }}</span>
+        </div>
+        <div class="shortcut-item">
+          <kbd>Click + Drag</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <span>{{ $t("help.marqueeSelect") }}</span>
         </div>
         <div class="shortcut-item">
           <kbd>CTRL + Click</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
@@ -73,7 +73,7 @@
 
       <!-- Navigation Section -->
       <div class="shortcut-section">
-        <h3 class="section-title">{{ $t("help.navigation") }}</h3>
+        <h3 class="section-title">{{ $t("general.navigation") }}</h3>
         <div class="shortcut-item">
           <kbd>CTRL + B</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           <span>{{ $t("help.ctrl.b") }}</span>
@@ -82,14 +82,18 @@
           <kbd>CTRL + ,</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           <span>{{ $t("help.ctrl.comma") }}</span>
         </div>
+        <div class="shortcut-item">
+          <kbd>/</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <span>{{ $t("help.slash") }}</span>
+        </div>
       </div>
     </div>
   </div>
 
   <div class="card-action">
-    <button type="submit" @click="closeHovers" class="button button--flat" :aria-label="$t('buttons.ok')"
-      :title="$t('buttons.ok')">
-      {{ $t("buttons.ok") }}
+    <button type="submit" @click="closeHovers" class="button button--flat" :aria-label="$t('general.ok')"
+      :title="$t('general.ok')">
+      {{ $t("general.ok") }}
     </button>
   </div>
 </template>

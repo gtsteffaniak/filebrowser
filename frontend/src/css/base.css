@@ -91,10 +91,8 @@ over
 }
 
 .main-padding {
-  padding: 0.5em;
-  padding-top: 4em;
+  padding: 4em .5em .5em;
 }
-
 
 /* Files */
 .files {

@@ -19,8 +19,8 @@
         v-if="active"
         class="action"
         @click="close"
-        :aria-label="$t('buttons.close')"
-        :title="$t('buttons.close')"
+        :aria-label="$t('general.close')"
+        :title="$t('general.close')"
       >
         <i class="material-icons">close</i>
       </button>
@@ -37,14 +37,14 @@
         ref="input"
         :autofocus="active"
         v-model.trim="value"
-        :aria-label="$t('search.search')"
-        :placeholder="$t('search.search')"
+        aria-label="search input"
+        :placeholder="$t('general.search', { suffix: '...' })"
       />
     </div>
 
     <!-- Search results for desktop -->
     <div v-show="active"  id="results" class="fb-shadow" ref="result">
-      <div class="inputWrapper" style="display: flex">
+      <div class="inputWrapper">
         <select
           v-if="multipleSources"
           class="searchContext button input"
@@ -72,44 +72,46 @@
                 @remove-button-clicked="disableOptions"
               />
             </div>
-            <div v-show="showOptions">
-              <!-- Button groups for filtering search results -->
-              <ButtonGroup
-                :buttons="folderSelect"
-                @button-clicked="addToTypes"
-                @remove-button-clicked="removeFromTypes"
-                @disableAll="folderSelectClicked()"
-                @enableAll="resetButtonGroups()"
-              />
-              <ButtonGroup
-                :buttons="typeSelect"
-                @button-clicked="addToTypes"
-                @remove-button-clicked="removeFromTypes"
-                :isDisabled="isTypeSelectDisabled"
-              />
-              <!-- Inputs for filtering by file size -->
-              <div class="sizeConstraints">
-                <div class="sizeInputWrapper">
-                  <p>{{ $t("search.smallerThan") }}</p>
-                  <input
-                    class="sizeInput"
-                    v-model="smallerThan"
-                    type="number"
-                    min="0"
-                    :placeholder="$t('search.number')"
-                  /><p>MB</p> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-                </div>
-                <div class="sizeInputWrapper">
-                  <p>{{ $t("search.largerThan") }}</p>
-                  <input
-                    class="sizeInput"
-                    v-model="largerThan"
-                    type="number"
-                    :placeholder="$t('search.number')"
-                  /><p>MB</p> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+            <transition name="expand">
+              <div v-show="showOptions" class="search-options">
+                <!-- Button groups for filtering search results -->
+                <ButtonGroup
+                  :buttons="folderSelect"
+                  @button-clicked="addToTypes"
+                  @remove-button-clicked="removeFromTypes"
+                  @disableAll="folderSelectClicked()"
+                  @enableAll="resetButtonGroups()"
+                />
+                <ButtonGroup
+                  :buttons="typeSelect"
+                  @button-clicked="addToTypes"
+                  @remove-button-clicked="removeFromTypes"
+                  :isDisabled="isTypeSelectDisabled"
+                />
+                <!-- Inputs for filtering by file size -->
+                <div class="sizeConstraints">
+                  <div class="sizeInputWrapper">
+                    <p>{{ $t("search.smallerThan") }}</p>
+                    <input
+                      class="sizeInput"
+                      v-model="smallerThan"
+                      type="number"
+                      min="0"
+                      :placeholder="$t('general.number')"
+                    /><p>MB</p> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+                  </div>
+                  <div class="sizeInputWrapper">
+                    <p>{{ $t("search.largerThan") }}</p>
+                    <input
+                      class="sizeInput"
+                      v-model="largerThan"
+                      type="number"
+                      :placeholder="$t('general.number')"
+                    /><p>MB</p> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+                  </div>
                 </div>
               </div>
-            </div>
+            </transition>
           </div>
         </div>
         <!-- Loading icon when search is ongoing -->
@@ -119,12 +121,13 @@
         <!-- Message when no results are found -->
         <div class="searchPrompt" v-show="isEmpty && !isRunning">
           <p>{{ noneMessage }}</p>
-          <div class="helpButton" @click="toggleHelp()">{{ $t("sidebar.help") }}</div>
-        </div>
-        <!-- Help text section -->
-        <div class="helpText" v-if="showHelp">
-          <p>{{ $t("search.helpText1") }}</p>
-          <p>{{ $t("search.helpText2") }}</p>
+          <i
+            class="no-select material-symbols-outlined tooltip-info-icon"
+            @mouseenter="showHelpTooltip"
+            @mouseleave="hideTooltip"
+          >
+            help
+          </i>
         </div>
         <!-- List of search results -->
         <ul v-show="results.length > 0">
@@ -156,7 +159,7 @@ import { getters, mutations, state } from "@/store";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { url } from "@/utils/";
 import Icon from "@/components/files/Icon.vue";
-import { globalVars, serverHasMultipleSources } from "@/utils/constants";
+import { globalVars } from "@/utils/constants";
 
 var boxes = {
   folder: { label: "folders", icon: "folder" },
@@ -181,17 +184,16 @@ export default {
       noneMessage: this.$t("search.typeToSearch", { minSearchLength: globalVars.minSearchLength }),
       searchTypes: "",
       isTypeSelectDisabled: false,
-      showHelp: false,
       folderSelect: [
         { label: this.$t("search.onlyFolders"), value: "type:folder" },
         { label: this.$t("search.onlyFiles"), value: "type:file" },
       ],
       typeSelect: [
-        { label: this.$t("search.photos"), value: "type:image" },
-        { label: this.$t("search.audio"), value: "type:audio" },
-        { label: this.$t("search.videos"), value: "type:video" },
-        { label: this.$t("search.documents"), value: "type:doc" },
-        { label: this.$t("search.archives"), value: "type:archive" },
+        { label: this.$t("general.photos"), value: "type:image" },
+        { label: this.$t("general.audio"), value: "type:audio" },
+        { label: this.$t("general.videos"), value: "type:video" },
+        { label: this.$t("general.documents"), value: "type:doc" },
+        { label: this.$t("general.archives"), value: "type:archive" },
       ],
       toggleOptionButton: [{ label: this.$t("search.showOptions") }],
       value: "",
@@ -223,9 +225,7 @@ export default {
         mutations.closeHovers();
         return;
       }
-      if (state.serverHasMultipleSources) {
-        this.selectedSource = state.sources.current;
-      }
+      this.selectedSource = state.sources.current;
       setTimeout(() => {
         resultList.classList.add("active");
         document.getElementById("main-input").focus();
@@ -239,9 +239,7 @@ export default {
     },
   },
   mounted() {
-    if (state.serverHasMultipleSources) {
-      this.selectedSource = state.sources.current;
-    }
+    this.selectedSource = state.sources.current;
     // Adjust contextmenu listener based on browser
     if (state.isSafari) {
       // For Safari, add touchstart or mousedown to open the context menu
@@ -325,9 +323,6 @@ export default {
     },
     isRunning() {
       return this.ongoing;
-    },
-    searchHelp() {
-      return this.showHelp;
     },
     activeStates() {
       const selectedItems = state.selected ? [].concat(state.selected) : [];
@@ -421,11 +416,7 @@ export default {
       const context = url.removeTrailingSlash(this.getContext)
       const encodedPath = encodeURIComponent(context + "/" + path).replaceAll("%2F", "/");
       let fullpath = encodedPath;
-      if (serverHasMultipleSources) {
-        fullpath = globalVars.baseURL+"files/" + this.selectedSource + encodedPath;
-      } else {
-        fullpath = globalVars.baseURL+"files" + encodedPath;
-      }
+      fullpath = globalVars.baseURL+"files/" + this.selectedSource + encodedPath;
       return fullpath;
     },
     getIcon(mimetype) {
@@ -506,7 +497,6 @@ export default {
     async submit(event) {
       this.results = [];
 
-      this.showHelp = false;
       if (event != undefined) {
         event.preventDefault();
       }
@@ -533,8 +523,16 @@ export default {
         this.noneMessage = this.$t("search.noResults");
       }
     },
-    toggleHelp() {
-      this.showHelp = !this.showHelp;
+    showHelpTooltip(event) {
+      const helpText = `${this.$t("search.helpText1")}\n\n${this.$t("search.helpText2")}`;
+      mutations.showTooltip({
+        content: helpText,
+        x: event.clientX,
+        y: event.clientY,
+      });
+    },
+    hideTooltip() {
+      mutations.hideTooltip();
     },
     clearContext() {
       mutations.closeHovers();
@@ -564,14 +562,20 @@ export default {
   width: 100%;
 }
 
+.inputWrapper {
+  display: flex;
+  align-items: stretch;
+}
+
 .searchContext {
+  height: auto;
+  margin-top: 0;
   width: 100%;
   padding: 0.5em 1em;
   background: var(--primaryColor);
   color: white;
-  border-left: 1px solid gray;
-  border-right: 1px solid gray;
   word-wrap: break-word;
+  margin-bottom: 0 !important;
 }
 
 .searchContext.input {
@@ -582,6 +586,7 @@ export default {
   width: 25%;
   min-width: 7em;
   max-width: 15em;
+  height: auto;
 }
 
 .searchContext.input option {
@@ -602,6 +607,7 @@ export default {
   -webkit-transition: width 0.3s ease 0s;
   transition: width 0.3s ease 0s;
   background-color: unset;
+  border-radius: 0 0 1em 1em;
 }
 
 #results {
@@ -853,10 +859,6 @@ body.rtl #search .boxes h3 {
   /* IE and Edge */
 }
 
-.helpText {
-  padding: 1em;
-}
-
 .sizeConstraints {
   display: flex;
   flex-wrap: wrap;
@@ -866,22 +868,19 @@ body.rtl #search .boxes h3 {
   justify-content: center;
 }
 
-.helpButton {
-  position: absolute;
-  right: 10px;
-  cursor: pointer;
-  text-align: center;
-  background: rgb(211, 211, 211);
-  padding: 0.25em;
-  border-radius: 0.25em;
-}
-
 .searchPrompt {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-content: center;
   justify-content: center;
   align-items: center;
+  gap: 0.5em;
+}
+
+.searchPrompt .tooltip-info-icon {
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--primaryColor);
 }
 
 .filesize {
@@ -891,6 +890,29 @@ body.rtl #search .boxes h3 {
   padding-left: 0.5em;
   padding-right: 0.5em;
   min-width: fit-content;
+}
+
+/* Smooth expand/collapse animation for search options */
+.expand-enter-active,
+.expand-leave-active {
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.expand-enter-from,
+.expand-leave-to {
+  max-height: 0;
+  opacity: 0;
+}
+
+.expand-enter-to,
+.expand-leave-from {
+  max-height: 500px;
+  opacity: 1;
+}
+
+.search-options {
+  overflow: hidden;
 }
 
 @media (max-width: 800px) {

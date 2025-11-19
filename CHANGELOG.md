@@ -2,6 +2,53 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v1.1.0-beta
+
+ **New Features**:
+ - Added tools
+   - size analyzer -- quickly show largest files in interactive graphical chart
+   - duplicate finder -- find duplicate files larger than 1MB
+   - material icon picker and previewer
+ - Listing View Style updates
+   - Status bar for listing view #1459
+   - Duration field shows up if media is shown with duration
+   - More dynamic view modes with additional styling changes
+   - Total display modes consolidated into 3 main groups: list, gallery, normal. "icon" and "compact" mode exist as views based on display size setting.
+ - Customizable sidebar links
+   - Logged in users can have their preferences saved and synced
+   - Can rearrange, add custom links, and save your preferences.
+   - Can customize shares with their own custom sidebar links.
+ - Dynamic scopes for OIDC #1414 #1363
+ - Share and Access Rules validation
+   - If a file/path is moved/renamed in UI its rules and shares will always follow.
+   - If a file/path is moved/renamed outside UI, a warning message will show and ability to associate to new path
+ - Cascade delete access in Access Management when deleting a User #1347
+ - Enhanced notifications #1331
+   - Added "toast" notification type support -- most success messages show as toast now.
+   - multiple stacked notifications possible
+   - notification button support, such as click to open folder after moving file.
+   - notification history (not including toasts)
+   - Add swipe and visual timeout to notifications #1600
+ - Choose different bind ip via `server.listen` #1573
+ - Allow disabling clearing cache each startup via `server.cacheDirCleanup: false` in config #1576
+
+ **Notes**:
+ - more efficient user update actions. Successful PUT actions return only 204 if successful.
+ - Do not enter directory on "New Folder" action #1343
+ - Improved indexing performance - individual scanners per directory at root.
+ - Improved search memory efficiency
+ - Improved scrolling performance
+ - Static file handling has been streamlined, could potentially see some changes from this.
+ - No longer automatically publishing any dev builds to docker
+ - deprecated "DefaultLandingPage" option -- now determined by first source link in sidebar.
+ - Improve rename prompt #1608 #1556
+
+ **BugFixes**:
+ - uploading/editing/saving to password protected shares error
+ - updating a share with password protection without a password removed the password.
+ - per-user download counts were not persistant accross restarts
+ - "Update" button in Chinese wraps incorrectely #1542
+
 ## v1.0.1-stable
 
  **BugFixes**:
@@ -38,11 +85,7 @@ All notable changes to this project will be documented in this file. For commit 
  - fixed some condition that the halloween background doesn't load properly
  - some comments not showing up on config viewer in settings
 
-<<<<<<< HEAD
 ## v1.0.0-beta
-=======
-## v1.0.0
->>>>>>> main
 
  **Notes**:
  - Enhanced onlyoffice debugger with more wholistic backend logs

@@ -32,7 +32,7 @@ func (s *Storage) CheckChildItemAccess(response *iteminfo.ExtendedFileInfo, inde
 
 	// Filter and return only the items the user has access to
 	response.Folders = make([]iteminfo.ItemInfo, 0)
-	response.Files = make([]iteminfo.ItemInfo, 0)
+	response.Files = make([]iteminfo.ExtendedItemInfo, 0)
 
 	// Check each subfolder for access permissions
 	for _, folder := range originalFolders {

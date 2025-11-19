@@ -15,6 +15,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/common/version"
 	"github.com/gtsteffaniak/filebrowser/backend/database/storage"
 	"github.com/gtsteffaniak/filebrowser/backend/database/storage/bolt"
+	"github.com/gtsteffaniak/filebrowser/backend/ffmpeg"
 	fbhttp "github.com/gtsteffaniak/filebrowser/backend/http"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/preview"
@@ -81,8 +82,8 @@ func StartFilebrowser() {
 	// Dev mode enables development features like template hot-reloading
 	_, err := os.Stat("http/dist")
 	// In dev mode, always use filesystem assets. Otherwise, check if http/dist exists
-	if !settings.Config.Env.IsDevMode {
-		settings.Config.Env.EmbeddedFs = os.IsNotExist(err)
+	if !settings.Env.IsDevMode {
+		settings.Env.EmbeddedFs = os.IsNotExist(err)
 	}
 
 	sourceList := []string{}
@@ -94,7 +95,7 @@ func StartFilebrowser() {
 	logger.Infof("Auth Methods             : %v", settings.Config.Auth.AuthMethods)
 	logger.Info(database)
 	logger.Infof("Sources                  : %v", sourceList)
-	logger.Debugf("Using Embedded FS        : %v", settings.Config.Env.EmbeddedFs)
+	logger.Debugf("Using Embedded FS        : %v", settings.Env.EmbeddedFs)
 
 	serverConfig := settings.Config.Server
 	swagInfo := docs.SwaggerInfo
@@ -110,6 +111,7 @@ func StartFilebrowser() {
 	validateUserInfo(!dbExists)
 	validateOfficeIntegration()
 	validateAccessRules()
+	validateShareInfo()
 	// Start the rootCMD in a goroutine
 	go func() {
 		if err := rootCMD(ctx, store, &serverConfig, shutdownComplete); err != nil {
@@ -125,7 +127,9 @@ func StartFilebrowser() {
 	case <-done:
 		logger.Info("Server stopped unexpectedly. Shutting down...")
 	}
-	fileutils.ClearCacheDir(settings.Config.Server.CacheDir)
+	if !*settings.Config.Server.CacheDirCleanup {
+		fileutils.ClearCacheDir(settings.Config.Server.CacheDir)
+	}
 
 	<-shutdownComplete // Ensure we don't exit prematurely
 	// Wait for the server to stop
@@ -138,9 +142,10 @@ func rootCMD(ctx context.Context, store *bolt.BoltStore, serverConfig *settings.
 	}
 	cacheDir := settings.Config.Server.CacheDir
 	numWorkers := settings.Config.Server.NumImageProcessors
-	ffpmpegPath := settings.Config.Integrations.Media.FfmpegPath
+	ffmpeg.SetFFmpegPaths()
+
 	// setup disk cache
-	err := preview.StartPreviewGenerator(numWorkers, ffpmpegPath, cacheDir)
+	err := preview.StartPreviewGenerator(numWorkers, cacheDir)
 	if err != nil {
 		logger.Fatalf("Error starting preview service: %v", err)
 	}

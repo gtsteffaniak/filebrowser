@@ -8,7 +8,7 @@
 
     <div class="path-info">
       <div class="path-section">
-        <strong>{{ $t("prompts.sourcePath") }}</strong>
+        <strong>{{ $t("general.path", { suffix: ':' }) }}</strong>
         <div class="path-display">
           <span class="path-item" v-for="(item, index) in sourceItems" :key="index">
             {{ item }}
@@ -31,16 +31,16 @@
     <button
       @click="closeHovers"
       class="button button--flat button--grey"
-      :aria-label="$t('buttons.cancel')"
-      :title="$t('buttons.cancel')">
-      {{ $t("buttons.cancel") }}
+      :aria-label="$t('general.cancel')"
+      :title="$t('general.cancel')">
+      {{ $t("general.cancel") }}
     </button>
     <button
       @click="confirm"
       class="button button--flat"
-      :aria-label="operation === 'copy' ? $t('buttons.copy') : $t('buttons.move')"
-      :title="operation === 'copy' ? $t('buttons.copy') : $t('buttons.move')">
-      {{ operation === 'copy' ? $t('buttons.copy') : $t('buttons.move') }}
+      :aria-label="operation === 'copy' ? $t('general.copy') : $t('general.move')"
+      :title="operation === 'copy' ? $t('general.copy') : $t('general.move')">
+      {{ operation === 'copy' ? $t('general.copy') : $t('general.move') }}
     </button>
   </div>
 </template>
@@ -87,6 +87,7 @@ export default {
     },
     confirm() {
       this.onConfirm();
+      mutations.setReload(true);
       mutations.closeHovers();
     },
   },

@@ -35,10 +35,9 @@ func (d dirFS) Open(name string) (fs.File, error) {
 }
 
 var (
-	store           *bolt.BoltStore
-	config          *settings.Settings
-	assetFs         fs.FS
-	assetPathPrefix string // "img/icons/" for dev, "public/img/icons/" for embedded
+	store   *bolt.BoltStore
+	config  *settings.Settings
+	assetFs fs.FS
 )
 
 func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete chan struct{}) {
@@ -46,23 +45,19 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	config = &settings.Config
 	var err error
 	// Determine filesystem mode and set asset paths
-	if settings.Config.Env.EmbeddedFs {
+	if settings.Env.EmbeddedFs {
 		// Embedded mode: Serve files from the embedded assets
 		assetFs, err = fs.Sub(assets, "embed")
 		if err != nil {
-			logger.Fatal("Could not embed frontend. Does dist exist?")
+			logger.Fatalf("fs.Sub failed: %v", err)
 		}
-		assetPathPrefix = "public/img/icons/"
-		if config.Frontend.LoginIcon == "" {
-			config.Frontend.LoginIcon = "embed/public/img/icons/favicon.svg"
+		entries, err := fs.ReadDir(assetFs, ".")
+		if err != nil || len(entries) == 0 {
+			logger.Fatalf("Could not embed frontend. Does dist exist? %v", err)
 		}
 	} else {
 		// Dev mode: Serve files from http/dist directory
 		assetFs = dirFS{Dir: http.Dir("http/dist")}
-		assetPathPrefix = "img/icons/"
-		if config.Frontend.LoginIcon == "" {
-			config.Frontend.LoginIcon = "http/dist/img/icons/favicon.svg"
-		}
 	}
 
 	// In development mode, we want to reload the templates on each request.
@@ -73,12 +68,12 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 			return string(a), err
 		},
 	})
-	if !config.Env.IsDevMode {
+	if !settings.Env.IsDevMode {
 		templates = template.Must(templates.ParseFS(assetFs, "public/index.html"))
 	}
 	templateRenderer = &TemplateRenderer{
 		templates: templates,
-		devMode:   config.Env.IsDevMode,
+		devMode:   settings.Env.IsDevMode,
 	}
 
 	router := http.NewServeMux()
@@ -123,6 +118,7 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	// Access routes
 	api.HandleFunc("GET /access", withAdmin(accessGetHandler))
 	api.HandleFunc("POST /access", withAdmin(accessPostHandler))
+	api.HandleFunc("PATCH /access", withAdmin(accessPatchHandler))
 	api.HandleFunc("DELETE /access", withAdmin(accessDeleteHandler))
 	api.HandleFunc("GET /access/groups", withAdmin(groupGetHandler))
 	api.HandleFunc("POST /access/group", withAdmin(groupPostHandler))
@@ -133,6 +129,7 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	api.HandleFunc("GET /share/direct", withPermShare(shareDirectDownloadHandler))
 	api.HandleFunc("GET /share", withPermShare(shareGetHandler))
 	api.HandleFunc("POST /share", withPermShare(sharePostHandler))
+	api.HandleFunc("PATCH /share", withPermShare(sharePatchHandler))
 	api.HandleFunc("DELETE /share", withPermShare(shareDeleteHandler))
 
 	// Create API sub-router for public API endpoints
@@ -150,6 +147,7 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	publicAPI.HandleFunc("PUT /resources", withHashFile(publicPutHandler))
 	publicAPI.HandleFunc("DELETE /resources", withHashFile(publicDeleteHandler))
 	publicAPI.HandleFunc("PATCH /resources", withHashFile(publicPatchHandler))
+	publicAPI.HandleFunc("GET /shareinfo", withOrWithoutUser(shareInfoHandler))
 
 	// Settings routes
 	api.HandleFunc("GET /settings", withAdmin(settingsGetHandler))
@@ -168,6 +166,7 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	api.HandleFunc("GET /onlyoffice/callback", withUser(onlyofficeCallbackHandler))
 
 	api.HandleFunc("GET /search", withUser(searchHandler))
+	api.HandleFunc("GET /duplicates", withUser(duplicatesHandler))
 	// Mount the public API sub-router
 	publicRoutes.Handle("/api/", http.StripPrefix("/api", publicAPI))
 
@@ -178,6 +177,7 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	router.Handle(publicPath+"/", http.StripPrefix(publicPath, publicRoutes))
 
 	// Frontend share route redirect (DEPRECATED - maintain for backwards compatibility)
+	// Playwright tests need updating to remove this redirect.
 	router.HandleFunc(fmt.Sprintf("GET %vshare/", config.Server.BaseURL), withOrWithoutUser(redirectToShare))
 
 	// New frontend share route handler - handle share page and any subpaths
@@ -185,14 +185,13 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 
 	// Static and index file handlers
 	staticPrefix := config.Server.BaseURL + "static/"
-	router.Handle(staticPrefix, http.StripPrefix(staticPrefix, http.HandlerFunc(staticFilesHandler)))
-	publicRoutes.Handle("GET /static/", http.StripPrefix("/static/", http.HandlerFunc(staticFilesHandler)))
-	publicRoutes.HandleFunc("GET /static/loginIcon", http.HandlerFunc(loginIconHandler))
+	router.Handle(staticPrefix, http.HandlerFunc(staticAssetHandler))
+	publicRoutes.Handle("GET /static/", http.HandlerFunc(staticAssetHandler))
 
 	// Standard browser favicon and manifest routes
-	router.HandleFunc("GET /favicon.ico", http.HandlerFunc(faviconHandler))
-	router.HandleFunc("GET /site.webmanifest", http.HandlerFunc(manifestHandler))
-	router.HandleFunc("GET /manifest.json", http.HandlerFunc(manifestHandler))
+	router.HandleFunc("GET /favicon.ico", http.HandlerFunc(staticAssetHandler))
+	router.HandleFunc("GET /site.webmanifest", http.HandlerFunc(staticAssetHandler))
+	router.HandleFunc("GET /manifest.json", http.HandlerFunc(staticAssetHandler))
 
 	router.HandleFunc(config.Server.BaseURL, withOrWithoutUser(indexHandler))
 	router.HandleFunc(fmt.Sprintf("GET %vhealth", config.Server.BaseURL), healthHandler)
@@ -208,8 +207,12 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	var scheme string
 	port := ""
 	srv := &http.Server{
-		Addr:    fmt.Sprintf(":%v", config.Server.Port),
+		Addr:    fmt.Sprintf("%v:%v", config.Server.ListenAddress, config.Server.Port),
 		Handler: muxWithMiddleware(router),
+	}
+	listenAddress := config.Server.ListenAddress
+	if listenAddress == "0.0.0.0" {
+		listenAddress = "localhost"
 	}
 	go func() {
 		// Determine whether to use HTTPS (TLS) or HTTP
@@ -233,7 +236,7 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 			}
 
 			// Build the full URL with host and port
-			fullURL := fmt.Sprintf("%s://localhost%s%s", scheme, port, config.Server.BaseURL)
+			fullURL := fmt.Sprintf("%s://%s%s%s", scheme, listenAddress, port, config.Server.BaseURL)
 			logger.Infof("Running at               : %s", fullURL)
 
 			// Create a TLS listener and serve
@@ -252,7 +255,7 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 			}
 
 			// Build the full URL with host and port
-			fullURL := fmt.Sprintf("%s://localhost%s%s", scheme, port, config.Server.BaseURL)
+			fullURL := fmt.Sprintf("%s://%s%s%s", scheme, listenAddress, port, config.Server.BaseURL)
 			logger.Infof("Running at               : %s", fullURL)
 
 			// Start HTTP server

@@ -1,21 +1,39 @@
 @media (max-width: 800px) {
   #listingView .header .name,
-  #listingView.list .item .name,
-  #listingView.compact .item .name {
+  .list .listing-item .name,
+  .compact .listing-item .name {
     width: 50%;
   }
 
-  #listingView.list .item div:last-of-type{
-    display:block;
-    width:100%;
+  .compact .listing-item div:first-of-type  {
+    width: unset !important;
+  }
+
+  .list .listing-item .text {
+    flex-direction: column;
+    align-items: flex-start !important;
+    padding-left: 0.5em;
+    width: 100%;
+  }
+
+  .list .listing-item .text .name,
+  .list .listing-item .text .modified,
+  .list .listing-item .text .size,
+  .list .listing-item .text .duration {
+    width: 100% !important;
+  }
+
+  .compact .listing-item .text .duration {
+    display: none !important;
+  }
+
+  .compact .listing-item .name {
+    width: 42%;
+    padding-left: 0.5em;
   }
 
   body {
     padding-bottom: 5em;
-  }
-
-  #listingView.list .item .name {
-    width: 60%;
   }
 
   #more {
@@ -35,13 +53,23 @@
   #listingView {
     margin-bottom: 5em;
   }
-  #listingView .item {
+
+  /* Don't override width for gallery and icons views - they use CSS variables */
+  #listingView.list .listing-item,
+  #listingView.compact .listing-item,
+  #listingView.normal .listing-item {
     width: 100%
   }
+
+  /* Gallery mode on mobile - use simple column-based grid */
+  #listingView.gallery .folder-items,
+  #listingView.gallery .file-items {
+    grid-template-columns: repeat(var(--gallery-mobile-columns, 2), 1fr);
+  }
+
   body.rtl #listingView {
     margin-right: unset;
   }
-
 
   body.rtl #nav .wrapper {
     margin-right: unset;
@@ -49,15 +77,6 @@
 
   body.rtl .dashboard .row {
     margin-right: unset;
-  }
-
-}
-
-
-@media (max-width: 450px) {
-
-  #listingView.list .item .name {
-    width: 100%;
   }
 }
 

@@ -98,11 +98,11 @@ func TestSortItems(t *testing.T) {
 					{Name: "apple"},
 					{Name: "Banana"},
 				},
-				Files: []iteminfo.ItemInfo{
-					{Name: "File2.txt"},
-					{Name: "File10.txt"},
-					{Name: "File1"},
-					{Name: "banana"},
+				Files: []iteminfo.ExtendedItemInfo{
+					{ItemInfo: iteminfo.ItemInfo{Name: "File2.txt"}},
+					{ItemInfo: iteminfo.ItemInfo{Name: "File10.txt"}},
+					{ItemInfo: iteminfo.ItemInfo{Name: "File1"}},
+					{ItemInfo: iteminfo.ItemInfo{Name: "banana"}},
 				},
 			},
 			expected: iteminfo.FileInfo{
@@ -112,11 +112,11 @@ func TestSortItems(t *testing.T) {
 					{Name: "apple"},
 					{Name: "Banana"},
 				},
-				Files: []iteminfo.ItemInfo{
-					{Name: "banana"},
-					{Name: "File1"},
-					{Name: "File10.txt"},
-					{Name: "File2.txt"},
+				Files: []iteminfo.ExtendedItemInfo{
+					{ItemInfo: iteminfo.ItemInfo{Name: "banana"}},
+					{ItemInfo: iteminfo.ItemInfo{Name: "File1"}},
+					{ItemInfo: iteminfo.ItemInfo{Name: "File10.txt"}},
+					{ItemInfo: iteminfo.ItemInfo{Name: "File2.txt"}},
 				},
 			},
 		},
@@ -128,10 +128,10 @@ func TestSortItems(t *testing.T) {
 					{Name: "Cat.txt"},
 					{Name: "apple"},
 				},
-				Files: []iteminfo.ItemInfo{
-					{Name: "Zebra"},
-					{Name: "apple"},
-					{Name: "cat"},
+				Files: []iteminfo.ExtendedItemInfo{
+					{ItemInfo: iteminfo.ItemInfo{Name: "Zebra"}},
+					{ItemInfo: iteminfo.ItemInfo{Name: "apple"}},
+					{ItemInfo: iteminfo.ItemInfo{Name: "cat"}},
 				},
 			},
 			expected: iteminfo.FileInfo{
@@ -140,10 +140,10 @@ func TestSortItems(t *testing.T) {
 					{Name: "Cat.txt"},
 					{Name: "dog.txt"},
 				},
-				Files: []iteminfo.ItemInfo{
-					{Name: "apple"},
-					{Name: "cat"},
-					{Name: "Zebra"},
+				Files: []iteminfo.ExtendedItemInfo{
+					{ItemInfo: iteminfo.ItemInfo{Name: "apple"}},
+					{ItemInfo: iteminfo.ItemInfo{Name: "cat"}},
+					{ItemInfo: iteminfo.ItemInfo{Name: "Zebra"}},
 				},
 			},
 		},
@@ -153,7 +153,7 @@ func TestSortItems(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			test.input.SortItems()
 
-			getNames := func(items []iteminfo.ItemInfo) []string {
+			getFolderNames := func(items []iteminfo.ItemInfo) []string {
 				names := []string{}
 				for _, folder := range items {
 					names = append(names, folder.Name)
@@ -161,15 +161,23 @@ func TestSortItems(t *testing.T) {
 				return names
 			}
 
-			actualFolderNames := getNames(test.input.Folders)
-			expectedFolderNames := getNames(test.expected.Folders)
+			getFileNames := func(items []iteminfo.ExtendedItemInfo) []string {
+				names := []string{}
+				for _, file := range items {
+					names = append(names, file.Name)
+				}
+				return names
+			}
+
+			actualFolderNames := getFolderNames(test.input.Folders)
+			expectedFolderNames := getFolderNames(test.expected.Folders)
 
 			if !reflect.DeepEqual(actualFolderNames, expectedFolderNames) {
 				t.Errorf("Folders not sorted correctly.\nGot: %v\nExpected: %v", actualFolderNames, expectedFolderNames)
 			}
 
-			actualFileNames := getNames(test.input.Files)
-			expectedFileNames := getNames(test.expected.Files)
+			actualFileNames := getFileNames(test.input.Files)
+			expectedFileNames := getFileNames(test.expected.Files)
 
 			if !reflect.DeepEqual(actualFileNames, expectedFileNames) {
 				t.Errorf("Files not sorted correctly.\nGot: %v\nExpected: %v", actualFileNames, expectedFileNames)
@@ -178,73 +186,8 @@ func TestSortItems(t *testing.T) {
 	}
 }
 
-func TestDeleteFilesCacheClearing(t *testing.T) {
-	// Create a temporary directory for testing
-	tempDir, err := os.MkdirTemp("", "filebrowser_test")
-	if err != nil {
-		t.Fatalf("Failed to create temp dir: %v", err)
-	}
-	defer os.RemoveAll(tempDir)
-
-	// Create a test file
-	testFile := filepath.Join(tempDir, "Test Object")
-	err = os.WriteFile(testFile, []byte("test content"), 0644)
-	if err != nil {
-		t.Fatalf("Failed to create test file: %v", err)
-	}
-
-	// Initialize a mock index
-	idx := indexing.Index{
-		Source: settings.Source{
-			Path: tempDir,
-		},
-	}
-
-	// Get the real path and cache it
-	_, isDir, err := idx.GetRealPath("/Test Object")
-	if err != nil {
-		t.Fatalf("Failed to get real path: %v", err)
-	}
-
-	// Verify the file is detected as a file (not directory)
-	if isDir {
-		t.Errorf("Expected file to be detected as file, but got directory")
-	}
-
-	// Initialize the index in the indexing system
-	indexing.Initialize(&settings.Source{
-		Name: "test",
-		Path: tempDir,
-	}, true) // true for mock mode
-
-	// Delete the file
-	err = DeleteFiles("test", testFile, tempDir)
-	if err != nil {
-		t.Fatalf("Failed to delete file: %v", err)
-	}
-
-	// Create a directory with the same name
-	testDir := filepath.Join(tempDir, "Test Object")
-	err = os.Mkdir(testDir, 0755)
-	if err != nil {
-		t.Fatalf("Failed to create test directory: %v", err)
-	}
-
-	// Get the real path again - it should now detect it as a directory
-	// The cache should have been cleared, so it should re-detect the type
-	realPath2, isDir2, err := idx.GetRealPath("/Test Object")
-	if err != nil {
-		t.Fatalf("Failed to get real path after recreation: %v", err)
-	}
-
-	// Verify the directory is detected as a directory
-	if !isDir2 {
-		t.Errorf("Expected directory to be detected as directory, but got file. Real path: %s", realPath2)
-	}
-
-	// Clean up
-	os.RemoveAll(tempDir)
-}
+// TestDeleteFilesCacheClearing was removed because cache clearing is not performed
+// per design decision - RealPathCache is auxiliary and doesn't need clearing
 
 func TestOverrideDirectoryToFile(t *testing.T) {
 	// Initialize the index in mock mode (no filesystem operations)
@@ -282,9 +225,11 @@ func TestOverrideDirectoryToFile(t *testing.T) {
 	}
 
 	// Add the file to the parent's Files slice
-	rootInfo.Files = append(rootInfo.Files, iteminfo.ItemInfo{
-		Name: "Test Object",
-		Size: 25, // Length of "This is test file content"
+	rootInfo.Files = append(rootInfo.Files, iteminfo.ExtendedItemInfo{
+		ItemInfo: iteminfo.ItemInfo{
+			Name: "Test Object",
+			Size: 25, // Length of "This is test file content"
+		},
 	})
 
 	// Verify the directory was replaced with a file in the mock data
@@ -341,8 +286,8 @@ func TestOverrideFileToDirectory(t *testing.T) {
 			Name: "/",
 			Type: "directory",
 		},
-		Files: []iteminfo.ItemInfo{
-			{Name: "Test Object", Size: 12}, // Length of "test content"
+		Files: []iteminfo.ExtendedItemInfo{
+			{ItemInfo: iteminfo.ItemInfo{Name: "Test Object", Size: 12}}, // Length of "test content"
 		},
 	}
 

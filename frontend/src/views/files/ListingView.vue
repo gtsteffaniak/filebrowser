@@ -7,7 +7,7 @@
           <div class="bounce2"></div>
           <div class="bounce3"></div>
         </div>
-        <span>{{ $t("files.loading") }}</span>
+        <span>{{ $t("general.loading", { suffix: "..." }) }}</span>
       </h2>
     </div>
     <div v-else>
@@ -48,6 +48,7 @@
           dropping: isDragging,
           'rectangle-selecting': isRectangleSelecting
         }"
+        :style="itemStyles"
         class="file-icons"
       >
         <!-- Rectangle selection overlay -->
@@ -65,7 +66,7 @@
               :title="$t('files.sortByName')"
               :aria-label="$t('files.sortByName')"
             >
-              <span>{{ $t("files.name") }}</span>
+              <span>{{ $t("general.name") }}</span>
               <i class="material-icons">{{ nameIcon }}</i>
             </p>
 
@@ -78,7 +79,7 @@
               :title="$t('files.sortBySize')"
               :aria-label="$t('files.sortBySize')"
             >
-              <span>{{ $t("files.size") }}</span>
+              <span>{{ $t("general.size") }}</span>
               <i class="material-icons">{{ sizeIcon }}</i>
             </p>
             <p
@@ -92,6 +93,19 @@
             >
               <span>{{ $t("files.lastModified") }}</span>
               <i class="material-icons">{{ modifiedIcon }}</i>
+            </p>
+            <p
+              v-if="hasDuration"
+              :class="{ active: durationSorted }"
+              class="duration"
+              role="button"
+              tabindex="0"
+              @click="sort('duration')"
+              :title="$t('files.sortByDuration')"
+              :aria-label="$t('files.sortByDuration')"
+            >
+              <span>{{ $t("files.duration") }}</span>
+              <i class="material-icons">{{ durationIcon }}</i>
             </p>
           </div>
         </div>
@@ -142,6 +156,8 @@
             v-bind:reducedOpacity="item.hidden || isDragging"
             v-bind:hash="shareInfo.hash"
             v-bind:hasPreview="item.hasPreview"
+            v-bind:metadata="item.metadata"
+            v-bind:hasDuration="hasDuration"
           />
         </div>
 
@@ -178,7 +194,6 @@ import * as upload from "@/utils/upload";
 import throttle from "@/utils/throttle";
 import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
-import { shareInfo } from "@/utils/constants";
 
 import Item from "@/components/files/ListingItem.vue";
 import Upload from "@/components/prompts/Upload.vue";
@@ -202,6 +217,7 @@ export default {
       rectangleStart: { x: 0, y: 0 },
       rectangleEnd: { x: 0, y: 0 },
       rectangleSelection: [],
+      cssVariables: {},
     };
   },
   watch: {
@@ -250,12 +266,15 @@ export default {
   },
   computed: {
     shareInfo() {
-      return shareInfo;
+      return state.shareInfo;
     },
     state() {
       return state;
     },
     isDragging() {
+      if (getters.isShare()) {
+        return state.shareInfo.allowCreate && this.dragCounter > 0;
+      }
       return this.dragCounter > 0;
     },
     scrolling() {
@@ -285,6 +304,17 @@ export default {
       if (!elem) {
         return 1;
       }
+      if (getters.viewMode() === 'icons') {
+        const containerSize = 70 + (state.user.gallerySize * 15); // 85px to 190px range
+        let columns = Math.floor(elem.offsetWidth / containerSize);
+        if (columns === 0) columns = 1;
+
+        const minColumns = 3;
+        const maxColumns = 12;
+        columns = Math.max(minColumns, Math.min(columns, maxColumns));
+        return columns;
+      }
+      // Rest of views
       let columns = Math.floor(elem.offsetWidth / this.columnWidth);
       if (columns === 0) columns = 1;
       return columns;
@@ -308,8 +338,15 @@ export default {
     modifiedSorted() {
       return getters.sorting().by === "modified";
     },
+    durationSorted() {
+      return getters.sorting().by === "duration";
+    },
     ascOrdered() {
       return getters.sorting().asc;
+    },
+    hasDuration() {
+      // Check if any file has duration metadata
+      return this.files.some(file => file.metadata && file.metadata.duration);
     },
     items() {
       return getters.reqItems();
@@ -342,6 +379,13 @@ export default {
     },
     modifiedIcon() {
       if (this.modifiedSorted && this.ascOrdered) {
+        return "arrow_downward";
+      }
+
+      return "arrow_upward";
+    },
+    durationIcon() {
+      if (this.durationSorted && this.ascOrdered) {
         return "arrow_downward";
       }
 
@@ -382,6 +426,57 @@ export default {
         height: height + 'px',
       };
     },
+    itemStyles() {
+      const viewMode = getters.viewMode();
+      const styles = {};
+
+      if (viewMode === 'icons') {
+        const baseSize = 60 + (state.user.gallerySize * 15); // 60px to 135px - increased scaling
+        const cellSize = baseSize + 30;
+        styles['--icons-view-icon-size'] = `${baseSize}px`;
+        styles['--icons-view-cell-size'] = `${cellSize}px`;
+      } else if (viewMode === 'gallery') {
+        // Use column width and percentage-based sizing for smooth animations
+        // Keep size 5 at 205px, then scale more aggressively above that
+        const baseCalc = 80 + (state.user.gallerySize * 25);
+        const extraScaling = Math.max(0, state.user.gallerySize - 5) * 15; // Additional 15px per level above 5
+        const baseSize = baseCalc + extraScaling; // Size 5: 205px, Size 9: 345px
+        if (state.isMobile) {
+          let columns;
+          if (state.user.gallerySize <= 7) columns = 2;
+          else if (state.user.gallerySize <= 9) columns = 1;
+          else columns = 1;
+          styles['--gallery-mobile-columns'] = columns.toString();
+          // On mobile, scale height with gallery size for smooth animations
+          const mobileHeight = 120 + (state.user.gallerySize * 20); // 120px to 300px range
+          styles['--item-width'] = '150px'; // Minimum size for mobile grid
+          styles['--item-height'] = `${mobileHeight}px`;
+        } else {
+          // Use pixel size for grid's minmax - items will stretch and animate smoothly
+          // Make height 20% larger than width for better proportions
+          styles['--item-width'] = `${baseSize}px`;
+          styles['--item-height'] = `${Math.round(baseSize * 1.2)}px`;
+        }
+      } else if (viewMode === 'list' || viewMode === 'compact') {
+        const baseHeight = viewMode === 'compact'
+          ? 40 + (state.user.gallerySize * 2)  // 40px to 56px - compact
+          : 50 + (state.user.gallerySize * 3); // 50px to 74px - list
+        // Scale icons with gallery size - icon fonts: 1.6em to 2.4em, images: 1.2em to 1.8em
+        const iconFontSize = (1.6 + (state.user.gallerySize * 0.1)).toFixed(2); // 1.7em to 2.5em
+        const iconImageSize = (1.2 + (state.user.gallerySize * 0.075)).toFixed(3); // 1.275em to 1.875em
+
+        styles['--item-width'] = `calc(${(100 / this.numColumns).toFixed(2)}% - 1em)`;
+        styles['--item-height'] = `${baseHeight}px`;
+        styles['--list-icon-font-size'] = `${iconFontSize}em`;
+        styles['--list-icon-image-size'] = `${iconImageSize}em`;
+      } else {
+        // Normal view
+        styles['--item-width'] = `calc(${(100 / this.numColumns).toFixed(2)}% - 1em)`;
+        styles['--item-height'] = 'auto';
+      }
+
+      return styles;
+    },
   },
   mounted() {
     mutations.setSearch(false);
@@ -394,6 +489,9 @@ export default {
     window.addEventListener("click", this.clickClear);
     window.addEventListener("keyup", this.clearCtrKey);
     window.addEventListener("dragover", this.preventDefault);
+    document.addEventListener('mousemove', this.updateRectangleSelection);
+    document.addEventListener('mouseup', this.endRectangleSelection);
+    this.$el.addEventListener('mousedown', this.startRectangleSelection);
     this.$el.addEventListener("touchmove", this.handleTouchMove);
 
     this.$el.addEventListener("contextmenu", this.openContext);
@@ -411,15 +509,11 @@ export default {
     }
 
     // if safari , make sure click and hold opens context menu, but not for any other browser
-    if (state.user.permissions?.modify || shareInfo.allowCreate) {
+    if (state.user.permissions?.modify || getters.isShare()) {
       this.$el.addEventListener("dragenter", this.dragEnter);
       this.$el.addEventListener("dragleave", this.dragLeave);
       this.$el.addEventListener("drop", this.drop);
-      this.$el.addEventListener('mousedown', this.startRectangleSelection);
-      document.addEventListener('mousemove', this.updateRectangleSelection);
-      document.addEventListener('mouseup', this.endRectangleSelection);
     }
-
   },
   beforeUnmount() {
     // Remove event listeners before destroying this page.
@@ -428,6 +522,9 @@ export default {
     window.removeEventListener("click", this.clickClear);
     window.removeEventListener("keyup", this.clearCtrKey);
     window.removeEventListener("dragover", this.preventDefault);
+    document.removeEventListener('mousemove', this.updateRectangleSelection);
+    document.removeEventListener('mouseup', this.endRectangleSelection);
+    this.$el.removeEventListener('mousedown', this.startRectangleSelection);
 
     this.$el.removeEventListener("touchmove", this.handleTouchMove);
     this.$el.removeEventListener("contextmenu", this.openContext);
@@ -441,13 +538,10 @@ export default {
     }
 
     // Also clean up drag/drop listeners on the component's root element
-    if (state.user && state.user?.permissions?.modify || shareInfo.allowCreate) {
+    if (state.user && state.user?.permissions?.modify || getters.isShare()) {
       this.$el.removeEventListener("dragenter", this.dragEnter);
       this.$el.removeEventListener("dragleave", this.dragLeave);
       this.$el.removeEventListener("drop", this.drop);
-      this.$el.removeEventListener('mousedown', this.startRectangleSelection);
-      document.removeEventListener('mousemove', this.updateRectangleSelection);
-      document.removeEventListener('mouseup', this.endRectangleSelection);
     }
   },
   methods: {
@@ -608,7 +702,7 @@ export default {
         this.selectItem(newSelected);
         setTimeout(() => {
           // Find the element with class "item" and aria-selected="true"
-          const element = document.querySelector('.item[aria-selected="true"]');
+          const element = document.querySelector('.listing-item[aria-selected="true"]');
           // Scroll the element into view if it exists
           if (element) {
             element.scrollIntoView({
@@ -850,7 +944,7 @@ export default {
             let action = async (overwrite, rename) => {
               try {
               if (getters.isShare()) {
-                await publicApi.moveCopy(items, operation, overwrite, rename);
+                await publicApi.moveCopy(state.shareInfo.hash, items, operation, overwrite, rename);
                 } else {
                   await filesApi.moveCopy(items, operation, overwrite, rename);
                 }
@@ -892,23 +986,12 @@ export default {
       });
     },
     colunmsResize() {
-      document.documentElement.style.setProperty(
-        "--item-width",
-        `calc(${100 / this.numColumns}% - 1em)`
-      );
-
-      if (getters.viewMode() == "gallery") {
-        document.documentElement.style.setProperty(
-          "--item-height",
-          `calc(${this.columnWidth / 20}em)`
-        );
-      } else {
-        document.documentElement.style.setProperty("--item-height", `auto`);
-      }
+      // No longer needed - CSS variables are now handled reactively via itemStyles computed property
+      // Kept for backwards compatibility with any remaining callers
     },
     dragEnter(event) {
       // If in upload share mode, let the embedded Upload component handle it
-      if (shareInfo.shareType === 'upload') {
+      if (state.shareInfo?.shareType === 'upload') {
         return;
       }
       const isInternal = Array.from(event.dataTransfer.types).includes(
@@ -921,7 +1004,7 @@ export default {
     },
     dragLeave(event) {
       // If in upload share mode, let the embedded Upload component handle it
-      if (shareInfo.shareType === 'upload') {
+      if (state.shareInfo?.shareType === 'upload') {
         return;
       }
       const isInternal = Array.from(event.dataTransfer.types).includes(
@@ -937,6 +1020,9 @@ export default {
     },
     async drop(event) {
       event.preventDefault();
+      if (getters.isShare() && !state.shareInfo.allowCreate) {
+        return
+      }
       const isInternal = Array.from(event.dataTransfer.types).includes(
         "application/x-filebrowser-internal-drag"
       );
@@ -954,7 +1040,8 @@ export default {
       if (
         (field === "name" && this.nameIcon === "arrow_upward") ||
         (field === "size" && this.sizeIcon === "arrow_upward") ||
-        (field === "modified" && this.modifiedIcon === "arrow_upward")
+        (field === "modified" && this.modifiedIcon === "arrow_upward") ||
+        (field === "duration" && this.durationIcon === "arrow_upward")
       ) {
         asc = true;
       }
@@ -970,6 +1057,7 @@ export default {
     windowsResize: throttle(function () {
       this.colunmsResize();
       this.width = window.innerWidth;
+      mutations.setMobile();
       // Listing element is not displayed
       if (this.$refs.listingView == null) return;
     }, 100),
@@ -986,8 +1074,22 @@ export default {
       });
     },
     clickClear(event) {
+      // Only process clicks if we're on the listing view
+      if (getters.currentView() !== 'listingView') {
+        return;
+      }
+
+      const targetClasses = event.target.className;
+
+      if (typeof targetClasses === 'string' && targetClasses.includes('listing-item')) {
+        return;
+      }
+
       // if control or shift is pressed, do not clear the selection
-      if (this.ctrKeyPressed || event.shiftKey) return;
+      if (this.ctrKeyPressed || event.shiftKey) {
+        return;
+      }
+
       const sameAsBefore = state.selected == this.lastSelected;
       if (sameAsBefore && !state.multiple && getters.currentPromptName() == "") {
         mutations.resetSelected();
@@ -1000,7 +1102,7 @@ export default {
 
       // If we're already in the embedded upload view, don't open a new prompt
       // The embedded Upload component will handle its own drops
-      if (shareInfo.shareType === 'upload') {
+      if (state.shareInfo?.shareType === 'upload') {
         return;
       }
 
@@ -1028,12 +1130,12 @@ export default {
       }
     },
     startRectangleSelection(event) {
-      // Start rectangle selection when clicking on empty space
-      if (event.target.closest('.item') || event.target.closest('.header')) {
+      // Start rectangle selection when clicking on empty space - don't start if the click was in the status bar, an item or the header
+      if (event.target.closest('.listing-item') || event.target.closest('.header') || event.target.closest('#status-bar')) {
         return;
       }
 
-      // Don't start if it's a right click, this for avoid some weird issue with the context menu.
+      // Don't start if it's a right click, this for avoid some issues with the context menu.
       if (event.button !== 0) return;
 
       this.isRectangleSelecting = true;
@@ -1102,7 +1204,7 @@ export default {
       const rectangleSelectedIndexes = [];
 
       // Get all item elements
-      const itemElements = this.$el.querySelectorAll('.item');
+      const itemElements = this.$el.querySelectorAll('.listing-item');
 
       itemElements.forEach((element) => {
         const elementRect = element.getBoundingClientRect();
@@ -1183,7 +1285,6 @@ export default {
 }
 
 .folder-items a {
-  border-color: #d1d1d1;
   border-style: solid;
 }
 
@@ -1209,7 +1310,7 @@ export default {
   user-select: none;
 }
 
-#listingView.rectangle-selecting .item {
+#listingView.rectangle-selecting .listing-item {
   pointer-events: none;
 }
 

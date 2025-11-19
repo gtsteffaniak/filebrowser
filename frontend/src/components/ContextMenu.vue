@@ -36,45 +36,45 @@
       <action
         v-if="showCreate && !isSearchActive"
         icon="create_new_folder"
-        :label="$t('sidebar.newFolder')"
+        :label="$t('files.newFolder')"
         @action="showHover('newDir')"
       />
       <action
         v-if="showCreate && !isSearchActive"
         icon="note_add"
-        :label="$t('sidebar.newFile')"
+        :label="$t('files.newFile')"
         @action="showHover('newFile')"
       />
       <action
         v-if="showCreate && !isSearchActive"
         icon="file_upload"
-        :label="$t('buttons.upload')"
+        :label="$t('general.upload')"
         @action="uploadFunc"
       />
       <action
         v-if="!showCreate && selectedCount == 1"
         icon="info"
-        :label="$t('buttons.info')"
+        :label="$t('general.info')"
         show="info"
       />
 
       <action
         v-if="(!showCreate && permissions.download && selectedCount > 0)"
         icon="file_download"
-        :label="$t('buttons.download')"
+        :label="$t('general.download')"
         @action="startDownload"
         :counter="selectedCount"
       />
       <action
         v-if="(showCreate || selectedCount == 1) && showShare"
         icon="share"
-        :label="$t('buttons.share')"
+        :label="$t('general.share')"
         @action="showShareHover"
       />
       <action
         v-if="!showCreate && selectedCount == 1 && permissions.modify && !isSearchActive"
         icon="mode_edit"
-        :label="$t('buttons.rename')"
+        :label="$t('general.rename')"
         @action="showRenameHover"
       />
       <action
@@ -104,7 +104,7 @@
       <action
         v-if="showDelete"
         icon="delete"
-        :label="$t('buttons.delete')"
+        :label="$t('general.delete')"
         show="delete"
       />
       <action
@@ -138,13 +138,13 @@
       class="button no-select fb-shadow"
       :class="{ 'dark-mode': isDarkMode }"
     >
-      <action icon="info" :label="$t('buttons.info')" show="info" />
-      <action v-if="showGoToRaw" icon="open_in_new" :label="$t('buttons.openFile')" @action="goToRaw()" />
+      <action icon="info" :label="$t('general.info')" show="info" />
+      <action v-if="showGoToRaw" icon="open_in_new" :label="$t('general.openFile')" @action="goToRaw()" />
       <action v-if="shouldShowParentFolder()" icon="folder" :label="$t('buttons.openParentFolder')" @action="openParentFolder" />
-      <action v-if="hasDownload" icon="file_download" :label="$t('buttons.download')" @action="startDownload" />
-      <action v-if="showEdit" icon="edit" :label="$t('buttons.edit')" @action="edit()" />
-      <action v-if="showSave" icon="save" :label="$t('buttons.save')" @action="save()" />
-      <action v-if="showDelete" icon="delete" :label="$t('buttons.delete')" show="delete" />
+      <action v-if="hasDownload" icon="file_download" :label="$t('general.download')" @action="startDownload" />
+      <action v-if="showEdit" icon="edit" :label="$t('general.edit')" @action="edit()" />
+      <action v-if="showSave" icon="save" :label="$t('general.save')" @action="save()" />
+      <action v-if="showDelete" icon="delete" :label="$t('general.delete')" show="delete" />
     </div>
   </transition>
 </template>
@@ -153,10 +153,9 @@
 import downloadFiles from "@/utils/download";
 import { state, getters, mutations } from "@/store";
 import Action from "@/components/Action.vue";
-import { globalVars, shareInfo } from "@/utils/constants.js";
+import { globalVars } from "@/utils/constants.js";
 import buttons from "@/utils/buttons";
 import { notify } from "@/notify";
-import { eventBus } from "@/store/eventBus";
 import { filesApi, publicApi } from "@/api";
 import { url } from "@/utils";
 export default {
@@ -238,7 +237,7 @@ export default {
       );
     },
     showSave() {
-      const allowEdit = this.permissions.modify || (getters.isShare() && shareInfo.allowEdit);
+      const allowEdit = this.permissions.modify || (getters.isShare() && state.shareInfo.allowEdit);
       return getters.currentView() == "editor" && allowEdit;
     },
     showOverflow() {
@@ -477,14 +476,18 @@ export default {
       const button = "save";
       buttons.loading("save");
       try {
-        eventBus.emit("handleEditorValueRequest", "data");
+        // Call the editor save handler directly and await completion
+        if (state.editorSaveHandler) {
+          await state.editorSaveHandler();
+        } else {
+          throw new Error("Editor save handler not found");
+        }
         buttons.success(button);
-        notify.showSuccess("File Saved!");
+        notify.showSuccessToast(this.$t("editor.fileSaved"));
       } catch (e) {
+        // Don't show error notification here - API layer already showed it
         buttons.done(button);
-        notify.showError(`Error saving file: ${e}`);
       }
-
       mutations.closeHovers();
     },
     showUpload() {

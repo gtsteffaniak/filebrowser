@@ -214,7 +214,7 @@ frontend:
 	}
 
 	// Verify user defaults
-	if Config.UserDefaults.DarkMode != true {
+	if Config.UserDefaults.DarkMode == nil || !*Config.UserDefaults.DarkMode {
 		t.Errorf("Expected dark mode true, got %v", Config.UserDefaults.DarkMode)
 	}
 

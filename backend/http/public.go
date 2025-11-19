@@ -134,7 +134,7 @@ func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 // @Failure 404 {object} map[string]string "Share not found or file not found"
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Failure 501 {object} map[string]string "Browsing disabled for upload shares"
-// @Router /public/api/share [get]
+// @Router /public/api/resources [get]
 func publicGetResourceHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	if d.share.ShareType == "upload" {
 		return http.StatusNotImplemented, fmt.Errorf("browsing is disabled for upload shares")
@@ -326,7 +326,7 @@ func publicDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	// delete thumbnails
 	preview.DelThumbs(r.Context(), *fileInfo)
 
-	err = files.DeleteFiles(source, fileInfo.RealPath, filepath.Dir(fileInfo.RealPath))
+	err = files.DeleteFiles(source, fileInfo.RealPath, filepath.Dir(fileInfo.RealPath), fileInfo.Type == "directory")
 	if err != nil {
 		return http.StatusInternalServerError, fmt.Errorf("an error occured while deleting the resource")
 	}

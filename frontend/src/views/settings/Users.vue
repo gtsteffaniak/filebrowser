@@ -1,20 +1,20 @@
 <template>
+  <button @click="openPrompt(null)" v-if="isAdmin" class="button floating-action-button" aria-label="Add New User">
+        {{ $t("general.new") }}
+      </button>
   <errors v-if="error" :errorCode="error.status" />
   <div class="card-title">
-    <h2>{{ $t("settings.users") }}</h2>
-      <button @click="openPrompt(null)" v-if="isAdmin" class="button" aria-label="Add New User">
-        {{ $t("buttons.new") }}
-      </button>
+    <h2>{{ $t("general.users") }}</h2>
   </div>
 
   <div class="card-content full">
     <table aria-label="Users">
       <thead>
         <tr>
-          <th>{{ $t("settings.username") }}</th>
+          <th>{{ $t("general.username") }}</th>
           <th>{{ $t("settings.loginMethod") }}</th>
-          <th>{{ $t("settings.admin") }}</th>
-          <th>{{ $t("settings.userScopes") }}</th>
+          <th>{{ $t("general.admin") }}</th>
+          <th>{{ $t("general.scopes") }}</th>
           <th></th>
         </tr>
       </thead>
@@ -28,7 +28,7 @@
           </td>
           <td>{{ formatScopes(user.scopes) }}</td>
           <td class="small" aria-label="Edit User">
-            <div @click="openPrompt(user.id)" class="clickable">
+            <div @click="openPrompt(user.id)" class="clickable action button">
               <i class="material-icons">mode_edit</i>
             </div>
           </td>
@@ -65,7 +65,7 @@ export default {
   },
   beforeUnmount() {
     // Clean up event listener
-    eventBus.removeEventListener('usersChanged', this.reloadUsers);
+    eventBus.off('usersChanged', this.reloadUsers);
   },
   computed: {
     settings() {
