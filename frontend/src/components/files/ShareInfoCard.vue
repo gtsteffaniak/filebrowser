@@ -25,9 +25,7 @@
             <strong>{{ $t("prompts.size", { suffix: ":" }) }}</strong> {{ humanSize }}
             <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           </div>
-
         </div>
-
       </div>
     </div>
   </div>
