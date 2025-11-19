@@ -548,6 +548,8 @@ github.com/kovidgoyal/go-parallel v1.1.1 h1:1OzpNjtrUkBPq3UaqrnvOoB2F9RttSt811ui
 github.com/kovidgoyal/go-parallel v1.1.1/go.mod h1:BJNIbe6+hxyFWv7n6oEDPj3PA5qSw5OCtf0hcVxWJiw=
 github.com/kovidgoyal/go-shm v1.0.0 h1:HJEel9D1F9YhULvClEHJLawoRSj/1u/EDV7MJbBPgQo=
 github.com/kovidgoyal/go-shm v1.0.0/go.mod h1:Yzb80Xf9L3kaoB2RGok9hHwMIt7Oif61kT6t3+VnZds=
+github.com/kovidgoyal/imaging v1.7.2 h1:mmT6k6Az3mC6dbqdZ6Q9KQCdZFWTAQ+q97NyGZgJ/2c=
+github.com/kovidgoyal/imaging v1.7.2/go.mod h1:GdkCORjfZMMGFY0Pb7TDmRhj7PDhxF/QShKukSCj0VU=
 github.com/kovidgoyal/imaging v1.8.15 h1:FwKRGvmbQ04OFYF5WIalcvUontcnj1chBeHmR5I7UYg=
 github.com/kovidgoyal/imaging v1.8.15/go.mod h1:aXZHGm/gKcaXpxn1NnQiVtuz3Z2BCnXWyjF0ZGrmJ1g=
 github.com/kr/logfmt v0.0.0-20140226030751-b84e30acd515/go.mod h1:+0opPa2QZZtGFBFZlji/RkVcI2GknAs/DXo4wKdlNEc=
