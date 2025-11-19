@@ -85,7 +85,15 @@ All notable changes to this project will be documented in this file. For commit 
  - fixed some condition that the halloween background doesn't load properly
  - some comments not showing up on config viewer in settings
 
+<<<<<<< HEAD
 ## v1.0.0-beta
+=======
+<<<<<<< HEAD
+## v1.0.0-beta
+=======
+## v1.0.0
+>>>>>>> main
+>>>>>>> main
 
  **Notes**:
  - Enhanced onlyoffice debugger with more wholistic backend logs
