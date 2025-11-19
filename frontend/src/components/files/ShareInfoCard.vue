@@ -25,16 +25,11 @@
             <strong>{{ $t("prompts.size", { suffix: ":" }) }}</strong> {{ humanSize }}
             <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           </div>
-
-<<<<<<< HEAD
-=======
           <div v-if="!shareInfo.disableDownload" class="share__box__element share__box__center">
             <button class="button button--flat clickable" @click="goToDownload()"> {{ $t("buttons.download") }}
             </button>
           </div>
->>>>>>> main
         </div>
-
       </div>
     </div>
   </div>
@@ -42,7 +37,7 @@
 
 <script>
 import { publicApi } from "@/api";
-import { state, getters, mutations } from "@/store";
+import { state, getters } from "@/store";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { getTypeInfo } from "@/utils/mimetype";
 
