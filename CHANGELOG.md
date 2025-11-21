@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file. For commit 
  **BugFixes**:
  - added missing exiftool to docker image for heic conversion orientation support
  - v1.1.0-beta - Incorrect naming of 1 file in directory-info #1621
+ - disable only office viewing settings not applying
 
 ## v1.1.0-beta
 

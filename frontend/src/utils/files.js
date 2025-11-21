@@ -7,7 +7,7 @@ export function getFileExtension(filename) {
 
   // If no dot exists, return an empty string
   if (firstDotIndex === -1) {
-    return ''
+    return ""
   }
 
   // Default: Get everything after the first dot
@@ -24,4 +24,14 @@ export function getFileExtension(filename) {
   // Otherwise, return everything after the last dot
   const lastDotIndex = filename.lastIndexOf('.')
   return filename.substring(lastDotIndex)
+}
+
+export function removePrefix(filename, prefix = "") {
+  if (filename === undefined) {
+    return ""
+  }
+  if (filename.startsWith(prefix)) {
+    filename = filename.slice(prefix.length);
+  }
+  return filename;
 }

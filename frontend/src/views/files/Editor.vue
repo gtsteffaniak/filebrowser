@@ -308,7 +308,7 @@ export default {
           showLineNumbers: true,
           theme: this.isDarkMode ? "ace/theme/tomorrow_night_bright" : "ace/theme/github",
           readOnly: this.editorReadOnly,
-          wrap: false,
+          wrap: state?.wrapEditor || false,
           enableMobileMenu: !this.viewerMode,
           useWorker: false,
           scrollPastEnd: 0.5,
