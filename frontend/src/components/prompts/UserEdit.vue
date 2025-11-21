@@ -408,7 +408,7 @@ export default {
           mutations.closeHovers();
         }
       } catch (e) {
-        console.error(e);
+        notify.showError(e);
       }
     },
     newOTP() {

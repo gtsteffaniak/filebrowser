@@ -233,11 +233,15 @@ func (idx *Index) GetFsDirInfo(adjustedPath string) (*iteminfo.FileInfo, error) 
 	}
 
 	if !dirInfo.IsDir() {
+		// Use handleFile for consistent size calculation across platforms
+		realSize, _ := idx.handleFile(dirInfo, adjustedPath, realPath)
+		size := int64(realSize)
+
 		fileInfo := iteminfo.FileInfo{
 			Path: adjustedPath,
 			ItemInfo: iteminfo.ItemInfo{
 				Name:    filepath.Base(originalPath),
-				Size:    dirInfo.Size(),
+				Size:    size,
 				ModTime: dirInfo.ModTime(),
 			},
 		}
@@ -376,8 +380,9 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 				idx.incrementScannerDirs()
 			}
 		} else {
-			size, shouldCountSize := idx.handleFile(file, fullCombined)
-			itemInfo.DetectType(realPath+"/"+file.Name(), false)
+			realFilePath := realPath + "/" + file.Name()
+			size, shouldCountSize := idx.handleFile(file, fullCombined, realFilePath)
+			itemInfo.DetectType(realFilePath, false)
 			// Set HasPreview flags - use cached metadata optimization only when indexing is enabled
 			usedCachedPreview := false
 			if !idx.Config.DisableIndexing && config.Recursive {
@@ -756,43 +761,6 @@ func (idx *Index) SetStatus(status IndexStatus) error {
 	}
 	idx.mu.Unlock()
 	return idx.SendSourceUpdateEvent()
-}
-
-func (idx *Index) handleFile(file os.FileInfo, fullCombined string) (size uint64, shouldCountSize bool) {
-	var realSize uint64
-	var nlink uint64 = 1
-	var ino uint64 = 0
-	canUseSyscall := false
-
-	if sys := file.Sys(); sys != nil {
-		realSize, nlink, ino, canUseSyscall = getFileDetails(sys)
-	}
-
-	if !canUseSyscall {
-		// Fallback for non-unix systems or if syscall info is unavailable
-		realSize = uint64(file.Size())
-	}
-
-	if nlink > 1 {
-		// It's a hard link
-		idx.mu.Lock()
-		defer idx.mu.Unlock()
-		if _, exists := idx.processedInodes[ino]; exists {
-			// Already seen, don't count towards global total, or directory total.
-			return realSize, false
-		}
-		// First time seeing this inode.
-		idx.processedInodes[ino] = struct{}{}
-		idx.FoundHardLinks[fullCombined] = realSize
-		idx.totalSize += realSize
-		return realSize, true // Count size for directory total.
-	}
-
-	// It's a regular file.
-	idx.mu.Lock()
-	idx.totalSize += realSize
-	idx.mu.Unlock()
-	return realSize, true // Count size.
 }
 
 // input should be non-index path.

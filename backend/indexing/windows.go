@@ -3,6 +3,7 @@
 package indexing
 
 import (
+	"os"
 	"strings"
 
 	"golang.org/x/sys/windows"
@@ -46,11 +47,25 @@ func getPartitionSize(path string) (uint64, error) {
 	return totalBytes, nil
 }
 
-func getFileDetails(sys any) (uint64, uint64, uint64, bool) {
+func getFileDetails(sys any, filePath string) (uint64, uint64, uint64, bool) {
 	// On Windows, os.FileInfo.Sys() returns *syscall.Win32FileAttributeData,
 	// which does not contain inode or link count information.
 	// We return false to indicate that we should use the fallback mechanism.
+	// filePath parameter is ignored on Windows
 	return 0, 1, 0, false
+}
+
+// handleFile processes a file and returns its size and whether it should be counted
+// On Windows, uses file.Size() directly (no syscall support for allocated size)
+func (idx *Index) handleFile(file os.FileInfo, fullCombined string, realFilePath string) (size uint64, shouldCountSize bool) {
+	// On Windows, just use the actual file size
+	realSize := uint64(file.Size())
+
+	// Windows doesn't support hard links in the same way, so always count size
+	idx.mu.Lock()
+	idx.totalSize += realSize
+	idx.mu.Unlock()
+	return realSize, true
 }
 
 // input should be non-index path.
