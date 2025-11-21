@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -48,13 +49,14 @@ type duplicatesOptions struct {
 
 // duplicatesHandler handles requests to find duplicate files
 //
-// This endpoint finds files with the same size and uses fuzzy filename matching
-// to verify potential duplicates.
+// This endpoint finds files with the same size, uses fuzzy filename matching
+// for initial grouping (fast), then verifies all final groups with checksums.
 //
 // It's optimized to handle large directories efficiently by:
 // 1. Filtering by minimum size first
 // 2. Grouping by size
-// 3. Verifying matches with fuzzy filename similarity
+// 3. Initial grouping with fuzzy filename similarity (fast)
+// 4. Final verification with checksums on all groups (accurate)
 //
 // @Summary Find Duplicate Files
 // @Description Finds duplicate files based on size and fuzzy filename matching
@@ -79,7 +81,8 @@ func duplicatesHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 	}
 
 	// Generate cache key from all input parameters that affect results
-	cacheKey := fmt.Sprintf("%s:%s:%d:%t", index.Path, opts.combinedPath, opts.minSize, opts.useChecksum)
+	// Checksums are always enabled, so cache key doesn't need to include that flag
+	cacheKey := fmt.Sprintf("%s:%s:%d", index.Path, opts.combinedPath, opts.minSize)
 
 	// Check cache first (before acquiring mutex)
 	if cachedResults, ok := duplicateResultsCache.Get(cacheKey); ok {
@@ -132,8 +135,12 @@ func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions) []dup
 		}
 	})
 
-	// Step 2: Process each size group to find duplicates
-	duplicateGroups := []duplicateGroup{}
+	// Step 2: Process each size group to find duplicates using filename matching (fast)
+	// We'll verify with checksums later on the final groups
+	candidateGroups := []struct {
+		size      int64
+		locations []fileLocation
+	}{}
 	totalFiles := 0
 
 	for size, locations := range sizeGroups {
@@ -141,14 +148,10 @@ func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions) []dup
 			continue // Skip files with no potential duplicates
 		}
 
-		var groups [][]fileLocation
-		if opts.useChecksum {
-			groups = groupLocationsByChecksum(locations, index, size)
-		} else {
-			groups = groupLocationsByFilename(locations, index, size)
-		}
+		// Use filename matching for initial grouping (fast)
+		groups := groupLocationsByFilename(locations, index, size)
 
-		// Step 3: Only now create SearchResult objects for actual duplicates
+		// Collect candidate groups up to the limit
 		for _, locGroup := range groups {
 			if len(locGroup) < 2 {
 				continue
@@ -159,7 +162,31 @@ func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions) []dup
 				break
 			}
 
-			// Create SearchResult objects only for these confirmed duplicates
+			candidateGroups = append(candidateGroups, struct {
+				size      int64
+				locations []fileLocation
+			}{size, locGroup})
+			totalFiles += len(locGroup)
+		}
+
+		// Stop processing more size groups if we've hit the limit
+		if totalFiles >= maxTotalFiles {
+			break
+		}
+	}
+
+	// Step 3: Verify all final groups with checksums
+	duplicateGroups := []duplicateGroup{}
+	for _, candidate := range candidateGroups {
+		// Verify with checksums
+		verifiedGroups := groupLocationsByChecksum(candidate.locations, index, candidate.size)
+
+		// Create SearchResult objects only for verified duplicates
+		for _, locGroup := range verifiedGroups {
+			if len(locGroup) < 2 {
+				continue
+			}
+
 			resultGroup := make([]*indexing.SearchResult, 0, len(locGroup))
 			index.ReadOnlyOperation(func() {
 				dirs := index.GetDirectories()
@@ -175,7 +202,7 @@ func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions) []dup
 
 					// CRITICAL: Verify size matches the expected size for this group
 					// Index could have changed between initial grouping and now
-					if file.Size != size {
+					if file.Size != candidate.size {
 						continue
 					}
 
@@ -200,19 +227,18 @@ func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions) []dup
 
 			if len(resultGroup) >= 2 {
 				duplicateGroups = append(duplicateGroups, duplicateGroup{
-					Size:  size,
+					Size:  candidate.size,
 					Count: len(resultGroup),
 					Files: resultGroup,
 				})
-				totalFiles += len(resultGroup)
 			}
 		}
-
-		// Stop processing more size groups if we've hit the limit
-		if totalFiles >= maxTotalFiles {
-			break
-		}
 	}
+
+	// Sort groups by size (largest to smallest)
+	sort.Slice(duplicateGroups, func(i, j int) bool {
+		return duplicateGroups[i].Size > duplicateGroups[j].Size
+	})
 
 	return duplicateGroups
 }
@@ -221,9 +247,9 @@ func prepDuplicatesOptions(r *http.Request, d *requestContext) (*duplicatesOptio
 	source := r.URL.Query().Get("source")
 	scope := r.URL.Query().Get("scope")
 	minSizeMbStr := r.URL.Query().Get("minSizeMb")
-	// Checksum feature disabled due to performance issues with large file systems
-	// Always use fuzzy filename matching instead
-	useChecksum := false // r.URL.Query().Get("useChecksum") == "true"
+	// Checksums are always enabled by default for final verification
+	// First pass uses filename matching for speed, then checksums verify final groups
+	useChecksum := true
 
 	// Default minimum size: 1MB
 	minSizeMb := int64(1)
