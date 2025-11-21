@@ -55,7 +55,7 @@
       </div>
       <!-- Cascade Delete Toggle -->
       <div v-if="entries.length > 0" class="cascade-toggle-section">
-        <ToggleSwitch v-model="cascadeDelete"
+        <ToggleSwitch v-model="cascadeDelete" 
           :name="$t('access.cascadeDelete')"
           :description="$t('access.cascadeDeleteDescription')" />
       </div>
@@ -258,15 +258,15 @@ export default {
           cascade: this.cascadeDelete && entry.type !== 'all'
         };
         await accessApi.del(this.currentSource, this.currentPath, body);
-        const message = this.cascadeDelete && entry.type !== 'all'
-          ? this.$t("access.deletedCascade")
+        const message = this.cascadeDelete && entry.type !== 'all' 
+          ? this.$t("access.deletedCascade") 
           : this.$t("access.deleted");
         notify.showSuccessToast(message);
         await this.fetchRule();
         // Emit event to refresh access rules list
         eventBus.emit('accessRulesChanged');
       } catch (e) {
-        notify.showError(e);
+        console.error(e);
       }
     },
     async submitAdd() {

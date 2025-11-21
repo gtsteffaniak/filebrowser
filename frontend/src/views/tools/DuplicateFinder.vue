@@ -47,6 +47,19 @@
             <span>{{ $t('duplicateFinder.totalWastedSpace', { suffix: ': ' }) }}<strong>{{ humanSize(totalWastedSpace) }}</strong></span>
           </div>
 
+          <div v-if="totalItems < 1000" class="success-message">
+            <i class="material-icons">check_circle</i>
+            <div>
+              <strong>{{ $t('fileSizeAnalyzer.completeResults') }}</strong>
+            </div>
+          </div>
+          <div v-else class="warning-message">
+            <i class="material-icons">warning</i>
+            <div>
+              <strong>{{ $t('fileSizeAnalyzer.incompleteResults') }}</strong> {{ $t('fileSizeAnalyzer.incompleteResultsDetails') }}
+            </div>
+          </div>
+
                 <div class="duplicate-groups">
                   <div v-for="(group, index) in duplicateGroups" :key="index" class="duplicate-group">
                     <div class="group-header">
@@ -143,6 +156,11 @@ export default {
         // Wasted space = size × (count - 1)
         // We keep one copy, so the rest is wasted
         return sum + (group.size * (group.count - 1));
+      }, 0);
+    },
+    totalItems() {
+      return this.duplicateGroups.reduce((sum, group) => {
+        return sum + (group.files ? group.files.length : group.count);
       }, 0);
     },
   },

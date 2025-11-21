@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v1.1.1-beta
+
+ **Notes**:
+ - [docker] upgraded ffmpeg 8.0 to 8.0.1
+
+ **BugFixes**:
+ - added missing exiftool to docker image for heic conversion orientation support
+ - v1.1.0-beta - Incorrect naming of 1 file in directory-info #1621
+ - disable only office viewing settings not applying
+
 ## v1.1.0-beta
 
  **New Features**:

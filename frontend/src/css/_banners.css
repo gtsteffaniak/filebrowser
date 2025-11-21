@@ -22,3 +22,49 @@
     color: var(--icon-orange);
     font-size: 20px;
 }
+
+.warning-message {
+    background: #fff3cd;
+    color: #856404;
+    padding: 1rem;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+    border: 1px solid #ffc107;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+.warning-message .material-icons {
+    font-size: 1.5rem;
+    color: #f57c00;
+    flex-shrink: 0;
+}
+
+.warning-message strong {
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.success-message {
+    background: #d4edda;
+    color: #155724;
+    padding: 1rem;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+    border: 1px solid #28a745;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+.success-message .material-icons {
+    font-size: 1.5rem;
+    color: #28a745;
+    flex-shrink: 0;
+}
+
+.success-message strong {
+    display: block;
+    margin-bottom: 0.25rem;
+}

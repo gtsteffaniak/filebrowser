@@ -41,6 +41,7 @@
 import { filesApi, publicApi } from "@/api";
 import { mutations, state, getters } from "@/store";
 import { notify } from "@/notify";
+import { getFileExtension, removePrefix } from '@/utils/files.js'
 export default {
   name: "rename",
   props: {
@@ -51,16 +52,14 @@ export default {
     }
   },
   data() {
-    // Separate filename and extension for avoid renmame mistakenly the extension too
     const itemName = this.item.name;
-
     if (this.item.type !== 'directory') {
-      const lastDotIndex = this.item.name.lastIndexOf('.');
-      const hasExtension = lastDotIndex > 0;
+      const ext = getFileExtension(this.item.name);
+      const filenamePrefix = this.item.name.substring(0, this.item.name.length - ext.length);
       return {
-        fileName: hasExtension ? itemName.substring(0, lastDotIndex) : itemName,
-        fileExtension: hasExtension ? itemName.substring(lastDotIndex + 1) : "",
-        name: itemName,
+        fileName: filenamePrefix,
+        fileExtension: removePrefix(ext, "."),
+        name: itemName, // Initialize name for non-directory items
       };
     }
     return {
@@ -108,7 +107,8 @@ export default {
      * @param {string} value
      */
     validateFileName(value) {
-      if (value === "") {
+      // Handle undefined, null, or empty values
+      if (!value || value === "") {
         return { valid: true };
       }
 
@@ -125,7 +125,7 @@ export default {
       // Check if the item already exists
       for (const item of state.req.items) {
         if (item.path === this.item.path) continue;
-        if (item.name.toLowerCase() === value.toLowerCase()) {
+        if (item.name && item.name.toLowerCase() === value.toLowerCase()) {
           return { valid: false, reason: 'conflict' };
         }
       }
@@ -194,7 +194,7 @@ export default {
 }
 
 .extension-input {
-  width: 80px;
+  width: 6em;
 }
 
 .extension-separator {

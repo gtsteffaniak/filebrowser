@@ -88,9 +88,9 @@
               </i>
             </div>
             <div class="form-flex-group">
-              <input class="input form-form flat-right"
+              <input class="input form-form flat-right disable-viewing"
                 :class="{ 'form-invalid': !validateExtensions(formDisablePreviews) }" type="text"
-                :placeholder="$t('profileSettings.disableFileExtensions')" id="disablePreviews"
+                :placeholder="$t('profileSettings.disableFileExtensions')"
                 v-model="formDisablePreviews" />
               <button type="button" class="button form-button flat-left" @click="submitDisablePreviewsChange">
                 {{ $t("general.save") }}
@@ -107,9 +107,9 @@
               </i>
             </div>
             <div class="form-flex-group">
-              <input class="input form-form flat-right"
+              <input class="input form-form flat-right disable-viewing"
                 :class="{ 'form-invalid': !validateExtensions(formDisabledViewing) }" type="text"
-                :placeholder="$t('profileSettings.disableFileExtensions')" id="disableViewing"
+                :placeholder="$t('profileSettings.disableFileExtensions')"
                 v-model="formDisabledViewing" />
               <button type="button" class="button form-button flat-left" @click="submitDisabledViewingChange">
                 {{ $t("general.save") }}
@@ -127,10 +127,10 @@
             </div>
             <div class="form-flex-group">
               <input class="input form-form flat-right"
-                :class="{ 'form-invalid': !validateExtensions(formDisableOfficePreview) }" type="text"
-                :placeholder="$t('profileSettings.disableFileExtensions')" id="disableOfficePreview"
-                v-model="formDisableOfficePreview" />
-              <button type="button" class="button form-button flat-left" @click="submitDisableOfficePreviewChange">
+                :class="{ 'form-invalid': !validateExtensions(formDisableOfficeViewing) }" type="text"
+                :placeholder="$t('profileSettings.disableFileExtensions')" id="disableOfficeViewing"
+                v-model="formDisableOfficeViewing" />
+              <button type="button" class="button form-button flat-left" @click="submitDisableOfficeViewingChange">
                 {{ $t("general.save") }}
               </button>
             </div>
@@ -191,7 +191,7 @@ export default {
       localuser: { preview: {}, permissions: {} }, // Initialize localuser with empty objects to avoid undefined errors
       formDisablePreviews: "", // holds temporary input before saving
       formDisabledViewing: "", // holds temporary input before saving
-      formDisableOfficePreview: "", // holds temporary input before saving
+      formDisableOfficeViewing: "", // holds temporary input before saving
       expandedSection: 'listingOptions', // Track which section is currently expanded for accordion behavior
     };
   },
@@ -243,7 +243,7 @@ export default {
     }
     this.formDisablePreviews = this.localuser.disablePreviewExt;
     this.formDisabledViewing = this.localuser.disableViewingExt;
-    this.formDisableOfficePreview = this.localuser.disableOfficePreviewExt;
+    this.formDisableOfficeViewing = this.localuser.disableOnlyOfficeExt;
   },
   methods: {
     showTooltip(event, text) {
@@ -279,12 +279,12 @@ export default {
       this.localuser.disableViewingExt = this.formDisabledViewing;
       this.updateSettings();
     },
-    submitDisableOfficePreviewChange() {
-      if (!this.validateExtensions(this.formDisableOfficePreview)) {
+    submitDisableOfficeViewingChange() {
+      if (!this.validateExtensions(this.formDisableOfficeViewing)) {
         notify.showError("Invalid input, does not match requirement.");
         return;
       }
-      this.localuser.disableOfficePreviewExt = this.formDisableOfficePreview;
+      this.localuser.disableOnlyOfficeExt = this.formDisableOfficeViewing;
       this.updateSettings();
     },
     setColor(string) {
@@ -317,7 +317,7 @@ export default {
           "quickDownload",
           "disablePreviewExt",
           "disableViewingExt",
-          "disableOfficePreviewExt",
+          "disableOnlyOfficeExt",
           "deleteWithoutConfirming",
           "preview",
           "disableQuickToggles",
@@ -358,9 +358,7 @@ export default {
 </script>
 
 <style scoped>
-#disablePreviews,
-#disableViewing,
-#disableOfficePreview {
+.disable-viewing {
   width: 80%;
 }
 
