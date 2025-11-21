@@ -64,8 +64,8 @@ func getFileDetails(sys any, filePath string) (uint64, uint64, uint64, bool) {
 // On Unix, always uses syscall to get allocated size (du-like behavior)
 func (idx *Index) handleFile(file os.FileInfo, fullCombined string, realFilePath string) (size uint64, shouldCountSize bool) {
 	var realSize uint64
-	var nlink uint64 = 1
-	var ino uint64 = 0
+	var nlink uint64
+	var ino uint64
 	canUseSyscall := false
 
 	sys := file.Sys()
