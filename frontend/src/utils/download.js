@@ -44,9 +44,10 @@ export default function downloadFiles(items) {
 
 async function startDownload(config, files, hash = "") {
   try {
-    filesApi.download(config, files, hash);
+    await filesApi.download(config, files, hash);
     notify.showSuccessToast("Downloading...");
   } catch (e) {
-    notify.showError(`Error downloading: ${e}`);
+    console.error("Download failed:", e);
+    notify.showError(`Error downloading: ${e.message || e}`);
   }
 }
