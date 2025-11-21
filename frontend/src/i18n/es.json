@@ -585,7 +585,7 @@
     "save": "Guardar{suffix}",
     "schedule": "Horario{suffix}",
     "select": "Seleccionar{suffix}",
-    "share": "Recurso compartido{suffix}",
+    "share": "Compartir{suffix}",
     "update": "Actualizar{suffix}",
     "upload": "Subir Archivos{suffix}",
     "openFile": "Abrir Archivo{suffix}",
