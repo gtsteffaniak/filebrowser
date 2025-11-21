@@ -14,7 +14,7 @@ require (
 	github.com/google/go-cmp v0.7.0
 	github.com/gtsteffaniak/go-cache v1.0.0
 	github.com/gtsteffaniak/go-logger v0.2.3
-	github.com/kovidgoyal/imaging v1.8.15
+	github.com/kovidgoyal/imaging v1.7.2
 	github.com/pquerna/otp v1.5.0
 	github.com/spf13/afero v1.15.0
 	github.com/stretchr/testify v1.11.1
