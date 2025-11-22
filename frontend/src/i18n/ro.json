@@ -272,7 +272,6 @@
       "download": "Descărcați fișiere"
     },
     "permissions-name": "Permisiuni",
-    "permissionsHelp": "Poți alege ca un utilizator să fie administrator sau să-i alegi permisiunile individual. Dacă alegi \"Administrator\", toate celelalte opțiuni vor fi bifate automat. Gestionarea utilizatorilor rămâne un privilegiu exclusiv al administratorilor.\n",
     "profileSettings": "Setări profil",
     "ruleExample1": "împiedică accesul la fisiere cu punct in față (.), cum ar fi .git, .gitignore în orice director.\n",
     "ruleExample2": "împiedică accesul la fișierul Caddyfile din rădăcina domeniului.",
@@ -323,7 +322,8 @@
       "oidc": "OIDC",
       "proxy": "Proxy"
     },
-    "newUserHintSubFolder": "de exemplu \"/subfolder\" - gol pentru implicit"
+    "newUserHintSubFolder": "de exemplu \"/subfolder\" - gol pentru implicit",
+    "permissionsHelp": "Permisiunile utilizatorului controlează accesul la ce tip de acțiuni poate efectua utilizatorul. Accesul de administrator oferă control deplin pentru actualizarea și modificarea setărilor oricărui utilizator, precum și a multor setări de sistem."
   },
   "sidebar": {
     "siteSettings": "Setări site",

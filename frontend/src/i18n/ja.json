@@ -272,7 +272,6 @@
       "download": "ファイルのダウンロード"
     },
     "permissions-name": "権限",
-    "permissionsHelp": "ユーザーを管理者に設定するか、権限を個別に設定できます。「管理者」を選択した場合、その他のすべての選択肢は自動的に設定されます。ユーザーの管理は管理者の権限として保持されます。",
     "profileSettings": "プロファイル設定",
     "ruleExample1": "各フォルダ内で名前がドットで始まるファイル（例：.git、.gitignore）へのアクセスを制限します。",
     "ruleExample2": "スコープのルートパスで名前がCaddyfileのファイルへのアクセスを制限します。",
@@ -323,7 +322,8 @@
       "oidc": "OIDC",
       "proxy": "プロキシ"
     },
-    "newUserHintSubFolder": "例 '/subfolder' - デフォルトは空白"
+    "newUserHintSubFolder": "例 '/subfolder' - デフォルトは空白",
+    "permissionsHelp": "ユーザー権限は、ユーザーが実行できるアクションの種類へのアクセスを制御します。管理者アクセスは、多くのシステム設定だけでなく、任意のユーザーの設定を更新および変更するための完全なコントロールを提供します。"
   },
   "sidebar": {
     "siteSettings": "サイト設定",

@@ -272,7 +272,6 @@
       "download": "Pobieranie plików"
     },
     "permissions-name": "Uprawnienia",
-    "permissionsHelp": "Możesz uczynić użytkownika administratorem, lub wybrać uprawnienia indywidualnie. Jeśli zaznaczysz opcję \"Administrator\", wszystkie pozostałe opcje zostaną automatycznie zaznaczone. Zarządzanie użytkownikami pozostaje przywilejem administratora.\n",
     "profileSettings": "Twój profil",
     "ruleExample1": "uniemożliwia dostęp do któregokolwiek z ukrytych plików (takich jak .git, .gitignore) w każdym folderze.\n",
     "ruleExample2": "blokuje dostęp do pliku Caddyfile w głównym katalogu zakresu.",
@@ -323,7 +322,8 @@
       "oidc": "OIDC",
       "proxy": "Pełnomocnik"
     },
-    "newUserHintSubFolder": "np. '/subfolder' - domyślnie puste"
+    "newUserHintSubFolder": "np. '/subfolder' - domyślnie puste",
+    "permissionsHelp": "Uprawnienia użytkownika kontrolują dostęp do rodzaju działań, które użytkownik może wykonywać. Dostęp administratora daje pełną kontrolę nad aktualizacją i zmianą ustawień dowolnego użytkownika, a także wielu ustawień systemowych."
   },
   "sidebar": {
     "siteSettings": "Ustawienia Strony",

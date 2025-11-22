@@ -395,6 +395,16 @@ func getProxyUser(w http.ResponseWriter, r *http.Request, data *requestContext, 
 	if data.user.Username == "" {
 		return http.StatusForbidden, errors.ErrUnauthorized
 	}
+	// Generate a token for proxy users if they don't have one
+	if data.token == "" {
+		expires := time.Hour * time.Duration(config.Auth.TokenExpirationHours)
+		signed, err := makeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), expires, user.Permissions)
+		if err != nil {
+			logger.Errorf("Failed to generate token for proxy user %s: %v", proxyUser, err)
+			return http.StatusInternalServerError, fmt.Errorf("failed to generate token")
+		}
+		data.token = signed.Key
+	}
 	// Call the handler function, passing in the context (or return OK if no handler)
 	if fn == nil {
 		return http.StatusOK, nil

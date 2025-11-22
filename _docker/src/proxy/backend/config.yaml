@@ -1,6 +1,7 @@
 server:
   port: 8080
   baseURL:  "/subpath"
+  internalUrl: "http://filebrowser:8080"
   logging:
     - levels: "info|error|debug"
   sources:
@@ -39,9 +40,15 @@ userDefaults:
   disableSettings: false
   singleClick: false
   permissions:
-    admin: false
+    admin: true
     modify: true
     share: true
     api: false
     download: true
     create: true
+
+integrations:
+  office:
+    url: "http://localhost:9052"
+    secret: "6H1H7GzUk2alRkNxAPav0W02g8JS5oUd"
+    viewOnly: true

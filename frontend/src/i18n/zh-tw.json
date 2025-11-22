@@ -272,7 +272,6 @@
       "download": "下載檔案"
     },
     "permissions-name": "權限",
-    "permissionsHelp": "您可以將該使用者設置為管理員，也可以單獨選擇各項權限。如果選擇了「管理員」，則其他的選項會被自動勾上，同時該使用者可以管理其他使用者。",
     "profileSettings": "個人設定",
     "ruleExample1": "封鎖使用者存取所有資料夾下任何以 . 開頭的檔案(隱藏文件, 例如: .git, .gitignore)。",
     "ruleExample2": "封鎖使用者存取其目錄範圍的根目錄下名為 Caddyfile 的檔案。",
@@ -323,7 +322,8 @@
       "oidc": "OIDC",
       "proxy": "代理"
     },
-    "newUserHintSubFolder": "例如 '/subfolder' - 預設為空白"
+    "newUserHintSubFolder": "例如 '/subfolder' - 預設為空白",
+    "permissionsHelp": "使用者權限可控制使用者可執行的動作類型。管理員存取權可完全控制更新和變更任何使用者的設定以及許多系統設定。"
   },
   "sidebar": {
     "siteSettings": "網站設定",

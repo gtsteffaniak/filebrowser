@@ -276,7 +276,6 @@
       "download": "Dateien herunterladen"
     },
     "permissions-name": "Berechtigungen",
-    "permissionsHelp": "Sie können einem Benutzer Administratorrechte einräumen oder die Berechtigunen individuell festlegen.  Wenn Sie \"Administrator\" auswählen, werden alle anderen Rechte automatisch vergeben. Die Nutzerverwaltung kann nur durch einen Administrator erfolgen.\n",
     "profileSettings": "Darstellung",
     "ruleExample1": "Verhindert den Zugang zu versteckten Dateien (dot-Files, wie .git, .gitignore) in allen Ordnern\n",
     "ruleExample2": "Blockiert den Zugang auf Dateien mit dem Namen Caddyfile in der Wurzel/Basis des Scopes.",
@@ -323,7 +322,8 @@
       "oidc": "OIDC",
       "proxy": "Proxy"
     },
-    "newUserHintSubFolder": "z.B. '/subfolder' - leer für Standard"
+    "newUserHintSubFolder": "z.B. '/subfolder' - leer für Standard",
+    "permissionsHelp": "Die Benutzerrechte steuern den Zugriff auf die Art der Aktionen, die der Benutzer durchführen kann. Der Administrator-Zugang gibt Ihnen die volle Kontrolle über die Aktualisierung und Änderung der Benutzereinstellungen sowie vieler Systemeinstellungen."
   },
   "sidebar": {
     "siteSettings": "Seiteneinstellungen",

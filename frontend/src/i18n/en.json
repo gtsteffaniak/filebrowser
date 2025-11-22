@@ -550,7 +550,7 @@
       "download": "Download files"
     },
     "permissions-name": "Permissions",
-    "permissionsHelp": "You can set the user to be an administrator or choose the permissions individually. If you select \"Administrator\", all of the other options will be automatically checked. The management of users remains a privilege of an administrator.\n",
+    "permissionsHelp": "User permissions control access to what type of actions the user can perform. Administrar access gives full control to update and change any user's settings as well as many system settings.",
     "profileSettings": "Profile Settings",
     "ruleExample1": "prevents the access to any dot file (such as .git, .gitignore) in every folder.\n",
     "ruleExample2": "blocks the access to the file named Caddyfile on the root of the scope.",

@@ -272,7 +272,6 @@
       "download": "Stiahnite si súbory"
     },
     "permissions-name": "Práva",
-    "permissionsHelp": "Môžete nastaviť používateľa, aby bol administrátorom alebo vybrať práva jednotlivo. Ak zvolíte \"Administrator\", všetky ďalšie budú automaticky zaškrtnuté. Manažment používateľov ostáva v správe administrátora.\n",
     "profileSettings": "Nastavenia profilu",
     "ruleExample1": "blokuje prístup ku všetkým súborom začínajúcim bodkou (napríklad .git, .gitignore) v každom priečinku.\n",
     "ruleExample2": "blokuje prístup k súborom s názvom Caddyfile v koreňovom priečinku.",
@@ -323,7 +322,8 @@
       "oidc": "OIDC",
       "proxy": "Proxy"
     },
-    "newUserHintSubFolder": "napr. '/subfolder' - prázdne pre predvolené nastavenie"
+    "newUserHintSubFolder": "napr. '/subfolder' - prázdne pre predvolené nastavenie",
+    "permissionsHelp": "Oprávnenia používateľa riadia prístup k typom akcií, ktoré môže používateľ vykonávať. Prístup administrátora poskytuje úplnú kontrolu nad aktualizáciou a zmenou nastavení ktoréhokoľvek používateľa, ako aj nad mnohými systémovými nastaveniami."
   },
   "sidebar": {
     "siteSettings": "Nastavenia stránky",

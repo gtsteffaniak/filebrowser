@@ -273,7 +273,6 @@
       "download": "Télécharger les fichiers"
     },
     "permissions-name": "Permissions",
-    "permissionsHelp": "Vous pouvez définir l'utilisateur comme étant un administrateur ou encore choisir les permissions individuellement. Si vous sélectionnez \"Administrateur\", toutes les autres options seront automatiquement activées. La gestion des utilisateurs est un privilège que seul l'administrateur possède.\n",
     "profileSettings": "Paramètres du profil",
     "ruleExample1": "bloque l'accès à tous les fichiers commençant par un point (comme par exemple .git, .gitignore) dans tous les dossiers",
     "ruleExample2": "bloque l'accès au fichier nommé \"Caddyfile\" à la racine du dossier utilisateur",
@@ -323,7 +322,8 @@
       "oidc": "OIDC",
       "proxy": "Proxy"
     },
-    "newUserHintSubFolder": "par exemple \"/sous-dossier\" - vide par défaut"
+    "newUserHintSubFolder": "par exemple \"/sous-dossier\" - vide par défaut",
+    "permissionsHelp": "Les autorisations de l'utilisateur contrôlent l'accès au type d'actions que l'utilisateur peut effectuer. L'accès administrateur permet de mettre à jour et de modifier les paramètres de tout utilisateur ainsi que de nombreux paramètres du système."
   },
   "sidebar": {
     "siteSettings": "Paramètres du site",

@@ -15,3 +15,11 @@ services:
     build:
       context: ../
       dockerfile: ./_docker/Dockerfile.slim
+  onlyoffice:
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    image: onlyoffice/documentserver
+    environment:
+      JWT_SECRET: 6H1H7GzUk2alRkNxAPav0W02g8JS5oUd
+    ports:
+      - '9052:80'

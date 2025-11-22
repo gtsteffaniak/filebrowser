@@ -273,7 +273,6 @@
       "download": "下载文件"
     },
     "permissions-name": "权限",
-    "permissionsHelp": "您可以将该用户设置为管理员或单独选择各项权限。如果您选择了“管理员”，则其他的选项会被自动选中，同时该用户可以管理其他用户。\n",
     "profileSettings": "个人设置",
     "ruleExample1": "阻止用户访问所有文件夹下任何以 . 开头的文件（隐藏文件, 例如: .git, .gitignore）。\n",
     "ruleExample2": "阻止用户访问其目录范围的根目录下名为 Caddyfile 的文件。",
@@ -323,7 +322,8 @@
       "oidc": "OIDC",
       "proxy": "代理"
     },
-    "newUserHintSubFolder": "例如\"/子文件夹\"--默认为空"
+    "newUserHintSubFolder": "例如\"/子文件夹\"--默认为空",
+    "permissionsHelp": "用户权限控制用户可以执行哪些类型的操作。管理员权限可完全控制更新和更改任何用户的设置以及许多系统设置。"
   },
   "sidebar": {
     "siteSettings": "网站设置",

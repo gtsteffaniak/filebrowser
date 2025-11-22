@@ -341,6 +341,21 @@ export default {
           }
           this.user = { ...(await usersApi.get(id)) };
           this.user.password = "";
+          // Normalize scopes to ensure they're in {name, scope} format only
+          if (this.user.scopes && Array.isArray(this.user.scopes)) {
+            this.user.scopes = this.user.scopes.map(scope => {
+              // If it's already in the correct format, use it
+              if (scope.name !== undefined && scope.scope !== undefined) {
+                return { name: scope.name, scope: scope.scope || "" };
+              }
+              // If it's a full source object, extract just name and scope
+              if (scope.name && typeof scope.name === 'string') {
+                return { name: scope.name, scope: scope.scope || "" };
+              }
+              // Fallback: try to extract from any object structure
+              return { name: "", scope: "" };
+            });
+          }
           // Ensure loginMethod is valid, set to first available method if not set or invalid
           const validMethods = [];
           if (this.globalVars.passwordAvailable) validMethods.push("password");
@@ -376,7 +391,11 @@ export default {
       if (this.isNew && this.availableSources.length) {
         const newSource = this.availableSources.shift();
         if (newSource) {
-          this.selectedSources.push(newSource);
+          // Only store {name, scope} format, not the full source config
+          this.selectedSources.push({ 
+            name: newSource.name || "", 
+            scope: "" // Empty scope - backend will handle defaults
+          });
           this.emitUserUpdate();
         }
       }
@@ -388,18 +407,25 @@ export default {
       event.preventDefault();
       try {
         let fields = ["all"];
+        // Transform selectedSources to only include {name, scope} format
+        // Empty scope strings should be passed as "" for backend to handle defaults
+        const scopesToSend = this.selectedSources.map(source => ({
+          name: source.name || "",
+          scope: source.scope || ""
+        }));
+        
         if (this.isNew) {
           if (!state.user.permissions.admin) {
             notify.showError(this.$t("settings.userNotAdmin"));
             return;
           }
-          await usersApi.create({ ...this.user, scopes: this.selectedSources });
+          await usersApi.create({ ...this.user, scopes: scopesToSend });
           // Emit event to refresh user list
           eventBus.emit('usersChanged');
           // Close the modal
           mutations.closeHovers();
         } else {
-          await usersApi.update({ ...this.user, scopes: this.selectedSources }, fields);
+          await usersApi.update({ ...this.user, scopes: scopesToSend }, fields);
           // Only emit usersChanged for admin user management, not profile updates
           if (state.user.permissions.admin && this.user.id !== state.user.id) {
             eventBus.emit('usersChanged');
