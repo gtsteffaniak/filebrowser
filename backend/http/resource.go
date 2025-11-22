@@ -382,7 +382,12 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	}
 
 	fileInfo, err := files.FileInfoFaster(fileOpts, accessStore)
-	if err != nil {
+	if err == nil { // File exists
+		if r.URL.Query().Get("override") != "true" {
+			logger.Debugf("resource already exists: %v", fileInfo.RealPath)
+			return http.StatusConflict, nil
+		}
+		// If overriding, delete existing thumbnails
 		preview.DelThumbs(r.Context(), *fileInfo)
 	}
 	err = files.WriteFile(fileOpts.Source, fileOpts.Path, r.Body)

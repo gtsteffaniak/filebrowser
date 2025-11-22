@@ -272,7 +272,6 @@
       "download": "Ladda ner filer"
     },
     "permissions-name": "Rättigheter",
-    "permissionsHelp": "Du kan ange att användaren ska vara administratör eller välja behörigheterna individuellt. Om du väljer \"administratör \" kommer alla andra alternativ att kontrolleras automatiskt. Hanteringen av användare är fortfarande ett privilegium för en administratör.\n",
     "profileSettings": "Profil inställningar",
     "ruleExample1": "förhindrar åtkomst till en dot-fil (till exempel. git,. gitignore) i varje mapp.\n",
     "ruleExample2": "blockerar åtkomsten till filen som heter Caddyfilen i roten av scopet.",
@@ -323,7 +322,8 @@
       "oidc": "OIDC",
       "proxy": "Proxy"
     },
-    "newUserHintSubFolder": "t.ex. \"/undermapp\" - tom för standard"
+    "newUserHintSubFolder": "t.ex. \"/undermapp\" - tom för standard",
+    "permissionsHelp": "Användarbehörigheter styr vilka typer av åtgärder som användaren kan utföra. Administratörsbehörighet ger full kontroll över uppdatering och ändring av alla användarinställningar samt många systeminställningar."
   },
   "sidebar": {
     "siteSettings": "System inställningar",

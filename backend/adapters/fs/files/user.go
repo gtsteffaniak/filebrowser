@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 )
 
@@ -31,11 +32,14 @@ func MakeUserDirs(u *users.User, disableScopeChange bool) error {
 		if filepath.Base(scope.Scope) != cleanedUserName && source.Config.CreateUserDir && !disableScopeChange {
 			fullPath := filepath.Join(source.Path, scope.Scope, cleanedUserName)
 			parentDir := filepath.Join(source.Path, scope.Scope)
-			// validate that scope path exists
+			// If parent directory doesn't exist and createUserDir is enabled, create it
 			if !Exists(parentDir) {
-				return fmt.Errorf("MakeUserDirs: scope path does not exist: %s", scope.Scope)
+				if err := MakeUserDir(parentDir); err != nil {
+					return fmt.Errorf("MakeUserDirs: failed to create parent scope directory: %s - %v", scope.Scope, err)
+				}
 			}
-			scope.Scope = filepath.Join(scope.Scope, cleanedUserName)
+			// Use JoinPathAsUnix to ensure scope remains in Unix format (forward slashes)
+			scope.Scope = utils.JoinPathAsUnix(scope.Scope, cleanedUserName)
 			err := MakeUserDir(fullPath)
 			if err != nil {
 				return fmt.Errorf("MakeUserDirs: failed to create user home dir: %s", err)

@@ -272,7 +272,6 @@
       "download": "Dosyaları indirin"
     },
     "permissions-name": "İzinler",
-    "permissionsHelp": "Kullanıcıyı yönetici olarak ayarlayabilir veya izinleri ayrı ayrı seçebilirsiniz. \"Yönetici\"yi seçerseniz, diğer tüm seçenekler otomatik olarak kontrol edilecektir. Kullanıcıların yönetimi, bir yöneticinin yetkisi olarak kalır.\n",
     "profileSettings": "Profil ayarları",
     "ruleExample1": "her klasördeki herhangi bir noktalı dosyaya (.git, .gitignore gibi) erişimi engeller.\n",
     "ruleExample2": "Root erişimidenki CaddyFile dosyalarına erişimi engelle.",
@@ -323,7 +322,8 @@
       "oidc": "OIDC",
       "proxy": "Proxy"
     },
-    "newUserHintSubFolder": "örneğin '/subfolder' - varsayılan için boş"
+    "newUserHintSubFolder": "örneğin '/subfolder' - varsayılan için boş",
+    "permissionsHelp": "Kullanıcı izinleri, kullanıcının ne tür eylemler gerçekleştirebileceğine erişimi kontrol eder. Yönetici erişimi, herhangi bir kullanıcının ayarlarının yanı sıra birçok sistem ayarını güncellemek ve değiştirmek için tam kontrol sağlar."
   },
   "sidebar": {
     "siteSettings": "Site ayarları!",

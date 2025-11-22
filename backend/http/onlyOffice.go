@@ -179,10 +179,10 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 	sendOnlyOfficeLogEvent(logContext, "INFO", "config", fmt.Sprintf("OnlyOffice session started for document: %s ", path))
 
 	// Build download URL that OnlyOffice server will use
-	downloadURL := buildOnlyOfficeDownloadURL(source, providedPath, d.fileInfo.Hash, d.token)
+	downloadURL := buildOnlyOfficeDownloadURL(r, source, providedPath, d.fileInfo.Hash, d.token)
 
 	// Build callback URL for OnlyOffice to notify us of changes
-	callbackURL := buildOnlyOfficeCallbackURL(source, providedPath, d.fileInfo.Hash, d.token)
+	callbackURL := buildOnlyOfficeCallbackURL(r, source, providedPath, d.fileInfo.Hash, d.token)
 
 	// Build OnlyOffice client configuration
 	clientConfig := map[string]interface{}{
@@ -228,14 +228,37 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 }
 
 // buildOnlyOfficeDownloadURL constructs the download URL that OnlyOffice server will use to fetch the file
-func buildOnlyOfficeDownloadURL(source, path, hash, token string) string {
+func buildOnlyOfficeDownloadURL(r *http.Request, source, path, hash, token string) string {
 	// Determine base URL (internal URL takes priority for OnlyOffice server communication)
-	baseURL := settings.Config.Server.BaseURL
+	var baseURL string
 	if settings.Config.Server.InternalUrl != "" {
-		// Ensure proper URL joining without double slashes
+		// InternalUrl is a full URL (e.g., http://localhost:8080), so use it directly
 		internalURL := strings.TrimSuffix(settings.Config.Server.InternalUrl, "/")
 		baseURLPath := strings.TrimPrefix(settings.Config.Server.BaseURL, "/")
-		baseURL = internalURL + "/" + baseURLPath
+		if baseURLPath != "" {
+			baseURL = internalURL + "/" + baseURLPath
+		} else {
+			baseURL = internalURL
+		}
+	} else {
+		// Extract scheme and host from request (respecting X-Forwarded-* headers)
+		var host string
+		var scheme string
+
+		if forwardedHost := r.Header.Get("X-Forwarded-Host"); forwardedHost != "" {
+			host = forwardedHost
+			// Use X-Forwarded-Proto if available, otherwise default to https for proxied requests
+			if forwardedProto := r.Header.Get("X-Forwarded-Proto"); forwardedProto != "" {
+				scheme = forwardedProto
+			} else {
+				scheme = "https"
+			}
+		} else {
+			// Fallback to simple approach
+			host = r.Host
+			scheme = getScheme(r)
+		}
+		baseURL = fmt.Sprintf("%s://%s%s", scheme, host, settings.Config.Server.BaseURL)
 	}
 
 	var downloadURL string
@@ -255,13 +278,37 @@ func buildOnlyOfficeDownloadURL(source, path, hash, token string) string {
 }
 
 // buildOnlyOfficeCallbackURL constructs the callback URL that OnlyOffice server will use to notify us of changes
-func buildOnlyOfficeCallbackURL(source, path, hash, token string) string {
-	baseURL := settings.Config.Server.BaseURL
+func buildOnlyOfficeCallbackURL(r *http.Request, source, path, hash, token string) string {
+	// Determine base URL (internal URL takes priority for OnlyOffice server communication)
+	var baseURL string
 	if settings.Config.Server.InternalUrl != "" {
-		// Ensure proper URL joining without double slashes
+		// InternalUrl is a full URL (e.g., http://localhost:8080), so use it directly
 		internalURL := strings.TrimSuffix(settings.Config.Server.InternalUrl, "/")
 		baseURLPath := strings.TrimPrefix(settings.Config.Server.BaseURL, "/")
-		baseURL = internalURL + "/" + baseURLPath
+		if baseURLPath != "" {
+			baseURL = internalURL + "/" + baseURLPath
+		} else {
+			baseURL = internalURL
+		}
+	} else {
+		// Extract scheme and host from request (respecting X-Forwarded-* headers)
+		var host string
+		var scheme string
+
+		if forwardedHost := r.Header.Get("X-Forwarded-Host"); forwardedHost != "" {
+			host = forwardedHost
+			// Use X-Forwarded-Proto if available, otherwise default to https for proxied requests
+			if forwardedProto := r.Header.Get("X-Forwarded-Proto"); forwardedProto != "" {
+				scheme = forwardedProto
+			} else {
+				scheme = "https"
+			}
+		} else {
+			// Fallback to simple approach
+			host = r.Host
+			scheme = getScheme(r)
+		}
+		baseURL = fmt.Sprintf("%s://%s%s", scheme, host, settings.Config.Server.BaseURL)
 	}
 
 	var callbackURL string

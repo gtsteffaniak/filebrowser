@@ -62,6 +62,13 @@ func CopyFile(source, dest string) error {
 
 // copySingleFile handles copying a single file.
 func copySingleFile(source, dest string) error {
+	// Get source file info to preserve permissions
+	srcInfo, err := os.Stat(source)
+	if err != nil {
+		return err
+	}
+	sourcePerms := srcInfo.Mode().Perm()
+
 	// Open the source file.
 	src, err := os.Open(source)
 	if err != nil {
@@ -75,8 +82,8 @@ func copySingleFile(source, dest string) error {
 		return err
 	}
 
-	// Create the destination file.
-	dst, err := os.OpenFile(dest, os.O_RDWR|os.O_CREATE|os.O_TRUNC, PermFile)
+	// Create the destination file with source permissions
+	dst, err := os.OpenFile(dest, os.O_RDWR|os.O_CREATE|os.O_TRUNC, sourcePerms)
 	if err != nil {
 		return err
 	}
@@ -88,11 +95,13 @@ func copySingleFile(source, dest string) error {
 		return err
 	}
 
-	// Set the configured file permissions instead of copying from source
-	err = os.Chmod(dest, PermFile)
-
+	// Preserve source file permissions
+	// Handle chmod errors gracefully (e.g., in rootless containers where chmod may be restricted)
+	err = os.Chmod(dest, sourcePerms)
 	if err != nil {
-		return err
+		// Log but don't fail - chmod may be restricted in some environments
+		// The file was copied successfully, so we continue
+		logger.Debugf("Could not set file permissions for %s (this may be expected in restricted environments): %v", dest, err)
 	}
 
 	return nil

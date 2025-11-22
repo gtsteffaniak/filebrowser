@@ -272,7 +272,6 @@
       "download": "Bestanden downloaden"
     },
     "permissions-name": "Permissies",
-    "permissionsHelp": "U kunt de gebruiker instellen als beheerder of de machtigingen afzonderlijk kiezen. Als u \"Beheerder\" selecteert, worden alle andere opties automatisch gecontroleerd. Het beheer van gebruikers blijft een privilege van een beheerder.\n",
     "profileSettings": "Profielinstellingen",
     "ruleExample1": "voorkomt de toegang tot elk puntbestand (zoals .git, .gitignore) in elke map.\n",
     "ruleExample2": "blokkeert de toegang tot het bestand met de naam Caddyfile in de hoofdmap van het bereik.",
@@ -323,7 +322,8 @@
       "oidc": "OIDC",
       "proxy": "Proxy"
     },
-    "newUserHintSubFolder": "bijv. '/submap' - leeg voor standaard"
+    "newUserHintSubFolder": "bijv. '/submap' - leeg voor standaard",
+    "permissionsHelp": "Gebruikersrechten bepalen welke acties de gebruiker kan uitvoeren. Administrar toegang geeft volledige controle om de instellingen van elke gebruiker bij te werken en te wijzigen, evenals vele systeeminstellingen."
   },
   "sidebar": {
     "siteSettings": "Site-instellingen",

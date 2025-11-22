@@ -111,20 +111,21 @@ func addFile(path string, d *requestContext, tarWriter *tar.Writer, zipWriter *z
 	if idx == nil {
 		return fmt.Errorf("source %s is not available", source)
 	}
-	if d.share != nil {
-		_, err = files.FileInfoFaster(utils.FileOptions{
-			Path:   path,
-			Source: source,
-			Expand: false,
-		}, nil)
-	} else {
-		_, err = files.FileInfoFaster(utils.FileOptions{
-			Username: d.user.Username,
-			Path:     path,
-			Source:   source,
-			Expand:   false,
-		}, store.Access)
+
+	// Check access control directly for each file (for non-share requests)
+	if d.share == nil && store.Access != nil {
+		if !store.Access.Permitted(idx.Path, path, d.user.Username) {
+			logger.Debugf("user %s denied access to path %s in archive", d.user.Username, path)
+			return fmt.Errorf("access denied to path %s", path)
+		}
 	}
+
+	// Verify file exists
+	_, err = files.FileInfoFaster(utils.FileOptions{
+		Path:   path,
+		Source: source,
+		Expand: false,
+	}, nil)
 	if err != nil {
 		return err
 	}
@@ -322,6 +323,19 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 			}
 		}
 
+		// Verify access control before opening the file (direct rule check)
+		if d.share == nil && store.Access != nil {
+			if !store.Access.Permitted(idx.Path, firstFilePath, d.user.Username) {
+				logger.Debugf("user %s denied access to path %s", d.user.Username, firstFilePath)
+				// Send OnlyOffice error log if this was an OnlyOffice download
+				if isOnlyOffice && logContext != nil {
+					sendOnlyOfficeLogEvent(logContext, "ERROR", "download",
+						fmt.Sprintf("OnlyOffice download failed - access denied by rule: %s", firstFilePath))
+				}
+				return http.StatusForbidden, fmt.Errorf("access denied to path %s", firstFilePath)
+			}
+		}
+
 		fd, err2 := os.Open(realPath)
 		if err2 != nil {
 			// Send OnlyOffice error log if this was an OnlyOffice download
@@ -480,6 +494,12 @@ func computeArchiveSize(fileList []string, d *requestContext) (int64, error) {
 				return 0, fmt.Errorf("source %s is not available for user %s", source, d.user.Username)
 			}
 			path = utils.JoinPathAsUnix(userScope, path)
+
+			// Check access control for each file in the archive
+			if store.Access != nil && !store.Access.Permitted(idx.Path, path, d.user.Username) {
+				logger.Debugf("user %s denied access to path %s in archive size calculation", d.user.Username, path)
+				return 0, fmt.Errorf("access denied to path %s", path)
+			}
 		}
 		// For shares, the path is already correctly resolved by publicRawHandler
 		realPath, isDir, err := idx.GetRealPath(path)

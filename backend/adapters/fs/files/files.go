@@ -579,12 +579,20 @@ func WriteFile(source, path string, in io.Reader) error {
 		return err
 	}
 	var stat os.FileInfo
+	var existingPerms os.FileMode
+	fileExists := false
 	// Check if the destination exists and is a directory
-	if stat, err = os.Stat(realPath); err == nil && stat.IsDir() {
-		// If it's a directory and we're trying to create a file, remove the directory first
-		err = os.RemoveAll(realPath)
-		if err != nil {
-			return fmt.Errorf("could not remove existing directory to create file: %v", err)
+	if stat, err = os.Stat(realPath); err == nil {
+		if stat.IsDir() {
+			// If it's a directory and we're trying to create a file, remove the directory first
+			err = os.RemoveAll(realPath)
+			if err != nil {
+				return fmt.Errorf("could not remove existing directory to create file: %v", err)
+			}
+		} else {
+			// File exists - preserve its permissions
+			fileExists = true
+			existingPerms = stat.Mode().Perm()
 		}
 	}
 
@@ -601,10 +609,22 @@ func WriteFile(source, path string, in io.Reader) error {
 		return err
 	}
 
-	// Explicitly set file permissions to bypass umask
-	err = os.Chmod(realPath, fileutils.PermFile)
+	// Set file permissions: preserve existing permissions if file existed, otherwise use default
+	// Handle chmod errors gracefully (e.g., in rootless containers where chmod may be restricted)
+	var targetPerms os.FileMode
+	if fileExists {
+		// Preserve existing permissions
+		targetPerms = existingPerms
+	} else {
+		// Use configured default permissions for new files
+		targetPerms = fileutils.PermFile
+	}
+	
+	err = os.Chmod(realPath, targetPerms)
 	if err != nil {
-		return err
+		// Log but don't fail - chmod may be restricted in some environments (e.g., rootless containers)
+		// The file was written successfully, so we continue
+		logger.Debugf("Could not set file permissions for %s (this may be expected in restricted environments): %v", realPath, err)
 	}
 
 	return RefreshIndex(source, path, false, false)

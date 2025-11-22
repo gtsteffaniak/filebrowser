@@ -6,11 +6,16 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Notes**:
  - [docker] upgraded ffmpeg 8.0 to 8.0.1
+ - stricter access control checks on every file requested from raw download endpoint (for non-share requests)
 
  **BugFixes**:
  - added missing exiftool to docker image for heic conversion orientation support
  - v1.1.0-beta - Incorrect naming of 1 file in directory-info #1621
  - disable only office viewing settings not applying
+ - OnlyOffice integration does not work behind proxy authentication #1422
+ - Newly created users "add on" to defined scope of previous user #1628 #1518
+ - disable chown on upload / file saving #1469 #1546
+ - Uploading a file will silently overwrite any existing file with the same name #1564
 
 ## v1.1.0-beta
 
