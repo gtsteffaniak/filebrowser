@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file. For commit 
  - disable only office viewing settings not applying
  - OnlyOffice integration does not work behind proxy authentication #1422
  - Newly created users "add on" to defined scope of previous user #1628 #1518
+ - disable chown on upload / file saving #1469 #1546
 
 ## v1.1.0-beta
 
