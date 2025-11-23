@@ -26,10 +26,9 @@ import (
 // ShareResponse represents a share with computed username field and download URL
 type ShareResponse struct {
 	*share.Link
-	Source      string `json:"source"` // Override embedded field to show source name
-	Username    string `json:"username,omitempty"`
-	DownloadURL string `json:"downloadURL,omitempty"`
-	PathExists  bool   `json:"pathExists"`
+	Source     string `json:"source"` // Override embedded field to show source name
+	Username   string `json:"username,omitempty"`
+	PathExists bool   `json:"pathExists"`
 }
 
 // convertToFrontendShareResponse converts shares to response format with usernames
@@ -63,14 +62,15 @@ func convertToFrontendShareResponse(r *http.Request, shares []*share.Link) ([]*S
 		pathExists := utils.CheckPathExists(filepath.Join(sourceInfo.Path, s.Path))
 
 		s.CommonShare.HasPassword = s.HasPassword()
+		s.CommonShare.DownloadURL = getShareURL(r, s.Hash, true)
+		s.CommonShare.ShareURL = getShareURL(r, s.Hash, false)
 
 		// Create response with source name (overrides the embedded Link's source field)
 		responses = append(responses, &ShareResponse{
-			Link:        s,
-			Source:      sourceInfo.Name, // Override to show source name instead of backend path
-			Username:    username,
-			DownloadURL: getDownloadURL(r, s.Hash),
-			PathExists:  pathExists,
+			Link:       s,
+			Source:     sourceInfo.Name, // Override to show source name instead of backend path
+			Username:   username,
+			PathExists: pathExists,
 		})
 	}
 	return responses, nil
@@ -392,6 +392,7 @@ type DirectDownloadResponse struct {
 	Status      string `json:"status"`
 	Hash        string `json:"hash"`
 	DownloadURL string `json:"url"`
+	ShareURL    string `json:"shareUrl"`
 }
 
 // shareDirectDownloadHandler creates a direct download link for files only.
@@ -509,7 +510,8 @@ func shareDirectDownloadHandler(w http.ResponseWriter, r *http.Request, d *reque
 				response := DirectDownloadResponse{
 					Status:      "201",
 					Hash:        existing.Hash,
-					DownloadURL: getDownloadURL(r, existing.Hash),
+					DownloadURL: getShareURL(r, existing.Hash, true),
+					ShareURL:    getShareURL(r, existing.Hash, false),
 				}
 				return renderJSON(w, r, response)
 			}
@@ -540,21 +542,26 @@ func shareDirectDownloadHandler(w http.ResponseWriter, r *http.Request, d *reque
 	response := DirectDownloadResponse{
 		Status:      "200",
 		Hash:        secureHash,
-		DownloadURL: getDownloadURL(r, secureHash),
+		DownloadURL: getShareURL(r, secureHash, true),
+		ShareURL:    getShareURL(r, secureHash, false),
 	}
 
 	return renderJSON(w, r, response)
 }
 
-func getDownloadURL(r *http.Request, hash string) string {
-	var downloadURL string
+func getShareURL(r *http.Request, hash string, isDirectDownload bool) string {
+	var shareURL string
 	if config.Server.ExternalUrl != "" {
-		downloadURL = fmt.Sprintf("%s%spublic/api/raw?hash=%s", config.Server.ExternalUrl, config.Server.BaseURL, hash)
+		if isDirectDownload {
+			shareURL = fmt.Sprintf("%s%spublic/api/raw?hash=%s", config.Server.ExternalUrl, config.Server.BaseURL, hash)
+		} else {
+			shareURL = fmt.Sprintf("%s%spublic/share/%s", config.Server.ExternalUrl, config.Server.BaseURL, hash)
+		}
+
 	} else {
 		// Prefer X-Forwarded-Host for proxy support
 		var host string
 		var scheme string
-
 		if forwardedHost := r.Header.Get("X-Forwarded-Host"); forwardedHost != "" {
 			host = forwardedHost
 			// Use X-Forwarded-Proto if available, otherwise default to https for proxied requests
@@ -568,9 +575,13 @@ func getDownloadURL(r *http.Request, hash string) string {
 			host = r.Host
 			scheme = getScheme(r)
 		}
-		downloadURL = fmt.Sprintf("%s://%s%spublic/api/raw?hash=%s", scheme, host, config.Server.BaseURL, hash)
+		if isDirectDownload {
+			shareURL = fmt.Sprintf("%s://%s%spublic/api/raw?hash=%s", scheme, host, config.Server.BaseURL, hash)
+		} else {
+			shareURL = fmt.Sprintf("%s://%s%spublic/share/%s", scheme, host, config.Server.BaseURL, hash)
+		}
 	}
-	return downloadURL
+	return shareURL
 }
 
 // shareInfoHandler retrieves share information by hash.
@@ -590,6 +601,8 @@ func shareInfoHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	if err != nil {
 		return http.StatusNotFound, fmt.Errorf("share hash not found")
 	}
+	commonShare.DownloadURL = getShareURL(r, hash, true)
+	commonShare.ShareURL = getShareURL(r, hash, false)
 	return renderJSON(w, r, commonShare)
 }
 

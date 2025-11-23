@@ -92,19 +92,6 @@ export function getPreviewURL(path,size="small") {
   }
 }
 
-// Get the shareable URL for a share
-/**
- * @param {{ hash: string }} share
- * @returns {string}
- */
-export function getShareURL(share) {
-  if (globalVars.externalUrl) {
-    const apiPath = getApiPath(`public/share/${share.hash}`)
-    return globalVars.externalUrl + apiPath;
-  }
-  return window.origin + getApiPath(`public/share/${share.hash}`);
-}
-
 
 export function post(
   hash,
