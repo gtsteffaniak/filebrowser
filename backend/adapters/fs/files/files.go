@@ -550,13 +550,8 @@ func WriteDirectory(opts utils.FileOptions) error {
 	}
 
 	// Ensure the parent directories exist
+	// Permissions are set by MkdirAll (subject to umask, which is usually acceptable)
 	err = os.MkdirAll(realPath, fileutils.PermDir)
-	if err != nil {
-		return err
-	}
-
-	// Explicitly set directory permissions to bypass umask
-	err = os.Chmod(realPath, fileutils.PermDir)
 	if err != nil {
 		return err
 	}
@@ -580,15 +575,20 @@ func WriteFile(source, path string, in io.Reader) error {
 	}
 	var stat os.FileInfo
 	// Check if the destination exists and is a directory
-	if stat, err = os.Stat(realPath); err == nil && stat.IsDir() {
-		// If it's a directory and we're trying to create a file, remove the directory first
-		err = os.RemoveAll(realPath)
-		if err != nil {
-			return fmt.Errorf("could not remove existing directory to create file: %v", err)
+	if stat, err = os.Stat(realPath); err == nil {
+		if stat.IsDir() {
+			// If it's a directory and we're trying to create a file, remove the directory first
+			err = os.RemoveAll(realPath)
+			if err != nil {
+				return fmt.Errorf("could not remove existing directory to create file: %v", err)
+			}
 		}
+		// If file exists, its permissions will be preserved (O_TRUNC doesn't change permissions)
 	}
 
 	// Open the file for writing (create if it doesn't exist, truncate if it does)
+	// For new files: permissions are set to fileutils.PermFile (subject to umask, which is usually acceptable)
+	// For existing files: permissions are preserved automatically (O_TRUNC doesn't change them)
 	file, err := os.OpenFile(realPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, fileutils.PermFile)
 	if err != nil {
 		return err
@@ -597,12 +597,6 @@ func WriteFile(source, path string, in io.Reader) error {
 
 	// Copy the contents from the reader to the file
 	_, err = io.Copy(file, in)
-	if err != nil {
-		return err
-	}
-
-	// Explicitly set file permissions to bypass umask
-	err = os.Chmod(realPath, fileutils.PermFile)
 	if err != nil {
 		return err
 	}
@@ -637,9 +631,31 @@ func getContent(realPath string) (string, error) {
 	// --- Start of new heuristic checks ---
 
 	if n > 0 {
+		// Trim header to last complete UTF-8 rune to avoid false negatives
+		// when the header read cuts off in the middle of a multi-byte sequence.
+		// We decode runes from the end until we find a valid one, trimming
+		// any incomplete sequences at the end.
+		trimmedHeader := actualHeader
+		for len(trimmedHeader) > 0 {
+			lastRune, size := utf8.DecodeLastRune(trimmedHeader)
+			if lastRune != utf8.RuneError {
+				// Found a valid complete rune
+				break
+			}
+			// RuneError occurred - this could be an incomplete sequence or invalid byte
+			// Trim the last byte and try again
+			if size == 1 && len(trimmedHeader) > 0 {
+				trimmedHeader = trimmedHeader[:len(trimmedHeader)-1]
+			} else {
+				// Shouldn't happen, but break to avoid infinite loop
+				break
+			}
+		}
+
 		// 1. Basic Check: Is the header valid UTF-8?
 		// If not, it's unlikely an editable UTF-8 text file.
-		if !utf8.Valid(actualHeader) {
+		// Use trimmed header to avoid false negatives from truncated sequences
+		if len(trimmedHeader) > 0 && !utf8.Valid(trimmedHeader) {
 			return "", nil // Not an error, just not the text file we want
 		}
 

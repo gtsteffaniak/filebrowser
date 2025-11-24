@@ -97,9 +97,7 @@ export default {
   },
   methods: {
     getShareLink() {
-      return publicApi.getShareURL({
-        hash: state.share.hash,
-      });
+      return state.shareInfo.shareURL;
     },
     close() {
       mutations.closeHovers();

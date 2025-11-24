@@ -274,7 +274,8 @@ body.rtl #listingView {
 #listingView .header .duration,
 #listingView.list .listing-item .duration,
 #listingView.compact .listing-item .duration {
-  margin: auto;
+  margin-left: auto;
+  padding-right: 1em;
 }
 
 #listingView.list .listing-item .size.adjustment,

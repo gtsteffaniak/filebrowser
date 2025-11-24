@@ -48,7 +48,6 @@ export default {
   removePrefix,
   getApiPath,
   extractSourceFromPath,
-  fixDownloadURL,
   base64Encode,
   joinPath,
   goToItem,
@@ -192,30 +191,4 @@ export function goToItem(source, path, previousHistoryItem) {
 
 export function doubleEncode(str) {
   return encodeURIComponent(encodeURIComponent(str));
-}
-
-/**
- * Fixes download URLs by replacing everything before /public/api
- * with the current window.location.origin + globalVars.baseURL
- * This is only needed when the backend didn't use externalUrl
- * @param {string} downloadUrl - The original download URL from backend
- * @returns {string} - The corrected URL using current client origin
- */
-export function fixDownloadURL(downloadUrl) {
-  if (!downloadUrl) {
-    return downloadUrl;
-  }
-  // Find the position of /public/api in the URL
-  const publicApiIndex = downloadUrl.indexOf('/public/api');
-  if (publicApiIndex === -1) {
-    // If /public/api is not found, return the original URL
-    return downloadUrl;
-  }
-
-  // Extract the part from /public/api onwards
-  const publicApiPath = downloadUrl.substring(publicApiIndex);
-
-  // Build the corrected URL using current client origin and globalVars.baseURL
-  const correctedBaseURL = removeTrailingSlash(globalVars.baseURL);
-  return `${window.location.origin}${correctedBaseURL}${publicApiPath}`;
 }

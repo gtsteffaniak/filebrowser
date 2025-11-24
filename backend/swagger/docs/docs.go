@@ -2917,6 +2917,9 @@ const docTemplate = `{
                 "hash": {
                     "type": "string"
                 },
+                "shareUrl": {
+                    "type": "string"
+                },
                 "status": {
                     "type": "string"
                 },
@@ -3061,6 +3064,9 @@ const docTemplate = `{
                 },
                 "shareType": {
                     "description": "type of share: normal, upload, max",
+                    "type": "string"
+                },
+                "shareURL": {
                     "type": "string"
                 },
                 "sidebarLinks": {
@@ -3844,7 +3850,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "cacheDirCleanup": {
-                    "description": "whether to automatically cleanup the cache directory (default: true)",
+                    "description": "whether to automatically cleanup the cache directory. Note: docker must also mount a persistent volume to persist the cache (default: true)",
                     "type": "boolean"
                 },
                 "database": {
@@ -4348,6 +4354,9 @@ const docTemplate = `{
                     "description": "type of share: normal, upload, max",
                     "type": "string"
                 },
+                "shareURL": {
+                    "type": "string"
+                },
                 "sidebarLinks": {
                     "description": "customizable sidebar links",
                     "type": "array",
@@ -4476,6 +4485,9 @@ const docTemplate = `{
                 },
                 "shareType": {
                     "description": "type of share: normal, upload, max",
+                    "type": "string"
+                },
+                "shareURL": {
                     "type": "string"
                 },
                 "sidebarLinks": {
@@ -4612,6 +4624,9 @@ const docTemplate = `{
                 },
                 "shareType": {
                     "description": "type of share: normal, upload, max",
+                    "type": "string"
+                },
+                "shareURL": {
                     "type": "string"
                 },
                 "sidebarLinks": {

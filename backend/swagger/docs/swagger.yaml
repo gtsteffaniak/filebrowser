@@ -16,6 +16,8 @@ definitions:
     properties:
       hash:
         type: string
+      shareUrl:
+        type: string
       status:
         type: string
       url:
@@ -114,6 +116,8 @@ definitions:
         type: string
       shareType:
         description: 'type of share: normal, upload, max'
+        type: string
+      shareURL:
         type: string
       sidebarLinks:
         description: customizable sidebar links
@@ -695,7 +699,8 @@ definitions:
           files
         type: string
       cacheDirCleanup:
-        description: 'whether to automatically cleanup the cache directory (default:
+        description: 'whether to automatically cleanup the cache directory. Note:
+          docker must also mount a persistent volume to persist the cache (default:
           true)'
         type: boolean
       database:
@@ -1073,6 +1078,8 @@ definitions:
       shareType:
         description: 'type of share: normal, upload, max'
         type: string
+      shareURL:
+        type: string
       sidebarLinks:
         description: customizable sidebar links
         items:
@@ -1163,6 +1170,8 @@ definitions:
         type: string
       shareType:
         description: 'type of share: normal, upload, max'
+        type: string
+      shareURL:
         type: string
       sidebarLinks:
         description: customizable sidebar links
@@ -1258,6 +1267,8 @@ definitions:
         type: string
       shareType:
         description: 'type of share: normal, upload, max'
+        type: string
+      shareURL:
         type: string
       sidebarLinks:
         description: customizable sidebar links

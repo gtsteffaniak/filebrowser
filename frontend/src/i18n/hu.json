@@ -274,7 +274,6 @@
       "download": "Fájlok letöltése"
     },
     "permissions-name": "Jogosultságok",
-    "permissionsHelp": "A felhasználót beállíthatja rendszergazdának, vagy egyénileg is kiválaszthatja a jogosultságokat. Ha a \"Rendszergazda\" lehetőséget választja, az összes többi opció automatikusan be lesz jelölve. A felhasználók kezelése továbbra is a rendszergazda kiváltsága marad.\n",
     "profileSettings": "Profilbeállítások",
     "ruleExample1": "megakadályozza a hozzáférést bármely rejtett fájlhoz (pl. .git, .gitignore) bármely mappában.\n",
     "ruleExample2": "blokkolja a hozzáférést a Caddyfile nevű fájlhoz a hatókör gyökerében.",
@@ -323,7 +322,8 @@
       "oidc": "OIDC",
       "proxy": "Proxy"
     },
-    "newUserHintSubFolder": "pl. '/subfolder' - üres az alapértelmezéshez"
+    "newUserHintSubFolder": "pl. '/subfolder' - üres az alapértelmezéshez",
+    "permissionsHelp": "A felhasználói engedélyek szabályozzák, hogy a felhasználó milyen típusú műveleteket hajthat végre. A rendszergazdai hozzáférés teljes körű ellenőrzést biztosít bármely felhasználó beállításainak, valamint számos rendszerbeállításnak a frissítéséhez és módosításához."
   },
   "sidebar": {
     "siteSettings": "Oldalbeállítások",

@@ -1,4 +1,4 @@
-FROM gtstef/ffmpeg:8.0-decode AS ffmpeg
+FROM gtstef/ffmpeg:8.0.1-decode AS ffmpeg
 FROM golang:alpine AS base
 ARG VERSION
 ARG REVISION
@@ -28,7 +28,7 @@ COPY --from=ffmpeg [ "/ffmpeg", "/ffprobe", "/usr/local/bin/" ]
 ENV FILEBROWSER_FFMPEG_PATH="/usr/local/bin/"
 ENV FILEBROWSER_DATABASE="/home/filebrowser/data/database.db"
 ENV PATH="$PATH:/home/filebrowser"
-RUN apk --no-cache add ca-certificates mailcap tzdata curl
+RUN apk --no-cache add ca-certificates mailcap tzdata curl exiftool
 RUN adduser -D -s /bin/true -u 1000 filebrowser
 USER filebrowser
 WORKDIR /home/filebrowser
@@ -42,6 +42,7 @@ COPY --from=nbuild --chown=filebrowser:1000 [ "/app/dist/", "./http/dist/" ]
 RUN [ "filebrowser", "version" ]
 RUN [ "ffmpeg", "-version" ]
 RUN [ "ffprobe", "-version" ]
+RUN [ "exiftool", "-ver" ]
 USER root
 # exposing default port for auto discovery.
 EXPOSE 80

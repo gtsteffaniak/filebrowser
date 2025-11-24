@@ -272,7 +272,6 @@
       "download": "Descarregar ficheiros"
     },
     "permissions-name": "Permissões",
-    "permissionsHelp": "Pode definir o utilizador como administrador ou escolher as permissões manualmente. Se selecionar a opção \"Administrador\", todas as outras opções serão automaticamente selecionadas. A gestão dos utilizadores é um privilégio restringido aos administradores.\n",
     "profileSettings": "Configurações do utilizador",
     "ruleExample1": "previne o acesso a qualquer \"dotfile\" (como .git, .gitignore) em qualquer pasta\n",
     "ruleExample2": "bloqueia o acesso ao ficheiro chamado Caddyfile na raiz.",
@@ -323,7 +322,8 @@
       "oidc": "OIDC",
       "proxy": "Proxy"
     },
-    "newUserHintSubFolder": "por exemplo, '/subpasta' - em branco por defeito"
+    "newUserHintSubFolder": "por exemplo, '/subpasta' - em branco por defeito",
+    "permissionsHelp": "As permissões de utilizador controlam o acesso ao tipo de acções que o utilizador pode executar. O acesso de administrador dá controlo total para atualizar e alterar as definições de qualquer utilizador, bem como muitas definições do sistema."
   },
   "sidebar": {
     "siteSettings": "Configurações do site",

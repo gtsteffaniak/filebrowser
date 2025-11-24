@@ -188,10 +188,11 @@ export default {
       // Sets the current path and resets
       // the current items.
       this.current = req.path;
-      this.source = req.source;
+      this.source = req.source || null; // For shares, source might be null/undefined
       this.items = [];
 
       // Emit both path and source
+      // For shares, source will be null, which is handled by MoveCopy
       this.$emit("update:selected", {
         path: this.current,
         source: this.source

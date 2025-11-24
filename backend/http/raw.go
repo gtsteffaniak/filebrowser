@@ -111,20 +111,20 @@ func addFile(path string, d *requestContext, tarWriter *tar.Writer, zipWriter *z
 	if idx == nil {
 		return fmt.Errorf("source %s is not available", source)
 	}
-	if d.share != nil {
-		_, err = files.FileInfoFaster(utils.FileOptions{
-			Path:   path,
-			Source: source,
-			Expand: false,
-		}, nil)
-	} else {
-		_, err = files.FileInfoFaster(utils.FileOptions{
-			Username: d.user.Username,
-			Path:     path,
-			Source:   source,
-			Expand:   false,
-		}, store.Access)
+
+	// Check access control directly for each file and silently skip if access is denied
+	if d.share == nil && store.Access != nil {
+		if !store.Access.Permitted(idx.Path, path, d.user.Username) {
+			return nil // Silently skip this file/folder
+		}
 	}
+
+	// Verify file exists
+	_, err = files.FileInfoFaster(utils.FileOptions{
+		Path:   path,
+		Source: source,
+		Expand: false,
+	}, nil)
 	if err != nil {
 		return err
 	}
@@ -156,6 +156,23 @@ func addFile(path string, d *requestContext, tarWriter *tar.Writer, zipWriter *z
 			// Skip adding `.` (current directory)
 			if relPath == "." {
 				return nil
+			}
+
+			// Check access control for each file/folder during walk
+			if d.share == nil {
+				// Construct the index-relative path for this file/folder
+				// relPath is relative to realPath, so we need to join it with the original path
+				indexRelPath := filepath.Join(path, relPath)
+				indexRelPath = filepath.ToSlash(indexRelPath) // Normalize separators
+
+				if !store.Access.Permitted(idx.Path, indexRelPath, d.user.Username) {
+					// Skip this file/folder silently
+					if fileInfo.IsDir() {
+						// Skip the entire directory by returning filepath.SkipDir
+						return filepath.SkipDir
+					}
+					return nil
+				}
 			}
 
 			// Prepend base folder name unless flatten is true
@@ -322,6 +339,19 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 			}
 		}
 
+		// Verify access control before opening the file (direct rule check)
+		if d.share == nil && store.Access != nil {
+			if !store.Access.Permitted(idx.Path, firstFilePath, d.user.Username) {
+				logger.Debugf("user %s denied access to path %s", d.user.Username, firstFilePath)
+				// Send OnlyOffice error log if this was an OnlyOffice download
+				if isOnlyOffice && logContext != nil {
+					sendOnlyOfficeLogEvent(logContext, "ERROR", "download",
+						fmt.Sprintf("OnlyOffice download failed - access denied by rule: %s", firstFilePath))
+				}
+				return http.StatusForbidden, fmt.Errorf("access denied to path %s", firstFilePath)
+			}
+		}
+
 		fd, err2 := os.Open(realPath)
 		if err2 != nil {
 			// Send OnlyOffice error log if this was an OnlyOffice download
@@ -480,6 +510,12 @@ func computeArchiveSize(fileList []string, d *requestContext) (int64, error) {
 				return 0, fmt.Errorf("source %s is not available for user %s", source, d.user.Username)
 			}
 			path = utils.JoinPathAsUnix(userScope, path)
+
+			// Check access control for each file in the archive
+			// Silently skip if access is denied (as if the file doesn't exist)
+			if store.Access != nil && !store.Access.Permitted(idx.Path, path, d.user.Username) {
+				continue // Skip this file and continue with the next one
+			}
 		}
 		// For shares, the path is already correctly resolved by publicRawHandler
 		realPath, isDir, err := idx.GetRealPath(path)
@@ -512,6 +548,7 @@ func createZip(d *requestContext, tmpDirPath string, filenames ...string) error 
 	for _, fname := range filenames {
 		err := addFile(fname, d, nil, zipWriter, false)
 		if err != nil {
+			// Access control failures return nil, so any error here is a real error
 			logger.Errorf("Failed to add %s to ZIP: %v", fname, err)
 			return err
 		}

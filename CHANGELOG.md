@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v1.1.1-beta
+
+ **Notes**:
+ - [docker] upgraded ffmpeg 8.0 to 8.0.1
+ - stricter access control checks on file downloads.
+ - Wrong translation on Chinese "save" button #1650
+ - Incorrect Spanish Translations in Folder Creation and Rename Actions #1626
+ - duplicate file detector has stricter partial checksum match #1617
+
+ **BugFixes**:
+ - added missing exiftool to docker image for heic conversion orientation support
+ - v1.1.0-beta - Incorrect naming of 1 file in directory-info #1621
+ - disable only office viewing settings not applying
+ - OnlyOffice integration does not work behind proxy authentication #1422
+ - Newly created users "add on" to defined scope of previous user #1628 #1518
+ - disable chown on upload / file saving #1469 #1546
+ - Uploading a file will silently overwrite any existing file with the same name #1564
+ - share file url issue
+ - Fix drag and drop and rows in normal view #1651
+ - Some text based files are not able to edit. #1567
+
 ## v1.1.0-beta
 
  **New Features**:
