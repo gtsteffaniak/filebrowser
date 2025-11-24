@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Notes**:
  - [docker] upgraded ffmpeg 8.0 to 8.0.1
- - stricter access control checks on every file requested from raw download endpoint (for non-share requests)
+ - stricter access control checks on file downloads.
  - Wrong translation on Chinese "save" button #1650
  - duplicate file detector has stricter partial checksum match #1617
 
