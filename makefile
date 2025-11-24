@@ -47,6 +47,8 @@ build-backend:
 
 # New dev target with hot-reloading for frontend and backend
 dev: generate-docs
+	@echo "Cleaning up test directories..."
+	@rm -rf backend/preview/thumbnails backend/preview/heic 2>/dev/null || true
 	@echo "Starting dev servers... Press Ctrl+C to stop."
 	@cd frontend && DEV_BUILD=true npm run watch & \
 	FRONTEND_PID=$$!; \
