@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file. For commit 
  - [docker] upgraded ffmpeg 8.0 to 8.0.1
  - stricter access control checks on file downloads.
  - Wrong translation on Chinese "save" button #1650
+ - Incorrect Spanish Translations in Folder Creation and Rename Actions #1626
  - duplicate file detector has stricter partial checksum match #1617
 
  **BugFixes**:
@@ -20,6 +21,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Uploading a file will silently overwrite any existing file with the same name #1564
  - share file url issue
  - Fix drag and drop and rows in normal view #1651
+ - Some text based files are not able to edit. #1567
 
 ## v1.1.0-beta
 
