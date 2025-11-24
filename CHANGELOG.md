@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file. For commit 
  **Notes**:
  - [docker] upgraded ffmpeg 8.0 to 8.0.1
  - stricter access control checks on every file requested from raw download endpoint (for non-share requests)
+ - Wrong translation on Chinese "save" button #1650
 
  **BugFixes**:
  - added missing exiftool to docker image for heic conversion orientation support
@@ -16,6 +17,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Newly created users "add on" to defined scope of previous user #1628 #1518
  - disable chown on upload / file saving #1469 #1546
  - Uploading a file will silently overwrite any existing file with the same name #1564
+ - share file url issue
 
 ## v1.1.0-beta
 
