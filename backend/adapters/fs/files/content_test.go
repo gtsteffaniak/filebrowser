@@ -21,17 +21,18 @@ func TestGetContent_UTF8Truncation(t *testing.T) {
 	testFilePath := filepath.Join(cwd, "..", "..", "..", "..", "frontend", "tests", "playwright-files", "utf8-truncated.txt")
 
 	// Check if file exists, if not try alternative path
-	if _, err := os.Stat(testFilePath); os.IsNotExist(err) {
+	if _, err = os.Stat(testFilePath); os.IsNotExist(err) {
 		// Try from project root
 		testFilePath = filepath.Join("frontend", "tests", "playwright-files", "utf8-truncated.txt")
-		if _, err := os.Stat(testFilePath); os.IsNotExist(err) {
+		if _, err = os.Stat(testFilePath); os.IsNotExist(err) {
 			t.Skipf("Test file not found at %s, skipping test", testFilePath)
 			return
 		}
 	}
 
 	// Get absolute path
-	absPath, err := filepath.Abs(testFilePath)
+	var absPath string
+	absPath, err = filepath.Abs(testFilePath)
 	require.NoError(t, err)
 
 	t.Run("file with UTF-8 truncation at 4096 byte boundary", func(t *testing.T) {
