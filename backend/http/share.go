@@ -62,8 +62,8 @@ func convertToFrontendShareResponse(r *http.Request, shares []*share.Link) ([]*S
 		pathExists := utils.CheckPathExists(filepath.Join(sourceInfo.Path, s.Path))
 
 		s.CommonShare.HasPassword = s.HasPassword()
-		s.CommonShare.DownloadURL = getShareURL(r, s.Hash, true)
-		s.CommonShare.ShareURL = getShareURL(r, s.Hash, false)
+		s.DownloadURL = getShareURL(r, s.Hash, true)
+		s.ShareURL = getShareURL(r, s.Hash, false)
 
 		// Create response with source name (overrides the embedded Link's source field)
 		responses = append(responses, &ShareResponse{

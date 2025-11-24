@@ -1,7 +1,6 @@
 import { adjustedData } from "./utils";
 import { notify } from "@/notify";
-import { getApiPath, getPublicApiPath, encodedPath, doubleEncode } from "@/utils/url.js";
-import { globalVars } from "@/utils/constants";
+import { getPublicApiPath, encodedPath, doubleEncode } from "@/utils/url.js";
 import { state } from "@/store";
 
 // ============================================================================

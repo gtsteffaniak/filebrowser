@@ -307,7 +307,7 @@
 <script>
 import { notify } from "@/notify";
 import { state, getters, mutations } from "@/store";
-import { publicApi, shareApi } from "@/api";
+import { shareApi } from "@/api";
 import Clipboard from "clipboard";
 import { fromNow } from "@/utils/moment";
 import { buildItemUrl } from "@/utils/url";
