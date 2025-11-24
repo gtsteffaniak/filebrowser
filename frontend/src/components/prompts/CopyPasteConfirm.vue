@@ -87,7 +87,6 @@ export default {
     },
     confirm() {
       this.onConfirm();
-      mutations.setReload(true);
       mutations.closeHovers();
     },
   },

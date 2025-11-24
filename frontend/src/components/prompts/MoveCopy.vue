@@ -122,12 +122,8 @@ export default {
       return this.destPath.startsWith(itemPath + "/") || this.destPath === itemPath;
     },
     canCreateFolder() {
-      // Detect correct permission for shares for show the new folder button.
-      if (getters.isShare()) {
-        return state.shareInfo?.allowCreate;
-      } else {
-        return state.user?.permissions?.modify;
-      }
+      const perms = getters.permissions();
+      return !!perms?.create;
     },
     closeHovers() {
       return mutations.closeHovers();
@@ -316,14 +312,17 @@ export default {
         const destPath = this.destPath;
 
         // Show success notification with optional button to navigate to destination
+        // For shares, destSource might be null, but goToItem handles shares via state.shareInfo.hash
         const buttonAction = () => {
-          if (destSource && destPath) {
-            goToItem(destSource, destPath, {});
+          if (destPath) {
+            // For shares, goToItem will use state.shareInfo.hash, so source can be null
+            // For regular files, destSource should be set
+            goToItem(destSource || null, destPath, {});
           }
         };
         const buttonProps = {
             icon: "folder",
-            buttons: destSource && destPath ? [
+            buttons: destPath ? [
           {
             label: this.$t("buttons.goToItem"),
             primary: true,
