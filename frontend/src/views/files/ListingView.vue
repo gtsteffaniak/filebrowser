@@ -956,6 +956,7 @@ export default {
                 console.error("Error moving/copying items:", error);
               } finally {
                 mutations.setLoading("listing", false);
+                mutations.setReload(true);
               }
             };
 
