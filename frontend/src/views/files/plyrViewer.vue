@@ -1170,6 +1170,7 @@ export default {
  */
 .plyr__captions {
     font-size: max(24px, 4.5vmin) !important;
+    line-height: 150% !important; /* Line height needs to be in both, if not we'll not override the default of plyr */
     text-shadow:
         0 0 6px #000,
         0 0 6px #000,
@@ -1182,6 +1183,7 @@ export default {
 
 .plyr__caption {
     background: transparent !important;
+    line-height: 150% !important;
 }
 
 /************
