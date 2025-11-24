@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file. For commit 
  - disable chown on upload / file saving #1469 #1546
  - Uploading a file will silently overwrite any existing file with the same name #1564
  - share file url issue
+ - Fix drag and drop and rows in normal view #1651
 
 ## v1.1.0-beta
 
