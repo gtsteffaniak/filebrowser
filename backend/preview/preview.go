@@ -30,6 +30,7 @@ var (
 
 type Service struct {
 	fileCache    diskcache.Interface
+	cacheDir     string // Cache directory used for thumbnails and temp files
 	debug        bool
 	docGenMutex  sync.Mutex    // Mutex to serialize access to doc generation
 	docSemaphore chan struct{} // Semaphore for document generation
@@ -44,36 +45,43 @@ func NewPreviewGenerator(concurrencyLimit int, cacheDir string) *Service {
 	}
 	// get round up half value of concurrencyLimit
 	ffmpegConcurrencyLimit := (concurrencyLimit + 1) / 2
+
+	actualCacheDir := cacheDir
+	if actualCacheDir == "" {
+		actualCacheDir = os.TempDir()
+	}
+
 	var fileCache diskcache.Interface
 	// Use file cache if cacheDir is specified
 	var err error
-	fileCache, err = diskcache.NewFileCache(cacheDir)
+	fileCache, err = diskcache.NewFileCache(actualCacheDir)
 	if err != nil {
 		logger.Error("The cache dir could not be created. Make sure the user that you executed the program with has access to create directories in the local path. See  ")
 		logger.Fatalf("failed to create file cache path, which is now require to run the server: %v", err)
 	}
-	// Create directories recursively
-	err = os.MkdirAll(filepath.Join(settings.Config.Server.CacheDir, "thumbnails", "docs"), fileutils.PermDir)
+	// Create directories recursively using the determined cache directory
+	err = os.MkdirAll(filepath.Join(actualCacheDir, "thumbnails", "docs"), fileutils.PermDir)
 	if err != nil {
 		logger.Error(err)
 	}
-	err = os.MkdirAll(filepath.Join(settings.Config.Server.CacheDir, "thumbnails", "videos"), fileutils.PermDir)
+	err = os.MkdirAll(filepath.Join(actualCacheDir, "thumbnails", "videos"), fileutils.PermDir)
 	if err != nil {
 		logger.Error(err)
 	}
-	err = os.MkdirAll(filepath.Join(settings.Config.Server.CacheDir, "heic"), fileutils.PermDir)
+	err = os.MkdirAll(filepath.Join(actualCacheDir, "heic"), fileutils.PermDir)
 	if err != nil {
 		logger.Error(err)
 	}
 
 	videoService := ffmpeg.NewFFmpegService(ffmpegConcurrencyLimit, settings.Config.Integrations.Media.Debug, "")
-	imageService := ffmpeg.NewFFmpegService(concurrencyLimit, settings.Config.Integrations.Media.Debug, filepath.Join(settings.Config.Server.CacheDir, "heic"))
+	imageService := ffmpeg.NewFFmpegService(concurrencyLimit, settings.Config.Integrations.Media.Debug, filepath.Join(actualCacheDir, "heic"))
 
 	settings.Env.MuPdfAvailable = docEnabled()
 	logger.Debugf("MuPDF Enabled            : %v", settings.Env.MuPdfAvailable)
 	logger.Debugf("Media Enabled            : %v", settings.MediaEnabled())
 	return &Service{
 		fileCache:    fileCache,
+		cacheDir:     actualCacheDir,
 		debug:        settings.Config.Integrations.Media.Debug,
 		docSemaphore: make(chan struct{}, 1), // must be 1 because cgo thread limit
 		officeSem:    make(chan struct{}, concurrencyLimit),
@@ -179,7 +187,7 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 	convertHEIC := strings.HasPrefix(file.Type, "image/heic") && settings.Config.Integrations.Media.Convert.ImagePreview[settings.HEICImagePreview]
 	// Generate an image from office document
 	if iteminfo.HasDocConvertableExtension(file.Name, file.Type) {
-		tempFilePath := filepath.Join(settings.Config.Server.CacheDir, "thumbnails", "docs", hash) + ".txt"
+		tempFilePath := filepath.Join(service.cacheDir, "thumbnails", "docs", hash) + ".txt"
 		imageBytes, err = service.GenerateImageFromDoc(ctx, file, tempFilePath, 0) // 0 for the first page
 		if err != nil {
 			return nil, fmt.Errorf("failed to create image for PDF file: %w", err)

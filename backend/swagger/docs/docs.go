@@ -3850,7 +3850,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "cacheDirCleanup": {
-                    "description": "whether to automatically cleanup the cache directory (default: true)",
+                    "description": "whether to automatically cleanup the cache directory. Note: docker must also mount a persistent volume to persist the cache (default: true)",
                     "type": "boolean"
                 },
                 "database": {
