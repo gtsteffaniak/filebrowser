@@ -126,7 +126,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 				link.IncrementUserDownload(data.user.Username)
 			}
 		}
-		file.Path = "/" + strings.TrimPrefix(strings.TrimPrefix(file.Path, link.Path), "/")
+		file.Path = utils.AddTrailingSlashIfNotExists(path)
 		// Set the file info in the `data` object
 		data.fileInfo = *file
 		// Call the next handler with the data

@@ -64,6 +64,7 @@ test("share file creation", async ({ page, checkForErrors, openContextMenu }) =>
   }
   await page.goto("public/share/" + shareHashShare);
   await expect(page).toHaveTitle("Graham's Filebrowser - Share - share");
+  await page.waitForTimeout(1000);
   await openContextMenu();
   await page.locator('button[aria-label="New file"]').click();
   await page.locator('input[aria-label="FileName Field"]').waitFor({ state: 'visible' });

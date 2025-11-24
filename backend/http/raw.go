@@ -112,11 +112,10 @@ func addFile(path string, d *requestContext, tarWriter *tar.Writer, zipWriter *z
 		return fmt.Errorf("source %s is not available", source)
 	}
 
-	// Check access control directly for each file (for non-share requests)
+	// Check access control directly for each file and silently skip if access is denied
 	if d.share == nil && store.Access != nil {
 		if !store.Access.Permitted(idx.Path, path, d.user.Username) {
-			logger.Debugf("user %s denied access to path %s in archive", d.user.Username, path)
-			return fmt.Errorf("access denied to path %s", path)
+			return nil // Silently skip this file/folder
 		}
 	}
 
@@ -157,6 +156,23 @@ func addFile(path string, d *requestContext, tarWriter *tar.Writer, zipWriter *z
 			// Skip adding `.` (current directory)
 			if relPath == "." {
 				return nil
+			}
+
+			// Check access control for each file/folder during walk
+			if d.share == nil {
+				// Construct the index-relative path for this file/folder
+				// relPath is relative to realPath, so we need to join it with the original path
+				indexRelPath := filepath.Join(path, relPath)
+				indexRelPath = filepath.ToSlash(indexRelPath) // Normalize separators
+
+				if !store.Access.Permitted(idx.Path, indexRelPath, d.user.Username) {
+					// Skip this file/folder silently
+					if fileInfo.IsDir() {
+						// Skip the entire directory by returning filepath.SkipDir
+						return filepath.SkipDir
+					}
+					return nil
+				}
 			}
 
 			// Prepend base folder name unless flatten is true
@@ -496,9 +512,9 @@ func computeArchiveSize(fileList []string, d *requestContext) (int64, error) {
 			path = utils.JoinPathAsUnix(userScope, path)
 
 			// Check access control for each file in the archive
+			// Silently skip if access is denied (as if the file doesn't exist)
 			if store.Access != nil && !store.Access.Permitted(idx.Path, path, d.user.Username) {
-				logger.Debugf("user %s denied access to path %s in archive size calculation", d.user.Username, path)
-				return 0, fmt.Errorf("access denied to path %s", path)
+				continue // Skip this file and continue with the next one
 			}
 		}
 		// For shares, the path is already correctly resolved by publicRawHandler
@@ -532,6 +548,7 @@ func createZip(d *requestContext, tmpDirPath string, filenames ...string) error 
 	for _, fname := range filenames {
 		err := addFile(fname, d, nil, zipWriter, false)
 		if err != nil {
+			// Access control failures return nil, so any error here is a real error
 			logger.Errorf("Failed to add %s to ZIP: %v", fname, err)
 			return err
 		}

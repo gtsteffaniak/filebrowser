@@ -57,7 +57,7 @@
             </button>
           </td>
           <td class="small">
-            <button :disabled="item.shareType == 'upload'" class="action copy-clipboard" :data-clipboard-text="fixDownloadURL(item.downloadURL)" v-if="item.downloadURL"
+            <button :disabled="item.shareType == 'upload'" class="action copy-clipboard" :data-clipboard-text="item.downloadURL" v-if="item.downloadURL"
               :aria-label="$t('buttons.copyDownloadLinkToClipboard')" :title="$t('buttons.copyDownloadLinkToClipboard')">
               <i class="material-icons">content_paste_go</i>
             </button>
@@ -74,14 +74,12 @@
 
 <script>
 import { notify } from "@/notify";
-import { publicApi, shareApi } from "@/api";
+import { shareApi } from "@/api";
 import { state, mutations, getters } from "@/store";
 import Clipboard from "clipboard";
 import Errors from "@/views/Errors.vue";
 import { fromNow } from '@/utils/moment';
 import { eventBus } from "@/store/eventBus";
-import { fixDownloadURL } from "@/utils/url";
-import { globalVars } from "@/utils/constants";
 
 export default {
   name: "shares",
@@ -200,19 +198,10 @@ export default {
       return fromNow(time);
     },
     /**
-     * @param {any} item
+     * @param {any} share
      */
-    buildLink(item) {
-      return publicApi.getShareURL(item);
-    },
-    fixDownloadURL(downloadUrl) {
-      // Only fix the URL if it doesn't already have the correct external domain
-      if (globalVars.externalUrl) {
-        // URL already has the correct external domain, use as-is
-        return downloadUrl;
-      }
-      // URL needs fixing (internal domain or no externalUrl set)
-      return fixDownloadURL(downloadUrl);
+    buildLink(share) {
+      return share.shareURL;
     },
   },
 };

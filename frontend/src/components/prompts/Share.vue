@@ -55,14 +55,14 @@
                 </button>
               </td>
               <td class="small">
-                <button class="action copy-clipboard" :data-clipboard-text="buildLink(link)"
+                <button class="action copy-clipboard" :data-clipboard-text="link.shareURL"
                   :aria-label="$t('buttons.copyToClipboard')" :title="$t('buttons.copyToClipboard')">
                   <i class="material-icons">content_paste</i>
                 </button>
               </td>
-              <td class="small" v-if="hasDownloadLink()">
+              <td class="small">
                 <button :disabled="link.shareType == 'upload'" class="action copy-clipboard"
-                  :data-clipboard-text="buildDownloadLink(link)" :aria-label="$t('buttons.copyDownloadLinkToClipboard')"
+                  :data-clipboard-text="link.downloadURL" :aria-label="$t('buttons.copyDownloadLinkToClipboard')"
                   :title="$t('buttons.copyDownloadLinkToClipboard')">
                   <i class="material-icons">content_paste_go</i>
                 </button>
@@ -307,10 +307,10 @@
 <script>
 import { notify } from "@/notify";
 import { state, getters, mutations } from "@/store";
-import { publicApi, shareApi } from "@/api";
+import { shareApi } from "@/api";
 import Clipboard from "clipboard";
 import { fromNow } from "@/utils/moment";
-import { buildItemUrl, fixDownloadURL } from "@/utils/url";
+import { buildItemUrl } from "@/utils/url";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import SettingsItem from "@/components/settings/SettingsItem.vue";
 import FileList from "./FileList.vue";
@@ -746,31 +746,6 @@ export default {
     humanTime(time) {
       return fromNow(time, state.user.locale)
     },
-    /**
-     * @param {Share} share
-     */
-    buildLink(share) {
-      return publicApi.getShareURL(share);
-    },
-    hasDownloadLink() {
-      // Check if we have a single selected item that can be downloaded
-      return !this.item?.isDir;
-    },
-    /**
-     * @param {Share} share
-     */
-    buildDownloadLink(share) {
-      if (share.downloadURL) {
-        // Only fix the URL if it doesn't already have the correct external domain
-        if (globalVars.externalUrl) {
-          // URL already has the correct external domain, use as-is
-          return share.downloadURL;
-        }
-        // URL needs fixing (internal domain or no externalUrl set)
-        return this.fixDownloadURL(share.downloadURL);
-      }
-      return publicApi.getDownloadURL(share, [this.item.name]);
-    },
     sort() {
       this.links = this.links.sort((a, b) => {
         if (a.expire === 0) return -1;
@@ -815,9 +790,6 @@ export default {
           }
         ];
       }
-    },
-    fixDownloadURL(downloadUrl) {
-      return fixDownloadURL(downloadUrl);
     },
     /**
      * @param {{path: string, source: string}} pathOrData
