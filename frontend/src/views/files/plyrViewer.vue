@@ -1165,13 +1165,11 @@ export default {
     display: block !important;
 }
 
-/* Subtitles style
- * The multiples shadows are for better readability since we are using transparent background
- */
+/* Subtitles style */
 .plyr__captions {
     font-size: max(24px, 4.5vmin) !important;
     line-height: 150% !important; /* Line height needs to be in both, if not we'll not override the default of plyr */
-    text-shadow:
+    text-shadow:  /* The multiples shadows are for better readability since we are using a transparent background */
         0 0 6px #000,
         0 0 6px #000,
         0 0 6px #000,
