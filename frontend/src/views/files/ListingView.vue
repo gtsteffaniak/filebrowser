@@ -471,7 +471,7 @@ export default {
         styles['--list-icon-image-size'] = `${iconImageSize}em`;
       } else {
         // Normal view
-        styles['--item-width'] = `calc(${(100 / this.numColumns).toFixed(2)}% - 1em)`;
+        styles['--item-width'] = `calc(${(100 / this.numColumns)}% - 1em)`;
         styles['--item-height'] = 'auto';
       }
 
