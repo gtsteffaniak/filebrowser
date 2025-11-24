@@ -104,7 +104,6 @@ export default {
   },
   created() {
     if (getters.eventTheme() === "halloween" && !localStorage.getItem("seenHalloweenMessage")) {
-
       mutations.showHover({
         name: "generic",
         props: {
@@ -129,9 +128,7 @@ export default {
         },
       });
     }
-
     this.fetchData();
-
   },
   watch: {
     $route: "fetchData",

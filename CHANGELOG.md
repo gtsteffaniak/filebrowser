@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v1.0.2-stable
+
+ **Notes**:
+ - [docker] upgraded ffmpeg 8.0 to 8.0.1
+ - Wrong translation on Chinese "save" button #1650
+
+ **BugFixes**:
+ - added missing exiftool to docker image for heic conversion orientation support
+ - Uploading a file will silently overwrite any existing file with the same name #1564
+ - Unable to download folder as ZIP #1604
+
 ## v1.0.1-stable
 
  **BugFixes**:

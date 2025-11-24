@@ -85,7 +85,7 @@ export async function put(source, path, content = '') {
   }
 }
 
-export function download(format, files, shareHash = "") {
+export async function download(format, files, shareHash = "") {
   if (format !== 'zip') {
     format = 'tar.gz'
   }
@@ -106,13 +106,52 @@ export function download(format, files, shareHash = "") {
   })
   const url = window.origin + apiPath
 
-  // Create a temporary <a> element to trigger the download
+  // Use fetch to capture errors in the console
+  const response = await fetch(url, {
+    credentials: 'same-origin',
+    headers: {
+      "sessionId": state.sessionId,
+    },
+  })
+
+  if (!response.ok) {
+    const errorText = await response.text()
+    const error = new Error(`Download failed: ${response.status} ${response.statusText}`)
+    console.error('Download API error:', {
+      status: response.status,
+      statusText: response.statusText,
+      body: errorText,
+      url: url
+    })
+    throw error
+  }
+
+  // Get the blob from the response
+  const blob = await response.blob()
+  // Determine filename from Content-Disposition header or use default
+  let filename = 'download'
+  const contentDisposition = response.headers.get('Content-Disposition')
+  if (contentDisposition) {
+    const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/)
+    if (filenameMatch && filenameMatch[1]) {
+      filename = filenameMatch[1].replace(/['"]/g, '')
+    }
+  } else {
+    // Fallback: use format extension
+    filename = `download.${format}`
+  }
+
+  // Create a blob URL and trigger download
+  const blobUrl = window.URL.createObjectURL(blob)
   const link = document.createElement('a')
-  link.href = url
-  link.setAttribute('download', '') // Ensures it triggers a download
+  link.href = blobUrl
+  link.setAttribute('download', filename)
   document.body.appendChild(link)
   link.click()
-  document.body.removeChild(link) // Clean up
+  document.body.removeChild(link)
+  // Clean up the blob URL
+  window.URL.revokeObjectURL(blobUrl)
+
 }
 
 export function post(
