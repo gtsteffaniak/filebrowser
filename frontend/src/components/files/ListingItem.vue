@@ -78,6 +78,7 @@ import { filesApi,publicApi } from "@/api";
 import * as upload from "@/utils/upload";
 import { state, getters, mutations } from "@/store"; // Import your custom store
 import { url } from "@/utils";
+import { notify } from "@/notify";
 import Icon from "@/components/files/Icon.vue";
 
 export default {
@@ -343,7 +344,7 @@ export default {
     },
     /** @param {DragEvent} event */
     dragOver(event) {
-      if (!this.canDrop) return;
+      if (!this.isDir || !this.canDrop) return;
 
       // Only allow internal drags (from filebrowser items), not external files from desktop
       const isInternal = Array.from(event.dataTransfer.types).includes(
@@ -358,6 +359,7 @@ export default {
     /** @param {DragEvent} event */
     async drop(event) {
       this.isDraggedOver = false;
+      if (!this.isDir || !this.canDrop) return;
 
       // Only allow internal drags (from filebrowser items), not external files from desktop
       const isInternal = Array.from(event.dataTransfer.types).includes(
@@ -440,9 +442,24 @@ export default {
           } else {
             await filesApi.moveCopy(items, "move", overwrite, rename);
           }
-          // Close the prompt after successful operation
-          notify.showSuccess(this.$t("prompts.moveSuccess"));
+          // Notification to move into the folder
+          const buttonAction = () => {
+            this.open();
+          };
+          const buttonProps = {
+            icon: "folder",
+            buttons: [
+              {
+                label: this.$t("buttons.goToItem"),
+                primary: true,
+                action: buttonAction
+              }
+            ]
+          };
+          notify.showSuccess(this.$t("prompts.moveSuccess"), buttonProps);
+          // Close the prompt after successful operation and reload items for reflect the changes
           mutations.closeHovers();
+          mutations.setReload(true);
         } catch (error) {
           // Close the prompt and let error handling continue
           mutations.closeHovers();
