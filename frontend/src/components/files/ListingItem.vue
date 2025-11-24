@@ -344,7 +344,7 @@ export default {
     },
     /** @param {DragEvent} event */
     dragOver(event) {
-      if (!this.isDir || !this.canDrop) return;
+      if (!this.canDrop) return;
 
       // Only allow internal drags (from filebrowser items), not external files from desktop
       const isInternal = Array.from(event.dataTransfer.types).includes(
@@ -359,7 +359,7 @@ export default {
     /** @param {DragEvent} event */
     async drop(event) {
       this.isDraggedOver = false;
-      if (!this.isDir || !this.canDrop) return;
+      if (!this.canDrop) return;
 
       // Only allow internal drags (from filebrowser items), not external files from desktop
       const isInternal = Array.from(event.dataTransfer.types).includes(
