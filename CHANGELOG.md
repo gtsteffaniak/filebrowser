@@ -6,7 +6,6 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Notes**:
  - [docker] upgraded ffmpeg 8.0 to 8.0.1
- - Wrong translation on Chinese "save" button #1650
 
  **BugFixes**:
  - added missing exiftool to docker image for heic conversion orientation support
