@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file. For commit 
  - added missing exiftool to docker image for heic conversion orientation support
  - Uploading a file will silently overwrite any existing file with the same name #1564
  - Unable to download folder as ZIP #1604
+ - issues downloading and file actions on password protected share
 
 ## v1.0.1-stable
 

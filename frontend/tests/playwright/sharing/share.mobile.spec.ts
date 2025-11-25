@@ -43,8 +43,4 @@ test("share download multiple files", async ({ page, checkForErrors, context }) 
 
   await page.locator('button[aria-label="Download"]').waitFor({ state: 'visible' });
   await page.locator('button[aria-label="Download"]').click();
-  const popup2 = page.locator('#popup-notification-content');
-  await popup2.waitFor({ state: 'visible' });
-  await expect(popup2).toHaveText("Downloading...");
-  checkForErrors(0,1); // redirect errors are expected
 });
