@@ -117,6 +117,10 @@ export function post(
   if (!hash || hash === undefined || hash === null) {
     throw new Error('no hash provided')
   }
+  let sharePassword = localStorage.getItem("sharepass:" + hash);
+  if (sharePassword) {
+    headers["X-SHARE-PASSWORD"] = sharePassword;
+  }
   try {
     const apiPath = getPublicApiPath("resources", {
       targetPath: doubleEncode(path),
@@ -184,11 +188,17 @@ async function resourceAction(path, method, content) {
     throw new Error('invalid share')
   }
   try {
+    let headers = {};
+    let sharePassword = localStorage.getItem("sharepass:" + shareInfo.hash);
+    if (sharePassword) {
+      headers["X-SHARE-PASSWORD"] = sharePassword;
+    }
     path = doubleEncode(path)
     const apiPath = getPublicApiPath('resources', { path, hash: shareInfo.hash, token: shareInfo.token })
     const response = await fetch(apiPath, {
       method,
       body: content,
+      headers,
     });
     if (!response.ok) {
       const error = new Error(response.statusText);
