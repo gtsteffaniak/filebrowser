@@ -570,28 +570,18 @@ export default {
       // Close the form and return to list view
       this.cancelAddLink();
     },
-    processCustomUrl(url) {
-      try {
-        // If it's a full URL, try to extract the path
-        if (url.startsWith('http://') || url.startsWith('https://')) {
-          const urlObj = new URL(url);
-          const pathname = urlObj.pathname;
-
-          // Remove subpath if present
-          const subpath = window.location.pathname.split('/')[1];
-          if (subpath && pathname.startsWith('/' + subpath)) {
-            return pathname.substring(subpath.length + 1);
-          }
-
-          return pathname;
-        }
-
-        // If it's already a path, return as is
-        return url;
-      } catch (e) {
-        // If URL parsing fails, return as is
+    processCustomUrl(url) {      
+      // Check if it's an external URL (case insensitive)
+      const lowerUrl = url.toLowerCase();
+      if (lowerUrl.startsWith('http://') || lowerUrl.startsWith('https://')) {
+        // Leave external URLs as-is
         return url;
       }
+      // For internal paths, normalize by adding a starting slash if missing
+      if (!url.startsWith('/')) {
+        return '/' + url; // assume relative path
+      }
+      return url;
     },
     removeLink(index) {
       this.links.splice(index, 1);
