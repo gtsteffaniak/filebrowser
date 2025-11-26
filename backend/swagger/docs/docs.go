@@ -1214,11 +1214,8 @@ const docTemplate = `{
         },
         "/api/raw": {
             "get": {
-                "description": "Returns the raw content of a file, multiple files, or a directory. Supports downloading files as archives in various formats.",
+                "description": "Returns the raw content of a file, multiple files, or a directory. Supports downloading files as archives in various formats.\n\n**Filename Encoding:**\n- The Content-Disposition header will always include both:\n1. ` + "`" + `filename=\"...\"` + "`" + `: An ASCII-safe version of the filename for compatibility.\n2. ` + "`" + `filename*=utf-8”...` + "`" + `: The full UTF-8 encoded filename (RFC 6266/5987) for modern clients.",
                 "consumes": [
-                    "application/json"
-                ],
-                "produces": [
                     "application/json"
                 ],
                 "tags": [

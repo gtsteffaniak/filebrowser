@@ -8,10 +8,12 @@ All notable changes to this project will be documented in this file. For commit 
  - changes to duplicate detector
    - temp SQLite database each query to reduce memory pressure
    - max limit is 500 groups total
+ - Downloads from UI requests utf-8 formatted names to support chinese and other characters. Updated swagger docs.
 
  **BugFixes**:
  - better index status updates, fixing delays #1649
  - fixed long load times for listings with media info due sequential processing of files.
+ - downloaded files always included `utf-8` in filename
 
 ## v1.1.1-beta
 

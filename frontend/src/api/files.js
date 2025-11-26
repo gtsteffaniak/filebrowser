@@ -129,12 +129,16 @@ export async function download(format, files, shareHash = "") {
   let filename = 'download'
   const contentDisposition = response.headers.get('Content-Disposition')
   if (contentDisposition) {
-    const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/)
-    if (filenameMatch && filenameMatch[1]) {
-      filename = filenameMatch[1].replace(/['"]/g, '')
+    const utf8 = contentDisposition.split("filename*=utf-8''")[1]
+    if (utf8) {
+      filename = decodeURIComponent(utf8.split(';')[0].trim())
+    } else {
+      const ascii = contentDisposition.split('filename="')[1]
+      if (ascii) {
+        filename = ascii.split('"')[0]
+      }
     }
   } else {
-    // Fallback: use format extension
     filename = `download.${format}`
   }
 
