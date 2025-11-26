@@ -8,7 +8,6 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
-	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -24,16 +23,13 @@ import (
 // This is separate from the index's scanMutex to avoid conflicts with indexing
 var duplicateSearchMutex sync.Mutex
 
+const maxGroups = 500 // Limit total duplicate groups
+
 // duplicateResultsCache caches duplicate search results for 15 seconds
 var duplicateResultsCache = cache.NewCache[[]duplicateGroup](15 * time.Second)
 
-// fileLocation is a minimal reference to a file in the index
-// Used during duplicate detection to avoid allocating full SearchResult objects
-// This is kept for backward compatibility with existing helper functions
-type fileLocation struct {
-	dirPath string // path to directory in index
-	fileIdx int    // index in directory's Files slice
-}
+// checksumCache caches file checksums for 1 hour, keyed by source/path/modtime
+var checksumCache = cache.NewCache[string](1 * time.Hour)
 
 type duplicateGroup struct {
 	Size  int64                    `json:"size"`
@@ -119,7 +115,6 @@ func duplicatesHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 // 3. Processing each size group sequentially (only one in memory at a time)
 // 4. Only creating SearchResult objects for final verified duplicates
 func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions) []duplicateGroup {
-	const maxTotalFiles = 1000 // Limit total files across all groups
 
 	// Create temporary SQLite database for streaming in cache directory
 	cacheDir := settings.Config.Server.CacheDir
@@ -180,29 +175,18 @@ func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions) []dup
 		return []duplicateGroup{}
 	}
 
-	// Step 2: Query SQLite for size groups with 2+ files
-	// Process sizes in descending order (largest files first)
-	sizeGroups, err := tempDB.GetSizeGroupsForDuplicates(opts.minSize)
+	// Step 2: Query SQLite for size groups with 2+ files (already sorted by SQL)
+	sizes, _, err := tempDB.GetSizeGroupsForDuplicates(opts.minSize)
 	if err != nil {
 		return []duplicateGroup{}
 	}
 
 	// Step 3: Process each size group sequentially to minimize memory
 	duplicateGroups := []duplicateGroup{}
-	totalFiles := 0
-
-	// Sort sizes in descending order
-	sizes := make([]int64, 0, len(sizeGroups))
-	for size := range sizeGroups {
-		sizes = append(sizes, size)
-	}
-	sort.Slice(sizes, func(i, j int) bool {
-		return sizes[i] > sizes[j]
-	})
 
 	for _, size := range sizes {
-		// Stop if we've hit the limit
-		if totalFiles >= maxTotalFiles {
+		// Stop if we've hit the group limit
+		if len(duplicateGroups) >= maxGroups {
 			break
 		}
 
@@ -212,19 +196,9 @@ func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions) []dup
 			continue
 		}
 
-		// Convert SQLite FileLocation to internal fileLocation for compatibility
-		fileLocs := make([]fileLocation, len(locations))
-		for i, loc := range locations {
-			fileLocs[i] = fileLocation{
-				dirPath: loc.DirPath,
-				fileIdx: loc.FileIdx,
-			}
-		}
-
 		// Use filename matching for initial grouping (fast)
-		// Note: We already have normalized names from SQLite, but we still need
-		// to fetch actual filenames from index for the grouping logic
-		groups := groupLocationsByFilenameWithMetadata(fileLocs, locations, index, size)
+		// Work directly with sql.FileLocation - no conversion needed
+		groups := groupLocationsByFilenameWithMetadata(locations, index, size)
 
 		// Process candidate groups up to the limit
 		for _, locGroup := range groups {
@@ -232,13 +206,13 @@ func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions) []dup
 				continue
 			}
 
-			// Check if adding this group would exceed the limit
-			if totalFiles+len(locGroup) > maxTotalFiles {
+			// Stop if we've hit the group limit
+			if len(duplicateGroups) >= maxGroups {
 				break
 			}
 
 			// Verify with checksums
-			verifiedGroups := groupLocationsByChecksum(locGroup, index, size)
+			verifiedGroups := groupLocationsByChecksumFromSQL(locGroup, index, size)
 
 			// Create SearchResult objects only for verified duplicates
 			for _, verifiedGroup := range verifiedGroups {
@@ -250,14 +224,14 @@ func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions) []dup
 				index.ReadOnlyOperation(func() {
 					dirs := index.GetDirectories()
 					for _, loc := range verifiedGroup {
-						dir := dirs[loc.dirPath]
+						dir := dirs[loc.DirPath]
 						if dir == nil {
 							continue
 						}
-						if loc.fileIdx >= len(dir.Files) {
+						if loc.FileIdx >= len(dir.Files) {
 							continue
 						}
-						file := &dir.Files[loc.fileIdx]
+						file := &dir.Files[loc.FileIdx]
 
 						// CRITICAL: Verify size matches the expected size for this group
 						if file.Size != size {
@@ -265,7 +239,7 @@ func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions) []dup
 						}
 
 						// Construct full path
-						fullPath := filepath.Join(loc.dirPath, file.Name)
+						fullPath := filepath.Join(loc.DirPath, file.Name)
 
 						// Remove the user scope from path
 						adjustedPath := strings.TrimPrefix(fullPath, opts.combinedPath)
@@ -289,22 +263,17 @@ func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions) []dup
 						Count: len(resultGroup),
 						Files: resultGroup,
 					})
-					totalFiles += len(resultGroup)
 				}
 			}
 
-			// Stop if we've hit the limit
-			if totalFiles >= maxTotalFiles {
+			// Stop if we've hit the group limit
+			if len(duplicateGroups) >= maxGroups {
 				break
 			}
 		}
 	}
 
-	// Sort groups by size (largest to smallest)
-	sort.Slice(duplicateGroups, func(i, j int) bool {
-		return duplicateGroups[i].Size > duplicateGroups[j].Size
-	})
-
+	// Groups are already sorted by size (largest to smallest) from SQL query
 	return duplicateGroups
 }
 
@@ -354,27 +323,29 @@ func prepDuplicatesOptions(r *http.Request, d *requestContext) (*duplicatesOptio
 	}, nil
 }
 
-// groupLocationsByChecksum groups file locations by partial checksum
-// Works with minimal fileLocation references instead of full SearchResult objects
-func groupLocationsByChecksum(locations []fileLocation, index *indexing.Index, fileSize int64) [][]fileLocation {
-	checksumMap := make(map[string][]fileLocation)
+// groupLocationsByChecksumFromSQL groups SQLite file locations by partial checksum
+// Works directly with sql.FileLocation instead of converting to fileLocation
+func groupLocationsByChecksumFromSQL(locations []sql.FileLocation, index *indexing.Index, fileSize int64) [][]sql.FileLocation {
+	checksumMap := make(map[string][]sql.FileLocation)
 
 	// Build checksum groups
 	for _, loc := range locations {
 		// Construct filesystem path for checksum computation
-		// index.Path is the absolute filesystem root, loc.dirPath is index-relative
-		fullPath := filepath.Join(index.Path, loc.dirPath)
+		// index.Path is the absolute filesystem root, loc.DirPath is index-relative
+		fullPath := filepath.Join(index.Path, loc.DirPath)
 
-		// Get the filename from the index and verify size still matches
+		// Get the filename and modtime from the index and verify size still matches
 		var fileName string
+		var fileModTime time.Time
 		var sizeMatches bool
 		index.ReadOnlyOperation(func() {
-			if dir := index.GetDirectories()[loc.dirPath]; dir != nil {
-				if loc.fileIdx < len(dir.Files) {
-					file := &dir.Files[loc.fileIdx]
+			if dir := index.GetDirectories()[loc.DirPath]; dir != nil {
+				if loc.FileIdx < len(dir.Files) {
+					file := &dir.Files[loc.FileIdx]
 					// CRITICAL: Verify size matches expected size for this group
 					if file.Size == fileSize {
 						fileName = file.Name
+						fileModTime = file.ModTime
 						sizeMatches = true
 					}
 				}
@@ -386,7 +357,7 @@ func groupLocationsByChecksum(locations []fileLocation, index *indexing.Index, f
 		}
 
 		filePath := filepath.Join(fullPath, fileName)
-		checksum, err := computePartialChecksum(filePath, fileSize)
+		checksum, err := computePartialChecksum(index.Path, filePath, fileSize, fileModTime)
 		if err != nil {
 			continue
 		}
@@ -394,7 +365,7 @@ func groupLocationsByChecksum(locations []fileLocation, index *indexing.Index, f
 	}
 
 	// Convert map to slice of groups
-	groups := make([][]fileLocation, 0, len(checksumMap))
+	groups := make([][]sql.FileLocation, 0, len(checksumMap))
 	for _, group := range checksumMap {
 		if len(group) >= 2 {
 			groups = append(groups, group)
@@ -410,8 +381,17 @@ func groupLocationsByChecksum(locations []fileLocation, index *indexing.Index, f
 // - Always read first 8KB (header/metadata)
 // - For files > 24KB: sample middle 8KB and last 8KB
 // - Total read: ~24KB max per file regardless of file size
-func computePartialChecksum(path string, size int64) (string, error) {
-	file, err := os.Open(path)
+// Checksums are cached for 1 hour based on source/path/modtime
+func computePartialChecksum(sourcePath, filePath string, size int64, modTime time.Time) (string, error) {
+	// Generate cache key from source path, file path, and modification time
+	cacheKey := fmt.Sprintf("%s:%s:%d:%d", sourcePath, filePath, size, modTime.Unix())
+
+	// Check cache first
+	if cachedChecksum, ok := checksumCache.Get(cacheKey); ok {
+		return cachedChecksum, nil
+	}
+
+	file, err := os.Open(filePath)
 	if err != nil {
 		return "", err
 	}
@@ -452,100 +432,19 @@ func computePartialChecksum(path string, size int64) (string, error) {
 		}
 	}
 
-	return fmt.Sprintf("%x", hash.Sum(nil)), nil
-}
+	checksum := fmt.Sprintf("%x", hash.Sum(nil))
 
-// groupLocationsByFilename groups file locations by fuzzy filename matching
-// Works with minimal fileLocation references instead of full SearchResult objects
-func groupLocationsByFilename(locations []fileLocation, index *indexing.Index, expectedSize int64) [][]fileLocation {
-	if len(locations) == 0 {
-		return nil
-	}
+	// Cache the result
+	checksumCache.Set(cacheKey, checksum)
 
-	// First, fetch all file metadata we need for comparison in a single lock
-	type fileMetadata struct {
-		name string
-		size int64
-	}
-	metadata := make([]fileMetadata, len(locations))
-
-	index.ReadOnlyOperation(func() {
-		dirs := index.GetDirectories()
-		for i, loc := range locations {
-			if dir := dirs[loc.dirPath]; dir != nil {
-				if loc.fileIdx < len(dir.Files) {
-					file := &dir.Files[loc.fileIdx]
-					// CRITICAL: Only include files that match the expected size
-					// Index could have changed since locations were collected
-					if file.Size == expectedSize {
-						metadata[i] = fileMetadata{
-							name: file.Name,
-							size: file.Size,
-						}
-					}
-				}
-			}
-		}
-	})
-
-	// Now group by fuzzy filename matching without holding the lock
-	groups := [][]fileLocation{}
-	used := make(map[int]bool)
-
-	for i := 0; i < len(locations); i++ {
-		if used[i] || metadata[i].name == "" {
-			continue
-		}
-
-		group := []fileLocation{locations[i]}
-		used[i] = true
-		baseSize := metadata[i].size
-
-		baseName1 := metadata[i].name
-		ext1 := strings.ToLower(filepath.Ext(baseName1))
-		filename1 := normalizeFilename(baseName1)
-
-		for j := i + 1; j < len(locations); j++ {
-			if used[j] || metadata[j].name == "" {
-				continue
-			}
-
-			// CRITICAL: Ensure exact size match
-			if metadata[j].size != baseSize {
-				continue
-			}
-
-			baseName2 := metadata[j].name
-			ext2 := strings.ToLower(filepath.Ext(baseName2))
-
-			// CRITICAL: Extensions must match exactly (case-insensitive)
-			if ext1 != ext2 {
-				continue
-			}
-
-			filename2 := normalizeFilename(baseName2)
-
-			// Check if filenames are similar enough
-			if filenamesSimilar(filename1, filename2) {
-				group = append(group, locations[j])
-				used[j] = true
-			}
-		}
-
-		if len(group) >= 2 {
-			groups = append(groups, group)
-		}
-	}
-
-	return groups
+	return checksum, nil
 }
 
 // groupLocationsByFilenameWithMetadata uses pre-computed normalized names from SQLite
-// This avoids re-normalizing filenames and is more efficient
-func groupLocationsByFilenameWithMetadata(locations []fileLocation, sqliteLocs []sql.FileLocation, index *indexing.Index, expectedSize int64) [][]fileLocation {
-	if len(locations) == 0 || len(locations) != len(sqliteLocs) {
-		// Fallback to regular grouping if metadata doesn't match
-		return groupLocationsByFilename(locations, index, expectedSize)
+// Works directly with sql.FileLocation - no conversion needed
+func groupLocationsByFilenameWithMetadata(locations []sql.FileLocation, index *indexing.Index, expectedSize int64) [][]sql.FileLocation {
+	if len(locations) == 0 {
+		return nil
 	}
 
 	// Verify sizes from index (still need to check index is up to date)
@@ -558,9 +457,9 @@ func groupLocationsByFilenameWithMetadata(locations []fileLocation, sqliteLocs [
 	index.ReadOnlyOperation(func() {
 		dirs := index.GetDirectories()
 		for i, loc := range locations {
-			if dir := dirs[loc.dirPath]; dir != nil {
-				if loc.fileIdx < len(dir.Files) {
-					file := &dir.Files[loc.fileIdx]
+			if dir := dirs[loc.DirPath]; dir != nil {
+				if loc.FileIdx < len(dir.Files) {
+					file := &dir.Files[loc.FileIdx]
 					if file.Size == expectedSize {
 						metadata[i] = fileMetadata{
 							name: file.Name,
@@ -572,7 +471,7 @@ func groupLocationsByFilenameWithMetadata(locations []fileLocation, sqliteLocs [
 		}
 	})
 
-	groups := [][]fileLocation{}
+	groups := [][]sql.FileLocation{}
 	used := make(map[int]bool)
 
 	for i := 0; i < len(locations); i++ {
@@ -580,13 +479,13 @@ func groupLocationsByFilenameWithMetadata(locations []fileLocation, sqliteLocs [
 			continue
 		}
 
-		group := []fileLocation{locations[i]}
+		group := []sql.FileLocation{locations[i]}
 		used[i] = true
 		baseSize := metadata[i].size
 
 		// Use pre-computed normalized name and extension from SQLite
-		filename1 := sqliteLocs[i].NormalizedName
-		ext1 := sqliteLocs[i].Extension
+		filename1 := locations[i].NormalizedName
+		ext1 := locations[i].Extension
 
 		for j := i + 1; j < len(locations); j++ {
 			if used[j] || metadata[j].name == "" {
@@ -597,12 +496,12 @@ func groupLocationsByFilenameWithMetadata(locations []fileLocation, sqliteLocs [
 				continue
 			}
 
-			ext2 := sqliteLocs[j].Extension
+			ext2 := locations[j].Extension
 			if ext1 != ext2 {
 				continue
 			}
 
-			filename2 := sqliteLocs[j].NormalizedName
+			filename2 := locations[j].NormalizedName
 
 			// Check if filenames are similar enough
 			if filenamesSimilar(filename1, filename2) {

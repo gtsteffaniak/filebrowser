@@ -47,7 +47,7 @@
             <span>{{ $t('duplicateFinder.totalWastedSpace', { suffix: ': ' }) }}<strong>{{ humanSize(totalWastedSpace) }}</strong></span>
           </div>
 
-          <div v-if="totalItems < 1000" class="success-message">
+          <div v-if="duplicateGroups.length < maxGroups" class="success-message">
             <i class="material-icons">check_circle</i>
             <div>
               <strong>{{ $t('fileSizeAnalyzer.completeResults') }}</strong>
@@ -56,7 +56,7 @@
           <div v-else class="warning-message">
             <i class="material-icons">warning</i>
             <div>
-              <strong>{{ $t('fileSizeAnalyzer.incompleteResults') }}</strong> {{ $t('fileSizeAnalyzer.incompleteResultsDetails') }}
+              <strong>{{ $t('fileSizeAnalyzer.incompleteResults') }}</strong> {{ $t('messages.incompleteResultsDetails', { max: maxGroups }) }}
             </div>
           </div>
 
@@ -141,6 +141,7 @@ export default {
       isInitializing: true,
       lastRequestTime: 0, // Track last request to prevent rapid-fire
       clickTracker: {}, // Track clicks for double-click detection
+      maxGroups: 500,
     };
   },
   computed: {
@@ -249,7 +250,7 @@ export default {
           this.minSizeValue,
           false // Checksum disabled
         );
-        
+
         // Reset selection when new results arrive
         mutations.resetSelected();
       } catch (err) {
@@ -340,26 +341,26 @@ export default {
       // Ensure the file path includes the full path from root
       // If searching in a subpath, the backend may return relative paths
       const searchPath = this.searchPath || '/';
-      
+
       // Normalize search path (ensure trailing slash is removed)
-      const normalizedSearchPath = searchPath === '/' || searchPath === '' 
-        ? '' 
+      const normalizedSearchPath = searchPath === '/' || searchPath === ''
+        ? ''
         : (searchPath.endsWith('/') ? searchPath.slice(0, -1) : searchPath);
-      
+
       // Check if the path already includes the search path prefix
-      if (filePath.startsWith(normalizedSearchPath + '/') || 
+      if (filePath.startsWith(normalizedSearchPath + '/') ||
           filePath === normalizedSearchPath ||
           (normalizedSearchPath === '' && filePath.startsWith('/'))) {
         // Path already has full context, just ensure leading slash
         return this.ensureLeadingSlash(filePath);
       }
-      
+
       // Path is relative to search path - prepend it
       if (normalizedSearchPath === '') {
         // Searching from root
         return this.ensureLeadingSlash(filePath);
       }
-      
+
       // Remove leading slash from file path if present before combining
       const cleanFilePath = filePath.startsWith('/') ? filePath.substring(1) : filePath;
       return normalizedSearchPath + '/' + cleanFilePath;
@@ -373,35 +374,35 @@ export default {
       // Prevent default ListingItem navigation since state.req isn't populated
       event.preventDefault();
       event.stopPropagation();
-      
+
       // Respect single-click vs double-click setting
       if (event.button === 0) {
         const quickNav = state.user.singleClick && !state.multiple;
-        
+
         if (quickNav) {
           // Single-click navigation enabled - go immediately
           this.navigateToFile(file);
         } else {
           // Double-click navigation - select on first click, navigate on second
-          
+
           // First click always selects the item using state.selected for proper CSS styling
           const uniqueIndex = this.getUniqueIndex(groupIndex, fileIndex);
           mutations.resetSelected();
           mutations.addSelected(uniqueIndex);
-          
+
           // Track clicks for double-click detection
           if (!this.clickTracker) {
             this.clickTracker = {};
           }
-          
+
           const fileKey = file.path;
           if (!this.clickTracker[fileKey]) {
             this.clickTracker[fileKey] = { count: 0, timeout: null };
           }
-          
+
           const tracker = this.clickTracker[fileKey];
           tracker.count++;
-          
+
           if (tracker.count >= 2) {
             // Double-click detected - navigate
             this.navigateToFile(file);
@@ -429,7 +430,7 @@ export default {
         source: this.selectedSource,
         path: this.$route.path,
       };
-      
+
       // Get the full path including search path context
       const filePath = this.getFullPath(file.path);
       url.goToItem(this.selectedSource, filePath, previousHistoryItem);

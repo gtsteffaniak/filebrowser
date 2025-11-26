@@ -29,7 +29,6 @@ func (t *TempDB) CreateDuplicatesTable() error {
 		extension TEXT NOT NULL,
 		UNIQUE(dir_path, file_idx)
 	);
-	
 	CREATE INDEX IF NOT EXISTS idx_size ON files(size);
 	CREATE INDEX IF NOT EXISTS idx_size_count ON files(size, normalized_name);
 	`
@@ -49,39 +48,37 @@ func (t *TempDB) InsertFileForDuplicates(dirPath string, fileIdx int, size int64
 }
 
 // GetSizeGroupsForDuplicates queries for all size groups that have 2+ files.
-// Returns a map of size -> list of file locations.
+// Returns sizes in descending order (largest first) as a slice, and a map of size -> count.
 // This is used to identify potential duplicate groups before detailed comparison.
-func (t *TempDB) GetSizeGroupsForDuplicates(minSize int64) (map[int64][]FileLocation, error) {
+// The SQL query efficiently filters and sorts, avoiding the need to create intermediate maps.
+func (t *TempDB) GetSizeGroupsForDuplicates(minSize int64) ([]int64, map[int64]int, error) {
+	// Query to get sizes with 2+ files, sorted by size DESC
 	rows, err := t.Query(`
-		SELECT size, dir_path, file_idx, name, normalized_name, extension
+		SELECT size, COUNT(*) as count
 		FROM files
 		WHERE size >= ?
-		ORDER BY size DESC, normalized_name
+		GROUP BY size
+		HAVING COUNT(*) >= 2
+		ORDER BY size DESC
 	`, minSize)
 	if err != nil {
-		return nil, fmt.Errorf("failed to query size groups: %w", err)
+		return nil, nil, fmt.Errorf("failed to query size groups: %w", err)
 	}
 	defer rows.Close()
 
-	sizeGroups := make(map[int64][]FileLocation)
+	var sizes []int64
+	sizeCounts := make(map[int64]int)
 	for rows.Next() {
 		var size int64
-		var loc FileLocation
-		if err := rows.Scan(&size, &loc.DirPath, &loc.FileIdx, &loc.Name, &loc.NormalizedName, &loc.Extension); err != nil {
-			return nil, fmt.Errorf("failed to scan row: %w", err)
+		var count int
+		if err := rows.Scan(&size, &count); err != nil {
+			return nil, nil, fmt.Errorf("failed to scan row: %w", err)
 		}
-		sizeGroups[size] = append(sizeGroups[size], loc)
+		sizes = append(sizes, size)
+		sizeCounts[size] = count
 	}
 
-	// Filter to only sizes with 2+ files (potential duplicates)
-	result := make(map[int64][]FileLocation)
-	for size, locations := range sizeGroups {
-		if len(locations) >= 2 {
-			result[size] = locations
-		}
-	}
-
-	return result, rows.Err()
+	return sizes, sizeCounts, rows.Err()
 }
 
 // GetFilesBySizeForDuplicates queries for all files with a specific size.
@@ -120,4 +117,3 @@ func BulkInsertFilesForDuplicates(tx *sql.Tx, dirPath string, fileIdx int, size 
 	)
 	return err
 }
-
