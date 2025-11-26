@@ -1162,12 +1162,6 @@ export default {
     height: 100%;
 }
 
-/* Force visibility of the buttons */
-.plyr.plyr--video .plyr__control[data-plyr="captions"],
-.plyr.plyr--video .plyr__control[data-plyr="pip"] {
-    display: block !important;
-}
-
 /* Hide captions button when there are no subtitle tracks */
 .video-player-container.no-captions .plyr__control[data-plyr="captions"] {
     display: none !important;
