@@ -46,7 +46,7 @@
         </div>
 
         <!-- Video with plyr -->
-        <div v-else-if="previewType == 'video' && !useDefaultMediaPlayer" class="video-player-container">
+        <div v-else-if="previewType == 'video' && !useDefaultMediaPlayer" class="video-player-container" :class="{ 'no-captions': !hasSubtitles }">
             <vue-plyr ref="videoPlayer" :options="plyrOptions">
                 <video :src="raw" :autoplay="shouldAutoPlay" @play="handlePlay" playsinline webkit-playsinline>
                     <track kind="captions" v-for="(sub, index) in subtitlesList" :key="index" :src="sub.src"
@@ -283,6 +283,9 @@ export default {
         },
         isPlaying() {
             return state.playbackQueue?.isPlaying || false;
+        },
+        hasSubtitles() {
+            return this.subtitlesList && this.subtitlesList.length > 0;
         },
     },
     mounted() {
@@ -1163,6 +1166,11 @@ export default {
 .plyr.plyr--video .plyr__control[data-plyr="captions"],
 .plyr.plyr--video .plyr__control[data-plyr="pip"] {
     display: block !important;
+}
+
+/* Hide captions button when there are no subtitle tracks */
+.video-player-container.no-captions .plyr__control[data-plyr="captions"] {
+    display: none !important;
 }
 
 /* Subtitles style */
