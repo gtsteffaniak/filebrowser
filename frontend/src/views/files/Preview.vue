@@ -307,6 +307,7 @@ export default {
                     subs.push({
                         name: subtitleTrack.name,
                         src: vttURL,
+                        language: subtitleTrack.language || ''
                     });
                 } else {
                     console.warn(
