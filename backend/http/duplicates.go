@@ -17,6 +17,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/database/sql"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 	"github.com/gtsteffaniak/go-cache/cache"
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 // duplicateSearchMutex serializes duplicate searches to run one at a time
@@ -117,17 +118,26 @@ func duplicatesHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions) []duplicateGroup {
 
 	// Create temporary SQLite database for streaming in cache directory
-	cacheDir := settings.Config.Server.CacheDir
-	tempDB, err := sql.NewTempDB(cacheDir)
+	tempDB, err := sql.NewTempDB("duplicates", &sql.TempDBConfig{
+		CacheSizeKB:   -2000,     // ~8MB, sufficient for small-medium datasets
+		MmapSize:      104857600, // 100MB - reasonable limit
+		Synchronous:   "OFF",     // Maximum write performance for temp DB
+		EnableLogging: false,
+	})
 	if err != nil {
 		// Return empty results if SQLite fails
 		return []duplicateGroup{}
 	}
 	defer tempDB.Close()
 
-	// Create the duplicates table
+	// Create the duplicates table with indexes
+	// Indexes are created before insert so they're immediately available for queries
+	tableStart := time.Now()
 	if err := tempDB.CreateDuplicatesTable(); err != nil {
 		return []duplicateGroup{}
+	}
+	if time.Since(tableStart) > 10*time.Millisecond {
+		logger.Debugf("[Duplicates] Table and index creation took %v", time.Since(tableStart))
 	}
 
 	// Step 1: Stream files into SQLite database
@@ -180,9 +190,10 @@ func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions) []dup
 	if err != nil {
 		return []duplicateGroup{}
 	}
-
 	// Step 3: Process each size group sequentially to minimize memory
 	duplicateGroups := []duplicateGroup{}
+	totalFileQueryTime := time.Duration(0)
+	fileQueryCount := 0
 
 	for _, size := range sizes {
 		// Stop if we've hit the group limit
@@ -191,7 +202,12 @@ func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions) []dup
 		}
 
 		// Get files for this size from SQLite
+		fileQueryStart := time.Now()
 		locations, err := tempDB.GetFilesBySizeForDuplicates(size)
+		fileQueryDuration := time.Since(fileQueryStart)
+		totalFileQueryTime += fileQueryDuration
+		fileQueryCount++
+
 		if err != nil || len(locations) < 2 {
 			continue
 		}
@@ -271,6 +287,13 @@ func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions) []dup
 				break
 			}
 		}
+	}
+
+	// Log aggregate query performance
+	if fileQueryCount > 0 {
+		avgFileQueryTime := totalFileQueryTime / time.Duration(fileQueryCount)
+		logger.Debugf("[Duplicates] File-by-size queries: %d queries, total %v, avg %v per query",
+			fileQueryCount, totalFileQueryTime, avgFileQueryTime)
 	}
 
 	// Groups are already sorted by size (largest to smallest) from SQL query

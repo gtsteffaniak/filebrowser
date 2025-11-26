@@ -15,8 +15,10 @@ type FileLocation struct {
 	Extension      string
 }
 
-// CreateDuplicatesTable creates the files table needed for duplicate detection.
+// CreateDuplicatesTable creates the files table and indexes needed for duplicate detection.
 // This should be called once after creating a TempDB for duplicate operations.
+// Indexes are created before data insertion so they're immediately available for queries.
+// For small datasets (typical for duplicate detection), the performance difference is negligible.
 func (t *TempDB) CreateDuplicatesTable() error {
 	createTableSQL := `
 	CREATE TABLE IF NOT EXISTS files (
