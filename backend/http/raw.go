@@ -73,20 +73,18 @@ func toASCIIFilename(fileName string) string {
 }
 
 func setContentDisposition(w http.ResponseWriter, r *http.Request, fileName string) {
-	useUTF8 := r.URL.Query().Get("utf-8") == "true"
 	dispositionType := "attachment"
 	if r.URL.Query().Get("inline") == "true" {
 		dispositionType = "inline"
 	}
 
-	if useUTF8 {
-		// Use RFC6266 extended format for UTF-8 support
-		w.Header().Set("Content-Disposition", fmt.Sprintf("%s; filename*=utf-8''%s", dispositionType, url.PathEscape(fileName)))
-	} else {
-		// Default to ASCII-safe filename
-		asciiFileName := toASCIIFilename(fileName)
-		w.Header().Set("Content-Disposition", fmt.Sprintf("%s; filename=%q", dispositionType, asciiFileName))
-	}
+	// standard: ASCII-only safe fallback
+	asciiFileName := toASCIIFilename(fileName)
+	// RFC 5987: UTF-8 encoded
+	encodedFileName := url.PathEscape(fileName)
+
+	// Always set both filename (ASCII) and filename* (UTF-8) for maximum compatibility (RFC 6266)
+	w.Header().Set("Content-Disposition", fmt.Sprintf("%s; filename=%q; filename*=utf-8''%s", dispositionType, asciiFileName, encodedFileName))
 }
 
 // rawHandler serves the raw content of a file, multiple files, or directory in various formats.
@@ -94,10 +92,10 @@ func setContentDisposition(w http.ResponseWriter, r *http.Request, fileName stri
 // @Description Returns the raw content of a file, multiple files, or a directory. Supports downloading files as archives in various formats.
 // @Description
 // @Description **Filename Encoding:**
-// @Description - By default, filenames are converted to ASCII-safe format (non-ASCII characters replaced with underscores) for maximum API compatibility.
-// @Description - Set `utf-8=true` query parameter to enable UTF-8 filename support using RFC6266 extended format (`filename*=utf-8”...`).
-// @Description - The frontend automatically requests with `utf-8=true` and parses the extended format.
-// @Description - For direct API access, the default ASCII format ensures compatibility with all clients.
+// @Description - The Content-Disposition header will always include both:
+// @Description   1. `filename="..."`: An ASCII-safe version of the filename for compatibility.
+// @Description   2. `filename*=utf-8”...`: The full UTF-8 encoded filename (RFC 6266/5987) for modern clients.
+// @Description - Clients should prioritize `filename*` if supported.
 // @Tags Resources
 // @Accept json
 // @Produce json
@@ -424,6 +422,7 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 		}
 		// serve content allows for range requests.
 		// video scrubbing, etc.
+		// Note: http.ServeContent will respect our already-set Content-Disposition header
 		var reader io.ReadSeeker = fd
 		if d.share != nil && d.share.MaxBandwidth > 0 {
 			// convert KB/s to B/s
