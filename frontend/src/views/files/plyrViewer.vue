@@ -22,7 +22,7 @@
                 </div>
 
                 <!-- Metadata info -->
-                <div class="notification-info" v-if="metadata">
+                <div class="audio-metadata" v-if="metadata">
                     <div class="audio-title">
                         {{ metadata.title || req.name }}
                     </div>
@@ -46,11 +46,11 @@
         </div>
 
         <!-- Video with plyr -->
-        <div v-else-if="previewType == 'video' && !useDefaultMediaPlayer" class="video-player-container">
+        <div v-else-if="previewType == 'video' && !useDefaultMediaPlayer" class="video-player-container" :class="{ 'no-captions': !hasSubtitles }">
             <vue-plyr ref="videoPlayer" :options="plyrOptions">
                 <video :src="raw" :autoplay="shouldAutoPlay" @play="handlePlay" playsinline webkit-playsinline>
                     <track kind="captions" v-for="(sub, index) in subtitlesList" :key="index" :src="sub.src"
-                        :label="'Subtitle ' + sub.name" :default="index === 0" />
+                        :label="'Subtitle ' + sub.name" :default="false" />
                 </video>
             </vue-plyr>
         </div>
@@ -97,15 +97,15 @@
             <span v-if="queueCount > 0" class="queue-count">{{ queueCount }}</span>
         </button>
 
-        <!-- Toast that shows when you press "P" or "L" on the media player -->
-        <div :class="['loop-toast', toastVisible ? 'visible' : '']">
+        <!-- Toast that shows when you change playback modes in the media player -->
+        <div :class="['playback-toast', toastVisible ? 'visible' : '']">
             <!-- Loop icon for "single playback", "loop single file" and "loop all files" -->
-            <i v-if="playbackMode === 'single' || playbackMode === 'loop-single' || playbackMode === 'loop-all'" class="material-icons loop-icon">
+            <i v-if="playbackMode === 'single' || playbackMode === 'loop-single' || playbackMode === 'loop-all'" class="material-icons">
                 <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
                 {{ playbackMode === 'loop-single' ? 'repeat_one' : 'repeat' }}
             </i>
-            <i v-else-if="playbackMode === 'shuffle'" class="material-icons shuffle-icon">shuffle</i>
-            <i v-else class="material-icons sequential-icon">playlist_play</i>
+            <i v-else-if="playbackMode === 'shuffle'" class="material-icons">shuffle</i>
+            <i v-else class="material-icons">playlist_play</i>
 
             <span>{{
                 playbackMode === 'sequential' ? $t('player.PlayAllOncePlayback') :
@@ -241,7 +241,6 @@ export default {
                     this.setupPlaybackQueue(forceReshuffle);
                     this.$nextTick(() => {
                         this.ensurePlaybackModeApplied();
-                        this.syncMediaLoopState();
                     });
                 }
             },
@@ -284,6 +283,9 @@ export default {
         },
         isPlaying() {
             return state.playbackQueue?.isPlaying || false;
+        },
+        hasSubtitles() {
+            return this.subtitlesList && this.subtitlesList.length > 0;
         },
     },
     mounted() {
@@ -410,7 +412,6 @@ export default {
                 currentIndex: this.currentQueueIndex,
                 mode: newMode
             });
-            this.syncMediaLoopState();
             this.showToast();
         },
         handleKeydown(event) {
@@ -447,7 +448,6 @@ export default {
                 currentIndex: this.currentQueueIndex,
                 mode: newMode
             });
-            this.syncMediaLoopState();
             this.showToast();
         },
         showToast() {
@@ -457,7 +457,7 @@ export default {
             this.toastVisible = true;
             this.toastTimeout = setTimeout(() => {
                 this.toastVisible = false;
-            }, 2000);
+            }, 1500);
         },
         async updateMedia() {
             await this.handleAutoPlay();
@@ -979,10 +979,6 @@ export default {
                                     currentIndex: this.currentQueueIndex,
                                     mode: value
                                 });
-
-                                // Sync media loop state
-                                this.syncMediaLoopState();
-
                                 // Show toast
                                 this.showToast();
                             });
@@ -1008,23 +1004,6 @@ export default {
             // If settings element is present in plyr, setup custom settings
             if (player.elements?.settings) {
                 this.applyCustomPlaybackSettings(player);
-            }
-        },
-        syncMediaLoopState() {
-            const player = this.getCurrentPlayer();
-            if (!player) return;
-
-            // Only enable loop for "Loop Current" mode
-            const shouldLoop = this.playbackMode === 'loop-single';
-
-            if (this.useDefaultMediaPlayer) {
-                // HTML5 player
-                player.loop = shouldLoop;
-            } else {
-                // Plyr player
-                if (player.player) {
-                    player.player.loop = shouldLoop;
-                }
             }
         },
     },
@@ -1183,10 +1162,28 @@ export default {
     height: 100%;
 }
 
-/* Force visibility of the buttons */
-.plyr.plyr--video .plyr__control[data-plyr="captions"],
-.plyr.plyr--video .plyr__control[data-plyr="pip"] {
-    display: block !important;
+/* Hide captions button when there are no subtitle tracks */
+.video-player-container.no-captions .plyr__control[data-plyr="captions"] {
+    display: none !important;
+}
+
+/* Subtitles style */
+.plyr__captions {
+    font-size: max(24px, 4.5vmin) !important;
+    line-height: 150% !important; /* Line height needs to be in both, if not we'll not override the default of plyr */
+    text-shadow:  /* The multiples shadows are for better readability since we are using a transparent background */
+        0 0 6px #000,
+        0 0 6px #000,
+        0 0 6px #000,
+        0 0 6px #000,
+        0 0 6px #000 !important;
+    font-weight: 700 !important;
+    -webkit-font-smoothing: antialiased;
+}
+
+.plyr__caption {
+    background: transparent !important;
+    line-height: 150% !important;
 }
 
 /************
@@ -1322,13 +1319,13 @@ export default {
 }
 
 .audio-title {
-    font-size: clamp(1.2rem, 4vw, 1.5rem);
+    font-size: max(1.4rem, 3.1vmin);
     font-weight: bold;
     margin-bottom: 8px;
     word-break: break-word;
 }
 
-.notification-info {
+.audio-metadata {
    text-align: center;
    color: whitesmoke;
    box-sizing: border-box;
@@ -1339,7 +1336,7 @@ export default {
 .audio-artist,
 .audio-album,
 .audio-year {
-    font-size: clamp(1rem, 3vw, 1.1rem);
+    font-size: max(1.2rem, 2.5vmin);
     opacity: 0.8;
     margin-bottom: 5px;
     word-break: break-word;
@@ -1358,7 +1355,7 @@ export default {
         padding-top: 1em;
     }
 
-    .notification-info {
+    .audio-metadata {
         padding: 12px 15px;
     }
 
@@ -1366,14 +1363,6 @@ export default {
         width: min(280px, 70vw);
         height: min(280px, 70vw);
         margin-top: 10px;
-    }
-}
-
-/* For ultra-wide screens. This need test, I'm not sure if will work correctly */
-@media (min-width: 1600px) {
-    .album-art-container {
-        width: min(400px, 25vw);
-        height: min(400px, 25vw);
     }
 }
 
@@ -1387,9 +1376,7 @@ export default {
     }
 
     .audio-player-content {
-        display: flex;
         flex-direction: row;
-        justify-content: center;
         align-items: center;
         gap: 1.5em;
         width: auto;
@@ -1397,7 +1384,7 @@ export default {
         margin: 0 auto;
     }
 
-    .notification-info {
+    .audio-metadata {
         text-align: left;
         margin: 0;
         padding: 15px;
@@ -1413,16 +1400,6 @@ export default {
         height: min(150px, 30vh);
         margin: 0;
         flex-shrink: 0;
-    }
-
-    .audio-title {
-      font-size: clamp(1rem, 3vw, 1.3rem);
-    }
-
-    .audio-artist,
-    .audio-album,
-    .audio-year {
-      font-size: clamp(0.85rem, 2vw, 1rem);
     }
 }
 
@@ -1521,15 +1498,15 @@ export default {
     }
 }
 
-/*****************
-*** LOOP TOAST ***
-*****************/
+/*********************
+*** PLAYBACK TOAST ***
+**********************/
 
-.loop-toast {
+.playback-toast {
     position: fixed;
     bottom: 50px;
     left: 50%;
-    transform: translateZ(0);
+    transform: translateX(-50%);
     background: rgba(0, 0, 0, 0.8);
     color: white;
     padding: 15px 25px;
@@ -1546,11 +1523,11 @@ export default {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-.loop-toast.visible {
+.playback-toast.visible {
     opacity: 1;
 }
 
-.loop-toast .material-icons {
+.playback-toast .material-icons {
     font-size: 24px;
     color: white;
     width: 24px;
