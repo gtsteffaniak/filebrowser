@@ -2370,10 +2370,9 @@ paths:
         Returns the raw content of a file, multiple files, or a directory. Supports downloading files as archives in various formats.
 
         **Filename Encoding:**
-        - By default, filenames are converted to ASCII-safe format (non-ASCII characters replaced with underscores) for maximum API compatibility.
-        - Set `utf-8=true` query parameter to enable UTF-8 filename support using RFC6266 extended format (`filename*=utf-8”...`).
-        - The frontend automatically requests with `utf-8=true` and parses the extended format.
-        - For direct API access, the default ASCII format ensures compatibility with all clients.
+        - The Content-Disposition header will always include both:
+        1. `filename="..."`: An ASCII-safe version of the filename for compatibility.
+        2. `filename*=utf-8”...`: The full UTF-8 encoded filename (RFC 6266/5987) for modern clients.
       parameters:
       - description: a list of files in the following format 'source::filename' and
           separated by '||' with additional items in the list. (required)
@@ -2391,14 +2390,6 @@ paths:
         in: query
         name: algo
         type: string
-      - description: If true, enables UTF-8 filename support using RFC6266 extended
-          format. Default is false (ASCII-safe filenames). Set to true when the client
-          can parse RFC6266 format.
-        in: query
-        name: utf-8
-        type: boolean
-      produces:
-      - application/json
       responses:
         "200":
           description: Raw file or directory content, or archive for multiple files

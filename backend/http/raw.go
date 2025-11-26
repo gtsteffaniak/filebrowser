@@ -95,14 +95,11 @@ func setContentDisposition(w http.ResponseWriter, r *http.Request, fileName stri
 // @Description - The Content-Disposition header will always include both:
 // @Description   1. `filename="..."`: An ASCII-safe version of the filename for compatibility.
 // @Description   2. `filename*=utf-8”...`: The full UTF-8 encoded filename (RFC 6266/5987) for modern clients.
-// @Description - Clients should prioritize `filename*` if supported.
 // @Tags Resources
 // @Accept json
-// @Produce json
 // @Param files query string true "a list of files in the following format 'source::filename' and separated by '||' with additional items in the list. (required)"
 // @Param inline query bool false "If true, sets 'Content-Disposition' to 'inline'. Otherwise, defaults to 'attachment'."
 // @Param algo query string false "Compression algorithm for archiving multiple files or directories. Options: 'zip' and 'tar.gz'. Default is 'zip'."
-// @Param utf-8 query bool false "If true, enables UTF-8 filename support using RFC6266 extended format. Default is false (ASCII-safe filenames). Set to true when the client can parse RFC6266 format."
 // @Success 200 {file} file "Raw file or directory content, or archive for multiple files"
 // @Failure 202 {object} map[string]string "Modify permissions required"
 // @Failure 400 {object} map[string]string "Invalid request path"
