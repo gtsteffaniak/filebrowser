@@ -51,7 +51,7 @@
           <div v-else class="warning-message">
             <i class="material-icons">warning</i>
             <div>
-              <strong>{{ $t('fileSizeAnalyzer.incompleteResults') }}</strong> {{ $t('fileSizeAnalyzer.incompleteResultsDetails') }}
+              <strong>{{ $t('fileSizeAnalyzer.incompleteResults') }}</strong> {{ $t('messages.incompleteResultsDetails', { max: 100 }) }}
             </div>
           </div>
 
