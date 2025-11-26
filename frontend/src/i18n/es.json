@@ -738,7 +738,6 @@
     "emptyState": "Introduce los criterios de búsqueda y haz clic en \"Analizar\" para visualizar el tamaño de los archivos",
     "completeResults": "Análisis completo",
     "incompleteResults": "Los resultados podrían estar incompletos",
-    "incompleteResultsDetails": "Solo se mostraran 100 resultados como máximo. Intenta restringir la búsqueda para obtener mejores resultados",
     "relativePercentage": "Porcentaje relativo{suffix}",
     "percentageOfResults": "{percentage}% de los resultados"
   },
@@ -786,7 +785,8 @@
     "pathNotFoundMessage": "La ruta ya no existe en el sistema de archivos. Quizá fue movida o borrada",
     "reassignPath": "Reasignar ruta",
     "pathReassigned": "¡La ruta se actualizó correctamente!",
-    "pathReassignFailed": "No se ha podido actualizar la ruta. Inténtalo de nuevo"
+    "pathReassignFailed": "No se ha podido actualizar la ruta. Inténtalo de nuevo",
+    "incompleteResultsDetails": "Mostrando resultados máximos ({max}). Intente restringir la búsqueda para obtener más resultados en {max}."
   },
   "duplicateFinder": {
     "title": "Buscador de archivos duplicados",

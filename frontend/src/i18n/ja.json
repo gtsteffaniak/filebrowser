@@ -738,7 +738,6 @@
     "emptyState": "検索条件を入力し、「分析」をクリックするとファイルサイズが可視化されます。",
     "completeResults": "完全な結果を示す！",
     "incompleteResults": "結果は不完全かもしれない",
-    "incompleteResultsDetails": "最大結果(100)を表示しています。検索結果を100件以下に絞り込んでください。",
     "relativePercentage": "相対パーセンテージ{suffix}",
     "percentageOfResults": "{percentage}結果の割合"
   },
@@ -786,7 +785,8 @@
     "pathNotFoundMessage": "このパスはファイルシステム上に存在しません。移動または削除された可能性があります。",
     "reassignPath": "パスの再割り当て",
     "pathReassigned": "パスは正常に更新されました！",
-    "pathReassignFailed": "パスの更新に失敗しました。再試行してください。"
+    "pathReassignFailed": "パスの更新に失敗しました。再試行してください。",
+    "incompleteResultsDetails": "最大結果を表示 ({max}).{max} でより多くの結果を得るために絞り込んで検索してみてください。"
   },
   "duplicateFinder": {
     "title": "重複ファイルファインダー",

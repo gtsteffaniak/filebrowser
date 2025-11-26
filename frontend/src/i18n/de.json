@@ -738,7 +738,6 @@
     "emptyState": "Geben Sie Suchkriterien ein und klicken Sie auf Analysieren, um die Dateigrößen zu visualisieren.",
     "completeResults": "Vollständige Ergebnisse werden angezeigt!",
     "incompleteResults": "Ergebnisse können unvollständig sein",
-    "incompleteResultsDetails": "Zeige maximale Ergebnisse (100). Versuchen Sie, Ihre Suche einzuschränken, um mehr Ergebnisse unter 100 zu erhalten.",
     "relativePercentage": "Relativer Prozentsatz{suffix}",
     "percentageOfResults": "{percentage}% der Ergebnisse"
   },
@@ -786,7 +785,8 @@
     "pathNotFoundMessage": "Der Pfad hierfür existiert nicht mehr im Dateisystem. Er kann verschoben oder gelöscht worden sein.",
     "reassignPath": "Pfad neu zuweisen",
     "pathReassigned": "Pfad erfolgreich aktualisiert!",
-    "pathReassignFailed": "Der Pfad konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut."
+    "pathReassignFailed": "Der Pfad konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut.",
+    "incompleteResultsDetails": "Zeigt max Ergebnisse ({max}). Versuchen Sie, Ihre Suche einzugrenzen, um mehr Ergebnisse unter {max} zu erhalten."
   },
   "duplicateFinder": {
     "title": "Duplicate File Finder",
