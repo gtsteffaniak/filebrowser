@@ -4,7 +4,8 @@
     "pathNotFoundMessage": "The path for this no longer exists on the filesystem. It may have been moved or deleted.",
     "reassignPath": "Reassign Path",
     "pathReassigned": "Path successfully updated!",
-    "pathReassignFailed": "Failed to update path. Please try again."
+    "pathReassignFailed": "Failed to update path. Please try again.",
+    "incompleteResultsDetails": "Showing max results ({max}). Try narrowing your search to get more results under {max}."
   },
   "general": {
     "name": "Name{suffix}",
@@ -745,7 +746,6 @@
     "emptyState": "Enter search criteria and click Analyze to visualize file sizes",
     "completeResults": "Complete results shown!",
     "incompleteResults": "Results may be incomplete",
-    "incompleteResultsDetails": "Showing max results (100). Try narrowing your search to get more results under 100.",
     "relativePercentage": "Relative Percentage{suffix}",
     "percentageOfResults": "{percentage}% of results"
   },

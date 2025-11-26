@@ -738,7 +738,6 @@
     "emptyState": "Zadejte kritéria vyhledávání a kliknutím na tlačítko Analyzovat zobrazte velikosti souborů.",
     "completeResults": "Zobrazeny kompletní výsledky!",
     "incompleteResults": "Výsledky mohou být neúplné",
-    "incompleteResultsDetails": "Zobrazují se maximální výsledky (100). Zkuste zúžit vyhledávání, abyste získali více výsledků pod 100.",
     "relativePercentage": "Relativní procento{suffix}",
     "percentageOfResults": "{percentage}% výsledků"
   },
@@ -786,7 +785,8 @@
     "pathNotFoundMessage": "Cesta k němu již v souborovém systému neexistuje. Mohla být přesunuta nebo odstraněna.",
     "reassignPath": "Změna přiřazení cesty",
     "pathReassigned": "Cesta byla úspěšně aktualizována!",
-    "pathReassignFailed": "Nepodařilo se aktualizovat cestu. Zkuste to prosím znovu."
+    "pathReassignFailed": "Nepodařilo se aktualizovat cestu. Zkuste to prosím znovu.",
+    "incompleteResultsDetails": "Zobrazeno max. výsledků ({max}). Zkuste zúžit hledání a získat více výsledků pod {max}."
   },
   "duplicateFinder": {
     "title": "Vyhledávač duplicitních souborů",

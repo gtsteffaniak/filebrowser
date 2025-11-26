@@ -738,7 +738,6 @@
     "emptyState": "Arama kriterlerini girin ve dosya boyutlarını görselleştirmek için Analiz Et'e tıklayın",
     "completeResults": "Tam sonuçlar gösterilmektedir!",
     "incompleteResults": "Sonuçlar eksik olabilir",
-    "incompleteResultsDetails": "Maksimum sonuç gösteriliyor (100). 100'ün altında daha fazla sonuç almak için aramanızı daraltmayı deneyin.",
     "relativePercentage": "Göreceli Yüzde{suffix}",
     "percentageOfResults": "{percentage}Sonuçların %'si"
   },
@@ -786,7 +785,8 @@
     "pathNotFoundMessage": "Bunun yolu artık dosya sisteminde mevcut değil. Taşınmış veya silinmiş olabilir.",
     "reassignPath": "Yolu Yeniden Atayın",
     "pathReassigned": "Yol başarıyla güncellendi!",
-    "pathReassignFailed": "Yol güncellenemedi. Lütfen tekrar deneyin."
+    "pathReassignFailed": "Yol güncellenemedi. Lütfen tekrar deneyin.",
+    "incompleteResultsDetails": "Maksimum sonuç gösteriliyor ({max}). {max} altında daha fazla sonuç almak için aramanızı daraltmayı deneyin."
   },
   "duplicateFinder": {
     "title": "Yinelenen Dosya Bulucu",

@@ -738,7 +738,6 @@
     "emptyState": "Saisissez des critères de recherche et cliquez sur Analyser pour visualiser la taille des fichiers.",
     "completeResults": "Résultats complets affichés !",
     "incompleteResults": "Les résultats peuvent être incomplets",
-    "incompleteResultsDetails": "Résultats maximums (100). Essayez d'affiner votre recherche pour obtenir plus de résultats en dessous de 100.",
     "relativePercentage": "Pourcentage relatif{suffix}",
     "percentageOfResults": "{percentage}% de résultats"
   },
@@ -786,7 +785,8 @@
     "pathNotFoundMessage": "Le chemin d'accès n'existe plus dans le système de fichiers. Il peut avoir été déplacé ou supprimé.",
     "reassignPath": "Réaffecter le chemin",
     "pathReassigned": "Mise à jour du chemin d'accès réussie !",
-    "pathReassignFailed": "Échec de la mise à jour du chemin d'accès. Veuillez réessayer."
+    "pathReassignFailed": "Échec de la mise à jour du chemin d'accès. Veuillez réessayer.",
+    "incompleteResultsDetails": "Résultats maximums ({max}). Essayez d'affiner votre recherche pour obtenir plus de résultats sous {max}."
   },
   "duplicateFinder": {
     "title": "Recherche de fichiers en double",

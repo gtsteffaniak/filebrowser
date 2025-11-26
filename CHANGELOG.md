@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v1.1.2-beta
+
+ **Notes**:
+ - changes to duplicate detector
+   - temp SQLite database each query to reduce memory pressure
+   - max limit is 500 groups total
+
+ **BugFixes**:
+ - a
+
 ## v1.1.1-beta
 
  **Notes**:

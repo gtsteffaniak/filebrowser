@@ -738,7 +738,6 @@
     "emptyState": "Adja meg a keresési feltételeket, és kattintson az Elemzés gombra a fájlméretek megjelenítéséhez.",
     "completeResults": "Teljes körű eredmények megjelenítése!",
     "incompleteResults": "Az eredmények hiányosak lehetnek",
-    "incompleteResultsDetails": "Maximális eredmények megjelenítése (100). Próbálja szűkíteni a keresést, hogy több eredményt kapjon 100 alatt.",
     "relativePercentage": "Relatív százalékos arány{suffix}",
     "percentageOfResults": "{percentage}% az eredményekből"
   },
@@ -786,7 +785,8 @@
     "pathNotFoundMessage": "A fájlrendszerben már nem létezik az elérési útvonal. Lehet, hogy áthelyezték vagy törölték.",
     "reassignPath": "Útvonal újbóli kijelölése",
     "pathReassigned": "Az útvonal sikeresen frissült!",
-    "pathReassignFailed": "Nem sikerült frissíteni az elérési utat. Kérjük, próbálja újra."
+    "pathReassignFailed": "Nem sikerült frissíteni az elérési utat. Kérjük, próbálja újra.",
+    "incompleteResultsDetails": "Maximális eredmények megjelenítése ({max}). Próbálja szűkíteni a keresést, hogy több eredményt kapjon a {max} alatt ."
   },
   "duplicateFinder": {
     "title": "Duplikátum fájl kereső",

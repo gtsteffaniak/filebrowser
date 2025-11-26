@@ -738,7 +738,6 @@
     "emptyState": "Immettere i criteri di ricerca e fare clic su Analizza per visualizzare le dimensioni dei file.",
     "completeResults": "Mostra i risultati completi!",
     "incompleteResults": "I risultati possono essere incompleti",
-    "incompleteResultsDetails": "Risultati massimi (100). Provi a restringere la ricerca per ottenere più risultati al di sotto di 100.",
     "relativePercentage": "Percentuale relativa{suffix}",
     "percentageOfResults": "{percentage}% dei risultati"
   },
@@ -786,7 +785,8 @@
     "pathNotFoundMessage": "Il percorso di questo file non esiste più nel filesystem. Potrebbe essere stato spostato o cancellato.",
     "reassignPath": "Riassegnare il percorso",
     "pathReassigned": "Il percorso è stato aggiornato con successo!",
-    "pathReassignFailed": "Non è stato possibile aggiornare il percorso. Riprovare."
+    "pathReassignFailed": "Non è stato possibile aggiornare il percorso. Riprovare.",
+    "incompleteResultsDetails": "Mostra i risultati massimi ({max}). Prova a restringere la ricerca per ottenere più risultati sotto {max}."
   },
   "duplicateFinder": {
     "title": "Trova file duplicati",
