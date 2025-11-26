@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file. For commit 
  - better index status updates, fixing delays #1649
  - fixed long load times for listings with media info due sequential processing of files.
  - downloaded files always included `utf-8` in filename
+ - custom sidebar links allow external links like `https://google.com`
 
 ## v1.1.1-beta
 

@@ -118,7 +118,8 @@ export default {
     getLinkHref(link) {
       // Add baseURL to target for href display
       if (!link.target) return '#';
-      if (link.target.startsWith('http://') || link.target.startsWith('https://')) return link.target;
+      const lowerTarget = link.target.toLowerCase();
+      if (lowerTarget.startsWith('http://') || lowerTarget.startsWith('https://')) return link.target;
 
       const baseURL = globalVars.baseURL || '';
       let fullPath = '';
@@ -234,6 +235,11 @@ export default {
         return;
       }
 
+      const lowerTarget = link.target.toLowerCase();
+      if (lowerTarget.startsWith('http://') || lowerTarget.startsWith('https://')) {
+        window.open(link.target, "_blank");
+        return;
+      }
       // For all other links (tools, custom, share), navigate using target directly
       if (link.target) {
         this.$router.push(link.target);
