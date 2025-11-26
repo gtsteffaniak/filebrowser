@@ -738,7 +738,6 @@
     "emptyState": "Voer zoekcriteria in en klik op Analyseren om bestandsgroottes te visualiseren",
     "completeResults": "Volledige resultaten getoond!",
     "incompleteResults": "Resultaten kunnen onvolledig zijn",
-    "incompleteResultsDetails": "Max. resultaten (100). Probeer je zoekopdracht te verfijnen om meer resultaten onder de 100 te krijgen.",
     "relativePercentage": "Relatief percentage{suffix}",
     "percentageOfResults": "{percentage}% resultaten"
   },
@@ -786,7 +785,8 @@
     "pathNotFoundMessage": "Het pad hiervoor bestaat niet meer op het bestandssysteem. Het kan verplaatst of verwijderd zijn.",
     "reassignPath": "Pad opnieuw toewijzen",
     "pathReassigned": "Pad succesvol bijgewerkt!",
-    "pathReassignFailed": "Het bijwerken van het pad is mislukt. Probeer het opnieuw."
+    "pathReassignFailed": "Het bijwerken van het pad is mislukt. Probeer het opnieuw.",
+    "incompleteResultsDetails": "Max resultaten ({max}). Probeer uw zoekopdracht te verfijnen voor meer resultaten onder {max}."
   },
   "duplicateFinder": {
     "title": "Duplicaat bestand zoeken",

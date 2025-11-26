@@ -133,7 +133,7 @@ func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions) []dup
 	// Create the duplicates table with indexes
 	// Indexes are created before insert so they're immediately available for queries
 	tableStart := time.Now()
-	if err := tempDB.CreateDuplicatesTable(); err != nil {
+	if err = tempDB.CreateDuplicatesTable(); err != nil {
 		return []duplicateGroup{}
 	}
 	if time.Since(tableStart) > 10*time.Millisecond {
@@ -150,7 +150,9 @@ func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions) []dup
 	// Prepare statement for bulk inserts
 	stmt, err := tx.Prepare("INSERT OR IGNORE INTO files (dir_path, file_idx, size, name, normalized_name, extension) VALUES (?, ?, ?, ?, ?, ?)")
 	if err != nil {
-		tx.Rollback()
+		if err2 := tx.Rollback(); err2 != nil {
+			logger.Errorf("[Duplicates] Failed to rollback transaction: %v", err2)
+		}
 		return []duplicateGroup{}
 	}
 	defer stmt.Close()
@@ -171,7 +173,7 @@ func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions) []dup
 					extension := strings.ToLower(filepath.Ext(file.Name))
 
 					// Insert into SQLite (will be committed in batch)
-					_, err := stmt.Exec(dirPath, i, file.Size, file.Name, normalizedName, extension)
+					_, err = stmt.Exec(dirPath, i, file.Size, file.Name, normalizedName, extension)
 					if err != nil && insertErr == nil {
 						insertErr = err
 					}

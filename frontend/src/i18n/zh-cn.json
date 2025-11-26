@@ -738,7 +738,6 @@
     "emptyState": "输入搜索条件并点击分析，即可直观查看文件大小",
     "completeResults": "显示完整结果！",
     "incompleteResults": "结果可能不完整",
-    "incompleteResultsDetails": "显示最多结果 (100)。请尝试缩小搜索范围，以获得更多低于 100 的结果。",
     "relativePercentage": "相对百分比{suffix}",
     "percentageOfResults": "{percentage}结果百分比"
   },
@@ -786,7 +785,8 @@
     "pathNotFoundMessage": "文件系统中已不存在此路径。可能已被移动或删除。",
     "reassignPath": "重新分配路径",
     "pathReassigned": "路径更新成功！",
-    "pathReassignFailed": "更新路径失败。请重试。"
+    "pathReassignFailed": "更新路径失败。请重试。",
+    "incompleteResultsDetails": "显示最大结果 ({max})。请尝试缩小搜索范围，以获得{max} 下的更多结果。"
   },
   "duplicateFinder": {
     "title": "重复文件查找器",

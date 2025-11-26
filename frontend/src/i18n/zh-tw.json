@@ -738,7 +738,6 @@
     "emptyState": "輸入搜尋準則，然後按一下「分析」以顯示檔案大小",
     "completeResults": "顯示完整結果！",
     "incompleteResults": "結果可能不完整",
-    "incompleteResultsDetails": "顯示最大結果 (100)。請嘗試縮小搜尋範圍，以獲得更多低於 100 的結果。",
     "relativePercentage": "相對百分比{suffix}",
     "percentageOfResults": "{percentage}結果百分比"
   },
@@ -786,7 +785,8 @@
     "pathNotFoundMessage": "檔案系統中已不存在此路徑。它可能已被移動或刪除。",
     "reassignPath": "重新指定路徑",
     "pathReassigned": "路徑已成功更新！",
-    "pathReassignFailed": "更新路徑失敗。請再試一次。"
+    "pathReassignFailed": "更新路徑失敗。請再試一次。",
+    "incompleteResultsDetails": "顯示最大結果 ({max})。請嘗試縮小搜尋範圍，以獲得更多{max} 下的結果。"
   },
   "duplicateFinder": {
     "title": "重複檔案搜尋器",

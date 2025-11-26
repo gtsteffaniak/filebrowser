@@ -738,7 +738,6 @@
     "emptyState": "הזן את קריטריוני החיפוש ולחץ על \"Analyze\" (נתח) כדי להציג את גודל הקבצים",
     "completeResults": "תוצאות מלאות מוצגות!",
     "incompleteResults": "התוצאות עשויות להיות חלקיות",
-    "incompleteResultsDetails": "הצגת תוצאות מקסימליות (100). נסה לצמצם את החיפוש כדי לקבל יותר מ-100 תוצאות.",
     "relativePercentage": "אחוז יחסי{suffix}",
     "percentageOfResults": "{percentage}אחוז התוצאות"
   },
@@ -786,7 +785,8 @@
     "pathNotFoundMessage": "הנתיב הזה כבר לא קיים במערכת הקבצים. ייתכן שהוא הועבר או נמחק.",
     "reassignPath": "הקצאת נתיב מחדש",
     "pathReassigned": "הנתיב עודכן בהצלחה!",
-    "pathReassignFailed": "לא ניתן לעדכן את הנתיב. אנא נסה שוב."
+    "pathReassignFailed": "לא ניתן לעדכן את הנתיב. אנא נסה שוב.",
+    "incompleteResultsDetails": "הצגת תוצאות מקסימליות ({max}). נסה לצמצם את החיפוש כדי לקבל תוצאות נוספות תחת {max}."
   },
   "duplicateFinder": {
     "title": "מאתר קבצים כפולים",

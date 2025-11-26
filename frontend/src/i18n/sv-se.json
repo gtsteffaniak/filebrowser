@@ -738,7 +738,6 @@
     "emptyState": "Ange sökkriterier och klicka på Analyze för att visualisera filstorlekar",
     "completeResults": "Fullständiga resultat visas!",
     "incompleteResults": "Resultaten kan vara ofullständiga",
-    "incompleteResultsDetails": "Visar max resultat (100). Försök att begränsa din sökning för att få fler resultat under 100.",
     "relativePercentage": "Relativ procentandel{suffix}",
     "percentageOfResults": "{percentage}% av resultat"
   },
@@ -786,7 +785,8 @@
     "pathNotFoundMessage": "Sökvägen för detta finns inte längre på filsystemet. Den kan ha flyttats eller tagits bort.",
     "reassignPath": "Omfördela sökväg",
     "pathReassigned": "Sökvägen har uppdaterats!",
-    "pathReassignFailed": "Misslyckades med att uppdatera sökvägen. Vänligen försök igen."
+    "pathReassignFailed": "Misslyckades med att uppdatera sökvägen. Vänligen försök igen.",
+    "incompleteResultsDetails": "Visar max resultat ({max}). Försök att begränsa din sökning för att få fler resultat under {max}."
   },
   "duplicateFinder": {
     "title": "Hitta duplicerade filer",

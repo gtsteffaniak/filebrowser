@@ -738,7 +738,6 @@
     "emptyState": "Wprowadź kryteria wyszukiwania i kliknij przycisk Analizuj, aby wyświetlić rozmiary plików.",
     "completeResults": "Wyświetlono pełne wyniki!",
     "incompleteResults": "Wyniki mogą być niekompletne",
-    "incompleteResultsDetails": "Wyświetlanie maksymalnych wyników (100). Spróbuj zawęzić wyszukiwanie, aby uzyskać więcej wyników poniżej 100.",
     "relativePercentage": "Procent względny{suffix}",
     "percentageOfResults": "{percentage}% wyników"
   },
@@ -786,7 +785,8 @@
     "pathNotFoundMessage": "Ścieżka do tego pliku nie istnieje już w systemie plików. Mogła zostać przeniesiona lub usunięta.",
     "reassignPath": "Ponowne przypisanie ścieżki",
     "pathReassigned": "Ścieżka została pomyślnie zaktualizowana!",
-    "pathReassignFailed": "Nie udało się zaktualizować ścieżki. Spróbuj ponownie."
+    "pathReassignFailed": "Nie udało się zaktualizować ścieżki. Spróbuj ponownie.",
+    "incompleteResultsDetails": "Wyświetlanie maksymalnych wyników ({max}). Spróbuj zawęzić wyszukiwanie, aby uzyskać więcej wyników pod {max}."
   },
   "duplicateFinder": {
     "title": "Wyszukiwarka duplikatów plików",
