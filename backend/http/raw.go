@@ -58,24 +58,53 @@ func (r *throttledReadSeeker) Seek(offset int64, whence int) (int64, error) {
 	return r.rs.Seek(offset, whence)
 }
 
+// toASCIIFilename converts a filename to ASCII-safe format by replacing non-ASCII characters with underscores
+func toASCIIFilename(fileName string) string {
+	var result strings.Builder
+	for _, r := range fileName {
+		if r > 127 {
+			// Replace non-ASCII characters with underscore
+			result.WriteRune('_')
+		} else {
+			result.WriteRune(r)
+		}
+	}
+	return result.String()
+}
+
 func setContentDisposition(w http.ResponseWriter, r *http.Request, fileName string) {
+	useUTF8 := r.URL.Query().Get("utf-8") == "true"
+	dispositionType := "attachment"
 	if r.URL.Query().Get("inline") == "true" {
-		w.Header().Set("Content-Disposition", "inline; filename*=utf-8''"+url.PathEscape(fileName))
+		dispositionType = "inline"
+	}
+
+	if useUTF8 {
+		// Use RFC6266 extended format for UTF-8 support
+		w.Header().Set("Content-Disposition", fmt.Sprintf("%s; filename*=utf-8''%s", dispositionType, url.PathEscape(fileName)))
 	} else {
-		// As per RFC6266 section 4.3
-		w.Header().Set("Content-Disposition", "attachment; filename*=utf-8''"+url.PathEscape(fileName))
+		// Default to ASCII-safe filename
+		asciiFileName := toASCIIFilename(fileName)
+		w.Header().Set("Content-Disposition", fmt.Sprintf("%s; filename=%q", dispositionType, asciiFileName))
 	}
 }
 
 // rawHandler serves the raw content of a file, multiple files, or directory in various formats.
 // @Summary Get raw content of a file, multiple files, or directory
 // @Description Returns the raw content of a file, multiple files, or a directory. Supports downloading files as archives in various formats.
+// @Description
+// @Description **Filename Encoding:**
+// @Description - By default, filenames are converted to ASCII-safe format (non-ASCII characters replaced with underscores) for maximum API compatibility.
+// @Description - Set `utf-8=true` query parameter to enable UTF-8 filename support using RFC6266 extended format (`filename*=utf-8”...`).
+// @Description - The frontend automatically requests with `utf-8=true` and parses the extended format.
+// @Description - For direct API access, the default ASCII format ensures compatibility with all clients.
 // @Tags Resources
 // @Accept json
 // @Produce json
 // @Param files query string true "a list of files in the following format 'source::filename' and separated by '||' with additional items in the list. (required)"
 // @Param inline query bool false "If true, sets 'Content-Disposition' to 'inline'. Otherwise, defaults to 'attachment'."
 // @Param algo query string false "Compression algorithm for archiving multiple files or directories. Options: 'zip' and 'tar.gz'. Default is 'zip'."
+// @Param utf-8 query bool false "If true, enables UTF-8 filename support using RFC6266 extended format. Default is false (ASCII-safe filenames). Set to true when the client can parse RFC6266 format."
 // @Success 200 {file} file "Raw file or directory content, or archive for multiple files"
 // @Failure 202 {object} map[string]string "Modify permissions required"
 // @Failure 400 {object} map[string]string "Invalid request path"
@@ -432,7 +461,8 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 	if len(fileList) == 1 && isDir {
 		baseDirName = filepath.Base(realPath)
 	}
-	fileName = url.PathEscape(baseDirName + extension)
+	// Store original filename before any encoding
+	originalFileName := baseDirName + extension
 
 	archiveData := filepath.Join(config.Server.CacheDir, utils.InsecureRandomIdentifier(10))
 	if extension == ".zip" {
@@ -462,11 +492,12 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 
 	sizeInMB := fileInfo.Size() / 1024 / 1024
 	if sizeInMB > 500 {
-		logger.Debugf("User %v is downloading large (%d MB) file: %v", d.user.Username, sizeInMB, fileName)
+		logger.Debugf("User %v is downloading large (%d MB) file: %v", d.user.Username, sizeInMB, originalFileName)
 	}
 
 	// Set headers AFTER computing actual archive size
-	w.Header().Set("Content-Disposition", "attachment; filename*=utf-8''"+fileName)
+	// Use the same setContentDisposition logic for archives
+	setContentDisposition(w, r, originalFileName)
 	w.Header().Set("Content-Length", fmt.Sprintf("%d", fileInfo.Size()))
 	w.Header().Set("Content-Type", "application/octet-stream")
 

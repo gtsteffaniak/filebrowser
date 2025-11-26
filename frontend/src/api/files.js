@@ -98,6 +98,7 @@ export async function download(format, files, shareHash = "") {
     files: fileargs,
     algo: format,
     hash: shareHash,
+    'utf-8': 'true', // Request UTF-8 filename support (RFC6266 format)
     ...(state.share.token && { token: state.share.token })
   })
   const url = window.origin + apiPath
@@ -129,10 +130,9 @@ export async function download(format, files, shareHash = "") {
   let filename = 'download'
   const contentDisposition = response.headers.get('Content-Disposition')
   if (contentDisposition) {
-    const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/)
-    if (filenameMatch && filenameMatch[1]) {
-      filename = filenameMatch[1].replace(/['"]/g, '')
-    }
+    // simple modify file name
+    filename = contentDisposition.split('filename*=utf-8\'\'')[1]
+    filename = decodeURIComponent(filename)
   } else {
     // Fallback: use format extension
     filename = `download.${format}`

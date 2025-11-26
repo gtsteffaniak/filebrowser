@@ -1214,7 +1214,7 @@ const docTemplate = `{
         },
         "/api/raw": {
             "get": {
-                "description": "Returns the raw content of a file, multiple files, or a directory. Supports downloading files as archives in various formats.",
+                "description": "Returns the raw content of a file, multiple files, or a directory. Supports downloading files as archives in various formats.\n\n**Filename Encoding:**\n- By default, filenames are converted to ASCII-safe format (non-ASCII characters replaced with underscores) for maximum API compatibility.\n- Set ` + "`" + `utf-8=true` + "`" + ` query parameter to enable UTF-8 filename support using RFC6266 extended format (` + "`" + `filename*=utf-8”...` + "`" + `).\n- The frontend automatically requests with ` + "`" + `utf-8=true` + "`" + ` and parses the extended format.\n- For direct API access, the default ASCII format ensures compatibility with all clients.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1243,6 +1243,12 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Compression algorithm for archiving multiple files or directories. Options: 'zip' and 'tar.gz'. Default is 'zip'.",
                         "name": "algo",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "If true, enables UTF-8 filename support using RFC6266 extended format. Default is false (ASCII-safe filenames). Set to true when the client can parse RFC6266 format.",
+                        "name": "utf-8",
                         "in": "query"
                     }
                 ],
