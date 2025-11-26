@@ -582,10 +582,7 @@ func (idx *Index) shouldSkip(isDir bool, isHidden bool, fullCombined, baseName s
 		return false
 	}
 	if idx.Config.DisableIndexing {
-		if config.CheckViewable {
-			return false
-		}
-		return true
+		return !config.CheckViewable
 	}
 
 	if isDir && config.IsRoutineScan {

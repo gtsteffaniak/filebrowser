@@ -154,9 +154,9 @@ func handleSourceUpdates() {
 			}
 		}
 		// Log if we have clients but couldn't send to all
-		if sentCount < clientCount {
-			// Some messages were dropped due to full channels
-		}
+		//if sentCount < clientCount {
+		//	// Some messages were dropped due to full channels
+		//}
 	}
 }
 
