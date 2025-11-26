@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **BugFixes**:
  - better index status updates, fixing delays #1649
+ - fixed long load times for listings with media info due sequential processing of files.
 
 ## v1.1.1-beta
 
