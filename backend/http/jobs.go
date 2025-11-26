@@ -23,7 +23,7 @@ func getJobsHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	sources := settings.GetSources(d.user)
 	reducedIndexes := map[string]indexing.ReducedIndex{}
 	for _, source := range sources {
-		reducedIndex, err := indexing.GetIndexInfo(source)
+		reducedIndex, err := indexing.GetIndexInfo(source, false)
 		if err != nil {
 			logger.Debugf("error getting index info: %v", err)
 			continue

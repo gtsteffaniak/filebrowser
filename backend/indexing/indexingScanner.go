@@ -8,88 +8,29 @@ import (
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
-// Scanner represents an independent scanner for a specific directory path
-// Each scanner has its own schedule and stats, but only one can run at a time (protected by Index.scanMutex)
+// Each scanner has its own schedule and stats, but only one can run at a time
 type Scanner struct {
 	// Identity
 	scanPath string // "/" for root scanner, "/Documents/" for child scanners
 
-	// Per-scanner scheduling (not shared between scanners)
 	currentSchedule int
 	smartModifier   time.Duration
 	complexity      uint // 0-10 scale: 0=unknown, 1=simple, 2-6=normal, 7-9=complex, 10=highlyComplex
 	fullScanCounter int  // every 5th scan is a full scan
 
-	// Per-scanner stats (not shared)
 	filesChanged  bool
 	lastScanned   time.Time
 	quickScanTime int
 	fullScanTime  int
 	numDirs       uint64 // Local count for this path
 	numFiles      uint64 // Local count for this path
+	scannerSize   uint64 // Size contributed by this scanner (for delta calculation)
 
 	// Reference back to parent index
 	idx *Index
 
 	// Control
 	stopChan chan struct{}
-}
-
-// calculateTimeScore returns a 1-10 score based on full scan time
-func (s *Scanner) calculateTimeScore() uint {
-	if s.fullScanTime == 0 {
-		return 1 // No data yet, assume simple
-	}
-	// Time-based thresholds (in seconds)
-	switch {
-	case s.fullScanTime < 2:
-		return 1
-	case s.fullScanTime < 5:
-		return 2
-	case s.fullScanTime < 10:
-		return 3
-	case s.fullScanTime < 15:
-		return 4
-	case s.fullScanTime < 30:
-		return 5
-	case s.fullScanTime < 60:
-		return 6
-	case s.fullScanTime < 90:
-		return 7
-	case s.fullScanTime < 120:
-		return 8
-	case s.fullScanTime < 180:
-		return 9
-	default:
-		return 10
-	}
-}
-
-// calculateDirScore returns a 1-10 score based on directory count
-func (s *Scanner) calculateDirScore() uint {
-	// Directory-based thresholds
-	switch {
-	case s.numDirs < 2500:
-		return 1
-	case s.numDirs < 5000:
-		return 2
-	case s.numDirs < 10000:
-		return 3
-	case s.numDirs < 25000:
-		return 4
-	case s.numDirs < 50000:
-		return 5
-	case s.numDirs < 100000:
-		return 6
-	case s.numDirs < 250000:
-		return 7
-	case s.numDirs < 500000:
-		return 8
-	case s.numDirs < 1000000:
-		return 9
-	default:
-		return 10
-	}
 }
 
 // start begins the scanner's main loop
@@ -118,7 +59,6 @@ func (s *Scanner) start() {
 			return
 
 		case <-time.After(sleepTime):
-			// Time to scan! But must acquire mutex first
 			s.tryAcquireAndScan()
 		}
 	}
@@ -126,19 +66,6 @@ func (s *Scanner) start() {
 
 // tryAcquireAndScan attempts to acquire the global scan mutex and run a scan
 func (s *Scanner) tryAcquireAndScan() {
-	// Child scanners must wait for root scanner to go first each round
-	if s.scanPath != "/" {
-		s.idx.mu.RLock()
-		lastRootScan := s.idx.lastRootScanTime
-		myLastScan := s.lastScanned
-		s.idx.mu.RUnlock()
-
-		// If we've scanned more recently than the root, skip this cycle
-		if !myLastScan.IsZero() && myLastScan.After(lastRootScan) {
-			return
-		}
-	}
-
 	s.idx.scanMutex.Lock()
 
 	// Mark which scanner is active (for status/logging)
@@ -146,14 +73,12 @@ func (s *Scanner) tryAcquireAndScan() {
 	s.idx.activeScannerPath = s.scanPath
 	s.idx.mu.Unlock()
 
-	// Determine if quick or full scan
-	// First scan (fullScanCounter=0) is always full
-	// Scans 1-4 are quick, scan 5 is full, then repeat
 	quick := s.fullScanCounter > 0 && s.fullScanCounter < 5
 	s.fullScanCounter++
 	if s.fullScanCounter >= 5 {
 		s.fullScanCounter = 0
 	}
+
 	s.runIndexing(quick)
 
 	// Update this scanner's schedule based on results
@@ -173,17 +98,15 @@ func (s *Scanner) tryAcquireAndScan() {
 
 	s.idx.scanMutex.Unlock()
 
-	// Aggregate stats to Index level and update status (after releasing active scanner)
+	// Aggregate stats to Index level and update status
 	s.idx.aggregateStatsFromScanners()
 }
 
 // runIndexing performs the actual indexing work
 func (s *Scanner) runIndexing(quick bool) {
 	if s.scanPath == "/" {
-		// ROOT SCANNER: Non-recursive, just scan root directory itself
 		s.runRootScan(quick)
 	} else {
-		// CHILD SCANNER: Recursive scan of assigned directory
 		s.runChildScan(quick)
 	}
 
@@ -204,6 +127,25 @@ func (s *Scanner) runRootScan(quick bool) {
 		s.numFiles = 0
 	}
 
+	// Track size before scan for delta calculation
+	previousScannerSize := s.scannerSize
+
+	s.idx.mu.Lock()
+	if previousScannerSize > 0 {
+		if s.idx.totalSize >= previousScannerSize {
+			s.idx.totalSize -= previousScannerSize
+		} else {
+			// Safety check: if totalSize is less than previousScannerSize, something is wrong
+			// Reset to 0 to avoid underflow
+			logger.Warningf("[%s] Scanner [%s] WARNING: totalSize (%d) < previousScannerSize (%d), resetting totalSize to 0", s.idx.Name, s.scanPath, s.idx.totalSize, previousScannerSize)
+			s.idx.totalSize = 0
+		}
+	}
+	indexSizeBefore := s.idx.totalSize
+	s.idx.mu.Unlock()
+
+	logger.Debugf("[%s] Scanner [%s] START: indexSizeBefore=%d, previousScannerSize=%d (quick=%v)", s.idx.Name, s.scanPath, indexSizeBefore, previousScannerSize, quick)
+
 	s.filesChanged = false
 	startTime := time.Now()
 
@@ -212,6 +154,12 @@ func (s *Scanner) runRootScan(quick bool) {
 		logger.Errorf("Root scanner error: %v", err)
 	}
 
+	// Calculate delta for this scanner
+	s.idx.mu.RLock()
+	indexSizeAfter := s.idx.totalSize
+	s.idx.mu.RUnlock()
+	newScannerSize := indexSizeAfter - indexSizeBefore
+	s.scannerSize = newScannerSize
 	scanDuration := int(time.Since(startTime).Seconds())
 	if quick {
 		s.quickScanTime = scanDuration
@@ -219,8 +167,6 @@ func (s *Scanner) runRootScan(quick bool) {
 		s.fullScanTime = scanDuration
 		s.updateComplexity()
 	}
-
-	// Check for new top-level directories and create scanners for them
 	s.checkForNewChildDirectories()
 }
 
@@ -237,15 +183,21 @@ func (s *Scanner) runChildScan(quick bool) {
 		s.numDirs = 0
 		s.numFiles = 0
 	}
-
+	s.idx.mu.RLock()
+	indexSizeBefore := s.idx.totalSize
+	s.idx.mu.RUnlock()
 	s.filesChanged = false
 	startTime := time.Now()
-
 	err := s.idx.indexDirectory(s.scanPath, config)
 	if err != nil {
 		logger.Errorf("Scanner [%s] error: %v", s.scanPath, err)
 	}
 
+	s.idx.mu.RLock()
+	indexSizeAfter := s.idx.totalSize
+	s.idx.mu.RUnlock()
+	newScannerSize := indexSizeAfter - indexSizeBefore
+	s.scannerSize = newScannerSize
 	scanDuration := int(time.Since(startTime).Seconds())
 	if quick {
 		s.quickScanTime = scanDuration
@@ -323,35 +275,23 @@ func (s *Scanner) getTopLevelDirs() []string {
 
 	for _, file := range files {
 		baseName := file.Name()
-
-		// Skip files - only create scanners for directories
 		if !file.IsDir() {
-			// Note: includeRootItems may contain files, but we only create scanners for directories
 			continue
 		}
-
 		dirPath := "/" + baseName + "/"
-
-		// Skip directories in omit list
 		if omitList[baseName] {
 			logger.Debugf("Skipping scanner creation for omitted directory: %s", dirPath)
 			continue
 		}
-
-		// Check if we should include this directory (respects includeRootItems filter)
-		// When includeRootItems is set, ONLY those items (that are directories) get scanners
 		if !s.idx.shouldInclude(baseName) {
 			logger.Debugf("Skipping scanner creation for non-included directory: %s", dirPath)
 			continue
 		}
-
-		// Check if this directory should be excluded from indexing (respects exclusion rules)
 		hidden := isHidden(file, s.idx.Path+dirPath)
 		if s.idx.shouldSkip(true, hidden, dirPath, baseName, actionConfig{}) {
 			logger.Debugf("Skipping scanner creation for excluded directory: %s", dirPath)
 			continue
 		}
-
 		dirs = append(dirs, dirPath)
 	}
 
@@ -360,10 +300,7 @@ func (s *Scanner) getTopLevelDirs() []string {
 
 // calculateSleepTime determines how long to wait before the next scan
 func (s *Scanner) calculateSleepTime() time.Duration {
-	// Get base schedule time and apply complexity modifier
 	sleepTime := scanSchedule[s.currentSchedule] + s.smartModifier
-
-	// Allow manual override via config
 	if s.idx.Config.IndexingInterval > 0 {
 		sleepTime = time.Duration(s.idx.Config.IndexingInterval) * time.Minute
 	}
@@ -404,19 +341,9 @@ func (s *Scanner) updateSchedule() {
 }
 
 // updateComplexity calculates the complexity level (1-10) for this scanner's directory
-// 0: unknown, 1: simple, 2-6: normal, 7-9: complex, 10: highlyComplex
+// 0: unknown
 func (s *Scanner) updateComplexity() {
-	// Calculate complexity based on both scan time and directory count
-	timeScore := s.calculateTimeScore()
-	dirScore := s.calculateDirScore()
-
-	// Use the higher score (more conservative approach)
-	complexity := timeScore
-	if dirScore > timeScore {
-		complexity = dirScore
-	}
-
-	s.complexity = complexity
+	s.complexity = calculateComplexity(s.fullScanTime, s.numDirs)
 
 	// Set smartModifier based on complexity level
 	if modifier, ok := complexityModifier[s.complexity]; ok {

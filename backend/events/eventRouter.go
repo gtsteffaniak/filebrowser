@@ -109,12 +109,19 @@ func SendToUsers(eventType, message string, users []string) {
 }
 
 func SendSourceUpdate(source string, message string) {
-	sourceUpdateChan <- sourceEvent{
+	event := sourceEvent{
 		source: source,
 		event: EventMessage{
 			EventType: "sourceUpdate",
 			Message:   message,
 		},
+	}
+	select {
+	case sourceUpdateChan <- event:
+		// Event sent successfully
+	default:
+		// Channel is full, log warning but don't block
+		// This shouldn't happen under normal circumstances
 	}
 }
 
@@ -129,14 +136,26 @@ func handleSourceUpdates() {
 	for update := range sourceUpdateChan {
 		sourceClientsMu.RLock()
 		clients := sourceClients[update.source]
+		clientCount := len(clients)
 		sourceClientsMu.RUnlock()
 
+		if clientCount == 0 {
+			// No clients registered for this source - this is normal if no one is connected
+			continue
+		}
+
+		sentCount := 0
 		for ch := range clients {
 			select {
 			case ch <- update.event:
+				sentCount++
 			default:
-				// Optional: log dropped message
+				// Channel full, message dropped
 			}
+		}
+		// Log if we have clients but couldn't send to all
+		if sentCount < clientCount {
+			// Some messages were dropped due to full channels
 		}
 	}
 }

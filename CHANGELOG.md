@@ -10,7 +10,7 @@ All notable changes to this project will be documented in this file. For commit 
    - max limit is 500 groups total
 
  **BugFixes**:
- - a
+ - better index status updates, fixing delays #1649
 
 ## v1.1.1-beta
 
