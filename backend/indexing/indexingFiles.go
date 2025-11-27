@@ -12,6 +12,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
+	dbsql "github.com/gtsteffaniak/filebrowser/backend/database/sql"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 	"github.com/gtsteffaniak/go-cache/cache"
 	"github.com/gtsteffaniak/go-logger/logger"
@@ -64,8 +65,7 @@ type Index struct {
 	settings.Source `json:"-"`
 
 	// Shared state (protected by mu)
-	Directories       map[string]*iteminfo.FileInfo `json:"-"`
-	DirectoriesLedger map[string]struct{}           `json:"-"`
+	db                *dbsql.IndexDB                `json:"-"`
 	FoundHardLinks    map[string]uint64             `json:"-"` // hardlink path -> size
 	processedInodes   map[uint64]struct{}           `json:"-"`
 	totalSize         uint64                        `json:"-"`
@@ -112,13 +112,17 @@ func init() {
 
 func Initialize(source *settings.Source, mock bool) {
 	indexesMutex.Lock()
+	db, err := dbsql.NewIndexDB(source.Name)
+	if err != nil {
+		logger.Errorf("failed to initialize index database: %v", err)
+	}
+
 	newIndex := Index{
-		mock:              mock,
-		Source:            *source,
-		Directories:       make(map[string]*iteminfo.FileInfo),
-		DirectoriesLedger: make(map[string]struct{}),
-		processedInodes:   make(map[uint64]struct{}),
-		FoundHardLinks:    make(map[string]uint64),
+		mock:            mock,
+		Source:          *source,
+		db:              db,
+		processedInodes: make(map[uint64]struct{}),
+		FoundHardLinks:  make(map[string]uint64),
 	}
 	newIndex.ReducedIndex = ReducedIndex{
 		Status:     "indexing",
@@ -166,23 +170,25 @@ func (idx *Index) indexDirectory(adjustedPath string, config actionConfig) error
 		return errors.ErrNotIndexed
 	}
 
-	// if indexing, mark the directory as valid and indexed.
-	if config.Recursive {
-		// Prevent race conditions if scanning becomes concurrent in the future.
-		idx.mu.Lock()
-		idx.DirectoriesLedger[adjustedPath] = struct{}{}
-		idx.mu.Unlock()
-	}
 	// adjustedPath is already normalized with trailing slash
 	combinedPath := adjustedPath
 	// get whats currently in cache
 	idx.mu.RLock()
 	cacheDirItems := []iteminfo.ItemInfo{}
 	modChange := false
-	cachedDir, exists := idx.Directories[adjustedPath]
-	if exists {
-		modChange = dirInfo.ModTime() != cachedDir.ModTime
-		cacheDirItems = cachedDir.Folders
+	var cachedDir *iteminfo.FileInfo
+	if idx.db != nil {
+		cachedDir, _ = idx.db.GetItem(adjustedPath)
+	}
+	if cachedDir != nil {
+		modChange = dirInfo.ModTime().Unix() != cachedDir.ModTime.Unix()
+		if children, err := idx.db.GetDirectoryChildren(adjustedPath); err == nil {
+			for _, child := range children {
+				if child.Type == "directory" {
+					cacheDirItems = append(cacheDirItems, child.ItemInfo)
+				}
+			}
+		}
 	}
 	idx.mu.RUnlock()
 

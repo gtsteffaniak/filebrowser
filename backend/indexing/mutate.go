@@ -15,7 +15,32 @@ import (
 func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo) bool {
 	idx.mu.Lock()
 	defer idx.mu.Unlock()
-	idx.Directories[info.Path] = info
+	
+	if idx.db == nil {
+		return false
+	}
+
+	items := make([]*iteminfo.FileInfo, 0, len(info.Files)+1)
+	items = append(items, info)
+
+	// Add files to the bulk insert
+	for i := range info.Files {
+		f := &info.Files[i]
+		// Construct full path for the file
+		filePath := strings.TrimRight(info.Path, "/") + "/" + f.Name
+		
+		fileItem := &iteminfo.FileInfo{
+			ItemInfo: f.ItemInfo,
+			Path:     filePath,
+		}
+		items = append(items, fileItem)
+	}
+
+	if err := idx.db.BulkInsertItems(items); err != nil {
+		logger.Errorf("Failed to update metadata for %s: %v", info.Path, err)
+		return false
+	}
+	
 	return true
 }
 
@@ -25,6 +50,10 @@ func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo) bool {
 func (idx *Index) DeleteMetadata(path string, isDir bool, recursive bool) bool {
 	idx.mu.Lock()
 	defer idx.mu.Unlock()
+	
+	if idx.db == nil {
+		return false
+	}
 
 	// Normalize the path - ensure trailing slash for directories
 	indexPath := path
@@ -32,57 +61,11 @@ func (idx *Index) DeleteMetadata(path string, isDir bool, recursive bool) bool {
 		indexPath = utils.AddTrailingSlashIfNotExists(path)
 	}
 
-	if !isDir {
-		// For files, remove from parent directory's Files slice
-		parentPath := utils.AddTrailingSlashIfNotExists(filepath.Dir(strings.TrimSuffix(path, "/")))
-		if parentDir, exists := idx.Directories[parentPath]; exists {
-			fileName := filepath.Base(strings.TrimSuffix(path, "/"))
-			for i, file := range parentDir.Files {
-				if file.Name == fileName {
-					// Remove file from slice
-					parentDir.Files = append(parentDir.Files[:i], parentDir.Files[i+1:]...)
-					break
-				}
-			}
-		}
-		return true
+	if err := idx.db.DeleteItem(indexPath, recursive); err != nil {
+		logger.Errorf("Failed to delete metadata for %s: %v", indexPath, err)
+		return false
 	}
-
-	// For directories
-	if recursive {
-		// Remove all subdirectories that start with this path
-		toDelete := []string{}
-		for dirPath := range idx.Directories {
-			// Match exact path or any subdirectory
-			if dirPath == indexPath || strings.HasPrefix(dirPath, indexPath) {
-				toDelete = append(toDelete, dirPath)
-			}
-		}
-		for _, dirPath := range toDelete {
-			delete(idx.Directories, dirPath)
-			delete(idx.DirectoriesLedger, dirPath)
-		}
-	} else {
-		// Just remove this specific directory
-		delete(idx.Directories, indexPath)
-		delete(idx.DirectoriesLedger, indexPath)
-	}
-
-	// Remove from parent directory's Folders slice
-	if indexPath != "/" {
-		parentPath := utils.AddTrailingSlashIfNotExists(filepath.Dir(strings.TrimSuffix(indexPath, "/")))
-		if parentDir, exists := idx.Directories[parentPath]; exists {
-			dirName := filepath.Base(strings.TrimSuffix(indexPath, "/"))
-			for i, folder := range parentDir.Folders {
-				if folder.Name == dirName {
-					// Remove folder from slice
-					parentDir.Folders = append(parentDir.Folders[:i], parentDir.Folders[i+1:]...)
-					break
-				}
-			}
-		}
-	}
-
+	
 	return true
 }
 
@@ -90,56 +73,84 @@ func (idx *Index) DeleteMetadata(path string, isDir bool, recursive bool) bool {
 func (idx *Index) GetReducedMetadata(target string, isDir bool) (*iteminfo.FileInfo, bool) {
 	idx.mu.RLock()
 	defer idx.mu.RUnlock()
-	checkDir := idx.MakeIndexPath(target)
-	if !isDir {
-		checkDir = idx.MakeIndexPath(filepath.Dir(target))
-	}
-	if checkDir == "" {
-		checkDir = "/"
-	}
-	dir, exists := idx.Directories[checkDir]
-	if !exists {
+	
+	if idx.db == nil {
 		return nil, false
 	}
 
-	if isDir {
-		return dir, true
-	}
-	// handle file
-	baseName := filepath.Base(target)
-	for _, item := range dir.Files {
-		if item.Name == baseName {
-			// Use path.Join to properly handle trailing slashes and avoid double slashes
-			var fp string
-			if checkDir == "/" {
-				fp = "/" + item.Name
-			} else {
-				// Clean path to remove any trailing slashes before joining
-				fp = strings.TrimSuffix(checkDir, "/") + "/" + item.Name
-			}
-			return &iteminfo.FileInfo{
-				Path:     fp,
-				ItemInfo: item.ItemInfo,
-			}, true
+	checkPath := idx.MakeIndexPath(target)
+	if !isDir {
+		// For files, we want the file itself, not the parent directory
+		// But MakeIndexPath adds trailing slash for directories.
+		// If target is file, MakeIndexPath might treat it as directory if we don't be careful.
+		// Actually MakeIndexPath implementation:
+		// path = utils.AddTrailingSlashIfNotExists(path)
+		// So it always adds trailing slash!
+		// We need to strip it if it's a file.
+		if strings.HasSuffix(checkPath, "/") {
+			checkPath = strings.TrimSuffix(checkPath, "/")
 		}
+	} else {
+		// Ensure trailing slash for directory
+		checkPath = utils.AddTrailingSlashIfNotExists(checkPath)
 	}
-	return nil, false
+	
+	if checkPath == "" {
+		checkPath = "/"
+	}
 
+	item, err := idx.db.GetItem(checkPath)
+	if err != nil {
+		return nil, false
+	}
+	return item, true
 }
 
 // raw directory info retrieval -- does not work on files, only returns a directory
 func (idx *Index) GetMetadataInfo(target string, isDir bool) (*iteminfo.FileInfo, bool) {
 	idx.mu.RLock()
 	defer idx.mu.RUnlock()
+	
+	if idx.db == nil {
+		return nil, false
+	}
+
 	checkDir := idx.MakeIndexPath(target)
 	if !isDir {
 		checkDir = idx.MakeIndexPath(filepath.Dir(target))
 	}
+	checkDir = utils.AddTrailingSlashIfNotExists(checkDir)
+	
 	if checkDir == "" {
 		checkDir = "/"
 	}
-	dir, exists := idx.Directories[checkDir]
-	return dir, exists
+	
+	// Get directory item
+	dir, err := idx.db.GetItem(checkDir)
+	if err != nil {
+		return nil, false
+	}
+	
+	// Get children
+	children, err := idx.db.GetDirectoryChildren(checkDir)
+	if err != nil {
+		logger.Errorf("Failed to get children for %s: %v", checkDir, err)
+		// Return partial info? Or fail?
+		// Existing behavior returns nil if not exists.
+		// If dir exists but children fail, maybe return empty dir?
+		return dir, true
+	}
+	
+	// Populate Files and Folders
+	for _, child := range children {
+		if child.Type == "directory" {
+			dir.Folders = append(dir.Folders, child.ItemInfo)
+		} else {
+			dir.Files = append(dir.Files, iteminfo.ExtendedItemInfo{ItemInfo: child.ItemInfo})
+		}
+	}
+	
+	return dir, true
 }
 
 func GetIndex(name string) *Index {
@@ -171,10 +182,27 @@ func (idx *Index) ReadOnlyOperation(fn func()) {
 	fn()
 }
 
-// GetDirectories returns the directories map for read-only access
-// Should only be called within ReadOnlyOperation
-func (idx *Index) GetDirectories() map[string]*iteminfo.FileInfo {
-	return idx.Directories
+// IterateFiles iterates over all files in the index and calls the callback function
+func (idx *Index) IterateFiles(fn func(path, name string, size, modTime int64)) error {
+	if idx.db == nil {
+		return nil
+	}
+	
+	rows, err := idx.db.Query("SELECT path, name, size, mod_time FROM index_items WHERE is_dir = 0")
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+	
+	for rows.Next() {
+		var path, name string
+		var size, modTime int64
+		if err := rows.Scan(&path, &name, &size, &modTime); err != nil {
+			return err
+		}
+		fn(path, name, size, modTime)
+	}
+	return nil
 }
 
 func GetIndexInfo(sourceName string, forceCacheRefresh bool) (ReducedIndex, error) {
