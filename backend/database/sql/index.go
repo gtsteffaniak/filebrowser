@@ -17,13 +17,11 @@ type IndexDB struct {
 // NewIndexDB creates a new index database in the cache directory.
 // It uses the standard TempDB configuration optimized for performance.
 func NewIndexDB(name string) (*IndexDB, error) {
-	// Create a persistent-ish temp DB (ID based on source name)
-	// We might want to clear it on startup or reuse it?
-	// For now, let's assume we want a fresh start or we handle migration later.
+	// Create a temp DB for indexing (ID based on source name)
 	// Using "index_" prefix for clarity.
 	db, err := NewTempDB("index_"+name, &TempDBConfig{
-		CacheSizeKB:   -200000,   // ~200MB cache (negative value = KB)
-		MmapSize:      512000000, // 512MB mmap
+		CacheSizeKB:   -32000,    // ~32MB cache (negative value = KB)
+		MmapSize:      128000000, // 128MB mmap
 		Synchronous:   "NORMAL",  // Better safety than OFF, good performance
 		EnableLogging: true,
 	})
