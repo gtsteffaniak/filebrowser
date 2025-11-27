@@ -20,9 +20,17 @@ func NewIndexDB(name string) (*IndexDB, error) {
 	// Create a temp DB for indexing (ID based on source name)
 	// Using "index_" prefix for clarity.
 	db, err := NewTempDB("index_"+name, &TempDBConfig{
-		CacheSizeKB:   -32000,    // ~32MB cache (negative value = KB)
-		MmapSize:      128000000, // 128MB mmap
-		Synchronous:   "NORMAL",  // Better safety than OFF, good performance
+		// cache_size: Negative values = pages, positive = KB
+		// With 4KB page size: -12500 pages = 12500 * 4096 = ~50MB
+		// Using 4KB pages for small entries reduces storage waste and RAM usage
+		CacheSizeKB:   -12500,    // 50MB cache (12500 pages * 4KB = 51.2MB)
+		MmapSize:      100000000, // 100MB mmap (memory-mapped I/O)
+		Synchronous:   "OFF",     // OFF for maximum performance
+		TempStore:     "FILE",    // MEMORY for maximum performance
+		JournalMode:   "DELETE",  // DELETE mode faster for write-heavy workloads
+		LockingMode:   "NORMAL",  // NORMAL allows concurrent access (default)
+		PageSize:      4096,      // 4KB page size - optimal for small entries (reduces storage waste)
+		AutoVacuum:    "NONE",    // No vacuum overhead
 		EnableLogging: true,
 	})
 	if err != nil {
