@@ -161,16 +161,8 @@ func (idx *Index) PostScan() error {
 }
 
 func (idx *Index) garbageCollection() {
-	for path := range idx.Directories {
-		_, ok := idx.DirectoriesLedger[path]
-		if !ok {
-			idx.Directories[path] = nil
-			delete(idx.Directories, path)
-			idx.NumDeleted++
-		}
-	}
-	// Reset the ledger for the next scan.
-	idx.DirectoriesLedger = make(map[string]struct{})
+	// Legacy garbage collection was removed as part of SQL index refactor
+	// TODO: Implement DB-based garbage collection using last_scanned timestamp
 }
 
 func (idx *Index) SendSourceUpdateEvent() error {

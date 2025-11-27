@@ -9,8 +9,9 @@ import (
 // needed for duplicate detection operations.
 type FileLocation struct {
 	DirPath        string
-	FileIdx        int
 	Name           string
+	Size           int64
+	ModTime        int64
 	NormalizedName string
 	Extension      string
 }
@@ -24,12 +25,12 @@ func (t *TempDB) CreateDuplicatesTable() error {
 	CREATE TABLE IF NOT EXISTS files (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		dir_path TEXT NOT NULL,
-		file_idx INTEGER NOT NULL,
 		size INTEGER NOT NULL,
+		mod_time INTEGER NOT NULL,
 		name TEXT NOT NULL,
 		normalized_name TEXT NOT NULL,
 		extension TEXT NOT NULL,
-		UNIQUE(dir_path, file_idx)
+		UNIQUE(dir_path, name)
 	);
 	CREATE INDEX IF NOT EXISTS idx_size ON files(size);
 	CREATE INDEX IF NOT EXISTS idx_size_count ON files(size, normalized_name);
@@ -41,10 +42,10 @@ func (t *TempDB) CreateDuplicatesTable() error {
 
 // InsertFileForDuplicates inserts a file entry into the duplicates table.
 // This is called during the first pass through the index to stream files into the database.
-func (t *TempDB) InsertFileForDuplicates(dirPath string, fileIdx int, size int64, name, normalizedName, extension string) error {
+func (t *TempDB) InsertFileForDuplicates(dirPath string, size, modTime int64, name, normalizedName, extension string) error {
 	_, err := t.Exec(
-		"INSERT OR IGNORE INTO files (dir_path, file_idx, size, name, normalized_name, extension) VALUES (?, ?, ?, ?, ?, ?)",
-		dirPath, fileIdx, size, name, normalizedName, extension,
+		"INSERT OR IGNORE INTO files (dir_path, size, mod_time, name, normalized_name, extension) VALUES (?, ?, ?, ?, ?, ?)",
+		dirPath, size, modTime, name, normalizedName, extension,
 	)
 	return err
 }
@@ -87,7 +88,7 @@ func (t *TempDB) GetSizeGroupsForDuplicates(minSize int64) ([]int64, map[int64]i
 // Used for processing one size group at a time to minimize memory usage.
 func (t *TempDB) GetFilesBySizeForDuplicates(size int64) ([]FileLocation, error) {
 	rows, err := t.Query(`
-		SELECT dir_path, file_idx, name, normalized_name, extension
+		SELECT dir_path, name, size, mod_time, normalized_name, extension
 		FROM files
 		WHERE size = ?
 		ORDER BY normalized_name
@@ -100,7 +101,7 @@ func (t *TempDB) GetFilesBySizeForDuplicates(size int64) ([]FileLocation, error)
 	var locations []FileLocation
 	for rows.Next() {
 		var loc FileLocation
-		if err := rows.Scan(&loc.DirPath, &loc.FileIdx, &loc.Name, &loc.NormalizedName, &loc.Extension); err != nil {
+		if err := rows.Scan(&loc.DirPath, &loc.Name, &loc.Size, &loc.ModTime, &loc.NormalizedName, &loc.Extension); err != nil {
 			return nil, fmt.Errorf("failed to scan row: %w", err)
 		}
 		locations = append(locations, loc)
@@ -112,10 +113,10 @@ func (t *TempDB) GetFilesBySizeForDuplicates(size int64) ([]FileLocation, error)
 // BulkInsertFilesForDuplicates inserts multiple files in a single transaction.
 // This is more efficient than calling InsertFileForDuplicates multiple times.
 // The transaction must be started by the caller using BeginTransaction().
-func BulkInsertFilesForDuplicates(tx *sql.Tx, dirPath string, fileIdx int, size int64, name, normalizedName, extension string) error {
+func BulkInsertFilesForDuplicates(tx *sql.Tx, dirPath string, size, modTime int64, name, normalizedName, extension string) error {
 	_, err := tx.Exec(
-		"INSERT OR IGNORE INTO files (dir_path, file_idx, size, name, normalized_name, extension) VALUES (?, ?, ?, ?, ?, ?)",
-		dirPath, fileIdx, size, name, normalizedName, extension,
+		"INSERT OR IGNORE INTO files (dir_path, size, mod_time, name, normalized_name, extension) VALUES (?, ?, ?, ?, ?, ?)",
+		dirPath, size, modTime, name, normalizedName, extension,
 	)
 	return err
 }
