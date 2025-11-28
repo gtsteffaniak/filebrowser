@@ -186,6 +186,10 @@ export default {
         position: 'relative'
       };
 
+      if (this.status === 'indexing') {
+        style['background'] = '#fff8d6'; // Muted yellow/amber color
+      }
+
       if (this.textPosition == "middle" || this.textPosition == "inside") {
         style["min-height"] = this.size_px + "px";
       }
@@ -214,7 +218,7 @@ export default {
       // Add pulse animation for indexing status
       if (this.status === 'indexing') {
         style['animation'] = 'progress-pulse 4s ease-in-out infinite';
-        style['background'] = '#fff8d6'; // Muted yellow/amber color
+        style['background'] = 'rgb(237 161 41)'; // orange
       }
 
       if (this.barBorderRadius > 0) {

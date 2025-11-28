@@ -9,12 +9,14 @@ All notable changes to this project will be documented in this file. For commit 
    - temp SQLite database each query to reduce memory pressure
    - max limit is 500 groups total
  - Downloads from UI requests utf-8 formatted names to support chinese and other characters. Updated swagger docs.
+ - beta releases no longer publish to `latest` docker tag #1675
 
  **BugFixes**:
  - better index status updates, fixing delays #1649
- - fixed long load times for listings with media info due sequential processing of files.
- - downloaded files always included `utf-8` in filename
+ - fixed long load times for listings with media info due sequential processing of files. 
+ - downloaded files always included `utf-8` in filename #1671
  - custom sidebar links allow external links like `https://google.com`
+ - html title not populated correctly for links #1676
 
 ## v1.1.1-beta
 

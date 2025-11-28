@@ -526,6 +526,7 @@ export default {
       this.listing = false;
       // Set default sidebar links for new shares
       this.setDefaultSidebarLinks();
+      this.populateDefaults();
     }
   },
   mounted() {
@@ -770,6 +771,7 @@ export default {
         this.isChangingPassword = false;
         // Set default sidebar links for new shares
         this.setDefaultSidebarLinks();
+        this.populateDefaults();
       }
     },
     setDefaultSidebarLinks() {
@@ -790,6 +792,10 @@ export default {
           }
         ];
       }
+    },
+    populateDefaults() {
+      this.title = this.$t("share.titleDefault", { title: this.item.name || "share" });
+      this.description = this.$t("share.descriptionDefault");
     },
     /**
      * @param {{path: string, source: string}} pathOrData

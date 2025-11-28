@@ -199,15 +199,6 @@ export default {
       return 'default';
     },
     getProgressBarValue(sourceInfo) {
-      // When indexing and files/complexity are unknown, show 100% to indicate value is not yet known
-      if (sourceInfo.status === 'indexing') {
-        const filesUnknown = !sourceInfo.files || sourceInfo.files === 0;
-        const complexityUnknown = !sourceInfo.complexity || sourceInfo.complexity === 0;
-        if (filesUnknown || complexityUnknown) {
-          // Return the max value to show 100% (will be overridden by max prop)
-          return sourceInfo.total || 1;
-        }
-      }
       // Otherwise return the actual used value
       return sourceInfo.used || 0;
     },

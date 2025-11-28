@@ -72,8 +72,6 @@ jobs:
               .tags += [
                 "gtstef/filebrowser:beta",
                 "ghcr.io/gtsteffaniak/filebrowser:beta",
-                "gtstef/filebrowser:latest",
-                "ghcr.io/gtsteffaniak/filebrowser:latest"
               ]
             else . end |
             if any(.tags[]; test("stable")) then
