@@ -81,7 +81,6 @@ func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo) bool {
 		logger.Errorf("Failed to update metadata for %s: %v", info.Path, err)
 		return false
 	}
-
 	return true
 }
 
@@ -114,6 +113,10 @@ func (idx *Index) flushBatch() {
 func (idx *Index) DeleteMetadata(path string, isDir bool, recursive bool) bool {
 	idx.mu.Lock()
 	defer idx.mu.Unlock()
+
+	if idx.db == nil {
+		return false
+	}
 
 	if idx.db == nil {
 		return false
@@ -219,7 +222,6 @@ func (idx *Index) GetMetadataInfo(target string, isDir bool) (*iteminfo.FileInfo
 			dir.Files = append(dir.Files, iteminfo.ExtendedItemInfo{ItemInfo: child.ItemInfo})
 		}
 	}
-
 	return dir, true
 }
 
@@ -257,13 +259,11 @@ func (idx *Index) IterateFiles(fn func(path, name string, size, modTime int64)) 
 	if idx.db == nil {
 		return nil
 	}
-
 	rows, err := idx.db.Query("SELECT path, name, size, mod_time FROM index_items WHERE is_dir = 0")
 	if err != nil {
 		return err
 	}
 	defer rows.Close()
-
 	for rows.Next() {
 		var path, name string
 		var size, modTime int64

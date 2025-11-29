@@ -69,7 +69,6 @@ func (idx *Index) Search(search string, scope string, sourceSession string, larg
 	if largest {
 		query += " ORDER BY size DESC"
 	}
-
 	if len(whereClauses) > 0 {
 		query = strings.Replace(query, "FROM index_items", "FROM index_items WHERE "+strings.Join(whereClauses, " AND "), 1)
 	}
@@ -78,8 +77,6 @@ func (idx *Index) Search(search string, scope string, sourceSession string, larg
 	// But to maintain full compatibility with ParseSearch (fuzzy matching, case sensitivity, etc),
 	// we'll stream results and filter in Go.
 	// SQLite is fast enough to stream thousands of rows.
-
-	startTime := time.Now()
 	rows, err := idx.db.Query(query, args...)
 	if err != nil {
 		return []*SearchResult{}
@@ -131,7 +128,6 @@ func (idx *Index) Search(search string, scope string, sourceSession string, larg
 				sizeMatches := largerThan == 0 || item.Size > largerThan
 				// Check if directories should be excluded (when type:file is specified)
 				dirCondition, hasDirCondition := searchOptions.Conditions["dir"]
-
 				// For directories: match if dir condition is explicitly true
 				// For files: match if no dir condition, or if dir condition is false
 				var typeMatches bool
@@ -140,7 +136,6 @@ func (idx *Index) Search(search string, scope string, sourceSession string, larg
 				} else {
 					typeMatches = !hasDirCondition || (hasDirCondition && !dirCondition)
 				}
-
 				matches = sizeMatches && typeMatches
 			} else {
 				matches = item.ContainsSearchTerm(searchTerm, searchOptions)
@@ -178,6 +173,5 @@ func (idx *Index) Search(search string, scope string, sourceSession string, larg
 		parts2 := strings.Split(sortedKeys[j].Path, "/")
 		return len(parts1) < len(parts2)
 	})
-
 	return sortedKeys
 }
