@@ -14,8 +14,6 @@ import (
 const BATCH_SIZE = 5000 // Progressive flush threshold for scanner batches
 
 // UpdateFileMetadata updates the FileInfo for the specified directory in the index.
-// During routine scans, items are accumulated in idx.batchItems and flushed at the end.
-// For non-routine operations (API calls), items are inserted immediately.
 func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo) bool {
 	// Quick nil check without mutex - db pointer is set once at init and never changes
 	if idx.db == nil {
