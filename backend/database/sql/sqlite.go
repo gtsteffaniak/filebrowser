@@ -173,6 +173,12 @@ func NewTempDB(id string, config ...*TempDBConfig) (*TempDB, error) {
 		return nil, fmt.Errorf("failed to ping SQLite database: %w", err)
 	}
 
+	// Limit connection pool to 1 for SQLite - it's a file-based database and multiple connections
+	// can cause locking issues. With busy_timeout, SQLite will queue operations automatically.
+	if cfg.LockingMode == "EXCLUSIVE" {
+		db.SetMaxOpenConns(1)
+		db.SetMaxIdleConns(1)
+	}
 	// Apply optimizations via PRAGMA statements
 	// Execute them individually for compatibility and better error reporting
 	// IMPORTANT: page_size must be set BEFORE any tables are created

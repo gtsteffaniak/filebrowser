@@ -105,6 +105,12 @@ func StartFilebrowser() {
 	if len(settings.Config.Server.SourceMap) == 0 {
 		logger.Fatal("No sources configured, exiting...")
 	}
+
+	// Initialize shared index database before starting HTTP service
+	if err := indexing.InitializeIndexDB(); err != nil {
+		logger.Fatalf("Failed to initialize index database: %v", err)
+	}
+
 	for _, source := range settings.Config.Server.SourceMap {
 		go indexing.Initialize(source, false)
 	}

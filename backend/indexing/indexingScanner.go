@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
@@ -142,6 +143,8 @@ func (s *Scanner) runRootScan(quick bool) {
 		}
 	}
 	indexSizeBefore := s.idx.totalSize
+	// Initialize batch accumulator for this scan
+	s.idx.batchItems = make([]*iteminfo.FileInfo, 0, 5000)
 	s.idx.mu.Unlock()
 
 	logger.Debugf("[%s] Scanner [%s] START: indexSizeBefore=%d, previousScannerSize=%d (quick=%v)", s.idx.Name, s.scanPath, indexSizeBefore, previousScannerSize, quick)
@@ -183,15 +186,22 @@ func (s *Scanner) runChildScan(quick bool) {
 		s.numDirs = 0
 		s.numFiles = 0
 	}
-	s.idx.mu.RLock()
+	s.idx.mu.Lock()
 	indexSizeBefore := s.idx.totalSize
-	s.idx.mu.RUnlock()
+	// Initialize batch accumulator for this scan
+	s.idx.batchItems = make([]*iteminfo.FileInfo, 0, 5000)
+	s.idx.isRoutineScan = true // Mark as routine scan
+	s.idx.mu.Unlock()
+
 	s.filesChanged = false
 	startTime := time.Now()
 	err := s.idx.indexDirectory(s.scanPath, config)
 	if err != nil {
 		logger.Errorf("Scanner [%s] error: %v", s.scanPath, err)
 	}
+
+	// Flush accumulated batch to database
+	s.idx.flushBatch()
 
 	s.idx.mu.RLock()
 	indexSizeAfter := s.idx.totalSize
