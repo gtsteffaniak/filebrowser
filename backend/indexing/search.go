@@ -33,13 +33,8 @@ func (idx *Index) Search(search string, scope string, sourceSession string, larg
 	}
 
 	// Ensure scope has consistent trailing slash for directory matching
-	if scope != "" && !strings.HasSuffix(scope, "/") {
-		scope = scope + "/"
-	}
-	// originalScope := scope // Preserve original scope for largest mode exclusion check
-	if search == "" {
-		scope = ""
-	}
+	scope = utils.AddTrailingSlashIfNotExists(scope)
+
 	runningHash := utils.InsecureRandomIdentifier(4)
 	sessionInProgress.Store(sourceSession, runningHash) // Store the value in the sync.Map
 	searchOptions := iteminfo.ParseSearch(search)
@@ -73,10 +68,6 @@ func (idx *Index) Search(search string, scope string, sourceSession string, larg
 		query = strings.Replace(query, "FROM index_items", "FROM index_items WHERE "+strings.Join(whereClauses, " AND "), 1)
 	}
 
-	// For simple searches, we could potentially add name filtering to SQL
-	// But to maintain full compatibility with ParseSearch (fuzzy matching, case sensitivity, etc),
-	// we'll stream results and filter in Go.
-	// SQLite is fast enough to stream thousands of rows.
 	rows, err := idx.db.Query(query, args...)
 	if err != nil {
 		return []*SearchResult{}

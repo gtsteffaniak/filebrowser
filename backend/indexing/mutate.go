@@ -22,23 +22,22 @@ func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo) bool {
 
 	items := make([]*iteminfo.FileInfo, 0, len(info.Files)+1)
 
-	// Convert relative path to absolute path for the directory
-	absoluteDirPath := idx.MakeAbsolutePath(info.Path)
+	// Store index paths (relative to source root, starting with "/")
+	// Database stores index paths, not absolute filesystem paths
+	// Each source has its own isolated database, so no need for source prefix
 	dirItem := *info
-	dirItem.Path = absoluteDirPath
+	dirItem.Path = info.Path // Already an index path like "/share/folder/"
 	items = append(items, &dirItem)
 
-	// Add files to the bulk insert with absolute paths
+	// Add files to the bulk insert with index paths
 	for i := range info.Files {
 		f := &info.Files[i]
-		// Construct relative path for the file
-		relativeFilePath := strings.TrimRight(info.Path, "/") + "/" + f.Name
-		// Convert to absolute path
-		absoluteFilePath := idx.MakeAbsolutePath(relativeFilePath)
+		// Construct index path for the file
+		filePath := strings.TrimRight(info.Path, "/") + "/" + f.Name
 
 		fileItem := &iteminfo.FileInfo{
 			ItemInfo: f.ItemInfo,
-			Path:     absoluteFilePath,
+			Path:     filePath, // Store index path, not absolute path
 		}
 		items = append(items, fileItem)
 	}
@@ -126,11 +125,9 @@ func (idx *Index) DeleteMetadata(path string, isDir bool, recursive bool) bool {
 		indexPath = utils.AddTrailingSlashIfNotExists(path)
 	}
 
-	// Convert to absolute path
-	absolutePath := idx.MakeAbsolutePath(indexPath)
-
-	if err := idx.db.DeleteItem(absolutePath, recursive); err != nil {
-		logger.Errorf("Failed to delete metadata for %s: %v", absolutePath, err)
+	// indexPath is already an index path (relative to source root)
+	if err := idx.db.DeleteItem(indexPath, recursive); err != nil {
+		logger.Errorf("Failed to delete metadata for %s: %v", indexPath, err)
 		return false
 	}
 
@@ -158,10 +155,8 @@ func (idx *Index) GetReducedMetadata(target string, isDir bool) (*iteminfo.FileI
 		checkPath = "/"
 	}
 
-	// Convert to absolute path
-	absolutePath := idx.MakeAbsolutePath(checkPath)
-
-	item, err := idx.db.GetItem(absolutePath)
+	// checkPath is already an index path (relative to source root)
+	item, err := idx.db.GetItem(checkPath)
 	if err != nil {
 		return nil, false
 	}
@@ -191,11 +186,9 @@ func (idx *Index) GetMetadataInfo(target string, isDir bool) (*iteminfo.FileInfo
 		checkDir = "/"
 	}
 
-	// Convert to absolute path
-	absoluteDirPath := idx.MakeAbsolutePath(checkDir)
-
+	// checkDir is already an index path (relative to source root)
 	// Get directory item
-	dir, err := idx.db.GetItem(absoluteDirPath)
+	dir, err := idx.db.GetItem(checkDir)
 	if err != nil {
 		return nil, false
 	}
@@ -206,9 +199,9 @@ func (idx *Index) GetMetadataInfo(target string, isDir bool) (*iteminfo.FileInfo
 	}
 
 	// Get children
-	children, err := idx.db.GetDirectoryChildren(absoluteDirPath)
+	children, err := idx.db.GetDirectoryChildren(checkDir)
 	if err != nil {
-		logger.Errorf("Failed to get children for %s: %v", absoluteDirPath, err)
+		logger.Errorf("Failed to get children for %s: %v", checkDir, err)
 		return dir, true
 	}
 

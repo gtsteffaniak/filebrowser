@@ -414,6 +414,108 @@ func (db *IndexDB) UpdateCacheSize(cacheSizeMB int) error {
 	return nil
 }
 
+// GetFilesBySize retrieves all files with a specific size, optionally filtered by path prefix.
+// Used for duplicate detection - returns files ordered by name for efficient grouping.
+// Returns empty slice on database busy/lock errors (non-fatal).
+func (db *IndexDB) GetFilesBySize(size int64, pathPrefix string) ([]*iteminfo.FileInfo, error) {
+	var query string
+	var args []interface{}
+
+	if pathPrefix != "" {
+		query = `
+		SELECT path, name, size, mod_time, type, is_dir, is_hidden, has_preview
+		FROM index_items 
+		WHERE size = ? AND is_dir = 0 AND path GLOB ?
+		ORDER BY name
+		`
+		args = []interface{}{size, pathPrefix + "*"}
+	} else {
+		query = `
+		SELECT path, name, size, mod_time, type, is_dir, is_hidden, has_preview
+		FROM index_items 
+		WHERE size = ? AND is_dir = 0
+		ORDER BY name
+		`
+		args = []interface{}{size}
+	}
+
+	rows, err := db.Query(query, args...)
+	if err != nil {
+		// Soft failure: DB is busy or locked, return empty slice
+		if isBusyError(err) || isTransactionError(err) {
+			return []*iteminfo.FileInfo{}, nil
+		}
+		return nil, err
+	}
+	defer rows.Close()
+
+	var files []*iteminfo.FileInfo
+	for rows.Next() {
+		item, err := scanRow(rows)
+		if err != nil {
+			return nil, err
+		}
+		files = append(files, item)
+	}
+
+	return files, rows.Err()
+}
+
+// GetSizeGroupsForDuplicates queries for all size groups that have 2+ files.
+// Returns sizes in descending order (largest first) and a count map.
+// Optionally filters by path prefix for scoped searches.
+// Returns empty results on database busy/lock errors (non-fatal).
+func (db *IndexDB) GetSizeGroupsForDuplicates(minSize int64, pathPrefix string) ([]int64, map[int64]int, error) {
+	var query string
+	var args []interface{}
+
+	if pathPrefix != "" {
+		query = `
+		SELECT size, COUNT(*) as count
+		FROM index_items
+		WHERE size >= ? AND is_dir = 0 AND path GLOB ?
+		GROUP BY size
+		HAVING COUNT(*) >= 2
+		ORDER BY size DESC
+		`
+		args = []interface{}{minSize, pathPrefix + "*"}
+	} else {
+		query = `
+		SELECT size, COUNT(*) as count
+		FROM index_items
+		WHERE size >= ? AND is_dir = 0
+		GROUP BY size
+		HAVING COUNT(*) >= 2
+		ORDER BY size DESC
+		`
+		args = []interface{}{minSize}
+	}
+
+	rows, err := db.Query(query, args...)
+	if err != nil {
+		// Soft failure: DB is busy or locked, return empty results
+		if isBusyError(err) || isTransactionError(err) {
+			return []int64{}, make(map[int64]int), nil
+		}
+		return nil, nil, err
+	}
+	defer rows.Close()
+
+	var sizes []int64
+	sizeCounts := make(map[int64]int)
+	for rows.Next() {
+		var size int64
+		var count int
+		if err := rows.Scan(&size, &count); err != nil {
+			return nil, nil, err
+		}
+		sizes = append(sizes, size)
+		sizeCounts[size] = count
+	}
+
+	return sizes, sizeCounts, rows.Err()
+}
+
 // Helper functions
 
 func getParentPath(path string) string {

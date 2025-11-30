@@ -60,6 +60,7 @@ type ReducedIndex struct {
 	Complexity      uint           `json:"complexity"` // 0-10 scale: 0=unknown, 1=simple, 2-6=normal, 7-9=complex, 10=highlyComplex
 	Scanners        []*ScannerInfo `json:"scanners,omitempty"`
 }
+
 type Index struct {
 	ReducedIndex
 	settings.Source `json:"-"`
@@ -247,15 +248,13 @@ func (idx *Index) indexDirectory(adjustedPath string, config actionConfig) error
 	modChange := false
 	var cachedDir *iteminfo.FileInfo
 	if idx.db != nil {
-		// Convert to absolute path for database lookup
-		absolutePath := idx.MakeAbsolutePath(adjustedPath)
-		cachedDir, _ = idx.db.GetItem(absolutePath)
+		// adjustedPath is already an index path (relative to source root)
+		cachedDir, _ = idx.db.GetItem(adjustedPath)
 	}
 	if cachedDir != nil {
 		modChange = dirInfo.ModTime().Unix() != cachedDir.ModTime.Unix()
-		// Convert to absolute path for database lookup
-		absolutePath := idx.MakeAbsolutePath(adjustedPath)
-		if children, err := idx.db.GetDirectoryChildren(absolutePath); err == nil {
+		// adjustedPath is already an index path (relative to source root)
+		if children, err := idx.db.GetDirectoryChildren(adjustedPath); err == nil {
 			for _, child := range children {
 				if child.Type == "directory" {
 					cacheDirItems = append(cacheDirItems, child.ItemInfo)
@@ -625,10 +624,9 @@ func (idx *Index) updateParentDirSizesBatched(startPath string, sizeDelta int64)
 		if parentDir == "" || parentDir == "/" {
 			break
 		}
-		// Convert to absolute path for database lookup
-		absoluteParentPath := idx.MakeAbsolutePath(parentDir)
-		parentPaths = append(parentPaths, absoluteParentPath)
-		logger.Debugf("[PARENT_SIZE] Added parent path: %s (from %s)", absoluteParentPath, currentPath)
+		// parentDir is already an index path (relative to source root)
+		parentPaths = append(parentPaths, parentDir)
+		logger.Debugf("[PARENT_SIZE] Added parent path: %s (from %s)", parentDir, currentPath)
 		currentPath = parentDir
 	}
 
