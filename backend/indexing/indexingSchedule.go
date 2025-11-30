@@ -2,6 +2,7 @@ package indexing
 
 import (
 	"encoding/json"
+	"strconv"
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/events"
@@ -23,8 +24,6 @@ var scanSchedule = map[int]time.Duration{
 }
 
 // complexityModifier defines time adjustments based on complexity level (0-10)
-// 0: unknown (not yet scanned), 1: simple, 2-6: normal, 7-9: complex, 10: highlyComplex
-// Each level gets progressively more aggressive with scan timing adjustments
 var complexityModifier = map[uint]time.Duration{
 	0:  0 * time.Minute,  // unknown: no modifier
 	1:  -4 * time.Minute, // simple: scan more frequently
@@ -37,6 +36,72 @@ var complexityModifier = map[uint]time.Duration{
 	8:  8 * time.Minute,
 	9:  12 * time.Minute,
 	10: 16 * time.Minute, // highlyComplex: scan less frequently
+}
+
+// calculateTimeScore returns a 1-10 score based on full scan time
+func calculateTimeScore(fullScanTime int) uint {
+	if fullScanTime == 0 {
+		return 1 // No data yet, assume simple
+	}
+	switch {
+	case fullScanTime < 2:
+		return 1
+	case fullScanTime < 5:
+		return 2
+	case fullScanTime < 10:
+		return 3
+	case fullScanTime < 15:
+		return 4
+	case fullScanTime < 30:
+		return 5
+	case fullScanTime < 60:
+		return 6
+	case fullScanTime < 90:
+		return 7
+	case fullScanTime < 120:
+		return 8
+	case fullScanTime < 180:
+		return 9
+	default:
+		return 10
+	}
+}
+
+// calculateDirScore returns a 1-10 score based on directory count
+func calculateDirScore(numDirs uint64) uint {
+	// Directory-based thresholds
+	switch {
+	case numDirs < 2500:
+		return 1
+	case numDirs < 5000:
+		return 2
+	case numDirs < 10000:
+		return 3
+	case numDirs < 25000:
+		return 4
+	case numDirs < 50000:
+		return 5
+	case numDirs < 100000:
+		return 6
+	case numDirs < 250000:
+		return 7
+	case numDirs < 500000:
+		return 8
+	case numDirs < 1000000:
+		return 9
+	default:
+		return 10
+	}
+}
+
+func calculateComplexity(fullScanTime int, numDirs uint64) uint {
+	timeScore := calculateTimeScore(fullScanTime)
+	dirScore := calculateDirScore(numDirs)
+	complexity := timeScore
+	if dirScore > timeScore {
+		complexity = dirScore
+	}
+	return complexity
 }
 
 var fullScanAnchor = 3 // index of the schedule for a full scan
@@ -108,15 +173,14 @@ func (idx *Index) garbageCollection() {
 	idx.DirectoriesLedger = make(map[string]struct{})
 }
 
-// Removed: UpdateSchedule - now handled per-scanner in Scanner.updateSchedule()
-
 func (idx *Index) SendSourceUpdateEvent() error {
 	if idx.mock {
 		logger.Debug("Skipping source update event for mock index.")
 		return nil
 	}
-	reducedIndex, err := GetIndexInfo(idx.Name)
+	reducedIndex, err := GetIndexInfo(idx.Name, false)
 	if err != nil {
+		logger.Errorf("[%s] Error getting index info: %v", idx.Name, err)
 		return err
 	}
 	sourceAsMap := map[string]ReducedIndex{
@@ -124,13 +188,15 @@ func (idx *Index) SendSourceUpdateEvent() error {
 	}
 	message, err := json.Marshal(sourceAsMap)
 	if err != nil {
+		logger.Errorf("[%s] Error marshaling source update: %v", idx.Name, err)
 		return err
 	}
-	events.SendSourceUpdate(idx.Name, string(message))
+	// Quote the JSON string so it's sent as a string in the SSE message, not as an object
+	// The sendEvent function expects the message to be properly quoted (like "\"connection established\"")
+	quotedMessage := strconv.Quote(string(message))
+	events.SendSourceUpdate(idx.Name, quotedMessage)
 	return nil
 }
-
-// Removed: RunIndexing - replaced by multi-scanner system where each scanner handles its own indexing
 
 // setupMultiScanner creates and starts the multi-scanner system
 // Creates a root scanner (non-recursive) and child scanners for each top-level directory
@@ -200,11 +266,18 @@ func (idx *Index) setupIndexingScanners() {
 // aggregateStatsFromScanners aggregates stats from all scanners to Index-level stats
 func (idx *Index) aggregateStatsFromScanners() {
 	idx.mu.Lock()
-	defer idx.mu.Unlock()
 
 	if len(idx.scanners) == 0 {
+		idx.mu.Unlock()
 		return
 	}
+
+	// Store previous stats and status to detect changes
+	// Use stored previous totalSize for change detection
+	prevNumDirs := idx.NumDirs
+	prevNumFiles := idx.NumFiles
+	prevDiskUsed := idx.previousTotalSize // Use stored previous value (0 on first call, which will trigger initial event)
+	prevStatus := idx.Status
 
 	// Aggregate stats from all scanners
 	var totalDirs uint64 = 0
@@ -212,7 +285,6 @@ func (idx *Index) aggregateStatsFromScanners() {
 	var totalQuickScanTime = 0
 	var totalFullScanTime = 0
 	var mostRecentScan time.Time
-	var maxComplexity uint = 0 // Start at 0 (unknown)
 	allScannedAtLeastOnce := true
 
 	for _, scanner := range idx.scanners {
@@ -220,66 +292,53 @@ func (idx *Index) aggregateStatsFromScanners() {
 		totalFiles += scanner.numFiles
 		totalQuickScanTime += scanner.quickScanTime
 		totalFullScanTime += scanner.fullScanTime
-
-		// Track most recent scan
 		if scanner.lastScanned.After(mostRecentScan) {
 			mostRecentScan = scanner.lastScanned
 		}
-
-		// Check if all scanners have scanned at least once
 		if scanner.lastScanned.IsZero() {
 			allScannedAtLeastOnce = false
 		}
-		if !allScannedAtLeastOnce {
-			continue
-		}
-
-		// Track highest complexity (most conservative assessment)
-		// Only consider scanners that have been assessed (complexity > 0)
-		if scanner.complexity > 0 && scanner.complexity > maxComplexity {
-			maxComplexity = scanner.complexity
-		}
 	}
-	if allScannedAtLeastOnce && idx.FullScanTime == 0 {
-		maxComplexity = 1 // assess as simple because it took 0 seconds total
-	}
-
-	// Update Index-level stats
 	idx.NumDirs = totalDirs
 	idx.NumFiles = totalFiles
 	idx.QuickScanTime = totalQuickScanTime
 	idx.FullScanTime = totalFullScanTime
-	idx.Complexity = maxComplexity
-
-	// Update last indexed time
+	if allScannedAtLeastOnce {
+		idx.Complexity = calculateComplexity(totalFullScanTime, totalDirs)
+	} else {
+		idx.Complexity = 0
+	}
 	if !mostRecentScan.IsZero() {
 		idx.LastIndexed = mostRecentScan
 		idx.LastIndexedUnix = mostRecentScan.Unix()
 		idx.wasIndexed = true
 	}
-
-	// Log first complete scan round (once)
 	if allScannedAtLeastOnce && !idx.hasLoggedInitialScan {
 		totalDuration := time.Since(idx.initialScanStartTime)
 		truncatedToSecond := totalDuration.Truncate(time.Second)
 		logger.Debugf("Time spent indexing [%v]: %v seconds", idx.Name, truncatedToSecond)
 		idx.hasLoggedInitialScan = true
 	}
-
-	// Update status: if all scanners have completed at least one scan, mark as READY
 	if allScannedAtLeastOnce && idx.activeScannerPath == "" {
 		idx.Status = READY
-		// Send update event to notify clients
-		idx.mu.Unlock()
-		err := idx.SendSourceUpdateEvent()
-		idx.mu.Lock()
-		if err != nil {
-			logger.Errorf("Error sending source update event: %v", err)
-		}
 	} else if idx.activeScannerPath != "" {
 		idx.Status = INDEXING
 	}
-
+	newDiskUsed := idx.totalSize
+	newStatus := idx.Status
+	idx.mu.Unlock()
+	statsChanged := prevNumDirs != totalDirs || prevNumFiles != totalFiles || prevDiskUsed != newDiskUsed
+	statusChanged := prevStatus != newStatus
+	if statsChanged || statusChanged {
+		err := idx.SendSourceUpdateEvent()
+		if err != nil {
+			logger.Errorf("Error sending source update event: %v", err)
+		}
+		// Update previousTotalSize after sending event so next aggregation can detect changes
+		idx.mu.Lock()
+		idx.previousTotalSize = newDiskUsed
+		idx.mu.Unlock()
+	}
 }
 
 // GetScannerStatus returns detailed information about all active scanners

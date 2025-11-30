@@ -10,7 +10,7 @@ let isManuallyClosed = false
 let authenticationFailed = false
 let hasShownShutdownMessage = false
 
-async function updateSourceInfo () {
+async function updateSourceInfo() {
   try {
     const sourceinfo = await filesApi.sources()
     mutations.updateSourceInfo(sourceinfo)
@@ -19,7 +19,7 @@ async function updateSourceInfo () {
   }
 }
 
-function cleanup () {
+function cleanup() {
   if (eventSrc) {
     isManuallyClosed = true
     eventSrc.close()
@@ -27,7 +27,7 @@ function cleanup () {
   }
 }
 
-function scheduleReconnect () {
+function scheduleReconnect() {
   // Don't reconnect if authentication has failed
   if (authenticationFailed) {
     console.log('🚫 Not reconnecting due to authentication failure')
@@ -172,7 +172,13 @@ async function eventRouter (eventType, message) {
       break
 
     case 'sourceUpdate':
-      mutations.updateSourceInfo(message)
+      // Parse the JSON string before passing to updateSourceInfo
+      try {
+        const parsedMessage = JSON.parse(message)
+        mutations.updateSourceInfo(parsedMessage)
+      } catch (err) {
+        console.error('Error parsing sourceUpdate message:', err, message)
+      }
       break
 
     case 'acknowledge':

@@ -21,9 +21,9 @@
               <!-- Otherwise show animated status indicator -->
               <svg v-else-if="isLinkAccessible(link)" class="realtime-pulse" :class="{
                 active: realtimeActive,
-                danger: getSourceInfo(link).status != 'indexing' && getSourceInfo(link).status != 'ready',
-                warning: getSourceInfo(link).status == 'indexing',
-                ready: getSourceInfo(link).status == 'ready',
+                danger: (sourceInfo[link.sourceName] || {}).status != 'indexing' && (sourceInfo[link.sourceName] || {}).status != 'ready',
+                warning: (sourceInfo[link.sourceName] || {}).status == 'indexing',
+                ready: (sourceInfo[link.sourceName] || {}).status == 'ready',
               }">
                 <circle class="center" cx="50%" cy="50%" r="7px"></circle>
                 <circle class="pulse" cx="50%" cy="50%" r="10px"></circle>
@@ -34,12 +34,18 @@
               </i>
               <span>{{ link.name }}</span>
               <i v-if="isLinkAccessible(link)" class="no-select material-symbols-outlined tooltip-info-icon"
-                @mouseenter="showSourceTooltip($event, getSourceInfo(link))" @mouseleave="hideTooltip">
+                @mouseenter="showSourceTooltip($event, sourceInfo[link.sourceName] || {})" @mouseleave="hideTooltip">
                 info <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
               </i>
             </div>
             <div v-if="hasSourceInfo && isLinkAccessible(link)" class="usage-info">
-              <ProgressBar :val="getSourceInfo(link).used" :max="getSourceInfo(link).total" unit="bytes"></ProgressBar>
+              <ProgressBar 
+                :key="`progress-${link.sourceName}-${sourceInfo[link.sourceName]?.used || 0}-${sourceInfo[link.sourceName]?.total || 0}`"
+                :val="getProgressBarValue(sourceInfo[link.sourceName] || {})" 
+                :max="(sourceInfo[link.sourceName] || {}).total || 1" 
+                :status="getProgressBarStatus(sourceInfo[link.sourceName] || {})"
+                unit="bytes">
+              </ProgressBar>
             </div>
           </a>
 
@@ -77,7 +83,10 @@ export default {
       return this.sidebarLinksToDisplay?.length > 0;
     },
     user: () => (state.user || {username: 'anonymous'}),
-    sourceInfo: () => state.sources.info,
+    sourceInfo() {
+      // Access state.sources.info to create reactive dependency
+      return state.sources.info;
+    },
     activeSource: () => state.sources.current,
     realtimeActive: () => state.realtimeActive,
     hasSourceInfo: () => state.sources.hasSourceInfo,
@@ -109,7 +118,8 @@ export default {
     getLinkHref(link) {
       // Add baseURL to target for href display
       if (!link.target) return '#';
-      if (link.target.startsWith('http://') || link.target.startsWith('https://')) return link.target;
+      const lowerTarget = link.target.toLowerCase();
+      if (lowerTarget.startsWith('http://') || lowerTarget.startsWith('https://')) return link.target;
 
       const baseURL = globalVars.baseURL || '';
       let fullPath = '';
@@ -166,11 +176,6 @@ export default {
       // Tools and custom links are always accessible
       return true;
     },
-    getSourceInfo(link) {
-      // Get source info for a source link
-      if (link.category !== 'source' || !link.sourceName) return {};
-      return this.sourceInfo && link.sourceName ? this.sourceInfo[link.sourceName] || {} : {};
-    },
     isLinkActive(link) {
       // Check if the current route matches this link
       if (link.category === 'source') {
@@ -179,6 +184,23 @@ export default {
       }
       // For all other links (tools, custom, share), compare target with route path
       return this.$route.path === link.target;
+    },
+    getSourceInfoForLink(link) {
+      // Method that directly accesses reactive sourceInfo
+      // Vue will track this dependency when called in template
+      if (link.category !== 'source' || !link.sourceName) return {};
+      // Direct access to reactive computed property ensures Vue tracks changes
+      return this.sourceInfo && link.sourceName ? this.sourceInfo[link.sourceName] || {} : {};
+    },
+    getProgressBarStatus(sourceInfo) {
+      if (sourceInfo.status === 'indexing' && sourceInfo.complexity == 0) {
+        return 'indexing';
+      }
+      return 'default';
+    },
+    getProgressBarValue(sourceInfo) {
+      // Otherwise return the actual used value
+      return sourceInfo.used || 0;
     },
     handleLinkClick(link) {
       // Handle special share actions
@@ -204,6 +226,11 @@ export default {
         return;
       }
 
+      const lowerTarget = link.target.toLowerCase();
+      if (lowerTarget.startsWith('http://') || lowerTarget.startsWith('https://')) {
+        window.open(link.target, "_blank");
+        return;
+      }
       // For all other links (tools, custom, share), navigate using target directly
       if (link.target) {
         this.$router.push(link.target);

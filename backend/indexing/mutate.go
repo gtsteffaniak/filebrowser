@@ -177,15 +177,23 @@ func (idx *Index) GetDirectories() map[string]*iteminfo.FileInfo {
 	return idx.Directories
 }
 
-func GetIndexInfo(sourceName string) (ReducedIndex, error) {
+func GetIndexInfo(sourceName string, forceCacheRefresh bool) (ReducedIndex, error) {
 	idx, ok := indexes[sourceName]
 	if !ok {
 		return ReducedIndex{}, fmt.Errorf("index %s not found", sourceName)
 	}
+
+	// Only update disk total if cache is missing or explicitly forced
+	// The "used" value comes from totalSize and is always current
 	sourcePath := idx.Path
 	cacheKey := "usageCache-" + sourceName
+	if forceCacheRefresh {
+		// Invalidate cache to force update
+		utils.DiskUsageCache.Delete(cacheKey)
+	}
 	_, ok = utils.DiskUsageCache.Get(cacheKey)
 	if !ok {
+		// Only fetch disk total if not cached (this is expensive, so we cache it)
 		totalBytes, err := getPartitionSize(sourcePath)
 		if err != nil {
 			idx.mu.Lock()
@@ -215,7 +223,13 @@ func GetIndexInfo(sourceName string) (ReducedIndex, error) {
 	}
 	idx.mu.RUnlock()
 
+	// Get fresh values from the index (with lock to ensure consistency)
+	idx.mu.RLock()
 	reducedIdx := idx.ReducedIndex
+	// Ensure DiskUsed is up to date from totalSize
+	reducedIdx.DiskUsed = idx.totalSize
+	reducedIdx.DiskTotal = idx.DiskTotal
 	reducedIdx.Scanners = scannerInfos
+	idx.mu.RUnlock()
 	return reducedIdx, nil
 }

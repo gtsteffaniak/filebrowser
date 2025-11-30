@@ -738,7 +738,6 @@
     "emptyState": "Introduza os critérios de pesquisa e clique em Analisar para visualizar os tamanhos dos ficheiros",
     "completeResults": "Resultados completos apresentados!",
     "incompleteResults": "Os resultados podem ser incompletos",
-    "incompleteResultsDetails": "Mostrar resultados máximos (100). Tente restringir a sua pesquisa para obter mais resultados abaixo de 100.",
     "relativePercentage": "Percentagem relativa{suffix}",
     "percentageOfResults": "{percentage}% de resultados"
   },
@@ -786,7 +785,8 @@
     "pathNotFoundMessage": "O caminho para isto já não existe no sistema de ficheiros. Pode ter sido movido ou eliminado.",
     "reassignPath": "Reatribuir trajetória",
     "pathReassigned": "Caminho atualizado com sucesso!",
-    "pathReassignFailed": "Falha ao atualizar o caminho. Por favor, tente novamente."
+    "pathReassignFailed": "Falha ao atualizar o caminho. Por favor, tente novamente.",
+    "incompleteResultsDetails": "Mostrando resultados máximos ({max}). Tente restringir a sua pesquisa para obter mais resultados em {max}."
   },
   "duplicateFinder": {
     "title": "Localizador de ficheiros duplicados",

@@ -62,7 +62,8 @@ func getFileDetails(sys any, filePath string) (uint64, uint64, uint64, bool) {
 
 // handleFile processes a file and returns its size and whether it should be counted
 // On Unix, always uses syscall to get allocated size (du-like behavior)
-func (idx *Index) handleFile(file os.FileInfo, fullCombined string, realFilePath string) (size uint64, shouldCountSize bool) {
+// isRoutineScan: if true, updates the global totalSize; if false (API calls), only returns size
+func (idx *Index) handleFile(file os.FileInfo, fullCombined string, realFilePath string, isRoutineScan bool) (size uint64, shouldCountSize bool) {
 	var realSize uint64
 	var nlink uint64
 	var ino uint64
@@ -87,14 +88,20 @@ func (idx *Index) handleFile(file os.FileInfo, fullCombined string, realFilePath
 		// First time seeing this inode.
 		idx.processedInodes[ino] = struct{}{}
 		idx.FoundHardLinks[fullCombined] = realSize
+		// Only update totalSize during routine scans (not API calls)
+		if isRoutineScan {
 		idx.totalSize += realSize
+		}
 		return realSize, true // Count size for directory total.
 	}
 
 	// It's a regular file.
+	// Only update totalSize during routine scans (not API calls)
+	if isRoutineScan {
 	idx.mu.Lock()
 	idx.totalSize += realSize
 	idx.mu.Unlock()
+	}
 	return realSize, true // Count size.
 }
 

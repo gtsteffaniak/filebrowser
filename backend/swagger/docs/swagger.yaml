@@ -2366,8 +2366,13 @@ paths:
     get:
       consumes:
       - application/json
-      description: Returns the raw content of a file, multiple files, or a directory.
-        Supports downloading files as archives in various formats.
+      description: |-
+        Returns the raw content of a file, multiple files, or a directory. Supports downloading files as archives in various formats.
+
+        **Filename Encoding:**
+        - The Content-Disposition header will always include both:
+        1. `filename="..."`: An ASCII-safe version of the filename for compatibility.
+        2. `filename*=utf-8”...`: The full UTF-8 encoded filename (RFC 6266/5987) for modern clients.
       parameters:
       - description: a list of files in the following format 'source::filename' and
           separated by '||' with additional items in the list. (required)
@@ -2385,8 +2390,6 @@ paths:
         in: query
         name: algo
         type: string
-      produces:
-      - application/json
       responses:
         "200":
           description: Raw file or directory content, or archive for multiple files
