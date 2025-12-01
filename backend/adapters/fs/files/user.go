@@ -1,6 +1,7 @@
 package files
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -18,11 +19,10 @@ func MakeUserDir(fullPath string) error {
 	return nil
 }
 
-func MakeUserDirs(u *users.User, disableScopeChange bool) {
+func MakeUserDirs(u *users.User, disableScopeChange bool) error {
 	cleanedUserName := users.CleanUsername(u.Username)
 	if cleanedUserName == "" || cleanedUserName == "-" || cleanedUserName == "." {
-		logger.Errorf("MakeUserDirs: invalid user for home dir creation: [%s]", u.Username)
-		return
+		return fmt.Errorf("MakeUserDirs: invalid user for home dir creation: [%s]", u.Username)
 	}
 	for i, scope := range u.Scopes {
 		source, ok := settings.Config.Server.SourceMap[scope.Name]
@@ -71,4 +71,5 @@ func MakeUserDirs(u *users.User, disableScopeChange bool) {
 		}
 		u.Scopes[i] = scope
 	}
+	return nil
 }
