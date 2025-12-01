@@ -4,8 +4,11 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v1.1.3-beta
 
+ **Notes**:
+ - continue create user dir scope even if filesystem path creation fails #1509
+
  **BugFixes**:
- - v1.1.2 - indexing used size increases over time #1685
+ - indexing used size increases over time #1685
 
 ## v1.1.2-beta
 

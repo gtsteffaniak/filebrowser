@@ -115,10 +115,7 @@ func (st usersBackend) Update(user *users.User, actorIsAdmin bool, fields ...str
 			return err
 		}
 		user.Scopes = adjustedScopes
-		err = files.MakeUserDirs(user, true)
-		if err != nil {
-			return err
-		}
+		files.MakeUserDirs(user, true)
 	}
 	// converting scopes to map of paths intead of names (names can change)
 	if slices.Contains(fields, "SidebarLinks") {
@@ -193,10 +190,7 @@ func (st usersBackend) Save(user *users.User, changePass, disableScopeChange boo
 		return err
 	}
 	user.Scopes = adjustedScopes
-	err = files.MakeUserDirs(user, disableScopeChange)
-	if err != nil {
-		logger.Error(err.Error())
-	}
+	files.MakeUserDirs(user, disableScopeChange)
 	err = st.db.Save(user)
 	if err == storm.ErrAlreadyExists {
 		return fmt.Errorf("user with provided username already exists")
