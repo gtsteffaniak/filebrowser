@@ -293,7 +293,7 @@ func (idx *Index) aggregateStatsFromScanners() {
 		totalFiles += scanner.numFiles
 		totalQuickScanTime += scanner.quickScanTime
 		totalFullScanTime += scanner.fullScanTime
-		totalSizeFromScanners += scanner.scannerSize
+		totalSizeFromScanners += scanner.size
 		if scanner.lastScanned.After(mostRecentScan) {
 			mostRecentScan = scanner.lastScanned
 		}

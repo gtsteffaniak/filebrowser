@@ -7,14 +7,14 @@
     <p>{{ $t("prompts.renameMessage") }}</p>
 
     <div v-if="item.type !== 'directory'" class="filename-inputs">
-      <input class="input filename-input" :class="{ 'form-invalid': !validation.valid }" v-focus type="text" @keyup.enter="submit"
+      <input aria-label="New Name" class="input filename-input" :class="{ 'form-invalid': !validation.valid }" v-focus type="text" @keyup.enter="submit"
         v-model.trim="fileName" @input="updateFullName" />
       <span class="extension-separator">.</span> <!--eslint-disable-line @intlify/vue-i18n/no-raw-text-->
       <input class="input extension-input" type="text" @keyup.enter="submit" v-model.trim="fileExtension"
         @input="updateFullName" />
     </div>
 
-    <input v-else class="input" :class="{ 'form-invalid': !validation.valid }" v-focus type="text" @keyup.enter="submit"
+    <input v-else class="input" aria-label="New Name" :class="{ 'form-invalid': !validation.valid }" v-focus type="text" @keyup.enter="submit"
       v-model.trim="name" />
     <p v-if="!validation.valid && name.length > 0" class="validation-error">
       <span v-if="validation.reason === 'conflict'">

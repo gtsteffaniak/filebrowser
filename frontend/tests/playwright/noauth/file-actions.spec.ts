@@ -18,7 +18,7 @@ test("info from search", async({ page, checkForErrors, context }) => {
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
   await page.locator('#search').click()
   await page.locator('#main-input').fill('file.tar.gz');
-  await expect(page.locator('#result-list')).toHaveCount(1);
+  await expect(page.locator('#result-list > ul')).toHaveCount(1);
   await page.locator('li[aria-label="file.tar.gz"]').click({ button: "right" });
   await page.locator('.selected-count-header').waitFor({ state: 'visible' });
   await expect(page.locator('.selected-count-header')).toHaveText('1');
@@ -32,7 +32,7 @@ test("open from search", async({ page, checkForErrors, context }) => {
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
   await page.locator('#search').click()
   await page.locator('#main-input').fill('file.tar.gz');
-  await expect(page.locator('#result-list')).toHaveCount(1);
+  await expect(page.locator('#result-list > ul')).toHaveCount(1);
   await page.locator('li[aria-label="file.tar.gz"]').click();
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - file.tar.gz");
   await expect(page.locator('#previewer')).toContainText('Preview is not available for this file.');
@@ -99,8 +99,12 @@ test("delete file", async({ page, checkForErrors, context }) => {
   await expect(page.locator('div[aria-label="delete-path"]')).toHaveText('/deleteme.txt');
   await page.locator('button[aria-label="Confirm-Delete"]').click();
   await checkForNotification(page, "Deleted successfully!");
-  checkForErrors();
 
+  // verify its no longer in index via search
+  await page.locator('#search').click()
+  await page.locator('#main-input').fill('renameme.txt');
+  await expect(page.locator('#result-list > ul')).toHaveCount(0);
+  checkForErrors();
 })
 
 test("delete nested file prompt", async({ page, checkForErrors, context }) => {
@@ -113,5 +117,25 @@ test("delete nested file prompt", async({ page, checkForErrors, context }) => {
   await page.locator('button[aria-label="Delete"]').click();
   await expect(page.locator('.card-content')).toHaveText('Are you sure you want to delete this file/folder?/folder#hash/file#.sh');
   await expect(page.locator('div[aria-label="delete-path"]')).toHaveText('/folder#hash/file#.sh');
+  checkForErrors();
+})
+
+test("rename file", async({ page, checkForErrors, context }) => {
+  await page.goto("/files/");
+  await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
+  await page.locator('a[aria-label="renameme.txt"]').waitFor({ state: 'visible' });
+  await page.locator('a[aria-label="renameme.txt"]').click({ button: "right" });
+  await page.locator('.selected-count-header').waitFor({ state: 'visible' });
+  await expect(page.locator('.selected-count-header')).toHaveText('1');
+  await page.locator('button[aria-label="Rename"]').click();
+  await page.locator('input[aria-label="New Name"]').waitFor({ state: 'visible' });
+  await page.locator('input[aria-label="New Name"]').fill('renamed.txt');
+  await page.locator('button[aria-label="Rename"]').click();
+  await checkForNotification(page, "Renamed successfully!");
+
+  // verify its no longer in index via search
+  await page.locator('#search').click()
+  await page.locator('#main-input').fill('renameme.txt');
+  await expect(page.locator('#result-list > ul')).toHaveCount(0);
   checkForErrors();
 })

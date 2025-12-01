@@ -22,14 +22,14 @@ type Scanner struct {
 	lastScanned   time.Time
 	quickScanTime int
 	fullScanTime  int
-	numDirs       uint64 // Local count for this path
-	numFiles      uint64 // Local count for this path
-	scannerSize   uint64 // Size contributed by this scanner (for delta calculation)
 
-	// Previous values for delta calculation
-	previousNumDirs     uint64 // Previous numDirs value (preserved across scans)
-	previousNumFiles    uint64 // Previous numFiles value (preserved across scans)
-	previousScannerSize uint64 // Previous scannerSize value (preserved across scans)
+	// size tracking
+	numDirs          uint64 // Local count for this path
+	numFiles         uint64 // Local count for this path
+	size             uint64 // Size contributed by this scanner (for delta calculation)
+	previousNumDirs  uint64 // Previous numDirs value (preserved across scans)
+	previousNumFiles uint64 // Previous numFiles value (preserved across scans)
+	previousSize     uint64 // Previous size value (preserved across scans)
 
 	// Reference back to parent index
 	idx *Index
@@ -129,16 +129,13 @@ func (s *Scanner) runRootScan(quick bool) {
 	// Store previous values before scanning (preserved across scans)
 	prevNumDirs := s.previousNumDirs
 	prevNumFiles := s.previousNumFiles
-	prevScannerSize := s.previousScannerSize
+	prevSize := s.previousSize
 
 	// Reset counters for full scan (they will be incremented during indexing)
 	if !quick {
 		s.numDirs = 0
 		s.numFiles = 0
 	}
-
-	logger.Debugf("[%s] Scanner [%s] START: prevScannerSize=%d, prevNumDirs=%d, prevNumFiles=%d (quick=%v)",
-		s.idx.Name, s.scanPath, prevScannerSize, prevNumDirs, prevNumFiles, quick)
 
 	s.filesChanged = false
 	startTime := time.Now()
@@ -153,33 +150,25 @@ func (s *Scanner) runRootScan(quick bool) {
 	rootDirInfo, exists := s.idx.Directories["/"]
 	s.idx.mu.RUnlock()
 
-	var newNumDirs uint64 = 0
-	var newNumFiles uint64 = 0
-	var newScannerSize uint64 = 0
-
+	newNumDirs := prevNumDirs
+	newNumFiles := prevNumFiles
+	newsize := prevSize
 	if exists && rootDirInfo != nil {
 		for _, file := range rootDirInfo.Files {
-			newScannerSize += uint64(file.Size)
+			newsize += uint64(file.Size)
 			newNumFiles++
 		}
 		for range rootDirInfo.Folders {
 			newNumDirs++
 		}
-	} else {
-		// Fallback: use previous values if metadata not available
-		newNumDirs = prevNumDirs
-		newNumFiles = prevNumFiles
-		newScannerSize = prevScannerSize
 	}
-
 	// Update scanner with new values
-	s.scannerSize = newScannerSize
+	s.size = newsize
 
 	// Update previous values for next scan (preserve history - don't reset on new scans)
 	s.previousNumDirs = newNumDirs
 	s.previousNumFiles = newNumFiles
-	s.previousScannerSize = newScannerSize
-
+	s.previousSize = newsize
 	scanDuration := int(time.Since(startTime).Seconds())
 	if quick {
 		s.quickScanTime = scanDuration
@@ -199,18 +188,13 @@ func (s *Scanner) runChildScan(quick bool) {
 	}
 
 	// Store previous values before scanning (preserved across scans)
-	prevNumDirs := s.previousNumDirs
-	prevNumFiles := s.previousNumFiles
-	prevScannerSize := s.previousScannerSize
+	prevSize := s.previousSize
 
 	// Reset counters for full scan (they will be incremented during indexing)
 	if !quick {
 		s.numDirs = 0
 		s.numFiles = 0
 	}
-
-	logger.Debugf("[%s] Scanner [%s] START: prevScannerSize=%d, prevNumDirs=%d, prevNumFiles=%d (quick=%v)",
-		s.idx.Name, s.scanPath, prevScannerSize, prevNumDirs, prevNumFiles, quick)
 
 	s.filesChanged = false
 	startTime := time.Now()
@@ -230,22 +214,18 @@ func (s *Scanner) runChildScan(quick bool) {
 	dirInfo, exists := s.idx.Directories[s.scanPath]
 	s.idx.mu.RUnlock()
 
-	var newScannerSize uint64 = 0
+	newsize := prevSize
 	if exists && dirInfo != nil {
-		newScannerSize = uint64(dirInfo.Size)
-	} else {
-		// Fallback: if directory info not available yet, keep previous size
-		// This can happen during quick scans or if directory was deleted
-		newScannerSize = prevScannerSize
+		newsize = uint64(dirInfo.Size)
 	}
 
 	// Update scanner with new values
-	s.scannerSize = newScannerSize
+	s.size = newsize
 
 	// Update previous values for next scan (preserve history - don't reset on new scans)
 	s.previousNumDirs = newNumDirs
 	s.previousNumFiles = newNumFiles
-	s.previousScannerSize = newScannerSize
+	s.previousSize = newsize
 
 	scanDuration := int(time.Since(startTime).Seconds())
 	if quick {
