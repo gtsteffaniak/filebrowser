@@ -130,8 +130,8 @@ test("rename file", async({ page, checkForErrors, context }) => {
   await page.locator('button[aria-label="Rename"]').click();
   await page.locator('input[aria-label="New Name"]').waitFor({ state: 'visible' });
   await page.locator('input[aria-label="New Name"]').fill('renamed.txt');
-  await page.locator('button[aria-label="Rename"]').click();
-  await checkForNotification(page, "Renamed successfully!");
+  await page.locator('button[aria-label="Submit"]').click();
+  await checkForNotification(page, "Item renamed successfully!");
 
   // verify its no longer in index via search
   await page.locator('#search').click()

@@ -67,7 +67,7 @@
     "scope": "Scope{suffix}",
     "rules": "Rules{suffix}",
     "downloads": "Downloads{suffix}",
-    "submit": "Login{suffix}",
+    "submit": "Submit{suffix}",
     "navigation": "Navigation{suffix}",
     "metadata": "Metadata{suffix}",
     "loading": "Loading{suffix}",
