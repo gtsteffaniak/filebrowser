@@ -178,7 +178,7 @@ func (idx *Index) SendSourceUpdateEvent() error {
 		logger.Debug("Skipping source update event for mock index.")
 		return nil
 	}
-	reducedIndex, err := GetIndexInfo(idx.Name, false)
+	reducedIndex, err := GetIndexInfo(idx.Name, true)
 	if err != nil {
 		logger.Errorf("[%s] Error getting index info: %v", idx.Name, err)
 		return err
@@ -284,6 +284,7 @@ func (idx *Index) aggregateStatsFromScanners() {
 	var totalFiles uint64 = 0
 	var totalQuickScanTime = 0
 	var totalFullScanTime = 0
+	var totalSizeFromScanners uint64 = 0 // Sum of all scanner sizes
 	var mostRecentScan time.Time
 	allScannedAtLeastOnce := true
 
@@ -292,6 +293,7 @@ func (idx *Index) aggregateStatsFromScanners() {
 		totalFiles += scanner.numFiles
 		totalQuickScanTime += scanner.quickScanTime
 		totalFullScanTime += scanner.fullScanTime
+		totalSizeFromScanners += scanner.scannerSize
 		if scanner.lastScanned.After(mostRecentScan) {
 			mostRecentScan = scanner.lastScanned
 		}
@@ -299,6 +301,10 @@ func (idx *Index) aggregateStatsFromScanners() {
 			allScannedAtLeastOnce = false
 		}
 	}
+
+	// Update totalSize by summing all scanner sizes (root scanner handles this)
+	// This ensures totalSize is always the sum of all scanner contributions
+	idx.totalSize = totalSizeFromScanners
 	idx.NumDirs = totalDirs
 	idx.NumFiles = totalFiles
 	idx.QuickScanTime = totalQuickScanTime

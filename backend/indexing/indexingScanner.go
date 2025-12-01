@@ -26,6 +26,11 @@ type Scanner struct {
 	numFiles      uint64 // Local count for this path
 	scannerSize   uint64 // Size contributed by this scanner (for delta calculation)
 
+	// Previous values for delta calculation
+	previousNumDirs     uint64 // Previous numDirs value (preserved across scans)
+	previousNumFiles    uint64 // Previous numFiles value (preserved across scans)
+	previousScannerSize uint64 // Previous scannerSize value (preserved across scans)
+
 	// Reference back to parent index
 	idx *Index
 
@@ -121,30 +126,19 @@ func (s *Scanner) runRootScan(quick bool) {
 		IsRoutineScan: true,
 	}
 
-	// Reset counters for full scan
+	// Store previous values before scanning (preserved across scans)
+	prevNumDirs := s.previousNumDirs
+	prevNumFiles := s.previousNumFiles
+	prevScannerSize := s.previousScannerSize
+
+	// Reset counters for full scan (they will be incremented during indexing)
 	if !quick {
 		s.numDirs = 0
 		s.numFiles = 0
 	}
 
-	// Track size before scan for delta calculation
-	previousScannerSize := s.scannerSize
-
-	s.idx.mu.Lock()
-	if previousScannerSize > 0 {
-		if s.idx.totalSize >= previousScannerSize {
-			s.idx.totalSize -= previousScannerSize
-		} else {
-			// Safety check: if totalSize is less than previousScannerSize, something is wrong
-			// Reset to 0 to avoid underflow
-			logger.Warningf("[%s] Scanner [%s] WARNING: totalSize (%d) < previousScannerSize (%d), resetting totalSize to 0", s.idx.Name, s.scanPath, s.idx.totalSize, previousScannerSize)
-			s.idx.totalSize = 0
-		}
-	}
-	indexSizeBefore := s.idx.totalSize
-	s.idx.mu.Unlock()
-
-	logger.Debugf("[%s] Scanner [%s] START: indexSizeBefore=%d, previousScannerSize=%d (quick=%v)", s.idx.Name, s.scanPath, indexSizeBefore, previousScannerSize, quick)
+	logger.Debugf("[%s] Scanner [%s] START: prevScannerSize=%d, prevNumDirs=%d, prevNumFiles=%d (quick=%v)",
+		s.idx.Name, s.scanPath, prevScannerSize, prevNumDirs, prevNumFiles, quick)
 
 	s.filesChanged = false
 	startTime := time.Now()
@@ -154,12 +148,38 @@ func (s *Scanner) runRootScan(quick bool) {
 		logger.Errorf("Root scanner error: %v", err)
 	}
 
-	// Calculate delta for this scanner
+	// Root scanner gets values directly from index metadata - simple!
 	s.idx.mu.RLock()
-	indexSizeAfter := s.idx.totalSize
+	rootDirInfo, exists := s.idx.Directories["/"]
 	s.idx.mu.RUnlock()
-	newScannerSize := indexSizeAfter - indexSizeBefore
+
+	var newNumDirs uint64 = 0
+	var newNumFiles uint64 = 0
+	var newScannerSize uint64 = 0
+
+	if exists && rootDirInfo != nil {
+		for _, file := range rootDirInfo.Files {
+			newScannerSize += uint64(file.Size)
+			newNumFiles++
+		}
+		for range rootDirInfo.Folders {
+			newNumDirs++
+		}
+	} else {
+		// Fallback: use previous values if metadata not available
+		newNumDirs = prevNumDirs
+		newNumFiles = prevNumFiles
+		newScannerSize = prevScannerSize
+	}
+
+	// Update scanner with new values
 	s.scannerSize = newScannerSize
+
+	// Update previous values for next scan (preserve history - don't reset on new scans)
+	s.previousNumDirs = newNumDirs
+	s.previousNumFiles = newNumFiles
+	s.previousScannerSize = newScannerSize
+
 	scanDuration := int(time.Since(startTime).Seconds())
 	if quick {
 		s.quickScanTime = scanDuration
@@ -178,26 +198,55 @@ func (s *Scanner) runChildScan(quick bool) {
 		IsRoutineScan: true,
 	}
 
-	// Reset counters for full scan
+	// Store previous values before scanning (preserved across scans)
+	prevNumDirs := s.previousNumDirs
+	prevNumFiles := s.previousNumFiles
+	prevScannerSize := s.previousScannerSize
+
+	// Reset counters for full scan (they will be incremented during indexing)
 	if !quick {
 		s.numDirs = 0
 		s.numFiles = 0
 	}
-	s.idx.mu.RLock()
-	indexSizeBefore := s.idx.totalSize
-	s.idx.mu.RUnlock()
+
+	logger.Debugf("[%s] Scanner [%s] START: prevScannerSize=%d, prevNumDirs=%d, prevNumFiles=%d (quick=%v)",
+		s.idx.Name, s.scanPath, prevScannerSize, prevNumDirs, prevNumFiles, quick)
+
 	s.filesChanged = false
 	startTime := time.Now()
+
 	err := s.idx.indexDirectory(s.scanPath, config)
 	if err != nil {
 		logger.Errorf("Scanner [%s] error: %v", s.scanPath, err)
 	}
 
+	// Calculate new values after scan
+	newNumDirs := s.numDirs
+	newNumFiles := s.numFiles
+
+	// For child scanners, calculate size from the directory info
+	// Since child scanners don't modify totalSize, we get it from the directory metadata
 	s.idx.mu.RLock()
-	indexSizeAfter := s.idx.totalSize
+	dirInfo, exists := s.idx.Directories[s.scanPath]
 	s.idx.mu.RUnlock()
-	newScannerSize := indexSizeAfter - indexSizeBefore
+
+	var newScannerSize uint64 = 0
+	if exists && dirInfo != nil {
+		newScannerSize = uint64(dirInfo.Size)
+	} else {
+		// Fallback: if directory info not available yet, keep previous size
+		// This can happen during quick scans or if directory was deleted
+		newScannerSize = prevScannerSize
+	}
+
+	// Update scanner with new values
 	s.scannerSize = newScannerSize
+
+	// Update previous values for next scan (preserve history - don't reset on new scans)
+	s.previousNumDirs = newNumDirs
+	s.previousNumFiles = newNumFiles
+	s.previousScannerSize = newScannerSize
+
 	scanDuration := int(time.Since(startTime).Seconds())
 	if quick {
 		s.quickScanTime = scanDuration
