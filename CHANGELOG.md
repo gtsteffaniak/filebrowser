@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v1.1.3-beta
+
+ **BugFixes**:
+ - v1.1.2 - indexing used size increases over time #1685
+
 ## v1.1.2-beta
 
  **Notes**:
