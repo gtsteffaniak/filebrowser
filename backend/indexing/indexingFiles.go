@@ -236,9 +236,8 @@ func (idx *Index) GetFsDirInfo(adjustedPath string) (*iteminfo.FileInfo, error) 
 	if !dirInfo.IsDir() {
 		// Use handleFile for consistent size calculation across platforms
 		// API calls (GetFsDirInfo) should not update totalSize, so pass false for isRoutineScan
-		realSize, _ := idx.handleFile(dirInfo, adjustedPath, realPath, false)
+		realSize, _ := idx.handleFile(dirInfo, adjustedPath, realPath)
 		size := int64(realSize)
-
 		fileInfo := iteminfo.FileInfo{
 			Path: adjustedPath,
 			ItemInfo: iteminfo.ItemInfo{
@@ -365,7 +364,7 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 			}
 		} else {
 			realFilePath := realPath + "/" + file.Name()
-			size, shouldCountSize := idx.handleFile(file, fullCombined, realFilePath, config.IsRoutineScan)
+			size, shouldCountSize := idx.handleFile(file, fullCombined, realFilePath)
 			itemInfo.DetectType(realFilePath, false)
 			usedCachedPreview := false
 			if !idx.Config.DisableIndexing && config.Recursive {

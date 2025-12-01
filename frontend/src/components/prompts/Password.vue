@@ -23,10 +23,10 @@
     <button
       class="button button--flat"
       @click="submit"
-      :aria-label="$t('general.submit')"
-      :title="$t('general.submit')"
+      :aria-label="$t('general.login')"
+      :title="$t('general.login')"
     >
-      {{ $t("general.submit") }}
+      {{ $t("general.login") }}
     </button>
   </div>
 </template>
