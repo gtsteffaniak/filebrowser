@@ -32,7 +32,7 @@
       {{ $t("general.cancel") }}
     </button>
     <button @click="submit" class="button button--flat" :disabled="!canRename"
-      type="submit" :aria-label="$t('general.rename')" :title="$t('general.rename')">
+      type="submit" :aria-label="$t('general.submit')" :title="$t('general.submit')">
       {{ $t("general.rename") }}
     </button>
   </div>

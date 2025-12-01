@@ -18,7 +18,7 @@ test("info from search", async({ page, checkForErrors, context }) => {
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
   await page.locator('#search').click()
   await page.locator('#main-input').fill('file.tar.gz');
-  await expect(page.locator('#result-list > ul')).toHaveCount(1);
+  await expect(page.locator('#result-list ul li.search-entry')).toHaveCount(1);
   await page.locator('li[aria-label="file.tar.gz"]').click({ button: "right" });
   await page.locator('.selected-count-header').waitFor({ state: 'visible' });
   await expect(page.locator('.selected-count-header')).toHaveText('1');
@@ -32,7 +32,7 @@ test("open from search", async({ page, checkForErrors, context }) => {
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
   await page.locator('#search').click()
   await page.locator('#main-input').fill('file.tar.gz');
-  await expect(page.locator('#result-list > ul')).toHaveCount(1);
+  await expect(page.locator('#result-list ul li.search-entry')).toHaveCount(1);
   await page.locator('li[aria-label="file.tar.gz"]').click();
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - file.tar.gz");
   await expect(page.locator('#previewer')).toContainText('Preview is not available for this file.');
@@ -102,8 +102,8 @@ test("delete file", async({ page, checkForErrors, context }) => {
 
   // verify its no longer in index via search
   await page.locator('#search').click()
-  await page.locator('#main-input').fill('renameme.txt');
-  await expect(page.locator('#result-list > ul')).toHaveCount(0);
+  await page.locator('#main-input').fill('deleteme.txt');
+  await expect(page.locator('#result-list ul li.search-entry')).toHaveCount(0);
   checkForErrors();
 })
 
@@ -136,6 +136,6 @@ test("rename file", async({ page, checkForErrors, context }) => {
   // verify its no longer in index via search
   await page.locator('#search').click()
   await page.locator('#main-input').fill('renameme.txt');
-  await expect(page.locator('#result-list > ul')).toHaveCount(0);
+  await expect(page.locator('#result-list ul li.search-entry')).toHaveCount(0);
   checkForErrors();
 })
