@@ -490,8 +490,8 @@ github.com/gostaticanalysis/nilerr v0.1.2/go.mod h1:A19UHhoY3y8ahoL7YKz6sdjDtduw
 github.com/gostaticanalysis/testutil v0.3.1-0.20210208050101-bfb5c8eec0e4/go.mod h1:D+FIZ+7OahH3ePw/izIEeH5I06eKs1IKI4Xr64/Am3M=
 github.com/gostaticanalysis/testutil v0.5.0 h1:Dq4wT1DdTwTGCQQv3rl3IvD5Ld0E6HiY+3Zh0sUGqw8=
 github.com/gostaticanalysis/testutil v0.5.0/go.mod h1:OLQSbuM6zw2EvCcXTz1lVq5unyoNft372msDY0nY5Hs=
-github.com/gtsteffaniak/go-cache v1.0.0 h1:CuZw6eI/be6Oi3oR94Jb5LhcZShMCs6+1wvS7WGN8oQ=
-github.com/gtsteffaniak/go-cache v1.0.0/go.mod h1:rHUZvf4huhMX/bnNK4/oQ3sNAE2fYC2jFpAWZiBPWac=
+github.com/gtsteffaniak/go-cache v1.1.0 h1:ni/2cJpCxpGmaMZd92iTDIGOy+yUcMcxQuW7bSKhkCE=
+github.com/gtsteffaniak/go-cache v1.1.0/go.mod h1:rHUZvf4huhMX/bnNK4/oQ3sNAE2fYC2jFpAWZiBPWac=
 github.com/gtsteffaniak/go-logger v0.2.3 h1:8nSC5xSMnMYQI61tsBS1tARpnkv/rOh5lzEXtAG72Nw=
 github.com/gtsteffaniak/go-logger v0.2.3/go.mod h1:rapapTju4D7bwt6h4JOdZNUXDjnp0WkTBd6TN5yWglI=
 github.com/hairyhenderson/go-codeowners v0.7.0 h1:s0W4wF8bdsBEjTWzwzSlsatSthWtTAF2xLgo4a4RwAo=

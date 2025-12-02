@@ -210,7 +210,7 @@ func staticAssetHandler(w http.ResponseWriter, r *http.Request) {
 	// Handle special routes that need path mapping
 	var assetPath string
 	switch path {
-	case "favicon.ico", "favicon":
+	case "favicon.svg", "favicon":
 		// Handle custom favicon from filesystem
 		if settings.Env.FaviconIsCustom {
 			http.ServeFile(w, r, settings.Env.FaviconPath)
