@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v1.0.3-stable
+
+ **BugFixes**:
+ - download progress is not shown #1687
+
 ## v1.0.2-stable
 
  **Notes**:
