@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v1.2.0-beta
+
+ **New Features**:
+ - SQLite based indexing
+   - reduces memory usage
+   - comparable performance
+
 ## v1.1.3-beta
 
  **Notes**:

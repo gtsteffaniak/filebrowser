@@ -334,11 +334,13 @@ func (idx *Index) aggregateStatsFromScanners() {
 	idx.NumFiles = totalFiles
 	idx.QuickScanTime = totalQuickScanTime
 	idx.FullScanTime = totalFullScanTime
+	prevComplexity := idx.Complexity
 	if allScannedAtLeastOnce {
 		idx.Complexity = calculateComplexity(totalFullScanTime, totalDirs)
 	} else {
 		idx.Complexity = 0
 	}
+	complexityChanged := prevComplexity != idx.Complexity
 	if !mostRecentScan.IsZero() {
 		idx.LastIndexed = mostRecentScan
 		idx.LastIndexedUnix = mostRecentScan.Unix()
@@ -358,6 +360,11 @@ func (idx *Index) aggregateStatsFromScanners() {
 	newDiskUsed := idx.totalSize
 	newStatus := idx.Status
 	idx.mu.Unlock()
+
+	// Update cache size when complexity changes or when all scans complete for the first time
+	if complexityChanged && allScannedAtLeastOnce {
+		updateIndexDBCacheSize()
+	}
 
 	statsChanged := prevNumDirs != totalDirs || prevNumFiles != totalFiles || prevDiskUsed != newDiskUsed
 	statusChanged := prevStatus != newStatus

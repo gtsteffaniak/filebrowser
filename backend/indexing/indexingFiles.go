@@ -157,18 +157,13 @@ func calculateTotalComplexity() uint {
 
 // updateIndexDBCacheSize updates the shared index database cache size
 // based on the total complexity of all indexes.
-// Formula: total complexity * 10MB
 func updateIndexDBCacheSize() {
-	if indexDB == nil {
-		return
-	}
-
 	totalComplexity := calculateTotalComplexity()
 	// Calculate cache size: complexity * 10MB
-	cacheSizeMB := int(totalComplexity) * 10
+	cacheSizeMB := int(totalComplexity) * 5
 	// Ensure minimum of 10MB
-	if cacheSizeMB < 10 {
-		cacheSizeMB = 10
+	if cacheSizeMB < 5 {
+		cacheSizeMB = 5
 	}
 
 	if err := indexDB.UpdateCacheSize(cacheSizeMB); err != nil {
