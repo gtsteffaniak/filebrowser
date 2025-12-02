@@ -12,7 +12,7 @@ require (
 	github.com/goccy/go-yaml v1.18.0
 	github.com/golang-jwt/jwt/v4 v4.5.2
 	github.com/google/go-cmp v0.7.0
-	github.com/gtsteffaniak/go-cache v1.0.0
+	github.com/gtsteffaniak/go-cache v1.1.0
 	github.com/gtsteffaniak/go-logger v0.2.3
 	github.com/kovidgoyal/imaging v1.7.2
 	github.com/pquerna/otp v1.5.0
