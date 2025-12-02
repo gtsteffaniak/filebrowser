@@ -53,7 +53,7 @@ class UploadManager {
           const probeResults = await Promise.all(
             [...topLevelDirs].map(async (dirName) => {
               try {
-                const testPath = `${basePath}${dirName}`;
+                const testPath = `${basePath}${dirName}/`;
                 if (getters.isShare()) {
                   await publicApi.post(state.shareInfo?.hash, testPath, new Blob([]), false, undefined, {}, true);
                 } else {
