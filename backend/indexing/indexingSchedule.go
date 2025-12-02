@@ -150,7 +150,6 @@ func (idx *Index) PreScan() error {
 
 func (idx *Index) PostScan() error {
 	idx.mu.Lock()
-	idx.garbageCollection()
 	idx.wasIndexed = true
 	idx.runningScannerCount--
 	idx.mu.Unlock()
@@ -160,9 +159,38 @@ func (idx *Index) PostScan() error {
 	return nil
 }
 
-func (idx *Index) garbageCollection() {
-	// Legacy garbage collection was removed as part of SQL index refactor
-	// TODO: Implement DB-based garbage collection using last_scanned timestamp
+// updateRootDirectorySize recalculates the "/" directory size from the database
+// and updates the "/" entry. This should be called after any scanner completes.
+func (idx *Index) updateRootDirectorySize() {
+	// Get all direct children of root directory
+	children, err := idx.db.GetDirectoryChildren("/")
+	if err != nil {
+		logger.Errorf("Failed to get root directory children: %v", err)
+		return
+	}
+
+	// Calculate total size: sum of all direct files + all child directory sizes
+	var totalSize int64
+	for _, child := range children {
+		totalSize += child.Size
+	}
+
+	// Get current root directory entry
+	rootDir, err := idx.db.GetItem("/")
+	if err != nil || rootDir == nil {
+		logger.Errorf("Failed to get root directory entry: %v", err)
+		return
+	}
+
+	// Update root directory size
+	rootDir.Size = totalSize
+	if err := idx.db.InsertItem("/", rootDir); err != nil {
+		logger.Errorf("Failed to update root directory size: %v", err)
+		return
+	}
+
+	// Now aggregate stats and send update event
+	idx.aggregateStatsFromScanners()
 }
 
 func (idx *Index) SendSourceUpdateEvent() error {
@@ -276,7 +304,6 @@ func (idx *Index) aggregateStatsFromScanners() {
 	var totalFiles uint64 = 0
 	var totalQuickScanTime = 0
 	var totalFullScanTime = 0
-	var totalSizeFromScanners uint64 = 0 // Sum of all scanner sizes
 	var mostRecentScan time.Time
 	allScannedAtLeastOnce := true
 
@@ -285,7 +312,6 @@ func (idx *Index) aggregateStatsFromScanners() {
 		totalFiles += scanner.numFiles
 		totalQuickScanTime += scanner.quickScanTime
 		totalFullScanTime += scanner.fullScanTime
-		totalSizeFromScanners += scanner.size
 		if scanner.lastScanned.After(mostRecentScan) {
 			mostRecentScan = scanner.lastScanned
 		}
@@ -294,9 +320,16 @@ func (idx *Index) aggregateStatsFromScanners() {
 		}
 	}
 
-	// Update totalSize by summing all scanner sizes (root scanner handles this)
-	// This ensures totalSize is always the sum of all scanner contributions
-	idx.totalSize = totalSizeFromScanners
+	// Get total size directly from database (sum of all file sizes)
+	// This is the source of truth for accurate size calculation
+
+	dbTotalSize, err := idx.db.GetTotalSize()
+	if err != nil {
+		logger.Errorf("Failed to get total size from database: %v", err)
+	} else {
+		idx.totalSize = dbTotalSize
+	}
+
 	idx.NumDirs = totalDirs
 	idx.NumFiles = totalFiles
 	idx.QuickScanTime = totalQuickScanTime

@@ -516,6 +516,24 @@ func (db *IndexDB) GetSizeGroupsForDuplicates(minSize int64, pathPrefix string) 
 	return sizes, sizeCounts, rows.Err()
 }
 
+// GetTotalSize returns the sum of all file sizes in the index (excluding directories).
+// Returns 0 on database busy/lock errors (non-fatal).
+func (db *IndexDB) GetTotalSize() (uint64, error) {
+	query := `SELECT COALESCE(SUM(size), 0) FROM index_items WHERE is_dir = 0`
+
+	var totalSize int64
+	err := db.QueryRow(query).Scan(&totalSize)
+	if err != nil {
+		// Soft failure: DB is busy or locked, return 0
+		if isBusyError(err) || isTransactionError(err) {
+			return 0, nil
+		}
+		return 0, err
+	}
+
+	return uint64(totalSize), nil
+}
+
 // Helper functions
 
 func getParentPath(path string) string {
