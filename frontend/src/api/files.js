@@ -98,61 +98,26 @@ export async function download(format, files, shareHash = "") {
     files: fileargs,
     algo: format,
     hash: shareHash,
-    ...(state.share.token && { token: state.share.token })
+    ...(state.share.token && { token: state.share.token }),
+    sessionId: state.sessionId
   })
   const url = window.origin + apiPath
 
-
-  // Use fetch to capture errors in the console
-  const response = await fetch(url, {
-    credentials: 'same-origin',
-    headers: {
-      "sessionId": state.sessionId,
-    },
-  })
-
-  if (!response.ok) {
-    const errorText = await response.text()
-    const error = new Error(`Download failed: ${response.status} ${response.statusText}`)
-    console.error('Download API error:', {
-      status: response.status,
-      statusText: response.statusText,
-      body: errorText,
-      url: url
-    })
-    throw error
-  }
-
-  // Get the blob from the response
-  const blob = await response.blob()
-  // Determine filename from Content-Disposition header or use default
-  let filename = 'download'
-  const contentDisposition = response.headers.get('Content-Disposition')
-  if (contentDisposition) {
-    const utf8 = contentDisposition.split("filename*=utf-8''")[1]
-    if (utf8) {
-      filename = decodeURIComponent(utf8.split(';')[0].trim())
-    } else {
-      const ascii = contentDisposition.split('filename="')[1]
-      if (ascii) {
-        filename = ascii.split('"')[0]
-      }
-    }
-  } else {
-    filename = `download.${format}`
-  }
-
-  // Create a blob URL and trigger download
-  const blobUrl = window.URL.createObjectURL(blob)
+  // Create a direct link and trigger the download
+  // This allows the browser to handle the download natively with:
+  // - Native download progress indicator
+  // - Shows up in browser's download menu
+  // - Doesn't load entire file into memory first
   const link = document.createElement('a')
-  link.href = blobUrl
-  link.setAttribute('download', filename)
+  link.href = url
+  link.style.display = 'none'
   document.body.appendChild(link)
   link.click()
-  document.body.removeChild(link)
-  // Clean up the blob URL
-  window.URL.revokeObjectURL(blobUrl)
-
+  
+  // Clean up after a short delay
+  setTimeout(() => {
+    document.body.removeChild(link)
+  }, 100)
 }
 
 export function post(
