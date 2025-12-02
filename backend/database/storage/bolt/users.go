@@ -117,7 +117,7 @@ func (st usersBackend) Update(user *users.User, actorIsAdmin bool, fields ...str
 		user.Scopes = adjustedScopes
 		err = files.MakeUserDirs(user, true)
 		if err != nil {
-			return err
+			logger.Error(err.Error())
 		}
 	}
 	// converting scopes to map of paths intead of names (names can change)
