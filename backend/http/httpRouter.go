@@ -189,7 +189,7 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	publicRoutes.Handle("GET /static/", http.HandlerFunc(staticAssetHandler))
 
 	// Standard browser favicon and manifest routes
-	router.HandleFunc("GET /favicon.ico", http.HandlerFunc(staticAssetHandler))
+	router.HandleFunc("GET /favicon.svg", http.HandlerFunc(staticAssetHandler))
 	router.HandleFunc("GET /site.webmanifest", http.HandlerFunc(staticAssetHandler))
 	router.HandleFunc("GET /manifest.json", http.HandlerFunc(staticAssetHandler))
 

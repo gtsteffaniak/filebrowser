@@ -110,12 +110,6 @@ func duplicatesHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 }
 
 // findDuplicatesInIndex finds duplicates using the main IndexDB
-// This minimizes memory allocation by:
-// 1. Querying IndexDB for size groups with 2+ files
-// 2. Processing each size group sequentially (only one in memory at a time)
-// 3. Fuzzy matching filenames in memory (fast for small groups)
-// 4. Verifying with checksums for accuracy
-// 5. Only creating SearchResult objects for final verified duplicates
 func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions) []duplicateGroup {
 	// Get the shared IndexDB
 	indexDB := indexing.GetIndexDB()
@@ -302,12 +296,9 @@ func groupFilesByChecksum(files []*iteminfo.FileInfo, index *indexing.Index, fil
 }
 
 // computePartialChecksum calculates MD5 hash by sampling key portions of a file
-// This is 10-100x faster than full file checksums while maintaining high accuracy
-// Strategy:
 // - Always read first 8KB (header/metadata)
 // - For files > 24KB: sample middle 8KB and last 8KB
 // - Total read: ~24KB max per file regardless of file size
-// Checksums are cached for 1 hour based on source/path/modtime
 func computePartialChecksum(sourcePath, filePath string, size int64, modTime time.Time) (string, error) {
 	// Generate cache key from source path, file path, and modification time
 	cacheKey := fmt.Sprintf("%s:%s:%d:%d", sourcePath, filePath, size, modTime.Unix())

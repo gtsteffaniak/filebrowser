@@ -643,7 +643,7 @@ func loadCustomFavicon() {
 	allowedFormats := []string{".ico", ".png", ".svg"}
 
 	// Set default embedded favicon path
-	Env.FaviconEmbeddedPath = "img/icons/favicon.ico"
+	Env.FaviconEmbeddedPath = "img/icons/favicon.svg"
 
 	// Check if a custom favicon path is configured
 	if Config.Frontend.Favicon == "" {

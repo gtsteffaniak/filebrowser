@@ -153,18 +153,12 @@ func ClearCache() {
 	rulesCache = cache.NewCache[map[string]FrontendAccessRule](1 * time.Minute)
 }
 
-// ClearCacheForSource clears the cache for a specific source
-func (s *Storage) ClearCacheForSource(sourcePath string) {
-	// Clear all caches related to this source
-	accessCache.Delete(accessChangedKey + sourcePath)
-	rulesCache.Delete(accessChangedKey + sourcePath)
-	versionCache.Delete("version:" + sourcePath)
-
-	// Clear all permission caches for this source
-	// We need to iterate through all permission cache keys and remove those for this source
-	// Since we can't iterate through cache keys, we'll just increment the version
-	// which will invalidate all permission caches for this source
-	s.incrementSourceVersion(sourcePath)
+// clearAllCaches clears ALL caches. This should be called whenever rules are created, updated, or deleted.
+func (s *Storage) clearAllCaches() {
+	accessCache.ClearAll()
+	versionCache.ClearAll()
+	permissionCache.ClearAll()
+	rulesCache.ClearAll()
 }
 
 // RemoveRuleByPath removes a rule by its exact path from the internal storage
@@ -180,18 +174,11 @@ func (s *Storage) RemoveRuleByPath(sourcePath, indexPath string) {
 	// Remove the rule by exact path match (don't normalize)
 	if _, exists := rulesBySource[indexPath]; exists {
 		delete(rulesBySource, indexPath)
-
 		// If no rules left for this source, remove the source entry
 		if len(rulesBySource) == 0 {
 			delete(s.AllRules, sourcePath)
 		}
-
-		// Invalidate caches
-		s.incrementSourceVersion(sourcePath)
-		accessCache.Set(accessChangedKey+sourcePath, "false")
-		rulesCache.Delete(accessChangedKey + sourcePath)
-
-		// Save to database
+		s.clearAllCaches()
 		err := s.SaveToDB()
 		if err != nil {
 			logger.Errorf("error saving access rules to database: %v", err)
@@ -233,9 +220,7 @@ func (s *Storage) DenyUser(sourcePath, indexPath, username string) error {
 		return errors.ErrExist
 	}
 	rule.Deny.Users[username] = struct{}{}
-	s.incrementSourceVersion(sourcePath)
-	accessCache.Set(accessChangedKey+sourcePath, "false")
-	rulesCache.Delete(accessChangedKey + sourcePath)
+	s.clearAllCaches()
 	return s.SaveToDB()
 }
 
@@ -254,9 +239,7 @@ func (s *Storage) AllowUser(sourcePath, indexPath, username string) error {
 		return errors.ErrExist
 	}
 	rule.Allow.Users[username] = struct{}{}
-	s.incrementSourceVersion(sourcePath)
-	accessCache.Set(accessChangedKey+sourcePath, "false")
-	rulesCache.Delete(accessChangedKey + sourcePath)
+	s.clearAllCaches()
 	return s.SaveToDB()
 }
 
@@ -273,9 +256,7 @@ func (s *Storage) DenyGroup(sourcePath, indexPath, groupname string) error {
 		return errors.ErrExist
 	}
 	rule.Deny.Groups[groupname] = struct{}{}
-	s.incrementSourceVersion(sourcePath)
-	accessCache.Set(accessChangedKey+sourcePath, "false")
-	rulesCache.Delete(accessChangedKey + sourcePath)
+	s.clearAllCaches()
 	return s.SaveToDB()
 }
 
@@ -292,9 +273,7 @@ func (s *Storage) AllowGroup(sourcePath, indexPath, groupname string) error {
 		return errors.ErrExist
 	}
 	rule.Allow.Groups[groupname] = struct{}{}
-	s.incrementSourceVersion(sourcePath)
-	accessCache.Set(accessChangedKey+sourcePath, "false")
-	rulesCache.Delete(accessChangedKey + sourcePath)
+	s.clearAllCaches()
 	return s.SaveToDB()
 }
 
@@ -307,9 +286,7 @@ func (s *Storage) DenyAll(sourcePath, indexPath string) error {
 		return errors.ErrExist
 	}
 	rule.DenyAll = true
-	s.incrementSourceVersion(sourcePath)
-	accessCache.Set(accessChangedKey+sourcePath, "false")
-	rulesCache.Delete(accessChangedKey + sourcePath)
+	s.clearAllCaches()
 	return s.SaveToDB()
 }
 
@@ -659,11 +636,7 @@ func (s *Storage) RemoveAllowUser(sourcePath, indexPath, username string) (bool,
 	if exists {
 		delete(rule.Allow.Users, username)
 	}
-	removed := false
-	if exists {
-		s.incrementSourceVersion(sourcePath)
-		removed = true
-	}
+	removed := exists
 	// If rule is now empty, remove it
 	if len(rule.Allow.Users) == 0 && len(rule.Allow.Groups) == 0 && len(rule.Deny.Users) == 0 && len(rule.Deny.Groups) == 0 {
 		delete(s.AllRules[sourcePath], normalizedPath)
@@ -672,8 +645,7 @@ func (s *Storage) RemoveAllowUser(sourcePath, indexPath, username string) (bool,
 		}
 	}
 	if removed {
-		accessCache.Set(accessChangedKey+sourcePath, "false")
-		rulesCache.Delete(accessChangedKey + sourcePath)
+		s.clearAllCaches()
 		return exists, s.SaveToDB()
 	}
 	return false, nil
@@ -692,11 +664,7 @@ func (s *Storage) RemoveAllowGroup(sourcePath, indexPath, groupname string) (boo
 	if exists {
 		delete(rule.Allow.Groups, groupname)
 	}
-	removed := false
-	if exists {
-		s.incrementSourceVersion(sourcePath)
-		removed = true
-	}
+	removed := exists
 	// If rule is now empty, remove it
 	if len(rule.Allow.Users) == 0 && len(rule.Allow.Groups) == 0 && len(rule.Deny.Users) == 0 && len(rule.Deny.Groups) == 0 {
 		delete(s.AllRules[sourcePath], normalizedPath)
@@ -705,8 +673,7 @@ func (s *Storage) RemoveAllowGroup(sourcePath, indexPath, groupname string) (boo
 		}
 	}
 	if removed {
-		accessCache.Set(accessChangedKey+sourcePath, "false")
-		rulesCache.Delete(accessChangedKey + sourcePath)
+		s.clearAllCaches()
 		return exists, s.SaveToDB()
 	}
 	return exists, nil
@@ -725,11 +692,7 @@ func (s *Storage) RemoveDenyUser(sourcePath, indexPath, username string) (bool, 
 	if exists {
 		delete(rule.Deny.Users, username)
 	}
-	removed := false
-	if exists {
-		s.incrementSourceVersion(sourcePath)
-		removed = true
-	}
+	removed := exists
 	// If rule is now empty, remove it
 	if len(rule.Allow.Users) == 0 && len(rule.Allow.Groups) == 0 && len(rule.Deny.Users) == 0 && len(rule.Deny.Groups) == 0 {
 		delete(s.AllRules[sourcePath], normalizedPath)
@@ -738,8 +701,7 @@ func (s *Storage) RemoveDenyUser(sourcePath, indexPath, username string) (bool, 
 		}
 	}
 	if removed {
-		accessCache.Set(accessChangedKey+sourcePath, "false")
-		rulesCache.Delete(accessChangedKey + sourcePath)
+		s.clearAllCaches()
 		return exists, s.SaveToDB()
 	}
 	return false, nil
@@ -758,11 +720,7 @@ func (s *Storage) RemoveDenyGroup(sourcePath, indexPath, groupname string) (bool
 	if exists {
 		delete(rule.Deny.Groups, groupname)
 	}
-	removed := false
-	if exists {
-		s.incrementSourceVersion(sourcePath)
-		removed = true
-	}
+	removed := exists
 	// If rule is now empty, remove it
 	if len(rule.Allow.Users) == 0 && len(rule.Allow.Groups) == 0 && len(rule.Deny.Users) == 0 && len(rule.Deny.Groups) == 0 {
 		delete(s.AllRules[sourcePath], normalizedPath)
@@ -771,8 +729,7 @@ func (s *Storage) RemoveDenyGroup(sourcePath, indexPath, groupname string) (bool
 		}
 	}
 	if removed {
-		accessCache.Set(accessChangedKey+sourcePath, "false")
-		rulesCache.Delete(accessChangedKey + sourcePath)
+		s.clearAllCaches()
 		return exists, s.SaveToDB()
 	}
 	return exists, nil
@@ -790,7 +747,6 @@ func (s *Storage) RemoveDenyAll(sourcePath, indexPath string) (bool, error) {
 	removed := false
 	if rule.DenyAll {
 		rule.DenyAll = false
-		s.incrementSourceVersion(sourcePath)
 		removed = true
 	}
 	// If rule is now empty, remove it
@@ -801,8 +757,7 @@ func (s *Storage) RemoveDenyAll(sourcePath, indexPath string) (bool, error) {
 		}
 	}
 	if removed {
-		accessCache.Set(accessChangedKey+sourcePath, "false")
-		rulesCache.Delete(accessChangedKey + sourcePath)
+		s.clearAllCaches()
 		return true, s.SaveToDB()
 	}
 	return false, nil
@@ -834,12 +789,8 @@ func (s *Storage) RemoveAllRulesForUser(username string) error {
 			}
 		}
 	}
-	for sp := range changedSourcePaths {
-		s.incrementSourceVersion(sp)
-		accessCache.Set(accessChangedKey+sp, "false")
-		rulesCache.Delete(accessChangedKey + sp)
-	}
 	if changed {
+		s.clearAllCaches()
 		return s.SaveToDB()
 	}
 	return nil
@@ -871,12 +822,8 @@ func (s *Storage) RemoveAllRulesForGroup(groupname string) error {
 			}
 		}
 	}
-	for sp := range changedSourcePaths {
-		s.incrementSourceVersion(sp)
-		accessCache.Set(accessChangedKey+sp, "false")
-		rulesCache.Delete(accessChangedKey + sp)
-	}
 	if changed {
+		s.clearAllCaches()
 		return s.SaveToDB()
 	}
 	return nil
@@ -1084,16 +1031,6 @@ func (s *Storage) GetAllRulesByGroups(sourcePath string) map[string]map[string]F
 	return allGroupRules
 }
 
-// incrementSourceVersion increments the version of a sourcePath to invalidate caches.
-func (s *Storage) incrementSourceVersion(sourcePath string) {
-	key := "version:" + sourcePath
-	version := 0
-	if v, ok := versionCache.Get(key); ok {
-		version = v
-	}
-	versionCache.Set(key, version+1)
-}
-
 // HasAnyVisibleItems checks if a user has access to any items in a given parent path.
 // This is used to determine if a user should see a folder's contents even when
 // they don't have direct access to the parent folder.
@@ -1164,9 +1101,7 @@ func (s *Storage) RemoveUserCascade(sourcePath, indexPath, username string, allo
 	}
 
 	if changed {
-		s.incrementSourceVersion(sourcePath)
-		accessCache.Set(accessChangedKey+sourcePath, "false")
-		rulesCache.Delete(accessChangedKey + sourcePath)
+		s.clearAllCaches()
 		return removedCount, s.SaveToDB()
 	}
 
@@ -1223,9 +1158,7 @@ func (s *Storage) RemoveGroupCascade(sourcePath, indexPath, groupname string, al
 	}
 
 	if changed {
-		s.incrementSourceVersion(sourcePath)
-		accessCache.Set(accessChangedKey+sourcePath, "false")
-		rulesCache.Delete(accessChangedKey + sourcePath)
+		s.clearAllCaches()
 		return removedCount, s.SaveToDB()
 	}
 
@@ -1272,11 +1205,7 @@ func (s *Storage) UpdateRules(sourcePath, oldPath, newPath string) (int, error) 
 	}
 
 	if updated > 0 {
-		// Invalidate caches
-		s.incrementSourceVersion(sourcePath)
-		accessCache.Set(accessChangedKey+sourcePath, "false")
-		rulesCache.Delete(accessChangedKey + sourcePath)
-
+		s.clearAllCaches()
 		if err := s.SaveToDB(); err != nil {
 			return updated, err
 		}
@@ -1307,12 +1236,7 @@ func (s *Storage) UpdateRulePath(sourcePath, oldPath, newPath string) error {
 	// Remove the old rule and add it with the new path
 	delete(rulesBySource, oldPath)
 	rulesBySource[newPath] = rule
-
-	// Invalidate caches
-	s.incrementSourceVersion(sourcePath)
-	accessCache.Set(accessChangedKey+sourcePath, "false")
-	rulesCache.Delete(accessChangedKey + sourcePath)
-
+	s.clearAllCaches()
 	logger.Debugf("access rule path updated: source=%s, fromPath=%s, toPath=%s", sourcePath, oldPath, newPath)
 	return s.SaveToDB()
 }

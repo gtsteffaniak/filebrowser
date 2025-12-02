@@ -88,21 +88,8 @@ func (idx *Index) handleFile(file os.FileInfo, fullCombined string, realFilePath
 		// First time seeing this inode.
 		idx.processedInodes[ino] = struct{}{}
 		idx.FoundHardLinks[fullCombined] = realSize
-		// Only update totalSize during routine scans (not API calls)
-		if isRoutineScan {
-		idx.totalSize += realSize
-		}
-		return realSize, true // Count size for directory total.
 	}
-
-	// It's a regular file.
-	// Only update totalSize during routine scans (not API calls)
-	if isRoutineScan {
-	idx.mu.Lock()
-	idx.totalSize += realSize
-	idx.mu.Unlock()
-	}
-	return realSize, true // Count size.
+	return realSize, true // Count size for directory total.
 }
 
 // platform specific rules

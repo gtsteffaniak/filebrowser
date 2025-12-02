@@ -316,7 +316,6 @@ func (idx *Index) GetFsDirInfo(adjustedPath string) (*iteminfo.FileInfo, error) 
 		// API calls (GetFsDirInfo) should not update totalSize, so pass false for isRoutineScan
 		realSize, _ := idx.handleFile(dirInfo, adjustedPath, realPath, false)
 		size := int64(realSize)
-
 		fileInfo := iteminfo.FileInfo{
 			Path: adjustedPath,
 			ItemInfo: iteminfo.ItemInfo{

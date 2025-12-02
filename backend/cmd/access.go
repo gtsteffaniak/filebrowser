@@ -17,9 +17,6 @@ func validateAccessRules() {
 	}
 	// Get all sources
 	for sourcePath := range settings.Config.Server.SourceMap {
-		// Clear cache before migration to ensure we get fresh data
-		store.Access.ClearCacheForSource(sourcePath)
-
 		// Get all rules for this source
 		rules, err := store.Access.GetAllRules(sourcePath)
 		if err != nil {
@@ -65,7 +62,6 @@ func validateAccessRules() {
 
 		// After migration, clear cache
 		if migratedCount > 0 {
-			store.Access.ClearCacheForSource(sourcePath)
 			logger.Infof("Migrated %d access rules for source %s", migratedCount, sourcePath)
 		}
 	}
