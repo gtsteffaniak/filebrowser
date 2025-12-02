@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Notes**:
  - continue create user dir scope even if filesystem path creation fails #1509
+ - access control cache is cleared more aggresively to ensure no delay
 
  **BugFixes**:
  - indexing used size increases over time #1685
