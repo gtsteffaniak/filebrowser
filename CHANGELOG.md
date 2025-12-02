@@ -7,9 +7,11 @@ All notable changes to this project will be documented in this file. For commit 
  **Notes**:
  - continue create user dir scope even if filesystem path creation fails #1509
  - access control cache is cleared more aggresively to ensure no delay
+ - removed default .ico favicon in favor of .svg
 
  **BugFixes**:
  - indexing used size increases over time #1685
+ - download progress is not shown #1687
 
 ## v1.1.2-beta
 
