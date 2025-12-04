@@ -1,18 +1,52 @@
 package indexing
 
 import (
+	"os"
 	"reflect"
 	"strings"
 	"sync"
 	"testing"
 	"time"
 
+	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	dbsql "github.com/gtsteffaniak/filebrowser/backend/database/sql"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 	"github.com/stretchr/testify/assert"
 )
+
+func TestMain(m *testing.M) {
+	// Ensure fileutils permissions are set (needed by NewTempDB)
+	if fileutils.PermDir == 0 {
+		fileutils.SetFsPermissions(0644, 0755)
+	}
+
+	// Create a temporary directory for test database files with proper permissions
+	tmpDir, err := os.MkdirTemp("", "indexing_test_*")
+	if err != nil {
+		panic(err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	// Ensure the temp directory has correct permissions
+	if err := os.Chmod(tmpDir, 0755); err != nil {
+		panic(err)
+	}
+
+	// Set the cache directory to the temporary directory
+	originalCacheDir := settings.Config.Server.CacheDir
+	settings.Config.Server.CacheDir = tmpDir
+	defer func() {
+		settings.Config.Server.CacheDir = originalCacheDir
+	}()
+
+	// Run the tests
+	code := m.Run()
+
+	// Exit with the test result code
+	os.Exit(code)
+}
 
 func BenchmarkSearchAllIndexes(b *testing.B) {
 	Initialize(&settings.Source{Name: "test", Path: "/srv"}, true)
