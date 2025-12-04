@@ -14,6 +14,7 @@ import (
 	"unicode"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 	"github.com/gtsteffaniak/go-cache/cache"
@@ -44,6 +45,7 @@ type duplicatesOptions struct {
 	combinedPath string
 	minSize      int64
 	useChecksum  bool
+	username     string
 }
 
 // duplicatesHandler handles requests to find duplicate files
@@ -78,7 +80,16 @@ func duplicatesHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 	if index == nil {
 		return http.StatusBadRequest, fmt.Errorf("index not found for source %s", opts.source)
 	}
-
+	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, index.Name)
+	if err != nil {
+		return http.StatusForbidden, err
+	}
+	userscope = strings.TrimRight(userscope, "/")
+	scopePath := utils.JoinPathAsUnix(userscope, opts.searchScope)
+	fullPath := index.MakeIndexPath(scopePath, true) // searchScope is a directory
+	if !store.Access.Permitted(index.Path, fullPath, d.user.Username) {
+		return http.StatusForbidden, fmt.Errorf("user is not allowed to access this location")
+	}
 	// Generate cache key from all input parameters that affect results
 	// Checksums are always enabled, so cache key doesn't need to include that flag
 	cacheKey := fmt.Sprintf("%s:%s:%d", index.Path, opts.combinedPath, opts.minSize)
@@ -109,7 +120,7 @@ func duplicatesHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 	return renderJSON(w, r, duplicateGroups)
 }
 
-// findDuplicatesInIndex finds duplicates using the main IndexDB
+// findDuplicatesInIndex finds duplicates using the shared IndexDB
 func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions) []duplicateGroup {
 	// Get the shared IndexDB
 	indexDB := indexing.GetIndexDB()
@@ -121,7 +132,7 @@ func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions) []dup
 	// Step 1: Query IndexDB for size groups with 2+ files (already sorted by SQL)
 	// Pass the scope prefix for efficient filtering
 	pathPrefix := opts.combinedPath
-	sizes, _, err := indexDB.GetSizeGroupsForDuplicates(opts.minSize, pathPrefix)
+	sizes, _, err := indexDB.GetSizeGroupsForDuplicates(opts.source, opts.minSize, pathPrefix)
 	if err != nil {
 		logger.Errorf("[Duplicates] Failed to query size groups: %v", err)
 		return []duplicateGroup{}
@@ -140,12 +151,19 @@ func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions) []dup
 
 		// Get files for this size from IndexDB
 		fileQueryStart := time.Now()
-		files, err := indexDB.GetFilesBySize(size, pathPrefix)
+		files, err := indexDB.GetFilesBySize(opts.source, size, pathPrefix)
 		fileQueryDuration := time.Since(fileQueryStart)
 		totalFileQueryTime += fileQueryDuration
 		fileQueryCount++
 
 		if err != nil || len(files) < 2 {
+			continue
+		}
+
+		// Filter files by permission early, before any processing
+		// This ensures only files the user is permitted to access are included
+		files = filterFilesByPermission(files, index, opts.username)
+		if len(files) < 2 {
 			continue
 		}
 
@@ -251,7 +269,7 @@ func prepDuplicatesOptions(r *http.Request, d *requestContext) (*duplicatesOptio
 		return nil, err
 	}
 
-	combinedPath := index.MakeIndexPath(filepath.Join(userscope, searchScope))
+	combinedPath := index.MakeIndexPath(filepath.Join(userscope, searchScope), true) // searchScope is a directory
 
 	return &duplicatesOptions{
 		source:       source,
@@ -259,6 +277,7 @@ func prepDuplicatesOptions(r *http.Request, d *requestContext) (*duplicatesOptio
 		combinedPath: combinedPath,
 		minSize:      minSize,
 		useChecksum:  useChecksum,
+		username:     d.user.Username,
 	}, nil
 }
 
@@ -517,4 +536,22 @@ func max(a, b int) int {
 		return a
 	}
 	return b
+}
+
+// filterFilesByPermission filters files to only include those the user is permitted to access
+// This is called early in the duplicate search process to avoid processing files the user can't see
+func filterFilesByPermission(files []*iteminfo.FileInfo, index *indexing.Index, username string) []*iteminfo.FileInfo {
+	if store.Access == nil {
+		// No access control configured, return all files
+		return files
+	}
+
+	filtered := make([]*iteminfo.FileInfo, 0, len(files))
+	for _, file := range files {
+		// Check permission using index.Path (source root) and file.Path (index-relative path)
+		if store.Access.Permitted(index.Path, file.Path, username) {
+			filtered = append(filtered, file)
+		}
+	}
+	return filtered
 }

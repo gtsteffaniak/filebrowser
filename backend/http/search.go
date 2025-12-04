@@ -110,7 +110,7 @@ func prepSearchOptions(r *http.Request, d *requestContext) (*searchOptions, erro
 	if err != nil {
 		return nil, err
 	}
-	combinedPath := index.MakeIndexPath(filepath.Join(userscope, searchScope))
+	combinedPath := index.MakeIndexPath(filepath.Join(userscope, searchScope), true) // searchScope is a directory
 	return &searchOptions{
 		query:        query,
 		source:       source,

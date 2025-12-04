@@ -60,10 +60,12 @@ func NewIndexDB(name string) (*IndexDB, error) {
 }
 
 // CreateIndexTable creates the main table for storing file metadata.
+// Uses composite primary key (source, path) to support multiple indexes in one database.
 func (db *IndexDB) CreateIndexTable() error {
 	query := `
 	CREATE TABLE IF NOT EXISTS index_items (
-		path TEXT PRIMARY KEY,
+		source TEXT NOT NULL,
+		path TEXT NOT NULL,
 		parent_path TEXT NOT NULL,
 		name TEXT NOT NULL,
 		size INTEGER NOT NULL,
@@ -71,26 +73,29 @@ func (db *IndexDB) CreateIndexTable() error {
 		type TEXT NOT NULL,
 		is_dir BOOLEAN NOT NULL,
 		is_hidden BOOLEAN NOT NULL,
-		has_preview BOOLEAN NOT NULL
+		has_preview BOOLEAN NOT NULL,
+		PRIMARY KEY (source, path)
 	);
 	
-	CREATE INDEX IF NOT EXISTS idx_parent_path ON index_items(parent_path);
-	CREATE INDEX IF NOT EXISTS idx_size ON index_items(size);
+	CREATE INDEX IF NOT EXISTS idx_source ON index_items(source);
+	CREATE INDEX IF NOT EXISTS idx_source_parent_path ON index_items(source, parent_path);
+	CREATE INDEX IF NOT EXISTS idx_source_size ON index_items(source, size);
 	CREATE INDEX IF NOT EXISTS idx_name ON index_items(name);
 	`
 	_, err := db.Exec(query)
 	return err
 }
 
-// InsertItem adds or updates an item in the index.
+// InsertItem adds or updates an item in the index for a specific source.
 // SQLite handles locking automatically with NORMAL locking mode.
-func (db *IndexDB) InsertItem(path string, info *iteminfo.FileInfo) error {
+func (db *IndexDB) InsertItem(source, path string, info *iteminfo.FileInfo) error {
 	query := `
-	INSERT OR REPLACE INTO index_items (path, parent_path, name, size, mod_time, type, is_dir, is_hidden, has_preview)
-	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+	INSERT OR REPLACE INTO index_items (source, path, parent_path, name, size, mod_time, type, is_dir, is_hidden, has_preview)
+	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 	`
 	parentPath := getParentPath(path)
 	_, err := db.Exec(query,
+		source,
 		path,
 		parentPath,
 		info.Name,
@@ -101,18 +106,24 @@ func (db *IndexDB) InsertItem(path string, info *iteminfo.FileInfo) error {
 		info.Hidden,
 		info.HasPreview,
 	)
+	if err != nil {
+		// Log actual errors (not busy/locked which are soft failures)
+		if !isBusyError(err) && !isTransactionError(err) {
+			logger.Errorf("InsertItem failed for source=%s path=%s: %v", source, path, err)
+		}
+	}
 	return err
 }
 
-// BulkInsertItems inserts multiple items in a single transaction.
+// BulkInsertItems inserts multiple items in a single transaction for a specific source.
 // Database errors (busy/locked) are treated as soft failures - the filesystem is the source of truth.
 // Returns nil on success or soft failure (busy/locked), error only on hard failures.
-func (db *IndexDB) BulkInsertItems(items []*iteminfo.FileInfo) error {
+func (db *IndexDB) BulkInsertItems(source string, items []*iteminfo.FileInfo) error {
 	// Quick attempt with no retries - if DB is busy, just skip the update
 	// The next request will try again, and filesystem reads are always available as fallback
 
 	startTime := time.Now()
-	logger.Debugf("[DB_TX] BulkInsertItems: Starting transaction for %d items", len(items))
+	logger.Debugf("[DB_TX] BulkInsertItems: Starting transaction for %d items (source: %s)", len(items), source)
 
 	tx, err := db.BeginTransaction()
 	if err != nil {
@@ -125,11 +136,10 @@ func (db *IndexDB) BulkInsertItems(items []*iteminfo.FileInfo) error {
 	}
 
 	stmt, err := tx.Prepare(`
-	INSERT OR REPLACE INTO index_items (path, parent_path, name, size, mod_time, type, is_dir, is_hidden, has_preview)
-	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+	INSERT OR REPLACE INTO index_items (source, path, parent_path, name, size, mod_time, type, is_dir, is_hidden, has_preview)
+	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 	`)
 	if err != nil {
-		tx.Rollback()
 		if isBusyError(err) || isTransactionError(err) {
 			return nil // Non-fatal
 		}
@@ -139,6 +149,7 @@ func (db *IndexDB) BulkInsertItems(items []*iteminfo.FileInfo) error {
 	for _, info := range items {
 		parentPath := getParentPath(info.Path)
 		_, err := stmt.Exec(
+			source,
 			info.Path,
 			parentPath,
 			info.Name,
@@ -151,7 +162,6 @@ func (db *IndexDB) BulkInsertItems(items []*iteminfo.FileInfo) error {
 		)
 		if err != nil {
 			stmt.Close()
-			tx.Rollback()
 			if isBusyError(err) || isTransactionError(err) {
 				return nil // Non-fatal
 			}
@@ -163,14 +173,13 @@ func (db *IndexDB) BulkInsertItems(items []*iteminfo.FileInfo) error {
 
 	// Try to commit
 	if err := tx.Commit(); err != nil {
-		tx.Rollback() // Clean up failed transaction
 		if isBusyError(err) || isTransactionError(err) {
 			return nil // Non-fatal
 		}
 		return err
 	}
 
-	logger.Debugf("[DB_TX] BulkInsertItems: SUCCESS - %d items in %v", len(items), time.Since(startTime))
+	logger.Debugf("[DB_TX] BulkInsertItems: SUCCESS - %d items in %v (source: %s)", len(items), time.Since(startTime), source)
 	return nil
 }
 
@@ -196,14 +205,14 @@ func isTransactionError(err error) bool {
 		strings.Contains(errStr, "(1)")
 }
 
-// GetItem retrieves a single item by path.
+// GetItem retrieves a single item by path for a specific source.
 // Returns nil on database busy/lock errors (non-fatal).
-func (db *IndexDB) GetItem(path string) (*iteminfo.FileInfo, error) {
+func (db *IndexDB) GetItem(source, path string) (*iteminfo.FileInfo, error) {
 	query := `
 	SELECT path, name, size, mod_time, type, is_dir, is_hidden, has_preview
-	FROM index_items WHERE path = ?
+	FROM index_items WHERE source = ? AND path = ?
 	`
-	row := db.QueryRow(query, path)
+	row := db.QueryRow(query, source, path)
 	item, err := scanItem(row)
 	if err != nil {
 		// Soft failure: DB is busy or locked, return nil
@@ -216,25 +225,26 @@ func (db *IndexDB) GetItem(path string) (*iteminfo.FileInfo, error) {
 	return item, nil
 }
 
-// GetItemsByPaths retrieves multiple items by their paths in a single query.
+// GetItemsByPaths retrieves multiple items by their paths in a single query for a specific source.
 // This is more efficient than calling GetItem multiple times.
 // Returns empty map on database busy/lock errors (non-fatal).
-func (db *IndexDB) GetItemsByPaths(paths []string) (map[string]*iteminfo.FileInfo, error) {
+func (db *IndexDB) GetItemsByPaths(source string, paths []string) (map[string]*iteminfo.FileInfo, error) {
 	if len(paths) == 0 {
 		return make(map[string]*iteminfo.FileInfo), nil
 	}
 
 	// Build query with IN clause
 	placeholders := make([]string, len(paths))
-	args := make([]interface{}, len(paths))
+	args := make([]interface{}, len(paths)+1)
+	args[0] = source
 	for i, path := range paths {
 		placeholders[i] = "?"
-		args[i] = path
+		args[i+1] = path
 	}
 
 	query := fmt.Sprintf(`
 	SELECT path, name, size, mod_time, type, is_dir, is_hidden, has_preview
-	FROM index_items WHERE path IN (%s)
+	FROM index_items WHERE source = ? AND path IN (%s)
 	`, strings.Join(placeholders, ","))
 
 	rows, err := db.Query(query, args...)
@@ -260,10 +270,10 @@ func (db *IndexDB) GetItemsByPaths(paths []string) (map[string]*iteminfo.FileInf
 	return result, nil
 }
 
-// BulkUpdateSizes updates the sizes of multiple items in a single transaction.
+// BulkUpdateSizes updates the sizes of multiple items in a single transaction for a specific source.
 // This is optimized for updating parent directory sizes after file operations.
 // Includes retry logic for SQLITE_BUSY errors to handle concurrent write operations.
-func (db *IndexDB) BulkUpdateSizes(pathSizeUpdates map[string]int64) error {
+func (db *IndexDB) BulkUpdateSizes(source string, pathSizeUpdates map[string]int64) error {
 	if len(pathSizeUpdates) == 0 {
 		return nil
 	}
@@ -272,7 +282,7 @@ func (db *IndexDB) BulkUpdateSizes(pathSizeUpdates map[string]int64) error {
 	// Parent sizes are less critical than file existence, filesystem is source of truth
 
 	startTime := time.Now()
-	logger.Debugf("[DB_TX] BulkUpdateSizes: Starting transaction for %d paths", len(pathSizeUpdates))
+	logger.Debugf("[DB_TX] BulkUpdateSizes: Starting transaction for %d paths (source: %s)", len(pathSizeUpdates), source)
 
 	tx, err := db.BeginTransaction()
 	if err != nil {
@@ -287,10 +297,9 @@ func (db *IndexDB) BulkUpdateSizes(pathSizeUpdates map[string]int64) error {
 	stmt, err := tx.Prepare(`
 	UPDATE index_items 
 	SET size = size + ?
-	WHERE path = ?
+	WHERE source = ? AND path = ?
 	`)
 	if err != nil {
-		tx.Rollback()
 		if isBusyError(err) || isTransactionError(err) {
 			return nil // Non-fatal
 		}
@@ -301,10 +310,9 @@ func (db *IndexDB) BulkUpdateSizes(pathSizeUpdates map[string]int64) error {
 		if sizeDelta == 0 {
 			continue
 		}
-		_, err := stmt.Exec(sizeDelta, path)
+		_, err := stmt.Exec(sizeDelta, source, path)
 		if err != nil {
 			stmt.Close()
-			tx.Rollback()
 			if isBusyError(err) || isTransactionError(err) {
 				return nil // Non-fatal
 			}
@@ -316,7 +324,6 @@ func (db *IndexDB) BulkUpdateSizes(pathSizeUpdates map[string]int64) error {
 
 	// Try to commit
 	if err := tx.Commit(); err != nil {
-		tx.Rollback() // Clean up failed transaction
 		if isBusyError(err) || isTransactionError(err) {
 			return nil // Non-fatal
 		}
@@ -326,9 +333,9 @@ func (db *IndexDB) BulkUpdateSizes(pathSizeUpdates map[string]int64) error {
 	return nil
 }
 
-// GetDirectoryFiles retrieves all children of a directory.
+// GetDirectoryChildren retrieves all children of a directory for a specific source.
 // Returns empty slice on database busy/lock errors (non-fatal).
-func (db *IndexDB) GetDirectoryChildren(dirPath string) ([]*iteminfo.FileInfo, error) {
+func (db *IndexDB) GetDirectoryChildren(source, dirPath string) ([]*iteminfo.FileInfo, error) {
 	// Ensure dirPath has trailing slash for parent_path comparison if needed,
 	// but our helper getParentPath handles stripping.
 	// We assume stored paths for files match the convention.
@@ -339,11 +346,11 @@ func (db *IndexDB) GetDirectoryChildren(dirPath string) ([]*iteminfo.FileInfo, e
 
 	query := `
 	SELECT path, name, size, mod_time, type, is_dir, is_hidden, has_preview
-	FROM index_items WHERE parent_path = ?
+	FROM index_items WHERE source = ? AND parent_path = ?
 	ORDER BY is_dir DESC, name ASC
 	`
 
-	rows, err := db.Query(query, dirPath)
+	rows, err := db.Query(query, source, dirPath)
 	if err != nil {
 		// Soft failure: DB is busy or locked, return empty slice
 		// Caller will handle missing data by fetching from filesystem
@@ -365,11 +372,11 @@ func (db *IndexDB) GetDirectoryChildren(dirPath string) ([]*iteminfo.FileInfo, e
 	return children, nil
 }
 
-// DeleteItem removes an item and optionally its children (recursive).
+// DeleteItem removes an item and optionally its children (recursive) for a specific source.
 // SQLite handles locking automatically with NORMAL locking mode.
-func (db *IndexDB) DeleteItem(path string, recursive bool) error {
+func (db *IndexDB) DeleteItem(source, path string, recursive bool) error {
 	if !recursive {
-		_, err := db.Exec("DELETE FROM index_items WHERE path = ?", path)
+		_, err := db.Exec("DELETE FROM index_items WHERE source = ? AND path = ?", source, path)
 		return err
 	}
 
@@ -382,12 +389,12 @@ func (db *IndexDB) DeleteItem(path string, recursive bool) error {
 	}
 
 	// Delete the item itself
-	if _, err := db.Exec("DELETE FROM index_items WHERE path = ?", path); err != nil {
+	if _, err := db.Exec("DELETE FROM index_items WHERE source = ? AND path = ?", source, path); err != nil {
 		return err
 	}
 
 	// Delete children
-	_, err := db.Exec("DELETE FROM index_items WHERE path GLOB ?", dirPrefix+"*")
+	_, err := db.Exec("DELETE FROM index_items WHERE source = ? AND path GLOB ?", source, dirPrefix+"*")
 	return err
 }
 
@@ -414,10 +421,10 @@ func (db *IndexDB) UpdateCacheSize(cacheSizeMB int) error {
 	return nil
 }
 
-// GetFilesBySize retrieves all files with a specific size, optionally filtered by path prefix.
+// GetFilesBySize retrieves all files with a specific size for a source, optionally filtered by path prefix.
 // Used for duplicate detection - returns files ordered by name for efficient grouping.
 // Returns empty slice on database busy/lock errors (non-fatal).
-func (db *IndexDB) GetFilesBySize(size int64, pathPrefix string) ([]*iteminfo.FileInfo, error) {
+func (db *IndexDB) GetFilesBySize(source string, size int64, pathPrefix string) ([]*iteminfo.FileInfo, error) {
 	var query string
 	var args []interface{}
 
@@ -425,18 +432,18 @@ func (db *IndexDB) GetFilesBySize(size int64, pathPrefix string) ([]*iteminfo.Fi
 		query = `
 		SELECT path, name, size, mod_time, type, is_dir, is_hidden, has_preview
 		FROM index_items 
-		WHERE size = ? AND is_dir = 0 AND path GLOB ?
+		WHERE source = ? AND size = ? AND is_dir = 0 AND path GLOB ?
 		ORDER BY name
 		`
-		args = []interface{}{size, pathPrefix + "*"}
+		args = []interface{}{source, size, pathPrefix + "*"}
 	} else {
 		query = `
 		SELECT path, name, size, mod_time, type, is_dir, is_hidden, has_preview
 		FROM index_items 
-		WHERE size = ? AND is_dir = 0
+		WHERE source = ? AND size = ? AND is_dir = 0
 		ORDER BY name
 		`
-		args = []interface{}{size}
+		args = []interface{}{source, size}
 	}
 
 	rows, err := db.Query(query, args...)
@@ -461,11 +468,11 @@ func (db *IndexDB) GetFilesBySize(size int64, pathPrefix string) ([]*iteminfo.Fi
 	return files, rows.Err()
 }
 
-// GetSizeGroupsForDuplicates queries for all size groups that have 2+ files.
+// GetSizeGroupsForDuplicates queries for all size groups that have 2+ files for a specific source.
 // Returns sizes in descending order (largest first) and a count map.
 // Optionally filters by path prefix for scoped searches.
 // Returns empty results on database busy/lock errors (non-fatal).
-func (db *IndexDB) GetSizeGroupsForDuplicates(minSize int64, pathPrefix string) ([]int64, map[int64]int, error) {
+func (db *IndexDB) GetSizeGroupsForDuplicates(source string, minSize int64, pathPrefix string) ([]int64, map[int64]int, error) {
 	var query string
 	var args []interface{}
 
@@ -473,22 +480,22 @@ func (db *IndexDB) GetSizeGroupsForDuplicates(minSize int64, pathPrefix string) 
 		query = `
 		SELECT size, COUNT(*) as count
 		FROM index_items
-		WHERE size >= ? AND is_dir = 0 AND path GLOB ?
+		WHERE source = ? AND size >= ? AND is_dir = 0 AND path GLOB ?
 		GROUP BY size
 		HAVING COUNT(*) >= 2
 		ORDER BY size DESC
 		`
-		args = []interface{}{minSize, pathPrefix + "*"}
+		args = []interface{}{source, minSize, pathPrefix + "*"}
 	} else {
 		query = `
 		SELECT size, COUNT(*) as count
 		FROM index_items
-		WHERE size >= ? AND is_dir = 0
+		WHERE source = ? AND size >= ? AND is_dir = 0
 		GROUP BY size
 		HAVING COUNT(*) >= 2
 		ORDER BY size DESC
 		`
-		args = []interface{}{minSize}
+		args = []interface{}{source, minSize}
 	}
 
 	rows, err := db.Query(query, args...)
@@ -516,13 +523,13 @@ func (db *IndexDB) GetSizeGroupsForDuplicates(minSize int64, pathPrefix string) 
 	return sizes, sizeCounts, rows.Err()
 }
 
-// GetTotalSize returns the sum of all file sizes in the index (excluding directories).
+// GetTotalSize returns the sum of all file sizes in the index for a specific source (excluding directories).
 // Returns 0 on database busy/lock errors (non-fatal).
-func (db *IndexDB) GetTotalSize() (uint64, error) {
-	query := `SELECT COALESCE(SUM(size), 0) FROM index_items WHERE is_dir = 0`
+func (db *IndexDB) GetTotalSize(source string) (uint64, error) {
+	query := `SELECT COALESCE(SUM(size), 0) FROM index_items WHERE source = ? AND is_dir = 0`
 
 	var totalSize int64
-	err := db.QueryRow(query).Scan(&totalSize)
+	err := db.QueryRow(query, source).Scan(&totalSize)
 	if err != nil {
 		// Soft failure: DB is busy or locked, return 0
 		if isBusyError(err) || isTransactionError(err) {

@@ -20,14 +20,27 @@ func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo) bool {
 		return false
 	}
 
-	items := make([]*iteminfo.FileInfo, 0, len(info.Files)+1)
+	items := make([]*iteminfo.FileInfo, 0, len(info.Files)+len(info.Folders)+1)
 
 	// Store index paths (relative to source root, starting with "/")
 	// Database stores index paths, not absolute filesystem paths
-	// Each source has its own isolated database, so no need for source prefix
+	// Each source is identified by its name in the shared database
 	dirItem := *info
 	dirItem.Path = info.Path // Already an index path like "/share/folder/"
 	items = append(items, &dirItem)
+
+	// Add folders to the bulk insert with index paths
+	for i := range info.Folders {
+		folder := &info.Folders[i]
+		// Construct index path for the folder (with trailing slash)
+		folderPath := strings.TrimRight(info.Path, "/") + "/" + folder.Name + "/"
+
+		folderItem := &iteminfo.FileInfo{
+			ItemInfo: *folder,
+			Path:     folderPath, // Store index path with trailing slash
+		}
+		items = append(items, folderItem)
+	}
 
 	// Add files to the bulk insert with index paths
 	for i := range info.Files {
@@ -57,9 +70,10 @@ func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo) bool {
 
 			// Flush in background to avoid blocking scanner
 			// Even if flush fails due to DB contention, scanner continues
+			sourceName := idx.Name
 			go func(items []*iteminfo.FileInfo) {
 				logger.Debugf("[DB_TX] Progressive flush: starting async flush of %d items", len(items))
-				err := idx.db.BulkInsertItems(items)
+				err := idx.db.BulkInsertItems(sourceName, items)
 				if err != nil {
 					logger.Warningf("[DB_TX] Progressive flush failed (%d items): %v - continuing scan", len(items), err)
 				} else {
@@ -74,7 +88,7 @@ func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo) bool {
 	idx.mu.Unlock()
 
 	// Not in a batch scan - insert immediately (e.g., API-triggered updates)
-	if err := idx.db.BulkInsertItems(items); err != nil {
+	if err := idx.db.BulkInsertItems(idx.Name, items); err != nil {
 		logger.Errorf("Failed to update metadata for %s: %v", info.Path, err)
 		return false
 	}
@@ -98,7 +112,7 @@ func (idx *Index) flushBatch() {
 
 	// Flush synchronously at end of scan, but with fast-fail on contention
 	// Scanner has already completed, so we just log if this fails
-	err := idx.db.BulkInsertItems(items)
+	err := idx.db.BulkInsertItems(idx.Name, items)
 	if err != nil {
 		logger.Warningf("[DB_TX] Final flush failed (%d items): %v", len(items), err)
 	} else {
@@ -107,26 +121,17 @@ func (idx *Index) flushBatch() {
 }
 
 // DeleteMetadata removes the specified path from the index.
+// SQLite handles locking automatically, so no mutex needed.
 func (idx *Index) DeleteMetadata(path string, isDir bool, recursive bool) bool {
-	idx.mu.Lock()
-	defer idx.mu.Unlock()
-
-	if idx.db == nil {
-		return false
-	}
-
-	if idx.db == nil {
-		return false
-	}
-
 	// Normalize the path - ensure trailing slash for directories
 	indexPath := path
 	if isDir {
 		indexPath = utils.AddTrailingSlashIfNotExists(path)
+	} else {
+		indexPath = strings.TrimSuffix(indexPath, "/")
 	}
-
 	// indexPath is already an index path (relative to source root)
-	if err := idx.db.DeleteItem(indexPath, recursive); err != nil {
+	if err := idx.db.DeleteItem(idx.Name, indexPath, recursive); err != nil {
 		logger.Errorf("Failed to delete metadata for %s: %v", indexPath, err)
 		return false
 	}
@@ -141,22 +146,14 @@ func (idx *Index) GetReducedMetadata(target string, isDir bool) (*iteminfo.FileI
 		return nil, false
 	}
 
-	checkPath := idx.MakeIndexPath(target)
-	if !isDir {
-		if strings.HasSuffix(checkPath, "/") {
-			checkPath = strings.TrimSuffix(checkPath, "/")
-		}
-	} else {
-		// Ensure trailing slash for directory
-		checkPath = utils.AddTrailingSlashIfNotExists(checkPath)
-	}
+	checkPath := idx.MakeIndexPath(target, isDir)
 
 	if checkPath == "" {
 		checkPath = "/"
 	}
 
 	// checkPath is already an index path (relative to source root)
-	item, err := idx.db.GetItem(checkPath)
+	item, err := idx.db.GetItem(idx.Name, checkPath)
 	if err != nil {
 		return nil, false
 	}
@@ -176,11 +173,12 @@ func (idx *Index) GetMetadataInfo(target string, isDir bool) (*iteminfo.FileInfo
 		return nil, false
 	}
 
-	checkDir := idx.MakeIndexPath(target)
+	var checkDir string
 	if !isDir {
-		checkDir = idx.MakeIndexPath(filepath.Dir(target))
+		checkDir = idx.MakeIndexPath(filepath.Dir(target), true)
+	} else {
+		checkDir = idx.MakeIndexPath(target, true)
 	}
-	checkDir = utils.AddTrailingSlashIfNotExists(checkDir)
 
 	if checkDir == "" {
 		checkDir = "/"
@@ -188,7 +186,7 @@ func (idx *Index) GetMetadataInfo(target string, isDir bool) (*iteminfo.FileInfo
 
 	// checkDir is already an index path (relative to source root)
 	// Get directory item
-	dir, err := idx.db.GetItem(checkDir)
+	dir, err := idx.db.GetItem(idx.Name, checkDir)
 	if err != nil {
 		return nil, false
 	}
@@ -199,7 +197,7 @@ func (idx *Index) GetMetadataInfo(target string, isDir bool) (*iteminfo.FileInfo
 	}
 
 	// Get children
-	children, err := idx.db.GetDirectoryChildren(checkDir)
+	children, err := idx.db.GetDirectoryChildren(idx.Name, checkDir)
 	if err != nil {
 		logger.Errorf("Failed to get children for %s: %v", checkDir, err)
 		return dir, true
@@ -250,7 +248,7 @@ func (idx *Index) IterateFiles(fn func(path, name string, size, modTime int64)) 
 	if idx.db == nil {
 		return nil
 	}
-	rows, err := idx.db.Query("SELECT path, name, size, mod_time FROM index_items WHERE is_dir = 0")
+	rows, err := idx.db.Query("SELECT path, name, size, mod_time FROM index_items WHERE source = ? AND is_dir = 0", idx.Name)
 	if err != nil {
 		return err
 	}

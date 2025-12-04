@@ -7,7 +7,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
+	dbsql "github.com/gtsteffaniak/filebrowser/backend/database/sql"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 )
@@ -190,6 +192,28 @@ func TestSortItems(t *testing.T) {
 // per design decision - RealPathCache is auxiliary and doesn't need clearing
 
 func TestOverrideDirectoryToFile(t *testing.T) {
+	// Use a temporary directory for cache to avoid creating directories in the source tree
+	tmpDir := t.TempDir()
+	originalCacheDir := settings.Config.Server.CacheDir
+	settings.Config.Server.CacheDir = tmpDir
+	defer func() {
+		settings.Config.Server.CacheDir = originalCacheDir
+	}()
+
+	// Ensure fileutils permissions are set (needed by NewTempDB)
+	if fileutils.PermDir == 0 {
+		fileutils.SetFsPermissions(0644, 0755)
+	}
+
+	// Initialize the database first (use test helper to avoid permission issues)
+	if indexing.GetIndexDB() == nil {
+		db, err := dbsql.NewIndexDB("test_file")
+		if err != nil {
+			t.Fatalf("Failed to create test database: %v", err)
+		}
+		indexing.SetIndexDBForTesting(db)
+	}
+
 	// Initialize the index in mock mode (no filesystem operations)
 	indexing.Initialize(&settings.Source{
 		Name: "test",
@@ -202,8 +226,8 @@ func TestOverrideDirectoryToFile(t *testing.T) {
 		t.Fatal("Failed to get test index")
 	}
 
-	// Create mock directory structure
-	idx.Directories["/"] = &iteminfo.FileInfo{ //nolint:staticcheck // t.Fatal terminates execution
+	// Create mock directory structure using UpdateMetadata
+	rootInfo := &iteminfo.FileInfo{
 		Path: "/",
 		ItemInfo: iteminfo.ItemInfo{
 			Name: "/",
@@ -213,24 +237,25 @@ func TestOverrideDirectoryToFile(t *testing.T) {
 			{Name: "Test Object", Type: "directory"},
 		},
 	}
+	idx.UpdateMetadata(rootInfo)
+
+	// Delete the old directory item from the database before replacing it with a file
+	idx.DeleteMetadata("/Test Object", true, false)
 
 	// Simulate the directory-to-file override by updating the mock data
 	// Remove the directory from the parent's Folders slice
-	rootInfo := idx.Directories["/"] //nolint:staticcheck // t.Fatal terminates execution
-	for i, folder := range rootInfo.Folders {
-		if folder.Name == "Test Object" {
-			rootInfo.Folders = append(rootInfo.Folders[:i], rootInfo.Folders[i+1:]...)
-			break
-		}
-	}
+	rootInfo.Folders = []iteminfo.ItemInfo{} // Clear folders
 
 	// Add the file to the parent's Files slice
-	rootInfo.Files = append(rootInfo.Files, iteminfo.ExtendedItemInfo{
-		ItemInfo: iteminfo.ItemInfo{
-			Name: "Test Object",
-			Size: 25, // Length of "This is test file content"
+	rootInfo.Files = []iteminfo.ExtendedItemInfo{
+		{
+			ItemInfo: iteminfo.ItemInfo{
+				Name: "Test Object",
+				Size: 25, // Length of "This is test file content"
+			},
 		},
-	})
+	}
+	idx.UpdateMetadata(rootInfo)
 
 	// Verify the directory was replaced with a file in the mock data
 	rootInfo, exists := idx.GetMetadataInfo("/", true)
@@ -267,6 +292,28 @@ func TestOverrideDirectoryToFile(t *testing.T) {
 }
 
 func TestOverrideFileToDirectory(t *testing.T) {
+	// Use a temporary directory for cache to avoid creating directories in the source tree
+	tmpDir := t.TempDir()
+	originalCacheDir := settings.Config.Server.CacheDir
+	settings.Config.Server.CacheDir = tmpDir
+	defer func() {
+		settings.Config.Server.CacheDir = originalCacheDir
+	}()
+
+	// Ensure fileutils permissions are set (needed by NewTempDB)
+	if fileutils.PermDir == 0 {
+		fileutils.SetFsPermissions(0644, 0755)
+	}
+
+	// Initialize the database first (use test helper to avoid permission issues)
+	if indexing.GetIndexDB() == nil {
+		db, err := dbsql.NewIndexDB("test_file")
+		if err != nil {
+			t.Fatalf("Failed to create test database: %v", err)
+		}
+		indexing.SetIndexDBForTesting(db)
+	}
+
 	// Initialize the index in mock mode (no filesystem operations)
 	indexing.Initialize(&settings.Source{
 		Name: "test",
@@ -279,8 +326,8 @@ func TestOverrideFileToDirectory(t *testing.T) {
 		t.Fatal("Failed to get test index")
 	}
 
-	// Create mock directory structure with a file
-	idx.Directories["/"] = &iteminfo.FileInfo{ //nolint:staticcheck // t.Fatal terminates execution
+	// Create mock directory structure with a file using UpdateMetadata
+	rootInfo := &iteminfo.FileInfo{
 		Path: "/",
 		ItemInfo: iteminfo.ItemInfo{
 			Name: "/",
@@ -290,22 +337,23 @@ func TestOverrideFileToDirectory(t *testing.T) {
 			{ItemInfo: iteminfo.ItemInfo{Name: "Test Object", Size: 12}}, // Length of "test content"
 		},
 	}
+	idx.UpdateMetadata(rootInfo)
+
+	// Delete the old file item from the database before replacing it with a directory
+	idx.DeleteMetadata("/Test Object", false, false)
 
 	// Simulate the file-to-directory override by updating the mock data
 	// Remove the file from the parent's Files slice
-	rootInfo := idx.Directories["/"] //nolint:staticcheck // t.Fatal terminates execution
-	for i, file := range rootInfo.Files {
-		if file.Name == "Test Object" {
-			rootInfo.Files = append(rootInfo.Files[:i], rootInfo.Files[i+1:]...)
-			break
-		}
-	}
+	rootInfo.Files = []iteminfo.ExtendedItemInfo{} // Clear files
 
 	// Add the directory to the parent's Folders slice
-	rootInfo.Folders = append(rootInfo.Folders, iteminfo.ItemInfo{
-		Name: "Test Object",
-		Type: "directory",
-	})
+	rootInfo.Folders = []iteminfo.ItemInfo{
+		{
+			Name: "Test Object",
+			Type: "directory",
+		},
+	}
+	idx.UpdateMetadata(rootInfo)
 
 	// Verify the file was replaced with a directory in the mock data
 	rootInfo, exists := idx.GetMetadataInfo("/", true)

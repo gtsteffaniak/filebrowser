@@ -2,16 +2,81 @@ package indexing
 
 import (
 	"testing"
+	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
+	dbsql "github.com/gtsteffaniak/filebrowser/backend/database/sql"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 	"github.com/stretchr/testify/assert"
 )
 
 var testIndex Index
+var testIndexInitialized bool
+
+func setupMutateTestIndex(t *testing.T) {
+	t.Helper()
+	if testIndexInitialized {
+		return
+	}
+
+	// Initialize the database (cache directory is set up by TestMain in search_test.go)
+	var err error
+	indexDB, err = dbsql.NewIndexDB("test_init")
+	if err != nil {
+		t.Fatalf("Failed to create test database: %v", err)
+	}
+
+	testIndex = Index{
+		ReducedIndex: ReducedIndex{
+			NumFiles: 10,
+			NumDirs:  5,
+		},
+		Source: settings.Source{
+			Path: "/",
+			Name: "test",
+		},
+		db:   indexDB,
+		mock: true,
+	}
+
+	// Insert test data into database using UpdateMetadata so child items are created
+	now := time.Now()
+	testpath := &iteminfo.FileInfo{
+		Path: "/testpath/",
+		ItemInfo: iteminfo.ItemInfo{
+			Name:    "testpath",
+			Type:    "directory",
+			ModTime: now,
+		},
+		Files: []iteminfo.ExtendedItemInfo{
+			{ItemInfo: iteminfo.ItemInfo{Name: "testfile.txt", Size: 100, ModTime: now}},
+			{ItemInfo: iteminfo.ItemInfo{Name: "anotherfile.txt", Size: 100, ModTime: now}},
+		},
+	}
+	testIndex.UpdateMetadata(testpath)
+
+	anotherpath := &iteminfo.FileInfo{
+		Path: "/anotherpath/",
+		ItemInfo: iteminfo.ItemInfo{
+			Name:    "anotherpath",
+			Type:    "directory",
+			ModTime: now,
+		},
+		Files: []iteminfo.ExtendedItemInfo{
+			{ItemInfo: iteminfo.ItemInfo{Name: "afile.txt", Size: 100, ModTime: now}},
+		},
+		Folders: []iteminfo.ItemInfo{
+			{Name: "directory", Type: "directory", Size: 100},
+		},
+	}
+	testIndex.UpdateMetadata(anotherpath)
+	
+	testIndexInitialized = true
+}
 
 // Test for GetFileMetadata// Test for GetFileMetadata
 func TestGetFileMetadataSize(t *testing.T) {
+	setupMutateTestIndex(t)
 	t.Parallel()
 	tests := []struct {
 		name         string
@@ -49,6 +114,7 @@ func TestGetFileMetadataSize(t *testing.T) {
 
 // Test for GetFileMetadata// Test for GetFileMetadata
 func TestGetFileMetadata(t *testing.T) {
+	setupMutateTestIndex(t)
 	t.Parallel()
 	tests := []struct {
 		name           string
@@ -120,18 +186,36 @@ func TestGetFileMetadata(t *testing.T) {
 
 // Test for UpdateFileMetadata
 func TestUpdateFileMetadata(t *testing.T) {
+	setupMutateTestIndex(t)
+	// Initialize the database if not already done
+	if indexDB == nil {
+		var err error
+		indexDB, err = dbsql.NewIndexDB("test_mutate")
+		if err != nil {
+			t.Fatalf("Failed to create test database: %v", err)
+		}
+	}
+
 	info := &iteminfo.FileInfo{
 		Path: "/testpath/",
+		ItemInfo: iteminfo.ItemInfo{
+			Name:    "testpath",
+			Type:    "directory",
+			ModTime: time.Now(),
+		},
 		Files: []iteminfo.ExtendedItemInfo{
-			{ItemInfo: iteminfo.ItemInfo{Name: "testfile.txt"}},
-			{ItemInfo: iteminfo.ItemInfo{Name: "anotherfile.txt"}},
+			{ItemInfo: iteminfo.ItemInfo{Name: "testfile.txt", ModTime: time.Now()}},
+			{ItemInfo: iteminfo.ItemInfo{Name: "anotherfile.txt", ModTime: time.Now()}},
 		},
 	}
 
 	index := &Index{
-		Directories: map[string]*iteminfo.FileInfo{
-			"/testpath/": info,
+		Source: settings.Source{
+			Name: "test_mutate",
+			Path: "/mock/path",
 		},
+		db:   indexDB,
+		mock: true,
 	}
 
 	success := index.UpdateMetadata(info)
@@ -147,6 +231,7 @@ func TestUpdateFileMetadata(t *testing.T) {
 
 // Test for GetDirMetadata
 func TestGetDirMetadata(t *testing.T) {
+	setupMutateTestIndex(t)
 	t.Parallel()
 	_, exists := testIndex.GetReducedMetadata("/testpath", true)
 	if !exists {
@@ -161,74 +246,54 @@ func TestGetDirMetadata(t *testing.T) {
 
 // Test for SetDirectoryInfo
 func TestSetDirectoryInfo(t *testing.T) {
+	setupMutateTestIndex(t)
+	// Initialize the database if not already done
+	if indexDB == nil {
+		var err error
+		indexDB, err = dbsql.NewIndexDB("test_mutate")
+		if err != nil {
+			t.Fatalf("Failed to create test database: %v", err)
+		}
+	}
+
 	index := &Index{
-		Directories: map[string]*iteminfo.FileInfo{
-			"/testpath/": {
-				Path: "/testpath/",
-				ItemInfo: iteminfo.ItemInfo{
-					Name: "testpath",
-					Type: "directory",
-				},
-				Files: []iteminfo.ExtendedItemInfo{
-					{ItemInfo: iteminfo.ItemInfo{Name: "testfile.txt"}},
-					{ItemInfo: iteminfo.ItemInfo{Name: "anotherfile.txt"}},
-				},
-			},
+		Source: settings.Source{
+			Name: "test_mutate",
+			Path: "/mock/path",
+		},
+		db:   indexDB,
+		mock: true,
+	}
+
+	// Insert initial testpath directory
+	testpath := &iteminfo.FileInfo{
+		Path: "/testpath/",
+		ItemInfo: iteminfo.ItemInfo{
+			Name:    "testpath",
+			Type:    "directory",
+			ModTime: time.Now(),
+		},
+		Files: []iteminfo.ExtendedItemInfo{
+			{ItemInfo: iteminfo.ItemInfo{Name: "testfile.txt", ModTime: time.Now()}},
+			{ItemInfo: iteminfo.ItemInfo{Name: "anotherfile.txt", ModTime: time.Now()}},
 		},
 	}
+	_ = index.db.InsertItem("test_mutate", "/testpath/", testpath)
+
 	dir := &iteminfo.FileInfo{
 		Path: "/newPath/",
 		ItemInfo: iteminfo.ItemInfo{
-			Name: "newPath",
-			Type: "directory",
+			Name:    "newPath",
+			Type:    "directory",
+			ModTime: time.Now(),
 		},
 		Files: []iteminfo.ExtendedItemInfo{
-			{ItemInfo: iteminfo.ItemInfo{Name: "testfile.txt"}},
+			{ItemInfo: iteminfo.ItemInfo{Name: "testfile.txt", ModTime: time.Now()}},
 		},
 	}
 	index.UpdateMetadata(dir)
-	storedDir, exists := index.Directories["/newPath/"]
+	storedDir, exists := index.GetMetadataInfo("/newPath/", true)
 	if !exists || storedDir.Files[0].Name != "testfile.txt" {
 		t.Fatalf("expected SetDirectoryInfo to store directory info correctly")
-	}
-}
-
-func init() {
-	testIndex = Index{
-		ReducedIndex: ReducedIndex{
-			NumFiles: 10,
-			NumDirs:  5,
-		},
-		Source: settings.Source{
-			Path: "/",
-			Name: "test",
-		},
-
-		Directories: map[string]*iteminfo.FileInfo{
-			"/testpath/": {
-				Path: "/testpath/",
-				ItemInfo: iteminfo.ItemInfo{
-					Name: "testpath",
-					Type: "directory",
-				},
-				Files: []iteminfo.ExtendedItemInfo{
-					{ItemInfo: iteminfo.ItemInfo{Name: "testfile.txt", Size: 100}},
-					{ItemInfo: iteminfo.ItemInfo{Name: "anotherfile.txt", Size: 100}},
-				},
-			},
-			"/anotherpath/": {
-				Path: "/anotherpath/",
-				ItemInfo: iteminfo.ItemInfo{
-					Name: "anotherpath",
-					Type: "directory",
-				},
-				Files: []iteminfo.ExtendedItemInfo{
-					{ItemInfo: iteminfo.ItemInfo{Name: "afile.txt", Size: 100}},
-				},
-				Folders: []iteminfo.ItemInfo{
-					{Name: "directory", Type: "directory", Size: 100},
-				},
-			},
-		},
 	}
 }

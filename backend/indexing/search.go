@@ -54,6 +54,10 @@ func (idx *Index) Search(search string, scope string, sourceSession string, larg
 	args := []interface{}{}
 	whereClauses := []string{}
 
+	// Filter by source (required for multi-source shared database)
+	whereClauses = append(whereClauses, "source = ?")
+	args = append(args, idx.Name)
+
 	// Apply scope filter
 	if scope != "" {
 		// Use GLOB for prefix matching which is supported by SQLite and efficient

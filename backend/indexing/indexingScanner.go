@@ -25,12 +25,8 @@ type Scanner struct {
 	fullScanTime  int
 
 	// size tracking
-	numDirs          uint64 // Local count for this path
-	numFiles         uint64 // Local count for this path
-	size             uint64 // Size contributed by this scanner (for delta calculation)
-	previousNumDirs  uint64 // Previous numDirs value (preserved across scans)
-	previousNumFiles uint64 // Previous numFiles value (preserved across scans)
-	previousSize     uint64 // Previous size value (preserved across scans)
+	numDirs  uint64 // Local count for this path
+	numFiles uint64 // Local count for this path
 
 	// Reference back to parent index
 	idx *Index

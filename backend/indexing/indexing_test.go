@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
-	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
+	dbsql "github.com/gtsteffaniak/filebrowser/backend/database/sql"
 )
 
 func BenchmarkFillIndex(b *testing.B) {
@@ -55,6 +55,15 @@ func TestGetIndex(t *testing.T) {
 
 // TestMultiScannerMutex verifies that only one scanner can run at a time
 func TestMultiScannerMutex(t *testing.T) {
+	// Initialize the database if not already done
+	if indexDB == nil {
+		var err error
+		indexDB, err = dbsql.NewIndexDB("test_multiscanner")
+		if err != nil {
+			t.Fatalf("Failed to create test database: %v", err)
+		}
+	}
+
 	// Create a mock index with multi-scanner support
 	idx := &Index{
 		Source: settings.Source{
@@ -64,12 +73,11 @@ func TestMultiScannerMutex(t *testing.T) {
 				DisableIndexing: false,
 			},
 		},
-		mock:              true,
-		Directories:       make(map[string]*iteminfo.FileInfo),
-		DirectoriesLedger: make(map[string]struct{}),
-		processedInodes:   make(map[uint64]struct{}),
-		FoundHardLinks:    make(map[string]uint64),
-		scanners:          make(map[string]*Scanner),
+		mock:            true,
+		db:              indexDB,
+		processedInodes: make(map[uint64]struct{}),
+		FoundHardLinks:  make(map[string]uint64),
+		scanners:        make(map[string]*Scanner),
 	}
 
 	// Create multiple scanners
@@ -149,7 +157,7 @@ func TestMakeIndexPath(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			idx := &Index{Source: settings.Source{Path: "/srv"}, mock: true}
-			result := idx.MakeIndexPath(tt.subPath)
+			result := idx.MakeIndexPath(tt.subPath, true) // All test paths are directories
 			if result != tt.expected {
 				t.Errorf("MakeIndexPath(%q)\ngot %q\nwant %q", tt.name, result, tt.expected)
 			}
@@ -170,7 +178,7 @@ func TestMakeIndexPath(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			idx := &Index{Source: settings.Source{Path: "C:\\Users"}, mock: true}
-			result := idx.MakeIndexPath(tt.subPath)
+			result := idx.MakeIndexPath(tt.subPath, true) // All test paths are directories
 			if result != tt.expected {
 				t.Errorf("MakeIndexPath(%q)\ngot %q\nwant %q", tt.name, result, tt.expected)
 			}
@@ -191,7 +199,7 @@ func TestMakeIndexPathRoot(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			idx := &Index{Source: settings.Source{Path: "/rootpath", Name: "default"}, mock: true}
-			result := idx.MakeIndexPath(tt.subPath)
+			result := idx.MakeIndexPath(tt.subPath, true) // Root path is a directory
 			if result != tt.expected {
 				t.Errorf("MakeIndexPath(%q)\ngot %q\nwant %q", tt.name, result, tt.expected)
 			}
