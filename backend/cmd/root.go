@@ -133,6 +133,13 @@ func StartFilebrowser() {
 	case <-done:
 		logger.Info("Server stopped unexpectedly. Shutting down...")
 	}
+
+	// cleanup temp databases
+	indexDB := indexing.GetIndexDB()
+	if indexDB != nil {
+		indexDB.Close()
+	}
+	logger.Debugf("clearing cache dir: %s", settings.Config.Server.CacheDir)
 	if !*settings.Config.Server.CacheDirCleanup {
 		fileutils.ClearCacheDir(settings.Config.Server.CacheDir)
 	}

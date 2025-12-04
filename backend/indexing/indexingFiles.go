@@ -118,10 +118,15 @@ func init() {
 // InitializeIndexDB creates the shared index database for all sources.
 // This should be called once at application startup before any sources are initialized.
 func InitializeIndexDB() error {
-	var err error
+	// clear all sql directory indexes
+	sqlDir := filepath.Join(settings.Config.Server.CacheDir, "sql")
+	err := os.RemoveAll(sqlDir)
+	if err != nil {
+		logger.Errorf("failed to clear sql directory: %v", err)
+	}
 	indexDBOnce.Do(func() {
 		// Create a single shared database for all indexes
-		indexDB, err = dbsql.NewIndexDB("shared")
+		indexDB, err = dbsql.NewIndexDB("all")
 		if err != nil {
 			logger.Errorf("failed to initialize index database: %v", err)
 		} else {
@@ -135,6 +140,14 @@ func InitializeIndexDB() error {
 // Returns nil if InitializeIndexDB hasn't been called yet.
 func GetIndexDB() *dbsql.IndexDB {
 	return indexDB
+}
+
+// SetIndexDBForTesting sets the index database for testing purposes.
+// This should only be used in tests to bypass InitializeIndexDB's permission requirements.
+func SetIndexDBForTesting(db *dbsql.IndexDB) {
+	indexDB = db
+	// Reset the once to allow re-initialization in tests
+	indexDBOnce = sync.Once{}
 }
 
 // calculateTotalComplexity sums up the complexity of all indexes.
@@ -158,10 +171,14 @@ func calculateTotalComplexity() uint {
 // updateIndexDBCacheSize updates the shared index database cache size
 // based on the total complexity of all indexes.
 func updateIndexDBCacheSize() {
+	if indexDB == nil {
+		return
+	}
+
 	totalComplexity := calculateTotalComplexity()
-	// Calculate cache size: complexity * 10MB
+	// Calculate cache size: complexity * 5MB
 	cacheSizeMB := int(totalComplexity) * 5
-	// Ensure minimum of 10MB
+	// Ensure minimum of 5MB
 	if cacheSizeMB < 5 {
 		cacheSizeMB = 5
 	}
@@ -175,7 +192,7 @@ func updateIndexDBCacheSize() {
 
 func Initialize(source *settings.Source, mock bool) {
 	indexesMutex.Lock()
-	// Use shared database instead of creating per-source databases
+	// Use shared database - all sources are differentiated by the source column
 	if indexDB == nil {
 		logger.Errorf("index database not initialized, call InitializeIndexDB() first")
 		indexesMutex.Unlock()
@@ -244,12 +261,12 @@ func (idx *Index) indexDirectory(adjustedPath string, config actionConfig) error
 	var cachedDir *iteminfo.FileInfo
 	if idx.db != nil {
 		// adjustedPath is already an index path (relative to source root)
-		cachedDir, _ = idx.db.GetItem(adjustedPath)
+		cachedDir, _ = idx.db.GetItem(idx.Name, adjustedPath)
 	}
 	if cachedDir != nil {
 		modChange = dirInfo.ModTime().Unix() != cachedDir.ModTime.Unix()
 		// adjustedPath is already an index path (relative to source root)
-		if children, err := idx.db.GetDirectoryChildren(adjustedPath); err == nil {
+		if children, getErr := idx.db.GetDirectoryChildren(idx.Name, adjustedPath); getErr == nil {
 			for _, child := range children {
 				if child.Type == "directory" {
 					cacheDirItems = append(cacheDirItems, child.ItemInfo)
@@ -336,7 +353,7 @@ func (idx *Index) GetFsDirInfo(adjustedPath string) (*iteminfo.FileInfo, error) 
 	}
 	if !isDir {
 		baseName := filepath.Base(originalPath)
-		idx.MakeIndexPath(realPath)
+		_ = idx.MakeIndexPath(realPath, false)
 		found := false
 		for _, item := range response.Files {
 			if item.Name == baseName {
@@ -527,7 +544,7 @@ func (idx *Index) GetRealPath(relativePath ...string) (string, bool, error) {
 func (idx *Index) RefreshFileInfo(opts utils.FileOptions) error {
 	targetPath := opts.Path
 	if !opts.IsDir {
-		targetPath = idx.MakeIndexPath(filepath.Dir(targetPath))
+		targetPath = idx.MakeIndexPath(filepath.Dir(targetPath), true)
 	}
 
 	// Check if directory exists in index and get its modtime
@@ -634,7 +651,7 @@ func (idx *Index) updateParentDirSizesBatched(startPath string, sizeDelta int64)
 	// Query all parent directories from database in a single query
 	// SQLite handles locking - no mutex needed
 	logger.Debugf("[PARENT_SIZE] Querying database for parent directories")
-	parentInfos, err := idx.db.GetItemsByPaths(parentPaths)
+	parentInfos, err := idx.db.GetItemsByPaths(idx.Name, parentPaths)
 	if err != nil {
 		logger.Errorf("[PARENT_SIZE] Failed to query parent directories for size update: %v", err)
 		return
@@ -663,7 +680,7 @@ func (idx *Index) updateParentDirSizesBatched(startPath string, sizeDelta int64)
 	logger.Debugf("[PARENT_SIZE] Batch updating %d parent directory sizes", len(pathSizeUpdates))
 	// Batch update all parent sizes in a single transaction
 	// SQLite handles locking - no mutex needed
-	err = idx.db.BulkUpdateSizes(pathSizeUpdates)
+	err = idx.db.BulkUpdateSizes(idx.Name, pathSizeUpdates)
 	if err != nil {
 		logger.Errorf("[PARENT_SIZE] Failed to batch update parent directory sizes: %v", err)
 		return
@@ -872,13 +889,17 @@ func (idx *Index) SetStatus(status IndexStatus) error {
 }
 
 // input should be non-index path.
-func (idx *Index) MakeIndexPath(path string) string {
+// isDir indicates whether the path is a directory (true) or file (false).
+// Directories will have a trailing slash added, files will not.
+func (idx *Index) MakeIndexPath(path string, isDir bool) string {
 	if path == "." || strings.HasPrefix(path, "./") {
 		path = strings.TrimPrefix(path, ".")
 	}
 	path = strings.TrimPrefix(path, idx.Path)
 	path = idx.MakeIndexPathPlatform(path)
-	path = utils.AddTrailingSlashIfNotExists(path)
+	if isDir {
+		path = utils.AddTrailingSlashIfNotExists(path)
+	}
 	return path
 }
 
