@@ -19,11 +19,11 @@
   <!-- Previous button -->
   <button
     v-if="enabled && hasPrevious"
-    @click.stop="handlePrevClick"
+    @click.prevent="handlePrevClick"
     @mousedown="startDrag($event, 'previous')"
     @touchstart="handleTouchStart($event, 'previous')"
     @touchmove="handleButtonTouchMove"
-    @touchend="handleTouchEnd"
+    @touchend.prevent="handleTouchEnd"
     @mouseover="setHoverNav(true)"
     @mouseleave="setHoverNav(false)"
     class="nav-button nav-previous"
@@ -35,7 +35,7 @@
       active: dragState.atFullExtent && dragState.type === 'previous',
       'dark-mode': isDarkMode,
       'media-mode': isMediaQueueMode,
-  }"
+    }"
     :style="dragState.type === 'previous' ? { transform: `translateY(-50%) translate(${dragState.deltaX}px, 0)` } : {}"
     :aria-label="$t('general.previous')"
     :title="$t('general.previous')"
@@ -48,11 +48,11 @@
   <!-- Next button -->
   <button
     v-if="enabled && hasNext"
-    @click.stop="handleNextClick"
+    @click.prevent="handleNextClick"
     @mousedown="startDrag($event, 'next')"
     @touchstart="handleTouchStart($event, 'next')"
     @touchmove="handleButtonTouchMove"
-    @touchend="handleTouchEnd"
+    @touchend.prevent="handleTouchEnd"
     @mouseover="setHoverNav(true)"
     @mouseleave="setHoverNav(false)"
     class="nav-button nav-next"
@@ -666,14 +666,6 @@ export default {
             tapTimeout: null,
             triggered: false
           };
-
-          // Set a longer timeout to allow for drag intent detection
-          this.touchState.tapTimeout = setTimeout(() => {
-            // If we haven't moved significantly and not dragging, treat as tap
-            if (!this.touchState.hasMoved && !this.dragState.isDragging) {
-              this.handleButtonTap(buttonType);
-            }
-          }, 300); // Increased to 300ms to allow for drag detection
         }
       }
     },
@@ -760,13 +752,20 @@ export default {
     handleTouchEnd() {
       // Handle touch end for buttons
       if (this.touchState.isButtonTouch) {
-        const touchDuration = Date.now() - this.touchState.startTime;
+        // Only navigate on release if  we didn't move our finger significantly (not a drag)
+        if (!this.touchState.hasMoved &&
+            !this.dragState.triggered &&
+            !this.touchState.triggered) {
 
-        // If it was a short touch without movement, and we haven't already navigated, treat as tap
-        if (!this.touchState.hasMoved && touchDuration < 300 && this.touchState.tapTimeout) {
-          clearTimeout(this.touchState.tapTimeout);
-          this.touchState.tapTimeout = null;
-          this.handleButtonTap(this.touchState.buttonType);
+          // Mark as triggered to prevent double navigation
+          this.touchState.triggered = true;
+
+          // Navigate based on button type
+          if (this.touchState.buttonType === 'previous' && this.hasPrevious) {
+            this.prev();
+          } else if (this.touchState.buttonType === 'next' && this.hasNext) {
+            this.next();
+          }
         }
 
         // Reset touch state
@@ -884,8 +883,13 @@ export default {
       // Only show file list if user released at full extent
       if (this.dragState.atFullExtent) {
         this.showFileList(this.dragState.type);
+        this.dragState.triggered = true; // Mark that drag triggered an action
       }
 
+      // We check if there was any movement (deltaX != 0) to distinguish from a simple click
+      if (this.dragState.deltaX !== 0) {
+        this.dragState.wasDrag = true;
+      }
       this.resetDragState();
       this.resetTouchState();
     },
@@ -901,10 +905,17 @@ export default {
         threshold: this.dragState.threshold,
         atFullExtent: false,
         triggered: false,
+        wasDrag: this.dragState.wasDrag,
       };
     },
 
     handlePrevClick() {
+      // If a drag was not at the maximum, don't navigate and return the button to its initial position
+      if (this.dragState.wasDrag) {
+        this.dragState.wasDrag = false;
+        this.resetDragState();
+        return;
+      }
       // Only navigate if this wasn't a drag
       if (!this.dragState.triggered) {
         this.prev();
@@ -913,6 +924,12 @@ export default {
     },
 
     handleNextClick() {
+      // If a drag was not at the maximum, don't navigate and return the button to its initial position
+      if (this.dragState.wasDrag) {
+        this.dragState.wasDrag = false;
+        this.resetDragState();
+        return;
+      }
       // Only navigate if this wasn't a drag
       if (!this.dragState.triggered) {
         this.next();
@@ -1076,6 +1093,7 @@ export default {
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
   opacity: 1;
   margin-top: 2em;
+  user-select: none;
 }
 
 .nav-button.dark-mode {
