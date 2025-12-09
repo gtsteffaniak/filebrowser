@@ -144,6 +144,10 @@ export default {
       const view = getters.currentView();
       return view;
     },
+    isMediaFile() {
+      const previewType = getters.previewType();
+      return previewType === 'audio' || previewType === 'video';
+    },
     isMediaQueueMode() {
       const previewType = getters.previewType();
       const isMediaView = previewType === 'audio' || previewType === 'video';
@@ -527,27 +531,15 @@ export default {
         return;
       }
 
-     // Check if any media element is currently playing
-     const mediaElements = document.querySelectorAll('audio, video');
-     let mediaActive = false;
-
-     mediaElements.forEach(media => {
-       if (!media.paused ||
-           document.activeElement === media) {
-         mediaActive = true;
-       }
-     });
-
-     // If media is playing don't handle arrow keys and let use fastfoward and rewind of the player
-     if (mediaActive) {
-       return;
-     }
-
-    // Don't handle arrow keys when playing media or when editing a file on the editor
-    const blockedViews = ['audio', 'video', 'editor'];
-    if (blockedViews.includes(this.currentView)) {
-      return;
-    }
+      // If we're in plyr, don't handle arrow keys to use fast-forward/rewind shortcuts, even if the media is paused.
+      if (this.isMediaFile) {
+        return;
+      }
+      // If we're in the editor, don't handle arrow keys to avoid change of file mistakenly.
+      const blockedViews = ['editor'];
+      if (blockedViews.includes(this.currentView)) {
+        return;
+      }
 
       const { key } = event;
 
