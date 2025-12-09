@@ -780,33 +780,6 @@ export default {
       }
     },
 
-    // Handle immediate button tap (mobile-friendly)
-    handleButtonTap(buttonType) {
-      // Prevent double navigation if already triggered
-      if (this.touchState.triggered) {
-        return;
-      }
-
-      // Clear any pending timeouts
-      if (this.touchState.tapTimeout) {
-        clearTimeout(this.touchState.tapTimeout);
-        this.touchState.tapTimeout = null;
-      }
-
-      // Mark as triggered to prevent double navigation
-      this.touchState.triggered = true;
-
-      // Navigate immediately on tap
-      if (buttonType === 'previous' && this.hasPrevious) {
-        this.prev();
-      } else if (buttonType === 'next' && this.hasNext) {
-        this.next();
-      }
-
-      // Reset touch state
-      this.resetTouchState();
-    },
-
     resetTouchState() {
       if (this.touchState.tapTimeout) {
         clearTimeout(this.touchState.tapTimeout);
