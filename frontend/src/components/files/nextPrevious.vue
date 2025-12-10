@@ -905,27 +905,11 @@ export default {
     showFileList(type) {
       // Hide navigation buttons when showing file list
       mutations.setNavigationShow(false);
-      // Determine what list to show based on drag type
-      if (type === 'previous') {
-        // Show parent directories for navigating up
-        this.showParentDirectories();
-      } else if (type === 'next') {
+
+      if (type === 'previous' || type === 'next') {
         // Show current listing items for quick jumping
         this.showCurrentListing();
       }
-    },
-
-    showParentDirectories() {
-      // Show files in the current directory (same directory as the previewed file)
-      const currentItems = this.getCurrentListingItems();
-      mutations.showHover({
-        name: "file-list",
-        props: {
-          fileList: currentItems,
-          mode: "navigate-siblings",
-          title: this.$t("prompts.quickJump")
-        }
-      });
     },
 
     showCurrentListing() {
@@ -940,35 +924,6 @@ export default {
       });
     },
 
-    getParentDirectories() {
-      // Build array of parent directories from current path
-      const currentPath = state.req.path || "/";
-      const pathParts = currentPath.split("/").filter(part => part);
-      const parentDirs = [];
-
-      // Add root
-      parentDirs.push({
-        name: "/",
-        path: "/",
-        source: state.req.source,
-        isDirectory: true
-      });
-
-      // Add each level up to current
-      let buildPath = "";
-      for (let i = 0; i < pathParts.length; i++) {
-        buildPath += "/" + pathParts[i];
-        parentDirs.push({
-          name: pathParts[i],
-          path: buildPath,
-          source: state.req.source,
-          isDirectory: true
-        });
-      }
-
-      return parentDirs.reverse(); // Show deepest first
-    },
-
     getCurrentListingItems() {
       // Get items from the current navigation listing (files in same directory)
       const listing = state.navigation.listing || [];
@@ -981,6 +936,7 @@ export default {
         originalItem: item
       }));
     },
+
     handleGlobalMouseMove(event) {
       // Check if mouse is in the nav zone areas to show navigation buttons
       if (!this.enabled) return;
