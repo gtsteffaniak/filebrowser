@@ -49,7 +49,6 @@ func getPartitionSize(path string) (uint64, error) {
 
 // handleFile processes a file and returns its size and whether it should be counted
 // On Windows, uses file.Size() directly (no syscall support for allocated size)
-// isRoutineScan: if true, updates the global totalSize; if false (API calls), only returns size
 func (idx *Index) handleFile(file os.FileInfo, fullCombined string, realFilePath string, isRoutineScan bool) (size uint64, shouldCountSize bool) {
 	// On Windows, just use the actual file size
 	realSize := uint64(file.Size())

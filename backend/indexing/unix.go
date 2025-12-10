@@ -62,7 +62,6 @@ func getFileDetails(sys any, filePath string) (uint64, uint64, uint64, bool) {
 
 // handleFile processes a file and returns its size and whether it should be counted
 // On Unix, always uses syscall to get allocated size (du-like behavior)
-// isRoutineScan: if true, updates the global totalSize; if false (API calls), only returns size
 func (idx *Index) handleFile(file os.FileInfo, fullCombined string, realFilePath string, isRoutineScan bool) (size uint64, shouldCountSize bool) {
 	var realSize uint64
 	var nlink uint64

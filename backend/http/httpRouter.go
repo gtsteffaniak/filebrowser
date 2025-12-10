@@ -7,10 +7,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/fs"
+	"net"
 	"net/http"
 	"text/template"
 	"time"
 
+	"github.com/coreos/go-systemd/v22/activation"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/version"
 	"github.com/gtsteffaniak/filebrowser/backend/database/storage/bolt"
@@ -239,11 +241,27 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 			fullURL := fmt.Sprintf("%s://%s%s%s", scheme, listenAddress, port, config.Server.BaseURL)
 			logger.Infof("Running at               : %s", fullURL)
 
-			// Create a TLS listener and serve
-			listener, err := tls.Listen("tcp", srv.Addr, tlsConfig)
-			if err != nil {
-				logger.Fatalf("Could not start TLS server: %v", err)
+			// Attempt to get listener from socket activation with TLS configuration
+			var listener net.Listener
+
+			socketActivationListeners, err := activation.TLSListeners(tlsConfig)
+			if err == nil && len(socketActivationListeners) > 0 {
+				listener = socketActivationListeners[0]
+				logger.Debug("Socket activation detected. Listening address is being controlled by systemd.")
+			} else if err != nil {
+				// if Socket Activation fails we can just fall back to create our own sockets as normal.
+				// so is only interesting to those who are debugging the app.
+				logger.Debugf("Socket activation failed: %v", err)
 			}
+
+			// Create our own TLS listener if socket activation is not available.
+			if listener == nil {
+				listener, err = tls.Listen("tcp", srv.Addr, tlsConfig)
+				if err != nil {
+					logger.Fatalf("Could not start TLS server: %v", err)
+				}
+			}
+
 			if err := srv.Serve(listener); err != nil && err != http.ErrServerClosed {
 				logger.Fatalf("Server error: %v", err)
 			}
@@ -258,8 +276,35 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 			fullURL := fmt.Sprintf("%s://%s%s%s", scheme, listenAddress, port, config.Server.BaseURL)
 			logger.Infof("Running at               : %s", fullURL)
 
+			var listener net.Listener
+
+			// Attempt to get the listener from socket activation
+			socketActivationListeners, err := activation.Listeners()
+			if err == nil && len(socketActivationListeners) > 0 {
+				listener = socketActivationListeners[0]
+				logger.Debug("Socket activation detected. Listening address is being controlled by systemd.")
+			} else if err != nil {
+				// if Socket Activation fails we can just fall back to create our own sockets as normal.
+				// so is only interesting to those who are debugging the app.
+				logger.Debugf("Socket activation failed: %v", err)
+			}
+
+			// Create our own listener if socket activation is not available.
+			if listener == nil {
+				// Replicate the behaviour of ListenAndServe
+				addr := srv.Addr
+				if addr == "" {
+					addr = ":http"
+				}
+
+				listener, err = net.Listen("tcp", addr)
+				if err != nil {
+					logger.Fatalf("Server error: %v", err)
+				}
+			}
+
 			// Start HTTP server
-			if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			if err := srv.Serve(listener); err != nil && err != http.ErrServerClosed {
 				logger.Fatalf("Server error: %v", err)
 			}
 		}
