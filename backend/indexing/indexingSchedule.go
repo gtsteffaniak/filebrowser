@@ -48,19 +48,19 @@ func calculateTimeScore(fullScanTime int) uint {
 		return 1
 	case fullScanTime < 5:
 		return 2
-	case fullScanTime < 10:
-		return 3
 	case fullScanTime < 15:
-		return 4
+		return 3
 	case fullScanTime < 30:
-		return 5
+		return 4
 	case fullScanTime < 60:
-		return 6
+		return 5
 	case fullScanTime < 90:
-		return 7
+		return 6
 	case fullScanTime < 120:
-		return 8
+		return 7
 	case fullScanTime < 180:
+		return 8
+	case fullScanTime < 300:
 		return 9
 	default:
 		return 10
@@ -150,7 +150,6 @@ func (idx *Index) PreScan() error {
 
 func (idx *Index) PostScan() error {
 	idx.mu.Lock()
-	idx.garbageCollection()
 	idx.wasIndexed = true
 	idx.runningScannerCount--
 	idx.mu.Unlock()
@@ -160,17 +159,38 @@ func (idx *Index) PostScan() error {
 	return nil
 }
 
-func (idx *Index) garbageCollection() {
-	for path := range idx.Directories {
-		_, ok := idx.DirectoriesLedger[path]
-		if !ok {
-			idx.Directories[path] = nil
-			delete(idx.Directories, path)
-			idx.NumDeleted++
-		}
+// updateRootDirectorySize recalculates the "/" directory size from the database
+// and updates the "/" entry. This should be called after any scanner completes.
+func (idx *Index) updateRootDirectorySize() {
+	// Get all direct children of root directory
+	children, err := idx.db.GetDirectoryChildren(idx.Name, "/")
+	if err != nil {
+		logger.Errorf("Failed to get root directory children: %v", err)
+		return
 	}
-	// Reset the ledger for the next scan.
-	idx.DirectoriesLedger = make(map[string]struct{})
+
+	// Calculate total size: sum of all direct files + all child directory sizes
+	var totalSize int64
+	for _, child := range children {
+		totalSize += child.Size
+	}
+
+	// Get current root directory entry
+	rootDir, err := idx.db.GetItem(idx.Name, "/")
+	if err != nil || rootDir == nil {
+		logger.Errorf("Failed to get root directory entry: %v", err)
+		return
+	}
+
+	// Update root directory size
+	rootDir.Size = totalSize
+	if err := idx.db.InsertItem(idx.Name, "/", rootDir); err != nil {
+		logger.Errorf("Failed to update root directory size: %v", err)
+		return
+	}
+
+	// Now aggregate stats and send update event
+	idx.aggregateStatsFromScanners()
 }
 
 func (idx *Index) SendSourceUpdateEvent() error {
@@ -302,18 +322,26 @@ func (idx *Index) aggregateStatsFromScanners() {
 		}
 	}
 
-	// Update totalSize by summing all scanner sizes (root scanner handles this)
-	// This ensures totalSize is always the sum of all scanner contributions
-	idx.totalSize = totalSizeFromScanners
+	// Get total size directly from database (sum of all file sizes)
+	// This is the source of truth for accurate size calculation
+	dbTotalSize, err := idx.db.GetTotalSize(idx.Name)
+	if err != nil {
+		logger.Errorf("Failed to get total size from database: %v", err)
+	} else {
+		idx.totalSize = dbTotalSize
+	}
+
 	idx.NumDirs = totalDirs
 	idx.NumFiles = totalFiles
 	idx.QuickScanTime = totalQuickScanTime
 	idx.FullScanTime = totalFullScanTime
+	prevComplexity := idx.Complexity
 	if allScannedAtLeastOnce {
 		idx.Complexity = calculateComplexity(totalFullScanTime, totalDirs)
 	} else {
 		idx.Complexity = 0
 	}
+	complexityChanged := prevComplexity != idx.Complexity
 	if !mostRecentScan.IsZero() {
 		idx.LastIndexed = mostRecentScan
 		idx.LastIndexedUnix = mostRecentScan.Unix()
@@ -333,6 +361,12 @@ func (idx *Index) aggregateStatsFromScanners() {
 	newDiskUsed := idx.totalSize
 	newStatus := idx.Status
 	idx.mu.Unlock()
+
+	// Update cache size when complexity changes or when all scans complete for the first time
+	if complexityChanged && allScannedAtLeastOnce {
+		updateIndexDBCacheSize()
+	}
+
 	statsChanged := prevNumDirs != totalDirs || prevNumFiles != totalFiles || prevDiskUsed != newDiskUsed
 	statusChanged := prevStatus != newStatus
 	if statsChanged || statusChanged {

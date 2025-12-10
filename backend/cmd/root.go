@@ -105,6 +105,12 @@ func StartFilebrowser() {
 	if len(settings.Config.Server.SourceMap) == 0 {
 		logger.Fatal("No sources configured, exiting...")
 	}
+
+	// Initialize shared index database before starting HTTP service
+	if err := indexing.InitializeIndexDB(); err != nil {
+		logger.Fatalf("Failed to initialize index database: %v", err)
+	}
+
 	for _, source := range settings.Config.Server.SourceMap {
 		go indexing.Initialize(source, false)
 	}
@@ -127,6 +133,13 @@ func StartFilebrowser() {
 	case <-done:
 		logger.Info("Server stopped unexpectedly. Shutting down...")
 	}
+
+	// cleanup temp databases
+	indexDB := indexing.GetIndexDB()
+	if indexDB != nil {
+		indexDB.Close()
+	}
+	logger.Debugf("clearing cache dir: %s", settings.Config.Server.CacheDir)
 	if !*settings.Config.Server.CacheDirCleanup {
 		fileutils.ClearCacheDir(settings.Config.Server.CacheDir)
 	}

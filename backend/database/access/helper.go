@@ -19,7 +19,8 @@ func (s *Storage) CheckChildItemAccess(response *iteminfo.ExtendedFileInfo, inde
 	}
 
 	// Use standardized path with trailing slash for proper path construction
-	parentPath := index.MakeIndexPath(response.Path)
+	// response is an ExtendedFileInfo which represents a directory (has Folders and Files)
+	parentPath := index.MakeIndexPath(response.Path, true)
 
 	// Check if user has access to any items
 	if !s.HasAnyVisibleItems(index.Path, parentPath, allItemNames, username) {

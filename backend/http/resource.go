@@ -609,10 +609,7 @@ func patchAction(ctx context.Context, params patchActionParams) error {
 		return err
 	case "rename", "move":
 		idx := indexing.GetIndex(params.srcIndex)
-		srcPath := idx.MakeIndexPath(params.src)
-		if !params.isSrcDir {
-			srcPath = strings.TrimSuffix(srcPath, "/")
-		}
+		srcPath := idx.MakeIndexPath(params.src, params.isSrcDir)
 		fileInfo, err := files.FileInfoFaster(utils.FileOptions{
 			Username: params.d.user.Username,
 			Path:     srcPath,

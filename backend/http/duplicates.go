@@ -14,8 +14,9 @@ import (
 	"unicode"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
-	"github.com/gtsteffaniak/filebrowser/backend/database/sql"
+	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
+	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 	"github.com/gtsteffaniak/go-cache/cache"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
@@ -44,6 +45,7 @@ type duplicatesOptions struct {
 	combinedPath string
 	minSize      int64
 	useChecksum  bool
+	username     string
 }
 
 // duplicatesHandler handles requests to find duplicate files
@@ -78,7 +80,16 @@ func duplicatesHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 	if index == nil {
 		return http.StatusBadRequest, fmt.Errorf("index not found for source %s", opts.source)
 	}
-
+	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, index.Name)
+	if err != nil {
+		return http.StatusForbidden, err
+	}
+	userscope = strings.TrimRight(userscope, "/")
+	scopePath := utils.JoinPathAsUnix(userscope, opts.searchScope)
+	fullPath := index.MakeIndexPath(scopePath, true) // searchScope is a directory
+	if !store.Access.Permitted(index.Path, fullPath, d.user.Username) {
+		return http.StatusForbidden, fmt.Errorf("user is not allowed to access this location")
+	}
 	// Generate cache key from all input parameters that affect results
 	// Checksums are always enabled, so cache key doesn't need to include that flag
 	cacheKey := fmt.Sprintf("%s:%s:%d", index.Path, opts.combinedPath, opts.minSize)
@@ -109,90 +120,25 @@ func duplicatesHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 	return renderJSON(w, r, duplicateGroups)
 }
 
-// findDuplicatesInIndex finds duplicates using SQLite streaming approach
-// This minimizes memory allocation by:
-// 1. Streaming files into a temporary SQLite database (no in-memory map)
-// 2. Querying SQLite for size groups with 2+ files
-// 3. Processing each size group sequentially (only one in memory at a time)
-// 4. Only creating SearchResult objects for final verified duplicates
+// findDuplicatesInIndex finds duplicates using the shared IndexDB
 func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions) []duplicateGroup {
+	// Get the shared IndexDB
+	indexDB := indexing.GetIndexDB()
+	if indexDB == nil {
+		logger.Errorf("[Duplicates] Index DB not available")
+		return []duplicateGroup{}
+	}
 
-	// Create temporary SQLite database for streaming in cache directory
-	tempDB, err := sql.NewTempDB("duplicates", &sql.TempDBConfig{
-		CacheSizeKB:   -2000,     // ~8MB, sufficient for small-medium datasets
-		MmapSize:      104857600, // 100MB - reasonable limit
-		Synchronous:   "OFF",     // Maximum write performance for temp DB
-		EnableLogging: false,
-	})
+	// Step 1: Query IndexDB for size groups with 2+ files (already sorted by SQL)
+	// Pass the scope prefix for efficient filtering
+	pathPrefix := opts.combinedPath
+	sizes, _, err := indexDB.GetSizeGroupsForDuplicates(opts.source, opts.minSize, pathPrefix)
 	if err != nil {
-		// Return empty results if SQLite fails
-		return []duplicateGroup{}
-	}
-	defer tempDB.Close()
-
-	// Create the duplicates table with indexes
-	// Indexes are created before insert so they're immediately available for queries
-	tableStart := time.Now()
-	if err = tempDB.CreateDuplicatesTable(); err != nil {
-		return []duplicateGroup{}
-	}
-	if time.Since(tableStart) > 10*time.Millisecond {
-		logger.Debugf("[Duplicates] Table and index creation took %v", time.Since(tableStart))
-	}
-
-	// Step 1: Stream files into SQLite database
-	// This avoids building a huge map in memory
-	tx, err := tempDB.BeginTransaction()
-	if err != nil {
+		logger.Errorf("[Duplicates] Failed to query size groups: %v", err)
 		return []duplicateGroup{}
 	}
 
-	// Prepare statement for bulk inserts
-	stmt, err := tx.Prepare("INSERT OR IGNORE INTO files (dir_path, file_idx, size, name, normalized_name, extension) VALUES (?, ?, ?, ?, ?, ?)")
-	if err != nil {
-		if err2 := tx.Rollback(); err2 != nil {
-			logger.Errorf("[Duplicates] Failed to rollback transaction: %v", err2)
-		}
-		return []duplicateGroup{}
-	}
-	defer stmt.Close()
-
-	insertErr := error(nil)
-	index.ReadOnlyOperation(func() {
-		for dirPath, dir := range index.GetDirectories() {
-			// Skip directories not in scope
-			if opts.combinedPath != "" && !strings.HasPrefix(dirPath, opts.combinedPath) {
-				continue
-			}
-
-			for i := range dir.Files {
-				file := &dir.Files[i]
-				if file.Size >= opts.minSize {
-					// Normalize filename for efficient matching
-					normalizedName := normalizeFilename(file.Name)
-					extension := strings.ToLower(filepath.Ext(file.Name))
-
-					// Insert into SQLite (will be committed in batch)
-					_, err = stmt.Exec(dirPath, i, file.Size, file.Name, normalizedName, extension)
-					if err != nil && insertErr == nil {
-						insertErr = err
-					}
-				}
-			}
-		}
-	})
-
-	// Commit the transaction
-	if insertErr != nil || tx.Commit() != nil {
-		return []duplicateGroup{}
-	}
-
-	// Step 2: Query SQLite for size groups with 2+ files (already sorted by SQL)
-	sizes, _, err := tempDB.GetSizeGroupsForDuplicates(opts.minSize)
-	if err != nil {
-		return []duplicateGroup{}
-	}
-	// Step 3: Process each size group sequentially to minimize memory
+	// Step 2: Process each size group sequentially to minimize memory
 	duplicateGroups := []duplicateGroup{}
 	totalFileQueryTime := time.Duration(0)
 	fileQueryCount := 0
@@ -203,24 +149,30 @@ func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions) []dup
 			break
 		}
 
-		// Get files for this size from SQLite
+		// Get files for this size from IndexDB
 		fileQueryStart := time.Now()
-		locations, err := tempDB.GetFilesBySizeForDuplicates(size)
+		files, err := indexDB.GetFilesBySize(opts.source, size, pathPrefix)
 		fileQueryDuration := time.Since(fileQueryStart)
 		totalFileQueryTime += fileQueryDuration
 		fileQueryCount++
 
-		if err != nil || len(locations) < 2 {
+		if err != nil || len(files) < 2 {
+			continue
+		}
+
+		// Filter files by permission early, before any processing
+		// This ensures only files the user is permitted to access are included
+		files = filterFilesByPermission(files, index, opts.username)
+		if len(files) < 2 {
 			continue
 		}
 
 		// Use filename matching for initial grouping (fast)
-		// Work directly with sql.FileLocation - no conversion needed
-		groups := groupLocationsByFilenameWithMetadata(locations, index, size)
+		groups := groupFilesByFilename(files, size)
 
 		// Process candidate groups up to the limit
-		for _, locGroup := range groups {
-			if len(locGroup) < 2 {
+		for _, fileGroup := range groups {
+			if len(fileGroup) < 2 {
 				continue
 			}
 
@@ -230,7 +182,7 @@ func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions) []dup
 			}
 
 			// Verify with checksums
-			verifiedGroups := groupLocationsByChecksumFromSQL(locGroup, index, size)
+			verifiedGroups := groupFilesByChecksum(fileGroup, index, size)
 
 			// Create SearchResult objects only for verified duplicates
 			for _, verifiedGroup := range verifiedGroups {
@@ -239,41 +191,21 @@ func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions) []dup
 				}
 
 				resultGroup := make([]*indexing.SearchResult, 0, len(verifiedGroup))
-				index.ReadOnlyOperation(func() {
-					dirs := index.GetDirectories()
-					for _, loc := range verifiedGroup {
-						dir := dirs[loc.DirPath]
-						if dir == nil {
-							continue
-						}
-						if loc.FileIdx >= len(dir.Files) {
-							continue
-						}
-						file := &dir.Files[loc.FileIdx]
-
-						// CRITICAL: Verify size matches the expected size for this group
-						if file.Size != size {
-							continue
-						}
-
-						// Construct full path
-						fullPath := filepath.Join(loc.DirPath, file.Name)
-
-						// Remove the user scope from path
-						adjustedPath := strings.TrimPrefix(fullPath, opts.combinedPath)
-						if adjustedPath == "" {
-							adjustedPath = "/"
-						}
-
-						resultGroup = append(resultGroup, &indexing.SearchResult{
-							Path:       adjustedPath,
-							Type:       file.Type,
-							Size:       file.Size,
-							Modified:   file.ModTime.Format(time.RFC3339),
-							HasPreview: file.HasPreview,
-						})
+				for _, fileInfo := range verifiedGroup {
+					// Remove the user scope from path
+					adjustedPath := strings.TrimPrefix(fileInfo.Path, opts.combinedPath)
+					if adjustedPath == "" {
+						adjustedPath = "/"
 					}
-				})
+
+					resultGroup = append(resultGroup, &indexing.SearchResult{
+						Path:       adjustedPath,
+						Type:       fileInfo.Type,
+						Size:       fileInfo.Size,
+						Modified:   fileInfo.ModTime.Format(time.RFC3339),
+						HasPreview: fileInfo.HasPreview,
+					})
+				}
 
 				if len(resultGroup) >= 2 {
 					duplicateGroups = append(duplicateGroups, duplicateGroup{
@@ -337,7 +269,7 @@ func prepDuplicatesOptions(r *http.Request, d *requestContext) (*duplicatesOptio
 		return nil, err
 	}
 
-	combinedPath := index.MakeIndexPath(filepath.Join(userscope, searchScope))
+	combinedPath := index.MakeIndexPath(filepath.Join(userscope, searchScope), true) // searchScope is a directory
 
 	return &duplicatesOptions{
 		source:       source,
@@ -345,52 +277,34 @@ func prepDuplicatesOptions(r *http.Request, d *requestContext) (*duplicatesOptio
 		combinedPath: combinedPath,
 		minSize:      minSize,
 		useChecksum:  useChecksum,
+		username:     d.user.Username,
 	}, nil
 }
 
-// groupLocationsByChecksumFromSQL groups SQLite file locations by partial checksum
-// Works directly with sql.FileLocation instead of converting to fileLocation
-func groupLocationsByChecksumFromSQL(locations []sql.FileLocation, index *indexing.Index, fileSize int64) [][]sql.FileLocation {
-	checksumMap := make(map[string][]sql.FileLocation)
+// groupFilesByChecksum groups files by partial checksum
+// Works with iteminfo.FileInfo from the main IndexDB
+func groupFilesByChecksum(files []*iteminfo.FileInfo, index *indexing.Index, fileSize int64) [][]*iteminfo.FileInfo {
+	checksumMap := make(map[string][]*iteminfo.FileInfo)
 
 	// Build checksum groups
-	for _, loc := range locations {
-		// Construct filesystem path for checksum computation
-		// index.Path is the absolute filesystem root, loc.DirPath is index-relative
-		fullPath := filepath.Join(index.Path, loc.DirPath)
-
-		// Get the filename and modtime from the index and verify size still matches
-		var fileName string
-		var fileModTime time.Time
-		var sizeMatches bool
-		index.ReadOnlyOperation(func() {
-			if dir := index.GetDirectories()[loc.DirPath]; dir != nil {
-				if loc.FileIdx < len(dir.Files) {
-					file := &dir.Files[loc.FileIdx]
-					// CRITICAL: Verify size matches expected size for this group
-					if file.Size == fileSize {
-						fileName = file.Name
-						fileModTime = file.ModTime
-						sizeMatches = true
-					}
-				}
-			}
-		})
-
-		if fileName == "" || !sizeMatches {
+	for _, file := range files {
+		// Verify size matches expected size (should match as we queried by size)
+		if file.Size != fileSize {
 			continue
 		}
 
-		filePath := filepath.Join(fullPath, fileName)
-		checksum, err := computePartialChecksum(index.Path, filePath, fileSize, fileModTime)
+		// Construct filesystem path for checksum computation
+		// index.Path is the absolute filesystem root, file.Path is index-relative
+		filePath := filepath.Join(index.Path, file.Path)
+		checksum, err := computePartialChecksum(index.Path, filePath, fileSize, file.ModTime)
 		if err != nil {
 			continue
 		}
-		checksumMap[checksum] = append(checksumMap[checksum], loc)
+		checksumMap[checksum] = append(checksumMap[checksum], file)
 	}
 
 	// Convert map to slice of groups
-	groups := make([][]sql.FileLocation, 0, len(checksumMap))
+	groups := make([][]*iteminfo.FileInfo, 0, len(checksumMap))
 	for _, group := range checksumMap {
 		if len(group) >= 2 {
 			groups = append(groups, group)
@@ -401,12 +315,9 @@ func groupLocationsByChecksumFromSQL(locations []sql.FileLocation, index *indexi
 }
 
 // computePartialChecksum calculates MD5 hash by sampling key portions of a file
-// This is 10-100x faster than full file checksums while maintaining high accuracy
-// Strategy:
 // - Always read first 8KB (header/metadata)
 // - For files > 24KB: sample middle 8KB and last 8KB
 // - Total read: ~24KB max per file regardless of file size
-// Checksums are cached for 1 hour based on source/path/modtime
 func computePartialChecksum(sourcePath, filePath string, size int64, modTime time.Time) (string, error) {
 	// Generate cache key from source path, file path, and modification time
 	cacheKey := fmt.Sprintf("%s:%s:%d:%d", sourcePath, filePath, size, modTime.Unix())
@@ -465,72 +376,49 @@ func computePartialChecksum(sourcePath, filePath string, size int64, modTime tim
 	return checksum, nil
 }
 
-// groupLocationsByFilenameWithMetadata uses pre-computed normalized names from SQLite
-// Works directly with sql.FileLocation - no conversion needed
-func groupLocationsByFilenameWithMetadata(locations []sql.FileLocation, index *indexing.Index, expectedSize int64) [][]sql.FileLocation {
-	if len(locations) == 0 {
+// groupFilesByFilename groups files by fuzzy filename matching
+// Works with iteminfo.FileInfo from the main IndexDB
+// Normalizes filenames on-the-fly for comparison
+func groupFilesByFilename(files []*iteminfo.FileInfo, expectedSize int64) [][]*iteminfo.FileInfo {
+	if len(files) == 0 {
 		return nil
 	}
 
-	// Verify sizes from index (still need to check index is up to date)
-	type fileMetadata struct {
-		name string
-		size int64
-	}
-	metadata := make([]fileMetadata, len(locations))
-
-	index.ReadOnlyOperation(func() {
-		dirs := index.GetDirectories()
-		for i, loc := range locations {
-			if dir := dirs[loc.DirPath]; dir != nil {
-				if loc.FileIdx < len(dir.Files) {
-					file := &dir.Files[loc.FileIdx]
-					if file.Size == expectedSize {
-						metadata[i] = fileMetadata{
-							name: file.Name,
-							size: file.Size,
-						}
-					}
-				}
-			}
-		}
-	})
-
-	groups := [][]sql.FileLocation{}
+	groups := [][]*iteminfo.FileInfo{}
 	used := make(map[int]bool)
 
-	for i := 0; i < len(locations); i++ {
-		if used[i] || metadata[i].name == "" {
+	for i := 0; i < len(files); i++ {
+		if used[i] || files[i].Name == "" {
 			continue
 		}
 
-		group := []sql.FileLocation{locations[i]}
+		group := []*iteminfo.FileInfo{files[i]}
 		used[i] = true
-		baseSize := metadata[i].size
 
-		// Use pre-computed normalized name and extension from SQLite
-		filename1 := locations[i].NormalizedName
-		ext1 := locations[i].Extension
+		// Normalize filename and extract extension on-the-fly
+		filename1 := normalizeFilename(files[i].Name)
+		ext1 := strings.ToLower(filepath.Ext(files[i].Name))
 
-		for j := i + 1; j < len(locations); j++ {
-			if used[j] || metadata[j].name == "" {
+		for j := i + 1; j < len(files); j++ {
+			if used[j] || files[j].Name == "" {
 				continue
 			}
 
-			if metadata[j].size != baseSize {
+			// Check size (should match, but safe to check)
+			if files[j].Size != expectedSize {
 				continue
 			}
 
-			ext2 := locations[j].Extension
+			ext2 := strings.ToLower(filepath.Ext(files[j].Name))
 			if ext1 != ext2 {
 				continue
 			}
 
-			filename2 := locations[j].NormalizedName
+			filename2 := normalizeFilename(files[j].Name)
 
 			// Check if filenames are similar enough
 			if filenamesSimilar(filename1, filename2) {
-				group = append(group, locations[j])
+				group = append(group, files[j])
 				used[j] = true
 			}
 		}
@@ -648,4 +536,22 @@ func max(a, b int) int {
 		return a
 	}
 	return b
+}
+
+// filterFilesByPermission filters files to only include those the user is permitted to access
+// This is called early in the duplicate search process to avoid processing files the user can't see
+func filterFilesByPermission(files []*iteminfo.FileInfo, index *indexing.Index, username string) []*iteminfo.FileInfo {
+	if store.Access == nil {
+		// No access control configured, return all files
+		return files
+	}
+
+	filtered := make([]*iteminfo.FileInfo, 0, len(files))
+	for _, file := range files {
+		// Check permission using index.Path (source root) and file.Path (index-relative path)
+		if store.Access.Permitted(index.Path, file.Path, username) {
+			filtered = append(filtered, file)
+		}
+	}
+	return filtered
 }

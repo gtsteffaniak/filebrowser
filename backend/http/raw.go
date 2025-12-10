@@ -549,7 +549,7 @@ func computeArchiveSize(fileList []string, d *requestContext) (int64, error) {
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}
-		indexPath := idx.MakeIndexPath(realPath)
+		indexPath := idx.MakeIndexPath(realPath, isDir)
 		info, ok := idx.GetReducedMetadata(indexPath, isDir)
 		if !ok {
 			info, err = idx.GetFsDirInfo(indexPath)

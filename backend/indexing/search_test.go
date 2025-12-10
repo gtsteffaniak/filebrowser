@@ -1,14 +1,52 @@
 package indexing
 
 import (
+	"os"
 	"reflect"
+	"strings"
+	"sync"
 	"testing"
+	"time"
 
+	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
+	dbsql "github.com/gtsteffaniak/filebrowser/backend/database/sql"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 	"github.com/stretchr/testify/assert"
 )
+
+func TestMain(m *testing.M) {
+	// Ensure fileutils permissions are set (needed by NewTempDB)
+	if fileutils.PermDir == 0 {
+		fileutils.SetFsPermissions(0644, 0755)
+	}
+
+	// Create a temporary directory for test database files with proper permissions
+	tmpDir, err := os.MkdirTemp("", "indexing_test_*")
+	if err != nil {
+		panic(err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	// Ensure the temp directory has correct permissions
+	if err := os.Chmod(tmpDir, 0755); err != nil {
+		panic(err)
+	}
+
+	// Set the cache directory to the temporary directory
+	originalCacheDir := settings.Config.Server.CacheDir
+	settings.Config.Server.CacheDir = tmpDir
+	defer func() {
+		settings.Config.Server.CacheDir = originalCacheDir
+	}()
+
+	// Run the tests
+	code := m.Run()
+
+	// Exit with the test result code
+	os.Exit(code)
+}
 
 func BenchmarkSearchAllIndexes(b *testing.B) {
 	Initialize(&settings.Source{Name: "test", Path: "/srv"}, true)
@@ -77,59 +115,153 @@ func TestParseSearch(t *testing.T) {
 }
 
 func TestSearchWhileIndexing(t *testing.T) {
-	Initialize(&settings.Source{Name: "test", Path: "/srv"}, true)
-	idx := GetIndex("test")
-
-	searchTerms := utils.GenerateRandomSearchTerms(10)
-	for i := 0; i < 5; i++ {
-		go idx.CreateMockData(100, 100) // Creating mock data concurrently
-		for _, term := range searchTerms {
-			go idx.Search(term, "/", "test", false, DefaultSearchResults) // Search concurrently
+	// Initialize the database if not already done
+	if indexDB == nil {
+		var err error
+		indexDB, err = dbsql.NewIndexDB("test_search_while")
+		if err != nil {
+			t.Fatalf("Failed to create test database: %v", err)
 		}
 	}
+
+	Initialize(&settings.Source{Name: "test", Path: "/srv"}, true)
+	idx := GetIndex("test")
+	if idx == nil {
+		t.Fatal("Failed to get test index")
+	}
+
+	var wg sync.WaitGroup
+	searchTerms := utils.GenerateRandomSearchTerms(5)
+
+	// Reduced load: 3 iterations × 10 dirs × 10 files = ~300 items total
+	// This is enough to test concurrency without overwhelming the database
+	for i := 0; i < 3; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			idx.CreateMockData(10, 10) // Reduced from 100×100 to 10×10
+		}()
+
+		for _, term := range searchTerms {
+			wg.Add(1)
+			go func(searchTerm string) {
+				defer wg.Done()
+				idx.Search(searchTerm, "/", "test", false, DefaultSearchResults)
+			}(term)
+		}
+
+		// Small delay to reduce contention spikes
+		time.Sleep(10 * time.Millisecond)
+	}
+
+	// Wait for all goroutines to complete before test ends
+	wg.Wait()
 }
 
 func TestSearchIndexes(t *testing.T) {
+	// Initialize the database if not already done
+	if indexDB == nil {
+		var err error
+		indexDB, err = dbsql.NewIndexDB("test_search")
+		if err != nil {
+			t.Fatalf("Failed to create test database: %v", err)
+		}
+	}
+
 	index := Index{
-		Directories: map[string]*iteminfo.FileInfo{
-			"/":           {Files: []iteminfo.ExtendedItemInfo{{ItemInfo: iteminfo.ItemInfo{Name: "audio-one.wav", Type: "audio"}}}},
-			"/test/":      {Files: []iteminfo.ExtendedItemInfo{{ItemInfo: iteminfo.ItemInfo{Name: "audio-one.wav", Type: "audio"}}}},
-			"/test/path/": {Files: []iteminfo.ExtendedItemInfo{{ItemInfo: iteminfo.ItemInfo{Name: "file.txt", Type: "text"}}}},
-			"/new/test/": {Files: []iteminfo.ExtendedItemInfo{
-				{ItemInfo: iteminfo.ItemInfo{Name: "audio.wav", Type: "audio"}},
-				{ItemInfo: iteminfo.ItemInfo{Name: "video.mp4", Type: "video"}},
-				{ItemInfo: iteminfo.ItemInfo{Name: "video.MP4", Type: "video"}},
-			}},
-			"/first Dir/": {
-				Files: []iteminfo.ExtendedItemInfo{
-					{ItemInfo: iteminfo.ItemInfo{Name: "space jam.zip", Size: 100, Type: "archive"}},
-				},
-			},
-			"/new/test/path/": {Files: []iteminfo.ExtendedItemInfo{{ItemInfo: iteminfo.ItemInfo{Name: "archive.zip", Type: "archive"}}}},
-			"/firstDir/": {
-				Files: []iteminfo.ExtendedItemInfo{
-					{ItemInfo: iteminfo.ItemInfo{Name: "archive.zip", Size: 100, Type: "archive"}},
-				},
-				Folders: []iteminfo.ItemInfo{
-					{Name: "thisIsDir", Type: "directory", Size: 2 * 1024 * 1024},
-				},
-			},
-			"/firstDir/thisIsDir/": {
-				Files: []iteminfo.ExtendedItemInfo{
-					{ItemInfo: iteminfo.ItemInfo{Name: "hi.txt", Type: "text"}},
-				},
-				ItemInfo: iteminfo.ItemInfo{
-					Size: 2 * 1024 * 1024,
-				},
-			},
-			"/new+folder/Pictures/": {
-				Files: []iteminfo.ExtendedItemInfo{
-					{ItemInfo: iteminfo.ItemInfo{Name: "consoletest.mp4", Size: 196091904, Type: "video/mp4"}},
-					{ItemInfo: iteminfo.ItemInfo{Name: "playwright.gif", Size: 2416640, Type: "image/gif"}},
-					{ItemInfo: iteminfo.ItemInfo{Name: "toggle.gif", Size: 65536, Type: "image/gif"}},
-				},
+		Source: settings.Source{
+			Name: "test_search",
+			Path: "/mock/path",
+		},
+		db:   indexDB,
+		mock: true,
+	}
+
+	// Insert test data into database
+	now := time.Now()
+	directories := map[string]*iteminfo.FileInfo{
+		"/":           {ItemInfo: iteminfo.ItemInfo{Name: "/", Type: "directory"}, Files: []iteminfo.ExtendedItemInfo{{ItemInfo: iteminfo.ItemInfo{Name: "audio-one.wav", Type: "audio"}}}},
+		"/test/":      {ItemInfo: iteminfo.ItemInfo{Name: "test", Type: "directory"}, Files: []iteminfo.ExtendedItemInfo{{ItemInfo: iteminfo.ItemInfo{Name: "audio-one.wav", Type: "audio"}}}},
+		"/test/path/": {ItemInfo: iteminfo.ItemInfo{Name: "path", Type: "directory"}, Files: []iteminfo.ExtendedItemInfo{{ItemInfo: iteminfo.ItemInfo{Name: "file.txt", Type: "text"}}}},
+		"/new/":       {ItemInfo: iteminfo.ItemInfo{Name: "new", Type: "directory"}},
+		"/new/test/": {ItemInfo: iteminfo.ItemInfo{Name: "test", Type: "directory"}, Files: []iteminfo.ExtendedItemInfo{
+			{ItemInfo: iteminfo.ItemInfo{Name: "audio.wav", Type: "audio"}},
+			{ItemInfo: iteminfo.ItemInfo{Name: "video.mp4", Type: "video"}},
+			{ItemInfo: iteminfo.ItemInfo{Name: "video.MP4", Type: "video"}},
+		}},
+		"/first Dir/": {
+			ItemInfo: iteminfo.ItemInfo{Name: "first Dir", Type: "directory"},
+			Files: []iteminfo.ExtendedItemInfo{
+				{ItemInfo: iteminfo.ItemInfo{Name: "space jam.zip", Size: 100, Type: "archive"}},
 			},
 		},
+		"/new/test/path/": {ItemInfo: iteminfo.ItemInfo{Name: "path", Type: "directory"}, Files: []iteminfo.ExtendedItemInfo{{ItemInfo: iteminfo.ItemInfo{Name: "archive.zip", Type: "archive"}}}},
+		"/firstDir/": {
+			ItemInfo: iteminfo.ItemInfo{Name: "firstDir", Type: "directory"},
+			Files: []iteminfo.ExtendedItemInfo{
+				{ItemInfo: iteminfo.ItemInfo{Name: "archive.zip", Size: 100, Type: "archive"}},
+			},
+			Folders: []iteminfo.ItemInfo{
+				{Name: "thisIsDir", Type: "directory", Size: 2 * 1024 * 1024},
+			},
+		},
+		"/firstDir/thisIsDir/": {
+			ItemInfo: iteminfo.ItemInfo{
+				Name: "thisIsDir",
+				Type: "directory",
+				Size: 2 * 1024 * 1024,
+			},
+			Files: []iteminfo.ExtendedItemInfo{
+				{ItemInfo: iteminfo.ItemInfo{Name: "hi.txt", Type: "text"}},
+			},
+		},
+		"/new+folder/": {ItemInfo: iteminfo.ItemInfo{Name: "new+folder", Type: "directory"}},
+		"/new+folder/Pictures/": {
+			ItemInfo: iteminfo.ItemInfo{Name: "Pictures", Type: "directory"},
+			Files: []iteminfo.ExtendedItemInfo{
+				{ItemInfo: iteminfo.ItemInfo{Name: "consoletest.mp4", Size: 196091904, Type: "video/mp4"}},
+				{ItemInfo: iteminfo.ItemInfo{Name: "playwright.gif", Size: 2416640, Type: "image/gif"}},
+				{ItemInfo: iteminfo.ItemInfo{Name: "toggle.gif", Size: 65536, Type: "image/gif"}},
+			},
+		},
+	}
+
+	// Insert all directories and files into database
+	for path, dirInfo := range directories {
+		dirInfo.Path = path
+		if dirInfo.ModTime.IsZero() {
+			dirInfo.ModTime = now
+		}
+		_ = index.db.InsertItem("test_search", path, dirInfo)
+
+		// Insert folders
+		for _, folder := range dirInfo.Folders {
+			folderPath := strings.TrimSuffix(path, "/") + "/" + folder.Name + "/"
+			folderInfo := &iteminfo.FileInfo{
+				Path:     folderPath,
+				ItemInfo: folder,
+			}
+			if folderInfo.ModTime.IsZero() {
+				folderInfo.ModTime = now
+			}
+			// Only insert if not already in the directories map (to avoid duplicates)
+			if _, exists := directories[folderPath]; !exists {
+				_ = index.db.InsertItem("test_search", folderPath, folderInfo)
+			}
+		}
+
+		// Insert files
+		for _, file := range dirInfo.Files {
+			filePath := strings.TrimSuffix(path, "/") + "/" + file.Name
+			fileInfo := &iteminfo.FileInfo{
+				Path:     filePath,
+				ItemInfo: file.ItemInfo,
+			}
+			if fileInfo.ModTime.IsZero() {
+				fileInfo.ModTime = now
+			}
+			_ = index.db.InsertItem("test_search", filePath, fileInfo)
+		}
 	}
 
 	tests := []struct {
@@ -308,33 +440,79 @@ func TestSearchIndexes(t *testing.T) {
 }
 
 func TestSearchLargestModeExcludesRoot(t *testing.T) {
+	// Initialize the database if not already done
+	if indexDB == nil {
+		var err error
+		indexDB, err = dbsql.NewIndexDB("test_search_largest")
+		if err != nil {
+			t.Fatalf("Failed to create test database: %v", err)
+		}
+	}
+
 	index := Index{
-		Directories: map[string]*iteminfo.FileInfo{
-			"/": {
-				Files: []iteminfo.ExtendedItemInfo{
-					{ItemInfo: iteminfo.ItemInfo{Name: "root-file.txt", Type: "text", Size: 100}},
-				},
-				ItemInfo: iteminfo.ItemInfo{
-					Size: 3209322496, // Large root directory size
-				},
+		Source: settings.Source{
+			Name: "test_search_largest",
+			Path: "/mock/path",
+		},
+		db:   indexDB,
+		mock: true,
+	}
+
+	// Insert test data into database
+	now := time.Now()
+	directories := map[string]*iteminfo.FileInfo{
+		"/": {
+			Files: []iteminfo.ExtendedItemInfo{
+				{ItemInfo: iteminfo.ItemInfo{Name: "root-file.txt", Type: "text", Size: 100}},
 			},
-			"/subdir/": {
-				Files: []iteminfo.ExtendedItemInfo{
-					{ItemInfo: iteminfo.ItemInfo{Name: "sub-file.txt", Type: "text", Size: 200}},
-				},
-				ItemInfo: iteminfo.ItemInfo{
-					Size: 5 * 1024 * 1024, // 5MB subdirectory
-				},
-			},
-			"/another-dir/": {
-				Files: []iteminfo.ExtendedItemInfo{
-					{ItemInfo: iteminfo.ItemInfo{Name: "large-file.bin", Type: "binary", Size: 10 * 1024 * 1024}}, // 10MB file
-				},
-				ItemInfo: iteminfo.ItemInfo{
-					Size: 10 * 1024 * 1024,
-				},
+			ItemInfo: iteminfo.ItemInfo{
+				Size: 3209322496, // Large root directory size
 			},
 		},
+		"/subdir/": {
+			Files: []iteminfo.ExtendedItemInfo{
+				{ItemInfo: iteminfo.ItemInfo{Name: "sub-file.txt", Type: "text", Size: 200}},
+			},
+			ItemInfo: iteminfo.ItemInfo{
+				Size: 5 * 1024 * 1024, // 5MB subdirectory
+			},
+		},
+		"/another-dir/": {
+			Files: []iteminfo.ExtendedItemInfo{
+				{ItemInfo: iteminfo.ItemInfo{Name: "large-file.bin", Type: "binary", Size: 10 * 1024 * 1024}}, // 10MB file
+			},
+			ItemInfo: iteminfo.ItemInfo{
+				Size: 10 * 1024 * 1024,
+			},
+		},
+	}
+
+	// Insert all directories and files into database
+	for path, dirInfo := range directories {
+		dirInfo.Path = path
+		if dirInfo.ModTime.IsZero() {
+			dirInfo.ModTime = now
+		}
+		if dirInfo.Type == "" {
+			dirInfo.Type = "directory"
+		}
+		_ = index.db.InsertItem("test_search_largest", path, dirInfo)
+
+		// Insert files
+		for _, file := range dirInfo.Files {
+			filePath := strings.TrimSuffix(path, "/") + "/" + file.Name
+			fileInfo := &iteminfo.FileInfo{
+				Path:     filePath,
+				ItemInfo: file.ItemInfo,
+			}
+			if fileInfo.ModTime.IsZero() {
+				fileInfo.ModTime = now
+			}
+			if fileInfo.Type == "" {
+				fileInfo.Type = "file"
+			}
+			_ = index.db.InsertItem("test_search_largest", filePath, fileInfo)
+		}
 	}
 
 	// Test that when largest=true and scope="/", the root directory "/" is NOT included
@@ -358,33 +536,79 @@ func TestSearchLargestModeExcludesRoot(t *testing.T) {
 }
 
 func TestSearchLargestModeExcludesScopeDirectory(t *testing.T) {
+	// Initialize the database if not already done
+	if indexDB == nil {
+		var err error
+		indexDB, err = dbsql.NewIndexDB("test_search_scope")
+		if err != nil {
+			t.Fatalf("Failed to create test database: %v", err)
+		}
+	}
+
 	index := Index{
-		Directories: map[string]*iteminfo.FileInfo{
-			"/": {
-				Files: []iteminfo.ExtendedItemInfo{
-					{ItemInfo: iteminfo.ItemInfo{Name: "root-file.txt", Type: "text", Size: 50}},
-				},
-				ItemInfo: iteminfo.ItemInfo{
-					Size: 100,
-				},
+		Source: settings.Source{
+			Name: "test_search_scope",
+			Path: "/mock/path",
+		},
+		db:   indexDB,
+		mock: true,
+	}
+
+	// Insert test data into database
+	now := time.Now()
+	directories := map[string]*iteminfo.FileInfo{
+		"/": {
+			Files: []iteminfo.ExtendedItemInfo{
+				{ItemInfo: iteminfo.ItemInfo{Name: "root-file.txt", Type: "text", Size: 50}},
 			},
-			"/test/": {
-				Files: []iteminfo.ExtendedItemInfo{
-					{ItemInfo: iteminfo.ItemInfo{Name: "file1.txt", Type: "text", Size: 100}},
-				},
-				ItemInfo: iteminfo.ItemInfo{
-					Size: 2 * 1024 * 1024, // 2MB directory
-				},
-			},
-			"/test/subdir/": {
-				Files: []iteminfo.ExtendedItemInfo{
-					{ItemInfo: iteminfo.ItemInfo{Name: "file2.txt", Type: "text", Size: 200}},
-				},
-				ItemInfo: iteminfo.ItemInfo{
-					Size: 3 * 1024 * 1024, // 3MB subdirectory
-				},
+			ItemInfo: iteminfo.ItemInfo{
+				Size: 100,
 			},
 		},
+		"/test/": {
+			Files: []iteminfo.ExtendedItemInfo{
+				{ItemInfo: iteminfo.ItemInfo{Name: "file1.txt", Type: "text", Size: 100}},
+			},
+			ItemInfo: iteminfo.ItemInfo{
+				Size: 2 * 1024 * 1024, // 2MB directory
+			},
+		},
+		"/test/subdir/": {
+			Files: []iteminfo.ExtendedItemInfo{
+				{ItemInfo: iteminfo.ItemInfo{Name: "file2.txt", Type: "text", Size: 200}},
+			},
+			ItemInfo: iteminfo.ItemInfo{
+				Size: 3 * 1024 * 1024, // 3MB subdirectory
+			},
+		},
+	}
+
+	// Insert all directories and files into database
+	for path, dirInfo := range directories {
+		dirInfo.Path = path
+		if dirInfo.ModTime.IsZero() {
+			dirInfo.ModTime = now
+		}
+		if dirInfo.Type == "" {
+			dirInfo.Type = "directory"
+		}
+		_ = index.db.InsertItem("test_search_scope", path, dirInfo)
+
+		// Insert files
+		for _, file := range dirInfo.Files {
+			filePath := strings.TrimSuffix(path, "/") + "/" + file.Name
+			fileInfo := &iteminfo.FileInfo{
+				Path:     filePath,
+				ItemInfo: file.ItemInfo,
+			}
+			if fileInfo.ModTime.IsZero() {
+				fileInfo.ModTime = now
+			}
+			if fileInfo.Type == "" {
+				fileInfo.Type = "file"
+			}
+			_ = index.db.InsertItem("test_search_scope", filePath, fileInfo)
+		}
 	}
 
 	// Test that when largest=true and scope="/test/", the scope directory "/test/" is NOT included

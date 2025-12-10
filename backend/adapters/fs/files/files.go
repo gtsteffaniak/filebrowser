@@ -53,6 +53,7 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.E
 	if !isViewable && !index.Config.DisableIndexing {
 		err = index.RefreshFileInfo(opts)
 		if err != nil {
+			logger.Debugf("failed to refresh file info for path: %s, error: %v", opts.Path, err)
 			return response, fmt.Errorf("path not accessible: %v", err)
 		}
 	}
@@ -75,8 +76,6 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.E
 	response.Source = opts.Source
 
 	if access != nil && !access.Permitted(index.Path, opts.Path, opts.Username) {
-		// User doesn't have access to the current folder, but check if they have access to any subitems
-		// This allows specific allow rules on subfolders/files to work even when parent is denied
 		err := access.CheckChildItemAccess(response, index, opts.Username)
 		if err != nil {
 			return response, err
@@ -104,7 +103,6 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.E
 				if isItemAudio || isItemVideo {
 					// Get the real path for this file
 					itemRealPath, _, _ := index.GetRealPath(opts.Path, fileItem.Name)
-
 					// Capture loop variables in local copies to avoid closure issues
 					item := fileItem
 					itemPath := itemRealPath
@@ -115,7 +113,7 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.E
 						if isAudio {
 							err := extractAudioMetadata(context.Background(), item, itemPath, opts.AlbumArt || opts.Content, opts.Metadata, sharedFFmpegService)
 							if err != nil {
-								logger.Debugf("failed to extract metadata for file: "+item.Name, err)
+								logger.Debugf("failed to extract metadata for file: %s, error: %v", item.Name, err)
 							} else {
 								mu.Lock()
 								metadataCount++
@@ -125,7 +123,7 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.E
 							// Extract duration for video files
 							err := extractVideoMetadata(context.Background(), item, itemPath, sharedFFmpegService)
 							if err != nil {
-								logger.Debugf("failed to extract video metadata for file: "+item.Name, err)
+								logger.Debugf("failed to extract video metadata for file: %s, error: %v", item.Name, err)
 							} else {
 								mu.Lock()
 								metadataCount++
@@ -139,9 +137,9 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.E
 			// Wait for all goroutines to complete
 			wg.Wait()
 		}
+		elapsed := time.Since(startTime)
 
-		if metadataCount > 0 {
-			elapsed := time.Since(startTime)
+		if metadataCount > 0 && elapsed > 100*time.Millisecond {
 			logger.Debugf("Extracted metadata for %d audio/video files concurrently in %v (avg: %v per file)",
 				metadataCount, elapsed, elapsed/time.Duration(metadataCount))
 		}
@@ -341,7 +339,7 @@ func DeleteFiles(source, absPath string, absDirPath string, isDir bool) error {
 	}
 
 	if !index.Config.DisableIndexing {
-		indexPath := index.MakeIndexPath(absPath)
+		indexPath := index.MakeIndexPath(absPath, isDir)
 
 		// Perform the physical deletion
 		err := os.RemoveAll(absPath)
@@ -350,18 +348,15 @@ func DeleteFiles(source, absPath string, absDirPath string, isDir bool) error {
 		}
 
 		// Remove metadata from index
-		if isDir {
-			// Recursively remove directory and all subdirectories from index
-			index.DeleteMetadata(indexPath, true, true)
-		} else {
-			// Remove file from parent's file list
-			index.DeleteMetadata(indexPath, false, false)
+		deleteSuccess := index.DeleteMetadata(indexPath, isDir, isDir)
+		if !deleteSuccess {
+			logger.Errorf("Failed to delete metadata from index for %s, but filesystem deletion succeeded", indexPath)
 		}
 
 		// Refresh the parent directory to recalculate sizes and update counts
 		// This will traverse up the tree and update all parent sizes correctly
 		refreshConfig := utils.FileOptions{
-			Path:  index.MakeIndexPath(absDirPath),
+			Path:  index.MakeIndexPath(absDirPath, true),
 			IsDir: true,
 		}
 		err = index.RefreshFileInfo(refreshConfig)
@@ -373,23 +368,24 @@ func DeleteFiles(source, absPath string, absDirPath string, isDir bool) error {
 }
 
 func RefreshIndex(source string, path string, isDir bool, recursive bool) error {
+	logger.Debugf("[REFRESH] RefreshIndex called: source=%s, path=%s, isDir=%v, recursive=%v", source, path, isDir, recursive)
 	idx := indexing.GetIndex(source)
 	if idx == nil {
 		return fmt.Errorf("could not get index: %v ", source)
 	}
 	if idx.Config.DisableIndexing {
+		logger.Debugf("[REFRESH] Indexing disabled for source %s", source)
 		return nil
 	}
 	// Always normalize path using MakeIndexPath
-	path = idx.MakeIndexPath(path)
+	originalPath := path
+	path = idx.MakeIndexPath(path, isDir)
 
-	// MakeIndexPath always adds trailing slash, but for files we need to remove it
-	if !isDir {
-		path = strings.TrimSuffix(path, "/")
-	}
+	logger.Debugf("[REFRESH] Normalized path: original=%s, normalized=%s", originalPath, path)
 
 	// Skip indexing for viewable paths (viewable: true means don't index, just allow FS access)
 	if idx.IsViewable(isDir, path) {
+		logger.Debugf("[REFRESH] Path is viewable, skipping: %s", path)
 		return nil
 	}
 
@@ -400,6 +396,7 @@ func RefreshIndex(source string, path string, isDir bool, recursive bool) error 
 		if err == nil {
 			// Check if the directory exists on disk
 			if !Exists(realPath) {
+				logger.Debugf("[REFRESH] Directory does not exist on disk, removing from index: %s", realPath)
 				// Directory no longer exists, remove it from the index
 				// This clears both Directories and DirectoriesLedger maps
 				idx.DeleteMetadata(path, true, false)
@@ -408,7 +405,13 @@ func RefreshIndex(source string, path string, isDir bool, recursive bool) error 
 		}
 	}
 
+	logger.Debugf("[REFRESH] Calling RefreshFileInfo: path=%s, isDir=%v, recursive=%v", path, isDir, recursive)
 	err := idx.RefreshFileInfo(utils.FileOptions{Path: path, IsDir: isDir, Recursive: recursive})
+	if err != nil {
+		logger.Errorf("[REFRESH] RefreshFileInfo failed: %v", err)
+		return err
+	}
+	logger.Debugf("[REFRESH] RefreshFileInfo completed successfully")
 	return err
 }
 
@@ -442,6 +445,8 @@ func validateMoveDestination(src, dst string, isSrcDir bool) error {
 }
 
 func MoveResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string, s *share.Storage, a *access.Storage) error {
+	logger.Debugf("[MOVE] Starting move operation: isSrcDir=%v, sourceIndex=%s, destIndex=%s, realsrc=%s, realdst=%s", isSrcDir, sourceIndex, destIndex, realsrc, realdst)
+
 	// Check if source and destination are the same file
 	if realsrc == realdst {
 		return fmt.Errorf("cannot move a file to itself: %s", realsrc)
@@ -463,57 +468,90 @@ func MoveResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string
 	}
 
 	// Prepare paths for index operations
-	srcIndexPath := srcIdx.MakeIndexPath(realsrc)
+	srcIndexPath := srcIdx.MakeIndexPath(realsrc, isSrcDir)
 	srcParentPath := filepath.Dir(realsrc)
+	dstIndexPath := dstIdx.MakeIndexPath(realdst, isSrcDir)
+	dstParentPath := filepath.Dir(realdst)
+
+	logger.Debugf("[MOVE] Paths prepared - srcIndexPath=%s, srcParentPath=%s, dstIndexPath=%s, dstParentPath=%s", srcIndexPath, srcParentPath, dstIndexPath, dstParentPath)
 
 	// Perform the physical move
+	logger.Debugf("[MOVE] Performing physical file move from %s to %s", realsrc, realdst)
 	err := fileutils.MoveFile(realsrc, realdst)
 	if err != nil {
+		logger.Errorf("[MOVE] Physical move failed: %v", err)
 		return err
 	}
+	logger.Debugf("[MOVE] Physical move completed successfully")
 
 	// Handle SOURCE cleanup (treat as deletion)
 	if !srcIdx.Config.DisableIndexing {
+		logger.Debugf("[MOVE] Starting source cleanup - srcIndexPath=%s, isSrcDir=%v", srcIndexPath, isSrcDir)
 		// Remove metadata from source index
 		if isSrcDir {
 			// Recursively remove directory and all subdirectories from source index
+			logger.Debugf("[MOVE] Deleting source directory metadata recursively: %s", srcIndexPath)
 			srcIdx.DeleteMetadata(srcIndexPath, true, true)
 		} else {
 			// Remove file from source parent's file list
+			logger.Debugf("[MOVE] Deleting source file metadata: %s", srcIndexPath)
 			srcIdx.DeleteMetadata(srcIndexPath, false, false)
 		}
 
 		// Refresh the source parent directory to recalculate sizes and update counts
+		logger.Debugf("[MOVE] Refreshing source parent directory (async): %s", srcParentPath)
 		go RefreshIndex(sourceIndex, srcParentPath, true, false) //nolint:errcheck
+	} else {
+		logger.Debugf("[MOVE] Source indexing disabled, skipping cleanup")
 	}
 
 	// Handle DESTINATION indexing
+	// Must be synchronous to ensure parent sizes are updated correctly
 	if !dstIdx.Config.DisableIndexing {
+		logger.Debugf("[MOVE] Starting destination indexing - dstIndexPath=%s, isSrcDir=%v", dstIndexPath, isSrcDir)
 		if isSrcDir {
-			go func() {
-				// When moving a folder, refresh the folder itself recursively FIRST
-				// Must complete before parent refresh to avoid race condition
-				RefreshIndex(destIndex, realdst, true, true) //nolint:errcheck
+			// When moving a folder, refresh the folder itself recursively FIRST
+			// Must complete before parent refresh to ensure sizes are calculated
+			logger.Debugf("[MOVE] Step 1: Refreshing moved directory recursively: %s", realdst)
+			if err := RefreshIndex(destIndex, realdst, true, true); err != nil {
+				logger.Errorf("[MOVE] Failed to refresh moved directory %s: %v", realdst, err)
+			} else {
+				logger.Debugf("[MOVE] Step 1 completed: Moved directory refreshed successfully")
+			}
 
-				// THEN refresh the parent directory so it sees the newly indexed child
-				parentDir := filepath.Dir(realdst)
-				RefreshIndex(destIndex, parentDir, true, false) //nolint:errcheck
-			}()
+			// THEN refresh the parent directory so it sees the newly indexed child and updates sizes
+			parentDir := filepath.Dir(realdst)
+			logger.Debugf("[MOVE] Step 2: Refreshing destination parent directory: %s", parentDir)
+			if err := RefreshIndex(destIndex, parentDir, true, false); err != nil {
+				logger.Errorf("[MOVE] Failed to refresh destination parent directory %s: %v", parentDir, err)
+			} else {
+				logger.Debugf("[MOVE] Step 2 completed: Destination parent directory refreshed successfully")
+			}
 		} else {
 			// If moving a file, just refresh the parent directory
 			parentDir := filepath.Dir(realdst)
-			go RefreshIndex(destIndex, parentDir, true, false) //nolint:errcheck
+			logger.Debugf("[MOVE] Refreshing destination parent directory (file move): %s", parentDir)
+			if err := RefreshIndex(destIndex, parentDir, true, false); err != nil {
+				logger.Errorf("[MOVE] Failed to refresh destination parent directory %s: %v", parentDir, err)
+			} else {
+				logger.Debugf("[MOVE] Destination parent directory refreshed successfully (file move)")
+			}
 		}
+		logger.Debugf("[MOVE] Destination indexing completed")
+	} else {
+		logger.Debugf("[MOVE] Destination indexing disabled, skipping")
 	}
 
+	logger.Debugf("[MOVE] Move operation completed")
+
 	// Use backend source paths to match how shares are stored
-	go s.UpdateShares(srcIdx.Path, srcIdx.MakeIndexPath(realsrc), dstIdx.Path, dstIdx.MakeIndexPath(realdst)) //nolint:errcheck
+	go s.UpdateShares(srcIdx.Path, srcIdx.MakeIndexPath(realsrc, isSrcDir), dstIdx.Path, dstIdx.MakeIndexPath(realdst, isSrcDir)) //nolint:errcheck
 
 	// Update access rules for the moved path
 	if a != nil {
 		// If moving within the same source, update the rules
 		if srcIdx.Path == dstIdx.Path {
-			go a.UpdateRules(srcIdx.Path, srcIdx.MakeIndexPath(realsrc), dstIdx.MakeIndexPath(realdst)) //nolint:errcheck
+			go a.UpdateRules(srcIdx.Path, srcIdx.MakeIndexPath(realsrc, isSrcDir), dstIdx.MakeIndexPath(realdst, isSrcDir)) //nolint:errcheck
 		}
 		// Cross-source moves don't preserve access rules (they're source-specific)
 	}

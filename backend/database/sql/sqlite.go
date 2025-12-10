@@ -47,6 +47,27 @@ type TempDBConfig struct {
 	// Default: FILE (temporary tables stored on disk)
 	TempStore string
 
+	// JournalMode controls the journal mode. WAL is better for concurrent reads/writes.
+	// DELETE is faster for write-heavy single-writer workloads.
+	// Valid values: "DELETE", "WAL", "TRUNCATE", "PERSIST", "MEMORY", "OFF"
+	// Default: WAL
+	JournalMode string
+
+	// LockingMode controls the locking mode. EXCLUSIVE prevents other processes from accessing.
+	// Valid values: "NORMAL", "EXCLUSIVE"
+	// Default: NORMAL
+	LockingMode string
+
+	// PageSize sets the database page size in bytes. Larger pages improve write performance.
+	// Valid values: 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536
+	// Default: 4096 (SQLite default)
+	PageSize int
+
+	// AutoVacuum controls automatic vacuuming. NONE disables it for better write performance.
+	// Valid values: "NONE", "FULL", "INCREMENTAL"
+	// Default: NONE
+	AutoVacuum string
+
 	// EnableLogging enables performance logging for debugging.
 	// Default: false
 	EnableLogging bool
@@ -60,6 +81,10 @@ func mergeConfig(provided *TempDBConfig) *TempDBConfig {
 		MmapSize:      2147483648, // 2GB
 		Synchronous:   "OFF",
 		TempStore:     "FILE", // Default to FILE, not MEMORY
+		JournalMode:   "WAL",  // WAL for better concurrency by default
+		LockingMode:   "NORMAL",
+		PageSize:      4096, // SQLite default
+		AutoVacuum:    "NONE",
 		EnableLogging: false,
 	}
 
@@ -81,6 +106,18 @@ func mergeConfig(provided *TempDBConfig) *TempDBConfig {
 	}
 	if provided.TempStore != "" {
 		merged.TempStore = provided.TempStore
+	}
+	if provided.JournalMode != "" {
+		merged.JournalMode = provided.JournalMode
+	}
+	if provided.LockingMode != "" {
+		merged.LockingMode = provided.LockingMode
+	}
+	if provided.PageSize != 0 {
+		merged.PageSize = provided.PageSize
+	}
+	if provided.AutoVacuum != "" {
+		merged.AutoVacuum = provided.AutoVacuum
 	}
 	merged.EnableLogging = provided.EnableLogging
 
@@ -136,18 +173,35 @@ func NewTempDB(id string, config ...*TempDBConfig) (*TempDB, error) {
 		return nil, fmt.Errorf("failed to ping SQLite database: %w", err)
 	}
 
+	// Limit connection pool to 1 for SQLite - it's a file-based database and multiple connections
+	// can cause locking issues. With busy_timeout, SQLite will queue operations automatically.
+	if cfg.LockingMode == "EXCLUSIVE" {
+		db.SetMaxOpenConns(1)
+		db.SetMaxIdleConns(1)
+	}
 	// Apply optimizations via PRAGMA statements
 	// Execute them individually for compatibility and better error reporting
+	// IMPORTANT: page_size must be set BEFORE any tables are created
 	pragmaStart := time.Now()
 
 	pragmas := []struct {
 		sql string
 		err string
 	}{
-		{"PRAGMA journal_mode = WAL;", "failed to set WAL mode"},
+		{fmt.Sprintf("PRAGMA journal_mode = %s;", cfg.JournalMode), "failed to set journal_mode"},
 		{fmt.Sprintf("PRAGMA cache_size = %d;", cfg.CacheSizeKB), "failed to set cache_size"},
 		{fmt.Sprintf("PRAGMA synchronous = %s;", cfg.Synchronous), "failed to set synchronous"},
 		{fmt.Sprintf("PRAGMA temp_store = %s;", cfg.TempStore), "failed to set temp_store"},
+		{fmt.Sprintf("PRAGMA locking_mode = %s;", cfg.LockingMode), "failed to set locking_mode"},
+		{fmt.Sprintf("PRAGMA auto_vacuum = %s;", cfg.AutoVacuum), "failed to set auto_vacuum"},
+	}
+
+	// Page size must be set before any tables are created
+	if cfg.PageSize > 0 {
+		pragmas = append([]struct {
+			sql string
+			err string
+		}{{fmt.Sprintf("PRAGMA page_size = %d;", cfg.PageSize), "failed to set page_size"}}, pragmas...)
 	}
 
 	if cfg.MmapSize > 0 {
@@ -169,8 +223,8 @@ func NewTempDB(id string, config ...*TempDBConfig) (*TempDB, error) {
 
 	// Log configuration if enabled
 	if cfg.EnableLogging {
-		logger.Debugf("[TempDB:%s] Created with cache_size=%d KB, mmap_size=%d bytes, synchronous=%s, temp_store=%s (setup took %v)",
-			id, cfg.CacheSizeKB, cfg.MmapSize, cfg.Synchronous, cfg.TempStore, pragmaDuration)
+		logger.Debugf("[TempDB:%s] Created with cache_size=%d KB, mmap_size=%d bytes, synchronous=%s, temp_store=%s, journal_mode=%s, locking_mode=%s, page_size=%d, auto_vacuum=%s (setup took %v)",
+			id, cfg.CacheSizeKB, cfg.MmapSize, cfg.Synchronous, cfg.TempStore, cfg.JournalMode, cfg.LockingMode, cfg.PageSize, cfg.AutoVacuum, pragmaDuration)
 	}
 
 	return &TempDB{

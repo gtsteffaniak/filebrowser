@@ -12,6 +12,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
+	dbsql "github.com/gtsteffaniak/filebrowser/backend/database/sql"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 	"github.com/gtsteffaniak/go-cache/cache"
 	"github.com/gtsteffaniak/go-logger/logger"
@@ -59,17 +60,19 @@ type ReducedIndex struct {
 	Complexity      uint           `json:"complexity"` // 0-10 scale: 0=unknown, 1=simple, 2-6=normal, 7-9=complex, 10=highlyComplex
 	Scanners        []*ScannerInfo `json:"scanners,omitempty"`
 }
+
 type Index struct {
 	ReducedIndex
 	settings.Source `json:"-"`
 
 	// Shared state (protected by mu)
-	Directories       map[string]*iteminfo.FileInfo `json:"-"`
-	DirectoriesLedger map[string]struct{}           `json:"-"`
-	FoundHardLinks    map[string]uint64             `json:"-"` // hardlink path -> size
-	processedInodes   map[uint64]struct{}           `json:"-"`
-	totalSize         uint64                        `json:"-"`
-	previousTotalSize uint64                        `json:"-"` // Track previous totalSize for change detection
+	db                *dbsql.IndexDB       `json:"-"`
+	FoundHardLinks    map[string]uint64    `json:"-"` // hardlink path -> size
+	processedInodes   map[uint64]struct{}  `json:"-"`
+	totalSize         uint64               `json:"-"`
+	previousTotalSize uint64               `json:"-"` // Track previous totalSize for change detection
+	batchItems        []*iteminfo.FileInfo `json:"-"` // Accumulates items during a scan for bulk insert
+	isRoutineScan     bool                 `json:"-"` // Whether current scan is routine/scheduled (for retry logic)
 
 	// Scanner management (new multi-scanner system)
 	scanners             map[string]*Scanner `json:"-"` // path -> scanner
@@ -89,6 +92,8 @@ type Index struct {
 var (
 	indexes      map[string]*Index
 	indexesMutex sync.RWMutex
+	indexDB      *dbsql.IndexDB // Shared database for all indexes
+	indexDBOnce  sync.Once      // Ensures index DB is only created once
 )
 
 type IndexStatus string
@@ -110,15 +115,96 @@ func init() {
 	indexes = make(map[string]*Index)
 }
 
+// InitializeIndexDB creates the shared index database for all sources.
+// This should be called once at application startup before any sources are initialized.
+func InitializeIndexDB() error {
+	// clear all sql directory indexes
+	sqlDir := filepath.Join(settings.Config.Server.CacheDir, "sql")
+	err := os.RemoveAll(sqlDir)
+	if err != nil {
+		logger.Errorf("failed to clear sql directory: %v", err)
+	}
+	indexDBOnce.Do(func() {
+		// Create a single shared database for all indexes
+		indexDB, err = dbsql.NewIndexDB("all")
+		if err != nil {
+			logger.Errorf("failed to initialize index database: %v", err)
+		} else {
+			logger.Infof("Initialized shared index database for all sources")
+		}
+	})
+	return err
+}
+
+// GetIndexDB returns the shared index database.
+// Returns nil if InitializeIndexDB hasn't been called yet.
+func GetIndexDB() *dbsql.IndexDB {
+	return indexDB
+}
+
+// SetIndexDBForTesting sets the index database for testing purposes.
+// This should only be used in tests to bypass InitializeIndexDB's permission requirements.
+func SetIndexDBForTesting(db *dbsql.IndexDB) {
+	indexDB = db
+	// Reset the once to allow re-initialization in tests
+	indexDBOnce = sync.Once{}
+}
+
+// calculateTotalComplexity sums up the complexity of all indexes.
+// Returns the total complexity across all indexes.
+func calculateTotalComplexity() uint {
+	indexesMutex.RLock()
+	defer indexesMutex.RUnlock()
+
+	var totalComplexity uint = 0
+	for _, idx := range indexes {
+		idx.mu.RLock()
+		// Only count complexity if index has been scanned at least once
+		if idx.Complexity > 0 {
+			totalComplexity += idx.Complexity
+		}
+		idx.mu.RUnlock()
+	}
+	return totalComplexity
+}
+
+// updateIndexDBCacheSize updates the shared index database cache size
+// based on the total complexity of all indexes.
+func updateIndexDBCacheSize() {
+	if indexDB == nil {
+		return
+	}
+
+	totalComplexity := calculateTotalComplexity()
+	// Calculate cache size: complexity * 5MB
+	cacheSizeMB := int(totalComplexity) * 5
+	// Ensure minimum of 5MB
+	if cacheSizeMB < 5 {
+		cacheSizeMB = 5
+	}
+
+	if err := indexDB.UpdateCacheSize(cacheSizeMB); err != nil {
+		logger.Errorf("Failed to update index database cache size to %dMB: %v", cacheSizeMB, err)
+	} else {
+		logger.Debugf("Updated index database cache size to %dMB (total complexity: %d)", cacheSizeMB, totalComplexity)
+	}
+}
+
 func Initialize(source *settings.Source, mock bool) {
 	indexesMutex.Lock()
+	// Use shared database - all sources are differentiated by the source column
+	if indexDB == nil {
+		logger.Errorf("index database not initialized, call InitializeIndexDB() first")
+		indexesMutex.Unlock()
+		return
+	}
+
 	newIndex := Index{
-		mock:              mock,
-		Source:            *source,
-		Directories:       make(map[string]*iteminfo.FileInfo),
-		DirectoriesLedger: make(map[string]struct{}),
-		processedInodes:   make(map[uint64]struct{}),
-		FoundHardLinks:    make(map[string]uint64),
+		mock:            mock,
+		Source:          *source,
+		db:              indexDB, // Use shared database
+		processedInodes: make(map[uint64]struct{}),
+		FoundHardLinks:  make(map[string]uint64),
 	}
 	newIndex.ReducedIndex = ReducedIndex{
 		Status:     "indexing",
@@ -166,23 +252,27 @@ func (idx *Index) indexDirectory(adjustedPath string, config actionConfig) error
 		return errors.ErrNotIndexed
 	}
 
-	// if indexing, mark the directory as valid and indexed.
-	if config.Recursive {
-		// Prevent race conditions if scanning becomes concurrent in the future.
-		idx.mu.Lock()
-		idx.DirectoriesLedger[adjustedPath] = struct{}{}
-		idx.mu.Unlock()
-	}
 	// adjustedPath is already normalized with trailing slash
 	combinedPath := adjustedPath
 	// get whats currently in cache
 	idx.mu.RLock()
 	cacheDirItems := []iteminfo.ItemInfo{}
 	modChange := false
-	cachedDir, exists := idx.Directories[adjustedPath]
-	if exists {
-		modChange = dirInfo.ModTime() != cachedDir.ModTime
-		cacheDirItems = cachedDir.Folders
+	var cachedDir *iteminfo.FileInfo
+	if idx.db != nil {
+		// adjustedPath is already an index path (relative to source root)
+		cachedDir, _ = idx.db.GetItem(idx.Name, adjustedPath)
+	}
+	if cachedDir != nil {
+		modChange = dirInfo.ModTime().Unix() != cachedDir.ModTime.Unix()
+		// adjustedPath is already an index path (relative to source root)
+		if children, getErr := idx.db.GetDirectoryChildren(idx.Name, adjustedPath); getErr == nil {
+			for _, child := range children {
+				if child.Type == "directory" {
+					cacheDirItems = append(cacheDirItems, child.ItemInfo)
+				}
+			}
+		}
 	}
 	idx.mu.RUnlock()
 
@@ -263,7 +353,7 @@ func (idx *Index) GetFsDirInfo(adjustedPath string) (*iteminfo.FileInfo, error) 
 	}
 	if !isDir {
 		baseName := filepath.Base(originalPath)
-		idx.MakeIndexPath(realPath)
+		_ = idx.MakeIndexPath(realPath, false)
 		found := false
 		for _, item := range response.Files {
 			if item.Name == baseName {
@@ -452,32 +542,150 @@ func (idx *Index) GetRealPath(relativePath ...string) (string, bool, error) {
 }
 
 func (idx *Index) RefreshFileInfo(opts utils.FileOptions) error {
-	config := actionConfig{
-		Quick:     false,
-		Recursive: opts.Recursive,
-	}
 	targetPath := opts.Path
 	if !opts.IsDir {
-		targetPath = idx.MakeIndexPath(filepath.Dir(targetPath))
+		targetPath = idx.MakeIndexPath(filepath.Dir(targetPath), true)
 	}
+
+	// Check if directory exists in index and get its modtime
 	previousInfo, previousExists := idx.GetMetadataInfo(targetPath, true)
+
+	// Get the actual directory modtime from filesystem
+	realPath, _, err := idx.GetRealPath(targetPath)
+	if err != nil {
+		return err
+	}
+
+	dirInfo, err := os.Stat(realPath)
+	if err != nil {
+		// Directory doesn't exist, remove from index
+		idx.DeleteMetadata(targetPath, true, false)
+		return nil
+	}
+
+	// Only re-index if directory has changed (modtime check)
+	// For move/copy operations (Recursive=true), always refresh to ensure new directories are indexed
+	needsRefresh := true
+	if previousExists && !opts.Recursive {
+		// For UI requests, check if modtime changed
+		if dirInfo.ModTime().Unix() == previousInfo.ModTime.Unix() {
+			needsRefresh = false
+		}
+	}
+
 	var previousSize int64
 	if previousExists {
 		previousSize = previousInfo.Size
 	}
-	err := idx.indexDirectoryWithOptions(targetPath, config)
-	if err != nil {
-		return err
+
+	// Only re-index if needed
+	if needsRefresh {
+		config := actionConfig{
+			Quick:     true, // Use quick scan for UI requests - only check if directory changed
+			Recursive: opts.Recursive,
+		}
+		err = idx.indexDirectoryWithOptions(targetPath, config)
+		if err != nil {
+			return err
+		}
 	}
-	newInfo, exists := idx.GetMetadataInfo(targetPath, true)
-	if !exists {
-		return fmt.Errorf("file/folder does not exist in metadata: %s", targetPath)
-	}
-	if previousSize != newInfo.Size {
-		idx.RecursiveUpdateDirSizes(newInfo, previousSize)
+
+	// Update parent sizes if size changed and we refreshed
+	// For move/copy operations (Recursive=true), always update parent sizes to ensure they're correct
+	if needsRefresh {
+		newInfo, exists := idx.GetMetadataInfo(targetPath, true)
+		if !exists {
+			// Metadata doesn't exist after refresh attempt - this can happen if:
+			// 1. Database lock prevented the insert
+			// 2. Concurrent operations caused conflicts
+			// 3. The indexing failed silently
+			// This is not a hard error - GetFsDirInfo will fall back to filesystem reads
+			return nil
+		}
+
+		// Always update parent sizes if size changed, or if this is a new directory (previousSize was 0)
+		// This ensures moved directories properly update parent sizes
+		sizeDelta := newInfo.Size - previousSize
+		if sizeDelta != 0 {
+			// Always update parent sizes - the batched function is efficient and only does work if needed
+			idx.updateParentDirSizesBatched(targetPath, sizeDelta)
+		}
 	}
 
 	return nil
+}
+
+// updateParentDirSizesBatched updates all parent directory sizes in a single batch operation.
+// This queries all parent paths from the database, updates their sizes, and batch updates them.
+// Optimized for SQLite - single query to get all parents, single transaction to update all sizes.
+// No mutex needed - SQLite handles all locking internally for maximum concurrency.
+func (idx *Index) updateParentDirSizesBatched(startPath string, sizeDelta int64) {
+	logger.Debugf("[PARENT_SIZE] updateParentDirSizesBatched called: startPath=%s, sizeDelta=%d", startPath, sizeDelta)
+	if sizeDelta == 0 {
+		logger.Debugf("[PARENT_SIZE] Size delta is 0, skipping")
+		return
+	}
+
+	// Collect all parent directory paths that need updating
+	parentPaths := []string{}
+	currentPath := startPath
+
+	for {
+		parentDir := utils.GetParentDirectoryPath(currentPath)
+		if parentDir == "" || parentDir == "/" {
+			break
+		}
+		// parentDir is already an index path (relative to source root)
+		parentPaths = append(parentPaths, parentDir)
+		logger.Debugf("[PARENT_SIZE] Added parent path: %s (from %s)", parentDir, currentPath)
+		currentPath = parentDir
+	}
+
+	if len(parentPaths) == 0 {
+		logger.Debugf("[PARENT_SIZE] No parent paths found, skipping")
+		return
+	}
+
+	logger.Debugf("[PARENT_SIZE] Collected %d parent paths to update: %v", len(parentPaths), parentPaths)
+
+	// Query all parent directories from database in a single query
+	// SQLite handles locking - no mutex needed
+	logger.Debugf("[PARENT_SIZE] Querying database for parent directories")
+	parentInfos, err := idx.db.GetItemsByPaths(idx.Name, parentPaths)
+	if err != nil {
+		logger.Errorf("[PARENT_SIZE] Failed to query parent directories for size update: %v", err)
+		return
+	}
+	logger.Debugf("[PARENT_SIZE] Found %d parent directories in database", len(parentInfos))
+
+	// Build map of path -> size delta for batch update
+	// Only include paths that actually exist in the database
+	pathSizeUpdates := make(map[string]int64)
+	for _, path := range parentPaths {
+		if info, exists := parentInfos[path]; exists {
+			oldSize := info.Size
+			newSize := oldSize + sizeDelta
+			pathSizeUpdates[path] = sizeDelta
+			logger.Debugf("[PARENT_SIZE] Will update parent: path=%s, oldSize=%d, newSize=%d, delta=%d", path, oldSize, newSize, sizeDelta)
+		} else {
+			logger.Debugf("[PARENT_SIZE] Parent path not found in database, skipping: %s", path)
+		}
+	}
+
+	if len(pathSizeUpdates) == 0 {
+		logger.Debugf("[PARENT_SIZE] No parent paths to update, skipping batch update")
+		return
+	}
+
+	logger.Debugf("[PARENT_SIZE] Batch updating %d parent directory sizes", len(pathSizeUpdates))
+	// Batch update all parent sizes in a single transaction
+	// SQLite handles locking - no mutex needed
+	err = idx.db.BulkUpdateSizes(idx.Name, pathSizeUpdates)
+	if err != nil {
+		logger.Errorf("[PARENT_SIZE] Failed to batch update parent directory sizes: %v", err)
+		return
+	}
+	logger.Debugf("[PARENT_SIZE] Successfully updated %d parent directory sizes", len(pathSizeUpdates))
 }
 
 func isHidden(file os.FileInfo, srcPath string) bool {
@@ -681,14 +889,24 @@ func (idx *Index) SetStatus(status IndexStatus) error {
 }
 
 // input should be non-index path.
-func (idx *Index) MakeIndexPath(path string) string {
+// isDir indicates whether the path is a directory (true) or file (false).
+// Directories will have a trailing slash added, files will not.
+func (idx *Index) MakeIndexPath(path string, isDir bool) string {
 	if path == "." || strings.HasPrefix(path, "./") {
 		path = strings.TrimPrefix(path, ".")
 	}
 	path = strings.TrimPrefix(path, idx.Path)
 	path = idx.MakeIndexPathPlatform(path)
-	path = utils.AddTrailingSlashIfNotExists(path)
+	if isDir {
+		path = utils.AddTrailingSlashIfNotExists(path)
+	}
 	return path
+}
+
+// MakeAbsolutePath converts a relative index path to an absolute path by combining
+// the source path with the relative path. This ensures paths are unique across sources.
+func (idx *Index) MakeAbsolutePath(indexPath string) string {
+	return idx.Path + indexPath
 }
 
 func (idx *Index) shouldInclude(baseName string) bool {
