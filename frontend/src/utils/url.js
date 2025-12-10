@@ -154,10 +154,11 @@ export function extractSourceFromPath(url) {
 }
 
 export function buildItemUrl(source, path) {
+  const encodedPath = encodePath(path);
   if (getters.isShare()) {
-    return `/public/share/${state.shareInfo.hash}${path}`;
+    return `/public/share/${state.shareInfo.hash}${encodedPath}`;
   }
-  return `/files/${source}${path}`;
+  return `/files/${source}${encodedPath}`;
 }
 
 export function encodedPath(path) {
