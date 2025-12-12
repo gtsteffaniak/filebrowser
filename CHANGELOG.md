@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v1.1.4-beta
+
+ **Notes**:
+ - access rule changes:
+   - denied folders won't show up in parent directory listing view (#1684)
+   - tools will respect access rules
+
+ **BugFixes**:
+ - encoded filename navigation issue (#1711)
+ - Fix/Improve some behaviors in nextPrevious (#1707)
+
 ## v1.1.3-beta
 
  **Notes**:

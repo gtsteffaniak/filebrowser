@@ -292,11 +292,11 @@ func (s *Storage) DenyAll(sourcePath, indexPath string) error {
 
 // Permitted checks if a username is permitted for a given sourcePath and indexPath, recursively checking parent directories.
 func (s *Storage) Permitted(sourcePath, indexPath, username string) bool {
-	// SECURITY: All paths MUST start with "/" - reject any path that doesn't
-	// This prevents path normalization bypass attacks
+	// Ensure leading slash
 	if !strings.HasPrefix(indexPath, "/") {
-		return false
+		indexPath = "/" + indexPath
 	}
+	indexPath = utils.AddTrailingSlashIfNotExists(indexPath)
 
 	// Get current version for the sourcePath
 	versionKey := "version:" + sourcePath

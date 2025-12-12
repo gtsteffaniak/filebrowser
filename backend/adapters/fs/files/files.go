@@ -74,9 +74,7 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.E
 	response.RealPath = realPath
 	response.Source = opts.Source
 
-	if access != nil && !access.Permitted(index.Path, opts.Path, opts.Username) {
-		// User doesn't have access to the current folder, but check if they have access to any subitems
-		// This allows specific allow rules on subfolders/files to work even when parent is denied
+	if access != nil {
 		err := access.CheckChildItemAccess(response, index, opts.Username)
 		if err != nil {
 			return response, err

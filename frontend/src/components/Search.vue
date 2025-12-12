@@ -48,7 +48,7 @@
         <select
           v-if="multipleSources"
           class="searchContext button input"
-          aria-label="search-path"
+          aria-label="search sources dropdown"
           v-model="selectedSource"
           :value="selectedSource"
           @change="updateSource"
