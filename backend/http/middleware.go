@@ -102,7 +102,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		}
 		shareCreatedByUser, err := store.Users.Get(link.UserID)
 		if err != nil {
-			return http.StatusInternalServerError, fmt.Errorf("user for share no longer exists")
+			return http.StatusNotFound, fmt.Errorf("user for share no longer exists")
 		}
 		file, err := FileInfoFasterFunc(utils.FileOptions{
 			Path:                     utils.JoinPathAsUnix(link.Path, path),
