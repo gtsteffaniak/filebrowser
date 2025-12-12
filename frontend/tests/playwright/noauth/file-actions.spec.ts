@@ -146,6 +146,9 @@ test("create a file with the same name as a directory", async({ page, checkForEr
   await openContextMenu();
   await page.locator('button[aria-label="New file"]').click();
   await page.locator('button[aria-label="Create"]').click();
+  await page.locator('input[aria-label="FileName Field"]').waitFor({ state: 'visible' });
+  await page.locator('input[aria-label="FileName Field"]').fill('mytest');
+  await page.locator('button[aria-label="Create"]').click();
   await page.locator('a[aria-label="mytest"]').waitFor({ state: 'visible' });
   await page.locator('a[aria-label="mytest"]').click({ button: "right" });
   await page.locator('.selected-count-header').waitFor({ state: 'visible' });
