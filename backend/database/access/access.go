@@ -1035,10 +1035,9 @@ func (s *Storage) GetAllRulesByGroups(sourcePath string) map[string]map[string]F
 // This is used to determine if a user should see a folder's contents even when
 // they don't have direct access to the parent folder.
 func (s *Storage) HasAnyVisibleItems(sourcePath, parentPath string, itemNames []string, username string) bool {
-	// Ensure parentPath has trailing slash for proper path construction
-	if !strings.HasSuffix(parentPath, "/") {
-		parentPath = parentPath + "/"
-	}
+	fmt.Println("HasAnyVisibleItems", sourcePath, parentPath, itemNames, username)
+	parentPath = utils.AddTrailingSlashIfNotExists(parentPath)
+	fmt.Println("parentPath2", parentPath)
 
 	// Check if user has access to any of the items
 	for _, itemName := range itemNames {

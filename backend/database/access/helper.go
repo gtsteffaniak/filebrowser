@@ -22,7 +22,7 @@ func (s *Storage) CheckChildItemAccess(response *iteminfo.ExtendedFileInfo, inde
 	parentPath := index.MakeIndexPath(response.Path)
 
 	// Check if user has access to any items
-	if !s.HasAnyVisibleItems(index.Path, parentPath, allItemNames, username) {
+	if !s.HasAnyVisibleItems(index.Path, parentPath, allItemNames, username) && len(allItemNames) > 0 {
 		return errors.ErrAccessDenied
 	}
 

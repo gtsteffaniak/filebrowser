@@ -174,6 +174,9 @@ func addFile(path string, d *requestContext, tarWriter *tar.Writer, zipWriter *z
 				return err
 			}
 
+			// Normalize for tar: convert \ to /
+			relPath = filepath.ToSlash(relPath)
+
 			// Skip adding `.` (current directory)
 			if relPath == "." {
 				return nil
@@ -181,10 +184,8 @@ func addFile(path string, d *requestContext, tarWriter *tar.Writer, zipWriter *z
 
 			// Check access control for each file/folder during walk
 			if d.share == nil {
-				// Construct the index-relative path for this file/folder
-				// relPath is relative to realPath, so we need to join it with the original path
-				indexRelPath := filepath.Join(path, relPath)
-
+				indexRelPath := utils.JoinPathAsUnix(path, relPath)
+				indexRelPath = filepath.ToSlash(indexRelPath) // Normalize separators
 				if !store.Access.Permitted(idx.Path, indexRelPath, d.user.Username) {
 					// Skip this file/folder silently
 					if fileInfo.IsDir() {
@@ -198,6 +199,7 @@ func addFile(path string, d *requestContext, tarWriter *tar.Writer, zipWriter *z
 			// Prepend base folder name unless flatten is true
 			if !flatten {
 				relPath = filepath.Join(baseName, relPath)
+				relPath = filepath.ToSlash(relPath) // Ensure normalized separators
 			}
 
 			if fileInfo.IsDir() {

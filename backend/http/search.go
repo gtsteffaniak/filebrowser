@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 )
 
@@ -81,7 +82,8 @@ func searchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 	// Filter out items that are not permitted according to access rules
 	filteredResponse := make([]*indexing.SearchResult, 0, len(response))
 	for _, result := range response {
-		if store.Access != nil && !store.Access.Permitted(index.Path, result.Path, d.user.Username) {
+		indexPath := utils.JoinPathAsUnix(searchOptions.combinedPath, result.Path)
+		if store.Access != nil && !store.Access.Permitted(index.Path, indexPath, d.user.Username) {
 			continue // Silently skip this file/folder
 		}
 		// Remove the user scope from the path (modifying in place is safe - these are fresh allocations)
