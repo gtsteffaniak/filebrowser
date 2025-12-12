@@ -466,7 +466,7 @@ const docTemplate = `{
         },
         "/api/auth/login": {
             "post": {
-                "description": "Authenticate a user with a username and password.",
+                "description": "Authenticate a user with a username and password. The password must be URL-encoded and sent in the X-Password header to support special characters (e.g., ^, %, £, €, etc.).",
                 "consumes": [
                     "application/json"
                 ],
@@ -477,6 +477,34 @@ const docTemplate = `{
                     "Auth"
                 ],
                 "summary": "User login",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Username",
+                        "name": "username",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "ReCaptcha response token (if enabled)",
+                        "name": "recaptcha",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "URL-encoded password",
+                        "name": "X-Password",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "TOTP code (if 2FA is enabled)",
+                        "name": "X-Secret",
+                        "in": "header"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "JWT token for authentication",
@@ -610,7 +638,7 @@ const docTemplate = `{
         },
         "/api/auth/otp/generate": {
             "post": {
-                "description": "Generates a new TOTP secret and QR code for the authenticated user.",
+                "description": "Generates a new TOTP secret and QR code for the authenticated user. The password must be URL-encoded and sent in the X-Password header to support special characters.",
                 "consumes": [
                     "application/json"
                 ],
@@ -621,6 +649,22 @@ const docTemplate = `{
                     "OTP"
                 ],
                 "summary": "Generate OTP",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Username",
+                        "name": "username",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "URL-encoded password",
+                        "name": "X-Password",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OTP secret generated successfully.",
@@ -650,7 +694,7 @@ const docTemplate = `{
         },
         "/api/auth/otp/verify": {
             "post": {
-                "description": "Verifies the provided TOTP code for the authenticated user.",
+                "description": "Verifies the provided TOTP code for the authenticated user. The password must be URL-encoded and sent in the X-Password header to support special characters.",
                 "consumes": [
                     "application/json"
                 ],
@@ -664,9 +708,23 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "TOTP code to verify",
-                        "name": "code",
+                        "description": "Username",
+                        "name": "username",
                         "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "URL-encoded password",
+                        "name": "X-Password",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "TOTP code to verify",
+                        "name": "X-Secret",
+                        "in": "header",
                         "required": true
                     }
                 ],
