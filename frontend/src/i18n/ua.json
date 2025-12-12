@@ -230,7 +230,9 @@
     "showOptions": "Показати параметри",
     "searchContext": "Пошуковий контекст: {context}",
     "notEnoughCharacters": "Недостатньо символів для пошуку (мінімум {minSearchLength})",
-    "typeToSearch": "Почніть вводити {minSearchLength} або більше символів, щоб почати пошук."
+    "typeToSearch": "Почніть вводити {minSearchLength} або більше символів, щоб почати пошук.",
+    "showPreviewImages": "Показати попередній перегляд зображень",
+    "showPreviewImagesDescription": "Відображати попередній перегляд мініатюр для результатів пошуку, якщо вони доступні, і показувати більші іконки для всіх результатів."
   },
   "settings": {
     "administrator": "Адміністратор",
