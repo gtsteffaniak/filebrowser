@@ -14,6 +14,7 @@ import (
 	"unicode"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/sql"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 	"github.com/gtsteffaniak/go-cache/cache"
@@ -78,6 +79,16 @@ func duplicatesHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 	if index == nil {
 		return http.StatusBadRequest, fmt.Errorf("index not found for source %s", opts.source)
 	}
+	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, index.Name)
+	if err != nil {
+		return http.StatusForbidden, err
+	}
+	userscope = strings.TrimRight(userscope, "/")
+	scopePath := utils.JoinPathAsUnix(userscope, opts.searchScope)
+	fullPath := index.MakeIndexPath(scopePath)
+	if !store.Access.Permitted(index.Path, fullPath, d.user.Username) {
+		return http.StatusForbidden, fmt.Errorf("user is not allowed to access this location")
+	}
 
 	// Generate cache key from all input parameters that affect results
 	// Checksums are always enabled, so cache key doesn't need to include that flag
@@ -101,7 +112,7 @@ func duplicatesHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 
 	// Find duplicates using index-native approach to minimize memory allocation
 	// This avoids creating SearchResult objects until we know the final limited set
-	duplicateGroups := findDuplicatesInIndex(index, opts)
+	duplicateGroups := findDuplicatesInIndex(index, opts, d.user.Username)
 
 	// Cache the results before returning
 	duplicateResultsCache.Set(cacheKey, duplicateGroups)
@@ -115,7 +126,7 @@ func duplicatesHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 // 2. Querying SQLite for size groups with 2+ files
 // 3. Processing each size group sequentially (only one in memory at a time)
 // 4. Only creating SearchResult objects for final verified duplicates
-func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions) []duplicateGroup {
+func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions, username string) []duplicateGroup {
 
 	// Create temporary SQLite database for streaming in cache directory
 	tempDB, err := sql.NewTempDB("duplicates", &sql.TempDBConfig{
@@ -256,8 +267,12 @@ func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions) []dup
 							continue
 						}
 
-						// Construct full path
+						// Construct full path (index-relative)
 						fullPath := filepath.Join(loc.DirPath, file.Name)
+						// Check access control using index-relative path
+						if store.Access != nil && !store.Access.Permitted(index.Path, fullPath, username) {
+							continue // Silently skip this file
+						}
 
 						// Remove the user scope from path
 						adjustedPath := strings.TrimPrefix(fullPath, opts.combinedPath)
@@ -305,6 +320,7 @@ func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions) []dup
 func prepDuplicatesOptions(r *http.Request, d *requestContext) (*duplicatesOptions, error) {
 	source := r.URL.Query().Get("source")
 	scope := r.URL.Query().Get("scope")
+
 	minSizeMbStr := r.URL.Query().Get("minSizeMb")
 	// Checksums are always enabled by default for final verification
 	// First pass uses filename matching for speed, then checksums verify final groups
