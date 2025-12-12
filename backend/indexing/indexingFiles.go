@@ -234,8 +234,6 @@ func (idx *Index) GetFsDirInfo(adjustedPath string) (*iteminfo.FileInfo, error) 
 	}
 
 	if !dirInfo.IsDir() {
-		// Use handleFile for consistent size calculation across platforms
-		// API calls (GetFsDirInfo) should not update totalSize, so pass false for isRoutineScan
 		realSize, _ := idx.handleFile(dirInfo, adjustedPath, realPath)
 		size := int64(realSize)
 		fileInfo := iteminfo.FileInfo{
