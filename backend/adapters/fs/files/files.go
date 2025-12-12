@@ -75,7 +75,6 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.E
 	response.Source = opts.Source
 
 	if access != nil {
-		fmt.Println("Checking child item access for user: ", opts.Username, "path: ", index.Path, "parentPath: ", index.MakeIndexPath(response.Path))
 		err := access.CheckChildItemAccess(response, index, opts.Username)
 		if err != nil {
 			return response, err
