@@ -7,7 +7,7 @@ All notable changes to this project will be documented in this file. For commit 
  **Notes**:
  - access rule changes:
    - denied folders won't show up in parent directory listing view (#1684)
-   - tools will respect access ruleshel
+   - tools will respect access rules
    - shares will check access rules based on user that created the share
 
  **BugFixes**:
