@@ -100,13 +100,18 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		if link.DisableFileViewer || reachedDownloadsLimit {
 			getContent = false
 		}
+		shareCreatedByUser, err := store.Users.Get(link.UserID)
+		if err != nil {
+			return http.StatusInternalServerError, fmt.Errorf("user for share no longer exists")
+		}
 		file, err := FileInfoFasterFunc(utils.FileOptions{
 			Path:                     utils.JoinPathAsUnix(link.Path, path),
 			Source:                   link.Source,
+			Username:                 shareCreatedByUser.Username,
 			Expand:                   true,
 			Content:                  getContent,
 			ExtractEmbeddedSubtitles: settings.Config.Integrations.Media.ExtractEmbeddedSubtitles && link.ExtractEmbeddedSubtitles,
-		}, nil)
+		}, store.Access)
 		if err != nil {
 			logger.Errorf("error fetching file info for share. hash=%v path=%v error=%v", hash, path, err)
 			return errToStatus(err), fmt.Errorf("error fetching share from server")
