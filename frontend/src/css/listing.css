@@ -521,6 +521,39 @@ body.rtl #listingView {
   transition: width 0.25s ease-out, height 0.25s ease-out;
 }
 
+/* Large icon styling for search results when preview images are enabled - matches icons view */
+.search-entry.large-icons i.icon,
+.search-entry.large-icons .image-preview,
+.search-entry.large-icons .image-preview img.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: width 0.25s ease-out, height 0.25s ease-out;
+  padding: 0;
+}
+
+.search-entry.large-icons i.icon {
+  font-size: var(--icons-view-icon-size, 50px) !important;
+  line-height: 1 !important;
+  background: var(--iconBackground) !important;
+}
+
+.search-entry.large-icons .image-preview {
+  flex-shrink: 0;
+}
+
+.search-entry.large-icons .image-preview img.icon {
+  margin: 0;
+  object-fit: cover;
+  width: 50px;
+  height: 50px;
+}
+
+.search-entry.large-icons .image-preview {
+  width: unset !important;
+  height: unset !important;
+}
+
 #listingView.gallery .folder-items,
 #listingView.gallery .file-items {
   display: grid;

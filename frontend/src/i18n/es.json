@@ -230,7 +230,9 @@
     "noResults": "No pudimos encontrar lo que buscas...",
     "searchContext": "Buscar en: {context}",
     "notEnoughCharacters": "Escribe al menos {minSearchLength} letras para empezar a buscar",
-    "typeToSearch": "Escribe {minSearchLength} letras o más para iniciar la búsqueda"
+    "typeToSearch": "Escribe {minSearchLength} letras o más para iniciar la búsqueda",
+    "showPreviewImages": "Mostrar imágenes de previsualización",
+    "showPreviewImagesDescription": "Mostrar vistas previas en miniatura de los resultados de búsqueda cuando estén disponibles, y mostrar iconos más grandes para todos los resultados."
   },
   "settings": {
     "scopes": "Fuentes y carpetas que el usuario tendrá acceso",

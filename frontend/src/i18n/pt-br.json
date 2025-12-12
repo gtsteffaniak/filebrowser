@@ -230,7 +230,9 @@
     "showOptions": "Mostrar opções",
     "searchContext": "Contexto da pesquisa: {context}",
     "notEnoughCharacters": "Não há caracteres suficientes para pesquisar (mín. {minSearchLength})",
-    "typeToSearch": "Comece a digitar {minSearchLength} ou mais caracteres para iniciar a busca."
+    "typeToSearch": "Comece a digitar {minSearchLength} ou mais caracteres para iniciar a busca.",
+    "showPreviewImages": "Mostrar imagens de visualização",
+    "showPreviewImagesDescription": "Exibir visualizações em miniatura dos resultados da pesquisa, quando disponíveis, e mostrar ícones maiores para todos os resultados."
   },
   "settings": {
     "administrator": "Administrador",

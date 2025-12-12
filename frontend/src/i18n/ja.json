@@ -230,7 +230,9 @@
     "showOptions": "オプションを表示",
     "searchContext": "検索コンテキスト：{context}",
     "notEnoughCharacters": "検索する文字数が不足しています（最小：{minSearchLength}文字）",
-    "typeToSearch": "検索を開始するには、{minSearchLength}文字以上を入力してください。"
+    "typeToSearch": "検索を開始するには、{minSearchLength}文字以上を入力してください。",
+    "showPreviewImages": "プレビュー画像を表示する",
+    "showPreviewImagesDescription": "検索結果のサムネイルプレビューを表示し、すべての検索結果に対して大きなアイコンを表示します。"
   },
   "settings": {
     "administrator": "管理者",

@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v1.1.4-beta
 
+ **New Features**:
+ - toggle to show searching results with thumbnails #1545
+
  **Notes**:
  - file list has loading spinner to help prevent double click issues and give better feedback
  - access rule changes:
