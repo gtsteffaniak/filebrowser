@@ -145,8 +145,6 @@ test("create a file with the same name as a directory", async({ page, checkForEr
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
   await openContextMenu();
   await page.locator('button[aria-label="New file"]').click();
-  await page.locator('input[aria-label="FileName Field"]').waitFor({ state: 'visible' });
-  await page.locator('input[aria-label="FileName Field"]').fill('mytest');
   await page.locator('button[aria-label="Create"]').click();
   await page.locator('a[aria-label="mytest"]').waitFor({ state: 'visible' });
   await page.locator('a[aria-label="mytest"]').click({ button: "right" });
@@ -159,8 +157,9 @@ test("create a file with the same name as a directory", async({ page, checkForEr
   await checkForNotification(page, "Deleted successfully!");
   await openContextMenu();
   await page.locator('button[aria-label="New folder"]').click();
-  await page.locator('input[aria-label="FileName Field"]').waitFor({ state: 'visible' });
-  await page.locator('input[aria-label="FileName Field"]').fill('mytest');
+  await page.locator('input[aria-label="New Folder Name"]').waitFor({ state: 'visible' });
+  await page.locator('input[aria-label="New Folder Name"]').fill('mytest');
+  await page.locator('button[aria-label="Create"]').click();
   await page.locator('button[aria-label="Create"]').click();
   await page.locator('a[aria-label="mytest"]').waitFor({ state: 'visible' });
   await page.locator('a[aria-label="mytest"]').dblclick();
