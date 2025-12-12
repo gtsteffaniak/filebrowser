@@ -140,7 +140,7 @@ test("rename file", async({ page, checkForErrors, context }) => {
   checkForErrors();
 })
 
-test("create a file with the same name as a directory", async({ page, checkForErrors, context }) => {
+test("create a file with the same name as a directory", async({ page, checkForErrors, openContextMenu, context }) => {
   await page.goto("/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
   await openContextMenu();

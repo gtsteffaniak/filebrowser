@@ -220,8 +220,6 @@ func (idx *Index) GetFsDirInfo(adjustedPath string) (*iteminfo.FileInfo, error) 
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("GetFsDirInfo realPath", realPath)
-	fmt.Println("GetFsDirInfo isDir", isDir)
 	originalPath := realPath
 
 	dir, err := os.Open(realPath)
