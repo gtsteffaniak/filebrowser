@@ -27,3 +27,15 @@ test("navigate from search item", async({ page, checkForErrors, context }) => {
   await expect(page.locator('#result-list')).toHaveCount(0);
   checkForErrors()
 });
+
+test("share access controls exist", async ({ page, checkForErrors, context }) => {
+  const rootShareHash = await page.evaluate(() => localStorage.getItem('rootShareHash'));
+  if (!rootShareHash) {
+    throw new Error("Share hash not found in localStorage");
+  }
+  await page.goto("/files/share/" + rootShareHash );
+  await expect(page).toHaveTitle("Graham's Filebrowser - Share - playwright-files");
+  // expect the excluded folder to not be visible
+  await expect(page.locator('div[aria-label="excluded"]')).toBeHidden();
+  checkForErrors(); 
+});
