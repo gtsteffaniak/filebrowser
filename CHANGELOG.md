@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file. For commit 
 ## v1.1.4-beta
 
  **Notes**:
+ - file list has loading spinner to help prevent double click issues and give better feedback
  - access rule changes:
    - denied folders won't show up in parent directory listing view (#1684)
    - tools will respect access rules
