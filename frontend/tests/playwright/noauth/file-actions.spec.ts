@@ -163,7 +163,6 @@ test("create a file with the same name as a directory", async({ page, checkForEr
   await page.locator('input[aria-label="New Folder Name"]').waitFor({ state: 'visible' });
   await page.locator('input[aria-label="New Folder Name"]').fill('mytest');
   await page.locator('button[aria-label="Create"]').click();
-  await page.locator('button[aria-label="Create"]').click();
   await page.locator('a[aria-label="mytest"]').waitFor({ state: 'visible' });
   await page.locator('a[aria-label="mytest"]').dblclick();
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - mytest");
