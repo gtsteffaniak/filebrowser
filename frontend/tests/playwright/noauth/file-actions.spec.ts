@@ -139,3 +139,31 @@ test("rename file", async({ page, checkForErrors, context }) => {
   await expect(page.locator('#result-list ul li.search-entry')).toHaveCount(0);
   checkForErrors();
 })
+
+test("create a file with the same name as a directory", async({ page, checkForErrors, context }) => {
+  await page.goto("/files/");
+  await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
+  await openContextMenu();
+  await page.locator('button[aria-label="New file"]').click();
+  await page.locator('input[aria-label="FileName Field"]').waitFor({ state: 'visible' });
+  await page.locator('input[aria-label="FileName Field"]').fill('mytest');
+  await page.locator('button[aria-label="Create"]').click();
+  await page.locator('a[aria-label="mytest"]').waitFor({ state: 'visible' });
+  await page.locator('a[aria-label="mytest"]').click({ button: "right" });
+  await page.locator('.selected-count-header').waitFor({ state: 'visible' });
+  await expect(page.locator('.selected-count-header')).toHaveText('1');
+  await page.locator('button[aria-label="Delete"]').click();
+  await expect(page.locator('.card-content')).toHaveText('Are you sure you want to delete this file/folder?/mytest');
+  await expect(page.locator('div[aria-label="delete-path"]')).toHaveText('/mytest');
+  await page.locator('button[aria-label="Confirm-Delete"]').click();
+  await checkForNotification(page, "Deleted successfully!");
+  await openContextMenu();
+  await page.locator('button[aria-label="New folder"]').click();
+  await page.locator('input[aria-label="FileName Field"]').waitFor({ state: 'visible' });
+  await page.locator('input[aria-label="FileName Field"]').fill('mytest');
+  await page.locator('button[aria-label="Create"]').click();
+  await page.locator('a[aria-label="mytest"]').waitFor({ state: 'visible' });
+  await page.locator('a[aria-label="mytest"]').dblclick();
+  await expect(page).toHaveTitle("Graham's Filebrowser - Files - mytest");
+  checkForErrors();
+})

@@ -347,6 +347,10 @@ func DeleteFiles(source, absPath string, absDirPath string, isDir bool) error {
 			return err
 		}
 
+		// Clear cache entries
+		indexing.RealPathCache.Delete(absPath)
+		indexing.IsDirCache.Delete(absPath + ":isdir")
+
 		// Remove metadata from index
 		if isDir {
 			// Recursively remove directory and all subdirectories from index
@@ -400,6 +404,8 @@ func RefreshIndex(source string, path string, isDir bool, recursive bool) error 
 			if !Exists(realPath) {
 				// Directory no longer exists, remove it from the index
 				// This clears both Directories and DirectoriesLedger maps
+				indexing.RealPathCache.Delete(realPath)
+				indexing.IsDirCache.Delete(realPath + ":isdir")
 				idx.DeleteMetadata(path, true, false)
 				return nil
 			}
@@ -472,16 +478,11 @@ func MoveResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string
 
 	// Handle SOURCE cleanup (treat as deletion)
 	if !srcIdx.Config.DisableIndexing {
-		// Remove metadata from source index
 		if isSrcDir {
-			// Recursively remove directory and all subdirectories from source index
 			srcIdx.DeleteMetadata(srcIndexPath, true, true)
 		} else {
-			// Remove file from source parent's file list
 			srcIdx.DeleteMetadata(srcIndexPath, false, false)
 		}
-
-		// Refresh the source parent directory to recalculate sizes and update counts
 		go RefreshIndex(sourceIndex, srcParentPath, true, false) //nolint:errcheck
 	}
 
@@ -489,16 +490,11 @@ func MoveResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string
 	if !dstIdx.Config.DisableIndexing {
 		if isSrcDir {
 			go func() {
-				// When moving a folder, refresh the folder itself recursively FIRST
-				// Must complete before parent refresh to avoid race condition
 				RefreshIndex(destIndex, realdst, true, true) //nolint:errcheck
-
-				// THEN refresh the parent directory so it sees the newly indexed child
 				parentDir := filepath.Dir(realdst)
 				RefreshIndex(destIndex, parentDir, true, false) //nolint:errcheck
 			}()
 		} else {
-			// If moving a file, just refresh the parent directory
 			parentDir := filepath.Dir(realdst)
 			go RefreshIndex(destIndex, parentDir, true, false) //nolint:errcheck
 		}

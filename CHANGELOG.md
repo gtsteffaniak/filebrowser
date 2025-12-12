@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file. For commit 
  **BugFixes**:
  - encoded filename navigation issue (#1711)
  - Fix/Improve some behaviors in nextPrevious (#1707)
+ - Files recognized as folder if they have the same name as previously deleted folders #1697
 
 ## v1.1.3-beta
 

@@ -21,7 +21,6 @@ func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo) bool {
 
 // DeleteMetadata removes the specified path from the index.
 // If recursive is true and the path is a directory, it will also remove all subdirectories.
-// NOTE: path should already be an index path (with trailing slash for directories)
 func (idx *Index) DeleteMetadata(path string, isDir bool, recursive bool) bool {
 	idx.mu.Lock()
 	defer idx.mu.Unlock()
@@ -31,6 +30,11 @@ func (idx *Index) DeleteMetadata(path string, isDir bool, recursive bool) bool {
 	if isDir {
 		indexPath = utils.AddTrailingSlashIfNotExists(path)
 	}
+
+	// Clear cache entries
+	joinedPath := filepath.Join(idx.Path, indexPath)
+	RealPathCache.Delete(joinedPath)
+	IsDirCache.Delete(joinedPath + ":isdir")
 
 	if !isDir {
 		// For files, remove from parent directory's Files slice
