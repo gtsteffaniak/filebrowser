@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v1.1.4-beta
 
+ **New Features**:
+ - toggle to show searching results with thumbnails #1545
+
  **Notes**:
  - access rule changes:
    - denied folders won't show up in parent directory listing view (#1684)
