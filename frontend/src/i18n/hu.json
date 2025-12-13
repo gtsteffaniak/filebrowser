@@ -230,7 +230,9 @@
     "showOptions": "Beállítások megjelenítése",
     "searchContext": "Keresési kontextus: {context}",
     "notEnoughCharacters": "Nincs elég karakter a kereséshez (min {minSearchLength})",
-    "typeToSearch": "A keresés megkezdéséhez írja be a {minSearchLength} vagy több karaktert."
+    "typeToSearch": "A keresés megkezdéséhez írja be a {minSearchLength} vagy több karaktert.",
+    "showPreviewImages": "Előnézeti képek megjelenítése",
+    "showPreviewImagesDescription": "A keresési találatok miniatűr előnézeteinek megjelenítése, ha rendelkezésre állnak, és nagyobb ikonok megjelenítése az összes találathoz."
   },
   "settings": {
     "administrator": "Adminisztrátor",

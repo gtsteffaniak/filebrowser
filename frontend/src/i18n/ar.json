@@ -230,7 +230,9 @@
     "showOptions": "عرض الخيارات",
     "searchContext": "سياق البحث: {context}",
     "notEnoughCharacters": "أحرف غير كافية للبحث (الحد الأدنى {minSearchLength})",
-    "typeToSearch": "ابدأ الكتابة {minSearchLength} أو أكثر لبدء البحث."
+    "typeToSearch": "ابدأ الكتابة {minSearchLength} أو أكثر لبدء البحث.",
+    "showPreviewImages": "عرض صور المعاينة",
+    "showPreviewImagesDescription": "عرض معاينات الصور المصغرة لنتائج البحث عند توفرها، وإظهار أيقونات أكبر لجميع النتائج."
   },
   "settings": {
     "administrator": "Administrator",

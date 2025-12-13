@@ -1,12 +1,8 @@
 <template>
-  <div
-    id="search"
-    :class="{ active, ongoing, 'dark-mode': isDarkMode }"
-    @click="clearContext"
-  >
+  <div id="search" :class="{ active, ongoing, 'dark-mode': isDarkMode }" @click="clearContext">
     <!-- Search input section -->
-    <div id="search-input" @click="open" :class="{'halloween-eyes': eventTheme === 'halloween'}">
-      <div id="halloween-eyes" v-if="eventTheme=== 'halloween' && active">
+    <div id="search-input" @click="open" :class="{ 'halloween-eyes': eventTheme === 'halloween' }">
+      <div id="halloween-eyes" v-if="eventTheme === 'halloween' && active">
         <div class="eye left">
           <div class="pupil"></div>
         </div>
@@ -15,44 +11,23 @@
         </div>
       </div>
       <!-- Close button visible when search is active -->
-      <button
-        v-if="active"
-        class="action"
-        @click="close"
-        :aria-label="$t('general.close')"
-        :title="$t('general.close')"
-      >
+      <button v-if="active" class="action" @click="close" :aria-label="$t('general.close')"
+        :title="$t('general.close')">
         <i class="material-icons">close</i>
       </button>
       <!-- Search icon when search is not active -->
       <i v-else class="material-icons">search</i>
       <!-- Input field for search -->
-      <input
-        id="main-input"
-        class="main-input"
-        :class="{ 'halloween-theme': eventTheme === 'halloween' }"
-        type="text"
-        @keyup.exact="keyup"
-        @input="submit"
-        ref="input"
-        :autofocus="active"
-        v-model.trim="value"
-        aria-label="search input"
-        :placeholder="$t('general.search', { suffix: '...' })"
-      />
+      <input id="main-input" class="main-input" :class="{ 'halloween-theme': eventTheme === 'halloween' }" type="text"
+        @keyup.exact="keyup" @input="submit" ref="input" :autofocus="active" v-model.trim="value"
+        aria-label="search input" :placeholder="$t('general.search', { suffix: '...' })" />
     </div>
 
     <!-- Search results for desktop -->
-    <div v-show="active"  id="results" class="fb-shadow" ref="result">
+    <div v-show="active" id="results" class="fb-shadow" ref="result">
       <div class="inputWrapper">
-        <select
-          v-if="multipleSources"
-          class="searchContext button input"
-          aria-label="search-path"
-          v-model="selectedSource"
-          :value="selectedSource"
-          @change="updateSource"
-        >
+        <select v-if="multipleSources" class="searchContext button input" aria-label="search sources dropdown"
+          v-model="selectedSource" :value="selectedSource" @change="updateSource">
           <option v-for="(info, name) in sourceInfo" :key="info" :value="name">
             {{ name }}
           </option>
@@ -66,49 +41,35 @@
         <div v-if="!disableSearchOptions">
           <div v-if="active">
             <div v-if="isMobile">
-              <ButtonGroup
-                :buttons="toggleOptionButton"
-                @button-clicked="enableOptions"
-                @remove-button-clicked="disableOptions"
-              />
+              <ButtonGroup :buttons="toggleOptionButton" @button-clicked="enableOptions"
+                @remove-button-clicked="disableOptions" />
             </div>
             <transition name="expand">
               <div v-show="showOptions" class="search-options">
                 <!-- Button groups for filtering search results -->
-                <ButtonGroup
-                  :buttons="folderSelect"
-                  @button-clicked="addToTypes"
-                  @remove-button-clicked="removeFromTypes"
-                  @disableAll="folderSelectClicked()"
-                  @enableAll="resetButtonGroups()"
-                />
-                <ButtonGroup
-                  :buttons="typeSelect"
-                  @button-clicked="addToTypes"
-                  @remove-button-clicked="removeFromTypes"
-                  :isDisabled="isTypeSelectDisabled"
-                />
+                <ButtonGroup :buttons="folderSelect" @button-clicked="addToTypes"
+                  @remove-button-clicked="removeFromTypes" @disableAll="folderSelectClicked()"
+                  @enableAll="resetButtonGroups()" />
+                <ButtonGroup :buttons="typeSelect" @button-clicked="addToTypes" @remove-button-clicked="removeFromTypes"
+                  :isDisabled="isTypeSelectDisabled" />
                 <!-- Inputs for filtering by file size -->
                 <div class="sizeConstraints">
                   <div class="sizeInputWrapper">
                     <p>{{ $t("search.smallerThan") }}</p>
-                    <input
-                      class="sizeInput"
-                      v-model="smallerThan"
-                      type="number"
-                      min="0"
-                      :placeholder="$t('general.number')"
-                    /><p>MB</p> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+                    <input class="sizeInput" v-model="smallerThan" type="number" min="0"
+                      :placeholder="$t('general.number')" />
+                    <p>MB</p> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
                   </div>
                   <div class="sizeInputWrapper">
                     <p>{{ $t("search.largerThan") }}</p>
-                    <input
-                      class="sizeInput"
-                      v-model="largerThan"
-                      type="number"
-                      :placeholder="$t('general.number')"
-                    /><p>MB</p> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+                    <input class="sizeInput" v-model="largerThan" type="number" :placeholder="$t('general.number')" />
+                    <p>MB</p> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
                   </div>
+                </div>
+                <!-- Toggle for showing preview images -->
+                <div class="search-option-item">
+                  <ToggleSwitch v-model="showPreviewImages" :name="$t('search.showPreviewImages')"
+                    :description="$t('search.showPreviewImagesDescription')" />
                 </div>
               </div>
             </transition>
@@ -121,27 +82,22 @@
         <!-- Message when no results are found -->
         <div class="searchPrompt" v-show="isEmpty && !isRunning">
           <p>{{ noneMessage }}</p>
-          <i
-            class="no-select material-symbols-outlined tooltip-info-icon"
-            @mouseenter="showHelpTooltip"
-            @mouseleave="hideTooltip"
-          >
+          <i class="no-select material-symbols-outlined tooltip-info-icon" @mouseenter="showHelpTooltip"
+            @mouseleave="hideTooltip">
             help
           </i>
         </div>
         <!-- List of search results -->
         <ul v-show="results.length > 0">
-          <li
-            v-for="(s, k) in results"
-            :key="k"
-            class="search-entry clickable"
-            :class="{ active: activeStates[k] }"
-            :aria-label="baseName(s.path)"
-          >
+          <li v-for="(s, k) in results" :key="k" class="search-entry clickable"
+            :class="{ active: activeStates[k], 'large-icons': showPreviewImages }" :aria-label="baseName(s.path)">
             <a :href="getRelative(s.path)" @contextmenu="addSelected(event, s)">
-              <Icon :mimetype="s.type" :filename="s.name" />
+              <Icon :mimetype="s.type" :filename="baseName(s.path)"
+                :hasPreview="showPreviewImages && (s.hasPreview || false)"
+                :thumbnailUrl="showPreviewImages ? getThumbnailUrl(s) : ''" />
               <span class="text-container">
-                {{ basePath(s.path, s.type == "directory") }}{{ baseName(s.path) }} <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+                {{ basePath(s.path, s.type == "directory") }}{{ baseName(s.path) }}
+                <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
               </span>
               <div class="filesize">{{ humanSize(s.size) }}</div>
             </a>
@@ -154,11 +110,12 @@
 
 <script>
 import ButtonGroup from "./ButtonGroup.vue";
-import { search } from "@/api";
+import { search, filesApi } from "@/api";
 import { getters, mutations, state } from "@/store";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { url } from "@/utils/";
 import Icon from "@/components/files/Icon.vue";
+import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import { globalVars } from "@/utils/constants";
 
 var boxes = {
@@ -175,6 +132,7 @@ export default {
   components: {
     ButtonGroup,
     Icon,
+    ToggleSwitch,
   },
   name: "search",
   data: function () {
@@ -184,6 +142,7 @@ export default {
       noneMessage: this.$t("search.typeToSearch", { minSearchLength: globalVars.minSearchLength }),
       searchTypes: "",
       isTypeSelectDisabled: false,
+      showPreviewImages: false,
       folderSelect: [
         { label: this.$t("search.onlyFolders"), value: "type:folder" },
         { label: this.$t("search.onlyFiles"), value: "type:file" },
@@ -478,6 +437,7 @@ export default {
     resetSearchFilters() {
       this.searchTypes = "";
       this.hiddenOptions = true;
+      this.showPreviewImages = false;
     },
     removeFromTypes(string) {
       if (string == null || string == "") {
@@ -537,6 +497,19 @@ export default {
     clearContext() {
       mutations.closeHovers();
     },
+    getThumbnailUrl(s) {
+      if (!s.hasPreview) {
+        return "";
+      }
+      try {
+        const source = this.selectedSource || state.sources.current;
+        const path = s.path;
+        const modified = s.modified || "";
+        return filesApi.getPreviewURL(source, path, modified);
+      } catch (err) {
+        return "";
+      }
+    },
     addSelected(event, s) {
       const pathParts = url.removeTrailingSlash(s.path).split("/");
       let path = this.getContext + url.removeTrailingSlash(s.path);
@@ -558,6 +531,7 @@ export default {
 .sizeInputWrapper {
   border: 1px solid #ccc;
 }
+
 .main-input {
   width: 100%;
 }
@@ -599,7 +573,7 @@ export default {
   color: white;
 }
 
-#results > #result-list {
+#results>#result-list {
   max-height: 80vh;
   width: 35em;
   overflow: scroll;
@@ -713,6 +687,12 @@ export default {
   background-color: var(--surfacePrimary);
 }
 
+/* Toggle switch styling in search options */
+.search-option-item {
+  margin: 1em;
+}
+
+
 .text-container {
   margin-left: 0.25em;
   white-space: nowrap;
@@ -743,7 +723,7 @@ body.rtl #search #result {
   direction: ltr;
 }
 
-#search #result > div > *:first-child {
+#search #result>div>*:first-child {
   margin-top: 0;
 }
 
@@ -753,7 +733,7 @@ body.rtl #search #result {
 }
 
 /* Search Results */
-body.rtl #search #result ul > * {
+body.rtl #search #result ul>* {
   direction: ltr;
   text-align: left;
 }
@@ -970,7 +950,7 @@ body.rtl #search .boxes h3 {
   }
 
   #result-list {
-    width:100vw !important;
+    width: 100vw !important;
     max-width: 100vw !important;
     left: 0;
     top: 4em;
@@ -981,5 +961,4 @@ body.rtl #search .boxes h3 {
     flex-direction: column;
   }
 }
-
 </style>

@@ -60,10 +60,17 @@ func runCLI() bool {
 	setCmd := flag.NewFlagSet("set", flag.ExitOnError)
 	var user, dbConfig string
 	var asAdmin bool
+	var fsPath, indexPath, ruleCategory, value string
+	var allow bool
 
 	setCmd.StringVar(&user, "u", "", "Comma-separated username and password: \"set -u <username>,<password>\"")
 	setCmd.BoolVar(&asAdmin, "a", false, "Create a user as admin user, used in combination with -u")
 	setCmd.StringVar(&dbConfig, "c", "config.yaml", "Path to the config file, default: config.yaml")
+	setCmd.StringVar(&fsPath, "f", "", "Real filesystem path (e.g. /mnt/storage) for rule command")
+	setCmd.StringVar(&indexPath, "p", "", "Index path (e.g. /secret) for rule command")
+	setCmd.StringVar(&ruleCategory, "r", "", "Rule category: 'user', 'group', or 'all' (for deny only)")
+	setCmd.StringVar(&value, "v", "", "Value: username or groupname (not required if ruleCategory is 'all')")
+	setCmd.BoolVar(&allow, "allow", false, "Allow access (default: false, which means deny)")
 
 	// Parse subcommand flags only if a subcommand is specified
 	if len(os.Args) > 1 {
@@ -72,72 +79,38 @@ func runCLI() bool {
 			createConfig(configPath)
 			return false
 		case "set":
-			err := setCmd.Parse(os.Args[2:])
-			if err != nil {
-				setCmd.PrintDefaults()
+			if len(os.Args) < 3 {
+				fmt.Printf("error: missing subcommand for 'set'. Use 'set user' or 'set rule'\n")
 				os.Exit(1)
 			}
-			userInfo := strings.Split(user, ",")
-			if len(userInfo) < 2 {
-				fmt.Printf("not enough info to create user: \"set -u username,password\", only provided %v\n", userInfo)
-				setCmd.PrintDefaults()
-				os.Exit(1)
-			}
-			username := userInfo[0]
-			password := userInfo[1]
-			_ = getStore(dbConfig) // ignore bool check
-			user, err := store.Users.Get(username)
-			if err != nil {
-				newUser := users.User{
-					Username:    username,
-					LoginMethod: users.LoginMethodPassword,
-					NonAdminEditable: users.NonAdminEditable{
-						Password: password,
-					},
-				}
-				for _, source := range settings.Config.Server.SourceMap {
-					if source.Config.DefaultEnabled {
-						newUser.Scopes = append(newUser.Scopes, users.SourceScope{
-							Name:  source.Name,
-							Scope: source.Config.DefaultUserScope,
-						})
-					}
-				}
+			subcommand := os.Args[2]
 
-				// Create the user logic
-				if asAdmin {
-					logger.Infof("Creating user as admin: %s\n", username)
-				} else {
-					logger.Infof("Creating non-admin user: %s\n", username)
-				}
-				newUser.Permissions = settings.ConvertPermissionsToUsers(settings.Config.UserDefaults.Permissions)
-				newUser.Permissions.Admin = asAdmin
-				err = storage.CreateUser(newUser, newUser.Permissions)
+			// New pattern: subcommand-based (e.g., "set user" or "set rule")
+			// Parse flags starting from os.Args[3:] to skip the subcommand
+			err := setCmd.Parse(os.Args[3:])
+			if err != nil {
+				setCmd.PrintDefaults()
+				os.Exit(1)
+			}
+			switch subcommand {
+			case "-u":
+				err := setUser(dbConfig, asAdmin)
 				if err != nil {
-					logger.Errorf("could not create user: %v", err)
+					fmt.Printf("error: %v\n", err)
+					os.Exit(1)
 				}
 				return false
+			case "rule":
+				err := setRule(dbConfig, fsPath, indexPath, ruleCategory, value, allow)
+				if err != nil {
+					fmt.Printf("error: %v\n", err)
+					os.Exit(1)
+				}
+				return false
+			default:
+				fmt.Printf("error: unknown subcommand '%s' for 'set'. Use 'set user' or 'set rule'\n", subcommand)
+				os.Exit(1)
 			}
-			if user.LoginMethod != users.LoginMethodPassword {
-				logger.Fatalf("user %s is not allowed to login with password authentication, cannot set password", username)
-			}
-			user.Password = password
-			user.TOTPSecret = "" // reset TOTP secret if it exists
-			user.TOTPNonce = ""  // reset TOTP nonce if it exists
-			user.LoginMethod = users.LoginMethodPassword
-			if asAdmin {
-				user.Permissions.Admin = true
-			}
-			// Ensure version is set for existing users being updated
-			if user.Version == 0 {
-				user.Version = 1
-			}
-			err = store.Users.Save(user, true, false)
-			if err != nil {
-				logger.Errorf("could not update user: %v", err)
-			}
-			fmt.Printf("successfully updated user: %s\n", username)
-			return false
 
 		case "version":
 			fmt.Printf(`FileBrowser Quantum - A modern web-based file manager
@@ -149,6 +122,130 @@ func runCLI() bool {
 		}
 	}
 	return true
+}
+
+func setRule(dbConfig, fsPath, indexPath, ruleCategory, value string, allow bool) error {
+	// Validate required parameters
+	if fsPath == "" {
+		return fmt.Errorf("real filesystem path is required: use -f <fsPath>")
+	}
+	if indexPath == "" {
+		return fmt.Errorf("index path is required: use -p <indexPath>")
+	}
+	if ruleCategory == "" {
+		return fmt.Errorf("ruleCategory is required: use -r <user|group|all>")
+	}
+	if ruleCategory != "all" && value == "" {
+		return fmt.Errorf("value is required when ruleCategory is 'user' or 'group': use -v <username|groupname>")
+	}
+
+	// Initialize store and settings
+	_ = getStore(dbConfig) // ignore bool check
+
+	// Apply the rule based on allow flag and ruleCategory
+	var err error
+	if allow {
+		switch ruleCategory {
+		case "user":
+			err = store.Access.AllowUser(fsPath, indexPath, value)
+		case "group":
+			err = store.Access.AllowGroup(fsPath, indexPath, value)
+		default:
+			return fmt.Errorf("invalid ruleCategory for allow: must be 'user' or 'group'")
+		}
+	} else {
+		switch ruleCategory {
+		case "user":
+			err = store.Access.DenyUser(fsPath, indexPath, value)
+		case "group":
+			err = store.Access.DenyGroup(fsPath, indexPath, value)
+		case "all":
+			err = store.Access.DenyAll(fsPath, indexPath)
+		default:
+			return fmt.Errorf("invalid ruleCategory: must be 'user', 'group', or 'all'")
+		}
+	}
+
+	if err != nil {
+		return fmt.Errorf("failed to add or update rule: %w", err)
+	}
+
+	action := "deny"
+	if allow {
+		action = "allow"
+	}
+	if ruleCategory == "all" {
+		fmt.Printf("successfully added %s rule for all users on index path '%s' in filesystem path '%s'\n", action, indexPath, fsPath)
+	} else {
+		fmt.Printf("successfully added %s rule for %s '%s' on index path '%s' in filesystem path '%s'\n", action, ruleCategory, value, indexPath, fsPath)
+	}
+	return nil
+}
+
+func setUser(dbConfig string, asAdmin bool) error {
+	if len(os.Args) < 4 {
+		return fmt.Errorf("missing username and password for 'set user'. Use 'set -u username,password'")
+	}
+	userInfo := strings.Split(os.Args[3], ",")
+	if len(userInfo) < 2 {
+		return fmt.Errorf("not enough info to create user: \"set -u username,password\", only provided %v", userInfo)
+	}
+	username := userInfo[0]
+	password := userInfo[1]
+	_ = getStore(dbConfig) // ignore bool check
+	user, err := store.Users.Get(username)
+	if err != nil {
+		newUser := users.User{
+			Username:    username,
+			LoginMethod: users.LoginMethodPassword,
+			NonAdminEditable: users.NonAdminEditable{
+				Password: password,
+			},
+		}
+		for _, source := range settings.Config.Server.SourceMap {
+			if source.Config.DefaultEnabled {
+				newUser.Scopes = append(newUser.Scopes, users.SourceScope{
+					Name:  source.Name,
+					Scope: source.Config.DefaultUserScope,
+				})
+			}
+		}
+
+		// Create the user logic
+		if asAdmin {
+			logger.Infof("Creating user as admin: %s\n", username)
+		} else {
+			logger.Infof("Creating non-admin user: %s\n", username)
+		}
+		newUser.Permissions = settings.ConvertPermissionsToUsers(settings.Config.UserDefaults.Permissions)
+		newUser.Permissions.Admin = asAdmin
+		err = storage.CreateUser(newUser, newUser.Permissions)
+		if err != nil {
+			return fmt.Errorf("could not create user: %v", err)
+		}
+		fmt.Printf("successfully created user")
+		return nil
+	}
+	if user.LoginMethod != users.LoginMethodPassword {
+		return fmt.Errorf("user %s is not allowed to login with password authentication, cannot set password", username)
+	}
+	user.Password = password
+	user.TOTPSecret = "" // reset TOTP secret if it exists
+	user.TOTPNonce = ""  // reset TOTP nonce if it exists
+	user.LoginMethod = users.LoginMethodPassword
+	if asAdmin {
+		user.Permissions.Admin = true
+	}
+	// Ensure version is set for existing users being updated
+	if user.Version == 0 {
+		user.Version = 1
+	}
+	err = store.Users.Save(user, true, false)
+	if err != nil {
+		return fmt.Errorf("could not update user: %v", err)
+	}
+	fmt.Printf("successfully updated user: %s\n", username)
+	return nil
 }
 
 // UserDefaults defines default settings for new users.

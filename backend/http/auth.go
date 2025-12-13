@@ -111,10 +111,14 @@ func setupProxyUser(r *http.Request, data *requestContext, proxyUser string) (*u
 
 // loginHandler handles user authentication via password.
 // @Summary User login
-// @Description Authenticate a user with a username and password.
+// @Description Authenticate a user with a username and password. The password must be URL-encoded and sent in the X-Password header to support special characters (e.g., ^, %, £, €, etc.).
 // @Tags Auth
 // @Accept json
 // @Produce json
+// @Param username query string true "Username"
+// @Param recaptcha query string false "ReCaptcha response token (if enabled)"
+// @Param X-Password header string true "URL-encoded password"
+// @Param X-Secret header string false "TOTP code (if 2FA is enabled)"
 // @Success 200 {string} string "JWT token for authentication"
 // @Failure 403 {object} map[string]string "Forbidden - authentication failed"
 // @Failure 500 {object} map[string]string "Internal server error"

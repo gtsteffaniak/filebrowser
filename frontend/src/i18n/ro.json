@@ -230,7 +230,9 @@
     "showOptions": "Afișare opțiuni",
     "searchContext": "Context de căutare: {context}",
     "notEnoughCharacters": "Nu sunt suficiente caractere pentru căutare (min {minSearchLength})",
-    "typeToSearch": "Începeți să tastați {minSearchLength} sau mai multe caractere pentru a începe căutarea."
+    "typeToSearch": "Începeți să tastați {minSearchLength} sau mai multe caractere pentru a începe căutarea.",
+    "showPreviewImages": "Afișați imagini de previzualizare",
+    "showPreviewImagesDescription": "Afișați previzualizări în miniatură pentru rezultatele căutării, atunci când sunt disponibile, și afișați pictograme mai mari pentru toate rezultatele."
   },
   "settings": {
     "administrator": "Administrator",

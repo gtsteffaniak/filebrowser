@@ -1,6 +1,5 @@
 import { test, expect, checkForNotification } from "../test-setup";
 
-
 test("info from listing", async({ page, checkForErrors, context }) => {
   await page.goto("/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");

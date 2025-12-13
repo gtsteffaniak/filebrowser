@@ -1,5 +1,14 @@
 import { test as base, expect, Page } from "@playwright/test";
 
+/**
+ * Standalone helper function to open the context menu (File-Actions button)
+ * Can be used in both test fixtures and global setup
+ */
+export async function openContextMenuHelper(page: Page): Promise<void> {
+  await page.locator('button[aria-label="File-Actions"]').waitFor({ state: 'visible' });
+  await page.locator('button[aria-label="File-Actions"]').click();
+}
+
 export const test = base.extend<{
   checkForErrors: (expectedConsoleErrors?: number, expectedApiErrors?: number) => void;
   openContextMenu: () => Promise<void>;
@@ -12,8 +21,7 @@ export const test = base.extend<{
   },
   openContextMenu: async ({ page }, use) => {
     await use(async () => {
-      await page.locator('button[aria-label="File-Actions"]').waitFor({ state: 'visible' });
-      await page.locator('button[aria-label="File-Actions"]').click();
+      await openContextMenuHelper(page);
     });
   },
   theme: async ({}, use, testInfo) => {

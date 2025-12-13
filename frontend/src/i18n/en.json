@@ -412,6 +412,8 @@
     "noResults": "No results found in indexed search.",
     "smallerThan": "Smaller than:",
     "largerThan": "Larger than:",
+    "showPreviewImages": "Show preview images",
+    "showPreviewImagesDescription": "Display thumbnail previews for search results when available, and show larger icons for all results.",
     "helpText1": "Search occurs on each character you type (3 character minimum for search terms).",
     "helpText2": "The index: Search utilizes the index which automatically gets updated on the configured interval (default: 5 minutes). Searching when the program has just started may result in incomplete results."
   },

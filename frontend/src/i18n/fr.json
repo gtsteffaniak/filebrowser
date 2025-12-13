@@ -58,7 +58,7 @@
     "itemSelected": "élément sélectionné",
     "itemsSelected": "éléments sélectionnés",
     "myFiles": "Mes dossiers{suffix}",
-    "newFile": "Nouveau dossier{suffix}",
+    "newFile": "Nouveau Fichier{suffix}",
     "newFolder": "Nouveau dossier{suffix}",
     "duration": "Durée de l'accord{suffix}",
     "sortByDuration": "Trier par durée"
@@ -230,7 +230,9 @@
     "showOptions": "Afficher les options",
     "searchContext": "Contexte de la recherche : {context}",
     "notEnoughCharacters": "Pas assez de caractères pour effectuer une recherche (min {minSearchLength})",
-    "typeToSearch": "Commencez à taper {minSearchLength} ou plus de caractères pour lancer la recherche."
+    "typeToSearch": "Commencez à taper {minSearchLength} ou plus de caractères pour lancer la recherche.",
+    "showPreviewImages": "Afficher les images de prévisualisation",
+    "showPreviewImagesDescription": "Afficher les vignettes des résultats de la recherche lorsqu'elles sont disponibles, et afficher des icônes plus grandes pour tous les résultats."
   },
   "settings": {
     "scopes": "Définir les sources autorisées et la portée de l'utilisateur au sein de celles-ci",

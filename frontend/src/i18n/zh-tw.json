@@ -230,7 +230,9 @@
     "showOptions": "顯示選項",
     "searchContext": "搜尋範圍：{context}",
     "notEnoughCharacters": "搜尋字元不足 (最少{minSearchLength})",
-    "typeToSearch": "開始輸入{minSearchLength} 或更多字元以開始搜尋。"
+    "typeToSearch": "開始輸入{minSearchLength} 或更多字元以開始搜尋。",
+    "showPreviewImages": "顯示預覽影像",
+    "showPreviewImagesDescription": "在可用的情況下，顯示搜尋結果的縮圖預覽，並顯示所有結果的較大圖示。"
   },
   "settings": {
     "administrator": "管理員",

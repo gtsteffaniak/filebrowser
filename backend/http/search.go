@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 )
 
@@ -77,14 +78,22 @@ func searchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 
 	// Perform the search using the provided query and user scope
 	response := index.Search(searchOptions.query, searchOptions.combinedPath, searchOptions.sessionId, searchOptions.largest, indexing.DefaultSearchResults)
-	// Remove the user scope from the path (modifying in place is safe - these are fresh allocations)
+
+	// Filter out items that are not permitted according to access rules
+	filteredResponse := make([]*indexing.SearchResult, 0, len(response))
 	for _, result := range response {
+		indexPath := utils.JoinPathAsUnix(searchOptions.combinedPath, result.Path)
+		if store.Access != nil && !store.Access.Permitted(index.Path, indexPath, d.user.Username) {
+			continue // Silently skip this file/folder
+		}
+		// Remove the user scope from the path (modifying in place is safe - these are fresh allocations)
 		result.Path = strings.TrimPrefix(result.Path, searchOptions.combinedPath)
 		if result.Path == "" {
 			result.Path = "/"
 		}
+		filteredResponse = append(filteredResponse, result)
 	}
-	return renderJSON(w, r, response)
+	return renderJSON(w, r, filteredResponse)
 }
 
 func prepSearchOptions(r *http.Request, d *requestContext) (*searchOptions, error) {

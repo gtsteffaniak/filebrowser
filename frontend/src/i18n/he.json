@@ -230,7 +230,9 @@
     "showOptions": "הצג אפשרויות",
     "searchContext": "הקשר החיפוש: {context}",
     "notEnoughCharacters": "אין מספיק תווים לחיפוש (מינימום {minSearchLength})",
-    "typeToSearch": "התחל להקליד {minSearchLength} או יותר תווים כדי להתחיל בחיפוש."
+    "typeToSearch": "התחל להקליד {minSearchLength} או יותר תווים כדי להתחיל בחיפוש.",
+    "showPreviewImages": "הצג תמונות מקדימות",
+    "showPreviewImagesDescription": "הצג תצוגה מקדימה של תמונות ממוזערות עבור תוצאות החיפוש, כאשר הן זמינות, והצג סמלים גדולים יותר עבור כל התוצאות."
   },
   "settings": {
     "administrator": "מנהל ראשי",

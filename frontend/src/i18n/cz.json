@@ -301,7 +301,9 @@
     "showOptions": "Zobrazit možnosti",
     "searchContext": "Kontext vyhledávání: {context}",
     "notEnoughCharacters": "Nedostatek znaků pro vyhledávání (min. {minSearchLength})",
-    "typeToSearch": "Pro zahájení vyhledávání začněte psát {minSearchLength} nebo více znaků."
+    "typeToSearch": "Pro zahájení vyhledávání začněte psát {minSearchLength} nebo více znaků.",
+    "showPreviewImages": "Zobrazit náhledové obrázky",
+    "showPreviewImagesDescription": "Zobrazení miniaturních náhledů výsledků vyhledávání, pokud jsou k dispozici, a zobrazení větších ikon u všech výsledků."
   },
   "profileSettings": {
     "setDateFormat": "Nastavit formát data",

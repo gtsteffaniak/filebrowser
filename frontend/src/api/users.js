@@ -18,7 +18,7 @@ export async function generateOTP(username, password) {
     const res = await fetch(apiPath, {
       method: 'POST',
       headers: {
-        'X-Password': password,
+        'X-Password': encodeURIComponent(password),
       }
     })
     return await res.json()
@@ -35,7 +35,7 @@ export async function verifyOtp(username, password, otp) {
     const res = await fetch(apiPath, {
       method: 'POST',
       headers: {
-        'X-Password': password,
+        'X-Password': encodeURIComponent(password),
         'X-Secret': otp,
       }
     })
@@ -65,7 +65,7 @@ export async function login(username, password, recaptcha, otp) {
     method: 'POST',
     credentials: 'same-origin', // Ensure cookies can be set during login
     headers: {
-      'X-Password': password,
+      'X-Password': encodeURIComponent(password),
       'X-Secret': otp,
     }
   });

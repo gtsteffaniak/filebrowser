@@ -230,7 +230,9 @@
     "showOptions": "Visa alternativ",
     "searchContext": "Sök kontext: {context}",
     "notEnoughCharacters": "Inte tillräckligt med tecken för att söka (min {minSearchLength})",
-    "typeToSearch": "Börja skriva {minSearchLength} eller fler tecken för att påbörja sökningen."
+    "typeToSearch": "Börja skriva {minSearchLength} eller fler tecken för att påbörja sökningen.",
+    "showPreviewImages": "Visa förhandsgranskningsbilder",
+    "showPreviewImagesDescription": "Visa förhandsvisningar av miniatyrbilder för sökresultat när det är tillgängligt och visa större ikoner för alla resultat."
   },
   "settings": {
     "administrator": "Administratör",

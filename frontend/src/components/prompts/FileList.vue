@@ -19,7 +19,11 @@
     <div v-if="!isDisplayMode" aria-label="filelist-path" class="searchContext button clickable">{{ $t('general.path', { suffix: ':' }) }}
       {{ sourcePath.path }}</div>
 
-    <ul class="file-list">
+    <div v-if="loading" class="loading-spinner">
+      <i class="material-icons spin">sync</i>
+    </div>
+
+    <ul v-else class="file-list">
       <li @click="itemClick" @touchstart="touchstart" @dblclick="next" role="button" tabindex="0"
         :aria-label="item.name" :aria-selected="selected == item.path" :key="item.name" v-for="item in items"
         :data-path="item.path" class="file-item">
@@ -92,6 +96,7 @@ export default {
       selectedSource: null,
       current: window.location.pathname,
       currentSource: initialSource,
+      loading: false,
     };
   },
   computed: {
@@ -140,10 +145,13 @@ export default {
   mounted() {
     if (this.isDisplayMode) {
       // Display mode: use provided fileList
-      this.fillOptionsFromList();
+      this.withLoading(async () => {
+        await new Promise(resolve => setTimeout(resolve, 0)); // Make it async
+        this.fillOptionsFromList();
+      });
     } else if (this.browseShare) {
       // Browse a specific share
-      publicApi.fetchPub("/", this.browseShare).then(this.fillOptions);
+      this.withLoading(() => publicApi.fetchPub("/", this.browseShare).then(this.fillOptions));
     } else {
       // Normal browse mode: fetch files
       const sourceToUse = this.currentSource;
@@ -155,13 +163,26 @@ export default {
       };
       // Fetch the initial data for the source
       if (this.currentSource !== state.req.source) {
-        filesApi.fetchFiles(sourceToUse, pathToUse).then(this.fillOptions);
+        this.withLoading(() => filesApi.fetchFiles(sourceToUse, pathToUse).then(this.fillOptions));
       } else {
         this.fillOptions(initialReq);
       }
     }
   },
   methods: {
+    // Helper method to ensure loading spinner shows for minimum 200ms
+    async withLoading(operation) {
+      const startTime = Date.now();
+      this.loading = true;
+      try {
+        await operation();
+      } finally {
+        const elapsed = Date.now() - startTime;
+        const remaining = Math.max(0, 200 - elapsed);
+        await new Promise(resolve => setTimeout(resolve, remaining));
+        this.loading = false;
+      }
+    },
     resetToSource(newSource) {
       // Use current path if browsing the same source as current, otherwise start at root
       const newPath = newSource === state.req.source ? state.req.path : "/";
@@ -172,7 +193,7 @@ export default {
       this.selected = null;
       this.selectedSource = null;
       // Fetch files for the new source
-      filesApi.fetchFiles(newSource, newPath).then(this.fillOptions);
+      this.withLoading(() => filesApi.fetchFiles(newSource, newPath).then(this.fillOptions));
     },
     resetToShare(newHash) {
       // Reset to the share root
@@ -182,7 +203,7 @@ export default {
       this.selected = null;
       this.selectedSource = null;
       // Fetch files for the share
-      publicApi.fetchPub("/", newHash).then(this.fillOptions);
+      this.withLoading(() => publicApi.fetchPub("/", newHash).then(this.fillOptions));
     },
     fillOptions(req) {
       // Sets the current path and resets
@@ -234,10 +255,10 @@ export default {
       if (this.browseShare || getters.isShare()) {
         // Browsing a share - use public API
         const hashToUse = this.browseShare || state.shareInfo?.hash;
-        publicApi.fetchPub(path, hashToUse).then(this.fillOptions);
+        this.withLoading(() => publicApi.fetchPub(path, hashToUse).then(this.fillOptions));
       } else {
         this.source = sourceToUse;
-        filesApi.fetchFiles(sourceToUse, path).then(this.fillOptions);
+        this.withLoading(() => filesApi.fetchFiles(sourceToUse, path).then(this.fillOptions));
       }
 
     },

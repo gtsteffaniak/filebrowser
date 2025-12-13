@@ -13,6 +13,11 @@ server:
       config:
         disableIndexing: true
         defaultEnabled: true
+    - path: "/tests/playwright-files"
+      name: "access"
+      config:
+        defaultEnabled: true
+        denyByDefault: true
 frontend:
   name: "Graham's Filebrowser"
   disableDefaultLinks: true

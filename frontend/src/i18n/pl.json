@@ -230,7 +230,9 @@
     "showOptions": "Pokaż opcje",
     "searchContext": "Kontekst wyszukiwania: {context}",
     "notEnoughCharacters": "Za mało znaków do wyszukania (min. {minSearchLength})",
-    "typeToSearch": "Zacznij wpisywać {minSearchLength} lub więcej znaków, aby rozpocząć wyszukiwanie."
+    "typeToSearch": "Zacznij wpisywać {minSearchLength} lub więcej znaków, aby rozpocząć wyszukiwanie.",
+    "showPreviewImages": "Pokaż obrazy podglądu",
+    "showPreviewImagesDescription": "Wyświetlaj podglądy miniatur wyników wyszukiwania, jeśli są dostępne, i wyświetlaj większe ikony dla wszystkich wyników."
   },
   "settings": {
     "administrator": "Administrator",

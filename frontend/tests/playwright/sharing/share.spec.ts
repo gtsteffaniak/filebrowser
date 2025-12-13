@@ -55,15 +55,15 @@ test("share private source", async ({ page, checkForErrors, openContextMenu }) =
 });
 
 
-test("share file creation", async ({ page, checkForErrors, openContextMenu }) => {
+test("share file creation actions", async ({ page, checkForErrors, openContextMenu }) => {
   await page.goto("/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
-  const shareHashShare = await page.evaluate(() => localStorage.getItem('shareHashShare'));
-  if (shareHashShare == "") {
+  const rootShareHash = await page.evaluate(() => localStorage.getItem('rootShareHash'));
+  if (rootShareHash == "") {
     throw new Error("Share hash not found in localStorage");
   }
-  await page.goto("public/share/" + shareHashShare);
-  await expect(page).toHaveTitle("Graham's Filebrowser - Share - share");
+  await page.goto("public/share/" + rootShareHash);
+  await expect(page).toHaveTitle("Graham's Filebrowser - Share - playwright-files");
   await page.waitForTimeout(1000);
   await openContextMenu();
   await page.locator('button[aria-label="New file"]').click();
@@ -71,7 +71,7 @@ test("share file creation", async ({ page, checkForErrors, openContextMenu }) =>
   await page.locator('input[aria-label="FileName Field"]').fill('dfsaf.txt');
   await page.locator('button[aria-label="Create"]').click();
   // Note: Share links don't show the "go to item" button, so no need to click notification
-  await expect(page).toHaveTitle("Graham's Filebrowser - Share - share");
+  await expect(page).toHaveTitle("Graham's Filebrowser - Share - playwright-files");
   await page.locator('a[aria-label="dfsaf.txt"]').dblclick();
   await expect(page).toHaveTitle("Graham's Filebrowser - Share - dfsaf.txt");
   await page.locator(".ace_content").click();
