@@ -98,7 +98,7 @@ func setupFs() {
 // testCacheDirSpeed performs a mandatory speed test on the cache directory by writing,
 // reading, and deleting a 10MB test file. Reports write and read performance in MB/s.
 func testCacheDirSpeed() {
-	msgPrfx := "cacheDir test"
+	msgPrfx := "cacheDir"
 	failSuffix := "Please review documentation to ensure a valid cache directory is configured https://filebrowserquantum.com/en/docs/configuration/server/#cachedir"
 	const testFileSize = 10 * 1024 * 1024 // 10MB
 
@@ -212,7 +212,7 @@ func testCacheDirSpeed() {
 	logger.Debugf("%s cache directory has %.2f GB of free space", msgPrfx, freeSpaceGB)
 	const minRecommendedGB = 20.0
 	if freeSpaceGB < minRecommendedGB {
-		logger.Warningf("%s cache directory only has %.2f GB of free space, this is less than the %.0f GB minimum recommended free space.\n%s", msgPrfx, freeSpaceGB, minRecommendedGB, failSuffix)
+		logger.Warningf("%s only has %.2f GB of free space, this is less than the %.0f GB minimum recommended free space.\n%s", msgPrfx, freeSpaceGB, minRecommendedGB, failSuffix)
 	}
 }
 
