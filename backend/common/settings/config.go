@@ -3,6 +3,7 @@ package settings
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
@@ -87,17 +88,115 @@ func setupFs() {
 	}
 	fileutils.SetFsPermissions(os.FileMode(filePermOctal), os.FileMode(dirPermOctal))
 
-	// try writing to cache dir
-	absCacheDir, err := filepath.Abs(Config.Server.CacheDir)
+	// Perform mandatory cache directory speed test
+	testCacheDirSpeed()
+
+	logger.Infof("cache directory setup successfully: %v", Config.Server.CacheDir)
+
+}
+
+// testCacheDirSpeed performs a mandatory speed test on the cache directory by writing,
+// reading, and deleting a 10MB test file. Reports write and read performance in MB/s.
+func testCacheDirSpeed() {
+	msgPrfx := "cacheDir test"
+	failSuffix := " Please review documentation to ensure a valid cache directory is configured https://filebrowserquantum.com/en/docs/configuration/server/#cachedir"
+	const testFileSize = 10 * 1024 * 1024 // 10MB
+	testFileName := filepath.Join(Config.Server.CacheDir, "speed_test.tmp")
+
+	// Create test data (10MB of zeros)
+	testData := make([]byte, testFileSize)
+
+	// Test write performance
+	writeStart := time.Now()
+	file, err := os.Create(testFileName)
 	if err != nil {
-		logger.Errorf("error getting absolute path for 'server.cacheDir: %v': %v", Config.Server.CacheDir, err)
-	}
-	cacheDir := filepath.Join(absCacheDir, "init_test")
-	err = os.MkdirAll(cacheDir, fileutils.PermDir)
-	if err != nil {
-		logger.Errorf("Unable to write to 'server.cacheDir: %v', please ensure the cache directory is writable: %v", absCacheDir, err)
+		logger.Fatalf("%s failed to create test file: %v\n%s", msgPrfx, err, failSuffix)
 	}
 
+	written, err := file.Write(testData)
+	if err != nil {
+		file.Close()
+		os.Remove(testFileName)
+		logger.Fatalf("%s failed to write test file: %v\n%s", msgPrfx, err, failSuffix)
+	}
+
+	err = file.Sync() // Ensure data is written to disk
+	if err != nil {
+		file.Close()
+		os.Remove(testFileName)
+		logger.Fatalf("%s failed to sync test file to disk: %v\n%s", msgPrfx, err, failSuffix)
+	}
+
+	err = file.Close()
+	if err != nil {
+		os.Remove(testFileName)
+		logger.Fatalf("%s failed to close test file: %v\n%s", msgPrfx, err, failSuffix)
+	}
+
+	writeDuration := time.Since(writeStart)
+	writeSpeedMBs := float64(written) / (1024 * 1024) / writeDuration.Seconds()
+
+	// Test read performance
+	readStart := time.Now()
+	file, err = os.Open(testFileName)
+	if err != nil {
+		os.Remove(testFileName)
+		logger.Fatalf("%s failed to open test file for reading: %v\n%s", msgPrfx, err, failSuffix)
+	}
+
+	readData := make([]byte, testFileSize)
+	readBytes, err := io.ReadFull(file, readData)
+	if err != nil {
+		file.Close()
+		os.Remove(testFileName)
+		logger.Fatalf("%s failed to read test file: %v\n%s", msgPrfx, err, failSuffix)
+	}
+
+	err = file.Close()
+	if err != nil {
+		os.Remove(testFileName)
+		logger.Fatalf("%s failed to close test file after reading: %v\n%s", msgPrfx, err, failSuffix)
+	}
+
+	readDuration := time.Since(readStart)
+	readSpeedMBs := float64(readBytes) / (1024 * 1024) / readDuration.Seconds()
+
+	// Verify data integrity
+	if readBytes != written {
+		os.Remove(testFileName)
+		logger.Fatalf("%s data integrity check failed: wrote %d bytes but read %d bytes\n%s", msgPrfx, written, readBytes, failSuffix)
+	}
+
+	// Clean up test file
+	err = os.Remove(testFileName)
+	if err != nil {
+		logger.Fatalf("%s failed to remove test file: %v\n%s", msgPrfx, err, failSuffix)
+	}
+
+	// Log performance results
+	if writeSpeedMBs < 50 {
+		slowSuffix := " Ensure you configure a faster cache directory via the `server.cacheDir` configuration option."
+		logger.Warningf("%s slow write speed detected: %.2f MB/s (%.2f ms)\n%s\n%s", msgPrfx, writeSpeedMBs, writeDuration.Seconds()*1000, failSuffix, slowSuffix)
+	} else {
+		logger.Debugf("%s write speed: %.2f MB/s (%.2f ms)", msgPrfx, writeSpeedMBs, writeDuration.Seconds()*1000)
+	}
+	if readSpeedMBs < 50 {
+		slowSuffix := " Ensure you configure a faster cache directory via the `server.cacheDir` configuration option."
+		logger.Warningf("%s slow read speed detected: %.2f MB/s (%.2f ms)\n%s\n%s", msgPrfx, readSpeedMBs, readDuration.Seconds()*1000, failSuffix, slowSuffix)
+	} else {
+		logger.Debugf("%s read speed : %.2f MB/s (%.2f ms)", msgPrfx, readSpeedMBs, readDuration.Seconds()*1000)
+	}
+	// check cache directory disk free space
+	freeSpace, err := fileutils.GetFreeSpace(Config.Server.CacheDir)
+	if err != nil {
+		logger.Fatalf("%s failed to get free space for cache directory: %v\n%s", msgPrfx, err, failSuffix)
+	}
+	freeSpaceGB := float64(freeSpace) / (1024 * 1024 * 1024)
+	logger.Debugf("%s cache directory has %.2f GB of free space", msgPrfx, freeSpaceGB)
+	const minRecommendedGB = 20.0
+	if freeSpaceGB < minRecommendedGB {
+		logger.Warningf("%s cache directory only has %.2f GB of free space, this is less than the %.0f GB minimum recommended free space.\n%s", msgPrfx, freeSpaceGB, minRecommendedGB, failSuffix)
+	}
 }
 
 func setupFrontend(generate bool) {

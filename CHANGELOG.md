@@ -9,6 +9,11 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Notes**:
  - file list has loading spinner to help prevent double click issues and give better feedback
+ - improved cacheDir startup checks
+   - warning for slow read/write speeds below 50MB/s
+   - warning for low free space below 20GB
+   - fatal for any errors reading or writing to the directory
+   - links to official docs for more info 
  - access rule changes:
    - denied folders won't show up in parent directory listing view (#1684)
    - tools will respect access rules
