@@ -181,17 +181,27 @@ func testCacheDirSpeed() {
 	}
 
 	// Log performance results
+	writeDurationMs := writeDuration.Seconds() * 1000
+	readDurationMs := readDuration.Seconds() * 1000
+	const highLatencyThresholdMs = 1000.0 // 1 second for 10MB file indicates high latency
+
 	if writeSpeedMBs < 50 {
 		slowSuffix := " Ensure you configure a faster cache directory via the `server.cacheDir` configuration option."
-		logger.Warningf("%s slow write speed detected: %.2f MB/s (%.2f ms)\n%s\n%s", msgPrfx, writeSpeedMBs, writeDuration.Seconds()*1000, failSuffix, slowSuffix)
+		logger.Warningf("%s slow write speed detected: %.2f MB/s (%.2f ms)\n%s\n%s", msgPrfx, writeSpeedMBs, writeDurationMs, failSuffix, slowSuffix)
+	} else if writeDurationMs > highLatencyThresholdMs {
+		slowSuffix := " Ensure you configure a faster cache directory via the `server.cacheDir` configuration option."
+		logger.Warningf("%s high write latency detected: %.2f ms for 10MB file (speed: %.2f MB/s). This may indicate network storage or I/O issues.\n%s\n%s", msgPrfx, writeDurationMs, writeSpeedMBs, failSuffix, slowSuffix)
 	} else {
-		logger.Debugf("%s write speed: %.2f MB/s (%.2f ms)", msgPrfx, writeSpeedMBs, writeDuration.Seconds()*1000)
+		logger.Debugf("%s write speed: %.2f MB/s (%.2f ms)", msgPrfx, writeSpeedMBs, writeDurationMs)
 	}
 	if readSpeedMBs < 50 {
 		slowSuffix := " Ensure you configure a faster cache directory via the `server.cacheDir` configuration option."
-		logger.Warningf("%s slow read speed detected: %.2f MB/s (%.2f ms)\n%s\n%s", msgPrfx, readSpeedMBs, readDuration.Seconds()*1000, failSuffix, slowSuffix)
+		logger.Warningf("%s slow read speed detected: %.2f MB/s (%.2f ms)\n%s\n%s", msgPrfx, readSpeedMBs, readDurationMs, failSuffix, slowSuffix)
+	} else if readDurationMs > highLatencyThresholdMs {
+		slowSuffix := " Ensure you configure a faster cache directory via the `server.cacheDir` configuration option."
+		logger.Warningf("%s high read latency detected: %.2f ms for 10MB file (speed: %.2f MB/s). This may indicate network storage or I/O issues.\n%s\n%s", msgPrfx, readDurationMs, readSpeedMBs, failSuffix, slowSuffix)
 	} else {
-		logger.Debugf("%s read speed : %.2f MB/s (%.2f ms)", msgPrfx, readSpeedMBs, readDuration.Seconds()*1000)
+		logger.Debugf("%s read speed : %.2f MB/s (%.2f ms)", msgPrfx, readSpeedMBs, readDurationMs)
 	}
 	// check cache directory disk free space
 	freeSpace, err := fileutils.GetFreeSpace(Config.Server.CacheDir)

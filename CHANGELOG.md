@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file. For commit 
  - improved cacheDir startup checks
    - warning for slow read/write speeds below 50MB/s
    - warning for low free space below 20GB
+   - warning if read/write latency is slow
    - fatal for any errors reading or writing to the directory
    - links to official docs for more info 
  - access rule changes:
