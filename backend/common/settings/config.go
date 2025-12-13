@@ -99,8 +99,15 @@ func setupFs() {
 // reading, and deleting a 10MB test file. Reports write and read performance in MB/s.
 func testCacheDirSpeed() {
 	msgPrfx := "cacheDir test"
-	failSuffix := " Please review documentation to ensure a valid cache directory is configured https://filebrowserquantum.com/en/docs/configuration/server/#cachedir"
+	failSuffix := "Please review documentation to ensure a valid cache directory is configured https://filebrowserquantum.com/en/docs/configuration/server/#cachedir"
 	const testFileSize = 10 * 1024 * 1024 // 10MB
+
+	// Ensure cache directory exists
+	err := os.MkdirAll(Config.Server.CacheDir, fileutils.PermDir)
+	if err != nil {
+		logger.Fatalf("%s failed to create cache directory: %v\n%s", msgPrfx, err, failSuffix)
+	}
+
 	testFileName := filepath.Join(Config.Server.CacheDir, "speed_test.tmp")
 
 	// Create test data (10MB of zeros)
