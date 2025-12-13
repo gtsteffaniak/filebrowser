@@ -140,6 +140,16 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 
 	const passwordBcrypt = "$2y$10$TFAmdCbyd/mEZDe5fUeZJu.MaJQXRTwdqb/IQV.eTn6dWrF58gCSe" // bcrypt hashed password
 
+	// Create and save a dummy user with ID 1 (all shares use UserID: 1)
+	dummyUser := &users.User{
+		ID:          1,
+		Username:    "testuser",
+		Permissions: users.Permissions{Admin: false},
+	}
+	if err := store.Users.Save(dummyUser, true, true); err != nil {
+		t.Fatal("failed to save dummy user:", err)
+	}
+
 	testCases := []struct {
 		name               string
 		share              *share.Link
@@ -151,7 +161,8 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 		{
 			name: "Public share, no auth required",
 			share: &share.Link{
-				Hash: "public_hash",
+				Hash:   "public_hash",
+				UserID: 1,
 				CommonShare: share.CommonShare{
 					Source: "/srv",
 				},

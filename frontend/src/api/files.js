@@ -102,11 +102,19 @@ export async function download(format, files, shareHash = "") {
     sessionId: state.sessionId
   })
   const url = window.origin + apiPath
+
+  // Create a direct link and trigger the download
+  // This allows the browser to handle the download natively with:
+  // - Native download progress indicator
+  // - Shows up in browser's download menu
+  // - Doesn't load entire file into memory first
   const link = document.createElement('a')
   link.href = url
   link.style.display = 'none'
   document.body.appendChild(link)
   link.click()
+  
+  // Clean up after a short delay
   setTimeout(() => {
     document.body.removeChild(link)
   }, 100)

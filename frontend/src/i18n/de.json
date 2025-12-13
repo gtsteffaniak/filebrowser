@@ -230,7 +230,9 @@
     "showOptions": "Optionen anzeigen",
     "searchContext": "Suche im Kontext: {context}",
     "notEnoughCharacters": "Nicht genügend Zeichen für die Suche (min {minSearchLength})",
-    "typeToSearch": "Beginnen Sie mit der Eingabe von {minSearchLength} oder mehr Zeichen, um die Suche zu starten."
+    "typeToSearch": "Beginnen Sie mit der Eingabe von {minSearchLength} oder mehr Zeichen, um die Suche zu starten.",
+    "showPreviewImages": "Vorschaubilder anzeigen",
+    "showPreviewImagesDescription": "Zeigen Sie eine Miniaturvorschau für Suchergebnisse an, wenn verfügbar, und zeigen Sie größere Symbole für alle Ergebnisse an."
   },
   "settings": {
     "administrator": "Administrator",

@@ -9,6 +9,31 @@ All notable changes to this project will be documented in this file. For commit 
    - reduces memory usage
    - comparable performance
 
+## v1.1.4-beta
+
+ **New Features**:
+ - toggle to show searching results with thumbnails #1545
+
+ **Notes**:
+ - file list has loading spinner to help prevent double click issues and give better feedback
+ - improved cacheDir startup checks
+   - warning for slow read/write speeds below 50MB/s
+   - warning for low free space below 20GB
+   - warning if read/write latency is slow
+   - fatal for any errors reading or writing to the directory
+   - links to official docs for more info 
+ - access rule changes:
+   - denied folders won't show up in parent directory listing view (#1684)
+   - tools will respect access rules
+   - shares will check access rules based on user that created the share
+
+ **BugFixes**:
+ - passwords with special characters not working properly (#1648)
+ - encoded filename navigation issue (#1711)
+ - Fix/Improve some behaviors in nextPrevious (#1707)
+ - Files recognized as folder if they have the same name as previously deleted folders #1697
+ - multi logger support issue #1701
+
 ## v1.1.3-beta
 
  **Notes**:

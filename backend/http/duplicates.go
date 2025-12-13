@@ -86,10 +86,11 @@ func duplicatesHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 	}
 	userscope = strings.TrimRight(userscope, "/")
 	scopePath := utils.JoinPathAsUnix(userscope, opts.searchScope)
-	fullPath := index.MakeIndexPath(scopePath, true) // searchScope is a directory
+	fullPath := index.MakeIndexPath(scopePath, true)
 	if !store.Access.Permitted(index.Path, fullPath, d.user.Username) {
 		return http.StatusForbidden, fmt.Errorf("user is not allowed to access this location")
 	}
+
 	// Generate cache key from all input parameters that affect results
 	// Checksums are always enabled, so cache key doesn't need to include that flag
 	cacheKey := fmt.Sprintf("%s:%s:%d", index.Path, opts.combinedPath, opts.minSize)
@@ -237,6 +238,7 @@ func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions) []dup
 func prepDuplicatesOptions(r *http.Request, d *requestContext) (*duplicatesOptions, error) {
 	source := r.URL.Query().Get("source")
 	scope := r.URL.Query().Get("scope")
+
 	minSizeMbStr := r.URL.Query().Get("minSizeMb")
 	// Checksums are always enabled by default for final verification
 	// First pass uses filename matching for speed, then checksums verify final groups

@@ -75,7 +75,7 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.E
 	response.RealPath = realPath
 	response.Source = opts.Source
 
-	if access != nil && !access.Permitted(index.Path, opts.Path, opts.Username) {
+	if access != nil {
 		err := access.CheckChildItemAccess(response, index, opts.Username)
 		if err != nil {
 			return response, err
@@ -347,6 +347,10 @@ func DeleteFiles(source, absPath string, absDirPath string, isDir bool) error {
 			return err
 		}
 
+		// Clear cache entries
+		indexing.RealPathCache.Delete(absPath)
+		indexing.IsDirCache.Delete(absPath + ":isdir")
+
 		// Remove metadata from index
 		deleteSuccess := index.DeleteMetadata(indexPath, isDir, isDir)
 		if !deleteSuccess {
@@ -399,6 +403,8 @@ func RefreshIndex(source string, path string, isDir bool, recursive bool) error 
 				logger.Debugf("[REFRESH] Directory does not exist on disk, removing from index: %s", realPath)
 				// Directory no longer exists, remove it from the index
 				// This clears both Directories and DirectoriesLedger maps
+				indexing.RealPathCache.Delete(realPath)
+				indexing.IsDirCache.Delete(realPath + ":isdir")
 				idx.DeleteMetadata(path, true, false)
 				return nil
 			}
@@ -486,20 +492,11 @@ func MoveResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string
 
 	// Handle SOURCE cleanup (treat as deletion)
 	if !srcIdx.Config.DisableIndexing {
-		logger.Debugf("[MOVE] Starting source cleanup - srcIndexPath=%s, isSrcDir=%v", srcIndexPath, isSrcDir)
-		// Remove metadata from source index
 		if isSrcDir {
-			// Recursively remove directory and all subdirectories from source index
-			logger.Debugf("[MOVE] Deleting source directory metadata recursively: %s", srcIndexPath)
 			srcIdx.DeleteMetadata(srcIndexPath, true, true)
 		} else {
-			// Remove file from source parent's file list
-			logger.Debugf("[MOVE] Deleting source file metadata: %s", srcIndexPath)
 			srcIdx.DeleteMetadata(srcIndexPath, false, false)
 		}
-
-		// Refresh the source parent directory to recalculate sizes and update counts
-		logger.Debugf("[MOVE] Refreshing source parent directory (async): %s", srcParentPath)
 		go RefreshIndex(sourceIndex, srcParentPath, true, false) //nolint:errcheck
 	} else {
 		logger.Debugf("[MOVE] Source indexing disabled, skipping cleanup")
@@ -510,25 +507,12 @@ func MoveResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string
 	if !dstIdx.Config.DisableIndexing {
 		logger.Debugf("[MOVE] Starting destination indexing - dstIndexPath=%s, isSrcDir=%v", dstIndexPath, isSrcDir)
 		if isSrcDir {
-			// When moving a folder, refresh the folder itself recursively FIRST
-			// Must complete before parent refresh to ensure sizes are calculated
-			logger.Debugf("[MOVE] Step 1: Refreshing moved directory recursively: %s", realdst)
-			if err := RefreshIndex(destIndex, realdst, true, true); err != nil {
-				logger.Errorf("[MOVE] Failed to refresh moved directory %s: %v", realdst, err)
-			} else {
-				logger.Debugf("[MOVE] Step 1 completed: Moved directory refreshed successfully")
-			}
-
-			// THEN refresh the parent directory so it sees the newly indexed child and updates sizes
-			parentDir := filepath.Dir(realdst)
-			logger.Debugf("[MOVE] Step 2: Refreshing destination parent directory: %s", parentDir)
-			if err := RefreshIndex(destIndex, parentDir, true, false); err != nil {
-				logger.Errorf("[MOVE] Failed to refresh destination parent directory %s: %v", parentDir, err)
-			} else {
-				logger.Debugf("[MOVE] Step 2 completed: Destination parent directory refreshed successfully")
-			}
+			go func() {
+				RefreshIndex(destIndex, realdst, true, true) //nolint:errcheck
+				parentDir := filepath.Dir(realdst)
+				RefreshIndex(destIndex, parentDir, true, false) //nolint:errcheck
+			}()
 		} else {
-			// If moving a file, just refresh the parent directory
 			parentDir := filepath.Dir(realdst)
 			logger.Debugf("[MOVE] Refreshing destination parent directory (file move): %s", parentDir)
 			if err := RefreshIndex(destIndex, parentDir, true, false); err != nil {

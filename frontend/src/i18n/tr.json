@@ -230,7 +230,9 @@
     "showOptions": "Seçenekleri Göster",
     "searchContext": "Arama Bağlamı: {context}",
     "notEnoughCharacters": "Arama yapmak için yeterli karakter yok (min {minSearchLength})",
-    "typeToSearch": "Aramaya başlamak için {minSearchLength} veya daha fazla karakter yazmaya başlayın."
+    "typeToSearch": "Aramaya başlamak için {minSearchLength} veya daha fazla karakter yazmaya başlayın.",
+    "showPreviewImages": "Önizleme resimlerini göster",
+    "showPreviewImagesDescription": "Kullanılabilir olduğunda arama sonuçları için küçük resim önizlemelerini görüntüleyin ve tüm sonuçlar için daha büyük simgeler gösterin."
   },
   "settings": {
     "administrator": "Yönetici",

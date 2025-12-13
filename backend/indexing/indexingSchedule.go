@@ -198,7 +198,7 @@ func (idx *Index) SendSourceUpdateEvent() error {
 		logger.Debug("Skipping source update event for mock index.")
 		return nil
 	}
-	reducedIndex, err := GetIndexInfo(idx.Name, false)
+	reducedIndex, err := GetIndexInfo(idx.Name, true)
 	if err != nil {
 		logger.Errorf("[%s] Error getting index info: %v", idx.Name, err)
 		return err

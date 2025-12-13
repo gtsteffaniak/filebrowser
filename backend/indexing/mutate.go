@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
@@ -281,7 +282,7 @@ func GetIndexInfo(sourceName string, forceCacheRefresh bool) (ReducedIndex, erro
 	_, ok = utils.DiskUsageCache.Get(cacheKey)
 	if !ok {
 		// Only fetch disk total if not cached (this is expensive, so we cache it)
-		totalBytes, err := getPartitionSize(sourcePath)
+		totalBytes, err := fileutils.GetPartitionSize(sourcePath)
 		if err != nil {
 			idx.mu.Lock()
 			idx.Status = UNAVAILABLE
