@@ -82,6 +82,9 @@ type Index struct {
 	lastRootScanTime     time.Time           `json:"-"` // Last time root scanner completed - child scanners wait for this
 	initialScanStartTime time.Time           `json:"-"` // When initial multi-scanner indexing started
 	hasLoggedInitialScan bool                `json:"-"` // Whether we've logged the first complete round
+	lastVacuumTime       time.Time           `json:"-"` // Last time VACUUM was performed on the database
+	seenPaths            map[string]bool     `json:"-"` // Tracks paths seen during current scan (for stale entry cleanup)
+	pendingFlushes       sync.WaitGroup      `json:"-"` // Tracks async progressive flush operations
 
 	// Control
 	mock       bool
@@ -540,15 +543,16 @@ func (idx *Index) GetRealPath(relativePath ...string) (string, bool, error) {
 }
 
 func (idx *Index) RefreshFileInfo(opts utils.FileOptions) error {
+	idx.scanMutex.Lock()
+	defer idx.scanMutex.Unlock()
+
 	targetPath := opts.Path
 	if !opts.IsDir {
 		targetPath = idx.MakeIndexPath(filepath.Dir(targetPath), true)
 	}
 
-	// Check if directory exists in index and get its modtime
 	previousInfo, previousExists := idx.GetMetadataInfo(targetPath, true)
 
-	// Get the actual directory modtime from filesystem
 	realPath, _, err := idx.GetRealPath(targetPath)
 	if err != nil {
 		return err
@@ -556,7 +560,6 @@ func (idx *Index) RefreshFileInfo(opts utils.FileOptions) error {
 
 	dirInfo, err := os.Stat(realPath)
 	if err != nil {
-		// Directory doesn't exist, remove from index
 		idx.DeleteMetadata(targetPath, true, false)
 		return nil
 	}
@@ -923,4 +926,89 @@ func (idx *Index) shouldInclude(baseName string) bool {
 		return true
 	}
 	return false
+}
+
+// trackSeenPath records that a path was seen during the current scan.
+// Used for stale entry detection - paths not seen after a full scan are considered stale.
+func (idx *Index) trackSeenPath(path string) {
+	idx.mu.Lock()
+	defer idx.mu.Unlock()
+
+	if idx.seenPaths != nil {
+		idx.seenPaths[path] = true
+	}
+}
+
+// purgeStaleEntries removes database entries that weren't seen during the last full scan.
+// This prevents accumulation of entries for deleted files/directories.
+func (idx *Index) purgeStaleEntries(scanPath string) {
+	if idx.db == nil {
+		return
+	}
+
+	// Get all paths in database for this scan path
+	dbPaths, err := idx.db.GetAllPathsForSource(idx.Name, scanPath)
+	if err != nil {
+		logger.Errorf("[DB_MAINTENANCE] Failed to get paths for stale entry check: %v", err)
+		return
+	}
+
+	if len(dbPaths) == 0 {
+		return
+	}
+
+	// Identify stale paths (in DB but not seen during scan)
+	idx.mu.RLock()
+	seenPaths := idx.seenPaths
+	idx.mu.RUnlock()
+
+	stalePaths := []string{}
+	for _, path := range dbPaths {
+		if !seenPaths[path] {
+			stalePaths = append(stalePaths, path)
+		}
+	}
+
+	if len(stalePaths) == 0 {
+		logger.Debugf("[DB_MAINTENANCE] No stale entries found for scan path: %s", scanPath)
+		return
+	}
+
+	logger.Infof("[DB_MAINTENANCE] Purging %d stale entries for scan path: %s", len(stalePaths), scanPath)
+
+	// Delete stale paths in bulk
+	if err := idx.db.BulkDeletePaths(idx.Name, stalePaths); err != nil {
+		logger.Errorf("[DB_MAINTENANCE] Failed to purge stale entries: %v", err)
+	}
+}
+
+// performPeriodicMaintenance performs periodic database maintenance (VACUUM).
+// Should be called after full scans complete, but only runs once per week to avoid overhead.
+func (idx *Index) performPeriodicMaintenance() {
+	if idx.db == nil {
+		return
+	}
+
+	idx.mu.Lock()
+	lastVacuum := idx.lastVacuumTime
+	idx.mu.Unlock()
+
+	// Only vacuum once per week
+	if time.Since(lastVacuum) < 7*24*time.Hour {
+		return
+	}
+
+	logger.Infof("[DB_MAINTENANCE] Starting periodic maintenance for index: %s", idx.Name)
+
+	// Perform VACUUM to reclaim space from deleted entries
+	if err := idx.db.Vacuum(); err != nil {
+		logger.Errorf("[DB_MAINTENANCE] Periodic maintenance failed for %s: %v", idx.Name, err)
+		return
+	}
+
+	idx.mu.Lock()
+	idx.lastVacuumTime = time.Now()
+	idx.mu.Unlock()
+
+	logger.Infof("[DB_MAINTENANCE] Periodic maintenance completed for index: %s", idx.Name)
 }

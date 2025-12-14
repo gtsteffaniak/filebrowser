@@ -159,38 +159,28 @@ func (idx *Index) PostScan() error {
 	return nil
 }
 
-// updateRootDirectorySize recalculates the "/" directory size from the database
-// and updates the "/" entry. This should be called after any scanner completes.
 func (idx *Index) updateRootDirectorySize() {
-	// Get all direct children of root directory
 	children, err := idx.db.GetDirectoryChildren(idx.Name, "/")
 	if err != nil {
 		logger.Errorf("Failed to get root directory children: %v", err)
 		return
 	}
 
-	// Calculate total size: sum of all direct files + all child directory sizes
 	var totalSize int64
 	for _, child := range children {
 		totalSize += child.Size
 	}
 
-	// Get current root directory entry
 	rootDir, err := idx.db.GetItem(idx.Name, "/")
 	if err != nil || rootDir == nil {
 		logger.Errorf("Failed to get root directory entry: %v", err)
 		return
 	}
 
-	// Update root directory size
 	rootDir.Size = totalSize
 	if err := idx.db.InsertItem(idx.Name, "/", rootDir); err != nil {
 		logger.Errorf("Failed to update root directory size: %v", err)
-		return
 	}
-
-	// Now aggregate stats and send update event
-	idx.aggregateStatsFromScanners()
 }
 
 func (idx *Index) SendSourceUpdateEvent() error {

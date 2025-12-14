@@ -93,16 +93,23 @@ func (s *Scanner) tryAcquireAndScan() {
 		s.idx.mu.Unlock()
 	}
 
-	// Clear active scanner
 	s.idx.mu.Lock()
 	s.idx.activeScannerPath = ""
+	allIdle := true
+	for _, scanner := range s.idx.scanners {
+		if !scanner.lastScanned.IsZero() && time.Since(scanner.lastScanned) > 1*time.Minute {
+			allIdle = false
+			break
+		}
+	}
 	s.idx.mu.Unlock()
 
 	s.idx.scanMutex.Unlock()
 
-	// After any scan completes, recalculate and update root directory size
-	// This ensures "/" always reflects the sum of all child directories + root files
-	s.idx.updateRootDirectorySize()
+	if allIdle {
+		s.idx.updateRootDirectorySize()
+	}
+	s.idx.aggregateStatsFromScanners()
 }
 
 // runIndexing performs the actual indexing work
@@ -124,15 +131,14 @@ func (s *Scanner) runRootScan(quick bool) {
 		IsRoutineScan: true,
 	}
 
-	// Reset counters for full scan (they will be incremented during indexing)
 	if !quick {
 		s.numDirs = 0
 		s.numFiles = 0
 	}
 
-	// Initialize batch accumulator for this scan
 	s.idx.mu.Lock()
 	s.idx.batchItems = make([]*iteminfo.FileInfo, 0, 5000)
+	s.idx.seenPaths = make(map[string]bool)
 	s.idx.mu.Unlock()
 
 	s.filesChanged = false
@@ -143,8 +149,17 @@ func (s *Scanner) runRootScan(quick bool) {
 		logger.Errorf("Root scanner error: %v", err)
 	}
 
-	// Flush accumulated batch to database
 	s.idx.flushBatch()
+
+	if !quick {
+		s.idx.purgeStaleEntries(s.scanPath)
+		s.idx.performPeriodicMaintenance()
+		s.syncStatsWithDB()
+	}
+
+	s.idx.mu.Lock()
+	s.idx.seenPaths = nil
+	s.idx.mu.Unlock()
 
 	// Note: Root directory size will be calculated by updateRootDirectorySize()
 	// which sums all child directories + root files from the database
@@ -166,7 +181,6 @@ func (s *Scanner) runChildScan(quick bool) {
 		IsRoutineScan: true,
 	}
 
-	// Reset counters for full scan (they will be incremented during indexing)
 	if !quick {
 		s.numDirs = 0
 		s.numFiles = 0
@@ -177,6 +191,7 @@ func (s *Scanner) runChildScan(quick bool) {
 	startTime := time.Now()
 	s.idx.batchItems = make([]*iteminfo.FileInfo, 0, 5000)
 	s.idx.isRoutineScan = true
+	s.idx.seenPaths = make(map[string]bool)
 	s.idx.mu.Unlock()
 
 	err := s.idx.indexDirectory(s.scanPath, config)
@@ -184,8 +199,17 @@ func (s *Scanner) runChildScan(quick bool) {
 		logger.Errorf("Scanner [%s] error: %v", s.scanPath, err)
 	}
 
-	// Flush accumulated batch to database
 	s.idx.flushBatch()
+
+	if !quick {
+		s.idx.purgeStaleEntries(s.scanPath)
+		s.idx.performPeriodicMaintenance()
+		s.syncStatsWithDB()
+	}
+
+	s.idx.mu.Lock()
+	s.idx.seenPaths = nil
+	s.idx.mu.Unlock()
 
 	// Note: Directory size is calculated recursively by indexDirectory()
 	// and stored in the database. Root directory size calculation happens
@@ -370,4 +394,28 @@ func (s *Scanner) removeSelf() {
 // stop gracefully stops the scanner
 func (s *Scanner) stop() {
 	close(s.stopChan)
+}
+
+// syncStatsWithDB synchronizes scanner counters with actual database counts
+func (s *Scanner) syncStatsWithDB() {
+	if s.idx.db == nil {
+		return
+	}
+
+	children, err := s.idx.db.GetDirectoryChildren(s.idx.Name, s.scanPath)
+	if err != nil {
+		return
+	}
+
+	var dirs, files uint64
+	for _, child := range children {
+		if child.Type == "directory" {
+			dirs++
+		} else {
+			files++
+		}
+	}
+
+	s.numDirs = dirs
+	s.numFiles = files
 }

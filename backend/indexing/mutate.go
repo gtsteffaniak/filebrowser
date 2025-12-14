@@ -30,6 +30,9 @@ func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo) bool {
 	dirItem.Path = info.Path // Already an index path like "/share/folder/"
 	items = append(items, &dirItem)
 
+	// Track this directory path as seen during scan (for stale entry detection)
+	idx.trackSeenPath(info.Path)
+
 	// Add folders to the bulk insert with index paths
 	for i := range info.Folders {
 		folder := &info.Folders[i]
@@ -54,6 +57,9 @@ func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo) bool {
 			Path:     filePath, // Store index path, not absolute path
 		}
 		items = append(items, fileItem)
+
+		// Track this file path as seen during scan (for stale entry detection)
+		idx.trackSeenPath(filePath)
 	}
 
 	// Check if we're in a batch scan (batchItems is initialized)
@@ -66,13 +72,13 @@ func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo) bool {
 		// and make items available in the index sooner
 		if len(idx.batchItems) >= 5000 {
 			itemsToFlush := idx.batchItems
-			idx.batchItems = make([]*iteminfo.FileInfo, 0, 5000) // Reset for next batch
+			idx.batchItems = make([]*iteminfo.FileInfo, 0, 5000)
+			idx.pendingFlushes.Add(1)
 			idx.mu.Unlock()
 
-			// Flush in background to avoid blocking scanner
-			// Even if flush fails due to DB contention, scanner continues
 			sourceName := idx.Name
 			go func(items []*iteminfo.FileInfo) {
+				defer idx.pendingFlushes.Done()
 				logger.Debugf("[DB_TX] Progressive flush: starting async flush of %d items", len(items))
 				err := idx.db.BulkInsertItems(sourceName, items)
 				if err != nil {
@@ -99,10 +105,12 @@ func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo) bool {
 // flushBatch writes all remaining batch items to the database
 // This is called at the end of a scan to flush any items that didn't reach the BATCH_SIZE threshold
 func (idx *Index) flushBatch() {
+	idx.pendingFlushes.Wait()
+
 	idx.mu.Lock()
 	items := idx.batchItems
-	idx.batchItems = nil      // Clear the batch
-	idx.isRoutineScan = false // Reset routine flag
+	idx.batchItems = nil
+	idx.isRoutineScan = false
 	idx.mu.Unlock()
 
 	if len(items) == 0 {
@@ -111,8 +119,6 @@ func (idx *Index) flushBatch() {
 
 	logger.Debugf("[DB_TX] Final flush: %d remaining items from scan", len(items))
 
-	// Flush synchronously at end of scan, but with fast-fail on contention
-	// Scanner has already completed, so we just log if this fails
 	err := idx.db.BulkInsertItems(idx.Name, items)
 	if err != nil {
 		logger.Warningf("[DB_TX] Final flush failed (%d items): %v", len(items), err)

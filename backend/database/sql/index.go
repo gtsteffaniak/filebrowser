@@ -421,6 +421,105 @@ func (db *IndexDB) UpdateCacheSize(cacheSizeMB int) error {
 	return nil
 }
 
+// Vacuum performs VACUUM operation to reclaim unused space in the database.
+// This should be called periodically during low-activity periods to prevent
+// database file growth from INSERT OR REPLACE operations.
+func (db *IndexDB) Vacuum() error {
+	logger.Debugf("[DB_MAINTENANCE] Starting VACUUM operation")
+	startTime := time.Now()
+	
+	_, err := db.Exec("VACUUM")
+	if err != nil {
+		logger.Errorf("[DB_MAINTENANCE] VACUUM failed: %v", err)
+		return fmt.Errorf("failed to vacuum database: %w", err)
+	}
+	
+	duration := time.Since(startTime)
+	logger.Infof("[DB_MAINTENANCE] VACUUM completed in %v", duration)
+	return nil
+}
+
+// GetAllPathsForSource retrieves all paths for a given source under a specific prefix.
+// Used for stale entry detection - returns paths that exist in DB for comparison with filesystem.
+func (db *IndexDB) GetAllPathsForSource(source string, pathPrefix string) ([]string, error) {
+	query := `SELECT path FROM index_items WHERE source = ? AND path GLOB ?`
+	
+	// For root scanner "/", get all paths starting with "/"
+	// For child scanner "/Documents/", get all paths starting with "/Documents/"
+	globPattern := pathPrefix + "*"
+	
+	rows, err := db.Query(query, source, globPattern)
+	if err != nil {
+		if isBusyError(err) || isTransactionError(err) {
+			return []string{}, nil // Soft failure
+		}
+		return nil, err
+	}
+	defer rows.Close()
+	
+	var paths []string
+	for rows.Next() {
+		var path string
+		if err := rows.Scan(&path); err != nil {
+			return nil, err
+		}
+		paths = append(paths, path)
+	}
+	
+	return paths, rows.Err()
+}
+
+// BulkDeletePaths deletes multiple paths in a single transaction.
+// Used for efficient stale entry cleanup after scans.
+func (db *IndexDB) BulkDeletePaths(source string, paths []string) error {
+	if len(paths) == 0 {
+		return nil
+	}
+	
+	logger.Debugf("[DB_MAINTENANCE] BulkDeletePaths: Deleting %d stale entries", len(paths))
+	startTime := time.Now()
+	
+	tx, err := db.BeginTransaction()
+	if err != nil {
+		if isBusyError(err) || isTransactionError(err) {
+			logger.Debugf("[DB_MAINTENANCE] BulkDeletePaths: DB busy, skipping stale entry cleanup")
+			return nil // Soft failure - cleanup can wait
+		}
+		return err
+	}
+	
+	stmt, err := tx.Prepare("DELETE FROM index_items WHERE source = ? AND path = ?")
+	if err != nil {
+		if isBusyError(err) || isTransactionError(err) {
+			return nil
+		}
+		return err
+	}
+	
+	for _, path := range paths {
+		_, err := stmt.Exec(source, path)
+		if err != nil {
+			stmt.Close()
+			if isBusyError(err) || isTransactionError(err) {
+				return nil
+			}
+			return err
+		}
+	}
+	
+	stmt.Close()
+	
+	if err := tx.Commit(); err != nil {
+		if isBusyError(err) || isTransactionError(err) {
+			return nil
+		}
+		return err
+	}
+	
+	logger.Debugf("[DB_MAINTENANCE] BulkDeletePaths: Deleted %d stale entries in %v", len(paths), time.Since(startTime))
+	return nil
+}
+
 // GetFilesBySize retrieves all files with a specific size for a source, optionally filtered by path prefix.
 // Used for duplicate detection - returns files ordered by name for efficient grouping.
 // Returns empty slice on database busy/lock errors (non-fatal).
