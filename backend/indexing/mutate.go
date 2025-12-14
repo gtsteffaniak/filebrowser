@@ -30,9 +30,6 @@ func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo) bool {
 	dirItem.Path = info.Path // Already an index path like "/share/folder/"
 	items = append(items, &dirItem)
 
-	// Track this directory path as seen during scan (for stale entry detection)
-	idx.trackSeenPath(info.Path)
-
 	// Add folders to the bulk insert with index paths
 	for i := range info.Folders {
 		folder := &info.Folders[i]
@@ -57,9 +54,6 @@ func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo) bool {
 			Path:     filePath, // Store index path, not absolute path
 		}
 		items = append(items, fileItem)
-
-		// Track this file path as seen during scan (for stale entry detection)
-		idx.trackSeenPath(filePath)
 	}
 
 	// Check if we're in a batch scan (batchItems is initialized)

@@ -59,8 +59,6 @@ func NewIndexDB(name string) (*IndexDB, error) {
 	return idxDB, nil
 }
 
-// CreateIndexTable creates the main table for storing file metadata.
-// Uses composite primary key (source, path) to support multiple indexes in one database.
 func (db *IndexDB) CreateIndexTable() error {
 	query := `
 	CREATE TABLE IF NOT EXISTS index_items (
@@ -74,6 +72,7 @@ func (db *IndexDB) CreateIndexTable() error {
 		is_dir BOOLEAN NOT NULL,
 		is_hidden BOOLEAN NOT NULL,
 		has_preview BOOLEAN NOT NULL,
+		last_updated INTEGER NOT NULL DEFAULT 0,
 		PRIMARY KEY (source, path)
 	);
 	
@@ -81,17 +80,16 @@ func (db *IndexDB) CreateIndexTable() error {
 	CREATE INDEX IF NOT EXISTS idx_source_parent_path ON index_items(source, parent_path);
 	CREATE INDEX IF NOT EXISTS idx_source_size ON index_items(source, size);
 	CREATE INDEX IF NOT EXISTS idx_name ON index_items(name);
+	CREATE INDEX IF NOT EXISTS idx_last_updated ON index_items(source, last_updated);
 	`
 	_, err := db.Exec(query)
 	return err
 }
 
-// InsertItem adds or updates an item in the index for a specific source.
-// SQLite handles locking automatically with NORMAL locking mode.
 func (db *IndexDB) InsertItem(source, path string, info *iteminfo.FileInfo) error {
 	query := `
-	INSERT OR REPLACE INTO index_items (source, path, parent_path, name, size, mod_time, type, is_dir, is_hidden, has_preview)
-	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+	INSERT OR REPLACE INTO index_items (source, path, parent_path, name, size, mod_time, type, is_dir, is_hidden, has_preview, last_updated)
+	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 	`
 	parentPath := getParentPath(path)
 	_, err := db.Exec(query,
@@ -105,9 +103,9 @@ func (db *IndexDB) InsertItem(source, path string, info *iteminfo.FileInfo) erro
 		info.Type == "directory",
 		info.Hidden,
 		info.HasPreview,
+		time.Now().Unix(),
 	)
 	if err != nil {
-		// Log actual errors (not busy/locked which are soft failures)
 		if !isBusyError(err) && !isTransactionError(err) {
 			logger.Errorf("InsertItem failed for source=%s path=%s: %v", source, path, err)
 		}
@@ -136,16 +134,17 @@ func (db *IndexDB) BulkInsertItems(source string, items []*iteminfo.FileInfo) er
 	}
 
 	stmt, err := tx.Prepare(`
-	INSERT OR REPLACE INTO index_items (source, path, parent_path, name, size, mod_time, type, is_dir, is_hidden, has_preview)
-	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+	INSERT OR REPLACE INTO index_items (source, path, parent_path, name, size, mod_time, type, is_dir, is_hidden, has_preview, last_updated)
+	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 	`)
 	if err != nil {
 		if isBusyError(err) || isTransactionError(err) {
-			return nil // Non-fatal
+			return nil
 		}
 		return err
 	}
 
+	nowUnix := time.Now().Unix()
 	for _, info := range items {
 		parentPath := getParentPath(info.Path)
 		_, err := stmt.Exec(
@@ -159,6 +158,7 @@ func (db *IndexDB) BulkInsertItems(source string, items []*iteminfo.FileInfo) er
 			info.Type == "directory",
 			info.Hidden,
 			info.HasPreview,
+			nowUnix,
 		)
 		if err != nil {
 			stmt.Close()
@@ -427,97 +427,71 @@ func (db *IndexDB) UpdateCacheSize(cacheSizeMB int) error {
 func (db *IndexDB) Vacuum() error {
 	logger.Debugf("[DB_MAINTENANCE] Starting VACUUM operation")
 	startTime := time.Now()
-	
+
 	_, err := db.Exec("VACUUM")
 	if err != nil {
 		logger.Errorf("[DB_MAINTENANCE] VACUUM failed: %v", err)
 		return fmt.Errorf("failed to vacuum database: %w", err)
 	}
-	
+
 	duration := time.Since(startTime)
 	logger.Infof("[DB_MAINTENANCE] VACUUM completed in %v", duration)
 	return nil
 }
 
-// GetAllPathsForSource retrieves all paths for a given source under a specific prefix.
-// Used for stale entry detection - returns paths that exist in DB for comparison with filesystem.
-func (db *IndexDB) GetAllPathsForSource(source string, pathPrefix string) ([]string, error) {
-	query := `SELECT path FROM index_items WHERE source = ? AND path GLOB ?`
-	
-	// For root scanner "/", get all paths starting with "/"
-	// For child scanner "/Documents/", get all paths starting with "/Documents/"
+func (db *IndexDB) DeleteStaleEntries(source string, pathPrefix string, scanStartTime int64) (int, error) {
+	query := `
+	DELETE FROM index_items 
+	WHERE source = ? 
+	AND path GLOB ? 
+	AND last_updated < ?
+	`
+
 	globPattern := pathPrefix + "*"
-	
-	rows, err := db.Query(query, source, globPattern)
+
+	result, err := db.Exec(query, source, globPattern, scanStartTime)
 	if err != nil {
 		if isBusyError(err) || isTransactionError(err) {
-			return []string{}, nil // Soft failure
+			logger.Debugf("[DB_MAINTENANCE] DeleteStaleEntries: DB busy, skipping cleanup")
+			return 0, nil
 		}
-		return nil, err
+		return 0, err
 	}
-	defer rows.Close()
-	
-	var paths []string
-	for rows.Next() {
-		var path string
-		if err := rows.Scan(&path); err != nil {
-			return nil, err
-		}
-		paths = append(paths, path)
-	}
-	
-	return paths, rows.Err()
+
+	rowsAffected, _ := result.RowsAffected()
+	return int(rowsAffected), nil
 }
 
-// BulkDeletePaths deletes multiple paths in a single transaction.
-// Used for efficient stale entry cleanup after scans.
-func (db *IndexDB) BulkDeletePaths(source string, paths []string) error {
-	if len(paths) == 0 {
-		return nil
-	}
-	
-	logger.Debugf("[DB_MAINTENANCE] BulkDeletePaths: Deleting %d stale entries", len(paths))
-	startTime := time.Now()
-	
-	tx, err := db.BeginTransaction()
+func (db *IndexDB) GetRecursiveCount(source string, pathPrefix string) (dirs uint64, files uint64, error error) {
+	query := `
+	SELECT 
+		SUM(CASE WHEN is_dir = 1 THEN 1 ELSE 0 END) as dir_count,
+		SUM(CASE WHEN is_dir = 0 THEN 1 ELSE 0 END) as file_count
+	FROM index_items 
+	WHERE source = ? AND path GLOB ?
+	`
+
+	globPattern := pathPrefix + "*"
+
+	var dirCount, fileCount sql.NullInt64
+	err := db.QueryRow(query, source, globPattern).Scan(&dirCount, &fileCount)
 	if err != nil {
 		if isBusyError(err) || isTransactionError(err) {
-			logger.Debugf("[DB_MAINTENANCE] BulkDeletePaths: DB busy, skipping stale entry cleanup")
-			return nil // Soft failure - cleanup can wait
+			return 0, 0, nil
 		}
-		return err
+		return 0, 0, err
 	}
-	
-	stmt, err := tx.Prepare("DELETE FROM index_items WHERE source = ? AND path = ?")
-	if err != nil {
-		if isBusyError(err) || isTransactionError(err) {
-			return nil
-		}
-		return err
+
+	return uint64(dirCount.Int64), uint64(fileCount.Int64), nil
+}
+
+func (db *IndexDB) UpdateDirectorySize(source string, path string, newSize int64) error {
+	query := `UPDATE index_items SET size = ? WHERE source = ? AND path = ?`
+	_, err := db.Exec(query, newSize, source, path)
+	if err != nil && !isBusyError(err) && !isTransactionError(err) {
+		logger.Errorf("UpdateDirectorySize failed for source=%s path=%s: %v", source, path, err)
 	}
-	
-	for _, path := range paths {
-		_, err := stmt.Exec(source, path)
-		if err != nil {
-			stmt.Close()
-			if isBusyError(err) || isTransactionError(err) {
-				return nil
-			}
-			return err
-		}
-	}
-	
-	stmt.Close()
-	
-	if err := tx.Commit(); err != nil {
-		if isBusyError(err) || isTransactionError(err) {
-			return nil
-		}
-		return err
-	}
-	
-	logger.Debugf("[DB_MAINTENANCE] BulkDeletePaths: Deleted %d stale entries in %v", len(paths), time.Since(startTime))
-	return nil
+	return err
 }
 
 // GetFilesBySize retrieves all files with a specific size for a source, optionally filtered by path prefix.
@@ -638,6 +612,80 @@ func (db *IndexDB) GetTotalSize(source string) (uint64, error) {
 	}
 
 	return uint64(totalSize), nil
+}
+
+// RecalculateDirectorySizes recalculates and updates all directory sizes based on their children
+// for a given path prefix. This should be called after bulk insertions to ensure directory sizes are accurate.
+// Returns the number of directories updated.
+func (db *IndexDB) RecalculateDirectorySizes(source, pathPrefix string) (int, error) {
+	// Get all directories under the path prefix, ordered by depth (deepest first)
+	// This ensures we calculate child directories before parent directories
+	query := `
+	SELECT path FROM index_items
+	WHERE source = ? AND is_dir = 1 AND path GLOB ?
+	ORDER BY LENGTH(path) - LENGTH(REPLACE(path, '/', '')) DESC
+	`
+
+	rows, err := db.Query(query, source, pathPrefix+"*")
+	if err != nil {
+		if isBusyError(err) || isTransactionError(err) {
+			return 0, nil
+		}
+		return 0, err
+	}
+	defer rows.Close()
+
+	var directories []string
+	for rows.Next() {
+		var path string
+		if err := rows.Scan(&path); err != nil {
+			return 0, err
+		}
+		directories = append(directories, path)
+	}
+	if err := rows.Err(); err != nil {
+		return 0, err
+	}
+
+	// For each directory, calculate the sum of direct children sizes
+	updateCount := 0
+	for _, dirPath := range directories {
+		// Calculate total size of all files (not directories) under this path
+		// Only sum file sizes to avoid double-counting (directory sizes are derived)
+		sizeQuery := `
+		SELECT COALESCE(SUM(size), 0)
+		FROM index_items
+		WHERE source = ? AND path GLOB ? AND path != ? AND is_dir = 0
+		`
+
+		var totalSize int64
+		err := db.QueryRow(sizeQuery, source, dirPath+"*", dirPath).Scan(&totalSize)
+		if err != nil {
+			if isBusyError(err) || isTransactionError(err) {
+				continue
+			}
+			logger.Errorf("[DB_SIZE_CALC] Failed to calculate size for %s: %v", dirPath, err)
+			continue
+		}
+
+		// Update the directory's size
+		updateQuery := `UPDATE index_items SET size = ? WHERE source = ? AND path = ?`
+		result, err := db.Exec(updateQuery, totalSize, source, dirPath)
+		if err != nil {
+			if isBusyError(err) || isTransactionError(err) {
+				continue
+			}
+			logger.Errorf("[DB_SIZE_CALC] Failed to update size for %s: %v", dirPath, err)
+			continue
+		}
+
+		rowsAffected, _ := result.RowsAffected()
+		if rowsAffected > 0 {
+			updateCount++
+		}
+	}
+
+	return updateCount, nil
 }
 
 // Helper functions
