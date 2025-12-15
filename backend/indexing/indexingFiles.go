@@ -180,10 +180,8 @@ func updateIndexDBCacheSize() {
 	totalComplexity := calculateTotalComplexity()
 	// Calculate cache size: complexity * 5MB
 	cacheSizeMB := int(totalComplexity) * 5
-	// Ensure minimum of 5MB
-	if cacheSizeMB < 5 {
-		cacheSizeMB = 5
-	}
+	// Ensure size between 5MB and 100MB
+	cacheSizeMB = utils.Clamp(cacheSizeMB, 5, 100)
 
 	if err := indexDB.UpdateCacheSize(cacheSizeMB); err != nil {
 		logger.Errorf("Failed to update index database cache size to %dMB: %v", cacheSizeMB, err)
