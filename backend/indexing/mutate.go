@@ -119,6 +119,10 @@ func (idx *Index) flushBatch() {
 	} else {
 		logger.Debugf("[DB_TX] Final flush: SUCCESS - %d items", len(items))
 	}
+
+	// Clear item references to allow immediate GC
+	// The slice header still exists but the underlying FileInfo structs can be collected
+	items = nil
 }
 
 // DeleteMetadata removes the specified path from the index.

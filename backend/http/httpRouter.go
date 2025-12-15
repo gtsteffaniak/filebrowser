@@ -12,6 +12,8 @@ import (
 	"text/template"
 	"time"
 
+	_ "net/http/pprof"
+
 	"github.com/coreos/go-systemd/v22/activation"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/version"
@@ -46,6 +48,13 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	store = storage
 	config = &settings.Config
 	var err error
+	// Start pprof server in a separate goroutine
+	go func() {
+		if err := http.ListenAndServe("localhost:6060", nil); err != nil {
+			logger.Fatalf("Pprof server error: %v", err)
+		}
+	}()
+
 	// Determine filesystem mode and set asset paths
 	if settings.Env.EmbeddedFs {
 		// Embedded mode: Serve files from the embedded assets

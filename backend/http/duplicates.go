@@ -27,15 +27,16 @@ var duplicateSearchMutex sync.Mutex
 
 // Safety limits to prevent resource exhaustion and server attacks
 const (
-	maxGroups              = 500              // Limit total duplicate groups returned
-	maxFilesToScan         = 50000            // Maximum files to scan per request (prevents unbounded scans)
-	maxProcessingTime      = 30 * time.Second // Maximum time to spend processing (prevents long-running requests)
-	maxChecksumOperations  = 5000             // Maximum checksum operations per request (prevents excessive disk I/O)
-	maxSizeGroupsToProcess = 1000             // Maximum size groups to process (prevents memory exhaustion)
+	maxGroups              = 500               // Limit total duplicate groups returned
+	maxFilesToScan         = 50000             // Maximum files to scan per request (prevents unbounded scans)
+	maxProcessingTime      = 120 * time.Second // Maximum time to spend processing (2 minutes)
+	maxChecksumOperations  = 10000             // Maximum checksum operations per request (prevents excessive disk I/O)
+	maxSizeGroupsToProcess = 1000              // Maximum size groups to process (prevents memory exhaustion)
+	bulkSizeQueryLimit     = 100               // Process sizes in batches of 100 to balance memory vs query count
 )
 
 // duplicateResultsCache caches duplicate search results for 15 seconds
-var duplicateResultsCache = cache.NewCache[[]duplicateGroup](15 * time.Second)
+var duplicateResultsCache = cache.NewCache[duplicateResponse](15 * time.Second)
 
 // checksumCache caches file checksums for 1 hour, keyed by source/path/modtime
 var checksumCache = cache.NewCache[string](1 * time.Hour)
@@ -44,6 +45,12 @@ type duplicateGroup struct {
 	Size  int64                    `json:"size"`
 	Count int                      `json:"count"`
 	Files []*indexing.SearchResult `json:"files"`
+}
+
+type duplicateResponse struct {
+	Groups     []duplicateGroup `json:"groups"`
+	Incomplete bool             `json:"incomplete,omitempty"`
+	Reason     string           `json:"reason,omitempty"`
 }
 
 type duplicatesOptions struct {
@@ -141,6 +148,12 @@ func duplicatesHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 
 	// Check cache first (before acquiring mutex)
 	if cachedResults, ok := duplicateResultsCache.Get(cacheKey); ok {
+		// Set headers if cached result was incomplete
+		if cachedResults.Incomplete {
+			w.Header().Set("X-Search-Incomplete", "true")
+			w.Header().Set("X-Search-Incomplete-Reason", cachedResults.Reason)
+			w.WriteHeader(http.StatusPartialContent)
+		}
 		return renderJSON(w, r, cachedResults)
 	}
 
@@ -152,6 +165,12 @@ func duplicatesHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 
 	// Check cache again after acquiring lock (another request might have just completed)
 	if cachedResults, ok := duplicateResultsCache.Get(cacheKey); ok {
+		// Set headers if cached result was incomplete
+		if cachedResults.Incomplete {
+			w.Header().Set("X-Search-Incomplete", "true")
+			w.Header().Set("X-Search-Incomplete-Reason", cachedResults.Reason)
+			w.WriteHeader(http.StatusPartialContent)
+		}
 		return renderJSON(w, r, cachedResults)
 	}
 
@@ -173,10 +192,25 @@ func duplicatesHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 			stats.filesScanned, stats.checksumOperations, uniqueChecksumCount, stats.sizeGroupsProcessed, time.Since(stats.startTime))
 	}
 
-	// Cache the results before returning
-	duplicateResultsCache.Set(cacheKey, duplicateGroups)
+	// Build response with metadata about completeness
+	response := duplicateResponse{
+		Groups:     duplicateGroups,
+		Incomplete: stats.stopped,
+		Reason:     stats.stopReason,
+	}
 
-	return renderJSON(w, r, duplicateGroups)
+	// Cache the results before returning (even partial results)
+	duplicateResultsCache.Set(cacheKey, response)
+
+	// Return 206 Partial Content if search was stopped early due to resource limits
+	// This allows the frontend to distinguish between complete and incomplete results
+	if stats.stopped {
+		w.Header().Set("X-Search-Incomplete", "true")
+		w.Header().Set("X-Search-Incomplete-Reason", stats.stopReason)
+		w.WriteHeader(http.StatusPartialContent)
+	}
+
+	return renderJSON(w, r, response)
 }
 
 // findDuplicatesInIndex finds duplicates using the shared IndexDB with resource limits
@@ -203,13 +237,14 @@ func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions, stats
 		sizes = sizes[:maxSizeGroupsToProcess]
 	}
 
-	// Step 2: Process each size group sequentially to minimize memory
+	// Step 2: Process sizes in batches using bulk queries to minimize SQL round-trips
 	duplicateGroups := []duplicateGroup{}
-	totalFileQueryTime := time.Duration(0)
-	fileQueryCount := 0
+	totalBulkQueryTime := time.Duration(0)
+	bulkQueryCount := 0
 
-	for _, size := range sizes {
-		// Check resource limits before processing each size group
+	// Process sizes in batches
+	for batchStart := 0; batchStart < len(sizes); batchStart += bulkSizeQueryLimit {
+		// Check resource limits before processing each batch
 		if shouldStop, reason := stats.shouldStop(); shouldStop {
 			stats.stopped = true
 			stats.stopReason = reason
@@ -217,45 +252,41 @@ func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions, stats
 			break
 		}
 
-		stats.sizeGroupsProcessed++
-
 		// Stop if we've hit the group limit
 		if len(duplicateGroups) >= maxGroups {
 			break
 		}
 
-		// OPTIMIZATION: Instead of loading ALL files of this size, first query SQL
-		// to find which MIME types have 2+ files of this size. This filters at the DB level.
-		candidateTypes, err := indexDB.GetTypeGroupsForSize(opts.source, size, pathPrefix)
-		if err != nil || len(candidateTypes) == 0 {
+		// Get batch of sizes to process
+		batchEnd := batchStart + bulkSizeQueryLimit
+		if batchEnd > len(sizes) {
+			batchEnd = len(sizes)
+		}
+		sizeBatch := sizes[batchStart:batchEnd]
+
+		// BULK QUERY: Load ALL files for ALL sizes in this batch with ONE query
+		bulkQueryStart := time.Now()
+		filesBySize, err := indexDB.GetFilesForMultipleSizes(opts.source, sizeBatch, pathPrefix)
+		bulkQueryDuration := time.Since(bulkQueryStart)
+		totalBulkQueryTime += bulkQueryDuration
+		bulkQueryCount++
+
+		if err != nil {
+			logger.Errorf("[Duplicates] Failed to bulk query files for %d sizes: %v", len(sizeBatch), err)
 			continue
 		}
 
-		logger.Debugf("[Duplicates] Size %d: found %d MIME type groups with 2+ files each (SQL-filtered)",
-			size, len(candidateTypes))
+		logger.Debugf("[Duplicates] Bulk query %d: fetched files for %d sizes in %v (%d files total)",
+			bulkQueryCount, len(sizeBatch), bulkQueryDuration, getTotalFileCount(filesBySize))
 
-		// Process each MIME type group
-		for _, mimeType := range candidateTypes {
-			// Check resource limits before loading files
-			if shouldStop, reason := stats.shouldStop(); shouldStop {
-				stats.stopped = true
-				stats.stopReason = reason
-				logger.Warningf("[Duplicates] Stopping early: %s", reason)
-				break
-			}
-
-			// Load only files matching this specific size+type combination
-			fileQueryStart := time.Now()
-			files, err := indexDB.GetFilesBySizeAndType(opts.source, size, mimeType, pathPrefix)
-			fileQueryDuration := time.Since(fileQueryStart)
-			totalFileQueryTime += fileQueryDuration
-			fileQueryCount++
-
-			if err != nil || len(files) < 2 {
+		// Process each size within this batch
+		for _, size := range sizeBatch {
+			files, ok := filesBySize[size]
+			if !ok || len(files) < 2 {
 				continue
 			}
 
-			// Track files scanned
+			stats.sizeGroupsProcessed++
 			stats.filesScanned += len(files)
 
 			// Filter files by permission early, before any processing
@@ -264,90 +295,118 @@ func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions, stats
 				continue
 			}
 
-			// Use fuzzy filename matching to group files within this MIME type
-			// This reduces checksum operations by grouping similar filenames
-			filenameGroups := groupFilesByFilename(files, size)
+			// Group files by MIME type in memory (already ordered by type from SQL)
+			filesByType := groupFilesByType(files)
 
-			totalFilesInGroups := 0
-			for _, g := range filenameGroups {
-				if len(g) >= 2 {
-					totalFilesInGroups += len(g)
-				}
-			}
-
-			if totalFilesInGroups > 0 {
-				logger.Debugf("[Duplicates] Size %d, type '%s': %d files → %d fuzzy filename groups with %d files eligible for checksumming",
-					size, mimeType, len(files), len(filenameGroups), totalFilesInGroups)
-			}
-
-			// Process each fuzzy filename group
-			for _, fileGroup := range filenameGroups {
-				if len(fileGroup) < 2 {
+			// Process each MIME type group
+			for mimeType, typeFiles := range filesByType {
+				if len(typeFiles) < 2 {
 					continue
 				}
 
-				// Stop if we've hit the group limit
-				if len(duplicateGroups) >= maxGroups {
-					break
-				}
-
-				// Check resource limits before expensive checksum operations
+				// Check resource limits
 				if shouldStop, reason := stats.shouldStop(); shouldStop {
 					stats.stopped = true
 					stats.stopReason = reason
-					logger.Warningf("[Duplicates] Stopping early during checksum phase: %s", reason)
+					logger.Warningf("[Duplicates] Stopping early: %s", reason)
 					break
 				}
 
-				// Verify with checksums using 3-pass progressive verification
-				// At this point, files match on: size + MIME type + fuzzy filename similarity
-				verifiedGroups := groupFilesByChecksum(fileGroup, index, size, stats)
+				// Use fuzzy filename matching to group files within this MIME type
+				// This reduces checksum operations by grouping similar filenames
+				filenameGroups := groupFilesByFilename(typeFiles, size)
 
-				// Create SearchResult objects only for verified duplicates
-				for _, verifiedGroup := range verifiedGroups {
-					if len(verifiedGroup) < 2 {
+				totalFilesInGroups := 0
+				for _, g := range filenameGroups {
+					if len(g) >= 2 {
+						totalFilesInGroups += len(g)
+					}
+				}
+
+				if totalFilesInGroups > 0 {
+					logger.Debugf("[Duplicates] Size %d, type '%s': %d files → %d fuzzy filename groups with %d files eligible for checksumming",
+						size, mimeType, len(typeFiles), len(filenameGroups), totalFilesInGroups)
+				}
+
+				// Process each fuzzy filename group
+				for _, fileGroup := range filenameGroups {
+					if len(fileGroup) < 2 {
 						continue
 					}
 
-					resultGroup := make([]*indexing.SearchResult, 0, len(verifiedGroup))
-					for _, fileInfo := range verifiedGroup {
-						// Remove the user scope from path
-						adjustedPath := strings.TrimPrefix(fileInfo.Path, opts.combinedPath)
-						if adjustedPath == "" {
-							adjustedPath = "/"
-						}
-
-						resultGroup = append(resultGroup, &indexing.SearchResult{
-							Path:       adjustedPath,
-							Type:       fileInfo.Type,
-							Size:       fileInfo.Size,
-							Modified:   fileInfo.ModTime.Format(time.RFC3339),
-							HasPreview: fileInfo.HasPreview,
-						})
+					// Stop if we've hit the group limit
+					if len(duplicateGroups) >= maxGroups {
+						break
 					}
 
-					if len(resultGroup) >= 2 {
-						duplicateGroups = append(duplicateGroups, duplicateGroup{
-							Size:  size,
-							Count: len(resultGroup),
-							Files: resultGroup,
-						})
+					// Check resource limits before expensive checksum operations
+					if shouldStop, reason := stats.shouldStop(); shouldStop {
+						stats.stopped = true
+						stats.stopReason = reason
+						logger.Warningf("[Duplicates] Stopping early during checksum phase: %s", reason)
+						break
+					}
+
+					// Verify with checksums using 3-pass progressive verification
+					// At this point, files match on: size + MIME type + fuzzy filename similarity
+					verifiedGroups := groupFilesByChecksum(fileGroup, index, size, stats)
+
+					// Create SearchResult objects only for verified duplicates
+					for _, verifiedGroup := range verifiedGroups {
+						if len(verifiedGroup) < 2 {
+							continue
+						}
+
+						resultGroup := make([]*indexing.SearchResult, 0, len(verifiedGroup))
+						for _, fileInfo := range verifiedGroup {
+							// Remove the user scope from path
+							adjustedPath := strings.TrimPrefix(fileInfo.Path, opts.combinedPath)
+							if adjustedPath == "" {
+								adjustedPath = "/"
+							}
+
+							resultGroup = append(resultGroup, &indexing.SearchResult{
+								Path:       adjustedPath,
+								Type:       fileInfo.Type,
+								Size:       fileInfo.Size,
+								Modified:   fileInfo.ModTime.Format(time.RFC3339),
+								HasPreview: fileInfo.HasPreview,
+							})
+						}
+
+						if len(resultGroup) >= 2 {
+							duplicateGroups = append(duplicateGroups, duplicateGroup{
+								Size:  size,
+								Count: len(resultGroup),
+								Files: resultGroup,
+							})
+						}
+					}
+
+					// Stop if we've hit the group limit
+					if len(duplicateGroups) >= maxGroups {
+						break
 					}
 				}
 
-				// Stop if we've hit the group limit
+				// Break out of type loop if we hit group limit
 				if len(duplicateGroups) >= maxGroups {
 					break
 				}
+			}
+
+			// Break out of size loop if we hit group limit
+			if len(duplicateGroups) >= maxGroups {
+				break
 			}
 		}
 	}
 
 	// Log aggregate query performance
-	if fileQueryCount > 0 {
-		avgFileQueryTime := totalFileQueryTime / time.Duration(fileQueryCount)
-		logger.Debugf("[Duplicates] File queries (size+type): %d queries, total %v, avg %v per query",
-			fileQueryCount, totalFileQueryTime, avgFileQueryTime)
+	if bulkQueryCount > 0 {
+		avgBulkQueryTime := totalBulkQueryTime / time.Duration(bulkQueryCount)
+		logger.Infof("[Duplicates] Bulk query performance: %d queries (was %d+ individual queries), total %v, avg %v per batch",
+			bulkQueryCount, len(sizes), totalBulkQueryTime, avgBulkQueryTime)
 	}
 
 	// Groups are already sorted by size (largest to smallest) from SQL query
@@ -854,6 +913,25 @@ func max(a, b int) int {
 		return a
 	}
 	return b
+}
+
+// getTotalFileCount counts total files across all sizes in the map
+func getTotalFileCount(filesBySize map[int64][]*iteminfo.FileInfo) int {
+	total := 0
+	for _, files := range filesBySize {
+		total += len(files)
+	}
+	return total
+}
+
+// groupFilesByType groups files by MIME type
+// Assumes files are already sorted by type (from SQL ORDER BY)
+func groupFilesByType(files []*iteminfo.FileInfo) map[string][]*iteminfo.FileInfo {
+	grouped := make(map[string][]*iteminfo.FileInfo)
+	for _, file := range files {
+		grouped[file.Type] = append(grouped[file.Type], file)
+	}
+	return grouped
 }
 
 // filterFilesByPermission filters files to only include those the user is permitted to access

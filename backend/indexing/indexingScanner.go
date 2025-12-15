@@ -145,6 +145,10 @@ func (s *Scanner) runRootScan(quick bool) {
 		s.numDirs = 0
 		s.numFiles = 0
 		s.scanStartTime = time.Now().Unix()
+		s.idx.mu.Lock()
+		s.idx.processedInodes = make(map[uint64]struct{})
+		s.idx.FoundHardLinks = make(map[string]uint64)
+		s.idx.mu.Unlock()
 	}
 
 	s.idx.mu.Lock()
@@ -169,7 +173,6 @@ func (s *Scanner) runRootScan(quick bool) {
 		} else if updated > 0 {
 			logger.Infof("[SIZE_CALC] Updated sizes for %d directories in root scan", updated)
 		}
-		
 		s.purgeStaleEntries()
 		s.idx.performPeriodicMaintenance()
 		s.syncStatsWithDB()
@@ -198,6 +201,10 @@ func (s *Scanner) runChildScan(quick bool) {
 		s.numDirs = 0
 		s.numFiles = 0
 		s.scanStartTime = time.Now().Unix()
+		s.idx.mu.Lock()
+		s.idx.processedInodes = make(map[uint64]struct{})
+		s.idx.FoundHardLinks = make(map[string]uint64)
+		s.idx.mu.Unlock()
 	}
 
 	s.idx.mu.Lock()
@@ -222,7 +229,7 @@ func (s *Scanner) runChildScan(quick bool) {
 		} else if updated > 0 {
 			logger.Infof("[SIZE_CALC] Updated sizes for %d directories in %s", updated, s.scanPath)
 		}
-		
+
 		s.purgeStaleEntries()
 		s.idx.performPeriodicMaintenance()
 		s.syncStatsWithDB()
@@ -417,13 +424,12 @@ func (s *Scanner) syncStatsWithDB() {
 	if s.idx.db == nil {
 		return
 	}
-	
 	dirs, files, err := s.idx.db.GetRecursiveCount(s.idx.Name, s.scanPath)
 	if err != nil {
 		logger.Errorf("Failed to get recursive count for %s: %v", s.scanPath, err)
 		return
 	}
-	
+
 	s.numDirs = dirs
 	s.numFiles = files
 }
@@ -432,13 +438,11 @@ func (s *Scanner) purgeStaleEntries() {
 	if s.idx.db == nil || s.scanStartTime == 0 {
 		return
 	}
-	
 	deletedCount, err := s.idx.db.DeleteStaleEntries(s.idx.Name, s.scanPath, s.scanStartTime)
 	if err != nil {
 		logger.Errorf("[DB_MAINTENANCE] Failed to purge stale entries for %s: %v", s.scanPath, err)
 		return
 	}
-	
 	if deletedCount > 0 {
 		logger.Infof("[DB_MAINTENANCE] Purged %d stale entries for scan path: %s", deletedCount, s.scanPath)
 	}

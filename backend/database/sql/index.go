@@ -22,17 +22,17 @@ type IndexDB struct {
 func NewIndexDB(name string) (*IndexDB, error) {
 	// Create a temp DB for indexing (ID based on source name)
 	// Using "index_" prefix for clarity.
-	// Start with 10MB cache - will be dynamically increased based on index complexity
+	// Start with 2.5MB cache - will be dynamically increased based on index complexity (capped at 25MB)
 	db, err := NewTempDB("index_"+name, &TempDBConfig{
 		// cache_size: Negative values = pages, positive = KB
-		// With 4KB page size: -2500 pages = 2500 * 4096 = ~10MB
+		// With 4KB page size: -625 pages = 625 * 4096 = ~2.5MB
 		// Using 4KB pages for small entries reduces storage waste and RAM usage
-		CacheSizeKB:   -2500,       // 10MB cache (2500 pages * 4KB = 10MB) - will be increased dynamically
-		MmapSize:      100000000,   // 100MB mmap (memory-mapped I/O)
+		CacheSizeKB:   -625,        // 2.5MB cache (625 pages * 4KB = 2.5MB) - will be increased dynamically up to 25MB
+		MmapSize:      5242880,     // 5MB mmap (memory-mapped I/O) - reduced from 10MB for lower memory footprint
 		Synchronous:   "OFF",       // OFF for maximum write performance - data integrity not critical for index
 		TempStore:     "FILE",      // FILE instead of MEMORY
 		JournalMode:   "DELETE",    // DELETE mode - faster writes, no WAL overhead, simpler for write-heavy workloads
-		LockingMode:   "EXCLUSIVE", // NORMAL mode - allows concurrent reads, SQLite handles write locking automatically
+		LockingMode:   "EXCLUSIVE", // EXCLUSIVE mode - single writer, no contention
 		PageSize:      4096,        // 4KB page size - optimal for small entries (reduces storage waste)
 		AutoVacuum:    "NONE",      // No vacuum overhead
 		EnableLogging: true,
@@ -544,6 +544,64 @@ func (db *IndexDB) GetTypeGroupsForSize(source string, size int64, pathPrefix st
 	}
 
 	return types, rows.Err()
+}
+
+// GetFilesForMultipleSizes retrieves ALL files for a batch of sizes in a single query.
+// This is much more efficient than querying each size individually.
+// Returns a map of size -> files for easy grouping.
+// Returns empty map on database busy/lock errors (non-fatal).
+func (db *IndexDB) GetFilesForMultipleSizes(source string, sizes []int64, pathPrefix string) (map[int64][]*iteminfo.FileInfo, error) {
+	if len(sizes) == 0 {
+		return make(map[int64][]*iteminfo.FileInfo), nil
+	}
+
+	// Build IN clause with placeholders
+	placeholders := make([]string, len(sizes))
+	args := []interface{}{source}
+	for i, size := range sizes {
+		placeholders[i] = "?"
+		args = append(args, size)
+	}
+
+	var query string
+	if pathPrefix != "" {
+		query = fmt.Sprintf(`
+		SELECT path, name, size, mod_time, type, is_dir, is_hidden, has_preview
+		FROM index_items 
+		WHERE source = ? AND size IN (%s) AND is_dir = 0 AND path GLOB ?
+		ORDER BY size, type, name
+		`, strings.Join(placeholders, ","))
+		args = append(args, pathPrefix+"*")
+	} else {
+		query = fmt.Sprintf(`
+		SELECT path, name, size, mod_time, type, is_dir, is_hidden, has_preview
+		FROM index_items 
+		WHERE source = ? AND size IN (%s) AND is_dir = 0
+		ORDER BY size, type, name
+		`, strings.Join(placeholders, ","))
+	}
+
+	rows, err := db.Query(query, args...)
+	if err != nil {
+		// Soft failure: DB is busy or locked, return empty results
+		if isBusyError(err) || isTransactionError(err) {
+			return make(map[int64][]*iteminfo.FileInfo), nil
+		}
+		return nil, err
+	}
+	defer rows.Close()
+
+	// Group files by size
+	filesBySize := make(map[int64][]*iteminfo.FileInfo)
+	for rows.Next() {
+		item, err := scanRow(rows)
+		if err != nil {
+			return nil, err
+		}
+		filesBySize[item.Size] = append(filesBySize[item.Size], item)
+	}
+
+	return filesBySize, rows.Err()
 }
 
 // GetFilesBySizeAndType retrieves files matching both size and type.

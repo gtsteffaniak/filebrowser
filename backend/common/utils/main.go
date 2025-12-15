@@ -149,3 +149,14 @@ func CheckPathExists(realPath string) bool {
 	}
 	return true
 }
+
+// Clamp constrains a value between a minimum and maximum bound
+func Clamp[T int | int64 | uint | uint64 | float64](value, min, max T) T {
+	if value < min {
+		return min
+	}
+	if value > max {
+		return max
+	}
+	return value
+}
