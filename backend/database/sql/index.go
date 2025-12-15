@@ -79,6 +79,7 @@ func (db *IndexDB) CreateIndexTable() error {
 	CREATE INDEX IF NOT EXISTS idx_source ON index_items(source);
 	CREATE INDEX IF NOT EXISTS idx_source_parent_path ON index_items(source, parent_path);
 	CREATE INDEX IF NOT EXISTS idx_source_size ON index_items(source, size);
+	CREATE INDEX IF NOT EXISTS idx_source_size_type ON index_items(source, size, type);
 	CREATE INDEX IF NOT EXISTS idx_name ON index_items(name);
 	CREATE INDEX IF NOT EXISTS idx_last_updated ON index_items(source, last_updated);
 	`
@@ -494,9 +495,109 @@ func (db *IndexDB) UpdateDirectorySize(source string, path string, newSize int64
 	return err
 }
 
+// GetTypeGroupsForSize queries for file types that have 2+ files with the same size.
+// This is used to filter down candidates before loading full file data for fuzzy matching.
+// Returns file types (extensions) that have duplicates for the given size.
+// Returns empty slice on database busy/lock errors (non-fatal).
+func (db *IndexDB) GetTypeGroupsForSize(source string, size int64, pathPrefix string) ([]string, error) {
+	var query string
+	var args []interface{}
+
+	if pathPrefix != "" {
+		query = `
+		SELECT type, COUNT(*) as count
+		FROM index_items
+		WHERE source = ? AND size = ? AND is_dir = 0 AND path GLOB ?
+		GROUP BY type
+		HAVING COUNT(*) >= 2
+		`
+		args = []interface{}{source, size, pathPrefix + "*"}
+	} else {
+		query = `
+		SELECT type, COUNT(*) as count
+		FROM index_items
+		WHERE source = ? AND size = ? AND is_dir = 0
+		GROUP BY type
+		HAVING COUNT(*) >= 2
+		`
+		args = []interface{}{source, size}
+	}
+
+	rows, err := db.Query(query, args...)
+	if err != nil {
+		// Soft failure: DB is busy or locked, return empty results
+		if isBusyError(err) || isTransactionError(err) {
+			return []string{}, nil
+		}
+		return nil, err
+	}
+	defer rows.Close()
+
+	var types []string
+	for rows.Next() {
+		var fileType string
+		var count int
+		if err := rows.Scan(&fileType, &count); err != nil {
+			return nil, err
+		}
+		types = append(types, fileType)
+	}
+
+	return types, rows.Err()
+}
+
+// GetFilesBySizeAndType retrieves files matching both size and type.
+// This loads a smaller subset than GetFilesBySize, allowing fuzzy filename matching in memory.
+// Returns empty slice on database busy/lock errors (non-fatal).
+func (db *IndexDB) GetFilesBySizeAndType(source string, size int64, fileType string, pathPrefix string) ([]*iteminfo.FileInfo, error) {
+	var query string
+	var args []interface{}
+
+	if pathPrefix != "" {
+		query = `
+		SELECT path, name, size, mod_time, type, is_dir, is_hidden, has_preview
+		FROM index_items 
+		WHERE source = ? AND size = ? AND type = ? AND is_dir = 0 AND path GLOB ?
+		ORDER BY name
+		`
+		args = []interface{}{source, size, fileType, pathPrefix + "*"}
+	} else {
+		query = `
+		SELECT path, name, size, mod_time, type, is_dir, is_hidden, has_preview
+		FROM index_items 
+		WHERE source = ? AND size = ? AND type = ? AND is_dir = 0
+		ORDER BY name
+		`
+		args = []interface{}{source, size, fileType}
+	}
+
+	rows, err := db.Query(query, args...)
+	if err != nil {
+		// Soft failure: DB is busy or locked, return empty results
+		if isBusyError(err) || isTransactionError(err) {
+			return []*iteminfo.FileInfo{}, nil
+		}
+		return nil, err
+	}
+	defer rows.Close()
+
+	var files []*iteminfo.FileInfo
+	for rows.Next() {
+		item, err := scanRow(rows)
+		if err != nil {
+			return nil, err
+		}
+		files = append(files, item)
+	}
+
+	return files, rows.Err()
+}
+
 // GetFilesBySize retrieves all files with a specific size for a source, optionally filtered by path prefix.
 // Used for duplicate detection - returns files ordered by name for efficient grouping.
 // Returns empty slice on database busy/lock errors (non-fatal).
+// NOTE: For better performance when dealing with many files of the same size,
+// consider using GetFilenameGroupsForSize + GetFilesBySizeAndName to filter at SQL level.
 func (db *IndexDB) GetFilesBySize(source string, size int64, pathPrefix string) ([]*iteminfo.FileInfo, error) {
 	var query string
 	var args []interface{}

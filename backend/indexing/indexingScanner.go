@@ -22,6 +22,7 @@ type Scanner struct {
 	quickScanTime int
 	fullScanTime  int
 	scanStartTime int64
+	isScanning    bool // True when scanner is actively scanning or waiting for mutex
 
 	numDirs  uint64
 	numFiles uint64
@@ -64,6 +65,20 @@ func (s *Scanner) start() {
 
 // tryAcquireAndScan attempts to acquire the global scan mutex and run a scan
 func (s *Scanner) tryAcquireAndScan() {
+	// Mark that this scanner is attempting to scan (before acquiring mutex)
+	// This prevents status from incorrectly showing "ready" while waiting for mutex
+	s.idx.mu.Lock()
+	s.isScanning = true
+	s.idx.mu.Unlock()
+
+	// Ensure isScanning is cleared even if we panic
+	defer func() {
+		s.idx.mu.Lock()
+		s.isScanning = false
+		s.idx.mu.Unlock()
+		s.idx.aggregateStatsFromScanners() // Update status after clearing isScanning
+	}()
+
 	s.idx.scanMutex.Lock()
 
 	// Mark which scanner is active (for status/logging)
@@ -105,7 +120,7 @@ func (s *Scanner) tryAcquireAndScan() {
 	if allIdle {
 		s.idx.updateRootDirectorySize()
 	}
-	s.idx.aggregateStatsFromScanners()
+	// Note: aggregateStatsFromScanners() is called in defer to ensure isScanning is cleared first
 }
 
 // runIndexing performs the actual indexing work

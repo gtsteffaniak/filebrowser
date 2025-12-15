@@ -25,7 +25,14 @@ import (
 // This is separate from the index's scanMutex to avoid conflicts with indexing
 var duplicateSearchMutex sync.Mutex
 
-const maxGroups = 500 // Limit total duplicate groups
+// Safety limits to prevent resource exhaustion and server attacks
+const (
+	maxGroups              = 500              // Limit total duplicate groups returned
+	maxFilesToScan         = 50000            // Maximum files to scan per request (prevents unbounded scans)
+	maxProcessingTime      = 30 * time.Second // Maximum time to spend processing (prevents long-running requests)
+	maxChecksumOperations  = 5000             // Maximum checksum operations per request (prevents excessive disk I/O)
+	maxSizeGroupsToProcess = 1000             // Maximum size groups to process (prevents memory exhaustion)
+)
 
 // duplicateResultsCache caches duplicate search results for 15 seconds
 var duplicateResultsCache = cache.NewCache[[]duplicateGroup](15 * time.Second)
@@ -46,6 +53,36 @@ type duplicatesOptions struct {
 	minSize      int64
 	useChecksum  bool
 	username     string
+}
+
+// duplicateProcessingStats tracks resource usage during duplicate search
+type duplicateProcessingStats struct {
+	startTime           time.Time
+	filesScanned        int
+	checksumOperations  int
+	sizeGroupsProcessed int
+	stopped             bool
+	stopReason          string
+	uniqueChecksums     map[string]bool // Track unique checksums to monitor cache growth
+}
+
+// shouldStop checks if processing should stop due to resource limits
+func (s *duplicateProcessingStats) shouldStop() (bool, string) {
+	elapsed := time.Since(s.startTime)
+
+	if elapsed > maxProcessingTime {
+		return true, fmt.Sprintf("processing time limit exceeded (%v)", maxProcessingTime)
+	}
+	if s.filesScanned >= maxFilesToScan {
+		return true, fmt.Sprintf("file scan limit exceeded (%d files)", maxFilesToScan)
+	}
+	if s.checksumOperations >= maxChecksumOperations {
+		return true, fmt.Sprintf("checksum operation limit exceeded (%d operations)", maxChecksumOperations)
+	}
+	if s.sizeGroupsProcessed >= maxSizeGroupsToProcess {
+		return true, fmt.Sprintf("size group limit exceeded (%d groups)", maxSizeGroupsToProcess)
+	}
+	return false, ""
 }
 
 // duplicatesHandler handles requests to find duplicate files
@@ -80,6 +117,13 @@ func duplicatesHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 	if index == nil {
 		return http.StatusBadRequest, fmt.Errorf("index not found for source %s", opts.source)
 	}
+
+	// Safety check: Reject duplicate search during active indexing to prevent resource contention
+	// This protects against CPU/memory spikes and ensures indexing performance is not degraded
+	if string(index.Status) == "indexing" {
+		return http.StatusServiceUnavailable, fmt.Errorf("duplicate search is not available while indexing is in progress - please try again when indexing completes")
+	}
+
 	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, index.Name)
 	if err != nil {
 		return http.StatusForbidden, err
@@ -111,9 +155,23 @@ func duplicatesHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 		return renderJSON(w, r, cachedResults)
 	}
 
-	// Find duplicates using index-native approach to minimize memory allocation
+	// Find duplicates using index-native approach with resource limits
 	// This avoids creating SearchResult objects until we know the final limited set
-	duplicateGroups := findDuplicatesInIndex(index, opts)
+	stats := &duplicateProcessingStats{
+		startTime:       time.Now(),
+		uniqueChecksums: make(map[string]bool),
+	}
+	duplicateGroups := findDuplicatesInIndex(index, opts, stats)
+
+	// Log resource usage for monitoring
+	uniqueChecksumCount := len(stats.uniqueChecksums)
+	if stats.stopped {
+		logger.Warningf("[Duplicates] Search stopped early: %s (scanned %d files, %d checksum ops, %d unique checksums, %d groups in %v)",
+			stats.stopReason, stats.filesScanned, stats.checksumOperations, uniqueChecksumCount, stats.sizeGroupsProcessed, time.Since(stats.startTime))
+	} else {
+		logger.Infof("[Duplicates] Search completed: scanned %d files, %d checksum ops, %d unique checksums added to cache, %d groups in %v",
+			stats.filesScanned, stats.checksumOperations, uniqueChecksumCount, stats.sizeGroupsProcessed, time.Since(stats.startTime))
+	}
 
 	// Cache the results before returning
 	duplicateResultsCache.Set(cacheKey, duplicateGroups)
@@ -121,8 +179,8 @@ func duplicatesHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 	return renderJSON(w, r, duplicateGroups)
 }
 
-// findDuplicatesInIndex finds duplicates using the shared IndexDB
-func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions) []duplicateGroup {
+// findDuplicatesInIndex finds duplicates using the shared IndexDB with resource limits
+func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions, stats *duplicateProcessingStats) []duplicateGroup {
 	// Get the shared IndexDB
 	indexDB := indexing.GetIndexDB()
 	if indexDB == nil {
@@ -139,87 +197,148 @@ func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions) []dup
 		return []duplicateGroup{}
 	}
 
+	// Safety check: Limit the number of size groups to prevent memory exhaustion
+	if len(sizes) > maxSizeGroupsToProcess {
+		logger.Warningf("[Duplicates] Limiting size groups from %d to %d for safety", len(sizes), maxSizeGroupsToProcess)
+		sizes = sizes[:maxSizeGroupsToProcess]
+	}
+
 	// Step 2: Process each size group sequentially to minimize memory
 	duplicateGroups := []duplicateGroup{}
 	totalFileQueryTime := time.Duration(0)
 	fileQueryCount := 0
 
 	for _, size := range sizes {
+		// Check resource limits before processing each size group
+		if shouldStop, reason := stats.shouldStop(); shouldStop {
+			stats.stopped = true
+			stats.stopReason = reason
+			logger.Warningf("[Duplicates] Stopping early: %s", reason)
+			break
+		}
+
+		stats.sizeGroupsProcessed++
+
 		// Stop if we've hit the group limit
 		if len(duplicateGroups) >= maxGroups {
 			break
 		}
 
-		// Get files for this size from IndexDB
-		fileQueryStart := time.Now()
-		files, err := indexDB.GetFilesBySize(opts.source, size, pathPrefix)
-		fileQueryDuration := time.Since(fileQueryStart)
-		totalFileQueryTime += fileQueryDuration
-		fileQueryCount++
-
-		if err != nil || len(files) < 2 {
+		// OPTIMIZATION: Instead of loading ALL files of this size, first query SQL
+		// to find which MIME types have 2+ files of this size. This filters at the DB level.
+		candidateTypes, err := indexDB.GetTypeGroupsForSize(opts.source, size, pathPrefix)
+		if err != nil || len(candidateTypes) == 0 {
 			continue
 		}
 
-		// Filter files by permission early, before any processing
-		// This ensures only files the user is permitted to access are included
-		files = filterFilesByPermission(files, index, opts.username)
-		if len(files) < 2 {
-			continue
-		}
+		logger.Debugf("[Duplicates] Size %d: found %d MIME type groups with 2+ files each (SQL-filtered)",
+			size, len(candidateTypes))
 
-		// Use filename matching for initial grouping (fast)
-		groups := groupFilesByFilename(files, size)
+		// Process each MIME type group
+		for _, mimeType := range candidateTypes {
+			// Check resource limits before loading files
+			if shouldStop, reason := stats.shouldStop(); shouldStop {
+				stats.stopped = true
+				stats.stopReason = reason
+				logger.Warningf("[Duplicates] Stopping early: %s", reason)
+				break
+			}
 
-		// Process candidate groups up to the limit
-		for _, fileGroup := range groups {
-			if len(fileGroup) < 2 {
+			// Load only files matching this specific size+type combination
+			fileQueryStart := time.Now()
+			files, err := indexDB.GetFilesBySizeAndType(opts.source, size, mimeType, pathPrefix)
+			fileQueryDuration := time.Since(fileQueryStart)
+			totalFileQueryTime += fileQueryDuration
+			fileQueryCount++
+
+			if err != nil || len(files) < 2 {
 				continue
 			}
 
-			// Stop if we've hit the group limit
-			if len(duplicateGroups) >= maxGroups {
-				break
+			// Track files scanned
+			stats.filesScanned += len(files)
+
+			// Filter files by permission early, before any processing
+			files = filterFilesByPermission(files, index, opts.username)
+			if len(files) < 2 {
+				continue
 			}
 
-			// Verify with checksums
-			verifiedGroups := groupFilesByChecksum(fileGroup, index, size)
+			// Use fuzzy filename matching to group files within this MIME type
+			// This reduces checksum operations by grouping similar filenames
+			filenameGroups := groupFilesByFilename(files, size)
 
-			// Create SearchResult objects only for verified duplicates
-			for _, verifiedGroup := range verifiedGroups {
-				if len(verifiedGroup) < 2 {
+			totalFilesInGroups := 0
+			for _, g := range filenameGroups {
+				if len(g) >= 2 {
+					totalFilesInGroups += len(g)
+				}
+			}
+
+			if totalFilesInGroups > 0 {
+				logger.Debugf("[Duplicates] Size %d, type '%s': %d files → %d fuzzy filename groups with %d files eligible for checksumming",
+					size, mimeType, len(files), len(filenameGroups), totalFilesInGroups)
+			}
+
+			// Process each fuzzy filename group
+			for _, fileGroup := range filenameGroups {
+				if len(fileGroup) < 2 {
 					continue
 				}
 
-				resultGroup := make([]*indexing.SearchResult, 0, len(verifiedGroup))
-				for _, fileInfo := range verifiedGroup {
-					// Remove the user scope from path
-					adjustedPath := strings.TrimPrefix(fileInfo.Path, opts.combinedPath)
-					if adjustedPath == "" {
-						adjustedPath = "/"
+				// Stop if we've hit the group limit
+				if len(duplicateGroups) >= maxGroups {
+					break
+				}
+
+				// Check resource limits before expensive checksum operations
+				if shouldStop, reason := stats.shouldStop(); shouldStop {
+					stats.stopped = true
+					stats.stopReason = reason
+					logger.Warningf("[Duplicates] Stopping early during checksum phase: %s", reason)
+					break
+				}
+
+				// Verify with checksums using 3-pass progressive verification
+				// At this point, files match on: size + MIME type + fuzzy filename similarity
+				verifiedGroups := groupFilesByChecksum(fileGroup, index, size, stats)
+
+				// Create SearchResult objects only for verified duplicates
+				for _, verifiedGroup := range verifiedGroups {
+					if len(verifiedGroup) < 2 {
+						continue
 					}
 
-					resultGroup = append(resultGroup, &indexing.SearchResult{
-						Path:       adjustedPath,
-						Type:       fileInfo.Type,
-						Size:       fileInfo.Size,
-						Modified:   fileInfo.ModTime.Format(time.RFC3339),
-						HasPreview: fileInfo.HasPreview,
-					})
+					resultGroup := make([]*indexing.SearchResult, 0, len(verifiedGroup))
+					for _, fileInfo := range verifiedGroup {
+						// Remove the user scope from path
+						adjustedPath := strings.TrimPrefix(fileInfo.Path, opts.combinedPath)
+						if adjustedPath == "" {
+							adjustedPath = "/"
+						}
+
+						resultGroup = append(resultGroup, &indexing.SearchResult{
+							Path:       adjustedPath,
+							Type:       fileInfo.Type,
+							Size:       fileInfo.Size,
+							Modified:   fileInfo.ModTime.Format(time.RFC3339),
+							HasPreview: fileInfo.HasPreview,
+						})
+					}
+
+					if len(resultGroup) >= 2 {
+						duplicateGroups = append(duplicateGroups, duplicateGroup{
+							Size:  size,
+							Count: len(resultGroup),
+							Files: resultGroup,
+						})
+					}
 				}
 
-				if len(resultGroup) >= 2 {
-					duplicateGroups = append(duplicateGroups, duplicateGroup{
-						Size:  size,
-						Count: len(resultGroup),
-						Files: resultGroup,
-					})
+				// Stop if we've hit the group limit
+				if len(duplicateGroups) >= maxGroups {
+					break
 				}
-			}
-
-			// Stop if we've hit the group limit
-			if len(duplicateGroups) >= maxGroups {
-				break
 			}
 		}
 	}
@@ -227,7 +346,7 @@ func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions) []dup
 	// Log aggregate query performance
 	if fileQueryCount > 0 {
 		avgFileQueryTime := totalFileQueryTime / time.Duration(fileQueryCount)
-		logger.Debugf("[Duplicates] File-by-size queries: %d queries, total %v, avg %v per query",
+		logger.Debugf("[Duplicates] File queries (size+type): %d queries, total %v, avg %v per query",
 			fileQueryCount, totalFileQueryTime, avgFileQueryTime)
 	}
 
@@ -285,11 +404,25 @@ func prepDuplicatesOptions(r *http.Request, d *requestContext) (*duplicatesOptio
 
 // groupFilesByChecksum groups files by partial checksum
 // Works with iteminfo.FileInfo from the main IndexDB
-func groupFilesByChecksum(files []*iteminfo.FileInfo, index *indexing.Index, fileSize int64) [][]*iteminfo.FileInfo {
-	checksumMap := make(map[string][]*iteminfo.FileInfo)
+func groupFilesByChecksum(files []*iteminfo.FileInfo, index *indexing.Index, fileSize int64, stats *duplicateProcessingStats) [][]*iteminfo.FileInfo {
+	if len(files) < 2 {
+		return nil
+	}
 
-	// Build checksum groups
+	initialFileCount := len(files)
+
+	// PASS 1: Header checksums only (first 8KB)
+	// This is the fastest way to eliminate files that are definitely different
+	// ONLY checksum files that already matched on filename+size
+	headerGroups := make(map[string][]*iteminfo.FileInfo)
+
 	for _, file := range files {
+		// Check if we've hit the checksum operation limit
+		if stats.checksumOperations >= maxChecksumOperations {
+			logger.Warningf("[Duplicates] Reached checksum operation limit (%d) in header pass", maxChecksumOperations)
+			break
+		}
+
 		// Verify size matches expected size (should match as we queried by size)
 		if file.Size != fileSize {
 			continue
@@ -298,31 +431,217 @@ func groupFilesByChecksum(files []*iteminfo.FileInfo, index *indexing.Index, fil
 		// Construct filesystem path for checksum computation
 		// index.Path is the absolute filesystem root, file.Path is index-relative
 		filePath := filepath.Join(index.Path, file.Path)
-		checksum, err := computePartialChecksum(index.Path, filePath, fileSize, file.ModTime)
+		headerChecksum, err := computeHeaderChecksum(index.Path, filePath, fileSize, file.ModTime)
 		if err != nil {
 			continue
 		}
-		checksumMap[checksum] = append(checksumMap[checksum], file)
+		stats.checksumOperations++
+		stats.uniqueChecksums[headerChecksum] = true
+		headerGroups[headerChecksum] = append(headerGroups[headerChecksum], file)
 	}
 
-	// Convert map to slice of groups
-	groups := make([][]*iteminfo.FileInfo, 0, len(checksumMap))
-	for _, group := range checksumMap {
+	// Filter to only groups with 2+ files (candidates for duplicates)
+	headerCandidates := make([][]*iteminfo.FileInfo, 0)
+	filesAfterHeaderPass := 0
+	for _, group := range headerGroups {
+		if len(group) >= 2 {
+			headerCandidates = append(headerCandidates, group)
+			filesAfterHeaderPass += len(group)
+		}
+	}
+
+	if len(headerCandidates) == 0 {
+		logger.Debugf("[Duplicates] Header pass eliminated all %d files (no header matches)", initialFileCount)
+		return nil
+	}
+
+	logger.Debugf("[Duplicates] Header pass: %d→%d files (%d eliminated, %d groups)",
+		initialFileCount, filesAfterHeaderPass, initialFileCount-filesAfterHeaderPass, len(headerCandidates))
+
+	// PASS 2: Middle checksums (header + middle) for header-matched groups
+	// Only process files that matched on header to save disk I/O
+	middleGroups := make(map[string][]*iteminfo.FileInfo)
+
+	for _, headerGroup := range headerCandidates {
+		if len(headerGroup) < 2 {
+			continue
+		}
+
+		for _, file := range headerGroup {
+			// Check if we've hit the checksum operation limit
+			if stats.checksumOperations >= maxChecksumOperations {
+				logger.Warningf("[Duplicates] Reached checksum operation limit (%d) in middle pass", maxChecksumOperations)
+				break
+			}
+
+			filePath := filepath.Join(index.Path, file.Path)
+			middleChecksum, err := computeMiddleChecksum(index.Path, filePath, fileSize, file.ModTime)
+			if err != nil {
+				continue
+			}
+			stats.checksumOperations++
+			stats.uniqueChecksums[middleChecksum] = true
+			middleGroups[middleChecksum] = append(middleGroups[middleChecksum], file)
+		}
+	}
+
+	// Filter to only groups with 2+ files
+	middleCandidates := make([][]*iteminfo.FileInfo, 0)
+	filesAfterMiddlePass := 0
+	for _, group := range middleGroups {
+		if len(group) >= 2 {
+			middleCandidates = append(middleCandidates, group)
+			filesAfterMiddlePass += len(group)
+		}
+	}
+
+	if len(middleCandidates) == 0 {
+		logger.Debugf("[Duplicates] Middle pass eliminated all %d files (no middle matches)", filesAfterHeaderPass)
+		return nil
+	}
+
+	logger.Debugf("[Duplicates] Middle pass: %d→%d files (%d eliminated, %d groups)",
+		filesAfterHeaderPass, filesAfterMiddlePass, filesAfterHeaderPass-filesAfterMiddlePass, len(middleCandidates))
+
+	// PASS 3: Three-part checksums (header + middle + end) for middle-matched groups
+	// This is the final verification to ensure files are truly identical
+	// Still only reads ~24KB max per file (not full file)
+	threePartGroups := make(map[string][]*iteminfo.FileInfo)
+
+	for _, middleGroup := range middleCandidates {
+		if len(middleGroup) < 2 {
+			continue
+		}
+
+		for _, file := range middleGroup {
+			// Check if we've hit the checksum operation limit
+			if stats.checksumOperations >= maxChecksumOperations {
+				logger.Warningf("[Duplicates] Reached checksum operation limit (%d) in three-part pass", maxChecksumOperations)
+				break
+			}
+
+			filePath := filepath.Join(index.Path, file.Path)
+			threePartChecksum, err := computeThreePartChecksum(index.Path, filePath, fileSize, file.ModTime)
+			if err != nil {
+				continue
+			}
+			stats.checksumOperations++
+			stats.uniqueChecksums[threePartChecksum] = true
+			threePartGroups[threePartChecksum] = append(threePartGroups[threePartChecksum], file)
+		}
+	}
+
+	// Convert final groups to slice
+	groups := make([][]*iteminfo.FileInfo, 0, len(threePartGroups))
+	filesAfterThreePartPass := 0
+	for _, group := range threePartGroups {
 		if len(group) >= 2 {
 			groups = append(groups, group)
+			filesAfterThreePartPass += len(group)
 		}
+	}
+
+	if len(groups) > 0 {
+		logger.Debugf("[Duplicates] Three-part pass: %d→%d files (%d eliminated, %d verified groups) [%d→%d→%d progressive elimination]",
+			filesAfterMiddlePass, filesAfterThreePartPass, filesAfterMiddlePass-filesAfterThreePartPass, len(groups),
+			initialFileCount, filesAfterHeaderPass, filesAfterThreePartPass)
 	}
 
 	return groups
 }
 
-// computePartialChecksum calculates MD5 hash by sampling key portions of a file
-// - Always read first 8KB (header/metadata)
-// - For files > 24KB: sample middle 8KB and last 8KB
-// - Total read: ~24KB max per file regardless of file size
-func computePartialChecksum(sourcePath, filePath string, size int64, modTime time.Time) (string, error) {
+// computeHeaderChecksum calculates MD5 hash of only the first 8KB of a file
+// This is the fastest initial pass to eliminate non-matching files
+func computeHeaderChecksum(sourcePath, filePath string, size int64, modTime time.Time) (string, error) {
+	// Generate cache key for header-only checksum
+	cacheKey := fmt.Sprintf("%s:%s:%d:%d:header", sourcePath, filePath, size, modTime.Unix())
+
+	// Check cache first
+	if cachedChecksum, ok := checksumCache.Get(cacheKey); ok {
+		return cachedChecksum, nil
+	}
+
+	file, err := os.Open(filePath)
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+
+	hash := md5.New()
+	buf := make([]byte, 8192) // 8KB buffer
+
+	// Read only first 8KB (or entire file if smaller)
+	n, err := io.ReadFull(file, buf)
+	if err != nil && err != io.EOF && err != io.ErrUnexpectedEOF {
+		return "", err
+	}
+	hash.Write(buf[:n])
+
+	checksum := fmt.Sprintf("%x", hash.Sum(nil))
+
+	// Cache the result
+	checksumCache.Set(cacheKey, checksum)
+
+	return checksum, nil
+}
+
+// computeMiddleChecksum calculates MD5 hash of header + middle portion
+// Only called when header checksums match (progressive verification)
+func computeMiddleChecksum(sourcePath, filePath string, size int64, modTime time.Time) (string, error) {
+	// Generate cache key for header+middle checksum
+	cacheKey := fmt.Sprintf("%s:%s:%d:%d:middle", sourcePath, filePath, size, modTime.Unix())
+
+	// Check cache first
+	if cachedChecksum, ok := checksumCache.Get(cacheKey); ok {
+		return cachedChecksum, nil
+	}
+
+	file, err := os.Open(filePath)
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+
+	hash := md5.New()
+	buf := make([]byte, 8192) // 8KB buffer
+
+	// Read first 8KB
+	n, err := io.ReadFull(file, buf)
+	if err != nil && err != io.EOF && err != io.ErrUnexpectedEOF {
+		return "", err
+	}
+	hash.Write(buf[:n])
+
+	// For larger files, also read middle 8KB
+	if size > 16384 { // 16KB
+		middleOffset := size / 2
+		if _, err := file.Seek(middleOffset, 0); err == nil {
+			n, err := io.ReadFull(file, buf)
+			if err != nil && err != io.EOF && err != io.ErrUnexpectedEOF {
+				return "", err
+			}
+			hash.Write(buf[:n])
+		}
+	}
+
+	checksum := fmt.Sprintf("%x", hash.Sum(nil))
+
+	// Cache the result
+	checksumCache.Set(cacheKey, checksum)
+
+	return checksum, nil
+}
+
+// computeThreePartChecksum calculates MD5 hash by sampling all three key portions
+// Only called when both header and middle checksums match (final verification)
+// This is still a PARTIAL checksum, NOT a full file checksum:
+// - First 8KB (header/metadata)
+// - Middle 8KB
+// - Last 8KB
+// Total read: ~24KB max per file regardless of file size
+func computeThreePartChecksum(sourcePath, filePath string, size int64, modTime time.Time) (string, error) {
 	// Generate cache key from source path, file path, and modification time
-	cacheKey := fmt.Sprintf("%s:%s:%d:%d", sourcePath, filePath, size, modTime.Unix())
+	cacheKey := fmt.Sprintf("%s:%s:%d:%d:threepart", sourcePath, filePath, size, modTime.Unix())
 
 	// Check cache first
 	if cachedChecksum, ok := checksumCache.Get(cacheKey); ok {
@@ -381,6 +700,8 @@ func computePartialChecksum(sourcePath, filePath string, size int64, modTime tim
 // groupFilesByFilename groups files by fuzzy filename matching
 // Works with iteminfo.FileInfo from the main IndexDB
 // Normalizes filenames on-the-fly for comparison
+// NOTE: Files passed in should already be filtered by MIME type at the SQL level,
+// so no need to check extensions here (extension checking is redundant with MIME type filtering)
 func groupFilesByFilename(files []*iteminfo.FileInfo, expectedSize int64) [][]*iteminfo.FileInfo {
 	if len(files) == 0 {
 		return nil
@@ -397,9 +718,8 @@ func groupFilesByFilename(files []*iteminfo.FileInfo, expectedSize int64) [][]*i
 		group := []*iteminfo.FileInfo{files[i]}
 		used[i] = true
 
-		// Normalize filename and extract extension on-the-fly
+		// Normalize filename for fuzzy matching
 		filename1 := normalizeFilename(files[i].Name)
-		ext1 := strings.ToLower(filepath.Ext(files[i].Name))
 
 		for j := i + 1; j < len(files); j++ {
 			if used[j] || files[j].Name == "" {
@@ -411,14 +731,9 @@ func groupFilesByFilename(files []*iteminfo.FileInfo, expectedSize int64) [][]*i
 				continue
 			}
 
-			ext2 := strings.ToLower(filepath.Ext(files[j].Name))
-			if ext1 != ext2 {
-				continue
-			}
-
 			filename2 := normalizeFilename(files[j].Name)
 
-			// Check if filenames are similar enough
+			// Check if filenames are similar enough using levenshtein distance
 			if filenamesSimilar(filename1, filename2) {
 				group = append(group, files[j])
 				used[j] = true
@@ -471,9 +786,10 @@ func filenamesSimilar(name1, name2 string) bool {
 	distance := levenshteinDistance(name1, name2)
 	maxLen := max(len(name1), len(name2))
 
-	// Require at least 70% similarity
+	// Require at least 50% similarity (lowered to catch more duplicates with username prefixes)
+	// Examples: "video.mp4" vs "username_video.mp4" should match
 	similarity := 1.0 - float64(distance)/float64(maxLen)
-	return similarity >= 0.7
+	return similarity >= 0.5
 }
 
 // levenshteinDistance calculates the edit distance between two strings
