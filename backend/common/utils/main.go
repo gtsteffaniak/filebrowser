@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"cmp"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
@@ -130,6 +131,20 @@ func Ternary[T any](cond bool, vtrue, vfalse T) T {
 	return vfalse
 }
 
+// Clamp returns value clamped between min and max.
+// If value < min, returns min.
+// If value > max, returns max.
+// Otherwise, returns value.
+func Clamp[T cmp.Ordered](value, min, max T) T {
+	if value < min {
+		return min
+	}
+	if value > max {
+		return max
+	}
+	return value
+}
+
 // NormalizeRulePath ensures directory paths have trailing slashes for consistent rule storage
 func AddTrailingSlashIfNotExists(indexPath string) string {
 	// Root path stays as "/"
@@ -148,15 +163,4 @@ func CheckPathExists(realPath string) bool {
 		return false
 	}
 	return true
-}
-
-// Clamp constrains a value between a minimum and maximum bound
-func Clamp[T int | int64 | uint | uint64 | float64](value, min, max T) T {
-	if value < min {
-		return min
-	}
-	if value > max {
-		return max
-	}
-	return value
 }

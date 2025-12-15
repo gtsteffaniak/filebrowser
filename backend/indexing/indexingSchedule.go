@@ -211,8 +211,6 @@ func (idx *Index) SendSourceUpdateEvent() error {
 // setupMultiScanner creates and starts the multi-scanner system
 // Creates a root scanner (non-recursive) and child scanners for each top-level directory
 func (idx *Index) setupMultiScanner() {
-	logger.Infof("Setting up multi-scanner system for [%v]", idx.Name)
-
 	idx.mu.Lock()
 	idx.scanners = make(map[string]*Scanner)
 	idx.initialScanStartTime = time.Now()

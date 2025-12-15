@@ -178,12 +178,13 @@ func updateIndexDBCacheSize() {
 	}
 
 	totalComplexity := calculateTotalComplexity()
-	// Calculate cache size: complexity * 1MB per complexity point
-	cacheSizeMB := float64(totalComplexity) / 3
-	// Clamp between 2.5MB minimum and 25MB maximum (half of previous 50MB limit)
-	clampedCacheSizeMB := int(utils.Clamp(cacheSizeMB, 2.5, 50.0))
-	if err := indexDB.UpdateCacheSize(clampedCacheSizeMB); err != nil {
-		logger.Errorf("Failed to update index database cache size to %dMB: %v", clampedCacheSizeMB, err)
+	// Calculate cache size: complexity * 5MB
+	cacheSizeMB := int(totalComplexity) * 2
+	// Ensure size between 5MB and 100MB
+	cacheSizeMB = utils.Clamp(cacheSizeMB, 2, 50)
+
+	if err := indexDB.UpdateCacheSize(cacheSizeMB); err != nil {
+		logger.Errorf("Failed to update index database cache size to %dMB: %v", cacheSizeMB, err)
 	} else {
 		logger.Debugf("Updated index database cache size to %dMB (total complexity: %d, capped at 25MB)", clampedCacheSizeMB, totalComplexity)
 	}
