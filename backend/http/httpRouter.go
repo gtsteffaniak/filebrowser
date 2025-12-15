@@ -50,7 +50,7 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	var err error
 	// Start pprof server in a separate goroutine
 	go func() {
-		if err := http.ListenAndServe("localhost:6060", nil); err != nil {
+		if err = http.ListenAndServe("localhost:6060", nil); err != nil {
 			logger.Fatalf("Pprof server error: %v", err)
 		}
 	}()

@@ -186,7 +186,7 @@ func updateIndexDBCacheSize() {
 	if err := indexDB.UpdateCacheSize(cacheSizeMB); err != nil {
 		logger.Errorf("Failed to update index database cache size to %dMB: %v", cacheSizeMB, err)
 	} else {
-		logger.Debugf("Updated index database cache size to %dMB (total complexity: %d, capped at 25MB)", clampedCacheSizeMB, totalComplexity)
+		logger.Debugf("Updated index database cache size to %dMB (total complexity: %d, capped at 25MB)", cacheSizeMB, totalComplexity)
 	}
 }
 

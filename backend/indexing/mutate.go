@@ -73,12 +73,9 @@ func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo) bool {
 			sourceName := idx.Name
 			go func(items []*iteminfo.FileInfo) {
 				defer idx.pendingFlushes.Done()
-				logger.Debugf("[DB_TX] Progressive flush: starting async flush of %d items", len(items))
 				err := idx.db.BulkInsertItems(sourceName, items)
 				if err != nil {
 					logger.Warningf("[DB_TX] Progressive flush failed (%d items): %v - continuing scan", len(items), err)
-				} else {
-					logger.Debugf("[DB_TX] Progressive flush: SUCCESS - %d items", len(items))
 				}
 			}(itemsToFlush)
 			return true
@@ -100,29 +97,18 @@ func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo) bool {
 // This is called at the end of a scan to flush any items that didn't reach the BATCH_SIZE threshold
 func (idx *Index) flushBatch() {
 	idx.pendingFlushes.Wait()
-
 	idx.mu.Lock()
 	items := idx.batchItems
 	idx.batchItems = nil
 	idx.isRoutineScan = false
 	idx.mu.Unlock()
-
 	if len(items) == 0 {
 		return
 	}
-
-	logger.Debugf("[DB_TX] Final flush: %d remaining items from scan", len(items))
-
 	err := idx.db.BulkInsertItems(idx.Name, items)
 	if err != nil {
 		logger.Warningf("[DB_TX] Final flush failed (%d items): %v", len(items), err)
-	} else {
-		logger.Debugf("[DB_TX] Final flush: SUCCESS - %d items", len(items))
 	}
-
-	// Clear item references to allow immediate GC
-	// The slice header still exists but the underlying FileInfo structs can be collected
-	items = nil
 }
 
 // DeleteMetadata removes the specified path from the index.
