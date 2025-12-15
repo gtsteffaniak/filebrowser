@@ -27,6 +27,7 @@ frontend/tsconfig.tsbuildinfo
 /backend/srv
 /backend/http/dist
 /backend/http/embed
+/backend/debug
 
 .DS_Store
 node_modules

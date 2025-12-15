@@ -16,7 +16,6 @@ import (
 
 	"github.com/coreos/go-systemd/v22/activation"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
-	"github.com/gtsteffaniak/filebrowser/backend/common/version"
 	"github.com/gtsteffaniak/filebrowser/backend/database/storage/bolt"
 	"github.com/gtsteffaniak/filebrowser/backend/events"
 	"github.com/gtsteffaniak/go-logger/logger"
@@ -49,11 +48,13 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	config = &settings.Config
 	var err error
 	// Start pprof server in a separate goroutine
-	go func() {
-		if err = http.ListenAndServe("localhost:6060", nil); err != nil {
-			logger.Fatalf("Pprof server error: %v", err)
-		}
-	}()
+	if settings.Env.IsDevMode {
+		go func() {
+			if err = http.ListenAndServe("localhost:6060", nil); err != nil {
+				logger.Fatalf("pprof server error: %v", err)
+			}
+		}()
+	}
 
 	// Determine filesystem mode and set asset paths
 	if settings.Env.EmbeddedFs {
@@ -122,7 +123,8 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	api.HandleFunc("GET /raw", withUser(rawHandler))
 	api.HandleFunc("GET /preview", withTimeout(60*time.Second, withUserHelper(previewHandler)))
 	api.HandleFunc("GET /media/subtitles", withUser(subtitlesHandler))
-	if version.Version == "testing" || version.Version == "untracked" {
+	api.HandleFunc("GET /memory", withAdmin(memoryStatsHandler))
+	if settings.Env.IsDevMode {
 		api.HandleFunc("GET /inspectIndex", inspectIndex)
 		api.HandleFunc("GET /mockData", mockData)
 	}

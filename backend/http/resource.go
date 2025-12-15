@@ -1,6 +1,7 @@
 package http
 
 import (
+	"bufio"
 	"context"
 	"crypto/md5"
 	"encoding/hex"
@@ -11,6 +12,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 
@@ -654,4 +656,575 @@ func mockData(w http.ResponseWriter, r *http.Request) {
 	}
 	mockDir := indexing.CreateMockData(NumDirs, numFiles)
 	renderJSON(w, r, mockDir) // nolint:errcheck
+}
+
+// getOSMemoryStats attempts to read OS-level memory statistics
+// Returns RSS (Resident Set Size) in bytes, or 0 if unavailable
+func getOSMemoryStats() (rss uint64, vms uint64, err error) {
+	// Try Linux /proc/self/status first (works in Docker)
+	statusFile := "/proc/self/status"
+	if f, err := os.Open(statusFile); err == nil {
+		defer f.Close()
+		scanner := bufio.NewScanner(f)
+		for scanner.Scan() {
+			line := scanner.Text()
+			if strings.HasPrefix(line, "VmRSS:") {
+				fields := strings.Fields(line)
+				if len(fields) >= 2 {
+					if val, err := strconv.ParseUint(fields[1], 10, 64); err == nil {
+						rss = val * 1024 // Convert from KB to bytes
+					}
+				}
+			}
+			if strings.HasPrefix(line, "VmSize:") {
+				fields := strings.Fields(line)
+				if len(fields) >= 2 {
+					if val, err := strconv.ParseUint(fields[1], 10, 64); err == nil {
+						vms = val * 1024 // Convert from KB to bytes
+					}
+				}
+			}
+		}
+		if rss > 0 {
+			return rss, vms, nil
+		}
+	}
+
+	// Try /proc/self/statm as fallback (Linux)
+	statmFile := "/proc/self/statm"
+	if f, err := os.Open(statmFile); err == nil {
+		defer f.Close()
+		var size, resident, share, text, lib, data, dt uint64
+		_, err := fmt.Fscanf(f, "%d %d %d %d %d %d %d", &size, &resident, &share, &text, &lib, &data, &dt)
+		if err == nil {
+			// Get page size
+			pageSize := uint64(os.Getpagesize())
+			rss = resident * pageSize
+			vms = size * pageSize
+			return rss, vms, nil
+		}
+	}
+
+	return 0, 0, fmt.Errorf("OS memory stats not available on this platform")
+}
+
+// memoryStatsHandler returns detailed memory statistics from Go runtime
+// This helps understand the difference between Go's view of memory and Docker's view
+func memoryStatsHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	var m runtime.MemStats
+	runtime.ReadMemStats(&m)
+	runtime.GC() // Force GC to get accurate numbers
+
+	// Get OS-level memory statistics
+	osRSS, _, osErr := getOSMemoryStats()
+
+	// Format bytes to human-readable
+	formatBytes := func(b uint64) string {
+		const unit = 1024
+		if b < unit {
+			return fmt.Sprintf("%d B", b)
+		}
+		div, exp := int64(unit), 0
+		for n := b / unit; n >= unit; n /= unit {
+			div *= unit
+			exp++
+		}
+		return fmt.Sprintf("%.2f %cB", float64(b)/float64(div), "KMGTPE"[exp])
+	}
+
+	// Calculate ratios and analyze memory patterns
+	sysAllocRatio := float64(m.Sys) / float64(m.Alloc)
+	heapSysAllocRatio := float64(m.HeapSys) / float64(m.HeapAlloc)
+	heapIdlePercent := float64(m.HeapIdle) / float64(m.HeapSys) * 100
+	stackPerGoroutine := float64(m.StackSys) / float64(runtime.NumGoroutine())
+	nonHeapSys := m.Sys - m.HeapSys - m.StackSys
+
+	// Generate contextual analysis
+	var fragmentationAnalysis string
+	if heapIdlePercent > 30 {
+		fragmentationAnalysis = fmt.Sprintf(
+			"<p><strong>High fragmentation detected:</strong> %.1f%% of heap memory is idle (%s). "+
+				"HeapSys (%s) is %.1fx larger than HeapAlloc (%s), suggesting significant fragmentation. "+
+				"This is normal but means more memory is reserved from the OS than actively used.</p>",
+			heapIdlePercent, formatBytes(m.HeapIdle), formatBytes(m.HeapSys), heapSysAllocRatio, formatBytes(m.HeapAlloc))
+	} else if heapIdlePercent > 10 {
+		fragmentationAnalysis = fmt.Sprintf(
+			"<p><strong>Moderate fragmentation:</strong> %.1f%% of heap memory is idle (%s). "+
+				"HeapSys (%s) is %.1fx larger than HeapAlloc (%s), which is within normal ranges.</p>",
+			heapIdlePercent, formatBytes(m.HeapIdle), formatBytes(m.HeapSys), heapSysAllocRatio, formatBytes(m.HeapAlloc))
+	} else {
+		fragmentationAnalysis = fmt.Sprintf(
+			"<p><strong>Low fragmentation:</strong> Heap memory is efficiently utilized. "+
+				"HeapSys (%s) is %.1fx larger than HeapAlloc (%s), indicating minimal fragmentation.</p>",
+			formatBytes(m.HeapSys), heapSysAllocRatio, formatBytes(m.HeapAlloc))
+	}
+
+	var sysVsAllocAnalysis string
+	if sysAllocRatio > 3.0 {
+		sysVsAllocAnalysis = fmt.Sprintf(
+			"<p><strong>Large Sys/Alloc ratio (%.1fx):</strong> System memory (%s) is significantly larger than allocated heap (%s). "+
+				"This indicates substantial overhead from: heap fragmentation, stack memory, and other runtime structures. "+
+				"Docker RSS will likely show even more due to memory-mapped files and shared libraries.</p>",
+			sysAllocRatio, formatBytes(m.Sys), formatBytes(m.Alloc))
+	} else if sysAllocRatio > 2.0 {
+		sysVsAllocAnalysis = fmt.Sprintf(
+			"<p><strong>Moderate Sys/Alloc ratio (%.1fx):</strong> System memory (%s) is about %.1fx larger than allocated heap (%s). "+
+				"This is typical and includes heap overhead, stack memory, and runtime structures.</p>",
+			sysAllocRatio, formatBytes(m.Sys), sysAllocRatio, formatBytes(m.Alloc))
+	} else {
+		sysVsAllocAnalysis = fmt.Sprintf(
+			"<p><strong>Low Sys/Alloc ratio (%.1fx):</strong> System memory (%s) is close to allocated heap (%s), "+
+				"indicating efficient memory usage with minimal overhead.</p>",
+			sysAllocRatio, formatBytes(m.Sys), formatBytes(m.Alloc))
+	}
+
+	var dockerAnalysis string
+	if sysAllocRatio > 2.5 || nonHeapSys > m.HeapAlloc {
+		dockerAnalysis = fmt.Sprintf(
+			"<p>Given that Go's Sys metric (%s) is already %.1fx larger than Alloc (%s), "+
+				"Docker's RSS will likely show additional memory due to:</p>",
+			formatBytes(m.Sys), sysAllocRatio, formatBytes(m.Alloc))
+	} else {
+		dockerAnalysis = fmt.Sprintf(
+			"<p>While Go's Sys metric (%s) is relatively close to Alloc (%s), "+
+				"Docker's RSS may show additional memory from:</p>",
+			formatBytes(m.Sys), formatBytes(m.Alloc))
+	}
+
+	var stackAnalysis string
+	if runtime.NumGoroutine() > 0 {
+		stackAnalysis = fmt.Sprintf(
+			"<p><strong>Stack memory:</strong> %s total across %d goroutines (avg %s per goroutine). "+
+				"Each goroutine has its own stack, which contributes to RSS.</p>",
+			formatBytes(m.StackSys), runtime.NumGoroutine(), formatBytes(uint64(stackPerGoroutine)))
+	}
+
+	var osComparison string
+	var recommendation string
+	if osErr == nil && osRSS > 0 {
+		osVsSysRatio := float64(osRSS) / float64(m.Sys)
+		osVsAllocRatio := float64(osRSS) / float64(m.Alloc)
+		diff := osRSS - m.Sys
+
+		var comparisonAnalysis string
+		if osVsSysRatio > 1.5 {
+			comparisonAnalysis = fmt.Sprintf(
+				"<p><strong>OS RSS (%s) is %.1fx larger than Go Sys (%s)</strong>, indicating significant "+
+					"additional memory from memory-mapped files, shared libraries, and other OS-level allocations. "+
+					"The difference of %s represents memory that Go doesn't track.</p>",
+				formatBytes(osRSS), osVsSysRatio, formatBytes(m.Sys), formatBytes(diff))
+		} else if osVsSysRatio > 1.1 {
+			comparisonAnalysis = fmt.Sprintf(
+				"<p><strong>OS RSS (%s) is %.1fx larger than Go Sys (%s)</strong>, showing moderate additional "+
+					"memory overhead. The difference of %s likely comes from memory-mapped files and shared libraries.</p>",
+				formatBytes(osRSS), osVsSysRatio, formatBytes(m.Sys), formatBytes(diff))
+		} else if osVsSysRatio < 0.9 {
+			comparisonAnalysis = fmt.Sprintf(
+				"<p><strong>OS RSS (%s) is smaller than Go Sys (%s)</strong>. This can happen due to memory compression "+
+					"(macOS) or different accounting methods. Go Sys represents memory obtained from OS, while RSS "+
+					"represents actual resident memory.</p>",
+				formatBytes(osRSS), formatBytes(m.Sys))
+		} else {
+			comparisonAnalysis = fmt.Sprintf(
+				"<p><strong>OS RSS (%s) closely matches Go Sys (%s)</strong>, indicating good alignment between "+
+					"Go's view and the OS view of memory. The small difference of %s is within normal variance.</p>",
+				formatBytes(osRSS), formatBytes(m.Sys), formatBytes(diff))
+		}
+
+		osComparison = fmt.Sprintf(`
+	<div class="info-box">
+		<strong>OS vs Go Runtime Comparison:</strong>
+		<table class="stats-table" style="margin-top: 10px;">
+			<thead>
+				<tr>
+					<th>Metric</th>
+					<th>Value</th>
+					<th>Description</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td><strong>OS RSS</strong></td>
+					<td>%s</td>
+					<td>Resident Set Size - actual RAM used (what Docker shows)</td>
+				</tr>
+				<tr>
+					<td><strong>Go Sys</strong></td>
+					<td>%s</td>
+					<td>Memory obtained from OS (Go's view)</td>
+				</tr>
+				<tr>
+					<td><strong>Go Alloc</strong></td>
+					<td>%s</td>
+					<td>Heap objects in use (what pprof shows)</td>
+				</tr>
+				<tr>
+					<td><strong>Difference (RSS - Sys)</strong></td>
+					<td>%s</td>
+					<td>Memory-mapped files, shared libraries, etc.</td>
+				</tr>
+				<tr>
+					<td><strong>Ratio (RSS/Alloc)</strong></td>
+					<td>%.1fx</td>
+					<td>How much larger OS view is than Go's heap</td>
+				</tr>
+			</tbody>
+		</table>
+		%s
+	</div>`,
+			formatBytes(osRSS),
+			formatBytes(m.Sys),
+			formatBytes(m.Alloc),
+			formatBytes(diff),
+			osVsAllocRatio,
+			comparisonAnalysis)
+	} else {
+		osComparison = fmt.Sprintf(`
+	<div class="warning-box">
+		<strong>OS Memory Statistics:</strong>
+		<p>OS-level memory statistics are not available on this platform. This is normal on macOS or Windows. 
+		On Linux/Docker, you can check memory usage with <code>docker stats</code> or <code>ps aux</code>.</p>
+	</div>`)
+	}
+
+	if osErr == nil && osRSS > 0 {
+		if float64(osRSS) > float64(m.Sys)*1.2 {
+			recommendation = fmt.Sprintf(
+				"<p>OS RSS (%s) is significantly larger than Go Sys (%s), indicating substantial memory-mapped files "+
+					"or shared libraries. This is the actual RAM usage that Docker reports.</p>",
+				formatBytes(osRSS), formatBytes(m.Sys))
+		} else {
+			recommendation = fmt.Sprintf(
+				"<p>OS RSS (%s) closely aligns with Go Sys (%s), showing that most memory is accounted for by Go. "+
+					"Any additional memory in Docker stats comes from memory-mapped files and shared libraries.</p>",
+				formatBytes(osRSS), formatBytes(m.Sys))
+		}
+	} else {
+		if m.Sys > 100*1024*1024 { // > 100MB
+			recommendation = fmt.Sprintf(
+				"<p>With Sys at %s, Docker RSS will likely show additional memory from memory-mapped files "+
+					"(databases, shared libraries) and other OS-level allocations. Docker's RSS is the most accurate "+
+					"measure of actual RAM usage, as it includes all resident memory.</p>",
+				formatBytes(m.Sys))
+		} else {
+			recommendation = fmt.Sprintf(
+				"<p>Go's Sys metric (%s) provides a baseline, but Docker RSS will include additional memory from "+
+					"memory-mapped files and shared libraries. The difference between Sys and Docker RSS indicates "+
+					"memory-mapped I/O and library overhead.</p>",
+				formatBytes(m.Sys))
+		}
+	}
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	html := fmt.Sprintf(`<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Memory Statistics</title>
+	<style>
+		body {
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+			line-height: 1.6;
+			max-width: 1200px;
+			margin: 0 auto;
+			padding: 20px;
+			background: #f5f5f5;
+		}
+		h1 {
+			color: #333;
+			border-bottom: 3px solid #4CAF50;
+			padding-bottom: 10px;
+		}
+		h2 {
+			color: #555;
+			margin-top: 30px;
+			border-bottom: 2px solid #ddd;
+			padding-bottom: 5px;
+		}
+		.metric {
+			background: white;
+			border-radius: 8px;
+			padding: 15px;
+			margin: 10px 0;
+			box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+		}
+		.metric-label {
+			font-weight: 600;
+			color: #333;
+			font-size: 1.1em;
+		}
+		.metric-value {
+			font-size: 1.5em;
+			color: #4CAF50;
+			margin: 5px 0;
+		}
+		.metric-description {
+			color: #666;
+			font-size: 0.9em;
+			margin-top: 5px;
+		}
+		.grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+			gap: 15px;
+			margin: 20px 0;
+		}
+		.info-box {
+			background: #e3f2fd;
+			border-left: 4px solid #2196F3;
+			padding: 15px;
+			margin: 15px 0;
+			border-radius: 4px;
+		}
+		.warning-box {
+			background: #fff3cd;
+			border-left: 4px solid #ffc107;
+			padding: 15px;
+			margin: 15px 0;
+			border-radius: 4px;
+		}
+		ul {
+			margin: 10px 0;
+			padding-left: 25px;
+		}
+		li {
+			margin: 5px 0;
+		}
+		.stats-table {
+			width: 100%%;
+			border-collapse: collapse;
+			margin: 15px 0;
+			background: white;
+			border-radius: 8px;
+			overflow: hidden;
+			box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+		}
+		.stats-table th {
+			background: #4CAF50;
+			color: white;
+			padding: 12px;
+			text-align: left;
+		}
+		.stats-table td {
+			padding: 10px 12px;
+			border-bottom: 1px solid #eee;
+		}
+		.stats-table tr:hover {
+			background: #f9f9f9;
+		}
+		.badge {
+			display: inline-block;
+			padding: 3px 8px;
+			border-radius: 12px;
+			font-size: 0.85em;
+			font-weight: 600;
+		}
+		.badge-primary {
+			background: #2196F3;
+			color: white;
+		}
+		.badge-success {
+			background: #4CAF50;
+			color: white;
+		}
+	</style>
+</head>
+<body>
+	<h1>Memory Statistics</h1>
+	
+	<div class="info-box">
+		<strong>Note:</strong> This page shows Go runtime memory statistics. 
+		Docker's RSS (Resident Set Size) will typically show more memory usage 
+		because it includes memory-mapped files, shared libraries, and other OS-level allocations.
+	</div>
+
+	<h2>Key Metrics Comparison</h2>
+	<table class="stats-table">
+		<thead>
+			<tr>
+				<th>Metric</th>
+				<th>Value</th>
+				<th>What It Represents</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td><span class="badge badge-primary">Alloc</span></td>
+				<td>%s</td>
+				<td>Heap objects in use (what pprof shows)</td>
+			</tr>
+			<tr>
+				<td><span class="badge badge-success">Sys</span></td>
+				<td>%s</td>
+				<td>Memory from OS (closest to Docker RSS)</td>
+			</tr>
+			<tr>
+				<td><span class="badge">HeapSys</span></td>
+				<td>%s</td>
+				<td>Heap memory from OS (includes fragmentation)</td>
+			</tr>
+		</tbody>
+	</table>
+
+	<h2>Go Runtime Memory</h2>
+	<div class="grid">
+		<div class="metric">
+			<div class="metric-label">Allocated (Heap Objects)</div>
+			<div class="metric-value">%s</div>
+			<div class="metric-description">Currently allocated heap objects (what pprof shows)</div>
+		</div>
+		<div class="metric">
+			<div class="metric-label">Total Allocated</div>
+			<div class="metric-value">%s</div>
+			<div class="metric-description">Total bytes allocated over program lifetime</div>
+		</div>
+		<div class="metric">
+			<div class="metric-label">System Memory (Sys)</div>
+			<div class="metric-value">%s</div>
+			<div class="metric-description">Total bytes obtained from OS (closest to Docker RSS)</div>
+		</div>
+		<div class="metric">
+			<div class="metric-label">Goroutines</div>
+			<div class="metric-value">%d</div>
+			<div class="metric-description">Number of active goroutines</div>
+		</div>
+		<div class="metric">
+			<div class="metric-label">GC Runs</div>
+			<div class="metric-value">%d</div>
+			<div class="metric-description">Number of garbage collection cycles</div>
+		</div>
+	</div>
+
+	<h2>Heap Memory Breakdown</h2>
+	<table class="stats-table">
+		<thead>
+			<tr>
+				<th>Metric</th>
+				<th>Value</th>
+				<th>Description</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td><strong>Heap Alloc</strong></td>
+				<td>%s</td>
+				<td>Heap memory currently in use</td>
+			</tr>
+			<tr>
+				<td><strong>Heap Sys</strong></td>
+				<td>%s</td>
+				<td>Heap memory obtained from OS (includes fragmentation)</td>
+			</tr>
+			<tr>
+				<td><strong>Heap Inuse</strong></td>
+				<td>%s</td>
+				<td>Heap memory actually in use</td>
+			</tr>
+			<tr>
+				<td><strong>Heap Idle</strong></td>
+				<td>%s</td>
+				<td>Idle heap memory (obtained from OS but not in use)</td>
+			</tr>
+			<tr>
+				<td><strong>Heap Released</strong></td>
+				<td>%s</td>
+				<td>Heap memory returned to OS</td>
+			</tr>
+		</tbody>
+	</table>
+
+	<h2>Stack Memory</h2>
+	<table class="stats-table">
+		<thead>
+			<tr>
+				<th>Metric</th>
+				<th>Value</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td><strong>Stack Inuse</strong></td>
+				<td>%s</td>
+			</tr>
+			<tr>
+				<td><strong>Stack Sys</strong></td>
+				<td>%s</td>
+			</tr>
+		</tbody>
+	</table>
+
+	<h2>OS vs Go Runtime Memory Comparison</h2>
+	%s
+
+	<h2>Memory Analysis</h2>
+	
+	<div class="info-box">
+		<strong>System vs Allocated Memory:</strong>
+		%s
+	</div>
+
+	<div class="info-box">
+		<strong>Heap Fragmentation:</strong>
+		%s
+	</div>
+
+	%s
+
+	<h2>Understanding Docker RSS vs Go Metrics</h2>
+	
+	<div class="warning-box">
+		<strong>Why Docker Shows More Memory:</strong>
+		<p>Docker stats show RSS (Resident Set Size) which includes:</p>
+		<ul>
+			<li>All memory-mapped files (databases, shared libraries)</li>
+			<li>Stack memory for all goroutines</li>
+			<li>Memory fragmentation overhead</li>
+			<li>Heap memory obtained from OS (even if not in use)</li>
+			<li>Shared libraries loaded into memory</li>
+		</ul>
+		%s
+	</div>
+
+	<div class="info-box">
+		<strong>Expected Docker RSS:</strong>
+		%s
+		<p><strong>Docker's RSS is the most accurate measure of actual RAM usage from the OS perspective.</strong></p>
+	</div>
+</body>
+</html>`,
+		// Key Metrics Comparison (at top)
+		formatBytes(m.Alloc),
+		formatBytes(m.Sys),
+		formatBytes(m.HeapSys),
+		// Go Runtime Memory
+		formatBytes(m.Alloc),
+		formatBytes(m.TotalAlloc),
+		formatBytes(m.Sys),
+		runtime.NumGoroutine(),
+		m.NumGC,
+		// Heap Memory Breakdown
+		formatBytes(m.HeapAlloc),
+		formatBytes(m.HeapSys),
+		formatBytes(m.HeapInuse),
+		formatBytes(m.HeapIdle),
+		formatBytes(m.HeapReleased),
+		// Stack Memory
+		formatBytes(m.StackInuse),
+		formatBytes(m.StackSys),
+		// OS Comparison and Analysis
+		osComparison,
+		sysVsAllocAnalysis,
+		fragmentationAnalysis,
+		stackAnalysis,
+		dockerAnalysis,
+		recommendation,
+	)
+
+	w.WriteHeader(http.StatusOK)
+	_, err := w.Write([]byte(html))
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	return http.StatusOK, nil
 }
