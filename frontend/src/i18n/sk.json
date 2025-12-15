@@ -230,7 +230,9 @@
     "showOptions": "Zobraziť možnosti",
     "searchContext": "Kontext vyhľadávania: {context}",
     "notEnoughCharacters": "Nedostatok znakov na vyhľadávanie (min. {minSearchLength})",
-    "typeToSearch": "Začnite písať {minSearchLength} alebo viac znakov, aby ste začali vyhľadávať."
+    "typeToSearch": "Začnite písať {minSearchLength} alebo viac znakov, aby ste začali vyhľadávať.",
+    "showPreviewImages": "Zobraziť náhľad obrázkov",
+    "showPreviewImagesDescription": "Zobrazenie miniatúrnych náhľadov výsledkov vyhľadávania, ak sú k dispozícii, a zobrazenie väčších ikon pre všetky výsledky."
   },
   "settings": {
     "administrator": "Administrátor",

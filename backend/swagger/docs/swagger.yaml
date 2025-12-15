@@ -1871,7 +1871,28 @@ paths:
     post:
       consumes:
       - application/json
-      description: Authenticate a user with a username and password.
+      description: Authenticate a user with a username and password. The password
+        must be URL-encoded and sent in the X-Password header to support special characters
+        (e.g., ^, %, £, €, etc.).
+      parameters:
+      - description: Username
+        in: query
+        name: username
+        required: true
+        type: string
+      - description: ReCaptcha response token (if enabled)
+        in: query
+        name: recaptcha
+        type: string
+      - description: URL-encoded password
+        in: header
+        name: X-Password
+        required: true
+        type: string
+      - description: TOTP code (if 2FA is enabled)
+        in: header
+        name: X-Secret
+        type: string
       produces:
       - application/json
       responses:
@@ -1966,6 +1987,19 @@ paths:
       consumes:
       - application/json
       description: Generates a new TOTP secret and QR code for the authenticated user.
+        The password must be URL-encoded and sent in the X-Password header to support
+        special characters.
+      parameters:
+      - description: Username
+        in: query
+        name: username
+        required: true
+        type: string
+      - description: URL-encoded password
+        in: header
+        name: X-Password
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -1990,11 +2024,23 @@ paths:
     post:
       consumes:
       - application/json
-      description: Verifies the provided TOTP code for the authenticated user.
+      description: Verifies the provided TOTP code for the authenticated user. The
+        password must be URL-encoded and sent in the X-Password header to support
+        special characters.
       parameters:
-      - description: TOTP code to verify
+      - description: Username
         in: query
-        name: code
+        name: username
+        required: true
+        type: string
+      - description: URL-encoded password
+        in: header
+        name: X-Password
+        required: true
+        type: string
+      - description: TOTP code to verify
+        in: header
+        name: X-Secret
         required: true
         type: string
       produces:

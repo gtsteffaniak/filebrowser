@@ -292,11 +292,11 @@ func (s *Storage) DenyAll(sourcePath, indexPath string) error {
 
 // Permitted checks if a username is permitted for a given sourcePath and indexPath, recursively checking parent directories.
 func (s *Storage) Permitted(sourcePath, indexPath, username string) bool {
-	// SECURITY: All paths MUST start with "/" - reject any path that doesn't
-	// This prevents path normalization bypass attacks
+	// Ensure leading slash
 	if !strings.HasPrefix(indexPath, "/") {
-		return false
+		indexPath = "/" + indexPath
 	}
+	indexPath = utils.AddTrailingSlashIfNotExists(indexPath)
 
 	// Get current version for the sourcePath
 	versionKey := "version:" + sourcePath
@@ -1035,11 +1035,7 @@ func (s *Storage) GetAllRulesByGroups(sourcePath string) map[string]map[string]F
 // This is used to determine if a user should see a folder's contents even when
 // they don't have direct access to the parent folder.
 func (s *Storage) HasAnyVisibleItems(sourcePath, parentPath string, itemNames []string, username string) bool {
-	// Ensure parentPath has trailing slash for proper path construction
-	if !strings.HasSuffix(parentPath, "/") {
-		parentPath = parentPath + "/"
-	}
-
+	parentPath = utils.AddTrailingSlashIfNotExists(parentPath)
 	// Check if user has access to any of the items
 	for _, itemName := range itemNames {
 		indexPath := parentPath + itemName

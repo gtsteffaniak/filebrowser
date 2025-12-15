@@ -184,11 +184,8 @@ func addFile(path string, d *requestContext, tarWriter *tar.Writer, zipWriter *z
 
 			// Check access control for each file/folder during walk
 			if d.share == nil {
-				// Construct the index-relative path for this file/folder
-				// relPath is relative to realPath, so we need to join it with the original path
-				indexRelPath := filepath.Join(path, relPath)
+				indexRelPath := utils.JoinPathAsUnix(path, relPath)
 				indexRelPath = filepath.ToSlash(indexRelPath) // Normalize separators
-
 				if !store.Access.Permitted(idx.Path, indexRelPath, d.user.Username) {
 					// Skip this file/folder silently
 					if fileInfo.IsDir() {

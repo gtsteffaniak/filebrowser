@@ -230,7 +230,9 @@
     "showOptions": "显示选项",
     "searchContext": "搜索上下文：{context}",
     "notEnoughCharacters": "搜索字符数不足（最少{minSearchLength})",
-    "typeToSearch": "开始键入{minSearchLength} 或更多字符开始搜索。"
+    "typeToSearch": "开始键入{minSearchLength} 或更多字符开始搜索。",
+    "showPreviewImages": "显示预览图像",
+    "showPreviewImagesDescription": "在可用时显示搜索结果的缩略图预览，并为所有结果显示更大的图标。"
   },
   "settings": {
     "scopes": "定义允许的来源及其中的用户范围",
