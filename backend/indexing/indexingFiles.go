@@ -230,48 +230,6 @@ func (idx *Index) indexDirectory(adjustedPath string, config actionConfig) error
 
 	// adjustedPath is already normalized with trailing slash
 	combinedPath := adjustedPath
-	// get whats currently in cache
-	idx.mu.RLock()
-	cacheDirItems := []iteminfo.ItemInfo{}
-	modChange := false
-	var cachedDir *iteminfo.FileInfo
-	if idx.db != nil {
-		// adjustedPath is already an index path (relative to source root)
-		cachedDir, _ = idx.db.GetItem(idx.Name, adjustedPath)
-	}
-	if cachedDir != nil {
-		modChange = dirInfo.ModTime().Unix() != cachedDir.ModTime.Unix()
-		// adjustedPath is already an index path (relative to source root)
-		if children, getErr := idx.db.GetDirectoryChildren(idx.Name, adjustedPath); getErr == nil {
-			for _, child := range children {
-				if child.Type == "directory" {
-					cacheDirItems = append(cacheDirItems, child.ItemInfo)
-				}
-			}
-		}
-	}
-	idx.mu.RUnlock()
-
-	// If the directory has not been modified since the last index, skip expensive readdir
-	// recursively check cached dirs for mod time changes as well
-	if config.Recursive {
-		if modChange {
-			// Mark files as changed in the active scanner
-			idx.markFilesChanged()
-		} else if config.Quick {
-			for _, item := range cacheDirItems {
-				subConfig := actionConfig{
-					Quick:     config.Quick,
-					Recursive: true,
-				}
-				err = idx.indexDirectory(combinedPath+item.Name, subConfig)
-				if err != nil && err != errors.ErrNotIndexed {
-					logger.Errorf("error indexing directory %v : %v", combinedPath+item.Name, err)
-				}
-			}
-			return nil
-		}
-	}
 	dirFileInfo, err2 := idx.GetDirInfo(dir, dirInfo, realPath, adjustedPath, combinedPath, config)
 	if err2 != nil {
 		return err2

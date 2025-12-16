@@ -121,6 +121,13 @@ func (db *IndexDB) BulkInsertItems(source string, items []*iteminfo.FileInfo) er
 
 	startTime := time.Now()
 
+	// Log directory inserts for debugging move/copy operations
+	dirPaths := make([]string, 0)
+	for _, info := range items {
+		if info.Type == "directory" {
+			dirPaths = append(dirPaths, info.Path)
+		}
+	}
 	tx, err := db.BeginTransaction()
 	if err != nil {
 		// Soft failure: DB is busy or locked, skip this update
@@ -176,6 +183,7 @@ func (db *IndexDB) BulkInsertItems(source string, items []*iteminfo.FileInfo) er
 		}
 		return err
 	}
+
 	return nil
 }
 
