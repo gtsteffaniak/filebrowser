@@ -879,12 +879,12 @@ func memoryStatsHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 			osVsAllocRatio,
 			comparisonAnalysis)
 	} else {
-		osComparison = fmt.Sprintf(`
+		osComparison = `
 	<div class="warning-box">
 		<strong>OS Memory Statistics:</strong>
 		<p>OS-level memory statistics are not available on this platform. This is normal on macOS or Windows. 
 		On Linux/Docker, you can check memory usage with <code>docker stats</code> or <code>ps aux</code>.</p>
-	</div>`)
+	</div>`
 	}
 
 	if osErr == nil && osRSS > 0 {
