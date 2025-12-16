@@ -21,10 +21,6 @@ type IndexDB struct {
 // It uses the standard TempDB configuration optimized for performance.
 func NewIndexDB(name string) (*IndexDB, error) {
 	// Create a temp DB for indexing (ID based on source name)
-	// Using "index_" prefix for clarity.
-	// Start with 2.5MB cache - will be dynamically increased based on index complexity (capped at 25MB)
-	// MmapSize is set to 0 to disable memory-mapped I/O - this prevents the entire database file
-	// from being mapped into memory. Memory usage is controlled solely by cache_size.
 	db, err := NewTempDB("index_"+name, &TempDBConfig{
 		// cache_size: Negative values = pages, positive = KB
 		// With 4KB page size: -625 pages = 625 * 4096 = ~2.5MB

@@ -343,9 +343,6 @@ func (idx *Index) aggregateStatsFromScanners() {
 		logger.Debugf("Time spent indexing [%v]: %v seconds", idx.Name, truncatedToSecond)
 		idx.hasLoggedInitialScan = true
 	}
-	// Status determination: check if any scanner is actively scanning or waiting to scan
-	// This includes scanners that are waiting for the mutex (anyScannerActive)
-	// and scanners that currently hold the mutex (activeScannerPath != "")
 	if anyScannerActive || idx.activeScannerPath != "" {
 		idx.Status = INDEXING
 	} else if allScannedAtLeastOnce {
