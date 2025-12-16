@@ -888,7 +888,12 @@ func (idx *Index) performPeriodicMaintenance() {
 	idx.mu.Lock()
 	lastVacuum := idx.lastVacuumTime
 	idx.mu.Unlock()
-
+	if lastVacuum.IsZero() {
+		idx.mu.Lock()
+		idx.lastVacuumTime = time.Now()
+		idx.mu.Unlock()
+		return
+	}
 	if time.Since(lastVacuum) < 7*24*time.Hour {
 		return
 	}
@@ -902,7 +907,6 @@ func (idx *Index) performPeriodicMaintenance() {
 	idx.lastVacuumTime = time.Now()
 	idx.mu.Unlock()
 
-	logger.Debugf("[DB_MAINTENANCE] Periodic maintenance completed for index: %s", idx.Name)
 }
 
 func (idx *Index) tryAcquireScanMutex(timeout time.Duration) bool {

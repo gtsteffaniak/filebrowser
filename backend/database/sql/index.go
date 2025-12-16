@@ -281,12 +281,9 @@ func (db *IndexDB) BulkUpdateSizes(source string, pathSizeUpdates map[string]int
 	if len(pathSizeUpdates) == 0 {
 		return nil
 	}
-
 	// Quick attempt with no retries - if DB is busy, just skip the update
 	// Parent sizes are less critical than file existence, filesystem is source of truth
-
 	startTime := time.Now()
-	logger.Debugf("[DB_TX] BulkUpdateSizes: Starting transaction for %d paths (source: %s)", len(pathSizeUpdates), source)
 
 	tx, err := db.BeginTransaction()
 	if err != nil {
@@ -430,14 +427,11 @@ func (db *IndexDB) UpdateCacheSize(cacheSizeMB int) error {
 // This should be called periodically during low-activity periods to prevent
 // database file growth from INSERT OR REPLACE operations.
 func (db *IndexDB) Vacuum() error {
-	startTime := time.Now()
 	_, err := db.Exec("VACUUM")
 	if err != nil {
 		logger.Errorf("[DB_MAINTENANCE] VACUUM failed: %v", err)
 		return fmt.Errorf("failed to vacuum database: %w", err)
 	}
-	duration := time.Since(startTime)
-	logger.Debugf("[DB_MAINTENANCE] VACUUM completed in %v", duration)
 	return nil
 }
 

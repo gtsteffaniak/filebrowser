@@ -521,8 +521,6 @@ func MoveResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string
 }
 
 func CopyResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string) error {
-	logger.Debugf("[COPY] Starting copy operation: isSrcDir=%v, sourceIndex=%s, destIndex=%s, realsrc=%s, realdst=%s", isSrcDir, sourceIndex, destIndex, realsrc, realdst)
-
 	// Check if source and destination are the same file
 	if realsrc == realdst {
 		return fmt.Errorf("cannot copy a file to itself: %s", realsrc)
@@ -537,23 +535,11 @@ func CopyResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string
 	// Get indexes for logging and refresh operations
 	srcIdx := indexing.GetIndex(sourceIndex)
 	dstIdx := indexing.GetIndex(destIndex)
-	if srcIdx != nil && !srcIdx.Config.DisableIndexing {
-		srcIndexPath := srcIdx.MakeIndexPath(realsrc, isSrcDir)
-		srcInfo, srcExists := srcIdx.GetMetadataInfo(srcIndexPath, isSrcDir)
-		if srcExists {
-			logger.Debugf("[COPY] Source exists in database - path=%s, size=%d, isDir=%v", srcIndexPath, srcInfo.Size, isSrcDir)
-		} else {
-			logger.Debugf("[COPY] Source not found in database - path=%s", srcIndexPath)
-		}
-	}
-
-	logger.Debugf("[COPY] Performing physical file copy from %s to %s", realsrc, realdst)
 	err := fileutils.CopyFile(realsrc, realdst)
 	if err != nil {
 		logger.Errorf("[COPY] Physical copy failed: %v", err)
 		return err
 	}
-	logger.Debugf("[COPY] Physical copy completed successfully")
 
 	// For copy operations:
 	// 1. Shallow refresh of source (just to update access times if needed)
@@ -568,7 +554,6 @@ func CopyResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string
 	}
 
 	if srcIdx != nil && !srcIdx.Config.DisableIndexing {
-		logger.Debugf("[COPY] Refreshing source (async) - path=%s, isDir=%v", srcRefreshPath, srcRefreshIsDir)
 		go RefreshIndex(sourceIndex, srcRefreshPath, srcRefreshIsDir, false) //nolint:errcheck
 	}
 
@@ -583,54 +568,23 @@ func CopyResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string
 	if dstIdx != nil && !dstIdx.Config.DisableIndexing {
 		if isSrcDir {
 			// For directories, index synchronously to ensure database entry is created
-			logger.Debugf("[COPY] Indexing copied directory recursively (sync) - path=%s", realdst)
 			if err := RefreshIndex(destIndex, realdst, true, true); err != nil {
 				logger.Errorf("[COPY] Failed to refresh copied directory %s: %v", realdst, err)
 				return fmt.Errorf("failed to index copied directory: %w", err)
 			}
-			logger.Debugf("[COPY] Copied directory indexed successfully - path=%s", realdst)
-
-			// Verify the directory was indexed
-			indexedPath := dstIdx.MakeIndexPath(realdst, true)
-			destInfo, destExists := dstIdx.GetMetadataInfo(indexedPath, true)
-			if destExists {
-				logger.Debugf("[COPY] Destination directory verified in database - path=%s, size=%d", indexedPath, destInfo.Size)
-			} else {
-				logger.Warningf("[COPY] Destination directory not found in database after indexing - path=%s", indexedPath)
-			}
 
 			// Refresh parent directory to update sizes
 			parentDir := filepath.Dir(realdst)
-			logger.Debugf("[COPY] Refreshing destination parent directory - path=%s", parentDir)
 			if err := RefreshIndex(destIndex, parentDir, true, false); err != nil {
 				logger.Errorf("[COPY] Failed to refresh destination parent directory %s: %v", parentDir, err)
-			} else {
-				logger.Debugf("[COPY] Destination parent directory refreshed successfully")
 			}
 		} else {
 			// For files, refresh parent directory synchronously
-			logger.Debugf("[COPY] Refreshing destination parent directory (sync) - path=%s", dstRefreshPath)
 			if err := RefreshIndex(destIndex, dstRefreshPath, true, false); err != nil {
 				logger.Errorf("[COPY] Failed to refresh destination parent directory %s: %v", dstRefreshPath, err)
-			} else {
-				logger.Debugf("[COPY] Destination parent directory refreshed successfully (file copy)")
-
-				// Verify the file was indexed
-				indexedPath := dstIdx.MakeIndexPath(realdst, false)
-				destInfo, destExists := dstIdx.GetMetadataInfo(indexedPath, false)
-				if destExists {
-					logger.Debugf("[COPY] Destination file verified in database - path=%s, size=%d", indexedPath, destInfo.Size)
-				} else {
-					logger.Warningf("[COPY] Destination file not found in database after indexing - path=%s", indexedPath)
-				}
 			}
 		}
-		logger.Debugf("[COPY] Destination indexing completed")
-	} else {
-		logger.Debugf("[COPY] Destination indexing disabled, skipping")
 	}
-
-	logger.Debugf("[COPY] Copy operation completed")
 	return nil
 }
 

@@ -33,6 +33,7 @@ const (
 	maxChecksumOperations  = 10000             // Maximum checksum operations per request (prevents excessive disk I/O)
 	maxSizeGroupsToProcess = 1000              // Maximum size groups to process (prevents memory exhaustion)
 	bulkSizeQueryLimit     = 100               // Process sizes in batches of 100 to balance memory vs query count
+	maxFuzzyGroupSize      = 10                // Maximum files in a fuzzy filename group before skipping checksum (large groups are unlikely duplicates)
 )
 
 // duplicateResultsCache caches duplicate search results for 15 seconds
@@ -108,25 +109,44 @@ func (s *duplicateProcessingStats) shouldStop() (bool, string) {
 
 // duplicatesHandler handles requests to find duplicate files
 //
-// This endpoint finds files with the same size, uses fuzzy filename matching
-// for initial grouping (fast), then verifies all final groups with checksums.
+// This endpoint finds duplicate files using a multi-stage filtering and verification process
+// optimized for performance and accuracy on large directories.
 //
-// It's optimized to handle large directories efficiently by:
-// 1. Filtering by minimum size first
-// 2. Grouping by size
-// 3. Initial grouping with fuzzy filename similarity (fast)
-// 4. Final verification with checksums on all groups (accurate)
+// Filtering Pipeline (applied in order):
+// 1. SQL Query: Files grouped by size (2+ files per size) from database index
+// 2. Permission Filter: Only files accessible by the requesting user
+// 3. MIME Type Grouping: Files grouped by file type (image/png, video/mp4, etc.)
+// 4. Fuzzy Filename Matching: Files with similar names (50%+ similarity via Levenshtein distance)
+//   - Normalizes filenames (lowercase, removes extension, strips special chars)
+//   - Groups files with similar base names (e.g., "photo.jpg" matches "photo_1.jpg")
+//   - Large groups (>10 files) are skipped to avoid false positives
+//
+// 5. Progressive Checksum Verification (3-pass):
+//   - Pass 1: Header checksum (first 8KB) - fastest elimination
+//   - Pass 2: Middle checksum (header + middle 8KB) - for header matches only
+//   - Pass 3: Three-part checksum (header + middle + end 8KB) - final verification
+//     6. Post-Processing: Groups with matching checksums are merged (catches files with
+//     identical content but different filenames)
+//
+// Performance Optimizations:
+// - Checksums are cached for 1 hour (keyed by path/size/modtime) to speed up subsequent requests
+// - Files are processed in batches to balance memory usage vs SQL query count
+// - Resource limits prevent timeouts: max 2 minutes, max 10K checksum operations
+// - Large fuzzy groups are skipped to avoid expensive checksum operations on false positives
+//
+// Response includes incomplete flag if processing was stopped early due to resource limits.
 //
 // @Summary Find Duplicate Files
-// @Description Finds duplicate files based on size and fuzzy filename matching
+// @Description Finds duplicate files using multi-stage filtering: size → type → fuzzy filename → progressive checksums. Files must match on size, MIME type, and have 50%+ filename similarity before checksum verification. Large fuzzy groups (>10 files) are skipped to avoid false positives. Checksums use 3-pass progressive verification (header → middle → three-part) for accuracy while minimizing disk I/O.
 // @Tags Duplicates
 // @Accept json
 // @Produce json
 // @Param source query string true "Source name for the desired source"
 // @Param scope query string false "path within user scope to search"
 // @Param minSizeMb query int false "Minimum file size in megabytes (default: 1)"
-// @Success 200 {array} duplicateGroup "List of duplicate file groups"
+// @Success 200 {object} duplicateResponse "List of duplicate file groups with metadata. Response includes 'incomplete' flag if processing stopped early due to resource limits."
 // @Failure 400 {object} map[string]string "Bad Request"
+// @Failure 503 {object} map[string]string "Service Unavailable (indexing in progress or another search running)"
 // @Router /api/duplicates [get]
 func duplicatesHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	opts, err := prepDuplicatesOptions(r, d)
@@ -284,9 +304,6 @@ func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions, stats
 			continue
 		}
 
-		logger.Debugf("[Duplicates] Bulk query %d: fetched files for %d sizes in %v (%d files total)",
-			bulkQueryCount, len(sizeBatch), bulkQueryDuration, getTotalFileCount(filesBySize))
-
 		// Process each size within this batch
 		// Memory optimization: Delete entries from filesBySize immediately after processing
 		// to allow GC to reclaim memory as we go, rather than holding all data until batch completes
@@ -313,7 +330,7 @@ func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions, stats
 			filesByType := groupFilesByType(files)
 
 			// Process each MIME type group
-			for mimeType, typeFiles := range filesByType {
+			for _, typeFiles := range filesByType {
 				if len(typeFiles) < 2 {
 					continue
 				}
@@ -337,14 +354,17 @@ func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions, stats
 					}
 				}
 
-				if totalFilesInGroups > 0 {
-					logger.Debugf("[Duplicates] Size %d, type '%s': %d files → %d fuzzy filename groups with %d files eligible for checksumming",
-						size, mimeType, len(typeFiles), len(filenameGroups), totalFilesInGroups)
-				}
-
 				// Process each fuzzy filename group
 				for _, fileGroup := range filenameGroups {
 					if len(fileGroup) < 2 {
+						continue
+					}
+
+					// Skip checksumming if fuzzy group is too large - groups with many files
+					// are unlikely to be true duplicates (fuzzy matching is too permissive)
+					// This optimization prevents expensive checksum operations on false positives
+					if len(fileGroup) > maxFuzzyGroupSize {
+						logger.Debugf("[Duplicates] Skipping checksum for fuzzy group with %d files (exceeds limit of %d)", len(fileGroup), maxFuzzyGroupSize)
 						continue
 					}
 
@@ -362,7 +382,8 @@ func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions, stats
 					}
 
 					// Verify with checksums using 3-pass progressive verification
-					// At this point, files match on: size + MIME type + fuzzy filename similarity
+					// At this point, files match on: size + MIME type + fuzzy filename similarity (50%+)
+					// Large fuzzy groups (>10 files) are skipped above to avoid expensive false positives
 					verifiedGroups := groupFilesByChecksum(fileGroup, index, size, stats)
 
 					// Create SearchResult objects and track checksums for merging
@@ -592,8 +613,6 @@ func groupFilesByChecksum(files []*iteminfo.FileInfo, index *indexing.Index, fil
 		return nil
 	}
 
-	initialFileCount := len(files)
-
 	// PASS 1: Header checksums only (first 8KB)
 	// This is the fastest way to eliminate files that are definitely different
 	// ONLY checksum files that already matched on filename+size
@@ -634,12 +653,8 @@ func groupFilesByChecksum(files []*iteminfo.FileInfo, index *indexing.Index, fil
 	}
 
 	if len(headerCandidates) == 0 {
-		logger.Debugf("[Duplicates] Header pass eliminated all %d files (no header matches)", initialFileCount)
 		return nil
 	}
-
-	logger.Debugf("[Duplicates] Header pass: %d→%d files (%d eliminated, %d groups)",
-		initialFileCount, filesAfterHeaderPass, initialFileCount-filesAfterHeaderPass, len(headerCandidates))
 
 	// PASS 2: Middle checksums (header + middle) for header-matched groups
 	// Only process files that matched on header to save disk I/O
@@ -679,12 +694,8 @@ func groupFilesByChecksum(files []*iteminfo.FileInfo, index *indexing.Index, fil
 	}
 
 	if len(middleCandidates) == 0 {
-		logger.Debugf("[Duplicates] Middle pass eliminated all %d files (no middle matches)", filesAfterHeaderPass)
 		return nil
 	}
-
-	logger.Debugf("[Duplicates] Middle pass: %d→%d files (%d eliminated, %d groups)",
-		filesAfterHeaderPass, filesAfterMiddlePass, filesAfterHeaderPass-filesAfterMiddlePass, len(middleCandidates))
 
 	// PASS 3: Three-part checksums (header + middle + end) for middle-matched groups
 	// This is the final verification to ensure files are truly identical
@@ -725,12 +736,6 @@ func groupFilesByChecksum(files []*iteminfo.FileInfo, index *indexing.Index, fil
 			})
 			filesAfterThreePartPass += len(group)
 		}
-	}
-
-	if len(groups) > 0 {
-		logger.Debugf("[Duplicates] Three-part pass: %d→%d files (%d eliminated, %d verified groups) [%d→%d→%d progressive elimination]",
-			filesAfterMiddlePass, filesAfterThreePartPass, filesAfterMiddlePass-filesAfterThreePartPass, len(groups),
-			initialFileCount, filesAfterHeaderPass, filesAfterThreePartPass)
 	}
 
 	return groups
