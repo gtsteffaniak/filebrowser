@@ -102,7 +102,7 @@ func (s *duplicateProcessingStats) shouldStop() (bool, string) {
 		return true, fmt.Sprintf("checksum operation limit exceeded (%d operations)", maxChecksumOperations)
 	}
 	if s.sizeGroupsProcessed >= maxSizeGroupsToProcess {
-		return true, fmt.Sprintf("size group limit exceeded (%d groups)", maxSizeGroupsToProcess)
+		return true, fmt.Sprintf("processed maximum %d different file sizes (not all sizes contain duplicates)", maxSizeGroupsToProcess)
 	}
 	return false, ""
 }
