@@ -898,8 +898,6 @@ func (idx *Index) performPeriodicMaintenance() {
 		return
 	}
 
-	logger.Infof("[DB_MAINTENANCE] Starting periodic maintenance for index: %s", idx.Name)
-
 	if err := idx.db.Vacuum(); err != nil {
 		logger.Errorf("[DB_MAINTENANCE] Periodic maintenance failed for %s: %v", idx.Name, err)
 		return
@@ -909,7 +907,7 @@ func (idx *Index) performPeriodicMaintenance() {
 	idx.lastVacuumTime = time.Now()
 	idx.mu.Unlock()
 
-	logger.Infof("[DB_MAINTENANCE] Periodic maintenance completed for index: %s", idx.Name)
+	logger.Debugf("[DB_MAINTENANCE] Periodic maintenance completed for index: %s", idx.Name)
 }
 
 func (idx *Index) tryAcquireScanMutex(timeout time.Duration) bool {

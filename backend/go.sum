@@ -496,6 +496,10 @@ github.com/gtsteffaniak/go-cache v1.1.0 h1:ni/2cJpCxpGmaMZd92iTDIGOy+yUcMcxQuW7b
 github.com/gtsteffaniak/go-cache v1.1.0/go.mod h1:rHUZvf4huhMX/bnNK4/oQ3sNAE2fYC2jFpAWZiBPWac=
 github.com/gtsteffaniak/go-logger v0.2.4 h1:CGioQehoo84xufxtS57gqEAYcXdLc5hzA71CPvGQ/3s=
 github.com/gtsteffaniak/go-logger v0.2.4/go.mod h1:rapapTju4D7bwt6h4JOdZNUXDjnp0WkTBd6TN5yWglI=
+github.com/gtsteffaniak/go-logger v1.0.0 h1:ao0mPmqJGAtiPQXA789w/tAptnxiBYe9yLZ1WUMFF4g=
+github.com/gtsteffaniak/go-logger v1.0.0/go.mod h1:rapapTju4D7bwt6h4JOdZNUXDjnp0WkTBd6TN5yWglI=
+github.com/gtsteffaniak/go-logger v1.0.1 h1:XFAjhrvhmJq5xG6bovwJP4C825H5HPFbdhhobgOVcRo=
+github.com/gtsteffaniak/go-logger v1.0.1/go.mod h1:rapapTju4D7bwt6h4JOdZNUXDjnp0WkTBd6TN5yWglI=
 github.com/hairyhenderson/go-codeowners v0.7.0 h1:s0W4wF8bdsBEjTWzwzSlsatSthWtTAF2xLgo4a4RwAo=
 github.com/hairyhenderson/go-codeowners v0.7.0/go.mod h1:wUlNgQ3QjqC4z8DnM5nnCYVq/icpqXJyJOukKx5U8/Q=
 github.com/hashicorp/go-immutable-radix/v2 v2.1.0 h1:CUW5RYIcysz+D3B+l1mDeXrQ7fUvGGCwJfdASSzbrfo=

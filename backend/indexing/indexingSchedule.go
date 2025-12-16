@@ -348,15 +348,8 @@ func (idx *Index) aggregateStatsFromScanners() {
 	// and scanners that currently hold the mutex (activeScannerPath != "")
 	if anyScannerActive || idx.activeScannerPath != "" {
 		idx.Status = INDEXING
-		if anyScannerActive {
-			logger.Debugf("[%s] Status: INDEXING (anyScannerActive=true)", idx.Name)
-		}
-		if idx.activeScannerPath != "" {
-			logger.Debugf("[%s] Status: INDEXING (activeScannerPath=%s)", idx.Name, idx.activeScannerPath)
-		}
 	} else if allScannedAtLeastOnce {
 		idx.Status = READY
-		logger.Debugf("[%s] Status: READY (all scanners idle)", idx.Name)
 	}
 	newDiskUsed := idx.totalSize
 	newStatus := idx.Status

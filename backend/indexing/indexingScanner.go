@@ -167,11 +167,9 @@ func (s *Scanner) runRootScan(quick bool) {
 
 	if !quick {
 		// Recalculate directory sizes after batch insertion
-		updated, err := s.idx.db.RecalculateDirectorySizes(s.idx.Name, "/")
+		_, err := s.idx.db.RecalculateDirectorySizes(s.idx.Name, "/")
 		if err != nil {
 			logger.Errorf("[SIZE_CALC] Failed to recalculate directory sizes: %v", err)
-		} else if updated > 0 {
-			logger.Infof("[SIZE_CALC] Updated sizes for %d directories in root scan", updated)
 		}
 		s.purgeStaleEntries()
 		s.idx.performPeriodicMaintenance()
@@ -223,11 +221,9 @@ func (s *Scanner) runChildScan(quick bool) {
 
 	if !quick {
 		// Recalculate directory sizes after batch insertion
-		updated, err := s.idx.db.RecalculateDirectorySizes(s.idx.Name, s.scanPath)
+		_, err := s.idx.db.RecalculateDirectorySizes(s.idx.Name, s.scanPath)
 		if err != nil {
 			logger.Errorf("[SIZE_CALC] Failed to recalculate directory sizes for %s: %v", s.scanPath, err)
-		} else if updated > 0 {
-			logger.Infof("[SIZE_CALC] Updated sizes for %d directories in %s", updated, s.scanPath)
 		}
 
 		s.purgeStaleEntries()
@@ -444,6 +440,6 @@ func (s *Scanner) purgeStaleEntries() {
 		return
 	}
 	if deletedCount > 0 {
-		logger.Infof("[DB_MAINTENANCE] Purged %d stale entries for scan path: %s", deletedCount, s.scanPath)
+		logger.Debugf("[DB_MAINTENANCE] Purged %d stale entries for scan path: %s", deletedCount, s.scanPath)
 	}
 }

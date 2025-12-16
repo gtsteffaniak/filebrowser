@@ -124,7 +124,6 @@ func (db *IndexDB) BulkInsertItems(source string, items []*iteminfo.FileInfo) er
 	// The next request will try again, and filesystem reads are always available as fallback
 
 	startTime := time.Now()
-	logger.Debugf("[DB_TX] BulkInsertItems: Starting transaction for %d items (source: %s)", len(items), source)
 
 	tx, err := db.BeginTransaction()
 	if err != nil {
@@ -181,8 +180,6 @@ func (db *IndexDB) BulkInsertItems(source string, items []*iteminfo.FileInfo) er
 		}
 		return err
 	}
-
-	logger.Debugf("[DB_TX] BulkInsertItems: SUCCESS - %d items in %v (source: %s)", len(items), time.Since(startTime), source)
 	return nil
 }
 
@@ -428,17 +425,14 @@ func (db *IndexDB) UpdateCacheSize(cacheSizeMB int) error {
 // This should be called periodically during low-activity periods to prevent
 // database file growth from INSERT OR REPLACE operations.
 func (db *IndexDB) Vacuum() error {
-	logger.Debugf("[DB_MAINTENANCE] Starting VACUUM operation")
 	startTime := time.Now()
-
 	_, err := db.Exec("VACUUM")
 	if err != nil {
 		logger.Errorf("[DB_MAINTENANCE] VACUUM failed: %v", err)
 		return fmt.Errorf("failed to vacuum database: %w", err)
 	}
-
 	duration := time.Since(startTime)
-	logger.Infof("[DB_MAINTENANCE] VACUUM completed in %v", duration)
+	logger.Debugf("[DB_MAINTENANCE] VACUUM completed in %v", duration)
 	return nil
 }
 
