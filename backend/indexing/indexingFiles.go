@@ -420,27 +420,20 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 				itemInfo.Size = realDirInfo.Size
 				itemInfo.HasPreview = realDirInfo.HasPreview
 
-				// Check if subdirectory has children with previews that should bubble up
+				// Check if subdirectory has direct child files with previews that should bubble up
 				// Only check if HasPreview is false (optimization: skip if already true)
+				// Only files that match ShouldBubbleUpToFolderPreview should bubble up to folder previews
+				// We do NOT check subdirectories - only direct child files
 				if !itemInfo.HasPreview {
 					subdirHasPreview := false
-					// Check files - break early if we find a preview
+					// Check only direct child files - break early if we find a preview that should bubble up
 					for _, file := range realDirInfo.Files {
 						if file.HasPreview && iteminfo.ShouldBubbleUpToFolderPreview(file.ItemInfo) {
 							subdirHasPreview = true
 							break
 						}
 					}
-					// Check subdirectories if no file preview found
-					if !subdirHasPreview {
-						for _, folder := range realDirInfo.Folders {
-							if folder.HasPreview {
-								subdirHasPreview = true
-								break
-							}
-						}
-					}
-					// Update if subdirectory has previews but flag is incorrect
+					// Update if subdirectory has direct child files with previews that should bubble up
 					if subdirHasPreview {
 						itemInfo.HasPreview = true
 						realDirInfo.HasPreview = true

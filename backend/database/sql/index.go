@@ -292,7 +292,7 @@ func (db *IndexDB) BulkUpdateSizes(source string, pathSizeUpdates map[string]int
 
 	stmt, err := tx.Prepare(`
 	UPDATE index_items 
-	SET size = size + ?
+	SET size = size + ?, last_updated = ?
 	WHERE source = ? AND path = ?
 	`)
 	if err != nil {
@@ -302,11 +302,12 @@ func (db *IndexDB) BulkUpdateSizes(source string, pathSizeUpdates map[string]int
 		return err
 	}
 
+	nowUnix := time.Now().Unix()
 	for path, sizeDelta := range pathSizeUpdates {
 		if sizeDelta == 0 {
 			continue
 		}
-		_, err := stmt.Exec(sizeDelta, source, path)
+		_, err := stmt.Exec(sizeDelta, nowUnix, source, path)
 		if err != nil {
 			stmt.Close()
 			if isBusyError(err) || isTransactionError(err) {
@@ -819,9 +820,11 @@ func (db *IndexDB) RecalculateDirectorySizes(source, pathPrefix string) (int, er
 			continue
 		}
 
-		// Update the directory's size
-		updateQuery := `UPDATE index_items SET size = ? WHERE source = ? AND path = ?`
-		result, err := db.Exec(updateQuery, totalSize, source, dirPath)
+		// Update the directory's size and last_updated timestamp
+		// This prevents the directory from being deleted as stale during cleanup
+		nowUnix := time.Now().Unix()
+		updateQuery := `UPDATE index_items SET size = ?, last_updated = ? WHERE source = ? AND path = ?`
+		result, err := db.Exec(updateQuery, totalSize, nowUnix, source, dirPath)
 		if err != nil {
 			if isBusyError(err) || isTransactionError(err) {
 				continue

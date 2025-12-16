@@ -170,6 +170,9 @@ func (s *Scanner) runRootScan(quick bool) {
 	scanDuration := int(time.Since(startTime).Seconds())
 	if quick {
 		s.quickScanTime = scanDuration
+		// Sync stats with DB after quick scan to ensure accurate counts
+		// Quick scans increment counters but don't reset them, so we need to sync
+		s.syncStatsWithDB()
 	} else {
 		s.fullScanTime = scanDuration
 		s.updateComplexity()
@@ -226,6 +229,9 @@ func (s *Scanner) runChildScan(quick bool) {
 	scanDuration := int(time.Since(startTime).Seconds())
 	if quick {
 		s.quickScanTime = scanDuration
+		// Sync stats with DB after quick scan to ensure accurate counts
+		// Quick scans increment counters but don't reset them, so we need to sync
+		s.syncStatsWithDB()
 	} else {
 		s.fullScanTime = scanDuration
 		s.updateComplexity()

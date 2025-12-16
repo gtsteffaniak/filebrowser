@@ -110,9 +110,9 @@ func (idx *Index) flushBatch() {
 	}
 }
 
-// flushPathFromBatch ensures items for a specific path are flushed to the database
-// This is needed when we need to read back a path immediately after indexing it
-// For directories, it also flushes children so GetDirectoryChildren can find them
+// flushPathFromBatch ensures items for a specific directory path are flushed to the database
+// This is needed when we need to read back a directory immediately after indexing it
+// It flushes the directory and all its children so GetDirectoryChildren can find them
 // Returns true if items were flushed, false if path not found in batch
 func (idx *Index) flushPathFromBatch(path string) bool {
 	// Wait for any pending async flushes to complete first
@@ -126,17 +126,14 @@ func (idx *Index) flushPathFromBatch(path string) bool {
 		return false // No batch items, path already in DB or not indexed yet
 	}
 
-	// Find items matching this path and its children (if it's a directory)
+	// Find items matching this directory path and all its children
 	// We need to flush children too so GetDirectoryChildren can find them
 	itemsToFlush := make([]*iteminfo.FileInfo, 0, 1)
 	remainingItems := make([]*iteminfo.FileInfo, 0, len(idx.batchItems))
 
 	for _, item := range idx.batchItems {
-		// Match exact path
-		if item.Path == path {
-			itemsToFlush = append(itemsToFlush, item)
-		} else if strings.HasSuffix(path, "/") && strings.HasPrefix(item.Path, path) {
-			// For directories (path ends with /), also flush children
+		// Match exact path or children of this directory
+		if item.Path == path || strings.HasPrefix(item.Path, path) {
 			itemsToFlush = append(itemsToFlush, item)
 		} else {
 			remainingItems = append(remainingItems, item)
