@@ -14,7 +14,7 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.5.2
 	github.com/google/go-cmp v0.7.0
 	github.com/gtsteffaniak/go-cache v1.1.0
-	github.com/gtsteffaniak/go-logger v1.0.1
+	github.com/gtsteffaniak/go-logger v1.0.2
 	github.com/kovidgoyal/imaging v1.7.2
 	github.com/pquerna/otp v1.5.0
 	github.com/spf13/afero v1.15.0

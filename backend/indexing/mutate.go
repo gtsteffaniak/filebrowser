@@ -113,7 +113,6 @@ func (idx *Index) flushBatch() {
 // flushPathFromBatch ensures items for a specific path are flushed to the database
 // This is needed when we need to read back a path immediately after indexing it
 // Returns true if items were flushed, false if path not found in batch
-// Optimized: only flushes the exact path (not children), and doesn't wait for async flushes
 func (idx *Index) flushPathFromBatch(path string) bool {
 	idx.mu.Lock()
 	if len(idx.batchItems) == 0 {
@@ -146,9 +145,6 @@ func (idx *Index) flushPathFromBatch(path string) bool {
 	idx.mu.Unlock()
 
 	// Flush synchronously to ensure data is available
-	// Note: We don't wait for async flushes here - if the item was just added to batch,
-	// it will be in this flush. If it's in an async flush, that's fine - we'll get it
-	// on the next GetMetadataInfo call after the async flush completes.
 	if err := idx.db.BulkInsertItems(idx.Name, itemsToFlush); err != nil {
 		logger.Warningf("[DB_TX] FlushPathFromBatch failed for %s (%d items): %v", path, len(itemsToFlush), err)
 		return false
