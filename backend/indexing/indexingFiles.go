@@ -118,7 +118,6 @@ func init() {
 }
 
 // InitializeIndexDB creates the shared index database for all sources.
-// This should be called once at application startup before any sources are initialized.
 func InitializeIndexDB() error {
 	// clear all sql directory indexes
 	sqlDir := filepath.Join(settings.Config.Server.CacheDir, "sql")
@@ -173,10 +172,6 @@ func calculateTotalComplexity() uint {
 // updateIndexDBCacheSize updates the shared index database cache size
 // based on the total complexity of all indexes.
 func updateIndexDBCacheSize() {
-	if indexDB == nil {
-		return
-	}
-
 	totalComplexity := calculateTotalComplexity()
 	// Calculate cache size: complexity * 5MB
 	cacheSizeMB := int(totalComplexity) * 2
@@ -895,10 +890,6 @@ func (idx *Index) shouldInclude(baseName string) bool {
 }
 
 func (idx *Index) performPeriodicMaintenance() {
-	if idx.db == nil {
-		return
-	}
-
 	idx.mu.Lock()
 	lastVacuum := idx.lastVacuumTime
 	idx.mu.Unlock()

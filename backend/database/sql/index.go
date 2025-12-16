@@ -23,18 +23,20 @@ func NewIndexDB(name string) (*IndexDB, error) {
 	// Create a temp DB for indexing (ID based on source name)
 	// Using "index_" prefix for clarity.
 	// Start with 2.5MB cache - will be dynamically increased based on index complexity (capped at 25MB)
+	// MmapSize is set to 0 to disable memory-mapped I/O - this prevents the entire database file
+	// from being mapped into memory. Memory usage is controlled solely by cache_size.
 	db, err := NewTempDB("index_"+name, &TempDBConfig{
 		// cache_size: Negative values = pages, positive = KB
 		// With 4KB page size: -625 pages = 625 * 4096 = ~2.5MB
 		// Using 4KB pages for small entries reduces storage waste and RAM usage
 		CacheSizeKB:   -625,        // 2.5MB cache (625 pages * 4KB = 2.5MB) - will be increased dynamically up to 25MB
-		MmapSize:      5242880,     // 5MB mmap (memory-mapped I/O) - reduced from 10MB for lower memory footprint
+		MmapSize:      0,           // Disable mmap - use page cache only for controlled memory usage
 		Synchronous:   "OFF",       // OFF for maximum write performance - data integrity not critical for index
 		TempStore:     "FILE",      // FILE instead of MEMORY
 		JournalMode:   "DELETE",    // DELETE mode - faster writes, no WAL overhead, simpler for write-heavy workloads
 		LockingMode:   "EXCLUSIVE", // EXCLUSIVE mode - single writer, no contention
 		PageSize:      4096,        // 4KB page size - optimal for small entries (reduces storage waste)
-		AutoVacuum:    "NONE",      // No vacuum overhead
+		AutoVacuum:    "NONE",      // No vacuum overhead (periodic manual VACUUM recommended)
 		EnableLogging: true,
 	})
 	if err != nil {
