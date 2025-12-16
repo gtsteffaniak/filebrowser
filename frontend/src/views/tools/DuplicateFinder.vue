@@ -11,20 +11,13 @@
             {{ name }}
           </option>
         </select>
-
         <h3>{{ $t('general.path') }}</h3>
         <div aria-label="duplicate-finder-path" class="searchContext clickable button" @click="openPathPicker">
           {{ $t('general.path', { suffix: ':' }) }} {{ searchPath }}
         </div>
-
         <h3>{{ $t('duplicateFinder.minSize') }}</h3>
         <input v-model.number="minSizeValue" type="number" min="0" placeholder="1" class="input" />
         <p class="hint">{{ $t('duplicateFinder.minSizeHint') }}</p>
-
-        <!-- Checksum feature disabled due to performance issues with large file systems -->
-        <!-- <ToggleSwitch v-model="useChecksumsValue" :name="$t('duplicateFinder.useChecksums')"
-          :description="$t('duplicateFinder.useChecksumsDescription')" aria-label="Use checksums toggle" /> -->
-
         <button @click="fetchData" class="button" :disabled="loading">
           <i v-if="loading" class="material-icons spin">autorenew</i>
           <span v-else>{{ $t('duplicateFinder.findDuplicates') }}</span>
@@ -47,7 +40,15 @@
             <span>{{ $t('duplicateFinder.totalWastedSpace', { suffix: ': ' }) }}<strong>{{ humanSize(totalWastedSpace) }}</strong></span>
           </div>
 
-          <div v-if="duplicateGroups.length < maxGroups" class="success-message">
+          <!-- Show timeout/limit warning first if applicable -->
+          <div v-if="isIncomplete" class="warning-message">
+            <i class="material-icons">warning</i>
+            <div>
+              <strong>{{ $t('fileSizeAnalyzer.incompleteResults') }}</strong> {{ incompleteReason }}
+            </div>
+          </div>
+          <!-- Show complete/maxGroups warning if no timeout -->
+          <div v-else-if="duplicateGroups.length < maxGroups" class="success-message">
             <i class="material-icons">check_circle</i>
             <div>
               <strong>{{ $t('fileSizeAnalyzer.completeResults') }}</strong>
@@ -138,6 +139,8 @@ export default {
       loading: false,
       error: null,
       duplicateGroups: [],
+      isIncomplete: false, // Track if results are incomplete due to timeout/limits
+      incompleteReason: "", // Reason for incomplete results
       isInitializing: true,
       lastRequestTime: 0, // Track last request to prevent rapid-fire
       clickTracker: {}, // Track clicks for double-click detection
@@ -244,18 +247,25 @@ export default {
       try {
         // API now expects minSizeMb directly (in megabytes)
         // Always use false for checksums due to performance issues
-        this.duplicateGroups = await findDuplicates(
+        const result = await findDuplicates(
           this.searchPath,
           this.selectedSource,
           this.minSizeValue,
           false // Checksum disabled
         );
 
+        // Handle new response format with incomplete metadata
+        this.duplicateGroups = result.groups || [];
+        this.isIncomplete = result.incomplete || false;
+        this.incompleteReason = result.reason || "";
+
         // Reset selection when new results arrive
         mutations.resetSelected();
       } catch (err) {
         this.error = err.message || "Failed to find duplicates";
         this.duplicateGroups = [];
+        this.isIncomplete = false;
+        this.incompleteReason = "";
       } finally {
         this.loading = false;
       }

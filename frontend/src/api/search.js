@@ -48,7 +48,13 @@ export async function findDuplicates(base, source, minSizeMb, useChecksum = fals
     const res = await fetchURL(apiPath);
     const data = await res.json();
 
-    return data;
+    // Return both the data and metadata about completeness
+    // Backend returns: { groups: [...], incomplete: bool, reason: string }
+    return {
+      groups: data.groups || data, // Handle both new format and legacy format
+      incomplete: data.incomplete || false,
+      reason: data.reason || ""
+    };
   } catch (err) {
     notify.showError(err.message || "Error occurred while finding duplicates");
     throw err;

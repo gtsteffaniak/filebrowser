@@ -110,8 +110,11 @@ var fullScanAnchor = 3 // index of the schedule for a full scan
 
 // markFilesChanged marks that files have changed in the currently active scanner
 func (idx *Index) markFilesChanged() {
+	activePath := idx.getActiveScannerPath()
+	if activePath == "" {
+		return
+	}
 	idx.mu.RLock()
-	activePath := idx.activeScannerPath
 	scanner, exists := idx.scanners[activePath]
 	idx.mu.RUnlock()
 
@@ -122,8 +125,11 @@ func (idx *Index) markFilesChanged() {
 
 // incrementScannerDirs increments the directory counter for the active scanner
 func (idx *Index) incrementScannerDirs() {
+	activePath := idx.getActiveScannerPath()
+	if activePath == "" {
+		return
+	}
 	idx.mu.RLock()
-	activePath := idx.activeScannerPath
 	scanner, exists := idx.scanners[activePath]
 	idx.mu.RUnlock()
 
@@ -134,8 +140,11 @@ func (idx *Index) incrementScannerDirs() {
 
 // incrementScannerFiles increments the file counter for the active scanner
 func (idx *Index) incrementScannerFiles() {
+	activePath := idx.getActiveScannerPath()
+	if activePath == "" {
+		return
+	}
 	idx.mu.RLock()
-	activePath := idx.activeScannerPath
 	scanner, exists := idx.scanners[activePath]
 	idx.mu.RUnlock()
 
@@ -149,48 +158,34 @@ func (idx *Index) PreScan() error {
 }
 
 func (idx *Index) PostScan() error {
-	idx.mu.Lock()
-	idx.wasIndexed = true
-	idx.runningScannerCount--
-	idx.mu.Unlock()
-	if idx.runningScannerCount == 0 {
+	if idx.getRunningScannerCount() == 0 {
 		return idx.SetStatus(READY)
 	}
 	return nil
 }
 
-// updateRootDirectorySize recalculates the "/" directory size from the database
-// and updates the "/" entry. This should be called after any scanner completes.
 func (idx *Index) updateRootDirectorySize() {
-	// Get all direct children of root directory
 	children, err := idx.db.GetDirectoryChildren(idx.Name, "/")
 	if err != nil {
 		logger.Errorf("Failed to get root directory children: %v", err)
 		return
 	}
 
-	// Calculate total size: sum of all direct files + all child directory sizes
 	var totalSize int64
 	for _, child := range children {
 		totalSize += child.Size
 	}
 
-	// Get current root directory entry
 	rootDir, err := idx.db.GetItem(idx.Name, "/")
 	if err != nil || rootDir == nil {
 		logger.Errorf("Failed to get root directory entry: %v", err)
 		return
 	}
 
-	// Update root directory size
 	rootDir.Size = totalSize
 	if err := idx.db.InsertItem(idx.Name, "/", rootDir); err != nil {
 		logger.Errorf("Failed to update root directory size: %v", err)
-		return
 	}
-
-	// Now aggregate stats and send update event
-	idx.aggregateStatsFromScanners()
 }
 
 func (idx *Index) SendSourceUpdateEvent() error {
@@ -221,12 +216,8 @@ func (idx *Index) SendSourceUpdateEvent() error {
 // setupMultiScanner creates and starts the multi-scanner system
 // Creates a root scanner (non-recursive) and child scanners for each top-level directory
 func (idx *Index) setupMultiScanner() {
-	logger.Infof("Setting up multi-scanner system for [%v]", idx.Name)
-
 	idx.mu.Lock()
 	idx.scanners = make(map[string]*Scanner)
-	idx.initialScanStartTime = time.Now()
-	idx.hasLoggedInitialScan = false
 	idx.mu.Unlock()
 
 	// Create and start root scanner
@@ -306,6 +297,7 @@ func (idx *Index) aggregateStatsFromScanners() {
 	var totalFullScanTime = 0
 	var mostRecentScan time.Time
 	allScannedAtLeastOnce := true
+	anyScannerActive := false
 
 	for _, scanner := range idx.scanners {
 		totalDirs += scanner.numDirs
@@ -317,6 +309,9 @@ func (idx *Index) aggregateStatsFromScanners() {
 		}
 		if scanner.lastScanned.IsZero() {
 			allScannedAtLeastOnce = false
+		}
+		if scanner.isScanning {
+			anyScannerActive = true
 		}
 	}
 
@@ -343,18 +338,12 @@ func (idx *Index) aggregateStatsFromScanners() {
 	if !mostRecentScan.IsZero() {
 		idx.LastIndexed = mostRecentScan
 		idx.LastIndexedUnix = mostRecentScan.Unix()
-		idx.wasIndexed = true
 	}
-	if allScannedAtLeastOnce && !idx.hasLoggedInitialScan {
-		totalDuration := time.Since(idx.initialScanStartTime)
-		truncatedToSecond := totalDuration.Truncate(time.Second)
-		logger.Debugf("Time spent indexing [%v]: %v seconds", idx.Name, truncatedToSecond)
-		idx.hasLoggedInitialScan = true
-	}
-	if allScannedAtLeastOnce && idx.activeScannerPath == "" {
-		idx.Status = READY
-	} else if idx.activeScannerPath != "" {
+	// Use anyScannerActive (already computed) instead of calling getActiveScannerPath() which would deadlock
+	if anyScannerActive || idx.getActiveScannerPathUnlocked() != "" {
 		idx.Status = INDEXING
+	} else if allScannedAtLeastOnce {
+		idx.Status = READY
 	}
 	newDiskUsed := idx.totalSize
 	newStatus := idx.Status
@@ -387,8 +376,9 @@ func (idx *Index) GetScannerStatus() map[string]interface{} {
 	status := make(map[string]interface{})
 
 	// Current active scanner (if any is running)
-	status["activeScanner"] = idx.activeScannerPath
-	status["isScanning"] = idx.activeScannerPath != ""
+	activePath := idx.getActiveScannerPath()
+	status["activeScanner"] = activePath
+	status["isScanning"] = activePath != ""
 
 	// Individual scanner stats
 	scannerStats := make([]map[string]interface{}, 0, len(idx.scanners))

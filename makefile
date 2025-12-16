@@ -143,3 +143,29 @@ screenshots: build-frontend build-backend
 	pkill -f "go run ." || true; \
 	pkill -f "filebrowser" || true; \
 	lsof -ti:8080 | xargs kill -9 2>/dev/null || true
+
+profile:
+	@echo "Note: start the backend server with 'make dev' first"
+	@echo "Results will be in ./backend/debug/ directory"
+	@mkdir -p backend/debug
+	@echo "Downloading heap profile..."
+	@curl -s http://localhost:6060/debug/pprof/heap > backend/debug/heap.pb.gz || (echo "Error: Could not download heap profile. Is the server running?" && exit 1)
+	@echo "Generating heap profile (SVG)..."
+	cd backend && go tool pprof -svg -output debug/heap.svg debug/heap.pb.gz
+	@echo "Generating heap profile (text)..."
+	cd backend && go tool pprof -text debug/heap.pb.gz > debug/heap.txt 2>&1
+	@echo "Downloading CPU profile..."
+	@curl -s "http://localhost:6060/debug/pprof/profile?seconds=30" > backend/debug/cpu.pb.gz || (echo "Error: Could not download CPU profile. Is the server running?" && exit 1)
+	@echo "Generating CPU profile (SVG)..."
+	cd backend && go tool pprof -svg -output debug/cpu.svg debug/cpu.pb.gz
+	@echo "Generating CPU profile (text)..."
+	cd backend && go tool pprof -text debug/cpu.pb.gz > debug/cpu.txt 2>&1
+	@echo "✓ Generated debug files: heap.pb.gz, heap.svg, heap.txt, cpu.pb.gz, cpu.svg, cpu.txt"
+
+memory:
+	@echo "Fetching memory stats from running server..."
+	@echo "Note: start the backend server with 'make dev' first"
+	@echo "Usage: make memory [PORT=8080]"
+	@PORT=$${PORT:-8080}; \
+	curl -s http://localhost:$$PORT/api/memory | python3 -m json.tool || \
+	(echo "Error: Could not fetch memory stats. Is the server running on port $$PORT?" && exit 1)

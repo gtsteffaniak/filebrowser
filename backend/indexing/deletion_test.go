@@ -272,4 +272,3 @@ func TestDeleteMetadata_DirectoryFromParentFolder(t *testing.T) {
 		t.Error("File '/subdir/deepdir/file4.txt' should still exist (non-recursive delete)")
 	}
 }
-

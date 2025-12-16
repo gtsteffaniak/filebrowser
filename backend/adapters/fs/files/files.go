@@ -372,24 +372,18 @@ func DeleteFiles(source, absPath string, absDirPath string, isDir bool) error {
 }
 
 func RefreshIndex(source string, path string, isDir bool, recursive bool) error {
-	logger.Debugf("[REFRESH] RefreshIndex called: source=%s, path=%s, isDir=%v, recursive=%v", source, path, isDir, recursive)
 	idx := indexing.GetIndex(source)
 	if idx == nil {
 		return fmt.Errorf("could not get index: %v ", source)
 	}
 	if idx.Config.DisableIndexing {
-		logger.Debugf("[REFRESH] Indexing disabled for source %s", source)
 		return nil
 	}
 	// Always normalize path using MakeIndexPath
-	originalPath := path
 	path = idx.MakeIndexPath(path, isDir)
-
-	logger.Debugf("[REFRESH] Normalized path: original=%s, normalized=%s", originalPath, path)
 
 	// Skip indexing for viewable paths (viewable: true means don't index, just allow FS access)
 	if idx.IsViewable(isDir, path) {
-		logger.Debugf("[REFRESH] Path is viewable, skipping: %s", path)
 		return nil
 	}
 
@@ -400,7 +394,6 @@ func RefreshIndex(source string, path string, isDir bool, recursive bool) error 
 		if err == nil {
 			// Check if the directory exists on disk
 			if !Exists(realPath) {
-				logger.Debugf("[REFRESH] Directory does not exist on disk, removing from index: %s", realPath)
 				// Directory no longer exists, remove it from the index
 				// This clears both Directories and DirectoriesLedger maps
 				indexing.RealPathCache.Delete(realPath)
@@ -411,13 +404,11 @@ func RefreshIndex(source string, path string, isDir bool, recursive bool) error 
 		}
 	}
 
-	logger.Debugf("[REFRESH] Calling RefreshFileInfo: path=%s, isDir=%v, recursive=%v", path, isDir, recursive)
 	err := idx.RefreshFileInfo(utils.FileOptions{Path: path, IsDir: isDir, Recursive: recursive})
 	if err != nil {
-		logger.Errorf("[REFRESH] RefreshFileInfo failed: %v", err)
+		logger.Errorf("RefreshFileInfo failed: %v", err)
 		return err
 	}
-	logger.Debugf("[REFRESH] RefreshFileInfo completed successfully")
 	return err
 }
 
@@ -451,8 +442,6 @@ func validateMoveDestination(src, dst string, isSrcDir bool) error {
 }
 
 func MoveResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string, s *share.Storage, a *access.Storage) error {
-	logger.Debugf("[MOVE] Starting move operation: isSrcDir=%v, sourceIndex=%s, destIndex=%s, realsrc=%s, realdst=%s", isSrcDir, sourceIndex, destIndex, realsrc, realdst)
-
 	// Check if source and destination are the same file
 	if realsrc == realdst {
 		return fmt.Errorf("cannot move a file to itself: %s", realsrc)
@@ -476,19 +465,12 @@ func MoveResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string
 	// Prepare paths for index operations
 	srcIndexPath := srcIdx.MakeIndexPath(realsrc, isSrcDir)
 	srcParentPath := filepath.Dir(realsrc)
-	dstIndexPath := dstIdx.MakeIndexPath(realdst, isSrcDir)
-	dstParentPath := filepath.Dir(realdst)
-
-	logger.Debugf("[MOVE] Paths prepared - srcIndexPath=%s, srcParentPath=%s, dstIndexPath=%s, dstParentPath=%s", srcIndexPath, srcParentPath, dstIndexPath, dstParentPath)
 
 	// Perform the physical move
-	logger.Debugf("[MOVE] Performing physical file move from %s to %s", realsrc, realdst)
 	err := fileutils.MoveFile(realsrc, realdst)
 	if err != nil {
-		logger.Errorf("[MOVE] Physical move failed: %v", err)
 		return err
 	}
-	logger.Debugf("[MOVE] Physical move completed successfully")
 
 	// Handle SOURCE cleanup (treat as deletion)
 	if !srcIdx.Config.DisableIndexing {
@@ -498,35 +480,30 @@ func MoveResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string
 			srcIdx.DeleteMetadata(srcIndexPath, false, false)
 		}
 		go RefreshIndex(sourceIndex, srcParentPath, true, false) //nolint:errcheck
-	} else {
-		logger.Debugf("[MOVE] Source indexing disabled, skipping cleanup")
 	}
 
 	// Handle DESTINATION indexing
-	// Must be synchronous to ensure parent sizes are updated correctly
+	// For directories, must be synchronous to ensure database entry is created and sizes are updated correctly
 	if !dstIdx.Config.DisableIndexing {
-		logger.Debugf("[MOVE] Starting destination indexing - dstIndexPath=%s, isSrcDir=%v", dstIndexPath, isSrcDir)
 		if isSrcDir {
-			go func() {
-				RefreshIndex(destIndex, realdst, true, true) //nolint:errcheck
-				parentDir := filepath.Dir(realdst)
-				RefreshIndex(destIndex, parentDir, true, false) //nolint:errcheck
-			}()
-		} else {
+			// For directories, index synchronously to ensure database entry is created
+			if err := RefreshIndex(destIndex, realdst, true, true); err != nil {
+				return fmt.Errorf("failed to index moved directory: %w", err)
+			}
+
+			// Refresh parent directory to update sizes
 			parentDir := filepath.Dir(realdst)
-			logger.Debugf("[MOVE] Refreshing destination parent directory (file move): %s", parentDir)
 			if err := RefreshIndex(destIndex, parentDir, true, false); err != nil {
-				logger.Errorf("[MOVE] Failed to refresh destination parent directory %s: %v", parentDir, err)
-			} else {
-				logger.Debugf("[MOVE] Destination parent directory refreshed successfully (file move)")
+				logger.Errorf("Failed to refresh destination parent directory %s: %v", parentDir, err)
+			}
+		} else {
+			// For files, refresh parent directory synchronously
+			parentDir := filepath.Dir(realdst)
+			if err := RefreshIndex(destIndex, parentDir, true, false); err != nil {
+				logger.Errorf("Failed to refresh destination parent directory %s: %v", parentDir, err)
 			}
 		}
-		logger.Debugf("[MOVE] Destination indexing completed")
-	} else {
-		logger.Debugf("[MOVE] Destination indexing disabled, skipping")
 	}
-
-	logger.Debugf("[MOVE] Move operation completed")
 
 	// Use backend source paths to match how shares are stored
 	go s.UpdateShares(srcIdx.Path, srcIdx.MakeIndexPath(realsrc, isSrcDir), dstIdx.Path, dstIdx.MakeIndexPath(realdst, isSrcDir)) //nolint:errcheck
@@ -551,11 +528,16 @@ func CopyResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string
 
 	// Validate the copy operation before executing
 	if err := validateMoveDestination(realsrc, realdst, isSrcDir); err != nil {
+		logger.Errorf("[COPY] Copy validation failed: %v", err)
 		return err
 	}
 
+	// Get indexes for logging and refresh operations
+	srcIdx := indexing.GetIndex(sourceIndex)
+	dstIdx := indexing.GetIndex(destIndex)
 	err := fileutils.CopyFile(realsrc, realdst)
 	if err != nil {
+		logger.Errorf("[COPY] Physical copy failed: %v", err)
 		return err
 	}
 
@@ -571,17 +553,38 @@ func CopyResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string
 		srcRefreshIsDir = true
 	}
 
-	go RefreshIndex(sourceIndex, srcRefreshPath, srcRefreshIsDir, false) //nolint:errcheck
+	if srcIdx != nil && !srcIdx.Config.DisableIndexing {
+		go RefreshIndex(sourceIndex, srcRefreshPath, srcRefreshIsDir, false) //nolint:errcheck
+	}
 
 	// Refresh destination (parent directory if it's a file)
+	// For directories, must be synchronous to ensure database entry is created and sizes are updated correctly
 	dstRefreshPath := realdst
 	if !isSrcDir {
 		// If copying a file (regardless of destination), refresh the parent directory
 		dstRefreshPath = filepath.Dir(realdst)
 	}
 
-	go RefreshIndex(destIndex, dstRefreshPath, true, true) //nolint:errcheck
+	if dstIdx != nil && !dstIdx.Config.DisableIndexing {
+		if isSrcDir {
+			// For directories, index synchronously to ensure database entry is created
+			if err := RefreshIndex(destIndex, realdst, true, true); err != nil {
+				logger.Errorf("[COPY] Failed to refresh copied directory %s: %v", realdst, err)
+				return fmt.Errorf("failed to index copied directory: %w", err)
+			}
 
+			// Refresh parent directory to update sizes
+			parentDir := filepath.Dir(realdst)
+			if err := RefreshIndex(destIndex, parentDir, true, false); err != nil {
+				logger.Errorf("[COPY] Failed to refresh destination parent directory %s: %v", parentDir, err)
+			}
+		} else {
+			// For files, refresh parent directory synchronously
+			if err := RefreshIndex(destIndex, dstRefreshPath, true, false); err != nil {
+				logger.Errorf("[COPY] Failed to refresh destination parent directory %s: %v", dstRefreshPath, err)
+			}
+		}
+	}
 	return nil
 }
 

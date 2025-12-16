@@ -112,27 +112,19 @@ func rawFileHandler(w http.ResponseWriter, r *http.Request, file iteminfo.Extend
 // and returns the first valid, non-corrupted file suitable for preview.
 func getDirectoryPreview(r *http.Request, d *requestContext, accessStore *access.Storage) (*iteminfo.ExtendedFileInfo, error) {
 	var lastErr error
-
 	for _, item := range d.fileInfo.Files {
-		// Only use files that should bubble up to folder previews (images, videos, audio)
-		// Exclude text files, office documents, and PDFs
 		if !item.HasPreview || !iteminfo.ShouldBubbleUpToFolderPreview(item.ItemInfo) {
 			continue
 		}
-
 		source := d.fileInfo.Source
 		path := utils.JoinPathAsUnix(d.fileInfo.Path, item.Name)
-
 		if d.share != nil {
-			// Get the actual source name from the share's source mapping
 			sourceInfo, ok := settings.Config.Server.SourceMap[d.share.Source]
 			if !ok {
 				return nil, fmt.Errorf("source not found for share")
 			}
 			source = sourceInfo.Name
-			path = utils.JoinPathAsUnix(d.share.Path, path)
 		}
-
 		fileInfo, err := files.FileInfoFaster(
 			utils.FileOptions{
 				Username: d.user.Username,
@@ -144,12 +136,10 @@ func getDirectoryPreview(r *http.Request, d *requestContext, accessStore *access
 			lastErr = err
 			continue // Try next file if this one fails
 		}
-
 		// Try to generate preview to verify the file is not corrupted
 		tempCtx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
 		_, previewErr := preview.GetPreviewForFile(tempCtx, *fileInfo, "small", "", 0)
 		cancel()
-
 		if previewErr != nil {
 			// Skip context errors (timeout or cancellation) - they're not corruption issues
 			if !errors.Is(previewErr, context.Canceled) && !errors.Is(previewErr, context.DeadlineExceeded) {
@@ -164,11 +154,8 @@ func getDirectoryPreview(r *http.Request, d *requestContext, accessStore *access
 			lastErr = previewErr
 			continue
 		}
-
-		// Success! Use this file for the directory preview
 		return fileInfo, nil
 	}
-
 	// If we exhausted all files and none worked, return the last error
 	if lastErr != nil {
 		return nil, fmt.Errorf("no valid preview files found in directory: %w", lastErr)

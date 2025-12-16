@@ -1,6 +1,7 @@
 package indexing
 
 import (
+	"sync"
 	"testing"
 	"time"
 
@@ -10,18 +11,24 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var testIndex Index
-var testIndexInitialized bool
+var (
+	testIndex            Index
+	testIndexInitialized bool
+	testIndexSetupMutex  sync.Mutex
+)
 
-func setupMutateTestIndex(t *testing.T) {
+func setupMutateTestIndex(t *testing.T) *Index {
 	t.Helper()
+
+	testIndexSetupMutex.Lock()
+	defer testIndexSetupMutex.Unlock()
+
 	if testIndexInitialized {
-		return
+		return &testIndex
 	}
 
-	// Initialize the database (cache directory is set up by TestMain in search_test.go)
 	var err error
-	indexDB, err = dbsql.NewIndexDB("test_init")
+	testDB, err := dbsql.NewIndexDB("test_init")
 	if err != nil {
 		t.Fatalf("Failed to create test database: %v", err)
 	}
@@ -35,11 +42,10 @@ func setupMutateTestIndex(t *testing.T) {
 			Path: "/",
 			Name: "test",
 		},
-		db:   indexDB,
+		db:   testDB,
 		mock: true,
 	}
 
-	// Insert test data into database using UpdateMetadata so child items are created
 	now := time.Now()
 	testpath := &iteminfo.FileInfo{
 		Path: "/testpath/",
@@ -53,7 +59,14 @@ func setupMutateTestIndex(t *testing.T) {
 			{ItemInfo: iteminfo.ItemInfo{Name: "anotherfile.txt", Size: 100, ModTime: now}},
 		},
 	}
-	testIndex.UpdateMetadata(testpath)
+	err = testDB.BulkInsertItems("test", []*iteminfo.FileInfo{
+		testpath,
+		{Path: "/testpath/testfile.txt", ItemInfo: iteminfo.ItemInfo{Name: "testfile.txt", Size: 100, ModTime: now}},
+		{Path: "/testpath/anotherfile.txt", ItemInfo: iteminfo.ItemInfo{Name: "anotherfile.txt", Size: 100, ModTime: now}},
+	})
+	if err != nil {
+		t.Fatalf("Failed to insert test data for /testpath/: %v", err)
+	}
 
 	anotherpath := &iteminfo.FileInfo{
 		Path: "/anotherpath/",
@@ -69,15 +82,23 @@ func setupMutateTestIndex(t *testing.T) {
 			{Name: "directory", Type: "directory", Size: 100},
 		},
 	}
-	testIndex.UpdateMetadata(anotherpath)
-	
+	err = testDB.BulkInsertItems("test", []*iteminfo.FileInfo{
+		anotherpath,
+		{Path: "/anotherpath/afile.txt", ItemInfo: iteminfo.ItemInfo{Name: "afile.txt", Size: 100, ModTime: now}},
+		{Path: "/anotherpath/directory/", ItemInfo: iteminfo.ItemInfo{Name: "directory", Type: "directory", Size: 100, ModTime: now}},
+	})
+	if err != nil {
+		t.Fatalf("Failed to insert test data for /anotherpath/: %v", err)
+	}
+
 	testIndexInitialized = true
+	return &testIndex
 }
 
-// Test for GetFileMetadata// Test for GetFileMetadata
 func TestGetFileMetadataSize(t *testing.T) {
-	setupMutateTestIndex(t)
+	idx := setupMutateTestIndex(t)
 	t.Parallel()
+
 	tests := []struct {
 		name         string
 		adjustedPath string
@@ -91,7 +112,7 @@ func TestGetFileMetadataSize(t *testing.T) {
 			expectedSize: 100,
 		},
 		{
-			name:         "testpath exists",
+			name:         "testpath exists directory",
 			adjustedPath: "/testpath",
 			expectedName: "directory",
 			expectedSize: 100,
@@ -99,10 +120,12 @@ func TestGetFileMetadataSize(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			fileInfo, _ := testIndex.GetReducedMetadata(tt.adjustedPath, true)
-			// Iterate over iteminfo.Items to look for expectedName
+			t.Parallel()
+			fileInfo, exists := idx.GetReducedMetadata(tt.adjustedPath, true)
+			if !exists || fileInfo == nil {
+				t.Fatalf("Failed to get metadata for %s", tt.adjustedPath)
+			}
 			for _, item := range fileInfo.Files {
-				// Assert the existence and the name
 				if item.Name == tt.expectedName {
 					assert.Equal(t, tt.expectedSize, item.Size)
 					break
@@ -112,10 +135,10 @@ func TestGetFileMetadataSize(t *testing.T) {
 	}
 }
 
-// Test for GetFileMetadata// Test for GetFileMetadata
 func TestGetFileMetadata(t *testing.T) {
-	setupMutateTestIndex(t)
+	idx := setupMutateTestIndex(t)
 	t.Parallel()
+
 	tests := []struct {
 		name           string
 		adjustedPath   string
@@ -157,7 +180,8 @@ func TestGetFileMetadata(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			fileInfo, exists := testIndex.GetReducedMetadata(tt.adjustedPath, tt.isDir)
+			t.Parallel()
+			fileInfo, exists := idx.GetReducedMetadata(tt.adjustedPath, tt.isDir)
 			if !exists {
 				found := false
 				assert.Equal(t, tt.expectedExists, found)
@@ -165,9 +189,7 @@ func TestGetFileMetadata(t *testing.T) {
 			}
 			found := false
 			if tt.isDir {
-				// Iterate over iteminfo.Items to look for expectedName
 				for _, item := range fileInfo.Files {
-					// Assert the existence and the name
 					if item.Name == tt.expectedName {
 						found = true
 						break
@@ -184,8 +206,8 @@ func TestGetFileMetadata(t *testing.T) {
 	}
 }
 
-// Test for UpdateFileMetadata
 func TestUpdateFileMetadata(t *testing.T) {
+	t.Parallel()
 	setupMutateTestIndex(t)
 	// Initialize the database if not already done
 	if indexDB == nil {
@@ -229,23 +251,23 @@ func TestUpdateFileMetadata(t *testing.T) {
 	}
 }
 
-// Test for GetDirMetadata
 func TestGetDirMetadata(t *testing.T) {
-	setupMutateTestIndex(t)
+	idx := setupMutateTestIndex(t)
 	t.Parallel()
-	_, exists := testIndex.GetReducedMetadata("/testpath", true)
+
+	_, exists := idx.GetReducedMetadata("/testpath", true)
 	if !exists {
 		t.Fatalf("expected GetDirMetadata to return initialized metadata map")
 	}
 
-	_, exists = testIndex.GetReducedMetadata("/nonexistent", true)
+	_, exists = idx.GetReducedMetadata("/nonexistent", true)
 	if exists {
 		t.Fatalf("expected GetDirMetadata to return false for nonexistent directory")
 	}
 }
 
-// Test for SetDirectoryInfo
 func TestSetDirectoryInfo(t *testing.T) {
+	t.Parallel()
 	setupMutateTestIndex(t)
 	// Initialize the database if not already done
 	if indexDB == nil {

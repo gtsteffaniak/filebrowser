@@ -109,6 +109,39 @@ test("2x copy from listing to new folder", async({ page, checkForErrors, context
   checkForErrors();
 })
 
+test("copy directory and verify folder size is not zero", async({ page, checkForErrors, openContextMenu, context }) => {
+  await page.goto("/files/");
+  await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
+  
+  // Find myfolder and get its size before copy
+  await page.locator('a[aria-label="myfolder"]').waitFor({ state: 'visible' });
+  const myfolderLink = page.locator('a[aria-label="myfolder"]');
+  const myfolderSizeBefore = await myfolderLink.locator('.size').textContent();
+  
+  // Copy myfolder
+  await myfolderLink.click({ button: "right" });
+  await page.locator('.selected-count-header').waitFor({ state: 'visible' });
+  await expect(page.locator('.selected-count-header')).toHaveText('1');
+  await page.locator('button[aria-label="Copy file"]').click();
+  await expect(page.locator('div[aria-label="filelist-path"]')).toHaveText('Path: /');
+  // select li with aria-label="excluded" (preferred) or data-path="/excluded/" if it's a folder
+  await page.locator('li[aria-label="excluded"]').click();
+  await page.locator('button[aria-label="Copy"]').click();
+  await checkForNotification(page, "Files copied successfully!");
+  await page.locator('.notification-buttons .button').waitFor({ state: 'visible' });
+  await page.locator('.notification-buttons .button').click();
+
+  // wait for 1 second
+  await page.waitForTimeout(1000);
+  
+  // Go back to root and verify the copied folder has a non-zero size
+  await page.locator('a[aria-label="myfolder"]').waitFor({ state: 'visible' });
+  const copiedFolderSize = await page.locator('a[aria-label="myfolder"]').locator('.size').textContent();
+  expect(copiedFolderSize).not.toBe("0.0 bytes");
+  expect(copiedFolderSize).toBe(myfolderSizeBefore);
+  checkForErrors();
+})
+
 test("delete file", async({ page, checkForErrors, context }) => {
   await page.goto("/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
