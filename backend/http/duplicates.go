@@ -27,13 +27,12 @@ var duplicateSearchMutex sync.Mutex
 
 // Safety limits to prevent resource exhaustion and server attacks
 const (
-	maxGroups              = 500               // Limit total duplicate groups returned
-	maxFilesToScan         = 50000             // Maximum files to scan per request (prevents unbounded scans)
-	maxProcessingTime      = 120 * time.Second // Maximum time to spend processing (2 minutes)
-	maxChecksumOperations  = 10000             // Maximum checksum operations per request (prevents excessive disk I/O)
-	maxSizeGroupsToProcess = 1000              // Maximum size groups to process (prevents memory exhaustion)
-	bulkSizeQueryLimit     = 100               // Process sizes in batches of 100 to balance memory vs query count
-	maxFuzzyGroupSize      = 10                // Maximum files in a fuzzy filename group before skipping checksum (large groups are unlikely duplicates)
+	maxGroups             = 500               // Limit total duplicate groups returned
+	maxFilesToScan        = 50000             // Maximum files to scan per request (prevents unbounded scans)
+	maxProcessingTime     = 120 * time.Second // Maximum time to spend processing (2 minutes)
+	maxChecksumOperations = 10000             // Maximum checksum operations per request (prevents excessive disk I/O)
+	bulkSizeQueryLimit    = 100               // Process sizes in batches of 100 to balance memory vs query count
+	maxFuzzyGroupSize     = 10                // Maximum files in a fuzzy filename group before skipping checksum (large groups are unlikely duplicates)
 )
 
 // duplicateResultsCache caches duplicate search results for 15 seconds
@@ -100,9 +99,6 @@ func (s *duplicateProcessingStats) shouldStop() (bool, string) {
 	}
 	if s.checksumOperations >= maxChecksumOperations {
 		return true, fmt.Sprintf("checksum operation limit exceeded (%d operations)", maxChecksumOperations)
-	}
-	if s.sizeGroupsProcessed >= maxSizeGroupsToProcess {
-		return true, fmt.Sprintf("processed maximum %d different file sizes (not all sizes contain duplicates)", maxSizeGroupsToProcess)
 	}
 	return false, ""
 }
@@ -244,10 +240,6 @@ func duplicatesHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions, stats *duplicateProcessingStats) []duplicateGroup {
 	// Get the shared IndexDB
 	indexDB := indexing.GetIndexDB()
-	if indexDB == nil {
-		logger.Errorf("[Duplicates] Index DB not available")
-		return []duplicateGroup{}
-	}
 
 	// Step 1: Query IndexDB for size groups with 2+ files (already sorted by SQL)
 	// Pass the scope prefix for efficient filtering
@@ -258,11 +250,7 @@ func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions, stats
 		return []duplicateGroup{}
 	}
 
-	// Safety check: Limit the number of size groups to prevent memory exhaustion
-	if len(sizes) > maxSizeGroupsToProcess {
-		logger.Warningf("[Duplicates] Limiting size groups from %d to %d for safety", len(sizes), maxSizeGroupsToProcess)
-		sizes = sizes[:maxSizeGroupsToProcess]
-	}
+	// No limit on size groups - process all sizes, only limit final duplicate groups returned
 
 	// Step 2: Process sizes in batches using bulk queries to minimize SQL round-trips
 	// Use intermediate structure with checksums for merging
