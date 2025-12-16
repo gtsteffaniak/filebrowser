@@ -447,7 +447,6 @@ func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions, stats
 		for k := range filesBySize {
 			delete(filesBySize, k)
 		}
-		filesBySize = nil // Help GC by clearing the reference
 	}
 
 	// Post-processing: Merge groups that share any checksum values
@@ -1045,15 +1044,6 @@ func max(a, b int) int {
 		return a
 	}
 	return b
-}
-
-// getTotalFileCount counts total files across all sizes in the map
-func getTotalFileCount(filesBySize map[int64][]*iteminfo.FileInfo) int {
-	total := 0
-	for _, files := range filesBySize {
-		total += len(files)
-	}
-	return total
 }
 
 // groupFilesByType groups files by MIME type
