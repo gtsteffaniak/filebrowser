@@ -47,6 +47,20 @@ type duplicateGroup struct {
 	Files []*indexing.SearchResult `json:"files"`
 }
 
+// duplicateGroupWithChecksums tracks checksums for each file in a group
+// Used internally for merging groups with matching checksums
+type duplicateGroupWithChecksums struct {
+	Size     int64
+	Files    []*indexing.SearchResult
+	Checksum string // Single checksum shared by all files in this group
+}
+
+// checksumGroup pairs a file group with its checksum
+type checksumGroup struct {
+	Files    []*iteminfo.FileInfo
+	Checksum string
+}
+
 type duplicateResponse struct {
 	Groups     []duplicateGroup `json:"groups"`
 	Incomplete bool             `json:"incomplete,omitempty"`
@@ -230,7 +244,8 @@ func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions, stats
 	}
 
 	// Step 2: Process sizes in batches using bulk queries to minimize SQL round-trips
-	duplicateGroups := []duplicateGroup{}
+	// Use intermediate structure with checksums for merging
+	groupsWithChecksums := []duplicateGroupWithChecksums{}
 	totalBulkQueryTime := time.Duration(0)
 	bulkQueryCount := 0
 
@@ -245,7 +260,7 @@ func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions, stats
 		}
 
 		// Stop if we've hit the group limit
-		if len(duplicateGroups) >= maxGroups {
+		if len(groupsWithChecksums) >= maxGroups {
 			break
 		}
 
@@ -257,6 +272,7 @@ func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions, stats
 		sizeBatch := sizes[batchStart:batchEnd]
 
 		// BULK QUERY: Load ALL files for ALL sizes in this batch with ONE query
+		// This balances SQL query efficiency with memory usage
 		bulkQueryStart := time.Now()
 		filesBySize, err := indexDB.GetFilesForMultipleSizes(opts.source, sizeBatch, pathPrefix)
 		bulkQueryDuration := time.Since(bulkQueryStart)
@@ -272,9 +288,13 @@ func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions, stats
 			bulkQueryCount, len(sizeBatch), bulkQueryDuration, getTotalFileCount(filesBySize))
 
 		// Process each size within this batch
+		// Memory optimization: Delete entries from filesBySize immediately after processing
+		// to allow GC to reclaim memory as we go, rather than holding all data until batch completes
 		for _, size := range sizeBatch {
 			files, ok := filesBySize[size]
 			if !ok || len(files) < 2 {
+				// Clear entry even if not processing to free memory
+				delete(filesBySize, size)
 				continue
 			}
 
@@ -284,6 +304,8 @@ func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions, stats
 			// Filter files by permission early, before any processing
 			files = filterFilesByPermission(files, index, opts.username)
 			if len(files) < 2 {
+				// Clear entry if filtered out to free memory
+				delete(filesBySize, size)
 				continue
 			}
 
@@ -327,7 +349,7 @@ func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions, stats
 					}
 
 					// Stop if we've hit the group limit
-					if len(duplicateGroups) >= maxGroups {
+					if len(groupsWithChecksums) >= maxGroups {
 						break
 					}
 
@@ -343,14 +365,15 @@ func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions, stats
 					// At this point, files match on: size + MIME type + fuzzy filename similarity
 					verifiedGroups := groupFilesByChecksum(fileGroup, index, size, stats)
 
-					// Create SearchResult objects only for verified duplicates
-					for _, verifiedGroup := range verifiedGroups {
-						if len(verifiedGroup) < 2 {
+					// Create SearchResult objects and track checksums for merging
+					for _, checksumGroup := range verifiedGroups {
+						if len(checksumGroup.Files) < 2 {
 							continue
 						}
 
-						resultGroup := make([]*indexing.SearchResult, 0, len(verifiedGroup))
-						for _, fileInfo := range verifiedGroup {
+						resultGroup := make([]*indexing.SearchResult, 0, len(checksumGroup.Files))
+
+						for _, fileInfo := range checksumGroup.Files {
 							// Remove the user scope from path
 							adjustedPath := strings.TrimPrefix(fileInfo.Path, opts.combinedPath)
 							if adjustedPath == "" {
@@ -367,35 +390,153 @@ func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions, stats
 						}
 
 						if len(resultGroup) >= 2 {
-							duplicateGroups = append(duplicateGroups, duplicateGroup{
-								Size:  size,
-								Count: len(resultGroup),
-								Files: resultGroup,
+							// Track checksum in stats
+							stats.uniqueChecksums[checksumGroup.Checksum] = true
+							groupsWithChecksums = append(groupsWithChecksums, duplicateGroupWithChecksums{
+								Size:     size,
+								Files:    resultGroup,
+								Checksum: checksumGroup.Checksum,
 							})
 						}
 					}
 
 					// Stop if we've hit the group limit
-					if len(duplicateGroups) >= maxGroups {
+					if len(groupsWithChecksums) >= maxGroups {
 						break
 					}
 				}
 
 				// Break out of type loop if we hit group limit
-				if len(duplicateGroups) >= maxGroups {
+				if len(groupsWithChecksums) >= maxGroups {
 					break
 				}
 			}
 
 			// Break out of size loop if we hit group limit
-			if len(duplicateGroups) >= maxGroups {
+			if len(groupsWithChecksums) >= maxGroups {
 				break
 			}
+
+			// Clear processed size from map to free memory immediately
+			delete(filesBySize, size)
 		}
+
+		// Clear the entire map after batch processing to ensure all memory is released
+		// This helps Go's GC reclaim memory more aggressively
+		for k := range filesBySize {
+			delete(filesBySize, k)
+		}
+		filesBySize = nil // Help GC by clearing the reference
+	}
+
+	// Post-processing: Merge groups that share any checksum values
+	// This catches cases where files have identical content but different filenames
+	mergedGroups := mergeGroupsByChecksum(groupsWithChecksums)
+
+	// Convert to final format
+	duplicateGroups := make([]duplicateGroup, 0, len(mergedGroups))
+	for _, group := range mergedGroups {
+		duplicateGroups = append(duplicateGroups, duplicateGroup{
+			Size:  group.Size,
+			Count: len(group.Files),
+			Files: group.Files,
+		})
 	}
 
 	// Groups are already sorted by size (largest to smallest) from SQL query
 	return duplicateGroups
+}
+
+// mergeGroupsByChecksum merges groups that share any checksum values
+// This catches cases where files have identical content but were grouped separately
+func mergeGroupsByChecksum(groups []duplicateGroupWithChecksums) []duplicateGroupWithChecksums {
+	if len(groups) <= 1 {
+		return groups
+	}
+
+	// Build a map: checksum -> list of group indices that contain this checksum
+	checksumToGroups := make(map[string][]int)
+	for i, group := range groups {
+		if group.Checksum != "" {
+			checksumToGroups[group.Checksum] = append(checksumToGroups[group.Checksum], i)
+		}
+	}
+
+	// Use union-find to merge groups that share checksums
+	parent := make([]int, len(groups))
+	for i := range parent {
+		parent[i] = i
+	}
+
+	var find func(int) int
+	find = func(x int) int {
+		if parent[x] != x {
+			parent[x] = find(parent[x]) // Path compression
+		}
+		return parent[x]
+	}
+
+	union := func(x, y int) {
+		px, py := find(x), find(y)
+		if px != py {
+			parent[px] = py
+		}
+	}
+
+	// Merge groups that share any checksum
+	for _, groupIndices := range checksumToGroups {
+		if len(groupIndices) < 2 {
+			continue
+		}
+		// Merge all groups that share this checksum
+		for i := 1; i < len(groupIndices); i++ {
+			union(groupIndices[0], groupIndices[i])
+		}
+	}
+
+	// Group indices by their root parent
+	groupsByRoot := make(map[int][]int)
+	for i := range groups {
+		root := find(i)
+		groupsByRoot[root] = append(groupsByRoot[root], i)
+	}
+
+	// Merge groups that belong to the same root
+	merged := make([]duplicateGroupWithChecksums, 0, len(groupsByRoot))
+	for _, indices := range groupsByRoot {
+		if len(indices) == 1 {
+			// No merging needed, just add the group
+			merged = append(merged, groups[indices[0]])
+			continue
+		}
+
+		// Merge multiple groups
+		combinedFiles := make([]*indexing.SearchResult, 0)
+		var combinedSize int64
+		var combinedChecksum string
+
+		for _, idx := range indices {
+			group := groups[idx]
+			combinedFiles = append(combinedFiles, group.Files...)
+			if combinedChecksum == "" {
+				combinedChecksum = group.Checksum
+			}
+			if combinedSize == 0 {
+				combinedSize = group.Size
+			}
+		}
+
+		// Only include merged groups with 2+ files
+		if len(combinedFiles) >= 2 {
+			merged = append(merged, duplicateGroupWithChecksums{
+				Size:     combinedSize,
+				Files:    combinedFiles,
+				Checksum: combinedChecksum,
+			})
+		}
+	}
+
+	return merged
 }
 
 func prepDuplicatesOptions(r *http.Request, d *requestContext) (*duplicatesOptions, error) {
@@ -403,7 +544,6 @@ func prepDuplicatesOptions(r *http.Request, d *requestContext) (*duplicatesOptio
 	scope := r.URL.Query().Get("scope")
 
 	minSizeMbStr := r.URL.Query().Get("minSizeMb")
-	// Checksums are always enabled by default for final verification
 	// First pass uses filename matching for speed, then checksums verify final groups
 	useChecksum := true
 
@@ -446,9 +586,8 @@ func prepDuplicatesOptions(r *http.Request, d *requestContext) (*duplicatesOptio
 	}, nil
 }
 
-// groupFilesByChecksum groups files by partial checksum
-// Works with iteminfo.FileInfo from the main IndexDB
-func groupFilesByChecksum(files []*iteminfo.FileInfo, index *indexing.Index, fileSize int64, stats *duplicateProcessingStats) [][]*iteminfo.FileInfo {
+// groupFilesByChecksum groups files by partial checksum and returns groups with their checksums
+func groupFilesByChecksum(files []*iteminfo.FileInfo, index *indexing.Index, fileSize int64, stats *duplicateProcessingStats) []checksumGroup {
 	if len(files) < 2 {
 		return nil
 	}
@@ -575,12 +714,15 @@ func groupFilesByChecksum(files []*iteminfo.FileInfo, index *indexing.Index, fil
 		}
 	}
 
-	// Convert final groups to slice
-	groups := make([][]*iteminfo.FileInfo, 0, len(threePartGroups))
+	// Convert final groups to slice with checksums
+	groups := make([]checksumGroup, 0, len(threePartGroups))
 	filesAfterThreePartPass := 0
-	for _, group := range threePartGroups {
+	for checksum, group := range threePartGroups {
 		if len(group) >= 2 {
-			groups = append(groups, group)
+			groups = append(groups, checksumGroup{
+				Files:    group,
+				Checksum: checksum,
+			})
 			filesAfterThreePartPass += len(group)
 		}
 	}
