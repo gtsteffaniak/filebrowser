@@ -148,11 +148,10 @@ func duplicatesHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 
 	// Check cache first (before acquiring mutex)
 	if cachedResults, ok := duplicateResultsCache.Get(cacheKey); ok {
-		// Set headers if cached result was incomplete
+		// Set headers if cached result was incomplete (metadata only, don't change status code)
 		if cachedResults.Incomplete {
 			w.Header().Set("X-Search-Incomplete", "true")
 			w.Header().Set("X-Search-Incomplete-Reason", cachedResults.Reason)
-			w.WriteHeader(http.StatusPartialContent)
 		}
 		return renderJSON(w, r, cachedResults)
 	}
@@ -165,11 +164,10 @@ func duplicatesHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 
 	// Check cache again after acquiring lock (another request might have just completed)
 	if cachedResults, ok := duplicateResultsCache.Get(cacheKey); ok {
-		// Set headers if cached result was incomplete
+		// Set headers if cached result was incomplete (metadata only, don't change status code)
 		if cachedResults.Incomplete {
 			w.Header().Set("X-Search-Incomplete", "true")
 			w.Header().Set("X-Search-Incomplete-Reason", cachedResults.Reason)
-			w.WriteHeader(http.StatusPartialContent)
 		}
 		return renderJSON(w, r, cachedResults)
 	}
@@ -187,9 +185,6 @@ func duplicatesHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 	if stats.stopped {
 		logger.Warningf("[Duplicates] Search stopped early: %s (scanned %d files, %d checksum ops, %d unique checksums, %d groups in %v)",
 			stats.stopReason, stats.filesScanned, stats.checksumOperations, uniqueChecksumCount, stats.sizeGroupsProcessed, time.Since(stats.startTime))
-	} else {
-		logger.Infof("[Duplicates] Search completed: scanned %d files, %d checksum ops, %d unique checksums added to cache, %d groups in %v",
-			stats.filesScanned, stats.checksumOperations, uniqueChecksumCount, stats.sizeGroupsProcessed, time.Since(stats.startTime))
 	}
 
 	// Build response with metadata about completeness
@@ -202,12 +197,9 @@ func duplicatesHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 	// Cache the results before returning (even partial results)
 	duplicateResultsCache.Set(cacheKey, response)
 
-	// Return 206 Partial Content if search was stopped early due to resource limits
-	// This allows the frontend to distinguish between complete and incomplete results
 	if stats.stopped {
 		w.Header().Set("X-Search-Incomplete", "true")
 		w.Header().Set("X-Search-Incomplete-Reason", stats.stopReason)
-		w.WriteHeader(http.StatusPartialContent)
 	}
 
 	return renderJSON(w, r, response)
@@ -400,13 +392,6 @@ func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions, stats
 				break
 			}
 		}
-	}
-
-	// Log aggregate query performance
-	if bulkQueryCount > 0 {
-		avgBulkQueryTime := totalBulkQueryTime / time.Duration(bulkQueryCount)
-		logger.Infof("[Duplicates] Bulk query performance: %d queries (was %d+ individual queries), total %v, avg %v per batch",
-			bulkQueryCount, len(sizes), totalBulkQueryTime, avgBulkQueryTime)
 	}
 
 	// Groups are already sorted by size (largest to smallest) from SQL query
