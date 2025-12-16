@@ -217,11 +217,6 @@ func Initialize(source *settings.Source, mock bool) {
 	}
 }
 
-// indexDirectoryWithOptions wraps indexDirectory with actionConfig
-func (idx *Index) indexDirectoryWithOptions(adjustedPath string, config actionConfig) error {
-	return idx.indexDirectory(adjustedPath, config)
-}
-
 // Define a function to recursively index files and directories
 func (idx *Index) indexDirectory(adjustedPath string, config actionConfig) error {
 	// Normalize path to always have trailing slash
@@ -431,11 +426,18 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 					logger.Errorf("Failed to index directory %s: %v", dirPath, err)
 					continue
 				}
+				// Flush this path from batch to ensure it's available in DB before reading back
+				// This ensures SQL is the source of truth and we don't keep FileInfo in memory
+				idx.flushPathFromBatch(dirPath)
 			}
 			realDirInfo, exists := idx.GetMetadataInfo(dirPath, true)
 			if exists {
 				itemInfo.Size = realDirInfo.Size
 				itemInfo.HasPreview = realDirInfo.HasPreview
+				// Propagate preview from subdirectory to parent directory
+				if realDirInfo.HasPreview {
+					hasPreview = true
+				}
 			}
 			totalSize += itemInfo.Size
 			itemInfo.Type = "directory"
@@ -570,7 +572,7 @@ func (idx *Index) RefreshFileInfo(opts utils.FileOptions) error {
 			Quick:     true,
 			Recursive: opts.Recursive,
 		}
-		err = idx.indexDirectoryWithOptions(targetPath, config)
+		err = idx.indexDirectory(targetPath, config)
 		if err != nil {
 			return err
 		}

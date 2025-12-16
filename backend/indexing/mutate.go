@@ -111,6 +111,50 @@ func (idx *Index) flushBatch() {
 	}
 }
 
+// flushPathFromBatch ensures items for a specific path are flushed to the database
+// This is needed when we need to read back a path immediately after indexing it
+// Returns true if items were flushed, false if path not found in batch
+func (idx *Index) flushPathFromBatch(path string) bool {
+	// Wait for any pending async flushes to complete
+	idx.pendingFlushes.Wait()
+
+	idx.mu.Lock()
+	if idx.batchItems == nil || len(idx.batchItems) == 0 {
+		idx.mu.Unlock()
+		return false // No batch items, path already in DB or not indexed yet
+	}
+
+	// Find items matching this path (directory and its children)
+	itemsToFlush := make([]*iteminfo.FileInfo, 0)
+	remainingItems := make([]*iteminfo.FileInfo, 0, len(idx.batchItems))
+
+	for _, item := range idx.batchItems {
+		// Match exact path or children of this path
+		if item.Path == path || strings.HasPrefix(item.Path, path) {
+			itemsToFlush = append(itemsToFlush, item)
+		} else {
+			remainingItems = append(remainingItems, item)
+		}
+	}
+
+	if len(itemsToFlush) == 0 {
+		idx.mu.Unlock()
+		return false // Path not found in batch
+	}
+
+	// Update batch to remove flushed items
+	idx.batchItems = remainingItems
+	idx.mu.Unlock()
+
+	// Flush synchronously to ensure data is available
+	if err := idx.db.BulkInsertItems(idx.Name, itemsToFlush); err != nil {
+		logger.Warningf("[DB_TX] FlushPathFromBatch failed for %s (%d items): %v", path, len(itemsToFlush), err)
+		return false
+	}
+
+	return true
+}
+
 // DeleteMetadata removes the specified path from the index.
 // SQLite handles locking automatically, so no mutex needed.
 func (idx *Index) DeleteMetadata(path string, isDir bool, recursive bool) bool {

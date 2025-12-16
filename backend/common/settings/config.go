@@ -425,7 +425,7 @@ func setupAuth(generate bool) {
 	}
 	if Config.Auth.Methods.OidcAuth.Enabled || generate {
 		err := validateOidcAuth()
-		if err != nil {
+		if err != nil && !generate {
 			logger.Fatalf("Error validating OIDC auth: %v", err)
 		}
 		logger.Info("OIDC Auth configured successfully")
