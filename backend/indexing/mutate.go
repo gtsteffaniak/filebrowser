@@ -112,23 +112,31 @@ func (idx *Index) flushBatch() {
 
 // flushPathFromBatch ensures items for a specific path are flushed to the database
 // This is needed when we need to read back a path immediately after indexing it
+// For directories, it also flushes children so GetDirectoryChildren can find them
 // Returns true if items were flushed, false if path not found in batch
 func (idx *Index) flushPathFromBatch(path string) bool {
+	// Wait for any pending async flushes to complete first
+	// This ensures we don't miss items that are currently being flushed asynchronously
+	idx.pendingFlushes.Wait()
+
 	idx.mu.Lock()
+	// len() for nil slices is defined as zero, so no need for nil check
 	if len(idx.batchItems) == 0 {
 		idx.mu.Unlock()
 		return false // No batch items, path already in DB or not indexed yet
 	}
 
-	// Find items matching this exact path (not children - we only need the directory itself)
-	// This is more efficient than flushing all children
+	// Find items matching this path and its children (if it's a directory)
+	// We need to flush children too so GetDirectoryChildren can find them
 	itemsToFlush := make([]*iteminfo.FileInfo, 0, 1)
 	remainingItems := make([]*iteminfo.FileInfo, 0, len(idx.batchItems))
 
 	for _, item := range idx.batchItems {
-		// Match exact path only - we only need the directory item, not its children
-		// Children will be flushed when their parent directories are read
+		// Match exact path
 		if item.Path == path {
+			itemsToFlush = append(itemsToFlush, item)
+		} else if strings.HasSuffix(path, "/") && strings.HasPrefix(item.Path, path) {
+			// For directories (path ends with /), also flush children
 			itemsToFlush = append(itemsToFlush, item)
 		} else {
 			remainingItems = append(remainingItems, item)
