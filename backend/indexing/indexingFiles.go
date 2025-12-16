@@ -418,29 +418,27 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 			realDirInfo, exists := idx.GetMetadataInfo(dirPath, true)
 			if exists {
 				itemInfo.Size = realDirInfo.Size
-				itemInfo.HasPreview = realDirInfo.HasPreview
 
-				// Check if subdirectory has direct child files with previews that should bubble up
-				// Only check if HasPreview is false (optimization: skip if already true)
-				// Only files that match ShouldBubbleUpToFolderPreview should bubble up to folder previews
+				// Always recalculate HasPreview based on direct child files only
 				// We do NOT check subdirectories - only direct child files
-				if !itemInfo.HasPreview {
-					subdirHasPreview := false
-					// Check only direct child files - break early if we find a preview that should bubble up
-					for _, file := range realDirInfo.Files {
-						if file.HasPreview && iteminfo.ShouldBubbleUpToFolderPreview(file.ItemInfo) {
-							subdirHasPreview = true
-							break
-						}
-					}
-					// Update if subdirectory has direct child files with previews that should bubble up
-					if subdirHasPreview {
-						itemInfo.HasPreview = true
-						realDirInfo.HasPreview = true
-						idx.UpdateMetadata(realDirInfo)
+				// This ensures HasPreview is only true if there are direct child files with previews
+				// that match ShouldBubbleUpToFolderPreview
+				subdirHasPreview := false
+				// Check only direct child files - break early if we find a preview that should bubble up
+				for _, file := range realDirInfo.Files {
+					if file.HasPreview && iteminfo.ShouldBubbleUpToFolderPreview(file.ItemInfo) {
+						subdirHasPreview = true
+						break
 					}
 				}
-				// Propagate to parent if subdirectory has preview
+				// Set HasPreview based on direct child files only (ignore subdirectories)
+				itemInfo.HasPreview = subdirHasPreview
+				// Update metadata if the value changed
+				if realDirInfo.HasPreview != subdirHasPreview {
+					realDirInfo.HasPreview = subdirHasPreview
+					idx.UpdateMetadata(realDirInfo)
+				}
+				// Propagate to parent if subdirectory has preview (only if it's from direct child files)
 				if itemInfo.HasPreview {
 					hasPreview = true
 				}
