@@ -3190,7 +3190,7 @@
             "type": "object",
             "properties": {
                 "complexity": {
-                    "description": "0-10 scale: 0=unknown, 1=simple, 2-6=normal, 7-9=complex, 10=highlyComplex",
+                    "description": "0-10 scale",
                     "type": "integer"
                 },
                 "fullScanDurationSeconds": {

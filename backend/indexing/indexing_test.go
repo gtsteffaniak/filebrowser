@@ -115,7 +115,9 @@ func TestMultiScannerMutex(t *testing.T) {
 	}
 
 	// Verify scanner counters can be updated
-	idx.activeScannerPath = "/test1/"
+	// Test with active scanner - mark scanner2 as scanning
+	scanner2.isScanning = true
+	idx.scanners = map[string]*Scanner{"/test1/": scanner2}
 	idx.incrementScannerDirs()
 	idx.incrementScannerFiles()
 

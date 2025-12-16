@@ -82,9 +82,6 @@ func (s *Scanner) tryAcquireAndScan() {
 	s.idx.scanMutex.Lock()
 
 	// Mark which scanner is active (for status/logging)
-	s.idx.mu.Lock()
-	s.idx.activeScannerPath = s.scanPath
-	s.idx.mu.Unlock()
 
 	quick := s.fullScanCounter > 0 && s.fullScanCounter < 5
 	s.fullScanCounter++
@@ -97,15 +94,7 @@ func (s *Scanner) tryAcquireAndScan() {
 	// Update this scanner's schedule based on results
 	s.updateSchedule()
 
-	// If this is the root scanner, update the last root scan time
-	if s.scanPath == "/" {
-		s.idx.mu.Lock()
-		s.idx.lastRootScanTime = time.Now()
-		s.idx.mu.Unlock()
-	}
-
 	s.idx.mu.Lock()
-	s.idx.activeScannerPath = ""
 	allIdle := true
 	for _, scanner := range s.idx.scanners {
 		if !scanner.lastScanned.IsZero() && time.Since(scanner.lastScanned) > 1*time.Minute {
@@ -209,7 +198,6 @@ func (s *Scanner) runChildScan(quick bool) {
 	s.filesChanged = false
 	startTime := time.Now()
 	s.idx.batchItems = make([]*iteminfo.FileInfo, 0, 5000)
-	s.idx.isRoutineScan = true
 	s.idx.mu.Unlock()
 
 	err := s.idx.indexDirectory(s.scanPath, config)

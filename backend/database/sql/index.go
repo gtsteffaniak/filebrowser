@@ -29,8 +29,8 @@ func NewIndexDB(name string) (*IndexDB, error) {
 		MmapSize:      0,           // Disable mmap - use page cache only for controlled memory usage
 		Synchronous:   "OFF",       // OFF for maximum write performance - data integrity not critical for index
 		TempStore:     "FILE",      // FILE instead of MEMORY
-		JournalMode:   "DELETE",    // DELETE mode - faster writes, no WAL overhead, simpler for write-heavy workloads
-		LockingMode:   "EXCLUSIVE", // EXCLUSIVE mode - single writer, no contention
+		JournalMode:   "WAL",       // WAL mode - allows concurrent reads during writes, eliminates read blocking
+		LockingMode:   "NORMAL",    // NORMAL mode - allows concurrent reads during writes (WAL requirement)
 		PageSize:      4096,        // 4KB page size - optimal for small entries (reduces storage waste)
 		AutoVacuum:    "NONE",      // No vacuum overhead (periodic manual VACUUM recommended)
 		EnableLogging: true,

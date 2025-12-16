@@ -100,7 +100,6 @@ func (idx *Index) flushBatch() {
 	idx.mu.Lock()
 	items := idx.batchItems
 	idx.batchItems = nil
-	idx.isRoutineScan = false
 	idx.mu.Unlock()
 	if len(items) == 0 {
 		return
@@ -114,23 +113,23 @@ func (idx *Index) flushBatch() {
 // flushPathFromBatch ensures items for a specific path are flushed to the database
 // This is needed when we need to read back a path immediately after indexing it
 // Returns true if items were flushed, false if path not found in batch
+// Optimized: only flushes the exact path (not children), and doesn't wait for async flushes
 func (idx *Index) flushPathFromBatch(path string) bool {
-	// Wait for any pending async flushes to complete
-	idx.pendingFlushes.Wait()
-
 	idx.mu.Lock()
-	if idx.batchItems == nil || len(idx.batchItems) == 0 {
+	if len(idx.batchItems) == 0 {
 		idx.mu.Unlock()
 		return false // No batch items, path already in DB or not indexed yet
 	}
 
-	// Find items matching this path (directory and its children)
-	itemsToFlush := make([]*iteminfo.FileInfo, 0)
+	// Find items matching this exact path (not children - we only need the directory itself)
+	// This is more efficient than flushing all children
+	itemsToFlush := make([]*iteminfo.FileInfo, 0, 1)
 	remainingItems := make([]*iteminfo.FileInfo, 0, len(idx.batchItems))
 
 	for _, item := range idx.batchItems {
-		// Match exact path or children of this path
-		if item.Path == path || strings.HasPrefix(item.Path, path) {
+		// Match exact path only - we only need the directory item, not its children
+		// Children will be flushed when their parent directories are read
+		if item.Path == path {
 			itemsToFlush = append(itemsToFlush, item)
 		} else {
 			remainingItems = append(remainingItems, item)
@@ -147,6 +146,9 @@ func (idx *Index) flushPathFromBatch(path string) bool {
 	idx.mu.Unlock()
 
 	// Flush synchronously to ensure data is available
+	// Note: We don't wait for async flushes here - if the item was just added to batch,
+	// it will be in this flush. If it's in an async flush, that's fine - we'll get it
+	// on the next GetMetadataInfo call after the async flush completes.
 	if err := idx.db.BulkInsertItems(idx.Name, itemsToFlush); err != nil {
 		logger.Warningf("[DB_TX] FlushPathFromBatch failed for %s (%d items): %v", path, len(itemsToFlush), err)
 		return false
@@ -220,15 +222,26 @@ func (idx *Index) GetMetadataInfo(target string, isDir bool) (*iteminfo.FileInfo
 	}
 
 	// checkDir is already an index path (relative to source root)
-	// Get directory item
+	// Try to get from DB first
 	dir, err := idx.db.GetItem(idx.Name, checkDir)
 	if err != nil {
 		return nil, false
 	}
 
-	// Guard against nil item (can happen if DB was busy/locked and GetItem returned nil, nil)
+	// If not found in DB, check if it's in the batch and flush if needed
 	if dir == nil {
-		return nil, false
+		// Check if this path is in the batch - if so, flush it so we can read it
+		flushed := idx.flushPathFromBatch(checkDir)
+		if flushed {
+			// Try again after flush
+			dir, err = idx.db.GetItem(idx.Name, checkDir)
+			if err != nil || dir == nil {
+				return nil, false
+			}
+		} else {
+			// Not in batch either, doesn't exist
+			return nil, false
+		}
 	}
 
 	// Get children
@@ -246,6 +259,7 @@ func (idx *Index) GetMetadataInfo(target string, isDir bool) (*iteminfo.FileInfo
 			dir.Files = append(dir.Files, iteminfo.ExtendedItemInfo{ItemInfo: child.ItemInfo})
 		}
 	}
+
 	return dir, true
 }
 

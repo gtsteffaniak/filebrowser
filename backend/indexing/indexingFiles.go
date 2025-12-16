@@ -57,38 +57,25 @@ type ReducedIndex struct {
 	LastIndexedUnix int64          `json:"lastIndexedUnixTime"`
 	QuickScanTime   int            `json:"quickScanDurationSeconds"`
 	FullScanTime    int            `json:"fullScanDurationSeconds"`
-	Complexity      uint           `json:"complexity"` // 0-10 scale: 0=unknown, 1=simple, 2-6=normal, 7-9=complex, 10=highlyComplex
+	Complexity      uint           `json:"complexity"` // 0-10 scale
 	Scanners        []*ScannerInfo `json:"scanners,omitempty"`
 }
 
 type Index struct {
 	ReducedIndex
-	settings.Source `json:"-"`
-
-	// Shared state (protected by mu)
-	db                *dbsql.IndexDB       `json:"-"`
-	FoundHardLinks    map[string]uint64    `json:"-"` // hardlink path -> size
-	processedInodes   map[uint64]struct{}  `json:"-"`
-	totalSize         uint64               `json:"-"`
-	previousTotalSize uint64               `json:"-"` // Track previous totalSize for change detection
-	batchItems        []*iteminfo.FileInfo `json:"-"` // Accumulates items during a scan for bulk insert
-	isRoutineScan     bool                 `json:"-"` // Whether current scan is routine/scheduled (for retry logic)
-
-	// Scanner management (new multi-scanner system)
-	scanners             map[string]*Scanner `json:"-"` // path -> scanner
-	scanMutex            sync.Mutex          `json:"-"` // Global scan mutex - only one scanner runs at a time
-	activeScannerPath    string              `json:"-"` // Which scanner is currently running (for logging/status)
-	runningScannerCount  int                 `json:"-"` // Tracks active scanners
-	lastRootScanTime     time.Time           `json:"-"` // Last time root scanner completed - child scanners wait for this
-	initialScanStartTime time.Time           `json:"-"` // When initial multi-scanner indexing started
-	hasLoggedInitialScan bool                `json:"-"` // Whether we've logged the first complete round
-	lastVacuumTime       time.Time           `json:"-"` // Last time VACUUM was performed on the database
-	pendingFlushes       sync.WaitGroup      `json:"-"` // Tracks async progressive flush operations
-
-	// Control
-	mock       bool
-	mu         sync.RWMutex
-	wasIndexed bool
+	settings.Source   `json:"-"`
+	db                *dbsql.IndexDB
+	FoundHardLinks    map[string]uint64 // hardlink path -> size
+	processedInodes   map[uint64]struct{}
+	totalSize         uint64
+	previousTotalSize uint64               // Track previous totalSize for change detection
+	batchItems        []*iteminfo.FileInfo // Accumulates items during a scan for bulk insert
+	scanners          map[string]*Scanner  // path -> scanner
+	scanMutex         sync.Mutex           // Global scan mutex - only one scanner runs at a time
+	lastVacuumTime    time.Time            // Last time VACUUM was performed on the database
+	pendingFlushes    sync.WaitGroup       // Tracks async progressive flush operations
+	mock              bool
+	mu                sync.RWMutex
 }
 
 var (
@@ -313,7 +300,7 @@ func (idx *Index) GetFsDirInfo(adjustedPath string) (*iteminfo.FileInfo, error) 
 	}
 
 	if !dirInfo.IsDir() {
-		realSize, _ := idx.handleFile(dirInfo, adjustedPath, realPath, idx.isRoutineScan)
+		realSize, _ := idx.handleFile(dirInfo, adjustedPath, realPath, false)
 		size := int64(realSize)
 		fileInfo := iteminfo.FileInfo{
 			Path: adjustedPath,
@@ -405,7 +392,7 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 
 		if isDir {
 			dirPath := combinedPath + file.Name()
-			if idx.wasIndexed && config.Recursive && idx.Config.ResolvedConditionals != nil {
+			if !idx.LastIndexed.IsZero() && config.Recursive && idx.Config.ResolvedConditionals != nil {
 				if _, exists := idx.Config.ResolvedConditionals.NeverWatchPaths[fullCombined]; exists {
 					realDirInfo, exists := idx.GetMetadataInfo(dirPath, true)
 					if exists {
@@ -426,16 +413,42 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 					logger.Errorf("Failed to index directory %s: %v", dirPath, err)
 					continue
 				}
-				// Flush this path from batch to ensure it's available in DB before reading back
-				// This ensures SQL is the source of truth and we don't keep FileInfo in memory
-				idx.flushPathFromBatch(dirPath)
 			}
+			// GetMetadataInfo will check batch first and flush if needed
 			realDirInfo, exists := idx.GetMetadataInfo(dirPath, true)
 			if exists {
 				itemInfo.Size = realDirInfo.Size
 				itemInfo.HasPreview = realDirInfo.HasPreview
-				// Propagate preview from subdirectory to parent directory
-				if realDirInfo.HasPreview {
+
+				// Check if subdirectory has children with previews that should bubble up
+				// Only check if HasPreview is false (optimization: skip if already true)
+				if !itemInfo.HasPreview {
+					subdirHasPreview := false
+					// Check files - break early if we find a preview
+					for _, file := range realDirInfo.Files {
+						if file.HasPreview && iteminfo.ShouldBubbleUpToFolderPreview(file.ItemInfo) {
+							subdirHasPreview = true
+							break
+						}
+					}
+					// Check subdirectories if no file preview found
+					if !subdirHasPreview {
+						for _, folder := range realDirInfo.Folders {
+							if folder.HasPreview {
+								subdirHasPreview = true
+								break
+							}
+						}
+					}
+					// Update if subdirectory has previews but flag is incorrect
+					if subdirHasPreview {
+						itemInfo.HasPreview = true
+						realDirInfo.HasPreview = true
+						idx.UpdateMetadata(realDirInfo)
+					}
+				}
+				// Propagate to parent if subdirectory has preview
+				if itemInfo.HasPreview {
 					hasPreview = true
 				}
 			}
@@ -448,7 +461,7 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 			}
 		} else {
 			realFilePath := realPath + "/" + file.Name()
-			size, shouldCountSize := idx.handleFile(file, fullCombined, realFilePath, idx.isRoutineScan)
+			size, shouldCountSize := idx.handleFile(file, fullCombined, realFilePath, config.IsRoutineScan)
 			itemInfo.DetectType(realFilePath, false)
 			usedCachedPreview := false
 			if !idx.Config.DisableIndexing && config.Recursive {
@@ -841,14 +854,46 @@ func (idx *Index) SetUsage(totalBytes uint64) {
 func (idx *Index) SetStatus(status IndexStatus) error {
 	idx.mu.Lock()
 	idx.Status = status
-	switch status {
-	case INDEXING:
-		idx.runningScannerCount++
-	case READY, UNAVAILABLE:
-		idx.runningScannerCount = 0
-	}
 	idx.mu.Unlock()
 	return idx.SendSourceUpdateEvent()
+}
+
+// getActiveScannerPath returns the path of the currently active scanner, or empty string if none
+// Assumes mutex is NOT held - will acquire its own lock
+func (idx *Index) getActiveScannerPath() string {
+	idx.mu.RLock()
+	defer idx.mu.RUnlock()
+	return idx.getActiveScannerPathUnlocked()
+}
+
+// getActiveScannerPathUnlocked returns the path of the currently active scanner, or empty string if none
+func (idx *Index) getActiveScannerPathUnlocked() string {
+	for path, scanner := range idx.scanners {
+		if scanner.isScanning {
+			return path
+		}
+	}
+	return ""
+}
+
+// getRunningScannerCount returns the number of scanners currently running
+// Assumes mutex is NOT held - will acquire its own lock
+func (idx *Index) getRunningScannerCount() int {
+	idx.mu.RLock()
+	defer idx.mu.RUnlock()
+	return idx.getRunningScannerCountUnlocked()
+}
+
+// getRunningScannerCountUnlocked returns the number of scanners currently running
+// Assumes mutex IS already held (RLock or Lock)
+func (idx *Index) getRunningScannerCountUnlocked() int {
+	count := 0
+	for _, scanner := range idx.scanners {
+		if scanner.isScanning {
+			count++
+		}
+	}
+	return count
 }
 
 // input should be non-index path.

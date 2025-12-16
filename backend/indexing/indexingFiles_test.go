@@ -24,6 +24,9 @@ func setupTestIndex(t *testing.T) (*Index, string, func()) {
 
 	// Initialize index with mock data
 	idx := &Index{
+		ReducedIndex: ReducedIndex{
+			LastIndexed: time.Now(),
+		},
 		Source: settings.Source{
 			Name: "test",
 			Path: "/mock/path",
@@ -31,7 +34,6 @@ func setupTestIndex(t *testing.T) (*Index, string, func()) {
 				DisableIndexing: false,
 			},
 		},
-		wasIndexed:      true,
 		mock:            true, // Enable mock mode
 		db:              indexDB,
 		FoundHardLinks:  make(map[string]uint64),

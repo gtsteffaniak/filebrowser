@@ -110,8 +110,11 @@ var fullScanAnchor = 3 // index of the schedule for a full scan
 
 // markFilesChanged marks that files have changed in the currently active scanner
 func (idx *Index) markFilesChanged() {
+	activePath := idx.getActiveScannerPath()
+	if activePath == "" {
+		return
+	}
 	idx.mu.RLock()
-	activePath := idx.activeScannerPath
 	scanner, exists := idx.scanners[activePath]
 	idx.mu.RUnlock()
 
@@ -122,8 +125,11 @@ func (idx *Index) markFilesChanged() {
 
 // incrementScannerDirs increments the directory counter for the active scanner
 func (idx *Index) incrementScannerDirs() {
+	activePath := idx.getActiveScannerPath()
+	if activePath == "" {
+		return
+	}
 	idx.mu.RLock()
-	activePath := idx.activeScannerPath
 	scanner, exists := idx.scanners[activePath]
 	idx.mu.RUnlock()
 
@@ -134,8 +140,11 @@ func (idx *Index) incrementScannerDirs() {
 
 // incrementScannerFiles increments the file counter for the active scanner
 func (idx *Index) incrementScannerFiles() {
+	activePath := idx.getActiveScannerPath()
+	if activePath == "" {
+		return
+	}
 	idx.mu.RLock()
-	activePath := idx.activeScannerPath
 	scanner, exists := idx.scanners[activePath]
 	idx.mu.RUnlock()
 
@@ -149,11 +158,7 @@ func (idx *Index) PreScan() error {
 }
 
 func (idx *Index) PostScan() error {
-	idx.mu.Lock()
-	idx.wasIndexed = true
-	idx.runningScannerCount--
-	idx.mu.Unlock()
-	if idx.runningScannerCount == 0 {
+	if idx.getRunningScannerCount() == 0 {
 		return idx.SetStatus(READY)
 	}
 	return nil
@@ -213,8 +218,6 @@ func (idx *Index) SendSourceUpdateEvent() error {
 func (idx *Index) setupMultiScanner() {
 	idx.mu.Lock()
 	idx.scanners = make(map[string]*Scanner)
-	idx.initialScanStartTime = time.Now()
-	idx.hasLoggedInitialScan = false
 	idx.mu.Unlock()
 
 	// Create and start root scanner
@@ -335,15 +338,9 @@ func (idx *Index) aggregateStatsFromScanners() {
 	if !mostRecentScan.IsZero() {
 		idx.LastIndexed = mostRecentScan
 		idx.LastIndexedUnix = mostRecentScan.Unix()
-		idx.wasIndexed = true
 	}
-	if allScannedAtLeastOnce && !idx.hasLoggedInitialScan {
-		totalDuration := time.Since(idx.initialScanStartTime)
-		truncatedToSecond := totalDuration.Truncate(time.Second)
-		logger.Debugf("Time spent indexing [%v]: %v seconds", idx.Name, truncatedToSecond)
-		idx.hasLoggedInitialScan = true
-	}
-	if anyScannerActive || idx.activeScannerPath != "" {
+	// Use anyScannerActive (already computed) instead of calling getActiveScannerPath() which would deadlock
+	if anyScannerActive || idx.getActiveScannerPathUnlocked() != "" {
 		idx.Status = INDEXING
 	} else if allScannedAtLeastOnce {
 		idx.Status = READY
@@ -379,8 +376,9 @@ func (idx *Index) GetScannerStatus() map[string]interface{} {
 	status := make(map[string]interface{})
 
 	// Current active scanner (if any is running)
-	status["activeScanner"] = idx.activeScannerPath
-	status["isScanning"] = idx.activeScannerPath != ""
+	activePath := idx.getActiveScannerPath()
+	status["activeScanner"] = activePath
+	status["isScanning"] = activePath != ""
 
 	// Individual scanner stats
 	scannerStats := make([]map[string]interface{}, 0, len(idx.scanners))
