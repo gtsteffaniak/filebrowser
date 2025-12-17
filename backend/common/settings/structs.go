@@ -26,7 +26,7 @@ type Environment struct {
 	IsPlaywright          bool   `json:"-"`
 	IsDevMode             bool   `json:"-"`
 	IsFirstLoad           bool   `json:"-"` // used internally to track if this is the first load of the application
-	MuPdfAvailable        bool   `json:"-"` // used internally if compiled with mupdf support
+	MuPdfAvailable        bool   `json:"-"` // used internally if compiled with cgo support
 	EmbeddedFs            bool   `json:"-"` // used internally if compiled with embedded fs support
 	FFmpegPath            string `json:"-"`
 	FFprobePath           string `json:"-"`

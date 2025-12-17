@@ -8,8 +8,7 @@ builds:
     env:
       - CGO_ENABLED=1
       - CC=zig cc -target x86_64-linux-musl
-    tags:
-      - mupdf
+    tags: &tags
       - musl
     ldflags: &ldflags
       - -s -w -X github.com/gtsteffaniak/filebrowser/backend/common/version.Version=v{{ .Version }} -X github.com/gtsteffaniak/filebrowser/backend/common/version.CommitSHA={{ .ShortCommit }}
@@ -31,9 +30,7 @@ builds:
     env:
       - CGO_ENABLED=1
       - CC=zig cc -target aarch64-linux-musl
-    tags:
-      - mupdf
-      - musl
+    tags: *tags
     goos:
       - linux
     goarch:
@@ -63,8 +60,6 @@ builds:
     env:
       - CGO_ENABLED=1
       - CC=zig cc -target x86_64-windows
-    tags:
-      - mupdf
     ldflags: *ldflags
     main: main.go
     binary: filebrowser

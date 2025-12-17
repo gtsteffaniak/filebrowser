@@ -894,7 +894,7 @@ func (idx *Index) performPeriodicMaintenance() {
 		idx.mu.Unlock()
 		return
 	}
-	if time.Since(lastVacuum) < 7*24*time.Hour {
+	if time.Since(lastVacuum) < 8*time.Hour {
 		return
 	}
 

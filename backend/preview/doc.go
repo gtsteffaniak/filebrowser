@@ -1,4 +1,4 @@
-//go:build mupdf
+//go:build cgo
 
 package preview
 

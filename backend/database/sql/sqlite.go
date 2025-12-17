@@ -11,7 +11,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/go-logger/logger"
-	_ "modernc.org/sqlite"
 )
 
 // TempDB manages a temporary SQLite database for operations that need
@@ -160,7 +159,7 @@ func NewTempDB(id string, config ...*TempDBConfig) (*TempDB, error) {
 
 	// Open SQLite database with basic connection string
 	// We'll set PRAGMAs after connection for better control and logging
-	db, err := sql.Open("sqlite", tmpPath)
+	db, err := sql.Open(sqliteDriverName, tmpPath)
 	if err != nil {
 		os.Remove(tmpPath)
 		return nil, fmt.Errorf("failed to open SQLite database: %w", err)
