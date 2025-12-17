@@ -765,65 +765,82 @@ func (db *IndexDB) GetTotalSize(source string) (uint64, error) {
 // for a given path prefix. This should be called after bulk insertions to ensure directory sizes are accurate.
 // Returns the number of directories updated.
 func (db *IndexDB) RecalculateDirectorySizes(source, pathPrefix string) (int, error) {
-	// Get all directories under the path prefix, ordered by depth (deepest first)
-	// This ensures we calculate child directories before parent directories
-	query := `
-	SELECT path FROM index_items
-	WHERE source = ? AND is_dir = 1 AND path GLOB ?
-	ORDER BY LENGTH(path) - LENGTH(REPLACE(path, '/', '')) DESC
-	`
-
-	rows, err := db.Query(query, source, pathPrefix+"*")
+	// Start transaction to avoid excessive journaling and IO churn
+	tx, err := db.BeginTransaction()
 	if err != nil {
 		if isBusyError(err) || isTransactionError(err) {
 			return 0, nil
 		}
 		return 0, err
 	}
-	defer rows.Close()
+	defer tx.Rollback()
+
+	// Get all directories under the path prefix, ordered by depth (deepest first)
+	// This ensures we calculate child directories before parent directories
+	// Note: We query inside the transaction to see consistent state
+	query := `
+	SELECT path FROM index_items
+	WHERE source = ? AND is_dir = 1 AND path GLOB ?
+	ORDER BY LENGTH(path) - LENGTH(REPLACE(path, '/', '')) DESC
+	`
+
+	rows, err := tx.Query(query, source, pathPrefix+"*")
+	if err != nil {
+		if isBusyError(err) || isTransactionError(err) {
+			return 0, nil
+		}
+		return 0, err
+	}
 
 	var directories []string
 	for rows.Next() {
 		var path string
 		if err := rows.Scan(&path); err != nil {
+			rows.Close()
 			return 0, err
 		}
 		directories = append(directories, path)
 	}
+	rows.Close()
 	if err := rows.Err(); err != nil {
 		return 0, err
 	}
 
+	// Prepare statements for performance
+	sizeStmt, err := tx.Prepare(`
+	SELECT COALESCE(SUM(size), 0)
+	FROM index_items
+	WHERE source = ? AND path GLOB ? AND path != ? AND is_dir = 0
+	`)
+	if err != nil {
+		return 0, err
+	}
+	defer sizeStmt.Close()
+
+	updateStmt, err := tx.Prepare(`UPDATE index_items SET size = ?, last_updated = ? WHERE source = ? AND path = ?`)
+	if err != nil {
+		return 0, err
+	}
+	defer updateStmt.Close()
+
 	// For each directory, calculate the sum of direct children sizes
 	updateCount := 0
+	nowUnix := time.Now().Unix()
+
 	for _, dirPath := range directories {
 		// Calculate total size of all files (not directories) under this path
 		// Only sum file sizes to avoid double-counting (directory sizes are derived)
-		sizeQuery := `
-		SELECT COALESCE(SUM(size), 0)
-		FROM index_items
-		WHERE source = ? AND path GLOB ? AND path != ? AND is_dir = 0
-		`
-
 		var totalSize int64
-		err := db.QueryRow(sizeQuery, source, dirPath+"*", dirPath).Scan(&totalSize)
+		err := sizeStmt.QueryRow(source, dirPath+"*", dirPath).Scan(&totalSize)
 		if err != nil {
-			if isBusyError(err) || isTransactionError(err) {
-				continue
-			}
 			logger.Errorf("[DB_SIZE_CALC] Failed to calculate size for %s: %v", dirPath, err)
 			continue
 		}
 
 		// Update the directory's size and last_updated timestamp
 		// This prevents the directory from being deleted as stale during cleanup
-		nowUnix := time.Now().Unix()
-		updateQuery := `UPDATE index_items SET size = ?, last_updated = ? WHERE source = ? AND path = ?`
-		result, err := db.Exec(updateQuery, totalSize, nowUnix, source, dirPath)
+		result, err := updateStmt.Exec(totalSize, nowUnix, source, dirPath)
 		if err != nil {
-			if isBusyError(err) || isTransactionError(err) {
-				continue
-			}
 			logger.Errorf("[DB_SIZE_CALC] Failed to update size for %s: %v", dirPath, err)
 			continue
 		}
@@ -832,6 +849,13 @@ func (db *IndexDB) RecalculateDirectorySizes(source, pathPrefix string) (int, er
 		if rowsAffected > 0 {
 			updateCount++
 		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		if isBusyError(err) || isTransactionError(err) {
+			return 0, nil
+		}
+		return 0, err
 	}
 
 	return updateCount, nil

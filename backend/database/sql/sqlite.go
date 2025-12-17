@@ -76,8 +76,8 @@ type TempDBConfig struct {
 // If provided config is nil or empty, returns default config.
 func mergeConfig(provided *TempDBConfig) *TempDBConfig {
 	defaults := &TempDBConfig{
-		CacheSizeKB:   -2000,      // ~8MB, appropriate for one-time databases
-		MmapSize:      2147483648, // 2GB
+		CacheSizeKB:   -2000, // ~8MB, appropriate for one-time databases
+		MmapSize:      0,     // Default to 0 (disabled) to prevent high memory usage
 		Synchronous:   "OFF",
 		TempStore:     "FILE", // Default to FILE, not MEMORY
 		JournalMode:   "WAL",  // WAL for better concurrency by default
@@ -203,12 +203,11 @@ func NewTempDB(id string, config ...*TempDBConfig) (*TempDB, error) {
 		}{{fmt.Sprintf("PRAGMA page_size = %d;", cfg.PageSize), "failed to set page_size"}}, pragmas...)
 	}
 
-	if cfg.MmapSize > 0 {
-		pragmas = append(pragmas, struct {
-			sql string
-			err string
-		}{fmt.Sprintf("PRAGMA mmap_size = %d;", cfg.MmapSize), "failed to set mmap_size"})
-	}
+	// Always set mmap_size, even if 0 (which explicitly disables it)
+	pragmas = append(pragmas, struct {
+		sql string
+		err string
+	}{fmt.Sprintf("PRAGMA mmap_size = %d;", cfg.MmapSize), "failed to set mmap_size"})
 
 	for _, pragma := range pragmas {
 		if _, err := db.Exec(pragma.sql); err != nil {
