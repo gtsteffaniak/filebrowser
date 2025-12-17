@@ -236,6 +236,8 @@ func (s *Scanner) runChildScan(quick bool) {
 		s.fullScanTime = scanDuration
 		s.updateComplexity()
 	}
+
+	_, _ = s.idx.db.Exec("PRAGMA shrink_memory")
 }
 
 // checkForNewChildDirectories detects new top-level directories and creates scanners for them
@@ -375,7 +377,6 @@ func (s *Scanner) updateSchedule() {
 // 0: unknown
 func (s *Scanner) updateComplexity() {
 	s.complexity = calculateComplexity(s.fullScanTime, s.numDirs)
-
 	// Set smartModifier based on complexity level
 	if modifier, ok := complexityModifier[s.complexity]; ok {
 		s.smartModifier = modifier

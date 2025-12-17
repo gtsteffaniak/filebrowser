@@ -25,15 +25,15 @@ func NewIndexDB(name string) (*IndexDB, error) {
 		// cache_size: Negative values = pages, positive = KB
 		// With 4KB page size: -625 pages = 625 * 4096 = ~2.5MB
 		// Using 4KB pages for small entries reduces storage waste and RAM usage
-		CacheSizeKB:   -625,        // 2.5MB cache (625 pages * 4KB = 2.5MB) - will be increased dynamically up to 25MB
-		MmapSize:      0,           // Disable mmap - use page cache only for controlled memory usage
-		Synchronous:   "OFF",       // OFF for maximum write performance - data integrity not critical for index
-		TempStore:     "FILE",      // FILE instead of MEMORY
-		JournalMode:   "DELETE",    // DELETE mode - faster writes, no WAL overhead, simpler for write-heavy workloads
-		LockingMode:   "EXCLUSIVE", // EXCLUSIVE mode - single writer, no contention
-		PageSize:      4096,        // 4KB page size - optimal for small entries (reduces storage waste)
-		AutoVacuum:    "NONE",      // No vacuum overhead (periodic manual VACUUM recommended)
-		EnableLogging: true,
+		CacheSizeKB:   -2000,            // ~8MB, appropriate for one-time databases
+		MmapSize:      64 * 1024 * 1024, // 64MB - minimal usage but allows some performance
+		Synchronous:   "OFF",            // OFF for maximum write performance - data integrity not critical for index
+		TempStore:     "FILE",           // FILE instead of MEMORY
+		JournalMode:   "DELETE",         // DELETE mode - faster writes, no WAL overhead, simpler for write-heavy workloads
+		LockingMode:   "EXCLUSIVE",      // EXCLUSIVE mode - single writer, no contention
+		PageSize:      4096,             // 4KB page size - optimal for small entries (reduces storage waste)
+		AutoVacuum:    "NONE",           // No vacuum overhead
+		EnableLogging: false,
 	})
 	if err != nil {
 		return nil, err
