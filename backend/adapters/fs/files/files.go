@@ -16,6 +16,7 @@ import (
 
 	"github.com/dhowden/tag"
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
+	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/access"
@@ -43,6 +44,14 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.E
 		opts.Path = opts.Path + "/"
 	}
 	opts.IsDir = isDir
+
+	// Check access control for the requested path itself (both files and directories)
+	if access != nil {
+		if !access.Permitted(index.Path, opts.Path, opts.Username) {
+			return response, errors.ErrAccessDenied
+		}
+	}
+
 	var info *iteminfo.FileInfo
 
 	// Check if path is viewable (allows filesystem access without indexing)
@@ -211,6 +220,16 @@ func processContent(info *iteminfo.ExtendedFileInfo, idx *indexing.Index, opts u
 
 	// Process text content for non-video, non-audio files
 	if info.Size < 20*1024*1024 { // 20 megabytes in bytes
+		// Check if file is text before reading content
+		isText, err := utils.IsTextFile(info.RealPath)
+		if err != nil {
+			logger.Debugf("could not check file type for: "+info.RealPath, info.Name, err)
+			return
+		}
+		if !isText {
+			// Not a text file, skip content extraction
+			return
+		}
 		content, err := getContent(info.RealPath)
 		if err != nil {
 			logger.Debugf("could not get content for file: "+info.RealPath, info.Name, err)

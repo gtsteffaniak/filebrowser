@@ -30,7 +30,8 @@
     "saveAndExit": "שמור וצא",
     "keepEditing": "המשך עריכה",
     "closeAnyway": "סגור בכל מקרה",
-    "goToItem": "עבור לפריט"
+    "goToItem": "עבור לפריט",
+    "watchFile": "צפה בקובץ"
   },
   "download": {
     "downloadFile": "הורד קובץ",
@@ -604,7 +605,12 @@
     "uploading": "העלאה{suffix}",
     "paused": "בהשהיה{suffix}",
     "conflict": "סכסוך{suffix}",
-    "change": "שינוי{suffix}"
+    "change": "שינוי{suffix}",
+    "output": "פלט{suffix}",
+    "watching": "צפייה{suffix}",
+    "lines": "קווים{suffix}",
+    "lastUpdate": "עדכון אחרון{suffix}",
+    "latency": "חביון{suffix}"
   },
   "access": {
     "rules": "כללי גישה",
@@ -780,7 +786,16 @@
       "browseFullLibrary": "עיין בספריית הסמלים המלאה"
     },
     "toolNotFound": "הכלי לא נמצא",
-    "backToTools": "חזרה לכלים"
+    "backToTools": "חזרה לכלים",
+    "fileWatcher": {
+      "name": "צופה קבצים",
+      "description": "צפה בקבצים ועקוב אחריהם בזמן אמת עם ניטור חביון",
+      "file": "קובץ{suffix}",
+      "interval": "מרווח עדכון",
+      "stopWatching": "הפסיקו לצפות",
+      "emptyState": "בחר קובץ ולחץ על הפעל כדי להתחיל לעקוב אחר שינויים בקובץ",
+      "chooseFile": "בחר קובץ"
+    }
   },
   "messages": {
     "pathNotFound": "הנתיב אינו קיים במערכת הקבצים",

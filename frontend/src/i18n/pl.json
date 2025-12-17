@@ -30,7 +30,8 @@
     "saveAndExit": "Zapisz i wyjdź",
     "keepEditing": "Kontynuuj edycję",
     "closeAnyway": "W każdym razie blisko",
-    "goToItem": "Przejdź do pozycji"
+    "goToItem": "Przejdź do pozycji",
+    "watchFile": "Oglądaj plik"
   },
   "download": {
     "downloadFile": "Pobierz plik",
@@ -604,7 +605,12 @@
     "uploading": "Przesyłanie{suffix}",
     "paused": "Wstrzymane{suffix}",
     "conflict": "Konflikt{suffix}",
-    "change": "Zmiana{suffix}"
+    "change": "Zmiana{suffix}",
+    "output": "Wyjście{suffix}",
+    "watching": "Oglądanie{suffix}",
+    "lines": "Linie{suffix}",
+    "lastUpdate": "Ostatnia aktualizacja{suffix}",
+    "latency": "Opóźnienie{suffix}"
   },
   "access": {
     "rules": "Zasady dostępu",
@@ -780,7 +786,16 @@
       "browseFullLibrary": "Przeglądaj pełną bibliotekę ikon"
     },
     "toolNotFound": "Nie znaleziono narzędzia",
-    "backToTools": "Powrót do Narzędzi"
+    "backToTools": "Powrót do Narzędzi",
+    "fileWatcher": {
+      "name": "File Watcher",
+      "description": "Monitorowanie opóźnień i plików w czasie rzeczywistym",
+      "file": "Plik{suffix}",
+      "interval": "Interwał aktualizacji",
+      "stopWatching": "Przestań oglądać",
+      "emptyState": "Wybierz plik i kliknij przycisk odtwarzania, aby rozpocząć monitorowanie zmian w pliku",
+      "chooseFile": "Wybierz plik"
+    }
   },
   "messages": {
     "pathNotFound": "Ścieżka nie istnieje w systemie plików",

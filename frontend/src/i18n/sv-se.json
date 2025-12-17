@@ -30,7 +30,8 @@
     "saveAndExit": "Spara och avsluta",
     "keepEditing": "Fortsätt redigera",
     "closeAnyway": "Stäng i alla fall",
-    "goToItem": "Gå till artikel"
+    "goToItem": "Gå till artikel",
+    "watchFile": "Titta på filen"
   },
   "download": {
     "downloadFile": "Ladda ner fil",
@@ -682,7 +683,12 @@
     "uploading": "Uppladdning{suffix}",
     "paused": "Pausad{suffix}",
     "conflict": "Konflikt{suffix}",
-    "change": "Förändring{suffix}"
+    "change": "Förändring{suffix}",
+    "output": "Utgång{suffix}",
+    "watching": "Tittar på{suffix}",
+    "lines": "Linjer{suffix}",
+    "lastUpdate": "Senaste uppdatering{suffix}",
+    "latency": "Fördröjning{suffix}"
   },
   "access": {
     "rules": "Regler för åtkomst",
@@ -780,7 +786,16 @@
       "browseFullLibrary": "Bläddra i hela ikonbiblioteket"
     },
     "toolNotFound": "Verktyget hittades inte",
-    "backToTools": "Tillbaka till Verktyg"
+    "backToTools": "Tillbaka till Verktyg",
+    "fileWatcher": {
+      "name": "Filövervakare",
+      "description": "Titta på och följ filer i realtid med latensövervakning",
+      "file": "Fil{suffix}",
+      "interval": "Uppdateringsintervall",
+      "stopWatching": "Sluta titta på",
+      "emptyState": "Välj en fil och klicka på play för att börja övervaka filändringar",
+      "chooseFile": "Välj en fil"
+    }
   },
   "messages": {
     "pathNotFound": "Sökvägen finns inte i filsystemet",

@@ -30,7 +30,8 @@
     "saveAndExit": "Зберегти та вийти",
     "keepEditing": "Продовжуйте редагувати",
     "closeAnyway": "Все одно зачиняй.",
-    "goToItem": "Перейти до пункту"
+    "goToItem": "Перейти до пункту",
+    "watchFile": "Переглянути файл"
   },
   "download": {
     "downloadFile": "Завантажити файл",
@@ -682,7 +683,12 @@
     "uploading": "Завантаження{suffix}",
     "paused": "Призупинився.{suffix}",
     "conflict": "Конфлікт{suffix}",
-    "change": "Зміна{suffix}"
+    "change": "Зміна{suffix}",
+    "output": "Вихідні дані{suffix}",
+    "watching": "Спостерігаю.{suffix}",
+    "lines": "Лінії{suffix}",
+    "lastUpdate": "Останнє оновлення{suffix}",
+    "latency": "Затримка{suffix}"
   },
   "access": {
     "rules": "Правила доступу",
@@ -780,7 +786,16 @@
       "browseFullLibrary": "Переглянути повну бібліотеку іконок"
     },
     "toolNotFound": "Інструмент не знайдено",
-    "backToTools": "Повернутися до Інструментів"
+    "backToTools": "Повернутися до Інструментів",
+    "fileWatcher": {
+      "name": "Переглядач файлів",
+      "description": "Перегляд і відстеження файлів у реальному часі з моніторингом затримок",
+      "file": "Файл{suffix}",
+      "interval": "Інтервал оновлення",
+      "stopWatching": "Перестаньте спостерігати",
+      "emptyState": "Виберіть файл і натисніть відтворити, щоб почати відстежувати зміни у файлі",
+      "chooseFile": "Виберіть файл"
+    }
   },
   "messages": {
     "pathNotFound": "Шлях не існує у файловій системі",

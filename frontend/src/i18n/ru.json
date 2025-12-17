@@ -30,7 +30,8 @@
     "saveAndExit": "Сохранить и выйти",
     "keepEditing": "Продолжить редактирование",
     "closeAnyway": "Закрыть в любом случае",
-    "goToItem": "Перейти к пункту"
+    "goToItem": "Перейти к пункту",
+    "watchFile": "Смотреть файл"
   },
   "download": {
     "downloadFile": "Скачать файл",
@@ -604,7 +605,12 @@
     "uploading": "Загрузка{suffix}",
     "paused": "Пауза{suffix}",
     "conflict": "Конфликт{suffix}",
-    "change": "Изменить{suffix}"
+    "change": "Изменить{suffix}",
+    "output": "Выход{suffix}",
+    "watching": "Смотреть{suffix}",
+    "lines": "Линии{suffix}",
+    "lastUpdate": "Последнее обновление{suffix}",
+    "latency": "Латентность{suffix}"
   },
   "access": {
     "rules": "Правила доступа",
@@ -780,7 +786,16 @@
       "browseFullLibrary": "Просмотр полной библиотеки иконок"
     },
     "toolNotFound": "Инструмент не найден",
-    "backToTools": "Назад к инструментам"
+    "backToTools": "Назад к инструментам",
+    "fileWatcher": {
+      "name": "Наблюдатель за файлами",
+      "description": "Наблюдение за файлами в режиме реального времени с контролем задержки",
+      "file": "Файл{suffix}",
+      "interval": "Интервал обновления",
+      "stopWatching": "Хватит смотреть",
+      "emptyState": "Выберите файл и нажмите кнопку воспроизведения, чтобы начать отслеживать изменения в файле",
+      "chooseFile": "Выберите файл"
+    }
   },
   "messages": {
     "pathNotFound": "Путь не существует в файловой системе",

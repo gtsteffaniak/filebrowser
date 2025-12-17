@@ -30,7 +30,8 @@
     "saveAndExit": "Uložit a ukončit",
     "keepEditing": "Pokračovat v úpravách",
     "closeAnyway": "Stejně zavřít",
-    "goToItem": "Přejít na položku"
+    "goToItem": "Přejít na položku",
+    "watchFile": "Sledovat soubor"
   },
   "download": {
     "downloadFile": "Stáhnout soubor",
@@ -682,7 +683,12 @@
     "uploading": "Nahrávání{suffix}",
     "paused": "Pauza{suffix}",
     "conflict": "Konflikt{suffix}",
-    "change": "Změna{suffix}"
+    "change": "Změna{suffix}",
+    "output": "Výstup{suffix}",
+    "watching": "Sledování{suffix}",
+    "lines": "Řádky{suffix}",
+    "lastUpdate": "Poslední aktualizace{suffix}",
+    "latency": "Zpoždění{suffix}"
   },
   "access": {
     "rules": "Pravidla přístupu",
@@ -780,7 +786,16 @@
       "browseFullLibrary": "Procházet celou knihovnu ikon"
     },
     "toolNotFound": "Nástroj nebyl nalezen",
-    "backToTools": "Zpět na Nástroje"
+    "backToTools": "Zpět na Nástroje",
+    "fileWatcher": {
+      "name": "Sledování souborů",
+      "description": "Sledování souborů v reálném čase s možností sledování latence",
+      "file": "Soubor{suffix}",
+      "interval": "Interval aktualizace",
+      "stopWatching": "Přestaňte se dívat",
+      "emptyState": "Vyberte soubor a kliknutím na tlačítko přehrát začněte sledovat změny souboru.",
+      "chooseFile": "Výběr souboru"
+    }
   },
   "messages": {
     "pathNotFound": "Cesta v souborovém systému neexistuje",

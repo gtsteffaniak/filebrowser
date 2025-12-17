@@ -78,6 +78,14 @@ export default {
       type: String,
       default: null,
     },
+    fileOnly: {
+      type: Boolean,
+      default: false,
+    },
+    showFiles: {
+      type: Boolean,
+      default: false, // When true, shows both files and directories
+    },
   },
   data: function () {
     const initialSource = this.browseSource || state.req.source;
@@ -221,8 +229,8 @@ export default {
 
       // If the path isn't the root path,
       // show a button to navigate to the previous
-      // directory.
-      if (req.path !== "/") {
+      // directory (unless in fileOnly mode).
+      if (req.path !== "/" && !this.fileOnly) {
         this.items.push({
           name: "..",
           path: url.removeLastDir(req.path) + "/",
@@ -233,14 +241,22 @@ export default {
       // If this folder is empty, finish here.
       if (req.items === null) return;
 
-      // Otherwise we add every directory to the
-      // move options.
+      // Otherwise we add every directory (or file if fileOnly) to the options.
       for (let item of req.items) {
-        if (item.type != "directory") continue;
+        if (this.fileOnly) {
+          // Only show files - skip directories
+          if (item.type === "directory") continue;
+        } else if (!this.showFiles) {
+          // Only show directories (default behavior)
+          if (item.type !== "directory") continue;
+        }
+        // If showFiles is true, show both files and directories (no filtering)
         this.items.push({
           name: item.name,
           path: item.path,
           source: item.source || req.source,
+          type: item.type, // Store type for file selection
+          originalItem: item, // Store original item for Icon component
         });
       }
     },
@@ -251,6 +267,18 @@ export default {
       let path = event.currentTarget.dataset.path;
       let clickedItem = this.items.find(item => item.path === path);
       let sourceToUse = clickedItem ? clickedItem.source : this.source;
+      
+      // If fileOnly mode and clicked item is a file (not a directory), select it directly
+      if (this.fileOnly && clickedItem && clickedItem.type !== "directory") {
+        this.selected = path;
+        this.selectedSource = sourceToUse;
+        this.$emit("update:selected", {
+          path: path,
+          source: sourceToUse
+        });
+        return;
+      }
+      
       this.path = path;
       if (this.browseShare || getters.isShare()) {
         // Browsing a share - use public API

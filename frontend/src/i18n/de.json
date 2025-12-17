@@ -30,7 +30,8 @@
     "saveAndExit": "Speichern und Beenden",
     "keepEditing": "Weiter bearbeiten",
     "closeAnyway": "Jedenfalls schließen",
-    "goToItem": "Weiter zu Artikel"
+    "goToItem": "Weiter zu Artikel",
+    "watchFile": "Datei beobachten"
   },
   "download": {
     "downloadFile": "Datei herunterladen",
@@ -604,7 +605,12 @@
     "uploading": "Hochladen{suffix}",
     "paused": "Pausiert{suffix}",
     "conflict": "Konflikt{suffix}",
-    "change": "Ändern Sie{suffix}"
+    "change": "Ändern Sie{suffix}",
+    "output": "Ausgabe{suffix}",
+    "watching": "Beobachten Sie{suffix}",
+    "lines": "Zeilen{suffix}",
+    "lastUpdate": "Letzte Aktualisierung{suffix}",
+    "latency": "Latenzzeit{suffix}"
   },
   "access": {
     "rules": "Zugangsregeln",
@@ -780,7 +786,16 @@
       "browseFullLibrary": "Vollständige Symbolbibliothek durchsuchen"
     },
     "toolNotFound": "Werkzeug nicht gefunden",
-    "backToTools": "Zurück zu Tools"
+    "backToTools": "Zurück zu Tools",
+    "fileWatcher": {
+      "name": "Dateiüberwacher",
+      "description": "Überwachung und Verfolgung von Dateien in Echtzeit mit Latenzüberwachung",
+      "file": "Datei{suffix}",
+      "interval": "Aktualisierungsintervall",
+      "stopWatching": "Aufhören zu beobachten",
+      "emptyState": "Wählen Sie eine Datei aus und klicken Sie auf \"Play\", um die Dateiänderungen zu überwachen.",
+      "chooseFile": "Wählen Sie eine Datei"
+    }
   },
   "messages": {
     "pathNotFound": "Pfad existiert nicht im Dateisystem",
