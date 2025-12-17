@@ -7,7 +7,7 @@ COPY ./backend ./
 RUN apk update && apk add --no-cache gcc musl-dev upx
 ENV CGO_ENABLED=1
 ENV GOEXPERIMENT=greenteagc
-RUN go build -ldflags="-w -s \
+RUN go build -tags musl -ldflags="-w -s \
   -X 'github.com/gtsteffaniak/filebrowser/backend/common/version.Version=${VERSION}' \
   -X 'github.com/gtsteffaniak/filebrowser/backend/common/version.CommitSHA=${REVISION}'" \
   -o filebrowser .
