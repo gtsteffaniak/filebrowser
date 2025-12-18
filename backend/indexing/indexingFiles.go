@@ -18,6 +18,11 @@ import (
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
+const (
+	minIndexCacheSizeMB = 2
+	maxIndexCacheSizeMB = 64 // keep pager cache well under the 150MB global cap
+)
+
 var (
 	RealPathCache = cache.NewCache[string](48*time.Hour, 72*time.Hour)
 	IsDirCache    = cache.NewCache[bool](48*time.Hour, 72*time.Hour)
@@ -72,7 +77,6 @@ type Index struct {
 	batchItems        []*iteminfo.FileInfo // Accumulates items during a scan for bulk insert
 	scanners          map[string]*Scanner  // path -> scanner
 	scanMutex         sync.Mutex           // Global scan mutex - only one scanner runs at a time
-	lastVacuumTime    time.Time            // Last time VACUUM was performed on the database
 	pendingFlushes    sync.WaitGroup       // Tracks async progressive flush operations
 	mock              bool
 	mu                sync.RWMutex
@@ -160,10 +164,8 @@ func calculateTotalComplexity() uint {
 // based on the total complexity of all indexes.
 func updateIndexDBCacheSize() {
 	totalComplexity := calculateTotalComplexity()
-	// Calculate cache size: complexity * 5MB
-	cacheSizeMB := int(totalComplexity)
-	// Ensure size between 2MB and 100MB
-	cacheSizeMB = utils.Clamp(cacheSizeMB, 2, 100)
+	// Use complexity as a rough MB target but keep it within strict bounds.
+	cacheSizeMB := utils.Clamp(int(totalComplexity), minIndexCacheSizeMB, maxIndexCacheSizeMB)
 	if err := indexDB.UpdateCacheSize(cacheSizeMB); err != nil {
 		logger.Errorf("Failed to update index database cache size to %dMB: %v", cacheSizeMB, err)
 	} else {
@@ -504,50 +506,48 @@ func (idx *Index) RefreshFileInfo(opts utils.FileOptions) error {
 		return err
 	}
 
-	dirInfo, err := os.Stat(realPath)
-	if err != nil {
+	// Check if directory still exists on filesystem
+	if _, err := os.Stat(realPath); err != nil {
 		idx.DeleteMetadata(targetPath, true, false)
 		return nil
 	}
 
-	needsRefresh := true
-	if previousExists && !opts.Recursive {
-		if dirInfo.ModTime().Unix() == previousInfo.ModTime.Unix() {
-			needsRefresh = false
-		}
-	}
+	// Always refresh when requested - directory modTime is unreliable for detecting changes
+	// (doesn't change for file content modifications, overwrites, or operations within same second)
+	// Database updates are fast enough (~50-100ms) that this optimization isn't worth the incorrect data
 
 	var previousSize int64
 	if previousExists {
 		previousSize = previousInfo.Size
 	}
 
-	if needsRefresh {
-		acquired := idx.tryAcquireScanMutex(100 * time.Millisecond)
-		if !acquired {
-			logger.Debugf("[REFRESH] Scanner is running, skipping index update for %s", targetPath)
-			return nil
-		}
-		defer idx.scanMutex.Unlock()
+	// With WAL mode, we can handle concurrent operations better
+	// Scanner running doesn't block API refreshes anymore
+	acquired := idx.tryAcquireScanMutex(200 * time.Millisecond)
+	if !acquired {
+		logger.Debugf("[REFRESH] Scanner is running, skipping index update for %s", targetPath)
+		return nil
+	}
+	defer idx.scanMutex.Unlock()
 
-		config := actionConfig{
-			Quick:     true,
-			Recursive: opts.Recursive,
-		}
-		err = idx.indexDirectory(targetPath, config)
-		if err != nil {
-			return err
-		}
+	config := actionConfig{
+		Quick:     true,
+		Recursive: opts.Recursive,
+	}
+	err = idx.indexDirectory(targetPath, config)
+	if err != nil {
+		return err
+	}
 
-		newInfo, exists := idx.GetMetadataInfo(targetPath, true)
-		if !exists {
-			return nil
-		}
+	newInfo, exists := idx.GetMetadataInfo(targetPath, true)
+	if !exists {
+		return nil
+	}
 
-		sizeDelta := newInfo.Size - previousSize
-		if sizeDelta != 0 {
-			idx.updateParentDirSizesBatched(targetPath, sizeDelta)
-		}
+	// Only update parent sizes if there's an actual change
+	sizeDelta := newInfo.Size - previousSize
+	if sizeDelta != 0 {
+		idx.updateParentDirSizesBatched(targetPath, sizeDelta)
 	}
 
 	return nil
@@ -882,31 +882,6 @@ func (idx *Index) shouldInclude(baseName string) bool {
 		return true
 	}
 	return false
-}
-
-func (idx *Index) performPeriodicMaintenance() {
-	idx.mu.Lock()
-	lastVacuum := idx.lastVacuumTime
-	idx.mu.Unlock()
-	if lastVacuum.IsZero() {
-		idx.mu.Lock()
-		idx.lastVacuumTime = time.Now()
-		idx.mu.Unlock()
-		return
-	}
-	if time.Since(lastVacuum) < 7*24*time.Hour {
-		return
-	}
-
-	if err := idx.db.Vacuum(); err != nil {
-		logger.Errorf("[DB_MAINTENANCE] Periodic maintenance failed for %s: %v", idx.Name, err)
-		return
-	}
-
-	idx.mu.Lock()
-	idx.lastVacuumTime = time.Now()
-	idx.mu.Unlock()
-
 }
 
 func (idx *Index) tryAcquireScanMutex(timeout time.Duration) bool {

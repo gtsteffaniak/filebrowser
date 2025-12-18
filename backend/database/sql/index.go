@@ -18,21 +18,20 @@ type IndexDB struct {
 }
 
 // NewIndexDB creates a new index database in the cache directory.
-// It uses the standard TempDB configuration optimized for performance.
+// It uses WAL mode for concurrent access (API requests + background scanner).
 func NewIndexDB(name string) (*IndexDB, error) {
 	// Create a temp DB for indexing (ID based on source name)
 	db, err := NewTempDB("index_"+name, &TempDBConfig{
 		// cache_size: Negative values = pages, positive = KB
-		// With 4KB page size: -625 pages = 625 * 4096 = ~2.5MB
 		// Using 4KB pages for small entries reduces storage waste and RAM usage
 		CacheSizeKB:   -2000,            // ~8MB, appropriate for one-time databases
 		MmapSize:      64 * 1024 * 1024, // 64MB - minimal usage but allows some performance
-		Synchronous:   "OFF",            // OFF for maximum write performance - data integrity not critical for index
-		TempStore:     "FILE",           // FILE instead of MEMORY
-		JournalMode:   "DELETE",         // DELETE mode - faster writes, no WAL overhead, simpler for write-heavy workloads
-		LockingMode:   "EXCLUSIVE",      // EXCLUSIVE mode - single writer, no contention
+		Synchronous:   "NORMAL",         // NORMAL for WAL mode - good balance of safety and performance
+		TempStore:     "FILE",           // FILE instead of MEMORY to reduce memory overhead
+		JournalMode:   "WAL",            // WAL mode - allows concurrent reads during writes (API + scanner)
+		LockingMode:   "NORMAL",         // NORMAL mode - allows concurrent readers with WAL
 		PageSize:      4096,             // 4KB page size - optimal for small entries (reduces storage waste)
-		AutoVacuum:    "NONE",           // No vacuum overhead
+		AutoVacuum:    "INCREMENTAL",    // Incremental auto-vacuum - prevents bloat without blocking operations
 		EnableLogging: false,
 	})
 	if err != nil {
@@ -41,12 +40,17 @@ func NewIndexDB(name string) (*IndexDB, error) {
 
 	idxDB := &IndexDB{TempDB: db}
 
-	// Set busy_timeout to 100ms for fast-fail behavior
-	// We want ALL operations (read and write) to fail quickly so requests can fall back to filesystem reads
-	// The index is a performance cache, not a critical dependency - filesystem is source of truth
-	if _, err := db.Exec("PRAGMA busy_timeout = 100"); err != nil {
+	// Set busy_timeout to 200ms - balance between responsiveness and reducing busy errors
+	// With WAL mode, concurrent reads don't block, so this mainly affects write contention
+	if _, err := db.Exec("PRAGMA busy_timeout = 200"); err != nil {
 		idxDB.Close()
 		return nil, fmt.Errorf("failed to set busy_timeout: %w", err)
+	}
+
+	// Run incremental vacuum periodically (1000 pages = ~4MB at a time)
+	// This happens async and doesn't block - keeps DB size in check
+	if _, err := db.Exec("PRAGMA incremental_vacuum(1000)"); err != nil {
+		logger.Debugf("Incremental vacuum skipped: %v", err)
 	}
 
 	if err := idxDB.CreateIndexTable(); err != nil {
@@ -87,8 +91,18 @@ func (db *IndexDB) CreateIndexTable() error {
 
 func (db *IndexDB) InsertItem(source, path string, info *iteminfo.FileInfo) error {
 	query := `
-	INSERT OR REPLACE INTO index_items (source, path, parent_path, name, size, mod_time, type, is_dir, is_hidden, has_preview, last_updated)
+	INSERT INTO index_items (source, path, parent_path, name, size, mod_time, type, is_dir, is_hidden, has_preview, last_updated)
 	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+	ON CONFLICT(source, path) DO UPDATE SET
+		parent_path = excluded.parent_path,
+		name = excluded.name,
+		size = excluded.size,
+		mod_time = excluded.mod_time,
+		type = excluded.type,
+		is_dir = excluded.is_dir,
+		is_hidden = excluded.is_hidden,
+		has_preview = excluded.has_preview,
+		last_updated = excluded.last_updated
 	`
 	parentPath := getParentPath(path)
 	_, err := db.Exec(query,
@@ -132,8 +146,18 @@ func (db *IndexDB) BulkInsertItems(source string, items []*iteminfo.FileInfo) er
 	}
 
 	stmt, err := tx.Prepare(`
-	INSERT OR REPLACE INTO index_items (source, path, parent_path, name, size, mod_time, type, is_dir, is_hidden, has_preview, last_updated)
+	INSERT INTO index_items (source, path, parent_path, name, size, mod_time, type, is_dir, is_hidden, has_preview, last_updated)
 	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+	ON CONFLICT(source, path) DO UPDATE SET
+		parent_path = excluded.parent_path,
+		name = excluded.name,
+		size = excluded.size,
+		mod_time = excluded.mod_time,
+		type = excluded.type,
+		is_dir = excluded.is_dir,
+		is_hidden = excluded.is_hidden,
+		has_preview = excluded.has_preview,
+		last_updated = excluded.last_updated
 	`)
 	if err != nil {
 		if isBusyError(err) || isTransactionError(err) {
@@ -267,60 +291,49 @@ func (db *IndexDB) GetItemsByPaths(source string, paths []string) (map[string]*i
 	return result, nil
 }
 
-// BulkUpdateSizes updates the sizes of multiple items in a single transaction for a specific source.
-// This is optimized for updating parent directory sizes after file operations.
-// Includes retry logic for SQLITE_BUSY errors to handle concurrent write operations.
+// BulkUpdateSizes updates the sizes of multiple items in a single query for a specific source.
 func (db *IndexDB) BulkUpdateSizes(source string, pathSizeUpdates map[string]int64) error {
 	if len(pathSizeUpdates) == 0 {
 		return nil
 	}
-	// Quick attempt with no retries - if DB is busy, just skip the update
-	// Parent sizes are less critical than file existence, filesystem is source of truth
-	startTime := time.Now()
-
-	tx, err := db.BeginTransaction()
-	if err != nil {
-		// Soft failure: DB is busy or locked, skip this update
-		if isBusyError(err) || isTransactionError(err) {
-			logger.Debugf("[DB_TX] BulkUpdateSizes: BeginTransaction failed (DB busy/locked), skipping - took %v", time.Since(startTime))
-			return nil // Non-fatal: sizes can be recalculated later
-		}
-		return err
-	}
-
-	stmt, err := tx.Prepare(`
-	UPDATE index_items 
-	SET size = size + ?, last_updated = ?
-	WHERE source = ? AND path = ?
-	`)
-	if err != nil {
-		if isBusyError(err) || isTransactionError(err) {
-			return nil // Non-fatal
-		}
-		return err
-	}
+	var caseParts []string
+	var args []interface{}
+	var paths []string
+	var placeholders []string
 
 	nowUnix := time.Now().Unix()
+
 	for path, sizeDelta := range pathSizeUpdates {
 		if sizeDelta == 0 {
-			continue
+			continue // Skip zero deltas - no change needed
 		}
-		_, err := stmt.Exec(sizeDelta, nowUnix, source, path)
-		if err != nil {
-			stmt.Close()
-			if isBusyError(err) || isTransactionError(err) {
-				return nil // Non-fatal
-			}
-			return err
-		}
+		caseParts = append(caseParts, "WHEN path = ? THEN ?")
+		args = append(args, path, sizeDelta)
+		paths = append(paths, path)
+		placeholders = append(placeholders, "?")
 	}
 
-	stmt.Close()
+	if len(caseParts) == 0 {
+		return nil // All deltas were zero
+	}
 
-	// Try to commit
-	if err := tx.Commit(); err != nil {
+	query := fmt.Sprintf(`
+		UPDATE index_items 
+		SET size = size + CASE %s END,
+		    last_updated = ?
+		WHERE source = ? AND path IN (%s)
+	`, strings.Join(caseParts, " "), strings.Join(placeholders, ","))
+
+	args = append(args, nowUnix)
+	args = append(args, source)
+	for _, path := range paths {
+		args = append(args, path)
+	}
+	_, err := db.Exec(query, args...)
+	if err != nil {
 		if isBusyError(err) || isTransactionError(err) {
-			return nil // Non-fatal
+			logger.Debugf("[DB_TX] BulkUpdateSizes: DB busy/locked, skipping update")
+			return nil // Non-fatal: sizes can be recalculated later
 		}
 		return err
 	}
@@ -329,16 +342,7 @@ func (db *IndexDB) BulkUpdateSizes(source string, pathSizeUpdates map[string]int
 }
 
 // GetDirectoryChildren retrieves all children of a directory for a specific source.
-// Returns empty slice on database busy/lock errors (non-fatal).
 func (db *IndexDB) GetDirectoryChildren(source, dirPath string) ([]*iteminfo.FileInfo, error) {
-	// Ensure dirPath has trailing slash for parent_path comparison if needed,
-	// but our helper getParentPath handles stripping.
-	// We assume stored paths for files match the convention.
-
-	// If the dirPath comes in as "/foo/bar", we expect children to have parent_path "/foo/bar/"
-	// Wait, parent_path logic needs to be consistent.
-	// If file is "/foo/bar/baz.txt", parent is "/foo/bar/".
-
 	query := `
 	SELECT path, name, size, mod_time, type, is_dir, is_hidden, has_preview
 	FROM index_items WHERE source = ? AND parent_path = ?
@@ -347,9 +351,9 @@ func (db *IndexDB) GetDirectoryChildren(source, dirPath string) ([]*iteminfo.Fil
 
 	rows, err := db.Query(query, source, dirPath)
 	if err != nil {
-		// Soft failure: DB is busy or locked, return empty slice
-		// Caller will handle missing data by fetching from filesystem
+
 		if isBusyError(err) || isTransactionError(err) {
+			logger.Warningf("[DB_TX] GetDirectoryChildren: DB busy/locked, skipping query")
 			return []*iteminfo.FileInfo{}, nil
 		}
 		return nil, err
@@ -368,7 +372,6 @@ func (db *IndexDB) GetDirectoryChildren(source, dirPath string) ([]*iteminfo.Fil
 }
 
 // DeleteItem removes an item and optionally its children (recursive) for a specific source.
-// SQLite handles locking automatically with NORMAL locking mode.
 func (db *IndexDB) DeleteItem(source, path string, recursive bool) error {
 	if !recursive {
 		_, err := db.Exec("DELETE FROM index_items WHERE source = ? AND path = ?", source, path)
@@ -394,9 +397,6 @@ func (db *IndexDB) DeleteItem(source, path string, recursive bool) error {
 }
 
 // UpdateCacheSize updates the SQLite cache size at runtime.
-// cacheSizeMB is the desired cache size in megabytes.
-// With 4KB page size, cacheSizeMB * 1024 / 4 = pages needed
-// Note: PRAGMA statements don't support parameterized queries, so we use fmt.Sprintf
 func (db *IndexDB) UpdateCacheSize(cacheSizeMB int) error {
 	if cacheSizeMB < 1 {
 		return fmt.Errorf("cache size must be at least 1MB, got %dMB", cacheSizeMB)
@@ -412,18 +412,6 @@ func (db *IndexDB) UpdateCacheSize(cacheSizeMB int) error {
 	_, err := db.Exec(query)
 	if err != nil {
 		return fmt.Errorf("failed to set cache_size to %dMB (%d pages): %w", cacheSizeMB, cachePages, err)
-	}
-	return nil
-}
-
-// Vacuum performs VACUUM operation to reclaim unused space in the database.
-// This should be called periodically during low-activity periods to prevent
-// database file growth from INSERT OR REPLACE operations.
-func (db *IndexDB) Vacuum() error {
-	_, err := db.Exec("VACUUM")
-	if err != nil {
-		logger.Errorf("[DB_MAINTENANCE] VACUUM failed: %v", err)
-		return fmt.Errorf("failed to vacuum database: %w", err)
 	}
 	return nil
 }
@@ -484,9 +472,6 @@ func (db *IndexDB) UpdateDirectorySize(source string, path string, newSize int64
 }
 
 // GetTypeGroupsForSize queries for file types that have 2+ files with the same size.
-// This is used to filter down candidates before loading full file data for fuzzy matching.
-// Returns file types (extensions) that have duplicates for the given size.
-// Returns empty slice on database busy/lock errors (non-fatal).
 func (db *IndexDB) GetTypeGroupsForSize(source string, size int64, pathPrefix string) ([]string, error) {
 	var query string
 	var args []interface{}
@@ -535,9 +520,6 @@ func (db *IndexDB) GetTypeGroupsForSize(source string, size int64, pathPrefix st
 }
 
 // GetFilesForMultipleSizes retrieves ALL files for a batch of sizes in a single query.
-// This is much more efficient than querying each size individually.
-// Returns a map of size -> files for easy grouping.
-// Returns empty map on database busy/lock errors (non-fatal).
 func (db *IndexDB) GetFilesForMultipleSizes(source string, sizes []int64, pathPrefix string) (map[int64][]*iteminfo.FileInfo, error) {
 	if len(sizes) == 0 {
 		return make(map[int64][]*iteminfo.FileInfo), nil
@@ -593,8 +575,6 @@ func (db *IndexDB) GetFilesForMultipleSizes(source string, sizes []int64, pathPr
 }
 
 // GetFilesBySizeAndType retrieves files matching both size and type.
-// This loads a smaller subset than GetFilesBySize, allowing fuzzy filename matching in memory.
-// Returns empty slice on database busy/lock errors (non-fatal).
 func (db *IndexDB) GetFilesBySizeAndType(source string, size int64, fileType string, pathPrefix string) ([]*iteminfo.FileInfo, error) {
 	var query string
 	var args []interface{}
@@ -640,10 +620,6 @@ func (db *IndexDB) GetFilesBySizeAndType(source string, size int64, fileType str
 }
 
 // GetFilesBySize retrieves all files with a specific size for a source, optionally filtered by path prefix.
-// Used for duplicate detection - returns files ordered by name for efficient grouping.
-// Returns empty slice on database busy/lock errors (non-fatal).
-// NOTE: For better performance when dealing with many files of the same size,
-// consider using GetFilenameGroupsForSize + GetFilesBySizeAndName to filter at SQL level.
 func (db *IndexDB) GetFilesBySize(source string, size int64, pathPrefix string) ([]*iteminfo.FileInfo, error) {
 	var query string
 	var args []interface{}
@@ -689,9 +665,6 @@ func (db *IndexDB) GetFilesBySize(source string, size int64, pathPrefix string) 
 }
 
 // GetSizeGroupsForDuplicates queries for all size groups that have 2+ files for a specific source.
-// Returns sizes in descending order (largest first) and a count map.
-// Optionally filters by path prefix for scoped searches.
-// Returns empty results on database busy/lock errors (non-fatal).
 func (db *IndexDB) GetSizeGroupsForDuplicates(source string, minSize int64, pathPrefix string) ([]int64, map[int64]int, error) {
 	var query string
 	var args []interface{}
@@ -744,7 +717,6 @@ func (db *IndexDB) GetSizeGroupsForDuplicates(source string, minSize int64, path
 }
 
 // GetTotalSize returns the sum of all file sizes in the index for a specific source (excluding directories).
-// Returns 0 on database busy/lock errors (non-fatal).
 func (db *IndexDB) GetTotalSize(source string) (uint64, error) {
 	query := `SELECT COALESCE(SUM(size), 0) FROM index_items WHERE source = ? AND is_dir = 0`
 
@@ -762,18 +734,18 @@ func (db *IndexDB) GetTotalSize(source string) (uint64, error) {
 }
 
 // RecalculateDirectorySizes recalculates and updates all directory sizes based on their children
-// for a given path prefix. This should be called after bulk insertions to ensure directory sizes are accurate.
-// Returns the number of directories updated.
 func (db *IndexDB) RecalculateDirectorySizes(source, pathPrefix string) (int, error) {
 	// Get all directories under the path prefix, ordered by depth (deepest first)
-	// This ensures we calculate child directories before parent directories
+	cutoffTime := time.Now().Add(-1 * time.Second).Unix()
+
 	query := `
 	SELECT path FROM index_items
 	WHERE source = ? AND is_dir = 1 AND path GLOB ?
+	  AND last_updated < ?
 	ORDER BY LENGTH(path) - LENGTH(REPLACE(path, '/', '')) DESC
 	`
 
-	rows, err := db.Query(query, source, pathPrefix+"*")
+	rows, err := db.Query(query, source, pathPrefix+"*", cutoffTime)
 	if err != nil {
 		if isBusyError(err) || isTransactionError(err) {
 			return 0, nil

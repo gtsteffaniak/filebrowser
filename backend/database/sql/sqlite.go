@@ -14,6 +14,13 @@ import (
 	_ "modernc.org/sqlite"
 )
 
+const (
+	// Absolute ceiling for SQLite heap allocations (per operator request).
+	maxSQLiteMemoryBytes = 100 * 1024 * 1024 // 100MB
+	// Pager cache target expressed as number of 4KB pages (negative = pages).
+	defaultCacheSizePages = -4096 // ~16MB
+)
+
 // TempDB manages a temporary SQLite database for operations that need
 // to stream large datasets without loading everything into memory.
 // This can be used by any part of the codebase that needs temporary SQLite storage.
@@ -28,13 +35,13 @@ type TempDB struct {
 // TempDBConfig holds configuration options for temporary SQLite databases.
 type TempDBConfig struct {
 	// CacheSizeKB is the page cache size in KB. Negative values are in pages.
-	// For one-time databases, a smaller cache (e.g., -2000 = ~8MB) is often sufficient.
-	// Default: -2000 (approximately 8MB)
+	// For one-time databases, a smaller cache (e.g., -4096 = ~16MB) is often sufficient.
+	// Default: -4096 (approximately 16MB)
 	CacheSizeKB int
 
 	// MmapSize is the memory-mapped I/O size in bytes. Set to 0 to disable mmap.
 	// For databases that fit in RAM, set this larger than the expected DB size.
-	// Default: 2GB (2147483648 bytes)
+	// Default: 0 (disabled)
 	MmapSize int64
 
 	// Synchronous controls the synchronous mode. OFF is fastest but less safe.
@@ -71,14 +78,18 @@ type TempDBConfig struct {
 	// EnableLogging enables performance logging for debugging.
 	// Default: false
 	EnableLogging bool
+
+	// SoftHeapLimitBytes, when >0, sets PRAGMA soft_heap_limit so that SQLite
+	// proactively frees caches before exceeding this many bytes. Zero disables it.
+	SoftHeapLimitBytes int64
 }
 
 // mergeConfig merges the provided config with defaults, returning a new config.
 // If provided config is nil or empty, returns default config.
 func mergeConfig(provided *TempDBConfig) *TempDBConfig {
 	defaults := &TempDBConfig{
-		CacheSizeKB:   -2000,      // ~8MB, appropriate for one-time databases
-		MmapSize:      2147483648, // 2GB
+		CacheSizeKB:   defaultCacheSizePages, // ~16MB pager cache
+		MmapSize:      0,                     // Disable mmap to keep RSS predictable
 		Synchronous:   "OFF",
 		TempStore:     "FILE", // Default to FILE, not MEMORY
 		JournalMode:   "WAL",  // WAL for better concurrency by default
@@ -86,6 +97,8 @@ func mergeConfig(provided *TempDBConfig) *TempDBConfig {
 		PageSize:      4096, // SQLite default
 		AutoVacuum:    "NONE",
 		EnableLogging: false,
+		// Soft heap limit keeps SQLite from retaining excessive pager cache memory.
+		SoftHeapLimitBytes: maxSQLiteMemoryBytes,
 	}
 
 	if provided == nil {
@@ -120,6 +133,9 @@ func mergeConfig(provided *TempDBConfig) *TempDBConfig {
 		merged.AutoVacuum = provided.AutoVacuum
 	}
 	merged.EnableLogging = provided.EnableLogging
+	if provided.SoftHeapLimitBytes != 0 {
+		merged.SoftHeapLimitBytes = provided.SoftHeapLimitBytes
+	}
 
 	return &merged
 }
@@ -130,8 +146,8 @@ func mergeConfig(provided *TempDBConfig) *TempDBConfig {
 //
 // The database is optimized for bulk write-then-read operations with:
 // - WAL journal mode for better concurrency
-// - Configurable cache size (default: ~8MB for one-time DBs)
-// - Memory-mapped I/O for faster access
+// - Configurable cache size (default: ~16MB for one-time DBs)
+// - Memory-mapped I/O (disabled by default for predictable RSS)
 // - OFF synchronous mode for maximum write performance
 // - Configurable temp_store (default: FILE, can be set to MEMORY via config)
 func NewTempDB(id string, config ...*TempDBConfig) (*TempDB, error) {
@@ -184,7 +200,7 @@ func NewTempDB(id string, config ...*TempDBConfig) (*TempDB, error) {
 	// IMPORTANT: page_size must be set BEFORE any tables are created
 	pragmaStart := time.Now()
 
-	pragmas := []struct {
+	basePragmas := []struct {
 		sql string
 		err string
 	}{
@@ -196,22 +212,29 @@ func NewTempDB(id string, config ...*TempDBConfig) (*TempDB, error) {
 		{fmt.Sprintf("PRAGMA auto_vacuum = %s;", cfg.AutoVacuum), "failed to set auto_vacuum"},
 	}
 
-	// Page size must be set before any tables are created
-	if cfg.PageSize > 0 {
-		pragmas = append([]struct {
+	if cfg.SoftHeapLimitBytes > 0 {
+		basePragmas = append([]struct {
 			sql string
 			err string
-		}{{fmt.Sprintf("PRAGMA page_size = %d;", cfg.PageSize), "failed to set page_size"}}, pragmas...)
+		}{{fmt.Sprintf("PRAGMA soft_heap_limit = %d;", cfg.SoftHeapLimitBytes), "failed to set soft_heap_limit"}}, basePragmas...)
+	}
+
+	// Page size must be set before any tables are created
+	if cfg.PageSize > 0 {
+		basePragmas = append([]struct {
+			sql string
+			err string
+		}{{fmt.Sprintf("PRAGMA page_size = %d;", cfg.PageSize), "failed to set page_size"}}, basePragmas...)
 	}
 
 	if cfg.MmapSize > 0 {
-		pragmas = append(pragmas, struct {
+		basePragmas = append(basePragmas, struct {
 			sql string
 			err string
 		}{fmt.Sprintf("PRAGMA mmap_size = %d;", cfg.MmapSize), "failed to set mmap_size"})
 	}
 
-	for _, pragma := range pragmas {
+	for _, pragma := range basePragmas {
 		if _, err := db.Exec(pragma.sql); err != nil {
 			db.Close()
 			os.Remove(tmpPath)

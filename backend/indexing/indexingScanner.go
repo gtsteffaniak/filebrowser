@@ -161,7 +161,6 @@ func (s *Scanner) runRootScan(quick bool) {
 			logger.Errorf("[SIZE_CALC] Failed to recalculate directory sizes: %v", err)
 		}
 		s.purgeStaleEntries()
-		s.idx.performPeriodicMaintenance()
 		s.syncStatsWithDB()
 	}
 
@@ -218,7 +217,6 @@ func (s *Scanner) runChildScan(quick bool) {
 		}
 
 		s.purgeStaleEntries()
-		s.idx.performPeriodicMaintenance()
 		s.syncStatsWithDB()
 	}
 
@@ -237,7 +235,6 @@ func (s *Scanner) runChildScan(quick bool) {
 		s.updateComplexity()
 	}
 
-	_, _ = s.idx.db.Exec("PRAGMA shrink_memory")
 }
 
 // checkForNewChildDirectories detects new top-level directories and creates scanners for them
