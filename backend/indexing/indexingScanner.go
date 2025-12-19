@@ -1,6 +1,7 @@
 package indexing
 
 import (
+	"fmt"
 	"os"
 	"strings"
 	"time"
@@ -120,6 +121,10 @@ func (s *Scanner) runIndexing(quick bool) {
 	} else {
 		s.runChildScan(quick)
 	}
+
+	// Log SQLite memory stats after every scan to diagnose OS-level memory usage
+	s.idx.db.LogMemoryStats(fmt.Sprintf("%s:%s", s.idx.Name, s.scanPath))
+
 	logger.Debugf("[%s] Indexing for %s completed", s.idx.Name, s.scanPath)
 	s.lastScanned = time.Now()
 }
@@ -170,6 +175,7 @@ func (s *Scanner) runRootScan(quick bool) {
 	// Note: Root directory size will be calculated by updateRootDirectorySize()
 	// which sums all child directories + root files from the database
 	scanDuration := int(time.Since(startTime).Seconds())
+
 	if quick {
 		s.quickScanTime = scanDuration
 		// Sync stats with DB after quick scan to ensure accurate counts
@@ -230,6 +236,7 @@ func (s *Scanner) runChildScan(quick bool) {
 	// in updateRootDirectorySize() after this scan completes.
 
 	scanDuration := int(time.Since(startTime).Seconds())
+
 	if quick {
 		s.quickScanTime = scanDuration
 		// Sync stats with DB after quick scan to ensure accurate counts

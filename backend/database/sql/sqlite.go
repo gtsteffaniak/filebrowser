@@ -338,3 +338,52 @@ func (t *TempDB) Close() error {
 func (t *TempDB) Path() string {
 	return t.path
 }
+
+// LogMemoryStats logs SQLite's internal memory usage statistics.
+// This reveals OS-level memory allocations that don't show up in Go's runtime stats.
+// Should be called after large operations to diagnose memory pressure.
+func (t *TempDB) LogMemoryStats(context string) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	// PRAGMA status returns SQLite's internal memory counters
+	// These track memory that SQLite allocates directly from the OS
+	var memUsed int64
+
+	// SQLITE_STATUS_MEMORY_USED (current memory usage)
+	err := t.db.QueryRow("PRAGMA status").Scan(&memUsed)
+	if err != nil {
+		// If status doesn't work, try alternative approach
+		memUsed = 0
+	}
+
+	// Get page cache statistics
+	var cacheSize, cacheUsed, cacheSpill int64
+	t.db.QueryRow("PRAGMA cache_size").Scan(&cacheSize)
+	t.db.QueryRow("PRAGMA page_count").Scan(&cacheUsed)
+	t.db.QueryRow("PRAGMA cache_spill").Scan(&cacheSpill)
+
+	// Get freelist (unused pages that could be reclaimed)
+	var freelistCount int64
+	t.db.QueryRow("PRAGMA freelist_count").Scan(&freelistCount)
+
+	// Get page size
+	var pageSize int64
+	t.db.QueryRow("PRAGMA page_size").Scan(&pageSize)
+
+	// Calculate actual memory usage
+	pageCacheBytes := cacheSize * pageSize
+	if cacheSize < 0 {
+		// Negative cache_size means it's in pages, not KB
+		pageCacheBytes = -cacheSize * pageSize
+	}
+	freelistBytes := freelistCount * pageSize
+	activePages := cacheUsed - freelistCount
+	activeBytes := activePages * pageSize
+
+	logger.Debugf("[SQLITE_MEMORY:%s] Page cache: %d pages (%.2f MB), Active: %d pages (%.2f MB), Freelist: %d pages (%.2f MB)",
+		context,
+		cacheSize, float64(pageCacheBytes)/(1024*1024),
+		activePages, float64(activeBytes)/(1024*1024),
+		freelistCount, float64(freelistBytes)/(1024*1024))
+}
