@@ -160,8 +160,6 @@
         transform: scale(1.0);
       }
     }
-    {{ .htmlVars.customCSS }}
-    {{ .htmlVars.userSelectedTheme }}
   </style>
 </head>
 
@@ -187,6 +185,10 @@
   {{end}}
   <script type="module" src="/src/main.ts"></script>
 
+  <style>
+    {{ .htmlVars.customCSS }}
+    {{ .htmlVars.userSelectedTheme }}
+  </style>
 </body>
 
 </html>
