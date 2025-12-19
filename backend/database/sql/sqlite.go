@@ -30,10 +30,15 @@ type TempDB struct {
 	mu        sync.Mutex
 	startTime time.Time
 	config    *TempDBConfig
+	BatchSize int // Exported batch size for bulk operations (from config)
 }
 
 // TempDBConfig holds configuration options for temporary SQLite databases.
 type TempDBConfig struct {
+	// BatchSize is the number of items to batch for bulk insert.
+	// Default: 2500
+	BatchSize int
+
 	// CacheSizeKB is the page cache size in KB. Negative values are in pages.
 	// For one-time databases, a smaller cache (e.g., -4096 = ~16MB) is often sufficient.
 	// Default: -4096 (approximately 16MB)
@@ -88,6 +93,7 @@ type TempDBConfig struct {
 // If provided config is nil or empty, returns default config.
 func mergeConfig(provided *TempDBConfig) *TempDBConfig {
 	defaults := &TempDBConfig{
+		BatchSize:     2500,
 		CacheSizeKB:   defaultCacheSizePages, // ~16MB pager cache
 		MmapSize:      0,                     // Disable mmap to keep RSS predictable
 		Synchronous:   "OFF",
@@ -108,6 +114,9 @@ func mergeConfig(provided *TempDBConfig) *TempDBConfig {
 	merged := *defaults // Copy defaults
 
 	// Override with provided values if they are non-zero/non-empty
+	if provided.BatchSize != 0 {
+		merged.BatchSize = provided.BatchSize
+	}
 	if provided.CacheSizeKB != 0 {
 		merged.CacheSizeKB = provided.CacheSizeKB
 	}
@@ -255,6 +264,7 @@ func NewTempDB(id string, config ...*TempDBConfig) (*TempDB, error) {
 		path:      tmpPath,
 		startTime: startTime,
 		config:    cfg,
+		BatchSize: cfg.BatchSize, // Export batch size for external packages
 	}, nil
 }
 

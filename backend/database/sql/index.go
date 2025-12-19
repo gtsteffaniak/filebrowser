@@ -22,6 +22,7 @@ type IndexDB struct {
 func NewIndexDB(name string) (*IndexDB, error) {
 	// Create a temp DB for indexing (ID based on source name)
 	db, err := NewTempDB("index_"+name, &TempDBConfig{
+		BatchSize: 2500,
 		// cache_size: Negative values = pages, positive = KB
 		// Using 4KB pages for small entries reduces storage waste and RAM usage
 		CacheSizeKB:   -1000,         // ~4MB cache - reduced to minimize memory footprint
@@ -50,6 +51,13 @@ func NewIndexDB(name string) (*IndexDB, error) {
 	// cache_spill = 1 allows page cache to spill to disk, reducing memory pressure
 	if _, err := db.Exec("PRAGMA cache_spill = 1"); err != nil {
 		logger.Debugf("Failed to set cache_spill: %v", err)
+	}
+
+	// CRITICAL: Set soft heap limit to 8MB - constrains SQLite's memory usage at OS level
+	// This prevents memory balloon during large transactions (UPSERT operations hold 2x data)
+	// SQLite will spill to disk when approaching this limit
+	if _, err := db.Exec("PRAGMA soft_heap_limit = 8388608"); err != nil { // 8MB
+		logger.Debugf("Failed to set soft_heap_limit: %v", err)
 	}
 
 	// Run incremental vacuum periodically (1000 pages = ~4MB at a time)
@@ -214,6 +222,13 @@ func (db *IndexDB) BulkInsertItems(source string, items []*iteminfo.FileInfo) er
 	if itemCount > 100 {
 		logger.Debugf("[DB_MEMORY] Transaction completed: %d items in %v (%.0f items/sec)",
 			itemCount, duration, float64(itemCount)/duration.Seconds())
+
+		// CRITICAL: Release page cache after large transactions to prevent OS-level memory buildup
+		// Large UPSERT transactions can accumulate 10-20MB of page cache that doesn't auto-release
+		if itemCount >= 5000 {
+			db.Exec("PRAGMA shrink_memory") // Forces SQLite to release unused memory back to OS
+			logger.Debugf("[DB_MEMORY] Released page cache after %d-item transaction", itemCount)
+		}
 	}
 
 	return nil

@@ -13,8 +13,6 @@ import (
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
-const BATCH_SIZE = 5000 // Progressive flush threshold
-
 // UpdateFileMetadata updates the FileInfo for the specified directory in the index.
 func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo) bool {
 	// Quick nil check without mutex - db pointer is set once at init and never changes
@@ -64,10 +62,10 @@ func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo) bool {
 		idx.batchItems = append(idx.batchItems, items...)
 
 		// Progressive flushing: flush every BATCH_SIZE items to keep memory bounded
-		// Synchronous flush ensures only ONE batch (5000 items) in memory at a time
-		if len(idx.batchItems) >= BATCH_SIZE {
+		// Synchronous flush ensures only ONE batch in memory at a time
+		if len(idx.batchItems) >= idx.db.BatchSize {
 			itemsToFlush := idx.batchItems
-			idx.batchItems = make([]*iteminfo.FileInfo, 0, BATCH_SIZE)
+			idx.batchItems = make([]*iteminfo.FileInfo, 0, idx.db.BatchSize)
 			sourceName := idx.Name
 			numItems := len(itemsToFlush)
 			idx.mu.Unlock()
@@ -76,7 +74,7 @@ func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo) bool {
 				numItems, float64(numItems*200)/1024/1024)
 
 			// Synchronous flush - blocks scanner until DB write completes
-			// This ensures only 5000 items max in memory at any time
+			// This ensures only BatchSize items max in memory at any time
 			startTime := time.Now()
 			err := idx.db.BulkInsertItems(sourceName, itemsToFlush)
 			if err != nil {

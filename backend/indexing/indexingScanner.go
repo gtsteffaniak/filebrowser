@@ -114,12 +114,13 @@ func (s *Scanner) tryAcquireAndScan() {
 
 // runIndexing performs the actual indexing work
 func (s *Scanner) runIndexing(quick bool) {
+	logger.Debugf("[%s] Running indexing for %s", s.idx.Name, s.scanPath)
 	if s.scanPath == "/" {
 		s.runRootScan(quick)
 	} else {
 		s.runChildScan(quick)
 	}
-
+	logger.Debugf("[%s] Indexing for %s completed", s.idx.Name, s.scanPath)
 	s.lastScanned = time.Now()
 }
 
@@ -141,9 +142,10 @@ func (s *Scanner) runRootScan(quick bool) {
 	}
 
 	s.idx.mu.Lock()
-	s.idx.batchItems = make([]*iteminfo.FileInfo, 0, 5000)
+	batchSize := s.idx.db.BatchSize
+	s.idx.batchItems = make([]*iteminfo.FileInfo, 0, batchSize)
 	s.idx.mu.Unlock()
-	logger.Debugf("[MEMORY] Root scan started: batch buffer allocated (capacity: 5000 items)")
+	logger.Debugf("[MEMORY] Root scan started: batch buffer allocated (capacity: %d items)", batchSize)
 
 	s.filesChanged = false
 	startTime := time.Now()
@@ -200,9 +202,10 @@ func (s *Scanner) runChildScan(quick bool) {
 	s.idx.mu.Lock()
 	s.filesChanged = false
 	startTime := time.Now()
-	s.idx.batchItems = make([]*iteminfo.FileInfo, 0, 5000)
+	batchSize := s.idx.db.BatchSize
+	s.idx.batchItems = make([]*iteminfo.FileInfo, 0, batchSize)
 	s.idx.mu.Unlock()
-	logger.Debugf("[MEMORY] Child scan started for %s: batch buffer allocated (capacity: 5000 items)", s.scanPath)
+	logger.Debugf("[MEMORY] Child scan started for %s: batch buffer allocated (capacity: %d items)", s.scanPath, batchSize)
 
 	_, _, err := s.idx.indexDirectory(s.scanPath, config)
 	if err != nil {
