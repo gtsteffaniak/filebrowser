@@ -74,7 +74,7 @@ type Index struct {
 	processedInodes   map[uint64]struct{}
 	totalSize         uint64
 	previousTotalSize uint64               // Track previous totalSize for change detection
-	batchItems        []*iteminfo.FileInfo // Accumulates items during a scan for bulk insert (synchronous flush at 5000 items)
+	batchItems        []*iteminfo.FileInfo // Accumulates items during a scan for bulk insert
 	scanners          map[string]*Scanner  // path -> scanner
 	scanMutex         sync.Mutex           // Global scan mutex - only one scanner runs at a time
 	mock              bool

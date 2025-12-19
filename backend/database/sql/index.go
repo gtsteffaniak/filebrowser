@@ -12,59 +12,31 @@ import (
 
 // IndexDB manages the SQLite database for the file index.
 // It wraps the underlying sql.DB connection and provides type-safe methods.
-// Uses DELETE journal mode for maximum write performance with SQLite's built-in locking for concurrency.
 type IndexDB struct {
 	*TempDB
 }
 
 // NewIndexDB creates a new index database in the cache directory.
-// Optimized for low memory usage - no mmap, smaller cache, EXCLUSIVE locking.
 func NewIndexDB(name string) (*IndexDB, error) {
-	// Create a temp DB for indexing (ID based on source name)
 	db, err := NewTempDB("index_"+name, &TempDBConfig{
-		BatchSize: 2500,
-		// cache_size: Negative values = pages, positive = KB
-		// Using 4KB pages for small entries reduces storage waste and RAM usage
-		CacheSizeKB:   -1000,         // ~4MB cache - reduced to minimize memory footprint
-		MmapSize:      0,             // DISABLED - mmap shows up in Docker RSS outside Go heap
-		Synchronous:   "OFF",         // OFF for maximum write performance - data integrity not critical
-		TempStore:     "FILE",        // FILE instead of MEMORY to reduce memory overhead
-		JournalMode:   "DELETE",      // DELETE mode - simpler, no WAL overhead, lower memory usage
-		LockingMode:   "EXCLUSIVE",   // EXCLUSIVE mode - single writer, prevents concurrent access issues
-		PageSize:      4096,          // 4KB page size - optimal for small entries (reduces storage waste)
-		AutoVacuum:    "INCREMENTAL", // Incremental auto-vacuum - prevents bloat without blocking operations
-		EnableLogging: false,
+		BatchSize:           5000,          // items per batch transaction
+		CacheSizeKB:         -1000,         // ~4MB cache - reduced to minimize memory footprint
+		MmapSize:            0,             // DISABLED - mmap shows up in Docker RSS outside Go heap
+		Synchronous:         "OFF",         // OFF for maximum write performance - data integrity not critical
+		TempStore:           "FILE",        // FILE instead of MEMORY to reduce memory overhead
+		JournalMode:         "OFF",         // OFF for maximum write performance - data integrity not critical
+		LockingMode:         "EXCLUSIVE",   // EXCLUSIVE mode - better cache retention, no change counter overhead
+		PageSize:            4096,          // 4KB page size - optimal for small entries (reduces storage waste)
+		AutoVacuum:          "INCREMENTAL", // Incremental auto-vacuum - prevents bloat without blocking operations
+		EnableLogging:       false,
+		HardHeapLimitBytes:  defaultHardHeapLimitBytes, // Hard limit - operations fail if exceeded
+		CacheSpillThreshold: 500,                       // ~2MB threshold - triggers early spilling to reduce memory
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	idxDB := &IndexDB{TempDB: db}
-
-	// Set busy_timeout to 200ms - balance between responsiveness and reducing busy errors
-	if _, err := db.Exec("PRAGMA busy_timeout = 200"); err != nil {
-		idxDB.Close()
-		return nil, fmt.Errorf("failed to set busy_timeout: %w", err)
-	}
-
-	// Limit SQLite's memory usage to reduce Docker RSS
-	// cache_spill = 1 allows page cache to spill to disk, reducing memory pressure
-	if _, err := db.Exec("PRAGMA cache_spill = 1"); err != nil {
-		logger.Debugf("Failed to set cache_spill: %v", err)
-	}
-
-	// CRITICAL: Set soft heap limit to 8MB - constrains SQLite's memory usage at OS level
-	// This prevents memory balloon during large transactions (UPSERT operations hold 2x data)
-	// SQLite will spill to disk when approaching this limit
-	if _, err := db.Exec("PRAGMA soft_heap_limit = 8388608"); err != nil { // 8MB
-		logger.Debugf("Failed to set soft_heap_limit: %v", err)
-	}
-
-	// Run incremental vacuum periodically (1000 pages = ~4MB at a time)
-	// This happens async and doesn't block - keeps DB size in check
-	if _, err := db.Exec("PRAGMA incremental_vacuum(1000)"); err != nil {
-		logger.Debugf("Incremental vacuum skipped: %v", err)
-	}
 
 	if err := idxDB.CreateIndexTable(); err != nil {
 		idxDB.Close()
@@ -182,6 +154,7 @@ func (db *IndexDB) BulkInsertItems(source string, items []*iteminfo.FileInfo) er
 		}
 		return err
 	}
+	defer stmt.Close() // Ensure statement is always closed
 
 	nowUnix := time.Now().Unix()
 	for _, info := range items {
@@ -200,15 +173,12 @@ func (db *IndexDB) BulkInsertItems(source string, items []*iteminfo.FileInfo) er
 			nowUnix,
 		)
 		if err != nil {
-			stmt.Close()
 			if isBusyError(err) || isTransactionError(err) {
 				return nil // Non-fatal
 			}
 			return err
 		}
 	}
-
-	stmt.Close()
 
 	// Try to commit
 	if err := tx.Commit(); err != nil {
@@ -222,15 +192,14 @@ func (db *IndexDB) BulkInsertItems(source string, items []*iteminfo.FileInfo) er
 	if itemCount > 100 {
 		logger.Debugf("[DB_MEMORY] Transaction completed: %d items in %v (%.0f items/sec)",
 			itemCount, duration, float64(itemCount)/duration.Seconds())
-
-		// CRITICAL: Release page cache after large transactions to prevent OS-level memory buildup
-		// Large UPSERT transactions can accumulate 10-20MB of page cache that doesn't auto-release
-		if itemCount >= 5000 {
-			db.Exec("PRAGMA shrink_memory") // Forces SQLite to release unused memory back to OS
-			logger.Debugf("[DB_MEMORY] Released page cache after %d-item transaction", itemCount)
-		}
 	}
 
+	// CRITICAL: Force SQLite to release memory back to OS
+	// shrink_memory hints SQLite to release unused memory back to the OS
+	// We call this after every transaction to prevent memory accumulation
+	if _, err := db.Exec("PRAGMA shrink_memory"); err != nil {
+		logger.Debugf("BulkInsertItems: failed to shrink memory: %v", err)
+	}
 	return nil
 }
 
@@ -368,6 +337,11 @@ func (db *IndexDB) BulkUpdateSizes(source string, pathSizeUpdates map[string]int
 		return err
 	}
 
+	// CRITICAL: Force SQLite to release memory back to OS
+	// shrink_memory hints SQLite to release unused memory back to the OS
+	if _, err := db.Exec("PRAGMA shrink_memory"); err != nil {
+		logger.Debugf("BulkUpdateSizes: failed to shrink memory: %v", err)
+	}
 	return nil
 }
 
@@ -763,21 +737,18 @@ func (db *IndexDB) GetTotalSize(source string) (uint64, error) {
 	return uint64(totalSize), nil
 }
 
-// RecalculateDirectorySizes recalculates and updates all directory sizes based on their children
+// RecalculateDirectorySizes recalculates and updates all directory sizes based on their children.
+// This uses a bottom-up approach (deepest directories first) to avoid redundant SUM queries.
 func (db *IndexDB) RecalculateDirectorySizes(source, pathPrefix string) (int, error) {
-	startTime := time.Now()
-
-	// Get all directories under the path prefix, ordered by depth (deepest first)
-	cutoffTime := time.Now().Add(-1 * time.Second).Unix()
-
+	// 1. Get all directories under the path prefix, ordered by depth (deepest first)
+	// Depth is determined by counting slashes in the path
 	query := `
 	SELECT path FROM index_items
 	WHERE source = ? AND is_dir = 1 AND path GLOB ?
-	  AND last_updated < ?
 	ORDER BY LENGTH(path) - LENGTH(REPLACE(path, '/', '')) DESC
 	`
 
-	rows, err := db.Query(query, source, pathPrefix+"*", cutoffTime)
+	rows, err := db.Query(query, source, pathPrefix+"*")
 	if err != nil {
 		if isBusyError(err) || isTransactionError(err) {
 			return 0, nil
@@ -789,28 +760,58 @@ func (db *IndexDB) RecalculateDirectorySizes(source, pathPrefix string) (int, er
 	var directories []string
 	for rows.Next() {
 		var path string
-		if err := rows.Scan(&path); err != nil {
+		if err = rows.Scan(&path); err != nil {
 			return 0, err
 		}
 		directories = append(directories, path)
 	}
-	if err := rows.Err(); err != nil {
+	if err = rows.Err(); err != nil {
 		return 0, err
 	}
 
-	// For each directory, calculate the sum of direct children sizes
-	updateCount := 0
-	for _, dirPath := range directories {
-		// Calculate total size of all files (not directories) under this path
-		// Only sum file sizes to avoid double-counting (directory sizes are derived)
-		sizeQuery := `
+	if len(directories) == 0 {
+		return 0, nil
+	}
+
+	// 2. Start a transaction for bulk updates
+	tx, err := db.BeginTransaction()
+	if err != nil {
+		if isBusyError(err) || isTransactionError(err) {
+			return 0, nil
+		}
+		return 0, err
+	}
+	// No defer rollback - data integrity not critical, performance is priority
+
+	// Prepare statements for the loop
+	// We only sum DIRECT children because we are processing bottom-up
+	sizeStmt, err := tx.Prepare(`
 		SELECT COALESCE(SUM(size), 0)
 		FROM index_items
-		WHERE source = ? AND path GLOB ? AND path != ? AND is_dir = 0
-		`
+		WHERE source = ? AND parent_path = ?
+	`)
+	if err != nil {
+		return 0, err
+	}
+	defer sizeStmt.Close()
 
+	updateStmt, err := tx.Prepare(`
+		UPDATE index_items 
+		SET size = ?, last_updated = ? 
+		WHERE source = ? AND path = ?
+	`)
+	if err != nil {
+		return 0, err
+	}
+	defer updateStmt.Close()
+
+	nowUnix := time.Now().Unix()
+	updateCount := 0
+
+	// 3. Process directories bottom-up
+	for _, dirPath := range directories {
 		var totalSize int64
-		err := db.QueryRow(sizeQuery, source, dirPath+"*", dirPath).Scan(&totalSize)
+		err := sizeStmt.QueryRow(source, dirPath).Scan(&totalSize)
 		if err != nil {
 			if isBusyError(err) || isTransactionError(err) {
 				continue
@@ -819,11 +820,7 @@ func (db *IndexDB) RecalculateDirectorySizes(source, pathPrefix string) (int, er
 			continue
 		}
 
-		// Update the directory's size and last_updated timestamp
-		// This prevents the directory from being deleted as stale during cleanup
-		nowUnix := time.Now().Unix()
-		updateQuery := `UPDATE index_items SET size = ?, last_updated = ? WHERE source = ? AND path = ?`
-		result, err := db.Exec(updateQuery, totalSize, nowUnix, source, dirPath)
+		_, err = updateStmt.Exec(totalSize, nowUnix, source, dirPath)
 		if err != nil {
 			if isBusyError(err) || isTransactionError(err) {
 				continue
@@ -831,17 +828,23 @@ func (db *IndexDB) RecalculateDirectorySizes(source, pathPrefix string) (int, er
 			logger.Errorf("[DB_SIZE_CALC] Failed to update size for %s: %v", dirPath, err)
 			continue
 		}
-
-		rowsAffected, _ := result.RowsAffected()
-		if rowsAffected > 0 {
-			updateCount++
-		}
+		updateCount++
 	}
 
-	duration := time.Since(startTime)
+	// 4. Commit transaction
+	if err := tx.Commit(); err != nil {
+		if isBusyError(err) || isTransactionError(err) {
+			return 0, nil
+		}
+		return 0, err
+	}
+
 	if updateCount > 0 {
-		logger.Debugf("[DB_MEMORY] RecalculateDirectorySizes: updated %d directories in %v (path: %s)",
-			updateCount, duration, pathPrefix)
+		// CRITICAL: Force SQLite to release memory back to OS
+		// shrink_memory hints SQLite to release unused memory back to the OS
+		if _, err := db.Exec("PRAGMA shrink_memory"); err != nil {
+			logger.Debugf("[DB_SIZE_CALC] Failed to shrink memory: %v", err)
+		}
 	}
 
 	return updateCount, nil

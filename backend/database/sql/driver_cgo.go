@@ -1,5 +1,5 @@
-//go:build cgo
-// +build cgo
+//go:build cgosql
+// +build cgosql
 
 package sql
 
@@ -7,4 +7,4 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-const sqliteDriver = "sqlite3"
+const SqliteDriver = "sqlite3"

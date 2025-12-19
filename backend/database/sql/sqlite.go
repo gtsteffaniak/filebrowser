@@ -16,10 +16,20 @@ import (
 
 const (
 	// Absolute ceiling for SQLite heap allocations (per operator request).
-	maxSQLiteMemoryBytes = 100 * 1024 * 1024 // 100MB
+	defaultHardHeapLimitBytes = 100 * 1024 * 1024 // 100MB
+	//soft limi
+	defaultSoftHeapLimitBytes = 64 * 1024 * 1024 // 64MB
 	// Pager cache target expressed as number of 4KB pages (negative = pages).
 	defaultCacheSizePages = -4096 // ~16MB
 )
+
+func init() {
+	if SqliteDriver == "sqlite3" {
+		logger.Infof("CGO SQLite driver initialized")
+	} else {
+		logger.Infof("Default SQLite driver initialized")
+	}
+}
 
 // TempDB manages a temporary SQLite database for operations that need
 // to stream large datasets without loading everything into memory.
@@ -87,6 +97,16 @@ type TempDBConfig struct {
 	// SoftHeapLimitBytes, when >0, sets PRAGMA soft_heap_limit so that SQLite
 	// proactively frees caches before exceeding this many bytes. Zero disables it.
 	SoftHeapLimitBytes int64
+
+	// HardHeapLimitBytes, when >0, sets PRAGMA hard_heap_limit as a hard cap on SQLite's heap.
+	// Operations will fail if they would exceed this limit. Zero disables it.
+	HardHeapLimitBytes int64
+
+	// CacheSpillThreshold sets PRAGMA cache_spill threshold in pages. When cache exceeds both
+	// this threshold and cache_size, SQLite will spill dirty pages to disk.
+	// Set to 0 to use default behavior (spill enabled but no specific threshold).
+	// Default: 500 pages (~2MB) to trigger early spilling and reduce memory usage.
+	CacheSpillThreshold int
 }
 
 // mergeConfig merges the provided config with defaults, returning a new config.
@@ -104,7 +124,11 @@ func mergeConfig(provided *TempDBConfig) *TempDBConfig {
 		AutoVacuum:    "NONE",
 		EnableLogging: false,
 		// Soft heap limit keeps SQLite from retaining excessive pager cache memory.
-		SoftHeapLimitBytes: maxSQLiteMemoryBytes,
+		SoftHeapLimitBytes: defaultSoftHeapLimitBytes,
+		// Hard heap limit provides a hard cap - operations fail if exceeded.
+		HardHeapLimitBytes: 0, // Disabled by default, can be set per-database
+		// Cache spill threshold triggers early spilling to reduce memory usage.
+		CacheSpillThreshold: 500, // ~2MB threshold to trigger early spilling
 	}
 
 	if provided == nil {
@@ -144,6 +168,12 @@ func mergeConfig(provided *TempDBConfig) *TempDBConfig {
 	merged.EnableLogging = provided.EnableLogging
 	if provided.SoftHeapLimitBytes != 0 {
 		merged.SoftHeapLimitBytes = provided.SoftHeapLimitBytes
+	}
+	if provided.HardHeapLimitBytes != 0 {
+		merged.HardHeapLimitBytes = provided.HardHeapLimitBytes
+	}
+	if provided.CacheSpillThreshold != 0 {
+		merged.CacheSpillThreshold = provided.CacheSpillThreshold
 	}
 
 	return &merged
@@ -185,7 +215,7 @@ func NewTempDB(id string, config ...*TempDBConfig) (*TempDB, error) {
 
 	// Open SQLite database with basic connection string
 	// Driver is selected at compile time: "sqlite3" (CGO) or "sqlite" (pure Go)
-	db, err := sql.Open(sqliteDriver, tmpPath)
+	db, err := sql.Open(SqliteDriver, tmpPath)
 	if err != nil {
 		os.Remove(tmpPath)
 		return nil, fmt.Errorf("failed to open SQLite database: %w", err)
@@ -221,11 +251,33 @@ func NewTempDB(id string, config ...*TempDBConfig) (*TempDB, error) {
 		{fmt.Sprintf("PRAGMA auto_vacuum = %s;", cfg.AutoVacuum), "failed to set auto_vacuum"},
 	}
 
+	// Memory management PRAGMAs - set early to constrain memory usage
 	if cfg.SoftHeapLimitBytes > 0 {
 		basePragmas = append([]struct {
 			sql string
 			err string
 		}{{fmt.Sprintf("PRAGMA soft_heap_limit = %d;", cfg.SoftHeapLimitBytes), "failed to set soft_heap_limit"}}, basePragmas...)
+	}
+
+	if cfg.HardHeapLimitBytes > 0 {
+		basePragmas = append([]struct {
+			sql string
+			err string
+		}{{fmt.Sprintf("PRAGMA hard_heap_limit = %d;", cfg.HardHeapLimitBytes), "failed to set hard_heap_limit"}}, basePragmas...)
+	}
+
+	// Cache spill threshold - triggers early spilling to reduce memory usage
+	if cfg.CacheSpillThreshold > 0 {
+		basePragmas = append(basePragmas, struct {
+			sql string
+			err string
+		}{fmt.Sprintf("PRAGMA cache_spill = %d;", cfg.CacheSpillThreshold), "failed to set cache_spill"})
+	} else {
+		// Enable cache_spill by default (value of 1 enables it)
+		basePragmas = append(basePragmas, struct {
+			sql string
+			err string
+		}{"PRAGMA cache_spill = 1;", "failed to set cache_spill"})
 	}
 
 	// Page size must be set before any tables are created
@@ -337,53 +389,4 @@ func (t *TempDB) Close() error {
 // This is useful for debugging or if you need to inspect the database.
 func (t *TempDB) Path() string {
 	return t.path
-}
-
-// LogMemoryStats logs SQLite's internal memory usage statistics.
-// This reveals OS-level memory allocations that don't show up in Go's runtime stats.
-// Should be called after large operations to diagnose memory pressure.
-func (t *TempDB) LogMemoryStats(context string) {
-	t.mu.Lock()
-	defer t.mu.Unlock()
-
-	// PRAGMA status returns SQLite's internal memory counters
-	// These track memory that SQLite allocates directly from the OS
-	var memUsed int64
-
-	// SQLITE_STATUS_MEMORY_USED (current memory usage)
-	err := t.db.QueryRow("PRAGMA status").Scan(&memUsed)
-	if err != nil {
-		// If status doesn't work, try alternative approach
-		memUsed = 0
-	}
-
-	// Get page cache statistics
-	var cacheSize, cacheUsed, cacheSpill int64
-	t.db.QueryRow("PRAGMA cache_size").Scan(&cacheSize)
-	t.db.QueryRow("PRAGMA page_count").Scan(&cacheUsed)
-	t.db.QueryRow("PRAGMA cache_spill").Scan(&cacheSpill)
-
-	// Get freelist (unused pages that could be reclaimed)
-	var freelistCount int64
-	t.db.QueryRow("PRAGMA freelist_count").Scan(&freelistCount)
-
-	// Get page size
-	var pageSize int64
-	t.db.QueryRow("PRAGMA page_size").Scan(&pageSize)
-
-	// Calculate actual memory usage
-	pageCacheBytes := cacheSize * pageSize
-	if cacheSize < 0 {
-		// Negative cache_size means it's in pages, not KB
-		pageCacheBytes = -cacheSize * pageSize
-	}
-	freelistBytes := freelistCount * pageSize
-	activePages := cacheUsed - freelistCount
-	activeBytes := activePages * pageSize
-
-	logger.Debugf("[SQLITE_MEMORY:%s] Page cache: %d pages (%.2f MB), Active: %d pages (%.2f MB), Freelist: %d pages (%.2f MB)",
-		context,
-		cacheSize, float64(pageCacheBytes)/(1024*1024),
-		activePages, float64(activeBytes)/(1024*1024),
-		freelistCount, float64(freelistBytes)/(1024*1024))
 }

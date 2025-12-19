@@ -1,7 +1,6 @@
 package indexing
 
 import (
-	"fmt"
 	"os"
 	"strings"
 	"time"
@@ -78,6 +77,13 @@ func (s *Scanner) tryAcquireAndScan() {
 		s.isScanning = false
 		s.idx.mu.Unlock()
 		s.idx.aggregateStatsFromScanners() // Update status after clearing isScanning
+
+		// CRITICAL: Release memory after every scanner run.
+		// Since we have multiple scanners (root + children), this ensures
+		// each one cleans up its SQLite heap usage after its turn.
+		if s.idx.db != nil {
+			_, _ = s.idx.db.Exec("PRAGMA shrink_memory")
+		}
 	}()
 
 	s.idx.scanMutex.Lock()
@@ -121,9 +127,6 @@ func (s *Scanner) runIndexing(quick bool) {
 	} else {
 		s.runChildScan(quick)
 	}
-
-	// Log SQLite memory stats after every scan to diagnose OS-level memory usage
-	s.idx.db.LogMemoryStats(fmt.Sprintf("%s:%s", s.idx.Name, s.scanPath))
 
 	logger.Debugf("[%s] Indexing for %s completed", s.idx.Name, s.scanPath)
 	s.lastScanned = time.Now()

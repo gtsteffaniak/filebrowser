@@ -1,5 +1,5 @@
-//go:build !cgo
-// +build !cgo
+//go:build !cgosql
+// +build !cgosql
 
 package sql
 
@@ -7,5 +7,4 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-const sqliteDriver = "sqlite"
-
+const SqliteDriver = "sqlite"
