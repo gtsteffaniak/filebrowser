@@ -74,10 +74,9 @@ type Index struct {
 	processedInodes   map[uint64]struct{}
 	totalSize         uint64
 	previousTotalSize uint64               // Track previous totalSize for change detection
-	batchItems        []*iteminfo.FileInfo // Accumulates items during a scan for bulk insert
+	batchItems        []*iteminfo.FileInfo // Accumulates items during a scan for bulk insert (synchronous flush at 5000 items)
 	scanners          map[string]*Scanner  // path -> scanner
 	scanMutex         sync.Mutex           // Global scan mutex - only one scanner runs at a time
-	pendingFlushes    sync.WaitGroup       // Tracks async progressive flush operations
 	mock              bool
 	mu                sync.RWMutex
 }

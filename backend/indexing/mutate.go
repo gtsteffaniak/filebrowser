@@ -64,27 +64,26 @@ func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo) bool {
 		idx.batchItems = append(idx.batchItems, items...)
 
 		// Progressive flushing: flush every BATCH_SIZE items to keep memory bounded
-		// Larger batches improve throughput while keeping memory usage reasonable
+		// Synchronous flush ensures only ONE batch (5000 items) in memory at a time
 		if len(idx.batchItems) >= BATCH_SIZE {
 			itemsToFlush := idx.batchItems
 			idx.batchItems = make([]*iteminfo.FileInfo, 0, BATCH_SIZE)
-			idx.pendingFlushes.Add(1)
+			sourceName := idx.Name
+			numItems := len(itemsToFlush)
 			idx.mu.Unlock()
 
-			sourceName := idx.Name
 			logger.Debugf("[MEMORY] Progressive flush triggered: %d items, estimated size: %.2f MB",
-				len(itemsToFlush), float64(len(itemsToFlush)*200)/1024/1024)
+				numItems, float64(numItems*200)/1024/1024)
 
-			go func(items []*iteminfo.FileInfo) {
-				defer idx.pendingFlushes.Done()
-				startTime := time.Now()
-				err := idx.db.BulkInsertItems(sourceName, items)
-				if err != nil {
-					logger.Warningf("[DB_TX] Progressive flush failed (%d items): %v - continuing scan", len(items), err)
-				} else {
-					logger.Debugf("[MEMORY] Progressive flush completed: %d items in %v", len(items), time.Since(startTime))
-				}
-			}(itemsToFlush)
+			// Synchronous flush - blocks scanner until DB write completes
+			// This ensures only 5000 items max in memory at any time
+			startTime := time.Now()
+			err := idx.db.BulkInsertItems(sourceName, itemsToFlush)
+			if err != nil {
+				logger.Warningf("[DB_TX] Progressive flush failed (%d items): %v - continuing scan", numItems, err)
+			} else {
+				logger.Debugf("[MEMORY] Progressive flush completed: %d items in %v", numItems, time.Since(startTime))
+			}
 			return true
 		}
 		idx.mu.Unlock()
@@ -103,10 +102,7 @@ func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo) bool {
 // flushBatch writes all remaining batch items to the database
 // This is called at the end of a scan to flush any items that didn't reach the BATCH_SIZE threshold
 func (idx *Index) flushBatch() {
-	// Wait for all async flushes to complete
-	logger.Debugf("[MEMORY] Waiting for pending flushes to complete...")
-	idx.pendingFlushes.Wait()
-
+	// No pending async flushes since we're using synchronous writes
 	idx.mu.Lock()
 	items := idx.batchItems
 	idx.batchItems = nil
@@ -134,9 +130,7 @@ func (idx *Index) flushBatch() {
 // It flushes the directory and all its children so GetDirectoryChildren can find them
 // Returns true if items were flushed, false if path not found in batch
 func (idx *Index) flushPathFromBatch(path string) bool {
-	// Wait for any pending async flushes to complete first
-	// This ensures we don't miss items that are currently being flushed asynchronously
-	idx.pendingFlushes.Wait()
+	// No pending async flushes since we're using synchronous writes
 
 	idx.mu.Lock()
 	// len() for nil slices is defined as zero, so no need for nil check
