@@ -18,20 +18,20 @@ type IndexDB struct {
 }
 
 // NewIndexDB creates a new index database in the cache directory.
-// It uses WAL mode for concurrent access (API requests + background scanner).
+// Optimized for low memory usage - no mmap, smaller cache, EXCLUSIVE locking.
 func NewIndexDB(name string) (*IndexDB, error) {
 	// Create a temp DB for indexing (ID based on source name)
 	db, err := NewTempDB("index_"+name, &TempDBConfig{
 		// cache_size: Negative values = pages, positive = KB
 		// Using 4KB pages for small entries reduces storage waste and RAM usage
-		CacheSizeKB:   -2000,            // ~8MB, appropriate for one-time databases
-		MmapSize:      64 * 1024 * 1024, // 64MB - minimal usage but allows some performance
-		Synchronous:   "NORMAL",         // NORMAL for WAL mode - good balance of safety and performance
-		TempStore:     "FILE",           // FILE instead of MEMORY to reduce memory overhead
-		JournalMode:   "WAL",            // WAL mode - allows concurrent reads during writes (API + scanner)
-		LockingMode:   "NORMAL",         // NORMAL mode - allows concurrent readers with WAL
-		PageSize:      4096,             // 4KB page size - optimal for small entries (reduces storage waste)
-		AutoVacuum:    "INCREMENTAL",    // Incremental auto-vacuum - prevents bloat without blocking operations
+		CacheSizeKB:   -1000,         // ~4MB cache - reduced to minimize memory footprint
+		MmapSize:      0,             // DISABLED - mmap shows up in Docker RSS outside Go heap
+		Synchronous:   "OFF",         // OFF for maximum write performance - data integrity not critical
+		TempStore:     "FILE",        // FILE instead of MEMORY to reduce memory overhead
+		JournalMode:   "DELETE",      // DELETE mode - simpler, no WAL overhead, lower memory usage
+		LockingMode:   "EXCLUSIVE",   // EXCLUSIVE mode - single writer, prevents concurrent access issues
+		PageSize:      4096,          // 4KB page size - optimal for small entries (reduces storage waste)
+		AutoVacuum:    "INCREMENTAL", // Incremental auto-vacuum - prevents bloat without blocking operations
 		EnableLogging: false,
 	})
 	if err != nil {
@@ -41,10 +41,15 @@ func NewIndexDB(name string) (*IndexDB, error) {
 	idxDB := &IndexDB{TempDB: db}
 
 	// Set busy_timeout to 200ms - balance between responsiveness and reducing busy errors
-	// With WAL mode, concurrent reads don't block, so this mainly affects write contention
 	if _, err := db.Exec("PRAGMA busy_timeout = 200"); err != nil {
 		idxDB.Close()
 		return nil, fmt.Errorf("failed to set busy_timeout: %w", err)
+	}
+
+	// Limit SQLite's memory usage to reduce Docker RSS
+	// cache_spill = 1 allows page cache to spill to disk, reducing memory pressure
+	if _, err := db.Exec("PRAGMA cache_spill = 1"); err != nil {
+		logger.Debugf("Failed to set cache_spill: %v", err)
 	}
 
 	// Run incremental vacuum periodically (1000 pages = ~4MB at a time)
@@ -130,8 +135,12 @@ func (db *IndexDB) InsertItem(source, path string, info *iteminfo.FileInfo) erro
 // Database errors (busy/locked) are treated as soft failures - the filesystem is the source of truth.
 // Returns nil on success or soft failure (busy/locked), error only on hard failures.
 func (db *IndexDB) BulkInsertItems(source string, items []*iteminfo.FileInfo) error {
-	// Quick attempt with no retries - if DB is busy, just skip the update
-	// The next request will try again, and filesystem reads are always available as fallback
+	itemCount := len(items)
+	if itemCount > 100 {
+		// Log large transactions that may impact memory
+		logger.Debugf("[DB_MEMORY] Starting transaction: %d items, estimated SQLite buffer: %.2f MB",
+			itemCount, float64(itemCount*400)/1024/1024)
+	}
 
 	startTime := time.Now()
 
@@ -199,6 +208,12 @@ func (db *IndexDB) BulkInsertItems(source string, items []*iteminfo.FileInfo) er
 			return nil // Non-fatal
 		}
 		return err
+	}
+
+	duration := time.Since(startTime)
+	if itemCount > 100 {
+		logger.Debugf("[DB_MEMORY] Transaction completed: %d items in %v (%.0f items/sec)",
+			itemCount, duration, float64(itemCount)/duration.Seconds())
 	}
 
 	return nil
@@ -735,6 +750,8 @@ func (db *IndexDB) GetTotalSize(source string) (uint64, error) {
 
 // RecalculateDirectorySizes recalculates and updates all directory sizes based on their children
 func (db *IndexDB) RecalculateDirectorySizes(source, pathPrefix string) (int, error) {
+	startTime := time.Now()
+
 	// Get all directories under the path prefix, ordered by depth (deepest first)
 	cutoffTime := time.Now().Add(-1 * time.Second).Unix()
 
@@ -804,6 +821,12 @@ func (db *IndexDB) RecalculateDirectorySizes(source, pathPrefix string) (int, er
 		if rowsAffected > 0 {
 			updateCount++
 		}
+	}
+
+	duration := time.Since(startTime)
+	if updateCount > 0 {
+		logger.Debugf("[DB_MEMORY] RecalculateDirectorySizes: updated %d directories in %v (path: %s)",
+			updateCount, duration, pathPrefix)
 	}
 
 	return updateCount, nil

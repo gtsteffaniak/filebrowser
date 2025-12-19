@@ -188,6 +188,7 @@ func Initialize(source *settings.Source, mock bool) {
 		db:              indexDB, // Use shared database
 		processedInodes: make(map[uint64]struct{}),
 		FoundHardLinks:  make(map[string]uint64),
+		batchItems:      nil, // Don't initialize batch for direct use - only scanners do this
 	}
 	newIndex.ReducedIndex = ReducedIndex{
 		Status:     "indexing",
@@ -207,7 +208,7 @@ func Initialize(source *settings.Source, mock bool) {
 }
 
 // Define a function to recursively index files and directories
-func (idx *Index) indexDirectory(adjustedPath string, config actionConfig) error {
+func (idx *Index) indexDirectory(adjustedPath string, config actionConfig) (int64, bool, error) {
 	// Normalize path to always have trailing slash
 	adjustedPath = utils.AddTrailingSlashIfNotExists(adjustedPath)
 	realPath := strings.TrimRight(idx.Path, "/") + adjustedPath
@@ -215,30 +216,32 @@ func (idx *Index) indexDirectory(adjustedPath string, config actionConfig) error
 	dir, err := os.Open(realPath)
 	if err != nil {
 		// must have been deleted
-		return err
+		return 0, false, err
 	}
 	defer dir.Close()
 
 	dirInfo, err := dir.Stat()
 	if err != nil {
-		return err
+		return 0, false, err
 	}
 
 	// check if excluded from indexing
 	hidden := isHidden(dirInfo, idx.Path+adjustedPath)
 	if idx.shouldSkip(dirInfo.IsDir(), hidden, adjustedPath, dirInfo.Name(), config) {
-		return errors.ErrNotIndexed
+		return 0, false, errors.ErrNotIndexed
 	}
 
 	// adjustedPath is already normalized with trailing slash
 	combinedPath := adjustedPath
 	dirFileInfo, err2 := idx.GetDirInfo(dir, dirInfo, realPath, adjustedPath, combinedPath, config)
 	if err2 != nil {
-		return err2
+		return 0, false, err2
 	}
 	// Update the current directory metadata in the index
 	idx.UpdateMetadata(dirFileInfo)
-	return nil
+
+	// Return the calculated size and hasPreview for this directory
+	return dirFileInfo.Size, dirFileInfo.HasPreview, nil
 }
 
 func (idx *Index) GetFsDirInfo(adjustedPath string) (*iteminfo.FileInfo, error) {
@@ -368,39 +371,25 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 			if config.Recursive {
 				// clear for garbage collection
 				file = nil
-				err = idx.indexDirectory(dirPath, config)
+				subdirSize, subdirHasPreview, err := idx.indexDirectory(dirPath, config)
 				if err != nil {
 					logger.Errorf("Failed to index directory %s: %v", dirPath, err)
 					continue
 				}
-			}
-			// GetMetadataInfo will check batch first and flush if needed
-			realDirInfo, exists := idx.GetMetadataInfo(dirPath, true)
-			if exists {
-				itemInfo.Size = realDirInfo.Size
-
-				// Always recalculate HasPreview based on direct child files only
-				// We do NOT check subdirectories - only direct child files
-				// This ensures HasPreview is only true if there are direct child files with previews
-				// that match ShouldBubbleUpToFolderPreview
-				subdirHasPreview := false
-				// Check only direct child files - break early if we find a preview that should bubble up
-				for _, file := range realDirInfo.Files {
-					if file.HasPreview && iteminfo.ShouldBubbleUpToFolderPreview(file.ItemInfo) {
-						subdirHasPreview = true
-						break
-					}
-				}
-				// Set HasPreview based on direct child files only (ignore subdirectories)
+				// Use the returned values directly from recursive call
+				itemInfo.Size = subdirSize
 				itemInfo.HasPreview = subdirHasPreview
-				// Update metadata if the value changed
-				if realDirInfo.HasPreview != subdirHasPreview {
-					realDirInfo.HasPreview = subdirHasPreview
-					idx.UpdateMetadata(realDirInfo)
-				}
-				// Propagate to parent if subdirectory has preview (only if it's from direct child files)
-				if itemInfo.HasPreview {
-					hasPreview = true
+			} else {
+				// Non-recursive: subdirectory handled by its own dedicated scanner
+				// Look up current values from DB (they were calculated by that subdirectory's scanner)
+				realDirInfo, exists := idx.GetMetadataInfo(dirPath, true)
+				if exists {
+					itemInfo.Size = realDirInfo.Size
+					itemInfo.HasPreview = realDirInfo.HasPreview
+				} else {
+					// Not yet scanned by child scanner - use 0, will be updated by RecalculateDirectorySizes
+					itemInfo.Size = 0
+					itemInfo.HasPreview = false
 				}
 			}
 			totalSize += itemInfo.Size
@@ -507,23 +496,36 @@ func (idx *Index) RefreshFileInfo(opts utils.FileOptions) error {
 	}
 
 	// Check if directory still exists on filesystem
-	if _, err := os.Stat(realPath); err != nil {
+	dirInfo, err := os.Stat(realPath)
+	if err != nil {
 		idx.DeleteMetadata(targetPath, true, false)
 		return nil
 	}
 
-	// Always refresh when requested - directory modTime is unreliable for detecting changes
-	// (doesn't change for file content modifications, overwrites, or operations within same second)
-	// Database updates are fast enough (~50-100ms) that this optimization isn't worth the incorrect data
+	// Smart refresh optimization for read-only operations (directory viewing):
+	// Skip refresh if SkipRefreshIfRecent is true AND directory hasn't changed
+	// This reduces unnecessary DB operations when users navigate directories
+	// Write operations (uploads, moves, copies) NEVER set this flag, so they always refresh
+	needsRefresh := true
+	if opts.SkipRefreshIfRecent && !opts.Recursive && previousExists {
+		timeSinceUpdate := time.Since(time.Unix(previousInfo.ModTime.Unix(), 0))
+		if dirInfo.ModTime().Unix() == previousInfo.ModTime.Unix() && timeSinceUpdate < 5*time.Second {
+			// Directory unchanged and recently checked - skip refresh to save memory/CPU
+			needsRefresh = false
+		}
+	}
 
 	var previousSize int64
 	if previousExists {
 		previousSize = previousInfo.Size
 	}
 
-	// With WAL mode, we can handle concurrent operations better
-	// Scanner running doesn't block API refreshes anymore
-	acquired := idx.tryAcquireScanMutex(200 * time.Millisecond)
+	if !needsRefresh {
+		return nil // Skip refresh - directory unchanged
+	}
+
+	// With EXCLUSIVE locking, we don't need long waits
+	acquired := idx.tryAcquireScanMutex(100 * time.Millisecond)
 	if !acquired {
 		logger.Debugf("[REFRESH] Scanner is running, skipping index update for %s", targetPath)
 		return nil
@@ -534,7 +536,7 @@ func (idx *Index) RefreshFileInfo(opts utils.FileOptions) error {
 		Quick:     true,
 		Recursive: opts.Recursive,
 	}
-	err = idx.indexDirectory(targetPath, config)
+	_, _, err = idx.indexDirectory(targetPath, config)
 	if err != nil {
 		return err
 	}

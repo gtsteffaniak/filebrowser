@@ -11,7 +11,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/go-logger/logger"
-	_ "modernc.org/sqlite"
+	// SQLite driver is imported in driver_cgo.go or driver_nocgo.go based on build tags
 )
 
 const (
@@ -175,8 +175,8 @@ func NewTempDB(id string, config ...*TempDBConfig) (*TempDB, error) {
 	tmpFile.Close()
 
 	// Open SQLite database with basic connection string
-	// We'll set PRAGMAs after connection for better control and logging
-	db, err := sql.Open("sqlite", tmpPath)
+	// Driver is selected at compile time: "sqlite3" (CGO) or "sqlite" (pure Go)
+	db, err := sql.Open(sqliteDriver, tmpPath)
 	if err != nil {
 		os.Remove(tmpPath)
 		return nil, fmt.Errorf("failed to open SQLite database: %w", err)

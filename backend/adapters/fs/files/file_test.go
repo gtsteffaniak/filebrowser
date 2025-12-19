@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
@@ -214,7 +215,7 @@ func TestOverrideDirectoryToFile(t *testing.T) {
 		indexing.SetIndexDBForTesting(db)
 	}
 
-	// Initialize the index in mock mode (no filesystem operations)
+	// Initialize the index with scanning disabled to prevent background scanner interference
 	indexing.Initialize(&settings.Source{
 		Name: "test",
 		Path: "/mock/path",
@@ -224,6 +225,16 @@ func TestOverrideDirectoryToFile(t *testing.T) {
 	idx := indexing.GetIndex("test")
 	if idx == nil { //nolint:staticcheck // t.Fatal terminates execution
 		t.Fatal("Failed to get test index")
+	}
+
+	// Wait for initial scanner to complete (it will fail on /mock/path but needs to finish cleanup)
+	// This ensures batchItems is nil before we start testing
+	for i := 0; i < 50; i++ { // Wait up to 500ms
+		time.Sleep(10 * time.Millisecond)
+		status := idx.GetScannerStatus()
+		if status["status"] == "ready" || status["status"] == "unavailable" {
+			break
+		}
 	}
 
 	// Create mock directory structure using UpdateMetadata
@@ -324,6 +335,16 @@ func TestOverrideFileToDirectory(t *testing.T) {
 	idx := indexing.GetIndex("test")
 	if idx == nil { //nolint:staticcheck // t.Fatal terminates execution
 		t.Fatal("Failed to get test index")
+	}
+
+	// Wait for initial scanner to complete (it will fail on /mock/path but needs to finish cleanup)
+	// This ensures batchItems is nil before we start testing
+	for i := 0; i < 50; i++ { // Wait up to 500ms
+		time.Sleep(10 * time.Millisecond)
+		status := idx.GetScannerStatus()
+		if status["status"] == "ready" || status["status"] == "unavailable" {
+			break
+		}
 	}
 
 	// Create mock directory structure with a file using UpdateMetadata

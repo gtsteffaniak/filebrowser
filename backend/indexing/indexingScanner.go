@@ -143,11 +143,12 @@ func (s *Scanner) runRootScan(quick bool) {
 	s.idx.mu.Lock()
 	s.idx.batchItems = make([]*iteminfo.FileInfo, 0, 5000)
 	s.idx.mu.Unlock()
+	logger.Debugf("[MEMORY] Root scan started: batch buffer allocated (capacity: 5000 items)")
 
 	s.filesChanged = false
 	startTime := time.Now()
 
-	err := s.idx.indexDirectory("/", config)
+	_, _, err := s.idx.indexDirectory("/", config)
 	if err != nil {
 		logger.Errorf("Root scanner error: %v", err)
 	}
@@ -201,8 +202,9 @@ func (s *Scanner) runChildScan(quick bool) {
 	startTime := time.Now()
 	s.idx.batchItems = make([]*iteminfo.FileInfo, 0, 5000)
 	s.idx.mu.Unlock()
+	logger.Debugf("[MEMORY] Child scan started for %s: batch buffer allocated (capacity: 5000 items)", s.scanPath)
 
-	err := s.idx.indexDirectory(s.scanPath, config)
+	_, _, err := s.idx.indexDirectory(s.scanPath, config)
 	if err != nil {
 		logger.Errorf("Scanner [%s] error: %v", s.scanPath, err)
 	}
