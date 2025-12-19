@@ -303,14 +303,6 @@ func NewTempDB(id string, config ...*TempDBConfig) (*TempDB, error) {
 		}
 	}
 
-	pragmaDuration := time.Since(pragmaStart)
-
-	// Log configuration if enabled
-	if cfg.EnableLogging {
-		logger.Debugf("[TempDB:%s] Created with cache_size=%d KB, mmap_size=%d bytes, synchronous=%s, temp_store=%s, journal_mode=%s, locking_mode=%s, page_size=%d, auto_vacuum=%s (setup took %v)",
-			id, cfg.CacheSizeKB, cfg.MmapSize, cfg.Synchronous, cfg.TempStore, cfg.JournalMode, cfg.LockingMode, cfg.PageSize, cfg.AutoVacuum, pragmaDuration)
-	}
-
 	return &TempDB{
 		db:        db,
 		path:      tmpPath,

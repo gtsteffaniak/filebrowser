@@ -153,7 +153,6 @@ func (s *Scanner) runRootScan(quick bool) {
 	batchSize := s.idx.db.BatchSize
 	s.idx.batchItems = make([]*iteminfo.FileInfo, 0, batchSize)
 	s.idx.mu.Unlock()
-	logger.Debugf("[MEMORY] Root scan started: batch buffer allocated (capacity: %d items)", batchSize)
 
 	s.filesChanged = false
 	startTime := time.Now()
@@ -214,7 +213,6 @@ func (s *Scanner) runChildScan(quick bool) {
 	batchSize := s.idx.db.BatchSize
 	s.idx.batchItems = make([]*iteminfo.FileInfo, 0, batchSize)
 	s.idx.mu.Unlock()
-	logger.Debugf("[MEMORY] Child scan started for %s: batch buffer allocated (capacity: %d items)", s.scanPath, batchSize)
 
 	_, _, err := s.idx.indexDirectory(s.scanPath, config)
 	if err != nil {

@@ -115,12 +115,6 @@ func (db *IndexDB) InsertItem(source, path string, info *iteminfo.FileInfo) erro
 // Database errors (busy/locked) are treated as soft failures - the filesystem is the source of truth.
 // Returns nil on success or soft failure (busy/locked), error only on hard failures.
 func (db *IndexDB) BulkInsertItems(source string, items []*iteminfo.FileInfo) error {
-	itemCount := len(items)
-	if itemCount > 100 {
-		// Log large transactions that may impact memory
-		logger.Debugf("[DB_MEMORY] Starting transaction: %d items, estimated SQLite buffer: %.2f MB",
-			itemCount, float64(itemCount*400)/1024/1024)
-	}
 
 	startTime := time.Now()
 
@@ -188,14 +182,6 @@ func (db *IndexDB) BulkInsertItems(source string, items []*iteminfo.FileInfo) er
 		return err
 	}
 
-	duration := time.Since(startTime)
-	if itemCount > 100 {
-		logger.Debugf("[DB_MEMORY] Transaction completed: %d items in %v (%.0f items/sec)",
-			itemCount, duration, float64(itemCount)/duration.Seconds())
-	}
-
-	// CRITICAL: Force SQLite to release memory back to OS
-	// shrink_memory hints SQLite to release unused memory back to the OS
 	// We call this after every transaction to prevent memory accumulation
 	if _, err := db.Exec("PRAGMA shrink_memory"); err != nil {
 		logger.Debugf("BulkInsertItems: failed to shrink memory: %v", err)

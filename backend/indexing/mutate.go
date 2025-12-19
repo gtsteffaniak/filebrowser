@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
@@ -65,17 +64,11 @@ func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo) bool {
 			numItems := len(itemsToFlush)
 			idx.mu.Unlock()
 
-			logger.Debugf("[MEMORY] Progressive flush triggered: %d items, estimated size: %.2f MB",
-				numItems, float64(numItems*200)/1024/1024)
-
 			// Synchronous flush - blocks scanner until DB write completes
 			// This ensures only BatchSize items max in memory at any time
-			startTime := time.Now()
 			err := idx.db.BulkInsertItems(sourceName, itemsToFlush)
 			if err != nil {
 				logger.Warningf("[DB_TX] Progressive flush failed (%d items): %v - continuing scan", numItems, err)
-			} else {
-				logger.Debugf("[MEMORY] Progressive flush completed: %d items in %v", numItems, time.Since(startTime))
 			}
 			return true
 		}
@@ -101,7 +94,6 @@ func (idx *Index) flushBatch() {
 	idx.mu.Unlock()
 
 	if len(items) == 0 {
-		logger.Debugf("[MEMORY] Final flush: no remaining items")
 		return
 	}
 
