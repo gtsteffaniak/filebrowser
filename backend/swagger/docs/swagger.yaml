@@ -164,6 +164,17 @@ definitions:
       size:
         type: integer
     type: object
+  http.duplicateResponse:
+    properties:
+      groups:
+        items:
+          $ref: '#/definitions/http.duplicateGroup'
+        type: array
+      incomplete:
+        type: boolean
+      reason:
+        type: string
+    type: object
   indexing.IndexStatus:
     enum:
     - ready
@@ -2224,7 +2235,12 @@ paths:
     get:
       consumes:
       - application/json
-      description: Finds duplicate files based on size and fuzzy filename matching
+      description: 'Finds duplicate files using multi-stage filtering: size → type
+        → fuzzy filename → progressive checksums. Files must match on size, MIME type,
+        and have 50%+ filename similarity before checksum verification. Large fuzzy
+        groups (>10 files) are skipped to avoid false positives. Checksums use 2-pass
+        progressive verification (header → middle) for accuracy while minimizing disk
+        I/O (~16KB read per file).'
       parameters:
       - description: Source name for the desired source
         in: query
@@ -2243,13 +2259,19 @@ paths:
       - application/json
       responses:
         "200":
-          description: List of duplicate file groups
+          description: List of duplicate file groups with metadata. Response includes
+            'incomplete' flag if processing stopped early due to resource limits.
           schema:
-            items:
-              $ref: '#/definitions/http.duplicateGroup'
-            type: array
+            $ref: '#/definitions/http.duplicateResponse'
         "400":
           description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "503":
+          description: Service Unavailable (indexing in progress or another search
+            running)
           schema:
             additionalProperties:
               type: string

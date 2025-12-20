@@ -992,7 +992,7 @@ const docTemplate = `{
         },
         "/api/duplicates": {
             "get": {
-                "description": "Finds duplicate files based on size and fuzzy filename matching",
+                "description": "Finds duplicate files using multi-stage filtering: size → type → fuzzy filename → progressive checksums. Files must match on size, MIME type, and have 50%+ filename similarity before checksum verification. Large fuzzy groups (\u003e10 files) are skipped to avoid false positives. Checksums use 2-pass progressive verification (header → middle) for accuracy while minimizing disk I/O (~16KB read per file).",
                 "consumes": [
                     "application/json"
                 ],
@@ -1026,16 +1026,22 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "List of duplicate file groups",
+                        "description": "List of duplicate file groups with metadata. Response includes 'incomplete' flag if processing stopped early due to resource limits.",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/http.duplicateGroup"
-                            }
+                            "$ref": "#/definitions/http.duplicateResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "Service Unavailable (indexing in progress or another search running)",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -3181,6 +3187,23 @@ const docTemplate = `{
                 },
                 "size": {
                     "type": "integer"
+                }
+            }
+        },
+        "http.duplicateResponse": {
+            "type": "object",
+            "properties": {
+                "groups": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/http.duplicateGroup"
+                    }
+                },
+                "incomplete": {
+                    "type": "boolean"
+                },
+                "reason": {
+                    "type": "string"
                 }
             }
         },
