@@ -3132,6 +3132,10 @@ paths:
         in: query
         name: lines
         type: integer
+      - description: Return minimal response for latency checking
+        in: query
+        name: latencyCheck
+        type: boolean
       produces:
       - application/json
       responses:

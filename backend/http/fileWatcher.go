@@ -99,6 +99,14 @@ func readLastNLines(filePath string, n int) (string, error) {
 		lines = lines[len(lines)-n:]
 	}
 
+	// Truncate lines that exceed 250 characters
+	const maxLineLength = 250
+	for i, line := range lines {
+		if len(line) > maxLineLength {
+			lines[i] = line[:maxLineLength] + "..."
+		}
+	}
+
 	return strings.Join(lines, "\n"), nil
 }
 
@@ -111,6 +119,7 @@ func readLastNLines(filePath string, n int) (string, error) {
 // @Param path query string true "Path to the file"
 // @Param source query string true "Source name"
 // @Param lines query int false "Number of lines to read (default: 10, max: 50)"
+// @Param latencyCheck query bool false "Return minimal response for latency checking"
 // @Success 200 {object} fileWatchResponse
 // @Failure 400 {object} map[string]string "Invalid request"
 // @Failure 403 {object} map[string]string "Permission denied"
@@ -118,6 +127,11 @@ func readLastNLines(filePath string, n int) (string, error) {
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/tools/watch [get]
 func fileWatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	// Check for latency check request - return immediately with minimal response
+	if r.URL.Query().Get("latencyCheck") != "" {
+		return http.StatusOK, nil
+	}
+
 	encodedPath := r.URL.Query().Get("path")
 	source := r.URL.Query().Get("source")
 	linesStr := r.URL.Query().Get("lines")
@@ -241,10 +255,9 @@ func fileWatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 
 // fileWatchSSEEvent represents the SSE event payload for file watch updates
 type fileWatchSSEEvent struct {
-	Timestamp string             `json:"timestamp"`          // ISO 8601 timestamp for latency calculation
-	Contents  string             `json:"contents,omitempty"` // Text content for text files
-	IsText    bool               `json:"isText"`             // Whether the file is a text file
-	Metadata  *fileWatchMetadata `json:"metadata,omitempty"` // File metadata for non-text files
+	Contents string             `json:"contents,omitempty"` // Text content for text files
+	IsText   bool               `json:"isText"`             // Whether the file is a text file
+	Metadata *fileWatchMetadata `json:"metadata,omitempty"` // File metadata for non-text files
 }
 
 // fileWatchSSEHandler handles Server-Sent Events for file watching
@@ -459,8 +472,7 @@ func sendFileWatchUpdate(username, realPath, path string, lines int, mimeType st
 
 	// Build the SSE event
 	sseEvent := fileWatchSSEEvent{
-		Timestamp: time.Now().UTC().Format(time.RFC3339Nano), // ISO 8601 with nanoseconds for precise latency
-		IsText:    isText,
+		IsText: isText,
 	}
 
 	if isText {

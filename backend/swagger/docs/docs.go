@@ -2252,6 +2252,12 @@ const docTemplate = `{
                         "description": "Number of lines to read (default: 10, max: 50)",
                         "name": "lines",
                         "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Return minimal response for latency checking",
+                        "name": "latencyCheck",
+                        "in": "query"
                     }
                 ],
                 "responses": {

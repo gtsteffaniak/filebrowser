@@ -1,13 +1,13 @@
 <template>
   <div class="file-watcher">
     <div class="card file-watcher-config">
-      <div class="card-content config-row">
+      <div class="card-content config-row" :class="{ 'mobile': isMobile }">
         <div class="config-item file-picker">
           <div aria-label="file-watcher-file" class="searchContext clickable button file-picker-button" @click="openPathPicker">
             {{ getFilePathText }}
           </div>
         </div>
-        <div class="config-row-second">
+        <div class="config-row-second" :class="{ 'mobile': isMobile }">
           <div class="config-item interval-select">
             <select v-model="selectedInterval" class="input" :disabled="watching">
               <option v-for="interval in availableIntervals" :key="interval.value" :value="interval.value" :disabled="interval.disabled">
@@ -35,7 +35,7 @@
         <div v-if="error" class="error-message">
           {{ error }}
         </div>
-        <div class="terminal-header boarder-radius">
+        <div class="terminal-header boarder-radius" :class="{ 'mobile': isMobile }">
           <div class="header-row header-row-first">
             <div class="header-left"></div>
             <div v-if="fileName" class="header-center">
@@ -44,14 +44,22 @@
             </div>
             <div class="header-right"></div>
           </div>
-          <div class="header-row header-row-second">
+          <!-- Mobile: separate row for last modified -->
+          <div v-if="isMobile && fileModified" class="header-row header-row-second-mobile">
+            <div class="header-center-mobile">
+              <span class="header-label">{{ $t('files.lastModified',{suffix: ':'}) }}</span>
+              <span class="header-value">{{ fileModified }}</span>
+            </div>
+          </div>
+          <!-- Desktop: combined row OR Mobile: third row -->
+          <div class="header-row" :class="isMobile ? 'header-row-third-mobile' : 'header-row-second'">
             <div class="header-left">
               <span class="header-label">{{ $t('general.latency',{suffix: ':'}) }}</span>
               <span class="header-value" :class="latencyClass">
                 {{ watching ? `${currentLatency}ms` : '-' }} <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
               </span>
             </div>
-            <div v-if="fileModified" class="header-center">
+            <div v-if="!isMobile && fileModified" class="header-center">
               <span class="header-label">{{ $t('files.lastModified',{suffix: ':'}) }}</span>
               <span class="header-value">{{ fileModified }}</span>
             </div>
@@ -105,11 +113,15 @@ export default {
       lastUpdateTime: null,
       updateTimer: null,
       currentTime: Date.now(),
+      latencyPingInterval: null,
     };
   },
   computed: {
     isDarkMode() {
       return getters.isDarkMode();
+    },
+    isMobile() {
+      return state.isMobile;
     },
     canStart() {
       return this.selectedSource && this.filePath && !this.watching;
@@ -144,8 +156,8 @@ export default {
         return 'latency-inactive'; // Gray for inactive
       }
       // Only check latency thresholds when actively watching
-      if (this.currentLatency < 30) return 'latency-good'; // Green
-      if (this.currentLatency < 100) return 'latency-ok'; // Yellow
+      if (this.currentLatency < 300) return 'latency-good'; // Green
+      if (this.currentLatency < 1000) return 'latency-ok'; // Yellow
       return 'latency-slow'; // Red
     },
   },
@@ -231,6 +243,11 @@ export default {
     if (this.updateTimer) {
       clearInterval(this.updateTimer);
       this.updateTimer = null;
+    }
+    // Clear latency ping interval
+    if (this.latencyPingInterval) {
+      clearInterval(this.latencyPingInterval);
+      this.latencyPingInterval = null;
     }
   },
   methods: {
@@ -386,6 +403,10 @@ export default {
         this.eventSource.close();
         this.eventSource = null;
       }
+      if (this.latencyPingInterval) {
+        clearInterval(this.latencyPingInterval);
+        this.latencyPingInterval = null;
+      }
     },
     startSSEWatch() {
       // Build SSE URL with query parameters
@@ -400,6 +421,9 @@ export default {
       
       // Create EventSource connection
       this.eventSource = new EventSource(sseUrl);
+
+      // Start latency pinging at the same interval as SSE events
+      this.startLatencyPing();
 
       this.eventSource.onmessage = (event) => {
         try {
@@ -507,12 +531,6 @@ export default {
       }
     },
     handleFileWatchEvent(data) {
-      // Calculate latency from timestamp
-      const eventTime = new Date(data.timestamp).getTime();
-      const now = Date.now();
-      const latency = now - eventTime;
-      this.currentLatency = latency;
-      
       // Update last update time
       this.lastUpdateTime = new Date();
 
@@ -531,8 +549,6 @@ export default {
 
       // Log event with metadata
       console.log('[FileWatcher] Event received', {
-        timestamp: data.timestamp,
-        latency: `${latency}ms`,
         isText: data.isText,
         metadata: data.metadata ? {
           name: data.metadata.name,
@@ -550,11 +566,11 @@ export default {
         // Text file - show content
         const content = data.contents || data.content;
         const lines = content.split('\n');
-        this.replaceOutputLines(lines, latency);
+        this.replaceOutputLines(lines);
       } else if (!data.isText && data.metadata) {
         // Non-text file - show metadata
         const metadataLines = this.formatMetadata(data.metadata);
-        this.replaceOutputLines(metadataLines, latency);
+        this.replaceOutputLines(metadataLines);
       }
 
       // Scroll to bottom
@@ -576,7 +592,6 @@ export default {
     },
     replaceOutputLines(lines) {
       // Replace all output lines with new content
-      // Note: latency is tracked in currentLatency for the header, not per line
       this.outputLines = lines.map((line) => ({
         text: line,
         timestamp: Date.now(),
@@ -591,6 +606,36 @@ export default {
       const terminal = this.$refs.terminalOutput;
       if (terminal) {
         terminal.scrollTop = terminal.scrollHeight;
+      }
+    },
+    startLatencyPing() {
+      // Clear any existing interval
+      if (this.latencyPingInterval) {
+        clearInterval(this.latencyPingInterval);
+      }
+
+      // Ping health endpoint immediately
+      this.pingHealthEndpoint();
+
+      // Start pinging at the same interval as SSE events
+      this.latencyPingInterval = setInterval(() => {
+        this.pingHealthEndpoint();
+      }, this.selectedInterval * 1000);
+    },
+    async pingHealthEndpoint() {
+      const startTime = Date.now();
+      try {
+        const params = {
+          latencyCheck: "true",
+        };
+        const apiPath = getApiPath("api/tools/watch", params);
+        await fetchURL(apiPath);
+        const roundTripLatency = Date.now() - startTime;
+        // Use half of round-trip latency as estimate for one-way latency
+        this.currentLatency = Math.round(roundTripLatency / 2);
+      } catch (err) {
+        console.error('[FileWatcher] Latency ping failed:', err);
+        // Don't update latency on error, keep previous value
       }
     },
   },
@@ -620,11 +665,21 @@ export default {
   padding: 1em !important;
 }
 
+.config-row.mobile {
+  flex-direction: column;
+  align-items: stretch;
+}
+
 .config-row-second {
   display: flex;
   align-items: center;
   gap: 1rem;
   flex: 1;
+}
+
+.config-row-second.mobile {
+  width: 100%;
+  flex-direction: row;
 }
 
 .config-item {
@@ -655,6 +710,10 @@ export default {
 
 .file-picker {
   flex-grow: 1;
+}
+
+.config-row.mobile .file-picker {
+  width: 100%;
 }
 
 
@@ -713,6 +772,25 @@ export default {
 .header-row-second {
   min-height: 1.5rem;
   padding-top: 0.25rem;
+}
+
+.header-row-second-mobile {
+  min-height: 1.5rem;
+  padding-top: 0.25rem;
+  justify-content: center;
+}
+
+.header-row-third-mobile {
+  min-height: 1.5rem;
+  padding-top: 0.25rem;
+}
+
+.header-center-mobile {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: center;
+  width: 100%;
 }
 
 .header-left,
@@ -793,8 +871,7 @@ export default {
   padding: 1rem;
   min-height: 100px;
   overflow-y: auto;
-  white-space: pre-wrap;
-  word-wrap: break-word;
+  overflow-x: auto;
   border-top-left-radius: 0;
   border-top-right-radius: 0;
   /* Dark mode (default) */
@@ -815,10 +892,11 @@ export default {
   gap: 0.5rem;
   margin-bottom: 2px;
   line-height: 1.5;
+  white-space: nowrap;
 }
 
 .terminal-text {
-  flex: 1;
+  white-space: nowrap;
 }
 
 .empty-state {

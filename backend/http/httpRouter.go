@@ -99,6 +99,7 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	api.HandleFunc("POST /users", withSelfOrAdmin(usersPostHandler))
 	api.HandleFunc("PUT /users", withUser(userPutHandler))
 	api.HandleFunc("DELETE /users", withSelfOrAdmin(userDeleteHandler))
+	api.HandleFunc("GET /health", healthHandler)
 
 	// Auth routes
 	api.HandleFunc("POST /auth/login", userWithoutOTP(loginHandler))
