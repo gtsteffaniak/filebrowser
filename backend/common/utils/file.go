@@ -55,5 +55,4 @@ type FileOptions struct {
 	Metadata                 bool // whether to get metadata
 	ExtractEmbeddedSubtitles bool // whether to extract embedded subtitles from media files
 	AlbumArt                 bool // whether to get album art from media files
-	SkipRefreshIfRecent      bool // whether to skip refresh if directory was recently updated (for read-only operations)
 }

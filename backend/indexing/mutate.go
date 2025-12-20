@@ -14,11 +14,6 @@ import (
 
 // UpdateFileMetadata updates the FileInfo for the specified directory in the index.
 func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo) bool {
-	// Quick nil check without mutex - db pointer is set once at init and never changes
-	if idx.db == nil {
-		return false
-	}
-
 	items := make([]*iteminfo.FileInfo, 0, len(info.Files)+len(info.Folders)+1)
 	dirItem := *info
 	items = append(items, &dirItem)
@@ -100,6 +95,7 @@ func (idx *Index) flushBatch() {
 	err := idx.db.BulkInsertItems(idx.Name, items)
 	if err != nil {
 		logger.Warningf("[DB_TX] Final flush failed (%d items): %v", len(items), err)
+		return
 	}
 }
 
@@ -124,10 +120,6 @@ func (idx *Index) DeleteMetadata(path string, isDir bool, recursive bool) bool {
 
 // GetMetadataInfo retrieves the FileInfo from the specified file or directory in the index.
 func (idx *Index) GetReducedMetadata(target string, isDir bool) (*iteminfo.FileInfo, bool) {
-	// Quick nil check without mutex - db pointer is set once at init and never changes
-	if idx.db == nil {
-		return nil, false
-	}
 
 	checkPath := idx.MakeIndexPath(target, isDir)
 
@@ -151,10 +143,6 @@ func (idx *Index) GetReducedMetadata(target string, isDir bool) (*iteminfo.FileI
 
 // raw directory info retrieval -- does not work on files, only returns a directory
 func (idx *Index) GetMetadataInfo(target string, isDir bool) (*iteminfo.FileInfo, bool) {
-	// Quick nil check without mutex - db pointer is set once at init and never changes
-	if idx.db == nil {
-		return nil, false
-	}
 
 	var checkDir string
 	if !isDir {
@@ -245,9 +233,6 @@ func (idx *Index) ReadOnlyOperation(fn func()) {
 
 // IterateFiles iterates over all files in the index and calls the callback function
 func (idx *Index) IterateFiles(fn func(path, name string, size, modTime int64)) error {
-	if idx.db == nil {
-		return nil
-	}
 	rows, err := idx.db.Query("SELECT path, name, size, mod_time FROM index_items WHERE source = ? AND is_dir = 0", idx.Name)
 	if err != nil {
 		return err

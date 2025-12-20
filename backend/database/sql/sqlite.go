@@ -15,19 +15,17 @@ import (
 )
 
 const (
-	// Absolute ceiling for SQLite heap allocations (per operator request).
-	defaultHardHeapLimitBytes = 100 * 1024 * 1024 // 100MB
-	//soft limi
-	defaultSoftHeapLimitBytes = 64 * 1024 * 1024 // 64MB
+	// soft heap limit in bytes
+	defaultSoftHeapLimitBytes = 32 * 1024 * 1024 // 32MB
 	// Pager cache target expressed as number of 4KB pages (negative = pages).
 	defaultCacheSizePages = -4096 // ~16MB
 )
 
 func init() {
 	if SqliteDriver == "sqlite3" {
-		logger.Infof("CGO SQLite driver initialized")
+		logger.Debugf("CGO SQLite driver initialized")
 	} else {
-		logger.Infof("Default SQLite driver initialized")
+		logger.Debugf("Default SQLite driver initialized")
 	}
 }
 
@@ -90,10 +88,6 @@ type TempDBConfig struct {
 	// Default: NONE
 	AutoVacuum string
 
-	// EnableLogging enables performance logging for debugging.
-	// Default: false
-	EnableLogging bool
-
 	// SoftHeapLimitBytes, when >0, sets PRAGMA soft_heap_limit so that SQLite
 	// proactively frees caches before exceeding this many bytes. Zero disables it.
 	SoftHeapLimitBytes int64
@@ -113,16 +107,15 @@ type TempDBConfig struct {
 // If provided config is nil or empty, returns default config.
 func mergeConfig(provided *TempDBConfig) *TempDBConfig {
 	defaults := &TempDBConfig{
-		BatchSize:     2500,
-		CacheSizeKB:   defaultCacheSizePages, // ~16MB pager cache
-		MmapSize:      0,                     // Disable mmap to keep RSS predictable
-		Synchronous:   "OFF",
-		TempStore:     "FILE", // Default to FILE, not MEMORY
-		JournalMode:   "WAL",  // WAL for better concurrency by default
-		LockingMode:   "NORMAL",
-		PageSize:      4096, // SQLite default
-		AutoVacuum:    "NONE",
-		EnableLogging: false,
+		BatchSize:   2500,
+		CacheSizeKB: defaultCacheSizePages, // ~16MB pager cache
+		MmapSize:    0,                     // Disable mmap to keep RSS predictable
+		Synchronous: "OFF",
+		TempStore:   "FILE", // Default to FILE, not MEMORY
+		JournalMode: "WAL",  // WAL for better concurrency by default
+		LockingMode: "NORMAL",
+		PageSize:    4096, // SQLite default
+		AutoVacuum:  "NONE",
 		// Soft heap limit keeps SQLite from retaining excessive pager cache memory.
 		SoftHeapLimitBytes: defaultSoftHeapLimitBytes,
 		// Hard heap limit provides a hard cap - operations fail if exceeded.
@@ -165,10 +158,6 @@ func mergeConfig(provided *TempDBConfig) *TempDBConfig {
 	if provided.AutoVacuum != "" {
 		merged.AutoVacuum = provided.AutoVacuum
 	}
-	merged.EnableLogging = provided.EnableLogging
-	if provided.SoftHeapLimitBytes != 0 {
-		merged.SoftHeapLimitBytes = provided.SoftHeapLimitBytes
-	}
 	if provided.HardHeapLimitBytes != 0 {
 		merged.HardHeapLimitBytes = provided.HardHeapLimitBytes
 	}
@@ -182,13 +171,6 @@ func mergeConfig(provided *TempDBConfig) *TempDBConfig {
 // NewTempDB creates a new temporary SQLite database.
 // The database is created in the cache directory's sql/ subdirectory.
 // The database will be cleaned up on Close().
-//
-// The database is optimized for bulk write-then-read operations with:
-// - WAL journal mode for better concurrency
-// - Configurable cache size (default: ~16MB for one-time DBs)
-// - Memory-mapped I/O (disabled by default for predictable RSS)
-// - OFF synchronous mode for maximum write performance
-// - Configurable temp_store (default: FILE, can be set to MEMORY via config)
 func NewTempDB(id string, config ...*TempDBConfig) (*TempDB, error) {
 	startTime := time.Now()
 
@@ -234,10 +216,6 @@ func NewTempDB(id string, config ...*TempDBConfig) (*TempDB, error) {
 		db.SetMaxOpenConns(1)
 		db.SetMaxIdleConns(1)
 	}
-	// Apply optimizations via PRAGMA statements
-	// Execute them individually for compatibility and better error reporting
-	// IMPORTANT: page_size must be set BEFORE any tables are created
-	pragmaStart := time.Now()
 
 	basePragmas := []struct {
 		sql string
@@ -303,6 +281,11 @@ func NewTempDB(id string, config ...*TempDBConfig) (*TempDB, error) {
 		}
 	}
 
+	// Verify PRAGMA settings were applied correctly
+	if err := verifyPragmaSettings(db, cfg); err != nil {
+		logger.Warningf("Failed to verify PRAGMA settings: %v", err)
+	}
+
 	return &TempDB{
 		db:        db,
 		path:      tmpPath,
@@ -356,17 +339,6 @@ func (t *TempDB) Close() error {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
-	if t.config != nil && t.config.EnableLogging {
-		totalDuration := time.Since(t.startTime)
-		fileInfo, err := os.Stat(t.path)
-		var fileSize int64
-		if err == nil {
-			fileSize = fileInfo.Size()
-		}
-		logger.Debugf("[TempDB] Closed after %v, final size: %d bytes (%.2f MB)",
-			totalDuration, fileSize, float64(fileSize)/(1024*1024))
-	}
-
 	if t.db != nil {
 		if err := t.db.Close(); err != nil {
 			os.Remove(t.path)
@@ -375,6 +347,85 @@ func (t *TempDB) Close() error {
 	}
 
 	return os.Remove(t.path)
+}
+
+// verifyPragmaSettings reads back PRAGMA values to verify they were applied correctly
+func verifyPragmaSettings(db *sql.DB, cfg *TempDBConfig) error {
+	var cacheSize, mmapSize, softHeapLimit, hardHeapLimit, cacheSpill int64
+	var journalMode, synchronous, tempStore, lockingMode, autoVacuum string
+
+	// Read back PRAGMA values
+	if err := db.QueryRow("PRAGMA cache_size").Scan(&cacheSize); err != nil {
+		return fmt.Errorf("failed to read cache_size: %w", err)
+	}
+	if err := db.QueryRow("PRAGMA mmap_size").Scan(&mmapSize); err != nil {
+		return fmt.Errorf("failed to read mmap_size: %w", err)
+	}
+	if err := db.QueryRow("PRAGMA soft_heap_limit").Scan(&softHeapLimit); err != nil {
+		return fmt.Errorf("failed to read soft_heap_limit: %w", err)
+	}
+	if err := db.QueryRow("PRAGMA hard_heap_limit").Scan(&hardHeapLimit); err != nil {
+		return fmt.Errorf("failed to read hard_heap_limit: %w", err)
+	}
+	if err := db.QueryRow("PRAGMA cache_spill").Scan(&cacheSpill); err != nil {
+		return fmt.Errorf("failed to read cache_spill: %w", err)
+	}
+	if err := db.QueryRow("PRAGMA journal_mode").Scan(&journalMode); err != nil {
+		return fmt.Errorf("failed to read journal_mode: %w", err)
+	}
+	if err := db.QueryRow("PRAGMA synchronous").Scan(&synchronous); err != nil {
+		return fmt.Errorf("failed to read synchronous: %w", err)
+	}
+	if err := db.QueryRow("PRAGMA temp_store").Scan(&tempStore); err != nil {
+		return fmt.Errorf("failed to read temp_store: %w", err)
+	}
+	if err := db.QueryRow("PRAGMA locking_mode").Scan(&lockingMode); err != nil {
+		return fmt.Errorf("failed to read locking_mode: %w", err)
+	}
+	if err := db.QueryRow("PRAGMA auto_vacuum").Scan(&autoVacuum); err != nil {
+		return fmt.Errorf("failed to read auto_vacuum: %w", err)
+	}
+
+	// Convert cache_size from pages to KB (negative = pages, positive = KB)
+	cacheSizeKB := cacheSize
+	if cacheSize < 0 {
+		cacheSizeKB = -cacheSize * 4 // pages * 4KB per page
+	}
+
+	// Log all settings
+	logger.Debugf("[SQLITE_CONFIG] Database PRAGMA settings verified:")
+	logger.Debugf("  cache_size: %d KB (configured: %d KB)", cacheSizeKB, cfg.CacheSizeKB)
+	logger.Debugf("  mmap_size: %d bytes (configured: %d bytes)", mmapSize, cfg.MmapSize)
+	logger.Debugf("  soft_heap_limit: %d bytes (configured: %d bytes)", softHeapLimit, cfg.SoftHeapLimitBytes)
+	logger.Debugf("  hard_heap_limit: %d bytes (configured: %d bytes)", hardHeapLimit, cfg.HardHeapLimitBytes)
+	logger.Debugf("  cache_spill: %d pages (configured: %d pages)", cacheSpill, cfg.CacheSpillThreshold)
+	logger.Debugf("  journal_mode: %s (configured: %s)", journalMode, cfg.JournalMode)
+	logger.Debugf("  synchronous: %s (configured: %s)", synchronous, cfg.Synchronous)
+	logger.Debugf("  temp_store: %s (configured: %s)", tempStore, cfg.TempStore)
+	logger.Debugf("  locking_mode: %s (configured: %s)", lockingMode, cfg.LockingMode)
+	logger.Debugf("  auto_vacuum: %s (configured: %s)", autoVacuum, cfg.AutoVacuum)
+
+	// Verify critical settings match
+	if cfg.CacheSizeKB != 0 {
+		expectedCache := int64(cfg.CacheSizeKB)
+		if expectedCache < 0 {
+			expectedCache = -expectedCache * 4 // Convert pages to KB
+		}
+		if cacheSizeKB != expectedCache {
+			logger.Warningf("[SQLITE_CONFIG] cache_size mismatch: got %d KB, expected %d KB", cacheSizeKB, expectedCache)
+		}
+	}
+	if cfg.MmapSize > 0 && mmapSize != cfg.MmapSize {
+		logger.Warningf("[SQLITE_CONFIG] mmap_size mismatch: got %d bytes, expected %d bytes", mmapSize, cfg.MmapSize)
+	}
+	if cfg.SoftHeapLimitBytes > 0 && softHeapLimit != cfg.SoftHeapLimitBytes {
+		logger.Warningf("[SQLITE_CONFIG] soft_heap_limit mismatch: got %d bytes, expected %d bytes", softHeapLimit, cfg.SoftHeapLimitBytes)
+	}
+	if cfg.HardHeapLimitBytes > 0 && hardHeapLimit != cfg.HardHeapLimitBytes {
+		logger.Warningf("[SQLITE_CONFIG] hard_heap_limit mismatch: got %d bytes, expected %d bytes", hardHeapLimit, cfg.HardHeapLimitBytes)
+	}
+
+	return nil
 }
 
 // Path returns the path to the temporary database file.

@@ -51,9 +51,6 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.E
 	// For non-viewable paths, verify they are indexed
 	// Skip this check if indexing is disabled for the entire source
 	if !isViewable && !index.Config.DisableIndexing {
-		// Set SkipRefreshIfRecent for read-only operations to avoid unnecessary DB writes
-		// This optimization skips refresh if directory was recently checked and hasn't changed
-		opts.SkipRefreshIfRecent = true
 		err = index.RefreshFileInfo(opts)
 		if err != nil {
 			logger.Debugf("failed to refresh file info for path: %s, error: %v", opts.Path, err)

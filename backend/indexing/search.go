@@ -28,10 +28,6 @@ type SearchResult struct {
 }
 
 func (idx *Index) Search(search string, scope string, sourceSession string, largest bool, limit int) []*SearchResult {
-	if idx.db == nil {
-		return []*SearchResult{}
-	}
-
 	// Ensure scope has consistent trailing slash for directory matching
 	scope = utils.AddTrailingSlashIfNotExists(scope)
 

@@ -20,7 +20,7 @@ import (
 
 const (
 	minIndexCacheSizeMB = 2
-	maxIndexCacheSizeMB = 64 // keep pager cache well under the 150MB global cap
+	maxIndexCacheSizeMB = 32 // Reduced from 64MB to limit memory usage (32MB cache + overhead should stay under 100MB)
 )
 
 var (
@@ -116,25 +116,20 @@ func InitializeIndexDB() error {
 		logger.Errorf("failed to clear sql directory: %v", err)
 	}
 	indexDBOnce.Do(func() {
-		// Create a single shared database for all indexes
 		indexDB, err = dbsql.NewIndexDB("all")
 		if err != nil {
-			logger.Errorf("failed to initialize index database: %v", err)
-		} else {
-			logger.Infof("Initialized shared index database for all sources")
+			logger.Fatalf("failed to initialize index database: %v", err)
 		}
 	})
 	return err
 }
 
 // GetIndexDB returns the shared index database.
-// Returns nil if InitializeIndexDB hasn't been called yet.
 func GetIndexDB() *dbsql.IndexDB {
 	return indexDB
 }
 
 // SetIndexDBForTesting sets the index database for testing purposes.
-// This should only be used in tests to bypass InitializeIndexDB's permission requirements.
 func SetIndexDBForTesting(db *dbsql.IndexDB) {
 	indexDB = db
 	// Reset the once to allow re-initialization in tests
@@ -356,10 +351,6 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 			dirPath := combinedPath + file.Name()
 			if !idx.LastIndexed.IsZero() && config.Recursive && idx.Config.ResolvedConditionals != nil {
 				if _, exists := idx.Config.ResolvedConditionals.NeverWatchPaths[fullCombined]; exists {
-					realDirInfo, exists := idx.GetMetadataInfo(dirPath, true)
-					if exists {
-						itemInfo.Size = realDirInfo.Size
-					}
 					continue
 				}
 			}
@@ -386,7 +377,7 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 					itemInfo.Size = realDirInfo.Size
 					itemInfo.HasPreview = realDirInfo.HasPreview
 				} else {
-					// Not yet scanned by child scanner - use 0, will be updated by RecalculateDirectorySizes
+					// Not yet scanned by child scanner - use 0, will be updated when that scanner completes
 					itemInfo.Size = 0
 					itemInfo.HasPreview = false
 				}
@@ -495,32 +486,14 @@ func (idx *Index) RefreshFileInfo(opts utils.FileOptions) error {
 	}
 
 	// Check if directory still exists on filesystem
-	dirInfo, err := os.Stat(realPath)
+	_, err = os.Stat(realPath)
 	if err != nil {
 		idx.DeleteMetadata(targetPath, true, false)
 		return nil
 	}
-
-	// Smart refresh optimization for read-only operations (directory viewing):
-	// Skip refresh if SkipRefreshIfRecent is true AND directory hasn't changed
-	// This reduces unnecessary DB operations when users navigate directories
-	// Write operations (uploads, moves, copies) NEVER set this flag, so they always refresh
-	needsRefresh := true
-	if opts.SkipRefreshIfRecent && !opts.Recursive && previousExists {
-		timeSinceUpdate := time.Since(time.Unix(previousInfo.ModTime.Unix(), 0))
-		if dirInfo.ModTime().Unix() == previousInfo.ModTime.Unix() && timeSinceUpdate < 5*time.Second {
-			// Directory unchanged and recently checked - skip refresh to save memory/CPU
-			needsRefresh = false
-		}
-	}
-
 	var previousSize int64
 	if previousExists {
 		previousSize = previousInfo.Size
-	}
-
-	if !needsRefresh {
-		return nil // Skip refresh - directory unchanged
 	}
 
 	// With EXCLUSIVE locking, we don't need long waits
@@ -556,8 +529,6 @@ func (idx *Index) RefreshFileInfo(opts utils.FileOptions) error {
 
 // updateParentDirSizesBatched updates all parent directory sizes in a single batch operation.
 // This queries all parent paths from the database, updates their sizes, and batch updates them.
-// Optimized for SQLite - single query to get all parents, single transaction to update all sizes.
-// No mutex needed - SQLite handles all locking internally for maximum concurrency.
 func (idx *Index) updateParentDirSizesBatched(startPath string, sizeDelta int64) {
 	if sizeDelta == 0 {
 		return
@@ -586,7 +557,6 @@ func (idx *Index) updateParentDirSizesBatched(startPath string, sizeDelta int64)
 	}
 
 	// Query all parent directories from database in a single query
-	// SQLite handles locking - no mutex needed
 	parentInfos, err := idx.db.GetItemsByPaths(idx.Name, parentPaths)
 	if err != nil {
 		logger.Errorf("[PARENT_SIZE] Failed to query parent directories for size update: %v", err)
@@ -607,7 +577,6 @@ func (idx *Index) updateParentDirSizesBatched(startPath string, sizeDelta int64)
 	}
 
 	// Batch update all parent sizes in a single transaction
-	// SQLite handles locking - no mutex needed
 	err = idx.db.BulkUpdateSizes(idx.Name, pathSizeUpdates)
 	if err != nil {
 		logger.Errorf("[PARENT_SIZE] Failed to batch update parent directory sizes: %v", err)

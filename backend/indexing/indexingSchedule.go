@@ -158,8 +158,8 @@ func (idx *Index) PreScan() error {
 }
 
 func (idx *Index) PostScan() error {
-	// Release memory after scan completion
-	_, _ = idx.db.Exec("PRAGMA shrink_memory")
+	idx.updateRootDirectorySize()
+	idx.aggregateStatsFromScanners()
 	if idx.getRunningScannerCount() == 0 {
 		return idx.SetStatus(READY)
 	}

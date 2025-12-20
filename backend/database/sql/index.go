@@ -19,30 +19,22 @@ type IndexDB struct {
 // NewIndexDB creates a new index database in the cache directory.
 func NewIndexDB(name string) (*IndexDB, error) {
 	db, err := NewTempDB("index_"+name, &TempDBConfig{
-		BatchSize:           5000,          // items per batch transaction
-		CacheSizeKB:         -1000,         // ~4MB cache - reduced to minimize memory footprint
-		MmapSize:            0,             // DISABLED - mmap shows up in Docker RSS outside Go heap
-		Synchronous:         "OFF",         // OFF for maximum write performance - data integrity not critical
-		TempStore:           "FILE",        // FILE instead of MEMORY to reduce memory overhead
-		JournalMode:         "OFF",         // OFF for maximum write performance - data integrity not critical
-		LockingMode:         "EXCLUSIVE",   // EXCLUSIVE mode - better cache retention, no change counter overhead
-		PageSize:            4096,          // 4KB page size - optimal for small entries (reduces storage waste)
-		AutoVacuum:          "INCREMENTAL", // Incremental auto-vacuum - prevents bloat without blocking operations
-		EnableLogging:       false,
-		HardHeapLimitBytes:  defaultHardHeapLimitBytes, // Hard limit - operations fail if exceeded
-		CacheSpillThreshold: 500,                       // ~2MB threshold - triggers early spilling to reduce memory
+		BatchSize:          1000,             // 1000 items per batch
+		CacheSizeKB:        -625,             // 2.5MB cache (625 pages * 4KB = 2.5MB) - will be increased dynamically
+		SoftHeapLimitBytes: 32 * 1024 * 1024, // 32MB soft heap limit (matches max cache size)
+		Synchronous:        "OFF",            // OFF for maximum write performance - data integrity not critical
+		TempStore:          "FILE",           // FILE instead of MEMORY to reduce memory usage
+		JournalMode:        "OFF",            // OFF for maximum write performance - data integrity not critical
+		LockingMode:        "EXCLUSIVE",      // EXCLUSIVE mode - better cache retention, no change counter overhead
 	})
 	if err != nil {
 		return nil, err
 	}
-
 	idxDB := &IndexDB{TempDB: db}
-
 	if err := idxDB.CreateIndexTable(); err != nil {
 		idxDB.Close()
 		return nil, err
 	}
-
 	return idxDB, nil
 }
 
@@ -321,12 +313,6 @@ func (db *IndexDB) BulkUpdateSizes(source string, pathSizeUpdates map[string]int
 			return nil // Non-fatal: sizes can be recalculated later
 		}
 		return err
-	}
-
-	// CRITICAL: Force SQLite to release memory back to OS
-	// shrink_memory hints SQLite to release unused memory back to the OS
-	if _, err := db.Exec("PRAGMA shrink_memory"); err != nil {
-		logger.Debugf("BulkUpdateSizes: failed to shrink memory: %v", err)
 	}
 	return nil
 }
@@ -823,14 +809,6 @@ func (db *IndexDB) RecalculateDirectorySizes(source, pathPrefix string) (int, er
 			return 0, nil
 		}
 		return 0, err
-	}
-
-	if updateCount > 0 {
-		// CRITICAL: Force SQLite to release memory back to OS
-		// shrink_memory hints SQLite to release unused memory back to the OS
-		if _, err := db.Exec("PRAGMA shrink_memory"); err != nil {
-			logger.Debugf("[DB_SIZE_CALC] Failed to shrink memory: %v", err)
-		}
 	}
 
 	return updateCount, nil
