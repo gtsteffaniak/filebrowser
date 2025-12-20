@@ -30,7 +30,8 @@
     "saveAndExit": "保存并退出",
     "keepEditing": "继续编辑",
     "closeAnyway": "无论如何关闭",
-    "goToItem": "转到项目"
+    "goToItem": "转到项目",
+    "watchFile": "观看文件"
   },
   "download": {
     "downloadFile": "下载文件",
@@ -682,7 +683,12 @@
     "uploading": "上传{suffix}",
     "paused": "暂停{suffix}",
     "conflict": "冲突{suffix}",
-    "change": "改变{suffix}"
+    "change": "改变{suffix}",
+    "output": "输出{suffix}",
+    "watching": "观看{suffix}",
+    "lines": "线路{suffix}",
+    "lastUpdate": "最新更新{suffix}",
+    "latency": "延迟{suffix}"
   },
   "access": {
     "rules": "访问规则",
@@ -780,7 +786,16 @@
       "browseFullLibrary": "浏览完整图标库"
     },
     "toolNotFound": "未找到工具",
-    "backToTools": "返回工具"
+    "backToTools": "返回工具",
+    "fileWatcher": {
+      "name": "文件监视器",
+      "description": "通过延迟监控实时观察和跟踪文件",
+      "file": "文件{suffix}",
+      "interval": "更新间隔",
+      "stopWatching": "停止观看",
+      "emptyState": "选择文件并点击播放，开始监控文件变化",
+      "chooseFile": "选择文件"
+    }
   },
   "messages": {
     "pathNotFound": "文件系统中不存在路径",

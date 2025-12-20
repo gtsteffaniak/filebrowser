@@ -109,7 +109,12 @@
     "confirm": "Confirm{suffix}",
     "uploading": "Uploading{suffix}",
     "paused": "Paused{suffix}",
-    "conflict": "Conflict{suffix}"
+    "conflict": "Conflict{suffix}",
+    "output": "Output{suffix}",
+    "watching": "Watching{suffix}",
+    "lines": "Lines{suffix}",
+    "lastUpdate": "Last Update{suffix}",
+    "latency": "Latency{suffix}"
   },
   "buttons": {
     "generateNewOtp": "Reset and generate new two-factor code",
@@ -129,6 +134,7 @@
     "showMore": "Show more",
     "showLess": "Show less",
     "openParentFolder": "Open parent folder",
+    "watchFile": "Watch file",
     "listView": "List View",
     "compactView": "Compact View",
     "normalView": "Normal View",
@@ -786,6 +792,15 @@
       "copyFailed": "Failed to copy to clipboard",
       "custom": "Custom",
       "useCustomIcon": "Use custom icon: {name}"
+    },
+    "fileWatcher": {
+      "name": "File Watcher",
+      "description": "Watch and tail files in real-time with latency monitoring",
+      "file": "File{suffix}",
+      "interval": "Update Interval",
+      "stopWatching": "Stop Watching",
+      "emptyState": "Choose a file and click play to begin monitoring file changes",
+      "chooseFile": "Choose a file"
     },
     "toolNotFound": "Tool not found",
     "backToTools": "Back to Tools"

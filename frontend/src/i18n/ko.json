@@ -30,7 +30,8 @@
     "saveAndExit": "저장 및 종료",
     "keepEditing": "계속 편집",
     "closeAnyway": "어쨌든 닫기",
-    "goToItem": "항목으로 이동"
+    "goToItem": "항목으로 이동",
+    "watchFile": "파일 보기"
   },
   "download": {
     "downloadFile": "파일 다운로드",
@@ -604,7 +605,12 @@
     "uploading": "업로드{suffix}",
     "paused": "일시 중지됨{suffix}",
     "conflict": "충돌{suffix}",
-    "change": "변경{suffix}"
+    "change": "변경{suffix}",
+    "output": "출력{suffix}",
+    "watching": "시청 중{suffix}",
+    "lines": "라인{suffix}",
+    "lastUpdate": "최근 업데이트{suffix}",
+    "latency": "지연 시간{suffix}"
   },
   "access": {
     "rules": "액세스 규칙",
@@ -780,7 +786,16 @@
       "browseFullLibrary": "전체 아이콘 라이브러리 찾아보기"
     },
     "toolNotFound": "도구를 찾을 수 없습니다.",
-    "backToTools": "도구로 돌아가기"
+    "backToTools": "도구로 돌아가기",
+    "fileWatcher": {
+      "name": "파일 감시자",
+      "description": "지연 시간 모니터링으로 실시간 파일 감시 및 추적",
+      "file": "파일{suffix}",
+      "interval": "업데이트 간격",
+      "stopWatching": "시청 중지",
+      "emptyState": "파일을 선택하고 재생을 클릭하여 파일 변경 사항 모니터링을 시작하세요.",
+      "chooseFile": "파일 선택"
+    }
   },
   "messages": {
     "pathNotFound": "파일 시스템에 경로가 없습니다.",

@@ -6,8 +6,11 @@ All notable changes to this project will be documented in this file. For commit 
 
  **New Features**:
  - SQLite based indexing
-   - reduces memory usage
+   - typically reduces memory usage
    - comparable performance
+ - realtime file watcher (#917)
+   - better latency if user has realtime permissions
+ - access control works with individual files too
 
 ## v1.1.4-beta
 

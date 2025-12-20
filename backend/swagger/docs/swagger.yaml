@@ -175,6 +175,37 @@ definitions:
       reason:
         type: string
     type: object
+  http.fileWatchMetadata:
+    properties:
+      modified:
+        description: Modification time
+        type: string
+      name:
+        description: File name
+        type: string
+      path:
+        description: File path
+        type: string
+      size:
+        description: File size in bytes
+        type: integer
+      type:
+        description: MIME type
+        type: string
+    type: object
+  http.fileWatchResponse:
+    properties:
+      contents:
+        description: Text content for text files
+        type: string
+      isText:
+        description: Whether the file is a text file
+        type: boolean
+      metadata:
+        allOf:
+        - $ref: '#/definitions/http.fileWatchMetadata'
+        description: File metadata for non-text files
+    type: object
   indexing.IndexStatus:
     enum:
     - ready
@@ -3081,6 +3112,111 @@ paths:
       summary: List share links
       tags:
       - Shares
+  /api/tools/watch:
+    get:
+      consumes:
+      - application/json
+      description: Returns the last N lines of a file
+      parameters:
+      - description: Path to the file
+        in: query
+        name: path
+        required: true
+        type: string
+      - description: Source name
+        in: query
+        name: source
+        required: true
+        type: string
+      - description: 'Number of lines to read (default: 10, max: 50)'
+        in: query
+        name: lines
+        type: integer
+      - description: Return minimal response for latency checking
+        in: query
+        name: latencyCheck
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.fileWatchResponse'
+        "400":
+          description: Invalid request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Permission denied
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: File not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Watch a file
+      tags:
+      - Tools
+  /api/tools/watch/sse:
+    get:
+      description: Establishes an SSE connection to receive periodic file updates
+      parameters:
+      - description: Path to the file
+        in: query
+        name: path
+        required: true
+        type: string
+      - description: Source name
+        in: query
+        name: source
+        required: true
+        type: string
+      - description: 'Number of lines to read (default: 10, max: 50)'
+        in: query
+        name: lines
+        type: integer
+      - description: Update interval in seconds (1, 2, 5, 10, 15, or 30, requires
+          realtime permission for SSE)
+        in: query
+        name: interval
+        type: integer
+      responses:
+        "200":
+          description: SSE stream
+        "400":
+          description: Invalid request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Permission denied
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: File not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Watch a file via SSE
+      tags:
+      - Tools
   /api/users:
     delete:
       consumes:

@@ -30,7 +30,8 @@
     "saveAndExit": "Sauvegarder et quitter",
     "keepEditing": "Continuer à éditer",
     "closeAnyway": "Fermer Quoi qu'il en soit",
-    "goToItem": "Aller à l'article"
+    "goToItem": "Aller à l'article",
+    "watchFile": "Regarder le dossier"
   },
   "download": {
     "downloadFile": "Télécharger le fichier",
@@ -604,7 +605,12 @@
     "uploading": "Téléchargement{suffix}",
     "paused": "En pause{suffix}",
     "conflict": "Conflit{suffix}",
-    "change": "Changer{suffix}"
+    "change": "Changer{suffix}",
+    "output": "Sortie{suffix}",
+    "watching": "Observation{suffix}",
+    "lines": "Lignes{suffix}",
+    "lastUpdate": "Dernière mise à jour{suffix}",
+    "latency": "Temps de latence{suffix}"
   },
   "access": {
     "rules": "Règles d'accès",
@@ -780,7 +786,16 @@
       "browseFullLibrary": "Parcourir la bibliothèque complète d'icônes"
     },
     "toolNotFound": "Outil non trouvé",
-    "backToTools": "Retour aux outils"
+    "backToTools": "Retour aux outils",
+    "fileWatcher": {
+      "name": "Observateur de fichiers",
+      "description": "Surveillance et suivi des fichiers en temps réel grâce au contrôle de la latence",
+      "file": "Fichier{suffix}",
+      "interval": "Intervalle de mise à jour",
+      "stopWatching": "Arrêter de regarder",
+      "emptyState": "Choisissez un fichier et cliquez sur lecture pour commencer à surveiller les modifications du fichier.",
+      "chooseFile": "Choisir un fichier"
+    }
   },
   "messages": {
     "pathNotFound": "Le chemin n'existe pas dans le système de fichiers",

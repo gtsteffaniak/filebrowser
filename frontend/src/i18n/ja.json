@@ -30,7 +30,8 @@
     "saveAndExit": "保存して終了する",
     "keepEditing": "編集を続ける",
     "closeAnyway": "とにかく閉じる",
-    "goToItem": "アイテムへ"
+    "goToItem": "アイテムへ",
+    "watchFile": "ウォッチファイル"
   },
   "download": {
     "downloadFile": "ファイルをダウンロード",
@@ -604,7 +605,12 @@
     "uploading": "アップロード{suffix}",
     "paused": "休止{suffix}",
     "conflict": "紛争{suffix}",
-    "change": "変更{suffix}"
+    "change": "変更{suffix}",
+    "output": "出力{suffix}",
+    "watching": "ウォッチング{suffix}",
+    "lines": "ライン{suffix}",
+    "lastUpdate": "最終更新{suffix}",
+    "latency": "レイテンシー{suffix}"
   },
   "access": {
     "rules": "アクセスルール",
@@ -780,7 +786,16 @@
       "browseFullLibrary": "アイコンライブラリをすべて見る"
     },
     "toolNotFound": "ツールが見つかりません",
-    "backToTools": "ツールに戻る"
+    "backToTools": "ツールに戻る",
+    "fileWatcher": {
+      "name": "ファイルウォッチャー",
+      "description": "レイテンシ監視でリアルタイムにファイルを監視し、テールする",
+      "file": "ファイル{suffix}",
+      "interval": "更新間隔",
+      "stopWatching": "ストップ・ウォッチング",
+      "emptyState": "ファイルを選択し、再生をクリックすると、ファイルの変更を監視し始めます。",
+      "chooseFile": "ファイルを選択する"
+    }
   },
   "messages": {
     "pathNotFound": "パスがファイルシステムに存在しない",

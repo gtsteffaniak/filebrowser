@@ -49,6 +49,13 @@ const getTools = () => [
     path: "/tools/materialIconPicker",
     component: "MaterialIconPicker",
   },
+  {
+    name: i18n.global.t("tools.fileWatcher.name"),
+    description: i18n.global.t("tools.fileWatcher.description"),
+    icon: "visibility",
+    path: "/tools/fileWatcher",
+    component: "FileWatcher",
+  },
 ];
 
 // Export tools as both a function and direct array for convenience

@@ -30,7 +30,8 @@
     "saveAndExit": "Salvar e sair",
     "keepEditing": "Continuar editando",
     "closeAnyway": "Fechar de qualquer maneira",
-    "goToItem": "Ir para o item"
+    "goToItem": "Ir para o item",
+    "watchFile": "Assista ao arquivo"
   },
   "download": {
     "downloadFile": "Baixar arquivo",
@@ -604,7 +605,12 @@
     "uploading": "Carregamento{suffix}",
     "paused": "Em pausa{suffix}",
     "conflict": "Conflito{suffix}",
-    "change": "Mudança{suffix}"
+    "change": "Mudança{suffix}",
+    "output": "Saída{suffix}",
+    "watching": "Observando{suffix}",
+    "lines": "Linhas{suffix}",
+    "lastUpdate": "Última atualização{suffix}",
+    "latency": "Latência{suffix}"
   },
   "access": {
     "rules": "Regras de acesso",
@@ -780,7 +786,16 @@
       "browseFullLibrary": "Navegue pela biblioteca completa de ícones"
     },
     "toolNotFound": "Ferramenta não encontrada",
-    "backToTools": "Voltar para Ferramentas"
+    "backToTools": "Voltar para Ferramentas",
+    "fileWatcher": {
+      "name": "Observador de arquivos",
+      "description": "Assista e acompanhe arquivos em tempo real com monitoramento de latência",
+      "file": "Arquivo{suffix}",
+      "interval": "Intervalo de atualização",
+      "stopWatching": "Parar de assistir",
+      "emptyState": "Escolha um arquivo e clique em reproduzir para começar a monitorar as alterações no arquivo",
+      "chooseFile": "Escolha um arquivo"
+    }
   },
   "messages": {
     "pathNotFound": "O caminho não existe no sistema de arquivos",

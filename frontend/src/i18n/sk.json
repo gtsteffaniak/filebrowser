@@ -30,7 +30,8 @@
     "saveAndExit": "Uložiť a ukončiť",
     "keepEditing": "Pokračujte v úpravách",
     "closeAnyway": "Zavrieť Tak či onak",
-    "goToItem": "Prejsť na položku"
+    "goToItem": "Prejsť na položku",
+    "watchFile": "Sledovať súbor"
   },
   "download": {
     "downloadFile": "Stiahnuť súbor",
@@ -604,7 +605,12 @@
     "uploading": "Nahrávanie{suffix}",
     "paused": "Pozastavenie{suffix}",
     "conflict": "Konflikt{suffix}",
-    "change": "Zmena{suffix}"
+    "change": "Zmena{suffix}",
+    "output": "Výstup{suffix}",
+    "watching": "Sledovanie{suffix}",
+    "lines": "Riadky{suffix}",
+    "lastUpdate": "Posledná aktualizácia{suffix}",
+    "latency": "Latencia{suffix}"
   },
   "access": {
     "rules": "Pravidlá prístupu",
@@ -780,7 +786,16 @@
       "browseFullLibrary": "Prehľadávať celú knižnicu ikon"
     },
     "toolNotFound": "Nástroj nebol nájdený",
-    "backToTools": "Späť na Nástroje"
+    "backToTools": "Späť na Nástroje",
+    "fileWatcher": {
+      "name": "Sledovanie súborov",
+      "description": "Sledovanie súborov v reálnom čase s monitorovaním latencie",
+      "file": "Súbor{suffix}",
+      "interval": "Interval aktualizácie",
+      "stopWatching": "Prestaňte sa pozerať",
+      "emptyState": "Vyberte súbor a kliknite na tlačidlo prehrávania, aby ste začali sledovať zmeny v súbore",
+      "chooseFile": "Výber súboru"
+    }
   },
   "messages": {
     "pathNotFound": "Cesta neexistuje v súborovom systéme",

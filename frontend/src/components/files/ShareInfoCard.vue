@@ -19,11 +19,9 @@
           </div>
           <div class="share__box__element" :title="modTime">
             <strong>{{ $t("prompts.lastModified", { suffix: ":" }) }}</strong> {{ humanTime }}
-            <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           </div>
           <div class="share__box__element">
             <strong>{{ $t("prompts.size", { suffix: ":" }) }}</strong> {{ humanSize }}
-            <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           </div>
         </div>
       </div>

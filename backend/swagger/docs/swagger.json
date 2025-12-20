@@ -2208,6 +2208,162 @@
                 }
             }
         },
+        "/api/tools/watch": {
+            "get": {
+                "description": "Returns the last N lines of a file",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tools"
+                ],
+                "summary": "Watch a file",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Path to the file",
+                        "name": "path",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Source name",
+                        "name": "source",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of lines to read (default: 10, max: 50)",
+                        "name": "lines",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Return minimal response for latency checking",
+                        "name": "latencyCheck",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/http.fileWatchResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Permission denied",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "File not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/tools/watch/sse": {
+            "get": {
+                "description": "Establishes an SSE connection to receive periodic file updates",
+                "tags": [
+                    "Tools"
+                ],
+                "summary": "Watch a file via SSE",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Path to the file",
+                        "name": "path",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Source name",
+                        "name": "source",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of lines to read (default: 10, max: 50)",
+                        "name": "lines",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Update interval in seconds (1, 2, 5, 10, 15, or 30, requires realtime permission for SSE)",
+                        "name": "interval",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "SSE stream"
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Permission denied",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "File not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/users": {
             "get": {
                 "description": "Returns a user's details based on their ID, or all users if no id is provided.",
@@ -3193,6 +3349,52 @@
                 },
                 "reason": {
                     "type": "string"
+                }
+            }
+        },
+        "http.fileWatchMetadata": {
+            "type": "object",
+            "properties": {
+                "modified": {
+                    "description": "Modification time",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "File name",
+                    "type": "string"
+                },
+                "path": {
+                    "description": "File path",
+                    "type": "string"
+                },
+                "size": {
+                    "description": "File size in bytes",
+                    "type": "integer"
+                },
+                "type": {
+                    "description": "MIME type",
+                    "type": "string"
+                }
+            }
+        },
+        "http.fileWatchResponse": {
+            "type": "object",
+            "properties": {
+                "contents": {
+                    "description": "Text content for text files",
+                    "type": "string"
+                },
+                "isText": {
+                    "description": "Whether the file is a text file",
+                    "type": "boolean"
+                },
+                "metadata": {
+                    "description": "File metadata for non-text files",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/http.fileWatchMetadata"
+                        }
+                    ]
                 }
             }
         },

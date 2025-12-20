@@ -30,7 +30,8 @@
     "saveAndExit": "儲存並離開",
     "keepEditing": "繼續編輯",
     "closeAnyway": "無論如何關閉",
-    "goToItem": "前往項目"
+    "goToItem": "前往項目",
+    "watchFile": "觀看檔案"
   },
   "download": {
     "downloadFile": "下載檔案",
@@ -682,7 +683,12 @@
     "uploading": "上傳{suffix}",
     "paused": "已暫停{suffix}",
     "conflict": "衝突{suffix}",
-    "change": "變更{suffix}"
+    "change": "變更{suffix}",
+    "output": "輸出{suffix}",
+    "watching": "觀看{suffix}",
+    "lines": "線路{suffix}",
+    "lastUpdate": "最後更新{suffix}",
+    "latency": "延遲{suffix}"
   },
   "access": {
     "rules": "存取規則",
@@ -780,7 +786,16 @@
       "browseFullLibrary": "瀏覽完整圖示庫"
     },
     "toolNotFound": "未找到工具",
-    "backToTools": "回到工具"
+    "backToTools": "回到工具",
+    "fileWatcher": {
+      "name": "檔案看管員",
+      "description": "利用延遲監控功能即時觀察和尾隨檔案",
+      "file": "檔案{suffix}",
+      "interval": "更新間隔",
+      "stopWatching": "停止觀看",
+      "emptyState": "選擇檔案並按一下播放，即可開始監控檔案變更",
+      "chooseFile": "選擇檔案"
+    }
   },
   "messages": {
     "pathNotFound": "檔案系統中不存在路徑",

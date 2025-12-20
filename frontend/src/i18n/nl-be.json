@@ -30,7 +30,8 @@
     "saveAndExit": "Opslaan en afsluiten",
     "keepEditing": "Blijven bewerken",
     "closeAnyway": "Sluiten",
-    "goToItem": "Ga naar item"
+    "goToItem": "Ga naar item",
+    "watchFile": "Bestand bekijken"
   },
   "download": {
     "downloadFile": "Bestand downloaden",
@@ -682,7 +683,12 @@
     "uploading": "uploaden{suffix}",
     "paused": "Gepauzeerd{suffix}",
     "conflict": "Conflict{suffix}",
-    "change": "Verander{suffix}"
+    "change": "Verander{suffix}",
+    "output": "Uitgang{suffix}",
+    "watching": "Kijken naar{suffix}",
+    "lines": "Lijnen{suffix}",
+    "lastUpdate": "Laatste update{suffix}",
+    "latency": "Latency{suffix}"
   },
   "access": {
     "rules": "Toegangsregels",
@@ -780,7 +786,16 @@
       "browseFullLibrary": "Blader door de volledige pictogrammenbibliotheek"
     },
     "toolNotFound": "Gereedschap niet gevonden",
-    "backToTools": "Terug naar Gereedschap"
+    "backToTools": "Terug naar Gereedschap",
+    "fileWatcher": {
+      "name": "Bestandsbewaker",
+      "description": "Bestanden in realtime bekijken en volgen met latentiebewaking",
+      "file": "Bestand{suffix}",
+      "interval": "Update-interval",
+      "stopWatching": "Stop met kijken",
+      "emptyState": "Kies een bestand en klik op afspelen om te beginnen met het controleren van bestandswijzigingen",
+      "chooseFile": "Kies een bestand"
+    }
   },
   "messages": {
     "pathNotFound": "Pad bestaat niet op bestandssysteem",

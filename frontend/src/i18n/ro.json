@@ -30,7 +30,8 @@
     "saveAndExit": "Salvare și ieșire",
     "keepEditing": "Continuă editarea",
     "closeAnyway": "Închide oricum",
-    "goToItem": "Du-te la articol"
+    "goToItem": "Du-te la articol",
+    "watchFile": "Fișier de vizionare"
   },
   "download": {
     "downloadFile": "Descarcă fișier",
@@ -604,7 +605,12 @@
     "uploading": "Încărcare{suffix}",
     "paused": "Pauză{suffix}",
     "conflict": "Conflict{suffix}",
-    "change": "Schimbare{suffix}"
+    "change": "Schimbare{suffix}",
+    "output": "Ieșire{suffix}",
+    "watching": "Observarea{suffix}",
+    "lines": "Linii{suffix}",
+    "lastUpdate": "Ultima actualizare{suffix}",
+    "latency": "Latență{suffix}"
   },
   "access": {
     "rules": "Reguli de acces",
@@ -780,7 +786,16 @@
       "browseFullLibrary": "Răsfoiți biblioteca completă de pictograme"
     },
     "toolNotFound": "Instrumentul nu a fost găsit",
-    "backToTools": "Înapoi la Instrumente"
+    "backToTools": "Înapoi la Instrumente",
+    "fileWatcher": {
+      "name": "Observator de fișiere",
+      "description": "Urmăriți și urmăriți fișierele în timp real cu monitorizarea latenței",
+      "file": "Fișier{suffix}",
+      "interval": "Interval de actualizare",
+      "stopWatching": "Nu te mai uita",
+      "emptyState": "Alegeți un fișier și faceți clic pe redare pentru a începe monitorizarea modificărilor fișierului",
+      "chooseFile": "Alegeți un fișier"
+    }
   },
   "messages": {
     "pathNotFound": "Calea nu există pe sistemul de fișiere",

@@ -99,6 +99,7 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	api.HandleFunc("POST /users", withSelfOrAdmin(usersPostHandler))
 	api.HandleFunc("PUT /users", withUser(userPutHandler))
 	api.HandleFunc("DELETE /users", withSelfOrAdmin(userDeleteHandler))
+	api.HandleFunc("GET /health", healthHandler)
 
 	// Auth routes
 	api.HandleFunc("POST /auth/login", userWithoutOTP(loginHandler))
@@ -179,6 +180,8 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 
 	api.HandleFunc("GET /search", withUser(searchHandler))
 	api.HandleFunc("GET /duplicates", withUser(duplicatesHandler))
+	api.HandleFunc("GET /tools/watch", withUser(fileWatchHandler))
+	api.HandleFunc("GET /tools/watch/sse", withUser(fileWatchSSEHandler))
 	// Mount the public API sub-router
 	publicRoutes.Handle("/api/", http.StripPrefix("/api", publicAPI))
 

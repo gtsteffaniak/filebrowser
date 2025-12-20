@@ -30,7 +30,8 @@
     "saveAndExit": "Mentés és kilépés",
     "keepEditing": "Szerkesztés folytatása",
     "closeAnyway": "Egyébként bezárni",
-    "goToItem": "Tovább a tételhez"
+    "goToItem": "Tovább a tételhez",
+    "watchFile": "Nézze meg a fájlt"
   },
   "download": {
     "downloadFile": "Fájl letöltése",
@@ -604,7 +605,12 @@
     "uploading": "A  feltöltése{suffix}",
     "paused": "Paused{suffix}",
     "conflict": "Konfliktus{suffix}",
-    "change": "Változás{suffix}"
+    "change": "Változás{suffix}",
+    "output": "Kimenet{suffix}",
+    "watching": "Figyelem{suffix}",
+    "lines": "Vonalak{suffix}",
+    "lastUpdate": "Utolsó frissítés{suffix}",
+    "latency": "Késleltetés{suffix}"
   },
   "access": {
     "rules": "Hozzáférési szabályok",
@@ -780,7 +786,16 @@
       "browseFullLibrary": "Teljes ikonkönyvtár böngészése"
     },
     "toolNotFound": "Eszköz nem található",
-    "backToTools": "Vissza az Eszközökhöz"
+    "backToTools": "Vissza az Eszközökhöz",
+    "fileWatcher": {
+      "name": "Fájl figyelő",
+      "description": "Fájlok figyelése és követése valós időben a késleltetés figyelésével",
+      "file": "Fájl{suffix}",
+      "interval": "Frissítési időköz",
+      "stopWatching": "Stop Watching",
+      "emptyState": "Válasszon ki egy fájlt, és kattintson a lejátszásra a fájlváltozások megfigyelésének megkezdéséhez.",
+      "chooseFile": "Válasszon egy fájlt"
+    }
   },
   "messages": {
     "pathNotFound": "Az elérési útvonal nem létezik a fájlrendszerben",

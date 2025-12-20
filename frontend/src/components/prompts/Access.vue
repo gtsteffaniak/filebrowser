@@ -13,7 +13,7 @@
     </div>
 
     <div v-if="isEditingPath">
-      <file-list @update:selected="updateTempPath" :browse-source="sourceName"></file-list>
+      <file-list @update:selected="updateTempPath" :browse-source="sourceName" :show-files="true"></file-list>
     </div>
     <div v-else>
       <p>{{ $t("general.source", { suffix: ":" }) }} {{ currentSource }}</p>

@@ -199,6 +199,17 @@ async function eventRouter (eventType, message) {
       }
       break
 
+    case 'fileWatch':
+      // Dispatch custom event for file watch updates
+      try {
+        // message is a JSON string that needs to be parsed
+        const watchData = typeof message === 'string' ? JSON.parse(message) : message
+        window.dispatchEvent(new CustomEvent('fileWatchEvent', { detail: watchData }))
+      } catch (error) {
+        console.error('Error dispatching file watch event:', error)
+      }
+      break
+
     default:
       console.log('Unknown SSE event:', eventType, message)
   }

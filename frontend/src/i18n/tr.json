@@ -30,7 +30,8 @@
     "saveAndExit": "Kaydet ve Çık",
     "keepEditing": "Düzenlemeye Devam Et",
     "closeAnyway": "Her Neyse Kapat",
-    "goToItem": "Öğeye git"
+    "goToItem": "Öğeye git",
+    "watchFile": "Dosyayı izle"
   },
   "download": {
     "downloadFile": "Dosyayı indir",
@@ -604,7 +605,12 @@
     "uploading": "Yükleme{suffix}",
     "paused": "Duraklatıldı{suffix}",
     "conflict": "Çatışma{suffix}",
-    "change": "Değişim{suffix}"
+    "change": "Değişim{suffix}",
+    "output": "Çıktı{suffix}",
+    "watching": "İzlemek{suffix}",
+    "lines": "Çizgiler{suffix}",
+    "lastUpdate": "Son Güncelleme{suffix}",
+    "latency": "Gecikme{suffix}"
   },
   "access": {
     "rules": "Erişim kuralları",
@@ -780,7 +786,16 @@
       "browseFullLibrary": "Simge kitaplığının tamamına göz atın"
     },
     "toolNotFound": "Araç bulunamadı",
-    "backToTools": "Araçlara Geri Dön"
+    "backToTools": "Araçlara Geri Dön",
+    "fileWatcher": {
+      "name": "Dosya İzleyici",
+      "description": "Gecikme izleme ile dosyaları gerçek zamanlı olarak izleyin ve takip edin",
+      "file": "Dosya{suffix}",
+      "interval": "Güncelleme Aralığı",
+      "stopWatching": "İzlemeyi Bırak",
+      "emptyState": "Bir dosya seçin ve dosya değişikliklerini izlemeye başlamak için oynat'a tıklayın",
+      "chooseFile": "Bir dosya seçin"
+    }
   },
   "messages": {
     "pathNotFound": "Yol dosya sisteminde mevcut değil",

@@ -30,7 +30,8 @@
     "saveAndExit": "Guardar y salir",
     "keepEditing": "Seguir editando",
     "closeAnyway": "Cerrar de todos modos",
-    "goToItem": "Ir al elemento"
+    "goToItem": "Ir al elemento",
+    "watchFile": "Ver archivo"
   },
   "download": {
     "downloadFile": "Descargar archivo",
@@ -604,7 +605,12 @@
     "uploading": "Subiendo{suffix}",
     "paused": "En pausa{suffix}",
     "conflict": "Conflicto{suffix}",
-    "change": "Cambiar{suffix}"
+    "change": "Cambiar{suffix}",
+    "output": "Salida{suffix}",
+    "watching": "Ver{suffix}",
+    "lines": "Líneas{suffix}",
+    "lastUpdate": "Última actualización{suffix}",
+    "latency": "Latencia{suffix}"
   },
   "access": {
     "rules": "Reglas de acceso",
@@ -780,7 +786,16 @@
       "browseFullLibrary": "Mira la la colección completa aqui"
     },
     "toolNotFound": "No se encontró la herramienta",
-    "backToTools": "Volver a Herramientas"
+    "backToTools": "Volver a Herramientas",
+    "fileWatcher": {
+      "name": "Vigilante de archivos",
+      "description": "Vigilancia y cola de archivos en tiempo real con control de latencia",
+      "file": "Archivo{suffix}",
+      "interval": "Intervalo de actualización",
+      "stopWatching": "Deja de mirar",
+      "emptyState": "Elija un archivo y haga clic en reproducir para empezar a supervisar los cambios en el archivo",
+      "chooseFile": "Elija un archivo"
+    }
   },
   "messages": {
     "pathNotFound": "La ruta no se encuentra en el sistema de archivos",

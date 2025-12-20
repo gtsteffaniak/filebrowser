@@ -141,6 +141,7 @@
       <action icon="info" :label="$t('general.info')" show="info" />
       <action v-if="showGoToRaw" icon="open_in_new" :label="$t('general.openFile')" @action="goToRaw()" />
       <action v-if="shouldShowParentFolder()" icon="folder" :label="$t('buttons.openParentFolder')" @action="openParentFolder" />
+      <action v-if="hasDownload && !req.isDir" icon="visibility" :label="$t('buttons.watchFile')" @action="watchFile()" />
       <action v-if="hasDownload" icon="file_download" :label="$t('general.download')" @action="startDownload" />
       <action v-if="showEdit" icon="edit" :label="$t('general.edit')" @action="edit()" />
       <action v-if="showSave" icon="save" :label="$t('general.save')" @action="save()" />
@@ -468,6 +469,18 @@ export default {
       );
       window.open(downloadUrl, "_blank");
       mutations.closeHovers();
+    },
+    watchFile() {
+      mutations.closeHovers();
+      const source = state.req?.source || state.sources.current || "";
+      const path = state.req?.path || "/";
+      this.$router.push({
+        path: "/tools/fileWatcher",
+        query: {
+          path: path,
+          source: source,
+        },
+      });
     },
     async edit() {
       window.location.hash = "#edit";

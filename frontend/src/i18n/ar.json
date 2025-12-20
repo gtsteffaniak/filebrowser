@@ -30,7 +30,8 @@
     "saveAndExit": "الحفظ والخروج",
     "keepEditing": "استمر في التحرير",
     "closeAnyway": "إغلاق على أي حال",
-    "goToItem": "الانتقال إلى العنصر"
+    "goToItem": "الانتقال إلى العنصر",
+    "watchFile": "ملف المشاهدة"
   },
   "download": {
     "downloadFile": "Download File",
@@ -604,7 +605,12 @@
     "uploading": "التحميل{suffix}",
     "paused": "متوقف مؤقتاً{suffix}",
     "conflict": "التعارض{suffix}",
-    "change": "التغيير{suffix}"
+    "change": "التغيير{suffix}",
+    "output": "المخرجات{suffix}",
+    "watching": "المشاهدة{suffix}",
+    "lines": "الخطوط{suffix}",
+    "lastUpdate": "آخر تحديث{suffix}",
+    "latency": "الكمون{suffix}"
   },
   "access": {
     "rules": "قواعد الوصول",
@@ -780,7 +786,16 @@
       "browseFullLibrary": "تصفح مكتبة الأيقونات الكاملة"
     },
     "toolNotFound": "الأداة غير موجودة",
-    "backToTools": "العودة إلى الأدوات"
+    "backToTools": "العودة إلى الأدوات",
+    "fileWatcher": {
+      "name": "مراقب الملفات",
+      "description": "مشاهدة وتعقب الملفات في الوقت الفعلي مع مراقبة زمن الاستجابة",
+      "file": "ملف{suffix}",
+      "interval": "تحديث الفاصل الزمني",
+      "stopWatching": "توقف عن المشاهدة",
+      "emptyState": "اختر ملفاً وانقر فوق تشغيل لبدء مراقبة تغييرات الملف",
+      "chooseFile": "اختر ملفاً"
+    }
   },
   "messages": {
     "pathNotFound": "المسار غير موجود على نظام الملفات",
