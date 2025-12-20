@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
@@ -34,7 +35,6 @@ type Scanner struct {
 
 // start begins the scanner's main loop
 func (s *Scanner) start() {
-	// Do initial scan for all scanners
 	// Wait a bit to stagger child scanner initial scans (root goes first)
 	if s.scanPath != "/" {
 		time.Sleep(500 * time.Millisecond)
@@ -76,13 +76,13 @@ func (s *Scanner) tryAcquireAndScan() {
 		s.idx.mu.Lock()
 		s.isScanning = false
 		s.idx.mu.Unlock()
-		s.idx.aggregateStatsFromScanners() // Update status after clearing isScanning
+		err := s.idx.PostScan()
+		if err != nil {
+			logger.Errorf("Failed to post scan: %v", err)
+		}
 	}()
 
 	s.idx.scanMutex.Lock()
-
-	// Mark which scanner is active (for status/logging)
-
 	quick := s.fullScanCounter > 0 && s.fullScanCounter < 5
 	s.fullScanCounter++
 	if s.fullScanCounter >= 5 {
@@ -90,37 +90,19 @@ func (s *Scanner) tryAcquireAndScan() {
 	}
 
 	s.runIndexing(quick)
-
-	// Update this scanner's schedule based on results
 	s.updateSchedule()
-
-	s.idx.mu.Lock()
-	allIdle := true
-	for _, scanner := range s.idx.scanners {
-		if !scanner.lastScanned.IsZero() && time.Since(scanner.lastScanned) > 1*time.Minute {
-			allIdle = false
-			break
-		}
-	}
-	s.idx.mu.Unlock()
-
 	s.idx.scanMutex.Unlock()
-
-	if allIdle {
-		s.idx.updateRootDirectorySize()
-	}
-	// Note: aggregateStatsFromScanners() is called in defer to ensure isScanning is cleared first
 }
 
 // runIndexing performs the actual indexing work
 func (s *Scanner) runIndexing(quick bool) {
+	startTime := time.Now()
 	if s.scanPath == "/" {
 		s.runRootScan(quick)
 	} else {
 		s.runChildScan(quick)
 	}
-
-	s.lastScanned = time.Now()
+	logger.Debugf("[%s] Scan for %s completed in %d seconds", s.idx.Name, s.scanPath, int(time.Since(startTime).Seconds()))
 }
 
 func (s *Scanner) runRootScan(quick bool) {
@@ -141,13 +123,14 @@ func (s *Scanner) runRootScan(quick bool) {
 	}
 
 	s.idx.mu.Lock()
-	s.idx.batchItems = make([]*iteminfo.FileInfo, 0, 5000)
+	batchSize := s.idx.db.BatchSize
+	s.idx.batchItems = make([]*iteminfo.FileInfo, 0, batchSize)
 	s.idx.mu.Unlock()
 
 	s.filesChanged = false
 	startTime := time.Now()
 
-	err := s.idx.indexDirectory("/", config)
+	_, _, err := s.idx.indexDirectory("/", config)
 	if err != nil {
 		logger.Errorf("Root scanner error: %v", err)
 	}
@@ -155,19 +138,11 @@ func (s *Scanner) runRootScan(quick bool) {
 	s.idx.flushBatch()
 
 	if !quick {
-		// Recalculate directory sizes after batch insertion
-		_, err := s.idx.db.RecalculateDirectorySizes(s.idx.Name, "/")
-		if err != nil {
-			logger.Errorf("[SIZE_CALC] Failed to recalculate directory sizes: %v", err)
-		}
 		s.purgeStaleEntries()
-		s.idx.performPeriodicMaintenance()
 		s.syncStatsWithDB()
 	}
-
-	// Note: Root directory size will be calculated by updateRootDirectorySize()
-	// which sums all child directories + root files from the database
 	scanDuration := int(time.Since(startTime).Seconds())
+
 	if quick {
 		s.quickScanTime = scanDuration
 		// Sync stats with DB after quick scan to ensure accurate counts
@@ -177,7 +152,9 @@ func (s *Scanner) runRootScan(quick bool) {
 		s.fullScanTime = scanDuration
 		s.updateComplexity()
 	}
+	s.lastScanned = time.Now()
 	s.checkForNewChildDirectories()
+	_, _ = s.idx.db.Exec("PRAGMA shrink_memory")
 }
 
 func (s *Scanner) runChildScan(quick bool) {
@@ -200,10 +177,12 @@ func (s *Scanner) runChildScan(quick bool) {
 	s.idx.mu.Lock()
 	s.filesChanged = false
 	startTime := time.Now()
-	s.idx.batchItems = make([]*iteminfo.FileInfo, 0, 5000)
+	batchSize := s.idx.db.BatchSize
+	s.idx.batchItems = make([]*iteminfo.FileInfo, 0, batchSize)
 	s.idx.mu.Unlock()
 
-	err := s.idx.indexDirectory(s.scanPath, config)
+	// indexDirectory returns the total size of this directory (including all subdirectories)
+	dirSize, _, err := s.idx.indexDirectory(s.scanPath, config)
 	if err != nil {
 		logger.Errorf("Scanner [%s] error: %v", s.scanPath, err)
 	}
@@ -211,22 +190,20 @@ func (s *Scanner) runChildScan(quick bool) {
 	s.idx.flushBatch()
 
 	if !quick {
-		// Recalculate directory sizes after batch insertion
-		_, err := s.idx.db.RecalculateDirectorySizes(s.idx.Name, s.scanPath)
-		if err != nil {
-			logger.Errorf("[SIZE_CALC] Failed to recalculate directory sizes for %s: %v", s.scanPath, err)
+		// Each scanner is responsible for updating its own directory size
+		// This eliminates the need for RecalculateDirectorySizes which was expensive
+		// Normalize path to match database format (with trailing slash for directories)
+		normalizedPath := utils.AddTrailingSlashIfNotExists(s.scanPath)
+		if err := s.idx.db.UpdateDirectorySize(s.idx.Name, normalizedPath, dirSize); err != nil {
+			logger.Errorf("[SIZE_CALC] Failed to update directory size for %s: %v", normalizedPath, err)
 		}
 
 		s.purgeStaleEntries()
-		s.idx.performPeriodicMaintenance()
 		s.syncStatsWithDB()
 	}
 
-	// Note: Directory size is calculated recursively by indexDirectory()
-	// and stored in the database. Root directory size calculation happens
-	// in updateRootDirectorySize() after this scan completes.
-
 	scanDuration := int(time.Since(startTime).Seconds())
+
 	if quick {
 		s.quickScanTime = scanDuration
 		// Sync stats with DB after quick scan to ensure accurate counts
@@ -236,6 +213,8 @@ func (s *Scanner) runChildScan(quick bool) {
 		s.fullScanTime = scanDuration
 		s.updateComplexity()
 	}
+	s.lastScanned = time.Now()
+
 }
 
 // checkForNewChildDirectories detects new top-level directories and creates scanners for them
@@ -375,7 +354,6 @@ func (s *Scanner) updateSchedule() {
 // 0: unknown
 func (s *Scanner) updateComplexity() {
 	s.complexity = calculateComplexity(s.fullScanTime, s.numDirs)
-
 	// Set smartModifier based on complexity level
 	if modifier, ok := complexityModifier[s.complexity]; ok {
 		s.smartModifier = modifier
@@ -400,9 +378,6 @@ func (s *Scanner) removeSelf() {
 
 	delete(s.idx.scanners, s.scanPath)
 	logger.Infof("Removed scanner [%s] from active scanners", s.scanPath)
-
-	// Trigger stats aggregation to update overall index
-	go s.idx.aggregateStatsFromScanners()
 }
 
 // stop gracefully stops the scanner
@@ -411,9 +386,7 @@ func (s *Scanner) stop() {
 }
 
 func (s *Scanner) syncStatsWithDB() {
-	if s.idx.db == nil {
-		return
-	}
+
 	dirs, files, err := s.idx.db.GetRecursiveCount(s.idx.Name, s.scanPath)
 	if err != nil {
 		logger.Errorf("Failed to get recursive count for %s: %v", s.scanPath, err)
@@ -425,7 +398,7 @@ func (s *Scanner) syncStatsWithDB() {
 }
 
 func (s *Scanner) purgeStaleEntries() {
-	if s.idx.db == nil || s.scanStartTime == 0 {
+	if s.scanStartTime == 0 {
 		return
 	}
 	deletedCount, err := s.idx.db.DeleteStaleEntries(s.idx.Name, s.scanPath, s.scanStartTime)

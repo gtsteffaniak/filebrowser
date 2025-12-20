@@ -158,6 +158,8 @@ func (idx *Index) PreScan() error {
 }
 
 func (idx *Index) PostScan() error {
+	idx.updateRootDirectorySize()
+	idx.aggregateStatsFromScanners()
 	if idx.getRunningScannerCount() == 0 {
 		return idx.SetStatus(READY)
 	}

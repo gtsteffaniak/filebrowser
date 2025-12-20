@@ -12,22 +12,10 @@ import (
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
-const BATCH_SIZE = 5000 // Progressive flush threshold for scanner batches
-
 // UpdateFileMetadata updates the FileInfo for the specified directory in the index.
 func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo) bool {
-	// Quick nil check without mutex - db pointer is set once at init and never changes
-	if idx.db == nil {
-		return false
-	}
-
 	items := make([]*iteminfo.FileInfo, 0, len(info.Files)+len(info.Folders)+1)
-
-	// Store index paths (relative to source root, starting with "/")
-	// Database stores index paths, not absolute filesystem paths
-	// Each source is identified by its name in the shared database
 	dirItem := *info
-	dirItem.Path = info.Path // Already an index path like "/share/folder/"
 	items = append(items, &dirItem)
 
 	// Add folders to the bulk insert with index paths
@@ -62,22 +50,21 @@ func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo) bool {
 		// Accumulate items for bulk insert
 		idx.batchItems = append(idx.batchItems, items...)
 
-		// Progressive flushing: flush every 5000 items to keep memory bounded
-		// and make items available in the index sooner
-		if len(idx.batchItems) >= 5000 {
+		// Progressive flushing: flush every BATCH_SIZE items to keep memory bounded
+		// Synchronous flush ensures only ONE batch in memory at a time
+		if len(idx.batchItems) >= idx.db.BatchSize {
 			itemsToFlush := idx.batchItems
-			idx.batchItems = make([]*iteminfo.FileInfo, 0, 5000)
-			idx.pendingFlushes.Add(1)
+			idx.batchItems = make([]*iteminfo.FileInfo, 0, idx.db.BatchSize)
+			sourceName := idx.Name
+			numItems := len(itemsToFlush)
 			idx.mu.Unlock()
 
-			sourceName := idx.Name
-			go func(items []*iteminfo.FileInfo) {
-				defer idx.pendingFlushes.Done()
-				err := idx.db.BulkInsertItems(sourceName, items)
-				if err != nil {
-					logger.Warningf("[DB_TX] Progressive flush failed (%d items): %v - continuing scan", len(items), err)
-				}
-			}(itemsToFlush)
+			// Synchronous flush - blocks scanner until DB write completes
+			// This ensures only BatchSize items max in memory at any time
+			err := idx.db.BulkInsertItems(sourceName, itemsToFlush)
+			if err != nil {
+				logger.Warningf("[DB_TX] Progressive flush failed (%d items): %v - continuing scan", numItems, err)
+			}
 			return true
 		}
 		idx.mu.Unlock()
@@ -96,66 +83,20 @@ func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo) bool {
 // flushBatch writes all remaining batch items to the database
 // This is called at the end of a scan to flush any items that didn't reach the BATCH_SIZE threshold
 func (idx *Index) flushBatch() {
-	idx.pendingFlushes.Wait()
 	idx.mu.Lock()
 	items := idx.batchItems
 	idx.batchItems = nil
 	idx.mu.Unlock()
+
 	if len(items) == 0 {
 		return
 	}
+
 	err := idx.db.BulkInsertItems(idx.Name, items)
 	if err != nil {
 		logger.Warningf("[DB_TX] Final flush failed (%d items): %v", len(items), err)
+		return
 	}
-}
-
-// flushPathFromBatch ensures items for a specific directory path are flushed to the database
-// This is needed when we need to read back a directory immediately after indexing it
-// It flushes the directory and all its children so GetDirectoryChildren can find them
-// Returns true if items were flushed, false if path not found in batch
-func (idx *Index) flushPathFromBatch(path string) bool {
-	// Wait for any pending async flushes to complete first
-	// This ensures we don't miss items that are currently being flushed asynchronously
-	idx.pendingFlushes.Wait()
-
-	idx.mu.Lock()
-	// len() for nil slices is defined as zero, so no need for nil check
-	if len(idx.batchItems) == 0 {
-		idx.mu.Unlock()
-		return false // No batch items, path already in DB or not indexed yet
-	}
-
-	// Find items matching this directory path and all its children
-	// We need to flush children too so GetDirectoryChildren can find them
-	itemsToFlush := make([]*iteminfo.FileInfo, 0, 1)
-	remainingItems := make([]*iteminfo.FileInfo, 0, len(idx.batchItems))
-
-	for _, item := range idx.batchItems {
-		// Match exact path or children of this directory
-		if item.Path == path || strings.HasPrefix(item.Path, path) {
-			itemsToFlush = append(itemsToFlush, item)
-		} else {
-			remainingItems = append(remainingItems, item)
-		}
-	}
-
-	if len(itemsToFlush) == 0 {
-		idx.mu.Unlock()
-		return false // Path not found in batch
-	}
-
-	// Update batch to remove flushed items
-	idx.batchItems = remainingItems
-	idx.mu.Unlock()
-
-	// Flush synchronously to ensure data is available
-	if err := idx.db.BulkInsertItems(idx.Name, itemsToFlush); err != nil {
-		logger.Warningf("[DB_TX] FlushPathFromBatch failed for %s (%d items): %v", path, len(itemsToFlush), err)
-		return false
-	}
-
-	return true
 }
 
 // DeleteMetadata removes the specified path from the index.
@@ -179,10 +120,6 @@ func (idx *Index) DeleteMetadata(path string, isDir bool, recursive bool) bool {
 
 // GetMetadataInfo retrieves the FileInfo from the specified file or directory in the index.
 func (idx *Index) GetReducedMetadata(target string, isDir bool) (*iteminfo.FileInfo, bool) {
-	// Quick nil check without mutex - db pointer is set once at init and never changes
-	if idx.db == nil {
-		return nil, false
-	}
 
 	checkPath := idx.MakeIndexPath(target, isDir)
 
@@ -206,10 +143,6 @@ func (idx *Index) GetReducedMetadata(target string, isDir bool) (*iteminfo.FileI
 
 // raw directory info retrieval -- does not work on files, only returns a directory
 func (idx *Index) GetMetadataInfo(target string, isDir bool) (*iteminfo.FileInfo, bool) {
-	// Quick nil check without mutex - db pointer is set once at init and never changes
-	if idx.db == nil {
-		return nil, false
-	}
 
 	var checkDir string
 	if !isDir {
@@ -229,11 +162,16 @@ func (idx *Index) GetMetadataInfo(target string, isDir bool) (*iteminfo.FileInfo
 		return nil, false
 	}
 
-	// If not found in DB, check if it's in the batch and flush if needed
+	// If not found in DB, check if we have pending batch items and flush everything
+	// Flushing everything releases memory sooner and is simpler than selective flushing
 	if dir == nil {
-		// Check if this path is in the batch - if so, flush it so we can read it
-		flushed := idx.flushPathFromBatch(checkDir)
-		if flushed {
+		idx.mu.Lock()
+		hasBatchItems := len(idx.batchItems) > 0
+		idx.mu.Unlock()
+
+		if hasBatchItems {
+			// Flush entire batch to release memory and make data available
+			idx.flushBatch()
 			// Try again after flush
 			dir, err = idx.db.GetItem(idx.Name, checkDir)
 			if err != nil || dir == nil {
@@ -295,9 +233,6 @@ func (idx *Index) ReadOnlyOperation(fn func()) {
 
 // IterateFiles iterates over all files in the index and calls the callback function
 func (idx *Index) IterateFiles(fn func(path, name string, size, modTime int64)) error {
-	if idx.db == nil {
-		return nil
-	}
 	rows, err := idx.db.Query("SELECT path, name, size, mod_time FROM index_items WHERE source = ? AND is_dir = 0", idx.Name)
 	if err != nil {
 		return err
