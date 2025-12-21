@@ -138,7 +138,9 @@ func (s *Scanner) runRootScan(quick bool) {
 	s.idx.flushBatch()
 
 	if !quick {
-		s.purgeStaleEntries()
+		// Root scanner is non-recursive, so it should NOT purge entries
+		// from subdirectories (those are managed by child scanners)
+		// Only sync stats after full scans
 		s.syncStatsWithDB()
 	}
 	scanDuration := int(time.Since(startTime).Seconds())
@@ -408,5 +410,9 @@ func (s *Scanner) purgeStaleEntries() {
 	}
 	if deletedCount > 0 {
 		logger.Debugf("[DB_MAINTENANCE] Purged %d stale entries for scan path: %s", deletedCount, s.scanPath)
+	}
+	// Log warning if unexpectedly high number of deletions (may indicate a problem)
+	if deletedCount > 10000 {
+		logger.Warningf("[DB_MAINTENANCE] high purge count (%d) for %s", deletedCount, s.scanPath)
 	}
 }
