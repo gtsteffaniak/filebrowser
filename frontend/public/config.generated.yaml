@@ -95,8 +95,8 @@ frontend:
   externalLinks:
     - text: "(untracked)"                 # the text to display on the link  validate:required
       title: "untracked"                  # the title to display on hover
-    - text: "\u200B"                      # A zero-width space ensures an empty line appears for external links in the frontend.
-      title: ""          
+    #- text: "\u200B"                      # A zero-width space ensures an empty line appears for external links in the frontend.
+    #  title: ""          
       title: "Filebrowser releases"
       url: "https://github.com/gtsteffaniak/filebrowser/releases/" # the url to link to  validate:required
     - text: "Help"                        # the text to display on the link  validate:required
