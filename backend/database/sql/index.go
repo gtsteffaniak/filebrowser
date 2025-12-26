@@ -351,6 +351,9 @@ func (db *IndexDB) GetDirectoryChildren(source, dirPath string) ([]*iteminfo.Fil
 func (db *IndexDB) DeleteItem(source, path string, recursive bool) error {
 	if !recursive {
 		_, err := db.Exec("DELETE FROM index_items WHERE source = ? AND path = ?", source, path)
+		if err == nil {
+			db.invalidateCache()
+		}
 		return err
 	}
 
@@ -369,7 +372,25 @@ func (db *IndexDB) DeleteItem(source, path string, recursive bool) error {
 
 	// Delete children
 	_, err := db.Exec("DELETE FROM index_items WHERE source = ? AND path GLOB ?", source, dirPrefix+"*")
+	if err == nil {
+		// Invalidate SQLite page cache after recursive deletion to prevent memory leaks
+		// This is especially important for recursive deletes which can affect many pages
+		db.invalidateCache()
+	}
 	return err
+}
+
+// invalidateCache helps prevent SQLite page cache memory leaks by shrinking memory
+// after deletions. This is called after DeleteItem operations to ensure stale
+// page cache entries don't accumulate.
+func (db *IndexDB) invalidateCache() {
+	// PRAGMA shrink_memory forces SQLite to free as much memory as possible
+	// This helps clear page cache entries for deleted data
+	_, err := db.Exec("PRAGMA shrink_memory")
+	if err != nil {
+		// Non-fatal: cache invalidation failure doesn't break functionality
+		logger.Debugf("[SQLITE_CACHE] Failed to shrink memory after deletion: %v", err)
+	}
 }
 
 // UpdateCacheSize updates the SQLite cache size at runtime.
@@ -415,7 +436,9 @@ func (db *IndexDB) DeleteStaleEntries(source string, pathPrefix string, scanStar
 	return int(rowsAffected), nil
 }
 
-func (db *IndexDB) GetRecursiveCount(source string, pathPrefix string) (dirs uint64, files uint64, error error) {
+// GetRecursiveCount counts directories and files recursively for a child scanner
+func (db *IndexDB) GetRecursiveCount(source string, pathPrefix string) (dirs uint64, files uint64, err error) {
+	// Child scanner: count both directories and files recursively
 	query := `
 	SELECT 
 		SUM(CASE WHEN is_dir = 1 THEN 1 ELSE 0 END) as dir_count,
@@ -425,9 +448,8 @@ func (db *IndexDB) GetRecursiveCount(source string, pathPrefix string) (dirs uin
 	`
 
 	globPattern := pathPrefix + "*"
-
 	var dirCount, fileCount sql.NullInt64
-	err := db.QueryRow(query, source, globPattern).Scan(&dirCount, &fileCount)
+	err = db.QueryRow(query, source, globPattern).Scan(&dirCount, &fileCount)
 	if err != nil {
 		if isBusyError(err) || isTransactionError(err) {
 			return 0, 0, nil
@@ -438,6 +460,32 @@ func (db *IndexDB) GetRecursiveCount(source string, pathPrefix string) (dirs uin
 	return uint64(dirCount.Int64), uint64(fileCount.Int64), nil
 }
 
+// GetDirectFileCount counts only files directly under the given path (non-recursive)
+// For root scanner ("/"), this counts files like "/filename" but excludes "/subdir/filename"
+func (db *IndexDB) GetDirectFileCount(source string, pathPrefix string) (files uint64, err error) {
+	query := `
+	SELECT 
+		SUM(CASE WHEN is_dir = 0 THEN 1 ELSE 0 END) as file_count
+	FROM index_items 
+	WHERE source = ? AND path LIKE ? AND path NOT LIKE ? AND is_dir = 0
+	`
+
+	// Match paths like "/filename" but exclude "/subdir/filename"
+	directFilePattern := pathPrefix + "_%"
+	subdirPattern := pathPrefix + "_%/_%"
+
+	var fileCount sql.NullInt64
+	err = db.QueryRow(query, source, directFilePattern, subdirPattern).Scan(&fileCount)
+	if err != nil {
+		if isBusyError(err) || isTransactionError(err) {
+			return 0, nil
+		}
+		return 0, err
+	}
+
+	return uint64(fileCount.Int64), nil
+}
+
 func (db *IndexDB) UpdateDirectorySize(source string, path string, newSize int64) error {
 	query := `UPDATE index_items SET size = ? WHERE source = ? AND path = ?`
 	_, err := db.Exec(query, newSize, source, path)
@@ -445,6 +493,29 @@ func (db *IndexDB) UpdateDirectorySize(source string, path string, newSize int64
 		logger.Errorf("UpdateDirectorySize failed for source=%s path=%s: %v", source, path, err)
 	}
 	return err
+}
+
+// UpdateDirectorySizeIfStale updates directory size only if the directory wasn't modified during the scan.
+func (db *IndexDB) UpdateDirectorySizeIfStale(source string, path string, newSize int64, scanStartTime int64) (bool, error) {
+	if scanStartTime == 0 {
+		// No scan start time provided, always update (backward compatibility)
+		return true, db.UpdateDirectorySize(source, path, newSize)
+	}
+
+	// Only update if last_updated < scanStartTime (directory wasn't modified during scan)
+	query := `UPDATE index_items 
+		SET size = ?, last_updated = ? 
+		WHERE source = ? AND path = ? AND last_updated < ?`
+	nowUnix := time.Now().Unix()
+	result, err := db.Exec(query, newSize, nowUnix, source, path, scanStartTime)
+	if err != nil && !isBusyError(err) && !isTransactionError(err) {
+		logger.Errorf("UpdateDirectorySizeIfStale failed for source=%s path=%s: %v", source, path, err)
+		return false, err
+	}
+
+	// Check if update actually happened (directory might have been modified during scan)
+	rowsAffected, _ := result.RowsAffected()
+	return rowsAffected > 0, nil
 }
 
 // GetTypeGroupsForSize queries for file types that have 2+ files with the same size.

@@ -38,32 +38,31 @@ type actionConfig struct {
 
 // ScannerInfo is the exposed scanner information for the client
 type ScannerInfo struct {
-	Path            string    `json:"path"`
-	IsRoot          bool      `json:"isRoot"`
-	LastScanned     time.Time `json:"lastScanned"`
-	Complexity      uint      `json:"complexity"` // 0-10 scale: 0=unknown, 1=simple, 2-6=normal, 7-9=complex, 10=highlyComplex
-	CurrentSchedule int       `json:"currentSchedule"`
-	QuickScanTime   int       `json:"quickScanTime"`
-	FullScanTime    int       `json:"fullScanTime"`
+	Stats
+	Path            string `json:"path"`
+	IsRoot          bool   `json:"isRoot"`
+	CurrentSchedule int    `json:"currentSchedule"`
+}
+
+type Stats struct {
 	NumDirs         uint64    `json:"numDirs"`
 	NumFiles        uint64    `json:"numFiles"`
+	NumDeleted      uint64    `json:"numDeleted"`
+	QuickScanTime   int       `json:"quickScanDurationSeconds"`
+	FullScanTime    int       `json:"fullScanDurationSeconds"`
+	LastIndexedUnix int64     `json:"lastIndexedUnixTime"`
+	Complexity      uint      `json:"complexity"`
+	LastScanned     time.Time `json:"lastScanned"`
+	DiskUsed        uint64    `json:"used"`
 }
 
 // reduced index is json exposed to the client
 type ReducedIndex struct {
-	IdxName         string         `json:"name"`
-	DiskUsed        uint64         `json:"used"`
-	DiskTotal       uint64         `json:"total"`
-	Status          IndexStatus    `json:"status"`
-	NumDirs         uint64         `json:"numDirs"`
-	NumFiles        uint64         `json:"numFiles"`
-	NumDeleted      uint64         `json:"numDeleted"`
-	LastIndexed     time.Time      `json:"-"`
-	LastIndexedUnix int64          `json:"lastIndexedUnixTime"`
-	QuickScanTime   int            `json:"quickScanDurationSeconds"`
-	FullScanTime    int            `json:"fullScanDurationSeconds"`
-	Complexity      uint           `json:"complexity"` // 0-10 scale
-	Scanners        []*ScannerInfo `json:"scanners,omitempty"`
+	Stats
+	IdxName   string         `json:"name"`
+	DiskTotal uint64         `json:"total"`
+	Status    IndexStatus    `json:"status"`
+	Scanners  []*ScannerInfo `json:"scanners,omitempty"`
 }
 
 type Index struct {
@@ -74,11 +73,20 @@ type Index struct {
 	processedInodes   map[uint64]struct{}
 	totalSize         uint64
 	previousTotalSize uint64               // Track previous totalSize for change detection
+	previousNumDirs   uint64               // Track previous NumDirs to use when scan in progress (computed value is 0)
+	previousNumFiles  uint64               // Track previous NumFiles to use when scan in progress (computed value is 0)
 	batchItems        []*iteminfo.FileInfo // Accumulates items during a scan for bulk insert
 	scanners          map[string]*Scanner  // path -> scanner
-	scanMutex         sync.Mutex           // Global scan mutex - only one scanner runs at a time
+	scanMutex         sync.Mutex           // DEPRECATED: No longer used - SQLite handles concurrency with EXCLUSIVE mode
 	mock              bool
 	mu                sync.RWMutex
+	// Delayed parent size updates: accumulate deltas and batch update after 1 second of inactivity
+	pendingParentSizeDeltas map[string]int64 // path -> accumulated delta
+	parentSizeFlushTimer    *time.Timer      // Timer to trigger batch flush
+	parentSizeFlushMutex    sync.Mutex       // Mutex for parent size flush operations
+	// Scan session tracking: timestamp when scan session started (for timestamp-based conflict detection)
+	scanSessionStartTime int64           // Unix timestamp when current scan session started (0 if no active scan)
+	scanUpdatedPaths     map[string]bool // Tracks directories updated by the scan (to distinguish from API updates)
 }
 
 var (
@@ -105,6 +113,165 @@ var omitList = map[string]bool{
 
 func init() {
 	indexes = make(map[string]*Index)
+}
+
+// GetNumDirs calculates the total number of directories by summing all scanner values
+func (idx *Index) GetNumDirs() uint64 {
+	idx.mu.RLock()
+	defer idx.mu.RUnlock()
+	current := idx.getNumDirsUnlocked()
+	if current == 0 {
+		current = idx.previousNumDirs
+	}
+	return current
+}
+
+// getNumDirsUnlocked calculates NumDirs without acquiring lock (assumes lock is already held)
+func (idx *Index) getNumDirsUnlocked() uint64 {
+	var totalDirs uint64 = 0
+	for _, scanner := range idx.scanners {
+		totalDirs += scanner.numDirs
+	}
+	return totalDirs
+}
+
+// GetNumFiles calculates the total number of files by summing all scanner values.
+func (idx *Index) GetNumFiles() uint64 {
+	idx.mu.RLock()
+	defer idx.mu.RUnlock()
+	current := idx.getNumFilesUnlocked()
+	// If computed value is 0 (scan in progress), use previous non-zero value
+	if current == 0 && idx.previousNumFiles > 0 {
+		return idx.previousNumFiles
+	}
+	return current
+}
+
+// getNumFilesUnlocked calculates NumFiles without acquiring lock (assumes lock is already held)
+func (idx *Index) getNumFilesUnlocked() uint64 {
+	var totalFiles uint64 = 0
+	for _, scanner := range idx.scanners {
+		totalFiles += scanner.numFiles
+	}
+	return totalFiles
+}
+
+// GetQuickScanTime calculates the total quick scan time by summing all scanner values
+func (idx *Index) GetQuickScanTime() int {
+	idx.mu.RLock()
+	defer idx.mu.RUnlock()
+	return idx.getQuickScanTimeUnlocked()
+}
+
+// getQuickScanTimeUnlocked calculates QuickScanTime without acquiring lock (assumes lock is already held)
+func (idx *Index) getQuickScanTimeUnlocked() int {
+	var total int = 0
+	for _, scanner := range idx.scanners {
+		total += scanner.quickScanTime
+	}
+	return total
+}
+
+// GetFullScanTime calculates the total full scan time by summing all scanner values
+func (idx *Index) GetFullScanTime() int {
+	idx.mu.RLock()
+	defer idx.mu.RUnlock()
+	return idx.getFullScanTimeUnlocked()
+}
+
+// getFullScanTimeUnlocked calculates FullScanTime without acquiring lock (assumes lock is already held)
+func (idx *Index) getFullScanTimeUnlocked() int {
+	var total int = 0
+	for _, scanner := range idx.scanners {
+		total += scanner.fullScanTime
+	}
+	return total
+}
+
+// GetComplexity calculates the complexity based on full scan time and number of directories
+func (idx *Index) GetComplexity() uint {
+	idx.mu.RLock()
+	defer idx.mu.RUnlock()
+	return idx.getComplexityUnlocked()
+}
+
+// getComplexityUnlocked calculates Complexity without acquiring lock (assumes lock is already held)
+func (idx *Index) getComplexityUnlocked() uint {
+	if len(idx.scanners) == 0 {
+		return 0
+	}
+
+	allScannedAtLeastOnce := true
+	for _, scanner := range idx.scanners {
+		if scanner.lastScanned.IsZero() {
+			allScannedAtLeastOnce = false
+			break
+		}
+	}
+
+	if !allScannedAtLeastOnce {
+		return 0
+	}
+
+	totalFullScanTime := idx.getFullScanTimeUnlocked()
+	totalDirs := idx.getNumDirsUnlocked()
+	return calculateComplexity(totalFullScanTime, totalDirs)
+}
+
+// GetLastIndexed returns the most recent scan time from all scanners
+func (idx *Index) GetLastIndexed() time.Time {
+	idx.mu.RLock()
+	defer idx.mu.RUnlock()
+	return idx.getLastIndexedUnlocked()
+}
+
+// getLastIndexedUnlocked calculates LastIndexed without acquiring lock (assumes lock is already held)
+func (idx *Index) getLastIndexedUnlocked() time.Time {
+	var mostRecentScan time.Time
+	for _, scanner := range idx.scanners {
+		if scanner.lastScanned.After(mostRecentScan) {
+			mostRecentScan = scanner.lastScanned
+		}
+	}
+	return mostRecentScan
+}
+
+// GetStatus returns the computed status based on scanner state, or UNAVAILABLE if explicitly set
+func (idx *Index) GetStatus() IndexStatus {
+	idx.mu.RLock()
+	defer idx.mu.RUnlock()
+	return idx.getStatusUnlocked()
+}
+
+// getStatusUnlocked calculates Status without acquiring lock (assumes lock is already held)
+func (idx *Index) getStatusUnlocked() IndexStatus {
+	if idx.Status == UNAVAILABLE {
+		return UNAVAILABLE
+	}
+
+	if len(idx.scanners) == 0 {
+		return idx.Status // Return current status if no scanners
+	}
+
+	allScannedAtLeastOnce := true
+	anyScannerActive := false
+
+	for _, scanner := range idx.scanners {
+		if scanner.lastScanned.IsZero() {
+			allScannedAtLeastOnce = false
+		}
+		if scanner.isScanning {
+			anyScannerActive = true
+		}
+	}
+
+	if anyScannerActive || idx.getActiveScannerPathUnlocked() != "" {
+		return INDEXING
+	} else if allScannedAtLeastOnce {
+		return READY
+	}
+
+	return idx.Status
 }
 
 // InitializeIndexDB creates the shared index database for all sources.
@@ -144,12 +311,8 @@ func calculateTotalComplexity() uint {
 
 	var totalComplexity uint = 0
 	for _, idx := range indexes {
-		idx.mu.RLock()
-		// Only count complexity if index has been scanned at least once
-		if idx.Complexity > 0 {
-			totalComplexity += idx.Complexity
-		}
-		idx.mu.RUnlock()
+		complexity := idx.GetComplexity()
+		totalComplexity += complexity
 	}
 	return totalComplexity
 }
@@ -177,17 +340,21 @@ func Initialize(source *settings.Source, mock bool) {
 	}
 
 	newIndex := Index{
-		mock:            mock,
-		Source:          *source,
-		db:              indexDB, // Use shared database
-		processedInodes: make(map[uint64]struct{}),
-		FoundHardLinks:  make(map[string]uint64),
-		batchItems:      nil, // Don't initialize batch for direct use - only scanners do this
+		mock:                    mock,
+		Source:                  *source,
+		db:                      indexDB, // Use shared database
+		processedInodes:         make(map[uint64]struct{}),
+		FoundHardLinks:          make(map[string]uint64),
+		batchItems:              nil, // Don't initialize batch for direct use - only scanners do this
+		pendingParentSizeDeltas: make(map[string]int64),
+		scanUpdatedPaths:        make(map[string]bool),
 	}
 	newIndex.ReducedIndex = ReducedIndex{
-		Status:     "indexing",
-		IdxName:    source.Name,
-		Complexity: 0, // 0 = unknown until first scan completes
+		Status:  "indexing",
+		IdxName: source.Name,
+		Stats: Stats{
+			Complexity: 0,
+		},
 	}
 	indexes[newIndex.Name] = &newIndex
 	indexesMutex.Unlock()
@@ -202,6 +369,8 @@ func Initialize(source *settings.Source, mock bool) {
 }
 
 // Define a function to recursively index files and directories
+// Returns the total size of the directory and whether it has a preview
+// Size is calculated in-memory during recursive traversal to avoid expensive SQL queries
 func (idx *Index) indexDirectory(adjustedPath string, config actionConfig) (int64, bool, error) {
 	// Normalize path to always have trailing slash
 	adjustedPath = utils.AddTrailingSlashIfNotExists(adjustedPath)
@@ -231,10 +400,7 @@ func (idx *Index) indexDirectory(adjustedPath string, config actionConfig) (int6
 	if err2 != nil {
 		return 0, false, err2
 	}
-	// Update the current directory metadata in the index
 	idx.UpdateMetadata(dirFileInfo)
-
-	// Return the calculated size and hasPreview for this directory
 	return dirFileInfo.Size, dirFileInfo.HasPreview, nil
 }
 
@@ -349,7 +515,7 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 
 		if isDir {
 			dirPath := combinedPath + file.Name()
-			if !idx.LastIndexed.IsZero() && config.Recursive && idx.Config.ResolvedConditionals != nil {
+			if !idx.GetLastIndexed().IsZero() && config.Recursive && idx.Config.ResolvedConditionals != nil {
 				if _, exists := idx.Config.ResolvedConditionals.NeverWatchPaths[fullCombined]; exists {
 					continue
 				}
@@ -385,8 +551,7 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 			totalSize += itemInfo.Size
 			itemInfo.Type = "directory"
 			dirInfos = append(dirInfos, *itemInfo)
-			if config.IsRoutineScan {
-				idx.NumDirs++
+			if config.Recursive && config.IsRoutineScan {
 				idx.incrementScannerDirs()
 			}
 		} else {
@@ -420,7 +585,7 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 				totalSize += itemInfo.Size
 			}
 			if config.IsRoutineScan {
-				idx.NumFiles++
+				// Only increment scanner counter, not index-level (which is calculated)
 				idx.incrementScannerFiles()
 			}
 		}
@@ -441,15 +606,8 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 		HasPreview: hasPreview,
 	}
 	dirFileInfo.SortItems()
-	return dirFileInfo, nil
-}
 
-func (idx *Index) RecursiveUpdateDirSizes(childInfo *iteminfo.FileInfo, previousSize int64) {
-	sizeDelta := childInfo.Size - previousSize
-	if sizeDelta == 0 {
-		return
-	}
-	idx.updateParentDirSizesBatched(childInfo.Path, sizeDelta)
+	return dirFileInfo, nil
 }
 
 func (idx *Index) GetRealPath(relativePath ...string) (string, bool, error) {
@@ -477,11 +635,17 @@ func (idx *Index) RefreshFileInfo(opts utils.FileOptions) error {
 	if !opts.IsDir {
 		targetPath = idx.MakeIndexPath(filepath.Dir(targetPath), true)
 	}
+	logger.Debugf("[REFRESH] RefreshFileInfo called for %s (IsDir=%v, Recursive=%v)", targetPath, opts.IsDir, opts.Recursive)
 
 	previousInfo, previousExists := idx.GetMetadataInfo(targetPath, true)
+	var previousSize int64
+	if previousExists {
+		previousSize = previousInfo.Size
+	}
 
 	realPath, _, err := idx.GetRealPath(targetPath)
 	if err != nil {
+		logger.Errorf("[REFRESH] Failed to get real path for %s: %v", targetPath, err)
 		return err
 	}
 
@@ -491,25 +655,18 @@ func (idx *Index) RefreshFileInfo(opts utils.FileOptions) error {
 		idx.DeleteMetadata(targetPath, true, false)
 		return nil
 	}
-	var previousSize int64
-	if previousExists {
-		previousSize = previousInfo.Size
-	}
 
-	// With EXCLUSIVE locking, we don't need long waits
-	acquired := idx.tryAcquireScanMutex(100 * time.Millisecond)
-	if !acquired {
-		logger.Debugf("[REFRESH] Scanner is running, skipping index update for %s", targetPath)
-		return nil
-	}
-	defer idx.scanMutex.Unlock()
+	// RefreshFileInfo no longer needs the scan mutex - we use timestamp-based conflict detection
+	// This allows API requests to work during scans without waiting
+	// The timestamp check in UpdateDirectorySizeIfStale will prevent overwriting scan updates
 
 	config := actionConfig{
 		Quick:     true,
 		Recursive: opts.Recursive,
 	}
-	_, _, err = idx.indexDirectory(targetPath, config)
+	newSize, _, err := idx.indexDirectory(targetPath, config)
 	if err != nil {
+		logger.Errorf("[REFRESH] indexDirectory failed for %s: %v", targetPath, err)
 		return err
 	}
 
@@ -518,10 +675,67 @@ func (idx *Index) RefreshFileInfo(opts utils.FileOptions) error {
 		return nil
 	}
 
-	// Only update parent sizes if there's an actual change
 	sizeDelta := newInfo.Size - previousSize
+
+	// CRITICAL: Check if calculated size matches DB size - if not, there's a race condition
+	if newSize != newInfo.Size {
+		logger.Errorf("[REFRESH] RACE CONDITION DETECTED for %s: calculated size (%d) != DB size (%d)",
+			targetPath, newSize, newInfo.Size)
+	}
+
 	if sizeDelta != 0 {
-		idx.updateParentDirSizesBatched(targetPath, sizeDelta)
+		if opts.IsDir {
+			// Directory operations: update parent sizes immediately
+			// For deletions (negative delta), verify the delta won't cause negative parent sizes
+			if sizeDelta < 0 {
+				// Check if any parent would go negative - if so, recalculate instead
+				parentPaths := []string{}
+				currentPath := targetPath
+				for {
+					parentDir := utils.GetParentDirectoryPath(currentPath)
+					if parentDir == "" {
+						break
+					}
+					if parentDir != "/" {
+						parentDir = utils.AddTrailingSlashIfNotExists(parentDir)
+					}
+					parentPaths = append(parentPaths, parentDir)
+					if parentDir == "/" {
+						break
+					}
+					currentPath = parentDir
+				}
+
+				// Quick check: if any parent size would go negative, recalculate from filesystem
+				// Recalculate from the immediate parent up to ensure child sizes are accurate
+				parentInfos, err := idx.db.GetItemsByPaths(idx.Name, parentPaths)
+				if err == nil {
+					// Check parents from deepest to shallowest (reverse order)
+					for i := len(parentPaths) - 1; i >= 0; i-- {
+						path := parentPaths[i]
+						if info, exists := parentInfos[path]; exists {
+							if info.Size+sizeDelta < 0 {
+								logger.Warningf("[REFRESH] Deletion would cause negative size for parent %s (%d + %d). Recalculating from filesystem.",
+									path, info.Size, sizeDelta)
+								// Recalculate parent recursively to ensure child directory sizes are accurate
+								// This is critical when multiple deletions happen rapidly
+								parentOpts := utils.FileOptions{Path: path, IsDir: true, Recursive: true}
+								if err := idx.RefreshFileInfo(parentOpts); err != nil {
+									logger.Errorf("[REFRESH] Failed to recalculate parent %s: %v", path, err)
+								}
+								return nil // Skip delta-based update, recalculation handled it
+							}
+						}
+					}
+				}
+			}
+
+			idx.updateParentDirSizesBatched(targetPath, sizeDelta)
+		} else {
+			// File operations: schedule delayed batch update to handle rapid-fire uploads
+			// This accumulates parent size deltas and flushes them after 1 second of inactivity
+			idx.scheduleDelayedParentSizeUpdate(targetPath, sizeDelta)
+		}
 	}
 
 	return nil
@@ -531,7 +745,24 @@ func (idx *Index) RefreshFileInfo(opts utils.FileOptions) error {
 // This queries all parent paths from the database, updates their sizes, and batch updates them.
 func (idx *Index) updateParentDirSizesBatched(startPath string, sizeDelta int64) {
 	if sizeDelta == 0 {
+		logger.Debugf("[PARENT_SIZE] Skipping update: sizeDelta is 0 for %s", startPath)
 		return
+	}
+
+	logger.Infof("[PARENT_SIZE] Starting parent size update for %s with delta=%d", startPath, sizeDelta)
+
+	// Check batch state before updating parent sizes
+	idx.mu.RLock()
+	hasBatchItems := idx.batchItems != nil && len(idx.batchItems) > 0
+	batchSize := 0
+	if hasBatchItems {
+		batchSize = len(idx.batchItems)
+	}
+	idx.mu.RUnlock()
+
+	if hasBatchItems {
+		logger.Warningf("[PARENT_SIZE] WARNING: Batch items exist (%d items) when updating parent sizes for %s - may read stale data!",
+			batchSize, startPath)
 	}
 
 	parentPaths := []string{}
@@ -553,8 +784,11 @@ func (idx *Index) updateParentDirSizesBatched(startPath string, sizeDelta int64)
 	}
 
 	if len(parentPaths) == 0 {
+		logger.Debugf("[PARENT_SIZE] No parent paths found for %s", startPath)
 		return
 	}
+
+	logger.Debugf("[PARENT_SIZE] Found %d parent paths to update: %v", len(parentPaths), parentPaths)
 
 	// Query all parent directories from database in a single query
 	parentInfos, err := idx.db.GetItemsByPaths(idx.Name, parentPaths)
@@ -567,19 +801,151 @@ func (idx *Index) updateParentDirSizesBatched(startPath string, sizeDelta int64)
 	// Only include paths that actually exist in the database
 	pathSizeUpdates := make(map[string]int64)
 	for _, path := range parentPaths {
-		if _, exists := parentInfos[path]; exists {
+		if info, exists := parentInfos[path]; exists {
+			oldSize := info.Size
+			newSize := oldSize + sizeDelta
+
+			// CRITICAL: Prevent negative sizes which indicate a race condition or stale data
+			// If the delta would result in a negative size, log a warning and skip the update
+			// The next refresh will recalculate the correct size from the filesystem
+			if newSize < 0 {
+				logger.Warningf("[PARENT_SIZE] RACE CONDITION: Would set %s to negative size (%d + %d = %d). Skipping update - will be corrected on next refresh.",
+					path, oldSize, sizeDelta, newSize)
+				continue
+			}
+
 			pathSizeUpdates[path] = sizeDelta
+			logger.Debugf("[PARENT_SIZE] Will update %s: %d -> %d (delta=%d)",
+				path, oldSize, newSize, sizeDelta)
+		} else {
+			logger.Debugf("[PARENT_SIZE] Parent path %s not found in database, skipping", path)
 		}
 	}
 
 	if len(pathSizeUpdates) == 0 {
+		logger.Warningf("[PARENT_SIZE] No parent paths found in database to update for %s", startPath)
 		return
 	}
 
+	logger.Infof("[PARENT_SIZE] Batch updating %d parent directory sizes", len(pathSizeUpdates))
 	// Batch update all parent sizes in a single transaction
 	err = idx.db.BulkUpdateSizes(idx.Name, pathSizeUpdates)
 	if err != nil {
 		logger.Errorf("[PARENT_SIZE] Failed to batch update parent directory sizes: %v", err)
+	} else {
+		logger.Debugf("[PARENT_SIZE] Successfully updated %d parent directory sizes", len(pathSizeUpdates))
+	}
+}
+
+// scheduleDelayedParentSizeUpdate accumulates parent size deltas and schedules a batch update
+// after 1 second of inactivity. This prevents rapid-fire updates during bulk file operations.
+func (idx *Index) scheduleDelayedParentSizeUpdate(startPath string, sizeDelta int64) {
+	if sizeDelta == 0 {
+		return
+	}
+
+	idx.parentSizeFlushMutex.Lock()
+	defer idx.parentSizeFlushMutex.Unlock()
+
+	// Get all parent paths for this path
+	parentPaths := []string{}
+	currentPath := startPath
+	for {
+		parentDir := utils.GetParentDirectoryPath(currentPath)
+		if parentDir == "" {
+			break
+		}
+		if parentDir != "/" {
+			parentDir = utils.AddTrailingSlashIfNotExists(parentDir)
+		}
+		parentPaths = append(parentPaths, parentDir)
+		if parentDir == "/" {
+			break
+		}
+		currentPath = parentDir
+	}
+
+	// Accumulate deltas for each parent path
+	for _, path := range parentPaths {
+		idx.pendingParentSizeDeltas[path] += sizeDelta
+	}
+
+	// Reset the timer - if it's already running, it will be stopped and a new one started
+	if idx.parentSizeFlushTimer != nil {
+		idx.parentSizeFlushTimer.Stop()
+	}
+
+	// Schedule flush after 1 second of inactivity
+	idx.parentSizeFlushTimer = time.AfterFunc(1*time.Second, func() {
+		idx.flushPendingParentSizeUpdates()
+	})
+}
+
+// FlushPendingParentSizeUpdates flushes any accumulated parent size updates immediately.
+// This should be called before scans to ensure data consistency.
+func (idx *Index) FlushPendingParentSizeUpdates() {
+	idx.flushPendingParentSizeUpdates()
+}
+
+// flushPendingParentSizeUpdates applies all accumulated parent size deltas in a single batch operation
+func (idx *Index) flushPendingParentSizeUpdates() {
+	idx.parentSizeFlushMutex.Lock()
+	defer idx.parentSizeFlushMutex.Unlock()
+
+	if len(idx.pendingParentSizeDeltas) == 0 {
+		return
+	}
+
+	// Get all paths that need updating
+	pathsToUpdate := make([]string, 0, len(idx.pendingParentSizeDeltas))
+	for path := range idx.pendingParentSizeDeltas {
+		pathsToUpdate = append(pathsToUpdate, path)
+	}
+
+	// Query all parent directories from database in a single query
+	parentInfos, err := idx.db.GetItemsByPaths(idx.Name, pathsToUpdate)
+	if err != nil {
+		logger.Errorf("[PARENT_SIZE] Failed to query parent directories for batch update: %v", err)
+		// Clear pending deltas on error to prevent accumulation
+		idx.pendingParentSizeDeltas = make(map[string]int64)
+		return
+	}
+
+	// Build map of path -> size delta for batch update
+	// Only include paths that actually exist in the database
+	pathSizeUpdates := make(map[string]int64)
+	for path, delta := range idx.pendingParentSizeDeltas {
+		if info, exists := parentInfos[path]; exists {
+			newSize := info.Size + delta
+			// Prevent negative sizes
+			if newSize < 0 {
+				logger.Warningf("[PARENT_SIZE] Skipping update for %s: would result in negative size (%d + %d)",
+					path, info.Size, delta)
+				continue
+			}
+			pathSizeUpdates[path] = delta
+			logger.Debugf("[PARENT_SIZE] Will update %s: %d -> %d (delta=%d)",
+				path, info.Size, newSize, delta)
+		} else {
+			logger.Debugf("[PARENT_SIZE] Parent path %s not found in database, skipping", path)
+		}
+	}
+
+	// Clear pending deltas before DB operation
+	idx.pendingParentSizeDeltas = make(map[string]int64)
+
+	if len(pathSizeUpdates) == 0 {
+		logger.Debugf("[PARENT_SIZE] No valid parent paths to update in batch flush")
+		return
+	}
+
+	// Batch update all parent sizes in a single transaction
+	logger.Infof("[PARENT_SIZE] Batch updating %d parent directory sizes (delayed flush)", len(pathSizeUpdates))
+	err = idx.db.BulkUpdateSizes(idx.Name, pathSizeUpdates)
+	if err != nil {
+		logger.Errorf("[PARENT_SIZE] Failed to batch update parent directory sizes: %v", err)
+	} else {
+		logger.Debugf("[PARENT_SIZE] Successfully batch updated %d parent directory sizes", len(pathSizeUpdates))
 	}
 }
 
@@ -852,24 +1218,4 @@ func (idx *Index) shouldInclude(baseName string) bool {
 		return true
 	}
 	return false
-}
-
-func (idx *Index) tryAcquireScanMutex(timeout time.Duration) bool {
-	lockChan := make(chan bool, 1)
-
-	go func() {
-		idx.scanMutex.Lock()
-		select {
-		case lockChan <- true:
-		default:
-			idx.scanMutex.Unlock()
-		}
-	}()
-
-	select {
-	case <-lockChan:
-		return true
-	case <-time.After(timeout):
-		return false
-	}
 }

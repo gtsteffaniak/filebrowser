@@ -235,12 +235,18 @@ func TestRecursiveSizeUpdate(t *testing.T) {
 			ModTime: time.Now(),
 		},
 	}
-	_ = idx.db.InsertItem("test", "/subdir/deepdir/file5.txt", file5)
+	err := idx.db.InsertItem("test", "/subdir/deepdir/file5.txt", file5)
+	if err != nil {
+		t.Fatalf("Failed to insert file5: %v", err)
+	}
 
 	// Update deepdir size
 	oldDeepdirSize := deepdirInfo.Size
 	deepdirInfo.Size = 900 // 400 + 500
-	_ = idx.db.InsertItem("test", "/subdir/deepdir/", deepdirInfo)
+	err = idx.db.InsertItem("test", "/subdir/deepdir/", deepdirInfo)
+	if err != nil {
+		t.Fatalf("Failed to insert deepdirInfo: %v", err)
+	}
 
 	// Simulate the recursive size update by calling the method directly
 	idx.RecursiveUpdateDirSizes(deepdirInfo, oldDeepdirSize)
