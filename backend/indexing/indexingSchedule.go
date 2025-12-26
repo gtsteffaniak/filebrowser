@@ -176,6 +176,10 @@ func (idx *Index) PostScan() error {
 	if idx.getRunningScannerCount() == 0 {
 		// All scanners completed - update root directory size and send event
 		idx.updateRootDirectorySize()
+		err := idx.db.ShrinkMemory()
+		if err != nil {
+			logger.Errorf("Failed to shrink memory: %v", err)
+		}
 
 		// Send update event to notify frontend that stats may have changed
 		if err := idx.SendSourceUpdateEvent(); err != nil {

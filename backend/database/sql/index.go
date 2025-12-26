@@ -351,9 +351,6 @@ func (db *IndexDB) GetDirectoryChildren(source, dirPath string) ([]*iteminfo.Fil
 func (db *IndexDB) DeleteItem(source, path string, recursive bool) error {
 	if !recursive {
 		_, err := db.Exec("DELETE FROM index_items WHERE source = ? AND path = ?", source, path)
-		if err == nil {
-			db.invalidateCache()
-		}
 		return err
 	}
 
@@ -372,25 +369,13 @@ func (db *IndexDB) DeleteItem(source, path string, recursive bool) error {
 
 	// Delete children
 	_, err := db.Exec("DELETE FROM index_items WHERE source = ? AND path GLOB ?", source, dirPrefix+"*")
-	if err == nil {
-		// Invalidate SQLite page cache after recursive deletion to prevent memory leaks
-		// This is especially important for recursive deletes which can affect many pages
-		db.invalidateCache()
-	}
 	return err
 }
 
-// invalidateCache helps prevent SQLite page cache memory leaks by shrinking memory
-// after deletions. This is called after DeleteItem operations to ensure stale
-// page cache entries don't accumulate.
-func (db *IndexDB) invalidateCache() {
-	// PRAGMA shrink_memory forces SQLite to free as much memory as possible
-	// This helps clear page cache entries for deleted data
+// helps prevent SQLite page cache memory leaks by shrinking memory
+func (db *IndexDB) ShrinkMemory() error {
 	_, err := db.Exec("PRAGMA shrink_memory")
-	if err != nil {
-		// Non-fatal: cache invalidation failure doesn't break functionality
-		logger.Debugf("[SQLITE_CACHE] Failed to shrink memory after deletion: %v", err)
-	}
+	return err
 }
 
 // UpdateCacheSize updates the SQLite cache size at runtime.
