@@ -3,6 +3,7 @@ package indexing
 import (
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
@@ -31,6 +32,7 @@ type Scanner struct {
 	idx *Index
 
 	stopChan chan struct{}
+	stopOnce sync.Once // Ensures stopChan is only closed once
 }
 
 // start begins the scanner's main loop
@@ -82,7 +84,10 @@ func (s *Scanner) tryAcquireAndScan() {
 		}
 	}()
 
-	s.idx.scanMutex.Lock()
+	// Flush any pending parent size updates before starting scan to ensure data consistency
+	// No need for scanMutex - SQLite handles concurrent access with its own locking
+	s.idx.FlushPendingParentSizeUpdates()
+
 	quick := s.fullScanCounter > 0 && s.fullScanCounter < 5
 	s.fullScanCounter++
 	if s.fullScanCounter >= 5 {
@@ -91,7 +96,6 @@ func (s *Scanner) tryAcquireAndScan() {
 
 	s.runIndexing(quick)
 	s.updateSchedule()
-	s.idx.scanMutex.Unlock()
 }
 
 // runIndexing performs the actual indexing work
@@ -117,6 +121,10 @@ func (s *Scanner) runRootScan(quick bool) {
 		s.numFiles = 0
 		s.scanStartTime = time.Now().Unix()
 		s.idx.mu.Lock()
+		// Set scan session start time if this is the first full scan in the session
+		if s.idx.scanSessionStartTime == 0 {
+			s.idx.scanSessionStartTime = s.scanStartTime
+		}
 		s.idx.processedInodes = make(map[uint64]struct{})
 		s.idx.FoundHardLinks = make(map[string]uint64)
 		s.idx.mu.Unlock()
@@ -127,6 +135,8 @@ func (s *Scanner) runRootScan(quick bool) {
 	s.idx.batchItems = make([]*iteminfo.FileInfo, 0, batchSize)
 	s.idx.mu.Unlock()
 
+	logger.Infof("[SCANNER] Root scanner starting batch mode (batchSize=%d, quick=%v)", batchSize, quick)
+
 	s.filesChanged = false
 	startTime := time.Now()
 
@@ -136,6 +146,7 @@ func (s *Scanner) runRootScan(quick bool) {
 	}
 
 	s.idx.flushBatch()
+	logger.Debugf("[SCANNER] Root scanner batch mode ended")
 
 	if !quick {
 		// Root scanner is non-recursive, so it should NOT purge entries
@@ -171,6 +182,10 @@ func (s *Scanner) runChildScan(quick bool) {
 		s.numFiles = 0
 		s.scanStartTime = time.Now().Unix()
 		s.idx.mu.Lock()
+		// Set scan session start time if this is the first full scan in the session
+		if s.idx.scanSessionStartTime == 0 {
+			s.idx.scanSessionStartTime = s.scanStartTime
+		}
 		s.idx.processedInodes = make(map[uint64]struct{})
 		s.idx.FoundHardLinks = make(map[string]uint64)
 		s.idx.mu.Unlock()
@@ -183,21 +198,56 @@ func (s *Scanner) runChildScan(quick bool) {
 	s.idx.batchItems = make([]*iteminfo.FileInfo, 0, batchSize)
 	s.idx.mu.Unlock()
 
+	logger.Infof("[SCANNER] Child scanner [%s] starting batch mode (batchSize=%d, quick=%v)",
+		s.scanPath, batchSize, quick)
+
 	// indexDirectory returns the total size of this directory (including all subdirectories)
+	// For child scanners, we need to count the directory itself (1) plus any subdirectories
+	// The recursive scan counts subdirectories, but not the directory being scanned itself
+	// If a scanner exists, it means it passed all exclusion checks, so it should count itself
 	dirSize, _, err := s.idx.indexDirectory(s.scanPath, config)
 	if err != nil {
 		logger.Errorf("Scanner [%s] error: %v", s.scanPath, err)
+	} else if config.Recursive && config.IsRoutineScan {
+		// Count the directory itself (each child scanner counts itself as 1 directory)
+		// Subdirectories are already counted by the recursive scan in indexDirectory
+		s.idx.mu.Lock()
+		// Use unlocked version since we already hold the write lock
+		s.idx.incrementScannerDirsUnlocked()
+		s.idx.mu.Unlock()
 	}
 
 	s.idx.flushBatch()
+	logger.Debugf("[SCANNER] Child scanner [%s] batch mode ended", s.scanPath)
 
 	if !quick {
 		// Each scanner is responsible for updating its own directory size
-		// This eliminates the need for RecalculateDirectorySizes which was expensive
+		// This uses in-memory calculation during recursive traversal to avoid expensive SQL queries
 		// Normalize path to match database format (with trailing slash for directories)
 		normalizedPath := utils.AddTrailingSlashIfNotExists(s.scanPath)
-		if err := s.idx.db.UpdateDirectorySize(s.idx.Name, normalizedPath, dirSize); err != nil {
-			logger.Errorf("[SIZE_CALC] Failed to update directory size for %s: %v", normalizedPath, err)
+		logger.Debugf("[SCANNER] Updating directory size for %s to %d", normalizedPath, dirSize)
+
+		// Check if this directory was updated by the scan itself
+		// If so, always update (it's part of the scan). If not, use timestamp checking
+		// to avoid overwriting API updates that occurred during scan
+		s.idx.mu.RLock()
+		wasUpdatedByScan := s.idx.scanUpdatedPaths[normalizedPath]
+		scanStartTime := s.scanStartTime
+		s.idx.mu.RUnlock()
+
+		if wasUpdatedByScan {
+			// Directory was updated by the scan - always update size (no timestamp check)
+			if err := s.idx.db.UpdateDirectorySize(s.idx.Name, normalizedPath, dirSize); err != nil {
+				logger.Errorf("[SIZE_CALC] Failed to update directory size for %s: %v", normalizedPath, err)
+			}
+			// No need to log success - this is expected during scans
+		} else {
+			// Directory existed before scan - use timestamp checking to avoid overwriting API updates
+			_, err := s.idx.db.UpdateDirectorySizeIfStale(s.idx.Name, normalizedPath, dirSize, scanStartTime)
+			if err != nil {
+				logger.Errorf("[SIZE_CALC] Failed to update directory size for %s: %v", normalizedPath, err)
+			}
+			// No need to log success - this is expected during scans
 		}
 
 		s.purgeStaleEntries()
@@ -243,11 +293,14 @@ func (s *Scanner) checkForNewChildDirectories() {
 	}
 	s.idx.mu.RUnlock()
 
-	// Check for deleted directories and stop their scanners
 	for path, scanner := range existingScanners {
 		if !currentDirsMap[path] {
 			logger.Debugf("Directory [%s] no longer exists, stopping scanner", path)
 			scanner.stop()
+			// Remove from map immediately to prevent stale scanner references
+			s.idx.mu.Lock()
+			delete(s.idx.scanners, path)
+			s.idx.mu.Unlock()
 		}
 	}
 
@@ -300,7 +353,9 @@ func (s *Scanner) getTopLevelDirs() []string {
 			continue
 		}
 		hidden := isHidden(file, s.idx.Path+dirPath)
-		if s.idx.shouldSkip(true, hidden, dirPath, baseName, actionConfig{}) {
+		// Use IsRoutineScan: true to ensure NeverWatchPaths is checked
+		config := actionConfig{IsRoutineScan: true}
+		if s.idx.shouldSkip(true, hidden, dirPath, baseName, config) {
 			logger.Debugf("Skipping scanner creation for excluded directory: %s", dirPath)
 			continue
 		}
@@ -383,18 +438,33 @@ func (s *Scanner) removeSelf() {
 }
 
 // stop gracefully stops the scanner
+// Uses sync.Once to ensure the channel is only closed once, preventing panic from "close of closed channel"
 func (s *Scanner) stop() {
-	close(s.stopChan)
+	s.stopOnce.Do(func() {
+		close(s.stopChan)
+	})
 }
 
 func (s *Scanner) syncStatsWithDB() {
+	var dirs, files uint64
+	var err error
 
-	dirs, files, err := s.idx.db.GetRecursiveCount(s.idx.Name, s.scanPath)
+	if s.scanPath == "/" {
+		// Root scanner: only count files directly under "/" (non-recursive)
+		// Root scanner never counts directories (those are handled by child scanners)
+		dirs = 0
+		files, err = s.idx.db.GetDirectFileCount(s.idx.Name, "/")
+	} else {
+		// Child scanner: count directories and files recursively
+		dirs, files, err = s.idx.db.GetRecursiveCount(s.idx.Name, s.scanPath)
+	}
+
 	if err != nil {
-		logger.Errorf("Failed to get recursive count for %s: %v", s.scanPath, err)
+		logger.Errorf("Failed to get count for %s: %v", s.scanPath, err)
 		return
 	}
 
+	logger.Infof("[SYNC_STATS] Scanner %s: DB returned dirs=%d, files=%d (setting scanner.numDirs and scanner.numFiles)", s.scanPath, dirs, files)
 	s.numDirs = dirs
 	s.numFiles = files
 }

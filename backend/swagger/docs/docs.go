@@ -3426,7 +3426,6 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "complexity": {
-                    "description": "0-10 scale",
                     "type": "integer"
                 },
                 "fullScanDurationSeconds": {
@@ -3434,6 +3433,9 @@ const docTemplate = `{
                 },
                 "lastIndexedUnixTime": {
                     "type": "integer"
+                },
+                "lastScanned": {
+                    "type": "string"
                 },
                 "name": {
                     "type": "string"
@@ -3471,20 +3473,25 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "complexity": {
-                    "description": "0-10 scale: 0=unknown, 1=simple, 2-6=normal, 7-9=complex, 10=highlyComplex",
                     "type": "integer"
                 },
                 "currentSchedule": {
                     "type": "integer"
                 },
-                "fullScanTime": {
+                "fullScanDurationSeconds": {
                     "type": "integer"
                 },
                 "isRoot": {
                     "type": "boolean"
                 },
+                "lastIndexedUnixTime": {
+                    "type": "integer"
+                },
                 "lastScanned": {
                     "type": "string"
+                },
+                "numDeleted": {
+                    "type": "integer"
                 },
                 "numDirs": {
                     "type": "integer"
@@ -3495,7 +3502,10 @@ const docTemplate = `{
                 "path": {
                     "type": "string"
                 },
-                "quickScanTime": {
+                "quickScanDurationSeconds": {
+                    "type": "integer"
+                },
+                "used": {
                     "type": "integer"
                 }
             }

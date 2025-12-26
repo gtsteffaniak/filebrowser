@@ -498,7 +498,9 @@ func MoveResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string
 		} else {
 			srcIdx.DeleteMetadata(srcIndexPath, false, false)
 		}
-		go RefreshIndex(sourceIndex, srcParentPath, true, false) //nolint:errcheck
+		if err := RefreshIndex(sourceIndex, srcParentPath, true, false); err != nil {
+			logger.Errorf("Failed to refresh source parent directory %s after move: %v", srcParentPath, err)
+		}
 	}
 
 	// Handle DESTINATION indexing
@@ -508,12 +510,6 @@ func MoveResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string
 			// For directories, index synchronously to ensure database entry is created
 			if err := RefreshIndex(destIndex, realdst, true, true); err != nil {
 				return fmt.Errorf("failed to index moved directory: %w", err)
-			}
-
-			// Refresh parent directory to update sizes
-			parentDir := filepath.Dir(realdst)
-			if err := RefreshIndex(destIndex, parentDir, true, false); err != nil {
-				logger.Errorf("Failed to refresh destination parent directory %s: %v", parentDir, err)
 			}
 		} else {
 			// For files, refresh parent directory synchronously

@@ -35,8 +35,10 @@ func setupMutateTestIndex(t *testing.T) *Index {
 
 	testIndex = Index{
 		ReducedIndex: ReducedIndex{
-			NumFiles: 10,
-			NumDirs:  5,
+			Stats: Stats{
+				NumFiles: 10,
+				NumDirs:  5,
+			},
 		},
 		Source: settings.Source{
 			Path: "/",

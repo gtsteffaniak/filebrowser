@@ -18,38 +18,66 @@ func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo) bool {
 	dirItem := *info
 	items = append(items, &dirItem)
 
-	// Add folders to the bulk insert with index paths
-	for i := range info.Folders {
-		folder := &info.Folders[i]
-		// Construct index path for the folder (with trailing slash)
-		folderPath := strings.TrimRight(info.Path, "/") + "/" + folder.Name + "/"
+	// Check if we're in a batch scan (batchItems is initialized)
+	idx.mu.Lock()
+	isBatchScan := idx.batchItems != nil
+	idx.mu.Unlock()
 
-		folderItem := &iteminfo.FileInfo{
-			ItemInfo: *folder,
-			Path:     folderPath, // Store index path with trailing slash
+	if isBatchScan {
+		// During recursive scans: only insert directory itself and direct files
+		// Subdirectories will be inserted by their own recursive indexDirectory call
+		// This avoids redundant inserts and maintains the in-memory size calculation pattern
+		for i := range info.Files {
+			f := &info.Files[i]
+			// Construct index path for the file
+			filePath := strings.TrimRight(info.Path, "/") + "/" + f.Name
+
+			fileItem := &iteminfo.FileInfo{
+				ItemInfo: f.ItemInfo,
+				Path:     filePath, // Store index path, not absolute path
+			}
+			items = append(items, fileItem)
 		}
-		items = append(items, folderItem)
-	}
+	} else {
+		// Not in batch scan (e.g., API-triggered updates): insert everything
+		// Add folders to the bulk insert with index paths
+		for i := range info.Folders {
+			folder := &info.Folders[i]
+			// Construct index path for the folder (with trailing slash)
+			folderPath := strings.TrimRight(info.Path, "/") + "/" + folder.Name + "/"
 
-	// Add files to the bulk insert with index paths
-	for i := range info.Files {
-		f := &info.Files[i]
-		// Construct index path for the file
-		filePath := strings.TrimRight(info.Path, "/") + "/" + f.Name
-
-		fileItem := &iteminfo.FileInfo{
-			ItemInfo: f.ItemInfo,
-			Path:     filePath, // Store index path, not absolute path
+			folderItem := &iteminfo.FileInfo{
+				ItemInfo: *folder,
+				Path:     folderPath, // Store index path with trailing slash
+			}
+			items = append(items, folderItem)
 		}
-		items = append(items, fileItem)
+
+		// Add files to the bulk insert with index paths
+		for i := range info.Files {
+			f := &info.Files[i]
+			// Construct index path for the file
+			filePath := strings.TrimRight(info.Path, "/") + "/" + f.Name
+
+			fileItem := &iteminfo.FileInfo{
+				ItemInfo: f.ItemInfo,
+				Path:     filePath, // Store index path, not absolute path
+			}
+			items = append(items, fileItem)
+		}
 	}
 
 	// Check if we're in a batch scan (batchItems is initialized)
 	idx.mu.Lock()
 	if idx.batchItems != nil {
+		// Track that this directory was updated by the scan (for timestamp conflict detection)
+		// This allows us to always update sizes for directories updated by the scan,
+		// while skipping updates for directories modified by API during the scan
+		normalizedPath := utils.AddTrailingSlashIfNotExists(info.Path)
+		idx.scanUpdatedPaths[normalizedPath] = true
+
 		// Accumulate items for bulk insert
 		idx.batchItems = append(idx.batchItems, items...)
-
 		// Progressive flushing: flush every BATCH_SIZE items to keep memory bounded
 		// Synchronous flush ensures only ONE batch in memory at a time
 		if len(idx.batchItems) >= idx.db.BatchSize {
@@ -58,9 +86,7 @@ func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo) bool {
 			sourceName := idx.Name
 			numItems := len(itemsToFlush)
 			idx.mu.Unlock()
-
 			// Synchronous flush - blocks scanner until DB write completes
-			// This ensures only BatchSize items max in memory at any time
 			err := idx.db.BulkInsertItems(sourceName, itemsToFlush)
 			if err != nil {
 				logger.Warningf("[DB_TX] Progressive flush failed (%d items): %v - continuing scan", numItems, err)
@@ -95,7 +121,6 @@ func (idx *Index) flushBatch() {
 	err := idx.db.BulkInsertItems(idx.Name, items)
 	if err != nil {
 		logger.Warningf("[DB_TX] Final flush failed (%d items): %v", len(items), err)
-		return
 	}
 }
 
@@ -156,7 +181,6 @@ func (idx *Index) GetMetadataInfo(target string, isDir bool) (*iteminfo.FileInfo
 	}
 
 	// checkDir is already an index path (relative to source root)
-	// Try to get from DB first
 	dir, err := idx.db.GetItem(idx.Name, checkDir)
 	if err != nil {
 		return nil, false
@@ -167,18 +191,21 @@ func (idx *Index) GetMetadataInfo(target string, isDir bool) (*iteminfo.FileInfo
 	if dir == nil {
 		idx.mu.Lock()
 		hasBatchItems := len(idx.batchItems) > 0
+		batchSize := len(idx.batchItems)
 		idx.mu.Unlock()
 
 		if hasBatchItems {
+			logger.Warningf("[GET_METADATA] Item %s not found in DB, but batch has %d items - flushing batch",
+				checkDir, batchSize)
 			// Flush entire batch to release memory and make data available
 			idx.flushBatch()
 			// Try again after flush
 			dir, err = idx.db.GetItem(idx.Name, checkDir)
 			if err != nil || dir == nil {
+				logger.Debugf("[GET_METADATA] Item %s still not found after batch flush", checkDir)
 				return nil, false
 			}
 		} else {
-			// Not in batch either, doesn't exist
 			return nil, false
 		}
 	}
@@ -224,7 +251,6 @@ func GetIndex(name string) *Index {
 }
 
 // ReadOnlyOperation executes a function with read-only access to the index
-// This provides a safe way to access index data without exposing internal structures
 func (idx *Index) ReadOnlyOperation(fn func()) {
 	idx.mu.RLock()
 	defer idx.mu.RUnlock()
@@ -284,24 +310,36 @@ func GetIndexInfo(sourceName string, forceCacheRefresh bool) (ReducedIndex, erro
 	for _, scanner := range idx.scanners {
 		scannerInfos = append(scannerInfos, &ScannerInfo{
 			Path:            scanner.scanPath,
-			LastScanned:     scanner.lastScanned,
-			Complexity:      scanner.complexity,
 			CurrentSchedule: scanner.currentSchedule,
-			QuickScanTime:   scanner.quickScanTime,
-			FullScanTime:    scanner.fullScanTime,
-			NumDirs:         scanner.numDirs,
-			NumFiles:        scanner.numFiles,
+			Stats: Stats{
+				LastScanned:   scanner.lastScanned,
+				Complexity:    scanner.complexity,
+				QuickScanTime: scanner.quickScanTime,
+				FullScanTime:  scanner.fullScanTime,
+				NumDirs:       scanner.numDirs,
+				NumFiles:      scanner.numFiles,
+			},
 		})
 	}
-	idx.mu.RUnlock()
-
-	// Get fresh values from the index (with lock to ensure consistency)
-	idx.mu.RLock()
 	reducedIdx := idx.ReducedIndex
-	// Ensure DiskUsed is up to date from totalSize
-	reducedIdx.DiskUsed = idx.totalSize
+	// Compute DiskUsed from database (total size of all files)
+	diskUsed, err := idx.db.GetTotalSize(idx.Name)
+	if err != nil {
+		logger.Errorf("Failed to get total size for index %s: %v", sourceName, err)
+		diskUsed = 0
+	}
+	reducedIdx.DiskUsed = diskUsed
 	reducedIdx.DiskTotal = idx.DiskTotal
 	reducedIdx.Scanners = scannerInfos
+	reducedIdx.NumDirs = idx.getNumDirsUnlocked()
+	reducedIdx.NumFiles = idx.getNumFilesUnlocked()
+	reducedIdx.QuickScanTime = idx.getQuickScanTimeUnlocked()
+	reducedIdx.FullScanTime = idx.getFullScanTimeUnlocked()
+	reducedIdx.Complexity = idx.getComplexityUnlocked()
+	lastIndexed := idx.getLastIndexedUnlocked()
+	reducedIdx.LastScanned = lastIndexed
+	reducedIdx.LastIndexedUnix = lastIndexed.Unix()
+	reducedIdx.Status = idx.getStatusUnlocked()
 	idx.mu.RUnlock()
 	return reducedIdx, nil
 }

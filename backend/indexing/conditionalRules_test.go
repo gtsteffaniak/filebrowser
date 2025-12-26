@@ -2,7 +2,6 @@ package indexing
 
 import (
 	"testing"
-	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 )
@@ -525,7 +524,7 @@ func TestShouldSkip_NeverWatch(t *testing.T) {
 	})
 
 	// Simulate a routine scan (index has been scanned before, IsRoutineScan=true)
-	idx.LastIndexed = time.Now()
+	// The IsRoutineScan flag is sufficient - GetLastIndexed() will check scanner.lastScanned
 	config := actionConfig{IsRoutineScan: true}
 
 	tests := []struct {

@@ -24,9 +24,7 @@ func setupTestIndex(t *testing.T) (*Index, string, func()) {
 
 	// Initialize index with mock data
 	idx := &Index{
-		ReducedIndex: ReducedIndex{
-			LastIndexed: time.Now(),
-		},
+		ReducedIndex: ReducedIndex{},
 		Source: settings.Source{
 			Name: "test",
 			Path: "/mock/path",
@@ -235,15 +233,22 @@ func TestRecursiveSizeUpdate(t *testing.T) {
 			ModTime: time.Now(),
 		},
 	}
-	_ = idx.db.InsertItem("test", "/subdir/deepdir/file5.txt", file5)
+	err := idx.db.InsertItem("test", "/subdir/deepdir/file5.txt", file5)
+	if err != nil {
+		t.Fatalf("Failed to insert file5: %v", err)
+	}
 
 	// Update deepdir size
 	oldDeepdirSize := deepdirInfo.Size
 	deepdirInfo.Size = 900 // 400 + 500
-	_ = idx.db.InsertItem("test", "/subdir/deepdir/", deepdirInfo)
+	err = idx.db.InsertItem("test", "/subdir/deepdir/", deepdirInfo)
+	if err != nil {
+		t.Fatalf("Failed to insert deepdirInfo: %v", err)
+	}
 
 	// Simulate the recursive size update by calling the method directly
-	idx.RecursiveUpdateDirSizes(deepdirInfo, oldDeepdirSize)
+	sizeDelta := deepdirInfo.Size - oldDeepdirSize
+	idx.updateParentDirSizesBatched("/subdir/deepdir/", sizeDelta)
 
 	// Check that deepdir size updated
 	deepdirInfo, exists = idx.GetMetadataInfo("/subdir/deepdir/", true)
@@ -348,8 +353,9 @@ func TestRecursiveUpdateDirSizes(t *testing.T) {
 	deepdirInfo.Size = 900
 	_ = idx.db.InsertItem("test", "/subdir/deepdir/", deepdirInfo)
 
-	// Call recursiveUpdateDirSizes
-	idx.RecursiveUpdateDirSizes(deepdirInfo, previousSize)
+	// Call updateParentDirSizesBatched
+	sizeDelta := deepdirInfo.Size - previousSize
+	idx.updateParentDirSizesBatched("/subdir/deepdir/", sizeDelta)
 
 	// Check that subdir size updated
 	subdirInfo, exists = idx.GetMetadataInfo("/subdir/", true)
@@ -403,8 +409,9 @@ func TestSizeDecreasePropagate(t *testing.T) {
 	deepdirInfo.Size = 100
 	_ = idx.db.InsertItem("test", "/subdir/deepdir/", deepdirInfo)
 
-	// Call recursiveUpdateDirSizes
-	idx.RecursiveUpdateDirSizes(deepdirInfo, previousSize)
+	// Call updateParentDirSizesBatched
+	sizeDelta := deepdirInfo.Size - previousSize
+	idx.updateParentDirSizesBatched("/subdir/deepdir/", sizeDelta)
 
 	// Check that subdir size decreased
 	subdirInfo, exists = idx.GetMetadataInfo("/subdir/", true)
