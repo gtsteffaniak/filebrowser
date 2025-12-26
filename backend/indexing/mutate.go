@@ -181,7 +181,6 @@ func (idx *Index) GetMetadataInfo(target string, isDir bool) (*iteminfo.FileInfo
 	}
 
 	// checkDir is already an index path (relative to source root)
-	// Try to get from DB first
 	dir, err := idx.db.GetItem(idx.Name, checkDir)
 	if err != nil {
 		return nil, false
@@ -206,10 +205,7 @@ func (idx *Index) GetMetadataInfo(target string, isDir bool) (*iteminfo.FileInfo
 				logger.Debugf("[GET_METADATA] Item %s still not found after batch flush", checkDir)
 				return nil, false
 			}
-			logger.Debugf("[GET_METADATA] Item %s found after batch flush", checkDir)
 		} else {
-			// Not in batch either, doesn't exist
-			logger.Debugf("[GET_METADATA] Item %s not found in DB and no batch items", checkDir)
 			return nil, false
 		}
 	}
@@ -255,7 +251,6 @@ func GetIndex(name string) *Index {
 }
 
 // ReadOnlyOperation executes a function with read-only access to the index
-// This provides a safe way to access index data without exposing internal structures
 func (idx *Index) ReadOnlyOperation(fn func()) {
 	idx.mu.RLock()
 	defer idx.mu.RUnlock()
@@ -317,13 +312,12 @@ func GetIndexInfo(sourceName string, forceCacheRefresh bool) (ReducedIndex, erro
 			Path:            scanner.scanPath,
 			CurrentSchedule: scanner.currentSchedule,
 			Stats: Stats{
-				LastScanned:     scanner.lastScanned,
-				Complexity:      scanner.complexity,
-				QuickScanTime:   scanner.quickScanTime,
-				FullScanTime:    scanner.fullScanTime,
-				NumDirs:         scanner.numDirs,
-				NumFiles:        scanner.numFiles,
-				LastIndexedUnix: scanner.lastScanned.Unix(),
+				LastScanned:   scanner.lastScanned,
+				Complexity:    scanner.complexity,
+				QuickScanTime: scanner.quickScanTime,
+				FullScanTime:  scanner.fullScanTime,
+				NumDirs:       scanner.numDirs,
+				NumFiles:      scanner.numFiles,
 			},
 		})
 	}
@@ -337,8 +331,6 @@ func GetIndexInfo(sourceName string, forceCacheRefresh bool) (ReducedIndex, erro
 	reducedIdx.DiskUsed = diskUsed
 	reducedIdx.DiskTotal = idx.DiskTotal
 	reducedIdx.Scanners = scannerInfos
-	// Calculate all computed values from scanner values (not stored)
-	// Use unlocked versions since we already hold the lock
 	reducedIdx.NumDirs = idx.getNumDirsUnlocked()
 	reducedIdx.NumFiles = idx.getNumFilesUnlocked()
 	reducedIdx.QuickScanTime = idx.getQuickScanTimeUnlocked()
@@ -346,6 +338,7 @@ func GetIndexInfo(sourceName string, forceCacheRefresh bool) (ReducedIndex, erro
 	reducedIdx.Complexity = idx.getComplexityUnlocked()
 	lastIndexed := idx.getLastIndexedUnlocked()
 	reducedIdx.LastScanned = lastIndexed
+	reducedIdx.LastIndexedUnix = lastIndexed.Unix()
 	reducedIdx.Status = idx.getStatusUnlocked()
 	idx.mu.RUnlock()
 	return reducedIdx, nil

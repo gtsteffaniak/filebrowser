@@ -122,8 +122,6 @@ func (idx *Index) markFilesChanged() {
 }
 
 // incrementScannerDirs increments the directory counter for the active scanner
-// NOTE: This function must NOT be called while holding idx.mu.Lock() (write lock) as it will deadlock.
-// If called from a context holding a write lock, use incrementScannerDirsUnlocked() instead.
 func (idx *Index) incrementScannerDirs() {
 	idx.mu.RLock()
 	// Use unlocked version since we now hold the lock
@@ -141,7 +139,6 @@ func (idx *Index) incrementScannerDirs() {
 }
 
 // incrementScannerDirsUnlocked increments the directory counter for the active scanner
-// Assumes idx.mu is already held (either RLock or Lock)
 func (idx *Index) incrementScannerDirsUnlocked() {
 	activePath := idx.getActiveScannerPathUnlocked()
 	if activePath == "" {
@@ -154,8 +151,6 @@ func (idx *Index) incrementScannerDirsUnlocked() {
 }
 
 // incrementScannerFiles increments the file counter for the active scanner
-// NOTE: This function must NOT be called while holding idx.mu.Lock() (write lock) as it will deadlock.
-// If called from a context holding a write lock, use incrementScannerFilesUnlocked() instead.
 func (idx *Index) incrementScannerFiles() {
 	idx.mu.RLock()
 	// Use unlocked version since we now hold the lock
@@ -173,7 +168,6 @@ func (idx *Index) incrementScannerFiles() {
 }
 
 // incrementScannerFilesUnlocked increments the file counter for the active scanner
-// Assumes idx.mu is already held (either RLock or Lock)
 func (idx *Index) incrementScannerFilesUnlocked() {
 	activePath := idx.getActiveScannerPathUnlocked()
 	if activePath == "" {
@@ -191,13 +185,11 @@ func (idx *Index) PreScan() error {
 
 func (idx *Index) PostScan() error {
 	// Only do expensive operations when ALL scanners are done
-	// This avoids redundant work when multiple scanners complete in quick succession
 	if idx.getRunningScannerCount() == 0 {
 		// All scanners completed - update root directory size and send event
 		idx.updateRootDirectorySize()
 
 		// Send update event to notify frontend that stats may have changed
-		// All stats are computed on-demand, so no need to track or update them here
 		if err := idx.SendSourceUpdateEvent(); err != nil {
 			logger.Errorf("Error sending source update event: %v", err)
 		}
@@ -226,8 +218,6 @@ func (idx *Index) updateRootDirectorySize() {
 	}
 
 	// Check if root directory was updated by the scan itself
-	// If so, always update (it's part of the scan). If not, use timestamp checking
-	// to avoid overwriting API updates that occurred during scan
 	idx.mu.RLock()
 	wasUpdatedByScan := idx.scanUpdatedPaths["/"]
 	scanSessionStartTime := idx.scanSessionStartTime
@@ -265,15 +255,12 @@ func (idx *Index) SendSourceUpdateEvent() error {
 		logger.Errorf("[%s] Error marshaling source update: %v", idx.Name, err)
 		return err
 	}
-	// Quote the JSON string so it's sent as a string in the SSE message, not as an object
-	// The sendEvent function expects the message to be properly quoted (like "\"connection established\"")
 	quotedMessage := strconv.Quote(string(message))
 	events.SendSourceUpdate(idx.Name, quotedMessage)
 	return nil
 }
 
 // setupMultiScanner creates and starts the multi-scanner system
-// Creates a root scanner (non-recursive) and child scanners for each top-level directory
 func (idx *Index) setupMultiScanner() {
 	idx.mu.Lock()
 	idx.scanners = make(map[string]*Scanner)
@@ -340,8 +327,6 @@ func (idx *Index) GetScannerStatus() map[string]interface{} {
 
 	status := make(map[string]interface{})
 
-	// Current active scanner (if any is running)
-	// Use unlocked version since we already hold the read lock
 	activePath := idx.getActiveScannerPathUnlocked()
 	status["activeScanner"] = activePath
 	status["isScanning"] = activePath != ""
