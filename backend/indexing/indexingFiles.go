@@ -18,11 +18,6 @@ import (
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
-const (
-	minIndexCacheSizeMB = 2
-	maxIndexCacheSizeMB = 32 // Reduced from 64MB to limit memory usage (32MB cache + overhead should stay under 100MB)
-)
-
 var (
 	RealPathCache = cache.NewCache[string](48*time.Hour, 72*time.Hour)
 	IsDirCache    = cache.NewCache[bool](48*time.Hour, 72*time.Hour)
@@ -67,19 +62,16 @@ type ReducedIndex struct {
 
 type Index struct {
 	ReducedIndex
-	settings.Source   `json:"-"`
-	db                *dbsql.IndexDB
-	FoundHardLinks    map[string]uint64 // hardlink path -> size
-	processedInodes   map[uint64]struct{}
-	totalSize         uint64
-	previousTotalSize uint64               // Track previous totalSize for change detection
-	previousNumDirs   uint64               // Track previous NumDirs to use when scan in progress (computed value is 0)
-	previousNumFiles  uint64               // Track previous NumFiles to use when scan in progress (computed value is 0)
-	batchItems        []*iteminfo.FileInfo // Accumulates items during a scan for bulk insert
-	scanners          map[string]*Scanner  // path -> scanner
-	scanMutex         sync.Mutex           // DEPRECATED: No longer used - SQLite handles concurrency with EXCLUSIVE mode
-	mock              bool
-	mu                sync.RWMutex
+	settings.Source  `json:"-"`
+	db               *dbsql.IndexDB
+	FoundHardLinks   map[string]uint64 // hardlink path -> size
+	processedInodes  map[uint64]struct{}
+	previousNumDirs  uint64               // Track previous NumDirs to use when scan in progress (computed value is 0)
+	previousNumFiles uint64               // Track previous NumFiles to use when scan in progress (computed value is 0)
+	batchItems       []*iteminfo.FileInfo // Accumulates items during a scan for bulk insert
+	scanners         map[string]*Scanner  // path -> scanner
+	mock             bool
+	mu               sync.RWMutex
 	// Delayed parent size updates: accumulate deltas and batch update after 1 second of inactivity
 	pendingParentSizeDeltas map[string]int64 // path -> accumulated delta
 	parentSizeFlushTimer    *time.Timer      // Timer to trigger batch flush
@@ -165,7 +157,7 @@ func (idx *Index) GetQuickScanTime() int {
 
 // getQuickScanTimeUnlocked calculates QuickScanTime without acquiring lock (assumes lock is already held)
 func (idx *Index) getQuickScanTimeUnlocked() int {
-	var total int = 0
+	var total = 0
 	for _, scanner := range idx.scanners {
 		total += scanner.quickScanTime
 	}
@@ -181,7 +173,7 @@ func (idx *Index) GetFullScanTime() int {
 
 // getFullScanTimeUnlocked calculates FullScanTime without acquiring lock (assumes lock is already held)
 func (idx *Index) getFullScanTimeUnlocked() int {
-	var total int = 0
+	var total = 0
 	for _, scanner := range idx.scanners {
 		total += scanner.fullScanTime
 	}
@@ -301,33 +293,6 @@ func SetIndexDBForTesting(db *dbsql.IndexDB) {
 	indexDB = db
 	// Reset the once to allow re-initialization in tests
 	indexDBOnce = sync.Once{}
-}
-
-// calculateTotalComplexity sums up the complexity of all indexes.
-// Returns the total complexity across all indexes.
-func calculateTotalComplexity() uint {
-	indexesMutex.RLock()
-	defer indexesMutex.RUnlock()
-
-	var totalComplexity uint = 0
-	for _, idx := range indexes {
-		complexity := idx.GetComplexity()
-		totalComplexity += complexity
-	}
-	return totalComplexity
-}
-
-// updateIndexDBCacheSize updates the shared index database cache size
-// based on the total complexity of all indexes.
-func updateIndexDBCacheSize() {
-	totalComplexity := calculateTotalComplexity()
-	// Use complexity as a rough MB target but keep it within strict bounds.
-	cacheSizeMB := utils.Clamp(int(totalComplexity), minIndexCacheSizeMB, maxIndexCacheSizeMB)
-	if err := indexDB.UpdateCacheSize(cacheSizeMB); err != nil {
-		logger.Errorf("Failed to update index database cache size to %dMB: %v", cacheSizeMB, err)
-	} else {
-		logger.Debugf("Updated index database cache size to %dMB (total complexity: %d)", cacheSizeMB, totalComplexity)
-	}
 }
 
 func Initialize(source *settings.Source, mock bool) {
@@ -753,7 +718,7 @@ func (idx *Index) updateParentDirSizesBatched(startPath string, sizeDelta int64)
 
 	// Check batch state before updating parent sizes
 	idx.mu.RLock()
-	hasBatchItems := idx.batchItems != nil && len(idx.batchItems) > 0
+	hasBatchItems := len(idx.batchItems) > 0
 	batchSize := 0
 	if hasBatchItems {
 		batchSize = len(idx.batchItems)

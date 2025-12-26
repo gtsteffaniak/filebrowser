@@ -167,18 +167,6 @@ func (idx *Index) incrementScannerFiles() {
 	}
 }
 
-// incrementScannerFilesUnlocked increments the file counter for the active scanner
-func (idx *Index) incrementScannerFilesUnlocked() {
-	activePath := idx.getActiveScannerPathUnlocked()
-	if activePath == "" {
-		return
-	}
-	scanner, exists := idx.scanners[activePath]
-	if exists {
-		scanner.numFiles++
-	}
-}
-
 func (idx *Index) PreScan() error {
 	return idx.SetStatus(INDEXING)
 }
