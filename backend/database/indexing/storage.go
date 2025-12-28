@@ -47,10 +47,10 @@ func (c *crudBackend) DeleteByID(id any) error {
 
 // Storage is an indexing storage using generics.
 type Storage struct {
-	Generic      *crud.Storage[IndexInfo]
-	back         StorageBackend
-	indexCache   map[string]*IndexInfo
-	mu           sync.RWMutex
+	Generic    *crud.Storage[IndexInfo]
+	back       StorageBackend
+	indexCache map[string]*IndexInfo
+	mu         sync.RWMutex
 }
 
 // NewStorage creates an indexing storage from a backend.
@@ -167,4 +167,3 @@ func (s *Storage) Flush() error {
 	}
 	return nil
 }
-

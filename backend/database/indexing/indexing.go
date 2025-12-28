@@ -18,11 +18,11 @@ type IndexInfo struct {
 	NumFiles   uint64 `json:"numFiles"`
 
 	// Scanner information - map of scanner path to scanner stats
-	Scanners map[string]*ScannerInfo `json:"scanners"`
+	Scanners map[string]*PersistedScannerInfo `json:"scanners"`
 }
 
-// ScannerInfo stores persistent information about a scanner
-type ScannerInfo struct {
+// PersistedScannerInfo stores persistent information about a scanner
+type PersistedScannerInfo struct {
 	Path            string    `json:"path"`
 	Complexity      uint      `json:"complexity"`
 	CurrentSchedule int       `json:"currentSchedule"`
@@ -32,4 +32,3 @@ type ScannerInfo struct {
 	NumFiles        uint64    `json:"numFiles"`
 	LastScanned     time.Time `json:"lastScanned"`
 }
-

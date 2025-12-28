@@ -193,14 +193,14 @@ func (idx *Index) GetComplexity() uint {
 // getComplexityUnlocked calculates Complexity without acquiring lock (assumes lock is already held)
 func (idx *Index) getComplexityUnlocked() uint {
 	// If we have a persisted complexity value and scanners haven't been scanned yet, use it
-	if idx.Stats.Complexity > 0 && len(idx.scanners) == 0 {
-		return idx.Stats.Complexity
+	if idx.Complexity > 0 && len(idx.scanners) == 0 {
+		return idx.Complexity
 	}
 
 	if len(idx.scanners) == 0 {
 		// No scanners yet, but check if we have a persisted value
-		if idx.Stats.Complexity > 0 {
-			return idx.Stats.Complexity
+		if idx.Complexity > 0 {
+			return idx.Complexity
 		}
 		return 0
 	}
@@ -215,8 +215,8 @@ func (idx *Index) getComplexityUnlocked() uint {
 
 	if !allScannedAtLeastOnce {
 		// Scanners haven't completed first scan yet, use persisted value if available
-		if idx.Stats.Complexity > 0 {
-			return idx.Stats.Complexity
+		if idx.Complexity > 0 {
+			return idx.Complexity
 		}
 		return 0
 	}
@@ -227,7 +227,7 @@ func (idx *Index) getComplexityUnlocked() uint {
 
 	// Update persisted value with calculated value
 	if calculatedComplexity > 0 {
-		idx.Stats.Complexity = calculatedComplexity
+		idx.Complexity = calculatedComplexity
 	}
 
 	return calculatedComplexity
@@ -1205,9 +1205,9 @@ func (idx *Index) Save() error {
 
 	idx.mu.RLock()
 	// Collect scanner information
-	scanners := make(map[string]*indexingdb.ScannerInfo)
+	scanners := make(map[string]*indexingdb.PersistedScannerInfo)
 	for path, scanner := range idx.scanners {
-		scanners[path] = &indexingdb.ScannerInfo{
+		scanners[path] = &indexingdb.PersistedScannerInfo{
 			Path:            path,
 			Complexity:      scanner.complexity,
 			CurrentSchedule: scanner.currentSchedule,
@@ -1259,9 +1259,9 @@ func (idx *Index) Load() error {
 	// Restore index-level stats
 	idx.previousNumDirs = info.NumDirs
 	idx.previousNumFiles = info.NumFiles
-	idx.Stats.Complexity = info.Complexity
-	idx.Stats.NumDirs = info.NumDirs
-	idx.Stats.NumFiles = info.NumFiles
+	idx.Complexity = info.Complexity
+	idx.NumDirs = info.NumDirs
+	idx.NumFiles = info.NumFiles
 
 	// Restore scanner information (will be applied when scanners are created)
 	// Store in a temporary map that setupMultiScanner can use

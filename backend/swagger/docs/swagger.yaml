@@ -1,31 +1,4 @@
 definitions:
-  github_com_gtsteffaniak_filebrowser_backend_indexing.ScannerInfo:
-    properties:
-      complexity:
-        type: integer
-      currentSchedule:
-        type: integer
-      fullScanDurationSeconds:
-        type: integer
-      isRoot:
-        type: boolean
-      lastIndexedUnixTime:
-        type: integer
-      lastScanned:
-        type: string
-      numDeleted:
-        type: integer
-      numDirs:
-        type: integer
-      numFiles:
-        type: integer
-      path:
-        type: string
-      quickScanDurationSeconds:
-        type: integer
-      used:
-        type: integer
-    type: object
   http.AuthTokenMin:
     properties:
       Permissions:
@@ -265,11 +238,38 @@ definitions:
         type: integer
       scanners:
         items:
-          $ref: '#/definitions/github_com_gtsteffaniak_filebrowser_backend_indexing.ScannerInfo'
+          $ref: '#/definitions/indexing.ScannerInfo'
         type: array
       status:
         $ref: '#/definitions/indexing.IndexStatus'
       total:
+        type: integer
+      used:
+        type: integer
+    type: object
+  indexing.ScannerInfo:
+    properties:
+      complexity:
+        type: integer
+      currentSchedule:
+        type: integer
+      fullScanDurationSeconds:
+        type: integer
+      isRoot:
+        type: boolean
+      lastIndexedUnixTime:
+        type: integer
+      lastScanned:
+        type: string
+      numDeleted:
+        type: integer
+      numDirs:
+        type: integer
+      numFiles:
+        type: integer
+      path:
+        type: string
+      quickScanDurationSeconds:
         type: integer
       used:
         type: integer

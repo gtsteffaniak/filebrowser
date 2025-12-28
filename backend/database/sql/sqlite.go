@@ -102,7 +102,6 @@ type TempDBConfig struct {
 	// Default: 500 pages (~2MB) to trigger early spilling and reduce memory usage.
 	CacheSpillThreshold int
 
-	// PersistentFile, when set, uses a fixed filename instead of creating a temp file with random suffix.
 	// If empty, a temp file with random suffix will be created.
 	// The file will not be deleted on Close() if this is set.
 	PersistentFile string
@@ -353,10 +352,7 @@ func (t *TempDB) QueryRow(query string, args ...interface{}) *sql.Row {
 	return t.db.QueryRow(query, args...)
 }
 
-// Close closes the database connection and removes the temporary file.
-// For persistent databases (PersistentFile set), the file is not deleted.
-// This should always be called when done with the database, typically in a defer statement.
-// If logging is enabled, it will log the total lifetime and file size for performance analysis.
+// Close closes the database connection and removes the temporary file if it is not persistent.
 func (t *TempDB) Close() error {
 	t.mu.Lock()
 	defer t.mu.Unlock()

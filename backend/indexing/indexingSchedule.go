@@ -270,7 +270,7 @@ func (idx *Index) setupMultiScanner() {
 	idx.mu.Unlock()
 
 	// Load persisted scanner info if available
-	var persistedScanners map[string]*indexingdb.ScannerInfo
+	var persistedScanners map[string]*indexingdb.PersistedScannerInfo
 	if indexingStorage != nil {
 		info, err := indexingStorage.GetByPath(idx.Path)
 		if err == nil && info != nil {
