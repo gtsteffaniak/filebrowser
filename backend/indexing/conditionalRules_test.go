@@ -19,17 +19,48 @@ func setupConditionalTestIndex(conditionals settings.ConditionalFilter) *Index {
 
 	// Build the conditional maps (this is normally done during config loading)
 	source.Config.ResolvedConditionals = &settings.ResolvedConditionalsConfig{
-		FileNames:        make(map[string]settings.ConditionalIndexConfig),
-		FolderNames:      make(map[string]settings.ConditionalIndexConfig),
-		FilePaths:        make(map[string]settings.ConditionalIndexConfig),
-		FolderPaths:      make(map[string]settings.ConditionalIndexConfig),
-		NeverWatchPaths:  make(map[string]struct{}),
-		IncludeRootItems: make(map[string]struct{}),
+		FileNames:                make(map[string]settings.ConditionalRule),
+		FolderNames:              make(map[string]settings.ConditionalRule),
+		FilePaths:                make(map[string]settings.ConditionalRule),
+		FolderPaths:              make(map[string]settings.ConditionalRule),
+		NeverWatchPaths:          make(map[string]struct{}),
+		IncludeRootItems:         make(map[string]struct{}),
+		IgnoreAllHidden:          false,
+		IgnoreAllZeroSizeFolders: false,
+		IgnoreAllSymlinks:        false,
+		IndexingDisabled:         false,
+	}
+
+	// Backwards compatibility: if old format fields are set, treat as global rules
+	if conditionals.IgnoreHidden {
+		source.Config.ResolvedConditionals.IgnoreAllHidden = true
+	}
+	if conditionals.ZeroSizeFolders {
+		source.Config.ResolvedConditionals.IgnoreAllZeroSizeFolders = true
 	}
 
 	// Build maps from ItemRules - match the real setConditionals implementation
 	resolved := source.Config.ResolvedConditionals
 	for _, rule := range conditionals.ItemRules {
+		// Check if this is a root-level rule (folderPath == "/")
+		// Root-level rules with ignoreHidden/ignoreZeroSizeFolders/viewable set global flags
+		isRootLevelRule := rule.FolderPath == "/"
+
+		// Infer global flags from root-level rules
+		if isRootLevelRule {
+			if rule.IgnoreHidden {
+				resolved.IgnoreAllHidden = true
+			}
+			if rule.IgnoreSymlinks {
+				resolved.IgnoreAllSymlinks = true
+			}
+			if rule.IgnoreZeroSizeFolders {
+				resolved.IgnoreAllZeroSizeFolders = true
+			}
+			if rule.Viewable {
+				resolved.IndexingDisabled = true
+			}
+		}
 		// Note: FileNames and FolderNames are NOT populated from rules in the real implementation
 		// They remain empty maps (unused in current implementation)
 
@@ -126,7 +157,7 @@ func TestShouldSkip_FolderStartsWith(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			idx := setupConditionalTestIndex(settings.ConditionalFilter{
-				ItemRules: []settings.ConditionalIndexConfig{
+				ItemRules: []settings.ConditionalRule{
 					{FolderStartsWith: tt.ruleValue},
 				},
 			})
@@ -174,13 +205,13 @@ func TestShouldSkip_FolderNames(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			idx := setupConditionalTestIndex(settings.ConditionalFilter{
-				ItemRules: []settings.ConditionalIndexConfig{
+				ItemRules: []settings.ConditionalRule{
 					{FolderNames: tt.ruleValue},
 				},
 			})
 
 			// Manually populate FolderNames map since setConditionals doesn't do it
-			idx.Config.ResolvedConditionals.FolderNames[tt.ruleValue] = settings.ConditionalIndexConfig{FolderNames: tt.ruleValue}
+			idx.Config.ResolvedConditionals.FolderNames[tt.ruleValue] = settings.ConditionalRule{FolderNames: tt.ruleValue}
 
 			result := idx.shouldSkip(true, false, "/"+tt.baseName+"/", tt.baseName, actionConfig{})
 			if result != tt.shouldSkip {
@@ -237,7 +268,7 @@ func TestShouldSkip_FolderPaths(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			idx := setupConditionalTestIndex(settings.ConditionalFilter{
-				ItemRules: []settings.ConditionalIndexConfig{
+				ItemRules: []settings.ConditionalRule{
 					{FolderPath: tt.ruleValue},
 				},
 			})
@@ -285,7 +316,7 @@ func TestShouldSkip_FileStartsWith(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			idx := setupConditionalTestIndex(settings.ConditionalFilter{
-				ItemRules: []settings.ConditionalIndexConfig{
+				ItemRules: []settings.ConditionalRule{
 					{FileStartsWith: tt.ruleValue},
 				},
 			})
@@ -333,7 +364,7 @@ func TestShouldSkip_FileEndsWith(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			idx := setupConditionalTestIndex(settings.ConditionalFilter{
-				ItemRules: []settings.ConditionalIndexConfig{
+				ItemRules: []settings.ConditionalRule{
 					{FileEndsWith: tt.ruleValue},
 				},
 			})
@@ -385,7 +416,7 @@ func TestShouldSkip_FilePaths(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			idx := setupConditionalTestIndex(settings.ConditionalFilter{
-				ItemRules: []settings.ConditionalIndexConfig{
+				ItemRules: []settings.ConditionalRule{
 					{FilePath: tt.ruleValue},
 				},
 			})
@@ -403,7 +434,7 @@ func TestShouldSkip_FileInExcludedFolderPath(t *testing.T) {
 	// Test that files in excluded folder paths are also skipped
 	// Uses FilePaths rule which applies to both the folder and its files via prefix matching
 	idx := setupConditionalTestIndex(settings.ConditionalFilter{
-		ItemRules: []settings.ConditionalIndexConfig{
+		ItemRules: []settings.ConditionalRule{
 			{FilePath: "/graham/"},
 		},
 	})
@@ -431,7 +462,7 @@ func TestShouldSkip_FileInExcludedFolderPath(t *testing.T) {
 func TestShouldSkip_MultipleRules(t *testing.T) {
 	// Test that multiple rules work together
 	idx := setupConditionalTestIndex(settings.ConditionalFilter{
-		ItemRules: []settings.ConditionalIndexConfig{
+		ItemRules: []settings.ConditionalRule{
 			{FolderStartsWith: "temp"},
 			{FolderStartsWith: "tmp"},
 			{FolderNames: "node_modules"},
@@ -443,8 +474,8 @@ func TestShouldSkip_MultipleRules(t *testing.T) {
 	})
 
 	// Manually populate FolderNames map
-	idx.Config.ResolvedConditionals.FolderNames["node_modules"] = settings.ConditionalIndexConfig{FolderNames: "node_modules"}
-	idx.Config.ResolvedConditionals.FolderNames["@eaDir"] = settings.ConditionalIndexConfig{FolderNames: "@eaDir"}
+	idx.Config.ResolvedConditionals.FolderNames["node_modules"] = settings.ConditionalRule{FolderNames: "node_modules"}
+	idx.Config.ResolvedConditionals.FolderNames["@eaDir"] = settings.ConditionalRule{FolderNames: "@eaDir"}
 
 	tests := []struct {
 		isDir      bool
@@ -480,7 +511,7 @@ func TestShouldSkip_ViewableStillSkips(t *testing.T) {
 	// Test that Viewable:true doesn't affect shouldSkip behavior
 	// The Viewable field is checked separately in IsViewable(), not in shouldSkip()
 	idx := setupConditionalTestIndex(settings.ConditionalFilter{
-		ItemRules: []settings.ConditionalIndexConfig{
+		ItemRules: []settings.ConditionalRule{
 			{FolderStartsWith: "important", Viewable: true}, // Viewable but still skipped from indexing
 		},
 	})
@@ -517,7 +548,7 @@ func TestShouldSkip_HiddenFiles(t *testing.T) {
 func TestShouldSkip_NeverWatch(t *testing.T) {
 	// Test NeverWatch functionality - folders should be skipped during routine scans
 	idx := setupConditionalTestIndex(settings.ConditionalFilter{
-		ItemRules: []settings.ConditionalIndexConfig{
+		ItemRules: []settings.ConditionalRule{
 			{NeverWatchPath: "/cache/"}, // Must match the fullPath exactly
 			{NeverWatchPath: "/logs/"},  // Must match the fullPath exactly
 		},
