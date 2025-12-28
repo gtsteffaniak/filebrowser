@@ -181,9 +181,10 @@ type SourceConfig struct {
 	DenyByDefault    bool              `json:"denyByDefault,omitempty"`           // deny access unless an "allow" access rule was specifically created.
 	Private          bool              `json:"private"`                           // designate as source as private -- currently just means no sharing permitted.
 	Disabled         bool              `json:"disabled,omitempty"`                // disable the source, this is useful so you don't need to remove it from the config file
-	IndexingInterval uint32            `json:"indexingIntervalMinutes,omitempty"` // (optional) not recommended: manual overide interval in minutes to re-index the source
-	DisableIndexing  bool              `json:"disableIndexing,omitempty"`         // (optional) not recommended: disable the indexing of this source
-	Conditionals     ConditionalFilter `json:"conditionals"`                      // conditional rules to apply when indexing to include/exclude certain items
+	IndexingInterval uint32            `json:"indexingIntervalMinutes,omitempty"` // deprecated: create a rule with indexingIntervalMinutes to set the indexing interval for this source
+	DisableIndexing  bool              `json:"disableIndexing,omitempty"`         // deprecated: use indexingDisabled instead to disable the indexing of this source
+	Conditionals     ConditionalFilter `json:"conditionals"`                      // deprecated: use source.rules instead
+	Rules            []ConditionalRule `json:"rules"`                             // list of item rules to apply to specific paths
 	DefaultUserScope string            `json:"defaultUserScope"`                  // defaults to root of index "/" should match folders under path
 	DefaultEnabled   bool              `json:"defaultEnabled"`                    // should be added as a default source for new users?
 	CreateUserDir    bool              `json:"createUserDir"`                     // create a user directory for each user under defaultUserScope + username
@@ -192,13 +193,13 @@ type SourceConfig struct {
 }
 
 type ConditionalFilter struct {
-	Hidden          bool                     `json:"hidden"`                // deprecated: use ignoreHidden instead to exclude hidden files and folders.
-	IgnoreHidden    bool                     `json:"ignoreHidden"`          // exclude hidden files and folders.
-	ZeroSizeFolders bool                     `json:"ignoreZeroSizeFolders"` // ignore folders with 0 size
-	ItemRules       []ConditionalIndexConfig `json:"rules"`                 // list of item rules to apply to specific paths
+	Hidden          bool              `json:"hidden"`                // deprecated: use ignoreHidden instead. eg, FolderPath: "/" and ignoreHidden: true will exclude hidden files and folders under the root folder.
+	IgnoreHidden    bool              `json:"ignoreHidden"`          // deprecated: use ignoreHidden instead. eg, FolderPath: "/" and ignoreHidden: true will exclude hidden files and folders under the root folder.
+	ZeroSizeFolders bool              `json:"ignoreZeroSizeFolders"` // deprecated: use ignoreZeroSizeFolders instead. eg, FolderPath: "/" and ignoreZeroSizeFolders: true will ignore folders with 0 size under the root folder.
+	ItemRules       []ConditionalRule `json:"rules"`                 // list of item rules to apply to specific paths
 }
 
-type ConditionalIndexConfig struct {
+type ConditionalRule struct {
 	NeverWatchPath   string `json:"neverWatchPath"`   // index the folder in the first pass to get included in search, but never re-indexed.
 	IncludeRootItem  string `json:"includeRootItem"`  // include only these items at root folder level
 	FileStartsWith   string `json:"fileStartsWith"`   // (global) exclude files that start with these prefixes. Eg. "archive-" or "backup-"
@@ -212,29 +213,37 @@ type ConditionalIndexConfig struct {
 	FileName         string `json:"fileName"`         // (global) exclude files that match these names. Eg. "file.txt" or "test.csv"
 	FolderName       string `json:"folderName"`       // (global) exclude folders that match these names. Eg. "folder" or "subfolder"
 
-	Viewable bool `json:"viewable"` // Enable viewing in UI but exclude from indexing
+	Viewable              bool `json:"viewable"`              // Enable viewing in UI but exclude from indexing
+	IgnoreHidden          bool `json:"ignoreHidden"`          // Excludes only hidden files and folders
+	IgnoreZeroSizeFolders bool `json:"ignoreZeroSizeFolders"` // Excludes only folders with 0 size
+	IgnoreSymlinks        bool `json:"ignoreSymlinks"`        // Excludes symbolic links
 }
 
 // ConditionalMaps provides O(1) lookup performance for conditional rules
 // Maps are built from ConditionalFilter during initialization
 type ResolvedConditionalsConfig struct {
 	// Exact match maps - O(1) lookup (only for names, not StartsWith/EndsWith)
-	FileNames   map[string]ConditionalIndexConfig // key: file name
-	FolderNames map[string]ConditionalIndexConfig // key: folder name
+	FileNames   map[string]ConditionalRule // key: file name
+	FolderNames map[string]ConditionalRule // key: folder name
 
 	// exact match for paths
-	FilePaths   map[string]ConditionalIndexConfig // key: file path
-	FolderPaths map[string]ConditionalIndexConfig // key: folder path
+	FilePaths   map[string]ConditionalRule // key: file path
+	FolderPaths map[string]ConditionalRule // key: folder path
 
-	FileEndsWith     []ConditionalIndexConfig // list of item rules that have been resolved for specific paths
-	FolderEndsWith   []ConditionalIndexConfig // list of item rules that have been resolved for specific paths
-	FileStartsWith   []ConditionalIndexConfig // list of item rules that have been resolved for specific paths
-	FolderStartsWith []ConditionalIndexConfig // list of item rules that have been resolved for specific paths
+	FileEndsWith     []ConditionalRule // list of item rules that have been resolved for specific paths
+	FolderEndsWith   []ConditionalRule // list of item rules that have been resolved for specific paths
+	FileStartsWith   []ConditionalRule // list of item rules that have been resolved for specific paths
+	FolderStartsWith []ConditionalRule // list of item rules that have been resolved for specific paths
 
 	// NeverWatch paths map - O(1) lookup for all paths with neverWatch: true
 	// This replaces the old NeverWatchPaths slice
 	NeverWatchPaths  map[string]struct{} // key: full folder path
 	IncludeRootItems map[string]struct{} // key: inclusive root item
+
+	IgnoreAllHidden          bool // Excludes all hidden files and folders
+	IgnoreAllZeroSizeFolders bool // Excludes all folders with 0 size
+	IgnoreAllSymlinks        bool // Excludes all symbolic links
+	IndexingDisabled         bool // Excludes all files and folders from indexing
 }
 
 type Frontend struct {

@@ -708,7 +708,7 @@ func GenerateYaml() {
 			Path: ".",
 			Config: SourceConfig{
 				Conditionals: ConditionalFilter{
-					ItemRules: []ConditionalIndexConfig{
+					ItemRules: []ConditionalRule{
 						{}, // Add empty sample rule to show all fields in generated YAML
 					},
 				},

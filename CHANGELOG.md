@@ -26,9 +26,11 @@ And a few potential drawbacks to lookout for:
  - realtime file watcher (#917)
    - better latency if user has realtime permissions
  - access control works with individual files too
+ - conditionally hide symbolic links as indexing rule config #1540
 
  **Notes**:
  - `server.cacheDirCleanup` defaults to `false` instead of true. For docker, you would still need to mount a tmp directory to persist cache.
+ - indexing rules have been streamlined, see [wiki]. Previous style is deprecated but still functional.
 
 ## v1.1.4-beta
 
