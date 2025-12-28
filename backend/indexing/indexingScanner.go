@@ -165,8 +165,7 @@ func (s *Scanner) runRootScan(quick bool) {
 	}
 	s.lastScanned = time.Now()
 	s.checkForNewChildDirectories()
-	s.idx.db.ShrinkMemory()
-	if err != nil {
+	if err := s.idx.db.ShrinkMemory(); err != nil {
 		logger.Errorf("Failed to shrink memory: %v", err)
 	}
 }

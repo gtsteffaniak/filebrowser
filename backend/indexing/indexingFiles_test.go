@@ -7,6 +7,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	dbsql "github.com/gtsteffaniak/filebrowser/backend/database/sql"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
+	"github.com/gtsteffaniak/go-push/push"
 )
 
 // setupTestIndex creates a test index with mock data (no filesystem dependencies)
@@ -32,11 +33,23 @@ func setupTestIndex(t *testing.T) (*Index, string, func()) {
 				DisableIndexing: false,
 			},
 		},
-		mock:            true, // Enable mock mode
-		db:              indexDB,
-		FoundHardLinks:  make(map[string]uint64),
-		processedInodes: make(map[uint64]struct{}),
+		mock:                    true, // Enable mock mode
+		db:                      indexDB,
+		FoundHardLinks:          make(map[string]uint64),
+		processedInodes:         make(map[uint64]struct{}),
+		pendingParentSizeDeltas: make(map[string]int64),
+		scanUpdatedPaths:         make(map[string]bool),
 	}
+
+	// Initialize go-push pacer for debounced parent size updates
+	config := push.Config{
+		Mode:     push.ModeDebounce,
+		Interval: 1 * time.Second,
+	}
+	idx.parentSizePacer = push.New[struct{}](config)
+
+	// Start consumer goroutine to process debounced flushes
+	go idx.processParentSizeUpdates()
 
 	// Create mock directory structure with predictable sizes using database
 	now := time.Now()
@@ -250,6 +263,9 @@ func TestRecursiveSizeUpdate(t *testing.T) {
 	sizeDelta := deepdirInfo.Size - oldDeepdirSize
 	idx.updateParentDirSizesBatched("/subdir/deepdir/", sizeDelta)
 
+	// Flush pending updates immediately for test (normally debounced)
+	idx.FlushPendingParentSizeUpdates()
+
 	// Check that deepdir size updated
 	deepdirInfo, exists = idx.GetMetadataInfo("/subdir/deepdir/", true)
 	if !exists {
@@ -357,6 +373,9 @@ func TestRecursiveUpdateDirSizes(t *testing.T) {
 	sizeDelta := deepdirInfo.Size - previousSize
 	idx.updateParentDirSizesBatched("/subdir/deepdir/", sizeDelta)
 
+	// Flush pending updates immediately for test (normally debounced)
+	idx.FlushPendingParentSizeUpdates()
+
 	// Check that subdir size updated
 	subdirInfo, exists = idx.GetMetadataInfo("/subdir/", true)
 	if !exists {
@@ -412,6 +431,9 @@ func TestSizeDecreasePropagate(t *testing.T) {
 	// Call updateParentDirSizesBatched
 	sizeDelta := deepdirInfo.Size - previousSize
 	idx.updateParentDirSizesBatched("/subdir/deepdir/", sizeDelta)
+
+	// Flush pending updates immediately for test (normally debounced)
+	idx.FlushPendingParentSizeUpdates()
 
 	// Check that subdir size decreased
 	subdirInfo, exists = idx.GetMetadataInfo("/subdir/", true)

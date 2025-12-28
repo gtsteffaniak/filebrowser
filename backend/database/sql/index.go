@@ -915,12 +915,12 @@ func (db *IndexDB) RecalculateDirectorySizes(source, pathPrefix string) (int, er
 	for sizeRows.Next() {
 		var parentPath string
 		var totalSize int64
-		if err := sizeRows.Scan(&parentPath, &totalSize); err != nil {
+		if err = sizeRows.Scan(&parentPath, &totalSize); err != nil {
 			return 0, err
 		}
 		sizeMap[parentPath] = totalSize
 	}
-	if err := sizeRows.Err(); err != nil {
+	if err = sizeRows.Err(); err != nil {
 		return 0, err
 	}
 
@@ -1001,16 +1001,6 @@ func getNextPathPrefix(prefix string) string {
 	}
 	// If we can't increment, append a character (use 0x00 which sorts before most characters)
 	return prefix + "\x00"
-}
-
-// escapeLikePattern escapes special LIKE characters (_ and %) in a string
-// to make it safe for use in LIKE queries with ESCAPE '\'
-// Kept for backward compatibility, but range queries are preferred
-func escapeLikePattern(pattern string) string {
-	escaped := strings.ReplaceAll(pattern, "\\", "\\\\") // Escape backslashes first
-	escaped = strings.ReplaceAll(escaped, "_", "\\_")
-	escaped = strings.ReplaceAll(escaped, "%", "\\%")
-	return escaped
 }
 
 func getParentPath(path string) string {
