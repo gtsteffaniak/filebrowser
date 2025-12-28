@@ -17,13 +17,14 @@ server:
       name: "include"
       config:
         defaultEnabled: true
+        rules:
+          - includeRootItem: "myfolder"
+          - includeRootItem: "subfolderExclusions"
+          - filePath: "/subfolderExclusions/exclusionlist.sh"
+          - folderPath: "/subfolderExclusions/folderItem"
+            viewable: true
         conditionals:
           rules:
-            - includeRootItem: "myfolder"
-            - includeRootItem: "subfolderExclusions"
-            - filePath: "/subfolderExclusions/exclusionlist.sh"
-            - folderPath: "/subfolderExclusions/folderItem"
-              viewable: true
             - fileStartsWith: "startsWith"
             - folderEndsWith: "Folder"
             - folderNames: 'folderNames'

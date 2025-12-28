@@ -490,6 +490,14 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 		isDir := iteminfo.IsDirectory(file)
 		baseName := file.Name()
 		fullCombined := combinedPath + baseName
+
+		// Check for symlinks if ignoreAllSymlinks is enabled (check before other skip logic)
+		if idx.Config.ResolvedConditionals != nil && idx.Config.ResolvedConditionals.IgnoreAllSymlinks {
+			if file.Mode()&os.ModeSymlink != 0 {
+				continue
+			}
+		}
+
 		if adjustedPath == "/" {
 			if !idx.shouldInclude(file.Name()) {
 				continue
@@ -587,7 +595,7 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 			}
 		}
 	}
-	if totalSize == 0 && idx.Config.Conditionals.ZeroSizeFolders {
+	if totalSize == 0 && idx.Config.ResolvedConditionals != nil && idx.Config.ResolvedConditionals.IgnoreAllZeroSizeFolders {
 		return nil, errors.ErrNotIndexed
 	}
 	dirFileInfo := &iteminfo.FileInfo{
@@ -1092,7 +1100,7 @@ func (idx *Index) shouldSkip(isDir bool, isHidden bool, fullCombined, baseName s
 
 	}
 
-	if idx.Config.Conditionals.IgnoreHidden && isHidden {
+	if idx.Config.ResolvedConditionals != nil && idx.Config.ResolvedConditionals.IgnoreAllHidden && isHidden {
 		return true
 	}
 
