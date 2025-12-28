@@ -15,6 +15,10 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
+<<<<<<< HEAD
+=======
+	"github.com/gtsteffaniak/filebrowser/backend/database/sql"
+>>>>>>> main
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 	"github.com/gtsteffaniak/go-cache/cache"
@@ -154,6 +158,16 @@ func duplicatesHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 	index := indexing.GetIndex(opts.source)
 	if index == nil {
 		return http.StatusBadRequest, fmt.Errorf("index not found for source %s", opts.source)
+	}
+	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, index.Name)
+	if err != nil {
+		return http.StatusForbidden, err
+	}
+	userscope = strings.TrimRight(userscope, "/")
+	scopePath := utils.JoinPathAsUnix(userscope, opts.searchScope)
+	fullPath := index.MakeIndexPath(scopePath)
+	if !store.Access.Permitted(index.Path, fullPath, d.user.Username) {
+		return http.StatusForbidden, fmt.Errorf("user is not allowed to access this location")
 	}
 
 	// Safety check: Reject duplicate search during active indexing to prevent resource contention

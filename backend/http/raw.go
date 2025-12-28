@@ -567,7 +567,6 @@ func createZip(d *requestContext, tmpDirPath string, filenames ...string) error 
 	defer file.Close()
 
 	zipWriter := zip.NewWriter(file)
-	defer zipWriter.Close()
 
 	for _, fname := range filenames {
 		err := addFile(fname, d, nil, zipWriter, false)
@@ -576,6 +575,11 @@ func createZip(d *requestContext, tmpDirPath string, filenames ...string) error 
 			logger.Errorf("Failed to add %s to ZIP: %v", fname, err)
 			return err
 		}
+	}
+
+	// Close the ZIP writer and check for errors
+	if err := zipWriter.Close(); err != nil {
+		return fmt.Errorf("failed to finalize ZIP archive: %w", err)
 	}
 
 	return nil
@@ -589,9 +593,7 @@ func createTarGz(d *requestContext, tmpDirPath string, filenames ...string) erro
 	defer file.Close()
 
 	gzWriter := gzip.NewWriter(file)
-	defer gzWriter.Close()
 	tarWriter := tar.NewWriter(gzWriter)
-	defer tarWriter.Close()
 
 	for _, fname := range filenames {
 		err := addFile(fname, d, tarWriter, nil, false)
@@ -599,6 +601,14 @@ func createTarGz(d *requestContext, tmpDirPath string, filenames ...string) erro
 			logger.Errorf("Failed to add %s to TAR.GZ: %v", fname, err)
 			return err
 		}
+	}
+
+	// Close writers in reverse order and check for errors
+	if err := tarWriter.Close(); err != nil {
+		return fmt.Errorf("failed to finalize TAR archive: %w", err)
+	}
+	if err := gzWriter.Close(); err != nil {
+		return fmt.Errorf("failed to finalize GZIP compression: %w", err)
 	}
 
 	return nil
