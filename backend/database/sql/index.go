@@ -19,13 +19,15 @@ type IndexDB struct {
 // NewIndexDB creates a new index database in the cache directory.
 func NewIndexDB(name string) (*IndexDB, error) {
 	db, err := NewTempDB("index_"+name, &TempDBConfig{
-		BatchSize:          1000,             // 1000 items per batch
-		CacheSizeKB:        -625,             // 2.5MB cache (625 pages * 4KB = 2.5MB) - will be increased dynamically
-		SoftHeapLimitBytes: 32 * 1024 * 1024, // 32MB soft heap limit (matches max cache size)
-		Synchronous:        "OFF",            // OFF for maximum write performance - data integrity not critical
-		TempStore:          "FILE",           // FILE instead of MEMORY to reduce memory usage
-		JournalMode:        "OFF",            // OFF for maximum write performance - data integrity not critical
-		LockingMode:        "EXCLUSIVE",      // EXCLUSIVE mode - better cache retention, no change counter overhead
+		BatchSize:           1000,             // 1000 items per batch
+		CacheSizeKB:         -250,             // 1MB cache (250 pages * 4KB = 1MB) - reduced to minimize OS page cache pressure
+		SoftHeapLimitBytes:  16 * 1024 * 1024, // 16MB soft heap limit (reduced to minimize memory pressure)
+		CacheSpillThreshold: 200,              // Spill dirty pages to disk when cache exceeds 200 pages (~800KB) - more aggressive
+		MmapSize:            0,                // Disable mmap to prevent additional OS page cache usage
+		Synchronous:         "OFF",            // OFF for maximum write performance - data integrity not critical
+		TempStore:           "FILE",           // FILE instead of MEMORY to reduce memory usage
+		JournalMode:         "OFF",            // OFF for maximum write performance - data integrity not critical
+		LockingMode:         "EXCLUSIVE",      // EXCLUSIVE mode - better cache retention, no change counter overhead
 	})
 	if err != nil {
 		return nil, err
@@ -57,10 +59,12 @@ func (db *IndexDB) CreateIndexTable() error {
 	
 	CREATE INDEX IF NOT EXISTS idx_source ON index_items(source);
 	CREATE INDEX IF NOT EXISTS idx_source_parent_path ON index_items(source, parent_path);
+	CREATE INDEX IF NOT EXISTS idx_source_parent_path_is_dir_name ON index_items(source, parent_path, is_dir, name);
 	CREATE INDEX IF NOT EXISTS idx_source_size ON index_items(source, size);
 	CREATE INDEX IF NOT EXISTS idx_source_size_type ON index_items(source, size, type);
 	CREATE INDEX IF NOT EXISTS idx_name ON index_items(name);
 	CREATE INDEX IF NOT EXISTS idx_last_updated ON index_items(source, last_updated);
+	CREATE INDEX IF NOT EXISTS idx_source_is_dir ON index_items(source, is_dir);
 	`
 	_, err := db.Exec(query)
 	return err
@@ -80,6 +84,15 @@ func (db *IndexDB) InsertItem(source, path string, info *iteminfo.FileInfo) erro
 		is_hidden = excluded.is_hidden,
 		has_preview = excluded.has_preview,
 		last_updated = excluded.last_updated
+	WHERE excluded.last_updated > index_items.last_updated OR
+	      excluded.size != index_items.size OR
+	      excluded.mod_time != index_items.mod_time OR
+	      excluded.has_preview != index_items.has_preview OR
+	      excluded.parent_path != index_items.parent_path OR
+	      excluded.name != index_items.name OR
+	      excluded.type != index_items.type OR
+	      excluded.is_dir != index_items.is_dir OR
+	      excluded.is_hidden != index_items.is_hidden
 	`
 	parentPath := getParentPath(path)
 	_, err := db.Exec(query,
@@ -133,9 +146,21 @@ func (db *IndexDB) BulkInsertItems(source string, items []*iteminfo.FileInfo) er
 		is_hidden = excluded.is_hidden,
 		has_preview = excluded.has_preview,
 		last_updated = excluded.last_updated
+	WHERE excluded.last_updated > index_items.last_updated OR
+	      excluded.size != index_items.size OR
+	      excluded.mod_time != index_items.mod_time OR
+	      excluded.has_preview != index_items.has_preview OR
+	      excluded.parent_path != index_items.parent_path OR
+	      excluded.name != index_items.name OR
+	      excluded.type != index_items.type OR
+	      excluded.is_dir != index_items.is_dir OR
+	      excluded.is_hidden != index_items.is_hidden
 	`)
 	if err != nil {
 		if isBusyError(err) || isTransactionError(err) {
+			// With EXCLUSIVE locking and single connection, this shouldn't happen.
+			// Log as warning to surface potential issues (another process accessing DB, bug, etc.)
+			logger.Errorf("[DB] BulkInsertItems: Unexpected busy/lock error during Prepare (EXCLUSIVE mode): %v", err)
 			return nil
 		}
 		return err
@@ -160,7 +185,10 @@ func (db *IndexDB) BulkInsertItems(source string, items []*iteminfo.FileInfo) er
 		)
 		if err != nil {
 			if isBusyError(err) || isTransactionError(err) {
-				return nil // Non-fatal
+				// With EXCLUSIVE locking and single connection, this shouldn't happen.
+				// Log as warning to surface potential issues (another process accessing DB, bug, etc.)
+				logger.Errorf("[DB] BulkInsertItems: Unexpected busy/lock error during Exec (EXCLUSIVE mode): %v", err)
+				return nil
 			}
 			return err
 		}
@@ -169,15 +197,14 @@ func (db *IndexDB) BulkInsertItems(source string, items []*iteminfo.FileInfo) er
 	// Try to commit
 	if err := tx.Commit(); err != nil {
 		if isBusyError(err) || isTransactionError(err) {
-			return nil // Non-fatal
+			// With EXCLUSIVE locking and single connection, this shouldn't happen.
+			// Log as warning to surface potential issues (another process accessing DB, bug, etc.)
+			logger.Errorf("[DB] BulkInsertItems: Unexpected busy/lock error during Commit (EXCLUSIVE mode): %v", err)
+			return nil
 		}
 		return err
 	}
 
-	// We call this after every transaction to prevent memory accumulation
-	if _, err := db.Exec("PRAGMA shrink_memory"); err != nil {
-		logger.Debugf("BulkInsertItems: failed to shrink memory: %v", err)
-	}
 	return nil
 }
 
@@ -367,8 +394,9 @@ func (db *IndexDB) DeleteItem(source, path string, recursive bool) error {
 		return err
 	}
 
-	// Delete children
-	_, err := db.Exec("DELETE FROM index_items WHERE source = ? AND path GLOB ?", source, dirPrefix+"*")
+	// Delete children - use range query on PRIMARY KEY (source, path) for optimal index utilization
+	nextPrefix := getNextPathPrefix(dirPrefix)
+	_, err := db.Exec("DELETE FROM index_items WHERE source = ? AND path >= ? AND path < ?", source, dirPrefix, nextPrefix)
 	return err
 }
 
@@ -376,6 +404,35 @@ func (db *IndexDB) DeleteItem(source, path string, recursive bool) error {
 func (db *IndexDB) ShrinkMemory() error {
 	_, err := db.Exec("PRAGMA shrink_memory")
 	return err
+}
+
+// Optimize runs PRAGMA optimize to update query planner statistics.
+// This helps SQLite choose more efficient query plans and should be called periodically.
+func (db *IndexDB) Optimize() error {
+	_, err := db.Exec("PRAGMA optimize")
+	return err
+}
+
+// ExplainQueryPlan analyzes a query and returns the execution plan as a string.
+// This is useful for debugging and optimizing queries to reduce page cache usage.
+func (db *IndexDB) ExplainQueryPlan(query string, args ...interface{}) (string, error) {
+	explainQuery := "EXPLAIN QUERY PLAN " + query
+	rows, err := db.Query(explainQuery, args...)
+	if err != nil {
+		return "", err
+	}
+	defer rows.Close()
+
+	var plan strings.Builder
+	for rows.Next() {
+		var id, parent, notused int
+		var detail string
+		if err := rows.Scan(&id, &parent, &notused, &detail); err != nil {
+			return "", err
+		}
+		plan.WriteString(fmt.Sprintf("%d|%d|%s\n", id, parent, detail))
+	}
+	return plan.String(), rows.Err()
 }
 
 // UpdateCacheSize updates the SQLite cache size at runtime.
@@ -399,16 +456,21 @@ func (db *IndexDB) UpdateCacheSize(cacheSizeMB int) error {
 }
 
 func (db *IndexDB) DeleteStaleEntries(source string, pathPrefix string, scanStartTime int64) (int, error) {
+	// Use range query on PRIMARY KEY (source, path) for optimal index utilization
+	// Range queries (path >= ? AND path < ?) are MORE efficient than GLOB/LIKE because:
+	// 1. They can use the PRIMARY KEY index directly without pattern matching
+	// 2. SQLite can optimize range queries better than pattern matching
+	// 3. No pattern evaluation overhead - just direct index seeks
+	// This is better than GLOB 'prefix*' which still requires pattern evaluation
+	nextPrefix := getNextPathPrefix(pathPrefix)
 	query := `
 	DELETE FROM index_items 
 	WHERE source = ? 
-	AND path GLOB ? 
+	AND path >= ? AND path < ?
 	AND last_updated < ?
 	`
 
-	globPattern := pathPrefix + "*"
-
-	result, err := db.Exec(query, source, globPattern, scanStartTime)
+	result, err := db.Exec(query, source, pathPrefix, nextPrefix, scanStartTime)
 	if err != nil {
 		if isBusyError(err) || isTransactionError(err) {
 			logger.Debugf("[DB_MAINTENANCE] DeleteStaleEntries: DB busy, skipping cleanup")
@@ -424,17 +486,18 @@ func (db *IndexDB) DeleteStaleEntries(source string, pathPrefix string, scanStar
 // GetRecursiveCount counts directories and files recursively for a child scanner
 func (db *IndexDB) GetRecursiveCount(source string, pathPrefix string) (dirs uint64, files uint64, err error) {
 	// Child scanner: count both directories and files recursively
+	// Use range query on PRIMARY KEY (source, path) for optimal index utilization
+	nextPrefix := getNextPathPrefix(pathPrefix)
 	query := `
 	SELECT 
 		SUM(CASE WHEN is_dir = 1 THEN 1 ELSE 0 END) as dir_count,
 		SUM(CASE WHEN is_dir = 0 THEN 1 ELSE 0 END) as file_count
 	FROM index_items 
-	WHERE source = ? AND path GLOB ?
+	WHERE source = ? AND path >= ? AND path < ?
 	`
 
-	globPattern := pathPrefix + "*"
 	var dirCount, fileCount sql.NullInt64
-	err = db.QueryRow(query, source, globPattern).Scan(&dirCount, &fileCount)
+	err = db.QueryRow(query, source, pathPrefix, nextPrefix).Scan(&dirCount, &fileCount)
 	if err != nil {
 		if isBusyError(err) || isTransactionError(err) {
 			return 0, 0, nil
@@ -448,19 +511,17 @@ func (db *IndexDB) GetRecursiveCount(source string, pathPrefix string) (dirs uin
 // GetDirectFileCount counts only files directly under the given path (non-recursive)
 // For root scanner ("/"), this counts files like "/filename" but excludes "/subdir/filename"
 func (db *IndexDB) GetDirectFileCount(source string, pathPrefix string) (files uint64, err error) {
+	// Use parent_path for direct children instead of pattern matching
+	// This is more efficient as it can use the idx_source_parent_path index directly
 	query := `
 	SELECT 
-		SUM(CASE WHEN is_dir = 0 THEN 1 ELSE 0 END) as file_count
+		COUNT(*) as file_count
 	FROM index_items 
-	WHERE source = ? AND path LIKE ? AND path NOT LIKE ? AND is_dir = 0
+	WHERE source = ? AND parent_path = ? AND is_dir = 0
 	`
 
-	// Match paths like "/filename" but exclude "/subdir/filename"
-	directFilePattern := pathPrefix + "_%"
-	subdirPattern := pathPrefix + "_%/_%"
-
 	var fileCount sql.NullInt64
-	err = db.QueryRow(query, source, directFilePattern, subdirPattern).Scan(&fileCount)
+	err = db.QueryRow(query, source, pathPrefix).Scan(&fileCount)
 	if err != nil {
 		if isBusyError(err) || isTransactionError(err) {
 			return 0, nil
@@ -509,14 +570,15 @@ func (db *IndexDB) GetTypeGroupsForSize(source string, size int64, pathPrefix st
 	var args []interface{}
 
 	if pathPrefix != "" {
+		nextPrefix := getNextPathPrefix(pathPrefix)
 		query = `
 		SELECT type, COUNT(*) as count
 		FROM index_items
-		WHERE source = ? AND size = ? AND is_dir = 0 AND path GLOB ?
+		WHERE source = ? AND size = ? AND is_dir = 0 AND path >= ? AND path < ?
 		GROUP BY type
 		HAVING COUNT(*) >= 2
 		`
-		args = []interface{}{source, size, pathPrefix + "*"}
+		args = []interface{}{source, size, pathPrefix, nextPrefix}
 	} else {
 		query = `
 		SELECT type, COUNT(*) as count
@@ -567,13 +629,14 @@ func (db *IndexDB) GetFilesForMultipleSizes(source string, sizes []int64, pathPr
 
 	var query string
 	if pathPrefix != "" {
+		nextPrefix := getNextPathPrefix(pathPrefix)
 		query = fmt.Sprintf(`
 		SELECT path, name, size, mod_time, type, is_dir, is_hidden, has_preview
 		FROM index_items 
-		WHERE source = ? AND size IN (%s) AND is_dir = 0 AND path GLOB ?
+		WHERE source = ? AND size IN (%s) AND is_dir = 0 AND path >= ? AND path < ?
 		ORDER BY size, type, name
 		`, strings.Join(placeholders, ","))
-		args = append(args, pathPrefix+"*")
+		args = append(args, pathPrefix, nextPrefix)
 	} else {
 		query = fmt.Sprintf(`
 		SELECT path, name, size, mod_time, type, is_dir, is_hidden, has_preview
@@ -612,13 +675,14 @@ func (db *IndexDB) GetFilesBySizeAndType(source string, size int64, fileType str
 	var args []interface{}
 
 	if pathPrefix != "" {
+		nextPrefix := getNextPathPrefix(pathPrefix)
 		query = `
 		SELECT path, name, size, mod_time, type, is_dir, is_hidden, has_preview
 		FROM index_items 
-		WHERE source = ? AND size = ? AND type = ? AND is_dir = 0 AND path GLOB ?
+		WHERE source = ? AND size = ? AND type = ? AND is_dir = 0 AND path >= ? AND path < ?
 		ORDER BY name
 		`
-		args = []interface{}{source, size, fileType, pathPrefix + "*"}
+		args = []interface{}{source, size, fileType, pathPrefix, nextPrefix}
 	} else {
 		query = `
 		SELECT path, name, size, mod_time, type, is_dir, is_hidden, has_preview
@@ -657,13 +721,14 @@ func (db *IndexDB) GetFilesBySize(source string, size int64, pathPrefix string) 
 	var args []interface{}
 
 	if pathPrefix != "" {
+		nextPrefix := getNextPathPrefix(pathPrefix)
 		query = `
 		SELECT path, name, size, mod_time, type, is_dir, is_hidden, has_preview
 		FROM index_items 
-		WHERE source = ? AND size = ? AND is_dir = 0 AND path GLOB ?
+		WHERE source = ? AND size = ? AND is_dir = 0 AND path >= ? AND path < ?
 		ORDER BY name
 		`
-		args = []interface{}{source, size, pathPrefix + "*"}
+		args = []interface{}{source, size, pathPrefix, nextPrefix}
 	} else {
 		query = `
 		SELECT path, name, size, mod_time, type, is_dir, is_hidden, has_preview
@@ -702,15 +767,16 @@ func (db *IndexDB) GetSizeGroupsForDuplicates(source string, minSize int64, path
 	var args []interface{}
 
 	if pathPrefix != "" {
+		nextPrefix := getNextPathPrefix(pathPrefix)
 		query = `
 		SELECT size, COUNT(*) as count
 		FROM index_items
-		WHERE source = ? AND size >= ? AND is_dir = 0 AND path GLOB ?
+		WHERE source = ? AND size >= ? AND is_dir = 0 AND path >= ? AND path < ?
 		GROUP BY size
 		HAVING COUNT(*) >= 2
 		ORDER BY size DESC
 		`
-		args = []interface{}{source, minSize, pathPrefix + "*"}
+		args = []interface{}{source, minSize, pathPrefix, nextPrefix}
 	} else {
 		query = `
 		SELECT size, COUNT(*) as count
@@ -770,13 +836,15 @@ func (db *IndexDB) GetTotalSize(source string) (uint64, error) {
 func (db *IndexDB) RecalculateDirectorySizes(source, pathPrefix string) (int, error) {
 	// 1. Get all directories under the path prefix, ordered by depth (deepest first)
 	// Depth is determined by counting slashes in the path
+	// Use range query on PRIMARY KEY (source, path) for optimal index utilization
+	nextPrefix := getNextPathPrefix(pathPrefix)
 	query := `
 	SELECT path FROM index_items
-	WHERE source = ? AND is_dir = 1 AND path GLOB ?
+	WHERE source = ? AND is_dir = 1 AND path >= ? AND path < ?
 	ORDER BY LENGTH(path) - LENGTH(REPLACE(path, '/', '')) DESC
 	`
 
-	rows, err := db.Query(query, source, pathPrefix+"*")
+	rows, err := db.Query(query, source, pathPrefix, nextPrefix)
 	if err != nil {
 		if isBusyError(err) || isTransactionError(err) {
 			return 0, nil
@@ -811,53 +879,90 @@ func (db *IndexDB) RecalculateDirectorySizes(source, pathPrefix string) (int, er
 	}
 	// No defer rollback - data integrity not critical, performance is priority
 
-	// Prepare statements for the loop
-	// We only sum DIRECT children because we are processing bottom-up
-	sizeStmt, err := tx.Prepare(`
-		SELECT COALESCE(SUM(size), 0)
-		FROM index_items
-		WHERE source = ? AND parent_path = ?
-	`)
-	if err != nil {
-		return 0, err
-	}
-	defer sizeStmt.Close()
-
-	updateStmt, err := tx.Prepare(`
-		UPDATE index_items 
-		SET size = ?, last_updated = ? 
-		WHERE source = ? AND path = ?
-	`)
-	if err != nil {
-		return 0, err
-	}
-	defer updateStmt.Close()
-
+	// Batch calculate all directory sizes in a single query to avoid N+1 problem
+	// This is much more efficient than querying each directory individually
 	nowUnix := time.Now().Unix()
-	updateCount := 0
 
-	// 3. Process directories bottom-up
-	for _, dirPath := range directories {
-		var totalSize int64
-		err := sizeStmt.QueryRow(source, dirPath).Scan(&totalSize)
-		if err != nil {
-			if isBusyError(err) || isTransactionError(err) {
-				continue
-			}
-			logger.Errorf("[DB_SIZE_CALC] Failed to calculate size for %s: %v", dirPath, err)
-			continue
-		}
-
-		_, err = updateStmt.Exec(totalSize, nowUnix, source, dirPath)
-		if err != nil {
-			if isBusyError(err) || isTransactionError(err) {
-				continue
-			}
-			logger.Errorf("[DB_SIZE_CALC] Failed to update size for %s: %v", dirPath, err)
-			continue
-		}
-		updateCount++
+	// Create placeholders for directory paths
+	dirPlaceholders := make([]string, len(directories))
+	dirArgs := make([]interface{}, len(directories)+1)
+	dirArgs[0] = source
+	for i, dirPath := range directories {
+		dirPlaceholders[i] = "?"
+		dirArgs[i+1] = dirPath
 	}
+
+	// Calculate sizes for all directories in one query using GROUP BY
+	// We only sum DIRECT children because we are processing bottom-up
+	sizeQuery := fmt.Sprintf(`
+		SELECT parent_path, COALESCE(SUM(size), 0) as total_size
+		FROM index_items
+		WHERE source = ? AND parent_path IN (%s)
+		GROUP BY parent_path
+	`, strings.Join(dirPlaceholders, ","))
+
+	sizeRows, err := tx.Query(sizeQuery, dirArgs...)
+	if err != nil {
+		if isBusyError(err) || isTransactionError(err) {
+			return 0, nil
+		}
+		return 0, err
+	}
+	defer sizeRows.Close()
+
+	// Map directory paths to their calculated sizes
+	sizeMap := make(map[string]int64)
+	for sizeRows.Next() {
+		var parentPath string
+		var totalSize int64
+		if err := sizeRows.Scan(&parentPath, &totalSize); err != nil {
+			return 0, err
+		}
+		sizeMap[parentPath] = totalSize
+	}
+	if err := sizeRows.Err(); err != nil {
+		return 0, err
+	}
+
+	// Batch update all directories using CASE statements (more efficient than individual updates)
+	if len(sizeMap) == 0 {
+		return 0, nil
+	}
+
+	var caseParts []string
+	var updateArgs []interface{}
+	var updatePaths []string
+	var updatePlaceholders []string
+
+	for dirPath, totalSize := range sizeMap {
+		caseParts = append(caseParts, "WHEN path = ? THEN ?")
+		updateArgs = append(updateArgs, dirPath, totalSize)
+		updatePaths = append(updatePaths, dirPath)
+		updatePlaceholders = append(updatePlaceholders, "?")
+	}
+
+	updateQuery := fmt.Sprintf(`
+		UPDATE index_items 
+		SET size = CASE %s END,
+		    last_updated = ?
+		WHERE source = ? AND path IN (%s)
+	`, strings.Join(caseParts, " "), strings.Join(updatePlaceholders, ","))
+
+	updateArgs = append(updateArgs, nowUnix, source)
+	for _, path := range updatePaths {
+		updateArgs = append(updateArgs, path)
+	}
+
+	result, err := tx.Exec(updateQuery, updateArgs...)
+	if err != nil {
+		if isBusyError(err) || isTransactionError(err) {
+			return 0, nil
+		}
+		return 0, err
+	}
+
+	rowsAffected, _ := result.RowsAffected()
+	updateCount := int(rowsAffected)
 
 	// 4. Commit transaction
 	if err := tx.Commit(); err != nil {
@@ -871,6 +976,42 @@ func (db *IndexDB) RecalculateDirectorySizes(source, pathPrefix string) (int, er
 }
 
 // Helper functions
+
+// getNextPathPrefix returns the lexicographically next string after the given prefix.
+// This is used for efficient range queries on path columns with PRIMARY KEY (source, path).
+// For example: "/lost/" -> "/lost0" (which is > "/lost/" but < "/lost2")
+// This allows us to use range queries (path >= prefix AND path < nextPrefix) instead of LIKE/GLOB.
+func getNextPathPrefix(prefix string) string {
+	if prefix == "" {
+		return "\x00" // Return null character for empty prefix
+	}
+	// Find the lexicographically next string by incrementing the last character
+	// If last char is not the max, increment it; otherwise append a character
+	runes := []rune(prefix)
+	lastIdx := len(runes) - 1
+
+	// Try to increment the last character
+	if lastIdx >= 0 {
+		lastChar := runes[lastIdx]
+		// If it's not the maximum character, increment it
+		if lastChar < 0x10FFFF { // Max Unicode code point
+			runes[lastIdx] = lastChar + 1
+			return string(runes)
+		}
+	}
+	// If we can't increment, append a character (use 0x00 which sorts before most characters)
+	return prefix + "\x00"
+}
+
+// escapeLikePattern escapes special LIKE characters (_ and %) in a string
+// to make it safe for use in LIKE queries with ESCAPE '\'
+// Kept for backward compatibility, but range queries are preferred
+func escapeLikePattern(pattern string) string {
+	escaped := strings.ReplaceAll(pattern, "\\", "\\\\") // Escape backslashes first
+	escaped = strings.ReplaceAll(escaped, "_", "\\_")
+	escaped = strings.ReplaceAll(escaped, "%", "\\%")
+	return escaped
+}
 
 func getParentPath(path string) string {
 	if path == "/" {

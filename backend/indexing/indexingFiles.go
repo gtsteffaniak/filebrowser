@@ -72,6 +72,7 @@ type Index struct {
 	scanners         map[string]*Scanner  // path -> scanner
 	mock             bool
 	mu               sync.RWMutex
+	childScanMutex   sync.Mutex // Serializes child scanner execution (only one child scanner runs at a time)
 	// Delayed parent size updates: accumulate deltas and batch update after 1 second of inactivity
 	pendingParentSizeDeltas map[string]int64 // path -> accumulated delta
 	parentSizeFlushTimer    *time.Timer      // Timer to trigger batch flush
@@ -79,6 +80,10 @@ type Index struct {
 	// Scan session tracking: timestamp when scan session started (for timestamp-based conflict detection)
 	scanSessionStartTime int64           // Unix timestamp when current scan session started (0 if no active scan)
 	scanUpdatedPaths     map[string]bool // Tracks directories updated by the scan (to distinguish from API updates)
+	// Refresh deduplication: prevent redundant refreshes of recently refreshed paths
+	lastRefreshTime   map[string]time.Time     // path -> last refresh timestamp (skip if refreshed within last 5 seconds)
+	refreshInProgress map[string]chan struct{} // path -> completion channel (prevents concurrent refreshes of same path)
+	refreshMutex      sync.RWMutex             // Mutex for refresh timestamp map and in-progress map
 }
 
 var (
@@ -305,6 +310,8 @@ func Initialize(source *settings.Source, mock bool) {
 	}
 
 	newIndex := Index{
+		lastRefreshTime:         make(map[string]time.Time),
+		refreshInProgress:       make(map[string]chan struct{}),
 		mock:                    mock,
 		Source:                  *source,
 		db:                      indexDB, // Use shared database
@@ -596,10 +603,62 @@ func (idx *Index) GetRealPath(relativePath ...string) (string, bool, error) {
 }
 
 func (idx *Index) RefreshFileInfo(opts utils.FileOptions) error {
+	// Calculate target path first (before any expensive operations)
 	targetPath := opts.Path
 	if !opts.IsDir {
 		targetPath = idx.MakeIndexPath(filepath.Dir(targetPath), true)
 	}
+
+	// Check if refresh is needed: skip if recently refreshed OR if another refresh is in progress
+	idx.refreshMutex.Lock()
+
+	// Check if already in progress - wait for it to complete
+	if idx.refreshInProgress != nil {
+		if waitChan, inProgress := idx.refreshInProgress[targetPath]; inProgress {
+			idx.refreshMutex.Unlock()
+			// Another refresh is in progress - wait for it (non-blocking check first)
+			select {
+			case <-waitChan:
+				// Refresh completed, return success
+				return nil
+			case <-time.After(100 * time.Millisecond):
+				// Timeout - don't wait forever, just return
+				return nil
+			}
+		}
+	}
+
+	// Check if recently refreshed (within last 5 seconds)
+	if idx.lastRefreshTime != nil {
+		if lastRefresh, exists := idx.lastRefreshTime[targetPath]; exists {
+			if time.Since(lastRefresh) < 5*time.Second {
+				idx.refreshMutex.Unlock()
+				// Don't log skipped refreshes - too verbose when many API requests come in
+				return nil // Return success - data is fresh enough
+			}
+		}
+	}
+
+	// Mark as in-progress and update timestamp
+	if idx.refreshInProgress == nil {
+		idx.refreshInProgress = make(map[string]chan struct{})
+	}
+	doneChan := make(chan struct{})
+	idx.refreshInProgress[targetPath] = doneChan
+	if idx.lastRefreshTime == nil {
+		idx.lastRefreshTime = make(map[string]time.Time)
+	}
+	idx.lastRefreshTime[targetPath] = time.Now()
+	idx.refreshMutex.Unlock()
+
+	// Ensure we always clean up
+	defer func() {
+		idx.refreshMutex.Lock()
+		delete(idx.refreshInProgress, targetPath)
+		close(doneChan)
+		idx.refreshMutex.Unlock()
+	}()
+
 	logger.Debugf("[REFRESH] RefreshFileInfo called for %s (IsDir=%v, Recursive=%v)", targetPath, opts.IsDir, opts.Recursive)
 
 	previousInfo, previousExists := idx.GetMetadataInfo(targetPath, true)

@@ -67,12 +67,6 @@ func (s *Scanner) start() {
 
 // tryAcquireAndScan attempts to acquire the global scan mutex and run a scan
 func (s *Scanner) tryAcquireAndScan() {
-	// Mark that this scanner is attempting to scan (before acquiring mutex)
-	// This prevents status from incorrectly showing "ready" while waiting for mutex
-	s.idx.mu.Lock()
-	s.isScanning = true
-	s.idx.mu.Unlock()
-
 	// Ensure isScanning is cleared even if we panic
 	defer func() {
 		s.idx.mu.Lock()
@@ -84,8 +78,16 @@ func (s *Scanner) tryAcquireAndScan() {
 		}
 	}()
 
+	// Root scanner can run independently since it's non-recursive
+	if s.scanPath != "/" {
+		s.idx.childScanMutex.Lock()
+		s.idx.mu.Lock()
+		s.isScanning = true
+		s.idx.mu.Unlock()
+		defer s.idx.childScanMutex.Unlock()
+	}
+
 	// Flush any pending parent size updates before starting scan to ensure data consistency
-	// No need for scanMutex - SQLite handles concurrent access with its own locking
 	s.idx.FlushPendingParentSizeUpdates()
 
 	quick := s.fullScanCounter > 0 && s.fullScanCounter < 5
@@ -146,12 +148,8 @@ func (s *Scanner) runRootScan(quick bool) {
 	}
 
 	s.idx.flushBatch()
-	logger.Debugf("[SCANNER] Root scanner batch mode ended")
 
 	if !quick {
-		// Root scanner is non-recursive, so it should NOT purge entries
-		// from subdirectories (those are managed by child scanners)
-		// Only sync stats after full scans
 		s.syncStatsWithDB()
 	}
 	scanDuration := int(time.Since(startTime).Seconds())
@@ -167,7 +165,10 @@ func (s *Scanner) runRootScan(quick bool) {
 	}
 	s.lastScanned = time.Now()
 	s.checkForNewChildDirectories()
-	_, _ = s.idx.db.Exec("PRAGMA shrink_memory")
+	s.idx.db.ShrinkMemory()
+	if err != nil {
+		logger.Errorf("Failed to shrink memory: %v", err)
+	}
 }
 
 func (s *Scanner) runChildScan(quick bool) {
@@ -198,7 +199,7 @@ func (s *Scanner) runChildScan(quick bool) {
 	s.idx.batchItems = make([]*iteminfo.FileInfo, 0, batchSize)
 	s.idx.mu.Unlock()
 
-	logger.Infof("[SCANNER] Child scanner [%s] starting batch mode (batchSize=%d, quick=%v)",
+	logger.Debugf("[SCANNER] Child scanner [%s] starting batch mode (batchSize=%d, quick=%v)",
 		s.scanPath, batchSize, quick)
 
 	// indexDirectory returns the total size of this directory (including all subdirectories)
@@ -464,7 +465,7 @@ func (s *Scanner) syncStatsWithDB() {
 		return
 	}
 
-	logger.Infof("[SYNC_STATS] Scanner %s: DB returned dirs=%d, files=%d (setting scanner.numDirs and scanner.numFiles)", s.scanPath, dirs, files)
+	logger.Debugf("[SYNC_STATS] Scanner %s: DB returned dirs=%d, files=%d (setting scanner.numDirs and scanner.numFiles)", s.scanPath, dirs, files)
 	s.numDirs = dirs
 	s.numFiles = files
 }
