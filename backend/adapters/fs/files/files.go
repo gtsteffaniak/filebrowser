@@ -586,7 +586,7 @@ func WriteDirectory(opts utils.FileOptions) error {
 	err = os.Chmod(realPath, fileutils.PermDir)
 	if err != nil {
 		// Handle chmod error gracefully
-		logger.Debugf("Could not set file permissions for %s (this may be expected in restricted environments): %v", dest, err)
+		logger.Debugf("Could not set file permissions for %s (this may be expected in restricted environments): %v", realPath, err)
 	}
 
 	return RefreshIndex(idx.Name, opts.Path, true, true)
@@ -638,7 +638,7 @@ func WriteFile(source, path string, in io.Reader) error {
 	err = os.Chmod(realPath, fileutils.PermDir)
 	if err != nil {
 		// Handle chmod error gracefully
-		logger.Debugf("Could not set file permissions for %s (this may be expected in restricted environments): %v", dest, err)
+		logger.Debugf("Could not set file permissions for %s (this may be expected in restricted environments): %v", realPath, err)
 	}
 
 	return RefreshIndex(source, path, false, false)
