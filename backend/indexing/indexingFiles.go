@@ -77,13 +77,10 @@ type Index struct {
 	// Delayed parent size updates: accumulate deltas and batch update after 1 second of inactivity
 	pendingParentSizeDeltas map[string]int64      // path -> accumulated delta
 	parentSizeFlushMutex    sync.Mutex            // Mutex for parent size flush operations
-	parentSizePacer         *push.Pacer[struct{}] // Debounced pacer to trigger batch flushes
+	parentSizePacer         *push.Pacer[struct{}] // Debounced pacer to trigger batch flushes (handles rate limiting)
 	// Scan session tracking: timestamp when scan session started (for timestamp-based conflict detection)
 	scanSessionStartTime int64           // Unix timestamp when current scan session started (0 if no active scan)
 	scanUpdatedPaths     map[string]bool // Tracks directories updated by the scan (to distinguish from API updates)
-	// Rate limiting for parent size updates: prevent updates more than once per second per path
-	lastParentSizeUpdate  map[string]time.Time // path -> last update timestamp
-	parentSizeUpdateMutex sync.Mutex           // Mutex for parent size update rate limiting
 }
 
 var (
@@ -318,7 +315,6 @@ func Initialize(source *settings.Source, mock bool) {
 		batchItems:              nil, // Don't initialize batch for direct use - only scanners do this
 		pendingParentSizeDeltas: make(map[string]int64),
 		scanUpdatedPaths:        make(map[string]bool),
-		lastParentSizeUpdate:    make(map[string]time.Time),
 	}
 
 	// Initialize go-push pacer for debounced parent size updates
@@ -774,97 +770,17 @@ func (idx *Index) updateParentDirSizesBatched(startPath string, sizeDelta int64)
 
 	logger.Debugf("[PARENT_SIZE] Found %d parent paths to update: %v", len(parentPaths), parentPaths)
 
-	// Rate limiting: check each parent path individually and accumulate deltas for rate-limited paths
-	// Use both mutexes - acquire in consistent order to avoid deadlocks
-	idx.parentSizeUpdateMutex.Lock()
-	now := time.Now()
-	immediateUpdatePaths := []string{}
-	rateLimitedPaths := []string{}
-
+	// Accumulate deltas for all parent paths - go-push will debounce and batch process them
+	idx.parentSizeFlushMutex.Lock()
 	for _, path := range parentPaths {
-		if lastUpdate, exists := idx.lastParentSizeUpdate[path]; exists {
-			if time.Since(lastUpdate) < 1*time.Second {
-				// Rate limited - accumulate delta for later
-				rateLimitedPaths = append(rateLimitedPaths, path)
-				logger.Debugf("[PARENT_SIZE] Rate limiting: accumulating delta for %s (last updated %v ago)", path, time.Since(lastUpdate))
-			} else {
-				// Not rate limited - update immediately
-				immediateUpdatePaths = append(immediateUpdatePaths, path)
-				idx.lastParentSizeUpdate[path] = now
-			}
-		} else {
-			// Never updated - update immediately
-			immediateUpdatePaths = append(immediateUpdatePaths, path)
-			idx.lastParentSizeUpdate[path] = now
-		}
+		idx.pendingParentSizeDeltas[path] += sizeDelta
 	}
-	idx.parentSizeUpdateMutex.Unlock()
+	idx.parentSizeFlushMutex.Unlock()
 
-	// Accumulate deltas for rate-limited paths (will be flushed later)
-	// Use parentSizeFlushMutex to protect pendingParentSizeDeltas (matches scheduleDelayedParentSizeUpdate)
-	if len(rateLimitedPaths) > 0 {
-		idx.parentSizeFlushMutex.Lock()
-		for _, path := range rateLimitedPaths {
-			idx.pendingParentSizeDeltas[path] += sizeDelta
-		}
-		idx.parentSizeFlushMutex.Unlock()
-		// Trigger debounced flush - go-push will wait 1 second after last update
-		idx.parentSizePacer.Push(struct{}{})
-		logger.Debugf("[PARENT_SIZE] Accumulated deltas for %d rate-limited paths, will flush after 1 second", len(rateLimitedPaths))
-	}
-
-	// Update non-rate-limited paths immediately
-	if len(immediateUpdatePaths) == 0 {
-		logger.Debugf("[PARENT_SIZE] All paths rate-limited, deltas accumulated for later flush")
-		return
-	}
-
-	// Query only the paths that need immediate update
-	parentInfos, err := idx.db.GetItemsByPaths(idx.Name, immediateUpdatePaths)
-	if err != nil {
-		logger.Errorf("[PARENT_SIZE] Failed to query parent directories for size update: %v", err)
-		return
-	}
-
-	// Build map of path -> size delta for batch update
-	// Only include paths that actually exist in the database
-	pathSizeUpdates := make(map[string]int64)
-	for _, path := range immediateUpdatePaths {
-		if info, exists := parentInfos[path]; exists {
-			oldSize := info.Size
-			newSize := oldSize + sizeDelta
-
-			// CRITICAL: Prevent negative sizes which indicate a race condition or stale data
-			// If the delta would result in a negative size, log a warning and skip the update
-			// The next refresh will recalculate the correct size from the filesystem
-			if newSize < 0 {
-				logger.Warningf("[PARENT_SIZE] RACE CONDITION: Would set %s to negative size (%d + %d = %d). Skipping update - will be corrected on next refresh.",
-					path, oldSize, sizeDelta, newSize)
-				continue
-			}
-
-			pathSizeUpdates[path] = sizeDelta
-			logger.Debugf("[PARENT_SIZE] Will update %s: %d -> %d (delta=%d)",
-				path, oldSize, newSize, sizeDelta)
-		} else {
-			logger.Debugf("[PARENT_SIZE] Parent path %s not found in database, skipping", path)
-		}
-	}
-
-	if len(pathSizeUpdates) == 0 {
-		logger.Debugf("[PARENT_SIZE] No valid parent paths to update immediately for %s", startPath)
-		return
-	}
-
-	logger.Infof("[PARENT_SIZE] Batch updating %d parent directory sizes immediately (%d rate-limited, will flush later)",
-		len(pathSizeUpdates), len(rateLimitedPaths))
-	// Batch update all parent sizes in a single transaction
-	err = idx.db.BulkUpdateSizes(idx.Name, pathSizeUpdates)
-	if err != nil {
-		logger.Errorf("[PARENT_SIZE] Failed to batch update parent directory sizes: %v", err)
-	} else {
-		logger.Debugf("[PARENT_SIZE] Successfully updated %d parent directory sizes immediately", len(pathSizeUpdates))
-	}
+	// Trigger debounced flush - go-push will wait 1 second after last update before processing
+	// This automatically handles rate limiting and batching of rapid updates
+	idx.parentSizePacer.Push(struct{}{})
+	logger.Debugf("[PARENT_SIZE] Accumulated deltas for %d parent paths, will flush after 1 second of inactivity", len(parentPaths))
 }
 
 // scheduleDelayedParentSizeUpdate accumulates parent size deltas and schedules a batch update
