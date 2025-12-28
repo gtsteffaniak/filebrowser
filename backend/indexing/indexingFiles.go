@@ -16,6 +16,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 	"github.com/gtsteffaniak/go-cache/cache"
 	"github.com/gtsteffaniak/go-logger/logger"
+	"github.com/gtsteffaniak/go-push/push"
 )
 
 var (
@@ -72,10 +73,11 @@ type Index struct {
 	scanners         map[string]*Scanner  // path -> scanner
 	mock             bool
 	mu               sync.RWMutex
+	childScanMutex   sync.Mutex // Serializes child scanner execution (only one child scanner runs at a time)
 	// Delayed parent size updates: accumulate deltas and batch update after 1 second of inactivity
-	pendingParentSizeDeltas map[string]int64 // path -> accumulated delta
-	parentSizeFlushTimer    *time.Timer      // Timer to trigger batch flush
-	parentSizeFlushMutex    sync.Mutex       // Mutex for parent size flush operations
+	pendingParentSizeDeltas map[string]int64      // path -> accumulated delta
+	parentSizeFlushMutex    sync.Mutex            // Mutex for parent size flush operations
+	parentSizePacer         *push.Pacer[struct{}] // Debounced pacer to trigger batch flushes (handles rate limiting)
 	// Scan session tracking: timestamp when scan session started (for timestamp-based conflict detection)
 	scanSessionStartTime int64           // Unix timestamp when current scan session started (0 if no active scan)
 	scanUpdatedPaths     map[string]bool // Tracks directories updated by the scan (to distinguish from API updates)
@@ -314,6 +316,17 @@ func Initialize(source *settings.Source, mock bool) {
 		pendingParentSizeDeltas: make(map[string]int64),
 		scanUpdatedPaths:        make(map[string]bool),
 	}
+
+	// Initialize go-push pacer for debounced parent size updates
+	// Debounce mode: waits 1 second after last update before processing
+	config := push.Config{
+		Mode:     push.ModeDebounce,
+		Interval: 1 * time.Second,
+	}
+	newIndex.parentSizePacer = push.New[struct{}](config)
+
+	// Start consumer goroutine to process debounced flushes
+	go newIndex.processParentSizeUpdates()
 	newIndex.ReducedIndex = ReducedIndex{
 		Status:  "indexing",
 		IdxName: source.Name,
@@ -596,10 +609,12 @@ func (idx *Index) GetRealPath(relativePath ...string) (string, bool, error) {
 }
 
 func (idx *Index) RefreshFileInfo(opts utils.FileOptions) error {
+	// Calculate target path first (before any expensive operations)
 	targetPath := opts.Path
 	if !opts.IsDir {
 		targetPath = idx.MakeIndexPath(filepath.Dir(targetPath), true)
 	}
+
 	logger.Debugf("[REFRESH] RefreshFileInfo called for %s (IsDir=%v, Recursive=%v)", targetPath, opts.IsDir, opts.Recursive)
 
 	previousInfo, previousExists := idx.GetMetadataInfo(targetPath, true)
@@ -755,51 +770,17 @@ func (idx *Index) updateParentDirSizesBatched(startPath string, sizeDelta int64)
 
 	logger.Debugf("[PARENT_SIZE] Found %d parent paths to update: %v", len(parentPaths), parentPaths)
 
-	// Query all parent directories from database in a single query
-	parentInfos, err := idx.db.GetItemsByPaths(idx.Name, parentPaths)
-	if err != nil {
-		logger.Errorf("[PARENT_SIZE] Failed to query parent directories for size update: %v", err)
-		return
-	}
-
-	// Build map of path -> size delta for batch update
-	// Only include paths that actually exist in the database
-	pathSizeUpdates := make(map[string]int64)
+	// Accumulate deltas for all parent paths - go-push will debounce and batch process them
+	idx.parentSizeFlushMutex.Lock()
 	for _, path := range parentPaths {
-		if info, exists := parentInfos[path]; exists {
-			oldSize := info.Size
-			newSize := oldSize + sizeDelta
-
-			// CRITICAL: Prevent negative sizes which indicate a race condition or stale data
-			// If the delta would result in a negative size, log a warning and skip the update
-			// The next refresh will recalculate the correct size from the filesystem
-			if newSize < 0 {
-				logger.Warningf("[PARENT_SIZE] RACE CONDITION: Would set %s to negative size (%d + %d = %d). Skipping update - will be corrected on next refresh.",
-					path, oldSize, sizeDelta, newSize)
-				continue
-			}
-
-			pathSizeUpdates[path] = sizeDelta
-			logger.Debugf("[PARENT_SIZE] Will update %s: %d -> %d (delta=%d)",
-				path, oldSize, newSize, sizeDelta)
-		} else {
-			logger.Debugf("[PARENT_SIZE] Parent path %s not found in database, skipping", path)
-		}
+		idx.pendingParentSizeDeltas[path] += sizeDelta
 	}
+	idx.parentSizeFlushMutex.Unlock()
 
-	if len(pathSizeUpdates) == 0 {
-		logger.Warningf("[PARENT_SIZE] No parent paths found in database to update for %s", startPath)
-		return
-	}
-
-	logger.Infof("[PARENT_SIZE] Batch updating %d parent directory sizes", len(pathSizeUpdates))
-	// Batch update all parent sizes in a single transaction
-	err = idx.db.BulkUpdateSizes(idx.Name, pathSizeUpdates)
-	if err != nil {
-		logger.Errorf("[PARENT_SIZE] Failed to batch update parent directory sizes: %v", err)
-	} else {
-		logger.Debugf("[PARENT_SIZE] Successfully updated %d parent directory sizes", len(pathSizeUpdates))
-	}
+	// Trigger debounced flush - go-push will wait 1 second after last update before processing
+	// This automatically handles rate limiting and batching of rapid updates
+	idx.parentSizePacer.Push(struct{}{})
+	logger.Debugf("[PARENT_SIZE] Accumulated deltas for %d parent paths, will flush after 1 second of inactivity", len(parentPaths))
 }
 
 // scheduleDelayedParentSizeUpdate accumulates parent size deltas and schedules a batch update
@@ -835,15 +816,18 @@ func (idx *Index) scheduleDelayedParentSizeUpdate(startPath string, sizeDelta in
 		idx.pendingParentSizeDeltas[path] += sizeDelta
 	}
 
-	// Reset the timer - if it's already running, it will be stopped and a new one started
-	if idx.parentSizeFlushTimer != nil {
-		idx.parentSizeFlushTimer.Stop()
-	}
+	// Trigger debounced flush - go-push will wait 1 second after last update
+	// This automatically handles rapid-fire updates by batching them
+	idx.parentSizePacer.Push(struct{}{})
+}
 
-	// Schedule flush after 1 second of inactivity
-	idx.parentSizeFlushTimer = time.AfterFunc(1*time.Second, func() {
+// processParentSizeUpdates is the consumer goroutine that processes debounced parent size updates.
+// It receives triggers from the go-push pacer after 1 second of inactivity and flushes accumulated deltas.
+func (idx *Index) processParentSizeUpdates() {
+	for range idx.parentSizePacer.Updates() {
+		// Process all accumulated deltas after debounce period
 		idx.flushPendingParentSizeUpdates()
-	})
+	}
 }
 
 // FlushPendingParentSizeUpdates flushes any accumulated parent size updates immediately.

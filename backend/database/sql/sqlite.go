@@ -266,12 +266,12 @@ func NewTempDB(id string, config ...*TempDBConfig) (*TempDB, error) {
 		}{{fmt.Sprintf("PRAGMA page_size = %d;", cfg.PageSize), "failed to set page_size"}}, basePragmas...)
 	}
 
-	if cfg.MmapSize > 0 {
-		basePragmas = append(basePragmas, struct {
-			sql string
-			err string
-		}{fmt.Sprintf("PRAGMA mmap_size = %d;", cfg.MmapSize), "failed to set mmap_size"})
-	}
+	// Always explicitly set mmap_size to ensure it's disabled (0) or enabled as configured
+	// Setting it to 0 explicitly disables memory-mapped I/O, which helps reduce OS page cache usage
+	basePragmas = append(basePragmas, struct {
+		sql string
+		err string
+	}{fmt.Sprintf("PRAGMA mmap_size = %d;", cfg.MmapSize), "failed to set mmap_size"})
 
 	for _, pragma := range basePragmas {
 		if _, err := db.Exec(pragma.sql); err != nil {

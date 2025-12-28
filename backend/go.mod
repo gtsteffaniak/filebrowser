@@ -15,6 +15,7 @@ require (
 	github.com/google/go-cmp v0.7.0
 	github.com/gtsteffaniak/go-cache v1.1.0
 	github.com/gtsteffaniak/go-logger v1.0.2
+	github.com/gtsteffaniak/go-push v0.1.0
 	github.com/kovidgoyal/imaging v1.7.2
 	github.com/mattn/go-sqlite3 v1.14.32
 	github.com/pquerna/otp v1.5.0
