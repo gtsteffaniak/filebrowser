@@ -101,6 +101,10 @@ type TempDBConfig struct {
 	// Set to 0 to use default behavior (spill enabled but no specific threshold).
 	// Default: 500 pages (~2MB) to trigger early spilling and reduce memory usage.
 	CacheSpillThreshold int
+
+	// If empty, a temp file with random suffix will be created.
+	// The file will not be deleted on Close() if this is set.
+	PersistentFile string
 }
 
 // mergeConfig merges the provided config with defaults, returning a new config.
@@ -164,6 +168,14 @@ func mergeConfig(provided *TempDBConfig) *TempDBConfig {
 	if provided.CacheSpillThreshold != 0 {
 		merged.CacheSpillThreshold = provided.CacheSpillThreshold
 	}
+	// SoftHeapLimitBytes: use provided value if non-zero (default is 32MB, but provided might be different)
+	if provided.SoftHeapLimitBytes != 0 {
+		merged.SoftHeapLimitBytes = provided.SoftHeapLimitBytes
+	}
+	// PersistentFile: always copy if non-empty (this determines if file is persistent or temp)
+	if provided.PersistentFile != "" {
+		merged.PersistentFile = provided.PersistentFile
+	}
 
 	return &merged
 }
@@ -187,13 +199,21 @@ func NewTempDB(id string, config ...*TempDBConfig) (*TempDB, error) {
 		return nil, fmt.Errorf("failed to create sql directory: %w", err)
 	}
 
-	// Create temporary file in the sql subdirectory
-	tmpFile, err := os.CreateTemp(dbDir, fmt.Sprintf("%s.db", id))
-	if err != nil {
-		return nil, fmt.Errorf("failed to create temp file: %w", err)
+	// Determine database file path
+	var tmpPath string
+	if cfg.PersistentFile != "" {
+		// Use fixed filename for persistent databases
+		tmpPath = filepath.Join(dbDir, cfg.PersistentFile)
+		// File might already exist (persistent), that's fine
+	} else {
+		// Create temporary file with random suffix
+		tmpFile, err := os.CreateTemp(dbDir, fmt.Sprintf("%s.db", id))
+		if err != nil {
+			return nil, fmt.Errorf("failed to create temp file: %w", err)
+		}
+		tmpPath = tmpFile.Name()
+		tmpFile.Close()
 	}
-	tmpPath := tmpFile.Name()
-	tmpFile.Close()
 
 	// Open SQLite database with basic connection string
 	// Driver is selected at compile time: "sqlite3" (CGO) or "sqlite" (pure Go)
@@ -332,21 +352,26 @@ func (t *TempDB) QueryRow(query string, args ...interface{}) *sql.Row {
 	return t.db.QueryRow(query, args...)
 }
 
-// Close closes the database connection and removes the temporary file.
-// This should always be called when done with the database, typically in a defer statement.
-// If logging is enabled, it will log the total lifetime and file size for performance analysis.
+// Close closes the database connection and removes the temporary file if it is not persistent.
 func (t *TempDB) Close() error {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
 	if t.db != nil {
 		if err := t.db.Close(); err != nil {
-			os.Remove(t.path)
+			// Only remove file if it's not persistent
+			if t.config != nil && t.config.PersistentFile == "" {
+				os.Remove(t.path)
+			}
 			return err
 		}
 	}
 
-	return os.Remove(t.path)
+	// Only remove file if it's not persistent
+	if t.config != nil && t.config.PersistentFile == "" {
+		return os.Remove(t.path)
+	}
+	return nil
 }
 
 // verifyPragmaSettings reads back PRAGMA values to verify they were applied correctly

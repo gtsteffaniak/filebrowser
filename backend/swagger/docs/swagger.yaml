@@ -749,7 +749,7 @@ definitions:
       cacheDirCleanup:
         description: 'whether to automatically cleanup the cache directory. Note:
           docker must also mount a persistent volume to persist the cache (default:
-          true)'
+          false)'
         type: boolean
       database:
         description: path to the database file

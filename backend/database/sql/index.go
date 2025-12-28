@@ -3,6 +3,7 @@ package sql
 import (
 	"database/sql"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -17,7 +18,11 @@ type IndexDB struct {
 }
 
 // NewIndexDB creates a new index database in the cache directory.
+// Uses a fixed filename for persistence (index_{name}.db).
 func NewIndexDB(name string) (*IndexDB, error) {
+	// Use fixed filename for persistence
+	persistentFile := fmt.Sprintf("index_%s.db", name)
+
 	db, err := NewTempDB("index_"+name, &TempDBConfig{
 		BatchSize:           1000,             // 1000 items per batch
 		CacheSizeKB:         -250,             // 1MB cache (250 pages * 4KB = 1MB) - reduced to minimize OS page cache pressure
@@ -28,16 +33,105 @@ func NewIndexDB(name string) (*IndexDB, error) {
 		TempStore:           "FILE",           // FILE instead of MEMORY to reduce memory usage
 		JournalMode:         "OFF",            // OFF for maximum write performance - data integrity not critical
 		LockingMode:         "EXCLUSIVE",      // EXCLUSIVE mode - better cache retention, no change counter overhead
+		PersistentFile:      persistentFile,   // Use fixed filename instead of temp file
 	})
 	if err != nil {
 		return nil, err
 	}
 	idxDB := &IndexDB{TempDB: db}
+
+	// For persistent databases, check integrity on startup
+	// If corrupted, delete and recreate the database
+	if persistentFile != "" {
+		if err := idxDB.checkIntegrityAndRecreateIfNeeded(); err != nil {
+			// Database was recreated, need to create a new connection
+			idxDB.Close()
+
+			// Recreate the database connection
+			db, err := NewTempDB("index_"+name, &TempDBConfig{
+				BatchSize:           1000,
+				CacheSizeKB:         -250,
+				SoftHeapLimitBytes:  16 * 1024 * 1024,
+				CacheSpillThreshold: 200,
+				MmapSize:            0,
+				Synchronous:         "OFF",
+				TempStore:           "FILE",
+				JournalMode:         "OFF",
+				LockingMode:         "EXCLUSIVE",
+				PersistentFile:      persistentFile,
+			})
+			if err != nil {
+				return nil, fmt.Errorf("failed to recreate database after corruption: %w", err)
+			}
+			idxDB = &IndexDB{TempDB: db}
+		}
+	}
+
 	if err := idxDB.CreateIndexTable(); err != nil {
 		idxDB.Close()
 		return nil, err
 	}
+	go idxDB.startPeriodicCleanup()
 	return idxDB, nil
+}
+
+// checkIntegrityAndRecreateIfNeeded checks database integrity.
+// If corruption is detected, deletes the database file and returns an error to trigger recreation.
+// Returns nil if integrity is OK, error if database needs to be recreated.
+func (db *IndexDB) checkIntegrityAndRecreateIfNeeded() error {
+	// Quick integrity check
+	var result string
+	err := db.QueryRow("PRAGMA quick_check").Scan(&result)
+	if err != nil {
+		// If we can't even run the check, assume corruption
+		logger.Warningf("[DB_INTEGRITY] Cannot run integrity check: %v", err)
+		return db.deleteCorruptedDatabase()
+	}
+
+	if result != "ok" {
+		logger.Warningf("[DB_INTEGRITY] Database integrity check failed, database will be recreated: %s", result)
+		return db.deleteCorruptedDatabase()
+	}
+	return nil
+}
+
+// deleteCorruptedDatabase deletes the corrupted database file and associated files.
+func (db *IndexDB) deleteCorruptedDatabase() error {
+	dbPath := db.Path()
+	if dbPath == "" {
+		return fmt.Errorf("database path is empty")
+	}
+
+	// Close the database connection first
+	db.Close()
+
+	// Delete the main database file
+	if err := os.Remove(dbPath); err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("failed to delete corrupted database: %w", err)
+	}
+
+	// Delete any associated WAL/shm files
+	_ = os.Remove(dbPath + "-wal")
+	_ = os.Remove(dbPath + "-shm")
+
+	return fmt.Errorf("database was corrupted and deleted - will be recreated")
+}
+
+// startPeriodicCleanup starts a background goroutine that cleans up stale database entries every 24 hours.
+// Stale entries are items where last_updated is older than 24 hours.
+func (db *IndexDB) startPeriodicCleanup() {
+	cleanupInterval := 24 * time.Hour
+	ticker := time.NewTicker(cleanupInterval)
+	time.Sleep(cleanupInterval)
+	for range ticker.C {
+		logger.Infof("[DB_MAINTENANCE] Starting periodic cleanup of stale index entries (older than 24 hours)")
+		deletedCount, err := db.DeleteStaleItemsOlderThan(cleanupInterval)
+		if err != nil {
+			logger.Errorf("[DB_MAINTENANCE] Failed to cleanup stale entries: %v", err)
+		} else if deletedCount > 0 {
+			logger.Infof("[DB_MAINTENANCE] Cleaned up %d stale index entries", deletedCount)
+		}
+	}
 }
 
 func (db *IndexDB) CreateIndexTable() error {
@@ -474,6 +568,28 @@ func (db *IndexDB) DeleteStaleEntries(source string, pathPrefix string, scanStar
 	if err != nil {
 		if isBusyError(err) || isTransactionError(err) {
 			logger.Debugf("[DB_MAINTENANCE] DeleteStaleEntries: DB busy, skipping cleanup")
+			return 0, nil
+		}
+		return 0, err
+	}
+
+	rowsAffected, _ := result.RowsAffected()
+	return int(rowsAffected), nil
+}
+
+// DeleteStaleItemsOlderThan deletes all items across all sources where last_updated is older than the specified duration.
+// This is used for periodic cleanup of stale database entries.
+func (db *IndexDB) DeleteStaleItemsOlderThan(olderThan time.Duration) (int, error) {
+	cutoffTime := time.Now().Add(-olderThan).Unix()
+	query := `
+	DELETE FROM index_items 
+	WHERE last_updated < ?
+	`
+
+	result, err := db.Exec(query, cutoffTime)
+	if err != nil {
+		if isBusyError(err) || isTransactionError(err) {
+			logger.Debugf("[DB_MAINTENANCE] DeleteStaleItemsOlderThan: DB busy, skipping cleanup")
 			return 0, nil
 		}
 		return 0, err

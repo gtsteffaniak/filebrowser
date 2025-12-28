@@ -4,13 +4,31 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v1.2.0-beta
 
+The new sqlite based indexing is a total re-write of the backend indexing. This has more pros than cons, which is why its moving from experimental to beta. Any unexpected or undesired behavior differences should be reported. 
+
+Having sqlite based indexing has a few benefits:
+
+1. Memory usage is paged memory rather than a hard application requirement. This means for extreme index sizes, the OS will manage the memory and "out of memory" won't be a concern.
+2. I can index more details without worrying about memory usage, enabling new features.
+3. Indexing data can be persistent between restarts.
+
+And a few potential drawbacks to lookout for:
+
+1. total re-write means ther could be unexpected behavior
+2. memory usage is no longer in my control, its handled by the sqlite driver.
+3. More CPU and io intensive indexing operations need to be written to disk.
+
  **New Features**:
- - SQLite based indexing
-   - typically reduces memory usage
-   - comparable performance
+ - SQLite-based indexing
+   - similar memory usage. 
+   - similar performance, slighly longer indexing and slightly higher CPU usage.
+   - index persistence between restarts
  - realtime file watcher (#917)
    - better latency if user has realtime permissions
  - access control works with individual files too
+
+ **Notes**:
+ - `server.cacheDirCleanup` defaults to `false` instead of true. For docker, you would still need to mount a tmp directory to persist cache.
 
 ## v1.1.4-beta
 

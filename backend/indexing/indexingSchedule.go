@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/events"
+	indexingdb "github.com/gtsteffaniak/filebrowser/backend/database/indexing"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
@@ -181,6 +182,11 @@ func (idx *Index) PostScan() error {
 			logger.Errorf("Failed to shrink memory: %v", err)
 		}
 
+		// Persist index and scanner information
+		if err := idx.Save(); err != nil {
+			logger.Errorf("Failed to save index persistence: %v", err)
+		}
+
 		// Send update event to notify frontend that stats may have changed
 		if err := idx.SendSourceUpdateEvent(); err != nil {
 			logger.Errorf("Error sending source update event: %v", err)
@@ -254,12 +260,38 @@ func (idx *Index) SendSourceUpdateEvent() error {
 
 // setupMultiScanner creates and starts the multi-scanner system
 func (idx *Index) setupMultiScanner() {
+	// Load persisted index and scanner information
+	if err := idx.Load(); err != nil {
+		logger.Errorf("Failed to load persisted index data for [%v]: %v", idx.Name, err)
+	}
+
 	idx.mu.Lock()
 	idx.scanners = make(map[string]*Scanner)
 	idx.mu.Unlock()
 
+	// Load persisted scanner info if available
+	var persistedScanners map[string]*indexingdb.PersistedScannerInfo
+	if indexingStorage != nil {
+		info, err := indexingStorage.GetByPath(idx.Path)
+		if err == nil && info != nil {
+			persistedScanners = info.Scanners
+		}
+	}
+
 	// Create and start root scanner
 	rootScanner := idx.createRootScanner()
+	// Restore persisted stats for root scanner if available
+	if persistedScanners != nil {
+		if rootInfo, ok := persistedScanners["/"]; ok {
+			rootScanner.complexity = rootInfo.Complexity
+			rootScanner.currentSchedule = rootInfo.CurrentSchedule
+			rootScanner.quickScanTime = rootInfo.QuickScanTime
+			rootScanner.fullScanTime = rootInfo.FullScanTime
+			rootScanner.numDirs = rootInfo.NumDirs
+			rootScanner.numFiles = rootInfo.NumFiles
+			rootScanner.lastScanned = rootInfo.LastScanned
+		}
+	}
 	idx.mu.Lock()
 	idx.scanners["/"] = rootScanner
 	idx.mu.Unlock()
@@ -271,6 +303,19 @@ func (idx *Index) setupMultiScanner() {
 	// Create child scanner for each top-level directory
 	for _, dirPath := range topLevelDirs {
 		childScanner := idx.createChildScanner(dirPath)
+
+		// Restore persisted stats for child scanner if available
+		if persistedScanners != nil {
+			if childInfo, ok := persistedScanners[dirPath]; ok {
+				childScanner.complexity = childInfo.Complexity
+				childScanner.currentSchedule = childInfo.CurrentSchedule
+				childScanner.quickScanTime = childInfo.QuickScanTime
+				childScanner.fullScanTime = childInfo.FullScanTime
+				childScanner.numDirs = childInfo.NumDirs
+				childScanner.numFiles = childInfo.NumFiles
+				childScanner.lastScanned = childInfo.LastScanned
+			}
+		}
 
 		idx.mu.Lock()
 		idx.scanners[dirPath] = childScanner

@@ -649,7 +649,6 @@ func setDefaults(generate bool) Settings {
 			NameToSource:       map[string]*Source{},
 			MaxArchiveSizeGB:   50,
 			CacheDir:           "tmp",
-			CacheDirCleanup:    boolPtr(true),
 			Filesystem: Filesystem{
 				CreateFilePermission:      "644",
 				CreateDirectoryPermission: "755",
