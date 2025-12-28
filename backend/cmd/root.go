@@ -111,6 +111,11 @@ func StartFilebrowser() {
 		logger.Fatalf("Failed to initialize index database: %v", err)
 	}
 
+	// Set indexing storage for persistence
+	if store != nil && store.Indexing != nil {
+		indexing.SetIndexingStorage(store.Indexing)
+	}
+
 	for _, source := range settings.Config.Server.SourceMap {
 		go indexing.Initialize(source, false)
 	}
@@ -140,7 +145,7 @@ func StartFilebrowser() {
 		indexDB.Close()
 	}
 	logger.Debugf("clearing cache dir: %s", settings.Config.Server.CacheDir)
-	if !*settings.Config.Server.CacheDirCleanup {
+	if settings.Config.Server.CacheDirCleanup {
 		fileutils.ClearCacheDir(settings.Config.Server.CacheDir)
 	}
 

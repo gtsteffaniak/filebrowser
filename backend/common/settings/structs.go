@@ -57,7 +57,7 @@ type Server struct {
 	ExternalUrl                  string      `json:"externalUrl"`     // used by share links if set (eg. http://mydomain.com)
 	InternalUrl                  string      `json:"internalUrl"`     // used by integrations if set, this is the base domain that an integration service will use to communicate with filebrowser (eg. http://localhost:8080)
 	CacheDir                     string      `json:"cacheDir"`        // path to the cache directory, used for thumbnails and other cached files
-	CacheDirCleanup              *bool       `json:"cacheDirCleanup"` // whether to automatically cleanup the cache directory. Note: docker must also mount a persistent volume to persist the cache (default: true)
+	CacheDirCleanup              bool        `json:"cacheDirCleanup"` // whether to automatically cleanup the cache directory. Note: docker must also mount a persistent volume to persist the cache (default: false)
 	MaxArchiveSizeGB             int64       `json:"maxArchiveSize"`  // max pre-archive combined size of files/folder that are allowed to be archived (in GB)
 	Filesystem                   Filesystem  `json:"filesystem"`      // filesystem settings
 	// not exposed to config

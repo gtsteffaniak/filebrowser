@@ -342,6 +342,11 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 				logger.Errorf("Failed to flush access storage: %v", err)
 			}
 		}
+		if store.Indexing != nil {
+			if err := store.Indexing.Flush(); err != nil {
+				logger.Errorf("Failed to flush indexing storage: %v", err)
+			}
+		}
 	}
 
 	// Graceful shutdown with a timeout - 30 seconds, in case downloads are happening

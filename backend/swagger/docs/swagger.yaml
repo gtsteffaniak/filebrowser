@@ -1,4 +1,31 @@
 definitions:
+  github_com_gtsteffaniak_filebrowser_backend_indexing.ScannerInfo:
+    properties:
+      complexity:
+        type: integer
+      currentSchedule:
+        type: integer
+      fullScanDurationSeconds:
+        type: integer
+      isRoot:
+        type: boolean
+      lastIndexedUnixTime:
+        type: integer
+      lastScanned:
+        type: string
+      numDeleted:
+        type: integer
+      numDirs:
+        type: integer
+      numFiles:
+        type: integer
+      path:
+        type: string
+      quickScanDurationSeconds:
+        type: integer
+      used:
+        type: integer
+    type: object
   http.AuthTokenMin:
     properties:
       Permissions:
@@ -238,38 +265,11 @@ definitions:
         type: integer
       scanners:
         items:
-          $ref: '#/definitions/indexing.ScannerInfo'
+          $ref: '#/definitions/github_com_gtsteffaniak_filebrowser_backend_indexing.ScannerInfo'
         type: array
       status:
         $ref: '#/definitions/indexing.IndexStatus'
       total:
-        type: integer
-      used:
-        type: integer
-    type: object
-  indexing.ScannerInfo:
-    properties:
-      complexity:
-        type: integer
-      currentSchedule:
-        type: integer
-      fullScanDurationSeconds:
-        type: integer
-      isRoot:
-        type: boolean
-      lastIndexedUnixTime:
-        type: integer
-      lastScanned:
-        type: string
-      numDeleted:
-        type: integer
-      numDirs:
-        type: integer
-      numFiles:
-        type: integer
-      path:
-        type: string
-      quickScanDurationSeconds:
         type: integer
       used:
         type: integer
@@ -749,7 +749,7 @@ definitions:
       cacheDirCleanup:
         description: 'whether to automatically cleanup the cache directory. Note:
           docker must also mount a persistent volume to persist the cache (default:
-          true)'
+          false)'
         type: boolean
       database:
         description: path to the database file

@@ -196,6 +196,10 @@ func ClearCacheDir(cacheDir string) {
 	}
 
 	for _, entry := range entries {
+		// Exclude sql directory - it contains persistent index databases
+		if entry.Name() == "sql" {
+			continue
+		}
 		path := filepath.Join(cacheDir, entry.Name())
 		err = os.RemoveAll(path)
 		if err != nil {

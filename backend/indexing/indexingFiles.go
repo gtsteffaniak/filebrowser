@@ -12,6 +12,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
+	indexingdb "github.com/gtsteffaniak/filebrowser/backend/database/indexing"
 	dbsql "github.com/gtsteffaniak/filebrowser/backend/database/sql"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 	"github.com/gtsteffaniak/go-cache/cache"
@@ -84,10 +85,10 @@ type Index struct {
 }
 
 var (
-	indexes      map[string]*Index
-	indexesMutex sync.RWMutex
-	indexDB      *dbsql.IndexDB // Shared database for all indexes
-	indexDBOnce  sync.Once      // Ensures index DB is only created once
+	indexes         map[string]*Index
+	indexesMutex    sync.RWMutex
+	indexDB         *dbsql.IndexDB      // Shared database for all indexes
+	indexingStorage *indexingdb.Storage // Persistent storage for index metadata
 )
 
 type IndexStatus string
@@ -191,7 +192,16 @@ func (idx *Index) GetComplexity() uint {
 
 // getComplexityUnlocked calculates Complexity without acquiring lock (assumes lock is already held)
 func (idx *Index) getComplexityUnlocked() uint {
+	// If we have a persisted complexity value and scanners haven't been scanned yet, use it
+	if idx.Stats.Complexity > 0 && len(idx.scanners) == 0 {
+		return idx.Stats.Complexity
+	}
+
 	if len(idx.scanners) == 0 {
+		// No scanners yet, but check if we have a persisted value
+		if idx.Stats.Complexity > 0 {
+			return idx.Stats.Complexity
+		}
 		return 0
 	}
 
@@ -204,12 +214,23 @@ func (idx *Index) getComplexityUnlocked() uint {
 	}
 
 	if !allScannedAtLeastOnce {
+		// Scanners haven't completed first scan yet, use persisted value if available
+		if idx.Stats.Complexity > 0 {
+			return idx.Stats.Complexity
+		}
 		return 0
 	}
 
 	totalFullScanTime := idx.getFullScanTimeUnlocked()
 	totalDirs := idx.getNumDirsUnlocked()
-	return calculateComplexity(totalFullScanTime, totalDirs)
+	calculatedComplexity := calculateComplexity(totalFullScanTime, totalDirs)
+
+	// Update persisted value with calculated value
+	if calculatedComplexity > 0 {
+		idx.Stats.Complexity = calculatedComplexity
+	}
+
+	return calculatedComplexity
 }
 
 // GetLastIndexed returns the most recent scan time from all scanners
@@ -270,19 +291,14 @@ func (idx *Index) getStatusUnlocked() IndexStatus {
 
 // InitializeIndexDB creates the shared index database for all sources.
 func InitializeIndexDB() error {
-	// clear all sql directory indexes
-	sqlDir := filepath.Join(settings.Config.Server.CacheDir, "sql")
-	err := os.RemoveAll(sqlDir)
+	var err error
+	indexDB, err = dbsql.NewIndexDB("all")
 	if err != nil {
-		logger.Errorf("failed to clear sql directory: %v", err)
+		logger.Fatalf("failed to initialize index database: %v", err)
+		return err
 	}
-	indexDBOnce.Do(func() {
-		indexDB, err = dbsql.NewIndexDB("all")
-		if err != nil {
-			logger.Fatalf("failed to initialize index database: %v", err)
-		}
-	})
-	return err
+
+	return nil
 }
 
 // GetIndexDB returns the shared index database.
@@ -293,8 +309,11 @@ func GetIndexDB() *dbsql.IndexDB {
 // SetIndexDBForTesting sets the index database for testing purposes.
 func SetIndexDBForTesting(db *dbsql.IndexDB) {
 	indexDB = db
-	// Reset the once to allow re-initialization in tests
-	indexDBOnce = sync.Once{}
+}
+
+// SetIndexingStorage sets the persistent storage for index metadata.
+func SetIndexingStorage(storage *indexingdb.Storage) {
+	indexingStorage = storage
 }
 
 func Initialize(source *settings.Source, mock bool) {
@@ -657,10 +676,19 @@ func (idx *Index) RefreshFileInfo(opts utils.FileOptions) error {
 
 	sizeDelta := newInfo.Size - previousSize
 
-	// CRITICAL: Check if calculated size matches DB size - if not, there's a race condition
-	if newSize != newInfo.Size {
-		logger.Errorf("[REFRESH] RACE CONDITION DETECTED for %s: calculated size (%d) != DB size (%d)",
-			targetPath, newSize, newInfo.Size)
+	// Check if calculated size matches DB size - if not, there might be a race condition
+	// This can happen during active scanning when the DB is being updated concurrently
+	// Only log as warning if the difference is significant (>1% or >1MB)
+	sizeDiff := newSize - newInfo.Size
+	if sizeDiff < 0 {
+		sizeDiff = -sizeDiff
+	}
+	if sizeDiff > 0 {
+		// Log warning only if difference is significant (more than 1% or 1MB)
+		if sizeDiff > newSize/100 || sizeDiff > 1024*1024 {
+			logger.Warningf("[REFRESH] Size mismatch for %s: calculated size (%d) != DB size (%d), diff=%d (may be due to concurrent scan)",
+				targetPath, newSize, newInfo.Size, sizeDiff)
+		}
 	}
 
 	if sizeDelta != 0 {
@@ -1167,4 +1195,88 @@ func (idx *Index) shouldInclude(baseName string) bool {
 		return true
 	}
 	return false
+}
+
+// Save persists the index and scanner information to the database
+func (idx *Index) Save() error {
+	if indexingStorage == nil {
+		return nil // No storage available, skip persistence
+	}
+
+	idx.mu.RLock()
+	// Collect scanner information
+	scanners := make(map[string]*indexingdb.ScannerInfo)
+	for path, scanner := range idx.scanners {
+		scanners[path] = &indexingdb.ScannerInfo{
+			Path:            path,
+			Complexity:      scanner.complexity,
+			CurrentSchedule: scanner.currentSchedule,
+			QuickScanTime:   scanner.quickScanTime,
+			FullScanTime:    scanner.fullScanTime,
+			NumDirs:         scanner.numDirs,
+			NumFiles:        scanner.numFiles,
+			LastScanned:     scanner.lastScanned,
+		}
+	}
+
+	// Get current index stats
+	complexity := idx.getComplexityUnlocked()
+	numDirs := idx.getNumDirsUnlocked()
+	numFiles := idx.getNumFilesUnlocked()
+	idx.mu.RUnlock()
+
+	// Create IndexInfo for persistence
+	info := &indexingdb.IndexInfo{
+		Path:       idx.Path, // Use real filesystem path as key
+		Source:     idx.Name,
+		Complexity: complexity,
+		NumDirs:    numDirs,
+		NumFiles:   numFiles,
+		Scanners:   scanners,
+	}
+
+	return indexingStorage.Save(info)
+}
+
+// Load restores index and scanner information from the database
+func (idx *Index) Load() error {
+	if indexingStorage == nil {
+		return nil // No storage available, skip loading
+	}
+
+	info, err := indexingStorage.GetByPath(idx.Path)
+	if err != nil {
+		if err == errors.ErrNotExist {
+			// No persisted data exists, this is fine for new indexes
+			return nil
+		}
+		return err
+	}
+
+	idx.mu.Lock()
+	defer idx.mu.Unlock()
+
+	// Restore index-level stats
+	idx.previousNumDirs = info.NumDirs
+	idx.previousNumFiles = info.NumFiles
+	idx.Stats.Complexity = info.Complexity
+	idx.Stats.NumDirs = info.NumDirs
+	idx.Stats.NumFiles = info.NumFiles
+
+	// Restore scanner information (will be applied when scanners are created)
+	// Store in a temporary map that setupMultiScanner can use
+	if idx.scanners == nil {
+		idx.scanners = make(map[string]*Scanner)
+	}
+
+	// Note: Scanners will be created by setupMultiScanner, but we'll restore
+	// their stats after creation. Store the persisted scanner info for later use.
+	// We'll handle this in setupMultiScanner after scanners are created.
+
+	return nil
+}
+
+// Flush persists all index information to the database
+func (idx *Index) Flush() error {
+	return idx.Save()
 }

@@ -3108,6 +3108,47 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "github_com_gtsteffaniak_filebrowser_backend_indexing.ScannerInfo": {
+            "type": "object",
+            "properties": {
+                "complexity": {
+                    "type": "integer"
+                },
+                "currentSchedule": {
+                    "type": "integer"
+                },
+                "fullScanDurationSeconds": {
+                    "type": "integer"
+                },
+                "isRoot": {
+                    "type": "boolean"
+                },
+                "lastIndexedUnixTime": {
+                    "type": "integer"
+                },
+                "lastScanned": {
+                    "type": "string"
+                },
+                "numDeleted": {
+                    "type": "integer"
+                },
+                "numDirs": {
+                    "type": "integer"
+                },
+                "numFiles": {
+                    "type": "integer"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "quickScanDurationSeconds": {
+                    "type": "integer"
+                },
+                "used": {
+                    "type": "integer"
+                }
+            }
+        },
         "http.AuthTokenMin": {
             "type": "object",
             "properties": {
@@ -3455,54 +3496,13 @@ const docTemplate = `{
                 "scanners": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/indexing.ScannerInfo"
+                        "$ref": "#/definitions/github_com_gtsteffaniak_filebrowser_backend_indexing.ScannerInfo"
                     }
                 },
                 "status": {
                     "$ref": "#/definitions/indexing.IndexStatus"
                 },
                 "total": {
-                    "type": "integer"
-                },
-                "used": {
-                    "type": "integer"
-                }
-            }
-        },
-        "indexing.ScannerInfo": {
-            "type": "object",
-            "properties": {
-                "complexity": {
-                    "type": "integer"
-                },
-                "currentSchedule": {
-                    "type": "integer"
-                },
-                "fullScanDurationSeconds": {
-                    "type": "integer"
-                },
-                "isRoot": {
-                    "type": "boolean"
-                },
-                "lastIndexedUnixTime": {
-                    "type": "integer"
-                },
-                "lastScanned": {
-                    "type": "string"
-                },
-                "numDeleted": {
-                    "type": "integer"
-                },
-                "numDirs": {
-                    "type": "integer"
-                },
-                "numFiles": {
-                    "type": "integer"
-                },
-                "path": {
-                    "type": "string"
-                },
-                "quickScanDurationSeconds": {
                     "type": "integer"
                 },
                 "used": {
@@ -4140,7 +4140,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "cacheDirCleanup": {
-                    "description": "whether to automatically cleanup the cache directory. Note: docker must also mount a persistent volume to persist the cache (default: true)",
+                    "description": "whether to automatically cleanup the cache directory. Note: docker must also mount a persistent volume to persist the cache (default: false)",
                     "type": "boolean"
                 },
                 "database": {

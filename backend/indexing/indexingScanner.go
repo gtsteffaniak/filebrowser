@@ -137,8 +137,6 @@ func (s *Scanner) runRootScan(quick bool) {
 	s.idx.batchItems = make([]*iteminfo.FileInfo, 0, batchSize)
 	s.idx.mu.Unlock()
 
-	logger.Infof("[SCANNER] Root scanner starting batch mode (batchSize=%d, quick=%v)", batchSize, quick)
-
 	s.filesChanged = false
 	startTime := time.Now()
 
@@ -198,9 +196,6 @@ func (s *Scanner) runChildScan(quick bool) {
 	s.idx.batchItems = make([]*iteminfo.FileInfo, 0, batchSize)
 	s.idx.mu.Unlock()
 
-	logger.Debugf("[SCANNER] Child scanner [%s] starting batch mode (batchSize=%d, quick=%v)",
-		s.scanPath, batchSize, quick)
-
 	// indexDirectory returns the total size of this directory (including all subdirectories)
 	// For child scanners, we need to count the directory itself (1) plus any subdirectories
 	// The recursive scan counts subdirectories, but not the directory being scanned itself
@@ -218,14 +213,12 @@ func (s *Scanner) runChildScan(quick bool) {
 	}
 
 	s.idx.flushBatch()
-	logger.Debugf("[SCANNER] Child scanner [%s] batch mode ended", s.scanPath)
 
 	if !quick {
 		// Each scanner is responsible for updating its own directory size
 		// This uses in-memory calculation during recursive traversal to avoid expensive SQL queries
 		// Normalize path to match database format (with trailing slash for directories)
 		normalizedPath := utils.AddTrailingSlashIfNotExists(s.scanPath)
-		logger.Debugf("[SCANNER] Updating directory size for %s to %d", normalizedPath, dirSize)
 
 		// Check if this directory was updated by the scan itself
 		// If so, always update (it's part of the scan). If not, use timestamp checking
@@ -405,6 +398,11 @@ func (s *Scanner) updateSchedule() {
 	} else if s.currentSchedule >= len(scanSchedule) {
 		s.currentSchedule = len(scanSchedule) - 1
 	}
+
+	// Persist index after schedule update (happens after each scan)
+	if err := s.idx.Save(); err != nil {
+		logger.Errorf("Failed to save index after schedule update: %v", err)
+	}
 }
 
 // updateComplexity calculates the complexity level (1-10) for this scanner's directory
@@ -416,6 +414,10 @@ func (s *Scanner) updateComplexity() {
 		s.smartModifier = modifier
 	} else {
 		s.smartModifier = 0
+	}
+	// Persist index after complexity update (happens after full scans)
+	if err := s.idx.Save(); err != nil {
+		logger.Errorf("Failed to save index after complexity update: %v", err)
 	}
 }
 
@@ -450,7 +452,6 @@ func (s *Scanner) syncStatsWithDB() {
 	var err error
 
 	if s.scanPath == "/" {
-		// Root scanner: only count files directly under "/" (non-recursive)
 		// Root scanner never counts directories (those are handled by child scanners)
 		dirs = 0
 		files, err = s.idx.db.GetDirectFileCount(s.idx.Name, "/")
@@ -464,7 +465,6 @@ func (s *Scanner) syncStatsWithDB() {
 		return
 	}
 
-	logger.Debugf("[SYNC_STATS] Scanner %s: DB returned dirs=%d, files=%d (setting scanner.numDirs and scanner.numFiles)", s.scanPath, dirs, files)
 	s.numDirs = dirs
 	s.numFiles = files
 }
