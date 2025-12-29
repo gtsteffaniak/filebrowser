@@ -76,9 +76,7 @@
           </div>
         </div>
         <!-- Loading icon when search is ongoing -->
-        <p v-show="isEmpty && isRunning" id="renew">
-          <i class="material-icons spin">autorenew</i>
-        </p>
+          <LoadingSpinner v-if="ongoing" size="medium" />
         <!-- Message when no results are found -->
         <div class="searchPrompt" v-show="isEmpty && !isRunning">
           <p>{{ noneMessage }}</p>
@@ -117,6 +115,7 @@ import { url } from "@/utils/";
 import Icon from "@/components/files/Icon.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import { globalVars } from "@/utils/constants";
+import LoadingSpinner from "@/components/LoadingSpinner.vue";
 
 var boxes = {
   folder: { label: "folders", icon: "folder" },
@@ -133,6 +132,7 @@ export default {
     ButtonGroup,
     Icon,
     ToggleSwitch,
+    LoadingSpinner,
   },
   name: "search",
   data: function () {
@@ -960,5 +960,6 @@ body.rtl #search .boxes h3 {
     display: flex;
     flex-direction: column;
   }
+
 }
 </style>

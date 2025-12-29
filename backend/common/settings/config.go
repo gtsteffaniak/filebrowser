@@ -822,12 +822,6 @@ func loadLoginIcon() {
 // setConditionalsMap builds optimized map structures from conditional rules for O(1) lookups
 func setConditionals(config *Source) {
 
-	// backwards compatibility
-	if config.Config.Conditionals.Hidden {
-		logger.Warning("conditionals.hidden is deprecated, use conditionals.ignoreHidden instead")
-		config.Config.Conditionals.IgnoreHidden = true
-	}
-
 	// Merge rules from both old format (Conditionals.ItemRules) and new format (Rules)
 	rules := append(config.Config.Conditionals.ItemRules, config.Config.Rules...)
 
@@ -849,11 +843,23 @@ func setConditionals(config *Source) {
 		IndexingDisabled:         false,
 	}
 
-	// Backwards compatibility: if old format fields are set, treat as global rules
-	if config.Config.Conditionals.IgnoreHidden {
+	// backwards compatibility
+	if config.Config.Conditionals.Hidden {
+		logger.Warning("source.conditionals.hidden is deprecated, use source.rules instead")
 		resolved.IgnoreAllHidden = true
 	}
+	// Backwards compatibility: if old format fields are set, treat as global rules
+	if config.Config.Conditionals.IgnoreHidden {
+		logger.Warning("source.conditionals.ignoreHidden is deprecated, use source.rules instead")
+		resolved.IgnoreAllHidden = true
+	}
+	if config.Config.DisableIndexing {
+		logger.Warning("source.disableIndexing is deprecated, use source.rules instead")
+		resolved.IndexingDisabled = true
+	}
+
 	if config.Config.Conditionals.ZeroSizeFolders {
+		logger.Warning("source.conditionals.zeroSizeFolders is deprecated, use source.rules instead")
 		resolved.IgnoreAllZeroSizeFolders = true
 	}
 
