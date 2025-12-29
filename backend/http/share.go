@@ -356,14 +356,11 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	scopePath = utils.AddTrailingSlashIfNotExists(scopePath)
 	body.Path = scopePath
 	// validate path exists as file or folder
-	_, exists := idx.GetReducedMetadata(body.Path, true) // true to check if it exists
-	if !exists {
-		// could be a file instead
-		_, exists := idx.GetReducedMetadata(utils.GetParentDirectoryPath(body.Path), true)
-		if !exists {
-			return http.StatusForbidden, fmt.Errorf("path not found: %s", body.Path)
-		}
+	_, _, err = idx.GetRealPath(scopePath)
+	if err != nil {
+		return http.StatusForbidden, fmt.Errorf("path not found: %s", body.Path)
 	}
+
 	if body.ShareType == "upload" && !body.AllowCreate {
 		body.AllowCreate = true
 	}

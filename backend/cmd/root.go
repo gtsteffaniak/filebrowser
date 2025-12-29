@@ -97,7 +97,10 @@ func StartFilebrowser() {
 	logger.Info(database)
 	logger.Infof("Sources                  : %v", sourceList)
 	logger.Debugf("Using Embedded FS        : %v", settings.Env.EmbeddedFs)
-
+	if settings.Config.Server.CacheDirCleanup {
+		logger.Debugf("clearing cache dir: %s", settings.Config.Server.CacheDir)
+		fileutils.ClearCacheDir(settings.Config.Server.CacheDir)
+	}
 	serverConfig := settings.Config.Server
 	swagInfo := docs.SwaggerInfo
 	swagInfo.BasePath = serverConfig.BaseURL
@@ -144,7 +147,7 @@ func StartFilebrowser() {
 	indexing.StopAllScanners()
 
 	// Give scanners a moment to finish their current scan operations
-	time.Sleep(500 * time.Millisecond)
+	time.Sleep(100 * time.Millisecond)
 
 	// cleanup temp databases
 	indexDB := indexing.GetIndexDB()
@@ -155,9 +158,7 @@ func StartFilebrowser() {
 		logger.Debugf("clearing cache dir: %s", settings.Config.Server.CacheDir)
 		fileutils.ClearCacheDir(settings.Config.Server.CacheDir)
 	}
-
-	<-shutdownComplete // Ensure we don't exit prematurely
-	// Wait for the server to stop
+	<-shutdownComplete
 	logger.Info("Shutdown complete.")
 }
 

@@ -43,9 +43,7 @@ export default {
 </script>
 
 <style scoped>
-/* ============================================
-   LOADING SPINNER - Simple CSS Spinner
-   ============================================ */
+
 .loader {
     width: 48px;
     height: 48px;
