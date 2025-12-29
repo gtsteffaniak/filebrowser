@@ -19,8 +19,8 @@
     <div v-if="!isDisplayMode" aria-label="filelist-path" class="searchContext button clickable">{{ $t('general.path', { suffix: ':' }) }}
       {{ sourcePath.path }}</div>
 
-    <div v-if="loading" class="loading-spinner">
-      <i class="material-icons spin">sync</i>
+    <div v-if="loading" class="loading-spinner-wrapper">
+      <LoadingSpinner size="small" mode="placeholder" />
     </div>
 
     <ul v-else class="file-list">
@@ -51,11 +51,13 @@ import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
 import { filesApi, publicApi } from "@/api";
 import Icon from "@/components/files/Icon.vue";
+import LoadingSpinner from "@/components/LoadingSpinner.vue";
 
 export default {
   name: "file-list",
   components: {
     Icon,
+    LoadingSpinner,
   },
   props: {
     browseSource: {
@@ -437,6 +439,13 @@ export default {
   background: var(--primaryColor) !important;
   color: #fff !important;
   transition: .1s ease all;
+}
+
+.loading-spinner-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2em 0;
 }
 
 </style>

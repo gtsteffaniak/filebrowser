@@ -5,20 +5,20 @@
 
   <div class="card-content">
     <!-- Loading spinner overlay -->
-     <!-- changed to v-show (for keep the loading spinner), otherwise the path showed in the prompt will be always "/" -->
+    <!-- changed to v-show (for keep the loading spinner), otherwise the path showed in the prompt will be always "/" -->
     <div v-show="isLoading" class="loading-content">
-      <i class="material-icons spin">sync</i>
+      <LoadingSpinner size="small" mode="placeholder" />
       <p class="loading-text">{{ $t("prompts.operationInProgress") }}</p>
     </div>
-      <file-list  ref="fileList" @update:selected="updateDestination">
-      </file-list>
-    </div>
+    <file-list v-show="!isLoading" ref="fileList" @update:selected="updateDestination">
+    </file-list>
+  </div>
   <div>
   </div>
   <div v-if="!isLoading" class="card-action" style="display: flex; align-items: center; justify-content: space-between">
     <template v-if="!showNewDirInput">
-      <button v-if="canCreateFolder" class="button button--flat" @click="createNewDir" :aria-label="$t('files.newFolder')"
-        :title="$t('files.newFolder')" style="justify-self: left">
+      <button v-if="canCreateFolder" class="button button--flat" @click="createNewDir"
+        :aria-label="$t('files.newFolder')" :title="$t('files.newFolder')" style="justify-self: left">
         <span>{{ $t("files.newFolder") }}</span>
       </button>
       <div>
@@ -37,14 +37,8 @@
     <template v-else>
       <div style="width: 100%;">
         <div style="display: flex; gap: 0.3rem;">
-          <input
-            ref="newDirInput"
-            class="input new-dir-input"
-            :class="{ 'form-invalid': !isDirNameValid }"
-            v-model.trim="newDirName"
-            :placeholder="$t('prompts.newDirMessage')"
-            @keydown.enter="handleEnter"
-          />
+          <input ref="newDirInput" class="input new-dir-input" :class="{ 'form-invalid': !isDirNameValid }"
+            v-model.trim="newDirName" :placeholder="$t('prompts.newDirMessage')" @keydown.enter="handleEnter" />
           <button class="button button--flat button--grey" @click="cancelNewDir">
             {{ $t("general.cancel") }}
           </button>
@@ -66,10 +60,11 @@ import * as upload from "@/utils/upload";
 import { url } from "@/utils";
 import { notify } from "@/notify";
 import { goToItem } from "@/utils/url";
+import LoadingSpinner from "@/components/LoadingSpinner.vue";
 
 export default {
   name: "move-copy",
-  components: { FileList },
+  components: { FileList, LoadingSpinner },
   props: {
     operation: {
       type: String,
@@ -275,7 +270,7 @@ export default {
             const targetPath = destPath + item.name;
             return item.from === targetPath && item.fromSource === this.destSource;
           });
-          
+
           await new Promise((resolve, reject) => {
             mutations.showHover({
               name: "replace-rename",
@@ -321,15 +316,15 @@ export default {
           }
         };
         const buttonProps = {
-            icon: "folder",
-            buttons: destPath ? [
-          {
-            label: this.$t("buttons.goToItem"),
-            primary: true,
-            action: buttonAction
-          }
-        ] : undefined
-          };
+          icon: "folder",
+          buttons: destPath ? [
+            {
+              label: this.$t("buttons.goToItem"),
+              primary: true,
+              action: buttonAction
+            }
+          ] : undefined
+        };
         if (this.operation === "move") {
           notify.showSuccess(this.$t("prompts.moveSuccess"), buttonProps);
         } else {
@@ -344,7 +339,6 @@ export default {
 </script>
 
 <style scoped>
-
 .loading-content {
   text-align: center;
   display: flex;
@@ -360,15 +354,6 @@ export default {
   font-weight: 500;
 }
 
-.spin {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
 /* Make card-content position relative for absolute positioning of overlay */
 .card-content {
   position: relative;
@@ -377,5 +362,4 @@ export default {
 .new-dir-input {
   justify-self: left
 }
-
 </style>

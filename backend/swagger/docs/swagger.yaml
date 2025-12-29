@@ -421,22 +421,27 @@ definitions:
   settings.ConditionalFilter:
     properties:
       hidden:
-        description: 'deprecated: use ignoreHidden instead to exclude hidden files
-          and folders.'
+        description: 'deprecated: use ignoreHidden instead. eg, FolderPath: "/" and
+          ignoreHidden: true will exclude hidden files and folders under the root
+          folder.'
         type: boolean
       ignoreHidden:
-        description: exclude hidden files and folders.
+        description: 'deprecated: use ignoreHidden instead. eg, FolderPath: "/" and
+          ignoreHidden: true will exclude hidden files and folders under the root
+          folder.'
         type: boolean
       ignoreZeroSizeFolders:
-        description: ignore folders with 0 size
+        description: 'deprecated: use ignoreZeroSizeFolders instead. eg, FolderPath:
+          "/" and ignoreZeroSizeFolders: true will ignore folders with 0 size under
+          the root folder.'
         type: boolean
       rules:
         description: list of item rules to apply to specific paths
         items:
-          $ref: '#/definitions/settings.ConditionalIndexConfig'
+          $ref: '#/definitions/settings.ConditionalRule'
         type: array
     type: object
-  settings.ConditionalIndexConfig:
+  settings.ConditionalRule:
     properties:
       fileEndsWith:
         description: (global) exclude files that end with these suffixes. Eg. ".jpg"
@@ -478,6 +483,15 @@ definitions:
         description: (global) exclude folders that start with these prefixes. Eg.
           "archive-" or "backup-"
         type: string
+      ignoreHidden:
+        description: Excludes only hidden files and folders
+        type: boolean
+      ignoreSymlinks:
+        description: Excludes symbolic links
+        type: boolean
+      ignoreZeroSizeFolders:
+        description: Excludes only folders with 0 size
+        type: boolean
       includeRootItem:
         description: include only these items at root folder level
         type: string
@@ -846,8 +860,7 @@ definitions:
       conditionals:
         allOf:
         - $ref: '#/definitions/settings.ConditionalFilter'
-        description: conditional rules to apply when indexing to include/exclude certain
-          items
+        description: 'deprecated: use source.rules instead'
       createUserDir:
         description: create a user directory for each user under defaultUserScope
           + username
@@ -862,20 +875,26 @@ definitions:
         description: deny access unless an "allow" access rule was specifically created.
         type: boolean
       disableIndexing:
-        description: '(optional) not recommended: disable the indexing of this source'
+        description: 'deprecated: use indexingDisabled instead to disable the indexing
+          of this source'
         type: boolean
       disabled:
         description: disable the source, this is useful so you don't need to remove
           it from the config file
         type: boolean
       indexingIntervalMinutes:
-        description: '(optional) not recommended: manual overide interval in minutes
-          to re-index the source'
+        description: 'deprecated: create a rule with indexingIntervalMinutes to set
+          the indexing interval for this source'
         type: integer
       private:
         description: designate as source as private -- currently just means no sharing
           permitted.
         type: boolean
+      rules:
+        description: list of item rules to apply to specific paths
+        items:
+          $ref: '#/definitions/settings.ConditionalRule'
+        type: array
     type: object
   settings.StylingConfig:
     properties:

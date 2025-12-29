@@ -107,20 +107,30 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 	}
 	// Set login icon URL
 	loginIcon := staticURL + "/loginIcon"
+
+	// Load loading spinners CSS from static files
+	loadingSpinnersCSS := ""
+	cssPath := "static/css/loadingSpinners.css"
+	cssContent, err := fs.ReadFile(assetFs, cssPath)
+	if err == nil {
+		loadingSpinnersCSS = string(cssContent)
+	}
+
 	data["htmlVars"] = map[string]interface{}{
-		"title":             title,
-		"customCSS":         config.Frontend.Styling.CustomCSSRaw,
-		"userSelectedTheme": userSelectedTheme,
-		"lightBackground":   config.Frontend.Styling.LightBackground,
-		"darkBackground":    config.Frontend.Styling.DarkBackground,
-		"staticURL":         staticURL,
-		"baseURL":           config.Server.BaseURL,
-		"favicon":           favicon,
-		"loginIcon":         loginIcon,
-		"color":             defaultThemeColor,
-		"winIcon":           staticURL + "/img/icons/mstile-144x144.png",
-		"appIcon":           staticURL + "/img/icons/android-chrome-256x256.png",
-		"description":       description,
+		"title":              title,
+		"customCSS":          config.Frontend.Styling.CustomCSSRaw,
+		"userSelectedTheme":  userSelectedTheme,
+		"lightBackground":    config.Frontend.Styling.LightBackground,
+		"darkBackground":     config.Frontend.Styling.DarkBackground,
+		"staticURL":          staticURL,
+		"baseURL":            config.Server.BaseURL,
+		"favicon":            favicon,
+		"loginIcon":          loginIcon,
+		"color":              defaultThemeColor,
+		"winIcon":            staticURL + "/img/icons/mstile-144x144.png",
+		"appIcon":            staticURL + "/img/icons/android-chrome-256x256.png",
+		"description":        description,
+		"loadingSpinnersCSS": loadingSpinnersCSS,
 	}
 	// variables consumed by frontend as json
 	data["globalVars"] = map[string]interface{}{

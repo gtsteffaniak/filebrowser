@@ -1,14 +1,10 @@
 /* Define a class .dark-mode for dark mode styles */
 
-.dark-mode #loading {
+.dark-mode .initial-loading {
   background: var(--background);
 }
 
 .dark-mode #login {
-  background: var(--background);
-}
-/* Loading */
-.dark-mode #loading {
   background: var(--background);
 }
 

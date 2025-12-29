@@ -5,11 +5,7 @@
     <component v-else-if="currentViewLoaded" :is="currentView"></component>
     <div v-else>
       <h2 class="message delayed">
-        <div class="spinner">
-          <div class="bounce1"></div>
-          <div class="bounce2"></div>
-          <div class="bounce3"></div>
-        </div>
+        <LoadingSpinner size="medium" />
         <span>{{ $t("general.loading", { suffix: "..." }) }}</span>
       </h2>
     </div>
@@ -32,6 +28,7 @@ import { url } from "@/utils";
 import router from "@/router";
 import { globalVars } from "@/utils/constants";
 import { extractSourceFromPath } from "@/utils/url";
+import LoadingSpinner from "@/components/LoadingSpinner.vue";
 
 export default {
   name: "files",
@@ -45,6 +42,7 @@ export default {
     DocViewer,
     OnlyOfficeEditor,
     MarkdownViewer,
+    LoadingSpinner,
   },
   data() {
     return {
