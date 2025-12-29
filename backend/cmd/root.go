@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	_ "net/http/pprof"
 
@@ -139,13 +140,19 @@ func StartFilebrowser() {
 		logger.Info("Server stopped unexpectedly. Shutting down...")
 	}
 
+	// Stop all indexing scanners before closing the database
+	indexing.StopAllScanners()
+
+	// Give scanners a moment to finish their current scan operations
+	time.Sleep(500 * time.Millisecond)
+
 	// cleanup temp databases
 	indexDB := indexing.GetIndexDB()
 	if indexDB != nil {
 		indexDB.Close()
 	}
-	logger.Debugf("clearing cache dir: %s", settings.Config.Server.CacheDir)
 	if settings.Config.Server.CacheDirCleanup {
+		logger.Debugf("clearing cache dir: %s", settings.Config.Server.CacheDir)
 		fileutils.ClearCacheDir(settings.Config.Server.CacheDir)
 	}
 

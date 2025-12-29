@@ -2,11 +2,7 @@
   <div v-if="shareInfo.shareType != 'upload'" class="no-select">
     <div v-if="loading">
       <h2 class="message delayed">
-        <div class="spinner">
-          <div class="bounce1"></div>
-          <div class="bounce2"></div>
-          <div class="bounce3"></div>
-        </div>
+        <LoadingSpinner size="medium" />
         <span>{{ $t("general.loading", { suffix: "..." }) }}</span>
       </h2>
     </div>
@@ -197,12 +193,14 @@ import { url } from "@/utils";
 
 import Item from "@/components/files/ListingItem.vue";
 import Upload from "@/components/prompts/Upload.vue";
+import LoadingSpinner from "@/components/LoadingSpinner.vue";
 
 export default {
   name: "listingView",
   components: {
     Item,
     Upload,
+    LoadingSpinner,
   },
   data() {
     return {

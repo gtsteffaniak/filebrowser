@@ -13,9 +13,9 @@ export default {
     onMounted(() => {
       mutations.setLoading("main-app", false);
       // Query the loading element and remove it from the DOM
-      const loadingDiv = document.getElementById("loading");
-      if (loadingDiv) {
-        loadingDiv.remove();
+      const loadingLoader = document.querySelector("body > .loader");
+      if (loadingLoader) {
+        loadingLoader.remove();
       }
     });
   },

@@ -56,7 +56,6 @@ func (s *Scanner) start() {
 
 		select {
 		case <-s.stopChan:
-			logger.Debugf("Scanner [%s] received stop signal", s.scanPath)
 			return
 
 		case <-time.After(sleepTime):

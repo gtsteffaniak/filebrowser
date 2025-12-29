@@ -1,0 +1,69 @@
+/* NOTE: This file only contains styles needed by index.html.
+   All other loader styles (base .loader, size variants, modes, etc.)
+   are defined in LoadingSpinner.vue as scoped styles.*/
+body > .loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    transition: .1s ease opacity;
+    pointer-events: none;
+    /* Reset loader styles - spinner will be in pseudo-element */
+    border: none;
+    animation: none;
+}
+
+body > .loader::before {
+    content: '';
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border-top: 3px solid var(--spinner-color, var(--primaryColor));
+    border-right: 3px solid transparent;
+    border-bottom: 3px solid transparent;
+    box-sizing: border-box;
+    animation: spinner-rotation var(--animation-duration, 1s) linear infinite;
+}
+
+/* Size variants for body > .loader */
+body > .loader.loader--xsmall::before {
+    width: 12px;
+    height: 12px;
+    border-width: 1.5px;
+}
+
+body > .loader.loader--small::before {
+    width: 24px;
+    height: 24px;
+    border-width: 2px;
+}
+
+body > .loader.loader--medium::before {
+    width: 48px;
+    height: 48px;
+    border-width: 3px;
+}
+
+body > .loader.loader--large::before {
+    width: 96px;
+    height: 96px;
+    border-width: 4px;
+}
+
+body > .loader.done {
+    opacity: 0;
+}
+
+@keyframes spinner-rotation {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}

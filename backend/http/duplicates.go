@@ -15,10 +15,6 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
-<<<<<<< HEAD
-=======
-	"github.com/gtsteffaniak/filebrowser/backend/database/sql"
->>>>>>> main
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 	"github.com/gtsteffaniak/go-cache/cache"
@@ -165,7 +161,7 @@ func duplicatesHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 	}
 	userscope = strings.TrimRight(userscope, "/")
 	scopePath := utils.JoinPathAsUnix(userscope, opts.searchScope)
-	fullPath := index.MakeIndexPath(scopePath)
+	fullPath := index.MakeIndexPath(scopePath, true)
 	if !store.Access.Permitted(index.Path, fullPath, d.user.Username) {
 		return http.StatusForbidden, fmt.Errorf("user is not allowed to access this location")
 	}
@@ -176,13 +172,13 @@ func duplicatesHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 		return http.StatusServiceUnavailable, fmt.Errorf("duplicate search is not available while indexing is in progress - please try again when indexing completes")
 	}
 
-	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, index.Name)
+	userscope, err = settings.GetScopeFromSourceName(d.user.Scopes, index.Name)
 	if err != nil {
 		return http.StatusForbidden, err
 	}
 	userscope = strings.TrimRight(userscope, "/")
-	scopePath := utils.JoinPathAsUnix(userscope, opts.searchScope)
-	fullPath := index.MakeIndexPath(scopePath, true)
+	scopePath = utils.JoinPathAsUnix(userscope, opts.searchScope)
+	fullPath = index.MakeIndexPath(scopePath, true)
 	if !store.Access.Permitted(index.Path, fullPath, d.user.Username) {
 		return http.StatusForbidden, fmt.Errorf("user is not allowed to access this location")
 	}

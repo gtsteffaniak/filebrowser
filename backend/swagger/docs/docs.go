@@ -3712,27 +3712,27 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "hidden": {
-                    "description": "deprecated: use ignoreHidden instead to exclude hidden files and folders.",
+                    "description": "deprecated: use ignoreHidden instead. eg, FolderPath: \"/\" and ignoreHidden: true will exclude hidden files and folders under the root folder.",
                     "type": "boolean"
                 },
                 "ignoreHidden": {
-                    "description": "exclude hidden files and folders.",
+                    "description": "deprecated: use ignoreHidden instead. eg, FolderPath: \"/\" and ignoreHidden: true will exclude hidden files and folders under the root folder.",
                     "type": "boolean"
                 },
                 "ignoreZeroSizeFolders": {
-                    "description": "ignore folders with 0 size",
+                    "description": "deprecated: use ignoreZeroSizeFolders instead. eg, FolderPath: \"/\" and ignoreZeroSizeFolders: true will ignore folders with 0 size under the root folder.",
                     "type": "boolean"
                 },
                 "rules": {
                     "description": "list of item rules to apply to specific paths",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/settings.ConditionalIndexConfig"
+                        "$ref": "#/definitions/settings.ConditionalRule"
                     }
                 }
             }
         },
-        "settings.ConditionalIndexConfig": {
+        "settings.ConditionalRule": {
             "type": "object",
             "properties": {
                 "fileEndsWith": {
@@ -3774,6 +3774,18 @@ const docTemplate = `{
                 "folderStartsWith": {
                     "description": "(global) exclude folders that start with these prefixes. Eg. \"archive-\" or \"backup-\"",
                     "type": "string"
+                },
+                "ignoreHidden": {
+                    "description": "Excludes only hidden files and folders",
+                    "type": "boolean"
+                },
+                "ignoreSymlinks": {
+                    "description": "Excludes symbolic links",
+                    "type": "boolean"
+                },
+                "ignoreZeroSizeFolders": {
+                    "description": "Excludes only folders with 0 size",
+                    "type": "boolean"
                 },
                 "includeRootItem": {
                     "description": "include only these items at root folder level",
@@ -4268,7 +4280,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "conditionals": {
-                    "description": "conditional rules to apply when indexing to include/exclude certain items",
+                    "description": "deprecated: use source.rules instead",
                     "allOf": [
                         {
                             "$ref": "#/definitions/settings.ConditionalFilter"
@@ -4292,7 +4304,7 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "disableIndexing": {
-                    "description": "(optional) not recommended: disable the indexing of this source",
+                    "description": "deprecated: use indexingDisabled instead to disable the indexing of this source",
                     "type": "boolean"
                 },
                 "disabled": {
@@ -4300,12 +4312,19 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "indexingIntervalMinutes": {
-                    "description": "(optional) not recommended: manual overide interval in minutes to re-index the source",
+                    "description": "deprecated: create a rule with indexingIntervalMinutes to set the indexing interval for this source",
                     "type": "integer"
                 },
                 "private": {
                     "description": "designate as source as private -- currently just means no sharing permitted.",
                     "type": "boolean"
+                },
+                "rules": {
+                    "description": "list of item rules to apply to specific paths",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/settings.ConditionalRule"
+                    }
                 }
             }
         },

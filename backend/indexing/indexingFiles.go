@@ -306,6 +306,20 @@ func GetIndexDB() *dbsql.IndexDB {
 	return indexDB
 }
 
+// StopAllScanners stops all scanners for all indexes
+// This should be called during graceful shutdown before closing the database
+func StopAllScanners() {
+	indexesMutex.Lock()
+	defer indexesMutex.Unlock()
+	for _, idx := range indexes {
+		idx.mu.Lock()
+		for _, scanner := range idx.scanners {
+			scanner.stop()
+		}
+		idx.mu.Unlock()
+	}
+}
+
 // SetIndexDBForTesting sets the index database for testing purposes.
 func SetIndexDBForTesting(db *dbsql.IndexDB) {
 	indexDB = db

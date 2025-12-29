@@ -28,8 +28,8 @@
         <h3>{{ loginName }}</h3>
       </div>
       <transition name="login-options" @before-enter="beforeEnter" @enter="enter" @leave="leave">
-        <div v-if="inProgress" class="loading-spinner">
-          <i class="material-icons spin">sync</i>
+        <div v-if="inProgress" class="login-spinner-wrapper">
+          <LoadingSpinner size="medium" />
         </div>
         <div v-else class="loginOptions no-padding" key="loginForm">
           <div v-if="passwordAvailable" class="password-entry">
@@ -202,12 +202,14 @@ import { initAuth } from "@/utils/auth";
 import { removeLeadingSlash } from "@/utils/url";
 import { globalVars } from "@/utils/constants";
 import Tooltip from "@/components/Tooltip.vue";
+import LoadingSpinner from "@/components/LoadingSpinner.vue";
 
 export default {
   name: "login",
   components: {
     Prompts,
     Tooltip,
+    LoadingSpinner,
   },
   computed: {
     eventTheme: () => getters.eventTheme(),
@@ -461,6 +463,13 @@ export default {
   align-items: center;
   justify-content: center;
   padding: 0.5em 1em;
+}
+
+.login-spinner-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100px;
 }
 
 .loginOptions {

@@ -2,11 +2,7 @@
     <div id="previewer">
         <!-- Loading overlay during navigation transition -->
         <div v-if="isTransitioning" class="transition-loading">
-            <div class="spinner">
-                <div class="bounce1"></div>
-                <div class="bounce2"></div>
-                <div class="bounce3"></div>
-            </div>
+            <LoadingSpinner size="medium" />
         </div>
         <div class="preview" :class="{
             'plyr-background-light': !isDarkMode && previewType == 'audio' && !useDefaultMediaPlayer,
@@ -67,6 +63,7 @@ import { filesApi, publicApi } from "@/api";
 import { url } from "@/utils";
 import ExtendedImage from "@/components/files/ExtendedImage.vue";
 import plyrViewer from "@/views/files/plyrViewer.vue";
+import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { state, getters, mutations } from "@/store";
 import { getFileExtension } from "@/utils/files";
 import { convertToVTT } from "@/utils/subtitles";
@@ -77,6 +74,7 @@ export default {
     components: {
         ExtendedImage,
         plyrViewer,
+        LoadingSpinner,
     },
     data() {
         return {
