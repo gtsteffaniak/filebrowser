@@ -7,7 +7,7 @@ All notable changes to this project will be documented in this file. For commit 
  **BugFixes**:
  - Sharing broken if source `disableIndexing: true` #1742
  - Password protected share permission issues #1729 #1606 #1593
-
+ #- Sidebar Sliding left #1737
 
 ## v1.1.4-beta
 
