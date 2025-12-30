@@ -237,6 +237,7 @@ export default {
           name: "..",
           path: url.removeLastDir(req.path) + "/",
           source: req.source,
+          type: "directory",
         });
       }
 
@@ -270,13 +271,14 @@ export default {
       let clickedItem = this.items.find(item => item.path === path);
       let sourceToUse = clickedItem ? clickedItem.source : this.source;
       
-      // If fileOnly mode and clicked item is a file (not a directory), select it directly
-      if (this.fileOnly && clickedItem && clickedItem.type !== "directory") {
+      // If showFiles mode and clicked item is a file (not a directory), select it directly
+      if (this.showFiles && clickedItem && clickedItem.type !== "directory") {
         this.selected = path;
         this.selectedSource = sourceToUse;
         this.$emit("update:selected", {
           path: path,
-          source: sourceToUse
+          source: sourceToUse,
+          type: clickedItem.type
         });
         return;
       }

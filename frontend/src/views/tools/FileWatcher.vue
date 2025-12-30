@@ -124,7 +124,7 @@ export default {
       return state.isMobile;
     },
     canStart() {
-      return this.selectedSource && this.filePath && !this.watching;
+      return this.selectedSource && this.filePath && !this.watching && !this.isLikelyDirectory;
     },
     availableIntervals() {
       const realtimePerm = state.user?.permissions?.realtime;
@@ -159,6 +159,9 @@ export default {
       if (this.currentLatency < 300) return 'latency-good'; // Green
       if (this.currentLatency < 1000) return 'latency-ok'; // Yellow
       return 'latency-slow'; // Red
+    },
+    isLikelyDirectory() {
+      return this.filePath && this.filePath.endsWith("/");
     },
   },
   watch: {
@@ -266,7 +269,7 @@ export default {
         props: {
           currentPath: this.filePath || "/",
           currentSource: this.selectedSource || state.sources.current || "",
-          fileOnly: true, // Only allow selecting files
+          showFiles: true, // Show both: Directories and Files
         }
       });
     },
