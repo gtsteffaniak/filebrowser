@@ -641,7 +641,11 @@
     "expires": "Expires",
     "actions": "Actions",
     "enabled": "Enabled",
-    "disabled": "Disabled"
+    "disabled": "Disabled",
+    "tokenType": "Token Type:",
+    "statefulDescription": "Stateful Minimal Token",
+    "statefulInfo": "Excludes customization details to create a smaller token length. Permissions are derived from the associated user.",
+    "statefulTokenInfo": "This is a stateful token. Permissions are derived from the associated user account."
   },
   "index": {
     "unknown": "Unknown",

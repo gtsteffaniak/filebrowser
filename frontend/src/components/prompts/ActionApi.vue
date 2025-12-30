@@ -18,15 +18,21 @@
       {{ formatTime(info.created) }}
       <h3>{{ $t('api.expiresAt') }}</h3>
       {{ formatTime(info.expires) }}
-      <h3>{{ $t('api.permissions') }}</h3>
-      <table>
-        <tbody>
-          <tr v-for="(isEnabled, permission) in info.Permissions" :key="permission">
-            <td>{{ permission }}</td>
-            <td>{{ isEnabled ? '✓' : '✗' }}</td> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-          </tr>
-        </tbody>
-      </table>
+      <div v-if="info.stateful">
+        <h3>{{ $t('api.tokenType') }}</h3>
+        <p class="stateful-info">{{ $t('api.statefulTokenInfo') }}</p>
+      </div>
+      <div v-else>
+        <h3>{{ $t('api.permissions') }}</h3>
+        <table>
+          <tbody>
+            <tr v-for="(isEnabled, permission) in info.Permissions" :key="permission">
+              <td>{{ permission }}</td>
+              <td>{{ isEnabled ? '✓' : '✗' }}</td> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
     <div class="card-action">
@@ -94,3 +100,10 @@ export default {
   },
 };
 </script>
+<style scoped>
+.stateful-info {
+  font-style: italic;
+  color: #666;
+  margin-top: 0.5em;
+}
+</style>

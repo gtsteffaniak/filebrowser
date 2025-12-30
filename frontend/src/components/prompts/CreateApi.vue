@@ -20,11 +20,27 @@
       </select>
     </div>
 
-    <!-- Permissions Input -->
-    <p>{{ $t('api.permissionNote') }}</p>
+    <!-- Stateful Minimal Token Option -->
     <div class="settings-items">
-      <ToggleSwitch v-for="(isEnabled, permission) in permissions" :key="permission" class="item"
-        v-model="permissions[permission]" :name="permission" />
+      <ToggleSwitch
+        v-model="stateful"
+        name="stateful"
+        class="item"
+        :title="$t('api.statefulDescription')"
+      />
+      <p class="description">{{ $t('api.statefulDescription') }}</p>
+    </div>
+
+    <!-- Permissions Input (only shown for full tokens) -->
+    <div v-if="!stateful">
+      <p>{{ $t('api.permissionNote') }}</p>
+      <div class="settings-items">
+        <ToggleSwitch v-for="(isEnabled, permission) in permissions" :key="permission" class="item"
+          v-model="permissions[permission]" :name="permission" />
+      </div>
+    </div>
+    <div v-else>
+      <p class="info-text">{{ $t('api.statefulInfo') }}</p>
     </div>
   </div>
 
@@ -53,6 +69,7 @@ export default {
       apiName: "",
       duration: 1,
       unit: "days",
+      stateful: false, // false = full token (default), true = minimal token
     };
   },
   components: {
@@ -76,16 +93,20 @@ export default {
     },
     async createAPIKey() {
       try {
-        // Filter to get keys of permissions set to true and join them as a comma-separated string
-        const permissionsString = Object.keys(this.permissions)
-          .filter((key) => this.permissions[key])
-          .join(",");
-
         const params = {
           name: this.apiName,
           days: this.durationInDays,
-          permissions: permissionsString,
+          stateful: this.stateful,
         };
+
+        // Only include permissions for full tokens (not stateful/minimal)
+        if (!this.stateful) {
+          // Filter to get keys of permissions set to true and join them as a comma-separated string
+          const permissionsString = Object.keys(this.permissions)
+            .filter((key) => this.permissions[key])
+            .join(",");
+          params.permissions = permissionsString;
+        }
 
         await usersApi.createApiKey(params);
         // Emit event to refresh API keys list
@@ -102,5 +123,15 @@ export default {
 <style scoped>
 .sizeInputWrapper {
   display: flex !important;
+}
+.description {
+  font-size: 0.9em;
+  color: #666;
+  margin-top: 0.5em;
+}
+.info-text {
+  font-style: italic;
+  color: #666;
+  margin-top: 0.5em;
 }
 </style>

@@ -357,21 +357,35 @@ func withUserHelper(fn handleFunc) handleFunc {
 			if isProxyUser {
 				return getProxyUser(w, r, data, fn, proxyUser)
 			}
+			// JWT library automatically validates expiration - if expired, it returns an error
 			return http.StatusUnauthorized, fmt.Errorf("error processing token, %v", err)
 		}
 		if !token.Valid {
 			return http.StatusUnauthorized, fmt.Errorf("invalid token")
 		}
-		if auth.IsRevokedApiKey(data.token) || tk.Expires < time.Now().Unix() {
+		if auth.IsRevokedApiKey(data.token) {
 			if isProxyUser {
 				return getProxyUser(w, r, data, fn, proxyUser)
 			}
-			return http.StatusUnauthorized, fmt.Errorf("token expired or revoked")
+			return http.StatusUnauthorized, fmt.Errorf("token revoked")
 		}
-		// Check if the token is about to expire and send a header to renew it
-		if tk.Expires < time.Now().Add(time.Minute*30).Unix() {
+		// ExpiresAt should always be set in valid tokens created by our system
+		// If it's nil, the token is invalid
+		if tk.ExpiresAt == nil {
+			return http.StatusUnauthorized, fmt.Errorf("invalid token: missing expiration")
+		}
+		// Check if token is about to expire for renewal header
+		if tk.ExpiresAt.Unix() < time.Now().Add(time.Minute*30).Unix() {
 			w.Header().Add("X-Renew-Token", "true")
-		} // Retrieve the user from the store and store it in the context
+		}
+		// Check if token is minimal/stateful (no BelongsTo in claim)
+		if tk.BelongsTo == 0 {
+			var err error
+			tk.BelongsTo, err = getUserFromApiToken(data.token)
+			if err != nil {
+				return http.StatusUnauthorized, err
+			}
+		}
 		data.user, err = store.Users.Get(tk.BelongsTo)
 		if err != nil {
 			logger.Errorf("Failed to get user with ID %v: %v", tk.BelongsTo, err)
@@ -403,7 +417,7 @@ func getProxyUser(w http.ResponseWriter, r *http.Request, data *requestContext, 
 	// Generate a token for proxy users if they don't have one
 	if data.token == "" {
 		expires := time.Hour * time.Duration(config.Auth.TokenExpirationHours)
-		signed, err := makeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), expires, user.Permissions)
+		signed, err := makeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), expires, user.Permissions, false)
 		if err != nil {
 			logger.Errorf("Failed to generate token for proxy user %s: %v", proxyUser, err)
 			return http.StatusInternalServerError, fmt.Errorf("failed to generate token")

@@ -2963,6 +2963,9 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                },
+                "stateful": {
+                    "type": "boolean"
                 }
             }
         },
@@ -4731,12 +4734,6 @@ const docTemplate = `{
                     "$ref": "#/definitions/users.Permissions"
                 },
                 "belongsTo": {
-                    "type": "integer"
-                },
-                "createdAt": {
-                    "type": "integer"
-                },
-                "expiresAt": {
                     "type": "integer"
                 },
                 "key": {

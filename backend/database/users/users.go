@@ -17,13 +17,16 @@ const (
 )
 
 type AuthToken struct {
-	Key                  string      `json:"key"`
-	Name                 string      `json:"name"`
-	Created              int64       `json:"createdAt"`
-	Expires              int64       `json:"expiresAt"`
-	BelongsTo            uint        `json:"belongsTo"`
-	Permissions          Permissions `json:"Permissions"`
-	jwt.RegisteredClaims `json:"-"`
+	MinimalAuthToken
+	Key         string      `json:"key,omitempty"`
+	Name        string      `json:"name,omitempty"`
+	BelongsTo   uint        `json:"belongsTo,omitempty"`
+	Permissions Permissions `json:"Permissions,omitempty"`
+}
+
+// MinimalAuthToken is used for stateful tokens that only include JWT standard claims
+type MinimalAuthToken struct {
+	jwt.RegisteredClaims `swaggerignore:"true"`
 }
 
 type Permissions struct {

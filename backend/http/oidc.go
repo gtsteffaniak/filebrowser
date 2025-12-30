@@ -301,7 +301,7 @@ func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string, 
 
 	expires := time.Hour * time.Duration(config.Auth.TokenExpirationHours)
 	// Generate a signed token for the user
-	signed, err2 := makeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), expires, user.Permissions)
+	signed, err2 := makeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), expires, user.Permissions, false)
 	if err2 != nil {
 		// Handle potential errors during token generation
 		if strings.Contains(err2.Error(), "key already exists with same name") {
