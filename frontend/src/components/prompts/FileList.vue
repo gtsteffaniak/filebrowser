@@ -232,7 +232,7 @@ export default {
       // If the path isn't the root path,
       // show a button to navigate to the previous
       // directory (unless we are only displaying files).
-      if (req.path !== "/" && !this.showFolders) {
+      if (req.path !== "/" && this.showFolders) {
         this.items.push({
           name: "..",
           path: url.removeLastDir(req.path) + "/",
