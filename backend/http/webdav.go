@@ -10,6 +10,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
+	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 )
 
 func createWebDAVHandler(prefix string) handleFunc {
@@ -39,6 +40,25 @@ func createWebDAVHandler(prefix string) handleFunc {
 
 		realPath, _, _ := idx.GetRealPath(virtualPath)
 		scopePath, _, _ := idx.GetRealPath(userscope)
+
+		// checking only base (scope) path, as per-item permission is currently impossible to implement.
+		// however, when we are granting an access to the user, we are granting it per-folder, so everything should be fine.
+		info, err := idx.GetFsDirInfo(userscope)
+		if err != nil {
+			logger.Debugf("error getting dir info: %v", err)
+			return http.StatusNotFound, err
+		}
+
+		err = store.Access.CheckChildItemAccess(&iteminfo.ExtendedFileInfo{
+			FileInfo: *info,
+			Source:   source,
+			RealPath: scopePath,
+		}, idx, d.user.Username)
+		if err != nil {
+			logger.Debugf("error checking child item access: %v", err)
+			return http.StatusForbidden, err
+		}
+
 		logger.Debugf("webdav: method=%s, request=%s, source=%s, path=%s, virtual_path=%s, real_path=%s, scope_path=%s", request.Method, request.URL.Path, source, fullPath, virtualPath, realPath, scopePath)
 
 		wd := &webdav.Handler{
