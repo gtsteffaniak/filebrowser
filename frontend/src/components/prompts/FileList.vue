@@ -231,8 +231,8 @@ export default {
 
       // If the path isn't the root path,
       // show a button to navigate to the previous
-      // directory (unless in fileOnly mode).
-      if (req.path !== "/" && !this.fileOnly) {
+      // directory (unless we are only displaying files).
+      if (req.path !== "/" && !this.showFolders) {
         this.items.push({
           name: "..",
           path: url.removeLastDir(req.path) + "/",
@@ -254,8 +254,8 @@ export default {
           name: item.name,
           path: item.path,
           source: item.source || req.source,
-          type: item.type,
-          originalItem: item,
+          type: item.type, // Store type for file selection
+          originalItem: item, // Store original item for Icon component
         });
       }
     },
