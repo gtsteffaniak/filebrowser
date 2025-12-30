@@ -448,7 +448,6 @@
   },
   "api": {
     "title": "API 金鑰",
-    "keyName": "API 金鑰名稱：",
     "createdAt": "創建於",
     "expiresAt": "到期日：：",
     "permissions": "權限：",
@@ -469,7 +468,11 @@
     "actions": "行動",
     "enabled": "已啟用",
     "disabled": "殘障",
-    "apiKeyDeleted": "API 金鑰已刪除！"
+    "apiKeyDeleted": "API 金鑰已刪除！",
+    "tokenType": "代幣類型：",
+    "statefulDescription": "最小代幣",
+    "statefulInfo": "排除令牌自訂，以建立較小的令牌長度。與關聯使用者完全相容的權限。",
+    "clickToCopyKey": "按一下以複製鑰匙 (隱藏)"
   },
   "index": {
     "assessment": "評估",

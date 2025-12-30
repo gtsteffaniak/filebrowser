@@ -448,7 +448,6 @@
   },
   "api": {
     "title": "Ключи API",
-    "keyName": "Имя ключа API:",
     "createdAt": "Создан:",
     "expiresAt": "Истекает:",
     "permissions": "Разрешения:",
@@ -469,7 +468,11 @@
     "actions": "Действия",
     "enabled": "Включено",
     "disabled": "Отключено",
-    "apiKeyDeleted": "Ключ API удален!"
+    "apiKeyDeleted": "Ключ API удален!",
+    "tokenType": "Тип токена:",
+    "statefulDescription": "Минимальный токен",
+    "statefulInfo": "Исключение настроек токена для создания токена меньшей длины. Точное совпадение разрешений со связанным пользователем.",
+    "clickToCopyKey": "Нажмите, чтобы скопировать ключ (скрыто)"
   },
   "index": {
     "assessment": "Оценка",

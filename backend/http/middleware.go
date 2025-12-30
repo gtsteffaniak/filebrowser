@@ -380,7 +380,6 @@ func withUserHelper(fn handleFunc) handleFunc {
 		}
 		// Check if token is minimal/stateful (no BelongsTo in claim)
 		if tk.BelongsTo == 0 {
-			var err error
 			tk.BelongsTo, err = getUserFromApiToken(data.token)
 			if err != nil {
 				return http.StatusUnauthorized, err

@@ -448,7 +448,6 @@
   },
   "api": {
     "title": "מפתחות API",
-    "keyName": "שם מפתח API:",
     "createdAt": "נוצר ב:",
     "expiresAt": "תוקף ב:",
     "permissions": "הרשאות:",
@@ -469,7 +468,11 @@
     "actions": "פעולות",
     "enabled": "מופעל",
     "disabled": "נכה",
-    "apiKeyDeleted": "מפתח API נמחק!"
+    "apiKeyDeleted": "מפתח API נמחק!",
+    "tokenType": "סוג האסימון:",
+    "statefulDescription": "אסימון מינימלי",
+    "statefulInfo": "לא כולל התאמות אישיות של אסימונים ליצירת אורך אסימון קטן יותר. ההרשאות תואמות במדויק למשתמש המשויך.",
+    "clickToCopyKey": "לחץ כדי להעתיק את המפתח (מוסתר)"
   },
   "index": {
     "assessment": "הערכה",

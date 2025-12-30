@@ -448,7 +448,6 @@
   },
   "api": {
     "title": "APIキー：",
-    "keyName": "APIキー名",
     "createdAt": "で作成された：",
     "expiresAt": "有効期限",
     "permissions": "許可：",
@@ -469,7 +468,11 @@
     "actions": "操作",
     "enabled": "有効",
     "disabled": "無効",
-    "apiKeyDeleted": "APIキーが削除されました！"
+    "apiKeyDeleted": "APIキーが削除されました！",
+    "tokenType": "トークン・タイプ",
+    "statefulDescription": "ミニマル・トークン",
+    "statefulInfo": "トークン長を小さくするためのトークンのカスタマイズを除く。関連するユーザーとパーミッションが完全に一致します。",
+    "clickToCopyKey": "クリックしてキーをコピー (非表示)"
   },
   "index": {
     "assessment": "評価",

@@ -448,7 +448,6 @@
   },
   "api": {
     "title": "Chei API:",
-    "keyName": "Nume cheie API:",
     "createdAt": "Creat la:",
     "expiresAt": "Expiră la:",
     "permissions": "Permisiuni:",
@@ -469,7 +468,11 @@
     "actions": "Acțiuni",
     "enabled": "Activat",
     "disabled": "Dezactivat",
-    "apiKeyDeleted": "Cheie API ștearsă!"
+    "apiKeyDeleted": "Cheie API ștearsă!",
+    "tokenType": "Tip de jeton:",
+    "statefulDescription": "Token minim",
+    "statefulInfo": "Exclude personalizările tokenului pentru a crea o lungime mai mică a tokenului. Potrivirea exactă a permisiunilor cu cele ale utilizatorului asociat.",
+    "clickToCopyKey": "Faceți clic pentru a copia cheia (ascuns)"
   },
   "index": {
     "assessment": "Evaluare",

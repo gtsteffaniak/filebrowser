@@ -448,7 +448,6 @@
   },
   "api": {
     "title": "Chaves de API:",
-    "keyName": "Nome da chave da API:",
     "createdAt": "Criado em:",
     "expiresAt": "Expira em:",
     "permissions": "Permissões:",
@@ -469,7 +468,11 @@
     "actions": "Ações",
     "enabled": "Ativado",
     "disabled": "Desativado",
-    "apiKeyDeleted": "Chave de API excluída!"
+    "apiKeyDeleted": "Chave de API excluída!",
+    "tokenType": "Tipo de token:",
+    "statefulDescription": "Token mínimo",
+    "statefulInfo": "Exclui personalizações de token para criar um comprimento de token menor. As permissões exatas correspondem ao usuário associado.",
+    "clickToCopyKey": "Clique para copiar a chave (oculto)"
   },
   "index": {
     "assessment": "Avaliação",

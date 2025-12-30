@@ -448,7 +448,6 @@
   },
   "api": {
     "title": "Kľúče API:",
-    "keyName": "Názov kľúča API:",
     "createdAt": "Vytvorené v:",
     "expiresAt": "Platnosť končí na:",
     "permissions": "Oprávnenia:",
@@ -469,7 +468,11 @@
     "actions": "Činnosti",
     "enabled": "Povolené",
     "disabled": "Bezbariérový",
-    "apiKeyDeleted": "Kľúč API odstránený!"
+    "apiKeyDeleted": "Kľúč API odstránený!",
+    "tokenType": "Typ žetónu:",
+    "statefulDescription": "Minimálny žetón",
+    "statefulInfo": "Vylúči prispôsobenie tokenu na vytvorenie menšej dĺžky tokenu. Presná zhoda oprávnení s priradeným používateľom.",
+    "clickToCopyKey": "Kliknutím skopírujete kľúč (skrytý)"
   },
   "index": {
     "assessment": "Hodnotenie",

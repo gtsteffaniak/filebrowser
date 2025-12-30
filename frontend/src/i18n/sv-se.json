@@ -448,7 +448,6 @@
   },
   "api": {
     "title": "API-nycklar",
-    "keyName": "Namn på API-nyckel:",
     "createdAt": "Skapad på:",
     "expiresAt": "Upphör att gälla kl:",
     "permissions": "Behörighet:",
@@ -469,7 +468,11 @@
     "actions": "Åtgärder",
     "enabled": "Aktiverad",
     "disabled": "Inaktiverad",
-    "apiKeyDeleted": "API-nyckel raderad!"
+    "apiKeyDeleted": "API-nyckel raderad!",
+    "tokenType": "Token typ:",
+    "statefulDescription": "Minimal symbol",
+    "statefulInfo": "Utesluter anpassningar av token för att skapa en kortare tokenlängd. Exakta behörigheter som matchar den associerade användaren.",
+    "clickToCopyKey": "Klicka för att kopiera nyckel (dold)"
   },
   "index": {
     "assessment": "Bedömning",

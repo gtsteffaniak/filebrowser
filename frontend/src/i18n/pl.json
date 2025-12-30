@@ -448,7 +448,6 @@
   },
   "api": {
     "title": "Klucze API:",
-    "keyName": "Nazwa klucza API:",
     "createdAt": "Utworzono w:",
     "expiresAt": "Wygasa w:",
     "permissions": "Uprawnienia:",
@@ -469,7 +468,11 @@
     "actions": "Działania",
     "enabled": "Włączone",
     "disabled": "Wyłączony",
-    "apiKeyDeleted": "Klucz API został usunięty!"
+    "apiKeyDeleted": "Klucz API został usunięty!",
+    "tokenType": "Typ tokena:",
+    "statefulDescription": "Minimalny token",
+    "statefulInfo": "Wyklucza dostosowania tokenu w celu utworzenia tokenu o mniejszej długości. Dokładne dopasowanie uprawnień do powiązanego użytkownika.",
+    "clickToCopyKey": "Kliknij, aby skopiować klucz (ukryty)"
   },
   "index": {
     "assessment": "Ocena",

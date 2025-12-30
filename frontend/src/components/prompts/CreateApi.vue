@@ -5,7 +5,7 @@
 
   <div class="card-content">
     <!-- API Key Name Input -->
-    <p>{{ $t('api.keyName') }}</p>
+    <p>{{ $t('general.name') }}</p>
     <input v-focus class="input" type="text" v-model.trim="apiName"
       :placeholder="$t('api.keyNamePlaceholder')" />
 
@@ -27,8 +27,8 @@
         name="stateful"
         class="item"
         :title="$t('api.statefulDescription')"
+        :description="$t('api.statefulInfo')"
       />
-      <p class="description">{{ $t('api.statefulDescription') }}</p>
     </div>
 
     <!-- Permissions Input (only shown for full tokens) -->
@@ -38,9 +38,6 @@
         <ToggleSwitch v-for="(isEnabled, permission) in permissions" :key="permission" class="item"
           v-model="permissions[permission]" :name="permission" />
       </div>
-    </div>
-    <div v-else>
-      <p class="info-text">{{ $t('api.statefulInfo') }}</p>
     </div>
   </div>
 

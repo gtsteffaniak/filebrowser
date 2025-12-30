@@ -448,7 +448,6 @@
   },
   "api": {
     "title": "مفاتيح واجهة برمجة التطبيقات (API):",
-    "keyName": "اسم مفتاح API:",
     "createdAt": "تم الإنشاء في:",
     "expiresAt": "تنتهي في:",
     "permissions": "الأذونات:",
@@ -469,7 +468,11 @@
     "actions": "الإجراءات",
     "enabled": "ممكّنة",
     "disabled": "معاق",
-    "apiKeyDeleted": "تم حذف مفتاح API!"
+    "apiKeyDeleted": "تم حذف مفتاح API!",
+    "tokenType": "نوع الرمز المميز:",
+    "statefulDescription": "الحد الأدنى من الرمز المميز",
+    "statefulInfo": "يستثني تخصيصات الرمز المميز لإنشاء طول رمز مميز أصغر. تتطابق الأذونات الدقيقة مع المستخدم المرتبط.",
+    "clickToCopyKey": "انقر لنسخ المفتاح (مخفي)"
   },
   "index": {
     "assessment": "التقييم",

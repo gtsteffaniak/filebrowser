@@ -620,7 +620,6 @@
   },
   "api": {
     "title": "API Keys",
-    "keyName": "API Key Name:",
     "createdAt": "Created At:",
     "expiresAt": "Expires At:",
     "permissions": "Permissions:",
@@ -643,9 +642,9 @@
     "enabled": "Enabled",
     "disabled": "Disabled",
     "tokenType": "Token Type:",
-    "statefulDescription": "Stateful Minimal Token",
-    "statefulInfo": "Excludes customization details to create a smaller token length. Permissions are derived from the associated user.",
-    "statefulTokenInfo": "This is a stateful token. Permissions are derived from the associated user account."
+    "statefulDescription": "Minimal Token",
+    "statefulInfo": "Excludes token customizations to create a smaller token length. Exact permissions match to the associated user.",
+    "clickToCopyKey": "Click to copy key (hidden)"
   },
   "index": {
     "unknown": "Unknown",

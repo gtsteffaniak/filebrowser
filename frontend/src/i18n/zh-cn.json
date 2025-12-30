@@ -448,7 +448,6 @@
   },
   "api": {
     "title": "应用程序接口密钥",
-    "keyName": "API 密钥名称：",
     "createdAt": "创建于",
     "expiresAt": "有效期至",
     "permissions": "权限",
@@ -469,7 +468,11 @@
     "actions": "行动",
     "enabled": "已启用",
     "disabled": "残疾",
-    "apiKeyDeleted": "API 密钥已删除！"
+    "apiKeyDeleted": "API 密钥已删除！",
+    "tokenType": "令牌类型：",
+    "statefulDescription": "最小令牌",
+    "statefulInfo": "不包括令牌定制，以创建较小的令牌长度。权限与相关用户完全匹配。",
+    "clickToCopyKey": "点击复制密钥（隐藏）"
   },
   "index": {
     "assessment": "评估",

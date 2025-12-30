@@ -448,7 +448,6 @@
   },
   "api": {
     "title": "API-Schlüssel",
-    "keyName": "API-Schlüsselname:",
     "createdAt": "Erstellt am:",
     "expiresAt": "Läuft ab am:",
     "permissions": "Berechtigungen:",
@@ -469,7 +468,11 @@
     "actions": "Aktionen",
     "enabled": "Aktiviert",
     "disabled": "Deaktiviert",
-    "apiKeyDeleted": "API-Schlüssel gelöscht!"
+    "apiKeyDeleted": "API-Schlüssel gelöscht!",
+    "tokenType": "Token-Typ:",
+    "statefulDescription": "Minimale Wertmarke",
+    "statefulInfo": "Schließt Token-Anpassungen aus, um eine geringere Token-Länge zu erreichen. Genaue Übereinstimmung der Berechtigungen mit dem zugehörigen Benutzer.",
+    "clickToCopyKey": "Zum Kopieren des Schlüssels anklicken (ausgeblendet)"
   },
   "index": {
     "assessment": "Bewertung",

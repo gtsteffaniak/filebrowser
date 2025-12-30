@@ -448,7 +448,6 @@
   },
   "api": {
     "title": "API-kulcsok:",
-    "keyName": "API-kulcs neve:",
     "createdAt": "Létrehozva:",
     "expiresAt": "Lejár:",
     "permissions": "Engedélyek:",
@@ -469,7 +468,11 @@
     "actions": "Tevékenységek",
     "enabled": "Engedélyezve",
     "disabled": "Mozgáskorlátozottak",
-    "apiKeyDeleted": "API kulcs törölve!"
+    "apiKeyDeleted": "API kulcs törölve!",
+    "tokenType": "Token típus:",
+    "statefulDescription": "Minimal Token",
+    "statefulInfo": "Kizárja a token testreszabásokat, hogy kisebb tokenhosszúságot hozzon létre. A jogosultságok pontosan megegyeznek a hozzárendelt felhasználóval.",
+    "clickToCopyKey": "Kattintson a kulcs másolásához (rejtett)"
   },
   "index": {
     "assessment": "Értékelés",

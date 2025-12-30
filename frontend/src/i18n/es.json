@@ -448,7 +448,6 @@
   },
   "api": {
     "title": "Gestión de claves API",
-    "keyName": "Nombre de la API:  ",
     "createdAt": "Creado en:",
     "expiresAt": "Expira el:",
     "permissions": "Permisos:",
@@ -469,7 +468,11 @@
     "createKeyFailed": "Hubo un error al crear la API",
     "createKeySuccess": "¡Clave API creada con exito!",
     "description": "Las claves API solo podrán tener los permisos que tu usuario tenga. Para más info mira la",
-    "apiKeyDeleted": "Clave API borrada"
+    "apiKeyDeleted": "Clave API borrada",
+    "tokenType": "Tipo de ficha:",
+    "statefulDescription": "Ficha mínima",
+    "statefulInfo": "Excluye las personalizaciones de token para crear una longitud de token menor. Los permisos exactos coinciden con los del usuario asociado.",
+    "clickToCopyKey": "Haga clic para copiar la clave (oculta)"
   },
   "index": {
     "assessment": "Tipo",

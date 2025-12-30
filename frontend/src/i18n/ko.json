@@ -448,7 +448,6 @@
   },
   "api": {
     "title": "API 키:",
-    "keyName": "API 키 이름:",
     "createdAt": "만든 곳:",
     "expiresAt": "만료일:",
     "permissions": "권한:",
@@ -469,7 +468,11 @@
     "actions": "작업",
     "enabled": "활성화됨",
     "disabled": "장애인",
-    "apiKeyDeleted": "API 키가 삭제되었습니다!"
+    "apiKeyDeleted": "API 키가 삭제되었습니다!",
+    "tokenType": "토큰 유형:",
+    "statefulDescription": "최소 토큰",
+    "statefulInfo": "더 작은 토큰 길이를 만들기 위해 토큰 사용자 지정을 제외합니다. 연결된 사용자와 정확한 권한이 일치합니다.",
+    "clickToCopyKey": "키를 복사하려면 클릭(숨김)"
   },
   "index": {
     "assessment": "평가",
