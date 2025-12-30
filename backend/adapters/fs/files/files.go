@@ -582,6 +582,13 @@ func WriteDirectory(opts utils.FileOptions) error {
 		return err
 	}
 
+	// Explicitly set directory permissions to bypass umask
+	err = os.Chmod(realPath, fileutils.PermDir)
+	if err != nil {
+		// Handle chmod error gracefully
+		logger.Debugf("Could not set file permissions for %s (this may be expected in restricted environments): %v", realPath, err)
+	}
+
 	return RefreshIndex(idx.Name, opts.Path, true, true)
 }
 
@@ -625,6 +632,13 @@ func WriteFile(source, path string, in io.Reader) error {
 	_, err = io.Copy(file, in)
 	if err != nil {
 		return err
+	}
+
+	// Explicitly set directory permissions to bypass umask
+	err = os.Chmod(realPath, fileutils.PermDir)
+	if err != nil {
+		// Handle chmod error gracefully
+		logger.Debugf("Could not set file permissions for %s (this may be expected in restricted environments): %v", realPath, err)
 	}
 
 	return RefreshIndex(source, path, false, false)

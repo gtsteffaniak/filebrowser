@@ -14,7 +14,7 @@ func GetPartitionSize(path string) (uint64, error) {
 		return 0, err
 	}
 	// Total size in bytes: Blocks * Block size
-	total := stat.Blocks * uint64(stat.Bsize)
+	total := uint64(stat.Blocks) * uint64(stat.Bsize)
 	return total, nil
 }
 
@@ -26,6 +26,6 @@ func GetFreeSpace(path string) (uint64, error) {
 		return 0, err
 	}
 	// Available free space in bytes: Available blocks * Block size
-	free := stat.Bavail * uint64(stat.Bsize)
+	free := uint64(stat.Bavail) * uint64(stat.Bsize)
 	return free, nil
 }
