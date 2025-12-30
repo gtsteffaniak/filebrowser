@@ -273,7 +273,8 @@ export default {
         props: {
           currentPath: this.filePath || "/",
           currentSource: this.selectedSource || state.sources.current || "",
-          showFiles: true, // Show both: Directories and Files
+          showFiles: true,
+          showFolders: true,
         }
       });
     },
@@ -652,6 +653,7 @@ export default {
         const activeElement = document.activeElement;
         const isInputFocused = activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA');
         if (!isInputFocused) {
+          event.preventDefault();
           this.toggleWatch();
         }
       }

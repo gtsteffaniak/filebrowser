@@ -80,13 +80,13 @@ export default {
       type: String,
       default: null,
     },
-    fileOnly: {
+    showFiles: {
       type: Boolean,
       default: false,
     },
-    showFiles: {
+    showFolders: {
       type: Boolean,
-      default: false, // When true, shows both files and directories
+      default: true,
     },
   },
   data: function () {
@@ -243,23 +243,19 @@ export default {
 
       // If this folder is empty, finish here.
       if (req.items === null) return;
-
-      // Otherwise we add every directory (or file if fileOnly) to the options.
       for (let item of req.items) {
-        if (this.fileOnly) {
-          // Only show files - skip directories
-          if (item.type === "directory") continue;
-        } else if (!this.showFiles) {
-          // Only show directories (default behavior)
-          if (item.type !== "directory") continue;
-        }
-        // If showFiles is true, show both files and directories (no filtering)
+        if (!this.showFolders && item.type === "directory") continue;
+        if (!this.showFiles && item.type !== "directory") continue;
+        // If showFiles is true and showFolders is false -- show only files
+        // If showFolders is true and showFiles is false -- show only directories
+        // If both are true -- show files and folders
+        // If both are false -- show nothing
         this.items.push({
           name: item.name,
           path: item.path,
           source: item.source || req.source,
-          type: item.type, // Store type for file selection
-          originalItem: item, // Store original item for Icon component
+          type: item.type,
+          originalItem: item,
         });
       }
     },
