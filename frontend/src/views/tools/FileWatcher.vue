@@ -238,6 +238,8 @@ export default {
     this.updateTimer = setInterval(() => {
       this.currentTime = Date.now();
     }, 1000);
+
+    document.addEventListener('keydown', this.handleKeydown);
   },
   beforeUnmount() {
     eventBus.off('pathSelected', this.handlePathSelected);
@@ -252,6 +254,8 @@ export default {
       clearInterval(this.latencyPingInterval);
       this.latencyPingInterval = null;
     }
+    // Clear event listener
+    document.removeEventListener('keydown', this.handleKeydown);
   },
   methods: {
     validateInterval(interval) {
@@ -639,6 +643,17 @@ export default {
       } catch (err) {
         console.error('[FileWatcher] Latency ping failed:', err);
         // Don't update latency on error, keep previous value
+      }
+    },
+    // Spacebar key shortcut to toggle watch
+    handleKeydown(event) {
+      if (event.keyCode === 32 || event.key === ' ') {
+        // Don't trigger if we are typing, since someone can be editing a Link in the sidebar
+        const activeElement = document.activeElement;
+        const isInputFocused = activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA');
+        if (!isInputFocused) {
+          this.toggleWatch();
+        }
       }
     },
   },
