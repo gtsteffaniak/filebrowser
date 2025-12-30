@@ -267,7 +267,7 @@ export default {
       let clickedItem = this.items.find(item => item.path === path);
       let sourceToUse = clickedItem ? clickedItem.source : this.source;
       
-      // If showFiles mode and clicked item is a file (not a directory), select it directly
+      // If showFiles and showFolders is true, and clicked item is a file (not a directory), select it directly
       if (this.showFiles && clickedItem && clickedItem.type !== "directory") {
         this.selected = path;
         this.selectedSource = sourceToUse;
