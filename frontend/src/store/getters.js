@@ -188,7 +188,7 @@ export const getters = {
     return { dirs, files }
   },
   isSidebarVisible: () => {
-    if (state.shareInfo?.disableSidebar) {
+    if (globalVars.disableSidebar) {
       return false
     }
     const cv = getters.currentView()

@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v1.1.5-beta
+
+ **Notes**:
+ - Major git container tag request #1756
+
+ **BugFixes**:
+ - Sharing broken if source `disableIndexing: true` (#1742)
+ - Password protected share permission issues (#1729) (#1606) (#1593)
+ - Sidebar Sliding left (#1737)
+ - file permissions not working (#1762)
+ - handle Close() errors in archive creation (#1745)
+ - Move custom CSS and user-selected theme styles to the end of the body (#1744)
+
 ## v1.1.4-beta
 
  **New Features**:
