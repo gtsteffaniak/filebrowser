@@ -73,6 +73,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 	staticURL := config.Server.BaseURL + "public/static"
 	description := config.Frontend.Description
 	title := config.Frontend.Name
+	disableSidebar := false
 
 	// Use custom favicon if configured and validated, otherwise fall back to default
 	favicon := staticURL + "/favicon"
@@ -103,6 +104,9 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 			if ok {
 				userSelectedTheme = theme.CssRaw
 			}
+		}
+		if d.share.DisableSidebar {
+			disableSidebar = true
 		}
 	}
 	// Set login icon URL
@@ -158,6 +162,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"enableHeicConversion": config.Integrations.Media.Convert.ImagePreview[settings.HEICImagePreview] && settings.MediaEnabled(),
 		"eventBasedThemes":     !config.Frontend.Styling.DisableEventBasedThemes,
 		"loginIcon":            loginIcon,
+		"disableSidebar":       disableSidebar,
 	}
 
 	// Marshal each variable to JSON strings for direct template usage

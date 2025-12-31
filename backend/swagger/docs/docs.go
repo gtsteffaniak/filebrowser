@@ -3123,6 +3123,9 @@ const docTemplate = `{
                 "key": {
                     "type": "string"
                 },
+                "minimal": {
+                    "type": "boolean"
+                },
                 "name": {
                     "type": "string"
                 }
@@ -4985,12 +4988,6 @@ const docTemplate = `{
                     "$ref": "#/definitions/users.Permissions"
                 },
                 "belongsTo": {
-                    "type": "integer"
-                },
-                "createdAt": {
-                    "type": "integer"
-                },
-                "expiresAt": {
                     "type": "integer"
                 },
                 "key": {

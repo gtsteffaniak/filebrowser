@@ -449,7 +449,6 @@
   },
   "api": {
     "title": "Ключи API",
-    "keyName": "Имя ключа API:",
     "createdAt": "Создан:",
     "expiresAt": "Истекает:",
     "permissions": "Разрешения:",
@@ -464,13 +463,16 @@
     "createKeySuccess": "Ключ API успешно создан.",
     "description": "Ключи API зависят от пользователя, который их создает. См.",
     "swaggerLinkText": "страница swagger",
-    "name": "Имя",
     "created": "Создано",
     "expires": "Срок действия:",
     "actions": "Действия",
     "enabled": "Включено",
     "disabled": "Отключено",
-    "apiKeyDeleted": "Ключ API удален!"
+    "apiKeyDeleted": "Ключ API удален!",
+    "tokenType": "Тип токена:",
+    "clickToCopyKey": "Нажмите, чтобы скопировать ключ (скрыто)",
+    "minimalDescription": "Минимальный токен",
+    "minimalInfo": "Исключение настроек токена для создания токена меньшей длины. Точное совпадение разрешений со связанным пользователем."
   },
   "index": {
     "assessment": "Оценка",

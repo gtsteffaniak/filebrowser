@@ -449,7 +449,6 @@
   },
   "api": {
     "title": "API 金鑰",
-    "keyName": "API 金鑰名稱：",
     "createdAt": "創建於",
     "expiresAt": "到期日：：",
     "permissions": "權限：",
@@ -464,13 +463,16 @@
     "createKeySuccess": "API 金鑰已成功建立。",
     "description": "API 金鑰以建立金鑰的使用者為基礎。請參閱",
     "swaggerLinkText": "跩頁",
-    "name": "名稱",
     "created": "創建",
     "expires": "到期",
     "actions": "行動",
     "enabled": "已啟用",
     "disabled": "殘障",
-    "apiKeyDeleted": "API 金鑰已刪除！"
+    "apiKeyDeleted": "API 金鑰已刪除！",
+    "tokenType": "代幣類型：",
+    "clickToCopyKey": "按一下以複製鑰匙 (隱藏)",
+    "minimalDescription": "最小代幣",
+    "minimalInfo": "排除令牌自訂，以建立較小的令牌長度。與關聯使用者完全相容的權限。"
   },
   "index": {
     "assessment": "評估",

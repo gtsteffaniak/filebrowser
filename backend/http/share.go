@@ -1,7 +1,9 @@
 package http
 
 import (
+	"crypto/hmac"
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -62,8 +64,8 @@ func convertToFrontendShareResponse(r *http.Request, shares []*share.Link) ([]*S
 		pathExists := utils.CheckPathExists(filepath.Join(sourceInfo.Path, s.Path))
 
 		s.CommonShare.HasPassword = s.HasPassword()
-		s.DownloadURL = getShareURL(r, s.Hash, true)
-		s.ShareURL = getShareURL(r, s.Hash, false)
+		s.DownloadURL = getShareURL(r, s.Hash, true, s.Token)
+		s.ShareURL = getShareURL(r, s.Hash, false, s.Token)
 
 		// Create response with source name (overrides the embedded Link's source field)
 		responses = append(responses, &ShareResponse{
@@ -283,11 +285,21 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	stringHash := ""
 	var token string
 	if len(hash) > 0 {
-		tokenBuffer := make([]byte, 24)
-		if _, err = rand.Read(tokenBuffer); err != nil {
+		// Generate a cryptographically secure token similar to JWT
+		// Create a random payload
+		payloadBuffer := make([]byte, 24)
+		if _, err = rand.Read(payloadBuffer); err != nil {
 			return http.StatusInternalServerError, err
 		}
-		token = base64.URLEncoding.EncodeToString(tokenBuffer)
+		payload := base64.URLEncoding.EncodeToString(payloadBuffer)
+
+		// Sign the payload with HMAC-SHA256 using the same secret key as JWT tokens
+		mac := hmac.New(sha256.New, []byte(config.Auth.Key))
+		mac.Write([]byte(payload))
+		signature := base64.URLEncoding.EncodeToString(mac.Sum(nil))
+
+		// Combine payload and signature: payload.signature (similar to JWT format)
+		token = payload + "." + signature
 		stringHash = string(hash)
 	}
 	if s != nil {
@@ -352,13 +364,13 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	if err != nil {
 		return http.StatusForbidden, err
 	}
-	scopePath := utils.JoinPathAsUnix(userscope, body.Path)
-	scopePath = utils.AddTrailingSlashIfNotExists(scopePath)
-	body.Path = scopePath
+	providedPath := body.Path
+	body.Path = utils.JoinPathAsUnix(userscope, providedPath)
+	body.Path = utils.AddTrailingSlashIfNotExists(body.Path)
 	// validate path exists as file or folder
-	_, _, err = idx.GetRealPath(scopePath)
+	_, _, err = idx.GetRealPath(body.Path)
 	if err != nil {
-		return http.StatusForbidden, fmt.Errorf("path not found: %s", body.Path)
+		return http.StatusForbidden, fmt.Errorf("path not found: %s", providedPath)
 	}
 
 	if body.ShareType == "upload" && !body.AllowCreate {
@@ -507,8 +519,8 @@ func shareDirectDownloadHandler(w http.ResponseWriter, r *http.Request, d *reque
 				response := DirectDownloadResponse{
 					Status:      "201",
 					Hash:        existing.Hash,
-					DownloadURL: getShareURL(r, existing.Hash, true),
-					ShareURL:    getShareURL(r, existing.Hash, false),
+					DownloadURL: getShareURL(r, existing.Hash, true, existing.Token),
+					ShareURL:    getShareURL(r, existing.Hash, false, existing.Token),
 				}
 				return renderJSON(w, r, response)
 			}
@@ -539,18 +551,23 @@ func shareDirectDownloadHandler(w http.ResponseWriter, r *http.Request, d *reque
 	response := DirectDownloadResponse{
 		Status:      "200",
 		Hash:        secureHash,
-		DownloadURL: getShareURL(r, secureHash, true),
-		ShareURL:    getShareURL(r, secureHash, false),
+		DownloadURL: getShareURL(r, secureHash, true, shareLink.Token),
+		ShareURL:    getShareURL(r, secureHash, false, shareLink.Token),
 	}
 
 	return renderJSON(w, r, response)
 }
 
-func getShareURL(r *http.Request, hash string, isDirectDownload bool) string {
+func getShareURL(r *http.Request, hash string, isDirectDownload bool, token string) string {
 	var shareURL string
+	tokenParam := ""
+	if token != "" && isDirectDownload {
+		tokenParam = fmt.Sprintf("&token=%s", url.QueryEscape(token))
+	}
+
 	if config.Server.ExternalUrl != "" {
 		if isDirectDownload {
-			shareURL = fmt.Sprintf("%s%spublic/api/raw?hash=%s", config.Server.ExternalUrl, config.Server.BaseURL, hash)
+			shareURL = fmt.Sprintf("%s%spublic/api/raw?hash=%s%s", config.Server.ExternalUrl, config.Server.BaseURL, hash, tokenParam)
 		} else {
 			shareURL = fmt.Sprintf("%s%spublic/share/%s", config.Server.ExternalUrl, config.Server.BaseURL, hash)
 		}
@@ -573,7 +590,7 @@ func getShareURL(r *http.Request, hash string, isDirectDownload bool) string {
 			scheme = getScheme(r)
 		}
 		if isDirectDownload {
-			shareURL = fmt.Sprintf("%s://%s%spublic/api/raw?hash=%s", scheme, host, config.Server.BaseURL, hash)
+			shareURL = fmt.Sprintf("%s://%s%spublic/api/raw?hash=%s%s", scheme, host, config.Server.BaseURL, hash, tokenParam)
 		} else {
 			shareURL = fmt.Sprintf("%s://%s%spublic/share/%s", scheme, host, config.Server.BaseURL, hash)
 		}
@@ -593,13 +610,14 @@ func getShareURL(r *http.Request, hash string, isDirectDownload bool) string {
 // @Router /public/api/shareinfo [get]
 func shareInfoHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	hash := r.URL.Query().Get("hash")
-	// Get the file link by hash
-	commonShare, err := store.Share.GetCommonShareByHash(hash)
+	// Get the file link by hash (need full Link to get Token)
+	shareLink, err := store.Share.GetByHash(hash)
 	if err != nil {
 		return http.StatusNotFound, fmt.Errorf("share hash not found")
 	}
-	commonShare.DownloadURL = getShareURL(r, hash, true)
-	commonShare.ShareURL = getShareURL(r, hash, false)
+	commonShare := shareLink.CommonShare
+	commonShare.DownloadURL = getShareURL(r, hash, true, shareLink.Token)
+	commonShare.ShareURL = getShareURL(r, hash, false, shareLink.Token)
 	return renderJSON(w, r, commonShare)
 }
 

@@ -202,6 +202,10 @@ export default {
           this.attemptedPasswordLogin = this.sharePassword !== "";
           // Reset password validation state on wrong password
           mutations.setShareData({ passwordValid: false });
+          // Clear error for upload shares so upload interface can be shown once password is correct
+          if (state.shareInfo?.shareType === "upload") {
+            this.error = null;
+          }
           this.showPasswordPrompt();
         } else {
           router.push({ name: "error" });
@@ -232,34 +236,96 @@ export default {
       }
       shareInfo.hash = hash;
       mutations.setShareInfo(shareInfo);
-      if (shareInfo.shareType == "upload") {
-        return;
-      }
-      if (shareInfo.themeColor) {
-        document.documentElement.style.setProperty("--primaryColor", shareInfo.themeColor);
-      }
-      if (shareInfo.hasPassword && this.sharePassword === "") {
-        this.sharePassword = localStorage.getItem("sharepass:" + this.shareHash);
-        if (this.sharePassword === null || this.sharePassword === "") {
-          this.showPasswordPrompt();
-          return;
-        }
-      }
-
-      // Parse share route
+      
+      // Parse share route to get shareHash and shareSubPath
       let urlPath = getters.routePath('public/share')
       let parts = urlPath.split("/");
       this.shareHash = parts[1]
       this.shareSubPath = "/" + parts.slice(2).join("/");
-
-      // Handle password
-      if (this.sharePassword === "") {
-        this.sharePassword = localStorage.getItem("sharepass:" + this.shareHash);
-      } else {
+      
+      // Check for password requirement (applies to both regular and upload shares)
+      if (shareInfo.hasPassword) {
+        if (this.sharePassword === "") {
+          this.sharePassword = localStorage.getItem("sharepass:" + this.shareHash);
+          if (this.sharePassword === null || this.sharePassword === "") {
+            this.showPasswordPrompt();
+            return;
+          }
+        }
+        // Store password in localStorage
         localStorage.setItem("sharepass:" + this.shareHash, this.sharePassword);
       }
+      
+      if (shareInfo.themeColor) {
+        document.documentElement.style.setProperty("--primaryColor", shareInfo.themeColor);
+      }
+
+      // Handle password (same for both regular and upload shares)
       if (this.sharePassword === null) {
         this.sharePassword = "";
+      }
+
+      // For upload shares, validate password on startup and return early
+      // Password validation happens via fetchPub call, which will throw 401 if incorrect
+      // A 501 error means browsing is disabled (expected for upload shares) and indicates auth succeeded
+      if (shareInfo.shareType == "upload") {
+        // Initialize password validation state
+        if (shareInfo.hasPassword) {
+          mutations.setShareData({ passwordValid: false });
+          try {
+            await publicApi.fetchPub(this.shareSubPath, this.shareHash, this.sharePassword, false);
+            // If we get here, password is valid (unlikely for upload shares, but handle it)
+            mutations.setShareData({ passwordValid: true });
+            this.error = null; // Clear any previous errors
+          } catch (e) {
+            // 501 means browsing is disabled for upload shares - this is expected and means auth succeeded
+            if (e.status === 501) {
+              // Password is valid, mark as validated
+              mutations.setShareData({ passwordValid: true });
+              this.error = null; // Clear any previous errors
+            } else if (e.status === 401) {
+              // Password is invalid, show prompt
+              this.attemptedPasswordLogin = true;
+              mutations.setShareData({ passwordValid: false });
+              this.showPasswordPrompt();
+              return;
+            } else {
+              // For other errors, re-throw to be handled by fetchData()
+              throw e;
+            }
+          }
+        } else {
+          // No password required, mark as validated
+          mutations.setShareData({ passwordValid: true });
+          this.error = null; // Clear any previous errors
+        }
+        return;
+      }
+
+      // For regular shares, validate password on startup (similar to upload shares)
+      if (shareInfo.hasPassword) {
+        mutations.setShareData({ passwordValid: false });
+        try {
+          await publicApi.fetchPub(this.shareSubPath, this.shareHash, this.sharePassword, false);
+          // Password is valid
+          mutations.setShareData({ passwordValid: true });
+          this.error = null; // Clear any previous errors
+        } catch (e) {
+          if (e.status === 401) {
+            // Password is invalid, show prompt
+            this.attemptedPasswordLogin = true;
+            mutations.setShareData({ passwordValid: false });
+            this.showPasswordPrompt();
+            return;
+          } else {
+            // For other errors, re-throw to be handled by fetchData()
+            throw e;
+          }
+        }
+      } else {
+        // No password required, mark as validated
+        mutations.setShareData({ passwordValid: true });
+        this.error = null; // Clear any previous errors
       }
 
       mutations.resetSelected();
@@ -267,10 +333,6 @@ export default {
 
       if (state.shareInfo?.singleFileShare) {
         mutations.setSidebarVisible(true);
-      }
-      // Initialize password validation state for password-protected shares
-      if (state.shareInfo?.isPasswordProtected) {
-        mutations.setShareData({ passwordValid: false });
       }
       // Fetch share data
       let file = await publicApi.fetchPub(this.shareSubPath, this.shareHash, this.sharePassword);

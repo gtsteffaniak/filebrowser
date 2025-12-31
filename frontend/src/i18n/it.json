@@ -449,7 +449,6 @@
   },
   "api": {
     "title": "Chiavi API:",
-    "keyName": "Nome della chiave API:",
     "createdAt": "Creato a:",
     "expiresAt": "Scade a:",
     "permissions": "Permessi:",
@@ -464,13 +463,16 @@
     "createKeySuccess": "Chiave API creata con successo.",
     "description": "Le chiavi API si basano sull'utente che le crea. Vedere",
     "swaggerLinkText": "pagina swagger",
-    "name": "Nome",
     "created": "Creato",
     "expires": "Scadenza",
     "actions": "Azioni",
     "enabled": "Abilitato",
     "disabled": "Disabili",
-    "apiKeyDeleted": "Chiave API cancellata!"
+    "apiKeyDeleted": "Chiave API cancellata!",
+    "tokenType": "Tipo di gettone:",
+    "clickToCopyKey": "Fare clic per copiare la chiave (nascosta)",
+    "minimalDescription": "Gettone minimo",
+    "minimalInfo": "Esclude le personalizzazioni del token per creare un token di lunghezza inferiore. Le autorizzazioni corrispondono esattamente all'utente associato."
   },
   "index": {
     "assessment": "Valutazione",

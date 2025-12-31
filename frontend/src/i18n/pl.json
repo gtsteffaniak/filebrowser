@@ -449,7 +449,6 @@
   },
   "api": {
     "title": "Klucze API:",
-    "keyName": "Nazwa klucza API:",
     "createdAt": "Utworzono w:",
     "expiresAt": "Wygasa w:",
     "permissions": "Uprawnienia:",
@@ -464,13 +463,16 @@
     "createKeySuccess": "Klucz API został pomyślnie utworzony.",
     "description": "Klucze API są oparte na użytkowniku, który je utworzył. Zobacz",
     "swaggerLinkText": "strona swagger",
-    "name": "Nazwa",
     "created": "Utworzony",
     "expires": "Wygasa",
     "actions": "Działania",
     "enabled": "Włączone",
     "disabled": "Wyłączony",
-    "apiKeyDeleted": "Klucz API został usunięty!"
+    "apiKeyDeleted": "Klucz API został usunięty!",
+    "tokenType": "Typ tokena:",
+    "clickToCopyKey": "Kliknij, aby skopiować klucz (ukryty)",
+    "minimalDescription": "Minimalny token",
+    "minimalInfo": "Wyklucza dostosowania tokenu w celu utworzenia tokenu o mniejszej długości. Dokładne dopasowanie uprawnień do powiązanego użytkownika."
   },
   "index": {
     "assessment": "Ocena",

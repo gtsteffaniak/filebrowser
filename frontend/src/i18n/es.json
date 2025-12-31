@@ -449,7 +449,6 @@
   },
   "api": {
     "title": "Gestión de claves API",
-    "keyName": "Nombre de la API:  ",
     "createdAt": "Creado en:",
     "expiresAt": "Expira el:",
     "permissions": "Permisos:",
@@ -460,7 +459,6 @@
     "days": "Días",
     "months": "Meses",
     "swaggerLinkText": "documentación de Swagger.",
-    "name": "Nombre",
     "created": "Creado",
     "expires": "Expira el:",
     "actions": "Acciones",
@@ -470,7 +468,11 @@
     "createKeyFailed": "Hubo un error al crear la API",
     "createKeySuccess": "¡Clave API creada con exito!",
     "description": "Las claves API solo podrán tener los permisos que tu usuario tenga. Para más info mira la",
-    "apiKeyDeleted": "Clave API borrada"
+    "apiKeyDeleted": "Clave API borrada",
+    "tokenType": "Tipo de ficha:",
+    "clickToCopyKey": "Haga clic para copiar la clave (oculta)",
+    "minimalDescription": "Ficha mínima",
+    "minimalInfo": "Excluye las personalizaciones de token para crear una longitud de token menor. Los permisos exactos coinciden con los del usuario asociado."
   },
   "index": {
     "assessment": "Tipo",

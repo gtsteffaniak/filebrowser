@@ -449,7 +449,6 @@
   },
   "api": {
     "title": "APIキー：",
-    "keyName": "APIキー名",
     "createdAt": "で作成された：",
     "expiresAt": "有効期限",
     "permissions": "許可：",
@@ -464,13 +463,16 @@
     "createKeySuccess": "APIキーが正常に作成されました。",
     "description": "APIキーは、それを作成したユーザーに基づいています。参照：",
     "swaggerLinkText": "Swaggerページ",
-    "name": "名前",
     "created": "作成日時",
     "expires": "有効期限",
     "actions": "操作",
     "enabled": "有効",
     "disabled": "無効",
-    "apiKeyDeleted": "APIキーが削除されました！"
+    "apiKeyDeleted": "APIキーが削除されました！",
+    "tokenType": "トークン・タイプ",
+    "clickToCopyKey": "クリックしてキーをコピー (非表示)",
+    "minimalDescription": "ミニマル・トークン",
+    "minimalInfo": "トークン長を小さくするためのトークンのカスタマイズを除く。関連するユーザーとパーミッションが完全に一致します。"
   },
   "index": {
     "assessment": "評価",

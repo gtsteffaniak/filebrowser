@@ -509,7 +509,6 @@
   },
   "api": {
     "title": "API klíče",
-    "keyName": "Název API klíče:",
     "createdAt": "Vytvořeno:",
     "expiresAt": "Platnost do:",
     "permissions": "Oprávnění:",
@@ -524,13 +523,16 @@
     "createKeySuccess": "API klíč byl úspěšně vytvořen.",
     "description": "API klíče jsou vázané na uživatele, který je vytvořil. Viz",
     "swaggerLinkText": "stránka swagger",
-    "name": "Název",
     "created": "Vytvořeno",
     "expires": "Vyprší",
     "actions": "Akce",
     "enabled": "Povoleno",
     "disabled": "Zakázáno",
-    "apiKeyDeleted": "Klíč API smazán!"
+    "apiKeyDeleted": "Klíč API smazán!",
+    "tokenType": "Typ tokenu:",
+    "clickToCopyKey": "Kliknutím zkopírujete klíč (skrytý)",
+    "minimalDescription": "Minimální žeton",
+    "minimalInfo": "Vyloučí přizpůsobení tokenu pro vytvoření menší délky tokenu. Přesná shoda oprávnění s přidruženým uživatelem."
   },
   "index": {
     "assessment": "Vyhodnocení",

@@ -449,7 +449,6 @@
   },
   "api": {
     "title": "Chaves da API",
-    "keyName": "Nome da chave da API:",
     "createdAt": "Criado em:",
     "expiresAt": "Expira em:",
     "permissions": "Permissões:",
@@ -464,13 +463,16 @@
     "createKeySuccess": "Chave API criada com sucesso.",
     "description": "As chaves da API são baseadas no utilizador que as cria. Veja",
     "swaggerLinkText": "página do swagger",
-    "name": "Nome",
     "created": "Criado",
     "expires": "Expirações",
     "actions": "Acções",
     "enabled": "Ativado",
     "disabled": "Desativado",
-    "apiKeyDeleted": "Chave API eliminada!"
+    "apiKeyDeleted": "Chave API eliminada!",
+    "tokenType": "Tipo de ficha:",
+    "clickToCopyKey": "Clique para copiar a chave (oculto)",
+    "minimalDescription": "Token mínimo",
+    "minimalInfo": "Exclui personalizações de token para criar um comprimento de token menor. As permissões exactas correspondem ao utilizador associado."
   },
   "index": {
     "assessment": "Avaliação",

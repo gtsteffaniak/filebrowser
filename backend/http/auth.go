@@ -1,6 +1,9 @@
 package http
 
 import (
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/base64"
 	"encoding/json"
 	libError "errors"
 	"fmt"
@@ -253,7 +256,7 @@ func renewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (in
 
 func printToken(w http.ResponseWriter, r *http.Request, user *users.User) (int, error) {
 	expires := time.Hour * time.Duration(config.Auth.TokenExpirationHours)
-	signed, err := makeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), expires, user.Permissions)
+	signed, err := makeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), expires, user.Permissions, false)
 	if err != nil {
 		if strings.Contains(err.Error(), "key already exists with same name") {
 			return http.StatusConflict, err
@@ -291,41 +294,78 @@ func printToken(w http.ResponseWriter, r *http.Request, user *users.User) (int, 
 	return 0, nil
 }
 
-func makeSignedTokenAPI(user *users.User, name string, duration time.Duration, perms users.Permissions) (users.AuthToken, error) {
+func makeSignedTokenAPI(user *users.User, name string, duration time.Duration, perms users.Permissions, minimal bool) (users.AuthToken, error) {
 	_, ok := user.ApiKeys[name]
 	if ok {
 		return users.AuthToken{}, fmt.Errorf("key already exists with same name %v ", name)
 	}
 	now := time.Now()
 	expires := now.Add(duration)
-	claim := users.AuthToken{
-		Permissions: perms,
-		Created:     now.Unix(),
-		Expires:     expires.Unix(),
-		Name:        name,
-		BelongsTo:   user.ID,
-		RegisteredClaims: jwt.RegisteredClaims{
-			IssuedAt:  jwt.NewNumericDate(now),
-			ExpiresAt: jwt.NewNumericDate(expires),
-			Issuer:    "FileBrowser Quantum",
+
+	var tokenString string
+	var err error
+
+	if minimal {
+		// Create minimal token with only JWT standard claims
+		minimalClaim := users.MinimalAuthToken{
+			RegisteredClaims: jwt.RegisteredClaims{
+				IssuedAt:  jwt.NewNumericDate(now),
+				ExpiresAt: jwt.NewNumericDate(expires),
+				Issuer:    "FileBrowser Quantum",
+			},
+		}
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, minimalClaim)
+		tokenString, err = token.SignedString([]byte(config.Auth.Key))
+		if err != nil {
+			return users.AuthToken{}, err
+		}
+	} else {
+		// Create full token with permissions and user ID
+		fullClaim := users.AuthToken{
+			MinimalAuthToken: users.MinimalAuthToken{
+				RegisteredClaims: jwt.RegisteredClaims{
+					IssuedAt:  jwt.NewNumericDate(now),
+					ExpiresAt: jwt.NewNumericDate(expires),
+					Issuer:    "FileBrowser Quantum",
+				},
+			},
+			Name:        name,
+			Permissions: perms,
+			BelongsTo:   user.ID,
+		}
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, fullClaim)
+		tokenString, err = token.SignedString([]byte(config.Auth.Key))
+		if err != nil {
+			return users.AuthToken{}, err
+		}
+	}
+
+	// Create the AuthToken to store in database (always includes permissions and user ID)
+	storedClaim := users.AuthToken{
+		MinimalAuthToken: users.MinimalAuthToken{
+			RegisteredClaims: jwt.RegisteredClaims{
+				IssuedAt:  jwt.NewNumericDate(now),
+				ExpiresAt: jwt.NewNumericDate(expires),
+				Issuer:    "FileBrowser Quantum",
+			},
 		},
+		Key:         tokenString,
+		Name:        name,
+		Permissions: perms,
+		BelongsTo:   user.ID,
 	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claim)
-	tokenString, err := token.SignedString([]byte(config.Auth.Key))
-	if err != nil {
-		return claim, err
-	}
-	claim.Key = tokenString
+
 	if strings.HasPrefix(name, "WEB_TOKEN") {
 		// don't add to api tokens, its a short lived web token
-		return claim, err
+		return storedClaim, nil
 	}
+
 	// Perform the user update
-	err = store.Users.AddApiKey(user.ID, name, claim)
+	err = store.Users.AddApiKey(user.ID, name, storedClaim)
 	if err != nil {
-		return claim, err
+		return storedClaim, err
 	}
-	return claim, err
+	return storedClaim, nil
 }
 
 func authenticateShareRequest(r *http.Request, l *share.Link) (int, error) {
@@ -333,17 +373,40 @@ func authenticateShareRequest(r *http.Request, l *share.Link) (int, error) {
 		return 200, nil
 	}
 
-	if r.URL.Query().Get("token") == l.Token {
-		return 200, nil
+	tokenParam := r.URL.Query().Get("token")
+	if tokenParam != "" {
+		// Verify the token signature if it's in the new signed format
+		if strings.Contains(tokenParam, ".") {
+			parts := strings.Split(tokenParam, ".")
+			if len(parts) == 2 {
+				payload := parts[0]
+				signature := parts[1]
+
+				// Verify HMAC signature
+				mac := hmac.New(sha256.New, []byte(config.Auth.Key))
+				mac.Write([]byte(payload))
+				expectedSignature := base64.URLEncoding.EncodeToString(mac.Sum(nil))
+
+				// Use constant-time comparison to prevent timing attacks
+				if hmac.Equal([]byte(signature), []byte(expectedSignature)) {
+					// Token signature is valid, now check if it matches stored token
+					if tokenParam == l.Token {
+						return 200, nil
+					}
+				}
+			}
+		} else {
+			// Legacy token format (plain base64) - direct comparison
+			if tokenParam == l.Token {
+				return 200, nil
+			}
+		}
 	}
 
 	password := r.Header.Get("X-SHARE-PASSWORD")
 	password, err := url.QueryUnescape(password)
 	if err != nil {
 		return http.StatusUnauthorized, err
-	}
-	if password == "" {
-		return http.StatusUnauthorized, nil
 	}
 	if err := bcrypt.CompareHashAndPassword([]byte(l.PasswordHash), []byte(password)); err != nil {
 		if libError.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
