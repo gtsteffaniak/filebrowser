@@ -6,7 +6,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
@@ -85,9 +84,6 @@ func (s *Scanner) tryAcquireAndScan() {
 		s.idx.mu.Unlock()
 		defer s.idx.childScanMutex.Unlock()
 	}
-
-	// Flush any pending parent size updates before starting scan to ensure data consistency
-	s.idx.FlushPendingParentSizeUpdates()
 
 	quick := s.fullScanCounter > 0 && s.fullScanCounter < 5
 	s.fullScanCounter++
@@ -196,10 +192,8 @@ func (s *Scanner) runChildScan(quick bool) {
 	s.idx.mu.Unlock()
 
 	// indexDirectory returns the total size of this directory (including all subdirectories)
-	// For child scanners, we need to count the directory itself (1) plus any subdirectories
-	// The recursive scan counts subdirectories, but not the directory being scanned itself
-	// If a scanner exists, it means it passed all exclusion checks, so it should count itself
-	dirSize, _, err := s.idx.indexDirectory(s.scanPath, config)
+	// Directory sizes are no longer stored in SQLite - will be managed in-memory
+	_, _, err := s.idx.indexDirectory(s.scanPath, config)
 	if err != nil {
 		logger.Errorf("Scanner [%s] error: %v", s.scanPath, err)
 	} else if config.Recursive && config.IsRoutineScan {
@@ -214,34 +208,6 @@ func (s *Scanner) runChildScan(quick bool) {
 	s.idx.flushBatch()
 
 	if !quick {
-		// Each scanner is responsible for updating its own directory size
-		// This uses in-memory calculation during recursive traversal to avoid expensive SQL queries
-		// Normalize path to match database format (with trailing slash for directories)
-		normalizedPath := utils.AddTrailingSlashIfNotExists(s.scanPath)
-
-		// Check if this directory was updated by the scan itself
-		// If so, always update (it's part of the scan). If not, use timestamp checking
-		// to avoid overwriting API updates that occurred during scan
-		s.idx.mu.RLock()
-		wasUpdatedByScan := s.idx.scanUpdatedPaths[normalizedPath]
-		scanStartTime := s.scanStartTime
-		s.idx.mu.RUnlock()
-
-		if wasUpdatedByScan {
-			// Directory was updated by the scan - always update size (no timestamp check)
-			if err := s.idx.db.UpdateDirectorySize(s.idx.Name, normalizedPath, dirSize); err != nil {
-				logger.Errorf("[SIZE_CALC] Failed to update directory size for %s: %v", normalizedPath, err)
-			}
-			// No need to log success - this is expected during scans
-		} else {
-			// Directory existed before scan - use timestamp checking to avoid overwriting API updates
-			_, err := s.idx.db.UpdateDirectorySizeIfStale(s.idx.Name, normalizedPath, dirSize, scanStartTime)
-			if err != nil {
-				logger.Errorf("[SIZE_CALC] Failed to update directory size for %s: %v", normalizedPath, err)
-			}
-			// No need to log success - this is expected during scans
-		}
-
 		s.purgeStaleEntries()
 		s.syncStatsWithDB()
 	}

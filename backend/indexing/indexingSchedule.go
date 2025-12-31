@@ -175,8 +175,7 @@ func (idx *Index) PreScan() error {
 func (idx *Index) PostScan() error {
 	// Only do expensive operations when ALL scanners are done
 	if idx.getRunningScannerCount() == 0 {
-		// All scanners completed - update root directory size and send event
-		idx.updateRootDirectorySize()
+		// All scanners completed
 		err := idx.db.ShrinkMemory()
 		if err != nil {
 			logger.Errorf("Failed to shrink memory: %v", err)
@@ -201,38 +200,6 @@ func (idx *Index) PostScan() error {
 	}
 	// Scanners still running - skip expensive operations
 	return nil
-}
-
-func (idx *Index) updateRootDirectorySize() {
-	children, err := idx.db.GetDirectoryChildren(idx.Name, "/")
-	if err != nil {
-		logger.Errorf("Failed to get root directory children: %v", err)
-		return
-	}
-
-	var totalSize int64
-	for _, child := range children {
-		totalSize += child.Size
-	}
-
-	// Check if root directory was updated by the scan itself
-	idx.mu.RLock()
-	wasUpdatedByScan := idx.scanUpdatedPaths["/"]
-	scanSessionStartTime := idx.scanSessionStartTime
-	idx.mu.RUnlock()
-
-	if wasUpdatedByScan {
-		// Root directory was updated by the scan - always update size (no timestamp check)
-		if err := idx.db.UpdateDirectorySize(idx.Name, "/", totalSize); err != nil {
-			logger.Errorf("Failed to update root directory size: %v", err)
-		}
-	} else {
-		// Root directory existed before scan - use timestamp checking to avoid overwriting API updates
-		_, err := idx.db.UpdateDirectorySizeIfStale(idx.Name, "/", totalSize, scanSessionStartTime)
-		if err != nil {
-			logger.Errorf("Failed to update root directory size: %v", err)
-		}
-	}
 }
 
 func (idx *Index) SendSourceUpdateEvent() error {
