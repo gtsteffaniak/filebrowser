@@ -32,6 +32,9 @@ And a few potential drawbacks to lookout for:
  - `server.cacheDirCleanup` defaults to `false` instead of true. For docker, you would still need to mount a tmp directory to persist cache.
  - indexing rules have been streamlined, see [wiki]. Previous style is deprecated but still functional.
 
+ **BugFixes**:
+ - Source info not properly read from external storage NAS #1727
+
 ## v1.1.4-beta
 
  **New Features**:
