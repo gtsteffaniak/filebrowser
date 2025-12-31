@@ -20,19 +20,19 @@
       </select>
     </div>
 
-    <!-- Stateful Minimal Token Option -->
+    <!-- Minimal Token Option -->
     <div class="settings-items">
       <ToggleSwitch
-        v-model="stateful"
-        name="stateful"
+        v-model="minimal"
+        name="minimal"
         class="item"
-        :title="$t('api.statefulDescription')"
-        :description="$t('api.statefulInfo')"
+        :title="$t('api.minimalDescription')"
+        :description="$t('api.minimalInfo')"
       />
     </div>
 
     <!-- Permissions Input (only shown for full tokens) -->
-    <div v-if="!stateful">
+    <div v-if="!minimal">
       <p>{{ $t('api.permissionNote') }}</p>
       <div class="settings-items">
         <ToggleSwitch v-for="(isEnabled, permission) in permissions" :key="permission" class="item"
@@ -66,7 +66,7 @@ export default {
       apiName: "",
       duration: 1,
       unit: "days",
-      stateful: false, // false = full token (default), true = minimal token
+      minimal: false, // false = full token (default), true = minimal token
     };
   },
   components: {
@@ -93,11 +93,11 @@ export default {
         const params = {
           name: this.apiName,
           days: this.durationInDays,
-          stateful: this.stateful,
+          minimal: this.minimal,
         };
 
-        // Only include permissions for full tokens (not stateful/minimal)
-        if (!this.stateful) {
+        // Only include permissions for full tokens (not minimal tokens)
+        if (!this.minimal) {
           // Filter to get keys of permissions set to true and join them as a comma-separated string
           const permissionsString = Object.keys(this.permissions)
             .filter((key) => this.permissions[key])

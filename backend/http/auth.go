@@ -291,7 +291,7 @@ func printToken(w http.ResponseWriter, r *http.Request, user *users.User) (int, 
 	return 0, nil
 }
 
-func makeSignedTokenAPI(user *users.User, name string, duration time.Duration, perms users.Permissions, stateful bool) (users.AuthToken, error) {
+func makeSignedTokenAPI(user *users.User, name string, duration time.Duration, perms users.Permissions, minimal bool) (users.AuthToken, error) {
 	_, ok := user.ApiKeys[name]
 	if ok {
 		return users.AuthToken{}, fmt.Errorf("key already exists with same name %v ", name)
@@ -302,7 +302,7 @@ func makeSignedTokenAPI(user *users.User, name string, duration time.Duration, p
 	var tokenString string
 	var err error
 
-	if stateful {
+	if minimal {
 		// Create minimal token with only JWT standard claims
 		minimalClaim := users.MinimalAuthToken{
 			RegisteredClaims: jwt.RegisteredClaims{

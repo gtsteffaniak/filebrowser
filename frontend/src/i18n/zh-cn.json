@@ -462,7 +462,6 @@
     "createKeySuccess": "API 密钥创建成功。",
     "description": "API 密钥基于创建密钥的用户。请参见",
     "swaggerLinkText": "跩頁",
-    "name": "名称",
     "created": "创建",
     "expires": "到期",
     "actions": "行动",
@@ -470,9 +469,9 @@
     "disabled": "残疾",
     "apiKeyDeleted": "API 密钥已删除！",
     "tokenType": "令牌类型：",
-    "statefulDescription": "最小令牌",
-    "statefulInfo": "不包括令牌定制，以创建较小的令牌长度。权限与相关用户完全匹配。",
-    "clickToCopyKey": "点击复制密钥（隐藏）"
+    "clickToCopyKey": "点击复制密钥（隐藏）",
+    "minimalDescription": "最小令牌",
+    "minimalInfo": "不包括令牌定制，以创建较小的令牌长度。权限与相关用户完全匹配。"
   },
   "index": {
     "assessment": "评估",

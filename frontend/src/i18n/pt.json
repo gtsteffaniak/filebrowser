@@ -462,7 +462,6 @@
     "createKeySuccess": "Chave API criada com sucesso.",
     "description": "As chaves da API são baseadas no utilizador que as cria. Veja",
     "swaggerLinkText": "página do swagger",
-    "name": "Nome",
     "created": "Criado",
     "expires": "Expirações",
     "actions": "Acções",
@@ -470,9 +469,9 @@
     "disabled": "Desativado",
     "apiKeyDeleted": "Chave API eliminada!",
     "tokenType": "Tipo de ficha:",
-    "statefulDescription": "Token mínimo",
-    "statefulInfo": "Exclui personalizações de token para criar um comprimento de token menor. As permissões exactas correspondem ao utilizador associado.",
-    "clickToCopyKey": "Clique para copiar a chave (oculto)"
+    "clickToCopyKey": "Clique para copiar a chave (oculto)",
+    "minimalDescription": "Token mínimo",
+    "minimalInfo": "Exclui personalizações de token para criar um comprimento de token menor. As permissões exactas correspondem ao utilizador associado."
   },
   "index": {
     "assessment": "Avaliação",

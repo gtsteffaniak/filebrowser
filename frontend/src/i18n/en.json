@@ -635,15 +635,14 @@
     "apiKeyDeleted": "API key deleted!",
     "description": "API keys are based on the user that creates them. See",
     "swaggerLinkText": "swagger page",
-    "name": "Name",
     "created": "Created",
     "expires": "Expires",
     "actions": "Actions",
     "enabled": "Enabled",
     "disabled": "Disabled",
     "tokenType": "Token Type:",
-    "statefulDescription": "Minimal Token",
-    "statefulInfo": "Excludes token customizations to create a smaller token length. Exact permissions match to the associated user.",
+    "minimalDescription": "Minimal Token",
+    "minimalInfo": "Excludes token customizations to create a smaller token length. Exact permissions match the associated user.",
     "clickToCopyKey": "Click to copy key (hidden)"
   },
   "index": {

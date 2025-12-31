@@ -462,7 +462,6 @@
     "createKeySuccess": "Kľúč API bol úspešne vytvorený.",
     "description": "Kľúče API sú založené na používateľovi, ktorý ich vytvoril. Pozri .",
     "swaggerLinkText": "swagger stránka",
-    "name": "Názov",
     "created": "Vytvorené",
     "expires": "Platnosť končí na",
     "actions": "Činnosti",
@@ -470,9 +469,9 @@
     "disabled": "Bezbariérový",
     "apiKeyDeleted": "Kľúč API odstránený!",
     "tokenType": "Typ žetónu:",
-    "statefulDescription": "Minimálny žetón",
-    "statefulInfo": "Vylúči prispôsobenie tokenu na vytvorenie menšej dĺžky tokenu. Presná zhoda oprávnení s priradeným používateľom.",
-    "clickToCopyKey": "Kliknutím skopírujete kľúč (skrytý)"
+    "clickToCopyKey": "Kliknutím skopírujete kľúč (skrytý)",
+    "minimalDescription": "Minimálny žetón",
+    "minimalInfo": "Vylúči prispôsobenie tokenu na vytvorenie menšej dĺžky tokenu. Presná zhoda oprávnení s priradeným používateľom."
   },
   "index": {
     "assessment": "Hodnotenie",

@@ -462,7 +462,6 @@
     "createKeySuccess": "Clé API créée avec succès.",
     "description": "Les clés API sont basées sur l'utilisateur qui les a créées. Voir les",
     "swaggerLinkText": "page swagger",
-    "name": "Nom",
     "created": "Créée",
     "expires": "Expiration",
     "actions": "Actions",
@@ -470,9 +469,9 @@
     "disabled": "Désactivée",
     "apiKeyDeleted": "Clé API supprimée !",
     "tokenType": "Type de jeton :",
-    "statefulDescription": "Jeton minimal",
-    "statefulInfo": "Exclut les personnalisations du jeton afin de réduire la longueur du jeton. Les autorisations correspondent exactement à celles de l'utilisateur associé.",
-    "clickToCopyKey": "Cliquez pour copier la clé (cachée)"
+    "clickToCopyKey": "Cliquez pour copier la clé (cachée)",
+    "minimalDescription": "Jeton minimal",
+    "minimalInfo": "Exclut les personnalisations du jeton afin de réduire la longueur du jeton. Les autorisations correspondent exactement à celles de l'utilisateur associé."
   },
   "index": {
     "assessment": "Évaluation",

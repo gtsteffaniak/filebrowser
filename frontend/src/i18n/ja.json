@@ -462,7 +462,6 @@
     "createKeySuccess": "APIキーが正常に作成されました。",
     "description": "APIキーは、それを作成したユーザーに基づいています。参照：",
     "swaggerLinkText": "Swaggerページ",
-    "name": "名前",
     "created": "作成日時",
     "expires": "有効期限",
     "actions": "操作",
@@ -470,9 +469,9 @@
     "disabled": "無効",
     "apiKeyDeleted": "APIキーが削除されました！",
     "tokenType": "トークン・タイプ",
-    "statefulDescription": "ミニマル・トークン",
-    "statefulInfo": "トークン長を小さくするためのトークンのカスタマイズを除く。関連するユーザーとパーミッションが完全に一致します。",
-    "clickToCopyKey": "クリックしてキーをコピー (非表示)"
+    "clickToCopyKey": "クリックしてキーをコピー (非表示)",
+    "minimalDescription": "ミニマル・トークン",
+    "minimalInfo": "トークン長を小さくするためのトークンのカスタマイズを除く。関連するユーザーとパーミッションが完全に一致します。"
   },
   "index": {
     "assessment": "評価",

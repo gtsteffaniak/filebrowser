@@ -41,12 +41,12 @@
     </div>
 
     <!-- Token Type or Permissions Section -->
-    <div class="api-section" v-if="info.stateful">
+    <div class="api-section" v-if="info.minimal">
       <h3 class="section-title">{{ $t('api.tokenType') }}</h3>
       <div class="info-item">
-        <span class="info-label">{{ $t('api.statefulDescription') }}</span>
+        <span class="info-label">{{ $t('api.minimalDescription') }}</span>
       </div>
-      <p class="stateful-info">{{ $t('api.statefulInfo') }}</p>
+      <p class="minimal-info">{{ $t('api.minimalInfo') }}</p>
     </div>
 
     <div class="api-section" v-else>
@@ -229,7 +229,7 @@ export default {
   text-align: right;
 }
 
-.stateful-info {
+.minimal-info {
   font-style: italic;
   color: var(--textSecondary);
   margin-top: 0.75em;

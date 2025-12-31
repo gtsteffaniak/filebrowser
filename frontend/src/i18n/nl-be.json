@@ -462,7 +462,6 @@
     "createKeySuccess": "API-sleutel succesvol aangemaakt.",
     "description": "API-sleutels zijn gebaseerd op de gebruiker die ze aanmaakt. Zie",
     "swaggerLinkText": "swagger pagina",
-    "name": "Naam",
     "created": "Gemaakt",
     "expires": "Verloopt op",
     "actions": "Acties",
@@ -470,9 +469,9 @@
     "disabled": "Uitgeschakeld",
     "apiKeyDeleted": "API-sleutel verwijderd!",
     "tokenType": "Type penning:",
-    "statefulDescription": "Minimaal token",
-    "statefulInfo": "Sluit tokenaanpassingen uit om een kleinere tokenlengte te creëren. Exacte overeenkomst met de rechten van de bijbehorende gebruiker.",
-    "clickToCopyKey": "Klik om sleutel te kopiëren (verborgen)"
+    "clickToCopyKey": "Klik om sleutel te kopiëren (verborgen)",
+    "minimalDescription": "Minimaal token",
+    "minimalInfo": "Sluit tokenaanpassingen uit om een kleinere tokenlengte te creëren. Exacte overeenkomst met de rechten van de bijbehorende gebruiker."
   },
   "index": {
     "assessment": "Beoordeling",

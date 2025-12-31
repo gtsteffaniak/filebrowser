@@ -24,7 +24,7 @@ type AuthToken struct {
 	Permissions Permissions `json:"Permissions,omitempty"`
 }
 
-// MinimalAuthToken is used for stateful tokens that only include JWT standard claims
+// MinimalAuthToken is used for tokens that only include JWT standard claims
 type MinimalAuthToken struct {
 	jwt.RegisteredClaims `swaggerignore:"true"`
 }

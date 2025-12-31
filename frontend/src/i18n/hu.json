@@ -462,7 +462,6 @@
     "createKeySuccess": "Sikeresen létrehozott API-kulcs.",
     "description": "Az API-kulcsok a létrehozó felhasználó alapján készülnek. Lásd",
     "swaggerLinkText": "swagger oldal",
-    "name": "Név",
     "created": "Létrehozva",
     "expires": "Lejárat:",
     "actions": "Tevékenységek",
@@ -470,9 +469,9 @@
     "disabled": "Mozgáskorlátozottak",
     "apiKeyDeleted": "API kulcs törölve!",
     "tokenType": "Token típus:",
-    "statefulDescription": "Minimal Token",
-    "statefulInfo": "Kizárja a token testreszabásokat, hogy kisebb tokenhosszúságot hozzon létre. A jogosultságok pontosan megegyeznek a hozzárendelt felhasználóval.",
-    "clickToCopyKey": "Kattintson a kulcs másolásához (rejtett)"
+    "clickToCopyKey": "Kattintson a kulcs másolásához (rejtett)",
+    "minimalDescription": "Minimal Token",
+    "minimalInfo": "Kizárja a token testreszabásokat, hogy kisebb tokenhosszúságot hozzon létre. A jogosultságok pontosan megegyeznek a hozzárendelt felhasználóval."
   },
   "index": {
     "assessment": "Értékelés",

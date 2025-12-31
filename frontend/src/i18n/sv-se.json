@@ -462,7 +462,6 @@
     "createKeySuccess": "API-nyckel skapad framgångsrikt.",
     "description": "API-nycklar baseras på den användare som skapar dem. Se även",
     "swaggerLinkText": "swagger-sida",
-    "name": "Namn",
     "created": "Skapad",
     "expires": "Upphör att gälla",
     "actions": "Åtgärder",
@@ -470,9 +469,9 @@
     "disabled": "Inaktiverad",
     "apiKeyDeleted": "API-nyckel raderad!",
     "tokenType": "Token typ:",
-    "statefulDescription": "Minimal symbol",
-    "statefulInfo": "Utesluter anpassningar av token för att skapa en kortare tokenlängd. Exakta behörigheter som matchar den associerade användaren.",
-    "clickToCopyKey": "Klicka för att kopiera nyckel (dold)"
+    "clickToCopyKey": "Klicka för att kopiera nyckel (dold)",
+    "minimalDescription": "Minimal symbol",
+    "minimalInfo": "Utesluter anpassningar av token för att skapa en kortare tokenlängd. Exakta behörigheter som matchar den associerade användaren."
   },
   "index": {
     "assessment": "Bedömning",
