@@ -80,13 +80,13 @@ export default {
       type: String,
       default: null,
     },
-    fileOnly: {
+    showFiles: {
       type: Boolean,
       default: false,
     },
-    showFiles: {
+    showFolders: {
       type: Boolean,
-      default: false, // When true, shows both files and directories
+      default: true,
     },
   },
   data: function () {
@@ -231,28 +231,25 @@ export default {
 
       // If the path isn't the root path,
       // show a button to navigate to the previous
-      // directory (unless in fileOnly mode).
-      if (req.path !== "/" && !this.fileOnly) {
+      // directory (unless we are only displaying files).
+      if (req.path !== "/" && this.showFolders) {
         this.items.push({
           name: "..",
           path: url.removeLastDir(req.path) + "/",
           source: req.source,
+          type: "directory",
         });
       }
 
       // If this folder is empty, finish here.
       if (req.items === null) return;
-
-      // Otherwise we add every directory (or file if fileOnly) to the options.
       for (let item of req.items) {
-        if (this.fileOnly) {
-          // Only show files - skip directories
-          if (item.type === "directory") continue;
-        } else if (!this.showFiles) {
-          // Only show directories (default behavior)
-          if (item.type !== "directory") continue;
-        }
-        // If showFiles is true, show both files and directories (no filtering)
+        if (!this.showFolders && item.type === "directory") continue;
+        if (!this.showFiles && item.type !== "directory") continue;
+        // If showFiles is true and showFolders is false -- show only files
+        // If showFolders is true and showFiles is false -- show only directories
+        // If both are true -- show files and folders
+        // If both are false -- show nothing
         this.items.push({
           name: item.name,
           path: item.path,
@@ -270,13 +267,14 @@ export default {
       let clickedItem = this.items.find(item => item.path === path);
       let sourceToUse = clickedItem ? clickedItem.source : this.source;
       
-      // If fileOnly mode and clicked item is a file (not a directory), select it directly
-      if (this.fileOnly && clickedItem && clickedItem.type !== "directory") {
+      // If showFiles and showFolders is true, and clicked item is a file (not a directory), select it directly
+      if (this.showFiles && clickedItem && clickedItem.type !== "directory") {
         this.selected = path;
         this.selectedSource = sourceToUse;
         this.$emit("update:selected", {
           path: path,
-          source: sourceToUse
+          source: sourceToUse,
+          type: clickedItem.type
         });
         return;
       }

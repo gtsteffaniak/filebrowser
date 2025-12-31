@@ -124,7 +124,7 @@ export default {
       return state.isMobile;
     },
     canStart() {
-      return this.selectedSource && this.filePath && !this.watching;
+      return this.selectedSource && this.filePath && !this.watching && !this.isLikelyDirectory;
     },
     availableIntervals() {
       const realtimePerm = state.user?.permissions?.realtime;
@@ -159,6 +159,9 @@ export default {
       if (this.currentLatency < 300) return 'latency-good'; // Green
       if (this.currentLatency < 1000) return 'latency-ok'; // Yellow
       return 'latency-slow'; // Red
+    },
+    isLikelyDirectory() {
+      return this.filePath && this.filePath.endsWith("/");
     },
   },
   watch: {
@@ -235,6 +238,8 @@ export default {
     this.updateTimer = setInterval(() => {
       this.currentTime = Date.now();
     }, 1000);
+
+    document.addEventListener('keydown', this.handleKeydown);
   },
   beforeUnmount() {
     eventBus.off('pathSelected', this.handlePathSelected);
@@ -249,6 +254,8 @@ export default {
       clearInterval(this.latencyPingInterval);
       this.latencyPingInterval = null;
     }
+    // Clear event listener
+    document.removeEventListener('keydown', this.handleKeydown);
   },
   methods: {
     validateInterval(interval) {
@@ -266,7 +273,8 @@ export default {
         props: {
           currentPath: this.filePath || "/",
           currentSource: this.selectedSource || state.sources.current || "",
-          fileOnly: true, // Only allow selecting files
+          showFiles: true,
+          showFolders: true,
         }
       });
     },
@@ -636,6 +644,18 @@ export default {
       } catch (err) {
         console.error('[FileWatcher] Latency ping failed:', err);
         // Don't update latency on error, keep previous value
+      }
+    },
+    // Spacebar key shortcut to toggle watch
+    handleKeydown(event) {
+      if (event.keyCode === 32 || event.key === ' ') {
+        // Don't trigger if we are typing, since someone can be editing a Link in the sidebar
+        const activeElement = document.activeElement;
+        const isInputFocused = activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA');
+        if (!isInputFocused) {
+          event.preventDefault();
+          this.toggleWatch();
+        }
       }
     },
   },
