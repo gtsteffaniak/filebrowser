@@ -59,7 +59,7 @@ jobs:
           images: |
             gtstef/filebrowser
             ghcr.io/gtsteffaniak/filebrowser
-      - name: Modify tags (strip 'v' and add 'beta'/'stable' if needed)
+      - name: Modify tags (strip 'v' and add version tags)
         id: modify-json
         run: |
           JSON='${{ steps.meta.outputs.json }}'
@@ -68,48 +68,36 @@ jobs:
               sub(":v"; ":")      # Strip the 'v'
               | select(test(":latest") | not)
             ) |
-            # Extract major.minor version tags for beta
-            if any(.tags[]; test("beta")) then
+            # Find all version tags with suffix (X.Y.Z-suffix) and add major.minor and major tags
+            .tags += [
+              .tags[] 
+              | select(test(":[0-9]+\\.[0-9]+\\.[0-9]+-"))
+              | split(":")
+              | .[-1] as $version
+              | ($version | split("-")) as $version_split
+              | ($version_split[0] | split(".")) as $version_parts
+              | ($version_split[1:] | join("-")) as $suffix
+              | ($version_parts | "\(.[0]).\(.[1])") as $major_minor
+              | ($version_parts[0]) as $major
+              | "gtstef/filebrowser:\($major_minor)-\($suffix)",
+                "ghcr.io/gtsteffaniak/filebrowser:\($major_minor)-\($suffix)",
+                "gtstef/filebrowser:\($major)-\($suffix)",
+                "ghcr.io/gtsteffaniak/filebrowser:\($major)-\($suffix)"
+            ] |
+            # Add suffix-only tags for beta (only if tag ends with -beta)
+            if any(.tags[]; split(":")[-1] | endswith("-beta")) then
               .tags += [
                 "gtstef/filebrowser:beta",
                 "ghcr.io/gtsteffaniak/filebrowser:beta"
-              ] |
-              # Find version tags with beta suffix and add major.minor-beta and major-beta tags
-              .tags += [
-                .tags[] 
-                | select(test(":[0-9]+\\.[0-9]+\\.[0-9]+-beta"))
-                | split(":")
-                | .[-1] as $version
-                | ($version | split("-")[0] | split(".")) as $version_parts
-                | ($version_parts | "\(.[0]).\(.[1])") as $major_minor
-                | ($version_parts[0]) as $major
-                | "gtstef/filebrowser:\($major_minor)-beta",
-                  "ghcr.io/gtsteffaniak/filebrowser:\($major_minor)-beta",
-                  "gtstef/filebrowser:\($major)-beta",
-                  "ghcr.io/gtsteffaniak/filebrowser:\($major)-beta"
               ]
             else . end |
-            # Extract major.minor version tags for stable
-            if any(.tags[]; test("stable")) then
+            # Add suffix-only tags for stable (and latest) (only if tag ends with -stable)
+            if any(.tags[]; split(":")[-1] | endswith("-stable")) then
               .tags += [
                 "gtstef/filebrowser:stable",
                 "ghcr.io/gtsteffaniak/filebrowser:stable",
                 "gtstef/filebrowser:latest",
                 "ghcr.io/gtsteffaniak/filebrowser:latest"
-              ] |
-              # Find version tags with stable suffix and add major.minor-stable and major-stable tags
-              .tags += [
-                .tags[] 
-                | select(test(":[0-9]+\\.[0-9]+\\.[0-9]+-stable"))
-                | split(":")
-                | .[-1] as $version
-                | ($version | split("-")[0] | split(".")) as $version_parts
-                | ($version_parts | "\(.[0]).\(.[1])") as $major_minor
-                | ($version_parts[0]) as $major
-                | "gtstef/filebrowser:\($major_minor)-stable",
-                  "ghcr.io/gtsteffaniak/filebrowser:\($major_minor)-stable",
-                  "gtstef/filebrowser:\($major)-stable",
-                  "ghcr.io/gtsteffaniak/filebrowser:\($major)-stable"
               ]
             else . end
           ')
@@ -166,46 +154,34 @@ jobs:
               | select(test(":latest") | not) # Remove the "latest" tag
               | . + "-slim"                   # Append "-slim" to the versioned tag
             ) |
-            # Extract major.minor version tags for beta-slim
-            if any(.tags[]; test("beta")) then
+            # Find all version tags with suffix (X.Y.Z-suffix-slim) and add major.minor and major tags
+            .tags += [
+              .tags[] 
+              | select(test(":[0-9]+\\.[0-9]+\\.[0-9]+-"))
+              | split(":")
+              | .[-1] as $version
+              | ($version | split("-")) as $version_split
+              | ($version_split[0] | split(".")) as $version_parts
+              | ($version_split[1:] | join("-")) as $suffix
+              | ($version_parts | "\(.[0]).\(.[1])") as $major_minor
+              | ($version_parts[0]) as $major
+              | "gtstef/filebrowser:\($major_minor)-\($suffix)",
+                "ghcr.io/gtsteffaniak/filebrowser:\($major_minor)-\($suffix)",
+                "gtstef/filebrowser:\($major)-\($suffix)",
+                "ghcr.io/gtsteffaniak/filebrowser:\($major)-\($suffix)"
+            ] |
+            # Add suffix-only tags for beta-slim (only if tag ends with -beta-slim)
+            if any(.tags[]; split(":")[-1] | endswith("-beta-slim")) then
               .tags += [
                 "gtstef/filebrowser:beta-slim",
                 "ghcr.io/gtsteffaniak/filebrowser:beta-slim"
-              ] |
-              # Find version tags with beta-slim suffix and add major.minor-beta-slim and major-beta-slim tags
-              .tags += [
-                .tags[] 
-                | select(test(":[0-9]+\\.[0-9]+\\.[0-9]+-beta-slim"))
-                | split(":")
-                | .[-1] as $version
-                | ($version | split("-")[0] | split(".")) as $version_parts
-                | ($version_parts | "\(.[0]).\(.[1])") as $major_minor
-                | ($version_parts[0]) as $major
-                | "gtstef/filebrowser:\($major_minor)-beta-slim",
-                  "ghcr.io/gtsteffaniak/filebrowser:\($major_minor)-beta-slim",
-                  "gtstef/filebrowser:\($major)-beta-slim",
-                  "ghcr.io/gtsteffaniak/filebrowser:\($major)-beta-slim"
               ]
             else . end |
-            # Extract major.minor version tags for stable-slim
-            if any(.tags[]; test("stable")) then
+            # Add suffix-only tags for stable-slim (only if tag ends with -stable-slim)
+            if any(.tags[]; split(":")[-1] | endswith("-stable-slim")) then
               .tags += [
                 "gtstef/filebrowser:stable-slim",
                 "ghcr.io/gtsteffaniak/filebrowser:stable-slim"
-              ] |
-              # Find version tags with stable-slim suffix and add major.minor-stable-slim and major-stable-slim tags
-              .tags += [
-                .tags[] 
-                | select(test(":[0-9]+\\.[0-9]+\\.[0-9]+-stable-slim"))
-                | split(":")
-                | .[-1] as $version
-                | ($version | split("-")[0] | split(".")) as $version_parts
-                | ($version_parts | "\(.[0]).\(.[1])") as $major_minor
-                | ($version_parts[0]) as $major
-                | "gtstef/filebrowser:\($major_minor)-stable-slim",
-                  "ghcr.io/gtsteffaniak/filebrowser:\($major_minor)-stable-slim",
-                  "gtstef/filebrowser:\($major)-stable-slim",
-                  "ghcr.io/gtsteffaniak/filebrowser:\($major)-stable-slim"
               ]
             else . end
           ')
