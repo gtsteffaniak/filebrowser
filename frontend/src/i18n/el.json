@@ -448,7 +448,6 @@
   },
   "api": {
     "title": "Κλειδιά API:",
-    "keyName": "Όνομα κλειδιού API:",
     "createdAt": "Δημιουργήθηκε στο:",
     "expiresAt": "Λήγει στις:",
     "permissions": "Άδειες:",
@@ -463,13 +462,16 @@
     "createKeySuccess": "Το κλειδί API δημιουργήθηκε με επιτυχία.",
     "description": "Τα κλειδιά API βασίζονται στον χρήστη που τα δημιουργεί. Βλέπε",
     "swaggerLinkText": "σελίδα swagger",
-    "name": "Όνομα",
     "created": "Δημιουργήθηκε",
     "expires": "Λήγει",
     "actions": "Δράσεις",
     "enabled": "Ενεργοποιημένο",
     "disabled": "Άτομα με ειδικές ανάγκες",
-    "apiKeyDeleted": "Το κλειδί API διαγράφηκε!"
+    "apiKeyDeleted": "Το κλειδί API διαγράφηκε!",
+    "tokenType": "Τύπος κουπονιού:",
+    "clickToCopyKey": "Κάντε κλικ για να αντιγράψετε το κλειδί (κρυφό)",
+    "minimalDescription": "Ελάχιστο Token",
+    "minimalInfo": "Εξαιρεί τις προσαρμογές token για τη δημιουργία μικρότερου μήκους token. Ακριβής αντιστοιχία δικαιωμάτων με τον σχετικό χρήστη."
   },
   "index": {
     "assessment": "Αξιολόγηση",

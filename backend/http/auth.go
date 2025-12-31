@@ -253,7 +253,7 @@ func renewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (in
 
 func printToken(w http.ResponseWriter, r *http.Request, user *users.User) (int, error) {
 	expires := time.Hour * time.Duration(config.Auth.TokenExpirationHours)
-	signed, err := makeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), expires, user.Permissions)
+	signed, err := makeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), expires, user.Permissions, false)
 	if err != nil {
 		if strings.Contains(err.Error(), "key already exists with same name") {
 			return http.StatusConflict, err
@@ -291,41 +291,78 @@ func printToken(w http.ResponseWriter, r *http.Request, user *users.User) (int, 
 	return 0, nil
 }
 
-func makeSignedTokenAPI(user *users.User, name string, duration time.Duration, perms users.Permissions) (users.AuthToken, error) {
+func makeSignedTokenAPI(user *users.User, name string, duration time.Duration, perms users.Permissions, minimal bool) (users.AuthToken, error) {
 	_, ok := user.ApiKeys[name]
 	if ok {
 		return users.AuthToken{}, fmt.Errorf("key already exists with same name %v ", name)
 	}
 	now := time.Now()
 	expires := now.Add(duration)
-	claim := users.AuthToken{
-		Permissions: perms,
-		Created:     now.Unix(),
-		Expires:     expires.Unix(),
-		Name:        name,
-		BelongsTo:   user.ID,
-		RegisteredClaims: jwt.RegisteredClaims{
-			IssuedAt:  jwt.NewNumericDate(now),
-			ExpiresAt: jwt.NewNumericDate(expires),
-			Issuer:    "FileBrowser Quantum",
+
+	var tokenString string
+	var err error
+
+	if minimal {
+		// Create minimal token with only JWT standard claims
+		minimalClaim := users.MinimalAuthToken{
+			RegisteredClaims: jwt.RegisteredClaims{
+				IssuedAt:  jwt.NewNumericDate(now),
+				ExpiresAt: jwt.NewNumericDate(expires),
+				Issuer:    "FileBrowser Quantum",
+			},
+		}
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, minimalClaim)
+		tokenString, err = token.SignedString([]byte(config.Auth.Key))
+		if err != nil {
+			return users.AuthToken{}, err
+		}
+	} else {
+		// Create full token with permissions and user ID
+		fullClaim := users.AuthToken{
+			MinimalAuthToken: users.MinimalAuthToken{
+				RegisteredClaims: jwt.RegisteredClaims{
+					IssuedAt:  jwt.NewNumericDate(now),
+					ExpiresAt: jwt.NewNumericDate(expires),
+					Issuer:    "FileBrowser Quantum",
+				},
+			},
+			Name:        name,
+			Permissions: perms,
+			BelongsTo:   user.ID,
+		}
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, fullClaim)
+		tokenString, err = token.SignedString([]byte(config.Auth.Key))
+		if err != nil {
+			return users.AuthToken{}, err
+		}
+	}
+
+	// Create the AuthToken to store in database (always includes permissions and user ID)
+	storedClaim := users.AuthToken{
+		MinimalAuthToken: users.MinimalAuthToken{
+			RegisteredClaims: jwt.RegisteredClaims{
+				IssuedAt:  jwt.NewNumericDate(now),
+				ExpiresAt: jwt.NewNumericDate(expires),
+				Issuer:    "FileBrowser Quantum",
+			},
 		},
+		Key:         tokenString,
+		Name:        name,
+		Permissions: perms,
+		BelongsTo:   user.ID,
 	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claim)
-	tokenString, err := token.SignedString([]byte(config.Auth.Key))
-	if err != nil {
-		return claim, err
-	}
-	claim.Key = tokenString
+
 	if strings.HasPrefix(name, "WEB_TOKEN") {
 		// don't add to api tokens, its a short lived web token
-		return claim, err
+		return storedClaim, nil
 	}
+
 	// Perform the user update
-	err = store.Users.AddApiKey(user.ID, name, claim)
+	err = store.Users.AddApiKey(user.ID, name, storedClaim)
 	if err != nil {
-		return claim, err
+		return storedClaim, err
 	}
-	return claim, err
+	return storedClaim, nil
 }
 
 func authenticateShareRequest(r *http.Request, l *share.Link) (int, error) {

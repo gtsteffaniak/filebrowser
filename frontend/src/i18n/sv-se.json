@@ -448,7 +448,6 @@
   },
   "api": {
     "title": "API-nycklar",
-    "keyName": "Namn på API-nyckel:",
     "createdAt": "Skapad på:",
     "expiresAt": "Upphör att gälla kl:",
     "permissions": "Behörighet:",
@@ -463,13 +462,16 @@
     "createKeySuccess": "API-nyckel skapad framgångsrikt.",
     "description": "API-nycklar baseras på den användare som skapar dem. Se även",
     "swaggerLinkText": "swagger-sida",
-    "name": "Namn",
     "created": "Skapad",
     "expires": "Upphör att gälla",
     "actions": "Åtgärder",
     "enabled": "Aktiverad",
     "disabled": "Inaktiverad",
-    "apiKeyDeleted": "API-nyckel raderad!"
+    "apiKeyDeleted": "API-nyckel raderad!",
+    "tokenType": "Token typ:",
+    "clickToCopyKey": "Klicka för att kopiera nyckel (dold)",
+    "minimalDescription": "Minimal symbol",
+    "minimalInfo": "Utesluter anpassningar av token för att skapa en kortare tokenlängd. Exakta behörigheter som matchar den associerade användaren."
   },
   "index": {
     "assessment": "Bedömning",

@@ -2950,6 +2950,9 @@
                 "key": {
                     "type": "string"
                 },
+                "minimal": {
+                    "type": "boolean"
+                },
                 "name": {
                     "type": "string"
                 }
@@ -4720,12 +4723,6 @@
                     "$ref": "#/definitions/users.Permissions"
                 },
                 "belongsTo": {
-                    "type": "integer"
-                },
-                "createdAt": {
-                    "type": "integer"
-                },
-                "expiresAt": {
                     "type": "integer"
                 },
                 "key": {

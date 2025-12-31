@@ -9,6 +9,8 @@ definitions:
         type: integer
       key:
         type: string
+      minimal:
+        type: boolean
       name:
         type: string
     type: object
@@ -1307,10 +1309,6 @@ definitions:
       Permissions:
         $ref: '#/definitions/users.Permissions'
       belongsTo:
-        type: integer
-      createdAt:
-        type: integer
-      expiresAt:
         type: integer
       key:
         type: string

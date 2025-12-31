@@ -448,7 +448,6 @@
   },
   "api": {
     "title": "Chei API:",
-    "keyName": "Nume cheie API:",
     "createdAt": "Creat la:",
     "expiresAt": "Expiră la:",
     "permissions": "Permisiuni:",
@@ -463,13 +462,16 @@
     "createKeySuccess": "Cheie API creată cu succes.",
     "description": "Cheile API sunt bazate pe utilizatorul care le creează. A se vedea",
     "swaggerLinkText": "pagina swagger",
-    "name": "Nume și prenume",
     "created": "Creat",
     "expires": "Expiră",
     "actions": "Acțiuni",
     "enabled": "Activat",
     "disabled": "Dezactivat",
-    "apiKeyDeleted": "Cheie API ștearsă!"
+    "apiKeyDeleted": "Cheie API ștearsă!",
+    "tokenType": "Tip de jeton:",
+    "clickToCopyKey": "Faceți clic pentru a copia cheia (ascuns)",
+    "minimalDescription": "Token minim",
+    "minimalInfo": "Exclude personalizările tokenului pentru a crea o lungime mai mică a tokenului. Potrivirea exactă a permisiunilor cu cele ale utilizatorului asociat."
   },
   "index": {
     "assessment": "Evaluare",

@@ -448,7 +448,6 @@
   },
   "api": {
     "title": "API 키:",
-    "keyName": "API 키 이름:",
     "createdAt": "만든 곳:",
     "expiresAt": "만료일:",
     "permissions": "권한:",
@@ -463,13 +462,16 @@
     "createKeySuccess": "API 키가 성공적으로 생성되었습니다.",
     "description": "API 키는 키를 생성한 사용자를 기준으로 합니다. 참조",
     "swaggerLinkText": "스웨거 페이지",
-    "name": "이름",
     "created": "생성됨",
     "expires": "만료",
     "actions": "작업",
     "enabled": "활성화됨",
     "disabled": "장애인",
-    "apiKeyDeleted": "API 키가 삭제되었습니다!"
+    "apiKeyDeleted": "API 키가 삭제되었습니다!",
+    "tokenType": "토큰 유형:",
+    "clickToCopyKey": "키를 복사하려면 클릭(숨김)",
+    "minimalDescription": "최소 토큰",
+    "minimalInfo": "더 작은 토큰 길이를 만들기 위해 토큰 사용자 지정을 제외합니다. 연결된 사용자와 정확한 권한이 일치합니다."
   },
   "index": {
     "assessment": "평가",

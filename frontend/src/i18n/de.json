@@ -448,7 +448,6 @@
   },
   "api": {
     "title": "API-Schlüssel",
-    "keyName": "API-Schlüsselname:",
     "createdAt": "Erstellt am:",
     "expiresAt": "Läuft ab am:",
     "permissions": "Berechtigungen:",
@@ -463,13 +462,16 @@
     "createKeySuccess": "API-Schlüssel erfolgreich erstellt.",
     "description": "Die API-Schlüssel basieren auf dem Benutzer, der sie erstellt. Siehe",
     "swaggerLinkText": "Angeberseite",
-    "name": "Name",
     "created": "Erstellt",
     "expires": "Läuft ab",
     "actions": "Aktionen",
     "enabled": "Aktiviert",
     "disabled": "Deaktiviert",
-    "apiKeyDeleted": "API-Schlüssel gelöscht!"
+    "apiKeyDeleted": "API-Schlüssel gelöscht!",
+    "tokenType": "Token-Typ:",
+    "clickToCopyKey": "Zum Kopieren des Schlüssels anklicken (ausgeblendet)",
+    "minimalDescription": "Minimale Wertmarke",
+    "minimalInfo": "Schließt Token-Anpassungen aus, um eine geringere Token-Länge zu erreichen. Genaue Übereinstimmung der Berechtigungen mit dem zugehörigen Benutzer."
   },
   "index": {
     "assessment": "Bewertung",

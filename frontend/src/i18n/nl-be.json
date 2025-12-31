@@ -448,7 +448,6 @@
   },
   "api": {
     "title": "API-sleutels",
-    "keyName": "API-sleutelnaam:",
     "createdAt": "Gemaakt op:",
     "expiresAt": "Verloopt op:",
     "permissions": "Toestemmingen:",
@@ -463,13 +462,16 @@
     "createKeySuccess": "API-sleutel succesvol aangemaakt.",
     "description": "API-sleutels zijn gebaseerd op de gebruiker die ze aanmaakt. Zie",
     "swaggerLinkText": "swagger pagina",
-    "name": "Naam",
     "created": "Gemaakt",
     "expires": "Verloopt op",
     "actions": "Acties",
     "enabled": "Ingeschakeld",
     "disabled": "Uitgeschakeld",
-    "apiKeyDeleted": "API-sleutel verwijderd!"
+    "apiKeyDeleted": "API-sleutel verwijderd!",
+    "tokenType": "Type penning:",
+    "clickToCopyKey": "Klik om sleutel te kopiëren (verborgen)",
+    "minimalDescription": "Minimaal token",
+    "minimalInfo": "Sluit tokenaanpassingen uit om een kleinere tokenlengte te creëren. Exacte overeenkomst met de rechten van de bijbehorende gebruiker."
   },
   "index": {
     "assessment": "Beoordeling",

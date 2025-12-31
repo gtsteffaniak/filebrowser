@@ -448,7 +448,6 @@
   },
   "api": {
     "title": "API Anahtarları:",
-    "keyName": "API Anahtar Adı:",
     "createdAt": "Oluşturuldu:",
     "expiresAt": "Son kullanma tarihi:",
     "permissions": "İzinler:",
@@ -463,13 +462,16 @@
     "createKeySuccess": "API anahtarı başarıyla oluşturuldu.",
     "description": "API anahtarları, onları oluşturan kullanıcıyı temel alır. Bkz.",
     "swaggerLinkText": "swagger sayfası",
-    "name": "İsim",
     "created": "Oluşturuldu",
     "expires": "Sona erdi",
     "actions": "Eylemler",
     "enabled": "Etkin",
     "disabled": "Engelli",
-    "apiKeyDeleted": "API anahtarı silindi!"
+    "apiKeyDeleted": "API anahtarı silindi!",
+    "tokenType": "Jeton Tipi:",
+    "clickToCopyKey": "Anahtarı kopyalamak için tıklayın (gizli)",
+    "minimalDescription": "Minimal Belirteç",
+    "minimalInfo": "Daha küçük bir belirteç uzunluğu oluşturmak için belirteç özelleştirmelerini hariç tutar. İlişkili kullanıcı ile tam izin eşleşmesi."
   },
   "index": {
     "assessment": "Değerlendirme",

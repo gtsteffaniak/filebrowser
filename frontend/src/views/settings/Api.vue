@@ -19,7 +19,7 @@
       <table aria-label="API Keys">
         <thead>
           <tr>
-            <th>{{ $t("api.name") }}</th>
+            <th>{{ $t("general.name") }}</th>
             <th>{{ $t("api.created") }}</th>
             <th>{{ $t("api.expires") }}</th>
             <th>{{ $t("settings.permissions-name") }}</th>
@@ -31,12 +31,15 @@
             <td>{{ name }}</td>
             <td>{{ formatTime(link.created) }}</td>
             <td>{{ formatTime(link.expires) }}</td>
-            <td>
+            <td v-if="!link.minimal">
               <span v-for="(value, permission) in link.Permissions" :key="permission"
-                :title="`${permission}: ${value ? $t('api.enabled') : $t('api.disabled')}`" class="clickable"
-                @click.prevent="infoPrompt(name, link)">
-                {{ showResult(value) }}
-              </span>
+                  :title="`${permission}: ${value ? $t('api.enabled') : $t('api.disabled')}`" class="clickable"
+                  @click.prevent="infoPrompt(name, link)">
+                  {{ showResult(value) }}
+                </span>
+              </td>
+            <td v-else>
+              <span>-</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
             </td>
             <td class="small">
               <button class="action" @click.prevent="infoPrompt(name, link)">

@@ -101,7 +101,7 @@ func TestWithAdminHelper(t *testing.T) {
 			data := &requestContext{
 				user: tc.user,
 			}
-			token, err := makeSignedTokenAPI(tc.user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), time.Hour*2, tc.user.Perm)
+			token, err := makeSignedTokenAPI(tc.user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), time.Hour*2, tc.user.Perm, false)
 			if err != nil {
 				t.Fatalf("Error making token for request: %v", err)
 			}

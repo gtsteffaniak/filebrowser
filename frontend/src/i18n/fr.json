@@ -448,7 +448,6 @@
   },
   "api": {
     "title": "Clés API :",
-    "keyName": "Nom de la clé API :",
     "createdAt": "Créée le :",
     "expiresAt": "Expire le :",
     "permissions": "Permissions :",
@@ -463,13 +462,16 @@
     "createKeySuccess": "Clé API créée avec succès.",
     "description": "Les clés API sont basées sur l'utilisateur qui les a créées. Voir les",
     "swaggerLinkText": "page swagger",
-    "name": "Nom",
     "created": "Créée",
     "expires": "Expiration",
     "actions": "Actions",
     "enabled": "Activée",
     "disabled": "Désactivée",
-    "apiKeyDeleted": "Clé API supprimée !"
+    "apiKeyDeleted": "Clé API supprimée !",
+    "tokenType": "Type de jeton :",
+    "clickToCopyKey": "Cliquez pour copier la clé (cachée)",
+    "minimalDescription": "Jeton minimal",
+    "minimalInfo": "Exclut les personnalisations du jeton afin de réduire la longueur du jeton. Les autorisations correspondent exactement à celles de l'utilisateur associé."
   },
   "index": {
     "assessment": "Évaluation",
