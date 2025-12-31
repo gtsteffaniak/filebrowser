@@ -2961,11 +2961,11 @@ const docTemplate = `{
                 "key": {
                     "type": "string"
                 },
+                "minimal": {
+                    "type": "boolean"
+                },
                 "name": {
                     "type": "string"
-                },
-                "stateful": {
-                    "type": "boolean"
                 }
             }
         },

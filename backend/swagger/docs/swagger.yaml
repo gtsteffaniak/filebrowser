@@ -9,10 +9,10 @@ definitions:
         type: integer
       key:
         type: string
+      minimal:
+        type: boolean
       name:
         type: string
-      stateful:
-        type: boolean
     type: object
   http.DirectDownloadResponse:
     properties:
