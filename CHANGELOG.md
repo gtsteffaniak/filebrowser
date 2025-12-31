@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v1.1.5-beta
 
+ **Notes**:
+ - Major git container tag request #1756
+
  **BugFixes**:
  - Sharing broken if source `disableIndexing: true` (#1742)
  - Password protected share permission issues (#1729) (#1606) (#1593)
