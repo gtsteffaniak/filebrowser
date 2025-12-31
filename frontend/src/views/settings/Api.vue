@@ -19,7 +19,7 @@
       <table aria-label="API Keys">
         <thead>
           <tr>
-            <th>{{ $t("api.name") }}</th>
+            <th>{{ $t("general.name") }}</th>
             <th>{{ $t("api.created") }}</th>
             <th>{{ $t("api.expires") }}</th>
             <th>{{ $t("settings.permissions-name") }}</th>
