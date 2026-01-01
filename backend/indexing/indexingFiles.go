@@ -675,27 +675,18 @@ func (idx *Index) RefreshFileInfo(opts utils.FileOptions) error {
 		targetPath = idx.MakeIndexPath(filepath.Dir(targetPath), true)
 	}
 
-	// Skip refresh if we already have the size in memory (avoid redundant scans)
-	existingSize := idx.GetFolderSize(targetPath)
-	if existingSize > 0 {
-		logger.Debugf("[REFRESH] Skipping refresh for %s, already in memory (size: %d)", targetPath, existingSize)
-		return nil
-	}
-
-	// Get previous size before refresh
-	previousSize := existingSize
-
+	// Get real path and check if directory exists
 	realPath, _, err := idx.GetRealPath(targetPath)
 	if err != nil {
 		logger.Errorf("[REFRESH] Failed to get real path for %s: %v", targetPath, err)
 		return err
 	}
 
-	// Check if directory still exists on filesystem
-	_, err = os.Stat(realPath)
+	dirInfo, err := os.Stat(realPath)
 	if err != nil {
 		// Directory deleted - clear from in-memory map only
 		// Database will be updated on next scheduled scan
+		previousSize := idx.GetFolderSize(targetPath)
 		idx.SetFolderSize(targetPath, 0)
 		// Update parent sizes recursively in-memory
 		if previousSize > 0 {
@@ -703,6 +694,18 @@ func (idx *Index) RefreshFileInfo(opts utils.FileOptions) error {
 		}
 		return nil
 	}
+
+	// Check if excluded from indexing (same logic as indexDirectory)
+	hidden := isHidden(dirInfo, idx.Path+targetPath)
+	if idx.shouldSkip(dirInfo.IsDir(), hidden, targetPath, dirInfo.Name(), actionConfig{}) {
+		return errors.ErrNotIndexed
+	}
+
+	// Skip refresh if we already have the size in memory (avoid redundant scans)
+	existingSize := idx.GetFolderSize(targetPath)
+
+	// Get previous size before refresh
+	previousSize := existingSize
 
 	// Calculate new size by scanning filesystem recursively
 	newSize := idx.calculateDirectorySize(realPath, targetPath)
@@ -714,8 +717,6 @@ func (idx *Index) RefreshFileInfo(opts utils.FileOptions) error {
 	if newSize != previousSize {
 		idx.RecursiveUpdateDirSizes(targetPath, previousSize)
 	}
-
-	logger.Debugf("[REFRESH] Updated in-memory size for %s: %d (was %d)", targetPath, newSize, previousSize)
 	return nil
 }
 
