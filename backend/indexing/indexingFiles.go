@@ -474,8 +474,7 @@ func (idx *Index) GetFsDirInfo(adjustedPath string) (*iteminfo.FileInfo, error) 
 	if response != nil && response.Type == "directory" {
 		// Update the directory's own size from in-memory map
 		dirPath := utils.AddTrailingSlashIfNotExists(response.Path)
-		if inMemSize := idx.GetFolderSize(dirPath); inMemSize > 0 {
-			logger.Debugf("[OVERLAY_SIZE] Directory %s: in-memory=%d, current=%d", dirPath, inMemSize, response.Size)
+		if inMemSize, exists := idx.GetFolderSize(dirPath); exists {
 			response.Size = int64(inMemSize)
 		}
 
@@ -489,11 +488,8 @@ func (idx *Index) GetFsDirInfo(adjustedPath string) (*iteminfo.FileInfo, error) 
 				childPath = utils.AddTrailingSlashIfNotExists(response.Path) + response.Folders[i].Name + "/"
 			}
 
-			if inMemSize := idx.GetFolderSize(childPath); inMemSize > 0 {
-				logger.Debugf("[OVERLAY_SIZE] Child folder %s: in-memory=%d, current=%d", childPath, inMemSize, response.Folders[i].Size)
+			if inMemSize, exists := idx.GetFolderSize(childPath); exists {
 				response.Folders[i].Size = int64(inMemSize)
-			} else {
-				logger.Debugf("[OVERLAY_SIZE] Child folder %s: not found in memory (current=%d)", childPath, response.Folders[i].Size)
 			}
 		}
 	}
@@ -686,9 +682,10 @@ func (idx *Index) RefreshFileInfo(opts utils.FileOptions) error {
 	if err != nil {
 		// Directory deleted - clear from in-memory map only
 		// Database will be updated on next scheduled scan
-		previousSize := idx.GetFolderSize(targetPath)
-		idx.SetFolderSize(targetPath, 0)
-		// Update parent sizes recursively in-memory
+		previousSize, exists := idx.GetFolderSize(targetPath)
+		if exists {
+			idx.DeleteFolderSize(targetPath)
+		}
 		if previousSize > 0 {
 			idx.RecursiveUpdateDirSizes(targetPath, previousSize)
 		}
@@ -701,22 +698,11 @@ func (idx *Index) RefreshFileInfo(opts utils.FileOptions) error {
 		return errors.ErrNotIndexed
 	}
 
-	// Skip refresh if we already have the size in memory (avoid redundant scans)
-	existingSize := idx.GetFolderSize(targetPath)
-
-	// Get previous size before refresh
-	previousSize := existingSize
-
 	// Calculate new size by scanning filesystem recursively
 	newSize := idx.calculateDirectorySize(realPath, targetPath)
 
 	// Update in-memory map with new size
 	idx.SetFolderSize(targetPath, newSize)
-
-	// Update parent directory sizes recursively in-memory if size changed
-	if newSize != previousSize {
-		idx.RecursiveUpdateDirSizes(targetPath, previousSize)
-	}
 	return nil
 }
 
@@ -763,22 +749,33 @@ func (idx *Index) calculateDirectorySize(realPath string, indexPath string) uint
 
 // SetFolderSize sets the size for a directory in the in-memory map
 // This is typically called after calculating a directory's size from its children
-func (idx *Index) SetFolderSize(path string, size uint64) {
+func (idx *Index) SetFolderSize(path string, newSize uint64) {
 	idx.folderSizesMu.Lock()
 	defer idx.folderSizesMu.Unlock()
-	idx.folderSizes[path] = size
+	previousSize, exists := idx.folderSizes[path]
+	if !exists {
+		previousSize = 0
+	}
+	idx.folderSizes[path] = newSize
+	// Update parent directory sizes recursively in-memory if size changed
+	if newSize != previousSize {
+		idx.RecursiveUpdateDirSizes(path, previousSize)
+	}
 }
 
 // GetFolderSize retrieves the size for a directory from the in-memory map
-// Returns 0 if the directory size hasn't been calculated yet
-func (idx *Index) GetFolderSize(path string) uint64 {
+func (idx *Index) GetFolderSize(path string) (uint64, bool) {
 	idx.folderSizesMu.RLock()
 	defer idx.folderSizesMu.RUnlock()
-	size := idx.folderSizes[path]
-	if size > 0 {
-		logger.Debugf("[GET_FOLDER_SIZE] Path: %s → Size: %d", path, size)
-	}
-	return size
+	size, exists := idx.folderSizes[path]
+	return size, exists
+}
+
+// DeleteFolderSize deletes the size for a directory from the in-memory map
+func (idx *Index) DeleteFolderSize(path string) {
+	idx.folderSizesMu.Lock()
+	defer idx.folderSizesMu.Unlock()
+	delete(idx.folderSizes, path)
 }
 
 // RecursiveUpdateDirSizes updates parent directory sizes recursively up the tree
