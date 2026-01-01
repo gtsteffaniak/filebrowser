@@ -769,8 +769,8 @@ func (idx *Index) GetFolderSize(path string) (uint64, bool) {
 func (idx *Index) DeleteFolderSize(path string) {
 	idx.folderSizesMu.Lock()
 	defer idx.folderSizesMu.Unlock()
-	delete(idx.folderSizes, path)
 	previousSize, exists := idx.folderSizes[path]
+	delete(idx.folderSizes, path)
 	if exists && previousSize > 0 {
 		idx.RecursiveUpdateDirSizes(path, previousSize)
 	}
