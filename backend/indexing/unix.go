@@ -75,9 +75,6 @@ func (idx *Index) handleFile(file os.FileInfo, fullCombined string, realFilePath
 			// First time seeing this inode in this scan
 			scanner.processedInodes[ino] = struct{}{}
 			scanner.foundHardLinks[fullCombined] = realSize
-		} else {
-			// API refresh without scanner - just count it (no hardlink tracking)
-			// This is acceptable for API refreshes since they're typically single directory updates
 		}
 	}
 	return realSize, true // Count size for directory total.

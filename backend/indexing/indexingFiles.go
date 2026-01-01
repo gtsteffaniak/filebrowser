@@ -72,10 +72,8 @@ type Index struct {
 	mu               sync.RWMutex
 	childScanMutex   sync.Mutex // Serializes child scanner execution (only one child scanner runs at a time)
 	// In-memory folder size tracking (not stored in SQLite)
-	folderSizes         map[string]uint64     // path -> size (in-memory only, calculated from children)
-	folderSizesMu       sync.RWMutex          // Dedicated mutex for folder size operations
-	refreshInProgress   map[string]*sync.Once // Prevents concurrent RefreshFileInfo for the same path
-	refreshInProgressMu sync.Mutex            // Protects refreshInProgress map
+	folderSizes   map[string]uint64 // path -> size (in-memory only, calculated from children)
+	folderSizesMu sync.RWMutex      // Dedicated RWMutex allows concurrent reads, serializes writes
 	// Scan session tracking: timestamp when scan session started (for timestamp-based conflict detection)
 	scanSessionStartTime int64           // Unix timestamp when current scan session started (0 if no active scan)
 	scanUpdatedPaths     map[string]bool // Tracks directories updated by the scan (to distinguish from API updates)
@@ -337,12 +335,11 @@ func Initialize(source *settings.Source, mock bool) {
 	}
 
 	newIndex := Index{
-		mock:              mock,
-		Source:            *source,
-		db:                indexDB, // Use shared database
-		scanUpdatedPaths:  make(map[string]bool),
-		folderSizes:       make(map[string]uint64),     // In-memory folder size tracking
-		refreshInProgress: make(map[string]*sync.Once), // Track concurrent refreshes
+		mock:             mock,
+		Source:           *source,
+		db:               indexDB, // Use shared database
+		scanUpdatedPaths: make(map[string]bool),
+		folderSizes:      make(map[string]uint64), // In-memory folder size tracking
 	}
 	newIndex.ReducedIndex = ReducedIndex{
 		Status:  "indexing",
@@ -678,32 +675,15 @@ func (idx *Index) RefreshFileInfo(opts utils.FileOptions) error {
 		targetPath = idx.MakeIndexPath(filepath.Dir(targetPath), true)
 	}
 
-	// Prevent concurrent refreshes for the same path using sync.Once
-	idx.refreshInProgressMu.Lock()
-	once, exists := idx.refreshInProgress[targetPath]
-	if !exists {
-		once = &sync.Once{}
-		idx.refreshInProgress[targetPath] = once
+	// Skip refresh if we already have the size in memory (avoid redundant scans)
+	existingSize := idx.GetFolderSize(targetPath)
+	if existingSize > 0 {
+		logger.Debugf("[REFRESH] Skipping refresh for %s, already in memory (size: %d)", targetPath, existingSize)
+		return nil
 	}
-	idx.refreshInProgressMu.Unlock()
 
-	// Only one goroutine will execute the refresh, others will wait
-	var refreshErr error
-	once.Do(func() {
-		refreshErr = idx.doRefreshFileInfo(targetPath)
-
-		// Clear the sync.Once after completion so future refreshes can run
-		idx.refreshInProgressMu.Lock()
-		delete(idx.refreshInProgress, targetPath)
-		idx.refreshInProgressMu.Unlock()
-	})
-
-	return refreshErr
-}
-
-func (idx *Index) doRefreshFileInfo(targetPath string) error {
 	// Get previous size before refresh
-	previousSize := idx.GetFolderSize(targetPath)
+	previousSize := existingSize
 
 	realPath, _, err := idx.GetRealPath(targetPath)
 	if err != nil {

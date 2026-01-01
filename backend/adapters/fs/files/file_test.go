@@ -248,7 +248,7 @@ func TestOverrideDirectoryToFile(t *testing.T) {
 			{Name: "Test Object", Type: "directory"},
 		},
 	}
-	idx.UpdateMetadata(rootInfo)
+	idx.UpdateMetadata(rootInfo, nil) // nil scanner for test
 
 	// Delete the old directory item from the database before replacing it with a file
 	idx.DeleteMetadata("/Test Object", true, false)
@@ -266,7 +266,7 @@ func TestOverrideDirectoryToFile(t *testing.T) {
 			},
 		},
 	}
-	idx.UpdateMetadata(rootInfo)
+	idx.UpdateMetadata(rootInfo, nil) // nil scanner for test
 
 	// Verify the directory was replaced with a file in the mock data
 	rootInfo, exists := idx.GetMetadataInfo("/", true)
@@ -358,7 +358,7 @@ func TestOverrideFileToDirectory(t *testing.T) {
 			{ItemInfo: iteminfo.ItemInfo{Name: "Test Object", Size: 12}}, // Length of "test content"
 		},
 	}
-	idx.UpdateMetadata(rootInfo)
+	idx.UpdateMetadata(rootInfo, nil) // nil scanner for test
 
 	// Delete the old file item from the database before replacing it with a directory
 	idx.DeleteMetadata("/Test Object", false, false)
@@ -374,7 +374,7 @@ func TestOverrideFileToDirectory(t *testing.T) {
 			Type: "directory",
 		},
 	}
-	idx.UpdateMetadata(rootInfo)
+	idx.UpdateMetadata(rootInfo, nil) // nil scanner for test
 
 	// Verify the file was replaced with a directory in the mock data
 	rootInfo, exists := idx.GetMetadataInfo("/", true)
