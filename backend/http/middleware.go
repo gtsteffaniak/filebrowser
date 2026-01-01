@@ -391,7 +391,9 @@ func withUserHelper(fn handleFunc) handleFunc {
 			return http.StatusInternalServerError, err
 		}
 		// Set cookie. Some clients like gvfs relies on it for concurrent uploads
-		setSessionCookie(w, r, tokenString, time.Unix(tk.Expires, 0))
+		if expire := tk.ExpiresAt; expire != nil {
+			setSessionCookie(w, r, tokenString, expire.Time)
+		}
 		setUserInResponseWriter(w, data.user)
 		if data.user.Username == "" {
 			return http.StatusForbidden, errors.ErrUnauthorized
