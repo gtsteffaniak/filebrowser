@@ -682,13 +682,7 @@ func (idx *Index) RefreshFileInfo(opts utils.FileOptions) error {
 	if err != nil {
 		// Directory deleted - clear from in-memory map only
 		// Database will be updated on next scheduled scan
-		previousSize, exists := idx.GetFolderSize(targetPath)
-		if exists {
-			idx.DeleteFolderSize(targetPath)
-		}
-		if previousSize > 0 {
-			idx.RecursiveUpdateDirSizes(targetPath, previousSize)
-		}
+		idx.DeleteFolderSize(targetPath)
 		return nil
 	}
 
@@ -776,13 +770,14 @@ func (idx *Index) DeleteFolderSize(path string) {
 	idx.folderSizesMu.Lock()
 	defer idx.folderSizesMu.Unlock()
 	delete(idx.folderSizes, path)
+	previousSize, exists := idx.folderSizes[path]
+	if exists && previousSize > 0 {
+		idx.RecursiveUpdateDirSizes(path, previousSize)
+	}
 }
 
 // RecursiveUpdateDirSizes updates parent directory sizes recursively up the tree
-// path: the directory whose size changed
-// previousSize: the previous size of the directory (used to calculate delta)
 func (idx *Index) RecursiveUpdateDirSizes(path string, previousSize uint64) {
-	// Get current size (should have been set before calling this)
 	idx.folderSizesMu.RLock()
 	currentSize, exists := idx.folderSizes[path]
 	idx.folderSizesMu.RUnlock()
