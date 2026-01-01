@@ -50,7 +50,8 @@ func getFileDetails(sys any, filePath string) (uint64, uint64, uint64, bool) {
 
 // handleFile processes a file and returns its size and whether it should be counted
 // On Unix, always uses syscall to get allocated size (du-like behavior)
-func (idx *Index) handleFile(file os.FileInfo, fullCombined string, realFilePath string, isRoutineScan bool) (size uint64, shouldCountSize bool) {
+// scanner parameter is optional - if nil (API refresh), creates temporary state
+func (idx *Index) handleFile(file os.FileInfo, fullCombined string, realFilePath string, isRoutineScan bool, scanner *Scanner) (size uint64, shouldCountSize bool) {
 	var realSize uint64
 	var nlink uint64
 	var ino uint64
@@ -65,16 +66,19 @@ func (idx *Index) handleFile(file os.FileInfo, fullCombined string, realFilePath
 	}
 
 	if nlink > 1 {
-		// It's a hard link
-		idx.mu.Lock()
-		defer idx.mu.Unlock()
-		if _, exists := idx.processedInodes[ino]; exists {
-			// Already seen, don't count towards global total, or directory total.
-			return realSize, false
+		// It's a hard link - use scanner-specific state
+		if scanner != nil {
+			if _, exists := scanner.processedInodes[ino]; exists {
+				// Already seen in this scan, don't count towards global total, or directory total.
+				return realSize, false
+			}
+			// First time seeing this inode in this scan
+			scanner.processedInodes[ino] = struct{}{}
+			scanner.foundHardLinks[fullCombined] = realSize
+		} else {
+			// API refresh without scanner - just count it (no hardlink tracking)
+			// This is acceptable for API refreshes since they're typically single directory updates
 		}
-		// First time seeing this inode.
-		idx.processedInodes[ino] = struct{}{}
-		idx.FoundHardLinks[fullCombined] = realSize
 	}
 	return realSize, true // Count size for directory total.
 }

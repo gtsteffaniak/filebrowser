@@ -73,11 +73,9 @@ func TestMultiScannerMutex(t *testing.T) {
 				DisableIndexing: false,
 			},
 		},
-		mock:            true,
-		db:              indexDB,
-		processedInodes: make(map[uint64]struct{}),
-		FoundHardLinks:  make(map[string]uint64),
-		scanners:        make(map[string]*Scanner),
+		mock:       true,
+		db:         indexDB,
+		scanners:   make(map[string]*Scanner),
 	}
 
 	// Create multiple scanners

@@ -28,6 +28,11 @@ type Scanner struct {
 	numDirs  uint64
 	numFiles uint64
 
+	// Per-scanner state (not shared with other scanners)
+	processedInodes map[uint64]struct{}  // Track inodes to detect hardlinks
+	foundHardLinks  map[string]uint64    // Path -> size for hardlinks found
+	batchItems      []*iteminfo.FileInfo // Accumulates items for bulk insert
+
 	idx *Index
 
 	stopChan chan struct{}
@@ -122,25 +127,24 @@ func (s *Scanner) runRootScan(quick bool) {
 		if s.idx.scanSessionStartTime == 0 {
 			s.idx.scanSessionStartTime = s.scanStartTime
 		}
-		s.idx.processedInodes = make(map[uint64]struct{})
-		s.idx.FoundHardLinks = make(map[string]uint64)
 		s.idx.mu.Unlock()
+		// Initialize scanner-specific state (not shared)
+		s.processedInodes = make(map[uint64]struct{})
+		s.foundHardLinks = make(map[string]uint64)
 	}
 
-	s.idx.mu.Lock()
 	batchSize := s.idx.db.BatchSize
-	s.idx.batchItems = make([]*iteminfo.FileInfo, 0, batchSize)
-	s.idx.mu.Unlock()
+	s.batchItems = make([]*iteminfo.FileInfo, 0, batchSize)
 
 	s.filesChanged = false
 	startTime := time.Now()
 
-	_, _, err := s.idx.indexDirectory("/", config)
+	_, _, err := s.idx.indexDirectory("/", config, s)
 	if err != nil {
 		logger.Errorf("Root scanner error: %v", err)
 	}
 
-	s.idx.flushBatch()
+	s.flushBatch()
 
 	if !quick {
 		s.syncStatsWithDB()
@@ -179,21 +183,20 @@ func (s *Scanner) runChildScan(quick bool) {
 		if s.idx.scanSessionStartTime == 0 {
 			s.idx.scanSessionStartTime = s.scanStartTime
 		}
-		s.idx.processedInodes = make(map[uint64]struct{})
-		s.idx.FoundHardLinks = make(map[string]uint64)
 		s.idx.mu.Unlock()
+		// Initialize scanner-specific state (not shared)
+		s.processedInodes = make(map[uint64]struct{})
+		s.foundHardLinks = make(map[string]uint64)
 	}
 
-	s.idx.mu.Lock()
 	s.filesChanged = false
 	startTime := time.Now()
 	batchSize := s.idx.db.BatchSize
-	s.idx.batchItems = make([]*iteminfo.FileInfo, 0, batchSize)
-	s.idx.mu.Unlock()
+	s.batchItems = make([]*iteminfo.FileInfo, 0, batchSize)
 
 	// indexDirectory returns the total size of this directory (including all subdirectories)
 	// Directory sizes are no longer stored in SQLite - will be managed in-memory
-	_, _, err := s.idx.indexDirectory(s.scanPath, config)
+	_, _, err := s.idx.indexDirectory(s.scanPath, config, s)
 	if err != nil {
 		logger.Errorf("Scanner [%s] error: %v", s.scanPath, err)
 	} else if config.Recursive && config.IsRoutineScan {
@@ -205,11 +208,19 @@ func (s *Scanner) runChildScan(quick bool) {
 		s.idx.mu.Unlock()
 	}
 
-	s.idx.flushBatch()
+	s.flushBatch()
 
 	if !quick {
 		s.purgeStaleEntries()
 		s.syncStatsWithDB()
+
+		// Sync folder sizes to database after child scanner completes (recursive scan only)
+		// Root scanner doesn't calculate folder sizes - child scanners handle that
+		if s.scanPath != "/" {
+			if err := s.idx.SyncFolderSizesToDB(); err != nil {
+				logger.Errorf("[%s] Failed to sync folder sizes: %v", s.scanPath, err)
+			}
+		}
 	}
 
 	scanDuration := int(time.Since(startTime).Seconds())

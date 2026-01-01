@@ -36,9 +36,10 @@ func CheckWindowsHidden(realpath string) bool {
 
 // handleFile processes a file and returns its size and whether it should be counted
 // On Windows, uses file.Size() directly (no syscall support for allocated size)
-func (idx *Index) handleFile(file os.FileInfo, fullCombined string, realFilePath string, isRoutineScan bool) (size uint64, shouldCountSize bool) {
+// scanner parameter is accepted for signature compatibility but not used on Windows (no hardlink tracking)
+func (idx *Index) handleFile(file os.FileInfo, fullCombined string, realFilePath string, isRoutineScan bool, scanner *Scanner) (size uint64, shouldCountSize bool) {
 	// On Windows, just use the actual file size
-	// isRoutineScan parameter is accepted for signature compatibility but not used on Windows
+	// isRoutineScan and scanner parameters are accepted for signature compatibility
 	realSize := uint64(file.Size())
 	return realSize, true
 }

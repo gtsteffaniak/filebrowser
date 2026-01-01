@@ -704,6 +704,89 @@ func (db *IndexDB) GetFilesForMultipleSizes(source string, sizes []int64, pathPr
 	return filesBySize, rows.Err()
 }
 
+// GetAllDirectories returns all directory paths for a source (used for size recalculation)
+func (db *IndexDB) GetAllDirectories(source string) ([]string, error) {
+	query := `
+		SELECT path
+		FROM index_items
+		WHERE source = ? AND is_dir = 1
+		ORDER BY path
+	`
+
+	rows, err := db.Query(query, source)
+	if err != nil {
+		if isBusyError(err) || isTransactionError(err) {
+			return []string{}, nil
+		}
+		return nil, err
+	}
+	defer rows.Close()
+
+	var directories []string
+	for rows.Next() {
+		var path string
+		if err := rows.Scan(&path); err != nil {
+			return nil, err
+		}
+		directories = append(directories, path)
+	}
+
+	return directories, rows.Err()
+}
+
+// UpdateFolderSizesIfChanged updates ONLY the size field for folders where the size actually changed
+// This is a single SQL operation that filters unchanged rows in the WHERE clause
+// Minimizes transaction footprint by only touching rows that need updating
+func (db *IndexDB) UpdateFolderSizesIfChanged(source string, pathSizes map[string]uint64) (int64, error) {
+	if len(pathSizes) == 0 {
+		return 0, nil
+	}
+
+	// Build CASE statements for both SET and WHERE clauses
+	var setCaseParts []string
+	var whereCaseParts []string
+	var args []interface{}
+	var paths []string
+	var placeholders []string
+
+	for path, size := range pathSizes {
+		setCaseParts = append(setCaseParts, "WHEN path = ? THEN ?")
+		whereCaseParts = append(whereCaseParts, "WHEN path = ? THEN ?")
+		args = append(args, path, size)
+		args = append(args, path, size) // Duplicate for WHERE clause
+		paths = append(paths, path)
+		placeholders = append(placeholders, "?")
+	}
+
+	// Single UPDATE that only touches rows where size differs
+	// The WHERE clause filters out unchanged rows, minimizing transaction size
+	query := fmt.Sprintf(`
+		UPDATE index_items 
+		SET size = CASE %s END
+		WHERE source = ? 
+		  AND path IN (%s) 
+		  AND is_dir = 1
+		  AND size != CASE %s END
+	`, strings.Join(setCaseParts, " "), strings.Join(placeholders, ","), strings.Join(whereCaseParts, " "))
+
+	args = append(args, source)
+	for _, path := range paths {
+		args = append(args, path)
+	}
+
+	result, err := db.Exec(query, args...)
+	if err != nil {
+		if isBusyError(err) || isTransactionError(err) {
+			logger.Debugf("[DB_TX] UpdateFolderSizesIfChanged: DB busy/locked, skipping update")
+			return 0, nil // Non-fatal: sizes will be synced on next scan
+		}
+		return 0, err
+	}
+
+	rowsAffected, _ := result.RowsAffected()
+	return rowsAffected, nil
+}
+
 // GetFilesBySizeAndType retrieves files matching both size and type.
 func (db *IndexDB) GetFilesBySizeAndType(source string, size int64, fileType string, pathPrefix string) ([]*iteminfo.FileInfo, error) {
 	var query string

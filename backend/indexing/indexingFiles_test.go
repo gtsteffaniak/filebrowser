@@ -34,9 +34,8 @@ func setupTestIndex(t *testing.T) (*Index, string, func()) {
 		},
 		mock:             true, // Enable mock mode
 		db:               indexDB,
-		FoundHardLinks:   make(map[string]uint64),
-		processedInodes:  make(map[uint64]struct{}),
 		scanUpdatedPaths: make(map[string]bool),
+		folderSizes:      make(map[string]uint64), // Initialize folder sizes map
 	}
 
 	// Create mock directory structure with predictable sizes using database

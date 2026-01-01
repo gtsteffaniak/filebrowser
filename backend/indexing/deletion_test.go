@@ -32,10 +32,8 @@ func setupTestIndexForDeletion(t *testing.T) *Index {
 				DisableIndexing: false,
 			},
 		},
-		db:              indexDB,
-		FoundHardLinks:  make(map[string]uint64),
-		processedInodes: make(map[uint64]struct{}),
-		mock:            true, // Enable mock mode
+		db:   indexDB,
+		mock: true, // Enable mock mode
 	}
 
 	// Create mock directory structure with predictable sizes using database

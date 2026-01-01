@@ -13,15 +13,14 @@ import (
 )
 
 // UpdateFileMetadata updates the FileInfo for the specified directory in the index.
-func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo) bool {
+// scanner parameter is optional - if nil (API refresh), directly inserts to database
+func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo, scanner *Scanner) bool {
 	items := make([]*iteminfo.FileInfo, 0, len(info.Files)+len(info.Folders)+1)
 	dirItem := *info
 	items = append(items, &dirItem)
 
-	// Check if we're in a batch scan (batchItems is initialized)
-	idx.mu.Lock()
-	isBatchScan := idx.batchItems != nil
-	idx.mu.Unlock()
+	// Check if we're in a batch scan (scanner provided)
+	isBatchScan := scanner != nil
 
 	if isBatchScan {
 		// During recursive scans: only insert directory itself and direct files
@@ -67,36 +66,22 @@ func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo) bool {
 		}
 	}
 
-	// Check if we're in a batch scan (batchItems is initialized)
-	idx.mu.Lock()
-	if idx.batchItems != nil {
+	// Use scanner-specific batch if available
+	if scanner != nil {
 		// Track that this directory was updated by the scan (for timestamp conflict detection)
-		// This allows us to always update sizes for directories updated by the scan,
-		// while skipping updates for directories modified by API during the scan
 		normalizedPath := utils.AddTrailingSlashIfNotExists(info.Path)
+		idx.mu.Lock()
 		idx.scanUpdatedPaths[normalizedPath] = true
-
-		// Accumulate items for bulk insert
-		idx.batchItems = append(idx.batchItems, items...)
-		// Progressive flushing: flush every BATCH_SIZE items to keep memory bounded
-		// Synchronous flush ensures only ONE batch in memory at a time
-		if len(idx.batchItems) >= idx.db.BatchSize {
-			itemsToFlush := idx.batchItems
-			idx.batchItems = make([]*iteminfo.FileInfo, 0, idx.db.BatchSize)
-			sourceName := idx.Name
-			numItems := len(itemsToFlush)
-			idx.mu.Unlock()
-			// Synchronous flush - blocks scanner until DB write completes
-			err := idx.db.BulkInsertItems(sourceName, itemsToFlush)
-			if err != nil {
-				logger.Warningf("[DB_TX] Progressive flush failed (%d items): %v - continuing scan", numItems, err)
-			}
-			return true
-		}
 		idx.mu.Unlock()
+
+		// Accumulate items for bulk insert in scanner's batch
+		scanner.batchItems = append(scanner.batchItems, items...)
+		// Progressive flushing: flush every BATCH_SIZE items to keep memory bounded
+		if len(scanner.batchItems) >= idx.db.BatchSize {
+			scanner.flushBatch()
+		}
 		return true
 	}
-	idx.mu.Unlock()
 
 	// Not in a batch scan - insert immediately (e.g., API-triggered updates)
 	if err := idx.db.BulkInsertItems(idx.Name, items); err != nil {
@@ -106,21 +91,19 @@ func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo) bool {
 	return true
 }
 
-// flushBatch writes all remaining batch items to the database
+// flushBatch writes all remaining batch items to the database (Scanner method)
 // This is called at the end of a scan to flush any items that didn't reach the BATCH_SIZE threshold
-func (idx *Index) flushBatch() {
-	idx.mu.Lock()
-	items := idx.batchItems
-	idx.batchItems = nil
-	idx.mu.Unlock()
+func (s *Scanner) flushBatch() {
+	items := s.batchItems
+	s.batchItems = nil
 
 	if len(items) == 0 {
 		return
 	}
 
-	err := idx.db.BulkInsertItems(idx.Name, items)
+	err := s.idx.db.BulkInsertItems(s.idx.Name, items)
 	if err != nil {
-		logger.Warningf("[DB_TX] Final flush failed (%d items): %v", len(items), err)
+		logger.Warningf("[DB_TX] Flush failed for scanner [%s] (%d items): %v", s.scanPath, len(items), err)
 	}
 }
 
@@ -163,6 +146,17 @@ func (idx *Index) GetReducedMetadata(target string, isDir bool) (*iteminfo.FileI
 		return nil, false
 	}
 
+	// If this is a directory, populate size from in-memory map (prefer in-memory over DB)
+	if item.Type == "directory" {
+		dirPath := utils.AddTrailingSlashIfNotExists(checkPath)
+		inMemSize := idx.GetFolderSize(dirPath)
+		if inMemSize > 0 || item.Size == 0 {
+			// Use in-memory if available, or if DB also shows 0
+			item.Size = int64(inMemSize)
+		}
+		// else: keep DB value if in-memory is 0 but DB has a value
+	}
+
 	return item, true
 }
 
@@ -186,28 +180,11 @@ func (idx *Index) GetMetadataInfo(target string, isDir bool) (*iteminfo.FileInfo
 		return nil, false
 	}
 
-	// If not found in DB, check if we have pending batch items and flush everything
-	// Flushing everything releases memory sooner and is simpler than selective flushing
+	// If not found in DB during scan, item might not be indexed yet
+	// (Batches are now scanner-specific, so we don't flush from API calls)
 	if dir == nil {
-		idx.mu.Lock()
-		hasBatchItems := len(idx.batchItems) > 0
-		batchSize := len(idx.batchItems)
-		idx.mu.Unlock()
-
-		if hasBatchItems {
-			logger.Warningf("[GET_METADATA] Item %s not found in DB, but batch has %d items - flushing batch",
-				checkDir, batchSize)
-			// Flush entire batch to release memory and make data available
-			idx.flushBatch()
-			// Try again after flush
-			dir, err = idx.db.GetItem(idx.Name, checkDir)
-			if err != nil || dir == nil {
-				logger.Debugf("[GET_METADATA] Item %s still not found after batch flush", checkDir)
-				return nil, false
-			}
-		} else {
-			return nil, false
-		}
+		logger.Debugf("[GET_METADATA] Item %s not found in database", checkDir)
+		return nil, false
 	}
 
 	// Get children
@@ -220,11 +197,27 @@ func (idx *Index) GetMetadataInfo(target string, isDir bool) (*iteminfo.FileInfo
 	// Populate Files and Folders
 	for _, child := range children {
 		if child.Type == "directory" {
+			// Populate directory size from in-memory map (prefer in-memory over DB)
+			childPath := utils.AddTrailingSlashIfNotExists(child.Path)
+			inMemSize := idx.GetFolderSize(childPath)
+			if inMemSize > 0 || child.Size == 0 {
+				// Use in-memory if available, or if DB also shows 0
+				child.Size = int64(inMemSize)
+			}
+			// else: keep DB value if in-memory is 0 but DB has a value
 			dir.Folders = append(dir.Folders, child.ItemInfo)
 		} else {
 			dir.Files = append(dir.Files, iteminfo.ExtendedItemInfo{ItemInfo: child.ItemInfo})
 		}
 	}
+
+	// Populate the directory's own size from in-memory map (prefer in-memory over DB)
+	inMemSize := idx.GetFolderSize(checkDir)
+	if inMemSize > 0 || dir.Size == 0 {
+		// Use in-memory if available, or if DB also shows 0
+		dir.Size = int64(inMemSize)
+	}
+	// else: keep DB value if in-memory is 0 but DB has a value
 
 	return dir, true
 }
