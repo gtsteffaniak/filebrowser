@@ -242,7 +242,7 @@ func TestUpdateFileMetadata(t *testing.T) {
 		mock: true,
 	}
 
-	success := index.UpdateMetadata(info)
+	success := index.UpdateMetadata(info, nil) // nil scanner for test
 	if !success {
 		t.Fatalf("expected UpdateFileMetadata to succeed")
 	}
@@ -315,7 +315,7 @@ func TestSetDirectoryInfo(t *testing.T) {
 			{ItemInfo: iteminfo.ItemInfo{Name: "testfile.txt", ModTime: time.Now()}},
 		},
 	}
-	index.UpdateMetadata(dir)
+	index.UpdateMetadata(dir, nil) // nil scanner for test
 	storedDir, exists := index.GetMetadataInfo("/newPath/", true)
 	if !exists || storedDir.Files[0].Name != "testfile.txt" {
 		t.Fatalf("expected SetDirectoryInfo to store directory info correctly")
