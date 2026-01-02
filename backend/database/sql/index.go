@@ -389,55 +389,6 @@ func (db *IndexDB) GetItemsByPaths(source string, paths []string) (map[string]*i
 	return result, nil
 }
 
-// BulkUpdateSizes updates the sizes of multiple items in a single query for a specific source.
-func (db *IndexDB) BulkUpdateSizes(source string, pathSizeUpdates map[string]int64) error {
-	if len(pathSizeUpdates) == 0 {
-		return nil
-	}
-	var caseParts []string
-	var args []interface{}
-	var paths []string
-	var placeholders []string
-
-	nowUnix := time.Now().Unix()
-
-	for path, sizeDelta := range pathSizeUpdates {
-		if sizeDelta == 0 {
-			continue // Skip zero deltas - no change needed
-		}
-		caseParts = append(caseParts, "WHEN path = ? THEN ?")
-		args = append(args, path, sizeDelta)
-		paths = append(paths, path)
-		placeholders = append(placeholders, "?")
-	}
-
-	if len(caseParts) == 0 {
-		return nil // All deltas were zero
-	}
-
-	query := fmt.Sprintf(`
-		UPDATE index_items 
-		SET size = size + CASE %s END,
-		    last_updated = ?
-		WHERE source = ? AND path IN (%s)
-	`, strings.Join(caseParts, " "), strings.Join(placeholders, ","))
-
-	args = append(args, nowUnix)
-	args = append(args, source)
-	for _, path := range paths {
-		args = append(args, path)
-	}
-	_, err := db.Exec(query, args...)
-	if err != nil {
-		if isBusyError(err) || isTransactionError(err) {
-			logger.Debugf("[DB_TX] BulkUpdateSizes: DB busy/locked, skipping update")
-			return nil // Non-fatal: sizes can be recalculated later
-		}
-		return err
-	}
-	return nil
-}
-
 // GetDirectoryChildren retrieves all children of a directory for a specific source.
 func (db *IndexDB) GetDirectoryChildren(source, dirPath string) ([]*iteminfo.FileInfo, error) {
 	query := `
@@ -648,38 +599,6 @@ func (db *IndexDB) GetDirectFileCount(source string, pathPrefix string) (files u
 	return uint64(fileCount.Int64), nil
 }
 
-func (db *IndexDB) UpdateDirectorySize(source string, path string, newSize int64) error {
-	query := `UPDATE index_items SET size = ? WHERE source = ? AND path = ?`
-	_, err := db.Exec(query, newSize, source, path)
-	if err != nil && !isBusyError(err) && !isTransactionError(err) {
-		logger.Errorf("UpdateDirectorySize failed for source=%s path=%s: %v", source, path, err)
-	}
-	return err
-}
-
-// UpdateDirectorySizeIfStale updates directory size only if the directory wasn't modified during the scan.
-func (db *IndexDB) UpdateDirectorySizeIfStale(source string, path string, newSize int64, scanStartTime int64) (bool, error) {
-	if scanStartTime == 0 {
-		// No scan start time provided, always update (backward compatibility)
-		return true, db.UpdateDirectorySize(source, path, newSize)
-	}
-
-	// Only update if last_updated < scanStartTime (directory wasn't modified during scan)
-	query := `UPDATE index_items 
-		SET size = ?, last_updated = ? 
-		WHERE source = ? AND path = ? AND last_updated < ?`
-	nowUnix := time.Now().Unix()
-	result, err := db.Exec(query, newSize, nowUnix, source, path, scanStartTime)
-	if err != nil && !isBusyError(err) && !isTransactionError(err) {
-		logger.Errorf("UpdateDirectorySizeIfStale failed for source=%s path=%s: %v", source, path, err)
-		return false, err
-	}
-
-	// Check if update actually happened (directory might have been modified during scan)
-	rowsAffected, _ := result.RowsAffected()
-	return rowsAffected > 0, nil
-}
-
 // GetTypeGroupsForSize queries for file types that have 2+ files with the same size.
 func (db *IndexDB) GetTypeGroupsForSize(source string, size int64, pathPrefix string) ([]string, error) {
 	var query string
@@ -783,6 +702,89 @@ func (db *IndexDB) GetFilesForMultipleSizes(source string, sizes []int64, pathPr
 	}
 
 	return filesBySize, rows.Err()
+}
+
+// GetAllDirectories returns all directory paths for a source (used for size recalculation)
+func (db *IndexDB) GetAllDirectories(source string) ([]string, error) {
+	query := `
+		SELECT path
+		FROM index_items
+		WHERE source = ? AND is_dir = 1
+		ORDER BY path
+	`
+
+	rows, err := db.Query(query, source)
+	if err != nil {
+		if isBusyError(err) || isTransactionError(err) {
+			return []string{}, nil
+		}
+		return nil, err
+	}
+	defer rows.Close()
+
+	var directories []string
+	for rows.Next() {
+		var path string
+		if err := rows.Scan(&path); err != nil {
+			return nil, err
+		}
+		directories = append(directories, path)
+	}
+
+	return directories, rows.Err()
+}
+
+// UpdateFolderSizesIfChanged updates ONLY the size field for folders where the size actually changed
+// This is a single SQL operation that filters unchanged rows in the WHERE clause
+// Minimizes transaction footprint by only touching rows that need updating
+func (db *IndexDB) UpdateFolderSizesIfChanged(source string, pathSizes map[string]uint64) (int64, error) {
+	if len(pathSizes) == 0 {
+		return 0, nil
+	}
+
+	// Build CASE statements for both SET and WHERE clauses
+	var setCaseParts []string
+	var whereCaseParts []string
+	var args []interface{}
+	var paths []string
+	var placeholders []string
+
+	for path, size := range pathSizes {
+		setCaseParts = append(setCaseParts, "WHEN path = ? THEN ?")
+		whereCaseParts = append(whereCaseParts, "WHEN path = ? THEN ?")
+		args = append(args, path, size)
+		args = append(args, path, size) // Duplicate for WHERE clause
+		paths = append(paths, path)
+		placeholders = append(placeholders, "?")
+	}
+
+	// Single UPDATE that only touches rows where size differs
+	// The WHERE clause filters out unchanged rows, minimizing transaction size
+	query := fmt.Sprintf(`
+		UPDATE index_items 
+		SET size = CASE %s END
+		WHERE source = ? 
+		  AND path IN (%s) 
+		  AND is_dir = 1
+		  AND size != CASE %s END
+	`, strings.Join(setCaseParts, " "), strings.Join(placeholders, ","), strings.Join(whereCaseParts, " "))
+
+	args = append(args, source)
+	for _, path := range paths {
+		args = append(args, path)
+	}
+
+	result, err := db.Exec(query, args...)
+	if err != nil {
+		if isBusyError(err) || isTransactionError(err) {
+			logger.Debugf("[DB_TX] UpdateFolderSizesIfChanged: DB busy/locked, skipping update")
+			return 0, nil // Non-fatal: sizes will be synced on next scan
+		}
+		return 0, err
+	}
+
+	rowsAffected, _ := result.RowsAffected()
+	return rowsAffected, nil
 }
 
 // GetFilesBySizeAndType retrieves files matching both size and type.

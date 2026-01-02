@@ -17,7 +17,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 	"github.com/gtsteffaniak/go-cache/cache"
 	"github.com/gtsteffaniak/go-logger/logger"
-	"github.com/gtsteffaniak/go-push/push"
 )
 
 var (
@@ -66,19 +65,15 @@ type Index struct {
 	ReducedIndex
 	settings.Source  `json:"-"`
 	db               *dbsql.IndexDB
-	FoundHardLinks   map[string]uint64 // hardlink path -> size
-	processedInodes  map[uint64]struct{}
-	previousNumDirs  uint64               // Track previous NumDirs to use when scan in progress (computed value is 0)
-	previousNumFiles uint64               // Track previous NumFiles to use when scan in progress (computed value is 0)
-	batchItems       []*iteminfo.FileInfo // Accumulates items during a scan for bulk insert
-	scanners         map[string]*Scanner  // path -> scanner
+	previousNumDirs  uint64              // Track previous NumDirs to use when scan in progress (computed value is 0)
+	previousNumFiles uint64              // Track previous NumFiles to use when scan in progress (computed value is 0)
+	scanners         map[string]*Scanner // path -> scanner
 	mock             bool
 	mu               sync.RWMutex
 	childScanMutex   sync.Mutex // Serializes child scanner execution (only one child scanner runs at a time)
-	// Delayed parent size updates: accumulate deltas and batch update after 1 second of inactivity
-	pendingParentSizeDeltas map[string]int64      // path -> accumulated delta
-	parentSizeFlushMutex    sync.Mutex            // Mutex for parent size flush operations
-	parentSizePacer         *push.Pacer[struct{}] // Debounced pacer to trigger batch flushes (handles rate limiting)
+	// In-memory folder size tracking (not stored in SQLite)
+	folderSizes   map[string]uint64 // path -> size (in-memory only, calculated from children)
+	folderSizesMu sync.RWMutex      // Dedicated RWMutex allows concurrent reads, serializes writes
 	// Scan session tracking: timestamp when scan session started (for timestamp-based conflict detection)
 	scanSessionStartTime int64           // Unix timestamp when current scan session started (0 if no active scan)
 	scanUpdatedPaths     map[string]bool // Tracks directories updated by the scan (to distinguish from API updates)
@@ -340,26 +335,12 @@ func Initialize(source *settings.Source, mock bool) {
 	}
 
 	newIndex := Index{
-		mock:                    mock,
-		Source:                  *source,
-		db:                      indexDB, // Use shared database
-		processedInodes:         make(map[uint64]struct{}),
-		FoundHardLinks:          make(map[string]uint64),
-		batchItems:              nil, // Don't initialize batch for direct use - only scanners do this
-		pendingParentSizeDeltas: make(map[string]int64),
-		scanUpdatedPaths:        make(map[string]bool),
+		mock:             mock,
+		Source:           *source,
+		db:               indexDB, // Use shared database
+		scanUpdatedPaths: make(map[string]bool),
+		folderSizes:      make(map[string]uint64), // In-memory folder size tracking
 	}
-
-	// Initialize go-push pacer for debounced parent size updates
-	// Debounce mode: waits 1 second after last update before processing
-	config := push.Config{
-		Mode:     push.ModeDebounce,
-		Interval: 1 * time.Second,
-	}
-	newIndex.parentSizePacer = push.New[struct{}](config)
-
-	// Start consumer goroutine to process debounced flushes
-	go newIndex.processParentSizeUpdates()
 	newIndex.ReducedIndex = ReducedIndex{
 		Status:  "indexing",
 		IdxName: source.Name,
@@ -382,7 +363,8 @@ func Initialize(source *settings.Source, mock bool) {
 // Define a function to recursively index files and directories
 // Returns the total size of the directory and whether it has a preview
 // Size is calculated in-memory during recursive traversal to avoid expensive SQL queries
-func (idx *Index) indexDirectory(adjustedPath string, config actionConfig) (int64, bool, error) {
+// scanner parameter is optional - if nil, will use temporary state (for API-triggered refreshes)
+func (idx *Index) indexDirectory(adjustedPath string, config actionConfig, scanner *Scanner) (int64, bool, error) {
 	// Normalize path to always have trailing slash
 	adjustedPath = utils.AddTrailingSlashIfNotExists(adjustedPath)
 	realPath := strings.TrimRight(idx.Path, "/") + adjustedPath
@@ -407,11 +389,18 @@ func (idx *Index) indexDirectory(adjustedPath string, config actionConfig) (int6
 
 	// adjustedPath is already normalized with trailing slash
 	combinedPath := adjustedPath
-	dirFileInfo, err2 := idx.GetDirInfo(dir, dirInfo, realPath, adjustedPath, combinedPath, config)
+	dirFileInfo, err2 := idx.GetDirInfo(dir, dirInfo, realPath, adjustedPath, combinedPath, config, scanner)
 	if err2 != nil {
 		return 0, false, err2
 	}
-	idx.UpdateMetadata(dirFileInfo)
+	idx.UpdateMetadata(dirFileInfo, scanner)
+
+	// Store the calculated directory size in the in-memory map
+	// Skip for root scanner (non-recursive) - root size calculated after all child scanners complete
+	if config.Recursive {
+		idx.SetFolderSize(adjustedPath, uint64(dirFileInfo.Size))
+	}
+
 	return dirFileInfo.Size, dirFileInfo.HasPreview, nil
 }
 
@@ -434,7 +423,7 @@ func (idx *Index) GetFsDirInfo(adjustedPath string) (*iteminfo.FileInfo, error) 
 	}
 
 	if !dirInfo.IsDir() {
-		realSize, _ := idx.handleFile(dirInfo, adjustedPath, realPath, false)
+		realSize, _ := idx.handleFile(dirInfo, adjustedPath, realPath, false, nil) // nil scanner for FS read
 		size := int64(realSize)
 		fileInfo := iteminfo.FileInfo{
 			Path: adjustedPath,
@@ -455,7 +444,7 @@ func (idx *Index) GetFsDirInfo(adjustedPath string) (*iteminfo.FileInfo, error) 
 		Quick:         false,
 		Recursive:     false,
 		CheckViewable: true,
-	})
+	}, nil) // nil scanner for FS read
 	if err != nil {
 		return nil, err
 	}
@@ -479,11 +468,37 @@ func (idx *Index) GetFsDirInfo(adjustedPath string) (*iteminfo.FileInfo, error) 
 		}
 
 	}
+
+	// Overlay in-memory folder sizes on the response for instant updates
+	// This ensures API reads get the latest sizes even if not yet synced to DB
+	if response != nil && response.Type == "directory" {
+		// Update the directory's own size from in-memory map
+		dirPath := utils.AddTrailingSlashIfNotExists(response.Path)
+		if inMemSize, exists := idx.GetFolderSize(dirPath); exists {
+			response.Size = int64(inMemSize)
+		}
+
+		// Update child folder sizes from in-memory map
+		for i := range response.Folders {
+			// Construct child path: handle root "/" specially to avoid double slashes
+			var childPath string
+			if response.Path == "/" {
+				childPath = "/" + response.Folders[i].Name + "/"
+			} else {
+				childPath = utils.AddTrailingSlashIfNotExists(response.Path) + response.Folders[i].Name + "/"
+			}
+
+			if inMemSize, exists := idx.GetFolderSize(childPath); exists {
+				response.Folders[i].Size = int64(inMemSize)
+			}
+		}
+	}
+
 	return response, nil
 
 }
 
-func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjustedPath, combinedPath string, config actionConfig) (*iteminfo.FileInfo, error) {
+func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjustedPath, combinedPath string, config actionConfig, scanner *Scanner) (*iteminfo.FileInfo, error) {
 	combinedPath = utils.AddTrailingSlashIfNotExists(combinedPath)
 	files, err := dirInfo.Readdir(-1)
 	if err != nil {
@@ -546,7 +561,7 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 			if config.Recursive {
 				// clear for garbage collection
 				file = nil
-				subdirSize, subdirHasPreview, err := idx.indexDirectory(dirPath, config)
+				subdirSize, subdirHasPreview, err := idx.indexDirectory(dirPath, config, scanner)
 				if err != nil {
 					logger.Errorf("Failed to index directory %s: %v", dirPath, err)
 					continue
@@ -575,7 +590,7 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 			}
 		} else {
 			realFilePath := realPath + "/" + file.Name()
-			size, shouldCountSize := idx.handleFile(file, fullCombined, realFilePath, config.IsRoutineScan)
+			size, shouldCountSize := idx.handleFile(file, fullCombined, realFilePath, config.IsRoutineScan, scanner)
 			itemInfo.DetectType(realFilePath, false)
 			usedCachedPreview := false
 			if !idx.Config.DisableIndexing && config.Recursive {
@@ -656,296 +671,196 @@ func (idx *Index) RefreshFileInfo(opts utils.FileOptions) error {
 		targetPath = idx.MakeIndexPath(filepath.Dir(targetPath), true)
 	}
 
-	logger.Debugf("[REFRESH] RefreshFileInfo called for %s (IsDir=%v, Recursive=%v)", targetPath, opts.IsDir, opts.Recursive)
-
-	previousInfo, previousExists := idx.GetMetadataInfo(targetPath, true)
-	var previousSize int64
-	if previousExists {
-		previousSize = previousInfo.Size
-	}
-
+	// Get real path and check if directory exists
 	realPath, _, err := idx.GetRealPath(targetPath)
 	if err != nil {
 		logger.Errorf("[REFRESH] Failed to get real path for %s: %v", targetPath, err)
 		return err
 	}
 
-	// Check if directory still exists on filesystem
-	_, err = os.Stat(realPath)
+	dirInfo, err := os.Stat(realPath)
 	if err != nil {
-		idx.DeleteMetadata(targetPath, true, false)
+		// Directory deleted - clear from in-memory map only
+		// Database will be updated on next scheduled scan
+		idx.DeleteFolderSize(targetPath)
 		return nil
 	}
 
-	// RefreshFileInfo no longer needs the scan mutex - we use timestamp-based conflict detection
-	// This allows API requests to work during scans without waiting
-	// The timestamp check in UpdateDirectorySizeIfStale will prevent overwriting scan updates
-
-	config := actionConfig{
-		Quick:     true,
-		Recursive: opts.Recursive,
-	}
-	newSize, _, err := idx.indexDirectory(targetPath, config)
-	if err != nil {
-		logger.Errorf("[REFRESH] indexDirectory failed for %s: %v", targetPath, err)
-		return err
+	// Check if excluded from indexing (same logic as indexDirectory)
+	hidden := isHidden(dirInfo, idx.Path+targetPath)
+	if idx.shouldSkip(dirInfo.IsDir(), hidden, targetPath, dirInfo.Name(), actionConfig{}) {
+		return errors.ErrNotIndexed
 	}
 
-	newInfo, exists := idx.GetMetadataInfo(targetPath, true)
-	if !exists {
-		return nil
-	}
-
-	sizeDelta := newInfo.Size - previousSize
-
-	// Check if calculated size matches DB size - if not, there might be a race condition
-	// This can happen during active scanning when the DB is being updated concurrently
-	// Only log as warning if the difference is significant (>1% or >1MB)
-	sizeDiff := newSize - newInfo.Size
-	if sizeDiff < 0 {
-		sizeDiff = -sizeDiff
-	}
-	if sizeDiff > 0 {
-		// Log warning only if difference is significant (more than 1% or 1MB)
-		if sizeDiff > newSize/100 || sizeDiff > 1024*1024 {
-			logger.Warningf("[REFRESH] Size mismatch for %s: calculated size (%d) != DB size (%d), diff=%d (may be due to concurrent scan)",
-				targetPath, newSize, newInfo.Size, sizeDiff)
-		}
-	}
-
-	if sizeDelta != 0 {
-		if opts.IsDir {
-			// Directory operations: update parent sizes immediately
-			// For deletions (negative delta), verify the delta won't cause negative parent sizes
-			if sizeDelta < 0 {
-				// Check if any parent would go negative - if so, recalculate instead
-				parentPaths := []string{}
-				currentPath := targetPath
-				for {
-					parentDir := utils.GetParentDirectoryPath(currentPath)
-					if parentDir == "" {
-						break
-					}
-					if parentDir != "/" {
-						parentDir = utils.AddTrailingSlashIfNotExists(parentDir)
-					}
-					parentPaths = append(parentPaths, parentDir)
-					if parentDir == "/" {
-						break
-					}
-					currentPath = parentDir
-				}
-
-				// Quick check: if any parent size would go negative, recalculate from filesystem
-				// Recalculate from the immediate parent up to ensure child sizes are accurate
-				parentInfos, err := idx.db.GetItemsByPaths(idx.Name, parentPaths)
-				if err == nil {
-					// Check parents from deepest to shallowest (reverse order)
-					for i := len(parentPaths) - 1; i >= 0; i-- {
-						path := parentPaths[i]
-						if info, exists := parentInfos[path]; exists {
-							if info.Size+sizeDelta < 0 {
-								logger.Warningf("[REFRESH] Deletion would cause negative size for parent %s (%d + %d). Recalculating from filesystem.",
-									path, info.Size, sizeDelta)
-								// Recalculate parent recursively to ensure child directory sizes are accurate
-								// This is critical when multiple deletions happen rapidly
-								parentOpts := utils.FileOptions{Path: path, IsDir: true, Recursive: true}
-								if err := idx.RefreshFileInfo(parentOpts); err != nil {
-									logger.Errorf("[REFRESH] Failed to recalculate parent %s: %v", path, err)
-								}
-								return nil // Skip delta-based update, recalculation handled it
-							}
-						}
-					}
-				}
-			}
-
-			idx.updateParentDirSizesBatched(targetPath, sizeDelta)
-		} else {
-			// File operations: schedule delayed batch update to handle rapid-fire uploads
-			// This accumulates parent size deltas and flushes them after 1 second of inactivity
-			idx.scheduleDelayedParentSizeUpdate(targetPath, sizeDelta)
-		}
-	}
-
+	// Calculate new size by scanning filesystem recursively
+	newSize := idx.calculateDirectorySize(realPath, targetPath)
+	idx.SetFolderSize(targetPath, newSize)
 	return nil
 }
 
-// updateParentDirSizesBatched updates all parent directory sizes in a single batch operation.
-// This queries all parent paths from the database, updates their sizes, and batch updates them.
-func (idx *Index) updateParentDirSizesBatched(startPath string, sizeDelta int64) {
-	if sizeDelta == 0 {
-		logger.Debugf("[PARENT_SIZE] Skipping update: sizeDelta is 0 for %s", startPath)
-		return
-	}
-
-	logger.Infof("[PARENT_SIZE] Starting parent size update for %s with delta=%d", startPath, sizeDelta)
-
-	// Check batch state before updating parent sizes
-	idx.mu.RLock()
-	hasBatchItems := len(idx.batchItems) > 0
-	batchSize := 0
-	if hasBatchItems {
-		batchSize = len(idx.batchItems)
-	}
-	idx.mu.RUnlock()
-
-	if hasBatchItems {
-		logger.Warningf("[PARENT_SIZE] WARNING: Batch items exist (%d items) when updating parent sizes for %s - may read stale data!",
-			batchSize, startPath)
-	}
-
-	parentPaths := []string{}
-	currentPath := startPath
-
-	for {
-		parentDir := utils.GetParentDirectoryPath(currentPath)
-		if parentDir == "" {
-			break
-		}
-		if parentDir != "/" {
-			parentDir = utils.AddTrailingSlashIfNotExists(parentDir)
-		}
-		parentPaths = append(parentPaths, parentDir)
-		if parentDir == "/" {
-			break
-		}
-		currentPath = parentDir
-	}
-
-	if len(parentPaths) == 0 {
-		logger.Debugf("[PARENT_SIZE] No parent paths found for %s", startPath)
-		return
-	}
-
-	logger.Debugf("[PARENT_SIZE] Found %d parent paths to update: %v", len(parentPaths), parentPaths)
-
-	// Accumulate deltas for all parent paths - go-push will debounce and batch process them
-	idx.parentSizeFlushMutex.Lock()
-	for _, path := range parentPaths {
-		idx.pendingParentSizeDeltas[path] += sizeDelta
-	}
-	idx.parentSizeFlushMutex.Unlock()
-
-	// Trigger debounced flush - go-push will wait 1 second after last update before processing
-	// This automatically handles rate limiting and batching of rapid updates
-	idx.parentSizePacer.Push(struct{}{})
-	logger.Debugf("[PARENT_SIZE] Accumulated deltas for %d parent paths, will flush after 1 second of inactivity", len(parentPaths))
-}
-
-// scheduleDelayedParentSizeUpdate accumulates parent size deltas and schedules a batch update
-// after 1 second of inactivity. This prevents rapid-fire updates during bulk file operations.
-func (idx *Index) scheduleDelayedParentSizeUpdate(startPath string, sizeDelta int64) {
-	if sizeDelta == 0 {
-		return
-	}
-
-	idx.parentSizeFlushMutex.Lock()
-	defer idx.parentSizeFlushMutex.Unlock()
-
-	// Get all parent paths for this path
-	parentPaths := []string{}
-	currentPath := startPath
-	for {
-		parentDir := utils.GetParentDirectoryPath(currentPath)
-		if parentDir == "" {
-			break
-		}
-		if parentDir != "/" {
-			parentDir = utils.AddTrailingSlashIfNotExists(parentDir)
-		}
-		parentPaths = append(parentPaths, parentDir)
-		if parentDir == "/" {
-			break
-		}
-		currentPath = parentDir
-	}
-
-	// Accumulate deltas for each parent path
-	for _, path := range parentPaths {
-		idx.pendingParentSizeDeltas[path] += sizeDelta
-	}
-
-	// Trigger debounced flush - go-push will wait 1 second after last update
-	// This automatically handles rapid-fire updates by batching them
-	idx.parentSizePacer.Push(struct{}{})
-}
-
-// processParentSizeUpdates is the consumer goroutine that processes debounced parent size updates.
-// It receives triggers from the go-push pacer after 1 second of inactivity and flushes accumulated deltas.
-func (idx *Index) processParentSizeUpdates() {
-	for range idx.parentSizePacer.Updates() {
-		// Process all accumulated deltas after debounce period
-		idx.flushPendingParentSizeUpdates()
-	}
-}
-
-// FlushPendingParentSizeUpdates flushes any accumulated parent size updates immediately.
-// This should be called before scans to ensure data consistency.
-func (idx *Index) FlushPendingParentSizeUpdates() {
-	idx.flushPendingParentSizeUpdates()
-}
-
-// flushPendingParentSizeUpdates applies all accumulated parent size deltas in a single batch operation
-func (idx *Index) flushPendingParentSizeUpdates() {
-	idx.parentSizeFlushMutex.Lock()
-	defer idx.parentSizeFlushMutex.Unlock()
-
-	if len(idx.pendingParentSizeDeltas) == 0 {
-		return
-	}
-
-	// Get all paths that need updating
-	pathsToUpdate := make([]string, 0, len(idx.pendingParentSizeDeltas))
-	for path := range idx.pendingParentSizeDeltas {
-		pathsToUpdate = append(pathsToUpdate, path)
-	}
-
-	// Query all parent directories from database in a single query
-	parentInfos, err := idx.db.GetItemsByPaths(idx.Name, pathsToUpdate)
+// calculateDirectorySize recursively calculates the total size of a directory
+// and populates the in-memory folderSizes map for all subdirectories
+func (idx *Index) calculateDirectorySize(realPath string, indexPath string) uint64 {
+	dir, err := os.Open(realPath)
 	if err != nil {
-		logger.Errorf("[PARENT_SIZE] Failed to query parent directories for batch update: %v", err)
-		// Clear pending deltas on error to prevent accumulation
-		idx.pendingParentSizeDeltas = make(map[string]int64)
-		return
+		return 0
+	}
+	defer dir.Close()
+
+	files, err := dir.Readdir(-1)
+	if err != nil {
+		return 0
 	}
 
-	// Build map of path -> size delta for batch update
-	// Only include paths that actually exist in the database
-	pathSizeUpdates := make(map[string]int64)
-	for path, delta := range idx.pendingParentSizeDeltas {
-		if info, exists := parentInfos[path]; exists {
-			newSize := info.Size + delta
-			// Prevent negative sizes
-			if newSize < 0 {
-				logger.Warningf("[PARENT_SIZE] Skipping update for %s: would result in negative size (%d + %d)",
-					path, info.Size, delta)
-				continue
-			}
-			pathSizeUpdates[path] = delta
-			logger.Debugf("[PARENT_SIZE] Will update %s: %d -> %d (delta=%d)",
-				path, info.Size, newSize, delta)
+	var totalSize uint64
+	for _, file := range files {
+		if file.IsDir() {
+			// Recursively calculate subdirectory size
+			childName := file.Name()
+			childRealPath := realPath + "/" + childName
+			childIndexPath := indexPath + childName + "/"
+
+			// Calculate and store child directory size
+			childSize := idx.calculateDirectorySize(childRealPath, childIndexPath)
+			idx.SetFolderSize(childIndexPath, childSize)
+			totalSize += childSize
 		} else {
-			logger.Debugf("[PARENT_SIZE] Parent path %s not found in database, skipping", path)
+			// For files, use handleFile to get accurate size (handles hardlinks, etc.)
+			// This ensures consistency with scanner calculations
+			childRealPath := realPath + "/" + file.Name()
+			childIndexPath := indexPath + file.Name()
+			size, shouldCount := idx.handleFile(file, childIndexPath, childRealPath, false, nil)
+			if shouldCount {
+				totalSize += size
+			}
 		}
 	}
 
-	// Clear pending deltas before DB operation
-	idx.pendingParentSizeDeltas = make(map[string]int64)
+	return totalSize
+}
 
-	if len(pathSizeUpdates) == 0 {
-		logger.Debugf("[PARENT_SIZE] No valid parent paths to update in batch flush")
+// SetFolderSize sets the size for a directory in the in-memory map
+func (idx *Index) SetFolderSize(path string, newSize uint64) {
+	idx.folderSizesMu.Lock()
+	previousSize, exists := idx.folderSizes[path]
+	if !exists {
+		previousSize = 0
+	}
+	idx.folderSizes[path] = newSize
+	idx.folderSizesMu.Unlock()
+	// Update parent directory sizes recursively if size changed
+	if newSize != previousSize {
+		idx.RecursiveUpdateDirSizes(path, previousSize)
+	}
+}
+
+// GetFolderSize retrieves the size for a directory from the in-memory map
+func (idx *Index) GetFolderSize(path string) (uint64, bool) {
+	idx.folderSizesMu.RLock()
+	defer idx.folderSizesMu.RUnlock()
+	size, exists := idx.folderSizes[path]
+	return size, exists
+}
+
+// DeleteFolderSize deletes the size for a directory from the in-memory map
+func (idx *Index) DeleteFolderSize(path string) {
+	idx.folderSizesMu.Lock()
+	defer idx.folderSizesMu.Unlock()
+	previousSize, exists := idx.folderSizes[path]
+	delete(idx.folderSizes, path)
+	if exists && previousSize > 0 {
+		idx.RecursiveUpdateDirSizes(path, previousSize)
+	}
+}
+
+// RecursiveUpdateDirSizes updates parent directory sizes recursively up the tree
+func (idx *Index) RecursiveUpdateDirSizes(path string, previousSize uint64) {
+	idx.folderSizesMu.RLock()
+	currentSize, exists := idx.folderSizes[path]
+	idx.folderSizesMu.RUnlock()
+
+	if !exists {
+		logger.Debugf("[FOLDER_SIZE] Path %s not found in folderSizes map", path)
 		return
 	}
 
-	// Batch update all parent sizes in a single transaction
-	logger.Infof("[PARENT_SIZE] Batch updating %d parent directory sizes (delayed flush)", len(pathSizeUpdates))
-	err = idx.db.BulkUpdateSizes(idx.Name, pathSizeUpdates)
-	if err != nil {
-		logger.Errorf("[PARENT_SIZE] Failed to batch update parent directory sizes: %v", err)
+	// Calculate delta
+	var sizeDelta int64
+	if currentSize >= previousSize {
+		sizeDelta = int64(currentSize - previousSize)
 	} else {
-		logger.Debugf("[PARENT_SIZE] Successfully batch updated %d parent directory sizes", len(pathSizeUpdates))
+		sizeDelta = -int64(previousSize - currentSize)
 	}
+
+	if sizeDelta == 0 {
+		return // No change, nothing to propagate
+	}
+
+	// Get parent directory
+	parentDir := utils.GetParentDirectoryPath(path)
+	if parentDir == "" {
+		return // Reached the top
+	}
+	if parentDir != "/" {
+		parentDir = utils.AddTrailingSlashIfNotExists(parentDir)
+	}
+
+	// Update parent size with delta
+	idx.folderSizesMu.Lock()
+	parentSize := idx.folderSizes[parentDir]
+	if sizeDelta > 0 {
+		idx.folderSizes[parentDir] = parentSize + uint64(sizeDelta)
+	} else {
+		// Prevent underflow
+		absDelta := uint64(-sizeDelta)
+		if parentSize >= absDelta {
+			idx.folderSizes[parentDir] = parentSize - absDelta
+		} else {
+			logger.Warningf("[FOLDER_SIZE] Parent %s would underflow (%d - %d), setting to 0",
+				parentDir, parentSize, absDelta)
+			idx.folderSizes[parentDir] = 0
+		}
+	}
+	previousParentSize := parentSize
+	idx.folderSizesMu.Unlock()
+
+	// Recursively update grandparents
+	idx.RecursiveUpdateDirSizes(parentDir, previousParentSize)
+}
+
+// SyncFolderSizesToDB syncs in-memory folder sizes to the database after a scan completes
+// Uses a single SQL operation that only updates folders where the size has changed
+func (idx *Index) SyncFolderSizesToDB() error {
+	idx.folderSizesMu.RLock()
+
+	// Collect all folder sizes
+	sizesToSync := make(map[string]uint64, len(idx.folderSizes))
+	for path, size := range idx.folderSizes {
+		sizesToSync[path] = size
+	}
+	idx.folderSizesMu.RUnlock()
+
+	if len(sizesToSync) == 0 {
+		return nil
+	}
+
+	// Single database operation: update only folders where size changed
+	// The SQL WHERE clause filters out unchanged rows, minimizing transaction footprint
+	logger.Debugf("[FOLDER_SIZE_SYNC] Syncing %d folder sizes to database", len(sizesToSync))
+	rowsUpdated, err := idx.db.UpdateFolderSizesIfChanged(idx.Name, sizesToSync)
+	if err != nil {
+		logger.Errorf("[FOLDER_SIZE_SYNC] Failed to update folder sizes: %v", err)
+		return err
+	}
+
+	if rowsUpdated > 0 {
+		logger.Infof("[FOLDER_SIZE_SYNC] Updated %d folder sizes (skipped %d unchanged)",
+			rowsUpdated, len(sizesToSync)-int(rowsUpdated))
+	} else {
+		logger.Debugf("[FOLDER_SIZE_SYNC] No folder sizes changed")
+	}
+
+	return nil
 }
 
 func isHidden(file os.FileInfo, srcPath string) bool {

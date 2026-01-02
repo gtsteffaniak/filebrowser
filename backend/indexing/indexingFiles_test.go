@@ -7,7 +7,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	dbsql "github.com/gtsteffaniak/filebrowser/backend/database/sql"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
-	"github.com/gtsteffaniak/go-push/push"
 )
 
 // setupTestIndex creates a test index with mock data (no filesystem dependencies)
@@ -33,23 +32,11 @@ func setupTestIndex(t *testing.T) (*Index, string, func()) {
 				DisableIndexing: false,
 			},
 		},
-		mock:                    true, // Enable mock mode
-		db:                      indexDB,
-		FoundHardLinks:          make(map[string]uint64),
-		processedInodes:         make(map[uint64]struct{}),
-		pendingParentSizeDeltas: make(map[string]int64),
-		scanUpdatedPaths:         make(map[string]bool),
+		mock:             true, // Enable mock mode
+		db:               indexDB,
+		scanUpdatedPaths: make(map[string]bool),
+		folderSizes:      make(map[string]uint64), // Initialize folder sizes map
 	}
-
-	// Initialize go-push pacer for debounced parent size updates
-	config := push.Config{
-		Mode:     push.ModeDebounce,
-		Interval: 1 * time.Second,
-	}
-	idx.parentSizePacer = push.New[struct{}](config)
-
-	// Start consumer goroutine to process debounced flushes
-	go idx.processParentSizeUpdates()
 
 	// Create mock directory structure with predictable sizes using database
 	now := time.Now()
@@ -207,98 +194,6 @@ func TestFolderSizeCalculation(t *testing.T) {
 	}
 }
 
-func TestRecursiveSizeUpdate(t *testing.T) {
-	idx, _, cleanup := setupTestIndex(t)
-	defer cleanup()
-
-	// Verify initial sizes (using logical sizes, not disk allocation)
-	rootInfo, exists := idx.GetMetadataInfo("/", true)
-	if !exists {
-		t.Fatal("Root metadata not found")
-	}
-	if rootInfo.Size != 1000 {
-		t.Errorf("Initial root size: got %d, want 1000", rootInfo.Size)
-	}
-
-	subdirInfo, exists := idx.GetMetadataInfo("/subdir/", true)
-	if !exists {
-		t.Fatal("Subdir metadata not found")
-	}
-	initialSubdirSize := subdirInfo.Size
-	if initialSubdirSize != 700 {
-		t.Errorf("Initial subdir size: got %d, want 700", initialSubdirSize)
-	}
-
-	// Simulate adding a new file to deepdir by updating the database
-	// Add file5.txt (500 bytes) to deepdir
-	deepdirInfo, exists := idx.GetMetadataInfo("/subdir/deepdir/", true)
-	if !exists {
-		t.Fatal("Deepdir metadata not found")
-	}
-
-	// Insert the new file into database
-	file5 := &iteminfo.FileInfo{
-		Path: "/subdir/deepdir/file5.txt",
-		ItemInfo: iteminfo.ItemInfo{
-			Name:    "file5.txt",
-			Type:    "file",
-			Size:    500,
-			ModTime: time.Now(),
-		},
-	}
-	err := idx.db.InsertItem("test", "/subdir/deepdir/file5.txt", file5)
-	if err != nil {
-		t.Fatalf("Failed to insert file5: %v", err)
-	}
-
-	// Update deepdir size
-	oldDeepdirSize := deepdirInfo.Size
-	deepdirInfo.Size = 900 // 400 + 500
-	err = idx.db.InsertItem("test", "/subdir/deepdir/", deepdirInfo)
-	if err != nil {
-		t.Fatalf("Failed to insert deepdirInfo: %v", err)
-	}
-
-	// Simulate the recursive size update by calling the method directly
-	sizeDelta := deepdirInfo.Size - oldDeepdirSize
-	idx.updateParentDirSizesBatched("/subdir/deepdir/", sizeDelta)
-
-	// Flush pending updates immediately for test (normally debounced)
-	idx.FlushPendingParentSizeUpdates()
-
-	// Check that deepdir size updated
-	deepdirInfo, exists = idx.GetMetadataInfo("/subdir/deepdir/", true)
-	if !exists {
-		t.Fatal("Deepdir metadata not found after update")
-	}
-	expectedDeepdirSize := int64(900) // 400 + 500
-	if deepdirInfo.Size != expectedDeepdirSize {
-		t.Errorf("Deepdir size after adding file: got %d, want %d", deepdirInfo.Size, expectedDeepdirSize)
-	}
-
-	// Check that subdir size updated (includes the new file)
-	subdirInfo, exists = idx.GetMetadataInfo("/subdir/", true)
-	if !exists {
-		t.Fatal("Subdir metadata not found after propagation")
-	}
-
-	// Subdir should now contain file3.txt + deepdir's new size
-	expectedSubdirSize := int64(1200) // 300 + 900
-	if subdirInfo.Size != expectedSubdirSize {
-		t.Errorf("Subdir size after propagation: got %d, want %d", subdirInfo.Size, expectedSubdirSize)
-	}
-
-	// Check that root size updated (includes changes propagated from subdir)
-	rootInfo, exists = idx.GetMetadataInfo("/", true)
-	if !exists {
-		t.Fatal("Root metadata not found after propagation")
-	}
-	expectedRootSize := int64(1500) // 100 + 200 + 1200
-	if rootInfo.Size != expectedRootSize {
-		t.Errorf("Root size after propagation: got %d, want %d", rootInfo.Size, expectedRootSize)
-	}
-}
-
 func TestNonRecursiveMetadataUpdate(t *testing.T) {
 	idx, _, cleanup := setupTestIndex(t)
 	defer cleanup()
@@ -335,124 +230,6 @@ func TestNonRecursiveMetadataUpdate(t *testing.T) {
 	expectedRootSize := initialRootSize + 150 // new file size
 	if rootInfo.Size != expectedRootSize {
 		t.Errorf("Root size after non-recursive update: got %d, want %d", rootInfo.Size, expectedRootSize)
-	}
-}
-
-func TestRecursiveUpdateDirSizes(t *testing.T) {
-	idx, _, cleanup := setupTestIndex(t)
-	defer cleanup()
-
-	// Get initial metadata from database
-	rootInfo, exists := idx.GetMetadataInfo("/", true)
-	if !exists {
-		t.Fatal("Root metadata not found")
-	}
-	rootInfo.Size = 1000
-	_ = idx.db.InsertItem("test", "/", rootInfo)
-
-	subdirInfo, exists := idx.GetMetadataInfo("/subdir/", true)
-	if !exists {
-		t.Fatal("Subdir metadata not found")
-	}
-	subdirInfo.Size = 700
-	_ = idx.db.InsertItem("test", "/subdir/", subdirInfo)
-
-	deepdirInfo, exists := idx.GetMetadataInfo("/subdir/deepdir/", true)
-	if !exists {
-		t.Fatal("Deepdir metadata not found")
-	}
-	deepdirInfo.Size = 400
-	_ = idx.db.InsertItem("test", "/subdir/deepdir/", deepdirInfo)
-
-	// Simulate updating deepdir from 400 to 900 (added 500 bytes)
-	previousSize := deepdirInfo.Size
-	deepdirInfo.Size = 900
-	_ = idx.db.InsertItem("test", "/subdir/deepdir/", deepdirInfo)
-
-	// Call updateParentDirSizesBatched
-	sizeDelta := deepdirInfo.Size - previousSize
-	idx.updateParentDirSizesBatched("/subdir/deepdir/", sizeDelta)
-
-	// Flush pending updates immediately for test (normally debounced)
-	idx.FlushPendingParentSizeUpdates()
-
-	// Check that subdir size updated
-	subdirInfo, exists = idx.GetMetadataInfo("/subdir/", true)
-	if !exists {
-		t.Fatal("Subdir metadata not found after update")
-	}
-	expectedSubdirSize := int64(1200) // 700 + 500
-	if subdirInfo.Size != expectedSubdirSize {
-		t.Errorf("Subdir size after recursive update: got %d, want %d", subdirInfo.Size, expectedSubdirSize)
-	}
-
-	// Check that root size updated
-	rootInfo, exists = idx.GetMetadataInfo("/", true)
-	if !exists {
-		t.Fatal("Root metadata not found after update")
-	}
-	expectedRootSize := int64(1500) // 1000 + 500
-	if rootInfo.Size != expectedRootSize {
-		t.Errorf("Root size after recursive update: got %d, want %d", rootInfo.Size, expectedRootSize)
-	}
-}
-
-func TestSizeDecreasePropagate(t *testing.T) {
-	idx, _, cleanup := setupTestIndex(t)
-	defer cleanup()
-
-	// Get initial metadata from database
-	rootInfo, exists := idx.GetMetadataInfo("/", true)
-	if !exists {
-		t.Fatal("Root metadata not found")
-	}
-	rootInfo.Size = 1000
-	_ = idx.db.InsertItem("test", "/", rootInfo)
-
-	subdirInfo, exists := idx.GetMetadataInfo("/subdir/", true)
-	if !exists {
-		t.Fatal("Subdir metadata not found")
-	}
-	subdirInfo.Size = 700
-	_ = idx.db.InsertItem("test", "/subdir/", subdirInfo)
-
-	deepdirInfo, exists := idx.GetMetadataInfo("/subdir/deepdir/", true)
-	if !exists {
-		t.Fatal("Deepdir metadata not found")
-	}
-	deepdirInfo.Size = 400
-	_ = idx.db.InsertItem("test", "/subdir/deepdir/", deepdirInfo)
-
-	// Simulate updating deepdir from 400 to 100 (removed 300 bytes)
-	previousSize := deepdirInfo.Size
-	deepdirInfo.Size = 100
-	_ = idx.db.InsertItem("test", "/subdir/deepdir/", deepdirInfo)
-
-	// Call updateParentDirSizesBatched
-	sizeDelta := deepdirInfo.Size - previousSize
-	idx.updateParentDirSizesBatched("/subdir/deepdir/", sizeDelta)
-
-	// Flush pending updates immediately for test (normally debounced)
-	idx.FlushPendingParentSizeUpdates()
-
-	// Check that subdir size decreased
-	subdirInfo, exists = idx.GetMetadataInfo("/subdir/", true)
-	if !exists {
-		t.Fatal("Subdir metadata not found after update")
-	}
-	expectedSubdirSize := int64(400) // 700 - 300
-	if subdirInfo.Size != expectedSubdirSize {
-		t.Errorf("Subdir size after decrease: got %d, want %d", subdirInfo.Size, expectedSubdirSize)
-	}
-
-	// Check that root size decreased
-	rootInfo, exists = idx.GetMetadataInfo("/", true)
-	if !exists {
-		t.Fatal("Root metadata not found after update")
-	}
-	expectedRootSize := int64(700) // 1000 - 300
-	if rootInfo.Size != expectedRootSize {
-		t.Errorf("Root size after decrease: got %d, want %d", rootInfo.Size, expectedRootSize)
 	}
 }
 
