@@ -3,11 +3,11 @@
     <ul v-if="items.length > 0">
       <li>
         <router-link :to="base" :aria-label="$t('general.home')" :title="$t('general.home')"
-          :class="{ 'droppable-breadcrumb': isDroppable, 'drag-over': dragOverIndex === -1 }"
-          @dragenter.prevent="dragEnter($event, -1)"
-          @dragleave.prevent="dragLeave($event, -1)"
-          @dragover.prevent="dragOver($event, -1)"
-          @drop.prevent="drop($event, -1)">
+          :class="{ 'droppable-breadcrumb': isDroppable, 'drag-over': dragOverItem?.type === 'home' }"
+          @dragenter.prevent="dragEnter($event, { type: 'home', path: '/' })"
+          @dragleave.prevent="dragLeave($event, { type: 'home', path: '/' })"
+          @dragover.prevent="dragOver($event, { type: 'home', path: '/' })"
+          @drop.prevent="drop($event, { type: 'home', path: '/' })">
           <i class="material-icons">home</i>
         </router-link>
       </li>
@@ -18,12 +18,12 @@
           :title="link.name"
           :key="index"
           :class="{ changeAvailable: hasUpdate,
-            'droppable-breadcrumb': isDroppable && link.name !== '...',
-            'drag-over': dragOverIndex === index && link.name !== '...' }"
-          @dragenter="dragEnter($event, index)"
-          @dragleave="dragLeave($event, index)"
-          @dragover="dragOver($event, index)"
-          @drop="drop($event, index)">
+            'droppable-breadcrumb': isDroppable && link.type !== 'truncated',
+            'drag-over': dragOverItem?.path === link.path, }"
+          @dragenter="dragEnter($event, link)"
+          @dragleave="dragLeave($event, link)"
+          @dragover="dragOver($event, link)"
+          @drop="drop($event, link)">
           {{ link.name }}
         </router-link>
       </li>
@@ -42,14 +42,16 @@ export default {
   data() {
     return {
       base: "/files/",
-      dragOverIndex: -2, // Track which breadcrumb is being dragged over (-2 = none, -1 = home, 0+ = others breadcrumbs)
-      breadcrumbPaths: [],
-      currentDragElement: null,
+      dragOverItem: null, // Track which breadcrumb is being dragged over
     };
   },
   props: ["noLink"],
   mounted() {
     this.updatePaths();
+    window.addEventListener('dragend', this.clearDragState);
+  },
+  beforeUnmount() {
+    window.removeEventListener('dragend', this.clearDragState);
   },
   watch: {
     $route() {
@@ -70,10 +72,7 @@ export default {
       return getters.isStickySidebar() || getters.isShare();
     },
     isDroppable() {
-      if (getters.isShare()) {
-        return state.shareInfo?.allowCreate || state.shareInfo?.allowModify;
-      }
-      return state.user?.permissions?.modify;
+      return getters.permissions()?.modify
     },
     items() {
       const req = state.req;
@@ -94,20 +93,31 @@ export default {
       }
       let breadcrumbs = [];
       let buildRef = this.base;
+      let accumulatedPath = "";
+
       for (let i = 0; i < originalParts.length; i++) {
         const origPart = originalParts[i];
         const encodedElement = encodedParts[i];
         buildRef = buildRef + encodedElement + "/";
+        accumulatedPath = accumulatedPath ? `${accumulatedPath}/${origPart}` : origPart;
+
         breadcrumbs.push({
           name: origPart,
           url: buildRef,
+          path: `/${accumulatedPath}`,
+          type: 'normal'
         });
       }
       if (breadcrumbs.length > 3) {
         while (breadcrumbs.length !== 4) {
           breadcrumbs.shift();
         }
-        breadcrumbs[0].name = "...";
+        breadcrumbs[0] = {
+          name: "...",
+          url: breadcrumbs[0].url, // Keep the URL of the first visible breadcrumb
+          path: breadcrumbs[0].path, // Same here, but with the path
+          type: 'truncated'
+        };
       }
       return breadcrumbs;
     },
@@ -121,66 +131,39 @@ export default {
       }
     },
 
-    getBreadcrumbPath(index) {
-      if (index === -1) return "/"; // home = index -1
-
-      const parts = state.req.path?.split("/").filter(p => p) || [];
-      const paths = [];
-      let accumulated = "";
-
-      // Build paths for each breadcrumb level (e.g. "/a", "/a/b", "/a/b/c" and so)
-      for (let i = 0; i < parts.length; i++) {
-        accumulated = accumulated ? `${accumulated}/${parts[i]}` : parts[i];
-        paths.push(`/${accumulated}`);
-      }
-
-      // Adjust for truncated breadcrumbs (like when the  "..." is present)
-      if (this.items.length > 3) {
-        if (index === 0) {
-          // return path of first truncated item
-          const truncatedCount = paths.length - 3;
-          return paths[truncatedCount - 1];
-        } else {
-          const actualIndex = (paths.length - 3) + (index - 1);
-          return paths[actualIndex];
-        }
-      } else {
-        // Otherwise just map the path directly
-        return paths[index];
-      }
-    },
-
-    dragEnter(event, index) {
-      if (!this.isDroppable || this.items[index]?.name === "...") return;
+    dragEnter(event, link) {
+      // Don't allow drag over "..." (is a truncated breadcrumb)
+      if (!this.isDroppable || link.type === 'truncated') return;
       if (!event.dataTransfer.types.includes("application/x-filebrowser-internal-drag")) return;
       event.preventDefault();
-      this.dragOverIndex = index;
+      this.dragOverItem = link;
     },
 
-    dragOver(event, index) {
-      if (!this.isDroppable || this.items[index]?.name === "...") return;
+    dragOver(event, link) {
+      if (!this.isDroppable || link.type === 'truncated') return;
       if (!event.dataTransfer.types.includes("application/x-filebrowser-internal-drag")) return;
       event.preventDefault();
     },
 
-    dragLeave(event, index) {
-      // Clear drag state when leaving the breadcrumb area when dragging a item
-      const relatedTarget = event.relatedTarget;
-      if (!relatedTarget || !this.currentDragElement?.contains(relatedTarget)) {
-        if (this.dragOverIndex === index) {
-          this.dragOverIndex = -2; // Reset drag state
-        }
+    dragLeave(_event, link) {
+      if (this.dragOverItem?.path === link.path ||
+          (this.dragOverItem?.type === 'home' && link.type === 'home')) {
+        this.clearDragState();
       }
     },
 
-    async drop(event, index) {
-      const link = index === -1 ? null : this.items[index];
-      if (link && link.name === "...") return;
+    clearDragState() {
+      this.dragOverItem = null;
+    },
+
+    async drop(event, link) {
+      // Don't allow drop on "..."
+      if (link.type === 'truncated') return;
       if (!this.isDroppable) return;
 
       event.preventDefault();
       event.stopPropagation();
-      this.dragOverIndex = -2;
+      this.clearDragState();
 
       const isInternal = Array.from(event.dataTransfer.types).includes(
         "application/x-filebrowser-internal-drag"
@@ -188,18 +171,17 @@ export default {
 
       if (!isInternal) return;
 
-      if (state.selected.length === 0) return;
-
-      const targetPath = this.getBreadcrumbPath(index);
+      // Get the target path for this breadcrumb
+      const targetPath = link.path; // Use the path from the link object
       const currentPath = state.req.path;
-      
-      // debug log paths when dropping
+      const source = state.req.source;
+
+      // debug log paths when dropping for testing
       console.log("Drop target:", { 
-        index,
+        link,
         targetPath,
         currentPath,
-        items: this.items,
-        breadcrumbName: link?.name
+        items: this.items
       });
 
       // Normalize paths for comparison
@@ -211,7 +193,7 @@ export default {
       const normalizedTarget = normalizePath(targetPath);
       const normalizedCurrent = normalizePath(currentPath);
 
-      console.log("comparing paths:", {
+      console.log("comparing paths for testing:", {
         normalizedCurrent,
         normalizedTarget,
       });
@@ -222,9 +204,9 @@ export default {
       }
 
       // Build list of items to move from selected items
-      let items = [];
+      let itemsToMove = [];
       for (let i of state.selected) {
-        if (i < 0 || i >= state.req.items.length) continue;
+        if (i < 0 || i >= state.req.length) continue;
 
         const selectedItem = state.req.items[i];
 
@@ -234,17 +216,17 @@ export default {
           fromPath = url.joinPath(state.req.path, selectedItem.name);
         }
 
-        items.push({
+        itemsToMove.push({
           from: fromPath,
-          fromSource: selectedItem.source || state.req.source,
+          fromSource: selectedItem.source,
           to: url.joinPath(targetPath, selectedItem.name),
-          toSource: state.req.source,
+          toSource: source,
           itemType: selectedItem.type
         });
       }
 
       // Filter out invalid moves
-      items = items.filter(item => {
+      itemsToMove = itemsToMove.filter(item => {
         if (item.from === item.to) return false;
 
         // Prevent moving a directory into itself -- likely never will happen but just in case
@@ -260,7 +242,7 @@ export default {
         return true;
       });
 
-      if (items.length === 0) {
+      if (itemsToMove.length === 0) {
         notify.showErrorToast("No valid items to move");
         return;
       }
@@ -272,7 +254,7 @@ export default {
           const response = await publicApi.fetchPub(targetPath, state.shareInfo.hash);
           targetDirItems = response?.items;
         } else {
-          const response = await filesApi.fetchFiles(state.req.source, targetPath);
+          const response = await filesApi.fetchFiles(source, targetPath);
           targetDirItems = response?.items;
         }
       } catch (error) {
@@ -281,7 +263,7 @@ export default {
       }
 
       // if any item conflics will show replace-rename prompt later
-      const conflict = items.some(item => {
+      const conflict = itemsToMove.some(item => {
         const itemName = item.to.split('/').pop(); // Extract filename from destination path
         return targetDirItems.some(targetItem => targetItem.name === itemName);
       });
@@ -294,16 +276,13 @@ export default {
 
         try {
           if (getters.isShare()) {
-            await publicApi.moveCopy(state.shareInfo.hash, items, "move", overwrite, rename);
+            await publicApi.moveCopy(state.shareInfo.hash, itemsToMove, "move", overwrite, rename);
           } else {
-            await filesApi.moveCopy(items, "move", overwrite, rename);
+            await filesApi.moveCopy(itemsToMove, "move", overwrite, rename);
           }
 
           const navigateToTarget = () => {
-            const targetUrl = getters.isShare()
-              ? `/public/share/${state.shareInfo.hash}${url.encodedPath(targetPath)}`
-              : `/files/${encodeURIComponent(state.req.source)}${url.encodedPath(targetPath)}`;
-            this.$router.push(targetUrl);
+            url.goToItem(source, targetPath);
           };
 
           notify.showSuccess(this.$t("prompts.moveSuccess"), {
@@ -384,7 +363,7 @@ export default {
   border-bottom: 1.5em solid transparent;
   border-left: 1.5em solid var(--alt-background);
   position: absolute;
-  right: -1.46em; /* Don't modify this... was difficult to find the value */
+  right: -1.46em;
   top: 0;
   z-index: 5;
 }
@@ -435,7 +414,7 @@ export default {
 }
 
 .drag-over {
-  background: var(--primaryColor) !important; /* Needs to be !important, without it is not working */
+  background: var(--primaryColor) !important; /* Needs !important to make the hover effect work when dragging items */
   color: white !important;
   z-index: 2;
 }
