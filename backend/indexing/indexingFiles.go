@@ -694,8 +694,6 @@ func (idx *Index) RefreshFileInfo(opts utils.FileOptions) error {
 
 	// Calculate new size by scanning filesystem recursively
 	newSize := idx.calculateDirectorySize(realPath, targetPath)
-
-	// Update in-memory map with new size
 	idx.SetFolderSize(targetPath, newSize)
 	return nil
 }
@@ -742,16 +740,15 @@ func (idx *Index) calculateDirectorySize(realPath string, indexPath string) uint
 }
 
 // SetFolderSize sets the size for a directory in the in-memory map
-// This is typically called after calculating a directory's size from its children
 func (idx *Index) SetFolderSize(path string, newSize uint64) {
 	idx.folderSizesMu.Lock()
-	defer idx.folderSizesMu.Unlock()
 	previousSize, exists := idx.folderSizes[path]
 	if !exists {
 		previousSize = 0
 	}
 	idx.folderSizes[path] = newSize
-	// Update parent directory sizes recursively in-memory if size changed
+	idx.folderSizesMu.Unlock()
+	// Update parent directory sizes recursively if size changed
 	if newSize != previousSize {
 		idx.RecursiveUpdateDirSizes(path, previousSize)
 	}
@@ -849,7 +846,7 @@ func (idx *Index) SyncFolderSizesToDB() error {
 
 	// Single database operation: update only folders where size changed
 	// The SQL WHERE clause filters out unchanged rows, minimizing transaction footprint
-	logger.Infof("[FOLDER_SIZE_SYNC] Syncing %d folder sizes to database (will skip unchanged)", len(sizesToSync))
+	logger.Debugf("[FOLDER_SIZE_SYNC] Syncing %d folder sizes to database", len(sizesToSync))
 	rowsUpdated, err := idx.db.UpdateFolderSizesIfChanged(idx.Name, sizesToSync)
 	if err != nil {
 		logger.Errorf("[FOLDER_SIZE_SYNC] Failed to update folder sizes: %v", err)
