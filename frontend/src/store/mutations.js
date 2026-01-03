@@ -682,6 +682,10 @@ export const mutations = {
       return;
     }
 
+    // Sort listing according to sorting preferences
+    const sorting = getters.sorting();
+    listing = sortedItems(listing, sorting.by, sorting.asc);
+
     // Find current item index in the listing
     for (let i = 0; i < listing.length; i++) {
       if (listing[i].name === currentItem.name) {

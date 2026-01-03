@@ -52,7 +52,13 @@ export const getters = {
     if (getters.isShare()) {
       source = getters.currentHash();
     }
-    const path = state.route.path;
+    let path = state.route.path;
+
+    // If current request is a file, use parent directory's preferences
+    if (state.req?.type && state.req.type !== 'directory') {
+      path = path.substring(0, path.lastIndexOf('/')+1) || '/';
+    }
+
     if (state.displayPreferences?.[source]?.[path]) {
       return state.displayPreferences[source][path];
     }
