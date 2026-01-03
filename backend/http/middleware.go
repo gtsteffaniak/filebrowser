@@ -390,6 +390,10 @@ func withUserHelper(fn handleFunc) handleFunc {
 			logger.Errorf("Failed to get user with ID %v: %v", tk.BelongsTo, err)
 			return http.StatusInternalServerError, err
 		}
+		// Set cookie. Some clients like gvfs relies on it for concurrent uploads
+		if expire := tk.ExpiresAt; expire != nil {
+			setSessionCookie(w, r, tokenString, expire.Time)
+		}
 		setUserInResponseWriter(w, data.user)
 		if data.user.Username == "" {
 			return http.StatusForbidden, errors.ErrUnauthorized
@@ -443,6 +447,14 @@ func withSelfOrAdminHelper(fn handleFunc) handleFunc {
 }
 
 func wrapHandler(fn handleFunc) http.HandlerFunc {
+	return wrapHandlerOpts(fn, wrapperOpts{})
+}
+
+type wrapperOpts struct {
+	requestBasicAuth bool
+}
+
+func wrapHandlerOpts(fn handleFunc, opts wrapperOpts) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		data := &requestContext{}
 
@@ -454,6 +466,10 @@ func wrapHandler(fn handleFunc) http.HandlerFunc {
 			response := &HttpResponse{
 				Status:  status, // Use the status code from the middleware
 				Message: err.Error(),
+			}
+
+			if status == http.StatusUnauthorized && opts.requestBasicAuth {
+				w.Header().Set("WWW-Authenticate", `Basic realm="Restricted"`)
 			}
 
 			// Set the content type to JSON and status code
