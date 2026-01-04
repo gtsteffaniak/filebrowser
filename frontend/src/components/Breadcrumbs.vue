@@ -4,10 +4,10 @@
       <li>
         <router-link :to="base" :aria-label="$t('general.home')" :title="$t('general.home')"
           :class="{ 'droppable-breadcrumb': isDroppable, 'drag-over': dragOverItem?.type === 'home' }"
-          @dragenter.prevent="dragEnter($event, { type: 'home', path: '/' })"
-          @dragleave.prevent="dragLeave($event, { type: 'home', path: '/' })"
-          @dragover.prevent="dragOver($event, { type: 'home', path: '/' })"
-          @drop.prevent="drop($event, { type: 'home', path: '/' })">
+          @dragenter.prevent="dragEnter($event, homeLink)"
+          @dragleave.prevent="dragLeave($event, homeLink)"
+          @dragover.prevent="dragOver($event, homeLink)"
+          @drop.prevent="drop($event, homeLink)">
           <i class="material-icons">home</i>
         </router-link>
       </li>
@@ -74,6 +74,14 @@ export default {
     },
     isDroppable() {
       return getters.permissions()?.modify
+    },
+    homeLink() {
+      return {
+        name: this.$t('general.home'),
+        url: this.base,
+        path: '/',
+        type: 'home',
+      };
     },
     items() {
       const req = state.req;
@@ -194,11 +202,6 @@ export default {
       const normalizedTarget = normalizePath(targetPath);
       const normalizedCurrent = normalizePath(currentPath);
 
-      console.log("comparing paths for testing:", {
-        normalizedCurrent,
-        normalizedTarget,
-      });
-
       if (normalizedTarget === normalizedCurrent) {
         notify.showErrorToast("Cannot move to same folder");
         return;
@@ -282,7 +285,7 @@ export default {
             await filesApi.moveCopy(itemsToMove, "move", overwrite, rename);
           }
 
-          const navigateToTarget = () => {
+          const buttonAction = () => {
             url.goToItem(source, targetPath);
           };
 
@@ -291,7 +294,7 @@ export default {
             buttons: [{
               label: this.$t("buttons.goToItem"),
               primary: true,
-              action: navigateToTarget
+              action: buttonAction
             }]
           });
           mutations.closeHovers();
@@ -464,7 +467,7 @@ export default {
 
 .breadcrumbs-placeholder.empty {
   visibility: hidden;
-  height: 0.2em;
+  height: 0.3em;
 }
 
 #main.moveWithSidebar #breadcrumbs {
