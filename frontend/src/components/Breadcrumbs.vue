@@ -258,7 +258,7 @@ export default {
           targetDirItems = response?.items;
         }
       } catch (error) {
-        notify.showErrorToast(this.$t("files.cannotAcessDir"));
+        notify.showErrorToast(this.$t("files.cannotAccesDir"));
         console.log("Cannot access to target directory", e);
         return;
       }
