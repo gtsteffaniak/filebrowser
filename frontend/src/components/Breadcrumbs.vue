@@ -29,6 +29,7 @@
       </li>
     </ul>
   </div>
+  <div class="breadcrumbs-placeholder" :class="{ 'empty': items.length === 0 }"></div>
 </template>
 
 <script>
@@ -323,9 +324,25 @@ export default {
 
 <style scoped>
 #breadcrumbs {
-  margin-top: 0.5em;
+  padding-top: 0.35em;
+  padding-left: 0.35em;
+  padding-right: 0.35em;
   overflow-y: hidden;
+  position: fixed;
+  z-index: 1000;
+  right: 0;
+  left: 0;
+  transition: all 0.35s ease-out;
 }
+
+/* Backdrop-filter support */
+@supports (backdrop-filter: none) {
+  #breadcrumbs {
+    backdrop-filter: blur(12px) invert(0.01);
+    background-color: color-mix(in srgb, var(--background) 75%, transparent);
+  }
+}
+
 #breadcrumbs * {
   box-sizing: unset;
 }
@@ -334,55 +351,61 @@ export default {
   display: flex;
   margin: 0;
   padding: 0;
-  margin-bottom: 0.5em;
+  margin-bottom: 0.35em;
 }
 
 #breadcrumbs ul li {
   display: inline-block;
-  margin: 0 10px 0 0;
+  margin: 0 8px 0 0;
 }
 
 #breadcrumbs ul li a {
   display: flex;
-  height: 1em;
-  background: var(--alt-background);
+  height: 0.85em;
+  background: color-mix(in srgb, var(--alt-background) 90%, transparent);
   text-align: center;
-  padding: 1em;
-  padding-left: 2em;
+  padding: 0.85em;
+  padding-left: 1.7em;
   position: relative;
   text-decoration: none;
   color: var(--textPrimary);
   border-radius: 0;
   align-content: center;
   align-items: center;
+  transition: all 0.2s ease;
+  user-select: none;
 }
 
 #breadcrumbs ul li a::after {
   content: "";
-  border-top: 1.5em solid transparent;
-  border-bottom: 1.5em solid transparent;
-  border-left: 1.5em solid var(--alt-background);
+  border-top: 1.275em solid transparent;
+  border-bottom: 1.275em solid transparent;
+  border-left: 1.275em solid var(--alt-background);
+  border-left-color: color-mix(in srgb, var(--alt-background) 90%, transparent);
   position: absolute;
-  right: -1.46em;
+  right: -1.25em;
   top: 0;
   z-index: 5;
+  transition: all 0.2s ease;
 }
 
 #breadcrumbs ul li a::before {
   content: "";
-  border-top: 1.5em solid transparent;
-  border-bottom: 1.5em solid transparent;
-  border-left: 1.5em solid var(--background);
+  border-top: 1.275em solid transparent;
+  border-bottom: 1.275em solid transparent;
+  border-left: 1.275em solid var(--background);
+  border-left-color: color-mix(in srgb, var(--background) 85%, transparent);
   position: absolute;
   left: 0;
   top: 0;
   z-index: 1;
+  transition: all 0.2s ease;
 }
 
 #breadcrumbs ul li:first-child a {
-  border-top-left-radius: 1em;
-  border-bottom-left-radius: 1em;
-  padding-left: 1.5em;
+  border-top-left-radius: 0.85em;
+  border-bottom-left-radius: 0.85em;
+  padding-left: 1.275em;
   z-index: 3;
 }
 
@@ -391,9 +414,9 @@ export default {
 }
 
 #breadcrumbs ul li:last-child a {
-  padding-right: 1.5em;
-  border-top-right-radius: 1em;
-  border-bottom-right-radius: 1em;
+  padding-right: 1.275em;
+  border-top-right-radius: 0.85em;
+  border-bottom-right-radius: 0.85em;
 }
 
 #breadcrumbs ul li:last-child a::after {
@@ -431,6 +454,21 @@ export default {
 
 .drag-over {
   animation: breadcrumbPulse 0.5s ease-in-out infinite;
+}
+
+.breadcrumbs-placeholder {
+  margin-top: 0.35em;
+  visibility: hidden;
+  height: 3em;
+}
+
+.breadcrumbs-placeholder.empty {
+  visibility: hidden;
+  height: 0.2em;
+}
+
+#main.moveWithSidebar #breadcrumbs {
+  padding-left: 20.5em;
 }
 
 </style>
