@@ -81,6 +81,25 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.E
 		}
 	}
 
+	// Filter hidden files if ShowHidden is false
+	if !opts.ShowHidden && isDir {
+		filteredFiles := []iteminfo.ExtendedItemInfo{}
+		for _, file := range response.FileInfo.Files {
+			if !file.Hidden {
+				filteredFiles = append(filteredFiles, file)
+			}
+		}
+		response.FileInfo.Files = filteredFiles
+
+		filteredFolders := []iteminfo.ItemInfo{}
+		for _, folder := range response.FileInfo.Folders {
+			if !folder.Hidden {
+				filteredFolders = append(filteredFolders, folder)
+			}
+		}
+		response.FileInfo.Folders = filteredFolders
+	}
+
 	// For directories, populate metadata for audio/video files ONLY if explicitly requested
 	// This avoids expensive ffprobe calls on every directory listing
 	if isDir && opts.Metadata {

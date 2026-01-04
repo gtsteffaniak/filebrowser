@@ -41,6 +41,18 @@ type CommonShare struct {
 	AllowReplacements        bool                `json:"allowReplacements,omitempty"` // allow replacements of files
 	SidebarLinks             []users.SidebarLink `json:"sidebarLinks"`                // customizable sidebar links
 	HasPassword              bool                `json:"hasPassword,omitempty"`
+	// Preview settings - if not set, will use defaults
+	PreviewVideo              bool `json:"previewVideo,omitempty"`              // show thumbnail preview image for video files
+	PreviewImage              bool `json:"previewImage,omitempty"`              // show thumbnail preview image for image files
+	PreviewOffice             bool `json:"previewOffice,omitempty"`             // show thumbnail preview image for office files
+	PreviewFolder             bool `json:"previewFolder,omitempty"`             // show thumbnail preview image for folder files
+	PreviewPopup              bool `json:"previewPopup,omitempty"`              // show larger popup preview when hovering over thumbnail
+	PreviewHighQuality        bool `json:"previewHighQuality,omitempty"`        // generate high quality thumbnail preview images
+	PreviewMotionVideo        bool `json:"previewMotionVideo,omitempty"`        // show multiple frames for videos in thumbnail preview when hovering
+	PreviewDisableHideSidebar bool `json:"previewDisableHideSidebar,omitempty"` // disable the hide sidebar preview for previews and editors
+	PreviewAutoplayMedia      bool `json:"previewAutoplayMedia,omitempty"`      // autoplay media files in preview
+	PreviewDefaultMediaPlayer bool `json:"previewDefaultMediaPlayer,omitempty"` // disable html5 media player and use the default media player
+	ShowHidden                bool `json:"showHidden,omitempty"`                // show hidden files in share (true = show, false = hide)
 }
 type CreateBody struct {
 	CommonShare

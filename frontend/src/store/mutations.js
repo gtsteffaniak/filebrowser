@@ -499,9 +499,8 @@ export const mutations = {
       emitStateChanged();
       return
     }
-    if (!state.user.showHidden) {
-      value.items = value.items.filter((item) => !item.hidden);
-    }
+    // Hidden file filtering is now handled by the backend based on ShowHidden option
+    // No frontend filtering needed
     let sortby = "name"
     let asc = true
     const sorting = getters.sorting();

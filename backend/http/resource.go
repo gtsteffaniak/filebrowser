@@ -95,6 +95,7 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		Content:                  getContent,
 		Metadata:                 true,
 		ExtractEmbeddedSubtitles: settings.Config.Integrations.Media.ExtractEmbeddedSubtitles,
+		ShowHidden:               d.user.ShowHidden,
 	}, store.Access)
 	if err != nil {
 		return errToStatus(err), err
@@ -172,10 +173,11 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 	}
 	userscope = strings.TrimRight(userscope, "/")
 	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
-		Username: d.user.Username,
-		Path:     utils.JoinPathAsUnix(userscope, path),
-		Source:   source,
-		Expand:   false,
+		Username:   d.user.Username,
+		Path:       utils.JoinPathAsUnix(userscope, path),
+		Source:     source,
+		Expand:     false,
+		ShowHidden: d.user.ShowHidden,
 	}, store.Access)
 	if err != nil {
 		return errToStatus(err), err
@@ -614,10 +616,11 @@ func patchAction(ctx context.Context, params patchActionParams) error {
 			srcPath = strings.TrimSuffix(srcPath, "/")
 		}
 		fileInfo, err := files.FileInfoFaster(utils.FileOptions{
-			Username: params.d.user.Username,
-			Path:     srcPath,
-			Source:   params.srcIndex,
-			IsDir:    params.isSrcDir,
+			Username:   params.d.user.Username,
+			Path:       srcPath,
+			Source:     params.srcIndex,
+			IsDir:      params.isSrcDir,
+			ShowHidden: params.d.user.ShowHidden,
 		}, store.Access)
 
 		if err != nil {

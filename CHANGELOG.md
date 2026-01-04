@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file. For commit 
 ## v1.1.5-beta
 
  **Notes**:
+ - "showHidden" is now a backend attribute. Shares will NOT show hidden files by default unless configured to.
+
+ **BugFixes**:
+ - SortBy config is not respected when navigating next/previous #1786
+ - unauthenticated users unable to preview files #1792
+
+## v1.1.5-beta
+
+ **Notes**:
  - Major git container tag request #1756
 
  **BugFixes**:

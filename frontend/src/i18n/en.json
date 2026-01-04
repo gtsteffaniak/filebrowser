@@ -244,6 +244,8 @@
     "notice": "Note: when a share is a created, it becomes more exposed to the public and has different rules for access. If your share is not securely configured, it may be accessed by anyone.",
     "disableAnonymous": "Disable anonymous access",
     "disableThumbnails": "Disable Thumbnails",
+    "showHidden": "Show hidden files",
+    "showHiddenDescription": "Show files and folders that start with a dot (e.g., .git, .env) in the share.",
     "enableAllowedUsernames": "Only share to certain users",
     "allowedUsernamesPlaceholder": "Enter usernames, comma-separated",
     "disableAnonymousDescription": "Only authenticated users can access the share. The user must have access to the source of the share.",
