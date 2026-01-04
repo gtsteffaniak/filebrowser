@@ -827,8 +827,11 @@ func (idx *Index) calculateDirectorySize(realPath string, indexPath string, shal
 				childSize, exists := idx.GetFolderSize(childIndexPath)
 				if exists {
 					totalSize += childSize
+				} else {
+					// Cache miss: calculate recursively for accurate API response
+					childRealPath := realPath + "/" + childName
+					totalSize += idx.calculateDirectorySize(childRealPath, childIndexPath, false)
 				}
-				// If not in cache, assume 0 (will be populated by next scan)
 			} else {
 				// Recursive mode: Scan filesystem recursively
 				childRealPath := realPath + "/" + childName
