@@ -558,24 +558,22 @@ export const getters = {
   },
   previewPerms: () => {
     if (getters.isShare()) {
-      // For shares, use share-specific preview settings if set, otherwise use defaults
-      // Defaults match the anonymous user defaults (all true except highQuality which is false)
+      // For shares, use defaults for preview settings (shares don't have per-share preview config)
       return {
-        video: state.shareInfo?.previewVideo !== undefined ? state.shareInfo.previewVideo : true,
-        image: state.shareInfo?.previewImage !== undefined ? state.shareInfo.previewImage : true,
-        office: state.shareInfo?.previewOffice !== undefined ? state.shareInfo.previewOffice : true,
-        folder: state.shareInfo?.previewFolder !== undefined ? state.shareInfo.previewFolder : true,
-        popup: state.shareInfo?.previewPopup !== undefined ? state.shareInfo.previewPopup : true,
-        highQuality: state.shareInfo?.previewHighQuality !== undefined ? state.shareInfo.previewHighQuality : false,
-        motionVideoPreview: state.shareInfo?.previewMotionVideo !== undefined ? state.shareInfo.previewMotionVideo : false,
-        disableHideSidebar: state.shareInfo?.previewDisableHideSidebar !== undefined ? state.shareInfo.previewDisableHideSidebar : false,
-        autoplayMedia: state.shareInfo?.previewAutoplayMedia !== undefined ? state.shareInfo.previewAutoplayMedia : false,
-        defaultMediaPlayer: state.shareInfo?.previewDefaultMediaPlayer !== undefined ? state.shareInfo.previewDefaultMediaPlayer : false,
+        video: state.user?.preview?.video ?? true,
+        image: state.user?.preview?.image ?? true,
+        office: state.user?.preview?.office ?? true,
+        folder: state.user?.preview?.folder ?? true,
+        popup: state.user?.preview?.popup ?? true,
+        highQuality: state.user?.preview?.highQuality ?? false,
+        motionVideoPreview: state.user?.preview?.motionVideoPreview ?? false,
+        disableHideSidebar: state.user?.preview?.disableHideSidebar ?? false,
+        autoplayMedia: state.user?.preview?.autoplayMedia ?? false,
+        defaultMediaPlayer: false,
         showHidden: state.shareInfo?.showHidden !== undefined ? state.shareInfo.showHidden : false,
       };
     }
-    // For regular users, use their preview settings
-    // Note: showHidden is now handled by backend, but we keep it here for consistency
+    // For regular users, use their preview settings -- unless is share
     return {
       video: state.user?.preview?.video ?? true,
       image: state.user?.preview?.image ?? true,

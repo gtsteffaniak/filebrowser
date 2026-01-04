@@ -203,7 +203,7 @@
             <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="disableThumbnails"
               :name="$t('share.disableThumbnails')" :description="$t('share.disableThumbnailsDescription')" />
             <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="showHidden"
-              :name="$t('share.showHidden')" :description="$t('share.showHiddenDescription')" />
+              :name="$t('profileSettings.showHiddenFiles')" :description="$t('profileSettings.showHiddenFilesDescription')" />
             <ToggleSwitch class="item" v-model="disableNavButtons" :name="$t('share.hideNavButtons')"
               :description="$t('share.hideNavButtonsDescription')" />
             <ToggleSwitch class="item" v-model="disableShareCard" :name="$t('share.disableShareCard')"
