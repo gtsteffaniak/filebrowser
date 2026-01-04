@@ -653,8 +653,8 @@ func WriteFile(source, path string, in io.Reader) error {
 		return err
 	}
 
-	// Explicitly set directory permissions to bypass umask
-	err = os.Chmod(realPath, fileutils.PermDir)
+	// Explicitly set file permissions to bypass umask
+	err = os.Chmod(realPath, fileutils.PermFile)
 	if err != nil {
 		// Handle chmod error gracefully
 		logger.Debugf("Could not set file permissions for %s (this may be expected in restricted environments): %v", realPath, err)

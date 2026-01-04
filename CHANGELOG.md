@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file. For commit 
  **BugFixes**:
  - SortBy config is not respected when navigating next/previous #1786
  - unauthenticated users unable to preview files #1792
+ - File permission not correctly applied #1790
 
 ## v1.1.5-beta
 
