@@ -38,6 +38,11 @@ server:
   filesystem:                             # filesystem settings
     createFilePermission: "644"           # Unix permissions like 644, 755, 2755 (default: 644)  validate:required,file_permission
     createDirectoryPermission: "755"      # Unix permissions like 755, 2755, 1777 (default: 755)  validate:required,file_permission
+  indexSqlConfig:                         # Index database SQL configuration
+    batchSize: 1000                       # number of items to batch in a single transaction, typically 500-5000. higher = faster but could use more memory.
+    cacheSizeMB: 32                       # size of the SQLite cache in MB
+    walMode: false                        # enable the more complex WAL journaling mode. Slower, more memory usage, but better for deployments with constant user activity.
+    disableReuse: false                   # enable to always create a new indexing database on startup.
 auth:
   tokenExpirationHours: 2                 # time in hours each web UI session token is valid for. Default is 2 hours.
   methods:

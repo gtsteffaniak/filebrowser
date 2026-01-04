@@ -28,6 +28,12 @@ import (
 )
 
 func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.ExtendedFileInfo, error) {
+	startTotal := time.Now()
+	logger.Debugf("[API_TIMING] FileInfoFaster started for path: %s", opts.Path)
+	defer func() {
+		logger.Debugf("[API_TIMING] FileInfoFaster TOTAL for path %s: %s", opts.Path, time.Since(startTotal))
+	}()
+
 	response := &iteminfo.ExtendedFileInfo{}
 	index := indexing.GetIndex(opts.Source)
 	if index == nil {
@@ -36,7 +42,10 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.E
 	if !strings.HasPrefix(opts.Path, "/") {
 		opts.Path = "/" + opts.Path
 	}
+
+	t1 := time.Now()
 	realPath, isDir, err := index.GetRealPath(opts.Path)
+	logger.Debugf("[API_TIMING] GetRealPath took: %s", time.Since(t1))
 	if err != nil {
 		return response, fmt.Errorf("could not get real path for requested path: %v, error: %v", opts.Path, err)
 	}
@@ -46,10 +55,14 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.E
 	opts.IsDir = isDir
 
 	// Check access control for the requested path itself (both files and directories)
+	t2 := time.Now()
 	if access != nil {
 		if !access.Permitted(index.Path, opts.Path, opts.Username) {
 			return response, errors.ErrAccessDenied
 		}
+	}
+	if time.Since(t2) > time.Millisecond {
+		logger.Debugf("[API_TIMING] Access check took: %s", time.Since(t2))
 	}
 
 	var info *iteminfo.FileInfo
@@ -60,13 +73,16 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.E
 	// For non-viewable paths, verify they are indexed
 	// Skip this check if indexing is disabled for the entire source
 	if !isViewable && !index.Config.DisableIndexing {
+		t3 := time.Now()
 		err = index.RefreshFileInfo(opts)
+		logger.Debugf("[API_TIMING] RefreshFileInfo took: %s", time.Since(t3))
 		if err != nil {
 			logger.Debugf("failed to refresh file info for path: %s, error: %v", opts.Path, err)
 			return response, fmt.Errorf("path not accessible: %v", err)
 		}
 	}
 
+	t4 := time.Now()
 	if isDir {
 		info, err = index.GetFsDirInfo(opts.Path)
 		if err != nil {
@@ -79,21 +95,27 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.E
 			return response, err
 		}
 	}
+	logger.Debugf("[API_TIMING] GetFsDirInfo took: %s", time.Since(t4))
 
 	response.FileInfo = *info
 	response.RealPath = realPath
 	response.Source = opts.Source
 
+	t5 := time.Now()
 	if access != nil {
 		err := access.CheckChildItemAccess(response, index, opts.Username)
 		if err != nil {
 			return response, err
 		}
 	}
+	if time.Since(t5) > time.Millisecond {
+		logger.Debugf("[API_TIMING] CheckChildItemAccess took: %s", time.Since(t5))
+	}
 
 	// For directories, populate metadata for audio/video files ONLY if explicitly requested
 	// This avoids expensive ffprobe calls on every directory listing
 	if isDir && opts.Metadata {
+		t6 := time.Now()
 		startTime := time.Now()
 		metadataCount := 0
 
@@ -152,12 +174,17 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.E
 			logger.Debugf("Extracted metadata for %d audio/video files concurrently in %v (avg: %v per file)",
 				metadataCount, elapsed, elapsed/time.Duration(metadataCount))
 		}
+		logger.Debugf("[API_TIMING] Metadata extraction took: %s", time.Since(t6))
 	}
 
 	// Extract content/metadata when explicitly requested OR for single file audio/video requests
+	t7 := time.Now()
 	isAudioVideo := strings.HasPrefix(info.Type, "audio") || strings.HasPrefix(info.Type, "video")
 	if opts.Content || opts.Metadata || (!isDir && isAudioVideo) {
 		processContent(response, index, opts)
+	}
+	if time.Since(t7) > time.Millisecond {
+		logger.Debugf("[API_TIMING] processContent took: %s", time.Since(t7))
 	}
 
 	if settings.Config.Integrations.OnlyOffice.Secret != "" && info.Type != "directory" && iteminfo.IsOnlyOffice(info.Name) {

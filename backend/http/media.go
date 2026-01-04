@@ -60,7 +60,7 @@ func subtitlesHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	if err != nil {
 		return http.StatusNotFound, fmt.Errorf("file not found: %v", err)
 	}
-	metadata, exists := idx.GetMetadataInfo(userscope, true)
+	metadata, exists := idx.GetMetadataInfo(userscope, true, false)
 	if !exists {
 		return http.StatusNotFound, fmt.Errorf("file not found: %v", err)
 	}

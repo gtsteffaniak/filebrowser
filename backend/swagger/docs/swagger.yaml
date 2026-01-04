@@ -586,6 +586,23 @@ definitions:
       styling:
         $ref: '#/definitions/settings.StylingConfig'
     type: object
+  settings.IndexSqlConfig:
+    properties:
+      batchSize:
+        description: number of items to batch in a single transaction, typically 500-5000.
+          higher = faster but could use more memory.
+        type: integer
+      cacheSizeMB:
+        description: size of the SQLite cache in MB
+        type: integer
+      disableReuse:
+        description: enable to always create a new indexing database on startup.
+        type: boolean
+      walMode:
+        description: enable the more complex WAL journaling mode. Slower, more memory
+          usage, but better for deployments with constant user activity.
+        type: boolean
+    type: object
   settings.Integrations:
     properties:
       media:
@@ -789,6 +806,10 @@ definitions:
         allOf:
         - $ref: '#/definitions/settings.Filesystem'
         description: filesystem settings
+      indexSqlConfig:
+        allOf:
+        - $ref: '#/definitions/settings.IndexSqlConfig'
+        description: Index database SQL configuration
       internalUrl:
         description: used by integrations if set, this is the base domain that an
           integration service will use to communicate with filebrowser (eg. http://localhost:8080)

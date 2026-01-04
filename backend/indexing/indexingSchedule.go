@@ -232,6 +232,19 @@ func (idx *Index) setupMultiScanner() {
 		logger.Errorf("Failed to load persisted index data for [%v]: %v", idx.Name, err)
 	}
 
+	// Load existing folder sizes from database to avoid marking everything as dirty on startup
+	logger.Debugf("[INIT] Loading existing folder sizes from database for index %s", idx.Name)
+	existingSizes, err := idx.db.LoadFolderSizes(idx.Name)
+	if err != nil {
+		logger.Errorf("[INIT] Failed to load existing folder sizes for [%s]: %v", idx.Name, err)
+	} else {
+		idx.folderSizesMu.Lock()
+		idx.folderSizes = existingSizes
+		// Don't mark as unsynced - they're already in the DB
+		logger.Debugf("[INIT] Loaded %d existing folder sizes for index %s", len(existingSizes), idx.Name)
+		idx.folderSizesMu.Unlock()
+	}
+
 	idx.mu.Lock()
 	idx.scanners = make(map[string]*Scanner)
 	idx.mu.Unlock()

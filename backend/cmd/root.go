@@ -97,6 +97,11 @@ func StartFilebrowser() {
 	logger.Info(database)
 	logger.Infof("Sources                  : %v", sourceList)
 	logger.Debugf("Using Embedded FS        : %v", settings.Env.EmbeddedFs)
+	walModeStr := "OFF"
+	if settings.Config.Server.IndexSqlConfig.WalMode {
+		walModeStr = "WAL"
+	}
+	logger.Infof("SQL Journal Mode         : %v", walModeStr)
 	if settings.Config.Server.CacheDirCleanup {
 		logger.Debugf("clearing cache dir: %s", settings.Config.Server.CacheDir)
 		fileutils.ClearCacheDir(settings.Config.Server.CacheDir)

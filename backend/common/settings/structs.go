@@ -39,27 +39,29 @@ type Environment struct {
 }
 
 type Server struct {
-	MinSearchLength              int         `json:"minSearchLength" yaml:"minSearchLength"` // minimum length of search query to begin searching (default: 3)
-	DisableUpdateCheck           bool        `json:"disableUpdateCheck"`                     // disables backend update check service
-	NumImageProcessors           int         `json:"numImageProcessors"`                     // number of concurrent image processing jobs used to create previews, default is number of cpu cores available.
-	Socket                       string      `json:"socket"`                                 // socket to listen on
-	TLSKey                       string      `json:"tlsKey"`                                 // path to TLS key
-	TLSCert                      string      `json:"tlsCert"`                                // path to TLS cert
-	DisablePreviews              bool        `json:"disablePreviews"`                        // disable all previews thumbnails, simple icons will be used
-	DisableResize                bool        `json:"disablePreviewResize"`                   // disable resizing of previews for faster loading over slow connections
-	DisableTypeDetectionByHeader bool        `json:"disableTypeDetectionByHeader"`           // disable type detection by header, useful if filesystem is slow.
-	Port                         int         `json:"port"`                                   // port to listen on
-	ListenAddress                string      `json:"listen"`                                 // address to listen on (default: 0.0.0.0)
-	BaseURL                      string      `json:"baseURL"`                                // base URL for the server, the subpath that the server is running on.
-	Logging                      []LogConfig `json:"logging" yaml:"logging"`
-	Database                     string      `json:"database"` // path to the database file
-	Sources                      []*Source   `json:"sources" validate:"required,dive"`
-	ExternalUrl                  string      `json:"externalUrl"`     // used by share links if set (eg. http://mydomain.com)
-	InternalUrl                  string      `json:"internalUrl"`     // used by integrations if set, this is the base domain that an integration service will use to communicate with filebrowser (eg. http://localhost:8080)
-	CacheDir                     string      `json:"cacheDir"`        // path to the cache directory, used for thumbnails and other cached files
-	CacheDirCleanup              bool        `json:"cacheDirCleanup"` // whether to automatically cleanup the cache directory. Note: docker must also mount a persistent volume to persist the cache (default: false)
-	MaxArchiveSizeGB             int64       `json:"maxArchiveSize"`  // max pre-archive combined size of files/folder that are allowed to be archived (in GB)
-	Filesystem                   Filesystem  `json:"filesystem"`      // filesystem settings
+	MinSearchLength              int            `json:"minSearchLength" yaml:"minSearchLength"` // minimum length of search query to begin searching (default: 3)
+	DisableUpdateCheck           bool           `json:"disableUpdateCheck"`                     // disables backend update check service
+	NumImageProcessors           int            `json:"numImageProcessors"`                     // number of concurrent image processing jobs used to create previews, default is number of cpu cores available.
+	Socket                       string         `json:"socket"`                                 // socket to listen on
+	TLSKey                       string         `json:"tlsKey"`                                 // path to TLS key
+	TLSCert                      string         `json:"tlsCert"`                                // path to TLS cert
+	DisablePreviews              bool           `json:"disablePreviews"`                        // disable all previews thumbnails, simple icons will be used
+	DisableResize                bool           `json:"disablePreviewResize"`                   // disable resizing of previews for faster loading over slow connections
+	DisableTypeDetectionByHeader bool           `json:"disableTypeDetectionByHeader"`           // disable type detection by header, useful if filesystem is slow.
+	Port                         int            `json:"port"`                                   // port to listen on
+	ListenAddress                string         `json:"listen"`                                 // address to listen on (default: 0.0.0.0)
+	BaseURL                      string         `json:"baseURL"`                                // base URL for the server, the subpath that the server is running on.
+	Logging                      []LogConfig    `json:"logging" yaml:"logging"`
+	Database                     string         `json:"database"` // path to the database file
+	Sources                      []*Source      `json:"sources" validate:"required,dive"`
+	ExternalUrl                  string         `json:"externalUrl"`     // used by share links if set (eg. http://mydomain.com)
+	InternalUrl                  string         `json:"internalUrl"`     // used by integrations if set, this is the base domain that an integration service will use to communicate with filebrowser (eg. http://localhost:8080)
+	CacheDir                     string         `json:"cacheDir"`        // path to the cache directory, used for thumbnails and other cached files
+	CacheDirCleanup              bool           `json:"cacheDirCleanup"` // whether to automatically cleanup the cache directory. Note: docker must also mount a persistent volume to persist the cache (default: false)
+	MaxArchiveSizeGB             int64          `json:"maxArchiveSize"`  // max pre-archive combined size of files/folder that are allowed to be archived (in GB)
+	Filesystem                   Filesystem     `json:"filesystem"`      // filesystem settings
+	IndexSqlConfig               IndexSqlConfig `json:"indexSqlConfig"`  // Index database SQL configuration
+
 	// not exposed to config
 	SourceMap    map[string]*Source `json:"-" validate:"omitempty"` // uses realpath as key
 	NameToSource map[string]*Source `json:"-" validate:"omitempty"` // uses name as key
@@ -68,6 +70,13 @@ type Server struct {
 type Filesystem struct {
 	CreateFilePermission      string `json:"createFilePermission" validate:"required,file_permission"`      // Unix permissions like 644, 755, 2755 (default: 644)
 	CreateDirectoryPermission string `json:"createDirectoryPermission" validate:"required,file_permission"` // Unix permissions like 755, 2755, 1777 (default: 755)
+}
+
+type IndexSqlConfig struct {
+	BatchSize    int  `json:"batchSize"`    // number of items to batch in a single transaction, typically 500-5000. higher = faster but could use more memory.
+	CacheSizeMB  int  `json:"cacheSizeMB"`  // size of the SQLite cache in MB
+	WalMode      bool `json:"walMode"`      // enable the more complex WAL journaling mode. Slower, more memory usage, but better for deployments with constant user activity.
+	DisableReuse bool `json:"disableReuse"` // enable to always create a new indexing database on startup.
 }
 
 type Integrations struct {
