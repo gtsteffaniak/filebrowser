@@ -61,6 +61,11 @@ func setupServer() {
 	if Config.Server.ListenAddress == "" {
 		Config.Server.ListenAddress = "0.0.0.0"
 	}
+	// Check environment variable first (overrides config file)
+	if os.Getenv("FILEBROWSER_SQL_WAL") == "true" {
+		Config.Server.IndexSqlConfig.WalMode = true
+	}
+	// WalMode is false by default (OFF journaling)
 }
 
 func setupEnv() {
@@ -649,6 +654,12 @@ func setDefaults(generate bool) Settings {
 			NameToSource:       map[string]*Source{},
 			MaxArchiveSizeGB:   50,
 			CacheDir:           "tmp",
+			IndexSqlConfig: IndexSqlConfig{
+				WalMode:      false,
+				BatchSize:    1000,
+				CacheSizeMB:  32,
+				DisableReuse: false,
+			},
 			Filesystem: Filesystem{
 				CreateFilePermission:      "644",
 				CreateDirectoryPermission: "755",

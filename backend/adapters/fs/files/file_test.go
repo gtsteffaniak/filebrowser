@@ -208,7 +208,7 @@ func TestOverrideDirectoryToFile(t *testing.T) {
 
 	// Initialize the database first (use test helper to avoid permission issues)
 	if indexing.GetIndexDB() == nil {
-		db, err := dbsql.NewIndexDB("test_file")
+		db, err := dbsql.NewIndexDB("test_file", "OFF", 1000, 32, false)
 		if err != nil {
 			t.Fatalf("Failed to create test database: %v", err)
 		}
@@ -269,7 +269,7 @@ func TestOverrideDirectoryToFile(t *testing.T) {
 	idx.UpdateMetadata(rootInfo, nil) // nil scanner for test
 
 	// Verify the directory was replaced with a file in the mock data
-	rootInfo, exists := idx.GetMetadataInfo("/", true)
+	rootInfo, exists := idx.GetMetadataInfo("/", true, false)
 	if !exists {
 		t.Fatal("Root metadata not found")
 	}
@@ -318,7 +318,7 @@ func TestOverrideFileToDirectory(t *testing.T) {
 
 	// Initialize the database first (use test helper to avoid permission issues)
 	if indexing.GetIndexDB() == nil {
-		db, err := dbsql.NewIndexDB("test_file")
+		db, err := dbsql.NewIndexDB("test_file", "OFF", 1000, 32, false)
 		if err != nil {
 			t.Fatalf("Failed to create test database: %v", err)
 		}
@@ -377,7 +377,7 @@ func TestOverrideFileToDirectory(t *testing.T) {
 	idx.UpdateMetadata(rootInfo, nil) // nil scanner for test
 
 	// Verify the file was replaced with a directory in the mock data
-	rootInfo, exists := idx.GetMetadataInfo("/", true)
+	rootInfo, exists := idx.GetMetadataInfo("/", true, false)
 	if !exists {
 		t.Fatal("Root metadata not found")
 	}

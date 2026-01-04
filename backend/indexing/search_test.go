@@ -118,7 +118,7 @@ func TestSearchWhileIndexing(t *testing.T) {
 	// Initialize the database if not already done
 	if indexDB == nil {
 		var err error
-		indexDB, err = dbsql.NewIndexDB("test_search_while")
+		indexDB, err = dbsql.NewIndexDB("test_search_while", "OFF", 1000, 32, false)
 		if err != nil {
 			t.Fatalf("Failed to create test database: %v", err)
 		}
@@ -162,7 +162,7 @@ func TestSearchIndexes(t *testing.T) {
 	// Initialize the database if not already done
 	if indexDB == nil {
 		var err error
-		indexDB, err = dbsql.NewIndexDB("test_search")
+		indexDB, err = dbsql.NewIndexDB("test_search", "OFF", 1000, 32, false)
 		if err != nil {
 			t.Fatalf("Failed to create test database: %v", err)
 		}
@@ -443,7 +443,7 @@ func TestSearchLargestModeExcludesRoot(t *testing.T) {
 	// Initialize the database if not already done
 	if indexDB == nil {
 		var err error
-		indexDB, err = dbsql.NewIndexDB("test_search_largest")
+		indexDB, err = dbsql.NewIndexDB("test_search_largest", "OFF", 1000, 32, false)
 		if err != nil {
 			t.Fatalf("Failed to create test database: %v", err)
 		}
@@ -539,7 +539,7 @@ func TestSearchLargestModeExcludesScopeDirectory(t *testing.T) {
 	// Initialize the database if not already done
 	if indexDB == nil {
 		var err error
-		indexDB, err = dbsql.NewIndexDB("test_search_scope")
+		indexDB, err = dbsql.NewIndexDB("test_search_scope", "OFF", 1000, 32, false)
 		if err != nil {
 			t.Fatalf("Failed to create test database: %v", err)
 		}

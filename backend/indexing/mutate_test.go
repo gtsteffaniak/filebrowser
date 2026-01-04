@@ -28,7 +28,7 @@ func setupMutateTestIndex(t *testing.T) *Index {
 	}
 
 	var err error
-	testDB, err := dbsql.NewIndexDB("test_init")
+	testDB, err := dbsql.NewIndexDB("test_init", "OFF", 1000, 32, false)
 	if err != nil {
 		t.Fatalf("Failed to create test database: %v", err)
 	}
@@ -36,8 +36,8 @@ func setupMutateTestIndex(t *testing.T) *Index {
 	testIndex = Index{
 		ReducedIndex: ReducedIndex{
 			Stats: Stats{
-			NumFiles: 10,
-			NumDirs:  5,
+				NumFiles: 10,
+				NumDirs:  5,
 			},
 		},
 		Source: settings.Source{
@@ -214,7 +214,7 @@ func TestUpdateFileMetadata(t *testing.T) {
 	// Initialize the database if not already done
 	if indexDB == nil {
 		var err error
-		indexDB, err = dbsql.NewIndexDB("test_mutate")
+		indexDB, err = dbsql.NewIndexDB("test_mutate", "OFF", 1000, 32, false)
 		if err != nil {
 			t.Fatalf("Failed to create test database: %v", err)
 		}
@@ -274,7 +274,7 @@ func TestSetDirectoryInfo(t *testing.T) {
 	// Initialize the database if not already done
 	if indexDB == nil {
 		var err error
-		indexDB, err = dbsql.NewIndexDB("test_mutate")
+		indexDB, err = dbsql.NewIndexDB("test_mutate", "OFF", 1000, 32, false)
 		if err != nil {
 			t.Fatalf("Failed to create test database: %v", err)
 		}
@@ -316,7 +316,7 @@ func TestSetDirectoryInfo(t *testing.T) {
 		},
 	}
 	index.UpdateMetadata(dir, nil) // nil scanner for test
-	storedDir, exists := index.GetMetadataInfo("/newPath/", true)
+	storedDir, exists := index.GetMetadataInfo("/newPath/", true, false)
 	if !exists || storedDir.Files[0].Name != "testfile.txt" {
 		t.Fatalf("expected SetDirectoryInfo to store directory info correctly")
 	}

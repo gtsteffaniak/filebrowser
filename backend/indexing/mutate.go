@@ -162,7 +162,7 @@ func (idx *Index) GetReducedMetadata(target string, isDir bool) (*iteminfo.FileI
 }
 
 // raw directory info retrieval -- does not work on files, only returns a directory
-func (idx *Index) GetMetadataInfo(target string, isDir bool) (*iteminfo.FileInfo, bool) {
+func (idx *Index) GetMetadataInfo(target string, isDir bool, shallow bool) (*iteminfo.FileInfo, bool) {
 
 	var checkDir string
 	if !isDir {
@@ -186,6 +186,12 @@ func (idx *Index) GetMetadataInfo(target string, isDir bool) (*iteminfo.FileInfo
 	if dir == nil {
 		logger.Debugf("[GET_METADATA] Item %s not found in database", checkDir)
 		return nil, false
+	}
+
+	// If shallow is true, return only the parent item without fetching children
+	// This is much faster when we only need fields like hasPreview
+	if shallow {
+		return dir, true
 	}
 
 	// Get children

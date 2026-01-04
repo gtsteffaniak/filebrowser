@@ -3916,6 +3916,27 @@ const docTemplate = `{
                 }
             }
         },
+        "settings.IndexSqlConfig": {
+            "type": "object",
+            "properties": {
+                "batchSize": {
+                    "description": "number of items to batch in a single transaction, typically 500-5000. higher = faster but could use more memory.",
+                    "type": "integer"
+                },
+                "cacheSizeMB": {
+                    "description": "size of the SQLite cache in MB",
+                    "type": "integer"
+                },
+                "disableReuse": {
+                    "description": "enable to always create a new indexing database on startup.",
+                    "type": "boolean"
+                },
+                "walMode": {
+                    "description": "enable the more complex WAL journaling mode. Slower, more memory usage, but better for deployments with constant user activity.",
+                    "type": "boolean"
+                }
+            }
+        },
         "settings.Integrations": {
             "type": "object",
             "properties": {
@@ -4187,6 +4208,14 @@ const docTemplate = `{
                     "allOf": [
                         {
                             "$ref": "#/definitions/settings.Filesystem"
+                        }
+                    ]
+                },
+                "indexSqlConfig": {
+                    "description": "Index database SQL configuration",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.IndexSqlConfig"
                         }
                     ]
                 },

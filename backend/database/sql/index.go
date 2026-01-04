@@ -17,53 +17,68 @@ type IndexDB struct {
 	*TempDB
 }
 
-// NewIndexDB creates a new index database in the cache directory.
-// Uses a fixed filename for persistence (index_{name}.db).
-func NewIndexDB(name string) (*IndexDB, error) {
-	// Use fixed filename for persistence
-	persistentFile := fmt.Sprintf("index_%s.db", name)
+func createIndexDB(name string, journalMode string, lockingMode string, batchSize int, cacheSizeMB int, disableReuse bool) (*IndexDB, error) {
+	var persistentFile string
+	if !disableReuse {
+		// Reuse enabled (default): use persistent file
+		persistentFile = fmt.Sprintf("index_%s.db", name)
+	}
+	// If disableReuse is true, persistentFile stays empty and a temp file will be created
+
+	// Determine locking mode based on journal mode
+	if lockingMode == "" {
+		if journalMode == "WAL" {
+			lockingMode = "NORMAL"
+		} else {
+			lockingMode = "EXCLUSIVE"
+		}
+	}
+
+	// Convert MB to KB for SQLite cache_size
+	cacheSizeKB := cacheSizeMB * 1024 // Positive value = KB
 
 	db, err := NewTempDB("index_"+name, &TempDBConfig{
-		BatchSize:           1000,             // 1000 items per batch
-		CacheSizeKB:         -250,             // 1MB cache (250 pages * 4KB = 1MB) - reduced to minimize OS page cache pressure
+		BatchSize:           batchSize,
+		CacheSizeKB:         cacheSizeKB,      // From config, converted to KB
 		SoftHeapLimitBytes:  16 * 1024 * 1024, // 16MB soft heap limit (reduced to minimize memory pressure)
 		CacheSpillThreshold: 200,              // Spill dirty pages to disk when cache exceeds 200 pages (~800KB) - more aggressive
 		MmapSize:            0,                // Disable mmap to prevent additional OS page cache usage
-		Synchronous:         "OFF",            // OFF for maximum write performance - data integrity not critical
+		Synchronous:         "OFF",            // No sync for maximum performance - safe since DB can be rebuilt
 		TempStore:           "FILE",           // FILE instead of MEMORY to reduce memory usage
-		JournalMode:         "OFF",            // OFF for maximum write performance - data integrity not critical
-		LockingMode:         "EXCLUSIVE",      // EXCLUSIVE mode - better cache retention, no change counter overhead
-		PersistentFile:      persistentFile,   // Use fixed filename instead of temp file
+		JournalMode:         journalMode,      // Configurable journal mode
+		LockingMode:         lockingMode,      // Configurable locking mode
+		PersistentFile:      persistentFile,   // Use fixed filename or empty for temp file
 	})
 	if err != nil {
 		return nil, err
 	}
-	idxDB := &IndexDB{TempDB: db}
+	return &IndexDB{TempDB: db}, nil
+}
+
+// NewIndexDB creates a new index database in the cache directory.
+// Uses a fixed filename for persistence (index_{name}.db) unless disableReuse is true.
+// journalMode: "OFF", "WAL", "DELETE" - controls SQLite journal mode
+// batchSize: number of items per batch transaction
+// cacheSizeMB: cache size in megabytes
+// disableReuse: true to delete and recreate DB on startup, false to reuse existing (default)
+func NewIndexDB(name string, journalMode string, batchSize int, cacheSizeMB int, disableReuse bool) (*IndexDB, error) {
+	idxDB, err := createIndexDB(name, journalMode, "", batchSize, cacheSizeMB, disableReuse)
+	if err != nil {
+		return nil, err
+	}
 
 	// For persistent databases, check integrity on startup
 	// If corrupted, delete and recreate the database
-	if persistentFile != "" {
+	if !disableReuse {
 		if err := idxDB.checkIntegrityAndRecreateIfNeeded(); err != nil {
 			// Database was recreated, need to create a new connection
 			idxDB.Close()
 
 			// Recreate the database connection
-			db, err := NewTempDB("index_"+name, &TempDBConfig{
-				BatchSize:           1000,
-				CacheSizeKB:         -250,
-				SoftHeapLimitBytes:  16 * 1024 * 1024,
-				CacheSpillThreshold: 200,
-				MmapSize:            0,
-				Synchronous:         "OFF",
-				TempStore:           "FILE",
-				JournalMode:         "OFF",
-				LockingMode:         "EXCLUSIVE",
-				PersistentFile:      persistentFile,
-			})
+			idxDB, err = createIndexDB(name, journalMode, "", batchSize, cacheSizeMB, disableReuse)
 			if err != nil {
-				return nil, fmt.Errorf("failed to recreate database after corruption: %w", err)
+				return nil, err
 			}
-			idxDB = &IndexDB{TempDB: db}
 		}
 	}
 
@@ -151,14 +166,9 @@ func (db *IndexDB) CreateIndexTable() error {
 		PRIMARY KEY (source, path)
 	);
 	
-	CREATE INDEX IF NOT EXISTS idx_source ON index_items(source);
 	CREATE INDEX IF NOT EXISTS idx_source_parent_path ON index_items(source, parent_path);
-	CREATE INDEX IF NOT EXISTS idx_source_parent_path_is_dir_name ON index_items(source, parent_path, is_dir, name);
 	CREATE INDEX IF NOT EXISTS idx_source_size ON index_items(source, size);
-	CREATE INDEX IF NOT EXISTS idx_source_size_type ON index_items(source, size, type);
-	CREATE INDEX IF NOT EXISTS idx_name ON index_items(name);
 	CREATE INDEX IF NOT EXISTS idx_last_updated ON index_items(source, last_updated);
-	CREATE INDEX IF NOT EXISTS idx_source_is_dir ON index_items(source, is_dir);
 	`
 	_, err := db.Exec(query)
 	return err
@@ -221,11 +231,14 @@ func (db *IndexDB) BulkInsertItems(source string, items []*iteminfo.FileInfo) er
 	if err != nil {
 		// Soft failure: DB is busy or locked, skip this update
 		if isBusyError(err) || isTransactionError(err) {
+			db.mu.Unlock() // Release mutex on error
 			logger.Debugf("[DB_TX] BulkInsertItems: BeginTransaction failed (DB busy/locked), skipping - took %v", time.Since(startTime))
 			return nil // Non-fatal: filesystem will be used as fallback
 		}
-		return err // Hard failure: something is wrong with the DB
+		db.mu.Unlock() // Release mutex on error
+		return err     // Hard failure: something is wrong with the DB
 	}
+	defer db.mu.Unlock() // Ensure mutex is always released
 
 	stmt, err := tx.Prepare(`
 	INSERT INTO index_items (source, path, parent_path, name, size, mod_time, type, is_dir, is_hidden, has_preview, last_updated)
@@ -252,9 +265,9 @@ func (db *IndexDB) BulkInsertItems(source string, items []*iteminfo.FileInfo) er
 	`)
 	if err != nil {
 		if isBusyError(err) || isTransactionError(err) {
-			// With EXCLUSIVE locking and single connection, this shouldn't happen.
+			// With EXCLUSIVE locking and mutex, this shouldn't happen.
 			// Log as warning to surface potential issues (another process accessing DB, bug, etc.)
-			logger.Errorf("[DB] BulkInsertItems: Unexpected busy/lock error during Prepare (EXCLUSIVE mode): %v", err)
+			logger.Errorf("[DB] BulkInsertItems: Unexpected busy/lock error during Prepare: %v", err)
 			return nil
 		}
 		return err
@@ -279,9 +292,9 @@ func (db *IndexDB) BulkInsertItems(source string, items []*iteminfo.FileInfo) er
 		)
 		if err != nil {
 			if isBusyError(err) || isTransactionError(err) {
-				// With EXCLUSIVE locking and single connection, this shouldn't happen.
+				// With EXCLUSIVE locking and mutex, this shouldn't happen.
 				// Log as warning to surface potential issues (another process accessing DB, bug, etc.)
-				logger.Errorf("[DB] BulkInsertItems: Unexpected busy/lock error during Exec (EXCLUSIVE mode): %v", err)
+				logger.Errorf("[DB] BulkInsertItems: Unexpected busy/lock error during Exec: %v", err)
 				return nil
 			}
 			return err
@@ -291,9 +304,9 @@ func (db *IndexDB) BulkInsertItems(source string, items []*iteminfo.FileInfo) er
 	// Try to commit
 	if err := tx.Commit(); err != nil {
 		if isBusyError(err) || isTransactionError(err) {
-			// With EXCLUSIVE locking and single connection, this shouldn't happen.
+			// With EXCLUSIVE locking and mutex, this shouldn't happen.
 			// Log as warning to surface potential issues (another process accessing DB, bug, etc.)
-			logger.Errorf("[DB] BulkInsertItems: Unexpected busy/lock error during Commit (EXCLUSIVE mode): %v", err)
+			logger.Errorf("[DB] BulkInsertItems: Unexpected busy/lock error during Commit: %v", err)
 			return nil
 		}
 		return err
@@ -384,6 +397,51 @@ func (db *IndexDB) GetItemsByPaths(source string, paths []string) (map[string]*i
 			return nil, err
 		}
 		result[item.Path] = item
+	}
+
+	return result, nil
+}
+
+// GetHasPreviewBatch retrieves hasPreview status for multiple directory paths in a single query.
+// This is optimized for the N+1 query pattern in GetDirInfo where we need hasPreview for all subdirectories.
+// Returns map[path]hasPreview. Missing paths in the result indicate they're not in the database yet.
+func (db *IndexDB) GetHasPreviewBatch(source string, paths []string) (map[string]bool, error) {
+	if len(paths) == 0 {
+		return make(map[string]bool), nil
+	}
+
+	// Build query with IN clause - only select path and has_preview for efficiency
+	placeholders := make([]string, len(paths))
+	args := make([]interface{}, len(paths)+1)
+	args[0] = source
+	for i, path := range paths {
+		placeholders[i] = "?"
+		args[i+1] = path
+	}
+
+	query := fmt.Sprintf(`
+	SELECT path, has_preview
+	FROM index_items WHERE source = ? AND path IN (%s) AND is_dir = 1
+	`, strings.Join(placeholders, ","))
+
+	rows, err := db.Query(query, args...)
+	if err != nil {
+		// Soft failure: DB is busy or locked, return empty map
+		if isBusyError(err) || isTransactionError(err) {
+			return make(map[string]bool), nil
+		}
+		return nil, err
+	}
+	defer rows.Close()
+
+	result := make(map[string]bool)
+	for rows.Next() {
+		var path string
+		var hasPreview bool
+		if err := rows.Scan(&path, &hasPreview); err != nil {
+			return nil, err
+		}
+		result[path] = hasPreview
 	}
 
 	return result, nil
@@ -787,6 +845,34 @@ func (db *IndexDB) UpdateFolderSizesIfChanged(source string, pathSizes map[strin
 	return rowsAffected, nil
 }
 
+// LoadFolderSizes loads all folder sizes for a source from the database
+// Used on initialization to populate the in-memory map with existing sizes
+func (db *IndexDB) LoadFolderSizes(source string) (map[string]uint64, error) {
+	query := `
+		SELECT path, size 
+		FROM index_items 
+		WHERE source = ? AND is_dir = 1
+	`
+
+	rows, err := db.Query(query, source)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	folderSizes := make(map[string]uint64)
+	for rows.Next() {
+		var path string
+		var size uint64
+		if err := rows.Scan(&path, &size); err != nil {
+			return nil, err
+		}
+		folderSizes[path] = size
+	}
+
+	return folderSizes, rows.Err()
+}
+
 // GetFilesBySizeAndType retrieves files matching both size and type.
 func (db *IndexDB) GetFilesBySizeAndType(source string, size int64, fileType string, pathPrefix string) ([]*iteminfo.FileInfo, error) {
 	var query string
@@ -991,10 +1077,13 @@ func (db *IndexDB) RecalculateDirectorySizes(source, pathPrefix string) (int, er
 	tx, err := db.BeginTransaction()
 	if err != nil {
 		if isBusyError(err) || isTransactionError(err) {
+			db.mu.Unlock() // Release mutex on error
 			return 0, nil
 		}
+		db.mu.Unlock() // Release mutex on error
 		return 0, err
 	}
+	defer db.mu.Unlock() // Ensure mutex is always released
 	// No defer rollback - data integrity not critical, performance is priority
 
 	// Batch calculate all directory sizes in a single query to avoid N+1 problem

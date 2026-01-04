@@ -102,6 +102,16 @@ type TempDBConfig struct {
 	// Default: 500 pages (~2MB) to trigger early spilling and reduce memory usage.
 	CacheSpillThreshold int
 
+	// WalAutocheckpoint sets PRAGMA wal_autocheckpoint in pages. Controls how many pages
+	// can accumulate in the WAL file before an automatic checkpoint.
+	// Default: 1000 pages (~4MB). Larger values reduce checkpoint frequency.
+	WalAutocheckpoint int
+
+	// JournalSizeLimit sets PRAGMA journal_size_limit in bytes. Limits the maximum size
+	// of the WAL journal file. Set to -1 for no limit, 0 for default.
+	// Default: 0 (uses SQLite default)
+	JournalSizeLimit int64
+
 	// If empty, a temp file with random suffix will be created.
 	// The file will not be deleted on Close() if this is set.
 	PersistentFile string
@@ -293,6 +303,28 @@ func NewTempDB(id string, config ...*TempDBConfig) (*TempDB, error) {
 		err string
 	}{fmt.Sprintf("PRAGMA mmap_size = %d;", cfg.MmapSize), "failed to set mmap_size"})
 
+	// WAL autocheckpoint - controls checkpoint frequency in WAL mode
+	if cfg.WalAutocheckpoint > 0 {
+		basePragmas = append(basePragmas, struct {
+			sql string
+			err string
+		}{fmt.Sprintf("PRAGMA wal_autocheckpoint = %d;", cfg.WalAutocheckpoint), "failed to set wal_autocheckpoint"})
+	}
+
+	// Journal size limit - limits WAL file growth
+	if cfg.JournalSizeLimit > 0 {
+		basePragmas = append(basePragmas, struct {
+			sql string
+			err string
+		}{fmt.Sprintf("PRAGMA journal_size_limit = %d;", cfg.JournalSizeLimit), "failed to set journal_size_limit"})
+	} else if cfg.JournalSizeLimit == -1 {
+		// -1 means no limit
+		basePragmas = append(basePragmas, struct {
+			sql string
+			err string
+		}{"PRAGMA journal_size_limit = -1;", "failed to set journal_size_limit"})
+	}
+
 	for _, pragma := range basePragmas {
 		if _, err := db.Exec(pragma.sql); err != nil {
 			db.Close()
@@ -323,8 +355,11 @@ func (t *TempDB) DB() *sql.DB {
 
 // BeginTransaction starts a transaction for bulk operations.
 // The caller must call Commit() or Rollback() on the returned transaction.
-// The mutex is NOT held during the transaction - caller is responsible for coordination.
+// IMPORTANT: The mutex is acquired here and MUST be released by calling
+// t.mu.Unlock() after commit/rollback to ensure exclusive transaction access.
 func (t *TempDB) BeginTransaction() (*sql.Tx, error) {
+	t.mu.Lock()
+	// NOTE: Mutex is NOT unlocked here! Caller must unlock after commit/rollback
 	return t.db.Begin()
 }
 

@@ -16,7 +16,7 @@ func setupTestIndex(t *testing.T) (*Index, string, func()) {
 	// Initialize the database if not already done
 	if indexDB == nil {
 		var err error
-		indexDB, err = dbsql.NewIndexDB("test_indexing")
+		indexDB, err = dbsql.NewIndexDB("test_indexing", "OFF", 1000, 32, false)
 		if err != nil {
 			t.Fatalf("Failed to create test database: %v", err)
 		}
@@ -182,7 +182,7 @@ func TestFolderSizeCalculation(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Get directory info directly from mock data
-			dirInfo, exists := idx.GetMetadataInfo(tt.path, true)
+			dirInfo, exists := idx.GetMetadataInfo(tt.path, true, false)
 			if !exists {
 				t.Fatalf("Directory %s not found in mock data", tt.path)
 			}
@@ -199,7 +199,7 @@ func TestNonRecursiveMetadataUpdate(t *testing.T) {
 	defer cleanup()
 
 	// Get initial root size
-	rootInfo, exists := idx.GetMetadataInfo("/", true)
+	rootInfo, exists := idx.GetMetadataInfo("/", true, false)
 	if !exists {
 		t.Fatal("Root metadata not found")
 	}
@@ -222,7 +222,7 @@ func TestNonRecursiveMetadataUpdate(t *testing.T) {
 	_ = idx.db.InsertItem("test", "/", rootInfo)
 
 	// Check that root size updated
-	rootInfo, exists = idx.GetMetadataInfo("/", true)
+	rootInfo, exists = idx.GetMetadataInfo("/", true, false)
 	if !exists {
 		t.Fatal("Root metadata not found after non-recursive update")
 	}
@@ -238,7 +238,7 @@ func TestPreviewDoesNotPropagateFromSubdirectories(t *testing.T) {
 	defer cleanup()
 
 	// Add an image file to subdir in database (should have preview)
-	subdirInfo, exists := idx.GetMetadataInfo("/subdir/", true)
+	subdirInfo, exists := idx.GetMetadataInfo("/subdir/", true, false)
 	if !exists {
 		t.Fatal("Subdir metadata not found")
 	}
@@ -257,7 +257,7 @@ func TestPreviewDoesNotPropagateFromSubdirectories(t *testing.T) {
 	_ = idx.db.InsertItem("test", "/subdir/", subdirInfo)
 
 	// Check that subdir has preview (due to image.jpg)
-	subdirInfoCheck, exists := idx.GetMetadataInfo("/subdir/", true)
+	subdirInfoCheck, exists := idx.GetMetadataInfo("/subdir/", true, false)
 	if !exists {
 		t.Fatal("Subdir metadata not found")
 	}
@@ -266,7 +266,7 @@ func TestPreviewDoesNotPropagateFromSubdirectories(t *testing.T) {
 	}
 
 	// Check that root does NOT have preview propagated from subdir
-	rootInfoCheck, exists := idx.GetMetadataInfo("/", true)
+	rootInfoCheck, exists := idx.GetMetadataInfo("/", true, false)
 	if !exists {
 		t.Fatal("Root metadata not found")
 	}
@@ -283,7 +283,7 @@ func TestPreviewPropagatesFromFiles(t *testing.T) {
 	defer cleanup()
 
 	// Add an image file to root in database (should propagate preview to root)
-	rootInfo, exists := idx.GetMetadataInfo("/", true)
+	rootInfo, exists := idx.GetMetadataInfo("/", true, false)
 	if !exists {
 		t.Fatal("Root metadata not found")
 	}
@@ -302,7 +302,7 @@ func TestPreviewPropagatesFromFiles(t *testing.T) {
 	_ = idx.db.InsertItem("test", "/", rootInfo)
 
 	// Check that root HAS preview (due to direct image.png file)
-	rootInfoCheck, exists := idx.GetMetadataInfo("/", true)
+	rootInfoCheck, exists := idx.GetMetadataInfo("/", true, false)
 	if !exists {
 		t.Fatal("Root metadata not found")
 	}
