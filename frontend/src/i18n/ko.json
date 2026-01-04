@@ -62,7 +62,9 @@
     "newFile": "새 파일{suffix}",
     "newFolder": "새 폴더{suffix}",
     "duration": "기간{suffix}",
-    "sortByDuration": "기간별로 정렬"
+    "sortByDuration": "기간별로 정렬",
+    "sameFolder": "같은 폴더로 이동할 수 없습니다",
+    "cannotAccesDir": "디렉토리에 액세스할 수 없습니다"
   },
   "help": {
     "functionKeys": "기능 키",
@@ -218,7 +220,8 @@
     "renameSuccess": "아이템 이름 변경에 성공했습니다!",
     "newFileSuccess": "파일이 성공적으로 생성되었습니다!",
     "newDirSuccess": "디렉토리가 성공적으로 생성되었습니다!",
-    "copyToClipboardFailed": "클립보드에 복사할 수 없습니다."
+    "copyToClipboardFailed": "클립보드에 복사할 수 없습니다.",
+    "moveFailed": "이동 실패"
   },
   "search": {
     "smallerThan": "보다 작습니다:",

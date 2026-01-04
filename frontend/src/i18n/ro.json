@@ -62,7 +62,9 @@
     "newFile": "Fișier nou{suffix}",
     "newFolder": "Dosar nou{suffix}",
     "duration": "Durată{suffix}",
-    "sortByDuration": "Sortare după durată"
+    "sortByDuration": "Sortare după durată",
+    "sameFolder": "Nu se poate muta în același folder",
+    "cannotAccesDir": "Nu se poate accesa directorul"
   },
   "help": {
     "functionKeys": "Taste Funcție",
@@ -218,7 +220,8 @@
     "renameSuccess": "Element redenumit cu succes!",
     "newFileSuccess": "Fișier creat cu succes!",
     "newDirSuccess": "Director creat cu succes!",
-    "copyToClipboardFailed": "Imposibilitatea de a copia în clipboard"
+    "copyToClipboardFailed": "Imposibilitatea de a copia în clipboard",
+    "moveFailed": "Mutarea a eșuat"
   },
   "search": {
     "smallerThan": "Mai mic decât:",

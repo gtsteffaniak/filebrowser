@@ -62,7 +62,9 @@
     "newFile": "Yeni dosya{suffix}",
     "newFolder": "Yeni klasör{suffix}",
     "duration": "Süre{suffix}",
-    "sortByDuration": "Süreye göre sırala"
+    "sortByDuration": "Süreye göre sırala",
+    "sameFolder": "Aynı klasöre taşınamaz",
+    "cannotAccesDir": "Dizine erişilemiyor"
   },
   "help": {
     "functionKeys": "Fonksiyon Tuşları",
@@ -218,7 +220,8 @@
     "renameSuccess": "Öğe başarıyla yeniden adlandırıldı!",
     "newFileSuccess": "Dosya başarıyla oluşturuldu!",
     "newDirSuccess": "Dizin başarıyla oluşturuldu!",
-    "copyToClipboardFailed": "Panoya kopyalanamıyor"
+    "copyToClipboardFailed": "Panoya kopyalanamıyor",
+    "moveFailed": "Taşıma başarısız"
   },
   "search": {
     "smallerThan": "Daha küçük:",

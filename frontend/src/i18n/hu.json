@@ -62,7 +62,9 @@
     "newFile": "Új fájl{suffix}",
     "newFolder": "Új mappa{suffix}",
     "duration": "Időtartam{suffix}",
-    "sortByDuration": "Rendezés időtartam szerint"
+    "sortByDuration": "Rendezés időtartam szerint",
+    "sameFolder": "Nem lehet ugyanabba a mappába mozgatni",
+    "cannotAccesDir": "Nem lehet hozzáférni a könyvtárhoz"
   },
   "help": {
     "functionKeys": "Funkcióbillentyűk",
@@ -218,7 +220,8 @@
     "renameSuccess": "Az elem átnevezése sikeres volt!",
     "newFileSuccess": "A fájl sikeresen létrehozva!",
     "newDirSuccess": "A könyvtárat sikeresen létrehoztuk!",
-    "copyToClipboardFailed": "Nem lehet a vágólapra másolni"
+    "copyToClipboardFailed": "Nem lehet a vágólapra másolni",
+    "moveFailed": "Áthelyezés sikertelen"
   },
   "search": {
     "smallerThan": "Kisebb, mint:",

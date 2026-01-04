@@ -62,7 +62,9 @@
     "newFile": "Novo arquivo{suffix}",
     "newFolder": "Nova pasta{suffix}",
     "duration": "Duração{suffix}",
-    "sortByDuration": "Ordenar por duração"
+    "sortByDuration": "Ordenar por duração",
+    "sameFolder": "Não é possível mover para a mesma pasta",
+    "cannotAccesDir": "Não é possível acessar o diretório"
   },
   "help": {
     "functionKeys": "Teclas de Função",
@@ -218,7 +220,8 @@
     "renameSuccess": "Item renomeado com sucesso!",
     "newFileSuccess": "Arquivo criado com sucesso!",
     "newDirSuccess": "Diretório criado com sucesso!",
-    "copyToClipboardFailed": "Não é possível copiar para a área de transferência"
+    "copyToClipboardFailed": "Não é possível copiar para a área de transferência",
+    "moveFailed": "Falha ao mover"
   },
   "search": {
     "smallerThan": "Menor que:",

@@ -62,7 +62,9 @@
     "newFile": "Nouveau Fichier{suffix}",
     "newFolder": "Nouveau dossier{suffix}",
     "duration": "Durée de l'accord{suffix}",
-    "sortByDuration": "Trier par durée"
+    "sortByDuration": "Trier par durée",
+    "sameFolder": "Impossible de déplacer vers le même dossier",
+    "cannotAccesDir": "Impossible d'accéder au répertoire"
   },
   "help": {
     "functionKeys": "Touches de Fonction",
@@ -218,7 +220,8 @@
     "renameSuccess": "L'élément a été renommé avec succès !",
     "newFileSuccess": "Fichier créé avec succès !",
     "newDirSuccess": "Répertoire créé avec succès !",
-    "copyToClipboardFailed": "Impossible de copier dans le presse-papiers"
+    "copyToClipboardFailed": "Impossible de copier dans le presse-papiers",
+    "moveFailed": "Échec du déplacement"
   },
   "search": {
     "smallerThan": "Plus petit que :",

@@ -62,7 +62,9 @@
     "newFile": "Nieuw bestand{suffix}",
     "newFolder": "Nieuwe map{suffix}",
     "duration": "Duur{suffix}",
-    "sortByDuration": "Sorteren op duur"
+    "sortByDuration": "Sorteren op duur",
+    "sameFolder": "Kan niet naar dezelfde map verplaatsen",
+    "cannotAccesDir": "Kan de map niet openen"
   },
   "help": {
     "functionKeys": "Functietoetsen",
@@ -218,7 +220,8 @@
     "renameSuccess": "Item hernoemd succesvol!",
     "newFileSuccess": "Bestand succesvol aangemaakt!",
     "newDirSuccess": "Directory succesvol aangemaakt!",
-    "copyToClipboardFailed": "Kan niet naar klembord kopiëren"
+    "copyToClipboardFailed": "Kan niet naar klembord kopiëren",
+    "moveFailed": "Verplaatsen mislukt"
   },
   "search": {
     "smallerThan": "Kleiner dan:",

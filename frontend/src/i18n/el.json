@@ -65,7 +65,9 @@
     "newFile": "Νέο αρχείο{suffix}",
     "newFolder": "Νέος φάκελος{suffix}",
     "duration": "Διάρκεια{suffix}",
-    "sortByDuration": "Ταξινόμηση κατά διάρκεια"
+    "sortByDuration": "Ταξινόμηση κατά διάρκεια",
+    "sameFolder": "Δεν είναι δυνατή η μετακίνηση στον ίδιο φάκελο",
+    "cannotAccesDir": "Δεν είναι δυνατή η πρόσβαση στον κατάλογο"
   },
   "help": {
     "functionKeys": "Πλήκτρα Λειτουργιών",
@@ -221,7 +223,8 @@
     "renameSuccess": "Το στοιχείο μετονομάστηκε επιτυχώς!",
     "newFileSuccess": "Το αρχείο δημιουργήθηκε με επιτυχία!",
     "newDirSuccess": "Ο κατάλογος δημιουργήθηκε με επιτυχία!",
-    "copyToClipboardFailed": "Αδυναμία αντιγραφής στο πρόχειρο"
+    "copyToClipboardFailed": "Αδυναμία αντιγραφής στο πρόχειρο",
+    "moveFailed": "Η μετακίνηση απέτυχε"
   },
   "search": {
     "smallerThan": "Μικρότερο από:",

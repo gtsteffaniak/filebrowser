@@ -62,7 +62,9 @@
     "newFile": "Ny fil{suffix}",
     "newFolder": "Ny folder{suffix}",
     "duration": "Varaktighet{suffix}",
-    "sortByDuration": "Sortera efter varaktighet"
+    "sortByDuration": "Sortera efter varaktighet",
+    "sameFolder": "Kan inte flytta till samma mapp",
+    "cannotAccesDir": "Kan inte komma åt katalogen"
   },
   "help": {
     "functionKeys": "Funktionstangenter",
@@ -218,7 +220,8 @@
     "renameSuccess": "Objektet har bytt namn framgångsrikt!",
     "newFileSuccess": "Filen skapades framgångsrikt!",
     "newDirSuccess": "Katalog skapad framgångsrikt!",
-    "copyToClipboardFailed": "Det går inte att kopiera till urklipp"
+    "copyToClipboardFailed": "Det går inte att kopiera till urklipp",
+    "moveFailed": "Flyttning misslyckades"
   },
   "search": {
     "smallerThan": "Mindre än:",

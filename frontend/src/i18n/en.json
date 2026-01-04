@@ -182,7 +182,9 @@
     "itemsSelected": "items selected",
     "myFiles": "My files{suffix}",
     "newFile": "New file{suffix}",
-    "newFolder": "New folder{suffix}"
+    "newFolder": "New folder{suffix}",
+    "sameFolder": "Cannot move to same folder",
+    "cannotAccesDir": "Cannot access directory"
   },
   "help": {
     "functionKeys": "Function Keys",
@@ -406,7 +408,8 @@
     "firstLoadTitle": "Welcome to FileBrowser Quantum!",
     "firstLoadBody": "A new database was created on startup. If this is not what you expected, please double check your configuration file for `server.database` path and ensure it exists. On docker, database path could be `./data/database.db` or `./database.db`.",
     "halloweenTitle": "Happy Halloween!",
-    "halloweenBody": "The Halloween theme has been applied. You can disable it if you don't like it, or permanently disable it in profile settings by selecting any other theme."
+    "halloweenBody": "The Halloween theme has been applied. You can disable it if you don't like it, or permanently disable it in profile settings by selecting any other theme.",
+    "moveFailed": "Move failed"
   },
   "search": {
     "searchContext": "Search Context: {context}",

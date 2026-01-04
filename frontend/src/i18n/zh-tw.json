@@ -62,7 +62,9 @@
     "newFile": "新檔案{suffix}",
     "newFolder": "新資料夾{suffix}",
     "duration": "時間長度{suffix}",
-    "sortByDuration": "依時間長短排序"
+    "sortByDuration": "依時間長短排序",
+    "sameFolder": "無法移動到相同資料夾",
+    "cannotAccesDir": "無法存取目錄"
   },
   "help": {
     "functionKeys": "功能鍵",
@@ -218,7 +220,8 @@
     "renameSuccess": "項目已成功重新命名！",
     "newFileSuccess": "檔案已成功建立！",
     "newDirSuccess": "目錄建立成功！",
-    "copyToClipboardFailed": "無法複製到剪貼簿"
+    "copyToClipboardFailed": "無法複製到剪貼簿",
+    "moveFailed": "移動失敗"
   },
   "search": {
     "smallerThan": "小於：",

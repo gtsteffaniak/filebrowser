@@ -203,7 +203,8 @@ export default {
       const normalizedCurrent = normalizePath(currentPath);
 
       if (normalizedTarget === normalizedCurrent) {
-        notify.showErrorToast("Cannot move to same folder");
+        notify.showErrorToast(this.$t("files.sameFolder"));
+        console.log("Cannot move to same folder");
         return;
       }
 
@@ -246,11 +247,6 @@ export default {
         return true;
       });
 
-      if (itemsToMove.length === 0) {
-        notify.showErrorToast("No valid items to move");
-        return;
-      }
-
       // Check for conflicts in target directory
       let targetDirItems = [];
       try {
@@ -262,7 +258,8 @@ export default {
           targetDirItems = response?.items;
         }
       } catch (error) {
-        notify.showErrorToast("Cannot access target directory");
+        notify.showErrorToast(this.$t("files.cannotAcessDir"));
+        console.log("Cannot access to target directory", e);
         return;
       }
 
@@ -301,7 +298,8 @@ export default {
           mutations.setReload(true);
         } catch (error) {
           mutations.closeHovers();
-          notify.showErrorToast("Move failed");
+          notify.showErrorToast(this.$t("prompts.moveFailed"));
+          console.log("Move failed", e);
         }
       };
 

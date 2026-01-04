@@ -62,7 +62,9 @@
     "newFile": "Neue Datei{suffix}",
     "newFolder": "Neuer Ordner{suffix}",
     "duration": "Dauer{suffix}",
-    "sortByDuration": "Sortieren nach Dauer"
+    "sortByDuration": "Sortieren nach Dauer",
+    "sameFolder": "Kann nicht in denselben Ordner verschoben werden",
+    "cannotAccesDir": "Kann nicht auf das Verzeichnis zugreifen"
   },
   "help": {
     "functionKeys": "Funktionstasten",
@@ -218,7 +220,8 @@
     "renameSuccess": "Artikel erfolgreich umbenannt!",
     "newFileSuccess": "Datei erfolgreich erstellt!",
     "newDirSuccess": "Verzeichnis erfolgreich erstellt!",
-    "copyToClipboardFailed": "Kopieren in die Zwischenablage nicht möglich"
+    "copyToClipboardFailed": "Kopieren in die Zwischenablage nicht möglich",
+    "moveFailed": "Verschieben fehlgeschlagen"
   },
   "search": {
     "smallerThan": "Kleiner als:",
