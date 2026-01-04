@@ -1,5 +1,8 @@
 <template>
-  <div id="breadcrumbs" :class="{ 'add-padding': addPadding, 'hidden': isHidden }">
+  <transition name="breadcrumbs-slide">
+    <div id="breadcrumbs"
+      v-show="!isHidden"
+      :class="{ 'add-padding': addPadding }">
     <ul v-if="items.length > 0">
       <li>
         <router-link :to="base" :aria-label="$t('general.home')" :title="$t('general.home')"
@@ -29,6 +32,7 @@
       </li>
     </ul>
   </div>
+  </transition>
   <div class="breadcrumbs-placeholder" :class="{ 'empty': items.length === 0 }"></div>
 </template>
 
@@ -415,12 +419,23 @@ export default {
   z-index: 1000;
   right: 0;
   left: 0;
-  transform: translateY(0);
-  transition: transform 0.3s ease-in-out;
 }
 
-#breadcrumbs.hidden {
+.breadcrumbs-slide-enter-active,
+.breadcrumbs-slide-leave-active {
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.breadcrumbs-slide-enter-from,
+.breadcrumbs-slide-leave-to {
   transform: translateY(-100%);
+  opacity: 0;
+}
+
+.breadcrumbs-slide-enter-to,
+.breadcrumbs-slide-leave-from {
+  transform: translateY(0);
+  opacity: 1;
 }
 
 /* Backdrop-filter support */
