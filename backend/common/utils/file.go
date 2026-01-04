@@ -55,4 +55,5 @@ type FileOptions struct {
 	Metadata                 bool // whether to get metadata
 	ExtractEmbeddedSubtitles bool // whether to extract embedded subtitles from media files
 	AlbumArt                 bool // whether to get album art from media files
+	ShowHidden               bool // whether to show hidden files (true = show, false = hide)
 }

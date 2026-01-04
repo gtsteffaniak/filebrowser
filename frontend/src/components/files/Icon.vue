@@ -93,17 +93,17 @@ export default {
         return false;
       }
       const simpleType = this.getIconForType().simpleType;
-      if (simpleType === "video" && !state.user.preview?.video) {
+      if (simpleType === "video" && !getters.previewPerms().video) {
         return false;
       }
-      if (simpleType === "image" && !state.user.preview?.image) {
+      if (simpleType === "image" && !getters.previewPerms().image) {
         return false;
       }
       // office files
-      if ((simpleType === "document" || simpleType === "text") && !state.user.preview?.office) {
+      if ((simpleType === "document" || simpleType === "text") && !getters.previewPerms().office) {
         return false;
       }
-      if (!state.user.preview.folder && this.mimetype == "directory") {
+      if (!getters.previewPerms().folder && this.mimetype == "directory") {
         return false;
       }
       return this.imageState !== 'error' && !this.disablePreviewExt && !this.officeFileDisabled
@@ -153,7 +153,7 @@ export default {
       return this.imageTargetSrc;
     },
     showLargeIcon() {
-      return getters.viewMode() === "gallery" && state.user.preview.highQuality;
+      return getters.viewMode() === "gallery" && getters.previewPerms().highQuality;
     },
     showLarger() {
       return getters.viewMode() === "gallery" || getters.viewMode() === "normal";
@@ -161,10 +161,9 @@ export default {
     hasMotion() {
       return (
         this.getIconForType().simpleType === "video" &&
-        state.user.preview?.video &&
+        getters.previewPerms().video &&
         globalVars.mediaAvailable &&
-        // @ts-ignore
-        state.user.preview.motionVideoPreview
+        getters.previewPerms().motionVideoPreview
       );
     },
     isMaterialIcon() {
@@ -206,8 +205,7 @@ export default {
       if (this.imageState == "loaded") {
         mutations.setPreviewSource(imageUrl);
       }
-      // @ts-ignore
-      if (!state.user.preview.motionVideoPreview || !this.hasMotion) {
+      if (!getters.previewPerms().motionVideoPreview || !this.hasMotion) {
         return;
       }
 
@@ -226,7 +224,7 @@ export default {
           return;
         }
         // Set the thumbnail or popup preview
-        if (state.user.preview.popup) {
+        if (getters.previewPerms().popup) {
           mutations.setPreviewSource(sequence[index]);
         } else {
           this.currentThumbnail = sequence[index];
@@ -272,7 +270,6 @@ export default {
     showLargeIcon() {
       this.updateImageTargetSrc();
     },
-    // UPDATED: Load image when URL changes, let hasPreviewImage control display
     imageTargetSrc: {
       handler(newSrc) {
         // Check all conditions EXCEPT imageState to avoid circular dependency
@@ -283,17 +280,17 @@ export default {
           return;
         }
         const simpleType = this.getIconForType().simpleType;
-        // Check user preview settings
-        if (simpleType === "video" && !state.user.preview?.video) {
+        // Check preview settings (share or user)
+        if (simpleType === "video" && !getters.previewPerms().video) {
           return;
         }
-        if (simpleType === "image" && !state.user.preview?.image) {
+        if (simpleType === "image" && !getters.previewPerms().image) {
           return;
         }
-        if ((simpleType === "document" || simpleType === "text") && !state.user.preview?.office) {
+        if ((simpleType === "document" || simpleType === "text") && !getters.previewPerms().office) {
           return;
         }
-        if (!state.user.preview.folder && this.mimetype === "directory") {
+        if (!getters.previewPerms().folder && this.mimetype === "directory") {
           return;
         }
         if (this.disablePreviewExt || this.officeFileDisabled) {
