@@ -65,7 +65,9 @@
     "newFile": "Nový soubor{suffix}",
     "newFolder": "Nová složka{suffix}",
     "duration": "Doba trvání{suffix}",
-    "sortByDuration": "Třídit podle doby trvání"
+    "sortByDuration": "Třídit podle doby trvání",
+    "sameFolder": "Nelze přesunout do stejné složky",
+    "cannotAccesDir": "Nelze přistoupit k adresáři"
   },
   "help": {
     "functionKeys": "Funkční Klávesy",
@@ -289,7 +291,8 @@
     "renameSuccess": "Položka byla úspěšně přejmenována!",
     "newFileSuccess": "Soubor byl úspěšně vytvořen!",
     "newDirSuccess": "Adresář byl úspěšně vytvořen!",
-    "copyToClipboardFailed": "Nelze zkopírovat do schránky"
+    "copyToClipboardFailed": "Nelze zkopírovat do schránky",
+    "moveFailed": "Přesun se nezdařil"
   },
   "search": {
     "smallerThan": "Menší než:",

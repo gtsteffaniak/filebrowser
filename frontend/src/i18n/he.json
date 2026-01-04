@@ -62,7 +62,9 @@
     "newFile": "קובץ חדש{suffix}",
     "newFolder": "תיקיה חדשה{suffix}",
     "duration": "משך{suffix}",
-    "sortByDuration": "מיין לפי משך"
+    "sortByDuration": "מיין לפי משך",
+    "sameFolder": "לא ניתן להעביר לאותה תיקייה",
+    "cannotAccesDir": "לא ניתן לגשת לתיקייה"
   },
   "help": {
     "functionKeys": "מקשי פונקציה",
@@ -218,7 +220,8 @@
     "renameSuccess": "הפריט שונה בהצלחה!",
     "newFileSuccess": "הקובץ נוצר בהצלחה!",
     "newDirSuccess": "הספרייה נוצרה בהצלחה!",
-    "copyToClipboardFailed": "לא ניתן להעתיק ללוח"
+    "copyToClipboardFailed": "לא ניתן להעתיק ללוח",
+    "moveFailed": "העברה נכשלה"
   },
   "search": {
     "smallerThan": "קטן מ:",

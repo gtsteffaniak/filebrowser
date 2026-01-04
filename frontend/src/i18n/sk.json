@@ -62,7 +62,9 @@
     "newFile": "Nový súbor{suffix}",
     "newFolder": "Nový priečinok{suffix}",
     "duration": "Trvanie{suffix}",
-    "sortByDuration": "Zoradiť podľa trvania"
+    "sortByDuration": "Zoradiť podľa trvania",
+    "sameFolder": "Nie je možné presunúť do toho istého priečinka",
+    "cannotAccesDir": "Nie je možné pristúpiť k priečinku"
   },
   "help": {
     "functionKeys": "Funkčné Klávesy",
@@ -218,7 +220,8 @@
     "renameSuccess": "Položka bola úspešne premenovaná!",
     "newFileSuccess": "Súbor bol úspešne vytvorený!",
     "newDirSuccess": "Adresár bol úspešne vytvorený!",
-    "copyToClipboardFailed": "Nemožnosť kopírovania do schránky"
+    "copyToClipboardFailed": "Nemožnosť kopírovania do schránky",
+    "moveFailed": "Presun zlyhal"
   },
   "search": {
     "smallerThan": "Menšie ako:",

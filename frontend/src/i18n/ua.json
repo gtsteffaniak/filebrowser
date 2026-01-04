@@ -62,7 +62,9 @@
     "newFile": "Новий файл{suffix}",
     "newFolder": "Нова папка{suffix}",
     "duration": "Тривалість{suffix}",
-    "sortByDuration": "Сортувати за тривалістю"
+    "sortByDuration": "Сортувати за тривалістю",
+    "sameFolder": "Неможливо перемістити в ту саму папку",
+    "cannotAccesDir": "Немає доступу до каталогу"
   },
   "help": {
     "functionKeys": "Функціональні Клавіші",
@@ -218,7 +220,8 @@
     "renameSuccess": "Елемент перейменовано успішно!",
     "newFileSuccess": "Файл успішно створено!",
     "newDirSuccess": "Каталог створено успішно!",
-    "copyToClipboardFailed": "Неможливо скопіювати в буфер обміну"
+    "copyToClipboardFailed": "Неможливо скопіювати в буфер обміну",
+    "moveFailed": "Переміщення не вдалося"
   },
   "search": {
     "smallerThan": "Менше, ніж:",

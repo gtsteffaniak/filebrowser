@@ -62,7 +62,9 @@
     "newFile": "ملف جديد{suffix}",
     "newFolder": "مجلد جديد{suffix}",
     "duration": "المدة{suffix}",
-    "sortByDuration": "فرز حسب المدة"
+    "sortByDuration": "فرز حسب المدة",
+    "sameFolder": "لا يمكن النقل إلى نفس المجلد",
+    "cannotAccesDir": "لا يمكن الوصول إلى المجلد"
   },
   "help": {
     "functionKeys": "مفاتيح الوظائف",
@@ -218,7 +220,8 @@
     "renameSuccess": "تمت إعادة تسمية العنصر بنجاح!",
     "newFileSuccess": "تم إنشاء الملف بنجاح!",
     "newDirSuccess": "تم إنشاء الدليل بنجاح!",
-    "copyToClipboardFailed": "تعذر النسخ إلى الحافظة"
+    "copyToClipboardFailed": "تعذر النسخ إلى الحافظة",
+    "moveFailed": "فشلت عملية النقل"
   },
   "search": {
     "smallerThan": "أصغر من:",

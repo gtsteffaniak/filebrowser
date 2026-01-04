@@ -62,7 +62,9 @@
     "newFile": "Nowy plik{suffix}",
     "newFolder": "Nowy folder{suffix}",
     "duration": "Czas trwania{suffix}",
-    "sortByDuration": "Sortuj według czasu trwania"
+    "sortByDuration": "Sortuj według czasu trwania",
+    "sameFolder": "Nie można przenieść do tego samego folderu",
+    "cannotAccesDir": "Nie można uzyskać dostępu do katalogu"
   },
   "help": {
     "functionKeys": "Klawisze Funkcji",
@@ -218,7 +220,8 @@
     "renameSuccess": "Nazwa elementu została zmieniona pomyślnie!",
     "newFileSuccess": "Plik został utworzony pomyślnie!",
     "newDirSuccess": "Katalog utworzony pomyślnie!",
-    "copyToClipboardFailed": "Nie można skopiować do schowka"
+    "copyToClipboardFailed": "Nie można skopiować do schowka",
+    "moveFailed": "Przenoszenie nie powiodło się"
   },
   "search": {
     "smallerThan": "Mniejszy niż:",

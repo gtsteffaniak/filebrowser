@@ -62,7 +62,9 @@
     "newFile": "新文件{suffix}",
     "newFolder": "新文件夹{suffix}",
     "duration": "持续时间{suffix}",
-    "sortByDuration": "按持续时间排序"
+    "sortByDuration": "按持续时间排序",
+    "sameFolder": "无法移动到相同文件夹",
+    "cannotAccesDir": "无法访问目录"
   },
   "help": {
     "functionKeys": "功能键",
@@ -218,7 +220,8 @@
     "renameSuccess": "项目重命名成功！",
     "newFileSuccess": "文件创建成功！",
     "newDirSuccess": "目录创建成功！",
-    "copyToClipboardFailed": "无法复制到剪贴板"
+    "copyToClipboardFailed": "无法复制到剪贴板",
+    "moveFailed": "移动失败"
   },
   "search": {
     "smallerThan": "小于",

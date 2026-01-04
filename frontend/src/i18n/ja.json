@@ -62,7 +62,9 @@
     "newFile": "新規ファイル{suffix}",
     "newFolder": "新しいフォルダ{suffix}",
     "duration": "期間{suffix}",
-    "sortByDuration": "期間順"
+    "sortByDuration": "期間順",
+    "sameFolder": "同じフォルダーに移動できません",
+    "cannotAccesDir": "ディレクトリにアクセスできません"
   },
   "help": {
     "functionKeys": "ファンクションキー",
@@ -218,7 +220,8 @@
     "renameSuccess": "アイテム名の変更に成功しました！",
     "newFileSuccess": "ファイルは正常に作成されました！",
     "newDirSuccess": "ディレクトリは正常に作成されました！",
-    "copyToClipboardFailed": "クリップボードにコピーできない"
+    "copyToClipboardFailed": "クリップボードにコピーできない",
+    "moveFailed": "移動に失敗しました"
   },
   "search": {
     "smallerThan": "より小さい：",

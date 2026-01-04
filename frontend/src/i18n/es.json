@@ -62,7 +62,9 @@
     "newFile": "Nuevo archivo{suffix}",
     "newFolder": "Nueva carpeta{suffix}",
     "duration": "Duración {suffix}",
-    "sortByDuration": "Ordenar por duración"
+    "sortByDuration": "Ordenar por duración",
+    "sameFolder": "No se puede mover a la misma carpeta",
+    "cannotAccesDir": "No se puede acceder al directorio"
   },
   "help": {
     "functionKeys": "Teclas de función",
@@ -218,7 +220,8 @@
     "renameSuccess": "El cambio de nombre se ha realizado correctamente",
     "newFileSuccess": "¡Archivo creado con éxito!",
     "newDirSuccess": "¡Carpeta creada con éxito!",
-    "copyToClipboardFailed": "Hubo un error al copiar en el portapapeles"
+    "copyToClipboardFailed": "Hubo un error al copiar en el portapapeles",
+    "moveFailed": "Error al mover"
   },
   "search": {
     "smallerThan": "Menor que:",

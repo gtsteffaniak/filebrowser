@@ -62,7 +62,9 @@
     "newFile": "Nuovo file{suffix}",
     "newFolder": "Nuova cartella{suffix}",
     "duration": "Durata{suffix}",
-    "sortByDuration": "Ordina per durata"
+    "sortByDuration": "Ordina per durata",
+    "sameFolder": "Impossibile spostare nella stessa cartella",
+    "cannotAccesDir": "Impossibile accedere alla directory"
   },
   "help": {
     "functionKeys": "Tasti Funzione",
@@ -218,7 +220,8 @@
     "renameSuccess": "Articolo rinominato con successo!",
     "newFileSuccess": "File creato con successo!",
     "newDirSuccess": "Directory creata con successo!",
-    "copyToClipboardFailed": "Impossibile copiare negli appunti"
+    "copyToClipboardFailed": "Impossibile copiare negli appunti",
+    "moveFailed": "Spostamento non riuscito"
   },
   "search": {
     "smallerThan": "Più piccolo di:",
