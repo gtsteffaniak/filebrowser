@@ -1,5 +1,5 @@
 <template>
-  <div id="breadcrumbs" :class="{ 'add-padding': addPadding }">
+  <div id="breadcrumbs" :class="{ 'add-padding': addPadding, 'hidden': isHidden }">
     <ul v-if="items.length > 0">
       <li>
         <router-link :to="base" :aria-label="$t('general.home')" :title="$t('general.home')"
@@ -44,19 +44,33 @@ export default {
     return {
       base: "/files/",
       dragOverItem: null, // Track which breadcrumb is being dragged over
+      isHidden: false,
+      lastScrollTop: 0,
+      scrollElement: null,
+      scrollFrame: null,
     };
   },
   props: ["noLink"],
   mounted() {
     this.updatePaths();
     window.addEventListener('dragend', this.clearDragState);
+    this.$nextTick(() => {
+      this.attachScrollListener();
+    });
   },
   beforeUnmount() {
     window.removeEventListener('dragend', this.clearDragState);
+    this.detachScrollListener();
   },
   watch: {
     $route() {
       this.updatePaths();
+      this.isHidden = false;
+      this.lastScrollTop = 0;
+      this.$nextTick(() => {
+        this.detachScrollListener();
+        this.attachScrollListener();
+      });
     },
     req() {
       this.updatePaths();
@@ -82,6 +96,10 @@ export default {
         path: '/',
         type: 'home',
       };
+    },
+    scrollRatio() {
+      const ratio = state.listing?.scrollRatio || 0;
+      return ratio;
     },
     items() {
       const req = state.req;
@@ -140,6 +158,65 @@ export default {
       }
     },
 
+    attachScrollListener() {
+      // Try to find the scroll wrapper (used by Scrollbar component)
+      const scrollWrapper = document.querySelector('.scroll-wrapper');
+      if (scrollWrapper) {
+        scrollWrapper.addEventListener('scroll', this.handleScroll, { passive: true });
+        this.scrollElement = scrollWrapper;
+      }
+    },
+
+    detachScrollListener() {
+      if (this.scrollElement) {
+        this.scrollElement.removeEventListener('scroll', this.handleScroll);
+        this.scrollElement = null;
+      }
+      // Cancel any pending animation frame
+      if (this.scrollFrame) {
+        cancelAnimationFrame(this.scrollFrame);
+        this.scrollFrame = null;
+      }
+    },
+
+    handleScroll(event) {
+      // Use requestAnimationFrame to throttle updates (like Scrollbar component)
+      if (this.scrollFrame) return;
+      
+      this.scrollFrame = requestAnimationFrame(() => {
+        const scrollTop = event.target.scrollTop;
+        
+        // Always show when at the top
+        if (scrollTop <= 10) {
+          this.isHidden = false;
+          this.lastScrollTop = scrollTop;
+          this.scrollFrame = null;
+          return;
+        }
+
+        // Calculate scroll difference
+        const scrollDiff = scrollTop - this.lastScrollTop;
+
+        // Only trigger if scrolled enough (at least 30px)
+        if (Math.abs(scrollDiff) < 30) {
+          this.scrollFrame = null;
+          return;
+        }
+
+        // Hide when scrolling down, show when scrolling up
+        if (scrollDiff > 0) {
+          // Scrolling down
+          this.isHidden = true;
+        } else {
+          // Scrolling up
+          this.isHidden = false;
+        }
+
+        this.lastScrollTop = scrollTop;
+        this.scrollFrame = null;
+      });
+    },
+
     dragEnter(event, link) {
       // Don't allow drag over "..." (is a truncated breadcrumb)
       if (!this.isDroppable || link.type === 'truncated') return;
@@ -154,7 +231,12 @@ export default {
       event.preventDefault();
     },
 
-    dragLeave(_event, link) {
+    dragLeave(event, link) {
+      // Don't clear drag state if we're just moving to a child element
+      if (event.currentTarget.contains(event.relatedTarget)) {
+        return;
+      }
+      
       if (this.dragOverItem?.path === link.path ||
           (this.dragOverItem?.type === 'home' && link.type === 'home')) {
         this.clearDragState();
@@ -333,7 +415,12 @@ export default {
   z-index: 1000;
   right: 0;
   left: 0;
-  transition: all 0.35s ease-out;
+  transform: translateY(0);
+  transition: transform 0.3s ease-in-out;
+}
+
+#breadcrumbs.hidden {
+  transform: translateY(-100%);
 }
 
 /* Backdrop-filter support */
