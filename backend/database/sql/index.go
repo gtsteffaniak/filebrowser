@@ -231,14 +231,14 @@ func (db *IndexDB) BulkInsertItems(source string, items []*iteminfo.FileInfo) er
 	if err != nil {
 		// Soft failure: DB is busy or locked, skip this update
 		if isBusyError(err) || isTransactionError(err) {
-			db.EndTransaction() // Release mutex on error
+			db.mu.Unlock() // Release mutex on error
 			logger.Debugf("[DB_TX] BulkInsertItems: BeginTransaction failed (DB busy/locked), skipping - took %v", time.Since(startTime))
 			return nil // Non-fatal: filesystem will be used as fallback
 		}
-		db.EndTransaction() // Release mutex on error
-		return err          // Hard failure: something is wrong with the DB
+		db.mu.Unlock() // Release mutex on error
+		return err     // Hard failure: something is wrong with the DB
 	}
-	defer db.EndTransaction() // Ensure mutex is always released
+	defer db.mu.Unlock() // Ensure mutex is always released
 
 	stmt, err := tx.Prepare(`
 	INSERT INTO index_items (source, path, parent_path, name, size, mod_time, type, is_dir, is_hidden, has_preview, last_updated)
@@ -1077,13 +1077,13 @@ func (db *IndexDB) RecalculateDirectorySizes(source, pathPrefix string) (int, er
 	tx, err := db.BeginTransaction()
 	if err != nil {
 		if isBusyError(err) || isTransactionError(err) {
-			db.EndTransaction() // Release mutex on error
+			db.mu.Unlock() // Release mutex on error
 			return 0, nil
 		}
-		db.EndTransaction() // Release mutex on error
+		db.mu.Unlock() // Release mutex on error
 		return 0, err
 	}
-	defer db.EndTransaction() // Ensure mutex is always released
+	defer db.mu.Unlock() // Ensure mutex is always released
 	// No defer rollback - data integrity not critical, performance is priority
 
 	// Batch calculate all directory sizes in a single query to avoid N+1 problem

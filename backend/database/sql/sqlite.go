@@ -356,17 +356,11 @@ func (t *TempDB) DB() *sql.DB {
 // BeginTransaction starts a transaction for bulk operations.
 // The caller must call Commit() or Rollback() on the returned transaction.
 // IMPORTANT: The mutex is acquired here and MUST be released by calling
-// EndTransaction() after commit/rollback to ensure exclusive transaction access.
+// t.mu.Unlock() after commit/rollback to ensure exclusive transaction access.
 func (t *TempDB) BeginTransaction() (*sql.Tx, error) {
 	t.mu.Lock()
-	// NOTE: Mutex is NOT unlocked here! Caller must call EndTransaction() after commit/rollback
+	// NOTE: Mutex is NOT unlocked here! Caller must unlock after commit/rollback
 	return t.db.Begin()
-}
-
-// EndTransaction releases the transaction mutex.
-// Must be called after Commit() or Rollback() to release the lock acquired by BeginTransaction().
-func (t *TempDB) EndTransaction() {
-	t.mu.Unlock()
 }
 
 // Exec executes a SQL statement that doesn't return rows.
