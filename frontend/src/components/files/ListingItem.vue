@@ -7,6 +7,7 @@
       hiddenFile: isHiddenNotSelected && this && !this.isDraggedOver,
       'half-selected': isDraggedOver,
       'drag-hover': isDraggedOver,
+      'out-of-view': !isInView && !isSelected,
     }"
     :id="getID"
     role="button"
@@ -89,6 +90,7 @@ export default {
   data() {
     return {
       isThumbnailInView: false,
+      isInView: false, // Track if item is in viewport
       touches: 0,
       touchStartX: 0,
       touchStartY: 0,
@@ -96,6 +98,7 @@ export default {
       isSwipe: false,
       isDraggedOver: false,
       contextTimeout: null,
+      observer: null, // Store observer reference
     };
   },
   props: [
@@ -209,14 +212,21 @@ export default {
     },
   },
   mounted() {
-    // Prevent default navigation for left-clicks
-    const observer = new IntersectionObserver(this.handleIntersect, {
+    // Set up IntersectionObserver with larger margins for smoother rendering
+    this.observer = new IntersectionObserver(this.handleIntersect, {
       root: null,
-      rootMargin: "0px",
-      threshold: 0.1, // Adjust threshold as needed
+      rootMargin: "1500px", // Start rendering 1500px before entering viewport for smooth scrolling
+      threshold: 0,
     });
 
-    observer.observe(this.$el);
+    this.observer.observe(this.$el);
+  },
+  beforeUnmount() {
+    // Clean up observer
+    if (this.observer) {
+      this.observer.disconnect();
+      this.observer = null;
+    }
   },
   methods: {
     /** @param {MouseEvent} event */
@@ -289,11 +299,12 @@ export default {
      */
     handleIntersect(entries, observer) {
       entries.forEach((entry) => {
+        // Update both view state and thumbnail state
+        this.isInView = entry.isIntersecting;
         if (entry.isIntersecting) {
           this.isThumbnailInView = true;
-          // Stop observing once thumbnail is in view
-          observer.unobserve(entry.target);
         }
+        // Note: We don't unobserve anymore - we need continuous updates for in/out of view
       });
     },
     humanSize() {
@@ -632,6 +643,22 @@ export default {
 
 .listing-item {
   -webkit-touch-callout: none; /* Disable the default long press preview */
+}
+
+/* Disable transitions and hide content for out-of-view items for better performance */
+.listing-item.out-of-view {
+  transition: none !important;
+}
+
+.listing-item.out-of-view * {
+  transition: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Ensure items maintain their height even when content is hidden */
+.listing-item > div {
+  min-height: 1px; /* Forces layout calculation even with hidden content */
 }
 
 .hiddenFile {
