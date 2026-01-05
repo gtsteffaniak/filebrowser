@@ -35,14 +35,10 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.E
 	if !strings.HasPrefix(opts.Path, "/") {
 		opts.Path = "/" + opts.Path
 	}
-	var realPath string
-	var isDir bool
-	var err error
-	if opts.FollowSymlinks {
-		realPath, isDir, err = idx.GetRealPath(opts.Path)
-		if err != nil {
-			return response, fmt.Errorf("could not get real path for requested path: %v, error: %v", opts.Path, err)
-		}
+
+	realPath, isDir, err := idx.GetRealPath(opts.Path)
+	if err != nil && opts.FollowSymlinks {
+		return response, fmt.Errorf("could not get real path for requested path: %v, error: %v", opts.Path, err)
 	}
 
 	if !strings.HasSuffix(opts.Path, "/") && isDir {
