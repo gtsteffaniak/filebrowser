@@ -368,7 +368,7 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	body.Path = utils.JoinPathAsUnix(userscope, providedPath)
 	body.Path = utils.AddTrailingSlashIfNotExists(body.Path)
 	// validate path exists as file or folder
-	_, _, err = idx.GetRealPath(body.Path)
+	_, _, err = idx.GetRealPath(true, body.Path)
 	if err != nil {
 		return http.StatusForbidden, fmt.Errorf("path not found: %s", providedPath)
 	}

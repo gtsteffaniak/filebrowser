@@ -152,7 +152,7 @@ func addFile(path string, d *requestContext, tarWriter *tar.Writer, zipWriter *z
 	if err != nil {
 		return err
 	}
-	realPath, _, _ := idx.GetRealPath(path)
+	realPath, _, _ := idx.GetRealPath(true, path)
 	info, err := os.Stat(realPath)
 	if err != nil {
 		return err
@@ -308,7 +308,7 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 				idx := indexing.GetIndex(firstFileSource)
 				if idx != nil {
 					tempPath := utils.JoinPathAsUnix(userscope, firstFilePath)
-					if realPath, _, realErr := idx.GetRealPath(tempPath); realErr == nil {
+					if realPath, _, realErr := idx.GetRealPath(true, tempPath); realErr == nil {
 						if docId, _ := getOnlyOfficeId(realPath); docId != "" {
 							if ctx := getOnlyOfficeLogContext(docId); ctx != nil {
 								sendOnlyOfficeLogEvent(ctx, "ERROR", "download",
@@ -332,7 +332,7 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 		}
 		return http.StatusInternalServerError, fmt.Errorf("source %s is not available", firstFileSource)
 	}
-	realPath, isDir, err := idx.GetRealPath(firstFilePath)
+	realPath, isDir, err := idx.GetRealPath(true, firstFilePath)
 	if err != nil {
 		// Send OnlyOffice error log if this was an OnlyOffice file
 		if isOnlyOffice {
@@ -542,14 +542,14 @@ func computeArchiveSize(fileList []string, d *requestContext) (int64, error) {
 			}
 		}
 		// For shares, the path is already correctly resolved by publicRawHandler
-		realPath, isDir, err := idx.GetRealPath(path)
+		realPath, isDir, err := idx.GetRealPath(true, path)
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}
 		indexPath := idx.MakeIndexPath(realPath)
 		info, ok := idx.GetReducedMetadata(indexPath, isDir)
 		if !ok {
-			info, err = idx.GetFsDirInfo(indexPath)
+			info, err = idx.GetFsInfo(indexPath, true)
 			if err != nil {
 				return 0, fmt.Errorf("failed to get file info for %s : %v", path, err)
 			}

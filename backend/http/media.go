@@ -56,7 +56,7 @@ func subtitlesHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	if idx == nil {
 		return http.StatusNotFound, fmt.Errorf("source %s not found", source)
 	}
-	realPath, _, err := idx.GetRealPath(userscope, path)
+	realPath, _, err := idx.GetRealPath(true, userscope, path)
 	if err != nil {
 		return http.StatusNotFound, fmt.Errorf("file not found: %v", err)
 	}

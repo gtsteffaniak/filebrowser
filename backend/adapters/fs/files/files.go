@@ -35,7 +35,7 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.E
 	if !strings.HasPrefix(opts.Path, "/") {
 		opts.Path = "/" + opts.Path
 	}
-	realPath, isDir, err := index.GetRealPath(opts.Path)
+	realPath, isDir, err := index.GetRealPath(!opts.DisableSymlinkFollowing, opts.Path)
 	if err != nil {
 		return response, fmt.Errorf("could not get real path for requested path: %v, error: %v", opts.Path, err)
 	}
@@ -57,17 +57,9 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.E
 		}
 	}
 
-	if isDir {
-		info, err = index.GetFsDirInfo(opts.Path)
-		if err != nil {
-			return response, err
-		}
-	} else {
-		// For files, get info from parent directory to ensure HasPreview is set correctly
-		info, err = index.GetFsDirInfo(opts.Path)
-		if err != nil {
-			return response, err
-		}
+	info, err = index.GetFsInfo(opts.Path, !opts.DisableSymlinkFollowing)
+	if err != nil {
+		return response, err
 	}
 
 	response.FileInfo = *info
@@ -120,7 +112,7 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.E
 
 				if isItemAudio || isItemVideo {
 					// Get the real path for this file
-					itemRealPath, _, _ := index.GetRealPath(opts.Path, fileItem.Name)
+					itemRealPath, _, _ := index.GetRealPath(true, opts.Path, fileItem.Name)
 
 					// Capture loop variables in local copies to avoid closure issues
 					item := fileItem
@@ -417,7 +409,7 @@ func RefreshIndex(source string, path string, isDir bool, recursive bool) error 
 	// For directories, check if the path exists on disk
 	// If it doesn't exist, remove it from the index
 	if isDir {
-		realPath, _, err := idx.GetRealPath(path)
+		realPath, _, err := idx.GetRealPath(true, path)
 		if err == nil {
 			// Check if the directory exists on disk
 			if !Exists(realPath) {
@@ -581,7 +573,7 @@ func WriteDirectory(opts utils.FileOptions) error {
 	if idx == nil {
 		return fmt.Errorf("could not get index: %v ", opts.Source)
 	}
-	realPath, _, _ := idx.GetRealPath(opts.Path)
+	realPath, _, _ := idx.GetRealPath(true, opts.Path)
 
 	var stat os.FileInfo
 	var err error
@@ -616,7 +608,7 @@ func WriteFile(source, path string, in io.Reader) error {
 	if idx == nil {
 		return fmt.Errorf("could not get index: %v ", source)
 	}
-	realPath, _, _ := idx.GetRealPath(path)
+	realPath, _, _ := idx.GetRealPath(true, path)
 	// Strip trailing slash from realPath if it's meant to be a file
 	realPath = strings.TrimRight(realPath, "/")
 	// Ensure the parent directories exist

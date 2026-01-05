@@ -74,7 +74,7 @@ func Test_GetRealPath(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			realPath, isDir, _ := idx.GetRealPath(tt.paths...)
+			realPath, isDir, _ := idx.GetRealPath(true, tt.paths...)
 			adjustedRealPath := strings.TrimPrefix(realPath, trimPrefix)
 			if tt.want.path != adjustedRealPath || tt.want.isDir != isDir {
 				t.Errorf("expected %v:%v but got: %v:%v", tt.want.path, tt.want.isDir, adjustedRealPath, isDir)

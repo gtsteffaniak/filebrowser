@@ -215,12 +215,36 @@ func (idx *Index) indexDirectory(adjustedPath string, config actionConfig) error
 	return nil
 }
 
-func (idx *Index) GetFsDirInfo(adjustedPath string) (*iteminfo.FileInfo, error) {
-	realPath, isDir, err := idx.GetRealPath(adjustedPath)
+func (idx *Index) GetFsInfo(adjustedPath string, followSymlinks bool) (*iteminfo.FileInfo, error) {
+	realPath, isDir, err := idx.GetRealPath(followSymlinks, adjustedPath)
 	if err != nil {
 		return nil, err
 	}
 	originalPath := realPath
+
+	// If not following symlinks, check if it's a symlink first
+	if !followSymlinks {
+		symlinkInfo, err := os.Lstat(realPath)
+		if err != nil {
+			return nil, err
+		}
+
+		// If it's a symlink, return info about the symlink itself (not the target)
+		if symlinkInfo.Mode()&os.ModeSymlink != 0 {
+			realSize, _ := idx.handleFile(symlinkInfo, adjustedPath, realPath)
+			size := int64(realSize)
+			fileInfo := iteminfo.FileInfo{
+				Path: adjustedPath,
+				ItemInfo: iteminfo.ItemInfo{
+					Name:    filepath.Base(strings.TrimSuffix(adjustedPath, "/")),
+					Size:    size,
+					ModTime: symlinkInfo.ModTime(),
+					Type:    "symlink",
+				},
+			}
+			return &fileInfo, nil
+		}
+	}
 
 	dir, err := os.Open(realPath)
 	if err != nil {
@@ -429,18 +453,45 @@ func (idx *Index) RecursiveUpdateDirSizes(childInfo *iteminfo.FileInfo, previous
 	idx.RecursiveUpdateDirSizes(parentInfo, previousParentSize)
 }
 
-func (idx *Index) GetRealPath(relativePath ...string) (string, bool, error) {
+func (idx *Index) GetRealPath(followSymlinks bool, relativePath ...string) (string, bool, error) {
 	combined := append([]string{idx.Path}, relativePath...)
 	joinedPath := filepath.Join(combined...)
+
 	isDir, _ := IsDirCache.Get(joinedPath + ":isdir")
 	cached, ok := RealPathCache.Get(joinedPath)
 	if ok && cached != "" {
 		return cached, isDir, nil
 	}
+
 	absolutePath, err := filepath.Abs(joinedPath)
 	if err != nil {
 		return absolutePath, false, fmt.Errorf("could not get real path: %v, %s", joinedPath, err)
 	}
+
+	if !followSymlinks {
+		// Use Lstat to check if it's a symlink without following it
+		info, err := os.Lstat(absolutePath)
+		if err != nil {
+			return absolutePath, false, fmt.Errorf("could not stat path: %s, %v", absolutePath, err)
+		}
+
+		// For symlinks, we still need to know if the target is a directory
+		isDir := false
+		if info.Mode()&os.ModeSymlink != 0 {
+			// It's a symlink - check if target is a directory
+			targetInfo, err := os.Stat(absolutePath)
+			if err == nil {
+				isDir = iteminfo.IsDirectory(targetInfo)
+			}
+			// If we can't stat the target, assume it's a file (broken symlink or file symlink)
+		} else {
+			isDir = iteminfo.IsDirectory(info)
+		}
+
+		return absolutePath, isDir, nil
+	}
+
+	// Follow symlinks
 	realPath, isDir, err := iteminfo.ResolveSymlinks(absolutePath)
 	if err == nil {
 		RealPathCache.Set(joinedPath, realPath)

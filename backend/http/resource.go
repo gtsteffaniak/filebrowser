@@ -117,7 +117,7 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		if idx == nil {
 			return http.StatusNotFound, fmt.Errorf("source %s not found", source)
 		}
-		realPath, _, _ := idx.GetRealPath(userscope, path)
+		realPath, _, _ := idx.GetRealPath(true, userscope, path)
 		checksum, err := utils.GetChecksum(realPath, algo)
 		if err == errors.ErrInvalidOption {
 			return http.StatusBadRequest, nil
@@ -173,20 +173,32 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 	}
 	userscope = strings.TrimRight(userscope, "/")
 	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
-		Username:   d.user.Username,
-		Path:       utils.JoinPathAsUnix(userscope, path),
-		Source:     source,
-		Expand:     false,
-		ShowHidden: d.user.ShowHidden,
+		Username:                d.user.Username,
+		Path:                    utils.JoinPathAsUnix(userscope, path),
+		Source:                  source,
+		Expand:                  false,
+		ShowHidden:              d.user.ShowHidden,
+		DisableSymlinkFollowing: true,
 	}, store.Access)
 	if err != nil {
+		logger.Debugf("error getting file info: %v", err)
 		return errToStatus(err), err
 	}
 
 	// delete thumbnails
 	preview.DelThumbs(r.Context(), *fileInfo)
 
-	err = files.DeleteFiles(source, fileInfo.RealPath, filepath.Dir(fileInfo.RealPath), fileInfo.Type == "directory")
+	// Get the index to construct the actual path (without following symlinks)
+	idx := indexing.GetIndex(source)
+	if idx == nil {
+		return http.StatusInternalServerError, fmt.Errorf("could not get index for source: %s", source)
+	}
+
+	// Construct actual path by joining index path with file path (doesn't follow symlinks)
+	actualPath := filepath.Join(idx.Path, fileInfo.Path)
+	actualPath = strings.TrimSuffix(actualPath, "/")
+
+	err = files.DeleteFiles(source, actualPath, filepath.Dir(actualPath), fileInfo.Type == "directory")
 	if err != nil {
 		return errToStatus(err), err
 	}
@@ -260,7 +272,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		logger.Debugf("source %s not found", source)
 		return http.StatusNotFound, fmt.Errorf("source %s not found", source)
 	}
-	realPath, _, _ := idx.GetRealPath(path)
+	realPath, _, _ := idx.GetRealPath(true, path)
 
 	// Check access control for the target path
 	if accessStore != nil && !accessStore.Permitted(idx.Path, path, d.user.Username) {
@@ -523,7 +535,7 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		return http.StatusNotFound, fmt.Errorf("source %s not found", dstIndex)
 	}
 	// check target dir exists
-	parentDir, _, err := idx.GetRealPath(userscopeDst, filepath.Dir(dst))
+	parentDir, _, err := idx.GetRealPath(true, userscopeDst, filepath.Dir(dst))
 	if err != nil {
 		logger.Debugf("Could not get real path for parent dir: %v %v %v", userscopeDst, filepath.Dir(dst), err)
 		return http.StatusNotFound, err
@@ -535,7 +547,7 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		return http.StatusNotFound, fmt.Errorf("source %s not found", srcIndex)
 	}
 
-	realSrc, isSrcDir, err := idx2.GetRealPath(userscopeSrc, src)
+	realSrc, isSrcDir, err := idx2.GetRealPath(true, userscopeSrc, src)
 	if err != nil {
 		return http.StatusNotFound, err
 	}

@@ -93,7 +93,7 @@ func rawFileHandler(w http.ResponseWriter, r *http.Request, file iteminfo.Extend
 	if idx == nil {
 		return http.StatusNotFound, fmt.Errorf("source not found: %s", file.Source)
 	}
-	realPath, _, _ := idx.GetRealPath(file.Path)
+	realPath, _, _ := idx.GetRealPath(true, file.Path)
 	fd, err := os.Open(realPath)
 	if err != nil {
 		return http.StatusInternalServerError, err

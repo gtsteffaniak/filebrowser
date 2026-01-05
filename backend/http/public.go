@@ -315,11 +315,12 @@ func publicDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	}
 
 	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
-		Username:   d.user.Username,
-		Path:       indexPath,
-		Source:     source,
-		Expand:     false,
-		ShowHidden: d.share.ShowHidden,
+		Username:                d.user.Username,
+		Path:                    indexPath,
+		Source:                  source,
+		Expand:                  false,
+		ShowHidden:              d.share.ShowHidden,
+		DisableSymlinkFollowing: true,
 	}, nil)
 	if err != nil {
 		return http.StatusNotFound, fmt.Errorf("resource not available")
@@ -328,7 +329,17 @@ func publicDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	// delete thumbnails
 	preview.DelThumbs(r.Context(), *fileInfo)
 
-	err = files.DeleteFiles(source, fileInfo.RealPath, filepath.Dir(fileInfo.RealPath), fileInfo.Type == "directory")
+	// Get the index to construct the actual path (without following symlinks)
+	idx := indexing.GetIndex(source)
+	if idx == nil {
+		return http.StatusInternalServerError, fmt.Errorf("could not get index for source: %s", source)
+	}
+
+	// Construct actual path by joining index path with file path (doesn't follow symlinks)
+	actualPath := filepath.Join(idx.Path, fileInfo.Path)
+	actualPath = strings.TrimSuffix(actualPath, "/")
+
+	err = files.DeleteFiles(source, actualPath, filepath.Dir(actualPath), fileInfo.Type == "directory")
 	if err != nil {
 		return http.StatusInternalServerError, fmt.Errorf("an error occured while deleting the resource")
 	}
@@ -373,12 +384,12 @@ func publicPatchHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	}
 
 	// get real source and isDir
-	realSrc, isSrcDir, err := idx.GetRealPath(srcFullPath)
+	realSrc, isSrcDir, err := idx.GetRealPath(true, srcFullPath)
 	if err != nil {
 		return http.StatusNotFound, err
 	}
 	// get real destination and isDir parent
-	parentRealDest, _, err := idx.GetRealPath(filepath.Dir(dstFullPath))
+	parentRealDest, _, err := idx.GetRealPath(true, filepath.Dir(dstFullPath))
 	if err != nil {
 		return http.StatusNotFound, err
 	}

@@ -635,7 +635,7 @@ func deleteOfficeId(source, path string) {
 		logger.Errorf("deleteOfficeId: failed to find source index for user home dir creation: %s", source)
 		return
 	}
-	realpath, _, _ := idx.GetRealPath(path)
+	realpath, _, _ := idx.GetRealPath(true, path)
 	utils.OnlyOfficeCache.Delete(realpath)
 }
 

@@ -75,7 +75,6 @@ func (info *FileInfo) SortItems() {
 }
 
 // ResolveSymlinks resolves symlinks in the given path and returns
-// the final resolved path, whether it's a directory (considering bundle logic), and any error.
 func ResolveSymlinks(path string) (string, bool, error) {
 	for {
 		// Get the file info using os.Lstat to handle symlinks
