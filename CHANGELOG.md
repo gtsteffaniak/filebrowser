@@ -4,33 +4,36 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v1.2.0-beta
 
-The new sqlite based indexing is a total re-write of the backend indexing. This has more pros than cons, which is why its moving from experimental to beta. Any unexpected or undesired behavior differences should be reported. 
+The new sqlite based indexing is a total re-write of the backend indexing. This has several advantages (as well as a few disadvantages). Any unexpected or undesired behavior differences should be reported. 
 
-Having sqlite based indexing has a few benefits:
+advantages:
 
-1. Memory usage is paged memory rather than a hard application requirement. This means for extreme index sizes, the OS will manage the memory and "out of memory" won't be a concern.
+1. Memory usage is typically lower and paged memory. This means for extreme index sizes, the OS will manage the memory and "out of memory" won't be a concern.
 2. I can index more details without worrying about memory usage, enabling new features.
-3. Indexing data can be persistent between restarts.
+3. Indexing data can be persistent between restarts -- default behavior.
 
 And a few potential drawbacks to lookout for:
 
 1. total re-write means ther could be unexpected behavior
 2. memory usage is no longer in my control, its handled by the sqlite driver.
 3. More CPU and io intensive indexing operations need to be written to disk.
+4. Slower operations expecially for high-activity. WAL mode added if it becomes a problem, but generally not needed.
 
  **New Features**:
  - SQLite-based indexing
-   - similar memory usage. 
-   - similar performance, slighly longer indexing and slightly higher CPU usage.
+   - reduced memory usage, higher CPU and IO usage.
    - index persistence between restarts
  - realtime file watcher (#917)
    - better latency if user has realtime permissions
  - access control works with individual files too
- - conditionally hide symbolic links as indexing rule config #1540
+ - conditionally hide symbolic links as indexing rule config (#1540)
+ - External applications can connect to filebrowser over webDAV (#209) (#1764)
+ - make breadcrumbs act as a drop area (#1785)
 
  **Notes**:
  - `server.cacheDirCleanup` defaults to `false` instead of true. For docker, you would still need to mount a tmp directory to persist cache.
  - indexing rules have been streamlined, see [wiki]. Previous style is deprecated but still functional.
+ - improved listing load times for directories with metadata -- a two pass approach. First a fast load to get the listing items, then a second api request to include metadata.
 
  **BugFixes**:
  - Source info not properly read from external storage NAS #1727

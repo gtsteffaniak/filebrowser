@@ -2654,6 +2654,10 @@ paths:
         in: query
         name: content
         type: string
+      - description: Extract audio/video metadata if true
+        in: query
+        name: metadata
+        type: string
       - description: Optional checksum validation
         in: query
         name: checksum
@@ -3564,6 +3568,14 @@ paths:
           share root.
         in: query
         name: path
+        type: string
+      - description: Include file content if true
+        in: query
+        name: content
+        type: string
+      - description: Extract audio/video metadata if true
+        in: query
+        name: metadata
         type: string
       produces:
       - application/json

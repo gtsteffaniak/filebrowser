@@ -112,69 +112,82 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.E
 		logger.Debugf("[API_TIMING] CheckChildItemAccess took: %s", time.Since(t5))
 	}
 
-	// For directories, populate metadata for audio/video files ONLY if explicitly requested
-	// This avoids expensive ffprobe calls on every directory listing
-	if isDir && opts.Metadata {
+	// For directories, handle metadata for audio/video files
+	if isDir {
 		t6 := time.Now()
-		startTime := time.Now()
+
+		// Count files that have potential metadata (audio/video files)
 		metadataCount := 0
+		for i := range response.Files {
+			fileItem := &response.Files[i]
+			isItemAudio := strings.HasPrefix(fileItem.Type, "audio")
+			isItemVideo := strings.HasPrefix(fileItem.Type, "video")
 
-		// Create a single shared FFmpegService instance for all files to coordinate concurrency
-		sharedFFmpegService := ffmpeg.NewFFmpegService(10, false, "")
-		if sharedFFmpegService != nil {
-			// Process files concurrently using goroutines
-			var wg sync.WaitGroup
-			var mu sync.Mutex // Protects metadataCount
-
-			for i := range response.Files {
-				fileItem := &response.Files[i]
-				isItemAudio := strings.HasPrefix(fileItem.Type, "audio")
-				isItemVideo := strings.HasPrefix(fileItem.Type, "video")
-
-				if isItemAudio || isItemVideo {
-					// Get the real path for this file
-					itemRealPath, _, _ := index.GetRealPath(opts.Path, fileItem.Name)
-					// Capture loop variables in local copies to avoid closure issues
-					item := fileItem
-					itemPath := itemRealPath
-					isAudio := isItemAudio
-
-					wg.Go(func() {
-						// Extract metadata for audio files (without album art for performance)
-						if isAudio {
-							err := extractAudioMetadata(context.Background(), item, itemPath, opts.AlbumArt || opts.Content, opts.Metadata, sharedFFmpegService)
-							if err != nil {
-								logger.Debugf("failed to extract metadata for file: %s, error: %v", item.Name, err)
-							} else {
-								mu.Lock()
-								metadataCount++
-								mu.Unlock()
-							}
-						} else {
-							// Extract duration for video files
-							err := extractVideoMetadata(context.Background(), item, itemPath, sharedFFmpegService)
-							if err != nil {
-								logger.Debugf("failed to extract video metadata for file: %s, error: %v", item.Name, err)
-							} else {
-								mu.Lock()
-								metadataCount++
-								mu.Unlock()
-							}
-						}
-					})
-				}
+			if isItemAudio || isItemVideo {
+				metadataCount++
 			}
-
-			// Wait for all goroutines to complete
-			wg.Wait()
 		}
-		elapsed := time.Since(startTime)
 
-		if metadataCount > 0 && elapsed > 100*time.Millisecond {
-			logger.Debugf("Extracted metadata for %d audio/video files concurrently in %v (avg: %v per file)",
-				metadataCount, elapsed, elapsed/time.Duration(metadataCount))
+		// Set hasMetadata flag if there are files with potential metadata
+		if metadataCount > 0 {
+			response.HasMetadata = true
 		}
-		logger.Debugf("[API_TIMING] Metadata extraction took: %s", time.Since(t6))
+
+		// Only process metadata if explicitly requested
+		if opts.Metadata && metadataCount > 0 {
+			processedCount := 0
+
+			// Create a single shared FFmpegService instance for all files to coordinate concurrency
+			sharedFFmpegService := ffmpeg.NewFFmpegService(10, false, "")
+			if sharedFFmpegService != nil {
+				// Process files concurrently using goroutines
+				var wg sync.WaitGroup
+				var mu sync.Mutex // Protects processedCount
+
+				for i := range response.Files {
+					fileItem := &response.Files[i]
+					isItemAudio := strings.HasPrefix(fileItem.Type, "audio")
+					isItemVideo := strings.HasPrefix(fileItem.Type, "video")
+
+					if isItemAudio || isItemVideo {
+						// Get the real path for this file
+						itemRealPath, _, _ := index.GetRealPath(opts.Path, fileItem.Name)
+						// Capture loop variables in local copies to avoid closure issues
+						item := fileItem
+						itemPath := itemRealPath
+						isAudio := isItemAudio
+
+						wg.Go(func() {
+							// Extract metadata for audio files (without album art for performance)
+							if isAudio {
+								err := extractAudioMetadata(context.Background(), item, itemPath, opts.AlbumArt || opts.Content, opts.Metadata, sharedFFmpegService)
+								if err != nil {
+									logger.Debugf("failed to extract metadata for file: %s, error: %v", item.Name, err)
+								} else {
+									mu.Lock()
+									processedCount++
+									mu.Unlock()
+								}
+							} else {
+								// Extract duration for video files
+								err := extractVideoMetadata(context.Background(), item, itemPath, sharedFFmpegService)
+								if err != nil {
+									logger.Debugf("failed to extract video metadata for file: %s, error: %v", item.Name, err)
+								} else {
+									mu.Lock()
+									processedCount++
+									mu.Unlock()
+								}
+							}
+						})
+					}
+				}
+
+				// Wait for all goroutines to complete
+				wg.Wait()
+			}
+		}
+		logger.Debugf("[API_TIMING] Metadata handling took: %s", time.Since(t6))
 	}
 
 	// Extract content/metadata when explicitly requested OR for single file audio/video requests
@@ -327,13 +340,8 @@ func extractAudioMetadata(ctx context.Context, item *iteminfo.ExtendedItemInfo, 
 			service = ffmpeg.NewFFmpegService(5, false, "")
 		}
 		if service != nil {
-			startTime := time.Now()
 			if duration, err := service.GetMediaDuration(ctx, realPath); err == nil {
 				item.Metadata.Duration = int(duration)
-				elapsed := time.Since(startTime)
-				if elapsed > 100*time.Millisecond {
-					logger.Debugf("Duration extraction took %v for file: %s", elapsed, item.Name)
-				}
 			}
 		}
 	}

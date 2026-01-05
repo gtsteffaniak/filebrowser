@@ -129,6 +129,8 @@ func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 // @Produce json
 // @Param hash query string true "Share hash for authentication"
 // @Param path query string false "Path within the share to retrieve information for. Defaults to share root."
+// @Param content query string false "Include file content if true"
+// @Param metadata query string false "Extract audio/video metadata if true"
 // @Success 200 {object} iteminfo.FileInfo "File or directory metadata"
 // @Failure 403 {object} map[string]string "Share unavailable or access denied"
 // @Failure 404 {object} map[string]string "Share not found or file not found"

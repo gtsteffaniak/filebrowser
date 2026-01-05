@@ -55,5 +55,6 @@ type ExtendedFileInfo struct {
 	OnlyOfficeId string                 `json:"onlyOfficeId,omitempty"` // id for onlyoffice files
 	Source       string                 `json:"source,omitempty"`       // associated index source for the file
 	Hash         string                 `json:"hash,omitempty"`         // hash for the file -- used for sharing
+	HasMetadata  bool                   `json:"hasMetadata"`            // whether the file or folder has metadata
 	RealPath     string                 `json:"-"`
 }

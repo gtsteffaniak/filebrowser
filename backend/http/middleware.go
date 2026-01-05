@@ -96,6 +96,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		}
 		// Get file information with options
 		getContent := r.URL.Query().Get("content") == "true"
+		getMetadata := r.URL.Query().Get("metadata") == "true"
 		reachedDownloadsLimit := link.Downloads >= link.DownloadsLimit && link.DownloadsLimit > 0
 		if link.DisableFileViewer || reachedDownloadsLimit {
 			getContent = false
@@ -110,6 +111,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 			Username:                 shareCreatedByUser.Username,
 			Expand:                   true,
 			Content:                  getContent,
+			Metadata:                 getMetadata,
 			ExtractEmbeddedSubtitles: settings.Config.Integrations.Media.ExtractEmbeddedSubtitles && link.ExtractEmbeddedSubtitles,
 		}, store.Access)
 		if err != nil {

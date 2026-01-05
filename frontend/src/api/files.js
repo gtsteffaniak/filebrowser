@@ -5,7 +5,7 @@ import { notify } from '@/notify'
 import { globalVars } from '@/utils/constants'
 
 // Notify if errors occur
-export async function fetchFiles(source, path, content = false) {
+export async function fetchFiles(source, path, content = false, metadata = false) {
   if (!source || source === undefined || source === null) {
     throw new Error('no source provided')
   }
@@ -13,7 +13,8 @@ export async function fetchFiles(source, path, content = false) {
     const apiPath = getApiPath('api/resources', {
       path: doubleEncode(path),
       source: doubleEncode(source),
-      ...(content && { content: 'true' })
+      ...(content && { content: 'true' }),
+      ...(metadata && { metadata: 'true' })
     })
     const res = await fetchURL(apiPath)
     const data = await res.json()

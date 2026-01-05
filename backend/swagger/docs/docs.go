@@ -1430,6 +1430,12 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
+                        "description": "Extract audio/video metadata if true",
+                        "name": "metadata",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
                         "description": "Optional checksum validation",
                         "name": "checksum",
                         "in": "query"
@@ -2818,6 +2824,18 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Path within the share to retrieve information for. Defaults to share root.",
                         "name": "path",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Include file content if true",
+                        "name": "content",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Extract audio/video metadata if true",
+                        "name": "metadata",
                         "in": "query"
                     }
                 ],
