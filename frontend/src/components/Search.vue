@@ -366,14 +366,8 @@ export default {
       this.submit();
     },
     getRelative(path) {
-      // double encode # to fix issue with # in path
-      // replace all # with %23
-      path = path.replaceAll('#', "%23");
-      if (path.startsWith("/")) {
-        path = path.slice(1); // remove leading slash
-      }
       const context = url.removeTrailingSlash(this.getContext)
-      const encodedPath = encodeURIComponent(context + "/" + path).replaceAll("%2F", "/");
+      const encodedPath = url.encodePath(context + "/" + path)
       let fullpath = encodedPath;
       fullpath = globalVars.baseURL+"files/" + this.selectedSource + encodedPath;
       return fullpath;
