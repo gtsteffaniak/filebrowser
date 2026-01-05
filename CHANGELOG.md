@@ -2,15 +2,16 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
-## v1.1.5-beta
+## v1.1.6-beta
 
  **Notes**:
  - "showHidden" is now a backend attribute. Shares will NOT show hidden files by default unless configured to.
 
  **BugFixes**:
- - SortBy config is not respected when navigating next/previous #1786
- - unauthenticated users unable to preview files #1792
- - File permission not correctly applied #1790
+ - SortBy config is not respected when navigating next/previous (#1786)
+ - unauthenticated users unable to preview files (#1792)
+ - File permission not correctly applied( #1790)
+ - API Key loses "download" permission after creation despite being enabled (#1799)
 
 ## v1.1.5-beta
 
