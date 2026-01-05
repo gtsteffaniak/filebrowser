@@ -27,6 +27,7 @@ All notable changes to this project will be documented in this file. For commit 
  - file permissions not working (#1762)
  - handle Close() errors in archive creation (#1745)
  - Move custom CSS and user-selected theme styles to the end of the body (#1744)
+ - panic: close of closed channel during indexing #1771
 
 ## v1.1.4-beta
 
