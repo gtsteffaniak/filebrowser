@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file. For commit 
  - never exclude root folder (#1749)
  - sources with "files" name not showing after 1.1.x update (#1772)
  - Symbolic links can't be deleted from webui. (#1566)
+ - Public sharing returns 404 errors for album art #1792
 
 ## v1.1.5-beta
 
