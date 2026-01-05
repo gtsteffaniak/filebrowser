@@ -241,6 +241,7 @@ func publicPreviewHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		Path:       utils.JoinPathAsUnix(d.share.Path, d.fileInfo.Path),
 		Source:     source,
 		Metadata:   true,
+		AlbumArt:   true,
 		ShowHidden: d.share.ShowHidden,
 	}, nil)
 	if err != nil {
