@@ -297,14 +297,13 @@ export default {
      * @param {IntersectionObserverEntry[]} entries
      * @param {IntersectionObserver} observer
      */
-    handleIntersect(entries, observer) {
+    handleIntersect(entries) {
       entries.forEach((entry) => {
         // Update both view state and thumbnail state
         this.isInView = entry.isIntersecting;
         if (entry.isIntersecting) {
           this.isThumbnailInView = true;
         }
-        // Note: We don't unobserve anymore - we need continuous updates for in/out of view
       });
     },
     humanSize() {
@@ -658,7 +657,7 @@ export default {
 
 /* Ensure items maintain their height even when content is hidden */
 .listing-item > div {
-  min-height: 1px; /* Forces layout calculation even with hidden content */
+  min-height: 1em; /* Forces layout calculation even with hidden content */
 }
 
 .hiddenFile {
