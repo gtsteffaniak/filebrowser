@@ -74,6 +74,11 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 	description := config.Frontend.Description
 	title := config.Frontend.Name
 	disableSidebar := false
+	ogEnabled := false
+	ogTitle := ""
+	ogDescription := ""
+	ogImage := ""
+	ogUrl := ""
 
 	// Use custom favicon if configured and validated, otherwise fall back to default
 	favicon := staticURL + "/favicon"
@@ -92,6 +97,13 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		}
 		if d.share.Title != "" {
 			title = d.share.Title
+		}
+		if !d.share.DisableOGMetadata {
+			ogEnabled = true
+			ogTitle = title
+			ogDescription = "Shared with File Browser"
+			ogUrl = config.Server.ExternalUrl + config.Server.BaseURL + "share/" + d.share.Hash
+			ogImage = config.Server.ExternalUrl + config.Server.BaseURL + "public/api/preview/" + d.share.Hash + "?thumb=true"
 		}
 		if d.share.ShareTheme != "" {
 			theme, ok := config.Frontend.Styling.CustomThemeOptions[d.share.ShareTheme]
@@ -125,6 +137,11 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"winIcon":           staticURL + "/img/icons/mstile-144x144.png",
 		"appIcon":           staticURL + "/img/icons/android-chrome-256x256.png",
 		"description":       description,
+		"ogEnabled":         ogEnabled,
+		"ogTitle":           ogTitle,
+		"ogDescription":     ogDescription,
+		"ogImage":           ogImage,
+		"ogUrl":             ogUrl,
 	}
 	// variables consumed by frontend as json
 	data["globalVars"] = map[string]interface{}{

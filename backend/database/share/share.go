@@ -41,6 +41,7 @@ type CommonShare struct {
 	AllowReplacements        bool                `json:"allowReplacements,omitempty"` // allow replacements of files
 	SidebarLinks             []users.SidebarLink `json:"sidebarLinks"`                // customizable sidebar links
 	HasPassword              bool                `json:"hasPassword,omitempty"`
+	DisableOGMetadata        bool                `json:"disableOGMetadata,omitempty"` // disable OG metadata for this share
 }
 type CreateBody struct {
 	CommonShare

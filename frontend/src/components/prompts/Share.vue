@@ -213,6 +213,8 @@
             <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="extractEmbeddedSubtitles"
               :name="$t('share.extractEmbeddedSubtitles')"
               :description="$t('share.extractEmbeddedSubtitlesDescription')" />
+            <ToggleSwitch class="item" v-model="disableOGMetadata" :name="$t('share.disableOGMetadata')"
+              :description="$t('share.disableOGMetadataDescription')" />
           </div>
 
           <div v-if="shareType === 'normal'">
@@ -384,6 +386,7 @@ export default {
       enableOnlyOffice: false,
       shareType: "normal",
       extractEmbeddedSubtitles: false,
+      disableOGMetadata: false,
       sidebarLinks: [],
       /** @type {Share | null} */
       editingLink: null,
@@ -502,6 +505,7 @@ export default {
           this.enableOnlyOffice = this.link.enableOnlyOffice || false;
           this.shareType = this.link.shareType || "normal";
           this.extractEmbeddedSubtitles = this.link.extractEmbeddedSubtitles || false;
+          this.disableOGMetadata = this.link.disableOGMetadata || false;
           this.sidebarLinks = Array.isArray(this.link.sidebarLinks) ? [...this.link.sidebarLinks] : [];
           //this.viewMode = this.link.viewMode || "normal";
         }
@@ -617,6 +621,7 @@ export default {
           enableOnlyOffice: this.enableOnlyOffice,
           shareType: this.shareType,
           extractEmbeddedSubtitles: this.extractEmbeddedSubtitles,
+          disableOGMetadata: this.disableOGMetadata,
           sidebarLinks: this.sidebarLinks,
         };
 
@@ -715,6 +720,7 @@ export default {
       this.enableOnlyOffice = link.enableOnlyOffice || false;
       this.shareType = link.shareType || "normal";
       this.extractEmbeddedSubtitles = link.extractEmbeddedSubtitles || false;
+      this.disableOGMetadata = link.disableOGMetadata || false;
       this.sidebarLinks = Array.isArray(link.sidebarLinks) ? [...link.sidebarLinks] : [];
       // Store the link being edited
       this.editingLink = link;
