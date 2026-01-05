@@ -7,25 +7,25 @@
   >
     <i
       v-if="hasMotion && isFile"
-      class="material-icons"
+      class="material-icons icon-optimized"
       :class="{ larger: showLarger, smaller: !showLarger }"
       >animation</i
     >
     <i
       v-else-if="!isFile"
-      class="material-icons"
+      class="material-icons icon-optimized"
       :class="{ larger: showLarger, smaller: !showLarger }"
       >folder</i
     >
     <img
       :key="imageTargetSrc"
       :src="imageDisplaySrc"
-      class="icon"
+      class="icon icon-optimized"
       ref="thumbnail"
     />
   </span>
   <span v-else>
-    <i :class="[classes, { active: active, clickable: clickable }]" class="icon"> {{ materialIcon }} </i>
+    <i :class="[classes, { active: active, clickable: clickable }]" class="icon icon-optimized"> {{ materialIcon }} </i>
   </span>
 </template>
 
@@ -316,6 +316,13 @@ export default {
 </script>
 
 <style>
+/* Performance optimization for icons */
+.icon-optimized {
+  will-change: auto;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
 .larger {
   position: absolute;
   opacity: 0.5;
@@ -351,6 +358,9 @@ export default {
   border-radius: 0.2em;
   padding: 0.1em;
   background: var(--iconBackground);
+  /* Performance optimization */
+  will-change: auto;
+  transform: translateZ(0);
 }
 .icon.active {
   background: var(--background);
