@@ -30,7 +30,6 @@ import MarkdownViewer from "./files/MarkdownViewer.vue";
 import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
 import router from "@/router";
-import { globalVars } from "@/utils/constants";
 import { extractSourceFromPath } from "@/utils/url";
 
 export default {
@@ -391,10 +390,9 @@ export default {
 
       // Clear share data when accessing files
       mutations.clearShareData();
-      const routePath = getters.routePath();
-      const rootRoute = routePath == "/files" || routePath == "/files/";
+      const routePath = url.removeTrailingSlash(getters.routePath());
       // lets redirect if multiple sources and user went to /files/
-      if (rootRoute) {
+      if (routePath == "/files") {
         // Check if user has custom sidebar links with sources
         let targetPath = `/files/${state.sources.current}`;
         for (const link of state.user?.sidebarLinks || []) {
