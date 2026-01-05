@@ -115,27 +115,26 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.E
 	// For directories, handle metadata for audio/video files
 	if isDir {
 		t6 := time.Now()
-		
+
 		// Count files that have potential metadata (audio/video files)
 		metadataCount := 0
 		for i := range response.Files {
 			fileItem := &response.Files[i]
 			isItemAudio := strings.HasPrefix(fileItem.Type, "audio")
 			isItemVideo := strings.HasPrefix(fileItem.Type, "video")
-			
+
 			if isItemAudio || isItemVideo {
 				metadataCount++
 			}
 		}
-		
+
 		// Set hasMetadata flag if there are files with potential metadata
 		if metadataCount > 0 {
 			response.HasMetadata = true
 		}
-		
+
 		// Only process metadata if explicitly requested
 		if opts.Metadata && metadataCount > 0 {
-			startTime := time.Now()
 			processedCount := 0
 
 			// Create a single shared FFmpegService instance for all files to coordinate concurrency
@@ -186,12 +185,6 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.E
 
 				// Wait for all goroutines to complete
 				wg.Wait()
-			}
-			elapsed := time.Since(startTime)
-
-			if processedCount > 0 && elapsed > 100*time.Millisecond {
-				logger.Debugf("Extracted metadata for %d audio/video files concurrently in %v (avg: %v per file)",
-					processedCount, elapsed, elapsed/time.Duration(processedCount))
 			}
 		}
 		logger.Debugf("[API_TIMING] Metadata handling took: %s", time.Since(t6))
@@ -347,13 +340,8 @@ func extractAudioMetadata(ctx context.Context, item *iteminfo.ExtendedItemInfo, 
 			service = ffmpeg.NewFFmpegService(5, false, "")
 		}
 		if service != nil {
-			startTime := time.Now()
 			if duration, err := service.GetMediaDuration(ctx, realPath); err == nil {
 				item.Metadata.Duration = int(duration)
-				elapsed := time.Since(startTime)
-				if elapsed > 100*time.Millisecond {
-					logger.Debugf("Duration extraction took %v for file: %s", elapsed, item.Name)
-				}
 			}
 		}
 	}
