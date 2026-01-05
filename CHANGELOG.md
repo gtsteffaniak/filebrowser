@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file. For commit 
  - unauthenticated users unable to preview files (#1792)
  - File permission not correctly applied( #1790)
  - API Key loses "download" permission after creation despite being enabled (#1799)
+ - never exclude root folder #1749
 
 ## v1.1.5-beta
 
