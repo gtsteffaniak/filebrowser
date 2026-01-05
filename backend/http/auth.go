@@ -57,9 +57,19 @@ func extractToken(r *http.Request) (string, error) {
 		hasToken = true
 		// Split the header to get "Bearer {token}"
 		parts := strings.Split(authHeader, " ")
-		if len(parts) == 2 && parts[0] == "Bearer" {
-			token := parts[1]
-			return token, nil
+		if len(parts) > 1 {
+			// some clients don't respect RFC regarding cases
+			switch strings.ToLower(parts[0]) {
+			case "bearer":
+				return parts[1], nil
+			case "basic":
+				// compatibility for basic auth
+				// user ignored, password is token
+				_, token, ok := r.BasicAuth()
+				if ok {
+					return token, nil
+				}
+			}
 		}
 	}
 
@@ -268,23 +278,7 @@ func printToken(w http.ResponseWriter, r *http.Request, user *users.User) (int, 
 	// This allows backend to identify expired sessions and provide better user feedback
 	expiresTime := time.Now().Add(expires).Add(time.Minute * 30)
 
-	// Set the authentication token as an HTTP cookie
-	// Get the correct domain for cookie - prefer X-Forwarded-Host from reverse proxy
-	host := r.Header.Get("X-Forwarded-Host")
-	if host == "" {
-		host = r.Host
-	}
-	cookie := &http.Cookie{
-		Name:     "filebrowser_quantum_jwt",
-		Value:    signed.Key,
-		Domain:   strings.Split(host, ":")[0], // Set domain to the host without port
-		Path:     "/",
-		SameSite: http.SameSiteLaxMode,
-		Expires:  expiresTime,
-		// HttpOnly: true, // Cannot use HttpOnly since frontend needs to read cookie for renew operations
-		// Secure: true, // Enable this in production with HTTPS
-	}
-	http.SetCookie(w, cookie)
+	setSessionCookie(w, r, signed.Key, expiresTime)
 
 	// Still return token in body for backward compatibility and state management
 	w.Header().Set("Content-Type", "text/plain")
@@ -415,4 +409,24 @@ func authenticateShareRequest(r *http.Request, l *share.Link) (int, error) {
 		return 401, err
 	}
 	return 200, nil
+}
+
+// setSessionCookie - sets the authentication token as an HTTP cookie
+// Get the correct domain for cookie - prefer X-Forwarded-Host from reverse proxy
+func setSessionCookie(w http.ResponseWriter, r *http.Request, token string, expiresTime time.Time) {
+	host := r.Header.Get("X-Forwarded-Host")
+	if host == "" {
+		host = r.Host
+	}
+	cookie := &http.Cookie{
+		Name:     "filebrowser_quantum_jwt",
+		Value:    token,
+		Domain:   strings.Split(host, ":")[0], // Set domain to the host without port
+		Path:     "/",
+		SameSite: http.SameSiteLaxMode, // Lax mode allows cookie on navigation from OIDC provider
+		Expires:  expiresTime,
+		// HttpOnly: true, // Cannot use HttpOnly since frontend needs to read cookie for renew operations
+		// Secure: true, // Enable this in production with HTTPS
+	}
+	http.SetCookie(w, cookie)
 }

@@ -188,8 +188,15 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	// Mount the route groups
 	apiPath := config.Server.BaseURL + "api"
 	publicPath := config.Server.BaseURL + "public"
+	webDavPath := config.Server.BaseURL + "dav"
 	router.Handle(apiPath+"/", http.StripPrefix(apiPath, api))
 	router.Handle(publicPath+"/", http.StripPrefix(publicPath, publicRoutes))
+	// WebDav resources (catch-all)
+	// similar to NextCloud and others
+	// (reddec) do not trim /dav prefix here - webdav library for some reason does not like it.
+	router.Handle(webDavPath+"/{scope}/{path...}", wrapHandlerOpts(withUserHelper(createWebDAVHandler(webDavPath)), wrapperOpts{
+		requestBasicAuth: true,
+	}))
 
 	// Frontend share route redirect (DEPRECATED - maintain for backwards compatibility)
 	// Playwright tests need updating to remove this redirect.
