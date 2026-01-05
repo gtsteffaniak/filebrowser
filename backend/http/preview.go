@@ -76,11 +76,10 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		return http.StatusForbidden, err
 	}
 	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
-		Username:       d.user.Username,
-		FollowSymlinks: true,
-		Path:           utils.JoinPathAsUnix(userscope, path),
-		Source:         source,
-		AlbumArt:       true, // Extract album art for audio previews
+		Username: d.user.Username,
+		Path:     utils.JoinPathAsUnix(userscope, path),
+		Source:   source,
+		AlbumArt: true, // Extract album art for audio previews
 	}, store.Access)
 	if err != nil {
 		return errToStatus(err), err
@@ -136,11 +135,10 @@ func getDirectoryPreview(r *http.Request, d *requestContext, accessStore *access
 
 		fileInfo, err := files.FileInfoFaster(
 			utils.FileOptions{
-				Username:       d.user.Username,
-				Path:           path,
-				FollowSymlinks: true,
-				Source:         source,
-				AlbumArt:       true, // Extract album art for audio previews
+				Username: d.user.Username,
+				Path:     path,
+				Source:   source,
+				AlbumArt: true, // Extract album art for audio previews
 			}, accessStore)
 		if err != nil {
 			lastErr = err
