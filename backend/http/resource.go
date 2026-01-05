@@ -89,6 +89,7 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	getContent := r.URL.Query().Get("content") == "true"
 	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
 		Username:                 d.user.Username,
+		FollowSymlinks:           true,
 		Path:                     scopePath,
 		Source:                   source,
 		Expand:                   true,
@@ -250,10 +251,11 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	isDirParam := r.URL.Query().Get("isDir")
 	isDir := isDirParam == "true" || strings.HasSuffix(unescapedPath, "/")
 	fileOpts := utils.FileOptions{
-		Username: d.user.Username,
-		Path:     path,
-		Source:   source,
-		Expand:   false,
+		Username:       d.user.Username,
+		Path:           path,
+		Source:         source,
+		Expand:         false,
+		FollowSymlinks: true,
 	}
 	idx := indexing.GetIndex(source)
 	if idx == nil {
@@ -616,11 +618,12 @@ func patchAction(ctx context.Context, params patchActionParams) error {
 			srcPath = strings.TrimSuffix(srcPath, "/")
 		}
 		fileInfo, err := files.FileInfoFaster(utils.FileOptions{
-			Username:   params.d.user.Username,
-			Path:       srcPath,
-			Source:     params.srcIndex,
-			IsDir:      params.isSrcDir,
-			ShowHidden: params.d.user.ShowHidden,
+			Username:       params.d.user.Username,
+			FollowSymlinks: true,
+			Path:           srcPath,
+			Source:         params.srcIndex,
+			IsDir:          params.isSrcDir,
+			ShowHidden:     params.d.user.ShowHidden,
 		}, store.Access)
 
 		if err != nil {
