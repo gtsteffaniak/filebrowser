@@ -3052,6 +3052,10 @@ const docTemplate = `{
                     "description": "don't allow viewing files",
                     "type": "boolean"
                 },
+                "disableOGMetadata": {
+                    "description": "disable OG metadata for this share",
+                    "type": "boolean"
+                },
                 "disableShareCard": {
                     "type": "boolean"
                 },
@@ -4355,6 +4359,10 @@ const docTemplate = `{
                     "description": "don't allow viewing files",
                     "type": "boolean"
                 },
+                "disableOGMetadata": {
+                    "description": "disable OG metadata for this share",
+                    "type": "boolean"
+                },
                 "disableShareCard": {
                     "type": "boolean"
                 },
@@ -4477,6 +4485,10 @@ const docTemplate = `{
                 },
                 "disableFileViewer": {
                     "description": "don't allow viewing files",
+                    "type": "boolean"
+                },
+                "disableOGMetadata": {
+                    "description": "disable OG metadata for this share",
                     "type": "boolean"
                 },
                 "disableShareCard": {
@@ -4613,6 +4625,10 @@ const docTemplate = `{
                 },
                 "disableFileViewer": {
                     "description": "don't allow viewing files",
+                    "type": "boolean"
+                },
+                "disableOGMetadata": {
+                    "description": "disable OG metadata for this share",
                     "type": "boolean"
                 },
                 "disableShareCard": {

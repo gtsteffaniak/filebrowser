@@ -3041,6 +3041,10 @@
                     "description": "don't allow viewing files",
                     "type": "boolean"
                 },
+                "disableOGMetadata": {
+                    "description": "disable OG metadata for this share",
+                    "type": "boolean"
+                },
                 "disableShareCard": {
                     "type": "boolean"
                 },
@@ -4344,6 +4348,10 @@
                     "description": "don't allow viewing files",
                     "type": "boolean"
                 },
+                "disableOGMetadata": {
+                    "description": "disable OG metadata for this share",
+                    "type": "boolean"
+                },
                 "disableShareCard": {
                     "type": "boolean"
                 },
@@ -4466,6 +4474,10 @@
                 },
                 "disableFileViewer": {
                     "description": "don't allow viewing files",
+                    "type": "boolean"
+                },
+                "disableOGMetadata": {
+                    "description": "disable OG metadata for this share",
                     "type": "boolean"
                 },
                 "disableShareCard": {
@@ -4602,6 +4614,10 @@
                 },
                 "disableFileViewer": {
                     "description": "don't allow viewing files",
+                    "type": "boolean"
+                },
+                "disableOGMetadata": {
+                    "description": "disable OG metadata for this share",
                     "type": "boolean"
                 },
                 "disableShareCard": {

@@ -70,6 +70,9 @@ definitions:
       disableFileViewer:
         description: don't allow viewing files
         type: boolean
+      disableOGMetadata:
+        description: disable OG metadata for this share
+        type: boolean
       disableShareCard:
         type: boolean
       disableSidebar:
@@ -1041,6 +1044,9 @@ definitions:
       disableFileViewer:
         description: don't allow viewing files
         type: boolean
+      disableOGMetadata:
+        description: disable OG metadata for this share
+        type: boolean
       disableShareCard:
         type: boolean
       disableSidebar:
@@ -1127,6 +1133,9 @@ definitions:
         type: boolean
       disableFileViewer:
         description: don't allow viewing files
+        type: boolean
+      disableOGMetadata:
+        description: disable OG metadata for this share
         type: boolean
       disableShareCard:
         type: boolean
@@ -1222,6 +1231,9 @@ definitions:
         type: boolean
       disableFileViewer:
         description: don't allow viewing files
+        type: boolean
+      disableOGMetadata:
+        description: disable OG metadata for this share
         type: boolean
       disableShareCard:
         type: boolean
