@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Notes**:
  - "showHidden" is now a backend attribute. Shares will NOT show hidden files by default unless configured to.
+ - improved listing view UI performance, especially for folders with many items. (#1773)
 
  **BugFixes**:
  - SortBy config is not respected when navigating next/previous (#1786)
