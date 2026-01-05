@@ -63,6 +63,7 @@ func validateMoveOperation(src, dst string, isSrcDir bool) error {
 // @Param path query string true "Path to the resource"
 // @Param source query string true "Source name for the desired source, default is used if not provided"
 // @Param content query string false "Include file content if true"
+// @Param metadata query string false "Extract audio/video metadata if true"
 // @Param checksum query string false "Optional checksum validation"
 // @Success 200 {object} iteminfo.FileInfo "Resource metadata"
 // @Failure 404 {object} map[string]string "Resource not found"
@@ -87,13 +88,14 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	userscope = strings.TrimRight(userscope, "/")
 	scopePath := utils.JoinPathAsUnix(userscope, path)
 	getContent := r.URL.Query().Get("content") == "true"
+	getMetadata := r.URL.Query().Get("metadata") == "true"
 	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
 		Username:                 d.user.Username,
 		Path:                     scopePath,
 		Source:                   source,
 		Expand:                   true,
 		Content:                  getContent,
-		Metadata:                 true,
+		Metadata:                 getMetadata,
 		ExtractEmbeddedSubtitles: settings.Config.Integrations.Media.ExtractEmbeddedSubtitles,
 	}, store.Access)
 	if err != nil {

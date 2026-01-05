@@ -13,14 +13,16 @@ import { state } from "@/store";
  * @param {string} hash
  * @param {string} password
  * @param {boolean} content
+ * @param {boolean} metadata
  * @returns {Promise<any>}
  */
-export async function fetchPub(path, hash, password = "", content = false) {
+export async function fetchPub(path, hash, password = "", content = false, metadata = false) {
   path = encodedPath(path);
   const params = {
     path: path,
     hash,
     ...(content && { content: 'true' }),
+    ...(metadata && { metadata: 'true' }),
     ...(state.share.token && { token: state.share.token })
   }
   const apiPath = getPublicApiPath("resources", params);
