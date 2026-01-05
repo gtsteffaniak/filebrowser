@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file. For commit 
  - API Key loses "download" permission after creation despite being enabled (#1799)
  - never exclude root folder (#1749)
  - sources with "files" name not showing after 1.1.x update (#1772)
+ - Symbolic links can't be deleted from webui. (#1566)
 
 ## v1.1.5-beta
 
