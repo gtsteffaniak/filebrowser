@@ -396,7 +396,7 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 			}
 		}
 	}
-	if totalSize == 0 && idx.Config.Conditionals.ZeroSizeFolders {
+	if totalSize == 0 && idx.Config.Conditionals.ZeroSizeFolders && combinedPath != "/" {
 		return nil, errors.ErrNotIndexed
 	}
 	dirFileInfo := &iteminfo.FileInfo{
@@ -524,6 +524,9 @@ func setFilePreviewFlags(fileInfo *iteminfo.ItemInfo, realPath string) {
 
 // IsViewable checks if a path has viewable:true (allows FS access without indexing)
 func (idx *Index) IsViewable(isDir bool, adjustedPath string) bool {
+	if adjustedPath == "/" {
+		return true
+	}
 	rules := idx.Config.ResolvedConditionals
 
 	baseName := filepath.Base(strings.TrimSuffix(adjustedPath, "/"))
