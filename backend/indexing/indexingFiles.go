@@ -215,7 +215,32 @@ func (idx *Index) indexDirectory(adjustedPath string, config actionConfig) error
 	return nil
 }
 
-func (idx *Index) GetFsDirInfo(adjustedPath string) (*iteminfo.FileInfo, error) {
+func (idx *Index) GetFsInfo(adjustedPath string, followSymlinks bool) (*iteminfo.FileInfo, error) {
+	// If not following symlinks, check if it's a symlink first
+	if !followSymlinks {
+		realPath := filepath.Join(idx.Path, adjustedPath)
+		symlinkInfo, err := os.Lstat(realPath)
+		if err != nil {
+			return nil, err
+		}
+
+		// If it's a symlink, return info about the symlink itself (not the target)
+		if symlinkInfo.Mode()&os.ModeSymlink != 0 {
+			realSize, _ := idx.handleFile(symlinkInfo, adjustedPath, realPath)
+			size := int64(realSize)
+			fileInfo := iteminfo.FileInfo{
+				Path: adjustedPath,
+				ItemInfo: iteminfo.ItemInfo{
+					Name:    filepath.Base(strings.TrimSuffix(adjustedPath, "/")),
+					Size:    size,
+					ModTime: symlinkInfo.ModTime(),
+					Type:    "symlink",
+				},
+			}
+			return &fileInfo, nil
+		}
+	}
+
 	realPath, isDir, err := idx.GetRealPath(adjustedPath)
 	if err != nil {
 		return nil, err

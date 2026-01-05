@@ -28,17 +28,23 @@ import (
 
 func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.ExtendedFileInfo, error) {
 	response := &iteminfo.ExtendedFileInfo{}
-	index := indexing.GetIndex(opts.Source)
-	if index == nil {
+	idx := indexing.GetIndex(opts.Source)
+	if idx == nil {
 		return response, fmt.Errorf("could not get index: %v ", opts.Source)
 	}
 	if !strings.HasPrefix(opts.Path, "/") {
 		opts.Path = "/" + opts.Path
 	}
-	realPath, isDir, err := index.GetRealPath(opts.Path)
-	if err != nil {
-		return response, fmt.Errorf("could not get real path for requested path: %v, error: %v", opts.Path, err)
+	var realPath string
+	var isDir bool
+	var err error
+	if opts.FollowSymlinks {
+		realPath, isDir, err = idx.GetRealPath(opts.Path)
+		if err != nil {
+			return response, fmt.Errorf("could not get real path for requested path: %v, error: %v", opts.Path, err)
+		}
 	}
+
 	if !strings.HasSuffix(opts.Path, "/") && isDir {
 		opts.Path = opts.Path + "/"
 	}
@@ -46,28 +52,21 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.E
 	var info *iteminfo.FileInfo
 
 	// Check if path is viewable (allows filesystem access without indexing)
-	isViewable := index.IsViewable(isDir, opts.Path)
+	isViewable := idx.IsViewable(isDir, opts.Path)
 
 	// For non-viewable paths, verify they are indexed
 	// Skip this check if indexing is disabled for the entire source
-	if !isViewable && !index.Config.DisableIndexing {
-		err = index.RefreshFileInfo(opts)
+	if !isViewable && !idx.Config.DisableIndexing {
+		err = idx.RefreshFileInfo(opts)
 		if err != nil {
 			return response, fmt.Errorf("path not accessible: %v", err)
 		}
 	}
 
-	if isDir {
-		info, err = index.GetFsDirInfo(opts.Path)
-		if err != nil {
-			return response, err
-		}
-	} else {
-		// For files, get info from parent directory to ensure HasPreview is set correctly
-		info, err = index.GetFsDirInfo(opts.Path)
-		if err != nil {
-			return response, err
-		}
+	info, err = idx.GetFsInfo(opts.Path, opts.FollowSymlinks)
+	if err != nil {
+		fmt.Println("Graham 2: ", err)
+		return response, err
 	}
 
 	response.FileInfo = *info
@@ -75,7 +74,7 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.E
 	response.Source = opts.Source
 
 	if access != nil {
-		err := access.CheckChildItemAccess(response, index, opts.Username)
+		err := access.CheckChildItemAccess(response, idx, opts.Username)
 		if err != nil {
 			return response, err
 		}
@@ -120,7 +119,7 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.E
 
 				if isItemAudio || isItemVideo {
 					// Get the real path for this file
-					itemRealPath, _, _ := index.GetRealPath(opts.Path, fileItem.Name)
+					itemRealPath, _, _ := idx.GetRealPath(opts.Path, fileItem.Name)
 
 					// Capture loop variables in local copies to avoid closure issues
 					item := fileItem
@@ -167,7 +166,7 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.E
 	// Extract content/metadata when explicitly requested OR for single file audio/video requests
 	isAudioVideo := strings.HasPrefix(info.Type, "audio") || strings.HasPrefix(info.Type, "video")
 	if opts.Content || opts.Metadata || (!isDir && isAudioVideo) {
-		processContent(response, index, opts)
+		processContent(response, idx, opts)
 	}
 
 	if settings.Config.Integrations.OnlyOffice.Secret != "" && info.Type != "directory" && iteminfo.IsOnlyOffice(info.Name) {
