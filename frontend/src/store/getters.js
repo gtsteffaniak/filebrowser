@@ -238,7 +238,6 @@ export const getters = {
     return getters.currentView() == 'listingView'
   },
   routePath: (trimModifier = '') => {
-    console.log("routePath", state.route.path, trimModifier);
     return removePrefix(state.route.path, trimModifier)
   },
   shareHash: () => {

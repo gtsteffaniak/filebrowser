@@ -190,7 +190,6 @@ export default {
         if (getters.isShare()) {
           await this.fetchShareData();
         } else {
-          console.log("fetchFilesData");
           await this.fetchFilesData();
         }
       } catch (e) {
@@ -392,7 +391,6 @@ export default {
 
       // Clear share data when accessing files
       mutations.clearShareData();
-      console.log("fetchFilesData",getters.routePath(`${globalVars.baseURL}files`));
       const routePath = getters.routePath();
       const rootRoute = routePath == "/files" || routePath == "/files/";
       // lets redirect if multiple sources and user went to /files/
