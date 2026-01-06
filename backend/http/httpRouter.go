@@ -211,9 +211,6 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 		Handler: muxWithMiddleware(router),
 	}
 	listenAddress := config.Server.ListenAddress
-	if listenAddress == "0.0.0.0" {
-		listenAddress = "localhost"
-	}
 	go func() {
 		// Determine whether to use HTTPS (TLS) or HTTP
 		if config.Server.TLSCert != "" && config.Server.TLSKey != "" {

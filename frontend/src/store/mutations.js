@@ -499,9 +499,6 @@ export const mutations = {
       emitStateChanged();
       return
     }
-    if (!state.user.showHidden) {
-      value.items = value.items.filter((item) => !item.hidden);
-    }
     let sortby = "name"
     let asc = true
     const sorting = getters.sorting();
