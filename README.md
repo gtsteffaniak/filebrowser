@@ -31,6 +31,27 @@ The goal for this repo is to become the best open-source self-hosted file browsi
 
 Ready to try it out? See [Getting Started Docs](https://filebrowserquantum.com/en/docs/getting-started/).
 
+## Development Setup
+
+For local development, you'll need:
+- **Go 1.25+** - [Install Go](https://go.dev/dl/)
+- **Node.js 20.0.0+** with npm 9.0.0+ - [Install Node.js](https://nodejs.org/)
+- **Git** (for Windows: Git Bash is required)
+
+Quick setup:
+```bash
+# Run the setup script (checks prerequisites and installs dependencies)
+make setup
+
+# Or run the script directly
+bash scripts/setup.sh
+
+# Start development server
+make dev
+```
+
+The setup script will check for all prerequisites and provide installation instructions if anything is missing.
+
 ## How its different
 
 FileBrowser Quantum is a massive fork of the file browser open-source project with the following changes:

@@ -215,7 +215,32 @@ func (idx *Index) indexDirectory(adjustedPath string, config actionConfig) error
 	return nil
 }
 
-func (idx *Index) GetFsDirInfo(adjustedPath string) (*iteminfo.FileInfo, error) {
+func (idx *Index) GetFsInfo(adjustedPath string, followSymlinks bool) (*iteminfo.FileInfo, error) {
+	// If not following symlinks, check if it's a symlink first
+	if !followSymlinks {
+		realPath := filepath.Join(idx.Path, adjustedPath)
+		symlinkInfo, err := os.Lstat(realPath)
+		if err != nil {
+			return nil, err
+		}
+
+		// If it's a symlink, return info about the symlink itself (not the target)
+		if symlinkInfo.Mode()&os.ModeSymlink != 0 {
+			realSize, _ := idx.handleFile(symlinkInfo, adjustedPath, realPath)
+			size := int64(realSize)
+			fileInfo := iteminfo.FileInfo{
+				Path: adjustedPath,
+				ItemInfo: iteminfo.ItemInfo{
+					Name:    filepath.Base(strings.TrimSuffix(adjustedPath, "/")),
+					Size:    size,
+					ModTime: symlinkInfo.ModTime(),
+					Type:    "symlink",
+				},
+			}
+			return &fileInfo, nil
+		}
+	}
+
 	realPath, isDir, err := idx.GetRealPath(adjustedPath)
 	if err != nil {
 		return nil, err
@@ -396,7 +421,7 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 			}
 		}
 	}
-	if totalSize == 0 && idx.Config.Conditionals.ZeroSizeFolders {
+	if totalSize == 0 && idx.Config.Conditionals.ZeroSizeFolders && combinedPath != "/" {
 		return nil, errors.ErrNotIndexed
 	}
 	dirFileInfo := &iteminfo.FileInfo{
@@ -524,6 +549,9 @@ func setFilePreviewFlags(fileInfo *iteminfo.ItemInfo, realPath string) {
 
 // IsViewable checks if a path has viewable:true (allows FS access without indexing)
 func (idx *Index) IsViewable(isDir bool, adjustedPath string) bool {
+	if adjustedPath == "/" {
+		return true
+	}
 	rules := idx.Config.ResolvedConditionals
 
 	baseName := filepath.Base(strings.TrimSuffix(adjustedPath, "/"))

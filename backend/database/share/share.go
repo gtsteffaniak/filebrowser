@@ -41,6 +41,7 @@ type CommonShare struct {
 	AllowReplacements        bool                `json:"allowReplacements,omitempty"` // allow replacements of files
 	SidebarLinks             []users.SidebarLink `json:"sidebarLinks"`                // customizable sidebar links
 	HasPassword              bool                `json:"hasPassword,omitempty"`
+	ShowHidden               bool                `json:"showHidden,omitempty"` // show hidden files in share (true = show, false = hide)
 }
 type CreateBody struct {
 	CommonShare

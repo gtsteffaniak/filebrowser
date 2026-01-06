@@ -3127,6 +3127,10 @@ const docTemplate = `{
                 "shareURL": {
                     "type": "string"
                 },
+                "showHidden": {
+                    "description": "show hidden files in share (true = show, false = hide)",
+                    "type": "boolean"
+                },
                 "sidebarLinks": {
                     "description": "customizable sidebar links",
                     "type": "array",
@@ -4415,6 +4419,10 @@ const docTemplate = `{
                 "shareURL": {
                     "type": "string"
                 },
+                "showHidden": {
+                    "description": "show hidden files in share (true = show, false = hide)",
+                    "type": "boolean"
+                },
                 "sidebarLinks": {
                     "description": "customizable sidebar links",
                     "type": "array",
@@ -4547,6 +4555,10 @@ const docTemplate = `{
                 },
                 "shareURL": {
                     "type": "string"
+                },
+                "showHidden": {
+                    "description": "show hidden files in share (true = show, false = hide)",
+                    "type": "boolean"
                 },
                 "sidebarLinks": {
                     "description": "customizable sidebar links",
@@ -4686,6 +4698,10 @@ const docTemplate = `{
                 },
                 "shareURL": {
                     "type": "string"
+                },
+                "showHidden": {
+                    "description": "show hidden files in share (true = show, false = hide)",
+                    "type": "boolean"
                 },
                 "sidebarLinks": {
                     "description": "customizable sidebar links",

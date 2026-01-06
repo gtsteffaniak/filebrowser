@@ -96,6 +96,7 @@ func createApiKeyHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 			Create:   strings.Contains(permissionsStr, "create") && d.user.Permissions.Create,
 			Share:    strings.Contains(permissionsStr, "share") && d.user.Permissions.Share,
 			Realtime: strings.Contains(permissionsStr, "realtime") && d.user.Permissions.Realtime,
+			Download: strings.Contains(permissionsStr, "download") && d.user.Permissions.Download,
 		}
 	}
 

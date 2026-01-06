@@ -3,6 +3,7 @@ package indexing
 import (
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gtsteffaniak/go-logger/logger"
@@ -36,6 +37,7 @@ type Scanner struct {
 
 	// Control
 	stopChan chan struct{}
+	stopOnce sync.Once // Ensures stop() is only executed once
 }
 
 // start begins the scanner's main loop
@@ -404,6 +406,9 @@ func (s *Scanner) removeSelf() {
 }
 
 // stop gracefully stops the scanner
+// This method is idempotent and safe to call multiple times
 func (s *Scanner) stop() {
-	close(s.stopChan)
+	s.stopOnce.Do(func() {
+		close(s.stopChan)
+	})
 }

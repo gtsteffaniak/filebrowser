@@ -18,15 +18,19 @@ endif
 .PHONY: check-translations sync-translations test-playwright run-proxy screenshots
 
 setup:
-	echo "creating ./backend/test_config.yaml for local testing..."
-	if [ ! -f backend/test_config.yaml ]; then \
+	@echo "Running setup script..."
+	@bash scripts/setup.sh
+
+setup-legacy:
+	@echo "creating ./backend/test_config.yaml for local testing..."
+	@if [ ! -f backend/test_config.yaml ]; then \
 		cp backend/config.yaml backend/test_config.yaml; \
 	fi
-	echo "installing backend tooling..."
-	cd backend && go get tool
-	cd backend/http && mkdir -p embed && touch embed/.gitignore
-	echo "installing npm requirements for frontend..."
-	cd frontend && npm i
+	@echo "installing backend tooling..."
+	@cd backend && go get tool
+	@cd backend/http && mkdir -p embed && touch embed/.gitignore
+	@echo "installing npm requirements for frontend..."
+	@cd frontend && npm i
 
 update:
 	cd backend && go get -u ./... && go mod tidy

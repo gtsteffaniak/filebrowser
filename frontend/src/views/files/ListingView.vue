@@ -219,6 +219,10 @@ export default {
       rectangleEnd: { x: 0, y: 0 },
       rectangleSelection: [],
       cssVariables: {},
+      rafId: null, // For requestAnimationFrame
+      selectionUpdatePending: false, // Flag to batch updates
+      isResizing: false, // Track resize state
+      resizeTimeout: null, // Timeout for resize end detection
     };
   },
   watch: {
@@ -490,10 +494,10 @@ export default {
     window.addEventListener("click", this.clickClear);
     window.addEventListener("keyup", this.clearCtrKey);
     window.addEventListener("dragover", this.preventDefault);
-    document.addEventListener('mousemove', this.updateRectangleSelection);
+    document.addEventListener('mousemove', this.updateRectangleSelection, { passive: true });
     document.addEventListener('mouseup', this.endRectangleSelection);
     this.$el.addEventListener('mousedown', this.startRectangleSelection);
-    this.$el.addEventListener("touchmove", this.handleTouchMove);
+    this.$el.addEventListener("touchmove", this.handleTouchMove, { passive: true });
 
     this.$el.addEventListener("contextmenu", this.openContext);
     // Adjust contextmenu listener based on browser
@@ -517,6 +521,16 @@ export default {
     }
   },
   beforeUnmount() {
+    // Cancel any pending animation frames
+    if (this.rafId) {
+      cancelAnimationFrame(this.rafId);
+      this.rafId = null;
+    }
+    if (this.resizeTimeout) {
+      clearTimeout(this.resizeTimeout);
+      this.resizeTimeout = null;
+    }
+
     // Remove event listeners before destroying this page.
     window.removeEventListener("keydown", this.keyEvent);
     window.removeEventListener("resize", this.windowsResize);
@@ -1057,9 +1071,32 @@ export default {
       showMultipleSelection();
     },
     windowsResize: throttle(function () {
+      // Mark as resizing to disable transitions
+      if (!this.isResizing) {
+        this.isResizing = true;
+        if (this.$refs.listingView) {
+          this.$refs.listingView.classList.add('resizing');
+        }
+      }
+
+      // Clear existing timeout
+      if (this.resizeTimeout) {
+        clearTimeout(this.resizeTimeout);
+      }
+
+      // Do the resize work
       this.colunmsResize();
       this.width = window.innerWidth;
       mutations.setMobile();
+
+      // Re-enable transitions after resize is complete
+      this.resizeTimeout = setTimeout(() => {
+        this.isResizing = false;
+        if (this.$refs.listingView) {
+          this.$refs.listingView.classList.remove('resizing');
+        }
+      }, 150); // Wait 150ms after last resize event
+
       // Listing element is not displayed
       if (this.$refs.listingView == null) return;
     }, 100),
@@ -1175,13 +1212,27 @@ export default {
         y: event.clientY - listingRect.top
       };
 
-      this.updateSelectedItemsInRectangle(event.ctrlKey || event.metaKey);
+      // Use requestAnimationFrame to batch updates
+      if (!this.selectionUpdatePending) {
+        this.selectionUpdatePending = true;
+        this.rafId = requestAnimationFrame(() => {
+          this.updateSelectedItemsInRectangle(event.ctrlKey || event.metaKey);
+          this.selectionUpdatePending = false;
+        });
+      }
     },
 
     endRectangleSelection(event) {
       if (!this.isRectangleSelecting) return;
 
+      // Cancel any pending animation frame
+      if (this.rafId) {
+        cancelAnimationFrame(this.rafId);
+        this.rafId = null;
+      }
+
       this.isRectangleSelecting = false;
+      this.selectionUpdatePending = false;
       this.updateSelectedItemsInRectangle(event.ctrlKey || event.metaKey);
 
       // Clear rectangle after a short delay
@@ -1205,8 +1256,8 @@ export default {
 
       const rectangleSelectedIndexes = [];
 
-      // Get all item elements
-      const itemElements = this.$el.querySelectorAll('.listing-item');
+      // Get all item elements - use querySelectorAll with specific selector for better performance
+      const itemElements = this.$el.querySelectorAll('.listing-item[data-index]');
 
       itemElements.forEach((element) => {
         const elementRect = element.getBoundingClientRect();
@@ -1233,7 +1284,7 @@ export default {
         }
       });
 
-      // Update selection based on modifier keys (ctrl/meta)
+      // Batch DOM updates to minimize reflows
       if (isAdditive) {
         // only add more items to the current selection without reset selection
         const newSelection = [...state.selected];

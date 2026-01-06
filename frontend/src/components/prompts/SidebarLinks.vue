@@ -675,11 +675,23 @@ export default {
     },
     async saveLinks() {
       try {
+        // Filter out invalid source links (sources that no longer exist)
+        const validLinks = this.links.filter(link => {
+          if (link.category === 'source') {
+            // Check if the source still exists
+            if (!link.sourceName || !this.availableSources[link.sourceName]) {
+              console.warn(`Removing invalid source link: ${link.name} (source: ${link.sourceName})`);
+              return false;
+            }
+          }
+          return true;
+        });
+
         if (this.context === 'share') {
           // Save to share
           const payload = {
             hash: this.shareData.hash,
-            sidebarLinks: this.links,
+            sidebarLinks: validLinks,
           };
 
           await shareApi.create(payload);
@@ -687,7 +699,7 @@ export default {
           // Notify Share component of the updated links via eventBus
           eventBus.emit('shareSidebarLinksUpdated', {
             hash: this.shareData.hash,
-            sidebarLinks: this.links,
+            sidebarLinks: validLinks,
           });
 
         } else {
@@ -695,13 +707,15 @@ export default {
           const updatedUser = {
             id: state.user.id,
             username: state.user.username,
-            sidebarLinks: this.links,
+            sidebarLinks: validLinks,
           };
 
           await usersApi.update(updatedUser, ['sidebarLinks']);
 
           // Update the local state
-          state.user.sidebarLinks = [...this.links];
+          state.user.sidebarLinks = [...validLinks];
+          // Update local links array to match what was saved
+          this.links = [...validLinks];
 
           notify.showSuccessToast(this.$t("sidebar.linksUpdatedSuccess"));
         }
@@ -709,7 +723,10 @@ export default {
         // Close only this prompt, returning to the previous one (if any)
         mutations.closeTopHover();
       } catch (error) {
-        notify.showError(this.$t("sidebar.linksUpdateFailed"));
+        // Show the actual error message if available
+        const errorMessage = error.message || error.statusText || this.$t("sidebar.linksUpdateFailed");
+        notify.showError(errorMessage);
+        console.error("Failed to save sidebar links:", error);
       }
     },
   },
