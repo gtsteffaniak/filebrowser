@@ -101,10 +101,10 @@ export default {
             return this.previewType == 'image' || this.pdfConvertable;
         },
         autoPlay() {
-            return state.user.preview.autoplayMedia;
+            return getters.previewPerms().autoplayMedia;
         },
         useDefaultMediaPlayer() {
-            return state.user.preview.defaultMediaPlayer === true;
+            return getters.previewPerms().defaultMediaPlayer === true;
         },
         isMobileSafari() {
             const userAgent = window.navigator.userAgent;

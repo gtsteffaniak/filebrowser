@@ -499,9 +499,6 @@ export const mutations = {
       emitStateChanged();
       return
     }
-    if (!state.user.showHidden) {
-      value.items = value.items.filter((item) => !item.hidden);
-    }
     let sortby = "name"
     let asc = true
     const sorting = getters.sorting();
@@ -681,6 +678,10 @@ export const mutations = {
       emitStateChanged();
       return;
     }
+
+    // Sort listing according to sorting preferences
+    const sorting = getters.sorting();
+    listing = sortedItems(listing, sorting.by, sorting.asc);
 
     // Find current item index in the listing
     for (let i = 0; i < listing.length; i++) {

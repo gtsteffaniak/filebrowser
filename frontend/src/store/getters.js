@@ -52,7 +52,13 @@ export const getters = {
     if (getters.isShare()) {
       source = getters.currentHash();
     }
-    const path = state.route.path;
+    let path = state.route.path;
+
+    // If current request is a file, use parent directory's preferences
+    if (state.req?.type && state.req.type !== 'directory') {
+      path = path.substring(0, path.lastIndexOf('/')+1) || '/';
+    }
+
     if (state.displayPreferences?.[source]?.[path]) {
       return state.displayPreferences[source][path];
     }
@@ -199,7 +205,7 @@ export const getters = {
     if (getters.currentPromptName() && !getters.isStickySidebar()) {
       visible = false
     }
-    if (previewViews.includes(cv) && !state.user.preview?.disableHideSidebar) {
+    if (previewViews.includes(cv) && !getters.previewPerms().disableHideSidebar) {
       visible = false
     }
     if (state.shareInfo?.singleFileShare) {
@@ -548,6 +554,38 @@ export const getters = {
       download: state.user?.permissions?.download,
       admin: state.user?.permissions?.admin,
       api: state.user?.permissions?.api,
+    };
+  },
+  previewPerms: () => {
+    if (getters.isShare()) {
+      // For shares, use defaults for preview settings (shares don't have per-share preview config)
+      return {
+        video: state.user?.preview?.video ?? true,
+        image: state.user?.preview?.image ?? true,
+        office: state.user?.preview?.office ?? true,
+        folder: state.user?.preview?.folder ?? true,
+        popup: state.user?.preview?.popup ?? true,
+        highQuality: state.user?.preview?.highQuality ?? false,
+        motionVideoPreview: state.user?.preview?.motionVideoPreview ?? false,
+        disableHideSidebar: state.user?.preview?.disableHideSidebar ?? false,
+        autoplayMedia: state.user?.preview?.autoplayMedia ?? false,
+        defaultMediaPlayer: false,
+        showHidden: state.shareInfo?.showHidden !== undefined ? state.shareInfo.showHidden : false,
+      };
+    }
+    // For regular users, use their preview settings -- unless is share
+    return {
+      video: state.user?.preview?.video ?? true,
+      image: state.user?.preview?.image ?? true,
+      office: state.user?.preview?.office ?? true,
+      folder: state.user?.preview?.folder ?? true,
+      popup: state.user?.preview?.popup ?? true,
+      highQuality: state.user?.preview?.highQuality ?? false,
+      motionVideoPreview: state.user?.preview?.motionVideoPreview ?? false,
+      disableHideSidebar: state.user?.preview?.disableHideSidebar ?? false,
+      autoplayMedia: state.user?.preview?.autoplayMedia ?? false,
+      defaultMediaPlayer: state.user?.preview?.defaultMediaPlayer ?? false,
+      showHidden: false, // Backend handles this now, but kept for API compatibility
     };
   }
 };

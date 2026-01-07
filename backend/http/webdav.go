@@ -43,7 +43,8 @@ func createWebDAVHandler(prefix string) handleFunc {
 
 		// checking only base (scope) path, as per-item permission is currently impossible to implement.
 		// however, when we are granting an access to the user, we are granting it per-folder, so everything should be fine.
-		info, err := idx.GetFsDirInfo(userscope)
+		// TODO: properly handle symlink and hidden files in requests
+		info, err := idx.GetFsInfo(userscope, false, true)
 		if err != nil {
 			logger.Debugf("error getting dir info: %v", err)
 			return http.StatusNotFound, err
