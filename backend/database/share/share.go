@@ -42,6 +42,7 @@ type CommonShare struct {
 	SidebarLinks             []users.SidebarLink `json:"sidebarLinks"`                // customizable sidebar links
 	HasPassword              bool                `json:"hasPassword,omitempty"`
 	DisableOGMetadata        bool                `json:"disableOGMetadata,omitempty"` // disable OG metadata for this share
+	ShowHidden               bool                `json:"showHidden,omitempty"` // show hidden files in share (true = show, false = hide)
 }
 type CreateBody struct {
 	CommonShare

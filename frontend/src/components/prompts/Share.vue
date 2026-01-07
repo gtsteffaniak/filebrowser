@@ -202,6 +202,8 @@
               :description="$t('share.keepAfterExpirationDescription')" />
             <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="disableThumbnails"
               :name="$t('share.disableThumbnails')" :description="$t('share.disableThumbnailsDescription')" />
+            <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="showHidden"
+              :name="$t('profileSettings.showHiddenFiles')" :description="$t('profileSettings.showHiddenFilesDescription')" />
             <ToggleSwitch class="item" v-model="disableNavButtons" :name="$t('share.hideNavButtons')"
               :description="$t('share.hideNavButtonsDescription')" />
             <ToggleSwitch class="item" v-model="disableShareCard" :name="$t('share.disableShareCard')"
@@ -369,6 +371,7 @@ export default {
       maxBandwidth: "",
       disableFileViewer: false,
       disableThumbnails: false,
+      showHidden: false,
       enableAllowedUsernames: false,
       allowedUsernames: "",
       keepAfterExpiration: false,
@@ -488,6 +491,7 @@ export default {
           this.disableAnonymous = this.link.disableAnonymous || false;
           this.disableThumbnails = this.link.disableThumbnails || false;
           this.disableFileViewer = this.link.disableFileViewer || false;
+          this.showHidden = this.link.showHidden || false;
           this.enableAllowedUsernames = Array.isArray(this.link.allowedUsernames) && this.link.allowedUsernames.length > 0;
           this.allowedUsernames = this.enableAllowedUsernames ? this.link.allowedUsernames.join(", ") : "";
           this.keepAfterExpiration = this.link.keepAfterExpiration || false;
@@ -604,6 +608,7 @@ export default {
           shareTheme: this.shareTheme,
           disableFileViewer: this.disableFileViewer,
           disableThumbnails: this.disableThumbnails,
+          showHidden: this.showHidden,
           allowedUsernames: this.enableAllowedUsernames ? this.allowedUsernames.split(',').map(u => u.trim()) : [],
           keepAfterExpiration: this.keepAfterExpiration,
           hash: '',
@@ -703,6 +708,7 @@ export default {
       this.disableAnonymous = link.disableAnonymous || false;
       this.disableThumbnails = link.disableThumbnails || false;
       this.disableFileViewer = link.disableFileViewer || false;
+      this.showHidden = link.showHidden || false;
       this.enableAllowedUsernames = Array.isArray(link.allowedUsernames) && link.allowedUsernames.length > 0;
       this.allowedUsernames = this.enableAllowedUsernames ? link.allowedUsernames.join(", ") : "";
       this.keepAfterExpiration = link.keepAfterExpiration || false;

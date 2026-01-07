@@ -238,9 +238,11 @@ func publicPreviewHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		return http.StatusNotFound, fmt.Errorf("source not available")
 	}
 	fileInfo, err := FileInfoFasterFunc(utils.FileOptions{
-		Path:     utils.JoinPathAsUnix(d.share.Path, d.fileInfo.Path),
-		Source:   source,
-		Metadata: true,
+		Path:       utils.JoinPathAsUnix(d.share.Path, d.fileInfo.Path),
+		Source:     source,
+		Metadata:   true,
+		AlbumArt:   true,
+		ShowHidden: d.share.ShowHidden,
 	}, nil)
 	if err != nil {
 		return http.StatusNotFound, fmt.Errorf("resource not available")
@@ -314,10 +316,12 @@ func publicDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	}
 
 	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
-		Username: d.user.Username,
-		Path:     indexPath,
-		Source:   source,
-		Expand:   false,
+		Username:       d.user.Username,
+		FollowSymlinks: true,
+		Path:           indexPath,
+		Source:         source,
+		Expand:         false,
+		ShowHidden:     d.share.ShowHidden,
 	}, nil)
 	if err != nil {
 		return http.StatusNotFound, fmt.Errorf("resource not available")

@@ -124,6 +124,9 @@ definitions:
         type: string
       shareURL:
         type: string
+      showHidden:
+        description: show hidden files in share (true = show, false = hide)
+        type: boolean
       sidebarLinks:
         description: customizable sidebar links
         items:
@@ -1088,6 +1091,9 @@ definitions:
         type: string
       shareURL:
         type: string
+      showHidden:
+        description: show hidden files in share (true = show, false = hide)
+        type: boolean
       sidebarLinks:
         description: customizable sidebar links
         items:
@@ -1184,6 +1190,9 @@ definitions:
         type: string
       shareURL:
         type: string
+      showHidden:
+        description: show hidden files in share (true = show, false = hide)
+        type: boolean
       sidebarLinks:
         description: customizable sidebar links
         items:
@@ -1284,6 +1293,9 @@ definitions:
         type: string
       shareURL:
         type: string
+      showHidden:
+        description: show hidden files in share (true = show, false = hide)
+        type: boolean
       sidebarLinks:
         description: customizable sidebar links
         items:

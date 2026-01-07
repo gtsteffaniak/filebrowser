@@ -132,7 +132,7 @@ export default {
       if (!state.user || state.user?.username == "") {
         return false;
       }
-      return state.user.preview.popup;
+      return getters.previewPerms().popup;
     },
   },
   watch: {
