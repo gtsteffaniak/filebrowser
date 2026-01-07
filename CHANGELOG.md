@@ -38,6 +38,24 @@ And a few potential drawbacks to lookout for:
  **BugFixes**:
  - Source info not properly read from external storage NAS #1727
 
+## v1.1.6-beta
+
+ **Notes**:
+ - "showHidden" is now a backend attribute. Shares will NOT show hidden files by default unless configured to.
+ - improved listing view UI performance, especially for folders with many items. (#1773)
+
+ **BugFixes**:
+ - SortBy config is not respected when navigating next/previous (#1786)
+ - unauthenticated users unable to preview files (#1792)
+ - File permission not correctly applied( #1790)
+ - API Key loses "download" permission after creation despite being enabled (#1799)
+ - never exclude root folder (#1749)
+ - sources with "files" name not showing after 1.1.x update (#1772)
+ - Symbolic links can't be deleted from webui. (#1566)
+ - panic: close of closed channel during indexing (#1771)
+ - Public sharing returns 404 errors for album art (#1792)
+ - Directories with some symbols in their name "fail to open" (#1808)
+
 ## v1.1.5-beta
 
  **Notes**:

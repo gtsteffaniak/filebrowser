@@ -413,12 +413,39 @@ func (idx *Index) indexDirectory(adjustedPath string, config actionConfig, scann
 	return dirFileInfo.Size, dirFileInfo.HasPreview, nil
 }
 
-func (idx *Index) GetFsDirInfo(adjustedPath string) (*iteminfo.FileInfo, error) {
-	startTime := time.Now()
-	logger.Debugf("[GETFSDIR] GetFsDirInfo started for path: %s", adjustedPath)
-	defer func() {
-		logger.Debugf("[GETFSDIR] GetFsDirInfo TOTAL for path %s: %s", adjustedPath, time.Since(startTime))
-	}()
+func (idx *Index) GetFsInfo(adjustedPath string, followSymlinks bool, showHidden bool) (*iteminfo.FileInfo, error) {
+	// If not following symlinks, check if it's a symlink first
+	if !followSymlinks {
+		realPath := filepath.Join(idx.Path, adjustedPath)
+		symlinkInfo, err := os.Lstat(realPath)
+		if err != nil {
+			return nil, err
+		}
+		hidden := isHidden(symlinkInfo, idx.Path+adjustedPath)
+		if idx.shouldSkip(symlinkInfo.IsDir(), hidden, adjustedPath, symlinkInfo.Name(), actionConfig{
+			Quick:         false,
+			Recursive:     false,
+			CheckViewable: true,
+		}) {
+			return nil, errors.ErrNotIndexed
+		}
+
+		// If it's a symlink, return info about the symlink itself (not the target)
+		if symlinkInfo.Mode()&os.ModeSymlink != 0 {
+			realSize, _ := idx.handleFile(symlinkInfo, adjustedPath, realPath, false, nil)
+			size := int64(realSize)
+			fileInfo := iteminfo.FileInfo{
+				Path: adjustedPath,
+				ItemInfo: iteminfo.ItemInfo{
+					Name:    filepath.Base(strings.TrimSuffix(adjustedPath, "/")),
+					Size:    size,
+					ModTime: symlinkInfo.ModTime(),
+					Type:    "symlink",
+				},
+			}
+			return &fileInfo, nil
+		}
+	}
 
 	realPath, isDir, err := idx.GetRealPath(adjustedPath)
 	if err != nil {
@@ -438,6 +465,14 @@ func (idx *Index) GetFsDirInfo(adjustedPath string) (*iteminfo.FileInfo, error) 
 	}
 
 	if !dirInfo.IsDir() {
+		hidden := isHidden(dirInfo, idx.Path+adjustedPath)
+		if idx.shouldSkip(dirInfo.IsDir(), hidden, adjustedPath, dirInfo.Name(), actionConfig{
+			Quick:         false,
+			Recursive:     false,
+			CheckViewable: true,
+		}) {
+			return nil, errors.ErrNotIndexed
+		}
 		realSize, _ := idx.handleFile(dirInfo, adjustedPath, realPath, false, nil) // nil scanner for FS read
 		size := int64(realSize)
 		fileInfo := iteminfo.FileInfo{
@@ -688,7 +723,7 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 			}
 		}
 	}
-	if totalSize == 0 && idx.Config.ResolvedConditionals != nil && idx.Config.ResolvedConditionals.IgnoreAllZeroSizeFolders {
+	if totalSize == 0 && idx.Config.ResolvedConditionals.IgnoreAllZeroSizeFolders && combinedPath != "/" {
 		return nil, errors.ErrNotIndexed
 	}
 
@@ -1057,6 +1092,9 @@ func setFilePreviewFlags(fileInfo *iteminfo.ItemInfo, realPath string) {
 
 // IsViewable checks if a path has viewable:true (allows FS access without indexing)
 func (idx *Index) IsViewable(isDir bool, adjustedPath string) bool {
+	if adjustedPath == "/" {
+		return true
+	}
 	rules := idx.Config.ResolvedConditionals
 
 	baseName := filepath.Base(strings.TrimSuffix(adjustedPath, "/"))

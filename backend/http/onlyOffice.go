@@ -109,10 +109,11 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 		path = utils.JoinPathAsUnix(userScope, path)
 		logger.Debugf("OnlyOffice user request: resolved path=%s", path)
 		fileInfo, err := files.FileInfoFaster(utils.FileOptions{
-			Username: d.user.Username,
-			Path:     path,
-			Source:   source,
-			Expand:   false,
+			Username:       d.user.Username,
+			Path:           path,
+			Source:         source,
+			Expand:         false,
+			FollowSymlinks: true,
 		}, store.Access)
 		if err != nil {
 			logger.Errorf("OnlyOffice: failed to get file info for source=%s, path=%s: %v", source, path, err)

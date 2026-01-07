@@ -35,8 +35,8 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.E
 	}()
 
 	response := &iteminfo.ExtendedFileInfo{}
-	index := indexing.GetIndex(opts.Source)
-	if index == nil {
+	idx := indexing.GetIndex(opts.Source)
+	if idx == nil {
 		return response, fmt.Errorf("could not get index: %v ", opts.Source)
 	}
 	if !strings.HasPrefix(opts.Path, "/") {
@@ -44,11 +44,12 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.E
 	}
 
 	t1 := time.Now()
-	realPath, isDir, err := index.GetRealPath(opts.Path)
+	realPath, isDir, err := idx.GetRealPath(opts.Path)
 	logger.Debugf("[API_TIMING] GetRealPath took: %s", time.Since(t1))
 	if err != nil {
 		return response, fmt.Errorf("could not get real path for requested path: %v, error: %v", opts.Path, err)
 	}
+
 	if !strings.HasSuffix(opts.Path, "/") && isDir {
 		opts.Path = opts.Path + "/"
 	}
@@ -57,7 +58,7 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.E
 	// Check access control for the requested path itself (both files and directories)
 	t2 := time.Now()
 	if access != nil {
-		if !access.Permitted(index.Path, opts.Path, opts.Username) {
+		if !access.Permitted(idx.Path, opts.Path, opts.Username) {
 			return response, errors.ErrAccessDenied
 		}
 	}
@@ -68,13 +69,13 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.E
 	var info *iteminfo.FileInfo
 
 	// Check if path is viewable (allows filesystem access without indexing)
-	isViewable := index.IsViewable(isDir, opts.Path)
+	isViewable := idx.IsViewable(isDir, opts.Path)
 
 	// For non-viewable paths, verify they are indexed
 	// Skip this check if indexing is disabled for the entire source
-	if !isViewable && !index.Config.DisableIndexing {
+	if !isViewable && !idx.Config.DisableIndexing {
 		t3 := time.Now()
-		err = index.RefreshFileInfo(opts)
+		err = idx.RefreshFileInfo(opts)
 		logger.Debugf("[API_TIMING] RefreshFileInfo took: %s", time.Since(t3))
 		if err != nil {
 			logger.Debugf("failed to refresh file info for path: %s, error: %v", opts.Path, err)
@@ -82,20 +83,10 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.E
 		}
 	}
 
-	t4 := time.Now()
-	if isDir {
-		info, err = index.GetFsDirInfo(opts.Path)
-		if err != nil {
-			return response, err
-		}
-	} else {
-		// For files, get info from parent directory to ensure HasPreview is set correctly
-		info, err = index.GetFsDirInfo(opts.Path)
-		if err != nil {
-			return response, err
-		}
+	info, err = idx.GetFsInfo(opts.Path, opts.FollowSymlinks, opts.ShowHidden)
+	if err != nil {
+		return response, err
 	}
-	logger.Debugf("[API_TIMING] GetFsDirInfo took: %s", time.Since(t4))
 
 	response.FileInfo = *info
 	response.RealPath = realPath
@@ -103,7 +94,7 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.E
 
 	t5 := time.Now()
 	if access != nil {
-		err := access.CheckChildItemAccess(response, index, opts.Username)
+		err := access.CheckChildItemAccess(response, idx, opts.Username)
 		if err != nil {
 			return response, err
 		}
@@ -112,11 +103,9 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.E
 		logger.Debugf("[API_TIMING] CheckChildItemAccess took: %s", time.Since(t5))
 	}
 
-	// For directories, handle metadata for audio/video files
-	if isDir {
-		t6 := time.Now()
-
-		// Count files that have potential metadata (audio/video files)
+	// For directories, populate metadata for audio/video files ONLY if explicitly requested
+	// This avoids expensive ffprobe calls on every directory listing
+	if isDir && opts.Metadata {
 		metadataCount := 0
 		for i := range response.Files {
 			fileItem := &response.Files[i]
@@ -151,7 +140,7 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.E
 
 					if isItemAudio || isItemVideo {
 						// Get the real path for this file
-						itemRealPath, _, _ := index.GetRealPath(opts.Path, fileItem.Name)
+						itemRealPath, _, _ := idx.GetRealPath(opts.Path, fileItem.Name)
 						// Capture loop variables in local copies to avoid closure issues
 						item := fileItem
 						itemPath := itemRealPath
@@ -187,14 +176,13 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.E
 				wg.Wait()
 			}
 		}
-		logger.Debugf("[API_TIMING] Metadata handling took: %s", time.Since(t6))
 	}
 
 	// Extract content/metadata when explicitly requested OR for single file audio/video requests
 	t7 := time.Now()
 	isAudioVideo := strings.HasPrefix(info.Type, "audio") || strings.HasPrefix(info.Type, "video")
 	if opts.Content || opts.Metadata || (!isDir && isAudioVideo) {
-		processContent(response, index, opts)
+		processContent(response, idx, opts)
 	}
 	if time.Since(t7) > time.Millisecond {
 		logger.Debugf("[API_TIMING] processContent took: %s", time.Since(t7))
@@ -715,8 +703,8 @@ func WriteFile(source, path string, in io.Reader) error {
 		return err
 	}
 
-	// Explicitly set directory permissions to bypass umask
-	err = os.Chmod(realPath, fileutils.PermDir)
+	// Explicitly set file permissions to bypass umask
+	err = os.Chmod(realPath, fileutils.PermFile)
 	if err != nil {
 		// Handle chmod error gracefully
 		logger.Debugf("Could not set file permissions for %s (this may be expected in restricted environments): %v", realPath, err)

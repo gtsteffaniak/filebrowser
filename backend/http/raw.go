@@ -145,9 +145,10 @@ func addFile(path string, d *requestContext, tarWriter *tar.Writer, zipWriter *z
 
 	// Verify file exists
 	_, err = files.FileInfoFaster(utils.FileOptions{
-		Path:   path,
-		Source: source,
-		Expand: false,
+		Path:           path,
+		Source:         source,
+		Expand:         false,
+		FollowSymlinks: true,
 	}, nil)
 	if err != nil {
 		return err
@@ -549,7 +550,7 @@ func computeArchiveSize(fileList []string, d *requestContext) (int64, error) {
 		indexPath := idx.MakeIndexPath(realPath, isDir)
 		info, ok := idx.GetReducedMetadata(indexPath, isDir)
 		if !ok {
-			info, err = idx.GetFsDirInfo(indexPath)
+			info, err = idx.GetFsInfo(indexPath, false, true)
 			if err != nil {
 				return 0, fmt.Errorf("failed to get file info for %s : %v", path, err)
 			}

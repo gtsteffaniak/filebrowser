@@ -44,7 +44,11 @@ body.rtl #listingView {
   background: var(--item-secondary);
   color: var(--textPrimary);
   border-color: var(--divider);
-  background: var(--surfacePrimary)
+  background: var(--surfacePrimary);
+  /* Performance optimizations */
+  contain: layout style paint;
+  content-visibility: auto;
+  will-change: auto;
 }
 
 .listing-item div:last-of-type {
@@ -66,6 +70,8 @@ body.rtl #listingView {
 .listing-item i {
   font-size: 4em;
   vertical-align: bottom;
+  /* Performance optimization for icon rendering */
+  transform: translateZ(0);
 }
 
 .listing-item img {
@@ -164,6 +170,11 @@ body.rtl #listingView {
 #listingView.gallery .listing-item,
 #listingView.icons .listing-item {
   transition: width 0.25s ease-out, height 0.25s ease-out, box-shadow 0.2s ease-in-out, transform 0.1s ease-in-out;
+}
+
+/* Disable transitions during resize for better performance */
+#listingView.resizing .listing-item {
+  transition: none !important;
 }
 
 #listingView.gallery .listing-item .text {
