@@ -124,7 +124,26 @@ func TestSearchWhileIndexing(t *testing.T) {
 		}
 	}
 
-	Initialize(&settings.Source{Name: "test", Path: "/srv"}, true)
+	source := &settings.Source{Name: "test", Path: "/srv"}
+	// Initialize ResolvedConditionals to avoid nil pointer dereference
+	source.Config.ResolvedConditionals = &settings.ResolvedConditionalsConfig{
+		FileNames:                make(map[string]settings.ConditionalRule),
+		FolderNames:              make(map[string]settings.ConditionalRule),
+		FilePaths:                make(map[string]settings.ConditionalRule),
+		FolderPaths:              make(map[string]settings.ConditionalRule),
+		FileEndsWith:             make([]settings.ConditionalRule, 0),
+		FolderEndsWith:           make([]settings.ConditionalRule, 0),
+		FileStartsWith:           make([]settings.ConditionalRule, 0),
+		FolderStartsWith:         make([]settings.ConditionalRule, 0),
+		NeverWatchPaths:          make(map[string]struct{}),
+		IncludeRootItems:         make(map[string]struct{}),
+		IgnoreAllHidden:          false,
+		IgnoreAllZeroSizeFolders: false,
+		IgnoreAllSymlinks:        false,
+		IndexingDisabled:         false,
+	}
+
+	Initialize(source, true)
 	idx := GetIndex("test")
 	if idx == nil {
 		t.Fatal("Failed to get test index")
