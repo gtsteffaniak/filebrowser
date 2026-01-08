@@ -615,7 +615,8 @@
     "watching": "Ver{suffix}",
     "lines": "Líneas{suffix}",
     "lastUpdate": "Última actualización{suffix}",
-    "latency": "Latencia{suffix}"
+    "latency": "Latencia{suffix}",
+    "all": "Todos{suffix}"
   },
   "access": {
     "rules": "Reglas de acceso",

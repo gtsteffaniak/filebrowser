@@ -615,7 +615,8 @@
     "watching": "Observarea{suffix}",
     "lines": "Linii{suffix}",
     "lastUpdate": "Ultima actualizare{suffix}",
-    "latency": "Latență{suffix}"
+    "latency": "Latență{suffix}",
+    "all": "Toate{suffix}"
   },
   "access": {
     "rules": "Reguli de acces",

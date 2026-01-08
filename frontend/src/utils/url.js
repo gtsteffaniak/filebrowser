@@ -153,12 +153,19 @@ export function extractSourceFromPath(url) {
   return { source, path };
 }
 
-export function buildItemUrl(source, path) {
+export function buildItemUrl(source, path, includeBaseURL = false) {
+  path = removeLeadingSlash(path);
   const encodedPath = encodePath(path);
+  let urlPath;
   if (getters.isShare()) {
-    return `/public/share/${state.shareInfo.hash}${encodedPath}`;
+    urlPath = `public/share/${state.shareInfo.hash}/${encodedPath}`;
+  } else {
+    urlPath = `files/${source}/${encodedPath}`;
   }
-  return `/files/${source}${encodedPath}`;
+  if (includeBaseURL) {
+    return `${globalVars.baseURL}${urlPath}`;
+  }
+  return "/" + urlPath;
 }
 
 export function encodedPath(path) {

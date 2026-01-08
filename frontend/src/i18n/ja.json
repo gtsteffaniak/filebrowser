@@ -615,7 +615,8 @@
     "watching": "ウォッチング{suffix}",
     "lines": "ライン{suffix}",
     "lastUpdate": "最終更新{suffix}",
-    "latency": "レイテンシー{suffix}"
+    "latency": "レイテンシー{suffix}",
+    "all": "すべて{suffix}"
   },
   "access": {
     "rules": "アクセスルール",

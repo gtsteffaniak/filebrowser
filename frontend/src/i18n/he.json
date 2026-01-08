@@ -615,7 +615,8 @@
     "watching": "צפייה{suffix}",
     "lines": "קווים{suffix}",
     "lastUpdate": "עדכון אחרון{suffix}",
-    "latency": "חביון{suffix}"
+    "latency": "חביון{suffix}",
+    "all": "כל{suffix}"
   },
   "access": {
     "rules": "כללי גישה",

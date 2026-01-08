@@ -693,7 +693,8 @@
     "watching": "觀看{suffix}",
     "lines": "線路{suffix}",
     "lastUpdate": "最後更新{suffix}",
-    "latency": "延遲{suffix}"
+    "latency": "延遲{suffix}",
+    "all": "全部{suffix}"
   },
   "access": {
     "rules": "存取規則",

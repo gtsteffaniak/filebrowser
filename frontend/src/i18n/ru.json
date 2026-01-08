@@ -615,7 +615,8 @@
     "watching": "Смотреть{suffix}",
     "lines": "Линии{suffix}",
     "lastUpdate": "Последнее обновление{suffix}",
-    "latency": "Латентность{suffix}"
+    "latency": "Латентность{suffix}",
+    "all": "Все{suffix}"
   },
   "access": {
     "rules": "Правила доступа",

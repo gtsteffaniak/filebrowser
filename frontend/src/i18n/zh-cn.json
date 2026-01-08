@@ -693,7 +693,8 @@
     "watching": "观看{suffix}",
     "lines": "线路{suffix}",
     "lastUpdate": "最新更新{suffix}",
-    "latency": "延迟{suffix}"
+    "latency": "延迟{suffix}",
+    "all": "全部{suffix}"
   },
   "access": {
     "rules": "访问规则",
