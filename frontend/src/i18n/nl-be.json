@@ -693,7 +693,8 @@
     "watching": "Kijken naar{suffix}",
     "lines": "Lijnen{suffix}",
     "lastUpdate": "Laatste update{suffix}",
-    "latency": "Latency{suffix}"
+    "latency": "Latency{suffix}",
+    "all": "Alle{suffix}"
   },
   "access": {
     "rules": "Toegangsregels",

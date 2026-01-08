@@ -693,7 +693,8 @@
     "watching": "Observar{suffix}",
     "lines": "Linhas{suffix}",
     "lastUpdate": "Última atualização{suffix}",
-    "latency": "Latência{suffix}"
+    "latency": "Latência{suffix}",
+    "all": "Todos{suffix}"
   },
   "access": {
     "rules": "Regras de acesso",

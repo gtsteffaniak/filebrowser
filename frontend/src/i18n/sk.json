@@ -615,7 +615,8 @@
     "watching": "Sledovanie{suffix}",
     "lines": "Riadky{suffix}",
     "lastUpdate": "Posledná aktualizácia{suffix}",
-    "latency": "Latencia{suffix}"
+    "latency": "Latencia{suffix}",
+    "all": "Všetky{suffix}"
   },
   "access": {
     "rules": "Pravidlá prístupu",

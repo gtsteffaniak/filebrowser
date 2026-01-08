@@ -478,6 +478,7 @@ export default {
       // Navigate
       const prevItemUrl = url.buildItemUrl(prevItem.source || state.req.source, prevItem.path);
       mutations.replaceRequest(prevItem);
+      console.log("previous item url",prevItemUrl);
       this.$router.replace({ path: prevItemUrl }).catch(err => {
         if (err.name !== 'NavigationDuplicated') {
           // Silently ignore navigation errors

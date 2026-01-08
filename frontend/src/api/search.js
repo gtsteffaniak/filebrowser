@@ -2,17 +2,26 @@ import { fetchURL } from "./utils";
 import { notify } from "@/notify";  // Import notify for error handling
 import { getApiPath } from "@/utils/url.js";
 
-export default async function search(base, source, query, largest = false) {
+export default async function search(base, sources, query, largest = false) {
   try {
     query = encodeURIComponent(query);
-    if (!base.endsWith("/")) {
-      base += "/";
-    }
+    
+    // Ensure sources is an array
+    const sourcesArray = Array.isArray(sources) ? sources : [sources];
+    
     const params = {
-      scope: encodeURIComponent(base),
       query: query,
-      source: encodeURIComponent(source)
+      sources: sourcesArray.join(",")
     };
+
+    // Only include scope if searching a single source
+    // When multiple sources are specified, scope is always the user's scope for each source
+    if (sourcesArray.length === 1 && base) {
+      if (!base.endsWith("/")) {
+        base += "/";
+      }
+      params.scope = encodeURIComponent(base);
+    }
 
     if (largest) {
       params.largest = "true";

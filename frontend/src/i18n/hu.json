@@ -615,7 +615,8 @@
     "watching": "Figyelem{suffix}",
     "lines": "Vonalak{suffix}",
     "lastUpdate": "Utolsó frissítés{suffix}",
-    "latency": "Késleltetés{suffix}"
+    "latency": "Késleltetés{suffix}",
+    "all": "Minden{suffix}"
   },
   "access": {
     "rules": "Hozzáférési szabályok",

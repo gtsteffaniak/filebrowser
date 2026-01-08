@@ -289,6 +289,8 @@ definitions:
         type: string
       size:
         type: integer
+      source:
+        type: string
       type:
         type: string
     type: object
@@ -2867,20 +2869,28 @@ paths:
       consumes:
       - application/json
       description: Searches for files matching the provided query. Returns file paths
-        and metadata based on the user's session and scope.
+        and metadata based on the user's session and scope. Supports searching across
+        multiple sources when using the 'sources' parameter.
       parameters:
       - description: Search query
         in: query
         name: query
         required: true
         type: string
-      - description: Source name for the desired source
+      - description: Source name for the desired source (deprecated, use 'sources'
+          instead)
         in: query
         name: source
-        required: true
+        type: string
+      - description: Comma-separated list of source names to search across multiple
+          sources. When multiple sources are specified, scope is always the user's
+          scope for each source.
+        in: query
+        name: sources
         type: string
       - description: path within user scope to search, for example '/first/second'
-          to search within the second directory only
+          to search within the second directory only. Ignored when multiple sources
+          are specified.
         in: query
         name: scope
         type: string
@@ -2892,7 +2902,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: List of search results
+          description: List of search results with source field populated
           schema:
             items:
               $ref: '#/definitions/indexing.SearchResult'

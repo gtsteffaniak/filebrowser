@@ -1773,7 +1773,7 @@ const docTemplate = `{
         },
         "/api/search": {
             "get": {
-                "description": "Searches for files matching the provided query. Returns file paths and metadata based on the user's session and scope.",
+                "description": "Searches for files matching the provided query. Returns file paths and metadata based on the user's session and scope. Supports searching across multiple sources when using the 'sources' parameter.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1794,14 +1794,19 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Source name for the desired source",
+                        "description": "Source name for the desired source (deprecated, use 'sources' instead)",
                         "name": "source",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "path within user scope to search, for example '/first/second' to search within the second directory only",
+                        "description": "Comma-separated list of source names to search across multiple sources. When multiple sources are specified, scope is always the user's scope for each source.",
+                        "name": "sources",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "path within user scope to search, for example '/first/second' to search within the second directory only. Ignored when multiple sources are specified.",
                         "name": "scope",
                         "in": "query"
                     },
@@ -1814,7 +1819,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "List of search results",
+                        "description": "List of search results with source field populated",
                         "schema": {
                             "type": "array",
                             "items": {
@@ -3549,6 +3554,9 @@ const docTemplate = `{
                 },
                 "size": {
                     "type": "integer"
+                },
+                "source": {
+                    "type": "string"
                 },
                 "type": {
                     "type": "string"
