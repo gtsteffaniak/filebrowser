@@ -126,13 +126,8 @@ func prepSearchOptions(r *http.Request, d *requestContext) (*searchOptions, erro
 
 	var sources []string
 	if sourcesParam != "" {
-		// Parse comma-separated sources
 		sources = strings.Split(sourcesParam, ",")
-		for i := range sources {
-			sources[i] = strings.TrimSpace(sources[i])
-		}
 	} else if sourceParam != "" {
-		// Fall back to deprecated source param
 		sources = []string{sourceParam}
 	} else {
 		return nil, fmt.Errorf("either 'source' or 'sources' query parameter is required")

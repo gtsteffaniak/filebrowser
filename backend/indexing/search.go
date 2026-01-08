@@ -43,33 +43,7 @@ func (idx *Index) Search(search string, scope string, sourceSession string, larg
 		searchOptions.Terms = []string{""}
 	}
 
-	// Construct base query
-	query := `
-		SELECT path, name, size, mod_time, type, is_dir, has_preview 
-		FROM index_items 
-	`
-	args := []interface{}{}
-	whereClauses := []string{}
-
-	// Filter by source (required for multi-source shared database)
-	whereClauses = append(whereClauses, "source = ?")
-	args = append(args, idx.Name)
-
-	// Apply scope filter
-	if scope != "" {
-		// Use GLOB for prefix matching which is supported by SQLite and efficient
-		whereClauses = append(whereClauses, "path GLOB ?")
-		args = append(args, scope+"*")
-	}
-
-	if largest {
-		query += " ORDER BY size DESC"
-	}
-	if len(whereClauses) > 0 {
-		query = strings.Replace(query, "FROM index_items", "FROM index_items WHERE "+strings.Join(whereClauses, " AND "), 1)
-	}
-
-	rows, err := idx.db.Query(query, args...)
+	rows, err := idx.db.SearchItems(idx.Name, scope, largest)
 	if err != nil {
 		return []*SearchResult{}
 	}
@@ -202,57 +176,7 @@ func SearchMultiSources(search string, sources []string, sourceScopes map[string
 		searchOptions.Terms = []string{""}
 	}
 
-	// Construct base query with source in SELECT
-	query := `
-		SELECT source, path, name, size, mod_time, type, is_dir, has_preview 
-		FROM index_items 
-	`
-	args := []interface{}{}
-	whereClauses := []string{}
-
-	// Filter by sources using IN clause
-	if len(sources) == 1 {
-		whereClauses = append(whereClauses, "source = ?")
-		args = append(args, sources[0])
-	} else {
-		placeholders := make([]string, len(sources))
-		for i, source := range sources {
-			placeholders[i] = "?"
-			args = append(args, source)
-		}
-		whereClauses = append(whereClauses, "source IN ("+strings.Join(placeholders, ",")+")")
-	}
-
-	// Apply scope filters - need OR conditions for each source+scope combination
-	// Build conditions for each source: if it has a scope, filter by it; otherwise include all paths for that source
-	scopeConditions := []string{}
-	for _, source := range sources {
-		scope, hasScope := normalizedScopes[source]
-		if hasScope && scope != "" {
-			// Source has a scope - filter by it
-			scopeConditions = append(scopeConditions, "(source = ? AND path GLOB ?)")
-			args = append(args, source, scope+"*")
-		} else {
-			// Source has no scope or empty scope - include all paths for this source
-			// The source IN clause already filters by source, so we just need to ensure
-			// this source is included in the OR condition (which it already is via source IN)
-			// We add a simple source check to make the OR condition work correctly
-			scopeConditions = append(scopeConditions, "source = ?")
-			args = append(args, source)
-		}
-	}
-	if len(scopeConditions) > 0 {
-		whereClauses = append(whereClauses, "("+strings.Join(scopeConditions, " OR ")+")")
-	}
-
-	if largest {
-		query += " ORDER BY size DESC"
-	}
-	if len(whereClauses) > 0 {
-		query = strings.Replace(query, "FROM index_items", "FROM index_items WHERE "+strings.Join(whereClauses, " AND "), 1)
-	}
-
-	rows, err := db.Query(query, args...)
+	rows, err := db.SearchItemsMultiSource(sources, normalizedScopes, largest)
 	if err != nil {
 		return []*SearchResult{}
 	}

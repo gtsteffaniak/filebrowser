@@ -11,7 +11,7 @@ export default async function search(base, sources, query, largest = false) {
     
     const params = {
       query: query,
-      sources: sourcesArray.join(",")
+      sources: encodeURIComponent(sourcesArray.join(","))
     };
 
     // Only include scope if searching a single source

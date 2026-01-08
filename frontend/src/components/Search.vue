@@ -875,12 +875,6 @@ body.rtl #search .boxes h3 {
   color: var(--primaryColor);
 }
 
-.file-info {
-  display: flex;
-  align-items: center;
-  gap: 0.5em;
-}
-
 .filesize {
   background: var(--alt-background);
   border-radius: 1em;
