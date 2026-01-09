@@ -612,9 +612,11 @@ export default {
     },
     keyEvent(event) {
       // F1!
-      if (event.keyCode === 112) {
+      if (event.key === "F1") {
         event.preventDefault();
-        mutations.showHover("help"); // Use mutation
+        if (!getters.currentPromptName()) {
+          mutations.showHover("help"); // Use mutation
+        }
       }
 
       // Ctrl+, - navigate to settings
@@ -624,13 +626,13 @@ export default {
       }
 
       // Esc! - for shares, reset selection
-      if ( getters.isShare() && event.keyCode === 27) {
+      if ( getters.isShare() && event.key === "Escape") {
         if (getters.selectedCount() > 0) {
           mutations.resetSelected();
         }
       }
       // F2! - for rename in previews
-      if (event.keyCode === 113 && getters.isPreviewView() && getters.permissions()?.modify) {
+      if (event.key == "F2" && getters.isPreviewView() && getters.permissions()?.modify) {
         event.preventDefault();
         if (!getters.currentPromptName()) {
           const parentItems = state.navigation.listing || [];

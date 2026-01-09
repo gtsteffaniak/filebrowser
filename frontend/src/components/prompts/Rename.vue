@@ -106,12 +106,12 @@ export default {
     onKeydown(event) {
       // Allow "esc" key to close prompt and block other shortcuts
       // e.g. in plyrViewer we have "P" and "L", without this we can't type those letters
-      if (event.keyCode !== 27) {
+    if (event.key !== "Escape") {
         event.stopPropagation();
       }
     },
     onKeyup(event) {
-      if (event.keyCode !== 27) {
+    if (event.key !== "Escape") {
         event.stopPropagation();
       }
       if (event.key === 'Enter') {
