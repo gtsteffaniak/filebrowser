@@ -160,7 +160,7 @@ export function buildItemUrl(source, path, includeBaseURL = false) {
   if (getters.isShare()) {
     urlPath = `public/share/${state.shareInfo.hash}/${encodedPath}`;
   } else {
-    urlPath = `files/${source}/${encodedPath}`;
+    urlPath = `files/${encodeURIComponent(source)}/${encodedPath}`;
   }
   if (includeBaseURL) {
     return `${globalVars.baseURL}${urlPath}`;
