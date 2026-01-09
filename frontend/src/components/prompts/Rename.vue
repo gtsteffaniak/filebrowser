@@ -200,7 +200,7 @@ export default {
         } else {
           await filesApi.moveCopy(items, "move");
         }
-        notify.showSuccess(this.$t("prompts.renameSuccess"));
+        notify.showSuccessToast(this.$t("prompts.renameSuccess"));
         mutations.closeHovers();
 
         if (this.isPreviewView) {
