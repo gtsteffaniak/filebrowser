@@ -7,15 +7,12 @@
     <p>{{ $t("prompts.renameMessage") }}</p>
 
     <div v-if="item.type !== 'directory'" class="filename-inputs">
-      <input ref="filenameInput" aria-label="New Name" class="input" :class="{ 'form-invalid': !validation.valid }" v-focus type="text" @keyup.enter="submit"
-        v-model.trim="fileName" @input="updateFullName" />
+      <input ref="filenameInput" aria-label="New Name" class="input" :class="{ 'form-invalid': !validation.valid }" v-focus type="text" @keydown="onKeydown" @keyup="onKeyup" v-model.trim="fileName" @input="updateFullName" />
       <span class="extension-separator">.</span> <!--eslint-disable-line @intlify/vue-i18n/no-raw-text-->
-      <input class="input extension-input" type="text" @keyup.enter="submit" v-model.trim="fileExtension"
-        @input="updateFullName" />
+      <input class="input extension-input" type="text" @keydown="onKeydown" @keyup="onKeyup" v-model.trim="fileExtension" @input="updateFullName" />
     </div>
 
-    <input v-else ref="directoryInput" class="input" aria-label="New Name" :class="{ 'form-invalid': !validation.valid }" v-focus type="text" @keyup.enter="submit"
-      v-model.trim="name" />
+    <input v-else ref="directoryInput" class="input" aria-label="New Name" :class="{ 'form-invalid': !validation.valid }" v-focus type="text" @keydown="onKeydown" @keyup="onKeyup" v-model.trim="name" />
     <p v-if="!validation.valid && name.length > 0" class="validation-error">
       <span v-if="validation.reason === 'conflict'">
         {{ $t("prompts.renameMessageConflict", { filename: name }) }}
@@ -106,6 +103,21 @@ export default {
     });
   },
   methods: {
+    onKeydown(event) {
+      // Allow "esc" key to close prompt and block other shortcuts
+      // e.g. in plyrViewer we have "P" and "L", without this we can't type those letters
+      if (event.keyCode !== 27) {
+        event.stopPropagation();
+      }
+    },
+    onKeyup(event) {
+      if (event.keyCode !== 27) {
+        event.stopPropagation();
+      }
+      if (event.key === 'Enter') {
+        this.submit();
+      }
+    },
     updateFullName() {
       // Combine filename and extension
       if (this.item.type !== 'directory') {
