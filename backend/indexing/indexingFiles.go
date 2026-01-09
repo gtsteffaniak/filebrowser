@@ -491,13 +491,11 @@ func (idx *Index) GetFsInfo(adjustedPath string, followSymlinks bool, showHidden
 	combinedPath := adjustedPath
 	var response *iteminfo.FileInfo
 
-	t1 := time.Now()
 	response, err = idx.GetDirInfo(dir, dirInfo, realPath, adjustedPath, combinedPath, actionConfig{
 		Quick:         false,
 		Recursive:     false,
 		CheckViewable: true,
 	}, nil) // nil scanner for FS read
-	logger.Debugf("[GETFSDIR] GetDirInfo took: %s", time.Since(t1))
 	if err != nil {
 		return nil, err
 	}
@@ -526,24 +524,9 @@ func (idx *Index) GetFsInfo(adjustedPath string, followSymlinks bool, showHidden
 }
 
 func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjustedPath, combinedPath string, config actionConfig, scanner *Scanner) (*iteminfo.FileInfo, error) {
-	startTime := time.Now()
-	shouldLog := !config.Recursive
-	if shouldLog {
-		logger.Debugf("[GETDIRINFO] GetDirInfo started for path: %s", adjustedPath)
-	}
-	defer func() {
-		if shouldLog {
-			logger.Debugf("[GETDIRINFO] GetDirInfo TOTAL for path %s: %s", adjustedPath, time.Since(startTime))
-		}
-	}()
-
 	combinedPath = utils.AddTrailingSlashIfNotExists(combinedPath)
 
-	t1 := time.Now()
 	files, err := dirInfo.Readdir(-1)
-	if shouldLog {
-		logger.Debugf("[GETDIRINFO] Readdir(%d items) took: %s", len(files), time.Since(t1))
-	}
 	if err != nil {
 		return nil, err
 	}
@@ -552,19 +535,12 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 	dirInfos := []iteminfo.ItemInfo{}
 	hasPreview := false
 
-	t2 := time.Now()
 	if !config.Recursive {
 		realDirInfo, exists := idx.GetMetadataInfo(adjustedPath, true, true) // shallow=true: only need hasPreview
 		if exists {
 			hasPreview = realDirInfo.HasPreview
 		}
 	}
-	if shouldLog && time.Since(t2) > time.Millisecond {
-		logger.Debugf("[GETDIRINFO] GetMetadataInfo(parent) took: %s", time.Since(t2))
-	}
-
-	dbLookupCount := 0
-	dbLookupTime := time.Duration(0)
 
 	// For non-recursive API calls, batch fetch hasPreview for all subdirectories
 	var subdirHasPreviewMap map[string]bool
@@ -593,15 +569,11 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 
 		// Batch fetch hasPreview for all subdirectories in one query
 		if len(subdirPaths) > 0 {
-			start := time.Now()
 			var err error
 			subdirHasPreviewMap, err = idx.db.GetHasPreviewBatch(idx.Name, subdirPaths)
 			if err != nil {
-				logger.Errorf("[GETDIRINFO] Failed to batch fetch hasPreview: %v", err)
 				subdirHasPreviewMap = make(map[string]bool)
 			}
-			dbLookupTime = time.Since(start)
-			dbLookupCount = 1 // Single batched query
 		}
 	}
 
@@ -727,11 +699,6 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 		return nil, errors.ErrNotIndexed
 	}
 
-	if shouldLog && dbLookupCount > 0 {
-		logger.Debugf("[GETDIRINFO] DB lookups: %d queries took %s total (avg: %s per query)",
-			dbLookupCount, dbLookupTime, dbLookupTime/time.Duration(dbLookupCount))
-	}
-
 	dirFileInfo := &iteminfo.FileInfo{
 		Path:    adjustedPath,
 		Files:   fileInfos,
@@ -770,15 +737,7 @@ func (idx *Index) GetRealPath(relativePath ...string) (string, bool, error) {
 }
 
 func (idx *Index) RefreshFileInfo(opts utils.FileOptions) error {
-	timeStart := time.Now()
-	logger.Debugf("[REFRESH] RefreshFileInfo for path %s started", opts.Path)
-	defer func() {
-		duration := time.Since(timeStart)
-		logger.Debugf("[REFRESH] RefreshFileInfo TOTAL for path %s: %s", opts.Path, duration)
-	}()
-
 	// Calculate target path
-	t1 := time.Now()
 	targetPath := opts.Path
 	if !opts.IsDir {
 		targetPath = idx.MakeIndexPath(filepath.Dir(targetPath), true)
@@ -786,29 +745,21 @@ func (idx *Index) RefreshFileInfo(opts utils.FileOptions) error {
 
 	// Get real path and check if directory exists
 	realPath, _, err := idx.GetRealPath(targetPath)
-	logger.Debugf("[REFRESH] GetRealPath took: %s", time.Since(t1))
 	if err != nil {
-		logger.Errorf("[REFRESH] Failed to get real path for %s: %v", targetPath, err)
 		return err
 	}
 
-	t2 := time.Now()
 	dirInfo, err := os.Stat(realPath)
-	logger.Debugf("[REFRESH] os.Stat took: %s", time.Since(t2))
 	if err != nil {
 		// Directory deleted - clear from in-memory map and update parents
-		t3 := time.Now()
 		idx.folderSizesMu.Lock()
 		previousSize, exists := idx.folderSizes[targetPath]
 		delete(idx.folderSizes, targetPath)
 		delete(idx.folderSizesUnsynced, targetPath)
 		idx.folderSizesMu.Unlock()
-		logger.Debugf("[REFRESH] Delete from map took: %s", time.Since(t3))
 
 		if exists && previousSize > 0 {
-			t4 := time.Now()
 			idx.updateFolderSizeAndParents(targetPath, 0, previousSize, false) // updateTarget=false, only update parents
-			logger.Debugf("[REFRESH] updateFolderSizeAndParents took: %s", time.Since(t4))
 		}
 		return nil
 	}
@@ -820,19 +771,13 @@ func (idx *Index) RefreshFileInfo(opts utils.FileOptions) error {
 	}
 
 	// Get previous size before shallow calculation
-	t5 := time.Now()
 	previousSize, _ := idx.GetFolderSize(targetPath)
-	logger.Debugf("[REFRESH] GetFolderSize took: %s", time.Since(t5))
 
-	t6 := time.Now()
 	newSize := idx.calculateDirectorySize(realPath, targetPath, true) // shallow=true for API calls
-	logger.Debugf("[REFRESH] calculateDirectorySize took: %s", time.Since(t6))
 
 	// Update this directory and propagate to parents if changed
 	if newSize != previousSize {
-		t7 := time.Now()
 		idx.updateFolderSizeAndParents(targetPath, newSize, previousSize, true) // updateTarget=true for API calls
-		logger.Debugf("[REFRESH] updateFolderSizeAndParents took: %s", time.Since(t7))
 	}
 
 	return nil
