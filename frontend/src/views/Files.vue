@@ -629,6 +629,20 @@ export default {
           mutations.resetSelected();
         }
       }
+      // F2! - for rename in previews
+      if (event.keyCode === 113 && getters.isPreviewView() && getters.permissions()?.modify) {
+        event.preventDefault();
+        if (!getters.currentPromptName()) {
+          const parentItems = state.navigation.listing || [];
+          mutations.showHover({
+            name: "rename",
+            props: {
+              item: state.req,
+              parentItems: parentItems
+            },
+          });
+        }
+      }
     },
   },
 };
