@@ -615,7 +615,8 @@
     "watching": "Observation{suffix}",
     "lines": "Lignes{suffix}",
     "lastUpdate": "Dernière mise à jour{suffix}",
-    "latency": "Temps de latence{suffix}"
+    "latency": "Temps de latence{suffix}",
+    "all": "Tous{suffix}"
   },
   "access": {
     "rules": "Règles d'accès",

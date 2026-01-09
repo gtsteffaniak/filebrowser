@@ -693,7 +693,8 @@
     "watching": "Sledování{suffix}",
     "lines": "Řádky{suffix}",
     "lastUpdate": "Poslední aktualizace{suffix}",
-    "latency": "Zpoždění{suffix}"
+    "latency": "Zpoždění{suffix}",
+    "all": "Všechny{suffix}"
   },
   "access": {
     "rules": "Pravidla přístupu",

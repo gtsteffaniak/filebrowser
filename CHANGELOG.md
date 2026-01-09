@@ -29,6 +29,7 @@ And a few potential drawbacks to lookout for:
  - conditionally hide symbolic links as indexing rule config (#1540)
  - External applications can connect to filebrowser over webDAV (#209) (#1764)
  - make breadcrumbs act as a drop area (#1785)
+ - search multiple sources at once (#848)
 
  **Notes**:
  - `server.cacheDirCleanup` defaults to `false` instead of true. For docker, you would still need to mount a tmp directory to persist cache.

@@ -615,7 +615,8 @@
     "watching": "المشاهدة{suffix}",
     "lines": "الخطوط{suffix}",
     "lastUpdate": "آخر تحديث{suffix}",
-    "latency": "الكمون{suffix}"
+    "latency": "الكمون{suffix}",
+    "all": "الكل{suffix}"
   },
   "access": {
     "rules": "قواعد الوصول",

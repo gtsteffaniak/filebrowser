@@ -615,7 +615,8 @@
     "watching": "시청 중{suffix}",
     "lines": "라인{suffix}",
     "lastUpdate": "최근 업데이트{suffix}",
-    "latency": "지연 시간{suffix}"
+    "latency": "지연 시간{suffix}",
+    "all": "모두{suffix}"
   },
   "access": {
     "rules": "액세스 규칙",

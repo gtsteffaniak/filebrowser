@@ -615,7 +615,8 @@
     "watching": "Παρακολούθηση{suffix}",
     "lines": "Γραμμές{suffix}",
     "lastUpdate": "Τελευταία ενημέρωση{suffix}",
-    "latency": "Καθυστέρηση{suffix}"
+    "latency": "Καθυστέρηση{suffix}",
+    "all": "Όλα{suffix}"
   },
   "access": {
     "rules": "Κανόνες πρόσβασης",

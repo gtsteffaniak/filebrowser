@@ -22,12 +22,11 @@
         @keyup.exact="keyup" @input="submit" ref="input" :autofocus="active" v-model.trim="value"
         aria-label="search input" :placeholder="$t('general.search', { suffix: '...' })" />
     </div>
-
-    <!-- Search results for desktop -->
     <div v-show="active" id="results" class="fb-shadow" ref="result">
       <div class="inputWrapper">
         <select v-if="multipleSources" class="searchContext button input" aria-label="search sources dropdown"
           v-model="selectedSource" :value="selectedSource" @change="updateSource">
+          <option value="__all__">{{ $t("general.all") }}</option>
           <option v-for="(info, name) in sourceInfo" :key="info" :value="name">
             {{ name }}
           </option>
@@ -89,7 +88,7 @@
         <ul v-show="results.length > 0">
           <li v-for="(s, k) in results" :key="k" class="search-entry clickable"
             :class="{ active: activeStates[k], 'large-icons': showPreviewImages }" :aria-label="baseName(s.path)">
-            <a :href="getRelative(s.path)" @contextmenu="addSelected(event, s)">
+            <a :href="getItemUrl(s)" @contextmenu="addSelected(event, s)">
               <Icon :mimetype="s.type" :filename="baseName(s.path)"
                 :hasPreview="showPreviewImages && (s.hasPreview || false)"
                 :thumbnailUrl="showPreviewImages ? getThumbnailUrl(s) : ''" />
@@ -98,6 +97,7 @@
                 <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
               </span>
               <div class="filesize">{{ humanSize(s.size) }}</div>
+              <div v-if="isSearchingMultipleSources && s.source" class="source-badge">{{ s.source }}</div>
             </a>
           </li>
         </ul>
@@ -300,7 +300,14 @@ export default {
     multipleSources() {
       return Object.keys(state.sources.info).length > 1;
     },
+    isSearchingMultipleSources() {
+      return this.selectedSource === "__all__" || (this.selectedSource === "" && this.multipleSources);
+    },
     getContext() {
+      // If searching all sources, don't use context
+      if (this.selectedSource === "__all__") {
+        return "/";
+      }
       let result = url.extractSourceFromPath(decodeURIComponent(state.route.path));
       if (this.selectedSource === "" || result.source === this.selectedSource) {
         return result.path;
@@ -365,12 +372,10 @@ export default {
       this.selectedSource = event.target.value;
       this.submit();
     },
-    getRelative(path) {
-      const context = url.removeTrailingSlash(this.getContext)
-      const encodedPath = url.encodePath(context + "/" + path)
-      let fullpath = encodedPath;
-      fullpath = globalVars.baseURL+"files/" + this.selectedSource + encodedPath;
-      return fullpath;
+    getItemUrl(s) {
+      // Use source from result if available, otherwise fall back to selectedSource
+      const source = s.source || this.selectedSource || state.sources.current;
+      return url.buildItemUrl(source, s.path, true);
     },
     getIcon(mimetype) {
       return getMaterialIconForType(mimetype);
@@ -466,11 +471,21 @@ export default {
         searchTypesFull = searchTypesFull + "type:smallerThan=" + this.smallerThan + " ";
       }
       this.ongoing = true;
-      let source = this.selectedSource;
-      if (source == "") {
-        this.selectedSource = state.sources.current;
+      
+      // Determine which sources to search
+      let sourcesToSearch = [];
+      if (this.selectedSource === "__all__" || this.selectedSource === "") {
+        // Search all sources
+        sourcesToSearch = Object.keys(this.sourceInfo);
+      } else {
+        // Search single source
+        sourcesToSearch = [this.selectedSource || state.sources.current];
       }
-      this.results = await search(this.getContext, this.selectedSource, searchTypesFull + this.value);
+      
+      // Only pass scope if searching a single source
+      const scope = sourcesToSearch.length === 1 ? this.getContext : null;
+      
+      this.results = await search(scope, sourcesToSearch, searchTypesFull + this.value);
 
       this.ongoing = false;
       if (this.results.length == 0) {
@@ -496,7 +511,8 @@ export default {
         return "";
       }
       try {
-        const source = this.selectedSource || state.sources.current;
+        // Use source from result if available, otherwise fall back to selectedSource
+        const source = s.source || this.selectedSource || state.sources.current;
         const path = s.path;
         const modified = s.modified || "";
         return filesApi.getPreviewURL(source, path, modified);
@@ -506,13 +522,15 @@ export default {
     },
     addSelected(event, s) {
       const pathParts = url.removeTrailingSlash(s.path).split("/");
+      // Use source from result if available, otherwise fall back to selectedSource
+      const source = s.source || this.selectedSource || state.sources.current;
       let path = this.getContext + url.removeTrailingSlash(s.path);
       const modifiedItem = {
         name: pathParts.pop(),
         path: path,
         size: s.size,
         type: s.type,
-        source: this.selectedSource || state.sources.current,
+        source: source,
       };
       mutations.resetSelected();
       mutations.addSelected(modifiedItem);
@@ -863,6 +881,16 @@ body.rtl #search .boxes h3 {
   padding: 0.25em;
   padding-left: 0.5em;
   padding-right: 0.5em;
+  min-width: fit-content;
+}
+
+.source-badge {
+  background: var(--primaryColor);
+  color: white;
+  border-radius: 1em;
+  padding: 0.25em 0.5em;
+  font-size: 0.85em;
+  font-weight: 500;
   min-width: fit-content;
 }
 

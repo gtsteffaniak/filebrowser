@@ -693,7 +693,8 @@
     "watching": "Спостерігаю.{suffix}",
     "lines": "Лінії{suffix}",
     "lastUpdate": "Останнє оновлення{suffix}",
-    "latency": "Затримка{suffix}"
+    "latency": "Затримка{suffix}",
+    "all": "Усе.{suffix}"
   },
   "access": {
     "rules": "Правила доступу",

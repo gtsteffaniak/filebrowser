@@ -615,7 +615,8 @@
     "watching": "İzlemek{suffix}",
     "lines": "Çizgiler{suffix}",
     "lastUpdate": "Son Güncelleme{suffix}",
-    "latency": "Gecikme{suffix}"
+    "latency": "Gecikme{suffix}",
+    "all": "Tümü{suffix}"
   },
   "access": {
     "rules": "Erişim kuralları",
