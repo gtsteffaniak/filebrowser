@@ -7,14 +7,14 @@
     <p>{{ $t("prompts.renameMessage") }}</p>
 
     <div v-if="item.type !== 'directory'" class="filename-inputs">
-      <input aria-label="New Name" class="input filename-input" :class="{ 'form-invalid': !validation.valid }" v-focus type="text" @keyup.enter="submit"
+      <input ref="filenameInput" aria-label="New Name" class="input" :class="{ 'form-invalid': !validation.valid }" v-focus type="text" @keyup.enter="submit"
         v-model.trim="fileName" @input="updateFullName" />
       <span class="extension-separator">.</span> <!--eslint-disable-line @intlify/vue-i18n/no-raw-text-->
       <input class="input extension-input" type="text" @keyup.enter="submit" v-model.trim="fileExtension"
         @input="updateFullName" />
     </div>
 
-    <input v-else class="input" aria-label="New Name" :class="{ 'form-invalid': !validation.valid }" v-focus type="text" @keyup.enter="submit"
+    <input v-else ref="directoryInput" class="input" aria-label="New Name" :class="{ 'form-invalid': !validation.valid }" v-focus type="text" @keyup.enter="submit"
       v-model.trim="name" />
     <p v-if="!validation.valid && name.length > 0" class="validation-error">
       <span v-if="validation.reason === 'conflict'">
@@ -41,7 +41,8 @@
 import { filesApi, publicApi } from "@/api";
 import { mutations, state, getters } from "@/store";
 import { notify } from "@/notify";
-import { getFileExtension, removePrefix } from '@/utils/files.js'
+import { getFileExtension, removePrefix } from '@/utils/files.js';
+import { url } from "@/utils";
 export default {
   name: "rename",
   props: {
@@ -49,6 +50,10 @@ export default {
       type: Object,
       required: true,
       default: () => ({ source: "", path: "", name: "" })
+    },
+    parentItems: {  // Parent items for comparison of filenames in a preview
+      type: Array,
+      default: () => []
     }
   },
   data() {
@@ -83,14 +88,20 @@ export default {
       return this.validation.valid &&
              this.name !== this.item.name &&
              hasValidFileName;
-    }
+    },
+    isPreviewView() {
+      return getters.isPreviewView();
+    },
   },
   mounted() {
     this.$nextTick(() => {
       // Auto-focus filename input field
       if (this.item.type !== 'directory') {
-        const filenameInput = this.$el.querySelector('.filename-input');
+        const filenameInput = this.$refs.filenameInput;
         filenameInput?.select();
+      } else {
+        const directoryInput = this.$refs.directoryInput;
+        directoryInput?.select();
       }
     });
   },
@@ -122,10 +133,28 @@ export default {
         }
       }
 
-      // Check if the item already exists
-      for (const item of state.req.items) {
-        if (item.path === this.item.path) continue;
-        if (item.name && item.name.toLowerCase() === value.toLowerCase()) {
+      // Get the current item's name for comparison
+      const currentItemName = this.item.name.toLowerCase();
+      const newName = value.toLowerCase();
+
+      // If renaming to the same name (case-insensitive), allow it
+      if (currentItemName === newName) {
+        return { valid: true };
+      }
+
+      // Use parentItems if we are in a preview, otherwise use state.req.items
+      const items = this.parentItems.length > 0 ? this.parentItems : (state.req?.items || []);
+      for (const item of items) {
+        if (!item.name) {
+          continue;
+        }
+        const itemName = item.name.toLowerCase();
+        // Skip the current item by comparing names (case-insensitive)
+        // This is more reliable than comparing paths as before
+        if (itemName === currentItemName) {
+          continue;
+        }
+        if (itemName === newName) {
           return { valid: false, reason: 'conflict' };
         }
       }
@@ -160,8 +189,13 @@ export default {
           await filesApi.moveCopy(items, "move");
         }
         notify.showSuccess(this.$t("prompts.renameSuccess"));
-        mutations.setReload(true);
         mutations.closeHovers();
+
+        if (this.isPreviewView) {
+          await url.replaceItem(newPath);
+        } else {
+          mutations.setReload(true);
+        }
       } catch (error) {
         console.error(error);
       }

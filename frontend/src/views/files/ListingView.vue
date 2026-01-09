@@ -268,6 +268,9 @@ export default {
     },
   },
   computed: {
+    permissions() {
+      return getters.permissions();
+    },
     shareInfo() {
       return state.shareInfo;
     },
@@ -512,7 +515,7 @@ export default {
     }
 
     // if safari , make sure click and hold opens context menu, but not for any other browser
-    if (state.user.permissions?.modify || getters.isShare()) {
+    if (this.permissions?.modify || getters.isShare()) {
       this.$el.addEventListener("dragenter", this.dragEnter);
       this.$el.addEventListener("dragleave", this.dragLeave);
       this.$el.addEventListener("drop", this.drop);
@@ -551,7 +554,7 @@ export default {
     }
 
     // Also clean up drag/drop listeners on the component's root element
-    if (state.user && state.user?.permissions?.modify || getters.isShare()) {
+    if (state.user && this.permissions?.modify || getters.isShare()) {
       this.$el.removeEventListener("dragenter", this.dragEnter);
       this.$el.removeEventListener("dragleave", this.dragLeave);
       this.$el.removeEventListener("drop", this.drop);
@@ -815,12 +818,12 @@ export default {
           break;
 
         case "Delete":
-          if (!state.user.permissions.modify || state.selected.length === 0) return;
+          if (!this.permissions?.modify || state.selected.length === 0) return;
           mutations.showHover("delete");
           break;
 
         case "F2":
-          if (!state.user.permissions.modify || state.selected.length !== 1) return;
+          if (!this.permissions?.modify) return;
           mutations.showHover({
             name: "rename",
             props: {

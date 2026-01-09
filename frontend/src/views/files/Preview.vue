@@ -331,6 +331,21 @@ export default {
                 case "Backspace":
                     this.close();
                     break;
+                 case "F2":
+                    console.log("F2 pressed, permissions:", this.permissions);
+                    console.log("state req:", state.req);
+                    if (this.permissions.modify) {
+                        event.preventDefault();
+                        const parentItems = state.navigation.listing || [];
+                        mutations.showHover({
+                        name: "rename",
+                        props: {
+                            item: state.req,
+                            parentItems: parentItems,
+                        },
+                    });
+                }
+                break;
             }
         },
         async updatePreview() {
