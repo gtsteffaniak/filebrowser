@@ -49,7 +49,6 @@
   "files": {
     "closePreview": "Zavrieť náhľad",
     "lastModified": "Posledná zmena",
-    "lonely": "Je tu tak pusto...",
     "multipleSelectionEnabled": "Zapnutý viacnásobný výber",
     "sortByLastModified": "Zoradiť podľa dátumu",
     "sortByName": "Zoradiť podľa názvu",
@@ -64,7 +63,8 @@
     "duration": "Trvanie{suffix}",
     "sortByDuration": "Zoradiť podľa trvania",
     "sameFolder": "Nie je možné presunúť do toho istého priečinka",
-    "cannotAccesDir": "Nie je možné pristúpiť k priečinku"
+    "cannotAccesDir": "Nie je možné pristúpiť k priečinku",
+    "lonely": "Tu nie je čo ukázať..."
   },
   "help": {
     "functionKeys": "Funkčné Klávesy",
@@ -649,7 +649,9 @@
     "uploadChunkSizeMbHelp": "Zvyčajne 5 až 50 MB, v prípade nestabilných alebo obmedzených pripojení je vhodnejšie použiť menšiu veľkosť. Nastavením na hodnotu 0 sa vypne zoskupovanie pri odosielaní.",
     "clearAll": "Vymazanie dokončenia by malo odstrániť chybu, pauzu a konflikt",
     "clearAllDescription": "Tlačidlo Vymazať dokončené vymaže všetky odoslania v stave dokončenia vrátane chybových, pozastavených a konfliktných stavov.",
-    "uploadSettings": "Nastavenia nahrávania"
+    "uploadSettings": "Nastavenia nahrávania",
+    "downloadChunkSizeMb": "Veľkosť preberaného úseku v MB",
+    "downloadChunkSizeMbHelp": "Veľkosť časti pre sťahovanie v častiach. Súbory väčšie ako táto veľkosť sa budú sťahovať po častiach, aby sa zabránilo problémom s časovým limitom (napr. chybám Cloudflare 524). Nastavenie na hodnotu 0 vypne sťahovanie v častiach."
   },
   "colors": {
     "red": "červená",

@@ -30,6 +30,9 @@ And a few potential drawbacks to lookout for:
  - External applications can connect to filebrowser over webDAV (#209) (#1764)
  - make breadcrumbs act as a drop area (#1785)
  - search multiple sources at once (#848)
+ - file uploads resume from bad internet connection #1599
+ - chunked downloads - fix 524 errors on cloudflare #1502
+
 
  **Notes**:
  - `server.cacheDirCleanup` defaults to `false` instead of true. For docker, you would still need to mount a tmp directory to persist cache.
@@ -38,6 +41,7 @@ And a few potential drawbacks to lookout for:
 
  **BugFixes**:
  - Source info not properly read from external storage NAS #1727
+
 
 ## v1.1.6-beta
 

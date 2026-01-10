@@ -49,7 +49,6 @@
   "files": {
     "closePreview": "Önizlemeyi kapat",
     "lastModified": "Son güncellenme",
-    "lonely": "Burada yalnızlık hissediyorum...",
     "multipleSelectionEnabled": "Çoklu seçim etkin",
     "sortByLastModified": "Güncelleme tarihine göre sırala",
     "sortByName": "İsme göre sırala",
@@ -64,7 +63,8 @@
     "duration": "Süre{suffix}",
     "sortByDuration": "Süreye göre sırala",
     "sameFolder": "Aynı klasöre taşınamaz",
-    "cannotAccesDir": "Dizine erişilemiyor"
+    "cannotAccesDir": "Dizine erişilemiyor",
+    "lonely": "Burada gösterecek bir şey yok."
   },
   "help": {
     "functionKeys": "Fonksiyon Tuşları",
@@ -649,7 +649,9 @@
     "uploadChunkSizeMbHelp": "Tipik olarak 5 ila 50 MB, daha küçük kararsız veya kısıtlı bağlantılar için daha iyidir. 0 olarak ayarlandığında yükleme yığınlaması devre dışı bırakılır.",
     "clearAll": "Clear completed hata, duraklama ve çakışmayı kaldırmalıdır",
     "clearAllDescription": "Tamamlananları temizle düğmesi hata, duraklatılmış ve çakışma durumları da dahil olmak üzere bitmiş durumdaki tüm yüklemeleri temizler.",
-    "uploadSettings": "Yükleme Ayarları"
+    "uploadSettings": "Yükleme Ayarları",
+    "downloadChunkSizeMb": "MB cinsinden indirme yığın boyutu",
+    "downloadChunkSizeMbHelp": "Parçalı indirmeler için yığın boyutu. Bu boyuttan daha büyük dosyalar, zaman aşımı sorunlarını (örn. Cloudflare 524 hataları) önlemek için parçalar halinde indirilecektir. 0 olarak ayarlamak yığın indirmeleri devre dışı bırakır."
   },
   "colors": {
     "red": "kırmızı",

@@ -49,7 +49,6 @@
   "files": {
     "closePreview": "Cerrar vista previa",
     "lastModified": "Última modificación",
-    "lonely": "Esto está muy vacio...",
     "multipleSelectionEnabled": "Selección múltiple activada",
     "sortByLastModified": "Ordenar por fecha de modificación",
     "sortByName": "Ordenar por nombre",
@@ -64,7 +63,8 @@
     "duration": "Duración {suffix}",
     "sortByDuration": "Ordenar por duración",
     "sameFolder": "No se puede mover a la misma carpeta",
-    "cannotAccesDir": "No se puede acceder al directorio"
+    "cannotAccesDir": "No se puede acceder al directorio",
+    "lonely": "Nada que mostrar aquí..."
   },
   "help": {
     "functionKeys": "Teclas de función",
@@ -649,7 +649,9 @@
     "uploadChunkSizeMbHelp": "Subida de archivos fragmentada o \"Chunked uploads\" en inglés - Lo que está opción hace es controlar la velocidad de subida en la que los fragmentos de archivo se subirán.",
     "clearAll": "\"Limpiar completados\" debe borrar todo",
     "clearAllDescription": "Hará que el botón de \"Limpiar completados\" en la ventana de subir archivos borre todos los estados: Finalizado, error, pausa y conflicto.",
-    "uploadSettings": "Opciones de subida"
+    "uploadSettings": "Opciones de subida",
+    "downloadChunkSizeMb": "Tamaño del fragmento de descarga en MB",
+    "downloadChunkSizeMbHelp": "Tamaño de trozo para descargas por trozos. Los archivos mayores que este tamaño se descargarán en trozos para evitar problemas de tiempo de espera (por ejemplo, errores Cloudflare 524). Si se establece en 0, se desactivan las descargas en trozos."
   },
   "colors": {
     "red": "Rojo",

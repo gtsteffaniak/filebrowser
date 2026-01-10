@@ -49,7 +49,6 @@
   "files": {
     "closePreview": "Fechar pré-visualização",
     "lastModified": "Última modificação",
-    "lonely": "Não existe nada aqui.",
     "multipleSelectionEnabled": "Seleção múltipla ativada",
     "sortByLastModified": "Ordenar pela última modificação",
     "sortByName": "Ordenar pelo nome",
@@ -64,7 +63,8 @@
     "duration": "Duração{suffix}",
     "sortByDuration": "Ordenar por duração",
     "sameFolder": "Não é possível mover para a mesma pasta",
-    "cannotAccesDir": "Não é possível acessar o diretório"
+    "cannotAccesDir": "Não é possível acessar o diretório",
+    "lonely": "Nada para mostrar aqui..."
   },
   "help": {
     "functionKeys": "Teclas de Função",
@@ -649,7 +649,9 @@
     "uploadChunkSizeMbHelp": "Normalmente, de 5 a 50 MB; quanto menor, melhor para conexões instáveis ou restritas. A configuração como 0 desabilitará o chunking de upload.",
     "clearAll": "O Clear completed deve remover erros, pausas e conflitos",
     "clearAllDescription": "O botão limpar concluído limpará todos os uploads em um estado concluído, inclusive os estados de erro, pausa e conflito.",
-    "uploadSettings": "Configurações de upload"
+    "uploadSettings": "Configurações de upload",
+    "downloadChunkSizeMb": "Tamanho do bloco de download em MB",
+    "downloadChunkSizeMbHelp": "Tamanho do bloco para downloads em blocos. Arquivos maiores que esse tamanho serão baixados em partes para evitar problemas de tempo limite (por exemplo, erros 524 do Cloudflare). A configuração como 0 desativa os downloads em blocos."
   },
   "colors": {
     "red": "vermelho",

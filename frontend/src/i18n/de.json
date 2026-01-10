@@ -49,7 +49,6 @@
   "files": {
     "closePreview": "Vorschau schließen",
     "lastModified": "Zuletzt geändert",
-    "lonely": "Hier scheint nichts zu sein...",
     "multipleSelectionEnabled": "Mehrfachauswahl aktiviert",
     "sortByLastModified": "Nach Änderungsdatum sortieren",
     "sortByName": "Nach Namen sortieren",
@@ -64,7 +63,8 @@
     "duration": "Dauer{suffix}",
     "sortByDuration": "Sortieren nach Dauer",
     "sameFolder": "Kann nicht in denselben Ordner verschoben werden",
-    "cannotAccesDir": "Kann nicht auf das Verzeichnis zugreifen"
+    "cannotAccesDir": "Kann nicht auf das Verzeichnis zugreifen",
+    "lonely": "Hier gibt es nichts zu sehen..."
   },
   "help": {
     "functionKeys": "Funktionstasten",
@@ -649,7 +649,9 @@
     "uploadChunkSizeMbHelp": "Normalerweise 5 bis 50 MB, kleiner ist besser für instabile oder eingeschränkte Verbindungen. Die Einstellung 0 deaktiviert das Chunking beim Hochladen.",
     "clearAll": "Clear completed sollte Fehler, Pausen und Konflikte beseitigen",
     "clearAllDescription": "Mit der Schaltfläche Abgeschlossen löschen werden alle Uploads im abgeschlossenen Zustand gelöscht, einschließlich Fehler-, Pausen- und Konfliktstatus.",
-    "uploadSettings": "Upload-Einstellungen"
+    "uploadSettings": "Upload-Einstellungen",
+    "downloadChunkSizeMb": "Größe des heruntergeladenen Stücks in MB",
+    "downloadChunkSizeMbHelp": "Chunk-Größe für Chunked-Downloads. Dateien, die größer als diese Größe sind, werden in Chunks heruntergeladen, um Timeout-Probleme zu vermeiden (z. B. Cloudflare 524-Fehler). Mit dem Wert 0 werden Chunked Downloads deaktiviert."
   },
   "colors": {
     "red": "rot",

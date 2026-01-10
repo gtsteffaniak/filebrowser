@@ -120,9 +120,10 @@ type NonAdminEditable struct {
 }
 
 type FileLoading struct {
-	MaxConcurrent int  `json:"maxConcurrentUpload"`
-	ChunkSize     int  `json:"uploadChunkSizeMb"`
-	ClearAll      bool `json:"clearAll"`
+	MaxConcurrent     int  `json:"maxConcurrentUpload"`
+	UploadChunkSize   int  `json:"uploadChunkSizeMb"`
+	ClearAll          bool `json:"clearAll"`
+	DownloadChunkSize int  `json:"downloadChunkSizeMb"`
 }
 
 // SidebarLink represents a customizable link in the sidebar.

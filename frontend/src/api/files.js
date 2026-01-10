@@ -1,8 +1,9 @@
 import { fetchURL, adjustedData } from './utils'
 import { getApiPath, doubleEncode, getPublicApiPath } from '@/utils/url.js'
-import { state } from '@/store'
+import { state, mutations } from '@/store'
 import { notify } from '@/notify'
 import { globalVars } from '@/utils/constants'
+import { downloadManager } from '@/utils/downloadManager'
 
 // Notify if errors occur
 export async function fetchFiles(source, path, content = false, metadata = false) {
@@ -83,6 +84,23 @@ export async function put(source, path, content = '') {
 }
 
 export async function download(format, files, shareHash = "") {
+  // Check if chunked download should be used (single file only)
+  const downloadChunkSizeMb = state.user?.fileLoading?.downloadChunkSizeMb || 0
+  const sizeThreshold = downloadChunkSizeMb * 1024 * 1024;
+  
+  const useChunkedDownload = 
+    downloadChunkSizeMb > 0 && 
+    files.length === 1 && 
+    !files[0].isDir && 
+    files[0].size && 
+    files[0].size >= sizeThreshold
+
+  if (useChunkedDownload) {
+    // Use chunked download for large single files
+    return await downloadChunked(files[0], shareHash)
+  }
+
+  // Normal download (archive or small files)
   if (format !== 'zip') {
     format = 'tar.gz'
   }
@@ -119,6 +137,177 @@ export async function download(format, files, shareHash = "") {
   setTimeout(() => {
     document.body.removeChild(link)
   }, 100)
+}
+
+async function downloadChunked(file, shareHash = "") {
+  const chunkSizeMb = state.user?.fileLoading?.downloadChunkSizeMb || 0
+  
+  if (chunkSizeMb === 0) {
+    throw new Error("Chunked download is disabled (chunk size is 0)")
+  }
+  const chunkSize = chunkSizeMb * 1024 * 1024 // Convert MB to bytes
+  const fileSize = file.size
+  
+  // Extract filename from path if name is not available
+  const fileName = file.name || (file.path ? file.path.split('/').pop() : 'download')
+
+  // Add to download manager
+  const downloadId = downloadManager.add(file, shareHash)
+  
+  downloadManager.setStatus(downloadId, "downloading")
+  
+  // Show download prompt if not already shown (it should already be shown by downloadFiles, but check to be safe)
+  const hasDownloadPrompt = state.hovers && state.hovers.some(h => h.name === 'download');
+  
+  if (!hasDownloadPrompt) {
+    mutations.showHover({ name: 'download' })
+  }
+
+  // Build the download URL
+  let fileargs = ''
+  if (shareHash) {
+    fileargs = encodeURIComponent(file.path)
+  } else {
+    fileargs = encodeURIComponent(file.source) + '::' + encodeURIComponent(file.path)
+  }
+
+  const apiPath = getApiPath(shareHash == "" ? 'api/raw' : 'public/api/raw', {
+    files: fileargs,
+    hash: shareHash,
+    ...(state.share.token && { token: state.share.token }),
+    sessionId: state.sessionId
+  })
+  const baseUrl = window.origin + apiPath
+
+  const download = downloadManager.findById(downloadId)
+  const abortController = new AbortController()
+  download.abortController = abortController
+
+  try {
+    // Download file in chunks
+    const chunks = []
+    let offset = 0
+    let loaded = 0
+    let chunkNumber = 0
+
+    while (offset < fileSize) {
+      chunkNumber++;
+      
+      const download = downloadManager.findById(downloadId);
+      if (download && download.status === "cancelled") {
+        // Silently handle cancellation - don't throw error
+        return;
+      }
+
+      const end = Math.min(offset + chunkSize - 1, fileSize - 1)
+      const rangeHeader = `bytes=${offset}-${end}`
+
+      const response = await fetch(baseUrl, {
+        headers: {
+          'Range': rangeHeader
+        },
+        credentials: 'same-origin',
+        signal: abortController.signal
+      })
+
+      if (!response.ok && response.status !== 206) {
+        throw new Error(`Failed to download chunk: ${response.statusText}`)
+      }
+
+      // Track progress within the chunk using ReadableStream
+      const expectedChunkSize = end - offset + 1;
+      
+      const reader = response.body.getReader();
+      const chunkParts = [];
+      let chunkLoaded = 0;
+      let lastProgressUpdate = 0;
+      const progressUpdateInterval = Math.max(50000, expectedChunkSize / 50); // Update every ~2% of chunk or 50KB
+
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          
+          chunkParts.push(value);
+          chunkLoaded += value.length;
+          
+          // Calculate progress: only count up to expected chunk size to avoid over-counting
+          const chunkProgress = Math.min(chunkLoaded, expectedChunkSize);
+          const totalLoaded = offset + chunkProgress;
+          const progress = Math.min((totalLoaded / fileSize) * 100, 100);
+          
+          // Update progress in real-time, but throttle updates for performance
+          if (chunkLoaded - lastProgressUpdate >= progressUpdateInterval || chunkLoaded >= expectedChunkSize) {
+            downloadManager.updateProgress(downloadId, totalLoaded, fileSize);
+            lastProgressUpdate = chunkLoaded;
+          }
+        }
+      } catch (readError) {
+        // If read was aborted, check if download was cancelled
+        const download = downloadManager.findById(downloadId);
+        if (readError.name === 'AbortError' || (download && download.status === "cancelled")) {
+          downloadManager.setStatus(downloadId, "cancelled");
+          return; // Silently handle cancellation
+        }
+        throw readError; // Re-throw other errors
+      }
+
+      // Combine chunk parts into single ArrayBuffer
+      const chunk = new Uint8Array(chunkLoaded);
+      let position = 0;
+      for (const part of chunkParts) {
+        chunk.set(part, position);
+        position += part.length;
+      }
+      
+      // Only use the expected chunk size portion if server returned more (handles Range header issues)
+      const chunkToUse = chunk.byteLength > expectedChunkSize 
+        ? chunk.slice(0, expectedChunkSize).buffer 
+        : chunk.buffer;
+      
+      chunks.push(chunkToUse)
+      // Always use expected chunk size for progress to avoid double-counting
+      loaded += expectedChunkSize
+      
+      // Final progress update for this chunk
+      downloadManager.updateProgress(downloadId, loaded, fileSize)
+      
+      offset = end + 1
+    }
+
+    // Combine all chunks into a single blob
+    const blob = new Blob(chunks, { type: 'application/octet-stream' })
+    const blobUrl = URL.createObjectURL(blob)
+
+    // Trigger download
+    const link = document.createElement('a')
+    link.href = blobUrl
+    link.download = fileName
+    link.style.display = 'none'
+    document.body.appendChild(link)
+    link.click()
+
+    // Mark as completed
+    downloadManager.setStatus(downloadId, "completed")
+    downloadManager.updateProgress(downloadId, fileSize, fileSize)
+
+    // Clean up
+    setTimeout(() => {
+      document.body.removeChild(link)
+      URL.revokeObjectURL(blobUrl)
+    }, 100)
+  } catch (error) {
+    // Check if download was cancelled by user
+    const download = downloadManager.findById(downloadId);
+    if (error.name === 'AbortError' || (download && download.status === "cancelled")) {
+      downloadManager.setStatus(downloadId, "cancelled")
+      // Don't throw error or show notification for user-initiated cancellation
+      return;
+    }
+    downloadManager.setError(downloadId, error.message || 'Download failed')
+    notify.showError(`Chunked download failed: ${error.message}`)
+    throw error
+  }
 }
 
 export function post(

@@ -81,10 +81,10 @@
                   : (file.progress / 100) * file.size
             " :unit="file.status === 'completed' || file.status === 'error' ? '' : 'bytes'" :max="file.size"
             :status="file.status" text-position="inside" size="20"
-            :help-text="file.status === 'error' && file.errorDetails ? file.errorDetails : ''">
+            :help-text="getHelpText(file)">
           </progress-bar>
           <div v-else class="status-label">
-            <span>{{ getStatusText(file.status) }}</span>
+            <span>{{ getStatusText(file.status, file) }}</span>
           </div>
         </div>
         <div class="file-actions">
@@ -530,7 +530,12 @@ export default {
       uploadManager.cancel(id);
     };
 
-    const getStatusText = (status) => {
+    const getStatusText = (status, file) => {
+      // Show connection issue in status for paused uploads
+      if (status === 'paused' && file?.connectionIssue) {
+        return 'Paused (connection issue)';
+      }
+      
       switch (status) {
         case 'uploading':
           return i18n.global.t('general.uploading', { suffix: '...' });
@@ -545,6 +550,19 @@ export default {
         default:
           return status;
       }
+    };
+
+    const getHelpText = (file) => {
+      if (file.status === 'error' && file.errorDetails) {
+        return file.errorDetails;
+      }
+      if (file.status === 'paused' && file.connectionIssue) {
+        return 'Connection stalled - upload paused. Click resume to retry.';
+      }
+      if (file.connectionIssue && file.status === 'error') {
+        return file.errorDetails || 'Connection issue detected. Click retry to resume.';
+      }
+      return '';
     };
 
     return {
@@ -579,6 +597,7 @@ export default {
       showTooltip,
       hideTooltip,
       getStatusText,
+      getHelpText,
       updateUploadSettings,
     };
   },

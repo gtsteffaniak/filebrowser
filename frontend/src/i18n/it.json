@@ -49,7 +49,6 @@
   "files": {
     "closePreview": "Chiudi anteprima",
     "lastModified": "Ultima modifica",
-    "lonely": "Ci si sente soli qui...",
     "multipleSelectionEnabled": "Selezione multipla attivata",
     "sortByLastModified": "Ordina per ultima modifica",
     "sortByName": "Ordina per nome",
@@ -64,7 +63,8 @@
     "duration": "Durata{suffix}",
     "sortByDuration": "Ordina per durata",
     "sameFolder": "Impossibile spostare nella stessa cartella",
-    "cannotAccesDir": "Impossibile accedere alla directory"
+    "cannotAccesDir": "Impossibile accedere alla directory",
+    "lonely": "Non c'è niente da mostrare qui..."
   },
   "help": {
     "functionKeys": "Tasti Funzione",
@@ -649,7 +649,9 @@
     "uploadChunkSizeMbHelp": "In genere da 5 a 50 MB, ma per connessioni instabili o limitate è meglio che sia più piccolo. Impostando 0 si disattiva il chunking del caricamento.",
     "clearAll": "L'opzione Clear completed dovrebbe rimuovere gli errori, le pause e i conflitti.",
     "clearAllDescription": "Il pulsante Cancella completato cancella tutti i caricamenti in stato completato, compresi gli stati di errore, pausa e conflitto.",
-    "uploadSettings": "Impostazioni di caricamento"
+    "uploadSettings": "Impostazioni di caricamento",
+    "downloadChunkSizeMb": "Dimensioni del download in MB",
+    "downloadChunkSizeMbHelp": "Dimensione dei chunk per i download chunked. I file più grandi di questa dimensione saranno scaricati in pezzi per evitare problemi di timeout (ad esempio, errori Cloudflare 524). L'impostazione a 0 disabilita i download a blocchi."
   },
   "colors": {
     "red": "rosso",

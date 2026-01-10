@@ -49,7 +49,6 @@
   "files": {
     "closePreview": "Zamknij poprzednie",
     "lastModified": "Ostatnio modyfikowane",
-    "lonely": "Smutno gdy tak pusto...",
     "multipleSelectionEnabled": "Zaznaczenie wielu włączone",
     "sortByLastModified": "Sortuj wg. daty modyfikacji",
     "sortByName": "Sortuj wg. nazwy",
@@ -64,7 +63,8 @@
     "duration": "Czas trwania{suffix}",
     "sortByDuration": "Sortuj według czasu trwania",
     "sameFolder": "Nie można przenieść do tego samego folderu",
-    "cannotAccesDir": "Nie można uzyskać dostępu do katalogu"
+    "cannotAccesDir": "Nie można uzyskać dostępu do katalogu",
+    "lonely": "Nie ma tu nic do pokazania..."
   },
   "help": {
     "functionKeys": "Klawisze Funkcji",
@@ -649,7 +649,9 @@
     "uploadChunkSizeMbHelp": "Zazwyczaj od 5 do 50 MB, mniejsze są lepsze dla niestabilnych lub ograniczonych połączeń. Ustawienie wartości 0 spowoduje wyłączenie podziału na fragmenty.",
     "clearAll": "Wyczyszczenie zakończone powinno usunąć błąd, pauzę i konflikt",
     "clearAllDescription": "Przycisk wyczyść ukończone spowoduje wyczyszczenie wszystkich przesłanych plików w stanie ukończenia, w tym w stanie błędu, wstrzymania i konfliktu.",
-    "uploadSettings": "Ustawienia przesyłania"
+    "uploadSettings": "Ustawienia przesyłania",
+    "downloadChunkSizeMb": "Rozmiar pobieranego fragmentu w MB",
+    "downloadChunkSizeMbHelp": "Rozmiar fragmentu dla pobierania fragmentarycznego. Pliki większe niż ten rozmiar będą pobierane w kawałkach, aby zapobiec problemom z przekroczeniem limitu czasu (np. błędy Cloudflare 524). Ustawienie wartości 0 wyłącza pobieranie fragmentaryczne."
   },
   "colors": {
     "red": "czerwony",

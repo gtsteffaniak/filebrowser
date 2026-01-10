@@ -155,6 +155,10 @@ export function stopSSE () {
 
 async function eventRouter (eventType, message) {
   switch (eventType) {
+    case 'heartbeat':
+      // Ignore heartbeat messages - they're just for keeping the connection alive
+      return
+
     case 'notification':
       if (message === 'the server is shutting down') {
         if (!hasShownShutdownMessage) {
