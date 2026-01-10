@@ -92,25 +92,36 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.E
 			return response, fmt.Errorf("path not accessible: not viewable and not indexed")
 		}
 		// Category 1: Indexable (not viewable but indexable)
-		// For directories, open once and reuse handle to avoid redundant disk I/O
+		// For directories, open once for RefreshFileInfo, then open again for GetFsInfoCore
+		// (can't reuse handle because RefreshFileInfo consumes it via Readdir)
 		if isDir {
 			dir, err2 := os.Open(realPath)
-			if err != nil {
+			if err2 != nil {
 				return response, fmt.Errorf("could not open directory: %v", err2)
 			}
-			defer dir.Close()
-			dirInfo, err3 := dir.Stat()
-			if err3 != nil {
-				return response, fmt.Errorf("could not stat directory: %v", err3)
+			dirInfo, err2 := dir.Stat()
+			if err2 != nil {
+				dir.Close()
+				return response, fmt.Errorf("could not stat directory: %v", err2)
 			}
 			t3 := time.Now()
 			err = idx.RefreshFileInfoWithHandle(opts, dir, dirInfo)
+			dir.Close() // Close after RefreshFileInfo since it consumes the handle
 			logger.Debugf("[API_TIMING] RefreshFileInfo took: %s", time.Since(t3))
 			if err != nil {
 				logger.Debugf("failed to refresh file info for path: %s, error: %v", opts.Path, err)
 				return response, fmt.Errorf("path not accessible: %v", err)
 			}
-			// Reuse the same directory handle
+			// Open a new directory handle for GetFsInfoCore (previous one was consumed by Readdir)
+			dir2, err2 := os.Open(realPath)
+			if err2 != nil {
+				return response, fmt.Errorf("could not open directory: %v", err2)
+			}
+			defer dir2.Close()
+			dirInfo2, err2 := dir2.Stat()
+			if err2 != nil {
+				return response, fmt.Errorf("could not stat directory: %v", err2)
+			}
 			info, err = idx.GetFsInfoCore(opts.Path, indexing.Options{
 				Quick:             false,
 				Recursive:         false,
@@ -121,7 +132,7 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.E
 				UseInMemorySizes:  true,
 				FollowSymlinks:    opts.FollowSymlinks,
 				ShowHidden:        opts.ShowHidden,
-			}, dir, dirInfo)
+			}, dir2, dirInfo2)
 			if err != nil {
 				return response, err
 			}
@@ -146,25 +157,36 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.E
 		}
 	} else {
 		// Category 1: Indexable (and viewable)
-		// For directories, open once and reuse handle to avoid redundant disk I/O
+		// For directories, open once for RefreshFileInfo, then open again for GetFsInfoCore
+		// (can't reuse handle because RefreshFileInfo consumes it via Readdir)
 		if isDir {
 			dir, err2 := os.Open(realPath)
 			if err2 != nil {
 				return response, fmt.Errorf("could not open directory: %v", err2)
 			}
-			defer dir.Close()
 			dirInfo, err2 := dir.Stat()
 			if err2 != nil {
+				dir.Close()
 				return response, fmt.Errorf("could not stat directory: %v", err2)
 			}
 			t3 := time.Now()
 			err = idx.RefreshFileInfoWithHandle(opts, dir, dirInfo)
+			dir.Close() // Close after RefreshFileInfo since it consumes the handle
 			logger.Debugf("[API_TIMING] RefreshFileInfo took: %s", time.Since(t3))
 			if err != nil {
 				logger.Debugf("failed to refresh file info for path: %s, error: %v", opts.Path, err)
 				return response, fmt.Errorf("path not accessible: %v", err)
 			}
-			// Reuse the same directory handle
+			// Open a new directory handle for GetFsInfoCore (previous one was consumed by Readdir)
+			dir2, err2 := os.Open(realPath)
+			if err2 != nil {
+				return response, fmt.Errorf("could not open directory: %v", err2)
+			}
+			defer dir2.Close()
+			dirInfo2, err2 := dir2.Stat()
+			if err2 != nil {
+				return response, fmt.Errorf("could not stat directory: %v", err2)
+			}
 			info, err = idx.GetFsInfoCore(opts.Path, indexing.Options{
 				Quick:             false,
 				Recursive:         false,
@@ -175,7 +197,7 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.E
 				UseInMemorySizes:  true,
 				FollowSymlinks:    opts.FollowSymlinks,
 				ShowHidden:        opts.ShowHidden,
-			}, dir, dirInfo)
+			}, dir2, dirInfo2)
 			if err != nil {
 				return response, err
 			}

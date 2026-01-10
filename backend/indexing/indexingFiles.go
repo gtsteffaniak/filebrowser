@@ -566,225 +566,312 @@ func (idx *Index) GetFsInfoViewableOnly(adjustedPath string, followSymlinks bool
 	}, nil, nil)
 }
 
+// fetchExtendedAttributes fetches hasPreview for the current directory and batch fetches for subdirectories
+// Returns the current directory's hasPreview and a map of subdirectory paths to their hasPreview values
+func (idx *Index) fetchExtendedAttributes(adjustedPath, combinedPath string, files []os.FileInfo, opts Options) (bool, map[string]bool) {
+	hasPreview := false
+	subdirHasPreviewMap := make(map[string]bool)
+
+	if opts.SkipExtendedAttrs || opts.Recursive {
+		return hasPreview, subdirHasPreviewMap
+	}
+
+	// Fetch hasPreview for current directory
+	realDirInfo, exists := idx.GetMetadataInfo(adjustedPath, true, true)
+	if exists {
+		hasPreview = realDirInfo.HasPreview
+	}
+
+	// Batch fetch hasPreview for all subdirectories
+	var subdirPaths []string
+	for _, file := range files {
+		if !iteminfo.IsDirectory(file) {
+			continue
+		}
+		baseName := file.Name()
+		if adjustedPath == "/" {
+			if !idx.shouldInclude(baseName) {
+				continue
+			}
+		}
+		if omitList[baseName] {
+			continue
+		}
+		dirPath := combinedPath + baseName
+		childIndexPath := utils.AddTrailingSlashIfNotExists(dirPath)
+		subdirPaths = append(subdirPaths, childIndexPath)
+	}
+
+	if len(subdirPaths) > 0 {
+		var err error
+		subdirHasPreviewMap, err = idx.db.GetHasPreviewBatch(idx.Name, subdirPaths)
+		if err != nil {
+			subdirHasPreviewMap = make(map[string]bool)
+		}
+	}
+
+	return hasPreview, subdirHasPreviewMap
+}
+
+// shouldProcessItem determines if an item should be processed based on skip rules, viewable rules, and symlink settings
+func (idx *Index) shouldProcessItem(file os.FileInfo, adjustedPath, combinedPath, baseName string, isDir bool, opts Options) bool {
+	fullCombined := combinedPath + baseName
+
+	// Check for symlinks if ignoreAllSymlinks is enabled
+	if idx.Config.ResolvedConditionals != nil && idx.Config.ResolvedConditionals.IgnoreAllSymlinks {
+		if file.Mode()&os.ModeSymlink != 0 {
+			return false
+		}
+	}
+
+	// Check ShowHidden option - filter out hidden files if ShowHidden is false
+	if !opts.ShowHidden {
+		hidden := isHidden(file, idx.Path+combinedPath)
+		if hidden {
+			return false
+		}
+	}
+
+	// Check root include rules
+	if adjustedPath == "/" {
+		if !idx.shouldInclude(file.Name()) {
+			return false
+		}
+	}
+
+	// Index/viewable checking logic
+	if opts.SkipIndexChecks {
+		// Viewable-only: only check IsViewable
+		return idx.IsViewable(isDir, fullCombined)
+	}
+
+	// Indexed: use shouldSkip with optional viewable check
+	hidden := isHidden(file, idx.Path+combinedPath)
+	if opts.CheckViewable {
+		return !idx.shouldSkip(isDir, hidden, fullCombined, baseName, opts) || idx.IsViewable(isDir, fullCombined)
+	}
+	return !idx.shouldSkip(isDir, hidden, fullCombined, baseName, opts)
+}
+
+// processDirectoryItem processes a directory item and returns the itemInfo, size, and whether it should be counted
+func (idx *Index) processDirectoryItem(file os.FileInfo, combinedPath, realPath, fullCombined string, subdirHasPreviewMap map[string]bool, opts Options, scanner *Scanner) (*iteminfo.ItemInfo, int64, bool) {
+	dirPath := combinedPath + file.Name()
+
+	// Check NeverWatchPaths for recursive scans
+	if !idx.GetLastIndexed().IsZero() && opts.Recursive && idx.Config.ResolvedConditionals != nil {
+		if _, exists := idx.Config.ResolvedConditionals.NeverWatchPaths[fullCombined]; exists {
+			return nil, 0, false
+		}
+	}
+
+	// Skip non-indexable dirs
+	if omitList[file.Name()] {
+		return nil, 0, false
+	}
+
+	itemInfo := &iteminfo.ItemInfo{
+		Name:    file.Name(),
+		ModTime: file.ModTime(),
+		Hidden:  isHidden(file, idx.Path+combinedPath),
+		Type:    "directory",
+	}
+
+	if opts.Recursive {
+		// Recursive: index the subdirectory
+		subdirSize, subdirHasPreview, err := idx.indexDirectory(dirPath, opts, scanner)
+		if err != nil {
+			logger.Errorf("Failed to index directory %s: %v", dirPath, err)
+			return nil, 0, false
+		}
+		itemInfo.Size = subdirSize
+		itemInfo.HasPreview = subdirHasPreview
+		return itemInfo, itemInfo.Size, true
+	}
+
+	// Non-recursive: get folder size and hasPreview
+	if opts.UseInMemorySizes {
+		// Use in-memory folder size (fast) and get hasPreview from batched map
+		childIndexPath := utils.AddTrailingSlashIfNotExists(dirPath)
+		if inMemSize, exists := idx.GetFolderSize(childIndexPath); exists {
+			itemInfo.Size = int64(inMemSize)
+		} else {
+			itemInfo.Size = 0
+		}
+
+		// Use batched hasPreview map if available
+		if !opts.SkipExtendedAttrs && subdirHasPreviewMap != nil {
+			if hasPreviewValue, exists := subdirHasPreviewMap[childIndexPath]; exists {
+				itemInfo.HasPreview = hasPreviewValue
+			} else {
+				itemInfo.HasPreview = false
+			}
+		} else {
+			itemInfo.HasPreview = false
+		}
+	} else {
+		// Calculate size from filesystem (shallow, just immediate children)
+		childRealPath := realPath + "/" + file.Name()
+		childDir, err := os.Open(childRealPath)
+		if err == nil {
+			childFiles, err := childDir.Readdir(-1)
+			childDir.Close()
+			if err == nil {
+				var dirSize int64
+				for _, childFile := range childFiles {
+					if !childFile.IsDir() {
+						dirSize += childFile.Size()
+					}
+				}
+				itemInfo.Size = dirSize
+			} else {
+				itemInfo.Size = 0
+			}
+		} else {
+			itemInfo.Size = 0
+		}
+		itemInfo.HasPreview = false
+	}
+
+	return itemInfo, itemInfo.Size, true
+}
+
+// processFileItem processes a file item and returns the itemInfo, size, shouldCount, and whether it bubbles up hasPreview
+func (idx *Index) processFileItem(file os.FileInfo, realPath, combinedPath, fullCombined string, opts Options, scanner *Scanner) (*iteminfo.ItemInfo, int64, bool, bool) {
+	realFilePath := realPath + "/" + file.Name()
+	itemInfo := &iteminfo.ItemInfo{
+		Name:    file.Name(),
+		ModTime: file.ModTime(),
+		Hidden:  isHidden(file, idx.Path+combinedPath),
+	}
+	itemInfo.DetectType(realFilePath, false)
+
+	// For API calls (non-recursive, no scanner), use file.Size() directly to avoid syscall.Stat
+	// For scanning (recursive or with scanner), use handleFile for hardlink detection
+	var size uint64
+	var shouldCountSize bool
+	if !opts.Recursive && scanner == nil {
+		// API call: use file.Size() directly - no hardlink tracking needed
+		size = uint64(file.Size())
+		shouldCountSize = true
+	} else {
+		// Scanning: use handleFile for accurate size and hardlink detection
+		size, shouldCountSize = idx.handleFile(file, fullCombined, realFilePath, opts.IsRoutineScan, scanner)
+	}
+
+	// Extended attributes for files
+	bubblesUpHasPreview := false
+	if !opts.SkipExtendedAttrs {
+		usedCachedPreview := false
+		if !idx.Config.DisableIndexing && opts.Recursive {
+			simpleType := strings.Split(itemInfo.Type, "/")[0]
+			if simpleType == "audio" {
+				previousInfo, exists := idx.GetReducedMetadata(fullCombined, false)
+				if exists && time.Time.Equal(previousInfo.ModTime, file.ModTime()) {
+					itemInfo.HasPreview = previousInfo.HasPreview
+					usedCachedPreview = true
+				}
+			}
+		}
+		if !usedCachedPreview {
+			setFilePreviewFlags(itemInfo, realFilePath)
+		}
+		if itemInfo.HasPreview && iteminfo.ShouldBubbleUpToFolderPreview(*itemInfo) {
+			bubblesUpHasPreview = true
+		}
+	} else {
+		itemInfo.HasPreview = false
+	}
+
+	itemInfo.Size = int64(size)
+	return itemInfo, itemInfo.Size, shouldCountSize, bubblesUpHasPreview
+}
+
+// getDirectoryName extracts the directory name from realPath, with fallback to adjustedPath
+func getDirectoryName(realPath, adjustedPath string) string {
+	dirName := filepath.Base(realPath)
+	if dirName == "." || dirName == "" {
+		// Fallback: use adjustedPath if realPath gives us "."
+		trimmed := strings.TrimSuffix(adjustedPath, "/")
+		if trimmed == "" || trimmed == "/" {
+			dirName = "/"
+		} else {
+			dirName = filepath.Base(trimmed)
+		}
+	}
+	return dirName
+}
+
 // GetDirInfoCore is the consolidated implementation for both GetDirInfo and GetDirInfoViewableOnly
 func (idx *Index) GetDirInfoCore(dirInfo *os.File, stat os.FileInfo, realPath, adjustedPath, combinedPath string, opts Options, scanner *Scanner) (*iteminfo.FileInfo, error) {
 	combinedPath = utils.AddTrailingSlashIfNotExists(combinedPath)
 
+	// Only log for API calls, not during scanning
+	isAPICall := scanner == nil
+	if isAPICall {
+		logger.Debugf("[GET_DIR_INFO] GetDirInfoCore: Starting for path=%s, combinedPath=%s, realPath=%s", adjustedPath, combinedPath, realPath)
+	}
 	files, err := dirInfo.Readdir(-1)
 	if err != nil {
+		if isAPICall {
+			logger.Errorf("[GET_DIR_INFO] GetDirInfoCore: Readdir failed for path=%s, error=%v", adjustedPath, err)
+		}
 		return nil, err
 	}
+	if isAPICall {
+		logger.Debugf("[GET_DIR_INFO] GetDirInfoCore: Read %d files from filesystem for path=%s", len(files), adjustedPath)
+	}
+
+	// Fetch extended attributes (hasPreview for current dir and subdirs)
+	hasPreview, subdirHasPreviewMap := idx.fetchExtendedAttributes(adjustedPath, combinedPath, files, opts)
+
 	var totalSize int64
 	fileInfos := []iteminfo.ExtendedItemInfo{}
 	dirInfos := []iteminfo.ItemInfo{}
-	hasPreview := false
-	var subdirHasPreviewMap map[string]bool
-
-	// Fetch extended attributes if not skipping them
-	if !opts.SkipExtendedAttrs && !opts.Recursive {
-		realDirInfo, exists := idx.GetMetadataInfo(adjustedPath, true, true)
-		if exists {
-			hasPreview = realDirInfo.HasPreview
-		}
-
-		// Batch fetch hasPreview for all subdirectories
-		var subdirPaths []string
-		for _, file := range files {
-			if !iteminfo.IsDirectory(file) {
-				continue
-			}
-			baseName := file.Name()
-			if adjustedPath == "/" {
-				if !idx.shouldInclude(baseName) {
-					continue
-				}
-			}
-			if omitList[baseName] {
-				continue
-			}
-			dirPath := combinedPath + baseName
-			childIndexPath := utils.AddTrailingSlashIfNotExists(dirPath)
-			subdirPaths = append(subdirPaths, childIndexPath)
-		}
-
-		if len(subdirPaths) > 0 {
-			var err error
-			subdirHasPreviewMap, err = idx.db.GetHasPreviewBatch(idx.Name, subdirPaths)
-			if err != nil {
-				subdirHasPreviewMap = make(map[string]bool)
-			}
-		}
-	}
+	processedCount := 0
+	skippedCount := 0
 
 	for _, file := range files {
-		hidden := isHidden(file, idx.Path+combinedPath)
-		isDir := iteminfo.IsDirectory(file)
 		baseName := file.Name()
+		isDir := iteminfo.IsDirectory(file)
 		fullCombined := combinedPath + baseName
 
-		// Check for symlinks if ignoreAllSymlinks is enabled
-		if idx.Config.ResolvedConditionals != nil && idx.Config.ResolvedConditionals.IgnoreAllSymlinks {
-			if file.Mode()&os.ModeSymlink != 0 {
-				continue
+		// Check if item should be processed
+		if !idx.shouldProcessItem(file, adjustedPath, combinedPath, baseName, isDir, opts) {
+			skippedCount++
+			if isAPICall {
+				logger.Debugf("[GET_DIR_INFO] GetDirInfoCore: Skipped item name=%s, isDir=%v, path=%s", baseName, isDir, fullCombined)
 			}
+			continue
 		}
-
-		if adjustedPath == "/" {
-			if !idx.shouldInclude(file.Name()) {
-				continue
-			}
-		}
-
-		// Index/viewable checking logic
-		if opts.SkipIndexChecks {
-			// Viewable-only: only check IsViewable
-			if !idx.IsViewable(isDir, fullCombined) {
-				continue
-			}
-		} else {
-			// Indexed: use shouldSkip with optional viewable check
-			if opts.CheckViewable {
-				if idx.shouldSkip(isDir, hidden, fullCombined, baseName, opts) && !idx.IsViewable(isDir, fullCombined) {
-					continue
-				}
-			} else {
-				if idx.shouldSkip(isDir, hidden, fullCombined, baseName, opts) {
-					continue
-				}
-			}
-		}
-		itemInfo := &iteminfo.ItemInfo{
-			Name:    file.Name(),
-			ModTime: file.ModTime(),
-			Hidden:  hidden,
-		}
+		processedCount++
 
 		if isDir {
-			dirPath := combinedPath + file.Name()
-			if !idx.GetLastIndexed().IsZero() && opts.Recursive && idx.Config.ResolvedConditionals != nil {
-				if _, exists := idx.Config.ResolvedConditionals.NeverWatchPaths[fullCombined]; exists {
-					continue
-				}
-			}
-			// skip non-indexable dirs.
-			if omitList[file.Name()] {
+			itemInfo, size, shouldCount := idx.processDirectoryItem(file, combinedPath, realPath, fullCombined, subdirHasPreviewMap, opts, scanner)
+			if itemInfo == nil {
 				continue
 			}
-			if opts.Recursive {
-				// clear for garbage collection
-				file = nil
-				subdirSize, subdirHasPreview, err := idx.indexDirectory(dirPath, opts, scanner)
-				if err != nil {
-					logger.Errorf("Failed to index directory %s: %v", dirPath, err)
-					continue
-				}
-				// Use the returned values directly from recursive call
-				itemInfo.Size = subdirSize
-				itemInfo.HasPreview = subdirHasPreview
-			} else {
-				// Non-recursive: folder size and hasPreview
-				if opts.UseInMemorySizes {
-					// Use in-memory folder size (fast) and get hasPreview from batched map
-					childIndexPath := utils.AddTrailingSlashIfNotExists(dirPath)
-					if inMemSize, exists := idx.GetFolderSize(childIndexPath); exists {
-						itemInfo.Size = int64(inMemSize)
-					} else {
-						itemInfo.Size = 0
-					}
-
-					// Use batched hasPreview map if available
-					if !opts.SkipExtendedAttrs && subdirHasPreviewMap != nil {
-						if hasPreviewValue, exists := subdirHasPreviewMap[childIndexPath]; exists {
-							itemInfo.HasPreview = hasPreviewValue
-						} else {
-							itemInfo.HasPreview = false
-						}
-					} else {
-						itemInfo.HasPreview = false
-					}
-				} else {
-					// Calculate size from filesystem (shallow, just immediate children)
-					childRealPath := realPath + "/" + file.Name()
-					childDir, err := os.Open(childRealPath)
-					if err == nil {
-						childFiles, err := childDir.Readdir(-1)
-						childDir.Close()
-						if err == nil {
-							var dirSize int64
-							for _, childFile := range childFiles {
-								if !childFile.IsDir() {
-									dirSize += childFile.Size()
-								}
-							}
-							itemInfo.Size = dirSize
-						} else {
-							itemInfo.Size = 0
-						}
-					} else {
-						itemInfo.Size = 0
-					}
-					itemInfo.HasPreview = false
-				}
+			if shouldCount {
+				totalSize += size
 			}
-			totalSize += itemInfo.Size
-			itemInfo.Type = "directory"
 			dirInfos = append(dirInfos, *itemInfo)
 			if opts.Recursive && opts.IsRoutineScan {
 				idx.incrementScannerDirs()
 			}
 		} else {
-			realFilePath := realPath + "/" + file.Name()
-			itemInfo.DetectType(realFilePath, false)
-
-			// For API calls (non-recursive, no scanner), use file.Size() directly to avoid syscall.Stat
-			// For scanning (recursive or with scanner), use handleFile for hardlink detection
-			var size uint64
-			var shouldCountSize bool
-			if !opts.Recursive && scanner == nil {
-				// API call: use file.Size() directly - no hardlink tracking needed
-				size = uint64(file.Size())
-				shouldCountSize = true
-			} else {
-				// Scanning: use handleFile for accurate size and hardlink detection
-				size, shouldCountSize = idx.handleFile(file, fullCombined, realFilePath, opts.IsRoutineScan, scanner)
+			itemInfo, size, shouldCount, bubblesUp := idx.processFileItem(file, realPath, combinedPath, fullCombined, opts, scanner)
+			if shouldCount {
+				totalSize += size
 			}
-
-			// Extended attributes for files
-			if !opts.SkipExtendedAttrs {
-				usedCachedPreview := false
-				if !idx.Config.DisableIndexing && opts.Recursive {
-					simpleType := strings.Split(itemInfo.Type, "/")[0]
-					if simpleType == "audio" {
-						previousInfo, exists := idx.GetReducedMetadata(fullCombined, false)
-						if exists && time.Time.Equal(previousInfo.ModTime, file.ModTime()) {
-							itemInfo.HasPreview = previousInfo.HasPreview
-							usedCachedPreview = true
-						}
-					}
-				}
-				if !usedCachedPreview {
-					setFilePreviewFlags(itemInfo, realPath+"/"+file.Name())
-				}
-			} else {
-				itemInfo.HasPreview = false
-			}
-			itemInfo.Size = int64(size)
-			if !opts.SkipExtendedAttrs && itemInfo.HasPreview && iteminfo.ShouldBubbleUpToFolderPreview(*itemInfo) {
+			if bubblesUp {
 				hasPreview = true
 			}
-			extItemInfo := iteminfo.ExtendedItemInfo{
-				ItemInfo: *itemInfo,
-			}
-			fileInfos = append(fileInfos, extItemInfo)
-			if shouldCountSize {
-				totalSize += itemInfo.Size
-			}
+			fileInfos = append(fileInfos, iteminfo.ExtendedItemInfo{ItemInfo: *itemInfo})
 			if opts.IsRoutineScan {
-				// Only increment scanner counter, not index-level (which is calculated)
 				idx.incrementScannerFiles()
 			}
 		}
 	}
+
 	if totalSize == 0 && idx.Config.ResolvedConditionals.IgnoreAllZeroSizeFolders && combinedPath != "/" {
 		return nil, errors.ErrNotIndexed
 	}
@@ -795,13 +882,19 @@ func (idx *Index) GetDirInfoCore(dirInfo *os.File, stat os.FileInfo, realPath, a
 		Folders: dirInfos,
 	}
 	dirFileInfo.ItemInfo = iteminfo.ItemInfo{
-		Name:       filepath.Base(strings.TrimSuffix(adjustedPath, "/")),
+		Name:       getDirectoryName(realPath, adjustedPath),
 		Type:       "directory",
 		Size:       totalSize,
 		ModTime:    stat.ModTime(),
 		HasPreview: hasPreview,
 	}
 	dirFileInfo.SortItems()
+
+	// Only log for API calls, not during scanning
+	if scanner == nil {
+		logger.Debugf("[GET_DIR_INFO] GetDirInfoCore: Completed for path=%s - processed=%d, skipped=%d, files=%d, folders=%d, totalSize=%d",
+			adjustedPath, processedCount, skippedCount, len(fileInfos), len(dirInfos), totalSize)
+	}
 
 	return dirFileInfo, nil
 }
