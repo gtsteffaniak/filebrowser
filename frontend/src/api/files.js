@@ -188,10 +188,8 @@ async function downloadChunked(file, shareHash = "") {
     const chunks = []
     let offset = 0
     let loaded = 0
-    let chunkNumber = 0
 
     while (offset < fileSize) {
-      chunkNumber++;
       
       const download = downloadManager.findById(downloadId);
       if (download && download.status === "cancelled") {
@@ -224,9 +222,13 @@ async function downloadChunked(file, shareHash = "") {
       const progressUpdateInterval = Math.max(50000, expectedChunkSize / 50); // Update every ~2% of chunk or 50KB
 
       try {
-        while (true) {
+        let reading = true;
+        while (reading) {
           const { done, value } = await reader.read();
-          if (done) break;
+          if (done) {
+            reading = false;
+            break;
+          }
           
           chunkParts.push(value);
           chunkLoaded += value.length;
@@ -234,7 +236,6 @@ async function downloadChunked(file, shareHash = "") {
           // Calculate progress: only count up to expected chunk size to avoid over-counting
           const chunkProgress = Math.min(chunkLoaded, expectedChunkSize);
           const totalLoaded = offset + chunkProgress;
-          const progress = Math.min((totalLoaded / fileSize) * 100, 100);
           
           // Update progress in real-time, but throttle updates for performance
           if (chunkLoaded - lastProgressUpdate >= progressUpdateInterval || chunkLoaded >= expectedChunkSize) {

@@ -24,24 +24,22 @@ And a few potential drawbacks to lookout for:
    - reduced memory usage, higher CPU and IO usage.
    - index persistence between restarts
  - realtime file watcher (#917)
-   - better latency if user has realtime permissions
+   - lower latency if user has realtime permissions
  - access control works with individual files too
  - conditionally hide symbolic links as indexing rule config (#1540)
  - External applications can connect to filebrowser over webDAV (#209) (#1764)
  - make breadcrumbs act as a drop area (#1785)
  - search multiple sources at once (#848)
  - file uploads resume from bad internet connection #1599
- - chunked downloads - fix 524 errors on cloudflare #1502
-
+ - chunked downloads - fix for 524 errors on cloudflare #1502
 
  **Notes**:
- - `server.cacheDirCleanup` defaults to `false` instead of true. For docker, you would still need to mount a tmp directory to persist cache.
+ - `server.cacheDirCleanup` defaults to `false` instead of `true`. For docker, you would still need to mount a cacheDir volume to persist cache between restarts.
  - indexing rules have been streamlined, see [wiki]. Previous style is deprecated but still functional.
  - improved listing load times for directories with metadata -- a two pass approach. First a fast load to get the listing items, then a second api request to include metadata.
 
  **BugFixes**:
  - Source info not properly read from external storage NAS #1727
-
 
 ## v1.1.6-beta
 

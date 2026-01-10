@@ -67,7 +67,6 @@
 </template>
 
 <script>
-import { computed } from "vue";
 import { getters, mutations } from "@/store";
 import { downloadManager } from "@/utils/downloadManager";
 import { filesApi } from "@/api";
