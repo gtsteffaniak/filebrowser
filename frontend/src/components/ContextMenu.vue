@@ -141,6 +141,7 @@
       <action icon="info" :label="$t('general.info')" show="info" />
       <action v-if="showGoToRaw" icon="open_in_new" :label="$t('general.openFile')" @action="goToRaw()" />
       <action v-if="shouldShowParentFolder()" icon="folder" :label="$t('buttons.openParentFolder')" @action="openParentFolder" />
+      <action v-if="isPreview && permissions.modify" icon="mode_edit" :label="$t('general.rename')" @action="showRenameHoverForPreview" />
       <action v-if="hasDownload && !req.isDir" icon="visibility" :label="$t('buttons.watchFile')" @action="watchFile()" />
       <action v-if="hasDownload" icon="file_download" :label="$t('general.download')" @action="startDownload" />
       <action v-if="showEdit" icon="edit" :label="$t('general.edit')" @action="edit()" />
@@ -429,7 +430,19 @@ export default {
       mutations.showHover({
         name: "rename",
         props: {
-          item: getters.selectedCount() == 1 ? getters.getFirstSelected() : state.req
+          item: getters.selectedCount() == 1 ? getters.getFirstSelected() : state.req,
+          parentItems: []
+        },
+      });
+    },
+    showRenameHoverForPreview() {
+      // Get parent items from the listing
+      const parentItems = state.navigation.listing || [];
+      mutations.showHover({
+        name: "rename",
+        props: {
+          item: state.req,
+          parentItems: parentItems,
         },
       });
     },

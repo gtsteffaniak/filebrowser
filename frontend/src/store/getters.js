@@ -39,7 +39,7 @@ export const getters = {
   },
   isPreviewView: () => {
     const cv = getters.currentView()
-    return cv == 'preview' || cv == 'onlyOfficeEditor' || cv == 'epubViewer' || cv == 'docViewer' || cv == 'editor'
+    return cv == 'preview' || cv == 'onlyOfficeEditor' || cv == 'epubViewer' || cv == 'docViewer' || cv == 'editor' || cv == 'markdownViewer'
   },
   isScrollable: () => {
     if (getters.isPreviewView()) {

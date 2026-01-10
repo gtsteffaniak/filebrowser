@@ -222,7 +222,7 @@ export default {
         // For source links, use sourceName and target (relative path)
         if (!link.sourceName) return;
         const path = link.target || "/";
-        goToItem(link.sourceName, path);
+        goToItem(link.sourceName, path, {});
         return;
       }
 
