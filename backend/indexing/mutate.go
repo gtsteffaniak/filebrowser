@@ -93,6 +93,7 @@ func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo, scanner *Scanner) bool
 
 // flushBatch writes all remaining batch items to the database (Scanner method)
 // This is called at the end of a scan to flush any items that didn't reach the BATCH_SIZE threshold
+// Also clears processedInodes/foundHardLinks maps periodically to prevent unbounded memory growth
 func (s *Scanner) flushBatch() {
 	items := s.batchItems
 	s.batchItems = nil
@@ -104,6 +105,15 @@ func (s *Scanner) flushBatch() {
 	err := s.idx.db.BulkInsertItems(s.idx.Name, items)
 	if err != nil {
 		logger.Warningf("[DB_TX] Flush failed for scanner [%s] (%d items): %v", s.scanPath, len(items), err)
+	}
+
+	// Clear hardlink tracking maps periodically to prevent unbounded memory growth
+	// Clear after every batch flush (every BatchSize items) to keep memory bounded
+	// For large filesystems with many hardlinks, this prevents maps from growing to millions of entries
+	if len(s.processedInodes) > 100000 {
+		s.processedInodes = make(map[uint64]struct{})
+		s.foundHardLinks = make(map[string]uint64)
+		logger.Debugf("[MEMORY] Cleared hardlink tracking maps for scanner [%s] (prevented unbounded growth)", s.scanPath)
 	}
 }
 

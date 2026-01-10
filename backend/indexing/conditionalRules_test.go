@@ -162,7 +162,7 @@ func TestShouldSkip_FolderStartsWith(t *testing.T) {
 				},
 			})
 
-			result := idx.shouldSkip(true, false, tt.fullPath, tt.baseName, actionConfig{})
+			result := idx.shouldSkip(true, false, tt.fullPath, tt.baseName, Options{})
 			if result != tt.shouldSkip {
 				t.Errorf("%s: expected shouldSkip=%v, got %v (fullPath=%s, baseName=%s, rule=%s)",
 					tt.description, tt.shouldSkip, result, tt.fullPath, tt.baseName, tt.ruleValue)
@@ -213,7 +213,7 @@ func TestShouldSkip_FolderNames(t *testing.T) {
 			// Manually populate FolderNames map since setConditionals doesn't do it
 			idx.Config.ResolvedConditionals.FolderNames[tt.ruleValue] = settings.ConditionalRule{FolderNames: tt.ruleValue}
 
-			result := idx.shouldSkip(true, false, "/"+tt.baseName+"/", tt.baseName, actionConfig{})
+			result := idx.shouldSkip(true, false, "/"+tt.baseName+"/", tt.baseName, Options{})
 			if result != tt.shouldSkip {
 				t.Errorf("%s: expected shouldSkip=%v, got %v (baseName=%s, rule=%s)",
 					tt.description, tt.shouldSkip, result, tt.baseName, tt.ruleValue)
@@ -273,7 +273,7 @@ func TestShouldSkip_FolderPaths(t *testing.T) {
 				},
 			})
 
-			result := idx.shouldSkip(true, false, tt.fullPath, tt.baseName, actionConfig{})
+			result := idx.shouldSkip(true, false, tt.fullPath, tt.baseName, Options{})
 			if result != tt.shouldSkip {
 				t.Errorf("%s: expected shouldSkip=%v, got %v (fullPath=%s, baseName=%s, rule=%s)",
 					tt.description, tt.shouldSkip, result, tt.fullPath, tt.baseName, tt.ruleValue)
@@ -321,7 +321,7 @@ func TestShouldSkip_FileStartsWith(t *testing.T) {
 				},
 			})
 
-			result := idx.shouldSkip(false, false, "/"+tt.baseName, tt.baseName, actionConfig{})
+			result := idx.shouldSkip(false, false, "/"+tt.baseName, tt.baseName, Options{})
 			if result != tt.shouldSkip {
 				t.Errorf("%s: expected shouldSkip=%v, got %v (baseName=%s, rule=%s)",
 					tt.description, tt.shouldSkip, result, tt.baseName, tt.ruleValue)
@@ -369,7 +369,7 @@ func TestShouldSkip_FileEndsWith(t *testing.T) {
 				},
 			})
 
-			result := idx.shouldSkip(false, false, "/"+tt.baseName, tt.baseName, actionConfig{})
+			result := idx.shouldSkip(false, false, "/"+tt.baseName, tt.baseName, Options{})
 			if result != tt.shouldSkip {
 				t.Errorf("%s: expected shouldSkip=%v, got %v (baseName=%s, rule=%s)",
 					tt.description, tt.shouldSkip, result, tt.baseName, tt.ruleValue)
@@ -421,7 +421,7 @@ func TestShouldSkip_FilePaths(t *testing.T) {
 				},
 			})
 
-			result := idx.shouldSkip(false, false, tt.fullPath, tt.baseName, actionConfig{})
+			result := idx.shouldSkip(false, false, tt.fullPath, tt.baseName, Options{})
 			if result != tt.shouldSkip {
 				t.Errorf("%s: expected shouldSkip=%v, got %v (fullPath=%s, rule=%s)",
 					tt.description, tt.shouldSkip, result, tt.fullPath, tt.ruleValue)
@@ -451,7 +451,7 @@ func TestShouldSkip_FileInExcludedFolderPath(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		result := idx.shouldSkip(false, false, tt.fullPath, tt.baseName, actionConfig{})
+		result := idx.shouldSkip(false, false, tt.fullPath, tt.baseName, Options{})
 		if result != tt.shouldSkip {
 			t.Errorf("File %s (%s): expected shouldSkip=%v, got %v",
 				tt.fullPath, tt.reason, tt.shouldSkip, result)
@@ -499,7 +499,7 @@ func TestShouldSkip_MultipleRules(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		result := idx.shouldSkip(tt.isDir, false, tt.fullPath, tt.baseName, actionConfig{})
+		result := idx.shouldSkip(tt.isDir, false, tt.fullPath, tt.baseName, Options{})
 		if result != tt.shouldSkip {
 			t.Errorf("%s (%s): expected shouldSkip=%v, got %v",
 				tt.baseName, tt.reason, tt.shouldSkip, result)
@@ -517,7 +517,7 @@ func TestShouldSkip_ViewableStillSkips(t *testing.T) {
 	})
 
 	// shouldSkip still returns true even with Viewable:true (it's checked separately)
-	result := idx.shouldSkip(true, false, "/important/", "important", actionConfig{})
+	result := idx.shouldSkip(true, false, "/important/", "important", Options{})
 	if result != true {
 		t.Errorf("Folder should be skipped (Viewable is checked separately), got shouldSkip=%v", result)
 	}
@@ -537,7 +537,7 @@ func TestShouldSkip_HiddenFiles(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		result := idx.shouldSkip(false, tt.isHidden, "/file.txt", "file.txt", actionConfig{})
+		result := idx.shouldSkip(false, tt.isHidden, "/file.txt", "file.txt", Options{})
 		if result != tt.shouldSkip {
 			t.Errorf("isHidden=%v: expected shouldSkip=%v, got %v",
 				tt.isHidden, tt.shouldSkip, result)
@@ -556,7 +556,7 @@ func TestShouldSkip_NeverWatch(t *testing.T) {
 
 	// Simulate a routine scan (index has been scanned before, IsRoutineScan=true)
 	// The IsRoutineScan flag is sufficient - GetLastIndexed() will check scanner.lastScanned
-	config := actionConfig{IsRoutineScan: true}
+	config := Options{IsRoutineScan: true}
 
 	tests := []struct {
 		name        string
