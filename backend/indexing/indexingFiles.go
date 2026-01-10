@@ -1028,6 +1028,11 @@ func (idx *Index) calculateDirectorySize(realPath string, indexPath string, shal
 				childSize, exists := idx.GetFolderSize(childIndexPath)
 				if exists {
 					totalSize += childSize
+				} else {
+					childRealPath := realPath + "/" + childName
+					childSize := idx.calculateDirectorySize(childRealPath, childIndexPath, false, nil)
+					totalSize += childSize
+					idx.SetFolderSize(childIndexPath, childSize)
 				}
 			} else {
 				childRealPath := realPath + "/" + childName
