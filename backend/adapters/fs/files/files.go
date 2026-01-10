@@ -89,7 +89,7 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.E
 	// Route based on category
 	if !isViewable {
 		if idx.Config.DisableIndexing || !isIndexable {
-			return response, fmt.Errorf("path not accessible: not viewable and not indexed")
+			return response, fmt.Errorf("path not accessible: item is excluded")
 		}
 		// Category 1: Indexable (not viewable but indexable)
 		// For directories, open once for RefreshFileInfo, then open again for GetFsInfoCore

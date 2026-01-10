@@ -2,13 +2,8 @@ package indexing
 
 import (
 	"os"
-	"path/filepath"
 	"testing"
 	"time"
-
-	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
-	dbsql "github.com/gtsteffaniak/filebrowser/backend/database/sql"
-	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 )
 
 // TestFetchExtendedAttributes tests the fetchExtendedAttributes helper function
