@@ -5075,6 +5075,9 @@ const docTemplate = `{
                 "clearAll": {
                     "type": "boolean"
                 },
+                "downloadChunkSizeMb": {
+                    "type": "integer"
+                },
                 "maxConcurrentUpload": {
                     "type": "integer"
                 },

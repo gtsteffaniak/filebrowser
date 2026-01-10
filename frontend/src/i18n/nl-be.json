@@ -49,7 +49,6 @@
   "files": {
     "closePreview": "Voorvertoon sluiten",
     "lastModified": "Laatst bewerkt",
-    "lonely": "Het is hier wat leeg...",
     "multipleSelectionEnabled": "Meerdere items selecteren ingeschakeld",
     "sortByLastModified": "Sorteren op laatst bewerkt",
     "sortByName": "Sorteren op naam",
@@ -64,7 +63,8 @@
     "duration": "Duur{suffix}",
     "sortByDuration": "Sorteren op duur",
     "sameFolder": "Kan niet naar dezelfde map verplaatsen",
-    "cannotAccesDir": "Kan de map niet openen"
+    "cannotAccesDir": "Kan de map niet openen",
+    "lonely": "Niets te zien hier..."
   },
   "help": {
     "functionKeys": "Functietoetsen",
@@ -516,7 +516,9 @@
     "uploadChunkSizeMbHelp": "Gewoonlijk 5 tot 50 MB, kleiner is beter voor onstabiele of beperkte verbindingen. Instellen op 0 schakelt chunking uit.",
     "clearAll": "Wissen voltooid moet fout, pauze en conflict verwijderen",
     "clearAllDescription": "De knop Voltooid wissen wist alle uploads in een voltooide status, inclusief fout-, gepauzeerde en conflictstatussen.",
-    "uploadSettings": "Instellingen uploaden"
+    "uploadSettings": "Instellingen uploaden",
+    "downloadChunkSizeMb": "Grootte downloadbrok in MB",
+    "downloadChunkSizeMbHelp": "Chunk-grootte voor chunked downloads. Bestanden die groter zijn dan deze grootte worden in chunks gedownload om time-outproblemen te voorkomen (bijv. Cloudflare 524 fouten). Instellen op 0 schakelt chunked downloads uit."
   },
   "colors": {
     "red": "rood",

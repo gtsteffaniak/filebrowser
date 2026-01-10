@@ -1421,6 +1421,8 @@ definitions:
     properties:
       clearAll:
         type: boolean
+      downloadChunkSizeMb:
+        type: integer
       maxConcurrentUpload:
         type: integer
       uploadChunkSizeMb:

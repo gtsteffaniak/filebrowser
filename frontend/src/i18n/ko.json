@@ -49,7 +49,6 @@
   "files": {
     "closePreview": "미리보기 닫기",
     "lastModified": "최종 수정",
-    "lonely": "폴더가 비어 있습니다...",
     "multipleSelectionEnabled": "다중 선택 켜짐",
     "sortByLastModified": "수정시간순 정렬",
     "sortByName": "이름순",
@@ -64,7 +63,8 @@
     "duration": "기간{suffix}",
     "sortByDuration": "기간별로 정렬",
     "sameFolder": "같은 폴더로 이동할 수 없습니다",
-    "cannotAccesDir": "디렉토리에 액세스할 수 없습니다"
+    "cannotAccesDir": "디렉토리에 액세스할 수 없습니다",
+    "lonely": "여기에 표시할 내용이 없습니다..."
   },
   "help": {
     "functionKeys": "기능 키",
@@ -649,7 +649,9 @@
     "uploadChunkSizeMbHelp": "일반적으로 5~50MB이며, 연결이 불안정하거나 제한적인 경우에는 이보다 작을수록 좋습니다. 0으로 설정하면 업로드 청킹이 비활성화됩니다.",
     "clearAll": "완료를 지우면 오류, 일시 중지 및 충돌이 제거됩니다.",
     "clearAllDescription": "완료 지우기 버튼은 오류, 일시 중지, 충돌 상태를 포함하여 완료된 상태의 모든 업로드를 지웁니다.",
-    "uploadSettings": "업로드 설정"
+    "uploadSettings": "업로드 설정",
+    "downloadChunkSizeMb": "다운로드 청크 크기(MB)",
+    "downloadChunkSizeMbHelp": "청크 다운로드를 위한 청크 크기. 이 크기보다 큰 파일은 시간 초과 문제(예: Cloudflare 524 오류)를 방지하기 위해 청크 단위로 다운로드됩니다. 0으로 설정하면 청크 다운로드가 비활성화됩니다."
   },
   "colors": {
     "red": "빨간색",

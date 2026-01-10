@@ -49,7 +49,6 @@
   "files": {
     "closePreview": "關閉預覽",
     "lastModified": "最後修改",
-    "lonely": "這裡沒有任何檔案...",
     "multipleSelectionEnabled": "多選模式已開啟",
     "sortByLastModified": "按最後修改時間排序",
     "sortByName": "按名稱排序",
@@ -64,7 +63,8 @@
     "duration": "時間長度{suffix}",
     "sortByDuration": "依時間長短排序",
     "sameFolder": "無法移動到相同資料夾",
-    "cannotAccesDir": "無法存取目錄"
+    "cannotAccesDir": "無法存取目錄",
+    "lonely": "這裡沒什麼可展示的..."
   },
   "help": {
     "functionKeys": "功能鍵",
@@ -576,7 +576,9 @@
     "uploadChunkSizeMbHelp": "通常為 5 到 50 MB，對於不穩定或受限制的連線，越小越好。設定為 0 會停用上傳分塊。",
     "clearAll": "清除完成應移除錯誤、暫停和衝突",
     "clearAllDescription": "清除完成按鈕將會清除所有處於完成狀態的上傳，包括錯誤、暫停和衝突狀態。",
-    "uploadSettings": "上傳設定"
+    "uploadSettings": "上傳設定",
+    "downloadChunkSizeMb": "下載區塊大小（以 MB 為單位",
+    "downloadChunkSizeMbHelp": "分塊下載的分塊大小。大於此大小的檔案會分塊下載，以防止超時問題 (例如 Cloudflare 524 錯誤)。設定為 0 會停用分塊下載。"
   },
   "colors": {
     "red": "紅色",

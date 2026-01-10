@@ -31,6 +31,19 @@
             :placeholder="$t('general.number')" />
         </div>
       </div>
+      <div class="settings-number-input item">
+        <div class="no-padding">
+          <label for="downloadChunkSizeMb">{{ $t("fileLoading.downloadChunkSizeMb") }}</label>
+          <i class="no-select material-symbols-outlined tooltip-info-icon"
+            @mouseenter="showTooltip($event, $t('fileLoading.downloadChunkSizeMbHelp'))" @mouseleave="hideTooltip">
+            help <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          </i>
+        </div>
+        <div class="no-padding">
+          <input class="sizeInput input" v-model.number="localuser.fileLoading.downloadChunkSizeMb" type="number" min="0"
+            :placeholder="$t('general.number')" />
+        </div>
+      </div>
       <ToggleSwitch class="item" v-model="localuser.fileLoading.clearAll" @change="updateSettings"
         :name="$t('fileLoading.clearAll')"
         :description="$t('fileLoading.clearAllDescription')" />
@@ -68,6 +81,14 @@ export default {
   },
   mounted() {
     this.localuser = JSON.parse(JSON.stringify(state.user));
+    // Initialize fileLoading defaults if not present
+    if (!this.localuser.fileLoading) {
+      this.localuser.fileLoading = {};
+    }
+    // Default downloadChunkSizeMb to 0 if not set
+    if (this.localuser.fileLoading.downloadChunkSizeMb === undefined || this.localuser.fileLoading.downloadChunkSizeMb === null) {
+      this.localuser.fileLoading.downloadChunkSizeMb = 0;
+    }
   },
   methods: {
     showTooltip(event, text) {

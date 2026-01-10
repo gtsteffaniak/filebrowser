@@ -16,6 +16,8 @@ class UploadManager {
     this.conflictingFolder = null; // Track the folder name that caused conflict
     this.pendingItems = null; // Store pending items during conflict resolution
     this.probedDirs = new Set(); // Track directories that were probed/created during conflict check
+    this.progressTimeouts = new Map(); // Track progress timeouts per upload ID
+    this.PROGRESS_TIMEOUT_MS = 10000; // 10 seconds without progress = pause
   }
 
   setOnConflict(handler) {
@@ -175,6 +177,8 @@ class UploadManager {
         path: destinationPath, // Full destination path
         source: state.req?.source,
         overwrite: effectiveOverwrite,
+        lastProgressTime: null, // Track when progress was last updated
+        connectionIssue: false, // Flag for connection-related issues
       };
       return upload;
     });
@@ -287,8 +291,12 @@ class UploadManager {
     // Use non-chunked upload if file size is less than chunk size
     if (upload.size < chunkSize) {
       const progress = (percent) => {
-        upload.progress = percent;
+        this.updateProgress(upload, percent);
       };
+
+      // Start progress timeout monitoring
+      upload.lastProgressTime = Date.now();
+      this.startProgressTimeout(upload);
 
       try {
         let promise;
@@ -305,9 +313,13 @@ class UploadManager {
         upload.xhr = promise.xhr;
         await promise;
 
+        // Clear timeout on successful completion
+        this.clearProgressTimeout(upload.id);
         upload.status = "completed";
         upload.progress = 100;
+        upload.connectionIssue = false;
       } catch (err) {
+        this.clearProgressTimeout(upload.id);
         await this.handleUploadError(upload, err);
       } finally {
         this.activeUploads--;
@@ -317,6 +329,15 @@ class UploadManager {
       return;
     }
 
+    // Start progress timeout monitoring for chunked uploads
+    upload.lastProgressTime = Date.now();
+    this.startProgressTimeout(upload);
+
+    // Chunked upload loop: The server supports resuming from any chunk offset.
+    // Each chunk is written atomically at the specified offset using Seek().
+    // If we pause/error during a chunk upload, that chunk will be retried on resume.
+    // chunkOffset is only incremented after successful chunk completion, so resuming
+    // will retry the current chunk if it was incomplete.
     while (upload.chunkOffset < upload.size && upload.status === "uploading") {
       const chunk = upload.file.slice(
         upload.chunkOffset,
@@ -327,7 +348,7 @@ class UploadManager {
         const chunkLoaded = (percent / 100) * chunk.size;
         const totalLoaded = upload.chunkOffset + chunkLoaded;
         const progress = (totalLoaded / upload.size) * 100;
-        upload.progress = Math.round(progress * 10) / 10;
+        this.updateProgress(upload, Math.round(progress * 10) / 10);
       };
 
       try {
@@ -361,17 +382,26 @@ class UploadManager {
         upload.xhr = promise.xhr;
         await promise;
 
+        // Only increment chunkOffset after successful chunk upload.
+        // This ensures that if we pause/error mid-chunk, we'll retry that chunk on resume.
         upload.chunkOffset += chunk.size;
+        // Update last progress time after successful chunk upload
+        upload.lastProgressTime = Date.now();
       } catch (err) {
+        this.clearProgressTimeout(upload.id);
         await this.handleUploadError(upload, err);
         break; // Exit loop on error or pause
       }
     }
 
+    // Clear timeout when upload finishes
+    this.clearProgressTimeout(upload.id);
+
     if (upload.status === "uploading") {
       // If the loop finished without being paused/errored
       upload.status = "completed";
       upload.progress = 100;
+      upload.connectionIssue = false;
     }
 
     this.activeUploads--;
@@ -402,7 +432,42 @@ class UploadManager {
     if (upload && upload.status === "uploading" && upload.xhr) {
       upload.xhr.abort();
       upload.status = "paused";
+      this.clearProgressTimeout(id);
     }
+  }
+
+  clearProgressTimeout(id) {
+    const timeoutId = this.progressTimeouts.get(id);
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+      this.progressTimeouts.delete(id);
+    }
+  }
+
+  startProgressTimeout(upload) {
+    // Clear any existing timeout
+    this.clearProgressTimeout(upload.id);
+
+    // Set new timeout to pause if no progress for 10 seconds
+    const timeoutId = setTimeout(() => {
+      if (upload.status === "uploading") {
+        console.log(`Upload ${upload.id} stalled - no progress for ${this.PROGRESS_TIMEOUT_MS}ms, pausing`);
+        upload.connectionIssue = true;
+        this.pause(upload.id);
+        upload.errorDetails = "Connection stalled - upload paused. Click resume to retry.";
+      }
+      this.progressTimeouts.delete(upload.id);
+    }, this.PROGRESS_TIMEOUT_MS);
+
+    this.progressTimeouts.set(upload.id, timeoutId);
+  }
+
+  updateProgress(upload, progress) {
+    upload.progress = progress;
+    upload.lastProgressTime = Date.now();
+    upload.connectionIssue = false; // Clear connection issue on successful progress
+    // Reset the timeout whenever we get progress
+    this.startProgressTimeout(upload);
   }
 
   resume(id) {
@@ -410,6 +475,7 @@ class UploadManager {
     if (upload && upload.status === "paused") {
       this.isOverallPaused = false;
       upload.status = "pending";
+      upload.connectionIssue = false; // Clear connection issue on resume
       const progress =
         upload.size > 0 ? (upload.chunkOffset / upload.size) * 100 : 0;
       upload.progress = Math.round(progress * 10) / 10;
@@ -419,6 +485,7 @@ class UploadManager {
 
   cancel(id) {
     this.pause(id); // Abort if in progress
+    this.clearProgressTimeout(id);
     const index = this.queue.findIndex((item) => item.id === id);
     if (index !== -1) {
       this.queue.splice(index, 1);
@@ -430,6 +497,7 @@ class UploadManager {
     if (upload && ["error", "conflict"].includes(upload.status)) {
       upload.overwrite = overwrite;
       upload.status = "pending";
+      upload.connectionIssue = false; // Clear connection issue on retry
       if (upload.type !== 'directory') {
           upload.chunkOffset = 0; // Reset chunk offset for retries
       }
@@ -441,13 +509,16 @@ class UploadManager {
   clearCompleted() {
     let hadCompleted = false;
     for (let i = this.queue.length - 1; i >= 0; i--) {
-      const status = this.queue[i].status;
+      const upload = this.queue[i];
+      const status = upload.status;
       if (status === "completed") {
+        this.clearProgressTimeout(upload.id);
         this.queue.splice(i, 1);
         hadCompleted = true;
       }
       if (state.user.fileLoading?.clearAll) {
         if (status === "error" || status === "conflict" || status === "paused") {
+          this.clearProgressTimeout(upload.id);
           this.queue.splice(i, 1);
         }
       }
@@ -500,12 +571,35 @@ class UploadManager {
     // Check if the error is a 409 Conflict
     if (err?.response?.status === 409) {
       upload.status = "conflict";
+      upload.connectionIssue = false;
     } else if (err.message !== "Upload aborted") {
       upload.status = "error";
-      // Store detailed error information for tooltip display
-      upload.errorDetails = this.formatErrorMessage(err);
+      
+      // Detect connection-related errors
+      const isConnectionError = 
+        err.message === "Network error" ||
+        err.message?.toLowerCase().includes("network") ||
+        err.message?.toLowerCase().includes("timeout") ||
+        err.message?.toLowerCase().includes("connection") ||
+        err.message?.toLowerCase().includes("failed to fetch") ||
+        !err.response; // No response usually means network issue
+      
+      if (isConnectionError) {
+        upload.connectionIssue = true;
+        upload.errorDetails = "Connection error: " + this.formatErrorMessage(err) + ". Click retry to resume.";
+      } else {
+        upload.connectionIssue = false;
+        upload.errorDetails = this.formatErrorMessage(err);
+      }
     } else {
+      // Upload was aborted - preserve connectionIssue flag if it was already set
+      // (e.g., if we paused due to timeout, keep the connection issue flag)
+      const hadConnectionIssue = upload.connectionIssue;
       console.log(`upload.js: Upload aborted for id ${upload.id}`, upload);
+      // Only clear connectionIssue if it wasn't already set (user-initiated pause)
+      if (!hadConnectionIssue) {
+        upload.connectionIssue = false;
+      }
     }
   }
 

@@ -59,6 +59,10 @@ func sseHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int,
 	sendChan := events.Register(username, settings.GetSources(d.user))
 	defer events.Unregister(username, sendChan)
 
+	// Heartbeat ticker - send every 30 seconds to keep connection alive
+	heartbeatTicker := time.NewTicker(30 * time.Second)
+	defer heartbeatTicker.Stop()
+
 	for {
 		select {
 		case <-d.ctx.Done():
@@ -67,6 +71,12 @@ func sseHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int,
 
 		case <-clientGone:
 			return http.StatusOK, nil
+
+		case <-heartbeatTicker.C:
+			// Send minimal heartbeat message (ignored by frontend)
+			if err := msgr.sendEvent("heartbeat", "\"hb\""); err != nil {
+				return http.StatusInternalServerError, fmt.Errorf("error sending heartbeat: %v, user: %s", err, username)
+			}
 
 		case msg := <-events.BroadcastChan:
 			if err := msgr.sendEvent(msg.EventType, msg.Message); err != nil {
