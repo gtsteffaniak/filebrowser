@@ -51,7 +51,6 @@ export default {
   base64Encode,
   joinPath,
   goToItem,
-  replaceItem,
   buildItemUrl,
   encodedPath,
   doubleEncode,
@@ -194,22 +193,13 @@ export function goToItem(source, path, previousHistoryItem) {
     return;
   }
   fullPath = `/files/${encodeURIComponent(source)}${newPath}`;
+  if (previousHistoryItem === undefined) {
+    // When undefined will not create browser history
+    router.replace({ path: fullPath });
+    return
+  }
   router.push({ path: fullPath });
   return
-}
-
-// Replaces the current URL with a new path in the current source
-// Is useful to update the URL without creating history, allowing to go back and don't be welcomed with "404"
-export async function replaceItem(path) {
-  const encodedPath = encodePath(path);
-  let fullPath; 
-  if (getters.isShare()) {
-    fullPath = `/public/share/${state.shareInfo?.hash}${encodedPath}`;
-  } else {
-    const source = state.req?.source || state.sources.current;
-    fullPath = `/files/${encodeURIComponent(source)}${encodedPath}`;
-  }
-  return router.replace({ path: fullPath });
 }
 
 export function doubleEncode(str) {

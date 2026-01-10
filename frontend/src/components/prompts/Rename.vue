@@ -204,7 +204,7 @@ export default {
         mutations.closeHovers();
 
         if (this.isPreviewView) {
-          await url.replaceItem(newPath);
+          url.goToItem(this.item.source, newPath, undefined); // When undefined will not create browser history
         } else {
           mutations.setReload(true);
         }

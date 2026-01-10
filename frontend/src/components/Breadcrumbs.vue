@@ -369,7 +369,7 @@ export default {
           }
 
           const buttonAction = () => {
-            url.goToItem(source, targetPath);
+            url.goToItem(source, targetPath, {});
           };
 
           notify.showSuccess(this.$t("prompts.moveSuccess"), {
@@ -419,6 +419,7 @@ export default {
   z-index: 1000;
   right: 0;
   left: 0;
+  transition: 0.3s ease;
 }
 
 .breadcrumbs-slide-enter-active,
