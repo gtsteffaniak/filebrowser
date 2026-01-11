@@ -75,3 +75,31 @@ test("navigate subfolderExclusions -- nested subfolder items rules should inheri
 
     checkForErrors(1,1); // expect error not indexed
 });
+
+test("root indexing info is correct", async ({ page, checkForErrors, context }) => {
+    await page.goto("/files/");
+    await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
+    // should mostly match system (du -sh frontend/tests/playwright-files) besides excluded values
+    await page.locator('a[aria-label="myfolder"]').waitFor({ state: 'visible' });
+    
+    // Check folder sizes
+    await expect(page.locator('a[aria-label="myfolder"]').locator('.size')).toHaveText("3.0 MB");
+    await expect(page.locator('a[aria-label="folder#hash"]').locator('.size')).toHaveText("4.0 KB");
+    await expect(page.locator('a[aria-label="files"]').locator('.size')).toHaveText("16.0 KB");
+    await expect(page.locator('a[aria-label="share"]').locator('.size')).toHaveText("4.0 KB");
+    await expect(page.locator('a[aria-label="text-files"]').locator('.size')).toHaveText("12.0 KB");
+    await expect(page.locator('a[aria-label="subfolderExclusions"]').locator('.size')).toHaveText("24.0 KB");
+    await expect(page.locator('a[aria-label="excludedButVisible"]').locator('.size')).toHaveText("4.0 KB");
+    
+    // Check file sizes
+    await expect(page.locator('a[aria-label="file.tar.gz"]').locator('.size')).toHaveText("4.0 KB");
+    await expect(page.locator('a[aria-label="copyme.txt"]').locator('.size')).toHaveText("4.0 KB");
+    await expect(page.locator('a[aria-label="utf8-truncated.txt"]').locator('.size')).toHaveText("12.0 KB");
+    
+    // Check zero-size files
+    await expect(page.locator('a[aria-label="deleteme.txt"]').locator('.size')).toHaveText("0.0 bytes");
+    await expect(page.locator('a[aria-label="1file1.txt"]').locator('.size')).toHaveText("0.0 bytes");
+    await expect(page.locator('a[aria-label="renameme.txt"]').locator('.size')).toHaveText("0.0 bytes");
+
+    checkForErrors();
+});
