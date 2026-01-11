@@ -1291,27 +1291,32 @@ func (idx *Index) IsViewable(isDir bool, adjustedPath string) bool {
 		}
 	} else {
 		// Check if file is inside a viewable folder
-		for _, rule := range rules.FolderPaths {
-			if strings.HasPrefix(adjustedPath, rule.FolderPath) && rule.Viewable {
-				return true
-			}
+		// 1. Check specific file rules FIRST to allow override (e.g. excluded file in viewable folder)
+		if rule, exists := rules.FileNames[baseName]; exists {
+			return rule.Viewable
 		}
-
-		if rule, exists := rules.FileNames[baseName]; exists && rule.Viewable {
-			return true
+		if rule, exists := rules.FilePaths[adjustedPath]; exists {
+			return rule.Viewable
 		}
-		for _, rule := range rules.FilePaths {
-			if strings.HasPrefix(adjustedPath, rule.FilePath) && rule.Viewable {
-				return true
+		for path, rule := range rules.FilePaths {
+			if strings.HasPrefix(adjustedPath, path) {
+				return rule.Viewable
 			}
 		}
 		for _, rule := range rules.FileEndsWith {
-			if strings.HasSuffix(baseName, rule.FileEndsWith) && rule.Viewable {
-				return true
+			if strings.HasSuffix(baseName, rule.FileEndsWith) {
+				return rule.Viewable
 			}
 		}
 		for _, rule := range rules.FileStartsWith {
-			if strings.HasPrefix(baseName, rule.FileStartsWith) && rule.Viewable {
+			if strings.HasPrefix(baseName, rule.FileStartsWith) {
+				return rule.Viewable
+			}
+		}
+
+		// 2. If no file rules matched, check if we inherit visibility from a parent folder
+		for _, rule := range rules.FolderPaths {
+			if strings.HasPrefix(adjustedPath, rule.FolderPath) && rule.Viewable {
 				return true
 			}
 		}

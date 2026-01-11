@@ -23,6 +23,7 @@ server:
           - filePath: "/subfolderExclusions/exclusionlist.sh"
           - folderPath: "/subfolderExclusions/folderItem"
             viewable: true
+          - filePath: "/subfolderExclusions/folderItem/dontshow.txt"
         conditionals:
           rules:
             - fileStartsWith: "startsWith"

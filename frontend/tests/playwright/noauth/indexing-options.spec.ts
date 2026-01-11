@@ -21,6 +21,18 @@ test("navigate folder -- item should be visible", async ({ page, checkForErrors,
     checkForErrors();
 });
 
+test("navigate folder -- item should not be visible because of specific exlcude rule", async ({ page, checkForErrors, context }) => {
+    await page.goto("/files/");
+    await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
+    // excludedButVisible folder should show up in list
+    await expect(page.locator('a[aria-label="excludedButVisible"]')).toHaveCount(1);
+    await page.goto("/files/exclude/excludedButVisible");
+    await expect(page.locator('a[aria-label="startsWith-hide-me.txt"]')).toHaveCount(0);
+    await expect(page.locator('a[aria-label="dontshow.txt"]')).toHaveCount(0);
+    checkForErrors();
+});
+
+
 test("navigate subfolderExclusions -- item should be visible", async ({ page, checkForErrors, context }) => {
     await page.goto("/files/include");
     await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files2");
