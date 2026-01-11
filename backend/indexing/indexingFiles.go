@@ -1264,6 +1264,9 @@ func (idx *Index) IsViewable(isDir bool, adjustedPath string) bool {
 		return true
 	}
 	rules := idx.Config.ResolvedConditionals
+	if rules == nil {
+		return false
+	}
 
 	baseName := filepath.Base(strings.TrimSuffix(adjustedPath, "/"))
 
@@ -1287,6 +1290,13 @@ func (idx *Index) IsViewable(isDir bool, adjustedPath string) bool {
 			}
 		}
 	} else {
+		// Check if file is inside a viewable folder
+		for _, rule := range rules.FolderPaths {
+			if strings.HasPrefix(adjustedPath, rule.FolderPath) && rule.Viewable {
+				return true
+			}
+		}
+
 		if rule, exists := rules.FileNames[baseName]; exists && rule.Viewable {
 			return true
 		}

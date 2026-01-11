@@ -10,7 +10,6 @@ import (
 func TestFetchExtendedAttributes(t *testing.T) {
 	idx, _, cleanup := setupTestIndex(t)
 	defer cleanup()
-	defer idx.db.Close()
 
 	tests := []struct {
 		name              string
@@ -64,7 +63,6 @@ func TestFetchExtendedAttributes(t *testing.T) {
 func TestShouldProcessItem(t *testing.T) {
 	idx, _, cleanup := setupTestIndex(t)
 	defer cleanup()
-	defer idx.db.Close()
 
 	// Create a mock file info
 	mockFile := &mockFileInfo{
@@ -185,7 +183,6 @@ func TestGetDirectoryName(t *testing.T) {
 func TestProcessDirectoryItem(t *testing.T) {
 	idx, _, cleanup := setupTestIndex(t)
 	defer cleanup()
-	defer idx.db.Close()
 
 	// Set up folder size in memory
 	idx.SetFolderSize("/test/subdir/", 500)
@@ -193,6 +190,14 @@ func TestProcessDirectoryItem(t *testing.T) {
 	now := time.Now()
 	mockDir := &mockFileInfo{
 		name:    "subdir",
+		size:    0,
+		mode:    os.ModeDir,
+		modTime: now,
+		isDir:   true,
+	}
+
+	mockDirNoSize := &mockFileInfo{
+		name:    "nosize",
 		size:    0,
 		mode:    os.ModeDir,
 		modTime: now,
@@ -231,12 +236,12 @@ func TestProcessDirectoryItem(t *testing.T) {
 		},
 		{
 			name:         "UseInMemorySizes without existing size",
-			file:         mockDir,
+			file:         mockDirNoSize,
 			combinedPath: "/test/",
 			realPath:     "/real/test",
-			fullCombined: "/test/subdir",
+			fullCombined: "/test/nosize",
 			subdirHasPreviewMap: map[string]bool{
-				"/test/subdir/": false,
+				"/test/nosize/": false,
 			},
 			opts: Options{
 				Recursive:         false,
@@ -304,7 +309,6 @@ func TestProcessDirectoryItem(t *testing.T) {
 func TestProcessFileItem(t *testing.T) {
 	idx, _, cleanup := setupTestIndex(t)
 	defer cleanup()
-	defer idx.db.Close()
 
 	now := time.Now()
 	mockFile := &mockFileInfo{
