@@ -24,6 +24,42 @@ var (
 	IsDirCache    = cache.NewCache[bool](48*time.Hour, 72*time.Hour)
 )
 
+// getDiskUsage returns the actual disk space used by a file in bytes
+// This is a simplified helper for shallow calculations and API calls
+// For scanning with hardlink detection, use handleFile instead
+// If useLogicalSize is true, returns the logical file size instead
+func getDiskUsage(fileInfo os.FileInfo, realPath string, useLogicalSize bool) int64 {
+	// If useLogicalSize is true, return logical size (no block alignment)
+	if useLogicalSize {
+		if fileInfo.IsDir() {
+			return 0 // Directories have no logical size
+		}
+		return fileInfo.Size()
+	}
+
+	// Disk usage mode (du-like behavior)
+	// For directories, use minimum 4KB
+	if fileInfo.IsDir() {
+		return 4096
+	}
+
+	// For files, round up to nearest 4KB block for non-zero files
+	// Note: handleFile in unix.go/windows.go provides more accurate disk usage during scanning
+	size := fileInfo.Size()
+	if size == 0 {
+		return 0
+	}
+	// Round up to nearest 4KB
+	blocks := (size + 4095) / 4096
+	return blocks * 4096
+}
+
+// getFileSizeForListing returns the file size for directory listing display
+// This is the logical size, not disk usage
+func getFileSizeForListing(fileInfo os.FileInfo) int64 {
+	return fileInfo.Size()
+}
+
 // Options holds all configuration options for indexing and filesystem operations
 type Options struct {
 	// Indexing operation options
@@ -683,6 +719,10 @@ func (idx *Index) processDirectoryItem(file os.FileInfo, combinedPath, realPath,
 			logger.Errorf("Failed to index directory %s: %v", dirPath, err)
 			return nil, 0, false
 		}
+		// Apply minimum 4KB for directories only in disk usage mode
+		if !idx.Config.UseLogicalSize && subdirSize < 4096 {
+			subdirSize = 4096
+		}
 		itemInfo.Size = subdirSize
 		itemInfo.HasPreview = subdirHasPreview
 		return itemInfo, itemInfo.Size, true
@@ -695,7 +735,12 @@ func (idx *Index) processDirectoryItem(file os.FileInfo, combinedPath, realPath,
 		if inMemSize, exists := idx.GetFolderSize(childIndexPath); exists {
 			itemInfo.Size = int64(inMemSize)
 		} else {
-			itemInfo.Size = 0
+			// No cached size - use appropriate default
+			if idx.Config.UseLogicalSize {
+				itemInfo.Size = 0 // Logical mode: empty directory = 0
+			} else {
+				itemInfo.Size = 4096 // Disk usage mode: minimum 4KB
+			}
 		}
 
 		// Use batched hasPreview map if available
@@ -718,16 +763,39 @@ func (idx *Index) processDirectoryItem(file os.FileInfo, combinedPath, realPath,
 			if err == nil {
 				var dirSize int64
 				for _, childFile := range childFiles {
-					if !childFile.IsDir() {
-						dirSize += childFile.Size()
+					if childFile.IsDir() {
+						// Count subdirectories based on mode
+						if !idx.Config.UseLogicalSize {
+							dirSize += 4096 // Disk usage: minimum 4KB each
+						}
+						// Logical mode: subdirs contribute 0
+					} else {
+						// Use appropriate size calculation for files
+						childFilePath := childRealPath + "/" + childFile.Name()
+						fileSize := getDiskUsage(childFile, childFilePath, idx.Config.UseLogicalSize)
+						dirSize += fileSize
 					}
+				}
+				// Apply minimum 4KB for directories only in disk usage mode
+				if !idx.Config.UseLogicalSize && dirSize < 4096 {
+					dirSize = 4096
 				}
 				itemInfo.Size = dirSize
 			} else {
-				itemInfo.Size = 0
+				// Error reading directory
+				if idx.Config.UseLogicalSize {
+					itemInfo.Size = 0
+				} else {
+					itemInfo.Size = 4096
+				}
 			}
 		} else {
-			itemInfo.Size = 0
+			// Error opening directory
+			if idx.Config.UseLogicalSize {
+				itemInfo.Size = 0
+			} else {
+				itemInfo.Size = 4096
+			}
 		}
 		itemInfo.HasPreview = false
 	}
@@ -745,13 +813,20 @@ func (idx *Index) processFileItem(file os.FileInfo, realPath, combinedPath, full
 	}
 	itemInfo.DetectType(realFilePath, false)
 
-	// For API calls (non-recursive, no scanner), use file.Size() directly to avoid syscall.Stat
+	// For API calls (non-recursive, no scanner), use appropriate size calculation
 	// For scanning (recursive or with scanner), use handleFile for hardlink detection
 	var size uint64
 	var shouldCountSize bool
 	if !opts.Recursive && scanner == nil {
-		// API call: use file.Size() directly - no hardlink tracking needed
-		size = uint64(file.Size())
+		// API call: use configured size calculation method
+		if idx.Config.UseLogicalSize {
+			// Logical size mode
+			size = uint64(file.Size())
+		} else {
+			// Disk usage mode
+			diskSize := getDiskUsage(file, realFilePath, idx.Config.UseLogicalSize)
+			size = uint64(diskSize)
+		}
 		shouldCountSize = true
 	} else {
 		// Scanning: use handleFile for accurate size and hardlink detection
@@ -872,8 +947,25 @@ func (idx *Index) GetDirInfoCore(dirInfo *os.File, stat os.FileInfo, realPath, a
 		}
 	}
 
-	if totalSize == 0 && idx.Config.ResolvedConditionals.IgnoreAllZeroSizeFolders && combinedPath != "/" {
-		return nil, errors.ErrNotIndexed
+	// Check ignoreZeroSizeFolders: works consistently regardless of size calculation mode
+	// In logical mode: folders with no files will have totalSize=0
+	// In disk usage mode: folders with no files will have totalSize>0 from 4KB minimums,
+	//                     but we check if there are no actual files/folders processed
+	if idx.Config.ResolvedConditionals != nil && idx.Config.ResolvedConditionals.IgnoreAllZeroSizeFolders && combinedPath != "/" {
+		// If using logical size, check totalSize==0
+		// If using disk usage, check if we have no files AND no folders (truly empty)
+		isEmpty := false
+		if idx.Config.UseLogicalSize {
+			isEmpty = (totalSize == 0)
+		} else {
+			// In disk usage mode, check if directory has no actual content
+			// (processedCount will be 0 if truly empty)
+			isEmpty = (len(fileInfos) == 0 && len(dirInfos) == 0)
+		}
+
+		if isEmpty {
+			return nil, errors.ErrNotIndexed
+		}
 	}
 
 	dirFileInfo := &iteminfo.FileInfo{
@@ -1041,7 +1133,10 @@ func (idx *Index) calculateDirectorySize(realPath string, indexPath string, shal
 			}
 		} else {
 			if shallow {
-				totalSize += uint64(file.Size())
+				// Use configured size calculation method
+				childRealPath := realPath + "/" + file.Name()
+				fileSize := getDiskUsage(file, childRealPath, idx.Config.UseLogicalSize)
+				totalSize += uint64(fileSize)
 			} else {
 				childRealPath := realPath + "/" + file.Name()
 				childIndexPath := indexPath + file.Name()
@@ -1051,6 +1146,11 @@ func (idx *Index) calculateDirectorySize(realPath string, indexPath string, shal
 				}
 			}
 		}
+	}
+
+	// Ensure minimum 4KB for directories only in disk usage mode
+	if !idx.Config.UseLogicalSize && totalSize < 4096 {
+		totalSize = 4096
 	}
 
 	return totalSize

@@ -35,13 +35,30 @@ func CheckWindowsHidden(realpath string) bool {
 }
 
 // handleFile processes a file and returns its size and whether it should be counted
-// On Windows, uses file.Size() directly (no syscall support for allocated size)
+// On Windows, calculates size based on configuration (disk usage or logical size)
 // scanner parameter is accepted for signature compatibility but not used on Windows (no hardlink tracking)
 func (idx *Index) handleFile(file os.FileInfo, fullCombined string, realFilePath string, isRoutineScan bool, scanner *Scanner) (size uint64, shouldCountSize bool) {
-	// On Windows, just use the actual file size
-	// isRoutineScan and scanner parameters are accepted for signature compatibility
-	realSize := uint64(file.Size())
-	return realSize, true
+	// Get logical file size
+	logicalSize := file.Size()
+
+	// If useLogicalSize is true, return logical size directly
+	if idx.Config.UseLogicalSize {
+		return uint64(logicalSize), true
+	}
+
+	// Disk usage mode: calculate disk space used
+	// If file is empty, return 0
+	if logicalSize == 0 {
+		return 0, true
+	}
+
+	// On Windows NTFS, cluster size is typically 4KB
+	// Round up to nearest 4KB cluster
+	const clusterSize = 4096
+	clusters := (logicalSize + clusterSize - 1) / clusterSize
+	diskUsage := uint64(clusters * clusterSize)
+
+	return diskUsage, true
 }
 
 // input should be non-index path.
