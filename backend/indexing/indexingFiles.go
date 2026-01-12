@@ -54,12 +54,6 @@ func getDiskUsage(fileInfo os.FileInfo, realPath string, useLogicalSize bool) in
 	return blocks * 4096
 }
 
-// getFileSizeForListing returns the file size for directory listing display
-// This is the logical size, not disk usage
-func getFileSizeForListing(fileInfo os.FileInfo) int64 {
-	return fileInfo.Size()
-}
-
 // Options holds all configuration options for indexing and filesystem operations
 type Options struct {
 	// Indexing operation options

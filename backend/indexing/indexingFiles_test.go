@@ -30,6 +30,7 @@ func setupTestIndex(t *testing.T) (*Index, string, func()) {
 			Path: "/mock/path",
 			Config: settings.SourceConfig{
 				DisableIndexing: false,
+				UseLogicalSize:  true,
 			},
 		},
 		mock:                true, // Enable mock mode
