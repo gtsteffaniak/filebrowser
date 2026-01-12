@@ -93,6 +93,7 @@ func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo, scanner *Scanner) bool
 
 // flushBatch writes all remaining batch items to the database (Scanner method)
 // This is called at the end of a scan to flush any items that didn't reach the BATCH_SIZE threshold
+// Also clears processedInodes/foundHardLinks maps periodically to prevent unbounded memory growth
 func (s *Scanner) flushBatch() {
 	items := s.batchItems
 	s.batchItems = nil
@@ -104,6 +105,15 @@ func (s *Scanner) flushBatch() {
 	err := s.idx.db.BulkInsertItems(s.idx.Name, items)
 	if err != nil {
 		logger.Warningf("[DB_TX] Flush failed for scanner [%s] (%d items): %v", s.scanPath, len(items), err)
+	}
+
+	// Clear hardlink tracking maps periodically to prevent unbounded memory growth
+	// Clear after every batch flush (every BatchSize items) to keep memory bounded
+	// For large filesystems with many hardlinks, this prevents maps from growing to millions of entries
+	if len(s.processedInodes) > 100000 {
+		s.processedInodes = make(map[uint64]struct{})
+		s.foundHardLinks = make(map[string]uint64)
+		logger.Debugf("[MEMORY] Cleared hardlink tracking maps for scanner [%s] (prevented unbounded growth)", s.scanPath)
 	}
 }
 
@@ -176,17 +186,21 @@ func (idx *Index) GetMetadataInfo(target string, isDir bool, shallow bool) (*ite
 	}
 
 	// checkDir is already an index path (relative to source root)
+	logger.Debugf("[GET_METADATA] GetMetadataInfo: Querying source=%s, path=%s, isDir=%v, shallow=%v", idx.Name, checkDir, isDir, shallow)
 	dir, err := idx.db.GetItem(idx.Name, checkDir)
 	if err != nil {
+		logger.Debugf("[GET_METADATA] GetMetadataInfo: GetItem failed for source=%s, path=%s, error=%v", idx.Name, checkDir, err)
 		return nil, false
 	}
 
 	// If not found in DB during scan, item might not be indexed yet
 	// (Batches are now scanner-specific, so we don't flush from API calls)
 	if dir == nil {
-		logger.Debugf("[GET_METADATA] Item %s not found in database", checkDir)
+		logger.Debugf("[GET_METADATA] GetMetadataInfo: Item not found in database - source=%s, path=%s", idx.Name, checkDir)
 		return nil, false
 	}
+
+	logger.Debugf("[GET_METADATA] GetMetadataInfo: Found item source=%s, path=%s, name=%s, is_dir=%v", idx.Name, checkDir, dir.Name, dir.Type == "directory")
 
 	// If shallow is true, return only the parent item without fetching children
 	// This is much faster when we only need fields like hasPreview
@@ -195,11 +209,13 @@ func (idx *Index) GetMetadataInfo(target string, isDir bool, shallow bool) (*ite
 	}
 
 	// Get children
+	logger.Debugf("[GET_METADATA] GetMetadataInfo: Fetching children for source=%s, parent_path=%s", idx.Name, checkDir)
 	children, err := idx.db.GetDirectoryChildren(idx.Name, checkDir)
 	if err != nil {
-		logger.Errorf("Failed to get children for %s: %v", checkDir, err)
+		logger.Errorf("[GET_METADATA] GetMetadataInfo: Failed to get children for %s: %v", checkDir, err)
 		return dir, true
 	}
+	logger.Debugf("[GET_METADATA] GetMetadataInfo: Got %d children for source=%s, parent_path=%s", len(children), idx.Name, checkDir)
 
 	// Populate Files and Folders
 	for _, child := range children {

@@ -240,6 +240,7 @@ func (db *IndexDB) BulkInsertItems(source string, items []*iteminfo.FileInfo) er
 	}
 	defer db.mu.Unlock() // Ensure mutex is always released
 
+	// SQLite will short-circuit on the first true condition (mod_time checked first as most common)
 	stmt, err := tx.Prepare(`
 	INSERT INTO index_items (source, path, parent_path, name, size, mod_time, type, is_dir, is_hidden, has_preview, last_updated)
 	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -253,15 +254,9 @@ func (db *IndexDB) BulkInsertItems(source string, items []*iteminfo.FileInfo) er
 		is_hidden = excluded.is_hidden,
 		has_preview = excluded.has_preview,
 		last_updated = excluded.last_updated
-	WHERE excluded.last_updated > index_items.last_updated OR
+	WHERE excluded.mod_time != index_items.mod_time OR
 	      excluded.size != index_items.size OR
-	      excluded.mod_time != index_items.mod_time OR
-	      excluded.has_preview != index_items.has_preview OR
-	      excluded.parent_path != index_items.parent_path OR
-	      excluded.name != index_items.name OR
-	      excluded.type != index_items.type OR
-	      excluded.is_dir != index_items.is_dir OR
-	      excluded.is_hidden != index_items.is_hidden
+	      excluded.has_preview != index_items.has_preview
 	`)
 	if err != nil {
 		if isBusyError(err) || isTransactionError(err) {
@@ -297,6 +292,7 @@ func (db *IndexDB) BulkInsertItems(source string, items []*iteminfo.FileInfo) er
 				logger.Errorf("[DB] BulkInsertItems: Unexpected busy/lock error during Exec: %v", err)
 				return nil
 			}
+			logger.Errorf("[DB] BulkInsertItems: Exec failed for path=%s, source=%s, error=%v", info.Path, source, err)
 			return err
 		}
 	}
@@ -344,15 +340,23 @@ func (db *IndexDB) GetItem(source, path string) (*iteminfo.FileInfo, error) {
 	SELECT path, name, size, mod_time, type, is_dir, is_hidden, has_preview
 	FROM index_items WHERE source = ? AND path = ?
 	`
+	logger.Debugf("[DB_QUERY] GetItem: Querying source=%s, path=%s", source, path)
 	row := db.QueryRow(query, source, path)
 	item, err := scanItem(row)
 	if err != nil {
 		// Soft failure: DB is busy or locked, return nil
 		// Caller will handle missing data by fetching from filesystem
 		if isBusyError(err) || isTransactionError(err) {
+			logger.Debugf("[DB_QUERY] GetItem: DB busy/locked for source=%s, path=%s", source, path)
 			return nil, nil
 		}
+		logger.Debugf("[DB_QUERY] GetItem: Query failed for source=%s, path=%s, error=%v", source, path, err)
 		return nil, err
+	}
+	if item != nil {
+		logger.Debugf("[DB_QUERY] GetItem: Found item source=%s, path=%s, name=%s, is_dir=%v", source, path, item.Name, item.Type == "directory")
+	} else {
+		logger.Debugf("[DB_QUERY] GetItem: No item found for source=%s, path=%s", source, path)
 	}
 	return item, nil
 }
@@ -455,6 +459,7 @@ func (db *IndexDB) GetDirectoryChildren(source, dirPath string) ([]*iteminfo.Fil
 	ORDER BY is_dir DESC, name ASC
 	`
 
+	logger.Debugf("[DB_QUERY] GetDirectoryChildren: Querying source=%s, parent_path=%s", source, dirPath)
 	rows, err := db.Query(query, source, dirPath)
 	if err != nil {
 
@@ -462,6 +467,7 @@ func (db *IndexDB) GetDirectoryChildren(source, dirPath string) ([]*iteminfo.Fil
 			logger.Warningf("[DB_TX] GetDirectoryChildren: DB busy/locked, skipping query")
 			return []*iteminfo.FileInfo{}, nil
 		}
+		logger.Errorf("[DB_QUERY] GetDirectoryChildren: Query failed for source=%s, parent_path=%s, error=%v", source, dirPath, err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -470,10 +476,13 @@ func (db *IndexDB) GetDirectoryChildren(source, dirPath string) ([]*iteminfo.Fil
 	for rows.Next() {
 		item, err := scanRow(rows)
 		if err != nil {
+			logger.Errorf("[DB_QUERY] GetDirectoryChildren: scanRow failed, error=%v", err)
 			return nil, err
 		}
 		children = append(children, item)
+		logger.Debugf("[DB_QUERY] GetDirectoryChildren: Found child path=%s, name=%s, is_dir=%v", item.Path, item.Name, item.Type == "directory")
 	}
+	logger.Debugf("[DB_QUERY] GetDirectoryChildren: Returning %d children for source=%s, parent_path=%s", len(children), source, dirPath)
 	return children, nil
 }
 
@@ -1033,153 +1042,6 @@ func (db *IndexDB) GetTotalSize(source string) (uint64, error) {
 	}
 
 	return uint64(totalSize), nil
-}
-
-// RecalculateDirectorySizes recalculates and updates all directory sizes based on their children.
-// This uses a bottom-up approach (deepest directories first) to avoid redundant SUM queries.
-func (db *IndexDB) RecalculateDirectorySizes(source, pathPrefix string) (int, error) {
-	// 1. Get all directories under the path prefix, ordered by depth (deepest first)
-	// Depth is determined by counting slashes in the path
-	// Use range query on PRIMARY KEY (source, path) for optimal index utilization
-	nextPrefix := getNextPathPrefix(pathPrefix)
-	query := `
-	SELECT path FROM index_items
-	WHERE source = ? AND is_dir = 1 AND path >= ? AND path < ?
-	ORDER BY LENGTH(path) - LENGTH(REPLACE(path, '/', '')) DESC
-	`
-
-	rows, err := db.Query(query, source, pathPrefix, nextPrefix)
-	if err != nil {
-		if isBusyError(err) || isTransactionError(err) {
-			return 0, nil
-		}
-		return 0, err
-	}
-	defer rows.Close()
-
-	var directories []string
-	for rows.Next() {
-		var path string
-		if err = rows.Scan(&path); err != nil {
-			return 0, err
-		}
-		directories = append(directories, path)
-	}
-	if err = rows.Err(); err != nil {
-		return 0, err
-	}
-
-	if len(directories) == 0 {
-		return 0, nil
-	}
-
-	// 2. Start a transaction for bulk updates
-	tx, err := db.BeginTransaction()
-	if err != nil {
-		if isBusyError(err) || isTransactionError(err) {
-			db.mu.Unlock() // Release mutex on error
-			return 0, nil
-		}
-		db.mu.Unlock() // Release mutex on error
-		return 0, err
-	}
-	defer db.mu.Unlock() // Ensure mutex is always released
-	// No defer rollback - data integrity not critical, performance is priority
-
-	// Batch calculate all directory sizes in a single query to avoid N+1 problem
-	// This is much more efficient than querying each directory individually
-	nowUnix := time.Now().Unix()
-
-	// Create placeholders for directory paths
-	dirPlaceholders := make([]string, len(directories))
-	dirArgs := make([]interface{}, len(directories)+1)
-	dirArgs[0] = source
-	for i, dirPath := range directories {
-		dirPlaceholders[i] = "?"
-		dirArgs[i+1] = dirPath
-	}
-
-	// Calculate sizes for all directories in one query using GROUP BY
-	// We only sum DIRECT children because we are processing bottom-up
-	sizeQuery := fmt.Sprintf(`
-		SELECT parent_path, COALESCE(SUM(size), 0) as total_size
-		FROM index_items
-		WHERE source = ? AND parent_path IN (%s)
-		GROUP BY parent_path
-	`, strings.Join(dirPlaceholders, ","))
-
-	sizeRows, err := tx.Query(sizeQuery, dirArgs...)
-	if err != nil {
-		if isBusyError(err) || isTransactionError(err) {
-			return 0, nil
-		}
-		return 0, err
-	}
-	defer sizeRows.Close()
-
-	// Map directory paths to their calculated sizes
-	sizeMap := make(map[string]int64)
-	for sizeRows.Next() {
-		var parentPath string
-		var totalSize int64
-		if err = sizeRows.Scan(&parentPath, &totalSize); err != nil {
-			return 0, err
-		}
-		sizeMap[parentPath] = totalSize
-	}
-	if err = sizeRows.Err(); err != nil {
-		return 0, err
-	}
-
-	// Batch update all directories using CASE statements (more efficient than individual updates)
-	if len(sizeMap) == 0 {
-		return 0, nil
-	}
-
-	var caseParts []string
-	var updateArgs []interface{}
-	var updatePaths []string
-	var updatePlaceholders []string
-
-	for dirPath, totalSize := range sizeMap {
-		caseParts = append(caseParts, "WHEN path = ? THEN ?")
-		updateArgs = append(updateArgs, dirPath, totalSize)
-		updatePaths = append(updatePaths, dirPath)
-		updatePlaceholders = append(updatePlaceholders, "?")
-	}
-
-	updateQuery := fmt.Sprintf(`
-		UPDATE index_items 
-		SET size = CASE %s END,
-		    last_updated = ?
-		WHERE source = ? AND path IN (%s)
-	`, strings.Join(caseParts, " "), strings.Join(updatePlaceholders, ","))
-
-	updateArgs = append(updateArgs, nowUnix, source)
-	for _, path := range updatePaths {
-		updateArgs = append(updateArgs, path)
-	}
-
-	result, err := tx.Exec(updateQuery, updateArgs...)
-	if err != nil {
-		if isBusyError(err) || isTransactionError(err) {
-			return 0, nil
-		}
-		return 0, err
-	}
-
-	rowsAffected, _ := result.RowsAffected()
-	updateCount := int(rowsAffected)
-
-	// 4. Commit transaction
-	if err := tx.Commit(); err != nil {
-		if isBusyError(err) || isTransactionError(err) {
-			return 0, nil
-		}
-		return 0, err
-	}
-
-	return updateCount, nil
 }
 
 // Helper functions

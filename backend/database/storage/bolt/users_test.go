@@ -8,6 +8,10 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 )
 
+func init() {
+	users.BcryptCost = 4 // bcrypt.MinCost for faster tests
+}
+
 func createTestUsersBackend(t *testing.T) users.StorageBackend {
 	dir := t.TempDir()
 	dbPath := filepath.Join(dir, "test.db")

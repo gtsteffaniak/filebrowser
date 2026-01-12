@@ -32,6 +32,7 @@ And a few potential drawbacks to lookout for:
  - search multiple sources at once (#848)
  - file uploads resume from bad internet connection #1599
  - chunked downloads - fix for 524 errors on cloudflare #1502
+ - made size calculation consistent: defaults to "size on disk" style to mimic "du -sh", and allow config `source.config.useLogicalSize: true` for 0 size folders and actual size file sizes.
 
  **Notes**:
  - `server.cacheDirCleanup` defaults to `false` instead of `true`. For docker, you would still need to mount a cacheDir volume to persist cache between restarts.

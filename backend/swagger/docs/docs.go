@@ -4387,6 +4387,10 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/settings.ConditionalRule"
                     }
+                },
+                "useLogicalSize": {
+                    "description": "calculate sizes based on logical size instead of disk utilization (du -sh), folders will be 0 bytes when empty.",
+                    "type": "boolean"
                 }
             }
         },
