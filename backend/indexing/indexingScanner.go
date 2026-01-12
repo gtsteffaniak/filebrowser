@@ -112,7 +112,7 @@ func (s *Scanner) runIndexing(quick bool) {
 }
 
 func (s *Scanner) runRootScan(quick bool) {
-	config := actionConfig{
+	config := Options{
 		Quick:         quick,
 		Recursive:     false,
 		IsRoutineScan: true,
@@ -148,6 +148,19 @@ func (s *Scanner) runRootScan(quick bool) {
 
 	if !quick {
 		s.syncStatsWithDB()
+
+		// Clear hardlink tracking maps after scan completes to free memory
+		// These maps are only needed during the scan for hardlink detection
+		if s.processedInodes != nil {
+			s.processedInodes = nil
+			s.foundHardLinks = nil
+		}
+
+		// Clear scanUpdatedPaths for root scanner to free memory
+		// Root scanner processes "/" so clear all entries
+		s.idx.mu.Lock()
+		s.idx.scanUpdatedPaths = make(map[string]bool)
+		s.idx.mu.Unlock()
 	}
 	scanDuration := int(time.Since(startTime).Seconds())
 
@@ -168,7 +181,7 @@ func (s *Scanner) runRootScan(quick bool) {
 }
 
 func (s *Scanner) runChildScan(quick bool) {
-	config := actionConfig{
+	config := Options{
 		Quick:         quick,
 		Recursive:     true,
 		IsRoutineScan: true,
@@ -221,6 +234,24 @@ func (s *Scanner) runChildScan(quick bool) {
 				logger.Errorf("[%s] Failed to sync folder sizes: %v", s.scanPath, err)
 			}
 		}
+
+		// Clear hardlink tracking maps after scan completes to free memory
+		// These maps are only needed during the scan for hardlink detection
+		if s.processedInodes != nil {
+			s.processedInodes = nil
+			s.foundHardLinks = nil
+		}
+
+		// Clear scanUpdatedPaths for this scanner's path prefix to free memory
+		// This prevents the map from growing unbounded during long scans
+		s.idx.mu.Lock()
+		// Remove entries for this scanner's path and all subpaths
+		for path := range s.idx.scanUpdatedPaths {
+			if strings.HasPrefix(path, s.scanPath) {
+				delete(s.idx.scanUpdatedPaths, path)
+			}
+		}
+		s.idx.mu.Unlock()
 	}
 
 	scanDuration := int(time.Since(startTime).Seconds())
@@ -323,7 +354,7 @@ func (s *Scanner) getTopLevelDirs() []string {
 		}
 		hidden := isHidden(file, s.idx.Path+dirPath)
 		// Use IsRoutineScan: true to ensure NeverWatchPaths is checked
-		config := actionConfig{IsRoutineScan: true}
+		config := Options{IsRoutineScan: true}
 		if s.idx.shouldSkip(true, hidden, dirPath, baseName, config) {
 			logger.Debugf("Skipping scanner creation for excluded directory: %s", dirPath)
 			continue

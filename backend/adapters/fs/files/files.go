@@ -71,21 +71,150 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.E
 	// Check if path is viewable (allows filesystem access without indexing)
 	isViewable := idx.IsViewable(isDir, opts.Path)
 
-	// For non-viewable paths, verify they are indexed
-	// Skip this check if indexing is disabled for the entire source
-	if !isViewable && !idx.Config.DisableIndexing {
-		t3 := time.Now()
-		err = idx.RefreshFileInfo(opts)
-		logger.Debugf("[API_TIMING] RefreshFileInfo took: %s", time.Since(t3))
+	// Get file info once to check if path is indexable (needed for category determination)
+	var fileInfo os.FileInfo
+	var isIndexable = true // Default to indexable if indexing is disabled
+
+	if !idx.Config.DisableIndexing {
+		// Get file info to check if path is indexable
+		fileInfo, err = os.Stat(realPath)
 		if err != nil {
-			logger.Debugf("failed to refresh file info for path: %s, error: %v", opts.Path, err)
-			return response, fmt.Errorf("path not accessible: %v", err)
+			return response, fmt.Errorf("could not stat path: %v", err)
 		}
+
+		// Check if path is indexable (not skipped from indexing)
+		isIndexable = idx.IsIndexable(fileInfo, opts.Path)
 	}
 
-	info, err = idx.GetFsInfo(opts.Path, opts.FollowSymlinks, opts.ShowHidden)
-	if err != nil {
-		return response, err
+	// Route based on category
+	if !isViewable {
+		if idx.Config.DisableIndexing || !isIndexable {
+			return response, fmt.Errorf("path not accessible: item is excluded")
+		}
+		// Category 1: Indexable (not viewable but indexable)
+		// For directories, open once for RefreshFileInfo, then open again for GetFsInfoCore
+		// (can't reuse handle because RefreshFileInfo consumes it via Readdir)
+		if isDir {
+			dir, err2 := os.Open(realPath)
+			if err2 != nil {
+				return response, fmt.Errorf("could not open directory: %v", err2)
+			}
+			dirInfo, err2 := dir.Stat()
+			if err2 != nil {
+				dir.Close()
+				return response, fmt.Errorf("could not stat directory: %v", err2)
+			}
+			t3 := time.Now()
+			err = idx.RefreshFileInfoWithHandle(opts, dir, dirInfo)
+			dir.Close() // Close after RefreshFileInfo since it consumes the handle
+			logger.Debugf("[API_TIMING] RefreshFileInfo took: %s", time.Since(t3))
+			if err != nil {
+				logger.Debugf("failed to refresh file info for path: %s, error: %v", opts.Path, err)
+				return response, fmt.Errorf("path not accessible: %v", err)
+			}
+			// Open a new directory handle for GetFsInfoCore (previous one was consumed by Readdir)
+			dir2, err2 := os.Open(realPath)
+			if err2 != nil {
+				return response, fmt.Errorf("could not open directory: %v", err2)
+			}
+			defer dir2.Close()
+			dirInfo2, err2 := dir2.Stat()
+			if err2 != nil {
+				return response, fmt.Errorf("could not stat directory: %v", err2)
+			}
+			info, err = idx.GetFsInfoCore(opts.Path, indexing.Options{
+				Quick:             false,
+				Recursive:         false,
+				CheckViewable:     true,
+				IsRoutineScan:     false,
+				SkipIndexChecks:   false,
+				SkipExtendedAttrs: false,
+				UseInMemorySizes:  true,
+				FollowSymlinks:    opts.FollowSymlinks,
+				ShowHidden:        opts.ShowHidden,
+			}, dir2, dirInfo2)
+			if err != nil {
+				return response, err
+			}
+		} else {
+			// For files, use standard path
+			t3 := time.Now()
+			err = idx.RefreshFileInfo(opts)
+			logger.Debugf("[API_TIMING] RefreshFileInfo took: %s", time.Since(t3))
+			if err != nil {
+				logger.Debugf("failed to refresh file info for path: %s, error: %v", opts.Path, err)
+				return response, fmt.Errorf("path not accessible: %v", err)
+			}
+			info, err = idx.GetFsInfo(opts.Path, opts.FollowSymlinks, opts.ShowHidden)
+			if err != nil {
+				return response, err
+			}
+		}
+	} else if !isIndexable {
+		info, err = idx.GetFsInfoViewableOnly(opts.Path, opts.FollowSymlinks, opts.ShowHidden)
+		if err != nil {
+			return response, err
+		}
+	} else {
+		// Category 1: Indexable (and viewable)
+		// For directories, open once for RefreshFileInfo, then open again for GetFsInfoCore
+		// (can't reuse handle because RefreshFileInfo consumes it via Readdir)
+		if isDir {
+			dir, err2 := os.Open(realPath)
+			if err2 != nil {
+				return response, fmt.Errorf("could not open directory: %v", err2)
+			}
+			dirInfo, err2 := dir.Stat()
+			if err2 != nil {
+				dir.Close()
+				return response, fmt.Errorf("could not stat directory: %v", err2)
+			}
+			t3 := time.Now()
+			err = idx.RefreshFileInfoWithHandle(opts, dir, dirInfo)
+			dir.Close() // Close after RefreshFileInfo since it consumes the handle
+			logger.Debugf("[API_TIMING] RefreshFileInfo took: %s", time.Since(t3))
+			if err != nil {
+				logger.Debugf("failed to refresh file info for path: %s, error: %v", opts.Path, err)
+				return response, fmt.Errorf("path not accessible: %v", err)
+			}
+			// Open a new directory handle for GetFsInfoCore (previous one was consumed by Readdir)
+			dir2, err2 := os.Open(realPath)
+			if err2 != nil {
+				return response, fmt.Errorf("could not open directory: %v", err2)
+			}
+			defer dir2.Close()
+			dirInfo2, err2 := dir2.Stat()
+			if err2 != nil {
+				return response, fmt.Errorf("could not stat directory: %v", err2)
+			}
+			info, err = idx.GetFsInfoCore(opts.Path, indexing.Options{
+				Quick:             false,
+				Recursive:         false,
+				CheckViewable:     true,
+				IsRoutineScan:     false,
+				SkipIndexChecks:   false,
+				SkipExtendedAttrs: false,
+				UseInMemorySizes:  true,
+				FollowSymlinks:    opts.FollowSymlinks,
+				ShowHidden:        opts.ShowHidden,
+			}, dir2, dirInfo2)
+			if err != nil {
+				return response, err
+			}
+		} else {
+			// For files, use standard path
+			t3 := time.Now()
+			err = idx.RefreshFileInfo(opts)
+			logger.Debugf("[API_TIMING] RefreshFileInfo took: %s", time.Since(t3))
+			if err != nil {
+				logger.Debugf("failed to refresh file info for path: %s, error: %v", opts.Path, err)
+				return response, fmt.Errorf("path not accessible: %v", err)
+			}
+			info, err = idx.GetFsInfo(opts.Path, opts.FollowSymlinks, opts.ShowHidden)
+			if err != nil {
+				return response, err
+			}
+		}
 	}
 
 	response.FileInfo = *info
