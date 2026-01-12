@@ -49,7 +49,6 @@
   "files": {
     "closePreview": "Închide previzualizarea",
     "lastModified": "Ultima modificare",
-    "lonely": "Nu este nimic aici...",
     "multipleSelectionEnabled": "Selecție multiplă activată",
     "sortByLastModified": "Ordonează dup ultima modificare",
     "sortByName": "Ordonează după nume",
@@ -64,7 +63,8 @@
     "duration": "Durată{suffix}",
     "sortByDuration": "Sortare după durată",
     "sameFolder": "Nu se poate muta în același folder",
-    "cannotAccesDir": "Nu se poate accesa directorul"
+    "cannotAccesDir": "Nu se poate accesa directorul",
+    "lonely": "Nimic de arătat aici..."
   },
   "help": {
     "functionKeys": "Taste Funcție",
@@ -649,7 +649,9 @@
     "uploadChunkSizeMbHelp": "De obicei între 5 și 50 MB, mai mic este mai bine pentru conexiunile instabile sau restricționate. Setarea la 0 va dezactiva fragmentarea încărcării.",
     "clearAll": "Clear completed ar trebui să elimine erorile, pauzele și conflictele",
     "clearAllDescription": "Butonul șterge finalizat va șterge toate încărcările în stare finalizată, inclusiv stările de eroare, pauză și conflict.",
-    "uploadSettings": "Setări de încărcare"
+    "uploadSettings": "Setări de încărcare",
+    "downloadChunkSizeMb": "Dimensiunea bucății de descărcare în MB",
+    "downloadChunkSizeMbHelp": "Dimensiunea bucăților pentru descărcări fragmentate. Fișierele mai mari decât această dimensiune vor fi descărcate în bucăți pentru a preveni problemele de timeout (de exemplu, erori Cloudflare 524). Setarea la 0 dezactivează descărcările fragmentate."
   },
   "colors": {
     "red": "roșu",

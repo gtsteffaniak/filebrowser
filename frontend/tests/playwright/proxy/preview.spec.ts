@@ -8,7 +8,7 @@ test("Create first new file with basic auth", async ({  page, checkForErrors, co
   });
 
   await page.goto("/subpath/");
-  await expect(page.locator('#listingView .message > span')).toHaveText('It feels lonely here...');
+  await expect(page.locator('#listingView .message > span')).toHaveText('Nothing to show here...');
   await page.locator('#listingView').click({ button: "right" });
   await page.locator('button[aria-label="New file"]').click();
   await page.locator('input[aria-label="FileName Field"]').fill('test.txt');

@@ -171,7 +171,7 @@
     "closePreview": "Close preview",
     "lastModified": "Last modified{suffix}",
     "duration": "Duration{suffix}",
-    "lonely": "It feels lonely here...",
+    "lonely": "Nothing to show here...",
     "multipleSelectionEnabled": "Multiple selection enabled",
     "sortByLastModified": "Sort by last modified",
     "sortByName": "Sort by name",
@@ -715,6 +715,8 @@
     "maxConcurrentUploadHelp": "The maximum number of concurrent uploads. Higher values typically perform better, but this depends on many factors.",
     "uploadChunkSizeMb": "Upload chunk size in MB",
     "uploadChunkSizeMbHelp": "Typically 5 to 50 MB, smaller is better for unstable or restricted connections. Setting to 0 will disable upload chunking.",
+    "downloadChunkSizeMb": "Download chunk size in MB",
+    "downloadChunkSizeMbHelp": "Chunk size for chunked downloads. Files larger than this size will be downloaded in chunks to prevent timeout issues (e.g., Cloudflare 524 errors). Setting to 0 disables chunked downloads.",
     "clearAll": "Clear completed should remove error, pause, and conflict",
     "clearAllDescription": "The clear completed button will clear all uploads in a finished state, including error, paused, and conflict states.",
     "uploadSettings": "Upload Settings"

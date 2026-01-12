@@ -481,6 +481,7 @@ export const mutations = {
           "viewMode",
           "showFirstLogin",
           "sidebarLinks",
+          "fileLoading",
         ].includes(key)
       );
       value.id = state.user.id;

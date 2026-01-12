@@ -49,7 +49,6 @@
   "files": {
     "closePreview": "Fermer la prévisualisation",
     "lastModified": "Dernière modification",
-    "lonely": "Il semble qu'il n'y ait rien par ici...",
     "multipleSelectionEnabled": "Sélection multiple activée",
     "sortByLastModified": "Trier par date de dernière modification",
     "sortByName": "Trier par nom",
@@ -64,7 +63,8 @@
     "duration": "Durée de l'accord{suffix}",
     "sortByDuration": "Trier par durée",
     "sameFolder": "Impossible de déplacer vers le même dossier",
-    "cannotAccesDir": "Impossible d'accéder au répertoire"
+    "cannotAccesDir": "Impossible d'accéder au répertoire",
+    "lonely": "Rien à voir ici..."
   },
   "help": {
     "functionKeys": "Touches de Fonction",
@@ -649,7 +649,9 @@
     "uploadChunkSizeMbHelp": "Généralement de 5 à 50 Mo, une taille inférieure est préférable pour les connexions instables ou restreintes. La valeur 0 désactive l'importation par morceaux.",
     "clearAll": "Effacer les importations terminées (erreurs, pauses et conflits inclus)",
     "clearAllDescription": "Le bouton \"Effacer les importations terminées\" efface toutes les importations terminées, y compris les erreurs, les pauses et les conflits.",
-    "uploadSettings": "Paramètres d'importation"
+    "uploadSettings": "Paramètres d'importation",
+    "downloadChunkSizeMb": "Taille du bloc de téléchargement en Mo",
+    "downloadChunkSizeMbHelp": "Taille des morceaux pour les téléchargements par morceaux. Les fichiers dont la taille est supérieure à cette valeur seront téléchargés par morceaux afin d'éviter les problèmes de dépassement de délai (par exemple, les erreurs Cloudflare 524). La valeur 0 désactive les téléchargements par morceaux."
   },
   "colors": {
     "red": "rouge",

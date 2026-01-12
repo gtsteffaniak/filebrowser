@@ -49,7 +49,6 @@
   "files": {
     "closePreview": "Előnézet bezárása",
     "lastModified": "Utoljára módosítva",
-    "lonely": "Ez egy magányos érzés…",
     "multipleSelectionEnabled": "Többszörös kijelölés aktiválva",
     "sortByLastModified": "Rendezés utolsó módosítás szerint",
     "sortByName": "Rendezés név szerint",
@@ -64,7 +63,8 @@
     "duration": "Időtartam{suffix}",
     "sortByDuration": "Rendezés időtartam szerint",
     "sameFolder": "Nem lehet ugyanabba a mappába mozgatni",
-    "cannotAccesDir": "Nem lehet hozzáférni a könyvtárhoz"
+    "cannotAccesDir": "Nem lehet hozzáférni a könyvtárhoz",
+    "lonely": "Itt nincs mit mutatni..."
   },
   "help": {
     "functionKeys": "Funkcióbillentyűk",
@@ -649,7 +649,9 @@
     "uploadChunkSizeMbHelp": "Általában 5 és 50 MB között, instabil vagy korlátozott kapcsolatok esetén a kisebb méret jobb. A 0 értékre állítás kikapcsolja a feltöltési darabolás funkciót.",
     "clearAll": "A befejezett törlésnek el kell távolítania a hibát, a szünetet és a konfliktust.",
     "clearAllDescription": "A befejezett állapot törlése gomb az összes befejezett állapotban lévő feltöltést törli, beleértve a hiba, a szüneteltetés és a konfliktus állapotokat is.",
-    "uploadSettings": "Feltöltési beállítások"
+    "uploadSettings": "Feltöltési beállítások",
+    "downloadChunkSizeMb": "Letöltési darabok mérete MB-ban",
+    "downloadChunkSizeMbHelp": "Darabolt letöltések esetén a darabolt méret. Az ennél nagyobb méretű fájlok letöltése darabokban történik, hogy elkerülhetők legyenek az időkorlátozási problémák (pl. Cloudflare 524 hiba). A 0-ra állítás kikapcsolja a darabolt letöltéseket."
   },
   "colors": {
     "red": "piros",

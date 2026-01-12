@@ -49,7 +49,6 @@
   "files": {
     "closePreview": "Fechar pré-visualização",
     "lastModified": "Última alteração",
-    "lonely": "Sinto-me sozinho...",
     "multipleSelectionEnabled": "Seleção múltipla ativada",
     "sortByLastModified": "Ordenar pela última alteração",
     "sortByName": "Ordenar pelo nome",
@@ -64,7 +63,8 @@
     "duration": "Duração{suffix}",
     "sortByDuration": "Ordenar por duração",
     "sameFolder": "Não é possível mover para a mesma pasta",
-    "cannotAccesDir": "Não é possível aceder ao diretório"
+    "cannotAccesDir": "Não é possível aceder ao diretório",
+    "lonely": "Não há nada para mostrar aqui..."
   },
   "help": {
     "functionKeys": "Teclas de Função",
@@ -516,7 +516,9 @@
     "uploadChunkSizeMbHelp": "Tipicamente, 5 a 50 MB, mas um valor mais pequeno é melhor para ligações instáveis ou restritas. Definir como 0 desactivará a fragmentação do carregamento.",
     "clearAll": "Limpar concluído deve eliminar erros, pausas e conflitos",
     "clearAllDescription": "O botão Limpar concluído limpa todos os carregamentos num estado concluído, incluindo os estados de erro, pausa e conflito.",
-    "uploadSettings": "Carregar definições"
+    "uploadSettings": "Carregar definições",
+    "downloadChunkSizeMb": "Tamanho do bloco de descarregamento em MB",
+    "downloadChunkSizeMbHelp": "Tamanho do pedaço para downloads em pedaços. Os ficheiros maiores do que este tamanho serão descarregados em blocos para evitar problemas de tempo limite (por exemplo, erros 524 do Cloudflare). Definir como 0 desativa os downloads em pedaços."
   },
   "colors": {
     "red": "vermelho",

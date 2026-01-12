@@ -193,6 +193,11 @@ export function goToItem(source, path, previousHistoryItem) {
     return;
   }
   fullPath = `/files/${encodeURIComponent(source)}${newPath}`;
+  if (previousHistoryItem === undefined) {
+    // When undefined will not create browser history
+    router.replace({ path: fullPath });
+    return
+  }
   router.push({ path: fullPath });
   return
 }

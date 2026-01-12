@@ -49,7 +49,6 @@
   "files": {
     "closePreview": "关闭预览",
     "lastModified": "最后修改",
-    "lonely": "这里没有任何文件...",
     "multipleSelectionEnabled": "多选模式已开启",
     "sortByLastModified": "按最后修改时间排序",
     "sortByName": "按名称排序",
@@ -64,7 +63,8 @@
     "duration": "持续时间{suffix}",
     "sortByDuration": "按持续时间排序",
     "sameFolder": "无法移动到相同文件夹",
-    "cannotAccesDir": "无法访问目录"
+    "cannotAccesDir": "无法访问目录",
+    "lonely": "这里没什么可看的..."
   },
   "help": {
     "functionKeys": "功能键",
@@ -516,7 +516,9 @@
     "uploadChunkSizeMbHelp": "通常为 5 至 50 MB，对于不稳定或受限制的连接，越小越好。设置为 0 将禁用上传分块。",
     "clearAll": "清除完成后，应消除错误、暂停和冲突",
     "clearAllDescription": "清除已完成按钮将清除所有处于完成状态的上传，包括错误、暂停和冲突状态。",
-    "uploadSettings": "上传设置"
+    "uploadSettings": "上传设置",
+    "downloadChunkSizeMb": "下载块大小（MB",
+    "downloadChunkSizeMbHelp": "分块下载的分块大小。大于此大小的文件将分块下载，以防止超时问题（如 Cloudflare 524 错误）。设置为 0 将禁用分块下载。"
   },
   "colors": {
     "red": "红",

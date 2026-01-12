@@ -709,8 +709,8 @@ func setDefaults(generate bool) Settings {
 				Folder:             boolPtr(true),
 			},
 			FileLoading: users.FileLoading{
-				MaxConcurrent: 10,
-				ChunkSize:     10, // 10MB
+				MaxConcurrent:   10,
+				UploadChunkSize: 10, // 10MB
 			},
 		},
 	}

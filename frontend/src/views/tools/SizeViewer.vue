@@ -579,7 +579,7 @@ export default {
     handleItemClick(item) {
       // Navigate to the file/directory using full path
       const fullPath = this.getFullPath(item.path);
-      goToItem(this.selectedSource, fullPath);
+      goToItem(this.selectedSource, fullPath, {});
     },
     handleMouseEnter(item) {
       // Clear any existing timeout
