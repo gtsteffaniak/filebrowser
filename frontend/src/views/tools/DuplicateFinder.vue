@@ -61,6 +61,17 @@
             </div>
           </div>
 
+          <div v-if="selectedFiles.size > 0" class="bulk-actions">
+            <button @click="showDeleteConfirm" class="button delete-button" :disabled="deleting">
+              <i v-if="deleting" class="material-icons spin">autorenew</i>
+              <i v-else class="material-icons">delete</i>
+              <span>{{ $t('general.delete') }} ({{ selectedFiles.size }})</span>
+            </button>
+            <button @click="clearSelection" class="button">
+              <span>{{ $t('general.clear', { suffix: '' }) }} {{ $t('general.select', { suffix: '' }) }}</span>
+            </button>
+          </div>
+
                 <div class="duplicate-groups">
                   <div v-for="(group, index) in duplicateGroups" :key="index" class="duplicate-group">
                     <div class="group-header">
@@ -69,22 +80,43 @@
                       <span class="wasted-space">{{ $t('duplicateFinder.wasted', { suffix: ': ' }) }} {{ humanSize(group.size * (group.count - 1)) }}</span>
                     </div>
                     <div class="group-files">
-                      <ListingItem
+                      <div
                         v-for="(file, fileIndex) in group.files"
                         :key="`${index}-${fileIndex}`"
-                        :name="getFileName(file.path)"
-                        :isDir="file.type === 'directory'"
-                        :source="selectedSource"
-                        :type="file.type"
-                        :size="file.size"
-                        :modified="file.modified"
-                        :index="getUniqueIndex(index, fileIndex)"
-                        :path="getFullPath(file.path)"
-                        :hasPreview="file.hasPreview"
-                        :reducedOpacity="false"
-                        :displayFullPath="true"
-                        @click="handleFileClick($event, file, index, fileIndex)"
-                      />
+                        class="file-item-wrapper"
+                        :class="{ 'deleted': isDeleted(file), 'failed': isFailed(file) }"
+                      >
+                        <div class="file-item-content">
+                          <ListingItem
+                            :name="getFileName(file.path)"
+                            :isDir="file.type === 'directory'"
+                            :source="selectedSource"
+                            :type="file.type"
+                            :size="file.size"
+                            :modified="file.modified"
+                            :index="getUniqueIndex(index, fileIndex)"
+                            :path="getFullPath(file.path)"
+                            :hasPreview="shouldHavePreview(file)"
+                            :reducedOpacity="isDeleted(file)"
+                            :displayFullPath="true"
+                            :selectable="false"
+                            @click="handleFileClick($event, file, index, fileIndex)"
+                          />
+                        </div>
+                        <div 
+                          class="checkbox-wrapper"
+                          @click.stop="!isDeleted(file) && toggleSelection(file, !isSelected(file))"
+                        >
+                          <input
+                            type="checkbox"
+                            :checked="isSelected(file)"
+                            @change="toggleSelection(file, $event.target.checked)"
+                            @click.stop
+                            class="file-checkbox"
+                            :disabled="isDeleted(file)"
+                          />
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -101,11 +133,13 @@
 
 <script>
 import { findDuplicates } from "@/api/search";
+import { filesApi } from "@/api";
 import { state, mutations } from "@/store";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { eventBus } from "@/store/eventBus";
 import ListingItem from "@/components/files/ListingItem.vue";
 import * as url from "@/utils/url";
+import { getTypeInfo } from "@/utils/mimetype";
 
 export default {
   name: "DuplicateFinder",
@@ -145,6 +179,10 @@ export default {
       lastRequestTime: 0, // Track last request to prevent rapid-fire
       clickTracker: {}, // Track clicks for double-click detection
       maxGroups: 500,
+      selectedFiles: new Set(), // Track selected files by path
+      deletedFiles: new Set(), // Track deleted files by path
+      failedFiles: new Map(), // Track failed files by path -> error message
+      deleting: false, // Track if deletion is in progress
     };
   },
   computed: {
@@ -206,9 +244,12 @@ export default {
 
     // Listen for path selection
     eventBus.on('pathSelected', this.handlePathSelected);
+    // Listen for items deleted from delete prompt
+    eventBus.on('itemsDeleted', this.handleItemsDeleted);
   },
   beforeUnmount() {
     eventBus.off('pathSelected', this.handlePathSelected);
+    eventBus.off('itemsDeleted', this.handleItemsDeleted);
   },
   methods: {
     openPathPicker() {
@@ -228,6 +269,26 @@ export default {
         this.selectedSource = data.source;
       }
       mutations.closeHovers();
+    },
+    handleItemsDeleted(data) {
+      // Update local state when items are deleted from the delete prompt
+      if (data && data.succeeded) {
+        data.succeeded.forEach(item => {
+          const key = `${item.source}::${item.path}`;
+          this.deletedFiles.add(key);
+          this.selectedFiles.delete(key);
+          this.failedFiles.delete(key);
+        });
+      }
+      if (data && data.failed) {
+        data.failed.forEach(item => {
+          const key = `${item.source}::${item.path}`;
+          this.failedFiles.set(key, item.message || 'Unknown error');
+          this.selectedFiles.delete(key);
+        });
+      }
+      // Clear selection after processing
+      this.clearSelection();
     },
     async fetchData() {
       // Prevent rapid-fire requests - require at least 1 second between requests
@@ -259,13 +320,19 @@ export default {
         this.isIncomplete = result.incomplete || false;
         this.incompleteReason = result.reason || "";
 
-        // Reset selection when new results arrive
+        // Reset selection, deleted, and failed files when new results arrive
         mutations.resetSelected();
+        this.selectedFiles.clear();
+        this.deletedFiles.clear();
+        this.failedFiles.clear();
       } catch (err) {
         this.error = err.message || "Failed to find duplicates";
         this.duplicateGroups = [];
         this.isIncomplete = false;
         this.incompleteReason = "";
+        this.selectedFiles.clear();
+        this.deletedFiles.clear();
+        this.failedFiles.clear();
       } finally {
         this.loading = false;
       }
@@ -380,6 +447,26 @@ export default {
       // This ensures selections work correctly even with multiple groups
       return groupIndex * 1000 + fileIndex;
     },
+    shouldHavePreview(file) {
+      // Compute hasPreview based on file type if backend doesn't provide it
+      if (file.hasPreview || file.HasPreview) {
+        return true;
+      }
+      // Check if file type supports previews using getTypeInfo
+      const type = file.type || '';
+      const typeInfo = getTypeInfo(type);
+      const simpleType = typeInfo.simpleType;
+      
+      // Files that typically have previews
+      if (simpleType === 'image' || simpleType === 'video') {
+        return true;
+      }
+      // Office files and PDFs
+      if (simpleType === 'document' || simpleType === 'text' || type.includes('pdf')) {
+        return true;
+      }
+      return false;
+    },
     handleFileClick(event, file, groupIndex, fileIndex) {
       // Prevent default ListingItem navigation since state.req isn't populated
       event.preventDefault();
@@ -393,12 +480,7 @@ export default {
           // Single-click navigation enabled - go immediately
           this.navigateToFile(file);
         } else {
-          // Double-click navigation - select on first click, navigate on second
-
-          // First click always selects the item using state.selected for proper CSS styling
-          const uniqueIndex = this.getUniqueIndex(groupIndex, fileIndex);
-          mutations.resetSelected();
-          mutations.addSelected(uniqueIndex);
+          // Double-click navigation - no selection, just track for double-click
 
           // Track clicks for double-click detection
           if (!this.clickTracker) {
@@ -444,6 +526,116 @@ export default {
       // Get the full path including search path context
       const filePath = this.getFullPath(file.path);
       url.goToItem(this.selectedSource, filePath, previousHistoryItem);
+    },
+    getFileKey(file) {
+      // Create a unique key for the file based on source and path
+      return `${this.selectedSource}::${this.getFullPath(file.path)}`;
+    },
+    isSelected(file) {
+      return this.selectedFiles.has(this.getFileKey(file));
+    },
+    toggleSelection(file, checked) {
+      const key = this.getFileKey(file);
+      if (checked) {
+        this.selectedFiles.add(key);
+      } else {
+        this.selectedFiles.delete(key);
+      }
+    },
+    clearSelection() {
+      this.selectedFiles.clear();
+    },
+    isDeleted(file) {
+      return this.deletedFiles.has(this.getFileKey(file));
+    },
+    isFailed(file) {
+      return this.failedFiles.has(this.getFileKey(file));
+    },
+    getFailureMessage(file) {
+      return this.failedFiles.get(this.getFileKey(file)) || '';
+    },
+    showDeleteConfirm() {
+      if (this.selectedFiles.size === 0 || this.deleting) {
+        return;
+      }
+
+      // Build items array with preview URLs
+      const items = [];
+      for (const group of this.duplicateGroups) {
+        for (const file of group.files) {
+          const key = this.getFileKey(file);
+          if (this.selectedFiles.has(key)) {
+            const fullPath = this.getFullPath(file.path);
+            const previewUrl = this.shouldHavePreview(file)
+              ? filesApi.getPreviewURL(this.selectedSource, fullPath, file.modified)
+              : null;
+            items.push({
+              source: this.selectedSource,
+              path: fullPath,
+              type: file.type,
+              size: file.size,
+              modified: file.modified,
+              previewUrl: previewUrl,
+            });
+          }
+        }
+      }
+
+      mutations.showHover({
+        name: "delete",
+        props: {
+          items: items,
+        },
+      });
+    },
+    async deleteSelected() {
+      if (this.selectedFiles.size === 0 || this.deleting) {
+        return;
+      }
+
+      this.deleting = true;
+      const itemsToDelete = [];
+      for (const group of this.duplicateGroups) {
+        for (const file of group.files) {
+          const key = this.getFileKey(file);
+          if (this.selectedFiles.has(key)) {
+            itemsToDelete.push({
+              source: this.selectedSource,
+              path: this.getFullPath(file.path),
+            });
+          }
+        }
+      }
+
+      try {
+        const response = await filesApi.bulkDelete(itemsToDelete);
+        
+        // Process succeeded items
+        if (response.succeeded && response.succeeded.length > 0) {
+          response.succeeded.forEach(item => {
+            const key = `${item.source}::${item.path}`;
+            this.deletedFiles.add(key);
+            this.selectedFiles.delete(key);
+            this.failedFiles.delete(key);
+          });
+        }
+
+        // Process failed items
+        if (response.failed && response.failed.length > 0) {
+          response.failed.forEach(item => {
+            const key = `${item.source}::${item.path}`;
+            this.failedFiles.set(key, item.message || 'Unknown error');
+            this.selectedFiles.delete(key);
+          });
+        }
+
+        // Clear selection after deletion attempt
+        this.clearSelection();
+      } catch (err) {
+        this.error = err.message || 'Failed to delete files';
+      } finally {
+        this.deleting = false;
+      }
     },
   },
 };
@@ -497,6 +689,31 @@ export default {
   border-radius: 4px;
 }
 
+.bulk-actions {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  align-items: center;
+}
+
+.bulk-actions .button {
+  margin-top: 0;
+}
+
+.delete-button {
+  background: #f5576c;
+  color: white;
+}
+
+.delete-button:hover:not(:disabled) {
+  background: #e0455a;
+}
+
+.delete-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .duplicate-groups {
   display: flex;
   flex-direction: column;
@@ -541,12 +758,71 @@ export default {
   padding: 0;
 }
 
-.group-files .listing-item {
-  width: 100%;
-  margin: 0;
+.file-item-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   border: 1px solid rgba(0, 0, 0, 0.1);
   border-top: 0;
   padding: 0.5em;
+  border-radius: 0;
+}
+
+.file-item-wrapper:first-child {
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.file-item-wrapper.deleted {
+  opacity: 0.5;
+  background: var(--surfaceSecondary);
+}
+
+.file-item-wrapper.failed {
+  border-left: 3px solid #f5576c;
+}
+
+.file-item-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.checkbox-wrapper {
+  padding: 1em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+  cursor: pointer;
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.checkbox-wrapper:hover {
+  background-color: var(--surfaceSecondary, rgba(0, 0, 0, 0.05));
+}
+
+.file-checkbox {
+  cursor: pointer;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  margin: 0;
+}
+
+.file-checkbox:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.group-files .listing-item {
+  width: 100%;
+  margin: 0;
+  border: none;
+  padding: 0;
   border-radius: 0;
 }
 

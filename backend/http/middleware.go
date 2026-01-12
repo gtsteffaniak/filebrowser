@@ -671,7 +671,7 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 					_, _ = renderJSON(w, r, &HttpResponse{
 						Status:  500,
 						Message: "A critical internal error occurred. Please try again later.",
-					})
+					}, http.StatusInternalServerError)
 				}
 
 				// IMPORTANT: After a SIGSEGV from C code, the process might be unstable.
@@ -713,18 +713,26 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func renderJSON(w http.ResponseWriter, r *http.Request, data interface{}) (int, error) {
+func renderJSON(w http.ResponseWriter, r *http.Request, data interface{}, statusCode ...int) (int, error) {
+	// Default to 200 if status code not provided
+	code := http.StatusOK
+	if len(statusCode) > 0 && statusCode[0] != 0 {
+		code = statusCode[0]
+	}
+
 	marsh, err := json.Marshal(data)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
 	// Calculate size in KB
 	payloadSizeKB := len(marsh) / 1024
+	// Set headers before writing
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	// Check if the client accepts gzip encoding and hasn't explicitly disabled it
 	if acceptsGzip(r) && payloadSizeKB > 10 {
 		// Enable gzip compression
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.Header().Set("Content-Encoding", "gzip")
+		w.WriteHeader(code)
 		gz := gzip.NewWriter(w)
 		defer gz.Close()
 
@@ -733,13 +741,13 @@ func renderJSON(w http.ResponseWriter, r *http.Request, data interface{}) (int, 
 		}
 	} else {
 		// Normal response without compression
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		w.WriteHeader(code)
 		if _, err := w.Write(marsh); err != nil {
 			return http.StatusInternalServerError, err
 		}
 	}
 
-	return 0, nil
+	return code, nil
 }
 
 func acceptsGzip(r *http.Request) bool {

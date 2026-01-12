@@ -75,6 +75,42 @@ export async function remove(source, path) {
   }
 }
 
+export async function bulkDelete(items) {
+  if (!items || !Array.isArray(items) || items.length === 0) {
+    throw new Error('items array is required and must not be empty')
+  }
+  try {
+    const apiPath = getApiPath('api/resources/bulk/delete')
+    const response = await fetchURL(apiPath, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(items),
+    })
+    
+    if (!response.ok) {
+      const error = new Error(response.statusText);
+      let data = null;
+      try {
+        data = await response.json()
+      } catch (e) {
+        // ignore
+      }
+      if (data) {
+        error.message = data.message || response.statusText;
+      }
+      error.status = response.status;
+      throw error;
+    }
+    
+    return await response.json()
+  } catch (err) {
+    notify.showError(err.message || 'Error performing bulk delete')
+    throw err
+  }
+}
+
 export async function put(source, path, content = '') {
   if (!source) {
     throw new Error('no source provided')

@@ -23,8 +23,7 @@ And a few potential drawbacks to lookout for:
  - SQLite-based indexing
    - reduced memory usage, higher CPU and IO usage.
    - index persistence between restarts
- - realtime file watcher (#917)
-   - lower latency if user has realtime permissions
+ - realtime file watcher, low latency if user has realtime permissions (#917)
  - access control works with individual files too
  - conditionally hide symbolic links as indexing rule config (#1540)
  - External applications can connect to filebrowser over webDAV (#209) (#1764)
@@ -33,11 +32,13 @@ And a few potential drawbacks to lookout for:
  - file uploads resume from bad internet connection #1599
  - chunked downloads - fix for 524 errors on cloudflare #1502
  - made size calculation consistent: defaults to "size on disk" style to mimic "du -sh", and allow config `source.config.useLogicalSize: true` for 0 size folders and actual size file sizes.
+ - Duplicate detector includes option to select and delete.
 
  **Notes**:
  - `server.cacheDirCleanup` defaults to `false` instead of `true`. For docker, you would still need to mount a cacheDir volume to persist cache between restarts.
  - indexing rules have been streamlined, see [wiki]. Previous style is deprecated but still functional.
  - improved listing load times for directories with metadata -- a two pass approach. First a fast load to get the listing items, then a second api request to include metadata.
+ - Enhanced delete prompt
 
  **BugFixes**:
  - Source info not properly read from external storage NAS #1727

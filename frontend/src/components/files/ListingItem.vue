@@ -34,7 +34,7 @@
       <Icon
         :mimetype="type"
         :active="isSelected"
-        :thumbnailUrl="isThumbnailInView ? thumbnailUrl : ''"
+        :thumbnailUrl="(isThumbnailInView || hasPreview) ? thumbnailUrl : ''"
         :filename="name"
         :hasPreview="hasPreview"
       />
@@ -101,23 +101,27 @@ export default {
       observer: null, // Store observer reference
     };
   },
-  props: [
-    "name",
-    "isDir",
-    "source",
-    "type",
-    "size",
-    "modified",
-    "index",
-    "readOnly",
-    "path",
-    "reducedOpacity",
-    "hash",
-    "hasPreview",
-    "metadata",
-    "hasDuration",
-    "displayFullPath",
-  ],
+  props: {
+    name: String,
+    isDir: Boolean,
+    source: String,
+    type: String,
+    size: Number,
+    modified: String,
+    index: [Number, String],
+    readOnly: Boolean,
+    path: String,
+    reducedOpacity: Boolean,
+    hash: String,
+    hasPreview: Boolean,
+    metadata: Object,
+    hasDuration: Boolean,
+    displayFullPath: Boolean,
+    selectable: {
+      type: Boolean,
+      default: true,
+    },
+  },
   computed: {
     displayName() {
       // If displayFullPath is true, show the full path, otherwise just the name
@@ -158,6 +162,9 @@ export default {
       return this.isSelected;
     },
     isSelected() {
+      if (!this.selectable) {
+        return false;
+      }
       return state.selected.indexOf(this.index) !== -1;
     },
     isDraggable() {
@@ -220,6 +227,14 @@ export default {
     });
 
     this.observer.observe(this.$el);
+    this.$nextTick(() => {
+      const rect = this.$el.getBoundingClientRect();
+      const isInViewport = rect.top < window.innerHeight + 1500 && rect.bottom > -1500;
+      if (isInViewport && this.hasPreview) {
+        this.isThumbnailInView = true;
+        this.isInView = true;
+      }
+    });
   },
   beforeUnmount() {
     // Clean up observer
@@ -278,6 +293,10 @@ export default {
     },
     /** @param {MouseEvent} event */
     onRightClick(event) {
+      if (!this.selectable) {
+        event.preventDefault();
+        return;
+      }
       event.preventDefault(); // Prevent default context menu
       // If one or fewer items are selected, reset the selection
       if (!state.multiple && getters.selectedCount() < 2) {
@@ -340,6 +359,10 @@ export default {
     },
     /** @param {DragEvent} event */
     dragStart(event) {
+      if (!this.selectable) {
+        event.preventDefault();
+        return;
+      }
       if (state.selected.indexOf(this.index) === -1) {
         mutations.resetSelected();
         // @ts-ignore
@@ -500,7 +523,7 @@ export default {
     },
     /** @param {TouchEvent} event */
     addSelected(event) {
-      if (!state.isSafari) {
+      if (!this.selectable || !state.isSafari) {
         return;
       }
       if (event.type !== "touchstart") {
@@ -529,6 +552,11 @@ export default {
     },
     /** @param {MouseEvent} event */
     click(event) {
+      if (!this.selectable) {
+        event.preventDefault();
+        return;
+      }
+
       if (event.button === 0) {
         // Left-click
         event.preventDefault();
@@ -613,6 +641,9 @@ export default {
       mutations.setLastSelectedIndex(this.index);
     },
     open() {
+      if (!this.selectable) {
+        return;
+      }
       // Check if state.req.items exists and has the item at this index
       // This prevents errors when ListingItem is used outside of the main file listing (e.g., duplicate finder)
       let previousHistoryItem = null;

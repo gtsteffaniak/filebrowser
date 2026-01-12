@@ -1771,6 +1771,76 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/resources/bulk": {
+            "post": {
+                "description": "Deletes multiple resources specified in the request body. Returns a list of succeeded and failed deletions.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Resources"
+                ],
+                "summary": "Bulk delete resources",
+                "parameters": [
+                    {
+                        "description": "Array of items to delete, each with source and path",
+                        "name": "items",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/http.BulkDeleteItem"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "All resources deleted successfully",
+                        "schema": {
+                            "$ref": "#/definitions/http.BulkDeleteResponse"
+                        }
+                    },
+                    "207": {
+                        "description": "Partial success - some resources deleted, some failed",
+                        "schema": {
+                            "$ref": "#/definitions/http.BulkDeleteResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - invalid JSON or empty items array",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error - all deletions failed",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/search": {
             "get": {
                 "description": "Searches for files matching the provided query. Returns file paths and metadata based on the user's session and scope. Supports searching across multiple sources when using the 'sources' parameter.",
@@ -3151,6 +3221,37 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                }
+            }
+        },
+        "http.BulkDeleteItem": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
+                }
+            }
+        },
+        "http.BulkDeleteResponse": {
+            "type": "object",
+            "properties": {
+                "failed": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/http.BulkDeleteItem"
+                    }
+                },
+                "succeeded": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/http.BulkDeleteItem"
+                    }
                 }
             }
         },

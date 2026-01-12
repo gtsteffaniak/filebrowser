@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/md5"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -195,6 +196,134 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 	}
 	return http.StatusOK, nil
 
+}
+
+// BulkDeleteItem represents a single item in a bulk delete request
+type BulkDeleteItem struct {
+	Source  string `json:"source"`
+	Path    string `json:"path"`
+	Message string `json:"message,omitempty"`
+}
+
+// BulkDeleteResponse represents the response from a bulk delete operation
+type BulkDeleteResponse struct {
+	Succeeded []BulkDeleteItem `json:"succeeded"`
+	Failed    []BulkDeleteItem `json:"failed"`
+}
+
+// resourceBulkDeleteHandler deletes multiple resources in a single request.
+// @Summary Bulk delete resources
+// @Description Deletes multiple resources specified in the request body. Returns a list of succeeded and failed deletions.
+// @Tags Resources
+// @Accept json
+// @Produce json
+// @Param items body []BulkDeleteItem true "Array of items to delete, each with source and path"
+// @Success 200 {object} BulkDeleteResponse "All resources deleted successfully"
+// @Success 207 {object} BulkDeleteResponse "Partial success - some resources deleted, some failed"
+// @Failure 400 {object} map[string]string "Bad request - invalid JSON or empty items array"
+// @Failure 403 {object} map[string]string "Forbidden"
+// @Failure 500 {object} map[string]string "Internal server error - all deletions failed"
+// @Router /api/resources/bulk/delete [post]
+func resourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	if !d.user.Permissions.Delete {
+		return http.StatusForbidden, fmt.Errorf("user is not allowed to delete")
+	}
+
+	// Parse request body
+	var items []BulkDeleteItem
+	if err := json.NewDecoder(r.Body).Decode(&items); err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid JSON body: %v", err)
+	}
+
+	if len(items) == 0 {
+		return http.StatusBadRequest, fmt.Errorf("items array cannot be empty")
+	}
+
+	response := BulkDeleteResponse{
+		Succeeded: make([]BulkDeleteItem, 0),
+		Failed:    make([]BulkDeleteItem, 0),
+	}
+
+	// Process each item one at a time
+	for _, item := range items {
+		// Validate item
+		if item.Source == "" || item.Path == "" {
+			response.Failed = append(response.Failed, BulkDeleteItem{
+				Source:  item.Source,
+				Path:    item.Path,
+				Message: "source or path was empty",
+			})
+			continue
+		}
+
+		// Use source and path directly from JSON body (no URL decoding needed)
+		source := item.Source
+		path := item.Path
+
+		// Prevent deletion of root
+		if path == "/" {
+			response.Failed = append(response.Failed, BulkDeleteItem{
+				Source:  item.Source,
+				Path:    item.Path,
+				Message: "cannot delete root directory",
+			})
+			continue
+		}
+
+		// Check user scope for this source
+		userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, source)
+		if err != nil {
+			response.Failed = append(response.Failed, BulkDeleteItem{
+				Source:  item.Source,
+				Path:    item.Path,
+				Message: fmt.Sprintf("user does not have access: %v", err),
+			})
+			continue
+		}
+		userscope = strings.TrimRight(userscope, "/")
+
+		// Get file info
+		fileInfo, err := files.FileInfoFaster(utils.FileOptions{
+			Username:   d.user.Username,
+			Path:       utils.JoinPathAsUnix(userscope, path),
+			Source:     source,
+			Expand:     false,
+			ShowHidden: d.user.ShowHidden,
+		}, store.Access)
+		if err != nil {
+			response.Failed = append(response.Failed, BulkDeleteItem{
+				Source:  item.Source,
+				Path:    item.Path,
+				Message: err.Error(),
+			})
+			continue
+		}
+
+		// Delete thumbnails
+		preview.DelThumbs(r.Context(), *fileInfo)
+
+		// Delete the file/directory
+		err = files.DeleteFiles(source, fileInfo.RealPath, filepath.Dir(fileInfo.RealPath), fileInfo.Type == "directory")
+		if err != nil {
+			response.Failed = append(response.Failed, BulkDeleteItem{
+				Source:  item.Source,
+				Path:    item.Path,
+				Message: err.Error(),
+			})
+			continue
+		}
+
+		// Success
+		response.Succeeded = append(response.Succeeded, item)
+	}
+
+	// Determine status code based on results
+	statusCode := http.StatusOK
+	if len(response.Failed) > 0 {
+		statusCode = http.StatusMultiStatus
+	}
+
+	return renderJSON(w, r, response, statusCode)
 }
 
 // resourcePostHandler creates or uploads a new resource.
