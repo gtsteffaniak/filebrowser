@@ -15,19 +15,20 @@ func CheckWindowsHidden(realpath string) bool {
 	return false
 }
 
+// getFileSizeByMode returns file size based on config mode
+func getFileSizeByMode(stat *syscall.Stat_t, useLogicalSize bool) uint64 {
+	if useLogicalSize {
+		return uint64(stat.Size)
+	}
+	return uint64(stat.Blocks * 512)
+}
+
 func getFileDetails(sys any, filePath string, useLogicalSize bool) (uint64, uint64, uint64, bool) {
 	// If useLogicalSize is true, we still need inode info for hardlink detection
 	// but use logical size instead of allocated size
 	if sys != nil {
 		if stat, ok := sys.(*syscall.Stat_t); ok {
-			var realSize uint64
-			if useLogicalSize {
-				// Logical size mode: use actual file size
-				realSize = uint64(stat.Size)
-			} else {
-				// Disk usage mode: use allocated size for `du`-like behavior
-				realSize = uint64(stat.Blocks * 512)
-			}
+			realSize := getFileSizeByMode(stat, useLogicalSize)
 			return realSize, uint64(stat.Nlink), stat.Ino, true
 		}
 	}
@@ -49,14 +50,7 @@ func getFileDetails(sys any, filePath string, useLogicalSize bool) (uint64, uint
 		return 0, 1, 0, false
 	}
 
-	var realSize uint64
-	if useLogicalSize {
-		// Logical size mode: use actual file size
-		realSize = uint64(stat.Size)
-	} else {
-		// Disk usage mode: use allocated size for `du`-like behavior
-		realSize = uint64(stat.Blocks * 512)
-	}
+	realSize := getFileSizeByMode(&stat, useLogicalSize)
 	return realSize, uint64(stat.Nlink), stat.Ino, true
 }
 

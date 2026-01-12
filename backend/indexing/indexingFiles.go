@@ -730,18 +730,9 @@ func (idx *Index) processDirectoryItem(file os.FileInfo, combinedPath, realPath,
 
 	// Non-recursive: get folder size and hasPreview
 	if opts.UseInMemorySizes {
-		// Use in-memory folder size (fast) and get hasPreview from batched map
+		// Use in-memory folder size (fast) with config-aware formatting
 		childIndexPath := utils.AddTrailingSlashIfNotExists(dirPath)
-		if inMemSize, exists := idx.GetFolderSize(childIndexPath); exists {
-			itemInfo.Size = int64(inMemSize)
-		} else {
-			// No cached size - use appropriate default
-			if idx.Config.UseLogicalSize {
-				itemInfo.Size = 0 // Logical mode: empty directory = 0
-			} else {
-				itemInfo.Size = 4096 // Disk usage mode: minimum 4KB
-			}
-		}
+		itemInfo.Size = idx.GetFolderSizeForDisplay(childIndexPath)
 
 		// Use batched hasPreview map if available
 		if !opts.SkipExtendedAttrs && subdirHasPreviewMap != nil {
@@ -764,15 +755,15 @@ func (idx *Index) processDirectoryItem(file os.FileInfo, combinedPath, realPath,
 				var dirSize int64
 				for _, childFile := range childFiles {
 					if childFile.IsDir() {
-						// Count subdirectories based on mode
+						// Count subdirectories - use helper for consistent logic
 						if !idx.Config.UseLogicalSize {
 							dirSize += 4096 // Disk usage: minimum 4KB each
 						}
 						// Logical mode: subdirs contribute 0
 					} else {
-						// Use appropriate size calculation for files
+						// Use helper function for file size calculation
 						childFilePath := childRealPath + "/" + childFile.Name()
-						fileSize := getDiskUsage(childFile, childFilePath, idx.Config.UseLogicalSize)
+						fileSize := idx.getFileSizeForDisplay(childFile, childFilePath)
 						dirSize += fileSize
 					}
 				}
@@ -782,20 +773,12 @@ func (idx *Index) processDirectoryItem(file os.FileInfo, combinedPath, realPath,
 				}
 				itemInfo.Size = dirSize
 			} else {
-				// Error reading directory
-				if idx.Config.UseLogicalSize {
-					itemInfo.Size = 0
-				} else {
-					itemInfo.Size = 4096
-				}
+				// Error reading directory - use appropriate default
+				itemInfo.Size = idx.GetFolderSizeForDisplay("")
 			}
 		} else {
-			// Error opening directory
-			if idx.Config.UseLogicalSize {
-				itemInfo.Size = 0
-			} else {
-				itemInfo.Size = 4096
-			}
+			// Error opening directory - use appropriate default
+			itemInfo.Size = idx.GetFolderSizeForDisplay("")
 		}
 		itemInfo.HasPreview = false
 	}
@@ -818,15 +801,8 @@ func (idx *Index) processFileItem(file os.FileInfo, realPath, combinedPath, full
 	var size uint64
 	var shouldCountSize bool
 	if !opts.Recursive && scanner == nil {
-		// API call: use configured size calculation method
-		if idx.Config.UseLogicalSize {
-			// Logical size mode
-			size = uint64(file.Size())
-		} else {
-			// Disk usage mode
-			diskSize := getDiskUsage(file, realFilePath, idx.Config.UseLogicalSize)
-			size = uint64(diskSize)
-		}
+		// API call: use helper function for config-aware size calculation
+		size = uint64(idx.getFileSizeForDisplay(file, realFilePath))
 		shouldCountSize = true
 	} else {
 		// Scanning: use handleFile for accurate size and hardlink detection
@@ -1230,6 +1206,36 @@ func (idx *Index) GetFolderSize(path string) (uint64, bool) {
 	defer idx.folderSizesMu.RUnlock()
 	size, exists := idx.folderSizes[path]
 	return size, exists
+}
+
+// GetFolderSizeForDisplay retrieves folder size with appropriate formatting based on config
+func (idx *Index) GetFolderSizeForDisplay(path string) int64 {
+	size, exists := idx.GetFolderSize(path)
+	if !exists {
+		// No cached size - return appropriate default
+		if idx.Config.UseLogicalSize {
+			return 0 // Logical mode: empty directory = 0
+		}
+		return 4096 // Disk usage mode: minimum 4KB
+	}
+
+	// Apply 4KB minimum in disk usage mode
+	if !idx.Config.UseLogicalSize && size < 4096 {
+		return 4096
+	}
+
+	return int64(size)
+}
+
+// getFileSizeForDisplay returns file size with appropriate calculation based on config
+func (idx *Index) getFileSizeForDisplay(file os.FileInfo, realPath string) int64 {
+	if idx.Config.UseLogicalSize {
+		// Logical size mode: return actual bytes
+		return file.Size()
+	}
+
+	// Disk usage mode: use getDiskUsage helper
+	return getDiskUsage(file, realPath, false)
 }
 
 // RecursiveUpdateDirSizes is now a wrapper for backwards compatibility

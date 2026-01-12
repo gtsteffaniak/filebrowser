@@ -34,31 +34,34 @@ func CheckWindowsHidden(realpath string) bool {
 	return false
 }
 
-// handleFile processes a file and returns its size and whether it should be counted
-// On Windows, calculates size based on configuration (disk usage or logical size)
-// scanner parameter is accepted for signature compatibility but not used on Windows (no hardlink tracking)
-func (idx *Index) handleFile(file os.FileInfo, fullCombined string, realFilePath string, isRoutineScan bool, scanner *Scanner) (size uint64, shouldCountSize bool) {
-	// Get logical file size
-	logicalSize := file.Size()
-
-	// If useLogicalSize is true, return logical size directly
-	if idx.Config.UseLogicalSize {
-		return uint64(logicalSize), true
+// getFileSizeByMode returns file size based on config mode
+// Centralizes the logic for choosing between disk usage and logical size
+func getFileSizeByMode(logicalSize int64, useLogicalSize bool) uint64 {
+	if useLogicalSize {
+		// Logical size mode: return actual file size
+		return uint64(logicalSize)
 	}
-
+	
 	// Disk usage mode: calculate disk space used
 	// If file is empty, return 0
 	if logicalSize == 0 {
-		return 0, true
+		return 0
 	}
-
+	
 	// On Windows NTFS, cluster size is typically 4KB
 	// Round up to nearest 4KB cluster
 	const clusterSize = 4096
 	clusters := (logicalSize + clusterSize - 1) / clusterSize
-	diskUsage := uint64(clusters * clusterSize)
+	return uint64(clusters * clusterSize)
+}
 
-	return diskUsage, true
+// handleFile processes a file and returns its size and whether it should be counted
+// On Windows, calculates size based on configuration (disk usage or logical size)
+// scanner parameter is accepted for signature compatibility but not used on Windows (no hardlink tracking)
+func (idx *Index) handleFile(file os.FileInfo, fullCombined string, realFilePath string, isRoutineScan bool, scanner *Scanner) (size uint64, shouldCountSize bool) {
+	// Use centralized size calculation logic
+	size = getFileSizeByMode(file.Size(), idx.Config.UseLogicalSize)
+	return size, true
 }
 
 // input should be non-index path.
