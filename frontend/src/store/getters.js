@@ -42,6 +42,9 @@ export const getters = {
     return cv == 'preview' || cv == 'onlyOfficeEditor' || cv == 'epubViewer' || cv == 'docViewer' || cv == 'editor' || cv == 'markdownViewer'
   },
   isScrollable: () => {
+    if (getters.currentView() == 'markdownViewer') {
+      return true
+    }
     if (getters.isPreviewView()) {
       return false
     }
