@@ -503,7 +503,7 @@ func extractVideoMetadata(ctx context.Context, item *iteminfo.ExtendedItemInfo, 
 	return nil
 }
 
-func DeleteFiles(source, absPath string, absDirPath string, isDir bool) error {
+func DeleteFiles(source, absPath string, isDir bool) error {
 	index := indexing.GetIndex(source)
 	if index == nil {
 		return fmt.Errorf("could not get index: %v ", source)
@@ -529,9 +529,8 @@ func DeleteFiles(source, absPath string, absDirPath string, isDir bool) error {
 		}
 
 		// Refresh the parent directory to recalculate sizes and update counts
-		// This will traverse up the tree and update all parent sizes correctly
 		refreshConfig := utils.FileOptions{
-			Path:  index.MakeIndexPath(absDirPath, true),
+			Path:  index.MakeIndexPath(filepath.Dir(absPath), true),
 			IsDir: true,
 		}
 		err = index.RefreshFileInfo(refreshConfig)

@@ -325,7 +325,7 @@ export default {
 
             switch (key) {
                 case "Delete":
-                    mutations.showHover("delete");
+                    this.showDeletePrompt();
                     break;
                 case "Escape":
                 case "Backspace":
@@ -411,6 +411,25 @@ export default {
         },
         resetPrompts() {
             this.currentPrompt = null;
+        },
+        showDeletePrompt() {
+            const item = state.req;
+            const previewUrl = item.hasPreview 
+                ? filesApi.getPreviewURL(item.source, item.path, item.modified)
+                : null;
+            mutations.showHover({
+                name: "delete",
+                props: {
+                    items: [{
+                        source: item.source,
+                        path: item.path,
+                        type: item.type,
+                        size: item.size,
+                        modified: item.modified,
+                        previewUrl: previewUrl,
+                    }],
+                },
+            });
         },
         toggleSize() {
             this.fullSize = !this.fullSize;

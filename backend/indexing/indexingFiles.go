@@ -1327,6 +1327,9 @@ func isHidden(file os.FileInfo, srcPath string) bool {
 
 // setFilePreviewFlags determines if a file should have a preview based on its type
 func setFilePreviewFlags(fileInfo *iteminfo.ItemInfo, realPath string) {
+	if fileInfo.Size == 0 {
+		return
+	}
 	simpleType := strings.Split(fileInfo.Type, "/")[0]
 	switch fileInfo.Type {
 	case "image/heic", "image/heif":

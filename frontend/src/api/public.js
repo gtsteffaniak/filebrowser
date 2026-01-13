@@ -207,11 +207,60 @@ async function resourceAction(hash, path, method, content, token = "") {
   }
 }
 
-export async function remove(hash, path) {
+export async function bulkDelete(items) {
+  if (!items || !Array.isArray(items) || items.length === 0) {
+    throw new Error('items array is required and must not be empty')
+  }
+  
+  const hash = state.shareInfo?.hash;
+  if (!hash) {
+    throw new Error('share hash is required')
+  }
+  
+  const params = {
+    hash: hash,
+    ...(state.share.token && { token: state.share.token }),
+    sessionId: state.sessionId
+  }
+  const apiPath = getPublicApiPath("resources/bulk/delete", params)
+  const baseUrl = window.origin + apiPath
+
   try {
-    return await resourceAction(hash, path, 'DELETE')
+    const response = await fetch(baseUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'same-origin',
+      body: JSON.stringify(items),
+    })
+
+    const data = await response.json()
+
+    // 200 = all succeeded, 207 = partial success (some succeeded, some failed)
+    // Both are valid responses that should be returned, not thrown as errors
+    if (response.status === 200 || response.status === 207) {
+      return data
+    }
+
+    // For other error status codes, throw an error
+    const error = new Error(data.message || response.statusText)
+    error.status = response.status
+    throw error
   } catch (err) {
-    notify.showError(err.message || 'Error deleting resource')
+    // If the request fails completely, return all items as failed
+    if (err.status && err.status !== 200 && err.status !== 207) {
+      // Real error - return all as failed
+      return {
+        succeeded: [],
+        failed: items.map(item => ({
+          source: item.source || '',
+          path: item.path,
+          message: err.message || 'Delete failed',
+        })),
+      }
+    }
+    // Re-throw if it's not a handled error
     throw err
   }
 }
