@@ -207,12 +207,51 @@ async function resourceAction(hash, path, method, content, token = "") {
   }
 }
 
-export async function remove(hash, path) {
+export async function bulkDelete(items) {
+  if (!items || !Array.isArray(items) || items.length === 0) {
+    throw new Error('items array is required and must not be empty')
+  }
+  
+  const hash = state.shareInfo?.hash;
+  if (!hash) {
+    throw new Error('share hash is required')
+  }
+  
+  const params = {
+    hash: hash,
+    ...(state.share.token && { token: state.share.token }),
+    sessionId: state.sessionId
+  }
+  const apiPath = getPublicApiPath("resources/bulk/delete", params)
+  const baseUrl = window.origin + apiPath
+
   try {
-    return await resourceAction(hash, path, 'DELETE')
+    const response = await fetch(baseUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'same-origin',
+      body: JSON.stringify(items),
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      throw new Error(`Bulk delete failed: ${response.statusText} - ${errorText}`)
+    }
+
+    const result = await response.json()
+    return result
   } catch (err) {
-    notify.showError(err.message || 'Error deleting resource')
-    throw err
+    // If the request fails completely, return all items as failed
+    return {
+      succeeded: [],
+      failed: items.map(item => ({
+        source: item.source || '',
+        path: item.path,
+        message: err.message || 'Delete failed',
+      })),
+    }
   }
 }
 

@@ -61,11 +61,11 @@
             </div>
           </div>
 
-          <div v-if="selectedFiles.size > 0" class="bulk-actions">
+          <div v-if="selectedIndices.size > 0" class="bulk-actions">
             <button @click="showDeleteConfirm" class="button delete-button" :disabled="deleting">
               <i v-if="deleting" class="material-icons spin">autorenew</i>
               <i v-else class="material-icons">delete</i>
-              <span>{{ $t('general.delete') }} {{ selectedFiles.size }}</span>
+              <span>{{ $t('general.delete') }} {{ selectedIndices.size }}</span>
             </button>
             <button @click="clearSelection" class="button">
               <span>{{ $t('general.clear', { suffix: '' }) }} {{ $t('general.select', { suffix: '' }) }}</span>
@@ -86,36 +86,24 @@
                         class="file-item-wrapper"
                         :class="{ 'deleted': isDeleted(file), 'failed': isFailed(file) }"
                       >
-                        <div class="file-item-content">
-                          <ListingItem
-                            :name="getFileName(file.path)"
-                            :isDir="file.type === 'directory'"
-                            :source="selectedSource"
-                            :type="file.type"
-                            :size="file.size"
-                            :modified="file.modified"
-                            :index="getUniqueIndex(index, fileIndex)"
-                            :path="getFullPath(file.path)"
-                            :hasPreview="shouldHavePreview(file)"
-                            :reducedOpacity="isDeleted(file)"
-                            :displayFullPath="true"
-                            :selectable="false"
-                            @click="handleFileClick($event, file, index, fileIndex)"
-                          />
-                        </div>
-                        <div 
-                          class="checkbox-wrapper"
-                          @click.stop="!isDeleted(file) && toggleSelection(file, !isSelected(file))"
-                        >
-                          <input
-                            type="checkbox"
-                            :checked="isSelected(file)"
-                            @change="toggleSelection(file, $event.target.checked)"
-                            @click.stop
-                            class="file-checkbox"
-                            :disabled="isDeleted(file)"
-                          />
-                        </div>
+                        <ListingItem
+                          :name="getFileName(file.path)"
+                          :isDir="file.type === 'directory'"
+                          :source="selectedSource"
+                          :type="file.type"
+                          :size="file.size"
+                          :modified="file.modified"
+                          :index="getUniqueIndex(index, fileIndex)"
+                          :path="getFullPath(file.path)"
+                          :hasPreview="shouldHavePreview(file)"
+                          :reducedOpacity="isDeleted(file)"
+                          :displayFullPath="true"
+                          :updateGlobalState="false"
+                          :isSelectedProp="selectedIndices.has(getUniqueIndex(index, fileIndex))"
+                          @select="handleItemSelect"
+                          @clearSelection="clearSelection"
+                          @selectRange="handleSelectRange"
+                        />
                       </div>
                     </div>
                   </div>
@@ -179,7 +167,7 @@ export default {
       lastRequestTime: 0, // Track last request to prevent rapid-fire
       clickTracker: {}, // Track clicks for double-click detection
       maxGroups: 500,
-      selectedFiles: new Set(), // Track selected files by path
+      selectedIndices: new Set(), // Track selected item indices locally
       deletedFiles: new Set(), // Track deleted files by path
       failedFiles: new Map(), // Track failed files by path -> error message
       deleting: false, // Track if deletion is in progress
@@ -189,9 +177,8 @@ export default {
     sourceInfo() {
       return state.sources.info || {};
     },
-    selectedIndexes() {
-      // Force reactivity by accessing state.selected
-      return state.selected;
+    selectedCount() {
+      return this.selectedIndices.size;
     },
     totalWastedSpace() {
       return this.duplicateGroups.reduce((sum, group) => {
@@ -248,6 +235,9 @@ export default {
     eventBus.on('itemsDeleted', this.handleItemsDeleted);
   },
   beforeUnmount() {
+    // Clear local selection when leaving
+    this.selectedIndices.clear();
+    
     eventBus.off('pathSelected', this.handlePathSelected);
     eventBus.off('itemsDeleted', this.handleItemsDeleted);
   },
@@ -276,7 +266,6 @@ export default {
         data.succeeded.forEach(item => {
           const key = `${item.source}::${item.path}`;
           this.deletedFiles.add(key);
-          this.selectedFiles.delete(key);
           this.failedFiles.delete(key);
         });
       }
@@ -284,11 +273,10 @@ export default {
         data.failed.forEach(item => {
           const key = `${item.source}::${item.path}`;
           this.failedFiles.set(key, item.message || 'Unknown error');
-          this.selectedFiles.delete(key);
         });
       }
       // Clear selection after processing
-      this.clearSelection();
+      this.selectedIndices.clear();
     },
     async fetchData() {
       // Prevent rapid-fire requests - require at least 1 second between requests
@@ -321,8 +309,7 @@ export default {
         this.incompleteReason = result.reason || "";
 
         // Reset selection, deleted, and failed files when new results arrive
-        mutations.resetSelected();
-        this.selectedFiles.clear();
+        this.selectedIndices.clear();
         this.deletedFiles.clear();
         this.failedFiles.clear();
       } catch (err) {
@@ -330,7 +317,7 @@ export default {
         this.duplicateGroups = [];
         this.isIncomplete = false;
         this.incompleteReason = "";
-        this.selectedFiles.clear();
+        this.selectedIndices.clear();
         this.deletedFiles.clear();
         this.failedFiles.clear();
       } finally {
@@ -467,55 +454,6 @@ export default {
       }
       return false;
     },
-    handleFileClick(event, file) {
-      // Prevent default ListingItem navigation since state.req isn't populated
-      event.preventDefault();
-      event.stopPropagation();
-
-      // Respect single-click vs double-click setting
-      if (event.button === 0) {
-        const quickNav = state.user.singleClick && !state.multiple;
-
-        if (quickNav) {
-          // Single-click navigation enabled - go immediately
-          this.navigateToFile(file);
-        } else {
-          // Double-click navigation - no selection, just track for double-click
-
-          // Track clicks for double-click detection
-          if (!this.clickTracker) {
-            this.clickTracker = {};
-          }
-
-          const fileKey = file.path;
-          if (!this.clickTracker[fileKey]) {
-            this.clickTracker[fileKey] = { count: 0, timeout: null };
-          }
-
-          const tracker = this.clickTracker[fileKey];
-          tracker.count++;
-
-          if (tracker.count >= 2) {
-            // Double-click detected - navigate
-            this.navigateToFile(file);
-            tracker.count = 0;
-            if (tracker.timeout) {
-              clearTimeout(tracker.timeout);
-              tracker.timeout = null;
-            }
-          } else {
-            // First click - wait for potential second click
-            if (tracker.timeout) {
-              clearTimeout(tracker.timeout);
-            }
-            tracker.timeout = setTimeout(() => {
-              tracker.count = 0;
-              tracker.timeout = null;
-            }, 500);
-          }
-        }
-      }
-    },
     navigateToFile(file) {
       const previousHistoryItem = {
         name: "Duplicate Finder",
@@ -531,19 +469,24 @@ export default {
       // Create a unique key for the file based on source and path
       return `${this.selectedSource}::${this.getFullPath(file.path)}`;
     },
-    isSelected(file) {
-      return this.selectedFiles.has(this.getFileKey(file));
-    },
-    toggleSelection(file, checked) {
-      const key = this.getFileKey(file);
-      if (checked) {
-        this.selectedFiles.add(key);
+    handleItemSelect({ index }) {
+      // Toggle selection - if already selected, remove it; if not selected, add it
+      if (this.selectedIndices.has(index)) {
+        this.selectedIndices.delete(index);
       } else {
-        this.selectedFiles.delete(key);
+        this.selectedIndices.add(index);
+      }
+    },
+    handleSelectRange({ startIndex, endIndex }) {
+      // Select all indices between start and end
+      const start = Math.min(startIndex, endIndex);
+      const end = Math.max(startIndex, endIndex);
+      for (let i = start; i <= end; i++) {
+        this.selectedIndices.add(i);
       }
     },
     clearSelection() {
-      this.selectedFiles.clear();
+      this.selectedIndices.clear();
     },
     isDeleted(file) {
       return this.deletedFiles.has(this.getFileKey(file));
@@ -555,28 +498,33 @@ export default {
       return this.failedFiles.get(this.getFileKey(file)) || '';
     },
     showDeleteConfirm() {
-      if (this.selectedFiles.size === 0 || this.deleting) {
+      if (this.selectedIndices.size === 0 || this.deleting) {
         return;
       }
 
-      // Build items array with preview URLs
+      // Build items array with preview URLs from selected indices
       const items = [];
-      for (const group of this.duplicateGroups) {
-        for (const file of group.files) {
-          const key = this.getFileKey(file);
-          if (this.selectedFiles.has(key)) {
-            const fullPath = this.getFullPath(file.path);
-            const previewUrl = this.shouldHavePreview(file)
-              ? filesApi.getPreviewURL(this.selectedSource, fullPath, file.modified)
-              : null;
-            items.push({
-              source: this.selectedSource,
-              path: fullPath,
-              type: file.type,
-              size: file.size,
-              modified: file.modified,
-              previewUrl: previewUrl,
-            });
+      for (const selectedIndex of this.selectedIndices) {
+        // Find the file corresponding to this index
+        for (const group of this.duplicateGroups) {
+          for (let fileIndex = 0; fileIndex < group.files.length; fileIndex++) {
+            const uniqueIndex = this.getUniqueIndex(this.duplicateGroups.indexOf(group), fileIndex);
+            if (uniqueIndex === selectedIndex) {
+              const file = group.files[fileIndex];
+              const fullPath = this.getFullPath(file.path);
+              const previewUrl = this.shouldHavePreview(file)
+                ? filesApi.getPreviewURL(this.selectedSource, fullPath, file.modified)
+                : null;
+              items.push({
+                source: this.selectedSource,
+                path: fullPath,
+                type: file.type,
+                size: file.size,
+                modified: file.modified,
+                previewUrl: previewUrl,
+              });
+              break;
+            }
           }
         }
       }
@@ -589,20 +537,27 @@ export default {
       });
     },
     async deleteSelected() {
-      if (this.selectedFiles.size === 0 || this.deleting) {
+      if (this.selectedIndices.size === 0 || this.deleting) {
         return;
       }
 
       this.deleting = true;
       const itemsToDelete = [];
-      for (const group of this.duplicateGroups) {
-        for (const file of group.files) {
-          const key = this.getFileKey(file);
-          if (this.selectedFiles.has(key)) {
-            itemsToDelete.push({
-              source: this.selectedSource,
-              path: this.getFullPath(file.path),
-            });
+      
+      // Map selected indices to files
+      for (const selectedIndex of this.selectedIndices) {
+        // Find the file corresponding to this index
+        for (const group of this.duplicateGroups) {
+          for (let fileIndex = 0; fileIndex < group.files.length; fileIndex++) {
+            const uniqueIndex = this.getUniqueIndex(this.duplicateGroups.indexOf(group), fileIndex);
+            if (uniqueIndex === selectedIndex) {
+              const file = group.files[fileIndex];
+              itemsToDelete.push({
+                source: this.selectedSource,
+                path: this.getFullPath(file.path),
+              });
+              break;
+            }
           }
         }
       }
@@ -615,7 +570,6 @@ export default {
           response.succeeded.forEach(item => {
             const key = `${item.source}::${item.path}`;
             this.deletedFiles.add(key);
-            this.selectedFiles.delete(key);
             this.failedFiles.delete(key);
           });
         }
@@ -625,12 +579,11 @@ export default {
           response.failed.forEach(item => {
             const key = `${item.source}::${item.path}`;
             this.failedFiles.set(key, item.message || 'Unknown error');
-            this.selectedFiles.delete(key);
           });
         }
 
         // Clear selection after deletion attempt
-        this.clearSelection();
+        this.selectedIndices.clear();
       } catch (err) {
         this.error = err.message || 'Failed to delete files';
       } finally {
@@ -788,51 +741,10 @@ export default {
   gap: 0.25rem;
 }
 
-.checkbox-wrapper {
-  padding: 1em;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  border-radius: 4px;
-  transition: background-color 0.2s ease;
-  cursor: pointer;
-  min-width: 44px;
-  min-height: 44px;
-}
-
-.checkbox-wrapper:hover {
-  background-color: var(--surfaceSecondary, rgba(0, 0, 0, 0.05));
-}
-
-.file-checkbox {
-  cursor: pointer;
-  width: 18px;
-  height: 18px;
-  flex-shrink: 0;
-  margin: 0;
-}
-
-.file-checkbox:disabled {
-  cursor: not-allowed;
-  opacity: 0.5;
-}
 
 .group-files .listing-item {
   width: 100%;
-  margin: 0;
-  border: none;
-  padding: 0;
-  border-radius: 0;
-}
-
-.group-files .listing-item:first-child {
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-.group-files .listing-item.last-item {
-  border-bottom-left-radius: 1em;
-  border-bottom-right-radius: 1em;
+  padding: 0.25em;
 }
 
 .path-text {

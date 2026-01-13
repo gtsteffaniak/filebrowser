@@ -190,7 +190,7 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 	// delete thumbnails
 	preview.DelThumbs(r.Context(), *fileInfo)
 
-	err = files.DeleteFiles(source, fileInfo.RealPath, filepath.Dir(fileInfo.RealPath), fileInfo.Type == "directory")
+	err = files.DeleteFiles(source, fileInfo.RealPath, fileInfo.Type == "directory")
 	if err != nil {
 		return errToStatus(err), err
 	}
@@ -225,8 +225,11 @@ type BulkDeleteResponse struct {
 // @Failure 500 {object} map[string]string "Internal server error - all deletions failed"
 // @Router /api/resources/bulk/delete [post]
 func resourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	if !d.user.Permissions.Delete {
-		return http.StatusForbidden, fmt.Errorf("user is not allowed to delete")
+	// Check permissions - either user delete permission or share delete permission
+	if d.share == nil {
+		if !d.user.Permissions.Delete {
+			return http.StatusForbidden, fmt.Errorf("user is not allowed to delete")
+		}
 	}
 
 	// Parse request body
@@ -247,21 +250,17 @@ func resourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *reques
 	// Process each item one at a time
 	for _, item := range items {
 		// Validate item
-		if item.Source == "" || item.Path == "" {
+		if item.Path == "" {
 			response.Failed = append(response.Failed, BulkDeleteItem{
 				Source:  item.Source,
 				Path:    item.Path,
-				Message: "source or path was empty",
+				Message: "path was empty",
 			})
 			continue
 		}
 
-		// Use source and path directly from JSON body (no URL decoding needed)
-		source := item.Source
-		path := item.Path
-
 		// Prevent deletion of root
-		if path == "/" {
+		if item.Path == "/" {
 			response.Failed = append(response.Failed, BulkDeleteItem{
 				Source:  item.Source,
 				Path:    item.Path,
@@ -270,49 +269,96 @@ func resourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *reques
 			continue
 		}
 
-		// Check user scope for this source
-		userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, source)
-		if err != nil {
-			response.Failed = append(response.Failed, BulkDeleteItem{
-				Source:  item.Source,
-				Path:    item.Path,
-				Message: fmt.Sprintf("user does not have access: %v", err),
-			})
-			continue
+		if d.share != nil {
+			indexPath := utils.JoinPathAsUnix(d.share.Path, item.Path)
+			source, err := d.share.GetSourceName()
+			if err != nil {
+				return http.StatusNotFound, fmt.Errorf("source not available")
+			}
+
+			fileInfo, err := files.FileInfoFaster(utils.FileOptions{
+				Username:       d.user.Username,
+				FollowSymlinks: true,
+				Path:           indexPath,
+				Source:         source,
+				ShowHidden:     true,
+			}, nil)
+			if err != nil {
+				return http.StatusNotFound, fmt.Errorf("resource not available")
+			}
+
+			// Delete the file/directory
+			err = files.DeleteFiles(source, fileInfo.RealPath, fileInfo.Type == "directory")
+			if err != nil {
+				logger.Errorf("resource bulk delete handler: error deleting file/directory: %v", err)
+				response.Failed = append(response.Failed, BulkDeleteItem{
+					Source:  item.Source,
+					Path:    item.Path,
+					Message: "error deleting file/directory, admin must check the logs",
+				})
+				continue
+			}
+			// Delete thumbnails
+			preview.DelThumbs(r.Context(), *fileInfo)
+		} else {
+			// Regular user context - validate source and check user scope
+			if item.Source == "" {
+				response.Failed = append(response.Failed, BulkDeleteItem{
+					Source:  item.Source,
+					Path:    item.Path,
+					Message: "source was empty, source is required",
+				})
+				continue
+			}
+
+			// Check user scope for this source
+			_, err := settings.GetScopeFromSourceName(d.user.Scopes, item.Source)
+			if err != nil {
+				response.Failed = append(response.Failed, BulkDeleteItem{
+					Source:  item.Source,
+					Path:    item.Path,
+					Message: fmt.Sprintf("user does not have access: %v", err),
+				})
+				continue
+			}
+
+			idx := indexing.GetIndex(item.Source)
+			if idx == nil {
+				response.Failed = append(response.Failed, BulkDeleteItem{
+					Source:  item.Source,
+					Path:    item.Path,
+					Message: "source not found",
+				})
+				continue
+			}
+
+			// Get file info
+			fileInfo, err := files.FileInfoFaster(utils.FileOptions{
+				Username:       d.user.Username,
+				FollowSymlinks: true,
+				Path:           idx.MakeIndexPath(item.Path, false),
+				Source:         item.Source,
+				ShowHidden:     true,
+			}, store.Access)
+			if err != nil {
+				response.Failed = append(response.Failed, BulkDeleteItem{
+					Source:  item.Source,
+					Path:    item.Path,
+					Message: err.Error(),
+				})
+				continue
+			}
+			err = files.DeleteFiles(item.Source, fileInfo.RealPath, fileInfo.Type == "directory")
+			if err != nil {
+				response.Failed = append(response.Failed, BulkDeleteItem{
+					Source:  item.Source,
+					Path:    item.Path,
+					Message: err.Error(),
+				})
+				continue
+			}
+			preview.DelThumbs(r.Context(), *fileInfo)
 		}
-		userscope = strings.TrimRight(userscope, "/")
-
-		// Get file info
-		fileInfo, err := files.FileInfoFaster(utils.FileOptions{
-			Username:   d.user.Username,
-			Path:       utils.JoinPathAsUnix(userscope, path),
-			Source:     source,
-			Expand:     false,
-			ShowHidden: d.user.ShowHidden,
-		}, store.Access)
-		if err != nil {
-			response.Failed = append(response.Failed, BulkDeleteItem{
-				Source:  item.Source,
-				Path:    item.Path,
-				Message: err.Error(),
-			})
-			continue
-		}
-
-		// Delete thumbnails
-		preview.DelThumbs(r.Context(), *fileInfo)
-
-		// Delete the file/directory
-		err = files.DeleteFiles(source, fileInfo.RealPath, filepath.Dir(fileInfo.RealPath), fileInfo.Type == "directory")
-		if err != nil {
-			response.Failed = append(response.Failed, BulkDeleteItem{
-				Source:  item.Source,
-				Path:    item.Path,
-				Message: err.Error(),
-			})
-			continue
-		}
-
 		// Success
 		response.Succeeded = append(response.Succeeded, item)
 	}

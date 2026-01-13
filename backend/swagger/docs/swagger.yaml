@@ -2890,7 +2890,7 @@ paths:
       summary: Update a file resource
       tags:
       - Resources
-  /api/resources/bulk:
+  /api/resources/bulk/delete:
     post:
       consumes:
       - application/json
@@ -3840,6 +3840,58 @@ paths:
               type: string
             type: object
       summary: Update a file in a public share
+      tags:
+      - Public Shares
+  /public/api/resources/bulk/delete:
+    post:
+      consumes:
+      - application/json
+      description: Deletes multiple resources specified in the request body. Returns
+        a list of succeeded and failed deletions.
+      parameters:
+      - description: Share hash for authentication
+        in: query
+        name: hash
+        required: true
+        type: string
+      - description: Array of items to delete, each with source and path
+        in: body
+        name: items
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/http.BulkDeleteItem'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: All resources deleted successfully
+          schema:
+            $ref: '#/definitions/http.BulkDeleteResponse'
+        "207":
+          description: Partial success - some resources deleted, some failed
+          schema:
+            $ref: '#/definitions/http.BulkDeleteResponse'
+        "400":
+          description: Bad request - invalid JSON or empty items array
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden - delete not allowed for this share
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error - all deletions failed
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Bulk delete resources from public share
       tags:
       - Public Shares
   /public/api/shareinfo:

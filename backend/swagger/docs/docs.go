@@ -1771,7 +1771,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/resources/bulk": {
+        "/api/resources/bulk/delete": {
             "post": {
                 "description": "Deletes multiple resources specified in the request body. Returns a list of succeeded and failed deletions.",
                 "consumes": [
@@ -3148,6 +3148,83 @@ const docTemplate = `{
                     },
                     "501": {
                         "description": "Uploading disabled for non-upload shares",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/public/api/resources/bulk/delete": {
+            "post": {
+                "description": "Deletes multiple resources specified in the request body. Returns a list of succeeded and failed deletions.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Shares"
+                ],
+                "summary": "Bulk delete resources from public share",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Share hash for authentication",
+                        "name": "hash",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "description": "Array of items to delete, each with source and path",
+                        "name": "items",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/http.BulkDeleteItem"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "All resources deleted successfully",
+                        "schema": {
+                            "$ref": "#/definitions/http.BulkDeleteResponse"
+                        }
+                    },
+                    "207": {
+                        "description": "Partial success - some resources deleted, some failed",
+                        "schema": {
+                            "$ref": "#/definitions/http.BulkDeleteResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - invalid JSON or empty items array",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - delete not allowed for this share",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error - all deletions failed",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {

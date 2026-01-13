@@ -24,7 +24,11 @@
             :path="item.path"
             :hasPreview="!!item.previewUrl"
             :displayFullPath="true"
-            :selectable="false"
+            :updateGlobalState="false"
+            :isSelectedProp="false"
+            :clickable="false"
+            @click="preventInteraction"
+            @select="preventInteraction"
             class="delete-listing-item"
           />
           <div v-if="getItemError(item)" class="error-banner">
@@ -135,6 +139,17 @@ export default {
   },
 
   methods: {
+    preventInteraction(event) {
+      // Handle both DOM events and custom event objects
+      if (event && typeof event.preventDefault === 'function') {
+        event.preventDefault();
+      }
+      if (event && typeof event.stopPropagation === 'function') {
+        event.stopPropagation();
+      }
+      // For custom events (like @select), just return early
+      return false;
+    },
     closeHovers() {
       mutations.closeHovers();
     },
@@ -196,29 +211,10 @@ export default {
           return;
         }
 
-        // Check if this is a share
-        if (getters.isShare()) {
-          // For shares, use public API (can't use bulk delete for shares)
-          mutations.closeHovers();
-          if (this.items) {
-            // If items were passed as props, reset selection might not be needed
-            mutations.resetSelected();
-          }
-          
-          let promises = [];
-          for (const item of itemsForDelete) {
-            promises.push(publicApi.remove(state.shareInfo.hash, item.path));
-          }
-          await Promise.all(promises);
-          buttons.success("delete");
-          notify.showSuccessToast(this.$t('prompts.deleted'));
-          mutations.setReload(true);
-          this.deleting = false;
-          return;
-        }
-
-        // Use bulk delete API
-        const response = await filesApi.bulkDelete(itemsForDelete);
+        // Use bulk delete API for both regular files and shares
+        const response = getters.isShare() 
+          ? await publicApi.bulkDelete(itemsForDelete)
+          : await filesApi.bulkDelete(itemsForDelete);
         
         // Store failed items directly from response
         if (response.failed && response.failed.length > 0) {
@@ -233,6 +229,8 @@ export default {
         if (failedCount === 0) {
           // All succeeded - close prompt and reload
           buttons.success("delete");
+          notify.showSuccessToast(this.$t('prompts.deleted'));
+          
           if (this.items && this.items.length > 0) {
             eventBus.emit("itemsDeleted", {
               succeeded: response.succeeded || [],
@@ -257,6 +255,7 @@ export default {
             });
           }
         } else {
+          // All failed
           buttons.done("delete");
         }
         
@@ -300,7 +299,12 @@ export default {
 
 .delete-listing-item a {
   pointer-events: none;
-  cursor: default;
+  cursor: default !important;
+  padding: 0.25em;
+}
+
+.delete-listing-item.listing-item {
+  cursor: default !important;
 }
 
 .error-banner {

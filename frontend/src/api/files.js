@@ -63,18 +63,6 @@ async function resourceAction(source, path, method, content) {
   }
 }
 
-export async function remove(source, path) {
-  if (!source || source === undefined || source === null) {
-    throw new Error('no source provided')
-  }
-  try {
-    return await resourceAction( source, path, 'DELETE')
-  } catch (err) {
-    notify.showError(err.message || 'Error deleting resource')
-    throw err
-  }
-}
-
 export async function bulkDelete(items) {
   if (!items || !Array.isArray(items) || items.length === 0) {
     throw new Error('items array is required and must not be empty')
