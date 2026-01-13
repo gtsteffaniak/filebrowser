@@ -332,11 +332,32 @@ func publicDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	// delete thumbnails
 	preview.DelThumbs(r.Context(), *fileInfo)
 
-	err = files.DeleteFiles(source, fileInfo.RealPath, filepath.Dir(fileInfo.RealPath), fileInfo.Type == "directory")
+	err = files.DeleteFiles(source, fileInfo.RealPath, fileInfo.Type == "directory")
 	if err != nil {
 		return http.StatusInternalServerError, fmt.Errorf("an error occured while deleting the resource")
 	}
 	return http.StatusOK, nil
+}
+
+// publicBulkDeleteHandler deletes multiple resources from a public share in a single request.
+// @Summary Bulk delete resources from public share
+// @Description Deletes multiple resources specified in the request body. Returns a list of succeeded and failed deletions.
+// @Tags Public Shares
+// @Accept json
+// @Produce json
+// @Param hash query string true "Share hash for authentication"
+// @Param items body []BulkDeleteItem true "Array of items to delete, each with source and path"
+// @Success 200 {object} BulkDeleteResponse "All resources deleted successfully"
+// @Success 207 {object} BulkDeleteResponse "Partial success - some resources deleted, some failed"
+// @Failure 400 {object} map[string]string "Bad request - invalid JSON or empty items array"
+// @Failure 403 {object} map[string]string "Forbidden - delete not allowed for this share"
+// @Failure 500 {object} map[string]string "Internal server error - all deletions failed"
+// @Router /public/api/resources/bulk/delete [post]
+func publicBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	if !d.share.AllowDelete {
+		return http.StatusForbidden, fmt.Errorf("delete is not allowed for this share")
+	}
+	return resourceBulkDeleteHandler(w, r, d)
 }
 
 func publicPatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {

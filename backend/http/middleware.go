@@ -635,8 +635,6 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 		// DEFER RECOVERY FUNCTION
 		defer func() {
 			if rcv := recover(); rcv != nil {
-				// Log detailed information about the panic
-				// Extract as much context as possible for logging
 				method := r.Method
 				url := r.URL.String()
 				remoteAddr := r.RemoteAddr
@@ -646,12 +644,6 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 				if ww, ok := w.(*ResponseWriterWrapper); ok && ww.User != "" {
 					username = ww.User
 				}
-				// Or try to get it from request context if your other middleware populates it
-				// This depends on your context setup; example:
-				// if dataCtx, ok := r.Context().Value("requestData").(*requestContext); ok && dataCtx.user != nil {
-				// 	username = dataCtx.user.Username
-				// }
-
 				// Get Go-level stack trace
 				buf := make([]byte, 16384)     // Increased buffer size for potentially long CGo traces
 				n := runtime.Stack(buf, false) // false for current goroutine only
@@ -671,16 +663,11 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 					_, _ = renderJSON(w, r, &HttpResponse{
 						Status:  500,
 						Message: "A critical internal error occurred. Please try again later.",
-					})
+					}, http.StatusInternalServerError)
 				}
 
-				// IMPORTANT: After a SIGSEGV from C code, the process might be unstable.
-				// Even if Go recovers, continuing to run the process is risky.
-				// Consider a strategy to gracefully shut down or signal an external supervisor
-				// to restart the process after logging. For now, this will allow other requests
-				// to proceed if the process doesn't die, but be wary.
 			}
-		}() // End of deferred recovery function
+		}()
 
 		start := time.Now()
 		wrappedWriter := &ResponseWriterWrapper{ResponseWriter: w, StatusCode: http.StatusOK}
@@ -713,18 +700,26 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func renderJSON(w http.ResponseWriter, r *http.Request, data interface{}) (int, error) {
+func renderJSON(w http.ResponseWriter, r *http.Request, data interface{}, statusCode ...int) (int, error) {
+	// Default to 200 if status code not provided
+	code := http.StatusOK
+	if len(statusCode) > 0 && statusCode[0] != 0 {
+		code = statusCode[0]
+	}
+
 	marsh, err := json.Marshal(data)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
 	// Calculate size in KB
 	payloadSizeKB := len(marsh) / 1024
+	// Set headers before writing
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	// Check if the client accepts gzip encoding and hasn't explicitly disabled it
 	if acceptsGzip(r) && payloadSizeKB > 10 {
 		// Enable gzip compression
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.Header().Set("Content-Encoding", "gzip")
+		w.WriteHeader(code)
 		gz := gzip.NewWriter(w)
 		defer gz.Close()
 
@@ -733,13 +728,13 @@ func renderJSON(w http.ResponseWriter, r *http.Request, data interface{}) (int, 
 		}
 	} else {
 		// Normal response without compression
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		w.WriteHeader(code)
 		if _, err := w.Write(marsh); err != nil {
 			return http.StatusInternalServerError, err
 		}
 	}
 
-	return 0, nil
+	return code, nil
 }
 
 func acceptsGzip(r *http.Request) bool {

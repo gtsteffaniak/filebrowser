@@ -63,14 +63,37 @@ async function resourceAction(source, path, method, content) {
   }
 }
 
-export async function remove(source, path) {
-  if (!source || source === undefined || source === null) {
-    throw new Error('no source provided')
+export async function bulkDelete(items) {
+  if (!items || !Array.isArray(items) || items.length === 0) {
+    throw new Error('items array is required and must not be empty')
   }
   try {
-    return await resourceAction( source, path, 'DELETE')
+    const apiPath = getApiPath('api/resources/bulk/delete')
+    const response = await fetchURL(apiPath, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(items),
+    })
+    
+    const data = await response.json()
+    
+    // 200 = all succeeded, 207 = partial success (some succeeded, some failed)
+    // Both are valid responses that should be returned, not thrown as errors
+    if (response.status === 200 || response.status === 207) {
+      return data
+    }
+    
+    // For other error status codes, throw an error
+    const error = new Error(data.message || response.statusText)
+    error.status = response.status
+    throw error
   } catch (err) {
-    notify.showError(err.message || 'Error deleting resource')
+    // Only show notification and re-throw if it's a real error (not 200/207)
+    if (err.status && err.status !== 200 && err.status !== 207) {
+      notify.showError(err.message || 'Error performing bulk delete')
+    }
     throw err
   }
 }

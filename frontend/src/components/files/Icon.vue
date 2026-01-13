@@ -106,7 +106,7 @@ export default {
       if (!getters.previewPerms().folder && this.mimetype == "directory") {
         return false;
       }
-      return this.imageState !== 'error' && !this.disablePreviewExt && !this.officeFileDisabled
+      return this.imageState !== 'error' && !this.disablePreviewExt && !this.officeFileDisabled;
     },
     disablePreviewExt() {
       const ext = "." + (this.filename.split(".").pop() || "").toLowerCase(); // Ensure lowercase and dot

@@ -150,8 +150,7 @@ test("delete file", async({ page, checkForErrors, context }) => {
   await page.locator('.selected-count-header').waitFor({ state: 'visible' });
   await expect(page.locator('.selected-count-header')).toHaveText('1');
   await page.locator('button[aria-label="Delete"]').click();
-  await expect( page.locator('.card-content')).toHaveText('Are you sure you want to delete this file/folder?/deleteme.txt');
-  await expect(page.locator('div[aria-label="delete-path"]')).toHaveText('/deleteme.txt');
+  await expect( page.locator('.card-content')).toContainText('/deleteme.txt');
   await page.locator('button[aria-label="Confirm-Delete"]').click();
   await checkForNotification(page, "Deleted successfully!");
   checkForErrors();
@@ -165,7 +164,6 @@ test("delete nested file prompt", async({ page, checkForErrors, context }) => {
   await page.locator('.selected-count-header').waitFor({ state: 'visible' });
   await expect(page.locator('.selected-count-header')).toHaveText('1');
   await page.locator('button[aria-label="Delete"]').click();
-  await expect(page.locator('.card-content')).toHaveText('Are you sure you want to delete this file/folder?/folder#hash/file#.sh');
-  await expect(page.locator('div[aria-label="delete-path"]')).toHaveText('/folder#hash/file#.sh');
+  await expect(page.locator('.card-content')).toContainText('/folder#hash/file#.sh');
   checkForErrors();
 })

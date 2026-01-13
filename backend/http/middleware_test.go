@@ -167,7 +167,7 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 					Source: "/srv",
 				},
 			},
-			expectedStatusCode: 0, // zero means 200 on helpers
+			expectedStatusCode: http.StatusOK, // zero means 200 on helpers
 		},
 		{
 			name: "Private share, valid password when token exists",
@@ -183,7 +183,7 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 			extraHeaders: map[string]string{
 				"X-SHARE-PASSWORD": "password",
 			},
-			expectedStatusCode: 0, // zero means 200 on helpers
+			expectedStatusCode: http.StatusOK, // zero means 200 on helpers
 		},
 		{
 			name: "Private share, no auth provided",
@@ -207,7 +207,7 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 				},
 			},
 			token:              "123",
-			expectedStatusCode: 0, // zero means 200 on helpers
+			expectedStatusCode: http.StatusOK, // zero means 200 on helpers
 		},
 		{
 			name: "Private share, invalid password",

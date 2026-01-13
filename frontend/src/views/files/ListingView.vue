@@ -604,6 +604,29 @@ export default {
     base64(name) {
       return url.base64Encode(name);
     },
+    showDeletePrompt() {
+      const items = [];
+      for (let index of state.selected) {
+        const item = state.req.items[index];
+        const previewUrl = item.hasPreview 
+          ? filesApi.getPreviewURL(item.source || state.req.source, item.path, item.modified)
+          : null;
+        items.push({
+          source: item.source || state.req.source,
+          path: item.path,
+          type: item.type,
+          size: item.size,
+          modified: item.modified,
+          previewUrl: previewUrl,
+        });
+      }
+      mutations.showHover({
+        name: "delete",
+        props: {
+          items: items,
+        },
+      });
+    },
     // Helper method to select the first item if nothing is selected
     selectFirstItem() {
       mutations.resetSelected();
@@ -819,7 +842,7 @@ export default {
 
         case "Delete":
           if (!this.permissions?.modify || state.selected.length === 0) return;
-          mutations.showHover("delete");
+          this.showDeletePrompt();
           break;
 
         case "F2":
