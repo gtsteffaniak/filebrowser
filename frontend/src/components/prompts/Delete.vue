@@ -233,8 +233,6 @@ export default {
         if (failedCount === 0) {
           // All succeeded - close prompt and reload
           buttons.success("delete");
-          
-          // Emit event with deleted items if items were passed as props (e.g., from duplicate finder)
           if (this.items && this.items.length > 0) {
             eventBus.emit("itemsDeleted", {
               succeeded: response.succeeded || [],
@@ -258,16 +256,7 @@ export default {
               failed: response.failed || []
             });
           }
-          
-          // Remove succeeded items from the list
-          const succeededKeys = new Set(
-            (response.succeeded || []).map(item => `${item.source}::${item.path}`)
-          );
-          // Update itemsToDelete to only show failed items
-          // Actually, we'll keep all items but mark which ones failed
-          // The UI will show errors under failed items
         } else {
-          // All failed - keep prompt open to show all errors
           buttons.done("delete");
         }
         

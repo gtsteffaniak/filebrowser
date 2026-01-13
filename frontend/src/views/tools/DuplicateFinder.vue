@@ -65,7 +65,7 @@
             <button @click="showDeleteConfirm" class="button delete-button" :disabled="deleting">
               <i v-if="deleting" class="material-icons spin">autorenew</i>
               <i v-else class="material-icons">delete</i>
-              <span>{{ $t('general.delete') }} ({{ selectedFiles.size }})</span>
+              <span>{{ $t('general.delete') }} {{ selectedFiles.size }}</span>
             </button>
             <button @click="clearSelection" class="button">
               <span>{{ $t('general.clear', { suffix: '' }) }} {{ $t('general.select', { suffix: '' }) }}</span>
@@ -467,7 +467,7 @@ export default {
       }
       return false;
     },
-    handleFileClick(event, file, groupIndex, fileIndex) {
+    handleFileClick(event, file) {
       // Prevent default ListingItem navigation since state.req isn't populated
       event.preventDefault();
       event.stopPropagation();
