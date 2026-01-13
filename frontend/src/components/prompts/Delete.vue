@@ -22,7 +22,7 @@
             :modified="item.modified || ''"
             :index="index"
             :path="item.path"
-            :hasPreview="!!item.previewUrl"
+            :hasPreview="item.hasPreview"
             :displayFullPath="true"
             :updateGlobalState="false"
             :isSelectedProp="false"
