@@ -77,24 +77,23 @@ export async function bulkDelete(items) {
       body: JSON.stringify(items),
     })
     
-    if (!response.ok) {
-      const error = new Error(response.statusText);
-      let data = null;
-      try {
-        data = await response.json()
-      } catch (e) {
-        // ignore
-      }
-      if (data) {
-        error.message = data.message || response.statusText;
-      }
-      error.status = response.status;
-      throw error;
+    const data = await response.json()
+    
+    // 200 = all succeeded, 207 = partial success (some succeeded, some failed)
+    // Both are valid responses that should be returned, not thrown as errors
+    if (response.status === 200 || response.status === 207) {
+      return data
     }
     
-    return await response.json()
+    // For other error status codes, throw an error
+    const error = new Error(data.message || response.statusText)
+    error.status = response.status
+    throw error
   } catch (err) {
-    notify.showError(err.message || 'Error performing bulk delete')
+    // Only show notification and re-throw if it's a real error (not 200/207)
+    if (err.status && err.status !== 200 && err.status !== 207) {
+      notify.showError(err.message || 'Error performing bulk delete')
+    }
     throw err
   }
 }

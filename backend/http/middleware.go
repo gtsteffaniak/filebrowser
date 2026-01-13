@@ -635,8 +635,6 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 		// DEFER RECOVERY FUNCTION
 		defer func() {
 			if rcv := recover(); rcv != nil {
-				// Log detailed information about the panic
-				// Extract as much context as possible for logging
 				method := r.Method
 				url := r.URL.String()
 				remoteAddr := r.RemoteAddr
@@ -646,12 +644,6 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 				if ww, ok := w.(*ResponseWriterWrapper); ok && ww.User != "" {
 					username = ww.User
 				}
-				// Or try to get it from request context if your other middleware populates it
-				// This depends on your context setup; example:
-				// if dataCtx, ok := r.Context().Value("requestData").(*requestContext); ok && dataCtx.user != nil {
-				// 	username = dataCtx.user.Username
-				// }
-
 				// Get Go-level stack trace
 				buf := make([]byte, 16384)     // Increased buffer size for potentially long CGo traces
 				n := runtime.Stack(buf, false) // false for current goroutine only
@@ -674,13 +666,8 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 					}, http.StatusInternalServerError)
 				}
 
-				// IMPORTANT: After a SIGSEGV from C code, the process might be unstable.
-				// Even if Go recovers, continuing to run the process is risky.
-				// Consider a strategy to gracefully shut down or signal an external supervisor
-				// to restart the process after logging. For now, this will allow other requests
-				// to proceed if the process doesn't die, but be wary.
 			}
-		}() // End of deferred recovery function
+		}()
 
 		start := time.Now()
 		wrappedWriter := &ResponseWriterWrapper{ResponseWriter: w, StatusCode: http.StatusOK}

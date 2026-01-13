@@ -235,23 +235,33 @@ export async function bulkDelete(items) {
       body: JSON.stringify(items),
     })
 
-    if (!response.ok) {
-      const errorText = await response.text()
-      throw new Error(`Bulk delete failed: ${response.statusText} - ${errorText}`)
+    const data = await response.json()
+
+    // 200 = all succeeded, 207 = partial success (some succeeded, some failed)
+    // Both are valid responses that should be returned, not thrown as errors
+    if (response.status === 200 || response.status === 207) {
+      return data
     }
 
-    const result = await response.json()
-    return result
+    // For other error status codes, throw an error
+    const error = new Error(data.message || response.statusText)
+    error.status = response.status
+    throw error
   } catch (err) {
     // If the request fails completely, return all items as failed
-    return {
-      succeeded: [],
-      failed: items.map(item => ({
-        source: item.source || '',
-        path: item.path,
-        message: err.message || 'Delete failed',
-      })),
+    if (err.status && err.status !== 200 && err.status !== 207) {
+      // Real error - return all as failed
+      return {
+        succeeded: [],
+        failed: items.map(item => ({
+          source: item.source || '',
+          path: item.path,
+          message: err.message || 'Delete failed',
+        })),
+      }
     }
+    // Re-throw if it's not a handled error
+    throw err
   }
 }
 

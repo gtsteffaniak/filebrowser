@@ -35,7 +35,7 @@
       <Icon
         :mimetype="type"
         :active="isSelected"
-        :thumbnailUrl="(isThumbnailInView || hasPreview) ? thumbnailUrl : ''"
+        :thumbnailUrl="isThumbnailInView ? thumbnailUrl : ''"
         :filename="name"
         :hasPreview="hasPreview"
       />
@@ -81,7 +81,7 @@
     <div :class="{ 'gallery-div': galleryView }">
       <Icon
         :mimetype="type"
-        :thumbnailUrl="(isThumbnailInView || hasPreview) ? thumbnailUrl : ''"
+        :thumbnailUrl="isThumbnailInView ? thumbnailUrl : ''"
         :filename="name"
         :hasPreview="hasPreview"
       />
