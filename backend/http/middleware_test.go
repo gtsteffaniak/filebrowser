@@ -34,6 +34,14 @@ func setupTestEnv(t *testing.T) {
 			Name: "srv",
 		},
 	}
+	config.Server.NameToSource = map[string]*settings.Source{
+		"srv": &settings.Source{
+			Path: "/srv",
+			Name: "srv",
+		},
+	}
+	// Initialize user resolvers so users package can resolve source names
+	settings.InitializeUserResolvers()
 	mockFileInfoFaster(t) // Mock FileInfoFasterFunc for this test
 }
 
@@ -44,7 +52,7 @@ func mockFileInfoFaster(t *testing.T) {
 	t.Cleanup(func() { FileInfoFasterFunc = originalFileInfoFaster })
 
 	// Mock the function to skip execution
-	FileInfoFasterFunc = func(opts utils.FileOptions, access *access.Storage) (*iteminfo.ExtendedFileInfo, error) {
+	FileInfoFasterFunc = func(opts utils.FileOptions, access *access.Storage, user *users.User) (*iteminfo.ExtendedFileInfo, error) {
 		return &iteminfo.ExtendedFileInfo{
 			FileInfo: iteminfo.FileInfo{
 				Path: opts.Path,
@@ -145,6 +153,9 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 		ID:          1,
 		Username:    "testuser",
 		Permissions: users.Permissions{Admin: false},
+		Scopes: []users.SourceScope{
+			{Name: "srv", Scope: "/"}, // Root scope on srv source
+		},
 	}
 	if err := store.Users.Save(dummyUser, true, true); err != nil {
 		t.Fatal("failed to save dummy user:", err)

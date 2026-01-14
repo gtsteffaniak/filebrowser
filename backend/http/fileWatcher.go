@@ -12,7 +12,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/events"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
@@ -165,7 +164,7 @@ func fileWatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	}
 
 	// Validate user has access to the source
-	userScope, err := settings.GetScopeFromSourceName(d.user.Scopes, source)
+	userScope, err := d.user.GetScopeForSourceName(source)
 	if err != nil {
 		return http.StatusForbidden, err
 	}
@@ -332,7 +331,7 @@ func fileWatchSSEHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	}
 
 	// Validate user has access to the source
-	userScope, err := settings.GetScopeFromSourceName(d.user.Scopes, source)
+	userScope, err := d.user.GetScopeForSourceName(source)
 	if err != nil {
 		return http.StatusForbidden, err
 	}

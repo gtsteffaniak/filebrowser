@@ -2,6 +2,7 @@ package indexing
 
 import (
 	"testing"
+	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 )
@@ -18,7 +19,7 @@ func setupConditionalTestIndex(conditionals settings.ConditionalFilter) *Index {
 	}
 
 	// Build the conditional maps (this is normally done during config loading)
-	source.Config.ResolvedConditionals = &settings.ResolvedConditionalsConfig{
+	source.Config.ResolvedRules = settings.ResolvedRulesConfig{
 		FileNames:                make(map[string]settings.ConditionalRule),
 		FolderNames:              make(map[string]settings.ConditionalRule),
 		FilePaths:                make(map[string]settings.ConditionalRule),
@@ -33,14 +34,13 @@ func setupConditionalTestIndex(conditionals settings.ConditionalFilter) *Index {
 
 	// Backwards compatibility: if old format fields are set, treat as global rules
 	if conditionals.IgnoreHidden {
-		source.Config.ResolvedConditionals.IgnoreAllHidden = true
+		source.Config.ResolvedRules.IgnoreAllHidden = true
 	}
 	if conditionals.ZeroSizeFolders {
-		source.Config.ResolvedConditionals.IgnoreAllZeroSizeFolders = true
+		source.Config.ResolvedRules.IgnoreAllZeroSizeFolders = true
 	}
 
 	// Build maps from ItemRules - match the real setConditionals implementation
-	resolved := source.Config.ResolvedConditionals
 	for _, rule := range conditionals.ItemRules {
 		// Check if this is a root-level rule (folderPath == "/")
 		// Root-level rules with ignoreHidden/ignoreZeroSizeFolders/viewable set global flags
@@ -49,16 +49,16 @@ func setupConditionalTestIndex(conditionals settings.ConditionalFilter) *Index {
 		// Infer global flags from root-level rules
 		if isRootLevelRule {
 			if rule.IgnoreHidden {
-				resolved.IgnoreAllHidden = true
+				source.Config.ResolvedRules.IgnoreAllHidden = true
 			}
 			if rule.IgnoreSymlinks {
-				resolved.IgnoreAllSymlinks = true
+				source.Config.ResolvedRules.IgnoreAllSymlinks = true
 			}
 			if rule.IgnoreZeroSizeFolders {
-				resolved.IgnoreAllZeroSizeFolders = true
+				source.Config.ResolvedRules.IgnoreAllZeroSizeFolders = true
 			}
 			if rule.Viewable {
-				resolved.IndexingDisabled = true
+				source.Config.ResolvedRules.IndexingDisabled = true
 			}
 		}
 		// Note: FileNames and FolderNames are NOT populated from rules in the real implementation
@@ -66,34 +66,34 @@ func setupConditionalTestIndex(conditionals settings.ConditionalFilter) *Index {
 
 		// Handle exact path matches
 		if rule.FilePath != "" {
-			resolved.FilePaths[rule.FilePath] = rule
+			source.Config.ResolvedRules.FilePaths[rule.FilePath] = rule
 		}
 		if rule.FolderPath != "" {
-			resolved.FolderPaths[rule.FolderPath] = rule
+			source.Config.ResolvedRules.FolderPaths[rule.FolderPath] = rule
 		}
 
 		// Handle StartsWith/EndsWith (stored in slices)
 		if rule.FileEndsWith != "" {
-			resolved.FileEndsWith = append(resolved.FileEndsWith, rule)
+			source.Config.ResolvedRules.FileEndsWith = append(source.Config.ResolvedRules.FileEndsWith, rule)
 		}
 		if rule.FolderEndsWith != "" {
-			resolved.FolderEndsWith = append(resolved.FolderEndsWith, rule)
+			source.Config.ResolvedRules.FolderEndsWith = append(source.Config.ResolvedRules.FolderEndsWith, rule)
 		}
 		if rule.FileStartsWith != "" {
-			resolved.FileStartsWith = append(resolved.FileStartsWith, rule)
+			source.Config.ResolvedRules.FileStartsWith = append(source.Config.ResolvedRules.FileStartsWith, rule)
 		}
 		if rule.FolderStartsWith != "" {
-			resolved.FolderStartsWith = append(resolved.FolderStartsWith, rule)
+			source.Config.ResolvedRules.FolderStartsWith = append(source.Config.ResolvedRules.FolderStartsWith, rule)
 		}
 
 		// Handle NeverWatchPath
 		if rule.NeverWatchPath != "" {
-			resolved.NeverWatchPaths[rule.NeverWatchPath] = struct{}{}
+			source.Config.ResolvedRules.NeverWatchPaths[rule.NeverWatchPath] = struct{}{}
 		}
 
 		// Handle IncludeRootItem
 		if rule.IncludeRootItem != "" {
-			resolved.IncludeRootItems[rule.IncludeRootItem] = struct{}{}
+			source.Config.ResolvedRules.IncludeRootItems[rule.IncludeRootItem] = struct{}{}
 		}
 	}
 
@@ -162,7 +162,7 @@ func TestShouldSkip_FolderStartsWith(t *testing.T) {
 				},
 			})
 
-			result := idx.shouldSkip(true, false, tt.fullPath, tt.baseName, Options{})
+			result := idx.ShouldSkip(true, tt.fullPath, false, false, false)
 			if result != tt.shouldSkip {
 				t.Errorf("%s: expected shouldSkip=%v, got %v (fullPath=%s, baseName=%s, rule=%s)",
 					tt.description, tt.shouldSkip, result, tt.fullPath, tt.baseName, tt.ruleValue)
@@ -211,9 +211,9 @@ func TestShouldSkip_FolderNames(t *testing.T) {
 			})
 
 			// Manually populate FolderNames map since setConditionals doesn't do it
-			idx.Config.ResolvedConditionals.FolderNames[tt.ruleValue] = settings.ConditionalRule{FolderNames: tt.ruleValue}
+			idx.Config.ResolvedRules.FolderNames[tt.ruleValue] = settings.ConditionalRule{FolderNames: tt.ruleValue}
 
-			result := idx.shouldSkip(true, false, "/"+tt.baseName+"/", tt.baseName, Options{})
+			result := idx.ShouldSkip(true, "/"+tt.baseName+"/", false, false, false)
 			if result != tt.shouldSkip {
 				t.Errorf("%s: expected shouldSkip=%v, got %v (baseName=%s, rule=%s)",
 					tt.description, tt.shouldSkip, result, tt.baseName, tt.ruleValue)
@@ -273,7 +273,7 @@ func TestShouldSkip_FolderPaths(t *testing.T) {
 				},
 			})
 
-			result := idx.shouldSkip(true, false, tt.fullPath, tt.baseName, Options{})
+			result := idx.ShouldSkip(true, tt.fullPath, false, false, false)
 			if result != tt.shouldSkip {
 				t.Errorf("%s: expected shouldSkip=%v, got %v (fullPath=%s, baseName=%s, rule=%s)",
 					tt.description, tt.shouldSkip, result, tt.fullPath, tt.baseName, tt.ruleValue)
@@ -321,7 +321,7 @@ func TestShouldSkip_FileStartsWith(t *testing.T) {
 				},
 			})
 
-			result := idx.shouldSkip(false, false, "/"+tt.baseName, tt.baseName, Options{})
+			result := idx.ShouldSkip(false, "/"+tt.baseName, false, false, false)
 			if result != tt.shouldSkip {
 				t.Errorf("%s: expected shouldSkip=%v, got %v (baseName=%s, rule=%s)",
 					tt.description, tt.shouldSkip, result, tt.baseName, tt.ruleValue)
@@ -369,7 +369,7 @@ func TestShouldSkip_FileEndsWith(t *testing.T) {
 				},
 			})
 
-			result := idx.shouldSkip(false, false, "/"+tt.baseName, tt.baseName, Options{})
+			result := idx.ShouldSkip(false, "/"+tt.baseName, false, false, false)
 			if result != tt.shouldSkip {
 				t.Errorf("%s: expected shouldSkip=%v, got %v (baseName=%s, rule=%s)",
 					tt.description, tt.shouldSkip, result, tt.baseName, tt.ruleValue)
@@ -421,7 +421,7 @@ func TestShouldSkip_FilePaths(t *testing.T) {
 				},
 			})
 
-			result := idx.shouldSkip(false, false, tt.fullPath, tt.baseName, Options{})
+			result := idx.ShouldSkip(false, tt.fullPath, false, false, false)
 			if result != tt.shouldSkip {
 				t.Errorf("%s: expected shouldSkip=%v, got %v (fullPath=%s, rule=%s)",
 					tt.description, tt.shouldSkip, result, tt.fullPath, tt.ruleValue)
@@ -451,7 +451,7 @@ func TestShouldSkip_FileInExcludedFolderPath(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		result := idx.shouldSkip(false, false, tt.fullPath, tt.baseName, Options{})
+		result := idx.ShouldSkip(false, tt.fullPath, false, false, false)
 		if result != tt.shouldSkip {
 			t.Errorf("File %s (%s): expected shouldSkip=%v, got %v",
 				tt.fullPath, tt.reason, tt.shouldSkip, result)
@@ -474,8 +474,8 @@ func TestShouldSkip_MultipleRules(t *testing.T) {
 	})
 
 	// Manually populate FolderNames map
-	idx.Config.ResolvedConditionals.FolderNames["node_modules"] = settings.ConditionalRule{FolderNames: "node_modules"}
-	idx.Config.ResolvedConditionals.FolderNames["@eaDir"] = settings.ConditionalRule{FolderNames: "@eaDir"}
+	idx.Config.ResolvedRules.FolderNames["node_modules"] = settings.ConditionalRule{FolderNames: "node_modules"}
+	idx.Config.ResolvedRules.FolderNames["@eaDir"] = settings.ConditionalRule{FolderNames: "@eaDir"}
 
 	tests := []struct {
 		isDir      bool
@@ -499,7 +499,7 @@ func TestShouldSkip_MultipleRules(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		result := idx.shouldSkip(tt.isDir, false, tt.fullPath, tt.baseName, Options{})
+		result := idx.ShouldSkip(tt.isDir, tt.fullPath, false, false, false)
 		if result != tt.shouldSkip {
 			t.Errorf("%s (%s): expected shouldSkip=%v, got %v",
 				tt.baseName, tt.reason, tt.shouldSkip, result)
@@ -516,8 +516,8 @@ func TestShouldSkip_ViewableStillSkips(t *testing.T) {
 		},
 	})
 
-	// shouldSkip still returns true even with Viewable:true (it's checked separately)
-	result := idx.shouldSkip(true, false, "/important/", "important", Options{})
+	// ShouldSkip still returns true even with Viewable:true (it's checked separately)
+	result := idx.ShouldSkip(true, "/important/", false, false, false)
 	if result != true {
 		t.Errorf("Folder should be skipped (Viewable is checked separately), got shouldSkip=%v", result)
 	}
@@ -529,79 +529,97 @@ func TestShouldSkip_HiddenFiles(t *testing.T) {
 	})
 
 	tests := []struct {
-		isHidden   bool
+		path       string
 		shouldSkip bool
 	}{
-		{true, true},
-		{false, false},
+		{"/.hiddenfile", true},       // Hidden file (starts with .)
+		{"/file.txt", false},         // Regular file
+		{"/.hidden/file.txt", false}, // File in hidden directory (but file itself isn't hidden)
 	}
 
 	for _, tt := range tests {
-		result := idx.shouldSkip(false, tt.isHidden, "/file.txt", "file.txt", Options{})
+		// For hidden file test, extract if the path starts with "/."
+		isHiddenPath := IsHidden(tt.path)
+		result := idx.ShouldSkip(false, tt.path, isHiddenPath, false, false)
 		if result != tt.shouldSkip {
-			t.Errorf("isHidden=%v: expected shouldSkip=%v, got %v",
-				tt.isHidden, tt.shouldSkip, result)
+			t.Errorf("path=%s: expected shouldSkip=%v, got %v",
+				tt.path, tt.shouldSkip, result)
 		}
 	}
 }
 
-func TestShouldSkip_NeverWatch(t *testing.T) {
-	// Test NeverWatch functionality - folders should be skipped during routine scans
+func TestIsNeverWatchPath(t *testing.T) {
+	// Test NeverWatchPath functionality - paths indexed once, then never re-indexed
 	idx := setupConditionalTestIndex(settings.ConditionalFilter{
 		ItemRules: []settings.ConditionalRule{
-			{NeverWatchPath: "/cache/"}, // Must match the fullPath exactly
-			{NeverWatchPath: "/logs/"},  // Must match the fullPath exactly
+			{NeverWatchPath: "/temp/"},
+			{NeverWatchPath: "/cache/"},
 		},
 	})
 
-	// Simulate a routine scan (index has been scanned before, IsRoutineScan=true)
-	// The IsRoutineScan flag is sufficient - GetLastIndexed() will check scanner.lastScanned
-	config := Options{IsRoutineScan: true}
-
 	tests := []struct {
-		name        string
-		fullPath    string
-		baseName    string
-		shouldSkip  bool
-		description string
+		name            string
+		path            string
+		hasBeenIndexed  bool
+		expectedSkipped bool
+		description     string
 	}{
 		{
-			name:        "Skip NeverWatch path during routine scan",
-			fullPath:    "/cache/",
-			baseName:    "cache",
-			shouldSkip:  true,
-			description: "Folder with neverWatch should be skipped in routine scan",
+			name:            "Initial scan - don't skip NeverWatch",
+			path:            "/temp/",
+			hasBeenIndexed:  false,
+			expectedSkipped: false,
+			description:     "NeverWatch paths should NOT be skipped during initial scan",
 		},
 		{
-			name:        "Skip NeverWatch name during routine scan",
-			fullPath:    "/logs/",
-			baseName:    "logs",
-			shouldSkip:  true,
-			description: "Folder with neverWatch name should be skipped in routine scan",
+			name:            "Routine scan - skip NeverWatch",
+			path:            "/temp/",
+			hasBeenIndexed:  true,
+			expectedSkipped: true,
+			description:     "NeverWatch paths SHOULD be skipped after initial scan",
 		},
 		{
-			name:        "Don't skip regular folder",
-			fullPath:    "/regular/",
-			baseName:    "regular",
-			shouldSkip:  false,
-			description: "Regular folder should not be skipped",
+			name:            "Initial scan - regular path",
+			path:            "/regular/",
+			hasBeenIndexed:  false,
+			expectedSkipped: false,
+			description:     "Regular paths should not be skipped during initial scan",
+		},
+		{
+			name:            "Routine scan - regular path",
+			path:            "/regular/",
+			hasBeenIndexed:  true,
+			expectedSkipped: false,
+			description:     "Regular paths should not be skipped during routine scans",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := idx.shouldSkip(true, false, tt.fullPath, tt.baseName, config)
-			if result != tt.shouldSkip {
-				t.Errorf("%s: expected shouldSkip=%v, got %v (fullPath=%s, baseName=%s)",
-					tt.description, tt.shouldSkip, result, tt.fullPath, tt.baseName)
+			// Simulate whether index has been scanned before
+			if tt.hasBeenIndexed {
+				// Set a fake last indexed time to simulate completed scan
+				idx.mu.Lock()
+				if idx.scanners == nil {
+					idx.scanners = make(map[string]*Scanner)
+				}
+				scanner := &Scanner{
+					lastScanned: time.Now(),
+				}
+				idx.scanners["/"] = scanner
+				idx.mu.Unlock()
+			} else {
+				// Clear scanners to simulate initial state
+				idx.mu.Lock()
+				idx.scanners = make(map[string]*Scanner)
+				idx.mu.Unlock()
+			}
+
+			result := idx.IsNeverWatchPath(tt.path)
+			if result != tt.expectedSkipped {
+				t.Errorf("%s: expected IsNeverWatchPath=%v, got %v (path=%s, hasBeenIndexed=%v)",
+					tt.description, tt.expectedSkipped, result, tt.path, tt.hasBeenIndexed)
 			}
 		})
-	}
-
-	// Test initial scan (IsRoutineScan=false) - NeverWatch folders should NOT be skipped
-	config.IsRoutineScan = false
-	result := idx.shouldSkip(true, false, "/cache/", "cache", config)
-	if result != false {
-		t.Errorf("NeverWatch folder should NOT be skipped during initial scan, got shouldSkip=%v", result)
 	}
 }

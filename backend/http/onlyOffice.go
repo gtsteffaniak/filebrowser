@@ -100,21 +100,14 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 	path := providedPath
 	if hash == "" {
 		// Build file info based on whether this is a share or regular request
-		// Regular user request - need to resolve scope
-		userScope, scopeErr := settings.GetScopeFromSourceName(d.user.Scopes, source)
-		if scopeErr != nil {
-			logger.Errorf("OnlyOffice: source %s not available for user %s: %v", source, d.user.Username, scopeErr)
-			return http.StatusForbidden, fmt.Errorf("source %s is not available", source)
-		}
-		path = utils.JoinPathAsUnix(userScope, path)
-		logger.Debugf("OnlyOffice user request: resolved path=%s", path)
+		// Regular user request
+		logger.Debugf("OnlyOffice user request: request path=%s", path)
 		fileInfo, err := files.FileInfoFaster(utils.FileOptions{
-			Username:       d.user.Username,
 			Path:           path,
 			Source:         source,
 			Expand:         false,
 			FollowSymlinks: true,
-		}, store.Access)
+		}, store.Access, d.user)
 		if err != nil {
 			logger.Errorf("OnlyOffice: failed to get file info for source=%s, path=%s: %v", source, path, err)
 			return errToStatus(err), err
@@ -365,7 +358,7 @@ func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *reques
 
 	if d.fileInfo.Hash == "" {
 		// Regular user request - need to resolve scope
-		userScope, scopeErr := settings.GetScopeFromSourceName(d.user.Scopes, source)
+		userScope, scopeErr := d.user.GetScopeForSourceName(source)
 		if scopeErr != nil {
 			logger.Errorf("OnlyOffice callback: source %s not available for user %s: %v", source, d.user.Username, scopeErr)
 			return returnOnlyOfficeError(w, r, 403, "source not available")
@@ -521,7 +514,7 @@ func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *reques
 		_, err = files.FileInfoFaster(utils.FileOptions{
 			Source: source,
 			Path:   path,
-		}, nil)
+		}, store.Access, d.user)
 		if err != nil {
 			logger.Errorf("OnlyOffice callback: original file no longer exists at path=%s: %v",
 				path, err)
@@ -535,7 +528,14 @@ func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *reques
 			return returnOnlyOfficeError(w, r, 404, "original file no longer exists - it may have been renamed or moved")
 		}
 
-		writeErr := files.WriteFile(source, path, doc.Body)
+		// Get user scope to resolve full index path for write operation
+		userScope, err := d.user.GetScopeForSourceName(source)
+		if err != nil {
+			return returnOnlyOfficeError(w, r, 403, "user scope not found")
+		}
+		fullIndexPath := utils.JoinPathAsUnix(userScope, path)
+
+		writeErr := files.WriteFile(source, fullIndexPath, doc.Body)
 		if writeErr != nil {
 			logger.Errorf("OnlyOffice callback: failed to write updated document to path=%s: %v",
 				path, writeErr)

@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
@@ -323,9 +324,7 @@ func (s *Scanner) checkForNewChildDirectories() {
 // getTopLevelDirs returns a list of top-level directory paths in the root
 func (s *Scanner) getTopLevelDirs() []string {
 	dirs := []string{}
-	realPath := strings.TrimRight(s.idx.Path, "/") + "/"
-
-	dir, err := os.Open(realPath)
+	dir, err := os.Open(s.idx.Path)
 	if err != nil {
 		logger.Errorf("Failed to open root directory: %v", err)
 		return dirs
@@ -340,26 +339,26 @@ func (s *Scanner) getTopLevelDirs() []string {
 
 	for _, file := range files {
 		baseName := file.Name()
+		realPath := utils.JoinPathAsUnix(s.idx.Path, baseName)
+		indexPath := "/" + baseName + "/"
 		if !file.IsDir() {
 			continue
 		}
-		dirPath := "/" + baseName + "/"
 		if omitList[baseName] {
-			logger.Debugf("Skipping scanner creation for omitted directory: %s", dirPath)
+			logger.Debugf("Skipping scanner creation for omitted directory: %s", realPath)
 			continue
 		}
 		if !s.idx.shouldInclude(baseName) {
-			logger.Debugf("Skipping scanner creation for non-included directory: %s", dirPath)
+			logger.Debugf("Skipping scanner creation for non-included directory: %s", realPath)
 			continue
 		}
-		hidden := isHidden(file, s.idx.Path+dirPath)
-		// Use IsRoutineScan: true to ensure NeverWatchPaths is checked
-		config := Options{IsRoutineScan: true}
-		if s.idx.shouldSkip(true, hidden, dirPath, baseName, config) {
-			logger.Debugf("Skipping scanner creation for excluded directory: %s", dirPath)
+		hidden := IsHidden(realPath)
+		isSymlink := file.Mode()&os.ModeSymlink != 0
+		if s.idx.ShouldSkip(true, indexPath, hidden, isSymlink, true) {
+			logger.Debugf("Skipping scanner creation for excluded directory: %s", realPath)
 			continue
 		}
-		dirs = append(dirs, dirPath)
+		dirs = append(dirs, indexPath)
 	}
 
 	return dirs

@@ -105,17 +105,24 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		if err != nil {
 			return http.StatusNotFound, fmt.Errorf("user for share no longer exists")
 		}
+		// get user scope path from share
+		userScope, err := shareCreatedByUser.GetScopeForSourceName(source.Name)
+		if err != nil {
+			return http.StatusForbidden, err
+		}
+		// source path is /test/ anb user scope is /user/ link.Path is /user/share/
+		// so trim user scope from link.Path
+		userScopedPath := "/" + strings.TrimPrefix(link.Path, userScope)
 		file, err := FileInfoFasterFunc(utils.FileOptions{
-			Path:                     utils.JoinPathAsUnix(link.Path, path),
-			Source:                   link.Source,
-			Username:                 shareCreatedByUser.Username,
+			Path:                     userScopedPath,
+			Source:                   source.Name,
 			Expand:                   true,
 			Content:                  getContent,
 			Metadata:                 getMetadata,
 			ExtractEmbeddedSubtitles: settings.Config.Integrations.Media.ExtractEmbeddedSubtitles && link.ExtractEmbeddedSubtitles,
 			ShowHidden:               link.ShowHidden,
 			FollowSymlinks:           true,
-		}, store.Access)
+		}, store.Access, shareCreatedByUser)
 		if err != nil {
 			logger.Errorf("error fetching file info for share. hash=%v path=%v error=%v", hash, path, err)
 			return errToStatus(err), fmt.Errorf("error fetching share from server")

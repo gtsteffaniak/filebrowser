@@ -340,23 +340,15 @@ func (db *IndexDB) GetItem(source, path string) (*iteminfo.FileInfo, error) {
 	SELECT path, name, size, mod_time, type, is_dir, is_hidden, has_preview
 	FROM index_items WHERE source = ? AND path = ?
 	`
-	logger.Debugf("[DB_QUERY] GetItem: Querying source=%s, path=%s", source, path)
 	row := db.QueryRow(query, source, path)
 	item, err := scanItem(row)
 	if err != nil {
 		// Soft failure: DB is busy or locked, return nil
 		// Caller will handle missing data by fetching from filesystem
 		if isBusyError(err) || isTransactionError(err) {
-			logger.Debugf("[DB_QUERY] GetItem: DB busy/locked for source=%s, path=%s", source, path)
 			return nil, nil
 		}
-		logger.Debugf("[DB_QUERY] GetItem: Query failed for source=%s, path=%s, error=%v", source, path, err)
 		return nil, err
-	}
-	if item != nil {
-		logger.Debugf("[DB_QUERY] GetItem: Found item source=%s, path=%s, name=%s, is_dir=%v", source, path, item.Name, item.Type == "directory")
-	} else {
-		logger.Debugf("[DB_QUERY] GetItem: No item found for source=%s, path=%s", source, path)
 	}
 	return item, nil
 }
@@ -459,15 +451,13 @@ func (db *IndexDB) GetDirectoryChildren(source, dirPath string) ([]*iteminfo.Fil
 	ORDER BY is_dir DESC, name ASC
 	`
 
-	logger.Debugf("[DB_QUERY] GetDirectoryChildren: Querying source=%s, parent_path=%s", source, dirPath)
 	rows, err := db.Query(query, source, dirPath)
 	if err != nil {
-
 		if isBusyError(err) || isTransactionError(err) {
 			logger.Warningf("[DB_TX] GetDirectoryChildren: DB busy/locked, skipping query")
 			return []*iteminfo.FileInfo{}, nil
 		}
-		logger.Errorf("[DB_QUERY] GetDirectoryChildren: Query failed for source=%s, parent_path=%s, error=%v", source, dirPath, err)
+		logger.Errorf("GetDirectoryChildren: Query failed for source=%s, parent_path=%s, error=%v", source, dirPath, err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -476,13 +466,11 @@ func (db *IndexDB) GetDirectoryChildren(source, dirPath string) ([]*iteminfo.Fil
 	for rows.Next() {
 		item, err := scanRow(rows)
 		if err != nil {
-			logger.Errorf("[DB_QUERY] GetDirectoryChildren: scanRow failed, error=%v", err)
+			logger.Errorf("GetDirectoryChildren: scanRow failed, error=%v", err)
 			return nil, err
 		}
 		children = append(children, item)
-		logger.Debugf("[DB_QUERY] GetDirectoryChildren: Found child path=%s, name=%s, is_dir=%v", item.Path, item.Name, item.Type == "directory")
 	}
-	logger.Debugf("[DB_QUERY] GetDirectoryChildren: Returning %d children for source=%s, parent_path=%s", len(children), source, dirPath)
 	return children, nil
 }
 

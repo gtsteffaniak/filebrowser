@@ -17,7 +17,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
-	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
@@ -129,7 +128,7 @@ func shareGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) 
 	if !ok {
 		return http.StatusBadRequest, fmt.Errorf("invalid source name: %s", sourceName)
 	}
-	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, sourceName)
+	userscope, err := d.user.GetScopeForSourceName(sourceName)
 	if err != nil {
 		return http.StatusForbidden, err
 	}
@@ -360,7 +359,7 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	if idx == nil {
 		return http.StatusForbidden, fmt.Errorf("source with name not found: %s", body.Source)
 	}
-	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, source.Name)
+	userscope, err := d.user.GetScopeForSourceName(source.Name)
 	if err != nil {
 		return http.StatusForbidden, err
 	}
@@ -446,7 +445,7 @@ func shareDirectDownloadHandler(w http.ResponseWriter, r *http.Request, d *reque
 	}
 
 	// Get user scope for this source
-	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, source)
+	userscope, err := d.user.GetScopeForSourceName(source)
 	if err != nil {
 		return http.StatusForbidden, err
 	}

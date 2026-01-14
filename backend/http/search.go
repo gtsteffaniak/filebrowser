@@ -162,7 +162,7 @@ func prepSearchOptions(r *http.Request, d *requestContext) (*searchOptions, erro
 	combinedPathMap := make(map[string]string)
 	for _, source := range sources {
 		index := indexing.GetIndex(source)
-		userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, source)
+		userscope, err := d.user.GetScopeForSourceName(source)
 		if err != nil {
 			return nil, err
 		}

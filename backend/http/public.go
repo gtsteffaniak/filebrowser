@@ -245,7 +245,7 @@ func publicPreviewHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		Metadata:   true,
 		AlbumArt:   true,
 		ShowHidden: d.share.ShowHidden,
-	}, nil)
+	}, nil, d.user)
 	if err != nil {
 		return http.StatusNotFound, fmt.Errorf("resource not available")
 	}
@@ -318,13 +318,12 @@ func publicDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	}
 
 	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
-		Username:       d.user.Username,
 		FollowSymlinks: true,
 		Path:           indexPath,
 		Source:         source,
 		Expand:         false,
 		ShowHidden:     d.share.ShowHidden,
-	}, nil)
+	}, nil, d.user)
 	if err != nil {
 		return http.StatusNotFound, fmt.Errorf("resource not available")
 	}

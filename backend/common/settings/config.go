@@ -52,6 +52,7 @@ func Initialize(configFile string) {
 	setupServer()
 	setupAuth(false)
 	setupSources(false)
+	InitializeUserResolvers() // Initialize user package resolvers after sources are set up
 	setupUrls()
 	setupFrontend(false)
 	setupMedia()
@@ -837,7 +838,7 @@ func setConditionals(config *Source) {
 	rules := append(config.Config.Conditionals.ItemRules, config.Config.Rules...)
 
 	// Initialize the maps structure (only exact match maps for Names)
-	resolved := &ResolvedConditionalsConfig{
+	resolved := ResolvedRulesConfig{
 		FileNames:                make(map[string]ConditionalRule),
 		FolderNames:              make(map[string]ConditionalRule),
 		FilePaths:                make(map[string]ConditionalRule),
@@ -934,7 +935,7 @@ func setConditionals(config *Source) {
 			resolved.FolderNames[rule.FolderName] = rule
 		}
 	}
-	config.Config.ResolvedConditionals = resolved
+	config.Config.ResolvedRules = resolved
 }
 
 func modifyExcludeInclude(config *Source) {
@@ -973,9 +974,22 @@ func modifyExcludeInclude(config *Source) {
 	for i, rule := range allRules {
 		// normalize full paths
 		allRules[i].FilePath = normalizeFullPath(rule.FilePath, true)
-		allRules[i].FolderPath = normalizeFullPath(rule.FolderPath, true)
+		// FolderPath gets trailing slash for proper prefix matching
+		if rule.FolderPath != "" {
+			normalized := normalizeFullPath(rule.FolderPath, true)
+			if normalized != "/" && !strings.HasSuffix(normalized, "/") {
+				normalized = normalized + "/"
+			}
+			allRules[i].FolderPath = normalized
+		}
 		allRules[i].NeverWatchPath = normalizeFullPath(rule.NeverWatchPath, true)
-		allRules[i].IncludeRootItem = normalizeFullPath(rule.IncludeRootItem, true)
+		if rule.IncludeRootItem != "" {
+			normalized := normalizeFullPath(rule.IncludeRootItem, true)
+			if normalized != "/" && !strings.HasSuffix(normalized, "/") {
+				normalized = normalized + "/"
+			}
+			allRules[i].IncludeRootItem = normalized
+		}
 
 		// normalize names
 		allRules[i].FileNames = normalizeName(rule.FileNames)

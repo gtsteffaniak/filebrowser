@@ -44,7 +44,6 @@ func GetChecksum(fullPath, algo string) (string, error) {
 
 // FileOptions are the options when getting a file info.
 type FileOptions struct {
-	Username                 string // username for access control
 	Path                     string // realpath
 	Source                   string
 	IsDir                    bool

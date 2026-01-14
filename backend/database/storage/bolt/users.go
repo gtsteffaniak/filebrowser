@@ -110,7 +110,7 @@ func (st usersBackend) Update(user *users.User, actorIsAdmin bool, fields ...str
 
 	// converting scopes to map of paths intead of names (names can change)
 	if slices.Contains(fields, "Scopes") {
-		adjustedScopes, err := settings.ConvertToBackendScopes(user.Scopes)
+		adjustedScopes, err := user.GetBackendScopes()
 		if err != nil {
 			return err
 		}
@@ -122,7 +122,7 @@ func (st usersBackend) Update(user *users.User, actorIsAdmin bool, fields ...str
 	}
 	// converting scopes to map of paths intead of names (names can change)
 	if slices.Contains(fields, "SidebarLinks") {
-		adjustedLinks, err := settings.ConvertToBackendSidebarLinks(user.SidebarLinks)
+		adjustedLinks, err := user.GetBackendSidebarLinks()
 		if err != nil {
 			return err
 		}
@@ -188,7 +188,7 @@ func (st usersBackend) Save(user *users.User, changePass, disableScopeChange boo
 	}
 
 	// converting scopes to map of paths intead of names (names can change)
-	adjustedScopes, err := settings.ConvertToBackendScopes(user.Scopes)
+	adjustedScopes, err := user.GetBackendScopes()
 	if err != nil {
 		return err
 	}
