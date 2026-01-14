@@ -112,7 +112,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		}
 		// source path is /test/ anb user scope is /user/ link.Path is /user/share/
 		// so trim user scope from link.Path
-		userScopedPath := "/" + strings.TrimPrefix(link.Path, userScope)
+		userScopedPath := utils.JoinPathAsUnix("/", strings.TrimPrefix(link.Path, userScope), path)
 		file, err := FileInfoFasterFunc(utils.FileOptions{
 			Path:                     userScopedPath,
 			Source:                   source.Name,
