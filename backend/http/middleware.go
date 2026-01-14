@@ -32,6 +32,7 @@ type requestContext struct {
 	shareValid   bool
 	ctx          context.Context
 	MaxBandwidth int
+	Data         interface{}
 }
 
 type HttpResponse struct {

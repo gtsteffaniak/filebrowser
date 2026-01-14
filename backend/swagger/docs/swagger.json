@@ -1267,7 +1267,7 @@
         },
         "/api/raw": {
             "get": {
-                "description": "Returns the raw content of a file, multiple files, or a directory. Supports downloading files as archives in various formats.\n\n**Filename Encoding:**\n- The Content-Disposition header will always include both:\n1. `filename=\"...\"`: An ASCII-safe version of the filename for compatibility.\n2. `filename*=utf-8”...`: The full UTF-8 encoded filename (RFC 6266/5987) for modern clients.",
+                "description": "Returns the raw content of a file, multiple files, or a directory. Supports downloading files as archives in various formats.\n\n**Filename Encoding:**\n- The Content-Disposition header will always include both:\n1. `filename=\"...\"`: An ASCII-safe version of the filename for compatibility.\n2. `filename*=utf-8\"...`: The full UTF-8 encoded filename (RFC 6266/5987) for modern clients.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1278,7 +1278,14 @@
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "a list of files in the following format 'source::filename' and separated by '||' with additional items in the list. (required)",
+                        "description": "Source name for the files (required)",
+                        "name": "source",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Comma-separated list of file paths (required)",
                         "name": "files",
                         "in": "query",
                         "required": true
@@ -1671,7 +1678,7 @@
                 }
             },
             "patch": {
-                "description": "Moves or renames a resource to a new destination.",
+                "description": "Performs move, copy, or rename operations on multiple resources. All operations are performed atomically.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1681,45 +1688,39 @@
                 "tags": [
                     "Resources"
                 ],
-                "summary": "Patch resource (move/rename)",
+                "summary": "Move, copy, or rename resources",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "Path from resource in \u003csource_name\u003e::\u003cindex_path\u003e format",
-                        "name": "from",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Destination path for the resource",
-                        "name": "destination",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Action to perform (copy, rename)",
-                        "name": "action",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "boolean",
-                        "description": "Overwrite if destination exists",
-                        "name": "overwrite",
-                        "in": "query"
-                    },
-                    {
-                        "type": "boolean",
-                        "description": "Rename if destination exists",
-                        "name": "rename",
-                        "in": "query"
+                        "description": "Move/copy request with items and action",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.MoveCopyRequest"
+                        }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Resource moved/renamed successfully"
+                        "description": "All operations completed successfully",
+                        "schema": {
+                            "$ref": "#/definitions/http.MoveCopyResponse"
+                        }
+                    },
+                    "207": {
+                        "description": "Partial success - some operations succeeded, some failed",
+                        "schema": {
+                            "$ref": "#/definitions/http.MoveCopyResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - invalid JSON or parameters",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
                     },
                     "403": {
                         "description": "Forbidden",
@@ -1732,15 +1733,6 @@
                     },
                     "404": {
                         "description": "Resource not found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "409": {
-                        "description": "Conflict - Destination exists",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -2790,7 +2782,7 @@
                     },
                     {
                         "type": "string",
-                        "description": "Files to download in format: 'source::path||source::path'. Example: '/file1||/folder/file2'",
+                        "description": "Comma-separated list of file paths. Example: 'file1.txt,folder/file2.txt'",
                         "name": "files",
                         "in": "query",
                         "required": true
@@ -3145,6 +3137,87 @@
                         }
                     }
                 }
+            },
+            "patch": {
+                "description": "Performs move, copy, or rename operations on multiple resources within a public share. All operations are performed atomically.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Shares"
+                ],
+                "summary": "Move, copy, or rename resources in a public share",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Share hash for authentication",
+                        "name": "hash",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "description": "Move/copy request with items and action",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.MoveCopyRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "All operations completed successfully",
+                        "schema": {
+                            "$ref": "#/definitions/http.MoveCopyResponse"
+                        }
+                    },
+                    "207": {
+                        "description": "Partial success - some operations succeeded, some failed",
+                        "schema": {
+                            "$ref": "#/definitions/http.MoveCopyResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - invalid JSON or parameters",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - modify not allowed for this share",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Share or resource not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
             }
         },
         "/public/api/resources/bulk/delete": {
@@ -3360,6 +3433,66 @@
                 },
                 "token": {
                     "type": "string"
+                }
+            }
+        },
+        "http.MoveCopyItem": {
+            "type": "object",
+            "properties": {
+                "fromPath": {
+                    "type": "string"
+                },
+                "fromSource": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "toPath": {
+                    "type": "string"
+                },
+                "toSource": {
+                    "type": "string"
+                }
+            }
+        },
+        "http.MoveCopyRequest": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "description": "\"copy\", \"move\", or \"rename\"",
+                    "type": "string"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/http.MoveCopyItem"
+                    }
+                },
+                "overwrite": {
+                    "description": "Overwrite if destination exists",
+                    "type": "boolean"
+                },
+                "rename": {
+                    "description": "Auto-rename if destination exists",
+                    "type": "boolean"
+                }
+            }
+        },
+        "http.MoveCopyResponse": {
+            "type": "object",
+            "properties": {
+                "failed": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/http.MoveCopyItem"
+                    }
+                },
+                "succeeded": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/http.MoveCopyItem"
+                    }
                 }
             }
         },
