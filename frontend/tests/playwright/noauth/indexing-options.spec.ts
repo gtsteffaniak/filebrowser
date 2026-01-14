@@ -6,7 +6,7 @@ test("navigate folder -- item should not be visible", async ({ page, checkForErr
     // excluded folder should not be visible in the file list
     await expect(page.locator('a[aria-label="excluded"]')).toHaveCount(0);
     await page.goto("/files/exclude/excluded");
-    const msg = "500: path not accessible: item is excluded"
+    const msg = "500: directory or item excluded from indexing"
     await checkForNotification(page, msg);
     checkForErrors(1,1); // expect error not indexed
 });

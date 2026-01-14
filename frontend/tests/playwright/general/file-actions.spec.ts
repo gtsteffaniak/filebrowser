@@ -109,36 +109,40 @@ test("2x copy from listing to new folder", async({ page, checkForErrors, context
   checkForErrors();
 })
 
-test("copy directory and verify folder size is not zero", async({ page, checkForErrors, openContextMenu, context }) => {
+test("copy 'text-files' to 'folder#hash' verify folder size is updated", async({ page, checkForErrors, openContextMenu, context }) => {
   await page.goto("/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
   
-  // Find myfolder and get its size before copy
-  await page.locator('a[aria-label="myfolder"]').waitFor({ state: 'visible' });
-  const myfolderLink = page.locator('a[aria-label="myfolder"]');
-  const myfolderSizeBefore = await myfolderLink.locator('.size').textContent();
+  // Find folder#hash and get its size before copy
+  await page.locator('a[aria-label="folder#hash"]').waitFor({ state: 'visible' });
+  const folderHashLink = page.locator('a[aria-label="folder#hash"]');
+  const textFilesLink = page.locator('a[aria-label="text-files"]');
+  const textFilesSizeBefore = await textFilesLink.locator('.size').textContent();
+  const folderHashSizeBefore = await folderHashLink.locator('.size').textContent();
   
-  // Copy myfolder
-  await myfolderLink.click({ button: "right" });
+  // Copy myfotext-filesder
+  await textFilesLink.click({ button: "right" });
   await page.locator('.selected-count-header').waitFor({ state: 'visible' });
   await expect(page.locator('.selected-count-header')).toHaveText('1');
   await page.locator('button[aria-label="Copy file"]').click();
   await expect(page.locator('div[aria-label="filelist-path"]')).toHaveText('Path: /');
-  // select li with aria-label="excluded" (preferred) or data-path="/excluded/" if it's a folder
-  await page.locator('li[aria-label="excluded"]').click();
+  await page.locator('li[aria-label="folder#hash"]').click();
   await page.locator('button[aria-label="Copy"]').click();
   await checkForNotification(page, "Files copied successfully!");
   await page.locator('.notification-buttons .button').waitFor({ state: 'visible' });
   await page.locator('.notification-buttons .button').click();
 
-  // wait for 1 second
-  await page.waitForTimeout(1000);
-  
+  // verify folder size is updated
+  const folderSizeAfter = await textFilesLink.locator('.size').textContent();
+  expect(folderSizeAfter).not.toBe("0.0 bytes");
+  expect(folderSizeAfter).toBe(textFilesSizeBefore);
+
   // Go back to root and verify the copied folder has a non-zero size
-  await page.locator('a[aria-label="myfolder"]').waitFor({ state: 'visible' });
-  const copiedFolderSize = await page.locator('a[aria-label="myfolder"]').locator('.size').textContent();
+  await page.goto("/files/");
+  await page.locator('a[aria-label="folder#hash"]').waitFor({ state: 'visible' });
+  const copiedFolderSize = await page.locator('a[aria-label="folder#hash"]').locator('.size').textContent();
   expect(copiedFolderSize).not.toBe("0.0 bytes");
-  expect(copiedFolderSize).toBe(myfolderSizeBefore);
+  expect(copiedFolderSize).not.toBe(folderHashSizeBefore);
   checkForErrors();
 })
 

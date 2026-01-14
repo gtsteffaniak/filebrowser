@@ -3,7 +3,6 @@ package http
 import (
 	"net/http"
 
-	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
@@ -20,7 +19,7 @@ import (
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/jobs/{action}/{target} [get]
 func getJobsHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	sources := settings.GetSources(d.user)
+	sources := d.user.GetSourceNames()
 	reducedIndexes := map[string]indexing.ReducedIndex{}
 	for _, source := range sources {
 		reducedIndex, err := indexing.GetIndexInfo(source, false)

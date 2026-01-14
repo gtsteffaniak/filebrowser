@@ -8,7 +8,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/events"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
@@ -56,7 +55,7 @@ func sseHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int,
 	}
 
 	// Register this client with the events system
-	sendChan := events.Register(username, settings.GetSources(d.user))
+	sendChan := events.Register(username, d.user.GetSourceNames())
 	defer events.Unregister(username, sendChan)
 
 	// Heartbeat ticker - send every 30 seconds to keep connection alive

@@ -5,11 +5,33 @@ import (
 	"testing"
 
 	"github.com/asdine/storm/v3"
+	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 )
 
 func init() {
 	users.BcryptCost = 4 // bcrypt.MinCost for faster tests
+
+	// Initialize test source configuration
+	settings.Config.Server.SourceMap = map[string]*settings.Source{
+		"/tmp/test": {
+			Path: "/tmp/test",
+			Name: "test",
+			Config: settings.SourceConfig{
+				DefaultUserScope: "/",
+			},
+		},
+	}
+	settings.Config.Server.NameToSource = map[string]*settings.Source{
+		"test": settings.Config.Server.SourceMap["/tmp/test"],
+	}
+	settings.Config.Server.Sources = []*settings.Source{
+		settings.Config.Server.SourceMap["/tmp/test"],
+	}
+	// Don't set default scopes for tests - let tests explicitly set scopes when needed
+	settings.Config.UserDefaults.DefaultScopes = []users.SourceScope{}
+	// Initialize user package resolvers
+	settings.InitializeUserResolvers()
 }
 
 func createTestUsersBackend(t *testing.T) users.StorageBackend {

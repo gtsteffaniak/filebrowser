@@ -16,7 +16,6 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
-	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
@@ -120,16 +119,9 @@ func addFile(path string, d *requestContext, tarWriter *tar.Writer, zipWriter *z
 	source := splitFile[0]
 	path = splitFile[1]
 
-	var err error
-	if d.share == nil {
-		var userScope string
-		userScope, err = settings.GetScopeFromSourceName(d.user.Scopes, source)
-		if err != nil {
-			return fmt.Errorf("source %s is not available for user %s", source, d.user.Username)
-		}
-		path = utils.JoinPathAsUnix(userScope, path)
-	}
-	// For shares, the path is already correctly resolved by publicRawHandler
+	// Path handling is now done inside FileInfoFaster
+	// For shares, path comes from share context
+	// For regular users, FileInfoFaster will apply user scope
 
 	idx := indexing.GetIndex(source)
 	if idx == nil {
@@ -144,12 +136,12 @@ func addFile(path string, d *requestContext, tarWriter *tar.Writer, zipWriter *z
 	}
 
 	// Verify file exists
-	_, err = files.FileInfoFaster(utils.FileOptions{
+	_, err := files.FileInfoFaster(utils.FileOptions{
 		Path:           path,
 		Source:         source,
 		Expand:         false,
 		FollowSymlinks: true,
-	}, nil)
+	}, store.Access, d.user)
 	if err != nil {
 		return err
 	}
@@ -301,7 +293,7 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 	var logContext *OnlyOfficeLogContext
 
 	if d.share == nil {
-		userscope, err = settings.GetScopeFromSourceName(d.user.Scopes, firstFileSource)
+		userscope, err = d.user.GetScopeForSourceName(firstFileSource)
 		if err != nil {
 			// Send OnlyOffice error log if this was an OnlyOffice file
 			if isOnlyOffice {
@@ -530,7 +522,7 @@ func computeArchiveSize(fileList []string, d *requestContext) (int64, error) {
 		}
 		var userScope string
 		if d.share == nil {
-			userScope, err = settings.GetScopeFromSourceName(d.user.Scopes, source)
+			userScope, err = d.user.GetScopeForSourceName(source)
 			if err != nil {
 				return 0, fmt.Errorf("source %s is not available for user %s", source, d.user.Username)
 			}

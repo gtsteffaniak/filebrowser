@@ -13,7 +13,6 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
@@ -155,7 +154,7 @@ func duplicatesHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 	if index == nil {
 		return http.StatusBadRequest, fmt.Errorf("index not found for source %s", opts.source)
 	}
-	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, index.Name)
+	userscope, err := d.user.GetScopeForSourceName(index.Name)
 	if err != nil {
 		return http.StatusForbidden, err
 	}
@@ -172,7 +171,7 @@ func duplicatesHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 		return http.StatusServiceUnavailable, fmt.Errorf("duplicate search is not available while indexing is in progress - please try again when indexing completes")
 	}
 
-	userscope, err = settings.GetScopeFromSourceName(d.user.Scopes, index.Name)
+	userscope, err = d.user.GetScopeForSourceName(index.Name)
 	if err != nil {
 		return http.StatusForbidden, err
 	}
@@ -588,7 +587,7 @@ func prepDuplicatesOptions(r *http.Request, d *requestContext) (*duplicatesOptio
 		return nil, fmt.Errorf("index not found for source %s", source)
 	}
 
-	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, source)
+	userscope, err := d.user.GetScopeForSourceName(source)
 	if err != nil {
 		return nil, err
 	}

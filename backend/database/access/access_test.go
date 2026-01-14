@@ -38,17 +38,32 @@ func setupTestSources() {
 			Path: "mnt/storage",
 			Name: "storage",
 			Config: settings.SourceConfig{
-				DenyByDefault: false,
+				DenyByDefault:    false,
+				DefaultUserScope: "/",
 			},
 		},
 		"mnt/open": {
 			Path: "mnt/open",
 			Name: "open",
 			Config: settings.SourceConfig{
-				DenyByDefault: false,
+				DenyByDefault:    false,
+				DefaultUserScope: "/",
 			},
 		},
 	}
+	settings.Config.Server.NameToSource = map[string]*settings.Source{
+		"storage": settings.Config.Server.SourceMap["mnt/storage"],
+		"open":    settings.Config.Server.SourceMap["mnt/open"],
+	}
+	settings.Config.Server.Sources = []*settings.Source{
+		settings.Config.Server.SourceMap["mnt/storage"],
+		settings.Config.Server.SourceMap["mnt/open"],
+	}
+	settings.Config.UserDefaults.DefaultScopes = []users.SourceScope{
+		{Name: "mnt/storage", Scope: "/"},
+	}
+	// Initialize user package resolvers
+	settings.InitializeUserResolvers()
 }
 
 func TestPermitted_UserBlacklist(t *testing.T) {
