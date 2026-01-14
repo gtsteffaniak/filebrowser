@@ -39,20 +39,20 @@
             </div>
 
             <div class="audio-controls-container" :class="{ 'dark-mode': darkMode, 'light-mode': !darkMode }">
-                <vue-plyr ref="audioPlayer" :options="plyrOptions">
-                    <audio :src="raw" :autoplay="shouldAutoPlay" @play="handlePlay"></audio>
-                </vue-plyr>
+                <div class="plyr-audio-container" ref="plyrAudioContainer">
+                    <audio :src="raw" :autoplay="shouldAutoPlay" @play="handlePlay" ref="audioElement"></audio>
+                </div>
             </div>
         </div>
 
         <!-- Video with plyr -->
         <div v-else-if="previewType == 'video' && !useDefaultMediaPlayer" class="video-player-container" :class="{ 'no-captions': !hasSubtitles }">
-            <vue-plyr ref="videoPlayer" :options="plyrOptions">
-                <video :src="raw" :autoplay="shouldAutoPlay" @play="handlePlay" playsinline webkit-playsinline>
+            <div class="plyr-video-container" ref="plyrVideoContainer">
+                <video :src="raw" :autoplay="shouldAutoPlay" @play="handlePlay" playsinline webkit-playsinline ref="videoElement">
                     <track kind="captions" v-for="(sub, index) in subtitlesList" :key="index" :src="sub.src"
                         :label="'Subtitle ' + sub.name" :default="false" />
                 </video>
-            </vue-plyr>
+            </div>
         </div>
 
         <!-- Default HTML5 Audio -->
@@ -124,6 +124,8 @@
 <script>
 import { state, mutations } from '@/store';
 import { url } from '@/utils';
+import Plyr from 'plyr';
+
 export default {
     name: "plyrViewer",
     props: {
@@ -169,6 +171,9 @@ export default {
             queueButtonVisible: false,
             hoverQueue: false,
             queueTimeout: null,
+            // Plyr instance
+            player: null,
+            currentPlyrMediaType: null,
             // Plyr options
             plyrOptions: {
                 controls: [
@@ -203,7 +208,7 @@ export default {
                 playsinline: true,
                 clickToPlay: true,
                 resetOnEnd: true,
-                preload: 'none',
+                preload: 'auto',
             },
         };
     },
@@ -233,6 +238,14 @@ export default {
                     this.updateCurrentQueueIndex();
                 }
             });
+        },
+        previewType(newType, oldType) {
+            console.log(`Media type changed from ${oldType} to ${newType}`);
+            // When media type changes (eg. video to audio) we need to destroy the old Plyr to avoid preview issues
+            if (oldType && newType !== oldType && !this.useDefaultMediaPlayer) {
+                this.destroyPlyr();
+                this.currentPlyrMediaType = null;
+            }
         },
         playbackMode: {
             handler(newMode, oldMode) {
@@ -287,8 +300,25 @@ export default {
         hasSubtitles() {
             return this.subtitlesList && this.subtitlesList.length > 0;
         },
+        mediaElement() {
+            if (this.useDefaultMediaPlayer) {
+                return this.previewType === 'video'
+                    ? this.$refs.defaultVideoPlayer 
+                    : this.$refs.defaultAudioPlayer;
+            }
+            return this.previewType === 'video'
+                ? this.$refs.videoElement 
+                : this.$refs.audioElement;
+        },
     },
     mounted() {
+        console.log('Component mounted with:', {
+            previewType: this.previewType,
+            raw: this.raw,
+            req: this.req,
+            reqType: this.req.type,
+            mediaElement: !!this.mediaElement
+        });
         this.updateMedia();
         this.hookEvents();
         this.$nextTick(() => {
@@ -308,19 +338,8 @@ export default {
         [this.toastTimeout, this.queueTimeout].forEach(timeout => {
             if (timeout) clearTimeout(timeout);
         });
-        // Cleanup players
-        ['videoPlayer', 'audioPlayer'].forEach(playerRef => {
-            const player = this.$refs[playerRef];
-            if (player && player.player) {
-            player.player.destroy();
-            // Remove event listeners
-            player.player.off('ended');
-            player.player.off('play');
-            player.player.off('pause');
-            player.player.off('enterfullscreen');
-            player.player.off('exitfullscreen');
-            }
-        });
+        // Cleanup Plyr
+        this.destroyPlyr();
         document.removeEventListener('keydown', this.handleKeydown);
         this.cleanupAlbumArt();
     },
@@ -356,21 +375,28 @@ export default {
                 this.queueTimeout = null;
             }
         },
+        destroyPlyr() {
+            if (this.player) {
+                console.log('Destroying Plyr instance');
+                this.player.destroy();
+                this.player = null;
+                this.playbackMenuInitialized = false;
+                this.lastAppliedMode = null;
+            }
+        },
         togglePlayPause() {
-            const player = this.getCurrentPlayer();
-            if (!player) return;
+            if (!this.mediaElement) return;
             if (this.useDefaultMediaPlayer) {
-                if (player.paused) {
-                    player.play();
+                if (this.mediaElement.paused) {
+                    this.mediaElement.play();
                 } else {
-                    player.pause();
+                    this.mediaElement.pause();
                 }
-            } else {
-                const plyrInstance = player.player;
-                if (plyrInstance.playing) {
-                    plyrInstance.pause();
+            } else if (this.player) {
+                if (this.player.playing) {
+                    this.player.pause();
                 } else {
-                    plyrInstance.play();
+                    this.player.play();
                 }
             }
         },
@@ -378,26 +404,17 @@ export default {
             this.$emit('play');
         },
         ensurePlaybackModeApplied() {
-            if (this.useDefaultMediaPlayer) return;
-
-            const playerRef = this.previewType === 'video'
-                ? this.$refs.videoPlayer
-                : this.$refs.audioPlayer;
-
-            if (!playerRef || !playerRef.player) return;
-
-            const player = playerRef.player;
-
+            if (this.useDefaultMediaPlayer || !this.player) return;
             try {
-                const settingsMenu = player.elements.settings?.menu;
-                const playbackBtn = player.elements.settings?.buttons?.playback;
+                const settingsMenu = this.player.elements.settings?.menu;
+                const playbackBtn = this.player.elements.settings?.buttons?.playback;
 
                 if (settingsMenu && settingsMenu.style.display !== 'none' && settingsMenu.getAttribute('hidden') === null) {
-                    this.applyCustomPlaybackSettings(player);
+                    this.applyCustomPlaybackSettings(this.player);
                 } else if (playbackBtn && !this.playbackMenuInitialized) {
                     // Initial setup -- if menu hasn't been initialized yet
                     console.log('Initializing custom playback menu');
-                    this.applyCustomPlaybackSettings(player);
+                    this.applyCustomPlaybackSettings(this.player);
                 }
                 // Otherwise, skip to avoid unnecessary recreation
             } catch (error) {
@@ -469,16 +486,13 @@ export default {
             if (!this.autoPlayEnabled || !this.shouldAutoPlay) return;
 
             try {
-                const player = this.getCurrentPlayer();
-                if (!player) return;
-
                 if (this.useDefaultMediaPlayer) {
                     // Ensure player is not muted before attempting autoplay
-                    player.muted = false;
-                    await player.play();
-                } else if (player.player) {
-                    player.player.muted = false;
-                    await player.player.play();
+                    this.mediaElement.muted = false;
+                    await this.mediaElement.play();
+                } else if (this.player) {
+                    this.player.muted = false;
+                    await this.player.play();
                 }
             } catch (error) {
                 console.log("Autoplay failed", error);
@@ -569,34 +583,54 @@ export default {
             this.albumArtUrl = null;
         },
         hookEvents() {
-            const player = this.getCurrentPlayer();
-            if (!player) return;
-
+            console.log(`hookEvents called: previewType=${this.previewType}, useDefaultMediaPlayer=${this.useDefaultMediaPlayer}, player=${this.player ? 'exists' : 'null'}`);
+            
             if (this.useDefaultMediaPlayer) {
                 // HTML5 Player
-                this.setupDefaultPlayerEvents(player);
-            } else if (player.player) {
-                // Plyr Player
-                this.setupPlyrEvents(player.player, this.previewType);
-            }
-        },
-        setupPlyrEvents(player, playerType) {
-            if (!player) return;
-
-            player.on('ended', this.handleMediaEnd);
-            player.on('play', () => {
-                mutations.setPlaybackState(true);
-            });
-            player.on('pause', () => {
-                mutations.setPlaybackState(false);
-            });
-            if (playerType === 'video') {
-                if (screen.orientation) {
-                    player.on('enterfullscreen', this.onFullscreenEnter);
-                    player.on('exitfullscreen', this.onFullscreenExit);
+                this.setupDefaultPlayerEvents(this.mediaElement);
+            } else {
+                // Check if we need to destroy/recreate Plyr
+                if (this.player && this.currentPlyrMediaType !== this.previewType) {
+                    console.log(`Media type changed from ${this.currentPlyrMediaType} to ${this.previewType}, destroying old Plyr`);
+                    this.destroyPlyr();
+                }
+                if (!this.player) {
+                    console.log('Initializing new Plyr instance');
+                    this.initializePlyr();
+                } else {
+                    console.log('Using existing Plyr instance');
+                    this.setupPlyrEvents();
                 }
             }
-            this.setupCustomPlaybackSettings(player);
+        },
+        initializePlyr() {
+            const plyr = this.mediaElement;
+            if (!plyr) return;
+            // Small delay to ensure DOM is ready
+            this.$nextTick(() => {
+                // Initialize Plyr
+                this.player = new Plyr(plyr, this.plyrOptions);
+                this.currentPlyrMediaType = this.previewType;
+                // Set up event listeners
+                this.setupPlyrEvents();
+            });
+        },
+        setupPlyrEvents() {
+            if (!this.player) return;
+            this.player.on('ended', this.handleMediaEnd);
+            this.player.on('play', () => {
+                mutations.setPlaybackState(true);
+            });
+            this.player.on('pause', () => {
+                mutations.setPlaybackState(false);
+            });
+            if (this.previewType === 'video') {
+                if (screen.orientation) {
+                    this.player.on('enterfullscreen', this.onFullscreenEnter);
+                    this.player.on('exitfullscreen', this.onFullscreenExit);
+                }
+            }
+            this.setupCustomPlaybackSettings();
         },
         setupDefaultPlayerEvents(element) {
             if (!element) return;
@@ -783,7 +817,7 @@ export default {
                 });
 
                 // Build the proper URL for browser history
-                const nextItemUrl = url.buildItemUrl(nextItem.source || this.req.source, nextItem.path);
+                const nextItemUrl = url.buildItemUrl(nextItem.source || this.req.source, nextItem.path, true);
 
                 // Store the expected path before making changes
                 const expectedPath = nextItem.path;
@@ -801,16 +835,24 @@ export default {
                     }
                 });
 
-                // Wait for state.req to be updated
+                // Old previewType before waiting for state.req update -- this are just logs for testing
+                const oldMediaType = this.previewType;
                 await this.waitForReqUpdate(expectedPath);
 
-                const player = this.getCurrentPlayer();
+                // Determine new type from the new state.req
+                const newMediaType = state.req?.type?.startsWith('audio/') ? 'audio' :
+                                    state.req?.type?.startsWith('video/') ? 'video' : null;
+
+                console.log(`Media type: old=${oldMediaType}, new=${newMediaType}`);
+
+                // Try to play the media
+                const player = this.mediaElement;
                 if (player) {
                     let playPromise;
                     if (this.useDefaultMediaPlayer) {
                         playPromise = player.play();
-                    } else if (player.player) {
-                        playPromise = player.player.play();
+                    } else if (this.player) {
+                        playPromise = this.player.play();
                     }
                     if (playPromise !== undefined) {
                         playPromise.catch((error) => {
@@ -846,34 +888,16 @@ export default {
                 );
             });
         },
-
-        getCurrentPlayer() {
-            // Return the appropriate player ref based on preview type and player type
-            if (this.useDefaultMediaPlayer) {
-                return this.previewType === 'video'
-                    ? this.$refs.defaultVideoPlayer
-                    : this.$refs.defaultAudioPlayer;
-            } else {
-                return this.previewType === 'video'
-                    ? this.$refs.videoPlayer
-                    : this.$refs.audioPlayer;
-            }
-        },
         restartCurrentFile() {
             console.log('Restarting current file');
-            const player = this.getCurrentPlayer();
-            if (player) {
-                if (this.useDefaultMediaPlayer) {
-                    // HTML5 player
-                    player.currentTime = 0;
-                    player.play();
-                } else {
-                    // Plyr player
-                    if (player.player) {
-                        player.player.currentTime = 0;
-                        player.player.play();
-                    }
-                }
+            if (this.useDefaultMediaPlayer) {
+                // HTML5 player
+                this.mediaElement.currentTime = 0;
+                this.mediaElement.play();
+            } else if (this.player) {
+                // Plyr player
+                this.player.currentTime = 0;
+                this.player.play();
             }
         },
         handleMediaEnd() {
@@ -1000,10 +1024,10 @@ export default {
                 console.error('Error applying custom playback settings:', error);
             }
         },
-        setupCustomPlaybackSettings(player) {
+        setupCustomPlaybackSettings() {
             // If settings element is present in plyr, setup custom settings
-            if (player.elements?.settings) {
-                this.applyCustomPlaybackSettings(player);
+            if (this.player?.elements?.settings) {
+                this.applyCustomPlaybackSettings(this.player);
             }
         },
     },
@@ -1025,6 +1049,11 @@ export default {
 /**********************************
 *** STYLES FOR THE MEDIA PLAYER ***
 **********************************/
+
+.plyr-video-container {
+width: 100%;
+height: 100%;
+}
 
 .plyr-viewer {
     height: 100%;
