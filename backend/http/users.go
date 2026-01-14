@@ -9,7 +9,6 @@ import (
 	"strconv"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
-	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/database/storage"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 )
@@ -90,8 +89,8 @@ func prepForFrontend(u *users.User) {
 	u.OtpEnabled = u.TOTPSecret != ""
 	u.TOTPSecret = ""
 	u.TOTPNonce = ""
-	u.Scopes = settings.ConvertToFrontendScopes(u.Scopes)
-	u.SidebarLinks = settings.ConvertToFrontendSidebarLinks(u.SidebarLinks)
+	u.Scopes = u.GetFrontendScopes()
+	u.SidebarLinks = u.GetFrontendSidebarLinks()
 }
 
 // userDeleteHandler deletes a user by ID.

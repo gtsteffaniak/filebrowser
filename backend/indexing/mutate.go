@@ -186,21 +186,16 @@ func (idx *Index) GetMetadataInfo(target string, isDir bool, shallow bool) (*ite
 	}
 
 	// checkDir is already an index path (relative to source root)
-	logger.Debugf("[GET_METADATA] GetMetadataInfo: Querying source=%s, path=%s, isDir=%v, shallow=%v", idx.Name, checkDir, isDir, shallow)
 	dir, err := idx.db.GetItem(idx.Name, checkDir)
 	if err != nil {
-		logger.Debugf("[GET_METADATA] GetMetadataInfo: GetItem failed for source=%s, path=%s, error=%v", idx.Name, checkDir, err)
 		return nil, false
 	}
 
 	// If not found in DB during scan, item might not be indexed yet
 	// (Batches are now scanner-specific, so we don't flush from API calls)
 	if dir == nil {
-		logger.Debugf("[GET_METADATA] GetMetadataInfo: Item not found in database - source=%s, path=%s", idx.Name, checkDir)
 		return nil, false
 	}
-
-	logger.Debugf("[GET_METADATA] GetMetadataInfo: Found item source=%s, path=%s, name=%s, is_dir=%v", idx.Name, checkDir, dir.Name, dir.Type == "directory")
 
 	// If shallow is true, return only the parent item without fetching children
 	// This is much faster when we only need fields like hasPreview
@@ -209,13 +204,11 @@ func (idx *Index) GetMetadataInfo(target string, isDir bool, shallow bool) (*ite
 	}
 
 	// Get children
-	logger.Debugf("[GET_METADATA] GetMetadataInfo: Fetching children for source=%s, parent_path=%s", idx.Name, checkDir)
 	children, err := idx.db.GetDirectoryChildren(idx.Name, checkDir)
 	if err != nil {
-		logger.Errorf("[GET_METADATA] GetMetadataInfo: Failed to get children for %s: %v", checkDir, err)
+		logger.Errorf("Failed to get children for %s: %v", checkDir, err)
 		return dir, true
 	}
-	logger.Debugf("[GET_METADATA] GetMetadataInfo: Got %d children for source=%s, parent_path=%s", len(children), idx.Name, checkDir)
 
 	// Populate Files and Folders
 	for _, child := range children {

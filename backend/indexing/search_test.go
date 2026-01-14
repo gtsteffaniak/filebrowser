@@ -125,8 +125,8 @@ func TestSearchWhileIndexing(t *testing.T) {
 	}
 
 	source := &settings.Source{Name: "test", Path: "/srv"}
-	// Initialize ResolvedConditionals to avoid nil pointer dereference
-	source.Config.ResolvedConditionals = &settings.ResolvedConditionalsConfig{
+	// Initialize ResolvedRules to avoid nil pointer dereference
+	source.Config.ResolvedRules = settings.ResolvedRulesConfig{
 		FileNames:                make(map[string]settings.ConditionalRule),
 		FolderNames:              make(map[string]settings.ConditionalRule),
 		FilePaths:                make(map[string]settings.ConditionalRule),

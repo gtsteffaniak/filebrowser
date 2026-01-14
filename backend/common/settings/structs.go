@@ -199,7 +199,7 @@ type SourceConfig struct {
 	CreateUserDir    bool              `json:"createUserDir"`                     // create a user directory for each user under defaultUserScope + username
 	UseLogicalSize   bool              `json:"useLogicalSize"`                    // calculate sizes based on logical size instead of disk utilization (du -sh), folders will be 0 bytes when empty.
 	// hidden but used internally - optimized map lookups for conditional rules
-	ResolvedConditionals *ResolvedConditionalsConfig `json:"-"`
+	ResolvedRules ResolvedRulesConfig `json:"-"`
 }
 
 type ConditionalFilter struct {
@@ -231,7 +231,7 @@ type ConditionalRule struct {
 
 // ConditionalMaps provides O(1) lookup performance for conditional rules
 // Maps are built from ConditionalFilter during initialization
-type ResolvedConditionalsConfig struct {
+type ResolvedRulesConfig struct {
 	// Exact match maps - O(1) lookup (only for names, not StartsWith/EndsWith)
 	FileNames   map[string]ConditionalRule // key: file name
 	FolderNames map[string]ConditionalRule // key: folder name

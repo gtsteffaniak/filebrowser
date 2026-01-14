@@ -7,7 +7,6 @@ import (
 	"github.com/gtsteffaniak/go-logger/logger"
 	"golang.org/x/net/webdav"
 
-	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
@@ -24,7 +23,7 @@ func createWebDAVHandler(prefix string) handleFunc {
 			// in the follow-ups, we need to add mapping of webdav operations and permissions (which is trickier than it looks like).
 			return http.StatusForbidden, fmt.Errorf("user is not allowed to create or modify")
 		}
-		userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, source)
+		userscope, err := d.user.GetScopeForSourceName(source)
 		if err != nil {
 			logger.Debugf("error getting scope from source name: %v", err)
 			return http.StatusForbidden, err

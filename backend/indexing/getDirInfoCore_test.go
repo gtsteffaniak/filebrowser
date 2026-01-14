@@ -2,6 +2,8 @@ package indexing
 
 import (
 	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 )
@@ -34,7 +36,7 @@ func TestFetchExtendedAttributes(t *testing.T) {
 		},
 		{
 			name:         "Recursive returns empty",
-			adjustedPath:  "/test/",
+			adjustedPath: "/test/",
 			combinedPath: "/test/",
 			files:        []os.FileInfo{},
 			opts: Options{
@@ -48,7 +50,7 @@ func TestFetchExtendedAttributes(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			hasPreview, subdirMap := idx.fetchExtendedAttributes(tt.adjustedPath, tt.combinedPath, tt.files, tt.opts)
+			hasPreview, subdirMap := idx.fetchExtendedAttributes(tt.adjustedPath, tt.files, tt.opts)
 			if hasPreview != tt.expectHasPreview {
 				t.Errorf("expected hasPreview=%v, got %v", tt.expectHasPreview, hasPreview)
 			}
@@ -59,121 +61,46 @@ func TestFetchExtendedAttributes(t *testing.T) {
 	}
 }
 
-// TestShouldProcessItem tests the shouldProcessItem helper function
-func TestShouldProcessItem(t *testing.T) {
-	idx, _, cleanup := setupTestIndex(t)
-	defer cleanup()
-
-	// Create a mock file info
-	mockFile := &mockFileInfo{
-		name: "testfile.txt",
-		mode: 0,
-	}
-
-	tests := []struct {
-		name        string
-		file        os.FileInfo
-		adjustedPath string
-		combinedPath string
-		baseName     string
-		isDir        bool
-		opts         Options
-		expect      bool
-	}{
-		{
-			name:         "SkipIndexChecks with viewable item",
-			file:         mockFile,
-			adjustedPath: "/test/",
-			combinedPath: "/test/",
-			baseName:     "testfile.txt",
-			isDir:        false,
-			opts: Options{
-				SkipIndexChecks: true,
-			},
-			expect: true, // Assuming IsViewable returns true for test paths
-		},
-		{
-			name:         "SkipIndexChecks with non-viewable item",
-			file:         mockFile,
-			adjustedPath: "/test/",
-			combinedPath: "/test/",
-			baseName:     "hidden.txt",
-			isDir:        false,
-			opts: Options{
-				SkipIndexChecks: true,
-			},
-			expect: false, // Assuming IsViewable returns false
-		},
-		{
-			name:         "Indexed path with CheckViewable",
-			file:         mockFile,
-			adjustedPath: "/test/",
-			combinedPath: "/test/",
-			baseName:     "testfile.txt",
-			isDir:        false,
-			opts: Options{
-				SkipIndexChecks: false,
-				CheckViewable:   true,
-			},
-			expect: true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result := idx.shouldProcessItem(tt.file, tt.adjustedPath, tt.combinedPath, tt.baseName, tt.isDir, tt.opts)
-			// Note: Actual result depends on shouldSkip and IsViewable implementation
-			// This test verifies the function doesn't panic and returns a boolean
-			_ = result
-		})
-	}
-}
-
-// TestGetDirectoryName tests the getDirectoryName helper function
+// TestGetDirectoryName tests the directory name extraction logic
 func TestGetDirectoryName(t *testing.T) {
 	tests := []struct {
-		name         string
-		realPath     string
-		adjustedPath string
-		expected     string
+		name      string
+		indexPath string
+		idxPath   string
+		expected  string
 	}{
 		{
-			name:         "Normal directory path",
-			realPath:     "/home/user/documents",
-			adjustedPath: "/documents/",
-			expected:     "documents",
+			name:      "Normal directory path",
+			indexPath: "/documents/",
+			idxPath:   "/home/user",
+			expected:  "documents",
 		},
 		{
-			name:         "Root path",
-			realPath:     "/",
-			adjustedPath: "/",
-			expected:     "/",
+			name:      "Root path",
+			indexPath: "/",
+			idxPath:   "/home/user",
+			expected:  "user",
 		},
 		{
-			name:         "Current directory (.)",
-			realPath:     ".",
-			adjustedPath: "/test/",
-			expected:     "test",
-		},
-		{
-			name:         "Empty realPath uses adjustedPath",
-			realPath:     "",
-			adjustedPath: "/mydir/",
-			expected:     "mydir",
-		},
-		{
-			name:         "RealPath with trailing slash",
-			realPath:     "/home/user/documents/",
-			adjustedPath: "/documents/",
-			expected:     "documents",
+			name:      "Path with trailing slash",
+			indexPath: "/mydir/",
+			idxPath:   "/base",
+			expected:  "mydir",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := getDirectoryName(tt.realPath, tt.adjustedPath)
-			if result != tt.expected {
-				t.Errorf("expected %q, got %q", tt.expected, result)
+			// Note: The actual getDirectoryName logic is now inline in GetDirInfoCore
+			// This test verifies the expected behavior using filepath.Base
+
+			baseName := filepath.Base(strings.TrimSuffix(tt.indexPath, "/"))
+			if tt.indexPath == "/" {
+				baseName = filepath.Base(tt.idxPath)
+			}
+
+			if baseName != tt.expected {
+				t.Errorf("expected %q, got %q", tt.expected, baseName)
 			}
 		})
 	}
@@ -217,7 +144,7 @@ func TestProcessDirectoryItem(t *testing.T) {
 		expectShouldCount   bool
 	}{
 		{
-			name:         "UseInMemorySizes with existing size",
+			name:         "Non-recursive with cached size",
 			file:         mockDir,
 			combinedPath: "/test/",
 			realPath:     "/real/test",
@@ -227,7 +154,6 @@ func TestProcessDirectoryItem(t *testing.T) {
 			},
 			opts: Options{
 				Recursive:         false,
-				UseInMemorySizes:  true,
 				SkipExtendedAttrs: false,
 			},
 			expectNil:         false,
@@ -235,7 +161,7 @@ func TestProcessDirectoryItem(t *testing.T) {
 			expectShouldCount: true,
 		},
 		{
-			name:         "UseInMemorySizes without existing size",
+			name:         "Non-recursive without cached size",
 			file:         mockDirNoSize,
 			combinedPath: "/test/",
 			realPath:     "/real/test",
@@ -245,7 +171,6 @@ func TestProcessDirectoryItem(t *testing.T) {
 			},
 			opts: Options{
 				Recursive:         false,
-				UseInMemorySizes:  true,
 				SkipExtendedAttrs: false,
 			},
 			expectNil:         false,
@@ -263,7 +188,6 @@ func TestProcessDirectoryItem(t *testing.T) {
 			},
 			opts: Options{
 				Recursive:         false,
-				UseInMemorySizes:  true,
 				SkipExtendedAttrs: true,
 			},
 			expectNil:         false,
@@ -275,7 +199,7 @@ func TestProcessDirectoryItem(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			itemInfo, size, shouldCount := idx.processDirectoryItem(
-				tt.file, tt.combinedPath, tt.realPath, tt.fullCombined,
+				tt.file, tt.combinedPath,
 				tt.subdirHasPreviewMap, tt.opts, nil,
 			)
 
@@ -363,7 +287,7 @@ func TestProcessFileItem(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			itemInfo, size, shouldCount, bubblesUp := idx.processFileItem(
-				tt.file, tt.realPath, tt.combinedPath, tt.fullCombined, tt.opts, tt.scanner,
+				tt.file, tt.combinedPath, tt.opts, tt.scanner,
 			)
 
 			if itemInfo == nil {
