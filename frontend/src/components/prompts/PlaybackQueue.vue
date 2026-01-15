@@ -290,12 +290,14 @@ export default {
 
 .queue-container {
   flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
 }
 
 .file-list {
   overflow-y: auto;
+  min-height: 0;
   align-items: center;
   border-radius: 12px;
   padding: 0;

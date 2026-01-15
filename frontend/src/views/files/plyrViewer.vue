@@ -116,7 +116,8 @@
 </template>
 
 <script>
-import { state, mutations } from '@/store';
+import { state, mutations, getters } from '@/store';
+import { publicApi } from '@/api';
 import { url } from '@/utils';
 import Plyr from 'plyr';
 
@@ -309,9 +310,7 @@ export default {
                 this.showQueueButtonMethod();
             }
             // Initial queue setup
-            if (state.navigation?.listing && state.navigation.listing.length > 0) {
             this.setupPlaybackQueue();
-            }
         });
         document.addEventListener('keydown', this.handleKeydown);
     },
@@ -612,8 +611,26 @@ export default {
             console.log('Setting up playback queue on mode:', this.playbackMode);
             console.log('Current req path:', this.req.path);
 
-            // Get the current directory listing from the navigation state
-            const listing = state.navigation?.listing || [];
+            let listing = [];
+            const isShare = getters.isShare();
+
+            if (isShare) {
+                try {
+                    const parentPath = url.removeLastDir(this.req.path) || '/';
+                    const hash = state.shareInfo.hash;
+
+                    console.log('Fetching share directory:', parentPath, 'hash:', hash);
+
+                    const req = await publicApi.fetchPub(parentPath, hash);
+                    listing = req.items || [];
+
+                    console.log('Share listing fetched:', listing.length, 'items');
+                } catch (error) {
+                    console.error('Error fetching share directory:', error);
+                }
+            } else {
+                listing = state.navigation?.listing || [];
+            }
 
             // Filter only audio/video files
             const mediaFiles = listing.filter(item => {
@@ -634,8 +651,12 @@ export default {
                 return;
             }
 
-            // Find current file index of the file opened
-            const currentIndex = mediaFiles.findIndex(item => item.path === this.req.path);
+            let currentIndex = -1;
+            if (isShare) {
+                currentIndex = mediaFiles.findIndex(item => item.name === this.req.name); // Compare by name for shares since path can differ
+            } else {
+                currentIndex = mediaFiles.findIndex(item => item.path === this.req.path);
+            }
 
             let finalQueue = [];
             let finalIndex = 0;
@@ -659,7 +680,6 @@ export default {
                     if (currentIndex !== -1) {
                         const currentFile = mediaFiles[currentIndex];
                         finalIndex = sortedFiles.findIndex(item => item.path === currentFile.path);
-
                     } else {
                         finalIndex = 0;
                     }
