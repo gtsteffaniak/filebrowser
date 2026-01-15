@@ -48,7 +48,6 @@ type FileOptions struct {
 	Source                   string
 	IsDir                    bool
 	Expand                   bool
-	ReadHeader               bool
 	Content                  bool
 	Recursive                bool // whether to recursively index directories
 	Metadata                 bool // whether to get metadata

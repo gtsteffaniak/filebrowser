@@ -659,7 +659,21 @@ func WriteDirectory(opts utils.FileOptions) error {
 		logger.Debugf("Could not set file permissions for %s (this may be expected in restricted environments): %v", realPath, err)
 	}
 
-	return RefreshIndex(idx.Name, opts.Path, true, true)
+	// Refresh the directory itself recursively
+	err = RefreshIndex(idx.Name, opts.Path, true, true)
+	if err != nil {
+		return err
+	}
+
+	// Refresh parent directory to update its size
+	parentPath := filepath.Dir(opts.Path)
+	if parentPath != "." && parentPath != "/" && parentPath != opts.Path {
+		if err := RefreshIndex(idx.Name, parentPath, true, false); err != nil {
+			logger.Debugf("Could not refresh parent directory %s: %v", parentPath, err)
+		}
+	}
+
+	return nil
 }
 
 func WriteFile(source, path string, in io.Reader) error {
@@ -711,7 +725,21 @@ func WriteFile(source, path string, in io.Reader) error {
 		logger.Debugf("Could not set file permissions for %s (this may be expected in restricted environments): %v", realPath, err)
 	}
 
-	return RefreshIndex(source, path, false, false)
+	// Refresh the file itself
+	err = RefreshIndex(source, path, false, false)
+	if err != nil {
+		return err
+	}
+
+	// Refresh parent directory to update its size
+	parentPath := filepath.Dir(path)
+	if parentPath != "." && parentPath != "/" && parentPath != path {
+		if err := RefreshIndex(source, parentPath, true, false); err != nil {
+			logger.Debugf("Could not refresh parent directory %s: %v", parentPath, err)
+		}
+	}
+
+	return nil
 }
 
 // getContent reads and returns the file content if it's considered an editable text file.
