@@ -245,6 +245,8 @@ definitions:
     properties:
       complexity:
         type: integer
+      fullScanDurationSeconds:
+        type: integer
       lastIndexedUnixTime:
         type: integer
       lastScanned:
@@ -257,8 +259,7 @@ definitions:
         type: integer
       numFiles:
         type: integer
-      scanDurationSeconds:
-        description: Unified scan time metric
+      quickScanDurationSeconds:
         type: integer
       scanners:
         items:
@@ -277,6 +278,8 @@ definitions:
         type: integer
       currentSchedule:
         type: integer
+      fullScanDurationSeconds:
+        type: integer
       isRoot:
         type: boolean
       lastIndexedUnixTime:
@@ -291,8 +294,7 @@ definitions:
         type: integer
       path:
         type: string
-      scanDurationSeconds:
-        description: Unified scan time metric
+      quickScanDurationSeconds:
         type: integer
       used:
         type: integer

@@ -480,6 +480,8 @@
   "index": {
     "assessment": "評估",
     "lastScanned": "最後一次掃描",
+    "quickScan": "快速掃描秒數",
+    "fullScan": "完整掃描秒數",
     "settingsHover": "使用者設定",
     "toggleClick": "切換單擊",
     "toggleDark": "切換黑暗模式",
@@ -493,8 +495,7 @@
     "ready": "準備就緒",
     "indexing": "索引",
     "unavailable": "無法使用",
-    "error": "錯誤",
-    "scanTime": "掃描時間 (秒)"
+    "error": "錯誤"
   },
   "profileSettings": {
     "setDateFormat": "設定精確的日期格式",

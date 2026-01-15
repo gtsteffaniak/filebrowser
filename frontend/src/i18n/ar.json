@@ -480,6 +480,8 @@
   "index": {
     "assessment": "التقييم",
     "lastScanned": "آخر مسح ضوئي",
+    "quickScan": "ثواني المسح السريع",
+    "fullScan": "كامل ثواني المسح الضوئي",
     "settingsHover": "إعدادات المستخدم",
     "toggleClick": "تبديل نقرة واحدة",
     "toggleDark": "تبديل الوضع الداكن",
@@ -493,8 +495,7 @@
     "ready": "جاهز",
     "indexing": "الفهرسة",
     "unavailable": "غير متاح",
-    "error": "خطأ",
-    "scanTime": "وقت المسح (بالثواني)"
+    "error": "خطأ"
   },
   "otp": {
     "name": "المصادقة الثنائية",

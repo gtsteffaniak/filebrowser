@@ -27,8 +27,12 @@
         <td>{{ getHumanReadable(info.lastIndex) }}</td>
       </tr>
       <tr>
-        <td>{{ $t("index.scanTime") }}</td>
-        <td>{{ formatDuration(info.scanDurationSeconds) }}</td>
+        <td>{{ $t("index.quickScan") }}</td>
+        <td>{{ formatDuration(info.quickScanDurationSeconds) }}</td>
+      </tr>
+      <tr>
+        <td>{{ $t("index.fullScan") }}</td>
+        <td>{{ formatDuration(info.fullScanDurationSeconds) }}</td>
       </tr>
     </tbody>
   </table>
@@ -126,8 +130,12 @@ export function buildIndexInfoTooltipHTML(info, $t, locale) {
           <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${getHumanReadableTime(info.lastIndex, locale)}</td>
         </tr>
         <tr>
-          <td style="padding: 0.2em 0.5em;">${$t("index.scanTime")}</td>
-          <td style="padding: 0.2em 0.5em;">${formatDuration(info.scanDurationSeconds)}</td>
+          <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${$t("index.quickScan")}</td>
+          <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${formatDuration(info.quickScanDurationSeconds)}</td>
+        </tr>
+        <tr>
+          <td style="padding: 0.2em 0.5em;">${$t("index.fullScan")}</td>
+          <td style="padding: 0.2em 0.5em;">${formatDuration(info.fullScanDurationSeconds)}</td>
         </tr>
       </tbody>
     </table>

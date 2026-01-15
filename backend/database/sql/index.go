@@ -544,6 +544,142 @@ func (db *IndexDB) UpdateCacheSize(cacheSizeMB int) error {
 	return nil
 }
 
+// DeleteStaleEntriesQuick handles cleanup for quick scans (two-phase approach)
+// Phase 1: Delete folders that weren't updated (they were deleted from filesystem)
+// Phase 2: Delete files only in folders that had modtime changes
+// DeleteStaleFolders deletes folders that weren't updated during a quick scan
+func (db *IndexDB) DeleteStaleFolders(source string, pathPrefix string, scanStartTime int64, root bool) (int, error) {
+	if scanStartTime == 0 {
+		return 0, nil
+	}
+
+	const batchSize = 1000
+	totalDeleted := 0
+
+	// Delete stale folders (weren't touched during quick scan)
+	for {
+		var query string
+		var result sql.Result
+		var err error
+
+		if root {
+			// Root scanner: only check direct children folders
+			query = `
+			DELETE FROM index_items 
+			WHERE rowid IN (
+				SELECT rowid FROM index_items
+				WHERE source = ? 
+				AND parent_path = '/'
+				AND is_dir = 1
+				AND last_updated < ?
+				LIMIT ?
+			)
+			`
+			result, err = db.Exec(query, source, scanStartTime, batchSize)
+		} else {
+			// Child scanner: check all folders under pathPrefix
+			nextPrefix := getNextPathPrefix(pathPrefix)
+			query = `
+			DELETE FROM index_items 
+			WHERE rowid IN (
+				SELECT rowid FROM index_items
+				WHERE source = ? 
+				AND path >= ? AND path < ?
+				AND is_dir = 1
+				AND last_updated < ?
+				LIMIT ?
+			)
+			`
+			result, err = db.Exec(query, source, pathPrefix, nextPrefix, scanStartTime, batchSize)
+		}
+
+		if err != nil {
+			if isBusyError(err) || isTransactionError(err) {
+				logger.Debugf("[DB_MAINTENANCE] DeleteStaleEntriesQuick Phase 1: DB busy, skipping cleanup")
+				return totalDeleted, nil
+			}
+			return totalDeleted, err
+		}
+
+		rowsAffected, _ := result.RowsAffected()
+		totalDeleted += int(rowsAffected)
+
+		if rowsAffected < batchSize {
+			break
+		}
+	}
+
+	return totalDeleted, nil
+}
+
+// DeleteStaleFilesInDirs deletes files that weren't updated in specific directories
+// Uses batched IN clauses for efficiency with potentially large directory lists
+func (db *IndexDB) DeleteStaleFilesInDirs(source string, updatedDirs []string, scanStartTime int64) (int, error) {
+	if scanStartTime == 0 || len(updatedDirs) == 0 {
+		return 0, nil
+	}
+
+	const maxPathsPerBatch = 500 // SQLite handles IN clauses well up to ~1000, we use 500 for safety
+	const deleteLimit = 1000     // Limit per DELETE to prevent memory spikes
+	totalDeleted := 0
+
+	// Process directories in batches
+	for batchStart := 0; batchStart < len(updatedDirs); batchStart += maxPathsPerBatch {
+		batchEnd := batchStart + maxPathsPerBatch
+		if batchEnd > len(updatedDirs) {
+			batchEnd = len(updatedDirs)
+		}
+		batch := updatedDirs[batchStart:batchEnd]
+
+		// Build placeholders for IN clause
+		placeholders := make([]string, len(batch))
+		args := make([]interface{}, len(batch)+2)
+		args[0] = source
+		args[1] = scanStartTime
+		for i, dir := range batch {
+			placeholders[i] = "?"
+			args[i+2] = dir
+		}
+		placeholdersStr := strings.Join(placeholders, ",")
+
+		// Delete files in batches to prevent memory spikes
+		for {
+			query := fmt.Sprintf(`
+				DELETE FROM index_items 
+				WHERE rowid IN (
+					SELECT rowid FROM index_items
+					WHERE source = ?
+					AND is_dir = 0
+					AND last_updated < ?
+					AND parent_path IN (%s)
+					LIMIT ?
+				)
+			`, placeholdersStr)
+
+			// Append limit to args
+			queryArgs := append(args, deleteLimit)
+
+			result, err := db.Exec(query, queryArgs...)
+			if err != nil {
+				if isBusyError(err) || isTransactionError(err) {
+					logger.Debugf("[DB_MAINTENANCE] DeleteStaleFilesInDirs: DB busy, skipping batch")
+					break // Skip this batch and continue with next
+				}
+				return totalDeleted, err
+			}
+
+			rowsAffected, _ := result.RowsAffected()
+			totalDeleted += int(rowsAffected)
+
+			if rowsAffected < deleteLimit {
+				break // No more files to delete in this batch
+			}
+		}
+	}
+
+	return totalDeleted, nil
+}
+
 func (db *IndexDB) DeleteStaleEntries(source string, pathPrefix string, scanStartTime int64, root bool) (int, error) {
 	if scanStartTime == 0 {
 		return 0, nil

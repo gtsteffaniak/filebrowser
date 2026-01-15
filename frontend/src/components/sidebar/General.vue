@@ -298,8 +298,12 @@ export default {
                 <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${getHumanReadable(info.lastIndex)}</td>
               </tr>
               <tr>
-                <td style="padding: 0.2em 0.5em;">${this.$t("index.scanTime")}</td>
-                <td style="padding: 0.2em 0.5em;">${isNaN(Number(info.scanDurationSeconds)) ? '' : Number(info.scanDurationSeconds)}</td>
+                <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${this.$t("index.quickScan")}</td>
+                <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${isNaN(Number(info.quickScanDurationSeconds)) ? '' : Number(info.quickScanDurationSeconds)}</td>
+              </tr>
+              <tr>
+                <td style="padding: 0.2em 0.5em;">${this.$t("index.fullScan")}</td>
+                <td style="padding: 0.2em 0.5em;">${isNaN(Number(info.fullScanDurationSeconds)) ? '' : Number(info.fullScanDurationSeconds)}</td>
               </tr>
             </tbody>
           </table>

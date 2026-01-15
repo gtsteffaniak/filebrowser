@@ -3636,6 +3636,9 @@ const docTemplate = `{
                 "complexity": {
                     "type": "integer"
                 },
+                "fullScanDurationSeconds": {
+                    "type": "integer"
+                },
                 "lastIndexedUnixTime": {
                     "type": "integer"
                 },
@@ -3654,8 +3657,7 @@ const docTemplate = `{
                 "numFiles": {
                     "type": "integer"
                 },
-                "scanDurationSeconds": {
-                    "description": "Unified scan time metric",
+                "quickScanDurationSeconds": {
                     "type": "integer"
                 },
                 "scanners": {
@@ -3684,6 +3686,9 @@ const docTemplate = `{
                 "currentSchedule": {
                     "type": "integer"
                 },
+                "fullScanDurationSeconds": {
+                    "type": "integer"
+                },
                 "isRoot": {
                     "type": "boolean"
                 },
@@ -3705,8 +3710,7 @@ const docTemplate = `{
                 "path": {
                     "type": "string"
                 },
-                "scanDurationSeconds": {
-                    "description": "Unified scan time metric",
+                "quickScanDurationSeconds": {
                     "type": "integer"
                 },
                 "used": {

@@ -480,6 +480,8 @@
   "index": {
     "assessment": "Ocena",
     "lastScanned": "Ostatnio skanowane",
+    "quickScan": "Sekundy szybkiego skanowania",
+    "fullScan": "Sekundy pełnego skanowania",
     "settingsHover": "Ustawienia dla użytkownika",
     "toggleClick": "Przełączanie jednym kliknięciem",
     "toggleDark": "Przełączanie trybu ciemnego",
@@ -493,8 +495,7 @@
     "ready": "Gotowy",
     "indexing": "Indeksowanie",
     "unavailable": "Niedostępne",
-    "error": "Błąd",
-    "scanTime": "Czas skanowania (sekundy)"
+    "error": "Błąd"
   },
   "otp": {
     "name": "Uwierzytelnianie dwuskładnikowe",

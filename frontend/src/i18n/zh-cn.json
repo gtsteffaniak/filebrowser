@@ -480,6 +480,8 @@
   "index": {
     "assessment": "评估",
     "lastScanned": "上次扫描",
+    "quickScan": "快速扫描秒数",
+    "fullScan": "完整扫描秒数",
     "settingsHover": "用户设置",
     "toggleClick": "单击切换",
     "toggleDark": "切换黑暗模式",
@@ -493,8 +495,7 @@
     "ready": "准备就绪",
     "indexing": "索引",
     "unavailable": "不可用",
-    "error": "错误",
-    "scanTime": "扫描时间（秒）"
+    "error": "错误"
   },
   "otp": {
     "name": "双因素验证",

@@ -480,6 +480,8 @@
   "index": {
     "assessment": "Tipo",
     "lastScanned": "Último escaneo",
+    "quickScan": "Escaneo rápido",
+    "fullScan": "Escaneo completo",
     "settingsHover": "Ajustes de usuario",
     "toggleClick": "Abrir con un solo clic",
     "toggleDark": "Activar modo oscuro",
@@ -493,8 +495,7 @@
     "ready": "Listo",
     "indexing": "Escaneando",
     "unavailable": "No disponible",
-    "error": "Error",
-    "scanTime": "Tiempo de exploración (segundos)"
+    "error": "Error"
   },
   "otp": {
     "name": "Autenticación de dos factores (2FA)",

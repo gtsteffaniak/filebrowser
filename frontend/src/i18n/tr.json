@@ -480,6 +480,8 @@
   "index": {
     "assessment": "Değerlendirme",
     "lastScanned": "Son Taranan",
+    "quickScan": "Hızlı Tarama Saniyeleri",
+    "fullScan": "Tam Tarama Saniyeleri",
     "settingsHover": "Kullanıcı Ayarları",
     "toggleClick": "Tek Tıklamayı Değiştir",
     "toggleDark": "Karanlık Modu Aç / Kapat",
@@ -493,8 +495,7 @@
     "ready": "Hazır",
     "indexing": "İndeksleme",
     "unavailable": "Kullanılamıyor",
-    "error": "Hata",
-    "scanTime": "Tarama Süresi (saniye)"
+    "error": "Hata"
   },
   "otp": {
     "name": "İki Faktörlü Kimlik Doğrulama",

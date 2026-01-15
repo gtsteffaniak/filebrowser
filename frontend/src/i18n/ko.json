@@ -480,6 +480,8 @@
   "index": {
     "assessment": "평가",
     "lastScanned": "마지막 스캔",
+    "quickScan": "빠른 스캔 초",
+    "fullScan": "전체 스캔 시간(초)",
     "settingsHover": "사용자 설정",
     "toggleClick": "클릭 한 번으로 토글",
     "toggleDark": "다크 모드 전환",
@@ -493,8 +495,7 @@
     "ready": "준비",
     "indexing": "인덱싱",
     "unavailable": "사용 불가",
-    "error": "오류",
-    "scanTime": "스캔 시간(초)"
+    "error": "오류"
   },
   "otp": {
     "name": "2단계 인증",

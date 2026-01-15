@@ -79,7 +79,8 @@ type Stats struct {
 	NumDirs         uint64    `json:"numDirs"`
 	NumFiles        uint64    `json:"numFiles"`
 	NumDeleted      uint64    `json:"numDeleted"`
-	ScanTime        int       `json:"scanDurationSeconds"` // Unified scan time metric
+	QuickScanTime   int       `json:"quickScanDurationSeconds"`
+	FullScanTime    int       `json:"fullScanDurationSeconds"`
 	LastIndexedUnix int64     `json:"lastIndexedUnixTime"`
 	Complexity      uint      `json:"complexity"`
 	LastScanned     time.Time `json:"lastScanned"`
@@ -181,23 +182,39 @@ func (idx *Index) getNumFilesUnlocked() uint64 {
 	return totalFiles
 }
 
-// GetScanTime calculates the total scan time by summing all scanner values
-func (idx *Index) GetScanTime() int {
+// GetQuickScanTime calculates the total quick scan time by summing all scanner values
+func (idx *Index) GetQuickScanTime() int {
 	idx.mu.RLock()
 	defer idx.mu.RUnlock()
-	return idx.getScanTimeUnlocked()
+	return idx.getQuickScanTimeUnlocked()
 }
 
-// getScanTimeUnlocked calculates ScanTime without acquiring lock (assumes lock is already held)
-func (idx *Index) getScanTimeUnlocked() int {
+// getQuickScanTimeUnlocked calculates QuickScanTime without acquiring lock (assumes lock is already held)
+func (idx *Index) getQuickScanTimeUnlocked() int {
 	var total = 0
 	for _, scanner := range idx.scanners {
-		total += scanner.scanTime
+		total += scanner.quickScanTime
 	}
 	return total
 }
 
-// GetComplexity calculates the complexity based on scan time and number of directories
+// GetFullScanTime calculates the total full scan time by summing all scanner values
+func (idx *Index) GetFullScanTime() int {
+	idx.mu.RLock()
+	defer idx.mu.RUnlock()
+	return idx.getFullScanTimeUnlocked()
+}
+
+// getFullScanTimeUnlocked calculates FullScanTime without acquiring lock (assumes lock is already held)
+func (idx *Index) getFullScanTimeUnlocked() int {
+	var total = 0
+	for _, scanner := range idx.scanners {
+		total += scanner.fullScanTime
+	}
+	return total
+}
+
+// GetComplexity calculates the complexity based on full scan time and number of directories
 func (idx *Index) GetComplexity() uint {
 	idx.mu.RLock()
 	defer idx.mu.RUnlock()
@@ -235,9 +252,9 @@ func (idx *Index) getComplexityUnlocked() uint {
 		return 0
 	}
 
-	totalScanTime := idx.getScanTimeUnlocked()
+	totalFullScanTime := idx.getFullScanTimeUnlocked()
 	totalDirs := idx.getNumDirsUnlocked()
-	calculatedComplexity := calculateComplexity(totalScanTime, totalDirs)
+	calculatedComplexity := calculateComplexity(totalFullScanTime, totalDirs)
 
 	// Update persisted value with calculated value
 	if calculatedComplexity > 0 {
@@ -1613,7 +1630,8 @@ func (idx *Index) Save() error {
 			Path:            path,
 			Complexity:      scanner.complexity,
 			CurrentSchedule: scanner.currentSchedule,
-			ScanTime:        scanner.scanTime,
+			QuickScanTime:   scanner.quickScanTime,
+			FullScanTime:    scanner.fullScanTime,
 			NumDirs:         scanner.numDirs,
 			NumFiles:        scanner.numFiles,
 			LastScanned:     scanner.lastScanned,

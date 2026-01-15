@@ -231,15 +231,12 @@ func (idx *Index) setupMultiScanner() {
 	}
 
 	// Load existing folder sizes from database to avoid marking everything as dirty on startup
-	logger.Debugf("[INIT] Loading existing folder sizes from database for index %s", idx.Name)
 	existingSizes, err := idx.db.LoadFolderSizes(idx.Name)
 	if err != nil {
 		logger.Errorf("[INIT] Failed to load existing folder sizes for [%s]: %v", idx.Name, err)
 	} else {
 		idx.folderSizesMu.Lock()
 		idx.folderSizes = existingSizes
-		// Don't mark as unsynced - they're already in the DB
-		logger.Debugf("[INIT] Loaded %d existing folder sizes for index %s", len(existingSizes), idx.Name)
 		idx.folderSizesMu.Unlock()
 	}
 
@@ -263,7 +260,8 @@ func (idx *Index) setupMultiScanner() {
 		if rootInfo, ok := persistedScanners["/"]; ok {
 			rootScanner.complexity = rootInfo.Complexity
 			rootScanner.currentSchedule = rootInfo.CurrentSchedule
-			rootScanner.scanTime = rootInfo.ScanTime
+			rootScanner.quickScanTime = rootInfo.QuickScanTime
+			rootScanner.fullScanTime = rootInfo.FullScanTime
 			rootScanner.numDirs = rootInfo.NumDirs
 			rootScanner.numFiles = rootInfo.NumFiles
 			rootScanner.lastScanned = rootInfo.LastScanned
@@ -286,7 +284,8 @@ func (idx *Index) setupMultiScanner() {
 			if childInfo, ok := persistedScanners[dirPath]; ok {
 				childScanner.complexity = childInfo.Complexity
 				childScanner.currentSchedule = childInfo.CurrentSchedule
-				childScanner.scanTime = childInfo.ScanTime
+				childScanner.quickScanTime = childInfo.QuickScanTime
+				childScanner.fullScanTime = childInfo.FullScanTime
 				childScanner.numDirs = childInfo.NumDirs
 				childScanner.numFiles = childInfo.NumFiles
 				childScanner.lastScanned = childInfo.LastScanned
@@ -310,7 +309,8 @@ func (idx *Index) createRootScanner() *Scanner {
 		idx:             idx,
 		stopChan:        make(chan struct{}),
 		currentSchedule: 0,
-		complexity:      0, // 0 = unknown until first scan completes
+		fullScanCounter: 0,
+		complexity:      0, // 0 = unknown until first full scan completes
 	}
 }
 
@@ -321,7 +321,8 @@ func (idx *Index) createChildScanner(dirPath string) *Scanner {
 		idx:             idx,
 		stopChan:        make(chan struct{}),
 		currentSchedule: 0,
-		complexity:      0, // 0 = unknown until first scan completes
+		fullScanCounter: 0,
+		complexity:      0, // 0 = unknown until first full scan completes
 	}
 }
 
@@ -350,7 +351,8 @@ func (idx *Index) GetScannerStatus() map[string]interface{} {
 			"lastScanned":     scanner.lastScanned.Format(time.RFC3339),
 			"complexity":      scanner.complexity,
 			"currentSchedule": scanner.currentSchedule,
-			"scanTime":        scanner.scanTime,
+			"quickScanTime":   scanner.quickScanTime,
+			"fullScanTime":    scanner.fullScanTime,
 			"numDirs":         scanner.numDirs,
 			"numFiles":        scanner.numFiles,
 			"filesChanged":    scanner.filesChanged,

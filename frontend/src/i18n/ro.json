@@ -480,6 +480,8 @@
   "index": {
     "assessment": "Evaluare",
     "lastScanned": "Ultima scanare",
+    "quickScan": "Scanare rapidă secunde",
+    "fullScan": "Scanare completă secunde",
     "settingsHover": "Setări pentru utilizator",
     "toggleClick": "Comutare clic unic",
     "toggleDark": "Comutarea modului întunecat",
@@ -493,8 +495,7 @@
     "ready": "Gata",
     "indexing": "Indexare",
     "unavailable": "Nu este disponibil",
-    "error": "Eroare",
-    "scanTime": "Timp de scanare (secunde)"
+    "error": "Eroare"
   },
   "otp": {
     "name": "Autentificare cu doi factori",
