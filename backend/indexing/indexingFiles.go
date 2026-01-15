@@ -521,20 +521,12 @@ func (idx *Index) GetFileInfo(req FileInfoRequest) (*iteminfo.FileInfo, error) {
 
 // getFileInfoFromContext returns info for a single file
 func (idx *Index) getFileInfoFromContext(ctx *PathContext, isIndexable bool) (*iteminfo.FileInfo, error) {
-	var size uint64
-	if isIndexable {
-		// Use indexed size
-		size, _ = idx.handleFile(ctx.FileInfo, ctx.IndexPath, false, nil)
-	} else {
-		// Use filesystem size
-		size = uint64(ctx.FileInfo.Size())
-	}
-
+	size := idx.getFileSizeForDisplay(ctx.FileInfo, ctx.RealPath)
 	fileInfo := &iteminfo.FileInfo{
 		Path: ctx.IndexPath,
 		ItemInfo: iteminfo.ItemInfo{
 			Name:    ctx.BaseName,
-			Size:    int64(size),
+			Size:    size,
 			ModTime: ctx.FileInfo.ModTime(),
 			Hidden:  ctx.IsHidden,
 		},
@@ -743,6 +735,9 @@ func (idx *Index) fetchExtendedAttributes(indexPath string, files []os.FileInfo,
 	realDirInfo, exists := idx.GetMetadataInfo(indexPath, true, true)
 	if exists {
 		hasPreview = realDirInfo.HasPreview
+		logger.Debugf("[API] Read hasPreview=%v from DB for dir=%s", hasPreview, indexPath)
+	} else {
+		logger.Debugf("[API] No cached hasPreview found for dir=%s", indexPath)
 	}
 
 	// Batch fetch hasPreview for all subdirectories
@@ -847,13 +842,12 @@ func (idx *Index) processFileItem(file os.FileInfo, indexPath string, opts Optio
 	var size uint64
 	var shouldCountSize bool
 	if !opts.Recursive && scanner == nil {
-		// API call: use helper function for config-aware size calculation
 		size = uint64(idx.getFileSizeForDisplay(file, fullCombined))
 		shouldCountSize = true
 	} else {
-		// Scanning: use handleFile for accurate size and hardlink detection
 		size, shouldCountSize = idx.handleFile(file, indexPath, opts.IsRoutineScan, scanner)
 	}
+	itemInfo.Size = int64(size)
 
 	// Extended attributes for files
 	bubblesUpHasPreview := false
@@ -879,7 +873,6 @@ func (idx *Index) processFileItem(file os.FileInfo, indexPath string, opts Optio
 		itemInfo.HasPreview = false
 	}
 
-	itemInfo.Size = int64(size)
 	return itemInfo, itemInfo.Size, shouldCountSize, bubblesUpHasPreview
 }
 
@@ -1004,6 +997,13 @@ func (idx *Index) GetDirInfoCore(dirInfo *os.File, stat os.FileInfo, indexPath s
 		ModTime:    stat.ModTime(),
 		HasPreview: hasPreview,
 	}
+
+	// Debug: log hasPreview value during recursive scans
+	if opts.Recursive && scanner != nil {
+		logger.Debugf("[SCAN] Saving hasPreview=%v for dir=%s (files=%d, bubbledUp from %d files)",
+			hasPreview, indexPath, len(fileInfos), len(fileInfos))
+	}
+
 	dirFileInfo.SortItems()
 
 	return dirFileInfo, nil
@@ -1232,7 +1232,6 @@ func (idx *Index) SyncFolderSizesToDB() error {
 	idx.folderSizesMu.Unlock()
 
 	if len(sizesToSync) == 0 {
-		logger.Debugf("[FOLDER_SIZE_SYNC] No dirty folder sizes to sync")
 		return nil
 	}
 
