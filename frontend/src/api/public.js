@@ -277,39 +277,50 @@ export async function moveCopy(
   overwrite = false,
   rename = false
 ) {
-  let params = {
-    overwrite: overwrite,
-    action: action,
-    rename: rename,
-    hash: hash
+  if (!items || !Array.isArray(items) || items.length === 0) {
+    throw new Error('items array is required and must not be empty')
   }
-  try {
-    // Create an array of fetch calls
-    let promises = items.map(item => {
-      let localParams = {
-        ...params,
-        destination: doubleEncode(item.to),
-        from: doubleEncode(item.from)
-      }
-      const apiPath = getPublicApiPath('resources', localParams)
 
-      return fetch(apiPath, { method: 'PATCH' }).then(response => {
-        if (!response.ok) {
-          return response.text().then(text => {
-            throw new Error(
-              `Failed to move/copy: ${text || response.statusText}`
-            )
-          })
-        }
-        return response
-      })
+  try {
+    // Build request body with proper format
+    // For public shares, fromSource and toSource are not needed (always the share's source)
+    const requestBody = {
+      items: items.map(item => ({
+        fromPath: item.from,
+        toPath: item.to
+      })),
+      action: action,
+      overwrite: overwrite,
+      rename: rename
+    }
+
+    const apiPath = getPublicApiPath('resources', { hash: hash })
+    const response = await fetch(apiPath, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(state.share.token && { 'X-Auth-Token': state.share.token })
+      },
+      body: JSON.stringify(requestBody),
     })
 
-    // Await all promises and ensure errors propagate
-    await Promise.all(promises)
+    const data = await response.json()
+
+    // 200 = all succeeded, 207 = partial success (some succeeded, some failed)
+    if (response.status === 200 || response.status === 207) {
+      return data
+    }
+
+    // For other error status codes, throw an error
+    const error = new Error(data.message || response.statusText)
+    error.status = response.status
+    throw error
   } catch (err) {
-    console.error(err.message || 'Error moving/copying resources')
-    throw err // Re-throw the error to propagate it back to the caller
+    // Only show notification and re-throw if it's a real error (not 200/207)
+    if (err.status && err.status !== 200 && err.status !== 207) {
+      console.error(err.message || 'Error moving/copying resources')
+    }
+    throw err
   }
 }
 

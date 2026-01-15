@@ -187,6 +187,29 @@ type BulkDeleteResponse struct {
 	Failed    []BulkDeleteItem `json:"failed"`
 }
 
+// MoveCopyItem represents a single item in a move/copy request
+type MoveCopyItem struct {
+	FromSource string `json:"fromSource"`
+	FromPath   string `json:"fromPath"`
+	ToSource   string `json:"toSource"`
+	ToPath     string `json:"toPath"`
+	Message    string `json:"message,omitempty"`
+}
+
+// MoveCopyRequest represents a move/copy operation request
+type MoveCopyRequest struct {
+	Items     []MoveCopyItem `json:"items"`
+	Action    string         `json:"action"`    // "copy", "move", or "rename"
+	Overwrite bool           `json:"overwrite"` // Overwrite if destination exists
+	Rename    bool           `json:"rename"`    // Auto-rename if destination exists
+}
+
+// MoveCopyResponse represents the response from a move/copy operation
+type MoveCopyResponse struct {
+	Succeeded []MoveCopyItem `json:"succeeded"`
+	Failed    []MoveCopyItem `json:"failed"`
+}
+
 // resourceBulkDeleteHandler deletes multiple resources in a single request.
 // @Summary Bulk delete resources
 // @Description Deletes multiple resources specified in the request body. Returns a list of succeeded and failed deletions.
@@ -625,133 +648,191 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	return errToStatus(err), err
 }
 
-// resourcePatchHandler performs a patch operation (e.g., move, rename) on a resource.
-// @Summary Patch resource (move/rename)
-// @Description Moves or renames a resource to a new destination.
+// resourcePatchHandler performs a patch operation (e.g., move, copy, rename) on resources.
+// @Summary Move, copy, or rename resources
+// @Description Performs move, copy, or rename operations on multiple resources. All operations are performed atomically.
 // @Tags Resources
 // @Accept json
 // @Produce json
-// @Param from query string true "Path from resource in <source_name>::<index_path> format"
-// @Param destination query string true "Destination path for the resource"
-// @Param action query string true "Action to perform (copy, rename)"
-// @Param overwrite query bool false "Overwrite if destination exists"
-// @Param rename query bool false "Rename if destination exists"
-// @Success 200 "Resource moved/renamed successfully"
+// @Param request body MoveCopyRequest true "Move/copy request with items and action"
+// @Success 200 {object} MoveCopyResponse "All operations completed successfully"
+// @Success 207 {object} MoveCopyResponse "Partial success - some operations succeeded, some failed"
+// @Failure 400 {object} map[string]string "Bad request - invalid JSON or parameters"
 // @Failure 403 {object} map[string]string "Forbidden"
 // @Failure 404 {object} map[string]string "Resource not found"
-// @Failure 409 {object} map[string]string "Conflict - Destination exists"
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/resources [patch]
 func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	action := r.URL.Query().Get("action")
 	if !d.user.Permissions.Modify && d.share == nil {
 		return http.StatusForbidden, fmt.Errorf("user is not allowed to create or modify")
 	}
 
-	encodedFrom := r.URL.Query().Get("from")
-	// Decode the URL-encoded path
-	src, err := url.QueryUnescape(encodedFrom)
-	if err != nil {
-		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
-	}
-	dst := r.URL.Query().Get("destination")
-	dst, err = url.QueryUnescape(dst)
-	if err != nil {
-		return errToStatus(err), err
-	}
-
-	splitSrc := strings.Split(src, "::")
-	if len(splitSrc) <= 1 {
-		return http.StatusBadRequest, fmt.Errorf("invalid source path: %v", src)
-	}
-	srcIndex := splitSrc[0]
-	src = splitSrc[1]
-
-	splitDst := strings.Split(dst, "::")
-	if len(splitDst) <= 1 {
-		return http.StatusBadRequest, fmt.Errorf("invalid destination path: %v", dst)
-	}
-	dstIndex := splitDst[0]
-	dst = splitDst[1]
-
-	if dst == "/" || src == "/" {
-		return http.StatusForbidden, fmt.Errorf("forbidden: source or destination is attempting to modify root")
-	}
-
-	userscopeDst, err := d.user.GetScopeForSourceName(dstIndex)
-	if err != nil {
-		return http.StatusForbidden, err
-	}
-	userscopeDst = strings.TrimRight(userscopeDst, "/")
-
-	userscopeSrc, err := d.user.GetScopeForSourceName(srcIndex)
-	if err != nil {
-		return http.StatusForbidden, err
-	}
-	userscopeSrc = strings.TrimRight(userscopeSrc, "/")
-
-	idx := indexing.GetIndex(dstIndex)
-	if idx == nil {
-		return http.StatusNotFound, fmt.Errorf("source %s not found", dstIndex)
-	}
-	// check target dir exists
-	parentDir, _, err := idx.GetRealPath(userscopeDst, filepath.Dir(dst))
-	if err != nil {
-		logger.Debugf("Could not get real path for parent dir: %v %v %v", userscopeDst, filepath.Dir(dst), err)
-		return http.StatusNotFound, err
-	}
-	realDest := parentDir + "/" + filepath.Base(dst)
-
-	idx2 := indexing.GetIndex(srcIndex)
-	if idx2 == nil {
-		return http.StatusNotFound, fmt.Errorf("source %s not found", srcIndex)
-	}
-
-	realSrc, isSrcDir, err := idx2.GetRealPath(userscopeSrc, src)
-	if err != nil {
-		return http.StatusNotFound, err
-	}
-
-	// Build full index paths for access control (userScope + requestPath)
-	fullSrcIndexPath := utils.JoinPathAsUnix(userscopeSrc, src)
-	fullDstIndexPath := utils.JoinPathAsUnix(userscopeDst, dst)
-
-	// Check access control for both source and destination paths
-	if store.Access != nil {
-		if !store.Access.Permitted(idx2.Path, fullSrcIndexPath, d.user.Username) {
-			logger.Debugf("user %s denied access to source path %s", d.user.Username, fullSrcIndexPath)
-			return http.StatusForbidden, fmt.Errorf("access denied to source path %s", src)
-		}
-		if !store.Access.Permitted(idx.Path, fullDstIndexPath, d.user.Username) {
-			logger.Debugf("user %s denied access to destination path %s", d.user.Username, fullDstIndexPath)
-			return http.StatusForbidden, fmt.Errorf("access denied to destination path %s", dst)
-		}
-	}
-	rename := r.URL.Query().Get("rename") == "true"
-	if rename {
-		realDest = addVersionSuffix(realDest)
-	}
-
-	// Validate move/rename operation to prevent circular references
-	if action == "rename" || action == "move" {
-		if err = validateMoveOperation(realSrc, realDest, isSrcDir); err != nil {
-			return http.StatusBadRequest, err
+	req, ok := d.Data.(MoveCopyRequest)
+	if req.Action == "" || !ok {
+		// Parse request body
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			return http.StatusBadRequest, fmt.Errorf("invalid JSON body: %v", err)
 		}
 	}
 
-	err = patchAction(r.Context(), patchActionParams{
-		action:   action,
-		srcIndex: srcIndex,
-		dstIndex: dstIndex,
-		src:      realSrc,
-		dst:      realDest,
-		d:        d,
-		isSrcDir: isSrcDir,
-	})
-	if err != nil {
-		logger.Debugf("Could not run patch action. src=%v dst=%v err=%v", realSrc, realDest, err)
+	if len(req.Items) == 0 {
+		return http.StatusBadRequest, fmt.Errorf("items array cannot be empty")
 	}
-	return errToStatus(err), err
+
+	if req.Action == "" {
+		return http.StatusBadRequest, fmt.Errorf("action is required (copy, move, or rename)")
+	}
+
+	response := MoveCopyResponse{
+		Succeeded: make([]MoveCopyItem, 0),
+		Failed:    make([]MoveCopyItem, 0),
+	}
+
+	// Process each item
+	for _, item := range req.Items {
+		// Validate all fields are provided
+		if item.FromSource == "" || item.FromPath == "" || item.ToSource == "" || item.ToPath == "" {
+			if d.share != nil {
+				item.Message = "fromSource, fromPath, toSource, and toPath are required"
+			}
+			item.Message = "fromSource, fromPath, toSource, and toPath are required"
+			response.Failed = append(response.Failed, item)
+			continue
+		}
+
+		// Check for root path modifications
+		if item.ToPath == "/" || item.FromPath == "/" {
+			if d.share != nil {
+				item.Message = "cannot modify root directory"
+			}
+			response.Failed = append(response.Failed, item)
+			continue
+		}
+
+		// Get user scopes for both sources
+		userscopeSrc, err := d.user.GetScopeForSourceName(item.FromSource)
+		if err != nil {
+			if d.share != nil {
+				item.Message = "source not available"
+			}
+			response.Failed = append(response.Failed, item)
+			continue
+		}
+		userscopeDst, err := d.user.GetScopeForSourceName(item.ToSource)
+		if err != nil {
+			if d.share != nil {
+				item.Message = "destination source not available"
+			}
+			response.Failed = append(response.Failed, item)
+			continue
+		}
+		// Get source index
+		srcIdx := indexing.GetIndex(item.FromSource)
+		if srcIdx == nil {
+			if d.share != nil {
+				item.Message = "source not found"
+			}
+			response.Failed = append(response.Failed, item)
+			continue
+		}
+
+		// Get destination index
+		dstIdx := indexing.GetIndex(item.ToSource)
+		if dstIdx == nil {
+			if d.share != nil {
+				item.Message = "destination source not found"
+			}
+			response.Failed = append(response.Failed, item)
+			continue
+		}
+
+		// Build full index paths for access control
+		fullSrcIndexPath := utils.JoinPathAsUnix(userscopeSrc, item.FromPath)
+		fullDstIndexPath := utils.JoinPathAsUnix(userscopeDst, item.ToPath)
+
+		// Check access control for both source and destination paths
+		if !store.Access.Permitted(srcIdx.Path, fullSrcIndexPath, d.user.Username) {
+			if d.share != nil {
+				item.Message = "access denied to source path"
+			}
+			response.Failed = append(response.Failed, item)
+			continue
+		}
+		if !store.Access.Permitted(dstIdx.Path, fullDstIndexPath, d.user.Username) {
+			if d.share != nil {
+				item.Message = "access denied to destination path"
+			}
+			response.Failed = append(response.Failed, item)
+			continue
+		}
+
+		// Get real paths
+		realSrc, isSrcDir, err := srcIdx.GetRealPath(userscopeSrc, item.FromPath)
+		if err != nil {
+			if d.share != nil {
+				item.Message = "could not resolve source path"
+			}
+			response.Failed = append(response.Failed, item)
+			continue
+		}
+
+		// Check destination parent directory exists
+		parentDir, _, err := dstIdx.GetRealPath(userscopeDst, filepath.Dir(item.ToPath))
+		if err != nil {
+			if d.share != nil {
+				item.Message = "destination directory does not exist"
+			}
+			response.Failed = append(response.Failed, item)
+			continue
+		}
+		realDest := parentDir + "/" + filepath.Base(item.ToPath)
+
+		// Auto-rename if requested
+		if req.Rename {
+			realDest = addVersionSuffix(realDest)
+		}
+
+		// Validate move/rename operation to prevent circular references
+		if req.Action == "rename" || req.Action == "move" {
+			if err = validateMoveOperation(realSrc, realDest, isSrcDir); err != nil {
+				if d.share != nil {
+					item.Message = "invalid move operation, circular reference"
+				}
+				response.Failed = append(response.Failed, item)
+				continue
+			}
+		}
+
+		// Perform the action
+		err = patchAction(r.Context(), patchActionParams{
+			action:   req.Action,
+			srcIndex: item.FromSource,
+			dstIndex: item.ToSource,
+			src:      realSrc,
+			dst:      realDest,
+			d:        d,
+			isSrcDir: isSrcDir,
+		})
+		if err != nil {
+			logger.Debugf("Could not run patch action. src=%v dst=%v err=%v", realSrc, realDest, err)
+			if d.share != nil {
+				item.Message = err.Error()
+			}
+			response.Failed = append(response.Failed, item)
+			continue
+		}
+
+		// Success
+		response.Succeeded = append(response.Succeeded, item)
+	}
+
+	// Determine status code based on results
+	statusCode := http.StatusOK
+	if len(response.Failed) > 0 {
+		statusCode = http.StatusMultiStatus
+	}
+
+	return renderJSON(w, r, response, statusCode)
 }
 
 func addVersionSuffix(source string) string {

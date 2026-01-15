@@ -26,9 +26,9 @@ type PersistedScannerInfo struct {
 	Path            string    `json:"path"`
 	Complexity      uint      `json:"complexity"`
 	CurrentSchedule int       `json:"currentSchedule"`
-	QuickScanTime   int       `json:"quickScanTime"`
-	FullScanTime    int       `json:"fullScanTime"`
 	NumDirs         uint64    `json:"numDirs"`
 	NumFiles        uint64    `json:"numFiles"`
+	QuickScanTime   int       `json:"quickScanTime"`
+	FullScanTime    int       `json:"fullScanTime"`
 	LastScanned     time.Time `json:"lastScanned"`
 }

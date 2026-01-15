@@ -93,10 +93,11 @@ func setContentDisposition(w http.ResponseWriter, r *http.Request, fileName stri
 // @Description **Filename Encoding:**
 // @Description - The Content-Disposition header will always include both:
 // @Description   1. `filename="..."`: An ASCII-safe version of the filename for compatibility.
-// @Description   2. `filename*=utf-8”...`: The full UTF-8 encoded filename (RFC 6266/5987) for modern clients.
+// @Description   2. `filename*=utf-8"...`: The full UTF-8 encoded filename (RFC 6266/5987) for modern clients.
 // @Tags Resources
 // @Accept json
-// @Param files query string true "a list of files in the following format 'source::filename' and separated by '||' with additional items in the list. (required)"
+// @Param source query string true "Source name for the files (required)"
+// @Param files query string true "Comma-separated list of file paths (required)"
 // @Param inline query bool false "If true, sets 'Content-Disposition' to 'inline'. Otherwise, defaults to 'attachment'."
 // @Param algo query string false "Compression algorithm for archiving multiple files or directories. Options: 'zip' and 'tar.gz'. Default is 'zip'."
 // @Success 200 {file} file "Raw file or directory content, or archive for multiple files"
@@ -106,19 +107,13 @@ func setContentDisposition(w http.ResponseWriter, r *http.Request, fileName stri
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/raw [get]
 func rawHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	files := r.URL.Query().Get("files")
-	fileList := strings.Split(files, "||")
-	return rawFilesHandler(w, r, d, fileList)
+	source := r.URL.Query().Get("source")
+	filesParam := r.URL.Query().Get("files")
+	fileList := strings.Split(filesParam, ",")
+	return rawFilesHandler(w, r, d, source, fileList)
 }
 
-func addFile(path string, d *requestContext, tarWriter *tar.Writer, zipWriter *zip.Writer, flatten bool) error {
-	splitFile := strings.Split(path, "::")
-	if len(splitFile) != 2 {
-		return fmt.Errorf("invalid file in files requested: %v", splitFile)
-	}
-	source := splitFile[0]
-	path = splitFile[1]
-
+func addFile(source string, path string, d *requestContext, tarWriter *tar.Writer, zipWriter *zip.Writer, flatten bool) error {
 	// Path handling is now done inside FileInfoFaster
 	// For shares, path comes from share context
 	// For regular users, FileInfoFaster will apply user scope
@@ -271,18 +266,16 @@ func addSingleFile(realPath, archivePath string, zipWriter *zip.Writer, tarWrite
 	return nil
 }
 
-func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, fileList []string) (int, error) {
+func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, source string, fileList []string) (int, error) {
 	if !d.user.Permissions.Download && d.share == nil {
 		return http.StatusForbidden, fmt.Errorf("user is not allowed to download")
 	}
-	splitFile := strings.Split(fileList[0], "::")
-	if len(splitFile) != 2 {
-		return http.StatusBadRequest, fmt.Errorf("invalid file in files request: %v", fileList[0])
+
+	if len(fileList) == 0 {
+		return http.StatusBadRequest, fmt.Errorf("no files specified")
 	}
 
-	firstFileSource := splitFile[0]
-	firstFilePath := splitFile[1]
-	// decode url encoded source name
+	firstFilePath := fileList[0]
 	var err error
 	var userscope string
 	fileName := filepath.Base(firstFilePath)
@@ -293,12 +286,12 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 	var logContext *OnlyOfficeLogContext
 
 	if d.share == nil {
-		userscope, err = d.user.GetScopeForSourceName(firstFileSource)
+		userscope, err = d.user.GetScopeForSourceName(source)
 		if err != nil {
 			// Send OnlyOffice error log if this was an OnlyOffice file
 			if isOnlyOffice {
 				// Try to get document ID for error logging
-				idx := indexing.GetIndex(firstFileSource)
+				idx := indexing.GetIndex(source)
 				if idx != nil {
 					tempPath := utils.JoinPathAsUnix(userscope, firstFilePath)
 					if realPath, _, realErr := idx.GetRealPath(tempPath); realErr == nil {
@@ -316,14 +309,14 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 		firstFilePath = utils.JoinPathAsUnix(userscope, firstFilePath)
 	}
 	// For shares, the path is already correctly resolved by publicRawHandler
-	idx := indexing.GetIndex(firstFileSource)
+	idx := indexing.GetIndex(source)
 	if idx == nil {
 		// Send OnlyOffice error log if this was an OnlyOffice file
 		if isOnlyOffice {
 			sendOnlyOfficeLogEvent(logContext, "ERROR", "download",
-				fmt.Sprintf("OnlyOffice download failed - source index not available: %s", firstFileSource))
+				fmt.Sprintf("OnlyOffice download failed - source index not available: %s", source))
 		}
-		return http.StatusInternalServerError, fmt.Errorf("source %s is not available", firstFileSource)
+		return http.StatusInternalServerError, fmt.Errorf("source %s is not available", source)
 	}
 	realPath, isDir, err := idx.GetRealPath(firstFilePath)
 	if err != nil {
@@ -339,7 +332,7 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 		return http.StatusInternalServerError, err
 	}
 	// Compute estimated download size
-	estimatedSize, err := computeArchiveSize(fileList, d)
+	estimatedSize, err := computeArchiveSize(source, fileList, d)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -453,10 +446,10 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 	archiveData := filepath.Join(config.Server.CacheDir, utils.InsecureRandomIdentifier(10))
 	if extension == ".zip" {
 		archiveData = archiveData + ".zip"
-		err = createZip(d, archiveData, fileList...)
+		err = createZip(d, source, archiveData, fileList...)
 	} else {
 		archiveData = archiveData + ".tar.gz"
-		err = createTarGz(d, archiveData, fileList...)
+		err = createTarGz(d, source, archiveData, fileList...)
 	}
 	if err != nil {
 		return http.StatusInternalServerError, err
@@ -506,36 +499,37 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 	return 0, nil
 }
 
-func computeArchiveSize(fileList []string, d *requestContext) (int64, error) {
+func computeArchiveSize(source string, fileList []string, d *requestContext) (int64, error) {
 	var estimatedSize int64
-	for _, fname := range fileList {
-		splitFile := strings.Split(fname, "::")
-		if len(splitFile) != 2 {
-			return http.StatusBadRequest, fmt.Errorf("invalid file in files request: %v", fileList[0])
-		}
-		source := splitFile[0]
-		path := splitFile[1]
-		var err error
-		idx := indexing.GetIndex(source)
-		if idx == nil {
-			return 0, fmt.Errorf("source %s is not available", source)
-		}
-		var userScope string
-		if d.share == nil {
-			userScope, err = d.user.GetScopeForSourceName(source)
-			if err != nil {
-				return 0, fmt.Errorf("source %s is not available for user %s", source, d.user.Username)
-			}
-			path = utils.JoinPathAsUnix(userScope, path)
+	idx := indexing.GetIndex(source)
+	if idx == nil {
+		return 0, fmt.Errorf("source %s is not available", source)
+	}
 
+	var userScope string
+	var err error
+	if d.share == nil {
+		userScope, err = d.user.GetScopeForSourceName(source)
+		if err != nil {
+			return 0, fmt.Errorf("source %s is not available for user %s", source, d.user.Username)
+		}
+	}
+
+	for _, path := range fileList {
+		var fullPath string
+		if d.share == nil {
+			fullPath = utils.JoinPathAsUnix(userScope, path)
 			// Check access control for each file in the archive
 			// Silently skip if access is denied (as if the file doesn't exist)
-			if store.Access != nil && !store.Access.Permitted(idx.Path, path, d.user.Username) {
+			if store.Access != nil && !store.Access.Permitted(idx.Path, fullPath, d.user.Username) {
 				continue // Skip this file and continue with the next one
 			}
+		} else {
+			fullPath = path
 		}
+
 		// For shares, the path is already correctly resolved by publicRawHandler
-		realPath, isDir, err := idx.GetRealPath(path)
+		realPath, isDir, err := idx.GetRealPath(fullPath)
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}
@@ -552,7 +546,7 @@ func computeArchiveSize(fileList []string, d *requestContext) (int64, error) {
 	return estimatedSize, nil
 }
 
-func createZip(d *requestContext, tmpDirPath string, filenames ...string) error {
+func createZip(d *requestContext, source string, tmpDirPath string, filenames ...string) error {
 	file, err := os.Create(tmpDirPath)
 	if err != nil {
 		return err
@@ -562,7 +556,7 @@ func createZip(d *requestContext, tmpDirPath string, filenames ...string) error 
 	zipWriter := zip.NewWriter(file)
 
 	for _, fname := range filenames {
-		err := addFile(fname, d, nil, zipWriter, false)
+		err := addFile(source, fname, d, nil, zipWriter, false)
 		if err != nil {
 			// Access control failures return nil, so any error here is a real error
 			logger.Errorf("Failed to add %s to ZIP: %v", fname, err)
@@ -578,7 +572,7 @@ func createZip(d *requestContext, tmpDirPath string, filenames ...string) error 
 	return nil
 }
 
-func createTarGz(d *requestContext, tmpDirPath string, filenames ...string) error {
+func createTarGz(d *requestContext, source string, tmpDirPath string, filenames ...string) error {
 	file, err := os.Create(tmpDirPath)
 	if err != nil {
 		return err
@@ -589,7 +583,7 @@ func createTarGz(d *requestContext, tmpDirPath string, filenames ...string) erro
 	tarWriter := tar.NewWriter(gzWriter)
 
 	for _, fname := range filenames {
-		err := addFile(fname, d, tarWriter, nil, false)
+		err := addFile(source, fname, d, tarWriter, nil, false)
 		if err != nil {
 			logger.Errorf("Failed to add %s to TAR.GZ: %v", fname, err)
 			return err

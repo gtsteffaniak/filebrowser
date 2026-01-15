@@ -2,6 +2,7 @@ package indexing
 
 import (
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -18,13 +19,13 @@ type Scanner struct {
 	smartModifier   time.Duration
 	complexity      uint
 	fullScanCounter int
-
-	filesChanged  bool
-	lastScanned   time.Time
-	quickScanTime int
-	fullScanTime  int
-	scanStartTime int64
-	isScanning    bool // True when scanner is actively scanning or waiting for mutex
+	nextSleepTime   time.Duration
+	filesChanged    bool
+	lastScanned     time.Time
+	quickScanTime   int
+	fullScanTime    int
+	scanStartTime   int64
+	isScanning      bool // True when scanner is actively scanning or waiting for mutex
 
 	numDirs  uint64
 	numFiles uint64
@@ -56,8 +57,12 @@ func (s *Scanner) start() {
 			return
 		}
 
-		// Calculate sleep based on this scanner's schedule
-		sleepTime := s.calculateSleepTime()
+		// Use the sleep time calculated by updateSchedule() (based on OLD schedule before increment)
+		sleepTime := s.nextSleepTime
+		if sleepTime == 0 {
+			// Fallback for first run or if not set
+			sleepTime = s.calculateSleepTime()
+		}
 
 		select {
 		case <-s.stopChan:
@@ -73,6 +78,9 @@ func (s *Scanner) start() {
 func (s *Scanner) tryAcquireAndScan() {
 	// Ensure isScanning is cleared even if we panic
 	defer func() {
+		if r := recover(); r != nil {
+			logger.Errorf("[%s] Scanner panic recovered: %v", s.scanPath, r)
+		}
 		s.idx.mu.Lock()
 		s.isScanning = false
 		s.idx.mu.Unlock()
@@ -82,12 +90,15 @@ func (s *Scanner) tryAcquireAndScan() {
 		}
 	}()
 
+	// Set isScanning flag for all scanners
+	s.idx.mu.Lock()
+	s.isScanning = true
+	s.idx.mu.Unlock()
+
 	// Root scanner can run independently since it's non-recursive
+	// Child scanners must acquire mutex to prevent concurrent child scans
 	if s.scanPath != "/" {
 		s.idx.childScanMutex.Lock()
-		s.idx.mu.Lock()
-		s.isScanning = true
-		s.idx.mu.Unlock()
 		defer s.idx.childScanMutex.Unlock()
 	}
 
@@ -103,77 +114,25 @@ func (s *Scanner) tryAcquireAndScan() {
 
 // runIndexing performs the actual indexing work
 func (s *Scanner) runIndexing(quick bool) {
-	startTime := time.Now()
 	if s.scanPath == "/" {
 		s.runRootScan(quick)
 	} else {
 		s.runChildScan(quick)
 	}
-	logger.Debugf("[%s] Scan for %s completed in %d seconds", s.idx.Name, s.scanPath, int(time.Since(startTime).Seconds()))
 }
 
 func (s *Scanner) runRootScan(quick bool) {
-	config := Options{
-		Quick:         quick,
-		Recursive:     false,
-		IsRoutineScan: true,
-	}
-
-	if !quick {
-		s.numDirs = 0
-		s.numFiles = 0
-		s.scanStartTime = time.Now().Unix()
-		s.idx.mu.Lock()
-		// Set scan session start time if this is the first full scan in the session
-		if s.idx.scanSessionStartTime == 0 {
-			s.idx.scanSessionStartTime = s.scanStartTime
-		}
-		s.idx.mu.Unlock()
-		// Initialize scanner-specific state (not shared)
-		s.processedInodes = make(map[uint64]struct{})
-		s.foundHardLinks = make(map[string]uint64)
-	}
-
-	batchSize := s.idx.db.BatchSize
-	s.batchItems = make([]*iteminfo.FileInfo, 0, batchSize)
-
-	s.filesChanged = false
 	startTime := time.Now()
 
-	_, _, err := s.idx.indexDirectory("/", config, s)
-	if err != nil {
-		logger.Errorf("Root scanner error: %v", err)
-	}
-
-	s.flushBatch()
-
-	if !quick {
-		s.syncStatsWithDB()
-
-		// Clear hardlink tracking maps after scan completes to free memory
-		// These maps are only needed during the scan for hardlink detection
-		if s.processedInodes != nil {
-			s.processedInodes = nil
-			s.foundHardLinks = nil
-		}
-
-		// Clear scanUpdatedPaths for root scanner to free memory
-		// Root scanner processes "/" so clear all entries
-		s.idx.mu.Lock()
-		s.idx.scanUpdatedPaths = make(map[string]bool)
-		s.idx.mu.Unlock()
-	}
-	scanDuration := int(time.Since(startTime).Seconds())
-
 	if quick {
-		s.quickScanTime = scanDuration
-		// Sync stats with DB after quick scan to ensure accurate counts
-		// Quick scans increment counters but don't reset them, so we need to sync
-		s.syncStatsWithDB()
+		s.runQuickScanRoot()
+		s.quickScanTime = int(time.Since(startTime).Seconds())
 	} else {
-		s.fullScanTime = scanDuration
+		s.runFullScanRoot()
+		s.fullScanTime = int(time.Since(startTime).Seconds())
 		s.updateComplexity()
 	}
+
 	s.lastScanned = time.Now()
 	s.checkForNewChildDirectories()
 	if err := s.idx.db.ShrinkMemory(); err != nil {
@@ -181,92 +140,218 @@ func (s *Scanner) runRootScan(quick bool) {
 	}
 }
 
-func (s *Scanner) runChildScan(quick bool) {
+func (s *Scanner) runFullScanRoot() {
 	config := Options{
-		Quick:         quick,
+		Recursive:     false,
+		IsRoutineScan: true,
+	}
+
+	// Reset counters and initialize state for full scan
+	s.numDirs = 0
+	s.numFiles = 0
+	s.scanStartTime = time.Now().Unix()
+	s.idx.mu.Lock()
+	if s.idx.scanSessionStartTime == 0 {
+		s.idx.scanSessionStartTime = s.scanStartTime
+	}
+	s.idx.mu.Unlock()
+
+	s.processedInodes = make(map[uint64]struct{})
+	s.foundHardLinks = make(map[string]uint64)
+
+	batchSize := s.idx.db.BatchSize
+	s.batchItems = make([]*iteminfo.FileInfo, 0, batchSize)
+	s.filesChanged = false
+
+	_, _, err := s.idx.indexDirectory("/", config, s)
+	if err != nil {
+		logger.Errorf("Root scanner error: %v", err)
+	}
+
+	s.flushBatch()
+	s.purgeStaleEntries(true, false) // isRoot=true, isQuickScan=false
+	s.syncStatsWithDB()
+
+	if s.processedInodes != nil {
+		s.processedInodes = nil
+		s.foundHardLinks = nil
+	}
+
+	s.idx.mu.Lock()
+	s.idx.scanUpdatedPaths = make(map[string]bool)
+	s.idx.mu.Unlock()
+}
+
+func (s *Scanner) runQuickScanRoot() {
+	s.scanStartTime = time.Now().Unix()
+	s.filesChanged = false
+
+	// Get root-level folders from folderSizes map
+	s.idx.folderSizesMu.RLock()
+	var foldersToCheck []string
+	for path := range s.idx.folderSizes {
+		// Root scanner: only check direct children (one slash after root, like "/subdir/")
+		if strings.Count(path, "/") == 2 && path != "/" {
+			foldersToCheck = append(foldersToCheck, path)
+		}
+	}
+	s.idx.folderSizesMu.RUnlock()
+
+	batchSize := s.idx.db.BatchSize
+	s.batchItems = make([]*iteminfo.FileInfo, 0, batchSize)
+
+	// Track stats
+	unchangedCount := 0
+	changedCount := 0
+	errorCount := 0
+
+	// Check each folder's modtime
+	for _, folderPath := range foldersToCheck {
+		changed, err := s.checkFolderModtime(folderPath)
+		if err != nil {
+			errorCount++
+		} else if changed {
+			changedCount++
+		} else {
+			unchangedCount++
+		}
+	}
+
+	s.flushBatch()
+	s.purgeStaleEntries(true, true) // isRoot=true, isQuickScan=true
+	s.syncStatsWithDB()
+}
+
+func (s *Scanner) runChildScan(quick bool) {
+	startTime := time.Now()
+
+	if quick {
+		// Quick scan: iterate folderSizes, check modtimes only (257x faster!)
+		s.runQuickScanChild()
+		s.quickScanTime = int(time.Since(startTime).Seconds())
+	} else {
+		// Full scan: walk filesystem recursively, read all directory contents
+		s.runFullScanChild()
+		s.fullScanTime = int(time.Since(startTime).Seconds())
+		s.updateComplexity()
+	}
+
+	s.lastScanned = time.Now()
+}
+
+func (s *Scanner) runFullScanChild() {
+	config := Options{
 		Recursive:     true,
 		IsRoutineScan: true,
 	}
 
-	if !quick {
-		s.numDirs = 0
-		s.numFiles = 0
-		s.scanStartTime = time.Now().Unix()
-		s.idx.mu.Lock()
-		// Set scan session start time if this is the first full scan in the session
-		if s.idx.scanSessionStartTime == 0 {
-			s.idx.scanSessionStartTime = s.scanStartTime
-		}
-		s.idx.mu.Unlock()
-		// Initialize scanner-specific state (not shared)
-		s.processedInodes = make(map[uint64]struct{})
-		s.foundHardLinks = make(map[string]uint64)
+	// Reset counters and initialize state for full scan
+	s.numDirs = 0
+	s.numFiles = 0
+	s.scanStartTime = time.Now().Unix()
+	s.idx.mu.Lock()
+	if s.idx.scanSessionStartTime == 0 {
+		s.idx.scanSessionStartTime = s.scanStartTime
 	}
+	s.idx.mu.Unlock()
 
+	s.processedInodes = make(map[uint64]struct{})
+	s.foundHardLinks = make(map[string]uint64)
 	s.filesChanged = false
-	startTime := time.Now()
+
 	batchSize := s.idx.db.BatchSize
 	s.batchItems = make([]*iteminfo.FileInfo, 0, batchSize)
 
-	// indexDirectory returns the total size of this directory (including all subdirectories)
-	// Directory sizes are no longer stored in SQLite - will be managed in-memory
 	_, _, err := s.idx.indexDirectory(s.scanPath, config, s)
 	if err != nil {
 		logger.Errorf("Scanner [%s] error: %v", s.scanPath, err)
 	} else if config.Recursive && config.IsRoutineScan {
-		// Count the directory itself (each child scanner counts itself as 1 directory)
-		// Subdirectories are already counted by the recursive scan in indexDirectory
 		s.idx.mu.Lock()
-		// Use unlocked version since we already hold the write lock
 		s.idx.incrementScannerDirsUnlocked()
 		s.idx.mu.Unlock()
 	}
 
 	s.flushBatch()
+	s.purgeStaleEntries(false, false) // isRoot=false, isQuickScan=false
+	s.syncStatsWithDB()
 
-	if !quick {
-		s.purgeStaleEntries()
-		s.syncStatsWithDB()
-
-		// Sync folder sizes to database after child scanner completes (recursive scan only)
-		// Root scanner doesn't calculate folder sizes - child scanners handle that
-		if s.scanPath != "/" {
-			if err := s.idx.SyncFolderSizesToDB(); err != nil {
-				logger.Errorf("[%s] Failed to sync folder sizes: %v", s.scanPath, err)
-			}
+	if s.scanPath != "/" {
+		if err := s.idx.SyncFolderSizesToDB(); err != nil {
+			logger.Errorf("[%s] Failed to sync folder sizes: %v", s.scanPath, err)
 		}
-
-		// Clear hardlink tracking maps after scan completes to free memory
-		// These maps are only needed during the scan for hardlink detection
-		if s.processedInodes != nil {
-			s.processedInodes = nil
-			s.foundHardLinks = nil
-		}
-
-		// Clear scanUpdatedPaths for this scanner's path prefix to free memory
-		// This prevents the map from growing unbounded during long scans
-		s.idx.mu.Lock()
-		// Remove entries for this scanner's path and all subpaths
-		for path := range s.idx.scanUpdatedPaths {
-			if strings.HasPrefix(path, s.scanPath) {
-				delete(s.idx.scanUpdatedPaths, path)
-			}
-		}
-		s.idx.mu.Unlock()
 	}
 
-	scanDuration := int(time.Since(startTime).Seconds())
-
-	if quick {
-		s.quickScanTime = scanDuration
-		// Sync stats with DB after quick scan to ensure accurate counts
-		// Quick scans increment counters but don't reset them, so we need to sync
-		s.syncStatsWithDB()
-	} else {
-		s.fullScanTime = scanDuration
-		s.updateComplexity()
+	if s.processedInodes != nil {
+		s.processedInodes = nil
+		s.foundHardLinks = nil
 	}
-	s.lastScanned = time.Now()
+
+	s.idx.mu.Lock()
+	for path := range s.idx.scanUpdatedPaths {
+		if strings.HasPrefix(path, s.scanPath) {
+			delete(s.idx.scanUpdatedPaths, path)
+		}
+	}
+	s.idx.mu.Unlock()
+}
+
+func (s *Scanner) runQuickScanChild() {
+	s.scanStartTime = time.Now().Unix()
+	s.filesChanged = false
+
+	// Get folders in this scanner's scope from folderSizes map
+	s.idx.folderSizesMu.RLock()
+	var foldersToCheck []string
+	for path := range s.idx.folderSizes {
+		// Child scanner: check all paths under its scope
+		if strings.HasPrefix(path, s.scanPath) && path != s.scanPath {
+			foldersToCheck = append(foldersToCheck, path)
+		}
+	}
+	s.idx.folderSizesMu.RUnlock()
+
+	batchSize := s.idx.db.BatchSize
+	s.batchItems = make([]*iteminfo.FileInfo, 0, batchSize)
+
+	// Update the scanner's own root folder to prevent it from being purged
+	// (child folders are updated via checkFolderModtime, but the scanner's root needs explicit update)
+	fullScanPath := filepath.Join(s.idx.Path, s.scanPath)
+	if info, err := os.Stat(fullScanPath); err == nil {
+		rootFolderInfo := &iteminfo.FileInfo{
+			Path: s.scanPath,
+			ItemInfo: iteminfo.ItemInfo{
+				Name:       filepath.Base(strings.TrimSuffix(s.scanPath, "/")),
+				Size:       0, // Folder size managed in-memory via folderSizes map
+				ModTime:    info.ModTime(),
+				Type:       "directory",
+				Hidden:     false,
+				HasPreview: false,
+			},
+		}
+		// Add to batch for bulk update
+		s.batchItems = append(s.batchItems, rootFolderInfo)
+	}
+
+	// Track stats
+	unchangedCount := 0
+	changedCount := 0
+	errorCount := 0
+
+	// Check each folder's modtime
+	for _, folderPath := range foldersToCheck {
+		changed, err := s.checkFolderModtime(folderPath)
+		if err != nil {
+			errorCount++
+		} else if changed {
+			changedCount++
+		} else {
+			unchangedCount++
+		}
+	}
+
+	s.flushBatch()
+	s.purgeStaleEntries(false, true) // isRoot=false, isQuickScan=true
+	s.syncStatsWithDB()
 
 }
 
@@ -376,12 +461,19 @@ func (s *Scanner) calculateSleepTime() time.Duration {
 
 // updateSchedule adjusts the scanner's schedule based on whether files changed
 func (s *Scanner) updateSchedule() {
+
+	// Calculate sleep time BEFORE updating schedule (based on current/old schedule)
+	s.nextSleepTime = scanSchedule[s.currentSchedule] + s.smartModifier
+	if s.idx.Config.IndexingInterval > 0 {
+		s.nextSleepTime = time.Duration(s.idx.Config.IndexingInterval) * time.Minute
+	}
+
 	// Adjust schedule based on file changes
 	if s.filesChanged {
 		logger.Debugf("Scanner [%s] detected changes, adjusting schedule", s.scanPath)
-		// Move to at least the full-scan anchor or reduce interval
-		if s.currentSchedule > fullScanAnchor {
-			s.currentSchedule = fullScanAnchor
+		// Move to at least schedule index 3 or reduce interval
+		if s.currentSchedule > 3 {
+			s.currentSchedule = 3
 		} else if s.currentSchedule > 0 {
 			s.currentSchedule--
 		}
@@ -475,20 +567,137 @@ func (s *Scanner) syncStatsWithDB() {
 	s.numFiles = files
 }
 
-func (s *Scanner) purgeStaleEntries() {
+// checkFolderModtime checks if a folder's modtime changed since last scan
+// Returns (changed, error) where changed=true if modtime is after lastScanned, false otherwise
+func (s *Scanner) checkFolderModtime(folderPath string) (bool, error) {
+	realPath := strings.TrimRight(s.idx.Path, "/") + folderPath
+	realPath = strings.TrimSuffix(realPath, "/")
+
+	info, err := os.Stat(realPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			// Folder was deleted - will be caught by purge
+			return false, nil
+		}
+		logger.Errorf("[QUICK_SCAN] Error stating %s: %v", folderPath, err)
+		return false, err
+	}
+
+	// Compare folder modtime against when the last scan started
+	// If modtime is after last scan, the folder has been modified
+	modtimeChanged := info.ModTime().After(s.lastScanned)
+
+	if modtimeChanged {
+		// Modtime changed - read directory contents and update database
+		s.filesChanged = true
+
+		dir, err := os.Open(realPath)
+		if err != nil {
+			logger.Errorf("[QUICK_SCAN] Error opening %s: %v", folderPath, err)
+			return true, err
+		}
+		defer dir.Close()
+
+		opts := Options{
+			Recursive:     false, // Don't recurse - we're checking each folder individually
+			IsRoutineScan: true,
+		}
+
+		dirInfo, err := s.idx.GetDirInfo(dir, info, folderPath, opts, s)
+		if err != nil {
+			logger.Errorf("[QUICK_SCAN] Error getting dir info for %s: %v", folderPath, err)
+			return true, err
+		}
+
+		// Update metadata (will be batched)
+		s.idx.UpdateMetadata(dirInfo, s)
+
+		// Track this directory as having been updated (for file purge logic)
+		s.idx.mu.Lock()
+		s.idx.scanUpdatedPaths[folderPath] = true
+		s.idx.mu.Unlock()
+
+		return true, nil
+	}
+
+	// Modtime unchanged - update last_updated to prevent folder from being purged
+	// Note: we DON'T add this folder to scanUpdatedPaths, so Phase 2 won't check its files
+	fileInfo := &iteminfo.FileInfo{
+		Path: folderPath,
+		ItemInfo: iteminfo.ItemInfo{
+			Name:       filepath.Base(strings.TrimSuffix(folderPath, "/")),
+			Size:       0, // Folder size is managed in-memory via folderSizes map
+			ModTime:    info.ModTime(),
+			Type:       "directory",
+			Hidden:     false,
+			HasPreview: false,
+		},
+	}
+
+	// Add to batch for bulk update
+	s.batchItems = append(s.batchItems, fileInfo)
+	if len(s.batchItems) >= s.idx.db.BatchSize {
+		s.flushBatch()
+	}
+
+	return false, nil
+}
+
+func (s *Scanner) purgeStaleEntries(isRoot bool, isQuickScan bool) {
 	if s.scanStartTime == 0 {
 		return
 	}
-	deletedCount, err := s.idx.db.DeleteStaleEntries(s.idx.Name, s.scanPath, s.scanStartTime)
+
+	var deletedCount int
+	var err error
+
+	if isQuickScan {
+		// Quick scan cleanup (two-phase):
+		// Phase 1: Delete folders that weren't updated (they were deleted from filesystem)
+		deletedCount, err = s.idx.db.DeleteStaleFolders(s.idx.Name, s.scanPath, s.scanStartTime, isRoot)
+		if err != nil {
+			logger.Errorf("[DB_MAINTENANCE] Failed to purge stale folders for %s: %v", s.scanPath, err)
+			return
+		}
+
+		// Phase 2: Delete files in directories that had modtime changes
+		// Collect list of updated directories from this scan
+		var updatedDirs []string
+		s.idx.mu.RLock()
+		for path := range s.idx.scanUpdatedPaths {
+			// Only include paths within this scanner's scope
+			if s.scanPath == "/" {
+				// Root scanner: only direct children (no nested paths)
+				if strings.Count(path, "/") == 2 && strings.HasPrefix(path, "/") {
+					updatedDirs = append(updatedDirs, path)
+				}
+			} else {
+				// Child scanner: all paths under this scanner's path
+				if strings.HasPrefix(path, s.scanPath) {
+					updatedDirs = append(updatedDirs, path)
+				}
+			}
+		}
+		s.idx.mu.RUnlock()
+
+		if len(updatedDirs) > 0 {
+			deletedCount, err = s.idx.db.DeleteStaleFilesInDirs(s.idx.Name, updatedDirs, s.scanStartTime)
+			if err != nil {
+				logger.Errorf("[DB_MAINTENANCE] Failed to purge stale files in updated dirs for %s: %v", s.scanPath, err)
+			}
+		}
+
+		err = nil // Reset err since we handled errors separately above
+	} else {
+		// Full scan cleanup: delete all items not updated in scanner scope
+		deletedCount, err = s.idx.db.DeleteStaleEntries(s.idx.Name, s.scanPath, s.scanStartTime, isRoot)
+	}
+
 	if err != nil {
 		logger.Errorf("[DB_MAINTENANCE] Failed to purge stale entries for %s: %v", s.scanPath, err)
 		return
 	}
-	if deletedCount > 0 {
-		logger.Debugf("[DB_MAINTENANCE] Purged %d stale entries for scan path: %s", deletedCount, s.scanPath)
-	}
-	// Log warning if unexpectedly high number of deletions (may indicate a problem)
-	if deletedCount > 10000 {
+	if deletedCount >= 10000 {
 		logger.Warningf("[DB_MAINTENANCE] high purge count (%d) for %s", deletedCount, s.scanPath)
 	}
 }
