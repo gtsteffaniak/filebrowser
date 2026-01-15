@@ -8,8 +8,13 @@ test("verify scoped user can't access files outside of their scope", async ({ pa
     });
 
     // try to access protected route without credentials - should get 401
-    const response = await page.goto("/subpath/api/resources?path=../../etc/passwd&source=playwright-files", { waitUntil: 'networkidle' });
+    const response = await page.goto("/api/resources?path=../../etc/passwd&source=playwright-files", { waitUntil: 'networkidle' });
+    
+    // Check the JSON response body
+    const responseBody = await response?.json();
+    expect(responseBody).toEqual({ status: 403, message: "access denied" });
     expect(response?.status()).toBe(403);
+
 });
 
 test("verify scoped user can't access files outside their scope", async ({ page }) => {
@@ -19,6 +24,11 @@ test("verify scoped user can't access files outside their scope", async ({ page 
     });
 
     // try to access protected route without credentials - should get 401
-    const response = await page.goto("/subpath/api/resources?path=../&source=playwright-files", { waitUntil: 'networkidle' });
+    const response = await page.goto("/api/resources?path=../&source=playwright-files", { waitUntil: 'networkidle' });
+    
+    // Check the JSON response body
+    const responseBody = await response?.json();
+    expect(responseBody).toEqual({ status: 403, message: "access denied" });
     expect(response?.status()).toBe(403);
+
 });

@@ -118,6 +118,12 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage, user *users.
 	if user == nil {
 		return response, fmt.Errorf("user not provided")
 	}
+	if opts.Path == "" {
+		return response, fmt.Errorf("path not provided")
+	}
+	if opts.Source == "" {
+		return response, fmt.Errorf("source not provided")
+	}
 	// Get index
 	idx := indexing.GetIndex(opts.Source)
 	if idx == nil {
@@ -127,7 +133,7 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage, user *users.
 	// Resolve user scope
 	userScope, scopeErr := user.GetScopeForSourcePath(idx.Path)
 	if scopeErr != nil || userScope == "" {
-		return response, fmt.Errorf("user has no access to source: %v", scopeErr)
+		return response, fmt.Errorf("user has no access to source: %v", opts.Source)
 	}
 
 	safePath, err := utils.SanitizeUserPath(opts.Path)
@@ -137,7 +143,6 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage, user *users.
 
 	// Combine scope + sanitized path
 	indexPath := utils.JoinPathAsUnix(userScope, safePath)
-	fmt.Println("indexPath: ", indexPath)
 	// Layer 1: USER ACCESS CONTROL
 	// Quick check: Does THIS user have permission?
 	if !access.Permitted(idx.Path, indexPath, user.Username) {
