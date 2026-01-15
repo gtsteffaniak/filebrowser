@@ -12,14 +12,14 @@ import (
 
 // schedule in minutes
 var scanSchedule = map[int]time.Duration{
-	0: 5 * time.Minute, // 5 minute quick scan & 25 minutes for a full scan
+	0: 5 * time.Minute, // 5 minute scan
 	1: 10 * time.Minute,
 	2: 20 * time.Minute,
-	3: 40 * time.Minute, // reset anchor for full scan
+	3: 40 * time.Minute, // schedule index 3 for file changes
 	4: 1 * time.Hour,
 	5: 2 * time.Hour,
-	6: 3 * time.Hour, // [6]
-	7: 4 * time.Hour, // [7] 4 hours for quick scan & 20 hours for a full scan
+	6: 3 * time.Hour,
+	7: 4 * time.Hour,
 	8: 8 * time.Hour,
 	9: 12 * time.Hour,
 }
@@ -39,29 +39,29 @@ var complexityModifier = map[uint]time.Duration{
 	10: 16 * time.Minute, // highlyComplex: scan less frequently
 }
 
-// calculateTimeScore returns a 1-10 score based on full scan time
-func calculateTimeScore(fullScanTime int) uint {
-	if fullScanTime == 0 {
+// calculateTimeScore returns a 1-10 score based on scan time
+func calculateTimeScore(scanTime int) uint {
+	if scanTime == 0 {
 		return 1 // No data yet, assume simple
 	}
 	switch {
-	case fullScanTime < 2:
+	case scanTime < 2:
 		return 1
-	case fullScanTime < 5:
+	case scanTime < 5:
 		return 2
-	case fullScanTime < 15:
+	case scanTime < 15:
 		return 3
-	case fullScanTime < 30:
+	case scanTime < 30:
 		return 4
-	case fullScanTime < 60:
+	case scanTime < 60:
 		return 5
-	case fullScanTime < 90:
+	case scanTime < 90:
 		return 6
-	case fullScanTime < 120:
+	case scanTime < 120:
 		return 7
-	case fullScanTime < 180:
+	case scanTime < 180:
 		return 8
-	case fullScanTime < 300:
+	case scanTime < 300:
 		return 9
 	default:
 		return 10
@@ -95,8 +95,8 @@ func calculateDirScore(numDirs uint64) uint {
 	}
 }
 
-func calculateComplexity(fullScanTime int, numDirs uint64) uint {
-	timeScore := calculateTimeScore(fullScanTime)
+func calculateComplexity(scanTime int, numDirs uint64) uint {
+	timeScore := calculateTimeScore(scanTime)
 	dirScore := calculateDirScore(numDirs)
 	complexity := timeScore
 	if dirScore > timeScore {
@@ -104,8 +104,6 @@ func calculateComplexity(fullScanTime int, numDirs uint64) uint {
 	}
 	return complexity
 }
-
-var fullScanAnchor = 3 // index of the schedule for a full scan
 
 // markFilesChanged marks that files have changed in the currently active scanner
 func (idx *Index) markFilesChanged() {
@@ -233,15 +231,12 @@ func (idx *Index) setupMultiScanner() {
 	}
 
 	// Load existing folder sizes from database to avoid marking everything as dirty on startup
-	logger.Debugf("[INIT] Loading existing folder sizes from database for index %s", idx.Name)
 	existingSizes, err := idx.db.LoadFolderSizes(idx.Name)
 	if err != nil {
 		logger.Errorf("[INIT] Failed to load existing folder sizes for [%s]: %v", idx.Name, err)
 	} else {
 		idx.folderSizesMu.Lock()
 		idx.folderSizes = existingSizes
-		// Don't mark as unsynced - they're already in the DB
-		logger.Debugf("[INIT] Loaded %d existing folder sizes for index %s", len(existingSizes), idx.Name)
 		idx.folderSizesMu.Unlock()
 	}
 

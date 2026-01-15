@@ -188,15 +188,6 @@ func (db *IndexDB) InsertItem(source, path string, info *iteminfo.FileInfo) erro
 		is_hidden = excluded.is_hidden,
 		has_preview = excluded.has_preview,
 		last_updated = excluded.last_updated
-	WHERE excluded.last_updated > index_items.last_updated OR
-	      excluded.size != index_items.size OR
-	      excluded.mod_time != index_items.mod_time OR
-	      excluded.has_preview != index_items.has_preview OR
-	      excluded.parent_path != index_items.parent_path OR
-	      excluded.name != index_items.name OR
-	      excluded.type != index_items.type OR
-	      excluded.is_dir != index_items.is_dir OR
-	      excluded.is_hidden != index_items.is_hidden
 	`
 	parentPath := getParentPath(path)
 	_, err := db.Exec(query,
@@ -240,7 +231,8 @@ func (db *IndexDB) BulkInsertItems(source string, items []*iteminfo.FileInfo) er
 	}
 	defer db.mu.Unlock() // Ensure mutex is always released
 
-	// SQLite will short-circuit on the first true condition (mod_time checked first as most common)
+	// Always update all fields including last_updated, even if nothing changed
+	// This ensures last_updated stays current for stale entry detection
 	stmt, err := tx.Prepare(`
 	INSERT INTO index_items (source, path, parent_path, name, size, mod_time, type, is_dir, is_hidden, has_preview, last_updated)
 	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -254,9 +246,6 @@ func (db *IndexDB) BulkInsertItems(source string, items []*iteminfo.FileInfo) er
 		is_hidden = excluded.is_hidden,
 		has_preview = excluded.has_preview,
 		last_updated = excluded.last_updated
-	WHERE excluded.mod_time != index_items.mod_time OR
-	      excluded.size != index_items.size OR
-	      excluded.has_preview != index_items.has_preview
 	`)
 	if err != nil {
 		if isBusyError(err) || isTransactionError(err) {
@@ -555,32 +544,204 @@ func (db *IndexDB) UpdateCacheSize(cacheSizeMB int) error {
 	return nil
 }
 
-func (db *IndexDB) DeleteStaleEntries(source string, pathPrefix string, scanStartTime int64) (int, error) {
-	// Use range query on PRIMARY KEY (source, path) for optimal index utilization
-	// Range queries (path >= ? AND path < ?) are MORE efficient than GLOB/LIKE because:
-	// 1. They can use the PRIMARY KEY index directly without pattern matching
-	// 2. SQLite can optimize range queries better than pattern matching
-	// 3. No pattern evaluation overhead - just direct index seeks
-	// This is better than GLOB 'prefix*' which still requires pattern evaluation
-	nextPrefix := getNextPathPrefix(pathPrefix)
-	query := `
-	DELETE FROM index_items 
-	WHERE source = ? 
-	AND path >= ? AND path < ?
-	AND last_updated < ?
-	`
-
-	result, err := db.Exec(query, source, pathPrefix, nextPrefix, scanStartTime)
-	if err != nil {
-		if isBusyError(err) || isTransactionError(err) {
-			logger.Debugf("[DB_MAINTENANCE] DeleteStaleEntries: DB busy, skipping cleanup")
-			return 0, nil
-		}
-		return 0, err
+// DeleteStaleEntriesQuick handles cleanup for quick scans (two-phase approach)
+// Phase 1: Delete folders that weren't updated (they were deleted from filesystem)
+// Phase 2: Delete files only in folders that had modtime changes
+// DeleteStaleFolders deletes folders that weren't updated during a quick scan
+func (db *IndexDB) DeleteStaleFolders(source string, pathPrefix string, scanStartTime int64, root bool) (int, error) {
+	if scanStartTime == 0 {
+		return 0, nil
 	}
 
-	rowsAffected, _ := result.RowsAffected()
-	return int(rowsAffected), nil
+	const batchSize = 1000
+	totalDeleted := 0
+
+	// Delete stale folders (weren't touched during quick scan)
+	for {
+		var query string
+		var result sql.Result
+		var err error
+
+		if root {
+			// Root scanner: only check direct children folders
+			query = `
+			DELETE FROM index_items 
+			WHERE rowid IN (
+				SELECT rowid FROM index_items
+				WHERE source = ? 
+				AND parent_path = '/'
+				AND is_dir = 1
+				AND last_updated < ?
+				LIMIT ?
+			)
+			`
+			result, err = db.Exec(query, source, scanStartTime, batchSize)
+		} else {
+			// Child scanner: check all folders under pathPrefix
+			nextPrefix := getNextPathPrefix(pathPrefix)
+			query = `
+			DELETE FROM index_items 
+			WHERE rowid IN (
+				SELECT rowid FROM index_items
+				WHERE source = ? 
+				AND path >= ? AND path < ?
+				AND is_dir = 1
+				AND last_updated < ?
+				LIMIT ?
+			)
+			`
+			result, err = db.Exec(query, source, pathPrefix, nextPrefix, scanStartTime, batchSize)
+		}
+
+		if err != nil {
+			if isBusyError(err) || isTransactionError(err) {
+				logger.Debugf("[DB_MAINTENANCE] DeleteStaleEntriesQuick Phase 1: DB busy, skipping cleanup")
+				return totalDeleted, nil
+			}
+			return totalDeleted, err
+		}
+
+		rowsAffected, _ := result.RowsAffected()
+		totalDeleted += int(rowsAffected)
+
+		if rowsAffected < batchSize {
+			break
+		}
+	}
+
+	return totalDeleted, nil
+}
+
+// DeleteStaleFilesInDirs deletes files that weren't updated in specific directories
+// Uses batched IN clauses for efficiency with potentially large directory lists
+func (db *IndexDB) DeleteStaleFilesInDirs(source string, updatedDirs []string, scanStartTime int64) (int, error) {
+	if scanStartTime == 0 || len(updatedDirs) == 0 {
+		return 0, nil
+	}
+
+	const maxPathsPerBatch = 500 // SQLite handles IN clauses well up to ~1000, we use 500 for safety
+	const deleteLimit = 1000     // Limit per DELETE to prevent memory spikes
+	totalDeleted := 0
+
+	// Process directories in batches
+	for batchStart := 0; batchStart < len(updatedDirs); batchStart += maxPathsPerBatch {
+		batchEnd := batchStart + maxPathsPerBatch
+		if batchEnd > len(updatedDirs) {
+			batchEnd = len(updatedDirs)
+		}
+		batch := updatedDirs[batchStart:batchEnd]
+
+		// Build placeholders for IN clause
+		placeholders := make([]string, len(batch))
+		args := make([]interface{}, len(batch)+2)
+		args[0] = source
+		args[1] = scanStartTime
+		for i, dir := range batch {
+			placeholders[i] = "?"
+			args[i+2] = dir
+		}
+		placeholdersStr := strings.Join(placeholders, ",")
+
+		// Delete files in batches to prevent memory spikes
+		for {
+			query := fmt.Sprintf(`
+				DELETE FROM index_items 
+				WHERE rowid IN (
+					SELECT rowid FROM index_items
+					WHERE source = ?
+					AND is_dir = 0
+					AND last_updated < ?
+					AND parent_path IN (%s)
+					LIMIT ?
+				)
+			`, placeholdersStr)
+
+			// Append limit to args
+			queryArgs := append(args, deleteLimit)
+
+			result, err := db.Exec(query, queryArgs...)
+			if err != nil {
+				if isBusyError(err) || isTransactionError(err) {
+					logger.Debugf("[DB_MAINTENANCE] DeleteStaleFilesInDirs: DB busy, skipping batch")
+					break // Skip this batch and continue with next
+				}
+				return totalDeleted, err
+			}
+
+			rowsAffected, _ := result.RowsAffected()
+			totalDeleted += int(rowsAffected)
+
+			if rowsAffected < deleteLimit {
+				break // No more files to delete in this batch
+			}
+		}
+	}
+
+	return totalDeleted, nil
+}
+
+func (db *IndexDB) DeleteStaleEntries(source string, pathPrefix string, scanStartTime int64, root bool) (int, error) {
+	if scanStartTime == 0 {
+		return 0, nil
+	}
+	// Delete in batches to prevent memory spikes from large transactions
+	const batchSize = 1000
+	totalDeleted := 0
+
+	for {
+		var query string
+		var result sql.Result
+		var err error
+
+		if root {
+			// Root scanner: only delete items whose parent_path is "/" (direct children)
+			// This prevents root scanner from deleting items managed by child scanners
+			query = `
+			DELETE FROM index_items 
+			WHERE rowid IN (
+				SELECT rowid FROM index_items
+				WHERE source = ? 
+				AND parent_path = '/'
+				AND last_updated < ?
+				LIMIT ?
+			)
+			`
+			result, err = db.Exec(query, source, scanStartTime, batchSize)
+		} else {
+			// Child scanner: delete everything under this path prefix recursively
+			// Use range query on PRIMARY KEY (source, path) for optimal index utilization
+			nextPrefix := getNextPathPrefix(pathPrefix)
+			query = `
+			DELETE FROM index_items 
+			WHERE rowid IN (
+				SELECT rowid FROM index_items
+				WHERE source = ? 
+				AND path >= ? AND path < ?
+				AND last_updated < ?
+				LIMIT ?
+			)
+			`
+			result, err = db.Exec(query, source, pathPrefix, nextPrefix, scanStartTime, batchSize)
+		}
+
+		if err != nil {
+			if isBusyError(err) || isTransactionError(err) {
+				logger.Debugf("[DB_MAINTENANCE] DeleteStaleEntries: DB busy, skipping cleanup")
+				return totalDeleted, nil
+			}
+			return totalDeleted, err
+		}
+
+		rowsAffected, _ := result.RowsAffected()
+		totalDeleted += int(rowsAffected)
+
+		// If we deleted fewer than batchSize rows, we're done
+		if rowsAffected < batchSize {
+			break
+		}
+	}
+
+	return totalDeleted, nil
 }
 
 // DeleteStaleItemsOlderThan deletes all items across all sources where last_updated is older than the specified duration.

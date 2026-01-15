@@ -324,14 +324,14 @@ func GetIndexInfo(sourceName string, forceCacheRefresh bool) (ReducedIndex, erro
 		scannerInfos = append(scannerInfos, &ScannerInfo{
 			Path:            scanner.scanPath,
 			CurrentSchedule: scanner.currentSchedule,
-			Stats: Stats{
-				LastScanned:   scanner.lastScanned,
-				Complexity:    scanner.complexity,
-				QuickScanTime: scanner.quickScanTime,
-				FullScanTime:  scanner.fullScanTime,
-				NumDirs:       scanner.numDirs,
-				NumFiles:      scanner.numFiles,
-			},
+		Stats: Stats{
+			LastScanned:   scanner.lastScanned,
+			Complexity:    scanner.complexity,
+			QuickScanTime: scanner.quickScanTime,
+			FullScanTime:  scanner.fullScanTime,
+			NumDirs:       scanner.numDirs,
+			NumFiles:      scanner.numFiles,
+		},
 		})
 	}
 	reducedIdx := idx.ReducedIndex

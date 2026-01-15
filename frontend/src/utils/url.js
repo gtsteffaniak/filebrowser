@@ -80,24 +80,37 @@ export function removePrefix(path, prefix = "") {
 
 
 // get path with parameters
-export function getApiPath(path, params = {}) {
+export function getApiPath(path, params = {}, encode = false) {
   if (path.startsWith("/")) {
     path = path.slice(1);
   }
   path = `${globalVars.baseURL}${path}`;
-  if (Object.keys(params).length > 0) {
-    path += "?";
-  }
-  for (const key in params) {
-    if (params[key] === undefined) {
-      continue;
+  
+  const paramKeys = Object.keys(params);
+  if (paramKeys.length > 0) {
+    if (encode) {
+      const encodedParams = paramKeys
+        .filter(key => params[key] !== undefined)
+        .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
+        .join('&');
+      if (encodedParams) {
+        path += `?${encodedParams}`;
+      }
+    } else {
+      path += "?";
+      for (const key in params) {
+        if (params[key] === undefined) {
+          continue;
+        }
+        path += `${key}=${params[key]}&`;
+      }
+      // remove trailing &
+      if (path.endsWith("&")) {
+        path = path.slice(0, -1);
+      }
     }
-    path += `${key}=${params[key]}&`;
   }
-  // remove trailing &
-  if (path.endsWith("&")) {
-    path = path.slice(0, -1);
-  }
+  
   return path;
 }
 

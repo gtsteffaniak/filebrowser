@@ -109,21 +109,6 @@ func setContentDisposition(w http.ResponseWriter, r *http.Request, fileName stri
 func rawHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	source := r.URL.Query().Get("source")
 	filesParam := r.URL.Query().Get("files")
-
-	if source == "" {
-		return http.StatusBadRequest, fmt.Errorf("source parameter is required")
-	}
-	if filesParam == "" {
-		return http.StatusBadRequest, fmt.Errorf("files parameter is required")
-	}
-
-	// Decode URL-encoded source
-	source, err := url.QueryUnescape(source)
-	if err != nil {
-		return http.StatusBadRequest, fmt.Errorf("invalid source encoding: %v", err)
-	}
-
-	// Split files by comma
 	fileList := strings.Split(filesParam, ",")
 	return rawFilesHandler(w, r, d, source, fileList)
 }

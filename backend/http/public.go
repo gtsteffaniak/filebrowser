@@ -212,28 +212,9 @@ func publicPreviewHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	if config.Server.DisablePreviews || d.share.DisableThumbnails {
 		return http.StatusNotImplemented, fmt.Errorf("preview is disabled")
 	}
-
 	if d.share.ShareType == "upload" {
 		return http.StatusNotImplemented, fmt.Errorf("preview is disabled for upload shares")
 	}
-
-	// Restore source name from share for preview generation
-	// The middleware clears file.Source for security, but we need it for index lookups
-	source, err := d.share.GetSourceName()
-	if err != nil {
-		return http.StatusNotFound, fmt.Errorf("source not available")
-	}
-	fileInfo, err := FileInfoFasterFunc(utils.FileOptions{
-		Path:       utils.JoinPathAsUnix(d.share.Path, d.fileInfo.Path),
-		Source:     source,
-		Metadata:   true,
-		AlbumArt:   true,
-		ShowHidden: d.share.ShowHidden,
-	}, nil, d.user)
-	if err != nil {
-		return http.StatusNotFound, fmt.Errorf("resource not available")
-	}
-	d.fileInfo = *fileInfo
 	status, err := previewHelperFunc(w, r, d)
 	if err != nil {
 		// Obfuscate errors for shares to prevent information leakage

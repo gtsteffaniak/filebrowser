@@ -37,6 +37,9 @@ func validateUserInfo(newDB bool) {
 		if updateShowFirstLogin(user) {
 			updateUser = true
 		}
+		if updateSidebarLinks(user) {
+			updateUser = true
+		}
 		adminUser := settings.Config.Auth.AdminUsername
 		adminPass := settings.Config.Auth.AdminPassword
 		passwordEnabled := settings.Config.Auth.Methods.PasswordAuth.Enabled
@@ -184,5 +187,62 @@ func updatePreviewSettings(user *users.User) bool {
 		user.Preview.PopUp = true
 		return true
 	}
+	return false
+}
+
+// updateSidebarLinks checks if user has stale source links and rebuilds them if needed
+func updateSidebarLinks(user *users.User) bool {
+	// Count source links and check if any are still valid
+	sourceLinksCount := 0
+	validSourceLinksCount := 0
+
+	for _, link := range user.SidebarLinks {
+		if link.Category == "source" {
+			sourceLinksCount++
+			// Check if this source still exists
+			if link.SourceName != "" {
+				if _, ok := settings.Config.Server.SourceMap[link.SourceName]; ok {
+					validSourceLinksCount++
+				}
+			}
+		}
+	}
+
+	// If user has no source links, don't update anything
+	if sourceLinksCount == 0 {
+		return false
+	}
+
+	// If user has source links but NONE are valid, rebuild from their scopes
+	if validSourceLinksCount == 0 {
+		logger.Infof("User %s has %d stale source links, rebuilding from scopes", user.Username, sourceLinksCount)
+
+		// Remove all existing source links
+		newLinks := []users.SidebarLink{}
+		for _, link := range user.SidebarLinks {
+			if link.Category != "source" {
+				newLinks = append(newLinks, link)
+			}
+		}
+
+		// Add new source links based on user's scopes
+		for _, scope := range user.Scopes {
+			if source, ok := settings.Config.Server.SourceMap[scope.Name]; ok {
+				// User has access to this source, add it to sidebar
+				newLinks = append(newLinks, users.SidebarLink{
+					Name:       source.Name,
+					Category:   "source",
+					Target:     "/",
+					Icon:       "",
+					SourceName: source.Path,
+				})
+			}
+		}
+
+		user.SidebarLinks = newLinks
+		return true
+	}
+
+	// User has at least one valid source link, no update needed
 	return false
 }

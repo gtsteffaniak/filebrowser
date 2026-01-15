@@ -57,7 +57,6 @@ func getDiskUsage(fileInfo os.FileInfo, realPath string, useLogicalSize bool) in
 // Options holds all configuration options for indexing and filesystem operations
 type Options struct {
 	// Indexing operation options
-	Quick         bool // whether to perform a quick scan (skip unchanged directories)
 	Recursive     bool // whether to recursively index subdirectories
 	CheckViewable bool // whether to check if the path has viewable:true (for API access checks)
 	IsRoutineScan bool // whether this is a routine/scheduled scan (vs initial indexing)
@@ -521,20 +520,12 @@ func (idx *Index) GetFileInfo(req FileInfoRequest) (*iteminfo.FileInfo, error) {
 
 // getFileInfoFromContext returns info for a single file
 func (idx *Index) getFileInfoFromContext(ctx *PathContext, isIndexable bool) (*iteminfo.FileInfo, error) {
-	var size uint64
-	if isIndexable {
-		// Use indexed size
-		size, _ = idx.handleFile(ctx.FileInfo, ctx.IndexPath, false, nil)
-	} else {
-		// Use filesystem size
-		size = uint64(ctx.FileInfo.Size())
-	}
-
+	size := idx.getFileSizeForDisplay(ctx.FileInfo, ctx.RealPath)
 	fileInfo := &iteminfo.FileInfo{
 		Path: ctx.IndexPath,
 		ItemInfo: iteminfo.ItemInfo{
 			Name:    ctx.BaseName,
-			Size:    int64(size),
+			Size:    size,
 			ModTime: ctx.FileInfo.ModTime(),
 			Hidden:  ctx.IsHidden,
 		},
@@ -707,7 +698,6 @@ func (idx *Index) GetFsInfoCore(indexPath string, opts Options) (*iteminfo.FileI
 // GetFsInfo returns filesystem information with index checks and extended attributes
 func (idx *Index) GetFsInfo(adjustedPath string, followSymlinks bool, showHidden bool) (*iteminfo.FileInfo, error) {
 	return idx.GetFsInfoCore(adjustedPath, Options{
-		Quick:             false,
 		Recursive:         false,
 		CheckViewable:     true,
 		IsRoutineScan:     false,
@@ -720,7 +710,6 @@ func (idx *Index) GetFsInfo(adjustedPath string, followSymlinks bool, showHidden
 // GetFsInfoViewableOnly returns filesystem information for viewable-only paths (not indexed)
 func (idx *Index) GetFsInfoViewableOnly(adjustedPath string, followSymlinks bool, showHidden bool) (*iteminfo.FileInfo, error) {
 	return idx.GetFsInfoCore(adjustedPath, Options{
-		Quick:             false,
 		Recursive:         false,
 		CheckViewable:     true,
 		IsRoutineScan:     false,
@@ -847,13 +836,12 @@ func (idx *Index) processFileItem(file os.FileInfo, indexPath string, opts Optio
 	var size uint64
 	var shouldCountSize bool
 	if !opts.Recursive && scanner == nil {
-		// API call: use helper function for config-aware size calculation
 		size = uint64(idx.getFileSizeForDisplay(file, fullCombined))
 		shouldCountSize = true
 	} else {
-		// Scanning: use handleFile for accurate size and hardlink detection
 		size, shouldCountSize = idx.handleFile(file, indexPath, opts.IsRoutineScan, scanner)
 	}
+	itemInfo.Size = int64(size)
 
 	// Extended attributes for files
 	bubblesUpHasPreview := false
@@ -879,7 +867,6 @@ func (idx *Index) processFileItem(file os.FileInfo, indexPath string, opts Optio
 		itemInfo.HasPreview = false
 	}
 
-	itemInfo.Size = int64(size)
 	return itemInfo, itemInfo.Size, shouldCountSize, bubblesUpHasPreview
 }
 
@@ -1232,7 +1219,6 @@ func (idx *Index) SyncFolderSizesToDB() error {
 	idx.folderSizesMu.Unlock()
 
 	if len(sizesToSync) == 0 {
-		logger.Debugf("[FOLDER_SIZE_SYNC] No dirty folder sizes to sync")
 		return nil
 	}
 
