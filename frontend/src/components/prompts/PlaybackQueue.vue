@@ -16,7 +16,7 @@
     </div>
 
     <!-- Queue list -->
-    <div v-if="formattedQueue.length > 0">
+    <div v-if="formattedQueue.length > 0" class="queue-container">
       <div class="file-list" ref="QueueList">
         <div
           v-for="(item, index) in formattedQueue"
@@ -41,24 +41,24 @@
           </div>
         </div>
       </div>
-
-    </div>
-      <!-- Empty state -->
-      <div v-else class="empty">
-       <i class="material-icons">queue_music</i>
-       <p>{{ $t('player.emptyQueue') }}</p>
-      </div>
     </div>
 
-    <div class="card-action">
-      <button class="button button--flat" @click.stop="cyclePlaybackModes" :title="$t('player.changePlaybackMode')">
-        <i class="material-icons">swap_vert</i> {{ $t('player.changePlaybackMode') }}
-      </button>
+    <!-- Empty state -->
+    <div v-else class="empty">
+      <i class="material-icons">queue_music</i>
+      <p>{{ $t('player.emptyQueue') }}</p>
+    </div>
+  </div>
 
-      <button @click="closeModal" class="button button--flat" :aria-label="$t('general.close')"
+  <div class="card-action">
+    <button class="button button--flat" @click.stop="cyclePlaybackModes" :title="$t('player.changePlaybackMode')">
+      <i class="material-icons">swap_vert</i> {{ $t('player.changePlaybackMode') }}
+    </button>
+
+    <button @click="closeModal" class="button button--flat" :aria-label="$t('general.close')"
       :title="$t('general.close')"> {{ $t('general.close') }}
-      </button>
-    </div>
+    </button>
+  </div>
 </template>
 
 <script>
@@ -224,7 +224,8 @@ export default {
             top: Math.max(0, scrollTo),
             behavior: 'smooth'
           });
-      }});
+        }
+      });
     },
     
     closeModal() {
@@ -251,12 +252,12 @@ export default {
 }
 
 .card-content {
-  overflow: hidden !important;
   margin-top: 0;
+  display: flex;
   flex-direction: column;
+  overflow: hidden;
   padding-left: 15px;
   padding-right: 15px;
-  overflow-x: hidden;
 }
 
 .card-action {
@@ -287,11 +288,17 @@ export default {
   padding-bottom: 0.75rem;
 }
 
+.queue-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
 .file-list {
-  max-height: 400px;
   overflow-y: auto;
   align-items: center;
   border-radius: 12px;
+  padding: 0;
 }
 
 .item {

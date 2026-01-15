@@ -1371,6 +1371,11 @@ export default {
     align-items: center;
     justify-content: center;
     font-weight: bold;
+    text-shadow: 
+        0 0 3px rgba(0, 0, 0, 0.9),
+        0 0 5px rgba(0, 0, 0, 0.7),
+        0 0 8px rgba(0, 0, 0, 0.5),
+        0 0 8px rgba(0, 0, 0, 0.3);
 }
 
 .queue-button.hidden {
