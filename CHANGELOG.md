@@ -40,7 +40,9 @@ And a few potential drawbacks to lookout for:
  - improved listing load times for directories with metadata -- a two pass approach. First a fast load to get the listing items, then a second api request to include metadata.
  - Enhanced delete prompt
  - bulkDelete API added and replaces delete API for all UI actions. See swagger docs for usage.
+ - raw download and patch resource api simplified to single source per request. See swagger docs for usage.
  - UserScope function re-organization, if you notice any user scope issues please open a github issue.
+
 
  **BugFixes**:
  - Source info not properly read from external storage NAS #1727

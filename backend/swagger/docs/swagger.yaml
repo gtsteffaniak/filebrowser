@@ -61,6 +61,46 @@ definitions:
       token:
         type: string
     type: object
+  http.MoveCopyItem:
+    properties:
+      fromPath:
+        type: string
+      fromSource:
+        type: string
+      message:
+        type: string
+      toPath:
+        type: string
+      toSource:
+        type: string
+    type: object
+  http.MoveCopyRequest:
+    properties:
+      action:
+        description: '"copy", "move", or "rename"'
+        type: string
+      items:
+        items:
+          $ref: '#/definitions/http.MoveCopyItem'
+        type: array
+      overwrite:
+        description: Overwrite if destination exists
+        type: boolean
+      rename:
+        description: Auto-rename if destination exists
+        type: boolean
+    type: object
+  http.MoveCopyResponse:
+    properties:
+      failed:
+        items:
+          $ref: '#/definitions/http.MoveCopyItem'
+        type: array
+      succeeded:
+        items:
+          $ref: '#/definitions/http.MoveCopyItem'
+        type: array
+    type: object
   http.ShareResponse:
     properties:
       allowCreate:
@@ -2555,10 +2595,14 @@ paths:
         **Filename Encoding:**
         - The Content-Disposition header will always include both:
         1. `filename="..."`: An ASCII-safe version of the filename for compatibility.
-        2. `filename*=utf-8”...`: The full UTF-8 encoded filename (RFC 6266/5987) for modern clients.
+        2. `filename*=utf-8"...`: The full UTF-8 encoded filename (RFC 6266/5987) for modern clients.
       parameters:
-      - description: a list of files in the following format 'source::filename' and
-          separated by '||' with additional items in the list. (required)
+      - description: Source name for the files (required)
+        in: query
+        name: source
+        required: true
+        type: string
+      - description: Comma-separated list of file paths (required)
         in: query
         name: files
         required: true
@@ -2727,36 +2771,32 @@ paths:
     patch:
       consumes:
       - application/json
-      description: Moves or renames a resource to a new destination.
+      description: Performs move, copy, or rename operations on multiple resources.
+        All operations are performed atomically.
       parameters:
-      - description: Path from resource in <source_name>::<index_path> format
-        in: query
-        name: from
+      - description: Move/copy request with items and action
+        in: body
+        name: request
         required: true
-        type: string
-      - description: Destination path for the resource
-        in: query
-        name: destination
-        required: true
-        type: string
-      - description: Action to perform (copy, rename)
-        in: query
-        name: action
-        required: true
-        type: string
-      - description: Overwrite if destination exists
-        in: query
-        name: overwrite
-        type: boolean
-      - description: Rename if destination exists
-        in: query
-        name: rename
-        type: boolean
+        schema:
+          $ref: '#/definitions/http.MoveCopyRequest'
       produces:
       - application/json
       responses:
         "200":
-          description: Resource moved/renamed successfully
+          description: All operations completed successfully
+          schema:
+            $ref: '#/definitions/http.MoveCopyResponse'
+        "207":
+          description: Partial success - some operations succeeded, some failed
+          schema:
+            $ref: '#/definitions/http.MoveCopyResponse'
+        "400":
+          description: Bad request - invalid JSON or parameters
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "403":
           description: Forbidden
           schema:
@@ -2769,19 +2809,13 @@ paths:
             additionalProperties:
               type: string
             type: object
-        "409":
-          description: Conflict - Destination exists
-          schema:
-            additionalProperties:
-              type: string
-            type: object
         "500":
           description: Internal server error
           schema:
             additionalProperties:
               type: string
             type: object
-      summary: Patch resource (move/rename)
+      summary: Move, copy, or rename resources
       tags:
       - Resources
     post:
@@ -3590,8 +3624,7 @@ paths:
         name: hash
         required: true
         type: string
-      - description: 'Files to download in format: ''source::path||source::path''.
-          Example: ''/file1||/folder/file2'''
+      - description: 'Comma-separated list of file paths. Example: ''file1.txt,folder/file2.txt'''
         in: query
         name: files
         required: true
@@ -3704,6 +3737,61 @@ paths:
               type: string
             type: object
       summary: Get file/directory information from a public share
+      tags:
+      - Public Shares
+    patch:
+      consumes:
+      - application/json
+      description: Performs move, copy, or rename operations on multiple resources
+        within a public share. All operations are performed atomically.
+      parameters:
+      - description: Share hash for authentication
+        in: query
+        name: hash
+        required: true
+        type: string
+      - description: Move/copy request with items and action
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/http.MoveCopyRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: All operations completed successfully
+          schema:
+            $ref: '#/definitions/http.MoveCopyResponse'
+        "207":
+          description: Partial success - some operations succeeded, some failed
+          schema:
+            $ref: '#/definitions/http.MoveCopyResponse'
+        "400":
+          description: Bad request - invalid JSON or parameters
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden - modify not allowed for this share
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Share or resource not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Move, copy, or rename resources in a public share
       tags:
       - Public Shares
     post:
