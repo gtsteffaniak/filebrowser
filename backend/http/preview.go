@@ -67,6 +67,7 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		Path:     path,
 		Source:   source,
 		AlbumArt: true, // Extract album art for audio previews
+		Expand:   true,
 	}, store.Access, d.user)
 	if err != nil {
 		return errToStatus(err), err
@@ -109,12 +110,14 @@ func getDirectoryPreview(r *http.Request, d *requestContext) (*iteminfo.Extended
 				return nil, fmt.Errorf("source not found for share")
 			}
 			source = sourceInfo.Name
+			path = d.IndexPath + item.Name
 		}
 		fileInfo, err := files.FileInfoFaster(
 			utils.FileOptions{
 				Path:     path,
 				Source:   source,
 				AlbumArt: true, // Extract album art for audio previews
+				Metadata: true,
 			}, store.Access, d.user)
 		if err != nil {
 			lastErr = err
@@ -154,7 +157,6 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 		previewSize = "small"
 	}
 	if !d.fileInfo.HasPreview {
-		fmt.Println("d.fileInfo", d.fileInfo.Name, d.fileInfo.Path)
 		return http.StatusBadRequest, fmt.Errorf("this item does not have a preview")
 	}
 
