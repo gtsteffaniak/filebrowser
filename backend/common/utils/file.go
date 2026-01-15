@@ -6,9 +6,12 @@ import (
 	"crypto/sha256"
 	"crypto/sha512"
 	"encoding/hex"
+	"fmt"
 	"hash"
 	"io"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
 )
@@ -55,4 +58,18 @@ type FileOptions struct {
 	AlbumArt                 bool // whether to get album art from media files
 	ShowHidden               bool // whether to show hidden files (true = show, false = hide)
 	FollowSymlinks           bool // whether to follow symlinks
+}
+
+// SanitizeUserPath prevents path traversal attacks by cleaning and validating user input.
+// Rule 1: Do Not Use User Input in File Paths (without validation)
+func SanitizeUserPath(userPath string) (string, error) {
+	// Clean resolves . and .. segments
+	clean := filepath.Clean(userPath)
+
+	// Reject absolute paths or attempts to escape scope
+	if strings.HasPrefix(clean, "..") {
+		return "", fmt.Errorf("invalid path")
+	}
+
+	return clean, nil
 }

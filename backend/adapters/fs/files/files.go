@@ -62,19 +62,12 @@ func processDirectoryMetadata(response *iteminfo.ExtendedFileInfo, idx *indexing
 				isItemVideo := strings.HasPrefix(fileItem.Type, "video")
 
 				if isItemAudio || isItemVideo {
-					// Get the real path for this file
-					itemRealPath, _, _ := idx.GetRealPath(opts.Path, fileItem.Name)
-					// Capture loop variables in local copies to avoid closure issues
-					item := fileItem
-					itemPath := itemRealPath
-					isAudio := isItemAudio
-
 					wg.Go(func() {
 						// Extract metadata for audio files (without album art for performance)
-						if isAudio {
-							err := extractAudioMetadata(context.Background(), item, itemPath, opts.AlbumArt || opts.Content, opts.Metadata, sharedFFmpegService)
+						if isItemAudio {
+							err := extractAudioMetadata(context.Background(), fileItem, response.RealPath+"/"+fileItem.Name, opts.AlbumArt, opts.Metadata, sharedFFmpegService)
 							if err != nil {
-								logger.Debugf("failed to extract metadata for file: %s, error: %v", item.Name, err)
+								logger.Debugf("failed to extract metadata for file: %s, error: %v", fileItem.Name, err)
 							} else {
 								mu.Lock()
 								processedCount++
@@ -82,9 +75,9 @@ func processDirectoryMetadata(response *iteminfo.ExtendedFileInfo, idx *indexing
 							}
 						} else {
 							// Extract duration for video files
-							err := extractVideoMetadata(context.Background(), item, itemPath, sharedFFmpegService)
+							err := extractVideoMetadata(context.Background(), fileItem, response.RealPath+"/"+fileItem.Name, sharedFFmpegService)
 							if err != nil {
-								logger.Debugf("failed to extract video metadata for file: %s, error: %v", item.Name, err)
+								logger.Debugf("failed to extract video metadata for file: %s, error: %v", fileItem.Name, err)
 							} else {
 								mu.Lock()
 								processedCount++
@@ -137,9 +130,14 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage, user *users.
 		return response, fmt.Errorf("user has no access to source: %v", scopeErr)
 	}
 
-	// Combine scope + request path
-	indexPath := utils.JoinPathAsUnix(userScope, opts.Path)
+	safePath, err := utils.SanitizeUserPath(opts.Path)
+	if err != nil {
+		return response, errors.ErrAccessDenied
+	}
 
+	// Combine scope + sanitized path
+	indexPath := utils.JoinPathAsUnix(userScope, safePath)
+	fmt.Println("indexPath: ", indexPath)
 	// Layer 1: USER ACCESS CONTROL
 	// Quick check: Does THIS user have permission?
 	if !access.Permitted(idx.Path, indexPath, user.Username) {
