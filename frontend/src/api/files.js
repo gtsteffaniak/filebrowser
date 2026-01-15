@@ -127,22 +127,39 @@ export async function download(format, files, shareHash = "") {
   if (format !== 'zip') {
     format = 'tar.gz'
   }
-  let fileargs = ''
-  for (let file of files) {
-    if (shareHash) {
-      fileargs += encodeURIComponent(file.path) + '||'
-    } else {
-      fileargs += encodeURIComponent(file.source) + '::' + encodeURIComponent(file.path) + '||'
+  
+  // For non-share downloads, validate single source and build file list
+  let source = null
+  let filePaths = []
+  
+  if (shareHash) {
+    // For shares, no source parameter needed, just paths
+    filePaths = files.map(file => encodeURIComponent(file.path))
+  } else {
+    // Validate all files are from the same source
+    for (let file of files) {
+      if (!file.source) {
+        throw new Error('File source is required for downloads')
+      }
+      if (source === null) {
+        source = file.source
+      } else if (source !== file.source) {
+        throw new Error('All files must be from the same source for downloads')
+      }
+      filePaths.push(encodeURIComponent(file.path))
     }
   }
-  fileargs = fileargs.slice(0, -2) // remove trailing "||"
-  const apiPath = getApiPath(shareHash == "" ? 'api/raw' : 'public/api/raw', {
-    files: fileargs,
+  
+  const params = {
+    files: filePaths.join(','),
     algo: format,
-    hash: shareHash,
+    ...(shareHash && { hash: shareHash }),
+    ...(!shareHash && source && { source: encodeURIComponent(source) }),
     ...(state.share.token && { token: state.share.token }),
     sessionId: state.sessionId
-  })
+  }
+  
+  const apiPath = getApiPath(shareHash == "" ? 'api/raw' : 'public/api/raw', params)
   const url = window.origin + apiPath
 
   // Create a direct link and trigger the download
@@ -186,20 +203,16 @@ async function downloadChunked(file, shareHash = "") {
     mutations.showHover({ name: 'download' })
   }
 
-  // Build the download URL
-  let fileargs = ''
-  if (shareHash) {
-    fileargs = encodeURIComponent(file.path)
-  } else {
-    fileargs = encodeURIComponent(file.source) + '::' + encodeURIComponent(file.path)
-  }
-
-  const apiPath = getApiPath(shareHash == "" ? 'api/raw' : 'public/api/raw', {
-    files: fileargs,
-    hash: shareHash,
+  // Build the download URL with new query format
+  const params = {
+    files: encodeURIComponent(file.path),
+    ...(shareHash && { hash: shareHash }),
+    ...(!shareHash && file.source && { source: encodeURIComponent(file.source) }),
     ...(state.share.token && { token: state.share.token }),
     sessionId: state.sessionId
-  })
+  }
+  
+  const apiPath = getApiPath(shareHash == "" ? 'api/raw' : 'public/api/raw', params)
   const baseUrl = window.origin + apiPath
 
   const download = downloadManager.findById(downloadId)
@@ -415,38 +428,50 @@ export async function moveCopy(
   overwrite = false,
   rename = false
 ) {
-  let params = {
-    overwrite: overwrite,
-    action: action,
-    rename: rename
+  if (!items || !Array.isArray(items) || items.length === 0) {
+    throw new Error('items array is required and must not be empty')
   }
-  try {
-    // Create an array of fetch calls
-    let promises = items.map(item => {
-      let localParams = {
-        ...params,
-        destination: doubleEncode(item.toSource) + '::' + doubleEncode(item.to),
-        from: doubleEncode(item.fromSource) + '::' + doubleEncode(item.from)
-      }
-      const apiPath = getApiPath('api/resources', localParams)
 
-      return fetch(apiPath, { method: 'PATCH' }).then(response => {
-        if (!response.ok) {
-          return response.text().then(text => {
-            throw new Error(
-              `Failed to move/copy: ${text || response.statusText}`
-            )
-          })
-        }
-        return response
-      })
+  try {
+    // Build request body with proper format
+    const requestBody = {
+      items: items.map(item => ({
+        fromSource: item.fromSource,
+        fromPath: item.from,
+        toSource: item.toSource,
+        toPath: item.to
+      })),
+      action: action,
+      overwrite: overwrite,
+      rename: rename
+    }
+
+    const apiPath = getApiPath('api/resources')
+    const response = await fetchURL(apiPath, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody),
     })
 
-    // Await all promises and ensure errors propagate
-    await Promise.all(promises)
+    const data = await response.json()
+
+    // 200 = all succeeded, 207 = partial success (some succeeded, some failed)
+    if (response.status === 200 || response.status === 207) {
+      return data
+    }
+
+    // For other error status codes, throw an error
+    const error = new Error(data.message || response.statusText)
+    error.status = response.status
+    throw error
   } catch (err) {
-    notify.showError(err.message || 'Error moving/copying resources')
-    throw err // Re-throw the error to propagate it back to the caller
+    // Only show notification and re-throw if it's a real error (not 200/207)
+    if (err.status && err.status !== 200 && err.status !== 207) {
+      notify.showError(err.message || 'Error moving/copying resources')
+    }
+    throw err
   }
 }
 
@@ -476,7 +501,8 @@ export function getDownloadURL(source, path, inline, useExternal) {
   }
   try {
     const params = {
-      files: encodeURIComponent(source) + '::' + encodeURIComponent(path),
+      source: encodeURIComponent(source),
+      files: encodeURIComponent(path),
       ...(inline && { inline: 'true' })
     }
     const apiPath = getApiPath('api/raw', params)
