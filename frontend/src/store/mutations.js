@@ -156,8 +156,7 @@ export const mutations = {
         files: 0,
         folders: 0,
         lastIndex: 0,
-        quickScanDurationSeconds: 0,
-        fullScanDurationSeconds: 0,
+        scanTime: 0,
         complexity: 0,
         scanners: [],
       };

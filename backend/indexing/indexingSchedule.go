@@ -12,7 +12,7 @@ import (
 
 // schedule in minutes
 var scanSchedule = map[int]time.Duration{
-	0: 5 * time.Minute,  // 5 minute scan
+	0: 5 * time.Minute, // 5 minute scan
 	1: 10 * time.Minute,
 	2: 20 * time.Minute,
 	3: 40 * time.Minute, // schedule index 3 for file changes
@@ -263,7 +263,7 @@ func (idx *Index) setupMultiScanner() {
 		if rootInfo, ok := persistedScanners["/"]; ok {
 			rootScanner.complexity = rootInfo.Complexity
 			rootScanner.currentSchedule = rootInfo.CurrentSchedule
-			rootScanner.scanTime = rootInfo.FullScanTime // Use FullScanTime for backward compatibility
+			rootScanner.scanTime = rootInfo.ScanTime
 			rootScanner.numDirs = rootInfo.NumDirs
 			rootScanner.numFiles = rootInfo.NumFiles
 			rootScanner.lastScanned = rootInfo.LastScanned
@@ -286,7 +286,7 @@ func (idx *Index) setupMultiScanner() {
 			if childInfo, ok := persistedScanners[dirPath]; ok {
 				childScanner.complexity = childInfo.Complexity
 				childScanner.currentSchedule = childInfo.CurrentSchedule
-				childScanner.scanTime = childInfo.FullScanTime // Use FullScanTime for backward compatibility
+				childScanner.scanTime = childInfo.ScanTime
 				childScanner.numDirs = childInfo.NumDirs
 				childScanner.numFiles = childInfo.NumFiles
 				childScanner.lastScanned = childInfo.LastScanned

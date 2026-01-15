@@ -57,7 +57,6 @@ func getDiskUsage(fileInfo os.FileInfo, realPath string, useLogicalSize bool) in
 // Options holds all configuration options for indexing and filesystem operations
 type Options struct {
 	// Indexing operation options
-	Quick         bool // whether to perform a quick scan (skip unchanged directories)
 	Recursive     bool // whether to recursively index subdirectories
 	CheckViewable bool // whether to check if the path has viewable:true (for API access checks)
 	IsRoutineScan bool // whether this is a routine/scheduled scan (vs initial indexing)
@@ -690,7 +689,6 @@ func (idx *Index) GetFsInfoCore(indexPath string, opts Options) (*iteminfo.FileI
 // GetFsInfo returns filesystem information with index checks and extended attributes
 func (idx *Index) GetFsInfo(adjustedPath string, followSymlinks bool, showHidden bool) (*iteminfo.FileInfo, error) {
 	return idx.GetFsInfoCore(adjustedPath, Options{
-		Quick:             false,
 		Recursive:         false,
 		CheckViewable:     true,
 		IsRoutineScan:     false,
@@ -703,7 +701,6 @@ func (idx *Index) GetFsInfo(adjustedPath string, followSymlinks bool, showHidden
 // GetFsInfoViewableOnly returns filesystem information for viewable-only paths (not indexed)
 func (idx *Index) GetFsInfoViewableOnly(adjustedPath string, followSymlinks bool, showHidden bool) (*iteminfo.FileInfo, error) {
 	return idx.GetFsInfoCore(adjustedPath, Options{
-		Quick:             false,
 		Recursive:         false,
 		CheckViewable:     true,
 		IsRoutineScan:     false,
@@ -1616,8 +1613,7 @@ func (idx *Index) Save() error {
 			Path:            path,
 			Complexity:      scanner.complexity,
 			CurrentSchedule: scanner.currentSchedule,
-			QuickScanTime:   0, // No longer used (backward compatibility)
-			FullScanTime:    scanner.scanTime,
+			ScanTime:        scanner.scanTime,
 			NumDirs:         scanner.numDirs,
 			NumFiles:        scanner.numFiles,
 			LastScanned:     scanner.lastScanned,

@@ -20,7 +20,7 @@ type Scanner struct {
 
 	filesChanged  bool
 	lastScanned   time.Time
-	scanTime      int // Single scan time metric (replaces quickScanTime/fullScanTime)
+	scanTime      int // Single scan time metric
 	scanStartTime int64
 	isScanning    bool // True when scanner is actively scanning or waiting for mutex
 
@@ -106,7 +106,6 @@ func (s *Scanner) runIndexing() {
 
 func (s *Scanner) runRootScan() {
 	config := Options{
-		Quick:         false,
 		Recursive:     false,
 		IsRoutineScan: true,
 	}
@@ -167,7 +166,6 @@ func (s *Scanner) runRootScan() {
 
 func (s *Scanner) runChildScan() {
 	config := Options{
-		Quick:         false,
 		Recursive:     true,
 		IsRoutineScan: true,
 	}
