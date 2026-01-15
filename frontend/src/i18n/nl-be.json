@@ -480,8 +480,6 @@
   "index": {
     "assessment": "Beoordeling",
     "lastScanned": "Laatst gescand",
-    "quickScan": "Snelle scan Seconden",
-    "fullScan": "Seconden voor volledig scannen",
     "settingsHover": "Instellingen voor gebruiker",
     "toggleClick": "Schakelen Enkele klik",
     "toggleDark": "Donkere modus inschakelen",
@@ -495,7 +493,8 @@
     "ready": "Klaar",
     "indexing": "Indexering",
     "unavailable": "Niet beschikbaar",
-    "error": "Fout"
+    "error": "Fout",
+    "scanTime": "Scantijd (seconden)"
   },
   "otp": {
     "name": "Authenticatie met twee factoren",

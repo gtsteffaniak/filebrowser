@@ -122,8 +122,7 @@ export const mutations = {
           state.sources.info[k].files = source.numFiles || 0;
           state.sources.info[k].folders = source.numDirs || 0;
           state.sources.info[k].lastIndex = source.lastIndexedUnixTime || 0;
-          state.sources.info[k].quickScanDurationSeconds = source.quickScanDurationSeconds || 0;
-          state.sources.info[k].fullScanDurationSeconds = source.fullScanDurationSeconds || 0;
+          state.sources.info[k].scanDurationSeconds = source.scanDurationSeconds || 0;
           state.sources.info[k].complexity = source.complexity || 0;
           state.sources.info[k].scanners = source.scanners || [];
         }

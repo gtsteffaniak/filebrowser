@@ -480,8 +480,6 @@
   "index": {
     "assessment": "評価",
     "lastScanned": "最終スキャン",
-    "quickScan": "クイックスキャン（秒）",
-    "fullScan": "フルスキャン（秒）",
     "settingsHover": "ユーザー設定",
     "toggleClick": "シングルクリックモードの切り替え",
     "toggleDark": "ダークモードの切り替え",
@@ -495,7 +493,8 @@
     "ready": "準備完了",
     "indexing": "インデックス作成",
     "unavailable": "使用不可",
-    "error": "エラー"
+    "error": "エラー",
+    "scanTime": "スキャン時間（秒）"
   },
   "otp": {
     "name": "二要素認証",

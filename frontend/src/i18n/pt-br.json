@@ -480,8 +480,6 @@
   "index": {
     "assessment": "Avaliação",
     "lastScanned": "Última varredura",
-    "quickScan": "Segundos de varredura rápida",
-    "fullScan": "Segundos de varredura completa",
     "settingsHover": "Configurações para o usuário",
     "toggleClick": "Alternar clique único",
     "toggleDark": "Alternar o modo escuro",
@@ -495,7 +493,8 @@
     "ready": "Pronto",
     "indexing": "Indexação",
     "unavailable": "Não disponível",
-    "error": "Erro"
+    "error": "Erro",
+    "scanTime": "Tempo de varredura (segundos)"
   },
   "otp": {
     "name": "Autenticação de dois fatores",

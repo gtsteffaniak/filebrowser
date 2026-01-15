@@ -188,15 +188,6 @@ func (db *IndexDB) InsertItem(source, path string, info *iteminfo.FileInfo) erro
 		is_hidden = excluded.is_hidden,
 		has_preview = excluded.has_preview,
 		last_updated = excluded.last_updated
-	WHERE excluded.last_updated > index_items.last_updated OR
-	      excluded.size != index_items.size OR
-	      excluded.mod_time != index_items.mod_time OR
-	      excluded.has_preview != index_items.has_preview OR
-	      excluded.parent_path != index_items.parent_path OR
-	      excluded.name != index_items.name OR
-	      excluded.type != index_items.type OR
-	      excluded.is_dir != index_items.is_dir OR
-	      excluded.is_hidden != index_items.is_hidden
 	`
 	parentPath := getParentPath(path)
 	_, err := db.Exec(query,
@@ -240,7 +231,8 @@ func (db *IndexDB) BulkInsertItems(source string, items []*iteminfo.FileInfo) er
 	}
 	defer db.mu.Unlock() // Ensure mutex is always released
 
-	// SQLite will short-circuit on the first true condition (mod_time checked first as most common)
+	// Always update all fields including last_updated, even if nothing changed
+	// This ensures last_updated stays current for stale entry detection
 	stmt, err := tx.Prepare(`
 	INSERT INTO index_items (source, path, parent_path, name, size, mod_time, type, is_dir, is_hidden, has_preview, last_updated)
 	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -254,9 +246,6 @@ func (db *IndexDB) BulkInsertItems(source string, items []*iteminfo.FileInfo) er
 		is_hidden = excluded.is_hidden,
 		has_preview = excluded.has_preview,
 		last_updated = excluded.last_updated
-	WHERE excluded.mod_time != index_items.mod_time OR
-	      excluded.size != index_items.size OR
-	      excluded.has_preview != index_items.has_preview
 	`)
 	if err != nil {
 		if isBusyError(err) || isTransactionError(err) {
@@ -555,32 +544,68 @@ func (db *IndexDB) UpdateCacheSize(cacheSizeMB int) error {
 	return nil
 }
 
-func (db *IndexDB) DeleteStaleEntries(source string, pathPrefix string, scanStartTime int64) (int, error) {
-	// Use range query on PRIMARY KEY (source, path) for optimal index utilization
-	// Range queries (path >= ? AND path < ?) are MORE efficient than GLOB/LIKE because:
-	// 1. They can use the PRIMARY KEY index directly without pattern matching
-	// 2. SQLite can optimize range queries better than pattern matching
-	// 3. No pattern evaluation overhead - just direct index seeks
-	// This is better than GLOB 'prefix*' which still requires pattern evaluation
-	nextPrefix := getNextPathPrefix(pathPrefix)
-	query := `
-	DELETE FROM index_items 
-	WHERE source = ? 
-	AND path >= ? AND path < ?
-	AND last_updated < ?
-	`
+func (db *IndexDB) DeleteStaleEntries(source string, pathPrefix string, scanStartTime int64, root bool) (int, error) {
+	if scanStartTime == 0 {
+		return 0, nil
+	}
+	// Delete in batches to prevent memory spikes from large transactions
+	const batchSize = 1000
+	totalDeleted := 0
 
-	result, err := db.Exec(query, source, pathPrefix, nextPrefix, scanStartTime)
-	if err != nil {
-		if isBusyError(err) || isTransactionError(err) {
-			logger.Debugf("[DB_MAINTENANCE] DeleteStaleEntries: DB busy, skipping cleanup")
-			return 0, nil
+	for {
+		var query string
+		var result sql.Result
+		var err error
+
+		if root {
+			// Root scanner: only delete items whose parent_path is "/" (direct children)
+			// This prevents root scanner from deleting items managed by child scanners
+			query = `
+			DELETE FROM index_items 
+			WHERE rowid IN (
+				SELECT rowid FROM index_items
+				WHERE source = ? 
+				AND parent_path = '/'
+				AND last_updated < ?
+				LIMIT ?
+			)
+			`
+			result, err = db.Exec(query, source, scanStartTime, batchSize)
+		} else {
+			// Child scanner: delete everything under this path prefix recursively
+			// Use range query on PRIMARY KEY (source, path) for optimal index utilization
+			nextPrefix := getNextPathPrefix(pathPrefix)
+			query = `
+			DELETE FROM index_items 
+			WHERE rowid IN (
+				SELECT rowid FROM index_items
+				WHERE source = ? 
+				AND path >= ? AND path < ?
+				AND last_updated < ?
+				LIMIT ?
+			)
+			`
+			result, err = db.Exec(query, source, pathPrefix, nextPrefix, scanStartTime, batchSize)
 		}
-		return 0, err
+
+		if err != nil {
+			if isBusyError(err) || isTransactionError(err) {
+				logger.Debugf("[DB_MAINTENANCE] DeleteStaleEntries: DB busy, skipping cleanup")
+				return totalDeleted, nil
+			}
+			return totalDeleted, err
+		}
+
+		rowsAffected, _ := result.RowsAffected()
+		totalDeleted += int(rowsAffected)
+
+		// If we deleted fewer than batchSize rows, we're done
+		if rowsAffected < batchSize {
+			break
+		}
 	}
 
-	rowsAffected, _ := result.RowsAffected()
-	return int(rowsAffected), nil
+	return totalDeleted, nil
 }
 
 // DeleteStaleItemsOlderThan deletes all items across all sources where last_updated is older than the specified duration.

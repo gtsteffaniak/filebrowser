@@ -480,8 +480,6 @@
   "index": {
     "assessment": "Bedömning",
     "lastScanned": "Senast skannad",
-    "quickScan": "Snabbsökning Sekunder",
-    "fullScan": "Fullständig skanning Sekunder",
     "settingsHover": "Inställningar för användare",
     "toggleClick": "Toggle Enkelklick",
     "toggleDark": "Växla till mörkt läge",
@@ -495,7 +493,8 @@
     "ready": "Redo",
     "indexing": "Indexering",
     "unavailable": "Ej tillgänglig",
-    "error": "Fel"
+    "error": "Fel",
+    "scanTime": "Skanningstid (sekunder)"
   },
   "otp": {
     "name": "Tvåfaktorsautentisering",

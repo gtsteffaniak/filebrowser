@@ -480,8 +480,6 @@
   "index": {
     "assessment": "Bewertung",
     "lastScanned": "Zuletzt gescannt",
-    "quickScan": "Schnell-Scan (Sekunden)",
-    "fullScan": "Vollständiger Scan (Sekunden)",
     "settingsHover": "Einstellungen",
     "toggleClick": "Einzelklick umschalten",
     "toggleDark": "Dunkelmodus umschalten",
@@ -495,7 +493,8 @@
     "ready": "Bereit",
     "indexing": "Indizierung",
     "unavailable": "Nicht verfügbar",
-    "error": "Fehler"
+    "error": "Fehler",
+    "scanTime": "Scan-Zeit (Sekunden)"
   },
   "otp": {
     "name": "Zwei-Faktoren-Authentifizierung",

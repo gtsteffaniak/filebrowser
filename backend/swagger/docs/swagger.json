@@ -3625,9 +3625,6 @@
                 "complexity": {
                     "type": "integer"
                 },
-                "fullScanDurationSeconds": {
-                    "type": "integer"
-                },
                 "lastIndexedUnixTime": {
                     "type": "integer"
                 },
@@ -3646,7 +3643,8 @@
                 "numFiles": {
                     "type": "integer"
                 },
-                "quickScanDurationSeconds": {
+                "scanDurationSeconds": {
+                    "description": "Unified scan time metric",
                     "type": "integer"
                 },
                 "scanners": {
@@ -3675,9 +3673,6 @@
                 "currentSchedule": {
                     "type": "integer"
                 },
-                "fullScanDurationSeconds": {
-                    "type": "integer"
-                },
                 "isRoot": {
                     "type": "boolean"
                 },
@@ -3699,7 +3694,8 @@
                 "path": {
                     "type": "string"
                 },
-                "quickScanDurationSeconds": {
+                "scanDurationSeconds": {
+                    "description": "Unified scan time metric",
                     "type": "integer"
                 },
                 "used": {

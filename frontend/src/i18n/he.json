@@ -480,8 +480,6 @@
   "index": {
     "assessment": "הערכה",
     "lastScanned": "נסרק לאחרונה",
-    "quickScan": "סריקה מהירה בשניות",
-    "fullScan": "שניות סריקה מלאה",
     "settingsHover": "הגדרות למשתמש",
     "toggleClick": "החלף לחיצה אחת",
     "toggleDark": "הפעל מצב כהה",
@@ -495,7 +493,8 @@
     "ready": "מוכן",
     "indexing": "אינדקס",
     "unavailable": "לא זמין",
-    "error": "שגיאה"
+    "error": "שגיאה",
+    "scanTime": "זמן הסריקה (שניות)"
   },
   "otp": {
     "name": "אימות דו-גורמי",

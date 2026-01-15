@@ -480,8 +480,6 @@
   "index": {
     "assessment": "Avaliação",
     "lastScanned": "Última digitalização",
-    "quickScan": "Segundos de leitura rápida",
-    "fullScan": "Segundos de varrimento completo",
     "settingsHover": "Definições para o utilizador",
     "toggleClick": "Alternar clique único",
     "toggleDark": "Alternar o modo escuro",
@@ -495,7 +493,8 @@
     "ready": "Pronto",
     "indexing": "Indexação",
     "unavailable": "Não disponível",
-    "error": "Erro"
+    "error": "Erro",
+    "scanTime": "Tempo de digitalização (segundos)"
   },
   "otp": {
     "name": "Autenticação de dois factores",

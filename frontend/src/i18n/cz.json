@@ -540,8 +540,6 @@
   "index": {
     "assessment": "Vyhodnocení",
     "lastScanned": "Poslední skenování",
-    "quickScan": "Rychlý sken (s)",
-    "fullScan": "Plný sken (s)",
     "settingsHover": "Nastavení pro uživatele",
     "toggleClick": "Přepnout jedno kliknutí",
     "toggleDark": "Přepnout tmavý režim",
@@ -555,7 +553,8 @@
     "ready": "Připraveno",
     "indexing": "Indexování",
     "unavailable": "Nedostupné",
-    "error": "Chyba"
+    "error": "Chyba",
+    "scanTime": "Doba skenování (sekundy)"
   },
   "otp": {
     "name": "Dvoufázové ověření",

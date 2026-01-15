@@ -480,8 +480,6 @@
   "index": {
     "assessment": "Értékelés",
     "lastScanned": "Utoljára beolvasott",
-    "quickScan": "Gyors beolvasás másodpercek",
-    "fullScan": "Teljes letapogatás másodpercek",
     "settingsHover": "Felhasználói beállítások",
     "toggleClick": "Egyetlen kattintás kapcsolása",
     "toggleDark": "Sötét üzemmód átkapcsolása",
@@ -495,7 +493,8 @@
     "ready": "Kész",
     "indexing": "Indexelés",
     "unavailable": "Nem elérhető",
-    "error": "Hiba"
+    "error": "Hiba",
+    "scanTime": "Letapogatási idő (másodperc)"
   },
   "otp": {
     "name": "Kétfaktoros hitelesítés",

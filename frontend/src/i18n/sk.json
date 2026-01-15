@@ -480,8 +480,6 @@
   "index": {
     "assessment": "Hodnotenie",
     "lastScanned": "Posledné skenovanie",
-    "quickScan": "Sekundy rýchleho skenovania",
-    "fullScan": "Sekundy úplného skenovania",
     "settingsHover": "Nastavenia pre používateľa",
     "toggleClick": "Prepínanie jedným kliknutím",
     "toggleDark": "Prepínanie tmavého režimu",
@@ -495,7 +493,8 @@
     "ready": "Pripravené",
     "indexing": "Indexovanie",
     "unavailable": "Nedostupné",
-    "error": "Chyba"
+    "error": "Chyba",
+    "scanTime": "Čas skenovania (sekundy)"
   },
   "otp": {
     "name": "Dvojfaktorové overovanie",
