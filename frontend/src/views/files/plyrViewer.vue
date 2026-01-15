@@ -40,7 +40,7 @@
 
             <div class="audio-controls-container" :class="{ 'dark-mode': darkMode, 'light-mode': !darkMode }">
                 <div class="plyr-audio-container" ref="plyrAudioContainer">
-                    <audio :src="raw" :autoplay="shouldAutoPlay" @play="handlePlay" ref="audioElement"></audio>
+                    <audio :src="raw" :autoplay="autoPlayEnabled" @play="handlePlay" ref="audioElement"></audio>
                 </div>
             </div>
         </div>
@@ -48,7 +48,7 @@
         <!-- Video with plyr -->
         <div v-else-if="previewType == 'video' && !useDefaultMediaPlayer" class="video-player-container" :class="{ 'no-captions': !hasSubtitles }">
             <div class="plyr-video-container" ref="plyrVideoContainer">
-                <video :src="raw" :autoplay="shouldAutoPlay" @play="handlePlay" playsinline webkit-playsinline ref="videoElement">
+                <video :src="raw" :autoplay="autoPlayEnabled" @play="handlePlay" playsinline webkit-playsinline ref="videoElement">
                     <track kind="captions" v-for="(sub, index) in subtitlesList" :key="index" :src="sub.src"
                         :label="'Subtitle ' + sub.name" :default="false" />
                 </video>
@@ -58,14 +58,14 @@
         <!-- Default HTML5 Audio -->
         <div v-else-if="previewType == 'audio' && useDefaultMediaPlayer" class="audio-player-container">
             <audio ref="defaultAudioPlayer" :src="raw"
-                controls :autoplay="shouldAutoPlay" @play="handlePlay">
+                controls :autoplay="autoPlayEnabled" @play="handlePlay">
             </audio>
         </div>
 
         <!-- Default HTML5 Video -->
         <div v-else-if="previewType == 'video' && useDefaultMediaPlayer" class="video-player-container">
             <video ref="defaultVideoPlayer" :src="raw"
-                controls :autoplay="shouldAutoPlay" @play="handlePlay" playsinline webkit-playsinline>
+                controls :autoplay="autoPlayEnabled" @play="handlePlay" playsinline webkit-playsinline>
                 <track kind="captions" v-for="(sub, index) in subtitlesList" :key="index" :src="sub.src"
                     :label="'Subtitle ' + sub.name" :default="index === 0" />
             </video>
@@ -223,14 +223,13 @@ export default {
             }
             console.log('req changed, updating media');
             console.log(`Current file: ${newReq?.name} at position ${this.currentQueueIndex + 1} of ${this.playbackQueue.length}`);
-            this.updateMedia(); // Update media cleans the album art too
             this.playbackMenuInitialized = false;
             this.lastAppliedMode = null;
 
             // Re-hook event listeners after media source changes
             // This is critical - without this, the 'ended' event won't fire for the new video!
             this.$nextTick(() => {
-                this.hookEvents();
+                this.updateMedia();
 
                 // Only update queue index, don't setup new queue unless empty or 1
                 // the queue is empty initially when opening a file but will setup automatically with playback single mode
@@ -238,14 +237,6 @@ export default {
                     this.updateCurrentQueueIndex();
                 }
             });
-        },
-        previewType(newType, oldType) {
-            console.log(`Media type changed from ${oldType} to ${newType}`);
-            // When media type changes (eg. video to audio) we need to destroy the old Plyr to avoid preview issues
-            if (oldType && newType !== oldType && !this.useDefaultMediaPlayer) {
-                this.destroyPlyr();
-                this.currentPlyrMediaType = null;
-            }
         },
         playbackMode: {
             handler(newMode, oldMode) {
@@ -271,10 +262,6 @@ export default {
         showQueueButtonVisible() {
             return this.queueButtonVisible || this.hoverQueue;
         },
-        shouldAutoPlay() {
-            // Use the autoPlayEnabled prop from parent
-            return this.autoPlayEnabled;
-        },
         showQueueButton() {
             return state.req && (state.req.type?.startsWith('audio/') || state.req.type?.startsWith('video/')) &&
             state.navigation.enabled;
@@ -283,7 +270,7 @@ export default {
             return state.playbackQueue?.queue?.length || 0;
         },
         shouldTogglePlayPause() {
-        return state.playbackQueue?.shouldTogglePlayPause || false;
+            return state.playbackQueue?.shouldTogglePlayPause || false;
         },
         playbackQueue() {
             return state.playbackQueue?.queue || [];
@@ -320,7 +307,6 @@ export default {
             mediaElement: !!this.mediaElement
         });
         this.updateMedia();
-        this.hookEvents();
         this.$nextTick(() => {
             // Show queue button initially if it should be shown
             if (this.showQueueButton) {
@@ -358,7 +344,6 @@ export default {
         showQueueButtonMethod() {
             this.queueButtonVisible = true;
             this.clearQueueTimeout();
-
             this.queueTimeout = setTimeout(() => {
                 if (!this.hoverQueue) {
                     this.queueButtonVisible = false;
@@ -379,6 +364,7 @@ export default {
             if (this.player) {
                 console.log('Destroying Plyr instance');
                 this.player.destroy();
+                this.cleanupAlbumArt();
                 this.player = null;
                 this.playbackMenuInitialized = false;
                 this.lastAppliedMode = null;
@@ -433,21 +419,17 @@ export default {
         },
         handleKeydown(event) {
             // Handle 'P' and 'L' keys for loop and change playback
-            if (event.key.toLowerCase() === 'p' || event.key.toLowerCase() === 'l') {
+            const key = event.key.toLowerCase();
+
+            if (key === 'p' || key === 'l') {
                 event.stopPropagation();
                 event.preventDefault();
-                // Use requestAnimationFrame to ensure UI updates
-                requestAnimationFrame(() => {
-                    if (event.key.toLowerCase() === 'p') {
-                        this.cyclePlaybackModes();
-                    } else if (event.key.toLowerCase() === 'l') {
-                        this.toggleLoop();
-                    }
-                });
+
+                if (key === 'p') this.cyclePlaybackModes();
+                if (key === 'l') this.toggleLoop();
             }
             // "Q" key for open the queue prompt
-            if (event.key.toLowerCase() === 'q' &&
-                state.prompts.length === 0) { // Only open if no other prompts are open
+            if (key === 'q' && state.prompts.length === 0) { // Only open if no other prompts are open
                 event.stopPropagation();
                 event.preventDefault();
                 this.showQueuePrompt();
@@ -457,7 +439,7 @@ export default {
             // cycle order (excluding single and loop-single cuz they are handled by the "L" key)
             const modeCycle = ['loop-all', 'shuffle', 'sequential'];
             const currentIndex = modeCycle.indexOf(this.playbackMode);
-            const nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % modeCycle.length;
+            const nextIndex = (currentIndex + 1) % modeCycle.length;
             const newMode = modeCycle[nextIndex];
             // Directly update state
             mutations.setPlaybackQueue({
@@ -477,17 +459,16 @@ export default {
             }, 1500);
         },
         async updateMedia() {
+            this.hookEvents();
             await this.handleAutoPlay();
             if (this.previewType === "audio") {
                 await this.loadAudioMetadata();
             }
         },
         async handleAutoPlay() {
-            if (!this.autoPlayEnabled || !this.shouldAutoPlay) return;
-
+            if (!this.autoPlayEnabled) return;
             try {
-                if (this.useDefaultMediaPlayer) {
-                    // Ensure player is not muted before attempting autoplay
+                if (this.useDefaultMediaPlayer && this.mediaElement) {
                     this.mediaElement.muted = false;
                     await this.mediaElement.play();
                 } else if (this.player) {
@@ -496,7 +477,6 @@ export default {
                 }
             } catch (error) {
                 console.log("Autoplay failed", error);
-                // Don't force muted playback - let user manually start
             }
         },
         // Album art hover and scroll handlers
@@ -519,97 +499,73 @@ export default {
         },
         // Load metadata from the backend response
         async loadAudioMetadata() {
-            if (this.previewType !== "audio") {
-                return;
-            }
-            try {
-                // Clean up previous album art and metadata (if any)
-                this.cleanupAlbumArt();
-                this.metadata = null;
+            if (this.previewType !== "audio") return;
 
-                // Check if metadata is already provided by the backend
-                if (this.req.metadata) {
-                    this.metadata = {
-                        title: this.req.metadata.title || this.req.name, // Fallback to filename
-                        artist: this.req.metadata.artist || null,
-                        album: this.req.metadata.album || null,
-                        year: this.req.metadata.year || null
-                    };
+            // Check if metadata is already provided by the backend
+            if (this.req.metadata) {
+                this.metadata = {
+                    title: this.req.metadata.title || this.req.name, // Fallback to filename
+                    artist: this.req.metadata.artist || null,
+                    album: this.req.metadata.album || null,
+                    year: this.req.metadata.year || null
+                };
 
-                    // Handle base64 encoded album art from backend
-                    if (this.req.metadata.albumArt) {
-                        try {
-                            // Decode base64 album art
-                            const byteCharacters = atob(this.req.metadata.albumArt);
-                            const byteNumbers = new Array(byteCharacters.length);
-                            for (let i = 0; i < byteCharacters.length; i++) {
-                                byteNumbers[i] = byteCharacters.charCodeAt(i);
-                            }
-                            const byteArray = new Uint8Array(byteNumbers);
-                            const blob = new Blob([byteArray], { type: 'image/jpeg' });
-                            this.albumArt = URL.createObjectURL(blob);
-                            this.albumArtUrl = this.albumArt;
-                        } catch (error) {
-                            console.error("Failed to decode album art:", error);
-                            this.cleanupAlbumArt();
+                // Handle base64 encoded album art
+                if (this.req.metadata.albumArt) {
+                    try {
+                        const byteCharacters = atob(this.req.metadata.albumArt);
+                        const byteArray = new Uint8Array(byteCharacters.length);
+                        for (let i = 0; i < byteCharacters.length; i++) {
+                            byteArray[i] = byteCharacters.charCodeAt(i);
                         }
+                        const blob = new Blob([byteArray], { type: 'image/jpeg' });
+                        this.albumArtUrl = URL.createObjectURL(blob);
+                    } catch (error) {
+                        console.error("Failed to decode album art:", error);
+                        this.albumArtUrl = null;
                     }
-                } else {
-                    this.metadata = {
-                        title: this.req.name,
-                        artist: null,
-                        album: null,
-                        year: null,
-                    };
-                    this.cleanupAlbumArt();
                 }
-            } catch (error) {
-                this.metadata = null;
-                this.cleanupAlbumArt();
+            } else {
+                this.metadata = {
+                    title: this.req.name,
+                    artist: null,
+                    album: null,
+                    year: null,
+                };
             }
         },
         cleanupAlbumArt() {
-            const cleanupUrl = (url) => {
-                if (url && url.startsWith('blob:')) {
-                    try {
-                        URL.revokeObjectURL(url);
-                        console.log('Cleaned up album art object URL');
-                    } catch (e) {
-                        console.warn('Error revoking album art URL:', e);
-                    }
-                }
-            };
-            cleanupUrl(this.albumArtUrl);
+            if (this.albumArtUrl && this.albumArtUrl.startsWith('blob:')) {
+                URL.revokeObjectURL(this.albumArtUrl);
+            }
             this.albumArtUrl = null;
+            this.metadata = null
         },
         hookEvents() {
             console.log(`hookEvents called: previewType=${this.previewType}, useDefaultMediaPlayer=${this.useDefaultMediaPlayer}, player=${this.player ? 'exists' : 'null'}`);
             
             if (this.useDefaultMediaPlayer) {
-                // HTML5 Player
                 this.setupDefaultPlayerEvents(this.mediaElement);
+                return;
+            }
+            if (!this.player || this.currentPlyrMediaType !== this.previewType) {
+                // When media type changes (eg. video to audio) we need to destroy the old Plyr to avoid preview issues
+                console.log(`Media type changed from ${this.currentPlyrMediaType} to ${this.previewType}, destroying old Plyr`);
+                this.destroyPlyr();
+                this.currentPlyrMediaType = null,
+                this.initializePlyr();
             } else {
-                // Check if we need to destroy/recreate Plyr
-                if (this.player && this.currentPlyrMediaType !== this.previewType) {
-                    console.log(`Media type changed from ${this.currentPlyrMediaType} to ${this.previewType}, destroying old Plyr`);
-                    this.destroyPlyr();
-                }
-                if (!this.player) {
-                    console.log('Initializing new Plyr instance');
-                    this.initializePlyr();
-                } else {
-                    console.log('Using existing Plyr instance');
-                    this.setupPlyrEvents();
-                }
+                console.log('Using existing Plyr instance');
+                this.setupPlyrEvents();
             }
         },
         initializePlyr() {
-            const plyr = this.mediaElement;
-            if (!plyr) return;
+            if (!this.mediaElement) return;
+
             // Small delay to ensure DOM is ready
             this.$nextTick(() => {
                 // Initialize Plyr
-                this.player = new Plyr(plyr, this.plyrOptions);
+                this.player = new Plyr(this.mediaElement, this.plyrOptions);
                 this.currentPlyrMediaType = this.previewType;
                 // Set up event listeners
                 this.setupPlyrEvents();
@@ -630,7 +586,7 @@ export default {
                     this.player.on('exitfullscreen', this.onFullscreenExit);
                 }
             }
-            this.setupCustomPlaybackSettings();
+            this.ensurePlaybackModeApplied();
         },
         setupDefaultPlayerEvents(element) {
             if (!element) return;
@@ -845,22 +801,6 @@ export default {
 
                 console.log(`Media type: old=${oldMediaType}, new=${newMediaType}`);
 
-                // Try to play the media
-                const player = this.mediaElement;
-                if (player) {
-                    let playPromise;
-                    if (this.useDefaultMediaPlayer) {
-                        playPromise = player.play();
-                    } else if (this.player) {
-                        playPromise = this.player.play();
-                    }
-                    if (playPromise !== undefined) {
-                        playPromise.catch((error) => {
-                            console.log("Auto-play prevented:", error);
-                        });
-                    }
-                }
-
                 // Reset navigation flag
                 this.isNavigating = false;
             } catch (error) {
@@ -925,9 +865,6 @@ export default {
         applyCustomPlaybackSettings(player) {
             // This is the actual logic to set up the settings menu
             // Separated so it can be called both on 'ready' event and after source changes
-
-            // Sync loopEnabled with playbackMode
-            this.loopEnabled = (this.playbackMode === 'loop-single');
 
             // Only recreate menu if mode changed or menu not initialized, this for avoid unnecesary recreations
             const modeChanged = this.lastAppliedMode !== this.playbackMode;
@@ -1024,12 +961,6 @@ export default {
                 console.error('Error applying custom playback settings:', error);
             }
         },
-        setupCustomPlaybackSettings() {
-            // If settings element is present in plyr, setup custom settings
-            if (this.player?.elements?.settings) {
-                this.applyCustomPlaybackSettings(this.player);
-            }
-        },
     },
 };
 </script>
@@ -1051,8 +982,8 @@ export default {
 **********************************/
 
 .plyr-video-container {
-width: 100%;
-height: 100%;
+    width: 100%;
+    height: 100%;
 }
 
 .plyr-viewer {
