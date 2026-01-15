@@ -520,20 +520,12 @@ func (idx *Index) GetFileInfo(req FileInfoRequest) (*iteminfo.FileInfo, error) {
 
 // getFileInfoFromContext returns info for a single file
 func (idx *Index) getFileInfoFromContext(ctx *PathContext, isIndexable bool) (*iteminfo.FileInfo, error) {
-	var size uint64
-	if isIndexable {
-		// Use indexed size
-		size, _ = idx.handleFile(ctx.FileInfo, ctx.IndexPath, false, nil)
-	} else {
-		// Use filesystem size
-		size = uint64(ctx.FileInfo.Size())
-	}
-
+	size := idx.getFileSizeForDisplay(ctx.FileInfo, ctx.RealPath)
 	fileInfo := &iteminfo.FileInfo{
 		Path: ctx.IndexPath,
 		ItemInfo: iteminfo.ItemInfo{
 			Name:    ctx.BaseName,
-			Size:    int64(size),
+			Size:    size,
 			ModTime: ctx.FileInfo.ModTime(),
 			Hidden:  ctx.IsHidden,
 		},
@@ -844,13 +836,12 @@ func (idx *Index) processFileItem(file os.FileInfo, indexPath string, opts Optio
 	var size uint64
 	var shouldCountSize bool
 	if !opts.Recursive && scanner == nil {
-		// API call: use helper function for config-aware size calculation
 		size = uint64(idx.getFileSizeForDisplay(file, fullCombined))
 		shouldCountSize = true
 	} else {
-		// Scanning: use handleFile for accurate size and hardlink detection
 		size, shouldCountSize = idx.handleFile(file, indexPath, opts.IsRoutineScan, scanner)
 	}
+	itemInfo.Size = int64(size)
 
 	// Extended attributes for files
 	bubblesUpHasPreview := false
@@ -876,7 +867,6 @@ func (idx *Index) processFileItem(file os.FileInfo, indexPath string, opts Optio
 		itemInfo.HasPreview = false
 	}
 
-	itemInfo.Size = int64(size)
 	return itemInfo, itemInfo.Size, shouldCountSize, bubblesUpHasPreview
 }
 
@@ -1229,7 +1219,6 @@ func (idx *Index) SyncFolderSizesToDB() error {
 	idx.folderSizesMu.Unlock()
 
 	if len(sizesToSync) == 0 {
-		logger.Debugf("[FOLDER_SIZE_SYNC] No dirty folder sizes to sync")
 		return nil
 	}
 

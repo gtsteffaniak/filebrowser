@@ -125,7 +125,6 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage, user *users.
 	if user == nil {
 		return response, fmt.Errorf("user not provided")
 	}
-
 	// Get index
 	idx := indexing.GetIndex(opts.Source)
 	if idx == nil {

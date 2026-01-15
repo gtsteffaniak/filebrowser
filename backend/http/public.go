@@ -12,7 +12,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
-	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/preview"
 	"github.com/gtsteffaniak/go-logger/logger"
 
@@ -26,7 +25,7 @@ import (
 // @Accept json
 // @Produce octet-stream
 // @Param hash query string true "Share hash for authentication"
-// @Param files query string true "Files to download in format: 'source::path||source::path'. Example: '/file1||/folder/file2'"
+// @Param files query string true "Comma-separated list of file paths. Example: 'file1.txt,folder/file2.txt'"
 // @Param inline query bool false "If true, sets 'Content-Disposition' to 'inline'. Otherwise, defaults to 'attachment'."
 // @Param algo query string false "Compression algorithm for archiving multiple files or directories. Options: 'zip' and 'tar.gz'. Default is 'zip'."
 // @Success 200 {file} file "Raw file or directory content, or archive for multiple files"
@@ -86,31 +85,16 @@ func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	}
 	actualSourceName := sourceInfo.Name
 
+	// Parse comma-separated file list
 	fileList := []string{}
-	for _, file := range strings.Split(f, "||") {
-		// Check if file already contains source prefix (source::path format)
-		if strings.Contains(file, "::") {
-			splitFile := strings.SplitN(file, "::", 2)
-			if len(splitFile) == 2 {
-				source := splitFile[0]
-				path := splitFile[1]
-				// Join the share path with the requested path
-				filePath := utils.JoinPathAsUnix(d.share.Path, path)
-				fileList = append(fileList, source+"::"+filePath)
-			} else {
-				// Fallback: treat as plain path
-				filePath := utils.JoinPathAsUnix(d.share.Path, file)
-				fileList = append(fileList, actualSourceName+"::"+filePath)
-			}
-		} else {
-			// Plain path without source prefix - use the actual source name from share
-			filePath := utils.JoinPathAsUnix(d.share.Path, file)
-			fileList = append(fileList, actualSourceName+"::"+filePath)
-		}
+	for _, file := range strings.Split(f, ",") {
+		// Join the share path with the requested path
+		filePath := utils.JoinPathAsUnix(d.share.Path, file)
+		fileList = append(fileList, filePath)
 	}
 
 	var status int
-	status, err = rawFilesHandler(w, r, d, fileList)
+	status, err = rawFilesHandler(w, r, d, actualSourceName, fileList)
 	if err != nil {
 		if err == errors.ErrDownloadNotAllowed {
 			return http.StatusForbidden, errors.ErrDownloadNotAllowed
@@ -188,7 +172,7 @@ func publicUploadHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		logger.Errorf("public upload handler: error uploading with error %v", err)
 		return http.StatusInternalServerError, fmt.Errorf("upload failure occured on backend")
 	}
-	return status, err
+	return status, nil
 }
 
 // health godoc
@@ -228,28 +212,9 @@ func publicPreviewHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	if config.Server.DisablePreviews || d.share.DisableThumbnails {
 		return http.StatusNotImplemented, fmt.Errorf("preview is disabled")
 	}
-
 	if d.share.ShareType == "upload" {
 		return http.StatusNotImplemented, fmt.Errorf("preview is disabled for upload shares")
 	}
-
-	// Restore source name from share for preview generation
-	// The middleware clears file.Source for security, but we need it for index lookups
-	source, err := d.share.GetSourceName()
-	if err != nil {
-		return http.StatusNotFound, fmt.Errorf("source not available")
-	}
-	fileInfo, err := FileInfoFasterFunc(utils.FileOptions{
-		Path:       utils.JoinPathAsUnix(d.share.Path, d.fileInfo.Path),
-		Source:     source,
-		Metadata:   true,
-		AlbumArt:   true,
-		ShowHidden: d.share.ShowHidden,
-	}, nil, d.user)
-	if err != nil {
-		return http.StatusNotFound, fmt.Errorf("resource not available")
-	}
-	d.fileInfo = *fileInfo
 	status, err := previewHelperFunc(w, r, d)
 	if err != nil {
 		// Obfuscate errors for shares to prevent information leakage
@@ -295,7 +260,12 @@ func publicPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	}
 	resolvedPath := utils.JoinPathAsUnix(d.share.Path, path)
 	err = files.WriteFile(source, resolvedPath, r.Body)
-	return errToStatus(err), err
+	// hide the error
+	if err != nil {
+		logger.Errorf("public put handler: error updating resource with error %v", err)
+		return http.StatusInternalServerError, fmt.Errorf("an error occurred while updating the resource")
+	}
+	return http.StatusOK, nil
 }
 
 func publicDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
@@ -333,6 +303,7 @@ func publicDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 
 	err = files.DeleteFiles(source, fileInfo.RealPath, fileInfo.Type == "directory")
 	if err != nil {
+		logger.Errorf("public delete handler: error deleting resource with error %v", err)
 		return http.StatusInternalServerError, fmt.Errorf("an error occured while deleting the resource")
 	}
 	return http.StatusOK, nil
@@ -356,80 +327,65 @@ func publicBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestC
 	if !d.share.AllowDelete {
 		return http.StatusForbidden, fmt.Errorf("delete is not allowed for this share")
 	}
-	return resourceBulkDeleteHandler(w, r, d)
+
+	// hide the error
+	status, err := resourceBulkDeleteHandler(w, r, d)
+	if err != nil {
+		return http.StatusInternalServerError, fmt.Errorf("an error occurred while processing the request")
+	}
+	return status, nil
 }
 
+// publicPatchHandler performs a patch operation (e.g., move, copy, rename) on resources in a public share.
+// @Summary Move, copy, or rename resources in a public share
+// @Description Performs move, copy, or rename operations on multiple resources within a public share. All operations are performed atomically.
+// @Tags Public Shares
+// @Accept json
+// @Produce json
+// @Param hash query string true "Share hash for authentication"
+// @Param request body MoveCopyRequest true "Move/copy request with items and action"
+// @Success 200 {object} MoveCopyResponse "All operations completed successfully"
+// @Success 207 {object} MoveCopyResponse "Partial success - some operations succeeded, some failed"
+// @Failure 400 {object} map[string]string "Bad request - invalid JSON or parameters"
+// @Failure 403 {object} map[string]string "Forbidden - modify not allowed for this share"
+// @Failure 404 {object} map[string]string "Share or resource not found"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /public/api/resources [patch]
 func publicPatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	if !d.share.AllowModify {
 		return http.StatusForbidden, fmt.Errorf("edit permission not allowed for this share")
 	}
-	// The middleware clears file.Source for security, but we need it for index lookups
+
+	// Get the source from the share
 	source, err := d.share.GetSourceName()
 	if err != nil {
 		return http.StatusNotFound, fmt.Errorf("source not available")
 	}
-	action := r.URL.Query().Get("action")
-	encodedFrom := r.URL.Query().Get("from")
-	// Decode the URL-encoded path
-	src, err := url.QueryUnescape(encodedFrom)
-	if err != nil {
-		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
-	}
-	dst := r.URL.Query().Get("destination")
-	dst, err = url.QueryUnescape(dst)
-	if err != nil {
-		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
+
+	// Parse the request body
+	var req MoveCopyRequest
+	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid JSON body: %v", err)
 	}
 
-	idx := indexing.GetIndex(source)
-	if idx == nil {
-		return http.StatusNotFound, fmt.Errorf("source for share not found")
+	if req.Action == "" {
+		return http.StatusBadRequest, fmt.Errorf("action is required (copy, move, or rename)")
 	}
+	// Transform the request: prepend share path and add source to each item
+	for i := range req.Items {
+		req.Items[i].FromSource = source
+		req.Items[i].FromPath = utils.JoinPathAsUnix(d.share.Path, req.Items[i].FromPath)
+		req.Items[i].ToSource = source
+		req.Items[i].ToPath = utils.JoinPathAsUnix(d.share.Path, req.Items[i].ToPath)
+	}
+	d.Data = req
 
-	// get full paths for both locations
-	srcFullPath := utils.JoinPathAsUnix(d.share.Path, src)
-	if srcFullPath == "/" {
-		return http.StatusForbidden, fmt.Errorf("an error occured accessing the share")
-	}
-	dstFullPath := utils.JoinPathAsUnix(d.share.Path, dst)
-	if dstFullPath == "/" {
-		return http.StatusForbidden, fmt.Errorf("an error occured accessing the share")
-	}
-
-	// get real source and isDir
-	realSrc, isSrcDir, err := idx.GetRealPath(srcFullPath)
+	// Call the regular handler
+	status, err := resourcePatchHandler(w, r, d)
 	if err != nil {
-		return http.StatusNotFound, err
+		logger.Errorf("public patch handler: error processing patch with error %v", err)
+		// Obfuscate errors for security
+		return http.StatusInternalServerError, fmt.Errorf("an error occurred while processing the request")
 	}
-	// get real destination and isDir parent
-	parentRealDest, _, err := idx.GetRealPath(filepath.Dir(dstFullPath))
-	if err != nil {
-		return http.StatusNotFound, err
-	}
-	dstFullPath = parentRealDest + "/" + filepath.Base(dst)
-	rename := r.URL.Query().Get("rename") == "true"
-	if rename {
-		dstFullPath = addVersionSuffix(dstFullPath)
-	}
-	// Validate move/rename operation to prevent circular references
-	if action == "rename" || action == "move" {
-		err = validateMoveOperation(realSrc, dstFullPath, isSrcDir)
-		if err != nil {
-			return http.StatusBadRequest, fmt.Errorf("invalid move or rename operation")
-		}
-	}
-	err = patchAction(r.Context(), patchActionParams{
-		action:   action,
-		srcIndex: source,
-		dstIndex: source,
-		src:      realSrc,
-		dst:      dstFullPath,
-		d:        d,
-		isSrcDir: isSrcDir,
-	})
-	if err != nil {
-		logger.Debugf("Could not run patch action. src=%v dst=%v err=%v", realSrc, dstFullPath, err)
-		return http.StatusInternalServerError, fmt.Errorf("an error occured while processing the request")
-	}
-	return http.StatusOK, nil
+	return status, err
 }

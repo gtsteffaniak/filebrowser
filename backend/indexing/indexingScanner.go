@@ -654,12 +654,11 @@ func (s *Scanner) purgeStaleEntries(isRoot bool, isQuickScan bool) {
 	if isQuickScan {
 		// Quick scan cleanup (two-phase):
 		// Phase 1: Delete folders that weren't updated (they were deleted from filesystem)
-		deletedFolders, err := s.idx.db.DeleteStaleFolders(s.idx.Name, s.scanPath, s.scanStartTime, isRoot)
+		deletedCount, err = s.idx.db.DeleteStaleFolders(s.idx.Name, s.scanPath, s.scanStartTime, isRoot)
 		if err != nil {
 			logger.Errorf("[DB_MAINTENANCE] Failed to purge stale folders for %s: %v", s.scanPath, err)
 			return
 		}
-		deletedCount = deletedFolders
 
 		// Phase 2: Delete files in directories that had modtime changes
 		// Collect list of updated directories from this scan
@@ -682,11 +681,9 @@ func (s *Scanner) purgeStaleEntries(isRoot bool, isQuickScan bool) {
 		s.idx.mu.RUnlock()
 
 		if len(updatedDirs) > 0 {
-			deletedFiles, err := s.idx.db.DeleteStaleFilesInDirs(s.idx.Name, updatedDirs, s.scanStartTime)
+			deletedCount, err = s.idx.db.DeleteStaleFilesInDirs(s.idx.Name, updatedDirs, s.scanStartTime)
 			if err != nil {
 				logger.Errorf("[DB_MAINTENANCE] Failed to purge stale files in updated dirs for %s: %v", s.scanPath, err)
-			} else {
-				deletedCount += deletedFiles
 			}
 		}
 

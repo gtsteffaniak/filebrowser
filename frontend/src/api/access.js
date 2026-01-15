@@ -7,7 +7,7 @@ import { getApiPath } from '@/utils/url.js'
  * @returns {Promise<any>}
  */
 export async function get(source, path) {
-  const apiPath = getApiPath('api/access', { source, path })
+  const apiPath = getApiPath('api/access', { source, path }, true)
   return fetchJSON(apiPath)
 }
 /**
@@ -15,14 +15,14 @@ export async function get(source, path) {
  * @returns {Promise<any>}
  */
 export async function getAll(source) {
-  const apiPath = getApiPath('api/access', { source })
+  const apiPath = getApiPath('api/access', { source }, true)
   return fetchJSON(apiPath)
 }
 /**
  * @returns {Promise<{groups: string[]}>}
  */
 export async function getGroups() {
-  const apiPath = getApiPath('api/access/groups')
+  const apiPath = getApiPath('api/access/groups', {}, true)
   return fetchJSON(apiPath)
 }
 /**
@@ -32,7 +32,7 @@ export async function getGroups() {
  * @returns {Promise<any>}
  */
 export async function add(source, path, body) {
-  const apiPath = getApiPath('api/access', { source, path });
+  const apiPath = getApiPath('api/access', { source, path }, true);
   return fetchJSON(apiPath, {
     method: 'POST',
     body: JSON.stringify(body),
@@ -52,7 +52,7 @@ export async function del(source, path, body) {
   if (cascade) {
     params.cascade = 'true';
   }
-  const apiPath = getApiPath('api/access', params);
+  const apiPath = getApiPath('api/access', params, true);
   return fetchJSON(apiPath, {
     method: 'DELETE'
   });
@@ -64,7 +64,7 @@ export async function del(source, path, body) {
  * @returns {Promise<any>}
  */
 export async function updatePath(source, oldPath, newPath) {
-  const apiPath = getApiPath('api/access');
+  const apiPath = getApiPath('api/access', {}, true);
   return fetchJSON(apiPath, {
     method: 'PATCH',
     body: JSON.stringify({ source, oldPath, newPath }),

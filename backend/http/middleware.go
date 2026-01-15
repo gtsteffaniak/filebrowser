@@ -32,6 +32,8 @@ type requestContext struct {
 	shareValid   bool
 	ctx          context.Context
 	MaxBandwidth int
+	Data         interface{}
+	IndexPath    string
 }
 
 type HttpResponse struct {
@@ -113,6 +115,10 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		// source path is /test/ anb user scope is /user/ link.Path is /user/share/
 		// so trim user scope from link.Path
 		userScopedPath := utils.JoinPathAsUnix("/", strings.TrimPrefix(link.Path, userScope), path)
+		if !strings.HasSuffix(userScopedPath, "/") {
+			userScopedPath = userScopedPath + "/"
+		}
+		data.IndexPath = userScopedPath
 		file, err := FileInfoFasterFunc(utils.FileOptions{
 			Path:                     userScopedPath,
 			Source:                   source.Name,
