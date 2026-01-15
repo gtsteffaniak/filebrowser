@@ -101,18 +101,12 @@
         <div :class="['playback-toast', toastVisible ? 'visible' : '']">
             <!-- Loop icon for "single playback", "loop single file" and "loop all files" -->
             <i v-if="playbackMode === 'single' || playbackMode === 'loop-single' || playbackMode === 'loop-all'" class="material-icons">
-                <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
-                {{ playbackMode === 'loop-single' ? 'repeat_one' : 'repeat' }}
+                {{ playbackMode === 'loop-single' ? 'repeat_one' : 'repeat' }} <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
             </i>
             <i v-else-if="playbackMode === 'shuffle'" class="material-icons">shuffle</i>
             <i v-else class="material-icons">playlist_play</i>
 
-            <span>{{
-                playbackMode === 'sequential' ? $t('player.PlayAllOncePlayback') :
-                playbackMode === 'shuffle' ? $t('player.ShuffleAllPlayback') :
-                playbackMode === 'loop-all' ? $t('player.PlayAllLoopedPlayback') :
-                playbackMode === 'loop-single' ? $t('player.LoopEnabled') :
-                $t('player.LoopDisabled') }}</span>
+            <span>{{ playbackModeMessage }}</span>
 
             <!-- Status indicator for loop -->
             <span v-if="playbackMode === 'single' || playbackMode === 'loop-single'" :class="[
@@ -166,7 +160,6 @@ export default {
             // Playback settings
             playbackMenuInitialized: false,
             lastAppliedMode: null,
-            isNavigating: false,
             // Queue button visibility state
             queueButtonVisible: false,
             hoverQueue: false,
@@ -214,13 +207,6 @@ export default {
     },
     watch: {
         req(newReq) {
-            if (this.isNavigating) {
-                // Skip to avoid trigger double navigation when changing to another file/media
-                // We already update the files via mutations.replaceRequest()
-                // $router.replace (in playNext) is still needed to update the URL
-                console.log('Skipping duplicate req update during navigation');
-                return;
-            }
             console.log('req changed, updating media');
             console.log(`Current file: ${newReq?.name} at position ${this.currentQueueIndex + 1} of ${this.playbackQueue.length}`);
             this.playbackMenuInitialized = false;
@@ -280,6 +266,16 @@ export default {
         },
         playbackMode() {
             return state.playbackQueue?.mode || 'single';
+        },
+        playbackModeMessage() {
+            const mode = {
+            'sequential': this.$t('player.PlayAllOncePlayback'),
+            'shuffle': this.$t('player.ShuffleAllPlayback'),
+            'loop-all': this.$t('player.PlayAllLoopedPlayback'),
+            'loop-single': this.$t('player.LoopEnabled'),
+            'single': this.$t('player.LoopDisabled')
+            };
+            return mode[this.playbackMode] || mode.single;
         },
         isPlaying() {
             return state.playbackQueue?.isPlaying || false;
@@ -551,7 +547,6 @@ export default {
                 // When media type changes (eg. video to audio) we need to destroy the old Plyr to avoid preview issues
                 console.log(`Media type changed from ${this.currentPlyrMediaType} to ${this.previewType}, destroying old Plyr`);
                 this.destroyPlyr();
-                this.currentPlyrMediaType = null,
                 this.initializePlyr();
             } else {
                 console.log('Using existing Plyr instance');
@@ -655,10 +650,10 @@ export default {
 
                 case 'sequential':
                 case 'loop-all': {
-                    // For sequential and loop-all, we'll use alphabetical order without rearranging
+                    // We'll use the listing order from the parent directory for this two modes.
                     // On sequential mode will start playing from the file opened and find its place on the queue by the current index (you can see this on UI queue)
-                    // Loop-all will do the same, but if the queue ends, will restart from the first file of the current folder (alphabetically)
-                    const sortedFiles = [...mediaFiles].sort((a, b) => a.name.localeCompare(b.name));
+                    // Loop-all will do the same, but if the queue ends, will restart from the first file of the current folder.
+                    const sortedFiles = [...mediaFiles];
                     finalQueue = sortedFiles;
                     // Find the current file position in the queue
                     if (currentIndex !== -1) {
@@ -693,7 +688,7 @@ export default {
             }
 
             console.log('Playback queue length:', finalQueue.length);
-            console.log('Current place on the queue:', finalIndex);
+            console.log('Current place on the queue:', finalIndex + 1);
 
             // After the queue is set up, update the store
             mutations.setPlaybackQueue({
@@ -729,12 +724,8 @@ export default {
             }
         },
         async playNext() {
-            if (this.isNavigating || this.playbackQueue.length === 0) {
-                console.log('Loading next file...');
-                return;
-            }
-
-            this.isNavigating = true;
+            if (this.playbackQueue.length === 0) return;
+            console.log('Loading next file...');
 
             // Calculate next index
             let nextIndex = this.currentQueueIndex + 1;
@@ -755,13 +746,11 @@ export default {
                 } else {
                     // Stop at end for sequential mode
                     console.log('Reached end of queue, stopping playback');
-                    this.isNavigating = false;
                     return;
                 }
             }
 
             const nextItem = this.playbackQueue[nextIndex];
-            console.log('Moving to next item:', nextItem.name, 'at index:', nextIndex);
 
             try {
                 // Update current index
@@ -773,11 +762,8 @@ export default {
 
                 url.goToItem( nextItem.source || this.req.source, nextItem.path, undefined );
 
-                // Reset navigation flag
-                this.isNavigating = false;
             } catch (error) {
                 console.error('Failed to navigate to next file:', error);
-                this.isNavigating = false;
             }
         },
         restartCurrentFile() {
