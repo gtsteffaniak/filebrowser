@@ -107,9 +107,9 @@ export default {
       }));
     },
     isPlaying() {
-        return state.playbackQueue?.isPlaying || false;
+      return state.playbackQueue?.isPlaying || false;
     },
-      isPromptVisible() {
+    isPromptVisible() {
       // Check if this PlaybackQueue prompt is the current active prompt
       return state.prompts.some(prompt => prompt.name === 'PlaybackQueue');
     }
@@ -153,22 +153,22 @@ export default {
   },
   methods: {
     cyclePlaybackModes() {
-        // Cycle through modes using store mutations
-        const modes = ['loop-all', 'shuffle', 'sequential', 'loop-single'];
-        const currentIndex = modes.indexOf(this.playbackMode);
-        const nextMode = modes[(currentIndex + 1) % modes.length];
+      // Cycle through modes using store mutations
+      const modes = ['loop-all', 'shuffle', 'sequential', 'loop-single'];
+      const currentIndex = modes.indexOf(this.playbackMode);
+      const nextMode = modes[(currentIndex + 1) % modes.length];
 
-        // Update store with new mode - this will trigger plyrViewer to rebuild queue
-        mutations.setPlaybackQueue({
-          queue: this.playbackQueue,
-          currentIndex: this.currentQueueIndex,
-          mode: nextMode
-        });
-        
-        // Auto-scroll after mode change
-        this.$nextTick(() => {
-            this.scrollToCurrentItem();
-        });
+      // Update store with new mode - this will trigger plyrViewer to rebuild queue
+      mutations.setPlaybackQueue({
+        queue: this.playbackQueue,
+        currentIndex: this.currentQueueIndex,
+        mode: nextMode
+      });
+      
+      // Auto-scroll after mode change
+      this.$nextTick(() => {
+        this.scrollToCurrentItem();
+      });
     },
     
     navigateToItem(index) {
@@ -207,20 +207,9 @@ export default {
     },
     
     triggerNavigation(item) {
-      // Build the URL for the item
-      const itemUrl = url.buildItemUrl(item.source || state.req.source, item.path);
-      
-      // Update the current request in the store
-      mutations.replaceRequest(item);
-      
-      // Use router to navigate to the new item
-      this.$router.replace({ path: itemUrl }).catch(err => {
-        if (err.name !== 'NavigationDuplicated') {
-          console.error('Router navigation error:', err);
-        }
-      });
+      url.goToItem( item.source || state.req.source, item.path, undefined );
     },
-    
+
     scrollToCurrentItem() {
       this.$nextTick(() => {
         const list = this.$refs.QueueList;

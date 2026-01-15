@@ -327,7 +327,6 @@ export default {
         // Cleanup Plyr
         this.destroyPlyr();
         document.removeEventListener('keydown', this.handleKeydown);
-        this.cleanupAlbumArt();
     },
     methods: {
         showQueuePrompt() {
@@ -772,34 +771,7 @@ export default {
                     mode: this.playbackMode
                 });
 
-                // Build the proper URL for browser history
-                const nextItemUrl = url.buildItemUrl(nextItem.source || this.req.source, nextItem.path, true);
-
-                // Store the expected path before making changes
-                const expectedPath = nextItem.path;
-
-                // Update state.req with the next item's data FIRST
-                // This will trigger the watcher on req prop and update the media source
-                mutations.replaceRequest(nextItem);
-
-                // Then update the router URL
-                // Use router.replace to properly update the route (for refresh to work)
-                // This won't cause a remount because the component is keyed by route params, not the full path
-                this.$router.replace({ path: nextItemUrl }).catch(err => {
-                    if (err.name !== 'NavigationDuplicated') {
-                        console.error('Router navigation error:', err);
-                    }
-                });
-
-                // Old previewType before waiting for state.req update -- this are just logs for testing
-                const oldMediaType = this.previewType;
-                await this.waitForReqUpdate(expectedPath);
-
-                // Determine new type from the new state.req
-                const newMediaType = state.req?.type?.startsWith('audio/') ? 'audio' :
-                                    state.req?.type?.startsWith('video/') ? 'video' : null;
-
-                console.log(`Media type: old=${oldMediaType}, new=${newMediaType}`);
+                url.goToItem( nextItem.source || this.req.source, nextItem.path, undefined );
 
                 // Reset navigation flag
                 this.isNavigating = false;
@@ -807,26 +779,6 @@ export default {
                 console.error('Failed to navigate to next file:', error);
                 this.isNavigating = false;
             }
-        },
-
-        waitForReqUpdate(expectedPath) {
-            return new Promise((resolve) => {
-                if (state.req.path === expectedPath) {
-                    resolve();
-                    return;
-                }
-
-                const unwatch = this.$watch(
-                    () => state.req.path,
-                    (newPath) => {
-                        if (newPath === expectedPath) {
-                            unwatch();
-                            resolve();
-                        }
-                    },
-                    { immediate: false }
-                );
-            });
         },
         restartCurrentFile() {
             console.log('Restarting current file');
