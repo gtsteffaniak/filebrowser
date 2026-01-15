@@ -109,15 +109,6 @@ func setContentDisposition(w http.ResponseWriter, r *http.Request, fileName stri
 func rawHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	source := r.URL.Query().Get("source")
 	filesParam := r.URL.Query().Get("files")
-
-	if source == "" {
-		return http.StatusBadRequest, fmt.Errorf("source parameter is required")
-	}
-	if filesParam == "" {
-		return http.StatusBadRequest, fmt.Errorf("files parameter is required")
-	}
-
-	// Split files by comma
 	fileList := strings.Split(filesParam, ",")
 	return rawFilesHandler(w, r, d, source, fileList)
 }
