@@ -164,10 +164,9 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 		// Get extended file info of first previewable item in directory
 		fileInfo, err := getDirectoryPreview(r, d)
 		if err != nil {
-			fmt.Println("error getting directory preview", err)
+			logger.Errorf("error getting directory preview: %v", err)
 			return http.StatusInternalServerError, err
 		}
-		fmt.Println("fileInfo", fileInfo.Name, fileInfo.Path)
 		d.fileInfo = *fileInfo
 	}
 
