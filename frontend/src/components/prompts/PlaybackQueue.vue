@@ -172,17 +172,15 @@ export default {
     },
     
     navigateToItem(index) {
-      console.log('Navigate to item:', index);
-      
       if (index === this.currentQueueIndex) {
         // Toggle play/pause for current item
         this.togglePlayPause();
+        return;
       } else {
         // Navigate to different item
         this.navigateToIndex(index);
       }
     },
-    
     togglePlayPause() {
       mutations.togglePlayPause();
     },
@@ -283,6 +281,7 @@ export default {
 
 .mode-info i.material-icons {
   color: var(--primaryColor);
+  user-select: none;
 }
 
 .playback-mode {
@@ -325,12 +324,15 @@ export default {
 }
 
 .item.current .item-icon i,
-.item.current .current-indicator {
+.item.current .current-indicator,
+.item-indicator {
   color: white;
+  user-select: none;
 }
 
 .item-icon i.material-icons {
   color: var(--textSecondary);
+  user-select: none;
 }
 
 .item-name {
@@ -340,6 +342,7 @@ export default {
 .track-number {
   color: var(--textSecondary);
   font-weight: 600;
+  user-select: none;
 }
 
 .empty {
@@ -352,5 +355,6 @@ export default {
   font-size: 3rem;
   opacity: 0.5;
   margin-bottom: 1rem;
+  user-select: none;
 }
 </style>
