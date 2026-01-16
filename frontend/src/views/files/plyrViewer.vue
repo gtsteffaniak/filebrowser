@@ -316,7 +316,6 @@ export default {
     // Cleanup Plyr
     this.destroyPlyr();
     this.mediaElement.pause();
-    this.mediaElement.load();
     document.removeEventListener('keydown', this.handleKeydown);
   },
   methods: {
