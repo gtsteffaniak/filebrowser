@@ -157,20 +157,18 @@ export default {
       const modes = ['loop-all', 'shuffle', 'sequential', 'loop-single'];
       const currentIndex = modes.indexOf(this.playbackMode);
       const nextMode = modes[(currentIndex + 1) % modes.length];
-
       // Update store with new mode - this will trigger plyrViewer to rebuild queue
       mutations.setPlaybackQueue({
         queue: this.playbackQueue,
         currentIndex: this.currentQueueIndex,
         mode: nextMode
       });
-      
       // Auto-scroll after mode change
       this.$nextTick(() => {
         this.scrollToCurrentItem();
       });
     },
-    
+
     navigateToItem(index) {
       if (index === this.currentQueueIndex) {
         // Toggle play/pause for current item
@@ -184,30 +182,24 @@ export default {
     togglePlayPause() {
       mutations.togglePlayPause();
     },
-    
     navigateToIndex(index) {
       if (index >= 0 && index < this.playbackQueue.length) {
         const item = this.playbackQueue[index];
-        
         // Update store with new current index
         mutations.setPlaybackQueue({
           queue: this.playbackQueue,
           currentIndex: index,
           mode: this.playbackMode
         });
-        
         // Close the prompt
         this.closeModal();
-        
         // Trigger actual navigation
         this.triggerNavigation(item);
       }
     },
-    
     triggerNavigation(item) {
       url.goToItem( item.source || state.req.source, item.path, undefined );
     },
-
     scrollToCurrentItem() {
       this.$nextTick(() => {
         const list = this.$refs.QueueList;
@@ -225,11 +217,9 @@ export default {
         }
       });
     },
-    
     closeModal() {
       mutations.closeHovers();
     },
-
     getFileIcon(item) {
       if (item.type?.startsWith('audio/')) return 'audiotrack';
       if (item.type?.startsWith('video/')) return 'movie';
