@@ -315,6 +315,8 @@ export default {
     });
     // Cleanup Plyr
     this.destroyPlyr();
+    this.mediaElement.pause();
+    this.mediaElement.load();
     document.removeEventListener('keydown', this.handleKeydown);
   },
   methods: {
@@ -352,6 +354,7 @@ export default {
       if (!this.player) return;
       console.log('Destroying Plyr instance');
       this.player.playing && this.player.pause();
+      this.player.stop();
       // Remove all Plyr event listeners
       const { events, media, elements } = this.player;
       if (events && media) {
