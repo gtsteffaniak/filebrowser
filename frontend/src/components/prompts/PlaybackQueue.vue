@@ -264,6 +264,7 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding-top: 0 !important;
 }
 
 .card-action .button {

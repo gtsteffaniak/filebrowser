@@ -228,7 +228,6 @@ body.rtl .card-title>*:first-child {
 .card.floating > .card-action {
   text-align: right;
   flex-shrink: 0;
-  padding-top: 0.5em;
 }
 
 .card.floating > .card-content {

@@ -97,7 +97,7 @@
             <span v-if="queueCount > 0" class="queue-count">{{ queueCount }}</span>
         </button>
 
-        <!-- Toast that shows when you change playback modes in the media player -->
+        <!-- Toast when you change playback modes in the media player -->
         <div :class="['playback-toast', toastVisible ? 'visible' : '']">
             <!-- Loop icon for "single playback", "loop single file" and "loop all files" -->
             <i v-if="playbackMode === 'single' || playbackMode === 'loop-single' || playbackMode === 'loop-all'" class="material-icons">
@@ -208,8 +208,8 @@ export default {
     },
     watch: {
         req(newReq) {
-            console.log('req changed, updating media');
-            console.log(`Current file: ${newReq?.name} at position ${this.currentQueueIndex + 1} of ${this.playbackQueue.length}`);
+            console.log('Updating media...');
+            console.log('Current file:', newReq?.name, 'at position', this.currentQueueIndex + 1, 'of', this.playbackQueue.length);
             this.playbackMenuInitialized = false;
             this.lastAppliedMode = null;
 
@@ -296,13 +296,7 @@ export default {
         },
     },
     mounted() {
-        console.log('Component mounted with:', {
-            previewType: this.previewType,
-            raw: this.raw,
-            req: this.req,
-            reqType: this.req.type,
-            mediaElement: !!this.mediaElement
-        });
+        // console.log('Component mounted with:', { previewType: this.previewType, raw: this.raw, req: this.req, reqType: this.req.type, mediaElement: !!this.mediaElement });
         this.updateMedia();
         this.$nextTick(() => {
             // Show queue button initially if it should be shown
@@ -403,7 +397,7 @@ export default {
         },
         toggleLoop() {
             const newMode = this.playbackMode === 'loop-single' ? 'single' : 'loop-single';
-            // Update the state directly via mutations instead of calling updatePlaybackMode
+            // Update the state directly via mutations
             mutations.setPlaybackQueue({
                 queue: this.playbackQueue,
                 currentIndex: this.currentQueueIndex,
@@ -536,7 +530,7 @@ export default {
             this.metadata = null
         },
         hookEvents() {
-            console.log(`hookEvents called: previewType=${this.previewType}, useDefaultMediaPlayer=${this.useDefaultMediaPlayer}, player=${this.player ? 'exists' : 'null'}`);
+            // console.log(`hookEvents called: previewType=${this.previewType}, useDefaultMediaPlayer=${this.useDefaultMediaPlayer}, player=${this.player ? 'exists' : 'null'}`);
             
             if (this.useDefaultMediaPlayer) {
                 this.setupDefaultPlayerEvents(this.mediaElement);
@@ -544,11 +538,11 @@ export default {
             }
             if (!this.player || this.currentPlyrMediaType !== this.previewType) {
                 // When media type changes (eg. video to audio) we need to destroy the old Plyr to avoid preview issues
-                console.log(`Media type changed from ${this.currentPlyrMediaType} to ${this.previewType}, destroying old Plyr`);
+                // console.log(`Media type changed from ${this.currentPlyrMediaType} to ${this.previewType}, destroying old Plyr`);
                 this.destroyPlyr();
                 this.initializePlyr();
             } else {
-                console.log('Using existing Plyr instance');
+                // console.log('Using existing Plyr instance');
                 this.setupPlyrEvents();
             }
         },
@@ -607,7 +601,6 @@ export default {
         },
         // Playback methods
         async setupPlaybackQueue(forceReshuffle = false) {
-            console.log("============================"); // Visual separator in the console logs
             console.log('Setting up playback queue on mode:', this.playbackMode);
             console.log('Current req path:', this.req.path);
 
@@ -706,9 +699,7 @@ export default {
                     break;
                 }
             }
-
-            console.log('Playback queue length:', finalQueue.length);
-            console.log('Current place on the queue:', finalIndex + 1);
+            console.log('Current place on the queue:', finalIndex + 1, 'of', finalQueue.length);
 
             // After the queue is set up, update the store
             mutations.setPlaybackQueue({
@@ -745,7 +736,6 @@ export default {
         },
         async playNext() {
             if (this.playbackQueue.length === 0) return;
-            console.log('Loading next file...');
 
             // Calculate next index
             let nextIndex = this.currentQueueIndex + 1;
@@ -816,13 +806,12 @@ export default {
             const action = modeActions[this.playbackMode];
             if (action) {
                 console.log(`Media ended - ${this.playbackMode} mode`);
-                console.log("============================"); // Visual separator in the console logs
                 action();
             }
         },
         applyCustomPlaybackSettings(player) {
             // This is the actual logic to set up the settings menu
-            // Separated so it can be called both on 'ready' event and after source changes
+            // Separated so it can be called after source changes
 
             // Only recreate menu if mode changed or menu not initialized, this for avoid unnecesary recreations
             const modeChanged = this.lastAppliedMode !== this.playbackMode;
@@ -1035,7 +1024,6 @@ export default {
 }
 
 .plyr__control--overlaid {
-    /* background: #00b2ff; */
     background: var(--plyr-video-control-background-hover, var(--primaryColor));
     border: 0;
     display: none;
