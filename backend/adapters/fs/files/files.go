@@ -62,19 +62,12 @@ func processDirectoryMetadata(response *iteminfo.ExtendedFileInfo, idx *indexing
 				isItemVideo := strings.HasPrefix(fileItem.Type, "video")
 
 				if isItemAudio || isItemVideo {
-					// Get the real path for this file
-					itemRealPath, _, _ := idx.GetRealPath(opts.Path, fileItem.Name)
-					// Capture loop variables in local copies to avoid closure issues
-					item := fileItem
-					itemPath := itemRealPath
-					isAudio := isItemAudio
-
 					wg.Go(func() {
 						// Extract metadata for audio files (without album art for performance)
-						if isAudio {
-							err := extractAudioMetadata(context.Background(), item, itemPath, opts.AlbumArt || opts.Content, opts.Metadata, sharedFFmpegService)
+						if isItemAudio {
+							err := extractAudioMetadata(context.Background(), fileItem, response.RealPath+"/"+fileItem.Name, opts.AlbumArt, opts.Metadata, sharedFFmpegService)
 							if err != nil {
-								logger.Debugf("failed to extract metadata for file: %s, error: %v", item.Name, err)
+								logger.Debugf("failed to extract metadata for file: %s, error: %v", fileItem.Name, err)
 							} else {
 								mu.Lock()
 								processedCount++
@@ -82,9 +75,9 @@ func processDirectoryMetadata(response *iteminfo.ExtendedFileInfo, idx *indexing
 							}
 						} else {
 							// Extract duration for video files
-							err := extractVideoMetadata(context.Background(), item, itemPath, sharedFFmpegService)
+							err := extractVideoMetadata(context.Background(), fileItem, response.RealPath+"/"+fileItem.Name, sharedFFmpegService)
 							if err != nil {
-								logger.Debugf("failed to extract video metadata for file: %s, error: %v", item.Name, err)
+								logger.Debugf("failed to extract video metadata for file: %s, error: %v", fileItem.Name, err)
 							} else {
 								mu.Lock()
 								processedCount++
@@ -125,6 +118,12 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage, user *users.
 	if user == nil {
 		return response, fmt.Errorf("user not provided")
 	}
+	if opts.Path == "" {
+		return response, fmt.Errorf("path not provided")
+	}
+	if opts.Source == "" {
+		return response, fmt.Errorf("source not provided")
+	}
 	// Get index
 	idx := indexing.GetIndex(opts.Source)
 	if idx == nil {
@@ -134,12 +133,16 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage, user *users.
 	// Resolve user scope
 	userScope, scopeErr := user.GetScopeForSourcePath(idx.Path)
 	if scopeErr != nil || userScope == "" {
-		return response, fmt.Errorf("user has no access to source: %v", scopeErr)
+		return response, fmt.Errorf("user has no access to source: %v", opts.Source)
 	}
 
-	// Combine scope + request path
-	indexPath := utils.JoinPathAsUnix(userScope, opts.Path)
+	safePath, err := utils.SanitizeUserPath(opts.Path)
+	if err != nil {
+		return response, errors.ErrAccessDenied
+	}
 
+	// Combine scope + sanitized path
+	indexPath := utils.JoinPathAsUnix(userScope, safePath)
 	// Layer 1: USER ACCESS CONTROL
 	// Quick check: Does THIS user have permission?
 	if !access.Permitted(idx.Path, indexPath, user.Username) {
@@ -659,7 +662,21 @@ func WriteDirectory(opts utils.FileOptions) error {
 		logger.Debugf("Could not set file permissions for %s (this may be expected in restricted environments): %v", realPath, err)
 	}
 
-	return RefreshIndex(idx.Name, opts.Path, true, true)
+	// Refresh the directory itself recursively
+	err = RefreshIndex(idx.Name, opts.Path, true, true)
+	if err != nil {
+		return err
+	}
+
+	// Refresh parent directory to update its size
+	parentPath := filepath.Dir(opts.Path)
+	if parentPath != "." && parentPath != "/" && parentPath != opts.Path {
+		if err := RefreshIndex(idx.Name, parentPath, true, false); err != nil {
+			logger.Debugf("Could not refresh parent directory %s: %v", parentPath, err)
+		}
+	}
+
+	return nil
 }
 
 func WriteFile(source, path string, in io.Reader) error {
@@ -711,7 +728,21 @@ func WriteFile(source, path string, in io.Reader) error {
 		logger.Debugf("Could not set file permissions for %s (this may be expected in restricted environments): %v", realPath, err)
 	}
 
-	return RefreshIndex(source, path, false, false)
+	// Refresh the file itself
+	err = RefreshIndex(source, path, false, false)
+	if err != nil {
+		return err
+	}
+
+	// Refresh parent directory to update its size
+	parentPath := filepath.Dir(path)
+	if parentPath != "." && parentPath != "/" && parentPath != path {
+		if err := RefreshIndex(source, parentPath, true, false); err != nil {
+			logger.Debugf("Could not refresh parent directory %s: %v", parentPath, err)
+		}
+	}
+
+	return nil
 }
 
 // getContent reads and returns the file content if it's considered an editable text file.

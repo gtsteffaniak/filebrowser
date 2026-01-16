@@ -46,6 +46,7 @@ And a few potential drawbacks to lookout for:
 
  **BugFixes**:
  - Source info not properly read from external storage NAS #1727
+ - ensure user requests scopes are strongly enforced #1789
 
 ## v1.1.6-beta
 
