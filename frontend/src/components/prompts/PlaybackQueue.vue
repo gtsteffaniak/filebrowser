@@ -265,6 +265,10 @@ export default {
   padding-top: 0 !important;
 }
 
+.card-title {
+  padding-bottom: 0.2em !important;
+}
+
 .card-action .button {
   display: flex;
   align-items: center;

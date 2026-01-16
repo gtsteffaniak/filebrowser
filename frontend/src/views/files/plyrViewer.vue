@@ -40,7 +40,7 @@
 
             <div class="audio-controls-container" :class="{ 'dark-mode': darkMode, 'light-mode': !darkMode }">
                 <div class="plyr-audio-container" ref="plyrAudioContainer">
-                    <audio :src="raw" :autoplay="autoPlayEnabled" @play="handlePlay" ref="audioElement"></audio>
+                    <audio :src="raw" :type="req.type" :autoplay="autoPlayEnabled" @play="handlePlay" ref="audioElement"></audio>
                 </div>
             </div>
         </div>
@@ -48,7 +48,7 @@
         <!-- Video with plyr -->
         <div v-else-if="previewType == 'video' && !useDefaultMediaPlayer" class="video-player-container" :class="{ 'no-captions': !hasSubtitles }">
             <div class="plyr-video-container" ref="plyrVideoContainer">
-                <video :src="raw" :autoplay="autoPlayEnabled" @play="handlePlay" playsinline webkit-playsinline ref="videoElement">
+                <video :src="raw" :type="req.type" :autoplay="autoPlayEnabled" @play="handlePlay" playsinline ref="videoElement">
                     <track kind="captions" v-for="(sub, index) in subtitlesList" :key="index" :src="sub.src"
                         :label="'Subtitle ' + sub.name" :default="false" />
                 </video>
@@ -65,7 +65,7 @@
         <!-- Default HTML5 Video -->
         <div v-else-if="previewType == 'video' && useDefaultMediaPlayer" class="video-player-container">
             <video ref="defaultVideoPlayer" :src="raw"
-                controls :autoplay="autoPlayEnabled" @play="handlePlay" playsinline webkit-playsinline>
+                controls :autoplay="autoPlayEnabled" @play="handlePlay" playsinline >
                 <track kind="captions" v-for="(sub, index) in subtitlesList" :key="index" :src="sub.src"
                     :label="'Subtitle ' + sub.name" :default="index === 0" />
             </video>
@@ -303,7 +303,7 @@ export default {
             if (this.showQueueButton) {
                 this.showQueueButtonMethod();
             }
-            // Initial queue setup
+            // Initial queue setup, this will setup the queue with 'loop-single'.
             this.setupPlaybackQueue();
         });
         document.addEventListener('keydown', this.handleKeydown);
@@ -349,14 +349,25 @@ export default {
             }
         },
         destroyPlyr() {
-            if (this.player) {
-                console.log('Destroying Plyr instance');
-                this.player.destroy();
-                this.cleanupAlbumArt();
-                this.player = null;
-                this.playbackMenuInitialized = false;
-                this.lastAppliedMode = null;
+            if (!this.player) return;
+            console.log('Destroying Plyr instance');
+            this.player.playing && this.player.pause();
+            // Remove all Plyr event listeners
+            const { events, media, elements } = this.player;
+            if (events && media) {
+                events.listeners.forEach((listeners, event) => {
+                    listeners.forEach(listener => media.removeEventListener(event, listener));
+                });
             }
+            // Remove Plyr container from DOM
+            if (elements?.container?.parentNode) {
+                elements.container.parentNode.removeChild(elements.container);
+            }
+            this.player = null;
+            this.currentPlyrMediaType = null;
+            this.playbackMenuInitialized = false;
+            this.lastAppliedMode = null;
+            this.cleanupAlbumArt();
         },
         togglePlayPause() {
             if (!this.mediaElement) return;
