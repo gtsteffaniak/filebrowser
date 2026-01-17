@@ -350,26 +350,17 @@ export default {
       }
     },
     destroyPlyr() {
-      if (!this.player) return;
-      console.log('Destroying Plyr instance');
-      this.player.playing && this.player.pause();
-      this.player.stop();
-      // Remove all Plyr event listeners
-      const { events, media, elements } = this.player;
-      if (events && media) {
-        events.listeners.forEach((listeners, event) => {
-          listeners.forEach(listener => media.removeEventListener(event, listener));
-        });
+      if (this.player) {
+        console.log('Destroying Plyr instance');
+        this.player.destroy();
+        this.cleanupAlbumArt();
+        this.player = null;
+        this.playbackMenuInitialized = false;
+        this.lastAppliedMode = null;
+        // This should fix (most of) the "Invalid URI" warns, meanwhile we still destroying plyr.
+        // Somehow firefox will still trying to "load" the empty source which causes the warn.
+        this.mediaElement.src = this.raw;
       }
-      // Remove Plyr container from DOM
-      if (elements?.container?.parentNode) {
-        elements.container.parentNode.removeChild(elements.container);
-      }
-      this.player = null;
-      this.currentPlyrMediaType = null;
-      this.playbackMenuInitialized = false;
-      this.lastAppliedMode = null;
-      this.cleanupAlbumArt();
     },
     togglePlayPause() {
       if (!this.mediaElement) return;
