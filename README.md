@@ -104,7 +104,7 @@ Mac                           | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ |
 Self hostable                 | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
 Has Stable Release?           | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 S3 support                    | ❌ | ❌ | ✅ | ✅ | ❌ | ❌ |
-webdav support                | ❌ | ❌ | ✅ | ✅ | ❌ | ✅ |
+webdav support                | ⚠️*¹ | ❌ | ✅ | ✅ | ❌ | ✅ |
 FTP support                   | ❌ | ❌ | ✅ | ✅ | ❌ | ✅ |
 Dedicated docs site?          | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
 Multiple sources at once      | ✅ | ❌ | ✅ | ✅ | ❌ | ✅ |
@@ -146,3 +146,7 @@ Can browse archive files      | :construction: | ❌ | ❌ | ❌ | ❌ | ✅ |
 Can convert documents         | :construction: | ❌ | ❌ | ❌ | ❌ | ✅ |
 Can convert videos            | :construction: | ❌ | ❌ | ❌ | ❌ | ❌ |
 Can convert photos            | :construction: | ❌ | ❌ | ❌ | ❌ | ❌ |
+
+
+> *¹ Using the built-in API, a reverse proxy (e.g., Nginx Proxy Manager), and Radicale (properly configured), you can provide reliable CalDAV and CardDAV services. With the correct headers (X-Remote-User and X-Script-Name), all endpoints are recognized, allowing clients such as iOS, macOS, Android, Gnome Online Accounts, Thunderbird, Evolution, and other WebDAV-compatible apps to sync calendars and contacts automatically. Unlimited uploads and stable WebDAV support ensure even large files are handled efficiently.
+> A detailed guide is available here: [FileBrowser Quantum with Radicale Support!](https://github.com/cryinkfly/podman-rootless-quadlets/tree/main/quadlets/filebrowser-quantum/radicale) – thanks to [@cryinkfly](https://github.com/cryinkfly)
