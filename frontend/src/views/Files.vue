@@ -1,7 +1,10 @@
 <template>
   <div>
     <div v-if="loadingProgress < 100" class="progress-line" :style="{ width: loadingProgress + '%' }"></div>
-    <breadcrumbs v-if="showBreadCrumbs" :base="isShare ? `/share/${shareHash}` : undefined" />
+    <shelf v-if="showBreadCrumbs">
+      <breadcrumbs :base="isShare ? `/share/${shareHash}` : undefined" />
+      <listing-header v-if="showListingHeader" :hasDuration="hasDuration" />
+    </shelf>
     <errors v-if="error" :errorCode="error.status" />
     <component v-else-if="currentViewLoaded" :is="currentView"></component>
     <div v-else>
@@ -15,7 +18,9 @@
 
 <script>
 import { filesApi, publicApi } from "@/api";
-import Breadcrumbs from "@/components/Breadcrumbs.vue";
+import Shelf from "@/components/Shelf.vue";
+import Breadcrumbs from "@/components/files/Breadcrumbs.vue";
+import ListingHeader from "@/components/files/ListingHeader.vue";
 import Errors from "@/views/Errors.vue";
 import Preview from "@/views/files/Preview.vue";
 import ListingView from "@/views/files/ListingView.vue";
@@ -33,7 +38,9 @@ import LoadingSpinner from "@/components/LoadingSpinner.vue";
 export default {
   name: "files",
   components: {
+    Shelf,
     Breadcrumbs,
+    ListingHeader,
     Errors,
     Preview,
     ListingView,
@@ -71,6 +78,17 @@ export default {
     },
     showBreadCrumbs() {
       return getters.showBreadCrumbs();
+    },
+    showListingHeader() {
+      // Show listing header when in listing view with items
+      return this.currentView === 'listingView' && state.req?.items?.length > 0;
+    },
+    hasDuration() {
+      // Check if any file has duration metadata
+      if (!state.req?.items) return false;
+      return state.req.items.some(item => 
+        item.type !== 'directory' && item.metadata && item.metadata.duration
+      );
     },
     currentView() {
       return getters.currentView();
