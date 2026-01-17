@@ -202,6 +202,11 @@ export function goToItem(source, path, previousHistoryItem) {
   let fullPath;
   if (getters.isShare()) {
     fullPath = `/public/share/${state.shareInfo?.hash}${newPath}`;
+    if (previousHistoryItem === undefined) {
+      // When undefined will not create browser history
+      router.replace({ path: fullPath });
+      return;
+    }
     router.push({ path: fullPath });
     return;
   }
