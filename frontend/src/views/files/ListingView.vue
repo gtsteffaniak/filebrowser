@@ -846,7 +846,7 @@ export default {
           break;
 
         case "F2":
-          if (!!this.permissions?.modify || state.selected.length !== 1)  return;
+          if (!this.permissions?.modify || state.selected.length !== 1)  return;
           mutations.showHover({
             name: "rename",
             props: {
