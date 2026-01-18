@@ -1,6 +1,6 @@
 <template>
-  <div id="breadcrumbs">
-    <ul v-if="items.length > 0">
+  <div v-if="items.length > 0" id="breadcrumbs">
+    <ul>
       <li>
         <router-link :to="base" :aria-label="$t('general.home')" :title="$t('general.home')"
           :class="{ 'droppable-breadcrumb': isDroppable, 'drag-over': dragOverItem?.type === 'home' }"
@@ -330,7 +330,6 @@ export default {
 
 <style scoped>
 #breadcrumbs {
-  margin-top: .5em;
   overflow-y: hidden;
   overflow-x: hidden;
   width: 100%;

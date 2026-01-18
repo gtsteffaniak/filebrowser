@@ -1,64 +1,62 @@
 <template>
-  <div class="listing-header-wrapper">
-    <div class="header card" :class="{ 'dark-mode-item-header': isDarkMode }">
-      <p
-        :class="{ active: nameSorted }"
-        class="name"
-        role="button"
-        tabindex="0"
-        @click="sort('name')"
-        :title="$t('files.sortByName')"
-        :aria-label="$t('files.sortByName')"
-      >
-        <span>{{ $t("general.name") }}</span>
-        <i class="material-icons">{{ nameIcon }}</i>
-      </p>
+  <div class="listing-item-header card" :class="{ 'dark-mode': isDarkMode, 'desktop-view': !isMobile }">
+    <p
+      :class="{ active: nameSorted }"
+      class="name"
+      role="button"
+      tabindex="0"
+      @click="sort('name')"
+      :title="$t('files.sortByName')"
+      :aria-label="$t('files.sortByName')"
+    >
+      <span>{{ $t("general.name") }}</span>
+      <i class="material-icons">{{ nameIcon }}</i>
+    </p>
 
-      <p
-        :class="{ active: sizeSorted }"
-        class="size"
-        role="button"
-        tabindex="0"
-        @click="sort('size')"
-        :title="$t('files.sortBySize')"
-        :aria-label="$t('files.sortBySize')"
-      >
-        <span>{{ $t("general.size") }}</span>
-        <i class="material-icons">{{ sizeIcon }}</i>
-      </p>
+    <p
+      :class="{ active: sizeSorted }"
+      class="size"
+      role="button"
+      tabindex="0"
+      @click="sort('size')"
+      :title="$t('files.sortBySize')"
+      :aria-label="$t('files.sortBySize')"
+    >
+      <span>{{ $t("general.size") }}</span>
+      <i class="material-icons">{{ sizeIcon }}</i>
+    </p>
 
-      <p
-        :class="{ active: modifiedSorted }"
-        class="modified"
-        role="button"
-        tabindex="0"
-        @click="sort('modified')"
-        :title="$t('files.sortByLastModified')"
-        :aria-label="$t('files.sortByLastModified')"
-      >
-        <span>{{ $t("files.lastModified") }}</span>
-        <i class="material-icons">{{ modifiedIcon }}</i>
-      </p>
+    <p
+      :class="{ active: modifiedSorted }"
+      class="modified"
+      role="button"
+      tabindex="0"
+      @click="sort('modified')"
+      :title="$t('files.sortByLastModified')"
+      :aria-label="$t('files.sortByLastModified')"
+    >
+      <span>{{ $t("files.lastModified") }}</span>
+      <i class="material-icons">{{ modifiedIcon }}</i>
+    </p>
 
-      <p
-        v-if="hasDuration"
-        :class="{ active: durationSorted }"
-        class="duration"
-        role="button"
-        tabindex="0"
-        @click="sort('duration')"
-        :title="$t('files.sortByDuration')"
-        :aria-label="$t('files.sortByDuration')"
-      >
-        <span>{{ $t("files.duration") }}</span>
-        <i class="material-icons">{{ durationIcon }}</i>
-      </p>
-    </div>
+    <p
+      v-if="hasDuration"
+      :class="{ active: durationSorted }"
+      class="duration"
+      role="button"
+      tabindex="0"
+      @click="sort('duration')"
+      :title="$t('files.sortByDuration')"
+      :aria-label="$t('files.sortByDuration')"
+    >
+      <span>{{ $t("files.duration") }}</span>
+      <i class="material-icons">{{ durationIcon }}</i>
+    </p>
   </div>
 </template>
 
 <script>
-import { getters, mutations } from "@/store";
+import { state, getters, mutations } from "@/store";
 
 export default {
   name: "ListingHeader",
@@ -69,6 +67,9 @@ export default {
     },
   },
   computed: {
+    isMobile() {
+      return state.isMobile;
+    },
     isDarkMode() {
       return getters.isDarkMode();
     },
@@ -132,15 +133,8 @@ export default {
 </script>
 
 <style scoped>
-.listing-header-wrapper {
-  margin-bottom: 0;
-  width: 100%;
-  box-sizing: border-box;
-  padding-right: 0.5em;
-}
-
-.header {
-  display: flex !important;
+.listing-item-header {
+  display: flex;
   background: white;
   border: 1px solid rgba(0, 0, 0, .1);
   z-index: 999;
@@ -150,56 +144,76 @@ export default {
   border-top-left-radius: 1em;
   border-top-right-radius: 1em;
   border: unset;
-  margin-bottom: 0.35em;
+  margin-bottom: 0 !important;
+  justify-content: space-between;
 }
 
-.dark-mode-item-header {
+.dark-mode {
   border-color: var(--divider) !important;
   background: var(--surfacePrimary) !important;
   user-select: none;
 }
 
-.header .name {
+.name {
   margin-right: 1.5em;
-  width: 50%;
   box-sizing: border-box;
 }
 
-.header>p {
+p {
   margin: 0;
   cursor: pointer;
   box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  min-width: 0;
 }
 
-.header .size {
-  width: 25%;
+span {
+  vertical-align: middle;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.size {
   box-sizing: border-box;
 }
 
-.header .duration {
+.duration {
   margin-left: auto;
   padding-right: 1em;
   box-sizing: border-box;
 }
 
-.header i {
+.desktop-view {
+  justify-content: unset !important;
+}
+
+/* Desktop-specific column widths */
+.desktop-view .name {
+  width: 50%;
+}
+
+.desktop-view .size {
+  width: 25%;
+}
+
+i {
   font-size: 1.5em;
   vertical-align: middle;
   margin-left: .2em;
   opacity: 0;
   transition: .1s ease all;
+  flex-shrink: 0;
 }
 
-.header p:hover i,
-.header .active i {
+p:hover i,
+.active i {
   opacity: 1;
 }
 
-.header .active {
+.active {
   font-weight: bold;
-}
-
-.header span {
-  vertical-align: middle;
 }
 </style>

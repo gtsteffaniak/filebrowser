@@ -13,6 +13,7 @@
       'main-padding': showPadding,
       scrollable: scrollable,
     }">
+      <shelf />
       <router-view />
     </Scrollbar>
     <prompts :class="{ 'dark-mode': isDarkMode }"></prompts>
@@ -38,6 +39,7 @@ import Scrollbar from "@/components/files/Scrollbar.vue";
 import Tooltip from "@/components/Tooltip.vue";
 import NextPrevious from "@/components/files/nextPrevious.vue";
 import PopupPreview from "@/components/files/PopupPreview.vue";
+import Shelf from "@/components/Shelf.vue";
 import { filesApi } from "@/api";
 import { state, getters, mutations } from "@/store";
 import { events, notify } from "@/notify";
@@ -57,6 +59,7 @@ export default {
     Tooltip,
     NextPrevious,
     PopupPreview,
+    Shelf,
   },
   data() {
     return {

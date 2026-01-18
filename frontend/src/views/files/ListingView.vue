@@ -345,9 +345,9 @@ export default {
       // Dynamic padding-top: 1em on root (no breadcrumbs), 4em otherwise (with breadcrumbs + header)
       const isRootPath = state.req.path === '/' || !state.req.path;
       if (isRootPath) {
-        styles['padding-top'] = '1em'; // Root - no breadcrumbs showing
+        styles['padding-top'] = '4.25em'; // Root - no breadcrumbs showing
       } else {
-        styles['padding-top'] = '4em'; // Non-root - breadcrumbs + listing header
+        styles['padding-top'] = '7.25em'; // Non-root - breadcrumbs + listing header
       }
 
       if (viewMode === 'icons') {

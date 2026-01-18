@@ -1,41 +1,93 @@
 <template>
   <transition name="shelf-slide">
     <div
-      v-show="!isHidden"
+      v-show="!isHidden && showShelf"
       id="shelf"
       :class="{ 'add-padding': addPadding }"
     >
-      <slot></slot>
+      <breadcrumbs v-if="showBreadcrumbs" :base="isShare ? `/share/${shareHash}` : undefined" />
+      <listing-header v-if="showListingHeader" :hasDuration="hasDuration" />
+      <duplicate-finder-actions 
+        v-if="showDuplicateFinderActions"
+        :selectedCount="duplicateFinderSelectedCount"
+        :deleting="duplicateFinderDeleting"
+        @delete="handleDuplicateFinderDelete"
+        @clear="handleDuplicateFinderClear"
+      />
     </div>
   </transition>
-  <div class="shelf-placeholder"></div>
 </template>
 
 <script>
-import { getters } from "@/store";
+import Breadcrumbs from "@/components/files/Breadcrumbs.vue";
+import ListingHeader from "@/components/files/ListingHeader.vue";
+import DuplicateFinderActions from "@/components/tools/DuplicateFinderActions.vue";
+import { state, getters } from "@/store";
+import { eventBus } from "@/store/eventBus";
 
 export default {
   name: "Shelf",
+  components: {
+    Breadcrumbs,
+    ListingHeader,
+    DuplicateFinderActions,
+  },
   data() {
     return {
       isHidden: false,
       lastScrollTop: 0,
       scrollElement: null,
       scrollFrame: null,
+      // Duplicate finder state
+      duplicateFinderSelectedCount: 0,
+      duplicateFinderDeleting: false,
     };
   },
   computed: {
     addPadding() {
       return getters.isStickySidebar() || getters.isShare();
     },
+    showShelf() {
+      return this.showBreadcrumbs || this.showListingHeader || this.showDuplicateFinderActions;
+    },
+    showBreadcrumbs() {
+      return getters.showBreadCrumbs();
+    },
+    isShare() {
+      return getters.isShare();
+    },
+    shareHash() {
+      return getters.shareHash();
+    },
+    showListingHeader() {
+      // Show listing header when in listing view with items
+      return getters.currentView() === 'listingView' && state.req?.items?.length > 0;
+    },
+    hasDuration() {
+      // Check if any file has duration metadata
+      if (!state.req?.items) return false;
+      return state.req.items.some(item => 
+        item.type !== 'directory' && item.metadata && item.metadata.duration
+      );
+    },
+    showDuplicateFinderActions() {
+      // Show duplicate finder actions when on that route and there are selected items
+      return this.duplicateFinderSelectedCount > 0;
+    },
   },
   mounted() {
     this.$nextTick(() => {
       this.attachScrollListener();
     });
+    eventBus.on('duplicateFinderSelectionChanged', this.handleDuplicateFinderSelectionChanged);
+    eventBus.on('duplicateFinderDeletingChanged', this.handleDuplicateFinderDeletingChanged);
   },
   beforeUnmount() {
     this.detachScrollListener();
+    
+    // Clean up event bus listeners
+    eventBus.off('duplicateFinderSelectionChanged', this.handleDuplicateFinderSelectionChanged);
+    eventBus.off('duplicateFinderDeletingChanged', this.handleDuplicateFinderDeletingChanged);
   },
   watch: {
     $route() {
@@ -45,6 +97,12 @@ export default {
         this.detachScrollListener();
         this.attachScrollListener();
       });
+    },
+    showShelf(newValue, oldValue) {
+      // When shelf content appears (false -> true), always show it regardless of scroll position
+      if (newValue === true && oldValue === false) {
+        this.isHidden = false;
+      }
     },
   },
   methods: {
@@ -106,20 +164,39 @@ export default {
         this.scrollFrame = null;
       });
     },
+    
+    // Duplicate finder event handlers
+    handleDuplicateFinderSelectionChanged(count) {
+      this.duplicateFinderSelectedCount = count;
+    },
+    handleDuplicateFinderDeletingChanged(deleting) {
+      this.duplicateFinderDeleting = deleting;
+    },
+    handleDuplicateFinderDelete() {
+      eventBus.emit('duplicateFinderDeleteRequested');
+    },
+    handleDuplicateFinderClear() {
+      eventBus.emit('duplicateFinderClearRequested');
+    },
   },
 };
 </script>
 
 <style scoped>
 #shelf {
-  overflow-y: hidden;
+
+  overflow-y: visible;
   overflow-x: hidden;
   position: fixed;
+  padding: 0.5em;
   z-index: 1000;
   right: 0;
   left: 0;
   transition: 0.3s ease;
   box-sizing: border-box;
+  height: auto;
+  min-height: 0;
+  pointer-events: auto;
 }
 
 .shelf-slide-enter-active,
@@ -145,12 +222,6 @@ export default {
     backdrop-filter: blur(12px) invert(0.01);
     background-color: color-mix(in srgb, var(--background) 75%, transparent);
   }
-}
-
-.shelf-placeholder {
-  margin-top: 0.35em;
-  visibility: hidden;
-  min-height: 3em;
 }
 
 #main.moveWithSidebar #shelf {
