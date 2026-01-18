@@ -1,7 +1,6 @@
 <template>
   <div>
     <div v-if="loadingProgress < 100" class="progress-line" :style="{ width: loadingProgress + '%' }"></div>
-    <breadcrumbs v-if="showBreadCrumbs" :base="isShare ? `/share/${shareHash}` : undefined" />
     <errors v-if="error" :errorCode="error.status" />
     <component v-else-if="currentViewLoaded" :is="currentView"></component>
     <div v-else>
@@ -15,7 +14,6 @@
 
 <script>
 import { filesApi, publicApi } from "@/api";
-import Breadcrumbs from "@/components/Breadcrumbs.vue";
 import Errors from "@/views/Errors.vue";
 import Preview from "@/views/files/Preview.vue";
 import ListingView from "@/views/files/ListingView.vue";
@@ -33,7 +31,6 @@ import LoadingSpinner from "@/components/LoadingSpinner.vue";
 export default {
   name: "files",
   components: {
-    Breadcrumbs,
     Errors,
     Preview,
     ListingView,
@@ -68,9 +65,6 @@ export default {
     },
     showShareInfo() {
       return getters.isShare() && state.isMobile && state.req.path == "/" && !state.shareInfo?.disableShareCard;
-    },
-    showBreadCrumbs() {
-      return getters.showBreadCrumbs();
     },
     currentView() {
       return getters.currentView();

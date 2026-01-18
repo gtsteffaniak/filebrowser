@@ -15,7 +15,7 @@
               active: isLinkActive(link),
               disabled: !isLinkAccessible(link)
             }" @click.prevent="handleLinkClick(link)" :aria-label="link.name">
-            <div class="source-container">
+            <div class="source-container" :class="{ 'has-usage-info': hasUsageInfo(link) }">
               <!-- Show custom icon if user has set one -->
               <i v-if="link.icon" :class="getIconClass(link.icon) + ' link-icon'">{{ link.icon }}</i>
               <!-- Otherwise show animated status indicator -->
@@ -33,12 +33,12 @@
                 warning
               </i>
               <span>{{ link.name }}</span>
-              <i v-if="isLinkAccessible(link)" class="no-select material-symbols-outlined tooltip-info-icon"
+              <i v-if="hasUsageInfo(link)" class="no-select material-symbols-outlined tooltip-info-icon"
                 @mouseenter="showSourceTooltip($event, sourceInfo[link.sourceName] || {})" @mouseleave="hideTooltip">
                 info <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
               </i>
             </div>
-            <div v-if="hasSourceInfo && isLinkAccessible(link)" class="usage-info">
+            <div v-if="hasUsageInfo(link)" class="usage-info">
               <ProgressBar 
                 :key="`progress-${link.sourceName}-${sourceInfo[link.sourceName]?.used || 0}-${sourceInfo[link.sourceName]?.total || 0}`"
                 :val="getProgressBarValue(sourceInfo[link.sourceName] || {})" 
@@ -115,6 +115,13 @@ export default {
   },
   methods: {
     getIconClass,
+    hasUsageInfo(link) {
+      // Check if usage info should be displayed for this link
+      // Returns true when link is accessible and has usage > 0
+      if (link.category !== 'source' || !link.sourceName) return false;
+      if (!this.hasSourceInfo || !this.isLinkAccessible(link)) return false;
+      return (this.sourceInfo[link.sourceName]?.used || 0) > 0;
+    },
     getLinkHref(link) {
       // Add baseURL to target for href display
       if (!link.target) return '#';
@@ -421,6 +428,7 @@ a.sidebar-link-button {
   align-content: center;
   align-items: center;
   gap: 0.5em;
+  min-height: 3em;
 }
 
 .link-icon {
@@ -520,11 +528,17 @@ a.sidebar-link-button {
   color: var(--textPrimary);
   align-content: center;
   align-items: center;
+  min-height: 3em;
+}
+
+.source-container.has-usage-info {
+  min-height: 2.5em;
 }
 
 .realtime-pulse {
   width: 2em;
   height: 2em;
+  margin: 0.25em;
 }
 
 .realtime-pulse.ready>.center {
@@ -537,5 +551,8 @@ a.sidebar-link-button {
 
 .realtime-pulse.warning>.center {
   fill: rgb(255, 157, 0);
+}
+.vue-simple-progress {
+  margin-top: 0 !important;
 }
 </style>

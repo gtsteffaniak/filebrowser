@@ -286,6 +286,8 @@ export const getters = {
     }
     if (pathname.startsWith(`/settings`)) {
       listingView = 'settings'
+    } else if (pathname.startsWith(`/tools/duplicateFinder`)) {
+      listingView = 'duplicateFinder'
     } else if (pathname.startsWith(`/tools`)) {
       listingView = 'tools'
     } else {

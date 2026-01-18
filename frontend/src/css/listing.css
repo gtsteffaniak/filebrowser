@@ -267,15 +267,7 @@ body.rtl #listingView {
   align-items: center;
 }
 
-#listingView .header .name {
-  margin-right: 1.5em;
-}
-
-#listingView .header>p {
-  margin: 0;
-  cursor: pointer;
-}
-
+/* Item-specific styles (not header) */
 #listingView .header .size,
 #listingView.list .listing-item .size,
 #listingView.compact .listing-item .size {
@@ -294,8 +286,6 @@ body.rtl #listingView {
   width: calc(25% + 1em) !important;
 }
 
-
-#listingView .header .name,
 #listingView.list .listing-item .name,
 #listingView.compact .listing-item .name {
   width: 50%;
@@ -310,65 +300,14 @@ body.rtl #listingView {
   padding-left: 0.3em;
 }
 
-#listingView .header i {
-  font-size: 1.5em;
-  vertical-align: middle;
-  margin-left: .2em;
-}
-
-#listingView.compact .header {
-  z-index: 999;
-  padding: .85em;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-  border-bottom-left-radius: 0px;
-  border-bottom-right-radius: 0px;
-}
-
 #listingView.compact .listing-item:first-child {
   border-top: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-#listingView.compact .header {
-  margin: 0;
-  border-bottom: unset;
-  box-shadow: unset;
-}
-
-#listingView.compact .header>div:first-child {
-  width: 0;
-}
-
-#listingView.compact .header a {
-  color: inherit;
-}
-
-#listingView.compact .header>div:first-child {
-  width: 0;
-}
-
-#listingView.compact .header span {
-  vertical-align: middle;
-}
-
-#listingView .header i {
-  opacity: 0;
-  transition: .1s ease all;
-}
-
-#listingView .header p:hover i,
-#listingView .header .active i {
-  opacity: 1;
-}
-
-#listingView .header .active {
-  font-weight: bold;
 }
 
 #listingView.list {
   flex-direction: column;
   width: 100%;
   max-width: 100%;
-  margin: 0;
 }
 
 #listingView.list .listing-item {
@@ -418,31 +357,6 @@ body.rtl #listingView {
   align-items: center;
 }
 
-#listingView .header {
-  display: flex !important;
-  background: white;
-  border: 1px solid rgba(0, 0, 0, .1);
-  z-index: 999;
-  padding: .85em;
-  width: 100%;
-}
-
-#listingView.list .header i,
-#listingView.normal .header i,
-#listingView.gallery .header i,
-#listingView.icons .header i {
-  font-size: 1.5em;
-  vertical-align: middle;
-  margin-left: .2em;
-}
-
-#listingView.compact .header,
-#listingView.list .header {
-  border-top-left-radius: 1em;
-  border-top-right-radius: 1em;
-  border: unset;
-}
-
 #listingView.list .listing-item:first-child {
   margin-top: .5em;
   border-top-left-radius: 1em;
@@ -463,41 +377,8 @@ body.rtl #listingView {
   margin-bottom: .5em;
 }
 
-#listingView>*>.header>div {
-  display: flex;
-  width: 100%;
-}
-
-#listingView.list .header,
-#listingView.normal .header,
-#listingView.gallery .header {
-  margin-bottom: .5em;
-}
-
-#listingView.list .header a {
-  color: inherit;
-}
-
 #listingView .name {
   font-weight: normal;
-}
-
-#listingView .header span {
-  vertical-align: middle;
-}
-
-#listingView.list .header i {
-  opacity: 0;
-  transition: .1s ease all;
-}
-
-#listingView.list .header p:hover i,
-#listingView.list .header .active i {
-  opacity: 1;
-}
-
-#listingView.list .header .active {
-  font-weight: bold;
 }
 
 .half-selected {

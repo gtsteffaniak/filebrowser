@@ -1,9 +1,6 @@
 <template>
-  <transition name="breadcrumbs-slide">
-    <div id="breadcrumbs"
-      v-show="!isHidden"
-      :class="{ 'add-padding': addPadding }">
-    <ul v-if="items.length > 0">
+  <div v-if="items.length > 0" id="breadcrumbs">
+    <ul>
       <li>
         <router-link :to="base" :aria-label="$t('general.home')" :title="$t('general.home')"
           :class="{ 'droppable-breadcrumb': isDroppable, 'drag-over': dragOverItem?.type === 'home' }"
@@ -32,8 +29,6 @@
       </li>
     </ul>
   </div>
-  </transition>
-  <div class="breadcrumbs-placeholder" :class="{ 'empty': items.length === 0 }"></div>
 </template>
 
 <script>
@@ -48,33 +43,19 @@ export default {
     return {
       base: "/files/",
       dragOverItem: null, // Track which breadcrumb is being dragged over
-      isHidden: false,
-      lastScrollTop: 0,
-      scrollElement: null,
-      scrollFrame: null,
     };
   },
   props: ["noLink"],
   mounted() {
     this.updatePaths();
     window.addEventListener('dragend', this.clearDragState);
-    this.$nextTick(() => {
-      this.attachScrollListener();
-    });
   },
   beforeUnmount() {
     window.removeEventListener('dragend', this.clearDragState);
-    this.detachScrollListener();
   },
   watch: {
     $route() {
       this.updatePaths();
-      this.isHidden = false;
-      this.lastScrollTop = 0;
-      this.$nextTick(() => {
-        this.detachScrollListener();
-        this.attachScrollListener();
-      });
     },
     req() {
       this.updatePaths();
@@ -86,9 +67,6 @@ export default {
     },
     hasUpdate() {
       return state.req.hasUpdate;
-    },
-    addPadding() {
-      return getters.isStickySidebar() || getters.isShare();
     },
     isDroppable() {
       return getters.permissions()?.modify
@@ -160,65 +138,6 @@ export default {
       } else {
         this.base = `/files/${state.req.source}/`;
       }
-    },
-
-    attachScrollListener() {
-      // Try to find the scroll wrapper (used by Scrollbar component)
-      const scrollWrapper = document.querySelector('.scroll-wrapper');
-      if (scrollWrapper) {
-        scrollWrapper.addEventListener('scroll', this.handleScroll, { passive: true });
-        this.scrollElement = scrollWrapper;
-      }
-    },
-
-    detachScrollListener() {
-      if (this.scrollElement) {
-        this.scrollElement.removeEventListener('scroll', this.handleScroll);
-        this.scrollElement = null;
-      }
-      // Cancel any pending animation frame
-      if (this.scrollFrame) {
-        cancelAnimationFrame(this.scrollFrame);
-        this.scrollFrame = null;
-      }
-    },
-
-    handleScroll(event) {
-      // Use requestAnimationFrame to throttle updates (like Scrollbar component)
-      if (this.scrollFrame) return;
-      
-      this.scrollFrame = requestAnimationFrame(() => {
-        const scrollTop = event.target.scrollTop;
-        
-        // Always show when at the top
-        if (scrollTop <= 10) {
-          this.isHidden = false;
-          this.lastScrollTop = scrollTop;
-          this.scrollFrame = null;
-          return;
-        }
-
-        // Calculate scroll difference
-        const scrollDiff = scrollTop - this.lastScrollTop;
-
-        // Only trigger if scrolled enough (at least 30px)
-        if (Math.abs(scrollDiff) < 30) {
-          this.scrollFrame = null;
-          return;
-        }
-
-        // Hide when scrolling down, show when scrolling up
-        if (scrollDiff > 0) {
-          // Scrolling down
-          this.isHidden = true;
-        } else {
-          // Scrolling up
-          this.isHidden = false;
-        }
-
-        this.lastScrollTop = scrollTop;
-        this.scrollFrame = null;
-      });
     },
 
     dragEnter(event, link) {
@@ -411,40 +330,10 @@ export default {
 
 <style scoped>
 #breadcrumbs {
-  padding-top: 0.35em;
-  padding-left: 0.35em;
-  padding-right: 0.35em;
   overflow-y: hidden;
-  position: fixed;
-  z-index: 1000;
-  right: 0;
-  left: 0;
-  transition: 0.3s ease;
-}
-
-.breadcrumbs-slide-enter-active,
-.breadcrumbs-slide-leave-active {
-  transition: transform 0.3s ease, opacity 0.3s ease;
-}
-
-.breadcrumbs-slide-enter-from,
-.breadcrumbs-slide-leave-to {
-  transform: translateY(-100%);
-  opacity: 0;
-}
-
-.breadcrumbs-slide-enter-to,
-.breadcrumbs-slide-leave-from {
-  transform: translateY(0);
-  opacity: 1;
-}
-
-/* Backdrop-filter support */
-@supports (backdrop-filter: none) {
-  #breadcrumbs {
-    backdrop-filter: blur(12px) invert(0.01);
-    background-color: color-mix(in srgb, var(--background) 75%, transparent);
-  }
+  overflow-x: hidden;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 #breadcrumbs * {
@@ -455,7 +344,7 @@ export default {
   display: flex;
   margin: 0;
   padding: 0;
-  margin-bottom: 0.35em;
+  margin-bottom: 0.5em;
 }
 
 #breadcrumbs ul li {
@@ -559,20 +448,4 @@ export default {
 .drag-over {
   animation: breadcrumbPulse 0.5s ease-in-out infinite;
 }
-
-.breadcrumbs-placeholder {
-  margin-top: 0.35em;
-  visibility: hidden;
-  height: 3em;
-}
-
-.breadcrumbs-placeholder.empty {
-  visibility: hidden;
-  height: 0.3em;
-}
-
-#main.moveWithSidebar #breadcrumbs {
-  padding-left: 20.5em;
-}
-
 </style>

@@ -61,17 +61,6 @@
             </div>
           </div>
 
-          <div v-if="selectedIndices.size > 0" class="bulk-actions">
-            <button @click="showDeleteConfirm" class="button delete-button" :disabled="deleting">
-              <i v-if="deleting" class="material-icons spin">autorenew</i>
-              <i v-else class="material-icons">delete</i>
-              <span>{{ $t('general.delete') }} {{ selectedIndices.size }}</span>
-            </button>
-            <button @click="clearSelection" class="button">
-              <span>{{ $t('general.clear', { suffix: '' }) }} {{ $t('general.select', { suffix: '' }) }}</span>
-            </button>
-          </div>
-
                 <div class="duplicate-groups">
                   <div v-for="(group, index) in duplicateGroups" :key="index" class="duplicate-group">
                     <div class="group-header">
@@ -233,6 +222,9 @@ export default {
     eventBus.on('pathSelected', this.handlePathSelected);
     // Listen for items deleted from delete prompt
     eventBus.on('itemsDeleted', this.handleItemsDeleted);
+    // Listen for delete and clear requests from shelf
+    eventBus.on('duplicateFinderDeleteRequested', this.showDeleteConfirm);
+    eventBus.on('duplicateFinderClearRequested', this.clearSelection);
   },
   beforeUnmount() {
     // Clear local selection when leaving
@@ -240,6 +232,12 @@ export default {
     
     eventBus.off('pathSelected', this.handlePathSelected);
     eventBus.off('itemsDeleted', this.handleItemsDeleted);
+    eventBus.off('duplicateFinderDeleteRequested', this.showDeleteConfirm);
+    eventBus.off('duplicateFinderClearRequested', this.clearSelection);
+    
+    // Notify Files.vue that selection is cleared
+    eventBus.emit('duplicateFinderSelectionChanged', 0);
+    eventBus.emit('duplicateFinderDeletingChanged', false);
   },
   methods: {
     openPathPicker() {
@@ -476,6 +474,8 @@ export default {
       } else {
         this.selectedIndices.add(index);
       }
+      // Notify Files.vue of selection change
+      eventBus.emit('duplicateFinderSelectionChanged', this.selectedIndices.size);
     },
     handleSelectRange({ startIndex, endIndex }) {
       // Select all indices between start and end
@@ -484,9 +484,13 @@ export default {
       for (let i = start; i <= end; i++) {
         this.selectedIndices.add(i);
       }
+      // Notify Files.vue of selection change
+      eventBus.emit('duplicateFinderSelectionChanged', this.selectedIndices.size);
     },
     clearSelection() {
       this.selectedIndices.clear();
+      // Notify Files.vue of selection change
+      eventBus.emit('duplicateFinderSelectionChanged', 0);
     },
     isDeleted(file) {
       return this.deletedFiles.has(this.getFileKey(file));
@@ -542,6 +546,9 @@ export default {
       }
 
       this.deleting = true;
+      // Notify Files.vue that deletion is in progress
+      eventBus.emit('duplicateFinderDeletingChanged', true);
+      
       const itemsToDelete = [];
       
       // Map selected indices to files
@@ -584,10 +591,12 @@ export default {
 
         // Clear selection after deletion attempt
         this.selectedIndices.clear();
+        eventBus.emit('duplicateFinderSelectionChanged', 0);
       } catch (err) {
         this.error = err.message || 'Failed to delete files';
       } finally {
         this.deleting = false;
+        eventBus.emit('duplicateFinderDeletingChanged', false);
       }
     },
   },
@@ -602,7 +611,6 @@ export default {
 }
 
 .duplicate-finder-results {
-  max-width: 1200px;
   margin-bottom: 2em;
 }
 
@@ -640,31 +648,6 @@ export default {
   padding: 1rem;
   background: var(--surfaceSecondary);
   border-radius: 4px;
-}
-
-.bulk-actions {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-  align-items: center;
-}
-
-.bulk-actions .button {
-  margin-top: 0;
-}
-
-.delete-button {
-  background: #f5576c;
-  color: white;
-}
-
-.delete-button:hover:not(:disabled) {
-  background: #e0455a;
-}
-
-.delete-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
 }
 
 .duplicate-groups {
