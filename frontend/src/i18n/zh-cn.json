@@ -448,7 +448,13 @@
     "customizeSidebarLinksButton": "自定义链接",
     "shareInfo": "共享 QR 码和信息",
     "shareInfoDescription": "此链接会在弹出式窗口中显示共享信息，包括标题、描述、横幅和 QR 代码。",
-    "downloadDescription": "通过该链接可以下载整个共享内容的压缩文件。"
+    "downloadDescription": "通过该链接可以下载整个共享内容的压缩文件。",
+    "disableLoginOption": "隐藏登录选项",
+    "disableLoginOptionDescription": "隐藏匿名用户侧边栏中的登录按钮。启用后，匿名用户将看不到登录选项。",
+    "browseFiles": "浏览文件",
+    "selectBannerImage": "选择横幅图片",
+    "selectFaviconImage": "选择图标图像",
+    "selectImage": "选择图像"
   },
   "api": {
     "title": "应用程序接口密钥",

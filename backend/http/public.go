@@ -12,6 +12,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/preview"
 	"github.com/gtsteffaniak/go-logger/logger"
 
@@ -215,8 +216,11 @@ func publicPreviewHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	if d.share.ShareType == "upload" {
 		return http.StatusNotImplemented, fmt.Errorf("preview is disabled for upload shares")
 	}
+	d.fileInfo.Source = d.share.Source
+	d.fileInfo.Path = utils.JoinPathAsUnix(d.share.Path, r.URL.Query().Get("path"))
 	status, err := previewHelperFunc(w, r, d)
 	if err != nil {
+		logger.Errorf("public preview handler: error getting preview with error %v", err)
 		// Obfuscate errors for shares to prevent information leakage
 		return http.StatusNotFound, fmt.Errorf("preview not available for this item")
 	}
@@ -293,7 +297,7 @@ func publicDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		Source:         source,
 		Expand:         false,
 		ShowHidden:     d.share.ShowHidden,
-	}, nil, d.user)
+	}, store.Access, d.user)
 	if err != nil {
 		return http.StatusNotFound, fmt.Errorf("resource not available")
 	}
@@ -388,4 +392,88 @@ func publicPatchHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		return http.StatusInternalServerError, fmt.Errorf("an error occurred while processing the request")
 	}
 	return status, err
+}
+
+// getShareImage serves banner or favicon files for shares
+// @Summary Get share image (banner or favicon)
+// @Description Serves the banner or favicon file for a share
+// @Tags Public Shares
+// @Produce octet-stream
+// @Param hash query string true "Share hash"
+// @Param banner query bool false "Request banner file"
+// @Param favicon query bool false "Request favicon file"
+// @Success 200 {file} binary "Image file content"
+// @Failure 400 {object} map[string]string "Invalid request"
+// @Failure 403 {object} map[string]string "Permission denied"
+// @Failure 404 {object} map[string]string "Asset not found"
+// @Router /public/api/share/image [get]
+func getShareImage(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	// Determine which asset is being requested
+	isBanner := r.URL.Query().Get("banner") == "true"
+	isFavicon := r.URL.Query().Get("favicon") == "true"
+
+	if !isBanner && !isFavicon {
+		return http.StatusBadRequest, fmt.Errorf("either banner or favicon parameter must be true")
+	}
+
+	shareCreatedByUser, err := store.Users.Get(d.share.UserID)
+	if err != nil {
+		return http.StatusNotFound, fmt.Errorf("user for share no longer exists")
+	}
+
+	sourceName, assetPath, err := getShareImagePartsHelper(d.share, isBanner)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid asset configuration: %v", err)
+	}
+
+	// Get file info
+	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
+		Path:           assetPath,
+		Source:         sourceName,
+		Expand:         false,
+		Content:        false,
+		Metadata:       false,
+		ShowHidden:     false,
+		FollowSymlinks: true,
+	}, store.Access, shareCreatedByUser)
+
+	if err != nil {
+		logger.Errorf("error accessing share asset: source=%v path=%v error=%v", sourceName, assetPath, err)
+		return http.StatusNotFound, fmt.Errorf("asset file not found or not accessible")
+	}
+
+	// Ensure it's an image file
+	if !strings.HasPrefix(fileInfo.Type, "image/") {
+		return http.StatusBadRequest, fmt.Errorf("invalid file type, must be image")
+	}
+
+	// Serve the file
+	http.ServeFile(w, r, fileInfo.RealPath)
+	return 0, nil
+}
+
+func getShareImagePartsHelper(share *share.Link, isBanner bool) (string, string, error) {
+
+	// Get the asset query string from share
+	var assetQueryString string
+	if isBanner {
+		assetQueryString = share.Banner
+	} else {
+		assetQueryString = share.Favicon
+	}
+
+	if assetQueryString == "" {
+		return "", "", fmt.Errorf("asset not configured for this share")
+	}
+
+	// Parse the query string to extract source and path
+	assetParams, err := url.ParseQuery(assetQueryString)
+	if err != nil {
+		return "", "", fmt.Errorf("invalid asset configuration: %v", err)
+	}
+
+	sourceName := assetParams.Get("source")
+	assetPath := assetParams.Get("path")
+
+	return sourceName, assetPath, nil
 }

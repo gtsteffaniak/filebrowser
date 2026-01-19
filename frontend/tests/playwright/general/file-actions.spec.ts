@@ -71,9 +71,9 @@ test("2x copy from listing to new folder", async({ page, checkForErrors, context
   await expect(page.locator('.selected-count-header')).toHaveText('1');
   await page.locator('button[aria-label="Copy file"]').click();
   await expect(page.locator('div[aria-label="filelist-path"]')).toHaveText('Path: /');
-  await expect(page.locator('li[aria-selected="true"]')).toHaveCount(0);
-  await page.locator('li[aria-label="myfolder"]').click();
-  await expect(page.locator('li[aria-selected="true"]')).toHaveCount(1);
+  await expect(page.locator('div[aria-label="copy-prompt"] .listing-item[aria-selected="true"]')).toHaveCount(0);
+  await page.locator('div[aria-label="copy-prompt"] .listing-item[aria-label="myfolder"]').click();
+  await expect(page.locator('div[aria-label="copy-prompt"] .listing-item[aria-selected="true"]')).toHaveCount(1);
   await page.locator('button[aria-label="Copy"]').click();
   await checkForNotification(page, "Files copied successfully!");
   await page.goto("/files/playwright%20%2B%20files/myfolder/");
@@ -82,8 +82,8 @@ test("2x copy from listing to new folder", async({ page, checkForErrors, context
   await page.locator('a[aria-label="copyme.txt"]').waitFor({ state: 'visible' });
 
   // create new directory
-  // Ensure #listingView is visible
-  await page.locator('#listingView').click({ button: "right" });
+  // Ensure .listing-items is visible
+  await page.locator('.listing-items').click({ button: "right" });
   await page.locator('button[aria-label="New folder"]').waitFor({ state: 'visible' });
   await page.locator('button[aria-label="New folder"]').click();
   await page.locator('input[aria-label="New Folder Name"]').waitFor({ state: 'visible' });
@@ -101,7 +101,7 @@ test("2x copy from listing to new folder", async({ page, checkForErrors, context
   await expect(page.locator('.selected-count-header')).toHaveText('1');
   await page.locator('button[aria-label="Copy file"]').click();
   await expect(page.locator('div[aria-label="filelist-path"]')).toHaveText('Path: /myfolder/');
-  await page.locator('li[aria-label="newfolder"]').click();
+  await page.locator('div[aria-label="copy-prompt"] .listing-item[aria-label="newfolder"]').click();
   await page.locator('button[aria-label="Copy"]').click();
   await checkForNotification(page, "Files copied successfully!");
   await page.goto("/files/playwright%20%2B%20files/myfolder/newfolder/");
@@ -126,7 +126,7 @@ test("copy 'text-files' to 'folder#hash' verify folder size is updated", async({
   await expect(page.locator('.selected-count-header')).toHaveText('1');
   await page.locator('button[aria-label="Copy file"]').click();
   await expect(page.locator('div[aria-label="filelist-path"]')).toHaveText('Path: /');
-  await page.locator('li[aria-label="folder#hash"]').click();
+  await page.locator('div[aria-label="copy-prompt"] .listing-item[aria-label="folder#hash"]').click();
   await page.locator('button[aria-label="Copy"]').click();
   await checkForNotification(page, "Files copied successfully!");
   await page.locator('.notification-buttons .button').waitFor({ state: 'visible' });

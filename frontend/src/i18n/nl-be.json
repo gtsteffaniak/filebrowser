@@ -448,7 +448,13 @@
     "customizeSidebarLinksButton": "Koppelingen aanpassen",
     "shareInfo": "QR Code en info delen",
     "shareInfoDescription": "Deze link toont de informatie van de share, inclusief titel, beschrijving, banner en QR code in een popup.",
-    "downloadDescription": "Met deze link kun je de volledige inhoud van de share downloaden als een gecomprimeerd bestand."
+    "downloadDescription": "Met deze link kun je de volledige inhoud van de share downloaden als een gecomprimeerd bestand.",
+    "disableLoginOption": "Verberg aanmeldingsoptie",
+    "disableLoginOptionDescription": "Verberg de aanmeldknop in de zijbalk voor anonieme gebruikers. Als deze optie is ingeschakeld, zien anonieme gebruikers de optie om in te loggen niet.",
+    "browseFiles": "Bladeren door bestanden",
+    "selectBannerImage": "Selecteer bannerafbeelding",
+    "selectFaviconImage": "Selecteer favicon afbeelding",
+    "selectImage": "Afbeelding selecteren"
   },
   "api": {
     "title": "API-sleutels",

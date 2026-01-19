@@ -63,6 +63,9 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	if path == "" {
 		return http.StatusBadRequest, fmt.Errorf("invalid request path")
 	}
+	if source == "" {
+		return http.StatusBadRequest, fmt.Errorf("source is required")
+	}
 	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
 		Path:     path,
 		Source:   source,
@@ -70,10 +73,16 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		Expand:   true,
 	}, store.Access, d.user)
 	if err != nil {
+		logger.Errorf("error getting file info: %v", err)
 		return errToStatus(err), err
 	}
 	d.fileInfo = *fileInfo
-	return previewHelperFunc(w, r, d)
+	status, err := previewHelperFunc(w, r, d)
+	if err != nil {
+		logger.Errorf("error getting preview: %v", err)
+		return errToStatus(err), err
+	}
+	return status, nil
 }
 
 func rawFileHandler(w http.ResponseWriter, r *http.Request, file iteminfo.ExtendedFileInfo) (int, error) {
@@ -81,8 +90,7 @@ func rawFileHandler(w http.ResponseWriter, r *http.Request, file iteminfo.Extend
 	if idx == nil {
 		return http.StatusNotFound, fmt.Errorf("source not found: %s", file.Source)
 	}
-	realPath, _, _ := idx.GetRealPath(file.Path)
-	fd, err := os.Open(realPath)
+	fd, err := os.Open(file.RealPath)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}

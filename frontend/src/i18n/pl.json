@@ -448,7 +448,13 @@
     "customizeSidebarLinksButton": "Dostosuj łącza",
     "shareInfo": "Udostępnij kod QR i informacje",
     "shareInfoDescription": "To łącze wyświetla informacje o udostępnieniu, w tym tytuł, opis, baner i kod QR w wyskakującym okienku.",
-    "downloadDescription": "Łącze to umożliwia pobranie całej zawartości folderu udostępnionego w postaci skompresowanego pliku."
+    "downloadDescription": "Łącze to umożliwia pobranie całej zawartości folderu udostępnionego w postaci skompresowanego pliku.",
+    "disableLoginOption": "Ukryj opcję logowania",
+    "disableLoginOptionDescription": "Ukryj przycisk logowania na pasku bocznym dla anonimowych użytkowników. Po włączeniu tej opcji anonimowi użytkownicy nie będą widzieć opcji logowania.",
+    "browseFiles": "Przeglądanie plików",
+    "selectBannerImage": "Wybierz obraz banera",
+    "selectFaviconImage": "Wybierz obraz favicon",
+    "selectImage": "Wybierz obraz"
   },
   "api": {
     "title": "Klucze API",

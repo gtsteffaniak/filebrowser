@@ -30,6 +30,21 @@
   <meta name="msapplication-TileColor" content="{{ .htmlVars.color }}">
 
   <meta name="description" content="{{ .htmlVars.description }}">
+
+  <!-- OpenGraph metadata -->
+  <meta property="og:title" content="{{ .htmlVars.title }}">
+  <meta property="og:description" content="{{ .htmlVars.description }}">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="{{ .htmlVars.url }}">
+  <meta property="og:image" content="{{ .htmlVars.image }}">
+  <meta property="og:image:alt" content="{{ .htmlVars.title }}">
+
+  <!-- Twitter Card metadata -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{{ .htmlVars.title }}">
+  <meta name="twitter:description" content="{{ .htmlVars.description }}">
+  <meta name="twitter:image" content="{{ .htmlVars.image }}">
+
   <link rel="canonical" href="https://github.com/gtsteffaniak/filebrowser">
   <link rel="canonical" href="https://github.com/quantumx-apps">
   <link rel="canonical" href="https://filebrowserquantum.com">
@@ -39,22 +54,30 @@
     window.globalVars = {{ .globalVars }};
     var dynamicManifest = {
       "name": window.globalVars.name || 'FileBrowser Quantum',
+      "short_name": window.globalVars.name || 'FileBrowser',
       "icons": [
         {
-          "src": window.location.origin + "{{ .htmlVars.staticURL }}/img/icons/android-chrome-256x256.png",
+          "src": window.location.origin + "{{ .htmlVars.staticURL }}/img/icons/android-chrome-512x512.png",
           "sizes": "512x512",
+          "type": "image/png",
+          "purpose": "any maskable"
+        },
+        {
+          "src": window.location.origin + "{{ .htmlVars.staticURL }}/img/icons/android-chrome-256x256.png",
+          "sizes": "256x256",
           "type": "image/png"
         },
         {
           "src": window.location.origin + "{{ .htmlVars.staticURL }}/img/icons/android-chrome-192x192.png",
           "sizes": "192x192",
           "type": "image/png"
-        },
+        }
       ],
       "start_url": window.location.origin + "{{ .htmlVars.baseURL }}",
       "display": "standalone",
       "background_color": "#ffffff",
-      "theme_color": "{{ .htmlVars.color }}"
+      "theme_color": "{{ .htmlVars.color }}",
+      "description": "{{ .htmlVars.description }}"
     }
 
     const stringManifest = JSON.stringify(dynamicManifest);

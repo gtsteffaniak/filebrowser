@@ -73,6 +73,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 	staticURL := config.Server.BaseURL + "public/static"
 	description := config.Frontend.Description
 	title := config.Frontend.Name
+	banner := staticURL + "/img/icons/android-chrome-512x512.png"
 	disableSidebar := false
 
 	// Use custom favicon if configured and validated, otherwise fall back to default
@@ -99,14 +100,24 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 				userSelectedTheme = theme.CssRaw
 			}
 		}
-		if d.share.ShareTheme != "" {
-			theme, ok := config.Frontend.Styling.CustomThemeOptions[d.share.ShareTheme]
-			if ok {
-				userSelectedTheme = theme.CssRaw
-			}
-		}
 		if d.share.DisableSidebar {
 			disableSidebar = true
+		}
+		if strings.HasPrefix(d.share.Banner, "http") {
+			banner = d.share.Banner
+		} else {
+			_, _, err := getShareImagePartsHelper(d.share, true)
+			if err == nil {
+				banner = fmt.Sprintf("%s%spublic/api/share/image?banner=true&hash=%s", config.Server.ExternalUrl, config.Server.BaseURL, d.share.Hash)
+			}
+		}
+		if strings.HasPrefix(d.share.Favicon, "http") {
+			favicon = d.share.Favicon
+		} else {
+			_, _, err := getShareImagePartsHelper(d.share, false)
+			if err == nil {
+				favicon = fmt.Sprintf("%s%spublic/api/share/image?favicon=true&hash=%s", config.Server.ExternalUrl, config.Server.BaseURL, d.share.Hash)
+			}
 		}
 	}
 	// Set login icon URL
@@ -118,6 +129,28 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 	cssContent, err := fs.ReadFile(assetFs, cssPath)
 	if err == nil {
 		loadingSpinnersCSS = string(cssContent)
+	}
+
+	// Determine OpenGraph image: use banner if set, otherwise use dedicated OG image or fallback to app icon
+	ogImage := banner
+	if banner == staticURL+"/img/icons/android-chrome-512x512.png" {
+		// No custom banner set - check if dedicated OG image exists, otherwise use 512x512 icon
+		// Note: 512x512 is square; OpenGraph prefers 1200x630 (1.91:1 ratio) for optimal display
+		ogImage = staticURL + "/img/icons/android-chrome-512x512.png"
+	}
+
+	// Construct the full URL for the current request
+	var fullURL string
+	if config.Server.ExternalUrl != "" {
+		// ExternalUrl already includes schema (e.g., http://mydomain.com)
+		fullURL = strings.TrimSuffix(config.Server.ExternalUrl, "/") + r.URL.Path
+	} else {
+		// Build URL from request
+		scheme := "http"
+		if r.TLS != nil || r.Header.Get("X-Forwarded-Proto") == "https" {
+			scheme = "https"
+		}
+		fullURL = fmt.Sprintf("%s://%s%s", scheme, r.Host, r.URL.Path)
 	}
 
 	data["htmlVars"] = map[string]interface{}{
@@ -132,9 +165,12 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"loginIcon":          loginIcon,
 		"color":              defaultThemeColor,
 		"winIcon":            staticURL + "/img/icons/mstile-144x144.png",
-		"appIcon":            staticURL + "/img/icons/android-chrome-256x256.png",
+		"appIcon":            staticURL + "/img/icons/android-chrome-512x512.png",
 		"description":        description,
 		"loadingSpinnersCSS": loadingSpinnersCSS,
+		"banner":             banner,
+		"image":              ogImage,
+		"url":                fullURL,
 	}
 	// variables consumed by frontend as json
 	data["globalVars"] = map[string]interface{}{

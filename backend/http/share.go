@@ -65,7 +65,6 @@ func convertToFrontendShareResponse(r *http.Request, shares []*share.Link) ([]*S
 		s.CommonShare.HasPassword = s.HasPassword()
 		s.DownloadURL = getShareURL(r, s.Hash, true, s.Token)
 		s.ShareURL = getShareURL(r, s.Hash, false, s.Token)
-
 		// Create response with source name (overrides the embedded Link's source field)
 		responses = append(responses, &ShareResponse{
 			Link:       s,
@@ -617,6 +616,16 @@ func shareInfoHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	commonShare := shareLink.CommonShare
 	commonShare.DownloadURL = getShareURL(r, hash, true, shareLink.Token)
 	commonShare.ShareURL = getShareURL(r, hash, false, shareLink.Token)
+	_, _, err = getShareImagePartsHelper(shareLink, true)
+	if err == nil {
+		commonShare.BannerUrl = fmt.Sprintf("%spublic/api/share/image?banner=true&hash=%s", config.Server.BaseURL, hash)
+	}
+	_, _, err = getShareImagePartsHelper(shareLink, false)
+	if err == nil {
+		commonShare.FaviconUrl = fmt.Sprintf("%spublic/api/share/image?favicon=true&hash=%s", config.Server.BaseURL, hash)
+	}
+	commonShare.Source = ""
+	commonShare.Path = ""
 	return renderJSON(w, r, commonShare)
 }
 

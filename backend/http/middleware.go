@@ -96,6 +96,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		if source.Config.Private {
 			return http.StatusForbidden, fmt.Errorf("the target source is private")
 		}
+
 		// Get file information with options
 		getContent := r.URL.Query().Get("content") == "true"
 		getMetadata := r.URL.Query().Get("metadata") == "true"
@@ -112,7 +113,6 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		if err != nil {
 			return http.StatusForbidden, err
 		}
-		// source path is /test/ anb user scope is /user/ link.Path is /user/share/
 		// so trim user scope from link.Path
 		userScopedPath := utils.JoinPathAsUnix("/", strings.TrimPrefix(link.Path, userScope), path)
 		if !strings.HasSuffix(userScopedPath, "/") {

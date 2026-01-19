@@ -448,7 +448,13 @@
     "customizeSidebarLinksButton": "Personalizar accesos directos",
     "shareInfo": "Código QR e información del archivo",
     "shareInfoDescription": "Al abrir este acceso directo, mostrará la información del recurso compartido junto con un código QR",
-    "downloadDescription": "Este acceso directo permite descargar todo el recurso compartido como archivo comprimido."
+    "downloadDescription": "Este acceso directo permite descargar todo el recurso compartido como archivo comprimido.",
+    "disableLoginOption": "Ocultar la opción de inicio de sesión",
+    "disableLoginOptionDescription": "Ocultar el botón de inicio de sesión en la barra lateral para usuarios anónimos. Cuando esté activado, los usuarios anónimos no verán la opción de iniciar sesión.",
+    "browseFiles": "Examinar archivos",
+    "selectBannerImage": "Seleccionar imagen de banner",
+    "selectFaviconImage": "Seleccionar imagen de favicon",
+    "selectImage": "Seleccionar imagen"
   },
   "api": {
     "title": "Gestión de claves API",

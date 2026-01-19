@@ -448,7 +448,13 @@
     "customizeSidebarLinksButton": "Prispôsobenie odkazov",
     "shareInfo": "Zdieľanie kódu QR a informácií",
     "shareInfoDescription": "Toto prepojenie zobrazí informácie o zdieľaní vrátane názvu, opisu, banneru a QR kódu vo vyskakovacom okne.",
-    "downloadDescription": "Toto prepojenie umožňuje stiahnuť celý obsah zdieľania ako komprimovaný súbor."
+    "downloadDescription": "Toto prepojenie umožňuje stiahnuť celý obsah zdieľania ako komprimovaný súbor.",
+    "disableLoginOption": "Skryť možnosť prihlásenia",
+    "disableLoginOptionDescription": "Skryť tlačidlo na prihlásenie v bočnom paneli pre anonymných používateľov. Ak je táto možnosť zapnutá, anonymní používatelia neuvidia možnosť prihlásiť sa.",
+    "browseFiles": "Prehľadávanie súborov",
+    "selectBannerImage": "Vyberte obrázok bannera",
+    "selectFaviconImage": "Vyberte obrázok favicon",
+    "selectImage": "Vybrať obrázok"
   },
   "api": {
     "title": "Kľúče API",

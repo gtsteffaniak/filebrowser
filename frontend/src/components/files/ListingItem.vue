@@ -71,12 +71,29 @@
   </a>
   <div
     v-else
-    class="listing-item no-select"
+    class="listing-item no-select clickable"
+    :class="{
+      activebutton: isSelected,
+      hiddenFile: isHiddenNotSelected && this && !this.isDraggedOver,
+      'half-selected': isDraggedOver,
+      'drag-hover': isDraggedOver,
+      'out-of-view': !isInView && !isSelected,
+    }"
+    :id="getID"
+    role="button"
+    tabindex="0"
     :data-dir="isDir"
     :data-type="type"
     :data-name="name"
     :data-index="index"
     :aria-label="name"
+    :aria-selected="isSelected"
+    @contextmenu="onRightClick"
+    @click="click"
+    @touchstart="addSelected"
+    @touchmove="handleTouchMove"
+    @touchend="cancelContext"
+    @mouseup="cancelContext"
   >
     <div :class="{ 'gallery-div': galleryView }">
       <Icon
@@ -164,6 +181,10 @@ export default {
       type: Boolean,
       default: true,
     },
+    forceFilesApi: {
+      type: Boolean,
+      default: false,
+    },
   },
   computed: {
     displayName() {
@@ -250,6 +271,12 @@ export default {
         previewPath = url.joinPath(state.req.path, this.name);
       } else {
         return "";
+      }
+
+      // If forceFilesApi is true, always use authenticated files API
+      if (this.forceFilesApi) {
+        // @ts-ignore
+        return filesApi.getPreviewURL(this.source || state.req.source, previewPath, this.modified);
       }
 
       if (getters.isShare()) {
@@ -712,6 +739,11 @@ export default {
       }
     },
     open() {
+      // Don't navigate if updateGlobalState is false (component is being used as a picker/selector)
+      if (!this.updateGlobalState) {
+        return;
+      }
+      
       // Check if state.req.items exists and has the item at this index
       // This prevents errors when ListingItem is used outside of the main file listing (e.g., duplicate finder)
       let previousHistoryItem = null;

@@ -1,5 +1,5 @@
 <template>
-  <div v-if="shareInfo.shareType != 'upload'" class="no-select">
+  <div v-if="shareInfo.shareType != 'upload'" class="no-select" :style="containerStyles">
     <div v-if="loading">
       <h2 class="message delayed">
         <LoadingSpinner size="medium" />
@@ -8,9 +8,8 @@
     </div>
     <div v-else>
       <div
-        id="listingView"
         ref="listingView"
-        class="font-size-large"
+        class="listing-items font-size-large"
         :class="{ 'add-padding': isStickySidebar, [listingViewMode]: true }"
         v-if="numDirs + numFiles == 0"
       >
@@ -36,7 +35,6 @@
       </div>
       <div
         v-else
-        id="listingView"
         ref="listingView"
         :class="{
           'add-padding': isStickySidebar,
@@ -45,16 +43,14 @@
           'rectangle-selecting': isRectangleSelecting
         }"
         :style="itemStyles"
-        class="file-icons"
+        class="listing-items file-icons"
       >
         <!-- Rectangle selection overlay -->
         <div class="selection-rectangle"
           :style="rectangleStyle"
         ></div>
         <div v-if="numDirs > 0">
-          <div class="header-items">
-            <h2>{{ $t("general.folders") }}</h2>
-          </div>
+          <h2 :class="{'dark-mode': isDarkMode}">{{ $t("general.folders") }}</h2>
         </div>
         <div
           v-if="numDirs > 0"
@@ -79,9 +75,7 @@
           />
         </div>
         <div v-if="numFiles > 0">
-          <div class="header-items">
-            <h2>{{ $t("general.files") }}</h2>
-          </div>
+          <h2 :class="{'dark-mode': isDarkMode}">{{ $t("general.files") }}</h2>
         </div>
         <div v-if="numFiles > 0" class="file-items" :class="{ lastGroup: numFiles > 0 }" aria-label="File Items">
           <item
@@ -338,17 +332,18 @@ export default {
         height: height + 'px',
       };
     },
+    containerStyles() {
+      // Dynamic padding-top: applied to the entire container (loading spinner + listing items)
+      const isRootPath = state.req.path === '/' || !state.req.path;
+      if (isRootPath) {
+        return { 'padding-top': '4.25em' }; // Root - no breadcrumbs showing
+      } else {
+        return { 'padding-top': '7.25em' }; // Non-root - breadcrumbs + listing header
+      }
+    },
     itemStyles() {
       const viewMode = getters.viewMode();
       const styles = {};
-
-      // Dynamic padding-top: 1em on root (no breadcrumbs), 4em otherwise (with breadcrumbs + header)
-      const isRootPath = state.req.path === '/' || !state.req.path;
-      if (isRootPath) {
-        styles['padding-top'] = '4.25em'; // Root - no breadcrumbs showing
-      } else {
-        styles['padding-top'] = '7.25em'; // Non-root - breadcrumbs + listing header
-      }
 
       if (viewMode === 'icons') {
         const baseSize = 60 + (state.user.gallerySize * 15); // 60px to 135px - increased scaling
@@ -1230,18 +1225,7 @@ export default {
 };
 </script>
 
-<style>
-.dark-mode-item-header {
-  border-color: var(--divider) !important;
-  background: var(--surfacePrimary) !important;
-  user-select: none;
-}
-
-.header-items {
-  width: 100% !important;
-  max-width: 100% !important;
-  justify-content: center;
-}
+<style scoped>
 
 .add-padding {
   padding-left: 0.5em;
@@ -1250,12 +1234,12 @@ export default {
   font-size: 2em !important;
 }
 
-#listingView.dropping {
+.listing-items.dropping {
   transform: scale(0.97);
   box-shadow: var(--primaryColor) 0 0 1em;
 }
 
-#listingView {
+.listing-items {
   min-height: 90vh !important;
   position: relative;
 }

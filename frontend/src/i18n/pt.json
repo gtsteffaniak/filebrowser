@@ -448,7 +448,13 @@
     "customizeSidebarLinksButton": "Personalizar ligações",
     "shareInfo": "Partilhar código QR e informações",
     "shareInfoDescription": "Esta ligação apresenta as informações da partilha, incluindo o título, a descrição, o banner e o código QR num pop-up.",
-    "downloadDescription": "Esta ligação permite descarregar todo o conteúdo da partilha como um ficheiro comprimido."
+    "downloadDescription": "Esta ligação permite descarregar todo o conteúdo da partilha como um ficheiro comprimido.",
+    "disableLoginOption": "Ocultar a opção de início de sessão",
+    "disableLoginOptionDescription": "Ocultar o botão de início de sessão na barra lateral para utilizadores anónimos. Quando ativado, os utilizadores anónimos não verão a opção para iniciar sessão.",
+    "browseFiles": "Procurar ficheiros",
+    "selectBannerImage": "Selecionar imagem de banner",
+    "selectFaviconImage": "Selecionar a imagem do favicon",
+    "selectImage": "Selecionar imagem"
   },
   "api": {
     "title": "Chaves da API",

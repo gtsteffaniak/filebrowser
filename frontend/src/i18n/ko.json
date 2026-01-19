@@ -448,7 +448,13 @@
     "customizeSidebarLinksButton": "링크 사용자 지정",
     "shareInfo": "QR코드 및 정보 공유",
     "shareInfoDescription": "이 링크는 제목, 설명, 배너 및 QR 코드를 포함한 공유의 정보를 팝업으로 표시합니다.",
-    "downloadDescription": "이 링크를 통해 전체 공유 콘텐츠를 압축 파일로 다운로드할 수 있습니다."
+    "downloadDescription": "이 링크를 통해 전체 공유 콘텐츠를 압축 파일로 다운로드할 수 있습니다.",
+    "disableLoginOption": "로그인 숨기기 옵션",
+    "disableLoginOptionDescription": "익명 사용자를 위해 사이드바에서 로그인 버튼을 숨깁니다. 이 옵션을 활성화하면 익명 사용자에게는 로그인 옵션이 표시되지 않습니다.",
+    "browseFiles": "파일 찾아보기",
+    "selectBannerImage": "배너 이미지 선택",
+    "selectFaviconImage": "파비콘 이미지 선택",
+    "selectImage": "이미지 선택"
   },
   "api": {
     "title": "API 키",

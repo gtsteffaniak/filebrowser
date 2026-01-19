@@ -448,7 +448,13 @@
     "customizeSidebarLinksButton": "התאמה אישית של קישורים",
     "shareInfo": "שתף קוד QR ומידע",
     "shareInfoDescription": "קישור זה מציג את פרטי השיתוף, כולל כותרת, תיאור, באנר וקוד QR בחלון קופץ.",
-    "downloadDescription": "קישור זה מאפשר להוריד את כל תוכן השיתוף כקובץ דחוס."
+    "downloadDescription": "קישור זה מאפשר להוריד את כל תוכן השיתוף כקובץ דחוס.",
+    "disableLoginOption": "הסתר אפשרות כניסה",
+    "disableLoginOptionDescription": "הסתר את כפתור הכניסה בסרגל הצדדי עבור משתמשים אנונימיים. כאשר אפשרות זו מופעלת, משתמשים אנונימיים לא יראו את האפשרות להתחבר.",
+    "browseFiles": "עיון בקבצים",
+    "selectBannerImage": "בחר תמונת באנר",
+    "selectFaviconImage": "בחר תמונת סמל מועדף",
+    "selectImage": "בחר תמונה"
   },
   "api": {
     "title": "מפתחות API",
