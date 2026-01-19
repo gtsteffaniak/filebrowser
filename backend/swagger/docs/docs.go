@@ -3308,6 +3308,74 @@ const docTemplate = `{
                 }
             }
         },
+        "/public/api/share/image": {
+            "get": {
+                "description": "Serves the banner or favicon file for a share",
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "Public Shares"
+                ],
+                "summary": "Get share image (banner or favicon)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Share hash",
+                        "name": "hash",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Request banner file",
+                        "name": "banner",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Request favicon file",
+                        "name": "favicon",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Image file content",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Permission denied",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Asset not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/public/api/shareinfo": {
             "get": {
                 "description": "Returns information about a share link based on its hash. This endpoint is publicly accessible and can be used with or without authentication.",
@@ -3534,6 +3602,9 @@ const docTemplate = `{
                 "banner": {
                     "type": "string"
                 },
+                "bannerUrl": {
+                    "type": "string"
+                },
                 "description": {
                     "type": "string"
                 },
@@ -3546,6 +3617,10 @@ const docTemplate = `{
                 },
                 "disableFileViewer": {
                     "description": "don't allow viewing files",
+                    "type": "boolean"
+                },
+                "disableLoginOption": {
+                    "description": "disable login option in share (true = hide, false = show)",
                     "type": "boolean"
                 },
                 "disableShareCard": {
@@ -3581,6 +3656,9 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "favicon": {
+                    "type": "string"
+                },
+                "faviconUrl": {
                     "type": "string"
                 },
                 "hasPassword": {
@@ -4969,6 +5047,9 @@ const docTemplate = `{
                 "banner": {
                     "type": "string"
                 },
+                "bannerUrl": {
+                    "type": "string"
+                },
                 "description": {
                     "type": "string"
                 },
@@ -4981,6 +5062,10 @@ const docTemplate = `{
                 },
                 "disableFileViewer": {
                     "description": "don't allow viewing files",
+                    "type": "boolean"
+                },
+                "disableLoginOption": {
+                    "description": "disable login option in share (true = hide, false = show)",
                     "type": "boolean"
                 },
                 "disableShareCard": {
@@ -5010,6 +5095,9 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "favicon": {
+                    "type": "string"
+                },
+                "faviconUrl": {
                     "type": "string"
                 },
                 "hasPassword": {
@@ -5097,6 +5185,9 @@ const docTemplate = `{
                 "banner": {
                     "type": "string"
                 },
+                "bannerUrl": {
+                    "type": "string"
+                },
                 "description": {
                     "type": "string"
                 },
@@ -5109,6 +5200,10 @@ const docTemplate = `{
                 },
                 "disableFileViewer": {
                     "description": "don't allow viewing files",
+                    "type": "boolean"
+                },
+                "disableLoginOption": {
+                    "description": "disable login option in share (true = hide, false = show)",
                     "type": "boolean"
                 },
                 "disableShareCard": {
@@ -5141,6 +5236,9 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "favicon": {
+                    "type": "string"
+                },
+                "faviconUrl": {
                     "type": "string"
                 },
                 "hasPassword": {
@@ -5237,6 +5335,9 @@ const docTemplate = `{
                 "banner": {
                     "type": "string"
                 },
+                "bannerUrl": {
+                    "type": "string"
+                },
                 "description": {
                     "type": "string"
                 },
@@ -5249,6 +5350,10 @@ const docTemplate = `{
                 },
                 "disableFileViewer": {
                     "description": "don't allow viewing files",
+                    "type": "boolean"
+                },
+                "disableLoginOption": {
+                    "description": "disable login option in share (true = hide, false = show)",
                     "type": "boolean"
                 },
                 "disableShareCard": {
@@ -5284,6 +5389,9 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "favicon": {
+                    "type": "string"
+                },
+                "faviconUrl": {
                     "type": "string"
                 },
                 "hasPassword": {

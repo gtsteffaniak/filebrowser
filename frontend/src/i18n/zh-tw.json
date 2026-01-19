@@ -448,7 +448,13 @@
     "customizeSidebarLinksButton": "自訂連結",
     "shareInfo": "分享 QR 代碼和資訊",
     "shareInfoDescription": "此連結會在彈出式視窗中顯示分享資訊，包括標題、說明、橫幅和 QR 代碼。",
-    "downloadDescription": "此連結可將整個共用內容下載為壓縮檔。"
+    "downloadDescription": "此連結可將整個共用內容下載為壓縮檔。",
+    "disableLoginOption": "隱藏登入選項",
+    "disableLoginOptionDescription": "隱藏匿名使用者側邊欄的登入按鈕。啟用後，匿名使用者將看不到登入選項。",
+    "browseFiles": "瀏覽檔案",
+    "selectBannerImage": "選擇橫幅圖片",
+    "selectFaviconImage": "選擇 Favoricon 圖片",
+    "selectImage": "選擇影像"
   },
   "api": {
     "title": "API 金鑰",

@@ -163,6 +163,7 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	publicAPI.HandleFunc("POST /resources/bulk/delete", withHashFile(publicBulkDeleteHandler))
 	publicAPI.HandleFunc("PATCH /resources", withHashFile(publicPatchHandler))
 	publicAPI.HandleFunc("GET /shareinfo", withOrWithoutUser(shareInfoHandler))
+	publicAPI.HandleFunc("GET /share/image", withHashFile(getShareImage))
 
 	// Settings routes
 	api.HandleFunc("GET /settings", withAdmin(settingsGetHandler))

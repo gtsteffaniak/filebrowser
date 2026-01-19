@@ -197,7 +197,13 @@
     "customizeSidebarLinksButton": "Přizpůsobení odkazů",
     "shareInfo": "Sdílení kódu QR a informací",
     "shareInfoDescription": "Tento odkaz zobrazí informace o sdílené složce včetně názvu, popisu, banneru a QR kódu ve vyskakovacím okně.",
-    "downloadDescription": "Tento odkaz umožňuje stáhnout celý obsah sdílené složky jako komprimovaný soubor."
+    "downloadDescription": "Tento odkaz umožňuje stáhnout celý obsah sdílené složky jako komprimovaný soubor.",
+    "disableLoginOption": "Skrýt možnost přihlášení",
+    "disableLoginOptionDescription": "Skrytí tlačítka pro přihlášení v postranním panelu pro anonymní uživatele. Pokud je tato možnost povolena, anonymní uživatelé neuvidí možnost přihlášení.",
+    "browseFiles": "Procházení souborů",
+    "selectBannerImage": "Výběr obrázku banneru",
+    "selectFaviconImage": "Výběr obrázku favicon",
+    "selectImage": "Vybrat obrázek"
   },
   "prompts": {
     "copy": "Kopírovat",

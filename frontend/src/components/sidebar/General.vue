@@ -10,12 +10,12 @@
           <i aria-label="settings" class="material-icons">settings</i>
         </a>
       </div>
-      <div v-else-if="user.username === 'anonymous'" @click="navigateToLogin" class="inner-card">
+      <div v-else-if="user.username === 'anonymous' && shouldShowLogin" @click="navigateToLogin" class="inner-card">
         <button class="person-button action button">
           <i class="material-symbols-outlined">login</i> {{ $t("general.login") }}
         </button>
       </div>
-      <div v-else class="inner-card">
+      <div v-else-if="user.username !== 'anonymous'" class="inner-card">
         <button class="person-button action button">
           <i class="material-icons">person</i>
           {{ user.username }}
@@ -60,9 +60,6 @@
     </transition>
   </div>
 
-  <!-- Share Info Card - only show when viewing a share -->
-  <ShareInfoCard v-if="isShare && !disableShareCard" :hash="hash" :token="token" :sub-path="subPath" />
-
   <!-- Sidebar Links Component (replaces sources) -->
   <SidebarLinks />
 </template>
@@ -73,13 +70,11 @@ import { globalVars } from "@/utils/constants";
 import { state, getters, mutations } from "@/store";
 import { fromNow } from "@/utils/moment";
 import SidebarLinks from "./Links.vue";
-import ShareInfoCard from "@/components/files/ShareInfoCard.vue";
 
 export default {
   name: "SidebarGeneral",
   components: {
     SidebarLinks,
-    ShareInfoCard,
   },
   data() {
     return {};
@@ -115,18 +110,12 @@ export default {
     route: () => state.route,
     realtimeActive: () => state.realtimeActive,
     darkModeTogglePossible: () => state.shareInfo?.enforceDarkLightMode != "dark" && state.shareInfo?.enforceDarkLightMode != "light",
-    // Share info card props
-    disableShareCard() {
-      return state.shareInfo?.disableShareCard;
-    },
-    hash() {
-      return state.shareInfo?.hash || this.$route.params.hash || "";
-    },
-    token() {
-      return state.shareInfo?.token || this.$route.query.token || "";
-    },
-    subPath() {
-      return state.shareInfo?.path || "/";
+    shouldShowLogin() {
+      if (getters.isShare()) {
+        const disableLogin = state.shareInfo?.disableLoginOption;
+        return disableLogin === undefined ? true : !disableLogin;
+      }
+      return true;
     },
   },
   watch: {

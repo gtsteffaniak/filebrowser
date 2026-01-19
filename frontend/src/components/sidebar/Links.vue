@@ -1,12 +1,19 @@
 <template>
   <transition name="expand" @before-enter="beforeEnter" @enter="enter" @leave="leave">
     <div v-if="!isShare || hasLinks" class="sidebar-links card">
-      <div class="sidebar-links-header" :class="{ 'no-edit-options': isShare }">
+      <!-- Share Info section - shown when viewing a share -->
+      <div v-if="isShare && !disableShareCard" class="share-info-section">
+        <ShareInfo :hash="hash" :token="token" :sub-path="subPath" />
+      </div>
+
+      <!-- Links section header -->
+      <div class="sidebar-links-header" :class="{ 'no-edit-options': isShare, 'with-top-spacing': isShare && !disableShareCard }">
         <i v-if="!isShare" @click="goHome()" class="material-icons action">home</i>
         <span>{{ $t("general.links") }}</span>
         <i v-if="!isShare" @mouseenter="showTooltip($event, $t('sidebar.customizeLinks'))" @mouseleave="hideTooltip"
           @click="openSidebarLinksPrompt" class="material-icons action">edit</i>
       </div>
+
       <transition-group name="expand" tag="div" class="inner-card">
         <template v-for="(link, index) in sidebarLinksToDisplay" :key="`link-${index}-${link.category}`">
           <!-- Source-type links: styled exactly like original sources -->
@@ -58,6 +65,16 @@
             </div>
           </a>
         </template>
+
+        <!-- Edit Share link - only shown when viewing a share and user has share permissions -->
+        <a v-if="isShare && canEditShare" :aria-label="$t('general.edit', { suffix: ' ' + $t('general.share') })" href="#" 
+          class="action button sidebar-link-button"
+          @click.prevent="showEditShareHover">
+          <div class="link-container">
+            <i class="material-icons link-icon">edit</i>
+            <span>{{ $t("general.edit", { suffix: " " + $t("general.share") }) }}</span>
+          </div>
+        </a>
       </transition-group>
     </div>
   </transition>
@@ -71,11 +88,13 @@ import { getIconClass } from "@/utils/material-icons";
 import { buildIndexInfoTooltipHTML } from "@/components/files/IndexInfo.vue";
 import { globalVars } from "@/utils/constants";
 import { publicApi } from "@/api";
+import ShareInfo from "@/components/files/ShareInfo.vue";
 
 export default {
   name: "SidebarLinks",
   components: {
     ProgressBar,
+    ShareInfo,
   },
   computed: {
     isShare: () => getters.isShare(),
@@ -97,6 +116,23 @@ export default {
     hasCustomLinks() {
       // Check if user has customized their links
       return this.user?.sidebarLinks && this.user.sidebarLinks.length > 0;
+    },
+    canEditShare() {
+      // Check if user is logged in and has share permissions
+      return state.user && state.user.permissions && state.user.permissions.share;
+    },
+    // Share info card props
+    disableShareCard() {
+      return state.shareInfo?.disableShareCard;
+    },
+    hash() {
+      return state.shareInfo?.hash || this.$route.params.hash || "";
+    },
+    token() {
+      return state.shareInfo?.token || this.$route.query.token || "";
+    },
+    subPath() {
+      return state.shareInfo?.path || "/";
     },
     sidebarLinksToDisplay() {
       // If viewing a share, use share's links
@@ -338,6 +374,33 @@ export default {
     buildSourceTooltipContent(info) {
       return buildIndexInfoTooltipHTML(info, this.$t, state.user.locale);
     },
+    async showEditShareHover() {
+      // Get the current share hash and fetch full share details
+      const shareHash = state.shareInfo?.hash;
+      if (!shareHash) {
+        console.error("No share hash found");
+        return;
+      }
+
+      try {
+        // Fetch the full share details to pass to the edit dialog
+        // The shareInfo object should already have most details we need
+        const shareData = {
+          ...state.shareInfo,
+          hash: shareHash,
+        };
+
+        mutations.showHover({
+          name: "share",
+          props: {
+            editing: true,
+            link: shareData,
+          },
+        });
+      } catch (err) {
+        console.error("Failed to open edit share dialog:", err);
+      }
+    },
   },
 };
 </script>
@@ -346,6 +409,16 @@ export default {
 
 .no-edit-options {
   justify-content: center !important;
+}
+
+.share-info-section {
+  margin-bottom: 1em;
+  padding-bottom: 0.5em;
+  border-bottom: 1px solid var(--borderColor);
+}
+
+.with-top-spacing {
+  margin-top: 0.5em;
 }
 
 .usage-info .vue-simple-progress {
@@ -428,7 +501,7 @@ a.sidebar-link-button {
   align-content: center;
   align-items: center;
   gap: 0.5em;
-  min-height: 3em;
+  min-height: 2.75em;
 }
 
 .link-icon {
@@ -554,5 +627,15 @@ a.sidebar-link-button {
 }
 .vue-simple-progress {
   margin-top: 0 !important;
+}
+
+.edit-share-button {
+  margin-top: 0.5em !important;
+  border-top: 1px solid var(--surfaceSecondary);
+  padding-top: 0.5em !important;
+}
+
+.edit-share-button .link-icon {
+  color: var(--primaryColor);
 }
 </style>

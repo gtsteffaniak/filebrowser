@@ -1,26 +1,26 @@
 <template>
-  <div class="share card">
-    <div class="share__box">
+  <div class="share-info">
+    <div class="share-info__box">
       <div v-if="shareInfo.banner" class="banner">
-        <img :src="getShareBanner" />
+        <img :src="shareInfo.bannerUrl" />
       </div>
-      <div v-if="shareInfo.title" class="share__box__element">
+      <div v-if="shareInfo.title" class="share-info__box__element">
         <h3>{{ shareInfo.title }}</h3>
       </div>
-      <div v-if="shareInfo.description" class="share__box__element">
+      <div v-if="shareInfo.description" class="share-info__box__element">
         <p>{{ shareInfo.description }}</p>
       </div>
 
       <div>
         <hr v-if="shareInfo.banner || shareInfo.title || shareInfo.description" />
         <div v-if="showShareInfo">
-          <div class="share__box__element">
+          <div class="share-info__box__element">
             <strong>{{ $t("prompts.displayName") }}</strong> {{ req.name }}
           </div>
-          <div class="share__box__element" :title="modTime">
+          <div class="share-info__box__element" :title="modTime">
             <strong>{{ $t("prompts.lastModified", { suffix: ":" }) }}</strong> {{ humanTime }}
           </div>
-          <div class="share__box__element">
+          <div class="share-info__box__element">
             <strong>{{ $t("prompts.size", { suffix: ":" }) }}</strong> {{ humanSize }}
           </div>
         </div>
@@ -30,7 +30,6 @@
 </template>
 
 <script>
-import { publicApi } from "@/api";
 import { state, getters } from "@/store";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { getTypeInfo } from "@/utils/mimetype";
@@ -64,12 +63,6 @@ export default {
         return true
       }
       return state.share.passwordValid
-    },
-    getShareBanner() {
-      if (state.shareInfo?.banner.startsWith("http")) {
-        return state.shareInfo?.banner;
-      }
-      return publicApi.getDownloadURL(state.share, [state.shareInfo?.banner]);
     },
     shareInfo() {
       return state.shareInfo;
@@ -118,15 +111,15 @@ export default {
   width: 100%;
 }
 
-.share {
+.share-info {
   display: flex;
 }
 
-.share__box {
+.share-info__box {
   width: 100%;
 }
 
-.share__box__header {
+.share-info__box__header {
   font-size: 1.2em;
   font-weight: bold;
   text-align: center;
@@ -135,29 +128,29 @@ export default {
   margin-bottom: 1em;
 }
 
-.share__box__element {
+.share-info__box__element {
   margin: 0.5em 0;
 }
 
-.share__box__element canvas {
+.share-info__box__element canvas {
   border-style: solid;
 }
 
-.share__box__center {
+.share-info__box__center {
   text-align: center;
 }
 
-.share__box__icon {
+.share-info__box__icon {
   font-size: 4em;
   color: #6c7b7f;
 }
 
-.share__box__icon i {
+.share-info__box__icon i {
   font-size: 4em;
 }
 
-.share__box__icon img,
-.share__box__icon video {
+.share-info__box__icon img,
+.share-info__box__icon video {
   max-width: 100%;
   height: auto;
   border-radius: 0.3em;

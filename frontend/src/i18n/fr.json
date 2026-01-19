@@ -448,7 +448,13 @@
     "customizeSidebarLinksButton": "Personnaliser les liens",
     "shareInfo": "Partager le code QR et les informations",
     "shareInfoDescription": "Ce lien affiche les informations relatives au partage, y compris le titre, la description, la bannière et le code QR dans une fenêtre contextuelle.",
-    "downloadDescription": "Ce lien permet de télécharger l'intégralité du contenu du partage sous la forme d'un fichier compressé."
+    "downloadDescription": "Ce lien permet de télécharger l'intégralité du contenu du partage sous la forme d'un fichier compressé.",
+    "disableLoginOption": "Cacher l'option de connexion",
+    "disableLoginOptionDescription": "Masquer le bouton de connexion dans la barre latérale pour les utilisateurs anonymes. Lorsque cette option est activée, les utilisateurs anonymes ne verront pas l'option de connexion.",
+    "browseFiles": "Parcourir les fichiers",
+    "selectBannerImage": "Sélectionner l'image de la bannière",
+    "selectFaviconImage": "Sélectionner l'image du favicon",
+    "selectImage": "Sélectionner l'image"
   },
   "api": {
     "title": "Clés API :",

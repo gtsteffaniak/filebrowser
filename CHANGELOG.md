@@ -33,6 +33,13 @@ And a few potential drawbacks to lookout for:
  - chunked downloads - fix for 524 errors on cloudflare #1502
  - made size calculation consistent: defaults to "size on disk" style to mimic "du -sh", and allow config `source.config.useLogicalSize: true` for 0 size folders and actual size file sizes.
  - Duplicate detector includes option to select and delete.
+ - share changes:
+  - opengraph support for shared links
+  - Allow adding "share settings" option to customizable sidebar links #1825
+  - file picker for share favicon and banner icon
+  - Show shared icon besides shared files #1420 
+  - Allow disabling "Login button" for shares #1673
+
 
  **Notes**:
  - `server.cacheDirCleanup` defaults to `false` instead of `true`. For docker, you would still need to mount a cacheDir volume to persist cache between restarts.

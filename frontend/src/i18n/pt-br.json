@@ -448,7 +448,13 @@
     "customizeSidebarLinksButton": "Personalizar links",
     "shareInfo": "Compartilhar código QR e informações",
     "shareInfoDescription": "Esse link exibe as informações do compartilhamento, incluindo título, descrição, banner e código QR em um pop-up.",
-    "downloadDescription": "Esse link permite o download de todo o conteúdo do compartilhamento como um arquivo compactado."
+    "downloadDescription": "Esse link permite o download de todo o conteúdo do compartilhamento como um arquivo compactado.",
+    "disableLoginOption": "Ocultar a opção de login",
+    "disableLoginOptionDescription": "Oculte o botão de login na barra lateral para usuários anônimos. Quando ativado, os usuários anônimos não verão a opção de fazer login.",
+    "browseFiles": "Procurar arquivos",
+    "selectBannerImage": "Selecione a imagem do banner",
+    "selectFaviconImage": "Selecione a imagem do favicon",
+    "selectImage": "Selecionar imagem"
   },
   "api": {
     "title": "Chaves de API:",

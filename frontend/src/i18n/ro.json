@@ -448,7 +448,13 @@
     "customizeSidebarLinksButton": "Personalizați linkurile",
     "shareInfo": "Partajați codul QR și informații",
     "shareInfoDescription": "Acest link afișează informațiile despre acțiune, inclusiv titlul, descrierea, bannerul și codul QR într-o fereastră pop-up.",
-    "downloadDescription": "Acest link permite descărcarea întregului conținut partajat ca fișier comprimat."
+    "downloadDescription": "Acest link permite descărcarea întregului conținut partajat ca fișier comprimat.",
+    "disableLoginOption": "Ascundeți opțiunea de conectare",
+    "disableLoginOptionDescription": "Ascundeți butonul de conectare din bara laterală pentru utilizatorii anonimi. Atunci când este activat, utilizatorii anonimi nu vor vedea opțiunea de conectare.",
+    "browseFiles": "Răsfoiți fișierele",
+    "selectBannerImage": "Selectați imaginea bannerului",
+    "selectFaviconImage": "Selectați imaginea favicon",
+    "selectImage": "Selectați imaginea"
   },
   "api": {
     "title": "Chei API:",

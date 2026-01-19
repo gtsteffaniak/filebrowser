@@ -89,6 +89,7 @@
                           :displayFullPath="true"
                           :updateGlobalState="false"
                           :isSelectedProp="selectedIndices.has(getUniqueIndex(index, fileIndex))"
+                          :clickable="false"
                           @select="handleItemSelect"
                           @clearSelection="clearSelection"
                           @selectRange="handleSelectRange"
@@ -728,6 +729,13 @@ export default {
 .group-files .listing-item {
   width: 100%;
   padding: 0.25em;
+  cursor: pointer;
+}
+
+/* Highlight selected items */
+.group-files .listing-item.activebutton {
+  background: var(--primaryColor) !important;
+  color: #fff !important;
 }
 
 .path-text {

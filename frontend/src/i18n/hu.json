@@ -448,7 +448,13 @@
     "customizeSidebarLinksButton": "Linkek testreszabása",
     "shareInfo": "QR-kód és információ megosztása",
     "shareInfoDescription": "Ez a link megjeleníti a megosztás adatait, beleértve a címet, a leírást, a bannert és a QR-kódot egy felugró ablakban.",
-    "downloadDescription": "Ez a link lehetővé teszi a teljes megosztás tartalmának tömörített fájlként történő letöltését."
+    "downloadDescription": "Ez a link lehetővé teszi a teljes megosztás tartalmának tömörített fájlként történő letöltését.",
+    "disableLoginOption": "Bejelentkezési opció elrejtése",
+    "disableLoginOptionDescription": "A bejelentkezés gomb elrejtése az oldalsávban a névtelen felhasználók számára. Ha engedélyezve van, a névtelen felhasználók nem látják a bejelentkezés lehetőségét.",
+    "browseFiles": "Fájlok böngészése",
+    "selectBannerImage": "Banner kép kiválasztása",
+    "selectFaviconImage": "Favicon kép kiválasztása",
+    "selectImage": "Kép kiválasztása"
   },
   "api": {
     "title": "API-kulcsok:",

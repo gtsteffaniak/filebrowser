@@ -448,7 +448,13 @@
     "customizeSidebarLinksButton": "Anpassa länkar",
     "shareInfo": "Dela QR-kod och information",
     "shareInfoDescription": "Den här länken visar information om aktien, inklusive titel, beskrivning, banner och QR-kod i en popup.",
-    "downloadDescription": "Den här länken gör det möjligt att ladda ner hela innehållet i aktien som en komprimerad fil."
+    "downloadDescription": "Den här länken gör det möjligt att ladda ner hela innehållet i aktien som en komprimerad fil.",
+    "disableLoginOption": "Dölj inloggningsalternativ",
+    "disableLoginOptionDescription": "Dölj inloggningsknappen i sidofältet för anonyma användare. När funktionen är aktiverad ser anonyma användare inte möjligheten att logga in.",
+    "browseFiles": "Bläddra bland filer",
+    "selectBannerImage": "Välj bannerbild",
+    "selectFaviconImage": "Välj favicon-bild",
+    "selectImage": "Välj bild"
   },
   "api": {
     "title": "API-nycklar",

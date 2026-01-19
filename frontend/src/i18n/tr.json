@@ -448,7 +448,13 @@
     "customizeSidebarLinksButton": "Bağlantıları Özelleştir",
     "shareInfo": "QR Kodunu ve Bilgilerini Paylaş",
     "shareInfoDescription": "Bu bağlantı, başlık, açıklama, başlık ve QR kodu dahil olmak üzere paylaşımın bilgilerini bir açılır pencerede görüntüler.",
-    "downloadDescription": "Bu bağlantı, tüm paylaşım içeriğinin sıkıştırılmış bir dosya olarak indirilmesini sağlar."
+    "downloadDescription": "Bu bağlantı, tüm paylaşım içeriğinin sıkıştırılmış bir dosya olarak indirilmesini sağlar.",
+    "disableLoginOption": "Giriş seçeneğini gizle",
+    "disableLoginOptionDescription": "Anonim kullanıcılar için kenar çubuğundaki oturum açma düğmesini gizleyin. Etkinleştirildiğinde, anonim kullanıcılar oturum açma seçeneğini görmez.",
+    "browseFiles": "Dosyalara göz atın",
+    "selectBannerImage": "Afiş resmini seçin",
+    "selectFaviconImage": "Favicon resmini seçin",
+    "selectImage": "Resim seçiniz"
   },
   "api": {
     "title": "API Anahtarları:",

@@ -448,7 +448,13 @@
     "customizeSidebarLinksButton": "Anpassen von Links",
     "shareInfo": "QR-Code und Informationen teilen",
     "shareInfoDescription": "Dieser Link zeigt die Informationen zur Freigabe, einschließlich Titel, Beschreibung, Banner und QR-Code, in einem Popup-Fenster an.",
-    "downloadDescription": "Über diesen Link kann der gesamte Inhalt der Freigabe als komprimierte Datei heruntergeladen werden."
+    "downloadDescription": "Über diesen Link kann der gesamte Inhalt der Freigabe als komprimierte Datei heruntergeladen werden.",
+    "disableLoginOption": "Anmeldeoption ausblenden",
+    "disableLoginOptionDescription": "Blenden Sie die Login-Schaltfläche in der Seitenleiste für anonyme Benutzer aus. Wenn diese Option aktiviert ist, sehen anonyme Benutzer die Option zum Einloggen nicht.",
+    "browseFiles": "Dateien durchsuchen",
+    "selectBannerImage": "Bannerbild auswählen",
+    "selectFaviconImage": "Favicon-Bild auswählen",
+    "selectImage": "Bild auswählen"
   },
   "api": {
     "title": "API-Schlüssel",
