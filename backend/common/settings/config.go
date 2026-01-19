@@ -220,7 +220,7 @@ func setupFrontend(generate bool) {
 	// Load login icon configuration at startup
 	loadLoginIcon()
 	if Config.Server.MinSearchLength == 0 {
-		Config.Server.MinSearchLength = 3
+		Config.Server.MinSearchLength = 1 // allow for single character searches
 	}
 	if !Config.Frontend.DisableDefaultLinks {
 		Config.Frontend.ExternalLinks = append(Config.Frontend.ExternalLinks, ExternalLink{
