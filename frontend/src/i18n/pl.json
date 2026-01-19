@@ -451,7 +451,7 @@
     "downloadDescription": "Łącze to umożliwia pobranie całej zawartości folderu udostępnionego w postaci skompresowanego pliku."
   },
   "api": {
-    "title": "Klucze API:",
+    "title": "Klucze API",
     "createdAt": "Utworzono w:",
     "expiresAt": "Wygasa w:",
     "permissions": "Uprawnienia:",

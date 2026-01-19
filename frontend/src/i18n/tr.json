@@ -451,7 +451,7 @@
     "downloadDescription": "Bu bağlantı, tüm paylaşım içeriğinin sıkıştırılmış bir dosya olarak indirilmesini sağlar."
   },
   "api": {
-    "title": "API Anahtarları:",
+    "title": "API Anahtarları",
     "createdAt": "Oluşturuldu:",
     "expiresAt": "Son kullanma tarihi:",
     "permissions": "İzinler:",

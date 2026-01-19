@@ -451,7 +451,7 @@
     "downloadDescription": "Questo link consente di scaricare l'intero contenuto della condivisione come file compresso."
   },
   "api": {
-    "title": "Chiavi API:",
+    "title": "Chiavi API",
     "createdAt": "Creato a:",
     "expiresAt": "Scade a:",
     "permissions": "Permessi:",

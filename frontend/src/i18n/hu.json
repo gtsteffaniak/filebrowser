@@ -451,7 +451,7 @@
     "downloadDescription": "Ez a link lehetővé teszi a teljes megosztás tartalmának tömörített fájlként történő letöltését."
   },
   "api": {
-    "title": "API-kulcsok:",
+    "title": "API-kulcsok",
     "createdAt": "Létrehozva:",
     "expiresAt": "Lejár:",
     "permissions": "Engedélyek:",

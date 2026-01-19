@@ -451,7 +451,7 @@
     "downloadDescription": "Esse link permite o download de todo o conteúdo do compartilhamento como um arquivo compactado."
   },
   "api": {
-    "title": "Chaves de API:",
+    "title": "Chaves de API",
     "createdAt": "Criado em:",
     "expiresAt": "Expira em:",
     "permissions": "Permissões:",

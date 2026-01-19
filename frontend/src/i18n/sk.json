@@ -451,7 +451,7 @@
     "downloadDescription": "Toto prepojenie umožňuje stiahnuť celý obsah zdieľania ako komprimovaný súbor."
   },
   "api": {
-    "title": "Kľúče API:",
+    "title": "Kľúče API",
     "createdAt": "Vytvorené v:",
     "expiresAt": "Platnosť končí na:",
     "permissions": "Oprávnenia:",
