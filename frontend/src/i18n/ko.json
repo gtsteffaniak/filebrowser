@@ -447,7 +447,7 @@
     "downloadDescription": "이 링크를 통해 전체 공유 콘텐츠를 압축 파일로 다운로드할 수 있습니다."
   },
   "api": {
-    "title": "API 키:",
+    "title": "API 키",
     "createdAt": "만든 곳:",
     "expiresAt": "만료일:",
     "permissions": "권한:",

@@ -447,7 +447,7 @@
     "downloadDescription": "Ce lien permet de télécharger l'intégralité du contenu du partage sous la forme d'un fichier compressé."
   },
   "api": {
-    "title": "Clés API :",
+    "title": "Clés API",
     "createdAt": "Créée le :",
     "expiresAt": "Expire le :",
     "permissions": "Permissions :",
