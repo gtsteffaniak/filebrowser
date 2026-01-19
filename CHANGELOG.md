@@ -4,25 +4,12 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v1.2.0-beta
 
-The new sqlite based indexing is a total re-write of the backend indexing. This has several advantages (as well as a few disadvantages). Any unexpected or undesired behavior differences should be reported. 
-
-advantages:
-
-1. Memory usage is typically lower and paged memory. This means for extreme index sizes, the OS will manage the memory and "out of memory" won't be a concern.
-2. I can index more details without worrying about memory usage, enabling new features.
-3. Indexing data can be persistent between restarts -- default behavior.
-
-And a few potential drawbacks to lookout for:
-
-1. total re-write means ther could be unexpected behavior
-2. memory usage is no longer in my control, its handled by the sqlite driver.
-3. More CPU and io intensive indexing operations need to be written to disk.
-4. Slower operations expecially for high-activity. WAL mode added if it becomes a problem, but generally not needed.
+The new sqlite based indexing is a total re-write of the backend indexing. This has several advantages (as well as a few disadvantages). Any unexpected or undesired behavior differences should be reported. See [Indexing Overview](https://filebrowserquantum.com/en/docs/features/indexing/) for more information.
 
  **New Features**:
  - SQLite-based indexing
    - reduced memory usage, higher CPU and IO usage.
-   - index persistence between restarts
+   - index persistence between restarts (requires [persitent cacheDir](https://filebrowserquantum.com/en/docs/configuration/server/#cachedir))
  - realtime file watcher, low latency if user has realtime permissions (#917)
  - access control works with individual files too
  - conditionally hide symbolic links as indexing rule config (#1540)
@@ -40,7 +27,6 @@ And a few potential drawbacks to lookout for:
   - Show shared icon besides shared files #1420 
   - Allow disabling "Login button" for shares #1673
 
-
  **Notes**:
  - `server.cacheDirCleanup` defaults to `false` instead of `true`. For docker, you would still need to mount a cacheDir volume to persist cache between restarts.
  - indexing rules have been streamlined, see [wiki]. Previous style is deprecated but still functional.
@@ -49,7 +35,6 @@ And a few potential drawbacks to lookout for:
  - bulkDelete API added and replaces delete API for all UI actions. See swagger docs for usage.
  - raw download and patch resource api simplified to single source per request. See swagger docs for usage.
  - UserScope function re-organization, if you notice any user scope issues please open a github issue.
-
 
  **BugFixes**:
  - Source info not properly read from external storage NAS #1727
