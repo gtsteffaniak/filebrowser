@@ -63,7 +63,6 @@ export default {
 .settings-card {
   display: flex;
   align-items: center;
-  justify-content: center;
   overflow: unset !important;
   padding: 1em;
 }
