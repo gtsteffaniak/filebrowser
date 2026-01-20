@@ -652,12 +652,12 @@ func (idx *Index) GetFsInfoCore(indexPath string, opts Options) (*iteminfo.FileI
 			if !isViewable {
 				return nil, errors.ErrNotIndexed
 			}
-		} else if isSkipped {
-			return nil, errors.ErrNotIndexed
-		}
+	} else if isSkipped {
+		return nil, errors.ErrNotIndexed
+	}
 
-		realSize, _ := idx.handleFile(dirInfo, indexPath, false, nil)
-		fileInfo := &iteminfo.FileInfo{
+	realSize, _ := idx.handleFile(dirInfo, indexPath, realPath, false, nil)
+	fileInfo := &iteminfo.FileInfo{
 			Path: indexPath,
 			ItemInfo: iteminfo.ItemInfo{
 				Name:    baseName,
@@ -839,7 +839,7 @@ func (idx *Index) processFileItem(file os.FileInfo, indexPath string, opts Optio
 		size = uint64(idx.getFileSizeForDisplay(file, fullCombined))
 		shouldCountSize = true
 	} else {
-		size, shouldCountSize = idx.handleFile(file, indexPath, opts.IsRoutineScan, scanner)
+		size, shouldCountSize = idx.handleFile(file, indexPath, fullCombined, opts.IsRoutineScan, scanner)
 	}
 	itemInfo.Size = int64(size)
 
