@@ -58,13 +58,16 @@ func getFileDetails(sys any, filePath string, useLogicalSize bool) (uint64, uint
 // handleFile processes a file and returns its size and whether it should be counted
 // On Unix, always uses syscall to get size (allocated or logical based on config)
 // scanner parameter is optional - if nil (API refresh), creates temporary state
-func (idx *Index) handleFile(file os.FileInfo, indexPath string, isRoutineScan bool, scanner *Scanner) (size uint64, shouldCountSize bool) {
+func (idx *Index) handleFile(file os.FileInfo, indexPath string, realFilePath string, isRoutineScan bool, scanner *Scanner) (size uint64, shouldCountSize bool) {
 	var realSize uint64
 	var nlink uint64
 	var ino uint64
 	canUseSyscall := false
 
-	realFilePath := filepath.Join(idx.Path, indexPath)
+	// Use provided realFilePath if available, otherwise construct it
+	if realFilePath == "" {
+		realFilePath = filepath.Join(idx.Path, indexPath)
+	}
 
 	sys := file.Sys()
 	realSize, nlink, ino, canUseSyscall = getFileDetails(sys, realFilePath, idx.Config.UseLogicalSize)
