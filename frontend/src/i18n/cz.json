@@ -298,7 +298,9 @@
     "newFileSuccess": "Soubor byl úspěšně vytvořen!",
     "newDirSuccess": "Adresář byl úspěšně vytvořen!",
     "copyToClipboardFailed": "Nelze zkopírovat do schránky",
-    "moveFailed": "Přesun se nezdařil"
+    "moveFailed": "Přesun se nezdařil",
+    "operationFailed": "Operace se nezdařila",
+    "partialSuccess": "Některé operace se nezdařily: {succeeded} uspěl, {failed} neuspěl."
   },
   "search": {
     "smallerThan": "Menší než:",

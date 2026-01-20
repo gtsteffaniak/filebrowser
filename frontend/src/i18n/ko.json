@@ -221,7 +221,9 @@
     "newFileSuccess": "파일이 성공적으로 생성되었습니다!",
     "newDirSuccess": "디렉토리가 성공적으로 생성되었습니다!",
     "copyToClipboardFailed": "클립보드에 복사할 수 없습니다.",
-    "moveFailed": "이동 실패"
+    "moveFailed": "이동 실패",
+    "operationFailed": "작업 실패",
+    "partialSuccess": "일부 작업 실패: {succeeded} 성공, {failed} 실패"
   },
   "search": {
     "smallerThan": "보다 작습니다:",

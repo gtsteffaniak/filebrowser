@@ -85,11 +85,15 @@ export default {
     },
     allowedFileTypes: {
       type: Array,
-      default: null, // Array of allowed file extensions (e.g., ['.jpg', '.png', '.gif'])
+      default: null, // Array of MIME type prefixes (e.g., ['image/', 'video/']) or full types (e.g., ['image/jpeg', 'image/png'])
     },
     browsePath: {
       type: String,
       default: null, // Optional initial path to start browsing from
+    },
+    requireFileSelection: {
+      type: Boolean,
+      default: false, // If true, only files (not folders) can be selected
     },
   },
   data: function () {
@@ -114,6 +118,7 @@ export default {
       },
       selected: null,
       selectedSource: null,
+      selectedType: null, // Track the type of the selected item
       current: window.location.pathname,
       currentSource: initialSource,
       loading: false,
@@ -132,6 +137,14 @@ export default {
     },
     showSourceSelector() {
       return this.availableSources.length > 1 && !getters.isShare() && !this.browseShare;
+    },
+    isValidSelection() {
+      // If file selection is required, check if a file (not folder) is selected
+      if (this.requireFileSelection) {
+        return this.selected && this.selectedType && this.selectedType !== 'directory';
+      }
+      // Otherwise, any selection is valid (including folders)
+      return !!this.selected;
     },
   },
   watch: {
@@ -181,6 +194,31 @@ export default {
       this.loading = true;
       try {
         await operation();
+      } catch (error) {
+        // Handle fetch errors gracefully
+        // Note: API methods already show error notifications, so we don't need to show another one
+        console.error('FileList fetch error:', error);
+        
+        // Always provide at least the parent directory option if not at root
+        // This allows users to navigate back even if the current directory has issues
+        this.items = [];
+        if (this.path !== "/" && this.showFolders) {
+          this.items.push({
+            name: "..",
+            path: url.removeLastDir(this.path) + "/",
+            source: this.source,
+            type: "directory",
+          });
+        }
+        
+        // Emit the current (failed) path so parent knows about the state
+        this.$emit("update:selected", {
+          path: this.path,
+          source: this.source,
+          type: 'directory',
+          isValid: !this.requireFileSelection,
+          error: true, // Indicate there was an error
+        });
       } finally {
         const elapsed = Date.now() - startTime;
         const remaining = Math.max(0, 200 - elapsed);
@@ -189,12 +227,27 @@ export default {
       }
     },
     // Check if file matches allowed file types
-    isFileTypeAllowed(fileName) {
+    isFileTypeAllowed(itemType) {
       if (!this.allowedFileTypes || this.allowedFileTypes.length === 0) {
         return true; // No filter, allow all
       }
-      const lowerFileName = fileName.toLowerCase();
-      return this.allowedFileTypes.some(ext => lowerFileName.endsWith(ext.toLowerCase()));
+      
+      // If itemType is not provided or is 'directory', allow it
+      if (!itemType || itemType === 'directory') {
+        return true;
+      }
+      
+      // Check if the itemType matches any of the allowed types
+      // Supports both prefixes (e.g., 'image/') and full types (e.g., 'image/jpeg')
+      return this.allowedFileTypes.some(allowedType => {
+        if (allowedType.endsWith('/')) {
+          // Prefix match (e.g., 'image/' matches 'image/jpeg', 'image/png')
+          return itemType.startsWith(allowedType);
+        } else {
+          // Exact match (e.g., 'image/jpeg' matches 'image/jpeg')
+          return itemType === allowedType;
+        }
+      });
     },
     resetToSource(newSource) {
       // Use current path if browsing the same source as current, otherwise start at root
@@ -205,6 +258,7 @@ export default {
       this.shareHash = null;
       this.selected = null;
       this.selectedSource = null;
+      this.selectedType = null;
       // Fetch files for the new source
       this.withLoading(() => filesApi.fetchFiles(newSource, newPath).then(this.fillOptions));
     },
@@ -215,6 +269,7 @@ export default {
       this.source = null;
       this.selected = null;
       this.selectedSource = null;
+      this.selectedType = null;
       // Fetch files for the share
       this.withLoading(() => publicApi.fetchPub("/", newHash).then(this.fillOptions));
     },
@@ -226,10 +281,12 @@ export default {
       this.source = req.source || this.source; // Preserve the source we're browsing
       this.items = [];
 
-      // Emit both path and source
+      // Emit both path, source, and validity
       this.$emit("update:selected", {
         path: this.current,
-        source: this.source
+        source: this.source,
+        type: 'directory',
+        isValid: !this.requireFileSelection, // Folder is only valid if file is not required
       });
 
       // If the path isn't the root path,
@@ -250,7 +307,7 @@ export default {
         if (!this.showFolders && item.type === "directory") continue;
         if (!this.showFiles && item.type !== "directory") continue;
         // Filter by file type if specified (only for files, not directories)
-        if (item.type !== "directory" && !this.isFileTypeAllowed(item.name)) continue;
+        if (item.type !== "directory" && !this.isFileTypeAllowed(item.type)) continue;
         this.items.push({
           name: item.name,
           path: item.path,
@@ -272,15 +329,22 @@ export default {
       if (this.showFiles && clickedItem && clickedItem.type !== "directory") {
         this.selected = path;
         this.selectedSource = sourceToUse;
+        this.selectedType = clickedItem.type;
         this.$emit("update:selected", {
           path: path,
           source: sourceToUse,
-          type: clickedItem.type
+          type: clickedItem.type,
+          isValid: true, // File is always valid
         });
         return;
       }
       
       this.path = path;
+      // Reset selected when navigating to a directory
+      this.selected = null;
+      this.selectedSource = null;
+      this.selectedType = null;
+      
       // Priority: browseSource > browseShare > isShare
       if (this.browseSource) {
         // Explicitly browsing a source - use files API

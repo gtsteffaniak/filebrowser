@@ -5,7 +5,7 @@
       <div v-bind:style="{ width: this.progress + '%' }"></div>
     </div>
     <defaultBar :class="{ 'dark-mode-header': isDarkMode }"></defaultBar>
-    <sidebar></sidebar>
+    <sidebar v-if="!invalidShare"></sidebar>
     <Scrollbar id="main" :class="{
       'dark-mode': isDarkMode,
       moveWithSidebar: moveWithSidebar,
@@ -90,6 +90,9 @@ export default {
   computed: {
     isOnlyOffice() {
       return getters.currentView() === "onlyOfficeEditor";
+    },
+    invalidShare() {
+      return getters.isShare() && getters.isInvalidShare();
     },
     scrollable() {
       return getters.isScrollable();

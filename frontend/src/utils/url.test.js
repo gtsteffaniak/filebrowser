@@ -76,57 +76,18 @@ describe('getapipath', () => {
 });
 
 describe('extractSourceFromPath', () => {
-  it('single source extract', async () => {
-    vi.doMock("@/store", () => {
-      return {
-        state: {
-          sources: {
-            current: "default",
-          }
-        },
-      };
-    });
-
+  it('extracts source and path from URL', () => {
     const tests = [
       { url: "/files/default/root/file1.txt", expected: { source: "default", path: "/root/file1.txt" } },
       { url: "/files/default/root/folder1/file1.txt", expected: { source: "default", path: "/root/folder1/file1.txt" } },
-    ];
-
-    for (const test of tests) {
-      const result = extractSourceFromPath(test.url);
-      expect(result.source).toEqual(test.expected.source);
-      expect(result.path).toEqual(test.expected.path);
-    }
-
-    vi.resetModules(); // Reset modules between tests
-  });
-});
-
-describe('extractSourceFromPath2', () => {
-  it('multiple source extract', async () => {
-    vi.doMock("@/store", () => {
-      return {
-        state: {
-          sources: {
-            current: "first",
-            list: [
-              { pathPrefix: "first", used: "0 B", total: "0 B", usedPercentage: 0 },
-              { pathPrefix: "second", used: "0 B", total: "0 B", usedPercentage: 0 }
-            ],
-          },
-        },
-      };
-    });
-    const { extractSourceFromPath } = await import("@/utils/url"); // Import AFTER mock
-    const tests = [
       { url: "/files/first/root/file1.txt", expected: { source: "first", path: "/root/file1.txt" } },
       { url: "/files/second/root/folder1/file1.txt", expected: { source: "second", path: "/root/folder1/file1.txt" } },
     ];
+
     for (const test of tests) {
       const result = extractSourceFromPath(test.url);
       expect(result.source).toEqual(test.expected.source);
       expect(result.path).toEqual(test.expected.path);
     }
-    vi.resetModules(); // Reset modules between tests
   });
 });

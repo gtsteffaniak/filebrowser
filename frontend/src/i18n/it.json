@@ -221,7 +221,9 @@
     "newFileSuccess": "File creato con successo!",
     "newDirSuccess": "Directory creata con successo!",
     "copyToClipboardFailed": "Impossibile copiare negli appunti",
-    "moveFailed": "Spostamento non riuscito"
+    "moveFailed": "Spostamento non riuscito",
+    "operationFailed": "Operazione fallita",
+    "partialSuccess": "Alcune operazioni non sono riuscite: {succeeded} è riuscito, {failed} non è riuscito."
   },
   "search": {
     "smallerThan": "Più piccolo di:",

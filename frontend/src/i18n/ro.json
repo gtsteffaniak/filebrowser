@@ -221,7 +221,9 @@
     "newFileSuccess": "Fișier creat cu succes!",
     "newDirSuccess": "Director creat cu succes!",
     "copyToClipboardFailed": "Imposibilitatea de a copia în clipboard",
-    "moveFailed": "Mutarea a eșuat"
+    "moveFailed": "Mutarea a eșuat",
+    "operationFailed": "Operațiunea a eșuat",
+    "partialSuccess": "Unele operațiuni au eșuat: {succeeded} a reușit, {failed} a eșuat"
   },
   "search": {
     "smallerThan": "Mai mic decât:",

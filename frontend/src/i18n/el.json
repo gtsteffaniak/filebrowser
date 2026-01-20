@@ -224,7 +224,9 @@
     "newFileSuccess": "Το αρχείο δημιουργήθηκε με επιτυχία!",
     "newDirSuccess": "Ο κατάλογος δημιουργήθηκε με επιτυχία!",
     "copyToClipboardFailed": "Αδυναμία αντιγραφής στο πρόχειρο",
-    "moveFailed": "Η μετακίνηση απέτυχε"
+    "moveFailed": "Η μετακίνηση απέτυχε",
+    "operationFailed": "Η λειτουργία απέτυχε",
+    "partialSuccess": "Ορισμένες λειτουργίες απέτυχαν: {succeeded} πέτυχε, {failed} απέτυχε"
   },
   "search": {
     "smallerThan": "Μικρότερο από:",

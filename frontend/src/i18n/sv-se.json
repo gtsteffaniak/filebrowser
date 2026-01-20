@@ -221,7 +221,9 @@
     "newFileSuccess": "Filen skapades framgångsrikt!",
     "newDirSuccess": "Katalog skapad framgångsrikt!",
     "copyToClipboardFailed": "Det går inte att kopiera till urklipp",
-    "moveFailed": "Flyttning misslyckades"
+    "moveFailed": "Flyttning misslyckades",
+    "operationFailed": "Operationen misslyckades",
+    "partialSuccess": "Vissa operationer misslyckades: {succeeded} lyckades, {failed} misslyckades"
   },
   "search": {
     "smallerThan": "Mindre än:",

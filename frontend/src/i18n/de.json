@@ -221,7 +221,9 @@
     "newFileSuccess": "Datei erfolgreich erstellt!",
     "newDirSuccess": "Verzeichnis erfolgreich erstellt!",
     "copyToClipboardFailed": "Kopieren in die Zwischenablage nicht möglich",
-    "moveFailed": "Verschieben fehlgeschlagen"
+    "moveFailed": "Verschieben fehlgeschlagen",
+    "operationFailed": "Operation fehlgeschlagen",
+    "partialSuccess": "Einige Operationen sind fehlgeschlagen: {succeeded} erfolgreich, {failed} fehlgeschlagen"
   },
   "search": {
     "smallerThan": "Kleiner als:",

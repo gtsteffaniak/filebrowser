@@ -1,6 +1,6 @@
 <template>
   <div class="card headline-card">
-    <div class="card-wrapper user-card">
+    <div v-if="isDataLoaded" class="card-wrapper user-card">
       <div v-if="settingsAllowed" class="inner-card">
         <a href="/settings#profile-main" class="person-button action button"
           @click.prevent="navigateTo('/settings', '#profile-main')"
@@ -80,6 +80,15 @@ export default {
     return {};
   },
   computed: {
+    // Check if data is loaded before showing user info
+    isDataLoaded() {
+      if (getters.isShare()) {
+        // For shares, wait for shareInfo to be loaded
+        return state.shareInfo !== null && state.shareInfo !== undefined;
+      }
+      // For regular files, user should be loaded
+      return state.user !== null && state.user !== undefined;
+    },
     hasCreateOptions() {
       if (getters.isShare()) {
         return state.shareInfo?.allowCreate
@@ -112,8 +121,11 @@ export default {
     darkModeTogglePossible: () => state.shareInfo?.enforceDarkLightMode != "dark" && state.shareInfo?.enforceDarkLightMode != "light",
     shouldShowLogin() {
       if (getters.isShare()) {
-        const disableLogin = state.shareInfo?.disableLoginOption;
-        return disableLogin === undefined ? true : !disableLogin;
+        // Don't show login until shareInfo is fully loaded
+        if (!state.shareInfo || state.shareInfo.disableLoginOption === undefined) {
+          return false;
+        }
+        return !state.shareInfo.disableLoginOption;
       }
       return true;
     },

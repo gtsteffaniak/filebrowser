@@ -221,7 +221,9 @@
     "newFileSuccess": "Plik został utworzony pomyślnie!",
     "newDirSuccess": "Katalog utworzony pomyślnie!",
     "copyToClipboardFailed": "Nie można skopiować do schowka",
-    "moveFailed": "Przenoszenie nie powiodło się"
+    "moveFailed": "Przenoszenie nie powiodło się",
+    "operationFailed": "Operacja nie powiodła się",
+    "partialSuccess": "Niektóre operacje nie powiodły się: {succeeded} powiodło się, {failed} nie powiodło się"
   },
   "search": {
     "smallerThan": "Mniejszy niż:",

@@ -221,7 +221,9 @@
     "newFileSuccess": "Dosya başarıyla oluşturuldu!",
     "newDirSuccess": "Dizin başarıyla oluşturuldu!",
     "copyToClipboardFailed": "Panoya kopyalanamıyor",
-    "moveFailed": "Taşıma başarısız"
+    "moveFailed": "Taşıma başarısız",
+    "operationFailed": "İşlem başarısız oldu",
+    "partialSuccess": "Bazı işlemler başarısız oldu: {succeeded} başarılı, {failed} başarısız"
   },
   "search": {
     "smallerThan": "Daha küçük:",

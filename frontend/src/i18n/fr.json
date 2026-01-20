@@ -221,7 +221,9 @@
     "newFileSuccess": "Fichier créé avec succès !",
     "newDirSuccess": "Répertoire créé avec succès !",
     "copyToClipboardFailed": "Impossible de copier dans le presse-papiers",
-    "moveFailed": "Échec du déplacement"
+    "moveFailed": "Échec du déplacement",
+    "operationFailed": "Échec de l'opération",
+    "partialSuccess": "Certaines opérations ont échoué : {succeeded} a réussi, {failed} a échoué"
   },
   "search": {
     "smallerThan": "Plus petit que :",

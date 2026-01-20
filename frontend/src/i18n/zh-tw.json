@@ -221,7 +221,9 @@
     "newFileSuccess": "檔案已成功建立！",
     "newDirSuccess": "目錄建立成功！",
     "copyToClipboardFailed": "無法複製到剪貼簿",
-    "moveFailed": "移動失敗"
+    "moveFailed": "移動失敗",
+    "operationFailed": "操作失敗",
+    "partialSuccess": "某些作業失敗：{succeeded} 成功，{failed} 失敗"
   },
   "search": {
     "smallerThan": "小於：",

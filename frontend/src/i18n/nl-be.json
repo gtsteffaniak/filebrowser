@@ -221,7 +221,9 @@
     "newFileSuccess": "Bestand succesvol aangemaakt!",
     "newDirSuccess": "Directory succesvol aangemaakt!",
     "copyToClipboardFailed": "Kan niet naar klembord kopiëren",
-    "moveFailed": "Verplaatsen mislukt"
+    "moveFailed": "Verplaatsen mislukt",
+    "operationFailed": "Operatie mislukt",
+    "partialSuccess": "Sommige bewerkingen zijn mislukt: {succeeded} gelukt, {failed} mislukt."
   },
   "search": {
     "smallerThan": "Kleiner dan:",
