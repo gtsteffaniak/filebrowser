@@ -4,13 +4,13 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v1.2.0-beta
 
-The new sqlite based indexing is a total re-write of the backend indexing. This has several advantages (as well as a few disadvantages). Any unexpected or undesired behavior differences should be reported. See [Indexing Overview](https://filebrowserquantum.com/en/docs/features/indexing/) for more information.
+This is a major version update with many code changes which could cause unexpected behavior. Upgrades should proceed with caution and report any undesriable behavior by opening an issue on github. The index is now fully in sqlite database - see [Indexing Overview](https://filebrowserquantum.com/en/docs/features/indexing/) for more information.
 
  **New Features**:
  - SQLite-based indexing
    - reduced memory usage, higher CPU and IO usage.
    - index persistence between restarts (requires [persitent cacheDir](https://filebrowserquantum.com/en/docs/configuration/server/#cachedir))
- - realtime file watcher, low latency if user has realtime permissions (#917)
+ - new tool - "realtime file watcher" low latency if user has realtime permissions (#917)
  - access control works with individual files too
  - conditionally hide symbolic links as indexing rule config (#1540)
  - External applications can connect to filebrowser over webDAV (#209) (#1764)
@@ -18,14 +18,13 @@ The new sqlite based indexing is a total re-write of the backend indexing. This 
  - search multiple sources at once (#848)
  - file uploads resume from bad internet connection #1599
  - chunked downloads - fix for 524 errors on cloudflare #1502
- - made size calculation consistent: defaults to "size on disk" style to mimic "du -sh", and allow config `source.config.useLogicalSize: true` for 0 size folders and actual size file sizes.
- - Duplicate detector includes option to select and delete.
+ - made size calculation consistent: defaults to "size on disk" style to mimic "du -sh", and allow config `source.config.useLogicalSize: true` for 0 size folders and actual size file sizes. (#1266)
+ - Feature: allow deleting selected duplicates from duplicate finder (#1659)
  - share changes:
   - opengraph support for shared links
-  - Allow adding "share settings" option to customizable sidebar links #1825
+  - Allow adding "share settings" option to customizable sidebar links (#1825)
   - file picker for share favicon and banner icon
-  - Show shared icon besides shared files #1420 
-  - Allow disabling "Login button" for shares #1673
+  - Allow disabling "Login button" for shares (#1673)
 
  **Notes**:
  - `server.cacheDirCleanup` defaults to `false` instead of `true`. For docker, you would still need to mount a cacheDir volume to persist cache between restarts.
@@ -35,10 +34,11 @@ The new sqlite based indexing is a total re-write of the backend indexing. This 
  - bulkDelete API added and replaces delete API for all UI actions. See swagger docs for usage.
  - raw download and patch resource api simplified to single source per request. See swagger docs for usage.
  - UserScope function re-organization, if you notice any user scope issues please open a github issue.
+ - file upload resume from bad internet connection #1599
 
  **BugFixes**:
- - Source info not properly read from external storage NAS #1727
- - ensure user requests scopes are strongly enforced #1789
+ - Source info not properly read from external storage NAS (#1727)
+ - ensure user requests scopes are strongly enforced (#1789)
 
 ## v1.1.6-beta
 
