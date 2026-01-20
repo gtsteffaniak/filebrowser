@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	_ "net/http/pprof"
 
@@ -96,7 +97,15 @@ func StartFilebrowser() {
 	logger.Info(database)
 	logger.Infof("Sources                  : %v", sourceList)
 	logger.Debugf("Using Embedded FS        : %v", settings.Env.EmbeddedFs)
-
+	walModeStr := "OFF"
+	if settings.Config.Server.IndexSqlConfig.WalMode {
+		walModeStr = "WAL"
+	}
+	logger.Infof("SQL Journal Mode         : %v", walModeStr)
+	if settings.Config.Server.CacheDirCleanup {
+		logger.Debugf("clearing cache dir: %s", settings.Config.Server.CacheDir)
+		fileutils.ClearCacheDir(settings.Config.Server.CacheDir)
+	}
 	serverConfig := settings.Config.Server
 	swagInfo := docs.SwaggerInfo
 	swagInfo.BasePath = serverConfig.BaseURL
@@ -105,6 +114,17 @@ func StartFilebrowser() {
 	if len(settings.Config.Server.SourceMap) == 0 {
 		logger.Fatal("No sources configured, exiting...")
 	}
+
+	// Initialize shared index database before starting HTTP service
+	if err := indexing.InitializeIndexDB(); err != nil {
+		logger.Fatalf("Failed to initialize index database: %v", err)
+	}
+
+	// Set indexing storage for persistence
+	if store != nil && store.Indexing != nil {
+		indexing.SetIndexingStorage(store.Indexing)
+	}
+
 	for _, source := range settings.Config.Server.SourceMap {
 		go indexing.Initialize(source, false)
 	}
@@ -127,12 +147,23 @@ func StartFilebrowser() {
 	case <-done:
 		logger.Info("Server stopped unexpectedly. Shutting down...")
 	}
-	if !*settings.Config.Server.CacheDirCleanup {
+
+	// Stop all indexing scanners before closing the database
+	indexing.StopAllScanners()
+
+	// Give scanners a moment to finish their current scan operations
+	time.Sleep(100 * time.Millisecond)
+
+	// cleanup temp databases
+	indexDB := indexing.GetIndexDB()
+	if indexDB != nil {
+		indexDB.Close()
+	}
+	if settings.Config.Server.CacheDirCleanup {
+		logger.Debugf("clearing cache dir: %s", settings.Config.Server.CacheDir)
 		fileutils.ClearCacheDir(settings.Config.Server.CacheDir)
 	}
-
-	<-shutdownComplete // Ensure we don't exit prematurely
-	// Wait for the server to stop
+	<-shutdownComplete
 	logger.Info("Shutdown complete.")
 }
 

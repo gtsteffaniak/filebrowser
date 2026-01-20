@@ -8,6 +8,7 @@
     "incompleteResultsDetails": "Showing max results ({max}). Try narrowing your search to get more results under {max}."
   },
   "general": {
+    "all": "All{suffix}",
     "name": "Name{suffix}",
     "path": "Path{suffix}",
     "user": "User{suffix}",
@@ -109,7 +110,12 @@
     "confirm": "Confirm{suffix}",
     "uploading": "Uploading{suffix}",
     "paused": "Paused{suffix}",
-    "conflict": "Conflict{suffix}"
+    "conflict": "Conflict{suffix}",
+    "output": "Output{suffix}",
+    "watching": "Watching{suffix}",
+    "lines": "Lines{suffix}",
+    "lastUpdate": "Last Update{suffix}",
+    "latency": "Latency{suffix}"
   },
   "buttons": {
     "generateNewOtp": "Reset and generate new two-factor code",
@@ -129,6 +135,7 @@
     "showMore": "Show more",
     "showLess": "Show less",
     "openParentFolder": "Open parent folder",
+    "watchFile": "Watch file",
     "listView": "List View",
     "compactView": "Compact View",
     "normalView": "Normal View",
@@ -164,7 +171,7 @@
     "closePreview": "Close preview",
     "lastModified": "Last modified{suffix}",
     "duration": "Duration{suffix}",
-    "lonely": "It feels lonely here...",
+    "lonely": "Nothing to show here...",
     "multipleSelectionEnabled": "Multiple selection enabled",
     "sortByLastModified": "Sort by last modified",
     "sortByName": "Sort by name",
@@ -176,7 +183,9 @@
     "itemsSelected": "items selected",
     "myFiles": "My files{suffix}",
     "newFile": "New file{suffix}",
-    "newFolder": "New folder{suffix}"
+    "newFolder": "New folder{suffix}",
+    "sameFolder": "Cannot move to same folder",
+    "cannotAccesDir": "Cannot access directory"
   },
   "help": {
     "functionKeys": "Function Keys",
@@ -292,8 +301,14 @@
     "perUserDownloadLimitDescription": "When enabled, the downloads limit will be applied to each user. Anonymous users will not be able to download any files from this share.",
     "extractEmbeddedSubtitles": "Extract embedded subtitles",
     "extractEmbeddedSubtitlesDescription": "Extract embedded subtitles from media files on load -- this can be slow for large files.",
+    "disableLoginOption": "Hide login option",
+    "disableLoginOptionDescription": "Hide the login button in the sidebar for anonymous users. When enabled, anonymous users won't see the option to log in.",
     "customizeSidebarLinks": "Customize Sidebar Links",
     "customizeSidebarLinksButton": "Customize Links",
+    "browseFiles": "Browse files",
+    "selectBannerImage": "Select banner image",
+    "selectFaviconImage": "Select favicon image",
+    "selectImage": "Select image",
     "disableDownload": "Disable downloading files",
     "disableDownloadDescription": "Anyone won't be able to download files or view a file's content.",
     "allowModify": "Allow editing files",
@@ -400,7 +415,10 @@
     "firstLoadTitle": "Welcome to FileBrowser Quantum!",
     "firstLoadBody": "A new database was created on startup. If this is not what you expected, please double check your configuration file for `server.database` path and ensure it exists. On docker, database path could be `./data/database.db` or `./database.db`.",
     "halloweenTitle": "Happy Halloween!",
-    "halloweenBody": "The Halloween theme has been applied. You can disable it if you don't like it, or permanently disable it in profile settings by selecting any other theme."
+    "halloweenBody": "The Halloween theme has been applied. You can disable it if you don't like it, or permanently disable it in profile settings by selecting any other theme.",
+    "moveFailed": "Move failed",
+    "operationFailed": "Operation failed",
+    "partialSuccess": "Some operations failed: {succeeded} succeeded, {failed} failed"
   },
   "search": {
     "searchContext": "Search Context: {context}",
@@ -705,6 +723,8 @@
     "maxConcurrentUploadHelp": "The maximum number of concurrent uploads. Higher values typically perform better, but this depends on many factors.",
     "uploadChunkSizeMb": "Upload chunk size in MB",
     "uploadChunkSizeMbHelp": "Typically 5 to 50 MB, smaller is better for unstable or restricted connections. Setting to 0 will disable upload chunking.",
+    "downloadChunkSizeMb": "Download chunk size in MB",
+    "downloadChunkSizeMbHelp": "Chunk size for chunked downloads. Files larger than this size will be downloaded in chunks to prevent timeout issues (e.g., Cloudflare 524 errors). Setting to 0 disables chunked downloads.",
     "clearAll": "Clear completed should remove error, pause, and conflict",
     "clearAllDescription": "The clear completed button will clear all uploads in a finished state, including error, paused, and conflict states.",
     "uploadSettings": "Upload Settings"
@@ -788,6 +808,15 @@
       "copyFailed": "Failed to copy to clipboard",
       "custom": "Custom",
       "useCustomIcon": "Use custom icon: {name}"
+    },
+    "fileWatcher": {
+      "name": "File Watcher",
+      "description": "Watch and tail files in real-time with latency monitoring",
+      "file": "File{suffix}",
+      "interval": "Update Interval",
+      "stopWatching": "Stop Watching",
+      "emptyState": "Choose a file and click play to begin monitoring file changes",
+      "chooseFile": "Choose a file"
     },
     "toolNotFound": "Tool not found",
     "backToTools": "Back to Tools"

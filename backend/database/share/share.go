@@ -26,6 +26,8 @@ type CommonShare struct {
 	Path                     string              `json:"path,omitempty"`
 	DownloadURL              string              `json:"downloadURL,omitempty"`
 	ShareURL                 string              `json:"shareURL,omitempty"`
+	FaviconUrl               string              `json:"faviconUrl,omitempty"`
+	BannerUrl                string              `json:"bannerUrl,omitempty"`
 	DisableShareCard         bool                `json:"disableShareCard,omitempty"`
 	EnforceDarkLightMode     string              `json:"enforceDarkLightMode,omitempty"` // "dark" or "light"
 	ViewMode                 string              `json:"viewMode,omitempty"`             // default view mode for anonymous users: "list", "compact", "normal", "gallery"
@@ -41,7 +43,8 @@ type CommonShare struct {
 	AllowReplacements        bool                `json:"allowReplacements,omitempty"` // allow replacements of files
 	SidebarLinks             []users.SidebarLink `json:"sidebarLinks"`                // customizable sidebar links
 	HasPassword              bool                `json:"hasPassword,omitempty"`
-	ShowHidden               bool                `json:"showHidden,omitempty"` // show hidden files in share (true = show, false = hide)
+	ShowHidden               bool                `json:"showHidden,omitempty"`         // show hidden files in share (true = show, false = hide)
+	DisableLoginOption       bool                `json:"disableLoginOption,omitempty"` // disable login option in share (true = hide, false = show)
 }
 type CreateBody struct {
 	CommonShare

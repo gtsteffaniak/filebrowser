@@ -2,17 +2,26 @@ import { fetchURL } from "./utils";
 import { notify } from "@/notify";  // Import notify for error handling
 import { getApiPath } from "@/utils/url.js";
 
-export default async function search(base, source, query, largest = false) {
+export default async function search(base, sources, query, largest = false) {
   try {
     query = encodeURIComponent(query);
-    if (!base.endsWith("/")) {
-      base += "/";
-    }
+    
+    // Ensure sources is an array
+    const sourcesArray = Array.isArray(sources) ? sources : [sources];
+    
     const params = {
-      scope: encodeURIComponent(base),
       query: query,
-      source: encodeURIComponent(source)
+      sources: encodeURIComponent(sourcesArray.join(","))
     };
+
+    // Only include scope if searching a single source
+    // When multiple sources are specified, scope is always the user's scope for each source
+    if (sourcesArray.length === 1 && base) {
+      if (!base.endsWith("/")) {
+        base += "/";
+      }
+      params.scope = encodeURIComponent(base);
+    }
 
     if (largest) {
       params.largest = "true";
@@ -48,7 +57,13 @@ export async function findDuplicates(base, source, minSizeMb, useChecksum = fals
     const res = await fetchURL(apiPath);
     const data = await res.json();
 
-    return data;
+    // Return both the data and metadata about completeness
+    // Backend returns: { groups: [...], incomplete: bool, reason: string }
+    return {
+      groups: data.groups || data, // Handle both new format and legacy format
+      incomplete: data.incomplete || false,
+      reason: data.reason || ""
+    };
   } catch (err) {
     notify.showError(err.message || "Error occurred while finding duplicates");
     throw err;

@@ -97,3 +97,7 @@ vi.mock('@/notify', () => ({
     closePopUp: vi.fn(),
   },
 }));
+
+window.matchMedia = vi.fn(() => ({
+  matches: false,
+}));

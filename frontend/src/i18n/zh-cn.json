@@ -30,7 +30,8 @@
     "saveAndExit": "保存并退出",
     "keepEditing": "继续编辑",
     "closeAnyway": "无论如何关闭",
-    "goToItem": "转到项目"
+    "goToItem": "转到项目",
+    "watchFile": "观看文件"
   },
   "download": {
     "downloadFile": "下载文件",
@@ -48,7 +49,6 @@
   "files": {
     "closePreview": "关闭预览",
     "lastModified": "最后修改",
-    "lonely": "这里没有任何文件...",
     "multipleSelectionEnabled": "多选模式已开启",
     "sortByLastModified": "按最后修改时间排序",
     "sortByName": "按名称排序",
@@ -61,7 +61,10 @@
     "newFile": "新文件{suffix}",
     "newFolder": "新文件夹{suffix}",
     "duration": "持续时间{suffix}",
-    "sortByDuration": "按持续时间排序"
+    "sortByDuration": "按持续时间排序",
+    "sameFolder": "无法移动到相同文件夹",
+    "cannotAccesDir": "无法访问目录",
+    "lonely": "这里没什么可看的..."
   },
   "help": {
     "functionKeys": "功能键",
@@ -217,7 +220,10 @@
     "renameSuccess": "项目重命名成功！",
     "newFileSuccess": "文件创建成功！",
     "newDirSuccess": "目录创建成功！",
-    "copyToClipboardFailed": "无法复制到剪贴板"
+    "copyToClipboardFailed": "无法复制到剪贴板",
+    "moveFailed": "移动失败",
+    "operationFailed": "操作失败",
+    "partialSuccess": "某些操作失败：{succeeded} 成功，{failed} 失败"
   },
   "search": {
     "smallerThan": "小于",
@@ -444,7 +450,13 @@
     "customizeSidebarLinksButton": "自定义链接",
     "shareInfo": "共享 QR 码和信息",
     "shareInfoDescription": "此链接会在弹出式窗口中显示共享信息，包括标题、描述、横幅和 QR 代码。",
-    "downloadDescription": "通过该链接可以下载整个共享内容的压缩文件。"
+    "downloadDescription": "通过该链接可以下载整个共享内容的压缩文件。",
+    "disableLoginOption": "隐藏登录选项",
+    "disableLoginOptionDescription": "隐藏匿名用户侧边栏中的登录按钮。启用后，匿名用户将看不到登录选项。",
+    "browseFiles": "浏览文件",
+    "selectBannerImage": "选择横幅图片",
+    "selectFaviconImage": "选择图标图像",
+    "selectImage": "选择图像"
   },
   "api": {
     "title": "应用程序接口密钥",
@@ -512,7 +524,9 @@
     "uploadChunkSizeMbHelp": "通常为 5 至 50 MB，对于不稳定或受限制的连接，越小越好。设置为 0 将禁用上传分块。",
     "clearAll": "清除完成后，应消除错误、暂停和冲突",
     "clearAllDescription": "清除已完成按钮将清除所有处于完成状态的上传，包括错误、暂停和冲突状态。",
-    "uploadSettings": "上传设置"
+    "uploadSettings": "上传设置",
+    "downloadChunkSizeMb": "下载块大小（MB",
+    "downloadChunkSizeMbHelp": "分块下载的分块大小。大于此大小的文件将分块下载，以防止超时问题（如 Cloudflare 524 错误）。设置为 0 将禁用分块下载。"
   },
   "colors": {
     "red": "红",
@@ -684,7 +698,13 @@
     "uploading": "上传{suffix}",
     "paused": "暂停{suffix}",
     "conflict": "冲突{suffix}",
-    "change": "改变{suffix}"
+    "change": "改变{suffix}",
+    "output": "输出{suffix}",
+    "watching": "观看{suffix}",
+    "lines": "线路{suffix}",
+    "lastUpdate": "最新更新{suffix}",
+    "latency": "延迟{suffix}",
+    "all": "全部{suffix}"
   },
   "access": {
     "rules": "访问规则",
@@ -782,7 +802,16 @@
       "browseFullLibrary": "浏览完整图标库"
     },
     "toolNotFound": "未找到工具",
-    "backToTools": "返回工具"
+    "backToTools": "返回工具",
+    "fileWatcher": {
+      "name": "文件监视器",
+      "description": "通过延迟监控实时观察和跟踪文件",
+      "file": "文件{suffix}",
+      "interval": "更新间隔",
+      "stopWatching": "停止观看",
+      "emptyState": "选择文件并点击播放，开始监控文件变化",
+      "chooseFile": "选择文件"
+    }
   },
   "messages": {
     "pathNotFound": "文件系统中不存在路径",

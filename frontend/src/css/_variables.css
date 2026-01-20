@@ -13,3 +13,7 @@
   --primaryColor: var(--blue);
   --divider: lightgray;
 }
+
+.boarder-radius {
+  border-radius: 1em;
+}

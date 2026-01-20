@@ -30,7 +30,8 @@
     "saveAndExit": "Mentés és kilépés",
     "keepEditing": "Szerkesztés folytatása",
     "closeAnyway": "Egyébként bezárni",
-    "goToItem": "Tovább a tételhez"
+    "goToItem": "Tovább a tételhez",
+    "watchFile": "Nézze meg a fájlt"
   },
   "download": {
     "downloadFile": "Fájl letöltése",
@@ -48,7 +49,6 @@
   "files": {
     "closePreview": "Előnézet bezárása",
     "lastModified": "Utoljára módosítva",
-    "lonely": "Ez egy magányos érzés…",
     "multipleSelectionEnabled": "Többszörös kijelölés aktiválva",
     "sortByLastModified": "Rendezés utolsó módosítás szerint",
     "sortByName": "Rendezés név szerint",
@@ -61,7 +61,10 @@
     "newFile": "Új fájl{suffix}",
     "newFolder": "Új mappa{suffix}",
     "duration": "Időtartam{suffix}",
-    "sortByDuration": "Rendezés időtartam szerint"
+    "sortByDuration": "Rendezés időtartam szerint",
+    "sameFolder": "Nem lehet ugyanabba a mappába mozgatni",
+    "cannotAccesDir": "Nem lehet hozzáférni a könyvtárhoz",
+    "lonely": "Itt nincs mit mutatni..."
   },
   "help": {
     "functionKeys": "Funkcióbillentyűk",
@@ -217,7 +220,10 @@
     "renameSuccess": "Az elem átnevezése sikeres volt!",
     "newFileSuccess": "A fájl sikeresen létrehozva!",
     "newDirSuccess": "A könyvtárat sikeresen létrehoztuk!",
-    "copyToClipboardFailed": "Nem lehet a vágólapra másolni"
+    "copyToClipboardFailed": "Nem lehet a vágólapra másolni",
+    "moveFailed": "Áthelyezés sikertelen",
+    "operationFailed": "A művelet sikertelen",
+    "partialSuccess": "Néhány művelet sikertelen: {succeeded} sikeres volt, {failed} sikertelen."
   },
   "search": {
     "smallerThan": "Kisebb, mint:",
@@ -444,10 +450,16 @@
     "customizeSidebarLinksButton": "Linkek testreszabása",
     "shareInfo": "QR-kód és információ megosztása",
     "shareInfoDescription": "Ez a link megjeleníti a megosztás adatait, beleértve a címet, a leírást, a bannert és a QR-kódot egy felugró ablakban.",
-    "downloadDescription": "Ez a link lehetővé teszi a teljes megosztás tartalmának tömörített fájlként történő letöltését."
+    "downloadDescription": "Ez a link lehetővé teszi a teljes megosztás tartalmának tömörített fájlként történő letöltését.",
+    "disableLoginOption": "Bejelentkezési opció elrejtése",
+    "disableLoginOptionDescription": "A bejelentkezés gomb elrejtése az oldalsávban a névtelen felhasználók számára. Ha engedélyezve van, a névtelen felhasználók nem látják a bejelentkezés lehetőségét.",
+    "browseFiles": "Fájlok böngészése",
+    "selectBannerImage": "Banner kép kiválasztása",
+    "selectFaviconImage": "Favicon kép kiválasztása",
+    "selectImage": "Kép kiválasztása"
   },
   "api": {
-    "title": "API-kulcsok:",
+    "title": "API-kulcsok",
     "createdAt": "Létrehozva:",
     "expiresAt": "Lejár:",
     "permissions": "Engedélyek:",
@@ -606,7 +618,13 @@
     "uploading": "A  feltöltése{suffix}",
     "paused": "Paused{suffix}",
     "conflict": "Konfliktus{suffix}",
-    "change": "Változás{suffix}"
+    "change": "Változás{suffix}",
+    "output": "Kimenet{suffix}",
+    "watching": "Figyelem{suffix}",
+    "lines": "Vonalak{suffix}",
+    "lastUpdate": "Utolsó frissítés{suffix}",
+    "latency": "Késleltetés{suffix}",
+    "all": "Minden{suffix}"
   },
   "access": {
     "rules": "Hozzáférési szabályok",
@@ -639,7 +657,9 @@
     "uploadChunkSizeMbHelp": "Általában 5 és 50 MB között, instabil vagy korlátozott kapcsolatok esetén a kisebb méret jobb. A 0 értékre állítás kikapcsolja a feltöltési darabolás funkciót.",
     "clearAll": "A befejezett törlésnek el kell távolítania a hibát, a szünetet és a konfliktust.",
     "clearAllDescription": "A befejezett állapot törlése gomb az összes befejezett állapotban lévő feltöltést törli, beleértve a hiba, a szüneteltetés és a konfliktus állapotokat is.",
-    "uploadSettings": "Feltöltési beállítások"
+    "uploadSettings": "Feltöltési beállítások",
+    "downloadChunkSizeMb": "Letöltési darabok mérete MB-ban",
+    "downloadChunkSizeMbHelp": "Darabolt letöltések esetén a darabolt méret. Az ennél nagyobb méretű fájlok letöltése darabokban történik, hogy elkerülhetők legyenek az időkorlátozási problémák (pl. Cloudflare 524 hiba). A 0-ra állítás kikapcsolja a darabolt letöltéseket."
   },
   "colors": {
     "red": "piros",
@@ -782,7 +802,16 @@
       "browseFullLibrary": "Teljes ikonkönyvtár böngészése"
     },
     "toolNotFound": "Eszköz nem található",
-    "backToTools": "Vissza az Eszközökhöz"
+    "backToTools": "Vissza az Eszközökhöz",
+    "fileWatcher": {
+      "name": "Fájl figyelő",
+      "description": "Fájlok figyelése és követése valós időben a késleltetés figyelésével",
+      "file": "Fájl{suffix}",
+      "interval": "Frissítési időköz",
+      "stopWatching": "Stop Watching",
+      "emptyState": "Válasszon ki egy fájlt, és kattintson a lejátszásra a fájlváltozások megfigyelésének megkezdéséhez.",
+      "chooseFile": "Válasszon egy fájlt"
+    }
   },
   "messages": {
     "pathNotFound": "Az elérési útvonal nem létezik a fájlrendszerben",

@@ -4,7 +4,7 @@
   </div>
 
   <div class="card-content">
-    <file-list ref="fileList" @update:selected="updateSelection" :browseSource="currentSource">
+    <file-list ref="fileList" @update:selected="updateSelection" :browseSource="currentSource" :showFiles="showFiles" :showFolders="showFolders">
     </file-list>
   </div>
 
@@ -36,6 +36,14 @@ export default {
     currentSource: {
       type: String,
       default: "",
+    },
+    showFiles: {
+      type: Boolean,
+      default: false,
+    },
+    showFolders: {
+      type: Boolean,
+      default: true,
     },
   },
   data() {

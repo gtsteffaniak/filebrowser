@@ -71,9 +71,9 @@ test("2x copy from listing to new folder", async({ page, checkForErrors, context
   await expect(page.locator('.selected-count-header')).toHaveText('1');
   await page.locator('button[aria-label="Copy file"]').click();
   await expect(page.locator('div[aria-label="filelist-path"]')).toHaveText('Path: /');
-  await expect(page.locator('li[aria-selected="true"]')).toHaveCount(0);
-  await page.locator('li[aria-label="myfolder"]').click();
-  await expect(page.locator('li[aria-selected="true"]')).toHaveCount(1);
+  await expect(page.locator('div[aria-label="copy-prompt"] .listing-item[aria-selected="true"]')).toHaveCount(0);
+  await page.locator('div[aria-label="copy-prompt"] .listing-item[aria-label="myfolder"]').click();
+  await expect(page.locator('div[aria-label="copy-prompt"] .listing-item[aria-selected="true"]')).toHaveCount(1);
   await page.locator('button[aria-label="Copy"]').click();
   await checkForNotification(page, "Files copied successfully!");
   await page.goto("/files/playwright%20%2B%20files/myfolder/");
@@ -82,8 +82,8 @@ test("2x copy from listing to new folder", async({ page, checkForErrors, context
   await page.locator('a[aria-label="copyme.txt"]').waitFor({ state: 'visible' });
 
   // create new directory
-  // Ensure #listingView is visible
-  await page.locator('#listingView').click({ button: "right" });
+  // Ensure .listing-items is visible
+  await page.locator('.listing-items').click({ button: "right" });
   await page.locator('button[aria-label="New folder"]').waitFor({ state: 'visible' });
   await page.locator('button[aria-label="New folder"]').click();
   await page.locator('input[aria-label="New Folder Name"]').waitFor({ state: 'visible' });
@@ -101,11 +101,48 @@ test("2x copy from listing to new folder", async({ page, checkForErrors, context
   await expect(page.locator('.selected-count-header')).toHaveText('1');
   await page.locator('button[aria-label="Copy file"]').click();
   await expect(page.locator('div[aria-label="filelist-path"]')).toHaveText('Path: /myfolder/');
-  await page.locator('li[aria-label="newfolder"]').click();
+  await page.locator('div[aria-label="copy-prompt"] .listing-item[aria-label="newfolder"]').click();
   await page.locator('button[aria-label="Copy"]').click();
   await checkForNotification(page, "Files copied successfully!");
   await page.goto("/files/playwright%20%2B%20files/myfolder/newfolder/");
   await expect(page).toHaveTitle(/.* - newfolder/);
+  checkForErrors();
+})
+
+test("copy 'text-files' to 'folder#hash' verify folder size is updated", async({ page, checkForErrors, openContextMenu, context }) => {
+  await page.goto("/files/");
+  await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
+  
+  // Find folder#hash and get its size before copy
+  await page.locator('a[aria-label="folder#hash"]').waitFor({ state: 'visible' });
+  const folderHashLink = page.locator('a[aria-label="folder#hash"]');
+  const textFilesLink = page.locator('a[aria-label="text-files"]');
+  const textFilesSizeBefore = await textFilesLink.locator('.size').textContent();
+  const folderHashSizeBefore = await folderHashLink.locator('.size').textContent();
+  
+  // Copy myfotext-filesder
+  await textFilesLink.click({ button: "right" });
+  await page.locator('.selected-count-header').waitFor({ state: 'visible' });
+  await expect(page.locator('.selected-count-header')).toHaveText('1');
+  await page.locator('button[aria-label="Copy file"]').click();
+  await expect(page.locator('div[aria-label="filelist-path"]')).toHaveText('Path: /');
+  await page.locator('div[aria-label="copy-prompt"] .listing-item[aria-label="folder#hash"]').click();
+  await page.locator('button[aria-label="Copy"]').click();
+  await checkForNotification(page, "Files copied successfully!");
+  await page.locator('.notification-buttons .button').waitFor({ state: 'visible' });
+  await page.locator('.notification-buttons .button').click();
+
+  // verify folder size is updated
+  const folderSizeAfter = await textFilesLink.locator('.size').textContent();
+  expect(folderSizeAfter).not.toBe("0.0 bytes");
+  expect(folderSizeAfter).toBe(textFilesSizeBefore);
+
+  // Go back to root and verify the copied folder has a non-zero size
+  await page.goto("/files/");
+  await page.locator('a[aria-label="folder#hash"]').waitFor({ state: 'visible' });
+  const copiedFolderSize = await page.locator('a[aria-label="folder#hash"]').locator('.size').textContent();
+  expect(copiedFolderSize).not.toBe("0.0 bytes");
+  expect(copiedFolderSize).not.toBe(folderHashSizeBefore);
   checkForErrors();
 })
 
@@ -117,8 +154,7 @@ test("delete file", async({ page, checkForErrors, context }) => {
   await page.locator('.selected-count-header').waitFor({ state: 'visible' });
   await expect(page.locator('.selected-count-header')).toHaveText('1');
   await page.locator('button[aria-label="Delete"]').click();
-  await expect( page.locator('.card-content')).toHaveText('Are you sure you want to delete this file/folder?/deleteme.txt');
-  await expect(page.locator('div[aria-label="delete-path"]')).toHaveText('/deleteme.txt');
+  await expect( page.locator('.card-content')).toContainText('/deleteme.txt');
   await page.locator('button[aria-label="Confirm-Delete"]').click();
   await checkForNotification(page, "Deleted successfully!");
   checkForErrors();
@@ -132,7 +168,6 @@ test("delete nested file prompt", async({ page, checkForErrors, context }) => {
   await page.locator('.selected-count-header').waitFor({ state: 'visible' });
   await expect(page.locator('.selected-count-header')).toHaveText('1');
   await page.locator('button[aria-label="Delete"]').click();
-  await expect(page.locator('.card-content')).toHaveText('Are you sure you want to delete this file/folder?/folder#hash/file#.sh');
-  await expect(page.locator('div[aria-label="delete-path"]')).toHaveText('/folder#hash/file#.sh');
+  await expect(page.locator('.card-content')).toContainText('/folder#hash/file#.sh');
   checkForErrors();
 })

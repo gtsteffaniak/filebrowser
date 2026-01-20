@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"net/url"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -16,7 +15,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
-	"github.com/gtsteffaniak/filebrowser/backend/database/access"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 	"github.com/gtsteffaniak/filebrowser/backend/preview"
@@ -62,30 +60,29 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	}
 	path := r.URL.Query().Get("path")
 	source := r.URL.Query().Get("source")
-	var err error
-	// decode url encoded source name
-	source, err = url.PathUnescape(source)
-	if err != nil {
-		return http.StatusBadRequest, fmt.Errorf("invalid source encoding: %v", err)
-	}
 	if path == "" {
 		return http.StatusBadRequest, fmt.Errorf("invalid request path")
 	}
-	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, source)
-	if err != nil {
-		return http.StatusForbidden, err
+	if source == "" {
+		return http.StatusBadRequest, fmt.Errorf("source is required")
 	}
 	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
-		Username: d.user.Username,
-		Path:     utils.JoinPathAsUnix(userscope, path),
+		Path:     path,
 		Source:   source,
 		AlbumArt: true, // Extract album art for audio previews
-	}, store.Access)
+		Expand:   true,
+	}, store.Access, d.user)
 	if err != nil {
+		logger.Errorf("error getting file info: %v", err)
 		return errToStatus(err), err
 	}
 	d.fileInfo = *fileInfo
-	return previewHelperFunc(w, r, d)
+	status, err := previewHelperFunc(w, r, d)
+	if err != nil {
+		logger.Errorf("error getting preview: %v", err)
+		return errToStatus(err), err
+	}
+	return status, nil
 }
 
 func rawFileHandler(w http.ResponseWriter, r *http.Request, file iteminfo.ExtendedFileInfo) (int, error) {
@@ -93,8 +90,7 @@ func rawFileHandler(w http.ResponseWriter, r *http.Request, file iteminfo.Extend
 	if idx == nil {
 		return http.StatusNotFound, fmt.Errorf("source not found: %s", file.Source)
 	}
-	realPath, _, _ := idx.GetRealPath(file.Path)
-	fd, err := os.Open(realPath)
+	fd, err := os.Open(file.RealPath)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -108,48 +104,37 @@ func rawFileHandler(w http.ResponseWriter, r *http.Request, file iteminfo.Extend
 }
 
 // getDirectoryPreview finds a valid preview file within a directory.
-// It iterates through files, checking if they should bubble up to folder previews,
-// and returns the first valid, non-corrupted file suitable for preview.
-func getDirectoryPreview(r *http.Request, d *requestContext, accessStore *access.Storage) (*iteminfo.ExtendedFileInfo, error) {
+func getDirectoryPreview(r *http.Request, d *requestContext) (*iteminfo.ExtendedFileInfo, error) {
 	var lastErr error
-
 	for _, item := range d.fileInfo.Files {
-		// Only use files that should bubble up to folder previews (images, videos, audio)
-		// Exclude text files, office documents, and PDFs
 		if !item.HasPreview || !iteminfo.ShouldBubbleUpToFolderPreview(item.ItemInfo) {
 			continue
 		}
-
 		source := d.fileInfo.Source
 		path := utils.JoinPathAsUnix(d.fileInfo.Path, item.Name)
-
 		if d.share != nil {
-			// Get the actual source name from the share's source mapping
 			sourceInfo, ok := settings.Config.Server.SourceMap[d.share.Source]
 			if !ok {
 				return nil, fmt.Errorf("source not found for share")
 			}
 			source = sourceInfo.Name
-			path = utils.JoinPathAsUnix(d.share.Path, path)
+			path = d.IndexPath + item.Name
 		}
-
 		fileInfo, err := files.FileInfoFaster(
 			utils.FileOptions{
-				Username: d.user.Username,
 				Path:     path,
 				Source:   source,
 				AlbumArt: true, // Extract album art for audio previews
-			}, accessStore)
+				Metadata: true,
+			}, store.Access, d.user)
 		if err != nil {
 			lastErr = err
 			continue // Try next file if this one fails
 		}
-
 		// Try to generate preview to verify the file is not corrupted
 		tempCtx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
 		_, previewErr := preview.GetPreviewForFile(tempCtx, *fileInfo, "small", "", 0)
 		cancel()
-
 		if previewErr != nil {
 			// Skip context errors (timeout or cancellation) - they're not corruption issues
 			if !errors.Is(previewErr, context.Canceled) && !errors.Is(previewErr, context.DeadlineExceeded) {
@@ -164,11 +149,8 @@ func getDirectoryPreview(r *http.Request, d *requestContext, accessStore *access
 			lastErr = previewErr
 			continue
 		}
-
-		// Success! Use this file for the directory preview
 		return fileInfo, nil
 	}
-
 	// If we exhausted all files and none worked, return the last error
 	if lastErr != nil {
 		return nil, fmt.Errorf("no valid preview files found in directory: %w", lastErr)
@@ -185,14 +167,12 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 	if !d.fileInfo.HasPreview {
 		return http.StatusBadRequest, fmt.Errorf("this item does not have a preview")
 	}
-	accessStore := store.Access
-	if d.share != nil {
-		accessStore = nil
-	}
+
 	if d.fileInfo.Type == "directory" {
 		// Get extended file info of first previewable item in directory
-		fileInfo, err := getDirectoryPreview(r, d, accessStore)
+		fileInfo, err := getDirectoryPreview(r, d)
 		if err != nil {
+			logger.Errorf("error getting directory preview: %v", err)
 			return http.StatusInternalServerError, err
 		}
 		d.fileInfo = *fileInfo

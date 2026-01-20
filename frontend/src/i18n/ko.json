@@ -30,7 +30,8 @@
     "saveAndExit": "저장 및 종료",
     "keepEditing": "계속 편집",
     "closeAnyway": "어쨌든 닫기",
-    "goToItem": "항목으로 이동"
+    "goToItem": "항목으로 이동",
+    "watchFile": "파일 보기"
   },
   "download": {
     "downloadFile": "파일 다운로드",
@@ -48,7 +49,6 @@
   "files": {
     "closePreview": "미리보기 닫기",
     "lastModified": "최종 수정",
-    "lonely": "폴더가 비어 있습니다...",
     "multipleSelectionEnabled": "다중 선택 켜짐",
     "sortByLastModified": "수정시간순 정렬",
     "sortByName": "이름순",
@@ -61,7 +61,10 @@
     "newFile": "새 파일{suffix}",
     "newFolder": "새 폴더{suffix}",
     "duration": "기간{suffix}",
-    "sortByDuration": "기간별로 정렬"
+    "sortByDuration": "기간별로 정렬",
+    "sameFolder": "같은 폴더로 이동할 수 없습니다",
+    "cannotAccesDir": "디렉토리에 액세스할 수 없습니다",
+    "lonely": "여기에 표시할 내용이 없습니다..."
   },
   "help": {
     "functionKeys": "기능 키",
@@ -217,7 +220,10 @@
     "renameSuccess": "아이템 이름 변경에 성공했습니다!",
     "newFileSuccess": "파일이 성공적으로 생성되었습니다!",
     "newDirSuccess": "디렉토리가 성공적으로 생성되었습니다!",
-    "copyToClipboardFailed": "클립보드에 복사할 수 없습니다."
+    "copyToClipboardFailed": "클립보드에 복사할 수 없습니다.",
+    "moveFailed": "이동 실패",
+    "operationFailed": "작업 실패",
+    "partialSuccess": "일부 작업 실패: {succeeded} 성공, {failed} 실패"
   },
   "search": {
     "smallerThan": "보다 작습니다:",
@@ -444,10 +450,16 @@
     "customizeSidebarLinksButton": "링크 사용자 지정",
     "shareInfo": "QR코드 및 정보 공유",
     "shareInfoDescription": "이 링크는 제목, 설명, 배너 및 QR 코드를 포함한 공유의 정보를 팝업으로 표시합니다.",
-    "downloadDescription": "이 링크를 통해 전체 공유 콘텐츠를 압축 파일로 다운로드할 수 있습니다."
+    "downloadDescription": "이 링크를 통해 전체 공유 콘텐츠를 압축 파일로 다운로드할 수 있습니다.",
+    "disableLoginOption": "로그인 숨기기 옵션",
+    "disableLoginOptionDescription": "익명 사용자를 위해 사이드바에서 로그인 버튼을 숨깁니다. 이 옵션을 활성화하면 익명 사용자에게는 로그인 옵션이 표시되지 않습니다.",
+    "browseFiles": "파일 찾아보기",
+    "selectBannerImage": "배너 이미지 선택",
+    "selectFaviconImage": "파비콘 이미지 선택",
+    "selectImage": "이미지 선택"
   },
   "api": {
-    "title": "API 키:",
+    "title": "API 키",
     "createdAt": "만든 곳:",
     "expiresAt": "만료일:",
     "permissions": "권한:",
@@ -606,7 +618,13 @@
     "uploading": "업로드{suffix}",
     "paused": "일시 중지됨{suffix}",
     "conflict": "충돌{suffix}",
-    "change": "변경{suffix}"
+    "change": "변경{suffix}",
+    "output": "출력{suffix}",
+    "watching": "시청 중{suffix}",
+    "lines": "라인{suffix}",
+    "lastUpdate": "최근 업데이트{suffix}",
+    "latency": "지연 시간{suffix}",
+    "all": "모두{suffix}"
   },
   "access": {
     "rules": "액세스 규칙",
@@ -639,7 +657,9 @@
     "uploadChunkSizeMbHelp": "일반적으로 5~50MB이며, 연결이 불안정하거나 제한적인 경우에는 이보다 작을수록 좋습니다. 0으로 설정하면 업로드 청킹이 비활성화됩니다.",
     "clearAll": "완료를 지우면 오류, 일시 중지 및 충돌이 제거됩니다.",
     "clearAllDescription": "완료 지우기 버튼은 오류, 일시 중지, 충돌 상태를 포함하여 완료된 상태의 모든 업로드를 지웁니다.",
-    "uploadSettings": "업로드 설정"
+    "uploadSettings": "업로드 설정",
+    "downloadChunkSizeMb": "다운로드 청크 크기(MB)",
+    "downloadChunkSizeMbHelp": "청크 다운로드를 위한 청크 크기. 이 크기보다 큰 파일은 시간 초과 문제(예: Cloudflare 524 오류)를 방지하기 위해 청크 단위로 다운로드됩니다. 0으로 설정하면 청크 다운로드가 비활성화됩니다."
   },
   "colors": {
     "red": "빨간색",
@@ -782,7 +802,16 @@
       "browseFullLibrary": "전체 아이콘 라이브러리 찾아보기"
     },
     "toolNotFound": "도구를 찾을 수 없습니다.",
-    "backToTools": "도구로 돌아가기"
+    "backToTools": "도구로 돌아가기",
+    "fileWatcher": {
+      "name": "파일 감시자",
+      "description": "지연 시간 모니터링으로 실시간 파일 감시 및 추적",
+      "file": "파일{suffix}",
+      "interval": "업데이트 간격",
+      "stopWatching": "시청 중지",
+      "emptyState": "파일을 선택하고 재생을 클릭하여 파일 변경 사항 모니터링을 시작하세요.",
+      "chooseFile": "파일 선택"
+    }
   },
   "messages": {
     "pathNotFound": "파일 시스템에 경로가 없습니다.",

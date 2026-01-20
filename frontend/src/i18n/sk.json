@@ -30,7 +30,8 @@
     "saveAndExit": "Uložiť a ukončiť",
     "keepEditing": "Pokračujte v úpravách",
     "closeAnyway": "Zavrieť Tak či onak",
-    "goToItem": "Prejsť na položku"
+    "goToItem": "Prejsť na položku",
+    "watchFile": "Sledovať súbor"
   },
   "download": {
     "downloadFile": "Stiahnuť súbor",
@@ -48,7 +49,6 @@
   "files": {
     "closePreview": "Zavrieť náhľad",
     "lastModified": "Posledná zmena",
-    "lonely": "Je tu tak pusto...",
     "multipleSelectionEnabled": "Zapnutý viacnásobný výber",
     "sortByLastModified": "Zoradiť podľa dátumu",
     "sortByName": "Zoradiť podľa názvu",
@@ -61,7 +61,10 @@
     "newFile": "Nový súbor{suffix}",
     "newFolder": "Nový priečinok{suffix}",
     "duration": "Trvanie{suffix}",
-    "sortByDuration": "Zoradiť podľa trvania"
+    "sortByDuration": "Zoradiť podľa trvania",
+    "sameFolder": "Nie je možné presunúť do toho istého priečinka",
+    "cannotAccesDir": "Nie je možné pristúpiť k priečinku",
+    "lonely": "Tu nie je čo ukázať..."
   },
   "help": {
     "functionKeys": "Funkčné Klávesy",
@@ -217,7 +220,10 @@
     "renameSuccess": "Položka bola úspešne premenovaná!",
     "newFileSuccess": "Súbor bol úspešne vytvorený!",
     "newDirSuccess": "Adresár bol úspešne vytvorený!",
-    "copyToClipboardFailed": "Nemožnosť kopírovania do schránky"
+    "copyToClipboardFailed": "Nemožnosť kopírovania do schránky",
+    "moveFailed": "Presun zlyhal",
+    "operationFailed": "Operácia zlyhala",
+    "partialSuccess": "Niektoré operácie zlyhali: {succeeded} sa podarilo, {failed} sa nepodarilo"
   },
   "search": {
     "smallerThan": "Menšie ako:",
@@ -444,10 +450,16 @@
     "customizeSidebarLinksButton": "Prispôsobenie odkazov",
     "shareInfo": "Zdieľanie kódu QR a informácií",
     "shareInfoDescription": "Toto prepojenie zobrazí informácie o zdieľaní vrátane názvu, opisu, banneru a QR kódu vo vyskakovacom okne.",
-    "downloadDescription": "Toto prepojenie umožňuje stiahnuť celý obsah zdieľania ako komprimovaný súbor."
+    "downloadDescription": "Toto prepojenie umožňuje stiahnuť celý obsah zdieľania ako komprimovaný súbor.",
+    "disableLoginOption": "Skryť možnosť prihlásenia",
+    "disableLoginOptionDescription": "Skryť tlačidlo na prihlásenie v bočnom paneli pre anonymných používateľov. Ak je táto možnosť zapnutá, anonymní používatelia neuvidia možnosť prihlásiť sa.",
+    "browseFiles": "Prehľadávanie súborov",
+    "selectBannerImage": "Vyberte obrázok bannera",
+    "selectFaviconImage": "Vyberte obrázok favicon",
+    "selectImage": "Vybrať obrázok"
   },
   "api": {
-    "title": "Kľúče API:",
+    "title": "Kľúče API",
     "createdAt": "Vytvorené v:",
     "expiresAt": "Platnosť končí na:",
     "permissions": "Oprávnenia:",
@@ -606,7 +618,13 @@
     "uploading": "Nahrávanie{suffix}",
     "paused": "Pozastavenie{suffix}",
     "conflict": "Konflikt{suffix}",
-    "change": "Zmena{suffix}"
+    "change": "Zmena{suffix}",
+    "output": "Výstup{suffix}",
+    "watching": "Sledovanie{suffix}",
+    "lines": "Riadky{suffix}",
+    "lastUpdate": "Posledná aktualizácia{suffix}",
+    "latency": "Latencia{suffix}",
+    "all": "Všetky{suffix}"
   },
   "access": {
     "rules": "Pravidlá prístupu",
@@ -639,7 +657,9 @@
     "uploadChunkSizeMbHelp": "Zvyčajne 5 až 50 MB, v prípade nestabilných alebo obmedzených pripojení je vhodnejšie použiť menšiu veľkosť. Nastavením na hodnotu 0 sa vypne zoskupovanie pri odosielaní.",
     "clearAll": "Vymazanie dokončenia by malo odstrániť chybu, pauzu a konflikt",
     "clearAllDescription": "Tlačidlo Vymazať dokončené vymaže všetky odoslania v stave dokončenia vrátane chybových, pozastavených a konfliktných stavov.",
-    "uploadSettings": "Nastavenia nahrávania"
+    "uploadSettings": "Nastavenia nahrávania",
+    "downloadChunkSizeMb": "Veľkosť preberaného úseku v MB",
+    "downloadChunkSizeMbHelp": "Veľkosť časti pre sťahovanie v častiach. Súbory väčšie ako táto veľkosť sa budú sťahovať po častiach, aby sa zabránilo problémom s časovým limitom (napr. chybám Cloudflare 524). Nastavenie na hodnotu 0 vypne sťahovanie v častiach."
   },
   "colors": {
     "red": "červená",
@@ -782,7 +802,16 @@
       "browseFullLibrary": "Prehľadávať celú knižnicu ikon"
     },
     "toolNotFound": "Nástroj nebol nájdený",
-    "backToTools": "Späť na Nástroje"
+    "backToTools": "Späť na Nástroje",
+    "fileWatcher": {
+      "name": "Sledovanie súborov",
+      "description": "Sledovanie súborov v reálnom čase s monitorovaním latencie",
+      "file": "Súbor{suffix}",
+      "interval": "Interval aktualizácie",
+      "stopWatching": "Prestaňte sa pozerať",
+      "emptyState": "Vyberte súbor a kliknite na tlačidlo prehrávania, aby ste začali sledovať zmeny v súbore",
+      "chooseFile": "Výber súboru"
+    }
   },
   "messages": {
     "pathNotFound": "Cesta neexistuje v súborovom systéme",

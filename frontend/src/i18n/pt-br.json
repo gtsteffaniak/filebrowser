@@ -30,7 +30,8 @@
     "saveAndExit": "Salvar e sair",
     "keepEditing": "Continuar editando",
     "closeAnyway": "Fechar de qualquer maneira",
-    "goToItem": "Ir para o item"
+    "goToItem": "Ir para o item",
+    "watchFile": "Assista ao arquivo"
   },
   "download": {
     "downloadFile": "Baixar arquivo",
@@ -48,7 +49,6 @@
   "files": {
     "closePreview": "Fechar pré-visualização",
     "lastModified": "Última modificação",
-    "lonely": "Não existe nada aqui.",
     "multipleSelectionEnabled": "Seleção múltipla ativada",
     "sortByLastModified": "Ordenar pela última modificação",
     "sortByName": "Ordenar pelo nome",
@@ -61,7 +61,10 @@
     "newFile": "Novo arquivo{suffix}",
     "newFolder": "Nova pasta{suffix}",
     "duration": "Duração{suffix}",
-    "sortByDuration": "Ordenar por duração"
+    "sortByDuration": "Ordenar por duração",
+    "sameFolder": "Não é possível mover para a mesma pasta",
+    "cannotAccesDir": "Não é possível acessar o diretório",
+    "lonely": "Nada para mostrar aqui..."
   },
   "help": {
     "functionKeys": "Teclas de Função",
@@ -217,7 +220,10 @@
     "renameSuccess": "Item renomeado com sucesso!",
     "newFileSuccess": "Arquivo criado com sucesso!",
     "newDirSuccess": "Diretório criado com sucesso!",
-    "copyToClipboardFailed": "Não é possível copiar para a área de transferência"
+    "copyToClipboardFailed": "Não é possível copiar para a área de transferência",
+    "moveFailed": "Falha ao mover",
+    "operationFailed": "Falha na operação",
+    "partialSuccess": "Algumas operações falharam: {succeeded} foi bem-sucedido, {failed} falhou"
   },
   "search": {
     "smallerThan": "Menor que:",
@@ -444,10 +450,16 @@
     "customizeSidebarLinksButton": "Personalizar links",
     "shareInfo": "Compartilhar código QR e informações",
     "shareInfoDescription": "Esse link exibe as informações do compartilhamento, incluindo título, descrição, banner e código QR em um pop-up.",
-    "downloadDescription": "Esse link permite o download de todo o conteúdo do compartilhamento como um arquivo compactado."
+    "downloadDescription": "Esse link permite o download de todo o conteúdo do compartilhamento como um arquivo compactado.",
+    "disableLoginOption": "Ocultar a opção de login",
+    "disableLoginOptionDescription": "Oculte o botão de login na barra lateral para usuários anônimos. Quando ativado, os usuários anônimos não verão a opção de fazer login.",
+    "browseFiles": "Procurar arquivos",
+    "selectBannerImage": "Selecione a imagem do banner",
+    "selectFaviconImage": "Selecione a imagem do favicon",
+    "selectImage": "Selecionar imagem"
   },
   "api": {
-    "title": "Chaves de API:",
+    "title": "Chaves de API",
     "createdAt": "Criado em:",
     "expiresAt": "Expira em:",
     "permissions": "Permissões:",
@@ -606,7 +618,13 @@
     "uploading": "Carregamento{suffix}",
     "paused": "Em pausa{suffix}",
     "conflict": "Conflito{suffix}",
-    "change": "Mudança{suffix}"
+    "change": "Mudança{suffix}",
+    "output": "Saída{suffix}",
+    "watching": "Observando{suffix}",
+    "lines": "Linhas{suffix}",
+    "lastUpdate": "Última atualização{suffix}",
+    "latency": "Latência{suffix}",
+    "all": "Todos{suffix}"
   },
   "access": {
     "rules": "Regras de acesso",
@@ -639,7 +657,9 @@
     "uploadChunkSizeMbHelp": "Normalmente, de 5 a 50 MB; quanto menor, melhor para conexões instáveis ou restritas. A configuração como 0 desabilitará o chunking de upload.",
     "clearAll": "O Clear completed deve remover erros, pausas e conflitos",
     "clearAllDescription": "O botão limpar concluído limpará todos os uploads em um estado concluído, inclusive os estados de erro, pausa e conflito.",
-    "uploadSettings": "Configurações de upload"
+    "uploadSettings": "Configurações de upload",
+    "downloadChunkSizeMb": "Tamanho do bloco de download em MB",
+    "downloadChunkSizeMbHelp": "Tamanho do bloco para downloads em blocos. Arquivos maiores que esse tamanho serão baixados em partes para evitar problemas de tempo limite (por exemplo, erros 524 do Cloudflare). A configuração como 0 desativa os downloads em blocos."
   },
   "colors": {
     "red": "vermelho",
@@ -782,7 +802,16 @@
       "browseFullLibrary": "Navegue pela biblioteca completa de ícones"
     },
     "toolNotFound": "Ferramenta não encontrada",
-    "backToTools": "Voltar para Ferramentas"
+    "backToTools": "Voltar para Ferramentas",
+    "fileWatcher": {
+      "name": "Observador de arquivos",
+      "description": "Assista e acompanhe arquivos em tempo real com monitoramento de latência",
+      "file": "Arquivo{suffix}",
+      "interval": "Intervalo de atualização",
+      "stopWatching": "Parar de assistir",
+      "emptyState": "Escolha um arquivo e clique em reproduzir para começar a monitorar as alterações no arquivo",
+      "chooseFile": "Escolha um arquivo"
+    }
   },
   "messages": {
     "pathNotFound": "O caminho não existe no sistema de arquivos",

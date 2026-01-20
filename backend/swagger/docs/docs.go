@@ -992,7 +992,7 @@ const docTemplate = `{
         },
         "/api/duplicates": {
             "get": {
-                "description": "Finds duplicate files based on size and fuzzy filename matching",
+                "description": "Finds duplicate files using multi-stage filtering: size → type → fuzzy filename → progressive checksums. Files must match on size, MIME type, and have 50%+ filename similarity before checksum verification. Large fuzzy groups (\u003e10 files) are skipped to avoid false positives. Checksums use 2-pass progressive verification (header → middle) for accuracy while minimizing disk I/O (~16KB read per file).",
                 "consumes": [
                     "application/json"
                 ],
@@ -1026,16 +1026,22 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "List of duplicate file groups",
+                        "description": "List of duplicate file groups with metadata. Response includes 'incomplete' flag if processing stopped early due to resource limits.",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/http.duplicateGroup"
-                            }
+                            "$ref": "#/definitions/http.duplicateResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "Service Unavailable (indexing in progress or another search running)",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -1272,7 +1278,7 @@ const docTemplate = `{
         },
         "/api/raw": {
             "get": {
-                "description": "Returns the raw content of a file, multiple files, or a directory. Supports downloading files as archives in various formats.\n\n**Filename Encoding:**\n- The Content-Disposition header will always include both:\n1. ` + "`" + `filename=\"...\"` + "`" + `: An ASCII-safe version of the filename for compatibility.\n2. ` + "`" + `filename*=utf-8”...` + "`" + `: The full UTF-8 encoded filename (RFC 6266/5987) for modern clients.",
+                "description": "Returns the raw content of a file, multiple files, or a directory. Supports downloading files as archives in various formats.\n\n**Filename Encoding:**\n- The Content-Disposition header will always include both:\n1. ` + "`" + `filename=\"...\"` + "`" + `: An ASCII-safe version of the filename for compatibility.\n2. ` + "`" + `filename*=utf-8\"...` + "`" + `: The full UTF-8 encoded filename (RFC 6266/5987) for modern clients.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1283,7 +1289,14 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "a list of files in the following format 'source::filename' and separated by '||' with additional items in the list. (required)",
+                        "description": "Source name for the files (required)",
+                        "name": "source",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Comma-separated list of file paths (required)",
                         "name": "files",
                         "in": "query",
                         "required": true
@@ -1420,6 +1433,12 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Include file content if true",
                         "name": "content",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Extract audio/video metadata if true",
+                        "name": "metadata",
                         "in": "query"
                     },
                     {
@@ -1670,7 +1689,7 @@ const docTemplate = `{
                 }
             },
             "patch": {
-                "description": "Moves or renames a resource to a new destination.",
+                "description": "Performs move, copy, or rename operations on multiple resources. All operations are performed atomically.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1680,45 +1699,39 @@ const docTemplate = `{
                 "tags": [
                     "Resources"
                 ],
-                "summary": "Patch resource (move/rename)",
+                "summary": "Move, copy, or rename resources",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "Path from resource in \u003csource_name\u003e::\u003cindex_path\u003e format",
-                        "name": "from",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Destination path for the resource",
-                        "name": "destination",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Action to perform (copy, rename)",
-                        "name": "action",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "boolean",
-                        "description": "Overwrite if destination exists",
-                        "name": "overwrite",
-                        "in": "query"
-                    },
-                    {
-                        "type": "boolean",
-                        "description": "Rename if destination exists",
-                        "name": "rename",
-                        "in": "query"
+                        "description": "Move/copy request with items and action",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.MoveCopyRequest"
+                        }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Resource moved/renamed successfully"
+                        "description": "All operations completed successfully",
+                        "schema": {
+                            "$ref": "#/definitions/http.MoveCopyResponse"
+                        }
+                    },
+                    "207": {
+                        "description": "Partial success - some operations succeeded, some failed",
+                        "schema": {
+                            "$ref": "#/definitions/http.MoveCopyResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - invalid JSON or parameters",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
                     },
                     "403": {
                         "description": "Forbidden",
@@ -1738,8 +1751,66 @@ const docTemplate = `{
                             }
                         }
                     },
-                    "409": {
-                        "description": "Conflict - Destination exists",
+                    "500": {
+                        "description": "All operations failed",
+                        "schema": {
+                            "$ref": "#/definitions/http.MoveCopyResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/resources/bulk/delete": {
+            "post": {
+                "description": "Deletes multiple resources specified in the request body. Returns a list of succeeded and failed deletions.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Resources"
+                ],
+                "summary": "Bulk delete resources",
+                "parameters": [
+                    {
+                        "description": "Array of items to delete, each with source and path",
+                        "name": "items",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/http.BulkDeleteItem"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "All resources deleted successfully",
+                        "schema": {
+                            "$ref": "#/definitions/http.BulkDeleteResponse"
+                        }
+                    },
+                    "207": {
+                        "description": "Partial success - some resources deleted, some failed",
+                        "schema": {
+                            "$ref": "#/definitions/http.BulkDeleteResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - invalid JSON or empty items array",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -1748,7 +1819,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Internal server error - all deletions failed",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -1761,7 +1832,7 @@ const docTemplate = `{
         },
         "/api/search": {
             "get": {
-                "description": "Searches for files matching the provided query. Returns file paths and metadata based on the user's session and scope.",
+                "description": "Searches for files matching the provided query. Returns file paths and metadata based on the user's session and scope. Supports searching across multiple sources when using the 'sources' parameter.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1782,14 +1853,19 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Source name for the desired source",
+                        "description": "Source name for the desired source (deprecated, use 'sources' instead)",
                         "name": "source",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "path within user scope to search, for example '/first/second' to search within the second directory only",
+                        "description": "Comma-separated list of source names to search across multiple sources. When multiple sources are specified, scope is always the user's scope for each source.",
+                        "name": "sources",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "path within user scope to search, for example '/first/second' to search within the second directory only. Ignored when multiple sources are specified.",
                         "name": "scope",
                         "in": "query"
                     },
@@ -1802,7 +1878,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "List of search results",
+                        "description": "List of search results with source field populated",
                         "schema": {
                             "type": "array",
                             "items": {
@@ -2213,6 +2289,162 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/tools/watch": {
+            "get": {
+                "description": "Returns the last N lines of a file",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tools"
+                ],
+                "summary": "Watch a file",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Path to the file",
+                        "name": "path",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Source name",
+                        "name": "source",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of lines to read (default: 10, max: 50)",
+                        "name": "lines",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Return minimal response for latency checking",
+                        "name": "latencyCheck",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/http.fileWatchResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Permission denied",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "File not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/tools/watch/sse": {
+            "get": {
+                "description": "Establishes an SSE connection to receive periodic file updates",
+                "tags": [
+                    "Tools"
+                ],
+                "summary": "Watch a file via SSE",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Path to the file",
+                        "name": "path",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Source name",
+                        "name": "source",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of lines to read (default: 10, max: 50)",
+                        "name": "lines",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Update interval in seconds (1, 2, 5, 10, 15, or 30, requires realtime permission for SSE)",
+                        "name": "interval",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "SSE stream"
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Permission denied",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "File not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/users": {
             "get": {
                 "description": "Returns a user's details based on their ID, or all users if no id is provided.",
@@ -2558,7 +2790,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Files to download in format: 'source::path||source::path'. Example: '/file1||/folder/file2'",
+                        "description": "Comma-separated list of file paths. Example: 'file1.txt,folder/file2.txt'",
                         "name": "files",
                         "in": "query",
                         "required": true
@@ -2656,6 +2888,18 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Path within the share to retrieve information for. Defaults to share root.",
                         "name": "path",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Include file content if true",
+                        "name": "content",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Extract audio/video metadata if true",
+                        "name": "metadata",
                         "in": "query"
                     }
                 ],
@@ -2901,6 +3145,229 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "patch": {
+                "description": "Performs move, copy, or rename operations on multiple resources within a public share. All operations are performed atomically.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Shares"
+                ],
+                "summary": "Move, copy, or rename resources in a public share",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Share hash for authentication",
+                        "name": "hash",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "description": "Move/copy request with items and action",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.MoveCopyRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "All operations completed successfully",
+                        "schema": {
+                            "$ref": "#/definitions/http.MoveCopyResponse"
+                        }
+                    },
+                    "207": {
+                        "description": "Partial success - some operations succeeded, some failed",
+                        "schema": {
+                            "$ref": "#/definitions/http.MoveCopyResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - invalid JSON or parameters",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - modify not allowed for this share",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Share or resource not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/http.MoveCopyResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/public/api/resources/bulk/delete": {
+            "post": {
+                "description": "Deletes multiple resources specified in the request body. Returns a list of succeeded and failed deletions.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Shares"
+                ],
+                "summary": "Bulk delete resources from public share",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Share hash for authentication",
+                        "name": "hash",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "description": "Array of items to delete, each with source and path",
+                        "name": "items",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/http.BulkDeleteItem"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "All resources deleted successfully",
+                        "schema": {
+                            "$ref": "#/definitions/http.BulkDeleteResponse"
+                        }
+                    },
+                    "207": {
+                        "description": "Partial success - some resources deleted, some failed",
+                        "schema": {
+                            "$ref": "#/definitions/http.BulkDeleteResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - invalid JSON or empty items array",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - delete not allowed for this share",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error - all deletions failed",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/public/api/share/image": {
+            "get": {
+                "description": "Serves the banner or favicon file for a share",
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "Public Shares"
+                ],
+                "summary": "Get share image (banner or favicon)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Share hash",
+                        "name": "hash",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Request banner file",
+                        "name": "banner",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Request favicon file",
+                        "name": "favicon",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Image file content",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Permission denied",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Asset not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
             }
         },
         "/public/api/shareinfo": {
@@ -2969,6 +3436,37 @@ const docTemplate = `{
                 }
             }
         },
+        "http.BulkDeleteItem": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
+                }
+            }
+        },
+        "http.BulkDeleteResponse": {
+            "type": "object",
+            "properties": {
+                "failed": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/http.BulkDeleteItem"
+                    }
+                },
+                "succeeded": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/http.BulkDeleteItem"
+                    }
+                }
+            }
+        },
         "http.DirectDownloadResponse": {
             "type": "object",
             "properties": {
@@ -3011,6 +3509,66 @@ const docTemplate = `{
                 }
             }
         },
+        "http.MoveCopyItem": {
+            "type": "object",
+            "properties": {
+                "fromPath": {
+                    "type": "string"
+                },
+                "fromSource": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "toPath": {
+                    "type": "string"
+                },
+                "toSource": {
+                    "type": "string"
+                }
+            }
+        },
+        "http.MoveCopyRequest": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "description": "\"copy\", \"move\", or \"rename\"",
+                    "type": "string"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/http.MoveCopyItem"
+                    }
+                },
+                "overwrite": {
+                    "description": "Overwrite if destination exists",
+                    "type": "boolean"
+                },
+                "rename": {
+                    "description": "Auto-rename if destination exists",
+                    "type": "boolean"
+                }
+            }
+        },
+        "http.MoveCopyResponse": {
+            "type": "object",
+            "properties": {
+                "failed": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/http.MoveCopyItem"
+                    }
+                },
+                "succeeded": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/http.MoveCopyItem"
+                    }
+                }
+            }
+        },
         "http.ShareResponse": {
             "type": "object",
             "properties": {
@@ -3038,6 +3596,9 @@ const docTemplate = `{
                 "banner": {
                     "type": "string"
                 },
+                "bannerUrl": {
+                    "type": "string"
+                },
                 "description": {
                     "type": "string"
                 },
@@ -3050,6 +3611,10 @@ const docTemplate = `{
                 },
                 "disableFileViewer": {
                     "description": "don't allow viewing files",
+                    "type": "boolean"
+                },
+                "disableLoginOption": {
+                    "description": "disable login option in share (true = hide, false = show)",
                     "type": "boolean"
                 },
                 "disableShareCard": {
@@ -3085,6 +3650,9 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "favicon": {
+                    "type": "string"
+                },
+                "faviconUrl": {
                     "type": "string"
                 },
                 "hasPassword": {
@@ -3191,6 +3759,69 @@ const docTemplate = `{
                 }
             }
         },
+        "http.duplicateResponse": {
+            "type": "object",
+            "properties": {
+                "groups": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/http.duplicateGroup"
+                    }
+                },
+                "incomplete": {
+                    "type": "boolean"
+                },
+                "reason": {
+                    "type": "string"
+                }
+            }
+        },
+        "http.fileWatchMetadata": {
+            "type": "object",
+            "properties": {
+                "modified": {
+                    "description": "Modification time",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "File name",
+                    "type": "string"
+                },
+                "path": {
+                    "description": "File path",
+                    "type": "string"
+                },
+                "size": {
+                    "description": "File size in bytes",
+                    "type": "integer"
+                },
+                "type": {
+                    "description": "MIME type",
+                    "type": "string"
+                }
+            }
+        },
+        "http.fileWatchResponse": {
+            "type": "object",
+            "properties": {
+                "contents": {
+                    "description": "Text content for text files",
+                    "type": "string"
+                },
+                "isText": {
+                    "description": "Whether the file is a text file",
+                    "type": "boolean"
+                },
+                "metadata": {
+                    "description": "File metadata for non-text files",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/http.fileWatchMetadata"
+                        }
+                    ]
+                }
+            }
+        },
         "indexing.IndexStatus": {
             "type": "string",
             "enum": [
@@ -3208,7 +3839,6 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "complexity": {
-                    "description": "0-10 scale: 0=unknown, 1=simple, 2-6=normal, 7-9=complex, 10=highlyComplex",
                     "type": "integer"
                 },
                 "fullScanDurationSeconds": {
@@ -3216,6 +3846,9 @@ const docTemplate = `{
                 },
                 "lastIndexedUnixTime": {
                     "type": "integer"
+                },
+                "lastScanned": {
+                    "type": "string"
                 },
                 "name": {
                     "type": "string"
@@ -3253,20 +3886,25 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "complexity": {
-                    "description": "0-10 scale: 0=unknown, 1=simple, 2-6=normal, 7-9=complex, 10=highlyComplex",
                     "type": "integer"
                 },
                 "currentSchedule": {
                     "type": "integer"
                 },
-                "fullScanTime": {
+                "fullScanDurationSeconds": {
                     "type": "integer"
                 },
                 "isRoot": {
                     "type": "boolean"
                 },
+                "lastIndexedUnixTime": {
+                    "type": "integer"
+                },
                 "lastScanned": {
                     "type": "string"
+                },
+                "numDeleted": {
+                    "type": "integer"
                 },
                 "numDirs": {
                     "type": "integer"
@@ -3277,7 +3915,10 @@ const docTemplate = `{
                 "path": {
                     "type": "string"
                 },
-                "quickScanTime": {
+                "quickScanDurationSeconds": {
+                    "type": "integer"
+                },
+                "used": {
                     "type": "integer"
                 }
             }
@@ -3296,6 +3937,9 @@ const docTemplate = `{
                 },
                 "size": {
                     "type": "integer"
+                },
+                "source": {
+                    "type": "string"
                 },
                 "type": {
                     "type": "string"
@@ -3484,27 +4128,27 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "hidden": {
-                    "description": "deprecated: use ignoreHidden instead to exclude hidden files and folders.",
+                    "description": "deprecated: use ignoreHidden instead. eg, FolderPath: \"/\" and ignoreHidden: true will exclude hidden files and folders under the root folder.",
                     "type": "boolean"
                 },
                 "ignoreHidden": {
-                    "description": "exclude hidden files and folders.",
+                    "description": "deprecated: use ignoreHidden instead. eg, FolderPath: \"/\" and ignoreHidden: true will exclude hidden files and folders under the root folder.",
                     "type": "boolean"
                 },
                 "ignoreZeroSizeFolders": {
-                    "description": "ignore folders with 0 size",
+                    "description": "deprecated: use ignoreZeroSizeFolders instead. eg, FolderPath: \"/\" and ignoreZeroSizeFolders: true will ignore folders with 0 size under the root folder.",
                     "type": "boolean"
                 },
                 "rules": {
                     "description": "list of item rules to apply to specific paths",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/settings.ConditionalIndexConfig"
+                        "$ref": "#/definitions/settings.ConditionalRule"
                     }
                 }
             }
         },
-        "settings.ConditionalIndexConfig": {
+        "settings.ConditionalRule": {
             "type": "object",
             "properties": {
                 "fileEndsWith": {
@@ -3546,6 +4190,18 @@ const docTemplate = `{
                 "folderStartsWith": {
                     "description": "(global) exclude folders that start with these prefixes. Eg. \"archive-\" or \"backup-\"",
                     "type": "string"
+                },
+                "ignoreHidden": {
+                    "description": "Excludes only hidden files and folders",
+                    "type": "boolean"
+                },
+                "ignoreSymlinks": {
+                    "description": "Excludes symbolic links",
+                    "type": "boolean"
+                },
+                "ignoreZeroSizeFolders": {
+                    "description": "Excludes only folders with 0 size",
+                    "type": "boolean"
                 },
                 "includeRootItem": {
                     "description": "include only these items at root folder level",
@@ -3670,6 +4326,27 @@ const docTemplate = `{
                 },
                 "styling": {
                     "$ref": "#/definitions/settings.StylingConfig"
+                }
+            }
+        },
+        "settings.IndexSqlConfig": {
+            "type": "object",
+            "properties": {
+                "batchSize": {
+                    "description": "number of items to batch in a single transaction, typically 500-5000. higher = faster but could use more memory.",
+                    "type": "integer"
+                },
+                "cacheSizeMB": {
+                    "description": "size of the SQLite cache in MB",
+                    "type": "integer"
+                },
+                "disableReuse": {
+                    "description": "enable to always create a new indexing database on startup.",
+                    "type": "boolean"
+                },
+                "walMode": {
+                    "description": "enable the more complex WAL journaling mode. Slower, more memory usage, but better for deployments with constant user activity.",
+                    "type": "boolean"
                 }
             }
         },
@@ -3912,7 +4589,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "cacheDirCleanup": {
-                    "description": "whether to automatically cleanup the cache directory. Note: docker must also mount a persistent volume to persist the cache (default: true)",
+                    "description": "whether to automatically cleanup the cache directory. Note: docker must also mount a persistent volume to persist the cache (default: false)",
                     "type": "boolean"
                 },
                 "database": {
@@ -3944,6 +4621,14 @@ const docTemplate = `{
                     "allOf": [
                         {
                             "$ref": "#/definitions/settings.Filesystem"
+                        }
+                    ]
+                },
+                "indexSqlConfig": {
+                    "description": "Index database SQL configuration",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.IndexSqlConfig"
                         }
                     ]
                 },
@@ -4040,7 +4725,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "conditionals": {
-                    "description": "conditional rules to apply when indexing to include/exclude certain items",
+                    "description": "deprecated: use source.rules instead",
                     "allOf": [
                         {
                             "$ref": "#/definitions/settings.ConditionalFilter"
@@ -4064,7 +4749,7 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "disableIndexing": {
-                    "description": "(optional) not recommended: disable the indexing of this source",
+                    "description": "deprecated: use indexingDisabled instead to disable the indexing of this source",
                     "type": "boolean"
                 },
                 "disabled": {
@@ -4072,11 +4757,22 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "indexingIntervalMinutes": {
-                    "description": "(optional) not recommended: manual overide interval in minutes to re-index the source",
+                    "description": "deprecated: create a rule with indexingIntervalMinutes to set the indexing interval for this source",
                     "type": "integer"
                 },
                 "private": {
                     "description": "designate as source as private -- currently just means no sharing permitted.",
+                    "type": "boolean"
+                },
+                "rules": {
+                    "description": "list of item rules to apply to specific paths",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/settings.ConditionalRule"
+                    }
+                },
+                "useLogicalSize": {
+                    "description": "calculate sizes based on logical size instead of disk utilization (du -sh), folders will be 0 bytes when empty.",
                     "type": "boolean"
                 }
             }
@@ -4345,6 +5041,9 @@ const docTemplate = `{
                 "banner": {
                     "type": "string"
                 },
+                "bannerUrl": {
+                    "type": "string"
+                },
                 "description": {
                     "type": "string"
                 },
@@ -4357,6 +5056,10 @@ const docTemplate = `{
                 },
                 "disableFileViewer": {
                     "description": "don't allow viewing files",
+                    "type": "boolean"
+                },
+                "disableLoginOption": {
+                    "description": "disable login option in share (true = hide, false = show)",
                     "type": "boolean"
                 },
                 "disableShareCard": {
@@ -4386,6 +5089,9 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "favicon": {
+                    "type": "string"
+                },
+                "faviconUrl": {
                     "type": "string"
                 },
                 "hasPassword": {
@@ -4473,6 +5179,9 @@ const docTemplate = `{
                 "banner": {
                     "type": "string"
                 },
+                "bannerUrl": {
+                    "type": "string"
+                },
                 "description": {
                     "type": "string"
                 },
@@ -4485,6 +5194,10 @@ const docTemplate = `{
                 },
                 "disableFileViewer": {
                     "description": "don't allow viewing files",
+                    "type": "boolean"
+                },
+                "disableLoginOption": {
+                    "description": "disable login option in share (true = hide, false = show)",
                     "type": "boolean"
                 },
                 "disableShareCard": {
@@ -4517,6 +5230,9 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "favicon": {
+                    "type": "string"
+                },
+                "faviconUrl": {
                     "type": "string"
                 },
                 "hasPassword": {
@@ -4613,6 +5329,9 @@ const docTemplate = `{
                 "banner": {
                     "type": "string"
                 },
+                "bannerUrl": {
+                    "type": "string"
+                },
                 "description": {
                     "type": "string"
                 },
@@ -4625,6 +5344,10 @@ const docTemplate = `{
                 },
                 "disableFileViewer": {
                     "description": "don't allow viewing files",
+                    "type": "boolean"
+                },
+                "disableLoginOption": {
+                    "description": "disable login option in share (true = hide, false = show)",
                     "type": "boolean"
                 },
                 "disableShareCard": {
@@ -4660,6 +5383,9 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "favicon": {
+                    "type": "string"
+                },
+                "faviconUrl": {
                     "type": "string"
                 },
                 "hasPassword": {
@@ -4765,6 +5491,9 @@ const docTemplate = `{
             "properties": {
                 "clearAll": {
                     "type": "boolean"
+                },
+                "downloadChunkSizeMb": {
+                    "type": "integer"
                 },
                 "maxConcurrentUpload": {
                     "type": "integer"

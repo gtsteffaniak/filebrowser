@@ -30,7 +30,8 @@
     "saveAndExit": "Guardar y salir",
     "keepEditing": "Seguir editando",
     "closeAnyway": "Cerrar de todos modos",
-    "goToItem": "Ir al elemento"
+    "goToItem": "Ir al elemento",
+    "watchFile": "Ver archivo"
   },
   "download": {
     "downloadFile": "Descargar archivo",
@@ -48,7 +49,6 @@
   "files": {
     "closePreview": "Cerrar vista previa",
     "lastModified": "Última modificación",
-    "lonely": "Esto está muy vacio...",
     "multipleSelectionEnabled": "Selección múltiple activada",
     "sortByLastModified": "Ordenar por fecha de modificación",
     "sortByName": "Ordenar por nombre",
@@ -61,7 +61,10 @@
     "newFile": "Nuevo archivo{suffix}",
     "newFolder": "Nueva carpeta{suffix}",
     "duration": "Duración {suffix}",
-    "sortByDuration": "Ordenar por duración"
+    "sortByDuration": "Ordenar por duración",
+    "sameFolder": "No se puede mover a la misma carpeta",
+    "cannotAccesDir": "No se puede acceder al directorio",
+    "lonely": "Nada que mostrar aquí..."
   },
   "help": {
     "functionKeys": "Teclas de función",
@@ -217,7 +220,10 @@
     "renameSuccess": "El cambio de nombre se ha realizado correctamente",
     "newFileSuccess": "¡Archivo creado con éxito!",
     "newDirSuccess": "¡Carpeta creada con éxito!",
-    "copyToClipboardFailed": "Hubo un error al copiar en el portapapeles"
+    "copyToClipboardFailed": "Hubo un error al copiar en el portapapeles",
+    "moveFailed": "Error al mover",
+    "operationFailed": "Operación fallida",
+    "partialSuccess": "Algunas operaciones fallaron: {succeeded} tuvo éxito, {failed} falló"
   },
   "search": {
     "smallerThan": "Menor que:",
@@ -444,7 +450,13 @@
     "customizeSidebarLinksButton": "Personalizar accesos directos",
     "shareInfo": "Código QR e información del archivo",
     "shareInfoDescription": "Al abrir este acceso directo, mostrará la información del recurso compartido junto con un código QR",
-    "downloadDescription": "Este acceso directo permite descargar todo el recurso compartido como archivo comprimido."
+    "downloadDescription": "Este acceso directo permite descargar todo el recurso compartido como archivo comprimido.",
+    "disableLoginOption": "Ocultar la opción de inicio de sesión",
+    "disableLoginOptionDescription": "Ocultar el botón de inicio de sesión en la barra lateral para usuarios anónimos. Cuando esté activado, los usuarios anónimos no verán la opción de iniciar sesión.",
+    "browseFiles": "Examinar archivos",
+    "selectBannerImage": "Seleccionar imagen de banner",
+    "selectFaviconImage": "Seleccionar imagen de favicon",
+    "selectImage": "Seleccionar imagen"
   },
   "api": {
     "title": "Gestión de claves API",
@@ -606,7 +618,13 @@
     "uploading": "Subiendo{suffix}",
     "paused": "En pausa{suffix}",
     "conflict": "Conflicto{suffix}",
-    "change": "Cambiar{suffix}"
+    "change": "Cambiar{suffix}",
+    "output": "Salida{suffix}",
+    "watching": "Ver{suffix}",
+    "lines": "Líneas{suffix}",
+    "lastUpdate": "Última actualización{suffix}",
+    "latency": "Latencia{suffix}",
+    "all": "Todos{suffix}"
   },
   "access": {
     "rules": "Reglas de acceso",
@@ -639,7 +657,9 @@
     "uploadChunkSizeMbHelp": "Subida de archivos fragmentada o \"Chunked uploads\" en inglés - Lo que está opción hace es controlar la velocidad de subida en la que los fragmentos de archivo se subirán.",
     "clearAll": "\"Limpiar completados\" debe borrar todo",
     "clearAllDescription": "Hará que el botón de \"Limpiar completados\" en la ventana de subir archivos borre todos los estados: Finalizado, error, pausa y conflicto.",
-    "uploadSettings": "Opciones de subida"
+    "uploadSettings": "Opciones de subida",
+    "downloadChunkSizeMb": "Tamaño del fragmento de descarga en MB",
+    "downloadChunkSizeMbHelp": "Tamaño de trozo para descargas por trozos. Los archivos mayores que este tamaño se descargarán en trozos para evitar problemas de tiempo de espera (por ejemplo, errores Cloudflare 524). Si se establece en 0, se desactivan las descargas en trozos."
   },
   "colors": {
     "red": "Rojo",
@@ -782,7 +802,16 @@
       "browseFullLibrary": "Mira la la colección completa aqui"
     },
     "toolNotFound": "No se encontró la herramienta",
-    "backToTools": "Volver a Herramientas"
+    "backToTools": "Volver a Herramientas",
+    "fileWatcher": {
+      "name": "Vigilante de archivos",
+      "description": "Vigilancia y cola de archivos en tiempo real con control de latencia",
+      "file": "Archivo{suffix}",
+      "interval": "Intervalo de actualización",
+      "stopWatching": "Deja de mirar",
+      "emptyState": "Elija un archivo y haga clic en reproducir para empezar a supervisar los cambios en el archivo",
+      "chooseFile": "Elija un archivo"
+    }
   },
   "messages": {
     "pathNotFound": "La ruta no se encuentra en el sistema de archivos",

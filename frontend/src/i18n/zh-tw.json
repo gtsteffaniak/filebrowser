@@ -30,7 +30,8 @@
     "saveAndExit": "儲存並離開",
     "keepEditing": "繼續編輯",
     "closeAnyway": "無論如何關閉",
-    "goToItem": "前往項目"
+    "goToItem": "前往項目",
+    "watchFile": "觀看檔案"
   },
   "download": {
     "downloadFile": "下載檔案",
@@ -48,7 +49,6 @@
   "files": {
     "closePreview": "關閉預覽",
     "lastModified": "最後修改",
-    "lonely": "這裡沒有任何檔案...",
     "multipleSelectionEnabled": "多選模式已開啟",
     "sortByLastModified": "按最後修改時間排序",
     "sortByName": "按名稱排序",
@@ -61,7 +61,10 @@
     "newFile": "新檔案{suffix}",
     "newFolder": "新資料夾{suffix}",
     "duration": "時間長度{suffix}",
-    "sortByDuration": "依時間長短排序"
+    "sortByDuration": "依時間長短排序",
+    "sameFolder": "無法移動到相同資料夾",
+    "cannotAccesDir": "無法存取目錄",
+    "lonely": "這裡沒什麼可展示的..."
   },
   "help": {
     "functionKeys": "功能鍵",
@@ -217,7 +220,10 @@
     "renameSuccess": "項目已成功重新命名！",
     "newFileSuccess": "檔案已成功建立！",
     "newDirSuccess": "目錄建立成功！",
-    "copyToClipboardFailed": "無法複製到剪貼簿"
+    "copyToClipboardFailed": "無法複製到剪貼簿",
+    "moveFailed": "移動失敗",
+    "operationFailed": "操作失敗",
+    "partialSuccess": "某些作業失敗：{succeeded} 成功，{failed} 失敗"
   },
   "search": {
     "smallerThan": "小於：",
@@ -444,7 +450,13 @@
     "customizeSidebarLinksButton": "自訂連結",
     "shareInfo": "分享 QR 代碼和資訊",
     "shareInfoDescription": "此連結會在彈出式視窗中顯示分享資訊，包括標題、說明、橫幅和 QR 代碼。",
-    "downloadDescription": "此連結可將整個共用內容下載為壓縮檔。"
+    "downloadDescription": "此連結可將整個共用內容下載為壓縮檔。",
+    "disableLoginOption": "隱藏登入選項",
+    "disableLoginOptionDescription": "隱藏匿名使用者側邊欄的登入按鈕。啟用後，匿名使用者將看不到登入選項。",
+    "browseFiles": "瀏覽檔案",
+    "selectBannerImage": "選擇橫幅圖片",
+    "selectFaviconImage": "選擇 Favoricon 圖片",
+    "selectImage": "選擇影像"
   },
   "api": {
     "title": "API 金鑰",
@@ -572,7 +584,9 @@
     "uploadChunkSizeMbHelp": "通常為 5 到 50 MB，對於不穩定或受限制的連線，越小越好。設定為 0 會停用上傳分塊。",
     "clearAll": "清除完成應移除錯誤、暫停和衝突",
     "clearAllDescription": "清除完成按鈕將會清除所有處於完成狀態的上傳，包括錯誤、暫停和衝突狀態。",
-    "uploadSettings": "上傳設定"
+    "uploadSettings": "上傳設定",
+    "downloadChunkSizeMb": "下載區塊大小（以 MB 為單位",
+    "downloadChunkSizeMbHelp": "分塊下載的分塊大小。大於此大小的檔案會分塊下載，以防止超時問題 (例如 Cloudflare 524 錯誤)。設定為 0 會停用分塊下載。"
   },
   "colors": {
     "red": "紅色",
@@ -684,7 +698,13 @@
     "uploading": "上傳{suffix}",
     "paused": "已暫停{suffix}",
     "conflict": "衝突{suffix}",
-    "change": "變更{suffix}"
+    "change": "變更{suffix}",
+    "output": "輸出{suffix}",
+    "watching": "觀看{suffix}",
+    "lines": "線路{suffix}",
+    "lastUpdate": "最後更新{suffix}",
+    "latency": "延遲{suffix}",
+    "all": "全部{suffix}"
   },
   "access": {
     "rules": "存取規則",
@@ -782,7 +802,16 @@
       "browseFullLibrary": "瀏覽完整圖示庫"
     },
     "toolNotFound": "未找到工具",
-    "backToTools": "回到工具"
+    "backToTools": "回到工具",
+    "fileWatcher": {
+      "name": "檔案看管員",
+      "description": "利用延遲監控功能即時觀察和尾隨檔案",
+      "file": "檔案{suffix}",
+      "interval": "更新間隔",
+      "stopWatching": "停止觀看",
+      "emptyState": "選擇檔案並按一下播放，即可開始監控檔案變更",
+      "chooseFile": "選擇檔案"
+    }
   },
   "messages": {
     "pathNotFound": "檔案系統中不存在路徑",

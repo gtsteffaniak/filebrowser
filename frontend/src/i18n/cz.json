@@ -30,7 +30,8 @@
     "saveAndExit": "Uložit a ukončit",
     "keepEditing": "Pokračovat v úpravách",
     "closeAnyway": "Stejně zavřít",
-    "goToItem": "Přejít na položku"
+    "goToItem": "Přejít na položku",
+    "watchFile": "Sledovat soubor"
   },
   "download": {
     "downloadFile": "Stáhnout soubor",
@@ -51,7 +52,6 @@
   "files": {
     "closePreview": "Zavřít náhled",
     "lastModified": "Poslední změna",
-    "lonely": "Je tu nějak prázdno...",
     "multipleSelectionEnabled": "Povoleno vícenásobné označení",
     "sortByLastModified": "Řadit podle poslední změny",
     "sortByName": "Řadit podle názvu",
@@ -64,7 +64,10 @@
     "newFile": "Nový soubor{suffix}",
     "newFolder": "Nová složka{suffix}",
     "duration": "Doba trvání{suffix}",
-    "sortByDuration": "Třídit podle doby trvání"
+    "sortByDuration": "Třídit podle doby trvání",
+    "sameFolder": "Nelze přesunout do stejné složky",
+    "cannotAccesDir": "Nelze přistoupit k adresáři",
+    "lonely": "Zde není nic k vidění..."
   },
   "help": {
     "functionKeys": "Funkční Klávesy",
@@ -194,7 +197,13 @@
     "customizeSidebarLinksButton": "Přizpůsobení odkazů",
     "shareInfo": "Sdílení kódu QR a informací",
     "shareInfoDescription": "Tento odkaz zobrazí informace o sdílené složce včetně názvu, popisu, banneru a QR kódu ve vyskakovacím okně.",
-    "downloadDescription": "Tento odkaz umožňuje stáhnout celý obsah sdílené složky jako komprimovaný soubor."
+    "downloadDescription": "Tento odkaz umožňuje stáhnout celý obsah sdílené složky jako komprimovaný soubor.",
+    "disableLoginOption": "Skrýt možnost přihlášení",
+    "disableLoginOptionDescription": "Skrytí tlačítka pro přihlášení v postranním panelu pro anonymní uživatele. Pokud je tato možnost povolena, anonymní uživatelé neuvidí možnost přihlášení.",
+    "browseFiles": "Procházení souborů",
+    "selectBannerImage": "Výběr obrázku banneru",
+    "selectFaviconImage": "Výběr obrázku favicon",
+    "selectImage": "Vybrat obrázek"
   },
   "prompts": {
     "copy": "Kopírovat",
@@ -288,7 +297,10 @@
     "renameSuccess": "Položka byla úspěšně přejmenována!",
     "newFileSuccess": "Soubor byl úspěšně vytvořen!",
     "newDirSuccess": "Adresář byl úspěšně vytvořen!",
-    "copyToClipboardFailed": "Nelze zkopírovat do schránky"
+    "copyToClipboardFailed": "Nelze zkopírovat do schránky",
+    "moveFailed": "Přesun se nezdařil",
+    "operationFailed": "Operace se nezdařila",
+    "partialSuccess": "Některé operace se nezdařily: {succeeded} uspěl, {failed} neuspěl."
   },
   "search": {
     "smallerThan": "Menší než:",
@@ -572,7 +584,9 @@
     "uploadChunkSizeMbHelp": "Obvykle 5 až 50 MB, menší velikost je lepší pro nestabilní nebo omezené připojení. Nastavením na hodnotu 0 se vypne rozdělování nahrávání.",
     "clearAll": "Vymazání dokončeno by mělo odstranit chybu, pauzu a konflikt.",
     "clearAllDescription": "Tlačítko Vymazat dokončené vymaže všechna odesílání v dokončeném stavu, včetně chybových, pozastavených a konfliktních stavů.",
-    "uploadSettings": "Nastavení nahrávání"
+    "uploadSettings": "Nastavení nahrávání",
+    "downloadChunkSizeMb": "Velikost stahovaného bloku v MB",
+    "downloadChunkSizeMbHelp": "Velikost kousků pro stahování v kouscích. Soubory větší než tato velikost se budou stahovat po částech, aby se předešlo problémům s časovým limitem (např. chybám Cloudflare 524). Nastavení na 0 zakáže stahování po částech."
   },
   "colors": {
     "red": "červená",
@@ -684,7 +698,13 @@
     "uploading": "Nahrávání{suffix}",
     "paused": "Pauza{suffix}",
     "conflict": "Konflikt{suffix}",
-    "change": "Změna{suffix}"
+    "change": "Změna{suffix}",
+    "output": "Výstup{suffix}",
+    "watching": "Sledování{suffix}",
+    "lines": "Řádky{suffix}",
+    "lastUpdate": "Poslední aktualizace{suffix}",
+    "latency": "Zpoždění{suffix}",
+    "all": "Všechny{suffix}"
   },
   "access": {
     "rules": "Pravidla přístupu",
@@ -782,7 +802,16 @@
       "browseFullLibrary": "Procházet celou knihovnu ikon"
     },
     "toolNotFound": "Nástroj nebyl nalezen",
-    "backToTools": "Zpět na Nástroje"
+    "backToTools": "Zpět na Nástroje",
+    "fileWatcher": {
+      "name": "Sledování souborů",
+      "description": "Sledování souborů v reálném čase s možností sledování latence",
+      "file": "Soubor{suffix}",
+      "interval": "Interval aktualizace",
+      "stopWatching": "Přestaňte se dívat",
+      "emptyState": "Vyberte soubor a kliknutím na tlačítko přehrát začněte sledovat změny souboru.",
+      "chooseFile": "Výběr souboru"
+    }
   },
   "messages": {
     "pathNotFound": "Cesta v souborovém systému neexistuje",

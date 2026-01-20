@@ -30,7 +30,8 @@
     "saveAndExit": "Sauvegarder et quitter",
     "keepEditing": "Continuer à éditer",
     "closeAnyway": "Fermer Quoi qu'il en soit",
-    "goToItem": "Aller à l'article"
+    "goToItem": "Aller à l'article",
+    "watchFile": "Regarder le dossier"
   },
   "download": {
     "downloadFile": "Télécharger le fichier",
@@ -48,7 +49,6 @@
   "files": {
     "closePreview": "Fermer la prévisualisation",
     "lastModified": "Dernière modification",
-    "lonely": "Il semble qu'il n'y ait rien par ici...",
     "multipleSelectionEnabled": "Sélection multiple activée",
     "sortByLastModified": "Trier par date de dernière modification",
     "sortByName": "Trier par nom",
@@ -61,7 +61,10 @@
     "newFile": "Nouveau Fichier{suffix}",
     "newFolder": "Nouveau dossier{suffix}",
     "duration": "Durée de l'accord{suffix}",
-    "sortByDuration": "Trier par durée"
+    "sortByDuration": "Trier par durée",
+    "sameFolder": "Impossible de déplacer vers le même dossier",
+    "cannotAccesDir": "Impossible d'accéder au répertoire",
+    "lonely": "Rien à voir ici..."
   },
   "help": {
     "functionKeys": "Touches de Fonction",
@@ -217,7 +220,10 @@
     "renameSuccess": "L'élément a été renommé avec succès !",
     "newFileSuccess": "Fichier créé avec succès !",
     "newDirSuccess": "Répertoire créé avec succès !",
-    "copyToClipboardFailed": "Impossible de copier dans le presse-papiers"
+    "copyToClipboardFailed": "Impossible de copier dans le presse-papiers",
+    "moveFailed": "Échec du déplacement",
+    "operationFailed": "Échec de l'opération",
+    "partialSuccess": "Certaines opérations ont échoué : {succeeded} a réussi, {failed} a échoué"
   },
   "search": {
     "smallerThan": "Plus petit que :",
@@ -444,10 +450,16 @@
     "customizeSidebarLinksButton": "Personnaliser les liens",
     "shareInfo": "Partager le code QR et les informations",
     "shareInfoDescription": "Ce lien affiche les informations relatives au partage, y compris le titre, la description, la bannière et le code QR dans une fenêtre contextuelle.",
-    "downloadDescription": "Ce lien permet de télécharger l'intégralité du contenu du partage sous la forme d'un fichier compressé."
+    "downloadDescription": "Ce lien permet de télécharger l'intégralité du contenu du partage sous la forme d'un fichier compressé.",
+    "disableLoginOption": "Cacher l'option de connexion",
+    "disableLoginOptionDescription": "Masquer le bouton de connexion dans la barre latérale pour les utilisateurs anonymes. Lorsque cette option est activée, les utilisateurs anonymes ne verront pas l'option de connexion.",
+    "browseFiles": "Parcourir les fichiers",
+    "selectBannerImage": "Sélectionner l'image de la bannière",
+    "selectFaviconImage": "Sélectionner l'image du favicon",
+    "selectImage": "Sélectionner l'image"
   },
   "api": {
-    "title": "Clés API :",
+    "title": "Clés API",
     "createdAt": "Créée le :",
     "expiresAt": "Expire le :",
     "permissions": "Permissions :",
@@ -606,7 +618,13 @@
     "uploading": "Téléchargement{suffix}",
     "paused": "En pause{suffix}",
     "conflict": "Conflit{suffix}",
-    "change": "Changer{suffix}"
+    "change": "Changer{suffix}",
+    "output": "Sortie{suffix}",
+    "watching": "Observation{suffix}",
+    "lines": "Lignes{suffix}",
+    "lastUpdate": "Dernière mise à jour{suffix}",
+    "latency": "Temps de latence{suffix}",
+    "all": "Tous{suffix}"
   },
   "access": {
     "rules": "Règles d'accès",
@@ -639,7 +657,9 @@
     "uploadChunkSizeMbHelp": "Généralement de 5 à 50 Mo, une taille inférieure est préférable pour les connexions instables ou restreintes. La valeur 0 désactive l'importation par morceaux.",
     "clearAll": "Effacer les importations terminées (erreurs, pauses et conflits inclus)",
     "clearAllDescription": "Le bouton \"Effacer les importations terminées\" efface toutes les importations terminées, y compris les erreurs, les pauses et les conflits.",
-    "uploadSettings": "Paramètres d'importation"
+    "uploadSettings": "Paramètres d'importation",
+    "downloadChunkSizeMb": "Taille du bloc de téléchargement en Mo",
+    "downloadChunkSizeMbHelp": "Taille des morceaux pour les téléchargements par morceaux. Les fichiers dont la taille est supérieure à cette valeur seront téléchargés par morceaux afin d'éviter les problèmes de dépassement de délai (par exemple, les erreurs Cloudflare 524). La valeur 0 désactive les téléchargements par morceaux."
   },
   "colors": {
     "red": "rouge",
@@ -782,7 +802,16 @@
       "browseFullLibrary": "Parcourir la bibliothèque complète d'icônes"
     },
     "toolNotFound": "Outil non trouvé",
-    "backToTools": "Retour aux outils"
+    "backToTools": "Retour aux outils",
+    "fileWatcher": {
+      "name": "Observateur de fichiers",
+      "description": "Surveillance et suivi des fichiers en temps réel grâce au contrôle de la latence",
+      "file": "Fichier{suffix}",
+      "interval": "Intervalle de mise à jour",
+      "stopWatching": "Arrêter de regarder",
+      "emptyState": "Choisissez un fichier et cliquez sur lecture pour commencer à surveiller les modifications du fichier.",
+      "chooseFile": "Choisir un fichier"
+    }
   },
   "messages": {
     "pathNotFound": "Le chemin n'existe pas dans le système de fichiers",

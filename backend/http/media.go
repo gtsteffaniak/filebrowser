@@ -9,7 +9,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/ffmpeg"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 )
@@ -47,7 +46,7 @@ func subtitlesHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		return http.StatusBadRequest, fmt.Errorf("invalid source encoding: %v", err)
 	}
 
-	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, source)
+	userscope, err := d.user.GetScopeForSourceName(source)
 	if err != nil {
 		return http.StatusForbidden, err
 	}
@@ -60,7 +59,7 @@ func subtitlesHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	if err != nil {
 		return http.StatusNotFound, fmt.Errorf("file not found: %v", err)
 	}
-	metadata, exists := idx.GetMetadataInfo(userscope, true)
+	metadata, exists := idx.GetMetadataInfo(userscope, true, false)
 	if !exists {
 		return http.StatusNotFound, fmt.Errorf("file not found: %v", err)
 	}

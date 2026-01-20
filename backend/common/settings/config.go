@@ -52,6 +52,7 @@ func Initialize(configFile string) {
 	setupServer()
 	setupAuth(false)
 	setupSources(false)
+	InitializeUserResolvers() // Initialize user package resolvers after sources are set up
 	setupUrls()
 	setupFrontend(false)
 	setupMedia()
@@ -61,6 +62,11 @@ func setupServer() {
 	if Config.Server.ListenAddress == "" {
 		Config.Server.ListenAddress = "0.0.0.0"
 	}
+	// Check environment variable first (overrides config file)
+	if os.Getenv("FILEBROWSER_SQL_WAL") == "true" {
+		Config.Server.IndexSqlConfig.WalMode = true
+	}
+	// WalMode is false by default (OFF journaling)
 }
 
 func setupEnv() {
@@ -649,7 +655,12 @@ func setDefaults(generate bool) Settings {
 			NameToSource:       map[string]*Source{},
 			MaxArchiveSizeGB:   50,
 			CacheDir:           "tmp",
-			CacheDirCleanup:    boolPtr(true),
+			IndexSqlConfig: IndexSqlConfig{
+				WalMode:      false,
+				BatchSize:    1000,
+				CacheSizeMB:  32,
+				DisableReuse: false,
+			},
 			Filesystem: Filesystem{
 				CreateFilePermission:      "644",
 				CreateDirectoryPermission: "755",
@@ -699,8 +710,8 @@ func setDefaults(generate bool) Settings {
 				Folder:             boolPtr(true),
 			},
 			FileLoading: users.FileLoading{
-				MaxConcurrent: 10,
-				ChunkSize:     10, // 10MB
+				MaxConcurrent:   10,
+				UploadChunkSize: 10, // 10MB
 			},
 		},
 	}
@@ -823,28 +834,70 @@ func loadLoginIcon() {
 // setConditionalsMap builds optimized map structures from conditional rules for O(1) lookups
 func setConditionals(config *Source) {
 
+	// Merge rules from both old format (Conditionals.ItemRules) and new format (Rules)
+	rules := append(config.Config.Conditionals.ItemRules, config.Config.Rules...)
+
+	// Initialize the maps structure (only exact match maps for Names)
+	resolved := ResolvedRulesConfig{
+		FileNames:                make(map[string]ConditionalRule),
+		FolderNames:              make(map[string]ConditionalRule),
+		FilePaths:                make(map[string]ConditionalRule),
+		FolderPaths:              make(map[string]ConditionalRule),
+		FileEndsWith:             make([]ConditionalRule, 0),
+		FolderEndsWith:           make([]ConditionalRule, 0),
+		FileStartsWith:           make([]ConditionalRule, 0),
+		FolderStartsWith:         make([]ConditionalRule, 0),
+		NeverWatchPaths:          make(map[string]struct{}),
+		IncludeRootItems:         make(map[string]struct{}),
+		IgnoreAllHidden:          false,
+		IgnoreAllZeroSizeFolders: false,
+		IgnoreAllSymlinks:        false,
+		IndexingDisabled:         false,
+	}
+
 	// backwards compatibility
 	if config.Config.Conditionals.Hidden {
-		logger.Warning("conditionals.hidden is deprecated, use conditionals.ignoreHidden instead")
-		config.Config.Conditionals.IgnoreHidden = true
+		logger.Warning("source.conditionals.hidden is deprecated, use source.rules instead")
+		resolved.IgnoreAllHidden = true
+	}
+	// Backwards compatibility: if old format fields are set, treat as global rules
+	if config.Config.Conditionals.IgnoreHidden {
+		logger.Warning("source.conditionals.ignoreHidden is deprecated, use source.rules instead")
+		resolved.IgnoreAllHidden = true
+	}
+	if config.Config.DisableIndexing {
+		logger.Warning("source.disableIndexing is deprecated, use source.rules instead")
+		resolved.IndexingDisabled = true
 	}
 
-	rules := config.Config.Conditionals.ItemRules
-	// Initialize the maps structure (only exact match maps for Names)
-	resolved := &ResolvedConditionalsConfig{
-		FileNames:        make(map[string]ConditionalIndexConfig),
-		FolderNames:      make(map[string]ConditionalIndexConfig),
-		FilePaths:        make(map[string]ConditionalIndexConfig),
-		FolderPaths:      make(map[string]ConditionalIndexConfig),
-		FileEndsWith:     make([]ConditionalIndexConfig, 0),
-		FolderEndsWith:   make([]ConditionalIndexConfig, 0),
-		FileStartsWith:   make([]ConditionalIndexConfig, 0),
-		FolderStartsWith: make([]ConditionalIndexConfig, 0),
-		NeverWatchPaths:  make(map[string]struct{}),
-		IncludeRootItems: make(map[string]struct{}),
+	if config.Config.Conditionals.ZeroSizeFolders {
+		logger.Warning("source.conditionals.zeroSizeFolders is deprecated, use source.rules instead")
+		resolved.IgnoreAllZeroSizeFolders = true
 	}
 
+	// Process all rules and infer global flags from root-level rules
 	for _, rule := range rules {
+		// Check if this is a root-level rule (folderPath == "/")
+		// Root-level rules with ignoreHidden/ignoreZeroSizeFolders/viewable set global flags
+		isRootLevelRule := rule.FolderPath == "/"
+
+		// Infer global flags from root-level rules
+		if isRootLevelRule {
+			if rule.IgnoreHidden {
+				resolved.IgnoreAllHidden = true
+			}
+			if rule.IgnoreSymlinks {
+				resolved.IgnoreAllSymlinks = true
+			}
+			if rule.IgnoreZeroSizeFolders {
+				resolved.IgnoreAllZeroSizeFolders = true
+			}
+			if rule.Viewable {
+				resolved.IndexingDisabled = true
+			}
+		}
+
+		// Build optimized lookup structures
 		if rule.FileEndsWith != "" {
 			resolved.FileEndsWith = append(resolved.FileEndsWith, rule)
 		}
@@ -882,7 +935,7 @@ func setConditionals(config *Source) {
 			resolved.FolderNames[rule.FolderName] = rule
 		}
 	}
-	config.Config.ResolvedConditionals = resolved
+	config.Config.ResolvedRules = resolved
 }
 
 func modifyExcludeInclude(config *Source) {
@@ -914,20 +967,40 @@ func modifyExcludeInclude(config *Source) {
 		return strings.Trim(value, "/")
 	}
 
-	// Normalize []ConditionalIndexConfig slices for full paths
-	for i, rule := range config.Config.Conditionals.ItemRules {
+	// Normalize []ConditionalRule slices for full paths
+	// Handle both old format (Conditionals.ItemRules) and new format (Rules)
+	allRules := append(config.Config.Conditionals.ItemRules, config.Config.Rules...)
 
+	for i, rule := range allRules {
 		// normalize full paths
-		config.Config.Conditionals.ItemRules[i].FilePath = normalizeFullPath(rule.FilePath, true)
-		config.Config.Conditionals.ItemRules[i].FolderPath = normalizeFullPath(rule.FolderPath, true)
-		config.Config.Conditionals.ItemRules[i].NeverWatchPath = normalizeFullPath(rule.NeverWatchPath, true)
-		config.Config.Conditionals.ItemRules[i].IncludeRootItem = normalizeFullPath(rule.IncludeRootItem, true)
+		allRules[i].FilePath = normalizeFullPath(rule.FilePath, true)
+		// FolderPath gets trailing slash for proper prefix matching
+		if rule.FolderPath != "" {
+			normalized := normalizeFullPath(rule.FolderPath, true)
+			if normalized != "/" && !strings.HasSuffix(normalized, "/") {
+				normalized = normalized + "/"
+			}
+			allRules[i].FolderPath = normalized
+		}
+		allRules[i].NeverWatchPath = normalizeFullPath(rule.NeverWatchPath, true)
+		if rule.IncludeRootItem != "" {
+			normalized := normalizeFullPath(rule.IncludeRootItem, true)
+			if normalized != "/" && !strings.HasSuffix(normalized, "/") {
+				normalized = normalized + "/"
+			}
+			allRules[i].IncludeRootItem = normalized
+		}
 
 		// normalize names
-		config.Config.Conditionals.ItemRules[i].FileNames = normalizeName(rule.FileNames)
-		config.Config.Conditionals.ItemRules[i].FolderNames = normalizeName(rule.FolderNames)
-		config.Config.Conditionals.ItemRules[i].FileName = normalizeName(rule.FileName)
-		config.Config.Conditionals.ItemRules[i].FolderName = normalizeName(rule.FolderName)
+		allRules[i].FileNames = normalizeName(rule.FileNames)
+		allRules[i].FolderNames = normalizeName(rule.FolderNames)
+		allRules[i].FileName = normalizeName(rule.FileName)
+		allRules[i].FolderName = normalizeName(rule.FolderName)
 	}
+
+	// Update the original slices with normalized values
+	itemRulesLen := len(config.Config.Conditionals.ItemRules)
+	config.Config.Conditionals.ItemRules = allRules[:itemRulesLen]
+	config.Config.Rules = allRules[itemRulesLen:]
 
 }

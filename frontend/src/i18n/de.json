@@ -30,7 +30,8 @@
     "saveAndExit": "Speichern und Beenden",
     "keepEditing": "Weiter bearbeiten",
     "closeAnyway": "Jedenfalls schließen",
-    "goToItem": "Weiter zu Artikel"
+    "goToItem": "Weiter zu Artikel",
+    "watchFile": "Datei beobachten"
   },
   "download": {
     "downloadFile": "Datei herunterladen",
@@ -48,7 +49,6 @@
   "files": {
     "closePreview": "Vorschau schließen",
     "lastModified": "Zuletzt geändert",
-    "lonely": "Hier scheint nichts zu sein...",
     "multipleSelectionEnabled": "Mehrfachauswahl aktiviert",
     "sortByLastModified": "Nach Änderungsdatum sortieren",
     "sortByName": "Nach Namen sortieren",
@@ -61,7 +61,10 @@
     "newFile": "Neue Datei{suffix}",
     "newFolder": "Neuer Ordner{suffix}",
     "duration": "Dauer{suffix}",
-    "sortByDuration": "Sortieren nach Dauer"
+    "sortByDuration": "Sortieren nach Dauer",
+    "sameFolder": "Kann nicht in denselben Ordner verschoben werden",
+    "cannotAccesDir": "Kann nicht auf das Verzeichnis zugreifen",
+    "lonely": "Hier gibt es nichts zu sehen..."
   },
   "help": {
     "functionKeys": "Funktionstasten",
@@ -217,7 +220,10 @@
     "renameSuccess": "Artikel erfolgreich umbenannt!",
     "newFileSuccess": "Datei erfolgreich erstellt!",
     "newDirSuccess": "Verzeichnis erfolgreich erstellt!",
-    "copyToClipboardFailed": "Kopieren in die Zwischenablage nicht möglich"
+    "copyToClipboardFailed": "Kopieren in die Zwischenablage nicht möglich",
+    "moveFailed": "Verschieben fehlgeschlagen",
+    "operationFailed": "Operation fehlgeschlagen",
+    "partialSuccess": "Einige Operationen sind fehlgeschlagen: {succeeded} erfolgreich, {failed} fehlgeschlagen"
   },
   "search": {
     "smallerThan": "Kleiner als:",
@@ -444,7 +450,13 @@
     "customizeSidebarLinksButton": "Anpassen von Links",
     "shareInfo": "QR-Code und Informationen teilen",
     "shareInfoDescription": "Dieser Link zeigt die Informationen zur Freigabe, einschließlich Titel, Beschreibung, Banner und QR-Code, in einem Popup-Fenster an.",
-    "downloadDescription": "Über diesen Link kann der gesamte Inhalt der Freigabe als komprimierte Datei heruntergeladen werden."
+    "downloadDescription": "Über diesen Link kann der gesamte Inhalt der Freigabe als komprimierte Datei heruntergeladen werden.",
+    "disableLoginOption": "Anmeldeoption ausblenden",
+    "disableLoginOptionDescription": "Blenden Sie die Login-Schaltfläche in der Seitenleiste für anonyme Benutzer aus. Wenn diese Option aktiviert ist, sehen anonyme Benutzer die Option zum Einloggen nicht.",
+    "browseFiles": "Dateien durchsuchen",
+    "selectBannerImage": "Bannerbild auswählen",
+    "selectFaviconImage": "Favicon-Bild auswählen",
+    "selectImage": "Bild auswählen"
   },
   "api": {
     "title": "API-Schlüssel",
@@ -606,7 +618,13 @@
     "uploading": "Hochladen{suffix}",
     "paused": "Pausiert{suffix}",
     "conflict": "Konflikt{suffix}",
-    "change": "Ändern Sie{suffix}"
+    "change": "Ändern Sie{suffix}",
+    "output": "Ausgabe{suffix}",
+    "watching": "Beobachten Sie{suffix}",
+    "lines": "Zeilen{suffix}",
+    "lastUpdate": "Letzte Aktualisierung{suffix}",
+    "latency": "Latenzzeit{suffix}",
+    "all": "Alle{suffix}"
   },
   "access": {
     "rules": "Zugangsregeln",
@@ -639,7 +657,9 @@
     "uploadChunkSizeMbHelp": "Normalerweise 5 bis 50 MB, kleiner ist besser für instabile oder eingeschränkte Verbindungen. Die Einstellung 0 deaktiviert das Chunking beim Hochladen.",
     "clearAll": "Clear completed sollte Fehler, Pausen und Konflikte beseitigen",
     "clearAllDescription": "Mit der Schaltfläche Abgeschlossen löschen werden alle Uploads im abgeschlossenen Zustand gelöscht, einschließlich Fehler-, Pausen- und Konfliktstatus.",
-    "uploadSettings": "Upload-Einstellungen"
+    "uploadSettings": "Upload-Einstellungen",
+    "downloadChunkSizeMb": "Größe des heruntergeladenen Stücks in MB",
+    "downloadChunkSizeMbHelp": "Chunk-Größe für Chunked-Downloads. Dateien, die größer als diese Größe sind, werden in Chunks heruntergeladen, um Timeout-Probleme zu vermeiden (z. B. Cloudflare 524-Fehler). Mit dem Wert 0 werden Chunked Downloads deaktiviert."
   },
   "colors": {
     "red": "rot",
@@ -782,7 +802,16 @@
       "browseFullLibrary": "Vollständige Symbolbibliothek durchsuchen"
     },
     "toolNotFound": "Werkzeug nicht gefunden",
-    "backToTools": "Zurück zu Tools"
+    "backToTools": "Zurück zu Tools",
+    "fileWatcher": {
+      "name": "Dateiüberwacher",
+      "description": "Überwachung und Verfolgung von Dateien in Echtzeit mit Latenzüberwachung",
+      "file": "Datei{suffix}",
+      "interval": "Aktualisierungsintervall",
+      "stopWatching": "Aufhören zu beobachten",
+      "emptyState": "Wählen Sie eine Datei aus und klicken Sie auf \"Play\", um die Dateiänderungen zu überwachen.",
+      "chooseFile": "Wählen Sie eine Datei"
+    }
   },
   "messages": {
     "pathNotFound": "Pfad existiert nicht im Dateisystem",

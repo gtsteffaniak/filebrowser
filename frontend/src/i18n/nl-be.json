@@ -30,7 +30,8 @@
     "saveAndExit": "Opslaan en afsluiten",
     "keepEditing": "Blijven bewerken",
     "closeAnyway": "Sluiten",
-    "goToItem": "Ga naar item"
+    "goToItem": "Ga naar item",
+    "watchFile": "Bestand bekijken"
   },
   "download": {
     "downloadFile": "Bestand downloaden",
@@ -48,7 +49,6 @@
   "files": {
     "closePreview": "Voorvertoon sluiten",
     "lastModified": "Laatst bewerkt",
-    "lonely": "Het is hier wat leeg...",
     "multipleSelectionEnabled": "Meerdere items selecteren ingeschakeld",
     "sortByLastModified": "Sorteren op laatst bewerkt",
     "sortByName": "Sorteren op naam",
@@ -61,7 +61,10 @@
     "newFile": "Nieuw bestand{suffix}",
     "newFolder": "Nieuwe map{suffix}",
     "duration": "Duur{suffix}",
-    "sortByDuration": "Sorteren op duur"
+    "sortByDuration": "Sorteren op duur",
+    "sameFolder": "Kan niet naar dezelfde map verplaatsen",
+    "cannotAccesDir": "Kan de map niet openen",
+    "lonely": "Niets te zien hier..."
   },
   "help": {
     "functionKeys": "Functietoetsen",
@@ -217,7 +220,10 @@
     "renameSuccess": "Item hernoemd succesvol!",
     "newFileSuccess": "Bestand succesvol aangemaakt!",
     "newDirSuccess": "Directory succesvol aangemaakt!",
-    "copyToClipboardFailed": "Kan niet naar klembord kopiëren"
+    "copyToClipboardFailed": "Kan niet naar klembord kopiëren",
+    "moveFailed": "Verplaatsen mislukt",
+    "operationFailed": "Operatie mislukt",
+    "partialSuccess": "Sommige bewerkingen zijn mislukt: {succeeded} gelukt, {failed} mislukt."
   },
   "search": {
     "smallerThan": "Kleiner dan:",
@@ -444,7 +450,13 @@
     "customizeSidebarLinksButton": "Koppelingen aanpassen",
     "shareInfo": "QR Code en info delen",
     "shareInfoDescription": "Deze link toont de informatie van de share, inclusief titel, beschrijving, banner en QR code in een popup.",
-    "downloadDescription": "Met deze link kun je de volledige inhoud van de share downloaden als een gecomprimeerd bestand."
+    "downloadDescription": "Met deze link kun je de volledige inhoud van de share downloaden als een gecomprimeerd bestand.",
+    "disableLoginOption": "Verberg aanmeldingsoptie",
+    "disableLoginOptionDescription": "Verberg de aanmeldknop in de zijbalk voor anonieme gebruikers. Als deze optie is ingeschakeld, zien anonieme gebruikers de optie om in te loggen niet.",
+    "browseFiles": "Bladeren door bestanden",
+    "selectBannerImage": "Selecteer bannerafbeelding",
+    "selectFaviconImage": "Selecteer favicon afbeelding",
+    "selectImage": "Afbeelding selecteren"
   },
   "api": {
     "title": "API-sleutels",
@@ -512,7 +524,9 @@
     "uploadChunkSizeMbHelp": "Gewoonlijk 5 tot 50 MB, kleiner is beter voor onstabiele of beperkte verbindingen. Instellen op 0 schakelt chunking uit.",
     "clearAll": "Wissen voltooid moet fout, pauze en conflict verwijderen",
     "clearAllDescription": "De knop Voltooid wissen wist alle uploads in een voltooide status, inclusief fout-, gepauzeerde en conflictstatussen.",
-    "uploadSettings": "Instellingen uploaden"
+    "uploadSettings": "Instellingen uploaden",
+    "downloadChunkSizeMb": "Grootte downloadbrok in MB",
+    "downloadChunkSizeMbHelp": "Chunk-grootte voor chunked downloads. Bestanden die groter zijn dan deze grootte worden in chunks gedownload om time-outproblemen te voorkomen (bijv. Cloudflare 524 fouten). Instellen op 0 schakelt chunked downloads uit."
   },
   "colors": {
     "red": "rood",
@@ -684,7 +698,13 @@
     "uploading": "uploaden{suffix}",
     "paused": "Gepauzeerd{suffix}",
     "conflict": "Conflict{suffix}",
-    "change": "Verander{suffix}"
+    "change": "Verander{suffix}",
+    "output": "Uitgang{suffix}",
+    "watching": "Kijken naar{suffix}",
+    "lines": "Lijnen{suffix}",
+    "lastUpdate": "Laatste update{suffix}",
+    "latency": "Latency{suffix}",
+    "all": "Alle{suffix}"
   },
   "access": {
     "rules": "Toegangsregels",
@@ -782,7 +802,16 @@
       "browseFullLibrary": "Blader door de volledige pictogrammenbibliotheek"
     },
     "toolNotFound": "Gereedschap niet gevonden",
-    "backToTools": "Terug naar Gereedschap"
+    "backToTools": "Terug naar Gereedschap",
+    "fileWatcher": {
+      "name": "Bestandsbewaker",
+      "description": "Bestanden in realtime bekijken en volgen met latentiebewaking",
+      "file": "Bestand{suffix}",
+      "interval": "Update-interval",
+      "stopWatching": "Stop met kijken",
+      "emptyState": "Kies een bestand en klik op afspelen om te beginnen met het controleren van bestandswijzigingen",
+      "chooseFile": "Kies een bestand"
+    }
   },
   "messages": {
     "pathNotFound": "Pad bestaat niet op bestandssysteem",

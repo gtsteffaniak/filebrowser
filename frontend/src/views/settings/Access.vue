@@ -14,8 +14,8 @@
 
   </div>
   <div class="card-content full">
-    <div v-if="loading" class="loading-spinner">
-      <i class="material-icons spin">sync</i>
+    <div v-if="loading" class="loading-spinner-wrapper">
+      <LoadingSpinner size="medium" />
     </div>
     <table v-else aria-label="Access Rules">
       <thead>
@@ -58,11 +58,13 @@ import { accessApi } from "@/api";
 import { state, mutations } from "@/store";
 import Errors from "@/views/Errors.vue";
 import { eventBus } from "@/store/eventBus";
+import LoadingSpinner from "@/components/LoadingSpinner.vue";
 
 export default {
   name: "accessSettings",
   components: {
     Errors,
+    LoadingSpinner,
   },
   data: function () {
     return {
@@ -125,3 +127,12 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.loading-spinner-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2em 0;
+}
+</style>

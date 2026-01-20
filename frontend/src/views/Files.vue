@@ -1,15 +1,11 @@
 <template>
   <div>
-    <breadcrumbs v-if="showBreadCrumbs" :base="isShare ? `/share/${shareHash}` : undefined" />
+    <div v-if="loadingProgress < 100" class="progress-line" :style="{ width: loadingProgress + '%' }"></div>
     <errors v-if="error" :errorCode="error.status" />
     <component v-else-if="currentViewLoaded" :is="currentView"></component>
     <div v-else>
       <h2 class="message delayed">
-        <div class="spinner">
-          <div class="bounce1"></div>
-          <div class="bounce2"></div>
-          <div class="bounce3"></div>
-        </div>
+        <LoadingSpinner size="medium" />
         <span>{{ $t("general.loading", { suffix: "..." }) }}</span>
       </h2>
     </div>
@@ -18,7 +14,6 @@
 
 <script>
 import { filesApi, publicApi } from "@/api";
-import Breadcrumbs from "@/components/Breadcrumbs.vue";
 import Errors from "@/views/Errors.vue";
 import Preview from "@/views/files/Preview.vue";
 import ListingView from "@/views/files/ListingView.vue";
@@ -31,11 +26,11 @@ import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
 import router from "@/router";
 import { extractSourceFromPath } from "@/utils/url";
+import LoadingSpinner from "@/components/LoadingSpinner.vue";
 
 export default {
   name: "files",
   components: {
-    Breadcrumbs,
     Errors,
     Preview,
     ListingView,
@@ -44,6 +39,7 @@ export default {
     DocViewer,
     OnlyOfficeEditor,
     MarkdownViewer,
+    LoadingSpinner,
   },
   data() {
     return {
@@ -52,6 +48,9 @@ export default {
       lastPath: "",
       lastHash: "",
       popupSource: "",
+      loadingProgress: 0,
+      loadingStartTime: null,
+      loadingTimeout: null,
       // Share-specific data
       sharePassword: "",
       attemptedPasswordLogin: false,
@@ -66,9 +65,6 @@ export default {
     },
     showShareInfo() {
       return getters.isShare() && state.isMobile && state.req.path == "/" && !state.shareInfo?.disableShareCard;
-    },
-    showBreadCrumbs() {
-      return getters.showBreadCrumbs();
     },
     currentView() {
       return getters.currentView();
@@ -125,6 +121,11 @@ export default {
   },
   beforeUnmount() {
     window.removeEventListener("keydown", this.keyEvent);
+    // Clean up loading timeout
+    if (this.loadingTimeout) {
+      clearTimeout(this.loadingTimeout);
+      this.loadingTimeout = null;
+    }
   },
   unmounted() {
     mutations.replaceRequest({}); // Use mutation
@@ -194,6 +195,13 @@ export default {
       } catch (e) {
         this.error = e;
         mutations.replaceRequest({});
+        // Clear loading progress bar on error
+        if (this.loadingTimeout) {
+          clearTimeout(this.loadingTimeout);
+          this.loadingTimeout = null;
+        }
+        this.loadingProgress = 0;
+        
         if (e.status === 404) {
           router.push({ name: "notFound" });
         } else if (e.status === 403) {
@@ -228,13 +236,25 @@ export default {
     async fetchShareData() {
       const hash = getters.shareHash();
       let shareInfo = await publicApi.getShareInfo(hash);
-      if (!shareInfo) {
+      
+      // Check if the response is an error (has status field indicating error)
+      if (!shareInfo || shareInfo.status >= 400) {
         // show message that share is invalid and don't do anything else
         this.error = {
-          status: "share404",
-          message: "errors.shareNotFound",
+          status: shareInfo?.status || "share404",
+          message: shareInfo?.message || "errors.shareNotFound",
         };
+        // Clear loading progress bar
+        if (this.loadingTimeout) {
+          clearTimeout(this.loadingTimeout);
+          this.loadingTimeout = null;
+        }
+        this.loadingProgress = 0;
+        // Don't set shareInfo for invalid shares
+        return;
       }
+      
+      // Valid share - add the hash and set shareInfo
       shareInfo.hash = hash;
       mutations.setShareInfo(shareInfo);
       
@@ -274,7 +294,7 @@ export default {
         if (shareInfo.hasPassword) {
           mutations.setShareData({ passwordValid: false });
           try {
-            await publicApi.fetchPub(this.shareSubPath, this.shareHash, this.sharePassword, false);
+            await publicApi.fetchPub(this.shareSubPath, this.shareHash, this.sharePassword, false, false);
             // If we get here, password is valid (unlikely for upload shares, but handle it)
             mutations.setShareData({ passwordValid: true });
             this.error = null; // Clear any previous errors
@@ -307,7 +327,7 @@ export default {
       if (shareInfo.hasPassword) {
         mutations.setShareData({ passwordValid: false });
         try {
-          await publicApi.fetchPub(this.shareSubPath, this.shareHash, this.sharePassword, false);
+          await publicApi.fetchPub(this.shareSubPath, this.shareHash, this.sharePassword, false, false);
           // Password is valid
           mutations.setShareData({ passwordValid: true });
           this.error = null; // Clear any previous errors
@@ -335,8 +355,33 @@ export default {
       if (state.shareInfo?.singleFileShare) {
         mutations.setSidebarVisible(true);
       }
-      // Fetch share data
-      let file = await publicApi.fetchPub(this.shareSubPath, this.shareHash, this.sharePassword);
+      
+      // Start loading timer - only show progress bar if loading takes > 100ms
+      this.loadingStartTime = Date.now();
+      this.loadingProgress = 0;
+      this.loadingTimeout = setTimeout(() => {
+        // Only set to 10% if loading is still ongoing after 200ms
+        if (this.loadingProgress < 10) {
+          this.loadingProgress = 10;
+        }
+      }, 200);
+      
+      // First pass: Fetch share data WITHOUT metadata
+      let file = await publicApi.fetchPub(this.shareSubPath, this.shareHash, this.sharePassword, false, false);
+      
+      // Clear timeout if loading completed quickly
+      if (this.loadingTimeout) {
+        clearTimeout(this.loadingTimeout);
+        this.loadingTimeout = null;
+      }
+      
+      // If loading took less than 100ms, don't show progress bar
+      const elapsed = Date.now() - this.loadingStartTime;
+      if (elapsed < 100) {
+        this.loadingProgress = 0;
+      } else if (this.loadingProgress < 10) {
+        this.loadingProgress = 10;
+      }
       file.hash = this.shareHash;
       this.shareToken = file.token;
       // Store share data in state for use by components
@@ -359,11 +404,11 @@ export default {
         const shouldFetchParent = directoryPath !== this.shareSubPath;
         // Run both fetches in parallel to minimize total API calls
         const promises = [
-          publicApi.fetchPub(this.shareSubPath, this.shareHash, this.sharePassword, content)
+          publicApi.fetchPub(this.shareSubPath, this.shareHash, this.sharePassword, content, false)
         ];
           if (shouldFetchParent) {
             promises.push(
-              publicApi.fetchPub(directoryPath, this.shareHash, this.sharePassword, false).catch(() => null)
+              publicApi.fetchPub(directoryPath, this.shareHash, this.sharePassword, false, false).catch(() => null)
             );
           }
 
@@ -378,8 +423,40 @@ export default {
         }
       }
 
+      // Display initial data immediately
       mutations.replaceRequest(file);
       document.title = `${document.title} - ${file.name}`;
+
+      // Second pass: If directory has metadata available, fetch again with metadata IN THE BACKGROUND
+      if (file.type === "directory" && file.hasMetadata) {
+        this.loadingProgress = 90;
+        // Fetch with metadata enabled (background operation)
+        publicApi.fetchPub(this.shareSubPath, this.shareHash, this.sharePassword, false, true).then(fileWithMetadata => {
+          fileWithMetadata.hash = this.shareHash;
+          fileWithMetadata.token = this.shareToken;
+          
+          // Capture scroll position before update
+          const scrollY = window.scrollY;
+          
+          // Update the request with metadata
+          mutations.replaceRequest(fileWithMetadata);
+          
+          // Complete progress
+          this.loadingProgress = 100;
+          
+          // Restore scroll position
+          requestAnimationFrame(() => {
+            window.scrollTo(0, scrollY);
+          });
+        }).catch(() => {
+          // Don't throw - we already have the basic data displayed
+          // Clear loading progress bar on metadata fetch error
+          this.loadingProgress = 0;
+        });
+      } else {
+        // No metadata needed, complete immediately
+        this.loadingProgress = 100;
+      }
     },
 
     async fetchFilesData() {
@@ -421,11 +498,37 @@ export default {
       // Reset view information using mutations
       mutations.resetSelected();
       let data = {};
+      
+      // Start loading timer - only show progress bar if loading takes > 100ms
+      this.loadingStartTime = Date.now();
+      this.loadingProgress = 0;
+      this.loadingTimeout = setTimeout(() => {
+        // Only set to 10% if loading is still ongoing after 100ms
+        if (this.loadingProgress < 10) {
+          this.loadingProgress = 10;
+        }
+      }, 100);
+      
       try {
         const fetchSource = decodeURIComponent(result.source);
         const fetchPath = decodeURIComponent(result.path);
-        // Fetch initial data
-        let res = await filesApi.fetchFiles(fetchSource, fetchPath );
+        
+        // First pass: Fetch initial data WITHOUT metadata
+        let res = await filesApi.fetchFiles(fetchSource, fetchPath, false, false);
+        
+        // Clear timeout if loading completed quickly
+        if (this.loadingTimeout) {
+          clearTimeout(this.loadingTimeout);
+          this.loadingTimeout = null;
+        }
+        
+        // If loading took less than 100ms, don't show progress bar
+        const elapsed = Date.now() - this.loadingStartTime;
+        if (elapsed < 100) {
+          this.loadingProgress = 0;
+        } else if (this.loadingProgress < 10) {
+          this.loadingProgress = 10;
+        }
 
         // If not a directory, fetch content AND parent directory in parallel
         if (res.type != "directory" && !res.type.startsWith("image")) {
@@ -442,12 +545,12 @@ export default {
 
           // Run both fetches in parallel to minimize total API calls
           const promises = [
-            filesApi.fetchFiles(res.source, res.path, content)
+            filesApi.fetchFiles(res.source, res.path, content, false)
           ];
 
           if (shouldFetchParent) {
             promises.push(
-              filesApi.fetchFiles(res.source, directoryPath).catch(() => null)
+              filesApi.fetchFiles(res.source, directoryPath, false, false).catch(() => null)
             );
           }
 
@@ -465,12 +568,48 @@ export default {
           mutations.setCurrentSource(data.source);
         }
         document.title = `${document.title} - ${res.name}`;
+        
+        // Display initial data immediately and clear loading spinner
+        mutations.replaceRequest(data);
+        mutations.setLoading("files", false);
+        
+        // Second pass: If directory has metadata available, fetch again with metadata IN THE BACKGROUND
+        if (res.type === "directory" && res.hasMetadata) {
+          this.loadingProgress = 90;
+          // Fetch with metadata enabled (background operation, don't set loading state)
+          filesApi.fetchFiles(fetchSource, fetchPath, false, true).then(resWithMetadata => {
+            // Capture scroll position before update
+            const scrollY = window.scrollY;
+            
+            // Update the data with metadata
+            mutations.replaceRequest(resWithMetadata);
+            
+            // Complete progress
+            this.loadingProgress = 100;
+            
+            // Restore scroll position
+            requestAnimationFrame(() => {
+              window.scrollTo(0, scrollY);
+            });
+          }).catch(() => {
+            // Don't throw - we already have the basic data displayed
+            // Clear loading progress bar on metadata fetch error
+            this.loadingProgress = 0;
+          });
+        } else {
+          // No metadata needed, complete immediately
+          this.loadingProgress = 100;
+        }
       } catch (e) {
         this.error = e;
         mutations.replaceRequest({});
-      } finally {
-        mutations.replaceRequest(data);
         mutations.setLoading("files", false);
+        // Clear timeout on error
+        if (this.loadingTimeout) {
+          clearTimeout(this.loadingTimeout);
+          this.loadingTimeout = null;
+        }
+        this.loadingProgress = 0;
       }
     },
     showPasswordPrompt() {
@@ -488,9 +627,11 @@ export default {
     },
     keyEvent(event) {
       // F1!
-      if (event.keyCode === 112) {
+      if (event.key === "F1") {
         event.preventDefault();
-        mutations.showHover("help"); // Use mutation
+        if (!getters.currentPromptName()) {
+          mutations.showHover("help"); // Use mutation
+        }
       }
 
       // Ctrl+, - navigate to settings
@@ -500,9 +641,23 @@ export default {
       }
 
       // Esc! - for shares, reset selection
-      if ( getters.isShare() && event.keyCode === 27) {
+      if ( getters.isShare() && event.key === "Escape") {
         if (getters.selectedCount() > 0) {
           mutations.resetSelected();
+        }
+      }
+      // F2! - for rename in previews
+      if (event.key == "F2" && getters.isPreviewView() && getters.permissions()?.modify) {
+        event.preventDefault();
+        if (!getters.currentPromptName()) {
+          const parentItems = state.navigation.listing || [];
+          mutations.showHover({
+            name: "rename",
+            props: {
+              item: state.req,
+              parentItems: parentItems
+            },
+          });
         }
       }
     },
@@ -529,5 +684,21 @@ export default {
 
 .share-info-component {
   margin-top: 0.5em;
+}
+
+.progress-line {
+  position: fixed;
+  top: 4em;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--primaryColor);
+  z-index: 2000;
+  transition: width 0.3s ease;
+  box-shadow: 0 0 10px var(--primaryColor);
+}
+
+#main.moveWithSidebar .progress-line {
+  left: 20em;
 }
 </style>

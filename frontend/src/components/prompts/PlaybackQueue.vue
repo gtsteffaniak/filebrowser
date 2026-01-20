@@ -16,7 +16,7 @@
     </div>
 
     <!-- Queue list -->
-    <div v-if="formattedQueue.length > 0">
+    <div v-if="formattedQueue.length > 0" class="queue-container">
       <div class="file-list" ref="QueueList">
         <div
           v-for="(item, index) in formattedQueue"
@@ -41,24 +41,24 @@
           </div>
         </div>
       </div>
-
-    </div>
-      <!-- Empty state -->
-      <div v-else class="empty">
-       <i class="material-icons">queue_music</i>
-       <p>{{ $t('player.emptyQueue') }}</p>
-      </div>
     </div>
 
-    <div class="card-action">
-      <button class="button button--flat" @click.stop="cyclePlaybackModes" :title="$t('player.changePlaybackMode')">
-        <i class="material-icons">swap_vert</i> {{ $t('player.changePlaybackMode') }}
-      </button>
+    <!-- Empty state -->
+    <div v-else class="empty">
+      <i class="material-icons">queue_music</i>
+      <p>{{ $t('player.emptyQueue') }}</p>
+    </div>
+  </div>
 
-      <button @click="closeModal" class="button button--flat" :aria-label="$t('general.close')"
+  <div class="card-action">
+    <button class="button button--flat" @click.stop="cyclePlaybackModes" :title="$t('player.changePlaybackMode')">
+      <i class="material-icons">swap_vert</i> {{ $t('player.changePlaybackMode') }}
+    </button>
+
+    <button @click="closeModal" class="button button--flat" :aria-label="$t('general.close')"
       :title="$t('general.close')"> {{ $t('general.close') }}
-      </button>
-    </div>
+    </button>
+  </div>
 </template>
 
 <script>
@@ -107,9 +107,9 @@ export default {
       }));
     },
     isPlaying() {
-        return state.playbackQueue?.isPlaying || false;
+      return state.playbackQueue?.isPlaying || false;
     },
-      isPromptVisible() {
+    isPromptVisible() {
       // Check if this PlaybackQueue prompt is the current active prompt
       return state.prompts.some(prompt => prompt.name === 'PlaybackQueue');
     }
@@ -153,74 +153,53 @@ export default {
   },
   methods: {
     cyclePlaybackModes() {
-        // Cycle through modes using store mutations
-        const modes = ['loop-all', 'shuffle', 'sequential', 'loop-single'];
-        const currentIndex = modes.indexOf(this.playbackMode);
-        const nextMode = modes[(currentIndex + 1) % modes.length];
-
-        // Update store with new mode - this will trigger plyrViewer to rebuild queue
-        mutations.setPlaybackQueue({
-          queue: this.playbackQueue,
-          currentIndex: this.currentQueueIndex,
-          mode: nextMode
-        });
-        
-        // Auto-scroll after mode change
-        this.$nextTick(() => {
-            this.scrollToCurrentItem();
-        });
+      // Cycle through modes using store mutations
+      const modes = ['loop-all', 'shuffle', 'sequential', 'loop-single'];
+      const currentIndex = modes.indexOf(this.playbackMode);
+      const nextMode = modes[(currentIndex + 1) % modes.length];
+      // Update store with new mode - this will trigger plyrViewer to rebuild queue
+      mutations.setPlaybackQueue({
+        queue: this.playbackQueue,
+        currentIndex: this.currentQueueIndex,
+        mode: nextMode
+      });
+      // Auto-scroll after mode change
+      this.$nextTick(() => {
+        this.scrollToCurrentItem();
+      });
     },
-    
+
     navigateToItem(index) {
-      console.log('Navigate to item:', index);
-      
       if (index === this.currentQueueIndex) {
         // Toggle play/pause for current item
         this.togglePlayPause();
+        return;
       } else {
         // Navigate to different item
         this.navigateToIndex(index);
       }
     },
-    
     togglePlayPause() {
       mutations.togglePlayPause();
     },
-    
     navigateToIndex(index) {
       if (index >= 0 && index < this.playbackQueue.length) {
         const item = this.playbackQueue[index];
-        
         // Update store with new current index
         mutations.setPlaybackQueue({
           queue: this.playbackQueue,
           currentIndex: index,
           mode: this.playbackMode
         });
-        
         // Close the prompt
         this.closeModal();
-        
         // Trigger actual navigation
         this.triggerNavigation(item);
       }
     },
-    
     triggerNavigation(item) {
-      // Build the URL for the item
-      const itemUrl = url.buildItemUrl(item.source || state.req.source, item.path);
-      
-      // Update the current request in the store
-      mutations.replaceRequest(item);
-      
-      // Use router to navigate to the new item
-      this.$router.replace({ path: itemUrl }).catch(err => {
-        if (err.name !== 'NavigationDuplicated') {
-          console.error('Router navigation error:', err);
-        }
-      });
+      url.goToItem( item.source || state.req.source, item.path, undefined );
     },
-    
     scrollToCurrentItem() {
       this.$nextTick(() => {
         const list = this.$refs.QueueList;
@@ -235,13 +214,12 @@ export default {
             top: Math.max(0, scrollTo),
             behavior: 'smooth'
           });
-      }});
+        }
+      });
     },
-    
     closeModal() {
       mutations.closeHovers();
     },
-
     getFileIcon(item) {
       if (item.type?.startsWith('audio/')) return 'audiotrack';
       if (item.type?.startsWith('video/')) return 'movie';
@@ -262,18 +240,23 @@ export default {
 }
 
 .card-content {
-  overflow: hidden !important;
   margin-top: 0;
+  display: flex;
   flex-direction: column;
+  overflow: hidden;
   padding-left: 15px;
   padding-right: 15px;
-  overflow-x: hidden;
 }
 
 .card-action {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding-top: 0 !important;
+}
+
+.card-title {
+  padding-bottom: 0.2em !important;
 }
 
 .card-action .button {
@@ -292,17 +275,26 @@ export default {
 
 .mode-info i.material-icons {
   color: var(--primaryColor);
+  user-select: none;
 }
 
 .playback-mode {
   padding-bottom: 0.75rem;
 }
 
+.queue-container {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
 .file-list {
-  max-height: 400px;
   overflow-y: auto;
+  min-height: 0;
   align-items: center;
   border-radius: 12px;
+  padding: 0;
 }
 
 .item {
@@ -326,12 +318,15 @@ export default {
 }
 
 .item.current .item-icon i,
-.item.current .current-indicator {
+.item.current .current-indicator,
+.item-indicator {
   color: white;
+  user-select: none;
 }
 
 .item-icon i.material-icons {
   color: var(--textSecondary);
+  user-select: none;
 }
 
 .item-name {
@@ -341,6 +336,7 @@ export default {
 .track-number {
   color: var(--textSecondary);
   font-weight: 600;
+  user-select: none;
 }
 
 .empty {
@@ -353,5 +349,6 @@ export default {
   font-size: 3rem;
   opacity: 0.5;
   margin-bottom: 1rem;
+  user-select: none;
 }
 </style>

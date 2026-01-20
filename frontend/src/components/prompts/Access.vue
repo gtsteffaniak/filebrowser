@@ -3,19 +3,23 @@
     <h2>{{ $t("access.accessManagement") }}</h2>
   </div>
   <div class="card-content">
-    <!-- Warning banner for missing path -->
-    <div v-if="!pathExists && !isEditingPath" class="warning-banner">
-      <i class="material-icons">warning</i>
-      <span>{{ $t("messages.pathNotFoundMessage") }}</span>
-      <button class="button button--flat button--blue" @click="startPathReassignment">
-        {{ $t("messages.reassignPath") }}
-      </button>
+    <div v-if="loading" class="loading-spinner-wrapper">
+      <LoadingSpinner size="medium" />
     </div>
+    <template v-else>
+      <!-- Warning banner for missing path -->
+      <div v-if="!pathExists && !isEditingPath" class="warning-banner">
+        <i class="material-icons">warning</i>
+        <span>{{ $t("messages.pathNotFoundMessage") }}</span>
+        <button class="button button--flat button--blue" @click="startPathReassignment">
+          {{ $t("messages.reassignPath") }}
+        </button>
+      </div>
 
-    <div v-if="isEditingPath">
-      <file-list @update:selected="updateTempPath" :browse-source="sourceName"></file-list>
-    </div>
-    <div v-else>
+      <div v-if="isEditingPath">
+        <file-list @update:selected="updateTempPath" :browseSource="sourceName" :showFiles="true"></file-list>
+      </div>
+      <div v-else>
       <p>{{ $t("general.source", { suffix: ":" }) }} {{ currentSource }}</p>
       <div aria-label="access-path" class="searchContext clickable button" @click="startPathEdit">
         {{ $t("general.path", { suffix: ":" }) }} {{ currentPath }}
@@ -81,7 +85,8 @@
           </tr>
         </tbody>
       </table>
-    </div>
+      </div>
+    </template>
   </div>
   <div class="card-action">
     <template v-if="isEditingPath">
@@ -106,17 +111,19 @@ import { accessApi } from "@/api";
 import { mutations } from "@/store";
 import FileList from "./FileList.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
+import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { eventBus } from "@/store/eventBus";
 
 export default {
   name: "access",
-  components: { FileList, ToggleSwitch },
+  components: { FileList, ToggleSwitch, LoadingSpinner },
   props: {
     sourceName: { type: String, required: true },
     path: { type: String, required: true, default: "/" }
   },
   data() {
     return {
+      loading: false,
       isEditingPath: false,
       isReassigningPath: false,
       tempPath: this.path,
@@ -234,6 +241,7 @@ export default {
       }
     },
     async fetchRule() {
+      this.loading = true;
       try {
         const response = await accessApi.get(this.currentSource, this.currentPath);
         // Handle new API response structure - now sourceDenyDefault is part of the rule
@@ -244,6 +252,8 @@ export default {
         this.rule = { denyAll: false, deny: { users: [], groups: [] }, allow: { users: [], groups: [] } };
         this.sourceDenyDefault = false;
         this.pathExists = true;
+      } finally {
+        this.loading = false;
       }
     },
     /**
@@ -331,6 +341,13 @@ export default {
 .cascade-toggle-section {
   margin-top: 1em;
   margin-bottom: 1em;
+}
+
+.loading-spinner-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
 }
 
 </style>

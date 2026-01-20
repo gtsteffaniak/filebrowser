@@ -14,6 +14,26 @@ definitions:
       name:
         type: string
     type: object
+  http.BulkDeleteItem:
+    properties:
+      message:
+        type: string
+      path:
+        type: string
+      source:
+        type: string
+    type: object
+  http.BulkDeleteResponse:
+    properties:
+      failed:
+        items:
+          $ref: '#/definitions/http.BulkDeleteItem'
+        type: array
+      succeeded:
+        items:
+          $ref: '#/definitions/http.BulkDeleteItem'
+        type: array
+    type: object
   http.DirectDownloadResponse:
     properties:
       hash:
@@ -41,6 +61,46 @@ definitions:
       token:
         type: string
     type: object
+  http.MoveCopyItem:
+    properties:
+      fromPath:
+        type: string
+      fromSource:
+        type: string
+      message:
+        type: string
+      toPath:
+        type: string
+      toSource:
+        type: string
+    type: object
+  http.MoveCopyRequest:
+    properties:
+      action:
+        description: '"copy", "move", or "rename"'
+        type: string
+      items:
+        items:
+          $ref: '#/definitions/http.MoveCopyItem'
+        type: array
+      overwrite:
+        description: Overwrite if destination exists
+        type: boolean
+      rename:
+        description: Auto-rename if destination exists
+        type: boolean
+    type: object
+  http.MoveCopyResponse:
+    properties:
+      failed:
+        items:
+          $ref: '#/definitions/http.MoveCopyItem'
+        type: array
+      succeeded:
+        items:
+          $ref: '#/definitions/http.MoveCopyItem'
+        type: array
+    type: object
   http.ShareResponse:
     properties:
       allowCreate:
@@ -60,6 +120,8 @@ definitions:
         type: array
       banner:
         type: string
+      bannerUrl:
+        type: string
       description:
         type: string
       disableAnonymous:
@@ -69,6 +131,9 @@ definitions:
         type: boolean
       disableFileViewer:
         description: don't allow viewing files
+        type: boolean
+      disableLoginOption:
+        description: disable login option in share (true = hide, false = show)
         type: boolean
       disableShareCard:
         type: boolean
@@ -93,6 +158,8 @@ definitions:
         description: can be io intensive for large files and take 10-30 seconds.
         type: boolean
       favicon:
+        type: string
+      faviconUrl:
         type: string
       hasPassword:
         type: boolean
@@ -169,6 +236,48 @@ definitions:
       size:
         type: integer
     type: object
+  http.duplicateResponse:
+    properties:
+      groups:
+        items:
+          $ref: '#/definitions/http.duplicateGroup'
+        type: array
+      incomplete:
+        type: boolean
+      reason:
+        type: string
+    type: object
+  http.fileWatchMetadata:
+    properties:
+      modified:
+        description: Modification time
+        type: string
+      name:
+        description: File name
+        type: string
+      path:
+        description: File path
+        type: string
+      size:
+        description: File size in bytes
+        type: integer
+      type:
+        description: MIME type
+        type: string
+    type: object
+  http.fileWatchResponse:
+    properties:
+      contents:
+        description: Text content for text files
+        type: string
+      isText:
+        description: Whether the file is a text file
+        type: boolean
+      metadata:
+        allOf:
+        - $ref: '#/definitions/http.fileWatchMetadata'
+        description: File metadata for non-text files
+    type: object
   indexing.IndexStatus:
     enum:
     - ready
@@ -182,12 +291,13 @@ definitions:
   indexing.ReducedIndex:
     properties:
       complexity:
-        description: '0-10 scale: 0=unknown, 1=simple, 2-6=normal, 7-9=complex, 10=highlyComplex'
         type: integer
       fullScanDurationSeconds:
         type: integer
       lastIndexedUnixTime:
         type: integer
+      lastScanned:
+        type: string
       name:
         type: string
       numDeleted:
@@ -212,23 +322,28 @@ definitions:
   indexing.ScannerInfo:
     properties:
       complexity:
-        description: '0-10 scale: 0=unknown, 1=simple, 2-6=normal, 7-9=complex, 10=highlyComplex'
         type: integer
       currentSchedule:
         type: integer
-      fullScanTime:
+      fullScanDurationSeconds:
         type: integer
       isRoot:
         type: boolean
+      lastIndexedUnixTime:
+        type: integer
       lastScanned:
         type: string
+      numDeleted:
+        type: integer
       numDirs:
         type: integer
       numFiles:
         type: integer
       path:
         type: string
-      quickScanTime:
+      quickScanDurationSeconds:
+        type: integer
+      used:
         type: integer
     type: object
   indexing.SearchResult:
@@ -241,6 +356,8 @@ definitions:
         type: string
       size:
         type: integer
+      source:
+        type: string
       type:
         type: string
     type: object
@@ -378,22 +495,27 @@ definitions:
   settings.ConditionalFilter:
     properties:
       hidden:
-        description: 'deprecated: use ignoreHidden instead to exclude hidden files
-          and folders.'
+        description: 'deprecated: use ignoreHidden instead. eg, FolderPath: "/" and
+          ignoreHidden: true will exclude hidden files and folders under the root
+          folder.'
         type: boolean
       ignoreHidden:
-        description: exclude hidden files and folders.
+        description: 'deprecated: use ignoreHidden instead. eg, FolderPath: "/" and
+          ignoreHidden: true will exclude hidden files and folders under the root
+          folder.'
         type: boolean
       ignoreZeroSizeFolders:
-        description: ignore folders with 0 size
+        description: 'deprecated: use ignoreZeroSizeFolders instead. eg, FolderPath:
+          "/" and ignoreZeroSizeFolders: true will ignore folders with 0 size under
+          the root folder.'
         type: boolean
       rules:
         description: list of item rules to apply to specific paths
         items:
-          $ref: '#/definitions/settings.ConditionalIndexConfig'
+          $ref: '#/definitions/settings.ConditionalRule'
         type: array
     type: object
-  settings.ConditionalIndexConfig:
+  settings.ConditionalRule:
     properties:
       fileEndsWith:
         description: (global) exclude files that end with these suffixes. Eg. ".jpg"
@@ -435,6 +557,15 @@ definitions:
         description: (global) exclude folders that start with these prefixes. Eg.
           "archive-" or "backup-"
         type: string
+      ignoreHidden:
+        description: Excludes only hidden files and folders
+        type: boolean
+      ignoreSymlinks:
+        description: Excludes symbolic links
+        type: boolean
+      ignoreZeroSizeFolders:
+        description: Excludes only folders with 0 size
+        type: boolean
       includeRootItem:
         description: include only these items at root folder level
         type: string
@@ -526,6 +657,23 @@ definitions:
         type: string
       styling:
         $ref: '#/definitions/settings.StylingConfig'
+    type: object
+  settings.IndexSqlConfig:
+    properties:
+      batchSize:
+        description: number of items to batch in a single transaction, typically 500-5000.
+          higher = faster but could use more memory.
+        type: integer
+      cacheSizeMB:
+        description: size of the SQLite cache in MB
+        type: integer
+      disableReuse:
+        description: enable to always create a new indexing database on startup.
+        type: boolean
+      walMode:
+        description: enable the more complex WAL journaling mode. Slower, more memory
+          usage, but better for deployments with constant user activity.
+        type: boolean
     type: object
   settings.Integrations:
     properties:
@@ -706,7 +854,7 @@ definitions:
       cacheDirCleanup:
         description: 'whether to automatically cleanup the cache directory. Note:
           docker must also mount a persistent volume to persist the cache (default:
-          true)'
+          false)'
         type: boolean
       database:
         description: path to the database file
@@ -730,6 +878,10 @@ definitions:
         allOf:
         - $ref: '#/definitions/settings.Filesystem'
         description: filesystem settings
+      indexSqlConfig:
+        allOf:
+        - $ref: '#/definitions/settings.IndexSqlConfig'
+        description: Index database SQL configuration
       internalUrl:
         description: used by integrations if set, this is the base domain that an
           integration service will use to communicate with filebrowser (eg. http://localhost:8080)
@@ -803,8 +955,7 @@ definitions:
       conditionals:
         allOf:
         - $ref: '#/definitions/settings.ConditionalFilter'
-        description: conditional rules to apply when indexing to include/exclude certain
-          items
+        description: 'deprecated: use source.rules instead'
       createUserDir:
         description: create a user directory for each user under defaultUserScope
           + username
@@ -819,19 +970,29 @@ definitions:
         description: deny access unless an "allow" access rule was specifically created.
         type: boolean
       disableIndexing:
-        description: '(optional) not recommended: disable the indexing of this source'
+        description: 'deprecated: use indexingDisabled instead to disable the indexing
+          of this source'
         type: boolean
       disabled:
         description: disable the source, this is useful so you don't need to remove
           it from the config file
         type: boolean
       indexingIntervalMinutes:
-        description: '(optional) not recommended: manual overide interval in minutes
-          to re-index the source'
+        description: 'deprecated: create a rule with indexingIntervalMinutes to set
+          the indexing interval for this source'
         type: integer
       private:
         description: designate as source as private -- currently just means no sharing
           permitted.
+        type: boolean
+      rules:
+        description: list of item rules to apply to specific paths
+        items:
+          $ref: '#/definitions/settings.ConditionalRule'
+        type: array
+      useLogicalSize:
+        description: calculate sizes based on logical size instead of disk utilization
+          (du -sh), folders will be 0 bytes when empty.
         type: boolean
     type: object
   settings.StylingConfig:
@@ -1034,6 +1195,8 @@ definitions:
         type: array
       banner:
         type: string
+      bannerUrl:
+        type: string
       description:
         type: string
       disableAnonymous:
@@ -1043,6 +1206,9 @@ definitions:
         type: boolean
       disableFileViewer:
         description: don't allow viewing files
+        type: boolean
+      disableLoginOption:
+        description: disable login option in share (true = hide, false = show)
         type: boolean
       disableShareCard:
         type: boolean
@@ -1063,6 +1229,8 @@ definitions:
         description: can be io intensive for large files and take 10-30 seconds.
         type: boolean
       favicon:
+        type: string
+      faviconUrl:
         type: string
       hasPassword:
         type: boolean
@@ -1124,6 +1292,8 @@ definitions:
         type: array
       banner:
         type: string
+      bannerUrl:
+        type: string
       description:
         type: string
       disableAnonymous:
@@ -1133,6 +1303,9 @@ definitions:
         type: boolean
       disableFileViewer:
         description: don't allow viewing files
+        type: boolean
+      disableLoginOption:
+        description: disable login option in share (true = hide, false = show)
         type: boolean
       disableShareCard:
         type: boolean
@@ -1155,6 +1328,8 @@ definitions:
         description: can be io intensive for large files and take 10-30 seconds.
         type: boolean
       favicon:
+        type: string
+      faviconUrl:
         type: string
       hasPassword:
         type: boolean
@@ -1222,6 +1397,8 @@ definitions:
         type: array
       banner:
         type: string
+      bannerUrl:
+        type: string
       description:
         type: string
       disableAnonymous:
@@ -1231,6 +1408,9 @@ definitions:
         type: boolean
       disableFileViewer:
         description: don't allow viewing files
+        type: boolean
+      disableLoginOption:
+        description: disable login option in share (true = hide, false = show)
         type: boolean
       disableShareCard:
         type: boolean
@@ -1255,6 +1435,8 @@ definitions:
         description: can be io intensive for large files and take 10-30 seconds.
         type: boolean
       favicon:
+        type: string
+      faviconUrl:
         type: string
       hasPassword:
         type: boolean
@@ -1331,6 +1513,8 @@ definitions:
     properties:
       clearAll:
         type: boolean
+      downloadChunkSizeMb:
+        type: integer
       maxConcurrentUpload:
         type: integer
       uploadChunkSizeMb:
@@ -2234,7 +2418,12 @@ paths:
     get:
       consumes:
       - application/json
-      description: Finds duplicate files based on size and fuzzy filename matching
+      description: 'Finds duplicate files using multi-stage filtering: size → type
+        → fuzzy filename → progressive checksums. Files must match on size, MIME type,
+        and have 50%+ filename similarity before checksum verification. Large fuzzy
+        groups (>10 files) are skipped to avoid false positives. Checksums use 2-pass
+        progressive verification (header → middle) for accuracy while minimizing disk
+        I/O (~16KB read per file).'
       parameters:
       - description: Source name for the desired source
         in: query
@@ -2253,13 +2442,19 @@ paths:
       - application/json
       responses:
         "200":
-          description: List of duplicate file groups
+          description: List of duplicate file groups with metadata. Response includes
+            'incomplete' flag if processing stopped early due to resource limits.
           schema:
-            items:
-              $ref: '#/definitions/http.duplicateGroup'
-            type: array
+            $ref: '#/definitions/http.duplicateResponse'
         "400":
           description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "503":
+          description: Service Unavailable (indexing in progress or another search
+            running)
           schema:
             additionalProperties:
               type: string
@@ -2428,10 +2623,14 @@ paths:
         **Filename Encoding:**
         - The Content-Disposition header will always include both:
         1. `filename="..."`: An ASCII-safe version of the filename for compatibility.
-        2. `filename*=utf-8”...`: The full UTF-8 encoded filename (RFC 6266/5987) for modern clients.
+        2. `filename*=utf-8"...`: The full UTF-8 encoded filename (RFC 6266/5987) for modern clients.
       parameters:
-      - description: a list of files in the following format 'source::filename' and
-          separated by '||' with additional items in the list. (required)
+      - description: Source name for the files (required)
+        in: query
+        name: source
+        required: true
+        type: string
+      - description: Comma-separated list of file paths (required)
         in: query
         name: files
         required: true
@@ -2567,6 +2766,10 @@ paths:
         in: query
         name: content
         type: string
+      - description: Extract audio/video metadata if true
+        in: query
+        name: metadata
+        type: string
       - description: Optional checksum validation
         in: query
         name: checksum
@@ -2596,36 +2799,32 @@ paths:
     patch:
       consumes:
       - application/json
-      description: Moves or renames a resource to a new destination.
+      description: Performs move, copy, or rename operations on multiple resources.
+        All operations are performed atomically.
       parameters:
-      - description: Path from resource in <source_name>::<index_path> format
-        in: query
-        name: from
+      - description: Move/copy request with items and action
+        in: body
+        name: request
         required: true
-        type: string
-      - description: Destination path for the resource
-        in: query
-        name: destination
-        required: true
-        type: string
-      - description: Action to perform (copy, rename)
-        in: query
-        name: action
-        required: true
-        type: string
-      - description: Overwrite if destination exists
-        in: query
-        name: overwrite
-        type: boolean
-      - description: Rename if destination exists
-        in: query
-        name: rename
-        type: boolean
+        schema:
+          $ref: '#/definitions/http.MoveCopyRequest'
       produces:
       - application/json
       responses:
         "200":
-          description: Resource moved/renamed successfully
+          description: All operations completed successfully
+          schema:
+            $ref: '#/definitions/http.MoveCopyResponse'
+        "207":
+          description: Partial success - some operations succeeded, some failed
+          schema:
+            $ref: '#/definitions/http.MoveCopyResponse'
+        "400":
+          description: Bad request - invalid JSON or parameters
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "403":
           description: Forbidden
           schema:
@@ -2638,19 +2837,11 @@ paths:
             additionalProperties:
               type: string
             type: object
-        "409":
-          description: Conflict - Destination exists
-          schema:
-            additionalProperties:
-              type: string
-            type: object
         "500":
-          description: Internal server error
+          description: All operations failed
           schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Patch resource (move/rename)
+            $ref: '#/definitions/http.MoveCopyResponse'
+      summary: Move, copy, or rename resources
       tags:
       - Resources
     post:
@@ -2759,25 +2950,80 @@ paths:
       summary: Update a file resource
       tags:
       - Resources
+  /api/resources/bulk/delete:
+    post:
+      consumes:
+      - application/json
+      description: Deletes multiple resources specified in the request body. Returns
+        a list of succeeded and failed deletions.
+      parameters:
+      - description: Array of items to delete, each with source and path
+        in: body
+        name: items
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/http.BulkDeleteItem'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: All resources deleted successfully
+          schema:
+            $ref: '#/definitions/http.BulkDeleteResponse'
+        "207":
+          description: Partial success - some resources deleted, some failed
+          schema:
+            $ref: '#/definitions/http.BulkDeleteResponse'
+        "400":
+          description: Bad request - invalid JSON or empty items array
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error - all deletions failed
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Bulk delete resources
+      tags:
+      - Resources
   /api/search:
     get:
       consumes:
       - application/json
       description: Searches for files matching the provided query. Returns file paths
-        and metadata based on the user's session and scope.
+        and metadata based on the user's session and scope. Supports searching across
+        multiple sources when using the 'sources' parameter.
       parameters:
       - description: Search query
         in: query
         name: query
         required: true
         type: string
-      - description: Source name for the desired source
+      - description: Source name for the desired source (deprecated, use 'sources'
+          instead)
         in: query
         name: source
-        required: true
+        type: string
+      - description: Comma-separated list of source names to search across multiple
+          sources. When multiple sources are specified, scope is always the user's
+          scope for each source.
+        in: query
+        name: sources
         type: string
       - description: path within user scope to search, for example '/first/second'
-          to search within the second directory only
+          to search within the second directory only. Ignored when multiple sources
+          are specified.
         in: query
         name: scope
         type: string
@@ -2789,7 +3035,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: List of search results
+          description: List of search results with source field populated
           schema:
             items:
               $ref: '#/definitions/indexing.SearchResult'
@@ -3069,6 +3315,111 @@ paths:
       summary: List share links
       tags:
       - Shares
+  /api/tools/watch:
+    get:
+      consumes:
+      - application/json
+      description: Returns the last N lines of a file
+      parameters:
+      - description: Path to the file
+        in: query
+        name: path
+        required: true
+        type: string
+      - description: Source name
+        in: query
+        name: source
+        required: true
+        type: string
+      - description: 'Number of lines to read (default: 10, max: 50)'
+        in: query
+        name: lines
+        type: integer
+      - description: Return minimal response for latency checking
+        in: query
+        name: latencyCheck
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.fileWatchResponse'
+        "400":
+          description: Invalid request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Permission denied
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: File not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Watch a file
+      tags:
+      - Tools
+  /api/tools/watch/sse:
+    get:
+      description: Establishes an SSE connection to receive periodic file updates
+      parameters:
+      - description: Path to the file
+        in: query
+        name: path
+        required: true
+        type: string
+      - description: Source name
+        in: query
+        name: source
+        required: true
+        type: string
+      - description: 'Number of lines to read (default: 10, max: 50)'
+        in: query
+        name: lines
+        type: integer
+      - description: Update interval in seconds (1, 2, 5, 10, 15, or 30, requires
+          realtime permission for SSE)
+        in: query
+        name: interval
+        type: integer
+      responses:
+        "200":
+          description: SSE stream
+        "400":
+          description: Invalid request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Permission denied
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: File not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Watch a file via SSE
+      tags:
+      - Tools
   /api/users:
     delete:
       consumes:
@@ -3299,8 +3650,7 @@ paths:
         name: hash
         required: true
         type: string
-      - description: 'Files to download in format: ''source::path||source::path''.
-          Example: ''/file1||/folder/file2'''
+      - description: 'Comma-separated list of file paths. Example: ''file1.txt,folder/file2.txt'''
         in: query
         name: files
         required: true
@@ -3373,6 +3723,14 @@ paths:
         in: query
         name: path
         type: string
+      - description: Include file content if true
+        in: query
+        name: content
+        type: string
+      - description: Extract audio/video metadata if true
+        in: query
+        name: metadata
+        type: string
       produces:
       - application/json
       responses:
@@ -3405,6 +3763,59 @@ paths:
               type: string
             type: object
       summary: Get file/directory information from a public share
+      tags:
+      - Public Shares
+    patch:
+      consumes:
+      - application/json
+      description: Performs move, copy, or rename operations on multiple resources
+        within a public share. All operations are performed atomically.
+      parameters:
+      - description: Share hash for authentication
+        in: query
+        name: hash
+        required: true
+        type: string
+      - description: Move/copy request with items and action
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/http.MoveCopyRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: All operations completed successfully
+          schema:
+            $ref: '#/definitions/http.MoveCopyResponse'
+        "207":
+          description: Partial success - some operations succeeded, some failed
+          schema:
+            $ref: '#/definitions/http.MoveCopyResponse'
+        "400":
+          description: Bad request - invalid JSON or parameters
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden - modify not allowed for this share
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Share or resource not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/http.MoveCopyResponse'
+      summary: Move, copy, or rename resources in a public share
       tags:
       - Public Shares
     post:
@@ -3541,6 +3952,103 @@ paths:
               type: string
             type: object
       summary: Update a file in a public share
+      tags:
+      - Public Shares
+  /public/api/resources/bulk/delete:
+    post:
+      consumes:
+      - application/json
+      description: Deletes multiple resources specified in the request body. Returns
+        a list of succeeded and failed deletions.
+      parameters:
+      - description: Share hash for authentication
+        in: query
+        name: hash
+        required: true
+        type: string
+      - description: Array of items to delete, each with source and path
+        in: body
+        name: items
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/http.BulkDeleteItem'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: All resources deleted successfully
+          schema:
+            $ref: '#/definitions/http.BulkDeleteResponse'
+        "207":
+          description: Partial success - some resources deleted, some failed
+          schema:
+            $ref: '#/definitions/http.BulkDeleteResponse'
+        "400":
+          description: Bad request - invalid JSON or empty items array
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden - delete not allowed for this share
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error - all deletions failed
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Bulk delete resources from public share
+      tags:
+      - Public Shares
+  /public/api/share/image:
+    get:
+      description: Serves the banner or favicon file for a share
+      parameters:
+      - description: Share hash
+        in: query
+        name: hash
+        required: true
+        type: string
+      - description: Request banner file
+        in: query
+        name: banner
+        type: boolean
+      - description: Request favicon file
+        in: query
+        name: favicon
+        type: boolean
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: Image file content
+          schema:
+            type: file
+        "400":
+          description: Invalid request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Permission denied
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Asset not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get share image (banner or favicon)
       tags:
       - Public Shares
   /public/api/shareinfo:

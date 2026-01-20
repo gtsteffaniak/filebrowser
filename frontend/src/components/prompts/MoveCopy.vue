@@ -5,20 +5,20 @@
 
   <div class="card-content">
     <!-- Loading spinner overlay -->
-     <!-- changed to v-show (for keep the loading spinner), otherwise the path showed in the prompt will be always "/" -->
+    <!-- changed to v-show (for keep the loading spinner), otherwise the path showed in the prompt will be always "/" -->
     <div v-show="isLoading" class="loading-content">
-      <i class="material-icons spin">sync</i>
+      <LoadingSpinner size="small" mode="placeholder" />
       <p class="loading-text">{{ $t("prompts.operationInProgress") }}</p>
     </div>
-      <file-list  ref="fileList" @update:selected="updateDestination">
-      </file-list>
-    </div>
+    <file-list v-show="!isLoading" ref="fileList" @update:selected="updateDestination">
+    </file-list>
+  </div>
   <div>
   </div>
   <div v-if="!isLoading" class="card-action" style="display: flex; align-items: center; justify-content: space-between">
     <template v-if="!showNewDirInput">
-      <button v-if="canCreateFolder" class="button button--flat" @click="createNewDir" :aria-label="$t('files.newFolder')"
-        :title="$t('files.newFolder')" style="justify-self: left">
+      <button v-if="canCreateFolder" class="button button--flat" @click="createNewDir"
+        :aria-label="$t('files.newFolder')" :title="$t('files.newFolder')" style="justify-self: left">
         <span>{{ $t("files.newFolder") }}</span>
       </button>
       <div>
@@ -37,14 +37,8 @@
     <template v-else>
       <div style="width: 100%;">
         <div style="display: flex; gap: 0.3rem;">
-          <input
-            ref="newDirInput"
-            class="input new-dir-input"
-            :class="{ 'form-invalid': !isDirNameValid }"
-            v-model.trim="newDirName"
-            :placeholder="$t('prompts.newDirMessage')"
-            @keydown.enter="handleEnter"
-          />
+          <input ref="newDirInput" class="input new-dir-input" :class="{ 'form-invalid': !isDirNameValid }"
+            v-model.trim="newDirName" :placeholder="$t('prompts.newDirMessage')" @keydown.enter="handleEnter" />
           <button class="button button--flat button--grey" @click="cancelNewDir">
             {{ $t("general.cancel") }}
           </button>
@@ -66,10 +60,11 @@ import * as upload from "@/utils/upload";
 import { url } from "@/utils";
 import { notify } from "@/notify";
 import { goToItem } from "@/utils/url";
+import LoadingSpinner from "@/components/LoadingSpinner.vue";
 
 export default {
   name: "move-copy",
-  components: { FileList },
+  components: { FileList, LoadingSpinner },
   props: {
     operation: {
       type: String,
@@ -250,11 +245,13 @@ export default {
             item.toSource = this.destSource;
           }
           buttons.loading(this.operation);
+          let result;
           if (getters.isShare()) {
-            await publicApi.moveCopy(state.shareInfo.hash, this.items, this.operation, overwrite, rename);
+            result = await publicApi.moveCopy(state.shareInfo.hash, this.items, this.operation, overwrite, rename);
           } else {
-            await filesApi.moveCopy(this.items, this.operation, overwrite, rename);
+            result = await filesApi.moveCopy(this.items, this.operation, overwrite, rename);
           }
+          return result; // Return the result to check for failures
         };
         let conflict = false;
         let dstResp = null;
@@ -266,6 +263,7 @@ export default {
         conflict = upload.checkConflict(this.items, dstResp.items);
         let overwrite = false;
         let rename = false;
+        let result = null;
 
         if (conflict) {
           this.isLoading = false;
@@ -275,7 +273,7 @@ export default {
             const targetPath = destPath + item.name;
             return item.from === targetPath && item.fromSource === this.destSource;
           });
-          
+
           await new Promise((resolve, reject) => {
             mutations.showHover({
               name: "replace-rename",
@@ -289,7 +287,7 @@ export default {
                 event.preventDefault();
                 try {
                   this.isLoading = true;
-                  await action(overwrite, rename);
+                  result = await action(overwrite, rename);
                   resolve(); // Resolve the promise if action succeeds
                 } catch (e) {
                   reject(e); // Reject the promise if an error occurs
@@ -301,40 +299,85 @@ export default {
           });
         } else {
           // Await the action call for non-conflicting cases
-          await action(overwrite, rename);
+          result = await action(overwrite, rename);
         }
+        
+        // Check if there were any failures in the result
+        const hasFailures = result && result.failed && result.failed.length > 0;
+        const hasSuccesses = result && result.succeeded && result.succeeded.length > 0;
+        
+        if (hasFailures && !hasSuccesses) {
+          // All operations failed - show error but DON'T close prompt
+          const errorMessage = result.failed[0]?.message || this.$t("prompts.operationFailed");
+          notify.showError(errorMessage);
+          return;
+        } else if (hasFailures && hasSuccesses) {
+          // Partial failure - show warning and continue
+          const failedCount = result.failed.length;
+          const succeededCount = result.succeeded.length;
+          notify.showError(
+            this.$t("prompts.partialSuccess", { succeeded: succeededCount, failed: failedCount })
+          );
+        }
+        
+        // Only close prompts and reload on success (or partial success)
         mutations.setReload(true);
         mutations.closeHovers();
         mutations.setSearch(false);
 
-        // Store destination info for the button action
-        const destSource = this.destSource;
-        const destPath = this.destPath;
+        // Only show success notification if there were no failures (or partial success was already shown)
+        if (!hasFailures || hasSuccesses) {
+          // Store destination info for the button action
+          const destSource = this.destSource;
+          const destPath = this.destPath;
 
-        // Show success notification with optional button to navigate to destination
-        // For shares, destSource might be null, but goToItem handles shares via state.shareInfo.hash
-        const buttonAction = () => {
-          if (destPath) {
-            // For shares, goToItem will use state.shareInfo.hash, so source can be null
-            // For regular files, destSource should be set
-            goToItem(destSource || null, destPath, {});
-          }
-        };
-        const buttonProps = {
+          // Show success notification with optional button to navigate to destination
+          // For shares, destSource might be null, but goToItem handles shares via state.shareInfo.hash
+          const buttonAction = () => {
+            if (destPath) {
+              // For shares, goToItem will use state.shareInfo.hash, so source can be null
+              // For regular files, destSource should be set
+              goToItem(destSource || null, destPath, {});
+            }
+          };
+          const buttonProps = {
             icon: "folder",
             buttons: destPath ? [
-          {
-            label: this.$t("buttons.goToItem"),
-            primary: true,
-            action: buttonAction
-          }
-        ] : undefined
+              {
+                label: this.$t("buttons.goToItem"),
+                primary: true,
+                action: buttonAction
+              }
+            ] : undefined
           };
-        if (this.operation === "move") {
-          notify.showSuccess(this.$t("prompts.moveSuccess"), buttonProps);
-        } else {
-          notify.showSuccess(this.$t("prompts.copySuccess"), buttonProps);
+          if (this.operation === "move") {
+            notify.showSuccess(this.$t("prompts.moveSuccess"), buttonProps);
+          } else {
+            notify.showSuccess(this.$t("prompts.copySuccess"), buttonProps);
+          }
         }
+      } catch (error) {
+        // Handle errors thrown by the API (e.g., 500 errors)
+        // DON'T close the prompt on error - let user try again or cancel manually
+        
+        // Try to extract error message from the error response
+        let errorMessage = null;
+        
+        // Check if error has a response body with failed items
+        if (error && error.failed && error.failed.length > 0 && error.failed[0]?.message) {
+          errorMessage = error.failed[0].message;
+        } else if (error && error.message) {
+          errorMessage = error.message;
+        } else if (typeof error === 'string') {
+          errorMessage = error;
+        }
+        
+        // Only use fallback if we couldn't extract a message
+        if (!errorMessage) {
+          errorMessage = this.$t("prompts.operationFailed");
+        }
+        
+        notify.showError(errorMessage);
       } finally {
         this.isLoading = false; // Hide loading spinner
       }
@@ -344,7 +387,6 @@ export default {
 </script>
 
 <style scoped>
-
 .loading-content {
   text-align: center;
   display: flex;
@@ -360,15 +402,6 @@ export default {
   font-weight: 500;
 }
 
-.spin {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
 /* Make card-content position relative for absolute positioning of overlay */
 .card-content {
   position: relative;
@@ -377,5 +410,4 @@ export default {
 .new-dir-input {
   justify-self: left
 }
-
 </style>

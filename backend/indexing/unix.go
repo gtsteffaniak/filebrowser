@@ -4,6 +4,7 @@ package indexing
 
 import (
 	"os"
+	"path/filepath"
 	"strings"
 	"syscall"
 
@@ -15,13 +16,20 @@ func CheckWindowsHidden(realpath string) bool {
 	return false
 }
 
-func getFileDetails(sys any, filePath string) (uint64, uint64, uint64, bool) {
-	// On Unix, we should always be able to get syscall info
-	// First try from file.Sys() if available (fast path)
+// getFileSizeByMode returns file size based on config mode
+func getFileSizeByMode(stat *syscall.Stat_t, useLogicalSize bool) uint64 {
+	if useLogicalSize {
+		return uint64(stat.Size)
+	}
+	return uint64(stat.Blocks * 512)
+}
+
+func getFileDetails(sys any, filePath string, useLogicalSize bool) (uint64, uint64, uint64, bool) {
+	// If useLogicalSize is true, we still need inode info for hardlink detection
+	// but use logical size instead of allocated size
 	if sys != nil {
 		if stat, ok := sys.(*syscall.Stat_t); ok {
-			// Use allocated size for `du`-like behavior
-			realSize := uint64(stat.Blocks * 512)
+			realSize := getFileSizeByMode(stat, useLogicalSize)
 			return realSize, uint64(stat.Nlink), stat.Ino, true
 		}
 	}
@@ -43,21 +51,26 @@ func getFileDetails(sys any, filePath string) (uint64, uint64, uint64, bool) {
 		return 0, 1, 0, false
 	}
 
-	// Use allocated size for `du`-like behavior
-	realSize := uint64(stat.Blocks * 512)
+	realSize := getFileSizeByMode(&stat, useLogicalSize)
 	return realSize, uint64(stat.Nlink), stat.Ino, true
 }
 
 // handleFile processes a file and returns its size and whether it should be counted
-// On Unix, always uses syscall to get allocated size (du-like behavior)
-func (idx *Index) handleFile(file os.FileInfo, fullCombined string, realFilePath string) (size uint64, shouldCountSize bool) {
+// On Unix, always uses syscall to get size (allocated or logical based on config)
+// scanner parameter is optional - if nil (API refresh), creates temporary state
+func (idx *Index) handleFile(file os.FileInfo, indexPath string, realFilePath string, isRoutineScan bool, scanner *Scanner) (size uint64, shouldCountSize bool) {
 	var realSize uint64
 	var nlink uint64
 	var ino uint64
 	canUseSyscall := false
 
+	// Use provided realFilePath if available, otherwise construct it
+	if realFilePath == "" {
+		realFilePath = filepath.Join(idx.Path, indexPath)
+	}
+
 	sys := file.Sys()
-	realSize, nlink, ino, canUseSyscall = getFileDetails(sys, realFilePath)
+	realSize, nlink, ino, canUseSyscall = getFileDetails(sys, realFilePath, idx.Config.UseLogicalSize)
 
 	if !canUseSyscall {
 		logger.Errorf("Failed to get syscall info for file %s on Unix system - file may have been deleted or permission denied. Using file.Size() fallback.", realFilePath)
@@ -65,16 +78,16 @@ func (idx *Index) handleFile(file os.FileInfo, fullCombined string, realFilePath
 	}
 
 	if nlink > 1 {
-		// It's a hard link
-		idx.mu.Lock()
-		defer idx.mu.Unlock()
-		if _, exists := idx.processedInodes[ino]; exists {
-			// Already seen, don't count towards global total, or directory total.
-			return realSize, false
+		// It's a hard link - use scanner-specific state
+		if scanner != nil {
+			if _, exists := scanner.processedInodes[ino]; exists {
+				// Already seen in this scan, don't count towards global total, or directory total.
+				return realSize, false
+			}
+			// First time seeing this inode in this scan
+			scanner.processedInodes[ino] = struct{}{}
+			scanner.foundHardLinks[indexPath] = realSize
 		}
-		// First time seeing this inode.
-		idx.processedInodes[ino] = struct{}{}
-		idx.FoundHardLinks[fullCombined] = realSize
 	}
 	return realSize, true // Count size for directory total.
 }

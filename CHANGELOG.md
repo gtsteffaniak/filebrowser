@@ -2,6 +2,52 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v1.2.0-beta
+
+This is a major version update with many code changes which could cause unexpected behavior. Upgrades should proceed with caution and report any undesriable behavior by opening an issue on github. The index is now fully in sqlite database - see [Indexing Overview](https://filebrowserquantum.com/en/docs/features/indexing/) for more information.
+
+Sorry for the delay -- a lot of effort went into this release, specifically about fine-tuning sqlite indexing. It took me a long time to iron out the behavior, but it should be mostly there now. Enjoy and report any issues as always :)
+
+ **New Features**:
+ - SQLite-based indexing
+   - reduced memory usage, higher CPU and IO usage.
+   - index persistence between restarts (requires [persistent cacheDir](https://filebrowserquantum.com/en/docs/configuration/server/#cachedir))
+ - new tool - "realtime file watcher" low latency if user has realtime permissions (#917)
+ - Access control works with individual files too
+ - conditionally hide symbolic links as indexing rule config (#1540)
+ - External applications can connect to filebrowser over webDAV (#209) (#1764)
+ - make breadcrumbs act as a drop area (#1785)
+ - search multiple sources at once (#848)
+ - file uploads resume from bad internet connection #1599
+ - chunked downloads - fix for 524 errors on cloudflare #1502
+ - made size calculation consistent: defaults to "size on disk" style to mimic "du -sh", and allows config `source.config.useLogicalSize: true` for 0 size folders and actual size file sizes. (#1266)
+ - Feature: allow deleting selected duplicates from duplicate finder (#1659)
+ - share changes:
+  - opengraph support for shared links
+  - Allow adding "share settings" option to customizable sidebar links (#1825)
+  - file picker for share favicon and banner icon
+  - Allow disabling "Login button" for shares (#1673)
+
+ **Notes**:
+ - `server.cacheDirCleanup` defaults to `false` instead of `true`. For docker, you would still need to mount a cacheDir volume to persist cache between restarts.
+ - indexing rules have been streamlined, see [wiki]. The previous style is deprecated but still functional.
+ - improved listing load times for directories with metadata -- a two-pass approach. First a fast load to get the listing items, then a second api request to include metadata.
+ - Enhanced delete prompt
+ - bulkDelete API added and replaces the delete API for all UI actions. See swagger docs for usage.
+ - raw download and patch resource api simplified to a single source per request. See swagger docs for usage.
+ - UserScope function re-organization, if you notice any user scope issues, please open a GitHub issue.
+ - file upload resume from bad internet connection #1599
+
+ **BugFixes**:
+ - Source info not properly read from external storage NAS (#1727)
+ - ensure user requests scopes are strongly enforced (#1789)
+
+## New Contributors
+* @reddec made their first contribution in https://github.com/gtsteffaniak/filebrowser/pull/1764
+* @maximeborges made their first contribution in https://github.com/gtsteffaniak/filebrowser/pull/1849
+
+**Full Changelog**: https://github.com/gtsteffaniak/filebrowser/compare/v1.1.6-beta...v1.2.0-beta
+
 ## v1.1.6-beta
 
  **Notes**:

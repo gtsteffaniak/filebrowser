@@ -32,6 +32,8 @@ type requestContext struct {
 	shareValid   bool
 	ctx          context.Context
 	MaxBandwidth int
+	Data         interface{}
+	IndexPath    string
 }
 
 type HttpResponse struct {
@@ -94,8 +96,10 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		if source.Config.Private {
 			return http.StatusForbidden, fmt.Errorf("the target source is private")
 		}
+
 		// Get file information with options
 		getContent := r.URL.Query().Get("content") == "true"
+		getMetadata := r.URL.Query().Get("metadata") == "true"
 		reachedDownloadsLimit := link.Downloads >= link.DownloadsLimit && link.DownloadsLimit > 0
 		if link.DisableFileViewer || reachedDownloadsLimit {
 			getContent = false
@@ -104,16 +108,27 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		if err != nil {
 			return http.StatusNotFound, fmt.Errorf("user for share no longer exists")
 		}
+		// get user scope path from share
+		userScope, err := shareCreatedByUser.GetScopeForSourceName(source.Name)
+		if err != nil {
+			return http.StatusForbidden, err
+		}
+		// so trim user scope from link.Path
+		userScopedPath := utils.JoinPathAsUnix("/", strings.TrimPrefix(link.Path, userScope), path)
+		if !strings.HasSuffix(userScopedPath, "/") {
+			userScopedPath = userScopedPath + "/"
+		}
+		data.IndexPath = userScopedPath
 		file, err := FileInfoFasterFunc(utils.FileOptions{
-			Path:                     utils.JoinPathAsUnix(link.Path, path),
-			Source:                   link.Source,
-			Username:                 shareCreatedByUser.Username,
+			Path:                     userScopedPath,
+			Source:                   source.Name,
 			Expand:                   true,
 			Content:                  getContent,
+			Metadata:                 getMetadata,
 			ExtractEmbeddedSubtitles: settings.Config.Integrations.Media.ExtractEmbeddedSubtitles && link.ExtractEmbeddedSubtitles,
 			ShowHidden:               link.ShowHidden,
 			FollowSymlinks:           true,
-		}, store.Access)
+		}, store.Access, shareCreatedByUser)
 		if err != nil {
 			logger.Errorf("error fetching file info for share. hash=%v path=%v error=%v", hash, path, err)
 			return errToStatus(err), fmt.Errorf("error fetching share from server")
@@ -392,6 +407,10 @@ func withUserHelper(fn handleFunc) handleFunc {
 			logger.Errorf("Failed to get user with ID %v: %v", tk.BelongsTo, err)
 			return http.StatusInternalServerError, err
 		}
+		// Set cookie. Some clients like gvfs relies on it for concurrent uploads
+		if expire := tk.ExpiresAt; expire != nil {
+			setSessionCookie(w, r, tokenString, expire.Time)
+		}
 		setUserInResponseWriter(w, data.user)
 		if data.user.Username == "" {
 			return http.StatusForbidden, errors.ErrUnauthorized
@@ -445,6 +464,14 @@ func withSelfOrAdminHelper(fn handleFunc) handleFunc {
 }
 
 func wrapHandler(fn handleFunc) http.HandlerFunc {
+	return wrapHandlerOpts(fn, wrapperOpts{})
+}
+
+type wrapperOpts struct {
+	requestBasicAuth bool
+}
+
+func wrapHandlerOpts(fn handleFunc, opts wrapperOpts) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		data := &requestContext{}
 
@@ -456,6 +483,10 @@ func wrapHandler(fn handleFunc) http.HandlerFunc {
 			response := &HttpResponse{
 				Status:  status, // Use the status code from the middleware
 				Message: err.Error(),
+			}
+
+			if status == http.StatusUnauthorized && opts.requestBasicAuth {
+				w.Header().Set("WWW-Authenticate", `Basic realm="Restricted"`)
 			}
 
 			// Set the content type to JSON and status code
@@ -617,8 +648,6 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 		// DEFER RECOVERY FUNCTION
 		defer func() {
 			if rcv := recover(); rcv != nil {
-				// Log detailed information about the panic
-				// Extract as much context as possible for logging
 				method := r.Method
 				url := r.URL.String()
 				remoteAddr := r.RemoteAddr
@@ -628,12 +657,6 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 				if ww, ok := w.(*ResponseWriterWrapper); ok && ww.User != "" {
 					username = ww.User
 				}
-				// Or try to get it from request context if your other middleware populates it
-				// This depends on your context setup; example:
-				// if dataCtx, ok := r.Context().Value("requestData").(*requestContext); ok && dataCtx.user != nil {
-				// 	username = dataCtx.user.Username
-				// }
-
 				// Get Go-level stack trace
 				buf := make([]byte, 16384)     // Increased buffer size for potentially long CGo traces
 				n := runtime.Stack(buf, false) // false for current goroutine only
@@ -653,16 +676,11 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 					_, _ = renderJSON(w, r, &HttpResponse{
 						Status:  500,
 						Message: "A critical internal error occurred. Please try again later.",
-					})
+					}, http.StatusInternalServerError)
 				}
 
-				// IMPORTANT: After a SIGSEGV from C code, the process might be unstable.
-				// Even if Go recovers, continuing to run the process is risky.
-				// Consider a strategy to gracefully shut down or signal an external supervisor
-				// to restart the process after logging. For now, this will allow other requests
-				// to proceed if the process doesn't die, but be wary.
 			}
-		}() // End of deferred recovery function
+		}()
 
 		start := time.Now()
 		wrappedWriter := &ResponseWriterWrapper{ResponseWriter: w, StatusCode: http.StatusOK}
@@ -695,18 +713,26 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func renderJSON(w http.ResponseWriter, r *http.Request, data interface{}) (int, error) {
+func renderJSON(w http.ResponseWriter, r *http.Request, data interface{}, statusCode ...int) (int, error) {
+	// Default to 200 if status code not provided
+	code := http.StatusOK
+	if len(statusCode) > 0 && statusCode[0] != 0 {
+		code = statusCode[0]
+	}
+
 	marsh, err := json.Marshal(data)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
 	// Calculate size in KB
 	payloadSizeKB := len(marsh) / 1024
+	// Set headers before writing
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	// Check if the client accepts gzip encoding and hasn't explicitly disabled it
 	if acceptsGzip(r) && payloadSizeKB > 10 {
 		// Enable gzip compression
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.Header().Set("Content-Encoding", "gzip")
+		w.WriteHeader(code)
 		gz := gzip.NewWriter(w)
 		defer gz.Close()
 
@@ -715,13 +741,13 @@ func renderJSON(w http.ResponseWriter, r *http.Request, data interface{}) (int, 
 		}
 	} else {
 		// Normal response without compression
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		w.WriteHeader(code)
 		if _, err := w.Write(marsh); err != nil {
 			return http.StatusInternalServerError, err
 		}
 	}
 
-	return 0, nil
+	return code, nil
 }
 
 func acceptsGzip(r *http.Request) bool {

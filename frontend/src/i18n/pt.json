@@ -30,7 +30,8 @@
     "saveAndExit": "Guardar e sair",
     "keepEditing": "Continuar a editar",
     "closeAnyway": "Fechar de qualquer maneira",
-    "goToItem": "Ir para o item"
+    "goToItem": "Ir para o item",
+    "watchFile": "Ver ficheiro"
   },
   "download": {
     "downloadFile": "Descarregar ficheiro",
@@ -48,7 +49,6 @@
   "files": {
     "closePreview": "Fechar pré-visualização",
     "lastModified": "Última alteração",
-    "lonely": "Sinto-me sozinho...",
     "multipleSelectionEnabled": "Seleção múltipla ativada",
     "sortByLastModified": "Ordenar pela última alteração",
     "sortByName": "Ordenar pelo nome",
@@ -61,7 +61,10 @@
     "newFile": "Novo ficheiro{suffix}",
     "newFolder": "Nova pasta{suffix}",
     "duration": "Duração{suffix}",
-    "sortByDuration": "Ordenar por duração"
+    "sortByDuration": "Ordenar por duração",
+    "sameFolder": "Não é possível mover para a mesma pasta",
+    "cannotAccesDir": "Não é possível aceder ao diretório",
+    "lonely": "Não há nada para mostrar aqui..."
   },
   "help": {
     "functionKeys": "Teclas de Função",
@@ -217,7 +220,10 @@
     "renameSuccess": "Item renomeado com sucesso!",
     "newFileSuccess": "Ficheiro criado com sucesso!",
     "newDirSuccess": "Diretório criado com sucesso!",
-    "copyToClipboardFailed": "Não é possível copiar para a área de transferência"
+    "copyToClipboardFailed": "Não é possível copiar para a área de transferência",
+    "moveFailed": "Falha ao mover",
+    "operationFailed": "A operação falhou",
+    "partialSuccess": "Algumas operações falharam: {succeeded} foi bem sucedido, {failed} falhou"
   },
   "search": {
     "smallerThan": "Mais pequeno do que:",
@@ -444,7 +450,13 @@
     "customizeSidebarLinksButton": "Personalizar ligações",
     "shareInfo": "Partilhar código QR e informações",
     "shareInfoDescription": "Esta ligação apresenta as informações da partilha, incluindo o título, a descrição, o banner e o código QR num pop-up.",
-    "downloadDescription": "Esta ligação permite descarregar todo o conteúdo da partilha como um ficheiro comprimido."
+    "downloadDescription": "Esta ligação permite descarregar todo o conteúdo da partilha como um ficheiro comprimido.",
+    "disableLoginOption": "Ocultar a opção de início de sessão",
+    "disableLoginOptionDescription": "Ocultar o botão de início de sessão na barra lateral para utilizadores anónimos. Quando ativado, os utilizadores anónimos não verão a opção para iniciar sessão.",
+    "browseFiles": "Procurar ficheiros",
+    "selectBannerImage": "Selecionar imagem de banner",
+    "selectFaviconImage": "Selecionar a imagem do favicon",
+    "selectImage": "Selecionar imagem"
   },
   "api": {
     "title": "Chaves da API",
@@ -512,7 +524,9 @@
     "uploadChunkSizeMbHelp": "Tipicamente, 5 a 50 MB, mas um valor mais pequeno é melhor para ligações instáveis ou restritas. Definir como 0 desactivará a fragmentação do carregamento.",
     "clearAll": "Limpar concluído deve eliminar erros, pausas e conflitos",
     "clearAllDescription": "O botão Limpar concluído limpa todos os carregamentos num estado concluído, incluindo os estados de erro, pausa e conflito.",
-    "uploadSettings": "Carregar definições"
+    "uploadSettings": "Carregar definições",
+    "downloadChunkSizeMb": "Tamanho do bloco de descarregamento em MB",
+    "downloadChunkSizeMbHelp": "Tamanho do pedaço para downloads em pedaços. Os ficheiros maiores do que este tamanho serão descarregados em blocos para evitar problemas de tempo limite (por exemplo, erros 524 do Cloudflare). Definir como 0 desativa os downloads em pedaços."
   },
   "colors": {
     "red": "vermelho",
@@ -684,7 +698,13 @@
     "uploading": "Carregamento{suffix}",
     "paused": "Em pausa{suffix}",
     "conflict": "Conflito{suffix}",
-    "change": "Alterar{suffix}"
+    "change": "Alterar{suffix}",
+    "output": "Saída{suffix}",
+    "watching": "Observar{suffix}",
+    "lines": "Linhas{suffix}",
+    "lastUpdate": "Última atualização{suffix}",
+    "latency": "Latência{suffix}",
+    "all": "Todos{suffix}"
   },
   "access": {
     "rules": "Regras de acesso",
@@ -782,7 +802,16 @@
       "browseFullLibrary": "Navegar na biblioteca completa de ícones"
     },
     "toolNotFound": "Ferramenta não encontrada",
-    "backToTools": "Voltar a Ferramentas"
+    "backToTools": "Voltar a Ferramentas",
+    "fileWatcher": {
+      "name": "Observador de ficheiros",
+      "description": "Ver e seguir ficheiros em tempo real com monitorização da latência",
+      "file": "Ficheiro{suffix}",
+      "interval": "Intervalo de atualização",
+      "stopWatching": "Parar de ver",
+      "emptyState": "Escolha um ficheiro e clique em reproduzir para começar a monitorizar as alterações do ficheiro",
+      "chooseFile": "Escolher um ficheiro"
+    }
   },
   "messages": {
     "pathNotFound": "O caminho não existe no sistema de ficheiros",

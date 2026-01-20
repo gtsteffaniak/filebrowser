@@ -13,14 +13,16 @@ import { state } from "@/store";
  * @param {string} hash
  * @param {string} password
  * @param {boolean} content
+ * @param {boolean} metadata
  * @returns {Promise<any>}
  */
-export async function fetchPub(path, hash, password = "", content = false) {
+export async function fetchPub(path, hash, password = "", content = false, metadata = false) {
   path = encodedPath(path);
   const params = {
     path: path,
     hash,
     ...(content && { content: 'true' }),
+    ...(metadata && { metadata: 'true' }),
     ...(state.share.token && { token: state.share.token })
   }
   const apiPath = getPublicApiPath("resources", params);
@@ -141,12 +143,37 @@ export function post(
           error.response = { status: request.status, responseText: request.responseText };
           reject(error);
         } else {
-          reject(new Error(request.responseText || "Upload failed"));
+          // Parse error message from response
+          let errorMessage = "Upload failed";
+          try {
+            const errorData = JSON.parse(request.responseText);
+            errorMessage = errorData.message || errorMessage;
+          } catch (e) {
+            // If parsing fails, use responseText or default message
+            errorMessage = request.responseText || errorMessage;
+          }
+          
+          const error = new Error(errorMessage);
+          error.status = request.status;
+          
+          // Show notification for upload errors
+          notify.showError(errorMessage);
+          
+          reject(error);
         }
       };
 
-      request.onerror = () => reject(new Error("Network error"));
-      request.onabort = () => reject(new Error("Upload aborted"));
+      request.onerror = () => {
+        const error = new Error("Network error");
+        notify.showError("Network error during upload");
+        reject(error);
+      };
+      
+      request.onabort = () => {
+        const error = new Error("Upload aborted");
+        notify.showError("Upload was aborted");
+        reject(error);
+      };
 
       if (
         content instanceof Blob &&
@@ -205,11 +232,60 @@ async function resourceAction(hash, path, method, content, token = "") {
   }
 }
 
-export async function remove(hash, path) {
+export async function bulkDelete(items) {
+  if (!items || !Array.isArray(items) || items.length === 0) {
+    throw new Error('items array is required and must not be empty')
+  }
+  
+  const hash = state.shareInfo?.hash;
+  if (!hash) {
+    throw new Error('share hash is required')
+  }
+  
+  const params = {
+    hash: hash,
+    ...(state.share.token && { token: state.share.token }),
+    sessionId: state.sessionId
+  }
+  const apiPath = getPublicApiPath("resources/bulk/delete", params)
+  const baseUrl = window.origin + apiPath
+
   try {
-    return await resourceAction(hash, path, 'DELETE')
+    const response = await fetch(baseUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'same-origin',
+      body: JSON.stringify(items),
+    })
+
+    const data = await response.json()
+
+    // 200 = all succeeded, 207 = partial success (some succeeded, some failed)
+    // Both are valid responses that should be returned, not thrown as errors
+    if (response.status === 200 || response.status === 207) {
+      return data
+    }
+
+    // For other error status codes, throw an error
+    const error = new Error(data.message || response.statusText)
+    error.status = response.status
+    throw error
   } catch (err) {
-    notify.showError(err.message || 'Error deleting resource')
+    // If the request fails completely, return all items as failed
+    if (err.status && err.status !== 200 && err.status !== 207) {
+      // Real error - return all as failed
+      return {
+        succeeded: [],
+        failed: items.map(item => ({
+          source: item.source || '',
+          path: item.path,
+          message: err.message || 'Delete failed',
+        })),
+      }
+    }
+    // Re-throw if it's not a handled error
     throw err
   }
 }
@@ -226,39 +302,57 @@ export async function moveCopy(
   overwrite = false,
   rename = false
 ) {
-  let params = {
-    overwrite: overwrite,
-    action: action,
-    rename: rename,
-    hash: hash
+  if (!items || !Array.isArray(items) || items.length === 0) {
+    throw new Error('items array is required and must not be empty')
   }
-  try {
-    // Create an array of fetch calls
-    let promises = items.map(item => {
-      let localParams = {
-        ...params,
-        destination: doubleEncode(item.to),
-        from: doubleEncode(item.from)
-      }
-      const apiPath = getPublicApiPath('resources', localParams)
 
-      return fetch(apiPath, { method: 'PATCH' }).then(response => {
-        if (!response.ok) {
-          return response.text().then(text => {
-            throw new Error(
-              `Failed to move/copy: ${text || response.statusText}`
-            )
-          })
-        }
-        return response
-      })
+  try {
+    // Build request body with proper format
+    // For public shares, fromSource and toSource are not needed (always the share's source)
+    const requestBody = {
+      items: items.map(item => ({
+        fromPath: item.from,
+        toPath: item.to
+      })),
+      action: action,
+      overwrite: overwrite,
+      rename: rename
+    }
+
+    const apiPath = getPublicApiPath('resources', { hash: hash })
+    const response = await fetch(apiPath, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(state.share.token && { 'X-Auth-Token': state.share.token })
+      },
+      body: JSON.stringify(requestBody),
     })
 
-    // Await all promises and ensure errors propagate
-    await Promise.all(promises)
+    const data = await response.json()
+
+    // 200 = all succeeded, 207 = partial success (some succeeded, some failed)
+    if (response.status === 200 || response.status === 207) {
+      return data
+    }
+
+    // For other error status codes (like 500), preserve the response data
+    const error = new Error(data.message || response.statusText)
+    error.status = response.status
+    // Attach the response data so the caller can access failed items
+    if (data.failed) {
+      error.failed = data.failed
+    }
+    if (data.succeeded) {
+      error.succeeded = data.succeeded
+    }
+    throw error
   } catch (err) {
-    console.error(err.message || 'Error moving/copying resources')
-    throw err // Re-throw the error to propagate it back to the caller
+    // Only show notification and re-throw if it's a real error (not 200/207)
+    if (err.status && err.status !== 200 && err.status !== 207) {
+      console.error(err.message || 'Error moving/copying resources')
+    }
+    throw err
   }
 }
 

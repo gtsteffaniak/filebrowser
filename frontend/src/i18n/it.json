@@ -30,7 +30,8 @@
     "saveAndExit": "Salvare e uscire",
     "keepEditing": "Continuare a modificare",
     "closeAnyway": "Chiudere comunque",
-    "goToItem": "Vai all'articolo"
+    "goToItem": "Vai all'articolo",
+    "watchFile": "Guarda il file"
   },
   "download": {
     "downloadFile": "Scarica file",
@@ -48,7 +49,6 @@
   "files": {
     "closePreview": "Chiudi anteprima",
     "lastModified": "Ultima modifica",
-    "lonely": "Ci si sente soli qui...",
     "multipleSelectionEnabled": "Selezione multipla attivata",
     "sortByLastModified": "Ordina per ultima modifica",
     "sortByName": "Ordina per nome",
@@ -61,7 +61,10 @@
     "newFile": "Nuovo file{suffix}",
     "newFolder": "Nuova cartella{suffix}",
     "duration": "Durata{suffix}",
-    "sortByDuration": "Ordina per durata"
+    "sortByDuration": "Ordina per durata",
+    "sameFolder": "Impossibile spostare nella stessa cartella",
+    "cannotAccesDir": "Impossibile accedere alla directory",
+    "lonely": "Non c'è niente da mostrare qui..."
   },
   "help": {
     "functionKeys": "Tasti Funzione",
@@ -217,7 +220,10 @@
     "renameSuccess": "Articolo rinominato con successo!",
     "newFileSuccess": "File creato con successo!",
     "newDirSuccess": "Directory creata con successo!",
-    "copyToClipboardFailed": "Impossibile copiare negli appunti"
+    "copyToClipboardFailed": "Impossibile copiare negli appunti",
+    "moveFailed": "Spostamento non riuscito",
+    "operationFailed": "Operazione fallita",
+    "partialSuccess": "Alcune operazioni non sono riuscite: {succeeded} è riuscito, {failed} non è riuscito."
   },
   "search": {
     "smallerThan": "Più piccolo di:",
@@ -444,10 +450,16 @@
     "customizeSidebarLinksButton": "Personalizzare i link",
     "shareInfo": "Condividi il codice QR e le informazioni",
     "shareInfoDescription": "Questo link visualizza le informazioni sulla condivisione, compresi titolo, descrizione, banner e codice QR in un popup.",
-    "downloadDescription": "Questo link consente di scaricare l'intero contenuto della condivisione come file compresso."
+    "downloadDescription": "Questo link consente di scaricare l'intero contenuto della condivisione come file compresso.",
+    "disableLoginOption": "Nascondere l'opzione di login",
+    "disableLoginOptionDescription": "Nascondere il pulsante di accesso nella barra laterale per gli utenti anonimi. Se abilitato, gli utenti anonimi non vedranno l'opzione di accesso.",
+    "browseFiles": "Sfogliare i file",
+    "selectBannerImage": "Selezionare l'immagine del banner",
+    "selectFaviconImage": "Selezionare l'immagine della favicon",
+    "selectImage": "Selezionare l'immagine"
   },
   "api": {
-    "title": "Chiavi API:",
+    "title": "Chiavi API",
     "createdAt": "Creato a:",
     "expiresAt": "Scade a:",
     "permissions": "Permessi:",
@@ -606,7 +618,13 @@
     "uploading": "Caricamento{suffix}",
     "paused": "In pausa{suffix}",
     "conflict": "Conflitto{suffix}",
-    "change": "Cambiamento{suffix}"
+    "change": "Cambiamento{suffix}",
+    "output": "Uscita{suffix}",
+    "watching": "Guardare{suffix}",
+    "lines": "Linee{suffix}",
+    "lastUpdate": "Ultimo aggiornamento{suffix}",
+    "latency": "Latenza{suffix}",
+    "all": "Tutti{suffix}"
   },
   "access": {
     "rules": "Regole di accesso",
@@ -639,7 +657,9 @@
     "uploadChunkSizeMbHelp": "In genere da 5 a 50 MB, ma per connessioni instabili o limitate è meglio che sia più piccolo. Impostando 0 si disattiva il chunking del caricamento.",
     "clearAll": "L'opzione Clear completed dovrebbe rimuovere gli errori, le pause e i conflitti.",
     "clearAllDescription": "Il pulsante Cancella completato cancella tutti i caricamenti in stato completato, compresi gli stati di errore, pausa e conflitto.",
-    "uploadSettings": "Impostazioni di caricamento"
+    "uploadSettings": "Impostazioni di caricamento",
+    "downloadChunkSizeMb": "Dimensioni del download in MB",
+    "downloadChunkSizeMbHelp": "Dimensione dei chunk per i download chunked. I file più grandi di questa dimensione saranno scaricati in pezzi per evitare problemi di timeout (ad esempio, errori Cloudflare 524). L'impostazione a 0 disabilita i download a blocchi."
   },
   "colors": {
     "red": "rosso",
@@ -782,7 +802,16 @@
       "browseFullLibrary": "Sfoglia la libreria di icone completa"
     },
     "toolNotFound": "Strumento non trovato",
-    "backToTools": "Torna a Strumenti"
+    "backToTools": "Torna a Strumenti",
+    "fileWatcher": {
+      "name": "Osservatore di file",
+      "description": "Guardate e seguite i file in tempo reale con il monitoraggio della latenza",
+      "file": "File{suffix}",
+      "interval": "Intervallo di aggiornamento",
+      "stopWatching": "Smettere di guardare",
+      "emptyState": "Scegliere un file e fare clic su play per iniziare a monitorare le modifiche del file.",
+      "chooseFile": "Scegliere un file"
+    }
   },
   "messages": {
     "pathNotFound": "Il percorso non esiste nel filesystem",

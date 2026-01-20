@@ -5,7 +5,7 @@
       <div v-bind:style="{ width: this.progress + '%' }"></div>
     </div>
     <defaultBar :class="{ 'dark-mode-header': isDarkMode }"></defaultBar>
-    <sidebar></sidebar>
+    <sidebar v-if="!invalidShare"></sidebar>
     <Scrollbar id="main" :class="{
       'dark-mode': isDarkMode,
       moveWithSidebar: moveWithSidebar,
@@ -13,6 +13,7 @@
       'main-padding': showPadding,
       scrollable: scrollable,
     }">
+      <shelf />
       <router-view />
     </Scrollbar>
     <prompts :class="{ 'dark-mode': isDarkMode }"></prompts>
@@ -38,6 +39,7 @@ import Scrollbar from "@/components/files/Scrollbar.vue";
 import Tooltip from "@/components/Tooltip.vue";
 import NextPrevious from "@/components/files/nextPrevious.vue";
 import PopupPreview from "@/components/files/PopupPreview.vue";
+import Shelf from "@/components/Shelf.vue";
 import { filesApi } from "@/api";
 import { state, getters, mutations } from "@/store";
 import { events, notify } from "@/notify";
@@ -57,6 +59,7 @@ export default {
     Tooltip,
     NextPrevious,
     PopupPreview,
+    Shelf,
   },
   data() {
     return {
@@ -87,6 +90,9 @@ export default {
   computed: {
     isOnlyOffice() {
       return getters.currentView() === "onlyOfficeEditor";
+    },
+    invalidShare() {
+      return getters.isShare() && getters.isInvalidShare();
     },
     scrollable() {
       return getters.isScrollable();

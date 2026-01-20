@@ -39,9 +39,12 @@ export const getters = {
   },
   isPreviewView: () => {
     const cv = getters.currentView()
-    return cv == 'preview' || cv == 'onlyOfficeEditor' || cv == 'epubViewer' || cv == 'docViewer' || cv == 'editor'
+    return cv == 'preview' || cv == 'onlyOfficeEditor' || cv == 'epubViewer' || cv == 'docViewer' || cv == 'editor' || cv == 'markdownViewer'
   },
   isScrollable: () => {
+    if (getters.currentView() == 'markdownViewer') {
+      return true
+    }
     if (getters.isPreviewView()) {
       return false
     }
@@ -194,7 +197,7 @@ export const getters = {
     return { dirs, files }
   },
   isSidebarVisible: () => {
-    if (globalVars.disableSidebar) {
+    if (globalVars.disableSidebar || getters.isInvalidShare()) {
       return false
     }
     const cv = getters.currentView()
@@ -283,6 +286,8 @@ export const getters = {
     }
     if (pathname.startsWith(`/settings`)) {
       listingView = 'settings'
+    } else if (pathname.startsWith(`/tools/duplicateFinder`)) {
+      listingView = 'duplicateFinder'
     } else if (pathname.startsWith(`/tools`)) {
       listingView = 'tools'
     } else {
@@ -517,10 +522,10 @@ export const getters = {
     return "close";
   },
   isInvalidShare: () => {
-    return getters.shareHash() != "" && !state.shareInfo?.hash;
+    return getters.shareHash() != "" && state.shareInfo.hash == "" && globalVars.shareHash == "";
   },
   isValidShare: () => {
-    return getters.shareHash() != "" && state.shareInfo?.hash;
+    return getters.shareHash() != "" && (state.shareInfo.hash != "" || globalVars.shareHash != "");
   },
   currentTool: () => {
     if (getters.currentView() !== "tools") {

@@ -1,6 +1,7 @@
 package users
 
 import (
+	"fmt"
 	"strings"
 
 	jwt "github.com/golang-jwt/jwt/v4"
@@ -120,9 +121,10 @@ type NonAdminEditable struct {
 }
 
 type FileLoading struct {
-	MaxConcurrent int  `json:"maxConcurrentUpload"`
-	ChunkSize     int  `json:"uploadChunkSizeMb"`
-	ClearAll      bool `json:"clearAll"`
+	MaxConcurrent     int  `json:"maxConcurrentUpload"`
+	UploadChunkSize   int  `json:"uploadChunkSizeMb"`
+	ClearAll          bool `json:"clearAll"`
+	DownloadChunkSize int  `json:"downloadChunkSizeMb"`
 }
 
 // SidebarLink represents a customizable link in the sidebar.
@@ -139,4 +141,86 @@ func CleanUsername(s string) string {
 	s = strings.Trim(s, " ")
 	s = strings.Replace(s, "..", "", -1)
 	return s
+}
+
+// SourceNameResolver is a function type that resolves source names to source paths
+// This avoids circular dependencies by allowing the settings package to provide the resolver
+type SourceNameResolver func(sourceName string) (sourcePath string, err error)
+
+// SourceInfo represents basic information about a source needed for user operations
+type SourceInfo struct {
+	Path             string
+	Name             string
+	DefaultUserScope string
+}
+
+// SourceConfigProvider provides access to source configuration
+type SourceConfigProvider struct {
+	GetSourceByPath  func(path string) (SourceInfo, bool)
+	GetSourceByName  func(name string) (SourceInfo, bool)
+	GetAllSources    func() []SourceInfo
+	GetDefaultScopes func() []SourceScope
+}
+
+// Global variables set by the settings package
+var (
+	sourceNameResolver SourceNameResolver
+	sourceConfig       *SourceConfigProvider
+)
+
+// SetSourceNameResolver sets the global source name resolver
+// This should be called once during initialization by the settings package
+func SetSourceNameResolver(resolver SourceNameResolver) {
+	sourceNameResolver = resolver
+}
+
+// SetSourceConfig sets the global source configuration provider
+// This should be called once during initialization by the settings package
+func SetSourceConfig(config *SourceConfigProvider) {
+	sourceConfig = config
+}
+
+// GetScopeForSourcePath returns the scope for a given source path (backend-style)
+// This method works with backend-style scopes where Name is the source path
+func (u *User) GetScopeForSourcePath(sourcePath string) (string, error) {
+	for _, scope := range u.Scopes {
+		if scope.Name == sourcePath {
+			return scope.Scope, nil
+		}
+	}
+	return "", fmt.Errorf("scope not found for source %v", sourcePath)
+}
+
+// GetScopeForSourceName returns the scope for a given source name (frontend-style)
+// Uses the global SourceNameResolver to convert source names to paths
+func (u *User) GetScopeForSourceName(sourceName string) (string, error) {
+	if sourceNameResolver == nil {
+		return "", fmt.Errorf("source name resolver not initialized")
+	}
+
+	sourcePath, err := sourceNameResolver(sourceName)
+	if err != nil {
+		return "", err
+	}
+
+	return u.GetScopeForSourcePath(sourcePath)
+}
+
+// HasSourceByPath checks if the user has access to a given source path
+func (u *User) HasSourceByPath(sourcePath string) bool {
+	for _, scope := range u.Scopes {
+		if scope.Name == sourcePath {
+			return true
+		}
+	}
+	return false
+}
+
+// GetSourcePaths returns all source paths the user has access to
+func (u *User) GetSourcePaths() []string {
+	paths := make([]string, 0, len(u.Scopes))
+	for _, scope := range u.Scopes {
+		paths = append(paths, scope.Name)
+	}
+	return paths
 }

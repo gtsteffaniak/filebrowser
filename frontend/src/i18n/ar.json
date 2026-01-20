@@ -30,7 +30,8 @@
     "saveAndExit": "الحفظ والخروج",
     "keepEditing": "استمر في التحرير",
     "closeAnyway": "إغلاق على أي حال",
-    "goToItem": "الانتقال إلى العنصر"
+    "goToItem": "الانتقال إلى العنصر",
+    "watchFile": "ملف المشاهدة"
   },
   "download": {
     "downloadFile": "Download File",
@@ -48,7 +49,6 @@
   "files": {
     "closePreview": "إغلاق العرض",
     "lastModified": "آخر تعديل",
-    "lonely": "تبدو وحيدا هنا...",
     "multipleSelectionEnabled": "التحديد المتعدد مفعل",
     "sortByLastModified": "الترتيب بآخر تعديل",
     "sortByName": "الترتيب بالإسم",
@@ -61,7 +61,10 @@
     "newFile": "ملف جديد{suffix}",
     "newFolder": "مجلد جديد{suffix}",
     "duration": "المدة{suffix}",
-    "sortByDuration": "فرز حسب المدة"
+    "sortByDuration": "فرز حسب المدة",
+    "sameFolder": "لا يمكن النقل إلى نفس المجلد",
+    "cannotAccesDir": "لا يمكن الوصول إلى المجلد",
+    "lonely": "لا شيء للعرض هنا..."
   },
   "help": {
     "functionKeys": "مفاتيح الوظائف",
@@ -217,7 +220,10 @@
     "renameSuccess": "تمت إعادة تسمية العنصر بنجاح!",
     "newFileSuccess": "تم إنشاء الملف بنجاح!",
     "newDirSuccess": "تم إنشاء الدليل بنجاح!",
-    "copyToClipboardFailed": "تعذر النسخ إلى الحافظة"
+    "copyToClipboardFailed": "تعذر النسخ إلى الحافظة",
+    "moveFailed": "فشلت عملية النقل",
+    "operationFailed": "فشلت العملية",
+    "partialSuccess": "فشلت بعض العمليات: {succeeded} نجحت ، {failed} فشلت "
   },
   "search": {
     "smallerThan": "أصغر من:",
@@ -444,10 +450,16 @@
     "customizeSidebarLinksButton": "تخصيص الروابط",
     "shareInfo": "مشاركة رمز الاستجابة السريعة والمعلومات",
     "shareInfoDescription": "يعرض هذا الرابط معلومات المشاركة، بما في ذلك العنوان والوصف والشعار ورمز الاستجابة السريعة في نافذة منبثقة.",
-    "downloadDescription": "يتيح هذا الرابط تنزيل محتوى المشاركة بالكامل كملف مضغوط."
+    "downloadDescription": "يتيح هذا الرابط تنزيل محتوى المشاركة بالكامل كملف مضغوط.",
+    "disableLoginOption": "إخفاء خيار إخفاء تسجيل الدخول",
+    "disableLoginOptionDescription": "إخفاء زر تسجيل الدخول في الشريط الجانبي للمستخدمين المجهولين. عند التمكين، لن يرى المستخدمون المجهولون خيار تسجيل الدخول.",
+    "browseFiles": "تصفح الملفات",
+    "selectBannerImage": "تحديد صورة الشعار",
+    "selectFaviconImage": "تحديد الصورة المفضلة",
+    "selectImage": "حدد الصورة"
   },
   "api": {
-    "title": "مفاتيح واجهة برمجة التطبيقات (API):",
+    "title": "مفاتيح واجهة برمجة التطبيقات (API)",
     "createdAt": "تم الإنشاء في:",
     "expiresAt": "تنتهي في:",
     "permissions": "الأذونات:",
@@ -606,7 +618,13 @@
     "uploading": "التحميل{suffix}",
     "paused": "متوقف مؤقتاً{suffix}",
     "conflict": "التعارض{suffix}",
-    "change": "التغيير{suffix}"
+    "change": "التغيير{suffix}",
+    "output": "المخرجات{suffix}",
+    "watching": "المشاهدة{suffix}",
+    "lines": "الخطوط{suffix}",
+    "lastUpdate": "آخر تحديث{suffix}",
+    "latency": "الكمون{suffix}",
+    "all": "الكل{suffix}"
   },
   "access": {
     "rules": "قواعد الوصول",
@@ -639,7 +657,9 @@
     "uploadChunkSizeMbHelp": "عادةً من 5 إلى 50 ميغابايت، والأصغر هو الأفضل للاتصالات غير المستقرة أو المقيدة. سيؤدي التعيين إلى 0 إلى تعطيل تقطيع التحميل.",
     "clearAll": "يجب أن يزيل المسح المكتمل الخطأ والإيقاف المؤقت والتعارض",
     "clearAllDescription": "سيؤدي زر مسح المكتمل إلى مسح جميع التحميلات في حالة الانتهاء، بما في ذلك حالات الخطأ والإيقاف المؤقت والتعارض.",
-    "uploadSettings": "إعدادات التحميل"
+    "uploadSettings": "إعدادات التحميل",
+    "downloadChunkSizeMb": "حجم قطعة التحميل بالميجابايت",
+    "downloadChunkSizeMbHelp": "حجم القطع للتحميلات المقطعة. سيتم تنزيل الملفات الأكبر من هذا الحجم على شكل أجزاء لمنع حدوث مشكلات في المهلة (على سبيل المثال، أخطاء Cloudflare 524). يؤدي الإعداد إلى 0 إلى تعطيل التنزيلات المقطعة."
   },
   "profileSettings": {
     "setDateFormat": "تعيين تنسيق التاريخ الدقيق",
@@ -782,7 +802,16 @@
       "browseFullLibrary": "تصفح مكتبة الأيقونات الكاملة"
     },
     "toolNotFound": "الأداة غير موجودة",
-    "backToTools": "العودة إلى الأدوات"
+    "backToTools": "العودة إلى الأدوات",
+    "fileWatcher": {
+      "name": "مراقب الملفات",
+      "description": "مشاهدة وتعقب الملفات في الوقت الفعلي مع مراقبة زمن الاستجابة",
+      "file": "ملف{suffix}",
+      "interval": "تحديث الفاصل الزمني",
+      "stopWatching": "توقف عن المشاهدة",
+      "emptyState": "اختر ملفاً وانقر فوق تشغيل لبدء مراقبة تغييرات الملف",
+      "chooseFile": "اختر ملفاً"
+    }
   },
   "messages": {
     "pathNotFound": "المسار غير موجود على نظام الملفات",

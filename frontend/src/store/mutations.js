@@ -481,6 +481,7 @@ export const mutations = {
           "viewMode",
           "showFirstLogin",
           "sidebarLinks",
+          "fileLoading",
         ].includes(key)
       );
       value.id = state.user.id;
@@ -580,7 +581,6 @@ export const mutations = {
   resetAll: () => {
     state.isSearchActive = false;
     state.selected = [];
-    state.req = {};
     emitStateChanged();
   },
   showTooltip(value) {

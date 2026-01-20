@@ -155,6 +155,10 @@ export function stopSSE () {
 
 async function eventRouter (eventType, message) {
   switch (eventType) {
+    case 'heartbeat':
+      // Ignore heartbeat messages - they're just for keeping the connection alive
+      return
+
     case 'notification':
       if (message === 'the server is shutting down') {
         if (!hasShownShutdownMessage) {
@@ -196,6 +200,17 @@ async function eventRouter (eventType, message) {
         window.dispatchEvent(new CustomEvent('onlyOfficeLogEvent', { detail: logData }))
       } catch (error) {
         console.error('Error dispatching OnlyOffice log event:', error)
+      }
+      break
+
+    case 'fileWatch':
+      // Dispatch custom event for file watch updates
+      try {
+        // message is a JSON string that needs to be parsed
+        const watchData = typeof message === 'string' ? JSON.parse(message) : message
+        window.dispatchEvent(new CustomEvent('fileWatchEvent', { detail: watchData }))
+      } catch (error) {
+        console.error('Error dispatching file watch event:', error)
       }
       break
 

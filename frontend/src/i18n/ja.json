@@ -30,7 +30,8 @@
     "saveAndExit": "保存して終了する",
     "keepEditing": "編集を続ける",
     "closeAnyway": "とにかく閉じる",
-    "goToItem": "アイテムへ"
+    "goToItem": "アイテムへ",
+    "watchFile": "ウォッチファイル"
   },
   "download": {
     "downloadFile": "ファイルをダウンロード",
@@ -48,7 +49,6 @@
   "files": {
     "closePreview": "プレビューを閉じる",
     "lastModified": "最終変更",
-    "lonely": "ここには何もない...",
     "multipleSelectionEnabled": "複数選択有効",
     "sortByLastModified": "最終変更日付によるソート",
     "sortByName": "名前によるソート",
@@ -61,7 +61,10 @@
     "newFile": "新規ファイル{suffix}",
     "newFolder": "新しいフォルダ{suffix}",
     "duration": "期間{suffix}",
-    "sortByDuration": "期間順"
+    "sortByDuration": "期間順",
+    "sameFolder": "同じフォルダーに移動できません",
+    "cannotAccesDir": "ディレクトリにアクセスできません",
+    "lonely": "ここには何もない...。"
   },
   "help": {
     "functionKeys": "ファンクションキー",
@@ -217,7 +220,10 @@
     "renameSuccess": "アイテム名の変更に成功しました！",
     "newFileSuccess": "ファイルは正常に作成されました！",
     "newDirSuccess": "ディレクトリは正常に作成されました！",
-    "copyToClipboardFailed": "クリップボードにコピーできない"
+    "copyToClipboardFailed": "クリップボードにコピーできない",
+    "moveFailed": "移動に失敗しました",
+    "operationFailed": "操作失敗",
+    "partialSuccess": "{succeeded} は成功、{failed} は失敗。"
   },
   "search": {
     "smallerThan": "より小さい：",
@@ -444,7 +450,13 @@
     "customizeSidebarLinksButton": "リンクのカスタマイズ",
     "shareInfo": "QRコードと情報を共有する",
     "shareInfoDescription": "このリンクは、タイトル、説明、バナー、QRコードなどの共有情報をポップアップで表示します。",
-    "downloadDescription": "このリンクをクリックすると、共有コンテンツ全体を圧縮ファイルとしてダウンロードできます。"
+    "downloadDescription": "このリンクをクリックすると、共有コンテンツ全体を圧縮ファイルとしてダウンロードできます。",
+    "disableLoginOption": "ログインオプションを隠す",
+    "disableLoginOptionDescription": "匿名ユーザーのサイドバーのログインボタンを非表示にします。有効にすると、匿名ユーザーにはログインのオプションが表示されません。",
+    "browseFiles": "ファイルをブラウズする",
+    "selectBannerImage": "バナー画像を選択",
+    "selectFaviconImage": "ファビコン画像を選択",
+    "selectImage": "画像を選択"
   },
   "api": {
     "title": "APIキー：",
@@ -606,7 +618,13 @@
     "uploading": "アップロード{suffix}",
     "paused": "休止{suffix}",
     "conflict": "紛争{suffix}",
-    "change": "変更{suffix}"
+    "change": "変更{suffix}",
+    "output": "出力{suffix}",
+    "watching": "ウォッチング{suffix}",
+    "lines": "ライン{suffix}",
+    "lastUpdate": "最終更新{suffix}",
+    "latency": "レイテンシー{suffix}",
+    "all": "すべて{suffix}"
   },
   "access": {
     "rules": "アクセスルール",
@@ -639,7 +657,9 @@
     "clearAllDescription": "clear completedボタンは、エラー、一時停止、競合状態を含む、完了状態のすべてのアップロードをクリアします。",
     "uploadChunkSizeMb": "アップロードチャンクサイズ（MB）",
     "uploadChunkSizeMbHelp": "通常5～50MBですが、不安定な接続や制限のある接続の場合は小さい方が良いでしょう。0に設定するとアップロードチャンキングが無効になります。",
-    "uploadSettings": "設定のアップロード"
+    "uploadSettings": "設定のアップロード",
+    "downloadChunkSizeMb": "ダウンロードチャンクサイズ（MB",
+    "downloadChunkSizeMbHelp": "チャンクダウンロードのチャンクサイズ。このサイズより大きいファイルは、タイムアウトの問題（例えば、Cloudflare 524エラー）を防ぐために、チャンクでダウンロードされます。0に設定すると、チャンクダウンロードが無効になります。"
   },
   "colors": {
     "red": "赤",
@@ -782,7 +802,16 @@
       "browseFullLibrary": "アイコンライブラリをすべて見る"
     },
     "toolNotFound": "ツールが見つかりません",
-    "backToTools": "ツールに戻る"
+    "backToTools": "ツールに戻る",
+    "fileWatcher": {
+      "name": "ファイルウォッチャー",
+      "description": "レイテンシ監視でリアルタイムにファイルを監視し、テールする",
+      "file": "ファイル{suffix}",
+      "interval": "更新間隔",
+      "stopWatching": "ストップ・ウォッチング",
+      "emptyState": "ファイルを選択し、再生をクリックすると、ファイルの変更を監視し始めます。",
+      "chooseFile": "ファイルを選択する"
+    }
   },
   "messages": {
     "pathNotFound": "パスがファイルシステムに存在しない",

@@ -14,11 +14,7 @@
     </div>
     <div v-if="loading">
       <h2 class="message delayed">
-        <div class="spinner">
-          <div class="bounce1"></div>
-          <div class="bounce2"></div>
-          <div class="bounce3"></div>
-        </div>
+        <LoadingSpinner size="medium" />
         <span>{{ $t("general.loading", { suffix: "..." }) }}</span>
       </h2>
     </div>
@@ -38,6 +34,7 @@ import FileLoading from "@/views/settings/FileLoading.vue";
 import ApiKeys from "@/views/settings/Api.vue";
 import SystemAdmin from "@/views/settings/SystemAdmin.vue";
 import NotificationsSettings from "@/views/settings/Notifications.vue";
+import LoadingSpinner from "@/components/LoadingSpinner.vue";
 export default {
   name: "settings",
   components: {
@@ -51,6 +48,7 @@ export default {
     UserSettings,
     SystemAdmin,
     NotificationsSettings,
+    LoadingSpinner,
   },
   data() {
     return {

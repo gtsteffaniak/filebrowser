@@ -17,7 +17,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
-	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
@@ -66,7 +65,6 @@ func convertToFrontendShareResponse(r *http.Request, shares []*share.Link) ([]*S
 		s.CommonShare.HasPassword = s.HasPassword()
 		s.DownloadURL = getShareURL(r, s.Hash, true, s.Token)
 		s.ShareURL = getShareURL(r, s.Hash, false, s.Token)
-
 		// Create response with source name (overrides the embedded Link's source field)
 		responses = append(responses, &ShareResponse{
 			Link:       s,
@@ -129,7 +127,7 @@ func shareGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) 
 	if !ok {
 		return http.StatusBadRequest, fmt.Errorf("invalid source name: %s", sourceName)
 	}
-	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, sourceName)
+	userscope, err := d.user.GetScopeForSourceName(sourceName)
 	if err != nil {
 		return http.StatusForbidden, err
 	}
@@ -360,7 +358,7 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	if idx == nil {
 		return http.StatusForbidden, fmt.Errorf("source with name not found: %s", body.Source)
 	}
-	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, source.Name)
+	userscope, err := d.user.GetScopeForSourceName(source.Name)
 	if err != nil {
 		return http.StatusForbidden, err
 	}
@@ -372,6 +370,7 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	if err != nil {
 		return http.StatusForbidden, fmt.Errorf("path not found: %s", providedPath)
 	}
+
 	if body.ShareType == "upload" && !body.AllowCreate {
 		body.AllowCreate = true
 	}
@@ -445,7 +444,7 @@ func shareDirectDownloadHandler(w http.ResponseWriter, r *http.Request, d *reque
 	}
 
 	// Get user scope for this source
-	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, source)
+	userscope, err := d.user.GetScopeForSourceName(source)
 	if err != nil {
 		return http.StatusForbidden, err
 	}
@@ -617,6 +616,16 @@ func shareInfoHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	commonShare := shareLink.CommonShare
 	commonShare.DownloadURL = getShareURL(r, hash, true, shareLink.Token)
 	commonShare.ShareURL = getShareURL(r, hash, false, shareLink.Token)
+	_, _, err = getShareImagePartsHelper(shareLink, true)
+	if err == nil {
+		commonShare.BannerUrl = fmt.Sprintf("%spublic/api/share/image?banner=true&hash=%s", config.Server.BaseURL, hash)
+	}
+	_, _, err = getShareImagePartsHelper(shareLink, false)
+	if err == nil {
+		commonShare.FaviconUrl = fmt.Sprintf("%spublic/api/share/image?favicon=true&hash=%s", config.Server.BaseURL, hash)
+	}
+	commonShare.Source = ""
+	commonShare.Path = ""
 	return renderJSON(w, r, commonShare)
 }
 

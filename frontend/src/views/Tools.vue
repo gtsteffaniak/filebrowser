@@ -42,6 +42,7 @@ import { tools } from "@/utils/constants";
 import SizeViewer from "@/views/tools/SizeViewer.vue";
 import DuplicateFinder from "@/views/tools/DuplicateFinder.vue";
 import MaterialIconPicker from "@/views/tools/MaterialIconPicker.vue";
+import FileWatcher from "@/views/tools/FileWatcher.vue";
 
 export default {
   name: "Tools",
@@ -49,6 +50,7 @@ export default {
     SizeViewer,
     DuplicateFinder,
     MaterialIconPicker,
+    FileWatcher,
   },
   computed: {
     tools() {
@@ -81,7 +83,6 @@ export default {
 }
 
 .tools-wrapper {
-  max-width: 1000px;
   margin: auto;
   width: 100%;
 }

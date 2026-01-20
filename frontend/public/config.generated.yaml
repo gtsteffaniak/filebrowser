@@ -26,34 +26,24 @@ server:
         denyByDefault: false              # deny access unless an "allow" access rule was specifically created.
         private: false                    # designate as source as private -- currently just means no sharing permitted.
         disabled: false                   # disable the source, this is useful so you don't need to remove it from the config file
-        indexingIntervalMinutes: 0        # (optional) not recommended: manual overide interval in minutes to re-index the source
-        disableIndexing: false            # (optional) not recommended: disable the indexing of this source
-        conditionals:                     # conditional rules to apply when indexing to include/exclude certain items
-          ignoreHidden: false             # exclude hidden files and folders.
-          ignoreZeroSizeFolders: false    # ignore folders with 0 size
-          rules:                          # list of item rules to apply to specific paths
-            - neverWatchPath: ""          # index the folder in the first pass to get included in search, but never re-indexed.
-              includeRootItem: ""         # include only these items at root folder level
-              fileStartsWith: ""          # (global) exclude files that start with these prefixes. Eg. "archive-" or "backup-"
-              folderStartsWith: ""        # (global) exclude folders that start with these prefixes. Eg. "archive-" or "backup-"
-              fileEndsWith: ""            # (global) exclude files that end with these suffixes. Eg. ".jpg" or ".txt"
-              folderEndsWith: ""          # (global) exclude folders that end with these suffixes. Eg. ".thumbnails" or ".git"
-              folderPath: ""              # (global) exclude folders that match this path. Eg. "/path/to/folder" or "/path/to/folder/subfolder"
-              filePath: ""                # (global) exclude files that match this path. Eg. "/path/to/file.txt" or "/path/to/file.txt/subfile.txt"
-              fileName: ""                # (global) exclude files that match these names. Eg. "file.txt" or "test.csv"
-              folderName: ""              # (global) exclude folders that match these names. Eg. "folder" or "subfolder"
-              viewable: false             # Enable viewing in UI but exclude from indexing
+        rules:                            # list of item rules to apply to specific paths
         defaultUserScope: "/"             # defaults to root of index "/" should match folders under path
         defaultEnabled: true              # should be added as a default source for new users?
         createUserDir: false              # create a user directory for each user under defaultUserScope + username
+        useLogicalSize: false             # calculate sizes based on logical size instead of disk utilization (du -sh), folders will be 0 bytes when empty.
   externalUrl: ""                         # used by share links if set (eg. http://mydomain.com)
   internalUrl: ""                         # used by integrations if set, this is the base domain that an integration service will use to communicate with filebrowser (eg. http://localhost:8080)
   cacheDir: "tmp"                         # path to the cache directory, used for thumbnails and other cached files
-  cacheDirCleanup: true                   # whether to automatically cleanup the cache directory. Note: docker must also mount a persistent volume to persist the cache (default: true)
+  cacheDirCleanup: false                  # whether to automatically cleanup the cache directory. Note: docker must also mount a persistent volume to persist the cache (default: false)
   maxArchiveSize: 50                      # max pre-archive combined size of files/folder that are allowed to be archived (in GB)
   filesystem:                             # filesystem settings
     createFilePermission: "644"           # Unix permissions like 644, 755, 2755 (default: 644)  validate:required,file_permission
     createDirectoryPermission: "755"      # Unix permissions like 755, 2755, 1777 (default: 755)  validate:required,file_permission
+  indexSqlConfig:                         # Index database SQL configuration
+    batchSize: 1000                       # number of items to batch in a single transaction, typically 500-5000. higher = faster but could use more memory.
+    cacheSizeMB: 32                       # size of the SQLite cache in MB
+    walMode: false                        # enable the more complex WAL journaling mode. Slower, more memory usage, but better for deployments with constant user activity.
+    disableReuse: false                   # enable to always create a new indexing database on startup.
 auth:
   tokenExpirationHours: 2                 # time in hours each web UI session token is valid for. Default is 2 hours.
   methods:
@@ -161,6 +151,7 @@ userDefaults:
     maxConcurrentUpload: 10
     uploadChunkSizeMb: 10
     clearAll: false
+    downloadChunkSizeMb: 0
   disableOnlyOfficeExt: ".md .txt .pdf .html .xml" # list of file extensions to disable onlyoffice editor for
   customTheme: ""                         # Name of theme to use chosen from custom themes config.
   showSelectMultiple: false               # show select multiple files on desktop

@@ -6,6 +6,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/auth"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/database/access"
+	"github.com/gtsteffaniak/filebrowser/backend/database/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 )
@@ -18,6 +19,7 @@ type BoltStore struct {
 	Auth     *auth.Storage
 	Settings *settings.Storage
 	Access   *access.Storage
+	Indexing *indexing.Storage
 }
 
 // NewStorage creates a storage.Storage based on Bolt DB.
@@ -33,5 +35,6 @@ func NewStorage(db *storm.DB) (*BoltStore, error) {
 		Auth:     authStore,
 		Settings: settings.NewStorage(settingsBackend{db: db}),
 		Access:   access.NewStorage(db, userStore),
+		Indexing: indexing.NewStorage(indexingBackend{db: db}),
 	}, nil
 }

@@ -30,7 +30,8 @@
     "saveAndExit": "Kaydet ve Çık",
     "keepEditing": "Düzenlemeye Devam Et",
     "closeAnyway": "Her Neyse Kapat",
-    "goToItem": "Öğeye git"
+    "goToItem": "Öğeye git",
+    "watchFile": "Dosyayı izle"
   },
   "download": {
     "downloadFile": "Dosyayı indir",
@@ -48,7 +49,6 @@
   "files": {
     "closePreview": "Önizlemeyi kapat",
     "lastModified": "Son güncellenme",
-    "lonely": "Burada yalnızlık hissediyorum...",
     "multipleSelectionEnabled": "Çoklu seçim etkin",
     "sortByLastModified": "Güncelleme tarihine göre sırala",
     "sortByName": "İsme göre sırala",
@@ -61,7 +61,10 @@
     "newFile": "Yeni dosya{suffix}",
     "newFolder": "Yeni klasör{suffix}",
     "duration": "Süre{suffix}",
-    "sortByDuration": "Süreye göre sırala"
+    "sortByDuration": "Süreye göre sırala",
+    "sameFolder": "Aynı klasöre taşınamaz",
+    "cannotAccesDir": "Dizine erişilemiyor",
+    "lonely": "Burada gösterecek bir şey yok."
   },
   "help": {
     "functionKeys": "Fonksiyon Tuşları",
@@ -217,7 +220,10 @@
     "renameSuccess": "Öğe başarıyla yeniden adlandırıldı!",
     "newFileSuccess": "Dosya başarıyla oluşturuldu!",
     "newDirSuccess": "Dizin başarıyla oluşturuldu!",
-    "copyToClipboardFailed": "Panoya kopyalanamıyor"
+    "copyToClipboardFailed": "Panoya kopyalanamıyor",
+    "moveFailed": "Taşıma başarısız",
+    "operationFailed": "İşlem başarısız oldu",
+    "partialSuccess": "Bazı işlemler başarısız oldu: {succeeded} başarılı, {failed} başarısız"
   },
   "search": {
     "smallerThan": "Daha küçük:",
@@ -444,10 +450,16 @@
     "customizeSidebarLinksButton": "Bağlantıları Özelleştir",
     "shareInfo": "QR Kodunu ve Bilgilerini Paylaş",
     "shareInfoDescription": "Bu bağlantı, başlık, açıklama, başlık ve QR kodu dahil olmak üzere paylaşımın bilgilerini bir açılır pencerede görüntüler.",
-    "downloadDescription": "Bu bağlantı, tüm paylaşım içeriğinin sıkıştırılmış bir dosya olarak indirilmesini sağlar."
+    "downloadDescription": "Bu bağlantı, tüm paylaşım içeriğinin sıkıştırılmış bir dosya olarak indirilmesini sağlar.",
+    "disableLoginOption": "Giriş seçeneğini gizle",
+    "disableLoginOptionDescription": "Anonim kullanıcılar için kenar çubuğundaki oturum açma düğmesini gizleyin. Etkinleştirildiğinde, anonim kullanıcılar oturum açma seçeneğini görmez.",
+    "browseFiles": "Dosyalara göz atın",
+    "selectBannerImage": "Afiş resmini seçin",
+    "selectFaviconImage": "Favicon resmini seçin",
+    "selectImage": "Resim seçiniz"
   },
   "api": {
-    "title": "API Anahtarları:",
+    "title": "API Anahtarları",
     "createdAt": "Oluşturuldu:",
     "expiresAt": "Son kullanma tarihi:",
     "permissions": "İzinler:",
@@ -606,7 +618,13 @@
     "uploading": "Yükleme{suffix}",
     "paused": "Duraklatıldı{suffix}",
     "conflict": "Çatışma{suffix}",
-    "change": "Değişim{suffix}"
+    "change": "Değişim{suffix}",
+    "output": "Çıktı{suffix}",
+    "watching": "İzlemek{suffix}",
+    "lines": "Çizgiler{suffix}",
+    "lastUpdate": "Son Güncelleme{suffix}",
+    "latency": "Gecikme{suffix}",
+    "all": "Tümü{suffix}"
   },
   "access": {
     "rules": "Erişim kuralları",
@@ -639,7 +657,9 @@
     "uploadChunkSizeMbHelp": "Tipik olarak 5 ila 50 MB, daha küçük kararsız veya kısıtlı bağlantılar için daha iyidir. 0 olarak ayarlandığında yükleme yığınlaması devre dışı bırakılır.",
     "clearAll": "Clear completed hata, duraklama ve çakışmayı kaldırmalıdır",
     "clearAllDescription": "Tamamlananları temizle düğmesi hata, duraklatılmış ve çakışma durumları da dahil olmak üzere bitmiş durumdaki tüm yüklemeleri temizler.",
-    "uploadSettings": "Yükleme Ayarları"
+    "uploadSettings": "Yükleme Ayarları",
+    "downloadChunkSizeMb": "MB cinsinden indirme yığın boyutu",
+    "downloadChunkSizeMbHelp": "Parçalı indirmeler için yığın boyutu. Bu boyuttan daha büyük dosyalar, zaman aşımı sorunlarını (örn. Cloudflare 524 hataları) önlemek için parçalar halinde indirilecektir. 0 olarak ayarlamak yığın indirmeleri devre dışı bırakır."
   },
   "colors": {
     "red": "kırmızı",
@@ -782,7 +802,16 @@
       "browseFullLibrary": "Simge kitaplığının tamamına göz atın"
     },
     "toolNotFound": "Araç bulunamadı",
-    "backToTools": "Araçlara Geri Dön"
+    "backToTools": "Araçlara Geri Dön",
+    "fileWatcher": {
+      "name": "Dosya İzleyici",
+      "description": "Gecikme izleme ile dosyaları gerçek zamanlı olarak izleyin ve takip edin",
+      "file": "Dosya{suffix}",
+      "interval": "Güncelleme Aralığı",
+      "stopWatching": "İzlemeyi Bırak",
+      "emptyState": "Bir dosya seçin ve dosya değişikliklerini izlemeye başlamak için oynat'a tıklayın",
+      "chooseFile": "Bir dosya seçin"
+    }
   },
   "messages": {
     "pathNotFound": "Yol dosya sisteminde mevcut değil",

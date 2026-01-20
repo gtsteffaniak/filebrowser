@@ -7,12 +7,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/fs"
+	"net"
 	"net/http"
 	"text/template"
 	"time"
 
+	_ "net/http/pprof"
+
+	"github.com/coreos/go-systemd/v22/activation"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
-	"github.com/gtsteffaniak/filebrowser/backend/common/version"
 	"github.com/gtsteffaniak/filebrowser/backend/database/storage/bolt"
 	"github.com/gtsteffaniak/filebrowser/backend/events"
 	"github.com/gtsteffaniak/go-logger/logger"
@@ -44,6 +47,15 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	store = storage
 	config = &settings.Config
 	var err error
+	// Start pprof server in a separate goroutine
+	if settings.Env.IsDevMode {
+		go func() {
+			if err = http.ListenAndServe("localhost:6060", nil); err != nil {
+				logger.Fatalf("pprof server error: %v", err)
+			}
+		}()
+	}
+
 	// Determine filesystem mode and set asset paths
 	if settings.Env.EmbeddedFs {
 		// Embedded mode: Serve files from the embedded assets
@@ -87,6 +99,7 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	api.HandleFunc("POST /users", withSelfOrAdmin(usersPostHandler))
 	api.HandleFunc("PUT /users", withUser(userPutHandler))
 	api.HandleFunc("DELETE /users", withSelfOrAdmin(userDeleteHandler))
+	api.HandleFunc("GET /health", healthHandler)
 
 	// Auth routes
 	api.HandleFunc("POST /auth/login", userWithoutOTP(loginHandler))
@@ -108,10 +121,11 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	api.HandleFunc("POST /resources", withUser(resourcePostHandler))
 	api.HandleFunc("PUT /resources", withUser(resourcePutHandler))
 	api.HandleFunc("PATCH /resources", withUser(resourcePatchHandler))
+	api.HandleFunc("POST /resources/bulk/delete", withUser(resourceBulkDeleteHandler))
 	api.HandleFunc("GET /raw", withUser(rawHandler))
 	api.HandleFunc("GET /preview", withTimeout(60*time.Second, withUserHelper(previewHandler)))
 	api.HandleFunc("GET /media/subtitles", withUser(subtitlesHandler))
-	if version.Version == "testing" || version.Version == "untracked" {
+	if settings.Env.IsDevMode {
 		api.HandleFunc("GET /inspectIndex", inspectIndex)
 		api.HandleFunc("GET /mockData", mockData)
 	}
@@ -146,8 +160,10 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	publicAPI.HandleFunc("POST /resources", withHashFile(publicUploadHandler))
 	publicAPI.HandleFunc("PUT /resources", withHashFile(publicPutHandler))
 	publicAPI.HandleFunc("DELETE /resources", withHashFile(publicDeleteHandler))
+	publicAPI.HandleFunc("POST /resources/bulk/delete", withHashFile(publicBulkDeleteHandler))
 	publicAPI.HandleFunc("PATCH /resources", withHashFile(publicPatchHandler))
 	publicAPI.HandleFunc("GET /shareinfo", withOrWithoutUser(shareInfoHandler))
+	publicAPI.HandleFunc("GET /share/image", withHashFile(getShareImage))
 
 	// Settings routes
 	api.HandleFunc("GET /settings", withAdmin(settingsGetHandler))
@@ -167,14 +183,23 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 
 	api.HandleFunc("GET /search", withUser(searchHandler))
 	api.HandleFunc("GET /duplicates", withUser(duplicatesHandler))
+	api.HandleFunc("GET /tools/watch", withUser(fileWatchHandler))
+	api.HandleFunc("GET /tools/watch/sse", withUser(fileWatchSSEHandler))
 	// Mount the public API sub-router
 	publicRoutes.Handle("/api/", http.StripPrefix("/api", publicAPI))
 
 	// Mount the route groups
 	apiPath := config.Server.BaseURL + "api"
 	publicPath := config.Server.BaseURL + "public"
+	webDavPath := config.Server.BaseURL + "dav"
 	router.Handle(apiPath+"/", http.StripPrefix(apiPath, api))
 	router.Handle(publicPath+"/", http.StripPrefix(publicPath, publicRoutes))
+	// WebDav resources (catch-all)
+	// similar to NextCloud and others
+	// (reddec) do not trim /dav prefix here - webdav library for some reason does not like it.
+	router.Handle(webDavPath+"/{scope}/{path...}", wrapHandlerOpts(withUserHelper(createWebDAVHandler(webDavPath)), wrapperOpts{
+		requestBasicAuth: true,
+	}))
 
 	// Frontend share route redirect (DEPRECATED - maintain for backwards compatibility)
 	// Playwright tests need updating to remove this redirect.
@@ -236,11 +261,27 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 			fullURL := fmt.Sprintf("%s://%s%s%s", scheme, listenAddress, port, config.Server.BaseURL)
 			logger.Infof("Running at               : %s", fullURL)
 
-			// Create a TLS listener and serve
-			listener, err := tls.Listen("tcp", srv.Addr, tlsConfig)
-			if err != nil {
-				logger.Fatalf("Could not start TLS server: %v", err)
+			// Attempt to get listener from socket activation with TLS configuration
+			var listener net.Listener
+
+			socketActivationListeners, err := activation.TLSListeners(tlsConfig)
+			if err == nil && len(socketActivationListeners) > 0 {
+				listener = socketActivationListeners[0]
+				logger.Debug("Socket activation detected. Listening address is being controlled by systemd.")
+			} else if err != nil {
+				// if Socket Activation fails we can just fall back to create our own sockets as normal.
+				// so is only interesting to those who are debugging the app.
+				logger.Debugf("Socket activation failed: %v", err)
 			}
+
+			// Create our own TLS listener if socket activation is not available.
+			if listener == nil {
+				listener, err = tls.Listen("tcp", srv.Addr, tlsConfig)
+				if err != nil {
+					logger.Fatalf("Could not start TLS server: %v", err)
+				}
+			}
+
 			if err := srv.Serve(listener); err != nil && err != http.ErrServerClosed {
 				logger.Fatalf("Server error: %v", err)
 			}
@@ -255,8 +296,35 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 			fullURL := fmt.Sprintf("%s://%s%s%s", scheme, listenAddress, port, config.Server.BaseURL)
 			logger.Infof("Running at               : %s", fullURL)
 
+			var listener net.Listener
+
+			// Attempt to get the listener from socket activation
+			socketActivationListeners, err := activation.Listeners()
+			if err == nil && len(socketActivationListeners) > 0 {
+				listener = socketActivationListeners[0]
+				logger.Debug("Socket activation detected. Listening address is being controlled by systemd.")
+			} else if err != nil {
+				// if Socket Activation fails we can just fall back to create our own sockets as normal.
+				// so is only interesting to those who are debugging the app.
+				logger.Debugf("Socket activation failed: %v", err)
+			}
+
+			// Create our own listener if socket activation is not available.
+			if listener == nil {
+				// Replicate the behaviour of ListenAndServe
+				addr := srv.Addr
+				if addr == "" {
+					addr = ":http"
+				}
+
+				listener, err = net.Listen("tcp", addr)
+				if err != nil {
+					logger.Fatalf("Server error: %v", err)
+				}
+			}
+
 			// Start HTTP server
-			if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			if err := srv.Serve(listener); err != nil && err != http.ErrServerClosed {
 				logger.Fatalf("Server error: %v", err)
 			}
 		}
@@ -279,6 +347,11 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 		if store.Access != nil {
 			if err := store.Access.Flush(); err != nil {
 				logger.Errorf("Failed to flush access storage: %v", err)
+			}
+		}
+		if store.Indexing != nil {
+			if err := store.Indexing.Flush(); err != nil {
+				logger.Errorf("Failed to flush indexing storage: %v", err)
 			}
 		}
 	}

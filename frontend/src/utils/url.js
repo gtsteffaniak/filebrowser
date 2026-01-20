@@ -80,24 +80,37 @@ export function removePrefix(path, prefix = "") {
 
 
 // get path with parameters
-export function getApiPath(path, params = {}) {
+export function getApiPath(path, params = {}, encode = false) {
   if (path.startsWith("/")) {
     path = path.slice(1);
   }
   path = `${globalVars.baseURL}${path}`;
-  if (Object.keys(params).length > 0) {
-    path += "?";
-  }
-  for (const key in params) {
-    if (params[key] === undefined) {
-      continue;
+  
+  const paramKeys = Object.keys(params);
+  if (paramKeys.length > 0) {
+    if (encode) {
+      const encodedParams = paramKeys
+        .filter(key => params[key] !== undefined)
+        .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
+        .join('&');
+      if (encodedParams) {
+        path += `?${encodedParams}`;
+      }
+    } else {
+      path += "?";
+      for (const key in params) {
+        if (params[key] === undefined) {
+          continue;
+        }
+        path += `${key}=${params[key]}&`;
+      }
+      // remove trailing &
+      if (path.endsWith("&")) {
+        path = path.slice(0, -1);
+      }
     }
-    path += `${key}=${params[key]}&`;
   }
-  // remove trailing &
-  if (path.endsWith("&")) {
-    path = path.slice(0, -1);
-  }
+  
   return path;
 }
 
@@ -153,12 +166,19 @@ export function extractSourceFromPath(url) {
   return { source, path };
 }
 
-export function buildItemUrl(source, path) {
+export function buildItemUrl(source, path, includeBaseURL = false) {
+  path = removeLeadingSlash(path);
   const encodedPath = encodePath(path);
+  let urlPath;
   if (getters.isShare()) {
-    return `/public/share/${state.shareInfo.hash}${encodedPath}`;
+    urlPath = `public/share/${state.shareInfo.hash}/${encodedPath}`;
+  } else {
+    urlPath = `files/${encodeURIComponent(source)}/${encodedPath}`;
   }
-  return `/files/${source}${encodedPath}`;
+  if (includeBaseURL) {
+    return `${globalVars.baseURL}${urlPath}`;
+  }
+  return "/" + urlPath;
 }
 
 export function encodedPath(path) {
@@ -182,10 +202,20 @@ export function goToItem(source, path, previousHistoryItem) {
   let fullPath;
   if (getters.isShare()) {
     fullPath = `/public/share/${state.shareInfo?.hash}${newPath}`;
+    if (previousHistoryItem === undefined) {
+      // When undefined will not create browser history
+      router.replace({ path: fullPath });
+      return;
+    }
     router.push({ path: fullPath });
     return;
   }
   fullPath = `/files/${encodeURIComponent(source)}${newPath}`;
+  if (previousHistoryItem === undefined) {
+    // When undefined will not create browser history
+    router.replace({ path: fullPath });
+    return
+  }
   router.push({ path: fullPath });
   return
 }

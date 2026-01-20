@@ -30,7 +30,8 @@
     "saveAndExit": "Spara och avsluta",
     "keepEditing": "Fortsätt redigera",
     "closeAnyway": "Stäng i alla fall",
-    "goToItem": "Gå till artikel"
+    "goToItem": "Gå till artikel",
+    "watchFile": "Titta på filen"
   },
   "download": {
     "downloadFile": "Ladda ner fil",
@@ -48,7 +49,6 @@
   "files": {
     "closePreview": "Stäng förhands granskningen",
     "lastModified": "Senast ändrad",
-    "lonely": "Väldigt ensamt här....",
     "multipleSelectionEnabled": "Flerval är på",
     "sortByLastModified": "Sortera på senast ändrad",
     "sortByName": "Sortera på namn",
@@ -61,7 +61,10 @@
     "newFile": "Ny fil{suffix}",
     "newFolder": "Ny folder{suffix}",
     "duration": "Varaktighet{suffix}",
-    "sortByDuration": "Sortera efter varaktighet"
+    "sortByDuration": "Sortera efter varaktighet",
+    "sameFolder": "Kan inte flytta till samma mapp",
+    "cannotAccesDir": "Kan inte komma åt katalogen",
+    "lonely": "Inget att visa här..."
   },
   "help": {
     "functionKeys": "Funktionstangenter",
@@ -217,7 +220,10 @@
     "renameSuccess": "Objektet har bytt namn framgångsrikt!",
     "newFileSuccess": "Filen skapades framgångsrikt!",
     "newDirSuccess": "Katalog skapad framgångsrikt!",
-    "copyToClipboardFailed": "Det går inte att kopiera till urklipp"
+    "copyToClipboardFailed": "Det går inte att kopiera till urklipp",
+    "moveFailed": "Flyttning misslyckades",
+    "operationFailed": "Operationen misslyckades",
+    "partialSuccess": "Vissa operationer misslyckades: {succeeded} lyckades, {failed} misslyckades"
   },
   "search": {
     "smallerThan": "Mindre än:",
@@ -444,7 +450,13 @@
     "customizeSidebarLinksButton": "Anpassa länkar",
     "shareInfo": "Dela QR-kod och information",
     "shareInfoDescription": "Den här länken visar information om aktien, inklusive titel, beskrivning, banner och QR-kod i en popup.",
-    "downloadDescription": "Den här länken gör det möjligt att ladda ner hela innehållet i aktien som en komprimerad fil."
+    "downloadDescription": "Den här länken gör det möjligt att ladda ner hela innehållet i aktien som en komprimerad fil.",
+    "disableLoginOption": "Dölj inloggningsalternativ",
+    "disableLoginOptionDescription": "Dölj inloggningsknappen i sidofältet för anonyma användare. När funktionen är aktiverad ser anonyma användare inte möjligheten att logga in.",
+    "browseFiles": "Bläddra bland filer",
+    "selectBannerImage": "Välj bannerbild",
+    "selectFaviconImage": "Välj favicon-bild",
+    "selectImage": "Välj bild"
   },
   "api": {
     "title": "API-nycklar",
@@ -512,7 +524,9 @@
     "uploadChunkSizeMbHelp": "Vanligtvis 5 till 50 MB, men mindre är bättre för instabila eller begränsade anslutningar. Om du ställer in 0 inaktiveras chunking för uppladdning.",
     "clearAll": "Klart avslutat ska ta bort fel, paus och konflikt",
     "clearAllDescription": "Knappen Clear Completed rensar alla uppladdningar som är klara, inklusive fel-, paus- och konflikttillstånd.",
-    "uploadSettings": "Inställningar för uppladdning"
+    "uploadSettings": "Inställningar för uppladdning",
+    "downloadChunkSizeMb": "Nedladdningens storlek i MB",
+    "downloadChunkSizeMbHelp": "Bitstorlek för nedladdningar i bitar. Filer som är större än denna storlek laddas ner i bitar för att förhindra timeout-problem (t.ex. Cloudflare 524-fel). Inställning till 0 inaktiverar nedladdningar i bitar."
   },
   "colors": {
     "red": "röd",
@@ -684,7 +698,13 @@
     "uploading": "Uppladdning{suffix}",
     "paused": "Pausad{suffix}",
     "conflict": "Konflikt{suffix}",
-    "change": "Förändring{suffix}"
+    "change": "Förändring{suffix}",
+    "output": "Utgång{suffix}",
+    "watching": "Tittar på{suffix}",
+    "lines": "Linjer{suffix}",
+    "lastUpdate": "Senaste uppdatering{suffix}",
+    "latency": "Fördröjning{suffix}",
+    "all": "Alla{suffix}"
   },
   "access": {
     "rules": "Regler för åtkomst",
@@ -782,7 +802,16 @@
       "browseFullLibrary": "Bläddra i hela ikonbiblioteket"
     },
     "toolNotFound": "Verktyget hittades inte",
-    "backToTools": "Tillbaka till Verktyg"
+    "backToTools": "Tillbaka till Verktyg",
+    "fileWatcher": {
+      "name": "Filövervakare",
+      "description": "Titta på och följ filer i realtid med latensövervakning",
+      "file": "Fil{suffix}",
+      "interval": "Uppdateringsintervall",
+      "stopWatching": "Sluta titta på",
+      "emptyState": "Välj en fil och klicka på play för att börja övervaka filändringar",
+      "chooseFile": "Välj en fil"
+    }
   },
   "messages": {
     "pathNotFound": "Sökvägen finns inte i filsystemet",

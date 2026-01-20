@@ -4,9 +4,11 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+var BcryptCost = bcrypt.DefaultCost
+
 // HashPwd hashes a password.
 func HashPwd(password string) (string, error) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), BcryptCost)
 	return string(bytes), err
 }
 

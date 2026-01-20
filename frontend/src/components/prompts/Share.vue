@@ -26,7 +26,30 @@
       </div>
     </div>
 
-    <div v-else>
+    <div v-if="isPickingFile">
+      <file-list 
+        @update:selected="updateTempFilePath" 
+        :browse-source="displaySource"
+        :browse-path="displayPath"
+        :show-files="true"
+        :show-folders="true"
+        :allowed-file-types="filePickerAllowedTypes"
+        :require-file-selection="true"
+        :title="filePickerTitle">
+      </file-list>
+      <div class="card-action">
+        <button class="button button--flat" @click="cancelFilePicker" :aria-label="$t('general.cancel')"
+          :title="$t('general.cancel')">
+          {{ $t("general.cancel") }}
+        </button>
+        <button class="button button--flat button--blue" @click="confirmFilePicker" :disabled="!filePickerSelectionValid" :aria-label="$t('general.ok')"
+          :title="$t('general.ok')">
+          {{ $t("general.ok") }}
+        </button>
+      </div>
+    </div>
+
+    <div v-else-if="!isPickingFile">
       <div aria-label="share-path" class="searchContext button"> {{ $t('general.path', { suffix: ':' }) }} {{
         displayPath }}</div>
       <p> {{ $t('share.notice') }} </p>
@@ -212,10 +235,13 @@
               :name="$t('share.disableSidebar')" :description="$t('share.disableSidebarDescription')" />
             <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="perUserDownloadLimit"
               :name="$t('share.perUserDownloadLimit')" :description="$t('share.perUserDownloadLimitDescription')" />
-            <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="extractEmbeddedSubtitles"
-              :name="$t('share.extractEmbeddedSubtitles')"
-              :description="$t('share.extractEmbeddedSubtitlesDescription')" />
-          </div>
+          <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="extractEmbeddedSubtitles"
+            :name="$t('share.extractEmbeddedSubtitles')"
+            :description="$t('share.extractEmbeddedSubtitlesDescription')" />
+          <ToggleSwitch class="item" v-model="disableLoginOption"
+            :name="$t('share.disableLoginOption')"
+            :description="$t('share.disableLoginOptionDescription')" />
+        </div>
 
           <div v-if="shareType === 'normal'">
             <p>
@@ -271,7 +297,12 @@
               help
             </i>
           </p>
-          <input class="input" type="text" v-model.trim="banner" />
+          <div class="file-picker-input-group">
+            <input class="input file-picker-input" type="text" v-model.trim="banner" />
+            <div class="file-picker-button clickable" @click="openBannerPicker" :title="$t('share.browseFiles')">
+              <i class="material-icons">folder_open</i>
+            </div>
+          </div>
 
           <p>
             {{ $t("prompts.shareFavicon") }}
@@ -280,13 +311,18 @@
               help
             </i>
           </p>
-          <input class="input" type="text" v-model.trim="favicon" />
+          <div class="file-picker-input-group">
+            <input class="input file-picker-input" type="text" v-model.trim="favicon" />
+            <div class="file-picker-button clickable" @click="openFaviconPicker" :title="$t('share.browseFiles')">
+              <i class="material-icons">folder_open</i>
+            </div>
+          </div>
         </SettingsItem>
       </div>
     </div>
   </div>
 
-  <div v-if="!isEditingPath" class="card-action">
+  <div v-if="!isEditingPath && !isPickingFile" class="card-action">
     <button v-if="listing" class="button button--flat button--grey" @click="closeHovers"
       :aria-label="$t('general.close')" :title="$t('general.close')">
       {{ $t("general.close") }}
@@ -387,6 +423,7 @@ export default {
       enableOnlyOffice: false,
       shareType: "normal",
       extractEmbeddedSubtitles: false,
+      disableLoginOption: false,
       sidebarLinks: [],
       /** @type {Share | null} */
       editingLink: null,
@@ -396,6 +433,11 @@ export default {
       tempSource: "",
       pathExists: true,
       isChangingPassword: false,
+      isPickingFile: false,
+      filePickerField: null, // 'banner' or 'favicon'
+      filePickerSelectionValid: false, // Track if a valid file is selected
+      tempFilePath: "",
+      tempFileSource: "",
       //viewMode: "normal",
     };
   },
@@ -454,6 +496,22 @@ export default {
       // Check if we're editing a link and it has a password
       const currentLink = this.isEditMode ? this.link : this.editingLink;
       return currentLink && currentLink.hasPassword;
+    },
+    filePickerAllowedTypes() {
+      if (this.filePickerField === 'banner') {
+        return ['image/']; // Allow all image types
+      } else if (this.filePickerField === 'favicon') {
+        return ['image/']; // Allow all image types
+      }
+      return [];
+    },
+    filePickerTitle() {
+      if (this.filePickerField === 'banner') {
+        return this.$t('share.selectBannerImage');
+      } else if (this.filePickerField === 'favicon') {
+        return this.$t('share.selectFaviconImage');
+      }
+      return this.$t('share.selectImage');
     }
   },
   watch: {
@@ -506,6 +564,7 @@ export default {
           this.enableOnlyOffice = this.link.enableOnlyOffice || false;
           this.shareType = this.link.shareType || "normal";
           this.extractEmbeddedSubtitles = this.link.extractEmbeddedSubtitles || false;
+          this.disableLoginOption = this.link.disableLoginOption || false;
           this.sidebarLinks = Array.isArray(this.link.sidebarLinks) ? [...this.link.sidebarLinks] : [];
           //this.viewMode = this.link.viewMode || "normal";
         }
@@ -534,7 +593,10 @@ export default {
     }
   },
   mounted() {
-    this.initClipboard();
+    // Initialize clipboard after DOM is ready
+    this.$nextTick(() => {
+      this.initClipboard();
+    });
     // Listen for sidebar links updates from the SidebarLinks prompt
     eventBus.on('shareSidebarLinksUpdated', this.handleSidebarLinksUpdate);
   },
@@ -622,6 +684,7 @@ export default {
           enableOnlyOffice: this.enableOnlyOffice,
           shareType: this.shareType,
           extractEmbeddedSubtitles: this.extractEmbeddedSubtitles,
+          disableLoginOption: this.disableLoginOption,
           sidebarLinks: this.sidebarLinks,
         };
 
@@ -721,6 +784,7 @@ export default {
       this.enableOnlyOffice = link.enableOnlyOffice || false;
       this.shareType = link.shareType || "normal";
       this.extractEmbeddedSubtitles = link.extractEmbeddedSubtitles || false;
+      this.disableLoginOption = link.disableLoginOption || false;
       this.sidebarLinks = Array.isArray(link.sidebarLinks) ? [...link.sidebarLinks] : [];
       // Store the link being edited
       this.editingLink = link;
@@ -864,6 +928,44 @@ export default {
         },
       });
     },
+    openBannerPicker() {
+      this.filePickerField = 'banner';
+      this.tempFilePath = this.displayPath;
+      this.tempFileSource = this.displaySource;
+      this.isPickingFile = true;
+    },
+    openFaviconPicker() {
+      this.filePickerField = 'favicon';
+      this.tempFilePath = this.displayPath;
+      this.tempFileSource = this.displaySource;
+      this.isPickingFile = true;
+    },
+    updateTempFilePath(pathOrData) {
+      if (pathOrData && pathOrData.path) {
+        this.tempFilePath = pathOrData.path;
+        this.tempFileSource = pathOrData.source;
+        this.filePickerSelectionValid = pathOrData.isValid || false;
+      }
+    },
+    confirmFilePicker() {
+      if (this.tempFilePath && this.tempFileSource) {
+        // Build query params format: source=sourcename&path=indexpath
+        const queryParams = `source=${encodeURIComponent(this.tempFileSource)}&path=${encodeURIComponent(this.tempFilePath)}`;
+        
+        if (this.filePickerField === 'banner') {
+          this.banner = queryParams;
+        } else if (this.filePickerField === 'favicon') {
+          this.favicon = queryParams;
+        }
+      }
+      this.isPickingFile = false;
+      this.filePickerField = null;
+    },
+    cancelFilePicker() {
+      this.isPickingFile = false;
+      this.filePickerField = null;
+      this.filePickerSelectionValid = false;
+    },
   },
 };
 </script>
@@ -904,5 +1006,41 @@ export default {
   align-items: center;
   justify-content: center;
   gap: 0.5em;
+}
+
+.file-picker-input-group {
+  display: flex;
+  gap: 0.5em;
+  align-items: center;
+  margin-bottom: 1em;
+}
+
+.file-picker-input {
+  flex: 1;
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+
+.file-picker-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3em;
+  height: 2.5em;
+  background: var(--surfaceSecondary);
+  border: 1px solid var(--borderColor);
+  border-left: none;
+  border-radius: 0 0.5em 0.5em 0;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.file-picker-button:hover {
+  background: var(--surfaceTertiary);
+}
+
+.file-picker-button .material-icons {
+  color: var(--primaryColor);
+  font-size: 1.25em;
 }
 </style>

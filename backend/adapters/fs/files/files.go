@@ -16,97 +16,45 @@ import (
 
 	"github.com/dhowden/tag"
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
+	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/access"
 	"github.com/gtsteffaniak/filebrowser/backend/database/share"
+	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/ffmpeg"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
-func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.ExtendedFileInfo, error) {
-	response := &iteminfo.ExtendedFileInfo{}
-	idx := indexing.GetIndex(opts.Source)
-	if idx == nil {
-		return response, fmt.Errorf("could not get index: %v ", opts.Source)
-	}
-	if !strings.HasPrefix(opts.Path, "/") {
-		opts.Path = "/" + opts.Path
-	}
-
-	realPath, isDir, err := idx.GetRealPath(opts.Path)
-	if err != nil && opts.FollowSymlinks {
-		return response, fmt.Errorf("could not get real path for requested path: %v, error: %v", opts.Path, err)
-	}
-
-	if !strings.HasSuffix(opts.Path, "/") && isDir {
-		opts.Path = opts.Path + "/"
-	}
-	opts.IsDir = isDir
-	var info *iteminfo.FileInfo
-
-	// Check if path is viewable (allows filesystem access without indexing)
-	isViewable := idx.IsViewable(isDir, opts.Path)
-
-	// For non-viewable paths, verify they are indexed
-	// Skip this check if indexing is disabled for the entire source
-	if !isViewable && !idx.Config.DisableIndexing {
-		err = idx.RefreshFileInfo(opts)
-		if err != nil {
-			return response, fmt.Errorf("path not accessible: %v", err)
+// processDirectoryMetadata extracts metadata for audio/video files in directories
+func processDirectoryMetadata(response *iteminfo.ExtendedFileInfo, idx *indexing.Index, opts utils.FileOptions) {
+	metadataCount := 0
+	for i := range response.Files {
+		fileItem := &response.Files[i]
+		isItemAudio := strings.HasPrefix(fileItem.Type, "audio")
+		isItemVideo := strings.HasPrefix(fileItem.Type, "video")
+		if isItemAudio || isItemVideo {
+			metadataCount++
 		}
 	}
 
-	info, err = idx.GetFsInfo(opts.Path, opts.FollowSymlinks)
-	if err != nil {
-		fmt.Println("Graham 2: ", err)
-		return response, err
+	// Set hasMetadata flag if there are files with potential metadata
+	if metadataCount > 0 {
+		response.HasMetadata = true
 	}
 
-	response.FileInfo = *info
-	response.RealPath = realPath
-	response.Source = opts.Source
-
-	if access != nil {
-		err := access.CheckChildItemAccess(response, idx, opts.Username)
-		if err != nil {
-			return response, err
-		}
-	}
-
-	// Filter hidden files if ShowHidden is false
-	if !opts.ShowHidden && isDir {
-		filteredFiles := []iteminfo.ExtendedItemInfo{}
-		for _, file := range response.Files {
-			if !file.Hidden {
-				filteredFiles = append(filteredFiles, file)
-			}
-		}
-		response.Files = filteredFiles
-
-		filteredFolders := []iteminfo.ItemInfo{}
-		for _, folder := range response.Folders {
-			if !folder.Hidden {
-				filteredFolders = append(filteredFolders, folder)
-			}
-		}
-		response.Folders = filteredFolders
-	}
-
-	// For directories, populate metadata for audio/video files ONLY if explicitly requested
-	// This avoids expensive ffprobe calls on every directory listing
-	if isDir && opts.Metadata {
-		startTime := time.Now()
-		metadataCount := 0
+	// Only process metadata if explicitly requested
+	if opts.Metadata && metadataCount > 0 {
+		processedCount := 0
 
 		// Create a single shared FFmpegService instance for all files to coordinate concurrency
 		sharedFFmpegService := ffmpeg.NewFFmpegService(10, false, "")
 		if sharedFFmpegService != nil {
 			// Process files concurrently using goroutines
 			var wg sync.WaitGroup
-			var mu sync.Mutex // Protects metadataCount
+			var mu sync.Mutex // Protects processedCount
 
 			for i := range response.Files {
 				fileItem := &response.Files[i]
@@ -114,33 +62,25 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.E
 				isItemVideo := strings.HasPrefix(fileItem.Type, "video")
 
 				if isItemAudio || isItemVideo {
-					// Get the real path for this file
-					itemRealPath, _, _ := idx.GetRealPath(opts.Path, fileItem.Name)
-
-					// Capture loop variables in local copies to avoid closure issues
-					item := fileItem
-					itemPath := itemRealPath
-					isAudio := isItemAudio
-
 					wg.Go(func() {
 						// Extract metadata for audio files (without album art for performance)
-						if isAudio {
-							err := extractAudioMetadata(context.Background(), item, itemPath, opts.AlbumArt || opts.Content, opts.Metadata, sharedFFmpegService)
+						if isItemAudio {
+							err := extractAudioMetadata(context.Background(), fileItem, response.RealPath+"/"+fileItem.Name, opts.AlbumArt, opts.Metadata, sharedFFmpegService)
 							if err != nil {
-								logger.Debugf("failed to extract metadata for file: "+item.Name, err)
+								logger.Debugf("failed to extract metadata for file: %s, error: %v", fileItem.Name, err)
 							} else {
 								mu.Lock()
-								metadataCount++
+								processedCount++
 								mu.Unlock()
 							}
 						} else {
 							// Extract duration for video files
-							err := extractVideoMetadata(context.Background(), item, itemPath, sharedFFmpegService)
+							err := extractVideoMetadata(context.Background(), fileItem, response.RealPath+"/"+fileItem.Name, sharedFFmpegService)
 							if err != nil {
-								logger.Debugf("failed to extract video metadata for file: "+item.Name, err)
+								logger.Debugf("failed to extract video metadata for file: %s, error: %v", fileItem.Name, err)
 							} else {
 								mu.Lock()
-								metadataCount++
+								processedCount++
 								mu.Unlock()
 							}
 						}
@@ -151,23 +91,103 @@ func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.E
 			// Wait for all goroutines to complete
 			wg.Wait()
 		}
-
-		if metadataCount > 0 {
-			elapsed := time.Since(startTime)
-			logger.Debugf("Extracted metadata for %d audio/video files concurrently in %v (avg: %v per file)",
-				metadataCount, elapsed, elapsed/time.Duration(metadataCount))
-		}
 	}
+}
 
-	// Extract content/metadata when explicitly requested OR for single file audio/video requests
-	isAudioVideo := strings.HasPrefix(info.Type, "audio") || strings.HasPrefix(info.Type, "video")
-	if opts.Content || opts.Metadata || (!isDir && isAudioVideo) {
-		processContent(response, idx, opts)
-	}
-
+// finalizeResponse handles final response adjustments (OnlyOffice ID, scope stripping)
+func finalizeResponse(response *iteminfo.ExtendedFileInfo, info *iteminfo.FileInfo, realPath string, user *users.User, userScope string) {
+	// Add OnlyOffice ID if applicable
 	if settings.Config.Integrations.OnlyOffice.Secret != "" && info.Type != "directory" && iteminfo.IsOnlyOffice(info.Name) {
 		response.OnlyOfficeId = generateOfficeId(realPath)
 	}
+
+	// Strip user scope from response path to return path relative to user's context
+	if user != nil && userScope != "" && userScope != "/" {
+		response.Path = strings.TrimPrefix(response.Path, userScope)
+		if response.Path == "" {
+			response.Path = "/"
+		}
+	}
+}
+
+func FileInfoFaster(opts utils.FileOptions, access *access.Storage, user *users.User) (*iteminfo.ExtendedFileInfo, error) {
+	response := &iteminfo.ExtendedFileInfo{}
+	if access == nil {
+		return response, fmt.Errorf("access not provided")
+	}
+	if user == nil {
+		return response, fmt.Errorf("user not provided")
+	}
+	if opts.Path == "" {
+		return response, fmt.Errorf("path not provided")
+	}
+	if opts.Source == "" {
+		return response, fmt.Errorf("source not provided")
+	}
+	// Get index
+	idx := indexing.GetIndex(opts.Source)
+	if idx == nil {
+		return response, fmt.Errorf("could not get index: %v ", opts.Source)
+	}
+
+	// Resolve user scope
+	userScope, scopeErr := user.GetScopeForSourcePath(idx.Path)
+	if scopeErr != nil || userScope == "" {
+		return response, fmt.Errorf("user has no access to source: %v", opts.Source)
+	}
+
+	safePath, err := utils.SanitizeUserPath(opts.Path)
+	if err != nil {
+		return response, errors.ErrAccessDenied
+	}
+
+	// Combine scope + sanitized path
+	indexPath := utils.JoinPathAsUnix(userScope, safePath)
+	// Layer 1: USER ACCESS CONTROL
+	// Quick check: Does THIS user have permission?
+	if !access.Permitted(idx.Path, indexPath, user.Username) {
+		return response, errors.ErrAccessDenied
+	}
+
+	// Layer 2: INDEX RULES (global)
+	// Get file info using unified entry point (applies IsViewable/ShouldSkip)
+	info, err := idx.GetFileInfo(indexing.FileInfoRequest{
+		IndexPath:      indexPath,
+		FollowSymlinks: opts.FollowSymlinks,
+		ShowHidden:     opts.ShowHidden,
+		Expand:         opts.Expand,
+		IsRoutineScan:  false, // API call
+	})
+	if err != nil {
+		return response, err // Path excluded by index rules OR doesn't exist
+	}
+
+	// Build response
+	response.FileInfo = *info
+	response.RealPath = filepath.Join(idx.Path, indexPath)
+	response.Source = opts.Source
+
+	// Layer 3: FILTER CHILDREN (user access)
+	// Remove child items THIS user can't access
+	if info.Type == "directory" {
+		if err := access.CheckChildItemAccess(response, idx, user.Username); err != nil {
+			return response, err
+		}
+	}
+
+	// Process directory metadata if requested
+	if info.Type == "directory" {
+		processDirectoryMetadata(response, idx, opts)
+	}
+
+	// Process single file content/metadata
+	isAudioVideo := strings.HasPrefix(info.Type, "audio") || strings.HasPrefix(info.Type, "video")
+	if opts.Content || opts.Metadata || isAudioVideo {
+		processContent(response, idx, opts)
+	}
+
+	// Finalize response (OnlyOffice ID, scope stripping)
+	finalizeResponse(response, info, response.RealPath, user, userScope)
 
 	return response, nil
 }
@@ -225,6 +245,16 @@ func processContent(info *iteminfo.ExtendedFileInfo, idx *indexing.Index, opts u
 
 	// Process text content for non-video, non-audio files
 	if info.Size < 20*1024*1024 { // 20 megabytes in bytes
+		// Check if file is text before reading content
+		isText, err := utils.IsTextFile(info.RealPath)
+		if err != nil {
+			logger.Debugf("could not check file type for: "+info.RealPath, info.Name, err)
+			return
+		}
+		if !isText {
+			// Not a text file, skip content extraction
+			return
+		}
 		content, err := getContent(info.RealPath)
 		if err != nil {
 			logger.Debugf("could not get content for file: "+info.RealPath, info.Name, err)
@@ -295,13 +325,8 @@ func extractAudioMetadata(ctx context.Context, item *iteminfo.ExtendedItemInfo, 
 			service = ffmpeg.NewFFmpegService(5, false, "")
 		}
 		if service != nil {
-			startTime := time.Now()
 			if duration, err := service.GetMediaDuration(ctx, realPath); err == nil {
 				item.Metadata.Duration = int(duration)
-				elapsed := time.Since(startTime)
-				if elapsed > 100*time.Millisecond {
-					logger.Debugf("Duration extraction took %v for file: %s", elapsed, item.Name)
-				}
 			}
 		}
 	}
@@ -346,14 +371,14 @@ func extractVideoMetadata(ctx context.Context, item *iteminfo.ExtendedItemInfo, 
 	return nil
 }
 
-func DeleteFiles(source, absPath string, absDirPath string, isDir bool) error {
+func DeleteFiles(source, absPath string, isDir bool) error {
 	index := indexing.GetIndex(source)
 	if index == nil {
 		return fmt.Errorf("could not get index: %v ", source)
 	}
 
 	if !index.Config.DisableIndexing {
-		indexPath := index.MakeIndexPath(absPath)
+		indexPath := index.MakeIndexPath(absPath, isDir)
 
 		// Perform the physical deletion
 		err := os.RemoveAll(absPath)
@@ -366,18 +391,14 @@ func DeleteFiles(source, absPath string, absDirPath string, isDir bool) error {
 		indexing.IsDirCache.Delete(absPath + ":isdir")
 
 		// Remove metadata from index
-		if isDir {
-			// Recursively remove directory and all subdirectories from index
-			index.DeleteMetadata(indexPath, true, true)
-		} else {
-			// Remove file from parent's file list
-			index.DeleteMetadata(indexPath, false, false)
+		deleteSuccess := index.DeleteMetadata(indexPath, isDir, isDir)
+		if !deleteSuccess {
+			logger.Errorf("Failed to delete metadata from index for %s, but filesystem deletion succeeded", indexPath)
 		}
 
 		// Refresh the parent directory to recalculate sizes and update counts
-		// This will traverse up the tree and update all parent sizes correctly
 		refreshConfig := utils.FileOptions{
-			Path:  index.MakeIndexPath(absDirPath),
+			Path:  index.MakeIndexPath(filepath.Dir(absPath), true),
 			IsDir: true,
 		}
 		err = index.RefreshFileInfo(refreshConfig)
@@ -397,15 +418,20 @@ func RefreshIndex(source string, path string, isDir bool, recursive bool) error 
 		return nil
 	}
 	// Always normalize path using MakeIndexPath
-	path = idx.MakeIndexPath(path)
+	path = idx.MakeIndexPath(path, isDir)
 
-	// MakeIndexPath always adds trailing slash, but for files we need to remove it
-	if !isDir {
-		path = strings.TrimSuffix(path, "/")
+	// Check if path is a symlink
+	realPath, _, _ := idx.GetRealPath(path)
+	isSymlink := false
+	if realPath != "" {
+		if fileInfo, err := os.Lstat(realPath); err == nil {
+			isSymlink = fileInfo.Mode()&os.ModeSymlink != 0
+		}
 	}
 
-	// Skip indexing for viewable paths (viewable: true means don't index, just allow FS access)
-	if idx.IsViewable(isDir, path) {
+	// Skip indexing only for paths that are explicitly excluded (not viewable and should be skipped)
+	hidden := indexing.IsHidden(filepath.Join(idx.Path, path))
+	if idx.ShouldSkip(isDir, path, hidden, isSymlink, false) {
 		return nil
 	}
 
@@ -427,6 +453,10 @@ func RefreshIndex(source string, path string, isDir bool, recursive bool) error 
 	}
 
 	err := idx.RefreshFileInfo(utils.FileOptions{Path: path, IsDir: isDir, Recursive: recursive})
+	if err != nil {
+		logger.Errorf("RefreshFileInfo failed: %v", err)
+		return err
+	}
 	return err
 }
 
@@ -481,7 +511,7 @@ func MoveResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string
 	}
 
 	// Prepare paths for index operations
-	srcIndexPath := srcIdx.MakeIndexPath(realsrc)
+	srcIndexPath := srcIdx.MakeIndexPath(realsrc, isSrcDir)
 	srcParentPath := filepath.Dir(realsrc)
 
 	// Perform the physical move
@@ -491,37 +521,52 @@ func MoveResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string
 	}
 
 	// Handle SOURCE cleanup (treat as deletion)
+	// Run async to avoid blocking the HTTP response
 	if !srcIdx.Config.DisableIndexing {
-		if isSrcDir {
-			srcIdx.DeleteMetadata(srcIndexPath, true, true)
-		} else {
-			srcIdx.DeleteMetadata(srcIndexPath, false, false)
-		}
-		go RefreshIndex(sourceIndex, srcParentPath, true, false) //nolint:errcheck
+		go func() {
+			if isSrcDir {
+				srcIdx.DeleteMetadata(srcIndexPath, true, true)
+			} else {
+				srcIdx.DeleteMetadata(srcIndexPath, false, false)
+			}
+			if err := RefreshIndex(sourceIndex, srcParentPath, true, false); err != nil {
+				logger.Errorf("Failed to refresh source parent directory %s after move: %v", srcParentPath, err)
+			}
+		}()
 	}
 
 	// Handle DESTINATION indexing
+	// Run async to avoid blocking the HTTP response
 	if !dstIdx.Config.DisableIndexing {
 		if isSrcDir {
 			go func() {
-				RefreshIndex(destIndex, realdst, true, true) //nolint:errcheck
+				// Recursively index the moved directory tree
+				if err := RefreshIndex(destIndex, realdst, true, true); err != nil {
+					logger.Errorf("Failed to index moved directory %s: %v", realdst, err)
+					return
+				}
+
+				// Refresh parent to update its size
 				parentDir := filepath.Dir(realdst)
-				RefreshIndex(destIndex, parentDir, true, false) //nolint:errcheck
+				if err := RefreshIndex(destIndex, parentDir, true, false); err != nil {
+					logger.Errorf("Failed to refresh destination parent %s: %v", parentDir, err)
+				}
 			}()
 		} else {
+			// For files, refresh parent directory
 			parentDir := filepath.Dir(realdst)
 			go RefreshIndex(destIndex, parentDir, true, false) //nolint:errcheck
 		}
 	}
 
 	// Use backend source paths to match how shares are stored
-	go s.UpdateShares(srcIdx.Path, srcIdx.MakeIndexPath(realsrc), dstIdx.Path, dstIdx.MakeIndexPath(realdst)) //nolint:errcheck
+	go s.UpdateShares(srcIdx.Path, srcIdx.MakeIndexPath(realsrc, isSrcDir), dstIdx.Path, dstIdx.MakeIndexPath(realdst, isSrcDir)) //nolint:errcheck
 
 	// Update access rules for the moved path
 	if a != nil {
 		// If moving within the same source, update the rules
 		if srcIdx.Path == dstIdx.Path {
-			go a.UpdateRules(srcIdx.Path, srcIdx.MakeIndexPath(realsrc), dstIdx.MakeIndexPath(realdst)) //nolint:errcheck
+			go a.UpdateRules(srcIdx.Path, srcIdx.MakeIndexPath(realsrc, isSrcDir), dstIdx.MakeIndexPath(realdst, isSrcDir)) //nolint:errcheck
 		}
 		// Cross-source moves don't preserve access rules (they're source-specific)
 	}
@@ -537,37 +582,51 @@ func CopyResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string
 
 	// Validate the copy operation before executing
 	if err := validateMoveDestination(realsrc, realdst, isSrcDir); err != nil {
+		logger.Errorf("[COPY] Copy validation failed: %v", err)
 		return err
 	}
 
+	// Perform the physical copy
 	err := fileutils.CopyFile(realsrc, realdst)
 	if err != nil {
+		logger.Errorf("[COPY] Physical copy failed: %v", err)
 		return err
 	}
 
-	// For copy operations:
-	// 1. Shallow refresh of source (just to update access times if needed)
-	// 2. Recursively index the destination to capture the entire copied tree
-
-	// Refresh source (parent directory if it's a file)
-	srcRefreshPath := realsrc
-	srcRefreshIsDir := isSrcDir
-	if !isSrcDir {
-		srcRefreshPath = filepath.Dir(realsrc)
-		srcRefreshIsDir = true
+	// Refresh source (non-recursive, just metadata)
+	srcIdx := indexing.GetIndex(sourceIndex)
+	if srcIdx != nil && !srcIdx.Config.DisableIndexing {
+		srcRefreshPath := realsrc
+		if !isSrcDir {
+			srcRefreshPath = filepath.Dir(realsrc)
+		}
+		go RefreshIndex(sourceIndex, srcRefreshPath, true, false) //nolint:errcheck
 	}
 
-	go RefreshIndex(sourceIndex, srcRefreshPath, srcRefreshIsDir, false) //nolint:errcheck
+	// Refresh destination (RECURSIVE for directories to capture full tree)
+	// Run async to avoid blocking the HTTP response
+	dstIdx := indexing.GetIndex(destIndex)
+	if dstIdx != nil && !dstIdx.Config.DisableIndexing {
+		if isSrcDir {
+			go func() {
+				// Recursively index the copied directory tree
+				if err := RefreshIndex(destIndex, realdst, true, true); err != nil {
+					logger.Errorf("[COPY] Failed to index copied directory %s: %v", realdst, err)
+					return
+				}
 
-	// Refresh destination (parent directory if it's a file)
-	dstRefreshPath := realdst
-	if !isSrcDir {
-		// If copying a file (regardless of destination), refresh the parent directory
-		dstRefreshPath = filepath.Dir(realdst)
+				// Refresh parent to update its size
+				parentDir := filepath.Dir(realdst)
+				if err := RefreshIndex(destIndex, parentDir, true, false); err != nil {
+					logger.Errorf("[COPY] Failed to refresh parent %s: %v", parentDir, err)
+				}
+			}()
+		} else {
+			// For files, refresh parent directory
+			dstParent := filepath.Dir(realdst)
+			go RefreshIndex(destIndex, dstParent, true, false) //nolint:errcheck
+		}
 	}
-
-	go RefreshIndex(destIndex, dstRefreshPath, true, true) //nolint:errcheck
-
 	return nil
 }
 
@@ -603,7 +662,21 @@ func WriteDirectory(opts utils.FileOptions) error {
 		logger.Debugf("Could not set file permissions for %s (this may be expected in restricted environments): %v", realPath, err)
 	}
 
-	return RefreshIndex(idx.Name, opts.Path, true, true)
+	// Refresh the directory itself recursively
+	err = RefreshIndex(idx.Name, opts.Path, true, true)
+	if err != nil {
+		return err
+	}
+
+	// Refresh parent directory to update its size
+	parentPath := filepath.Dir(opts.Path)
+	if parentPath != "." && parentPath != "/" && parentPath != opts.Path {
+		if err := RefreshIndex(idx.Name, parentPath, true, false); err != nil {
+			logger.Debugf("Could not refresh parent directory %s: %v", parentPath, err)
+		}
+	}
+
+	return nil
 }
 
 func WriteFile(source, path string, in io.Reader) error {
@@ -655,7 +728,21 @@ func WriteFile(source, path string, in io.Reader) error {
 		logger.Debugf("Could not set file permissions for %s (this may be expected in restricted environments): %v", realPath, err)
 	}
 
-	return RefreshIndex(source, path, false, false)
+	// Refresh the file itself
+	err = RefreshIndex(source, path, false, false)
+	if err != nil {
+		return err
+	}
+
+	// Refresh parent directory to update its size
+	parentPath := filepath.Dir(path)
+	if parentPath != "." && parentPath != "/" && parentPath != path {
+		if err := RefreshIndex(source, parentPath, true, false); err != nil {
+			logger.Debugf("Could not refresh parent directory %s: %v", parentPath, err)
+		}
+	}
+
+	return nil
 }
 
 // getContent reads and returns the file content if it's considered an editable text file.

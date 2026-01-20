@@ -30,7 +30,8 @@
     "saveAndExit": "שמור וצא",
     "keepEditing": "המשך עריכה",
     "closeAnyway": "סגור בכל מקרה",
-    "goToItem": "עבור לפריט"
+    "goToItem": "עבור לפריט",
+    "watchFile": "צפה בקובץ"
   },
   "download": {
     "downloadFile": "הורד קובץ",
@@ -48,7 +49,6 @@
   "files": {
     "closePreview": "סגירת תצוגה מקדימה",
     "lastModified": "שונה לאחרונה",
-    "lonely": "בודד כאן",
     "multipleSelectionEnabled": "בחירה מרובה מופעלת",
     "sortByLastModified": "מיין לפי השינוי האחרון",
     "sortByName": "מיין לפי שם",
@@ -61,7 +61,10 @@
     "newFile": "קובץ חדש{suffix}",
     "newFolder": "תיקיה חדשה{suffix}",
     "duration": "משך{suffix}",
-    "sortByDuration": "מיין לפי משך"
+    "sortByDuration": "מיין לפי משך",
+    "sameFolder": "לא ניתן להעביר לאותה תיקייה",
+    "cannotAccesDir": "לא ניתן לגשת לתיקייה",
+    "lonely": "אין מה להראות כאן..."
   },
   "help": {
     "functionKeys": "מקשי פונקציה",
@@ -217,7 +220,10 @@
     "renameSuccess": "הפריט שונה בהצלחה!",
     "newFileSuccess": "הקובץ נוצר בהצלחה!",
     "newDirSuccess": "הספרייה נוצרה בהצלחה!",
-    "copyToClipboardFailed": "לא ניתן להעתיק ללוח"
+    "copyToClipboardFailed": "לא ניתן להעתיק ללוח",
+    "moveFailed": "העברה נכשלה",
+    "operationFailed": "הפעולה נכשלה",
+    "partialSuccess": "כמה פעולות נכשלו: {succeeded} הצליחו, {failed} נכשלו"
   },
   "search": {
     "smallerThan": "קטן מ:",
@@ -444,7 +450,13 @@
     "customizeSidebarLinksButton": "התאמה אישית של קישורים",
     "shareInfo": "שתף קוד QR ומידע",
     "shareInfoDescription": "קישור זה מציג את פרטי השיתוף, כולל כותרת, תיאור, באנר וקוד QR בחלון קופץ.",
-    "downloadDescription": "קישור זה מאפשר להוריד את כל תוכן השיתוף כקובץ דחוס."
+    "downloadDescription": "קישור זה מאפשר להוריד את כל תוכן השיתוף כקובץ דחוס.",
+    "disableLoginOption": "הסתר אפשרות כניסה",
+    "disableLoginOptionDescription": "הסתר את כפתור הכניסה בסרגל הצדדי עבור משתמשים אנונימיים. כאשר אפשרות זו מופעלת, משתמשים אנונימיים לא יראו את האפשרות להתחבר.",
+    "browseFiles": "עיון בקבצים",
+    "selectBannerImage": "בחר תמונת באנר",
+    "selectFaviconImage": "בחר תמונת סמל מועדף",
+    "selectImage": "בחר תמונה"
   },
   "api": {
     "title": "מפתחות API",
@@ -606,7 +618,13 @@
     "uploading": "העלאה{suffix}",
     "paused": "בהשהיה{suffix}",
     "conflict": "סכסוך{suffix}",
-    "change": "שינוי{suffix}"
+    "change": "שינוי{suffix}",
+    "output": "פלט{suffix}",
+    "watching": "צפייה{suffix}",
+    "lines": "קווים{suffix}",
+    "lastUpdate": "עדכון אחרון{suffix}",
+    "latency": "חביון{suffix}",
+    "all": "כל{suffix}"
   },
   "access": {
     "rules": "כללי גישה",
@@ -639,7 +657,9 @@
     "uploadChunkSizeMbHelp": "בדרך כלל 5 עד 50 MB, קטן יותר עדיף עבור חיבורים לא יציבים או מוגבלים. הגדרה ל-0 תשבית את חלוקת הקבצים להעלאה.",
     "clearAll": "השלמת הניקוי אמורה להסיר את השגיאה, ההשהיה והקונפליקט.",
     "clearAllDescription": "הכפתור 'נקה את ההשלמות' ינקה את כל ההעלאות במצב 'הושלם', כולל מצבי שגיאה, השהיה וקונפליקט.",
-    "uploadSettings": "הגדרות העלאה"
+    "uploadSettings": "הגדרות העלאה",
+    "downloadChunkSizeMb": "גודל החלק להורדה במגה-בייט",
+    "downloadChunkSizeMbHelp": "גודל החלקים להורדות בחלקים. קבצים שגודלם עולה על גודל זה יועברו בחלקים כדי למנוע בעיות של זמן המתנה (לדוגמה, שגיאות Cloudflare 524). הגדרה ל-0 מבטלת הורדות בחלקים."
   },
   "colors": {
     "red": "אדום",
@@ -782,7 +802,16 @@
       "browseFullLibrary": "עיין בספריית הסמלים המלאה"
     },
     "toolNotFound": "הכלי לא נמצא",
-    "backToTools": "חזרה לכלים"
+    "backToTools": "חזרה לכלים",
+    "fileWatcher": {
+      "name": "צופה קבצים",
+      "description": "צפה בקבצים ועקוב אחריהם בזמן אמת עם ניטור חביון",
+      "file": "קובץ{suffix}",
+      "interval": "מרווח עדכון",
+      "stopWatching": "הפסיקו לצפות",
+      "emptyState": "בחר קובץ ולחץ על הפעל כדי להתחיל לעקוב אחר שינויים בקובץ",
+      "chooseFile": "בחר קובץ"
+    }
   },
   "messages": {
     "pathNotFound": "הנתיב אינו קיים במערכת הקבצים",

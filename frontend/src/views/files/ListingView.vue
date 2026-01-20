@@ -1,20 +1,15 @@
 <template>
-  <div v-if="shareInfo.shareType != 'upload'" class="no-select">
+  <div v-if="shareInfo.shareType != 'upload'" class="no-select" :style="containerStyles">
     <div v-if="loading">
       <h2 class="message delayed">
-        <div class="spinner">
-          <div class="bounce1"></div>
-          <div class="bounce2"></div>
-          <div class="bounce3"></div>
-        </div>
+        <LoadingSpinner size="medium" />
         <span>{{ $t("general.loading", { suffix: "..." }) }}</span>
       </h2>
     </div>
     <div v-else>
       <div
-        id="listingView"
         ref="listingView"
-        class="font-size-large"
+        class="listing-items font-size-large"
         :class="{ 'add-padding': isStickySidebar, [listingViewMode]: true }"
         v-if="numDirs + numFiles == 0"
       >
@@ -40,7 +35,6 @@
       </div>
       <div
         v-else
-        id="listingView"
         ref="listingView"
         :class="{
           'add-padding': isStickySidebar,
@@ -49,70 +43,14 @@
           'rectangle-selecting': isRectangleSelecting
         }"
         :style="itemStyles"
-        class="file-icons"
+        class="listing-items file-icons"
       >
         <!-- Rectangle selection overlay -->
         <div class="selection-rectangle"
           :style="rectangleStyle"
         ></div>
-        <div>
-          <div class="header card" :class="{ 'dark-mode-item-header': isDarkMode }">
-            <p
-              :class="{ active: nameSorted }"
-              class="name"
-              role="button"
-              tabindex="0"
-              @click="sort('name')"
-              :title="$t('files.sortByName')"
-              :aria-label="$t('files.sortByName')"
-            >
-              <span>{{ $t("general.name") }}</span>
-              <i class="material-icons">{{ nameIcon }}</i>
-            </p>
-
-            <p
-              :class="{ active: sizeSorted }"
-              class="size"
-              role="button"
-              tabindex="0"
-              @click="sort('size')"
-              :title="$t('files.sortBySize')"
-              :aria-label="$t('files.sortBySize')"
-            >
-              <span>{{ $t("general.size") }}</span>
-              <i class="material-icons">{{ sizeIcon }}</i>
-            </p>
-            <p
-              :class="{ active: modifiedSorted }"
-              class="modified"
-              role="button"
-              tabindex="0"
-              @click="sort('modified')"
-              :title="$t('files.sortByLastModified')"
-              :aria-label="$t('files.sortByLastModified')"
-            >
-              <span>{{ $t("files.lastModified") }}</span>
-              <i class="material-icons">{{ modifiedIcon }}</i>
-            </p>
-            <p
-              v-if="hasDuration"
-              :class="{ active: durationSorted }"
-              class="duration"
-              role="button"
-              tabindex="0"
-              @click="sort('duration')"
-              :title="$t('files.sortByDuration')"
-              :aria-label="$t('files.sortByDuration')"
-            >
-              <span>{{ $t("files.duration") }}</span>
-              <i class="material-icons">{{ durationIcon }}</i>
-            </p>
-          </div>
-        </div>
         <div v-if="numDirs > 0">
-          <div class="header-items">
-            <h2>{{ $t("general.folders") }}</h2>
-          </div>
+          <h2 :class="{'dark-mode': isDarkMode}">{{ $t("general.folders") }}</h2>
         </div>
         <div
           v-if="numDirs > 0"
@@ -137,9 +75,7 @@
           />
         </div>
         <div v-if="numFiles > 0">
-          <div class="header-items">
-            <h2>{{ $t("general.files") }}</h2>
-          </div>
+          <h2 :class="{'dark-mode': isDarkMode}">{{ $t("general.files") }}</h2>
         </div>
         <div v-if="numFiles > 0" class="file-items" :class="{ lastGroup: numFiles > 0 }" aria-label="File Items">
           <item
@@ -198,12 +134,14 @@ import { url } from "@/utils";
 
 import Item from "@/components/files/ListingItem.vue";
 import Upload from "@/components/prompts/Upload.vue";
+import LoadingSpinner from "@/components/LoadingSpinner.vue";
 
 export default {
   name: "listingView",
   components: {
     Item,
     Upload,
+    LoadingSpinner,
   },
   data() {
     return {
@@ -270,6 +208,9 @@ export default {
     },
   },
   computed: {
+    permissions() {
+      return getters.permissions();
+    },
     shareInfo() {
       return state.shareInfo;
     },
@@ -334,18 +275,6 @@ export default {
     getMultiple() {
       return state.multiple;
     },
-    nameSorted() {
-      return getters.sorting().by === "name";
-    },
-    sizeSorted() {
-      return getters.sorting().by === "size";
-    },
-    modifiedSorted() {
-      return getters.sorting().by === "modified";
-    },
-    durationSorted() {
-      return getters.sorting().by === "duration";
-    },
     ascOrdered() {
       return getters.sorting().asc;
     },
@@ -367,34 +296,6 @@ export default {
     },
     files() {
       return this.items.files;
-    },
-    nameIcon() {
-      if (this.nameSorted && !this.ascOrdered) {
-        return "arrow_upward";
-      }
-
-      return "arrow_downward";
-    },
-    sizeIcon() {
-      if (this.sizeSorted && this.ascOrdered) {
-        return "arrow_downward";
-      }
-
-      return "arrow_upward";
-    },
-    modifiedIcon() {
-      if (this.modifiedSorted && this.ascOrdered) {
-        return "arrow_downward";
-      }
-
-      return "arrow_upward";
-    },
-    durationIcon() {
-      if (this.durationSorted && this.ascOrdered) {
-        return "arrow_downward";
-      }
-
-      return "arrow_upward";
     },
     viewIcon() {
       const icons = {
@@ -430,6 +331,15 @@ export default {
         width: width + 'px',
         height: height + 'px',
       };
+    },
+    containerStyles() {
+      // Dynamic padding-top: applied to the entire container (loading spinner + listing items)
+      const isRootPath = state.req.path === '/' || !state.req.path;
+      if (isRootPath) {
+        return { 'padding-top': '4.25em' }; // Root - no breadcrumbs showing
+      } else {
+        return { 'padding-top': '7.25em' }; // Non-root - breadcrumbs + listing header
+      }
     },
     itemStyles() {
       const viewMode = getters.viewMode();
@@ -514,7 +424,7 @@ export default {
     }
 
     // if safari , make sure click and hold opens context menu, but not for any other browser
-    if (state.user.permissions?.modify || getters.isShare()) {
+    if (this.permissions?.modify || getters.isShare()) {
       this.$el.addEventListener("dragenter", this.dragEnter);
       this.$el.addEventListener("dragleave", this.dragLeave);
       this.$el.addEventListener("drop", this.drop);
@@ -553,7 +463,7 @@ export default {
     }
 
     // Also clean up drag/drop listeners on the component's root element
-    if (state.user && state.user?.permissions?.modify || getters.isShare()) {
+    if (state.user && this.permissions?.modify || getters.isShare()) {
       this.$el.removeEventListener("dragenter", this.dragEnter);
       this.$el.removeEventListener("dragleave", this.dragLeave);
       this.$el.removeEventListener("drop", this.drop);
@@ -602,6 +512,29 @@ export default {
     },
     base64(name) {
       return url.base64Encode(name);
+    },
+    showDeletePrompt() {
+      const items = [];
+      for (let index of state.selected) {
+        const item = state.req.items[index];
+        const previewUrl = item.hasPreview 
+          ? filesApi.getPreviewURL(item.source || state.req.source, item.path, item.modified)
+          : null;
+        items.push({
+          source: item.source || state.req.source,
+          path: item.path,
+          type: item.type,
+          size: item.size,
+          modified: item.modified,
+          previewUrl: previewUrl,
+        });
+      }
+      mutations.showHover({
+        name: "delete",
+        props: {
+          items: items,
+        },
+      });
     },
     // Helper method to select the first item if nothing is selected
     selectFirstItem() {
@@ -817,12 +750,12 @@ export default {
           break;
 
         case "Delete":
-          if (!state.user.permissions.modify || state.selected.length === 0) return;
-          mutations.showHover("delete");
+          if (!this.permissions?.modify || state.selected.length === 0) return;
+          this.showDeletePrompt();
           break;
 
         case "F2":
-          if (!state.user.permissions.modify || state.selected.length !== 1) return;
+          if (!this.permissions?.modify || state.selected.length !== 1)  return;
           mutations.showHover({
             name: "rename",
             props: {
@@ -1050,21 +983,6 @@ export default {
     },
     async uploadInput(event) {
       this.handleDrop(event);
-    },
-    sort(field) {
-      let asc = false;
-      if (
-        (field === "name" && this.nameIcon === "arrow_upward") ||
-        (field === "size" && this.sizeIcon === "arrow_upward") ||
-        (field === "modified" && this.modifiedIcon === "arrow_upward") ||
-        (field === "duration" && this.durationIcon === "arrow_upward")
-      ) {
-        asc = true;
-      }
-      // Commit the updateSort mutation
-      mutations.updateListingSortConfig({ field, asc });
-      mutations.updateListingItems();
-      this.lastSelected = state.selected;
     },
     setMultiple(val) {
       mutations.setMultiple(val == true);
@@ -1307,18 +1225,7 @@ export default {
 };
 </script>
 
-<style>
-.dark-mode-item-header {
-  border-color: var(--divider) !important;
-  background: var(--surfacePrimary) !important;
-  user-select: none;
-}
-
-.header-items {
-  width: 100% !important;
-  max-width: 100% !important;
-  justify-content: center;
-}
+<style scoped>
 
 .add-padding {
   padding-left: 0.5em;
@@ -1327,12 +1234,12 @@ export default {
   font-size: 2em !important;
 }
 
-#listingView.dropping {
+.listing-items.dropping {
   transform: scale(0.97);
   box-shadow: var(--primaryColor) 0 0 1em;
 }
 
-#listingView {
+.listing-items {
   min-height: 90vh !important;
   position: relative;
 }
