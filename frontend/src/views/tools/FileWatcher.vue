@@ -502,22 +502,6 @@ export default {
           }
         }
 
-        // Log event with metadata
-        console.log('[FileWatcher] Event received (REST)', {
-          timestamp: new Date().toISOString(),
-          latency: `${latency}ms`,
-          isText: data.isText,
-          metadata: data.metadata ? {
-            name: data.metadata.name,
-            size: data.metadata.size,
-            type: data.metadata.type,
-            modified: data.metadata.modified,
-            path: data.metadata.path
-          } : null,
-          hasContents: !!data.contents,
-          lineCount: data.isText && data.contents ? data.contents.split('\n').length : null
-        });
-
         // Handle text files or metadata
         if (data.isText && data.contents) {
           // Text file - show content
@@ -554,20 +538,6 @@ export default {
           this.fileModified = formatTimestamp(data.metadata.modified, state.user?.locale || 'en');
         }
       }
-
-      // Log event with metadata
-      console.log('[FileWatcher] Event received', {
-        isText: data.isText,
-        metadata: data.metadata ? {
-          name: data.metadata.name,
-          size: data.metadata.size,
-          type: data.metadata.type,
-          modified: data.metadata.modified,
-          path: data.metadata.path
-        } : null,
-        hasContents: !!(data.contents || data.content),
-        lineCount: data.isText && (data.contents || data.content) ? (data.contents || data.content).split('\n').length : null
-      });
 
       // Handle text files or metadata
       if (data.isText && (data.contents || data.content)) {

@@ -198,7 +198,6 @@ export const getters = {
   },
   isSidebarVisible: () => {
     if (globalVars.disableSidebar || getters.isInvalidShare()) {
-      console.log('isSidebarVisible', false)
       return false
     }
     const cv = getters.currentView()
