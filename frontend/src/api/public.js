@@ -143,12 +143,37 @@ export function post(
           error.response = { status: request.status, responseText: request.responseText };
           reject(error);
         } else {
-          reject(new Error(request.responseText || "Upload failed"));
+          // Parse error message from response
+          let errorMessage = "Upload failed";
+          try {
+            const errorData = JSON.parse(request.responseText);
+            errorMessage = errorData.message || errorMessage;
+          } catch (e) {
+            // If parsing fails, use responseText or default message
+            errorMessage = request.responseText || errorMessage;
+          }
+          
+          const error = new Error(errorMessage);
+          error.status = request.status;
+          
+          // Show notification for upload errors
+          notify.showError(errorMessage);
+          
+          reject(error);
         }
       };
 
-      request.onerror = () => reject(new Error("Network error"));
-      request.onabort = () => reject(new Error("Upload aborted"));
+      request.onerror = () => {
+        const error = new Error("Network error");
+        notify.showError("Network error during upload");
+        reject(error);
+      };
+      
+      request.onabort = () => {
+        const error = new Error("Upload aborted");
+        notify.showError("Upload was aborted");
+        reject(error);
+      };
 
       if (
         content instanceof Blob &&
@@ -311,9 +336,16 @@ export async function moveCopy(
       return data
     }
 
-    // For other error status codes, throw an error
+    // For other error status codes (like 500), preserve the response data
     const error = new Error(data.message || response.statusText)
     error.status = response.status
+    // Attach the response data so the caller can access failed items
+    if (data.failed) {
+      error.failed = data.failed
+    }
+    if (data.succeeded) {
+      error.succeeded = data.succeeded
+    }
     throw error
   } catch (err) {
     // Only show notification and re-throw if it's a real error (not 200/207)

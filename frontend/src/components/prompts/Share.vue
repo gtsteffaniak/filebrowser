@@ -34,6 +34,7 @@
         :show-files="true"
         :show-folders="true"
         :allowed-file-types="filePickerAllowedTypes"
+        :require-file-selection="true"
         :title="filePickerTitle">
       </file-list>
       <div class="card-action">
@@ -41,7 +42,7 @@
           :title="$t('general.cancel')">
           {{ $t("general.cancel") }}
         </button>
-        <button class="button button--flat button--blue" @click="confirmFilePicker" :aria-label="$t('general.ok')"
+        <button class="button button--flat button--blue" @click="confirmFilePicker" :disabled="!filePickerSelectionValid" :aria-label="$t('general.ok')"
           :title="$t('general.ok')">
           {{ $t("general.ok") }}
         </button>
@@ -434,6 +435,7 @@ export default {
       isChangingPassword: false,
       isPickingFile: false,
       filePickerField: null, // 'banner' or 'favicon'
+      filePickerSelectionValid: false, // Track if a valid file is selected
       tempFilePath: "",
       tempFileSource: "",
       //viewMode: "normal",
@@ -497,9 +499,9 @@ export default {
     },
     filePickerAllowedTypes() {
       if (this.filePickerField === 'banner') {
-        return ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp'];
+        return ['image/']; // Allow all image types
       } else if (this.filePickerField === 'favicon') {
-        return ['.ico', '.png', '.jpg', '.jpeg', '.svg', '.gif'];
+        return ['image/']; // Allow all image types
       }
       return [];
     },
@@ -942,6 +944,7 @@ export default {
       if (pathOrData && pathOrData.path) {
         this.tempFilePath = pathOrData.path;
         this.tempFileSource = pathOrData.source;
+        this.filePickerSelectionValid = pathOrData.isValid || false;
       }
     },
     confirmFilePicker() {
@@ -961,6 +964,7 @@ export default {
     cancelFilePicker() {
       this.isPickingFile = false;
       this.filePickerField = null;
+      this.filePickerSelectionValid = false;
     },
   },
 };

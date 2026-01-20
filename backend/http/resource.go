@@ -189,10 +189,10 @@ type BulkDeleteResponse struct {
 
 // MoveCopyItem represents a single item in a move/copy request
 type MoveCopyItem struct {
-	FromSource string `json:"fromSource"`
-	FromPath   string `json:"fromPath"`
-	ToSource   string `json:"toSource"`
-	ToPath     string `json:"toPath"`
+	FromSource string `json:"fromSource,omitempty"`
+	FromPath   string `json:"fromPath,omitempty"`
+	ToSource   string `json:"toSource,omitempty"`
+	ToPath     string `json:"toPath,omitempty"`
 	Message    string `json:"message,omitempty"`
 }
 
@@ -660,7 +660,7 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 // @Failure 400 {object} map[string]string "Bad request - invalid JSON or parameters"
 // @Failure 403 {object} map[string]string "Forbidden"
 // @Failure 404 {object} map[string]string "Resource not found"
-// @Failure 500 {object} map[string]string "Internal server error"
+// @Failure 500 {object} MoveCopyResponse "All operations failed"
 // @Router /api/resources [patch]
 func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	if !d.user.Permissions.Modify && d.share == nil {
@@ -692,45 +692,59 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	for _, item := range req.Items {
 		// Validate all fields are provided
 		if item.FromSource == "" || item.FromPath == "" || item.ToSource == "" || item.ToPath == "" {
-			if d.share != nil {
-				item.Message = "fromSource, fromPath, toSource, and toPath are required"
-			}
 			item.Message = "fromSource, fromPath, toSource, and toPath are required"
+			if d.share != nil {
+				response.Failed = append(response.Failed, MoveCopyItem{
+					Message: item.Message,
+				})
+				continue
+			}
 			response.Failed = append(response.Failed, item)
 			continue
 		}
 
 		// Check for root path modifications
 		if item.ToPath == "/" || item.FromPath == "/" {
+			item.Message = "cannot modify root directory"
 			if d.share != nil {
-				item.Message = "cannot modify root directory"
+				response.Failed = append(response.Failed, MoveCopyItem{
+					Message: item.Message,
+				})
+				continue
 			}
 			response.Failed = append(response.Failed, item)
 			continue
 		}
 
 		// Get user scopes for both sources
-		userscopeSrc, err := d.user.GetScopeForSourceName(item.FromSource)
-		if err != nil {
-			if d.share != nil {
+		// For shares, paths are already absolute, so use empty scope
+		userscopeSrc := ""
+		userscopeDst := ""
+		if d.share == nil {
+			var err error
+			userscopeSrc, err = d.user.GetScopeForSourceName(item.FromSource)
+			if err != nil {
 				item.Message = "source not available"
+				response.Failed = append(response.Failed, item)
+				continue
 			}
-			response.Failed = append(response.Failed, item)
-			continue
-		}
-		userscopeDst, err := d.user.GetScopeForSourceName(item.ToSource)
-		if err != nil {
-			if d.share != nil {
+			userscopeDst, err = d.user.GetScopeForSourceName(item.ToSource)
+			if err != nil {
 				item.Message = "destination source not available"
+				response.Failed = append(response.Failed, item)
+				continue
 			}
-			response.Failed = append(response.Failed, item)
-			continue
 		}
+
 		// Get source index
 		srcIdx := indexing.GetIndex(item.FromSource)
 		if srcIdx == nil {
+			item.Message = "source not found"
 			if d.share != nil {
-				item.Message = "source not found"
+				response.Failed = append(response.Failed, MoveCopyItem{
+					Message: item.Message,
+				})
+				continue
 			}
 			response.Failed = append(response.Failed, item)
 			continue
@@ -739,8 +753,12 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		// Get destination index
 		dstIdx := indexing.GetIndex(item.ToSource)
 		if dstIdx == nil {
+			item.Message = "destination source not found"
 			if d.share != nil {
-				item.Message = "destination source not found"
+				response.Failed = append(response.Failed, MoveCopyItem{
+					Message: item.Message,
+				})
+				continue
 			}
 			response.Failed = append(response.Failed, item)
 			continue
@@ -752,15 +770,23 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 
 		// Check access control for both source and destination paths
 		if !store.Access.Permitted(srcIdx.Path, fullSrcIndexPath, d.user.Username) {
+			item.Message = "access denied to source path"
 			if d.share != nil {
-				item.Message = "access denied to source path"
+				response.Failed = append(response.Failed, MoveCopyItem{
+					Message: item.Message,
+				})
+				continue
 			}
 			response.Failed = append(response.Failed, item)
 			continue
 		}
 		if !store.Access.Permitted(dstIdx.Path, fullDstIndexPath, d.user.Username) {
+			item.Message = "access denied to destination path"
 			if d.share != nil {
-				item.Message = "access denied to destination path"
+				response.Failed = append(response.Failed, MoveCopyItem{
+					Message: item.Message,
+				})
+				continue
 			}
 			response.Failed = append(response.Failed, item)
 			continue
@@ -769,8 +795,13 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		// Get real paths
 		realSrc, isSrcDir, err := srcIdx.GetRealPath(userscopeSrc, item.FromPath)
 		if err != nil {
+			logger.Errorf("could not resolve source path: %v, item.FromPath: %v", err, item.FromPath)
+			item.Message = "could not resolve source path"
 			if d.share != nil {
-				item.Message = "could not resolve source path"
+				response.Failed = append(response.Failed, MoveCopyItem{
+					Message: item.Message,
+				})
+				continue
 			}
 			response.Failed = append(response.Failed, item)
 			continue
@@ -779,8 +810,12 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		// Check destination parent directory exists
 		parentDir, _, err := dstIdx.GetRealPath(userscopeDst, filepath.Dir(item.ToPath))
 		if err != nil {
+			item.Message = "destination directory does not exist"
 			if d.share != nil {
-				item.Message = "destination directory does not exist"
+				response.Failed = append(response.Failed, MoveCopyItem{
+					Message: item.Message,
+				})
+				continue
 			}
 			response.Failed = append(response.Failed, item)
 			continue
@@ -795,8 +830,12 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		// Validate move/rename operation to prevent circular references
 		if req.Action == "rename" || req.Action == "move" {
 			if err = validateMoveOperation(realSrc, realDest, isSrcDir); err != nil {
+				item.Message = "invalid move operation, circular reference"
 				if d.share != nil {
-					item.Message = "invalid move operation, circular reference"
+					response.Failed = append(response.Failed, MoveCopyItem{
+						Message: item.Message,
+					})
+					continue
 				}
 				response.Failed = append(response.Failed, item)
 				continue
@@ -814,10 +853,15 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 			isSrcDir: isSrcDir,
 		})
 		if err != nil {
-			logger.Debugf("Could not run patch action. src=%v dst=%v err=%v", realSrc, realDest, err)
+			logger.Errorf("Could not run patch action. src=%v dst=%v err=%v", realSrc, realDest, err)
 			if d.share != nil {
-				item.Message = err.Error()
+				item.Message = "could not run patch action"
+				response.Failed = append(response.Failed, MoveCopyItem{
+					Message: item.Message,
+				})
+				continue
 			}
+			item.Message = err.Error()
 			response.Failed = append(response.Failed, item)
 			continue
 		}
@@ -826,12 +870,37 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		response.Succeeded = append(response.Succeeded, item)
 	}
 
-	// Determine status code based on results
-	statusCode := http.StatusOK
-	if len(response.Failed) > 0 {
-		statusCode = http.StatusMultiStatus
+	if len(response.Failed) == 0 && len(response.Succeeded) == 0 {
+		response.Failed = append(response.Failed, MoveCopyItem{
+			Message: "no operations performed",
+		})
 	}
 
+	// For shares, sanitize the response to only include messages (hide paths)
+	if d.share != nil {
+		sanitizedFailed := make([]MoveCopyItem, len(response.Failed))
+		for i, item := range response.Failed {
+			sanitizedFailed[i] = MoveCopyItem{
+				Message: item.Message,
+			}
+		}
+		response.Failed = sanitizedFailed
+
+		// Clear succeeded items details for shares (only keep count implicitly via array length)
+		sanitizedSucceeded := make([]MoveCopyItem, len(response.Succeeded))
+		response.Succeeded = sanitizedSucceeded
+	}
+
+	// Determine status code based on results
+	statusCode := http.StatusOK
+	if len(response.Failed) > 0 && len(response.Succeeded) == 0 {
+		// All operations failed - return 500 error
+		statusCode = http.StatusInternalServerError
+	} else if len(response.Failed) > 0 && len(response.Succeeded) > 0 {
+		// Some succeeded, some failed - return 207 multi-status
+		statusCode = http.StatusMultiStatus
+	}
+	// If all succeeded, statusCode remains 200 OK
 	return renderJSON(w, r, response, statusCode)
 }
 

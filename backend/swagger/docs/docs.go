@@ -1752,12 +1752,9 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "All operations failed",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/http.MoveCopyResponse"
                         }
                     }
                 }
@@ -3222,10 +3219,7 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/http.MoveCopyResponse"
                         }
                     }
                 }

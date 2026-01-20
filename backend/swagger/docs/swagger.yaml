@@ -2838,11 +2838,9 @@ paths:
               type: string
             type: object
         "500":
-          description: Internal server error
+          description: All operations failed
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/http.MoveCopyResponse'
       summary: Move, copy, or rename resources
       tags:
       - Resources
@@ -3816,9 +3814,7 @@ paths:
         "500":
           description: Internal server error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/http.MoveCopyResponse'
       summary: Move, copy, or rename resources in a public share
       tags:
       - Public Shares

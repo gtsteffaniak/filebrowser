@@ -221,7 +221,9 @@
     "newFileSuccess": "ファイルは正常に作成されました！",
     "newDirSuccess": "ディレクトリは正常に作成されました！",
     "copyToClipboardFailed": "クリップボードにコピーできない",
-    "moveFailed": "移動に失敗しました"
+    "moveFailed": "移動に失敗しました",
+    "operationFailed": "操作失敗",
+    "partialSuccess": "{succeeded} は成功、{failed} は失敗。"
   },
   "search": {
     "smallerThan": "より小さい：",

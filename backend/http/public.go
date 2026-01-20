@@ -353,7 +353,7 @@ func publicBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestC
 // @Failure 400 {object} map[string]string "Bad request - invalid JSON or parameters"
 // @Failure 403 {object} map[string]string "Forbidden - modify not allowed for this share"
 // @Failure 404 {object} map[string]string "Share or resource not found"
-// @Failure 500 {object} map[string]string "Internal server error"
+// @Failure 500 {object} MoveCopyResponse "Internal server error"
 // @Router /public/api/resources [patch]
 func publicPatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	if !d.share.AllowModify {
@@ -366,6 +366,13 @@ func publicPatchHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		return http.StatusNotFound, fmt.Errorf("source not available")
 	}
 
+	// Replace user with the share creator's user for proper permission checking
+	shareCreatedByUser, err := store.Users.Get(d.share.UserID)
+	if err != nil {
+		return http.StatusNotFound, fmt.Errorf("user for share no longer exists")
+	}
+	d.user = shareCreatedByUser
+
 	// Parse the request body
 	var req MoveCopyRequest
 	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -375,7 +382,11 @@ func publicPatchHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	if req.Action == "" {
 		return http.StatusBadRequest, fmt.Errorf("action is required (copy, move, or rename)")
 	}
+
 	// Transform the request: prepend share path and add source to each item
+	// This normalizes the request to look like a regular user request
+	// Note: Share paths are absolute, so we don't strip user scope here
+	// resourcePatchHandler will skip adding scope for shares
 	for i := range req.Items {
 		req.Items[i].FromSource = source
 		req.Items[i].FromPath = utils.JoinPathAsUnix(d.share.Path, req.Items[i].FromPath)
@@ -384,13 +395,17 @@ func publicPatchHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	}
 	d.Data = req
 
-	// Call the regular handler
+	// Call the regular handler (will treat this like a normal user request now)
 	status, err := resourcePatchHandler(w, r, d)
+
+	// For shares, we need to sanitize the response to hide internal details
+	// The response has already been written by resourcePatchHandler, but we can still return error
 	if err != nil {
 		logger.Errorf("public patch handler: error processing patch with error %v", err)
 		// Obfuscate errors for security
 		return http.StatusInternalServerError, fmt.Errorf("an error occurred while processing the request")
 	}
+
 	return status, err
 }
 

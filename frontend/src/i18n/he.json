@@ -221,7 +221,9 @@
     "newFileSuccess": "הקובץ נוצר בהצלחה!",
     "newDirSuccess": "הספרייה נוצרה בהצלחה!",
     "copyToClipboardFailed": "לא ניתן להעתיק ללוח",
-    "moveFailed": "העברה נכשלה"
+    "moveFailed": "העברה נכשלה",
+    "operationFailed": "הפעולה נכשלה",
+    "partialSuccess": "כמה פעולות נכשלו: {succeeded} הצליחו, {failed} נכשלו"
   },
   "search": {
     "smallerThan": "קטן מ:",

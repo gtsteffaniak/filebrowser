@@ -195,6 +195,13 @@ export default {
       } catch (e) {
         this.error = e;
         mutations.replaceRequest({});
+        // Clear loading progress bar on error
+        if (this.loadingTimeout) {
+          clearTimeout(this.loadingTimeout);
+          this.loadingTimeout = null;
+        }
+        this.loadingProgress = 0;
+        
         if (e.status === 404) {
           router.push({ name: "notFound" });
         } else if (e.status === 403) {
@@ -229,13 +236,25 @@ export default {
     async fetchShareData() {
       const hash = getters.shareHash();
       let shareInfo = await publicApi.getShareInfo(hash);
-      if (!shareInfo) {
+      
+      // Check if the response is an error (has status field indicating error)
+      if (!shareInfo || shareInfo.status >= 400) {
         // show message that share is invalid and don't do anything else
         this.error = {
-          status: "share404",
-          message: "errors.shareNotFound",
+          status: shareInfo?.status || "share404",
+          message: shareInfo?.message || "errors.shareNotFound",
         };
+        // Clear loading progress bar
+        if (this.loadingTimeout) {
+          clearTimeout(this.loadingTimeout);
+          this.loadingTimeout = null;
+        }
+        this.loadingProgress = 0;
+        // Don't set shareInfo for invalid shares
+        return;
       }
+      
+      // Valid share - add the hash and set shareInfo
       shareInfo.hash = hash;
       mutations.setShareInfo(shareInfo);
       
@@ -341,11 +360,11 @@ export default {
       this.loadingStartTime = Date.now();
       this.loadingProgress = 0;
       this.loadingTimeout = setTimeout(() => {
-        // Only set to 10% if loading is still ongoing after 100ms
+        // Only set to 10% if loading is still ongoing after 200ms
         if (this.loadingProgress < 10) {
           this.loadingProgress = 10;
         }
-      }, 100);
+      }, 200);
       
       // First pass: Fetch share data WITHOUT metadata
       let file = await publicApi.fetchPub(this.shareSubPath, this.shareHash, this.sharePassword, false, false);
@@ -431,7 +450,8 @@ export default {
           });
         }).catch(() => {
           // Don't throw - we already have the basic data displayed
-          this.loadingProgress = 100;
+          // Clear loading progress bar on metadata fetch error
+          this.loadingProgress = 0;
         });
       } else {
         // No metadata needed, complete immediately
@@ -573,7 +593,8 @@ export default {
             });
           }).catch(() => {
             // Don't throw - we already have the basic data displayed
-            this.loadingProgress = 100;
+            // Clear loading progress bar on metadata fetch error
+            this.loadingProgress = 0;
           });
         } else {
           // No metadata needed, complete immediately

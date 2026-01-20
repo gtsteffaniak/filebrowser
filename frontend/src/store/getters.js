@@ -197,7 +197,8 @@ export const getters = {
     return { dirs, files }
   },
   isSidebarVisible: () => {
-    if (globalVars.disableSidebar) {
+    if (globalVars.disableSidebar || getters.isInvalidShare()) {
+      console.log('isSidebarVisible', false)
       return false
     }
     const cv = getters.currentView()
@@ -522,10 +523,10 @@ export const getters = {
     return "close";
   },
   isInvalidShare: () => {
-    return getters.shareHash() != "" && !state.shareInfo?.hash;
+    return getters.shareHash() != "" && state.shareInfo.hash == "" && globalVars.shareHash == "";
   },
   isValidShare: () => {
-    return getters.shareHash() != "" && state.shareInfo?.hash;
+    return getters.shareHash() != "" && (state.shareInfo.hash != "" || globalVars.shareHash != "");
   },
   currentTool: () => {
     if (getters.currentView() !== "tools") {

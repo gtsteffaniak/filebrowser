@@ -78,6 +78,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 
 	// Use custom favicon if configured and validated, otherwise fall back to default
 	favicon := staticURL + "/favicon"
+	shareHash := ""
 	data := make(map[string]interface{})
 	disableNavButtons := settings.Config.Frontend.DisableNavButtons
 	if d.share != nil && d.shareValid {
@@ -119,6 +120,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 				favicon = fmt.Sprintf("%s%spublic/api/share/image?favicon=true&hash=%s", config.Server.ExternalUrl, config.Server.BaseURL, d.share.Hash)
 			}
 		}
+		shareHash = d.share.Hash
 	}
 	// Set login icon URL
 	loginIcon := staticURL + "/loginIcon"
@@ -199,6 +201,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"eventBasedThemes":     !config.Frontend.Styling.DisableEventBasedThemes,
 		"loginIcon":            loginIcon,
 		"disableSidebar":       disableSidebar,
+		"shareHash":            shareHash,
 	}
 
 	// Marshal each variable to JSON strings for direct template usage

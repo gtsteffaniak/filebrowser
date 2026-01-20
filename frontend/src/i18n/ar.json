@@ -221,7 +221,9 @@
     "newFileSuccess": "تم إنشاء الملف بنجاح!",
     "newDirSuccess": "تم إنشاء الدليل بنجاح!",
     "copyToClipboardFailed": "تعذر النسخ إلى الحافظة",
-    "moveFailed": "فشلت عملية النقل"
+    "moveFailed": "فشلت عملية النقل",
+    "operationFailed": "فشلت العملية",
+    "partialSuccess": "فشلت بعض العمليات: {succeeded} نجحت ، {failed} فشلت "
   },
   "search": {
     "smallerThan": "أصغر من:",

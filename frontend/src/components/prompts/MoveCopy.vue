@@ -245,11 +245,13 @@ export default {
             item.toSource = this.destSource;
           }
           buttons.loading(this.operation);
+          let result;
           if (getters.isShare()) {
-            await publicApi.moveCopy(state.shareInfo.hash, this.items, this.operation, overwrite, rename);
+            result = await publicApi.moveCopy(state.shareInfo.hash, this.items, this.operation, overwrite, rename);
           } else {
-            await filesApi.moveCopy(this.items, this.operation, overwrite, rename);
+            result = await filesApi.moveCopy(this.items, this.operation, overwrite, rename);
           }
+          return result; // Return the result to check for failures
         };
         let conflict = false;
         let dstResp = null;
@@ -261,6 +263,7 @@ export default {
         conflict = upload.checkConflict(this.items, dstResp.items);
         let overwrite = false;
         let rename = false;
+        let result = null;
 
         if (conflict) {
           this.isLoading = false;
@@ -284,7 +287,7 @@ export default {
                 event.preventDefault();
                 try {
                   this.isLoading = true;
-                  await action(overwrite, rename);
+                  result = await action(overwrite, rename);
                   resolve(); // Resolve the promise if action succeeds
                 } catch (e) {
                   reject(e); // Reject the promise if an error occurs
@@ -296,40 +299,85 @@ export default {
           });
         } else {
           // Await the action call for non-conflicting cases
-          await action(overwrite, rename);
+          result = await action(overwrite, rename);
         }
+        
+        // Check if there were any failures in the result
+        const hasFailures = result && result.failed && result.failed.length > 0;
+        const hasSuccesses = result && result.succeeded && result.succeeded.length > 0;
+        
+        if (hasFailures && !hasSuccesses) {
+          // All operations failed - show error but DON'T close prompt
+          const errorMessage = result.failed[0]?.message || this.$t("prompts.operationFailed");
+          notify.showError(errorMessage);
+          return;
+        } else if (hasFailures && hasSuccesses) {
+          // Partial failure - show warning and continue
+          const failedCount = result.failed.length;
+          const succeededCount = result.succeeded.length;
+          notify.showError(
+            this.$t("prompts.partialSuccess", { succeeded: succeededCount, failed: failedCount })
+          );
+        }
+        
+        // Only close prompts and reload on success (or partial success)
         mutations.setReload(true);
         mutations.closeHovers();
         mutations.setSearch(false);
 
-        // Store destination info for the button action
-        const destSource = this.destSource;
-        const destPath = this.destPath;
+        // Only show success notification if there were no failures (or partial success was already shown)
+        if (!hasFailures || hasSuccesses) {
+          // Store destination info for the button action
+          const destSource = this.destSource;
+          const destPath = this.destPath;
 
-        // Show success notification with optional button to navigate to destination
-        // For shares, destSource might be null, but goToItem handles shares via state.shareInfo.hash
-        const buttonAction = () => {
-          if (destPath) {
-            // For shares, goToItem will use state.shareInfo.hash, so source can be null
-            // For regular files, destSource should be set
-            goToItem(destSource || null, destPath, {});
-          }
-        };
-        const buttonProps = {
-          icon: "folder",
-          buttons: destPath ? [
-            {
-              label: this.$t("buttons.goToItem"),
-              primary: true,
-              action: buttonAction
+          // Show success notification with optional button to navigate to destination
+          // For shares, destSource might be null, but goToItem handles shares via state.shareInfo.hash
+          const buttonAction = () => {
+            if (destPath) {
+              // For shares, goToItem will use state.shareInfo.hash, so source can be null
+              // For regular files, destSource should be set
+              goToItem(destSource || null, destPath, {});
             }
-          ] : undefined
-        };
-        if (this.operation === "move") {
-          notify.showSuccess(this.$t("prompts.moveSuccess"), buttonProps);
-        } else {
-          notify.showSuccess(this.$t("prompts.copySuccess"), buttonProps);
+          };
+          const buttonProps = {
+            icon: "folder",
+            buttons: destPath ? [
+              {
+                label: this.$t("buttons.goToItem"),
+                primary: true,
+                action: buttonAction
+              }
+            ] : undefined
+          };
+          if (this.operation === "move") {
+            notify.showSuccess(this.$t("prompts.moveSuccess"), buttonProps);
+          } else {
+            notify.showSuccess(this.$t("prompts.copySuccess"), buttonProps);
+          }
         }
+      } catch (error) {
+        // Handle errors thrown by the API (e.g., 500 errors)
+        // DON'T close the prompt on error - let user try again or cancel manually
+        
+        // Try to extract error message from the error response
+        let errorMessage = null;
+        
+        // Check if error has a response body with failed items
+        if (error && error.failed && error.failed.length > 0 && error.failed[0]?.message) {
+          errorMessage = error.failed[0].message;
+        } else if (error && error.message) {
+          errorMessage = error.message;
+        } else if (typeof error === 'string') {
+          errorMessage = error;
+        }
+        
+        // Only use fallback if we couldn't extract a message
+        if (!errorMessage) {
+          errorMessage = this.$t("prompts.operationFailed");
+        }
+        
+        notify.showError(errorMessage);
       } finally {
         this.isLoading = false; // Hide loading spinner
       }

@@ -221,7 +221,9 @@
     "newFileSuccess": "Файл создан успешно!",
     "newDirSuccess": "Каталог создан успешно!",
     "copyToClipboardFailed": "Невозможно скопировать в буфер обмена",
-    "moveFailed": "Перемещение не удалось"
+    "moveFailed": "Перемещение не удалось",
+    "operationFailed": "Операция не удалась",
+    "partialSuccess": "Некоторые операции завершились неудачей: {succeeded} - успешно, {failed} - неудачно."
   },
   "search": {
     "smallerThan": "Меньше, чем:",

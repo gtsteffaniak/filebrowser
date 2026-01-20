@@ -221,7 +221,9 @@
     "newFileSuccess": "Súbor bol úspešne vytvorený!",
     "newDirSuccess": "Adresár bol úspešne vytvorený!",
     "copyToClipboardFailed": "Nemožnosť kopírovania do schránky",
-    "moveFailed": "Presun zlyhal"
+    "moveFailed": "Presun zlyhal",
+    "operationFailed": "Operácia zlyhala",
+    "partialSuccess": "Niektoré operácie zlyhali: {succeeded} sa podarilo, {failed} sa nepodarilo"
   },
   "search": {
     "smallerThan": "Menšie ako:",

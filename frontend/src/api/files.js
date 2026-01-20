@@ -447,12 +447,19 @@ export async function moveCopy(
     }
 
     const apiPath = getApiPath('api/resources')
-    const response = await fetchURL(apiPath, {
+    // We use fetch directly here instead of fetchURL because fetchURL throws on non-2xx status,
+    // consuming the response body as text. We need to parse the JSON response for 500/207 errors.
+    // We need to manually add headers that fetchURL adds.
+    const headers = {
+      'Content-Type': 'application/json',
+      'sessionId': state.sessionId
+    }
+    
+    const response = await fetch(apiPath, {
       method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: headers,
       body: JSON.stringify(requestBody),
+      credentials: 'same-origin'
     })
 
     const data = await response.json()
@@ -462,13 +469,22 @@ export async function moveCopy(
       return data
     }
 
-    // For other error status codes, throw an error
+    // For other error status codes (like 500), preserve the response data
     const error = new Error(data.message || response.statusText)
     error.status = response.status
+    // Attach the response data so the caller can access failed items
+    if (data.failed) {
+      error.failed = data.failed
+    }
+    if (data.succeeded) {
+      error.succeeded = data.succeeded
+    }
     throw error
   } catch (err) {
-    // Only show notification and re-throw if it's a real error (not 200/207)
-    if (err.status && err.status !== 200 && err.status !== 207) {
+    // For 500 errors with response data, don't show notification here
+    // Let the caller handle it with the attached error data
+    // Only show notification for unexpected errors (no status or not 500)
+    if (!err.status || (err.status !== 500 && err.status !== 200 && err.status !== 207)) {
       notify.showError(err.message || 'Error moving/copying resources')
     }
     throw err
