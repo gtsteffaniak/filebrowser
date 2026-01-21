@@ -8,28 +8,13 @@ import (
 	"image/jpeg"
 	"image/png"
 	"io"
-	"os"
 	"testing"
 
-	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/image/bmp"
 	"golang.org/x/image/tiff"
 )
-
-func TestMain(m *testing.M) {
-	// Ensure fileutils permissions are set (needed by NewPreviewGenerator)
-	if fileutils.PermDir == 0 {
-		fileutils.SetFsPermissions(0644, 0755)
-	}
-
-	// Run the tests
-	code := m.Run()
-
-	// Exit with the test result code
-	os.Exit(code)
-}
 
 func TestService_Resize(t *testing.T) {
 	testCases := map[string]struct {
@@ -291,9 +276,7 @@ func TestService_Resize(t *testing.T) {
 
 	for name, test := range testCases {
 		t.Run(name, func(t *testing.T) {
-			// Use a temporary directory for cache to avoid creating directories in the source tree
-			tmpDir := t.TempDir()
-			svc := NewPreviewGenerator(1, tmpDir)
+			svc := NewPreviewGenerator(1, "")
 			source := test.source(t)
 			defer source.Close()
 
@@ -451,9 +434,7 @@ func TestService_FormatFromExtension(t *testing.T) {
 
 	for name, test := range testCases {
 		t.Run(name, func(t *testing.T) {
-			// Use a temporary directory for cache to avoid creating directories in the source tree
-			tmpDir := t.TempDir()
-			svc := NewPreviewGenerator(1, tmpDir)
+			svc := NewPreviewGenerator(1, "")
 			got, err := svc.FormatFromExtension(test.ext)
 			require.Truef(t, errors.Is(err, test.wantErr), "error = %v, wantErr %v", err, test.wantErr)
 			if err != nil {
