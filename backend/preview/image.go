@@ -219,8 +219,6 @@ func (s *Service) Resize(in io.Reader, width, height int, out io.Writer, options
 
 				// If EXIF thumbnail is larger than or equal to requested size
 				// and quality is Low, return it as-is (no need to resize down)
-				// This is much faster than decoding the full image
-				// For higher quality levels, we resize to exact dimensions for better quality
 				if config.quality == QualityLow && thmWidth >= width && thmHeight >= height {
 					if config.format == FormatJpeg {
 						return jpeg.Encode(out, thmImg, &jpeg.Options{Quality: config.jpegQuality})
@@ -229,7 +227,6 @@ func (s *Service) Resize(in io.Reader, width, height int, out io.Writer, options
 				}
 
 				// If EXIF thumbnail is smaller but still reasonable (at least 40% of target),
-				// resize it to the requested size
 				minThumbSize := width * 40 / 100
 				if thmWidth >= minThumbSize || thmHeight >= minThumbSize {
 					var resizedImg image.Image
@@ -274,21 +271,6 @@ func (s *Service) Resize(in io.Reader, width, height int, out io.Writer, options
 	}
 
 	// Note: For HEIC files processed via FFmpeg, orientation is handled automatically
-
-	// Get current image dimensions
-	bounds := img.Bounds()
-	currentWidth := bounds.Dx()
-	currentHeight := bounds.Dy()
-
-	// For very large images (>8x target size), use two-pass resize for better performance
-	// First pass: resize to 2x target, Second pass: resize to target
-	// This is faster and uses less memory than single-pass resize
-	if currentWidth > width*8 || currentHeight > height*8 {
-		intermediateWidth := width * 2
-		intermediateHeight := height * 2
-		// Use fast filter for first pass
-		img = imaging.Fit(img, intermediateWidth, intermediateHeight, imaging.Box)
-	}
 
 	// Optimize resampling filter based on size and quality
 	// For small thumbnails (< 512px), use faster filters
