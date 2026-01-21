@@ -8,13 +8,28 @@ import (
 	"image/jpeg"
 	"image/png"
 	"io"
+	"os"
 	"testing"
 
+	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/image/bmp"
 	"golang.org/x/image/tiff"
 )
+
+func TestMain(m *testing.M) {
+	// Ensure fileutils permissions are set (needed by NewPreviewGenerator)
+	if fileutils.PermDir == 0 {
+		fileutils.SetFsPermissions(0644, 0755)
+	}
+
+	// Run the tests
+	code := m.Run()
+
+	// Exit with the test result code
+	os.Exit(code)
+}
 
 func TestService_Resize(t *testing.T) {
 	testCases := map[string]struct {
