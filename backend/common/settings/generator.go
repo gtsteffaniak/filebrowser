@@ -707,10 +707,8 @@ func GenerateYaml() {
 		{
 			Path: ".",
 			Config: SourceConfig{
-				Conditionals: ConditionalFilter{
-					ItemRules: []ConditionalRule{
-						{}, // Add empty sample rule to show all fields in generated YAML
-					},
+				Rules: []ConditionalRule{
+					{}, // Add empty sample rule to show all fields in generated YAML
 				},
 			},
 		},
