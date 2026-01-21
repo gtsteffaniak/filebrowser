@@ -291,7 +291,6 @@ func TestService_Resize(t *testing.T) {
 
 	for name, test := range testCases {
 		t.Run(name, func(t *testing.T) {
-			// Use a temporary directory for cache to avoid creating directories in the source tree
 			tmpDir := t.TempDir()
 			svc := NewPreviewGenerator(1, tmpDir)
 			source := test.source(t)
@@ -439,9 +438,25 @@ func TestService_FormatFromExtension(t *testing.T) {
 			ext:  ".tiff",
 			want: FormatTiff,
 		},
+		"tif": {
+			ext:  ".tif",
+			want: FormatTiff,
+		},
 		"bmp": {
 			ext:  ".bmp",
 			want: FormatBmp,
+		},
+		"heic": {
+			ext:  ".heic",
+			want: FormatHeic,
+		},
+		"heif": {
+			ext:  ".heif",
+			want: FormatHeic,
+		},
+		"webp": {
+			ext:  ".webp",
+			want: FormatWebp,
 		},
 		"unknown": {
 			ext:     ".mov",
@@ -451,7 +466,6 @@ func TestService_FormatFromExtension(t *testing.T) {
 
 	for name, test := range testCases {
 		t.Run(name, func(t *testing.T) {
-			// Use a temporary directory for cache to avoid creating directories in the source tree
 			tmpDir := t.TempDir()
 			svc := NewPreviewGenerator(1, tmpDir)
 			got, err := svc.FormatFromExtension(test.ext)

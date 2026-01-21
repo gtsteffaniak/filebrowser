@@ -29,14 +29,15 @@ var (
 )
 
 type Service struct {
-	fileCache    diskcache.Interface
-	cacheDir     string // Cache directory used for thumbnails and temp files
-	debug        bool
-	docGenMutex  sync.Mutex    // Mutex to serialize access to doc generation
-	docSemaphore chan struct{} // Semaphore for document generation
-	officeSem    chan struct{} // Semaphore for office document processing
-	videoService *ffmpeg.FFmpegService
-	imageService *ffmpeg.FFmpegService
+	fileCache     diskcache.Interface
+	cacheDir      string // Cache directory used for thumbnails and temp files
+	debug         bool
+	docGenMutex   sync.Mutex      // Mutex to serialize access to doc generation
+	docSemaphore  chan struct{}   // Semaphore for document generation
+	officeSem     chan struct{}   // Semaphore for office document processing
+	videoService  *ffmpeg.FFmpegService
+	imageService  *ffmpeg.FFmpegService
+	memoryTracker *MemoryTracker  // Memory-aware tracker for image processing
 }
 
 func NewPreviewGenerator(concurrencyLimit int, cacheDir string) *Service {
@@ -76,17 +77,23 @@ func NewPreviewGenerator(concurrencyLimit int, cacheDir string) *Service {
 	videoService := ffmpeg.NewFFmpegService(ffmpegConcurrencyLimit, settings.Config.Integrations.Media.Debug, "")
 	imageService := ffmpeg.NewFFmpegService(concurrencyLimit, settings.Config.Integrations.Media.Debug, filepath.Join(actualCacheDir, "heic"))
 
+	// Create memory tracker for image processing
+	// Limit to 500MB of concurrent image processing memory
+	// This prevents OOM when processing many large images simultaneously
+	maxMemoryMB := 500
+	memoryTracker := NewMemoryTracker(concurrencyLimit, maxMemoryMB)
+
 	settings.Env.MuPdfAvailable = docEnabled()
-	logger.Debugf("MuPDF Enabled            : %v", settings.Env.MuPdfAvailable)
-	logger.Debugf("Media Enabled            : %v", settings.MediaEnabled())
+
 	return &Service{
-		fileCache:    fileCache,
-		cacheDir:     actualCacheDir,
-		debug:        settings.Config.Integrations.Media.Debug,
-		docSemaphore: make(chan struct{}, 1), // must be 1 because cgo thread limit
-		officeSem:    make(chan struct{}, concurrencyLimit),
-		videoService: videoService,
-		imageService: imageService,
+		fileCache:     fileCache,
+		cacheDir:      actualCacheDir,
+		debug:         settings.Config.Integrations.Media.Debug,
+		docSemaphore:  make(chan struct{}, 1), // must be 1 because cgo thread limit
+		officeSem:     make(chan struct{}, concurrencyLimit),
+		videoService:  videoService,
+		imageService:  imageService,
+		memoryTracker: memoryTracker,
 	}
 }
 

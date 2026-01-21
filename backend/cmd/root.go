@@ -180,6 +180,8 @@ func rootCMD(ctx context.Context, store *bolt.BoltStore, serverConfig *settings.
 	if err != nil {
 		logger.Fatalf("Error starting preview service: %v", err)
 	}
+	logger.Debugf("MuPDF Enabled            : %v", settings.Env.MuPdfAvailable)
+	logger.Debugf("Media Enabled            : %v", settings.MediaEnabled())
 	fbhttp.StartHttp(ctx, store, shutdownComplete)
 	return nil
 }
