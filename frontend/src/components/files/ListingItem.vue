@@ -310,7 +310,7 @@ export default {
         this.isInView = true;
       }
     });
-    document.addEventListener('dragend', this.DragEnd);
+    document.addEventListener('dragend', this.dragEnd);
   },
   beforeUnmount() {
     // Clean up observer
@@ -318,7 +318,7 @@ export default {
       this.observer.disconnect();
       this.observer = null;
     }
-    document.removeEventListener('dragend', this.DragEnd);
+    document.removeEventListener('dragend', this.dragEnd);
   },
   methods: {
     /** @param {MouseEvent} event */

@@ -413,6 +413,11 @@ export default {
       event.preventDefault();
       event.stopPropagation();
       
+      if (this.isDisplayMode) {
+        this.navigateToItem(item);
+        return;
+      }
+
       // Create a synthetic event-like object for compatibility with existing methods
       const syntheticEvent = {
         currentTarget: {
@@ -433,11 +438,6 @@ export default {
     handleItemDblClick(item, _index, event) {
       event.preventDefault();
       event.stopPropagation();
-
-      if (this.isDisplayMode) {
-        this.navigateToItem(item);
-        return;
-      }
 
       // Create a synthetic event for double-click
       const syntheticEvent = {
