@@ -201,7 +201,7 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 
 	officeUrl := ""
 	if d.fileInfo.OnlyOfficeId != "" {
-		pathUrl := fmt.Sprintf("/api/raw?files=%s::%s", d.fileInfo.Source, d.fileInfo.Path)
+		pathUrl := fmt.Sprintf("/api/raw?files=%s&source=%s", d.fileInfo.Path, d.fileInfo.Source)
 		pathUrl = pathUrl + "&auth=" + d.token
 		if settings.Config.Server.InternalUrl != "" {
 			officeUrl = config.Server.InternalUrl + pathUrl
