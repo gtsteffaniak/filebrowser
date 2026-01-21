@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file. For commit 
 ## v1.2.1-beta
 
  **Notes**:
- -
+ - upgraded imaging package and improved thumbnail generation performance.
 
  **BugFixes**:
  - onlyOffice stopped working after 1.2.0 upgrade due to download api changes
