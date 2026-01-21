@@ -263,9 +263,8 @@ func buildOnlyOfficeDownloadURL(r *http.Request, source, path, hash, token strin
 			strings.TrimSuffix(baseURL, "/"), filesParam, hash, token, token)
 	} else {
 		// Regular download URL - include source for non-share requests
-		filesParam := url.QueryEscape(source + "::" + path)
-		downloadURL = fmt.Sprintf("%s/api/raw?files=%s&auth=%s",
-			strings.TrimSuffix(baseURL, "/"), filesParam, token)
+		downloadURL = fmt.Sprintf("%s/api/raw?files=%s&source=%s&auth=%s",
+			strings.TrimSuffix(baseURL, "/"), path, url.QueryEscape(source), token)
 	}
 
 	return downloadURL
