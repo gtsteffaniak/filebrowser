@@ -77,8 +77,7 @@ func NewPreviewGenerator(concurrencyLimit int, cacheDir string) *Service {
 	imageService := ffmpeg.NewFFmpegService(concurrencyLimit, settings.Config.Integrations.Media.Debug, filepath.Join(actualCacheDir, "heic"))
 
 	settings.Env.MuPdfAvailable = docEnabled()
-	logger.Debugf("MuPDF Enabled            : %v", settings.Env.MuPdfAvailable)
-	logger.Debugf("Media Enabled            : %v", settings.MediaEnabled())
+
 	return &Service{
 		fileCache:    fileCache,
 		cacheDir:     actualCacheDir,
