@@ -15,7 +15,11 @@ var bufferPool = sync.Pool{
 
 // getBuffer gets a buffer from the pool
 func getBuffer() *bytes.Buffer {
-	buf := bufferPool.Get().(*bytes.Buffer)
+	buf, ok := bufferPool.Get().(*bytes.Buffer)
+	if !ok {
+		// This should never happen, but provide a fallback
+		buf = bytes.NewBuffer(make([]byte, 0, 128*1024))
+	}
 	buf.Reset()
 	return buf
 }
