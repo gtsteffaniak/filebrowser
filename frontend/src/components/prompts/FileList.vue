@@ -1,7 +1,10 @@
 <template>
+  <div v-if="isDisplayMode" class="card-title">
+    <h2>{{ effectiveTitle }}</h2>
+  </div>
   <div class="card-content">
     <!-- Source Selection Dropdown -->
-    <div v-if="showSourceSelector" class="source-selector" style="margin-bottom: 1rem;">
+    <div v-if="showSourceSelector && !isDisplayMode" class="source-selector" style="margin-bottom: 1rem;">
       <label for="destinationSource" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">
         {{ $t("prompts.destinationSource") }}
       </label>
@@ -13,7 +16,7 @@
     </div>
 
     <!-- Current Path Display -->
-    <div aria-label="filelist-path" class="searchContext button clickable">
+    <div v-if="!isDisplayMode" aria-label="filelist-path" class="searchContext button clickable">
       {{ $t('general.path', { suffix: ':' }) }} {{ sourcePath.path }}
     </div>
 
@@ -47,6 +50,14 @@
       />
     </div>
   </div>
+
+  <!-- Cancel button for display mode -->
+  <div v-if="isDisplayMode" class="card-action">
+    <button @click="closePrompt" class="button button--flat" :aria-label="$t('general.cancel')"
+      :title="$t('general.cancel')">
+      {{ $t('general.cancel') }}
+    </button>
+  </div>
 </template>
 
 <script>
@@ -70,6 +81,10 @@ export default {
     browseShare: {
       type: String,
       default: null, // Share hash to browse
+    },
+    fileList: {
+      type: Array,
+      default: null, // for example, in "quick jump" we provide the listing from the parent.
     },
     title: {
       type: String,
@@ -135,8 +150,12 @@ export default {
       // Get all available sources from state.sources.info
       return state.sources && state.sources.info ? Object.keys(state.sources.info) : [state.req.source];
     },
+    isDisplayMode() {
+      // Will be in display mode if the fileList prop is provided
+      return this.fileList !== null;
+    },
     showSourceSelector() {
-      return this.availableSources.length > 1 && !getters.isShare() && !this.browseShare;
+      return this.availableSources.length > 1 && !this.isDisplayMode && !getters.isShare() && !this.browseShare;
     },
     isValidSelection() {
       // If file selection is required, check if a file (not folder) is selected
@@ -166,7 +185,12 @@ export default {
     },
   },
   mounted() {
-    if (this.browseShare) {
+    if (this.isDisplayMode) {
+      this.withLoading(async () => {
+        await new Promise(resolve => setTimeout(resolve, 0));
+        this.fillFromList();
+      });
+    } else if (this.browseShare) {
       // Browse a specific share
       this.withLoading(() => publicApi.fetchPub("/", this.browseShare).then(this.fillOptions));
     } else {
@@ -385,7 +409,7 @@ export default {
         this.next(event);
       }
     },
-    handleItemClick(item, index, event) {
+    handleItemClick(item, _index, event) {
       event.preventDefault();
       event.stopPropagation();
       
@@ -406,10 +430,15 @@ export default {
         this.select(syntheticEvent);
       }
     },
-    handleItemDblClick(item, index, event) {
+    handleItemDblClick(item, _index, event) {
       event.preventDefault();
       event.stopPropagation();
-      
+
+      if (this.isDisplayMode) {
+        this.navigateToItem(item);
+        return;
+      }
+
       // Create a synthetic event for double-click
       const syntheticEvent = {
         currentTarget: {
@@ -457,6 +486,18 @@ export default {
     },
     onSourceChange() {
       this.resetToSource(this.currentSource);
+    },
+    fillFromList() {
+      // Use the provided fileList, filtering out directories to show only files
+      const allItems = this.fileList || [];
+      this.items = allItems.filter(item => !item.isDirectory && item.type !== 'directory');
+    },
+    navigateToItem(item) {
+      mutations.closeHovers();
+      url.goToItem(item.source || state.req.source, item.path, undefined);
+    },
+    closePrompt() {
+      mutations.closeHovers();
     },
   },
 };

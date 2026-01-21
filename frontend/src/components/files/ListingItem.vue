@@ -237,7 +237,8 @@ export default {
       return this.readOnly == undefined && state.user.permissions?.modify || state.shareInfo.allowCreate;
     },
     canDrop() {
-      if (!this.isDir || this.readOnly !== undefined) return false;
+      if (!this.isDir) return false;
+      if (this.readOnly === true) return false;
 
       for (const i of this.selected) {
         if (
@@ -309,6 +310,7 @@ export default {
         this.isInView = true;
       }
     });
+    document.addEventListener('dragend', this.DragEnd);
   },
   beforeUnmount() {
     // Clean up observer
@@ -316,6 +318,7 @@ export default {
       this.observer.disconnect();
       this.observer = null;
     }
+    document.removeEventListener('dragend', this.DragEnd);
   },
   methods: {
     /** @param {MouseEvent} event */
@@ -372,6 +375,10 @@ export default {
     },
     /** @param {MouseEvent} event */
     onRightClick(event) {
+      if (!this.updateGlobalState) {
+        event.preventDefault();
+        return;
+      }
       event.preventDefault(); // Prevent default context menu
       // If one or fewer items are selected, reset the selection
       if (this.updateGlobalState) {
@@ -471,6 +478,9 @@ export default {
 
       event.preventDefault();
       this.isDraggedOver = true;
+    },
+    dragEnd() {
+      this.isDraggedOver = false;
     },
     /** @param {DragEvent} event */
     async drop(event) {
