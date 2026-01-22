@@ -28,7 +28,7 @@ func setupMutateTestIndex(t *testing.T) *Index {
 	}
 
 	var err error
-	testDB, err := dbsql.NewIndexDB("test_init", "OFF", 1000, 32, false)
+	testDB, _, err := dbsql.NewIndexDB("test_init", "OFF", 1000, 32, false)
 	if err != nil {
 		t.Fatalf("Failed to create test database: %v", err)
 	}
@@ -214,7 +214,7 @@ func TestUpdateFileMetadata(t *testing.T) {
 	// Initialize the database if not already done
 	if indexDB == nil {
 		var err error
-		indexDB, err = dbsql.NewIndexDB("test_mutate", "OFF", 1000, 32, false)
+		indexDB, _, err = dbsql.NewIndexDB("test_mutate", "OFF", 1000, 32, false)
 		if err != nil {
 			t.Fatalf("Failed to create test database: %v", err)
 		}
@@ -274,7 +274,7 @@ func TestSetDirectoryInfo(t *testing.T) {
 	// Initialize the database if not already done
 	if indexDB == nil {
 		var err error
-		indexDB, err = dbsql.NewIndexDB("test_mutate", "OFF", 1000, 32, false)
+		indexDB, _, err = dbsql.NewIndexDB("test_mutate", "OFF", 1000, 32, false)
 		if err != nil {
 			t.Fatalf("Failed to create test database: %v", err)
 		}

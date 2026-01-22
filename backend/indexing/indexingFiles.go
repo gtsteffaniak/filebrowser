@@ -12,7 +12,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
-	indexingdb "github.com/gtsteffaniak/filebrowser/backend/database/indexing"
+	"github.com/gtsteffaniak/filebrowser/backend/database/dbindex"
 	dbsql "github.com/gtsteffaniak/filebrowser/backend/database/sql"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 	"github.com/gtsteffaniak/go-cache/cache"
@@ -118,8 +118,8 @@ type Index struct {
 var (
 	indexes         map[string]*Index
 	indexesMutex    sync.RWMutex
-	indexDB         *dbsql.IndexDB      // Shared database for all indexes
-	indexingStorage *indexingdb.Storage // Persistent storage for index metadata
+	indexDB         *dbsql.IndexDB   // Shared database for all indexes
+	indexingStorage *dbindex.Storage // Persistent storage for index metadata
 )
 
 type IndexStatus string
@@ -321,7 +321,8 @@ func (idx *Index) getStatusUnlocked() IndexStatus {
 }
 
 // InitializeIndexDB creates the shared index database for all sources.
-func InitializeIndexDB() error {
+// Returns true if the database was recreated (either fresh or after corruption).
+func InitializeIndexDB() (bool, error) {
 	var err error
 	journalMode := "OFF"
 	if settings.Config.Server.IndexSqlConfig.WalMode {
@@ -330,13 +331,18 @@ func InitializeIndexDB() error {
 	batchSize := settings.Config.Server.IndexSqlConfig.BatchSize
 	cacheSizeMB := settings.Config.Server.IndexSqlConfig.CacheSizeMB
 	disableReuse := settings.Config.Server.IndexSqlConfig.DisableReuse
-	indexDB, err = dbsql.NewIndexDB("all", journalMode, batchSize, cacheSizeMB, disableReuse)
+	var wasRecreated bool
+	indexDB, wasRecreated, err = dbsql.NewIndexDB("all", journalMode, batchSize, cacheSizeMB, disableReuse)
 	if err != nil {
 		logger.Fatalf("failed to initialize index database: %v", err)
-		return err
+		return false, err
 	}
 
-	return nil
+	if wasRecreated {
+		logger.Warningf("Index database was recreated, all index complexities will be reset to 0")
+	}
+
+	return wasRecreated, nil
 }
 
 // GetIndexDB returns the shared index database.
@@ -364,7 +370,7 @@ func SetIndexDBForTesting(db *dbsql.IndexDB) {
 }
 
 // SetIndexingStorage sets the persistent storage for index metadata.
-func SetIndexingStorage(storage *indexingdb.Storage) {
+func SetIndexingStorage(storage *dbindex.Storage) {
 	indexingStorage = storage
 }
 
@@ -652,12 +658,12 @@ func (idx *Index) GetFsInfoCore(indexPath string, opts Options) (*iteminfo.FileI
 			if !isViewable {
 				return nil, errors.ErrNotIndexed
 			}
-	} else if isSkipped {
-		return nil, errors.ErrNotIndexed
-	}
+		} else if isSkipped {
+			return nil, errors.ErrNotIndexed
+		}
 
-	realSize, _ := idx.handleFile(dirInfo, indexPath, realPath, false, nil)
-	fileInfo := &iteminfo.FileInfo{
+		realSize, _ := idx.handleFile(dirInfo, indexPath, realPath, false, nil)
+		fileInfo := &iteminfo.FileInfo{
 			Path: indexPath,
 			ItemInfo: iteminfo.ItemInfo{
 				Name:    baseName,
@@ -1613,9 +1619,9 @@ func (idx *Index) Save() error {
 
 	idx.mu.RLock()
 	// Collect scanner information
-	scanners := make(map[string]*indexingdb.PersistedScannerInfo)
+	scanners := make(map[string]*dbindex.PersistedScannerInfo)
 	for path, scanner := range idx.scanners {
-		scanners[path] = &indexingdb.PersistedScannerInfo{
+		scanners[path] = &dbindex.PersistedScannerInfo{
 			Path:            path,
 			Complexity:      scanner.complexity,
 			CurrentSchedule: scanner.currentSchedule,
@@ -1634,7 +1640,7 @@ func (idx *Index) Save() error {
 	idx.mu.RUnlock()
 
 	// Create IndexInfo for persistence
-	info := &indexingdb.IndexInfo{
+	info := &dbindex.IndexInfo{
 		Path:       idx.Path, // Use real filesystem path as key
 		Source:     idx.Name,
 		Complexity: complexity,

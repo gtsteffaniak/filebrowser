@@ -16,7 +16,7 @@ func setupTestIndex(t *testing.T) (*Index, string, func()) {
 	// Initialize the database if not already done
 	if indexDB == nil {
 		var err error
-		indexDB, err = dbsql.NewIndexDB("test_indexing", "OFF", 1000, 32, false)
+		indexDB, _, err = dbsql.NewIndexDB("test_indexing", "OFF", 1000, 32, false)
 		if err != nil {
 			t.Fatalf("Failed to create test database: %v", err)
 		}

@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"time"
 
-	indexingdb "github.com/gtsteffaniak/filebrowser/backend/database/indexing"
+	indexingdb "github.com/gtsteffaniak/filebrowser/backend/database/dbindex"
 	"github.com/gtsteffaniak/filebrowser/backend/events"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
