@@ -649,11 +649,6 @@ func buildNodeWithDefaults(v reflect.Value, comm CommentsMap, defaults reflect.V
 		}
 		mapNode := &yaml.Node{Kind: yaml.MappingNode}
 
-		// Special handling for ImagePreview maps - show all supported types
-		if isImagePreviewMap(v) {
-			return buildImagePreviewMap(v, comm, secrets, deprecated)
-		}
-
 		// Get and sort map keys alphabetically for consistent output
 		mapKeys := v.MapKeys()
 		keyStrings := make([]string, len(mapKeys))
@@ -1133,54 +1128,4 @@ func AlignComments(input string) string {
 	}
 
 	return strings.Join(outputLines, "\n")
-}
-
-// isImagePreviewMap checks if the given map is an ImagePreview map
-func isImagePreviewMap(v reflect.Value) bool {
-	if v.Kind() != reflect.Map {
-		return false
-	}
-
-	// Check if the map key type is ImagePreviewType
-	keyType := v.Type().Key()
-	return keyType.Name() == "ImagePreviewType"
-}
-
-// buildImagePreviewMap builds a YAML node for ImagePreview maps, showing all supported types
-func buildImagePreviewMap(v reflect.Value, comm CommentsMap, secrets SecretFieldsMap, deprecated DeprecatedFieldsMap) (*yaml.Node, error) {
-	mapNode := &yaml.Node{Kind: yaml.MappingNode}
-
-	// Get all supported image preview types from the global slice
-	for _, imageType := range AllImagePreviewTypes {
-		typeName := string(imageType)
-
-		// Create key node
-		keyNode := &yaml.Node{
-			Kind:  yaml.ScalarNode,
-			Value: typeName,
-		}
-
-		// Get the value from the map, defaulting to false if not present
-		var value bool
-		if v.Len() > 0 {
-			// Look for the key in the map
-			for _, mapKey := range v.MapKeys() {
-				if mapKey.String() == typeName {
-					value = v.MapIndex(mapKey).Bool()
-					break
-				}
-			}
-		}
-
-		// Create value node
-		valNode := &yaml.Node{
-			Kind:  yaml.ScalarNode,
-			Tag:   "!!bool",
-			Value: fmt.Sprintf("%t", value),
-		}
-
-		mapNode.Content = append(mapNode.Content, keyNode, valNode)
-	}
-
-	return mapNode, nil
 }

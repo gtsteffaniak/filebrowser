@@ -4255,7 +4255,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "imagePreview": {
-                    "description": "supported image preview formats. defaults to false for all types unless explicitly enabled.",
+                    "description": "supported image preview formats. defaults vary by type (see individual type docs)",
                     "type": "object",
                     "additionalProperties": {
                         "type": "boolean"
@@ -4823,10 +4823,6 @@ const docTemplate = `{
                 "debugOffice": {
                     "description": "debug onlyoffice editor",
                     "type": "boolean"
-                },
-                "defaultLandingPage": {
-                    "description": "deprecated: determined by sidebar link order since 1.1.0",
-                    "type": "string"
                 },
                 "deleteWithoutConfirming": {
                     "description": "delete files without confirmation",
@@ -5669,10 +5665,6 @@ const docTemplate = `{
                 "debugOffice": {
                     "description": "debug onlyoffice editor",
                     "type": "boolean"
-                },
-                "defaultLandingPage": {
-                    "description": "deprecated: determined by sidebar link order instead",
-                    "type": "string"
                 },
                 "deleteWithoutConfirming": {
                     "description": "delete files without confirmation",

@@ -50,7 +50,6 @@ userDefaults:
   deleteWithoutConfirming: false          # delete files without confirmation
   disableOnlyOfficeExt: ".md .txt .pdf"   # list of file extensions to disable onlyoffice editor for
   showSelectMultiple: false               # show select multiple files on desktop
-  defaultLandingPage: ""                  # default landing page to use if no redirect is specified: eg. /files/mysource/mysubpath, /settings, etc.
 
 #office:
 #  url: "http://localhost:9052"

@@ -32,12 +32,12 @@ type Service struct {
 	fileCache     diskcache.Interface
 	cacheDir      string // Cache directory used for thumbnails and temp files
 	debug         bool
-	docGenMutex   sync.Mutex      // Mutex to serialize access to doc generation
-	docSemaphore  chan struct{}   // Semaphore for document generation
-	officeSem     chan struct{}   // Semaphore for office document processing
+	docGenMutex   sync.Mutex    // Mutex to serialize access to doc generation
+	docSemaphore  chan struct{} // Semaphore for document generation
+	officeSem     chan struct{} // Semaphore for office document processing
 	videoService  *ffmpeg.FFmpegService
 	imageService  *ffmpeg.FFmpegService
-	memoryTracker *MemoryTracker  // Memory-aware tracker for image processing
+	memoryTracker *MemoryTracker // Memory-aware tracker for image processing
 }
 
 func NewPreviewGenerator(concurrencyLimit int, cacheDir string) *Service {
@@ -79,7 +79,6 @@ func NewPreviewGenerator(concurrencyLimit int, cacheDir string) *Service {
 
 	// Create memory tracker for image processing
 	// Limit to 500MB of concurrent image processing memory
-	// This prevents OOM when processing many large images simultaneously
 	maxMemoryMB := 500
 	memoryTracker := NewMemoryTracker(concurrencyLimit, maxMemoryMB)
 
@@ -191,7 +190,10 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 	hasher := md5.New()
 	_, _ = hasher.Write([]byte(CacheKey(fileMD5, previewSize, seekPercentage)))
 	hash := hex.EncodeToString(hasher.Sum(nil))
-	convertHEIC := strings.HasPrefix(file.Type, "image/heic") && settings.Config.Integrations.Media.Convert.ImagePreview[settings.HEICImagePreview]
+
+	// Check if HEIC conversion is enabled (guaranteed non-nil after defaults)
+	convertHEIC := strings.HasPrefix(file.Type, "image/heic") && *settings.Config.Integrations.Media.Convert.ImagePreview[settings.HEICImagePreview]
+
 	// Generate an image from office document
 	if iteminfo.HasDocConvertableExtension(file.Name, file.Type) {
 		tempFilePath := filepath.Join(service.cacheDir, "thumbnails", "docs", hash) + ".txt"
@@ -223,6 +225,12 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 			return nil, fmt.Errorf("failed to read image file: %w", err)
 		}
 	} else if strings.HasPrefix(file.Type, "video") {
+		// Check if this video format is enabled for preview generation
+		ext = strings.TrimPrefix(strings.ToLower(filepath.Ext(file.Name)), ".")
+		if !settings.CanConvertVideo(ext) {
+			return nil, fmt.Errorf("video preview generation is disabled for .%s files in settings", ext)
+		}
+
 		videoSeekPercentage := seekPercentage
 		if videoSeekPercentage == 0 {
 			videoSeekPercentage = 10
@@ -265,6 +273,37 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 		// resize image
 		resizedBytes, err := service.CreatePreview(imageBytes, previewSize)
 		if err != nil {
+			// Check if this is an unsupported JPEG format (extended sequential, etc.)
+			errMsg := err.Error()
+			if strings.HasPrefix(file.Type, "image/jpeg") &&
+				(strings.Contains(errMsg, "unrecognised marker") ||
+					strings.Contains(errMsg, "invalid JPEG format") ||
+					strings.Contains(errMsg, "Huffman")) {
+
+				// Check if JPEG FFmpeg conversion is enabled (guaranteed non-nil after defaults)
+				enableJPEGFallback := *settings.Config.Integrations.Media.Convert.ImagePreview[settings.JPEGImagePreview]
+
+				// Only attempt FFmpeg fallback if it's enabled and FFmpeg service is available
+				if enableJPEGFallback && service.imageService != nil {
+					// Fall back to FFmpeg for problematic JPEG files
+					logger.Debugf("JPEG decode failed for '%s', falling back to FFmpeg: %v", file.Name, err)
+					resizedBytes, err = service.convertImageWithFFmpeg(ctx, file.RealPath, previewSize)
+					if err != nil {
+						return nil, fmt.Errorf("failed to resize preview image with FFmpeg fallback: %w", err)
+					}
+					// Cache and return the FFmpeg-converted image
+					cacheKey := CacheKey(fileMD5, previewSize, seekPercentage)
+					if err = service.fileCache.Store(ctx, cacheKey, resizedBytes); err != nil {
+						logger.Errorf("failed to cache FFmpeg-converted image: %v", err)
+					}
+					return resizedBytes, nil
+				}
+				// If FFmpeg fallback is disabled or not available, return the original error
+				if !enableJPEGFallback {
+					return nil, fmt.Errorf("failed to resize preview image (unsupported JPEG format, FFmpeg conversion disabled in settings): %w", err)
+				}
+				return nil, fmt.Errorf("failed to resize preview image (unsupported JPEG format, FFmpeg not available): %w", err)
+			}
 			return nil, fmt.Errorf("failed to resize preview image: %w", err)
 		}
 		// Cache and return
@@ -280,7 +319,6 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 		}
 		return imageBytes, nil
 	}
-
 }
 
 func GeneratePreview(ctx context.Context, file iteminfo.ExtendedFileInfo, previewSize, officeUrl string, seekPercentage int) ([]byte, error) {

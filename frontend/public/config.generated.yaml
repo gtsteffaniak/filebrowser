@@ -179,8 +179,9 @@ integrations:
   media:                                  #  validate:omitempty
     ffmpegPath: ""                        # path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)
     convert:                              # config for ffmpeg conversion settings
-      imagePreview:                       # supported image preview formats. defaults to false for all types unless explicitly enabled.
+      imagePreview:                       # supported image preview formats. defaults vary by type (see individual type docs)
         heic: false
+        jpeg: true
       videoPreview:                       # supported video preview formats. defaults to true for all types unless explicitly disabled.
         3g2: true
         3gp: true

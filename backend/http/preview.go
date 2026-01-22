@@ -80,7 +80,7 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	d.fileInfo = *fileInfo
 	status, err := previewHelperFunc(w, r, d)
 	if err != nil {
-		logger.Errorf("error getting preview: %v", err)
+		// Error already logged in previewHelperFunc or its callees
 		return errToStatus(err), err
 	}
 	return status, nil

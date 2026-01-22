@@ -116,7 +116,6 @@ type NonAdminEditable struct {
 	ShowSelectMultiple         bool          `json:"showSelectMultiple"`         // show select multiple files on desktop
 	DebugOffice                bool          `json:"debugOffice"`                // debug onlyoffice editor
 	OtpEnabled                 bool          `json:"otpEnabled"`                 // allow non-admin users to disable their own OTP
-	DefaultLandingPage         string        `json:"defaultLandingPage"`         // deprecated: determined by sidebar link order instead
 	SidebarLinks               []SidebarLink `json:"sidebarLinks"`               // customizable sidebar links
 }
 
