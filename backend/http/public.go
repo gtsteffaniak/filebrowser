@@ -22,11 +22,15 @@ import (
 // publicRawHandler serves the raw content of a file, multiple files, or directory via a public share.
 // @Summary Download files from a public share
 // @Description Downloads raw content from a public share. Supports single files, multiple files, or directories as archives. Enforces download limits (global or per-user) and blocks anonymous users when per-user limits are enabled.
+// @Description
+// @Description **Multiple Files:**
+// @Description - Use repeated query parameters: `?file=file1.txt&file=file2.txt&file=file3.txt`
+// @Description - This supports filenames containing commas and special characters
 // @Tags Public Shares
 // @Accept json
 // @Produce octet-stream
 // @Param hash query string true "Share hash for authentication"
-// @Param files query string true "Comma-separated list of file paths. Example: 'file1.txt,folder/file2.txt'"
+// @Param file query []string true "File path (can be repeated for multiple files)"
 // @Param inline query bool false "If true, sets 'Content-Disposition' to 'inline'. Otherwise, defaults to 'attachment'."
 // @Param algo query string false "Compression algorithm for archiving multiple files or directories. Options: 'zip' and 'tar.gz'. Default is 'zip'."
 // @Success 200 {file} file "Raw file or directory content, or archive for multiple files"
@@ -71,12 +75,11 @@ func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	if d.share.PerUserDownloadLimit {
 		d.share.IncrementUserDownload(d.user.Username)
 	}
-	encodedFiles := r.URL.Query().Get("files")
 
-	// Decode the URL-encoded path - use PathUnescape to preserve + as literal character
-	f, err := url.PathUnescape(encodedFiles)
-	if err != nil {
-		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
+	// Get all "file" parameter values (supports repeated params)
+	encodedFiles := r.URL.Query()["file"]
+	if len(encodedFiles) == 0 {
+		return http.StatusBadRequest, fmt.Errorf("no files specified")
 	}
 
 	// Get the actual source name from the share's source mapping
@@ -86,22 +89,26 @@ func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	}
 	actualSourceName := sourceInfo.Name
 
-	// Parse comma-separated file list
+	// Decode and process each file path
 	fileList := []string{}
-	for _, file := range strings.Split(f, ",") {
+	for _, encodedFile := range encodedFiles {
+		// Decode the URL-encoded path - use PathUnescape to preserve + as literal character
+		file, decodeErr := url.PathUnescape(encodedFile)
+		if decodeErr != nil {
+			return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", decodeErr)
+		}
 		// Join the share path with the requested path
 		filePath := utils.JoinPathAsUnix(d.share.Path, file)
 		fileList = append(fileList, filePath)
 	}
 
-	var status int
-	status, err = rawFilesHandler(w, r, d, actualSourceName, fileList)
+	status, err := rawFilesHandler(w, r, d, actualSourceName, fileList)
 	if err != nil {
 		if err == errors.ErrDownloadNotAllowed {
 			return http.StatusForbidden, errors.ErrDownloadNotAllowed
 		}
-		logger.Errorf("public share handler: error processing filelist: '%v' with error %v", f, err)
-		return status, fmt.Errorf("error processing filelist: %v", f)
+		logger.Errorf("public share handler: error processing filelist: %v with error %v", encodedFiles, err)
+		return status, fmt.Errorf("error processing filelist: %v", encodedFiles)
 	}
 	return status, nil
 }

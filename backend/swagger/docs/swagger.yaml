@@ -2618,17 +2618,24 @@ paths:
         - The Content-Disposition header will always include both:
         1. `filename="..."`: An ASCII-safe version of the filename for compatibility.
         2. `filename*=utf-8"...`: The full UTF-8 encoded filename (RFC 6266/5987) for modern clients.
+
+        **Multiple Files:**
+        - Use repeated query parameters: `?file=file1.txt&file=file2.txt&file=file3.txt`
+        - This supports filenames containing commas and special characters
       parameters:
       - description: Source name for the files (required)
         in: query
         name: source
         required: true
         type: string
-      - description: Comma-separated list of file paths (required)
+      - collectionFormat: csv
+        description: File path (can be repeated for multiple files)
         in: query
-        name: files
+        items:
+          type: string
+        name: file
         required: true
-        type: string
+        type: array
       - description: If true, sets 'Content-Disposition' to 'inline'. Otherwise, defaults
           to 'attachment'.
         in: query
@@ -3635,20 +3642,26 @@ paths:
     get:
       consumes:
       - application/json
-      description: Downloads raw content from a public share. Supports single files,
-        multiple files, or directories as archives. Enforces download limits (global
-        or per-user) and blocks anonymous users when per-user limits are enabled.
+      description: |-
+        Downloads raw content from a public share. Supports single files, multiple files, or directories as archives. Enforces download limits (global or per-user) and blocks anonymous users when per-user limits are enabled.
+
+        **Multiple Files:**
+        - Use repeated query parameters: `?file=file1.txt&file=file2.txt&file=file3.txt`
+        - This supports filenames containing commas and special characters
       parameters:
       - description: Share hash for authentication
         in: query
         name: hash
         required: true
         type: string
-      - description: 'Comma-separated list of file paths. Example: ''file1.txt,folder/file2.txt'''
+      - collectionFormat: csv
+        description: File path (can be repeated for multiple files)
         in: query
-        name: files
+        items:
+          type: string
+        name: file
         required: true
-        type: string
+        type: array
       - description: If true, sets 'Content-Disposition' to 'inline'. Otherwise, defaults
           to 'attachment'.
         in: query

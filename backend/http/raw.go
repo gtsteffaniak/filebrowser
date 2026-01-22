@@ -94,10 +94,14 @@ func setContentDisposition(w http.ResponseWriter, r *http.Request, fileName stri
 // @Description - The Content-Disposition header will always include both:
 // @Description   1. `filename="..."`: An ASCII-safe version of the filename for compatibility.
 // @Description   2. `filename*=utf-8"...`: The full UTF-8 encoded filename (RFC 6266/5987) for modern clients.
+// @Description
+// @Description **Multiple Files:**
+// @Description - Use repeated query parameters: `?file=file1.txt&file=file2.txt&file=file3.txt`
+// @Description - This supports filenames containing commas and special characters
 // @Tags Resources
 // @Accept json
 // @Param source query string true "Source name for the files (required)"
-// @Param files query string true "Comma-separated list of file paths (required)"
+// @Param file query []string true "File path (can be repeated for multiple files)"
 // @Param inline query bool false "If true, sets 'Content-Disposition' to 'inline'. Otherwise, defaults to 'attachment'."
 // @Param algo query string false "Compression algorithm for archiving multiple files or directories. Options: 'zip' and 'tar.gz'. Default is 'zip'."
 // @Success 200 {file} file "Raw file or directory content, or archive for multiple files"
@@ -108,8 +112,7 @@ func setContentDisposition(w http.ResponseWriter, r *http.Request, fileName stri
 // @Router /api/raw [get]
 func rawHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	source := r.URL.Query().Get("source")
-	filesParam := r.URL.Query().Get("files")
-	fileList := strings.Split(filesParam, ",")
+	fileList := r.URL.Query()["file"]
 	return rawFilesHandler(w, r, d, source, fileList)
 }
 

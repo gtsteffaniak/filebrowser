@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Notes**:
  - upgraded imaging package and improved thumbnail generation performance.
+ - updated download api to use repeated 'file' query param for path instead of `files` with comma. See swagger (#1881)
 
  **BugFixes**:
  - onlyOffice stopped working after 1.2.0 upgrade due to download api changes
