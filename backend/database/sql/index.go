@@ -41,7 +41,7 @@ func createIndexDB(name string, journalMode string, lockingMode string, batchSiz
 		BatchSize:           batchSize,
 		CacheSizeKB:         cacheSizeKB,      // From config, converted to KB
 		SoftHeapLimitBytes:  16 * 1024 * 1024, // 16MB soft heap limit (reduced to minimize memory pressure)
-		CacheSpillThreshold: 200,              // Spill dirty pages to disk when cache exceeds 200 pages (~800KB) - more aggressive
+		CacheSpillThreshold: 2000,             // Spill dirty pages to disk when cache exceeds 2000 pages (~8MB)
 		MmapSize:            0,                // Disable mmap to prevent additional OS page cache usage
 		Synchronous:         "OFF",            // No sync for maximum performance - safe since DB can be rebuilt
 		TempStore:           "FILE",           // FILE instead of MEMORY to reduce memory usage

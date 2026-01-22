@@ -1,10 +1,12 @@
-package settings
+package ffmpeg
+
+import "github.com/gtsteffaniak/filebrowser/backend/common/settings"
 
 func CanConvertImage(ext string) bool {
 	if !MediaEnabled() {
 		return false
 	}
-	val := Config.Integrations.Media.Convert.ImagePreview[ImagePreviewType(ext)]
+	val := settings.Config.Integrations.Media.Convert.ImagePreview[settings.ImagePreviewType(ext)]
 	if val == nil {
 		return false // Extension not in the configured list
 	}
@@ -15,7 +17,7 @@ func CanConvertVideo(ext string) bool {
 	if !MediaEnabled() {
 		return false
 	}
-	val := Config.Integrations.Media.Convert.VideoPreview[VideoPreviewType(ext)]
+	val := settings.Config.Integrations.Media.Convert.VideoPreview[settings.VideoPreviewType(ext)]
 	if val == nil {
 		return false // Extension not in the configured list
 	}
@@ -23,5 +25,5 @@ func CanConvertVideo(ext string) bool {
 }
 
 func MediaEnabled() bool {
-	return Env.FFmpegPath != "" && Env.FFprobePath != ""
+	return settings.Env.FFmpegPath != "" && settings.Env.FFprobePath != ""
 }
