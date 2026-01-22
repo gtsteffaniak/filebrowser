@@ -61,33 +61,37 @@ func createIndexDB(name string, journalMode string, lockingMode string, batchSiz
 // batchSize: number of items per batch transaction
 // cacheSizeMB: cache size in megabytes
 // disableReuse: true to delete and recreate DB on startup, false to reuse existing (default)
-func NewIndexDB(name string, journalMode string, batchSize int, cacheSizeMB int, disableReuse bool) (*IndexDB, error) {
+// Returns the IndexDB and a boolean indicating if the database was recreated (true) or reused (false)
+func NewIndexDB(name string, journalMode string, batchSize int, cacheSizeMB int, disableReuse bool) (*IndexDB, bool, error) {
+	wasRecreated := disableReuse // If disableReuse is true, we're creating fresh
+
 	idxDB, err := createIndexDB(name, journalMode, "", batchSize, cacheSizeMB, disableReuse)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
 	// For persistent databases, check integrity on startup
 	// If corrupted, delete and recreate the database
 	if !disableReuse {
 		if err := idxDB.checkIntegrityAndRecreateIfNeeded(); err != nil {
-			// Database was recreated, need to create a new connection
+			// Database was recreated due to corruption
+			wasRecreated = true
 			idxDB.Close()
 
 			// Recreate the database connection
 			idxDB, err = createIndexDB(name, journalMode, "", batchSize, cacheSizeMB, disableReuse)
 			if err != nil {
-				return nil, err
+				return nil, false, err
 			}
 		}
 	}
 
 	if err := idxDB.CreateIndexTable(); err != nil {
 		idxDB.Close()
-		return nil, err
+		return nil, false, err
 	}
 	go idxDB.startPeriodicCleanup()
-	return idxDB, nil
+	return idxDB, wasRecreated, nil
 }
 
 // checkIntegrityAndRecreateIfNeeded checks database integrity.

@@ -208,7 +208,7 @@ func TestOverrideDirectoryToFile(t *testing.T) {
 
 	// Initialize the database first (use test helper to avoid permission issues)
 	if indexing.GetIndexDB() == nil {
-		db, err := dbsql.NewIndexDB("test_file", "OFF", 1000, 32, false)
+		db, _, err := dbsql.NewIndexDB("test_file", "OFF", 1000, 32, false)
 		if err != nil {
 			t.Fatalf("Failed to create test database: %v", err)
 		}
@@ -318,7 +318,7 @@ func TestOverrideFileToDirectory(t *testing.T) {
 
 	// Initialize the database first (use test helper to avoid permission issues)
 	if indexing.GetIndexDB() == nil {
-		db, err := dbsql.NewIndexDB("test_file", "OFF", 1000, 32, false)
+		db, _, err := dbsql.NewIndexDB("test_file", "OFF", 1000, 32, false)
 		if err != nil {
 			t.Fatalf("Failed to create test database: %v", err)
 		}
