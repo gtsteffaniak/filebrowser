@@ -197,7 +197,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"updateAvailable":      utils.GetUpdateAvailableUrl(),
 		"disableNavButtons":    disableNavButtons,
 		"userSelectableThemes": config.Frontend.Styling.CustomThemeOptions,
-		"enableHeicConversion": config.Integrations.Media.Convert.ImagePreview[settings.HEICImagePreview] && settings.MediaEnabled(),
+		"enableHeicConversion": settings.CanConvertImage("heic"),
 		"eventBasedThemes":     !config.Frontend.Styling.DisableEventBasedThemes,
 		"loginIcon":            loginIcon,
 		"disableSidebar":       disableSidebar,
