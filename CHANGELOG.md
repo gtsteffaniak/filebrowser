@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **BugFixes**:
  - onlyOffice stopped working after 1.2.0 upgrade due to download api changes
+ - Search result link to wrong path when search context other than / #1863
 
 ## v1.2.0-beta
 

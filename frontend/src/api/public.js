@@ -59,21 +59,17 @@ export async function fetchPub(path, hash, password = "", content = false, metad
  * @returns {string}
  */
 export function getDownloadURL(share, files, inline=false) {
-  // Build URL with repeated 'file' parameters for each file
-  const urlParams = new URLSearchParams()
-  urlParams.append('hash', share.hash)
-  urlParams.append('token', share.token)
-  if (inline) {
-    urlParams.append('inline', 'true')
-  }
-  
-  // Add each file as a repeated 'file' parameter
+  // Handle array of files for repeated 'file' parameters
   const fileArray = Array.isArray(files) ? files : [files]
-  fileArray.forEach(file => {
-    urlParams.append('file', encodeURIComponent(file))
-  })
+  const filePaths = fileArray.map(file => encodeURIComponent(file))
   
-  const apiPath = '/public/api/raw?' + urlParams.toString()
+  const params = {
+    file: filePaths, // Array of file paths - getPublicApiPath will create repeated parameters
+    hash: share.hash,
+    token: share.token,
+    ...(inline && { inline: 'true' })
+  }
+  const apiPath = getPublicApiPath("raw", params)
   return window.origin + apiPath
 }
 

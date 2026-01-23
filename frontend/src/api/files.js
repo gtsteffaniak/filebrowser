@@ -150,8 +150,8 @@ export async function download(format, files, shareHash = "") {
     }
   }
   
-  // Build params with repeated 'file' parameters for each file
-  const baseParams = {
+  const params = {
+    file: filePaths, // Array of file paths - getApiPath will create repeated parameters
     algo: format,
     ...(shareHash && { hash: shareHash }),
     ...(!shareHash && source && { source: encodeURIComponent(source) }),
@@ -159,14 +159,7 @@ export async function download(format, files, shareHash = "") {
     sessionId: state.sessionId
   }
   
-  // Create URLSearchParams and add each file as a repeated 'file' parameter
-  const urlParams = new URLSearchParams()
-  Object.entries(baseParams).forEach(([key, value]) => {
-    if (value !== undefined) urlParams.append(key, value)
-  })
-  filePaths.forEach(filePath => urlParams.append('file', filePath))
-  
-  const apiPath = (shareHash == "" ? '/api/raw?' : '/public/api/raw?') + urlParams.toString()
+  const apiPath = getApiPath(shareHash == "" ? 'api/raw' : 'public/api/raw', params)
   const url = window.origin + apiPath
 
   // Create a direct link and trigger the download
@@ -210,22 +203,15 @@ async function downloadChunked(file, shareHash = "") {
     mutations.showHover({ name: 'download' })
   }
 
-  // Build the download URL with repeated 'file' parameter format
-  const baseParams = {
+  const params = {
+    file: encodeURIComponent(file.path),
     ...(shareHash && { hash: shareHash }),
     ...(!shareHash && file.source && { source: encodeURIComponent(file.source) }),
     ...(state.share.token && { token: state.share.token }),
     sessionId: state.sessionId
   }
   
-  // Create URLSearchParams and add file as 'file' parameter
-  const urlParams = new URLSearchParams()
-  Object.entries(baseParams).forEach(([key, value]) => {
-    if (value !== undefined) urlParams.append(key, value)
-  })
-  urlParams.append('file', encodeURIComponent(file.path))
-  
-  const apiPath = (shareHash == "" ? '/api/raw?' : '/public/api/raw?') + urlParams.toString()
+  const apiPath = getApiPath(shareHash == "" ? 'api/raw' : 'public/api/raw', params)
   const baseUrl = window.origin + apiPath
 
   const download = downloadManager.findById(downloadId)
@@ -529,15 +515,12 @@ export function getDownloadURL(source, path, inline, useExternal) {
     throw new Error('no source provided')
   }
   try {
-    // Build params with 'file' parameter (not 'files')
-    const urlParams = new URLSearchParams()
-    urlParams.append('source', encodeURIComponent(source))
-    urlParams.append('file', encodeURIComponent(path))
-    if (inline) {
-      urlParams.append('inline', 'true')
+    const params = {
+      source: encodeURIComponent(source),
+      file: encodeURIComponent(path),
+      ...(inline && { inline: 'true' })
     }
-    
-    const apiPath = '/api/raw?' + urlParams.toString()
+    const apiPath = getApiPath('api/raw', params)
     if (globalVars.externalUrl && useExternal) {
       return globalVars.externalUrl + apiPath
     }
