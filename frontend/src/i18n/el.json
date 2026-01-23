@@ -226,7 +226,8 @@
     "copyToClipboardFailed": "Αδυναμία αντιγραφής στο πρόχειρο",
     "moveFailed": "Η μετακίνηση απέτυχε",
     "operationFailed": "Η λειτουργία απέτυχε",
-    "partialSuccess": "Ορισμένες λειτουργίες απέτυχαν: {succeeded} πέτυχε, {failed} απέτυχε"
+    "partialSuccess": "Ορισμένες λειτουργίες απέτυχαν: {succeeded} πέτυχε, {failed} απέτυχε",
+    "renameFailed": "Απέτυχε η μετονομασία στοιχείου"
   },
   "search": {
     "smallerThan": "Μικρότερο από:",

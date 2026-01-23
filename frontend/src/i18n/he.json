@@ -223,7 +223,8 @@
     "copyToClipboardFailed": "לא ניתן להעתיק ללוח",
     "moveFailed": "העברה נכשלה",
     "operationFailed": "הפעולה נכשלה",
-    "partialSuccess": "כמה פעולות נכשלו: {succeeded} הצליחו, {failed} נכשלו"
+    "partialSuccess": "כמה פעולות נכשלו: {succeeded} הצליחו, {failed} נכשלו",
+    "renameFailed": "לא ניתן לשנות את שם הפריט"
   },
   "search": {
     "smallerThan": "קטן מ:",

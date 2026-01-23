@@ -223,7 +223,8 @@
     "copyToClipboardFailed": "Impossibile copiare negli appunti",
     "moveFailed": "Spostamento non riuscito",
     "operationFailed": "Operazione fallita",
-    "partialSuccess": "Alcune operazioni non sono riuscite: {succeeded} è riuscito, {failed} non è riuscito."
+    "partialSuccess": "Alcune operazioni non sono riuscite: {succeeded} è riuscito, {failed} non è riuscito.",
+    "renameFailed": "Impossibile rinominare l'elemento"
   },
   "search": {
     "smallerThan": "Più piccolo di:",

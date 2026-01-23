@@ -223,7 +223,8 @@
     "copyToClipboardFailed": "Неможливо скопіювати в буфер обміну",
     "moveFailed": "Переміщення не вдалося",
     "operationFailed": "Операція не вдалася",
-    "partialSuccess": "Деякі операції не вдалися: {succeeded} вдалося, {failed} не вдалося"
+    "partialSuccess": "Деякі операції не вдалися: {succeeded} вдалося, {failed} не вдалося",
+    "renameFailed": "Не вдалося перейменувати елемент"
   },
   "search": {
     "smallerThan": "Менше, ніж:",

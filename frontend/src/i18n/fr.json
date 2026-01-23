@@ -223,7 +223,8 @@
     "copyToClipboardFailed": "Impossible de copier dans le presse-papiers",
     "moveFailed": "Échec du déplacement",
     "operationFailed": "Échec de l'opération",
-    "partialSuccess": "Certaines opérations ont échoué : {succeeded} a réussi, {failed} a échoué"
+    "partialSuccess": "Certaines opérations ont échoué : {succeeded} a réussi, {failed} a échoué",
+    "renameFailed": "Échec du renommage de l'élément"
   },
   "search": {
     "smallerThan": "Plus petit que :",

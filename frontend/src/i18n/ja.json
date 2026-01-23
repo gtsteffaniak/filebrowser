@@ -223,7 +223,8 @@
     "copyToClipboardFailed": "クリップボードにコピーできない",
     "moveFailed": "移動に失敗しました",
     "operationFailed": "操作失敗",
-    "partialSuccess": "{succeeded} は成功、{failed} は失敗。"
+    "partialSuccess": "{succeeded} は成功、{failed} は失敗。",
+    "renameFailed": "アイテム名の変更に失敗しました"
   },
   "search": {
     "smallerThan": "より小さい：",

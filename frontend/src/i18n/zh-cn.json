@@ -223,7 +223,8 @@
     "copyToClipboardFailed": "无法复制到剪贴板",
     "moveFailed": "移动失败",
     "operationFailed": "操作失败",
-    "partialSuccess": "某些操作失败：{succeeded} 成功，{failed} 失败"
+    "partialSuccess": "某些操作失败：{succeeded} 成功，{failed} 失败",
+    "renameFailed": "重命名项目失败"
   },
   "search": {
     "smallerThan": "小于",
