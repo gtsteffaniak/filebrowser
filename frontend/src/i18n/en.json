@@ -373,6 +373,7 @@
     "renameMessageConflict": "An item named \"{filename}\" already exists!",
     "renameMessage": "Enter a new name:",
     "renameMessageInvalid": "A file can't container \"/\" or \"\\\"",
+    "renameFailed": "Failed to rename item",
     "replace": "Replace",
     "replaceMessage": "One of the files you're trying to upload is conflicting because of its name. Do you wish to continue to upload or replace the existing one?\n",
     "saveBeforeExit": "Unsaved Changes",
