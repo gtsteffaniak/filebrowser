@@ -257,7 +257,7 @@ export default {
       mutations.hideTooltip();
     },
     validateExtensions(value) {
-      if (value === "") {
+      if (value === "" || value === "*") {
         return true;
       }
       const regex = /^\.\w+(?: \.\w+)*$/;

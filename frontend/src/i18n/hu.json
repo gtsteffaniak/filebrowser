@@ -714,7 +714,6 @@
     "disableViewingFilesDescription": "A fájlmegjelenítő/szerkesztő letiltásának fájlkiterjesztések szóközzel elválasztott listája (pl. '.txt .pdf').",
     "disablePreviewExt": "Office-fájlok előnézetének letiltása bizonyos fájlkiterjesztések esetében",
     "disablePreviewExtDescription": "Az irodai fájlok előnézetének letiltására szolgáló fájlkiterjesztések szóközzel elválasztott listája (pl. '.docx .pptx').",
-    "disableOfficeEditorDescription": "Az OnlyOffice szerkesztő és megjelenítő letiltandó fájlkiterjesztések szóközzel elválasztott listája. (pl. \".txt .html .pdf\").",
     "disableOfficeEditor": "Bizonyos fájlkiterjesztéseknél letilthatja az Office Viewer-t",
     "defaultThemeDescription": "default - Az alapértelmezett téma",
     "customTheme": "Válasszon témát",
@@ -728,7 +727,8 @@
     "themeAndLanguage": "Téma és nyelv",
     "previewFolder": "A mappák miniatűrjeinek megjelenítése, ha rendelkezésre állnak",
     "previewFolderDescription": "Miniatűr előnézetek megjelenítése olyan mappákhoz, amelyekben az első gyermekelem miniatűrrel borítóképként szerepel.",
-    "disableFileExtensions": "Adja meg a letiltandó fájlkiterjesztéseket"
+    "disableFileExtensions": "Adja meg a letiltandó fájlkiterjesztéseket",
+    "disableOfficeEditorDescription": "Az OnlyOffice szerkesztő és megjelenítő program letiltásának szóközzel elválasztott listája - vagy '*' az összes fájlkiterjesztés letiltásához. (pl. \".txt .html .pdf\")."
   },
   "editor": {
     "uninitialized": "Nem sikerült inicializálni a szerkesztőt. Kérjük, töltse újra.",

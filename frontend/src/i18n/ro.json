@@ -714,7 +714,6 @@
     "disableViewingFilesDescription": "O listă de extensii de fișiere separate prin spațiu pentru care se dezactivează vizualizatorul/editorul de fișiere (de exemplu, '.txt .pdf').",
     "disablePreviewExt": "Dezactivați previzualizarea fișierelor office pentru anumite extensii de fișiere",
     "disablePreviewExtDescription": "O listă de extensii de fișiere separate prin spațiu pentru care se dezactivează previzualizările fișierelor office (de exemplu, '.docx .pptx').",
-    "disableOfficeEditorDescription": "O listă de extensii de fișiere separate prin spațiu pentru care se dezactivează editorul și vizualizatorul OnlyOffice. (de exemplu, \".txt .html .pdf\").",
     "disableOfficeEditor": "Dezactivați vizualizatorul office pentru anumite extensii de fișiere",
     "defaultThemeDescription": "default - Tema implicită",
     "customTheme": "Alege-ți tema",
@@ -728,7 +727,8 @@
     "themeAndLanguage": "Temă și limbaj",
     "previewFolder": "Afișați miniaturi pentru foldere, dacă sunt disponibile",
     "previewFolderDescription": "Afișează previzualizări ale miniaturilor pentru folderele cu primul element copil cu miniatură ca copertă.",
-    "disableFileExtensions": "Introduceți extensiile de fișier pe care doriți să le dezactivați"
+    "disableFileExtensions": "Introduceți extensiile de fișier pe care doriți să le dezactivați",
+    "disableOfficeEditorDescription": "O listă de extensii de fișiere separate prin spațiu pentru care se dezactivează editorul și vizualizatorul OnlyOffice - sau \"*\" pentru dezactivarea pentru toate. (de exemplu, \".txt .html .pdf\")."
   },
   "editor": {
     "uninitialized": "Nu s-a reușit inițializarea editorului. Vă rugăm să reîncărcați.",

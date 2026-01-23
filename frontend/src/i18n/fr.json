@@ -714,7 +714,6 @@
     "disableViewingFilesDescription": "Une liste d'extensions de fichiers séparées par des espaces pour lesquelles le visualiseur/éditeur de fichiers doit être désactivé (par exemple, '.txt .pdf').",
     "disablePreviewExt": "Désactiver les aperçus de fichiers Office pour certaines extensions de fichiers",
     "disablePreviewExtDescription": "Une liste d'extensions de fichiers séparées par des espaces pour lesquelles les aperçus de fichiers Office doivent être désactivés (par exemple, '.docx .pptx').",
-    "disableOfficeEditorDescription": "Une liste d'extensions de fichiers séparées par des espaces pour lesquelles l'éditeur et la visionneuse OnlyOffice doivent être désactivés. (par exemple, '.txt .html .pdf').",
     "disableOfficeEditor": "Désactiver la visionneuse d'office pour certaines extensions de fichiers",
     "defaultThemeDescription": "default - Le thème par défaut",
     "customTheme": "Choisissez votre thème",
@@ -728,7 +727,8 @@
     "themeAndLanguage": "Thème et langue",
     "previewFolder": "Afficher les vignettes des dossiers si elles sont disponibles",
     "previewFolderDescription": "Afficher des aperçus de vignettes pour les dossiers dont le premier élément enfant a une vignette comme couverture.",
-    "disableFileExtensions": "Saisir les extensions de fichiers à désactiver"
+    "disableFileExtensions": "Saisir les extensions de fichiers à désactiver",
+    "disableOfficeEditorDescription": "Une liste d'extensions de fichiers séparées par des espaces pour lesquelles l'éditeur et la visionneuse OnlyOffice doivent être désactivés - ou '*' pour les désactiver toutes. (par exemple, '.txt .html .pdf')."
   },
   "editor": {
     "uninitialized": "Échec de l'initialisation de l'éditeur. Veuillez recharger.",

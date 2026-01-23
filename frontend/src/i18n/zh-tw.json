@@ -550,7 +550,6 @@
     "disableViewingFilesDescription": "以空格分隔的檔案副檔名清單，用來停用檔案檢視器/編輯器 (例如：'.txt .pdf')。",
     "disablePreviewExt": "停用特定檔案副檔名的 Office 檔案預覽",
     "disablePreviewExtDescription": "以空格分隔的檔案副檔名清單，以停用 Office 檔案預覽 (例如 '.docx .pptx')。",
-    "disableOfficeEditorDescription": "以空格分隔的檔案副檔名清單，用來停用 OnlyOffice 編輯器和檢視器。(例如，'.txt .html .pdf'）。",
     "disableOfficeEditor": "停用特定檔案副檔名的 Office 檢視器",
     "defaultThemeDescription": "default - 預設主題",
     "customTheme": "選擇您的主題",
@@ -564,7 +563,8 @@
     "themeAndLanguage": "主題與語言",
     "previewFolder": "顯示資料夾的縮圖（若有",
     "previewFolderDescription": "顯示資料夾的縮圖預覽，第一個子項目以縮圖為封面。",
-    "disableFileExtensions": "輸入要停用的檔案副檔名"
+    "disableFileExtensions": "輸入要停用的檔案副檔名",
+    "disableOfficeEditorDescription": "以空格分隔的檔案副檔名清單，用來停用 OnlyOffice 編輯器和檢視器 - 或 '*' 來停用所有。(例如，'.txt .html .pdf'）。"
   },
   "otp": {
     "name": "雙因素驗證",

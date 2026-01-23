@@ -714,7 +714,6 @@
     "disableViewingFilesDescription": "Rozdzielana spacjami lista rozszerzeń plików, dla których ma zostać wyłączona przeglądarka/edytor plików (np. \".txt .pdf\").",
     "disablePreviewExt": "Wyłącz podgląd plików pakietu Office dla niektórych rozszerzeń plików",
     "disablePreviewExtDescription": "Rozdzielana spacjami lista rozszerzeń plików do wyłączenia podglądu plików biurowych (np. \".docx .pptx\").",
-    "disableOfficeEditorDescription": "Rozdzielana spacjami lista rozszerzeń plików, dla których edytor i przeglądarka OnlyOffice mają zostać wyłączone. (np. \".txt .html .pdf\").",
     "disableOfficeEditor": "Wyłącz przeglądarkę Office dla niektórych rozszerzeń plików",
     "defaultThemeDescription": "default - domyślny motyw",
     "customTheme": "Wybierz motyw",
@@ -728,7 +727,8 @@
     "themeAndLanguage": "Temat i język",
     "previewFolder": "Wyświetlanie miniatur folderów, jeśli są dostępne.",
     "previewFolderDescription": "Wyświetlanie podglądu miniatur dla folderów z pierwszym elementem podrzędnym z miniaturą jako okładką.",
-    "disableFileExtensions": "Wprowadź rozszerzenia plików do wyłączenia"
+    "disableFileExtensions": "Wprowadź rozszerzenia plików do wyłączenia",
+    "disableOfficeEditorDescription": "Rozdzielana spacjami lista rozszerzeń plików do wyłączenia edytora i przeglądarki OnlyOffice - lub \"*\", aby wyłączyć dla wszystkich. (np. '.txt .html .pdf')."
   },
   "editor": {
     "uninitialized": "Nie udało się zainicjować edytora. Przeładuj ponownie.",

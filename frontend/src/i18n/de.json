@@ -714,7 +714,6 @@
     "disableViewingFilesDescription": "Eine durch Leerzeichen getrennte Liste von Dateierweiterungen, für die der Dateibetrachter/-editor deaktiviert werden soll (z. B. '.txt .pdf').",
     "disablePreviewExt": "Office-Dateivorschau für bestimmte Dateierweiterungen deaktivieren",
     "disablePreviewExtDescription": "Eine durch Leerzeichen getrennte Liste von Dateierweiterungen, für die die Office-Dateivorschau deaktiviert werden soll (z. B. '.docx .pptx').",
-    "disableOfficeEditorDescription": "Eine durch Leerzeichen getrennte Liste von Dateierweiterungen, für die der Editor und der Viewer von OnlyOffice deaktiviert werden sollen. (z. B. '.txt .html .pdf').",
     "disableOfficeEditor": "Office Viewer für bestimmte Dateierweiterungen deaktivieren",
     "defaultThemeDescription": "default - Das Standardthema",
     "customTheme": "Design",
@@ -728,7 +727,8 @@
     "themeAndLanguage": "Design und Sprache",
     "previewFolder": "Miniaturansichten für Ordner anzeigen, falls vorhanden",
     "previewFolderDescription": "Zeigen Sie Miniaturvorschauen für Ordner an, deren erstes untergeordnetes Element ein Miniaturbild als Cover hat.",
-    "disableFileExtensions": "Zu deaktivierende Dateierweiterungen eingeben"
+    "disableFileExtensions": "Zu deaktivierende Dateierweiterungen eingeben",
+    "disableOfficeEditorDescription": "Eine durch Leerzeichen getrennte Liste von Dateierweiterungen, für die der OnlyOffice-Editor und -Betrachter deaktiviert werden soll - oder '*', um ihn für alle zu deaktivieren. (z. B. '.txt .html .pdf')."
   },
   "editor": {
     "uninitialized": "Der Editor konnte nicht initialisiert werden. Bitte neu laden.",

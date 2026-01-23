@@ -5,14 +5,17 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v1.2.1-beta
 
+ **New Features**:
+ - Global onlyoffice editor via "*" file option
+
  **Notes**:
- - upgraded imaging package and improved thumbnail generation performance.
+ - upgraded imaging package and improved thumbnail generation performance. (#1797) ()
  - updated download api to use repeated `file` query param for path instead of `files` with comma. See swagger for details (#1881)
 
  **BugFixes**:
- - onlyOffice stopped working after 1.2.0 upgrade due to download api changes
- - Search result link to wrong path when search context other than / #1863
- - File actions doesn't work if using user scopes #1879
+ - OnlyOffice stopped working after 1.2.0 upgrade due to download api changes
+ - Search result link to wrong path when search context other than / (#1863)
+ - File actions doesn't work if using user scopes (#1879)
 
 ## v1.2.0-beta
 
