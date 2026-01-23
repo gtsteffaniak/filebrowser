@@ -714,7 +714,6 @@
     "disableViewingFilesDescription": "Dosya görüntüleyici/düzenleyicinin devre dışı bırakılacağı dosya uzantılarının boşluk bırakılarak ayrılmış listesi (örn. '.txt .pdf').",
     "disablePreviewExt": "Belirli dosya uzantıları için ofis dosyası önizlemelerini devre dışı bırakma",
     "disablePreviewExtDescription": "Ofis dosyası önizlemelerinin devre dışı bırakılacağı dosya uzantılarının boşluk bırakılarak ayrılmış listesi (örn. '.docx .pptx').",
-    "disableOfficeEditorDescription": "OnlyOffice düzenleyicisini ve görüntüleyicisini devre dışı bırakmak için dosya uzantılarının boşluk bırakılarak ayrılmış bir listesi. (örneğin, '.txt .html .pdf').",
     "disableOfficeEditor": "Belirli dosya uzantıları için ofis görüntüleyiciyi devre dışı bırakma",
     "defaultThemeDescription": "default - Varsayılan tema",
     "customTheme": "Temanızı seçin",
@@ -728,7 +727,8 @@
     "themeAndLanguage": "Tema ve Dil",
     "previewFolder": "Varsa klasörler için küçük resimleri göster",
     "previewFolderDescription": "Kapak olarak küçük resmi olan ilk alt öğeye sahip klasörler için küçük resim önizlemelerini gösterin.",
-    "disableFileExtensions": "Devre dışı bırakılacak dosya uzantılarını girin"
+    "disableFileExtensions": "Devre dışı bırakılacak dosya uzantılarını girin",
+    "disableOfficeEditorDescription": "OnlyOffice düzenleyicisinin ve görüntüleyicisinin devre dışı bırakılacağı dosya uzantılarının boşluk bırakılarak ayrılmış bir listesi - veya tümünü devre dışı bırakmak için '*'. (örneğin, '.txt .html .pdf')."
   },
   "editor": {
     "uninitialized": "Düzenleyici başlatılamadı. Lütfen yeniden yükleyin.",

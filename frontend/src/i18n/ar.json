@@ -706,7 +706,6 @@
     "disableViewingFilesDescription": "قائمة مفصولة بمسافات لامتدادات الملفات لتعطيل عارض/محرر الملفات (على سبيل المثال، \".txt .pdf\").",
     "disablePreviewExt": "تعطيل معاينات الملفات المكتبية لملحقات ملفات معينة",
     "disablePreviewExtDescription": "قائمة مفصولة بمسافات لامتدادات الملفات لتعطيل معاينات ملفات المكتب (على سبيل المثال، '.docx .pptx').",
-    "disableOfficeEditorDescription": "قائمة مفصولة بمسافات لامتدادات الملفات لتعطيل محرر وعارض OnlyOffice لها. (على سبيل المثال، \".txt .html .pdf\").",
     "disableOfficeEditor": "تعطيل عارض المكتب لامتدادات ملفات معينة",
     "defaultThemeDescription": "افتراضي - السمة الافتراضية",
     "customTheme": "اختر المظهر الخاص بك",
@@ -720,7 +719,8 @@
     "themeAndLanguage": "الموضوع واللغة",
     "previewFolder": "إظهار الصور المصغرة للمجلدات إذا كانت متوفرة",
     "previewFolderDescription": "إظهار معاينات الصور المصغرة للمجلدات التي تحتوي على العنصر الفرعي الأول مع صورة مصغرة كغلاف.",
-    "disableFileExtensions": "أدخل امتدادات الملفات لتعطيلها"
+    "disableFileExtensions": "أدخل امتدادات الملفات لتعطيلها",
+    "disableOfficeEditorDescription": "قائمة مفصولة بمسافات لامتدادات الملفات لتعطيل محرر وعارض OnlyOffice - أو '*' لتعطيلها كلها. (على سبيل المثال، \".txt .html .pdf\")."
   },
   "colors": {
     "red": "أحمر",

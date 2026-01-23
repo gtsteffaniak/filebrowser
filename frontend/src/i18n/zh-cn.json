@@ -581,7 +581,6 @@
     "disableViewingFilesDescription": "以空格分隔的文件扩展名列表，用于禁用文件查看器/编辑器（如\".txt .pdf\"）。",
     "disablePreviewExt": "禁用某些文件扩展名的 Office 文件预览功能",
     "disablePreviewExtDescription": "用空格分隔的文件扩展名列表，用于禁用办公文件预览（如\".docx .pptx\"）。",
-    "disableOfficeEditorDescription": "用空格分隔的文件扩展名列表，用于禁用 OnlyOffice 编辑器和查看器。(例如，\".txt .html .pdf\"）。",
     "disableOfficeEditor": "禁用某些文件扩展名的 Office 查看器",
     "defaultThemeDescription": "default - 默认主题",
     "customTheme": "选择主题",
@@ -595,7 +594,8 @@
     "themeAndLanguage": "主题与语言",
     "previewFolder": "如果有的话，显示文件夹的缩略图",
     "previewFolderDescription": "显示文件夹的缩略图预览，第一个子项的缩略图为封面。",
-    "disableFileExtensions": "输入要禁用的文件扩展名"
+    "disableFileExtensions": "输入要禁用的文件扩展名",
+    "disableOfficeEditorDescription": "用空格分隔的文件扩展名列表，用于禁用 OnlyOffice 编辑器和查看器，或用 \"*\"表示禁用所有文件扩展名。(例如，\".txt .html .pdf\"）。"
   },
   "general": {
     "name": "名称",

@@ -581,7 +581,6 @@
     "disableViewingFilesDescription": "En mellanslagsseparerad lista över filändelser för vilka filvisaren/-redigeraren ska inaktiveras (t.ex. '.txt .pdf').",
     "disablePreviewExt": "Avaktivera förhandsgranskning av Office-filer för vissa filtillägg",
     "disablePreviewExtDescription": "En mellanslagsseparerad lista över filtillägg för vilka förhandsgranskningar av Office-filer ska inaktiveras (t.ex. '.docx .pptx').",
-    "disableOfficeEditorDescription": "En mellanslagsseparerad lista över filtillägg som OnlyOffice redigerare och visare ska inaktiveras för. (t.ex. '.txt .html .pdf').",
     "disableOfficeEditor": "Avaktivera Office Viewer för vissa filtillägg",
     "defaultThemeDescription": "default - Standardtema",
     "customTheme": "Välj ditt tema",
@@ -595,7 +594,8 @@
     "themeAndLanguage": "Tema & språk",
     "previewFolder": "Visa miniatyrbilder för mappar om de är tillgängliga",
     "previewFolderDescription": "Visa förhandsvisningar av miniatyrbilder för mappar med första underordnade objekt med miniatyrbild som omslag.",
-    "disableFileExtensions": "Ange filändelser som ska inaktiveras"
+    "disableFileExtensions": "Ange filändelser som ska inaktiveras",
+    "disableOfficeEditorDescription": "En mellanslagsseparerad lista med filändelser som OnlyOffice redigerare och visare ska inaktiveras för - eller '*' för att inaktivera alla. (t.ex. '.txt .html .pdf')."
   },
   "general": {
     "name": "Namn",

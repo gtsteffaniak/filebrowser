@@ -491,7 +491,7 @@
     "disableViewingFilesDescription": "A space-separated list of file extensions to disable the file viewer/editor for (e.g., '.txt .pdf').",
     "disablePreviewExt": "Disable office file previews for certain file extensions",
     "disablePreviewExtDescription": "A space-separated list of file extensions to disable office file previews for (e.g., '.docx .pptx').",
-    "disableOfficeEditorDescription": "A space-separated list of file extensions to disable the OnlyOffice editor and viewer for. (e.g., '.txt .html .pdf').",
+    "disableOfficeEditorDescription": "A space-separated list of file extensions to disable the OnlyOffice editor and viewer for - or '*' to disable for all. (e.g., '.txt .html .pdf').",
     "disableOfficeEditor": "Disable office viewer for certain file extensions",
     "fileViewerOptions": "File Viewer Options",
     "themeAndLanguage": "Theme & Language"
