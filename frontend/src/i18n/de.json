@@ -223,7 +223,8 @@
     "copyToClipboardFailed": "Kopieren in die Zwischenablage nicht möglich",
     "moveFailed": "Verschieben fehlgeschlagen",
     "operationFailed": "Operation fehlgeschlagen",
-    "partialSuccess": "Einige Operationen sind fehlgeschlagen: {succeeded} erfolgreich, {failed} fehlgeschlagen"
+    "partialSuccess": "Einige Operationen sind fehlgeschlagen: {succeeded} erfolgreich, {failed} fehlgeschlagen",
+    "renameFailed": "Element kann nicht umbenannt werden"
   },
   "search": {
     "smallerThan": "Kleiner als:",

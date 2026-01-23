@@ -223,7 +223,8 @@
     "copyToClipboardFailed": "클립보드에 복사할 수 없습니다.",
     "moveFailed": "이동 실패",
     "operationFailed": "작업 실패",
-    "partialSuccess": "일부 작업 실패: {succeeded} 성공, {failed} 실패"
+    "partialSuccess": "일부 작업 실패: {succeeded} 성공, {failed} 실패",
+    "renameFailed": "항목 이름 변경에 실패했습니다."
   },
   "search": {
     "smallerThan": "보다 작습니다:",

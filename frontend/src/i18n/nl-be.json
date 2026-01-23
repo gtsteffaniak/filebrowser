@@ -223,7 +223,8 @@
     "copyToClipboardFailed": "Kan niet naar klembord kopiëren",
     "moveFailed": "Verplaatsen mislukt",
     "operationFailed": "Operatie mislukt",
-    "partialSuccess": "Sommige bewerkingen zijn mislukt: {succeeded} gelukt, {failed} mislukt."
+    "partialSuccess": "Sommige bewerkingen zijn mislukt: {succeeded} gelukt, {failed} mislukt.",
+    "renameFailed": "Hernoemen van item mislukt"
   },
   "search": {
     "smallerThan": "Kleiner dan:",

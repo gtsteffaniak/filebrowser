@@ -223,7 +223,8 @@
     "copyToClipboardFailed": "Não é possível copiar para a área de transferência",
     "moveFailed": "Falha ao mover",
     "operationFailed": "A operação falhou",
-    "partialSuccess": "Algumas operações falharam: {succeeded} foi bem sucedido, {failed} falhou"
+    "partialSuccess": "Algumas operações falharam: {succeeded} foi bem sucedido, {failed} falhou",
+    "renameFailed": "Falha ao renomear o item"
   },
   "search": {
     "smallerThan": "Mais pequeno do que:",

@@ -223,7 +223,8 @@
     "copyToClipboardFailed": "Nem lehet a vágólapra másolni",
     "moveFailed": "Áthelyezés sikertelen",
     "operationFailed": "A művelet sikertelen",
-    "partialSuccess": "Néhány művelet sikertelen: {succeeded} sikeres volt, {failed} sikertelen."
+    "partialSuccess": "Néhány művelet sikertelen: {succeeded} sikeres volt, {failed} sikertelen.",
+    "renameFailed": "Nem sikerült átnevezni az elemet"
   },
   "search": {
     "smallerThan": "Kisebb, mint:",

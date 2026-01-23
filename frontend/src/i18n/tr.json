@@ -223,7 +223,8 @@
     "copyToClipboardFailed": "Panoya kopyalanamıyor",
     "moveFailed": "Taşıma başarısız",
     "operationFailed": "İşlem başarısız oldu",
-    "partialSuccess": "Bazı işlemler başarısız oldu: {succeeded} başarılı, {failed} başarısız"
+    "partialSuccess": "Bazı işlemler başarısız oldu: {succeeded} başarılı, {failed} başarısız",
+    "renameFailed": "Öğenin adı değiştirilemedi"
   },
   "search": {
     "smallerThan": "Daha küçük:",

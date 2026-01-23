@@ -223,7 +223,8 @@
     "copyToClipboardFailed": "Hubo un error al copiar en el portapapeles",
     "moveFailed": "Error al mover",
     "operationFailed": "Operación fallida",
-    "partialSuccess": "Algunas operaciones fallaron: {succeeded} tuvo éxito, {failed} falló"
+    "partialSuccess": "Algunas operaciones fallaron: {succeeded} tuvo éxito, {failed} falló",
+    "renameFailed": "Error al renombrar elemento"
   },
   "search": {
     "smallerThan": "Menor que:",

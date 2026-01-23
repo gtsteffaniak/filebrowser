@@ -223,7 +223,8 @@
     "copyToClipboardFailed": "تعذر النسخ إلى الحافظة",
     "moveFailed": "فشلت عملية النقل",
     "operationFailed": "فشلت العملية",
-    "partialSuccess": "فشلت بعض العمليات: {succeeded} نجحت ، {failed} فشلت "
+    "partialSuccess": "فشلت بعض العمليات: {succeeded} نجحت ، {failed} فشلت ",
+    "renameFailed": "فشل في إعادة تسمية العنصر"
   },
   "search": {
     "smallerThan": "أصغر من:",

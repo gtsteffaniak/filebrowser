@@ -223,7 +223,8 @@
     "copyToClipboardFailed": "Det går inte att kopiera till urklipp",
     "moveFailed": "Flyttning misslyckades",
     "operationFailed": "Operationen misslyckades",
-    "partialSuccess": "Vissa operationer misslyckades: {succeeded} lyckades, {failed} misslyckades"
+    "partialSuccess": "Vissa operationer misslyckades: {succeeded} lyckades, {failed} misslyckades",
+    "renameFailed": "Misslyckades med att byta namn på objekt"
   },
   "search": {
     "smallerThan": "Mindre än:",

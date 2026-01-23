@@ -223,7 +223,8 @@
     "copyToClipboardFailed": "Imposibilitatea de a copia în clipboard",
     "moveFailed": "Mutarea a eșuat",
     "operationFailed": "Operațiunea a eșuat",
-    "partialSuccess": "Unele operațiuni au eșuat: {succeeded} a reușit, {failed} a eșuat"
+    "partialSuccess": "Unele operațiuni au eșuat: {succeeded} a reușit, {failed} a eșuat",
+    "renameFailed": "A eșuat redenumirea elementului"
   },
   "search": {
     "smallerThan": "Mai mic decât:",
