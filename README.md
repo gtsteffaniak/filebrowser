@@ -109,7 +109,7 @@ FTP support                   | ❌ | ❌ | ✅ | ✅ | ❌ | ✅ |
 Dedicated docs site?          | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
 Multiple sources at once      | ✅ | ❌ | ✅ | ✅ | ❌ | ✅ |
 Docker image size             | 180 MB (with ffmpeg) | 31 MB  | 240 MB (main image) | 250 MB | ❌ | > 2 GB |
-Min. Memory Requirements      | 256 MB | 128 MB | 128 MB (main image) | 512 MB | ❌ | 512 MB   |
+Min. Memory Requirements      | 512 MB | 128 MB | 128 MB (main image) | 512 MB | ❌ | 512 MB   |
 has standalone binary         | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
 price                         | free | free | free | free tier | free tier | $99+ |
 rich media preview            | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
