@@ -48,6 +48,9 @@ export default {
       return getters.isStickySidebar() || getters.isShare();
     },
     showShelf() {
+      if (state.loading.length > 0) {
+        return false;
+      }
       return this.showBreadcrumbs || this.showListingHeader || this.showDuplicateFinderActions;
     },
     showBreadcrumbs() {

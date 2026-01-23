@@ -304,8 +304,8 @@ export default {
       return this.selectedSource === "__all__" || (this.selectedSource === "" && this.multipleSources);
     },
     getContext() {
-      // If searching all sources, don't use context
-      if (this.selectedSource === "__all__") {
+      // If searching all sources (explicitly or by default), always use root context
+      if (this.selectedSource === "__all__" || (this.selectedSource === "" && this.multipleSources)) {
         return "/";
       }
       let result = url.extractSourceFromPath(decodeURIComponent(state.route.path));
@@ -375,7 +375,12 @@ export default {
     getItemUrl(s) {
       // Use source from result if available, otherwise fall back to selectedSource
       const source = s.source || this.selectedSource || state.sources.current;
-      return url.buildItemUrl(source, s.path, true);
+      // Combine context (scope) with the result path - needed when searching within a folder
+      // Ensure exactly one slash between context and path
+      const context = url.removeTrailingSlash(this.getContext);
+      const path = url.removeLeadingSlash(url.removeTrailingSlash(s.path));
+      const fullPath = context + '/' + path;
+      return url.buildItemUrl(source, fullPath, true);
     },
     getIcon(mimetype) {
       return getMaterialIconForType(mimetype);
@@ -513,9 +518,13 @@ export default {
       try {
         // Use source from result if available, otherwise fall back to selectedSource
         const source = s.source || this.selectedSource || state.sources.current;
-        const path = s.path;
+        // Combine context (scope) with the result path - needed when searching within a folder
+        // Ensure exactly one slash between context and path
+        const context = url.removeTrailingSlash(this.getContext);
+        const path = url.removeLeadingSlash(url.removeTrailingSlash(s.path));
+        const fullPath = context + '/' + path;
         const modified = s.modified || "";
-        return filesApi.getPreviewURL(source, path, modified);
+        return filesApi.getPreviewURL(source, fullPath, modified);
       } catch (err) {
         return "";
       }
@@ -524,7 +533,10 @@ export default {
       const pathParts = url.removeTrailingSlash(s.path).split("/");
       // Use source from result if available, otherwise fall back to selectedSource
       const source = s.source || this.selectedSource || state.sources.current;
-      let path = this.getContext + url.removeTrailingSlash(s.path);
+      // Combine context (scope) with the result path - ensure exactly one slash between
+      const context = url.removeTrailingSlash(this.getContext);
+      const pathStr = url.removeLeadingSlash(url.removeTrailingSlash(s.path));
+      let path = context + '/' + pathStr;
       const modifiedItem = {
         name: pathParts.pop(),
         path: path,

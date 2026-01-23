@@ -151,7 +151,7 @@ export async function download(format, files, shareHash = "") {
   }
   
   const params = {
-    files: filePaths.join(','),
+    file: filePaths, // Array of file paths - getApiPath will create repeated parameters
     algo: format,
     ...(shareHash && { hash: shareHash }),
     ...(!shareHash && source && { source: encodeURIComponent(source) }),
@@ -203,9 +203,8 @@ async function downloadChunked(file, shareHash = "") {
     mutations.showHover({ name: 'download' })
   }
 
-  // Build the download URL with new query format
   const params = {
-    files: encodeURIComponent(file.path),
+    file: encodeURIComponent(file.path),
     ...(shareHash && { hash: shareHash }),
     ...(!shareHash && file.source && { source: encodeURIComponent(file.source) }),
     ...(state.share.token && { token: state.share.token }),
@@ -518,7 +517,7 @@ export function getDownloadURL(source, path, inline, useExternal) {
   try {
     const params = {
       source: encodeURIComponent(source),
-      files: encodeURIComponent(path),
+      file: encodeURIComponent(path),
       ...(inline && { inline: 'true' })
     }
     const apiPath = getApiPath('api/raw', params)

@@ -272,20 +272,8 @@ func (s *Service) Resize(in io.Reader, width, height int, out io.Writer, options
 
 	// Note: For HEIC files processed via FFmpeg, orientation is handled automatically
 
-	// Optimize resampling filter based on size and quality
-	// For small thumbnails (< 512px), use faster filters
+	// Use the quality setting requested by caller
 	resampleFilter := config.quality.resampleFilter()
-	maxDimension := width
-	if height > maxDimension {
-		maxDimension = height
-	}
-	if maxDimension <= 256 {
-		// For very small thumbnails, use fastest filter
-		resampleFilter = imaging.Box
-	} else if maxDimension <= 512 && config.quality != QualityHigh {
-		// For medium thumbnails with non-high quality, use Box
-		resampleFilter = imaging.Box
-	}
 
 	switch config.resizeMode {
 	case ResizeModeFill:
