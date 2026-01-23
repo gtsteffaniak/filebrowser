@@ -104,7 +104,7 @@ Mac                           | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ |
 Self hostable                 | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
 Has Stable Release?           | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 S3 support                    | ❌ | ❌ | ✅ | ✅ | ❌ | ❌ |
-webdav support                | ❌ | ❌ | ✅ | ✅ | ❌ | ✅ |
+webdav support                | :warning:* | ❌ | ✅ | ✅ | ❌ | ✅ |
 FTP support                   | ❌ | ❌ | ✅ | ✅ | ❌ | ✅ |
 Dedicated docs site?          | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
 Multiple sources at once      | ✅ | ❌ | ✅ | ✅ | ❌ | ✅ |
@@ -146,3 +146,5 @@ Can browse archive files      | :construction: | ❌ | ❌ | ❌ | ❌ | ✅ |
 Can convert documents         | :construction: | ❌ | ❌ | ❌ | ❌ | ✅ |
 Can convert videos            | :construction: | ❌ | ❌ | ❌ | ❌ | ❌ |
 Can convert photos            | :construction: | ❌ | ❌ | ❌ | ❌ | ❌ |
+
+*Accessing files from FileBrowser via WebDav is a newly introduced and experimental feature.
