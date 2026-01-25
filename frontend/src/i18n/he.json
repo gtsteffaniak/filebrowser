@@ -223,7 +223,8 @@
     "copyToClipboardFailed": "לא ניתן להעתיק ללוח",
     "moveFailed": "העברה נכשלה",
     "operationFailed": "הפעולה נכשלה",
-    "partialSuccess": "כמה פעולות נכשלו: {succeeded} הצליחו, {failed} נכשלו"
+    "partialSuccess": "כמה פעולות נכשלו: {succeeded} הצליחו, {failed} נכשלו",
+    "renameFailed": "לא ניתן לשנות את שם הפריט"
   },
   "search": {
     "smallerThan": "קטן מ:",
@@ -713,7 +714,6 @@
     "disableViewingFilesDescription": "רשימה מופרדת ברווחים של סיומות קבצים שיש להשבית את תצוגת/עורך הקבצים עבורן (לדוגמה, '.txt .pdf').",
     "disablePreviewExt": "השבת תצוגה מקדימה של קבצי Office עבור סיומות קבצים מסוימות",
     "disablePreviewExtDescription": "רשימה מופרדת ברווחים של סיומות קבצים שצריך להשבית את תצוגה מקדימה של קבצי Office עבורן (לדוגמה, '.docx .pptx').",
-    "disableOfficeEditorDescription": "רשימה מופרדת ברווחים של סיומות קבצים עבורן יש להשבית את עורך ומציג OnlyOffice. (לדוגמה, '.txt .html .pdf').",
     "disableOfficeEditor": "השבת תצוגת Office עבור סיומות קבצים מסוימות",
     "defaultThemeDescription": "ברירת מחדל - ערכת הנושא המוגדרת כברירת מחדל",
     "customTheme": "בחר את הנושא שלך",
@@ -727,7 +727,8 @@
     "themeAndLanguage": "נושא ושפה",
     "previewFolder": "הצג תמונות ממוזערות של תיקיות, אם זמינות",
     "previewFolderDescription": "הצג תצוגה מקדימה של תמונות ממוזערות עבור תיקיות עם פריט משנה ראשון עם תמונה ממוזערת ככריכה.",
-    "disableFileExtensions": "הזן סיומות קבצים שיש להשבית"
+    "disableFileExtensions": "הזן סיומות קבצים שיש להשבית",
+    "disableOfficeEditorDescription": "רשימה מופרדת ברווחים של סיומות קבצים להשבית את עורך ומציג OnlyOffice עבור - או '*' להשבית עבור כולם. (לדוגמה, '.txt .html .pdf')."
   },
   "editor": {
     "uninitialized": "לא ניתן לאתחל את העורך. אנא טען מחדש.",

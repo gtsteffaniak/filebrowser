@@ -27,6 +27,20 @@ server:
         private: false                    # designate as source as private -- currently just means no sharing permitted.
         disabled: false                   # disable the source, this is useful so you don't need to remove it from the config file
         rules:                            # list of item rules to apply to specific paths
+          - neverWatchPath: ""            # index the folder in the first pass to get included in search, but never re-indexed.
+            includeRootItem: ""           # include only these items at root folder level
+            fileStartsWith: ""            # (global) exclude files that start with these prefixes. Eg. "archive-" or "backup-"
+            folderStartsWith: ""          # (global) exclude folders that start with these prefixes. Eg. "archive-" or "backup-"
+            fileEndsWith: ""              # (global) exclude files that end with these suffixes. Eg. ".jpg" or ".txt"
+            folderEndsWith: ""            # (global) exclude folders that end with these suffixes. Eg. ".thumbnails" or ".git"
+            folderPath: ""                # (global) exclude folders that match this path. Eg. "/path/to/folder" or "/path/to/folder/subfolder"
+            filePath: ""                  # (global) exclude files that match this path. Eg. "/path/to/file.txt" or "/path/to/file.txt/subfile.txt"
+            fileName: ""                  # (global) exclude files that match these names. Eg. "file.txt" or "test.csv"
+            folderName: ""                # (global) exclude folders that match these names. Eg. "folder" or "subfolder"
+            viewable: false               # Enable viewing in UI but exclude from indexing
+            ignoreHidden: false           # Excludes only hidden files and folders
+            ignoreZeroSizeFolders: false  # Excludes only folders with 0 size
+            ignoreSymlinks: false         # Excludes symbolic links
         defaultUserScope: "/"             # defaults to root of index "/" should match folders under path
         defaultEnabled: true              # should be added as a default source for new users?
         createUserDir: false              # create a user directory for each user under defaultUserScope + username
@@ -165,8 +179,9 @@ integrations:
   media:                                  #  validate:omitempty
     ffmpegPath: ""                        # path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)
     convert:                              # config for ffmpeg conversion settings
-      imagePreview:                       # supported image preview formats. defaults to false for all types unless explicitly enabled.
+      imagePreview:                       # supported image preview formats. defaults vary by type (see individual type docs)
         heic: false
+        jpeg: true
       videoPreview:                       # supported video preview formats. defaults to true for all types unless explicitly disabled.
         3g2: true
         3gp: true

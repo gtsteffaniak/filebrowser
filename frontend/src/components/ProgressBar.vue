@@ -114,8 +114,7 @@ export default {
       if (!this.isValNumeric) return 100;
       if (this.max <= 0) return 0;
       var pct = (this.val / this.max) * 100;
-      var finalPct = Math.max(0, Math.min(pct.toFixed(2), 100));
-      return finalPct > 0 && finalPct < 7 ? 6 : finalPct;
+      return Math.max(0, Math.min(pct.toFixed(2), 100));
     },
     displayed_text() {
       if (!this.isValNumeric) return this.val;
@@ -208,8 +207,12 @@ export default {
         barColor = '#ff9800';
       }
 
+      let percentage = this.pct > 1 && this.pct < 7 ? 6 : this.pct;
+      if (percentage < 1) {
+        percentage = 0;
+      }
       var style = {
-        width: this.pct + "%",
+        width: percentage + "%",
         height: this.size_px + "px",
         background: barColor,
         transition: this.barTransition,

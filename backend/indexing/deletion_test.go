@@ -17,7 +17,7 @@ func setupTestIndexForDeletion(t *testing.T) *Index {
 	// Initialize the database if not already done
 	if indexDB == nil {
 		var err error
-		indexDB, err = dbsql.NewIndexDB("test_deletion", "OFF", 1000, 32, false)
+		indexDB, _, err = dbsql.NewIndexDB("test_deletion", "OFF", 1000, 32, false)
 		if err != nil {
 			t.Fatalf("Failed to create test database: %v", err)
 		}

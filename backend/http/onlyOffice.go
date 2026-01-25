@@ -255,17 +255,13 @@ func buildOnlyOfficeDownloadURL(r *http.Request, source, path, hash, token strin
 		baseURL = fmt.Sprintf("%s://%s%s", scheme, host, settings.Config.Server.BaseURL)
 	}
 
-	var downloadURL string
+	escapedPath := url.QueryEscape(path)
+	downloadURL := fmt.Sprintf("%s/api/raw?file=%s&auth=%s",
+		strings.TrimSuffix(baseURL, "/"), escapedPath, token)
 	if hash != "" {
-		// Share download URL - don't expose source name, just use the path relative to share
-		filesParam := url.QueryEscape(path)
-		downloadURL = fmt.Sprintf("%s/public/api/raw?files=%s&hash=%s&token=%s&auth=%s",
-			strings.TrimSuffix(baseURL, "/"), filesParam, hash, token, token)
+		downloadURL = downloadURL + "&hash=" + hash
 	} else {
-		// Regular download URL - include source for non-share requests
-		filesParam := url.QueryEscape(source + "::" + path)
-		downloadURL = fmt.Sprintf("%s/api/raw?files=%s&auth=%s",
-			strings.TrimSuffix(baseURL, "/"), filesParam, token)
+		downloadURL = downloadURL + "&source=" + url.QueryEscape(source)
 	}
 
 	return downloadURL

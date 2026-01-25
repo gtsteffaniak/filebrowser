@@ -210,6 +210,17 @@ export default {
         }
       } catch (error) {
         console.error(error);
+        // Parse the error response structure (similar to Delete.vue)
+        let errorMessage = this.$t("prompts.renameFailed");
+        
+        if (error && error.failed && error.failed.length > 0) {
+          // Get message from first failed item
+          errorMessage = error.failed[0].message || errorMessage;
+        } else if (error && error.message) {
+          errorMessage = error.message;
+        }
+        
+        notify.showError(errorMessage);
       }
     },
   },

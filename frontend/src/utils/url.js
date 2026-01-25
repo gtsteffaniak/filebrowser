@@ -80,6 +80,7 @@ export function removePrefix(path, prefix = "") {
 
 
 // get path with parameters
+// Supports array values for repeated parameters (e.g., file=a&file=b&file=c)
 export function getApiPath(path, params = {}, encode = false) {
   if (path.startsWith("/")) {
     path = path.slice(1);
@@ -89,24 +90,40 @@ export function getApiPath(path, params = {}, encode = false) {
   const paramKeys = Object.keys(params);
   if (paramKeys.length > 0) {
     if (encode) {
-      const encodedParams = paramKeys
-        .filter(key => params[key] !== undefined)
-        .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
-        .join('&');
-      if (encodedParams) {
-        path += `?${encodedParams}`;
+      const encodedParams = [];
+      for (const key of paramKeys) {
+        const value = params[key];
+        if (value === undefined) continue;
+        
+        // Handle array values for repeated parameters
+        if (Array.isArray(value)) {
+          value.forEach(v => {
+            encodedParams.push(`${encodeURIComponent(key)}=${encodeURIComponent(v)}`);
+          });
+        } else {
+          encodedParams.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`);
+        }
+      }
+      if (encodedParams.length > 0) {
+        path += `?${encodedParams.join('&')}`;
       }
     } else {
-      path += "?";
+      const queryParams = [];
       for (const key in params) {
-        if (params[key] === undefined) {
-          continue;
+        const value = params[key];
+        if (value === undefined) continue;
+        
+        // Handle array values for repeated parameters
+        if (Array.isArray(value)) {
+          value.forEach(v => {
+            queryParams.push(`${key}=${v}`);
+          });
+        } else {
+          queryParams.push(`${key}=${value}`);
         }
-        path += `${key}=${params[key]}&`;
       }
-      // remove trailing &
-      if (path.endsWith("&")) {
-        path = path.slice(0, -1);
+      if (queryParams.length > 0) {
+        path += `?${queryParams.join('&')}`;
       }
     }
   }

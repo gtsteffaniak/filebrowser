@@ -366,7 +366,6 @@ export default {
         }
 
         // Checksum feature removed
-
         const newQueryString = new URLSearchParams(query).toString();
         const currentQuery = this.$route.query || {};
         const currentQueryString = new URLSearchParams(

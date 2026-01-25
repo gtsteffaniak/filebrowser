@@ -378,3 +378,11 @@ func (s *FFmpegService) ConvertHEICToJPEG(ctx context.Context, heicPath string, 
 
 	return jpegBytes, nil
 }
+
+// ConvertImageToJPEG converts any image format (including problematic JPEGs) to standard JPEG using FFmpeg
+// This handles extended JPEG formats that Go's image/jpeg decoder doesn't support (e.g., SOF1/C1 marker)
+// and can be used as a fallback for images that fail to decode with Go's standard library.
+func (s *FFmpegService) ConvertImageToJPEG(ctx context.Context, imagePath string, targetWidth, targetHeight int, quality string) ([]byte, error) {
+	// Use the direct conversion method which works for all image formats
+	return s.ConvertHEICToJPEGDirect(ctx, imagePath, targetWidth, targetHeight, quality)
+}

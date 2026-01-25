@@ -26,7 +26,7 @@ integrations:
 		testVideoPreviewConfig(t, config, func(t *testing.T, config *Settings) {
 			// All video formats should be enabled by default
 			for _, format := range AllVideoPreviewTypes {
-				if !config.Integrations.Media.Convert.VideoPreview[format] {
+				if !*config.Integrations.Media.Convert.VideoPreview[format] {
 					t.Errorf("Expected %s to be enabled by default, but it was disabled", format)
 				}
 			}
@@ -52,7 +52,7 @@ integrations:
 		testVideoPreviewConfig(t, config, func(t *testing.T, config *Settings) {
 			// All video formats should be enabled by default
 			for _, format := range AllVideoPreviewTypes {
-				if !config.Integrations.Media.Convert.VideoPreview[format] {
+				if !*config.Integrations.Media.Convert.VideoPreview[format] {
 					t.Errorf("Expected %s to be enabled by default, but it was disabled", format)
 				}
 			}
@@ -81,16 +81,16 @@ integrations:
 `
 		testVideoPreviewConfig(t, config, func(t *testing.T, config *Settings) {
 			// Check explicitly set formats
-			if !config.Integrations.Media.Convert.VideoPreview[MP4VideoPreview] {
+			if !*config.Integrations.Media.Convert.VideoPreview[MP4VideoPreview] {
 				t.Error("Expected mp4 to be enabled")
 			}
-			if config.Integrations.Media.Convert.VideoPreview[WebMVideoPreview] {
+			if *config.Integrations.Media.Convert.VideoPreview[WebMVideoPreview] {
 				t.Error("Expected webm to be disabled")
 			}
-			if config.Integrations.Media.Convert.VideoPreview[MKVVideoPreview] {
+			if *config.Integrations.Media.Convert.VideoPreview[MKVVideoPreview] {
 				t.Error("Expected mkv to be disabled")
 			}
-			if config.Integrations.Media.Convert.VideoPreview[WMVVideoPreview] {
+			if *config.Integrations.Media.Convert.VideoPreview[WMVVideoPreview] {
 				t.Error("Expected wmv to be disabled")
 			}
 
@@ -100,7 +100,7 @@ integrations:
 				M4VVideoPreview, ThreeGPVideoPreview, TSVideoPreview, VOBVideoPreview,
 			}
 			for _, format := range unmentionedFormats {
-				if !config.Integrations.Media.Convert.VideoPreview[format] {
+				if !*config.Integrations.Media.Convert.VideoPreview[format] {
 					t.Errorf("Expected %s to be enabled (not mentioned in config), but it was disabled", format)
 				}
 			}
@@ -155,13 +155,13 @@ integrations:
 			}
 
 			for _, format := range expectedEnabled {
-				if !config.Integrations.Media.Convert.VideoPreview[format] {
+				if !*config.Integrations.Media.Convert.VideoPreview[format] {
 					t.Errorf("Expected %s to be enabled, but it was disabled", format)
 				}
 			}
 
 			for _, format := range expectedDisabled {
-				if config.Integrations.Media.Convert.VideoPreview[format] {
+				if *config.Integrations.Media.Convert.VideoPreview[format] {
 					t.Errorf("Expected %s to be disabled, but it was enabled", format)
 				}
 			}
@@ -182,7 +182,7 @@ integrations:
 		testVideoPreviewConfig(t, config, func(t *testing.T, config *Settings) {
 			// All video formats should be enabled by default
 			for _, format := range AllVideoPreviewTypes {
-				if !config.Integrations.Media.Convert.VideoPreview[format] {
+				if !*config.Integrations.Media.Convert.VideoPreview[format] {
 					t.Errorf("Expected %s to be enabled by default, but it was disabled", format)
 				}
 			}
@@ -217,7 +217,7 @@ integrations:
 			for category, formats := range categories {
 				t.Run(category, func(t *testing.T) {
 					for _, format := range formats {
-						if !config.Integrations.Media.Convert.VideoPreview[format] {
+						if !*config.Integrations.Media.Convert.VideoPreview[format] {
 							t.Errorf("Expected %s (%s) to be enabled by default, but it was disabled", format, category)
 						}
 					}

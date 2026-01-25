@@ -223,7 +223,8 @@
     "copyToClipboardFailed": "Impossibile copiare negli appunti",
     "moveFailed": "Spostamento non riuscito",
     "operationFailed": "Operazione fallita",
-    "partialSuccess": "Alcune operazioni non sono riuscite: {succeeded} è riuscito, {failed} non è riuscito."
+    "partialSuccess": "Alcune operazioni non sono riuscite: {succeeded} è riuscito, {failed} non è riuscito.",
+    "renameFailed": "Impossibile rinominare l'elemento"
   },
   "search": {
     "smallerThan": "Più piccolo di:",
@@ -713,7 +714,6 @@
     "disableViewingFilesDescription": "Un elenco separato da spazi di estensioni di file per cui disabilitare il visualizzatore/editor di file (ad esempio, '.txt .pdf').",
     "disablePreviewExt": "Disattivare le anteprime dei file di Office per alcune estensioni di file",
     "disablePreviewExtDescription": "Un elenco separato da spazi di estensioni di file per cui disabilitare le anteprime dei file di Office (ad esempio, '.docx .pptx').",
-    "disableOfficeEditorDescription": "Un elenco separato da spazi di estensioni di file per cui disabilitare l'editor e il visualizzatore di OnlyOffice. (ad esempio, '.txt .html .pdf').",
     "disableOfficeEditor": "Disattivare il visualizzatore di Office per alcune estensioni di file",
     "defaultThemeDescription": "default - Il tema predefinito",
     "customTheme": "Scegliete il vostro tema",
@@ -727,7 +727,8 @@
     "themeAndLanguage": "Tema e linguaggio",
     "previewFolder": "Mostra le miniature delle cartelle, se disponibili.",
     "previewFolderDescription": "Mostra le anteprime per le cartelle con il primo elemento figlio con miniatura come copertina.",
-    "disableFileExtensions": "Immettere le estensioni dei file da disabilitare"
+    "disableFileExtensions": "Immettere le estensioni dei file da disabilitare",
+    "disableOfficeEditorDescription": "Un elenco, separato da spazi, di estensioni di file per cui disabilitare l'editor e il visualizzatore di OnlyOffice, oppure '*' per disabilitarli tutti. (ad esempio, '.txt .html .pdf')."
   },
   "editor": {
     "uninitialized": "Impossibile inizializzare l'editor. Ricaricare.",

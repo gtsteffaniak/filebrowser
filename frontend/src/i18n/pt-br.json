@@ -223,7 +223,8 @@
     "copyToClipboardFailed": "Não é possível copiar para a área de transferência",
     "moveFailed": "Falha ao mover",
     "operationFailed": "Falha na operação",
-    "partialSuccess": "Algumas operações falharam: {succeeded} foi bem-sucedido, {failed} falhou"
+    "partialSuccess": "Algumas operações falharam: {succeeded} foi bem-sucedido, {failed} falhou",
+    "renameFailed": "Falha ao renomear o item"
   },
   "search": {
     "smallerThan": "Menor que:",
@@ -713,7 +714,6 @@
     "disableViewingFilesDescription": "Uma lista de extensões de arquivo separada por espaços para desativar o visualizador/editor de arquivos (por exemplo, '.txt .pdf').",
     "disablePreviewExt": "Desativar as visualizações prévias de arquivos do Office para determinadas extensões de arquivos",
     "disablePreviewExtDescription": "Uma lista de extensões de arquivo separada por espaços para desativar as visualizações de arquivos do Office (por exemplo, '.docx .pptx').",
-    "disableOfficeEditorDescription": "Uma lista de extensões de arquivo separada por espaços para desativar o editor e o visualizador do OnlyOffice. (por exemplo, '.txt .html .pdf').",
     "disableOfficeEditor": "Desativar o visualizador do Office para determinadas extensões de arquivo",
     "defaultThemeDescription": "default - O tema padrão",
     "customTheme": "Escolha seu tema",
@@ -727,7 +727,8 @@
     "themeAndLanguage": "Tema e linguagem",
     "previewFolder": "Mostrar miniaturas das pastas, se disponíveis",
     "previewFolderDescription": "Mostrar visualizações em miniatura para pastas com o primeiro item filho com miniatura como capa.",
-    "disableFileExtensions": "Digite as extensões de arquivo a serem desativadas"
+    "disableFileExtensions": "Digite as extensões de arquivo a serem desativadas",
+    "disableOfficeEditorDescription": "Uma lista de extensões de arquivo separada por espaços para desativar o editor e o visualizador do OnlyOffice - ou '*' para desativar todos. (por exemplo, '.txt .html .pdf')."
   },
   "editor": {
     "uninitialized": "Falha ao inicializar o editor. Favor recarregar.",

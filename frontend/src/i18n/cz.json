@@ -300,7 +300,8 @@
     "copyToClipboardFailed": "Nelze zkopírovat do schránky",
     "moveFailed": "Přesun se nezdařil",
     "operationFailed": "Operace se nezdařila",
-    "partialSuccess": "Některé operace se nezdařily: {succeeded} uspěl, {failed} neuspěl."
+    "partialSuccess": "Některé operace se nezdařily: {succeeded} uspěl, {failed} neuspěl.",
+    "renameFailed": "Nepodařilo se přejmenovat položku"
   },
   "search": {
     "smallerThan": "Menší než:",
@@ -361,7 +362,6 @@
     "disableViewingFilesDescription": "Seznam přípon souborů oddělených mezerou, pro které se má prohlížeč/editor souborů zakázat (např. '.txt .pdf').",
     "disablePreviewExt": "Zakázat náhledy kancelářských souborů pro určité přípony souborů",
     "disablePreviewExtDescription": "Seznam přípon souborů oddělených mezerou, pro které chcete zakázat náhledy kancelářských souborů (např. '.docx .pptx').",
-    "disableOfficeEditorDescription": "Seznam přípon souborů oddělených mezerou, pro které se má vypnout editor a prohlížeč OnlyOffice. (např. '.txt .html .pdf').",
     "disableOfficeEditor": "Zakázat editor a prohlížeč Office pro určité přípony souborů a vrátit se k výchozímu prohlížeči/editoru, velmi užitečné pro soubory pdf a txt.",
     "defaultThemeDescription": "default - Výchozí téma",
     "customTheme": "Vyberte si téma",
@@ -375,7 +375,8 @@
     "themeAndLanguage": "Téma a jazyk",
     "previewFolder": "Zobrazení miniatur složek, pokud jsou k dispozici",
     "previewFolderDescription": "Zobrazení náhledů miniatur pro složky s první podřízenou položkou s miniaturou jako obálkou.",
-    "disableFileExtensions": "Zadejte přípony souborů, které chcete zakázat"
+    "disableFileExtensions": "Zadejte přípony souborů, které chcete zakázat",
+    "disableOfficeEditorDescription": "Seznam přípon souborů oddělených mezerou, pro které se má editor a prohlížeč OnlyOffice zakázat - nebo '*' pro zakázání všech. (např. '.txt .html .pdf')."
   },
   "settings": {
     "enterPassword": "Zadejte heslo",

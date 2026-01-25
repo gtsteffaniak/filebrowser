@@ -1278,7 +1278,7 @@ const docTemplate = `{
         },
         "/api/raw": {
             "get": {
-                "description": "Returns the raw content of a file, multiple files, or a directory. Supports downloading files as archives in various formats.\n\n**Filename Encoding:**\n- The Content-Disposition header will always include both:\n1. ` + "`" + `filename=\"...\"` + "`" + `: An ASCII-safe version of the filename for compatibility.\n2. ` + "`" + `filename*=utf-8\"...` + "`" + `: The full UTF-8 encoded filename (RFC 6266/5987) for modern clients.",
+                "description": "Returns the raw content of a file, multiple files, or a directory. Supports downloading files as archives in various formats.\n\n**Filename Encoding:**\n- The Content-Disposition header will always include both:\n1. ` + "`" + `filename=\"...\"` + "`" + `: An ASCII-safe version of the filename for compatibility.\n2. ` + "`" + `filename*=utf-8\"...` + "`" + `: The full UTF-8 encoded filename (RFC 6266/5987) for modern clients.\n\n**Multiple Files:**\n- Use repeated query parameters: ` + "`" + `?file=file1.txt\u0026file=file2.txt\u0026file=file3.txt` + "`" + `\n- This supports filenames containing commas and special characters",
                 "consumes": [
                     "application/json"
                 ],
@@ -1295,9 +1295,13 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "type": "string",
-                        "description": "Comma-separated list of file paths (required)",
-                        "name": "files",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "File path (can be repeated for multiple files)",
+                        "name": "file",
                         "in": "query",
                         "required": true
                     },
@@ -2769,7 +2773,7 @@ const docTemplate = `{
         },
         "/public/api/raw": {
             "get": {
-                "description": "Downloads raw content from a public share. Supports single files, multiple files, or directories as archives. Enforces download limits (global or per-user) and blocks anonymous users when per-user limits are enabled.",
+                "description": "Downloads raw content from a public share. Supports single files, multiple files, or directories as archives. Enforces download limits (global or per-user) and blocks anonymous users when per-user limits are enabled.\n\n**Multiple Files:**\n- Use repeated query parameters: ` + "`" + `?file=file1.txt\u0026file=file2.txt\u0026file=file3.txt` + "`" + `\n- This supports filenames containing commas and special characters",
                 "consumes": [
                     "application/json"
                 ],
@@ -2789,9 +2793,13 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "type": "string",
-                        "description": "Comma-separated list of file paths. Example: 'file1.txt,folder/file2.txt'",
-                        "name": "files",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "File path (can be repeated for multiple files)",
+                        "name": "file",
                         "in": "query",
                         "required": true
                     },
@@ -4255,7 +4263,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "imagePreview": {
-                    "description": "supported image preview formats. defaults to false for all types unless explicitly enabled.",
+                    "description": "supported image preview formats. defaults vary by type (see individual type docs)",
                     "type": "object",
                     "additionalProperties": {
                         "type": "boolean"
@@ -4823,10 +4831,6 @@ const docTemplate = `{
                 "debugOffice": {
                     "description": "debug onlyoffice editor",
                     "type": "boolean"
-                },
-                "defaultLandingPage": {
-                    "description": "deprecated: determined by sidebar link order since 1.1.0",
-                    "type": "string"
                 },
                 "deleteWithoutConfirming": {
                     "description": "delete files without confirmation",
@@ -5669,10 +5673,6 @@ const docTemplate = `{
                 "debugOffice": {
                     "description": "debug onlyoffice editor",
                     "type": "boolean"
-                },
-                "defaultLandingPage": {
-                    "description": "deprecated: determined by sidebar link order instead",
-                    "type": "string"
                 },
                 "deleteWithoutConfirming": {
                     "description": "delete files without confirmation",

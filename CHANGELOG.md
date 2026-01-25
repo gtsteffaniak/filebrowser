@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+
+## v1.2.1-beta
+
+ **New Features**:
+ - Global disable onlyoffice editor via "*" file option to disable all files for a specific user. (#1533) 
+
+ **Notes**:
+ - upgraded imaging package and improved thumbnail generation performance. (#1797) (#1850
+)
+ - updated download api to use repeated `file` query param for path instead of `files` with comma. See swagger for details (#1881)
+
+ **BugFixes**:
+ - OnlyOffice stopped working after 1.2.0 upgrade due to download api changes
+ - Search result link to wrong path when search context other than / (#1863)
+ - File actions doesn't work if using user scopes (#1879)
+ - Drop items into folders doesn't work (#1860)
+ - duplicate finder context menu (#1862)
+ - File list in previews doesn't show the parent items (#1861)
+
 ## v1.2.0-beta
 
 This is a major version update with many code changes which could cause unexpected behavior. Upgrades should proceed with caution and report any undesriable behavior by opening an issue on github. The index is now fully in sqlite database - see [Indexing Overview](https://filebrowserquantum.com/en/docs/features/indexing/) for more information.

@@ -793,7 +793,9 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		}
 
 		// Get real paths
-		realSrc, isSrcDir, err := srcIdx.GetRealPath(userscopeSrc, item.FromPath)
+		// Combine user scope with item paths BEFORE calling GetRealPath to avoid double scope application
+		fullSrcPath := utils.JoinPathAsUnix(userscopeSrc, item.FromPath)
+		realSrc, isSrcDir, err := srcIdx.GetRealPath(fullSrcPath)
 		if err != nil {
 			logger.Errorf("could not resolve source path: %v, item.FromPath: %v", err, item.FromPath)
 			item.Message = "could not resolve source path"
@@ -808,7 +810,9 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		}
 
 		// Check destination parent directory exists
-		parentDir, _, err := dstIdx.GetRealPath(userscopeDst, filepath.Dir(item.ToPath))
+		dstParentPath := filepath.Dir(item.ToPath)
+		fullDstParentPath := utils.JoinPathAsUnix(userscopeDst, dstParentPath)
+		parentDir, _, err := dstIdx.GetRealPath(fullDstParentPath)
 		if err != nil {
 			item.Message = "destination directory does not exist"
 			if d.share != nil {
@@ -938,6 +942,13 @@ func patchAction(ctx context.Context, params patchActionParams) error {
 	case "rename", "move":
 		idx := indexing.GetIndex(params.srcIndex)
 		srcPath := idx.MakeIndexPath(params.src, params.isSrcDir)
+		userScope := ""
+		userScope, _ = params.d.user.GetScopeForSourceName(params.srcIndex)
+		if userScope != "" && userScope != "/" {
+			// Strip the user scope from srcPath so FileInfoFaster doesn't double it
+			srcPath = strings.TrimPrefix(srcPath, userScope)
+		}
+
 		fileInfo, err := files.FileInfoFaster(utils.FileOptions{
 			FollowSymlinks: true,
 			Path:           srcPath,

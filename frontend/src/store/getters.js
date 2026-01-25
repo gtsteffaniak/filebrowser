@@ -433,6 +433,9 @@ export const getters = {
   officeViewingDisabled: filename => {
     const ext = ' ' + getFileExtension(filename)
     const disabledList = state.user.disableOnlyOfficeExt || ''
+    if (disabledList === '*') {
+      return true
+    }
     if (disabledList !== '') {
       const disabledExts = ' ' + disabledList.toLowerCase()
       if (disabledExts.includes(ext.toLowerCase())) {
