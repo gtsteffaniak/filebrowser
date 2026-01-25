@@ -1,6 +1,6 @@
 import { adjustedData } from "./utils";
 import { notify } from "@/notify";
-import { getPublicApiPath, encodedPath, doubleEncode } from "@/utils/url.js";
+import { getPublicApiPath, encodedPath } from "@/utils/url.js";
 import { state } from "@/store";
 
 // ============================================================================
@@ -113,7 +113,7 @@ export function post(
   }
   try {
     const apiPath = getPublicApiPath("resources", {
-      targetPath: doubleEncode(path),
+      targetPath: encodeURIComponent(path),
       hash: hash,
       override: overwrite,
       ...(isDir && { isDir: 'true' })
@@ -205,7 +205,7 @@ async function resourceAction(hash, path, method, content, token = "") {
     if (sharePassword) {
       headers["X-SHARE-PASSWORD"] = sharePassword;
     }
-    path = doubleEncode(path)
+    path = encodeURIComponent(path)
     const apiPath = getPublicApiPath('resources', { path, hash: hash, token: token })
     const response = await fetch(apiPath, {
       method,

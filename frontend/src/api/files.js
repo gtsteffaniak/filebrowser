@@ -1,5 +1,5 @@
 import { fetchURL, adjustedData } from './utils'
-import { getApiPath, doubleEncode, getPublicApiPath } from '@/utils/url.js'
+import { getApiPath, getPublicApiPath } from '@/utils/url.js'
 import { state, mutations } from '@/store'
 import { notify } from '@/notify'
 import { globalVars } from '@/utils/constants'
@@ -12,8 +12,8 @@ export async function fetchFiles(source, path, content = false, metadata = false
   }
   try {
     const apiPath = getApiPath('api/resources', {
-      path: doubleEncode(path),
-      source: doubleEncode(source),
+      path: encodeURIComponent(path),
+      source: encodeURIComponent(source),
       ...(content && { content: 'true' }),
       ...(metadata && { metadata: 'true' })
     })
@@ -32,8 +32,8 @@ async function resourceAction(source, path, method, content) {
     throw new Error('no source provided')
   }
   try {
-    source = doubleEncode(source)
-    path = doubleEncode(path)
+    source = encodeURIComponent(source)
+    path = encodeURIComponent(path)
     const apiPath = getApiPath('api/resources', { path, source })
     let opts = { method }
     if (content) {
@@ -360,8 +360,8 @@ export function post(
   }
   try {
     const apiPath = getApiPath("api/resources", {
-      path: doubleEncode(path),
-      source: doubleEncode(source),
+      path: encodeURIComponent(path),
+      source: encodeURIComponent(source),
       override: overwrite,
       ...(isDir && { isDir: 'true' })
     });
@@ -496,8 +496,8 @@ export async function checksum(source, path, algo) {
   }
   try {
     const params = {
-      path: doubleEncode(path),
-      source: doubleEncode(source),
+      path: encodeURIComponent(path),
+      source: encodeURIComponent(source),
       checksum: algo
     }
     const apiPath = getApiPath('api/resources', params)
