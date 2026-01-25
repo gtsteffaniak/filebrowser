@@ -308,12 +308,6 @@ func (idx *Index) createScanner(dirPath string) *Scanner {
 	}
 }
 
-// Legacy function kept for backwards compatibility - now deprecated
-func (idx *Index) setupIndexingScanners(isNewDb bool) {
-	// Use new multi-scanner system
-	idx.setupMultiScanner(isNewDb)
-}
-
 // GetScannerStatus returns detailed information about all active scanners
 func (idx *Index) GetScannerStatus() map[string]interface{} {
 	idx.mu.RLock()
