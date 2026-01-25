@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v1.2.2-beta
+
+ **Notes**:
+ - Added docker default `FILEBROWSER_CONFIG="/home/filebrowser/data/config.yaml"` back -- mistakenly removed. see https://filebrowserquantum.com/en/docs/getting-started/config/#3-default-locations. (#1891)
+ - Better text file content detection (#1726)
+ - More url encoding changes for API which should make things more consistent. Open issues if you see path/source not found errors.
 
 ## v1.2.1-beta
 

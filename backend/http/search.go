@@ -3,7 +3,6 @@ package http
 import (
 	"fmt"
 	"net/http"
-	"net/url"
 	"path/filepath"
 	"strings"
 
@@ -121,7 +120,7 @@ func prepSearchOptions(r *http.Request, d *requestContext) (*searchOptions, erro
 	query := r.URL.Query().Get("query")
 	sourcesParam := r.URL.Query().Get("sources")
 	sourceParam := r.URL.Query().Get("source") // deprecated, but still supported
-	scope := r.URL.Query().Get("scope")
+	scope := r.URL.Query().Get("scope")        // Go automatically decodes query params
 	largest := r.URL.Query().Get("largest") == "true"
 
 	var sources []string
@@ -141,14 +140,10 @@ func prepSearchOptions(r *http.Request, d *requestContext) (*searchOptions, erro
 		}
 	}
 
-	unencodedScope, err := url.PathUnescape(scope)
-	if err != nil {
-		return nil, fmt.Errorf("invalid path encoding: %v", err)
-	}
 	if len(query) < settings.Config.Server.MinSearchLength && !largest {
 		return nil, fmt.Errorf("query is too short, minimum length is %d", settings.Config.Server.MinSearchLength)
 	}
-	searchScope := strings.TrimPrefix(unencodedScope, ".")
+	searchScope := strings.TrimPrefix(scope, ".")
 
 	// If multiple sources, always use user scope (ignore searchScope)
 	if len(sources) > 1 {
