@@ -13,7 +13,7 @@ func BenchmarkFillIndex(b *testing.B) {
 	Initialize(&settings.Source{
 		Name: "test",
 		Path: "/srv",
-	}, true)
+	}, true, false) // mock=true, isNewDb=false
 	idx := GetIndex("test")
 	if idx == nil {
 		b.Fatal("index is nil")
@@ -79,9 +79,9 @@ func TestMultiScannerMutex(t *testing.T) {
 	}
 
 	// Create multiple scanners
-	scanner1 := idx.createRootScanner()
-	scanner2 := idx.createChildScanner("/test1/")
-	scanner3 := idx.createChildScanner("/test2/")
+	scanner1 := idx.createScanner("/")
+	scanner2 := idx.createScanner("/test1/")
+	scanner3 := idx.createScanner("/test2/")
 
 	idx.scanners["/"] = scanner1
 	idx.scanners["/test1/"] = scanner2

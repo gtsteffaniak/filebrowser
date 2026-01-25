@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Added docker default `FILEBROWSER_CONFIG="/home/filebrowser/data/config.yaml"` back -- mistakenly removed. see https://filebrowserquantum.com/en/docs/getting-started/config/#3-default-locations. (#1891)
  - Better text file content detection (#1726)
  - More url encoding changes for API which should make things more consistent. Open issues if you see path/source not found errors.
+ - adjustments to the startup behavior for sqlite index for reusing the previous database on startup
 
 ## v1.2.1-beta
 
@@ -15,8 +16,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Global disable onlyoffice editor via "*" file option to disable all files for a specific user. (#1533) 
 
  **Notes**:
- - upgraded imaging package and improved thumbnail generation performance. (#1797) (#1850
-)
+ - upgraded imaging package and improved thumbnail generation performance. (#1797) (#1850)
  - updated download api to use repeated `file` query param for path instead of `files` with comma. See swagger for details (#1881)
 
  **BugFixes**:
