@@ -1,5 +1,5 @@
 import { fetchURL, adjustedData } from './utils'
-import { getApiPath, doubleEncode, getPublicApiPath } from '@/utils/url.js'
+import { getApiPath, getPublicApiPath } from '@/utils/url.js'
 import { state, mutations } from '@/store'
 import { notify } from '@/notify'
 import { globalVars } from '@/utils/constants'
@@ -12,8 +12,8 @@ export async function fetchFiles(source, path, content = false, metadata = false
   }
   try {
     const apiPath = getApiPath('api/resources', {
-      path: doubleEncode(path),
-      source: doubleEncode(source),
+      path: encodeURIComponent(path),
+      source: encodeURIComponent(source),
       ...(content && { content: 'true' }),
       ...(metadata && { metadata: 'true' })
     })
@@ -32,8 +32,8 @@ async function resourceAction(source, path, method, content) {
     throw new Error('no source provided')
   }
   try {
-    source = doubleEncode(source)
-    path = doubleEncode(path)
+    source = encodeURIComponent(source)
+    path = encodeURIComponent(path)
     const apiPath = getApiPath('api/resources', { path, source })
     let opts = { method }
     if (content) {
@@ -151,7 +151,7 @@ export async function download(format, files, shareHash = "") {
   }
   
   const params = {
-    files: filePaths.join(','),
+    file: filePaths, // Array of file paths - getApiPath will create repeated parameters
     algo: format,
     ...(shareHash && { hash: shareHash }),
     ...(!shareHash && source && { source: encodeURIComponent(source) }),
@@ -203,9 +203,8 @@ async function downloadChunked(file, shareHash = "") {
     mutations.showHover({ name: 'download' })
   }
 
-  // Build the download URL with new query format
   const params = {
-    files: encodeURIComponent(file.path),
+    file: encodeURIComponent(file.path),
     ...(shareHash && { hash: shareHash }),
     ...(!shareHash && file.source && { source: encodeURIComponent(file.source) }),
     ...(state.share.token && { token: state.share.token }),
@@ -361,8 +360,8 @@ export function post(
   }
   try {
     const apiPath = getApiPath("api/resources", {
-      path: doubleEncode(path),
-      source: doubleEncode(source),
+      path: encodeURIComponent(path),
+      source: encodeURIComponent(source),
       override: overwrite,
       ...(isDir && { isDir: 'true' })
     });
@@ -497,8 +496,8 @@ export async function checksum(source, path, algo) {
   }
   try {
     const params = {
-      path: doubleEncode(path),
-      source: doubleEncode(source),
+      path: encodeURIComponent(path),
+      source: encodeURIComponent(source),
       checksum: algo
     }
     const apiPath = getApiPath('api/resources', params)
@@ -518,7 +517,7 @@ export function getDownloadURL(source, path, inline, useExternal) {
   try {
     const params = {
       source: encodeURIComponent(source),
-      files: encodeURIComponent(path),
+      file: encodeURIComponent(path),
       ...(inline && { inline: 'true' })
     }
     const apiPath = getApiPath('api/raw', params)

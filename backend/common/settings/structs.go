@@ -101,14 +101,15 @@ type Media struct {
 }
 
 type FfmpegConvert struct {
-	ImagePreview map[ImagePreviewType]bool `json:"imagePreview"` // supported image preview formats. defaults to false for all types unless explicitly enabled.
-	VideoPreview map[VideoPreviewType]bool `json:"videoPreview"` // supported video preview formats. defaults to true for all types unless explicitly disabled.
+	ImagePreview map[ImagePreviewType]*bool `json:"imagePreview"` // supported image preview formats. defaults vary by type (see individual type docs)
+	VideoPreview map[VideoPreviewType]*bool `json:"videoPreview"` // supported video preview formats. defaults to true for all types unless explicitly disabled.
 }
 
 type ImagePreviewType string
 
 const (
 	HEICImagePreview ImagePreviewType = "heic"
+	JPEGImagePreview ImagePreviewType = "jpeg" // only used as fallback for JPEG formats that can't otherwise be decoded
 	//RAWImagePreview  ImagePreviewType = "raw"
 )
 
@@ -119,6 +120,7 @@ func (i ImagePreviewType) String() string {
 // AllImagePreviewTypes contains all supported image preview types.
 var AllImagePreviewTypes = []ImagePreviewType{
 	HEICImagePreview,
+	JPEGImagePreview,
 	//RAWImagePreview,
 }
 
@@ -350,5 +352,4 @@ type UserDefaults struct {
 	CustomTheme                string                  `json:"customTheme"`                // Name of theme to use chosen from custom themes config.
 	ShowSelectMultiple         bool                    `json:"showSelectMultiple"`         // show select multiple files on desktop
 	DebugOffice                bool                    `json:"debugOffice"`                // debug onlyoffice editor
-	DefaultLandingPage         string                  `json:"defaultLandingPage"`         // deprecated: determined by sidebar link order since 1.1.0
 }

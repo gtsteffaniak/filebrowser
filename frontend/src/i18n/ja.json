@@ -223,7 +223,8 @@
     "copyToClipboardFailed": "クリップボードにコピーできない",
     "moveFailed": "移動に失敗しました",
     "operationFailed": "操作失敗",
-    "partialSuccess": "{succeeded} は成功、{failed} は失敗。"
+    "partialSuccess": "{succeeded} は成功、{failed} は失敗。",
+    "renameFailed": "アイテム名の変更に失敗しました"
   },
   "search": {
     "smallerThan": "より小さい：",
@@ -713,7 +714,6 @@
     "disableViewingFilesDescription": "ファイルビューア/エディタを無効にするファイル拡張子のスペース区切りリスト（例：'.txt .pdf'）",
     "disablePreviewExt": "特定のファイル拡張子でオフィスファイルのプレビューを無効にする",
     "disablePreviewExtDescription": "オフィスファイルのプレビューを無効にするファイル拡張子をスペースで区切ったリスト（例：'.docx .pptx'）",
-    "disableOfficeEditorDescription": "OnlyOfficeエディタおよびビューアを無効にするファイル拡張子のスペース区切りリスト（例：'.txt .html .pdf'）",
     "disableOfficeEditor": "特定のファイル拡張子のオフィスビューアを無効にする",
     "defaultThemeDescription": "default - デフォルトテーマ",
     "customTheme": "テーマを選択",
@@ -727,7 +727,8 @@
     "themeAndLanguage": "テーマと言語",
     "previewFolder": "利用可能であれば、フォルダのサムネイルを表示する",
     "previewFolderDescription": "サムネイルを持つ最初の子アイテムをカバーとするフォルダのサムネイルプレビューを表示します。",
-    "disableFileExtensions": "無効にするファイル拡張子を入力"
+    "disableFileExtensions": "無効にするファイル拡張子を入力",
+    "disableOfficeEditorDescription": "OnlyOfficeエディタおよびビューアを無効にするファイル拡張子をスペース区切りで指定します。(例: '.txt .html .pdf')。"
   },
   "editor": {
     "uninitialized": "エディタの初期化に失敗しました。再読み込みしてください。",

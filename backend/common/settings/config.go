@@ -281,39 +281,37 @@ func setupFrontend(generate bool) {
 }
 
 func setupMedia() {
-	// If VideoPreview is not initialized, initialize with all types enabled
-	if Config.Integrations.Media.Convert.VideoPreview == nil {
-		Config.Integrations.Media.Convert.VideoPreview = make(map[VideoPreviewType]bool)
-		for _, t := range AllVideoPreviewTypes {
-			Config.Integrations.Media.Convert.VideoPreview[t] = true
-		}
-		return
+	// Save user's explicit config before applying defaults
+	userImageConfig := make(map[ImagePreviewType]*bool)
+	for k, v := range Config.Integrations.Media.Convert.ImagePreview {
+		userImageConfig[k] = v
 	}
 
-	// If VideoPreview map is empty, it means user didn't configure any video preview settings
-	// In this case, enable all by default
-	if len(Config.Integrations.Media.Convert.VideoPreview) == 0 {
-		for _, t := range AllVideoPreviewTypes {
-			Config.Integrations.Media.Convert.VideoPreview[t] = true
-		}
-		return
+	// Re-initialize with defaults (gets wiped out during YAML unmarshal)
+	Config.Integrations.Media.Convert.ImagePreview = make(map[ImagePreviewType]*bool)
+	Config.Integrations.Media.Convert.ImagePreview[HEICImagePreview] = boolPtr(false) // HEIC defaults to disabled
+	Config.Integrations.Media.Convert.ImagePreview[JPEGImagePreview] = boolPtr(true)  // JPEG fallback defaults to enabled
+
+	// Apply user overrides (only for keys explicitly set in YAML)
+	for k, v := range userImageConfig {
+		Config.Integrations.Media.Convert.ImagePreview[k] = v
 	}
 
-	// User has explicitly configured some video preview settings
-	// Start with all enabled, then apply user overrides
-	userConfig := make(map[VideoPreviewType]bool)
+	// VideoPreview: Merge user config with defaults
+	// Save user's explicit config from YAML
+	userVideoConfig := make(map[VideoPreviewType]*bool)
 	for k, v := range Config.Integrations.Media.Convert.VideoPreview {
-		userConfig[k] = v
+		userVideoConfig[k] = v
 	}
 
-	// Reset to defaults (all enabled)
-	Config.Integrations.Media.Convert.VideoPreview = make(map[VideoPreviewType]bool)
+	// Re-initialize with defaults (all enabled)
+	Config.Integrations.Media.Convert.VideoPreview = make(map[VideoPreviewType]*bool)
 	for _, t := range AllVideoPreviewTypes {
-		Config.Integrations.Media.Convert.VideoPreview[t] = true
+		Config.Integrations.Media.Convert.VideoPreview[t] = boolPtr(true)
 	}
 
-	// Apply user overrides (only for explicitly set values)
-	for k, v := range userConfig {
+	// Apply user overrides (only for keys explicitly set in YAML)
+	for k, v := range userVideoConfig {
 		Config.Integrations.Media.Convert.VideoPreview[k] = v
 	}
 }
@@ -680,7 +678,6 @@ func setDefaults(generate bool) Settings {
 		Frontend: Frontend{
 			Name: "FileBrowser Quantum",
 		},
-
 		UserDefaults: UserDefaults{
 			DisableOnlyOfficeExt: ".md .txt .pdf .html .xml",
 			StickySidebar:        true,
@@ -710,21 +707,20 @@ func setDefaults(generate bool) Settings {
 				Folder:             boolPtr(true),
 			},
 			FileLoading: users.FileLoading{
-				MaxConcurrent:   10,
-				UploadChunkSize: 10, // 10MB
+				MaxConcurrent:     10,
+				UploadChunkSize:   10, // 10MB
+				DownloadChunkSize: 0,  // 0MB, default to no chunking
 			},
 		},
 	}
-	// Initialize ImagePreview map with all supported types set to false by default
-	s.Integrations.Media.Convert.ImagePreview = make(map[ImagePreviewType]bool)
-	for _, t := range AllImagePreviewTypes {
-		s.Integrations.Media.Convert.ImagePreview[t] = false
-	}
-
-	// Initialize VideoPreview map with all supported types set to true by default
-	s.Integrations.Media.Convert.VideoPreview = make(map[VideoPreviewType]bool)
+	// Initialize ImagePreview map with defaults
+	s.Integrations.Media.Convert.ImagePreview = make(map[ImagePreviewType]*bool)
+	s.Integrations.Media.Convert.ImagePreview[HEICImagePreview] = boolPtr(false) // HEIC defaults to disabled
+	s.Integrations.Media.Convert.ImagePreview[JPEGImagePreview] = boolPtr(true)  // JPEG fallback defaults to enabled
+	// Initialize VideoPreview map with defaults (all enabled)
+	s.Integrations.Media.Convert.VideoPreview = make(map[VideoPreviewType]*bool)
 	for _, t := range AllVideoPreviewTypes {
-		s.Integrations.Media.Convert.VideoPreview[t] = true
+		s.Integrations.Media.Convert.VideoPreview[t] = boolPtr(true)
 	}
 	return s
 }

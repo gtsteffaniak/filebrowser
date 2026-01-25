@@ -247,12 +247,22 @@ func NewTempDB(id string, config ...*TempDBConfig) (*TempDB, error) {
 		db.SetMaxIdleConns(1)
 	}
 
+	// Calculate cache_size in pages (negative value) to ensure consistent unit handling
+	// SQLite's cache_size: positive = KB, negative = pages
+	// When using positive KB values, SQLite seems to have issues with cache_spill being less than cache_size
+	// So we convert to pages (negative) to ensure both cache_size and cache_spill use the same units
+	cacheSizeInPages := cfg.CacheSizeKB
+	if cfg.CacheSizeKB > 0 {
+		// Convert KB to pages: KB / 4 = pages, then negate to indicate pages
+		cacheSizeInPages = -(cfg.CacheSizeKB / 4)
+	}
+
 	basePragmas := []struct {
 		sql string
 		err string
 	}{
 		{fmt.Sprintf("PRAGMA journal_mode = %s;", cfg.JournalMode), "failed to set journal_mode"},
-		{fmt.Sprintf("PRAGMA cache_size = %d;", cfg.CacheSizeKB), "failed to set cache_size"},
+		{fmt.Sprintf("PRAGMA cache_size = %d;", cacheSizeInPages), "failed to set cache_size"},
 		{fmt.Sprintf("PRAGMA synchronous = %s;", cfg.Synchronous), "failed to set synchronous"},
 		{fmt.Sprintf("PRAGMA temp_store = %s;", cfg.TempStore), "failed to set temp_store"},
 		{fmt.Sprintf("PRAGMA locking_mode = %s;", cfg.LockingMode), "failed to set locking_mode"},
@@ -274,19 +284,7 @@ func NewTempDB(id string, config ...*TempDBConfig) (*TempDB, error) {
 		}{{fmt.Sprintf("PRAGMA hard_heap_limit = %d;", cfg.HardHeapLimitBytes), "failed to set hard_heap_limit"}}, basePragmas...)
 	}
 
-	// Cache spill threshold - triggers early spilling to reduce memory usage
-	if cfg.CacheSpillThreshold > 0 {
-		basePragmas = append(basePragmas, struct {
-			sql string
-			err string
-		}{fmt.Sprintf("PRAGMA cache_spill = %d;", cfg.CacheSpillThreshold), "failed to set cache_spill"})
-	} else {
-		// Enable cache_spill by default (value of 1 enables it)
-		basePragmas = append(basePragmas, struct {
-			sql string
-			err string
-		}{"PRAGMA cache_spill = 1;", "failed to set cache_spill"})
-	}
+	// Cache spill will be set later, after all other pragmas, to avoid interaction issues
 
 	// Page size must be set before any tables are created
 	if cfg.PageSize > 0 {
@@ -330,6 +328,32 @@ func NewTempDB(id string, config ...*TempDBConfig) (*TempDB, error) {
 			db.Close()
 			os.Remove(tmpPath)
 			return nil, fmt.Errorf("%s: %w", pragma.err, err)
+		}
+	}
+
+	// Set cache_spill LAST, after all other pragmas are configured
+	// SQLite may adjust cache_spill based on internal constraints or formulas
+	if cfg.CacheSpillThreshold > 0 {
+		// Try setting cache_spill multiple times with different approaches
+		// Approach 1: Standard syntax
+		if _, err := db.Exec(fmt.Sprintf("PRAGMA cache_spill = %d;", cfg.CacheSpillThreshold)); err != nil {
+			logger.Warningf("[SQLITE_CONFIG] Failed to set cache_spill with standard syntax: %v", err)
+		}
+
+		// Immediately verify what value was actually set
+		var actualValue int64
+		if err := db.QueryRow("PRAGMA cache_spill").Scan(&actualValue); err == nil {
+			if actualValue != int64(cfg.CacheSpillThreshold) {
+				// SQLite adjusted our value - calculate what percentage it used
+				percentage := float64(actualValue) / float64(-cacheSizeInPages) * 100.0
+				logger.Warningf("[SQLITE_CONFIG] SQLite adjusted cache_spill from %d to %d pages (%.1f%% of cache_size). This may be due to internal constraints.",
+					cfg.CacheSpillThreshold, actualValue, percentage)
+			}
+		}
+	} else {
+		// Enable cache_spill with default behavior
+		if _, err := db.Exec("PRAGMA cache_spill = 1;"); err != nil {
+			logger.Warningf("[SQLITE_CONFIG] Failed to enable cache_spill: %v", err)
 		}
 	}
 
@@ -452,18 +476,39 @@ func verifyPragmaSettings(db *sql.DB, cfg *TempDBConfig) error {
 		cacheSizeKB = -cacheSize * 4 // pages * 4KB per page
 	}
 
+	// Expected cache_spill value in pages (cache_spill is always specified and returned in pages)
+	expectedCacheSpill := int64(cfg.CacheSpillThreshold)
+
+	// Convert numeric PRAGMA values to human-readable strings
+	tempStoreMap := map[string]string{"0": "DEFAULT", "1": "FILE", "2": "MEMORY"}
+	synchronousMap := map[string]string{"0": "OFF", "1": "NORMAL", "2": "FULL", "3": "EXTRA"}
+	autoVacuumMap := map[string]string{"0": "NONE", "1": "FULL", "2": "INCREMENTAL"}
+
+	tempStoreStr := tempStoreMap[tempStore]
+	if tempStoreStr == "" {
+		tempStoreStr = tempStore
+	}
+	synchronousStr := synchronousMap[synchronous]
+	if synchronousStr == "" {
+		synchronousStr = synchronous
+	}
+	autoVacuumStr := autoVacuumMap[autoVacuum]
+	if autoVacuumStr == "" {
+		autoVacuumStr = autoVacuum
+	}
+
 	// Log all settings
 	logger.Debugf("[SQLITE_CONFIG] Database PRAGMA settings verified:")
-	logger.Debugf("  cache_size: %d KB (configured: %d KB)", cacheSizeKB, cfg.CacheSizeKB)
-	logger.Debugf("  mmap_size: %d bytes (configured: %d bytes)", mmapSize, cfg.MmapSize)
-	logger.Debugf("  soft_heap_limit: %d bytes (configured: %d bytes)", softHeapLimit, cfg.SoftHeapLimitBytes)
-	logger.Debugf("  hard_heap_limit: %d bytes (configured: %d bytes)", hardHeapLimit, cfg.HardHeapLimitBytes)
-	logger.Debugf("  cache_spill: %d pages (configured: %d pages)", cacheSpill, cfg.CacheSpillThreshold)
-	logger.Debugf("  journal_mode: %s (configured: %s)", journalMode, cfg.JournalMode)
-	logger.Debugf("  synchronous: %s (configured: %s)", synchronous, cfg.Synchronous)
-	logger.Debugf("  temp_store: %s (configured: %s)", tempStore, cfg.TempStore)
-	logger.Debugf("  locking_mode: %s (configured: %s)", lockingMode, cfg.LockingMode)
-	logger.Debugf("  auto_vacuum: %s (configured: %s)", autoVacuum, cfg.AutoVacuum)
+	logger.Debugf("  cache_size      : %d KB", cacheSizeKB)
+	logger.Debugf("  mmap_size       : %d bytes", mmapSize)
+	logger.Debugf("  soft_heap_limit : %d bytes", softHeapLimit)
+	logger.Debugf("  hard_heap_limit : %d bytes", hardHeapLimit)
+	logger.Debugf("  cache_spill     : %d pages", cacheSpill)
+	logger.Debugf("  journal_mode    : %s", journalMode)
+	logger.Debugf("  synchronous     : %s", synchronousStr)
+	logger.Debugf("  temp_store      : %s", tempStoreStr)
+	logger.Debugf("  locking_mode    : %s", lockingMode)
+	logger.Debugf("  auto_vacuum     : %s", autoVacuumStr)
 
 	// Verify critical settings match
 	if cfg.CacheSizeKB != 0 {
@@ -483,6 +528,31 @@ func verifyPragmaSettings(db *sql.DB, cfg *TempDBConfig) error {
 	}
 	if cfg.HardHeapLimitBytes > 0 && hardHeapLimit != cfg.HardHeapLimitBytes {
 		logger.Warningf("[SQLITE_CONFIG] hard_heap_limit mismatch: got %d bytes, expected %d bytes", hardHeapLimit, cfg.HardHeapLimitBytes)
+	}
+	// Verify cache_spill matches expected value (accounting for unit conversion)
+	if cfg.CacheSpillThreshold > 0 && cacheSpill != expectedCacheSpill {
+		logger.Warningf("[SQLITE_CONFIG] cache_spill mismatch: got %d pages, expected %d pages (from threshold %d pages)", cacheSpill, expectedCacheSpill, cfg.CacheSpillThreshold)
+		// If cache_spill equals cache_size in pages, it means SQLite ignored our setting
+		var cacheSizePages int64
+		if cfg.CacheSizeKB > 0 {
+			cacheSizePages = int64(cfg.CacheSizeKB) / 4 // KB to pages
+		} else {
+			cacheSizePages = -int64(cfg.CacheSizeKB) // Already in pages (negative)
+		}
+		if cacheSpill == cacheSizePages {
+			logger.Warningf("[SQLITE_CONFIG] cache_spill equals cache_size (%d pages), indicating SQLite may have ignored our setting", cacheSizePages)
+		}
+	}
+
+	// Verify string-based PRAGMA settings match (using converted values)
+	if synchronousStr != cfg.Synchronous {
+		logger.Warningf("[SQLITE_CONFIG] synchronous mismatch: got %s, expected %s", synchronousStr, cfg.Synchronous)
+	}
+	if tempStoreStr != cfg.TempStore {
+		logger.Warningf("[SQLITE_CONFIG] temp_store mismatch: got %s, expected %s", tempStoreStr, cfg.TempStore)
+	}
+	if autoVacuumStr != cfg.AutoVacuum {
+		logger.Warningf("[SQLITE_CONFIG] auto_vacuum mismatch: got %s, expected %s", autoVacuumStr, cfg.AutoVacuum)
 	}
 
 	return nil

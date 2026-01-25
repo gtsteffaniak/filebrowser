@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -79,7 +80,7 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	d.fileInfo = *fileInfo
 	status, err := previewHelperFunc(w, r, d)
 	if err != nil {
-		logger.Errorf("error getting preview: %v", err)
+		// Error already logged in previewHelperFunc or its callees
 		return errToStatus(err), err
 	}
 	return status, nil
@@ -201,7 +202,7 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 
 	officeUrl := ""
 	if d.fileInfo.OnlyOfficeId != "" {
-		pathUrl := fmt.Sprintf("/api/raw?files=%s::%s", d.fileInfo.Source, d.fileInfo.Path)
+		pathUrl := fmt.Sprintf("/api/raw?file=%s&source=%s", url.QueryEscape(d.fileInfo.Path), url.QueryEscape(d.fileInfo.Source))
 		pathUrl = pathUrl + "&auth=" + d.token
 		if settings.Config.Server.InternalUrl != "" {
 			officeUrl = config.Server.InternalUrl + pathUrl

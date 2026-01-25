@@ -918,7 +918,6 @@ export default {
         name: "file-list",
         props: {
           fileList: currentItems,
-          mode: "quick-jump",
           title: this.$t("prompts.quickJump")
         }
       });

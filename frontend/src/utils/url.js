@@ -1,6 +1,24 @@
 import { globalVars } from "@/utils/constants.js";
 import { state, mutations, getters } from "@/store";
 import { router } from "@/router";
+export default {
+  pathsMatch,
+  removeTrailingSlash,
+  removeLeadingSlash,
+  encodeRFC5987ValueChars,
+  removeLastDir,
+  encodePath,
+  removePrefix,
+  getApiPath,
+  extractSourceFromPath,
+  base64Encode,
+  joinPath,
+  goToItem,
+  buildItemUrl,
+  encodedPath,
+  trimSlashes,
+  getPublicApiPath,
+};
 
 export function removeLastDir(url) {
   var arr = url.split("/");
@@ -38,26 +56,6 @@ export function pathsMatch(url1, url2) {
   return removeTrailingSlash(url1) == removeTrailingSlash(url2);
 }
 
-export default {
-  pathsMatch,
-  removeTrailingSlash,
-  removeLeadingSlash,
-  encodeRFC5987ValueChars,
-  removeLastDir,
-  encodePath,
-  removePrefix,
-  getApiPath,
-  extractSourceFromPath,
-  base64Encode,
-  joinPath,
-  goToItem,
-  buildItemUrl,
-  encodedPath,
-  doubleEncode,
-  trimSlashes,
-  getPublicApiPath,
-};
-
 export function removePrefix(path, prefix = "") {
   if (path === undefined) {
     return ""
@@ -80,6 +78,7 @@ export function removePrefix(path, prefix = "") {
 
 
 // get path with parameters
+// Supports array values for repeated parameters (e.g., file=a&file=b&file=c)
 export function getApiPath(path, params = {}, encode = false) {
   if (path.startsWith("/")) {
     path = path.slice(1);
@@ -89,24 +88,40 @@ export function getApiPath(path, params = {}, encode = false) {
   const paramKeys = Object.keys(params);
   if (paramKeys.length > 0) {
     if (encode) {
-      const encodedParams = paramKeys
-        .filter(key => params[key] !== undefined)
-        .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
-        .join('&');
-      if (encodedParams) {
-        path += `?${encodedParams}`;
+      const encodedParams = [];
+      for (const key of paramKeys) {
+        const value = params[key];
+        if (value === undefined) continue;
+        
+        // Handle array values for repeated parameters
+        if (Array.isArray(value)) {
+          value.forEach(v => {
+            encodedParams.push(`${encodeURIComponent(key)}=${encodeURIComponent(v)}`);
+          });
+        } else {
+          encodedParams.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`);
+        }
+      }
+      if (encodedParams.length > 0) {
+        path += `?${encodedParams.join('&')}`;
       }
     } else {
-      path += "?";
+      const queryParams = [];
       for (const key in params) {
-        if (params[key] === undefined) {
-          continue;
+        const value = params[key];
+        if (value === undefined) continue;
+        
+        // Handle array values for repeated parameters
+        if (Array.isArray(value)) {
+          value.forEach(v => {
+            queryParams.push(`${key}=${v}`);
+          });
+        } else {
+          queryParams.push(`${key}=${value}`);
         }
-        path += `${key}=${params[key]}&`;
       }
-      // remove trailing &
-      if (path.endsWith("&")) {
-        path = path.slice(0, -1);
+      if (queryParams.length > 0) {
+        path += `?${queryParams.join('&')}`;
       }
     }
   }
@@ -218,8 +233,4 @@ export function goToItem(source, path, previousHistoryItem) {
   }
   router.push({ path: fullPath });
   return
-}
-
-export function doubleEncode(str) {
-  return encodeURIComponent(encodeURIComponent(str));
 }

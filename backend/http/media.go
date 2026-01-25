@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"net/http"
-	"net/url"
 	"path/filepath"
 	"strconv"
 	"time"
@@ -29,21 +28,12 @@ import (
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/media/subtitles [get]
 func subtitlesHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	encodedPath := r.URL.Query().Get("path")
+	path := r.URL.Query().Get("path")
 	source := r.URL.Query().Get("source")
 	indexParam := r.URL.Query().Get("index")
 
 	if indexParam == "" {
 		indexParam = "0" // default to first subtitle stream
-	}
-
-	path, err := url.QueryUnescape(encodedPath)
-	if err != nil {
-		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
-	}
-	source, err = url.QueryUnescape(source)
-	if err != nil {
-		return http.StatusBadRequest, fmt.Errorf("invalid source encoding: %v", err)
 	}
 
 	userscope, err := d.user.GetScopeForSourceName(source)

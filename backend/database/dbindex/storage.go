@@ -1,4 +1,4 @@
-package indexing
+package dbindex
 
 import (
 	"sync"
@@ -165,5 +165,39 @@ func (s *Storage) Flush() error {
 			return err
 		}
 	}
+	return nil
+}
+
+// ResetAllComplexities sets the complexity to 0 for all indexes and their scanners.
+// This should be called when the index database is recreated (either fresh start or after corruption).
+func (s *Storage) ResetAllComplexities() error {
+	// Get all indexes from storage
+	infos, err := s.All()
+	if err != nil {
+		return err
+	}
+
+	// Reset complexity for each index
+	for _, info := range infos {
+		if info == nil {
+			continue
+		}
+
+		// Reset index-level complexity
+		info.Complexity = 0
+
+		// Reset scanner-level complexities
+		for _, scanner := range info.Scanners {
+			if scanner != nil {
+				scanner.Complexity = 0
+			}
+		}
+
+		// Save the updated info
+		if err := s.Save(info); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }

@@ -223,7 +223,8 @@
     "copyToClipboardFailed": "Hubo un error al copiar en el portapapeles",
     "moveFailed": "Error al mover",
     "operationFailed": "Operación fallida",
-    "partialSuccess": "Algunas operaciones fallaron: {succeeded} tuvo éxito, {failed} falló"
+    "partialSuccess": "Algunas operaciones fallaron: {succeeded} tuvo éxito, {failed} falló",
+    "renameFailed": "Error al renombrar elemento"
   },
   "search": {
     "smallerThan": "Menor que:",
@@ -684,7 +685,6 @@
     "disableViewingFilesDescription": "Una lista (separada por espacios) de extensiones de archivo para desactivar el visor/editor de archivos (por ejemplo, '.txt .pdf').",
     "disablePreviewExt": "Desactivar la vista previa de archivos de Office para las siguientes extensiones:",
     "disablePreviewExtDescription": "Una lista (separada por espacios) de las extensiones de archivo para las que se desactivará la vista previa de los archivos de Office (por ejemplo, '.docx .pptx').",
-    "disableOfficeEditorDescription": "Una lista (separada por espacios) de las extensiones de archivo para las que desea desactivar el editor y el visor de OnlyOffice. (por ejemplo, '.txt .html .pdf').",
     "disableOfficeEditor": "Desactivar el visor y editor de office para las siguientes extensiones:",
     "defaultThemeDescription": "Predeterminado",
     "customTheme": "Cambiar tema",
@@ -727,7 +727,8 @@
     "fileViewerOptions": "Opciones del visor de archivos",
     "themeAndLanguage": "Tema e Idioma",
     "previewFolder": "Vista previa en miniatura para carpetas",
-    "previewFolderDescription": "Mostrar vistas previas en miniatura para las carpetas - Se usará el primer elemento como portada. (puede ser una imagen, o audio con imagen)"
+    "previewFolderDescription": "Mostrar vistas previas en miniatura para las carpetas - Se usará el primer elemento como portada. (puede ser una imagen, o audio con imagen)",
+    "disableOfficeEditorDescription": "Una lista separada por espacios de extensiones de archivo para las que desactivar el editor y visor de OnlyOffice, o '*' para desactivarlas todas. (por ejemplo, '.txt .html .pdf')."
   },
   "editor": {
     "uninitialized": "Hubo un error al iniciar el editor",

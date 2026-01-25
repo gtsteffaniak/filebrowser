@@ -223,7 +223,8 @@
     "copyToClipboardFailed": "Não é possível copiar para a área de transferência",
     "moveFailed": "Falha ao mover",
     "operationFailed": "A operação falhou",
-    "partialSuccess": "Algumas operações falharam: {succeeded} foi bem sucedido, {failed} falhou"
+    "partialSuccess": "Algumas operações falharam: {succeeded} foi bem sucedido, {failed} falhou",
+    "renameFailed": "Falha ao renomear o item"
   },
   "search": {
     "smallerThan": "Mais pequeno do que:",
@@ -580,7 +581,6 @@
     "disableViewingFilesDescription": "Uma lista de extensões de ficheiros, separada por espaços, para desativar o visualizador/editor de ficheiros (por exemplo, '.txt .pdf').",
     "disablePreviewExt": "Desativar as pré-visualizações de ficheiros do Office para determinadas extensões de ficheiros",
     "disablePreviewExtDescription": "Uma lista de extensões de ficheiros, separada por espaços, para desativar as pré-visualizações de ficheiros do Office (por exemplo, '.docx .pptx').",
-    "disableOfficeEditorDescription": "Uma lista de extensões de ficheiros separada por espaços para desativar o editor e visualizador do OnlyOffice. (por exemplo, '.txt .html .pdf').",
     "disableOfficeEditor": "Desativar o visualizador do Office para determinadas extensões de ficheiros",
     "defaultThemeDescription": "default - O tema predefinido",
     "customTheme": "Escolha o seu tema",
@@ -594,7 +594,8 @@
     "themeAndLanguage": "Tema e linguagem",
     "previewFolder": "Mostrar miniaturas das pastas, se disponíveis",
     "previewFolderDescription": "Mostrar pré-visualizações em miniatura para pastas com o primeiro item filho com miniatura como capa.",
-    "disableFileExtensions": "Introduzir as extensões de ficheiros a desativar"
+    "disableFileExtensions": "Introduzir as extensões de ficheiros a desativar",
+    "disableOfficeEditorDescription": "Uma lista de extensões de ficheiros separada por espaços para desativar o editor e visualizador do OnlyOffice - ou '*' para desativar para todos. (por exemplo, '.txt .html .pdf')."
   },
   "general": {
     "name": "Nome",

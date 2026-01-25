@@ -223,7 +223,8 @@
     "copyToClipboardFailed": "Kan niet naar klembord kopiëren",
     "moveFailed": "Verplaatsen mislukt",
     "operationFailed": "Operatie mislukt",
-    "partialSuccess": "Sommige bewerkingen zijn mislukt: {succeeded} gelukt, {failed} mislukt."
+    "partialSuccess": "Sommige bewerkingen zijn mislukt: {succeeded} gelukt, {failed} mislukt.",
+    "renameFailed": "Hernoemen van item mislukt"
   },
   "search": {
     "smallerThan": "Kleiner dan:",
@@ -580,7 +581,6 @@
     "disableViewingFilesDescription": "Een door spaties gescheiden lijst met bestandsextensies waarvoor de bestandsviewer/editor uitgeschakeld moet worden (bijvoorbeeld '.txt .pdf').",
     "disablePreviewExt": "Office-bestandsvoorvertoningen uitschakelen voor bepaalde bestandsextensies",
     "disablePreviewExtDescription": "Een door spaties gescheiden lijst met bestandsextensies waarvoor Office-bestandsvoorvertoningen moeten worden uitgeschakeld (bijvoorbeeld '.docx .pptx').",
-    "disableOfficeEditorDescription": "Een door spaties gescheiden lijst met bestandsextensies waarvoor de OnlyOffice editor en viewer uitgeschakeld moeten worden. (bijv. '.txt .html .pdf').",
     "disableOfficeEditor": "Office Viewer uitschakelen voor bepaalde bestandsextensies",
     "defaultThemeDescription": "standaard - Het standaardthema",
     "customTheme": "Kies je thema",
@@ -594,7 +594,8 @@
     "themeAndLanguage": "Thema & Taal",
     "previewFolder": "Toon miniaturen voor mappen indien beschikbaar",
     "previewFolderDescription": "Toon miniatuurafbeeldingen voor mappen met het eerste kinditem met miniatuurafbeelding als omslag.",
-    "disableFileExtensions": "Voer bestandsextensies in om uit te schakelen"
+    "disableFileExtensions": "Voer bestandsextensies in om uit te schakelen",
+    "disableOfficeEditorDescription": "Een door spaties gescheiden lijst van bestandsextensies waarvoor de OnlyOffice editor en viewer uitgeschakeld moeten worden - of '*' om alle extensies uit te schakelen. (bijv. '.txt .html .pdf')."
   },
   "general": {
     "name": "Naam",
