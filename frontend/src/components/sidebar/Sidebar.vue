@@ -2,6 +2,7 @@
   <nav
     id="sidebar"
     :class="{ active: active, 'dark-mode': isDarkMode, 'behind-overlay': behindOverlay, 'scrollable': isSettings }"
+    :style="{ width: sidebarWidth + 'em', left: active ? '0' : `-${sidebarWidth}em` }"
   >
     <div v-if="shouldShow" class="button release-banner">
       <a :href="releaseUrl">{{ $t("sidebar.updateIsAvailable") }}</a>
@@ -27,6 +28,10 @@
         <h4 style="margin: 0">{{ name }}</h4>
       </span>
     </div>
+    <!-- Resize Handle -->
+    <div v-if="active && !isMobile" class="sidebar-resizer" @mousedown="startResize" @touchstart="startResize" >
+      <div class="resizer-handle"></div>
+    </div>
   </nav>
 </template>
 
@@ -42,7 +47,12 @@ export default {
     SidebarGeneral,
     SidebarSettings,
   },
-
+  data() {
+    return {
+      resizeStartX: 0,
+      resizeStartWidth: 0,
+    };
+  },
   mounted() {
     // Ensure the sidebar is initialized correctly
     mutations.setSeenUpdate(localStorage.getItem("seenUpdate"));
@@ -57,12 +67,20 @@ export default {
       }
     };
     document.addEventListener('keydown', this.handleKeydown);
+    document.addEventListener('mousemove', this.handleResize);
+    document.addEventListener('touchmove', this.handleResize, { passive: true });
+    document.addEventListener('mouseup', this.stopResize);
+    document.addEventListener('touchend', this.stopResize);
   },
   beforeUnmount() {
     // Clean up event listener
     if (this.handleKeydown) {
       document.removeEventListener('keydown', this.handleKeydown);
     }
+    document.removeEventListener('mousemove', this.handleResize);
+    document.removeEventListener('touchmove', this.handleResize);
+    document.removeEventListener('mouseup', this.stopResize);
+    document.removeEventListener('touchend', this.stopResize);
   },
   computed: {
     externalLinks: () => globalVars.externalLinks,
@@ -72,8 +90,10 @@ export default {
     isDarkMode: () => getters.isDarkMode(),
     isLoggedIn: () => getters.isLoggedIn(),
     isSettings: () => getters.isSettings(),
+    isMobile: () => getters.isMobile(),
     active: () => getters.isSidebarVisible(),
     behindOverlay: () => state.isSearchActive || (state.prompts && state.prompts.length > 0),
+    sidebarWidth: () => state.sidebar.width,
     shouldShow() {
       return (
         globalVars.updateAvailable != "" &&
@@ -84,6 +104,33 @@ export default {
     },
   },
   methods: {
+    startResize(event) {
+      event.preventDefault();
+      event.stopPropagation();
+      // Handle mouse and touch events (maybe someone will want to resize in a big tablet)
+      const clientX = event.clientX || (event.touches && event.touches[0].clientX);
+      this.resizeStartX = clientX;
+      this.resizeStartWidth = this.sidebarWidth;
+      mutations.setSidebarResizing(true);
+      document.body.classList.add('sidebar-resizing');
+    },
+    handleResize(event) {
+      if (!state.sidebar.isResizing) return;
+      event.preventDefault();
+      // Same here
+      const clientX = event.clientX || (event.touches && event.touches[0].clientX);
+      if (!clientX) return;
+      const deltaX = clientX - this.resizeStartX;
+      // Convert pixels to em
+      const deltaEm = deltaX / 16;
+      const newWidth = this.resizeStartWidth + deltaEm;
+      mutations.setSidebarWidth(newWidth);
+    },
+    stopResize() {
+      if (!state.sidebar.isResizing) return;
+      mutations.setSidebarResizing(false);
+      document.body.classList.remove('sidebar-resizing');
+    },
     // Show the help overlay
     help() {
       mutations.showHover("help");
@@ -110,7 +157,7 @@ export default {
   z-index: 4;
   left: -20em;
   height: 100%;
-  transition: 0.5s ease;
+  transition: 0.2s ease;
   top: 4em;
   padding-bottom: 4em;
   background-color: rgb(37 49 55 / 5%) !important;
@@ -205,6 +252,37 @@ body.rtl .action {
 
 #sidebar.scrollable::-webkit-scrollbar {
   display: none; /* Chrome, Safari, and Opera */
+}
+
+.sidebar-resizer {
+  position: absolute;
+  top: 0;
+  right: -0.25em;
+  width: 0.5em;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 1000;
+}
+
+.resizer-handle {
+  position: absolute;
+  top: 44%;
+  right: 0;
+  width: 0.125em;
+  height: 2.5em;
+}
+
+.sidebar-resizer:hover .resizer-handle,
+body.sidebar-resizing .resizer-handle {
+  background-color: var(--primaryColor);
+  border-radius: 1em;
+  width: 0.3em;
+}
+
+body.sidebar-resizing,
+body.sidebar-resizing * {
+  cursor: col-resize !important;
+  pointer-events: none;
 }
 
 </style>

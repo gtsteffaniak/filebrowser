@@ -844,4 +844,23 @@ export const mutations = {
     state.shareInfo = shareInfo;
     emitStateChanged();
   },
+  setSidebarWidth: (value) => {
+    // Ensure width is within bounds
+    const minWidth = state.sidebar.minWidth;
+    const maxWidth = state.sidebar.maxWidth;
+    let newWidth = Math.max(minWidth, Math.min(value, maxWidth));
+    if (newWidth === state.sidebar.width) {
+      return;
+    }
+    state.sidebar.width = newWidth;
+    localStorage.setItem("sidebarWidth", newWidth.toString());
+    emitStateChanged();
+  },
+  setSidebarResizing: (value) => {
+    if (value === state.sidebar.isResizing) {
+      return;
+    }
+    state.sidebar.isResizing = value;
+    emitStateChanged();
+  },
 };

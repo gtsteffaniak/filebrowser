@@ -698,7 +698,4 @@ export default {
   box-shadow: 0 0 10px var(--primaryColor);
 }
 
-#main.moveWithSidebar .progress-line {
-  left: 20em;
-}
 </style>

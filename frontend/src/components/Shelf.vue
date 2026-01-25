@@ -4,6 +4,7 @@
       v-show="!isHidden && showShelf"
       id="shelf"
       :class="{ 'add-padding': addPadding }"
+      :style="moveWithSidebar"
     >
       <breadcrumbs v-if="showBreadcrumbs" :base="isShare ? `/share/${shareHash}` : undefined" />
       <listing-header v-if="showListingHeader" :hasDuration="hasDuration" />
@@ -76,6 +77,14 @@ export default {
     showDuplicateFinderActions() {
       // Show duplicate finder actions when on that route and there are selected items
       return this.duplicateFinderSelectedCount > 0;
+    },
+    moveWithSidebar() {
+      if (getters.isStickySidebar() && getters.isSidebarVisible()) {
+        return {
+          left: state.sidebar.width + 'em',
+        };
+      }
+      return {};
     },
   },
   mounted() {
@@ -195,7 +204,7 @@ export default {
   z-index: 1000;
   right: 0;
   left: 0;
-  transition: 0.3s ease;
+  transition: 0.2s ease;
   box-sizing: border-box;
   height: auto;
   min-height: 0;
@@ -204,7 +213,7 @@ export default {
 
 .shelf-slide-enter-active,
 .shelf-slide-leave-active {
-  transition: transform 0.3s ease, opacity 0.3s ease;
+  transition: transform 0.3s ease, opacity 0.3s ease !important;
 }
 
 .shelf-slide-enter-from,
@@ -227,7 +236,4 @@ export default {
   }
 }
 
-#main.moveWithSidebar #shelf {
-  padding-left: 20.5em;
-}
 </style>

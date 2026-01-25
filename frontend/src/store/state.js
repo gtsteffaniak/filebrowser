@@ -160,6 +160,12 @@ export const state = reactive({
     description: "",
   },
   notificationHistory: loadNotificationHistory(), // Session-based notification history (persists across refreshes)
+  sidebar: {
+    width: getSidebarWidth(), // in em
+    isResizing: false,
+    minWidth: 18.5, // in em
+    maxWidth: 37.5, // in em
+  },
 });
 
 /**
@@ -174,6 +180,15 @@ function loadNotificationHistory() {
     console.error('Failed to load notification history:', error);
     return [];
   }
+}
+
+/**
+ * Load sidebar width from localStorage or use default size
+ * @returns {number}
+ */
+function getSidebarWidth() {
+  const savedWidth = localStorage.getItem("sidebarWidth");
+  return savedWidth ? parseFloat(savedWidth) : 20; // 20em
 }
 
 function stickyStartup() {
