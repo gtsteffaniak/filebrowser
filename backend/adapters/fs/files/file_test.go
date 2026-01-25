@@ -219,7 +219,7 @@ func TestOverrideDirectoryToFile(t *testing.T) {
 	indexing.Initialize(&settings.Source{
 		Name: "test",
 		Path: "/mock/path",
-	}, true) // true for mock mode
+	}, true, false) // true for mock mode, false for isNewDb
 
 	// Get the index and set up mock data
 	idx := indexing.GetIndex("test")
@@ -329,7 +329,7 @@ func TestOverrideFileToDirectory(t *testing.T) {
 	indexing.Initialize(&settings.Source{
 		Name: "test",
 		Path: "/mock/path",
-	}, true) // true for mock mode
+	}, true, false) // true for mock mode, false for isNewDb
 
 	// Get the index and set up mock data
 	idx := indexing.GetIndex("test")

@@ -179,14 +179,9 @@ func (idx *Index) PostScan() error {
 			logger.Errorf("Failed to shrink memory: %v", err)
 		}
 
-		// Persist index and scanner information
+		// Persist index and scanner information (SSE event will be sent by Save())
 		if err := idx.Save(); err != nil {
 			logger.Errorf("Failed to save index persistence: %v", err)
-		}
-
-		// Send update event to notify frontend that stats may have changed
-		if err := idx.SendSourceUpdateEvent(); err != nil {
-			logger.Errorf("Error sending source update event: %v", err)
 		}
 
 		// Clear scan session tracking when all scanners complete
@@ -202,7 +197,6 @@ func (idx *Index) PostScan() error {
 
 func (idx *Index) SendSourceUpdateEvent() error {
 	if idx.mock {
-		logger.Debug("Skipping source update event for mock index.")
 		return nil
 	}
 	reducedIndex, err := GetIndexInfo(idx.Name, true)
@@ -224,7 +218,8 @@ func (idx *Index) SendSourceUpdateEvent() error {
 }
 
 // setupMultiScanner creates and starts the multi-scanner system
-func (idx *Index) setupMultiScanner() {
+// isNewDb: if true, skip loading persisted complexity values (database is new or recreated)
+func (idx *Index) setupMultiScanner(isNewDb bool) {
 	// Load persisted index and scanner information
 	if err := idx.Load(); err != nil {
 		logger.Errorf("Failed to load persisted index data for [%v]: %v", idx.Name, err)
@@ -246,7 +241,7 @@ func (idx *Index) setupMultiScanner() {
 
 	// Load persisted scanner info if available
 	var persistedScanners map[string]*indexingdb.PersistedScannerInfo
-	if indexingStorage != nil {
+	if indexingStorage != nil && !isNewDb {
 		info, err := indexingStorage.GetByPath(idx.Path)
 		if err == nil && info != nil {
 			persistedScanners = info.Scanners
@@ -254,8 +249,7 @@ func (idx *Index) setupMultiScanner() {
 	}
 
 	// Create and start root scanner
-	rootScanner := idx.createRootScanner()
-	// Restore persisted stats for root scanner if available
+	rootScanner := idx.createScanner("/")
 	if persistedScanners != nil {
 		if rootInfo, ok := persistedScanners["/"]; ok {
 			rootScanner.complexity = rootInfo.Complexity
@@ -277,9 +271,9 @@ func (idx *Index) setupMultiScanner() {
 
 	// Create child scanner for each top-level directory
 	for _, dirPath := range topLevelDirs {
-		childScanner := idx.createChildScanner(dirPath)
+		childScanner := idx.createScanner(dirPath)
 
-		// Restore persisted stats for child scanner if available
+		// Restore persisted stats for child scanner if available (and DB is not new)
 		if persistedScanners != nil {
 			if childInfo, ok := persistedScanners[dirPath]; ok {
 				childScanner.complexity = childInfo.Complexity
@@ -302,20 +296,8 @@ func (idx *Index) setupMultiScanner() {
 	logger.Debugf("Created %d scanners for [%v] (1 root + %d children)", len(topLevelDirs)+1, idx.Name, len(topLevelDirs))
 }
 
-// createRootScanner creates a scanner for the root directory (non-recursive)
-func (idx *Index) createRootScanner() *Scanner {
-	return &Scanner{
-		scanPath:        "/",
-		idx:             idx,
-		stopChan:        make(chan struct{}),
-		currentSchedule: 0,
-		fullScanCounter: 0,
-		complexity:      0, // 0 = unknown until first full scan completes
-	}
-}
-
 // createChildScanner creates a scanner for a specific child directory (recursive)
-func (idx *Index) createChildScanner(dirPath string) *Scanner {
+func (idx *Index) createScanner(dirPath string) *Scanner {
 	return &Scanner{
 		scanPath:        dirPath,
 		idx:             idx,
@@ -324,12 +306,6 @@ func (idx *Index) createChildScanner(dirPath string) *Scanner {
 		fullScanCounter: 0,
 		complexity:      0, // 0 = unknown until first full scan completes
 	}
-}
-
-// Legacy function kept for backwards compatibility - now deprecated
-func (idx *Index) setupIndexingScanners() {
-	// Use new multi-scanner system
-	idx.setupMultiScanner()
 }
 
 // GetScannerStatus returns detailed information about all active scanners

@@ -395,7 +395,7 @@ func (s *Scanner) checkForNewChildDirectories() {
 		_, exists := existingScanners[dirPath]
 		if !exists && dirPath != "/" {
 			logger.Debugf("Detected new directory, creating scanner: [%s]", dirPath)
-			newScanner := s.idx.createChildScanner(dirPath)
+			newScanner := s.idx.createScanner(dirPath)
 
 			s.idx.mu.Lock()
 			s.idx.scanners[dirPath] = newScanner
@@ -507,6 +507,7 @@ func (s *Scanner) updateSchedule() {
 // 0: unknown
 func (s *Scanner) updateComplexity() {
 	s.complexity = calculateComplexity(s.fullScanTime, s.numDirs)
+
 	// Set smartModifier based on complexity level
 	if modifier, ok := complexityModifier[s.complexity]; ok {
 		s.smartModifier = modifier
