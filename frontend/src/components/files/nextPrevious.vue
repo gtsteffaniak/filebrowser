@@ -186,9 +186,9 @@ export default {
       }
       // Calculate left position based on sidebar
       if (this.moveWithSidebar) {
-        styles.left = `calc(${this.sidebarWidth}em + 1.25em)`; // When sidebar is sticky the position of the button will have a tiny padding
+        styles.left = `calc(${this.sidebarWidth}em + 1em)`; // When sidebar is sticky the position of the button will have a tiny padding
       } else {
-        styles.left = '1.25em';
+        styles.left = '1em';
       }
       return styles;
     },
@@ -198,7 +198,7 @@ export default {
         styles.transform = `translateY(-50%) translate(${this.dragState.deltaX}px, 0)`;
       }
       // Next button doesn't need account for the sidebar
-      styles.right = '1.25em';
+      styles.right = '1em';
       return styles;
     }
   },

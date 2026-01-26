@@ -210,7 +210,7 @@ export const mutations = {
     emitStateChanged();
   },
   setMobile() {
-    const newValue = window.innerWidth <= 800;
+    const newValue = window.innerWidth <= 768;
     if (newValue === state.isMobile) {
       return;
     }

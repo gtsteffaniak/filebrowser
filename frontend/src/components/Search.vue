@@ -929,7 +929,7 @@ body.rtl #search .boxes h3 {
   overflow: hidden;
 }
 
-@media (max-width: 800px) {
+@media (max-width: 768px) {
   #search {
     min-width: unset;
     max-width: 60%;

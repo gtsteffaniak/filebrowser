@@ -1251,7 +1251,7 @@ export default {
 /* Upload Share Styles */
 .upload-share-embed {
   padding: 2em;
-  max-width: 800px;
+  max-width: 768px;
   margin: 0 auto;
 }
 

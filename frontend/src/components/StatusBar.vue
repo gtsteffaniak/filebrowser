@@ -242,7 +242,7 @@ input[type="range"] {
 }
 
 /* Mobile styles */
-@media (max-width: 800px) {
+@media (max-width: 768px) {
   #status-bar {
     height: 3em;
     bottom: -3em;
@@ -265,7 +265,6 @@ input[type="range"] {
 
   input[type="range"] {
     width: 7em;
-    height: 1.5em; /* For better touch */
   }
 
   .status-info {

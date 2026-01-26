@@ -22,7 +22,7 @@ export const state = reactive({
   sessionId: "",
   isSafari: /^((?!chrome|android).)*safari/i.test(navigator.userAgent),
   activeSettingsView: "",
-  isMobile: window.innerWidth <= 800,
+  isMobile: window.innerWidth <= 768,
   isSearchActive: false,
   showSidebar: false,
   displayPreferences: {},
@@ -163,7 +163,7 @@ export const state = reactive({
   sidebar: {
     width: getSidebarWidth(), // in em
     isResizing: false,
-    minWidth: 18, // in em
+    minWidth: 17.5, // in em
     maxWidth: 37.5, // in em
   },
 });
