@@ -1247,8 +1247,8 @@ export default {
   }
 
   .album-art-container {
-    width: min(65vw);
-    height: min(65vw);
+    width: min(71vw);
+    height: min(71vw);
     margin-top: 12px;
   }
 }
