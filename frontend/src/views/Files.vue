@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div v-if="loadingProgress < 100" class="progress-line" :style="{ width: loadingProgress + '%' }"></div>
+    <div v-if="loadingProgress < 100" class="progress-line" :style="moveWithSidebar"></div>
     <errors v-if="error" :errorCode="error.status" />
     <component v-else-if="currentViewLoaded" :is="currentView"></component>
     <div v-else>
@@ -74,6 +74,15 @@ export default {
     },
     reload() {
       return state.reload;
+    },
+    moveWithSidebar() {
+      const style = {
+        width: this.loadingProgress + '%',
+      };
+      if (getters.isStickySidebar() && getters.isSidebarVisible()) {
+        style.left = state.sidebar.width + 'em';
+      }
+      return style;
     },
   },
   created() {
@@ -694,7 +703,7 @@ export default {
   height: 1px;
   background: var(--primaryColor);
   z-index: 2000;
-  transition: width 0.3s ease;
+  transition: width 0.3s ease, left 0.2s ease;
   box-shadow: 0 0 10px var(--primaryColor);
 }
 
