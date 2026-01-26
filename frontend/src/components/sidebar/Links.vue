@@ -173,8 +173,9 @@ export default {
         if (!link.sourceName) return '#';
         const sourceInfo = this.sourceInfo[link.sourceName];
         if (!sourceInfo) return '#'; // Source not found
-        const basePath = `/files/${link.sourceName}${sourceInfo.pathPrefix}`
-        fullPath = basePath + link.target;
+        const encodedSourceName = encodeURIComponent(link.sourceName);
+        const targetPath = link.target.startsWith('/') ? link.target.substring(1) : link.target;
+        fullPath = `/files/${encodedSourceName}/${targetPath}`;
       } else {
         // For other links (tools, custom, share), use target as-is
         fullPath = link.target;
