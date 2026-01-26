@@ -214,7 +214,8 @@ export default {
     logout: auth.logout,
     beforeEnter(el) {
       el.style.maxHeight = '0';
-      el.style.opacity = '0';    },
+      el.style.opacity = '0';
+    },
     enter(el, done) {
       requestAnimationFrame(() => {
         el.style.transition = 'max-height 0.2s ease, opacity 0.15s ease';
@@ -364,6 +365,7 @@ export default {
 .quick-toggles div {
   border-radius: 10em;
   background-color: var(--surfaceSecondary);
+  transform: translateZ(0);
 }
 
 .quick-toggles div i {
@@ -375,6 +377,7 @@ export default {
 
 button.action {
   border-radius: 0.5em;
+  transform: translateZ(0);
 }
 
 .quick-toggles .active {
@@ -430,14 +433,14 @@ a.person-button {
 
 .expand-enter-active,
 .expand-leave-active {
-  transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: max-height 0.2s ease, opacity 0.15s ease;
   overflow: hidden;
   will-change: opacity, max-height;
 }
 
-.expand-enter,
+.expand-enter-from,
 .expand-leave-to {
-  height: 0 !important;
+  max-height: 0 !important;
   opacity: 0;
 }
 

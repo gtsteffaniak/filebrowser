@@ -187,7 +187,7 @@ export default {
   top: 4em;
   padding-bottom: 4em;
   background-color: rgb(37 49 55 / 5%) !important;
-  will-change: transform;
+  will-change: left;
   backface-visibility: hidden;
 }
 
@@ -195,12 +195,13 @@ export default {
 @supports (backdrop-filter: none) {
   #sidebar {
     backdrop-filter: blur(8px) invert(0.1);
+    isolation: isolate;
   }
   #sidebar.dark-mode {
     background-color: rgb(37 49 55 / 33%) !important;
   }
   #sidebar:not(.active) {
-    backdrop-filter: blur(0px);
+    backdrop-filter: blur(0) invert(0);
   }
 }
 
@@ -287,7 +288,7 @@ body.rtl .action {
 .sidebar-resizer {
   position: absolute;
   top: 0;
-  right: -0.25em;
+  right: -0.3em;
   width: 0.5em;
   height: 100%;
   cursor: col-resize;
