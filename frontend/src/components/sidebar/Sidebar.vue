@@ -189,7 +189,7 @@ export default {
   z-index: 4;
   transform: translateZ(0);
   height: 100%;
-  transition: 0.5s ease;
+  transition: 0.4s ease;
   top: 4em;
   padding-bottom: 4em;
   background-color: rgb(37 49 55 / 5%) !important;

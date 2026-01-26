@@ -230,7 +230,7 @@ export default {
   /* Internet Explorer 10+ */
   scrollbar-width: none;
   /* Firefox */
-  transition: 0.5s ease;
+  transition: 0.2s ease;
 }
 
 #main.moveWithSidebar {
