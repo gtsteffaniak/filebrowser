@@ -525,6 +525,7 @@ a.sidebar-link-button {
 .expand-leave-active {
   transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
+  will-change: opacity, max-height;
 }
 
 .expand-enter,

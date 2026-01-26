@@ -181,21 +181,26 @@ export default {
   width: 20em;
   position: fixed;
   z-index: 4;
-  left: -20em;
+  transform: translateZ(0);
   height: 100%;
-  transition: 0.2s ease;
+  transition: 0.5s ease;
   top: 4em;
   padding-bottom: 4em;
   background-color: rgb(37 49 55 / 5%) !important;
+  will-change: transform;
+  backface-visibility: hidden;
 }
 
 /* sidebar with backdrop-filter support */
 @supports (backdrop-filter: none) {
   #sidebar {
-    backdrop-filter: blur(16px) invert(0.1);
+    backdrop-filter: blur(8px) invert(0.1);
   }
   #sidebar.dark-mode {
     background-color: rgb(37 49 55 / 33%) !important;
+  }
+  #sidebar:not(.active) {
+    backdrop-filter: blur(0px);
   }
 }
 
@@ -208,12 +213,11 @@ export default {
 }
 
 body.rtl nav {
-  left: unset;
-  right: -17em;
+  transform: translateX(100%);
 }
 
 #sidebar.active {
-  left: 0;
+  transform: translateZ(0);
 }
 
 #sidebar.rtl nav.active {
@@ -309,6 +313,7 @@ body.sidebar-resizing,
 body.sidebar-resizing * {
   cursor: col-resize !important;
   pointer-events: none;
+  transition: none !important;
 }
 
 </style>

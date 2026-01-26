@@ -213,30 +213,34 @@ export default {
     // Logout the user
     logout: auth.logout,
     beforeEnter(el) {
-      el.style.height = '0';
-      el.style.opacity = '0';
-    },
+      el.style.maxHeight = '0';
+      el.style.opacity = '0';    },
     enter(el, done) {
-      el.style.transition = '';
-      el.style.height = '0';
-      el.style.opacity = '0';
-      // Force reflow
-      void el.offsetHeight;
-      el.style.transition = 'height 0.3s, opacity 0.3s';
-      el.style.height = el.scrollHeight + 'px';
-      el.style.opacity = '1';
-      setTimeout(() => {
-        el.style.height = 'auto';
-        done();
-      }, 300);
+      requestAnimationFrame(() => {
+        el.style.transition = 'max-height 0.2s ease, opacity 0.15s ease';
+        el.style.maxHeight = el.scrollHeight + 'px';
+        el.style.opacity = '1';
+        const onTransitionEnd = () => {
+          el.style.maxHeight = '';
+          el.removeEventListener('transitionend', onTransitionEnd);
+          done();
+        };
+        el.addEventListener('transitionend', onTransitionEnd);
+      });
     },
     leave(el, done) {
-      el.style.transition = 'height 0.3s, opacity 0.3s';
-      el.style.height = el.scrollHeight + 'px';
-      void el.offsetHeight;
-      el.style.height = '0';
-      el.style.opacity = '0';
-      setTimeout(done, 300);
+      requestAnimationFrame(() => {
+        el.style.maxHeight = el.scrollHeight + 'px';
+        el.offsetHeight;
+        el.style.maxHeight = '0';
+        el.style.opacity = '0';
+        
+        const onTransitionEnd = () => {
+          done();
+          el.removeEventListener('transitionend', onTransitionEnd);
+        };
+        el.addEventListener('transitionend', onTransitionEnd);
+      });
     },
           showTooltip(event, text) {
         if (text) {
@@ -428,6 +432,7 @@ a.person-button {
 .expand-leave-active {
   transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
+  will-change: opacity, max-height;
 }
 
 .expand-enter,
