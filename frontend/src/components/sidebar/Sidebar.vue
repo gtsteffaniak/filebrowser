@@ -51,6 +51,7 @@ export default {
     return {
       resizeStartX: 0,
       resizeStartWidth: 0,
+      previousSidebarSize: null, // Remember the previous width when switching from desktop to mobile.
     };
   },
   mounted() {
@@ -82,6 +83,13 @@ export default {
     document.removeEventListener('mouseup', this.stopResize);
     document.removeEventListener('touchend', this.stopResize);
   },
+  watch: {
+    isMobile(newIsMobile, oldIsMobile) {
+      if (newIsMobile !== oldIsMobile) {
+        this.handleMobileStateChange(newIsMobile);
+      }
+    },
+  },
   computed: {
     externalLinks: () => globalVars.externalLinks,
     name: () => globalVars.name,
@@ -104,6 +112,23 @@ export default {
     },
   },
   methods: {
+    getBaseFontSize() {
+      const rootFontSize = getComputedStyle(document.documentElement).fontSize;
+      return parseFloat(rootFontSize);
+    },
+    handleMobileStateChange(isMobile) {
+      if (isMobile) {
+        // If we switch to mobile, save current width and reset to default
+        if (!this.previousSidebarSize) {
+          this.previousSidebarSize = state.sidebar.width;
+        }
+        mutations.setSidebarWidth(20); // 20 em
+      } else if (this.previousSidebarSize) {
+        // When switching to desktop, restore previous width
+        mutations.setSidebarWidth(this.previousSidebarSize);
+        this.previousSidebarSize = null;
+      }
+    },
     startResize(event) {
       event.preventDefault();
       event.stopPropagation();
@@ -122,7 +147,8 @@ export default {
       if (!clientX) return;
       const deltaX = clientX - this.resizeStartX;
       // Convert pixels to em
-      const deltaEm = deltaX / 16;
+      const baseFontSize = this.getBaseFontSize();
+      const deltaEm = deltaX / baseFontSize;
       const newWidth = this.resizeStartWidth + deltaEm;
       mutations.setSidebarWidth(newWidth);
     },

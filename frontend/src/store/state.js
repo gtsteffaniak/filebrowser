@@ -163,7 +163,7 @@ export const state = reactive({
   sidebar: {
     width: getSidebarWidth(), // in em
     isResizing: false,
-    minWidth: 18.5, // in em
+    minWidth: 18, // in em
     maxWidth: 37.5, // in em
   },
 });
