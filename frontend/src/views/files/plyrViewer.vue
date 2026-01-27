@@ -1106,12 +1106,7 @@ export default {
 }
 
 /* Style for audio player on mobile */
-@media (max-width: 800px) {
-  .plyr.plyr--audio {
-    padding: 1em;
-    border-radius: 0;
-  }
-
+@media (max-width: 768px) {
   /* Buttons container more "big" for easy touch */
   .plyr--audio .plyr__control {
     min-width: 44px;
@@ -1122,11 +1117,6 @@ export default {
     margin: 10px 0;
   }
 
-  .plyr--audio .plyr__controls {
-    padding: 0;
-    gap: 5px;
-  }
-
   .plyr--audio .plyr__controls__items {
     justify-content: center;
     gap: 12px;
@@ -1135,22 +1125,6 @@ export default {
   /* Play button a bit more big */
   .plyr--audio .plyr__control--play {
     transform: scale(1.25);
-  }
-
-  /* Hide volume buttons for made more space */
-  .plyr--audio .plyr__volume {
-    display: none;
-  }
-
-  /* Hide some items on video player*/
-  .plyr--video .plyr__volume {
-    display: none;
-  }
-
-  /* Time playing */
-  .plyr--audio .plyr__time {
-    font-size: 14px;
-    margin: 0 5px;
   }
 }
 
@@ -1252,10 +1226,20 @@ export default {
 }
 
 /* For small tablets and phones with big screen */
-@media (max-width: 800px) {
+@media (max-width: 740px) {
   .audio-player-container {
     padding: 0;
     padding-top: 1em;
+  }
+
+  .plyr.plyr--audio {
+    padding: 1em;
+    border-radius: 0;
+  }
+
+  .plyr--audio .plyr__controls {
+    padding: 0;
+    gap: 5px;
   }
 
   .audio-metadata {
@@ -1263,11 +1247,25 @@ export default {
   }
 
   .album-art-container {
-    width: min(280px, 70vw);
-    height: min(280px, 70vw);
-    margin-top: 10px;
+    width: min(71vw);
+    height: min(71vw);
+    margin-top: 12px;
   }
 }
+
+@media (max-width: 550px) {
+  /* Hide volume buttons to made more space */
+  .plyr__volume {
+    display: none;
+  }
+
+  /* Time playing */
+  .plyr--audio .plyr__time {
+    font-size: 14px;
+    margin: 0 5px;
+  }
+}
+
 
 /* For small screens in landscape orientation (Like a phone) */
 @media (max-height: 600px) and (orientation: landscape) {

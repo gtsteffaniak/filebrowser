@@ -216,6 +216,7 @@ export const getters = {
     }
     return visible
   },
+  sidebarWidth: () => state.sidebar.width,
   isStickySidebar: () => {
     let sticky = state.user?.stickySidebar
     const currentView = getters.currentView()

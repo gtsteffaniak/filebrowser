@@ -301,7 +301,7 @@ export default {
 }
 
 /* Responsive */
-@media (max-width: 800px) {
+@media (max-width: 768px) {
   .notifications-view {
     padding: 1em;
   }

@@ -1251,7 +1251,7 @@ export default {
 /* Upload Share Styles */
 .upload-share-embed {
   padding: 2em;
-  max-width: 800px;
+  max-width: 768px;
   margin: 0 auto;
 }
 
@@ -1265,12 +1265,12 @@ export default {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-#listingView.rectangle-selecting {
+.rectangle-selecting {
   cursor: crosshair;
   user-select: none;
 }
 
-#listingView.rectangle-selecting .listing-item {
+.rectangle-selecting .listing-item {
   pointer-events: none;
 }
 
