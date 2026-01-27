@@ -433,14 +433,14 @@ a.person-button {
 
 .expand-enter-active,
 .expand-leave-active {
-  transition: max-height 0.2s ease, opacity 0.15s ease;
+  transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
-  will-change: opacity, max-height;
+  will-change: opacity, height;
 }
 
-.expand-enter-from,
+.expand-enter,
 .expand-leave-to {
-  max-height: 0 !important;
+  height: 0 !important;
   opacity: 0;
 }
 
