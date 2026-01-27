@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -131,24 +130,15 @@ func fileWatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		return http.StatusOK, nil
 	}
 
-	encodedPath := r.URL.Query().Get("path")
+	path := r.URL.Query().Get("path")
 	source := r.URL.Query().Get("source")
 	linesStr := r.URL.Query().Get("lines")
-
-	// Decode URL-encoded path
-	path, err := url.QueryUnescape(encodedPath)
-	if err != nil {
-		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
-	}
-	source, err = url.QueryUnescape(source)
-	if err != nil {
-		return http.StatusBadRequest, fmt.Errorf("invalid source encoding: %v", err)
-	}
 
 	if path == "" || source == "" {
 		return http.StatusBadRequest, fmt.Errorf("path and source are required")
 	}
 
+	var err error
 	// Parse lines parameter
 	lines := 10 // default
 	if linesStr != "" {
@@ -282,21 +272,12 @@ func fileWatchSSEHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		return http.StatusForbidden, fmt.Errorf("user is not allowed to read file content")
 	}
 
-	encodedPath := r.URL.Query().Get("path")
+	path := r.URL.Query().Get("path")
 	source := r.URL.Query().Get("source")
 	linesStr := r.URL.Query().Get("lines")
 	intervalStr := r.URL.Query().Get("interval")
 
-	// Decode URL-encoded path
-	path, err := url.QueryUnescape(encodedPath)
-	if err != nil {
-		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
-	}
-	source, err = url.QueryUnescape(source)
-	if err != nil {
-		return http.StatusBadRequest, fmt.Errorf("invalid source encoding: %v", err)
-	}
-
+	var err error
 	if path == "" || source == "" {
 		return http.StatusBadRequest, fmt.Errorf("path and source are required")
 	}

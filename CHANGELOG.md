@@ -2,20 +2,30 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v1.2.2-beta
+
+ **Notes**:
+ - Added docker default `FILEBROWSER_CONFIG="/home/filebrowser/data/config.yaml"` back -- mistakenly removed. see https://filebrowserquantum.com/en/docs/getting-started/config/#3-default-locations. (#1891)
+ - Better text file content detection (#1726)
+ - More url encoding changes for API which should make things more consistent. Open issues if you see path/source not found errors.
+ - adjustments to the startup behavior for sqlite index for reusing the previous database on startup
 
 ## v1.2.1-beta
 
  **New Features**:
- - Global onlyoffice editor via "*" file option
+ - Global disable onlyoffice editor via "*" file option to disable all files for a specific user. (#1533) 
 
  **Notes**:
- - upgraded imaging package and improved thumbnail generation performance. (#1797) ()
+ - upgraded imaging package and improved thumbnail generation performance. (#1797) (#1850)
  - updated download api to use repeated `file` query param for path instead of `files` with comma. See swagger for details (#1881)
 
  **BugFixes**:
  - OnlyOffice stopped working after 1.2.0 upgrade due to download api changes
  - Search result link to wrong path when search context other than / (#1863)
  - File actions doesn't work if using user scopes (#1879)
+ - Drop items into folders doesn't work (#1860)
+ - duplicate finder context menu (#1862)
+ - File list in previews doesn't show the parent items (#1861)
 
 ## v1.2.0-beta
 

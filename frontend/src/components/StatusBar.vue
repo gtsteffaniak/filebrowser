@@ -1,5 +1,5 @@
 <template>
-  <div id="status-bar" :class="{ 'dark-mode-header': isDarkMode, 'active': showStatusBar }" @contextmenu.prevent.stop @touchstart.stop @touchend.stop>
+  <div id="status-bar" :style="moveWithSidebar" :class="{ 'dark-mode-header': isDarkMode, 'active': showStatusBar }" @contextmenu.prevent.stop @touchstart.stop @touchend.stop>
     <div class="status-content" @contextmenu.prevent.stop @touchstart.stop @touchend.stop>
       <div class="status-info">
         <span v-if="selectedCount > 0">
@@ -108,6 +108,14 @@ export default {
     directoryInfoText() {
       return `${this.numDirs} ${this.foldersLabel} | ${this.numFiles} ${this.filesLabel} (${this.displayTotalSize})`;
     },
+    moveWithSidebar() {
+      if (getters.isStickySidebar() && getters.isSidebarVisible()) {
+        return {
+          left: state.sidebar.width + 'em',
+        };
+      }
+      return {};
+    },
   },
   methods: {
     updateGallerySize(event) {
@@ -167,17 +175,13 @@ export default {
   overflow: hidden;
   margin: 0;
   padding: 0;
-  transition: bottom 0.5s ease, margin-left 0.5s ease;
+  transition: bottom 0.5s ease, left 0.2s ease, width 0.2s ease;
   pointer-events: none;
 }
 
 #status-bar.active {
   bottom: 0;
   pointer-events: auto;
-}
-
-#status-bar.moveWithSidebar {
-  margin-left: 20em;
 }
 
 .status-content {
@@ -238,7 +242,7 @@ input[type="range"] {
 }
 
 /* Mobile styles */
-@media (max-width: 800px) {
+@media (max-width: 768px) {
   #status-bar {
     height: 3em;
     bottom: -3em;
@@ -261,7 +265,6 @@ input[type="range"] {
 
   input[type="range"] {
     width: 7em;
-    height: 1.5em; /* For better touch */
   }
 
   .status-info {

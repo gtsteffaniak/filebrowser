@@ -147,7 +147,7 @@
     color: #fff;
 }
 
-@media (min-width: 800px) {
+@media (min-width: 768px) {
     #previewer header #dropdown .action i {
         color: #fff;
     }
