@@ -8,11 +8,11 @@
     <sidebar v-if="!invalidShare"></sidebar>
     <Scrollbar id="main" :class="{
       'dark-mode': isDarkMode,
-      moveWithSidebar: moveWithSidebar,
+      moveWithSidebar: moveWithSidebar.shouldMove,
       'remove-padding-top': isOnlyOffice,
       'main-padding': showPadding,
       scrollable: scrollable,
-    }">
+    }" :style="moveWithSidebar.style">
       <shelf />
       <router-view />
     </Scrollbar>
@@ -20,7 +20,7 @@
   </div>
   <Notifications />
   <Toast :toasts="toasts" />
-  <StatusBar :class="{ moveWithSidebar: moveWithSidebar }" />
+  <StatusBar :class="{ moveWithSidebar: moveWithSidebar.shouldMove }" />
   <ContextMenu v-if="showContextMenu"></ContextMenu>
   <Tooltip />
   <NextPrevious />
@@ -104,7 +104,11 @@ export default {
       return getters.isLoggedIn();
     },
     moveWithSidebar() {
-      return getters.isSidebarVisible() && getters.isStickySidebar();
+      const shouldMove = getters.isSidebarVisible() && getters.isStickySidebar();
+      return {
+        shouldMove,
+        style: shouldMove ? { paddingLeft: state.sidebar.width + 'em' } : {}
+      };
     },
     progress() {
       return getters.progress(); // Access getter directly from the store
@@ -226,11 +230,15 @@ export default {
   /* Internet Explorer 10+ */
   scrollbar-width: none;
   /* Firefox */
-  transition: 0.5s ease;
+  transition: 0.2s ease;
 }
 
 #main.moveWithSidebar {
-  padding-left: 20em;
+  transition: padding-left 0.2s ease;
+}
+
+#main.moveWithSidebar.resizing {
+  transition: none;
 }
 
 #main::-webkit-scrollbar {
