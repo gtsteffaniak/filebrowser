@@ -223,7 +223,7 @@ export default {
       return globalVars.darkMode;
     },
     loginName() {
-      return globalVars.name;
+      return this.name;
     },
   },
   data: function () {
