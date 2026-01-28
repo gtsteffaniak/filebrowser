@@ -43,6 +43,8 @@ export default {
   align-items: center;
   width: 100%;
   box-sizing: border-box;
+  max-width: 1000px;
+  margin: auto;
 }
 
 .button {
