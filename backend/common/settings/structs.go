@@ -40,7 +40,6 @@ type Environment struct {
 	PWAIcon192            string `json:"-"` // path to 192x192 PWA icon
 	PWAIcon256            string `json:"-"` // path to 256x256 PWA icon
 	PWAIcon512            string `json:"-"` // path to 512x512 PWA icon
-	PWAIconsGenerated     bool   `json:"-"` // true if PWA icons were generated from custom favicon
 }
 
 type Server struct {

@@ -797,7 +797,6 @@ func generatePWAIcons() {
 	Env.PWAIcon192 = "icons/pwa-icon-192.png"
 	Env.PWAIcon256 = "icons/pwa-icon-256.png"
 	Env.PWAIcon512 = "icons/pwa-icon-512.png"
-	Env.PWAIconsGenerated = false
 
 	// Create icons directory with configured permissions
 	// Note: Parent cache directory should already exist from testCacheDirSpeed()

@@ -181,7 +181,6 @@ func GeneratePWAIcons() {
 			sourceData, err = os.ReadFile(pngPath)
 			if err != nil {
 				logger.Warningf("SVG favicon provided without PNG version at %s. For best compatibility across all browsers and platforms, provide a PNG version alongside your SVG.", pngPath)
-				settings.Env.PWAIconsGenerated = false
 				return
 			}
 			logger.Debugf("Using PNG version (%s) for generating raster icons", pngPath)
@@ -274,11 +273,9 @@ func GeneratePWAIcons() {
 	}
 
 	if allSuccess {
-		settings.Env.PWAIconsGenerated = true
 		logger.Debugf("Successfully generated %d icon sizes", generatedCount)
 	} else {
 		logger.Warningf("Generated %d/%d icon sizes (some failed)", generatedCount, len(iconSizes))
-		settings.Env.PWAIconsGenerated = false
 	}
 }
 

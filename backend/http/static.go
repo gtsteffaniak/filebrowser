@@ -74,7 +74,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 	staticURL := config.Server.BaseURL + "public/static"
 	description := config.Frontend.Description
 	title := config.Frontend.Name
-	banner := staticURL + "/apple-touch-icon.png"
+	banner := staticURL + "/pwa-icon-512.png" // Use largest generated icon for best quality
 	disableSidebar := false
 
 	// Use custom favicon if configured and validated, otherwise fall back to default
@@ -134,11 +134,11 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		loadingSpinnersCSS = string(cssContent)
 	}
 
-	// Determine OpenGraph image: use banner if set, otherwise use apple touch icon
+	// Determine OpenGraph image: use banner if set, otherwise use largest available icon (512x512)
 	ogImage := banner
-	if banner == staticURL+"/apple-touch-icon.png" {
-		// No custom banner set - use apple touch icon as fallback
-		ogImage = staticURL + "/apple-touch-icon.png"
+	if banner == staticURL+"/pwa-icon-512.png" {
+		// Note: 512x512 is square; OpenGraph prefers 1200x630 (1.91:1 ratio) but square works fine
+		ogImage = staticURL + "/pwa-icon-512.png"
 	}
 
 	// Construct the full URL for the current request

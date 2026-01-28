@@ -9,7 +9,7 @@ All notable changes to this project will be documented in this file. For commit 
  - improved favicon processing
    - supports more formats
    - supports larger images
-   - automatcially generates multiple favicon sizes on startup for non-svg images.
+   - automatcially generates multiple favicon sizes on startup for non-svg images. Custom svg favicons need a companion *.png to exist broad compatibilty
 
  **Notes**:
  - Better text file content detection (#1726)
