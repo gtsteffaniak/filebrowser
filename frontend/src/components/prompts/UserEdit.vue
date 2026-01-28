@@ -442,6 +442,8 @@ export default {
         name: "totp",
         props: {
           generate: true,
+          username: this.user.username,
+          password: this.passwordRef || this.user.password || "",
         },
       });
     },
