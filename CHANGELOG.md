@@ -6,6 +6,10 @@ All notable changes to this project will be documented in this file. For commit 
 
  **New Features**:
  - Resizable sidebar (#1896)
+ - improved favicon processing
+   - supports more formats
+   - supports larger images
+   - automatcially generates multiple favicon sizes on startup for non-svg images.
 
  **Notes**:
  - Better text file content detection (#1726)

@@ -20,6 +20,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/ffmpeg"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 	"github.com/gtsteffaniak/go-logger/logger"
+	"github.com/kovidgoyal/imaging"
 )
 
 var (
@@ -129,7 +130,156 @@ func StartPreviewGenerator(concurrencyLimit int, cacheDir string) error {
 		logger.Errorf("WARNING: StartPreviewGenerator called multiple times! This will create multiple semaphores!")
 	}
 	service = NewPreviewGenerator(concurrencyLimit, cacheDir)
+
+	// Generate PWA icons after service is initialized
+	GeneratePWAIcons()
+
 	return nil
+}
+
+// GetService returns the preview service instance (can be nil if not started)
+func GetService() *Service {
+	return service
+}
+
+// GeneratePWAIcons generates all icon sizes from favicon.svg or favicon.png
+func GeneratePWAIcons() {
+	if service == nil {
+		logger.Warning("Preview service not initialized, skipping icon generation")
+		return
+	}
+
+	// Determine source icon - prefer custom, fallback to default
+	var sourceIcon string
+	var sourceData []byte
+	var err error
+	var isSVG bool
+
+	if settings.Env.FaviconIsCustom {
+		sourceIcon = settings.Env.FaviconPath
+		logger.Debugf("Generating icons from custom favicon: %s", sourceIcon)
+		isSVG = strings.ToLower(filepath.Ext(sourceIcon)) == ".svg"
+
+		// Read the source file
+		sourceData, err = os.ReadFile(sourceIcon)
+		if err != nil {
+			logger.Warningf("Failed to read custom favicon: %v", err)
+			return
+		}
+
+		// If it's not a raster format that imaging library can decode, handle separately
+		if isSVG {
+			// SVG: Set PWA icons to use SVG directly, look for PNG for raster generation
+			logger.Debug("Source is SVG - will use directly where supported")
+			settings.Env.PWAIcon192 = "pwa-icon.svg"
+			settings.Env.PWAIcon256 = "pwa-icon.svg"
+			settings.Env.PWAIcon512 = "pwa-icon.svg"
+
+			// Look for PNG in same directory with same base name
+			basePath := sourceIcon[:len(sourceIcon)-len(filepath.Ext(sourceIcon))]
+			pngPath := basePath + ".png"
+			sourceData, err = os.ReadFile(pngPath)
+			if err != nil {
+				logger.Warningf("SVG favicon provided without PNG version at %s. For best compatibility across all browsers and platforms, provide a PNG version alongside your SVG.", pngPath)
+				settings.Env.PWAIconsGenerated = false
+				return
+			}
+			logger.Debugf("Using PNG version (%s) for generating raster icons", pngPath)
+		} else {
+			// For any raster format (JPEG, PNG, GIF, WebP, etc.), decode and convert to PNG
+			// This creates a standardized PNG source for all icon generation
+			img, decodeErr := imaging.Decode(bytes.NewReader(sourceData))
+			if decodeErr != nil {
+				logger.Warningf("Failed to decode favicon image: %v", decodeErr)
+				return
+			}
+			// Re-encode as PNG in memory for consistent processing
+			var buf bytes.Buffer
+			if encodeErr := imaging.Encode(&buf, img, imaging.PNG); encodeErr != nil {
+				logger.Warningf("Failed to convert favicon to PNG: %v", encodeErr)
+				return
+			}
+			sourceData = buf.Bytes()
+			logger.Debugf("Converted %s favicon to PNG for icon generation", filepath.Ext(sourceIcon))
+		}
+	} else {
+		// Use default embedded favicon - we have both SVG and PNG versions
+		logger.Debug("Generating icons from default favicon")
+		// For default, use the PNG version for raster generation
+		pngPath := filepath.Join("http", "dist", "public", "img", "icons", "favicon.png")
+		sourceData, err = os.ReadFile(pngPath)
+		if err != nil {
+			logger.Warningf("Failed to read default favicon PNG: %v", err)
+			return
+		}
+		// Set PWA icons to use SVG for modern browsers
+		settings.Env.PWAIcon192 = "pwa-icon.svg"
+		settings.Env.PWAIcon256 = "pwa-icon.svg"
+		settings.Env.PWAIcon512 = "pwa-icon.svg"
+	}
+
+	// Define all icon sizes we need to generate
+	// Format: {size, filename, envVar pointer (optional)}
+	iconSizes := []struct {
+		size int
+		name string
+		env  *string
+	}{
+		// Browser favicon
+		{32, "favicon-32x32.png", nil},
+		// PWA icons
+		{192, "pwa-icon-192.png", &settings.Env.PWAIcon192},
+		{256, "pwa-icon-256.png", &settings.Env.PWAIcon256},
+		{512, "pwa-icon-512.png", &settings.Env.PWAIcon512},
+		// Platform-specific icons
+		{180, "apple-touch-icon.png", nil}, // iOS home screen
+		{256, "mstile-256x256.png", nil},   // Windows tile
+	}
+
+	allSuccess := true
+	generatedCount := 0
+
+	for _, iconSize := range iconSizes {
+		outputPath := filepath.Join(settings.Env.PWAIconsDir, iconSize.name)
+
+		// Create output file
+		outFile, err := os.Create(outputPath)
+		if err != nil {
+			logger.Warningf("Failed to create icon %s: %v", iconSize.name, err)
+			allSuccess = false
+			continue
+		}
+
+		// Resize image using the service's Resize method
+		err = service.Resize(
+			bytes.NewReader(sourceData),
+			iconSize.size,
+			iconSize.size,
+			outFile,
+		)
+		outFile.Close()
+
+		if err != nil {
+			logger.Warningf("Failed to generate icon %s: %v", iconSize.name, err)
+			os.Remove(outputPath)
+			allSuccess = false
+			continue
+		}
+
+		// Update environment variable if specified
+		if iconSize.env != nil {
+			*iconSize.env = filepath.Join("icons", iconSize.name)
+		}
+		generatedCount++
+	}
+
+	if allSuccess {
+		settings.Env.PWAIconsGenerated = true
+		logger.Debugf("Successfully generated %d icon sizes", generatedCount)
+	} else {
+		logger.Warningf("Generated %d/%d icon sizes (some failed)", generatedCount, len(iconSizes))
+		settings.Env.PWAIconsGenerated = false
+	}
 }
 
 func GetPreviewForFile(ctx context.Context, file iteminfo.ExtendedFileInfo, previewSize, url string, seekPercentage int) ([]byte, error) {

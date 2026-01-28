@@ -278,6 +278,8 @@ func setupFrontend(generate bool) {
 	}
 	// Load custom favicon if configured
 	loadCustomFavicon()
+	// Generate PWA icons from custom favicon if needed
+	generatePWAIcons()
 }
 
 func setupMedia() {
@@ -726,7 +728,7 @@ func setDefaults(generate bool) Settings {
 }
 
 // validateCustomImage validates a custom image file path and returns the absolute path or error
-func validateCustomImage(configPath, imageName string, maxSize int64, allowedFormats []string) (absolutePath string, err error) {
+func validateCustomImage(configPath, imageName string, allowedFormats []string) (absolutePath string, err error) {
 	// Get absolute path
 	absolutePath, err = filepath.Abs(configPath)
 	if err != nil {
@@ -734,14 +736,9 @@ func validateCustomImage(configPath, imageName string, maxSize int64, allowedFor
 	}
 
 	// Check if file exists
-	stat, err := os.Stat(absolutePath)
+	_, err = os.Stat(absolutePath)
 	if err != nil {
 		return "", fmt.Errorf("could not access file: %w", err)
-	}
-
-	// Check file size
-	if stat.Size() > maxSize {
-		return "", fmt.Errorf("file too large (%d bytes), maximum allowed is %d bytes", stat.Size(), maxSize)
 	}
 
 	// Validate file format
@@ -762,8 +759,7 @@ func validateCustomImage(configPath, imageName string, maxSize int64, allowedFor
 
 func loadCustomFavicon() {
 	const imageName = "favicon"
-	const maxSize = 1024 * 1024 // 1MB
-	allowedFormats := []string{".ico", ".png", ".svg"}
+	allowedFormats := []string{".ico", ".png", ".svg", ".jpg", ".jpeg", ".gif", ".webp"}
 
 	// Set default embedded favicon path
 	Env.FaviconEmbeddedPath = "img/icons/favicon.svg"
@@ -776,7 +772,7 @@ func loadCustomFavicon() {
 	}
 
 	// Validate custom favicon
-	validatedPath, err := validateCustomImage(Config.Frontend.Favicon, imageName, maxSize, allowedFormats)
+	validatedPath, err := validateCustomImage(Config.Frontend.Favicon, imageName, allowedFormats)
 	if err != nil {
 		logger.Warningf("Custom favicon validation failed: %v, using default", err)
 		Config.Frontend.Favicon = ""
@@ -792,18 +788,30 @@ func loadCustomFavicon() {
 	logger.Infof("Using custom favicon: %s", Env.FaviconPath)
 }
 
+// generatePWAIcons sets up PWA icon paths (actual generation happens after preview service starts)
+func generatePWAIcons() {
+	// Set PWA icons directory in cache
+	Env.PWAIconsDir = filepath.Join(Config.Server.CacheDir, "icons")
+
+	// Initialize with default paths (all icons will be generated)
+	Env.PWAIcon192 = "icons/pwa-icon-192.png"
+	Env.PWAIcon256 = "icons/pwa-icon-256.png"
+	Env.PWAIcon512 = "icons/pwa-icon-512.png"
+	Env.PWAIconsGenerated = false
+
+	// Create icons directory with configured permissions
+	// Note: Parent cache directory should already exist from testCacheDirSpeed()
+	if err := os.MkdirAll(Env.PWAIconsDir, fileutils.PermDir); err != nil {
+		logger.Warningf("Failed to create PWA icons directory %s: %v", Env.PWAIconsDir, err)
+	}
+}
+
 func loadLoginIcon() {
 	const imageName = "login icon"
-	const maxSize = 1024 * 1024 // 1MB
 	allowedFormats := []string{".svg", ".png", ".jpg", ".jpeg", ".gif", ".webp", ".ico"}
 
-	// Set default embedded icon path based on dark mode preference
-	isDarkMode := Config.UserDefaults.DarkMode != nil && *Config.UserDefaults.DarkMode
-	if isDarkMode {
-		Env.LoginIconEmbeddedPath = "img/icons/favicon.svg" // Dark mode: dark background
-	} else {
-		Env.LoginIconEmbeddedPath = "img/icons/favicon-light.svg" // Light mode: light background
-	}
+	// Set default embedded icon path - just use favicon.svg (light/dark handled by CSS)
+	Env.LoginIconEmbeddedPath = "img/icons/favicon.svg"
 
 	// Check if a custom login icon path is configured
 	if Config.Frontend.LoginIcon == "" {
@@ -813,7 +821,7 @@ func loadLoginIcon() {
 	}
 
 	// Validate custom login icon
-	validatedPath, err := validateCustomImage(Config.Frontend.LoginIcon, imageName, maxSize, allowedFormats)
+	validatedPath, err := validateCustomImage(Config.Frontend.LoginIcon, imageName, allowedFormats)
 	if err != nil {
 		logger.Warningf("Custom login icon validation failed: %v, using default", err)
 		Env.LoginIconPath = Env.LoginIconEmbeddedPath
