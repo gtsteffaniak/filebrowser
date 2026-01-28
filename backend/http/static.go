@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/fs"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strings"
 	"text/template"
@@ -73,7 +74,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 	staticURL := config.Server.BaseURL + "public/static"
 	description := config.Frontend.Description
 	title := config.Frontend.Name
-	banner := staticURL + "/img/icons/android-chrome-512x512.png"
+	banner := staticURL + "/pwa-icon-512.png" // Use largest generated icon for best quality
 	disableSidebar := false
 
 	// Use custom favicon if configured and validated, otherwise fall back to default
@@ -133,12 +134,11 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		loadingSpinnersCSS = string(cssContent)
 	}
 
-	// Determine OpenGraph image: use banner if set, otherwise use dedicated OG image or fallback to app icon
+	// Determine OpenGraph image: use banner if set, otherwise use largest available icon (512x512)
 	ogImage := banner
-	if banner == staticURL+"/img/icons/android-chrome-512x512.png" {
-		// No custom banner set - check if dedicated OG image exists, otherwise use 512x512 icon
-		// Note: 512x512 is square; OpenGraph prefers 1200x630 (1.91:1 ratio) for optimal display
-		ogImage = staticURL + "/img/icons/android-chrome-512x512.png"
+	if banner == staticURL+"/pwa-icon-512.png" {
+		// Note: 512x512 is square; OpenGraph prefers 1200x630 (1.91:1 ratio) but square works fine
+		ogImage = staticURL + "/pwa-icon-512.png"
 	}
 
 	// Construct the full URL for the current request
@@ -155,6 +155,23 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		fullURL = fmt.Sprintf("%s://%s%s", scheme, r.Host, r.URL.Path)
 	}
 
+	// Determine PWA icon URLs based on custom favicon settings
+	pwaIcon192 := staticURL + "/" + settings.Env.PWAIcon192
+	pwaIcon256 := staticURL + "/" + settings.Env.PWAIcon256
+	pwaIcon512 := staticURL + "/" + settings.Env.PWAIcon512
+
+	// If custom favicon is set and it's SVG, use the favicon directly
+	if settings.Env.FaviconIsCustom && strings.ToLower(filepath.Ext(settings.Env.FaviconPath)) == ".svg" {
+		pwaIcon192 = favicon
+		pwaIcon256 = favicon
+		pwaIcon512 = favicon
+	} else if settings.Env.FaviconIsCustom {
+		// For custom PNG/ICO favicons, use generated PWA icons
+		pwaIcon192 = staticURL + "/pwa-icon-192.png"
+		pwaIcon256 = staticURL + "/pwa-icon-256.png"
+		pwaIcon512 = staticURL + "/pwa-icon-512.png"
+	}
+
 	data["htmlVars"] = map[string]interface{}{
 		"title":              title,
 		"customCSS":          config.Frontend.Styling.CustomCSSRaw,
@@ -166,13 +183,16 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"favicon":            favicon,
 		"loginIcon":          loginIcon,
 		"color":              defaultThemeColor,
-		"winIcon":            staticURL + "/img/icons/mstile-144x144.png",
-		"appIcon":            staticURL + "/img/icons/android-chrome-512x512.png",
+		"winIcon":            staticURL + "/mstile-256x256.png",
+		"appIcon":            staticURL + "/apple-touch-icon.png",
 		"description":        description,
 		"loadingSpinnersCSS": loadingSpinnersCSS,
 		"banner":             banner,
 		"image":              ogImage,
 		"url":                fullURL,
+		"pwaIcon192":         pwaIcon192,
+		"pwaIcon256":         pwaIcon256,
+		"pwaIcon512":         pwaIcon512,
 	}
 	// variables consumed by frontend as json
 	data["globalVars"] = map[string]interface{}{
@@ -272,6 +292,25 @@ func staticAssetHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		// Use embedded default
 		assetPath = settings.Env.FaviconEmbeddedPath
+	case "pwa-icon.svg":
+		// Serve custom SVG favicon for PWA if configured
+		if settings.Env.FaviconIsCustom && strings.ToLower(filepath.Ext(settings.Env.FaviconPath)) == ".svg" {
+			http.ServeFile(w, r, settings.Env.FaviconPath)
+			return
+		}
+		// Fall back to default favicon SVG
+		assetPath = settings.Env.FaviconEmbeddedPath
+	case "favicon-16x16.png", "favicon-32x32.png",
+		"pwa-icon-192.png", "pwa-icon-256.png", "pwa-icon-512.png",
+		"apple-touch-icon.png", "mstile-256x256.png":
+		// Serve generated icons from cache directory
+		iconPath := filepath.Join(settings.Env.PWAIconsDir, path)
+		if _, err := os.Stat(iconPath); err == nil {
+			http.ServeFile(w, r, iconPath)
+			return
+		}
+		// Fall back to embedded favicon.png if generation failed
+		assetPath = "img/icons/favicon.png"
 	case "manifest.json":
 		assetPath = "img/icons/manifest.json"
 	case "site.webmanifest":
