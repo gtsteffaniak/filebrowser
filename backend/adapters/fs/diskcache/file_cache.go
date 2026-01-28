@@ -10,6 +10,9 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+
+	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 // Cache interface for caching operations
@@ -29,9 +32,61 @@ type FileCache struct {
 	}
 }
 
-// NewFileCache creates a new FileCache
 func NewFileCache(dir string) (*FileCache, error) {
-	return &FileCache{dir: dir}, nil
+	cacheDir := filepath.Join(dir, "diskcache")
+
+	// Migrate existing cache files from old structure (if any)
+	if err := migrateOldCacheStructure(dir, cacheDir); err != nil {
+		logger.Warningf("failed to migrate old cache structure: %v\n", err)
+	}
+
+	// Create the cache directory immediately with proper permissions
+	if err := os.MkdirAll(cacheDir, fileutils.PermDir); err != nil {
+		return nil, fmt.Errorf("failed to create cache directory: %w", err)
+	}
+	return &FileCache{dir: cacheDir}, nil
+}
+
+// migrateOldCacheStructure moves cache files from old structure (dir/a/...) to new structure (dir/diskcache/a/...)
+func migrateOldCacheStructure(oldDir, newDir string) error {
+	// Read the old cache directory
+	entries, err := os.ReadDir(oldDir)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil // Directory doesn't exist yet, nothing to migrate
+		}
+		return err
+	}
+
+	migrated := 0
+	for _, entry := range entries {
+		// Only migrate single-character directories (cache hash directories like a, b, c, etc.)
+		if !entry.IsDir() || len(entry.Name()) != 1 {
+			continue
+		}
+
+		// Skip if it's already the diskcache directory
+		if entry.Name() == "d" && filepath.Join(oldDir, entry.Name()) == newDir {
+			continue
+		}
+
+		oldPath := filepath.Join(oldDir, entry.Name())
+		newPath := filepath.Join(newDir, entry.Name())
+
+		// Create parent directory in new location
+		if err := os.MkdirAll(newDir, fileutils.PermDir); err != nil {
+			return err
+		}
+
+		// Move the directory
+		if err := os.Rename(oldPath, newPath); err != nil {
+			// If rename fails (e.g., cross-device), skip this one
+			continue
+		}
+		migrated++
+	}
+
+	return nil
 }
 
 func (f *FileCache) Store(ctx context.Context, key string, value []byte) error {
@@ -40,11 +95,11 @@ func (f *FileCache) Store(ctx context.Context, key string, value []byte) error {
 	defer mu.Unlock()
 
 	fileName := f.getFileName(key)
-	if err := os.MkdirAll(filepath.Dir(fileName), 0700); err != nil {
+	if err := os.MkdirAll(filepath.Dir(fileName), fileutils.PermDir); err != nil {
 		return err
 	}
 
-	if err := os.WriteFile(fileName, value, 0600); err != nil {
+	if err := os.WriteFile(fileName, value, fileutils.PermFile); err != nil {
 		return err
 	}
 

@@ -180,7 +180,6 @@ func rootCMD(ctx context.Context, store *bolt.BoltStore, serverConfig *settings.
 	cacheDir := settings.Config.Server.CacheDir
 	numWorkers := settings.Config.Server.NumImageProcessors
 	ffmpeg.SetFFmpegPaths()
-
 	// setup disk cache
 	err := preview.StartPreviewGenerator(numWorkers, cacheDir)
 	if err != nil {

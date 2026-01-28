@@ -710,6 +710,7 @@ func GenerateYaml() {
 	}
 
 	setupLogging()
+	setupFs()
 	setupAuth(true)
 
 	// Save original paths before setupSources modifies them (for YAML generation)

@@ -36,6 +36,10 @@ type Environment struct {
 	FaviconPath           string `json:"-"` // resolved favicon path (filesystem or embedded)
 	FaviconIsCustom       bool   `json:"-"` // true if favicon is from custom filesystem path
 	FaviconEmbeddedPath   string `json:"-"` // embedded asset path for default favicon
+	PWAIconsDir           string `json:"-"` // directory where generated PWA icons are stored
+	PWAIcon192            string `json:"-"` // path to 192x192 PWA icon
+	PWAIcon256            string `json:"-"` // path to 256x256 PWA icon
+	PWAIcon512            string `json:"-"` // path to 512x512 PWA icon
 }
 
 type Server struct {

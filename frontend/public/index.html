@@ -57,20 +57,22 @@
       "short_name": window.globalVars.name || 'FileBrowser',
       "icons": [
         {
-          "src": window.location.origin + "{{ .htmlVars.staticURL }}/img/icons/android-chrome-512x512.png",
-          "sizes": "512x512",
+          "src": "{{ .htmlVars.pwaIcon192 }}",
+          "sizes": "192x192",
+          "type": "image/png",
+          "purpose": "any"
+        },
+        {
+          "src": "{{ .htmlVars.pwaIcon256 }}",
+          "sizes": "256x256",
           "type": "image/png",
           "purpose": "any maskable"
         },
         {
-          "src": window.location.origin + "{{ .htmlVars.staticURL }}/img/icons/android-chrome-256x256.png",
-          "sizes": "256x256",
-          "type": "image/png"
-        },
-        {
-          "src": window.location.origin + "{{ .htmlVars.staticURL }}/img/icons/android-chrome-192x192.png",
-          "sizes": "192x192",
-          "type": "image/png"
+          "src": "{{ .htmlVars.pwaIcon512 }}",
+          "sizes": "512x512",
+          "type": "image/png",
+          "purpose": "any"
         }
       ],
       "start_url": window.location.origin + "{{ .htmlVars.baseURL }}",
