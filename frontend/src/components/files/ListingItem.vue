@@ -375,10 +375,6 @@ export default {
     },
     /** @param {MouseEvent} event */
     onRightClick(event) {
-      if (!this.updateGlobalState) {
-        event.preventDefault();
-        return;
-      }
       event.preventDefault(); // Prevent default context menu
       // If one or fewer items are selected, reset the selection
       if (this.updateGlobalState) {
@@ -388,8 +384,22 @@ export default {
           mutations.addSelected(this.index);
         }
       } else {
-        // Emit selection event for local handling
-        this.$emit('select', { index: this.index, selected: true });
+
+        // Build full item object similar to Search.vue
+        const selectedItem = {
+          name: this.name,
+          isDir: this.isDir,
+          source: this.source,
+          type: this.type,
+          size: this.size,
+          modified: this.modified,
+          path: this.path,
+          url: this.path,
+          index: this.index,
+        };        
+        mutations.resetSelected();
+        // @ts-ignore
+        mutations.addSelected(selectedItem);
       }
       mutations.showHover({
         name: "ContextMenu",

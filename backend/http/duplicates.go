@@ -394,13 +394,10 @@ func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions, stats
 
 						for _, fileInfo := range checksumGroup.Files {
 							// Remove the user scope from path
-							adjustedPath := strings.TrimPrefix(fileInfo.Path, opts.combinedPath)
-							if adjustedPath == "" {
-								adjustedPath = "/"
-							}
-
+							adjustedPath := "/" + strings.TrimPrefix(fileInfo.Path, opts.combinedPath)
 							resultGroup = append(resultGroup, &indexing.SearchResult{
 								Path:       adjustedPath,
+								Source:     opts.source,
 								Type:       fileInfo.Type,
 								Size:       fileInfo.Size,
 								Modified:   fileInfo.ModTime.Format(time.RFC3339),

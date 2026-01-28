@@ -4,10 +4,6 @@
   </div>
 
   <div class="card-content info-content">
-    <p v-if="selected.length > 1" class="info-description">
-      {{ $t("prompts.filesSelected", { count: selected.length }) }}
-    </p>
-
     <div class="info-grid">
       <!-- Basic Information Section -->
       <div class="info-section">
@@ -24,15 +20,15 @@
           <strong>{{ $t("prompts.typeName") }}</strong>
           <span aria-label="info type">{{ type }}</span>
         </div>
-        <div class="info-item" v-if="selected.length < 2 && humanTime">
+        <div class="info-item" v-if="humanTime">
           <strong>{{ $t("prompts.lastModified") }}</strong>
           <span aria-label="info last modified" :title="modTime">{{ humanTime }}</span>
         </div>
-        <div class="info-item" v-if="selected.length < 2 && source">
+        <div class="info-item" v-if="source">
           <strong>{{ $t("general.source") }}</strong>
           <span aria-label="info source">{{ source }}</span>
         </div>
-        <div class="info-item" v-if="selected.length < 2 && filePath">
+        <div class="info-item" v-if="filePath">
           <strong>{{ $t("general.path") }}</strong>
           <span aria-label="info path" class="break-word">{{ filePath }}</span>
         </div>
@@ -43,18 +39,6 @@
         <div class="info-item" v-if="hasPreview !== undefined">
           <strong>{{ $t("prompts.hasPreview") }}</strong>
           <span aria-label="info has preview">{{ hasPreview ? "✓" : "✗" }}</span><!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-        </div>
-      </div>
-      <!-- Directory Information Section -->
-      <div class="info-section" v-if="dir && selected.length === 0">
-        <h3 class="section-title">{{ $t("prompts.directoryInfo") }}</h3>
-        <div class="info-item">
-          <strong>{{ $t("prompts.numberFiles") }}</strong>
-          <span>{{ req.numFiles }}</span>
-        </div>
-        <div class="info-item">
-          <strong>{{ $t("prompts.numberDirs") }}</strong>
-          <span>{{ req.numDirs }}</span>
         </div>
       </div>
 
@@ -113,11 +97,17 @@
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { formatTimestamp } from "@/utils/moment";
 import { filesApi } from "@/api";
-import { state, getters, mutations } from "@/store";
+import { state, mutations } from "@/store";
 import { notify } from "@/notify";
 
 export default {
   name: "info",
+  props: {
+    item: {
+      type: Object,
+      required: true,
+    },
+  },
   data() {
     return {
       selectedHashAlgo: "md5",
@@ -129,145 +119,52 @@ export default {
     closeHovers() {
       return mutations.closeHovers;
     },
-    req() {
-      return state.req;
-    },
-    selected() {
-      return state.selected;
-    },
-    selectedCount() {
-      return getters.selectedCount();
-    },
-    isListing() {
-      return getters.isListing();
-    },
     humanSize() {
-      if (state.isSearchActive) {
-        return getHumanReadableFilesize(state.selected[0].size);
-      }
-      if (getters.selectedCount() === 0 || !this.isListing) {
-        return getHumanReadableFilesize(state.req.size);
-      }
-
-      let sum = 0;
-
-      for (let selected of this.selected) {
-        const item = typeof(selected) === 'number' ? state.req.items[selected] : selected;
-        sum += item.size;
-      }
-
-      return getHumanReadableFilesize(sum);
+      return getHumanReadableFilesize(this.item?.size || 0);
     },
     humanTime() {
-      if (state.isSearchActive) {
-        return "";
-      }
-      const modifiedDate = getters.selectedCount() === 0
-        ? state.req.modified
-        : getters.getFirstSelected()?.modified;
-
-      if (!modifiedDate) {
-        return "";
-      }
-
-      return formatTimestamp(modifiedDate, state.user.locale);
+      if (!this.item?.modified) return "";
+      return formatTimestamp(this.item.modified, state.user.locale);
     },
     modTime() {
-      if (state.isSearchActive) {
-        return "";
-      }
-      const modifiedDate = getters.selectedCount() === 0
-        ? state.req.modified
-        : getters.getFirstSelected()?.modified;
-
-      if (!modifiedDate) {
-        return "";
-      }
-
-      return new Date(Date.parse(modifiedDate)).toLocaleString();
+      if (!this.item?.modified) return "";
+      return new Date(Date.parse(this.item.modified)).toLocaleString();
     },
     name() {
-      if (state.isSearchActive) {
-        return state.selected[0].name;
-      }
-      return getters.selectedCount() === 0
-        ? state.req.name
-        : getters.getFirstSelected().name;
+      return this.item?.name || "";
     },
     type() {
-      if (state.isSearchActive) {
-        return state.selected[0].type;
-      }
-      return getters.selectedCount() === 0
-        ? state.req.type
-        : getters.getFirstSelected().type;
+      return this.item?.type || "";
     },
     displayName() {
-      if (this.selected.length > 1) {
-        return this.$t("prompts.fileInfo");
-      }
-      return this.name;
+      return this.item?.name || "";
     },
     dir() {
-      if (state.isSearchActive) {
-        return state.selected[0].type === "directory";
-      }
-      return (
-        getters.selectedCount() > 1 ||
-        (getters.selectedCount() === 0
-          ? state.req.type == "directory"
-          : getters.getFirstSelected().type == "directory")
-      );
+      return this.item?.type === "directory";
     },
     source() {
-      if (state.isSearchActive) {
-        return state.selected[0].source;
-      }
-      const currentSource = state.sources.current;
-      if (!currentSource || currentSource === "") {
-        return "";
-      }
-      return currentSource;
+      return this.item?.source || "";
     },
     filePath() {
-      if (state.isSearchActive) {
-        return state.selected[0].path;
-      }
-      if (getters.selectedCount() === 0) {
-        return state.route.path;
-      }
-      return getters.getFirstSelected()?.path || "";
+      return this.item?.path || "";
     },
     hidden() {
-      if (state.isSearchActive) {
-        return state.selected[0].hidden;
-      }
-      if (getters.selectedCount() === 0) {
-        return state.req.hidden;
-      }
-      return getters.getFirstSelected()?.hidden;
+      return this.item?.hidden;
     },
     hasPreview() {
-      if (state.isSearchActive) {
-        return state.selected[0].hasPreview;
-      }
-      if (getters.selectedCount() === 0) {
-        return state.req.hasPreview;
-      }
-      return getters.getFirstSelected()?.hasPreview;
+      return this.item?.hasPreview;
     },
     additionalInfo() {
       const info = [];
-
-      // Add more info fields here if needed
-      if (state.req.token) {
-        info.push({ key: "token", label: this.$t("prompts.token"), value: state.req.token });
+      
+      if (this.item?.token) {
+        info.push({ key: "token", label: this.$t("prompts.token"), value: this.item.token });
       }
-      if (state.req.hash) {
-        info.push({ key: "hash", label: this.$t("general.hash"), value: state.req.hash });
+      if (this.item?.hash) {
+        info.push({ key: "hash", label: this.$t("general.hash"), value: this.item.hash });
       }
-      if (state.req.onlyOfficeId) {
-        info.push({ key: "onlyOfficeId", label: this.$t("prompts.onlyOfficeId"), value: state.req.onlyOfficeId });
+      if (this.item?.onlyOfficeId) {
+        info.push({ key: "onlyOfficeId", label: this.$t("prompts.onlyOfficeId"), value: this.item.onlyOfficeId });
       }
 
       return info;
@@ -275,30 +172,21 @@ export default {
   },
   methods: {
     async generateHash() {
-      if (this.generatingHash) return;
+      if (this.generatingHash || !this.item) return;
 
       this.hashResult = "";
       this.generatingHash = true;
 
       try {
-        let source, path;
-
-        if (state.isSearchActive) {
-          source = state.selected[0].source;
-          path = state.selected[0].path;
-        } else if (getters.selectedCount()) {
-          source = state.sources.current;
-          path = getters.getFirstSelected().path;
-        } else {
-          source = state.sources.current;
-          path = state.route.path;
-        }
+        const source = this.item.source;
+        const path = this.item.path;
 
         const hash = await filesApi.checksum(source, path, this.selectedHashAlgo);
         this.hashResult = hash;
       } catch (err) {
         this.hashResult = this.$t("prompts.errorGeneratingHash");
-        notify.showError(err.message || "Error generating hash");
+        const errorMessage = err instanceof Error ? err.message : "Error generating hash";
+        notify.showError(errorMessage);
       } finally {
         this.generatingHash = false;
       }
