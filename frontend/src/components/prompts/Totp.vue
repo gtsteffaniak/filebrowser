@@ -3,15 +3,14 @@
     <h2>{{ $t("otp.name") }}</h2>
   </div>
   <div v-if="error !== ''" class="wrong-login card">{{ error }}</div>
-  <div v-if="succeeded">{{ $t("otp.verificationSucceed") }}</div>
-  <div v-if="!succeeded" class="card-content">
+  <div class="card-content">
     <p v-if="generate">{{ $t("otp.generate") }}</p>
-    <div v-if="generate" class="share__box__element share__box__center">
-      <p aria-label="otp-url">{{ this.url }}</p>
-      <qrcode-vue class="qrcode" :value="this.url" size="200" level="M"></qrcode-vue>
+    <div v-if="generate" class="box__element box__center">
+      <p aria-label="otp-url">{{ url }}</p>
+      <qrcode-vue class="qrcode" :value="url" :size="200" level="M"></qrcode-vue>
     </div>
     <p>{{ $t("otp.verifyInstructions") }}</p>
-    <input v-focus class="input" type="text" v-model="code" @keyup.enter="verifyCode"
+    <input :class="{'form-invalid': error != '' && code != ''}" v-focus class="input" type="text" v-model="code" @keyup.enter="verifyCode"
       :placeholder="$t('otp.codeInputPlaceholder')" />
   </div>
 
@@ -21,7 +20,7 @@
       :title="succeeded ? $t('general.close') : $t('general.cancel')">
       {{ succeeded ? $t('general.close') : $t('general.cancel') }}
     </button>
-    <button v-if="!succeeded" class="button button--flat button--blue" @click="verifyCode"
+    <button v-if="!succeeded && code != ''" class="button button--flat button--blue" @click="verifyCode"
       :title="$t('general.verify')">
       {{ $t("general.verify") }}
     </button>
@@ -71,6 +70,11 @@ export default {
       this.generateNewCode();
     }
   },
+  watch: {
+    code() {
+      this.error = "";
+    },
+  },
   methods: {
     async generateNewCode() {
       try {
@@ -99,6 +103,7 @@ export default {
         this.succeeded = true
         this.error = "";
         notify.showSuccessToast(this.$t("otp.verificationSucceed"));
+        mutations.closeTopHover();
       } catch (error) {
         this.error = this.$t("otp.verificationFailed");
         return;
@@ -113,3 +118,52 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.box {
+  box-shadow: rgba(0, 0, 0, 0.06) 0px 1px 3px, rgba(0, 0, 0, 0.12) 0px 1px 2px;
+  background: #fff;
+  border-radius: 1em;
+  margin: 5px;
+  overflow: hidden;
+}
+
+.box__header {
+  padding: 1em;
+  text-align: center;
+}
+
+.box__icon i {
+  font-size: 10em;
+  color: #40c4ff;
+}
+
+.box__center {
+  text-align: center;
+}
+
+.box__info {
+  flex: 1 1 18em;
+}
+
+.box__element {
+  padding: 1em;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  word-break: break-all;
+}
+
+.box__element .button {
+  display: inline-block;
+}
+
+.box__element .button i {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.box__items {
+  text-align: left;
+  flex: 10 0 25em;
+}
+
+</style>

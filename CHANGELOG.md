@@ -4,12 +4,21 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v1.2.2-beta
 
+ **New Features**:
+ - Resizable sidebar (#1896)
+
  **Notes**:
- - Added docker default `FILEBROWSER_CONFIG="/home/filebrowser/data/config.yaml"` back -- mistakenly removed. see https://filebrowserquantum.com/en/docs/getting-started/config/#3-default-locations. (#1891)
  - Better text file content detection (#1726)
  - More url encoding changes for API which should make things more consistent. Open issues if you see path/source not found errors.
  - adjustments to the startup behavior for sqlite index for reusing the previous database on startup
+ - CTRL + B disables sticky sidebar forever (#1869)
 
+ **BugFixes**:
+ - Added docker default `FILEBROWSER_CONFIG="/home/filebrowser/data/config.yaml"` back -- mistakenly removed. see https://filebrowserquantum.com/en/docs/getting-started/config/#3-default-locations. (#1891)
+ - Fix brand text in login screen (#1898)
+ - Sidebar links cointains urls with 2x repeated source name (#1847)
+ - 2 factor auth getting overwritten if you edit the auth from admin #1819
+ 
 ## v1.2.1-beta
 
  **New Features**:

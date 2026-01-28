@@ -10,7 +10,12 @@
       <div
         ref="listingView"
         class="listing-items font-size-large"
-        :class="{ 'add-padding': isStickySidebar, [listingViewMode]: true }"
+        :class="{
+          'add-padding': isStickySidebar,
+          [listingViewMode]: true,
+          dropping: isDragging,
+          'rectangle-selecting': isRectangleSelecting
+        }"
         v-if="numDirs + numFiles == 0"
       >
         <h2 class="message">
@@ -1235,12 +1240,16 @@ export default {
 }
 
 .listing-items.dropping {
-  transform: scale(0.97);
+  border-radius: 1em;
+  max-height: 70vh;
+  width: 97%;
+  overflow: hidden;
+  margin: 1em;
   box-shadow: var(--primaryColor) 0 0 1em;
 }
 
 .listing-items {
-  min-height: 90vh !important;
+  min-height: 75vh !important;
   position: relative;
 }
 
