@@ -28,8 +28,8 @@
         </div>
       </div>
 
-      <div v-if="req.type" class="share-info-element share-info-center">
-        <qrcode-vue class="qrcode" :value="getShareLink()" size="200" level="M"></qrcode-vue>
+      <div class="share-info-element share-info-center">
+        <qrcode-vue class="qrcode" :value="getShareLink()" :size="200" level="M"></qrcode-vue>
         <p class="share-link-text">{{ getShareLink() }}</p>
       </div>
     </div>
@@ -97,6 +97,7 @@ export default {
   },
   methods: {
     getShareLink() {
+      console.log("getShareLink", state.shareInfo.shareURL);
       return state.shareInfo.shareURL;
     },
     close() {
@@ -123,6 +124,7 @@ export default {
 
 .share-info-element {
   margin: 0.5em 0;
+  margin:auto;
 }
 
 .share-info-center {

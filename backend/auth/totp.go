@@ -67,15 +67,17 @@ func GenerateOtpForUser(user *users.User, userStore *users.Storage) (string, err
 
 	secretText := key.Secret()
 	nonce := ""
+	secretToStore := secretText
 	if settings.Config.Auth.TotpSecret != "" {
 		// If an encryption key is provided, encrypt the secret.
-		secretText, nonce, err = encryptSecret(secretText, encryptionKey)
+		secretToStore, nonce, err = encryptSecret(secretText, encryptionKey)
 		if err != nil {
 			return "", fmt.Errorf("failed to encrypt TOTP secret: %w", err)
 		}
 	}
 	// set cache so verify can attempt to use it but not require it for user yet.
-	TotpCache.Set(user.Username, secretText+"||"+nonce)
+	TotpCache.Set(user.Username, secretToStore+"||"+nonce)
+	// Use the original base32 secret in the OTP URL, not the encrypted version
 	url := fmt.Sprintf("otpauth://totp/%v?secret=%v", "FileBrowser Quantum: "+user.Username, secretText)
 	return url, nil
 }
@@ -181,9 +183,10 @@ func VerifyTotpCode(user *users.User, code string, userStore *users.Storage) err
 		Algorithm: TOTPAlgorithm,
 	})
 	if err != nil {
-		logger.Errorf("error during TOTP validation: %v", err)
+		logger.Errorf("error during TOTP validation for user %s: %v", user.Username, err)
 	}
 	if !valid {
+		logger.Warningf("Invalid TOTP code for user %s", user.Username)
 		return fmt.Errorf("invalid OTP token")
 	}
 	if totpSecret != "" {
