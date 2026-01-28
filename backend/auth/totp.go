@@ -183,9 +183,10 @@ func VerifyTotpCode(user *users.User, code string, userStore *users.Storage) err
 		Algorithm: TOTPAlgorithm,
 	})
 	if err != nil {
-		logger.Errorf("error during TOTP validation: %v", err)
+		logger.Errorf("error during TOTP validation for user %s: %v", user.Username, err)
 	}
 	if !valid {
+		logger.Warningf("Invalid TOTP code for user %s", user.Username)
 		return fmt.Errorf("invalid OTP token")
 	}
 	if totpSecret != "" {
