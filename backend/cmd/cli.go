@@ -85,6 +85,23 @@ func runCLI() bool {
 			}
 			subcommand := os.Args[2]
 
+			// Handle old syntax: "set -u user,pass -c config.yaml"
+			if subcommand == "-u" {
+				// Parse flags starting from os.Args[2:] to include the -u flag
+				err := setCmd.Parse(os.Args[2:])
+				if err != nil {
+					setCmd.PrintDefaults()
+					os.Exit(1)
+				}
+				logger.Debugf("setUser called with args: %v, config: %v, admin: %v", os.Args, dbConfig, asAdmin)
+				err = setUser(dbConfig, asAdmin)
+				if err != nil {
+					fmt.Printf("error: %v\n", err)
+					os.Exit(1)
+				}
+				return false
+			}
+
 			// New pattern: subcommand-based (e.g., "set user" or "set rule")
 			// Parse flags starting from os.Args[3:] to skip the subcommand
 			err := setCmd.Parse(os.Args[3:])
@@ -93,13 +110,6 @@ func runCLI() bool {
 				os.Exit(1)
 			}
 			switch subcommand {
-			case "-u":
-				err := setUser(dbConfig, asAdmin)
-				if err != nil {
-					fmt.Printf("error: %v\n", err)
-					os.Exit(1)
-				}
-				return false
 			case "rule":
 				err := setRule(dbConfig, fsPath, indexPath, ruleCategory, value, allow)
 				if err != nil {

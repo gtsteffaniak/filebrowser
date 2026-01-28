@@ -21,8 +21,18 @@ import (
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/auth/otp/generate [post]
 func generateOTPHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	logger.Debug("Generating OTP for user:", d.user.Username)
-	url, err := auth.GenerateOtpForUser(d.user, store.Users)
+	username := r.URL.Query().Get("username")
+	if username == "" {
+		username = d.user.Username
+	}
+	if username != d.user.Username && !d.user.Permissions.Admin {
+		return http.StatusForbidden, fmt.Errorf("you are not authorized to generate OTP for this user")
+	}
+	targetUser, err := store.Users.Get(username)
+	if err != nil {
+		return http.StatusNotFound, fmt.Errorf("user not found: %w", err)
+	}
+	url, err := auth.GenerateOtpForUser(targetUser, store.Users)
 	if err != nil {
 		return http.StatusInternalServerError, fmt.Errorf("error generating OTP secret: %w", err)
 	}
@@ -51,7 +61,21 @@ func verifyOTPHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	if code == "" {
 		return http.StatusUnauthorized, fmt.Errorf("code is required")
 	}
-	err := auth.VerifyTotpCode(d.user, code, store.Users)
+
+	targetUser := d.user
+	username := r.URL.Query().Get("username")
+
+	// If admin is verifying for another user
+	if username != "" && username != d.user.Username && d.user.Permissions.Admin {
+		var err error
+		targetUser, err = store.Users.Get(username)
+		if err != nil {
+			return http.StatusNotFound, fmt.Errorf("user not found: %w", err)
+		}
+		logger.Debugf("Admin %s verifying OTP for user: %s", d.user.Username, targetUser.Username)
+	}
+
+	err := auth.VerifyTotpCode(targetUser, code, store.Users)
 	if err != nil {
 		return http.StatusUnauthorized, fmt.Errorf("invalid OTP token")
 	}
