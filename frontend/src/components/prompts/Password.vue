@@ -4,7 +4,7 @@
   </div>
 
   <div class="card-content">
-    <div v-if="showWrongCredentials" class="share__wrong__password">
+    <div v-if="showWrongCredentials" class="form-invalid">
       {{ $t("login.wrongCredentials") }}
     </div>
     <div class="form-flex-group">
@@ -65,7 +65,7 @@ export default {
 </script>
 
 <style scoped>
-.share__wrong__password {
+.wrong__password {
   color: #ff4757;
   text-align: center;
   padding: 1em 0;
