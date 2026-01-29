@@ -22,7 +22,8 @@ All notable changes to this project will be documented in this file. For commit 
  - Added docker default `FILEBROWSER_CONFIG="/home/filebrowser/data/config.yaml"` back -- mistakenly removed. see https://filebrowserquantum.com/en/docs/getting-started/config/#3-default-locations. (#1891)
  - Fix brand text in login screen (#1898)
  - Sidebar links cointains urls with 2x repeated source name (#1847)
- - 2 factor auth getting overwritten if you edit the auth from admin #1819
+ - 2 factor auth getting overwritten if you edit the auth from admin (#1819)
+ - New created user's files are listing error, Probably related with language setting. (#1565)
  
 ## v1.2.1-beta
 

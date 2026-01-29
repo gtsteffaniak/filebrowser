@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"sort"
 	"strconv"
+	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/database/storage"
@@ -91,6 +92,83 @@ func prepForFrontend(u *users.User) {
 	u.TOTPNonce = ""
 	u.Scopes = u.GetFrontendScopes()
 	u.SidebarLinks = u.GetFrontendSidebarLinks()
+	u.Locale = normalizeLocale(u.Locale)
+}
+
+// normalizeLocale converts various locale formats (xx_xx, xx-xx, xxxx) to camelCase format (xxXX)
+// Frontend expects camelCase for compound locales (zhCN, ptBR, etc.) as shown in select option values
+func normalizeLocale(locale string) string {
+	if locale == "" {
+		return locale
+	}
+
+	// Convert to lowercase for processing
+	lower := strings.ToLower(locale)
+
+	// Special case mappings (standard locale codes to frontend camelCase format)
+	specialCases := map[string]string{
+		"cs":    "cz", // Czech
+		"uk":    "ua", // Ukrainian
+		"zh-cn": "zhCN",
+		"zh_cn": "zhCN",
+		"zhcn":  "zhCN",
+		"zh-tw": "zhTW",
+		"zh_tw": "zhTW",
+		"zhtw":  "zhTW",
+		"pt-br": "ptBR",
+		"pt_br": "ptBR",
+		"ptbr":  "ptBR",
+		"sv-se": "svSE",
+		"sv_se": "svSE",
+		"svse":  "svSE",
+		"nl-be": "nlBE",
+		"nl_be": "nlBE",
+		"nlbe":  "nlBE",
+	}
+
+	// Check special cases first
+	if normalized, ok := specialCases[lower]; ok {
+		return normalized
+	}
+
+	// If already in camelCase format (4+ chars, has uppercase), return as-is
+	if len(locale) >= 4 {
+		// Check if it's a known camelCase locale
+		knownCamelCase := map[string]bool{
+			"zhCN": true, "zhTW": true, "ptBR": true, "svSE": true, "nlBE": true,
+		}
+		if knownCamelCase[locale] {
+			return locale
+		}
+	}
+
+	// Handle xx_xx or xx-xx format: convert to xxXX (camelCase)
+	parts := strings.FieldsFunc(lower, func(r rune) bool {
+		return r == '_' || r == '-'
+	})
+
+	if len(parts) == 2 {
+		// Convert to camelCase: first part lowercase, second part capitalized
+		first := parts[0]
+		second := parts[1]
+		if len(second) > 0 {
+			second = strings.ToUpper(second[:1]) + second[1:]
+		}
+		normalized := first + second
+
+		// Check if this matches a known compound locale
+		knownCompound := map[string]string{
+			"zhcn": "zhCN", "zhtw": "zhTW", "ptbr": "ptBR",
+			"svse": "svSE", "nlbe": "nlBE",
+		}
+		if normalizedVal, ok := knownCompound[normalized]; ok {
+			return normalizedVal
+		}
+		return normalized
+	}
+
+	// Single part locale (en, fr, de, etc.) - return as-is (lowercase is fine)
+	return lower
 }
 
 // userDeleteHandler deletes a user by ID.
