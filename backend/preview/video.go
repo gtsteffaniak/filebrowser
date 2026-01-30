@@ -14,9 +14,9 @@ import (
 // percentageSeek: percentage of video duration to seek to (0–100).
 // Returns: JPEG image bytes.
 func (s *Service) GenerateVideoPreview(ctx context.Context, videoPath string, percentageSeek int) ([]byte, error) {
-	if s.videoService == nil {
-		logger.Errorf("Video service not available for file '%s'", videoPath)
-		return nil, fmt.Errorf("video service not available")
+	if s.ffmpegService == nil {
+		logger.Errorf("FFmpeg service not available for file '%s'", videoPath)
+		return nil, fmt.Errorf("FFmpeg service not available")
 	}
 
 	// Validate file exists before processing
@@ -26,14 +26,14 @@ func (s *Service) GenerateVideoPreview(ctx context.Context, videoPath string, pe
 	}
 
 	var buf bytes.Buffer
-	err := s.videoService.GenerateVideoPreviewStreaming(ctx, videoPath, percentageSeek, &buf)
+	err := s.ffmpegService.GenerateVideoPreviewStreaming(ctx, videoPath, percentageSeek, &buf)
 	if err != nil {
 		return nil, err
 	}
 
 	previewBytes := buf.Bytes()
 	if len(previewBytes) == 0 {
-		logger.Errorf("Video service returned empty result for '%s'", videoPath)
+		logger.Errorf("FFmpeg service returned empty result for '%s'", videoPath)
 		return nil, fmt.Errorf("video preview generation returned empty result")
 	}
 
