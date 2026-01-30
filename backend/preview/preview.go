@@ -31,15 +31,15 @@ var (
 )
 
 type Service struct {
-	fileCache         diskcache.Interface
-	cacheDir          string // Cache directory used for thumbnails and temp files
-	debug             bool
-	docGenMutex       sync.Mutex    // Mutex to serialize access to doc generation
-	docSemaphore      chan struct{} // Semaphore for document generation
-	officeSem         chan struct{} // Semaphore for office document processing
-	ffmpegService     *ffmpeg.FFmpegService // Shared FFmpeg service for video and HEIC/JPEG fallback
-	imageSem          chan struct{} // Semaphore for small image decode/encode (<8MB)
-	imageLargeSem     chan struct{} // Semaphore for large image decode/encode (>=8MB), nil if only 1 processor
+	fileCache     diskcache.Interface
+	cacheDir      string // Cache directory used for thumbnails and temp files
+	debug         bool
+	docGenMutex   sync.Mutex            // Mutex to serialize access to doc generation
+	docSemaphore  chan struct{}         // Semaphore for document generation
+	officeSem     chan struct{}         // Semaphore for office document processing
+	ffmpegService *ffmpeg.FFmpegService // Shared FFmpeg service for video and HEIC/JPEG fallback
+	imageSem      chan struct{}         // Semaphore for small image decode/encode (<8MB)
+	imageLargeSem chan struct{}         // Semaphore for large image decode/encode (>=8MB), nil if only 1 processor
 }
 
 func NewPreviewGenerator(concurrencyLimit int, cacheDir string) *Service {
@@ -78,7 +78,7 @@ func NewPreviewGenerator(concurrencyLimit int, cacheDir string) *Service {
 
 	// Single FFmpeg service shared by video preview and HEIC/JPEG fallback
 	ffmpegService := ffmpeg.NewFFmpegService(ffmpegConcurrencyLimit, settings.Config.Integrations.Media.Debug, filepath.Join(actualCacheDir, "heic"))
-	
+
 	// Calculate split between small and large imaging library processors
 	// Distribution formula:
 	//   1 processor:  No split - imageSem handles all, imageLargeSem is nil
@@ -86,7 +86,7 @@ func NewPreviewGenerator(concurrencyLimit int, cacheDir string) *Service {
 	//   3-9 processors: 2 large, rest small
 	//   10+ processors: 3 large, rest small
 	var imageSem, imageLargeSem chan struct{}
-	
+
 	if concurrencyLimit == 1 {
 		// Single processor: no split, imageLargeSem will be nil
 		imageSem = make(chan struct{}, 1)
@@ -101,10 +101,10 @@ func NewPreviewGenerator(concurrencyLimit int, cacheDir string) *Service {
 			largeLimit = 1
 		}
 		smallLimit := concurrencyLimit - largeLimit
-		
+
 		imageSem = make(chan struct{}, smallLimit)
 		imageLargeSem = make(chan struct{}, largeLimit)
-		
+
 		logger.Debugf("Image processor split: %d small, %d large (total: %d)", smallLimit, largeLimit, concurrencyLimit)
 	}
 
@@ -361,11 +361,10 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 
 	// Enforce file size limit for image preview generation to prevent memory exhaustion
 	// 50MB limit is reasonable for preview generation while allowing most images
-	const maxFileSizeForPreview = 50 * 1024 * 1024 // 50 MB
-	if strings.HasPrefix(file.Type, "image") && file.Size > maxFileSizeForPreview {
-		logger.Warningf("Image file too large for preview: %s (size: %d bytes, limit: %d bytes)", 
-			file.Name, file.Size, maxFileSizeForPreview)
-		return nil, fmt.Errorf("image file too large for preview generation: %d MB (limit: 50 MB)", 
+	if strings.HasPrefix(file.Type, "image") && file.Size > iteminfo.LargeFileSizeThreshold {
+		logger.Warningf("Image file too large for preview: %s (size: %d bytes, limit: %d bytes)",
+			file.Name, file.Size, iteminfo.LargeFileSizeThreshold)
+		return nil, fmt.Errorf("image file too large for preview generation: %d MB (limit: 50 MB)",
 			file.Size/(1024*1024))
 	}
 
