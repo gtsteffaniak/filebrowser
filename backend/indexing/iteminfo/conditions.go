@@ -9,6 +9,10 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 )
 
+const (
+	LargeFileSizeThreshold = 75 * 1024 * 1024 // 75MB
+)
+
 var AllFiletypeOptions = []string{
 	"image",
 	"audio",

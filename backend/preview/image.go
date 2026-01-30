@@ -8,9 +8,11 @@ import (
 	"image/jpeg"
 	"io"
 	"strings"
+	"time"
 
 	exif "github.com/dsoprea/go-exif/v3"
 	exifcommon "github.com/dsoprea/go-exif/v3/common"
+	"github.com/gtsteffaniak/go-logger/logger"
 	"github.com/kovidgoyal/imaging"
 )
 
@@ -143,70 +145,73 @@ func (s *Service) FormatFromExtension(ext string) (Format, error) {
 	}
 }
 
-type resizeConfig struct {
-	format      Format
-	resizeMode  ResizeMode
-	quality     Quality
-	jpegQuality int // JPEG encoding quality (1-100)
+type ResizeOptions struct {
+	Width       int
+	Height      int
+	Format      Format
+	ResizeMode  ResizeMode
+	Quality     Quality
+	JpegQuality int // JPEG encoding quality (1-100), 0 means use Quality default
 }
 
-type Option func(*resizeConfig)
+func (s *Service) Resize(in io.Reader, out io.Writer, opts ResizeOptions) error {
+	return s.ResizeWithSize(in, out, 0, opts)
+}
 
-func WithFormat(format Format) Option {
-	return func(config *resizeConfig) {
-		config.format = format
+// ResizeWithSize resizes an image with file size information for appropriate semaphore selection
+func (s *Service) ResizeWithSize(in io.Reader, out io.Writer, fileSize int64, opts ResizeOptions) error {
+	// Set defaults
+	if opts.ResizeMode == 0 {
+		opts.ResizeMode = ResizeModeFit
 	}
-}
-
-func WithMode(mode ResizeMode) Option {
-	return func(config *resizeConfig) {
-		config.resizeMode = mode
+	if opts.Quality == 0 {
+		opts.Quality = QualityMedium
 	}
-}
-
-func WithQuality(quality Quality) Option {
-	return func(config *resizeConfig) {
-		config.quality = quality
-		config.jpegQuality = quality.jpegQuality()
+	if opts.JpegQuality == 0 {
+		opts.JpegQuality = opts.Quality.jpegQuality()
 	}
-}
+	
+	// Acquire appropriate semaphore based on file size
+	// Large files (>=8MB) use imageLargeSem if available, otherwise fall back to imageSem
+	// Small files (<8MB) use imageSem
+	const largeFileSizeThreshold = 8 * 1024 * 1024 // 8MB
+	
+	if fileSize >= largeFileSizeThreshold && s.imageLargeSem != nil {
+		// Large file path
+		select {
+		case s.imageLargeSem <- struct{}{}:
+			defer func() { <-s.imageLargeSem }()
+		case <-context.Background().Done():
+			return context.Background().Err()
+		}
+	} else {
+		// Small file path or fallback
+		select {
+		case s.imageSem <- struct{}{}:
+			defer func() { <-s.imageSem }()
+		case <-context.Background().Done():
+			return context.Background().Err()
+		}
+	}
 
-func (s *Service) Resize(in io.Reader, width, height int, out io.Writer, options ...Option) error {
-	// First, detect format and get dimensions (lightweight operation)
-	format, wrappedReader, imgWidth, imgHeight, err := s.detectFormatAndSize(in)
+	// Detect format and dimensions (lightweight for seekable readers; may ReadAll for non-seekable).
+	detectedFormat, wrappedReader, imgWidth, imgHeight, err := s.detectFormatAndSize(in)
 	if err != nil {
 		return fmt.Errorf("failed to detect image format: %w", err)
 	}
-
-	// Use image service semaphore for image processing
-	if s.imageService != nil {
-		if acquireErr := s.imageService.Acquire(context.Background()); acquireErr != nil {
-			return acquireErr
-		}
-		defer s.imageService.Release()
+	
+	// Only set format if not explicitly specified
+	if opts.Format == 0 {
+		opts.Format = detectedFormat
 	}
 
-	config := resizeConfig{
-		format:      format,
-		resizeMode:  ResizeModeFit,
-		quality:     QualityMedium,
-		jpegQuality: QualityMedium.jpegQuality(),
-	}
-	for _, option := range options {
-		option(&config)
-	}
-	// Ensure JPEG quality is set based on quality setting
-	if config.jpegQuality == 0 {
-		config.jpegQuality = config.quality.jpegQuality()
-	}
-
-	if format == FormatHeic {
-		config.format = FormatJpeg
+	if detectedFormat == FormatHeic {
+		opts.Format = FormatJpeg
 	}
 
 	// Try to use embedded EXIF thumbnail for JPEGs (saves MASSIVE memory and CPU)
 	// This is especially beneficial for large images (e.g., 4000x3000 photos)
-	if format == FormatJpeg && imgWidth > width*2 && imgHeight > height*2 {
+	if detectedFormat == FormatJpeg && imgWidth > opts.Width*2 && imgHeight > opts.Height*2 {
 		thm, newWrappedReader, errThm := getEmbeddedThumbnail(wrappedReader)
 		wrappedReader = newWrappedReader
 		if errThm == nil && len(thm) > 0 {
@@ -219,151 +224,184 @@ func (s *Service) Resize(in io.Reader, width, height int, out io.Writer, options
 
 				// If EXIF thumbnail is larger than or equal to requested size
 				// and quality is Low, return it as-is (no need to resize down)
-				if config.quality == QualityLow && thmWidth >= width && thmHeight >= height {
-					if config.format == FormatJpeg {
-						return jpeg.Encode(out, thmImg, &jpeg.Options{Quality: config.jpegQuality})
+				if opts.Quality == QualityLow && thmWidth >= opts.Width && thmHeight >= opts.Height {
+					if opts.Format == FormatJpeg {
+						return jpeg.Encode(out, thmImg, &jpeg.Options{Quality: opts.JpegQuality})
 					}
-					return imaging.Encode(out, thmImg, config.format.toImaging())
+					return imaging.Encode(out, thmImg, opts.Format.toImaging())
 				}
 
 				// If EXIF thumbnail is smaller but still reasonable (at least 40% of target),
-				minThumbSize := width * 40 / 100
+				minThumbSize := opts.Width * 40 / 100
 				if thmWidth >= minThumbSize || thmHeight >= minThumbSize {
 					var resizedImg image.Image
-					switch config.resizeMode {
+					switch opts.ResizeMode {
 					case ResizeModeFill:
-						resizedImg = imaging.Fill(thmImg, width, height, imaging.Center, config.quality.resampleFilter())
+						resizedImg = imaging.Fill(thmImg, opts.Width, opts.Height, imaging.Center, opts.Quality.resampleFilter())
 					case ResizeModeFit:
-						resizedImg = imaging.Fit(thmImg, width, height, config.quality.resampleFilter())
+						resizedImg = imaging.Fit(thmImg, opts.Width, opts.Height, opts.Quality.resampleFilter())
 					default:
-						resizedImg = imaging.Fit(thmImg, width, height, config.quality.resampleFilter())
+						resizedImg = imaging.Fit(thmImg, opts.Width, opts.Height, opts.Quality.resampleFilter())
 					}
 
-					if config.format == FormatJpeg {
-						return jpeg.Encode(out, resizedImg, &jpeg.Options{Quality: config.jpegQuality})
+					if opts.Format == FormatJpeg {
+						return jpeg.Encode(out, resizedImg, &jpeg.Options{Quality: opts.JpegQuality})
 					}
-					return imaging.Encode(out, resizedImg, config.format.toImaging())
+					return imaging.Encode(out, resizedImg, opts.Format.toImaging())
 				}
 			}
 		}
 	}
 
 	// For HEIC files, try without AutoOrientation first since it might not work properly
-	// Try decoding with default settings (auto color space conversion)
-	img, err := imaging.Decode(wrappedReader)
-	if err != nil {
-		// If decoding fails due to ICC profile issues (e.g., unsupported grayscale colorspace),
-		// retry with color space conversion disabled
-		if bytes.Contains([]byte(err.Error()), []byte("colorspace")) ||
-			bytes.Contains([]byte(err.Error()), []byte("ICC profile")) {
-			// Reset reader to beginning
-			if seeker, ok := wrappedReader.(io.Seeker); ok {
-				_, _ = seeker.Seek(0, io.SeekStart)
+	// Set a timeout for decode operations to prevent runaway processes
+	// Use a channel to signal completion and handle timeout
+	type decodeResult struct {
+		img image.Image
+		err error
+	}
+	
+	decodeChan := make(chan decodeResult, 1)
+	decodeTimeout := 5 * time.Second
+	
+	go func() {
+		// Try decoding with default settings (auto color space conversion)
+		img, err := imaging.Decode(wrappedReader)
+		if err != nil {
+			// If decoding fails due to ICC profile issues, retry without color space conversion
+			if bytes.Contains([]byte(err.Error()), []byte("colorspace")) ||
+				bytes.Contains([]byte(err.Error()), []byte("ICC profile")) {
+				// Reset reader to beginning
+				if seeker, ok := wrappedReader.(io.Seeker); ok {
+					_, _ = seeker.Seek(0, io.SeekStart)
+				}
+				// Try again without color space conversion
+				img, err = imaging.Decode(wrappedReader, imaging.ColorSpace(imaging.NO_CHANGE_OF_COLORSPACE))
 			}
-			// Try again without color space conversion
-			img, err = imaging.Decode(wrappedReader, imaging.ColorSpace(imaging.NO_CHANGE_OF_COLORSPACE))
-			if err != nil {
-				return fmt.Errorf("failed to decode image: %w", err)
-			}
-		} else {
-			return fmt.Errorf("failed to decode image: %w", err)
 		}
+		decodeChan <- decodeResult{img: img, err: err}
+	}()
+	
+	var img image.Image
+	select {
+	case result := <-decodeChan:
+		if result.err != nil {
+			return fmt.Errorf("failed to decode image: %w", result.err)
+		}
+		img = result.img
+	case <-time.After(decodeTimeout):
+		return fmt.Errorf("image decode timeout exceeded (%v) for %v image %dx%d", 
+			decodeTimeout, detectedFormat, imgWidth, imgHeight)
 	}
 
 	// Note: For HEIC files processed via FFmpeg, orientation is handled automatically
 
 	// Use the quality setting requested by caller
-	resampleFilter := config.quality.resampleFilter()
+	resampleFilter := opts.Quality.resampleFilter()
 
-	switch config.resizeMode {
+	switch opts.ResizeMode {
 	case ResizeModeFill:
-		img = imaging.Fill(img, width, height, imaging.Center, resampleFilter)
+		img = imaging.Fill(img, opts.Width, opts.Height, imaging.Center, resampleFilter)
 	case ResizeModeFit:
-		img = imaging.Fit(img, width, height, resampleFilter)
+		img = imaging.Fit(img, opts.Width, opts.Height, resampleFilter)
 	default:
-		img = imaging.Fit(img, width, height, resampleFilter)
+		img = imaging.Fit(img, opts.Width, opts.Height, resampleFilter)
 	}
 
 	// Use optimized JPEG encoding with quality control for better performance
-	if config.format == FormatJpeg {
+	var encodeErr error
+	if opts.Format == FormatJpeg {
 		// Further optimize quality for small thumbnails
-		jpegQuality := config.jpegQuality
-		return jpeg.Encode(out, img, &jpeg.Options{Quality: jpegQuality})
+		jpegQuality := opts.JpegQuality
+		encodeErr = jpeg.Encode(out, img, &jpeg.Options{Quality: jpegQuality})
+	} else {
+		encodeErr = imaging.Encode(out, img, opts.Format.toImaging())
 	}
-
-	return imaging.Encode(out, img, config.format.toImaging())
+	
+	return encodeErr
 }
 
 // detectFormatAndSize detects format and dimensions without full decode
 func (s *Service) detectFormatAndSize(in io.Reader) (Format, io.Reader, int, int, error) {
-	const maxHeaderSize = 64 * 1024 // 64KB should be enough for format detection
+	// Progressive buffer sizes: 128KB first, then 512KB if needed
+	headerSizes := []int64{
+		128 * 1024, // 128KB - handles most images
+		512 * 1024, // 512KB - fallback for images with extensive EXIF/metadata
+	}
 
 	// Try to work with seekable readers efficiently
 	if seeker, ok := in.(io.Seeker); ok {
 		originalPos, err := seeker.Seek(0, io.SeekCurrent)
 		if err == nil {
-			// Seek to start
 			if _, err := seeker.Seek(0, io.SeekStart); err == nil {
-				headerBuf := make([]byte, maxHeaderSize)
-				n, readErr := in.Read(headerBuf)
-				// Handle EOF gracefully (file smaller than header size)
-				if readErr == nil || readErr == io.EOF {
-					if n >= 2 {
-						headerBuf = headerBuf[:n]
-						isFullFile := (readErr == io.EOF) || (n < maxHeaderSize)
+				buf := getBuffer()
+				defer putBuffer(buf)
 
-						// Try magic byte detection first (fastest)
-						format := s.detectFormatFromMagicBytes(headerBuf, n)
+				// Try progressively larger buffer sizes
+				for attemptIndex, headerSize := range headerSizes {
+					// Reset buffer and seek position for each attempt
+					buf.Reset()
+					_, _ = seeker.Seek(0, io.SeekStart)
 
-						// Try to decode config for dimensions
-						reader := bytes.NewReader(headerBuf)
-						config, imgFormat, configErr := image.DecodeConfig(reader)
+					limitedReader := io.LimitReader(in, headerSize)
+					n64, readErr := buf.ReadFrom(limitedReader)
+					n := int(n64)
+					if readErr == nil || readErr == io.EOF {
+						if n >= 2 {
+							headerBytes := buf.Bytes()
+							isFullFile := (readErr == io.EOF) || (n < int(headerSize))
 
-						if configErr == nil {
-							// Successfully got config
-							if format < 0 {
-								format = s.parseFormat(imgFormat)
-							}
-							if format >= 0 {
-								if isFullFile {
-									// Small file - use the buffer we already have
-									return format, bytes.NewReader(headerBuf), config.Width, config.Height, nil
+							format := s.detectFormatFromMagicBytes(headerBytes, n)
+							reader := bytes.NewReader(headerBytes)
+							config, imgFormat, configErr := image.DecodeConfig(reader)
+
+							if configErr == nil {
+								if format < 0 {
+									format = s.parseFormat(imgFormat)
 								}
-								// Large file - seek back and use original reader
-								_, _ = seeker.Seek(originalPos, io.SeekStart)
-								return format, in, config.Width, config.Height, nil
+								if format >= 0 {
+									// Log retry attempts to track if 512KB is needed
+									if attemptIndex > 0 {
+										logger.Debugf("format detection required %dKB buffer (retry #%d)", headerSize/1024, attemptIndex)
+									}
+									if isFullFile {
+										// Small file - copy so we don't hold pool memory after return
+										copyBuf := make([]byte, n)
+										copy(copyBuf, headerBytes)
+										return format, bytes.NewReader(copyBuf), config.Width, config.Height, nil
+									}
+									_, _ = seeker.Seek(originalPos, io.SeekStart)
+									return format, in, config.Width, config.Height, nil
+								}
+								// Unsupported format - don't retry
+								break
+							} else {
+								// Check if this was an "unexpected EOF" - if so, retry with larger buffer
+								errMsg := configErr.Error()
+								isUnexpectedEOF := strings.Contains(errMsg, "unexpected EOF")
+
+								if isUnexpectedEOF && attemptIndex < len(headerSizes)-1 {
+									// Retry with larger buffer
+									continue
+								}
+								// Non-EOF error or exhausted all buffer sizes (both 128KB and 512KB failed)
+								logger.Warningf("format detection failed after trying up to %dKB: %v", headerSize/1024, configErr)
+								break
 							}
 						}
-
-						// Restore position and fall through
-						_, _ = seeker.Seek(originalPos, io.SeekStart)
 					}
 				}
+				_, _ = seeker.Seek(originalPos, io.SeekStart)
 			}
 		}
 	}
 
-	// Fallback: read all (for non-seekable or if header detection failed)
-	allData, err := io.ReadAll(in)
-	if err != nil {
-		return -1, nil, 0, 0, fmt.Errorf("failed to read image data: %w", err)
+	// Fallback disabled for memory debugging: avoid ReadAll so we can see if full-file reads were the issue.
+	// If reader is not seekable, or header detection failed, we fail instead of loading the whole file.
+	if _, ok := in.(io.Seeker); ok {
+		return -1, nil, 0, 0, fmt.Errorf("could not detect image format from header (seekable reader): %w", ErrUnsupportedFormat)
 	}
-	if len(allData) == 0 {
-		return -1, nil, 0, 0, fmt.Errorf("image data is empty: %w", ErrUnsupportedFormat)
-	}
-
-	reader := bytes.NewReader(allData)
-	config, imgFormat, err := image.DecodeConfig(reader)
-	if err != nil {
-		return -1, nil, 0, 0, fmt.Errorf("image.DecodeConfig failed: %w", ErrUnsupportedFormat)
-	}
-
-	format := s.parseFormat(imgFormat)
-	if format < 0 {
-		return -1, nil, 0, 0, fmt.Errorf("unsupported image format '%s': %w", imgFormat, ErrUnsupportedFormat)
-	}
-
-	return format, bytes.NewReader(allData), config.Width, config.Height, nil
+	return -1, nil, 0, 0, fmt.Errorf("image format detection requires seekable reader (e.g. *os.File or *bytes.Reader): %w", ErrUnsupportedFormat)
 }
 
 // detectFormatFromMagicBytes detects image format from magic bytes in file header

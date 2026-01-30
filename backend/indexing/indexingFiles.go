@@ -1292,11 +1292,19 @@ func setFilePreviewFlags(fileInfo *iteminfo.ItemInfo, realPath string) {
 	simpleType := strings.Split(fileInfo.Type, "/")[0]
 	switch fileInfo.Type {
 	case "image/heic", "image/heif":
+		if fileInfo.Size > iteminfo.LargeFileSizeThreshold {
+			fileInfo.HasPreview = false
+			return
+		}
 		fileInfo.HasPreview = settings.CanConvertImage("heic")
 		return
 	}
 	switch simpleType {
 	case "image":
+		if fileInfo.Size > iteminfo.LargeFileSizeThreshold {
+			fileInfo.HasPreview = false
+			return
+		}
 		fileInfo.HasPreview = true
 		return
 	case "video":

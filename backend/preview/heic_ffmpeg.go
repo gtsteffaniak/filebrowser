@@ -9,7 +9,7 @@ import (
 // This function handles all FFmpeg-related logic and parameters
 func (s *Service) convertHEICToJPEGWithFFmpeg(ctx context.Context, filePath string, previewSize string) ([]byte, error) {
 	// Check if FFmpeg service is available
-	if s.imageService == nil {
+	if s.ffmpegService == nil {
 		return nil, fmt.Errorf("FFmpeg is not available")
 	}
 
@@ -18,11 +18,11 @@ func (s *Service) convertHEICToJPEGWithFFmpeg(ctx context.Context, filePath stri
 		return nil, ctx.Err()
 	}
 
-	// Acquire image service semaphore
-	if err := s.imageService.Acquire(ctx); err != nil {
+	// Acquire FFmpeg service semaphore
+	if err := s.ffmpegService.Acquire(ctx); err != nil {
 		return nil, err
 	}
-	defer s.imageService.Release()
+	defer s.ffmpegService.Release()
 
 	// Determine target dimensions and quality based on preview size
 	var width, height int
@@ -41,14 +41,14 @@ func (s *Service) convertHEICToJPEGWithFFmpeg(ctx context.Context, filePath stri
 	}
 
 	// Use tile-based conversion for correct full-resolution image reconstruction
-	return s.imageService.ConvertHEICToJPEG(ctx, filePath, width, height, quality)
+	return s.ffmpegService.ConvertHEICToJPEG(ctx, filePath, width, height, quality)
 }
 
 // convertImageWithFFmpeg converts any image file (including problematic JPEGs) to resized JPEG using FFmpeg
 // This is used as a fallback for JPEG files that Go's standard decoder can't handle (extended sequential, etc.)
 func (s *Service) convertImageWithFFmpeg(ctx context.Context, filePath string, previewSize string) ([]byte, error) {
 	// Check if FFmpeg service is available
-	if s.imageService == nil {
+	if s.ffmpegService == nil {
 		return nil, fmt.Errorf("FFmpeg is not available for JPEG fallback")
 	}
 
@@ -57,11 +57,11 @@ func (s *Service) convertImageWithFFmpeg(ctx context.Context, filePath string, p
 		return nil, ctx.Err()
 	}
 
-	// Acquire image service semaphore
-	if err := s.imageService.Acquire(ctx); err != nil {
+	// Acquire FFmpeg service semaphore
+	if err := s.ffmpegService.Acquire(ctx); err != nil {
 		return nil, err
 	}
-	defer s.imageService.Release()
+	defer s.ffmpegService.Release()
 
 	// Determine target dimensions and quality based on preview size
 	var width, height int
@@ -80,5 +80,5 @@ func (s *Service) convertImageWithFFmpeg(ctx context.Context, filePath string, p
 	}
 
 	// Use direct conversion which works for all image formats including problematic JPEGs
-	return s.imageService.ConvertImageToJPEG(ctx, filePath, width, height, quality)
+	return s.ffmpegService.ConvertImageToJPEG(ctx, filePath, width, height, quality)
 }

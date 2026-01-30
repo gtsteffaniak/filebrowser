@@ -24,7 +24,10 @@ All notable changes to this project will be documented in this file. For commit 
  - Sidebar links cointains urls with 2x repeated source name (#1847)
  - 2 factor auth getting overwritten if you edit the auth from admin (#1819)
  - New created user's files are listing error, Probably related with language setting. (#1565)
- 
+ - thumbnail generation cpu/memory and concurrency bug.
+   - added 75MB filesize limit for image previews
+   - optimized concurrency for large vs small images
+
 ## v1.2.1-beta
 
  **New Features**:
