@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **New Features**:
  - Resizable sidebar (#1896)
- - improved favicon processing
+ - improved favicon processing (#1899)
    - supports more formats
    - supports larger images
    - automatcially generates multiple favicon sizes on startup for non-svg images. Custom svg favicons need a companion *.png to exist broad compatibilty
@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file. For commit 
  - adjustments to the startup behavior for sqlite index for reusing the previous database on startup
  - CTRL + B disables sticky sidebar forever (#1869)
  - added context menu back to duplicate finder
+ - improved listing view and scrolling performance
 
  **BugFixes**:
  - Added docker default `FILEBROWSER_CONFIG="/home/filebrowser/data/config.yaml"` back -- mistakenly removed. see https://filebrowserquantum.com/en/docs/getting-started/config/#3-default-locations. (#1891)

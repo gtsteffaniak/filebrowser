@@ -49,11 +49,14 @@
         }"
         :style="itemStyles"
         class="listing-items file-icons"
+        @scroll="onScroll"
       >
         <!-- Rectangle selection overlay -->
         <div class="selection-rectangle"
           :style="rectangleStyle"
         ></div>
+
+        <!-- Directories Section -->
         <div v-if="numDirs > 0">
           <h2 :class="{'dark-mode': isDarkMode}">{{ $t("general.folders") }}</h2>
         </div>
@@ -64,7 +67,7 @@
           :class="{ lastGroup: numFiles === 0 }"
         >
           <item
-            v-for="item in dirs"
+            v-for="item in visibleDirs"
             :key="base64(item.name)"
             v-bind:index="item.index"
             v-bind:name="item.name"
@@ -79,12 +82,13 @@
             v-bind:hasPreview="item.hasPreview"
           />
         </div>
+        <!-- Files Section -->
         <div v-if="numFiles > 0">
           <h2 :class="{'dark-mode': isDarkMode}">{{ $t("general.files") }}</h2>
         </div>
         <div v-if="numFiles > 0" class="file-items" :class="{ lastGroup: numFiles > 0 }" aria-label="File Items">
           <item
-            v-for="item in files"
+            v-for="item in visibleFiles"
             :key="base64(item.name)"
             v-bind:index="item.index"
             v-bind:name="item.name"
@@ -150,6 +154,14 @@ export default {
   },
   data() {
     return {
+      testBypassRendering: false, // TEST: bypass rendering to check performance
+      // Virtual scrolling
+      virtualScroll: {
+        itemHeight: 50, // Approximate height per item in list mode
+        buffer: 10, // Number of extra items to render above/below viewport
+        scrollTop: 0,
+        viewportHeight: 800,
+      },
       columnWidth: 250 + state.user.gallerySize * 50,
       dragCounter: 0,
       width: window.innerWidth,
@@ -302,6 +314,40 @@ export default {
     files() {
       return this.items.files;
     },
+    // Virtual scrolling computed properties
+    visibleDirs() {
+      if (this.testBypassRendering) {
+        return this.dirs;
+      }
+
+      // Calculate how many items fit in viewport
+      const itemsInViewport = Math.ceil(this.virtualScroll.viewportHeight / this.virtualScroll.itemHeight);
+      const startIndex = Math.max(0, Math.floor(this.virtualScroll.scrollTop / this.virtualScroll.itemHeight) - this.virtualScroll.buffer);
+      const endIndex = Math.min(
+        this.dirs.length,
+        startIndex + itemsInViewport + (this.virtualScroll.buffer * 2)
+      );
+
+      return this.dirs.slice(startIndex, endIndex);
+    },
+    visibleFiles() {
+      if (this.testBypassRendering) {
+        return this.files;
+      }
+
+      // Calculate how many items fit in viewport
+      const itemsInViewport = Math.ceil(this.virtualScroll.viewportHeight / this.virtualScroll.itemHeight);
+      const dirsHeight = this.numDirs > 0 ? (this.numDirs * this.virtualScroll.itemHeight) + 60 : 0; // +60 for header
+      const scrollInFiles = Math.max(0, this.virtualScroll.scrollTop - dirsHeight);
+
+      const startIndex = Math.max(0, Math.floor(scrollInFiles / this.virtualScroll.itemHeight) - this.virtualScroll.buffer);
+      const endIndex = Math.min(
+        this.files.length,
+        startIndex + itemsInViewport + (this.virtualScroll.buffer * 2)
+      );
+
+      return this.files.slice(startIndex, endIndex);
+    },
     viewIcon() {
       const icons = {
         list: "view_module",
@@ -403,6 +449,28 @@ export default {
     this.lastSelected = state.selected;
     // Check the columns size for the first time.
     this.colunmsResize();
+
+    // Initialize virtual scroll viewport height
+    this.$nextTick(() => {
+      if (this.$refs.listingView) {
+        this.virtualScroll.viewportHeight = this.$refs.listingView.clientHeight;
+      }
+    });
+
+    // Add resize observer for dynamic viewport updates
+    if (window.ResizeObserver) {
+      this.resizeObserver = new ResizeObserver(() => {
+        if (this.$refs.listingView) {
+          this.virtualScroll.viewportHeight = this.$refs.listingView.clientHeight;
+        }
+      });
+      this.$nextTick(() => {
+        if (this.$refs.listingView) {
+          this.resizeObserver.observe(this.$refs.listingView);
+        }
+      });
+    }
+
     // Add the needed event listeners to the window and document.
     window.addEventListener("keydown", this.keyEvent);
     window.addEventListener("resize", this.windowsResize);
@@ -446,6 +514,12 @@ export default {
       this.resizeTimeout = null;
     }
 
+    // Clean up resize observer
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect();
+      this.resizeObserver = null;
+    }
+
     // Remove event listeners before destroying this page.
     window.removeEventListener("keydown", this.keyEvent);
     window.removeEventListener("resize", this.windowsResize);
@@ -475,6 +549,11 @@ export default {
     }
   },
   methods: {
+    onScroll(event) {
+      // Update scroll position for virtual scrolling
+      const target = event.target;
+      this.virtualScroll.scrollTop = target.scrollTop;
+    },
     cancelContext() {
       if (this.contextTimeout) {
         clearTimeout(this.contextTimeout);
@@ -522,7 +601,7 @@ export default {
       const items = [];
       for (let index of state.selected) {
         const item = state.req.items[index];
-        const previewUrl = item.hasPreview 
+        const previewUrl = item.hasPreview
           ? filesApi.getPreviewURL(item.source || state.req.source, item.path, item.modified)
           : null;
         items.push({

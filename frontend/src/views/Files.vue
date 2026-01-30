@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div v-if="loadingProgress < 100" class="progress-line" :style="moveWithSidebar"></div>
+    <div v-if="loadingProgress < 100" class="progress-line" :style="{ width: loadingProgress + '%', ...moveWithSidebar }"></div>
     <errors v-if="error" :errorCode="error.status" />
     <component v-else-if="currentViewLoaded" :is="currentView"></component>
     <div v-else>
@@ -49,8 +49,6 @@ export default {
       lastHash: "",
       popupSource: "",
       loadingProgress: 0,
-      loadingStartTime: null,
-      loadingTimeout: null,
       // Share-specific data
       sharePassword: "",
       attemptedPasswordLogin: false,
@@ -130,11 +128,6 @@ export default {
   },
   beforeUnmount() {
     window.removeEventListener("keydown", this.keyEvent);
-    // Clean up loading timeout
-    if (this.loadingTimeout) {
-      clearTimeout(this.loadingTimeout);
-      this.loadingTimeout = null;
-    }
   },
   unmounted() {
     mutations.replaceRequest({}); // Use mutation
@@ -180,8 +173,10 @@ export default {
         }
     },
     async fetchData() {
+      // Determine if this is a share based on current route
+      const isShare = getters.isShare();
       if (state.deletedItem) {
-        return
+        return;
       }
 
       if (!state.user.sorting) {
@@ -190,37 +185,252 @@ export default {
           asc: true,
         });
       }
+
       // Set loading and reset error
-      mutations.setLoading(getters.isShare() ? "share" : "files", true);
+      mutations.setLoading(isShare ? "share" : "files", true);
       this.error = null;
       mutations.setReload(false);
 
       try {
-        if (getters.isShare()) {
-          await this.fetchShareData();
-        } else {
-          await this.fetchFilesData();
+        if (isShare) {
+          const hash = getters.shareHash();
+          let shareInfo = await publicApi.getShareInfo(hash);
+
+          // Check if the response is an error
+          if (!shareInfo || shareInfo.status >= 400) {
+            this.error = {
+              status: shareInfo?.status || "share404",
+              message: shareInfo?.message || "errors.shareNotFound",
+            };
+            this.loadingProgress = 0;
+            return;
+          }
+
+          // Valid share - add the hash and set shareInfo
+          shareInfo.hash = hash;
+          mutations.setShareInfo(shareInfo);
+
+          // Parse share route to get shareHash and shareSubPath
+          let urlPath = getters.routePath('public/share');
+          let parts = urlPath.split("/");
+          this.shareHash = parts[1];
+          this.shareSubPath = "/" + parts.slice(2).join("/");
+
+          // Check for password requirement
+          if (shareInfo.hasPassword) {
+            if (this.sharePassword === "") {
+              this.sharePassword = localStorage.getItem("sharepass:" + this.shareHash);
+              if (this.sharePassword === null || this.sharePassword === "") {
+                this.showPasswordPrompt();
+                return;
+              }
+            }
+            localStorage.setItem("sharepass:" + this.shareHash, this.sharePassword);
+          }
+
+          if (shareInfo.themeColor) {
+            document.documentElement.style.setProperty("--primaryColor", shareInfo.themeColor);
+          }
+
+          if (this.sharePassword === null) {
+            this.sharePassword = "";
+          }
+
+          // For upload shares, validate password and return early
+          if (shareInfo.shareType == "upload") {
+            if (shareInfo.hasPassword) {
+              mutations.setShareData({ passwordValid: false });
+              try {
+                await publicApi.fetchPub(this.shareSubPath, this.shareHash, this.sharePassword, false, false);
+                mutations.setShareData({ passwordValid: true });
+                this.error = null;
+              } catch (e) {
+                if (e.status === 501) {
+                  // 501 means browsing disabled - password is valid
+                  mutations.setShareData({ passwordValid: true });
+                  this.error = null;
+                } else if (e.status === 401) {
+                  this.attemptedPasswordLogin = true;
+                  mutations.setShareData({ passwordValid: false });
+                  this.showPasswordPrompt();
+                  return;
+                } else {
+                  throw e;
+                }
+              }
+            } else {
+              mutations.setShareData({ passwordValid: true });
+              this.error = null;
+            }
+            return;
+          }
+
+          // For regular shares, validate password
+          if (shareInfo.hasPassword) {
+            mutations.setShareData({ passwordValid: false });
+            try {
+              await publicApi.fetchPub(this.shareSubPath, this.shareHash, this.sharePassword, false, false);
+              mutations.setShareData({ passwordValid: true });
+              this.error = null;
+            } catch (e) {
+              if (e.status === 401) {
+                this.attemptedPasswordLogin = true;
+                mutations.setShareData({ passwordValid: false });
+                this.showPasswordPrompt();
+                return;
+              } else {
+                throw e;
+              }
+            }
+          } else {
+            mutations.setShareData({ passwordValid: true });
+            this.error = null;
+          }
+
+          mutations.resetSelected();
+          mutations.setMultiple(false);
+
+          if (state.shareInfo?.singleFileShare) {
+            mutations.setSidebarVisible(true);
+          }
         }
+
+        // === FILES-SPECIFIC INITIALIZATION ===
+        else {
+          if (!getters.isLoggedIn()) {
+            return;
+          }
+
+          mutations.clearShareData();
+          const routePath = url.removeTrailingSlash(getters.routePath());
+
+          // Redirect if multiple sources and user went to /files/
+          if (routePath == "/files") {
+            let targetPath = `/files/${state.sources.current}`;
+            for (const link of state.user?.sidebarLinks || []) {
+              if (link.target.startsWith('/')) {
+                if (link.category !== 'source') {
+                  continue;
+                }
+                targetPath = `/files/${link.sourceName}${link.target}`;
+                break;
+              }
+            }
+            router.push(targetPath);
+            return;
+          }
+
+          const result = extractSourceFromPath(getters.routePath());
+
+          if (result.source === "") {
+            this.error = { message: $t("index.noSources") };
+            mutations.replaceRequest({});
+            return;
+          }
+
+          this.lastHash = "";
+          mutations.resetSelected();
+        }
+        this.loadingProgress = 10;
+        let file;
+        if (isShare) {
+          file = await publicApi.fetchPub(this.shareSubPath, this.shareHash, this.sharePassword, false, false);
+          file.hash = this.shareHash;
+          this.shareToken = file.token;
+          mutations.setShareData({
+            hash: this.shareHash,
+            token: this.shareToken,
+            subPath: this.shareSubPath,
+            passwordValid: true,
+          });
+        } else {
+          const result = extractSourceFromPath(getters.routePath());
+          const fetchSource = decodeURIComponent(result.source);
+          const fetchPath = decodeURIComponent(result.path);
+          file = await filesApi.fetchFiles(fetchSource, fetchPath, false, false);
+        }
+
+        // For non-directory files, fetch content if needed
+        if (file.type !== "directory") {
+          const content = !getters.fileViewingDisabled(file.name);
+
+          if (content) {
+            const contentFile = isShare
+              ? await publicApi.fetchPub(this.shareSubPath, this.shareHash, this.sharePassword, true, false)
+              : await filesApi.fetchFiles(file.source, file.path, true, false);
+
+            file = contentFile;
+
+            if (isShare) {
+              file.hash = this.shareHash;
+              this.shareToken = contentFile.token;
+            }
+          }
+        }
+
+        // Set current source for multi-source setups (files only)
+        if (!isShare && state.sources.count > 1) {
+          mutations.setCurrentSource(file.source);
+        }
+
+        // Display first pass data immediately
+        mutations.replaceRequest(file);
+        document.title = `${document.title} - ${file.name}`;
+        this.loadingProgress = 50;
+
+        // === SECOND PASS: Fetch metadata in background (directories only) ===
+        if (file.type === "directory" && file.hasMetadata) {
+          this.loadingProgress = 90;
+
+          // Fetch with metadata enabled (background operation)
+          const metadataPromise = isShare
+            ? publicApi.fetchPub(this.shareSubPath, this.shareHash, this.sharePassword, false, true)
+            : filesApi.fetchFiles(file.source, file.path, false, true);
+
+          metadataPromise
+            .then(fileWithMetadata => {
+              // Add share-specific properties if needed
+              if (isShare) {
+                fileWithMetadata.hash = this.shareHash;
+                fileWithMetadata.token = this.shareToken;
+              }
+
+              // Capture scroll position before update
+              const scrollY = window.scrollY;
+
+              // Update with metadata-enriched data
+              mutations.replaceRequest(fileWithMetadata);
+
+              // Complete progress
+              this.loadingProgress = 100;
+
+              // Restore scroll position
+              requestAnimationFrame(() => {
+                window.scrollTo(0, scrollY);
+              });
+            })
+            .catch(() => {
+              // Don't throw - we already have the basic data displayed
+              // Just complete the progress bar
+              this.loadingProgress = 100;
+            });
+        } else {
+          // No metadata needed, complete immediately
+          this.loadingProgress = 100;
+        }
+
       } catch (e) {
         this.error = e;
         mutations.replaceRequest({});
-        // Clear loading progress bar on error
-        if (this.loadingTimeout) {
-          clearTimeout(this.loadingTimeout);
-          this.loadingTimeout = null;
-        }
         this.loadingProgress = 0;
-        
+
         if (e.status === 404) {
           router.push({ name: "notFound" });
         } else if (e.status === 403) {
           router.push({ name: "forbidden" });
-        } else if (e.status === 401 && getters.isShare()) {
-          // Handle share password requirement
+        } else if (e.status === 401 && isShare) {
           this.attemptedPasswordLogin = this.sharePassword !== "";
-          // Reset password validation state on wrong password
           mutations.setShareData({ passwordValid: false });
-          // Clear error for upload shares so upload interface can be shown once password is correct
           if (state.shareInfo?.shareType === "upload") {
             this.error = null;
           }
@@ -229,8 +439,7 @@ export default {
           router.push({ name: "error" });
         }
       } finally {
-        mutations.setLoading(getters.isShare() ? "share" : "files", false);
-        // Clear navigation transition when data fetch completes
+        mutations.setLoading(isShare ? "share" : "files", false);
         if (state.navigation.isTransitioning) {
           mutations.setNavigationTransitioning(false);
         }
@@ -242,385 +451,6 @@ export default {
       this.lastPath = state.route.path;
     },
 
-    async fetchShareData() {
-      const hash = getters.shareHash();
-      let shareInfo = await publicApi.getShareInfo(hash);
-      
-      // Check if the response is an error (has status field indicating error)
-      if (!shareInfo || shareInfo.status >= 400) {
-        // show message that share is invalid and don't do anything else
-        this.error = {
-          status: shareInfo?.status || "share404",
-          message: shareInfo?.message || "errors.shareNotFound",
-        };
-        // Clear loading progress bar
-        if (this.loadingTimeout) {
-          clearTimeout(this.loadingTimeout);
-          this.loadingTimeout = null;
-        }
-        this.loadingProgress = 0;
-        // Don't set shareInfo for invalid shares
-        return;
-      }
-      
-      // Valid share - add the hash and set shareInfo
-      shareInfo.hash = hash;
-      mutations.setShareInfo(shareInfo);
-      
-      // Parse share route to get shareHash and shareSubPath
-      let urlPath = getters.routePath('public/share')
-      let parts = urlPath.split("/");
-      this.shareHash = parts[1]
-      this.shareSubPath = "/" + parts.slice(2).join("/");
-      
-      // Check for password requirement (applies to both regular and upload shares)
-      if (shareInfo.hasPassword) {
-        if (this.sharePassword === "") {
-          this.sharePassword = localStorage.getItem("sharepass:" + this.shareHash);
-          if (this.sharePassword === null || this.sharePassword === "") {
-            this.showPasswordPrompt();
-            return;
-          }
-        }
-        // Store password in localStorage
-        localStorage.setItem("sharepass:" + this.shareHash, this.sharePassword);
-      }
-      
-      if (shareInfo.themeColor) {
-        document.documentElement.style.setProperty("--primaryColor", shareInfo.themeColor);
-      }
-
-      // Handle password (same for both regular and upload shares)
-      if (this.sharePassword === null) {
-        this.sharePassword = "";
-      }
-
-      // For upload shares, validate password on startup and return early
-      // Password validation happens via fetchPub call, which will throw 401 if incorrect
-      // A 501 error means browsing is disabled (expected for upload shares) and indicates auth succeeded
-      if (shareInfo.shareType == "upload") {
-        // Initialize password validation state
-        if (shareInfo.hasPassword) {
-          mutations.setShareData({ passwordValid: false });
-          try {
-            await publicApi.fetchPub(this.shareSubPath, this.shareHash, this.sharePassword, false, false);
-            // If we get here, password is valid (unlikely for upload shares, but handle it)
-            mutations.setShareData({ passwordValid: true });
-            this.error = null; // Clear any previous errors
-          } catch (e) {
-            // 501 means browsing is disabled for upload shares - this is expected and means auth succeeded
-            if (e.status === 501) {
-              // Password is valid, mark as validated
-              mutations.setShareData({ passwordValid: true });
-              this.error = null; // Clear any previous errors
-            } else if (e.status === 401) {
-              // Password is invalid, show prompt
-              this.attemptedPasswordLogin = true;
-              mutations.setShareData({ passwordValid: false });
-              this.showPasswordPrompt();
-              return;
-            } else {
-              // For other errors, re-throw to be handled by fetchData()
-              throw e;
-            }
-          }
-        } else {
-          // No password required, mark as validated
-          mutations.setShareData({ passwordValid: true });
-          this.error = null; // Clear any previous errors
-        }
-        return;
-      }
-
-      // For regular shares, validate password on startup (similar to upload shares)
-      if (shareInfo.hasPassword) {
-        mutations.setShareData({ passwordValid: false });
-        try {
-          await publicApi.fetchPub(this.shareSubPath, this.shareHash, this.sharePassword, false, false);
-          // Password is valid
-          mutations.setShareData({ passwordValid: true });
-          this.error = null; // Clear any previous errors
-        } catch (e) {
-          if (e.status === 401) {
-            // Password is invalid, show prompt
-            this.attemptedPasswordLogin = true;
-            mutations.setShareData({ passwordValid: false });
-            this.showPasswordPrompt();
-            return;
-          } else {
-            // For other errors, re-throw to be handled by fetchData()
-            throw e;
-          }
-        }
-      } else {
-        // No password required, mark as validated
-        mutations.setShareData({ passwordValid: true });
-        this.error = null; // Clear any previous errors
-      }
-
-      mutations.resetSelected();
-      mutations.setMultiple(false);
-
-      if (state.shareInfo?.singleFileShare) {
-        mutations.setSidebarVisible(true);
-      }
-      
-      // Start loading timer - only show progress bar if loading takes > 100ms
-      this.loadingStartTime = Date.now();
-      this.loadingProgress = 0;
-      this.loadingTimeout = setTimeout(() => {
-        // Only set to 10% if loading is still ongoing after 200ms
-        if (this.loadingProgress < 10) {
-          this.loadingProgress = 10;
-        }
-      }, 200);
-      
-      // First pass: Fetch share data WITHOUT metadata
-      let file = await publicApi.fetchPub(this.shareSubPath, this.shareHash, this.sharePassword, false, false);
-      
-      // Clear timeout if loading completed quickly
-      if (this.loadingTimeout) {
-        clearTimeout(this.loadingTimeout);
-        this.loadingTimeout = null;
-      }
-      
-      // If loading took less than 100ms, don't show progress bar
-      const elapsed = Date.now() - this.loadingStartTime;
-      if (elapsed < 100) {
-        this.loadingProgress = 0;
-      } else if (this.loadingProgress < 10) {
-        this.loadingProgress = 10;
-      }
-      file.hash = this.shareHash;
-      this.shareToken = file.token;
-      // Store share data in state for use by components
-      mutations.setShareData({
-        hash: this.shareHash,
-        token: this.shareToken,
-        subPath: this.shareSubPath,
-        passwordValid: true,
-      });
-
-      // If not a directory, fetch content AND parent directory in parallel
-      if (file.type != "directory") {
-        const content = !getters.fileViewingDisabled(file.name);
-        let directoryPath = url.removeLastDir(this.shareSubPath);
-        // If directoryPath is empty, the file is in root - use '/' as the directory
-        if (!directoryPath || directoryPath === '') {
-          directoryPath = '/';
-        }
-        // Fetch parent directory unless it's the same as the file path
-        const shouldFetchParent = directoryPath !== this.shareSubPath;
-        // Run both fetches in parallel to minimize total API calls
-        const promises = [
-          publicApi.fetchPub(this.shareSubPath, this.shareHash, this.sharePassword, content, false)
-        ];
-          if (shouldFetchParent) {
-            promises.push(
-              publicApi.fetchPub(directoryPath, this.shareHash, this.sharePassword, false, false).catch(() => null)
-            );
-          }
-
-        const results = await Promise.all(promises);
-        file = results[0];
-        file.hash = this.shareHash;
-        this.shareToken = results[0].token;
-
-        // Store the parent directory items for Preview to use
-        if (shouldFetchParent && results[1] && results[1].items) {
-          file.parentDirItems = results[1].items;
-        }
-      }
-
-      // Display initial data immediately
-      mutations.replaceRequest(file);
-      document.title = `${document.title} - ${file.name}`;
-
-      // Second pass: If directory has metadata available, fetch again with metadata IN THE BACKGROUND
-      if (file.type === "directory" && file.hasMetadata) {
-        this.loadingProgress = 90;
-        // Fetch with metadata enabled (background operation)
-        publicApi.fetchPub(this.shareSubPath, this.shareHash, this.sharePassword, false, true).then(fileWithMetadata => {
-          fileWithMetadata.hash = this.shareHash;
-          fileWithMetadata.token = this.shareToken;
-          
-          // Capture scroll position before update
-          const scrollY = window.scrollY;
-          
-          // Update the request with metadata
-          mutations.replaceRequest(fileWithMetadata);
-          
-          // Complete progress
-          this.loadingProgress = 100;
-          
-          // Restore scroll position
-          requestAnimationFrame(() => {
-            window.scrollTo(0, scrollY);
-          });
-        }).catch(() => {
-          // Don't throw - we already have the basic data displayed
-          // Clear loading progress bar on metadata fetch error
-          this.loadingProgress = 0;
-        });
-      } else {
-        // No metadata needed, complete immediately
-        this.loadingProgress = 100;
-      }
-    },
-
-    async fetchFilesData() {
-
-      if (!getters.isLoggedIn()) {
-        return;
-      }
-
-      // Clear share data when accessing files
-      mutations.clearShareData();
-      const routePath = url.removeTrailingSlash(getters.routePath());
-      // lets redirect if multiple sources and user went to /files/
-      if (routePath == "/files") {
-        // Check if user has custom sidebar links with sources
-        let targetPath = `/files/${state.sources.current}`;
-        for (const link of state.user?.sidebarLinks || []) {
-          if (link.target.startsWith('/')) {
-            if (link.category !== 'source') {
-              continue;
-            }
-            targetPath = `/files/${link.sourceName}${link.target}`;
-            break;
-          }
-        }
-        router.push(targetPath)
-        return;
-      }
-
-      const result = extractSourceFromPath(getters.routePath());
-
-      if (result.source === "") {
-        // No sources available - show a more graceful message instead of error popup
-        this.error = { message: $t("index.noSources") };
-        mutations.replaceRequest({});
-        return;
-      }
-
-      this.lastHash = "";
-      // Reset view information using mutations
-      mutations.resetSelected();
-      let data = {};
-      
-      // Start loading timer - only show progress bar if loading takes > 100ms
-      this.loadingStartTime = Date.now();
-      this.loadingProgress = 0;
-      this.loadingTimeout = setTimeout(() => {
-        // Only set to 10% if loading is still ongoing after 100ms
-        if (this.loadingProgress < 10) {
-          this.loadingProgress = 10;
-        }
-      }, 100);
-      
-      try {
-        const fetchSource = decodeURIComponent(result.source);
-        const fetchPath = decodeURIComponent(result.path);
-        
-        // First pass: Fetch initial data WITHOUT metadata
-        let res = await filesApi.fetchFiles(fetchSource, fetchPath, false, false);
-        
-        // Clear timeout if loading completed quickly
-        if (this.loadingTimeout) {
-          clearTimeout(this.loadingTimeout);
-          this.loadingTimeout = null;
-        }
-        
-        // If loading took less than 100ms, don't show progress bar
-        const elapsed = Date.now() - this.loadingStartTime;
-        if (elapsed < 100) {
-          this.loadingProgress = 0;
-        } else if (this.loadingProgress < 10) {
-          this.loadingProgress = 10;
-        }
-
-        // If not a directory, fetch content AND parent directory in parallel
-        if (res.type != "directory" && !res.type.startsWith("image")) {
-          const content = !getters.fileViewingDisabled(res.name);
-          let directoryPath = url.removeLastDir(res.path);
-
-          // If directoryPath is empty, the file is in root - use '/' as the directory
-          if (!directoryPath || directoryPath === '') {
-            directoryPath = '/';
-          }
-
-          // Fetch parent directory unless it's the same as the file path
-          const shouldFetchParent = directoryPath !== res.path;
-
-          // Run both fetches in parallel to minimize total API calls
-          const promises = [
-            filesApi.fetchFiles(res.source, res.path, content, false)
-          ];
-
-          if (shouldFetchParent) {
-            promises.push(
-              filesApi.fetchFiles(res.source, directoryPath, false, false).catch(() => null)
-            );
-          }
-
-          const results = await Promise.all(promises);
-          res = results[0];
-
-          // Store the parent directory items for Preview to use
-          if (shouldFetchParent && results[1] && results[1].items) {
-            res.parentDirItems = results[1].items;
-          }
-        }
-        data = res;
-
-        if (state.sources.count > 1) {
-          mutations.setCurrentSource(data.source);
-        }
-        document.title = `${document.title} - ${res.name}`;
-        
-        // Display initial data immediately and clear loading spinner
-        mutations.replaceRequest(data);
-        mutations.setLoading("files", false);
-        
-        // Second pass: If directory has metadata available, fetch again with metadata IN THE BACKGROUND
-        if (res.type === "directory" && res.hasMetadata) {
-          this.loadingProgress = 90;
-          // Fetch with metadata enabled (background operation, don't set loading state)
-          filesApi.fetchFiles(fetchSource, fetchPath, false, true).then(resWithMetadata => {
-            // Capture scroll position before update
-            const scrollY = window.scrollY;
-            
-            // Update the data with metadata
-            mutations.replaceRequest(resWithMetadata);
-            
-            // Complete progress
-            this.loadingProgress = 100;
-            
-            // Restore scroll position
-            requestAnimationFrame(() => {
-              window.scrollTo(0, scrollY);
-            });
-          }).catch(() => {
-            // Don't throw - we already have the basic data displayed
-            // Clear loading progress bar on metadata fetch error
-            this.loadingProgress = 0;
-          });
-        } else {
-          // No metadata needed, complete immediately
-          this.loadingProgress = 100;
-        }
-      } catch (e) {
-        this.error = e;
-        mutations.replaceRequest({});
-        mutations.setLoading("files", false);
-        // Clear timeout on error
-        if (this.loadingTimeout) {
-          clearTimeout(this.loadingTimeout);
-          this.loadingTimeout = null;
-        }
-        this.loadingProgress = 0;
-      }
-    },
     showPasswordPrompt() {
       mutations.showHover({
         name: "password",

@@ -207,7 +207,7 @@ export default {
         barColor = '#ff9800';
       }
 
-      let percentage = this.pct > 1 && this.pct < 7 ? 6 : this.pct;
+      let percentage = this.pct >= 1 && this.pct < 7 ? 6 : this.pct;
       if (percentage < 1) {
         percentage = 0;
       }
