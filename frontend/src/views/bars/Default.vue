@@ -61,7 +61,10 @@ export default {
       if (getters.isSettings()) {
         return this.$t("general.settings");
       }
-      if (getters.isShare() && state.shareInfo?.title && state.req.type === "directory") {
+      if (getters.isShare()) {
+        if (state.req?.type === "directory" || state.shareInfo?.shareType === "upload") {
+          return state.shareInfo?.title;
+        }
         return state.shareInfo?.title;
       }
       const currentTool = getters.currentTool();
@@ -77,7 +80,11 @@ export default {
       return state.user.editorQuickSave;
     },
     disableNavButtons() {
-      return (globalVars.disableNavButtons && this.isListingView) || (getters.isShare() && state.shareInfo?.hideNavButtons && getters.currentView() == "listingView");
+      const isShare = getters.isShare();
+      const regularDisabled = globalVars.disableNavButtons && this.isListingView;
+      const shareDisabled = isShare && state.shareInfo?.hideNavButtons && getters.currentView() == "listingView";
+      const uploadShare = isShare && state.shareInfo?.shareType === "upload"
+      return regularDisabled || shareDisabled || uploadShare;
     },
     isOnlyOffice() {
       return getters.currentView() === "onlyOfficeEditor";
@@ -121,8 +128,9 @@ export default {
       return state.isSearchActive || getters.currentPromptName() != "";
     },
     isDisabledMultiAction() {
+      const regularDisabled = getters.isStickySidebar() && getters.multibuttonState() === "menu";
       const shareDisabled = state.shareInfo?.disableSidebar && getters.multibuttonState() === "menu";
-      return this.isDisabled || (getters.isStickySidebar() && getters.multibuttonState() === "menu") || shareDisabled;
+      return this.isDisabled || regularDisabled || shareDisabled;
     },
     showSwitchView() {
       return getters.currentView() === "listingView";

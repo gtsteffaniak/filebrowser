@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file. For commit 
  - adjustments to the startup behavior for sqlite index for reusing the previous database on startup
  - CTRL + B disables sticky sidebar forever (#1869)
  - added context menu back to duplicate finder
+ - Sharing a link for uploads - folder/file access and UX polishing #1902
 
  **BugFixes**:
  - Added docker default `FILEBROWSER_CONFIG="/home/filebrowser/data/config.yaml"` back -- mistakenly removed. see https://filebrowserquantum.com/en/docs/getting-started/config/#3-default-locations. (#1891)

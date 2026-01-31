@@ -227,11 +227,11 @@
               :name="$t('share.disableThumbnails')" :description="$t('share.disableThumbnailsDescription')" />
             <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="showHidden"
               :name="$t('profileSettings.showHiddenFiles')" :description="$t('profileSettings.showHiddenFilesDescription')" />
-            <ToggleSwitch class="item" v-model="disableNavButtons" :name="$t('share.hideNavButtons')"
+            <ToggleSwitch v-if="shareType !== 'upload'" class="item" v-model="disableNavButtons" :name="$t('share.hideNavButtons')"
               :description="$t('share.hideNavButtonsDescription')" />
             <ToggleSwitch class="item" v-model="disableShareCard" :name="$t('share.disableShareCard')"
               :description="$t('share.disableShareCardDescription')" />
-            <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="disableSidebar"
+            <ToggleSwitch class="item" v-model="disableSidebar"
               :name="$t('share.disableSidebar')" :description="$t('share.disableSidebarDescription')" />
             <ToggleSwitch v-if="shareType === 'normal'" class="item" v-model="perUserDownloadLimit"
               :name="$t('share.perUserDownloadLimit')" :description="$t('share.perUserDownloadLimitDescription')" />
@@ -519,6 +519,13 @@ export default {
       if (!isListing) {
         this.password = "";
         this.isChangingPassword = false;
+      }
+    },
+    shareType(newType) {
+      if (newType === 'upload') {
+        this.description = this.$t("share.descriptionUploadDefault");
+      } else {
+        this.description = this.$t("share.descriptionDefault");
       }
     },
     isEditMode: {
@@ -853,14 +860,18 @@ export default {
             category: "shareInfo",
             target: "#",
             icon: "qr_code"
-          },
-          {
+          }
+        ];
+        
+        // Only add Download link for normal shares, not upload shares
+        if (this.shareType !== 'upload') {
+          this.sidebarLinks.push({
             name: "Download",
             category: "download",
             target: "#",
             icon: "download"
-          }
-        ];
+          });
+        }
       }
     },
     populateDefaults() {
