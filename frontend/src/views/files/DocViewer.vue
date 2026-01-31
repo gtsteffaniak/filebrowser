@@ -116,7 +116,7 @@ export default defineComponent({
         try {
           let res;
           if (getters.isShare()) {
-            res = await publicApi.fetchPub(directoryPath, state.share.hash);
+            res = await publicApi.fetchPub(directoryPath, state.shareInfo.hash);
           } else {
             res = await filesApi.fetchFiles(state.req.source, directoryPath);
           }
@@ -155,9 +155,9 @@ export default defineComponent({
 
         const downloadUrl = getters.isShare()
           ? publicApi.getDownloadURL({
-              path: state.share.subPath,
-              hash: state.share.hash,
-              token: state.share.token,
+              path: state.shareInfo.subPath,
+              hash: state.shareInfo.hash,
+              token: state.shareInfo.token,
             }, [state.req.path])
           : filesApi.getDownloadURL(
               state.req.source,

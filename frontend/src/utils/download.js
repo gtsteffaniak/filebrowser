@@ -29,9 +29,9 @@ export default function downloadFiles(items) {
       // Show download prompt for chunked downloads, otherwise start directly
       if (willUseChunkedDownload) {
         mutations.showHover({ name: "download" });
-        startDownload(null, items, state.share.hash);
+        startDownload(null, items, state.shareInfo.hash);
       } else {
-        startDownload(null, items, state.share.hash);
+        startDownload(null, items, state.shareInfo.hash);
       }
     } else {
       // Multiple files download with user confirmation
@@ -39,7 +39,7 @@ export default function downloadFiles(items) {
         name: "download",
         confirm: (format) => {
           mutations.closeHovers();
-          startDownload(format, items, state.share.hash);
+          startDownload(format, items, state.shareInfo.hash);
         },
       });
     }

@@ -383,7 +383,7 @@ export default {
         try {
           let res;
           if (getters.isShare()) {
-            res = await publicApi.fetchPub(directoryPath, state.share.hash);
+            res = await publicApi.fetchPub(directoryPath, state.shareInfo.hash);
           } else {
             res = await filesApi.fetchFiles(state.req.source, directoryPath);
           }

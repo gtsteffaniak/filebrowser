@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -232,8 +233,13 @@ func GeneratePWAIcons() {
 		// Use default embedded favicon - we have both SVG and PNG versions
 		logger.Debug("Generating icons from default favicon")
 		// For default, use the PNG version for raster generation
-		pngPath := filepath.Join("http", "dist", "public", "img", "icons", "favicon.png")
-		sourceData, err = os.ReadFile(pngPath)
+		assetFs := fileutils.GetAssetFS()
+		if assetFs == nil {
+			logger.Warning("Asset filesystem not initialized, skipping default icon generation")
+			return
+		}
+		pngPath := "img/icons/favicon.png"
+		sourceData, err = fs.ReadFile(assetFs, pngPath)
 		if err != nil {
 			logger.Warningf("Failed to read default favicon PNG: %v", err)
 			return

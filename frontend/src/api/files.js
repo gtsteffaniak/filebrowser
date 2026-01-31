@@ -155,7 +155,7 @@ export async function download(format, files, shareHash = "") {
     algo: format,
     ...(shareHash && { hash: shareHash }),
     ...(!shareHash && source && { source: encodeURIComponent(source) }),
-    ...(state.share.token && { token: state.share.token }),
+    ...(state.shareInfo.token && { token: state.shareInfo.token }),
     sessionId: state.sessionId
   }
   
@@ -207,7 +207,7 @@ async function downloadChunked(file, shareHash = "") {
     file: encodeURIComponent(file.path),
     ...(shareHash && { hash: shareHash }),
     ...(!shareHash && file.source && { source: encodeURIComponent(file.source) }),
-    ...(state.share.token && { token: state.share.token }),
+    ...(state.shareInfo.token && { token: state.shareInfo.token }),
     sessionId: state.sessionId
   }
   

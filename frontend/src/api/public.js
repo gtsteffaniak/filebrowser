@@ -23,7 +23,7 @@ export async function fetchPub(path, hash, password = "", content = false, metad
     hash,
     ...(content && { content: 'true' }),
     ...(metadata && { metadata: 'true' }),
-    ...(state.share.token && { token: state.share.token })
+    ...(state.shareInfo.token && { token: state.shareInfo.token })
   }
   const apiPath = getPublicApiPath("resources", params);
   const response = await fetch(apiPath, {
@@ -83,9 +83,9 @@ export function getPreviewURL(path,size="small") {
     const params = {
       path: encodeURIComponent(path),
       size: size,
-      hash: state.share.hash,
+      hash: state.shareInfo.hash,
       inline: 'true',
-      ...(state.share.token && { token: state.share.token })
+      ...(state.shareInfo.token && { token: state.shareInfo.token })
     }
     const apiPath = getPublicApiPath('preview', params)
     return window.origin + apiPath
@@ -246,7 +246,7 @@ export async function bulkDelete(items) {
   
   const params = {
     hash: hash,
-    ...(state.share.token && { token: state.share.token }),
+    ...(state.shareInfo.token && { token: state.shareInfo.token }),
     sessionId: state.sessionId
   }
   const apiPath = getPublicApiPath("resources/bulk/delete", params)
@@ -326,7 +326,7 @@ export async function moveCopy(
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
-        ...(state.share.token && { 'X-Auth-Token': state.share.token })
+        ...(state.shareInfo.token && { 'X-Auth-Token': state.shareInfo.token })
       },
       body: JSON.stringify(requestBody),
     })
