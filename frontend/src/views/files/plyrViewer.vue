@@ -394,9 +394,9 @@ export default {
         // Update position state
         if (navigator.mediaSession.setPositionState) {
           navigator.mediaSession.setPositionState({
-            duration: this.player.duration || 0,
+            duration: this.player.duration,
             playbackRate: this.player.speed || 1,
-            position: this.player.currentTime || 0
+            position: this.player.currentTime,
           });
         }
       }
@@ -422,6 +422,7 @@ export default {
         console.log('Destroying Plyr');
         this.clearMediaSession();
         this.cleanupAlbumArt();
+        this.player.off();
         this.player.destroy();
         this.player = null;
         this.playbackMenuInitialized = false;
@@ -603,7 +604,6 @@ export default {
         this.setupDefaultPlayerEvents(this.mediaElement);
         return;
       }
-      this.destroyPlyr();
       this.initializePlyr();
     },
     initializePlyr() {
@@ -612,10 +612,10 @@ export default {
       this.$nextTick(() => {
         // Initialize Plyr
         this.player = new Plyr(this.mediaElement, this.plyrOptions);
-        // Set up event listeners
-        this.setupPlyrEvents();
         // Set up Media Session API
         this.setupMediaSession();
+        // Set up event listeners
+        this.setupPlyrEvents();
       });
     },
     setupPlyrEvents() {
@@ -632,7 +632,16 @@ export default {
       this.player.on('timeupdate', () => {
         this.updateMediaSessionPlaybackState();
       });
+      this.player.on('seeked', () => {
+        this.updateMediaSessionPlaybackState();
+      });
       this.player.on('loadedmetadata', () => {
+        this.updateMediaSessionPlaybackState();
+      });
+      this.player.on('ratechange', () => {
+        this.updateMediaSessionPlaybackState();
+      });
+      this.player.on('canplay', () => {
         this.updateMediaSessionPlaybackState();
       });
       if (this.previewType === 'video') {
@@ -651,6 +660,12 @@ export default {
       });
       element.addEventListener('pause', () => {
         mutations.setPlaybackState(false);
+      });
+      element.addEventListener('timeupdate', () => {
+        this.updateMediaSessionPlaybackState();
+      });
+      element.addEventListener('loadedmetadata', () => {
+        this.updateMediaSessionPlaybackState();
       });
     },
     async onFullscreenEnter() {

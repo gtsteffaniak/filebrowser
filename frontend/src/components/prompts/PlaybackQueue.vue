@@ -176,6 +176,7 @@ export default {
         return;
       } else {
         // Navigate to different item
+        mutations.setNavigationTransitioning(true);
         this.navigateToIndex(index);
       }
     },
