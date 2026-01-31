@@ -380,19 +380,27 @@ export const mutations = {
     emitStateChanged();
   },
   setShareData: (shareData) => {
-    const newShare = { ...state.share, ...shareData };
-    if (JSON.stringify(newShare) === JSON.stringify(state.share)) {
+    const newShare = { ...state.shareInfo, ...shareData };
+    if (JSON.stringify(newShare) === JSON.stringify(state.shareInfo)) {
       return;
     }
-    state.share = newShare;
+    state.shareInfo = newShare;
     emitStateChanged();
   },
   clearShareData: () => {
-    state.share = {
-      hash: null,
+    state.shareInfo = {
+      isShare: false,
+      disableThumbnails: false,
+      hash: "",
       token: "",
       subPath: "",
       passwordValid: false,
+      enforceDarkLightMode: "",
+      disableSidebar: false,
+      isValid: true,
+      shareType: "",
+      title: "",
+      description: "",
     };
     emitStateChanged();
   },
@@ -743,8 +751,8 @@ export const mutations = {
       return publicApi.getDownloadURL(
         {
           path: item.path,
-          hash: state.share.hash,
-          token: state.share.token,
+          hash: state.shareInfo.hash,
+          token: state.shareInfo.token,
         },
         [item.path],
         true,

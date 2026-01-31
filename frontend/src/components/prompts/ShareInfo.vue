@@ -66,13 +66,13 @@ export default {
       if (!state.shareInfo?.isPasswordProtected) {
         return true
       }
-      return state.share.passwordValid
+      return state.shareInfo.passwordValid
     },
     getShareBanner() {
       if (state.shareInfo?.banner.startsWith("http")) {
         return state.shareInfo?.banner;
       }
-      return publicApi.getDownloadURL(state.share, [state.shareInfo?.banner]);
+      return publicApi.getDownloadURL(state.shareInfo, [state.shareInfo?.banner]);
     },
     shareInfo() {
       return state.shareInfo;

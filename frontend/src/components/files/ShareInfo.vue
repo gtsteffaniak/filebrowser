@@ -62,7 +62,7 @@ export default {
       if (!state.shareInfo?.isPasswordProtected) {
         return true
       }
-      return state.share.passwordValid
+      return state.shareInfo.passwordValid
     },
     shareInfo() {
       return state.shareInfo;

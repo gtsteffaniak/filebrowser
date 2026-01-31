@@ -33,12 +33,6 @@ export const state = reactive({
   realtimeActive: undefined,
   realtimeDownCount: 0,
   popupPreviewSource: "",
-  share: {
-    hash: null,
-    token: "",
-    subPath: "",
-    passwordValid: false,
-  },
   sources: {
     current: "",
     count: 1,
@@ -152,6 +146,9 @@ export const state = reactive({
     isShare: false,
     disableThumbnails: false,
     hash: "",
+    token: "",
+    subPath: "",
+    passwordValid: false,
     enforceDarkLightMode: "",
     disableSidebar: false,
     isValid: true,
