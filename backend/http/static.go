@@ -311,10 +311,6 @@ func staticAssetHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		// Fall back to embedded favicon.png if generation failed
 		assetPath = "img/icons/favicon.png"
-	case "manifest.json":
-		assetPath = "img/icons/manifest.json"
-	case "site.webmanifest":
-		assetPath = "img/icons/site.webmanifest"
 	case "loginIcon":
 		// Handle custom login icon from filesystem
 		if settings.Env.LoginIconIsCustom {
