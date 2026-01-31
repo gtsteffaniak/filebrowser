@@ -17,6 +17,7 @@
         :raw="raw"
         :subtitlesList="subtitlesList"
         :req="req"
+        :listing="listing"
         :useDefaultMediaPlayer="useDefaultMediaPlayer"
         :autoPlayEnabled="autoPlay"
         @play="autoPlay = true"
