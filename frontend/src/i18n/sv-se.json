@@ -14,8 +14,6 @@
     "pauseAll": "Pausa alla",
     "resumeAll": "Återuppta alla",
     "clearCompleted": "Klart avslutat",
-    "showMore": "Visa mer",
-    "showLess": "Visa mindre",
     "openParentFolder": "Öppna överordnad mapp",
     "selectedCount": "Antal objekt som valts för att utföra en åtgärd",
     "listView": "Listvy",
@@ -31,7 +29,9 @@
     "keepEditing": "Fortsätt redigera",
     "closeAnyway": "Stäng i alla fall",
     "goToItem": "Gå till artikel",
-    "watchFile": "Titta på filen"
+    "watchFile": "Titta på filen",
+    "showMore": "Visa avancerade alternativ",
+    "showLess": "Dölj avancerade alternativ"
   },
   "download": {
     "downloadFile": "Ladda ner fil",

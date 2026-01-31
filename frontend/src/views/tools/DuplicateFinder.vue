@@ -1,9 +1,6 @@
 <template>
   <div class="duplicate-finder">
     <div class="card duplicate-finder-config">
-      <div class="card-title">
-        <h2>{{ $t('duplicateFinder.title') }}</h2>
-      </div>
       <div class="card-content">
         <h3>{{ $t('general.source') }}</h3>
         <select v-model="selectedSource" class="input">

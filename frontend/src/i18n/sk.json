@@ -14,8 +14,6 @@
     "pauseAll": "Pozastavenie všetkých",
     "resumeAll": "Obnoviť všetko",
     "clearCompleted": "Vyčistiť dokončené",
-    "showMore": "Zobraziť viac",
-    "showLess": "Zobraziť menej",
     "openParentFolder": "Otvorenie nadradeného priečinka",
     "selectedCount": "Počet položiek vybraných na vykonanie akcie",
     "listView": "Zobrazenie zoznamu",
@@ -31,7 +29,9 @@
     "keepEditing": "Pokračujte v úpravách",
     "closeAnyway": "Zavrieť Tak či onak",
     "goToItem": "Prejsť na položku",
-    "watchFile": "Sledovať súbor"
+    "watchFile": "Sledovať súbor",
+    "showMore": "Zobraziť rozšírené možnosti",
+    "showLess": "Skryť rozšírené možnosti"
   },
   "download": {
     "downloadFile": "Stiahnuť súbor",

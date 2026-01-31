@@ -43,6 +43,7 @@ import SizeViewer from "@/views/tools/SizeViewer.vue";
 import DuplicateFinder from "@/views/tools/DuplicateFinder.vue";
 import MaterialIconPicker from "@/views/tools/MaterialIconPicker.vue";
 import FileWatcher from "@/views/tools/FileWatcher.vue";
+import { getters } from "@/store";
 
 export default {
   name: "Tools",
@@ -63,13 +64,7 @@ export default {
       return !this.toolName;
     },
     currentTool() {
-      if (!this.toolName) return null;
-      return this.tools.find(tool => {
-        // Extract tool name from path (e.g., /tools/sizeViewer -> sizeViewer)
-        const pathSegments = tool.path.split('/');
-        const toolPathName = pathSegments[pathSegments.length - 1];
-        return toolPathName === this.toolName;
-      });
+      return getters.currentTool();
     },
   },
 };

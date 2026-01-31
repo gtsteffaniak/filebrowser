@@ -14,8 +14,6 @@
     "pauseAll": "Tümünü duraklat",
     "resumeAll": "Tümünü devam ettir",
     "clearCompleted": "Temizleme tamamlandı",
-    "showMore": "Daha fazla göster",
-    "showLess": "Daha az göster",
     "openParentFolder": "Üst klasörü açın",
     "selectedCount": "Bir eylemi gerçekleştirmek için seçilen öğe sayısı",
     "listView": "Liste Görünümü",
@@ -31,7 +29,9 @@
     "keepEditing": "Düzenlemeye Devam Et",
     "closeAnyway": "Her Neyse Kapat",
     "goToItem": "Öğeye git",
-    "watchFile": "Dosyayı izle"
+    "watchFile": "Dosyayı izle",
+    "showMore": "Gelişmiş Seçenekleri Göster",
+    "showLess": "Gelişmiş Seçenekleri Gizle"
   },
   "download": {
     "downloadFile": "Dosyayı indir",

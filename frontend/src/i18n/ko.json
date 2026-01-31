@@ -14,8 +14,6 @@
     "pauseAll": "모두 일시 중지",
     "resumeAll": "모두 다시 시작",
     "clearCompleted": "완료 지우기",
-    "showMore": "자세히 보기",
-    "showLess": "덜 보기",
     "openParentFolder": "상위 폴더 열기",
     "selectedCount": "작업을 수행하기 위해 선택한 항목 수",
     "listView": "목록 보기",
@@ -31,7 +29,9 @@
     "keepEditing": "계속 편집",
     "closeAnyway": "어쨌든 닫기",
     "goToItem": "항목으로 이동",
-    "watchFile": "파일 보기"
+    "watchFile": "파일 보기",
+    "showMore": "고급 옵션 표시",
+    "showLess": "고급 옵션 숨기기"
   },
   "download": {
     "downloadFile": "파일 다운로드",

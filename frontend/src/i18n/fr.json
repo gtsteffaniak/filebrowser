@@ -14,8 +14,6 @@
     "pauseAll": "Tout mettre en pause",
     "resumeAll": "Tout reprendre",
     "clearCompleted": "Effacer les importations achevées",
-    "showMore": "Afficher plus",
-    "showLess": "Montrer moins",
     "openParentFolder": "Ouvrir le dossier parent",
     "selectedCount": "Nombre d'éléments sélectionnés pour effectuer une action",
     "listView": "Vue de la liste",
@@ -31,7 +29,9 @@
     "keepEditing": "Continuer à éditer",
     "closeAnyway": "Fermer Quoi qu'il en soit",
     "goToItem": "Aller à l'article",
-    "watchFile": "Regarder le dossier"
+    "watchFile": "Regarder le dossier",
+    "showMore": "Afficher les options avancées",
+    "showLess": "Masquer les options avancées"
   },
   "download": {
     "downloadFile": "Télécharger le fichier",

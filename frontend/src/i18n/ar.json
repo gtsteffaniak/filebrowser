@@ -14,8 +14,6 @@
     "pauseAll": "إيقاف الكل مؤقتاً",
     "resumeAll": "استئناف الكل",
     "clearCompleted": "اكتمل المسح",
-    "showMore": "اعرض المزيد",
-    "showLess": "اعرض أقل",
     "openParentFolder": "فتح المجلد الأصل",
     "selectedCount": "عدد العناصر المحددة لتنفيذ إجراء ما",
     "listView": "عرض القائمة",
@@ -31,7 +29,9 @@
     "keepEditing": "استمر في التحرير",
     "closeAnyway": "إغلاق على أي حال",
     "goToItem": "الانتقال إلى العنصر",
-    "watchFile": "ملف المشاهدة"
+    "watchFile": "ملف المشاهدة",
+    "showMore": "إظهار الخيارات المتقدمة",
+    "showLess": "إخفاء الخيارات المتقدمة"
   },
   "download": {
     "downloadFile": "Download File",

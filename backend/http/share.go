@@ -620,6 +620,14 @@ func shareInfoHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	}
 	commonShare.Source = ""
 	commonShare.Path = ""
+	commonShare.SidebarLinks = []users.SidebarLink{}
+	for _, link := range shareLink.SidebarLinks {
+		if link.Category == "download" && shareLink.ShareType == "upload" {
+			continue
+		} else {
+			commonShare.SidebarLinks = append(commonShare.SidebarLinks, link)
+		}
+	}
 	return renderJSON(w, r, commonShare)
 }
 

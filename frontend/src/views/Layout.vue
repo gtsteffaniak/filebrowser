@@ -162,7 +162,7 @@ export default {
       if (currentPrompt !== "success" && currentPrompt !== "generic") {
         mutations.closeHovers();
       }
-      if (window.location.hash == "" && currentView == "listingView") {
+      if (window.location.hash == "" && currentView == "listingView" || currentView == "share") {
         const element = document.getElementById("main");
         if (element) {
           element.scrollTop = 0;

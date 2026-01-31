@@ -63,6 +63,8 @@ export default {
       } else {
         // Handle internally as before
         this.isCollapsed = !this.isCollapsed;
+        // Emit the new state so parent can react
+        this.$emit('toggle', !this.isCollapsed);
       }
     },
     /**
