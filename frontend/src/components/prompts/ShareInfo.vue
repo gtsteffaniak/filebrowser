@@ -97,7 +97,6 @@ export default {
   },
   methods: {
     getShareLink() {
-      console.log("getShareLink", state.shareInfo.shareURL);
       return state.shareInfo.shareURL;
     },
     close() {

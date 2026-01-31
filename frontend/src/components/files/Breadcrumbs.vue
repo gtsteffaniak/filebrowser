@@ -190,14 +190,6 @@ export default {
       const currentPath = state.req.path;
       const source = state.req.source;
 
-      // debug log paths when dropping for testing
-      console.log("Drop target:", { 
-        link,
-        targetPath,
-        currentPath,
-        items: this.items
-      });
-
       // Normalize paths for comparison
       const normalizePath = (path) => {
         if (!path || path === "/") return "/";
@@ -209,7 +201,7 @@ export default {
 
       if (normalizedTarget === normalizedCurrent) {
         notify.showErrorToast(this.$t("files.sameFolder"));
-        console.log("Cannot move to same folder");
+        console.error("Cannot move to same folder");
         return;
       }
 
