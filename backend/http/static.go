@@ -128,7 +128,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 
 	// Load loading spinners CSS from static files
 	loadingSpinnersCSS := ""
-	cssPath := "static/css/loadingSpinners.css"
+	cssPath := "css/loadingSpinners.css"
 	cssContent, err := fs.ReadFile(assetFs, cssPath)
 	if err == nil {
 		loadingSpinnersCSS = string(cssContent)

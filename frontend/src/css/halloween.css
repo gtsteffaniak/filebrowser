@@ -17,7 +17,7 @@ body.halloween-theme,
 
 /* Tiled Halloween pattern background for scroll wrapper */
 .scroll-wrapper.halloween-theme {
-    background-image: url("/static/img/halloween-pattern.svg") !important;
+    background-image: url("/img/halloween-pattern.svg") !important;
     background-repeat: repeat !important;
 }
 
