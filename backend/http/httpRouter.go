@@ -15,6 +15,7 @@ import (
 	_ "net/http/pprof"
 
 	"github.com/coreos/go-systemd/v22/activation"
+	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/database/storage/bolt"
 	"github.com/gtsteffaniak/filebrowser/backend/events"
@@ -27,14 +28,9 @@ import (
 //go:embed embed/*
 var assets embed.FS
 
-// Custom dirFS to handle both embedded and non-embedded file systems
-type dirFS struct {
-	http.Dir
-}
-
-// Implement the Open method for dirFS, which wraps http.Dir
-func (d dirFS) Open(name string) (fs.File, error) {
-	return d.Dir.Open(name)
+// GetEmbeddedAssets returns the embedded assets filesystem
+func GetEmbeddedAssets() embed.FS {
+	return assets
 }
 
 var (
@@ -56,20 +52,10 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 		}()
 	}
 
-	// Determine filesystem mode and set asset paths
-	if settings.Env.EmbeddedFs {
-		// Embedded mode: Serve files from the embedded assets
-		assetFs, err = fs.Sub(assets, "embed")
-		if err != nil {
-			logger.Fatalf("fs.Sub failed: %v", err)
-		}
-		entries, err := fs.ReadDir(assetFs, ".")
-		if err != nil || len(entries) == 0 {
-			logger.Fatalf("Could not embed frontend. Does dist exist? %v", err)
-		}
-	} else {
-		// Dev mode: Serve files from http/dist directory
-		assetFs = dirFS{Dir: http.Dir("http/dist")}
+	// Get the asset filesystem from fileutils
+	assetFs = fileutils.GetAssetFS()
+	if assetFs == nil {
+		logger.Fatal("Asset filesystem not initialized. Call fileutils.InitAssetFS first.")
 	}
 
 	// In development mode, we want to reload the templates on each request.
@@ -213,10 +199,8 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	router.Handle(staticPrefix, http.HandlerFunc(staticAssetHandler))
 	publicRoutes.Handle("GET /static/", http.HandlerFunc(staticAssetHandler))
 
-	// Standard browser favicon and manifest routes
+	// Standard browser favicon route
 	router.HandleFunc("GET /favicon.svg", http.HandlerFunc(staticAssetHandler))
-	router.HandleFunc("GET /site.webmanifest", http.HandlerFunc(staticAssetHandler))
-	router.HandleFunc("GET /manifest.json", http.HandlerFunc(staticAssetHandler))
 
 	router.HandleFunc(config.Server.BaseURL, withOrWithoutUser(indexHandler))
 	router.HandleFunc(fmt.Sprintf("GET %vhealth", config.Server.BaseURL), healthHandler)

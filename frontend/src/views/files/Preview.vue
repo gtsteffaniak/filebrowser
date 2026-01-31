@@ -166,9 +166,9 @@ export default {
       if (getters.isShare()) {
         return publicApi.getDownloadURL(
           {
-            path: state.share.subPath,
-            hash: state.share.hash,
-            token: state.share.token,
+            path: state.shareInfo.subPath,
+            hash: state.shareInfo.hash,
+            token: state.shareInfo.token,
           },
           [state.req.path],
           true,
@@ -187,9 +187,9 @@ export default {
       if (getters.isShare()) {
         return publicApi.getDownloadURL(
           {
-            path: state.share.subPath,
-            hash: state.share.hash,
-            token: state.share.token,
+            path: state.shareInfo.subPath,
+            hash: state.shareInfo.hash,
+            token: state.shareInfo.token,
           },
           [state.req.path],
         );
@@ -392,7 +392,7 @@ export default {
               {
                 path: item.path,
                 hash: state.shareInfo?.hash,
-                token: state.share.token,
+                token: state.shareInfo.token,
                 inline: true,
               },
               [item.path],

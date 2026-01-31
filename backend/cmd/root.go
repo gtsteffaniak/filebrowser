@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"io/fs"
 	"os"
 	"os/signal"
 	"syscall"
@@ -180,6 +181,19 @@ func rootCMD(ctx context.Context, store *bolt.BoltStore, serverConfig *settings.
 	cacheDir := settings.Config.Server.CacheDir
 	numWorkers := settings.Config.Server.NumImageProcessors
 	ffmpeg.SetFFmpegPaths()
+	
+	// Initialize asset filesystem before starting services
+	if settings.Env.EmbeddedFs {
+		embeddedAssets := fbhttp.GetEmbeddedAssets()
+		subAssets, err := fs.Sub(embeddedAssets, "embed")
+		if err != nil {
+			logger.Fatalf("Failed to create sub filesystem: %v", err)
+		}
+		fileutils.InitAssetFS(subAssets, true)
+	} else {
+		fileutils.InitAssetFS(nil, false)
+	}
+	
 	// setup disk cache
 	err := preview.StartPreviewGenerator(numWorkers, cacheDir)
 	if err != nil {

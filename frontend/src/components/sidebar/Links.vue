@@ -292,8 +292,8 @@ export default {
             mutations.closeHovers();
             const downloadLink = publicApi.getDownloadURL({
               path: "/",
-              hash: state.share.hash,
-              token: state.share.token,
+              hash: state.shareInfo.hash,
+              token: state.shareInfo.token,
               inline: false,
             }, [state.req.path]);
             window.open(downloadLink + "&format=" + format, "_blank");
@@ -303,8 +303,8 @@ export default {
         // Direct download for single files or directories
         const downloadLink = publicApi.getDownloadURL({
           path: "/",
-          hash: state.share.hash,
-          token: state.share.token,
+          hash: state.shareInfo.hash,
+          token: state.shareInfo.token,
           inline: false,
         }, [state.req.path]);
         window.open(downloadLink, "_blank");

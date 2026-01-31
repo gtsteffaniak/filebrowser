@@ -224,7 +224,7 @@ export default {
             Source: ${this.source}<br/>
             Path: ${this.path}<br/>
             Filename: ${filename}<br/>
-            ${isShare ? `Share Hash: ${state.share.hash}` : 'User Request'}<br/>
+            ${isShare ? `Share Hash: ${state.shareInfo.hash}` : 'User Request'}<br/>
           </div>
 
           <div style="margin-bottom: 15px;">
@@ -326,7 +326,7 @@ export default {
             Source: ${this.source}<br/>
             Path: ${this.path}<br/>
             Filename: ${filename}<br/>
-            ${isShare ? `Share Hash: ${state.share.hash}` : 'User Request'}<br/>
+            ${isShare ? `Share Hash: ${state.shareInfo.hash}` : 'User Request'}<br/>
           </div>
 
           ${configDetailsHtml}
