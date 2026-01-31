@@ -14,8 +14,6 @@
     "pauseAll": "Pausar tudo",
     "resumeAll": "Retomar tudo",
     "clearCompleted": "Limpar concluído",
-    "showMore": "Mostrar mais",
-    "showLess": "Mostrar menos",
     "openParentFolder": "Abrir a pasta principal",
     "selectedCount": "Número de itens selecionados para executar uma ação",
     "listView": "Exibição de lista",
@@ -31,7 +29,9 @@
     "keepEditing": "Continuar editando",
     "closeAnyway": "Fechar de qualquer maneira",
     "goToItem": "Ir para o item",
-    "watchFile": "Assista ao arquivo"
+    "watchFile": "Assista ao arquivo",
+    "showMore": "Mostrar opções avançadas",
+    "showLess": "Ocultar opções avançadas"
   },
   "download": {
     "downloadFile": "Baixar arquivo",

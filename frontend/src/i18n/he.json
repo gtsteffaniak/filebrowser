@@ -14,8 +14,6 @@
     "pauseAll": "השהה הכל",
     "resumeAll": "המשך הכל",
     "clearCompleted": "השלם",
-    "showMore": "הצג עוד",
-    "showLess": "הצג פחות",
     "openParentFolder": "פתח את התיקייה הראשית",
     "selectedCount": "מספר הפריטים שנבחרו לביצוע פעולה",
     "listView": "תצוגת רשימה",
@@ -31,7 +29,9 @@
     "keepEditing": "המשך עריכה",
     "closeAnyway": "סגור בכל מקרה",
     "goToItem": "עבור לפריט",
-    "watchFile": "צפה בקובץ"
+    "watchFile": "צפה בקובץ",
+    "showMore": "הצג אפשרויות מתקדמות",
+    "showLess": "הסתר אפשרויות מתקדמות"
   },
   "download": {
     "downloadFile": "הורד קובץ",

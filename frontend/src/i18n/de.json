@@ -14,8 +14,6 @@
     "pauseAll": "Pause alle",
     "resumeAll": "Alle zusammenfassen",
     "clearCompleted": "Abgeschlossene löschen",
-    "showMore": "Mehr anzeigen",
-    "showLess": "Weniger anzeigen",
     "openParentFolder": "Übergeordneten Ordner öffnen",
     "selectedCount": "Anzahl der zur Durchführung einer Aktion ausgewählten Elemente",
     "listView": "Listenansicht",
@@ -31,7 +29,9 @@
     "keepEditing": "Weiter bearbeiten",
     "closeAnyway": "Jedenfalls schließen",
     "goToItem": "Weiter zu Artikel",
-    "watchFile": "Datei beobachten"
+    "watchFile": "Datei beobachten",
+    "showMore": "Erweiterte Optionen anzeigen",
+    "showLess": "Erweiterte Optionen ausblenden"
   },
   "download": {
     "downloadFile": "Datei herunterladen",
