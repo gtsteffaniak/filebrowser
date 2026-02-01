@@ -10,6 +10,8 @@ All notable changes to this project will be documented in this file. For commit 
    - supports more formats
    - supports larger images
    - automatcially generates multiple favicon sizes on startup for non-svg images. Custom svg favicons need a companion *.png to exist broad compatibilty
+   - Enhanced media playback: Ability to control the queue from your device's lock screen and notification panel - Will also show
+   metadata of the current playing media if available (#1917)
 
  **Notes**:
  - Better text file content detection (#1726)

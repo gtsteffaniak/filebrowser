@@ -116,7 +116,7 @@
 </template>
 
 <script>
-import { state, mutations } from '@/store';
+import { state, mutations, getters } from '@/store';
 import { url } from '@/utils';
 import { globalVars } from '@/utils/constants';
 import Plyr from 'plyr';
@@ -419,7 +419,6 @@ export default {
     },
     destroyPlyr() {
       if (this.player) {
-        console.log('Destroying Plyr');
         this.clearMediaSession();
         this.cleanupAlbumArt();
         this.player.off();
@@ -597,7 +596,6 @@ export default {
       if (this.previewType === "audio") {
         this.loadAudioMetadata();
       }
-      this.setupMediaSession();
     },
     hookEvents() {
       if (this.useDefaultMediaPlayer) {
@@ -686,6 +684,7 @@ export default {
     async setupPlaybackQueue(forceReshuffle = false) {
 
       let listing = this.listing;
+      const isShare = getters.isShare();
 
       // Filter only audio/video files
       const mediaFiles = listing.filter(item => {
@@ -705,7 +704,12 @@ export default {
       }
 
       let currentIndex = -1;
-      currentIndex = mediaFiles.findIndex(item => item.path === this.req.path);
+      if (isShare) {
+        // Compare by name for shares
+        currentIndex = mediaFiles.findIndex(item => item.name === this.req.name);
+      } else {
+        currentIndex = mediaFiles.findIndex(item => item.path === this.req.path);
+      }
 
       let finalQueue = [];
       let finalIndex = 0;
