@@ -42,8 +42,8 @@ export default {
   },
   computed: {
     showStatusBar() {
-      if (getters.isShare()) {
-        return state.req?.type != "";
+      if (getters.isShare() && state.shareInfo.shareType === "upload") {
+        return false;
       }
       return getters.currentView() === "listingView";
     },

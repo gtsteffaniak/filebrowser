@@ -344,7 +344,6 @@ export default {
     },
     setupMediaSession() {
       if (!('mediaSession' in navigator) || !this.player) return;
-      this.clearMediaSession();
       // Create a fresh fallback URL with timestamp to prevent caching issues
       const fallbackIcon = globalVars.loginIcon;
       const timestamp = Date.now();
@@ -747,7 +746,7 @@ export default {
           break;
         }
       }
-      console.log('Current place on the queue:', finalIndex + 1, 'of', finalQueue.length);
+      // console.log('Current place on the queue:', finalIndex + 1, 'of', finalQueue.length);
 
       // After the queue is set up, update the store
       mutations.setPlaybackQueue({
