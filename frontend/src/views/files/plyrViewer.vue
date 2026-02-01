@@ -24,7 +24,7 @@
         <!-- Metadata info -->
         <div class="audio-metadata" v-if="metadata">
           <div class="audio-title">
-            {{ metadata.title || req.name }}
+            {{ metadata.title }}
           </div>
           <div class="audio-artist" v-if="metadata.artist">
             {{ metadata.artist }}
@@ -289,6 +289,9 @@ export default {
     shouldAutoplay() {
       return this.autoPlayEnabled || this.playbackQueue.length > 1;
     },
+    fileName() {
+      return this.req.name ? this.req.name.replace(/\.[^/.]+$/, "") : '';
+    },
   },
   mounted() {
     this.updateMedia();
@@ -351,7 +354,7 @@ export default {
         ? `${fallbackIcon}&t=${timestamp}`
         : `${fallbackIcon}?t=${timestamp}`;
       const metadata = {
-        title: this.metadata?.title || this.req.name,
+        title: this.metadata?.title || this.fileName,
         artist: this.metadata?.artist || globalVars.name || "Filebrowser Quantum",
         album: this.metadata?.album || "",
         // In current versions of Firefox the artwork will not work, seems that doesn't like blob URLs.
@@ -542,7 +545,7 @@ export default {
       // Check if metadata is already provided by the backend
       if (this.req.metadata) {
         this.metadata = {
-          title: this.req.metadata.title || this.req.name, // Fallback to filename
+          title: this.req.metadata.title || this.fileName, // Fallback to filename
           artist: this.req.metadata.artist || null,
           album: this.req.metadata.album || null,
           year: this.req.metadata.year || null
@@ -564,7 +567,7 @@ export default {
         }
       } else {
         this.metadata = {
-          title: this.req.name,
+          title: this.fileName,
           artist: null,
           album: null,
           year: null,
