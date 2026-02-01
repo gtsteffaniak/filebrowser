@@ -40,7 +40,7 @@
 
       <div class="audio-controls-container" :class="{ 'dark-mode': darkMode, 'light-mode': !darkMode }">
         <div class="plyr-audio-container" ref="plyrAudioContainer">
-          <audio :src="raw" :type="req.type" :autoplay="autoPlayEnabled" @play="handlePlay" ref="audioElement"></audio>
+          <audio :src="raw" :type="req.type" :autoplay="shouldAutoplay" @play="handlePlay" ref="audioElement"></audio>
         </div>
       </div>
     </div>
@@ -48,7 +48,7 @@
     <!-- Video with plyr -->
     <div v-else-if="previewType == 'video' && !useDefaultMediaPlayer" class="video-player-container" :class="{ 'no-captions': !hasSubtitles }">
       <div class="plyr-video-container" ref="plyrVideoContainer">
-        <video :src="raw" :type="req.type" :autoplay="autoPlayEnabled" @play="handlePlay" playsinline ref="videoElement">
+        <video :src="raw" :type="req.type" :autoplay="shouldAutoplay" @play="handlePlay" playsinline ref="videoElement">
           <track kind="captions" v-for="(sub, index) in subtitlesList" :key="index" :src="sub.src"
             :label="'Subtitle ' + sub.name" :default="false" />
         </video>
@@ -58,14 +58,14 @@
     <!-- Default HTML5 Audio -->
     <div v-else-if="previewType == 'audio' && useDefaultMediaPlayer" class="audio-player-container">
       <audio ref="defaultAudioPlayer" :src="raw"
-        controls :autoplay="autoPlayEnabled" @play="handlePlay">
+        controls :autoplay="shouldAutoplay" @play="handlePlay">
       </audio>
     </div>
 
     <!-- Default HTML5 Video -->
     <div v-else-if="previewType == 'video' && useDefaultMediaPlayer" class="video-player-container">
       <video ref="defaultVideoPlayer" :src="raw"
-        controls :autoplay="autoPlayEnabled" @play="handlePlay" playsinline >
+        controls :autoplay="shouldAutoplay" @play="handlePlay" playsinline >
         <track kind="captions" v-for="(sub, index) in subtitlesList" :key="index" :src="sub.src"
           :label="'Subtitle ' + sub.name" :default="index === 0" />
       </video>
@@ -285,6 +285,9 @@ export default {
       return this.previewType === 'video'
         ? this.$refs.videoElement 
         : this.$refs.audioElement;
+    },
+    shouldAutoplay() {
+      return this.autoPlayEnabled || this.playbackQueue.length > 1;
     },
   },
   mounted() {
@@ -519,20 +522,6 @@ export default {
         this.toastVisible = false;
       }, 1500);
     },
-    async handleAutoPlay() {
-      if (!this.autoPlayEnabled) return;
-      try {
-        if (this.useDefaultMediaPlayer && this.mediaElement) {
-          this.mediaElement.muted = false;
-          await this.mediaElement.play();
-        } else if (this.player) {
-          this.player.muted = false;
-          await this.player.play();
-        }
-      } catch (error) {
-        console.log("Autoplay failed", error);
-      }
-    },
     // Album art hover and scroll handlers
     onAlbumArtHover() {
       this.isHovering = true;
@@ -592,7 +581,6 @@ export default {
     },
     updateMedia() {
       this.hookEvents();
-      this.handleAutoPlay();
       if (this.previewType === "audio") {
         this.loadAudioMetadata();
       }
@@ -815,7 +803,7 @@ export default {
       mutations.setNavigationTransitioning(true);
       url.goToItem(prevItem.source || this.req.source, prevItem.path, undefined);
     },
-    async playNext() {
+    playNext() {
       if (this.playbackQueue.length === 0) return;
 
       // Calculate next index
