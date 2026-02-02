@@ -195,8 +195,6 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	publicRoutes.HandleFunc("GET /share/", withOrWithoutUser(indexHandler))
 
 	// Static and index file handlers
-	staticPrefix := config.Server.BaseURL + "static/"
-	router.Handle(staticPrefix, http.HandlerFunc(staticAssetHandler))
 	publicRoutes.Handle("GET /static/", http.HandlerFunc(staticAssetHandler))
 
 	// Standard browser favicon route
