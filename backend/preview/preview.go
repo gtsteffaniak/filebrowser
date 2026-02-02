@@ -44,10 +44,10 @@ type Service struct {
 // Calculate split between small and large imaging library processors
 // Distribution formula:
 //
-//	1 processor:  No split - imageSem handles all, imageLargeSem is nil
+//	1 processor:  single image processor for all sizes
 //	2 processors: 1 large, 1 small
-//	3-9 processors: 2 large, rest small
-//	10+ processors: 3 large, rest small
+//	3-6 processors: 2 large, rest small
+//	7+ processors: 3 large, rest small
 func NewPreviewGenerator(concurrencyLimit int, cacheDir string) *Service {
 	if concurrencyLimit < 1 {
 		concurrencyLimit = 1
@@ -93,7 +93,7 @@ func NewPreviewGenerator(concurrencyLimit int, cacheDir string) *Service {
 		imageLargeSem = nil
 	} else {
 		var largeLimit int
-		if concurrencyLimit >= 10 {
+		if concurrencyLimit >= 7 {
 			largeLimit = 3
 		} else if concurrencyLimit >= 3 {
 			largeLimit = 2
