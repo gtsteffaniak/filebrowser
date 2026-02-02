@@ -38,6 +38,9 @@
         :thumbnailUrl="isThumbnailInView ? thumbnailUrl : ''"
         :filename="name"
         :hasPreview="hasPreview"
+        :source="source || state.req.source"
+        :path="path || (state.req.path && name ? url.joinPath(state.req.path, name) : '')"
+        :modified="modified"
       />
     </div>
 
@@ -101,6 +104,9 @@
         :thumbnailUrl="isThumbnailInView ? thumbnailUrl : ''"
         :filename="name"
         :hasPreview="hasPreview"
+        :source="source || state.req.source"
+        :path="path || (state.req.path && name ? url.joinPath(state.req.path, name) : '')"
+        :modified="modified"
       />
     </div>
 
