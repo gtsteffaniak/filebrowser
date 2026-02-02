@@ -35,9 +35,7 @@ type Service struct {
 	fileCache     diskcache.Interface
 	cacheDir      string // Cache directory used for thumbnails and temp files
 	debug         bool
-	docGenMutex   sync.Mutex            // Mutex to serialize access to doc generation
-	docSemaphore  chan struct{}         // Semaphore for document generation
-	officeSem     chan struct{}         // Semaphore for office document processing
+	docGenMutex   sync.Mutex            // Mutex to serialize access to doc generation (required for CGO thread safety with go-fitz)
 	ffmpegService *ffmpeg.FFmpegService // Shared FFmpeg service for video and HEIC/JPEG fallback
 	imageSem      chan struct{}         // Semaphore for small image decode/encode (<8MB)
 	imageLargeSem chan struct{}         // Semaphore for large image decode/encode (>=8MB), nil if only 1 processor
@@ -46,10 +44,10 @@ type Service struct {
 // Calculate split between small and large imaging library processors
 // Distribution formula:
 //
-//	1 processor:  No split - imageSem handles all, imageLargeSem is nil
+//	1 processor:  single image processor for all sizes
 //	2 processors: 1 large, 1 small
-//	3-9 processors: 2 large, rest small
-//	10+ processors: 3 large, rest small
+//	3-6 processors: 2 large, rest small
+//	7+ processors: 3 large, rest small
 func NewPreviewGenerator(concurrencyLimit int, cacheDir string) *Service {
 	if concurrencyLimit < 1 {
 		concurrencyLimit = 1
@@ -95,7 +93,7 @@ func NewPreviewGenerator(concurrencyLimit int, cacheDir string) *Service {
 		imageLargeSem = nil
 	} else {
 		var largeLimit int
-		if concurrencyLimit >= 10 {
+		if concurrencyLimit >= 7 {
 			largeLimit = 3
 		} else if concurrencyLimit >= 3 {
 			largeLimit = 2
@@ -118,40 +116,47 @@ func NewPreviewGenerator(concurrencyLimit int, cacheDir string) *Service {
 		fileCache:     fileCache,
 		cacheDir:      actualCacheDir,
 		debug:         settings.Config.Integrations.Media.Debug,
-		docSemaphore:  make(chan struct{}, 1), // must be 1 because cgo thread limit
-		officeSem:     make(chan struct{}, concurrencyLimit),
 		ffmpegService: ffmpegService,
 		imageSem:      imageSem,
 		imageLargeSem: imageLargeSem,
 	}
 }
 
-// Document semaphore methods
-func (s *Service) acquireDoc(ctx context.Context) error {
+// Global image processor semaphore methods
+// These are used to ensure FFmpeg and document operations also respect the global image processor limit
+func (s *Service) acquireImageSem(ctx context.Context) error {
 	select {
-	case s.docSemaphore <- struct{}{}:
+	case s.imageSem <- struct{}{}:
 		return nil
 	case <-ctx.Done():
 		return ctx.Err()
 	}
 }
 
-func (s *Service) releaseDoc() {
-	<-s.docSemaphore
+func (s *Service) releaseImageSem() {
+	<-s.imageSem
 }
 
-// Office semaphore methods
-func (s *Service) acquireOffice(ctx context.Context) error {
+func (s *Service) acquireImageLargeSem(ctx context.Context) error {
+	if s.imageLargeSem == nil {
+		// Fall back to imageSem if imageLargeSem is not available (single processor case)
+		return s.acquireImageSem(ctx)
+	}
 	select {
-	case s.officeSem <- struct{}{}:
+	case s.imageLargeSem <- struct{}{}:
 		return nil
 	case <-ctx.Done():
 		return ctx.Err()
 	}
 }
 
-func (s *Service) releaseOffice() {
-	<-s.officeSem
+func (s *Service) releaseImageLargeSem() {
+	if s.imageLargeSem == nil {
+		// Fall back to imageSem if imageLargeSem is not available (single processor case)
+		s.releaseImageSem()
+		return
+	}
+	<-s.imageLargeSem
 }
 
 func StartPreviewGenerator(concurrencyLimit int, cacheDir string) error {
@@ -366,13 +371,33 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 		return nil, ctx.Err()
 	}
 
+	// Acquire global image processor semaphore for ALL operations
+	const largeFileSizeThreshold = 8 * 1024 * 1024 // 8MB
+	if file.Size >= largeFileSizeThreshold && service.imageLargeSem != nil {
+		// Large file path - use imageLargeSem
+		if err := service.acquireImageLargeSem(ctx); err != nil {
+			return nil, err
+		}
+		defer service.releaseImageLargeSem()
+	} else {
+		// Small file path or fallback - use imageSem
+		if err := service.acquireImageSem(ctx); err != nil {
+			return nil, err
+		}
+		defer service.releaseImageSem()
+	}
+
+	// Check if context is cancelled after acquiring semaphore
+	if ctx.Err() != nil {
+		return nil, ctx.Err()
+	}
+
 	// Enforce file size limit for image preview generation to prevent memory exhaustion
-	// 50MB limit is reasonable for preview generation while allowing most images
 	if strings.HasPrefix(file.Type, "image") && file.Size > iteminfo.LargeFileSizeThreshold {
-		logger.Warningf("Image file too large for preview: %s (size: %d bytes, limit: %d bytes)",
+		message := fmt.Sprintf("Image file too large for preview: %s (size: %d bytes, limit: %d bytes)",
 			file.Name, file.Size, iteminfo.LargeFileSizeThreshold)
-		return nil, fmt.Errorf("image file too large for preview generation: %d MB (limit: 50 MB)",
-			file.Size/(1024*1024))
+		logger.Warning(message)
+		return nil, errors.New(message)
 	}
 
 	ext := strings.ToLower(filepath.Ext(file.Name))
