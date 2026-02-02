@@ -6,7 +6,6 @@ import (
 	"image"
 	"image/jpeg"
 	"io"
-	"strings"
 
 	exif "github.com/dsoprea/go-exif/v3"
 	exifcommon "github.com/dsoprea/go-exif/v3/common"
@@ -170,7 +169,7 @@ func (s *Service) ResizeWithSize(in io.Reader, out io.Writer, fileSize int64, op
 
 	// Skip format detection - format is already known (FormatJpeg from CreatePreviewFromReaderWithSize)
 	// This avoids unnecessary I/O and DecodeConfig issues with corrupted files
-	var wrappedReader io.Reader = in
+	var wrappedReader = in
 	var err error
 
 	if opts.Format == FormatHeic {
@@ -230,61 +229,6 @@ func (s *Service) ResizeWithSize(in io.Reader, out io.Writer, fileSize int64, op
 		return jpeg.Encode(out, img, &jpeg.Options{Quality: opts.JpegQuality})
 	}
 	return imaging.Encode(out, img, opts.Format.toImaging())
-}
-
-// detectFormat detects image format using DecodeConfig (lightweight - only for unknown formats)
-// This is rarely used since format is usually known from file extension
-func (s *Service) detectFormat(in io.Reader) (Format, io.Reader, error) {
-	buf := &bytes.Buffer{}
-	r := io.TeeReader(in, buf)
-
-	_, imgFormat, err := image.DecodeConfig(r)
-	if err != nil {
-		return 0, nil, fmt.Errorf("%s: %w", err.Error(), ErrUnsupportedFormat)
-	}
-
-	format := s.parseFormat(imgFormat)
-	if format < 0 {
-		return 0, nil, ErrUnsupportedFormat
-	}
-
-	return format, io.MultiReader(buf, in), nil
-}
-
-// parseFormat parses the image format string and returns the Format enum
-func (s *Service) parseFormat(imgFormat string) Format {
-	if imgFormat == "heif" {
-		imgFormat = "heic"
-	}
-	// Handle case variations - image.DecodeConfig might return "jpeg" or "JPEG"
-	imgFormat = strings.ToLower(imgFormat)
-
-	switch imgFormat {
-	case "jpeg", "jpg":
-		return FormatJpeg
-	case "png":
-		return FormatPng
-	case "gif":
-		return FormatGif
-	case "tiff", "tif":
-		return FormatTiff
-	case "bmp":
-		return FormatBmp
-	case "heic", "heif":
-		return FormatHeic
-	case "webp":
-		return FormatWebp
-	case "pbm":
-		return FormatPbm
-	case "pgm":
-		return FormatPgm
-	case "ppm":
-		return FormatPpm
-	case "pam":
-		return FormatPam
-	default:
-		return -1
-	}
 }
 
 func getEmbeddedThumbnail(in io.Reader) ([]byte, io.Reader, error) {

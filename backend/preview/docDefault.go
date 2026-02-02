@@ -15,5 +15,7 @@ func docEnabled() bool {
 }
 
 func (s *Service) GenerateImageFromDoc(ctx context.Context, file iteminfo.ExtendedFileInfo, tempFilePath string, pageNumber int) ([]byte, error) {
+	// Reference it to prevent unused field warning when building without mupdf
+	_ = &s.docGenMutex
 	return nil, nil
 }
