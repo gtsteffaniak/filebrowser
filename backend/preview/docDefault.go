@@ -15,14 +15,7 @@ func docEnabled() bool {
 }
 
 func (s *Service) GenerateImageFromDoc(ctx context.Context, file iteminfo.ExtendedFileInfo, tempFilePath string, pageNumber int) ([]byte, error) {
-	// Acquire document semaphore
-	if err := s.acquireDoc(ctx); err != nil {
-		return nil, err
-	}
-	defer s.releaseDoc()
-
-	s.docGenMutex.Lock()
-	defer s.docGenMutex.Unlock()
-
+	// Reference it to prevent unused field warning when building without mupdf
+	_ = &s.docGenMutex
 	return nil, nil
 }

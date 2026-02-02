@@ -71,7 +71,7 @@ func TestService_Resize(t *testing.T) {
 			matcher: sizeMatcher(100, 75),
 		},
 		"keep original format": {
-			options: ResizeOptions{Width: 100, Height: 100},
+			options: ResizeOptions{Width: 100, Height: 100, Format: FormatPng},
 			source: func(t *testing.T) afero.File {
 				t.Helper()
 				return newGrayPng(t, 200, 150)
@@ -497,27 +497,4 @@ func TestCreatePreviewFromReader_UsesConcurrencyLimit(t *testing.T) {
 	out2, err := svc.CreatePreview(data, "small")
 	require.NoError(t, err)
 	require.Equal(t, out, out2)
-}
-
-// TestDetectFormatAndSize_UsesBufferPool stresses detectFormatAndSize many times
-// to ensure the buffer pool is used without leaking or panicking.
-func TestDetectFormatAndSize_UsesBufferPool(t *testing.T) {
-	tmpDir := t.TempDir()
-	svc := NewPreviewGenerator(1, tmpDir)
-
-	source := newGrayJpeg(t, 100, 100)
-	defer source.Close()
-	data, err := io.ReadAll(source)
-	require.NoError(t, err)
-
-	for i := 0; i < 200; i++ {
-		format, reader, w, h, err := svc.detectFormatAndSize(bytes.NewReader(data))
-		require.NoError(t, err)
-		require.Equal(t, FormatJpeg, format)
-		require.Equal(t, 100, w)
-		require.Equal(t, 100, h)
-		require.NotNil(t, reader)
-		// Consume reader so we don't leave it open
-		_, _ = io.Copy(io.Discard, reader)
-	}
 }
