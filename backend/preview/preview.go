@@ -626,16 +626,11 @@ func (s *Service) CreatePreviewFromReaderWithSize(reader io.Reader, previewSize 
 		return nil, ErrUnsupportedFormat
 	}
 
-	// Use buffer pool for output to reduce allocations
-	output := getBuffer()
-	defer putBuffer(output)
+	output := &bytes.Buffer{}
 	if err := s.ResizeWithSize(reader, output, fileSize, options); err != nil {
 		return nil, err
 	}
-	// Copy result before returning buffer to pool
-	result := make([]byte, output.Len())
-	copy(result, output.Bytes())
-	return result, nil
+	return output.Bytes(), nil
 }
 
 func CacheKey(md5, previewSize string, percentage int) string {

@@ -25,7 +25,6 @@ func (s *Service) GenerateVideoPreview(ctx context.Context, videoPath string, pe
 		return nil, fmt.Errorf("video file not accessible: %w", err)
 	}
 
-	// FFmpeg service semaphore is acquired inside GenerateVideoPreviewStreaming
 	var buf bytes.Buffer
 	err := s.ffmpegService.GenerateVideoPreviewStreaming(ctx, videoPath, percentageSeek, &buf)
 	if err != nil {
