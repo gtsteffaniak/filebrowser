@@ -537,20 +537,6 @@ export default {
       this.cancelContext(); // Clear timeout
       this.isSwipe = false; // Reset swipe state
     },
-    // handleVirtualScroll - DISABLED (virtual scrolling is off)
-    // Keeping commented for reference if re-enabled
-    /*
-    handleVirtualScroll(event) {
-      // Simple throttled scroll handler using RAF
-      if (this.rafId) return;
-      
-      this.rafId = requestAnimationFrame(() => {
-        const newScrollTop = event.target.scrollTop;
-        this.virtualScroll.scrollTop = newScrollTop;
-        this.rafId = null;
-      });
-    },
-    */
     base64(name) {
       return url.base64Encode(name);
     },
