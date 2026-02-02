@@ -1,7 +1,6 @@
 package preview
 
 import (
-	"bytes"
 	"fmt"
 	"image"
 	"image/jpeg"
@@ -258,30 +257,18 @@ func getEmbeddedThumbnail(in io.Reader) ([]byte, io.Reader, error) {
 				_, _ = seeker.Seek(originalPos, io.SeekStart)
 				wrappedReader = in
 			} else {
-				// Read error - fallback to reading all
+				// Read error - cannot extract thumbnail, return error to fall back to full decode
 				_, _ = seeker.Seek(originalPos, io.SeekStart)
-				allData, _ := io.ReadAll(in)
-				headerBuf = allData
-				wrappedReader = bytes.NewReader(allData)
+				return nil, in, fmt.Errorf("failed to read header for thumbnail extraction: %w", readErr)
 			}
 		} else {
-			// Seek failed, read all
-			allData, _ := io.ReadAll(in)
-			headerBuf = allData
-			wrappedReader = bytes.NewReader(allData)
+			// Seek failed - cannot extract thumbnail without seeking, return error to fall back to full decode
+			return nil, in, fmt.Errorf("reader is not seekable, cannot extract thumbnail")
 		}
 	} else {
-		// Non-seekable reader - must read and combine
-		buf := make([]byte, maxExifSize)
-		n, err := io.ReadFull(in, buf)
-		if err != nil && err != io.ErrUnexpectedEOF && err != io.EOF {
-			return nil, nil, err
-		}
-		headerBuf = buf[:n]
-		// Read remaining data and combine
-		remaining, _ := io.ReadAll(in)
-		combined := append(headerBuf, remaining...)
-		wrappedReader = bytes.NewReader(combined)
+		// Non-seekable reader - cannot extract thumbnail without loading entire file
+		// Return error to fall back to full decode rather than loading everything into memory
+		return nil, in, fmt.Errorf("reader is not seekable, cannot extract thumbnail without loading entire file")
 	}
 
 	// Try to find EXIF header

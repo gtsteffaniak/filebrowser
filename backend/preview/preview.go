@@ -393,12 +393,11 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 	}
 
 	// Enforce file size limit for image preview generation to prevent memory exhaustion
-	// 50MB limit is reasonable for preview generation while allowing most images
 	if strings.HasPrefix(file.Type, "image") && file.Size > iteminfo.LargeFileSizeThreshold {
-		logger.Warningf("Image file too large for preview: %s (size: %d bytes, limit: %d bytes)",
+		message := fmt.Sprintf("Image file too large for preview: %s (size: %d bytes, limit: %d bytes)",
 			file.Name, file.Size, iteminfo.LargeFileSizeThreshold)
-		return nil, fmt.Errorf("image file too large for preview generation: %d MB (limit: 50 MB)",
-			file.Size/(1024*1024))
+		logger.Warning(message)
+		return nil, errors.New(message)
 	}
 
 	ext := strings.ToLower(filepath.Ext(file.Name))
@@ -627,11 +626,16 @@ func (s *Service) CreatePreviewFromReaderWithSize(reader io.Reader, previewSize 
 		return nil, ErrUnsupportedFormat
 	}
 
-	output := &bytes.Buffer{}
+	// Use buffer pool for output to reduce allocations
+	output := getBuffer()
+	defer putBuffer(output)
 	if err := s.ResizeWithSize(reader, output, fileSize, options); err != nil {
 		return nil, err
 	}
-	return output.Bytes(), nil
+	// Copy result before returning buffer to pool
+	result := make([]byte, output.Len())
+	copy(result, output.Bytes())
+	return result, nil
 }
 
 func CacheKey(md5, previewSize string, percentage int) string {
