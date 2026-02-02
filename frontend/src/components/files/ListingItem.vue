@@ -38,8 +38,6 @@
         :thumbnailUrl="isThumbnailInView ? thumbnailUrl : ''"
         :filename="name"
         :hasPreview="hasPreview"
-        :source="computedSource"
-        :path="computedPath"
         :modified="modified"
       />
     </div>
@@ -104,8 +102,6 @@
         :thumbnailUrl="isThumbnailInView ? thumbnailUrl : ''"
         :filename="name"
         :hasPreview="hasPreview"
-        :source="computedSource"
-        :path="computedPath"
         :modified="modified"
       />
     </div>
@@ -193,18 +189,6 @@ export default {
     },
   },
   computed: {
-    computedSource() {
-      return this.source || state?.req?.source;
-    },
-    computedPath() {
-      if (this.path) {
-        return this.path;
-      }
-      if (state?.req?.path && this.name) {
-        return url.joinPath(state?.req?.path, this.name);
-      }
-      return '';
-    },
     displayName() {
       // If displayFullPath is true, show the full path, otherwise just the name
       return this.displayFullPath ? this.path : this.name;
