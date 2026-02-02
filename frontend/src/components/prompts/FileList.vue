@@ -494,6 +494,7 @@ export default {
     },
     navigateToItem(item) {
       mutations.closeHovers();
+      mutations.setNavigationTransitioning(true);
       url.goToItem(item.source || state.req.source, item.path, undefined);
     },
     closePrompt() {
