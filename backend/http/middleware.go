@@ -96,7 +96,6 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		if source.Config.Private {
 			return http.StatusForbidden, fmt.Errorf("the target source is private")
 		}
-
 		// Get file information with options
 		getContent := r.URL.Query().Get("content") == "true"
 		getMetadata := r.URL.Query().Get("metadata") == "true"
@@ -125,6 +124,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 			Expand:                   true,
 			Content:                  getContent,
 			Metadata:                 getMetadata,
+			AlbumArt:                 strings.Contains(r.URL.Path, "/preview"),
 			ExtractEmbeddedSubtitles: settings.Config.Integrations.Media.ExtractEmbeddedSubtitles && link.ExtractEmbeddedSubtitles,
 			ShowHidden:               link.ShowHidden,
 			FollowSymlinks:           true,

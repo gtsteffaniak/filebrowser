@@ -220,8 +220,6 @@ func publicPreviewHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	if d.share.ShareType == "upload" {
 		return http.StatusNotImplemented, fmt.Errorf("preview is disabled for upload shares")
 	}
-	d.fileInfo.Source = d.share.Source
-	d.fileInfo.Path = utils.JoinPathAsUnix(d.share.Path, r.URL.Query().Get("path"))
 	status, err := previewHelperFunc(w, r, d)
 	if err != nil {
 		logger.Errorf("public preview handler: error getting preview with error %v", err)

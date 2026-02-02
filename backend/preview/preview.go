@@ -43,6 +43,13 @@ type Service struct {
 	imageLargeSem chan struct{}         // Semaphore for large image decode/encode (>=8MB), nil if only 1 processor
 }
 
+// Calculate split between small and large imaging library processors
+// Distribution formula:
+//
+//	1 processor:  No split - imageSem handles all, imageLargeSem is nil
+//	2 processors: 1 large, 1 small
+//	3-9 processors: 2 large, rest small
+//	10+ processors: 3 large, rest small
 func NewPreviewGenerator(concurrencyLimit int, cacheDir string) *Service {
 	if concurrencyLimit < 1 {
 		concurrencyLimit = 1
@@ -80,12 +87,6 @@ func NewPreviewGenerator(concurrencyLimit int, cacheDir string) *Service {
 	// Single FFmpeg service shared by video preview and HEIC/JPEG fallback
 	ffmpegService := ffmpeg.NewFFmpegService(ffmpegConcurrencyLimit, settings.Config.Integrations.Media.Debug, filepath.Join(actualCacheDir, "heic"))
 
-	// Calculate split between small and large imaging library processors
-	// Distribution formula:
-	//   1 processor:  No split - imageSem handles all, imageLargeSem is nil
-	//   2 processors: 1 large, 1 small
-	//   3-9 processors: 2 large, rest small
-	//   10+ processors: 3 large, rest small
 	var imageSem, imageLargeSem chan struct{}
 
 	if concurrencyLimit == 1 {
