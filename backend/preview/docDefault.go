@@ -15,9 +15,5 @@ func docEnabled() bool {
 }
 
 func (s *Service) GenerateImageFromDoc(ctx context.Context, file iteminfo.ExtendedFileInfo, tempFilePath string, pageNumber int) ([]byte, error) {
-	// Serialize access (required for CGO thread safety, even though go-fitz is not available)
-	s.docGenMutex.Lock()
-	defer s.docGenMutex.Unlock()
-
 	return nil, nil
 }
