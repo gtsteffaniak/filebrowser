@@ -38,6 +38,7 @@
         :thumbnailUrl="isThumbnailInView ? thumbnailUrl : ''"
         :filename="name"
         :hasPreview="hasPreview"
+        :modified="modified"
       />
     </div>
 
@@ -101,6 +102,7 @@
         :thumbnailUrl="isThumbnailInView ? thumbnailUrl : ''"
         :filename="name"
         :hasPreview="hasPreview"
+        :modified="modified"
       />
     </div>
 
@@ -268,7 +270,7 @@ export default {
       let previewPath;
       if (this.path) {
         previewPath = this.path;
-      } else if (state.req.path && this.name) {
+      } else if (state?.req?.path && this.name) {
         previewPath = url.joinPath(state.req.path, this.name);
       } else {
         return "";
@@ -277,7 +279,7 @@ export default {
       // If forceFilesApi is true, always use authenticated files API
       if (this.forceFilesApi) {
         // @ts-ignore
-        return filesApi.getPreviewURL(this.source || state.req.source, previewPath, this.modified);
+        return filesApi.getPreviewURL(this.source || state?.req?.source, previewPath, this.modified);
       }
 
       if (getters.isShare()) {
@@ -323,13 +325,16 @@ export default {
       threshold: 0,
     });
 
-    this.observer.observe(this.$el);
+    // Use $nextTick to ensure $el is available and is an Element
     this.$nextTick(() => {
-      const rect = this.$el.getBoundingClientRect();
-      const isInViewport = rect.top < window.innerHeight + 500 && rect.bottom > -500;
-      if (isInViewport && this.hasPreview) {
-        this.isThumbnailInView = true;
-        this.isInView = true;
+      if (this.$el && this.$el instanceof Element) {
+        this.observer.observe(this.$el);
+        const rect = this.$el.getBoundingClientRect();
+        const isInViewport = rect.top < window.innerHeight + 500 && rect.bottom > -500;
+        if (isInViewport && this.hasPreview) {
+          this.isThumbnailInView = true;
+          this.isInView = true;
+        }
       }
     });
     // Note: dragend listener moved to parent ListingView for better performance

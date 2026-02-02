@@ -33,6 +33,7 @@ export const state = reactive({
   realtimeActive: undefined,
   realtimeDownCount: 0,
   popupPreviewSource: "",
+  popupPreviewSourceInfo: null, // { source, path, size, url, modified } - set by Icon when hovering
   sources: {
     current: "",
     count: 1,

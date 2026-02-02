@@ -1,11 +1,12 @@
 <template>
   <div class="popup-preview" v-show="source" ref="popup" :style="popupStyle">
-    <img :src="source" alt="Popup image" />
+    <img :src="source" alt="Popup image" @load="onImageLoad" />
   </div>
 </template>
 
 <script>
 import { state, getters } from "@/store";
+import { setImageLoaded } from "@/utils/imageCache";
 
 export default {
   name: "PopupPreview",
@@ -40,6 +41,16 @@ export default {
     window.removeEventListener("mousemove", this.updateCursorPosition);
   },
   methods: {
+    onImageLoad() {
+      // Track that this image was loaded
+      if (state.popupPreviewSourceInfo) {
+        const { source, path, size, url, modified } = state.popupPreviewSourceInfo;
+        const fileModified = modified || state.req.modified;
+        setImageLoaded(source, path, size, fileModified, url);
+        // Clear the info after tracking
+        state.popupPreviewSourceInfo = null;
+      }
+    },
     updateCursorPosition(event) {
       this.cursorX = event.clientX;
       this.cursorY = event.clientY;

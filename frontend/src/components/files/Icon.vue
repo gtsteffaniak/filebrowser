@@ -33,6 +33,7 @@
 import { globalVars } from "@/utils/constants";
 import { getTypeInfo } from "@/utils/mimetype";
 import { mutations, state, getters } from "@/store";
+import { setImageLoaded } from "@/utils/imageCache";
 
 // NEW: Define placeholder and error image URLs for easy configuration
 const PLACEHOLDER_URL = globalVars.baseURL + "static/img/placeholder.png"; // A generic loading placeholder
@@ -59,6 +60,18 @@ export default {
     thumbnailUrl: {
       type: String,
       default: "",
+    },
+    source: {
+      type: String,
+      default: null,
+    },
+    path: {
+      type: String,
+      default: null,
+    },
+    modified: {
+      type: String,
+      default: null,
     },
     clickable: {
       type: Boolean,
@@ -188,6 +201,15 @@ export default {
         // Prevent race conditions: only update if this is the image we still want.
         if (this.imageTargetSrc === url) {
           this.imageState = "loaded";
+          // Mark this image as loaded in our cache tracker
+          if (this.path) {
+            // For shares, use shareInfo.hash as the source; otherwise use this.source or state.req.source
+            const source = getters.isShare() ? state.shareInfo?.hash : (this.source || state.req.source);
+            const size = this.showLargeIcon ? 'large' : 'small';
+            // Use file's modified date if available, otherwise fall back to state.req.modified
+            const modified = this.modified || state.req.modified;
+            setImageLoaded(source, this.path, size, modified, url);
+          }
         }
       };
 
@@ -201,9 +223,19 @@ export default {
       targetImage.src = url;
     },
     handleMouseEnter() {
+      // Always use large thumbnails for hover/popup preview
       const imageUrl = this.thumbnailUrl + "&size=large";
+      
       if (this.imageState == "loaded") {
         mutations.setPreviewSource(imageUrl);
+        // Store source/path/url/modified in state so PopupPreview can track it when image actually loads
+        if (this.path) {
+          // For shares, use shareInfo.hash as the source; otherwise use this.source or state.req.source
+          const source = getters.isShare() ? state.shareInfo?.hash : (this.source || state.req.source);
+          // Use file's modified date if available, otherwise fall back to state.req.modified
+          const modified = this.modified || state.req.modified;
+          state.popupPreviewSourceInfo = { source, path: this.path, size: 'large', url: imageUrl, modified };
+        }
       }
       if (!getters.previewPerms().motionVideoPreview || !this.hasMotion) {
         return;
@@ -233,6 +265,17 @@ export default {
         // Preload the next image
         const nextIndex = (index + 1) % sequence.length;
         const preloadImg = new Image();
+        preloadImg.onload = () => {
+          // Track that this image was loaded (motion preview frames use the same path)
+          if (this.path) {
+            // For shares, use shareInfo.hash as the source; otherwise use this.source or state.req.source
+            const source = getters.isShare() ? state.shareInfo?.hash : (this.source || state.req.source);
+            const frameUrl = sequence[nextIndex];
+            // Use file's modified date if available, otherwise fall back to state.req.modified
+            const modified = this.modified || state.req.modified;
+            setImageLoaded(source, this.path, 'large', modified, frameUrl);
+          }
+        };
         preloadImg.src = sequence[nextIndex];
 
         // Schedule next update
@@ -247,6 +290,8 @@ export default {
       this.previewTimeouts.forEach(clearTimeout);
       this.previewTimeouts = [];
       mutations.setPreviewSource("");
+      // Clear popup preview source info when mouse leaves
+      state.popupPreviewSourceInfo = null;
       // UPDATED: Reset to the base thumbnail URL. The watcher will handle reloading it.
       this.updateImageTargetSrc();
     },
@@ -255,9 +300,13 @@ export default {
     },
     updateImageTargetSrc() {
       let newSrc = this.thumbnailUrl || PLACEHOLDER_URL;
-      if (this.showLargeIcon) {
-        newSrc = (this.thumbnailUrl ? this.thumbnailUrl + "&size=large" : "") || PLACEHOLDER_URL;
+      
+      // If we need large thumbnails and have a thumbnail URL, append &size=large
+      // Otherwise use the URL as-is (defaults to small)
+      if (this.thumbnailUrl && this.showLargeIcon) {
+        newSrc = this.thumbnailUrl + "&size=large";
       }
+      
       if (this.imageTargetSrc !== newSrc) {
         this.imageTargetSrc = newSrc;
       }
