@@ -35,9 +35,7 @@ type Service struct {
 	fileCache     diskcache.Interface
 	cacheDir      string // Cache directory used for thumbnails and temp files
 	debug         bool
-	docGenMutex   sync.Mutex            // Mutex to serialize access to doc generation
-	docSemaphore  chan struct{}         // Semaphore for document generation
-	officeSem     chan struct{}         // Semaphore for office document processing
+	docGenMutex   sync.Mutex            // Mutex to serialize access to doc generation (required for CGO thread safety with go-fitz)
 	ffmpegService *ffmpeg.FFmpegService // Shared FFmpeg service for video and HEIC/JPEG fallback
 	imageSem      chan struct{}         // Semaphore for small image decode/encode (<8MB)
 	imageLargeSem chan struct{}         // Semaphore for large image decode/encode (>=8MB), nil if only 1 processor
@@ -118,40 +116,10 @@ func NewPreviewGenerator(concurrencyLimit int, cacheDir string) *Service {
 		fileCache:     fileCache,
 		cacheDir:      actualCacheDir,
 		debug:         settings.Config.Integrations.Media.Debug,
-		docSemaphore:  make(chan struct{}, 1), // must be 1 because cgo thread limit
-		officeSem:     make(chan struct{}, concurrencyLimit),
 		ffmpegService: ffmpegService,
 		imageSem:      imageSem,
 		imageLargeSem: imageLargeSem,
 	}
-}
-
-// Document semaphore methods
-func (s *Service) acquireDoc(ctx context.Context) error {
-	select {
-	case s.docSemaphore <- struct{}{}:
-		return nil
-	case <-ctx.Done():
-		return ctx.Err()
-	}
-}
-
-func (s *Service) releaseDoc() {
-	<-s.docSemaphore
-}
-
-// Office semaphore methods
-func (s *Service) acquireOffice(ctx context.Context) error {
-	select {
-	case s.officeSem <- struct{}{}:
-		return nil
-	case <-ctx.Done():
-		return ctx.Err()
-	}
-}
-
-func (s *Service) releaseOffice() {
-	<-s.officeSem
 }
 
 // Global image processor semaphore methods

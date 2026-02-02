@@ -28,14 +28,7 @@ func (s *Service) GenerateImageFromDoc(ctx context.Context, file iteminfo.Extend
 		return nil, ctx.Err()
 	}
 
-	// Acquire document semaphore
-	// Note: Global image processor semaphore is acquired at GeneratePreviewWithMD5 level
-	if err := s.acquireDoc(ctx); err != nil {
-		return nil, err
-	}
-	defer s.releaseDoc()
-
-	// 1. Serialize access to the entire go-fitz operation block
+	// Serialize access to the entire go-fitz operation block (required for CGO thread safety)
 	s.docGenMutex.Lock()
 	defer s.docGenMutex.Unlock()
 

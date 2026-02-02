@@ -15,12 +15,7 @@ func docEnabled() bool {
 }
 
 func (s *Service) GenerateImageFromDoc(ctx context.Context, file iteminfo.ExtendedFileInfo, tempFilePath string, pageNumber int) ([]byte, error) {
-	// Acquire document semaphore
-	if err := s.acquireDoc(ctx); err != nil {
-		return nil, err
-	}
-	defer s.releaseDoc()
-
+	// Serialize access (required for CGO thread safety, even though go-fitz is not available)
 	s.docGenMutex.Lock()
 	defer s.docGenMutex.Unlock()
 
