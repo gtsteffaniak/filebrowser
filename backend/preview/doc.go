@@ -29,6 +29,7 @@ func (s *Service) GenerateImageFromDoc(ctx context.Context, file iteminfo.Extend
 	}
 
 	// Acquire document semaphore
+	// Note: Global image processor semaphore is acquired at GeneratePreviewWithMD5 level
 	if err := s.acquireDoc(ctx); err != nil {
 		return nil, err
 	}

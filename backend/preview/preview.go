@@ -154,6 +154,43 @@ func (s *Service) releaseOffice() {
 	<-s.officeSem
 }
 
+// Global image processor semaphore methods
+// These are used to ensure FFmpeg and document operations also respect the global image processor limit
+func (s *Service) acquireImageSem(ctx context.Context) error {
+	select {
+	case s.imageSem <- struct{}{}:
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+}
+
+func (s *Service) releaseImageSem() {
+	<-s.imageSem
+}
+
+func (s *Service) acquireImageLargeSem(ctx context.Context) error {
+	if s.imageLargeSem == nil {
+		// Fall back to imageSem if imageLargeSem is not available (single processor case)
+		return s.acquireImageSem(ctx)
+	}
+	select {
+	case s.imageLargeSem <- struct{}{}:
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+}
+
+func (s *Service) releaseImageLargeSem() {
+	if s.imageLargeSem == nil {
+		// Fall back to imageSem if imageLargeSem is not available (single processor case)
+		s.releaseImageSem()
+		return
+	}
+	<-s.imageLargeSem
+}
+
 func StartPreviewGenerator(concurrencyLimit int, cacheDir string) error {
 	if service != nil {
 		logger.Errorf("WARNING: StartPreviewGenerator called multiple times! This will create multiple semaphores!")
@@ -362,6 +399,27 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 	}
 
 	// Check if context is cancelled before starting
+	if ctx.Err() != nil {
+		return nil, ctx.Err()
+	}
+
+	// Acquire global image processor semaphore for ALL operations
+	const largeFileSizeThreshold = 8 * 1024 * 1024 // 8MB
+	if file.Size >= largeFileSizeThreshold && service.imageLargeSem != nil {
+		// Large file path - use imageLargeSem
+		if err := service.acquireImageLargeSem(ctx); err != nil {
+			return nil, err
+		}
+		defer service.releaseImageLargeSem()
+	} else {
+		// Small file path or fallback - use imageSem
+		if err := service.acquireImageSem(ctx); err != nil {
+			return nil, err
+		}
+		defer service.releaseImageSem()
+	}
+
+	// Check if context is cancelled after acquiring semaphore
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	}

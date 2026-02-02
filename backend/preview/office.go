@@ -22,6 +22,8 @@ type officePreviewResponse struct {
 
 // GenerateOfficePreview generates a preview for an office document using OnlyOffice.
 func (s *Service) GenerateOfficePreview(ctx context.Context, filetype, key, title, url string) ([]byte, error) {
+	// Acquire office semaphore
+	// Note: Global image processor semaphore is acquired at GeneratePreviewWithMD5 level
 	if err := s.acquireOffice(ctx); err != nil {
 		return nil, err
 	}
