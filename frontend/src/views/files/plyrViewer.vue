@@ -206,7 +206,7 @@ export default {
         clickToPlay: true,
         resetOnEnd: true,
         preload: 'metadata',
-        iconUrl: globalVars.baseURL + 'static/img/plyr.svg',
+        iconUrl: globalVars.baseURL + 'public/static/img/plyr.svg',
       },
     };
   },
