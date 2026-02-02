@@ -144,7 +144,7 @@
       class="button no-select fb-shadow"
       :class="{ 'dark-mode': isDarkMode }"
     >
-      <action icon="info" :label="$t('general.info')" show="info" />
+      <action icon="info" :label="$t('general.info')" @action="showInfoHover"/>
       <action v-if="showGoToRaw" icon="open_in_new" :label="$t('general.openFile')" @action="goToRaw()" />
       <action v-if="shouldShowParentFolder()" icon="folder" :label="$t('buttons.openParentFolder')" @action="openParentFolder" />
       <action v-if="isPreview && permissions.modify" icon="mode_edit" :label="$t('general.rename')" @action="showRenameHoverForPreview" />
