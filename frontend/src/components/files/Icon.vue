@@ -223,8 +223,9 @@ export default {
       targetImage.src = url;
     },
     handleMouseEnter() {
+      // Always use large thumbnails for hover/popup preview
       const imageUrl = this.thumbnailUrl + "&size=large";
-      console.log('[Icon] Hover - setting popup preview to large thumbnail:', imageUrl.substring(0, 100) + (imageUrl.length > 100 ? '...' : ''));
+      
       if (this.imageState == "loaded") {
         mutations.setPreviewSource(imageUrl);
         // Store source/path/url/modified in state so PopupPreview can track it when image actually loads
@@ -299,9 +300,13 @@ export default {
     },
     updateImageTargetSrc() {
       let newSrc = this.thumbnailUrl || PLACEHOLDER_URL;
-      if (this.showLargeIcon) {
-        newSrc = (this.thumbnailUrl ? this.thumbnailUrl + "&size=large" : "") || PLACEHOLDER_URL;
+      
+      // If we need large thumbnails and have a thumbnail URL, append &size=large
+      // Otherwise use the URL as-is (defaults to small)
+      if (this.thumbnailUrl && this.showLargeIcon) {
+        newSrc = this.thumbnailUrl + "&size=large";
       }
+      
       if (this.imageTargetSrc !== newSrc) {
         this.imageTargetSrc = newSrc;
       }

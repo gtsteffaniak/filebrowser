@@ -91,72 +91,30 @@ export default {
   },
   computed: {
     source() {
-      if (!state) {
-        console.warn('[ExtendedImage] source computed: state is undefined');
-        return undefined;
-      }
-      if (!state.req) {
-        console.warn('[ExtendedImage] source computed: state.req is undefined', { stateKeys: Object.keys(state || {}) });
-        return undefined;
-      }
-      return state.req.source;
+      return state.req?.source;
     },
     path() {
-      if (!state) {
-        console.warn('[ExtendedImage] path computed: state is undefined');
-        return undefined;
-      }
-      if (!state.req) {
-        console.warn('[ExtendedImage] path computed: state.req is undefined', { stateKeys: Object.keys(state || {}) });
-        return undefined;
-      }
-      return state.req.path;
+      return state.req?.path;
     },
     isLoaded() {
       return !("preview-img" in (state?.loading || {}));
     },
     thumbnailUrl() {
-      if (!state) {
-        console.warn('[ExtendedImage] thumbnailUrl computed: state is undefined');
-        return null;
-      }
-      if (!state.req) {
-        console.warn('[ExtendedImage] thumbnailUrl computed: state.req is undefined', { 
-          stateKeys: Object.keys(state || {}),
-          hasShareInfo: !!state.shareInfo,
-          shareInfoHash: state.shareInfo?.hash
-        });
+      if (!state?.req) {
         return null;
       }
       if (!this.path || !state.req.hasPreview) {
-        console.log('[ExtendedImage] thumbnailUrl: No path or no preview', { path: this.path, hasPreview: state.req?.hasPreview });
         return null;
       }
       // Don't use thumbnail for HEIC files that need conversion
       const showFullSizeHeic = state.req?.type === "image/heic" && !state.isSafari && globalVars.mediaAvailable && !globalVars.disableHeicConversion;
       if (showFullSizeHeic) {
-        console.log('[ExtendedImage] thumbnailUrl: Skipping thumbnail for HEIC conversion');
         return null;
       }
       // Get cached thumbnail URL (prefers large, falls back to small)
       // For shares, use shareInfo.hash as the source; otherwise use this.source
-      const isShare = getters.isShare();
-      const source = isShare ? state.shareInfo?.hash : this.source;
-      console.log('[ExtendedImage] thumbnailUrl computed - share context:', {
-        isShare,
-        shareInfoExists: !!state.shareInfo,
-        shareInfoHash: state.shareInfo?.hash,
-        source: this.source,
-        finalSource: source
-      });
-      const cachedUrl = getBestCachedImage(source, this.path, state.req?.modified);
-      console.log('[ExtendedImage] thumbnailUrl computed:', {
-        source: source || 'unknown',
-        path: this.path,
-        modified: state.req?.modified,
-        cachedUrl: cachedUrl || 'null'
-      });
-      return cachedUrl;
+      const source = getters.isShare() ? state.shareInfo?.hash : this.source;
+      return getBestCachedImage(source, this.path, state.req?.modified);
     },
   },
   mounted() {
@@ -234,7 +192,6 @@ export default {
         }
       }
       
-      console.error('[ExtendedImage] Failed to load image:', this.src);
       this.imageLoaded = true;
       this.fullImageLoaded = true;
       mutations.setLoading("preview-img", false);
@@ -509,7 +466,6 @@ export default {
           // Set a timeout to handle cases where image never loads
           this.loadTimeout = setTimeout(() => {
             if (!this.fullImageLoaded && !this.imageLoaded) {
-              console.warn('[ExtendedImage] Image load timeout after 30s, showing anyway');
               // Show the image even if load event didn't fire (might be partially loaded)
               this.fullImageLoaded = true;
               mutations.setLoading("preview-img", false);

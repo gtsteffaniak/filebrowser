@@ -76,15 +76,17 @@ export function getDownloadURL(share, files, inline=false) {
 // Generate a preview URL for public shares
 /**
  * @param {string} path
+ * @param {string} size - The size parameter (small, large, original). Omit for default (small).
  * @returns {string}
  */
-export function getPreviewURL(path,size="small") {
+export function getPreviewURL(path, size) {
   try {
     const params = {
       path: encodeURIComponent(path),
-      size: size,
       hash: state.shareInfo.hash,
       inline: 'true',
+      // Only add size parameter if specified and not the default
+      ...(size && size !== 'small' && { size: size }),
       ...(state.shareInfo.token && { token: state.shareInfo.token })
     }
     const apiPath = getPublicApiPath('preview', params)

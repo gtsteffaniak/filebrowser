@@ -1,12 +1,14 @@
 <template>
   <div v-if="shareInfo.shareType != 'upload'" class="no-select" :style="containerStyles">
+    <!-- Show loading spinner while loading OR if we haven't loaded any data yet -->
     <div v-if="loading">
       <h2 class="message delayed">
         <LoadingSpinner size="medium" />
         <span>{{ $t("general.loading", { suffix: "..." }) }}</span>
       </h2>
     </div>
-    <div v-else>
+    <!-- Show empty state only when NOT loading AND data has been loaded AND there are no items -->
+    <div v-else-if="numDirs + numFiles == 0 && req.name">
       <div
         ref="listingView"
         class="listing-items font-size-large"
@@ -16,7 +18,6 @@
           dropping: isDragging,
           'rectangle-selecting': isRectangleSelecting
         }"
-        v-if="numDirs + numFiles == 0"
       >
         <h2 class="message">
           <i class="material-icons">sentiment_dissatisfied</i>
@@ -38,8 +39,9 @@
           multiple
         />
       </div>
+    </div>
+    <div v-else>
       <div
-        v-else
         ref="listingView"
         :class="{
           'add-padding': isStickySidebar,
@@ -298,11 +300,13 @@ export default {
     items() {
       return getters.reqItems();
     },
-    numDirs() {
-      return getters.reqNumDirs();
-    },
     numFiles() {
-      return getters.reqNumFiles();
+      const count = getters.reqNumFiles();
+      return count;
+    },
+    numDirs() {
+      const count = getters.reqNumDirs();
+      return count;
     },
     dirs() {
       return this.items.dirs;
@@ -330,7 +334,8 @@ export default {
       return state.req;
     },
     loading() {
-      return getters.isLoading();
+      const isLoading = getters.isLoading();
+      return isLoading;
     },
     rectangleStyle() {
       if (!this.isRectangleSelecting) return { display: 'none' };

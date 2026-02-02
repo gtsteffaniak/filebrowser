@@ -181,50 +181,6 @@ export default {
         true,
       );
     },
-    largeThumbnailUrl() {
-      // Only return thumbnail URL if the file has a preview and we're showing an image
-      if (!state.req.hasPreview || !this.showImage) {
-        return null;
-      }
-      
-      // Don't use thumbnail for PDF-convertable files or HEIC files that need conversion
-      const showFullSizeHeic = state.req.type === "image/heic" && !state.isSafari && globalVars.mediaAvailable && !globalVars.disableHeicConversion;
-      if (this.pdfConvertable || showFullSizeHeic) {
-        return null;
-      }
-      
-      // Generate large thumbnail URL
-      if (getters.isShare()) {
-        return publicApi.getPreviewURL(state.req.path, "large");
-      }
-      return filesApi.getPreviewURL(
-        state.req.source,
-        state.req.path,
-        state.req.modified,
-      ) + "&size=large";
-    },
-    smallThumbnailUrl() {
-      // Only return thumbnail URL if the file has a preview and we're showing an image
-      if (!state.req.hasPreview || !this.showImage) {
-        return null;
-      }
-      
-      // Don't use thumbnail for PDF-convertable files or HEIC files that need conversion
-      const showFullSizeHeic = state.req.type === "image/heic" && !state.isSafari && globalVars.mediaAvailable && !globalVars.disableHeicConversion;
-      if (this.pdfConvertable || showFullSizeHeic) {
-        return null;
-      }
-      
-      // Generate small thumbnail URL
-      if (getters.isShare()) {
-        return publicApi.getPreviewURL(state.req.path, "small");
-      }
-      return filesApi.getPreviewURL(
-        state.req.source,
-        state.req.path,
-        state.req.modified,
-      ) + "&size=small";
-    },
     isDarkMode() {
       return getters.isDarkMode();
     },
