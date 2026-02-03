@@ -134,7 +134,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 			return errToStatus(err), fmt.Errorf("error fetching share from server")
 		}
 		file.Token = link.Token
-		file.Source = ""
+		file.Source = link.Hash
 		file.Hash = link.Hash
 		if !link.EnableOnlyOffice || link.DisableFileViewer || reachedDownloadsLimit {
 			file.OnlyOfficeId = ""
