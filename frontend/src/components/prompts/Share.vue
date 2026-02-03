@@ -157,7 +157,7 @@
               :description="$t('share.allowDeleteDescription')" aria-label="allow deleting files toggle" />
           </div>
         </div>
-        <SettingsItem :title="showMoreExpanded ? $t('buttons.showLess') : $t('buttons.showMore')" :collapsable="true" :start-collapsed="true" @toggle="showMoreExpanded = $event">
+        <SettingsItem :title="showMoreExpanded ? $t('buttons.showLess') : $t('buttons.showMore')" :collapsable="true" :start-collapsed="!showMoreExpanded" @toggle="showMoreExpanded = $event">
           <div class="settings-items">
             <p>
               {{ $t("prompts.shareTheme") }}

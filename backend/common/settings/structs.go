@@ -269,9 +269,10 @@ type Frontend struct {
 	ExternalLinks         []ExternalLink `json:"externalLinks"`
 	DisableNavButtons     bool           `json:"disableNavButtons"` // disable the nav buttons in the sidebar
 	Styling               StylingConfig  `json:"styling"`
-	Favicon               string         `json:"favicon"`     // path to a favicon to use for the frontend
-	Description           string         `json:"description"` // description that shows up in html head meta description
-	LoginIcon             string         `json:"loginIcon"`   // path to an image file for the login page icon
+	Favicon               string         `json:"favicon"`             // path to a favicon to use for the frontend
+	Description           string         `json:"description"`         // description that shows up in html head meta description
+	LoginIcon             string         `json:"loginIcon"`           // path to an image file for the login page icon
+	OIDCLoginButtonText   string         `json:"oidcLoginButtonText"` // text to display on the OIDC login button
 }
 
 type StylingConfig struct {
