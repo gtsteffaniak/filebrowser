@@ -2,8 +2,6 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
-## v1.2.2-beta
-
  **New Features**:
  - Resizable sidebar (#1896)
  - OIDC Authentication: Change Button Text via `frontend.oidcLoginButtonText` (#1708)
@@ -34,6 +32,7 @@ All notable changes to this project will be documented in this file. For commit 
  - thumbnail generation cpu/memory and concurrency bug.
    - added 75MB filesize limit for image previews
    - optimized concurrency for large vs small images
+
 
 ## v1.2.1-beta
 

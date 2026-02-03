@@ -406,6 +406,10 @@ export default {
     },
     /** @param {MouseEvent} event */
     onRightClick(event) {
+      if (!this.updateGlobalState) {
+        event.preventDefault();
+        return;
+      }
       event.preventDefault(); // Prevent default context menu
       // If one or fewer items are selected, reset the selection
       if (this.updateGlobalState) {
