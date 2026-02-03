@@ -1,6 +1,6 @@
 <template>
   <div class="card headline-card">
-    <div v-if="isDataLoaded" class="card-wrapper user-card">
+    <div v-if="isDataLoaded && shouldShowLogin" class="card-wrapper user-card">
       <div v-if="settingsAllowed" class="inner-card">
         <a href="/settings#profile-main" class="person-button action button"
           @click.prevent="navigateTo('/settings', '#profile-main')"
@@ -128,10 +128,9 @@ export default {
     shouldShowLogin() {
       if (getters.isShare()) {
         // Don't show login until shareInfo is fully loaded
-        if (!state.shareInfo || state.shareInfo.disableLoginOption === undefined) {
+        if (state.shareInfo && state.shareInfo.disableLoginOption == undefined) {
           return false;
         }
-        return !state.shareInfo.disableLoginOption;
       }
       return true;
     },
@@ -330,13 +329,13 @@ export default {
   flex-direction: row !important;
   justify-content: space-between !important;
   color: var(--textPrimary);
+  margin-bottom: 0.5em;
 }
 
 .quick-toggles {
   display: flex;
   justify-content: space-evenly;
   width: 100%;
-  margin-top: 0.5em !important;
   color: var(--textPrimary);
 }
 

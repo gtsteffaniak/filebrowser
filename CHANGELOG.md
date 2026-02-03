@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **New Features**:
  - Resizable sidebar (#1896)
+ - OIDC Authentication: Change Button Text via `frontend.oidcLoginButtonText` (#1708)
  - improved favicon processing (#1899)
    - supports more formats
    - supports larger images
@@ -19,9 +20,10 @@ All notable changes to this project will be documented in this file. For commit 
  - adjustments to the startup behavior for sqlite index for reusing the previous database on startup
  - CTRL + B disables sticky sidebar forever (#1869)
  - added context menu back to duplicate finder
- - Sharing a link for uploads - folder/file access and UX polishing #1902
+ - Sharing a link for uploads - folder/file access and UX polishing (#1902)
  - improved listing view and scrolling performance
  - improved image viewer which will utilize recent thumbnails as a placeholder when loading the full image.
+ - Small reorganization of "Share" settings to make the popup clear (#1826)
 
  **BugFixes**:
  - Added docker default `FILEBROWSER_CONFIG="/home/filebrowser/data/config.yaml"` back -- mistakenly removed. see https://filebrowserquantum.com/en/docs/getting-started/config/#3-default-locations. (#1891)

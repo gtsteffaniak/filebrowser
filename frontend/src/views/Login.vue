@@ -56,8 +56,7 @@
           <div v-if="oidcAvailable" class="password-entry">
             <div v-if="passwordAvailable" class="or">{{ $t("login.or") }}</div>
             <a :href="loginURL" class="button button--block direct-login">
-              <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-              OpenID Connect
+              {{ getLoginButtonText() }}
             </a>
           </div>
         </div>
@@ -259,6 +258,9 @@ export default {
     });
   },
   methods: {
+    getLoginButtonText() {
+      return globalVars.oidcLoginButtonText || "OpenID Connect";
+    },
     beforeEnter(el) {
       el.style.height = '0';
       el.style.opacity = '0';
