@@ -125,7 +125,13 @@ export interface StoreState {
   editorSaveHandler: any;
   realtimeActive: boolean | undefined;
   realtimeDownCount: number;
-  popupPreviewSource: string;
+  popupPreviewSourceInfo: {
+    source: string;
+    path: string;
+    size: string;
+    url: string;
+    modified: string;
+  } | null;
   shareInfo: ShareInfoObject;
   sources: {
     current: string;

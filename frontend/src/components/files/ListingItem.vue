@@ -39,6 +39,8 @@
         :filename="name"
         :hasPreview="hasPreview"
         :modified="modified"
+        :path="path"
+        :source="source"
       />
     </div>
 
@@ -103,6 +105,8 @@
         :filename="name"
         :hasPreview="hasPreview"
         :modified="modified"
+        :path="path"
+        :source="source"
       />
     </div>
 

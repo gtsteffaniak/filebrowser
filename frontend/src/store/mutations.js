@@ -73,10 +73,14 @@ export const mutations = {
     state.req.hasUpdate = true;
   },
   setPreviewSource: (value) => {
-    if (value === state.popupPreviewSource) {
+    if (value === state.popupPreviewSourceInfo?.url) {
       return;
     }
-    state.popupPreviewSource = value;
+    if (value) {
+      state.popupPreviewSourceInfo = { ...state.popupPreviewSourceInfo, url: value };
+    } else {
+      state.popupPreviewSourceInfo = null;
+    }
     emitStateChanged();
   },
   updateListing: (value) => {

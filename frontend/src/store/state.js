@@ -32,7 +32,6 @@ export const state = reactive({
   editorSaveHandler: null, // Function to save editor content
   realtimeActive: undefined,
   realtimeDownCount: 0,
-  popupPreviewSource: "",
   popupPreviewSourceInfo: null, // { source, path, size, url, modified } - set by Icon when hovering
   sources: {
     current: "",
