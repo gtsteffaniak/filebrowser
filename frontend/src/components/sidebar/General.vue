@@ -52,12 +52,18 @@
     <transition v-if="shareInfo.shareType !== 'upload'" name="expand" @before-enter="beforeEnter" @enter="enter"
       @leave="leave">
       <div v-if="!hideSidebarFileActions && isListingView" class="card-wrapper">
-        <button @click="openContextMenu" aria-label="File-Actions" class="action file-actions">
+        <button @click="openContextMenu" aria-label="File-Actions" data-testid="file-actions-button" class="action file-actions">
           <i class="material-icons">add</i>
           {{ $t("sidebar.fileActions") }}
         </button>
       </div>
     </transition>
+    <!-- Hidden marker for tests to detect when file actions should be available -->
+    <div v-if="isDataLoaded && isListingView && shareInfo.shareType !== 'upload'" 
+         data-testid="file-actions-ready" 
+         style="display: none;" 
+         :data-hidden="hideSidebarFileActions">
+    </div>
   </div>
 
   <!-- Sidebar Links Component (replaces sources) -->

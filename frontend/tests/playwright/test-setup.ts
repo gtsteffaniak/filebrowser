@@ -5,8 +5,29 @@ import { test as base, expect, Page } from "@playwright/test";
  * Can be used in both test fixtures and global setup
  */
 export async function openContextMenuHelper(page: Page): Promise<void> {
-  await page.locator('button[aria-label="File-Actions"]').waitFor({ state: 'visible' });
-  await page.locator('button[aria-label="File-Actions"]').click();
+  // First, wait for the page to be in a state where file actions can be shown
+  // This marker element is always present when conditions are met, regardless of transition state
+  const readyMarker = page.locator('[data-testid="file-actions-ready"]');
+  
+  try {
+    await readyMarker.waitFor({ state: 'attached', timeout: 5000 });
+    
+    // Check if the button should be hidden
+    const isHidden = await readyMarker.getAttribute('data-hidden');
+    if (isHidden === 'true') {
+      throw new Error('File actions button is hidden (user does not have create permissions or is on invalid share)');
+    }
+  } catch (error: any) {
+    if (error.message.includes('hidden')) {
+      throw error;
+    }
+    throw new Error(`File actions are not available on this page. Check that you are on a listing view with appropriate permissions. Original error: ${error.message}`);
+  }
+  
+  // Now wait for the actual button to be visible (accounting for transition)
+  const fileActionsButton = page.locator('[data-testid="file-actions-button"]');
+  await fileActionsButton.waitFor({ state: 'visible', timeout: 5000 });
+  await fileActionsButton.click();
 }
 
 export const test = base.extend<{
