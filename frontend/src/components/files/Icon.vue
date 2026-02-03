@@ -250,7 +250,7 @@ export default {
       let index = 0;
 
       const updateThumbnail = () => {
-        if (state.popupPreviewSource === "") {
+        if (state.popupPreviewSourceInfo?.url === "") {
           this.previewTimeouts.forEach(clearTimeout);
           this.previewTimeouts = [];
           return;

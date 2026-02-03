@@ -78,7 +78,6 @@ export function getBestCachedImage(source, path, modified) {
   if (imageCache.has(smallKey)) {
     return imageCache.get(smallKey);
   }
-
   return null;
 }
 

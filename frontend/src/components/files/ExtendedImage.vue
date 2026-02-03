@@ -1,10 +1,10 @@
 <template>
   <div class="image-ex-container" ref="container" @touchstart="touchStart" @touchmove="touchMove" @touchend="touchEnd" @dblclick="zoomAuto"
     @mousedown="mousedownStart" @mousemove="mouseMove" @mouseup="mouseUp" @wheel="wheelMove">
-    <!-- Thumbnail placeholder (shown while full image loads, only if thumbnail exists) -->
+    <!-- Thumbnail placeholder (shown while full image loads, only if cached thumbnail exists) -->
     <img 
-      v-if="thumbnailUrl && !fullImageLoaded && !isTiff" 
-      :src="thumbnailUrl" 
+      v-if="cachedThumbnailUrl && !fullImageLoaded && !isTiff" 
+      :src="cachedThumbnailUrl" 
       class="image-ex-img" 
       ref="thumbnail"
     />
@@ -15,21 +15,21 @@
     </div>
 
     <!-- Full image: 
-         - If thumbnail exists: hidden until loaded (replaces thumbnail)
-         - If no thumbnail: visible immediately (progressive loading) -->
+         - Always loading in background via JavaScript
+         - Hidden until loaded if thumbnail exists, otherwise visible for progressive loading -->
     <img 
       v-if="!isTiff" 
       class="image-ex-img" 
       ref="imgex" 
       @load="onLoad" 
       @error="onImageError" 
-      :style="{ display: (thumbnailUrl && !fullImageLoaded) ? 'none' : 'block' }" 
+      :style="{ display: (cachedThumbnailUrl && !fullImageLoaded) ? 'none' : 'block' }" 
     />
     <canvas 
       v-else 
       ref="imgex" 
       class="image-ex-img" 
-      :style="{ display: (thumbnailUrl && !fullImageLoaded) ? 'none' : 'block' }"
+      :style="{ display: (cachedThumbnailUrl && !fullImageLoaded) ? 'none' : 'block' }"
     ></canvas>
   </div>
 </template>
@@ -99,7 +99,7 @@ export default {
     isLoaded() {
       return !("preview-img" in (state?.loading || {}));
     },
-    thumbnailUrl() {
+    cachedThumbnailUrl() {
       if (!state?.req) {
         return null;
       }

@@ -1,6 +1,6 @@
 <template>
-  <div class="popup-preview" v-show="source" ref="popup" :style="popupStyle">
-    <img :src="source" alt="Popup image" @load="onImageLoad" />
+  <div class="popup-preview" v-show="sourceInfo" ref="popup" :style="popupStyle">
+    <img v-if="sourceInfo" :src="sourceInfo.url" alt="Popup image" @load="onImageLoad" />
   </div>
 </template>
 
@@ -21,7 +21,7 @@ export default {
     };
   },
   watch: {
-    source(newVal) {
+    sourceInfo(newVal) {
       if (newVal) {
         this.$nextTick(() => {
           this.positionPopup();
@@ -30,8 +30,8 @@ export default {
     },
   },
   computed: {
-    source() {
-      return state.popupPreviewSource;
+    sourceInfo() {
+      return state.popupPreviewSourceInfo;
     },
   },
   mounted() {
@@ -43,12 +43,9 @@ export default {
   methods: {
     onImageLoad() {
       // Track that this image was loaded
-      if (state.popupPreviewSourceInfo) {
-        const { source, path, size, url, modified } = state.popupPreviewSourceInfo;
-        const fileModified = modified || state.req.modified;
-        setImageLoaded(source, path, size, fileModified, url);
-        // Clear the info after tracking
-        state.popupPreviewSourceInfo = null;
+      if (this.sourceInfo) {
+        const { source, path, size, url, modified } = this.sourceInfo;
+        setImageLoaded(source, path, size, modified, url);
       }
     },
     updateCursorPosition(event) {
@@ -57,7 +54,7 @@ export default {
       if (!state.isMobile) this.positionPopup();
     },
     positionPopup() {
-      if (!this.source) return;
+      if (!this.sourceInfo) return;
       const popup = this.$refs.popup;
       if (!popup) return;
 
