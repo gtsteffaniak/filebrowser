@@ -36,8 +36,8 @@ import { mutations, state, getters } from "@/store";
 import { setImageLoaded } from "@/utils/imageCache";
 
 // NEW: Define placeholder and error image URLs for easy configuration
-const PLACEHOLDER_URL = globalVars.baseURL + "static/img/placeholder.png"; // A generic loading placeholder
-const ERROR_URL = globalVars.baseURL + "static/img/placeholder.png";
+const PLACEHOLDER_URL = globalVars.baseURL + "public/static/img/placeholder.png"; // A generic loading placeholder
+const ERROR_URL = globalVars.baseURL + "public/static/img/placeholder.png";
 
 export default {
   name: "Icon",

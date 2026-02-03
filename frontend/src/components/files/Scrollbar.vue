@@ -1,5 +1,5 @@
 <template>
-  <div class="scroll-wrapper" ref="wrapper">
+  <div class="scroll-wrapper" :class="{ 'halloween-theme': eventTheme === 'halloween' }" :style="halloweenBackgroundStyle" ref="wrapper">
     <slot />
     <div
       class="custom-scrollbar"
@@ -35,6 +35,7 @@
 
 <script>
 import { state, mutations, getters } from "@/store";
+import { globalVars } from "@/utils/constants";
 
 const offsetFromBottomListing = 110;
 const offsetFromBottomFull = 75;
@@ -62,6 +63,18 @@ export default {
     },
     isFolder() {
       return this.category() === "folders";
+    },
+    eventTheme() {
+      return getters.eventTheme();
+    },
+    halloweenBackgroundStyle() {
+      if (this.eventTheme === 'halloween') {
+        return {
+          backgroundImage: `url("${globalVars.baseURL}static/img/halloween-pattern.svg")`,
+          backgroundRepeat: 'repeat'
+        };
+      }
+      return {};
     },
   },
   methods: {
