@@ -80,12 +80,20 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid source encoding: %v", err)
 	}
+
+	// Sanitize path to prevent path traversal attacks
+	// Rule 1: Do Not Use User Input in File Paths (without validation)
+	safePath, err := utils.SanitizeUserPath(path)
+	if err != nil {
+		return http.StatusForbidden, fmt.Errorf("invalid path: %v", err)
+	}
+
 	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, source)
 	if err != nil {
 		return http.StatusForbidden, err
 	}
 	userscope = strings.TrimRight(userscope, "/")
-	scopePath := utils.JoinPathAsUnix(userscope, path)
+	scopePath := utils.JoinPathAsUnix(userscope, safePath)
 	getContent := r.URL.Query().Get("content") == "true"
 	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
 		Username:                 d.user.Username,
@@ -168,6 +176,14 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 	if path == "/" {
 		return http.StatusForbidden, nil
 	}
+
+	// Sanitize path to prevent path traversal attacks
+	// Rule 1: Do Not Use User Input in File Paths (without validation)
+	safePath, err := utils.SanitizeUserPath(path)
+	if err != nil {
+		return http.StatusForbidden, fmt.Errorf("invalid path: %v", err)
+	}
+
 	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, source)
 	if err != nil {
 		return http.StatusForbidden, err
@@ -175,7 +191,7 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 	userscope = strings.TrimRight(userscope, "/")
 	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
 		Username:   d.user.Username,
-		Path:       utils.JoinPathAsUnix(userscope, path),
+		Path:       utils.JoinPathAsUnix(userscope, safePath),
 		Source:     source,
 		Expand:     false,
 		ShowHidden: d.user.ShowHidden,
@@ -232,6 +248,15 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 			logger.Debugf("invalid path encoding: %v", err)
 			return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 		}
+
+		// Sanitize path to prevent path traversal attacks
+		// Rule 1: Do Not Use User Input in File Paths (without validation)
+		safePath, err := utils.SanitizeUserPath(unescapedPath)
+		if err != nil {
+			return http.StatusForbidden, fmt.Errorf("invalid path: %v", err)
+		}
+		unescapedPath = safePath
+
 		if !d.user.Permissions.Create {
 			return http.StatusForbidden, fmt.Errorf("user is not allowed to create or modify")
 		}
@@ -436,6 +461,14 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	if strings.HasSuffix(path, "/") {
 		return http.StatusMethodNotAllowed, nil
 	}
+
+	// Sanitize path to prevent path traversal attacks
+	// Rule 1: Do Not Use User Input in File Paths (without validation)
+	safePath, err := utils.SanitizeUserPath(path)
+	if err != nil {
+		return http.StatusForbidden, fmt.Errorf("invalid path: %v", err)
+	}
+
 	// Strip trailing slash from userscope to prevent double slashes
 	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, source)
 	if err != nil {
@@ -446,12 +479,12 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	if idx == nil {
 		return http.StatusNotFound, fmt.Errorf("source %s not found", source)
 	}
-	if store.Access != nil && !store.Access.Permitted(idx.Path, path, d.user.Username) {
-		logger.Debugf("user %s denied access to path %s", d.user.Username, path)
-		return http.StatusForbidden, fmt.Errorf("access denied to path %s", path)
+	if store.Access != nil && !store.Access.Permitted(idx.Path, safePath, d.user.Username) {
+		logger.Debugf("user %s denied access to path %s", d.user.Username, safePath)
+		return http.StatusForbidden, fmt.Errorf("access denied to path %s", safePath)
 	}
 
-	err = files.WriteFile(source, utils.JoinPathAsUnix(userscope, path), r.Body)
+	err = files.WriteFile(source, utils.JoinPathAsUnix(userscope, safePath), r.Body)
 	return errToStatus(err), err
 }
 
@@ -507,6 +540,20 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	if dst == "/" || src == "/" {
 		return http.StatusForbidden, fmt.Errorf("forbidden: source or destination is attempting to modify root")
 	}
+
+	// Sanitize paths to prevent path traversal attacks
+	// Rule 1: Do Not Use User Input in File Paths (without validation)
+	safeSrc, err := utils.SanitizeUserPath(src)
+	if err != nil {
+		return http.StatusForbidden, fmt.Errorf("invalid source path: %v", err)
+	}
+	src = safeSrc
+
+	safeDst, err := utils.SanitizeUserPath(dst)
+	if err != nil {
+		return http.StatusForbidden, fmt.Errorf("invalid destination path: %v", err)
+	}
+	dst = safeDst
 
 	userscopeDst, err := settings.GetScopeFromSourceName(d.user.Scopes, dstIndex)
 	if err != nil {

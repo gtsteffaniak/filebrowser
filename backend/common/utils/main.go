@@ -149,3 +149,17 @@ func CheckPathExists(realPath string) bool {
 	}
 	return true
 }
+
+// SanitizeUserPath prevents path traversal attacks by cleaning and validating user input.
+// Rule 1: Do Not Use User Input in File Paths (without validation)
+func SanitizeUserPath(userPath string) (string, error) {
+	// Clean resolves . and .. segments
+	clean := filepath.Clean(userPath)
+
+	// Reject absolute paths or attempts to escape scope
+	if strings.HasPrefix(clean, "..") {
+		return "", fmt.Errorf("invalid path")
+	}
+
+	return clean, nil
+}

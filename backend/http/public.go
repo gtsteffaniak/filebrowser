@@ -94,17 +94,37 @@ func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 			if len(splitFile) == 2 {
 				source := splitFile[0]
 				path := splitFile[1]
+
+				// Sanitize path to prevent path traversal attacks
+				// Rule 1: Do Not Use User Input in File Paths (without validation)
+				safePath, pathErr := utils.SanitizeUserPath(path)
+				if pathErr != nil {
+					return http.StatusForbidden, fmt.Errorf("invalid path")
+				}
+
 				// Join the share path with the requested path
-				filePath := utils.JoinPathAsUnix(d.share.Path, path)
+				filePath := utils.JoinPathAsUnix(d.share.Path, safePath)
 				fileList = append(fileList, source+"::"+filePath)
 			} else {
+				// Sanitize path to prevent path traversal attacks
+				safePath, pathErr := utils.SanitizeUserPath(file)
+				if pathErr != nil {
+					return http.StatusForbidden, fmt.Errorf("invalid path")
+				}
+
 				// Fallback: treat as plain path
-				filePath := utils.JoinPathAsUnix(d.share.Path, file)
+				filePath := utils.JoinPathAsUnix(d.share.Path, safePath)
 				fileList = append(fileList, actualSourceName+"::"+filePath)
 			}
 		} else {
+			// Sanitize path to prevent path traversal attacks
+			safePath, pathErr := utils.SanitizeUserPath(file)
+			if pathErr != nil {
+				return http.StatusForbidden, fmt.Errorf("invalid path")
+			}
+
 			// Plain path without source prefix - use the actual source name from share
-			filePath := utils.JoinPathAsUnix(d.share.Path, file)
+			filePath := utils.JoinPathAsUnix(d.share.Path, safePath)
 			fileList = append(fileList, actualSourceName+"::"+filePath)
 		}
 	}
@@ -237,8 +257,16 @@ func publicPreviewHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	if err != nil {
 		return http.StatusNotFound, fmt.Errorf("source not available")
 	}
+
+	// Sanitize path to prevent path traversal attacks
+	// Rule 1: Do Not Use User Input in File Paths (without validation)
+	safePath, err := utils.SanitizeUserPath(d.fileInfo.Path)
+	if err != nil {
+		return http.StatusForbidden, fmt.Errorf("invalid path")
+	}
+
 	fileInfo, err := FileInfoFasterFunc(utils.FileOptions{
-		Path:       utils.JoinPathAsUnix(d.share.Path, d.fileInfo.Path),
+		Path:       utils.JoinPathAsUnix(d.share.Path, safePath),
 		Source:     source,
 		Metadata:   true,
 		AlbumArt:   true,

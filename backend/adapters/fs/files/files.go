@@ -28,10 +28,21 @@ import (
 
 func FileInfoFaster(opts utils.FileOptions, access *access.Storage) (*iteminfo.ExtendedFileInfo, error) {
 	response := &iteminfo.ExtendedFileInfo{}
+	
+	// Get index
 	idx := indexing.GetIndex(opts.Source)
 	if idx == nil {
 		return response, fmt.Errorf("could not get index: %v ", opts.Source)
 	}
+
+	// Validate path to prevent traversal attacks
+	// Rule 1: Do Not Use User Input in File Paths (without validation)
+	// Clean the path and check for escape attempts
+	cleanPath := filepath.Clean(opts.Path)
+	if strings.Contains(cleanPath, "..") {
+		return response, fmt.Errorf("invalid path: path traversal detected")
+	}
+
 	if !strings.HasPrefix(opts.Path, "/") {
 		opts.Path = "/" + opts.Path
 	}

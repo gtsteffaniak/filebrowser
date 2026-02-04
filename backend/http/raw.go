@@ -120,7 +120,14 @@ func addFile(path string, d *requestContext, tarWriter *tar.Writer, zipWriter *z
 	source := splitFile[0]
 	path = splitFile[1]
 
-	var err error
+	// Sanitize path to prevent path traversal attacks
+	// Rule 1: Do Not Use User Input in File Paths (without validation)
+	safePath, err := utils.SanitizeUserPath(path)
+	if err != nil {
+		return fmt.Errorf("invalid path: %v", err)
+	}
+	path = safePath
+
 	if d.share == nil {
 		var userScope string
 		userScope, err = settings.GetScopeFromSourceName(d.user.Scopes, source)
@@ -290,8 +297,16 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 
 	firstFileSource := splitFile[0]
 	firstFilePath := splitFile[1]
+
+	// Sanitize path to prevent path traversal attacks
+	// Rule 1: Do Not Use User Input in File Paths (without validation)
+	safePath, err := utils.SanitizeUserPath(firstFilePath)
+	if err != nil {
+		return http.StatusForbidden, fmt.Errorf("invalid path: %v", err)
+	}
+	firstFilePath = safePath
+
 	// decode url encoded source name
-	var err error
 	var userscope string
 	fileName := filepath.Base(firstFilePath)
 

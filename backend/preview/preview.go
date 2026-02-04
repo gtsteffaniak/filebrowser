@@ -37,6 +37,7 @@ type Service struct {
 	officeSem    chan struct{} // Semaphore for office document processing
 	videoService *ffmpeg.FFmpegService
 	imageService *ffmpeg.FFmpegService
+	globalLimit  chan struct{}
 }
 
 func NewPreviewGenerator(concurrencyLimit int, cacheDir string) *Service {
@@ -87,6 +88,7 @@ func NewPreviewGenerator(concurrencyLimit int, cacheDir string) *Service {
 		officeSem:    make(chan struct{}, concurrencyLimit),
 		videoService: videoService,
 		imageService: imageService,
+		globalLimit:  make(chan struct{}, concurrencyLimit),
 	}
 }
 
@@ -116,6 +118,20 @@ func (s *Service) acquireOffice(ctx context.Context) error {
 
 func (s *Service) releaseOffice() {
 	<-s.officeSem
+}
+
+// Global limit semaphore methods
+func (s *Service) acquireGlobal(ctx context.Context) error {
+	select {
+	case s.globalLimit <- struct{}{}:
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+}
+
+func (s *Service) releaseGlobal() {
+	<-s.globalLimit
 }
 
 func StartPreviewGenerator(concurrencyLimit int, cacheDir string) error {
@@ -173,6 +189,12 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	}
+
+	// Acquire global concurrency limit
+	if err := service.acquireGlobal(ctx); err != nil {
+		return nil, err
+	}
+	defer service.releaseGlobal()
 
 	ext := strings.ToLower(filepath.Ext(file.Name))
 	var (

@@ -71,13 +71,25 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	if path == "" {
 		return http.StatusBadRequest, fmt.Errorf("invalid request path")
 	}
+
+	// Sanitize path to prevent path traversal attacks
+	// Rule 1: Do Not Use User Input in File Paths (without validation)
+	safePath, err := utils.SanitizeUserPath(path)
+	if err != nil {
+		return http.StatusForbidden, fmt.Errorf("invalid path: %v", err)
+	}
+
 	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, source)
 	if err != nil {
 		return http.StatusForbidden, err
 	}
+
+	// Combine scope + sanitized path
+	indexPath := utils.JoinPathAsUnix(userscope, safePath)
+
 	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
 		Username: d.user.Username,
-		Path:     utils.JoinPathAsUnix(userscope, path),
+		Path:     indexPath,
 		Source:   source,
 		AlbumArt: true, // Extract album art for audio previews
 	}, store.Access)
