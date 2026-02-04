@@ -79,6 +79,7 @@ export const mutations = {
     if (value) {
       state.popupPreviewSourceInfo = { ...state.popupPreviewSourceInfo, url: value };
     } else {
+      // Setting to null will stop motion preview animations (checked in Icon.vue updateThumbnail)
       state.popupPreviewSourceInfo = null;
     }
     emitStateChanged();
