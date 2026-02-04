@@ -250,7 +250,6 @@ export default {
       let index = 0;
 
       const updateThumbnail = () => {
-        // Stop animation if preview was cleared or if URL doesn't match this file anymore
         if (!state.popupPreviewSourceInfo || state.popupPreviewSourceInfo.path !== this.path) {
           this.previewTimeouts.forEach(clearTimeout);
           this.previewTimeouts = [];

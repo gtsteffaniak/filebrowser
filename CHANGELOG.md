@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v1.2.3-beta
+
+
+ **BugFixes**:
+ - fix stuck motion preview popup window issue
+
+## v1.2.2-beta
+
  **New Features**:
  - Resizable sidebar (#1896)
  - OIDC Authentication: Change Button Text via `frontend.oidcLoginButtonText` (#1708)

@@ -211,7 +211,6 @@ export function goToItem(source, path, previousHistoryItem, newTab = false) {
   if (source == state.sources.current && path == state.req.path) {
     return;
   }
-  mutations.setPreviewSource("");
   let newPath = encodedPath(path);
   let fullPath = `/files/${encodeURIComponent(source)}${newPath}`;
   if (newTab) {
