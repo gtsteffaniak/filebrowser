@@ -22,7 +22,7 @@ export const state = reactive({
   sessionId: "",
   isSafari: /^((?!chrome|android).)*safari/i.test(navigator.userAgent),
   activeSettingsView: "",
-  isMobile: window.innerWidth <= 800,
+  isMobile: window.innerWidth <= 768,
   isSearchActive: false,
   showSidebar: false,
   displayPreferences: {},
@@ -32,13 +32,7 @@ export const state = reactive({
   editorSaveHandler: null, // Function to save editor content
   realtimeActive: undefined,
   realtimeDownCount: 0,
-  popupPreviewSource: "",
-  share: {
-    hash: null,
-    token: "",
-    subPath: "",
-    passwordValid: false,
-  },
+  popupPreviewSourceInfo: null, // { source, path, size, url, modified } - set by Icon when hovering
   sources: {
     current: "",
     count: 1,
@@ -152,6 +146,9 @@ export const state = reactive({
     isShare: false,
     disableThumbnails: false,
     hash: "",
+    token: "",
+    subPath: "",
+    passwordValid: false,
     enforceDarkLightMode: "",
     disableSidebar: false,
     isValid: true,
@@ -160,6 +157,12 @@ export const state = reactive({
     description: "",
   },
   notificationHistory: loadNotificationHistory(), // Session-based notification history (persists across refreshes)
+  sidebar: {
+    width: getSidebarWidth(), // in em
+    isResizing: false,
+    minWidth: 17.5, // in em
+    maxWidth: 37.5, // in em
+  },
 });
 
 /**
@@ -174,6 +177,15 @@ function loadNotificationHistory() {
     console.error('Failed to load notification history:', error);
     return [];
   }
+}
+
+/**
+ * Load sidebar width from localStorage or use default size
+ * @returns {number}
+ */
+function getSidebarWidth() {
+  const savedWidth = localStorage.getItem("sidebarWidth");
+  return savedWidth ? parseFloat(savedWidth) : 20; // 20em
 }
 
 function stickyStartup() {

@@ -1,6 +1,6 @@
 <template>
   <div class="card headline-card">
-    <div v-if="isDataLoaded" class="card-wrapper user-card">
+    <div v-if="isDataLoaded && shouldShowLogin" class="card-wrapper user-card">
       <div v-if="settingsAllowed" class="inner-card">
         <a href="/settings#profile-main" class="person-button action button"
           @click.prevent="navigateTo('/settings', '#profile-main')"
@@ -52,12 +52,18 @@
     <transition v-if="shareInfo.shareType !== 'upload'" name="expand" @before-enter="beforeEnter" @enter="enter"
       @leave="leave">
       <div v-if="!hideSidebarFileActions && isListingView" class="card-wrapper">
-        <button @click="openContextMenu" aria-label="File-Actions" class="action file-actions">
+        <button @click="openContextMenu" aria-label="File-Actions" data-testid="file-actions-button" class="action file-actions">
           <i class="material-icons">add</i>
           {{ $t("sidebar.fileActions") }}
         </button>
       </div>
     </transition>
+    <!-- Hidden marker for tests to detect when file actions should be available -->
+    <div v-if="isDataLoaded && isListingView && shareInfo.shareType !== 'upload'" 
+         data-testid="file-actions-ready" 
+         style="display: none;" 
+         :data-hidden="hideSidebarFileActions">
+    </div>
   </div>
 
   <!-- Sidebar Links Component (replaces sources) -->
@@ -122,10 +128,9 @@ export default {
     shouldShowLogin() {
       if (getters.isShare()) {
         // Don't show login until shareInfo is fully loaded
-        if (!state.shareInfo || state.shareInfo.disableLoginOption === undefined) {
+        if (state.shareInfo && state.shareInfo.disableLoginOption == undefined) {
           return false;
         }
-        return !state.shareInfo.disableLoginOption;
       }
       return true;
     },
@@ -213,30 +218,35 @@ export default {
     // Logout the user
     logout: auth.logout,
     beforeEnter(el) {
-      el.style.height = '0';
+      el.style.maxHeight = '0';
       el.style.opacity = '0';
     },
     enter(el, done) {
-      el.style.transition = '';
-      el.style.height = '0';
-      el.style.opacity = '0';
-      // Force reflow
-      void el.offsetHeight;
-      el.style.transition = 'height 0.3s, opacity 0.3s';
-      el.style.height = el.scrollHeight + 'px';
-      el.style.opacity = '1';
-      setTimeout(() => {
-        el.style.height = 'auto';
-        done();
-      }, 300);
+      requestAnimationFrame(() => {
+        el.style.transition = 'max-height 0.2s ease, opacity 0.15s ease';
+        el.style.maxHeight = el.scrollHeight + 'px';
+        el.style.opacity = '1';
+        const onTransitionEnd = () => {
+          el.style.maxHeight = '';
+          el.removeEventListener('transitionend', onTransitionEnd);
+          done();
+        };
+        el.addEventListener('transitionend', onTransitionEnd);
+      });
     },
     leave(el, done) {
-      el.style.transition = 'height 0.3s, opacity 0.3s';
-      el.style.height = el.scrollHeight + 'px';
-      void el.offsetHeight;
-      el.style.height = '0';
-      el.style.opacity = '0';
-      setTimeout(done, 300);
+      requestAnimationFrame(() => {
+        el.style.maxHeight = el.scrollHeight + 'px';
+        el.offsetHeight;
+        el.style.maxHeight = '0';
+        el.style.opacity = '0';
+        
+        const onTransitionEnd = () => {
+          done();
+          el.removeEventListener('transitionend', onTransitionEnd);
+        };
+        el.addEventListener('transitionend', onTransitionEnd);
+      });
     },
           showTooltip(event, text) {
         if (text) {
@@ -319,13 +329,13 @@ export default {
   flex-direction: row !important;
   justify-content: space-between !important;
   color: var(--textPrimary);
+  margin-bottom: 0.5em;
 }
 
 .quick-toggles {
   display: flex;
   justify-content: space-evenly;
   width: 100%;
-  margin-top: 0.5em !important;
   color: var(--textPrimary);
 }
 
@@ -360,6 +370,7 @@ export default {
 .quick-toggles div {
   border-radius: 10em;
   background-color: var(--surfaceSecondary);
+  transform: translateZ(0);
 }
 
 .quick-toggles div i {
@@ -371,6 +382,7 @@ export default {
 
 button.action {
   border-radius: 0.5em;
+  transform: translateZ(0);
 }
 
 .quick-toggles .active {
@@ -428,6 +440,7 @@ a.person-button {
 .expand-leave-active {
   transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
+  will-change: opacity, height;
 }
 
 .expand-enter,

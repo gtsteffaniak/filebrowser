@@ -176,6 +176,7 @@ export default {
         return;
       } else {
         // Navigate to different item
+        mutations.setNavigationTransitioning(true);
         this.navigateToIndex(index);
       }
     },
@@ -201,6 +202,7 @@ export default {
       url.goToItem( item.source || state.req.source, item.path, undefined );
     },
     scrollToCurrentItem() {
+      if (this.queueCount === 0) return;
       this.$nextTick(() => {
         const list = this.$refs.QueueList;
         const currentItem = list.querySelector('.item.current');

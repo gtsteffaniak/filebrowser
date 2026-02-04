@@ -1,9 +1,6 @@
 <template>
   <div class="duplicate-finder">
     <div class="card duplicate-finder-config">
-      <div class="card-title">
-        <h2>{{ $t('duplicateFinder.title') }}</h2>
-      </div>
       <div class="card-content">
         <h3>{{ $t('general.source') }}</h3>
         <select v-model="selectedSource" class="input">
@@ -78,7 +75,7 @@
                         <ListingItem
                           :name="getFileName(file.path)"
                           :isDir="file.type === 'directory'"
-                          :source="selectedSource"
+                          :source="file.source"
                           :type="file.type"
                           :size="file.size"
                           :modified="file.modified"
@@ -124,43 +121,22 @@ export default {
   components: {
     ListingItem,
   },
-  props: {
-    path: {
-      type: String,
-      default: "/",
-    },
-    source: {
-      type: String,
-      default: "",
-    },
-    minSize: {
-      type: Number,
-      default: 1,
-    },
-    useChecksums: {
-      type: Boolean,
-      default: false,
-    },
-  },
   data() {
     return {
       searchPath: "/",
       selectedSource: "",
       minSizeValue: 1,
-      useChecksumsValue: false, // Always false - checksum feature disabled for performance
       loading: false,
       error: null,
       duplicateGroups: [],
-      isIncomplete: false, // Track if results are incomplete due to timeout/limits
-      incompleteReason: "", // Reason for incomplete results
-      isInitializing: true,
-      lastRequestTime: 0, // Track last request to prevent rapid-fire
-      clickTracker: {}, // Track clicks for double-click detection
+      isIncomplete: false,
+      incompleteReason: "",
+      lastRequestTime: 0,
       maxGroups: 500,
-      selectedIndices: new Set(), // Track selected item indices locally
-      deletedFiles: new Set(), // Track deleted files by path
-      failedFiles: new Map(), // Track failed files by path -> error message
-      deleting: false, // Track if deletion is in progress
+      selectedIndices: new Set(),
+      deletedFiles: new Set(),
+      failedFiles: new Map(),
+      deleting: false,
     };
   },
   computed: {
@@ -185,45 +161,32 @@ export default {
   },
   watch: {
     searchPath() {
-      if (!this.isInitializing) {
-        this.updateUrl();
-      }
+      this.updateUrl();
     },
     selectedSource() {
-      if (!this.isInitializing) {
-        this.updateUrl();
-      }
+      this.updateUrl();
     },
     minSizeValue() {
-      if (!this.isInitializing) {
-        this.updateUrl();
-      }
-    },
-    '$route.query'() {
-      if (!this.isInitializing) {
-        this.initializeFromQuery();
-      }
+      this.updateUrl();
     },
   },
   mounted() {
-    this.initializeFromQuery();
-    // Set default source if not provided
-    if (!this.selectedSource) {
-      if (state.sources.current) {
-        this.selectedSource = state.sources.current;
-      } else if (Object.keys(this.sourceInfo).length > 0) {
-        this.selectedSource = Object.keys(this.sourceInfo)[0];
+    // Initialize from URL query params or use defaults
+    const query = this.$route.query;
+    
+    this.searchPath = (typeof query.path === 'string' ? query.path : null) || "/";
+    this.selectedSource = (typeof query.source === 'string' ? query.source : null) || state.sources.current || Object.keys(this.sourceInfo)[0] || "";
+    
+    if (query.minSize) {
+      const parsed = parseInt(String(query.minSize), 10);
+      if (!isNaN(parsed)) {
+        this.minSizeValue = parsed;
       }
     }
-    // Mark initialization as complete
-    this.isInitializing = false;
-    this.updateUrl();
 
-    // Listen for path selection
+    // Listen for events
     eventBus.on('pathSelected', this.handlePathSelected);
-    // Listen for items deleted from delete prompt
     eventBus.on('itemsDeleted', this.handleItemsDeleted);
-    // Listen for delete and clear requests from shelf
     eventBus.on('duplicateFinderDeleteRequested', this.showDeleteConfirm);
     eventBus.on('duplicateFinderClearRequested', this.clearSelection);
   },
@@ -323,67 +286,25 @@ export default {
         this.loading = false;
       }
     },
-    initializeFromQuery() {
-      const query = this.$route.query;
-
-      if (query.path !== undefined && query.path !== null) {
-        this.searchPath = String(query.path);
-      } else if (this.path) {
-        this.searchPath = this.path;
-      }
-
-      if (query.source !== undefined && query.source !== null) {
-        this.selectedSource = String(query.source);
-      } else if (this.source) {
-        this.selectedSource = this.source;
-      }
-
-      if (query.minSize !== undefined && query.minSize !== null) {
-        const parsed = parseInt(String(query.minSize), 10);
-        if (!isNaN(parsed)) {
-          this.minSizeValue = parsed;
-        }
-      } else if (this.minSize !== undefined) {
-        this.minSizeValue = this.minSize;
-      }
-
-      // Checksum feature removed - always false
-    },
     updateUrl() {
-      this.$nextTick(() => {
-        const query = {};
+      const query = {};
 
-        if (this.searchPath && this.searchPath !== "/") {
-          query.path = this.searchPath;
-        }
+      if (this.searchPath && this.searchPath !== "/") {
+        query.path = this.searchPath;
+      }
 
-        if (this.selectedSource) {
-          query.source = this.selectedSource;
-        }
+      if (this.selectedSource) {
+        query.source = this.selectedSource;
+      }
 
-        if (this.minSizeValue !== 1) {
-          query.minSize = String(this.minSizeValue);
-        }
+      if (this.minSizeValue !== 1) {
+        query.minSize = String(this.minSizeValue);
+      }
 
-        // Checksum feature removed
-        const newQueryString = new URLSearchParams(query).toString();
-        const currentQuery = this.$route.query || {};
-        const currentQueryString = new URLSearchParams(
-          Object.entries(currentQuery).reduce((acc, [key, value]) => {
-            if (value !== null && value !== undefined) {
-              acc[key] = String(value);
-            }
-            return acc;
-          }, {})
-        ).toString();
-
-        if (newQueryString !== currentQueryString) {
-          this.$router.replace({
-            path: this.$route.path,
-            query: Object.keys(query).length > 0 ? query : undefined,
-          }).catch(() => {});
-        }
-      });
+      this.$router.replace({
+        path: this.$route.path,
+        query: Object.keys(query).length > 0 ? query : undefined,
+      }).catch(() => {});
     },
     humanSize(size) {
       return getHumanReadableFilesize(size);

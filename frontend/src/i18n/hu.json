@@ -14,8 +14,6 @@
     "pauseAll": "Szünet minden",
     "resumeAll": "Folytassa az összes",
     "clearCompleted": "Tiszta befejezve",
-    "showMore": "Többet mutasson",
-    "showLess": "Kevesebb mutatása",
     "openParentFolder": "Szülői mappa megnyitása",
     "selectedCount": "A művelet végrehajtásához kiválasztott elemek száma",
     "listView": "Lista nézet",
@@ -31,7 +29,9 @@
     "keepEditing": "Szerkesztés folytatása",
     "closeAnyway": "Egyébként bezárni",
     "goToItem": "Tovább a tételhez",
-    "watchFile": "Nézze meg a fájlt"
+    "watchFile": "Nézze meg a fájlt",
+    "showMore": "Speciális beállítások megjelenítése",
+    "showLess": "Speciális beállítások elrejtése"
   },
   "download": {
     "downloadFile": "Fájl letöltése",

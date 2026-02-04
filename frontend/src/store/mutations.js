@@ -73,10 +73,14 @@ export const mutations = {
     state.req.hasUpdate = true;
   },
   setPreviewSource: (value) => {
-    if (value === state.popupPreviewSource) {
+    if (value === state.popupPreviewSourceInfo?.url) {
       return;
     }
-    state.popupPreviewSource = value;
+    if (value) {
+      state.popupPreviewSourceInfo = { ...state.popupPreviewSourceInfo, url: value };
+    } else {
+      state.popupPreviewSourceInfo = null;
+    }
     emitStateChanged();
   },
   updateListing: (value) => {
@@ -210,7 +214,7 @@ export const mutations = {
     emitStateChanged();
   },
   setMobile() {
-    const newValue = window.innerWidth <= 800;
+    const newValue = window.innerWidth <= 768;
     if (newValue === state.isMobile) {
       return;
     }
@@ -380,19 +384,27 @@ export const mutations = {
     emitStateChanged();
   },
   setShareData: (shareData) => {
-    const newShare = { ...state.share, ...shareData };
-    if (JSON.stringify(newShare) === JSON.stringify(state.share)) {
+    const newShare = { ...state.shareInfo, ...shareData };
+    if (JSON.stringify(newShare) === JSON.stringify(state.shareInfo)) {
       return;
     }
-    state.share = newShare;
+    state.shareInfo = newShare;
     emitStateChanged();
   },
   clearShareData: () => {
-    state.share = {
-      hash: null,
+    state.shareInfo = {
+      isShare: false,
+      disableThumbnails: false,
+      hash: "",
       token: "",
       subPath: "",
       passwordValid: false,
+      enforceDarkLightMode: "",
+      disableSidebar: false,
+      isValid: true,
+      shareType: "",
+      title: "",
+      description: "",
     };
     emitStateChanged();
   },
@@ -743,8 +755,8 @@ export const mutations = {
       return publicApi.getDownloadURL(
         {
           path: item.path,
-          hash: state.share.hash,
-          token: state.share.token,
+          hash: state.shareInfo.hash,
+          token: state.shareInfo.token,
         },
         [item.path],
         true,
@@ -842,6 +854,25 @@ export const mutations = {
       return;
     }
     state.shareInfo = shareInfo;
+    emitStateChanged();
+  },
+  setSidebarWidth: (value) => {
+    // Ensure width is within bounds
+    const minWidth = state.sidebar.minWidth;
+    const maxWidth = state.sidebar.maxWidth;
+    let newWidth = Math.max(minWidth, Math.min(value, maxWidth));
+    if (newWidth === state.sidebar.width) {
+      return;
+    }
+    state.sidebar.width = newWidth;
+    localStorage.setItem("sidebarWidth", newWidth.toString());
+    emitStateChanged();
+  },
+  setSidebarResizing: (value) => {
+    if (value === state.sidebar.isResizing) {
+      return;
+    }
+    state.sidebar.isResizing = value;
     emitStateChanged();
   },
 };

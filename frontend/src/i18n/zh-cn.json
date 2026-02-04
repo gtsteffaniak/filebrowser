@@ -14,8 +14,6 @@
     "pauseAll": "全部暂停",
     "resumeAll": "全部简历",
     "clearCompleted": "清除完毕",
-    "showMore": "显示更多",
-    "showLess": "显示更少",
     "openParentFolder": "打开父文件夹",
     "selectedCount": "选择执行操作的项目数",
     "listView": "列表查看",
@@ -31,7 +29,9 @@
     "keepEditing": "继续编辑",
     "closeAnyway": "无论如何关闭",
     "goToItem": "转到项目",
-    "watchFile": "观看文件"
+    "watchFile": "观看文件",
+    "showMore": "显示高级选项",
+    "showLess": "隐藏高级选项"
   },
   "download": {
     "downloadFile": "下载文件",

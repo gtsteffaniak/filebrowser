@@ -1,17 +1,23 @@
 <template>
   <div v-if="shareInfo.shareType != 'upload'" class="no-select" :style="containerStyles">
+    <!-- Show loading spinner while loading OR if we haven't loaded any data yet -->
     <div v-if="loading">
       <h2 class="message delayed">
         <LoadingSpinner size="medium" />
         <span>{{ $t("general.loading", { suffix: "..." }) }}</span>
       </h2>
     </div>
-    <div v-else>
+    <!-- Show empty state only when NOT loading AND data has been loaded AND there are no items -->
+    <div v-else-if="numDirs + numFiles == 0 && req.name">
       <div
         ref="listingView"
         class="listing-items font-size-large"
-        :class="{ 'add-padding': isStickySidebar, [listingViewMode]: true }"
-        v-if="numDirs + numFiles == 0"
+        :class="{
+          'add-padding': isStickySidebar,
+          [listingViewMode]: true,
+          dropping: isDragging,
+          'rectangle-selecting': isRectangleSelecting
+        }"
       >
         <h2 class="message">
           <i class="material-icons">sentiment_dissatisfied</i>
@@ -33,8 +39,9 @@
           multiple
         />
       </div>
+    </div>
+    <div v-else>
       <div
-        v-else
         ref="listingView"
         :class="{
           'add-padding': isStickySidebar,
@@ -49,6 +56,8 @@
         <div class="selection-rectangle"
           :style="rectangleStyle"
         ></div>
+
+        <!-- Directories Section -->
         <div v-if="numDirs > 0">
           <h2 :class="{'dark-mode': isDarkMode}">{{ $t("general.folders") }}</h2>
         </div>
@@ -74,10 +83,16 @@
             v-bind:hasPreview="item.hasPreview"
           />
         </div>
+        <!-- Files Section -->
         <div v-if="numFiles > 0">
           <h2 :class="{'dark-mode': isDarkMode}">{{ $t("general.files") }}</h2>
         </div>
-        <div v-if="numFiles > 0" class="file-items" :class="{ lastGroup: numFiles > 0 }" aria-label="File Items">
+        <div 
+          v-if="numFiles > 0" 
+          class="file-items" 
+          :class="{ lastGroup: numFiles > 0 }" 
+          aria-label="File Items"
+        >
           <item
             v-for="item in files"
             :key="base64(item.name)"
@@ -148,19 +163,19 @@ export default {
       columnWidth: 250 + state.user.gallerySize * 50,
       dragCounter: 0,
       width: window.innerWidth,
-      lastSelected: {}, // Add this to track the currently focused item
-      contextTimeout: null, // added for safari context menu
+      lastSelected: {},
+      contextTimeout: null,
       ctrKeyPressed: false,
-      clipboard: { items: [] }, // Initialize clipboard to prevent errors
+      clipboard: { items: [] },
       isRectangleSelecting: false,
       rectangleStart: { x: 0, y: 0 },
       rectangleEnd: { x: 0, y: 0 },
       rectangleSelection: [],
       cssVariables: {},
-      rafId: null, // For requestAnimationFrame
-      selectionUpdatePending: false, // Flag to batch updates
-      isResizing: false, // Track resize state
-      resizeTimeout: null, // Timeout for resize end detection
+      rafId: null,
+      selectionUpdatePending: false,
+      isResizing: false,
+      resizeTimeout: null,
     };
   },
   watch: {
@@ -285,11 +300,13 @@ export default {
     items() {
       return getters.reqItems();
     },
-    numDirs() {
-      return getters.reqNumDirs();
-    },
     numFiles() {
-      return getters.reqNumFiles();
+      const count = getters.reqNumFiles();
+      return count;
+    },
+    numDirs() {
+      const count = getters.reqNumDirs();
+      return count;
     },
     dirs() {
       return this.items.dirs;
@@ -317,7 +334,8 @@ export default {
       return state.req;
     },
     loading() {
-      return getters.isLoading();
+      const isLoading = getters.isLoading();
+      return isLoading;
     },
     rectangleStyle() {
       if (!this.isRectangleSelecting) return { display: 'none' };
@@ -396,8 +414,8 @@ export default {
   mounted() {
     mutations.setSearch(false);
     this.lastSelected = state.selected;
-    // Check the columns size for the first time.
     this.colunmsResize();
+
     // Add the needed event listeners to the window and document.
     window.addEventListener("keydown", this.keyEvent);
     window.addEventListener("resize", this.windowsResize);
@@ -408,6 +426,9 @@ export default {
     document.addEventListener('mouseup', this.endRectangleSelection);
     this.$el.addEventListener('mousedown', this.startRectangleSelection);
     this.$el.addEventListener("touchmove", this.handleTouchMove, { passive: true });
+    
+    // Single dragend listener for all items (prevents N listeners for N items)
+    document.addEventListener('dragend', this.handleGlobalDragEnd, { passive: true });
 
     this.$el.addEventListener("contextmenu", this.openContext);
     // Adjust contextmenu listener based on browser
@@ -431,14 +452,15 @@ export default {
     }
   },
   beforeUnmount() {
-    // Cancel any pending animation frames
-    if (this.rafId) {
-      cancelAnimationFrame(this.rafId);
-      this.rafId = null;
-    }
     if (this.resizeTimeout) {
       clearTimeout(this.resizeTimeout);
       this.resizeTimeout = null;
+    }
+
+    // Clean up resize observer
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect();
+      this.resizeObserver = null;
     }
 
     // Remove event listeners before destroying this page.
@@ -449,6 +471,7 @@ export default {
     window.removeEventListener("dragover", this.preventDefault);
     document.removeEventListener('mousemove', this.updateRectangleSelection);
     document.removeEventListener('mouseup', this.endRectangleSelection);
+    document.removeEventListener('dragend', this.handleGlobalDragEnd);
     this.$el.removeEventListener('mousedown', this.startRectangleSelection);
 
     this.$el.removeEventListener("touchmove", this.handleTouchMove);
@@ -470,6 +493,15 @@ export default {
     }
   },
   methods: {
+    handleGlobalDragEnd() {
+      // Reset drag state for all items (replaces per-item dragend listeners)
+      const items = this.$el?.querySelectorAll('.listing-item.drag-hover, .listing-item.half-selected');
+      if (items) {
+        items.forEach(el => {
+          el.classList.remove('drag-hover', 'half-selected');
+        });
+      }
+    },
     cancelContext() {
       if (this.contextTimeout) {
         clearTimeout(this.contextTimeout);
@@ -517,7 +549,7 @@ export default {
       const items = [];
       for (let index of state.selected) {
         const item = state.req.items[index];
-        const previewUrl = item.hasPreview 
+        const previewUrl = item.hasPreview
           ? filesApi.getPreviewURL(item.source || state.req.source, item.path, item.modified)
           : null;
         items.push({
@@ -1235,12 +1267,16 @@ export default {
 }
 
 .listing-items.dropping {
-  transform: scale(0.97);
+  border-radius: 1em;
+  max-height: 70vh;
+  width: 97%;
+  overflow: hidden;
+  margin: 1em;
   box-shadow: var(--primaryColor) 0 0 1em;
 }
 
 .listing-items {
-  min-height: 90vh !important;
+  min-height: 75vh !important;
   position: relative;
 }
 
@@ -1251,7 +1287,7 @@ export default {
 /* Upload Share Styles */
 .upload-share-embed {
   padding: 2em;
-  max-width: 800px;
+  max-width: 768px;
   margin: 0 auto;
 }
 
@@ -1265,12 +1301,12 @@ export default {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-#listingView.rectangle-selecting {
+.rectangle-selecting {
   cursor: crosshair;
   user-select: none;
 }
 
-#listingView.rectangle-selecting .listing-item {
+.rectangle-selecting .listing-item {
   pointer-events: none;
 }
 

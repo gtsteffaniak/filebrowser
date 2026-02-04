@@ -143,6 +143,7 @@
   word-wrap: normal;
   direction: ltr;
   -webkit-font-smoothing: antialiased;
+  user-select: none;
 }
 
 .material-symbols-outlined {
@@ -158,4 +159,5 @@
   word-wrap: normal;
   direction: ltr;
   -webkit-font-smoothing: antialiased;
+  user-select: none;
 }

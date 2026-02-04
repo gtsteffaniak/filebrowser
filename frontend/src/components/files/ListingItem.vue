@@ -38,6 +38,9 @@
         :thumbnailUrl="isThumbnailInView ? thumbnailUrl : ''"
         :filename="name"
         :hasPreview="hasPreview"
+        :modified="modified"
+        :path="path"
+        :source="source"
       />
     </div>
 
@@ -46,14 +49,14 @@
       <p
         class="size"
         :class="{ adjustment: quickDownloadEnabled }"
-        :data-order="humanSize()"
+        :data-order="humanSize"
       >
-        {{ humanSize() }}
+        {{ humanSize }}
       </p>
       <p class="modified">
-        <time :datetime="modified">{{ getTime() }}</time>
+        <time :datetime="modified">{{ formattedTime }}</time>
       </p>
-      <p v-if="hasDuration" class="duration">{{ getDuration() }}</p>
+      <p v-if="hasDuration" class="duration">{{ formattedDuration }}</p>
     </div>
     <Icon
       @click.stop="downloadFile"
@@ -101,6 +104,9 @@
         :thumbnailUrl="isThumbnailInView ? thumbnailUrl : ''"
         :filename="name"
         :hasPreview="hasPreview"
+        :modified="modified"
+        :path="path"
+        :source="source"
       />
     </div>
 
@@ -109,14 +115,14 @@
       <p
         class="size"
         :class="{ adjustment: quickDownloadEnabled }"
-        :data-order="humanSize()"
+        :data-order="humanSize"
       >
-        {{ humanSize() }}
+        {{ humanSize }}
       </p>
       <p class="modified">
-        <time :datetime="modified">{{ getTime() }}</time>
+        <time :datetime="modified">{{ formattedTime }}</time>
       </p>
-      <p v-if="hasDuration" class="duration">{{ getDuration() }}</p>
+      <p v-if="hasDuration" class="duration">{{ formattedDuration }}</p>
     </div>
   </div>
 </template>
@@ -141,7 +147,7 @@ export default {
   data() {
     return {
       isThumbnailInView: false,
-      isInView: false, // Track if item is in viewport
+      isInView: false,
       touches: 0,
       touchStartX: 0,
       touchStartY: 0,
@@ -149,8 +155,8 @@ export default {
       isSwipe: false,
       isDraggedOver: false,
       contextTimeout: null,
-      observer: null, // Store observer reference
-      localSelected: false, // Track local selection when updateGlobalState is false
+      observer: null,
+      localSelected: false,
     };
   },
   props: {
@@ -268,7 +274,7 @@ export default {
       let previewPath;
       if (this.path) {
         previewPath = this.path;
-      } else if (state.req.path && this.name) {
+      } else if (state?.req?.path && this.name) {
         previewPath = url.joinPath(state.req.path, this.name);
       } else {
         return "";
@@ -277,7 +283,7 @@ export default {
       // If forceFilesApi is true, always use authenticated files API
       if (this.forceFilesApi) {
         // @ts-ignore
-        return filesApi.getPreviewURL(this.source || state.req.source, previewPath, this.modified);
+        return filesApi.getPreviewURL(this.source || state?.req?.source, previewPath, this.modified);
       }
 
       if (getters.isShare()) {
@@ -292,25 +298,50 @@ export default {
     isClickable() {
       return this.clickable;
     },
+    // Computed properties for display values - Vue caches these automatically!
+    humanSize() {
+      return this.type == "invalid_link"
+        ? "invalid link"
+        : getHumanReadableFilesize(this.size);
+    },
+    formattedTime() {
+      return getters.getTime(this.modified);
+    },
+    formattedDuration() {
+      if (!this.metadata || !this.metadata.duration) {
+        return "";
+      }
+      const seconds = this.metadata.duration;
+      const hours = Math.floor(seconds / 3600);
+      const minutes = Math.floor((seconds % 3600) / 60);
+      const secs = Math.floor(seconds % 60);
+      if (hours > 0) {
+        return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+      }
+      return `${minutes}:${secs.toString().padStart(2, '0')}`;
+    },
   },
   mounted() {
-    // Set up IntersectionObserver with larger margins for smoother rendering
+    // Set up IntersectionObserver for lazy-loading thumbnails
     this.observer = new IntersectionObserver(this.handleIntersect, {
       root: null,
-      rootMargin: "1500px", // Start rendering 1500px before entering viewport for smooth scrolling
+      rootMargin: "500px", // Reduced from 1500px for better performance
       threshold: 0,
     });
 
-    this.observer.observe(this.$el);
+    // Use $nextTick to ensure $el is available and is an Element
     this.$nextTick(() => {
-      const rect = this.$el.getBoundingClientRect();
-      const isInViewport = rect.top < window.innerHeight + 1500 && rect.bottom > -1500;
-      if (isInViewport && this.hasPreview) {
-        this.isThumbnailInView = true;
-        this.isInView = true;
+      if (this.$el && this.$el instanceof Element) {
+        this.observer.observe(this.$el);
+        const rect = this.$el.getBoundingClientRect();
+        const isInViewport = rect.top < window.innerHeight + 500 && rect.bottom > -500;
+        if (isInViewport && this.hasPreview) {
+          this.isThumbnailInView = true;
+          this.isInView = true;
+        }
       }
     });
-    document.addEventListener('dragend', this.dragEnd);
+    // Note: dragend listener moved to parent ListingView for better performance
   },
   beforeUnmount() {
     // Clean up observer
@@ -318,7 +349,7 @@ export default {
       this.observer.disconnect();
       this.observer = null;
     }
-    document.removeEventListener('dragend', this.dragEnd);
+    // Note: dragend listener removed - handled by parent ListingView
   },
   methods: {
     /** @param {MouseEvent} event */
@@ -388,8 +419,22 @@ export default {
           mutations.addSelected(this.index);
         }
       } else {
-        // Emit selection event for local handling
-        this.$emit('select', { index: this.index, selected: true });
+
+        // Build full item object similar to Search.vue
+        const selectedItem = {
+          name: this.name,
+          isDir: this.isDir,
+          source: this.source,
+          type: this.type,
+          size: this.size,
+          modified: this.modified,
+          path: this.path,
+          url: this.path,
+          index: this.index,
+        };        
+        mutations.resetSelected();
+        // @ts-ignore
+        mutations.addSelected(selectedItem);
       }
       mutations.showHover({
         name: "ContextMenu",
@@ -411,28 +456,6 @@ export default {
           this.isThumbnailInView = true;
         }
       });
-    },
-    humanSize() {
-      return this.type == "invalid_link"
-        ? "invalid link"
-        : getHumanReadableFilesize(this.size);
-    },
-    getTime() {
-      // @ts-ignore
-      return getters.getTime(this.modified);
-    },
-    getDuration() {
-      if (!this.metadata || !this.metadata.duration) {
-        return "";
-      }
-      const seconds = this.metadata.duration;
-      const hours = Math.floor(seconds / 3600);
-      const minutes = Math.floor((seconds % 3600) / 60);
-      const secs = Math.floor(seconds % 60);
-      if (hours > 0) {
-        return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-      }
-      return `${minutes}:${secs.toString().padStart(2, '0')}`;
     },
     /** @param {DragEvent} event */
     dragLeave(event) {

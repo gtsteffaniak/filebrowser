@@ -4,9 +4,11 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
+	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
@@ -61,9 +63,24 @@ func createIndexDB(name string, journalMode string, lockingMode string, batchSiz
 // batchSize: number of items per batch transaction
 // cacheSizeMB: cache size in megabytes
 // disableReuse: true to delete and recreate DB on startup, false to reuse existing (default)
-// Returns the IndexDB and a boolean indicating if the database was recreated (true) or reused (false)
+// Returns the IndexDB and a boolean indicating if the database is new (true) or reused (false)
 func NewIndexDB(name string, journalMode string, batchSize int, cacheSizeMB int, disableReuse bool) (*IndexDB, bool, error) {
-	wasRecreated := disableReuse // If disableReuse is true, we're creating fresh
+	isNewDb := disableReuse // If disableReuse is true, we're creating fresh
+
+	// Check if database file exists (only if reuse is enabled)
+	if !disableReuse {
+		// Database files are stored in sql subdirectory (see sqlite.go:207)
+		dbPath := filepath.Join(settings.Config.Server.CacheDir, "sql", fmt.Sprintf("index_%s.db", name))
+		_, err := os.Stat(dbPath)
+		if os.IsNotExist(err) {
+			// Database file doesn't exist, so this is a new database
+			isNewDb = true
+		} else if err != nil {
+			// Some other error occurred
+			logger.Warningf("Error checking database file: %v", err)
+			isNewDb = true
+		}
+	}
 
 	idxDB, err := createIndexDB(name, journalMode, "", batchSize, cacheSizeMB, disableReuse)
 	if err != nil {
@@ -75,7 +92,8 @@ func NewIndexDB(name string, journalMode string, batchSize int, cacheSizeMB int,
 	if !disableReuse {
 		if err := idxDB.checkIntegrityAndRecreateIfNeeded(); err != nil {
 			// Database was recreated due to corruption
-			wasRecreated = true
+			logger.Warningf("[DB_INIT] SQLite database was found with issues which could be due to a dirty shutdown, recreating: tmp/index_%s.db", name)
+			isNewDb = true
 			idxDB.Close()
 
 			// Recreate the database connection
@@ -91,7 +109,7 @@ func NewIndexDB(name string, journalMode string, batchSize int, cacheSizeMB int,
 		return nil, false, err
 	}
 	go idxDB.startPeriodicCleanup()
-	return idxDB, wasRecreated, nil
+	return idxDB, isNewDb, nil
 }
 
 // checkIntegrityAndRecreateIfNeeded checks database integrity.

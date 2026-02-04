@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"io/fs"
 	"os"
 	"os/signal"
 	"syscall"
@@ -116,7 +117,7 @@ func StartFilebrowser() {
 	}
 
 	// Initialize shared index database before starting HTTP service
-	wasRecreated, err := indexing.InitializeIndexDB()
+	isNewDb, err := indexing.InitializeIndexDB()
 	if err != nil {
 		logger.Fatalf("Failed to initialize index database: %v", err)
 	}
@@ -124,19 +125,15 @@ func StartFilebrowser() {
 	// Set indexing storage for persistence
 	if store != nil && store.Indexing != nil {
 		indexing.SetIndexingStorage(store.Indexing)
-		
-		// If the index database was recreated (fresh or corrupted), reset all complexities
-		if wasRecreated {
+		if isNewDb {
 			if err := store.Indexing.ResetAllComplexities(); err != nil {
 				logger.Errorf("Failed to reset index complexities: %v", err)
-			} else {
-				logger.Infof("Successfully reset all index complexities to 0")
 			}
 		}
 	}
 
 	for _, source := range settings.Config.Server.SourceMap {
-		go indexing.Initialize(source, false)
+		go indexing.Initialize(source, false, isNewDb)
 	}
 	validateUserInfo(!dbExists)
 	validateOfficeIntegration()
@@ -184,7 +181,19 @@ func rootCMD(ctx context.Context, store *bolt.BoltStore, serverConfig *settings.
 	cacheDir := settings.Config.Server.CacheDir
 	numWorkers := settings.Config.Server.NumImageProcessors
 	ffmpeg.SetFFmpegPaths()
-
+	
+	// Initialize asset filesystem before starting services
+	if settings.Env.EmbeddedFs {
+		embeddedAssets := fbhttp.GetEmbeddedAssets()
+		subAssets, err := fs.Sub(embeddedAssets, "embed")
+		if err != nil {
+			logger.Fatalf("Failed to create sub filesystem: %v", err)
+		}
+		fileutils.InitAssetFS(subAssets, true)
+	} else {
+		fileutils.InitAssetFS(nil, false)
+	}
+	
 	// setup disk cache
 	err := preview.StartPreviewGenerator(numWorkers, cacheDir)
 	if err != nil {

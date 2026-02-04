@@ -173,8 +173,9 @@ export default {
         if (!link.sourceName) return '#';
         const sourceInfo = this.sourceInfo[link.sourceName];
         if (!sourceInfo) return '#'; // Source not found
-        const basePath = `/files/${link.sourceName}${sourceInfo.pathPrefix}`
-        fullPath = basePath + link.target;
+        const encodedSourceName = encodeURIComponent(link.sourceName);
+        const targetPath = link.target.startsWith('/') ? link.target.substring(1) : link.target;
+        fullPath = `/files/${encodedSourceName}/${targetPath}`;
       } else {
         // For other links (tools, custom, share), use target as-is
         fullPath = link.target;
@@ -291,8 +292,8 @@ export default {
             mutations.closeHovers();
             const downloadLink = publicApi.getDownloadURL({
               path: "/",
-              hash: state.share.hash,
-              token: state.share.token,
+              hash: state.shareInfo.hash,
+              token: state.shareInfo.token,
               inline: false,
             }, [state.req.path]);
             window.open(downloadLink + "&format=" + format, "_blank");
@@ -302,8 +303,8 @@ export default {
         // Direct download for single files or directories
         const downloadLink = publicApi.getDownloadURL({
           path: "/",
-          hash: state.share.hash,
-          token: state.share.token,
+          hash: state.shareInfo.hash,
+          token: state.shareInfo.token,
           inline: false,
         }, [state.req.path]);
         window.open(downloadLink, "_blank");
@@ -525,6 +526,7 @@ a.sidebar-link-button {
 .expand-leave-active {
   transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
+  will-change: opacity, max-height;
 }
 
 .expand-enter,

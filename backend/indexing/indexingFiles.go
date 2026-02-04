@@ -331,18 +331,14 @@ func InitializeIndexDB() (bool, error) {
 	batchSize := settings.Config.Server.IndexSqlConfig.BatchSize
 	cacheSizeMB := settings.Config.Server.IndexSqlConfig.CacheSizeMB
 	disableReuse := settings.Config.Server.IndexSqlConfig.DisableReuse
-	var wasRecreated bool
-	indexDB, wasRecreated, err = dbsql.NewIndexDB("all", journalMode, batchSize, cacheSizeMB, disableReuse)
+	var isNewDb bool
+	indexDB, isNewDb, err = dbsql.NewIndexDB("all", journalMode, batchSize, cacheSizeMB, disableReuse)
 	if err != nil {
 		logger.Fatalf("failed to initialize index database: %v", err)
 		return false, err
 	}
 
-	if wasRecreated {
-		logger.Warningf("Index database was recreated, all index complexities will be reset to 0")
-	}
-
-	return wasRecreated, nil
+	return isNewDb, nil
 }
 
 // GetIndexDB returns the shared index database.
@@ -374,7 +370,7 @@ func SetIndexingStorage(storage *dbindex.Storage) {
 	indexingStorage = storage
 }
 
-func Initialize(source *settings.Source, mock bool) {
+func Initialize(source *settings.Source, mock bool, isNewDb bool) {
 	indexesMutex.Lock()
 	// Use shared database - all sources are differentiated by the source column
 	if indexDB == nil {
@@ -403,7 +399,8 @@ func Initialize(source *settings.Source, mock bool) {
 	if !newIndex.Config.DisableIndexing {
 		logger.Infof("initializing index: [%v]", newIndex.Name)
 		// Start multi-scanner system (each scanner will do its own initial scan)
-		go newIndex.setupIndexingScanners()
+		// Pass isNewDb flag so setupMultiScanner knows whether to load persisted complexity
+		go newIndex.setupMultiScanner(isNewDb)
 	} else {
 		newIndex.Status = "ready"
 		logger.Debug("indexing disabled for source: " + newIndex.Name)
@@ -1295,11 +1292,19 @@ func setFilePreviewFlags(fileInfo *iteminfo.ItemInfo, realPath string) {
 	simpleType := strings.Split(fileInfo.Type, "/")[0]
 	switch fileInfo.Type {
 	case "image/heic", "image/heif":
+		if fileInfo.Size > iteminfo.LargeFileSizeThreshold {
+			fileInfo.HasPreview = false
+			return
+		}
 		fileInfo.HasPreview = settings.CanConvertImage("heic")
 		return
 	}
 	switch simpleType {
 	case "image":
+		if fileInfo.Size > iteminfo.LargeFileSizeThreshold {
+			fileInfo.HasPreview = false
+			return
+		}
 		fileInfo.HasPreview = true
 		return
 	case "video":
@@ -1649,7 +1654,17 @@ func (idx *Index) Save() error {
 		Scanners:   scanners,
 	}
 
-	return indexingStorage.Save(info)
+	err := indexingStorage.Save(info)
+	if err != nil {
+		return err
+	}
+
+	// Send SSE update event after successful save
+	if err := idx.SendSourceUpdateEvent(); err != nil {
+		logger.Errorf("[%s] Failed to send source update event: %v", idx.Name, err)
+	}
+
+	return nil
 }
 
 // Load restores index and scanner information from the database

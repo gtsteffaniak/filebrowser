@@ -58,7 +58,11 @@ export const getters = {
     let path = state.route.path;
 
     // If current request is a file, use parent directory's preferences
-    if (state.req?.type && state.req.type !== 'directory') {
+    // Check both state.req.type (if available) and the path itself (for when state.req is being reset during navigation)
+    const isFile = (state.req?.type && state.req.type !== 'directory') || 
+                   (path && !path.endsWith('/') && path.includes('/') && path.lastIndexOf('/') < path.length - 1);
+    
+    if (isFile) {
       path = path.substring(0, path.lastIndexOf('/')+1) || '/';
     }
 
@@ -216,6 +220,7 @@ export const getters = {
     }
     return visible
   },
+  sidebarWidth: () => state.sidebar.width,
   isStickySidebar: () => {
     let sticky = state.user?.stickySidebar
     const currentView = getters.currentView()
@@ -286,8 +291,6 @@ export const getters = {
     }
     if (pathname.startsWith(`/settings`)) {
       listingView = 'settings'
-    } else if (pathname.startsWith(`/tools/duplicateFinder`)) {
-      listingView = 'duplicateFinder'
     } else if (pathname.startsWith(`/tools`)) {
       listingView = 'tools'
     } else {

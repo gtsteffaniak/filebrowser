@@ -24,7 +24,7 @@
         <!-- Metadata info -->
         <div class="audio-metadata" v-if="metadata">
           <div class="audio-title">
-            {{ metadata.title || req.name }}
+            {{ metadata.title }}
           </div>
           <div class="audio-artist" v-if="metadata.artist">
             {{ metadata.artist }}
@@ -40,7 +40,7 @@
 
       <div class="audio-controls-container" :class="{ 'dark-mode': darkMode, 'light-mode': !darkMode }">
         <div class="plyr-audio-container" ref="plyrAudioContainer">
-          <audio :src="raw" :type="req.type" :autoplay="autoPlayEnabled" @play="handlePlay" ref="audioElement"></audio>
+          <audio :src="raw" :type="req.type" :autoplay="shouldAutoplay" @play="handlePlay" ref="audioElement"></audio>
         </div>
       </div>
     </div>
@@ -48,7 +48,7 @@
     <!-- Video with plyr -->
     <div v-else-if="previewType == 'video' && !useDefaultMediaPlayer" class="video-player-container" :class="{ 'no-captions': !hasSubtitles }">
       <div class="plyr-video-container" ref="plyrVideoContainer">
-        <video :src="raw" :type="req.type" :autoplay="autoPlayEnabled" @play="handlePlay" playsinline ref="videoElement">
+        <video :src="raw" :type="req.type" :autoplay="shouldAutoplay" @play="handlePlay" playsinline ref="videoElement">
           <track kind="captions" v-for="(sub, index) in subtitlesList" :key="index" :src="sub.src"
             :label="'Subtitle ' + sub.name" :default="false" />
         </video>
@@ -58,14 +58,14 @@
     <!-- Default HTML5 Audio -->
     <div v-else-if="previewType == 'audio' && useDefaultMediaPlayer" class="audio-player-container">
       <audio ref="defaultAudioPlayer" :src="raw"
-        controls :autoplay="autoPlayEnabled" @play="handlePlay">
+        controls :autoplay="shouldAutoplay" @play="handlePlay">
       </audio>
     </div>
 
     <!-- Default HTML5 Video -->
     <div v-else-if="previewType == 'video' && useDefaultMediaPlayer" class="video-player-container">
       <video ref="defaultVideoPlayer" :src="raw"
-        controls :autoplay="autoPlayEnabled" @play="handlePlay" playsinline >
+        controls :autoplay="shouldAutoplay" @play="handlePlay" playsinline >
         <track kind="captions" v-for="(sub, index) in subtitlesList" :key="index" :src="sub.src"
           :label="'Subtitle ' + sub.name" :default="index === 0" />
       </video>
@@ -117,8 +117,8 @@
 
 <script>
 import { state, mutations, getters } from '@/store';
-import { publicApi } from '@/api';
 import { url } from '@/utils';
+import { globalVars } from '@/utils/constants';
 import Plyr from 'plyr';
 
 export default {
@@ -148,6 +148,10 @@ export default {
       type: Boolean,
       default: false,
     },
+    listing: {
+      type: Array,
+      default: () => [],
+    },
   },
   emits: ['play'],
   data() {
@@ -167,7 +171,6 @@ export default {
       queueTimeout: null,
       // Plyr instance
       player: null,
-      currentPlyrMediaType: null,
       // Plyr options
       plyrOptions: {
         controls: [
@@ -202,29 +205,12 @@ export default {
         playsinline: true,
         clickToPlay: true,
         resetOnEnd: true,
-        preload: 'auto',
+        preload: 'metadata',
+        iconUrl: globalVars.baseURL + 'public/static/img/plyr.svg',
       },
     };
   },
   watch: {
-    req(newReq) {
-      console.log('Updating media...');
-      console.log('Current file:', newReq?.name, 'at position', this.currentQueueIndex + 1, 'of', this.playbackQueue.length);
-      this.playbackMenuInitialized = false;
-      this.lastAppliedMode = null;
-
-      // Re-hook event listeners after media source changes (called in updateMedia)
-      // Without this, the 'ended' event won't fire for the new video!
-      this.$nextTick(() => {
-        this.updateMedia();
-
-        // Only update queue index, don't setup new queue unless empty or 1
-        // the queue is empty initially when opening a file but will setup automatically with playback single mode
-        if (this.playbackQueue.length > 1) {
-          this.updateCurrentQueueIndex();
-        }
-      });
-    },
     playbackMode: {
       handler(newMode, oldMode) {
         if (newMode !== oldMode) {
@@ -239,6 +225,12 @@ export default {
     shouldTogglePlayPause(newVal, oldVal) {
       if (newVal !== oldVal) {
       this.togglePlayPause();
+      }
+    },
+    listing(newListing) {
+      // update queue if the listing changes
+      if (newListing && newListing.length > 0) {
+        this.setupPlaybackQueue(true);
       }
     },
   },
@@ -294,17 +286,20 @@ export default {
         ? this.$refs.videoElement 
         : this.$refs.audioElement;
     },
+    shouldAutoplay() {
+      return this.autoPlayEnabled || this.playbackQueue.length > 1;
+    },
+    fileName() {
+      return this.req.name ? this.req.name.replace(/\.[^/.]+$/, "") : '';
+    },
   },
   mounted() {
-    // console.log('Component mounted with:', { previewType: this.previewType, raw: this.raw, req: this.req, reqType: this.req.type, mediaElement: !!this.mediaElement });
     this.updateMedia();
     this.$nextTick(() => {
       // Show queue button initially if it should be shown
       if (this.showQueueButton) {
         this.showQueueButtonMethod();
       }
-      // Initial queue setup, this will setup the queue with 'loop-single'.
-      this.setupPlaybackQueue();
     });
     document.addEventListener('keydown', this.handleKeydown);
   },
@@ -316,6 +311,7 @@ export default {
     // Cleanup Plyr
     this.destroyPlyr();
     this.mediaElement.pause();
+    this.clearMediaSession();
     document.removeEventListener('keydown', this.handleKeydown);
   },
   methods: {
@@ -349,11 +345,89 @@ export default {
         this.queueTimeout = null;
       }
     },
+    setupMediaSession() {
+      if (!('mediaSession' in navigator) || !this.player) return;
+      // Create a fresh fallback URL with timestamp to prevent caching issues
+      const fallbackIcon = globalVars.loginIcon;
+      const timestamp = Date.now();
+      const fallbackUrl = fallbackIcon.includes('?') 
+        ? `${fallbackIcon}&t=${timestamp}`
+        : `${fallbackIcon}?t=${timestamp}`;
+      const metadata = {
+        title: this.metadata?.title || this.fileName,
+        artist: this.metadata?.artist || globalVars.name || "Filebrowser Quantum",
+        album: this.metadata?.album || "",
+        // In current versions of Firefox the artwork will not work, seems that doesn't like blob URLs.
+        // But testing in 149.0a1 (nightly builds), it seems to work, so this something that will solve over time :)
+        artwork: [ { src: this.albumArtUrl || fallbackUrl } ]
+      };
+      navigator.mediaSession.metadata = new MediaMetadata(metadata);
+      // Setup handlers for the media session
+      const actionHandlers = [
+        ['play', () => this.player?.play()],
+        ['pause', () => this.player?.pause()],
+        ['previoustrack', () => {
+          if (this.playbackQueue.length > 1) {
+            this.playPrevious();
+          }
+        }],
+        ['nexttrack', () => {
+          if (this.playbackQueue.length > 1) {
+            this.playNext();
+          }
+        }],
+        ['seekbackward', (details) => this.player?.rewind(details.seekOffset || 10)],
+        ['seekforward', (details) => this.player?.forward(details.seekOffset || 10)],
+        ['seekto', (details) => {
+          if (details.fastSeek && details.fastSeek === 'optional') return;
+          this.player.currentTime = details.seekTime;
+        }]
+      ];
+      for (const [action, handler] of actionHandlers) {
+        try {
+          navigator.mediaSession.setActionHandler(action, handler);
+        } catch (error) {
+          console.warn(`The media session action "${action}" is not supported`);
+        }
+      }
+      this.updateMediaSessionPlaybackState();
+    },
+    updateMediaSessionPlaybackState() {
+      if (!('mediaSession' in navigator)) return;
+      if (this.player) {
+        navigator.mediaSession.playbackState = this.player.playing ? 'playing' : 'paused';
+        // Update position state
+        if (navigator.mediaSession.setPositionState) {
+          navigator.mediaSession.setPositionState({
+            duration: this.player.duration,
+            playbackRate: this.player.speed || 1,
+            position: this.player.currentTime,
+          });
+        }
+      }
+    },
+    clearMediaSession() {
+      if (!('mediaSession' in navigator)) return;
+      // Clear metadata
+      navigator.mediaSession.metadata = null;
+      // Clear all action handlers
+      const actions = [ 'play', 'pause', 'previoustrack', 'nexttrack', 'seekbackward', 'seekforward', 'seekto', 'stop' ];
+      actions.forEach(action => {
+        navigator.mediaSession.setActionHandler(action, null);
+      });
+      // Clear position state
+      if (navigator.mediaSession.setPositionState) {
+        navigator.mediaSession.setPositionState(null);
+      }
+      // Reset playback state
+      navigator.mediaSession.playbackState = 'none';
+    },
     destroyPlyr() {
       if (this.player) {
-        console.log('Destroying Plyr instance');
-        this.player.destroy();
+        this.clearMediaSession();
         this.cleanupAlbumArt();
+        this.player.off();
+        this.player.destroy();
         this.player = null;
         this.playbackMenuInitialized = false;
         this.lastAppliedMode = null;
@@ -450,27 +524,6 @@ export default {
         this.toastVisible = false;
       }, 1500);
     },
-    async updateMedia() {
-      this.hookEvents();
-      await this.handleAutoPlay();
-      if (this.previewType === "audio") {
-        await this.loadAudioMetadata();
-      }
-    },
-    async handleAutoPlay() {
-      if (!this.autoPlayEnabled) return;
-      try {
-        if (this.useDefaultMediaPlayer && this.mediaElement) {
-          this.mediaElement.muted = false;
-          await this.mediaElement.play();
-        } else if (this.player) {
-          this.player.muted = false;
-          await this.player.play();
-        }
-      } catch (error) {
-        console.log("Autoplay failed", error);
-      }
-    },
     // Album art hover and scroll handlers
     onAlbumArtHover() {
       this.isHovering = true;
@@ -487,12 +540,12 @@ export default {
       this.albumArtSize = Math.max(10, Math.min(50, newSize));
     },
     // Load metadata from the backend response
-    async loadAudioMetadata() {
+    loadAudioMetadata() {
       if (this.previewType !== "audio") return;
       // Check if metadata is already provided by the backend
       if (this.req.metadata) {
         this.metadata = {
-          title: this.req.metadata.title || this.req.name, // Fallback to filename
+          title: this.req.metadata.title || this.fileName, // Fallback to filename
           artist: this.req.metadata.artist || null,
           album: this.req.metadata.album || null,
           year: this.req.metadata.year || null
@@ -514,7 +567,7 @@ export default {
         }
       } else {
         this.metadata = {
-          title: this.req.name,
+          title: this.fileName,
           artist: null,
           album: null,
           year: null,
@@ -526,24 +579,20 @@ export default {
         URL.revokeObjectURL(this.albumArtUrl);
       }
       this.albumArtUrl = null;
-      this.metadata = null
+      this.metadata = null;
+    },
+    updateMedia() {
+      this.hookEvents();
+      if (this.previewType === "audio") {
+        this.loadAudioMetadata();
+      }
     },
     hookEvents() {
-      // console.log(`hookEvents called: previewType=${this.previewType}, useDefaultMediaPlayer=${this.useDefaultMediaPlayer}, player=${this.player ? 'exists' : 'null'}`);
-      
       if (this.useDefaultMediaPlayer) {
         this.setupDefaultPlayerEvents(this.mediaElement);
         return;
       }
-      if (!this.player || this.currentPlyrMediaType !== this.previewType) {
-        // When media type changes (eg. video to audio) we need to destroy the old Plyr to avoid preview issues
-        // console.log(`Media type changed from ${this.currentPlyrMediaType} to ${this.previewType}, destroying old Plyr`);
-        this.destroyPlyr();
-        this.initializePlyr();
-      } else {
-        // console.log('Using existing Plyr instance');
-        this.setupPlyrEvents();
-      }
+      this.initializePlyr();
     },
     initializePlyr() {
       if (!this.mediaElement) return;
@@ -551,7 +600,8 @@ export default {
       this.$nextTick(() => {
         // Initialize Plyr
         this.player = new Plyr(this.mediaElement, this.plyrOptions);
-        this.currentPlyrMediaType = this.previewType;
+        // Set up Media Session API
+        this.setupMediaSession();
         // Set up event listeners
         this.setupPlyrEvents();
       });
@@ -561,9 +611,26 @@ export default {
       this.player.on('ended', this.handleMediaEnd);
       this.player.on('play', () => {
         mutations.setPlaybackState(true);
+        this.updateMediaSessionPlaybackState();
       });
       this.player.on('pause', () => {
         mutations.setPlaybackState(false);
+        this.updateMediaSessionPlaybackState();
+      });
+      this.player.on('timeupdate', () => {
+        this.updateMediaSessionPlaybackState();
+      });
+      this.player.on('seeked', () => {
+        this.updateMediaSessionPlaybackState();
+      });
+      this.player.on('loadedmetadata', () => {
+        this.updateMediaSessionPlaybackState();
+      });
+      this.player.on('ratechange', () => {
+        this.updateMediaSessionPlaybackState();
+      });
+      this.player.on('canplay', () => {
+        this.updateMediaSessionPlaybackState();
       });
       if (this.previewType === 'video') {
         if (screen.orientation) {
@@ -582,6 +649,12 @@ export default {
       element.addEventListener('pause', () => {
         mutations.setPlaybackState(false);
       });
+      element.addEventListener('timeupdate', () => {
+        this.updateMediaSessionPlaybackState();
+      });
+      element.addEventListener('loadedmetadata', () => {
+        this.updateMediaSessionPlaybackState();
+      });
     },
     async onFullscreenEnter() {
       // Allow free rotation when video enters full screen mode. This works even if the device's orientation is currently locked.
@@ -599,29 +672,9 @@ export default {
     },
     // Playback methods
     async setupPlaybackQueue(forceReshuffle = false) {
-      console.log('Setting up playback queue on mode:', this.playbackMode);
-      console.log('Current req path:', this.req.path);
 
-      let listing = [];
+      let listing = this.listing;
       const isShare = getters.isShare();
-
-      if (isShare) {
-        try {
-          const parentPath = url.removeLastDir(this.req.path) || '/';
-          const hash = state.shareInfo.hash;
-
-          console.log('Fetching share directory:', parentPath, 'hash:', hash);
-
-          const req = await publicApi.fetchPub(parentPath, hash);
-          listing = req.items || [];
-
-          console.log('Share listing fetched:', listing.length, 'items');
-        } catch (error) {
-          console.error('Error fetching share directory:', error);
-        }
-      } else {
-        listing = state.navigation?.listing || [];
-      }
 
       // Filter only audio/video files
       const mediaFiles = listing.filter(item => {
@@ -629,8 +682,6 @@ export default {
         const isVideo = item.type && item.type.startsWith('video/');
         return isAudio || isVideo;
       });
-
-      console.log('Filtered media files:', mediaFiles.length);
 
       if (mediaFiles.length === 0) {
         console.log('No media files found in current directory');
@@ -644,7 +695,8 @@ export default {
 
       let currentIndex = -1;
       if (isShare) {
-        currentIndex = mediaFiles.findIndex(item => item.name === this.req.name); // Compare by name for shares since path can differ
+        // Compare by name for shares
+        currentIndex = mediaFiles.findIndex(item => item.name === this.req.name);
       } else {
         currentIndex = mediaFiles.findIndex(item => item.path === this.req.path);
       }
@@ -677,8 +729,9 @@ export default {
           break;
         }
         case 'shuffle': {
-          // For shuffle, include all files on random order and only reshuffle if forced (by cycling modes again)
-          // This is for preserve the current queue and don't lose it when is changed to the next file
+          // For shuffle, all on random order and only reshuffle if we cycle modes again
+          // This is for preserve the current queue and don't lose it (since the component is re-created each time)
+          // It has one drawback: if you change of directories, you'll need to cycle modes again to see a new queue.
           if (forceReshuffle || this.playbackQueue.length === 0) {
             const shuffledFiles = this.shuffleArray([...mediaFiles]);
             finalQueue = shuffledFiles;
@@ -696,7 +749,7 @@ export default {
           break;
         }
       }
-      console.log('Current place on the queue:', finalIndex + 1, 'of', finalQueue.length);
+      // console.log('Current place on the queue:', finalIndex + 1, 'of', finalQueue.length);
 
       // After the queue is set up, update the store
       mutations.setPlaybackQueue({
@@ -718,7 +771,6 @@ export default {
         this.setupPlaybackQueue();
         return;
       }
-
       // Find current file in the existing queue
       const currentIndex = this.playbackQueue.findIndex(item => item.path === this.req.path);
       if (currentIndex !== -1) {
@@ -731,7 +783,29 @@ export default {
         this.setupPlaybackQueue(true);
       }
     },
-    async playNext() {
+    playPrevious() {
+      if (this.playbackQueue.length === 0) return;
+      // Calculate previous index
+      let prevIndex = this.currentQueueIndex - 1;
+      // Handle wrapping based on mode
+      if (prevIndex < 0) {
+        if (this.playbackMode === 'loop-all' || this.playbackMode === 'shuffle') {
+          prevIndex = this.playbackQueue.length - 1;
+        } else {
+          return;
+        }
+      }
+      const prevItem = this.playbackQueue[prevIndex];
+      // Update current index
+      mutations.setPlaybackQueue({
+        queue: this.playbackQueue,
+        currentIndex: prevIndex,
+        mode: this.playbackMode
+      });
+      mutations.setNavigationTransitioning(true);
+      url.goToItem(prevItem.source || this.req.source, prevItem.path, undefined);
+    },
+    playNext() {
       if (this.playbackQueue.length === 0) return;
 
       // Calculate next index
@@ -740,20 +814,9 @@ export default {
       // Handle end of queue based on mode
       if (nextIndex >= this.playbackQueue.length) {
         if (this.playbackMode === 'loop-all' || this.playbackMode === 'shuffle') {
-          // For shuffle mode, reshuffle the entire queue when we reach the end
-          if (this.playbackMode === 'shuffle') {
-            // Reshuffle the entire directory listing again
-            await this.setupPlaybackQueue(true); // Force reshuffle
-            nextIndex = 0;
-          } else {
-            // Loop back to beginning for loop-all mode
-            console.log('Reached end of queue, looping back to start');
-            nextIndex = 0;
-          }
+          nextIndex = 0; // Loop back to beginning
         } else {
-          // Stop at end for sequential mode
-          console.log('Reached end of queue, stopping playback');
-          return;
+          return; // Stop at end for sequential mode
         }
       }
 
@@ -767,6 +830,7 @@ export default {
           mode: this.playbackMode
         });
 
+        mutations.setNavigationTransitioning(true);
         url.goToItem( nextItem.source || this.req.source, nextItem.path, undefined );
 
       } catch (error) {
@@ -1106,12 +1170,7 @@ export default {
 }
 
 /* Style for audio player on mobile */
-@media (max-width: 800px) {
-  .plyr.plyr--audio {
-    padding: 1em;
-    border-radius: 0;
-  }
-
+@media (max-width: 768px) {
   /* Buttons container more "big" for easy touch */
   .plyr--audio .plyr__control {
     min-width: 44px;
@@ -1122,11 +1181,6 @@ export default {
     margin: 10px 0;
   }
 
-  .plyr--audio .plyr__controls {
-    padding: 0;
-    gap: 5px;
-  }
-
   .plyr--audio .plyr__controls__items {
     justify-content: center;
     gap: 12px;
@@ -1135,22 +1189,6 @@ export default {
   /* Play button a bit more big */
   .plyr--audio .plyr__control--play {
     transform: scale(1.25);
-  }
-
-  /* Hide volume buttons for made more space */
-  .plyr--audio .plyr__volume {
-    display: none;
-  }
-
-  /* Hide some items on video player*/
-  .plyr--video .plyr__volume {
-    display: none;
-  }
-
-  /* Time playing */
-  .plyr--audio .plyr__time {
-    font-size: 14px;
-    margin: 0 5px;
   }
 }
 
@@ -1252,10 +1290,20 @@ export default {
 }
 
 /* For small tablets and phones with big screen */
-@media (max-width: 800px) {
+@media (max-width: 740px) {
   .audio-player-container {
     padding: 0;
     padding-top: 1em;
+  }
+
+  .plyr.plyr--audio {
+    padding: 1em;
+    border-radius: 0;
+  }
+
+  .plyr--audio .plyr__controls {
+    padding: 0;
+    gap: 5px;
   }
 
   .audio-metadata {
@@ -1263,11 +1311,25 @@ export default {
   }
 
   .album-art-container {
-    width: min(280px, 70vw);
-    height: min(280px, 70vw);
-    margin-top: 10px;
+    width: min(71vw);
+    height: min(71vw);
+    margin-top: 12px;
   }
 }
+
+@media (max-width: 550px) {
+  /* Hide volume buttons to made more space */
+  .plyr__volume {
+    display: none;
+  }
+
+  /* Time playing */
+  .plyr--audio .plyr__time {
+    font-size: 14px;
+    margin: 0 5px;
+  }
+}
+
 
 /* For small screens in landscape orientation (Like a phone) */
 @media (max-height: 600px) and (orientation: landscape) {

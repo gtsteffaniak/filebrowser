@@ -4332,6 +4332,10 @@ const docTemplate = `{
                     "description": "display name",
                     "type": "string"
                 },
+                "oidcLoginButtonText": {
+                    "description": "text to display on the OIDC login button",
+                    "type": "string"
+                },
                 "styling": {
                     "$ref": "#/definitions/settings.StylingConfig"
                 }

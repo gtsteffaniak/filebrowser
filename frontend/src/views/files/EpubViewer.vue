@@ -43,9 +43,9 @@ export default defineComponent({
       // 1. Fetch the download URL for the EPUB file
       const epubUrl = getters.isShare() 
         ? publicApi.getDownloadURL({
-            path: state.share.subPath,
-            hash: state.share.hash,
-            token: state.share.token,
+            path: state.shareInfo.subPath,
+            hash: state.shareInfo.hash,
+            token: state.shareInfo.token,
           }, [state.req.path])
         : await filesApi.getDownloadURL(
             state.req.source,

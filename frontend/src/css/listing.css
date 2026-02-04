@@ -467,9 +467,3 @@ body.rtl .listing-items {
   width: 100%;
   transition: grid-template-columns 0.25s ease-out;
 }
-
-/* Account space when sidebar is active - this give the columns a cleaner look */
-#main.moveWithSidebar .listing-items.icons .folder-items,
-#main.moveWithSidebar .listing-items.icons .file-items {
-  grid-template-columns: repeat(auto-fill, minmax(calc(var(--icons-view-cell-size, 100px) * 0.9), 1fr));
-}

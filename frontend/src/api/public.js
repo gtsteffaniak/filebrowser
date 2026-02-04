@@ -1,6 +1,6 @@
 import { adjustedData } from "./utils";
 import { notify } from "@/notify";
-import { getPublicApiPath, encodedPath, doubleEncode } from "@/utils/url.js";
+import { getPublicApiPath, encodedPath } from "@/utils/url.js";
 import { state } from "@/store";
 
 // ============================================================================
@@ -23,7 +23,7 @@ export async function fetchPub(path, hash, password = "", content = false, metad
     hash,
     ...(content && { content: 'true' }),
     ...(metadata && { metadata: 'true' }),
-    ...(state.share.token && { token: state.share.token })
+    ...(state.shareInfo.token && { token: state.shareInfo.token })
   }
   const apiPath = getPublicApiPath("resources", params);
   const response = await fetch(apiPath, {
@@ -76,16 +76,18 @@ export function getDownloadURL(share, files, inline=false) {
 // Generate a preview URL for public shares
 /**
  * @param {string} path
+ * @param {string} size - The size parameter (small, large, original). Omit for default (small).
  * @returns {string}
  */
-export function getPreviewURL(path,size="small") {
+export function getPreviewURL(path, size) {
   try {
     const params = {
       path: encodeURIComponent(path),
-      size: size,
-      hash: state.share.hash,
+      hash: state.shareInfo.hash,
       inline: 'true',
-      ...(state.share.token && { token: state.share.token })
+      // Only add size parameter if specified and not the default
+      ...(size && size !== 'small' && { size: size }),
+      ...(state.shareInfo.token && { token: state.shareInfo.token })
     }
     const apiPath = getPublicApiPath('preview', params)
     return window.origin + apiPath
@@ -113,7 +115,7 @@ export function post(
   }
   try {
     const apiPath = getPublicApiPath("resources", {
-      targetPath: doubleEncode(path),
+      targetPath: encodeURIComponent(path),
       hash: hash,
       override: overwrite,
       ...(isDir && { isDir: 'true' })
@@ -205,7 +207,7 @@ async function resourceAction(hash, path, method, content, token = "") {
     if (sharePassword) {
       headers["X-SHARE-PASSWORD"] = sharePassword;
     }
-    path = doubleEncode(path)
+    path = encodeURIComponent(path)
     const apiPath = getPublicApiPath('resources', { path, hash: hash, token: token })
     const response = await fetch(apiPath, {
       method,
@@ -246,7 +248,7 @@ export async function bulkDelete(items) {
   
   const params = {
     hash: hash,
-    ...(state.share.token && { token: state.share.token }),
+    ...(state.shareInfo.token && { token: state.shareInfo.token }),
     sessionId: state.sessionId
   }
   const apiPath = getPublicApiPath("resources/bulk/delete", params)
@@ -326,7 +328,7 @@ export async function moveCopy(
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
-        ...(state.share.token && { 'X-Auth-Token': state.share.token })
+        ...(state.shareInfo.token && { 'X-Auth-Token': state.shareInfo.token })
       },
       body: JSON.stringify(requestBody),
     })

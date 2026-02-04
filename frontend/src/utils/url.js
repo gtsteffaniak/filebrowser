@@ -1,6 +1,24 @@
 import { globalVars } from "@/utils/constants.js";
 import { state, mutations, getters } from "@/store";
 import { router } from "@/router";
+export default {
+  pathsMatch,
+  removeTrailingSlash,
+  removeLeadingSlash,
+  encodeRFC5987ValueChars,
+  removeLastDir,
+  encodePath,
+  removePrefix,
+  getApiPath,
+  extractSourceFromPath,
+  base64Encode,
+  joinPath,
+  goToItem,
+  buildItemUrl,
+  encodedPath,
+  trimSlashes,
+  getPublicApiPath,
+};
 
 export function removeLastDir(url) {
   var arr = url.split("/");
@@ -37,26 +55,6 @@ export function encodePath(str) {
 export function pathsMatch(url1, url2) {
   return removeTrailingSlash(url1) == removeTrailingSlash(url2);
 }
-
-export default {
-  pathsMatch,
-  removeTrailingSlash,
-  removeLeadingSlash,
-  encodeRFC5987ValueChars,
-  removeLastDir,
-  encodePath,
-  removePrefix,
-  getApiPath,
-  extractSourceFromPath,
-  base64Encode,
-  joinPath,
-  goToItem,
-  buildItemUrl,
-  encodedPath,
-  doubleEncode,
-  trimSlashes,
-  getPublicApiPath,
-};
 
 export function removePrefix(path, prefix = "") {
   if (path === undefined) {
@@ -209,14 +207,19 @@ export function encodedPath(path) {
 }
 
 // assume non-encoded input path and source
-export function goToItem(source, path, previousHistoryItem) {
+export function goToItem(source, path, previousHistoryItem, newTab = false) {
   if (source == state.sources.current && path == state.req.path) {
+    return;
+  }
+  mutations.setPreviewSource("");
+  let newPath = encodedPath(path);
+  let fullPath = `/files/${encodeURIComponent(source)}${newPath}`;
+  if (newTab) {
+    window.open(fullPath, '_blank');
     return;
   }
   mutations.setPreviousHistoryItem(previousHistoryItem);
   mutations.resetAll()
-  let newPath = encodedPath(path);
-  let fullPath;
   if (getters.isShare()) {
     fullPath = `/public/share/${state.shareInfo?.hash}${newPath}`;
     if (previousHistoryItem === undefined) {
@@ -227,7 +230,7 @@ export function goToItem(source, path, previousHistoryItem) {
     router.push({ path: fullPath });
     return;
   }
-  fullPath = `/files/${encodeURIComponent(source)}${newPath}`;
+  
   if (previousHistoryItem === undefined) {
     // When undefined will not create browser history
     router.replace({ path: fullPath });
@@ -235,8 +238,4 @@ export function goToItem(source, path, previousHistoryItem) {
   }
   router.push({ path: fullPath });
   return
-}
-
-export function doubleEncode(str) {
-  return encodeURIComponent(encodeURIComponent(str));
 }

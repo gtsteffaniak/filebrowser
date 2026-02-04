@@ -24,10 +24,19 @@ export interface ReqObject {
   listing?: any[];
 }
 
-export interface ShareObject {
-  hash: string | null;
+export interface ShareInfoObject {
+  isShare: boolean;
+  disableThumbnails: boolean;
+  hash: string;
   token: string;
   subPath: string;
+  passwordValid: boolean;
+  enforceDarkLightMode: string;
+  disableSidebar: boolean;
+  isValid: boolean;
+  shareType: string;
+  title: string;
+  description: string;
 }
 
 export interface UserObject {
@@ -86,6 +95,7 @@ export interface RouteObject {
 }
 
 export interface StoreState {
+  disableEventThemes: boolean;
   tooltip: {
     show: boolean;
     content: string;
@@ -111,10 +121,18 @@ export interface StoreState {
   displayPreferences: any;
   usages: any;
   editor: any;
+  editorDirty: boolean;
+  editorSaveHandler: any;
   realtimeActive: boolean | undefined;
   realtimeDownCount: number;
-  popupPreviewSource: string;
-  share: ShareObject;
+  popupPreviewSourceInfo: {
+    source: string;
+    path: string;
+    size: string;
+    url: string;
+    modified: string;
+  } | null;
+  shareInfo: ShareInfoObject;
   sources: {
     current: string;
     count: number;
@@ -146,6 +164,7 @@ export interface StoreState {
     queue: any[];
     progress: any[];
     sizes: any[];
+    isUploading: boolean;
   };
   prompts: any[];
   show: any;
@@ -161,5 +180,34 @@ export interface StoreState {
       name: string;
       files: string;
     };
+  };
+  navigation: {
+    show: boolean;
+    hoverNav: boolean;
+    listing: any;
+    currentIndex: number;
+    previousItem: any;
+    nextItem: any;
+    previousLink: string;
+    nextLink: string;
+    previousRaw: string;
+    nextRaw: string;
+    timeout: any;
+    enabled: boolean;
+    isTransitioning: boolean;
+    transitionStartTime: any;
+  };
+  playbackQueue: {
+    queue: any[];
+    currentIndex: number;
+    mode: string;
+    isPlaying: boolean;
+  };
+  notificationHistory: any[];
+  sidebar: {
+    width: number;
+    isResizing: boolean;
+    minWidth: number;
+    maxWidth: number;
   };
 }

@@ -3,7 +3,7 @@
   <div
     v-if="enabled && hasPrevious"
     class="nav-zone nav-zone-left"
-    :class="{ moveWithSidebar: moveWithSidebar }"
+    :style="leftZoneStyle"
     @touchstart="(e) => { handleTouchStart(e); toggleNavigation(e); }"
     @touchmove="handleTouchMove"
   ></div>
@@ -28,15 +28,15 @@
     @mouseleave="setHoverNav(false)"
     class="nav-button nav-previous"
     :class="{
-      moveWithSidebar: moveWithSidebar,
       hidden: !showNav,
       disabled: !hasPrevious,
       dragging: dragState.type === 'previous',
       active: dragState.atFullExtent && dragState.type === 'previous',
       'dark-mode': isDarkMode,
       'media-mode': isMediaQueueMode,
+      'sidebar-resizing': isSidebarResizing,
     }"
-    :style="dragState.type === 'previous' ? { transform: `translateY(-50%) translate(${dragState.deltaX}px, 0)` } : {}"
+    :style="previousButtonStyle"
     :aria-label="$t('general.previous')"
     :title="$t('general.previous')"
   >
@@ -57,7 +57,7 @@
     @mouseleave="setHoverNav(false)"
     class="nav-button nav-next"
     :class="{ hidden: !showNav, dragging: dragState.type === 'next', active: dragState.atFullExtent && dragState.type === 'next','dark-mode': isDarkMode, 'media-mode': isMediaQueueMode}"
-    :style="dragState.type === 'next' ? { transform: `translateY(-50%) translate(${dragState.deltaX}px, 0)` } : {}"
+    :style="nextButtonStyle"
     :aria-label="$t('general.next')"
     :title="$t('general.next')"
   >
@@ -108,12 +108,16 @@ export default {
         tapTimeout: null,
         triggered: false
       },
+      isSidebarResizing: false, // Track if sidebar is being resized
     };
   },
   computed: {
     isDarkMode() { return getters.isDarkMode(); },
     moveWithSidebar() {
       return getters.isSidebarVisible() && getters.isStickySidebar();
+    },
+    sidebarWidth() {
+      return state.sidebar?.width || 20;
     },
     enabled() {
       return state.navigation.enabled && getters.currentPrompt() == null;
@@ -157,6 +161,45 @@ export default {
 
       // Use media queue when in media view, NOT in single/loop-single mode, and have a queue
       return isMediaView && mode !== 'single' && mode !== 'loop-single' && hasQueue;
+    },
+    leftZoneStyle() {
+      const styles = {
+        pointerEvents: 'none',
+        zIndex: '-1',
+        background: 'transparent',
+        position: 'fixed',
+        top: '25%',
+        bottom: '25%',
+        width: '5em',
+      };
+      if (this.moveWithSidebar) {
+        styles.left = `${this.sidebarWidth}em`;
+      } else {
+        styles.left = '0';
+      }
+      return styles;
+    },
+    previousButtonStyle() {
+      const styles = {};
+      if (this.dragState.type === 'previous') {
+        styles.transform = `translateY(-50%) translate(${this.dragState.deltaX}px, 0)`;
+      }
+      // Calculate left position based on sidebar
+      if (this.moveWithSidebar) {
+        styles.left = `calc(${this.sidebarWidth}em + 1em)`; // When sidebar is sticky the position of the button will have a tiny padding
+      } else {
+        styles.left = '1em';
+      }
+      return styles;
+    },
+    nextButtonStyle() {
+      const styles = {};
+      if (this.dragState.type === 'next') {
+        styles.transform = `translateY(-50%) translate(${this.dragState.deltaX}px, 0)`;
+      }
+      // Next button doesn't need account for the sidebar
+      styles.right = '1em';
+      return styles;
     }
   },
   watch: {
@@ -206,6 +249,10 @@ export default {
     },
     'state.navigation.nextLink'() {
       this.showInitialNavigation();
+    },
+    'state.sidebar.isResizing'(newVal) {
+      // Track when sidebar is being resized to disable transitions
+      this.isSidebarResizing = newVal;
     },
   },
   mounted() {
@@ -336,7 +383,7 @@ export default {
         try {
           let res;
           if (getters.isShare()) {
-            res = await publicApi.fetchPub(directoryPath, state.share.hash);
+            res = await publicApi.fetchPub(directoryPath, state.shareInfo.hash);
           } else {
             res = await filesApi.fetchFiles(state.req.source, directoryPath);
           }
@@ -595,14 +642,16 @@ export default {
       }
     },
     isClickInLeftZone(event) {
-      const zoneWidth = 3 * parseFloat(getComputedStyle(document.documentElement).fontSize); // 3em in pixels
-      const sidebarOffset = this.moveWithSidebar ? 20 * parseFloat(getComputedStyle(document.documentElement).fontSize) : 0; // 20em in pixels
+      const emSize = parseFloat(getComputedStyle(document.documentElement).fontSize);
+      const zoneWidth = 3 * emSize; // 3em in pixels
+      const sidebarOffset = this.moveWithSidebar ? (this.sidebarWidth * emSize) : 0;
 
       return event.clientX >= sidebarOffset && event.clientX <= (sidebarOffset + zoneWidth);
     },
     isClickInRightZone(event) {
       const viewportWidth = window.innerWidth;
-      const zoneWidth = 3 * parseFloat(getComputedStyle(document.documentElement).fontSize); // 3em in pixels
+      const emSize = parseFloat(getComputedStyle(document.documentElement).fontSize);
+      const zoneWidth = 3 * emSize; // 3em in pixels
 
       return event.clientX >= (viewportWidth - zoneWidth) && event.clientX <= viewportWidth;
     },
@@ -944,7 +993,7 @@ export default {
       const zoneWidth = 5 * emSize; // 5em in pixels
 
       // Check left zone
-      const sidebarOffset = this.moveWithSidebar ? 20 * emSize : 0; // Account for sidebar
+      const sidebarOffset = this.moveWithSidebar ? (this.sidebarWidth * emSize) : 0; // Account for sidebar
       if (this.hasPrevious && event.clientX >= sidebarOffset && event.clientX <= (sidebarOffset + zoneWidth)) {
         const viewportHeight = window.innerHeight;
         const zoneTop = viewportHeight * 0.25; // 25% from top
@@ -982,11 +1031,6 @@ export default {
   background: transparent; /* Invisible zones for mouse/touch detection */
 }
 
-
-.nav-zone-left {
-  left: 0;
-}
-
 .nav-zone-right {
   right: 0;
 }
@@ -1004,7 +1048,7 @@ export default {
   background: var(--background);
   color: var(--textPrimary);
   cursor: pointer;
-  transition: opacity 0.4s ease, transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+  transition: opacity 0.4s ease, transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease, left 0.2s ease;
   pointer-events: auto;
   z-index: 1001;
   display: flex;
@@ -1037,13 +1081,9 @@ export default {
   opacity: 1;
 }
 
-
-.nav-previous {
-  left: 20px;
-}
-
-.nav-next {
-  right: 20px;
+/* Disable transitions during sidebar resizing */
+.nav-button.sidebar-resizing {
+  transition: opacity 0.4s ease, transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .nav-button.hidden {
@@ -1054,7 +1094,7 @@ export default {
 }
 
 /* Smooth show animation for better UX */
-.nav-button:not(.hidden) {
+.nav-button:not(.hidden):not(.sidebar-resizing) {
   animation: nav-button-show 0.4s ease-out;
 }
 
@@ -1072,7 +1112,7 @@ export default {
 .nav-button.dragging {
   z-index: 1002;
   cursor: grabbing;
-  transition: none; /* Disable transitions during drag for immediate response */
+  transition: none !important; /* Disable transitions during drag */
 }
 
 .nav-button i.material-icons {
@@ -1093,14 +1133,6 @@ export default {
     height: 44px;
   }
 
-  .nav-previous {
-    left: 10px;
-  }
-
-  .nav-next {
-    right: 10px;
-  }
-
   .nav-button i.material-icons {
     font-size: 20px;
   }
@@ -1113,15 +1145,8 @@ export default {
 
 /* Ensure buttons don't interfere with scrollbars */
 @media (max-width: 480px) {
-  .nav-previous {
-    left: 8px;
-  }
-
   .nav-next {
     right: 8px;
   }
-}
-.moveWithSidebar {
-  margin-left: 20em;
 }
 </style>

@@ -14,8 +14,6 @@
     "pauseAll": "すべて一時停止",
     "resumeAll": "すべて再開",
     "clearCompleted": "完了済みをクリア",
-    "showMore": "もっと見る",
-    "showLess": "表示を減らす",
     "openParentFolder": "親フォルダを開く",
     "selectedCount": "アクションを実行するために選択された項目の数",
     "listView": "リスト表示",
@@ -31,7 +29,9 @@
     "keepEditing": "編集を続ける",
     "closeAnyway": "とにかく閉じる",
     "goToItem": "アイテムへ",
-    "watchFile": "ウォッチファイル"
+    "watchFile": "ウォッチファイル",
+    "showMore": "詳細オプションを表示",
+    "showLess": "詳細オプションを隠す"
   },
   "download": {
     "downloadFile": "ファイルをダウンロード",

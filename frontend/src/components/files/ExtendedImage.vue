@@ -1,35 +1,62 @@
 <template>
   <div class="image-ex-container" ref="container" @touchstart="touchStart" @touchmove="touchMove" @touchend="touchEnd" @dblclick="zoomAuto"
     @mousedown="mousedownStart" @mousemove="mouseMove" @mouseup="mouseUp" @wheel="wheelMove">
-    <div v-if="!isLoaded">{{ $t('general.loading', { suffix: "..." }) }}</div>
+    <!-- Thumbnail placeholder (shown while full image loads, only if cached thumbnail exists) -->
+    <img 
+      v-if="cachedThumbnailUrl && !fullImageLoaded && !isTiff" 
+      :src="cachedThumbnailUrl" 
+      class="image-ex-img" 
+      ref="thumbnail"
+    />
+    
+    <!-- Loading spinner overlay (shown while full image loads) -->
+    <div v-if="!fullImageLoaded" class="image-loading-overlay">
+      <LoadingSpinner size="medium" />
+    </div>
 
-    <img v-if="!isTiff && isLoaded" :src="src" class="image-ex-img" ref="imgex" @load="onLoad" />
-    <canvas v-else-if="isLoaded" ref="imgex" class="image-ex-img"></canvas>
+    <!-- Full image: 
+         - Always loading in background via JavaScript
+         - Hidden until loaded if thumbnail exists, otherwise visible for progressive loading -->
+    <img 
+      v-if="!isTiff" 
+      class="image-ex-img" 
+      ref="imgex" 
+      @load="onLoad" 
+      @error="onImageError" 
+      :style="{ display: (cachedThumbnailUrl && !fullImageLoaded) ? 'none' : 'block' }" 
+    />
+    <canvas 
+      v-else 
+      ref="imgex" 
+      class="image-ex-img" 
+      :style="{ display: (cachedThumbnailUrl && !fullImageLoaded) ? 'none' : 'block' }"
+    ></canvas>
   </div>
 </template>
 
 <script>
-import { state, mutations } from "@/store";
+import { state, mutations, getters } from "@/store";
 import throttle from "@/utils/throttle";
 import { notify } from "@/notify";
+import LoadingSpinner from "@/components/LoadingSpinner.vue";
+import { getBestCachedImage } from "@/utils/imageCache";
+import { globalVars } from "@/utils/constants";
+
 export default {
+  components: {
+    LoadingSpinner,
+  },
   props: {
-    src: String,
-    moveDisabledTime: {
-      type: Number,
-      default: () => 200,
-    },
-    classList: {
-      type: Array,
-      default: () => [],
-    },
-    zoomStep: {
-      type: Number,
-      default: () => 0.25,
+    src: {
+      type: String,
+      default: null,
     },
   },
   data() {
     return {
+      moveDisabledTime: 200,
+      classList: [],
+      zoomStep: 0.25,
       scale: 1,
       lastX: null,
       lastY: null,
@@ -39,13 +66,15 @@ export default {
       moveDisabled: false,
       disabledTimer: null,
       imageLoaded: false,
+      fullImageLoaded: false,
+      loadTimeout: null,
       position: {
         center: { x: 0, y: 0 },
         relative: { x: 0, y: 0 },
       },
       maxScale: 4,
-      minScale: 1, // Minimum scale is 1 (full frame view)
-      isTiff: false, // Determine if the image is a TIFF
+      minScale: 1,
+      isTiff: false,
       // Swipe navigation properties
       swipeStartTime: null,
       swipeStartX: 0,
@@ -54,19 +83,55 @@ export default {
       swipeCurrentY: 0,
       isSwipeGesture: false,
       hasStartedSwipe: false,
-      gestureDecided: false, // Track if we've made a decision about this gesture
-      swipeMinDistance: 150, // Minimum horizontal distance for swipe
-      swipeMaxTime: 500, // Maximum time for swipe in milliseconds
-      swipeMaxVerticalDistance: 50, // Maximum vertical movement to still be considered horizontal swipe
+      gestureDecided: false,
+      swipeMinDistance: 150,
+      swipeMaxTime: 500,
+      swipeMaxVerticalDistance: 50,
     };
+  },
+  computed: {
+    source() {
+      return state.req?.source;
+    },
+    path() {
+      return state.req?.path;
+    },
+    isLoaded() {
+      return !("preview-img" in (state?.loading || {}));
+    },
+    cachedThumbnailUrl() {
+      if (!state?.req) {
+        return null;
+      }
+      if (!this.path || !state.req.hasPreview) {
+        return null;
+      }
+      // Don't use thumbnail for HEIC files that need conversion
+      const showFullSizeHeic = state.req?.type === "image/heic" && !state.isSafari && globalVars.mediaAvailable && !globalVars.disableHeicConversion;
+      if (showFullSizeHeic) {
+        return null;
+      }
+      // Get cached thumbnail URL (prefers large, falls back to small)
+      // For shares, use shareInfo.hash as the source; otherwise use this.source
+      const source = getters.isShare() ? state.shareInfo?.hash : this.source;
+      return getBestCachedImage(source, this.path, state.req?.modified);
+    },
   },
   mounted() {
     this.isTiff = this.checkIfTiff(this.src);
+    
+    // Step 1: Cache check happens automatically via thumbnailUrl computed property
+    
+    // Step 2: Always start loading the real image
     if (this.isTiff) {
       this.decodeTiff(this.src);
     } else {
-      this.$refs.imgex.src = this.src;
+      // Use nextTick to ensure element exists
+      this.$nextTick(() => {
+        this.loadFullImage();
+      });
     }
+    
     let container = this.$refs.container;
     this.classList.forEach((className) => container.classList.add(className));
     if (getComputedStyle(container).width === "0px") {
@@ -79,38 +144,60 @@ export default {
     window.addEventListener("resize", this.onResize);
   },
   beforeUnmount() {
+    // Clear any pending timeout
+    if (this.loadTimeout) {
+      clearTimeout(this.loadTimeout);
+      this.loadTimeout = null;
+    }
     window.removeEventListener("resize", this.onResize);
     document.removeEventListener("mouseup", this.onMouseUp);
   },
-  computed: {
-    isLoaded() {
-      return !("preview-img" in state.loading);
-    },
-  },
-  watch: {
-    src: function () {
-      if (!this.src || !this.$refs.imgex) {
-        mutations.setLoading("preview-img", false);
-        return;
-      }
-      this.isTiff = this.checkIfTiff(this.src);
-      if (this.isTiff) {
-        this.decodeTiff(this.src);
-      } else {
-        this.$refs.imgex.src = this.src;
-      }
-      this.scale = 1; // Reset zoom level
-      this.position.relative = { x: 0, y: 0 }; // Reset position
-      this.showSpinner = true; // Show spinner while loading
-      this.resetSwipeTracking(); // Reset swipe tracking for new image
-    },
-  },
   methods: {
+    loadFullImage() {
+      if (!this.src) return;
+      mutations.setLoading("preview-img", true);
+      
+      // Set src directly via JavaScript to avoid Vue's HTML entity encoding in template bindings
+      // Vue HTML-encodes & to &amp; when using :src="src" in templates
+      this.$nextTick(() => {
+        if (this.$refs.imgex && 'src' in this.$refs.imgex) {
+          // Decode any HTML entities (Vue shouldn't encode props, but decode just in case)
+          const cleanSrc = String(this.src).replace(/&amp;/g, '&');
+          this.$refs.imgex.src = cleanSrc;
+        }
+      });
+    },
     onLoad() {
+      // Step 3: Real image loaded - hide thumbnail and show image
       this.imageLoaded = true;
-      this.setCenter(); // Center the image after loading
-      this.showSpinner = false;
+      this.fullImageLoaded = true;
+      // Clear the timeout if image loaded successfully
+      if (this.loadTimeout) {
+        clearTimeout(this.loadTimeout);
+        this.loadTimeout = null;
+      }
+      this.setCenter();
       mutations.setLoading("preview-img", false);
+    },
+    onImageError(event) {
+      const img = event.target;
+      const actualSrc = img?.src || '';
+      
+      // If the error is due to &amp; in URL, try to fix it
+      if (actualSrc && actualSrc.includes('&amp;')) {
+        const fixedSrc = actualSrc.replace(/&amp;/g, '&');
+        if (img) {
+          img.src = fixedSrc;
+          return; // Let it retry with fixed URL
+        }
+      }
+      
+      this.imageLoaded = true;
+      this.fullImageLoaded = true;
+      mutations.setLoading("preview-img", false);
+      if (img) {
+        img.style.display = 'block';
+      }
     },
     checkIfTiff(src) {
       const sufs = ["tif", "tiff", "dng", "cr2", "nef"];
@@ -123,13 +210,11 @@ export default {
         if (!response.ok) {
           throw new Error("Network response was not ok");
         }
-        const blob = await response.blob(); // Convert response to a blob
+        const blob = await response.blob();
         const imgex = this.$refs.imgex;
-
         if (imgex) {
-          // Create a URL for the blob and set it as the image source
           imgex.src = URL.createObjectURL(blob);
-          imgex.onload = () => URL.revokeObjectURL(imgex.src); // Clean up URL object after loading
+          imgex.onload = () => URL.revokeObjectURL(imgex.src);
         }
       } catch (error) {
         notify.showError("Error decoding TIFF");
@@ -147,16 +232,20 @@ export default {
     setCenter() {
       const container = this.$refs.container;
       const img = this.$refs.imgex;
-
       if (!container || !img || !img.clientWidth || !img.clientHeight) {
-        return; // Exit if dimensions are unavailable
+        return;
       }
-
+      // Images are centered using CSS (top: 50%, left: 50%, transform: translate(-50%, -50%))
+      // Reset pan position when centering
+      this.position.relative = { x: 0, y: 0 };
       this.position.center.x = Math.floor((container.clientWidth - img.clientWidth) / 2);
       this.position.center.y = Math.floor((container.clientHeight - img.clientHeight) / 2);
-
-      img.style.left = `${this.position.center.x}px`;
-      img.style.top = `${this.position.center.y}px`;
+      // Update transform to reflect centered state
+      if (this.scale === 1) {
+        img.style.transform = 'translate(-50%, -50%) scale(1)';
+      } else {
+        img.style.transform = `translate(calc(-50% + ${this.position.relative.x}px), calc(-50% + ${this.position.relative.y}px)) scale(${this.scale})`;
+      }
     },
     mousedownStart(event) {
       this.lastX = null;
@@ -177,8 +266,6 @@ export default {
       this.lastX = null;
       this.lastY = null;
       this.lastTouchDistance = null;
-
-      // Initialize swipe tracking for single touch only when at full frame view (scale === 1)
       if (event.targetTouches.length === 1 && this.scale === 1) {
         const touch = event.targetTouches[0];
         this.swipeStartTime = Date.now();
@@ -188,13 +275,10 @@ export default {
         this.swipeCurrentY = touch.pageY;
         this.isSwipeGesture = false;
         this.hasStartedSwipe = false;
-        this.gestureDecided = false; // Reset decision for new touch
-
+        this.gestureDecided = false;
       } else {
-        // Reset swipe tracking for multi-touch (zoom gestures) or when zoomed in
         this.resetSwipeTracking();
       }
-
       if (event.targetTouches.length < 2) {
         setTimeout(() => {
           this.touches = 0;
@@ -205,9 +289,6 @@ export default {
           event.preventDefault();
         }
       }
-      
-      // Only prevent default if zoomed in (need to pan) or multi-touch (need to zoom)
-      // This allows nav-zone touches to work when at full frame view
       if (this.scale > 1 || event.targetTouches.length >= 2) {
         event.preventDefault();
       }
@@ -230,45 +311,31 @@ export default {
       event.preventDefault();
     },
     touchMove(event) {
-      // Update current swipe position for single touch, only when at full frame view
       if (event.targetTouches.length === 1 && this.scale === 1) {
         const touch = event.targetTouches[0];
         this.swipeCurrentX = touch.pageX;
         this.swipeCurrentY = touch.pageY;
-
-        // Only make gesture decision once per touch sequence
         if (!this.gestureDecided) {
           const deltaX = Math.abs(this.swipeCurrentX - this.swipeStartX);
           const deltaY = Math.abs(this.swipeCurrentY - this.swipeStartY);
-          
-          // Only decide after some meaningful movement
           if (deltaX > 10 || deltaY > 10) {
-            this.gestureDecided = true; // Mark that we've made a decision
-            
-            if (deltaX > deltaY * 2) { 
-              // Horizontal movement is significantly more than vertical - it's a swipe
+            this.gestureDecided = true;
+            if (deltaX > deltaY * 2) {
               this.isSwipeGesture = true;
-              event.preventDefault(); // Prevent scrolling during swipe
+              event.preventDefault();
             } else {
-              // Not horizontal enough - it's a pan gesture
               this.isSwipeGesture = false;
             }
           }
         }
-
-        // If we've decided it's a swipe gesture, prevent default and don't do normal panning
         if (this.gestureDecided && this.isSwipeGesture) {
           event.preventDefault();
-          return; // Block normal pan behavior for swipes
+          return;
         }
       }
-
-      // Only prevent default if we're zoomed in or doing multi-touch zoom
       if (this.scale > 1 || event.targetTouches.length >= 2) {
         event.preventDefault();
       }
-
-      // Normal touch move logic for pan/zoom (only runs if not a swipe gesture)
       if (this.lastX === null) {
         this.lastX = event.targetTouches[0].pageX;
         this.lastY = event.targetTouches[0].pageY;
@@ -282,7 +349,6 @@ export default {
           () => (this.moveDisabled = false),
           this.moveDisabledTime
         );
-
         let p1 = event.targetTouches[0];
         let p2 = event.targetTouches[1];
         let touchDistance = Math.sqrt(
@@ -296,7 +362,6 @@ export default {
         this.lastTouchDistance = touchDistance;
         this.setZoom();
       } else if (event.targetTouches.length === 1 && this.scale > 1) {
-        // Only allow panning when zoomed in
         if (this.moveDisabled) return;
         let x = event.targetTouches[0].pageX - this.lastX;
         let y = event.targetTouches[0].pageY - this.lastY;
@@ -309,8 +374,11 @@ export default {
     doMove(x, y) {
       this.position.relative.x += x;
       this.position.relative.y += y;
-      // Update the transform with separate translate and scale values
-      this.$refs.imgex.style.transform = `translate(${this.position.relative.x}px, ${this.position.relative.y}px) scale(${this.scale})`;
+      const img = this.$refs.imgex;
+      if (img) {
+        // Combine centering (-50%) with pan offset and scale
+        img.style.transform = `translate(calc(-50% + ${this.position.relative.x}px), calc(-50% + ${this.position.relative.y}px)) scale(${this.scale})`;
+      }
     },
     wheelMove(event) {
       event.preventDefault()
@@ -319,30 +387,26 @@ export default {
     },
     setZoom() {
       this.scale = Math.max(this.minScale, Math.min(this.maxScale, this.scale));
-
-      // If scale is back to 1 (full frame view), reset position to center
       if (this.scale === 1) {
         this.position.relative = { x: 0, y: 0 };
       }
-
-      // Update the transform with both translate and scale values
-      this.$refs.imgex.style.transform = `translate(${this.position.relative.x}px, ${this.position.relative.y}px) scale(${this.scale})`;
+      const img = this.$refs.imgex;
+      if (img) {
+        // Combine centering (-50%) with pan offset and scale
+        img.style.transform = `translate(calc(-50% + ${this.position.relative.x}px), calc(-50% + ${this.position.relative.y}px)) scale(${this.scale})`;
+      }
     },
     pxStringToNumber(style) {
       return +style.replace("px", "");
     },
     touchEnd(event) {
       let handledSwipe = false;
-
-      // Only process swipe if it was a single touch, we detected a swipe gesture, and at full frame view
       if (this.isSwipeGesture && this.swipeStartTime && this.scale === 1) {
         const swipeEndTime = Date.now();
         const swipeDuration = swipeEndTime - this.swipeStartTime;
         const deltaX = this.swipeCurrentX - this.swipeStartX;
         const deltaY = Math.abs(this.swipeCurrentY - this.swipeStartY);
         const absDelataX = Math.abs(deltaX);
-
-        // Check if swipe meets criteria: fast, horizontal, and long enough
         if (
           swipeDuration <= this.swipeMaxTime &&
           absDelataX >= this.swipeMinDistance &&
@@ -357,13 +421,9 @@ export default {
           event.preventDefault();
         }
       }
-      
-      // Only prevent default if we handled a swipe or were zoomed in (panning)
       if (!handledSwipe && this.scale > 1) {
         event.preventDefault();
       }
-      
-      // Reset swipe tracking
       this.resetSwipeTracking();
     },
     resetSwipeTracking() {
@@ -374,7 +434,49 @@ export default {
       this.swipeCurrentY = 0;
       this.isSwipeGesture = false;
       this.hasStartedSwipe = false;
-      this.gestureDecided = false; // Reset decision state
+      this.gestureDecided = false;
+    },
+  },
+  watch: {
+    src: function (newSrc) {
+      if (!newSrc) {
+        mutations.setLoading("preview-img", false);
+        return;
+      }
+      
+      // Clear any existing timeout
+      if (this.loadTimeout) {
+        clearTimeout(this.loadTimeout);
+        this.loadTimeout = null;
+      }
+      
+      // Reset and reload when src changes
+      this.fullImageLoaded = false;
+      this.imageLoaded = false;
+      this.isTiff = this.checkIfTiff(newSrc);
+      
+      // Cache check happens automatically via thumbnailUrl computed property
+      
+      // Always load the real image
+      if (this.isTiff) {
+        this.decodeTiff(newSrc);
+      } else {
+        this.$nextTick(() => {
+          this.loadFullImage();
+          // Set a timeout to handle cases where image never loads
+          this.loadTimeout = setTimeout(() => {
+            if (!this.fullImageLoaded && !this.imageLoaded) {
+              // Show the image even if load event didn't fire (might be partially loaded)
+              this.fullImageLoaded = true;
+              mutations.setLoading("preview-img", false);
+            }
+          }, 30000); // 30 second timeout
+        });
+      }
+      
+      this.scale = 1;
+      this.position.relative = { x: 0, y: 0 };
+      this.resetSwipeTracking();
     },
   },
 };
@@ -383,22 +485,31 @@ export default {
 <style>
 .image-ex-container {
   max-width: 100%;
-  /* Image container max width */
   max-height: 100%;
-  /* Image container max height */
   overflow: hidden;
-  /* Hide overflow if image exceeds container */
   position: relative;
-  /* Required for absolute positioning of child */
   display: flex;
   justify-content: center;
 }
 
 .image-ex-img {
   max-width: 100%;
-  /* Image max width */
   max-height: 100%;
-  /* Image max height */
   position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  object-fit: contain;
+}
+
+.image-loading-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 </style>

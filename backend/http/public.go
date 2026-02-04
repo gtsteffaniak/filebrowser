@@ -163,11 +163,8 @@ func publicUploadHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	if !d.share.AllowReplacements && r.URL.Query().Get("action") == "override" {
 		return http.StatusForbidden, fmt.Errorf("cannot overwrite files for this share")
 	}
-	path, err := url.QueryUnescape(r.URL.Query().Get("targetPath"))
-	if err != nil {
-		logger.Debugf("invalid path encoding: %v", err)
-		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
-	}
+	// Go automatically decodes query params
+	path := r.URL.Query().Get("targetPath")
 	fullPath := filepath.Join(d.share.Path, path)
 	source := config.Server.SourceMap[d.share.Source].Name
 	// adjust query params to match resourcePostHandler
@@ -223,8 +220,6 @@ func publicPreviewHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	if d.share.ShareType == "upload" {
 		return http.StatusNotImplemented, fmt.Errorf("preview is disabled for upload shares")
 	}
-	d.fileInfo.Source = d.share.Source
-	d.fileInfo.Path = utils.JoinPathAsUnix(d.share.Path, r.URL.Query().Get("path"))
 	status, err := previewHelperFunc(w, r, d)
 	if err != nil {
 		logger.Errorf("public preview handler: error getting preview with error %v", err)
@@ -262,13 +257,8 @@ func publicPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	if !d.share.AllowModify {
 		return http.StatusForbidden, fmt.Errorf("edit permission not allowed for this share")
 	}
+	// Go automatically decodes query params
 	path := r.URL.Query().Get("path")
-
-	// Decode the URL-encoded path
-	path, err = url.QueryUnescape(path)
-	if err != nil {
-		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
-	}
 	resolvedPath := utils.JoinPathAsUnix(d.share.Path, path)
 	err = files.WriteFile(source, resolvedPath, r.Body)
 	// hide the error
@@ -283,15 +273,7 @@ func publicDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	if !d.share.AllowDelete {
 		return http.StatusForbidden, fmt.Errorf("delete is not allowed for this share")
 	}
-
-	// TODO source := r.URL.Query().Get("source")
-	encodedPath := r.URL.Query().Get("path")
-
-	// Decode the URL-encoded path
-	path, err := url.QueryUnescape(encodedPath)
-	if err != nil {
-		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
-	}
+	path := r.URL.Query().Get("path")
 	indexPath := utils.JoinPathAsUnix(d.share.Path, path)
 	source, err := d.share.GetSourceName()
 	if err != nil {

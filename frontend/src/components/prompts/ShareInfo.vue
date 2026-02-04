@@ -28,8 +28,8 @@
         </div>
       </div>
 
-      <div v-if="req.type" class="share-info-element share-info-center">
-        <qrcode-vue class="qrcode" :value="getShareLink()" size="200" level="M"></qrcode-vue>
+      <div class="share-info-element share-info-center">
+        <qrcode-vue class="qrcode" :value="getShareLink()" :size="200" level="M"></qrcode-vue>
         <p class="share-link-text">{{ getShareLink() }}</p>
       </div>
     </div>
@@ -66,13 +66,13 @@ export default {
       if (!state.shareInfo?.isPasswordProtected) {
         return true
       }
-      return state.share.passwordValid
+      return state.shareInfo.passwordValid
     },
     getShareBanner() {
       if (state.shareInfo?.banner.startsWith("http")) {
         return state.shareInfo?.banner;
       }
-      return publicApi.getDownloadURL(state.share, [state.shareInfo?.banner]);
+      return publicApi.getDownloadURL(state.shareInfo, [state.shareInfo?.banner]);
     },
     shareInfo() {
       return state.shareInfo;
@@ -123,6 +123,7 @@ export default {
 
 .share-info-element {
   margin: 0.5em 0;
+  margin:auto;
 }
 
 .share-info-center {

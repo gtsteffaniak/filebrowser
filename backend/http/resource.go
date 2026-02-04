@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 	"os"
 	"path"
 	"path/filepath"
@@ -71,17 +70,8 @@ func validateMoveOperation(src, dst string, isSrcDir bool) error {
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/resources [get]
 func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	encodedPath := r.URL.Query().Get("path")
+	path := r.URL.Query().Get("path")
 	source := r.URL.Query().Get("source")
-	// Decode the URL-encoded path
-	path, err := url.QueryUnescape(encodedPath)
-	if err != nil {
-		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
-	}
-	source, err = url.QueryUnescape(source)
-	if err != nil {
-		return http.StatusBadRequest, fmt.Errorf("invalid source encoding: %v", err)
-	}
 	getContent := r.URL.Query().Get("content") == "true"
 	getMetadata := r.URL.Query().Get("metadata") == "true"
 	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
@@ -136,20 +126,9 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 		return http.StatusForbidden, fmt.Errorf("user is not allowed to delete")
 	}
 
-	// TODO source := r.URL.Query().Get("source")
-	encodedPath := r.URL.Query().Get("path")
+	path := r.URL.Query().Get("path")
 	source := r.URL.Query().Get("source")
-	var err error
-	// decode url encoded source name
-	source, err = url.QueryUnescape(source)
-	if err != nil {
-		return http.StatusBadRequest, fmt.Errorf("invalid source encoding: %v", err)
-	}
-	// Decode the URL-encoded path
-	path, err := url.QueryUnescape(encodedPath)
-	if err != nil {
-		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
-	}
+
 	if path == "/" {
 		return http.StatusForbidden, fmt.Errorf("cannot delete your user's root directory")
 	}
@@ -387,7 +366,6 @@ func resourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *reques
 // @Router /api/resources [post]
 func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	path := r.URL.Query().Get("path")
-	unescapedPath := path
 	source := r.URL.Query().Get("source")
 	var err error
 	accessStore := store.Access
@@ -395,27 +373,16 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	if d.share != nil {
 		accessStore = nil
 	} else {
-		// decode url encoded source name
-		source, err = url.QueryUnescape(source)
-		if err != nil {
-			logger.Debugf("invalid source encoding: %v", err)
-			return http.StatusBadRequest, fmt.Errorf("invalid source encoding: %v", err)
-		}
-		unescapedPath, err = url.QueryUnescape(path)
-		if err != nil {
-			logger.Debugf("invalid path encoding: %v", err)
-			return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
-		}
+		// Go automatically decodes query params - no need for QueryUnescape
 		if !d.user.Permissions.Create {
 			return http.StatusForbidden, fmt.Errorf("user is not allowed to create or modify")
 		}
 		// Path is now handled by FileInfoFaster which will apply user scope
-		path = unescapedPath
 	}
 
 	// Determine if this is a directory based on isDir query param or trailing slash (for backwards compatibility)
 	isDirParam := r.URL.Query().Get("isDir")
-	isDir := isDirParam == "true" || strings.HasSuffix(unescapedPath, "/")
+	isDir := isDirParam == "true" || strings.HasSuffix(path, "/")
 	fileOpts := utils.FileOptions{
 		Path:           path,
 		Source:         source,
@@ -609,20 +576,8 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 // @Router /api/resources [put]
 func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	source := r.URL.Query().Get("source")
-	var err error
-	// decode url encoded source name
-	source, err = url.QueryUnescape(source)
-	if err != nil {
-		return http.StatusBadRequest, fmt.Errorf("invalid source encoding: %v", err)
-	}
+	path := r.URL.Query().Get("path")
 
-	encodedPath := r.URL.Query().Get("path")
-
-	// Decode the URL-encoded path
-	path, err := url.QueryUnescape(encodedPath)
-	if err != nil {
-		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
-	}
 	// Only allow PUT for files.
 	if strings.HasSuffix(path, "/") {
 		return http.StatusMethodNotAllowed, nil
@@ -970,10 +925,8 @@ func patchAction(ctx context.Context, params patchActionParams) error {
 }
 
 func inspectIndex(w http.ResponseWriter, r *http.Request) {
-	encodedPath := r.URL.Query().Get("path")
+	path := r.URL.Query().Get("path")
 	source := r.URL.Query().Get("source")
-	// Decode the URL-encoded path
-	path, _ := url.QueryUnescape(encodedPath)
 	isNotDir := r.URL.Query().Get("isDir") == "false" // default to isDir true
 	index := indexing.GetIndex(source)
 	if index == nil {

@@ -420,21 +420,15 @@ type DirectDownloadResponse struct {
 // @Router /api/share/direct [get]
 func shareDirectDownloadHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	// Extract query parameters
-	encodedPath := r.URL.Query().Get("path")
+	path := r.URL.Query().Get("path")
 	source := r.URL.Query().Get("source")
 	duration := r.URL.Query().Get("duration")
 	downloadCountStr := r.URL.Query().Get("count")
 	downloadSpeedStr := r.URL.Query().Get("speed")
 
 	// Validate required parameters
-	if encodedPath == "" || source == "" {
+	if path == "" || source == "" {
 		return http.StatusBadRequest, fmt.Errorf("path and source are required")
-	}
-
-	// Decode the URL-encoded path
-	path, err := url.QueryUnescape(encodedPath)
-	if err != nil {
-		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}
 
 	// Validate source exists
@@ -626,6 +620,14 @@ func shareInfoHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	}
 	commonShare.Source = ""
 	commonShare.Path = ""
+	commonShare.SidebarLinks = []users.SidebarLink{}
+	for _, link := range shareLink.SidebarLinks {
+		if link.Category == "download" && shareLink.ShareType == "upload" {
+			continue
+		} else {
+			commonShare.SidebarLinks = append(commonShare.SidebarLinks, link)
+		}
+	}
 	return renderJSON(w, r, commonShare)
 }
 

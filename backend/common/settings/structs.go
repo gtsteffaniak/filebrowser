@@ -36,6 +36,10 @@ type Environment struct {
 	FaviconPath           string `json:"-"` // resolved favicon path (filesystem or embedded)
 	FaviconIsCustom       bool   `json:"-"` // true if favicon is from custom filesystem path
 	FaviconEmbeddedPath   string `json:"-"` // embedded asset path for default favicon
+	PWAIconsDir           string `json:"-"` // directory where generated PWA icons are stored
+	PWAIcon192            string `json:"-"` // path to 192x192 PWA icon
+	PWAIcon256            string `json:"-"` // path to 256x256 PWA icon
+	PWAIcon512            string `json:"-"` // path to 512x512 PWA icon
 }
 
 type Server struct {
@@ -265,9 +269,10 @@ type Frontend struct {
 	ExternalLinks         []ExternalLink `json:"externalLinks"`
 	DisableNavButtons     bool           `json:"disableNavButtons"` // disable the nav buttons in the sidebar
 	Styling               StylingConfig  `json:"styling"`
-	Favicon               string         `json:"favicon"`     // path to a favicon to use for the frontend
-	Description           string         `json:"description"` // description that shows up in html head meta description
-	LoginIcon             string         `json:"loginIcon"`   // path to an image file for the login page icon
+	Favicon               string         `json:"favicon"`             // path to a favicon to use for the frontend
+	Description           string         `json:"description"`         // description that shows up in html head meta description
+	LoginIcon             string         `json:"loginIcon"`           // path to an image file for the login page icon
+	OIDCLoginButtonText   string         `json:"oidcLoginButtonText"` // text to display on the OIDC login button
 }
 
 type StylingConfig struct {

@@ -1,7 +1,6 @@
 <template>
   <div class="tool">
     <div class="card-title">
-      <h1>{{ $t('tools.materialIconPicker.name') }}</h1>
       <p>{{ $t('tools.materialIconPicker.description') }}</p>
 
       <!-- External Link Banner -->

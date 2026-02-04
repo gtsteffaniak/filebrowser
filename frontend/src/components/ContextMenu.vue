@@ -17,7 +17,7 @@
       <div class="context-menu-header">
         <div
           class="action button clickable"
-          v-if="!isSearchActive && permissions.create && !isShare"
+          v-if="showCreateButton"
           @click="toggleShowCreate"
         >
           <i v-if="!showCreate" class="material-icons">add</i>
@@ -32,71 +32,77 @@
           <span>{{ selectedCount }}</span>
         </div>
       </div>
-      <hr class="divider">
+      <hr v-if="!isDuplicateFinder" class="divider">
       <action
-        v-if="showCreate && !isSearchActive"
+        v-if="showCreateActions"
         icon="create_new_folder"
         :label="$t('files.newFolder')"
         @action="showHover('newDir')"
       />
       <action
-        v-if="showCreate && !isSearchActive"
+        v-if="showCreateActions"
         icon="note_add"
         :label="$t('files.newFile')"
         @action="showHover('newFile')"
       />
       <action
-        v-if="showCreate && !isSearchActive"
+        v-if="showCreateActions"
         icon="file_upload"
         :label="$t('general.upload')"
         @action="uploadFunc"
       />
       <action
-        v-if="!showCreate && selectedCount == 1"
+        v-if="showInfo"
         icon="info"
         :label="$t('general.info')"
-        show="info"
+        @action="showInfoHover"
       />
 
       <action
-        v-if="(!showCreate && permissions.download && selectedCount > 0)"
+        v-if="showDownload"
         icon="file_download"
         :label="$t('general.download')"
         @action="startDownload"
         :counter="selectedCount"
       />
       <action
-        v-if="(showCreate || selectedCount == 1) && showShare"
+        v-if="showShareAction"
         icon="share"
         :label="$t('general.share')"
         @action="showShareHover"
       />
       <action
-        v-if="!showCreate && selectedCount == 1 && permissions.modify && !isSearchActive"
+        v-if="showRename"
         icon="mode_edit"
         :label="$t('general.rename')"
         @action="showRenameHover"
       />
       <action
-        v-if="!showCreate && selectedCount > 0 && permissions.modify"
+        v-if="showCopy"
         icon="content_copy"
         :label="$t('buttons.copyFile')"
         show="copy"
       />
       <action
-        v-if="!showCreate && selectedCount == 1 && isSearchActive"
+        v-if="showOpenParentFolder"
         icon="folder"
         :label="$t('buttons.openParentFolder')"
         @action="openParentFolder"
       />
       <action
-        v-if="!showCreate && selectedCount > 0 && permissions.modify"
+        v-if="showGoToItem"
+        icon="folder"
+        :label="$t('buttons.goToItem')"
+        @action="goToItem"
+      />
+      <action
+        v-if="showMove"
         icon="forward"
         :label="$t('buttons.moveFile')"
         show="move"
       />
       <action
-        v-if="!showCreate && !isSearchActive && req?.items?.length > 0"
+        v-if="showSelectAll"
         icon="select_all"
         :label="$t('buttons.selectAll')"
         @action="selectAllItems"
@@ -138,7 +144,7 @@
       class="button no-select fb-shadow"
       :class="{ 'dark-mode': isDarkMode }"
     >
-      <action icon="info" :label="$t('general.info')" show="info" />
+      <action icon="info" :label="$t('general.info')" @action="showInfoHover"/>
       <action v-if="showGoToRaw" icon="open_in_new" :label="$t('general.openFile')" @action="goToRaw()" />
       <action v-if="shouldShowParentFolder()" icon="folder" :label="$t('buttons.openParentFolder')" @action="openParentFolder" />
       <action v-if="isPreview && permissions.modify" icon="mode_edit" :label="$t('general.rename')" @action="showRenameHoverForPreview" />
@@ -181,6 +187,12 @@ export default {
     },
   },
   computed: {
+    showGoToItem() {
+      return this.isDuplicateFinder && this.selectedCount == 1;
+    },
+    isDuplicateFinder() {
+      return getters.currentView() === "duplicateFinder";
+    },
     permissions() {
       return getters.permissions();
     },
@@ -190,7 +202,47 @@ export default {
     isShare() {
       return getters.isShare();
     },
+    showCreateActions() {
+      if (this.isDuplicateFinder) return false;
+      return this.showCreate && !this.isSearchActive;
+    },
+    showInfo() {
+      if (this.isDuplicateFinder) return this.selectedCount == 1;
+      return !this.showCreate && this.selectedCount == 1;
+    },
+    showDownload() {
+      if (this.isDuplicateFinder) return false;
+      return !this.showCreate && this.permissions.download && this.selectedCount > 0;
+    },
+    showShareAction() {
+      if (this.isDuplicateFinder) return false;
+      return (this.showCreate || this.selectedCount == 1) && this.showShare;
+    },
+    showRename() {
+      if (this.isDuplicateFinder) return false;
+      return !this.showCreate && this.selectedCount == 1 && this.permissions.modify && !this.isSearchActive;
+    },
+    showCopy() {
+      if (this.isDuplicateFinder) return false;
+      return !this.showCreate && this.selectedCount > 0 && this.permissions.modify;
+    },
+    showOpenParentFolder() {
+      return !this.showCreate && this.selectedCount == 1 && (this.isSearchActive || this.isDuplicateFinder);
+    },
+    showMove() {
+      if (this.isDuplicateFinder) return false;
+      return !this.showCreate && this.selectedCount > 0 && this.permissions.modify;
+    },
+    showSelectAll() {
+      if (this.isDuplicateFinder) return false;
+      return !this.showCreate && !this.isSearchActive && this.req?.items?.length > 0;
+    },
+    showCreateButton() {
+      if (this.isDuplicateFinder) return false;
+      return !this.isSearchActive && this.permissions.create && !this.isShare;
+    },
     showSelectMultiple() {
+      if (this.isDuplicateFinder) return false;
       if (this.isMultiple || this.isSearchActive) {
         return false;
       }
@@ -217,6 +269,7 @@ export default {
       return cv == "markdownViewer" && this.permissions.modify;
     },
     showDelete() {
+      if (this.isDuplicateFinder) return false;
       if (this.selectedCount == 0) {
         return false;
       }
@@ -246,6 +299,7 @@ export default {
       return getters.currentPromptName() == "OverflowMenu";
     },
     showAccess() {
+      if (this.isDuplicateFinder) return false;
       if (getters.isShare()) {
         return false;
       }
@@ -316,6 +370,18 @@ export default {
     }
   },
   methods: {
+    showInfoHover() {
+      mutations.showHover({
+        name: "info",
+        props: {
+          item: getters.getFirstSelected(),
+        },
+      });
+    },
+    goToItem() {
+      const item = getters.getFirstSelected();
+      url.goToItem(item.source, item.path, {}, true);
+    },
     hideTooltip() {
       mutations.hideTooltip();
     },
@@ -525,12 +591,9 @@ export default {
       });
     },
     openParentFolder() {
-      const item = state.selected.length > 0 ? state.selected[0] : state.req;
-      let parentPath = url.removeLastDir(item.path);
-      if (parentPath == "") {
-        parentPath = "/";
-      }
-      url.goToItem(state.req.source, parentPath, {});
+      const item = getters.getFirstSelected();
+      const parentPath = url.removeLastDir(item.path) || "/";
+      url.goToItem(item.source, parentPath, {}, this.isDuplicateFinder);
     },
     selectAllItems() {
       if (state.req && state.req.items && state.req.items.length > 0) {

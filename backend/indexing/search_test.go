@@ -49,7 +49,7 @@ func TestMain(m *testing.M) {
 }
 
 func BenchmarkSearchAllIndexes(b *testing.B) {
-	Initialize(&settings.Source{Name: "test", Path: "/srv"}, true)
+	Initialize(&settings.Source{Name: "test", Path: "/srv"}, true, false) // mock=true, isNewDb=false
 	idx := GetIndex("test")
 
 	idx.CreateMockData(50, 3) // 50 dirs, 3 files per dir
@@ -143,7 +143,7 @@ func TestSearchWhileIndexing(t *testing.T) {
 		IndexingDisabled:         false,
 	}
 
-	Initialize(source, true)
+	Initialize(source, true, false) // mock=true, isNewDb=false
 	idx := GetIndex("test")
 	if idx == nil {
 		t.Fatal("Failed to get test index")

@@ -14,8 +14,6 @@
     "pauseAll": "Wstrzymaj wszystko",
     "resumeAll": "Resume all",
     "clearCompleted": "Czyszczenie zakończone",
-    "showMore": "Pokaż więcej",
-    "showLess": "Pokaż mniej",
     "openParentFolder": "Otwórz folder nadrzędny",
     "selectedCount": "Liczba elementów wybranych do wykonania akcji",
     "listView": "Widok listy",
@@ -31,7 +29,9 @@
     "keepEditing": "Kontynuuj edycję",
     "closeAnyway": "W każdym razie blisko",
     "goToItem": "Przejdź do pozycji",
-    "watchFile": "Oglądaj plik"
+    "watchFile": "Oglądaj plik",
+    "showMore": "Pokaż opcje zaawansowane",
+    "showLess": "Ukryj opcje zaawansowane"
   },
   "download": {
     "downloadFile": "Pobierz plik",

@@ -1,11 +1,12 @@
 <template>
-  <div class="popup-preview" v-show="source" ref="popup" :style="popupStyle">
-    <img :src="source" alt="Popup image" />
+  <div class="popup-preview" v-show="sourceInfo" ref="popup" :style="popupStyle">
+    <img v-if="sourceInfo" :src="sourceInfo.url" alt="Popup image" @load="onImageLoad" />
   </div>
 </template>
 
 <script>
 import { state, getters } from "@/store";
+import { setImageLoaded } from "@/utils/imageCache";
 
 export default {
   name: "PopupPreview",
@@ -20,7 +21,7 @@ export default {
     };
   },
   watch: {
-    source(newVal) {
+    sourceInfo(newVal) {
       if (newVal) {
         this.$nextTick(() => {
           this.positionPopup();
@@ -29,8 +30,8 @@ export default {
     },
   },
   computed: {
-    source() {
-      return state.popupPreviewSource;
+    sourceInfo() {
+      return state.popupPreviewSourceInfo;
     },
   },
   mounted() {
@@ -40,13 +41,20 @@ export default {
     window.removeEventListener("mousemove", this.updateCursorPosition);
   },
   methods: {
+    onImageLoad() {
+      // Track that this image was loaded
+      if (this.sourceInfo) {
+        const { source, path, size, url, modified } = this.sourceInfo;
+        setImageLoaded(source, path, size, modified, url);
+      }
+    },
     updateCursorPosition(event) {
       this.cursorX = event.clientX;
       this.cursorY = event.clientY;
       if (!state.isMobile) this.positionPopup();
     },
     positionPopup() {
-      if (!this.source) return;
+      if (!this.sourceInfo) return;
       const popup = this.$refs.popup;
       if (!popup) return;
 

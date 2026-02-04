@@ -2,6 +2,37 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+ **New Features**:
+ - Resizable sidebar (#1896)
+ - OIDC Authentication: Change Button Text via `frontend.oidcLoginButtonText` (#1708)
+ - improved favicon processing (#1899)
+   - supports more formats
+   - supports larger images
+   - automatcially generates multiple favicon sizes on startup for non-svg images. Custom svg favicons need a companion *.png to exist broad compatibilty
+   - Enhanced media playback: Ability to control the queue from your device's lock screen and notification panel - Will also show
+   metadata of the current playing media if available (#1917)
+
+ **Notes**:
+ - Better text file content detection (#1726)
+ - More url encoding changes for API which should make things more consistent. Open issues if you see path/source not found errors.
+ - adjustments to the startup behavior for sqlite index for reusing the previous database on startup
+ - CTRL + B disables sticky sidebar forever (#1869)
+ - added context menu back to duplicate finder
+ - Sharing a link for uploads - folder/file access and UX polishing (#1902)
+ - improved listing view and scrolling performance
+ - improved image viewer which will utilize recent thumbnails as a placeholder when loading the full image.
+ - Small reorganization of "Share" settings to make the popup clear (#1826)
+
+ **BugFixes**:
+ - Added docker default `FILEBROWSER_CONFIG="/home/filebrowser/data/config.yaml"` back -- mistakenly removed. see https://filebrowserquantum.com/en/docs/getting-started/config/#3-default-locations. (#1891)
+ - Fix brand text in login screen (#1898)
+ - Sidebar links cointains urls with 2x repeated source name (#1847)
+ - 2 factor auth getting overwritten if you edit the auth from admin (#1819)
+ - New created user's files are listing error, Probably related with language setting. (#1565)
+ - thumbnail generation cpu/memory and concurrency bug.
+   - added 75MB filesize limit for image previews
+   - optimized concurrency for large vs small images
+
 
 ## v1.2.1-beta
 
@@ -9,8 +40,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Global disable onlyoffice editor via "*" file option to disable all files for a specific user. (#1533) 
 
  **Notes**:
- - upgraded imaging package and improved thumbnail generation performance. (#1797) (#1850
-)
+ - upgraded imaging package and improved thumbnail generation performance. (#1797) (#1850)
  - updated download api to use repeated `file` query param for path instead of `files` with comma. See swagger for details (#1881)
 
  **BugFixes**:

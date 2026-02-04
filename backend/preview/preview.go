@@ -8,6 +8,8 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -20,6 +22,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/ffmpeg"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 	"github.com/gtsteffaniak/go-logger/logger"
+	"github.com/kovidgoyal/imaging"
 )
 
 var (
@@ -32,19 +35,24 @@ type Service struct {
 	fileCache     diskcache.Interface
 	cacheDir      string // Cache directory used for thumbnails and temp files
 	debug         bool
-	docGenMutex   sync.Mutex    // Mutex to serialize access to doc generation
-	docSemaphore  chan struct{} // Semaphore for document generation
-	officeSem     chan struct{} // Semaphore for office document processing
-	videoService  *ffmpeg.FFmpegService
-	imageService  *ffmpeg.FFmpegService
-	memoryTracker *MemoryTracker // Memory-aware tracker for image processing
+	docGenMutex   sync.Mutex            // Mutex to serialize access to doc generation (required for CGO thread safety with go-fitz)
+	ffmpegService *ffmpeg.FFmpegService // Shared FFmpeg service for video and HEIC/JPEG fallback
+	imageSem      chan struct{}         // Semaphore for small image decode/encode (<8MB)
+	imageLargeSem chan struct{}         // Semaphore for large image decode/encode (>=8MB), nil if only 1 processor
 }
 
+// Calculate split between small and large imaging library processors
+// Distribution formula:
+//
+//	1 processor:  single image processor for all sizes
+//	2 processors: 1 large, 1 small
+//	3-6 processors: 2 large, rest small
+//	7+ processors: 3 large, rest small
 func NewPreviewGenerator(concurrencyLimit int, cacheDir string) *Service {
 	if concurrencyLimit < 1 {
 		concurrencyLimit = 1
 	}
-	// get round up half value of concurrencyLimit
+	// get round up half value of concurrencyLimit for FFmpeg operations
 	ffmpegConcurrencyLimit := (concurrencyLimit + 1) / 2
 
 	actualCacheDir := cacheDir
@@ -74,54 +82,81 @@ func NewPreviewGenerator(concurrencyLimit int, cacheDir string) *Service {
 		logger.Error(err)
 	}
 
-	videoService := ffmpeg.NewFFmpegService(ffmpegConcurrencyLimit, settings.Config.Integrations.Media.Debug, "")
-	imageService := ffmpeg.NewFFmpegService(concurrencyLimit, settings.Config.Integrations.Media.Debug, filepath.Join(actualCacheDir, "heic"))
+	// Single FFmpeg service shared by video preview and HEIC/JPEG fallback
+	ffmpegService := ffmpeg.NewFFmpegService(ffmpegConcurrencyLimit, settings.Config.Integrations.Media.Debug, filepath.Join(actualCacheDir, "heic"))
 
-	// Create memory tracker for image processing
-	// Limit to 500MB of concurrent image processing memory
-	maxMemoryMB := 500
-	memoryTracker := NewMemoryTracker(concurrencyLimit, maxMemoryMB)
+	var imageSem, imageLargeSem chan struct{}
 
+	if concurrencyLimit == 1 {
+		// Single processor: no split, imageLargeSem will be nil
+		imageSem = make(chan struct{}, 1)
+		imageLargeSem = nil
+	} else {
+		var largeLimit int
+		if concurrencyLimit >= 7 {
+			largeLimit = 3
+		} else if concurrencyLimit >= 3 {
+			largeLimit = 2
+		} else {
+			largeLimit = 1
+		}
+		smallLimit := concurrencyLimit - largeLimit
+
+		imageSem = make(chan struct{}, smallLimit)
+		imageLargeSem = make(chan struct{}, largeLimit)
+
+		logger.Debugf("Image processor split: %d small, %d large (total: %d)", smallLimit, largeLimit, concurrencyLimit)
+	}
+
+	// Total max memory = concurrencyLimit × 50MB
+	// Example: concurrencyLimit=10 → ~500MB max
 	settings.Env.MuPdfAvailable = docEnabled()
 
 	return &Service{
 		fileCache:     fileCache,
 		cacheDir:      actualCacheDir,
 		debug:         settings.Config.Integrations.Media.Debug,
-		docSemaphore:  make(chan struct{}, 1), // must be 1 because cgo thread limit
-		officeSem:     make(chan struct{}, concurrencyLimit),
-		videoService:  videoService,
-		imageService:  imageService,
-		memoryTracker: memoryTracker,
+		ffmpegService: ffmpegService,
+		imageSem:      imageSem,
+		imageLargeSem: imageLargeSem,
 	}
 }
 
-// Document semaphore methods
-func (s *Service) acquireDoc(ctx context.Context) error {
+// Global image processor semaphore methods
+// These are used to ensure FFmpeg and document operations also respect the global image processor limit
+func (s *Service) acquireImageSem(ctx context.Context) error {
 	select {
-	case s.docSemaphore <- struct{}{}:
+	case s.imageSem <- struct{}{}:
 		return nil
 	case <-ctx.Done():
 		return ctx.Err()
 	}
 }
 
-func (s *Service) releaseDoc() {
-	<-s.docSemaphore
+func (s *Service) releaseImageSem() {
+	<-s.imageSem
 }
 
-// Office semaphore methods
-func (s *Service) acquireOffice(ctx context.Context) error {
+func (s *Service) acquireImageLargeSem(ctx context.Context) error {
+	if s.imageLargeSem == nil {
+		// Fall back to imageSem if imageLargeSem is not available (single processor case)
+		return s.acquireImageSem(ctx)
+	}
 	select {
-	case s.officeSem <- struct{}{}:
+	case s.imageLargeSem <- struct{}{}:
 		return nil
 	case <-ctx.Done():
 		return ctx.Err()
 	}
 }
 
-func (s *Service) releaseOffice() {
-	<-s.officeSem
+func (s *Service) releaseImageLargeSem() {
+	if s.imageLargeSem == nil {
+		// Fall back to imageSem if imageLargeSem is not available (single processor case)
+		s.releaseImageSem()
+		return
+	}
+	<-s.imageLargeSem
 }
 
 func StartPreviewGenerator(concurrencyLimit int, cacheDir string) error {
@@ -129,7 +164,163 @@ func StartPreviewGenerator(concurrencyLimit int, cacheDir string) error {
 		logger.Errorf("WARNING: StartPreviewGenerator called multiple times! This will create multiple semaphores!")
 	}
 	service = NewPreviewGenerator(concurrencyLimit, cacheDir)
+
+	// Generate PWA icons after service is initialized
+	GeneratePWAIcons()
+
 	return nil
+}
+
+// GetService returns the preview service instance (can be nil if not started)
+func GetService() *Service {
+	return service
+}
+
+// GeneratePWAIcons generates all icon sizes from favicon.svg or favicon.png
+func GeneratePWAIcons() {
+	if service == nil {
+		logger.Warning("Preview service not initialized, skipping icon generation")
+		return
+	}
+
+	// Determine source icon - prefer custom, fallback to default
+	var sourceIcon string
+	var sourceData []byte
+	var err error
+	var isSVG bool
+
+	if settings.Env.FaviconIsCustom {
+		sourceIcon = settings.Env.FaviconPath
+		logger.Debugf("Generating icons from custom favicon: %s", sourceIcon)
+		isSVG = strings.ToLower(filepath.Ext(sourceIcon)) == ".svg"
+
+		// Read the source file
+		sourceData, err = os.ReadFile(sourceIcon)
+		if err != nil {
+			logger.Warningf("Failed to read custom favicon: %v", err)
+			return
+		}
+
+		// If it's not a raster format that imaging library can decode, handle separately
+		if isSVG {
+			// SVG: Set PWA icons to use SVG directly, look for PNG for raster generation
+			logger.Debug("Source is SVG - will use directly where supported")
+			settings.Env.PWAIcon192 = "pwa-icon.svg"
+			settings.Env.PWAIcon256 = "pwa-icon.svg"
+			settings.Env.PWAIcon512 = "pwa-icon.svg"
+
+			// Look for PNG in same directory with same base name
+			basePath := sourceIcon[:len(sourceIcon)-len(filepath.Ext(sourceIcon))]
+			pngPath := basePath + ".png"
+			sourceData, err = os.ReadFile(pngPath)
+			if err != nil {
+				logger.Warningf("SVG favicon provided without PNG version at %s. For best compatibility across all browsers and platforms, provide a PNG version alongside your SVG.", pngPath)
+				return
+			}
+			logger.Debugf("Using PNG version (%s) for generating raster icons", pngPath)
+		} else {
+			// For any raster format (JPEG, PNG, GIF, WebP, etc.), decode and convert to PNG
+			// This creates a standardized PNG source for all icon generation
+			img, decodeErr := imaging.Decode(bytes.NewReader(sourceData))
+			if decodeErr != nil {
+				logger.Warningf("Failed to decode favicon image: %v", decodeErr)
+				return
+			}
+			// Re-encode as PNG in memory for consistent processing
+			var buf bytes.Buffer
+			if encodeErr := imaging.Encode(&buf, img, imaging.PNG); encodeErr != nil {
+				logger.Warningf("Failed to convert favicon to PNG: %v", encodeErr)
+				return
+			}
+			sourceData = buf.Bytes()
+			logger.Debugf("Converted %s favicon to PNG for icon generation", filepath.Ext(sourceIcon))
+		}
+	} else {
+		// Use default embedded favicon - we have both SVG and PNG versions
+		logger.Debug("Generating icons from default favicon")
+		// For default, use the PNG version for raster generation
+		assetFs := fileutils.GetAssetFS()
+		if assetFs == nil {
+			logger.Warning("Asset filesystem not initialized, skipping default icon generation")
+			return
+		}
+		pngPath := "img/icons/favicon.png"
+		sourceData, err = fs.ReadFile(assetFs, pngPath)
+		if err != nil {
+			logger.Warningf("Failed to read default favicon PNG: %v", err)
+			return
+		}
+		// Set PWA icons to use SVG for modern browsers
+		settings.Env.PWAIcon192 = "pwa-icon.svg"
+		settings.Env.PWAIcon256 = "pwa-icon.svg"
+		settings.Env.PWAIcon512 = "pwa-icon.svg"
+	}
+
+	// Define all icon sizes we need to generate
+	// Format: {size, filename, envVar pointer (optional)}
+	iconSizes := []struct {
+		size int
+		name string
+		env  *string
+	}{
+		// Browser favicon
+		{32, "favicon-32x32.png", nil},
+		// PWA icons
+		{192, "pwa-icon-192.png", &settings.Env.PWAIcon192},
+		{256, "pwa-icon-256.png", &settings.Env.PWAIcon256},
+		{512, "pwa-icon-512.png", &settings.Env.PWAIcon512},
+		// Platform-specific icons
+		{180, "apple-touch-icon.png", nil}, // iOS home screen
+		{256, "mstile-256x256.png", nil},   // Windows tile
+	}
+
+	allSuccess := true
+	generatedCount := 0
+
+	for _, iconSize := range iconSizes {
+		outputPath := filepath.Join(settings.Env.PWAIconsDir, iconSize.name)
+
+		// Create output file
+		outFile, err := os.Create(outputPath)
+		if err != nil {
+			logger.Warningf("Failed to create icon %s: %v", iconSize.name, err)
+			allSuccess = false
+			continue
+		}
+
+		// Resize image using the service's Resize method
+		err = service.Resize(
+			bytes.NewReader(sourceData),
+			outFile,
+			ResizeOptions{
+				Width:      iconSize.size,
+				Height:     iconSize.size,
+				ResizeMode: ResizeModeFill,
+				Quality:    QualityHigh,
+				Format:     FormatPng,
+			},
+		)
+		outFile.Close()
+
+		if err != nil {
+			logger.Warningf("Failed to generate icon %s: %v", iconSize.name, err)
+			os.Remove(outputPath)
+			allSuccess = false
+			continue
+		}
+
+		// Update environment variable if specified
+		if iconSize.env != nil {
+			*iconSize.env = filepath.Join("icons", iconSize.name)
+		}
+		generatedCount++
+	}
+
+	if allSuccess {
+		logger.Debugf("Successfully generated %d icon sizes", generatedCount)
+	} else {
+		logger.Warningf("Generated %d/%d icon sizes (some failed)", generatedCount, len(iconSizes))
+	}
 }
 
 func GetPreviewForFile(ctx context.Context, file iteminfo.ExtendedFileInfo, previewSize, url string, seekPercentage int) ([]byte, error) {
@@ -180,6 +371,35 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 		return nil, ctx.Err()
 	}
 
+	// Acquire global image processor semaphore for ALL operations
+	const largeFileSizeThreshold = 8 * 1024 * 1024 // 8MB
+	if file.Size >= largeFileSizeThreshold && service.imageLargeSem != nil {
+		// Large file path - use imageLargeSem
+		if err := service.acquireImageLargeSem(ctx); err != nil {
+			return nil, err
+		}
+		defer service.releaseImageLargeSem()
+	} else {
+		// Small file path or fallback - use imageSem
+		if err := service.acquireImageSem(ctx); err != nil {
+			return nil, err
+		}
+		defer service.releaseImageSem()
+	}
+
+	// Check if context is cancelled after acquiring semaphore
+	if ctx.Err() != nil {
+		return nil, ctx.Err()
+	}
+
+	// Enforce file size limit for image preview generation to prevent memory exhaustion
+	if strings.HasPrefix(file.Type, "image") && file.Size > iteminfo.LargeFileSizeThreshold {
+		message := fmt.Sprintf("Image file too large for preview: %s (size: %d bytes, limit: %d bytes)",
+			file.Name, file.Size, iteminfo.LargeFileSizeThreshold)
+		logger.Warning(message)
+		return nil, errors.New(message)
+	}
+
 	ext := strings.ToLower(filepath.Ext(file.Name))
 	var (
 		err        error
@@ -219,11 +439,51 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 		}
 		return imageBytes, nil
 	} else if strings.HasPrefix(file.Type, "image") {
-		imageBytes, err = os.ReadFile(file.RealPath)
-		if err != nil {
-			logger.Errorf("Failed to read image file '%s' (path: %s): %v", file.Name, file.RealPath, err)
-			return nil, fmt.Errorf("failed to read image file: %w", err)
+		// Stream from file instead of os.ReadFile so we don't load every image fully into memory.
+		// ResizeWithSize() holds the imaging semaphore and only reads in chunks / decodes one at a time.
+		f, openErr := os.Open(file.RealPath)
+		if openErr != nil {
+			logger.Errorf("Failed to open image file '%s' (path: %s): %v", file.Name, file.RealPath, openErr)
+			return nil, fmt.Errorf("failed to open image file: %w", openErr)
 		}
+		defer f.Close()
+		imageBytes, err = service.CreatePreviewFromReaderWithSize(f, previewSize, file.Size)
+		if err != nil {
+			// Check if this is an unsupported JPEG format and FFmpeg fallback is enabled
+			errMsg := err.Error()
+			if strings.HasPrefix(file.Type, "image/jpeg") &&
+				(strings.Contains(errMsg, "unrecognised marker") ||
+					strings.Contains(errMsg, "invalid JPEG format") ||
+					strings.Contains(errMsg, "Huffman")) {
+				enableJPEGFallback := *settings.Config.Integrations.Media.Convert.ImagePreview[settings.JPEGImagePreview]
+				if enableJPEGFallback && service.ffmpegService != nil {
+					logger.Debugf("JPEG decode failed for '%s', falling back to FFmpeg: %v", file.Name, err)
+					imageBytes, err = service.convertImageWithFFmpeg(ctx, file.RealPath, previewSize)
+					if err != nil {
+						return nil, fmt.Errorf("failed to resize preview image with FFmpeg fallback: %w", err)
+					}
+					cacheKey := CacheKey(fileMD5, previewSize, seekPercentage)
+					if err = service.fileCache.Store(ctx, cacheKey, imageBytes); err != nil {
+						logger.Errorf("failed to cache FFmpeg-converted image: %v", err)
+					}
+					return imageBytes, nil
+				}
+				if !enableJPEGFallback {
+					return nil, fmt.Errorf("failed to resize preview image (unsupported JPEG format, FFmpeg conversion disabled in settings): %w", err)
+				}
+				return nil, fmt.Errorf("failed to resize preview image (unsupported JPEG format, FFmpeg not available): %w", err)
+			}
+			return nil, fmt.Errorf("failed to create image preview: %w", err)
+		}
+		if len(imageBytes) < 100 {
+			logger.Errorf("Generated image too small for '%s' (type: %s): %d bytes", file.Name, file.Type, len(imageBytes))
+			return nil, fmt.Errorf("generated image is too small, likely an error occurred: %d bytes", len(imageBytes))
+		}
+		cacheKey := CacheKey(fileMD5, previewSize, seekPercentage)
+		if err = service.fileCache.Store(ctx, cacheKey, imageBytes); err != nil {
+			logger.Errorf("failed to cache image: %v", err)
+		}
+		return imageBytes, nil
 	} else if strings.HasPrefix(file.Type, "video") {
 		// Check if this video format is enabled for preview generation
 		ext = strings.TrimPrefix(strings.ToLower(filepath.Ext(file.Name)), ".")
@@ -284,7 +544,7 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 				enableJPEGFallback := *settings.Config.Integrations.Media.Convert.ImagePreview[settings.JPEGImagePreview]
 
 				// Only attempt FFmpeg fallback if it's enabled and FFmpeg service is available
-				if enableJPEGFallback && service.imageService != nil {
+				if enableJPEGFallback && service.ffmpegService != nil {
 					// Fall back to FFmpeg for problematic JPEG files
 					logger.Debugf("JPEG decode failed for '%s', falling back to FFmpeg: %v", file.Name, err)
 					resizedBytes, err = service.convertImageWithFFmpeg(ctx, file.RealPath, previewSize)
@@ -332,30 +592,44 @@ func GeneratePreview(ctx context.Context, file iteminfo.ExtendedFileInfo, previe
 }
 
 func (s *Service) CreatePreview(data []byte, previewSize string) ([]byte, error) {
-	var (
-		width   int
-		height  int
-		options []Option
-	)
+	return s.CreatePreviewFromReader(bytes.NewReader(data), previewSize)
+}
+
+// CreatePreviewFromReader resizes an image from a reader (e.g. *os.File) without loading it fully into memory.
+// Used for the image preview path so only concurrencyLimit decodes run at once.
+func (s *Service) CreatePreviewFromReader(reader io.Reader, previewSize string) ([]byte, error) {
+	return s.CreatePreviewFromReaderWithSize(reader, previewSize, 0)
+}
+
+// CreatePreviewFromReaderWithSize resizes an image with file size information for semaphore selection.
+func (s *Service) CreatePreviewFromReaderWithSize(reader io.Reader, previewSize string, fileSize int64) ([]byte, error) {
+	var options ResizeOptions
 
 	switch previewSize {
 	case "large":
-		width, height = 640, 640
-		options = []Option{WithMode(ResizeModeFit), WithQuality(QualityHigh), WithFormat(FormatJpeg)}
+		options = ResizeOptions{
+			Width:      640,
+			Height:     640,
+			ResizeMode: ResizeModeFit,
+			Quality:    QualityHigh,
+			Format:     FormatJpeg,
+		}
 	case "small":
-		width, height = 256, 256
-		options = []Option{WithMode(ResizeModeFit), WithQuality(QualityMedium), WithFormat(FormatJpeg)}
+		options = ResizeOptions{
+			Width:      256,
+			Height:     256,
+			ResizeMode: ResizeModeFit,
+			Quality:    QualityMedium,
+			Format:     FormatJpeg,
+		}
 	default:
 		return nil, ErrUnsupportedFormat
 	}
 
-	input := bytes.NewReader(data)
 	output := &bytes.Buffer{}
-
-	if err := s.Resize(input, width, height, output, options...); err != nil {
+	if err := s.ResizeWithSize(reader, output, fileSize, options); err != nil {
 		return nil, err
 	}
-
 	return output.Bytes(), nil
 }
 

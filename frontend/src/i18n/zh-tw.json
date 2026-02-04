@@ -14,8 +14,6 @@
     "pauseAll": "全部暫停",
     "resumeAll": "所有履歷",
     "clearCompleted": "清除完成",
-    "showMore": "顯示更多",
-    "showLess": "顯示更少",
     "openParentFolder": "開啟父資料夾",
     "selectedCount": "選取執行動作的項目數量",
     "listView": "清單檢視",
@@ -31,7 +29,9 @@
     "keepEditing": "繼續編輯",
     "closeAnyway": "無論如何關閉",
     "goToItem": "前往項目",
-    "watchFile": "觀看檔案"
+    "watchFile": "觀看檔案",
+    "showMore": "顯示進階選項",
+    "showLess": "隱藏進階選項"
   },
   "download": {
     "downloadFile": "下載檔案",
