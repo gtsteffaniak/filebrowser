@@ -303,9 +303,18 @@ func staticAssetHandler(w http.ResponseWriter, r *http.Request) {
 		assetPath = settings.Env.FaviconEmbeddedPath
 	case "favicon-16x16.png", "favicon-32x32.png",
 		"pwa-icon-192.png", "pwa-icon-256.png", "pwa-icon-512.png",
-		"apple-touch-icon.png", "mstile-256x256.png":
+		"apple-touch-icon.png":
 		// Serve generated icons from cache directory
 		iconPath := filepath.Join(settings.Env.PWAIconsDir, path)
+		if _, err := os.Stat(iconPath); err == nil {
+			http.ServeFile(w, r, iconPath)
+			return
+		}
+		// Fall back to embedded favicon.png if generation failed
+		assetPath = "img/icons/favicon.png"
+	case "mstile-256x256.png":
+		// Windows tile - redirect to pwa-icon-256.png (they're identical)
+		iconPath := filepath.Join(settings.Env.PWAIconsDir, "pwa-icon-256.png")
 		if _, err := os.Stat(iconPath); err == nil {
 			http.ServeFile(w, r, iconPath)
 			return

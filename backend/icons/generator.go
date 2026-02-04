@@ -156,11 +156,10 @@ func getIconSizesToGenerate() []iconSize {
 		{32, "favicon-32x32.png", nil},
 		// PWA icons (PNG required for Apple PWA compatibility)
 		{192, "pwa-icon-192.png", &settings.Env.PWAIcon192},
-		{256, "pwa-icon-256.png", &settings.Env.PWAIcon256},
+		{256, "pwa-icon-256.png", &settings.Env.PWAIcon256}, // Also serves as Windows tile
 		{512, "pwa-icon-512.png", &settings.Env.PWAIcon512},
 		// Platform-specific icons
 		{180, "apple-touch-icon.png", nil}, // iOS home screen (required for Apple)
-		{256, "mstile-256x256.png", nil},   // Windows tile
 	}
 }
 
