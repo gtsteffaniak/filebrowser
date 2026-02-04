@@ -169,6 +169,9 @@ router.beforeResolve(async (to, from, next) => {
     return next(false);
   }
 
+  // Clear any popup previews when navigating
+  mutations.setPreviewSource("");
+
   const title = titles[to.name as keyof typeof titles] || String(to.name || '');
   document.title = globalVars.name + " - " + title;
   mutations.setRoute(to);

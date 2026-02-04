@@ -250,7 +250,7 @@ export default {
       let index = 0;
 
       const updateThumbnail = () => {
-        if (state.popupPreviewSourceInfo?.url === "") {
+        if (!state.popupPreviewSourceInfo || state.popupPreviewSourceInfo.path !== this.path) {
           this.previewTimeouts.forEach(clearTimeout);
           this.previewTimeouts = [];
           return;
@@ -360,6 +360,11 @@ export default {
     // @ts-ignore
     this.svgPath = result.svgPath || "";
     this.updateImageTargetSrc();
+  },
+  beforeUnmount() {
+    // Clean up any pending animation timeouts
+    this.previewTimeouts.forEach(clearTimeout);
+    this.previewTimeouts = [];
   },
 };
 </script>
