@@ -2,7 +2,6 @@ package files
 
 import (
 	"context"
-	"encoding/base64"
 	"fmt"
 	"io"
 	"os"
@@ -236,7 +235,8 @@ func processContent(info *iteminfo.ExtendedFileInfo, idx *indexing.Index, opts u
 		} else {
 			// Copy metadata to ExtendedFileInfo
 			info.Metadata = extItem.Metadata
-			info.HasPreview = extItem.Metadata != nil && extItem.Metadata.AlbumArt != ""
+			info.HasMetadata = true
+			info.HasPreview = extItem.Metadata != nil && len(extItem.Metadata.AlbumArt) > 0
 		}
 		return
 	}
@@ -323,11 +323,11 @@ func extractAudioMetadata(ctx context.Context, item *iteminfo.ExtendedItemInfo, 
 		return nil
 	}
 
-	// Extract album art and encode as base64 with strict size limits
+	// Extract album art if available (stored as raw bytes, auto-encoded to base64 in JSON)
 	if picture := m.Picture(); picture != nil && picture.Data != nil {
-		// More aggressive size limit to prevent memory issues (max 5MB)
+		// Size limit to prevent memory issues (max 5MB)
 		if len(picture.Data) <= 5*1024*1024 {
-			item.Metadata.AlbumArt = base64.StdEncoding.EncodeToString(picture.Data)
+			item.Metadata.AlbumArt = picture.Data
 		} else {
 			logger.Debugf("Skipping album art for %s: too large (%d bytes)", realPath, len(picture.Data))
 		}

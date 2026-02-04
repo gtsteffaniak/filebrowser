@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"crypto/md5"
-	"encoding/base64"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -182,10 +181,10 @@ func GetPreviewForFile(ctx context.Context, file iteminfo.ExtendedFileInfo, prev
 
 	// Generate fast cache key based on file metadata
 	var cacheHash string
-	if file.Metadata != nil && file.Metadata.AlbumArt != "" {
+	if file.Metadata != nil && len(file.Metadata.AlbumArt) > 0 {
 		// For audio with album art, hash the album art content
 		hasher := md5.New()
-		_, _ = hasher.Write([]byte(file.Metadata.AlbumArt))
+		_, _ = hasher.Write(file.Metadata.AlbumArt)
 		cacheHash = hex.EncodeToString(hasher.Sum(nil))
 	} else {
 		// For all other files, use fast metadata-based hash
@@ -241,7 +240,7 @@ func determinePreviewType(file iteminfo.ExtendedFileInfo) filePreviewType {
 		return previewTypeImage
 	case strings.HasPrefix(file.Type, "video"):
 		return previewTypeVideo
-	case strings.HasPrefix(file.Type, "audio"):
+	case strings.HasPrefix(file.Type, "audio") && file.Metadata != nil && len(file.Metadata.AlbumArt) > 0:
 		return previewTypeAudio
 	default:
 		return previewTypeUnsupported
@@ -269,8 +268,10 @@ func (s *Service) generateRawPreview(ctx context.Context, file iteminfo.Extended
 		return s.generateVideoPreviewBytes(ctx, file, seekPercentage)
 
 	case previewTypeAudio:
-		return s.generateAudioPreview(file)
-
+		if file.Metadata != nil && len(file.Metadata.AlbumArt) > 0 {
+			return file.Metadata.AlbumArt, nil
+		}
+		return nil, nil
 	case previewTypeUnsupported:
 		ext := strings.ToLower(filepath.Ext(file.Name))
 		return nil, fmt.Errorf("unsupported media type: %s", ext)
@@ -333,18 +334,6 @@ func (s *Service) generateVideoPreviewBytes(ctx context.Context, file iteminfo.E
 	return imageBytes, nil
 }
 
-// generateAudioPreview extracts album artwork from audio files
-func (s *Service) generateAudioPreview(file iteminfo.ExtendedFileInfo) ([]byte, error) {
-	if file.Metadata != nil && file.Metadata.AlbumArt != "" {
-		imageBytes, err := base64.StdEncoding.DecodeString(file.Metadata.AlbumArt)
-		if err != nil {
-			return nil, fmt.Errorf("failed to decode album artwork: %w", err)
-		}
-		return imageBytes, nil
-	}
-	return nil, nil
-}
-
 // generateImagePreview generates preview for regular image files
 func (s *Service) generateImagePreview(ctx context.Context, file iteminfo.ExtendedFileInfo, previewSize string) ([]byte, error) {
 	// Stream from file instead of os.ReadFile so we don't load every image fully into memory
@@ -355,11 +344,16 @@ func (s *Service) generateImagePreview(ctx context.Context, file iteminfo.Extend
 	}
 	defer f.Close()
 
-	imageBytes, err := s.CreatePreviewFromReaderWithSize(f, previewSize, file.Size)
+	options, err := getPreviewOptions(previewSize)
 	if err != nil {
-		// Check if this is an unsupported JPEG format and FFmpeg fallback is enabled
-		if s.isJPEGFallbackNeeded(file.Type, err) {
-			return s.handleJPEGFallback(ctx, file, previewSize, err)
+		return nil, err
+	}
+
+	imageBytes, err := s.CreatePreview(f, file.Size, options)
+	if err != nil {
+		// For JPEG files, try FFmpeg fallback if initial decode failed
+		if strings.HasPrefix(file.Type, "image/jpeg") {
+			return handleJPEGFallback(ctx, s, file, previewSize, err)
 		}
 		return nil, fmt.Errorf("failed to create image preview: %w", err)
 	}
@@ -372,20 +366,9 @@ func (s *Service) generateImagePreview(ctx context.Context, file iteminfo.Extend
 	return imageBytes, nil
 }
 
-// isJPEGFallbackNeeded checks if we should try FFmpeg fallback for JPEG decoding errors
-func (s *Service) isJPEGFallbackNeeded(fileType string, err error) bool {
-	if !strings.HasPrefix(fileType, "image/jpeg") {
-		return false
-	}
-
-	errMsg := err.Error()
-	return strings.Contains(errMsg, "unrecognised marker") ||
-		strings.Contains(errMsg, "invalid JPEG format") ||
-		strings.Contains(errMsg, "Huffman")
-}
-
 // handleJPEGFallback attempts to use FFmpeg for problematic JPEG files
-func (s *Service) handleJPEGFallback(ctx context.Context, file iteminfo.ExtendedFileInfo, previewSize string, originalErr error) ([]byte, error) {
+// This is preview-specific logic for user files, not used for icon generation
+func handleJPEGFallback(ctx context.Context, s *Service, file iteminfo.ExtendedFileInfo, previewSize string, originalErr error) ([]byte, error) {
 	enableJPEGFallback := *settings.Config.Integrations.Media.Convert.ImagePreview[settings.JPEGImagePreview]
 
 	if !enableJPEGFallback {
@@ -490,11 +473,16 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 
 	// Resize if needed (for videos, audio, documents, office files)
 	if previewSize != "original" {
-		resizedBytes, err := service.CreatePreview(imageBytes, previewSize)
+		options, err := getPreviewOptions(previewSize)
 		if err != nil {
-			// Check if this is an unsupported JPEG format during resize
-			if service.isJPEGFallbackNeeded(file.Type, err) {
-				resizedBytes, err = service.handleJPEGFallback(ctx, file, previewSize, err)
+			return nil, err
+		}
+
+		resizedBytes, err := service.CreatePreview(bytes.NewReader(imageBytes), 0, options)
+		if err != nil {
+			// For JPEG files, try FFmpeg fallback if resize failed
+			if strings.HasPrefix(file.Type, "image/jpeg") {
+				resizedBytes, err = handleJPEGFallback(ctx, service, file, previewSize, err)
 				if err != nil {
 					return nil, err
 				}
@@ -529,41 +517,32 @@ func GeneratePreview(ctx context.Context, file iteminfo.ExtendedFileInfo, previe
 	return GeneratePreviewWithMD5(ctx, file, previewSize, officeUrl, seekPercentage, cacheHash)
 }
 
-func (s *Service) CreatePreview(data []byte, previewSize string) ([]byte, error) {
-	return s.CreatePreviewFromReader(bytes.NewReader(data), previewSize)
-}
-
-// CreatePreviewFromReader resizes an image from a reader (e.g. *os.File) without loading it fully into memory.
-// Used for the image preview path so only concurrencyLimit decodes run at once.
-func (s *Service) CreatePreviewFromReader(reader io.Reader, previewSize string) ([]byte, error) {
-	return s.CreatePreviewFromReaderWithSize(reader, previewSize, 0)
-}
-
-// CreatePreviewFromReaderWithSize resizes an image with file size information for semaphore selection.
-func (s *Service) CreatePreviewFromReaderWithSize(reader io.Reader, previewSize string, fileSize int64) ([]byte, error) {
-	var options ResizeOptions
-
+// getPreviewOptions returns resize options for the given preview size
+func getPreviewOptions(previewSize string) (ResizeOptions, error) {
 	switch previewSize {
 	case "large":
-		options = ResizeOptions{
+		return ResizeOptions{
 			Width:      640,
 			Height:     640,
 			ResizeMode: ResizeModeFit,
 			Quality:    QualityHigh,
 			Format:     FormatJpeg,
-		}
+		}, nil
 	case "small":
-		options = ResizeOptions{
+		return ResizeOptions{
 			Width:      256,
 			Height:     256,
 			ResizeMode: ResizeModeFit,
 			Quality:    QualityMedium,
 			Format:     FormatJpeg,
-		}
+		}, nil
 	default:
-		return nil, ErrUnsupportedFormat
+		return ResizeOptions{}, ErrUnsupportedFormat
 	}
+}
 
+// CreatePreview resizes an image from a reader with the given options
+func (s *Service) CreatePreview(reader io.Reader, fileSize int64, options ResizeOptions) ([]byte, error) {
 	output := &bytes.Buffer{}
 	if err := s.ResizeWithSize(reader, output, fileSize, options); err != nil {
 		return nil, err

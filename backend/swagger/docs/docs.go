@@ -4075,8 +4075,11 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "albumArt": {
-                    "description": "base64 encoded album art / video thumbnail",
-                    "type": "string"
+                    "description": "album art image data (automatically base64-encoded in JSON)",
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
                 },
                 "artist": {
                     "description": "track artist",

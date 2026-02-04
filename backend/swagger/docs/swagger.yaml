@@ -447,8 +447,10 @@ definitions:
         description: album name
         type: string
       albumArt:
-        description: base64 encoded album art / video thumbnail
-        type: string
+        description: album art image data (automatically base64-encoded in JSON)
+        items:
+          type: integer
+        type: array
       artist:
         description: track artist
         type: string
