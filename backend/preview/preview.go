@@ -9,7 +9,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -22,7 +21,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/ffmpeg"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 	"github.com/gtsteffaniak/go-logger/logger"
-	"github.com/kovidgoyal/imaging"
 )
 
 var (
@@ -164,163 +162,12 @@ func StartPreviewGenerator(concurrencyLimit int, cacheDir string) error {
 		logger.Errorf("WARNING: StartPreviewGenerator called multiple times! This will create multiple semaphores!")
 	}
 	service = NewPreviewGenerator(concurrencyLimit, cacheDir)
-
-	// Generate PWA icons after service is initialized
-	GeneratePWAIcons()
-
 	return nil
 }
 
 // GetService returns the preview service instance (can be nil if not started)
 func GetService() *Service {
 	return service
-}
-
-// GeneratePWAIcons generates all icon sizes from favicon.svg or favicon.png
-func GeneratePWAIcons() {
-	if service == nil {
-		logger.Warning("Preview service not initialized, skipping icon generation")
-		return
-	}
-
-	// Determine source icon - prefer custom, fallback to default
-	var sourceIcon string
-	var sourceData []byte
-	var err error
-	var isSVG bool
-
-	if settings.Env.FaviconIsCustom {
-		sourceIcon = settings.Env.FaviconPath
-		logger.Debugf("Generating icons from custom favicon: %s", sourceIcon)
-		isSVG = strings.ToLower(filepath.Ext(sourceIcon)) == ".svg"
-
-		// Read the source file
-		sourceData, err = os.ReadFile(sourceIcon)
-		if err != nil {
-			logger.Warningf("Failed to read custom favicon: %v", err)
-			return
-		}
-
-		// If it's not a raster format that imaging library can decode, handle separately
-		if isSVG {
-			// SVG: Set PWA icons to use SVG directly, look for PNG for raster generation
-			logger.Debug("Source is SVG - will use directly where supported")
-			settings.Env.PWAIcon192 = "pwa-icon.svg"
-			settings.Env.PWAIcon256 = "pwa-icon.svg"
-			settings.Env.PWAIcon512 = "pwa-icon.svg"
-
-			// Look for PNG in same directory with same base name
-			basePath := sourceIcon[:len(sourceIcon)-len(filepath.Ext(sourceIcon))]
-			pngPath := basePath + ".png"
-			sourceData, err = os.ReadFile(pngPath)
-			if err != nil {
-				logger.Warningf("SVG favicon provided without PNG version at %s. For best compatibility across all browsers and platforms, provide a PNG version alongside your SVG.", pngPath)
-				return
-			}
-			logger.Debugf("Using PNG version (%s) for generating raster icons", pngPath)
-		} else {
-			// For any raster format (JPEG, PNG, GIF, WebP, etc.), decode and convert to PNG
-			// This creates a standardized PNG source for all icon generation
-			img, decodeErr := imaging.Decode(bytes.NewReader(sourceData))
-			if decodeErr != nil {
-				logger.Warningf("Failed to decode favicon image: %v", decodeErr)
-				return
-			}
-			// Re-encode as PNG in memory for consistent processing
-			var buf bytes.Buffer
-			if encodeErr := imaging.Encode(&buf, img, imaging.PNG); encodeErr != nil {
-				logger.Warningf("Failed to convert favicon to PNG: %v", encodeErr)
-				return
-			}
-			sourceData = buf.Bytes()
-			logger.Debugf("Converted %s favicon to PNG for icon generation", filepath.Ext(sourceIcon))
-		}
-	} else {
-		// Use default embedded favicon - we have both SVG and PNG versions
-		logger.Debug("Generating icons from default favicon")
-		// For default, use the PNG version for raster generation
-		assetFs := fileutils.GetAssetFS()
-		if assetFs == nil {
-			logger.Warning("Asset filesystem not initialized, skipping default icon generation")
-			return
-		}
-		pngPath := "img/icons/favicon.png"
-		sourceData, err = fs.ReadFile(assetFs, pngPath)
-		if err != nil {
-			logger.Warningf("Failed to read default favicon PNG: %v", err)
-			return
-		}
-		// Set PWA icons to use SVG for modern browsers
-		settings.Env.PWAIcon192 = "pwa-icon.svg"
-		settings.Env.PWAIcon256 = "pwa-icon.svg"
-		settings.Env.PWAIcon512 = "pwa-icon.svg"
-	}
-
-	// Define all icon sizes we need to generate
-	// Format: {size, filename, envVar pointer (optional)}
-	iconSizes := []struct {
-		size int
-		name string
-		env  *string
-	}{
-		// Browser favicon
-		{32, "favicon-32x32.png", nil},
-		// PWA icons
-		{192, "pwa-icon-192.png", &settings.Env.PWAIcon192},
-		{256, "pwa-icon-256.png", &settings.Env.PWAIcon256},
-		{512, "pwa-icon-512.png", &settings.Env.PWAIcon512},
-		// Platform-specific icons
-		{180, "apple-touch-icon.png", nil}, // iOS home screen
-		{256, "mstile-256x256.png", nil},   // Windows tile
-	}
-
-	allSuccess := true
-	generatedCount := 0
-
-	for _, iconSize := range iconSizes {
-		outputPath := filepath.Join(settings.Env.PWAIconsDir, iconSize.name)
-
-		// Create output file
-		outFile, err := os.Create(outputPath)
-		if err != nil {
-			logger.Warningf("Failed to create icon %s: %v", iconSize.name, err)
-			allSuccess = false
-			continue
-		}
-
-		// Resize image using the service's Resize method
-		err = service.Resize(
-			bytes.NewReader(sourceData),
-			outFile,
-			ResizeOptions{
-				Width:      iconSize.size,
-				Height:     iconSize.size,
-				ResizeMode: ResizeModeFill,
-				Quality:    QualityHigh,
-				Format:     FormatPng,
-			},
-		)
-		outFile.Close()
-
-		if err != nil {
-			logger.Warningf("Failed to generate icon %s: %v", iconSize.name, err)
-			os.Remove(outputPath)
-			allSuccess = false
-			continue
-		}
-
-		// Update environment variable if specified
-		if iconSize.env != nil {
-			*iconSize.env = filepath.Join("icons", iconSize.name)
-		}
-		generatedCount++
-	}
-
-	if allSuccess {
-		logger.Debugf("Successfully generated %d icon sizes", generatedCount)
-	} else {
-		logger.Warningf("Generated %d/%d icon sizes (some failed)", generatedCount, len(iconSizes))
-	}
 }
 
 func GetPreviewForFile(ctx context.Context, file iteminfo.ExtendedFileInfo, previewSize, url string, seekPercentage int) ([]byte, error) {
@@ -357,6 +204,207 @@ func GetPreviewForFile(ctx context.Context, file iteminfo.ExtendedFileInfo, prev
 	return GeneratePreviewWithMD5(ctx, file, previewSize, url, seekPercentage, cacheHash)
 }
 
+// filePreviewType represents the type of preview generation needed
+type filePreviewType int
+
+const (
+	previewTypeDocument filePreviewType = iota
+	previewTypeOffice
+	previewTypeHEIC
+	previewTypeImage
+	previewTypeVideo
+	previewTypeAudio
+	previewTypeUnsupported
+)
+
+// determinePreviewType determines what type of preview generation is needed
+func determinePreviewType(file iteminfo.ExtendedFileInfo) filePreviewType {
+	// Check document conversion first
+	if iteminfo.HasDocConvertableExtension(file.Name, file.Type) {
+		return previewTypeDocument
+	}
+
+	// Check office files
+	if file.OnlyOfficeId != "" {
+		return previewTypeOffice
+	}
+
+	// Check HEIC with conversion enabled
+	if strings.HasPrefix(file.Type, "image/heic") &&
+		*settings.Config.Integrations.Media.Convert.ImagePreview[settings.HEICImagePreview] {
+		return previewTypeHEIC
+	}
+
+	// Check by MIME type prefix
+	switch {
+	case strings.HasPrefix(file.Type, "image"):
+		return previewTypeImage
+	case strings.HasPrefix(file.Type, "video"):
+		return previewTypeVideo
+	case strings.HasPrefix(file.Type, "audio"):
+		return previewTypeAudio
+	default:
+		return previewTypeUnsupported
+	}
+}
+
+// generateRawPreview generates the initial preview image bytes based on file type
+func (s *Service) generateRawPreview(ctx context.Context, file iteminfo.ExtendedFileInfo, previewSize, officeUrl string, seekPercentage int, hash string) ([]byte, error) {
+	previewType := determinePreviewType(file)
+
+	switch previewType {
+	case previewTypeDocument:
+		return s.generateDocumentPreview(ctx, file, hash)
+
+	case previewTypeOffice:
+		return s.generateOfficeFilePreview(ctx, file, officeUrl)
+
+	case previewTypeHEIC:
+		return s.generateHEICPreview(ctx, file, previewSize)
+
+	case previewTypeImage:
+		return s.generateImagePreview(ctx, file, previewSize)
+
+	case previewTypeVideo:
+		return s.generateVideoPreviewBytes(ctx, file, seekPercentage)
+
+	case previewTypeAudio:
+		return s.generateAudioPreview(file)
+
+	case previewTypeUnsupported:
+		ext := strings.ToLower(filepath.Ext(file.Name))
+		return nil, fmt.Errorf("unsupported media type: %s", ext)
+
+	default:
+		return nil, errors.New("unknown preview type")
+	}
+}
+
+// generateDocumentPreview generates preview for PDF and document files
+func (s *Service) generateDocumentPreview(ctx context.Context, file iteminfo.ExtendedFileInfo, hash string) ([]byte, error) {
+	tempFilePath := filepath.Join(s.cacheDir, "thumbnails", "docs", hash) + ".txt"
+	imageBytes, err := s.GenerateImageFromDoc(ctx, file, tempFilePath, 0) // 0 for the first page
+	if err != nil {
+		return nil, fmt.Errorf("failed to create image for PDF file: %w", err)
+	}
+	return imageBytes, nil
+}
+
+// generateOfficeFilePreview generates preview for Office files via OnlyOffice
+func (s *Service) generateOfficeFilePreview(ctx context.Context, file iteminfo.ExtendedFileInfo, officeUrl string) ([]byte, error) {
+	imageBytes, err := s.GenerateOfficePreview(ctx, filepath.Ext(file.Name), file.OnlyOfficeId, file.Name, officeUrl)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create image for office file: %w", err)
+	}
+	return imageBytes, nil
+}
+
+// generateHEICPreview generates preview for HEIC files using FFmpeg
+func (s *Service) generateHEICPreview(ctx context.Context, file iteminfo.ExtendedFileInfo, previewSize string) ([]byte, error) {
+	imageBytes, err := s.convertHEICToJPEGWithFFmpeg(ctx, file.RealPath, previewSize)
+	if err != nil {
+		return nil, fmt.Errorf("failed to process HEIC image file: %w", err)
+	}
+	return imageBytes, nil
+}
+
+// generateVideoPreviewBytes generates preview frame from video file
+func (s *Service) generateVideoPreviewBytes(ctx context.Context, file iteminfo.ExtendedFileInfo, seekPercentage int) ([]byte, error) {
+	// Check if this video format is enabled for preview generation
+	ext := strings.TrimPrefix(strings.ToLower(filepath.Ext(file.Name)), ".")
+	if !settings.CanConvertVideo(ext) {
+		return nil, fmt.Errorf("video preview generation is disabled for .%s files in settings", ext)
+	}
+
+	videoSeekPercentage := seekPercentage
+	if videoSeekPercentage == 0 {
+		videoSeekPercentage = 10
+	}
+
+	imageBytes, err := s.GenerateVideoPreview(ctx, file.RealPath, videoSeekPercentage)
+	if err != nil {
+		// Don't log client cancellations as errors
+		if ctx.Err() != context.Canceled {
+			logger.Errorf("Video preview generation failed for '%s' (path: %s, seek: %d%%): %v",
+				file.Name, file.RealPath, videoSeekPercentage, err)
+		}
+		return nil, fmt.Errorf("failed to create image for video file: %w", err)
+	}
+	return imageBytes, nil
+}
+
+// generateAudioPreview extracts album artwork from audio files
+func (s *Service) generateAudioPreview(file iteminfo.ExtendedFileInfo) ([]byte, error) {
+	if file.Metadata != nil && file.Metadata.AlbumArt != "" {
+		imageBytes, err := base64.StdEncoding.DecodeString(file.Metadata.AlbumArt)
+		if err != nil {
+			return nil, fmt.Errorf("failed to decode album artwork: %w", err)
+		}
+		return imageBytes, nil
+	}
+	return nil, nil
+}
+
+// generateImagePreview generates preview for regular image files
+func (s *Service) generateImagePreview(ctx context.Context, file iteminfo.ExtendedFileInfo, previewSize string) ([]byte, error) {
+	// Stream from file instead of os.ReadFile so we don't load every image fully into memory
+	f, err := os.Open(file.RealPath)
+	if err != nil {
+		logger.Errorf("Failed to open image file '%s' (path: %s): %v", file.Name, file.RealPath, err)
+		return nil, fmt.Errorf("failed to open image file: %w", err)
+	}
+	defer f.Close()
+
+	imageBytes, err := s.CreatePreviewFromReaderWithSize(f, previewSize, file.Size)
+	if err != nil {
+		// Check if this is an unsupported JPEG format and FFmpeg fallback is enabled
+		if s.isJPEGFallbackNeeded(file.Type, err) {
+			return s.handleJPEGFallback(ctx, file, previewSize, err)
+		}
+		return nil, fmt.Errorf("failed to create image preview: %w", err)
+	}
+
+	if len(imageBytes) < 100 {
+		logger.Errorf("Generated image too small for '%s' (type: %s): %d bytes", file.Name, file.Type, len(imageBytes))
+		return nil, fmt.Errorf("generated image is too small, likely an error occurred: %d bytes", len(imageBytes))
+	}
+
+	return imageBytes, nil
+}
+
+// isJPEGFallbackNeeded checks if we should try FFmpeg fallback for JPEG decoding errors
+func (s *Service) isJPEGFallbackNeeded(fileType string, err error) bool {
+	if !strings.HasPrefix(fileType, "image/jpeg") {
+		return false
+	}
+
+	errMsg := err.Error()
+	return strings.Contains(errMsg, "unrecognised marker") ||
+		strings.Contains(errMsg, "invalid JPEG format") ||
+		strings.Contains(errMsg, "Huffman")
+}
+
+// handleJPEGFallback attempts to use FFmpeg for problematic JPEG files
+func (s *Service) handleJPEGFallback(ctx context.Context, file iteminfo.ExtendedFileInfo, previewSize string, originalErr error) ([]byte, error) {
+	enableJPEGFallback := *settings.Config.Integrations.Media.Convert.ImagePreview[settings.JPEGImagePreview]
+
+	if !enableJPEGFallback {
+		return nil, fmt.Errorf("failed to resize preview image (unsupported JPEG format, FFmpeg conversion disabled in settings): %w", originalErr)
+	}
+
+	if s.ffmpegService == nil {
+		return nil, fmt.Errorf("failed to resize preview image (unsupported JPEG format, FFmpeg not available): %w", originalErr)
+	}
+
+	logger.Debugf("JPEG decode failed for '%s', falling back to FFmpeg: %v", file.Name, originalErr)
+	imageBytes, err := s.convertImageWithFFmpeg(ctx, file.RealPath, previewSize)
+	if err != nil {
+		return nil, fmt.Errorf("failed to resize preview image with FFmpeg fallback: %w", err)
+	}
+
+	return imageBytes, nil
+}
+
 func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo, previewSize, officeUrl string, seekPercentage int, fileMD5 string) ([]byte, error) {
 	// Note: fileMD5 is actually a cache hash (metadata-based), not a true file content MD5
 	// Validate that cache hash is not empty to prevent cache corruption
@@ -374,13 +422,11 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 	// Acquire global image processor semaphore for ALL operations
 	const largeFileSizeThreshold = 8 * 1024 * 1024 // 8MB
 	if file.Size >= largeFileSizeThreshold && service.imageLargeSem != nil {
-		// Large file path - use imageLargeSem
 		if err := service.acquireImageLargeSem(ctx); err != nil {
 			return nil, err
 		}
 		defer service.releaseImageLargeSem()
 	} else {
-		// Small file path or fallback - use imageSem
 		if err := service.acquireImageSem(ctx); err != nil {
 			return nil, err
 		}
@@ -400,122 +446,34 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 		return nil, errors.New(message)
 	}
 
-	ext := strings.ToLower(filepath.Ext(file.Name))
-	var (
-		err        error
-		imageBytes []byte
-	)
-
-	// Generate thumbnail image from video
+	// Generate hash for temp file paths
 	hasher := md5.New()
 	_, _ = hasher.Write([]byte(CacheKey(fileMD5, previewSize, seekPercentage)))
 	hash := hex.EncodeToString(hasher.Sum(nil))
 
-	// Check if HEIC conversion is enabled (guaranteed non-nil after defaults)
-	convertHEIC := strings.HasPrefix(file.Type, "image/heic") && *settings.Config.Integrations.Media.Convert.ImagePreview[settings.HEICImagePreview]
+	// Generate raw preview based on file type
+	imageBytes, err := service.generateRawPreview(ctx, file, previewSize, officeUrl, seekPercentage, hash)
+	if err != nil {
+		return nil, err
+	}
 
-	// Generate an image from office document
-	if iteminfo.HasDocConvertableExtension(file.Name, file.Type) {
-		tempFilePath := filepath.Join(service.cacheDir, "thumbnails", "docs", hash) + ".txt"
-		imageBytes, err = service.GenerateImageFromDoc(ctx, file, tempFilePath, 0) // 0 for the first page
-		if err != nil {
-			return nil, fmt.Errorf("failed to create image for PDF file: %w", err)
-		}
-	} else if file.OnlyOfficeId != "" {
-		imageBytes, err = service.GenerateOfficePreview(ctx, filepath.Ext(file.Name), file.OnlyOfficeId, file.Name, officeUrl)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create image for office file: %w", err)
-		}
-	} else if convertHEIC {
-		// HEIC files need FFmpeg conversion to JPEG with proper size/quality handling
-		imageBytes, err = service.convertHEICToJPEGWithFFmpeg(ctx, file.RealPath, previewSize)
-		if err != nil {
-			return nil, fmt.Errorf("failed to process HEIC image file: %w", err)
-		}
-		// For HEIC files, we've already done the resize/conversion, so cache and return directly
+	// For HEIC files, we've already done the resize/conversion, cache and return directly
+	previewType := determinePreviewType(file)
+	if previewType == previewTypeHEIC {
 		cacheKey := CacheKey(fileMD5, previewSize, seekPercentage)
 		if err = service.fileCache.Store(ctx, cacheKey, imageBytes); err != nil {
 			logger.Errorf("failed to cache HEIC image: %v", err)
 		}
 		return imageBytes, nil
-	} else if strings.HasPrefix(file.Type, "image") {
-		// Stream from file instead of os.ReadFile so we don't load every image fully into memory.
-		// ResizeWithSize() holds the imaging semaphore and only reads in chunks / decodes one at a time.
-		f, openErr := os.Open(file.RealPath)
-		if openErr != nil {
-			logger.Errorf("Failed to open image file '%s' (path: %s): %v", file.Name, file.RealPath, openErr)
-			return nil, fmt.Errorf("failed to open image file: %w", openErr)
-		}
-		defer f.Close()
-		imageBytes, err = service.CreatePreviewFromReaderWithSize(f, previewSize, file.Size)
-		if err != nil {
-			// Check if this is an unsupported JPEG format and FFmpeg fallback is enabled
-			errMsg := err.Error()
-			if strings.HasPrefix(file.Type, "image/jpeg") &&
-				(strings.Contains(errMsg, "unrecognised marker") ||
-					strings.Contains(errMsg, "invalid JPEG format") ||
-					strings.Contains(errMsg, "Huffman")) {
-				enableJPEGFallback := *settings.Config.Integrations.Media.Convert.ImagePreview[settings.JPEGImagePreview]
-				if enableJPEGFallback && service.ffmpegService != nil {
-					logger.Debugf("JPEG decode failed for '%s', falling back to FFmpeg: %v", file.Name, err)
-					imageBytes, err = service.convertImageWithFFmpeg(ctx, file.RealPath, previewSize)
-					if err != nil {
-						return nil, fmt.Errorf("failed to resize preview image with FFmpeg fallback: %w", err)
-					}
-					cacheKey := CacheKey(fileMD5, previewSize, seekPercentage)
-					if err = service.fileCache.Store(ctx, cacheKey, imageBytes); err != nil {
-						logger.Errorf("failed to cache FFmpeg-converted image: %v", err)
-					}
-					return imageBytes, nil
-				}
-				if !enableJPEGFallback {
-					return nil, fmt.Errorf("failed to resize preview image (unsupported JPEG format, FFmpeg conversion disabled in settings): %w", err)
-				}
-				return nil, fmt.Errorf("failed to resize preview image (unsupported JPEG format, FFmpeg not available): %w", err)
-			}
-			return nil, fmt.Errorf("failed to create image preview: %w", err)
-		}
-		if len(imageBytes) < 100 {
-			logger.Errorf("Generated image too small for '%s' (type: %s): %d bytes", file.Name, file.Type, len(imageBytes))
-			return nil, fmt.Errorf("generated image is too small, likely an error occurred: %d bytes", len(imageBytes))
-		}
+	}
+
+	// For regular images that were already resized, cache and return
+	if previewType == previewTypeImage {
 		cacheKey := CacheKey(fileMD5, previewSize, seekPercentage)
 		if err = service.fileCache.Store(ctx, cacheKey, imageBytes); err != nil {
 			logger.Errorf("failed to cache image: %v", err)
 		}
 		return imageBytes, nil
-	} else if strings.HasPrefix(file.Type, "video") {
-		// Check if this video format is enabled for preview generation
-		ext = strings.TrimPrefix(strings.ToLower(filepath.Ext(file.Name)), ".")
-		if !settings.CanConvertVideo(ext) {
-			return nil, fmt.Errorf("video preview generation is disabled for .%s files in settings", ext)
-		}
-
-		videoSeekPercentage := seekPercentage
-		if videoSeekPercentage == 0 {
-			videoSeekPercentage = 10
-		}
-		imageBytes, err = service.GenerateVideoPreview(ctx, file.RealPath, videoSeekPercentage)
-		if err != nil {
-			// Don't log client cancellations as errors
-			if ctx.Err() != context.Canceled {
-				logger.Errorf("Video preview generation failed for '%s' (path: %s, seek: %d%%): %v",
-					file.Name, file.RealPath, videoSeekPercentage, err)
-			}
-			return nil, fmt.Errorf("failed to create image for video file: %w", err)
-		}
-	} else if strings.HasPrefix(file.Type, "audio") {
-		// Extract album artwork from audio files
-		if file.Metadata != nil && file.Metadata.AlbumArt != "" {
-			imageBytes, err = base64.StdEncoding.DecodeString(file.Metadata.AlbumArt)
-			if err != nil {
-				return nil, fmt.Errorf("failed to decode album artwork: %w", err)
-			}
-		} else {
-			return nil, nil
-		}
-	} else {
-		return nil, fmt.Errorf("unsupported media type: %s", ext)
 	}
 
 	// Check if context was cancelled during processing
@@ -523,62 +481,42 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 		return nil, ctx.Err()
 	}
 
+	// Validate generated image size
 	if len(imageBytes) < 100 {
 		logger.Errorf("Generated image too small for '%s' (type: %s): %d bytes - likely an error occurred",
 			file.Name, file.Type, len(imageBytes))
 		return nil, fmt.Errorf("generated image is too small, likely an error occurred: %d bytes", len(imageBytes))
 	}
 
+	// Resize if needed (for videos, audio, documents, office files)
 	if previewSize != "original" {
-		// resize image
 		resizedBytes, err := service.CreatePreview(imageBytes, previewSize)
 		if err != nil {
-			// Check if this is an unsupported JPEG format (extended sequential, etc.)
-			errMsg := err.Error()
-			if strings.HasPrefix(file.Type, "image/jpeg") &&
-				(strings.Contains(errMsg, "unrecognised marker") ||
-					strings.Contains(errMsg, "invalid JPEG format") ||
-					strings.Contains(errMsg, "Huffman")) {
-
-				// Check if JPEG FFmpeg conversion is enabled (guaranteed non-nil after defaults)
-				enableJPEGFallback := *settings.Config.Integrations.Media.Convert.ImagePreview[settings.JPEGImagePreview]
-
-				// Only attempt FFmpeg fallback if it's enabled and FFmpeg service is available
-				if enableJPEGFallback && service.ffmpegService != nil {
-					// Fall back to FFmpeg for problematic JPEG files
-					logger.Debugf("JPEG decode failed for '%s', falling back to FFmpeg: %v", file.Name, err)
-					resizedBytes, err = service.convertImageWithFFmpeg(ctx, file.RealPath, previewSize)
-					if err != nil {
-						return nil, fmt.Errorf("failed to resize preview image with FFmpeg fallback: %w", err)
-					}
-					// Cache and return the FFmpeg-converted image
-					cacheKey := CacheKey(fileMD5, previewSize, seekPercentage)
-					if err = service.fileCache.Store(ctx, cacheKey, resizedBytes); err != nil {
-						logger.Errorf("failed to cache FFmpeg-converted image: %v", err)
-					}
-					return resizedBytes, nil
+			// Check if this is an unsupported JPEG format during resize
+			if service.isJPEGFallbackNeeded(file.Type, err) {
+				resizedBytes, err = service.handleJPEGFallback(ctx, file, previewSize, err)
+				if err != nil {
+					return nil, err
 				}
-				// If FFmpeg fallback is disabled or not available, return the original error
-				if !enableJPEGFallback {
-					return nil, fmt.Errorf("failed to resize preview image (unsupported JPEG format, FFmpeg conversion disabled in settings): %w", err)
-				}
-				return nil, fmt.Errorf("failed to resize preview image (unsupported JPEG format, FFmpeg not available): %w", err)
+			} else {
+				return nil, fmt.Errorf("failed to resize preview image: %w", err)
 			}
-			return nil, fmt.Errorf("failed to resize preview image: %w", err)
 		}
-		// Cache and return
+
+		// Cache and return resized image
 		cacheKey := CacheKey(fileMD5, previewSize, seekPercentage)
 		if err := service.fileCache.Store(ctx, cacheKey, resizedBytes); err != nil {
 			logger.Errorf("failed to cache resized image: %v", err)
 		}
 		return resizedBytes, nil
-	} else {
-		cacheKey := CacheKey(fileMD5, previewSize, seekPercentage)
-		if err := service.fileCache.Store(ctx, cacheKey, imageBytes); err != nil {
-			logger.Errorf("failed to cache original image: %v", err)
-		}
-		return imageBytes, nil
 	}
+
+	// Cache and return original size
+	cacheKey := CacheKey(fileMD5, previewSize, seekPercentage)
+	if err := service.fileCache.Store(ctx, cacheKey, imageBytes); err != nil {
+		logger.Errorf("failed to cache original image: %v", err)
+	}
+	return imageBytes, nil
 }
 
 func GeneratePreview(ctx context.Context, file iteminfo.ExtendedFileInfo, previewSize, officeUrl string, seekPercentage int) ([]byte, error) {

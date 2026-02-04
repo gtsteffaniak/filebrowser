@@ -19,6 +19,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/database/storage/bolt"
 	"github.com/gtsteffaniak/filebrowser/backend/ffmpeg"
 	fbhttp "github.com/gtsteffaniak/filebrowser/backend/http"
+	"github.com/gtsteffaniak/filebrowser/backend/icons"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/preview"
 	"github.com/gtsteffaniak/filebrowser/backend/swagger/docs"
@@ -194,13 +195,19 @@ func rootCMD(ctx context.Context, store *bolt.BoltStore, serverConfig *settings.
 		fileutils.InitAssetFS(nil, false)
 	}
 	
-	// setup disk cache
+	// Start preview service
 	err := preview.StartPreviewGenerator(numWorkers, cacheDir)
 	if err != nil {
 		logger.Fatalf("Error starting preview service: %v", err)
 	}
 	logger.Debugf("MuPDF Enabled            : %v", settings.Env.MuPdfAvailable)
 	logger.Debugf("Media Enabled            : %v", settings.MediaEnabled())
+	
+	// Generate PWA icons after preview service is initialized
+	if err := icons.GeneratePWAIcons(); err != nil {
+		logger.Warningf("Failed to generate PWA icons: %v", err)
+	}
+	
 	fbhttp.StartHttp(ctx, store, shutdownComplete)
 	return nil
 }
