@@ -5,7 +5,6 @@ import (
 	"image"
 	"image/jpeg"
 	"io"
-	"strings"
 
 	exif "github.com/dsoprea/go-exif/v3"
 	exifcommon "github.com/dsoprea/go-exif/v3/common"
@@ -176,8 +175,8 @@ func (s *Service) ResizeWithSize(in io.Reader, out io.Writer, fileSize int64, op
 		opts.Format = FormatJpeg
 	}
 	// Ensure JPEG quality is set based on quality setting
-	if config.jpegQuality == 0 {
-		config.jpegQuality = config.quality.jpegQuality()
+	if opts.JpegQuality == 0 {
+		opts.JpegQuality = opts.Quality.jpegQuality()
 	}
 
 	// Try to use embedded EXIF thumbnail for JPEGs (only for low quality to keep it simple)
