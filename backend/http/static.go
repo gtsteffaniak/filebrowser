@@ -301,7 +301,7 @@ func staticAssetHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		// Fall back to default favicon SVG
 		assetPath = settings.Env.FaviconEmbeddedPath
-	case "favicon-16x16.png", "favicon-32x32.png",
+	case "favicon-32x32.png",
 		"pwa-icon-192.png", "pwa-icon-256.png", "pwa-icon-512.png",
 		"apple-touch-icon.png":
 		// Serve generated icons from cache directory
